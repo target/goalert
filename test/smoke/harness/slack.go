@@ -1,13 +1,12 @@
 package harness
 
 import (
-	"context"
+	"fmt"
 	"net/http/httptest"
 	"sort"
 	"strings"
 	"time"
 
-	"github.com/jackc/pgx/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/devtools/mockslack"
@@ -20,6 +19,7 @@ const (
 type SlackServer interface {
 	Channel(string) SlackChannel
 	User(string) SlackUser
+	UserGroup(string) SlackUserGroup
 
 	WaitAndAssert()
 }
@@ -37,6 +37,15 @@ type SlackChannel interface {
 
 	ExpectMessage(keywords ...string) SlackMessage
 	ExpectEphemeralMessage(keywords ...string) SlackMessage
+}
+
+type SlackUserGroup interface {
+	ID() string
+	Name() string
+	ErrorChannel() SlackChannel
+
+	ExpectUsers(names ...string)
+	ExpectUserIDs(ids ...string)
 }
 
 type SlackMessageState interface {
@@ -78,6 +87,7 @@ type slackServer struct {
 	*mockslack.Server
 	hasFailure bool
 	channels   map[string]*slackChannel
+	ug         map[string]*slackUserGroup
 }
 
 type slackChannel struct {
@@ -197,6 +207,55 @@ func (s *slackServer) Channel(name string) SlackChannel {
 	s.channels[name] = ch
 
 	return ch
+}
+
+type slackUserGroup struct {
+	h       *Harness
+	name    string
+	ugID    string
+	channel SlackChannel
+}
+
+func (s *slackServer) UserGroup(name string) SlackUserGroup {
+	ug := s.ug[name]
+	if ug != nil {
+		return ug
+	}
+
+	mUG := s.NewUserGroup(name)
+	ch := s.Channel("ug:" + name)
+
+	ug = &slackUserGroup{h: s.h, name: fmt.Sprintf("@%s (%s)", name, ch.Name()), ugID: mUG.ID, channel: ch}
+
+	s.ug[name] = ug
+
+	return ug
+}
+
+func (ug *slackUserGroup) ID() string                 { return ug.ugID + ":" + ug.channel.ID() }
+func (ug *slackUserGroup) Name() string               { return ug.name }
+func (ug *slackUserGroup) ErrorChannel() SlackChannel { return ug.channel }
+
+func (ug *slackUserGroup) ExpectUsers(names ...string) {
+	ug.h.t.Helper()
+
+	var ids []string
+	for _, name := range names {
+		ids = append(ids, ug.h.Slack().User(name).ID())
+	}
+	ug.ExpectUserIDs(ids...)
+}
+
+func (ug *slackUserGroup) ExpectUserIDs(ids ...string) {
+	ug.h.t.Helper()
+
+	require.EventuallyWithT(ug.h.t, func(t *assert.CollectT) {
+		if assert.ElementsMatch(t, ug.h.slack.UserGroupUserIDs(ug.ugID), ids, "List A = expected; List B = actual") {
+			return
+		}
+
+		ug.h.Trigger()
+	}, 15*time.Second, time.Millisecond, "UserGroup Users should match")
 }
 
 func (ch *slackChannel) ID() string   { return ch.id }
@@ -326,6 +385,7 @@ func (h *Harness) initSlack() {
 	h.slack = &slackServer{
 		h:        h,
 		channels: make(map[string]*slackChannel),
+		ug:       make(map[string]*slackUserGroup),
 		Server:   mockslack.NewServer(),
 	}
 	h.slackS = httptest.NewServer(h.slack)
@@ -336,15 +396,4 @@ func (h *Harness) initSlack() {
 	h.slackUser = h.slack.NewUser("GoAlert Smoketest User")
 
 	h.slack.SetURLPrefix(h.slackS.URL)
-}
-
-// LinkSlackUser creates a link between the GraphQL user and the smoketest Slack user.
-func (h *Harness) LinkSlackUser() {
-	conn, err := pgx.Connect(context.Background(), h.dbURL)
-	require.NoError(h.t, err)
-	defer conn.Close(context.Background())
-
-	_, err = conn.Exec(context.Background(), `insert into auth_subjects (provider_id, subject_id, user_id) values ($1, $2, $3)`,
-		"slack:"+h.slackApp.TeamID, h.slackUser.ID, DefaultGraphQLAdminUserID)
-	require.NoError(h.t, err, "insert Slack auth subject")
 }

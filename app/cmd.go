@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	toml "github.com/pelletier/go-toml"
+	"github.com/pelletier/go-toml/v2"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -354,13 +354,13 @@ Migration: %s (#%d)
 				return errors.New("config file is required")
 			}
 
-			t, err := toml.LoadFile(file)
+			data, err := os.ReadFile(file)
 			if err != nil {
 				return err
 			}
 
 			var cfg remotemonitor.Config
-			err = t.Unmarshal(&cfg)
+			err = toml.Unmarshal(data, &cfg)
 			if err != nil {
 				return err
 			}
@@ -631,8 +631,7 @@ func getConfig(ctx context.Context) (Config, error) {
 		DBURL:     viper.GetString("db-url"),
 		DBURLNext: viper.GetString("db-url-next"),
 
-		KubernetesCooldown: viper.GetDuration("kubernetes-cooldown"),
-		StatusAddr:         viper.GetString("status-addr"),
+		StatusAddr: viper.GetString("status-addr"),
 
 		EncryptionKeys: keyring.Keys{[]byte(viper.GetString("data-encryption-key")), []byte(viper.GetString("data-encryption-key-old"))},
 
@@ -754,7 +753,8 @@ func init() {
 	RootCmd.Flags().Float64("tracing-probability", 0, "Probability of a new trace to be recorded.")
 	_ = RootCmd.Flags().MarkDeprecated("tracing-probability", "Tracing support has been removed.")
 
-	RootCmd.Flags().Duration("kubernetes-cooldown", def.KubernetesCooldown, "Cooldown period, from the last TCP connection, before terminating the listener when receiving a shutdown signal.")
+	RootCmd.Flags().Duration("kubernetes-cooldown", 0, "Cooldown period, from the last TCP connection, before terminating the listener when receiving a shutdown signal.")
+	_ = RootCmd.Flags().MarkDeprecated("kubernetes-cooldown", "Use lifecycle hooks (preStop) instead.")
 	RootCmd.Flags().String("status-addr", def.StatusAddr, "Open a port to emit status updates. Connections are closed when the server shuts down. Can be used to keep containers running until GoAlert has exited.")
 
 	RootCmd.PersistentFlags().String("data-encryption-key", "", "Used to generate an encryption key for sensitive data like signing keys. Can be any length. Only use this when performing a switchover.")

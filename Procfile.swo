@@ -37,3 +37,5 @@ ga9: ./bin/goalert -l=localhost:3057 --ui-dir=web/src/build --db-url=postgres://
 proxy: go run ./devtools/simpleproxy -addr localhost:3030 /=http://localhost:3040,http://localhost:3050,http://localhost:3051,http://localhost:3052,http://localhost:3053,http://localhost:3054,http://localhost:3055,http://localhost:3056,http://localhost:3057
 
 slow: go run github.com/kffl/speedbump --host localhost --port=5435 --latency=10ms --saw-amplitude=25ms --saw-period=1s localhost:5432
+
+oidc: ./bin/mockoidc

@@ -37,6 +37,8 @@ func SetCookieAge(w http.ResponseWriter, req *http.Request, name, value string, 
 		Path:   cookiePath,
 		Value:  value,
 		MaxAge: int(age.Seconds()),
+
+		SameSite: http.SameSiteStrictMode,
 	})
 }
 

@@ -49,8 +49,7 @@ type Config struct {
 	DBURL     string
 	DBURLNext string
 
-	KubernetesCooldown time.Duration
-	StatusAddr         string
+	StatusAddr string
 
 	EngineCycleTime time.Duration
 

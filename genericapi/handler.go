@@ -88,6 +88,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	summary := r.FormValue("summary")
 	details := r.FormValue("details")
 	action := r.FormValue("action")
+	dedup := r.FormValue("dedup")
 
 	ct, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if ct == "application/json" {
@@ -98,7 +99,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var b struct {
-			Summary, Details, Action *string
+			Summary, Details, Action, Dedup *string
 		}
 		err = json.Unmarshal(data, &b)
 		if err != nil {
@@ -111,6 +112,9 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		}
 		if b.Details != nil {
 			details = *b.Details
+		}
+		if b.Dedup != nil {
+			dedup = *b.Dedup
 		}
 		if b.Action != nil {
 			action = *b.Action
@@ -130,7 +134,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		Details:   details,
 		Source:    alert.SourceGeneric,
 		ServiceID: serviceID,
-		Dedup:     alert.NewUserDedup(r.FormValue("dedup")),
+		Dedup:     alert.NewUserDedup(dedup),
 		Status:    status,
 	}
 

@@ -221,6 +221,7 @@ export default function ScheduleOnCallNotificationsForm(
             fullWidth
             value={props.value.type}
             required
+            name='notificationType'
             label='Type'
             select
             onChange={handleTypeChange}

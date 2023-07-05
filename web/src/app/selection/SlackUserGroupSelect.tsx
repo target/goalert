@@ -66,9 +66,10 @@ export const SlackUserGroupSelect: React.FC<SlackUserGroupSelectProps> = (
     <React.Fragment>
       <FormControl error={Boolean(props.error)}>
         <SlackUserGroupQuerySelect
+          name='selectUserGroup'
+          label={props.label}
           value={groupID}
           onChange={handleGroupChange}
-          label={props.label}
         />
         <FormHelperText>
           The selected group's membership will be replaced/set to the schedule's
@@ -78,6 +79,7 @@ export const SlackUserGroupSelect: React.FC<SlackUserGroupSelectProps> = (
 
       <FormControl style={{ marginTop: '0.5em' }} error={Boolean(props.error)}>
         <SlackChannelSelect
+          name='errorChannel'
           label='Error Channel'
           value={channelID}
           onChange={handleChannelChange}

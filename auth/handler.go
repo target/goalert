@@ -320,9 +320,12 @@ func (h *Handler) IdentityProviderHandler(id string) http.HandlerFunc {
 				errutil.HTTPError(ctx, w, validation.NewFieldError("login_redir", err.Error()))
 				return
 			}
-			refU, err = url.Parse(c.Value)
-			if err != nil {
-				errutil.HTTPError(ctx, w, validation.NewFieldError("login_redir", err.Error()))
+			refU, _ = url.Parse(c.Value)
+			if refU == nil || !cfg.ValidReferer(req.URL.String(), c.Value) {
+				// redirect with err
+				q := make(url.Values)
+				q.Set("login_error", "invalid referer")
+				http.Redirect(w, req, cfg.CallbackURL("", q), http.StatusTemporaryRedirect)
 				return
 			}
 		}
