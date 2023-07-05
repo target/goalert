@@ -43,14 +43,8 @@ export const renderMenuItem = (
       </span>
     </MenuTooltip>
   ) : (
-    <MenuItem
-      key={value}
-      value={value}
-      sx={{ paddingTop: 2.5, paddingBottom: 2.5 }}
-    >
-      <ListItemText sx={{ position: 'absolute', margin: 0 }}>
-        {label ?? value}
-      </ListItemText>
+    <MenuItem key={value} value={value}>
+      <ListItemText sx={{ margin: 0 }}>{label ?? value}</ListItemText>
     </MenuItem>
   )
 }
