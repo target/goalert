@@ -618,7 +618,7 @@ function testSchedules(screen: ScreenFormat): void {
 
 testScreen('Schedules', testSchedules)
 
-testScreenWithFlags(
+testScreen(
   'Slack User Group Support',
   (screen: ScreenFormat) => {
     describe('Schedule On-Call Notifications', () => {
@@ -674,6 +674,5 @@ testScreenWithFlags(
         cy.get('#content').should('contain', 'Notifies Mon at 12:00 AM')
       })
     })
-  },
-  ['slack-ug'],
+  }
 )
