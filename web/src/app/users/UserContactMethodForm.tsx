@@ -4,10 +4,10 @@ import TextField from '@mui/material/TextField'
 import React, { useMemo } from 'react'
 import { ContactMethodType, StatusUpdateState } from '../../schema'
 import { FormContainer, FormField } from '../forms'
+import { renderMenuItem } from '../selection/DisableableMenuItem'
 import { useConfigValue } from '../util/RequireConfig'
 import TelTextField from '../util/TelTextField'
 import { FieldError } from '../util/errutil'
-import { renderContactMethod } from './UserContactMethodMenuItem'
 
 type Value = {
   name: string
@@ -210,7 +210,7 @@ export default function UserContactMethodForm(
             disabled={edit}
             component={TextField}
           >
-            {contactMethods.map(renderContactMethod)}
+            {contactMethods.map(renderMenuItem)}
           </FormField>
         </Grid>
         <Grid item xs={12}>

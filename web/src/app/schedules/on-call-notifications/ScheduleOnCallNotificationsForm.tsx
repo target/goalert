@@ -14,12 +14,12 @@ import React, { useMemo } from 'react'
 import { TargetType } from '../../../schema'
 import { FormContainer, FormField } from '../../forms'
 import { SlackChannelSelect, SlackUserGroupSelect } from '../../selection'
+import { renderMenuItem } from '../../selection/DisableableMenuItem'
 import { ISOTimePicker } from '../../util/ISOPickers'
 import { useConfigValue } from '../../util/RequireConfig'
 import { Time } from '../../util/Time'
 import { useExpFlag } from '../../util/useExpFlag'
 import { useScheduleTZ } from '../useScheduleTZ'
-import { renderNotificationType } from './NotificationTypeMenuItem'
 import { EVERY_DAY, NO_DAY, RuleFieldError, Value } from './util'
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -226,7 +226,7 @@ export default function ScheduleOnCallNotificationsForm(
             onChange={handleTypeChange}
             disabled={notificationChannels.length <= 1}
           >
-            {notificationChannels.map(renderNotificationType)}
+            {notificationChannels.map(renderMenuItem)}
           </TextField>
         </Grid>
         {renderTypeFields(formProps.value.type)}
