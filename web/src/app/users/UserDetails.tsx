@@ -200,7 +200,7 @@ export default function UserDetails(props: {
           label='Add Items'
           actions={[
             {
-              label: 'Add Contact Method',
+              label: 'Create Contact Method',
               icon: <SettingsPhone />,
               onClick: () => setCreateCM(true),
             },

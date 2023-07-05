@@ -3,13 +3,10 @@ import { gql, useQuery } from 'urql'
 import _ from 'lodash'
 import { Redirect } from 'wouter'
 import { Edit, Delete } from '@mui/icons-material'
-
-import CreateFAB from '../lists/CreateFAB'
 import DetailsPage from '../details/DetailsPage'
 import RotationEditDialog from './RotationEditDialog'
 import RotationDeleteDialog from './RotationDeleteDialog'
 import RotationUserList from './RotationUserList'
-import RotationAddUserDialog from './RotationAddUserDialog'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import Spinner from '../loading/components/Spinner'
 import { ObjectNotFound, GenericError } from '../error-pages'
@@ -42,7 +39,6 @@ export default function RotationDetails(props: {
 }): JSX.Element {
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
-  const [showAddUser, setShowAddUser] = useState(false)
 
   const [{ data: _data, fetching, error }] = useQuery({
     query,
@@ -63,14 +59,6 @@ export default function RotationDetails(props: {
 
   return (
     <React.Fragment>
-      <CreateFAB title='Add User' onClick={() => setShowAddUser(true)} />
-      {showAddUser && (
-        <RotationAddUserDialog
-          rotationID={props.rotationID}
-          userIDs={data.userIDs}
-          onClose={() => setShowAddUser(false)}
-        />
-      )}
       {showEdit && (
         <RotationEditDialog
           rotationID={props.rotationID}

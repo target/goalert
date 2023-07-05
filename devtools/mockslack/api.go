@@ -33,3 +33,11 @@ type Message struct {
 
 	Actions []Action
 }
+
+type UserGroup struct {
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Handle string `json:"handle"`
+
+	IsUserGroup bool `json:"is_usergroup"`
+}

@@ -10,11 +10,15 @@ const wsEnv = {
   GOALERT_ENGINE_CYCLE_TIME: '50ms',
   GOALERT_STRICT_EXPERIMENTAL: '1',
   GOALERT_LOG_ERRORS_ONLY: '1',
+  GOCOVERDIR: process.env.GOCOVERDIR,
 }
 
 const config = {
   testDir: './test/integration',
   globalSetup: require.resolve('./test/integration/setup/global-setup.ts'),
+  globalTeardown: require.resolve(
+    './test/integration/setup/global-teardown.ts',
+  ),
   retries: process.env.CI ? 3 : 0,
   use: {
     trace: 'on-first-retry',
@@ -49,15 +53,24 @@ const config = {
       port: 6125,
     },
     {
+      command: './bin/mockoidc -addr=127.0.0.1:9997',
+      port: 9997,
+    },
+    {
+      command: './bin/goalert.cover -l=localhost:6120', // no public url (fallback code)
+      env: { ...wsEnv, GOALERT_PUBLIC_URL: '' },
+      url: 'http://localhost:6120/health',
+    },
+    {
       command:
-        './bin/goalert -l=localhost:6130 --public-url=http://localhost:6130',
+        './bin/goalert.cover -l=localhost:6130 --public-url=http://localhost:6130',
       env: wsEnv,
       url: 'http://localhost:6130/health',
     },
 
     // generate a web server for each unique flag combination
     ...scanUniqueFlagCombos().map((flagStr, i) => ({
-      command: `./bin/goalert -l=localhost:${
+      command: `./bin/goalert.cover -l=localhost:${
         i + 6131
       } --public-url=http://localhost:${i + 6131} --experimental=${flagStr}`,
       env: wsEnv,
