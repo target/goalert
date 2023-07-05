@@ -37,7 +37,7 @@ PUBLIC_URL := http://localhost:3030$(HTTP_PREFIX)
 export GOALERT_PUBLIC_URL := $(PUBLIC_URL)
 
 # used to enable experimental features, use `goalert --list-experimental` to see available features or check the expflag package
-EXPERIMENTAL := chan-webhook,slack-ug
+EXPERIMENTAL :=
 export GOALERT_EXPERIMENTAL := $(EXPERIMENTAL)
 
 ifeq ($(CI), 1)
