@@ -8,6 +8,16 @@ export interface DisableableMenuItemFields {
   disabledMessage: string
 }
 
+export function sortDisableableMenuItems(
+  a: DisableableMenuItemFields,
+  b: DisableableMenuItemFields,
+): number {
+  if (a.disabled === b.disabled) {
+    return 0
+  }
+  return a.disabled ? 1 : -1
+}
+
 // the parent Form element is looking for the value prop, which doesn't exist on
 // the base Tooltip.
 const MenuTooltip = (props: TooltipProps & { value: string }): JSX.Element => {

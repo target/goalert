@@ -4,7 +4,10 @@ import TextField from '@mui/material/TextField'
 import React, { useMemo } from 'react'
 import { ContactMethodType, StatusUpdateState } from '../../schema'
 import { FormContainer, FormField } from '../forms'
-import { renderMenuItem } from '../selection/DisableableMenuItem'
+import {
+  renderMenuItem,
+  sortDisableableMenuItems,
+} from '../selection/DisableableMenuItem'
 import { useConfigValue } from '../util/RequireConfig'
 import TelTextField from '../util/TelTextField'
 import { FieldError } from '../util/errutil'
@@ -173,7 +176,7 @@ export default function UserContactMethodForm(
           disabledMessage: 'Slack must be configured by an administrator',
           disabled: !slackEnabled,
         },
-      ].sort((cm) => (cm.disabled ? 1 : 0)),
+      ].sort(sortDisableableMenuItems),
     [smsVoiceEnabled, emailEnabled, webhookEnabled, slackEnabled],
   )
 

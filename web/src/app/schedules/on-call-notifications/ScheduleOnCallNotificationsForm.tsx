@@ -14,7 +14,10 @@ import React, { useMemo } from 'react'
 import { TargetType } from '../../../schema'
 import { FormContainer, FormField } from '../../forms'
 import { SlackChannelSelect, SlackUserGroupSelect } from '../../selection'
-import { renderMenuItem } from '../../selection/DisableableMenuItem'
+import {
+  renderMenuItem,
+  sortDisableableMenuItems,
+} from '../../selection/DisableableMenuItem'
 import { ISOTimePicker } from '../../util/ISOPickers'
 import { useConfigValue } from '../../util/RequireConfig'
 import { Time } from '../../util/Time'
@@ -99,7 +102,7 @@ export default function ScheduleOnCallNotificationsForm(
               },
             ]
           : []),
-      ].sort((nc) => (nc.disabled ? 1 : 0)),
+      ].sort(sortDisableableMenuItems),
     [slackEnabled, slackUGEnabled, webhookEnabled, webhookChannelEnabled],
   )
 
