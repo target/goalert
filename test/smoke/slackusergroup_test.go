@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/test/smoke/harness"
 )
 
@@ -37,7 +36,7 @@ func TestSlackUserGroups(t *testing.T) {
 	values
 		({{uuid "sid"}}, '{"V1":{"OnCallNotificationRules": [{"ChannelID": {{uuidJSON "ug"}}, "Time": "00:00" }]}}');
 `
-	h := harness.NewHarnessWithFlags(t, sql, "slack-ug", expflag.FlagSet{expflag.SlackUserGroups})
+	h := harness.NewHarness(t, sql, "slack-ug")
 
 	defer h.Close()
 

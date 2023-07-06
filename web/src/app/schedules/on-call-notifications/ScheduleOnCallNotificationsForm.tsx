@@ -47,7 +47,6 @@ export default function ScheduleOnCallNotificationsForm(
   const [slackEnabled] = useConfigValue('Slack.Enable')
   const [webhookEnabled] = useConfigValue('Webhook.Enable')
   const webhookChannelEnabled = useExpFlag('chan-webhook')
-  const slackUGEnabled = useExpFlag('slack-ug')
   const { zone } = useScheduleTZ(scheduleID)
 
   const handleRuleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -82,16 +81,13 @@ export default function ScheduleOnCallNotificationsForm(
           disabledMessage: 'Slack must be configured by an administrator',
           disabled: !slackEnabled,
         },
-        ...(slackUGEnabled
-          ? [
-              {
-                value: 'slackUserGroup',
-                label: 'SLACK USER GROUP',
-                disabledMessage: 'Slack must be configured by an administrator',
-                disabled: !slackEnabled,
-              },
-            ]
-          : []),
+
+        {
+          value: 'slackUserGroup',
+          label: 'SLACK USER GROUP',
+          disabledMessage: 'Slack must be configured by an administrator',
+          disabled: !slackEnabled,
+        },
         ...(webhookChannelEnabled
           ? [
               {
@@ -103,7 +99,7 @@ export default function ScheduleOnCallNotificationsForm(
             ]
           : []),
       ].sort(sortDisableableMenuItems),
-    [slackEnabled, slackUGEnabled, webhookEnabled, webhookChannelEnabled],
+    [slackEnabled, webhookEnabled, webhookChannelEnabled],
   )
 
   function renderTypeFields(type: TargetType): JSX.Element {
