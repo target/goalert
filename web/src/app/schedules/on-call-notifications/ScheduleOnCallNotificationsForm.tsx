@@ -2,7 +2,6 @@ import {
   Checkbox,
   FormControlLabel,
   Grid,
-  MenuItem,
   Radio,
   RadioGroup,
   TextField,
@@ -12,15 +11,19 @@ import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
 import React, { useMemo } from 'react'
 
+import { TargetType } from '../../../schema'
 import { FormContainer, FormField } from '../../forms'
+import { SlackChannelSelect, SlackUserGroupSelect } from '../../selection'
+import {
+  renderMenuItem,
+  sortDisableableMenuItems,
+} from '../../selection/DisableableMenuItem'
 import { ISOTimePicker } from '../../util/ISOPickers'
 import { useConfigValue } from '../../util/RequireConfig'
 import { Time } from '../../util/Time'
 import { useExpFlag } from '../../util/useExpFlag'
 import { useScheduleTZ } from '../useScheduleTZ'
 import { EVERY_DAY, NO_DAY, RuleFieldError, Value } from './util'
-import { TargetType } from '../../../schema'
-import { SlackUserGroupSelect, SlackChannelSelect } from '../../selection'
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -69,36 +72,33 @@ export default function ScheduleOnCallNotificationsForm(
     }
   }
 
-  const channelTypeItems = useMemo(
-    () => [
-      <MenuItem
-        key='SLACK_CHANNEL'
-        value='slackChannel'
-        disabled={!slackEnabled}
-      >
-        SLACK CHANNEL
-      </MenuItem>,
+  const notificationChannels = useMemo(
+    () =>
       [
-        <MenuItem
-          key='SLACK_UG'
-          value='slackUserGroup'
-          disabled={!slackEnabled}
-        >
-          SLACK USER GROUP
-        </MenuItem>,
-      ],
-      ...(webhookChannelEnabled
-        ? [
-            <MenuItem
-              key='WEBHOOK'
-              value='chanWebhook'
-              disabled={!webhookEnabled}
-            >
-              WEBHOOK
-            </MenuItem>,
-          ]
-        : []),
-    ],
+        {
+          value: 'slackChannel',
+          label: 'SLACK CHANNEL',
+          disabledMessage: 'Slack must be configured by an administrator',
+          disabled: !slackEnabled,
+        },
+
+        {
+          value: 'slackUserGroup',
+          label: 'SLACK USER GROUP',
+          disabledMessage: 'Slack must be configured by an administrator',
+          disabled: !slackEnabled,
+        },
+        ...(webhookChannelEnabled
+          ? [
+              {
+                value: 'chanWebhook',
+                label: 'WEBHOOK',
+                disabledMessage: 'Webhooks must be enabled by an administrator',
+                disabled: !webhookEnabled,
+              },
+            ]
+          : []),
+      ].sort(sortDisableableMenuItems),
     [slackEnabled, webhookEnabled, webhookChannelEnabled],
   )
 
@@ -224,9 +224,9 @@ export default function ScheduleOnCallNotificationsForm(
             label='Type'
             select
             onChange={handleTypeChange}
-            disabled={channelTypeItems.length <= 1}
+            disabled={notificationChannels.length <= 1}
           >
-            {channelTypeItems}
+            {notificationChannels.map(renderMenuItem)}
           </TextField>
         </Grid>
         {renderTypeFields(formProps.value.type)}
