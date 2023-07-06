@@ -792,15 +792,20 @@ func (s *Store) State(ctx context.Context, alertIDs []int) ([]State, error) {
 	return list, nil
 }
 
-func (s *Store) Feedback(ctx context.Context, alertID int) (f Feedback, err error) {
+func (s *Store) Feedback(ctx context.Context, alertID int) (*Feedback, error) {
+	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
+	if err != nil {
+		return nil, err
+	}
+
 	row, err := gadb.New(s.db).AlertFeedback(ctx, int64(alertID))
 	if errors.Is(err, sql.ErrNoRows) {
-		return Feedback{
+		return &Feedback{
 			AlertID: alertID,
 		}, nil
 	}
 
-	return Feedback{
+	return &Feedback{
 		AlertID:     int(row.AlertID),
 		NoiseReason: row.NoiseReason.String,
 	}, err

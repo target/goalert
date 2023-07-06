@@ -17,9 +17,12 @@ import (
 
 const alertFeedback = `-- name: AlertFeedback :one
 SELECT
-    alert_id, noise_reason
-FROM alert_feedback
-WHERE alert_id = $1
+    alert_id,
+    noise_reason
+FROM
+    alert_feedback
+WHERE
+    alert_id = $1
 `
 
 func (q *Queries) AlertFeedback(ctx context.Context, alertID int64) (AlertFeedback, error) {
@@ -30,13 +33,14 @@ func (q *Queries) AlertFeedback(ctx context.Context, alertID int64) (AlertFeedba
 }
 
 const alertHasEPState = `-- name: AlertHasEPState :one
-SELECT EXISTS
-(
-        SELECT 1
-FROM escalation_policy_state
-WHERE alert_id = $1
-    )
-AS has_ep_state
+SELECT
+    EXISTS (
+        SELECT
+            1
+        FROM
+            escalation_policy_state
+        WHERE
+            alert_id = $1) AS has_ep_state
 `
 
 func (q *Queries) AlertHasEPState(ctx context.Context, alertID int64) (bool, error) {
@@ -340,13 +344,15 @@ func (q *Queries) FindOneCalSubForUpdate(ctx context.Context, id uuid.UUID) (Fin
 }
 
 const lockOneAlertService = `-- name: LockOneAlertService :one
-SELECT maintenance_expires_at notnull
-::bool AS is_maint_mode,
+SELECT
+    maintenance_expires_at NOTNULL::bool AS is_maint_mode,
     alerts.status
-FROM services svc
+FROM
+    services svc
     JOIN alerts ON alerts.service_id = svc.id
-WHERE alerts.id = $1 FOR
-UPDATE
+WHERE
+    alerts.id = $1
+FOR UPDATE
 `
 
 type LockOneAlertServiceRow struct {
@@ -403,14 +409,16 @@ func (q *Queries) Now(ctx context.Context) (time.Time, error) {
 }
 
 const requestAlertEscalationByTime = `-- name: RequestAlertEscalationByTime :one
-UPDATE escalation_policy_state
-SET force_escalation = TRUE
-WHERE alert_id = $1
-    AND (
-        last_escalation <= $2
-::timestamptz
-        OR last_escalation IS NULL
-    ) RETURNING TRUE
+UPDATE
+    escalation_policy_state
+SET
+    force_escalation = TRUE
+WHERE
+    alert_id = $1
+    AND (last_escalation <= $2::timestamptz
+        OR last_escalation IS NULL)
+RETURNING
+    TRUE
 `
 
 type RequestAlertEscalationByTimeParams struct {
@@ -426,15 +434,13 @@ func (q *Queries) RequestAlertEscalationByTime(ctx context.Context, arg RequestA
 }
 
 const setAlertFeedback = `-- name: SetAlertFeedback :exec
-INSERT INTO alert_feedback
-    (alert_id, noise_reason)
-VALUES
-    ($1, $2)
-ON CONFLICT
-(alert_id) DO
-UPDATE
-SET noise_reason = $2
-WHERE alert_feedback.alert_id = $1
+INSERT INTO alert_feedback(alert_id, noise_reason)
+    VALUES ($1, $2)
+ON CONFLICT (alert_id)
+    DO UPDATE SET
+        noise_reason = $2
+    WHERE
+        alert_feedback.alert_id = $1
 `
 
 type SetAlertFeedbackParams struct {
