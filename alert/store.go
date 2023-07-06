@@ -812,7 +812,7 @@ func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
 		return err
 	}
 
-	err = validate.Text("Noise Reason", feedback.NoiseReason, 1, 255)
+	err = validate.Text("NoiseReason", feedback.NoiseReason, 1, 255)
 	if err != nil {
 		return err
 	}
