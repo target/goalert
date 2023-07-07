@@ -9,13 +9,14 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  BarChart,
+  ComposedChart,
+  Area,
   Bar,
   Legend,
 } from 'recharts'
 
 interface AlertCountGraphProps {
-  data: (typeof BarChart.defaultProps)['data']
+  data: (typeof ComposedChart.defaultProps)['data']
   loading: boolean
 }
 
@@ -42,7 +43,7 @@ export default function AlertCountGraph(
         {props.loading && <Spinner />}
         <AutoSizer>
           {({ width, height }: { width: number; height: number }) => (
-            <BarChart
+            <ComposedChart
               width={width}
               height={height}
               data={props.data}
@@ -77,6 +78,7 @@ export default function AlertCountGraph(
                     (payload[1].value as number) + (payload[0].value as number)
                   }`
                   const escalatedCountStr = `${payload[0].name}: ${payload[0].value}`
+                  const noiseCountStr = `${payload[2].name}: ${payload[2].value}`
                   return (
                     <Paper variant='outlined' sx={{ p: 1 }}>
                       <Typography variant='body2'>{label}</Typography>
@@ -84,15 +86,16 @@ export default function AlertCountGraph(
                       <Typography variant='body2'>
                         {escalatedCountStr}
                       </Typography>
+                      <Typography variant='body2'>{noiseCountStr}</Typography>
                     </Paper>
                   )
                 }}
               />
               <Legend />
               <Bar
-                dataKey='escalatedCount'
                 stackId='a'
-                fillOpacity={props.loading ? 0.5 : 1}
+                dataKey='escalatedCount'
+                type='monotone'
                 fill={theme.palette.primary.main}
                 className={classes.bar}
                 name='Escalated'
@@ -109,7 +112,22 @@ export default function AlertCountGraph(
                 className={classes.bar}
                 name='Alert Count'
               />
-            </BarChart>
+              <Area
+                dataKey='noiseCount'
+                type='monotone'
+                stroke={
+                  theme.palette.mode === 'light'
+                    ? theme.palette.warning.dark
+                    : theme.palette.warning.light
+                }
+                fill={
+                  theme.palette.mode === 'light'
+                    ? theme.palette.warning.light
+                    : theme.palette.warning.dark
+                }
+                name='Noisy Alerts'
+              />
+            </ComposedChart>
           )}
         </AutoSizer>
       </Grid>

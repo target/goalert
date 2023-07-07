@@ -7,6 +7,7 @@ export type AlertMetricPoint = {
   count: number
   nonEscalatedCount: number
   escalatedCount: number
+  noiseCount: number
   avgTimeToClose: number
   avgTimeToAck: number
 }
@@ -39,6 +40,7 @@ export function useAlertMetrics(opts: AlertMetricsOpts): AlertMetricPoint[] {
       alerts = alerts.slice(nextIvl)
 
       const escalatedCount = bucket.filter((a) => a.metrics?.escalated).length
+      const noiseCount = bucket.filter((a) => Boolean(a.noiseReason)).length
 
       return {
         date,
@@ -46,6 +48,7 @@ export function useAlertMetrics(opts: AlertMetricsOpts): AlertMetricPoint[] {
         count: bucket.length,
         nonEscalatedCount: bucket.length - escalatedCount,
         escalatedCount,
+        noiseCount,
 
         // get average of a.metrics.timeToClose values
         avgTimeToClose: bucket.length

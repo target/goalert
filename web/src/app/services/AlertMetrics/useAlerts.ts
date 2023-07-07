@@ -16,6 +16,7 @@ const alertsQuery = gql`
           id
         }
         createdAt
+        noiseReason
         metrics {
           closedAt
           timeToClose
