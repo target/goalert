@@ -150,12 +150,14 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, _ := json.MarshalIndent(*a, "", " ")
-
-	w.WriteHeader(200)
-	_, err = w.Write(resp)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if r.Header.Get("Accept") == "application/json" {
+		resp, _ := json.MarshalIndent(*a, "", " ")
+		w.WriteHeader(200)
+		_, err = w.Write(resp)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	} else {
+		w.WriteHeader(204)
 	}
-
 }
