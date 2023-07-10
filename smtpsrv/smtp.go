@@ -1,6 +1,7 @@
 package smtpsrv
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"io"
@@ -12,7 +13,6 @@ import (
 	"time"
 
 	_ "github.com/google/uuid"
-	_ "github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	_ "github.com/target/goalert/auth/authtoken"
 	_ "github.com/target/goalert/config"
@@ -21,7 +21,7 @@ import (
 	_ "github.com/target/goalert/permission"
 	_ "github.com/target/goalert/retry"
 	_ "github.com/target/goalert/util/errutil"
-	_ "github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/log"
 	_ "github.com/target/goalert/validation"
 	_ "github.com/target/goalert/validation/validate"
 
@@ -46,37 +46,26 @@ type Session struct {
 }
 
 func (s *Session) AuthPlain(username, password string) error {
-	// if username != "username" || password != "password" {
-	// 	return smtp.ErrAuthFailed
-	// }
+	log.Logf(context.Background(), "smtp auth called for user:", username)
 	s.auth = true
 	return nil
 }
 
 func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
-	if !s.auth {
-		return smtp.ErrAuthRequired
-	}
-	fmt.Println("Mail from:", from)
+	log.Logf(context.Background(), "Mail from:", from)
 	return nil
 }
 
 func (s *Session) Rcpt(to string) error {
-	// if !s.auth {
-	// 	return smtp.ErrAuthRequired
-	// }
-	fmt.Println("Rcpt to:", to)
+	log.Logf(context.Background(), "Rcpt to:", to)
 	return nil
 }
 
 func (s *Session) Data(r io.Reader) error {
-	// if !s.auth {
-	// 	return smtp.ErrAuthRequired
-	// }
 	if b, err := ioutil.ReadAll(r); err != nil {
 		return err
 	} else {
-		fmt.Println("Data:", string(b))
+		log.Logf(context.Background(), "Data:", string(b))
 	}
 	return nil
 }
@@ -92,7 +81,7 @@ func NewServer(cfg *Config) *smtp.Server {
 	s := smtp.NewServer(be)
 
 	s.Addr = cfg.ListenAddr
-	fmt.Println("creating new SMTP server on addr %s", s.Addr)
+	fmt.Printf("creating new SMTP server on addr %s\n", s.Addr)
 	s.Domain = cfg.Domain
 	s.ReadTimeout = 10 * time.Second
 	s.WriteTimeout = 10 * time.Second

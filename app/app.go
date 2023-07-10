@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/emersion/go-smtp"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
@@ -67,6 +68,7 @@ type App struct {
 	hSrv      *health.Server
 
 	srv        *http.Server
+	smtpsrv    *smtp.Server
 	startupErr error
 
 	notificationManager *notification.Manager
