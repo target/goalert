@@ -40,6 +40,9 @@ export default function AlertCountGraph(
   return (
     <Grid container className={classes.graphContent}>
       <Grid item xs={12} data-cy='metrics-count-graph'>
+        <Typography color='textSecondary' sx={{ ml: '3rem', pt: 1 }}>
+          Showing data for closed alerts
+        </Typography>
         {props.loading && <Spinner />}
         <AutoSizer>
           {({ width, height }: { width: number; height: number }) => (
@@ -98,7 +101,7 @@ export default function AlertCountGraph(
                 type='monotone'
                 fill={theme.palette.primary.main}
                 className={classes.bar}
-                name='Escalated'
+                name='Escalated Alerts'
               />
               <Bar
                 stackId='a'
@@ -110,7 +113,7 @@ export default function AlertCountGraph(
                     : theme.palette.secondary.light
                 }
                 className={classes.bar}
-                name='Alert Count'
+                name='Alerts'
               />
               <Area
                 dataKey='noiseCount'
