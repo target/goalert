@@ -129,11 +129,13 @@ function testServices(screen: ScreenFormat): void {
         }),
     )
 
-    it('should display alert metrics', () => {
+    it('should display alert metrics and noise', () => {
       const now = DateTime.local().minus({ day: 1 }).toLocaleString({
         month: 'short',
         day: 'numeric',
       })
+
+      cy.setAlertNoise(closedAlert.id, 'test').reload()
 
       // summary doesn't load by default on mobile (until scrolled to)
       cy.get('[data-cy=metrics-table]')
@@ -147,6 +149,7 @@ function testServices(screen: ScreenFormat): void {
         .should('contain', now)
         .should('contain', 'Alert Count: 1')
         .should('contain', 'Escalated: 0') // no ep steps
+        .should('contain', 'Noisy Alerts: 1')
 
       cy.get(`.recharts-line-dots circle[r=3]`).last().trigger('mouseover')
       cy.get('[data-cy=metrics-averages-graph]')
