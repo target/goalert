@@ -19,8 +19,8 @@ module.exports = {
     'plugin:cypress/recommended',
     'plugin:jsx-a11y/recommended',
     'plugin:prettier/recommended',
-    'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
+    'plugin:@typescript-eslint/recommended-type-checked',
     'prettier',
   ],
   rules: {
