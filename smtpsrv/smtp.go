@@ -5,34 +5,45 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"io/ioutil"
-	_ "mime"
-	_ "net/http"
-	_ "net/mail"
-	_ "strings"
+	"net"
+	"net/mail"
+	"strings"
 	"time"
 
-	_ "github.com/google/uuid"
+	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
-	_ "github.com/target/goalert/auth/authtoken"
-	_ "github.com/target/goalert/config"
+	"github.com/target/goalert/auth/authtoken"
 	"github.com/target/goalert/integrationkey"
-	_ "github.com/target/goalert/integrationkey"
-	_ "github.com/target/goalert/permission"
-	_ "github.com/target/goalert/retry"
-	_ "github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/permission"
+	"github.com/target/goalert/retry"
+	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
-	_ "github.com/target/goalert/validation"
-	_ "github.com/target/goalert/validation/validate"
+	"github.com/target/goalert/validation"
+	"github.com/target/goalert/validation/validate"
 
 	"github.com/emersion/go-smtp"
 )
+
+var Handler IngressHandler
 
 type Config struct {
 	Domain         string
 	AllowedDomains []string
 	ListenAddr     string
 	TLSConfig      *tls.Config
+}
+
+func (cfg *Config) validDomain(d string) bool {
+	if len(cfg.AllowedDomains) == 0 {
+		return true
+	}
+	for _, v := range cfg.AllowedDomains {
+		if v == d {
+			return true
+		}
+	}
+	return false
 }
 
 type Backend struct{}
@@ -46,27 +57,129 @@ type Session struct {
 }
 
 func (s *Session) AuthPlain(username, password string) error {
-	log.Logf(context.Background(), "smtp auth called for user:", username)
+	log.Logf(context.Background(), "smtp auth called for user:"+username)
 	s.auth = true
 	return nil
 }
 
 func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
-	log.Logf(context.Background(), "Mail from:", from)
+	log.Logf(context.Background(), "Mail from:"+from)
 	return nil
 }
 
-func (s *Session) Rcpt(to string) error {
-	log.Logf(context.Background(), "Rcpt to:", to)
-	return nil
-}
-
-func (s *Session) Data(r io.Reader) error {
-	if b, err := ioutil.ReadAll(r); err != nil {
-		return err
-	} else {
-		log.Logf(context.Background(), "Data:", string(b))
+func (s *Session) Rcpt(recipient string) error {
+	log.Logf(context.Background(), "Rcpt to:"+recipient)
+	m, err := mail.ParseAddress(recipient)
+	if err != nil {
+		err = validation.NewFieldError("recipient", "must be valid email: "+err.Error())
+		log.Log(context.Background(), err)
 	}
+
+	recipient = m.Address
+	log.Logf(context.Background(), "recipient = "+recipient)
+	return nil
+}
+
+// Data is called when a new SMTP message is received
+func (s *Session) Data(r io.Reader) error {
+	ctx := context.Background()
+
+	m, err := mail.ReadMessage(r)
+	if err != nil {
+		log.Log(ctx, err)
+		return nil
+	}
+
+	logMsg := `Date: %s
+From: %s
+To: %s
+Subject: %s
+
+%s
+`
+
+	header := m.Header
+	body, err := io.ReadAll(m.Body)
+	if err != nil {
+		log.Log(ctx, err)
+		return nil
+	}
+	log.Logf(ctx, logMsg, header.Get("Date"), header.Get("From"), header.Get("To"), header.Get("Subject"), string(body))
+
+	recipient := header.Get("To")
+
+	a, err := mail.ParseAddress(recipient)
+	if err != nil {
+		err = validation.NewFieldError("recipient", "must be valid email: "+err.Error())
+	}
+
+	recipient = a.Address
+
+	ctx = log.WithFields(ctx, log.Fields{
+		"Recipient":   recipient,
+		"FromAddress": header.Get("From"),
+	})
+
+	// split address
+	parts := strings.SplitN(recipient, "@", 2)
+	domain := strings.ToLower(parts[1])
+	if !Handler.cfg.validDomain(domain) {
+		err = validation.NewFieldError("domain", "invalid domain")
+		log.Log(ctx, err)
+		return err
+	}
+
+	// support for dedup key
+	parts = strings.SplitN(parts[0], "+", 2)
+	err = validate.UUID("recipient", parts[0])
+	if err != nil {
+		err = validation.NewFieldError("recipient", "bad mailbox name")
+		log.Log(ctx, err)
+		return err
+	}
+
+	tokID, err := uuid.Parse(parts[0])
+	if err != nil {
+		return err
+	}
+
+	tok := authtoken.Token{ID: tokID}
+	var dedupStr string
+	if len(parts) > 1 {
+		dedupStr = parts[1]
+	}
+
+	ctx = log.WithField(ctx, "IntegrationKey", tok.ID.String())
+
+	summary := validate.SanitizeText(header.Get("Subject"), alert.MaxSummaryLength)
+	details := fmt.Sprintf("From: %s\n\n%s", header.Get("From"), body)
+	details = validate.SanitizeText(details, alert.MaxDetailsLength)
+	newAlert := &alert.Alert{
+		Summary: summary,
+		Details: details,
+		Status:  alert.StatusTriggered,
+		Source:  alert.SourceEmail,
+		Dedup:   alert.NewUserDedup(dedupStr),
+	}
+
+	err = retry.DoTemporaryError(func(_ int) error {
+		if newAlert.ServiceID == "" {
+			ctx, err = Handler.intKeys.Authorize(ctx, tok, integrationkey.TypeEmail)
+			newAlert.ServiceID = permission.ServiceID(ctx)
+		}
+		if err != nil {
+			return err
+		}
+		_, err = Handler.alerts.CreateOrUpdate(ctx, newAlert)
+		err = errors.Wrap(err, "create/update alert")
+		err = errutil.MapDBError(err)
+		return err
+	},
+		retry.Log(ctx),
+		retry.Limit(12),
+		retry.FibBackoff(time.Second),
+	)
+
 	return nil
 }
 
@@ -91,135 +204,23 @@ func NewServer(cfg *Config) *smtp.Server {
 	return s
 }
 
-//
-//
-//
-//
-//
-//
-//
-//
-
-type ingressHandler struct {
+type IngressHandler struct {
 	alerts  *alert.Store
 	intKeys *integrationkey.Store
+	cfg     *Config
 }
 
-// func (h *ingressHandler) ServeSMTP() {
-// 	ctx :=
-// }
+func (H *IngressHandler) ServeSMTP(ctx context.Context, s *smtp.Server, l net.Listener) {
+	err := s.Serve(l)
+	if err != nil {
+		log.Log(ctx, errors.New("start SMTP receiver server"))
+	}
 
-// func (h *ingressHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-// 	ctx := r.Context()
-// 	cfg := config.FromContext(ctx)
-// 	if !cfg.Mailgun.Enable {
-// 		http.Error(w, "not enabled", http.StatusServiceUnavailable)
-// 		return
-// 	}
+}
 
-// 	ct := r.Header.Get("Content-Type")
-// 	// RFC 7231, section 3.1.1.5 - empty type
-// 	//   MAY be treated as application/octet-stream
-// 	if ct == "" {
-// 		ct = "application/octet-stream"
-// 	}
-// 	typ, _, err := mime.ParseMediaType(ct)
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusNotAcceptable)
-// 		return
-// 	}
-
-// 	switch typ {
-// 	case "application/x-www-form-urlencoded":
-// 		err = r.ParseForm()
-// 	case "multipart/form-data", "multipart/mixed":
-// 		err = r.ParseMultipartForm(32 << 20)
-// 	}
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusNotAcceptable)
-// 		return
-// 	}
-
-// 	// if !validSignature(ctx, r, cfg.Mailgun.APIKey) {
-// 	// 	log.Log(ctx, errors.New("invalid Mailgun signature"))
-// 	// 	auth.Delay(ctx)
-// 	// 	http.Error(w, "Invalid Signature", http.StatusNotAcceptable)
-// 	// 	return
-// 	// }
-
-// 	recipient := r.FormValue("recipient")
-
-// 	m, err := mail.ParseAddress(recipient)
-// 	if err != nil {
-// 		err = validation.NewFieldError("recipient", "must be valid email: "+err.Error())
-// 	}
-// 	// if httpError(ctx, w, err) {
-// 	// 	return
-// 	// }
-// 	recipient = m.Address
-
-// 	ctx = log.WithFields(ctx, log.Fields{
-// 		"Recipient":   recipient,
-// 		"FromAddress": r.FormValue("from"),
-// 	})
-
-// 	// split address
-// 	parts := strings.SplitN(recipient, "@", 2)
-// 	domain := strings.ToLower(parts[1])
-// 	if domain != cfg.Mailgun.EmailDomain {
-// 		// log error? and return
-// 		// httpError(ctx, w, validation.NewFieldError("domain", "invalid domain"))
-// 		return
-// 	}
-
-// 	// support for dedup key
-// 	parts = strings.SplitN(parts[0], "+", 2)
-// 	err = validate.UUID("recipient", parts[0])
-// 	if httpError(ctx, w, errors.Wrap(err, "bad mailbox name")) {
-// 		return
-// 	}
-
-// 	tokID, err := uuid.Parse(parts[0])
-// 	if httpError(ctx, w, err) {
-// 		return
-// 	}
-
-// 	tok := authtoken.Token{ID: tokID}
-// 	var dedupStr string
-// 	if len(parts) > 1 {
-// 		dedupStr = parts[1]
-// 	}
-
-// 	ctx = log.WithField(ctx, "IntegrationKey", tok.ID.String())
-
-// 	summary := validate.SanitizeText(r.FormValue("subject"), alert.MaxSummaryLength)
-// 	details := fmt.Sprintf("From: %s\n\n%s", r.FormValue("from"), r.FormValue("body-plain"))
-// 	details = validate.SanitizeText(details, alert.MaxDetailsLength)
-// 	newAlert := &alert.Alert{
-// 		Summary: summary,
-// 		Details: details,
-// 		Status:  alert.StatusTriggered,
-// 		Source:  alert.SourceEmail,
-// 		Dedup:   alert.NewUserDedup(dedupStr),
-// 	}
-
-// 	err = retry.DoTemporaryError(func(_ int) error {
-// 		if newAlert.ServiceID == "" {
-// 			ctx, err = h.intKeys.Authorize(ctx, tok, integrationkey.TypeEmail)
-// 			newAlert.ServiceID = permission.ServiceID(ctx)
-// 		}
-// 		if err != nil {
-// 			return err
-// 		}
-// 		_, err = h.alerts.CreateOrUpdate(ctx, newAlert)
-// 		err = errors.Wrap(err, "create/update alert")
-// 		err = errutil.MapDBError(err)
-// 		return err
-// 	},
-// 		retry.Log(ctx),
-// 		retry.Limit(12),
-// 		retry.FibBackoff(time.Second),
-// 	)
-
-// 	httpError(ctx, w, err)
-// }
+func IngressSMTP(aDB *alert.Store, intDB *integrationkey.Store, cfg *Config) IngressHandler {
+	Handler.alerts = aDB
+	Handler.intKeys = intDB
+	Handler.cfg = cfg
+	return Handler
+}
