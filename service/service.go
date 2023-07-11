@@ -42,7 +42,7 @@ func (s Service) Normalize() (*Service, error) {
 		validate.IDName("Name", s.Name),
 		validate.Text("Description", s.Description, 1, MaxDetailsLength),
 		validate.UUID("EscalationPolicyID", s.EscalationPolicyID),
-		validate.Duration("MaintenanceExpiresAt", dur, 0, 8*time.Hour),
+		validate.Duration("MaintenanceExpiresAt", dur, 0, 24*time.Hour+5*time.Minute),
 	)
 	if err != nil {
 		return nil, err
