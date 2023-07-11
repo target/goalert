@@ -28,8 +28,7 @@ func (s Service) IsUserFavorite() bool {
 	return s.isUserFavorite
 }
 
-// Normalize will validate and 'normalize' the ContactMethod -- such as making email lower-case
-// and setting carrier to "" (for non-phone types).
+// Normalize will validate and 'normalize' the Service -- such as setting the minimum duration to 0.
 func (s Service) Normalize() (*Service, error) {
 	dur := time.Until(s.MaintenanceExpiresAt)
 
