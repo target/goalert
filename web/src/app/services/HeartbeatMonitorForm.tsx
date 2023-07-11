@@ -50,7 +50,7 @@ export default function HeartbeatMonitorForm(
             label='Timeout'
             name='timeoutMinutes'
             min={5}
-            max={9000}
+            max={540000}
             mapValue={(minutes) =>
               Duration.fromObject({
                 minutes,
