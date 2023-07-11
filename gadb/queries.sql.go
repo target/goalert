@@ -445,7 +445,7 @@ ON CONFLICT (alert_id)
 
 type SetAlertFeedbackParams struct {
 	AlertID     int64
-	NoiseReason sql.NullString
+	NoiseReason string
 }
 
 func (q *Queries) SetAlertFeedback(ctx context.Context, arg SetAlertFeedbackParams) error {

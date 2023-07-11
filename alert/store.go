@@ -804,10 +804,13 @@ func (s *Store) Feedback(ctx context.Context, alertID int) (*Feedback, error) {
 			AlertID: alertID,
 		}, nil
 	}
+	if err != nil {
+		return nil, err
+	}
 
 	return &Feedback{
 		AlertID:     int(row.AlertID),
-		NoiseReason: row.NoiseReason.String,
+		NoiseReason: row.NoiseReason,
 	}, err
 }
 
@@ -824,7 +827,7 @@ func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
 
 	err = gadb.New(s.db).SetAlertFeedback(ctx, gadb.SetAlertFeedbackParams{
 		AlertID:     int64(feedback.AlertID),
-		NoiseReason: sql.NullString{String: feedback.NoiseReason, Valid: true},
+		NoiseReason: feedback.NoiseReason,
 	})
 	if err != nil {
 		return err

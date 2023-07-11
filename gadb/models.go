@@ -762,7 +762,7 @@ type Alert struct {
 
 type AlertFeedback struct {
 	AlertID     int64
-	NoiseReason sql.NullString
+	NoiseReason string
 }
 
 type AlertLog struct {
