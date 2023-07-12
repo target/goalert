@@ -1169,6 +1169,8 @@ type ConfigID =
   | 'Mailgun.Enable'
   | 'Mailgun.APIKey'
   | 'Mailgun.EmailDomain'
+  | 'SMTPServer.Enable'
+  | 'SMTPServer.EmailDomain'
   | 'Slack.Enable'
   | 'Slack.ClientID'
   | 'Slack.ClientSecret'

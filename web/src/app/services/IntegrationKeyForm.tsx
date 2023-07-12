@@ -50,7 +50,7 @@ export default function IntegrationKeyForm(
                 label='Type'
                 name='type'
               >
-                {cfg['Mailgun.Enable'] && (
+                {cfg['Mailgun.Enable'] || cfg['SMTPServer.EmailDomain'] != "" && (
                   <MenuItem value='email'>Email</MenuItem>
                 )}
                 <MenuItem value='generic'>Generic API</MenuItem>
