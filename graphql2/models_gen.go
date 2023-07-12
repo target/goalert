@@ -456,6 +456,11 @@ type ServiceSearchOptions struct {
 	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
 }
 
+type SetAlertNoiseReasonInput struct {
+	AlertID     int    `json:"alertID"`
+	NoiseReason string `json:"noiseReason"`
+}
+
 type SetFavoriteInput struct {
 	Target   *assignment.RawTarget `json:"target"`
 	Favorite bool                  `json:"favorite"`

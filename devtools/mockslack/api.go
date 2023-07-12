@@ -34,10 +34,13 @@ type Message struct {
 	Actions []Action
 }
 
+// UserGroup represents a Slack user group.
 type UserGroup struct {
 	ID     string `json:"id"`
 	Name   string `json:"name"`
 	Handle string `json:"handle"`
 
 	IsUserGroup bool `json:"is_usergroup"`
+
+	Users []string `json:"users"`
 }

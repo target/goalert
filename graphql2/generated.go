@@ -98,6 +98,7 @@ type ComplexityRoot struct {
 		Details              func(childComplexity int) int
 		ID                   func(childComplexity int) int
 		Metrics              func(childComplexity int) int
+		NoiseReason          func(childComplexity int) int
 		PendingNotifications func(childComplexity int) int
 		RecentEvents         func(childComplexity int, input *AlertRecentEventsOptions) int
 		Service              func(childComplexity int) int
@@ -304,6 +305,7 @@ type ComplexityRoot struct {
 		EscalateAlerts                     func(childComplexity int, input []int) int
 		LinkAccount                        func(childComplexity int, token string) int
 		SendContactMethodVerification      func(childComplexity int, input SendContactMethodVerificationInput) int
+		SetAlertNoiseReason                func(childComplexity int, input SetAlertNoiseReasonInput) int
 		SetConfig                          func(childComplexity int, input []ConfigValueInput) int
 		SetFavorite                        func(childComplexity int, input SetFavoriteInput) int
 		SetLabel                           func(childComplexity int, input SetLabelInput) int
@@ -666,6 +668,7 @@ type AlertResolver interface {
 	RecentEvents(ctx context.Context, obj *alert.Alert, input *AlertRecentEventsOptions) (*AlertLogEntryConnection, error)
 	PendingNotifications(ctx context.Context, obj *alert.Alert) ([]AlertPendingNotification, error)
 	Metrics(ctx context.Context, obj *alert.Alert) (*alertmetrics.Metric, error)
+	NoiseReason(ctx context.Context, obj *alert.Alert) (*string, error)
 }
 type AlertLogEntryResolver interface {
 	Message(ctx context.Context, obj *alertlog.Entry) (string, error)
@@ -720,6 +723,7 @@ type MutationResolver interface {
 	UpdateEscalationPolicyStep(ctx context.Context, input UpdateEscalationPolicyStepInput) (bool, error)
 	DeleteAll(ctx context.Context, input []assignment.RawTarget) (bool, error)
 	CreateAlert(ctx context.Context, input CreateAlertInput) (*alert.Alert, error)
+	SetAlertNoiseReason(ctx context.Context, input SetAlertNoiseReasonInput) (bool, error)
 	CreateService(ctx context.Context, input CreateServiceInput) (*service.Service, error)
 	CreateEscalationPolicy(ctx context.Context, input CreateEscalationPolicyInput) (*escalation.Policy, error)
 	CreateEscalationPolicyStep(ctx context.Context, input CreateEscalationPolicyStepInput) (*escalation.Step, error)
@@ -922,6 +926,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Alert.Metrics(childComplexity), true
+
+	case "Alert.noiseReason":
+		if e.complexity.Alert.NoiseReason == nil {
+			break
+		}
+
+		return e.complexity.Alert.NoiseReason(childComplexity), true
 
 	case "Alert.pendingNotifications":
 		if e.complexity.Alert.PendingNotifications == nil {
@@ -1922,6 +1933,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SendContactMethodVerification(childComplexity, args["input"].(SendContactMethodVerificationInput)), true
+
+	case "Mutation.setAlertNoiseReason":
+		if e.complexity.Mutation.SetAlertNoiseReason == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setAlertNoiseReason_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetAlertNoiseReason(childComplexity, args["input"].(SetAlertNoiseReasonInput)), true
 
 	case "Mutation.setConfig":
 		if e.complexity.Mutation.SetConfig == nil {
@@ -3919,6 +3942,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputScheduleTargetInput,
 		ec.unmarshalInputSendContactMethodVerificationInput,
 		ec.unmarshalInputServiceSearchOptions,
+		ec.unmarshalInputSetAlertNoiseReasonInput,
 		ec.unmarshalInputSetFavoriteInput,
 		ec.unmarshalInputSetLabelInput,
 		ec.unmarshalInputSetScheduleOnCallNotificationRulesInput,
@@ -4429,6 +4453,21 @@ func (ec *executionContext) field_Mutation_sendContactMethodVerification_args(ct
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNSendContactMethodVerificationInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSendContactMethodVerificationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_setAlertNoiseReason_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 SetAlertNoiseReasonInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNSetAlertNoiseReasonInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetAlertNoiseReasonInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -6043,6 +6082,47 @@ func (ec *executionContext) fieldContext_Alert_metrics(ctx context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _Alert_noiseReason(ctx context.Context, field graphql.CollectedField, obj *alert.Alert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Alert_noiseReason(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Alert().NoiseReason(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Alert_noiseReason(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Alert",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _AlertConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *AlertConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_AlertConnection_nodes(ctx, field)
 	if err != nil {
@@ -6106,6 +6186,8 @@ func (ec *executionContext) fieldContext_AlertConnection_nodes(ctx context.Conte
 				return ec.fieldContext_Alert_pendingNotifications(ctx, field)
 			case "metrics":
 				return ec.fieldContext_Alert_metrics(ctx, field)
+			case "noiseReason":
+				return ec.fieldContext_Alert_noiseReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
@@ -11111,6 +11193,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAlerts(ctx context.Conte
 				return ec.fieldContext_Alert_pendingNotifications(ctx, field)
 			case "metrics":
 				return ec.fieldContext_Alert_metrics(ctx, field)
+			case "noiseReason":
+				return ec.fieldContext_Alert_noiseReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
@@ -11244,6 +11328,8 @@ func (ec *executionContext) fieldContext_Mutation_escalateAlerts(ctx context.Con
 				return ec.fieldContext_Alert_pendingNotifications(ctx, field)
 			case "metrics":
 				return ec.fieldContext_Alert_metrics(ctx, field)
+			case "noiseReason":
+				return ec.fieldContext_Alert_noiseReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
@@ -11597,6 +11683,8 @@ func (ec *executionContext) fieldContext_Mutation_createAlert(ctx context.Contex
 				return ec.fieldContext_Alert_pendingNotifications(ctx, field)
 			case "metrics":
 				return ec.fieldContext_Alert_metrics(ctx, field)
+			case "noiseReason":
+				return ec.fieldContext_Alert_noiseReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
@@ -11609,6 +11697,61 @@ func (ec *executionContext) fieldContext_Mutation_createAlert(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createAlert_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_setAlertNoiseReason(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_setAlertNoiseReason(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetAlertNoiseReason(rctx, fc.Args["input"].(SetAlertNoiseReasonInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_setAlertNoiseReason(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_setAlertNoiseReason_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -14732,6 +14875,8 @@ func (ec *executionContext) fieldContext_Query_alert(ctx context.Context, field 
 				return ec.fieldContext_Alert_pendingNotifications(ctx, field)
 			case "metrics":
 				return ec.fieldContext_Alert_metrics(ctx, field)
+			case "noiseReason":
+				return ec.fieldContext_Alert_noiseReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
@@ -28313,6 +28458,44 @@ func (ec *executionContext) unmarshalInputServiceSearchOptions(ctx context.Conte
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputSetAlertNoiseReasonInput(ctx context.Context, obj interface{}) (SetAlertNoiseReasonInput, error) {
+	var it SetAlertNoiseReasonInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"alertID", "noiseReason"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "alertID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alertID"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AlertID = data
+		case "noiseReason":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("noiseReason"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NoiseReason = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputSetFavoriteInput(ctx context.Context, obj interface{}) (SetFavoriteInput, error) {
 	var it SetFavoriteInput
 	asMap := map[string]interface{}{}
@@ -30167,6 +30350,39 @@ func (ec *executionContext) _Alert(ctx context.Context, sel ast.SelectionSet, ob
 					}
 				}()
 				res = ec._Alert_metrics(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "noiseReason":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Alert_noiseReason(ctx, field, obj)
 				return res
 			}
 
@@ -32147,6 +32363,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createAlert(ctx, field)
 			})
+		case "setAlertNoiseReason":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_setAlertNoiseReason(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "createService":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createService(ctx, field)
@@ -38788,6 +39011,11 @@ func (ec *executionContext) marshalNServiceOnCallUser2ᚕgithubᚗcomᚋtarget�
 	}
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalNSetAlertNoiseReasonInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetAlertNoiseReasonInput(ctx context.Context, v interface{}) (SetAlertNoiseReasonInput, error) {
+	res, err := ec.unmarshalInputSetAlertNoiseReasonInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNSetFavoriteInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetFavoriteInput(ctx context.Context, v interface{}) (SetFavoriteInput, error) {

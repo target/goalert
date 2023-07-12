@@ -194,7 +194,7 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 			return nil, auth.Error("Failed to generate state token.")
 		}
 		nonceStr := b64enc.EncodeToString(nonce[:])
-		auth.SetCookie(w, req, nonceCookieName, nonceStr)
+		auth.SetCookie(w, req, nonceCookieName, nonceStr, false)
 
 		oaCfg, _, err := p.oaConfig(ctx)
 		if err != nil {
@@ -215,7 +215,7 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 	if err != nil {
 		return nil, auth.Error("There was a problem recognizing this browser. You can try again")
 	}
-	auth.ClearCookie(w, req, nonceCookieName)
+	auth.ClearCookie(w, req, nonceCookieName, false)
 
 	nonce, err := b64enc.DecodeString(nonceC.Value)
 	if err != nil || len(nonce) != 16 {

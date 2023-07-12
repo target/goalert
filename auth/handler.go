@@ -212,7 +212,7 @@ func (h *Handler) FindAllUserSessions(ctx context.Context, userID string) ([]Use
 
 // ServeLogout will clear the current session cookie and end the session(s) (if any).
 func (h *Handler) ServeLogout(w http.ResponseWriter, req *http.Request) {
-	ClearCookie(w, req, CookieName)
+	ClearCookie(w, req, CookieName, true)
 	var sessionIDs []string
 	for _, c := range req.Cookies() {
 		switch c.Name {
@@ -539,7 +539,7 @@ func (h *Handler) CreateSession(ctx context.Context, userAgent, userID string) (
 }
 
 func (h *Handler) setSessionCookie(w http.ResponseWriter, req *http.Request, val string) {
-	SetCookieAge(w, req, CookieName, val, 30*24*time.Hour)
+	SetCookieAge(w, req, CookieName, val, 30*24*time.Hour, true)
 }
 
 func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next http.Handler) bool {
@@ -717,7 +717,7 @@ func (h *Handler) refererURL(w http.ResponseWriter, req *http.Request) (*url.URL
 }
 
 func (h *Handler) serveProviderPost(id string, p IdentityProvider, refU *url.URL, w http.ResponseWriter, req *http.Request) {
-	SetCookie(w, req, "login_redir", refU.String())
+	SetCookie(w, req, "login_redir", refU.String(), false)
 
 	h.handleProvider(id, p, refU, w, req)
 }

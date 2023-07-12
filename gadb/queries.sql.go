@@ -15,12 +15,32 @@ import (
 	"github.com/lib/pq"
 )
 
+const alertFeedback = `-- name: AlertFeedback :one
+SELECT
+    alert_id,
+    noise_reason
+FROM
+    alert_feedback
+WHERE
+    alert_id = $1
+`
+
+func (q *Queries) AlertFeedback(ctx context.Context, alertID int64) (AlertFeedback, error) {
+	row := q.db.QueryRowContext(ctx, alertFeedback, alertID)
+	var i AlertFeedback
+	err := row.Scan(&i.AlertID, &i.NoiseReason)
+	return i, err
+}
+
 const alertHasEPState = `-- name: AlertHasEPState :one
-SELECT EXISTS (
-        SELECT 1
-        FROM escalation_policy_state
-        WHERE alert_id = $1
-    ) AS has_ep_state
+SELECT
+    EXISTS (
+        SELECT
+            1
+        FROM
+            escalation_policy_state
+        WHERE
+            alert_id = $1) AS has_ep_state
 `
 
 func (q *Queries) AlertHasEPState(ctx context.Context, alertID int64) (bool, error) {
@@ -87,6 +107,84 @@ func (q *Queries) AllPendingMsgDests(ctx context.Context, arg AllPendingMsgDests
 		return nil, err
 	}
 	return items, nil
+}
+
+const authLinkAddAuthSubject = `-- name: AuthLinkAddAuthSubject :exec
+INSERT INTO auth_subjects(provider_id, subject_id, user_id)
+    VALUES ($1, $2, $3)
+`
+
+type AuthLinkAddAuthSubjectParams struct {
+	ProviderID string
+	SubjectID  string
+	UserID     uuid.UUID
+}
+
+func (q *Queries) AuthLinkAddAuthSubject(ctx context.Context, arg AuthLinkAddAuthSubjectParams) error {
+	_, err := q.db.ExecContext(ctx, authLinkAddAuthSubject, arg.ProviderID, arg.SubjectID, arg.UserID)
+	return err
+}
+
+const authLinkAddReq = `-- name: AuthLinkAddReq :exec
+INSERT INTO auth_link_requests(id, provider_id, subject_id, expires_at, metadata)
+    VALUES ($1, $2, $3, $4, $5)
+`
+
+type AuthLinkAddReqParams struct {
+	ID         uuid.UUID
+	ProviderID string
+	SubjectID  string
+	ExpiresAt  time.Time
+	Metadata   json.RawMessage
+}
+
+func (q *Queries) AuthLinkAddReq(ctx context.Context, arg AuthLinkAddReqParams) error {
+	_, err := q.db.ExecContext(ctx, authLinkAddReq,
+		arg.ID,
+		arg.ProviderID,
+		arg.SubjectID,
+		arg.ExpiresAt,
+		arg.Metadata,
+	)
+	return err
+}
+
+const authLinkMetadata = `-- name: AuthLinkMetadata :one
+SELECT
+    metadata
+FROM
+    auth_link_requests
+WHERE
+    id = $1
+    AND expires_at > now()
+`
+
+func (q *Queries) AuthLinkMetadata(ctx context.Context, id uuid.UUID) (json.RawMessage, error) {
+	row := q.db.QueryRowContext(ctx, authLinkMetadata, id)
+	var metadata json.RawMessage
+	err := row.Scan(&metadata)
+	return metadata, err
+}
+
+const authLinkUseReq = `-- name: AuthLinkUseReq :one
+DELETE FROM auth_link_requests
+WHERE id = $1
+    AND expires_at > now()
+RETURNING
+    provider_id,
+    subject_id
+`
+
+type AuthLinkUseReqRow struct {
+	ProviderID string
+	SubjectID  string
+}
+
+func (q *Queries) AuthLinkUseReq(ctx context.Context, id uuid.UUID) (AuthLinkUseReqRow, error) {
+	row := q.db.QueryRowContext(ctx, authLinkUseReq, id)
+	var i AuthLinkUseReqRow
+	err := row.Scan(&i.ProviderID, &i.SubjectID)
+	return i, err
 }
 
 const calSubAuthUser = `-- name: CalSubAuthUser :one
@@ -324,12 +422,15 @@ func (q *Queries) FindOneCalSubForUpdate(ctx context.Context, id uuid.UUID) (Fin
 }
 
 const lockOneAlertService = `-- name: LockOneAlertService :one
-SELECT maintenance_expires_at notnull::bool AS is_maint_mode,
+SELECT
+    maintenance_expires_at NOTNULL::bool AS is_maint_mode,
     alerts.status
-FROM services svc
+FROM
+    services svc
     JOIN alerts ON alerts.service_id = svc.id
-WHERE alerts.id = $1 FOR
-UPDATE
+WHERE
+    alerts.id = $1
+FOR UPDATE
 `
 
 type LockOneAlertServiceRow struct {
@@ -386,13 +487,16 @@ func (q *Queries) Now(ctx context.Context) (time.Time, error) {
 }
 
 const requestAlertEscalationByTime = `-- name: RequestAlertEscalationByTime :one
-UPDATE escalation_policy_state
-SET force_escalation = TRUE
-WHERE alert_id = $1
-    AND (
-        last_escalation <= $2::timestamptz
-        OR last_escalation IS NULL
-    ) RETURNING TRUE
+UPDATE
+    escalation_policy_state
+SET
+    force_escalation = TRUE
+WHERE
+    alert_id = $1
+    AND (last_escalation <= $2::timestamptz
+        OR last_escalation IS NULL)
+RETURNING
+    TRUE
 `
 
 type RequestAlertEscalationByTimeParams struct {
@@ -405,6 +509,26 @@ func (q *Queries) RequestAlertEscalationByTime(ctx context.Context, arg RequestA
 	var column_1 bool
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const setAlertFeedback = `-- name: SetAlertFeedback :exec
+INSERT INTO alert_feedback(alert_id, noise_reason)
+    VALUES ($1, $2)
+ON CONFLICT (alert_id)
+    DO UPDATE SET
+        noise_reason = $2
+    WHERE
+        alert_feedback.alert_id = $1
+`
+
+type SetAlertFeedbackParams struct {
+	AlertID     int64
+	NoiseReason string
+}
+
+func (q *Queries) SetAlertFeedback(ctx context.Context, arg SetAlertFeedbackParams) error {
+	_, err := q.db.ExecContext(ctx, setAlertFeedback, arg.AlertID, arg.NoiseReason)
+	return err
 }
 
 const statusMgrCMInfo = `-- name: StatusMgrCMInfo :one

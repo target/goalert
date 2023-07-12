@@ -26,9 +26,9 @@ const LoadingButton = (props: LoadingButtonProps): JSX.Element => {
   return (
     <div style={{ position: 'relative', ...style }}>
       <Button
-        {...rest}
         data-cy='loading-button'
         variant='contained'
+        {...rest}
         color={color || 'primary'}
         onClick={onClick}
         disabled={loading || disabled}

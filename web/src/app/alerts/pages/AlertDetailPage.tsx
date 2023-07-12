@@ -13,6 +13,7 @@ const query = gql`
       summary
       details
       createdAt
+      noiseReason
       service {
         id
         name
