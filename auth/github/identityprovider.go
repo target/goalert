@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/go-github/v51/github"
+	"github.com/google/go-github/v53/github"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/config"
@@ -95,7 +95,7 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 			return nil, auth.Error("Failed to generate state token.")
 		}
 
-		auth.SetCookie(w, req, stateCookieName, tok)
+		auth.SetCookie(w, req, stateCookieName, tok, false)
 		u := authConfig(ctx).AuthCodeURL(tok, oauth2.ApprovalForce)
 
 		return nil, auth.RedirectURL(u)
@@ -110,7 +110,7 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 	if err != nil || stateCookie.Value != tokStr {
 		return nil, auth.Error("Invalid state token.")
 	}
-	auth.ClearCookie(w, req, stateCookieName)
+	auth.ClearCookie(w, req, stateCookieName, false)
 
 	valid, err := p.validateStateToken(req.Context(), tokStr)
 	if err != nil {
