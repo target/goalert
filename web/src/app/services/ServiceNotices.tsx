@@ -2,9 +2,8 @@ import React from 'react'
 import { gql, useQuery, useMutation } from 'urql'
 import { Button, Grid } from '@mui/material'
 import { DateTime } from 'luxon'
-import Notices from '../details/Notices'
+import Notices, { Notice } from '../details/Notices'
 import { Time } from '../util/Time'
-import { Notice } from '../../schema'
 
 const query = gql`
   query serviceMaintenanceQuery($serviceID: ID!) {

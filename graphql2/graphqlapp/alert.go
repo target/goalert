@@ -32,9 +32,8 @@ type (
 	AlertLogEntryState App
 )
 
-func (a *App) Alert() graphql2.AlertResolver             { return (*Alert)(a) }
-func (a *App) AlertMetric() graphql2.AlertMetricResolver { return (*AlertMetric)(a) }
-
+func (a *App) Alert() graphql2.AlertResolver                 { return (*Alert)(a) }
+func (a *App) AlertMetric() graphql2.AlertMetricResolver     { return (*AlertMetric)(a) }
 func (a *App) AlertLogEntry() graphql2.AlertLogEntryResolver { return (*AlertLogEntry)(a) }
 
 func (a *AlertLogEntry) ID(ctx context.Context, obj *alertlog.Entry) (int, error) {
@@ -359,6 +358,28 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 	}
 
 	return m.AlertStore.Create(ctx, a)
+}
+
+func (a *Alert) NoiseReason(ctx context.Context, raw *alert.Alert) (*string, error) {
+	am, err := a.AlertStore.Feedback(ctx, raw.ID)
+	if err != nil {
+		return nil, err
+	}
+	if am.NoiseReason == "" {
+		return nil, nil
+	}
+	return &am.NoiseReason, nil
+}
+
+func (m *Mutation) SetAlertNoiseReason(ctx context.Context, input graphql2.SetAlertNoiseReasonInput) (bool, error) {
+	err := m.AlertStore.UpdateFeedback(ctx, &alert.Feedback{
+		AlertID:     input.AlertID,
+		NoiseReason: input.NoiseReason,
+	})
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphql2.AlertRecentEventsOptions) (*graphql2.AlertLogEntryConnection, error) {

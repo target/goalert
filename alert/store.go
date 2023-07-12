@@ -791,3 +791,47 @@ func (s *Store) State(ctx context.Context, alertIDs []int) ([]State, error) {
 
 	return list, nil
 }
+
+func (s *Store) Feedback(ctx context.Context, alertID int) (*Feedback, error) {
+	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
+	if err != nil {
+		return nil, err
+	}
+
+	row, err := gadb.New(s.db).AlertFeedback(ctx, int64(alertID))
+	if errors.Is(err, sql.ErrNoRows) {
+		return &Feedback{
+			AlertID: alertID,
+		}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &Feedback{
+		AlertID:     int(row.AlertID),
+		NoiseReason: row.NoiseReason,
+	}, err
+}
+
+func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
+	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
+	if err != nil {
+		return err
+	}
+
+	err = validate.Text("NoiseReason", feedback.NoiseReason, 1, 255)
+	if err != nil {
+		return err
+	}
+
+	err = gadb.New(s.db).SetAlertFeedback(ctx, gadb.SetAlertFeedbackParams{
+		AlertID:     int64(feedback.AlertID),
+		NoiseReason: feedback.NoiseReason,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
