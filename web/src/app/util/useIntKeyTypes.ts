@@ -13,7 +13,10 @@ const query = gql`
 `
 
 export function useIntKeyTypes(): Array<IntegrationKeyTypeInfo> {
-  const [{ data, fetching, error }] = useQuery({ query })
+  const [{ data, fetching, error }] = useQuery({
+    query,
+    requestPolicy: 'cache-first',
+  })
   if (fetching) return []
   if (error) return []
 

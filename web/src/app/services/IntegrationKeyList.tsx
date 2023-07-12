@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from 'react'
+import React, { useState } from 'react'
 import { gql, useQuery } from 'urql'
 import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
@@ -10,7 +10,6 @@ import IconButton from '@mui/material/IconButton'
 import { Trash } from '../icons'
 import IntegrationKeyCreateDialog from './IntegrationKeyCreateDialog'
 import IntegrationKeyDeleteDialog from './IntegrationKeyDeleteDialog'
-import RequireConfig from '../util/RequireConfig'
 import CopyText from '../util/CopyText'
 import AppLink from '../util/AppLink'
 import { useIsWidthDown } from '../util/useWidth'
@@ -63,30 +62,21 @@ export function IntegrationKeyDetails(props: {
   label: string
   type: string
 }): JSX.Element {
-  let copyText: ReactNode = (
-    <CopyText title={'Copy ' + props.label} value={props.href} asURL />
-  )
-
-  // if link is not properly present, do not display to copy
-  if (props.type === 'email' && !props.href.startsWith('mailto:')) {
-    copyText = null
+  const types = useIntKeyTypes()
+  const t = types.find((t) => t.id === props.type) || {
+    enabled: false,
+    name: props.type,
   }
 
-  return (
-    <React.Fragment>
-      {copyText}
-      {props.type === 'email' && (
-        <RequireConfig
-          configID='Mailgun.Enable'
-          else={
-            <React.Fragment>
-              Email integration keys are currently disabled.
-            </React.Fragment>
-          }
-        />
-      )}
-    </React.Fragment>
-  )
+  if (!t.enabled) {
+    return (
+      <React.Fragment>
+        {t.name} integration keys are currently disabled.
+      </React.Fragment>
+    )
+  }
+
+  return <CopyText title={'Copy ' + props.label} value={props.href} asURL />
 }
 
 export default function IntegrationKeyList(props: {
