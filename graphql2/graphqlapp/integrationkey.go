@@ -51,10 +51,10 @@ func (key *IntegrationKey) Href(ctx context.Context, raw *integrationkey.Integra
 	case integrationkey.TypePrometheusAlertmanager:
 		return cfg.CallbackURL("/api/v2/prometheusalertmanager/incoming", q), nil
 	case integrationkey.TypeEmail:
-		if !cfg.Mailgun.Enable || cfg.Mailgun.EmailDomain == "" {
+		if !cfg.EmailIngressEnabled() {
 			return "", nil
 		}
-		return "mailto:" + raw.ID + "@" + cfg.Mailgun.EmailDomain, nil
+		return "mailto:" + raw.ID + "@" + cfg.EmailIngressDomain(raw.ID), nil
 	}
 
 	return "", nil

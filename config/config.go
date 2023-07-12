@@ -81,6 +81,12 @@ type Config struct {
 		EmailDomain string `info:"The TO address for all incoming alerts."`
 	}
 
+	SMTPServer struct {
+		Enable bool `public:"true"`
+
+		EmailDomain string `info:"The TO address domain for incoming email alerts."`
+	}
+
 	Slack struct {
 		Enable bool `public:"true"`
 
@@ -136,6 +142,25 @@ type Config struct {
 		Enable      bool   `public:"true" info:"Enables Feedback link in nav bar."`
 		OverrideURL string `public:"true" info:"Use a custom URL for Feedback link in nav bar."`
 	}
+}
+
+// EmailIngressEnabled returns true if a provider is configured for generating alerts from email, otherwise false
+func (cfg Config) EmailIngressEnabled() bool {
+	if (cfg.Mailgun.Enable && cfg.Mailgun.EmailDomain != "") || cfg.SMTPServer.EmailDomain != "" {
+		return true
+	}
+	return false
+}
+
+// EmailIngressDomain returns the domain configured to receive email for alert generation
+func (cfg Config) EmailIngressDomain(id string) string {
+	if cfg.Mailgun.EmailDomain != "" {
+		return cfg.Mailgun.EmailDomain
+	}
+	if cfg.SMTPServer.EmailDomain != "" {
+		return cfg.SMTPServer.EmailDomain
+	}
+	return ""
 }
 
 // TwilioSMSFromNumber will determine the appropriate FROM number to use for SMS messages to the given number

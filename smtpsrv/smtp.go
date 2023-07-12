@@ -195,7 +195,12 @@ func NewServer(cfg *Config) *smtp.Server {
 
 	s.Addr = cfg.ListenAddr
 	fmt.Printf("creating new SMTP server on addr %s\n", s.Addr)
+
+	if cfg.Domain == "" && len(cfg.AllowedDomains) > 0 {
+		cfg.Domain = cfg.AllowedDomains[0]
+	}
 	s.Domain = cfg.Domain
+
 	s.ReadTimeout = 10 * time.Second
 	s.WriteTimeout = 10 * time.Second
 	s.AuthDisabled = true

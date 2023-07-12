@@ -258,7 +258,14 @@ Migration: %s (#%d)
 
 				ctx := cmd.Context()
 
-				store, err := config.NewStore(ctx, conn, cf.EncryptionKeys, "", "")
+				storeCfg := config.StoreConfig{
+					DB:          conn,
+					Keys:        cf.EncryptionKeys,
+					FallbackURL: "",
+					ExplicitURL: "",
+					// IngressEmailDomain: "",
+				}
+				store, err := config.NewStore(ctx, storeCfg)
 				if err != nil {
 					return fmt.Errorf("read config: %w", err)
 				}
