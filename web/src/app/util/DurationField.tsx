@@ -5,6 +5,7 @@ import { Duration, DurationLikeObject } from 'luxon'
 
 export type DurationFieldProps = {
   value: string
+  name: string
   onChange: (newValue: string) => void
 }
 
@@ -49,6 +50,7 @@ export const DurationField: React.FC<DurationFieldProps> = (props) => {
         <NumberField
           fullWidth
           value={val.toString()}
+          name={props.name}
           onChange={(e) => handleChange(parseInt(e.target.value, 10))}
           sx={{
             '& fieldset': {
