@@ -483,7 +483,6 @@ func (db *DB) UpdateMessageStatus(ctx context.Context, status *notification.Send
 }
 
 func (db *DB) _UpdateMessageStatus(ctx context.Context, status *notification.SendResult) error {
-	fmt.Println("updating message status")
 	if status == nil {
 		// nothing to do
 		return nil
@@ -523,7 +522,6 @@ func (db *DB) _UpdateMessageStatus(ctx context.Context, status *notification.Sen
 		srcValue.String = status.SrcValue
 	}
 	delayStr, err := db.deliveryDelayCheck(ctx, cbID.String)
-	fmt.Println("new details: ", delayStr)
 	if err != nil {
 		return err
 	}
@@ -818,7 +816,6 @@ func (db *DB) updateStuckMessages(ctx context.Context, statusFn StatusFunc) erro
 	for _, m := range toCheck {
 		go db.refreshMessageState(ctx, statusFn, m.id, m.providerID, ch)
 	}
-	fmt.Println("messages to check (calls update message status) ", toCheck)
 	for range toCheck {
 		err := db._UpdateMessageStatus(ctx, <-ch)
 		if err != nil {

@@ -44,11 +44,6 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 	return &Store{
 		db: db,
-		// lookupDeliveredTime: p.P(`
-		// 	select last_status_at
-		// 	from outgoing_messages
-		// 	where alert_id = $1
-		// `),
 		lookupDeliveredTime: p.P(`
 			select outgoing_messages.last_status_at, alert_logs.timestamp
 			from outgoing_messages full outer join alert_logs on outgoing_messages.alert_id = alert_logs.alert_id
@@ -218,7 +213,6 @@ func (s *Store) LookupDeliveredTime(ctx context.Context, alertID string) (*time.
 	var tsSent *time.Time
 	var tsDelivered *time.Time
 	err = s.lookupDeliveredTime.QueryRowContext(ctx, alertID).Scan(&tsDelivered, &tsSent)
-	fmt.Println("time send and delivered: ", tsSent, tsDelivered)
 	return tsSent, tsDelivered, err
 }
 
@@ -312,6 +306,8 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 			switch ncType {
 			case notificationchannel.TypeSlackChan:
 				r.subject.classifier = "Slack"
+			case notificationchannel.TypeWebhook:
+				r.subject.classifier = "Webhook"
 			}
 			r.subject.channelID.String = src.ID
 			r.subject.channelID.Valid = true

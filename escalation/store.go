@@ -717,7 +717,6 @@ func (s *Store) CreateStepTx(ctx context.Context, tx *sql.Tx, st *Step) (*Step, 
 	}
 
 	s.logChange(ctx, tx, st.PolicyID)
-
 	return n, nil
 }
 
