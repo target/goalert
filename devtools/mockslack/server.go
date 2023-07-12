@@ -42,6 +42,8 @@ func NewServer() *Server {
 	srv.mux.HandleFunc("/api/channels.create", srv.ServeChannelsCreate)
 	srv.mux.HandleFunc("/api/groups.create", srv.ServeGroupsCreate)
 	srv.mux.HandleFunc("/api/team.info", srv.ServeTeamInfo)
+	srv.mux.HandleFunc("/api/usergroups.list", srv.ServeUserGroupList)
+	srv.mux.HandleFunc("/api/usergroups.users.update", srv.ServeUserGroupsUsersUpdate)
 	// TODO: history, leave, join
 
 	srv.mux.HandleFunc("/stats", func(w http.ResponseWriter, req *http.Request) {
@@ -206,6 +208,47 @@ func (st *state) NewChannel(name string) ChannelInfo {
 	st.mx.Unlock()
 
 	return info
+}
+
+// UserGroupInfo contains information about a newly created Slack user group.
+type UserGroupInfo struct {
+	ID, Name, Handle string
+}
+
+// NewUserGroup will create a new Slack user group with the given name.
+func (st *state) NewUserGroup(name string) UserGroupInfo {
+	info := UserGroupInfo{
+		ID:     st.gen.UserGroupID(),
+		Name:   name,
+		Handle: name,
+	}
+
+	st.mx.Lock()
+	st.usergroups[info.ID] = &usergroupState{UserGroup: UserGroup{
+		ID:          info.ID,
+		Name:        info.Name,
+		Handle:      info.Handle,
+		IsUserGroup: true,
+	}}
+	st.mx.Unlock()
+
+	return info
+}
+
+// UserGroupUserIDs will return all users from a given user group.
+func (st *state) UserGroupUserIDs(ugID string) []string {
+	st.mx.Lock()
+	defer st.mx.Unlock()
+
+	ug := st.usergroups[ugID]
+	if ug == nil {
+		return nil
+	}
+
+	users := make([]string, len(ug.Users))
+	copy(users, ug.Users)
+
+	return users
 }
 
 // Messages will return all messages from a given channel/group.

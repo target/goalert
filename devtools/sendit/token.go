@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // Token values
@@ -38,20 +38,12 @@ func TokenSubject(secret []byte, aud, token string) (string, error) {
 			return nil, jwt.ErrInvalidKeyType
 		}
 		return secret, nil
-	})
+	}, jwt.WithAudience(aud), jwt.WithIssuer(TokenIssuer), jwt.WithValidMethods([]string{"HS256"}))
 	if err != nil {
 		return "", err
 	}
 
-	claims := tok.Claims.(*jwt.RegisteredClaims)
-	if !claims.VerifyIssuer(TokenIssuer, true) {
-		return "", jwt.NewValidationError("invalid issuer", jwt.ValidationErrorIssuer)
-	}
-	if !claims.VerifyAudience(aud, true) {
-		return "", jwt.NewValidationError("invalid audience", jwt.ValidationErrorAudience)
-	}
-
-	return claims.Subject, nil
+	return tok.Claims.(*jwt.RegisteredClaims).Subject, nil
 }
 
 func genID() (string, error) {

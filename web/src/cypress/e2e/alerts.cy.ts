@@ -377,21 +377,61 @@ function testAlerts(screen: ScreenFormat): void {
 
     it('should allow the user to take action', () => {
       // ack
-      cy.get('button[aria-label=Acknowledge]').click()
+      cy.get('button').contains('Acknowledge').click()
 
       cy.get('body').should('contain', 'ACKNOWLEDGED')
       cy.get('body').should('not.contain', 'UNACKNOWLEDGED')
       cy.get('body').should('contain', 'Acknowledged by Cypress User')
 
       // escalate
-      cy.get('button[aria-label=Escalate]').click()
+      cy.get('button').contains('Escalate').click()
       cy.get('body').should('contain', 'Escalation requested by Cypress User')
       cy.reload() // allows time for escalation request to process
 
       // close
-      cy.get('button[aria-label=Close]').click()
+      cy.get('button').contains('Close').click()
       cy.get('body').should('contain', 'Closed by Cypress User')
       cy.get('body').should('contain', 'CLOSED')
+    })
+
+    it('should set alert noise reasons', () => {
+      // set all noise reasons, checking carefully because of async setState
+      cy.get('body').should('contain.text', 'Is this alert noise?')
+      cy.get('[data-cy="False positive"] input[type="checkbox"]').check()
+      cy.get('[data-cy="False positive"] input[type="checkbox"]').should(
+        'be.checked',
+      )
+      cy.get('[data-cy="Not actionable"] input[type="checkbox"]').check()
+      cy.get('[data-cy="Not actionable"] input[type="checkbox"]').should(
+        'be.checked',
+      )
+      cy.get('[data-cy="Poor details"] input[type="checkbox"]').check()
+      cy.get('[data-cy="Poor details"] input[type="checkbox"]').should(
+        'be.checked',
+      )
+      cy.get('[placeholder="Other (please specify)"]').type('Test')
+
+      // submit
+      cy.get('button[aria-label="Submit noise reasons"]').should(
+        'not.be.disabled',
+      )
+      cy.get('button[aria-label="Submit noise reasons"]').click()
+      cy.get('label').contains('False positive').should('not.exist')
+
+      // see notice
+      const noticeTitle = 'Info: This alert has been marked as noise'
+      cy.get('body').should('contain.text', noticeTitle)
+      cy.get('body').should(
+        'contain.text',
+        'Reasons: False positive, Not actionable, Poor details, Test',
+      )
+
+      // undo
+      cy.get('button[aria-label="Reset noise reasons"]').click()
+      cy.get('body').should('not.contain.text', noticeTitle)
+      cy.get('[data-cy="False positive"] input[type="checkbox"]').should(
+        'not.be.checked',
+      )
     })
   })
 

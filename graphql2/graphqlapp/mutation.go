@@ -65,9 +65,6 @@ func (a *Mutation) SetScheduleOnCallNotificationRules(ctx context.Context, input
 			var nfyChan *notificationchannel.Channel
 			switch r.Target.Type {
 			case assignment.TargetTypeSlackUserGroup:
-				if !expflag.ContextHas(ctx, expflag.SlackUserGroups) {
-					return validation.NewFieldError(fmt.Sprintf("Rules[%d].Target.Type", i), "Slack user groups are not enabled.")
-				}
 				grpID, chanID, _ := strings.Cut(r.Target.ID, ":")
 				grp, err := a.SlackStore.UserGroup(ctx, grpID)
 				if err != nil {

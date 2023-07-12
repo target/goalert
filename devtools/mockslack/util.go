@@ -68,6 +68,7 @@ func (gen *idGen) UserID() string        { return gen.ID("W") }
 func (gen *idGen) AppID() string         { return gen.ID("A") }
 func (gen *idGen) ChannelID() string     { return gen.ID("D") }
 func (gen *idGen) GroupID() string       { return gen.ID("G") }
+func (gen *idGen) UserGroupID() string   { return gen.ID("U") }
 func (gen *idGen) ClientSecret() string  { return gen.next(func() string { return genHex(16) }) }
 func (gen *idGen) SigningSecret() string { return gen.next(func() string { return genHex(16) }) }
 
