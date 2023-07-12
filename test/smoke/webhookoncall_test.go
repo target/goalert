@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/test/smoke/harness"
 )
@@ -33,16 +32,20 @@ type POSTDataOnCallNotification struct {
 func TestWebhookOnCallNotification(t *testing.T) {
 	t.Parallel()
 
-	ch := make(chan POSTDataOnCallNotification)
+	ch := make(chan POSTDataOnCallNotification, 1)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var alert POSTDataOnCallNotification
 
 		data, err := io.ReadAll(r.Body)
-		require.Nil(t, err)
+		if !assert.NoError(t, err) {
+			return
+		}
 
 		err = json.Unmarshal(data, &alert)
-		require.Nil(t, err)
+		if !assert.NoError(t, err) {
+			return
+		}
 
 		ch <- alert
 	}))
