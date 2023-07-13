@@ -18,7 +18,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 import { IntegrationKey } from '../../schema'
-import { useIntKeyTypes } from '../util/useIntKeyTypes'
+import { useFeatures } from '../util/RequireConfig'
 
 const query = gql`
   query ($serviceID: ID!) {
@@ -62,7 +62,7 @@ export function IntegrationKeyDetails(props: {
   label: string
   type: string
 }): JSX.Element {
-  const types = useIntKeyTypes()
+  const types = useFeatures().integrationKeyTypes
   const t = types.find((t) => t.id === props.type) || {
     enabled: false,
     name: props.type,
@@ -91,7 +91,7 @@ export default function IntegrationKeyList(props: {
     query,
     variables: { serviceID: props.serviceID },
   })
-  const types = useIntKeyTypes()
+  const types = useFeatures().integrationKeyTypes
   const typeLabel = (type: string): string =>
     types.find((t) => t.id === type)?.label || type
 

@@ -5,7 +5,7 @@ import MenuItem from '@mui/material/MenuItem'
 import { FormContainer, FormField } from '../forms'
 import { IntegrationKeyType } from '../../schema'
 import { FieldError } from '../util/errutil'
-import { useIntKeyTypes } from '../util/useIntKeyTypes'
+import { useFeatures } from '../util/RequireConfig'
 
 export interface Value {
   name: string
@@ -26,7 +26,7 @@ interface IntegrationKeyFormProps {
 export default function IntegrationKeyForm(
   props: IntegrationKeyFormProps,
 ): JSX.Element {
-  const types = useIntKeyTypes()
+  const types = useFeatures().integrationKeyTypes
 
   const { ...formProps } = props
   return (
