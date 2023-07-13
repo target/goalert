@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/test/smoke/harness"
 )
 
@@ -74,7 +73,7 @@ func TestWebhookOnCallNotification(t *testing.T) {
 		({{uuid "sid"}}, '{"V1":{"OnCallNotificationRules": [{"ChannelID": {{uuidJSON "webhook"}}, "Time": "00:00" }]}}');
 	`
 
-	h := harness.NewHarnessWithFlags(t, sql, "webhook-notification-channel-type", expflag.FlagSet{expflag.ChanWebhook})
+	h := harness.NewHarness(t, sql, "webhook-notification-channel-type")
 	defer h.Close()
 
 	h.Trigger()

@@ -21,7 +21,6 @@ import {
 import { ISOTimePicker } from '../../util/ISOPickers'
 import { useConfigValue } from '../../util/RequireConfig'
 import { Time } from '../../util/Time'
-import { useExpFlag } from '../../util/useExpFlag'
 import { useScheduleTZ } from '../useScheduleTZ'
 import { EVERY_DAY, NO_DAY, RuleFieldError, Value } from './util'
 
@@ -46,7 +45,6 @@ export default function ScheduleOnCallNotificationsForm(
   const classes = useStyles()
   const [slackEnabled] = useConfigValue('Slack.Enable')
   const [webhookEnabled] = useConfigValue('Webhook.Enable')
-  const webhookChannelEnabled = useExpFlag('chan-webhook')
   const { zone } = useScheduleTZ(scheduleID)
 
   const handleRuleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -88,18 +86,15 @@ export default function ScheduleOnCallNotificationsForm(
           disabledMessage: 'Slack must be configured by an administrator',
           disabled: !slackEnabled,
         },
-        ...(webhookChannelEnabled
-          ? [
-              {
-                value: 'chanWebhook',
-                label: 'WEBHOOK',
-                disabledMessage: 'Webhooks must be enabled by an administrator',
-                disabled: !webhookEnabled,
-              },
-            ]
-          : []),
+
+        {
+          value: 'chanWebhook',
+          label: 'WEBHOOK',
+          disabledMessage: 'Webhooks must be enabled by an administrator',
+          disabled: !webhookEnabled,
+        },
       ].sort(sortDisableableMenuItems),
-    [slackEnabled, webhookEnabled, webhookChannelEnabled],
+    [slackEnabled, webhookEnabled],
   )
 
   function renderTypeFields(type: TargetType): JSX.Element {

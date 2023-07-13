@@ -19,7 +19,6 @@ import ScheduleOverrideDialog from './ScheduleOverrideDialog'
 import { useIsWidthDown } from '../util/useWidth'
 import { TempSchedValue, defaultTempSchedValue } from './temp-sched/sharedUtils'
 import { Redirect } from 'wouter'
-import { useExpFlag } from '../util/useExpFlag'
 import { useScheduleTZ } from './useScheduleTZ'
 
 const query = gql`
@@ -77,7 +76,6 @@ export default function ScheduleDetails({
 
   const [slackEnabled] = useConfigValue('Slack.Enable')
   const [webhookEnabled] = useConfigValue('Webhook.Enable')
-  const chanWebhookEnabled = useExpFlag('chan-webhook')
 
   const [configTempSchedule, setConfigTempSchedule] =
     useState<TempSchedValue | null>(null)
@@ -216,7 +214,7 @@ export default function ScheduleDetails({
           },
         ].concat(
           // only slack/webhook supported atm, so hide the link if disabled
-          slackEnabled || (webhookEnabled && chanWebhookEnabled)
+          slackEnabled || webhookEnabled
             ? [
                 {
                   label: 'On-Call Notifications',
