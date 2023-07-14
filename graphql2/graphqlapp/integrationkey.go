@@ -54,7 +54,7 @@ func (key *IntegrationKey) Href(ctx context.Context, raw *integrationkey.Integra
 		if !cfg.EmailIngressEnabled() {
 			return "", nil
 		}
-		return "mailto:" + raw.ID + "@" + cfg.EmailIngressDomain(raw.ID), nil
+		return "mailto:" + raw.ID + "@" + cfg.EmailIngressDomain(), nil
 	}
 
 	return "", nil

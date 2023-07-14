@@ -25,16 +25,17 @@ import (
 
 // Store handles saving and loading configuration from a postgres database.
 type Store struct {
-	rawCfg       Config
-	cfgVers      int
-	fallbackURL  string
-	explicitURL  string
-	mx           sync.RWMutex
-	db           *sql.DB
-	keys         keyring.Keys
-	latestConfig *sql.Stmt
-	setConfig    *sql.Stmt
-	lock         *sql.Stmt
+	rawCfg             Config
+	cfgVers            int
+	fallbackURL        string
+	explicitURL        string
+	ingressEmailDomain string
+	mx                 sync.RWMutex
+	db                 *sql.DB
+	keys               keyring.Keys
+	latestConfig       *sql.Stmt
+	setConfig          *sql.Stmt
+	lock               *sql.Stmt
 
 	closeCh chan struct{}
 }
@@ -59,17 +60,16 @@ func NewStore(ctx context.Context, cfg StoreConfig) (*Store, error) {
 	p := util.Prepare{Ctx: ctx, DB: cfg.DB}
 
 	s := &Store{
-		db:           cfg.DB,
-		fallbackURL:  cfg.FallbackURL,
-		explicitURL:  cfg.ExplicitURL,
-		latestConfig: p.P(`select id, data, schema from config where schema <= $1 order by id desc limit 1`),
-		setConfig:    p.P(`insert into config (id, schema, data) values (DEFAULT, $1, $2) returning (id)`),
-		lock:         p.P(`lock config in exclusive mode`),
-		keys:         cfg.Keys,
-		closeCh:      make(chan struct{}),
+		db:                 cfg.DB,
+		fallbackURL:        cfg.FallbackURL,
+		explicitURL:        cfg.ExplicitURL,
+		ingressEmailDomain: cfg.IngressEmailDomain,
+		latestConfig:       p.P(`select id, data, schema from config where schema <= $1 order by id desc limit 1`),
+		setConfig:          p.P(`insert into config (id, schema, data) values (DEFAULT, $1, $2) returning (id)`),
+		lock:               p.P(`lock config in exclusive mode`),
+		keys:               cfg.Keys,
+		closeCh:            make(chan struct{}),
 	}
-
-	s.rawCfg.SMTPServer.EmailDomain = cfg.IngressEmailDomain
 
 	if p.Err != nil {
 		return nil, p.Err
@@ -145,6 +145,7 @@ func (s *Store) Reload(ctx context.Context) error {
 	rawCfg := *cfg
 	rawCfg.fallbackURL = s.fallbackURL
 	rawCfg.explicitURL = s.explicitURL
+	rawCfg.smtpserver.EmailDomain = s.ingressEmailDomain
 
 	err = cfg.Validate()
 	if err != nil {
@@ -156,7 +157,6 @@ func (s *Store) Reload(ctx context.Context) error {
 	s.cfgVers = id
 	s.rawCfg = rawCfg
 	s.mx.Unlock()
-
 	if oldVers != id {
 		log.Logf(ctx, "Loaded config version %d ", id)
 	}

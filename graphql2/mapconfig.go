@@ -60,8 +60,6 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Mailgun.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Mailgun.Enable)},
 		{ID: "Mailgun.APIKey", Type: ConfigTypeString, Description: "", Value: cfg.Mailgun.APIKey, Password: true},
 		{ID: "Mailgun.EmailDomain", Type: ConfigTypeString, Description: "The TO address for all incoming alerts.", Value: cfg.Mailgun.EmailDomain},
-		{ID: "SMTPServer.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.SMTPServer.Enable)},
-		{ID: "SMTPServer.EmailDomain", Type: ConfigTypeString, Description: "The TO address domain for incoming email alerts.", Value: cfg.SMTPServer.EmailDomain},
 		{ID: "Slack.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Slack.Enable)},
 		{ID: "Slack.ClientID", Type: ConfigTypeString, Description: "", Value: cfg.Slack.ClientID},
 		{ID: "Slack.ClientSecret", Type: ConfigTypeString, Description: "", Value: cfg.Slack.ClientSecret, Password: true},
@@ -113,7 +111,6 @@ func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "GitHub.Enable", Type: ConfigTypeBoolean, Description: "Enable GitHub authentication.", Value: fmt.Sprintf("%t", cfg.GitHub.Enable)},
 		{ID: "OIDC.Enable", Type: ConfigTypeBoolean, Description: "Enable OpenID Connect authentication.", Value: fmt.Sprintf("%t", cfg.OIDC.Enable)},
 		{ID: "Mailgun.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Mailgun.Enable)},
-		{ID: "SMTPServer.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.SMTPServer.Enable)},
 		{ID: "Slack.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Slack.Enable)},
 		{ID: "Twilio.Enable", Type: ConfigTypeBoolean, Description: "Enables sending and processing of Voice and SMS messages through the Twilio notification provider.", Value: fmt.Sprintf("%t", cfg.Twilio.Enable)},
 		{ID: "Twilio.FromNumber", Type: ConfigTypeString, Description: "The Twilio number to use for outgoing notifications.", Value: cfg.Twilio.FromNumber},
@@ -283,14 +280,6 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 			cfg.Mailgun.APIKey = v.Value
 		case "Mailgun.EmailDomain":
 			cfg.Mailgun.EmailDomain = v.Value
-		case "SMTPServer.Enable":
-			val, err := parseBool(v.ID, v.Value)
-			if err != nil {
-				return cfg, err
-			}
-			cfg.SMTPServer.Enable = val
-		case "SMTPServer.EmailDomain":
-			cfg.SMTPServer.EmailDomain = v.Value
 		case "Slack.Enable":
 			val, err := parseBool(v.ID, v.Value)
 			if err != nil {

@@ -81,9 +81,7 @@ type Config struct {
 		EmailDomain string `info:"The TO address for all incoming alerts."`
 	}
 
-	SMTPServer struct {
-		Enable bool `public:"true"`
-
+	smtpserver struct {
 		EmailDomain string `info:"The TO address domain for incoming email alerts."`
 	}
 
@@ -146,19 +144,19 @@ type Config struct {
 
 // EmailIngressEnabled returns true if a provider is configured for generating alerts from email, otherwise false
 func (cfg Config) EmailIngressEnabled() bool {
-	if (cfg.Mailgun.Enable && cfg.Mailgun.EmailDomain != "") || cfg.SMTPServer.EmailDomain != "" {
+	if (cfg.Mailgun.Enable && cfg.Mailgun.EmailDomain != "") || cfg.smtpserver.EmailDomain != "" {
 		return true
 	}
 	return false
 }
 
 // EmailIngressDomain returns the domain configured to receive email for alert generation
-func (cfg Config) EmailIngressDomain(id string) string {
+func (cfg Config) EmailIngressDomain() string {
 	if cfg.Mailgun.EmailDomain != "" {
 		return cfg.Mailgun.EmailDomain
 	}
-	if cfg.SMTPServer.EmailDomain != "" {
-		return cfg.SMTPServer.EmailDomain
+	if cfg.smtpserver.EmailDomain != "" {
+		return cfg.smtpserver.EmailDomain
 	}
 	return ""
 }

@@ -95,11 +95,10 @@ func (s *Session) Data(r io.Reader) error {
 		log.Log(ctx, err)
 	}
 
-	logMsg := "Date: %s\nFrom: %s\nTo: %s\nSubject: %s\n\n%s"
-
 	header := m.Header
 
-	log.Logf(ctx, logMsg, header.Get("Date"), header.Get("From"), header.Get("To"), header.Get("Subject"), string(body))
+	// logMsg := "Date: %s\nFrom: %s\nTo: %s\nSubject: %s\n\n%s"
+	// log.Logf(ctx, logMsg, header.Get("Date"), header.Get("From"), header.Get("To"), header.Get("Subject"), string(body))
 
 	recipient := header.Get("To")
 
