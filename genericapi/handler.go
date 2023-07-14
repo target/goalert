@@ -150,7 +150,10 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Header.Get("Accept") == "application/json" {
+	if r.Header.Get("Accept") != "application/json" {
+		w.WriteHeader(204)
+		return
+	}
 		resp, _ := json.MarshalIndent(*a, "", " ")
 		w.WriteHeader(200)
 		_, err = w.Write(resp)
