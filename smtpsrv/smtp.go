@@ -87,23 +87,18 @@ func (s *Session) Data(r io.Reader) error {
 	m, err := mail.ReadMessage(r)
 	if err != nil {
 		log.Log(ctx, err)
-		return nil
+		return err
 	}
 
-	logMsg := `Date: %s
-From: %s
-To: %s
-Subject: %s
-
-%s
-`
-
-	header := m.Header
-	body, err := io.ReadAll(m.Body)
+	body, err := ParseSanitizeMessage(m)
 	if err != nil {
 		log.Log(ctx, err)
-		return nil
 	}
+
+	logMsg := "Date: %s\nFrom: %s\nTo: %s\nSubject: %s\n\n%s"
+
+	header := m.Header
+
 	log.Logf(ctx, logMsg, header.Get("Date"), header.Get("From"), header.Get("To"), header.Get("Subject"), string(body))
 
 	recipient := header.Get("To")
@@ -218,7 +213,7 @@ type IngressHandler struct {
 func (H *IngressHandler) ServeSMTP(ctx context.Context, s *smtp.Server, l net.Listener) {
 	err := s.Serve(l)
 	if err != nil {
-		log.Log(ctx, errors.New("start SMTP receiver server"))
+		log.Log(ctx, errors.New("start SMTP ingress server"))
 	}
 
 }

@@ -31,6 +31,7 @@ export interface Query {
   userOverride?: null | UserOverride
   config: ConfigValue[]
   configHints: ConfigHint[]
+  integrationKeyTypes: IntegrationKeyTypeInfo[]
   systemLimits: SystemLimit[]
   debugMessageStatus: DebugMessageStatusInfo
   userContactMethod?: null | UserContactMethod
@@ -41,6 +42,13 @@ export interface Query {
   generateSlackAppManifest: string
   linkAccountInfo?: null | LinkAccountInfo
   swoStatus: SWOStatus
+}
+
+export interface IntegrationKeyTypeInfo {
+  id: string
+  name: string
+  label: string
+  enabled: boolean
 }
 
 export interface SWOStatus {

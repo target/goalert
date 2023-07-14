@@ -254,6 +254,13 @@ type ComplexityRoot struct {
 		PageInfo func(childComplexity int) int
 	}
 
+	IntegrationKeyTypeInfo struct {
+		Enabled func(childComplexity int) int
+		ID      func(childComplexity int) int
+		Label   func(childComplexity int) int
+		Name    func(childComplexity int) int
+	}
+
 	Label struct {
 		Key   func(childComplexity int) int
 		Value func(childComplexity int) int
@@ -387,6 +394,7 @@ type ComplexityRoot struct {
 		GenerateSlackAppManifest func(childComplexity int) int
 		HeartbeatMonitor         func(childComplexity int, id string) int
 		IntegrationKey           func(childComplexity int, id string) int
+		IntegrationKeyTypes      func(childComplexity int) int
 		IntegrationKeys          func(childComplexity int, input *IntegrationKeySearchOptions) int
 		LabelKeys                func(childComplexity int, input *LabelKeySearchOptions) int
 		LabelValues              func(childComplexity int, input *LabelValueSearchOptions) int
@@ -788,6 +796,7 @@ type QueryResolver interface {
 	UserOverride(ctx context.Context, id string) (*override.UserOverride, error)
 	Config(ctx context.Context, all *bool) ([]ConfigValue, error)
 	ConfigHints(ctx context.Context) ([]ConfigHint, error)
+	IntegrationKeyTypes(ctx context.Context) ([]IntegrationKeyTypeInfo, error)
 	SystemLimits(ctx context.Context) ([]SystemLimit, error)
 	DebugMessageStatus(ctx context.Context, input DebugMessageStatusInput) (*DebugMessageStatusInfo, error)
 	UserContactMethod(ctx context.Context, id string) (*contactmethod.ContactMethod, error)
@@ -1568,6 +1577,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.IntegrationKeyConnection.PageInfo(childComplexity), true
+
+	case "IntegrationKeyTypeInfo.enabled":
+		if e.complexity.IntegrationKeyTypeInfo.Enabled == nil {
+			break
+		}
+
+		return e.complexity.IntegrationKeyTypeInfo.Enabled(childComplexity), true
+
+	case "IntegrationKeyTypeInfo.id":
+		if e.complexity.IntegrationKeyTypeInfo.ID == nil {
+			break
+		}
+
+		return e.complexity.IntegrationKeyTypeInfo.ID(childComplexity), true
+
+	case "IntegrationKeyTypeInfo.label":
+		if e.complexity.IntegrationKeyTypeInfo.Label == nil {
+			break
+		}
+
+		return e.complexity.IntegrationKeyTypeInfo.Label(childComplexity), true
+
+	case "IntegrationKeyTypeInfo.name":
+		if e.complexity.IntegrationKeyTypeInfo.Name == nil {
+			break
+		}
+
+		return e.complexity.IntegrationKeyTypeInfo.Name(childComplexity), true
 
 	case "Label.key":
 		if e.complexity.Label.Key == nil {
@@ -2535,6 +2572,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.IntegrationKey(childComplexity, args["id"].(string)), true
+
+	case "Query.integrationKeyTypes":
+		if e.complexity.Query.IntegrationKeyTypes == nil {
+			break
+		}
+
+		return e.complexity.Query.IntegrationKeyTypes(childComplexity), true
 
 	case "Query.integrationKeys":
 		if e.complexity.Query.IntegrationKeys == nil {
@@ -9918,6 +9962,182 @@ func (ec *executionContext) fieldContext_IntegrationKeyConnection_pageInfo(ctx c
 	return fc, nil
 }
 
+func (ec *executionContext) _IntegrationKeyTypeInfo_id(ctx context.Context, field graphql.CollectedField, obj *IntegrationKeyTypeInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IntegrationKeyTypeInfo_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IntegrationKeyTypeInfo_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IntegrationKeyTypeInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IntegrationKeyTypeInfo_name(ctx context.Context, field graphql.CollectedField, obj *IntegrationKeyTypeInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IntegrationKeyTypeInfo_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IntegrationKeyTypeInfo_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IntegrationKeyTypeInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IntegrationKeyTypeInfo_label(ctx context.Context, field graphql.CollectedField, obj *IntegrationKeyTypeInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IntegrationKeyTypeInfo_label(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Label, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IntegrationKeyTypeInfo_label(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IntegrationKeyTypeInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IntegrationKeyTypeInfo_enabled(ctx context.Context, field graphql.CollectedField, obj *IntegrationKeyTypeInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IntegrationKeyTypeInfo_enabled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Enabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IntegrationKeyTypeInfo_enabled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IntegrationKeyTypeInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Label_key(ctx context.Context, field graphql.CollectedField, obj *label.Label) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Label_key(ctx, field)
 	if err != nil {
@@ -16370,6 +16590,60 @@ func (ec *executionContext) fieldContext_Query_configHints(ctx context.Context, 
 				return ec.fieldContext_ConfigHint_value(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigHint", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_integrationKeyTypes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_integrationKeyTypes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().IntegrationKeyTypes(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]IntegrationKeyTypeInfo)
+	fc.Result = res
+	return ec.marshalNIntegrationKeyTypeInfo2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIntegrationKeyTypeInfoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_integrationKeyTypes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_IntegrationKeyTypeInfo_id(ctx, field)
+			case "name":
+				return ec.fieldContext_IntegrationKeyTypeInfo_name(ctx, field)
+			case "label":
+				return ec.fieldContext_IntegrationKeyTypeInfo_label(ctx, field)
+			case "enabled":
+				return ec.fieldContext_IntegrationKeyTypeInfo_enabled(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type IntegrationKeyTypeInfo", field.Name)
 		},
 	}
 	return fc, nil
@@ -31959,6 +32233,60 @@ func (ec *executionContext) _IntegrationKeyConnection(ctx context.Context, sel a
 	return out
 }
 
+var integrationKeyTypeInfoImplementors = []string{"IntegrationKeyTypeInfo"}
+
+func (ec *executionContext) _IntegrationKeyTypeInfo(ctx context.Context, sel ast.SelectionSet, obj *IntegrationKeyTypeInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, integrationKeyTypeInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("IntegrationKeyTypeInfo")
+		case "id":
+			out.Values[i] = ec._IntegrationKeyTypeInfo_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._IntegrationKeyTypeInfo_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "label":
+			out.Values[i] = ec._IntegrationKeyTypeInfo_label(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "enabled":
+			out.Values[i] = ec._IntegrationKeyTypeInfo_enabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var labelImplementors = []string{"Label"}
 
 func (ec *executionContext) _Label(ctx context.Context, sel ast.SelectionSet, obj *label.Label) graphql.Marshaler {
@@ -33542,6 +33870,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_configHints(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "integrationKeyTypes":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_integrationKeyTypes(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -38271,6 +38621,54 @@ func (ec *executionContext) unmarshalNIntegrationKeyType2githubᚗcomᚋtarget�
 
 func (ec *executionContext) marshalNIntegrationKeyType2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIntegrationKeyType(ctx context.Context, sel ast.SelectionSet, v IntegrationKeyType) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNIntegrationKeyTypeInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIntegrationKeyTypeInfo(ctx context.Context, sel ast.SelectionSet, v IntegrationKeyTypeInfo) graphql.Marshaler {
+	return ec._IntegrationKeyTypeInfo(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNIntegrationKeyTypeInfo2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIntegrationKeyTypeInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []IntegrationKeyTypeInfo) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNIntegrationKeyTypeInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIntegrationKeyTypeInfo(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNLabel2githubᚗcomᚋtargetᚋgoalertᚋlabelᚐLabel(ctx context.Context, sel ast.SelectionSet, v label.Label) graphql.Marshaler {
