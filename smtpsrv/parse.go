@@ -99,7 +99,6 @@ func parseMultipart(body io.Reader, boundary string) ([]byte, error) {
 // parseHTML returns the message body stripped of HTML tags
 func parseHTML(body []byte) []byte {
 	p := bluemonday.StripTagsPolicy()
-	fmt.Printf("original html = %q\n", body)
 	s := p.SanitizeBytes(body)
 	return s
 }
