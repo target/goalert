@@ -108,7 +108,7 @@
     "redux-thunk": "2.4.2",
     "remark-gfm": "3.0.1",
     "stylelint": "15.10.1",
-    "stylelint-config-standard": "33.0.0",
+    "stylelint-config-standard": "34.0.0",
     "typescript": "5.0.4",
     "urql": "4.0.4",
     "wonka": "6.3.2",

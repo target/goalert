@@ -10945,7 +10945,7 @@ __metadata:
     redux-thunk: 2.4.2
     remark-gfm: 3.0.1
     stylelint: 15.10.1
-    stylelint-config-standard: 33.0.0
+    stylelint-config-standard: 34.0.0
     typescript: 5.0.4
     urql: 4.0.4
     wonka: 6.3.2
@@ -11578,23 +11578,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stylelint-config-recommended@npm:^12.0.0":
-  version: 12.0.0
-  resolution: "stylelint-config-recommended@npm:12.0.0"
+"stylelint-config-recommended@npm:^13.0.0":
+  version: 13.0.0
+  resolution: "stylelint-config-recommended@npm:13.0.0"
   peerDependencies:
-    stylelint: ^15.5.0
-  checksum: d1de0fa2673c8aa4e50259eb7320cc17e7d09d13a176afea943b3227befcaaaf4e78b546ec076ace1e031ff526c81ea5dc6efa98dd7dc77c582b7352a128d37c
+    stylelint: ^15.10.0
+  checksum: a56eb6d1a7c7f3a7a172b54bc34218859ba22a5a06816fb4d0964f66cb83cf372062f2c97830e994ad68243548e15fc49abf28887c3261ab1b471b3aa69f8e82
   languageName: node
   linkType: hard
 
-"stylelint-config-standard@npm:33.0.0":
-  version: 33.0.0
-  resolution: "stylelint-config-standard@npm:33.0.0"
+"stylelint-config-standard@npm:34.0.0":
+  version: 34.0.0
+  resolution: "stylelint-config-standard@npm:34.0.0"
   dependencies:
-    stylelint-config-recommended: ^12.0.0
+    stylelint-config-recommended: ^13.0.0
   peerDependencies:
-    stylelint: ^15.5.0
-  checksum: c901e52901f6eb72285a869b04ed55eddfb94b794d2599eee4cc9d56365c874c2276563d26848d29c3665ca7de361bf8abb9f6f7d80073f16013afff60938bad
+    stylelint: ^15.10.0
+  checksum: 536249800c04b48a9c354067765f042713982e8222be17bb897a27d26546e50adfb87e6f1e4541807d720de3554345da99ab470e13e8d7ab0ab326c73ae3df61
   languageName: node
   linkType: hard
 
