@@ -214,7 +214,6 @@ func (H *IngressHandler) ServeSMTP(ctx context.Context, s *smtp.Server, l net.Li
 	if err != nil {
 		log.Log(ctx, errors.New("start SMTP ingress server"))
 	}
-
 }
 
 func IngressSMTP(aDB *alert.Store, intDB *integrationkey.Store, cfg *Config) IngressHandler {

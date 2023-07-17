@@ -27,15 +27,13 @@ func ParseSanitizeMessage(m *mail.Message) ([]byte, error) {
 	switch i := true; i {
 
 	case strings.HasPrefix(mediaType, "multipart/"):
-		fmt.Println("case: multipart")
 		body, err := parseMultipart(m.Body, params["boundary"])
 		if err != nil {
-			return nil, err
+			return body, err
 		}
 		return body, nil
 
 	case mediaType == "text/plain":
-		fmt.Println("case: text/plain")
 		body, err := io.ReadAll(m.Body)
 		if err != nil {
 			return nil, err
@@ -43,7 +41,6 @@ func ParseSanitizeMessage(m *mail.Message) ([]byte, error) {
 		return body, nil
 
 	case mediaType == "text/html":
-		fmt.Println("case: text/html")
 		body, err := io.ReadAll(m.Body)
 		if err != nil {
 			return nil, err
@@ -51,7 +48,6 @@ func ParseSanitizeMessage(m *mail.Message) ([]byte, error) {
 		return parseHTML(body), nil
 
 	default:
-		fmt.Println("case: default")
 		err := fmt.Errorf("unexpected content type: %s", mediaType)
 		return nil, err
 	}
@@ -62,7 +58,7 @@ func parseMultipart(body io.Reader, boundary string) ([]byte, error) {
 	mr := multipart.NewReader(body, boundary)
 	for {
 		p, err := mr.NextPart()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
@@ -75,6 +71,7 @@ func parseMultipart(body io.Reader, boundary string) ([]byte, error) {
 				partType = "text/plain"
 			} else {
 				return nil, err
+
 			}
 		}
 
