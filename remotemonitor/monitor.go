@@ -84,6 +84,7 @@ func NewMonitor(cfg Config) (*Monitor, error) {
 	m.appCfg.Twilio.AccountSID = cfg.Twilio.AccountSID
 	m.appCfg.Twilio.AuthToken = cfg.Twilio.AuthToken
 	m.appCfg.Twilio.FromNumber = cfg.Twilio.FromNumber
+	m.appCfg.Twilio.MessagingServiceSID = cfg.Twilio.MessageSID
 	mux.Handle("/", twilio.WrapHeaderHack(h))
 	m.srv = &http.Server{
 		Handler: config.Handler(
