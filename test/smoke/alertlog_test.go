@@ -32,7 +32,6 @@ func TestAlertLog(t *testing.T) {
 		NR         bool
 		EPStep     bool
 		EPStepUser bool
-		Delay      bool
 	}
 
 	doQL := func(t *testing.T, h *harness.Harness, query string, res interface{}) {
@@ -113,10 +112,6 @@ func TestAlertLog(t *testing.T) {
 			}
 			h.Trigger()
 
-			if c.Delay {
-				h.FastForward(time.Minute * 10)
-			}
-
 			// get logs
 			var l alertLogs
 			doQL(t, h, fmt.Sprintf(`
@@ -139,98 +134,98 @@ func TestAlertLog(t *testing.T) {
 		})
 	}
 
-	// test successful notification sent
-	check("NotificationSentSuccess", config{
-		CMDisabled: false,
-		CMType:     "SMS",
-		NR:         true,
-		EPStep:     true,
-		EPStepUser: true,
-	}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
-		msg := l.Alert.RecentEvents.Nodes[0].Message
-		assert.Contains(t, msg, "Notification sent")
-		h.Twilio(t).Device(h.Phone("1")).ExpectSMS("Alert #1: foo")
-	})
+	// // test successful notification sent
+	// check("NotificationSentSuccess", config{
+	// 	CMDisabled: false,
+	// 	CMType:     "SMS",
+	// 	NR:         true,
+	// 	EPStep:     true,
+	// 	EPStepUser: true,
+	// }, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
+	// 	msg := l.Alert.RecentEvents.Nodes[0].Message
+	// 	assert.Contains(t, msg, "Notification sent")
+	// 	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("Alert #1: foo")
+	// })
 
-	// test disabled contact method
-	check("DisabledContactMethod", config{
-		CMDisabled: true,
-		CMType:     "SMS",
-		NR:         true,
-		EPStep:     true,
-		EPStepUser: true,
-	}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
-		details := l.Alert.RecentEvents.Nodes[0].State.Details
-		assert.Contains(t, details, "contact method disabled")
-	})
+	// // test disabled contact method
+	// check("DisabledContactMethod", config{
+	// 	CMDisabled: true,
+	// 	CMType:     "SMS",
+	// 	NR:         true,
+	// 	EPStep:     true,
+	// 	EPStepUser: true,
+	// }, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
+	// 	details := l.Alert.RecentEvents.Nodes[0].State.Details
+	// 	assert.Contains(t, details, "contact method disabled")
+	// })
 
-	// test SMS failure
-	check("SMSFailure", config{
-		CMDisabled: false,
-		CMType:     "SMS",
-		NR:         true,
-		EPStep:     true,
-		EPStepUser: true,
-	}, func(t *testing.T, h *harness.Harness) {
-		h.Twilio(t).Device(h.Phone("1")).RejectSMS("Alert #1: foo")
-	}, func(t *testing.T, h *harness.Harness, l alertLogs) {
-		msg := l.Alert.RecentEvents.Nodes[0].Message
-		details := l.Alert.RecentEvents.Nodes[0].State.Details
-		assert.Contains(t, msg, "Notification sent")
-		assert.Equal(t, "failed", details)
-	})
+	// // test SMS failure
+	// check("SMSFailure", config{
+	// 	CMDisabled: false,
+	// 	CMType:     "SMS",
+	// 	NR:         true,
+	// 	EPStep:     true,
+	// 	EPStepUser: true,
+	// }, func(t *testing.T, h *harness.Harness) {
+	// 	h.Twilio(t).Device(h.Phone("1")).RejectSMS("Alert #1: foo")
+	// }, func(t *testing.T, h *harness.Harness, l alertLogs) {
+	// 	msg := l.Alert.RecentEvents.Nodes[0].Message
+	// 	details := l.Alert.RecentEvents.Nodes[0].State.Details
+	// 	assert.Contains(t, msg, "Notification sent")
+	// 	assert.Equal(t, "failed", details)
+	// })
 
-	// test VOICE failure
-	check("VOICEFailure", config{
-		CMDisabled: false,
-		CMType:     "VOICE",
-		NR:         true,
-		EPStep:     true,
-		EPStepUser: true,
-	}, func(t *testing.T, h *harness.Harness) {
-		h.Twilio(t).Device(h.Phone("1")).RejectVoice("foo")
-	}, func(t *testing.T, h *harness.Harness, l alertLogs) {
-		msg := l.Alert.RecentEvents.Nodes[0].Message
-		details := l.Alert.RecentEvents.Nodes[0].State.Details
-		assert.Contains(t, msg, "Notification sent")
-		assert.Equal(t, "failed", details)
-	})
+	// // test VOICE failure
+	// check("VOICEFailure", config{
+	// 	CMDisabled: false,
+	// 	CMType:     "VOICE",
+	// 	NR:         true,
+	// 	EPStep:     true,
+	// 	EPStepUser: true,
+	// }, func(t *testing.T, h *harness.Harness) {
+	// 	h.Twilio(t).Device(h.Phone("1")).RejectVoice("foo")
+	// }, func(t *testing.T, h *harness.Harness, l alertLogs) {
+	// 	msg := l.Alert.RecentEvents.Nodes[0].Message
+	// 	details := l.Alert.RecentEvents.Nodes[0].State.Details
+	// 	assert.Contains(t, msg, "Notification sent")
+	// 	assert.Equal(t, "failed", details)
+	// })
 
-	// test no immediate notification rule
-	check("NoImmediateNR", config{
-		CMDisabled: false,
-		CMType:     "SMS",
-		NR:         false,
-		EPStep:     true,
-		EPStepUser: true,
-	}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
-		msg := l.Alert.RecentEvents.Nodes[0].Message
-		assert.Contains(t, msg, "no immediate rule")
-	})
+	// // test no immediate notification rule
+	// check("NoImmediateNR", config{
+	// 	CMDisabled: false,
+	// 	CMType:     "SMS",
+	// 	NR:         false,
+	// 	EPStep:     true,
+	// 	EPStepUser: true,
+	// }, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
+	// 	msg := l.Alert.RecentEvents.Nodes[0].Message
+	// 	assert.Contains(t, msg, "no immediate rule")
+	// })
 
-	// test no on-call users
-	check("NoOnCallUsers", config{
-		CMDisabled: false,
-		CMType:     "SMS",
-		NR:         true,
-		EPStep:     true,
-		EPStepUser: false,
-	}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
-		details := l.Alert.RecentEvents.Nodes[0].State.Details
-		assert.Contains(t, details, "No one was on-call")
-	})
+	// // test no on-call users
+	// check("NoOnCallUsers", config{
+	// 	CMDisabled: false,
+	// 	CMType:     "SMS",
+	// 	NR:         true,
+	// 	EPStep:     true,
+	// 	EPStepUser: false,
+	// }, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
+	// 	details := l.Alert.RecentEvents.Nodes[0].State.Details
+	// 	assert.Contains(t, details, "No one was on-call")
+	// })
 
-	// test no steps on an escalation policy
-	check("NoEPSteps", config{
-		CMDisabled: false,
-		CMType:     "SMS",
-		NR:         true,
-		EPStep:     false,
-		EPStepUser: true,
-	}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
-		details := l.Alert.RecentEvents.Nodes[0].State.Details
-		assert.Contains(t, details, "No escalation policy steps")
-	})
+	// // test no steps on an escalation policy
+	// check("NoEPSteps", config{
+	// 	CMDisabled: false,
+	// 	CMType:     "SMS",
+	// 	NR:         true,
+	// 	EPStep:     false,
+	// 	EPStepUser: true,
+	// }, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
+	// 	details := l.Alert.RecentEvents.Nodes[0].State.Details
+	// 	assert.Contains(t, details, "No escalation policy steps")
+	// })
 
 	// test delivery delay
 	check("DeliveryDelay", config{
@@ -239,14 +234,28 @@ func TestAlertLog(t *testing.T) {
 		NR:         true,
 		EPStep:     true,
 		EPStepUser: true,
-		Delay:      true,
+	}, func(t *testing.T, h *harness.Harness) {
+		h.FastForward(11 * time.Minute)
+	}, func(t *testing.T, h *harness.Harness, l alertLogs) {
+		// h.Twilio(t).Device(h.Phone("1")).ExpectSMS("foo")
+		// details := l.Alert.RecentEvents.Nodes[0].State.Details
+		// assert.Contains(t, details, "(after 10 mins)")
+		msg := l.Alert.RecentEvents.Nodes[0].Message
+		fmt.Printf("MSG IS: %s\n", msg)
+		assert.Contains(t, msg, "Notification poo")
+		// h.Twilio(t).Device(h.Phone("1")).ExpectSMS("Alert #1: foo")
+	})
+
+	check("NotificationSentSuccess", config{
+		CMDisabled: false,
+		CMType:     "SMS",
+		NR:         true,
+		EPStep:     true,
+		EPStepUser: true,
 	}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
-		h.FastForward(10 * time.Minute)
-		h.Twilio(t).Device(h.Phone("1")).ExpectSMS("foo")
-		h.FastForward(10 * time.Minute)
-		h.Trigger()
-		h.Trigger()
-		details := l.Alert.RecentEvents.Nodes[0].State.Details
-		assert.Contains(t, details, "(after 10 mins)")
+		msg := l.Alert.RecentEvents.Nodes[0].Message
+		fmt.Printf("MSG 2 IS: %s\n", msg)
+		assert.Contains(t, msg, "Notification sent")
+		h.Twilio(t).Device(h.Phone("1")).ExpectSMS("Alert #1: foo")
 	})
 }

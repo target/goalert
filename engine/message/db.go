@@ -521,12 +521,15 @@ func (db *DB) _UpdateMessageStatus(ctx context.Context, status *notification.Sen
 		srcValue.Valid = true
 		srcValue.String = status.SrcValue
 	}
-	delayStr, err := db.deliveryDelayCheck(ctx, cbID.String)
-	if err != nil {
-		return err
-	}
-	if delayStr != "" {
-		status.Details = delayStr
+
+	if cbID.Valid {
+		delayStr, err := db.deliveryDelayCheck(ctx, cbID.String)
+		if err != nil {
+			return err
+		}
+		if delayStr != "" {
+			status.Details = delayStr
+		}
 	}
 
 	_, err = db.updateStatus.ExecContext(ctx, cbID, status.ProviderMessageID, status.Sequence, s, status.Details, srcValue)
@@ -560,12 +563,12 @@ func formatDelay(delay int) string {
 
 // Calculate delivery delay if necessary
 func (db *DB) deliveryDelayCheck(ctx context.Context, id string) (string, error) {
+	println("DELIVERY DELAY CHECK")
 	timeSent, timeDelivered, err := db.alertlogstore.LookupDeliveredTime(ctx, id)
 	if err != nil {
 		return "", err
 	}
-	deliveryDelay := int(timeDelivered.Sub(*timeSent).Minutes())
-	fmt.Println("delay: ", deliveryDelay)
+	deliveryDelay := int(timeDelivered.Sub(timeSent).Minutes())
 	if deliveryDelay > 2 {
 		return formatDelay(deliveryDelay), nil
 	}
