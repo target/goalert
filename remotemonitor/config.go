@@ -26,6 +26,7 @@ type Config struct {
 		AccountSID string
 		AuthToken  string
 		FromNumber string
+		MessageSID string
 	}
 
 	SMTP struct {

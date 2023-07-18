@@ -1,5 +1,5 @@
 import { Chance } from 'chance'
-import { testScreen, testScreenWithFlags } from '../support/e2e'
+import { testScreen } from '../support/e2e'
 import { Schedule } from '../../schema'
 import users from '../fixtures/users.json'
 
@@ -256,69 +256,65 @@ function testSteps(screen: ScreenFormat): void {
 
 testScreen('Escalation Policy Steps', testSteps)
 
-testScreenWithFlags(
-  'Webhook Support',
-  (screen: ScreenFormat) => {
-    let ep: EP
-    beforeEach(() => {
-      cy.createEP().then((e: EP) => {
-        ep = e
-        cy.visit(`/escalation-policies/${ep.id}`)
-      })
+testScreen('Webhook Support', (screen: ScreenFormat) => {
+  let ep: EP
+  beforeEach(() => {
+    cy.createEP().then((e: EP) => {
+      ep = e
+      cy.visit(`/escalation-policies/${ep.id}`)
     })
+  })
 
-    it('should add, click, and remove a webhook', () => {
-      cy.updateConfig({ Webhook: { Enable: true } })
-      cy.reload()
+  it('should add, click, and remove a webhook', () => {
+    cy.updateConfig({ Webhook: { Enable: true } })
+    cy.reload()
 
-      if (screen === 'mobile') {
-        cy.pageFab()
-      } else {
-        cy.get('button').contains('Create Step').click()
-      }
-      cy.dialogTitle('Create Step')
+    if (screen === 'mobile') {
+      cy.pageFab()
+    } else {
+      cy.get('button').contains('Create Step').click()
+    }
+    cy.dialogTitle('Create Step')
 
-      // expand webhook section
-      cy.get('button[data-cy="webhook-step"]').click()
+    // expand webhook section
+    cy.get('button[data-cy="webhook-step"]').click()
 
-      // add webhooks
-      cy.dialogForm({
-        webhooks: 'https://webhook.site',
-      })
-      cy.get('button[data-cy="add-webhook"]').click()
-      cy.dialogForm({
-        webhooks: 'https://example.com',
-      })
-      cy.get('button[data-cy="add-webhook"]').click()
-      cy.dialogFinish('Submit')
-
-      // verify data integrity
-      cy.get('body').should('contain', 'Notify the following:')
-      cy.get('body').should('contain', 'Step #1:')
-      cy.get('div[data-cy=webhook-chip]').should('contain', 'webhook.site')
-      cy.get('div[data-cy=webhook-chip]').should('contain', 'example.com')
-
-      // open edit step dialog
-      cy.get('ul[data-cy=steps-list] :nth-child(1) li')
-        .find('button[data-cy=other-actions]')
-        .menu('Edit')
-
-      cy.dialogTitle('Edit Step')
-
-      // expand webhook section
-      cy.get('button[data-cy="webhook-step"]').click()
-
-      // delete webhook.site webhook
-      cy.get('[data-testid=CancelIcon]').first().click()
-
-      cy.dialogFinish('Submit')
-
-      // verify data integrity
-      cy.get('body').should('contain', 'Notify the following:')
-      cy.get('body').should('contain', 'Step #1:')
-      cy.get('div[data-cy=webhook-chip]').should('contain', 'example.com')
-      cy.get('div[data-cy=webhook-chip]').should('not.contain', 'webhook.site')
+    // add webhooks
+    cy.dialogForm({
+      webhooks: 'https://webhook.site',
     })
-  },
-  ['chan-webhook'],
-)
+    cy.get('button[data-cy="add-webhook"]').click()
+    cy.dialogForm({
+      webhooks: 'https://example.com',
+    })
+    cy.get('button[data-cy="add-webhook"]').click()
+    cy.dialogFinish('Submit')
+
+    // verify data integrity
+    cy.get('body').should('contain', 'Notify the following:')
+    cy.get('body').should('contain', 'Step #1:')
+    cy.get('div[data-cy=webhook-chip]').should('contain', 'webhook.site')
+    cy.get('div[data-cy=webhook-chip]').should('contain', 'example.com')
+
+    // open edit step dialog
+    cy.get('ul[data-cy=steps-list] :nth-child(1) li')
+      .find('button[data-cy=other-actions]')
+      .menu('Edit')
+
+    cy.dialogTitle('Edit Step')
+
+    // expand webhook section
+    cy.get('button[data-cy="webhook-step"]').click()
+
+    // delete webhook.site webhook
+    cy.get('[data-testid=CancelIcon]').first().click()
+
+    cy.dialogFinish('Submit')
+
+    // verify data integrity
+    cy.get('body').should('contain', 'Notify the following:')
+    cy.get('body').should('contain', 'Step #1:')
+    cy.get('div[data-cy=webhook-chip]').should('contain', 'example.com')
+    cy.get('div[data-cy=webhook-chip]').should('not.contain', 'webhook.site')
+  })
+})

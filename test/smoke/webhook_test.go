@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/test/smoke/harness"
 )
 
@@ -22,16 +21,20 @@ type WebhookTestingAlert struct {
 func TestWebhookAlert(t *testing.T) {
 	t.Parallel()
 
-	ch := make(chan WebhookTestingAlert)
+	ch := make(chan WebhookTestingAlert, 1)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var alert WebhookTestingAlert
 
 		data, err := io.ReadAll(r.Body)
-		require.Nil(t, err)
+		if !assert.NoError(t, err) {
+			return
+		}
 
 		err = json.Unmarshal(data, &alert)
-		require.Nil(t, err)
+		if !assert.NoError(t, err) {
+			return
+		}
 
 		ch <- alert
 	}))
