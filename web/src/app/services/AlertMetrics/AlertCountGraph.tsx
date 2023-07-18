@@ -95,6 +95,18 @@ export default function AlertCountGraph(
                 }}
               />
               <Legend />
+              <Bar
+                stackId='a'
+                dataKey='nonEscalatedCount'
+                fillOpacity={props.loading ? 0.5 : 1}
+                fill={
+                  theme.palette.mode === 'light'
+                    ? theme.palette.secondary.dark
+                    : theme.palette.secondary.light
+                }
+                className={classes.bar}
+                name='Alerts'
+              />
               <Area
                 dataKey='escalatedCount'
                 type='monotone'
@@ -109,18 +121,6 @@ export default function AlertCountGraph(
                     : theme.palette.info.dark
                 }
                 name='Escalated Alerts'
-              />
-              <Bar
-                stackId='a'
-                dataKey='nonEscalatedCount'
-                fillOpacity={props.loading ? 0.5 : 1}
-                fill={
-                  theme.palette.mode === 'light'
-                    ? theme.palette.secondary.dark
-                    : theme.palette.secondary.light
-                }
-                className={classes.bar}
-                name='Alerts'
               />
               <Area
                 dataKey='noiseCount'
