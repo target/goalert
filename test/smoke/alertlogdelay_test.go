@@ -12,19 +12,6 @@ import (
 func TestAlertLogDelay(t *testing.T) {
 	t.Parallel()
 
-	type alertLogs struct {
-		Alert struct {
-			RecentEvents struct {
-				Nodes []struct {
-					Message string
-					State   struct {
-						Details string
-					}
-				}
-			}
-		}
-	}
-
 	doQL := func(t *testing.T, h *harness.Harness, query string, res interface{}) {
 		t.Helper()
 		g := h.GraphQLQuery2(query)
@@ -47,7 +34,7 @@ func TestAlertLogDelay(t *testing.T) {
 		}
 	}
 
-	const alertLogSQLTmpl = `
+	const query = `
 		insert into users (id, name, email) 
 		values ({{uuid "user"}}, 'bob', 'joe');
 
@@ -60,42 +47,45 @@ func TestAlertLogDelay(t *testing.T) {
 		insert into services (id, escalation_policy_id, name) 
 		values ({{uuid "sid"}}, {{uuid "eid"}}, 'service');
 
-    insert into alerts (id, service_id, summary, dedup_key)
-    values (10, {{uuid "sid"}}, 'test_summary', 'auto:1:test');
+		insert into alerts (id, service_id, summary, dedup_key)
+		values (10, {{uuid "sid"}}, 'test_summary', 'auto:1:test');
 
-    insert into outgoing_messages (id, message_type, last_status_at, created_at, last_status, alert_id, user_id, service_id, escalation_policy_id, sent_at, contact_method_id)
-    values ({{uuid "omid"}}, 'alert_notification', NOW(), NOW() - '5 minutes'::interval, 'delivered', 10, {{uuid "user"}}, {{uuid "sid"}}, {{uuid "eid"}}, NOW(), {{uuid "cm1"}});
+		insert into outgoing_messages (id, message_type, last_status_at, created_at, last_status, alert_id, user_id, service_id, escalation_policy_id, sent_at, contact_method_id)
+		values ({{uuid "omid"}}, 'alert_notification', NOW(), NOW() - '5 minutes'::interval, 'delivered', 10, {{uuid "user"}}, {{uuid "sid"}}, {{uuid "eid"}}, NOW(), {{uuid "cm1"}});
 
-    insert into alert_logs (alert_id, event, meta, message)
-    values (10, 'notification_sent', '{"MessageID": {{uuidJSON "omid"}}}', '');
+		insert into alert_logs (alert_id, event, meta, message)
+		values (10, 'notification_sent', '{"MessageID": {{uuidJSON "omid"}}}', '');
 	`
 
-	// setup sql
-	h := harness.NewHarness(t, alertLogSQLTmpl, "add-no-notification-alert-log")
+	h := harness.NewHarness(t, query, "add-no-notification-alert-log")
 	defer h.Close()
 
-	h.Trigger()
+	var alertLogs struct {
+		Alert struct {
+			RecentEvents struct {
+				Nodes []struct {
+					State struct {
+						Details string
+					}
+				}
+			}
+		}
+	}
 
-	// get logs
-	var l alertLogs
 	doQL(t, h, fmt.Sprintf(`
-			query {
-					alert(id: %d) {
-						recentEvents(input: { limit: 15 }) {
-							nodes {
-								message
-								state {
-									details
-								}
-							}
+		query {
+			alert(id: %d) {
+				recentEvents(input: { limit: 15 }) {
+					nodes {
+						message
+						state {
+							details
 						}
 					}
+				}
 			}
-		`, 10), &l)
+		}
+	`, 10), &alertLogs)
 
-	// make assertions
-	msg := l.Alert.RecentEvents.Nodes[0].Message
-	fmt.Printf("MSG IS: %s\n", msg)
-	assert.Contains(t, msg, "Notification foo")
-
+	assert.Equal(t, "Delivered (after 5m)", alertLogs.Alert.RecentEvents.Nodes[0].State.Details)
 }
