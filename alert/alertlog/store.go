@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/notification"
@@ -31,12 +30,11 @@ type Store struct {
 	findAllByType *sql.Stmt
 	findOne       *sql.Stmt
 
-	lookupDeliveredTime *sql.Stmt
-	lookupCallbackType  *sql.Stmt
-	lookupIKeyType      *sql.Stmt
-	lookupCMType        *sql.Stmt
-	lookupNCTypeName    *sql.Stmt
-	lookupHBInterval    *sql.Stmt
+	lookupCallbackType *sql.Stmt
+	lookupIKeyType     *sql.Stmt
+	lookupCMType       *sql.Stmt
+	lookupNCTypeName   *sql.Stmt
+	lookupHBInterval   *sql.Stmt
 }
 
 func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
@@ -44,11 +42,6 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 	return &Store{
 		db: db,
-		lookupDeliveredTime: p.P(`
-			select outgoing_messages.last_status_at, outgoing_messages.created_at
-			from outgoing_messages
-			where outgoing_messages.id = $1
-		`),
 		lookupCallbackType: p.P(`
 			select cm."type", ch."type"
 			from outgoing_messages log
@@ -201,27 +194,6 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			limit 1
 		`),
 	}, p.Err
-}
-
-func (s *Store) LookupDeliveredTime(ctx context.Context, messageID string) (tsSent time.Time, tsDelivered time.Time, err error) {
-	err = permission.LimitCheckAny(ctx, permission.All)
-	if err != nil {
-		return
-	}
-
-	var lastStatusAt *time.Time
-	var createdAt *time.Time
-	var status string
-	err = s.lookupDeliveredTime.QueryRowContext(ctx, messageID).Scan(&createdAt, &status, &lastStatusAt)
-	if err != nil {
-		return
-	}
-	fmt.Printf("SENT: %v, Delivered: %v\n", status, createdAt)
-	if lastStatusAt != nil && createdAt != nil {
-		tsSent = *lastStatusAt
-		tsDelivered = *createdAt
-	}
-	return
 }
 
 func (s *Store) MustLog(ctx context.Context, alertID int, _type Type, meta interface{}) {
