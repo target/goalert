@@ -93,7 +93,7 @@ func notificationStateFromSendResult(s notification.Status, formattedSrc string)
 	}
 
 	if s.Age() >= 2*time.Minute {
-		details += fmt.Sprintf(" (after %s)", s.Age().Truncate(time.Minute))
+		details += fmt.Sprintf(" (after %s)", friendlyDuration(s.Age().Truncate(time.Minute)))
 	}
 
 	return &graphql2.NotificationState{
@@ -101,6 +101,22 @@ func notificationStateFromSendResult(s notification.Status, formattedSrc string)
 		Status:            &status,
 		FormattedSrcValue: formattedSrc,
 	}
+}
+
+func friendlyDuration(dur time.Duration) string {
+	var parts []string
+	hr := dur / time.Hour
+	if hr > 0 {
+		parts = append(parts, fmt.Sprintf("%dh", hr))
+		dur -= hr * time.Hour
+	}
+	min := dur / time.Minute
+	if min > 0 {
+		parts = append(parts, fmt.Sprintf("%dm", min))
+		dur -= min * time.Minute
+	}
+
+	return strings.Join(parts, " ")
 }
 
 func (a *AlertLogEntry) escalationState(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {
