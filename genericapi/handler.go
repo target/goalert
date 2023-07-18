@@ -139,19 +139,17 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var resp struct {
-		AlertID     int
-		ServiceID   string
-		IsDuplicate bool
+		AlertID   int
+		ServiceID string
+		IsNew     bool
 	}
 
 	err = retry.DoTemporaryError(func(int) error {
-		createdAlert, err := h.c.AlertStore.CreateOrUpdate(ctx, a)
+		createdAlert, isNew, err := h.c.AlertStore.CreateOrUpdate(ctx, a)
 		if createdAlert != nil {
 			resp.AlertID = createdAlert.ID
 			resp.ServiceID = createdAlert.ServiceID
-			if createdAlert.Dedup != nil {
-				resp.IsDuplicate = true
-			}
+			resp.IsNew = isNew
 		}
 
 		return err
@@ -169,7 +167,10 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, _ := json.Marshal(&resp)
-	_, err = w.Write(data)
-	errutil.HTTPError(ctx, w, errors.Wrap(err, "create alert send payload"))
+	data, err := json.Marshal(&resp)
+	if errutil.HTTPError(ctx, w, err) {
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(data)
 }
