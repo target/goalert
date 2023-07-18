@@ -22,7 +22,7 @@ SELECT
 FROM
     alert_feedback
 WHERE
-    alert_id = ANY($1::int [ ])
+    alert_id = ANY($1::int[])
 `
 
 func (q *Queries) AlertFeedback(ctx context.Context, dollar_1 []int32) ([]AlertFeedback, error) {
