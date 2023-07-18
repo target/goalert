@@ -95,12 +95,19 @@ export default function AlertCountGraph(
                 }}
               />
               <Legend />
-              <Bar
-                stackId='a'
+              <Area
                 dataKey='escalatedCount'
                 type='monotone'
-                fill={theme.palette.primary.main}
-                className={classes.bar}
+                stroke={
+                  theme.palette.mode === 'light'
+                    ? theme.palette.info.dark
+                    : theme.palette.info.light
+                }
+                fill={
+                  theme.palette.mode === 'light'
+                    ? theme.palette.info.light
+                    : theme.palette.info.dark
+                }
                 name='Escalated Alerts'
               />
               <Bar
