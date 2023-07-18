@@ -1,6 +1,9 @@
 package notification
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 // Status describes the current state of an outgoing message.
 type Status struct {
@@ -18,7 +21,12 @@ type Status struct {
 
 	// SrcValue can be used to set/update the source value of the message.
 	SrcValue string
+
+	age time.Duration
 }
+
+// Age returns the amount of time from the message creation until the last status update, if available.
+func (s Status) Age() time.Duration { return s.age }
 
 // SendResult represents the result of a sent message.
 type SendResult struct {
