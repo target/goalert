@@ -31,14 +31,14 @@ SELECT
         WHERE
             alert_id = $1) AS has_ep_state;
 
--- name: AlertFeedback :one
+-- name: AlertFeedback :many
 SELECT
     alert_id,
     noise_reason
 FROM
     alert_feedback
 WHERE
-    alert_id = $1;
+    alert_id = ANY($1::int[]);
 
 -- name: SetAlertFeedback :exec
 INSERT INTO alert_feedback(alert_id, noise_reason)

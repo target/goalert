@@ -15,21 +15,37 @@ import (
 	"github.com/lib/pq"
 )
 
-const alertFeedback = `-- name: AlertFeedback :one
+const alertFeedback = `-- name: AlertFeedback :many
 SELECT
     alert_id,
     noise_reason
 FROM
     alert_feedback
 WHERE
-    alert_id = $1
+    alert_id = ANY($1::int [ ])
 `
 
-func (q *Queries) AlertFeedback(ctx context.Context, alertID int64) (AlertFeedback, error) {
-	row := q.db.QueryRowContext(ctx, alertFeedback, alertID)
-	var i AlertFeedback
-	err := row.Scan(&i.AlertID, &i.NoiseReason)
-	return i, err
+func (q *Queries) AlertFeedback(ctx context.Context, dollar_1 []int32) ([]AlertFeedback, error) {
+	rows, err := q.db.QueryContext(ctx, alertFeedback, pq.Array(dollar_1))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AlertFeedback
+	for rows.Next() {
+		var i AlertFeedback
+		if err := rows.Scan(&i.AlertID, &i.NoiseReason); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const alertHasEPState = `-- name: AlertHasEPState :one
