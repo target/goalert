@@ -25,7 +25,7 @@ import (
 	"github.com/emersion/go-smtp"
 )
 
-var Handler IngressHandler
+var Handler ingressHandler
 
 type Config struct {
 	Domain         string
@@ -93,14 +93,10 @@ func (s *Session) Data(r io.Reader) error {
 	body, err := ParseSanitizeMessage(m)
 	if err != nil {
 		log.Log(ctx, err)
+		return err
 	}
 
-	header := m.Header
-
-	// logMsg := "Date: %s\nFrom: %s\nTo: %s\nSubject: %s\n\n%s"
-	// log.Logf(ctx, logMsg, header.Get("Date"), header.Get("From"), header.Get("To"), header.Get("Subject"), string(body))
-
-	recipient := header.Get("To")
+	recipient := m.Header.Get("To")
 
 	a, err := mail.ParseAddress(recipient)
 	if err != nil {
@@ -111,7 +107,7 @@ func (s *Session) Data(r io.Reader) error {
 
 	ctx = log.WithFields(ctx, log.Fields{
 		"Recipient":   recipient,
-		"FromAddress": header.Get("From"),
+		"FromAddress": m.Header.Get("From"),
 	})
 
 	// split address
@@ -145,8 +141,8 @@ func (s *Session) Data(r io.Reader) error {
 
 	ctx = log.WithField(ctx, "IntegrationKey", tok.ID.String())
 
-	summary := validate.SanitizeText(header.Get("Subject"), alert.MaxSummaryLength)
-	details := fmt.Sprintf("From: %s\n\n%s", header.Get("From"), body)
+	summary := validate.SanitizeText(m.Header.Get("Subject"), alert.MaxSummaryLength)
+	details := fmt.Sprintf("From: %s\n\n%s", m.Header.Get("From"), body)
 	details = validate.SanitizeText(details, alert.MaxDetailsLength)
 	newAlert := &alert.Alert{
 		Summary: summary,
@@ -203,13 +199,29 @@ func NewServer(cfg *Config) *smtp.Server {
 	return s
 }
 
-type IngressHandler struct {
+type IngressHandler interface {
+	ServeSMTP(ctx context.Context, s *smtp.Server, l net.Listener)
+}
+
+type ingressHandler struct {
 	alerts  *alert.Store
-	intKeys *integrationkey.Store
+	intKeys IntKeyStore
 	cfg     *Config
 }
 
-func (H *IngressHandler) ServeSMTP(ctx context.Context, s *smtp.Server, l net.Listener) {
+type IntKeyStore interface {
+	Authorize(ctx context.Context, tok authtoken.Token, typ integrationkey.Type) (context.Context, error)
+}
+
+type integrationKeyStore struct {
+	iks *integrationkey.Store
+}
+
+func (i *integrationKeyStore) Authorize(ctx context.Context, tok authtoken.Token, typ integrationkey.Type) (context.Context, error) {
+	return i.iks.Authorize(ctx, tok, typ)
+}
+
+func (h ingressHandler) ServeSMTP(ctx context.Context, s *smtp.Server, l net.Listener) {
 	err := s.Serve(l)
 	if err != nil {
 		log.Log(ctx, errors.New("start SMTP ingress server"))
@@ -218,7 +230,7 @@ func (H *IngressHandler) ServeSMTP(ctx context.Context, s *smtp.Server, l net.Li
 
 func IngressSMTP(aDB *alert.Store, intDB *integrationkey.Store, cfg *Config) IngressHandler {
 	Handler.alerts = aDB
-	Handler.intKeys = intDB
+	Handler.intKeys = &integrationKeyStore{iks: intDB}
 	Handler.cfg = cfg
 	return Handler
 }
