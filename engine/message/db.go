@@ -522,57 +522,8 @@ func (db *DB) _UpdateMessageStatus(ctx context.Context, status *notification.Sen
 		srcValue.String = status.SrcValue
 	}
 
-	if cbID.Valid {
-		delayStr, err := db.deliveryDelayCheck(ctx, cbID.String)
-		if err != nil {
-			return err
-		}
-		if delayStr != "" {
-			status.Details = delayStr
-		}
-	}
-
 	_, err = db.updateStatus.ExecContext(ctx, cbID, status.ProviderMessageID, status.Sequence, s, status.Details, srcValue)
 	return err
-}
-
-func formatDelay(delay int) string {
-	hours := int(delay / 60)
-	mins := delay % 60
-	res := "(after "
-	s := ""
-	if hours > 0 {
-		if hours > 1 {
-			s = "s"
-		}
-		res = res + fmt.Sprintf("%d hr%s", hours, s)
-		s = ""
-	}
-	if mins > 0 {
-		if mins > 1 {
-			s = "s"
-		}
-		if hours > 0 {
-			res += " and "
-		}
-		res = res + fmt.Sprintf("%d min%s", mins, s)
-	}
-	res += ")"
-	return res
-}
-
-// Calculate delivery delay if necessary
-func (db *DB) deliveryDelayCheck(ctx context.Context, id string) (string, error) {
-	println("DELIVERY DELAY CHECK")
-	timeSent, timeDelivered, err := db.alertlogstore.LookupDeliveredTime(ctx, id)
-	if err != nil {
-		return "", err
-	}
-	deliveryDelay := int(timeDelivered.Sub(timeSent).Minutes())
-	if deliveryDelay > 2 {
-		return formatDelay(deliveryDelay), nil
-	}
-	return "", nil
 }
 
 // SendFunc defines a function that sends messages.
@@ -819,6 +770,7 @@ func (db *DB) updateStuckMessages(ctx context.Context, statusFn StatusFunc) erro
 	for _, m := range toCheck {
 		go db.refreshMessageState(ctx, statusFn, m.id, m.providerID, ch)
 	}
+
 	for range toCheck {
 		err := db._UpdateMessageStatus(ctx, <-ch)
 		if err != nil {
