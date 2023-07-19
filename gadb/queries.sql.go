@@ -51,52 +51,6 @@ func (q *Queries) AlertHasEPState(ctx context.Context, alertID int64) (bool, err
 	return has_ep_state, err
 }
 
-const alertLogInsert = `-- name: AlertLogInsert :exec
-INSERT INTO alert_logs(alert_id, event, sub_type, sub_user_id, sub_integration_key_id, sub_hb_monitor_id, sub_channel_id, sub_classifier, meta, message)
-SELECT
-    unnest,
-    $2,
-    $3,
-    $4,
-    $5,
-    $6,
-    $7,
-    $8,
-    $9,
-    $10
-FROM
-    unnest($1::int[])
-`
-
-type AlertLogInsertParams struct {
-	Column1             []int32
-	Event               EnumAlertLogEvent
-	SubType             NullEnumAlertLogSubjectType
-	SubUserID           uuid.NullUUID
-	SubIntegrationKeyID uuid.NullUUID
-	SubHbMonitorID      uuid.NullUUID
-	SubChannelID        uuid.NullUUID
-	SubClassifier       string
-	Meta                pqtype.NullRawMessage
-	Message             string
-}
-
-func (q *Queries) AlertLogInsert(ctx context.Context, arg AlertLogInsertParams) error {
-	_, err := q.db.ExecContext(ctx, alertLogInsert,
-		pq.Array(arg.Column1),
-		arg.Event,
-		arg.SubType,
-		arg.SubUserID,
-		arg.SubIntegrationKeyID,
-		arg.SubHbMonitorID,
-		arg.SubChannelID,
-		arg.SubClassifier,
-		arg.Meta,
-		arg.Message,
-	)
-	return err
-}
-
 const alertLogInsertEP = `-- name: AlertLogInsertEP :exec
 INSERT INTO alert_logs(alert_id, event, sub_type, sub_user_id, sub_integration_key_id, sub_hb_monitor_id, sub_channel_id, sub_classifier, meta, message)
 SELECT
@@ -147,6 +101,52 @@ func (q *Queries) AlertLogInsertEP(ctx context.Context, arg AlertLogInsertEPPara
 	return err
 }
 
+const alertLogInsertMany = `-- name: AlertLogInsertMany :exec
+INSERT INTO alert_logs(alert_id, event, sub_type, sub_user_id, sub_integration_key_id, sub_hb_monitor_id, sub_channel_id, sub_classifier, meta, message)
+SELECT
+    unnest,
+    $2,
+    $3,
+    $4,
+    $5,
+    $6,
+    $7,
+    $8,
+    $9,
+    $10
+FROM
+    unnest($1::bigint[])
+`
+
+type AlertLogInsertManyParams struct {
+	Column1             []int64
+	Event               EnumAlertLogEvent
+	SubType             NullEnumAlertLogSubjectType
+	SubUserID           uuid.NullUUID
+	SubIntegrationKeyID uuid.NullUUID
+	SubHbMonitorID      uuid.NullUUID
+	SubChannelID        uuid.NullUUID
+	SubClassifier       string
+	Meta                pqtype.NullRawMessage
+	Message             string
+}
+
+func (q *Queries) AlertLogInsertMany(ctx context.Context, arg AlertLogInsertManyParams) error {
+	_, err := q.db.ExecContext(ctx, alertLogInsertMany,
+		pq.Array(arg.Column1),
+		arg.Event,
+		arg.SubType,
+		arg.SubUserID,
+		arg.SubIntegrationKeyID,
+		arg.SubHbMonitorID,
+		arg.SubChannelID,
+		arg.SubClassifier,
+		arg.Meta,
+		arg.Message,
+	)
+	return err
+}
+
 const alertLogInsertSvc = `-- name: AlertLogInsertSvc :exec
 INSERT INTO alert_logs(alert_id, event, sub_type, sub_user_id, sub_integration_key_id, sub_hb_monitor_id, sub_channel_id, sub_classifier, meta, message)
 SELECT
@@ -163,7 +163,7 @@ SELECT
 FROM
     alerts a
 WHERE
-    a.service_id = ANY ($1)
+    a.service_id = $1
     AND (($2 = 'closed'::enum_alert_log_event
             AND a.status != 'closed')
         OR ($2::enum_alert_log_event IN ('acknowledged', 'notification_sent')
