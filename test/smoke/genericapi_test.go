@@ -2,11 +2,14 @@ package smoke
 
 import (
 	"bytes"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/test/smoke/harness"
 )
 
@@ -55,22 +58,30 @@ func TestGenericAPI(t *testing.T) {
 	v.Set("details", "woot")
 
 	resp, err := http.Post(u, "application/x-www-form-urlencoded", bytes.NewBufferString(v.Encode()))
-	if err != nil {
-		t.Fatal("post to generic endpoint failed:", err)
-	} else if resp.StatusCode/100 != 2 {
-		t.Error("non-2xx response:", resp.Status)
-	}
+	require.NoError(t, err)
+	require.Equal(t, 204, resp.StatusCode, "http status code")
 	resp.Body.Close()
 
 	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("hello")
 
 	resp, err = http.Post(u, "application/json", strings.NewReader(`{"summary": "json"}`))
-	if err != nil {
-		t.Fatal("post to generic endpoint failed:", err)
-	} else if resp.StatusCode/100 != 2 {
-		t.Error("non-2xx response:", resp.Status)
-	}
+	require.NoError(t, err)
+	require.Equal(t, 204, resp.StatusCode, "http status code")
 	resp.Body.Close()
 
 	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("json")
+
+	req, err := http.NewRequest("POST", u, strings.NewReader(`{"summary": "json"}`))
+	require.NoError(t, err)
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err = http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode, "http status code")
+
+	data, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	resp.Body.Close()
+	assert.Equal(t, `{"AlertID":2,"ServiceID":"`+h.UUID("sid")+`","IsNew":false}`, string(data), "json response (duplicate alert)")
 }
