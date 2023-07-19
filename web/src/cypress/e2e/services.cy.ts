@@ -65,7 +65,9 @@ function testServices(screen: ScreenFormat): void {
       } else {
         cy.get('button[data-testid="create-key"]').click()
       }
-      cy.get('input[name=type]').findByLabel('Email').should('not.exist')
+      cy.get('input[name=type]')
+        .findByLabel('Email')
+        .should('have.attr', 'aria-disabled', 'true')
     })
   })
 
