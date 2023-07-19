@@ -77,10 +77,8 @@ export default function AlertCountGraph(
                 content={({ active, payload, label }) => {
                   if (!active || !payload?.length) return null
 
-                  const alertCountStr = `${payload[1].name}: ${
-                    (payload[1].value as number) + (payload[0].value as number)
-                  }`
-                  const escalatedCountStr = `${payload[0].name}: ${payload[0].value}`
+                  const alertCountStr = `${payload[0].name}: ${payload[0].value}`
+                  const escalatedCountStr = `${payload[1].name}: ${payload[1].value}`
                   const noiseCountStr = `${payload[2].name}: ${payload[2].value}`
                   return (
                     <Paper variant='outlined' sx={{ p: 1 }}>
@@ -97,7 +95,7 @@ export default function AlertCountGraph(
               <Legend />
               <Bar
                 stackId='a'
-                dataKey='nonEscalatedCount'
+                dataKey='count'
                 fillOpacity={props.loading ? 0.5 : 1}
                 fill={
                   theme.palette.mode === 'light'
@@ -105,7 +103,7 @@ export default function AlertCountGraph(
                     : theme.palette.secondary.light
                 }
                 className={classes.bar}
-                name='Alerts'
+                name='Total Alerts'
               />
               <Area
                 dataKey='escalatedCount'
@@ -120,7 +118,7 @@ export default function AlertCountGraph(
                     ? theme.palette.info.light
                     : theme.palette.info.dark
                 }
-                name='Escalated Alerts'
+                name='Escalated'
               />
               <Area
                 dataKey='noiseCount'
@@ -135,7 +133,7 @@ export default function AlertCountGraph(
                     ? theme.palette.warning.light
                     : theme.palette.warning.dark
                 }
-                name='Noisy Alerts'
+                name='Noisy'
               />
             </ComposedChart>
           )}
