@@ -242,7 +242,7 @@ test('Service', async ({ page, isMobile }) => {
   await page.getByRole('button', { name: 'Submit' }).click()
 
   await expect(page.getByText(intKey)).toBeVisible()
-  await expect(page.getByText('Generic API')).toBeVisible()
+  await expect(page.getByText('Generic Webhook URL')).toBeVisible()
 
   // Create a second integration key with a different type
   const grafanaKey = c.word({ length: 5 }) + ' Key'
