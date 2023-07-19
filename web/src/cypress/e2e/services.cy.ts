@@ -142,14 +142,14 @@ function testServices(screen: ScreenFormat): void {
         .should('contain', closedAlert.id)
         .should('not.contain', openAlert.id)
 
-      cy.get('path[name="Alerts"]')
+      cy.get('path[name="Total Alerts"]')
         .should('have.length', 1)
         .trigger('mouseover')
       cy.get('[data-cy=metrics-count-graph]')
         .should('contain', now)
-        .should('contain', 'Alerts: 1')
-        .should('contain', 'Escalated Alerts: 0') // no ep steps
-        .should('contain', 'Noisy Alerts: 1')
+        .should('contain', 'Total Alerts: 1')
+        .should('contain', 'Escalated: 0') // no ep steps
+        .should('contain', 'Noisy: 1')
 
       cy.get(`.recharts-line-dots circle[r=3]`).last().trigger('mouseover')
       cy.get('[data-cy=metrics-averages-graph]')
