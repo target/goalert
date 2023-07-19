@@ -56,3 +56,30 @@ SELECT
 FROM
     unnest($1::bigint[]);
 
+-- name: AlertLogLookupCMType :one
+SELECT
+    "type" AS cm_type
+FROM
+    user_contact_methods
+WHERE
+    id = $1;
+
+-- name: AlertLogCallbackType :one
+SELECT
+    cm."type" AS cm_type,
+    ch."type" AS ch_type
+FROM
+    outgoing_messages log
+    LEFT JOIN user_contact_methods cm ON cm.id = log.contact_method_id
+    LEFT JOIN notification_channels ch ON ch.id = log.channel_id
+WHERE
+    log.id = $1;
+
+-- name: AlertLogHBIntervalMinutes :one
+SELECT
+    (EXTRACT(EPOCH FROM heartbeat_interval) / 60)::int
+FROM
+    heartbeat_monitors
+WHERE
+    id = $1;
+

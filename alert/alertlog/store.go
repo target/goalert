@@ -14,7 +14,6 @@ import (
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
-	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation/validate"
@@ -31,9 +30,8 @@ type Store struct {
 
 	lookupCallbackType *sql.Stmt
 	lookupIKeyType     *sql.Stmt
-	lookupCMType       *sql.Stmt
-	lookupNCTypeName   *sql.Stmt
-	lookupHBInterval   *sql.Stmt
+
+	lookupNCTypeName *sql.Stmt
 }
 
 func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
@@ -48,15 +46,11 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			left join notification_channels ch on ch.id = log.channel_id
 			where log.id = $1
 		`),
-		lookupCMType: p.P(`
-			select "type" from user_contact_methods where id = $1
-		`),
+
 		lookupNCTypeName: p.P(`
 			select "type", name from notification_channels where id = $1
 		`),
-		lookupHBInterval: p.P(`
-			select extract(epoch from heartbeat_interval)/60 from heartbeat_monitors where id = $1
-		`),
+
 		lookupIKeyType: p.P(`select "type" from integration_keys where id = $1`),
 		findOne: p.P(`
 			select
@@ -329,21 +323,20 @@ func (s *Store) logEntry(ctx context.Context, tx *sql.Tx, _type Type, meta inter
 				r.subject.classifier = "no immediate rule"
 				break
 			}
-			var cmType contactmethod.Type
-			err = txWrap(ctx, tx, s.lookupCMType).QueryRowContext(ctx, src.ID).Scan(&cmType)
+			cmType, err := s.queries(tx).AlertLogLookupCMType(ctx, uuid.MustParse(src.ID))
 			if err != nil {
 				return nil, errors.Wrap(err, "lookup contact method type for callback ID")
 			}
 			switch cmType {
-			case contactmethod.TypeVoice:
+			case gadb.EnumUserContactMethodTypeVOICE:
 				r.subject.classifier = "Voice"
-			case contactmethod.TypeSMS:
+			case gadb.EnumUserContactMethodTypeSMS:
 				r.subject.classifier = "SMS"
-			case contactmethod.TypeEmail:
+			case gadb.EnumUserContactMethodTypeEMAIL:
 				r.subject.classifier = "Email"
-			case contactmethod.TypeWebhook:
+			case gadb.EnumUserContactMethodTypeWEBHOOK:
 				r.subject.classifier = "Webhook"
-			case contactmethod.TypeSlackDM:
+			case gadb.EnumUserContactMethodTypeSLACKDM:
 				r.subject.classifier = "Slack"
 			}
 
@@ -375,8 +368,7 @@ func (s *Store) logEntry(ctx context.Context, tx *sql.Tx, _type Type, meta inter
 
 		case permission.SourceTypeHeartbeat:
 			r.subject._type = SubjectTypeHeartbeatMonitor
-			var minutes int
-			err = txWrap(ctx, tx, s.lookupHBInterval).QueryRowContext(ctx, src.ID).Scan(&minutes)
+			minutes, err := s.queries(tx).AlertLogHBIntervalMinutes(ctx, uuid.MustParse(src.ID))
 			if err != nil {
 				return nil, errors.Wrap(err, "lookup heartbeat monitor interval by ID")
 			}
