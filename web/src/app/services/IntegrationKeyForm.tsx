@@ -1,11 +1,11 @@
-import React, { ReactElement } from 'react'
+import React from 'react'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import MenuItem from '@mui/material/MenuItem'
 import { FormContainer, FormField } from '../forms'
-import { Config, ConfigData } from '../util/RequireConfig'
 import { IntegrationKeyType } from '../../schema'
 import { FieldError } from '../util/errutil'
+import { useFeatures } from '../util/RequireConfig'
 
 export interface Value {
   name: string
@@ -26,6 +26,8 @@ interface IntegrationKeyFormProps {
 export default function IntegrationKeyForm(
   props: IntegrationKeyFormProps,
 ): JSX.Element {
+  const types = useFeatures().integrationKeyTypes
+
   const { ...formProps } = props
   return (
     <FormContainer {...formProps} optionalLabels>
@@ -40,28 +42,20 @@ export default function IntegrationKeyForm(
           />
         </Grid>
         <Grid item xs={12}>
-          <Config>
-            {(cfg: ConfigData): ReactElement => (
-              <FormField
-                fullWidth
-                component={TextField}
-                select
-                required
-                label='Type'
-                name='type'
-              >
-                {cfg['Mailgun.Enable'] && (
-                  <MenuItem value='email'>Email</MenuItem>
-                )}
-                <MenuItem value='generic'>Generic API</MenuItem>
-                <MenuItem value='grafana'>Grafana</MenuItem>
-                <MenuItem value='site24x7'>Site24x7</MenuItem>
-                <MenuItem value='prometheusAlertmanager'>
-                  Prometheus Alertmanager
-                </MenuItem>
-              </FormField>
-            )}
-          </Config>
+          <FormField
+            fullWidth
+            component={TextField}
+            select
+            required
+            label='Type'
+            name='type'
+          >
+            {types.map((t) => (
+              <MenuItem disabled={!t.enabled} key={t.id} value={t.id}>
+                {t.name}
+              </MenuItem>
+            ))}
+          </FormField>
         </Grid>
       </Grid>
     </FormContainer>
