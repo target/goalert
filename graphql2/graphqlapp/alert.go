@@ -113,7 +113,6 @@ func friendlyDuration(dur time.Duration) string {
 	min := dur / time.Minute
 	if min > 0 {
 		parts = append(parts, fmt.Sprintf("%dm", min))
-		dur -= min * time.Minute
 	}
 
 	return strings.Join(parts, " ")
