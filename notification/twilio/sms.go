@@ -258,8 +258,11 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 			}
 			s.limit.RecordPassiveReply(from)
 		}
-
-		_, err := s.c.SendSMS(ctx, from, msg, &SMSOptions{FromNumber: req.FormValue("to")})
+		smsFrom := req.FormValue("to")
+		if cfg.Twilio.MessagingServiceSID != "" {
+			smsFrom = cfg.Twilio.MessagingServiceSID
+		}
+		_, err := s.c.SendSMS(ctx, from, msg, &SMSOptions{FromNumber: smsFrom})
 		if err != nil {
 			log.Log(ctx, errors.Wrap(err, "send response"))
 		}
