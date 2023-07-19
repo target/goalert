@@ -620,7 +620,7 @@ func (s *Store) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Al
 //
 // In the case that Status is closed but a matching alert is not present, nil is returned.
 // Otherwise the current alert is returned.
-func (s *Store) CreateOrUpdate(ctx context.Context, a *Alert) (*Alert, error) {
+func (s *Store) CreateOrUpdate(ctx context.Context, a *Alert) (*Alert, bool, error) {
 	err := permission.LimitCheckAny(ctx,
 		permission.System,
 		permission.Admin,
@@ -628,26 +628,26 @@ func (s *Store) CreateOrUpdate(ctx context.Context, a *Alert) (*Alert, error) {
 		permission.MatchService(a.ServiceID),
 	)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	defer sqlutil.Rollback(ctx, "alert: upsert", tx)
 
 	n, isNew, err := s.CreateOrUpdateTx(ctx, tx, a)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	if n == nil {
-		return nil, nil
+		return nil, false, nil
 	}
 	if isNew {
 		ctx = log.WithFields(ctx, log.Fields{"AlertID": n.ID, "ServiceID": n.ServiceID})
@@ -655,7 +655,7 @@ func (s *Store) CreateOrUpdate(ctx context.Context, a *Alert) (*Alert, error) {
 		metricCreatedTotal.Inc()
 	}
 
-	return n, nil
+	return n, isNew, nil
 }
 
 func (s *Store) UpdateStatusTx(ctx context.Context, tx *sql.Tx, id int, stat Status) error {
@@ -792,26 +792,34 @@ func (s *Store) State(ctx context.Context, alertIDs []int) ([]State, error) {
 	return list, nil
 }
 
-func (s *Store) Feedback(ctx context.Context, alertID int) (*Feedback, error) {
+func (s *Store) Feedback(ctx context.Context, alertIDs []int) ([]Feedback, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
 	}
-
-	row, err := gadb.New(s.db).AlertFeedback(ctx, int64(alertID))
-	if errors.Is(err, sql.ErrNoRows) {
-		return &Feedback{
-			AlertID: alertID,
-		}, nil
-	}
+	err = validate.Range("AlertIDs", len(alertIDs), 1, maxBatch)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Feedback{
-		AlertID:     int(row.AlertID),
-		NoiseReason: row.NoiseReason,
-	}, err
+	ids := make([]int32, len(alertIDs))
+	for _, id := range alertIDs {
+		ids = append(ids, int32(id))
+	}
+
+	rows, err := gadb.New(s.db).AlertFeedback(ctx, ids)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	var result []Feedback
+
+	for _, r := range rows {
+		result = append(result, Feedback{ID: int(r.AlertID), NoiseReason: r.NoiseReason})
+	}
+	return result, nil
 }
 
 func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
@@ -826,7 +834,7 @@ func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
 	}
 
 	err = gadb.New(s.db).SetAlertFeedback(ctx, gadb.SetAlertFeedbackParams{
-		AlertID:     int64(feedback.AlertID),
+		AlertID:     int64(feedback.ID),
 		NoiseReason: feedback.NoiseReason,
 	})
 	if err != nil {

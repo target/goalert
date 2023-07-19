@@ -10,7 +10,6 @@ import (
 
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/config"
-	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/notificationchannel"
@@ -92,10 +91,6 @@ func (a *Mutation) SetScheduleOnCallNotificationRules(ctx context.Context, input
 					Value: ch.ID,
 				}
 			case assignment.TargetTypeChanWebhook:
-				if !expflag.ContextHas(ctx, expflag.ChanWebhook) {
-					return validation.NewFieldError(fmt.Sprintf("Rules[%d].Target.Type", i), "Webhook channels are not enabled.")
-				}
-
 				url, err := url.Parse(r.Target.ID)
 				if err != nil {
 					return validation.NewFieldError("Rules[%d].Target.ID", "Invalid URL format")

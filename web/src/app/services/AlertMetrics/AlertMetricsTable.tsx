@@ -77,7 +77,7 @@ const columns: GridColDef[] = [
     headerName: 'Escalated',
     width: 90,
   },
-
+  { field: 'noiseReason', headerName: 'Noise Reason', width: 90 },
   {
     field: 'status',
     headerName: 'Status',

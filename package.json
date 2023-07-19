@@ -30,7 +30,7 @@
     ]
   },
   "devDependencies": {
-    "@apollo/client": "3.7.16",
+    "@apollo/client": "3.7.17",
     "@babel/core": "7.22.8",
     "@babel/plugin-transform-modules-commonjs": "7.22.5",
     "@dnd-kit/core": "6.0.8",
@@ -39,7 +39,7 @@
     "@emotion/react": "11.11.1",
     "@emotion/styled": "11.11.0",
     "@material/material-color-utilities": "0.2.7",
-    "@mui/icons-material": "5.11.16",
+    "@mui/icons-material": "5.14.0",
     "@mui/lab": "5.0.0-alpha.134",
     "@mui/material": "5.13.6",
     "@mui/styles": "5.13.2",
@@ -108,7 +108,7 @@
     "redux-thunk": "2.4.2",
     "remark-gfm": "3.0.1",
     "stylelint": "15.10.1",
-    "stylelint-config-standard": "33.0.0",
+    "stylelint-config-standard": "34.0.0",
     "typescript": "5.0.4",
     "urql": "4.0.4",
     "wonka": "6.3.2",

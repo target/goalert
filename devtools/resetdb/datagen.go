@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/brianvoe/gofakeit/v6"
@@ -114,6 +115,7 @@ type datagen struct {
 	Monitors           []heartbeat.Monitor
 	Alerts             []alert.Alert
 	AlertLogs          []AlertLog
+	AlertFeedback      []alert.Feedback
 	Favorites          []userFavorite
 	Labels             []label.Label
 	AlertMessages      []AlertMsg
@@ -425,6 +427,32 @@ func (d *datagen) NewAlertMessages(a alert.Alert, max int) {
 	}
 }
 
+func (d *datagen) NewAlertFeedback(a alert.Alert) {
+	if d.Bool() {
+		// no feedback
+		return
+	}
+
+	var reasons []string
+	if d.Bool() {
+		reasons = append(reasons, "False positive")
+	}
+	if d.Bool() {
+		reasons = append(reasons, "Not actionable")
+	}
+	if d.Bool() {
+		reasons = append(reasons, "Poor details")
+	}
+	if d.Bool() {
+		reasons = append(reasons, d.Sentence(3))
+	}
+
+	d.AlertFeedback = append(d.AlertFeedback, alert.Feedback{
+		ID:          a.ID,
+		NoiseReason: strings.Join(reasons, "|"),
+	})
+}
+
 // NewAlertLog will generate an alert log for the provided alert.
 func (d *datagen) NewAlertLogs(a alert.Alert) {
 	t := a.CreatedAt
@@ -632,6 +660,7 @@ func (cfg datagenConfig) Generate() datagen {
 	for _, alert := range d.Alerts {
 		d.NewAlertLogs(alert)
 		d.NewAlertMessages(alert, cfg.MsgPerAlertMax)
+		d.NewAlertFeedback(alert)
 	}
 
 	return d
