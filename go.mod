@@ -38,6 +38,7 @@ require (
 	github.com/slack-go/slack v0.12.2
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.16.0
+	github.com/sqlc-dev/pqtype v0.2.0
 	github.com/stretchr/testify v1.8.4
 	github.com/tabbed/pqtype v0.1.1
 	github.com/ttacon/libphonenumber v1.2.1
