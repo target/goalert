@@ -1,22 +1,18 @@
 package smoke
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
-	"io"
-	"net/http"
-	"net/url"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/emersion/go-smtp"
 	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/test/smoke/harness"
 )
 
-// TestMailgunAlerts tests that GoAlert responds and
-// processes Mailgun requests appropriately.
+// TestSMTPAlerts tests that GoAlert responds and
+// processes incoming email messages appropriately.
 func TestSMTPAlerts(t *testing.T) {
 	t.Parallel()
 
@@ -55,63 +51,33 @@ func TestSMTPAlerts(t *testing.T) {
 
 	cfg := h.Config()
 
-	v := make(url.Values)
-	v.Set("recipient", h.UUID("intkey")+"@"+cfg.Mailgun.EmailDomain)
-	v.Set("from", "foo@example.com")
-	v.Set("subject", "test alert")
-	v.Set("body-plain", "details")
+	c, err := smtp.Dial(h.SMTPIngressAddr())
+	assert.NoError(t, err)
+	defer c.Close()
 
-	timestamp := time.Now().Format(time.RFC3339)
-	token := "some-token"
-	v.Set("timestamp", timestamp)
-	v.Set("token", token)
-
-	hm := hmac.New(sha256.New, []byte(cfg.Mailgun.APIKey))
-	_, _ = io.WriteString(hm, timestamp)
-	_, _ = io.WriteString(hm, token)
-	calculatedSignature := hm.Sum(nil)
-
-	v.Set("signature", hex.EncodeToString(calculatedSignature))
-
-	resp, err := http.PostForm(h.URL()+"/api/v2/mailgun/incoming", v)
-	assert.Nil(t, err)
-	if !assert.Equal(t, 200, resp.StatusCode, "create alert (v2 URL)") {
-		return
-	}
+	// create an alert from email
+	rcpt := h.UUID("intkey") + "@" + cfg.EmailIngressDomain()
+	from := "foo@example.com"
+	subj := "test alert"
+	date := time.Now().Format(time.RFC3339)
+	body := "details"
+	msgfmt := "Date: %s\r\nFrom: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n%s\r\n"
+	msg := fmt.Sprintf(msgfmt, date, from, rcpt, subj, body)
+	message := strings.NewReader(msg)
+	err = c.SendMail(from, []string{rcpt}, message)
+	assert.NoError(t, err)
 
 	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("test alert")
 
-	v.Set("subject", "second alert")
-	resp, err = http.PostForm(h.URL()+"/v1/webhooks/mailgun", v)
-	assert.Nil(t, err)
-	if !assert.Equal(t, 200, resp.StatusCode, "create alert (v1 URL)") {
-		return
-	}
+	c, err = smtp.Dial(h.SMTPIngressAddr())
+	assert.NoError(t, err)
+	defer c.Close()
 
-	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("second alert")
-
-	v.Set("recipient", "w"+h.UUID("intkey")+"@"+cfg.Mailgun.EmailDomain)
-	resp, err = http.PostForm(h.URL()+"/api/v2/mailgun/incoming", v)
-	assert.Nil(t, err)
-	if !assert.Equal(t, 406, resp.StatusCode, "reject invalid address with 406 (v2 URL)") {
-		return
-	}
-	// restore
-	v.Set("recipient", h.UUID("intkey")+"@"+cfg.Mailgun.EmailDomain)
-
-	v.Set("body-plain", strings.Repeat("too big", 1<<20)) // ~7MiB
-
-	resp, err = http.PostForm(h.URL()+"/api/v2/mailgun/incoming", v)
-	assert.Nil(t, err)
-	if !assert.Equal(t, 406, resp.StatusCode, "reject large bodies with 406 (v2 URL)") {
-		return
-	}
-
-	v.Set("body-plain", strings.Repeat("too big", 1<<20)) // ~7MiB
-
-	resp, err = http.PostForm(h.URL()+"/v1/webhooks/mailgun", v)
-	assert.Nil(t, err)
-	if !assert.Equal(t, 406, resp.StatusCode, "reject large bodies with 406 (v1 URL)") {
-		return
-	}
+	// validate that invalid addresses are rejected
+	rcpt = "w" + h.UUID("intkey") + "@" + cfg.EmailIngressDomain()
+	subj = "second alert"
+	msg = fmt.Sprintf(msgfmt, date, from, rcpt, subj, body)
+	message = strings.NewReader(msg)
+	err = c.SendMail(from, []string{rcpt}, message)
+	assert.ErrorContains(t, err, "invalid value for 'recipient': bad mailbox name", "reject invalid address")
 }

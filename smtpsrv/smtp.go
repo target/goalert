@@ -63,20 +63,12 @@ func (s *Session) AuthPlain(username, password string) error {
 }
 
 func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
-	log.Logf(context.Background(), "Mail from:"+from)
+	// log.Logf(context.Background(), "Mail from:"+from)
 	return nil
 }
 
 func (s *Session) Rcpt(recipient string) error {
-	log.Logf(context.Background(), "Rcpt to:"+recipient)
-	m, err := mail.ParseAddress(recipient)
-	if err != nil {
-		err = validation.NewFieldError("recipient", "must be valid email: "+err.Error())
-		log.Log(context.Background(), err)
-	}
-
-	recipient = m.Address
-	log.Logf(context.Background(), "recipient = "+recipient)
+	// log.Logf(context.Background(), "Rcpt to:"+recipient)
 	return nil
 }
 
@@ -184,7 +176,6 @@ func NewServer(cfg *Config) *smtp.Server {
 	s := smtp.NewServer(be)
 
 	s.Addr = cfg.ListenAddr
-	fmt.Printf("creating new SMTP server on addr %s\n", s.Addr)
 
 	if cfg.Domain == "" && len(cfg.AllowedDomains) > 0 {
 		cfg.Domain = cfg.AllowedDomains[0]

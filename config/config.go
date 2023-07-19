@@ -161,6 +161,11 @@ func (cfg Config) EmailIngressDomain() string {
 	return ""
 }
 
+// SetEmailIngressDomain sets the domain configured to receive email for alert generation
+func (cfg Config) SetEmailIngressDomain(domain string) {
+	cfg.smtpserver.EmailDomain = domain
+}
+
 // TwilioSMSFromNumber will determine the appropriate FROM number to use for SMS messages to the given number
 func (cfg Config) TwilioSMSFromNumber(carrier string) string {
 	if carrier != "" {

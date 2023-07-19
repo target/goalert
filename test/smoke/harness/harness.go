@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	stdlog "log"
+	"net"
 	"net/http/httptest"
 	"net/url"
 	"os"
@@ -19,6 +20,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/emersion/go-smtp"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
@@ -82,11 +84,13 @@ type Harness struct {
 
 	cfg config.Config
 
-	email     *emailServer
-	slack     *slackServer
-	slackS    *httptest.Server
-	slackApp  mockslack.AppInfo
-	slackUser mockslack.UserInfo
+	email        *emailServer
+	slack        *slackServer
+	slackS       *httptest.Server
+	slackApp     mockslack.AppInfo
+	slackUser    mockslack.UserInfo
+	smtpsrv      *smtp.Server
+	smtpListener net.Listener
 
 	pgTime *pgmocktime.Mocker
 
@@ -106,6 +110,10 @@ type Harness struct {
 
 func (h *Harness) Config() config.Config {
 	return h.cfg
+}
+
+func (h *Harness) SMTPIngressAddr() string {
+	return h.smtpListener.Addr().String()
 }
 
 // NewHarness will create a new database, perform `migrateSteps` migrations, inject `initSQL` and return a new Harness bound to
@@ -212,6 +220,7 @@ func NewStoppedHarnessWithFlags(t *testing.T, initSQL string, sqlData interface{
 		t: t,
 	}
 	h.email = newEmailServer(h)
+	h.smtpsrv, h.smtpListener = newSMTPServer()
 
 	h.tw = newTwilioAssertionAPI(func() {
 		h.FastForward(time.Minute)
@@ -268,6 +277,7 @@ func (h *Harness) Start() {
 	cfg.Mailgun.Enable = true
 	cfg.Mailgun.APIKey = mailgunAPIKey
 	cfg.Mailgun.EmailDomain = "smoketest.example.com"
+	cfg.SetEmailIngressDomain("smoketest.example.com")
 	h.cfg = cfg
 
 	_, err := migrate.ApplyAll(context.Background(), h.dbURL)
@@ -293,6 +303,8 @@ func (h *Harness) Start() {
 	appCfg.TwilioBaseURL = h.twS.URL
 	appCfg.DBMaxOpen = 5
 	appCfg.SlackBaseURL = h.slackS.URL
+	appCfg.SMTPListenAddr = "localhost:0"
+	appCfg.SMTPAllowedDomains = "smoketest.example.com"
 	appCfg.InitialConfig = &h.cfg
 
 	r, w := io.Pipe()

@@ -21,7 +21,6 @@ func (app *App) initSMTPServer(ctx context.Context) error {
 		cfg.AllowedDomains = strings.Split(app.cfg.SMTPAllowedDomains, ",")
 	}
 
-	// cfg.Domain = ""
 	cfg.TLSConfig = app.cfg.TLSConfigSMTP
 
 	if app.cfg.SMTPListenAddrTLS != "" {
@@ -35,7 +34,6 @@ func (app *App) initSMTPServer(ctx context.Context) error {
 		go func() {
 			h.ServeSMTP(ctx, app.smtpsrv, l)
 		}()
-		// go func() { _ = app.smtpsrv.Serve(l) }()
 	} else {
 		cfg.ListenAddr = app.cfg.SMTPListenAddr
 		l, err := net.Listen("tcp", cfg.ListenAddr)
