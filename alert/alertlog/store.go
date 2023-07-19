@@ -23,9 +23,6 @@ import (
 type Store struct {
 	db *sql.DB
 
-	insert        *sql.Stmt
-	insertEP      *sql.Stmt
-	insertSvc     *sql.Stmt
 	findAll       *sql.Stmt
 	findAllByType *sql.Stmt
 	findOne       *sql.Stmt
@@ -59,62 +56,6 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			select extract(epoch from heartbeat_interval)/60 from heartbeat_monitors where id = $1
 		`),
 		lookupIKeyType: p.P(`select "type" from integration_keys where id = $1`),
-		insertEP: p.P(`
-			insert into alert_logs (
-				alert_id,
-				event,
-				sub_type,
-				sub_user_id,
-				sub_integration_key_id,
-				sub_hb_monitor_id,
-				sub_channel_id,
-				sub_classifier,
-				meta,
-				message	
-			)
-			select
-				a.id, $2, $3, $4, $5, $6, $7, $8, $9, $10
-			from alerts a
-			join services svc on svc.id = a.service_id and svc.escalation_policy_id = ANY ($1)
-			where a.status != 'closed'
-		`),
-		insertSvc: p.P(`
-			insert into alert_logs (
-				alert_id,
-				event,
-				sub_type,
-				sub_user_id,
-				sub_integration_key_id,
-				sub_hb_monitor_id,
-				sub_channel_id,
-				sub_classifier,
-				meta,
-				message	
-			)
-			select
-				a.id, $2, $3, $4, $5, $6, $7, $8, $9, $10
-			from alerts a
-			where a.service_id = ANY ($1) and (
-				($2 = 'closed'::enum_alert_log_event and a.status != 'closed') or
-				($2::enum_alert_log_event in ('acknowledged', 'notification_sent') and a.status = 'triggered')
-			)
-		`),
-		insert: p.P(`
-			insert into alert_logs (
-				alert_id,
-				event,
-				sub_type,
-				sub_user_id,
-				sub_integration_key_id,
-				sub_hb_monitor_id,
-				sub_channel_id,
-				sub_classifier,
-				meta,
-				message
-			)
-			SELECT unnest, $2, $3, $4, $5, $6, $7, $8, $9, $10
-			FROM unnest($1::int[])
-		`),
 		findOne: p.P(`
 			select
 				log.id,
