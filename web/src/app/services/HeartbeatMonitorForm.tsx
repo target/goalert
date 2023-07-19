@@ -2,16 +2,14 @@ import React from 'react'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import { FormContainer, FormField } from '../forms'
-import NumberField from '../util/NumberField'
 import { FieldError } from '../util/errutil'
+import { DurationField } from '../util/DurationField'
+import { Duration } from 'luxon'
 
 function clampTimeout(val: string): number | string {
   if (!val) return ''
-  const num = parseInt(val, 10)
-  if (Number.isNaN(num)) return val
-
-  // need to have the min be 1 here so you can type `10`
-  return Math.min(Math.max(1, num), 9000)
+  const dur = Duration.fromISO(val)
+  return dur.as('minutes')
 }
 export interface Value {
   name: string
@@ -47,13 +45,17 @@ export default function HeartbeatMonitorForm(
         <Grid item xs={12}>
           <FormField
             fullWidth
-            component={NumberField}
+            component={DurationField}
             required
-            type='number'
-            label='Timeout (minutes)'
+            label='Timeout'
             name='timeoutMinutes'
             min={5}
-            max={9000}
+            max={540000}
+            mapValue={(minutes) =>
+              Duration.fromObject({
+                minutes,
+              }).toISO()
+            }
             mapOnChangeValue={clampTimeout}
           />
         </Grid>
