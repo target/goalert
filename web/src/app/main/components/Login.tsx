@@ -64,7 +64,7 @@ const useStyles = makeStyles({
   },
 })
 
-export default function Login() {
+export default function Login(): JSX.Element {
   const classes = useStyles()
   const theme = useTheme()
   const [error, setError] = useState(getParameterByName('login_error') || '')
@@ -81,7 +81,8 @@ export default function Login() {
   /*
    * Renders a field from a provider
    */
-  function renderField(field) {
+  type Field = { ID: any; Label: any; Password: any; Required: any }
+  function renderField(field: Field) {
     const {
       ID: id, // unique name/identifier of the field
       Label: label, // placeholder text that is displayed to the use in the field
@@ -105,7 +106,7 @@ export default function Login() {
   /*
    * Renders a divider if there is another provider after
    */
-  function renderHasNextDivider(idx, len) {
+  function renderHasNextDivider(idx: number, len: number) {
     if (idx + 1 < len) {
       return (
         <Grid item xs={12} className={classes.hasNext}>
@@ -120,7 +121,7 @@ export default function Login() {
   /*
    * Renders a provider given from initial GET request
    */
-  function renderProvider(provider, idx, len) {
+  function renderProvider(provider : any, idx: number, len: number) {
     const {
       ID: id, // unique identifier of the provider
       Fields: fields, // holds a list of fields to include with the request
@@ -156,7 +157,7 @@ export default function Login() {
     if (fields && fields.length) {
       form = (
         <Grid container spacing={2}>
-          {fields.map((field) => renderField(field))}
+          {fields.map((field: Field) => renderField(field))}
           <Grid item xs={12}>
             {loginButton}
           </Grid>
