@@ -5,13 +5,11 @@ import "sort"
 type Flag string
 
 const (
-	Example     Flag = "example"
-	ChanWebhook Flag = "chan-webhook"
+	Example Flag = "example"
 )
 
 var desc = map[Flag]string{
-	Example:     "An example experimental flag to demonstrate usage.",
-	ChanWebhook: "Enables webhooks as a notification channel type",
+	Example: "An example experimental flag to demonstrate usage.",
 }
 
 // AllFlags returns a slice of all experimental flags sorted by name.
