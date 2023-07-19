@@ -1,4 +1,4 @@
-.PHONY: help start tools regendb resetdb db-schema
+.PHONY: help start tools regendb resetdb db-schema postgres-reset
 .PHONY: smoketest generate check all test check-js check-go
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration cy-wide-prod-run cy-mobile-prod-run
@@ -16,6 +16,7 @@ INT_DB_URL = $(shell go run ./devtools/scripts/db-url "$(DB_URL)" "$(INT_DB)")
 LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
 YARN_VERSION=3.5.0
+PG_VERSION=13
 
 NODE_DEPS=.pnp.cjs .yarnrc.yml
 
@@ -295,6 +296,10 @@ config.json.bak: bin/goalert
 	bin/goalert get-config "--db-url=$(DB_URL)" 2>/dev/null >config.json.new || rm config.json.new
 	(test -s config.json.new && test "`cat config.json.new`" != "{}" && mv config.json.new config.json.bak || rm -f config.json.new)
 
+postgres-reset:
+	$(CONTAINER_TOOL) rm -f goalert-postgres || true
+	$(MAKE) postgres PG_VERSION=$(PG_VERSION)
+
 postgres: bin/waitfor
 	($(CONTAINER_TOOL) run -d \
 		--restart=always \
@@ -303,7 +308,7 @@ postgres: bin/waitfor
 		--name goalert-postgres \
 		--shm-size 1g \
 		-p 5432:5432 \
-		docker.io/library/postgres:13-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || ($(CONTAINER_TOOL) start goalert-postgres && ./bin/waitfor "$(DB_URL)")
+		docker.io/library/postgres:$(PG_VERSION)-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || ($(CONTAINER_TOOL) start goalert-postgres && ./bin/waitfor "$(DB_URL)")
 
 regendb: bin/resetdb bin/goalert config.json.bak ## Reset the database and fill it with random data
 	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001 -mult $(SIZE)
