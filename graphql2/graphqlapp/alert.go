@@ -361,9 +361,12 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 }
 
 func (a *Alert) NoiseReason(ctx context.Context, raw *alert.Alert) (*string, error) {
-	am, err := a.AlertStore.Feedback(ctx, raw.ID)
+	am, err := (*App)(a).FindOneAlertFeedback(ctx, raw.ID)
 	if err != nil {
 		return nil, err
+	}
+	if am == nil {
+		return nil, nil
 	}
 	if am.NoiseReason == "" {
 		return nil, nil
@@ -373,7 +376,7 @@ func (a *Alert) NoiseReason(ctx context.Context, raw *alert.Alert) (*string, err
 
 func (m *Mutation) SetAlertNoiseReason(ctx context.Context, input graphql2.SetAlertNoiseReasonInput) (bool, error) {
 	err := m.AlertStore.UpdateFeedback(ctx, &alert.Feedback{
-		AlertID:     input.AlertID,
+		ID:          input.AlertID,
 		NoiseReason: input.NoiseReason,
 	})
 	if err != nil {
