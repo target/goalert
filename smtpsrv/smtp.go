@@ -152,7 +152,7 @@ func (s *Session) Data(r io.Reader) error {
 		if err != nil {
 			return err
 		}
-		_, err = Handler.alerts.CreateOrUpdate(ctx, newAlert)
+		_, _, err = Handler.alerts.CreateOrUpdate(ctx, newAlert)
 		err = errors.Wrap(err, "create/update alert")
 		err = errutil.MapDBError(err)
 		return err
