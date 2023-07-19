@@ -67,7 +67,7 @@ SELECT
 FROM
     alerts a
     JOIN services svc ON svc.id = a.service_id
-        AND svc.escalation_policy_id = ANY ($1)
+        AND svc.escalation_policy_id = $1
 WHERE
     a.status != 'closed'
 `
