@@ -23,6 +23,7 @@ sql:
       - graphql2/graphqlapp/queries.sql
       - engine/statusmgr/queries.sql
       - auth/authlink/queries.sql
+      - alert/alertlog/queries.sql
     engine: postgresql
     gen:
       go:

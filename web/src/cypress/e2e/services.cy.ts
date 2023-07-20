@@ -65,7 +65,9 @@ function testServices(screen: ScreenFormat): void {
       } else {
         cy.get('button[data-testid="create-key"]').click()
       }
-      cy.get('input[name=type]').findByLabel('Email').should('not.exist')
+      cy.get('input[name=type]')
+        .findByLabel('Email')
+        .should('have.attr', 'aria-disabled', 'true')
     })
   })
 
@@ -129,24 +131,27 @@ function testServices(screen: ScreenFormat): void {
         }),
     )
 
-    it('should display alert metrics', () => {
+    it('should display alert metrics and noise', () => {
       const now = DateTime.local().minus({ day: 1 }).toLocaleString({
         month: 'short',
         day: 'numeric',
       })
+
+      cy.setAlertNoise(closedAlert.id, 'test').reload()
 
       // summary doesn't load by default on mobile (until scrolled to)
       cy.get('[data-cy=metrics-table]')
         .should('contain', closedAlert.id)
         .should('not.contain', openAlert.id)
 
-      cy.get('path[name="Alert Count"]')
+      cy.get('path[name="Total Alerts"]')
         .should('have.length', 1)
         .trigger('mouseover')
       cy.get('[data-cy=metrics-count-graph]')
         .should('contain', now)
-        .should('contain', 'Alert Count: 1')
+        .should('contain', 'Total Alerts: 1')
         .should('contain', 'Escalated: 0') // no ep steps
+        .should('contain', 'Noisy: 1')
 
       cy.get(`.recharts-line-dots circle[r=3]`).last().trigger('mouseover')
       cy.get('[data-cy=metrics-averages-graph]')

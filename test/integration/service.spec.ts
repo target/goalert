@@ -62,7 +62,7 @@ test('Service', async ({ page, isMobile }) => {
     await page.getByTestId('create-monitor').click()
   }
   await page.getByLabel('Name').fill(invalidHMName)
-  await page.getByLabel('Timeout (minutes)').fill(timeoutMinutes)
+  await page.getByLabel('Timeout').fill(timeoutMinutes)
   await page.getByRole('button', { name: 'Submit' }).click()
 
   // Should see error message
@@ -88,7 +88,7 @@ test('Service', async ({ page, isMobile }) => {
   await page.getByRole('button', { name: 'Other Actions' }).click()
   await page.getByRole('menuitem', { name: 'Edit' }).click()
   await page.getByLabel('Name').fill(hmName)
-  await page.getByLabel('Timeout (minutes)').fill(timeoutMinutes)
+  await page.getByLabel('Timeout').fill(timeoutMinutes)
   await page.getByRole('button', { name: 'Submit' }).click()
 
   // Should see the edited heartbeat monitor
@@ -242,7 +242,7 @@ test('Service', async ({ page, isMobile }) => {
   await page.getByRole('button', { name: 'Submit' }).click()
 
   await expect(page.getByText(intKey)).toBeVisible()
-  await expect(page.getByText('Generic API')).toBeVisible()
+  await expect(page.getByText('Generic Webhook URL')).toBeVisible()
 
   // Create a second integration key with a different type
   const grafanaKey = c.word({ length: 5 }) + ' Key'

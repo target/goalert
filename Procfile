@@ -9,6 +9,6 @@ prom: bin/tools/prometheus --log.level=warn --config.file=devtools/prometheus/pr
 @watch-file=./web/src/esbuild.config.js
 ui: yarn run esbuild --watch
 
-grpcui: go run github.com/fullstorydev/grpcui/cmd/grpcui -plaintext -open-browser=false -port 8234 localhost:1234
+grpcui: go run ./devtools/waitfor tcp://localhost:1234 && go run github.com/fullstorydev/grpcui/cmd/grpcui -plaintext -open-browser=false -port 8234 localhost:1234
 
 oidc: ./bin/mockoidc

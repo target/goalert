@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/google/uuid"
+	"github.com/sqlc-dev/pqtype"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notificationchannel"
@@ -14,7 +17,6 @@ import (
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
@@ -23,9 +25,6 @@ import (
 type Store struct {
 	db *sql.DB
 
-	insert        *sql.Stmt
-	insertEP      *sql.Stmt
-	insertSvc     *sql.Stmt
 	findAll       *sql.Stmt
 	findAllByType *sql.Stmt
 	findOne       *sql.Stmt
@@ -59,62 +58,6 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			select extract(epoch from heartbeat_interval)/60 from heartbeat_monitors where id = $1
 		`),
 		lookupIKeyType: p.P(`select "type" from integration_keys where id = $1`),
-		insertEP: p.P(`
-			insert into alert_logs (
-				alert_id,
-				event,
-				sub_type,
-				sub_user_id,
-				sub_integration_key_id,
-				sub_hb_monitor_id,
-				sub_channel_id,
-				sub_classifier,
-				meta,
-				message	
-			)
-			select
-				a.id, $2, $3, $4, $5, $6, $7, $8, $9, $10
-			from alerts a
-			join services svc on svc.id = a.service_id and svc.escalation_policy_id = ANY ($1)
-			where a.status != 'closed'
-		`),
-		insertSvc: p.P(`
-			insert into alert_logs (
-				alert_id,
-				event,
-				sub_type,
-				sub_user_id,
-				sub_integration_key_id,
-				sub_hb_monitor_id,
-				sub_channel_id,
-				sub_classifier,
-				meta,
-				message	
-			)
-			select
-				a.id, $2, $3, $4, $5, $6, $7, $8, $9, $10
-			from alerts a
-			where a.service_id = ANY ($1) and (
-				($2 = 'closed'::enum_alert_log_event and a.status != 'closed') or
-				($2::enum_alert_log_event in ('acknowledged', 'notification_sent') and a.status = 'triggered')
-			)
-		`),
-		insert: p.P(`
-			insert into alert_logs (
-				alert_id,
-				event,
-				sub_type,
-				sub_user_id,
-				sub_integration_key_id,
-				sub_hb_monitor_id,
-				sub_channel_id,
-				sub_classifier,
-				meta,
-				message
-			)
-			SELECT unnest, $2, $3, $4, $5, $6, $7, $8, $9, $10
-			FROM unnest($1::int[])
-		`),
 		findOne: p.P(`
 			select
 				log.id,
@@ -208,15 +151,43 @@ func (s *Store) MustLogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Ty
 }
 
 func (s *Store) LogEPTx(ctx context.Context, tx *sql.Tx, epID string, _type Type, meta *EscalationMetaData) error {
-	err := validate.UUID("EscalationPolicyID", epID)
+	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return err
 	}
-	return s.logAny(ctx, tx, s.insertEP, epID, _type, meta)
+
+	err = validate.UUID("EscalationPolicyID", epID)
+	if err != nil {
+		return err
+	}
+
+	e, err := s.logEntry(ctx, tx, _type, meta)
+	if err != nil {
+		return err
+	}
+	params := gadb.AlertLogInsertEPParams{
+		EscalationPolicyID:  uuid.MustParse(epID),
+		Event:               gadb.EnumAlertLogEvent(e._type),
+		SubType:             gadb.NullEnumAlertLogSubjectType{Valid: e.subject._type != SubjectTypeNone, EnumAlertLogSubjectType: gadb.EnumAlertLogSubjectType(e.subject._type)},
+		SubUserID:           e.subject.userID,
+		SubIntegrationKeyID: e.subject.integrationKeyID,
+		SubHbMonitorID:      e.subject.heartbeatMonitorID,
+		SubChannelID:        e.subject.channelID,
+		SubClassifier:       e.subject.classifier,
+		Meta:                pqtype.NullRawMessage{Valid: e.meta != nil, RawMessage: json.RawMessage(e.meta)},
+		Message:             e.message,
+	}
+
+	return s.queries(tx).AlertLogInsertEP(ctx, params)
 }
 
 func (s *Store) LogServiceTx(ctx context.Context, tx *sql.Tx, serviceID string, _type Type, meta interface{}) error {
-	err := validate.UUID("ServiceID", serviceID)
+	err := permission.LimitCheckAny(ctx, permission.All)
+	if err != nil {
+		return err
+	}
+
+	err = validate.UUID("ServiceID", serviceID)
 	if err != nil {
 		return err
 	}
@@ -227,15 +198,68 @@ func (s *Store) LogServiceTx(ctx context.Context, tx *sql.Tx, serviceID string, 
 	case TypeClosed:
 		t = _TypeCloseAll
 	}
-	return s.logAny(ctx, tx, s.insertSvc, serviceID, t, meta)
+	e, err := s.logEntry(ctx, tx, t, meta)
+	if err != nil {
+		return err
+	}
+
+	params := gadb.AlertLogInsertSvcParams{
+		ServiceID:           uuid.NullUUID{Valid: true, UUID: uuid.MustParse(serviceID)},
+		Event:               gadb.EnumAlertLogEvent(e._type),
+		SubType:             gadb.NullEnumAlertLogSubjectType{Valid: e.subject._type != SubjectTypeNone, EnumAlertLogSubjectType: gadb.EnumAlertLogSubjectType(e.subject._type)},
+		SubUserID:           e.subject.userID,
+		SubIntegrationKeyID: e.subject.integrationKeyID,
+		SubHbMonitorID:      e.subject.heartbeatMonitorID,
+		SubChannelID:        e.subject.channelID,
+		SubClassifier:       e.subject.classifier,
+		Meta:                pqtype.NullRawMessage{Valid: e.meta != nil, RawMessage: json.RawMessage(e.meta)},
+		Message:             e.message,
+	}
+
+	return s.queries(tx).AlertLogInsertSvc(ctx, params)
 }
 
 func (s *Store) LogManyTx(ctx context.Context, tx *sql.Tx, alertIDs []int, _type Type, meta interface{}) error {
-	return s.logAny(ctx, tx, s.insert, alertIDs, _type, meta)
+	err := permission.LimitCheckAny(ctx, permission.All)
+	if err != nil {
+		return err
+	}
+
+	e, err := s.logEntry(ctx, tx, _type, meta)
+	if err != nil {
+		return err
+	}
+
+	var ids []int64
+	for _, id := range alertIDs {
+		ids = append(ids, int64(id))
+	}
+
+	params := gadb.AlertLogInsertManyParams{
+		Column1:             ids,
+		Event:               gadb.EnumAlertLogEvent(e._type),
+		SubType:             gadb.NullEnumAlertLogSubjectType{Valid: e.subject._type != SubjectTypeNone, EnumAlertLogSubjectType: gadb.EnumAlertLogSubjectType(e.subject._type)},
+		SubUserID:           e.subject.userID,
+		SubIntegrationKeyID: e.subject.integrationKeyID,
+		SubHbMonitorID:      e.subject.heartbeatMonitorID,
+		SubChannelID:        e.subject.channelID,
+		SubClassifier:       e.subject.classifier,
+		Meta:                pqtype.NullRawMessage{Valid: e.meta != nil, RawMessage: json.RawMessage(e.meta)},
+		Message:             e.message,
+	}
+
+	return s.queries(tx).AlertLogInsertMany(ctx, params)
+}
+
+func (s *Store) queries(tx *sql.Tx) *gadb.Queries {
+	if tx != nil {
+		return gadb.New(tx)
+	}
+	return gadb.New(s.db)
 }
 
 func (s *Store) LogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{}) error {
-	return s.logAny(ctx, tx, s.insert, alertID, _type, meta)
+	return s.LogManyTx(ctx, tx, []int{alertID}, _type, meta)
 }
 
 func txWrap(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
@@ -245,12 +269,7 @@ func txWrap(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
 	return tx.StmtContext(ctx, stmt)
 }
 
-func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id interface{}, _type Type, meta interface{}) error {
-	err := permission.LimitCheckAny(ctx, permission.All)
-	if err != nil {
-		return err
-	}
-
+func (s *Store) logEntry(ctx context.Context, tx *sql.Tx, _type Type, meta interface{}) (*Entry, error) {
 	var classExtras []string
 	switch _type {
 	case _TypeAcknowledgeAll:
@@ -263,11 +282,11 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 
 	var r Entry
 	r._type = _type
-
+	var err error
 	if meta != nil {
 		r.meta, err = json.Marshal(meta)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -280,7 +299,7 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 			var name string
 			err = txWrap(ctx, tx, s.lookupNCTypeName).QueryRowContext(ctx, src.ID).Scan(&ncType, &name)
 			if err != nil {
-				return errors.Wrap(err, "lookup contact method type for callback ID")
+				return nil, errors.Wrap(err, "lookup contact method type for callback ID")
 			}
 
 			switch ncType {
@@ -289,20 +308,20 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 			case notificationchannel.TypeWebhook:
 				r.subject.classifier = "Webhook"
 			}
-			r.subject.channelID.String = src.ID
+			r.subject.channelID.UUID = uuid.MustParse(src.ID)
 			r.subject.channelID.Valid = true
 		case permission.SourceTypeAuthProvider:
 			r.subject.classifier = "Web"
 			r.subject._type = SubjectTypeUser
 
-			r.subject.userID.String = permission.UserID(ctx)
-			if r.subject.userID.String != "" {
+			if permission.UserID(ctx) != "" {
+				r.subject.userID.UUID = uuid.MustParse(permission.UserID(ctx))
 				r.subject.userID.Valid = true
 			}
 		case permission.SourceTypeContactMethod:
 			r.subject._type = SubjectTypeUser
-			r.subject.userID.String = permission.UserID(ctx)
-			if r.subject.userID.String != "" {
+			if permission.UserID(ctx) != "" {
+				r.subject.userID.UUID = uuid.MustParse(permission.UserID(ctx))
 				r.subject.userID.Valid = true
 			}
 			if _type == TypeNoNotificationSent {
@@ -313,7 +332,7 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 			var cmType contactmethod.Type
 			err = txWrap(ctx, tx, s.lookupCMType).QueryRowContext(ctx, src.ID).Scan(&cmType)
 			if err != nil {
-				return errors.Wrap(err, "lookup contact method type for callback ID")
+				return nil, errors.Wrap(err, "lookup contact method type for callback ID")
 			}
 			switch cmType {
 			case contactmethod.TypeVoice:
@@ -333,7 +352,7 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 			var dt notification.ScannableDestType
 			err = txWrap(ctx, tx, s.lookupCallbackType).QueryRowContext(ctx, src.ID).Scan(&dt.CM, &dt.NC)
 			if err != nil {
-				return errors.Wrap(err, "lookup notification type for callback ID")
+				return nil, errors.Wrap(err, "lookup notification type for callback ID")
 			}
 			switch dt.DestType() {
 			case notification.DestTypeVoice:
@@ -349,8 +368,8 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 			case notification.DestTypeSlackChannel:
 				r.subject.classifier = "Slack"
 			}
-			r.subject.userID.String = permission.UserID(ctx)
-			if r.subject.userID.String != "" {
+			if permission.UserID(ctx) != "" {
+				r.subject.userID.UUID = uuid.MustParse(permission.UserID(ctx))
 				r.subject.userID.Valid = true
 			}
 
@@ -359,7 +378,7 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 			var minutes int
 			err = txWrap(ctx, tx, s.lookupHBInterval).QueryRowContext(ctx, src.ID).Scan(&minutes)
 			if err != nil {
-				return errors.Wrap(err, "lookup heartbeat monitor interval by ID")
+				return nil, errors.Wrap(err, "lookup heartbeat monitor interval by ID")
 			}
 			if r.Type() == TypeCreated {
 				s := "s"
@@ -370,14 +389,15 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 			} else if r.Type() == TypeClosed {
 				r.subject.classifier = "healthy"
 			}
+
 			r.subject.heartbeatMonitorID.Valid = true
-			r.subject.heartbeatMonitorID.String = src.ID
+			r.subject.heartbeatMonitorID.UUID = uuid.MustParse(src.ID)
 		case permission.SourceTypeIntegrationKey:
 			r.subject._type = SubjectTypeIntegrationKey
 			var ikeyType integrationkey.Type
 			err = txWrap(ctx, tx, s.lookupIKeyType).QueryRowContext(ctx, src.ID).Scan(&ikeyType)
 			if err != nil {
-				return errors.Wrap(err, "lookup integration key type by ID")
+				return nil, errors.Wrap(err, "lookup integration key type by ID")
 			}
 			switch ikeyType {
 			case integrationkey.TypeGeneric:
@@ -390,7 +410,7 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 				r.subject.classifier = "Email"
 			}
 			r.subject.integrationKeyID.Valid = true
-			r.subject.integrationKeyID.String = src.ID
+			r.subject.integrationKeyID.UUID = uuid.MustParse(src.ID)
 		}
 	}
 
@@ -399,22 +419,7 @@ func (s *Store) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id
 	}
 	r.subject.classifier = strings.Join(classExtras, ", ")
 
-	var idArg interface{}
-
-	switch t := id.(type) {
-	case string:
-		idArg = sqlutil.UUIDArray{t}
-	case int:
-		idArg = sqlutil.IntArray{t}
-	case []int:
-		idArg = sqlutil.IntArray(t)
-	default:
-		return errors.Errorf("invalid id type %T", t)
-	}
-
-	_, err = txWrap(ctx, tx, insertStmt).ExecContext(ctx, idArg, _type, r.subject._type, r.subject.userID, r.subject.integrationKeyID, r.subject.heartbeatMonitorID, r.subject.channelID, r.subject.classifier, r.meta, r.String(ctx))
-
-	return err
+	return &r, nil
 }
 
 func (s *Store) FindOne(ctx context.Context, logID int) (*Entry, error) {
