@@ -8,6 +8,17 @@ import (
 	"github.com/target/goalert/permission"
 )
 
+func (a *Query) IntegrationKeyTypes(ctx context.Context) ([]graphql2.IntegrationKeyTypeInfo, error) {
+	cfg := config.FromContext(ctx)
+	return []graphql2.IntegrationKeyTypeInfo{
+		{ID: "email", Name: "Email", Label: "Email Address", Enabled: cfg.Mailgun.Enable},
+		{ID: "generic", Name: "Generic API", Label: "Generic Webhook URL", Enabled: true},
+		{ID: "grafana", Name: "Grafana", Label: "Grafana Webhook URL", Enabled: true},
+		{ID: "site24x7", Name: "Generic", Label: "Site24x7 Webhook URL", Enabled: true},
+		{ID: "prometheusAlertmanager", Label: "Alertmanager Webhook URL", Name: "Prometheus Alertmanager", Enabled: true},
+	}, nil
+}
+
 func (q *Query) Config(ctx context.Context, all *bool) ([]graphql2.ConfigValue, error) {
 	perm := []permission.Checker{permission.System, permission.Admin}
 	var publicOnly bool

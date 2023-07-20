@@ -294,6 +294,13 @@ type IntegrationKeySearchOptions struct {
 	Omit   []string `json:"omit,omitempty"`
 }
 
+type IntegrationKeyTypeInfo struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Label   string `json:"label"`
+	Enabled bool   `json:"enabled"`
+}
+
 type LabelConnection struct {
 	Nodes    []label.Label `json:"nodes"`
 	PageInfo *PageInfo     `json:"pageInfo"`

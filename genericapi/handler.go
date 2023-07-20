@@ -138,8 +138,20 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		Status:    status,
 	}
 
+	var resp struct {
+		AlertID   int
+		ServiceID string
+		IsNew     bool
+	}
+
 	err = retry.DoTemporaryError(func(int) error {
-		_, err = h.c.AlertStore.CreateOrUpdate(ctx, a)
+		createdAlert, isNew, err := h.c.AlertStore.CreateOrUpdate(ctx, a)
+		if createdAlert != nil {
+			resp.AlertID = createdAlert.ID
+			resp.ServiceID = createdAlert.ServiceID
+			resp.IsNew = isNew
+		}
+
 		return err
 	},
 		retry.Log(ctx),
@@ -150,5 +162,15 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(204)
+	if r.Header.Get("Accept") != "application/json" {
+		w.WriteHeader(204)
+		return
+	}
+
+	data, err := json.Marshal(&resp)
+	if errutil.HTTPError(ctx, w, err) {
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(data)
 }
