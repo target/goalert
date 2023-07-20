@@ -87,5 +87,5 @@ func TestAlertLogDelay(t *testing.T) {
 		}
 	`, 10), &alertLogs)
 
-	assert.Contains(t, "Delivered (after", alertLogs.Alert.RecentEvents.Nodes[0].State.Details)
+	assert.Contains(t, "Delivered (after 5m)", alertLogs.Alert.RecentEvents.Nodes[0].State.Details)
 }
