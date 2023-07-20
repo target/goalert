@@ -67,6 +67,22 @@ func (q *Queries) AlertHasEPState(ctx context.Context, alertID int64) (bool, err
 	return has_ep_state, err
 }
 
+const alertLogHBIntervalMinutes = `-- name: AlertLogHBIntervalMinutes :one
+SELECT
+    (EXTRACT(EPOCH FROM heartbeat_interval) / 60)::int
+FROM
+    heartbeat_monitors
+WHERE
+    id = $1
+`
+
+func (q *Queries) AlertLogHBIntervalMinutes(ctx context.Context, id uuid.UUID) (int32, error) {
+	row := q.db.QueryRowContext(ctx, alertLogHBIntervalMinutes, id)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const alertLogInsertEP = `-- name: AlertLogInsertEP :exec
 INSERT INTO alert_logs(alert_id, event, sub_type, sub_user_id, sub_integration_key_id, sub_hb_monitor_id, sub_channel_id, sub_classifier, meta, message)
 SELECT
@@ -213,6 +229,22 @@ func (q *Queries) AlertLogInsertSvc(ctx context.Context, arg AlertLogInsertSvcPa
 		arg.Message,
 	)
 	return err
+}
+
+const alertLogLookupCMType = `-- name: AlertLogLookupCMType :one
+SELECT
+    "type" AS cm_type
+FROM
+    user_contact_methods
+WHERE
+    id = $1
+`
+
+func (q *Queries) AlertLogLookupCMType(ctx context.Context, id uuid.UUID) (EnumUserContactMethodType, error) {
+	row := q.db.QueryRowContext(ctx, alertLogLookupCMType, id)
+	var cm_type EnumUserContactMethodType
+	err := row.Scan(&cm_type)
+	return cm_type, err
 }
 
 const allPendingMsgDests = `-- name: AllPendingMsgDests :many
