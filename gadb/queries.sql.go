@@ -67,30 +67,6 @@ func (q *Queries) AlertHasEPState(ctx context.Context, alertID int64) (bool, err
 	return has_ep_state, err
 }
 
-const alertLogCallbackType = `-- name: AlertLogCallbackType :one
-SELECT
-    cm."type" AS cm_type,
-    ch."type" AS ch_type
-FROM
-    outgoing_messages log
-    LEFT JOIN user_contact_methods cm ON cm.id = log.contact_method_id
-    LEFT JOIN notification_channels ch ON ch.id = log.channel_id
-WHERE
-    log.id = $1
-`
-
-type AlertLogCallbackTypeRow struct {
-	CmType NullEnumUserContactMethodType
-	ChType NullEnumNotifChannelType
-}
-
-func (q *Queries) AlertLogCallbackType(ctx context.Context, id uuid.UUID) (AlertLogCallbackTypeRow, error) {
-	row := q.db.QueryRowContext(ctx, alertLogCallbackType, id)
-	var i AlertLogCallbackTypeRow
-	err := row.Scan(&i.CmType, &i.ChType)
-	return i, err
-}
-
 const alertLogHBIntervalMinutes = `-- name: AlertLogHBIntervalMinutes :one
 SELECT
     (EXTRACT(EPOCH FROM heartbeat_interval) / 60)::int
