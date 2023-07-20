@@ -21,28 +21,29 @@ func (app *App) initSMTPServer(ctx context.Context) error {
 		cfg.AllowedDomains = strings.Split(app.cfg.SMTPAllowedDomains, ",")
 	}
 
-	cfg.TLSConfig = app.cfg.TLSConfigSMTP
+	cfg.TLSConfig = app.cfg.TLSConfigSMTP // nil if unset
 
-	if app.cfg.SMTPListenAddrTLS != "" {
-		cfg.ListenAddr = app.cfg.SMTPListenAddrTLS
-		l, err := tls.Listen("tcp", cfg.ListenAddr, cfg.TLSConfig)
+	app.smtpsrv = smtpsrv.NewServer(&cfg)
+	h := smtpsrv.IngressSMTP(app.AlertStore, app.IntegrationKeyStore, &cfg)
+
+	if app.cfg.SMTPListenAddr != "" {
+		l, err := net.Listen("tcp", app.cfg.SMTPListenAddr)
 		if err != nil {
 			return err
 		}
-		app.smtpsrv = smtpsrv.NewServer(&cfg)
-		h := smtpsrv.IngressSMTP(app.AlertStore, app.IntegrationKeyStore, &cfg)
 		go func() {
 			h.ServeSMTP(ctx, app.smtpsrv, l)
 		}()
-	} else {
-		cfg.ListenAddr = app.cfg.SMTPListenAddr
-		l, err := net.Listen("tcp", cfg.ListenAddr)
+	}
+
+	if app.cfg.SMTPListenAddrTLS != "" {
+		l, err := tls.Listen("tcp", app.cfg.SMTPListenAddrTLS, cfg.TLSConfig)
 		if err != nil {
 			return err
 		}
-		app.smtpsrv = smtpsrv.NewServer(&cfg)
-		h := smtpsrv.IngressSMTP(app.AlertStore, app.IntegrationKeyStore, &cfg)
-		go func() { h.ServeSMTP(ctx, app.smtpsrv, l) }()
+		go func() {
+			h.ServeSMTP(ctx, app.smtpsrv, l)
+		}()
 	}
 	return nil
 }

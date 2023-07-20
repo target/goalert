@@ -12,11 +12,10 @@ func newSMTPServer() (*smtp.Server, net.Listener) {
 	var s *smtp.Server
 
 	cfg := smtpsrv.Config{
-		ListenAddr:     "localhost:0",
 		AllowedDomains: []string{"smoketest.example.com"},
 	}
 
-	l, err := net.Listen("tcp", cfg.ListenAddr)
+	l, err := net.Listen("tcp", "localhost:0")
 	if err != nil {
 		panic(err)
 	}

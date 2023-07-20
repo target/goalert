@@ -181,7 +181,7 @@ You'll need to create an MX-type DNS record for your GoAlert server.
 
 Note: This SMTP server only handles incoming messages/generating alerts; it will not send outgoing mail. For notifying users via email, you can configure an external SMTP server integration in the admin UI.
 
-To enable the built-in SMTP ingress, pass the `--smtp-listen` or `--smtp-listen-tls` flag with the address to listen on, e.g. `--smtp-listen=0.0.0.0:9025`.
+To enable the built-in SMTP ingress, pass the `--smtp-listen` or `--smtp-listen-tls` flag with the address to listen on, e.g. `--smtp-listen=0.0.0.0:9025`.  You may use both flags with different ports.
 
 If you use the TLS variant, you must also pass the TLS cert and key.  To do so, use either `--smtp-tls-cert-file` and `--smtp-tls-key-file` (with paths to the cert and key files) or `--smtp-tls-cert-data` and `--smtp-tls-key-data` to pass the cert and key data directly as strings.  The cert and key must be PEM-encoded.
 

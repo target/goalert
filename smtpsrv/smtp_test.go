@@ -22,7 +22,6 @@ func init() {
 		AllowedDomains: []string{
 			"goalert.local",
 		},
-		ListenAddr: "localhost:9025",
 	}
 }
 

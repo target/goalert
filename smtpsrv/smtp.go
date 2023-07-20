@@ -30,7 +30,6 @@ var Handler ingressHandler
 type Config struct {
 	Domain         string
 	AllowedDomains []string
-	ListenAddr     string
 	TLSConfig      *tls.Config
 }
 
@@ -46,6 +45,59 @@ func (cfg *Config) validDomain(d string) bool {
 	return false
 }
 
+func NewServer(cfg *Config) *smtp.Server {
+	be := new(Backend)
+	s := smtp.NewServer(be)
+
+	if cfg.Domain == "" && len(cfg.AllowedDomains) > 0 {
+		cfg.Domain = cfg.AllowedDomains[0]
+	}
+	s.Domain = cfg.Domain
+
+	s.ReadTimeout = 10 * time.Second
+	s.WriteTimeout = 10 * time.Second
+	s.AuthDisabled = true
+	s.TLSConfig = cfg.TLSConfig
+
+	return s
+}
+
+type IngressHandler interface {
+	ServeSMTP(ctx context.Context, s *smtp.Server, l net.Listener)
+}
+
+type ingressHandler struct {
+	alerts  *alert.Store
+	intKeys IntKeyStore
+	cfg     *Config
+}
+
+type IntKeyStore interface {
+	Authorize(ctx context.Context, tok authtoken.Token, typ integrationkey.Type) (context.Context, error)
+}
+
+type integrationKeyStore struct {
+	iks *integrationkey.Store
+}
+
+func (i *integrationKeyStore) Authorize(ctx context.Context, tok authtoken.Token, typ integrationkey.Type) (context.Context, error) {
+	return i.iks.Authorize(ctx, tok, typ)
+}
+
+func (h ingressHandler) ServeSMTP(ctx context.Context, s *smtp.Server, l net.Listener) {
+	err := s.Serve(l)
+	if err != nil {
+		log.Log(ctx, errors.New("start SMTP ingress server: "+err.Error()))
+	}
+}
+
+func IngressSMTP(aDB *alert.Store, intDB *integrationkey.Store, cfg *Config) IngressHandler {
+	Handler.alerts = aDB
+	Handler.intKeys = &integrationKeyStore{iks: intDB}
+	Handler.cfg = cfg
+	return Handler
+}
+
 type Backend struct{}
 
 func (bkd *Backend) NewSession(_ *smtp.Conn) (smtp.Session, error) {
@@ -57,7 +109,7 @@ type Session struct {
 }
 
 func (s *Session) AuthPlain(username, password string) error {
-	log.Logf(context.Background(), "smtp auth called for user:"+username)
+	// log.Logf(context.Background(), "smtp auth called for user:"+username)
 	s.auth = true
 	return nil
 }
@@ -68,11 +120,12 @@ func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
 }
 
 func (s *Session) Rcpt(recipient string) error {
-	// log.Logf(context.Background(), "Rcpt to:"+recipient)
+	log.Logf(context.Background(), "Rcpt to:"+recipient)
 	return nil
 }
 
 // Data is called when a new SMTP message is received
+// This is the main entry point for the SMTP ingress
 func (s *Session) Data(r io.Reader) error {
 	ctx := context.Background()
 
@@ -169,59 +222,4 @@ func (s *Session) Reset() {}
 
 func (s *Session) Logout() error {
 	return nil
-}
-
-func NewServer(cfg *Config) *smtp.Server {
-	be := new(Backend)
-	s := smtp.NewServer(be)
-
-	s.Addr = cfg.ListenAddr
-
-	if cfg.Domain == "" && len(cfg.AllowedDomains) > 0 {
-		cfg.Domain = cfg.AllowedDomains[0]
-	}
-	s.Domain = cfg.Domain
-
-	s.ReadTimeout = 10 * time.Second
-	s.WriteTimeout = 10 * time.Second
-	s.AuthDisabled = true
-	s.TLSConfig = cfg.TLSConfig
-
-	return s
-}
-
-type IngressHandler interface {
-	ServeSMTP(ctx context.Context, s *smtp.Server, l net.Listener)
-}
-
-type ingressHandler struct {
-	alerts  *alert.Store
-	intKeys IntKeyStore
-	cfg     *Config
-}
-
-type IntKeyStore interface {
-	Authorize(ctx context.Context, tok authtoken.Token, typ integrationkey.Type) (context.Context, error)
-}
-
-type integrationKeyStore struct {
-	iks *integrationkey.Store
-}
-
-func (i *integrationKeyStore) Authorize(ctx context.Context, tok authtoken.Token, typ integrationkey.Type) (context.Context, error) {
-	return i.iks.Authorize(ctx, tok, typ)
-}
-
-func (h ingressHandler) ServeSMTP(ctx context.Context, s *smtp.Server, l net.Listener) {
-	err := s.Serve(l)
-	if err != nil {
-		log.Log(ctx, errors.New("start SMTP ingress server"))
-	}
-}
-
-func IngressSMTP(aDB *alert.Store, intDB *integrationkey.Store, cfg *Config) IngressHandler {
-	Handler.alerts = aDB
-	Handler.intKeys = &integrationKeyStore{iks: intDB}
-	Handler.cfg = cfg
-	return Handler
 }
