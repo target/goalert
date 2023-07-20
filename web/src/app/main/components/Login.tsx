@@ -81,7 +81,12 @@ export default function Login(): JSX.Element {
   /*
    * Renders a field from a provider
    */
-  type Field = { ID: any; Label: any; Password: any; Required: any }
+  type Field = {
+    ID: string
+    Label: string
+    Password: string
+    Required: boolean
+  }
   function renderField(field: Field) {
     const {
       ID: id, // unique name/identifier of the field
@@ -121,7 +126,15 @@ export default function Login(): JSX.Element {
   /*
    * Renders a provider given from initial GET request
    */
-  function renderProvider(provider : any, idx: number, len: number) {
+  type Provider = {
+    ID: string
+    Fields: string[]
+    Hidden: string
+    LogoUrl: string
+    Title: string
+    URL: string
+  }
+  function renderProvider(provider: Provider, idx: number, len: number) {
     const {
       ID: id, // unique identifier of the provider
       Fields: fields, // holds a list of fields to include with the request
