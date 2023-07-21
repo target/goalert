@@ -26,6 +26,9 @@ const (
 
 	// SourceTypeCalendarSubscription is set when a context is authorized for use of a calendar subscription.
 	SourceTypeCalendarSubscription
+
+	// SourceTypeGQLAPIKey is set when a context is authorized for use of the GraphQL API.
+	SourceTypeGQLAPIKey
 )
 
 // SourceInfo provides information about the source of a context's authorization.

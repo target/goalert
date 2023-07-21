@@ -12,6 +12,7 @@ import (
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/alert/alertmetrics"
+	"github.com/target/goalert/apikey"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/authlink"
@@ -117,6 +118,7 @@ type App struct {
 	TimeZoneStore *timezone.Store
 	NoticeStore   *notice.Store
 	AuthLinkStore *authlink.Store
+	APIKeyStore   *apikey.Store
 }
 
 // NewApp constructs a new App and binds the listening socket.
