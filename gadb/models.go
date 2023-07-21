@@ -798,6 +798,19 @@ type AlertStatusSubscription struct {
 	LastAlertStatus EnumAlertStatus
 }
 
+type ApiKey struct {
+	ID         uuid.UUID
+	Name       string
+	UserID     uuid.NullUUID
+	ServiceID  uuid.NullUUID
+	Version    int32
+	Data       json.RawMessage
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	ExpiresAt  time.Time
+	LastUsedAt sql.NullTime
+}
+
 type AuthBasicUser struct {
 	UserID       uuid.UUID
 	Username     string

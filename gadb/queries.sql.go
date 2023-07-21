@@ -16,6 +16,100 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
+const aPIKeyAuth = `-- name: APIKeyAuth :one
+UPDATE
+    api_keys
+SET
+    last_used_at = now()
+WHERE
+    id = $1
+RETURNING
+    id, name, user_id, service_id, version, data, created_at, updated_at, expires_at, last_used_at
+`
+
+func (q *Queries) APIKeyAuth(ctx context.Context, id uuid.UUID) (ApiKey, error) {
+	row := q.db.QueryRowContext(ctx, aPIKeyAuth, id)
+	var i ApiKey
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.UserID,
+		&i.ServiceID,
+		&i.Version,
+		&i.Data,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ExpiresAt,
+		&i.LastUsedAt,
+	)
+	return i, err
+}
+
+const aPIKeyDelete = `-- name: APIKeyDelete :exec
+DELETE FROM api_keys
+WHERE id = $1
+`
+
+func (q *Queries) APIKeyDelete(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, aPIKeyDelete, id)
+	return err
+}
+
+const aPIKeyGet = `-- name: APIKeyGet :one
+SELECT
+    id, name, user_id, service_id, version, data, created_at, updated_at, expires_at, last_used_at
+FROM
+    api_keys
+WHERE
+    id = $1
+`
+
+func (q *Queries) APIKeyGet(ctx context.Context, id uuid.UUID) (ApiKey, error) {
+	row := q.db.QueryRowContext(ctx, aPIKeyGet, id)
+	var i ApiKey
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.UserID,
+		&i.ServiceID,
+		&i.Version,
+		&i.Data,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ExpiresAt,
+		&i.LastUsedAt,
+	)
+	return i, err
+}
+
+const aPIKeyInsert = `-- name: APIKeyInsert :exec
+INSERT INTO api_keys(id, version, user_id, service_id, name, data, expires_at)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+`
+
+type APIKeyInsertParams struct {
+	ID        uuid.UUID
+	Version   int32
+	UserID    uuid.NullUUID
+	ServiceID uuid.NullUUID
+	Name      string
+	Data      json.RawMessage
+	ExpiresAt time.Time
+}
+
+func (q *Queries) APIKeyInsert(ctx context.Context, arg APIKeyInsertParams) error {
+	_, err := q.db.ExecContext(ctx, aPIKeyInsert,
+		arg.ID,
+		arg.Version,
+		arg.UserID,
+		arg.ServiceID,
+		arg.Name,
+		arg.Data,
+		arg.ExpiresAt,
+	)
+	return err
+}
+
 const alertFeedback = `-- name: AlertFeedback :many
 SELECT
     alert_id,
