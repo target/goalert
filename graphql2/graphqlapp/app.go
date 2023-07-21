@@ -16,6 +16,7 @@ import (
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/alert/alertmetrics"
+	"github.com/target/goalert/apikey"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/authlink"
 	"github.com/target/goalert/auth/basic"
@@ -23,6 +24,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/graphql2/gqlauth"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
@@ -77,6 +79,7 @@ type App struct {
 	SlackStore        *slack.ChannelSender
 	HeartbeatStore    *heartbeat.Store
 	NoticeStore       *notice.Store
+	APIKeyStore       *apikey.Store
 
 	AuthLinkStore *authlink.Store
 
@@ -152,6 +155,25 @@ func (a *App) Handler() http.Handler {
 		enabled, ok := ctx.Value(hasTraceKey(1)).(bool)
 		return ok && enabled
 	}})
+
+	h.AroundFields(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
+		src := permission.Source(ctx)
+		if src.Type != permission.SourceTypeGQLAPIKey {
+			return next(ctx)
+		}
+
+		qs, err := a.APIKeyStore.ContextQuery(ctx)
+		if err != nil {
+			return nil, permission.NewAccessDenied("invalid API key")
+		}
+
+		q, err := gqlauth.NewQuery(qs)
+		if err != nil {
+			return nil, permission.NewAccessDenied("invalid API key")
+		}
+
+		return q.InterceptField(ctx, next)
+	})
 
 	h.AroundFields(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
 		defer func() {
@@ -239,6 +261,7 @@ func (a *App) Handler() http.Handler {
 		// ensure some sort of auth before continuing
 		err := permission.LimitCheckAny(ctx)
 		if errutil.HTTPError(ctx, w, err) {
+			log.Logf(ctx, "GraphQL: %s", err)
 			return
 		}
 

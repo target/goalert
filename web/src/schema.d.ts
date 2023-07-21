@@ -422,8 +422,22 @@ export interface Mutation {
   updateAlertsByService: boolean
   setConfig: boolean
   setSystemLimits: boolean
+  createGQLAPIKey: GQLAPIKey
   createBasicAuth: boolean
   updateBasicAuth: boolean
+}
+
+export interface CreateGQLAPIKeyInput {
+  name: string
+  query: string
+  expiresAt: ISOTimestamp
+}
+
+export interface GQLAPIKey {
+  id: string
+  name: string
+  token?: null | string
+  expiresAt: ISOTimestamp
 }
 
 export interface CreateBasicAuthInput {

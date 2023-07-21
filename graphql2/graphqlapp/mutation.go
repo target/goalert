@@ -11,6 +11,7 @@ import (
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/graphql2/gqlauth"
 	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
@@ -27,6 +28,25 @@ import (
 type Mutation App
 
 func (a *App) Mutation() graphql2.MutationResolver { return (*Mutation)(a) }
+
+func (a *Mutation) CreateGQLAPIKey(ctx context.Context, input graphql2.CreateGQLAPIKeyInput) (*graphql2.GQLAPIKey, error) {
+	_, err := gqlauth.NewQuery(input.Query)
+	if err != nil {
+		return nil, validation.NewFieldError("Query", err.Error())
+	}
+
+	key, err := a.APIKeyStore.CreateAdminGraphQLKey(ctx, input.Name, input.Query, input.ExpiresAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return &graphql2.GQLAPIKey{
+		ID:        key.ID.String(),
+		Name:      key.Name,
+		ExpiresAt: key.ExpiresAt,
+		Token:     &key.Token,
+	}, nil
+}
 
 func (a *Mutation) SetFavorite(ctx context.Context, input graphql2.SetFavoriteInput) (bool, error) {
 	var err error

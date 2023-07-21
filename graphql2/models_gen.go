@@ -139,6 +139,12 @@ type CreateEscalationPolicyStepInput struct {
 	NewSchedule        *CreateScheduleInput   `json:"newSchedule,omitempty"`
 }
 
+type CreateGQLAPIKeyInput struct {
+	Name      string    `json:"name"`
+	Query     string    `json:"query"`
+	ExpiresAt time.Time `json:"expiresAt"`
+}
+
 type CreateHeartbeatMonitorInput struct {
 	ServiceID      *string `json:"serviceID,omitempty"`
 	Name           string  `json:"name"`
@@ -280,6 +286,13 @@ type EscalationPolicySearchOptions struct {
 	Omit           []string `json:"omit,omitempty"`
 	FavoritesOnly  *bool    `json:"favoritesOnly,omitempty"`
 	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
+}
+
+type GQLAPIKey struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Token     *string   `json:"token,omitempty"`
+	ExpiresAt time.Time `json:"expiresAt"`
 }
 
 type IntegrationKeyConnection struct {
