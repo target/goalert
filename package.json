@@ -111,7 +111,7 @@
     "stylelint-config-standard": "34.0.0",
     "typescript": "5.0.4",
     "urql": "4.0.4",
-    "wonka": "6.3.2",
+    "wonka": "6.3.3",
     "wouter": "2.11.0"
   },
   "packageManager": "yarn@3.5.0"
