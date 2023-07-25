@@ -43,11 +43,8 @@ func getSetConfig(ctx context.Context, setCfg bool, data []byte) error {
 	defer sqlutil.Rollback(ctx, "app: get/set config", tx)
 
 	storeCfg := config.StoreConfig{
-		DB:          db,
-		Keys:        c.EncryptionKeys,
-		FallbackURL: "",
-		ExplicitURL: "",
-		// IngressEmailDomain: "",
+		DB:   db,
+		Keys: c.EncryptionKeys,
 	}
 	s, err := config.NewStore(ctx, storeCfg)
 	if err != nil {
