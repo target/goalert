@@ -96,7 +96,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
   return (
     <Grid container spacing={2}>
       {/* Notices */}
-      <Grid item xs={12} >
+      <Grid item xs={12}>
       {Array.isArray(p.notices) ? <Notices notices={p.notices} /> : p.notices}
       </Grid>
 
