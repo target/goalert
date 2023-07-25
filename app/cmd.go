@@ -259,11 +259,8 @@ Migration: %s (#%d)
 				ctx := cmd.Context()
 
 				storeCfg := config.StoreConfig{
-					DB:          conn,
-					Keys:        cf.EncryptionKeys,
-					FallbackURL: "",
-					ExplicitURL: "",
-					// IngressEmailDomain: "",
+					DB:   conn,
+					Keys: cf.EncryptionKeys,
 				}
 				store, err := config.NewStore(ctx, storeCfg)
 				if err != nil {
@@ -712,15 +709,11 @@ func init() {
 
 	RootCmd.Flags().StringP("listen-tls", "t", def.TLSListenAddr, "HTTPS listen address:port for the application.  Requires setting --tls-cert-data and --tls-key-data OR --tls-cert-file and --tls-key-file.")
 
-	RootCmd.Flags().String("smtp-listen", "", "Listen address:port for an internal SMTP server.")
-
-	RootCmd.Flags().String("smtp-listen-tls", "", "SMTPS listen address:port for an internal SMTP server.  Requires setting --smtp-tls-cert-data and --smtp-tls-key-data OR --smtp-tls-cert-file and --smtp-tls-key-file.")
-
-	RootCmd.Flags().String("listen-sysapi", "", "(Experimental) Listen address:port for the system API (gRPC).")
-
 	RootCmd.Flags().StringSlice("experimental", nil, "Enable experimental features.")
 	RootCmd.Flags().Bool("list-experimental", false, "List experimental features.")
 	RootCmd.Flags().Bool("strict-experimental", false, "Fail to start if unknown experimental features are specified.")
+
+	RootCmd.Flags().String("listen-sysapi", "", "(Experimental) Listen address:port for the system API (gRPC).")
 
 	RootCmd.Flags().String("sysapi-cert-file", "", "(Experimental) Specifies a path to a PEM-encoded certificate to use when connecting to plugin services.")
 	RootCmd.Flags().String("sysapi-key-file", "", "(Experimental) Specifies a path to a PEM-encoded private key file use when connecting to plugin services.")
@@ -734,6 +727,9 @@ func init() {
 	RootCmd.Flags().String("tls-key-file", "", "Specifies a path to a PEM-encoded private key file.  Has no effect if --listen-tls is unset.")
 	RootCmd.Flags().String("tls-cert-data", "", "Specifies a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")
 	RootCmd.Flags().String("tls-key-data", "", "Specifies a PEM-encoded private key.  Has no effect if --listen-tls is unset.")
+
+	RootCmd.Flags().String("smtp-listen", "", "Listen address:port for an internal SMTP server.")
+	RootCmd.Flags().String("smtp-listen-tls", "", "SMTPS listen address:port for an internal SMTP server.  Requires setting --smtp-tls-cert-data and --smtp-tls-key-data OR --smtp-tls-cert-file and --smtp-tls-key-file.")
 
 	RootCmd.Flags().String("smtp-tls-cert-file", "", "Specifies a path to a PEM-encoded certificate.  Has no effect if --smtp-listen-tls is unset.")
 	RootCmd.Flags().String("smtp-tls-key-file", "", "Specifies a path to a PEM-encoded private key file.  Has no effect if --smtp-listen-tls is unset.")
