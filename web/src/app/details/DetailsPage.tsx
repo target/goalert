@@ -96,7 +96,9 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
   return (
     <Grid container spacing={2}>
       {/* Notices */}
+      <Grid item xs={12} >
       {Array.isArray(p.notices) ? <Notices notices={p.notices} /> : p.notices}
+      </Grid>
 
       {/* Header card */}
       <Grid item xs={12} lg={!isMobile && p.links?.length ? 8 : 12}>
