@@ -11,12 +11,11 @@ import (
 )
 
 func (app *App) initSMTPServer(ctx context.Context) error {
-	cfg := smtpsrv.Config{}
-
 	if app.cfg.SMTPListenAddr == "" && app.cfg.SMTPListenAddrTLS == "" {
 		return nil
 	}
 
+	var cfg smtpsrv.Config
 	if app.cfg.SMTPAllowedDomains != "" {
 		cfg.AllowedDomains = strings.Split(app.cfg.SMTPAllowedDomains, ",")
 	}
@@ -25,7 +24,6 @@ func (app *App) initSMTPServer(ctx context.Context) error {
 
 	app.smtpsrv = smtpsrv.NewServer(&cfg)
 	h := smtpsrv.IngressSMTP(app.AlertStore, app.IntegrationKeyStore, &cfg)
-
 	if app.cfg.SMTPListenAddr != "" {
 		l, err := net.Listen("tcp", app.cfg.SMTPListenAddr)
 		if err != nil {
