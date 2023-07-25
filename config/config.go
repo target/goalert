@@ -20,6 +20,11 @@ type Config struct {
 	fallbackURL string
 	explicitURL string
 
+	smtpserver struct {
+		// EmailDomain is the domain to use for receiving email, passed in as a cli flag/env var.
+		EmailDomain string
+	}
+
 	General struct {
 		ApplicationName              string `public:"true" info:"The name used in messaging and page titles. Defaults to \"GoAlert\"."`
 		PublicURL                    string `public:"true" info:"Publicly routable URL for UI links and API calls." deprecated:"Use --public-url flag instead, which takes precedence."`
@@ -79,10 +84,6 @@ type Config struct {
 
 		APIKey      string `password:"true"`
 		EmailDomain string `info:"The TO address for all incoming alerts."`
-	}
-
-	smtpserver struct {
-		EmailDomain string `info:"The TO address domain for incoming email alerts."`
 	}
 
 	Slack struct {
@@ -152,18 +153,14 @@ func (cfg Config) EmailIngressEnabled() bool {
 
 // EmailIngressDomain returns the domain configured to receive email for alert generation
 func (cfg Config) EmailIngressDomain() string {
+	if cfg.smtpserver.EmailDomain != "" {
+		// cli flag always takes precedence
+		return cfg.smtpserver.EmailDomain
+	}
 	if cfg.Mailgun.EmailDomain != "" {
 		return cfg.Mailgun.EmailDomain
 	}
-	if cfg.smtpserver.EmailDomain != "" {
-		return cfg.smtpserver.EmailDomain
-	}
 	return ""
-}
-
-// SetEmailIngressDomain sets the domain configured to receive email for alert generation
-func (cfg Config) SetEmailIngressDomain(domain string) {
-	cfg.smtpserver.EmailDomain = domain
 }
 
 // TwilioSMSFromNumber will determine the appropriate FROM number to use for SMS messages to the given number
