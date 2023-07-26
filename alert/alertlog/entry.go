@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/util/log"
 )
 
@@ -19,13 +20,13 @@ type Entry struct {
 	message   string
 	subject   struct {
 		_type                SubjectType
-		userID               sql.NullString
+		userID               uuid.NullUUID
 		userName             sql.NullString
-		integrationKeyID     sql.NullString
+		integrationKeyID     uuid.NullUUID
 		integrationKeyName   sql.NullString
-		heartbeatMonitorID   sql.NullString
+		heartbeatMonitorID   uuid.NullUUID
 		heartbeatMonitorName sql.NullString
-		channelID            sql.NullString
+		channelID            uuid.NullUUID
 		channelName          sql.NullString
 		classifier           string
 	}
@@ -91,16 +92,16 @@ func (e Entry) Subject() *Subject {
 
 	switch s.Type {
 	case SubjectTypeUser:
-		s.ID = e.subject.userID.String
+		s.ID = e.subject.userID.UUID.String()
 		s.Name = e.subject.userName.String
 	case SubjectTypeIntegrationKey:
-		s.ID = e.subject.integrationKeyID.String
+		s.ID = e.subject.integrationKeyID.UUID.String()
 		s.Name = e.subject.integrationKeyName.String
 	case SubjectTypeHeartbeatMonitor:
-		s.ID = e.subject.heartbeatMonitorID.String
+		s.ID = e.subject.heartbeatMonitorID.UUID.String()
 		s.Name = e.subject.heartbeatMonitorName.String
 	case SubjectTypeChannel:
-		s.ID = e.subject.channelID.String
+		s.ID = e.subject.channelID.UUID.String()
 		s.Name = e.subject.channelName.String
 	}
 
