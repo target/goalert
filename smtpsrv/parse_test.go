@@ -6,6 +6,9 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParseSanitizeMessage(t *testing.T) {
@@ -52,9 +55,16 @@ func TestParseSanitizeMessage(t *testing.T) {
 		},
 		"multipart plain and html": {
 			args: args{m: &mail.Message{Header: map[string][]string{"Content-Type": {mixed}}, Body: strings.NewReader(
-				"--foo\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nHello, world!\r\n--foo\r\nContent-Type: text/html; charset=utf-8\r\n\r\n<h1>Hello, world!</h1>\r\n--foo--"),
+				"--foo\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nHello, world TEXT!\r\n--foo\r\nContent-Type: text/html; charset=utf-8\r\n\r\n<h1>Hello, world!</h1>\r\n--foo--"),
 			}},
-			want:    []byte("Hello, world!"),
+			want:    []byte("Hello, world TEXT!"),
+			wantErr: false,
+		},
+		"multipart html and plain": {
+			args: args{m: &mail.Message{Header: map[string][]string{"Content-Type": {mixed}}, Body: strings.NewReader(
+				"--foo\r\nContent-Type: text/html; charset=utf-8\r\n\r\n<h1>Hello, world!</h1>\r\n--foo\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nHello, world TEXT!\r\n--foo--"),
+			}},
+			want:    []byte("Hello, world TEXT!"),
 			wantErr: false,
 		},
 		"multipart html and json": {
@@ -178,12 +188,12 @@ func Test_parseMultipart(t *testing.T) {
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := parseMultipart(tt.args.body, tt.args.boundary)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("%q. readMultipart() error = %v, wantErr %v", name, err, tt.wantErr)
+			if tt.wantErr {
+				assert.Error(t, err, "parseMultipart()")
+				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("%q. readMultipart() = got %q, want %q", name, string(got), string(tt.want))
-			}
+			require.NoError(t, err, "parseMultipart()")
+			assert.Equal(t, string(tt.want), string(got), "parseMultipart()")
 		})
 	}
 }
