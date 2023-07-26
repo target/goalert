@@ -479,26 +479,3 @@ func scanStatus(row scannable) (*SendResult, time.Time, error) {
 
 	return &s, createdAt.Time, nil
 }
-
-// ServiceInfo will return the name of the given service ID as well as the current number
-// of unacknowledged alerts.
-func (s *Store) ServiceInfo(ctx context.Context, serviceID string) (string, int, error) {
-	err := permission.LimitCheckAny(ctx, permission.User)
-	if err != nil {
-		return "", 0, err
-	}
-
-	err = validate.UUID("ServiceID", serviceID)
-	if err != nil {
-		return "", 0, err
-	}
-
-	var name string
-	var count int
-	err = s.svcInfo.QueryRowContext(ctx, serviceID).Scan(&name, &count)
-	if err != nil {
-		return "", 0, err
-	}
-
-	return name, count, nil
-}
