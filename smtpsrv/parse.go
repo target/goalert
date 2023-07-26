@@ -14,13 +14,14 @@ import (
 
 // ParseSanitizeMessage takes a *mail.Message and returns a cleaned version of the Body
 func ParseSanitizeMessage(m *mail.Message) ([]byte, error) {
-	mediaType, params, err := mime.ParseMediaType(m.Header.Get("Content-Type"))
+	ct := m.Header.Get("Content-Type")
+	if ct == "" {
+		ct = "text/plain"
+	}
+
+	mediaType, params, err := mime.ParseMediaType(ct)
 	if err != nil {
-		if err.Error() == "mime: no media type" {
-			mediaType = "text/plain"
-		} else {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	switch {
