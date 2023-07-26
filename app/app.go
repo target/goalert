@@ -69,6 +69,7 @@ type App struct {
 
 	srv        *http.Server
 	smtpsrv    *smtpsrv.Server
+	smtpsrvL   net.Listener
 	startupErr error
 
 	notificationManager *notification.Manager

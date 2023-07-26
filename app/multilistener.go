@@ -21,6 +21,14 @@ type multiListener struct {
 }
 
 func newMultiListener(logger *log.Logger, ln ...net.Listener) *multiListener {
+	nonEmpty := make([]net.Listener, 0, len(ln))
+	for _, l := range ln {
+		if l != nil {
+			nonEmpty = append(nonEmpty, l)
+		}
+	}
+	ln = nonEmpty
+
 	ml := multiListener{
 		l:         logger,
 		listeners: ln,

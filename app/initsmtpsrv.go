@@ -40,14 +40,12 @@ func (app *App) initSMTPServer(ctx context.Context) error {
 	}
 
 	app.smtpsrv = smtpsrv.NewServer(cfg)
+	var err error
 	if app.cfg.SMTPListenAddr != "" {
-		l, err := net.Listen("tcp", app.cfg.SMTPListenAddr)
+		app.smtpsrvL, err = net.Listen("tcp", app.cfg.SMTPListenAddr)
 		if err != nil {
 			return err
 		}
-		go func() {
-			_ = app.smtpsrv.ServeSMTP(l)
-		}()
 	}
 
 	if app.cfg.SMTPListenAddrTLS != "" {
@@ -55,9 +53,7 @@ func (app *App) initSMTPServer(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		go func() {
-			_ = app.smtpsrv.ServeSMTP(l)
-		}()
+		app.smtpsrvL = newMultiListener(app.cfg.Logger, app.smtpsrvL, l)
 	}
 
 	return nil
