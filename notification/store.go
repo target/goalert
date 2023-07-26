@@ -35,6 +35,7 @@ type Store struct {
 	sendTestLock                 *sql.Stmt
 	findManyMessageStatuses      *sql.Stmt
 	lastMessageStatus            *sql.Stmt
+	svcInfo                      *sql.Stmt
 
 	origAlertMessage *sql.Stmt
 
@@ -168,6 +169,13 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 				(select type from notification_channels ch where ch.id = om.channel_id)
 			from outgoing_messages om
 			where message_type = $1 and contact_method_id = $2 and created_at >= $3
+		`),
+		svcInfo: p.P(`
+			SELECT
+				name,
+				(SELECT count(*) FROM alerts WHERE service_id = $1 AND status = 'triggered')
+			FROM services
+			WHERE id = $1
 		`),
 	}, p.Err
 }
@@ -470,4 +478,27 @@ func scanStatus(row scannable) (*SendResult, time.Time, error) {
 	s.DestType = dt.DestType()
 
 	return &s, createdAt.Time, nil
+}
+
+// ServiceInfo will return the name of the given service ID as well as the current number
+// of unacknowledged alerts.
+func (s *Store) ServiceInfo(ctx context.Context, serviceID string) (string, int, error) {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return "", 0, err
+	}
+
+	err = validate.UUID("ServiceID", serviceID)
+	if err != nil {
+		return "", 0, err
+	}
+
+	var name string
+	var count int
+	err = s.svcInfo.QueryRowContext(ctx, serviceID).Scan(&name, &count)
+	if err != nil {
+		return "", 0, err
+	}
+
+	return name, count, nil
 }
