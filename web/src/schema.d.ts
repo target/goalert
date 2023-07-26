@@ -1184,7 +1184,6 @@ type ConfigID =
   | 'Mailgun.Enable'
   | 'Mailgun.APIKey'
   | 'Mailgun.EmailDomain'
-  | 'smtpserver.EmailDomain'
   | 'Slack.Enable'
   | 'Slack.ClientID'
   | 'Slack.ClientSecret'

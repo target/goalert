@@ -145,7 +145,7 @@ func (s *Store) Reload(ctx context.Context) error {
 	rawCfg := *cfg
 	rawCfg.fallbackURL = s.fallbackURL
 	rawCfg.explicitURL = s.explicitURL
-	rawCfg.smtpserver.EmailDomain = s.ingressEmailDomain
+	rawCfg.intEmailDomain = s.ingressEmailDomain
 
 	err = cfg.Validate()
 	if err != nil {

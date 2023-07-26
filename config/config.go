@@ -20,10 +20,7 @@ type Config struct {
 	fallbackURL string
 	explicitURL string
 
-	smtpserver struct {
-		// EmailDomain is the domain to use for receiving email, passed in as a cli flag/env var.
-		EmailDomain string
-	}
+	intEmailDomain string
 
 	General struct {
 		ApplicationName              string `public:"true" info:"The name used in messaging and page titles. Defaults to \"GoAlert\"."`
@@ -145,7 +142,7 @@ type Config struct {
 
 // EmailIngressEnabled returns true if a provider is configured for generating alerts from email, otherwise false
 func (cfg Config) EmailIngressEnabled() bool {
-	if (cfg.Mailgun.Enable && cfg.Mailgun.EmailDomain != "") || cfg.smtpserver.EmailDomain != "" {
+	if (cfg.Mailgun.Enable && cfg.Mailgun.EmailDomain != "") || cfg.intEmailDomain != "" {
 		return true
 	}
 	return false
@@ -153,9 +150,9 @@ func (cfg Config) EmailIngressEnabled() bool {
 
 // EmailIngressDomain returns the domain configured to receive email for alert generation
 func (cfg Config) EmailIngressDomain() string {
-	if cfg.smtpserver.EmailDomain != "" {
+	if cfg.intEmailDomain != "" {
 		// cli flag always takes precedence
-		return cfg.smtpserver.EmailDomain
+		return cfg.intEmailDomain
 	}
 	if cfg.Mailgun.EmailDomain != "" {
 		return cfg.Mailgun.EmailDomain
