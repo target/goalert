@@ -207,3 +207,11 @@ func (a *App) DB() *sql.DB { return a.db }
 func (a *App) URL() string {
 	return "http://" + a.l.Addr().String()
 }
+
+func (a *App) SMTPAddr() string {
+	if a.smtpsrvL == nil {
+		return ""
+	}
+
+	return a.smtpsrvL.Addr().String()
+}

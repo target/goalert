@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"io"
 	stdlog "log"
-	"net"
 	"net/http/httptest"
+	"net/smtp"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -20,7 +20,6 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/emersion/go-smtp"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
@@ -84,13 +83,11 @@ type Harness struct {
 
 	cfg config.Config
 
-	email        *emailServer
-	slack        *slackServer
-	slackS       *httptest.Server
-	slackApp     mockslack.AppInfo
-	slackUser    mockslack.UserInfo
-	smtpsrv      *smtp.Server
-	smtpListener net.Listener
+	email     *emailServer
+	slack     *slackServer
+	slackS    *httptest.Server
+	slackApp  mockslack.AppInfo
+	slackUser mockslack.UserInfo
 
 	pgTime *pgmocktime.Mocker
 
@@ -110,10 +107,6 @@ type Harness struct {
 
 func (h *Harness) Config() config.Config {
 	return h.cfg
-}
-
-func (h *Harness) SMTPIngressAddr() string {
-	return h.smtpListener.Addr().String()
 }
 
 // NewHarness will create a new database, perform `migrateSteps` migrations, inject `initSQL` and return a new Harness bound to
@@ -220,7 +213,6 @@ func NewStoppedHarnessWithFlags(t *testing.T, initSQL string, sqlData interface{
 		t: t,
 	}
 	h.email = newEmailServer(h)
-	h.smtpsrv, h.smtpListener = newSMTPServer()
 
 	h.tw = newTwilioAssertionAPI(func() {
 		h.FastForward(time.Minute)
@@ -277,7 +269,6 @@ func (h *Harness) Start() {
 	cfg.Mailgun.Enable = true
 	cfg.Mailgun.APIKey = mailgunAPIKey
 	cfg.Mailgun.EmailDomain = "smoketest.example.com"
-	cfg.SetEmailIngressDomain("smoketest.example.com")
 	h.cfg = cfg
 
 	_, err := migrate.ApplyAll(context.Background(), h.dbURL)
@@ -304,7 +295,7 @@ func (h *Harness) Start() {
 	appCfg.DBMaxOpen = 5
 	appCfg.SlackBaseURL = h.slackS.URL
 	appCfg.SMTPListenAddr = "localhost:0"
-	appCfg.SMTPAllowedDomains = "smoketest.example.com"
+	appCfg.EmailIntegrationDomain = "smoketest.example.com"
 	appCfg.InitialConfig = &h.cfg
 
 	r, w := io.Pipe()
@@ -339,6 +330,13 @@ func (h *Harness) Start() {
 // URL returns the backend server's URL
 func (h *Harness) URL() string {
 	return h.backend.URL()
+}
+
+func (h *Harness) SendMail(from, to, subject, body string) {
+	h.t.Helper()
+
+	err := smtp.SendMail(h.App().SMTPAddr(), nil, from, []string{to}, []byte(fmt.Sprintf("Subject: %s\r\n\r\n%s", subject, body)))
+	require.NoError(h.t, err)
 }
 
 // Migrate will perform `steps` number of migrations.
