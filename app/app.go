@@ -8,7 +8,6 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/emersion/go-smtp"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
@@ -40,6 +39,7 @@ import (
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/service"
+	"github.com/target/goalert/smtpsrv"
 	"github.com/target/goalert/timezone"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
@@ -68,7 +68,7 @@ type App struct {
 	hSrv      *health.Server
 
 	srv        *http.Server
-	smtpsrv    *smtp.Server
+	smtpsrv    *smtpsrv.Server
 	startupErr error
 
 	notificationManager *notification.Manager

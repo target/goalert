@@ -5,8 +5,10 @@ import (
 	"crypto/tls"
 	"net"
 	_ "net/url"
-	"strings"
 
+	"github.com/target/goalert/alert"
+	"github.com/target/goalert/auth/authtoken"
+	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/smtpsrv"
 )
 
@@ -15,22 +17,36 @@ func (app *App) initSMTPServer(ctx context.Context) error {
 		return nil
 	}
 
-	var cfg smtpsrv.Config
-	if app.cfg.SMTPAllowedDomains != "" {
-		cfg.AllowedDomains = strings.Split(app.cfg.SMTPAllowedDomains, ",")
+	cfg := smtpsrv.Config{
+		Domain:    app.cfg.EmailIntegrationDomain,
+		TLSConfig: app.cfg.TLSConfigSMTP,
+		AuthorizeFunc: func(ctx context.Context, id string) (context.Context, error) {
+			tok, _, err := authtoken.Parse(id, nil)
+			if err != nil {
+				return nil, err
+			}
+
+			ctx, err = app.IntegrationKeyStore.Authorize(ctx, *tok, integrationkey.TypeEmail)
+			if err != nil {
+				return nil, err
+			}
+
+			return ctx, nil
+		},
+		CreateAlertFunc: func(ctx context.Context, a *alert.Alert) error {
+			_, _, err := app.AlertStore.CreateOrUpdate(ctx, a)
+			return err
+		},
 	}
 
-	cfg.TLSConfig = app.cfg.TLSConfigSMTP // nil if unset
-
-	app.smtpsrv = smtpsrv.NewServer(&cfg)
-	h := smtpsrv.IngressSMTP(app.AlertStore, app.IntegrationKeyStore, &cfg)
+	app.smtpsrv = smtpsrv.NewServer(cfg)
 	if app.cfg.SMTPListenAddr != "" {
 		l, err := net.Listen("tcp", app.cfg.SMTPListenAddr)
 		if err != nil {
 			return err
 		}
 		go func() {
-			h.ServeSMTP(ctx, app.smtpsrv, l)
+			_ = app.smtpsrv.ServeSMTP(l)
 		}()
 	}
 
@@ -40,8 +56,9 @@ func (app *App) initSMTPServer(ctx context.Context) error {
 			return err
 		}
 		go func() {
-			h.ServeSMTP(ctx, app.smtpsrv, l)
+			_ = app.smtpsrv.ServeSMTP(l)
 		}()
 	}
+
 	return nil
 }
