@@ -30,8 +30,8 @@ func TestServer(t *testing.T) {
 		},
 	})
 
-	go srv.ServeSMTP(l)
-	t.Cleanup(func() { srv.Shutdown(context.Background()) })
+	go func() { _ = srv.ServeSMTP(l) }()
+	t.Cleanup(func() { _ = srv.Shutdown(context.Background()) })
 
 	c, err := smtp.Dial(l.Addr().String())
 	require.NoError(t, err)
