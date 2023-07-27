@@ -625,9 +625,9 @@ func getConfig(ctx context.Context) (Config, error) {
 		SysAPIKeyFile:    viper.GetString("sysapi-key-file"),
 		SysAPICAFile:     viper.GetString("sysapi-ca-file"),
 
-		SMTPListenAddr:     viper.GetString("smtp-listen"),
-		SMTPListenAddrTLS:  viper.GetString("smtp-listen-tls"),
-		SMTPAllowedDomains: viper.GetString("smtp-allowed-domains"),
+		SMTPListenAddr:        viper.GetString("smtp-listen"),
+		SMTPListenAddrTLS:     viper.GetString("smtp-listen-tls"),
+		SMTPAdditionalDomains: viper.GetString("smtp-additional-domains"),
 
 		EmailIntegrationDomain: viper.GetString("email-integration-domain"),
 
@@ -691,7 +691,13 @@ func getConfig(ctx context.Context) (Config, error) {
 		cfg.TLSConfig.NextProtos = []string{"h2", "http/1.1"}
 	}
 
-	cfg.TLSConfigSMTP, err = getTLSConfig("smtp")
+	if cfg.SMTPListenAddr != "" || cfg.SMTPListenAddrTLS != "" {
+		if cfg.EmailIntegrationDomain == "" {
+			return cfg, errors.New("email-integration-domain is required when smtp-listen or smtp-listen-tls is set")
+		}
+	}
+
+	cfg.TLSConfigSMTP, err = getTLSConfig("smtp-")
 	if err != nil {
 		return cfg, err
 	}
@@ -699,7 +705,6 @@ func getConfig(ctx context.Context) (Config, error) {
 	if viper.GetBool("stack-traces") {
 		log.FromContext(ctx).EnableStacks()
 	}
-
 	return cfg, nil
 }
 
@@ -736,7 +741,7 @@ func init() {
 	RootCmd.Flags().String("smtp-tls-cert-data", "", "Specifies a PEM-encoded certificate.  Has no effect if --smtp-listen-tls is unset.")
 	RootCmd.Flags().String("smtp-tls-key-data", "", "Specifies a PEM-encoded private key.  Has no effect if --smtp-listen-tls is unset.")
 
-	RootCmd.Flags().String("smtp-allowed-domains", "", "Specifies destination domains that are allowed for the SMTP server.  For multiple domains, separate them with a comma, e.g., \"domain1.com,domain2.org,domain3.net\".  If not set or left empty, all domains are allowed.")
+	RootCmd.Flags().String("smtp-additional-domains", "", "Specifies additional destination domains that are allowed for the SMTP server.  For multiple domains, separate them with a comma, e.g., \"domain1.com,domain2.org,domain3.net\".")
 
 	RootCmd.Flags().Duration("engine-cycle-time", def.EngineCycleTime, "Time between engine cycles.")
 

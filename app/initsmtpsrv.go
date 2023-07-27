@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"net"
 	_ "net/url"
+	"strings"
 
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/auth/authtoken"
@@ -18,8 +19,9 @@ func (app *App) initSMTPServer(ctx context.Context) error {
 	}
 
 	cfg := smtpsrv.Config{
-		Domain:    app.cfg.EmailIntegrationDomain,
-		TLSConfig: app.cfg.TLSConfigSMTP,
+		Domain:         app.cfg.EmailIntegrationDomain,
+		AllowedDomains: parseAllowedDomains(app.cfg.SMTPAdditionalDomains, app.cfg.EmailIntegrationDomain),
+		TLSConfig:      app.cfg.TLSConfigSMTP,
 		AuthorizeFunc: func(ctx context.Context, id string) (context.Context, error) {
 			tok, _, err := authtoken.Parse(id, nil)
 			if err != nil {
@@ -57,4 +59,11 @@ func (app *App) initSMTPServer(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func parseAllowedDomains(additionalDomains string, primaryDomain string) []string {
+	if !strings.Contains(additionalDomains, primaryDomain) {
+		additionalDomains = strings.Join([]string{additionalDomains, primaryDomain}, ",")
+	}
+	return strings.Split(additionalDomains, ",")
 }
