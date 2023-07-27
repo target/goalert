@@ -26,13 +26,11 @@ const useStyles = makeStyles(() => ({
 export interface FlatListItemProps extends MUIListItemProps {
   item: FlatListItem
   index: number
-  showOptions?: boolean
 }
 
 export default function FlatListItem(props: FlatListItemProps): JSX.Element {
   const classes = useStyles()
 
-  const showOptions = props?.showOptions ?? true
   const {
     disabled,
     highlight,
@@ -42,6 +40,7 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
     subText,
     title,
     url,
+    render,
     ...muiListItemProps
   } = props.item
 
@@ -51,6 +50,10 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
       ref.current?.scrollIntoView({ block: 'center' })
     }
   }, [scrollIntoView])
+
+  if (render) {
+    return render()
+  }
 
   let linkProps = {}
   if (url) {
@@ -84,7 +87,7 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
           tabIndex: 0,
         }}
       />
-      {secondaryAction && showOptions && (
+      {secondaryAction && (
         <ListItemSecondaryAction sx={{ zIndex: 9002 }}>
           {secondaryAction}
         </ListItemSecondaryAction>

@@ -1,11 +1,16 @@
-import React, { MutableRefObject } from 'react'
+import React, { useState, MutableRefObject } from 'react'
 import { FlatListItem as FlatListItemType } from './FlatList'
 import FlatListItem from './FlatListItem'
 import { Announcements, UniqueIdentifier } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
-import { useSortable } from '@dnd-kit/sortable'
-import { useTheme } from '@mui/material'
+import {
+  useSortable,
+  defaultAnimateLayoutChanges,
+  AnimateLayoutChanges,
+} from '@dnd-kit/sortable'
+import { Grid, ButtonGroup, Button, useTheme } from '@mui/material'
 import DragHandleIcon from '@mui/icons-material/DragHandle'
+import { ChevronDown, ChevronUp } from 'mdi-material-ui'
 
 export function getAnnouncements(
   items: string[],
@@ -51,58 +56,83 @@ export function getAnnouncements(
   }
 }
 
+const animateLayoutChanges: AnimateLayoutChanges = (args) =>
+  args.isSorting || args.wasDragging ? defaultAnimateLayoutChanges(args) : true
+
 interface DraggableListItemProps {
   id: string
   index: number
   item: FlatListItemType
-  draggable: boolean
+  dragging: boolean
 }
 
 export function DraggableListItem({
   id,
   index,
   item,
-  draggable,
+  dragging,
 }: DraggableListItemProps): JSX.Element {
   const theme = useTheme()
-  const {
-    attributes,
-    isDragging,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({
-    id,
-  })
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({
+      animateLayoutChanges,
+      id,
+    })
 
+  const [hovering, setHovering] = useState(false)
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Translate.toString(transform),
     transition,
-    backgroundColor: isDragging ? theme.palette.background.default : 'inherit',
-    zIndex: isDragging ? 9001 : 1,
-  }
-
-  const draggableItem = {
-    ...item,
-    icon: (
-      <DragHandleIcon
-        {...listeners}
-        id={'drag-' + item?.id ?? index}
-        tabIndex={0}
-        focusable
-        sx={{ cursor: 'pointer', marginLeft: '8px' }}
-      />
-    ),
+    backgroundColor: hovering ? theme.palette.background.default : 'inherit',
+    height: 'fit-content',
+    zIndex: dragging ? 9001 : 'auto',
   }
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes}>
-      <FlatListItem
-        index={index}
-        item={draggable ? draggableItem : item}
-        showOptions={!draggable}
-      />
-    </div>
+    <Grid
+      container
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
+    >
+      <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
+        <Button
+          variant='outlined'
+          sx={{
+            p: '2px',
+            width: 'fit-content',
+            height: 'fit-content',
+            minWidth: 0,
+            cursor: 'drag',
+          }}
+          {...listeners}
+        >
+          <DragHandleIcon />
+        </Button>
+      </Grid>
+
+      <Grid
+        item
+        xs={11}
+        sx={{
+          width: '100%',
+        }}
+      >
+        <FlatListItem index={index} item={item} />
+      </Grid>
+
+      <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
+        <ButtonGroup orientation='vertical'>
+          <Button sx={{ p: '2px', width: 'fit-content', minWidth: 0 }}>
+            <ChevronUp />
+          </Button>
+          <Button sx={{ p: '2px', width: 'fit-content', minWidth: 0 }}>
+            <ChevronDown />
+          </Button>
+        </ButtonGroup>
+      </Grid>
+    </Grid>
   )
 }
