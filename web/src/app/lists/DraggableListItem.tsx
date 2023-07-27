@@ -1,4 +1,4 @@
-import React, { useState, MutableRefObject } from 'react'
+import React, { MutableRefObject } from 'react'
 import { FlatListItem as FlatListItemType } from './FlatList'
 import FlatListItem from './FlatListItem'
 import { Announcements, UniqueIdentifier } from '@dnd-kit/core'
@@ -63,40 +63,34 @@ interface DraggableListItemProps {
   id: string
   index: number
   item: FlatListItemType
-  dragging: boolean
 }
 
 export function DraggableListItem({
   id,
   index,
   item,
-  dragging,
 }: DraggableListItemProps): JSX.Element {
   const theme = useTheme()
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({
-      animateLayoutChanges,
-      id,
-    })
+  const {
+    attributes,
+    isDragging,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({
+    animateLayoutChanges,
+    id,
+  })
 
-  const [hovering, setHovering] = useState(false)
   const style = {
     transform: CSS.Translate.toString(transform),
     transition,
-    backgroundColor: hovering ? theme.palette.background.default : 'inherit',
-    height: 'fit-content',
-    zIndex: dragging ? 9001 : 'auto',
+    backgroundColor: isDragging ? theme.palette.background.default : 'inherit',
   }
 
   return (
-    <Grid
-      container
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      onMouseEnter={() => setHovering(true)}
-      onMouseLeave={() => setHovering(false)}
-    >
+    <Grid container ref={setNodeRef} style={style} {...attributes}>
       <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
         <Button
           variant='outlined'

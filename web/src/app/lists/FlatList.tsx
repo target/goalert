@@ -199,17 +199,14 @@ export default function FlatList({
     setDndItems(items.map((i, idx) => (i.id ? i.id : idx.toString())))
   }, [items])
 
-  const [dragging, setDragging] = useState(false)
   const isFirstAnnouncement = useRef(false)
   const announcements = getAnnouncements(dndItems, isFirstAnnouncement)
   function handleDragStart(): void {
     if (!isFirstAnnouncement.current) {
       isFirstAnnouncement.current = true
     }
-    setDragging(true)
   }
   function handleDragEnd(e: DragEndEvent): void {
-    setDragging(false)
     if (!onReorder || !e.over) return
     if (e.active.id !== e.over.id) {
       const oldIndex = dndItems.indexOf(e.active.id.toString())
@@ -350,7 +347,6 @@ export default function FlatList({
             key={`${idx}-${item.id}`}
             index={idx}
             item={item}
-            dragging={dragging}
             id={item.id ?? idx.toString()}
           />
         )
@@ -394,14 +390,6 @@ export default function FlatList({
   }
 
   function renderList(): JSX.Element {
-    let sx = listProps.sx
-    if (onReorder) {
-      sx = {
-        ...sx,
-        // display: 'grid',
-      }
-    }
-
     const renderListItems = ():
       | (JSX.Element | undefined)[]
       | JSX.Element
@@ -413,7 +401,7 @@ export default function FlatList({
     }
 
     return (
-      <List {...listProps} sx={sx}>
+      <List {...listProps} sx={listProps.sx}>
         {(headerNote || headerAction || onReorder) && (
           <MUIListItem>
             {headerNote && (

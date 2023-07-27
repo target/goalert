@@ -88,9 +88,7 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
         }}
       />
       {secondaryAction && (
-        <ListItemSecondaryAction sx={{ zIndex: 9002 }}>
-          {secondaryAction}
-        </ListItemSecondaryAction>
+        <ListItemSecondaryAction>{secondaryAction}</ListItemSecondaryAction>
       )}
     </MUIListItem>
   )
