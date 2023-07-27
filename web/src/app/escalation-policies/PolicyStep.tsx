@@ -150,7 +150,7 @@ function PolicyStep(props: PolicyStepProps): JSX.Element {
 
   return (
     <React.Fragment key={step.id}>
-      <ListItem key={index} selected={props.selected}>
+      <ListItem key={index} selected={props.selected} sx={{ p: 2 }}>
         <Grid container spacing={2}>
           <Grid item className={classes.centerFlex}>
             <Typography component='h4' variant='subtitle1'>

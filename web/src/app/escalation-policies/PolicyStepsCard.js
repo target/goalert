@@ -5,12 +5,10 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import CardHeader from '@mui/material/CardHeader'
 import Dialog from '@mui/material/Dialog'
-import List from '@mui/material/List'
 import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles'
 import { Add } from '@mui/icons-material'
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import { gql, useMutation } from '@apollo/client'
+import FlatList from '../lists/FlatList'
 import CreateFAB from '../lists/CreateFAB'
 import PolicyStepCreateDialog from './PolicyStepCreateDialog'
 import { useResetURLParams, useURLParam } from '../actions'
@@ -19,15 +17,7 @@ import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { policyStepsQuery } from './PolicyStepsQuery'
 import { useIsWidthDown } from '../util/useWidth'
-
-const useStyles = makeStyles((theme) => ({
-  dndDragging: {
-    backgroundColor: theme.palette.background.default,
-  },
-  paddingTop: {
-    paddingTop: '1em',
-  },
-}))
+import { reorderList } from '../rotations/util'
 
 const mutation = gql`
   mutation UpdateEscalationPolicyMutation(
@@ -38,7 +28,6 @@ const mutation = gql`
 `
 
 function PolicyStepsCard(props) {
-  const classes = useStyles()
   const { escalationPolicyID, repeat, steps } = props
 
   const isMobile = useIsWidthDown('md')
@@ -49,6 +38,8 @@ function PolicyStepsCard(props) {
   const oldID = useRef(null)
   const oldIdx = useRef(null)
   const newIdx = useRef(null)
+
+  const [lastSwap, setLastSwap] = useState([])
 
   const [error, setError] = useState(null)
 
@@ -112,34 +103,20 @@ function PolicyStepsCard(props) {
     optimisticResponse: { updateEscalationPolicy: true },
   })
 
-  function handleDragStart() {
-    // adds a little vibration if the browser supports it
-    if (window.navigator.vibrate) {
-      window.navigator.vibrate(100)
-    }
-  }
+  function onReorder(oldIndex, newIndex) {
+    setLastSwap(lastSwap.concat({ oldIndex, newIndex }))
 
-  // update step order on ui and send out mutation
-  function onDragEnd(result) {
-    // dropped outside the list
-    if (!result.destination) {
-      return
-    }
-
-    // map ids to swap elements
-    const sids = steps.map((s) => s.id)
-    oldID.current = result.draggableId
-    oldIdx.current = sids.indexOf(oldID.current)
-    newIdx.current = result.destination.index
-
-    // re-order sids array
-    arrayMove(sids)
+    const updatedStepIDs = reorderList(
+      steps.map((step) => step.id),
+      oldIndex,
+      newIndex,
+    )
 
     return updateEscalationPolicy({
       variables: {
         input: {
           id: escalationPolicyID,
-          stepIDs: sids,
+          stepIDs: updatedStepIDs,
         },
       },
     })
@@ -159,82 +136,6 @@ function PolicyStepsCard(props) {
       <Typography variant='subtitle1' component='p'>
         {text}
       </Typography>
-    )
-  }
-
-  function renderNoSteps() {
-    return (
-      <Typography className={classes.paddingTop} variant='caption'>
-        No steps currently on this Escalation Policy
-      </Typography>
-    )
-  }
-
-  /*
-   * Renders the steps list with the drag and drop context
-   *
-   * Each step will have a grid containing the step number,
-   * targets (rendered as mui chips), and the delay length
-   * until the next escalation.
-   */
-  function renderStepsList() {
-    if (!steps.length) {
-      return renderNoSteps()
-    }
-
-    return (
-      <React.Fragment>
-        <Typography component='p' variant='subtitle1'>
-          Notify the following:
-        </Typography>
-        <DragDropContext
-          key='drag-context'
-          onDragStart={handleDragStart}
-          onDragEnd={(res) => onDragEnd(res)}
-        >
-          <Droppable droppableId='droppable'>
-            {(provided) => (
-              <div ref={provided.innerRef} {...provided.droppableProps}>
-                <List data-cy='steps-list'>
-                  {steps.map((step, index) => (
-                    <Draggable
-                      key={step.id}
-                      draggableId={step.id}
-                      index={index}
-                    >
-                      {(provided, snapshot) => {
-                        // light grey background while dragging
-                        const draggingBackground = snapshot.isDragging
-                          ? classes.dndDragging
-                          : null
-
-                        return (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            className={draggingBackground}
-                          >
-                            <PolicyStep
-                              escalationPolicyID={escalationPolicyID}
-                              index={index}
-                              repeat={repeat}
-                              step={step}
-                              steps={steps}
-                              selected={snapshot.isDragging}
-                            />
-                          </div>
-                        )
-                      }}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </List>
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
-      </React.Fragment>
     )
   }
 
@@ -269,7 +170,22 @@ function PolicyStepsCard(props) {
               )
             }
           />
-          {renderStepsList()}
+          <FlatList
+            emptyMessage='No steps currently on this Escalation Policy'
+            headerNote='Notify the following:'
+            items={steps.map((step, index) => ({
+              render: () => (
+                <PolicyStep
+                  escalationPolicyID={escalationPolicyID}
+                  index={index}
+                  repeat={repeat}
+                  step={step}
+                  steps={steps}
+                />
+              ),
+            }))}
+            onReorder={onReorder}
+          />
           {renderRepeatText()}
         </CardContent>
       </Card>
