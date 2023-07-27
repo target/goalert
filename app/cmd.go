@@ -735,6 +735,7 @@ func init() {
 
 	RootCmd.Flags().String("smtp-listen", "", "Listen address:port for an internal SMTP server.")
 	RootCmd.Flags().String("smtp-listen-tls", "", "SMTPS listen address:port for an internal SMTP server.  Requires setting --smtp-tls-cert-data and --smtp-tls-key-data OR --smtp-tls-cert-file and --smtp-tls-key-file.")
+	RootCmd.Flags().String("email-integration-domain", "", "This flag is required to set the domain used for email integration keys when --smtp-listen or --smtp-listen-tls are set.")
 
 	RootCmd.Flags().String("smtp-tls-cert-file", "", "Specifies a path to a PEM-encoded certificate.  Has no effect if --smtp-listen-tls is unset.")
 	RootCmd.Flags().String("smtp-tls-key-file", "", "Specifies a path to a PEM-encoded private key file.  Has no effect if --smtp-listen-tls is unset.")
