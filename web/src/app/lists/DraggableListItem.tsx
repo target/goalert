@@ -87,6 +87,7 @@ export function DraggableListItem({
     transform: CSS.Translate.toString(transform),
     transition,
     backgroundColor: isDragging ? theme.palette.background.default : 'inherit',
+    zIndex: isDragging ? 9001 : 1,
   }
 
   return (

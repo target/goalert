@@ -400,8 +400,19 @@ export default function FlatList({
       return renderItems()
     }
 
+    // if drag and drop is enabled, this is needed
+    // to resolve z-index issues when dragging an
+    // item down the y-axis
+    let sx = listProps.sx
+    if (onReorder) {
+      sx = {
+        ...sx,
+        display: 'grid',
+      }
+    }
+
     return (
-      <List {...listProps} sx={listProps.sx}>
+      <List {...listProps} sx={sx}>
         {(headerNote || headerAction || onReorder) && (
           <MUIListItem>
             {headerNote && (
