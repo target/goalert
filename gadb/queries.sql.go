@@ -24,7 +24,7 @@ SET
 WHERE
     id = $1
 RETURNING
-    id, name, user_id, service_id, version, data, created_at, updated_at, expires_at, last_used_at
+    id, name, user_id, service_id, policy, created_at, updated_at, expires_at, last_used_at
 `
 
 func (q *Queries) APIKeyAuth(ctx context.Context, id uuid.UUID) (ApiKey, error) {
@@ -35,8 +35,7 @@ func (q *Queries) APIKeyAuth(ctx context.Context, id uuid.UUID) (ApiKey, error) 
 		&i.Name,
 		&i.UserID,
 		&i.ServiceID,
-		&i.Version,
-		&i.Data,
+		&i.Policy,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ExpiresAt,
@@ -57,7 +56,7 @@ func (q *Queries) APIKeyDelete(ctx context.Context, id uuid.UUID) error {
 
 const aPIKeyGet = `-- name: APIKeyGet :one
 SELECT
-    id, name, user_id, service_id, version, data, created_at, updated_at, expires_at, last_used_at
+    id, name, user_id, service_id, policy, created_at, updated_at, expires_at, last_used_at
 FROM
     api_keys
 WHERE
@@ -72,8 +71,7 @@ func (q *Queries) APIKeyGet(ctx context.Context, id uuid.UUID) (ApiKey, error) {
 		&i.Name,
 		&i.UserID,
 		&i.ServiceID,
-		&i.Version,
-		&i.Data,
+		&i.Policy,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ExpiresAt,
@@ -83,28 +81,26 @@ func (q *Queries) APIKeyGet(ctx context.Context, id uuid.UUID) (ApiKey, error) {
 }
 
 const aPIKeyInsert = `-- name: APIKeyInsert :exec
-INSERT INTO api_keys(id, version, user_id, service_id, name, data, expires_at)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO api_keys(id, user_id, service_id, name, POLICY, expires_at)
+        VALUES ($1, $2, $3, $4, $5, $6)
 `
 
 type APIKeyInsertParams struct {
 	ID        uuid.UUID
-	Version   int32
 	UserID    uuid.NullUUID
 	ServiceID uuid.NullUUID
 	Name      string
-	Data      json.RawMessage
+	Policy    json.RawMessage
 	ExpiresAt time.Time
 }
 
 func (q *Queries) APIKeyInsert(ctx context.Context, arg APIKeyInsertParams) error {
 	_, err := q.db.ExecContext(ctx, aPIKeyInsert,
 		arg.ID,
-		arg.Version,
 		arg.UserID,
 		arg.ServiceID,
 		arg.Name,
-		arg.Data,
+		arg.Policy,
 		arg.ExpiresAt,
 	)
 	return err

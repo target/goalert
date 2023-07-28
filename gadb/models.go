@@ -803,8 +803,7 @@ type ApiKey struct {
 	Name       string
 	UserID     uuid.NullUUID
 	ServiceID  uuid.NullUUID
-	Version    int32
-	Data       json.RawMessage
+	Policy     json.RawMessage
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 	ExpiresAt  time.Time

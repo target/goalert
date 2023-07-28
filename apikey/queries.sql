@@ -1,6 +1,6 @@
 -- name: APIKeyInsert :exec
-INSERT INTO api_keys(id, version, user_id, service_id, name, data, expires_at)
-    VALUES ($1, $2, $3, $4, $5, $6, $7);
+INSERT INTO api_keys(id, user_id, service_id, name, POLICY, expires_at)
+        VALUES ($1, $2, $3, $4, $5, $6);
 
 -- name: APIKeyDelete :exec
 DELETE FROM api_keys

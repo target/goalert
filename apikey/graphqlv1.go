@@ -7,6 +7,18 @@ import (
 	"github.com/google/uuid"
 )
 
+type PolicyType string
+
+const (
+	PolicyTypeGraphQLV1 PolicyType = "graphql-v1"
+)
+
+type Policy struct {
+	Type PolicyType
+
+	GraphQLV1 *GraphQLV1 `json:",omitempty"`
+}
+
 type Type string
 
 const (
@@ -20,27 +32,30 @@ type V1 struct {
 }
 
 type GraphQLV1 struct {
-	Query  string
-	SHA256 [32]byte
+	AllowedFields []GraphQLField `json:"f"`
+}
+type GraphQLField struct {
+	ObjectName string `json:"o"`
+	Name       string `json:"n"`
 }
 
-type GraphQLClaims struct {
+type Claims struct {
 	jwt.RegisteredClaims
-	AuthHash [32]byte `json:"q"`
+	PolicyHash []byte `json:"ph"`
 }
 
-func NewGraphQLClaims(id uuid.UUID, queryHash [32]byte, expires time.Time) jwt.Claims {
+func NewGraphQLClaims(id uuid.UUID, policyHash []byte, expires time.Time) jwt.Claims {
 	n := time.Now()
-	return &GraphQLClaims{
+	return &Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.NewString(),
 			Subject:   id.String(),
 			ExpiresAt: jwt.NewNumericDate(expires),
 			IssuedAt:  jwt.NewNumericDate(n),
 			NotBefore: jwt.NewNumericDate(n.Add(-time.Minute)),
-			Issuer:    "goalert",
-			Audience:  []string{"apikey-v1/graphql-v1"},
+			Issuer:    Issuer,
+			Audience:  []string{Audience},
 		},
-		AuthHash: queryHash,
+		PolicyHash: policyHash,
 	}
 }

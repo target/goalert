@@ -24,7 +24,6 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/graphql2"
-	"github.com/target/goalert/graphql2/gqlauth"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
@@ -162,17 +161,22 @@ func (a *App) Handler() http.Handler {
 			return next(ctx)
 		}
 
-		qs, err := a.APIKeyStore.ContextQuery(ctx)
-		if err != nil {
+		p := apikey.PolicyFromContext(ctx)
+		if p == nil || p.GraphQLV1 == nil {
 			return nil, permission.NewAccessDenied("invalid API key")
 		}
 
-		q, err := gqlauth.NewQuery(qs)
-		if err != nil {
-			return nil, permission.NewAccessDenied("invalid API key")
+		f := graphql.GetFieldContext(ctx)
+		objName := f.Field.Field.ObjectDefinition.Name
+		fieldName := f.Field.Field.Definition.Name
+
+		for _, allowed := range p.GraphQLV1.AllowedFields {
+			if allowed.ObjectName == objName && allowed.Name == fieldName {
+				return next(ctx)
+			}
 		}
 
-		return q.InterceptField(ctx, next)
+		return nil, permission.NewAccessDenied("field not allowed by API key")
 	})
 
 	h.AroundFields(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {

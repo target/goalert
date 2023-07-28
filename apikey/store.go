@@ -1,11 +1,11 @@
 package apikey
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"sync"
 	"time"
 
@@ -21,36 +21,27 @@ type Store struct {
 	db  *sql.DB
 	key keyring.Keyring
 
-	mx      sync.Mutex
-	queries map[string]string
+	mx       sync.Mutex
+	policies map[uuid.UUID]*policyInfo
+}
+
+type policyInfo struct {
+	Hash   []byte
+	Policy Policy
 }
 
 func NewStore(ctx context.Context, db *sql.DB, key keyring.Keyring) (*Store, error) {
-	s := &Store{db: db, key: key, queries: make(map[string]string)}
+	s := &Store{db: db, key: key, policies: make(map[uuid.UUID]*policyInfo)}
 
 	return s, nil
 }
 
-func (s *Store) ContextQuery(ctx context.Context) (string, error) {
-	src := permission.Source(ctx)
-	if src == nil {
-		return "", errors.New("no permission source")
-	}
-	if src.Type != permission.SourceTypeGQLAPIKey {
-		return "", errors.New("permission source is not a GQLAPIKey")
-	}
-	s.mx.Lock()
-	q := s.queries[src.ID]
-	s.mx.Unlock()
-	if q == "" {
-		return "", errors.New("no query found for key")
-	}
-	return q, nil
-}
+const Issuer = "goalert"
+const Audience = "apikey-v1/graphql-v1"
 
 func (s *Store) AuthorizeGraphQL(ctx context.Context, tok string) (context.Context, error) {
-	var claims GraphQLClaims
-	_, err := s.key.VerifyJWT(tok, &claims, "goalert", "apikey-v1/graphql-v1")
+	var claims Claims
+	_, err := s.key.VerifyJWT(tok, &claims, Issuer, Audience)
 	if err != nil {
 		log.Logf(ctx, "apikey: verify failed: %v", err)
 		return ctx, permission.Unauthorized()
@@ -66,36 +57,30 @@ func (s *Store) AuthorizeGraphQL(ctx context.Context, tok string) (context.Conte
 		log.Logf(ctx, "apikey: lookup failed: %v", err)
 		return ctx, permission.Unauthorized()
 	}
-	if key.Version != 1 {
-		log.Logf(ctx, "apikey: invalid version: %v", key.Version)
-		return ctx, permission.Unauthorized()
+
+	// TODO: cache policy hash by key ID when loading
+	policyHash := sha256.Sum256(key.Policy)
+	if !bytes.Equal(policyHash[:], claims.PolicyHash) {
+		log.Logf(ctx, "apikey: policy hash mismatch")
 	}
 
-	var v1 V1
-	err = json.Unmarshal(key.Data, &v1)
+	var p Policy
+	err = json.Unmarshal(key.Policy, &p)
 	if err != nil {
-		log.Logf(ctx, "apikey: invalid data: %v", err)
+		log.Logf(ctx, "apikey: invalid policy: %v", err)
 		return ctx, permission.Unauthorized()
 	}
 
-	if v1.Type != TypeGraphQLV1 || v1.GraphQLV1 == nil {
-		log.Logf(ctx, "apikey: invalid type: %v", v1.Type)
-		return ctx, permission.Unauthorized()
-	}
-
-	if v1.GraphQLV1.SHA256 != claims.AuthHash {
-		log.Log(log.WithField(ctx, "key_id", id.String()), errors.New("apikey: query hash mismatch (claims)"))
-		return ctx, permission.Unauthorized()
-	}
-
-	hash := sha256.Sum256([]byte(v1.GraphQLV1.Query))
-	if hash != claims.AuthHash {
-		log.Log(log.WithField(ctx, "key_id", id.String()), errors.New("apikey: query hash mismatch (key)"))
+	if p.Type != PolicyTypeGraphQLV1 || p.GraphQLV1 == nil {
+		log.Logf(ctx, "apikey: invalid policy type: %v", p.Type)
 		return ctx, permission.Unauthorized()
 	}
 
 	s.mx.Lock()
-	s.queries[id.String()] = v1.GraphQLV1.Query
+	s.policies[id] = &policyInfo{
+		Hash:   policyHash[:],
+		Policy: p,
+	}
 	s.mx.Unlock()
 
 	ctx = permission.SourceContext(ctx, &permission.SourceInfo{
@@ -133,16 +118,16 @@ func (s *Store) CreateAdminGraphQLKey(ctx context.Context, name, query string, e
 	id := uuid.New()
 
 	data, err := json.Marshal(V1{
-		Type: TypeGraphQLV1,
+		Type:      TypeGraphQLV1,
 		GraphQLV1: &GraphQLV1{
-			Query:  query,
-			SHA256: hash,
+			// Query:  query,
+			// SHA256: hash,
 		},
 	})
 	if err != nil {
 		return nil, err
 	}
-	tok, err := s.key.SignJWT(NewGraphQLClaims(id, hash, exp))
+	tok, err := s.key.SignJWT(NewGraphQLClaims(id, hash[:], exp))
 	if err != nil {
 		return nil, err
 	}
@@ -150,9 +135,8 @@ func (s *Store) CreateAdminGraphQLKey(ctx context.Context, name, query string, e
 	err = gadb.New(s.db).APIKeyInsert(ctx, gadb.APIKeyInsertParams{
 		ID:        id,
 		Name:      name,
-		Version:   1,
 		ExpiresAt: exp,
-		Data:      data,
+		Policy:    data,
 	})
 	if err != nil {
 		return nil, err
