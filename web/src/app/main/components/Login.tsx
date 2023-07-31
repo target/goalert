@@ -63,6 +63,20 @@ const useStyles = makeStyles({
     paddingRight: '1em',
   },
 })
+type Field = {
+  ID: string
+  Label: string
+  Password: string
+  Required: boolean
+}
+type Provider = {
+  ID: string
+  Fields: Field[]
+  Hidden: string
+  LogoUrl: string
+  Title: string
+  URL: string
+}
 
 export default function Login(): JSX.Element {
   const classes = useStyles()
@@ -81,13 +95,8 @@ export default function Login(): JSX.Element {
   /*
    * Renders a field from a provider
    */
-  type Field = {
-    ID: string
-    Label: string
-    Password: string
-    Required: boolean
-  }
-  function renderField(field: Field) {
+
+  function renderField(field: Field): JSX.Element {
     const {
       ID: id, // unique name/identifier of the field
       Label: label, // placeholder text that is displayed to the use in the field
@@ -111,7 +120,10 @@ export default function Login(): JSX.Element {
   /*
    * Renders a divider if there is another provider after
    */
-  function renderHasNextDivider(idx: number, len: number) {
+  function renderHasNextDivider(
+    idx: number,
+    len: number,
+  ): JSX.Element | undefined {
     if (idx + 1 < len) {
       return (
         <Grid item xs={12} className={classes.hasNext}>
@@ -126,15 +138,12 @@ export default function Login(): JSX.Element {
   /*
    * Renders a provider given from initial GET request
    */
-  type Provider = {
-    ID: string
-    Fields: string[]
-    Hidden: string
-    LogoUrl: string
-    Title: string
-    URL: string
-  }
-  function renderProvider(provider: Provider, idx: number, len: number) {
+
+  function renderProvider(
+    provider: Provider,
+    idx: number,
+    len: number,
+  ): JSX.Element | null {
     const {
       ID: id, // unique identifier of the provider
       Fields: fields, // holds a list of fields to include with the request
@@ -143,8 +152,7 @@ export default function Login(): JSX.Element {
       Title: title, // user-viable string for identifying this provider
       URL: url, // the location of the form action (POST)
     } = provider
-
-    if (hidden) return
+    if (hidden) return null
 
     // create login button
     let loginButton = null
