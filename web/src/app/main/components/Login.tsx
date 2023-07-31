@@ -72,7 +72,7 @@ type Field = {
 type Provider = {
   ID: string
   Fields: Field[]
-  Hidden: string
+  Hidden: boolean
   LogoUrl: string
   Title: string
   URL: string
