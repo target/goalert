@@ -1768,14 +1768,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/base@npm:5.0.0-beta.5":
-  version: 5.0.0-beta.5
-  resolution: "@mui/base@npm:5.0.0-beta.5"
+"@mui/base@npm:5.0.0-beta.8":
+  version: 5.0.0-beta.8
+  resolution: "@mui/base@npm:5.0.0-beta.8"
   dependencies:
-    "@babel/runtime": ^7.22.5
+    "@babel/runtime": ^7.22.6
     "@emotion/is-prop-valid": ^1.2.1
     "@mui/types": ^7.2.4
-    "@mui/utils": ^5.13.6
+    "@mui/utils": ^5.14.1
     "@popperjs/core": ^2.11.8
     clsx: ^1.2.1
     prop-types: ^15.8.1
@@ -1787,14 +1787,14 @@ __metadata:
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: d258f4735be3d7b3c48cbc97a3194817e86f9eb569ba311d6707e6ffc016c02bdbbfa26f2b9571953f2514e32c1247901777dc52e3f8b3e6d3736d0330178305
+  checksum: 669f99a92d403dd74eccf419d12fbe5061ce1cec4621a72376f176f220a5be61fe8cd496da20afdbf6f5377a22a6ffe79442970926db96a44241d38cc5fbc4e4
   languageName: node
   linkType: hard
 
-"@mui/core-downloads-tracker@npm:^5.13.4":
-  version: 5.13.4
-  resolution: "@mui/core-downloads-tracker@npm:5.13.4"
-  checksum: 2d709a3efe2d11e82a6c369b0b47dc2d488f292a3213083102e6afbf009282c18cdb4b263c0cf6194e5c0cdfd4c735e180e25704015003851459b682bb53e2c8
+"@mui/core-downloads-tracker@npm:^5.14.2":
+  version: 5.14.2
+  resolution: "@mui/core-downloads-tracker@npm:5.14.2"
+  checksum: ea8032d101b190c2eb5bc67378a9142a56c15d6341ef6f9ad244921f1ba042e301328a132ecfc7a1473a09c56b11333b83859d12e50c12d1ee7a6a26eff27e36
   languageName: node
   linkType: hard
 
@@ -1844,16 +1844,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/material@npm:5.13.6":
-  version: 5.13.6
-  resolution: "@mui/material@npm:5.13.6"
+"@mui/material@npm:5.14.2":
+  version: 5.14.2
+  resolution: "@mui/material@npm:5.14.2"
   dependencies:
-    "@babel/runtime": ^7.22.5
-    "@mui/base": 5.0.0-beta.5
-    "@mui/core-downloads-tracker": ^5.13.4
-    "@mui/system": ^5.13.6
+    "@babel/runtime": ^7.22.6
+    "@mui/base": 5.0.0-beta.8
+    "@mui/core-downloads-tracker": ^5.14.2
+    "@mui/system": ^5.14.1
     "@mui/types": ^7.2.4
-    "@mui/utils": ^5.13.6
+    "@mui/utils": ^5.14.1
     "@types/react-transition-group": ^4.4.6
     clsx: ^1.2.1
     csstype: ^3.1.2
@@ -1873,7 +1873,7 @@ __metadata:
       optional: true
     "@types/react":
       optional: true
-  checksum: 0c8936d8c1c20ecf1efc64dcd3f7101053255a720a907802a004abd7c96f49622c402e4d5cea42d9c1950a10dcbaf445cfb7da2ae7f239c733eadd8ec287ceab
+  checksum: 271ccb56133c43b98338240dfa169c781c8dc9e8cc6e51188d539b30f1744957bda903d24684e532f213184f2522b5120457ceb3fc85e97ba84c1df637dce66a
   languageName: node
   linkType: hard
 
@@ -1963,7 +1963,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/system@npm:5.14.1":
+"@mui/system@npm:5.14.1, @mui/system@npm:^5.14.1":
   version: 5.14.1
   resolution: "@mui/system@npm:5.14.1"
   dependencies:
@@ -2016,34 +2016,6 @@ __metadata:
     "@types/react":
       optional: true
   checksum: ff966eb5e4cfd2b0390b71c9b7495bcc5d10330efed1b3aa3340ea59d44699bc927f652fa6b20671ecd80c74bb9c3613d50d58b9e8e3f8bbff3309ca51356f11
-  languageName: node
-  linkType: hard
-
-"@mui/system@npm:^5.13.6":
-  version: 5.13.6
-  resolution: "@mui/system@npm:5.13.6"
-  dependencies:
-    "@babel/runtime": ^7.22.5
-    "@mui/private-theming": ^5.13.1
-    "@mui/styled-engine": ^5.13.2
-    "@mui/types": ^7.2.4
-    "@mui/utils": ^5.13.6
-    clsx: ^1.2.1
-    csstype: ^3.1.2
-    prop-types: ^15.8.1
-  peerDependencies:
-    "@emotion/react": ^11.5.0
-    "@emotion/styled": ^11.3.0
-    "@types/react": ^17.0.0 || ^18.0.0
-    react: ^17.0.0 || ^18.0.0
-  peerDependenciesMeta:
-    "@emotion/react":
-      optional: true
-    "@emotion/styled":
-      optional: true
-    "@types/react":
-      optional: true
-  checksum: 978426ce5f3fe43ab536eec6f03a11845766c3640cc1da00c81e44f1d61f5c1bb53a33a28a70d83338183f818a04bdd8fb7c483824266aa8d46add5724186ae4
   languageName: node
   linkType: hard
 
@@ -10956,7 +10928,7 @@ __metadata:
     "@material/material-color-utilities": 0.2.7
     "@mui/icons-material": 5.14.1
     "@mui/lab": 5.0.0-alpha.134
-    "@mui/material": 5.13.6
+    "@mui/material": 5.14.2
     "@mui/styles": 5.13.2
     "@mui/system": 5.14.1
     "@mui/x-data-grid": 6.9.1
