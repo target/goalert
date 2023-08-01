@@ -5,6 +5,8 @@
 /*.session.json
 *.zip
 /test-results
+/test/coverage/
+
 /cypress/
 
 *.pem
@@ -70,7 +72,6 @@ smoketest_db_dump
 
 /.yarn
 /.pnp.*
-/.yarnrc.yml
 
 /request.json
 /merge-details.txt

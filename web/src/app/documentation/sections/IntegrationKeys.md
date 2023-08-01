@@ -12,6 +12,22 @@
 | `action`  | _optional_   | If set to `close`, it will close any matching alerts.                                                                                                               |
 | `dedup`   | _optional_   | All calls for the same service with the same `dedup` string will update the same alert (if open) or create a new one. Defaults to using summary & details together. |
 
+### Response:
+
+Default response is a `204` with no content. Set the `Accept` header to `application/json` for information on the created alert.
+
+Example:
+
+```json
+{
+  "AlertID": 10,
+  "ServiceID": "00000000-0000-0000-0000-000000000001",
+  "IsNew": true
+}
+```
+
+`IsNew` will be false if the call was de-duplicated.
+
 ### Examples:
 
 ```bash
@@ -86,13 +102,13 @@ To trigger an alert using Prometheus Alertmanager, follow these steps:
 
 2. In Prometheus Alertmanager, enable a webhook by adding a webhook receiver in the alertmanager configuration file:
 
-    ```yaml
-    receivers:
-    - name: 'service'
-      webhook_configs:
-      - url: '<prometheus_alertmanager_webhook_url_from_previous_step>'
-        send_resolved: true
-    ```
+   ```yaml
+   receivers:
+     - name: 'service'
+       webhook_configs:
+         - url: '<prometheus_alertmanager_webhook_url_from_previous_step>'
+           send_resolved: true
+   ```
 
 ---
 

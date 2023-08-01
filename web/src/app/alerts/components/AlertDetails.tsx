@@ -1,5 +1,7 @@
 import React, { ReactElement, useState, ReactNode } from 'react'
 import p from 'prop-types'
+import ButtonGroup from '@mui/material/ButtonGroup'
+import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import FormControlLabel from '@mui/material/FormControlLabel'
@@ -32,7 +34,7 @@ import { styles as globalStyles } from '../../styles/materialStyles'
 import Markdown from '../../util/Markdown'
 import AlertDetailLogs from '../AlertDetailLogs'
 import AppLink from '../../util/AppLink'
-import CardActions, { Action } from '../../details/CardActions'
+import CardActions from '../../details/CardActions'
 import {
   Alert,
   Target,
@@ -41,6 +43,12 @@ import {
 } from '../../../schema'
 import ServiceNotices from '../../services/ServiceNotices'
 import { Time } from '../../util/Time'
+import AlertFeedback, {
+  mutation as undoFeedbackMutation,
+} from './AlertFeedback'
+import LoadingButton from '../../loading/components/LoadingButton'
+import { Notice } from '../../details/Notices'
+import { useIsWidthDown } from '../../util/useWidth'
 
 interface AlertDetailsProps {
   data: Alert
@@ -79,6 +87,16 @@ const updateStatusMutation = gql`
 
 export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
   const classes = useStyles()
+  const isMobile = useIsWidthDown('sm')
+
+  const [undoFeedback, undoFeedbackStatus] = useMutation(undoFeedbackMutation, {
+    variables: {
+      input: {
+        alertID: props.data.id,
+        noiseReason: '',
+      },
+    },
+  })
 
   const [ack] = useMutation(updateStatusMutation, {
     variables: {
@@ -317,60 +335,90 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
   /*
    * Options to show for alert details menu
    */
-  function getMenuOptions(): Action[] {
+  function getMenuOptions(): Array<JSX.Element> {
     const { status } = props.data
-    let options: Action[] = []
-
-    if (status === 'StatusClosed') return options
-    if (status === 'StatusUnacknowledged') {
-      options = [
-        {
-          icon: <AcknowledgeIcon />,
-          label: 'Acknowledge',
-          handleOnClick: () => ack(),
-        },
-      ]
-    }
-
+    if (status === 'StatusClosed') return []
     const isMaintMode = Boolean(props.data?.service?.maintenanceExpiresAt)
 
-    // only remaining status is acknowledged, show remaining buttons
     return [
-      ...options,
-      {
-        icon: <CloseIcon />,
-        label: 'Close',
-        handleOnClick: () => close(),
-      },
-      {
-        icon: <EscalateIcon />,
-        label: isMaintMode
-          ? 'Escalate disabled. In maintenance mode.'
-          : 'Escalate',
-        handleOnClick: () => escalate(),
-        ButtonProps: {
-          disabled: isMaintMode,
-        },
-      },
+      <ButtonGroup
+        key='update-alert-buttons'
+        variant='contained'
+        aria-label='Update Alert Status Button Group'
+      >
+        {status === 'StatusUnacknowledged' && (
+          <Button startIcon={<AcknowledgeIcon />} onClick={() => ack()}>
+            Acknowledge
+          </Button>
+        )}
+        <Button
+          startIcon={<EscalateIcon />}
+          onClick={() => escalate()}
+          disabled={isMaintMode}
+        >
+          Escalate
+        </Button>
+        <Button startIcon={<CloseIcon />} onClick={() => close()}>
+          Close
+        </Button>
+      </ButtonGroup>,
     ]
   }
 
   const { data: alert } = props
+
+  let extraNotices: Notice[] = alert.pendingNotifications.map((n) => ({
+    type: 'WARNING',
+    message: `Notification Pending for ${n.destination}`,
+    details:
+      'This could be due to rate-limiting, processing, or network delays.',
+  }))
+
+  const noiseReason = alert?.noiseReason ?? ''
+  if (noiseReason !== '') {
+    const nrArr = noiseReason.split('|')
+    const reasons = nrArr.join(', ')
+    extraNotices = [
+      ...extraNotices,
+      {
+        type: 'INFO',
+        message: 'This alert has been marked as noise',
+        details: `Reason${nrArr.length > 1 ? 's' : ''}: ${reasons}`,
+        action: (
+          <LoadingButton
+            buttonText='Undo'
+            aria-label='Reset noise reasons'
+            variant='text'
+            loading={undoFeedbackStatus.called && undoFeedbackStatus.loading}
+            onClick={() => undoFeedback()}
+          />
+        ),
+      },
+    ]
+  }
+
   return (
     <Grid container spacing={2}>
       <ServiceNotices
         serviceID={alert?.service?.id ?? ''}
-        extraNotices={alert.pendingNotifications.map((n) => ({
-          type: 'WARNING',
-          message: `Notification Pending for ${n.destination}`,
-          details:
-            'This could be due to rate-limiting, processing, or network delays.',
-        }))}
+        extraNotices={extraNotices as Notice[]}
       />
 
       {/* Main Alert Info */}
-      <Grid item xs={12} className={classes.cardContainer}>
-        <Card sx={{ width: '100%' }}>
+      <Grid
+        item
+        lg={isMobile || noiseReason !== '' ? 12 : 8}
+        className={classes.cardContainer}
+      >
+        <Card
+          sx={{
+            width: '100%',
+            height: '100%',
+            flexDirection: 'column',
+            display: 'flex',
+            justifyContent: 'space-between',
+          }}
+        >
           <CardContent data-cy='alert-summary'>
             <Grid container spacing={1}>
               {alert.service && (
@@ -392,9 +440,14 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
               </Grid>
             </Grid>
           </CardContent>
-          <CardActions secondaryActions={getMenuOptions()} />
+          <CardActions primaryActions={getMenuOptions()} />
         </Card>
       </Grid>
+      {!noiseReason && (
+        <Grid item xs={12} lg={isMobile ? 12 : 4}>
+          <AlertFeedback alertID={alert.alertID} />
+        </Grid>
+      )}
       {renderAlertDetails()}
 
       {/* Escalation Policy Info */}

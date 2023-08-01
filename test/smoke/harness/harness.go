@@ -359,13 +359,14 @@ func (h *Harness) execQuery(sql string, data interface{}) {
 	h.t.Helper()
 	t := template.New("sql")
 	t.Funcs(template.FuncMap{
-		"uuidJSON":       func(id string) string { return fmt.Sprintf(`"%s"`, h.uuidG.Get(id)) },
-		"uuid":           func(id string) string { return fmt.Sprintf("'%s'", h.uuidG.Get(id)) },
-		"phone":          func(id string) string { return fmt.Sprintf("'%s'", h.phoneCCG.Get(id)) },
-		"email":          func(id string) string { return fmt.Sprintf("'%s'", h.emailG.Get(id)) },
-		"phoneCC":        func(cc, id string) string { return fmt.Sprintf("'%s'", h.phoneCCG.GetWithArg(cc, id)) },
-		"slackChannelID": func(name string) string { return fmt.Sprintf("'%s'", h.Slack().Channel(name).ID()) },
-		"slackUserID":    func(name string) string { return fmt.Sprintf("'%s'", h.Slack().User(name).ID()) },
+		"uuidJSON":         func(id string) string { return fmt.Sprintf(`"%s"`, h.uuidG.Get(id)) },
+		"uuid":             func(id string) string { return fmt.Sprintf("'%s'", h.uuidG.Get(id)) },
+		"phone":            func(id string) string { return fmt.Sprintf("'%s'", h.phoneCCG.Get(id)) },
+		"email":            func(id string) string { return fmt.Sprintf("'%s'", h.emailG.Get(id)) },
+		"phoneCC":          func(cc, id string) string { return fmt.Sprintf("'%s'", h.phoneCCG.GetWithArg(cc, id)) },
+		"slackChannelID":   func(name string) string { return fmt.Sprintf("'%s'", h.Slack().Channel(name).ID()) },
+		"slackUserID":      func(name string) string { return fmt.Sprintf("'%s'", h.Slack().User(name).ID()) },
+		"slackUserGroupID": func(name string) string { return fmt.Sprintf("'%s'", h.Slack().UserGroup(name).ID()) },
 	})
 	_, err := t.Parse(sql)
 	if err != nil {
@@ -470,23 +471,6 @@ func (h *Harness) CreateAlertWithDetails(serviceID, summary, details string) Tes
 	})
 
 	return testAlert{h: h, a: newAlert}
-}
-
-// CreateManyAlert will create multiple new unacknowledged alerts for a given service.
-func (h *Harness) CreateManyAlert(serviceID, summary string) {
-	h.t.Helper()
-	a := &alert.Alert{
-		ServiceID: serviceID,
-		Summary:   summary,
-	}
-	h.t.Logf("insert alert: %v", a)
-	permission.SudoContext(context.Background(), func(ctx context.Context) {
-		h.t.Helper()
-		_, err := h.backend.AlertStore.Create(ctx, a)
-		if err != nil {
-			h.t.Fatalf("failed to insert alert: %v", err)
-		}
-	})
 }
 
 // AddNotificationRule will add a notification rule to the database.

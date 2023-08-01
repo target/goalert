@@ -220,7 +220,7 @@ func GrafanaToEventsAPI(aDB *alert.Store, intDB *integrationkey.Store) http.Hand
 		var hasFailures bool
 		for _, a := range alerts {
 			err = retry.DoTemporaryError(func(int) error {
-				_, err = aDB.CreateOrUpdate(ctx, &a)
+				_, _, err = aDB.CreateOrUpdate(ctx, &a)
 				return err
 			},
 				retry.Log(ctx),

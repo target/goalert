@@ -84,6 +84,7 @@ func main() {
 				"simpleproxy",
 				"waitfor",
 				"pgmocktime",
+				"mockoidc",
 			},
 		},
 	}

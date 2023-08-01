@@ -31,6 +31,7 @@ export interface Query {
   userOverride?: null | UserOverride
   config: ConfigValue[]
   configHints: ConfigHint[]
+  integrationKeyTypes: IntegrationKeyTypeInfo[]
   systemLimits: SystemLimit[]
   debugMessageStatus: DebugMessageStatusInfo
   userContactMethod?: null | UserContactMethod
@@ -41,6 +42,13 @@ export interface Query {
   generateSlackAppManifest: string
   linkAccountInfo?: null | LinkAccountInfo
   swoStatus: SWOStatus
+}
+
+export interface IntegrationKeyTypeInfo {
+  id: string
+  name: string
+  label: string
+  enabled: boolean
 }
 
 export interface SWOStatus {
@@ -389,6 +397,7 @@ export interface Mutation {
   updateEscalationPolicyStep: boolean
   deleteAll: boolean
   createAlert?: null | Alert
+  setAlertNoiseReason: boolean
   createService?: null | Service
   createEscalationPolicy?: null | EscalationPolicy
   createEscalationPolicyStep?: null | EscalationPolicyStep
@@ -439,6 +448,11 @@ export interface CreateAlertInput {
   details?: null | string
   serviceID: string
   sanitize?: null | boolean
+}
+
+export interface SetAlertNoiseReasonInput {
+  alertID: number
+  noiseReason: string
 }
 
 export interface CreateUserInput {
@@ -835,6 +849,7 @@ export interface Alert {
   recentEvents: AlertLogEntryConnection
   pendingNotifications: AlertPendingNotification[]
   metrics?: null | AlertMetric
+  noiseReason?: null | string
 }
 
 export interface AlertMetric {

@@ -294,6 +294,13 @@ type IntegrationKeySearchOptions struct {
 	Omit   []string `json:"omit,omitempty"`
 }
 
+type IntegrationKeyTypeInfo struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Label   string `json:"label"`
+	Enabled bool   `json:"enabled"`
+}
+
 type LabelConnection struct {
 	Nodes    []label.Label `json:"nodes"`
 	PageInfo *PageInfo     `json:"pageInfo"`
@@ -454,6 +461,11 @@ type ServiceSearchOptions struct {
 	Omit           []string `json:"omit,omitempty"`
 	FavoritesOnly  *bool    `json:"favoritesOnly,omitempty"`
 	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
+}
+
+type SetAlertNoiseReasonInput struct {
+	AlertID     int    `json:"alertID"`
+	NoiseReason string `json:"noiseReason"`
 }
 
 type SetFavoriteInput struct {

@@ -12,6 +12,7 @@ declare global {
       createAlertLogs: typeof createAlertLogs
       ackAlert: typeof ackAlert
       escalateAlert: typeof escalateAlert
+      setAlertNoise: typeof setAlertNoise
     }
   }
 
@@ -273,9 +274,30 @@ function escalateAlert(id: number): Cypress.Chainable<Alert> {
     .then((res: GraphQLResponse) => res.escalateAlerts)
 }
 
+function setAlertNoise(
+  id: number,
+  noiseReason: string,
+): Cypress.Chainable<boolean> {
+  const query = `
+    mutation($input: SetAlertNoiseReasonInput!) {
+      setAlertNoiseReason(input: $input)
+    }
+  `
+
+  return cy
+    .graphql(query, {
+      input: {
+        alertID: id,
+        noiseReason,
+      },
+    })
+    .then((res: GraphQLResponse) => Boolean(res))
+}
+
 Cypress.Commands.add('createAlert', createAlert)
 Cypress.Commands.add('createManyAlerts', createManyAlerts)
 Cypress.Commands.add('createAlertLogs', createAlertLogs)
 Cypress.Commands.add('closeAlert', closeAlert)
 Cypress.Commands.add('ackAlert', ackAlert)
 Cypress.Commands.add('escalateAlert', escalateAlert)
+Cypress.Commands.add('setAlertNoise', setAlertNoise)

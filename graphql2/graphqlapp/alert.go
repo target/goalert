@@ -32,9 +32,8 @@ type (
 	AlertLogEntryState App
 )
 
-func (a *App) Alert() graphql2.AlertResolver             { return (*Alert)(a) }
-func (a *App) AlertMetric() graphql2.AlertMetricResolver { return (*AlertMetric)(a) }
-
+func (a *App) Alert() graphql2.AlertResolver                 { return (*Alert)(a) }
+func (a *App) AlertMetric() graphql2.AlertMetricResolver     { return (*AlertMetric)(a) }
 func (a *App) AlertLogEntry() graphql2.AlertLogEntryResolver { return (*AlertLogEntry)(a) }
 
 func (a *AlertLogEntry) ID(ctx context.Context, obj *alertlog.Entry) (int, error) {
@@ -93,11 +92,30 @@ func notificationStateFromSendResult(s notification.Status, formattedSrc string)
 		details = prefix + ": " + details
 	}
 
+	if s.Age() >= 2*time.Minute {
+		details += fmt.Sprintf(" (after %s)", friendlyDuration(s.Age().Truncate(time.Minute)))
+	}
+
 	return &graphql2.NotificationState{
 		Details:           details,
 		Status:            &status,
 		FormattedSrcValue: formattedSrc,
 	}
+}
+
+func friendlyDuration(dur time.Duration) string {
+	var parts []string
+	hr := dur / time.Hour
+	if hr > 0 {
+		parts = append(parts, fmt.Sprintf("%dh", hr))
+		dur -= hr * time.Hour
+	}
+	min := dur / time.Minute
+	if min > 0 {
+		parts = append(parts, fmt.Sprintf("%dm", min))
+	}
+
+	return strings.Join(parts, " ")
 }
 
 func (a *AlertLogEntry) escalationState(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {
@@ -359,6 +377,31 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 	}
 
 	return m.AlertStore.Create(ctx, a)
+}
+
+func (a *Alert) NoiseReason(ctx context.Context, raw *alert.Alert) (*string, error) {
+	am, err := (*App)(a).FindOneAlertFeedback(ctx, raw.ID)
+	if err != nil {
+		return nil, err
+	}
+	if am == nil {
+		return nil, nil
+	}
+	if am.NoiseReason == "" {
+		return nil, nil
+	}
+	return &am.NoiseReason, nil
+}
+
+func (m *Mutation) SetAlertNoiseReason(ctx context.Context, input graphql2.SetAlertNoiseReasonInput) (bool, error) {
+	err := m.AlertStore.UpdateFeedback(ctx, &alert.Feedback{
+		ID:          input.AlertID,
+		NoiseReason: input.NoiseReason,
+	})
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphql2.AlertRecentEventsOptions) (*graphql2.AlertLogEntryConnection, error) {

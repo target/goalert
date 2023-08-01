@@ -171,7 +171,7 @@ func TestAlertLog(t *testing.T) {
 		msg := l.Alert.RecentEvents.Nodes[0].Message
 		details := l.Alert.RecentEvents.Nodes[0].State.Details
 		assert.Contains(t, msg, "Notification sent")
-		assert.Equal(t, "failed", details)
+		assert.Contains(t, details, "failed")
 	})
 
 	// test VOICE failure
@@ -187,7 +187,7 @@ func TestAlertLog(t *testing.T) {
 		msg := l.Alert.RecentEvents.Nodes[0].Message
 		details := l.Alert.RecentEvents.Nodes[0].State.Details
 		assert.Contains(t, msg, "Notification sent")
-		assert.Equal(t, "failed", details)
+		assert.Contains(t, details, "failed")
 	})
 
 	// test no immediate notification rule

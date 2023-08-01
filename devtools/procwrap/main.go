@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"strings"
 	"sync"
 	"time"
 )
@@ -68,7 +69,27 @@ func handleStop(w http.ResponseWriter, req *http.Request) {
 
 func handleStart(w http.ResponseWriter, req *http.Request) {
 	_ = req.ParseForm()
-	start(req.Form["extra-arg"])
+	extraArgs := req.Form["extra-arg"]
+	if len(extraArgs) == 0 {
+		start(nil)
+		return
+	}
+
+	if len(extraArgs) != 2 {
+		http.Error(w, "invalid extra-arg", http.StatusBadRequest)
+		return
+	}
+	if extraArgs[0] != "--experimental" {
+		http.Error(w, "invalid extra-arg", http.StatusBadRequest)
+		return
+	}
+	flags := strings.Split(extraArgs[1], ",")
+	if extraArgs[1] == "" || len(flags) == 0 || len(flags) > 10 {
+		http.Error(w, "invalid extra-arg", http.StatusBadRequest)
+		return
+	}
+
+	start([]string{"--experimental", strings.Join(flags, ",")})
 }
 
 func handleSignal(w http.ResponseWriter, req *http.Request) {

@@ -5,15 +5,11 @@ import "sort"
 type Flag string
 
 const (
-	Example         Flag = "example"
-	ChanWebhook     Flag = "chan-webhook"
-	SlackUserGroups Flag = "slack-ug"
+	Example Flag = "example"
 )
 
 var desc = map[Flag]string{
-	Example:         "An example experimental flag to demonstrate usage.",
-	ChanWebhook:     "Enables webhooks as a notification channel type",
-	SlackUserGroups: "Enables updating Slack user groups with schedule on-call users.",
+	Example: "An example experimental flag to demonstrate usage.",
 }
 
 // AllFlags returns a slice of all experimental flags sorted by name.

@@ -1,11 +1,17 @@
 import React, { ReactChild, useContext } from 'react'
 import { gql, useQuery } from '@apollo/client'
-import { ConfigType, ConfigValue, ConfigID } from '../../schema'
+import {
+  ConfigType,
+  ConfigValue,
+  ConfigID,
+  IntegrationKeyTypeInfo,
+} from '../../schema'
 
 type Value = boolean | number | string | string[] | null
 export type ConfigData = Record<ConfigID, Value>
 
 const ConfigContext = React.createContext({
+  integrationKeyTypes: [] as IntegrationKeyTypeInfo[],
   config: [] as ConfigValue[],
   isAdmin: false as boolean,
   userID: null as string | null,
@@ -25,6 +31,12 @@ const query = gql`
       type
       value
     }
+    integrationKeyTypes {
+      id
+      name
+      label
+      enabled
+    }
   }
 `
 
@@ -38,6 +50,7 @@ export function ConfigProvider(props: ConfigProviderProps): JSX.Element {
   return (
     <ConfigContext.Provider
       value={{
+        integrationKeyTypes: data?.integrationKeyTypes || [],
         config: data?.config || [],
         isAdmin: data?.user?.role === 'admin',
         userID: data?.user?.id || null,
@@ -98,6 +111,22 @@ export function useSessionInfo(): SessionInfo {
     userID: ctx.userID,
     userName: ctx.userName,
     ready: Boolean(ctx.userID),
+  }
+}
+
+export type FeatureInfo = {
+  // integrationKeyTypes is a list of integration key types available in the
+  // current environment.
+  integrationKeyTypes: IntegrationKeyTypeInfo[]
+}
+
+// useFeatures returns information about features available in the current
+// environment.
+export function useFeatures(): FeatureInfo {
+  const ctx = useContext(ConfigContext)
+
+  return {
+    integrationKeyTypes: ctx.integrationKeyTypes,
   }
 }
 

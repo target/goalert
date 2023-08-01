@@ -23,11 +23,6 @@ func (app *App) _Shutdown(ctx context.Context) error {
 		app.hSrv.Shutdown()
 	}
 
-	if app.cooldown != nil {
-		// wait for the cooldown (since last req closed)
-		_ = app.cooldown.WaitContext(ctx)
-	}
-
 	type shutdownable interface{ Shutdown(context.Context) error }
 
 	shut := func(sh shutdownable, msg string) {
