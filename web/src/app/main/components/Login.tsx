@@ -63,8 +63,22 @@ const useStyles = makeStyles({
     paddingRight: '1em',
   },
 })
+type Field = {
+  ID: string
+  Label: string
+  Password: string
+  Required: boolean
+}
+type Provider = {
+  ID: string
+  Fields: Field[]
+  Hidden: boolean
+  LogoUrl: string
+  Title: string
+  URL: string
+}
 
-export default function Login() {
+export default function Login(): JSX.Element {
   const classes = useStyles()
   const theme = useTheme()
   const [error, setError] = useState(getParameterByName('login_error') || '')
@@ -81,7 +95,8 @@ export default function Login() {
   /*
    * Renders a field from a provider
    */
-  function renderField(field) {
+
+  function renderField(field: Field): JSX.Element {
     const {
       ID: id, // unique name/identifier of the field
       Label: label, // placeholder text that is displayed to the use in the field
@@ -105,7 +120,10 @@ export default function Login() {
   /*
    * Renders a divider if there is another provider after
    */
-  function renderHasNextDivider(idx, len) {
+  function renderHasNextDivider(
+    idx: number,
+    len: number,
+  ): JSX.Element | undefined {
     if (idx + 1 < len) {
       return (
         <Grid item xs={12} className={classes.hasNext}>
@@ -120,7 +138,12 @@ export default function Login() {
   /*
    * Renders a provider given from initial GET request
    */
-  function renderProvider(provider, idx, len) {
+
+  function renderProvider(
+    provider: Provider,
+    idx: number,
+    len: number,
+  ): JSX.Element | null {
     const {
       ID: id, // unique identifier of the provider
       Fields: fields, // holds a list of fields to include with the request
@@ -129,8 +152,7 @@ export default function Login() {
       Title: title, // user-viable string for identifying this provider
       URL: url, // the location of the form action (POST)
     } = provider
-
-    if (hidden) return
+    if (hidden) return null
 
     // create login button
     let loginButton = null
@@ -156,7 +178,7 @@ export default function Login() {
     if (fields && fields.length) {
       form = (
         <Grid container spacing={2}>
-          {fields.map((field) => renderField(field))}
+          {fields.map((field: Field) => renderField(field))}
           <Grid item xs={12}>
             {loginButton}
           </Grid>
