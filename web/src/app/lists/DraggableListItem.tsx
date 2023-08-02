@@ -8,9 +8,8 @@ import {
   defaultAnimateLayoutChanges,
   AnimateLayoutChanges,
 } from '@dnd-kit/sortable'
-import { Grid, ButtonGroup, Button, useTheme } from '@mui/material'
+import { Button, useTheme } from '@mui/material'
 import DragHandleIcon from '@mui/icons-material/DragHandle'
-import { ChevronDown, ChevronUp } from 'mdi-material-ui'
 
 export function getAnnouncements(
   items: string[],
@@ -83,16 +82,27 @@ export function DraggableListItem({
     id,
   })
 
-  const style = {
-    transform: CSS.Translate.toString(transform),
-    transition,
-    backgroundColor: isDragging ? theme.palette.background.default : 'inherit',
-    zIndex: isDragging ? 9001 : 1,
-  }
-
   return (
-    <Grid container ref={setNodeRef} style={style} {...attributes}>
-      <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
+    <div
+      ref={setNodeRef}
+      style={{
+        display: 'flex',
+        transform: CSS.Translate.toString(transform),
+        transition,
+        backgroundColor: isDragging
+          ? theme.palette.background.default
+          : 'inherit',
+        zIndex: isDragging ? 9001 : 1,
+      }}
+      {...attributes}
+    >
+      <div
+        style={{
+          position: 'absolute',
+          padding: '20px',
+          zIndex: 2,
+        }}
+      >
         <Button
           variant='outlined'
           sx={{
@@ -106,28 +116,11 @@ export function DraggableListItem({
         >
           <DragHandleIcon />
         </Button>
-      </Grid>
+      </div>
 
-      <Grid
-        item
-        xs={11}
-        sx={{
-          width: '100%',
-        }}
-      >
-        <FlatListItem index={index} item={item} />
-      </Grid>
-
-      <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
-        <ButtonGroup orientation='vertical'>
-          <Button sx={{ p: '2px', width: 'fit-content', minWidth: 0 }}>
-            <ChevronUp />
-          </Button>
-          <Button sx={{ p: '2px', width: 'fit-content', minWidth: 0 }}>
-            <ChevronDown />
-          </Button>
-        </ButtonGroup>
-      </Grid>
-    </Grid>
+      <div style={{ width: '100%' }}>
+        <FlatListItem index={index} item={{ ...item, draggable: true }} />
+      </div>
+    </div>
   )
 }

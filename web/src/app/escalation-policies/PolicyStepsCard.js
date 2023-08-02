@@ -2,7 +2,6 @@ import React, { useRef, useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
 import CardHeader from '@mui/material/CardHeader'
 import Dialog from '@mui/material/Dialog'
 import Typography from '@mui/material/Typography'
@@ -12,12 +11,15 @@ import FlatList from '../lists/FlatList'
 import CreateFAB from '../lists/CreateFAB'
 import PolicyStepCreateDialog from './PolicyStepCreateDialog'
 import { useResetURLParams, useURLParam } from '../actions'
-import PolicyStep from './PolicyStep'
 import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { policyStepsQuery } from './PolicyStepsQuery'
 import { useIsWidthDown } from '../util/useWidth'
 import { reorderList } from '../rotations/util'
+import PolicyStepEditDialog from './PolicyStepEditDialog'
+import PolicyStepDeleteDialog from './PolicyStepDeleteDialog'
+import OtherActions from '../util/OtherActions'
+import { getStepNumber, renderChips, renderDelayMessage } from './stepUtil'
 
 const mutation = gql`
   mutation UpdateEscalationPolicyMutation(
@@ -27,8 +29,8 @@ const mutation = gql`
   }
 `
 
-function PolicyStepsCard(props) {
-  const { escalationPolicyID, repeat, steps } = props
+export default function PolicyStepsCard(props) {
+  const { escalationPolicyID, repeat, steps = [] } = props
 
   const isMobile = useIsWidthDown('md')
   const stepNumParam = 'createStep'
@@ -42,6 +44,10 @@ function PolicyStepsCard(props) {
   const [lastSwap, setLastSwap] = useState([])
 
   const [error, setError] = useState(null)
+
+  const [editStepID, setEditStepID] = useURLParam('editStep', '')
+  const resetEditStep = useResetURLParams('editStep')
+  const [deleteStep, setDeleteStep] = useState('')
 
   function arrayMove(arr) {
     const el = arr[oldIdx.current]
@@ -133,7 +139,7 @@ function PolicyStepsCard(props) {
     else text = `Repeat ${repeat} times`
 
     return (
-      <Typography variant='subtitle1' component='p'>
+      <Typography variant='subtitle1' component='p' sx={{ pl: 2, pb: 2 }}>
         {text}
       </Typography>
     )
@@ -153,41 +159,57 @@ function PolicyStepsCard(props) {
         />
       )}
       <Card>
-        <CardContent>
-          <CardHeader
-            title='Escalation Steps'
-            component='h3'
-            sx={{ padding: 0, margin: 0 }}
-            action={
-              !isMobile && (
-                <Button
-                  variant='contained'
-                  onClick={() => setCreateStep(true)}
-                  startIcon={<Add />}
-                >
-                  Create Step
-                </Button>
-              )
-            }
-          />
-          <FlatList
-            emptyMessage='No steps currently on this Escalation Policy'
-            headerNote='Notify the following:'
-            items={steps.map((step, index) => ({
-              render: () => (
-                <PolicyStep
-                  escalationPolicyID={escalationPolicyID}
-                  index={index}
-                  repeat={repeat}
-                  step={step}
-                  steps={steps}
-                />
-              ),
-            }))}
-            onReorder={onReorder}
-          />
-          {renderRepeatText()}
-        </CardContent>
+        <CardHeader
+          title='Escalation Steps'
+          component='h3'
+          sx={{ paddingBottom: 0, margin: 0 }}
+          action={
+            !isMobile && (
+              <Button
+                variant='contained'
+                onClick={() => setCreateStep(true)}
+                startIcon={<Add />}
+              >
+                Create Step
+              </Button>
+            )
+          }
+        />
+        <FlatList
+          emptyMessage='No steps currently on this Escalation Policy'
+          headerNote='Notify the following:'
+          items={steps.map((step) => ({
+            id: step.id,
+            disableTypography: true,
+            title: (
+              <Typography component='h4' variant='subtitle1' sx={{ pb: 1 }}>
+                <b>Step #{getStepNumber(step.id, steps)}:</b>
+              </Typography>
+            ),
+            subText: (
+              <React.Fragment>
+                {renderChips(step)}
+                {renderDelayMessage(steps, step, repeat)}
+              </React.Fragment>
+            ),
+            secondaryAction: (
+              <OtherActions
+                actions={[
+                  {
+                    label: 'Edit',
+                    onClick: () => setEditStepID(step.id),
+                  },
+                  {
+                    label: 'Delete',
+                    onClick: () => setDeleteStep(step),
+                  },
+                ]}
+              />
+            ),
+          }))}
+          onReorder={onReorder}
+        />
+        {renderRepeatText()}
       </Card>
       <Dialog open={Boolean(error)} onClose={() => setError(null)}>
         <DialogTitleWrapper
@@ -196,6 +218,20 @@ function PolicyStepsCard(props) {
         />
         <DialogContentError error={errMsg} />
       </Dialog>
+      {editStepID && (
+        <PolicyStepEditDialog
+          escalationPolicyID={escalationPolicyID}
+          onClose={resetEditStep}
+          step={steps.filter((step) => step.id === editStepID)[0]}
+        />
+      )}
+      {deleteStep && (
+        <PolicyStepDeleteDialog
+          escalationPolicyID={escalationPolicyID}
+          onClose={() => setDeleteStep(false)}
+          stepID={deleteStep}
+        />
+      )}
     </React.Fragment>
   )
 }
@@ -217,5 +253,3 @@ PolicyStepsCard.propTypes = {
     }),
   ).isRequired,
 }
-
-export default PolicyStepsCard

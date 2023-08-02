@@ -18,6 +18,9 @@ const useStyles = makeStyles(() => ({
     opacity: 0.6,
     width: '100%',
   },
+  listItemDraggable: {
+    paddingLeft: '75px',
+  },
   secondaryText: {
     whiteSpace: 'pre-line',
   },
@@ -32,7 +35,6 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
   const classes = useStyles()
 
   const {
-    disabled,
     highlight,
     icon,
     secondaryAction,
@@ -40,7 +42,9 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
     subText,
     title,
     url,
-    render,
+    draggable,
+    disabled,
+    disableTypography,
     ...muiListItemProps
   } = props.item
 
@@ -50,10 +54,6 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
       ref.current?.scrollIntoView({ block: 'center' })
     }
   }, [scrollIntoView])
-
-  if (render) {
-    return render()
-  }
 
   let linkProps = {}
   if (url) {
@@ -72,6 +72,7 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
       className={classnames({
         [classes.listItem]: true,
         [classes.listItemDisabled]: disabled,
+        [classes.listItemDraggable]: draggable,
       })}
       selected={highlight}
     >
@@ -79,6 +80,7 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
       <ListItemText
         primary={title}
         secondary={subText}
+        disableTypography={disableTypography}
         secondaryTypographyProps={{
           className: classnames({
             [classes.secondaryText]: true,

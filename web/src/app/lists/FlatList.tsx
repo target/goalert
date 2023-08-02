@@ -110,10 +110,9 @@ export interface FlatListItem extends ListItemProps {
   id?: string // required for drag and drop functionality
   scrollIntoView?: boolean
   'data-cy'?: string
+  draggable?: boolean // set by DraggableListItem
   disabled?: boolean
-
-  // bypass
-  render?: () => JSX.Element
+  disableTypography?: boolean
 }
 
 export interface SectionTitle {
