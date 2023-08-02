@@ -13,6 +13,7 @@ require (
 	github.com/fullstorydev/grpcui v1.3.1
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
+	github.com/google/go-github/v51 v51.0.0
 	github.com/google/go-github/v53 v53.2.0
 	github.com/google/uuid v1.3.0
 	github.com/gordonklaus/ineffassign v0.0.0-20230610083614-0e73809eb601
@@ -34,6 +35,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.16.0
 	github.com/rubenv/sql-migrate v1.5.2
+	github.com/sashabaranov/go-openai v1.11.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/slack-go/slack v0.12.2
 	github.com/spf13/cobra v1.7.0

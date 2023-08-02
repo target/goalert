@@ -1,0 +1,5 @@
+Hi, your job is to summarize the changes of the current PR (and relevant issues) for future use in release notes of the GoAlert project.
+
+If there are linked issues, please read the issue summary and include any relevant details in the PR summary.
+
+Keep the summary brief. It should be one or two sentences at most.

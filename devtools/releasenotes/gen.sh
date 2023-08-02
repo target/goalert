@@ -14,7 +14,25 @@ MODEL=$(gum choose --header "Pick a model." "gpt-4" "gpt-3.5-turbo" "gpt-3.5")
 TAGS=$(git tag -l 'v*.*.*' | sort -rV)
 TAG=$(gum choose --header "Pick the most recent release tag." $TAGS)
 
-git log --oneline --merges --first-parent master --since="$TAG" | grep -v dependabot >merges.txt
+DIR=$(pwd)/bin/release-notes
+mkdir -p "$DIR"
+
+git log --oneline --merges --first-parent master --since="$TAG" | grep -v dependabot >"$DIR/merges.txt"
+
+cat "$DIR/merges.txt" | awk '{print $5}' | sed 's/^#//' | tac >"$DIR/prs.txt"
+
+mkdir -p "$DIR/prs"
+# Summaries of PRs
+while read PR; do
+    if [ -f "$DIR/prs/$PR.json" ]; then
+        echo "Skipping PR $PR"
+        continue
+    fi
+    echo "Generating summary for PR $PR"
+    go run ./devtools/releasenotes -pr "$PR" >"$DIR/prs/_$PR.json"
+    mv "$DIR/prs/_$PR.json" "$DIR/prs/$PR.json"
+done <"$DIR/prs.txt"
+exit 0
 
 rm -f merge-details.txt
 while read line; do
