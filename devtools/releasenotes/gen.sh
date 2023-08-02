@@ -29,7 +29,20 @@ while read PR; do
         continue
     fi
     echo "Generating summary for PR $PR"
-    go run ./devtools/releasenotes -pr "$PR" >"$DIR/prs/_$PR.json"
+
+    # try generating the summary up to 3 times, otherwise exit
+    FAILED=1
+    for i in 1 2 3; do
+        if go run ./devtools/releasenotes -pr "$PR" >"$DIR/prs/_$PR.json"; then
+            FAILED=0
+            break
+        fi
+        echo "Failed to generate summary for PR $PR, retrying..."
+    done
+    if [ "$FAILED" -ne 0 ]; then
+        echo "Failed to generate summary for PR $PR, exiting..."
+        exit 1
+    fi
     mv "$DIR/prs/_$PR.json" "$DIR/prs/$PR.json"
 done <"$DIR/prs.txt"
 exit 0
