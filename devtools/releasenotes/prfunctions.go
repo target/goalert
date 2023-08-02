@@ -51,8 +51,6 @@ func (c *Config) SummarizePR(ctx context.Context, number int) (string, error) {
 		return c.SummarizeIssue(ctx, args.ID)
 	})
 
-	gen.AddFunc(MkUserQuestion(inR))
-
 	info, err := gen.ReadPR(ctx, number)
 	if err != nil {
 		panic(err)

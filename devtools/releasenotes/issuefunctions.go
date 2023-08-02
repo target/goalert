@@ -52,8 +52,6 @@ func (c *Config) SummarizeIssue(ctx context.Context, number int) (string, error)
 		return c.SummarizeIssue(ctx, args.ID)
 	})
 
-	gen.AddFunc(MkUserQuestion(inR))
-
 	info, err := gen.ReadIssue(ctx, number)
 	if err != nil {
 		panic(err)
