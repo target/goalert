@@ -53,12 +53,12 @@ func (g *Generator) Next(ctx context.Context, userInput string) (string, bool, e
 
 func (g *Generator) run(ctx context.Context) error {
 	req := openai.ChatCompletionRequest{
-		Model:     openai.GPT40613,
+		Model:     g.Model,
 		Messages:  g.state,
 		Functions: g.fnDefs,
 	}
 
-	resp, err := g.ai.CreateChatCompletion(ctx, req)
+	resp, err := g.AI.CreateChatCompletion(ctx, req)
 	if err != nil {
 		return err
 	}

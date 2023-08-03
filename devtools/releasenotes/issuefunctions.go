@@ -14,7 +14,7 @@ import (
 var inR = bufio.NewReader(os.Stdin)
 
 func (c *Config) SummarizeIssue(ctx context.Context, number int) (string, error) {
-	gen := NewGenerator(c.GH, c.AI, issuePrompt)
+	gen := NewGenerator(c, issuePrompt)
 
 	gen.SetFinal(&openai.FunctionDefine{
 		Name:        "output_summary",
@@ -22,12 +22,11 @@ func (c *Config) SummarizeIssue(ctx context.Context, number int) (string, error)
 		Parameters: &openai.FunctionParams{
 			Type: openai.JSONSchemaTypeObject,
 			Properties: map[string]*openai.JSONSchemaDefine{
-				"is_feature_request": {Type: openai.JSONSchemaTypeBoolean, Description: "This issue is primarily a feature request."},
-				"is_bug":             {Type: openai.JSONSchemaTypeBoolean, Description: "This issue is primarily a bug report."},
-				"is_user_facing":     {Type: openai.JSONSchemaTypeBoolean, Description: "This issue describes a feature/bug that affects users."},
-				"summary":            {Type: openai.JSONSchemaTypeString, Description: "A short summary of the issue."},
+				"type":      {Type: openai.JSONSchemaTypeString, Description: "The type of issue (e.g., feature, enhancement, security, bugfix)."},
+				"component": {Type: openai.JSONSchemaTypeString, Description: "The component or base feature that this issue affects."},
+				"summary":   {Type: openai.JSONSchemaTypeString, Description: "A short summary of the issue."},
 			},
-			Required: []string{"summary", "is_user_facing", "is_feature_request", "is_bug"},
+			Required: []string{"summary", "type"},
 		},
 	})
 

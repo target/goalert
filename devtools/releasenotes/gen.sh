@@ -9,7 +9,7 @@ if [ -z "$OPENAI_API_KEY" ]; then
     OPENAI_API_KEY=$(gum input --password --header "Enter your OpenAI key.")
 fi
 
-MODEL=$(gum choose --header "Pick a model." "gpt-4" "gpt-3.5-turbo" "gpt-3.5")
+MODEL=$(gum choose --header "Pick a model." "gpt-4-0613" "gpt-3.5-turbo-0613")
 
 TAGS=$(git tag -l 'v*.*.*' | sort -rV)
 TAG=$(gum choose --header "Pick the most recent release tag." $TAGS)
@@ -33,7 +33,7 @@ while read PR; do
     # try generating the summary up to 3 times, otherwise exit
     FAILED=1
     for i in 1 2 3; do
-        if go run ./devtools/releasenotes -pr "$PR" >"$DIR/prs/_$PR.json"; then
+        if go run ./devtools/releasenotes -model "$MODEL" -pr "$PR" >"$DIR/prs/_$PR.json"; then
             FAILED=0
             break
         fi

@@ -13,20 +13,22 @@ import (
 var prPrompt string
 
 func (c *Config) SummarizePR(ctx context.Context, number int) (string, error) {
-	gen := NewGenerator(c.GH, c.AI, prPrompt)
+	gen := NewGenerator(c, prPrompt)
 
 	gen.SetFinal(&openai.FunctionDefine{
-		Name:        "output_summary",
-		Description: "Output a summary of the current PR.",
+		Name:        "output",
+		Description: "Output the summary of the current PR.",
 		Parameters: &openai.FunctionParams{
 			Type: openai.JSONSchemaTypeObject,
 			Properties: map[string]*openai.JSONSchemaDefine{
-				"is_dev_only":    {Type: openai.JSONSchemaTypeBoolean, Description: "The PR/change only affects the developers of GoAlert."},
-				"is_admin":       {Type: openai.JSONSchemaTypeBoolean, Description: "The PR/change affects admins of GoAlert (e.g., new command line flags, admin-only features, etc...)."},
-				"is_user_facing": {Type: openai.JSONSchemaTypeBoolean, Description: "The PR/change affects or adds to the available features/end-user-facing components of GoAlert."},
-				"summary":        {Type: openai.JSONSchemaTypeString, Description: "A short summary of the PR."},
+				"type":     {Type: openai.JSONSchemaTypeString, Description: "The type of change made in this PR (e.g., feature, enhancement, security, bugfix, development)."},
+				"feature":  {Type: openai.JSONSchemaTypeString, Description: "The base feature that this PR affects."},
+				"section":  {Type: openai.JSONSchemaTypeString, Description: "The section of the release notes that this PR should be included in."},
+				"summary":  {Type: openai.JSONSchemaTypeString, Description: "A short single-sentence summary of the change."},
+				"internal": {Type: openai.JSONSchemaTypeBoolean, Description: "Skip this PR in the release notes. This is useful for changes that are not user-facing, such as documentation changes, dependency updates, dev changes, or refactoring (e.g., React)."},
+				"why":      {Type: openai.JSONSchemaTypeString, Description: "A terse reason (few words) this PR is important to end users."},
 			},
-			Required: []string{"summary", "is_dev_only", "is_admin", "is_user_facing"},
+			Required: []string{"summary", "section", "type", "feature", "internal", "why"},
 		},
 	})
 

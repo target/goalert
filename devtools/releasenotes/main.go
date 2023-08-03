@@ -21,12 +21,15 @@ var issuePrompt string
 type Config struct {
 	AI *openai.Client
 	GH *github.Client
+
+	Model string
 }
 
 func main() {
 	log.SetFlags(log.Lshortfile)
 	openaiKey := flag.String("openai", os.Getenv("OPENAI_API_KEY"), "OpenAI API Key")
 	githubToken := flag.String("github", os.Getenv("GH_TOKEN"), "GitHub Token")
+	model := flag.String("model", openai.GPT40613, "OpenAI model to use")
 	iss := flag.Int("issue", 0, "Summarize a GitHub issue.")
 	pr := flag.Int("pr", 0, "Summarize a GitHub PR.")
 	flag.Parse()
@@ -41,8 +44,9 @@ func main() {
 
 	ai := openai.NewClient(*openaiKey)
 	cfg := &Config{
-		AI: ai,
-		GH: gh,
+		AI:    ai,
+		GH:    gh,
+		Model: *model,
 	}
 
 	if *iss != 0 {

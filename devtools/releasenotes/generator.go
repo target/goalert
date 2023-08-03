@@ -4,13 +4,11 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/google/go-github/v51/github"
 	"github.com/sashabaranov/go-openai"
 )
 
 type Generator struct {
-	gh *github.Client
-	ai *openai.Client
+	*Config
 
 	state []openai.ChatCompletionMessage
 
@@ -23,11 +21,10 @@ type Note struct {
 	Note string
 }
 
-func NewGenerator(gh *github.Client, ai *openai.Client, prompt string) *Generator {
+func NewGenerator(cfg *Config, prompt string) *Generator {
 	return &Generator{
-		gh:  gh,
-		ai:  ai,
-		fns: make(map[string]func(context.Context, json.RawMessage) (string, error)),
+		Config: cfg,
+		fns:    make(map[string]func(context.Context, json.RawMessage) (string, error)),
 		state: []openai.ChatCompletionMessage{
 			{Role: "system", Content: prompt},
 		},

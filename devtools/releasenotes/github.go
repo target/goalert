@@ -14,7 +14,7 @@ type PRData struct {
 }
 
 func (g *Generator) ReadPR(ctx context.Context, id int) (*PRData, error) {
-	pr, _, err := g.gh.PullRequests.Get(ctx, "target", "goalert", int(id))
+	pr, _, err := g.GH.PullRequests.Get(ctx, "target", "goalert", int(id))
 	if err != nil {
 		return nil, err
 	}
@@ -47,12 +47,12 @@ type Comment struct {
 }
 
 func (g *Generator) ReadIssue(ctx context.Context, id int) (*IssueData, error) {
-	iss, _, err := g.gh.Issues.Get(ctx, "target", "goalert", int(id))
+	iss, _, err := g.GH.Issues.Get(ctx, "target", "goalert", int(id))
 	if err != nil {
 		return nil, fmt.Errorf("get issue #%d: %w", id, err)
 	}
 
-	comments, _, err := g.gh.Issues.ListComments(ctx, "target", "goalert", int(id), nil)
+	comments, _, err := g.GH.Issues.ListComments(ctx, "target", "goalert", int(id), nil)
 	if err != nil {
 		return nil, fmt.Errorf("list comments for issue #%d: %w", id, err)
 	}

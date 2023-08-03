@@ -3,3 +3,7 @@ Hi, your job is to summarize the changes of the current PR (and relevant issues)
 If there are linked issues, please read the issue summary and include any relevant details in the PR summary.
 
 Keep the summary brief. It should be one or two sentences at most.
+
+Watch for PRs that focus around dev tools, dependencies, or other internal changes like React, hooks, urql, material, etc.
+
+PRs that mention refactoring, converting to hooks, urql, material, typescript, engine modules, for example, should likely be marked as internal.
