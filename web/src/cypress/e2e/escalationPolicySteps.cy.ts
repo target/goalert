@@ -208,47 +208,38 @@ function testSteps(screen: ScreenFormat): void {
             .find('li')
             .should('have.length', 3)
 
-          // focus element to be drag and dropped
-          cy.get('ul[data-cy=steps-list] :nth-child(1) li')
-            .should('contain', 'Step #1')
-            .should('contain', s1.delayMinutes)
-            .parent('[tabindex]')
-            .focus()
-
-          cy.focused().type(' ')
-
+          // pick up first step
+          cy.get('[id="drag-0"]').focus()
+          cy.focused().type('{enter}')
           cy.get('body').should(
             'contain',
-            'You have lifted an item in position 1',
+            'Picked up sortable item 0. Sortable item 0 is in position 1 of 3',
           )
 
-          // move element down one position
+          // re-order
           cy.focused().type('{downarrow}', { force: true })
+          cy.get('body').should(
+            'contain',
+            'Sortable item 0 was moved into position 2 of 3',
+          )
 
-          cy.get('body')
-            .should('contain', 'You have moved the item from position 1')
-            .should('contain', 'to position 2')
+          // place step, calls mutation
+          cy.focused().type('{enter}', { force: true })
+          cy.get('body').should(
+            'contain',
+            'Sortable item 0 was dropped at position 2 of 3',
+          )
 
-          // move element down one more position
-          cy.focused().type('{downarrow}', { force: true })
-
-          cy.get('body')
-            .should('contain', 'You have moved the item from position 1')
-            .should('contain', 'to position 3')
-
-          // drop element
-          cy.focused().type(' ', { force: true })
-
-          // verify data integrity
+          // verify re-order
           cy.get('ul[data-cy=steps-list] :nth-child(1) li')
             .should('contain', 'Step #1')
             .should('contain', s2.delayMinutes)
           cy.get('ul[data-cy=steps-list] :nth-child(2) li')
             .should('contain', 'Step #2')
-            .should('contain', s3.delayMinutes)
+            .should('contain', s1.delayMinutes)
           cy.get('ul[data-cy=steps-list] :nth-child(3) li')
             .should('contain', 'Step #3')
-            .should('contain', s1.delayMinutes)
+            .should('contain', s3.delayMinutes)
         })
     })
   })

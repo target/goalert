@@ -105,6 +105,7 @@ export function DraggableListItem({
       >
         <Button
           variant='outlined'
+          id={'drag-' + index}
           sx={{
             p: '2px',
             width: 'fit-content',

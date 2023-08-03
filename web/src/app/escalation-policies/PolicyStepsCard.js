@@ -176,6 +176,7 @@ export default function PolicyStepsCard(props) {
           }
         />
         <FlatList
+          data-cy='steps-list'
           emptyMessage='No steps currently on this Escalation Policy'
           headerNote='Notify the following:'
           items={steps.map((step) => ({

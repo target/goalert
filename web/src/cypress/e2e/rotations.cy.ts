@@ -139,11 +139,8 @@ function testRotations(screen: ScreenFormat): void {
       // ensure list has fully loaded before drag/drop
       cy.get('ul[data-cy=users]').find('li').should('have.length', 4)
 
-      // toggle edit mode
-      cy.get('button[aria-label="Toggle Drag and Drop"]').click()
-
       // pick up a participant
-      cy.get('svg[id="drag-0"]').focus()
+      cy.get('[id="drag-0"]').focus()
       cy.focused().type('{enter}')
       cy.get('body').should(
         'contain',
