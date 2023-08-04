@@ -29,6 +29,7 @@ export interface Query {
   integrationKeys: IntegrationKeyConnection
   userOverrides: UserOverrideConnection
   userOverride?: null | UserOverride
+  userShifts: UserShift[]
   config: ConfigValue[]
   configHints: ConfigHint[]
   integrationKeyTypes: IntegrationKeyTypeInfo[]
@@ -263,6 +264,12 @@ export interface UserOverride {
   removeUserID: string
   addUser?: null | User
   removeUser?: null | User
+  target: Target
+}
+
+export interface UserShift {
+  start: ISOTimestamp
+  end: ISOTimestamp
   target: Target
 }
 

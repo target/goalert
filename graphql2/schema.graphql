@@ -93,6 +93,8 @@ type Query {
   # Returns a single user override with the given ID.
   userOverride(id: ID!): UserOverride
 
+  userShifts(id: ID!): [UserShift!]!
+
   # Returns public server configuration values. If all is set to true,
   # then all values are returned (must be admin).
   config(all: Boolean): [ConfigValue!]!
@@ -375,6 +377,13 @@ type UserOverride {
 
   target: Target!
 }
+
+type UserShift {
+  start: ISOTimestamp!
+  end: ISOTimestamp!
+  target: Target!
+}
+
 input LabelSearchOptions {
   first: Int = 15
   after: String = ""

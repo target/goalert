@@ -273,3 +273,7 @@ func (a *Query) User(ctx context.Context, id *string) (*user.User, error) {
 func (a *User) IsFavorite(ctx context.Context, raw *user.User) (bool, error) {
 	return raw.IsUserFavorite(), nil
 }
+
+func (a *Query) UserShifts(ctx context.Context, id string) ([]graphql2.UserShift, error) {
+	return nil, nil
+}
