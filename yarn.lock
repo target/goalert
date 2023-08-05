@@ -11026,7 +11026,7 @@ __metadata:
     stylelint-config-standard: 34.0.0
     typescript: 5.0.4
     urql: 4.0.4
-    wonka: 6.3.2
+    wonka: 6.3.4
     wouter: 2.11.0
   languageName: unknown
   linkType: soft
@@ -12595,7 +12595,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wonka@npm:6.3.2, wonka@npm:^6.3.0, wonka@npm:^6.3.2":
+"wonka@npm:6.3.4":
+  version: 6.3.4
+  resolution: "wonka@npm:6.3.4"
+  checksum: 6bb57955cb2982fb469a7824484e6854b436f89a7f10b6a981348789d88fbc944665771adc4cc404f62416417eb47ab2b8657d898e5301ccd4a53eaac6a10508
+  languageName: node
+  linkType: hard
+
+"wonka@npm:^6.3.0, wonka@npm:^6.3.2":
   version: 6.3.2
   resolution: "wonka@npm:6.3.2"
   checksum: e161f377a4ea17cc2b19fe8820219a9e3e2c78db5df08b820525bc2cc261184823d1bc33bd2385e632656a9676c9de6ff614b6324c441dd5fc5faa253433d032
