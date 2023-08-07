@@ -17,6 +17,7 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
+// Session implements an SMTP session that creates alerts.
 type Session struct {
 	cfg Config
 
@@ -39,8 +40,13 @@ func (s *Session) isValidDomain(d string) bool {
 	return false
 }
 
+// AuthPlain is called when a client attempts to authenticate using the PLAIN
+// auth mechanism. It always returns an error, indicating that PLAIN auth is
+// not supported.
 func (s *Session) AuthPlain(username, password string) error { return smtp.ErrAuthUnsupported }
 
+// Mail is called when a new SMTP message is received (MAIL FROM). It checks
+// that the sender is valid and stores it in the session.
 func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
 	addr, err := mail.ParseAddress(from)
 	if err != nil {
@@ -51,6 +57,10 @@ func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
 	return nil
 }
 
+// Rcpt is called when a new SMTP message is received (RCPT TO). It checks
+// that the recipient is valid and stores it in the session.
+//
+// It also checks that the recipient is authorized to create alerts.
 func (s *Session) Rcpt(recipient string) error {
 	addr, err := mail.ParseAddress(recipient)
 	if err != nil {
@@ -115,10 +125,12 @@ func (s *Session) Data(r io.Reader) error {
 	)
 }
 
+// Reset resets the session state.
 func (s *Session) Reset() {
 	s.dedup = ""
 	s.from = ""
 	s.authCtx = nil
 }
 
+// Logout is called when the client requests to log out.
 func (s *Session) Logout() error { return nil }

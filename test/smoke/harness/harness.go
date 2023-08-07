@@ -332,6 +332,7 @@ func (h *Harness) URL() string {
 	return h.backend.URL()
 }
 
+// SendMail will send an email to the backend's SMTP server.
 func (h *Harness) SendMail(from, to, subject, body string) {
 	h.t.Helper()
 

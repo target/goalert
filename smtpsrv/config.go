@@ -7,6 +7,7 @@ import (
 	"github.com/target/goalert/alert"
 )
 
+// Config is used to configure the SMTP server.
 type Config struct {
 	Domain         string
 	AllowedDomains []string
