@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/emersion/go-smtp"
+	"github.com/mnako/letters"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
@@ -83,17 +84,13 @@ func (s *Session) Data(r io.Reader) error {
 		return errors.New("no recipient")
 	}
 
-	m, err := mail.ReadMessage(r)
+	email, err := letters.ParseEmail(r)
 	if err != nil {
 		return err
 	}
+	body := email.Text
 
-	body, err := ParseSanitizeMessage(m)
-	if err != nil {
-		return err
-	}
-
-	summary := validate.SanitizeText(m.Header.Get("Subject"), alert.MaxSummaryLength)
+	summary := validate.SanitizeText(email.Headers.Subject, alert.MaxSummaryLength)
 	details := fmt.Sprintf("From: %s\n\n%s", s.from, body)
 	details = validate.SanitizeText(details, alert.MaxDetailsLength)
 	var dedup *alert.DedupID

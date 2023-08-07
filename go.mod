@@ -30,7 +30,7 @@ require (
 	github.com/mailhog/data v1.0.1
 	github.com/mailhog/storage v1.0.1
 	github.com/matcornic/hermes/v2 v2.1.0
-	github.com/microcosm-cc/bluemonday v1.0.24
+	github.com/mnako/letters v0.1.3
 	github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282
 	github.com/pelletier/go-toml/v2 v2.0.9
 	github.com/pkg/errors v0.9.1
@@ -69,7 +69,6 @@ require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
 	github.com/andybalholm/cascadia v1.3.2 // indirect
-	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/bufbuild/protocompile v0.5.1 // indirect
