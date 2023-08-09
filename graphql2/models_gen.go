@@ -686,10 +686,10 @@ type UserSearchOptions struct {
 	FavoritesFirst *bool               `json:"favoritesFirst,omitempty"`
 }
 
-type UserShift struct {
-	Start  time.Time             `json:"start"`
-	End    time.Time             `json:"end"`
-	Target *assignment.RawTarget `json:"target"`
+type UserShiftsOptions struct {
+	ID    string    `json:"id"`
+	Start time.Time `json:"start"`
+	End   time.Time `json:"end"`
 }
 
 type VerifyContactMethodInput struct {

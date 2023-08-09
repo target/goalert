@@ -93,7 +93,9 @@ type Query {
   # Returns a single user override with the given ID.
   userOverride(id: ID!): UserOverride
 
-  userShifts(id: ID!): [UserShift!]!
+  # Returns shifts for a given user ID.
+  # If no ID is provided, the current user's context is used
+  userShifts(input: UserShiftsOptions): [OnCallShift!]!
 
   # Returns public server configuration values. If all is set to true,
   # then all values are returned (must be admin).
@@ -378,10 +380,10 @@ type UserOverride {
   target: Target!
 }
 
-type UserShift {
+input UserShiftsOptions {
+  id: ID!
   start: ISOTimestamp!
   end: ISOTimestamp!
-  target: Target!
 }
 
 input LabelSearchOptions {

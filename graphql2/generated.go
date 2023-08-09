@@ -420,7 +420,7 @@ type ComplexityRoot struct {
 		UserContactMethod        func(childComplexity int, id string) int
 		UserOverride             func(childComplexity int, id string) int
 		UserOverrides            func(childComplexity int, input *UserOverrideSearchOptions) int
-		UserShifts               func(childComplexity int, id string) int
+		UserShifts               func(childComplexity int, input *UserShiftsOptions) int
 		Users                    func(childComplexity int, input *UserSearchOptions, first *int, after *string, search *string) int
 	}
 
@@ -665,12 +665,6 @@ type ComplexityRoot struct {
 		LastAccessAt func(childComplexity int) int
 		UserAgent    func(childComplexity int) int
 	}
-
-	UserShift struct {
-		End    func(childComplexity int) int
-		Start  func(childComplexity int) int
-		Target func(childComplexity int) int
-	}
 }
 
 type AlertResolver interface {
@@ -801,7 +795,7 @@ type QueryResolver interface {
 	IntegrationKeys(ctx context.Context, input *IntegrationKeySearchOptions) (*IntegrationKeyConnection, error)
 	UserOverrides(ctx context.Context, input *UserOverrideSearchOptions) (*UserOverrideConnection, error)
 	UserOverride(ctx context.Context, id string) (*override.UserOverride, error)
-	UserShifts(ctx context.Context, id string) ([]UserShift, error)
+	UserShifts(ctx context.Context, input *UserShiftsOptions) ([]oncall.Shift, error)
 	Config(ctx context.Context, all *bool) ([]ConfigValue, error)
 	ConfigHints(ctx context.Context) ([]ConfigHint, error)
 	IntegrationKeyTypes(ctx context.Context) ([]IntegrationKeyTypeInfo, error)
@@ -2888,7 +2882,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.UserShifts(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.UserShifts(childComplexity, args["input"].(*UserShiftsOptions)), true
 
 	case "Query.users":
 		if e.complexity.Query.Users == nil {
@@ -3960,27 +3954,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserSession.UserAgent(childComplexity), true
 
-	case "UserShift.end":
-		if e.complexity.UserShift.End == nil {
-			break
-		}
-
-		return e.complexity.UserShift.End(childComplexity), true
-
-	case "UserShift.start":
-		if e.complexity.UserShift.Start == nil {
-			break
-		}
-
-		return e.complexity.UserShift.Start(childComplexity), true
-
-	case "UserShift.target":
-		if e.complexity.UserShift.Target == nil {
-			break
-		}
-
-		return e.complexity.UserShift.Target(childComplexity), true
-
 	}
 	return 0, false
 }
@@ -4054,6 +4027,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUpdateUserOverrideInput,
 		ec.unmarshalInputUserOverrideSearchOptions,
 		ec.unmarshalInputUserSearchOptions,
+		ec.unmarshalInputUserShiftsOptions,
 		ec.unmarshalInputVerifyContactMethodInput,
 	)
 	first := true
@@ -5437,15 +5411,15 @@ func (ec *executionContext) field_Query_userOverrides_args(ctx context.Context, 
 func (ec *executionContext) field_Query_userShifts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+	var arg0 *UserShiftsOptions
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOUserShiftsOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserShiftsOptions(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -16546,7 +16520,7 @@ func (ec *executionContext) _Query_userShifts(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().UserShifts(rctx, fc.Args["id"].(string))
+		return ec.resolvers.Query().UserShifts(rctx, fc.Args["input"].(*UserShiftsOptions))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16558,9 +16532,9 @@ func (ec *executionContext) _Query_userShifts(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]UserShift)
+	res := resTmp.([]oncall.Shift)
 	fc.Result = res
-	return ec.marshalNUserShift2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserShiftᚄ(ctx, field.Selections, res)
+	return ec.marshalNOnCallShift2ᚕgithubᚗcomᚋtargetᚋgoalertᚋoncallᚐShiftᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_userShifts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -16571,14 +16545,18 @@ func (ec *executionContext) fieldContext_Query_userShifts(ctx context.Context, f
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "userID":
+				return ec.fieldContext_OnCallShift_userID(ctx, field)
+			case "user":
+				return ec.fieldContext_OnCallShift_user(ctx, field)
 			case "start":
-				return ec.fieldContext_UserShift_start(ctx, field)
+				return ec.fieldContext_OnCallShift_start(ctx, field)
 			case "end":
-				return ec.fieldContext_UserShift_end(ctx, field)
-			case "target":
-				return ec.fieldContext_UserShift_target(ctx, field)
+				return ec.fieldContext_OnCallShift_end(ctx, field)
+			case "truncated":
+				return ec.fieldContext_OnCallShift_truncated(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type UserShift", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type OnCallShift", field.Name)
 		},
 	}
 	defer func() {
@@ -24656,146 +24634,6 @@ func (ec *executionContext) fieldContext_UserSession_lastAccessAt(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _UserShift_start(ctx context.Context, field graphql.CollectedField, obj *UserShift) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_UserShift_start(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Start, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_UserShift_start(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "UserShift",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ISOTimestamp does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _UserShift_end(ctx context.Context, field graphql.CollectedField, obj *UserShift) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_UserShift_end(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.End, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_UserShift_end(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "UserShift",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ISOTimestamp does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _UserShift_target(ctx context.Context, field graphql.CollectedField, obj *UserShift) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_UserShift_target(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Target, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*assignment.RawTarget)
-	fc.Result = res
-	return ec.marshalNTarget2ᚖgithubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_UserShift_target(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "UserShift",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Target_id(ctx, field)
-			case "type":
-				return ec.fieldContext_Target_type(ctx, field)
-			case "name":
-				return ec.fieldContext_Target_name(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Target", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext___Directive_name(ctx, field)
 	if err != nil {
@@ -30544,6 +30382,53 @@ func (ec *executionContext) unmarshalInputUserSearchOptions(ctx context.Context,
 				return it, err
 			}
 			it.FavoritesFirst = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUserShiftsOptions(ctx context.Context, obj interface{}) (UserShiftsOptions, error) {
+	var it UserShiftsOptions
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "start", "end"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "start":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
+			data, err := ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Start = data
+		case "end":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end"))
+			data, err := ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.End = data
 		}
 	}
 
@@ -37579,55 +37464,6 @@ func (ec *executionContext) _UserSession(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
-var userShiftImplementors = []string{"UserShift"}
-
-func (ec *executionContext) _UserShift(ctx context.Context, sel ast.SelectionSet, obj *UserShift) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, userShiftImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("UserShift")
-		case "start":
-			out.Values[i] = ec._UserShift_start(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "end":
-			out.Values[i] = ec._UserShift_end(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "target":
-			out.Values[i] = ec._UserShift_target(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
 var __DirectiveImplementors = []string{"__Directive"}
 
 func (ec *executionContext) ___Directive(ctx context.Context, sel ast.SelectionSet, obj *introspection.Directive) graphql.Marshaler {
@@ -40711,54 +40547,6 @@ func (ec *executionContext) marshalNUserSession2ᚕgithubᚗcomᚋtargetᚋgoale
 	return ret
 }
 
-func (ec *executionContext) marshalNUserShift2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserShift(ctx context.Context, sel ast.SelectionSet, v UserShift) graphql.Marshaler {
-	return ec._UserShift(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNUserShift2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserShiftᚄ(ctx context.Context, sel ast.SelectionSet, v []UserShift) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNUserShift2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserShift(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) unmarshalNVerifyContactMethodInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐVerifyContactMethodInput(ctx context.Context, v interface{}) (VerifyContactMethodInput, error) {
 	res, err := ec.unmarshalInputVerifyContactMethodInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -42029,6 +41817,14 @@ func (ec *executionContext) unmarshalOUserSearchOptions2ᚖgithubᚗcomᚋtarget
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputUserSearchOptions(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOUserShiftsOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserShiftsOptions(ctx context.Context, v interface{}) (*UserShiftsOptions, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputUserShiftsOptions(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

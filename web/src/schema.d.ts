@@ -29,7 +29,7 @@ export interface Query {
   integrationKeys: IntegrationKeyConnection
   userOverrides: UserOverrideConnection
   userOverride?: null | UserOverride
-  userShifts: UserShift[]
+  userShifts: OnCallShift[]
   config: ConfigValue[]
   configHints: ConfigHint[]
   integrationKeyTypes: IntegrationKeyTypeInfo[]
@@ -267,10 +267,10 @@ export interface UserOverride {
   target: Target
 }
 
-export interface UserShift {
+export interface UserShiftsOptions {
+  id: string
   start: ISOTimestamp
   end: ISOTimestamp
-  target: Target
 }
 
 export interface LabelSearchOptions {
