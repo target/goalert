@@ -41,6 +41,15 @@ func (app *App) _Run(ctx context.Context) error {
 		}()
 	}
 
+	if app.smtpsrv != nil {
+		log.Logf(log.WithField(ctx, "address", app.smtpsrvL.Addr().String()), "SMTP server started.")
+		go func() {
+			if err := app.smtpsrv.ServeSMTP(app.smtpsrvL); err != nil {
+				log.Log(ctx, err)
+			}
+		}()
+	}
+
 	log.Logf(
 		log.WithFields(ctx, log.Fields{
 			"address": app.l.Addr().String(),

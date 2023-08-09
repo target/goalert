@@ -80,6 +80,8 @@ func (app *App) startup(ctx context.Context) error {
 	app.initStartup(ctx, "Startup.HTTPServer", app.initHTTP)
 	app.initStartup(ctx, "Startup.SysAPI", app.initSysAPI)
 
+	app.initStartup(ctx, "Startup.SMTPServer", app.initSMTPServer)
+
 	if app.startupErr != nil {
 		return app.startupErr
 	}

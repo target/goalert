@@ -20,6 +20,8 @@ type Config struct {
 	fallbackURL string
 	explicitURL string
 
+	intEmailDomain string
+
 	General struct {
 		ApplicationName              string `public:"true" info:"The name used in messaging and page titles. Defaults to \"GoAlert\"."`
 		PublicURL                    string `public:"true" info:"Publicly routable URL for UI links and API calls." deprecated:"Use --public-url flag instead, which takes precedence."`
@@ -136,6 +138,26 @@ type Config struct {
 		Enable      bool   `public:"true" info:"Enables Feedback link in nav bar."`
 		OverrideURL string `public:"true" info:"Use a custom URL for Feedback link in nav bar."`
 	}
+}
+
+// EmailIngressEnabled returns true if a provider is configured for generating alerts from email, otherwise false
+func (cfg Config) EmailIngressEnabled() bool {
+	if (cfg.Mailgun.Enable && cfg.Mailgun.EmailDomain != "") || cfg.intEmailDomain != "" {
+		return true
+	}
+	return false
+}
+
+// EmailIngressDomain returns the domain configured to receive email for alert generation
+func (cfg Config) EmailIngressDomain() string {
+	if cfg.intEmailDomain != "" {
+		// cli flag always takes precedence
+		return cfg.intEmailDomain
+	}
+	if cfg.Mailgun.EmailDomain != "" {
+		return cfg.Mailgun.EmailDomain
+	}
+	return ""
 }
 
 // TwilioSMSFromNumber will determine the appropriate FROM number to use for SMS messages to the given number
