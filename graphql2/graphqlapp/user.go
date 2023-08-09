@@ -7,6 +7,7 @@ import (
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/calsub"
+	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
@@ -274,6 +275,32 @@ func (a *User) IsFavorite(ctx context.Context, raw *user.User) (bool, error) {
 	return raw.IsUserFavorite(), nil
 }
 
-func (a *Query) UserShifts(ctx context.Context, id string) ([]graphql2.UserShift, error) {
-	return nil, nil
+func (a *Query) UserShifts(ctx context.Context, opts *graphql2.UserShiftsOptions) ([]oncall.Shift, error) {
+	var userID string
+	if opts.ID != "" {
+		userID = opts.ID
+	} else {
+		userID = permission.UserID(ctx)
+	}
+
+	// get list of rotations user is on
+	rIDs, err := (*App)(a).RotationStore.FindManyByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// get list of schedules user is on as a direct assignment, or indirectly from a rotation
+	sIDs, err := (*App)(a).ScheduleStore.FindManyByAssignments(ctx, userID, rIDs)
+
+	// calculate shifts for each schedule found
+	var result []oncall.Shift
+	for _, sID := range sIDs {
+		shifts, err := (*App)(a).OnCallStore.ShiftsByUser(ctx, sID, opts.Start, opts.End, userID)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, shifts...)
+	}
+
+	return result, nil
 }

@@ -28,7 +28,8 @@ type Store struct {
 
 	findOneUp *sql.Stmt
 
-	findMany *sql.Stmt
+	findMany              *sql.Stmt
+	findManyByAssignments *sql.Stmt
 
 	usr *user.Store
 }
@@ -74,6 +75,11 @@ func NewStore(ctx context.Context, db *sql.DB, usr *user.Store) (*Store, error) 
 				fav.tgt_schedule_id = s.id AND fav.user_id = $2
 			WHERE s.id = any($1)
 		`),
+		findManyByAssignments: p.P(`
+			SELECT sr.schedule_id
+			FROM schedule_rules sr
+			WHERE sr.tgt_user_id = $1 OR sr.tgt_rotation_id = ANY($2)
+		`),
 
 		delete: p.P(`DELETE FROM schedules WHERE id = any($1)`),
 	}, p.Err
@@ -115,6 +121,39 @@ func (store *Store) FindMany(ctx context.Context, ids []string) ([]Schedule, err
 
 	return result, nil
 }
+
+func (store *Store) FindManyByAssignments(ctx context.Context, userID string, rotationIDs []string) (scheduleIDs []string, err error) {
+	err = permission.LimitCheckAny(ctx, permission.All)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validate.UUID("UserID", userID)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := store.findManyByAssignments.QueryContext(ctx, userID, rotationIDs)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id string
+		err = rows.Scan(&id)
+		if err != nil {
+			return nil, err
+		}
+		scheduleIDs = append(scheduleIDs, id)
+	}
+
+	return scheduleIDs, nil
+}
+
 func (store *Store) Create(ctx context.Context, s *Schedule) (*Schedule, error) {
 	return store.CreateScheduleTx(ctx, nil, s)
 }
