@@ -173,6 +173,20 @@ To configure Mailgun to forward to GoAlert:
 1. In the forward box, enter `<GOALERT_PUBLIC_URL>/api/v2/mailgun/incoming`
 1. Click **Create Route**
 
+### Email/SMTP
+
+GoAlert supports creating alerts from emails received directly as a SMTP server (as an alternative to using Mailgun).
+
+You'll need to create an MX-type DNS record for your GoAlert server.
+
+Note: This SMTP server only handles incoming messages/generating alerts; it will not send outgoing mail. For notifying users via email, you can configure an external SMTP server integration in the admin UI.
+
+To enable the built-in SMTP ingress, pass the `--smtp-listen` and/or `--smtp-listen-tls` flag with the address to listen on, e.g. `--smtp-listen=0.0.0.0:9025`. You may use both flags with different ports.  You must also provide a domain name with `--email-integration-domain`, to be used for generating the alert-creating email addresses.
+
+If you use the TLS variant, you must also pass the TLS cert and key. To do so, use either `--smtp-tls-cert-file` and `--smtp-tls-key-file` (with paths to the cert and key files) or `--smtp-tls-cert-data` and `--smtp-tls-key-data` to pass the cert and key data directly as strings. The cert and key must be PEM-encoded.
+
+By default, only the `--email-integration-domain` will be allowed for the TO address on incoming emails.  To allow other domains, you can pass a comma-separated list of domains to `--smtp-additional-domains`, e.g. `--smtp-allowed-domains="example.com,foo.io"`. Messages addressed to domains not matching the given list will be rejected.
+
 ### Slack
 
 GoAlert supports generating a notification to a Slack channel as part of the Escalation Policy.

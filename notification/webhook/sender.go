@@ -17,11 +17,13 @@ type Sender struct{}
 
 // POSTDataAlert represents fields in outgoing alert notification.
 type POSTDataAlert struct {
-	AppName string
-	Type    string
-	AlertID int
-	Summary string
-	Details string
+	AppName     string
+	Type        string
+	AlertID     int
+	Summary     string
+	Details     string
+	ServiceID   string
+	ServiceName string
 }
 
 // POSTDataAlertBundle represents fields in outgoing alert bundle notification.
@@ -102,11 +104,13 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		}
 	case notification.Alert:
 		payload = POSTDataAlert{
-			AppName: cfg.ApplicationName(),
-			Type:    "Alert",
-			Details: m.Details,
-			AlertID: m.AlertID,
-			Summary: m.Summary,
+			AppName:     cfg.ApplicationName(),
+			Type:        "Alert",
+			Details:     m.Details,
+			AlertID:     m.AlertID,
+			Summary:     m.Summary,
+			ServiceID:   m.ServiceID,
+			ServiceName: m.ServiceName,
 		}
 	case notification.AlertBundle:
 		payload = POSTDataAlertBundle{

@@ -57,6 +57,7 @@ func (app *App) _Shutdown(ctx context.Context) error {
 	// so things like message responses are handled before
 	// shutting down things like the engine or notification manager
 	// that would still need to process them.
+	shut(app.smtpsrv, "SMTP receiver server")
 	shut(app.srv, "HTTP server")
 	shut(app.Engine, "engine")
 	shut(app.events, "event listener")

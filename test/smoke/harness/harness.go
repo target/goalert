@@ -8,6 +8,7 @@ import (
 	"io"
 	stdlog "log"
 	"net/http/httptest"
+	"net/smtp"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -293,6 +294,8 @@ func (h *Harness) Start() {
 	appCfg.TwilioBaseURL = h.twS.URL
 	appCfg.DBMaxOpen = 5
 	appCfg.SlackBaseURL = h.slackS.URL
+	appCfg.SMTPListenAddr = "localhost:0"
+	appCfg.EmailIntegrationDomain = "smoketest.example.com"
 	appCfg.InitialConfig = &h.cfg
 
 	r, w := io.Pipe()
@@ -327,6 +330,14 @@ func (h *Harness) Start() {
 // URL returns the backend server's URL
 func (h *Harness) URL() string {
 	return h.backend.URL()
+}
+
+// SendMail will send an email to the backend's SMTP server.
+func (h *Harness) SendMail(from, to, subject, body string) {
+	h.t.Helper()
+
+	err := smtp.SendMail(h.App().SMTPAddr(), nil, from, []string{to}, []byte(fmt.Sprintf("Subject: %s\r\n\r\n%s", subject, body)))
+	require.NoError(h.t, err)
 }
 
 // Migrate will perform `steps` number of migrations.
