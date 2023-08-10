@@ -94,7 +94,7 @@ function testSteps(screen: ScreenFormat): void {
         .then(() => {
           const delay = c.integer({ min: 1, max: 9000 })
 
-          cy.get('ul[data-cy=steps-list] :nth-child(1) li')
+          cy.get('ul[data-cy=steps-list] :nth-child(2) li')
             .should('contain', 'Step #')
             .find('button[data-cy=other-actions]')
             .menu('Edit')
@@ -150,7 +150,7 @@ function testSteps(screen: ScreenFormat): void {
       cy.get('@slackRedirect').should('be.called')
 
       // open edit step dialog
-      cy.get('ul[data-cy=steps-list] :nth-child(1) li')
+      cy.get('ul[data-cy=steps-list] :nth-child(2) li')
         .find('button[data-cy=other-actions]')
         .menu('Edit')
 
@@ -173,7 +173,7 @@ function testSteps(screen: ScreenFormat): void {
 
     it('should delete a step', () => {
       cy.createEPStep({ epID: ep.id }).then(() => cy.reload())
-      cy.get('ul[data-cy=steps-list] :nth-child(1) li')
+      cy.get('ul[data-cy=steps-list] :nth-child(2) li')
         .find('button[data-cy=other-actions]')
         .menu('Delete')
       cy.dialogTitle('Are you sure?')
@@ -203,41 +203,42 @@ function testSteps(screen: ScreenFormat): void {
           })
         })
         .then(() => {
+          // length of 4 = 3 steps + 1 subheader
           cy.get('ul[data-cy=steps-list]')
             .should('contain', 'Step #3')
             .find('li')
-            .should('have.length', 3)
+            .should('have.length', 4)
 
           // pick up first step
           cy.get('[id="drag-0"]').focus()
           cy.focused().type('{enter}')
           cy.get('body').should(
             'contain',
-            'Picked up sortable item 0. Sortable item 0 is in position 1 of 3',
+            'Picked up sortable item 1. Sortable item 1 is in position 1 of 3',
           )
 
           // re-order
           cy.focused().type('{downarrow}', { force: true })
           cy.get('body').should(
             'contain',
-            'Sortable item 0 was moved into position 2 of 3',
+            'Sortable item 1 was moved into position 2 of 3',
           )
 
           // place step, calls mutation
           cy.focused().type('{enter}', { force: true })
           cy.get('body').should(
             'contain',
-            'Sortable item 0 was dropped at position 2 of 3',
+            'Sortable item 1 was dropped at position 2 of 3',
           )
 
           // verify re-order
-          cy.get('ul[data-cy=steps-list] :nth-child(1) li')
+          cy.get('ul[data-cy=steps-list] :nth-child(2) li')
             .should('contain', 'Step #1')
             .should('contain', s2.delayMinutes)
-          cy.get('ul[data-cy=steps-list] :nth-child(2) li')
+          cy.get('ul[data-cy=steps-list] :nth-child(3) li')
             .should('contain', 'Step #2')
             .should('contain', s1.delayMinutes)
-          cy.get('ul[data-cy=steps-list] :nth-child(3) li')
+          cy.get('ul[data-cy=steps-list] :nth-child(4) li')
             .should('contain', 'Step #3')
             .should('contain', s3.delayMinutes)
         })
@@ -288,7 +289,7 @@ testScreen('Webhook Support', (screen: ScreenFormat) => {
     cy.get('div[data-cy=webhook-chip]').should('contain', 'example.com')
 
     // open edit step dialog
-    cy.get('ul[data-cy=steps-list] :nth-child(1) li')
+    cy.get('ul[data-cy=steps-list] :nth-child(2) li')
       .find('button[data-cy=other-actions]')
       .menu('Edit')
 

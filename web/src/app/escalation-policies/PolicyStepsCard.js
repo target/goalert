@@ -146,10 +146,6 @@ export default function PolicyStepsCard(props) {
   }
 
   const { message: errMsg } = error || {}
-  let stepIDs = steps.map((s) => s.id)
-  lastSwap.forEach((s) => {
-    stepIDs = reorderList(stepIDs, s.oldIndex, s.newIndex)
-  })
 
   return (
     <React.Fragment>
@@ -183,8 +179,8 @@ export default function PolicyStepsCard(props) {
           data-cy='steps-list'
           emptyMessage='No steps currently on this Escalation Policy'
           headerNote='Notify the following:'
-          items={steps.map((step, index) => ({
-            id: String(stepIDs[index]),
+          items={steps.map((step) => ({
+            id: step.id,
             disableTypography: true,
             title: (
               <Typography component='h4' variant='subtitle1' sx={{ pb: 1 }}>
@@ -206,7 +202,7 @@ export default function PolicyStepsCard(props) {
                   },
                   {
                     label: 'Delete',
-                    onClick: () => setDeleteStep(step),
+                    onClick: () => setDeleteStep(step.id),
                   },
                 ]}
               />

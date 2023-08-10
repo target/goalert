@@ -346,6 +346,7 @@ export default function FlatList({
             key={`${idx}-${item.id}`}
             index={idx}
             item={item}
+            id={item.id ?? idx.toString()}
           />
         )
       }
