@@ -15,16 +15,11 @@ export function getAnnouncements(
   items: string[],
   isFirstAnnouncement: MutableRefObject<boolean>,
 ): Announcements {
-  const getPosition = (id: UniqueIdentifier): number =>
-    items.indexOf(id.toString()) + 1
-
   return {
     onDragStart({ active: { id } }) {
       return `Picked up sortable item ${String(
         id,
-      )}. Sortable item ${id} is in position ${getPosition(id)} of ${
-        items.length
-      }`
+      )}. Sortable item ${id} is in position ${id + 1} of ${items.length}`
     },
     onDragOver({ active, over }) {
       // onDragOver is called right after onDragStart, cancel first run here
@@ -35,22 +30,22 @@ export function getAnnouncements(
       }
 
       if (over) {
-        return `Sortable item ${
-          active.id
-        } was moved into position ${getPosition(over.id)} of ${items.length}`
+        return `Sortable item ${active.id} was moved into position ${
+          over.id + 1
+        } of ${items.length}`
       }
     },
     onDragEnd({ active, over }) {
       if (over) {
-        return `Sortable item ${
-          active.id
-        } was dropped at position ${getPosition(over.id)} of ${items.length}`
+        return `Sortable item ${active.id} was dropped at position ${
+          over.id + 1
+        } of ${items.length}`
       }
     },
     onDragCancel({ active: { id } }) {
-      return `Sorting was cancelled. Sortable item ${id} was dropped and returned to position ${getPosition(
-        id,
-      )} of ${items.length}.`
+      return `Sorting was cancelled. Sortable item ${id} was dropped and returned to position ${
+        id + 1
+      } of ${items.length}.`
     },
   }
 }
@@ -59,13 +54,11 @@ const animateLayoutChanges: AnimateLayoutChanges = (args) =>
   args.isSorting || args.wasDragging ? defaultAnimateLayoutChanges(args) : true
 
 interface DraggableListItemProps {
-  id: string
   index: number
   item: FlatListItemType
 }
 
 export function DraggableListItem({
-  id,
   index,
   item,
 }: DraggableListItemProps): JSX.Element {
@@ -79,7 +72,7 @@ export function DraggableListItem({
     transition,
   } = useSortable({
     animateLayoutChanges,
-    id,
+    id: index,
   })
 
   return (
