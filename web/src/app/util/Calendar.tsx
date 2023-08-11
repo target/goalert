@@ -117,8 +117,8 @@ export type ScheduleCalendarEvent =
 interface CalendarProps {
   scheduleID?: string
   shifts: OnCallShift[]
-  overrides: UserOverride[]
-  temporarySchedules: TemporarySchedule[]
+  overrides?: UserOverride[]
+  temporarySchedules?: TemporarySchedule[]
   loading: boolean
 }
 
@@ -228,9 +228,9 @@ export default function Calendar(props: CalendarProps): JSX.Element {
   }
 
   const getCalEvents = (
-    shifts: OnCallShift[],
-    _tempScheds: TemporarySchedule[],
-    userOverrides: UserOverride[],
+    shifts: OnCallShift[] = [],
+    _tempScheds: TemporarySchedule[] = [],
+    userOverrides: UserOverride[] = [],
   ): ScheduleCalendarEvent[] => {
     const tempSchedules: TempSchedEvent[] = _tempScheds.map((sched) => ({
       type: 'tempSched',

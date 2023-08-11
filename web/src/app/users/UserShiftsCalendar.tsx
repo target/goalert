@@ -54,12 +54,5 @@ export default function UserShiftsCalendar({
   if (isMobile) return null
   if (error) return <GenericError error={error.message} />
 
-  return (
-    <Calendar
-      loading={fetching}
-      shifts={data?.schedule?.shifts ?? []}
-      temporarySchedules={data?.schedule?.temporarySchedules ?? []}
-      overrides={data?.userOverrides?.nodes ?? []}
-    />
-  )
+  return <Calendar loading={fetching} shifts={data?.userShifts} />
 }
