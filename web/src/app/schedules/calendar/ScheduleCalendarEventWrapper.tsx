@@ -35,11 +35,13 @@ const useStyles = makeStyles({
 interface ScheduleCalendarEventWrapperProps {
   children: JSX.Element
   event: ScheduleCalendarEvent
+  scheduleID?: string
 }
 
 export default function ScheduleCalendarEventWrapper({
   event,
   children,
+  scheduleID,
 }: ScheduleCalendarEventWrapperProps): JSX.Element {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
@@ -84,10 +86,11 @@ export default function ScheduleCalendarEventWrapper({
   function renderTempSchedButtons(
     calEvent: TempSchedEvent | TempSchedShiftEvent,
   ): JSX.Element {
-    if (DateTime.fromJSDate(calEvent.end) <= DateTime.utc()) {
+    if (!scheduleID || DateTime.fromJSDate(calEvent.end) <= DateTime.utc()) {
       // no actions on past events
       return <React.Fragment />
     }
+
     return (
       <React.Fragment>
         <Grid item>
@@ -166,7 +169,7 @@ export default function ScheduleCalendarEventWrapper({
   }
 
   function renderButtons(): JSX.Element {
-    if (DateTime.fromJSDate(event.end) <= DateTime.utc())
+    if (!scheduleID || DateTime.fromJSDate(event.end) <= DateTime.utc())
       return <React.Fragment />
     if (event.type === 'tempSched')
       return renderTempSchedButtons(event as TempSchedEvent)
@@ -271,13 +274,13 @@ export default function ScheduleCalendarEventWrapper({
         'aria-pressed': open,
         'aria-describedby': id,
       })}
-      {showEditDialog && (
+      {scheduleID && showEditDialog && (
         <ScheduleOverrideEditDialog
           overrideID={showEditDialog}
           onClose={() => setShowEditDialog('')}
         />
       )}
-      {showDeleteDialog && (
+      {scheduleID && showDeleteDialog && (
         <ScheduleOverrideDeleteDialog
           overrideID={showDeleteDialog}
           onClose={() => setShowDeleteDialog('')}

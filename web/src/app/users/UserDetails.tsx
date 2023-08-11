@@ -132,7 +132,13 @@ export default function UserDetails(props: {
 
   if (userID === currentUserID) {
     links.push({
-      label: 'Schedule Calendar Subscriptions',
+      label: 'Schedule Calendar',
+      url: 'calendar',
+      subText: 'View your shifts across all schedules',
+    })
+
+    links.push({
+      label: 'External Calendar Subscriptions',
       url: 'schedule-calendar-subscriptions',
       subText: 'Manage schedules you have subscribed to',
     })

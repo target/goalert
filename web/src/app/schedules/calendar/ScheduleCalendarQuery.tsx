@@ -1,11 +1,11 @@
 import React from 'react'
 import { gql, useQuery } from 'urql'
-import ScheduleCalendar from './ScheduleCalendar'
 import { getStartOfWeek, getEndOfWeek } from '../../util/luxon-helpers'
 import { DateTime } from 'luxon'
 import { useIsWidthDown } from '../../util/useWidth'
 import { GenericError, ObjectNotFound } from '../../error-pages'
-import { useCalendarNavigation } from './hooks'
+import { useCalendarNavigation } from '../../util/cal'
+import Calendar from '../../util/Calendar'
 
 const query = gql`
   query scheduleCalendarShifts(
@@ -104,7 +104,7 @@ function ScheduleCalendarQuery({
     return <ObjectNotFound type='schedule' />
 
   return (
-    <ScheduleCalendar
+    <Calendar
       scheduleID={scheduleID}
       loading={fetching}
       shifts={data?.schedule?.shifts ?? []}
