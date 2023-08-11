@@ -17,6 +17,10 @@ const query = gql`
       start
       end
       truncated
+      user {
+        id
+        name
+      }
     }
   }
 `
