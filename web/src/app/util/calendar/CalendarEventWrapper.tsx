@@ -5,11 +5,11 @@ import Popover from '@mui/material/Popover'
 import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
-import { OverrideDialogContext } from '../ScheduleDetails'
+import { OverrideDialogContext } from '../../schedules/ScheduleDetails'
 import CardActions from '../../details/CardActions'
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material'
-import ScheduleOverrideEditDialog from '../ScheduleOverrideEditDialog'
-import ScheduleOverrideDeleteDialog from '../ScheduleOverrideDeleteDialog'
+import ScheduleOverrideEditDialog from '../../schedules/ScheduleOverrideEditDialog'
+import ScheduleOverrideDeleteDialog from '../../schedules/ScheduleOverrideDeleteDialog'
 import { User } from '../../../schema'
 import {
   OverrideEvent,
@@ -17,7 +17,7 @@ import {
   TempSchedEvent,
   TempSchedShiftEvent,
   OnCallShiftEvent,
-} from './ScheduleCalendar'
+} from './Calendar'
 
 const useStyles = makeStyles({
   cardActionContainer: {

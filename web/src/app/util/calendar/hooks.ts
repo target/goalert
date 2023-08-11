@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
-import { useURLParams } from '../actions/hooks'
-import { getStartOfWeek } from './luxon-helpers'
+import { useURLParams } from '../../actions/hooks'
+import { getStartOfWeek } from '../luxon-helpers'
 
 interface CalendarNavParams {
   weekly: boolean

@@ -1,11 +1,11 @@
 import React from 'react'
 import { gql, useQuery } from 'urql'
-import { getStartOfWeek, getEndOfWeek } from '../../util/luxon-helpers'
+import { getStartOfWeek, getEndOfWeek } from '../util/luxon-helpers'
 import { DateTime } from 'luxon'
-import { useIsWidthDown } from '../../util/useWidth'
-import { GenericError, ObjectNotFound } from '../../error-pages'
-import { useCalendarNavigation } from '../../util/cal'
-import Calendar from '../../util/Calendar'
+import { useIsWidthDown } from '../util/useWidth'
+import { GenericError, ObjectNotFound } from '../error-pages'
+import { useCalendarNavigation } from '../util/calendar/hooks'
+import Calendar from '../util/calendar/Calendar'
 
 const query = gql`
   query scheduleCalendarShifts(

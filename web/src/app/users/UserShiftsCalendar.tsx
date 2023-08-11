@@ -4,8 +4,8 @@ import { getStartOfWeek, getEndOfWeek } from '../util/luxon-helpers'
 import { DateTime } from 'luxon'
 import { useIsWidthDown } from '../util/useWidth'
 import { GenericError } from '../error-pages'
-import { useCalendarNavigation } from '../util/cal'
-import Calendar from '../util/Calendar'
+import { useCalendarNavigation } from '../util/calendar/hooks'
+import Calendar from '../util/calendar/Calendar'
 
 const query = gql`
   query userCalendarShifts(

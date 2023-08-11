@@ -8,26 +8,26 @@ import Switch from '@mui/material/Switch'
 import Typography from '@mui/material/Typography'
 import { Calendar as RBCalendar } from 'react-big-calendar'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
-import ScheduleCalendarToolbar from '../schedules/calendar/ScheduleCalendarToolbar'
-import { useResetURLParams, useURLParam } from '../actions'
+import ScheduleCalendarToolbar from './CalendarToolbar'
+import { useResetURLParams, useURLParam } from '../../actions'
 import { DateTime, Interval } from 'luxon'
-import LuxonLocalizer from './LuxonLocalizer'
-import { parseInterval, trimSpans } from './shifts'
+import LuxonLocalizer from '../LuxonLocalizer'
+import { parseInterval, trimSpans } from '../shifts'
 import _ from 'lodash'
 import GroupAdd from '@mui/icons-material/GroupAdd'
 import { AccountSwitch, AccountMinus, AccountPlus } from 'mdi-material-ui'
-import FilterContainer from './FilterContainer'
-import { UserSelect } from '../selection'
-import SpinContainer from '../loading/components/SpinContainer'
-import { useCalendarNavigation } from './cal'
-import { OverrideDialogContext } from '../schedules/ScheduleDetails'
+import FilterContainer from '../FilterContainer'
+import { UserSelect } from '../../selection'
+import SpinContainer from '../../loading/components/SpinContainer'
+import { useCalendarNavigation } from './hooks'
+import { OverrideDialogContext } from '../../schedules/ScheduleDetails'
 import {
   OnCallShift,
   TemporarySchedule,
   User,
   UserOverride,
-} from '../../schema'
-import ScheduleCalendarEventWrapper from '../schedules/calendar/ScheduleCalendarEventWrapper'
+} from '../../../schema'
+import ScheduleCalendarEventWrapper from './CalendarEventWrapper'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 

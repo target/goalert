@@ -9,8 +9,8 @@ import {
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
 import { DateTime } from 'luxon'
-import { getEndOfWeek, getStartOfWeek } from '../../util/luxon-helpers'
-import { useCalendarNavigation } from '../../util/cal'
+import { getEndOfWeek, getStartOfWeek } from '../luxon-helpers'
+import { useCalendarNavigation } from './hooks'
 import LeftIcon from '@mui/icons-material/ChevronLeft'
 import RightIcon from '@mui/icons-material/ChevronRight'
 
