@@ -428,8 +428,8 @@ github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyua
 github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/mitchellh/reflectwalk v1.0.2 h1:G2LzWKi524PWgd3mLHV8Y5k7s6XUvT0Gef6zxSIeXaQ=
 github.com/mitchellh/reflectwalk v1.0.2/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx0jmZXqmk4esnw=
-github.com/mnako/letters v0.1.3 h1:HXAEl282TzdTOjUlj1jJLHCJRsz1dJg8aRlxT2a1a2E=
-github.com/mnako/letters v0.1.3/go.mod h1:tXj3iR57F83SroruFvLClwPjLmj7w2hf683MszAoHTQ=
+github.com/mnako/letters v0.1.4 h1:sYkkrXKUaXxOQuYtBdkpRwH4829Urps4iwMnwkBgEB0=
+github.com/mnako/letters v0.1.4/go.mod h1:mUTw29x4beuYHT0ceDpUWjBDaHKL9wfJAohoqcTnH20=
 github.com/nishanths/predeclared v0.0.0-20200524104333-86fad755b4d3/go.mod h1:nt3d53pc1VYcphSCIaYAJtnPYnr3Zyn8fMq2wvPGPso=
 github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282 h1:TQMyrpijtkFyXpNI3rY5hsZQZw+paiH+BfAlsb81HBY=
 github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282/go.mod h1:rW25Kyd08Wdn3UVn0YBsDTSvReu0jqpmJKzxITPSjks=
