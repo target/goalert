@@ -133,7 +133,7 @@ export default function UserDetails(props: {
   if (userID === currentUserID) {
     links.push({
       label: 'Schedule Calendar',
-      url: 'calendar',
+      url: 'schedule-calendar',
       subText: 'View your shifts across all schedules',
     })
 
@@ -147,7 +147,7 @@ export default function UserDetails(props: {
   if (isAdmin || userID === currentUserID) {
     links.push({
       label: 'Active Sessions',
-      url: 'sessions',
+      url: 'active-sessions',
       subText: `${sessCount || 'No'} active session${
         sessCount === 1 ? '' : 's'
       }`,
