@@ -194,23 +194,20 @@ func (s *Store) OnCallUsersBySchedule(ctx context.Context, scheduleID string) ([
 	return result, nil
 }
 
-func filterShifts(s []Shift, userID string) []Shift {
-	var shifts []Shift
-	for _, shift := range s {
-		if shift.UserID == userID {
-			shifts = append(shifts, shift)
-		}
-	}
-	return shifts
-}
-
 func (s *Store) ShiftsByUser(ctx context.Context, scheduleID string, start, end time.Time, userID string) ([]Shift, error) {
 	shifts, err := s.HistoryBySchedule(ctx, scheduleID, start, end)
 	if err != nil {
 		return nil, err
 	}
 
-	return filterShifts(shifts, userID), nil
+	var filteredShifts []Shift
+	for _, shift := range shifts {
+		if shift.UserID == userID {
+			shifts = append(shifts, shift)
+		}
+	}
+
+	return filteredShifts, nil
 }
 
 // HistoryBySchedule will return the list of shifts that overlap the start and end time for the given schedule.
