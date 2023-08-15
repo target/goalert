@@ -872,6 +872,7 @@ type OnCallNotificationRule {
 type OnCallShift {
   userID: ID!
   user: User
+  target: Target!
   start: ISOTimestamp!
   end: ISOTimestamp!
   truncated: Boolean!

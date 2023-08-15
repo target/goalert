@@ -17,8 +17,8 @@ const query = gql`
       start
       end
       truncated
-      user {
-        id
+      target {
+        type
         name
       }
     }

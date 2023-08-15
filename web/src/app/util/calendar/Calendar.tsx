@@ -255,7 +255,7 @@ export default function Calendar(props: CalendarProps): JSX.Element {
           type: 'tempSchedShift',
           start: new Date(s.start),
           end: new Date(s.end),
-          title: s.user?.name || '',
+          title: s.user?.name ?? s.target?.name ?? '',
           tempSched: sched,
           user: s.user ?? undefined,
         }))
@@ -279,7 +279,7 @@ export default function Calendar(props: CalendarProps): JSX.Element {
       start: new Date(s.start),
       end: new Date(s.end),
       type: 'onCallShift',
-      title: s.user?.name || '',
+      title: s.user?.name ?? s.target?.name ?? '',
       user: s.user ?? undefined,
     }))
 

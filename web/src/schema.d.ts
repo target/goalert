@@ -682,6 +682,7 @@ export interface OnCallNotificationRule {
 export interface OnCallShift {
   userID: string
   user?: null | User
+  target: Target
   start: ISOTimestamp
   end: ISOTimestamp
   truncated: boolean

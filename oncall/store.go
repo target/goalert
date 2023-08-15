@@ -36,10 +36,11 @@ type ServiceOnCallUser struct {
 // the time the user stopped being on call, instead it indicates
 // they were still on-call at that time.
 type Shift struct {
-	UserID    string    `json:"user_id"`
-	Start     time.Time `json:"start_time"`
-	End       time.Time `json:"end_time"`
-	Truncated bool      `json:"truncated"`
+	UserID    string               `json:"user_id"`
+	Start     time.Time            `json:"start_time"`
+	End       time.Time            `json:"end_time"`
+	Truncated bool                 `json:"truncated"`
+	Target    assignment.RawTarget `json:"target"`
 }
 
 // Store allows retrieving and calculating on-call information.
@@ -52,6 +53,7 @@ type Store struct {
 
 	schedOnCall *sql.Stmt
 	schedTZ     *sql.Stmt
+	schedName   *sql.Stmt
 	schedRot    *sql.Stmt
 	rotParts    *sql.Stmt
 
@@ -107,7 +109,8 @@ func NewStore(ctx context.Context, db *sql.DB, ruleStore *rule.Store, schedStore
 				tstzrange($2, $3) && tstzrange(start_time, end_time) and
 				(end_time isnull or (end_time - start_time) > '1 minute'::interval)
 		`),
-		schedTZ: p.P(`select time_zone, now() from schedules where id = $1`),
+		schedTZ:   p.P(`select time_zone, now() from schedules where id = $1`),
+		schedName: p.P(`select name from schedules where id = $1`),
 		schedRot: p.P(`
 			select distinct
 				rot.id,
@@ -230,6 +233,12 @@ func (s *Store) HistoryBySchedule(ctx context.Context, scheduleID string, start,
 	}
 	defer sqlutil.Rollback(ctx, "oncall: fetch schedule history", tx)
 
+	var schedName string
+	err = tx.StmtContext(ctx, s.schedName).QueryRowContext(ctx, scheduleID).Scan(&schedName)
+	if err != nil {
+		return nil, errors.Wrap(err, "lookup schedule name")
+	}
+
 	var schedTZ string
 	var now time.Time
 	err = tx.StmtContext(ctx, s.schedTZ).QueryRowContext(ctx, scheduleID).Scan(&schedTZ, &now)
@@ -344,6 +353,10 @@ func (s *Store) HistoryBySchedule(ctx context.Context, scheduleID string, start,
 		return nil, errors.Wrap(err, "load time zone info")
 	}
 	st := state{
+		schedule: schedule.Schedule{
+			ID:   scheduleID,
+			Name: schedName,
+		},
 		rules:      rules,
 		overrides:  overrides,
 		history:    userHistory,
