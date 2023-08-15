@@ -291,6 +291,9 @@ func (a *Query) UserShifts(ctx context.Context, opts *graphql2.UserShiftsOptions
 
 	// get list of schedules user is on as a direct assignment, or indirectly from a rotation
 	sIDs, err := (*App)(a).ScheduleStore.FindManyByAssignments(ctx, userID, rIDs)
+	if err != nil {
+		return nil, err
+	}
 
 	// calculate shifts for each schedule found
 	var result []oncall.Shift
