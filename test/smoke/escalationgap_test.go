@@ -6,7 +6,7 @@ import (
 	"github.com/target/goalert/test/smoke/harness"
 )
 
-// TestEscalationGap tests that escalation policy step discrepencies are handled.
+// TestEscalationGap tests that escalation policy step discrepancies are handled.
 func TestEscalationGap(t *testing.T) {
 	t.Parallel()
 

@@ -2,7 +2,7 @@
 
 This guide assumes you have the commands `podman` (or `docker`), `go` (>= 1.19), `node` (>= 16.10), and `make` installed/available.
 
-Targets like `make start` will automatically fallback to the `docker` command if `podman` is not available. The container tool command can be overriden by setting the `CONTAINER_TOOL` variable.
+Targets like `make start` will automatically fallback to the `docker` command if `podman` is not available. The container tool command can be overridden by setting the `CONTAINER_TOOL` variable.
 
 If you use Visual Studio Code, run `make vscode` to setup integrations for the project.
 

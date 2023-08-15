@@ -49,7 +49,7 @@ type Gather struct {
 	// It should be ignored if SpeechTimeoutAuto is true. Defaults to TimeoutDur.
 	SpeechTimeoutDur time.Duration `xml:"-"`
 
-	// SpeechTimeoutAuto will be ture if the `speechTimeout` value is set to true.
+	// SpeechTimeoutAuto will be true if the `speechTimeout` value is set to true.
 	SpeechTimeoutAuto bool `xml:"-"`
 
 	SpeechModel string `xml:"speechModel,attr,omitempty"`
