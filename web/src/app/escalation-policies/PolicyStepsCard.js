@@ -49,54 +49,11 @@ export default function PolicyStepsCard(props) {
   const resetEditStep = useResetURLParams('editStep')
   const [deleteStep, setDeleteStep] = useState('')
 
-  function arrayMove(arr) {
-    const el = arr[oldIdx.current]
-    arr.splice(oldIdx.current, 1)
-    arr.splice(newIdx.current, 0, el)
-  }
-
-  function onStepUpdate(cache, data) {
-    // mutation returns true on a success
-    if (
-      !data.updateEscalationPolicy ||
-      oldIdx.current == null ||
-      newIdx.current == null
-    ) {
-      return
-    }
-
-    // variables for query to read/write from the cache
-    const variables = {
-      id: escalationPolicyID,
-    }
-
-    // get the current state of the steps in the cache
-    const { escalationPolicy } = cache.readQuery({
-      query: policyStepsQuery,
-      variables,
-    })
-
-    // get steps from cache
-    const steps = escalationPolicy.steps.slice()
-
-    // if optimistic cache update was successful, return out
-    if (steps[newIdx.current].id === oldID.current) return
-
-    // re-order escalationPolicy.steps array
-    arrayMove(steps)
-
-    // write new steps order to cache
-    cache.writeQuery({
-      query: policyStepsQuery,
-      variables,
-      data: {
-        escalationPolicy: {
-          ...escalationPolicy,
-          steps,
-        },
-      },
-    })
-  }
+  // function arrayMove(arr) {
+  //   const el = arr[oldIdx.current]
+  //   arr.splice(oldIdx.current, 1)
+  //   arr.splice(newIdx.current, 0, el)
+  // }
 
   const [updateEscalationPolicy] = useMutation(mutation, {
     onCompleted: () => {
@@ -105,8 +62,6 @@ export default function PolicyStepsCard(props) {
       newIdx.current = null
     },
     onError: (err) => setError(err),
-    update: (cache, { data }) => onStepUpdate(cache, data),
-    optimisticResponse: { updateEscalationPolicy: true },
   })
 
   function onReorder(oldIndex, newIndex) {
@@ -124,6 +79,39 @@ export default function PolicyStepsCard(props) {
           id: escalationPolicyID,
           stepIDs: updatedStepIDs,
         },
+      },
+      update: (cache, { data }) => {
+        // mutation returns true on a success
+        if (!data.updateEscalationPolicy) {
+          return
+        }
+
+        // get the current state of the steps in the cache
+        const { escalationPolicy } = cache.readQuery({
+          query: policyStepsQuery,
+          variables: { id: escalationPolicyID },
+        })
+        const steps = escalationPolicy.steps.slice()
+
+        if (steps.length > 0) {
+          const newSteps = reorderList(steps, oldIndex, newIndex)
+
+          // write new steps order to cache
+          cache.writeQuery({
+            query: policyStepsQuery,
+            variables: { id: escalationPolicyID },
+            data: {
+              escalationPolicy: {
+                ...escalationPolicy,
+                steps: newSteps,
+              },
+            },
+          })
+        }
+      },
+      optimisticResponse: {
+        __typename: 'Mutation',
+        updateEscalationPolicy: true,
       },
     })
   }
