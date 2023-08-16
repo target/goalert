@@ -678,6 +678,7 @@ export interface OnCallShift {
   start: ISOTimestamp
   end: ISOTimestamp
   truncated: boolean
+  target: Target
 }
 
 export interface ScheduleTarget {

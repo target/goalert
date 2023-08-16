@@ -360,6 +360,7 @@ type ComplexityRoot struct {
 	OnCallShift struct {
 		End       func(childComplexity int) int
 		Start     func(childComplexity int) int
+		Target    func(childComplexity int) int
 		Truncated func(childComplexity int) int
 		User      func(childComplexity int) int
 		UserID    func(childComplexity int) int
@@ -2342,6 +2343,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.OnCallShift.Start(childComplexity), true
+
+	case "OnCallShift.target":
+		if e.complexity.OnCallShift.Target == nil {
+			break
+		}
+
+		return e.complexity.OnCallShift.Target(childComplexity), true
 
 	case "OnCallShift.truncated":
 		if e.complexity.OnCallShift.Truncated == nil {
@@ -14287,6 +14295,58 @@ func (ec *executionContext) fieldContext_OnCallShift_truncated(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _OnCallShift_target(ctx context.Context, field graphql.CollectedField, obj *oncall.Shift) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OnCallShift_target(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Target, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(assignment.RawTarget)
+	fc.Result = res
+	return ec.marshalNTarget2githubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OnCallShift_target(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OnCallShift",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Target_id(ctx, field)
+			case "type":
+				return ec.fieldContext_Target_type(ctx, field)
+			case "name":
+				return ec.fieldContext_Target_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Target", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graphql.CollectedField, obj *PageInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PageInfo_endCursor(ctx, field)
 	if err != nil {
@@ -19102,6 +19162,8 @@ func (ec *executionContext) fieldContext_Schedule_shifts(ctx context.Context, fi
 				return ec.fieldContext_OnCallShift_end(ctx, field)
 			case "truncated":
 				return ec.fieldContext_OnCallShift_truncated(ctx, field)
+			case "target":
+				return ec.fieldContext_OnCallShift_target(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OnCallShift", field.Name)
 		},
@@ -21731,6 +21793,8 @@ func (ec *executionContext) fieldContext_TemporarySchedule_shifts(ctx context.Co
 				return ec.fieldContext_OnCallShift_end(ctx, field)
 			case "truncated":
 				return ec.fieldContext_OnCallShift_truncated(ctx, field)
+			case "target":
+				return ec.fieldContext_OnCallShift_target(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OnCallShift", field.Name)
 		},
@@ -33105,6 +33169,11 @@ func (ec *executionContext) _OnCallShift(ctx context.Context, sel ast.SelectionS
 			}
 		case "truncated":
 			out.Values[i] = ec._OnCallShift_truncated(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "target":
+			out.Values[i] = ec._OnCallShift_target(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}

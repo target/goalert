@@ -24,6 +24,7 @@ type ResolvedRotation struct {
 }
 
 type state struct {
+	schedule   schedule.Schedule
 	tempScheds []schedule.TemporarySchedule
 	rules      []ResolvedRule
 	overrides  []override.UserOverride
@@ -124,7 +125,7 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 	isOnCall := make(map[string]*Shift)
 	stillOnCall := make(map[string]bool)
 
-	setOnCall := func(userIDs []string) {
+	setOnCall := func(userIDs []string, shiftType assignment.TargetType) {
 		// reset map
 		for id := range stillOnCall {
 			delete(stillOnCall, id)
@@ -132,25 +133,36 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 		now := time.Unix(t.Unix(), 0)
 		for _, id := range userIDs {
 			stillOnCall[id] = true
-			s := isOnCall[id]
-			if s != nil {
+			o := isOnCall[id]
+			if o != nil {
 				continue
 			}
 
 			isOnCall[id] = &Shift{
 				Start:  now,
 				UserID: id,
+				Target: assignment.RawTarget{
+					Type: shiftType,
+					ID:   s.schedule.ID,
+					Name: s.schedule.Name,
+				},
 			}
 		}
-		for id, s := range isOnCall {
+		for id, shift := range isOnCall {
 			if stillOnCall[id] {
 				continue
 			}
 
+			shift.Target = assignment.RawTarget{
+				Type: shiftType,
+				ID:   s.schedule.ID,
+				Name: s.schedule.Name,
+			}
+
 			// no longer on call
 			if now.After(start) {
-				s.End = now
-				shifts = append(shifts, *s)
+				shift.End = now
+				shifts = append(shifts, *shift)
 			}
 			delete(isOnCall, id)
 		}
@@ -159,18 +171,18 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 	for t.Next() {
 		if time.Unix(t.Unix(), 0).Before(historyCutoff) {
 			// use history if in the past
-			setOnCall(hist.ActiveUsers())
+			setOnCall(hist.ActiveUsers(), assignment.TargetTypeSchedule)
 			continue
 		}
 
 		if tempScheds.Active() {
 			// use TemporarySchedule if one is active
-			setOnCall(tempScheds.ActiveUsers())
+			setOnCall(tempScheds.ActiveUsers(), assignment.TargetTypeSchedule)
 			continue
 		}
 
 		// apply any overrides
-		setOnCall(overrides.MapUsers(rules.ActiveUsers()))
+		setOnCall(overrides.MapUsers(rules.ActiveUsers()), assignment.TargetTypeUserOverride)
 	}
 
 	// remaining shifts are truncated

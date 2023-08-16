@@ -864,6 +864,7 @@ type OnCallShift {
   start: ISOTimestamp!
   end: ISOTimestamp!
   truncated: Boolean!
+  target: Target!
 }
 
 type ScheduleTarget {
