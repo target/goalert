@@ -1,10 +1,10 @@
 module github.com/target/goalert
 
-go 1.20
+go 1.21
 
 require (
 	github.com/99designs/gqlgen v0.17.36
-	github.com/brianvoe/gofakeit/v6 v6.23.0
+	github.com/brianvoe/gofakeit/v6 v6.23.1
 	github.com/coreos/go-oidc/v3 v3.6.0
 	github.com/creack/pty v1.1.18
 	github.com/davecgh/go-spew v1.1.1
@@ -30,7 +30,7 @@ require (
 	github.com/mailhog/data v1.0.1
 	github.com/mailhog/storage v1.0.1
 	github.com/matcornic/hermes/v2 v2.1.0
-	github.com/mnako/letters v0.1.3
+	github.com/mnako/letters v0.1.4
 	github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282
 	github.com/pelletier/go-toml/v2 v2.0.9
 	github.com/pkg/errors v0.9.1
