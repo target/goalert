@@ -203,7 +203,7 @@ func (s *Store) ShiftsByUser(ctx context.Context, scheduleID string, start, end 
 	var filteredShifts []Shift
 	for _, shift := range shifts {
 		if shift.UserID == userID {
-			shifts = append(shifts, shift)
+			filteredShifts = append(filteredShifts, shift)
 		}
 	}
 
