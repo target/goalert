@@ -254,7 +254,6 @@ export default function ScheduleCalendarEventWrapper({
           horizontal: 'left',
         }}
         PaperProps={{
-          // @ts-expect-error - DOM attr for tests
           'data-cy': 'shift-tooltip',
         }}
         classes={{
