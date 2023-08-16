@@ -49,12 +49,6 @@ export default function PolicyStepsCard(props) {
   const resetEditStep = useResetURLParams('editStep')
   const [deleteStep, setDeleteStep] = useState('')
 
-  // function arrayMove(arr) {
-  //   const el = arr[oldIdx.current]
-  //   arr.splice(oldIdx.current, 1)
-  //   arr.splice(newIdx.current, 0, el)
-  // }
-
   const [updateEscalationPolicy] = useMutation(mutation, {
     onCompleted: () => {
       oldID.current = null
