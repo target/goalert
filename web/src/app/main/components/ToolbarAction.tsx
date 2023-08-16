@@ -1,24 +1,29 @@
 import React from 'react'
 import Hidden from '@mui/material/Hidden'
+import { Theme } from '@mui/material/styles'
 import IconButton from '@mui/material/IconButton'
 import { Menu as MenuIcon, ChevronLeft } from '@mui/icons-material'
 import { useIsWidthDown } from '../../util/useWidth'
-import { PropTypes as p } from 'prop-types'
 import { Route, Switch, useLocation } from 'wouter'
 import { routes } from '../AppRoutes'
 
-function removeLastPartOfPath(path) {
+interface ToolbarActionProps {
+  showMobileSidebar: boolean
+  openMobileSidebar: (arg: boolean) => void
+}
+
+function removeLastPartOfPath(path: string): string {
   const parts = path.split('/')
   parts.pop()
   return parts.join('/')
 }
 
-function ToolbarAction(props) {
+function ToolbarAction(props: ToolbarActionProps): JSX.Element | null {
   const fullScreen = useIsWidthDown('md')
 
   const [, navigate] = useLocation()
 
-  function renderToolbarAction() {
+  function renderToolbarAction(): JSX.Element | null {
     const route = removeLastPartOfPath(window.location.pathname)
 
     // only show back button on mobile
@@ -30,7 +35,7 @@ function ToolbarAction(props) {
         data-cy='nav-back-icon'
         onClick={() => navigate(route)}
         size='large'
-        sx={(theme) => ({
+        sx={(theme: Theme) => ({
           color: theme.palette.mode === 'light' ? 'white' : undefined,
         })}
       >
@@ -39,7 +44,7 @@ function ToolbarAction(props) {
     )
   }
 
-  function renderToolbarMenu() {
+  function renderToolbarMenu(): JSX.Element | null {
     return (
       <Hidden mdUp>
         <IconButton
@@ -48,7 +53,7 @@ function ToolbarAction(props) {
           data-cy='nav-menu-icon'
           onClick={() => props.openMobileSidebar(true)}
           size='large'
-          sx={(theme) => ({
+          sx={(theme: Theme) => ({
             color: theme.palette.mode === 'light' ? 'inherit' : undefined,
           })}
         >
@@ -58,7 +63,7 @@ function ToolbarAction(props) {
     )
   }
 
-  const getRoute = (route, idx) => (
+  const getRoute = (route: string, idx: number): JSX.Element | null => (
     <Route key={idx} path={route}>
       {renderToolbarAction()}
     </Route>
@@ -73,11 +78,6 @@ function ToolbarAction(props) {
       <Route path='/:type/:id'>{renderToolbarMenu()}</Route>
     </Switch>
   )
-}
-
-ToolbarAction.propTypes = {
-  showMobileSidebar: p.bool,
-  openMobileSidebar: p.func,
 }
 
 export default ToolbarAction
