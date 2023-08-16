@@ -77,13 +77,18 @@ const useStyles = makeStyles((theme: Theme) => ({
 }))
 
 interface CalendarEvent {
+  title: React.ReactNode
   start: Date
   end: Date
   user?: {
     name: string
     id: string
   }
-  title: React.ReactNode
+  target?: {
+    id: string
+    type: string
+    name: string
+  }
 }
 
 export interface OnCallShiftEvent extends CalendarEvent {

@@ -18,6 +18,7 @@ import {
   TempSchedShiftEvent,
   OnCallShiftEvent,
 } from './Calendar'
+import AppLink from '../AppLink'
 
 const useStyles = makeStyles({
   cardActionContainer: {
@@ -86,39 +87,28 @@ export default function ScheduleCalendarEventWrapper({
   function renderTempSchedButtons(
     calEvent: TempSchedEvent | TempSchedShiftEvent,
   ): JSX.Element {
-    if (!scheduleID || DateTime.fromJSDate(calEvent.end) <= DateTime.utc()) {
-      // no actions on past events
+    // don't display actions on events in the past
+    if (DateTime.fromJSDate(calEvent.end) <= DateTime.utc()) {
       return <React.Fragment />
     }
 
     return (
-      <React.Fragment>
-        <Grid item>
-          <Button
-            data-cy='edit-temp-sched'
-            size='small'
-            onClick={() => onEditTempSched(calEvent.tempSched)}
-            variant='contained'
-            title='Edit this temporary schedule'
-          >
-            Edit
-          </Button>
-        </Grid>
-        <React.Fragment>
-          <Grid item className={classes.flexGrow} />
-          <Grid item>
-            <Button
-              data-cy='delete-temp-sched'
-              size='small'
-              onClick={() => onDeleteTempSched(calEvent.tempSched)}
-              variant='contained'
-              title='Delete this temporary schedule'
-            >
-              Delete
-            </Button>
-          </Grid>
-        </React.Fragment>
-      </React.Fragment>
+      <div className={classes.cardActionContainer}>
+        <CardActions
+          secondaryActions={[
+            {
+              icon: <EditIcon fontSize='small' />,
+              label: 'Edit',
+              handleOnClick: () => onEditTempSched(calEvent.tempSched),
+            },
+            {
+              icon: <DeleteIcon fontSize='small' />,
+              label: 'Delete',
+              handleOnClick: () => onDeleteTempSched(calEvent.tempSched),
+            },
+          ]}
+        />
+      </div>
     )
   }
 
@@ -169,12 +159,31 @@ export default function ScheduleCalendarEventWrapper({
   }
 
   function renderButtons(): JSX.Element {
-    if (!scheduleID || DateTime.fromJSDate(event.end) <= DateTime.utc())
+    if (!scheduleID) {
+      console.log(event)
+      const id = event?.target?.id ?? ''
+      return (
+        <React.Fragment>
+          <Grid item className={classes.flexGrow} />
+          <Grid item>
+            <Button
+              variant='contained'
+              component={AppLink}
+              to={/schedules/ + id}
+            >
+              Visit Schedule
+            </Button>
+          </Grid>
+        </React.Fragment>
+      )
+    }
+    if (
+      event.type === 'tempSchedShift' ||
+      DateTime.fromJSDate(event.end) <= DateTime.utc()
+    )
       return <React.Fragment />
     if (event.type === 'tempSched')
       return renderTempSchedButtons(event as TempSchedEvent)
-    if (event.type === 'tempSchedShift')
-      return renderTempSchedButtons(event as TempSchedShiftEvent)
     if (event.type === 'override')
       return renderOverrideButtons(event as OverrideEvent)
 
@@ -257,7 +266,7 @@ export default function ScheduleCalendarEventWrapper({
           horizontal: 'left',
         }}
         PaperProps={{
-          // @ts-expect-error - DOM attr for tests
+          // @ts-expect-error for testing
           'data-cy': 'shift-tooltip',
         }}
         classes={{

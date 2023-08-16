@@ -18,6 +18,7 @@ const query = gql`
       end
       truncated
       target {
+        id
         type
         name
       }
