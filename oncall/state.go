@@ -133,8 +133,7 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 		now := time.Unix(t.Unix(), 0)
 		for _, id := range userIDs {
 			stillOnCall[id] = true
-			o := isOnCall[id]
-			if o != nil {
+			if isOnCall[id] != nil {
 				continue
 			}
 
