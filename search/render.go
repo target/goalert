@@ -23,8 +23,8 @@ type RenderData interface {
 // Helpers returns a map of all the helper functions that can be used in a template.
 func Helpers() template.FuncMap {
 	return template.FuncMap{
-		"prefixSearch": func(argName string, columnName string) string {
-			return fmt.Sprintf("lower(%s) ~ all(:~%s)", columnName, argName)
+		"orderedSearch": func(argName string, columnName string) string {
+			return fmt.Sprintf("lower(%s) ~ :~%s", columnName, argName)
 		},
 		"textSearch": func(argName string, columnNames ...string) string {
 			var buf strings.Builder
@@ -42,9 +42,9 @@ func Helpers() template.FuncMap {
 	}
 }
 
-func splitRxTerms(rx string) pgtype.TextArray {
+func orderedRxFromTerms(rx string) pgtype.Text {
 	rx = strings.ToLower(rx)
-	var terms []string
+	var terms string
 	var cur string
 	for _, r := range rx {
 		if unicode.IsLetter(r) || unicode.IsDigit(r) {
@@ -55,15 +55,23 @@ func splitRxTerms(rx string) pgtype.TextArray {
 			continue
 		}
 
-		terms = append(terms, "\\m"+cur)
+		if terms == "" {
+			terms = "\\m" + cur
+		} else {
+			terms = terms + "\\M.*\\m" + cur
+		}
 		cur = ""
 	}
 
 	if cur != "" {
-		terms = append(terms, "\\m"+cur)
+		if terms == "" {
+			terms = "\\m" + cur
+		} else {
+			terms = terms + "\\M.*\\m" + cur
+		}
 	}
 
-	var t pgtype.TextArray
+	var t pgtype.Text
 	_ = t.Set(terms)
 
 	return t
@@ -94,7 +102,7 @@ func RenderQuery(ctx context.Context, tmpl *template.Template, data RenderData) 
 			}
 
 			query = strings.ReplaceAll(query, ":~"+arg.Name, "$"+strconv.Itoa(n))
-			args = append(args, splitRxTerms(val))
+			args = append(args, orderedRxFromTerms(val))
 			n++
 		}
 		rep := ":" + arg.Name
