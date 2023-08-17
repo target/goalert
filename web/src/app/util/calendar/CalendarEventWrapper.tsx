@@ -238,6 +238,11 @@ export default function ScheduleCalendarEventWrapper({
 
     return (
       <Grid container spacing={1}>
+        <Grid item xs={12}>
+          <Typography variant='body2'>
+            <b>{scheduleID ? event?.user?.name : event?.target?.name}</b>
+          </Typography>
+        </Grid>
         {event.type === 'override' &&
           renderOverrideDescription(event as OverrideEvent)}
         <Grid item xs={12}>
@@ -258,7 +263,7 @@ export default function ScheduleCalendarEventWrapper({
         anchorEl={anchorEl}
         onClose={handleCloseShiftInfo}
         anchorOrigin={{
-          vertical: 'bottom',
+          vertical: 'top',
           horizontal: 'left',
         }}
         transformOrigin={{
