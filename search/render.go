@@ -42,11 +42,11 @@ func Helpers() template.FuncMap {
 	}
 }
 
-func orderedRxFromTerms(rx string) pgtype.Text {
-	rx = strings.ToLower(rx)
-	var terms string
+func orderedRxFromTerms(terms string) pgtype.Text {
+	terms = strings.ToLower(terms)
+	var rx string
 	var cur string
-	for _, r := range rx {
+	for _, r := range terms {
 		if unicode.IsLetter(r) || unicode.IsDigit(r) {
 			cur += string(r)
 			continue
@@ -55,24 +55,26 @@ func orderedRxFromTerms(rx string) pgtype.Text {
 			continue
 		}
 
-		if terms == "" {
-			terms = "\\m" + cur
+		if rx == "" {
+			rx = "\\m" + cur
 		} else {
-			terms = terms + "\\M.*\\m" + cur
+			// match end of word to ensure previous term is matched exactly
+			// consume greedily until current term prefix matches next word
+			rx = rx + "\\M.*\\m" + cur
 		}
 		cur = ""
 	}
 
 	if cur != "" {
-		if terms == "" {
-			terms = "\\m" + cur
+		if rx == "" {
+			rx = "\\m" + cur
 		} else {
-			terms = terms + "\\M.*\\m" + cur
+			rx = rx + "\\M.*\\m" + cur
 		}
 	}
 
 	var t pgtype.Text
-	_ = t.Set(terms)
+	_ = t.Set(rx)
 
 	return t
 }
