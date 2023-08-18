@@ -78,8 +78,17 @@ type Sequence struct {
 }
 
 func (s Sequence) String() string {
-	return fmt.Sprintf("CREATE SEQUENCE %s\n\tSTART WITH %d\n\tINCREMENT BY %d\n\tMINVALUE %d\n\tMAXVALUE %d\n\tCACHE %d\n\tOWNED BY %s;",
-		s.Name, s.StartValue, s.Increment, s.MinValue, s.MaxValue, s.Cache, s.OwnedBy)
+	def := fmt.Sprintf("CREATE SEQUENCE %s\n\tSTART WITH %d\n\tINCREMENT BY %d\n\tMINVALUE %d\n\tMAXVALUE %d\n\tCACHE %d",
+		s.Name, s.StartValue, s.Increment, s.MinValue, s.MaxValue, s.Cache)
+
+	if s.OwnedBy == "" {
+		return def + ";"
+	}
+
+	return fmt.Sprintf("%s\n\tOWNED BY%s;",
+		def,
+		s.OwnedBy,
+	)
 }
 
 type Extension struct {
@@ -113,6 +122,7 @@ type Table struct {
 	Constraints []Constraint
 	Indexes     []Index
 	Triggers    []Trigger
+	Sequences   []Sequence
 }
 
 func (t Table) String() string {
@@ -166,6 +176,9 @@ func (c Column) String() string {
 	if c.DefaultValue != "" {
 		def = fmt.Sprintf(" DEFAULT %s", c.DefaultValue)
 	}
+	if c.NotNull {
+		def += " NOT NULL"
+	}
 	return fmt.Sprintf("%s %s%s", c.Name, c.Type, def)
 }
 
@@ -212,9 +225,8 @@ func DumpSchema(ctx context.Context, conn *pgx.Conn) (*Schema, error) {
 		return nil, fmt.Errorf("list sequences: %w", err)
 	}
 	for _, seq := range seqs {
-		var ownedBy string
 		if seq.TableName != "" {
-			ownedBy = fmt.Sprintf("%s.%s", seq.TableName, seq.ColumnName)
+			continue
 		}
 		s.Sequences = append(s.Sequences, Sequence{
 			Name:       seq.SequenceName,
@@ -223,7 +235,6 @@ func DumpSchema(ctx context.Context, conn *pgx.Conn) (*Schema, error) {
 			MinValue:   seq.MinValue.Int64,
 			MaxValue:   seq.MaxValue.Int64,
 			Cache:      seq.Cache.Int64,
-			OwnedBy:    ownedBy,
 		})
 	}
 
@@ -271,6 +282,10 @@ func DumpSchema(ctx context.Context, conn *pgx.Conn) (*Schema, error) {
 			if c.TableName != tbl {
 				continue
 			}
+			if strings.HasPrefix(c.ConstraintDefinition, "TRIGGER") {
+				// skip triggers
+				continue
+			}
 
 			t.Constraints = append(t.Constraints, Constraint{
 				Name: c.ConstraintName,
@@ -295,6 +310,22 @@ func DumpSchema(ctx context.Context, conn *pgx.Conn) (*Schema, error) {
 			t.Triggers = append(t.Triggers, Trigger{
 				Name: trg.TriggerName,
 				Def:  trg.TriggerDefinition,
+			})
+		}
+
+		for _, seq := range seqs {
+			if seq.TableName != tbl {
+				continue
+			}
+
+			t.Sequences = append(t.Sequences, Sequence{
+				Name:       seq.SequenceName,
+				StartValue: seq.StartValue.Int64,
+				Increment:  seq.Increment.Int64,
+				MinValue:   seq.MinValue.Int64,
+				MaxValue:   seq.MaxValue.Int64,
+				Cache:      seq.Cache.Int64,
+				OwnedBy:    seq.TableName + "." + seq.ColumnName,
 			})
 		}
 
