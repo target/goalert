@@ -30,7 +30,7 @@
     ]
   },
   "devDependencies": {
-    "@apollo/client": "3.7.17",
+    "@apollo/client": "3.8.1",
     "@babel/core": "7.22.8",
     "@babel/plugin-transform-modules-commonjs": "7.22.5",
     "@dnd-kit/core": "6.0.8",
