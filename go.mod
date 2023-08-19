@@ -8,7 +8,7 @@ require (
 	github.com/coreos/go-oidc/v3 v3.6.0
 	github.com/creack/pty v1.1.18
 	github.com/davecgh/go-spew v1.1.1
-	github.com/emersion/go-smtp v0.17.0
+	github.com/emersion/go-smtp v0.18.0
 	github.com/fatih/color v1.15.0
 	github.com/felixge/httpsnoop v1.0.3
 	github.com/fullstorydev/grpcui v1.3.1
