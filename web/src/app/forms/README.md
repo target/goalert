@@ -25,7 +25,7 @@ The `Form` component's job is to simply report when it has been submitted and in
 
 ## Basic Usage
 
-The following exapmle will only call `doMutation` if the user enters 1 or more digits
+The following example will only call `doMutation` if the user enters 1 or more digits
 into the `Foo` text field.
 
 If the form is submitted with no value, the user will be directed to enter a value.

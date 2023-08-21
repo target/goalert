@@ -146,7 +146,7 @@ function testUsers(screen: ScreenFormat): void {
       })
     })
 
-    it('should see on-call assigment list', () => {
+    it('should see on-call assignment list', () => {
       const name = 'SVC ' + c.word({ length: 8 })
       cy.createUser().then((user: Profile) => {
         cy.visit(`users/${user.id}`)

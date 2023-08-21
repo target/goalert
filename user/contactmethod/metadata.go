@@ -19,7 +19,7 @@ type Metadata struct {
 	}
 }
 
-// MarshalJSON implments `json.Marshaler`. It is used to allow `omitempty` behavior
+// MarshalJSON implements `json.Marshaler`. It is used to allow `omitempty` behavior
 // with embedded structs.
 func (m Metadata) MarshalJSON() ([]byte, error) {
 	var enc struct {

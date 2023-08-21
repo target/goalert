@@ -69,7 +69,7 @@ export default function TelTextField(
     ),
   }
 
-  // if has inputProps from parent commponent, spread it in the iprops
+  // if has inputProps from parent component, spread it in the iprops
   if (props.InputProps !== undefined) {
     iprops = {
       ...iprops,

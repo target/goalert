@@ -37,7 +37,7 @@ type VoiceCall struct {
 	start time.Time
 
 	// callStart tracks when the call was accepted
-	// and is used to cacluate call.CallDuration when completed.
+	// and is used to calculate call.CallDuration when completed.
 	callStart      time.Time
 	url            string
 	callbackURL    string
@@ -341,7 +341,7 @@ func (vc *VoiceCall) Status() twilio.CallStatus {
 func (vc *VoiceCall) PressDigits(digits string) { vc.pressCh <- digits }
 
 // ID returns the unique ID of this phone call.
-// It is analogus to the Twilio SID of a call.
+// It is analogous to the Twilio SID of a call.
 func (vc *VoiceCall) ID() string {
 	return vc.call.SID
 }
