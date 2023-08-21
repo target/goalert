@@ -11,7 +11,7 @@ export default function NewUserSetup(): JSX.Element {
   const { userID, ready } = useSessionInfo()
 
   if (!isFirstLogin || !ready) {
-    return <React.Fragment /> 
+    return <React.Fragment />
   }
   if (contactMethodID) {
     return (
