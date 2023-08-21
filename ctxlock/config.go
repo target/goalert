@@ -17,7 +17,7 @@ type Config struct {
 	MaxWait int
 
 	// Timeout indicates the maximum amount of time to wait for a lock to be
-	// aquired.
+	// acquired.
 	//
 	// If Timeout is 0, no timeout is enforced.
 	Timeout time.Duration

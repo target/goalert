@@ -5,7 +5,7 @@
 -- read/write lock the table so once unlocked it will be both fixed and triggers in place to ensure future consistency.
 LOCK escalation_policy_steps;
 
--- Fix any existing discrepencies
+-- Fix any existing discrepancies
 UPDATE escalation_policy_steps step
 SET step_number = computed.step_number
 FROM (

@@ -21,7 +21,7 @@ var (
 // queued until a lock is released.
 //
 // It is safe to use IDLocker from multiple goroutines and is used to manage
-// concurency.
+// concurrency.
 type IDLocker[K comparable] struct {
 	cfg   Config
 	count map[K]int

@@ -22,7 +22,7 @@ As an example, things like DB changes/migrations should preserve behavior across
 
 ## Pull Requests
 
-Patches are welcome, but we ask that any significant change start as an [issue](https://github.com/target/goalert/issues/new) in the tracker, prefereably before work is started.
+Patches are welcome, but we ask that any significant change start as an [issue](https://github.com/target/goalert/issues/new) in the tracker, preferably before work is started.
 
 Be sure to run `make check` and tests before opening a PR to catch common errors.
 

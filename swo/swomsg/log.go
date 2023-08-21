@@ -47,7 +47,7 @@ func NewLog(ctx context.Context, db *sql.DB) (*Log, error) {
 	return l, nil
 }
 
-// releaseConn will release the current db conection
+// releaseConn will release the current db connection
 func releaseConn(db *sql.DB, conn *pgx.Conn) {
 	_ = stdlib.ReleaseConn(db, conn)
 }

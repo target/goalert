@@ -128,7 +128,7 @@ func (s *Server) ServeActionResponse(w http.ResponseWriter, r *http.Request) {
 	respondWith(w, respData)
 }
 
-// PerformActionAs will preform the action as the given user.
+// PerformActionAs will perform the action as the given user.
 func (s *Server) PerformActionAs(userID string, a Action) error {
 	usr := s.user(userID)
 	if usr == nil {

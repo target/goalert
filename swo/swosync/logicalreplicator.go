@@ -7,7 +7,7 @@ import (
 	"github.com/target/goalert/swo/swoinfo"
 )
 
-// LogicalReplicator manages syncronizing the source database to the destination database.
+// LogicalReplicator manages synchronizing the source database to the destination database.
 type LogicalReplicator struct {
 	srcConn *pgx.Conn
 	dstConn *pgx.Conn

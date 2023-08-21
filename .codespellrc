@@ -1,0 +1,3 @@
+[codespell]
+skip = node_modules,.git,public,package-lock.json,go.sum,yarn.lock
+ignore-words-list = afterall,mose,collapsable,fo,usera,allowe,setts,witht

@@ -36,7 +36,7 @@ type Instance struct {
 	// PublicURL should point to the publicly-routable base of the instance.
 	PublicURL string
 
-	// Phone is the number that incomming SMS messages from this instances will be from.
+	// Phone is the number that incoming SMS messages from this instances will be from.
 	// Must be unique between all instances.
 	Phone string
 

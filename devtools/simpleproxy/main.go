@@ -28,7 +28,7 @@ func main() {
 
 			u, err := url.Parse(host)
 			if err != nil {
-				log.Fatalf("ERORR: parse %s: %v", host, err)
+				log.Fatalf("ERROR: parse %s: %v", host, err)
 			}
 
 			rr.h = append(rr.h, httputil.NewSingleHostReverseProxy(u))

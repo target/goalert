@@ -9,7 +9,7 @@ import (
 )
 
 type LogEntryFetcher interface {
-	// LogEntry fetchs the latest log entry for a given alertID and type.
+	// LogEntry fetches the latest log entry for a given alertID and type.
 	LogEntry(ctx context.Context) (*alertlog.Entry, error)
 }
 
