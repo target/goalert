@@ -926,6 +926,7 @@ type Rotation {
 }
 
 enum RotationType {
+  monthly
   weekly
   daily
   hourly
@@ -972,7 +973,8 @@ input CalcRotationHandoffTimesInput {
   handoff: ISOTimestamp!
   from: ISOTimestamp
   timeZone: String!
-  shiftLengthHours: Int!
+  shiftLength: Int!
+  shiftType: RotationType!
   count: Int!
 }
 

@@ -78,11 +78,12 @@ type AuthSubjectConnection struct {
 }
 
 type CalcRotationHandoffTimesInput struct {
-	Handoff          time.Time  `json:"handoff"`
-	From             *time.Time `json:"from,omitempty"`
-	TimeZone         string     `json:"timeZone"`
-	ShiftLengthHours int        `json:"shiftLengthHours"`
-	Count            int        `json:"count"`
+	Handoff     time.Time     `json:"handoff"`
+	From        *time.Time    `json:"from,omitempty"`
+	TimeZone    string        `json:"timeZone"`
+	ShiftLength int           `json:"shiftLength"`
+	ShiftType   rotation.Type `json:"shiftType"`
+	Count       int           `json:"count"`
 }
 
 type ClearTemporarySchedulesInput struct {

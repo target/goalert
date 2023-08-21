@@ -29,7 +29,7 @@ import (
 
 var (
 	timeZones     = []string{"America/Chicago", "Europe/Berlin", "UTC"}
-	rotationTypes = []rotation.Type{rotation.TypeDaily, rotation.TypeHourly, rotation.TypeWeekly}
+	rotationTypes = []rotation.Type{rotation.TypeDaily, rotation.TypeHourly, rotation.TypeWeekly, rotation.TypeMonthly}
 )
 
 type AlertLog struct {

@@ -45,6 +45,10 @@ func (r Rotation) StartTime(t time.Time) time.Time {
 	t = t.In(r.Start.Location()).Truncate(time.Minute)
 	r.Start = r.Start.Truncate(time.Minute)
 
+	if r.Type == TypeMonthly {
+		return timeutil.MonthBeginning(t, *r.Start.Location())
+	}
+
 	shiftClockLen := r.shiftClock()
 	rem := timeutil.ClockDiff(r.Start, t) % shiftClockLen
 
@@ -64,6 +68,10 @@ func (r Rotation) EndTime(t time.Time) time.Time {
 	}
 	t = t.In(r.Start.Location()).Truncate(time.Minute)
 	r.Start = r.Start.Truncate(time.Minute)
+
+	if r.Type == TypeMonthly {
+		return timeutil.AddClock(timeutil.MonthEnd(t, *r.Start.Location()), timeutil.NewClock(0, 1))
+	}
 
 	shiftClockLen := r.shiftClock()
 	rem := timeutil.ClockDiff(r.Start, t) % shiftClockLen
@@ -88,7 +96,7 @@ func (r Rotation) Normalize() (*Rotation, error) {
 	err := validate.Many(
 		validate.IDName("Name", r.Name),
 		validate.Range("ShiftLength", r.ShiftLength, 1, 9000),
-		validate.OneOf("Type", r.Type, TypeWeekly, TypeDaily, TypeHourly),
+		validate.OneOf("Type", r.Type, TypeMonthly, TypeWeekly, TypeDaily, TypeHourly),
 		validate.Text("Description", r.Description, 1, 255),
 	)
 	if err != nil {

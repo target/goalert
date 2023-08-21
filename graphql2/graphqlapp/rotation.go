@@ -384,7 +384,8 @@ func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.Ca
 	err = validate.Many(
 		err,
 		validate.Range("count", input.Count, 0, 20),
-		validate.Range("hours", input.ShiftLengthHours, 0, 99999),
+		validate.Range("hours", input.ShiftLength, 0, 99999),
+		validate.OneOf("type", input.ShiftType, rotation.TypeMonthly, rotation.TypeWeekly, rotation.TypeDaily, rotation.TypeHourly),
 	)
 	if err != nil {
 		return result, err
@@ -397,8 +398,8 @@ func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.Ca
 
 	rot := &rotation.Rotation{
 		Start:       input.Handoff.In(loc),
-		ShiftLength: input.ShiftLengthHours,
-		Type:        rotation.TypeHourly,
+		ShiftLength: input.ShiftLength,
+		Type:        input.ShiftType,
 	}
 
 	t := time.Now()
