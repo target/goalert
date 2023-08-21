@@ -48,6 +48,10 @@ func main() {
 		if err != nil {
 			log.Fatalln("ERROR: dump data:", err)
 		}
+		_, err = out.WriteString("--\n-- pgdump-lite database dump\n--\n\n")
+		if err != nil {
+			log.Fatalln("ERROR: write header:", err)
+		}
 		_, err = out.WriteString(s.String())
 		if err != nil {
 			log.Fatalln("ERROR: write schema:", err)

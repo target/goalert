@@ -2,6 +2,10 @@
 -- DATA=36b63e79b1bb8c8c818af9237b35570625a7919b50f3efc473b65c225e22ba91  -
 -- DISK=334f8f372a31ab442509645785948cbcd3fde9edeb632064547bd7d75e8d7754  -
 -- PSQL=334f8f372a31ab442509645785948cbcd3fde9edeb632064547bd7d75e8d7754  -
+--
+-- pgdump-lite database dump
+--
+
 -- Extensions
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
