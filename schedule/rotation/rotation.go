@@ -32,8 +32,55 @@ func (r Rotation) shiftClock() timeutil.Clock {
 	case TypeWeekly:
 		return timeutil.NewClock(r.ShiftLength*24*7, 0)
 	default:
+		// monthly is handled separately
 		panic("unexpected rotation type")
 	}
+}
+
+func (r Rotation) monthStartTime(t time.Time, n int) time.Time {
+	if n > 10000 {
+		panic("too many iterations")
+	}
+
+	if t.After(r.Start) { // t is after start of rotation
+		next := r.Start.AddDate(0, r.ShiftLength*n, 0)
+		if next.After(t) {
+			return r.Start.AddDate(0, r.ShiftLength*(n-1), 0)
+		}
+
+		return r.monthStartTime(t, n+1)
+	}
+
+	// t is before start of rotation
+	prev := r.Start.AddDate(0, -r.ShiftLength*n, 0)
+	if prev.Before(t) {
+		return prev
+	}
+
+	return r.monthStartTime(t, n+1)
+}
+
+func (r Rotation) monthEndTime(t time.Time, n int) time.Time {
+	if n > 10000 {
+		panic("too many iterations")
+	}
+
+	if t.After(r.Start) { // t is after start of rotation
+		next := r.Start.AddDate(0, r.ShiftLength*n, 0)
+		if next.After(t) {
+			return next
+		}
+
+		return r.monthEndTime(t, n+1)
+	}
+
+	// t is before start of rotation
+	prev := r.Start.AddDate(0, -r.ShiftLength*n, 0)
+	if prev.Before(t) {
+		return r.Start.AddDate(0, -r.ShiftLength*(n-1), 0)
+	}
+
+	return r.monthEndTime(t, n+1)
 }
 
 // StartTime calculates the start of the "shift" that started at (or was active) at t.
@@ -46,7 +93,7 @@ func (r Rotation) StartTime(t time.Time) time.Time {
 	r.Start = r.Start.Truncate(time.Minute)
 
 	if r.Type == TypeMonthly {
-		return timeutil.MonthBeginning(t, *r.Start.Location())
+		return r.monthStartTime(t, 1)
 	}
 
 	shiftClockLen := r.shiftClock()
@@ -70,7 +117,7 @@ func (r Rotation) EndTime(t time.Time) time.Time {
 	r.Start = r.Start.Truncate(time.Minute)
 
 	if r.Type == TypeMonthly {
-		return timeutil.AddClock(timeutil.MonthEnd(t, *r.Start.Location()), timeutil.NewClock(0, 1))
+		return r.monthEndTime(t, 1)
 	}
 
 	shiftClockLen := r.shiftClock()

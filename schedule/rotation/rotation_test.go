@@ -165,6 +165,36 @@ func TestRotation_StartEnd_BruteForce(t *testing.T) {
 		"2020-11-01 05:00:00 -0600 CST",
 	)
 
+	// monthly rotation sanity check
+	check(&Rotation{
+		Type:        TypeMonthly,
+		ShiftLength: 1,
+		Start:       time.Date(2020, time.October, 2, 1, 30, 0, 0, loc),
+	},
+		time.Date(2020, time.April, 5, 1, 0, 0, 0, loc),
+		time.Date(2020, time.June, 12, 1, 0, 0, 0, loc),
+
+		"2020-04-02 01:30:00 -0500 CDT",
+		"2020-05-02 01:30:00 -0500 CDT",
+		"2020-06-02 01:30:00 -0500 CDT",
+		"2020-07-02 01:30:00 -0500 CDT",
+	)
+
+	// check monthly rotations with shift from daylight savings to standard time
+	check(&Rotation{
+		Type:        TypeMonthly,
+		ShiftLength: 1,
+		Start:       time.Date(2020, time.October, 2, 1, 30, 0, 0, loc),
+	},
+		time.Date(2020, time.October, 2, 1, 0, 0, 0, loc),
+		time.Date(2020, time.December, 2, 1, 0, 0, 0, loc),
+
+		"2020-09-02 01:30:00 -0500 CDT",
+		"2020-10-02 01:30:00 -0500 CDT",
+		"2020-11-02 01:30:00 -0600 CST",
+		"2020-12-02 01:30:00 -0600 CST",
+	)
+
 	loc, err = time.LoadLocation("Australia/Lord_Howe")
 	require.NoError(t, err)
 
@@ -287,36 +317,6 @@ func TestRotation_StartEnd_BruteForce(t *testing.T) {
 		"2020-10-04 02:30:00 +1100 +11", // On 10/04 02:00 clocks go forward 30 mins. Meaning 2:15 time does not actually exist anymore (since 2:00 becomes 2:30). Next immediate time that exists is 2:30.
 		"2020-10-05 02:15:00 +1100 +11",
 		"2020-10-06 02:15:00 +1100 +11",
-	)
-
-	// monthly rotation sanity check
-	check(&Rotation{
-		Type:        TypeMonthly,
-		ShiftLength: 1,
-		Start:       time.Date(2020, time.October, 2, 1, 30, 0, 0, loc),
-	},
-		time.Date(2020, time.April, 5, 1, 0, 0, 0, loc),
-		time.Date(2020, time.June, 12, 1, 0, 0, 0, loc),
-
-		"2020-04-01 00:00:00 -0500 CDT",
-		"2020-05-01 00:00:00 -0500 CDT",
-		"2020-06-01 00:00:00 -0500 CDT",
-		"2020-07-01 00:00:00 -0500 CDT",
-	)
-
-	// check monthly rotations with shift from daylight savings to standard time
-	check(&Rotation{
-		Type:        TypeMonthly,
-		ShiftLength: 1,
-		Start:       time.Date(2020, time.October, 2, 1, 30, 0, 0, loc),
-	},
-		time.Date(2020, time.October, 2, 1, 0, 0, 0, loc),
-		time.Date(2020, time.December, 2, 1, 0, 0, 0, loc),
-
-		"2020-10-01 00:00:00 -0500 CDT",
-		"2020-11-01 00:00:00 -0500 CDT",
-		"2020-12-01 00:00:00 -0600 CST",
-		"2021-01-01 00:00:00 -0600 CST",
 	)
 
 }
