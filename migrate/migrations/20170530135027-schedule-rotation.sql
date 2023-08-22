@@ -11,7 +11,6 @@ INSERT INTO schedules (id, name, description, time_zone)
     SELECT id::UUID, name, description, 'America/Chicago' FROM schedule;
 
 CREATE TYPE enum_rotation_type AS ENUM (
-    'monthly',
     'weekly',
     'daily',
     'hourly'
