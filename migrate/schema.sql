@@ -1478,14 +1478,31 @@ CREATE UNIQUE INDEX ep_step_on_call_users_uniq_id ON public.ep_step_on_call_user
 CREATE UNIQUE INDEX idx_ep_step_on_call ON public.ep_step_on_call_users USING btree (user_id, ep_step_id) WHERE (end_time IS NULL);
 
 
-CREATE TABLE escalation_policies (
-	description text DEFAULT ''::text NOT NULL,
-	id uuid DEFAULT gen_random_uuid() NOT NULL,
-	name text NOT NULL,
-	repeat integer DEFAULT 0 NOT NULL,
-	step_count integer DEFAULT 0 NOT NULL,
-	CONSTRAINT escalation_policies_name_key UNIQUE (name),
-	CONSTRAINT escalation_policies_pkey PRIMARY KEY (id)
+CREATE SEQUENCE public.ep_step_on_call_users_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ep_step_on_call_users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ep_step_on_call_users_id_seq OWNED BY public.ep_step_on_call_users.id;
+
+
+--
+-- Name: escalation_policies; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.escalation_policies (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    name text NOT NULL,
+    description text DEFAULT ''::text NOT NULL,
+    repeat integer DEFAULT 0 NOT NULL,
+    step_count integer DEFAULT 0 NOT NULL
 );
 
 CREATE UNIQUE INDEX escalation_policies_name ON public.escalation_policies USING btree (lower(name));
@@ -1495,18 +1512,14 @@ CREATE INDEX idx_search_escalation_policies_desc_eng ON public.escalation_polici
 CREATE INDEX idx_search_escalation_policies_name_eng ON public.escalation_policies USING gin (to_tsvector('english'::regconfig, replace(lower(name), '.'::text, ' '::text)));
 
 
-CREATE TABLE escalation_policy_actions (
-	channel_id uuid,
-	escalation_policy_step_id uuid NOT NULL,
-	id uuid DEFAULT gen_random_uuid() NOT NULL,
-	rotation_id uuid,
-	schedule_id uuid,
-	user_id uuid,
-	CONSTRAINT epa_no_duplicate_channels UNIQUE (escalation_policy_step_id, channel_id),
-	CONSTRAINT epa_no_duplicate_rotations UNIQUE (escalation_policy_step_id, rotation_id),
-	CONSTRAINT epa_no_duplicate_schedules UNIQUE (escalation_policy_step_id, schedule_id),
-	CONSTRAINT epa_no_duplicate_users UNIQUE (escalation_policy_step_id, user_id),
-	CONSTRAINT epa_there_can_only_be_one CHECK ((
+CREATE TABLE public.escalation_policy_actions (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    escalation_policy_step_id uuid NOT NULL,
+    user_id uuid,
+    schedule_id uuid,
+    rotation_id uuid,
+    channel_id uuid,
+    CONSTRAINT epa_there_can_only_be_one CHECK (((((
 CASE
     WHEN user_id IS NOT NULL THEN 1
     ELSE 0
@@ -1571,14 +1584,23 @@ CREATE TRIGGER trg_20_lock_svc_on_force_escalation BEFORE UPDATE ON public.escal
 CREATE TRIGGER trg_30_trig_alert_on_force_escalation AFTER UPDATE ON public.escalation_policy_state FOR EACH ROW WHEN (((new.force_escalation <> old.force_escalation) AND new.force_escalation)) EXECUTE FUNCTION fn_trig_alert_on_force_escalation();
 
 
-CREATE TABLE escalation_policy_steps (
-	delay integer DEFAULT 1 NOT NULL,
-	escalation_policy_id uuid NOT NULL,
-	id uuid DEFAULT gen_random_uuid() NOT NULL,
-	step_number integer DEFAULT '-1'::integer NOT NULL,
-	CONSTRAINT escalation_policy_steps_escalation_policy_id_fkey FOREIGN KEY (escalation_policy_id) REFERENCES escalation_policies(id) ON DELETE CASCADE,
-	CONSTRAINT escalation_policy_steps_escalation_policy_id_step_number_key UNIQUE (escalation_policy_id, step_number) DEFERRABLE INITIALLY DEFERRED,
-	CONSTRAINT escalation_policy_steps_pkey PRIMARY KEY (id)
+
+--
+-- Name: escalation_policy_state_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.escalation_policy_state_id_seq OWNED BY public.escalation_policy_state.id;
+
+
+--
+-- Name: escalation_policy_steps; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.escalation_policy_steps (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    delay integer DEFAULT 1 NOT NULL,
+    step_number integer DEFAULT '-1'::integer NOT NULL,
+    escalation_policy_id uuid NOT NULL
 );
 
 CREATE UNIQUE INDEX escalation_policy_steps_escalation_policy_id_step_number_key ON public.escalation_policy_steps USING btree (escalation_policy_id, step_number);
@@ -1621,14 +1643,16 @@ CREATE INDEX idx_heartbeat_monitor_service ON public.heartbeat_monitors USING bt
 CREATE CONSTRAINT TRIGGER trg_enforce_heartbeat_monitor_limit AFTER INSERT ON public.heartbeat_monitors NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION fn_enforce_heartbeat_limit();
 
 
-CREATE TABLE integration_keys (
-	id uuid DEFAULT gen_random_uuid() NOT NULL,
-	name text NOT NULL,
-	service_id uuid NOT NULL,
-	type enum_integration_keys_type NOT NULL,
-	CONSTRAINT integration_keys_name_service_id_key UNIQUE (name, service_id),
-	CONSTRAINT integration_keys_pkey PRIMARY KEY (id),
-	CONSTRAINT integration_keys_services_id_fkey FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE
+
+--
+-- Name: integration_keys; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.integration_keys (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    name text NOT NULL,
+    type public.enum_integration_keys_type NOT NULL,
+    service_id uuid NOT NULL
 );
 
 CREATE INDEX idx_integration_key_service ON public.integration_keys USING btree (service_id);
@@ -1680,71 +1704,59 @@ CREATE TABLE notification_channels (
 CREATE UNIQUE INDEX notification_channels_pkey ON public.notification_channels USING btree (id);
 
 
-CREATE TABLE notification_policy_cycles (
-	alert_id integer NOT NULL,
-	checked boolean DEFAULT true NOT NULL,
-	id uuid DEFAULT gen_random_uuid() NOT NULL,
-	last_tick timestamp with time zone,
-	repeat_count integer DEFAULT 0 NOT NULL,
-	started_at timestamp with time zone DEFAULT now() NOT NULL,
-	user_id uuid NOT NULL,
-	CONSTRAINT notification_policy_cycles_alert_id_fkey FOREIGN KEY (alert_id) REFERENCES alerts(id) ON DELETE CASCADE,
-	CONSTRAINT notification_policy_cycles_pkey PRIMARY KEY (id),
-	CONSTRAINT notification_policy_cycles_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
+CREATE TABLE public.notification_policy_cycles (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    alert_id integer NOT NULL,
+    repeat_count integer DEFAULT 0 NOT NULL,
+    started_at timestamp with time zone DEFAULT now() NOT NULL,
+    checked boolean DEFAULT true NOT NULL,
+    last_tick timestamp with time zone
+)
+WITH (fillfactor='65');
 
 CREATE INDEX idx_np_cycle_alert_id ON public.notification_policy_cycles USING btree (alert_id);
 CREATE UNIQUE INDEX notification_policy_cycles_pkey ON public.notification_policy_cycles USING btree (id);
 
 
-CREATE TABLE outgoing_messages (
-	alert_id bigint,
-	alert_log_id bigint,
-	channel_id uuid,
-	contact_method_id uuid,
-	created_at timestamp with time zone DEFAULT now() NOT NULL,
-	cycle_id uuid,
-	escalation_policy_id uuid,
-	fired_at timestamp with time zone,
-	id uuid DEFAULT gen_random_uuid() NOT NULL,
-	last_status enum_outgoing_messages_status DEFAULT 'pending'::enum_outgoing_messages_status NOT NULL,
-	last_status_at timestamp with time zone DEFAULT now(),
-	message_type enum_outgoing_messages_type NOT NULL,
-	next_retry_at timestamp with time zone,
-	provider_msg_id text,
-	provider_seq integer DEFAULT 0 NOT NULL,
-	retry_count integer DEFAULT 0 NOT NULL,
-	schedule_id uuid,
-	sending_deadline timestamp with time zone,
-	sent_at timestamp with time zone,
-	service_id uuid,
-	src_value text,
-	status_alert_ids bigint[],
-	status_details text DEFAULT ''::text NOT NULL,
-	user_id uuid,
-	user_verification_code_id uuid,
-	CONSTRAINT om_alert_svc_ep_ids CHECK (message_type <> 'alert_notification'::enum_outgoing_messages_type OR alert_id IS NOT NULL AND service_id IS NOT NULL AND escalation_policy_id IS NOT NULL),
-	CONSTRAINT om_no_status_bundles CHECK (message_type <> 'alert_status_update_bundle'::enum_outgoing_messages_type OR last_status <> 'pending'::enum_outgoing_messages_status),
-	CONSTRAINT om_pending_no_fired_no_sent CHECK (last_status <> 'pending'::enum_outgoing_messages_status OR fired_at IS NULL AND sent_at IS NULL),
-	CONSTRAINT om_processed_no_fired_sent CHECK ((last_status = ANY (ARRAY['pending'::enum_outgoing_messages_status, 'sending'::enum_outgoing_messages_status, 'failed'::enum_outgoing_messages_status, 'bundled'::enum_outgoing_messages_status])) OR fired_at IS NULL AND sent_at IS NOT NULL),
-	CONSTRAINT om_sending_deadline_reqd CHECK (last_status <> 'sending'::enum_outgoing_messages_status OR sending_deadline IS NOT NULL),
-	CONSTRAINT om_sending_fired_no_sent CHECK (last_status <> 'sending'::enum_outgoing_messages_status OR fired_at IS NOT NULL AND sent_at IS NULL),
-	CONSTRAINT om_status_alert_ids CHECK (message_type <> 'alert_status_update_bundle'::enum_outgoing_messages_type OR status_alert_ids IS NOT NULL),
-	CONSTRAINT om_status_update_log_id CHECK (message_type <> 'alert_status_update'::enum_outgoing_messages_type OR alert_log_id IS NOT NULL),
-	CONSTRAINT om_user_cm_or_channel CHECK (user_id IS NOT NULL AND contact_method_id IS NOT NULL AND channel_id IS NULL OR channel_id IS NOT NULL AND contact_method_id IS NULL AND user_id IS NULL),
-	CONSTRAINT outgoing_messages_alert_id_fkey FOREIGN KEY (alert_id) REFERENCES alerts(id) ON DELETE CASCADE,
-	CONSTRAINT outgoing_messages_alert_log_id_fkey FOREIGN KEY (alert_log_id) REFERENCES alert_logs(id) ON DELETE CASCADE,
-	CONSTRAINT outgoing_messages_channel_id_fkey FOREIGN KEY (channel_id) REFERENCES notification_channels(id) ON DELETE CASCADE,
-	CONSTRAINT outgoing_messages_contact_method_id_fkey FOREIGN KEY (contact_method_id) REFERENCES user_contact_methods(id) ON DELETE CASCADE,
-	CONSTRAINT outgoing_messages_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES notification_policy_cycles(id) ON DELETE CASCADE,
-	CONSTRAINT outgoing_messages_escalation_policy_id_fkey FOREIGN KEY (escalation_policy_id) REFERENCES escalation_policies(id) ON DELETE CASCADE,
-	CONSTRAINT outgoing_messages_pkey PRIMARY KEY (id),
-	CONSTRAINT outgoing_messages_schedule_id_fkey FOREIGN KEY (schedule_id) REFERENCES schedules(id) ON DELETE CASCADE,
-	CONSTRAINT outgoing_messages_service_id_fkey FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE,
-	CONSTRAINT outgoing_messages_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-	CONSTRAINT outgoing_messages_user_verification_code_id_fkey FOREIGN KEY (user_verification_code_id) REFERENCES user_verification_codes(id) ON DELETE CASCADE,
-	CONSTRAINT verify_needs_id CHECK (message_type <> 'verification_message'::enum_outgoing_messages_type OR user_verification_code_id IS NOT NULL)
-);
+CREATE TABLE public.outgoing_messages (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    message_type public.enum_outgoing_messages_type NOT NULL,
+    contact_method_id uuid,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    last_status public.enum_outgoing_messages_status DEFAULT 'pending'::public.enum_outgoing_messages_status NOT NULL,
+    last_status_at timestamp with time zone DEFAULT now(),
+    status_details text DEFAULT ''::text NOT NULL,
+    fired_at timestamp with time zone,
+    sent_at timestamp with time zone,
+    retry_count integer DEFAULT 0 NOT NULL,
+    next_retry_at timestamp with time zone,
+    sending_deadline timestamp with time zone,
+    user_id uuid,
+    alert_id bigint,
+    cycle_id uuid,
+    service_id uuid,
+    escalation_policy_id uuid,
+    alert_log_id bigint,
+    user_verification_code_id uuid,
+    provider_msg_id text,
+    provider_seq integer DEFAULT 0 NOT NULL,
+    channel_id uuid,
+    status_alert_ids bigint[],
+    schedule_id uuid,
+    src_value text,
+    CONSTRAINT om_alert_svc_ep_ids CHECK (((message_type <> 'alert_notification'::public.enum_outgoing_messages_type) OR ((alert_id IS NOT NULL) AND (service_id IS NOT NULL) AND (escalation_policy_id IS NOT NULL)))),
+    CONSTRAINT om_no_status_bundles CHECK (((message_type <> 'alert_status_update_bundle'::public.enum_outgoing_messages_type) OR (last_status <> 'pending'::public.enum_outgoing_messages_status))),
+    CONSTRAINT om_pending_no_fired_no_sent CHECK (((last_status <> 'pending'::public.enum_outgoing_messages_status) OR ((fired_at IS NULL) AND (sent_at IS NULL)))),
+    CONSTRAINT om_processed_no_fired_sent CHECK (((last_status = ANY (ARRAY['pending'::public.enum_outgoing_messages_status, 'sending'::public.enum_outgoing_messages_status, 'failed'::public.enum_outgoing_messages_status, 'bundled'::public.enum_outgoing_messages_status])) OR ((fired_at IS NULL) AND (sent_at IS NOT NULL)))),
+    CONSTRAINT om_sending_deadline_reqd CHECK (((last_status <> 'sending'::public.enum_outgoing_messages_status) OR (sending_deadline IS NOT NULL))),
+    CONSTRAINT om_sending_fired_no_sent CHECK (((last_status <> 'sending'::public.enum_outgoing_messages_status) OR ((fired_at IS NOT NULL) AND (sent_at IS NULL)))),
+    CONSTRAINT om_status_alert_ids CHECK (((message_type <> 'alert_status_update_bundle'::public.enum_outgoing_messages_type) OR (status_alert_ids IS NOT NULL))),
+    CONSTRAINT om_status_update_log_id CHECK (((message_type <> 'alert_status_update'::public.enum_outgoing_messages_type) OR (alert_log_id IS NOT NULL))),
+    CONSTRAINT om_user_cm_or_channel CHECK ((((user_id IS NOT NULL) AND (contact_method_id IS NOT NULL) AND (channel_id IS NULL)) OR ((channel_id IS NOT NULL) AND (contact_method_id IS NULL) AND (user_id IS NULL)))),
+    CONSTRAINT verify_needs_id CHECK (((message_type <> 'verification_message'::public.enum_outgoing_messages_type) OR (user_verification_code_id IS NOT NULL)))
+)
+WITH (fillfactor='85');
 
 CREATE INDEX idx_om_alert_log_id ON public.outgoing_messages USING btree (alert_log_id);
 CREATE INDEX idx_om_alert_sent ON public.outgoing_messages USING btree (alert_id, sent_at);
@@ -1771,15 +1783,31 @@ CREATE UNIQUE INDEX region_ids_id_key ON public.region_ids USING btree (id);
 CREATE UNIQUE INDEX region_ids_pkey ON public.region_ids USING btree (name);
 
 
-CREATE TABLE rotation_participants (
-	id uuid DEFAULT gen_random_uuid() NOT NULL,
-	position integer NOT NULL,
-	rotation_id uuid NOT NULL,
-	user_id uuid NOT NULL,
-	CONSTRAINT rotation_participants_pkey PRIMARY KEY (id),
-	CONSTRAINT rotation_participants_rotation_id_fkey FOREIGN KEY (rotation_id) REFERENCES rotations(id) ON DELETE CASCADE,
-	CONSTRAINT rotation_participants_rotation_id_position_key UNIQUE (rotation_id, "position") DEFERRABLE INITIALLY DEFERRED,
-	CONSTRAINT rotation_participants_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+CREATE SEQUENCE public.region_ids_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: region_ids_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.region_ids_id_seq OWNED BY public.region_ids.id;
+
+
+--
+-- Name: rotation_participants; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.rotation_participants (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    rotation_id uuid NOT NULL,
+    "position" integer NOT NULL,
+    user_id uuid NOT NULL
 );
 
 CREATE INDEX idx_participant_rotation ON public.rotation_participants USING btree (rotation_id);
@@ -1816,19 +1844,29 @@ CREATE UNIQUE INDEX rotation_state_uniq_id ON public.rotation_state USING btree 
 CREATE TRIGGER trg_set_rot_state_pos_on_active_change BEFORE UPDATE ON public.rotation_state FOR EACH ROW WHEN ((new.rotation_participant_id <> old.rotation_participant_id)) EXECUTE FUNCTION fn_set_rot_state_pos_on_active_change();
 
 
-CREATE TABLE rotations (
-	description text DEFAULT ''::text NOT NULL,
-	id uuid DEFAULT gen_random_uuid() NOT NULL,
-	last_processed timestamp with time zone,
-	name text NOT NULL,
-	participant_count integer DEFAULT 0 NOT NULL,
-	shift_length bigint DEFAULT 1 NOT NULL,
-	start_time timestamp with time zone DEFAULT now() NOT NULL,
-	time_zone text NOT NULL,
-	type enum_rotation_type NOT NULL,
-	CONSTRAINT rotations_name_unique UNIQUE (name),
-	CONSTRAINT rotations_pkey PRIMARY KEY (id),
-	CONSTRAINT rotations_shift_length_check CHECK (shift_length > 0)
+
+--
+-- Name: rotation_state_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.rotation_state_id_seq OWNED BY public.rotation_state.id;
+
+
+--
+-- Name: rotations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.rotations (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    name text NOT NULL,
+    description text DEFAULT ''::text NOT NULL,
+    type public.enum_rotation_type NOT NULL,
+    start_time timestamp with time zone DEFAULT now() NOT NULL,
+    shift_length bigint DEFAULT 1 NOT NULL,
+    time_zone text NOT NULL,
+    last_processed timestamp with time zone,
+    participant_count integer DEFAULT 0 NOT NULL,
+    CONSTRAINT rotations_shift_length_check CHECK ((shift_length > 0))
 );
 
 CREATE INDEX idx_search_rotations_desc_eng ON public.rotations USING gin (to_tsvector('english'::regconfig, replace(lower(description), '.'::text, ' '::text)));
@@ -1869,27 +1907,42 @@ CREATE UNIQUE INDEX idx_schedule_on_call_once ON public.schedule_on_call_users U
 CREATE UNIQUE INDEX schedule_on_call_users_uniq_id ON public.schedule_on_call_users USING btree (id);
 
 
-CREATE TABLE schedule_rules (
-	created_at timestamp with time zone DEFAULT now() NOT NULL,
-	end_time time without time zone DEFAULT '23:59:59'::time without time zone NOT NULL,
-	friday boolean DEFAULT true NOT NULL,
-	id uuid DEFAULT gen_random_uuid() NOT NULL,
-	is_active boolean DEFAULT false NOT NULL,
-	monday boolean DEFAULT true NOT NULL,
-	saturday boolean DEFAULT true NOT NULL,
-	schedule_id uuid NOT NULL,
-	start_time time without time zone DEFAULT '00:00:00'::time without time zone NOT NULL,
-	sunday boolean DEFAULT true NOT NULL,
-	tgt_rotation_id uuid,
-	tgt_user_id uuid,
-	thursday boolean DEFAULT true NOT NULL,
-	tuesday boolean DEFAULT true NOT NULL,
-	wednesday boolean DEFAULT true NOT NULL,
-	CONSTRAINT schedule_rules_check CHECK (tgt_user_id IS NULL AND tgt_rotation_id IS NOT NULL OR tgt_user_id IS NOT NULL AND tgt_rotation_id IS NULL),
-	CONSTRAINT schedule_rules_pkey PRIMARY KEY (id),
-	CONSTRAINT schedule_rules_schedule_id_fkey FOREIGN KEY (schedule_id) REFERENCES schedules(id) ON DELETE CASCADE,
-	CONSTRAINT schedule_rules_tgt_rotation_id_fkey FOREIGN KEY (tgt_rotation_id) REFERENCES rotations(id) ON DELETE CASCADE,
-	CONSTRAINT schedule_rules_tgt_user_id_fkey FOREIGN KEY (tgt_user_id) REFERENCES users(id) ON DELETE CASCADE
+CREATE SEQUENCE public.schedule_on_call_users_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: schedule_on_call_users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.schedule_on_call_users_id_seq OWNED BY public.schedule_on_call_users.id;
+
+
+--
+-- Name: schedule_rules; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.schedule_rules (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    schedule_id uuid NOT NULL,
+    sunday boolean DEFAULT true NOT NULL,
+    monday boolean DEFAULT true NOT NULL,
+    tuesday boolean DEFAULT true NOT NULL,
+    wednesday boolean DEFAULT true NOT NULL,
+    thursday boolean DEFAULT true NOT NULL,
+    friday boolean DEFAULT true NOT NULL,
+    saturday boolean DEFAULT true NOT NULL,
+    start_time time without time zone DEFAULT '00:00:00'::time without time zone NOT NULL,
+    end_time time without time zone DEFAULT '23:59:59'::time without time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    tgt_user_id uuid,
+    tgt_rotation_id uuid,
+    is_active boolean DEFAULT false NOT NULL,
+    CONSTRAINT schedule_rules_check CHECK ((((tgt_user_id IS NULL) AND (tgt_rotation_id IS NOT NULL)) OR ((tgt_user_id IS NOT NULL) AND (tgt_rotation_id IS NULL))))
 );
 
 CREATE INDEX idx_rule_schedule ON public.schedule_rules USING btree (schedule_id);
@@ -1899,15 +1952,12 @@ CREATE UNIQUE INDEX schedule_rules_pkey ON public.schedule_rules USING btree (id
 CREATE CONSTRAINT TRIGGER trg_enforce_schedule_rule_limit AFTER INSERT ON public.schedule_rules NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION fn_enforce_schedule_rule_limit();
 CREATE CONSTRAINT TRIGGER trg_enforce_schedule_target_limit AFTER INSERT ON public.schedule_rules NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION fn_enforce_schedule_target_limit();
 
-
-CREATE TABLE schedules (
-	description text DEFAULT ''::text NOT NULL,
-	id uuid DEFAULT gen_random_uuid() NOT NULL,
-	last_processed timestamp with time zone,
-	name text NOT NULL,
-	time_zone text NOT NULL,
-	CONSTRAINT schedules_name_key UNIQUE (name),
-	CONSTRAINT schedules_pkey PRIMARY KEY (id)
+CREATE TABLE public.schedules (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    name text NOT NULL,
+    description text DEFAULT ''::text NOT NULL,
+    time_zone text NOT NULL,
+    last_processed timestamp with time zone
 );
 
 CREATE INDEX idx_search_schedules_desc_eng ON public.schedules USING gin (to_tsvector('english'::regconfig, replace(lower(description), '.'::text, ' '::text)));
@@ -1917,16 +1967,12 @@ CREATE UNIQUE INDEX schedules_name_key ON public.schedules USING btree (name);
 CREATE UNIQUE INDEX schedules_pkey ON public.schedules USING btree (id);
 
 
-CREATE TABLE services (
-	description text DEFAULT ''::text NOT NULL,
-	escalation_policy_id uuid NOT NULL,
-	id uuid DEFAULT gen_random_uuid() NOT NULL,
-	maintenance_expires_at timestamp with time zone,
-	name text NOT NULL,
-	CONSTRAINT services_escalation_policy_id_fkey FOREIGN KEY (escalation_policy_id) REFERENCES escalation_policies(id),
-	CONSTRAINT services_name_key UNIQUE (name),
-	CONSTRAINT services_pkey PRIMARY KEY (id),
-	CONSTRAINT svc_ep_uniq UNIQUE (id, escalation_policy_id)
+CREATE TABLE public.services (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    name text NOT NULL,
+    description text DEFAULT ''::text NOT NULL,
+    escalation_policy_id uuid NOT NULL,
+    maintenance_expires_at timestamp with time zone
 );
 
 CREATE INDEX idx_search_services_desc_eng ON public.services USING gin (to_tsvector('english'::regconfig, replace(lower(description), '.'::text, ' '::text)));
@@ -1949,12 +1995,11 @@ CREATE TABLE switchover_log (
 CREATE UNIQUE INDEX switchover_log_pkey ON public.switchover_log USING btree (id);
 
 
-CREATE TABLE switchover_state (
-	current_state enum_switchover_state NOT NULL,
-	db_id uuid DEFAULT gen_random_uuid() NOT NULL,
-	ok boolean NOT NULL,
-	CONSTRAINT switchover_state_ok_check CHECK (ok),
-	CONSTRAINT switchover_state_pkey PRIMARY KEY (ok)
+CREATE TABLE public.switchover_state (
+    ok boolean NOT NULL,
+    current_state public.enum_switchover_state NOT NULL,
+    db_id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    CONSTRAINT switchover_state_ok_check CHECK (ok)
 );
 
 CREATE UNIQUE INDEX switchover_state_pkey ON public.switchover_state USING btree (ok);
@@ -2026,21 +2071,17 @@ CREATE UNIQUE INDEX user_calendar_subscriptions_pkey ON public.user_calendar_sub
 
 CREATE CONSTRAINT TRIGGER trg_enforce_calendar_subscriptions_per_user_limit AFTER INSERT ON public.user_calendar_subscriptions NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION fn_enforce_calendar_subscriptions_per_user_limit();
 
-
-CREATE TABLE user_contact_methods (
-	disabled boolean DEFAULT false NOT NULL,
-	enable_status_updates boolean DEFAULT false NOT NULL,
-	id uuid DEFAULT gen_random_uuid() NOT NULL,
-	last_test_verify_at timestamp with time zone,
-	metadata jsonb,
-	name text NOT NULL,
-	pending boolean DEFAULT true NOT NULL,
-	type enum_user_contact_method_type NOT NULL,
-	user_id uuid NOT NULL,
-	value text NOT NULL,
-	CONSTRAINT user_contact_methods_pkey PRIMARY KEY (id),
-	CONSTRAINT user_contact_methods_type_value_key UNIQUE (type, value),
-	CONSTRAINT user_contact_methods_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+CREATE TABLE public.user_contact_methods (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    name text NOT NULL,
+    type public.enum_user_contact_method_type NOT NULL,
+    value text NOT NULL,
+    disabled boolean DEFAULT false NOT NULL,
+    user_id uuid NOT NULL,
+    last_test_verify_at timestamp with time zone,
+    metadata jsonb,
+    enable_status_updates boolean DEFAULT false NOT NULL,
+    pending boolean DEFAULT true NOT NULL
 );
 
 CREATE INDEX idx_contact_method_users ON public.user_contact_methods USING btree (user_id);
@@ -2082,16 +2123,31 @@ CREATE UNIQUE INDEX user_favorites_user_id_tgt_service_id_key ON public.user_fav
 CREATE UNIQUE INDEX user_favorites_user_id_tgt_user_id_key ON public.user_favorites USING btree (user_id, tgt_user_id);
 
 
-CREATE TABLE user_notification_rules (
-	contact_method_id uuid NOT NULL,
-	created_at timestamp with time zone DEFAULT now(),
-	delay_minutes integer DEFAULT 0 NOT NULL,
-	id uuid DEFAULT gen_random_uuid() NOT NULL,
-	user_id uuid NOT NULL,
-	CONSTRAINT user_notification_rules_contact_method_id_delay_minutes_key UNIQUE (contact_method_id, delay_minutes),
-	CONSTRAINT user_notification_rules_contact_method_id_fkey FOREIGN KEY (contact_method_id) REFERENCES user_contact_methods(id) ON DELETE CASCADE,
-	CONSTRAINT user_notification_rules_pkey PRIMARY KEY (id),
-	CONSTRAINT user_notification_rules_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+CREATE SEQUENCE public.user_favorites_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_favorites_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_favorites_id_seq OWNED BY public.user_favorites.id;
+
+
+--
+-- Name: user_notification_rules; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_notification_rules (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    delay_minutes integer DEFAULT 0 NOT NULL,
+    contact_method_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now()
 );
 
 CREATE INDEX idx_notif_rule_creation_time ON public.user_notification_rules USING btree (user_id, created_at);
@@ -2163,7 +2219,1112 @@ CREATE TABLE users (
 	CONSTRAINT users_alert_status_log_contact_method_id_fkey FOREIGN KEY (alert_status_log_contact_method_id) REFERENCES user_contact_methods(id) ON DELETE SET NULL DEFERRABLE
 );
 
-CREATE UNIQUE INDEX goalert_user_pkey ON public.users USING btree (id);
+
+--
+-- Name: alert_logs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.alert_logs ALTER COLUMN id SET DEFAULT nextval('public.alert_logs_id_seq'::regclass);
+
+
+--
+-- Name: alert_metrics id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.alert_metrics ALTER COLUMN id SET DEFAULT nextval('public.alert_metrics_id_seq'::regclass);
+
+
+--
+-- Name: alert_status_subscriptions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.alert_status_subscriptions ALTER COLUMN id SET DEFAULT nextval('public.alert_status_subscriptions_id_seq'::regclass);
+
+
+--
+-- Name: alerts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.alerts ALTER COLUMN id SET DEFAULT nextval('public.alerts_id_seq'::regclass);
+
+
+--
+-- Name: auth_basic_users id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_basic_users ALTER COLUMN id SET DEFAULT nextval('public.auth_basic_users_id_seq'::regclass);
+
+
+--
+-- Name: auth_subjects id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_subjects ALTER COLUMN id SET DEFAULT nextval('public.auth_subjects_id_seq'::regclass);
+
+
+--
+-- Name: config id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.config ALTER COLUMN id SET DEFAULT nextval('public.config_id_seq'::regclass);
+
+
+--
+-- Name: ep_step_on_call_users id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ep_step_on_call_users ALTER COLUMN id SET DEFAULT nextval('public.ep_step_on_call_users_id_seq'::regclass);
+
+
+--
+-- Name: escalation_policy_state id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.escalation_policy_state ALTER COLUMN id SET DEFAULT nextval('public.escalation_policy_state_id_seq'::regclass);
+
+
+--
+-- Name: labels id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.labels ALTER COLUMN id SET DEFAULT nextval('public.labels_id_seq'::regclass);
+
+
+--
+-- Name: region_ids id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.region_ids ALTER COLUMN id SET DEFAULT nextval('public.region_ids_id_seq'::regclass);
+
+
+--
+-- Name: rotation_state id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rotation_state ALTER COLUMN id SET DEFAULT nextval('public.rotation_state_id_seq'::regclass);
+
+
+--
+-- Name: schedule_data id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schedule_data ALTER COLUMN id SET DEFAULT nextval('public.schedule_data_id_seq'::regclass);
+
+
+--
+-- Name: schedule_on_call_users id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schedule_on_call_users ALTER COLUMN id SET DEFAULT nextval('public.schedule_on_call_users_id_seq'::regclass);
+
+
+--
+-- Name: twilio_sms_callbacks id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.twilio_sms_callbacks ALTER COLUMN id SET DEFAULT nextval('public.twilio_sms_callbacks_id_seq'::regclass);
+
+
+--
+-- Name: twilio_sms_errors id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.twilio_sms_errors ALTER COLUMN id SET DEFAULT nextval('public.twilio_sms_errors_id_seq'::regclass);
+
+
+--
+-- Name: twilio_voice_errors id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.twilio_voice_errors ALTER COLUMN id SET DEFAULT nextval('public.twilio_voice_errors_id_seq'::regclass);
+
+
+--
+-- Name: user_favorites id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_favorites ALTER COLUMN id SET DEFAULT nextval('public.user_favorites_id_seq'::regclass);
+
+
+--
+-- Name: alert_feedback alert_feedback_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.alert_feedback
+    ADD CONSTRAINT alert_feedback_pkey PRIMARY KEY (alert_id);
+
+
+--
+-- Name: alert_logs alert_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.alert_logs
+    ADD CONSTRAINT alert_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: alert_metrics alert_metrics_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.alert_metrics
+    ADD CONSTRAINT alert_metrics_id_key UNIQUE (id);
+
+
+--
+-- Name: alert_metrics alert_metrics_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.alert_metrics
+    ADD CONSTRAINT alert_metrics_pkey PRIMARY KEY (alert_id);
+
+
+--
+-- Name: alert_status_subscriptions alert_status_subscriptions_channel_id_contact_method_id_ale_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.alert_status_subscriptions
+    ADD CONSTRAINT alert_status_subscriptions_channel_id_contact_method_id_ale_key UNIQUE (channel_id, contact_method_id, alert_id);
+
+
+--
+-- Name: alert_status_subscriptions alert_status_subscriptions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.alert_status_subscriptions
+    ADD CONSTRAINT alert_status_subscriptions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: alerts alerts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.alerts
+    ADD CONSTRAINT alerts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: auth_basic_users auth_basic_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_basic_users
+    ADD CONSTRAINT auth_basic_users_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: auth_basic_users auth_basic_users_uniq_id; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_basic_users
+    ADD CONSTRAINT auth_basic_users_uniq_id UNIQUE (id);
+
+
+--
+-- Name: auth_basic_users auth_basic_users_username_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_basic_users
+    ADD CONSTRAINT auth_basic_users_username_key UNIQUE (username);
+
+
+--
+-- Name: auth_link_requests auth_link_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_link_requests
+    ADD CONSTRAINT auth_link_requests_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: auth_nonce auth_nonce_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_nonce
+    ADD CONSTRAINT auth_nonce_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: auth_subjects auth_subjects_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_subjects
+    ADD CONSTRAINT auth_subjects_pkey PRIMARY KEY (provider_id, subject_id);
+
+
+--
+-- Name: auth_subjects auth_subjects_uniq_id; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_subjects
+    ADD CONSTRAINT auth_subjects_uniq_id UNIQUE (id);
+
+
+--
+-- Name: auth_user_sessions auth_user_sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.auth_user_sessions
+    ADD CONSTRAINT auth_user_sessions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: config_limits config_limits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.config_limits
+    ADD CONSTRAINT config_limits_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: config config_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.config
+    ADD CONSTRAINT config_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: engine_processing_versions engine_processing_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.engine_processing_versions
+    ADD CONSTRAINT engine_processing_versions_pkey PRIMARY KEY (type_id);
+
+
+--
+-- Name: ep_step_on_call_users ep_step_on_call_users_uniq_id; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ep_step_on_call_users
+    ADD CONSTRAINT ep_step_on_call_users_uniq_id UNIQUE (id);
+
+
+--
+-- Name: escalation_policy_actions epa_no_duplicate_channels; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.escalation_policy_actions
+    ADD CONSTRAINT epa_no_duplicate_channels UNIQUE (escalation_policy_step_id, channel_id);
+
+
+--
+-- Name: escalation_policy_actions epa_no_duplicate_rotations; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.escalation_policy_actions
+    ADD CONSTRAINT epa_no_duplicate_rotations UNIQUE (escalation_policy_step_id, rotation_id);
+
+
+--
+-- Name: escalation_policy_actions epa_no_duplicate_schedules; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.escalation_policy_actions
+    ADD CONSTRAINT epa_no_duplicate_schedules UNIQUE (escalation_policy_step_id, schedule_id);
+
+
+--
+-- Name: escalation_policy_actions epa_no_duplicate_users; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.escalation_policy_actions
+    ADD CONSTRAINT epa_no_duplicate_users UNIQUE (escalation_policy_step_id, user_id);
+
+
+--
+-- Name: escalation_policies escalation_policies_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.escalation_policies
+    ADD CONSTRAINT escalation_policies_name_key UNIQUE (name);
+
+
+--
+-- Name: escalation_policies escalation_policies_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.escalation_policies
+    ADD CONSTRAINT escalation_policies_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: escalation_policy_actions escalation_policy_actions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.escalation_policy_actions
+    ADD CONSTRAINT escalation_policy_actions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: escalation_policy_state escalation_policy_state_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.escalation_policy_state
+    ADD CONSTRAINT escalation_policy_state_pkey PRIMARY KEY (alert_id);
+
+
+--
+-- Name: escalation_policy_state escalation_policy_state_uniq_id; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.escalation_policy_state
+    ADD CONSTRAINT escalation_policy_state_uniq_id UNIQUE (id);
+
+
+--
+-- Name: escalation_policy_steps escalation_policy_steps_escalation_policy_id_step_number_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.escalation_policy_steps
+    ADD CONSTRAINT escalation_policy_steps_escalation_policy_id_step_number_key UNIQUE (escalation_policy_id, step_number) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: escalation_policy_steps escalation_policy_steps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.escalation_policy_steps
+    ADD CONSTRAINT escalation_policy_steps_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: users goalert_user_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT goalert_user_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: gorp_migrations gorp_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.gorp_migrations
+    ADD CONSTRAINT gorp_migrations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: heartbeat_monitors heartbeat_monitors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.heartbeat_monitors
+    ADD CONSTRAINT heartbeat_monitors_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: integration_keys integration_keys_name_service_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.integration_keys
+    ADD CONSTRAINT integration_keys_name_service_id_key UNIQUE (name, service_id);
+
+
+--
+-- Name: integration_keys integration_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.integration_keys
+    ADD CONSTRAINT integration_keys_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: keyring keyring_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.keyring
+    ADD CONSTRAINT keyring_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: labels labels_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.labels
+    ADD CONSTRAINT labels_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: labels labels_tgt_service_id_key_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.labels
+    ADD CONSTRAINT labels_tgt_service_id_key_key UNIQUE (tgt_service_id, key);
+
+
+--
+-- Name: notification_channels notification_channels_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notification_channels
+    ADD CONSTRAINT notification_channels_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: notification_policy_cycles notification_policy_cycles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notification_policy_cycles
+    ADD CONSTRAINT notification_policy_cycles_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: outgoing_messages outgoing_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.outgoing_messages
+    ADD CONSTRAINT outgoing_messages_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: region_ids region_ids_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.region_ids
+    ADD CONSTRAINT region_ids_id_key UNIQUE (id);
+
+
+--
+-- Name: region_ids region_ids_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.region_ids
+    ADD CONSTRAINT region_ids_pkey PRIMARY KEY (name);
+
+
+--
+-- Name: rotation_participants rotation_participants_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rotation_participants
+    ADD CONSTRAINT rotation_participants_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: rotation_participants rotation_participants_rotation_id_position_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rotation_participants
+    ADD CONSTRAINT rotation_participants_rotation_id_position_key UNIQUE (rotation_id, "position") DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: rotation_state rotation_state_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rotation_state
+    ADD CONSTRAINT rotation_state_pkey PRIMARY KEY (rotation_id);
+
+
+--
+-- Name: rotation_state rotation_state_uniq_id; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rotation_state
+    ADD CONSTRAINT rotation_state_uniq_id UNIQUE (id);
+
+
+--
+-- Name: rotations rotations_name_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rotations
+    ADD CONSTRAINT rotations_name_unique UNIQUE (name);
+
+
+--
+-- Name: rotations rotations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rotations
+    ADD CONSTRAINT rotations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: schedule_data schedule_data_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schedule_data
+    ADD CONSTRAINT schedule_data_id_key UNIQUE (id);
+
+
+--
+-- Name: schedule_data schedule_data_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schedule_data
+    ADD CONSTRAINT schedule_data_pkey PRIMARY KEY (schedule_id);
+
+
+--
+-- Name: schedule_on_call_users schedule_on_call_users_uniq_id; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schedule_on_call_users
+    ADD CONSTRAINT schedule_on_call_users_uniq_id UNIQUE (id);
+
+
+--
+-- Name: schedule_rules schedule_rules_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schedule_rules
+    ADD CONSTRAINT schedule_rules_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: schedules schedules_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schedules
+    ADD CONSTRAINT schedules_name_key UNIQUE (name);
+
+
+--
+-- Name: schedules schedules_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schedules
+    ADD CONSTRAINT schedules_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: services services_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.services
+    ADD CONSTRAINT services_name_key UNIQUE (name);
+
+
+--
+-- Name: services services_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.services
+    ADD CONSTRAINT services_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: services svc_ep_uniq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.services
+    ADD CONSTRAINT svc_ep_uniq UNIQUE (id, escalation_policy_id);
+
+
+--
+-- Name: switchover_log switchover_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.switchover_log
+    ADD CONSTRAINT switchover_log_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: switchover_state switchover_state_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.switchover_state
+    ADD CONSTRAINT switchover_state_pkey PRIMARY KEY (ok);
+
+
+--
+-- Name: twilio_sms_callbacks twilio_sms_callbacks_uniq_id; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.twilio_sms_callbacks
+    ADD CONSTRAINT twilio_sms_callbacks_uniq_id UNIQUE (id);
+
+
+--
+-- Name: twilio_sms_errors twilio_sms_errors_uniq_id; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.twilio_sms_errors
+    ADD CONSTRAINT twilio_sms_errors_uniq_id UNIQUE (id);
+
+
+--
+-- Name: twilio_voice_errors twilio_voice_errors_uniq_id; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.twilio_voice_errors
+    ADD CONSTRAINT twilio_voice_errors_uniq_id UNIQUE (id);
+
+
+--
+-- Name: user_calendar_subscriptions user_calendar_subscriptions_name_schedule_id_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_calendar_subscriptions
+    ADD CONSTRAINT user_calendar_subscriptions_name_schedule_id_user_id_key UNIQUE (name, schedule_id, user_id);
+
+
+--
+-- Name: user_calendar_subscriptions user_calendar_subscriptions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_calendar_subscriptions
+    ADD CONSTRAINT user_calendar_subscriptions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_contact_methods user_contact_methods_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_contact_methods
+    ADD CONSTRAINT user_contact_methods_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_contact_methods user_contact_methods_type_value_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_contact_methods
+    ADD CONSTRAINT user_contact_methods_type_value_key UNIQUE (type, value);
+
+
+--
+-- Name: user_favorites user_favorites_uniq_id; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_favorites
+    ADD CONSTRAINT user_favorites_uniq_id UNIQUE (id);
+
+
+--
+-- Name: user_favorites user_favorites_user_id_tgt_escalation_policy_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_favorites
+    ADD CONSTRAINT user_favorites_user_id_tgt_escalation_policy_id_key UNIQUE (user_id, tgt_escalation_policy_id);
+
+
+--
+-- Name: user_favorites user_favorites_user_id_tgt_rotation_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_favorites
+    ADD CONSTRAINT user_favorites_user_id_tgt_rotation_id_key UNIQUE (user_id, tgt_rotation_id);
+
+
+--
+-- Name: user_favorites user_favorites_user_id_tgt_schedule_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_favorites
+    ADD CONSTRAINT user_favorites_user_id_tgt_schedule_id_key UNIQUE (user_id, tgt_schedule_id);
+
+
+--
+-- Name: user_favorites user_favorites_user_id_tgt_service_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_favorites
+    ADD CONSTRAINT user_favorites_user_id_tgt_service_id_key UNIQUE (user_id, tgt_service_id);
+
+
+--
+-- Name: user_favorites user_favorites_user_id_tgt_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_favorites
+    ADD CONSTRAINT user_favorites_user_id_tgt_user_id_key UNIQUE (user_id, tgt_user_id);
+
+
+--
+-- Name: user_notification_rules user_notification_rules_contact_method_id_delay_minutes_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_notification_rules
+    ADD CONSTRAINT user_notification_rules_contact_method_id_delay_minutes_key UNIQUE (contact_method_id, delay_minutes);
+
+
+--
+-- Name: user_notification_rules user_notification_rules_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_notification_rules
+    ADD CONSTRAINT user_notification_rules_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_overrides user_overrides_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_overrides
+    ADD CONSTRAINT user_overrides_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_slack_data user_slack_data_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_slack_data
+    ADD CONSTRAINT user_slack_data_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_verification_codes user_verification_codes_contact_method_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_verification_codes
+    ADD CONSTRAINT user_verification_codes_contact_method_id_key UNIQUE (contact_method_id);
+
+
+--
+-- Name: user_verification_codes user_verification_codes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_verification_codes
+    ADD CONSTRAINT user_verification_codes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: alert_metrics_closed_date_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX alert_metrics_closed_date_idx ON public.alert_metrics USING btree (date(timezone('UTC'::text, closed_at)));
+
+
+--
+-- Name: escalation_policies_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX escalation_policies_name ON public.escalation_policies USING btree (lower(name));
+
+
+--
+-- Name: escalation_policy_state_next_escalation_force_escalation_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX escalation_policy_state_next_escalation_force_escalation_idx ON public.escalation_policy_state USING btree (next_escalation, force_escalation);
+
+
+--
+-- Name: heartbeat_monitor_name_service_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX heartbeat_monitor_name_service_id ON public.heartbeat_monitors USING btree (lower(name), service_id);
+
+
+--
+-- Name: idx_alert_cleanup; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_alert_cleanup ON public.alerts USING btree (id, created_at) WHERE (status = 'closed'::public.enum_alert_status);
+
+
+--
+-- Name: idx_alert_logs_alert_event; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_alert_logs_alert_event ON public.alert_logs USING btree (alert_id, event);
+
+
+--
+-- Name: idx_alert_logs_alert_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_alert_logs_alert_id ON public.alert_logs USING btree (alert_id);
+
+
+--
+-- Name: idx_alert_logs_channel_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_alert_logs_channel_id ON public.alert_logs USING btree (sub_channel_id);
+
+
+--
+-- Name: idx_alert_logs_hb_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_alert_logs_hb_id ON public.alert_logs USING btree (sub_hb_monitor_id);
+
+
+--
+-- Name: idx_alert_logs_int_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_alert_logs_int_id ON public.alert_logs USING btree (sub_integration_key_id);
+
+
+--
+-- Name: idx_alert_logs_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_alert_logs_user_id ON public.alert_logs USING btree (sub_user_id);
+
+
+--
+-- Name: idx_alert_service_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_alert_service_id ON public.alerts USING btree (service_id);
+
+
+--
+-- Name: idx_closed_events; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_closed_events ON public.alert_logs USING btree ("timestamp") WHERE (event = 'closed'::public.enum_alert_log_event);
+
+
+--
+-- Name: idx_contact_method_users; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_contact_method_users ON public.user_contact_methods USING btree (user_id);
+
+
+--
+-- Name: idx_dedup_alerts; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_dedup_alerts ON public.alerts USING btree (dedup_key);
+
+
+--
+-- Name: idx_ep_action_steps; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_ep_action_steps ON public.escalation_policy_actions USING btree (escalation_policy_step_id);
+
+
+--
+-- Name: idx_ep_step_on_call; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_ep_step_on_call ON public.ep_step_on_call_users USING btree (user_id, ep_step_id) WHERE (end_time IS NULL);
+
+
+--
+-- Name: idx_ep_step_policies; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_ep_step_policies ON public.escalation_policy_steps USING btree (escalation_policy_id);
+
+
+--
+-- Name: idx_escalation_policy_state_policy_ids; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_escalation_policy_state_policy_ids ON public.escalation_policy_state USING btree (escalation_policy_id, service_id);
+
+
+--
+-- Name: idx_heartbeat_monitor_service; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_heartbeat_monitor_service ON public.heartbeat_monitors USING btree (service_id);
+
+
+--
+-- Name: idx_integration_key_service; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_integration_key_service ON public.integration_keys USING btree (service_id);
+
+
+--
+-- Name: idx_labels_service_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_labels_service_id ON public.labels USING btree (tgt_service_id);
+
+
+--
+-- Name: idx_no_alert_duplicates; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_no_alert_duplicates ON public.alerts USING btree (service_id, dedup_key);
+
+
+--
+-- Name: idx_notif_rule_creation_time; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_notif_rule_creation_time ON public.user_notification_rules USING btree (user_id, created_at);
+
+
+--
+-- Name: idx_notification_rule_users; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_notification_rule_users ON public.user_notification_rules USING btree (user_id);
+
+
+--
+-- Name: idx_np_cycle_alert_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_np_cycle_alert_id ON public.notification_policy_cycles USING btree (alert_id);
+
+
+--
+-- Name: idx_om_alert_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_om_alert_log_id ON public.outgoing_messages USING btree (alert_log_id);
+
+
+--
+-- Name: idx_om_alert_sent; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_om_alert_sent ON public.outgoing_messages USING btree (alert_id, sent_at);
+
+
+--
+-- Name: idx_om_cm_sent; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_om_cm_sent ON public.outgoing_messages USING btree (contact_method_id, sent_at);
+
+
+--
+-- Name: idx_om_ep_sent; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_om_ep_sent ON public.outgoing_messages USING btree (escalation_policy_id, sent_at);
+
+
+--
+-- Name: idx_om_last_status_sent; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_om_last_status_sent ON public.outgoing_messages USING btree (last_status, sent_at);
+
+
+--
+-- Name: idx_om_service_sent; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_om_service_sent ON public.outgoing_messages USING btree (service_id, sent_at);
+
+
+--
+-- Name: idx_om_user_sent; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_om_user_sent ON public.outgoing_messages USING btree (user_id, sent_at);
+
+
+--
+-- Name: idx_om_vcode_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_om_vcode_id ON public.outgoing_messages USING btree (user_verification_code_id);
+
+
+--
+-- Name: idx_outgoing_messages_notif_cycle; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_outgoing_messages_notif_cycle ON public.outgoing_messages USING btree (cycle_id);
+
+
+--
+-- Name: idx_outgoing_messages_provider_msg_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_outgoing_messages_provider_msg_id ON public.outgoing_messages USING btree (provider_msg_id);
+
+
+--
+-- Name: idx_participant_rotation; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_participant_rotation ON public.rotation_participants USING btree (rotation_id);
+
+
+--
+-- Name: idx_rule_schedule; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_rule_schedule ON public.schedule_rules USING btree (schedule_id);
+
+
+--
+-- Name: idx_sched_oncall_times; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_sched_oncall_times ON public.schedule_on_call_users USING spgist (tstzrange(start_time, end_time));
+
+
+--
+-- Name: idx_schedule_on_call_once; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_schedule_on_call_once ON public.schedule_on_call_users USING btree (schedule_id, user_id) WHERE (end_time IS NULL);
+
+
+--
+-- Name: idx_search_alerts_summary_eng; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_search_alerts_summary_eng ON public.alerts USING gin (to_tsvector('english'::regconfig, replace(lower(summary), '.'::text, ' '::text)));
+
+
+--
+-- Name: idx_search_escalation_policies_desc_eng; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_search_escalation_policies_desc_eng ON public.escalation_policies USING gin (to_tsvector('english'::regconfig, replace(lower(description), '.'::text, ' '::text)));
+
+
+--
+-- Name: idx_search_escalation_policies_name_eng; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_search_escalation_policies_name_eng ON public.escalation_policies USING gin (to_tsvector('english'::regconfig, replace(lower(name), '.'::text, ' '::text)));
+
+
+--
+-- Name: idx_search_rotations_desc_eng; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_search_rotations_desc_eng ON public.rotations USING gin (to_tsvector('english'::regconfig, replace(lower(description), '.'::text, ' '::text)));
+
+
+--
+-- Name: idx_search_rotations_name_eng; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_search_rotations_name_eng ON public.rotations USING gin (to_tsvector('english'::regconfig, replace(lower(name), '.'::text, ' '::text)));
+
+
+--
+-- Name: idx_search_schedules_desc_eng; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_search_schedules_desc_eng ON public.schedules USING gin (to_tsvector('english'::regconfig, replace(lower(description), '.'::text, ' '::text)));
+
+
+--
+-- Name: idx_search_schedules_name_eng; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_search_schedules_name_eng ON public.schedules USING gin (to_tsvector('english'::regconfig, replace(lower(name), '.'::text, ' '::text)));
+
+
+--
+-- Name: idx_search_services_desc_eng; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_search_services_desc_eng ON public.services USING gin (to_tsvector('english'::regconfig, replace(lower(description), '.'::text, ' '::text)));
+
+
+--
+-- Name: idx_search_services_name_eng; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_search_services_name_eng ON public.services USING gin (to_tsvector('english'::regconfig, replace(lower(name), '.'::text, ' '::text)));
+
+
+--
+-- Name: idx_search_users_name_eng; Type: INDEX; Schema: public; Owner: -
+--
+
 CREATE INDEX idx_search_users_name_eng ON public.users USING gin (to_tsvector('english'::regconfig, replace(lower(name), '.'::text, ' '::text)));
 CREATE INDEX idx_user_status_updates ON public.users USING btree (alert_status_log_contact_method_id) WHERE (alert_status_log_contact_method_id IS NOT NULL);
 
