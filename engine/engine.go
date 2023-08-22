@@ -35,7 +35,7 @@ type updater interface {
 	UpdateAll(context.Context) error
 }
 
-// Engine handles automatic escaltion of unacknowledged(triggered) alerts, as well as
+// Engine handles automatic escalation of unacknowledged(triggered) alerts, as well as
 // passing to-be-sent notifications to the notification.Sender.
 //
 // Care is taken to ensure only one attempt is made per contact-method

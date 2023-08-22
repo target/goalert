@@ -30,7 +30,7 @@ func main() {
 	log.SetPrefix("procwrap: ")
 	log.SetFlags(log.Lshortfile)
 	addr := flag.String("addr", "127.0.0.1:3033", "address.")
-	flag.StringVar(&testAddr, "test", "", "TCP address to connnect to as a healthcheck.")
+	flag.StringVar(&testAddr, "test", "", "TCP address to connect to as a healthcheck.")
 	flag.DurationVar(&startTimeout, "timeout", 30*time.Second, "TCP test timeout when starting.")
 	flag.Parse()
 

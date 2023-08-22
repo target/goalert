@@ -1856,7 +1856,7 @@ ALTER SEQUENCE public.ep_step_on_call_users_id_seq OWNED BY public.ep_step_on_ca
 --
 
 CREATE TABLE public.escalation_policies (
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
     description text DEFAULT ''::text NOT NULL,
     repeat integer DEFAULT 0 NOT NULL,
@@ -1869,7 +1869,7 @@ CREATE TABLE public.escalation_policies (
 --
 
 CREATE TABLE public.escalation_policy_actions (
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     escalation_policy_step_id uuid NOT NULL,
     user_id uuid,
     schedule_id uuid,
@@ -1938,7 +1938,7 @@ ALTER SEQUENCE public.escalation_policy_state_id_seq OWNED BY public.escalation_
 --
 
 CREATE TABLE public.escalation_policy_steps (
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     delay integer DEFAULT 1 NOT NULL,
     step_number integer DEFAULT '-1'::integer NOT NULL,
     escalation_policy_id uuid NOT NULL
@@ -1986,7 +1986,7 @@ CREATE SEQUENCE public.incident_number_seq
 --
 
 CREATE TABLE public.integration_keys (
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
     type public.enum_integration_keys_type NOT NULL,
     service_id uuid NOT NULL
@@ -2057,7 +2057,7 @@ CREATE TABLE public.notification_channels (
 --
 
 CREATE TABLE public.notification_policy_cycles (
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     alert_id integer NOT NULL,
     repeat_count integer DEFAULT 0 NOT NULL,
@@ -2073,7 +2073,7 @@ WITH (fillfactor='65');
 --
 
 CREATE TABLE public.outgoing_messages (
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     message_type public.enum_outgoing_messages_type NOT NULL,
     contact_method_id uuid,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
@@ -2147,7 +2147,7 @@ ALTER SEQUENCE public.region_ids_id_seq OWNED BY public.region_ids.id;
 --
 
 CREATE TABLE public.rotation_participants (
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     rotation_id uuid NOT NULL,
     "position" integer NOT NULL,
     user_id uuid NOT NULL
@@ -2192,7 +2192,7 @@ ALTER SEQUENCE public.rotation_state_id_seq OWNED BY public.rotation_state.id;
 --
 
 CREATE TABLE public.rotations (
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
     description text DEFAULT ''::text NOT NULL,
     type public.enum_rotation_type NOT NULL,
@@ -2274,7 +2274,7 @@ ALTER SEQUENCE public.schedule_on_call_users_id_seq OWNED BY public.schedule_on_
 --
 
 CREATE TABLE public.schedule_rules (
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     schedule_id uuid NOT NULL,
     sunday boolean DEFAULT true NOT NULL,
     monday boolean DEFAULT true NOT NULL,
@@ -2298,7 +2298,7 @@ CREATE TABLE public.schedule_rules (
 --
 
 CREATE TABLE public.schedules (
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
     description text DEFAULT ''::text NOT NULL,
     time_zone text NOT NULL,
@@ -2311,7 +2311,7 @@ CREATE TABLE public.schedules (
 --
 
 CREATE TABLE public.services (
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
     description text DEFAULT ''::text NOT NULL,
     escalation_policy_id uuid NOT NULL,
@@ -2337,7 +2337,7 @@ CREATE TABLE public.switchover_log (
 CREATE TABLE public.switchover_state (
     ok boolean NOT NULL,
     current_state public.enum_switchover_state NOT NULL,
-    db_id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    db_id uuid DEFAULT gen_random_uuid() NOT NULL,
     CONSTRAINT switchover_state_ok_check CHECK (ok)
 );
 
@@ -2462,7 +2462,7 @@ CREATE TABLE public.user_calendar_subscriptions (
 --
 
 CREATE TABLE public.user_contact_methods (
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
     type public.enum_user_contact_method_type NOT NULL,
     value text NOT NULL,
@@ -2514,7 +2514,7 @@ ALTER SEQUENCE public.user_favorites_id_seq OWNED BY public.user_favorites.id;
 --
 
 CREATE TABLE public.user_notification_rules (
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     delay_minutes integer DEFAULT 0 NOT NULL,
     contact_method_id uuid NOT NULL,
     user_id uuid NOT NULL,
@@ -3339,7 +3339,7 @@ ALTER TABLE ONLY public.user_verification_codes
 -- Name: alert_metrics_closed_date_idx; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX alert_metrics_closed_date_idx ON public.alert_metrics USING btree (date(timezone('UTC'::text, closed_at)));
+CREATE INDEX alert_metrics_closed_date_idx ON public.alert_metrics USING btree (date((closed_at AT TIME ZONE 'UTC'::text)));
 
 
 --

@@ -59,7 +59,7 @@ in separate geographic regions or availability zones. If messages fail to send f
 
 ## First Time Login
 
-In order to log in to GoAlert initially you will need an admin user to start with. Afterwords you may enable other authentication methods through the UI, as well as disable basic (user/pass) login.
+In order to log in to GoAlert initially you will need an admin user to start with. Afterwards you may enable other authentication methods through the UI, as well as disable basic (user/pass) login.
 
 This can be done after GoAlert has started for the first time, and is safe to execute while GoAlert is running.
 

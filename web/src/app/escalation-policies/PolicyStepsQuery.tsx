@@ -12,6 +12,7 @@ export const policyStepsQuery = gql`
       steps {
         id
         delayMinutes
+        stepNumber
         targets {
           id
           name

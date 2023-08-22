@@ -56,7 +56,7 @@ const (
 	// This includes things like remotely queued, ringing, or in-progress calls.
 	StateSending
 
-	// StatePending idicates a message waiting to be sent.
+	// StatePending indicates a message waiting to be sent.
 	StatePending
 
 	// StateSent means the message has been sent completely, but may not

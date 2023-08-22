@@ -43,4 +43,4 @@ DROP TRIGGER trg_ensure_alert_dedup_key ON alerts;
 DROP FUNCTION fn_ensure_alert_dedup_key();
 
 ALTER TABLE alerts
-    DROP COLUMN dedup_key; -- drops the dependant index
+    DROP COLUMN dedup_key; -- drops the dependent index
