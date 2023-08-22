@@ -18,17 +18,17 @@ import (
 type EngineProcessingType string
 
 const (
+	EngineProcessingTypeCleanup      EngineProcessingType = "cleanup"
+	EngineProcessingTypeCompat       EngineProcessingType = "compat"
 	EngineProcessingTypeEscalation   EngineProcessingType = "escalation"
 	EngineProcessingTypeHeartbeat    EngineProcessingType = "heartbeat"
+	EngineProcessingTypeMessage      EngineProcessingType = "message"
+	EngineProcessingTypeMetrics      EngineProcessingType = "metrics"
 	EngineProcessingTypeNpCycle      EngineProcessingType = "np_cycle"
 	EngineProcessingTypeRotation     EngineProcessingType = "rotation"
 	EngineProcessingTypeSchedule     EngineProcessingType = "schedule"
 	EngineProcessingTypeStatusUpdate EngineProcessingType = "status_update"
 	EngineProcessingTypeVerify       EngineProcessingType = "verify"
-	EngineProcessingTypeMessage      EngineProcessingType = "message"
-	EngineProcessingTypeCleanup      EngineProcessingType = "cleanup"
-	EngineProcessingTypeMetrics      EngineProcessingType = "metrics"
-	EngineProcessingTypeCompat       EngineProcessingType = "compat"
 )
 
 func (e *EngineProcessingType) Scan(src interface{}) error {
@@ -69,19 +69,19 @@ func (ns NullEngineProcessingType) Value() (driver.Value, error) {
 type EnumAlertLogEvent string
 
 const (
-	EnumAlertLogEventCreated             EnumAlertLogEvent = "created"
-	EnumAlertLogEventReopened            EnumAlertLogEvent = "reopened"
-	EnumAlertLogEventStatusChanged       EnumAlertLogEvent = "status_changed"
-	EnumAlertLogEventAssignmentChanged   EnumAlertLogEvent = "assignment_changed"
-	EnumAlertLogEventEscalated           EnumAlertLogEvent = "escalated"
-	EnumAlertLogEventClosed              EnumAlertLogEvent = "closed"
-	EnumAlertLogEventNotificationSent    EnumAlertLogEvent = "notification_sent"
-	EnumAlertLogEventResponseReceived    EnumAlertLogEvent = "response_received"
 	EnumAlertLogEventAcknowledged        EnumAlertLogEvent = "acknowledged"
-	EnumAlertLogEventPolicyUpdated       EnumAlertLogEvent = "policy_updated"
+	EnumAlertLogEventAssignmentChanged   EnumAlertLogEvent = "assignment_changed"
+	EnumAlertLogEventClosed              EnumAlertLogEvent = "closed"
+	EnumAlertLogEventCreated             EnumAlertLogEvent = "created"
 	EnumAlertLogEventDuplicateSuppressed EnumAlertLogEvent = "duplicate_suppressed"
+	EnumAlertLogEventEscalated           EnumAlertLogEvent = "escalated"
 	EnumAlertLogEventEscalationRequest   EnumAlertLogEvent = "escalation_request"
 	EnumAlertLogEventNoNotificationSent  EnumAlertLogEvent = "no_notification_sent"
+	EnumAlertLogEventNotificationSent    EnumAlertLogEvent = "notification_sent"
+	EnumAlertLogEventPolicyUpdated       EnumAlertLogEvent = "policy_updated"
+	EnumAlertLogEventReopened            EnumAlertLogEvent = "reopened"
+	EnumAlertLogEventResponseReceived    EnumAlertLogEvent = "response_received"
+	EnumAlertLogEventStatusChanged       EnumAlertLogEvent = "status_changed"
 )
 
 func (e *EnumAlertLogEvent) Scan(src interface{}) error {
@@ -122,10 +122,10 @@ func (ns NullEnumAlertLogEvent) Value() (driver.Value, error) {
 type EnumAlertLogSubjectType string
 
 const (
-	EnumAlertLogSubjectTypeUser             EnumAlertLogSubjectType = "user"
-	EnumAlertLogSubjectTypeIntegrationKey   EnumAlertLogSubjectType = "integration_key"
-	EnumAlertLogSubjectTypeHeartbeatMonitor EnumAlertLogSubjectType = "heartbeat_monitor"
 	EnumAlertLogSubjectTypeChannel          EnumAlertLogSubjectType = "channel"
+	EnumAlertLogSubjectTypeHeartbeatMonitor EnumAlertLogSubjectType = "heartbeat_monitor"
+	EnumAlertLogSubjectTypeIntegrationKey   EnumAlertLogSubjectType = "integration_key"
+	EnumAlertLogSubjectTypeUser             EnumAlertLogSubjectType = "user"
 )
 
 func (e *EnumAlertLogSubjectType) Scan(src interface{}) error {
@@ -166,12 +166,12 @@ func (ns NullEnumAlertLogSubjectType) Value() (driver.Value, error) {
 type EnumAlertSource string
 
 const (
+	EnumAlertSourceEmail                  EnumAlertSource = "email"
+	EnumAlertSourceGeneric                EnumAlertSource = "generic"
 	EnumAlertSourceGrafana                EnumAlertSource = "grafana"
 	EnumAlertSourceManual                 EnumAlertSource = "manual"
-	EnumAlertSourceGeneric                EnumAlertSource = "generic"
-	EnumAlertSourceEmail                  EnumAlertSource = "email"
-	EnumAlertSourceSite24x7               EnumAlertSource = "site24x7"
 	EnumAlertSourcePrometheusAlertmanager EnumAlertSource = "prometheusAlertmanager"
+	EnumAlertSourceSite24x7               EnumAlertSource = "site24x7"
 )
 
 func (e *EnumAlertSource) Scan(src interface{}) error {
@@ -212,9 +212,9 @@ func (ns NullEnumAlertSource) Value() (driver.Value, error) {
 type EnumAlertStatus string
 
 const (
-	EnumAlertStatusTriggered EnumAlertStatus = "triggered"
 	EnumAlertStatusActive    EnumAlertStatus = "active"
 	EnumAlertStatusClosed    EnumAlertStatus = "closed"
+	EnumAlertStatusTriggered EnumAlertStatus = "triggered"
 )
 
 func (e *EnumAlertStatus) Scan(src interface{}) error {
@@ -255,8 +255,8 @@ func (ns NullEnumAlertStatus) Value() (driver.Value, error) {
 type EnumHeartbeatState string
 
 const (
-	EnumHeartbeatStateInactive  EnumHeartbeatState = "inactive"
 	EnumHeartbeatStateHealthy   EnumHeartbeatState = "healthy"
+	EnumHeartbeatStateInactive  EnumHeartbeatState = "inactive"
 	EnumHeartbeatStateUnhealthy EnumHeartbeatState = "unhealthy"
 )
 
@@ -298,11 +298,11 @@ func (ns NullEnumHeartbeatState) Value() (driver.Value, error) {
 type EnumIntegrationKeysType string
 
 const (
-	EnumIntegrationKeysTypeGrafana                EnumIntegrationKeysType = "grafana"
-	EnumIntegrationKeysTypeGeneric                EnumIntegrationKeysType = "generic"
 	EnumIntegrationKeysTypeEmail                  EnumIntegrationKeysType = "email"
-	EnumIntegrationKeysTypeSite24x7               EnumIntegrationKeysType = "site24x7"
+	EnumIntegrationKeysTypeGeneric                EnumIntegrationKeysType = "generic"
+	EnumIntegrationKeysTypeGrafana                EnumIntegrationKeysType = "grafana"
 	EnumIntegrationKeysTypePrometheusAlertmanager EnumIntegrationKeysType = "prometheusAlertmanager"
+	EnumIntegrationKeysTypeSite24x7               EnumIntegrationKeysType = "site24x7"
 )
 
 func (e *EnumIntegrationKeysType) Scan(src interface{}) error {
@@ -343,18 +343,18 @@ func (ns NullEnumIntegrationKeysType) Value() (driver.Value, error) {
 type EnumLimitType string
 
 const (
-	EnumLimitTypeNotificationRulesPerUser     EnumLimitType = "notification_rules_per_user"
+	EnumLimitTypeCalendarSubscriptionsPerUser EnumLimitType = "calendar_subscriptions_per_user"
 	EnumLimitTypeContactMethodsPerUser        EnumLimitType = "contact_methods_per_user"
-	EnumLimitTypeEpStepsPerPolicy             EnumLimitType = "ep_steps_per_policy"
 	EnumLimitTypeEpActionsPerStep             EnumLimitType = "ep_actions_per_step"
+	EnumLimitTypeEpStepsPerPolicy             EnumLimitType = "ep_steps_per_policy"
+	EnumLimitTypeHeartbeatMonitorsPerService  EnumLimitType = "heartbeat_monitors_per_service"
+	EnumLimitTypeIntegrationKeysPerService    EnumLimitType = "integration_keys_per_service"
+	EnumLimitTypeNotificationRulesPerUser     EnumLimitType = "notification_rules_per_user"
 	EnumLimitTypeParticipantsPerRotation      EnumLimitType = "participants_per_rotation"
 	EnumLimitTypeRulesPerSchedule             EnumLimitType = "rules_per_schedule"
-	EnumLimitTypeIntegrationKeysPerService    EnumLimitType = "integration_keys_per_service"
-	EnumLimitTypeUnackedAlertsPerService      EnumLimitType = "unacked_alerts_per_service"
 	EnumLimitTypeTargetsPerSchedule           EnumLimitType = "targets_per_schedule"
-	EnumLimitTypeHeartbeatMonitorsPerService  EnumLimitType = "heartbeat_monitors_per_service"
+	EnumLimitTypeUnackedAlertsPerService      EnumLimitType = "unacked_alerts_per_service"
 	EnumLimitTypeUserOverridesPerSchedule     EnumLimitType = "user_overrides_per_schedule"
-	EnumLimitTypeCalendarSubscriptionsPerUser EnumLimitType = "calendar_subscriptions_per_user"
 )
 
 func (e *EnumLimitType) Scan(src interface{}) error {
@@ -396,8 +396,8 @@ type EnumNotifChannelType string
 
 const (
 	EnumNotifChannelTypeSLACK          EnumNotifChannelType = "SLACK"
-	EnumNotifChannelTypeWEBHOOK        EnumNotifChannelType = "WEBHOOK"
 	EnumNotifChannelTypeSLACKUSERGROUP EnumNotifChannelType = "SLACK_USER_GROUP"
+	EnumNotifChannelTypeWEBHOOK        EnumNotifChannelType = "WEBHOOK"
 )
 
 func (e *EnumNotifChannelType) Scan(src interface{}) error {
@@ -438,13 +438,13 @@ func (ns NullEnumNotifChannelType) Value() (driver.Value, error) {
 type EnumOutgoingMessagesStatus string
 
 const (
-	EnumOutgoingMessagesStatusPending        EnumOutgoingMessagesStatus = "pending"
-	EnumOutgoingMessagesStatusSending        EnumOutgoingMessagesStatus = "sending"
-	EnumOutgoingMessagesStatusQueuedRemotely EnumOutgoingMessagesStatus = "queued_remotely"
-	EnumOutgoingMessagesStatusSent           EnumOutgoingMessagesStatus = "sent"
+	EnumOutgoingMessagesStatusBundled        EnumOutgoingMessagesStatus = "bundled"
 	EnumOutgoingMessagesStatusDelivered      EnumOutgoingMessagesStatus = "delivered"
 	EnumOutgoingMessagesStatusFailed         EnumOutgoingMessagesStatus = "failed"
-	EnumOutgoingMessagesStatusBundled        EnumOutgoingMessagesStatus = "bundled"
+	EnumOutgoingMessagesStatusPending        EnumOutgoingMessagesStatus = "pending"
+	EnumOutgoingMessagesStatusQueuedRemotely EnumOutgoingMessagesStatus = "queued_remotely"
+	EnumOutgoingMessagesStatusSending        EnumOutgoingMessagesStatus = "sending"
+	EnumOutgoingMessagesStatusSent           EnumOutgoingMessagesStatus = "sent"
 )
 
 func (e *EnumOutgoingMessagesStatus) Scan(src interface{}) error {
@@ -486,12 +486,12 @@ type EnumOutgoingMessagesType string
 
 const (
 	EnumOutgoingMessagesTypeAlertNotification          EnumOutgoingMessagesType = "alert_notification"
-	EnumOutgoingMessagesTypeVerificationMessage        EnumOutgoingMessagesType = "verification_message"
-	EnumOutgoingMessagesTypeTestNotification           EnumOutgoingMessagesType = "test_notification"
-	EnumOutgoingMessagesTypeAlertStatusUpdate          EnumOutgoingMessagesType = "alert_status_update"
 	EnumOutgoingMessagesTypeAlertNotificationBundle    EnumOutgoingMessagesType = "alert_notification_bundle"
+	EnumOutgoingMessagesTypeAlertStatusUpdate          EnumOutgoingMessagesType = "alert_status_update"
 	EnumOutgoingMessagesTypeAlertStatusUpdateBundle    EnumOutgoingMessagesType = "alert_status_update_bundle"
 	EnumOutgoingMessagesTypeScheduleOnCallNotification EnumOutgoingMessagesType = "schedule_on_call_notification"
+	EnumOutgoingMessagesTypeTestNotification           EnumOutgoingMessagesType = "test_notification"
+	EnumOutgoingMessagesTypeVerificationMessage        EnumOutgoingMessagesType = "verification_message"
 )
 
 func (e *EnumOutgoingMessagesType) Scan(src interface{}) error {
@@ -532,9 +532,9 @@ func (ns NullEnumOutgoingMessagesType) Value() (driver.Value, error) {
 type EnumRotationType string
 
 const (
-	EnumRotationTypeWeekly EnumRotationType = "weekly"
 	EnumRotationTypeDaily  EnumRotationType = "daily"
 	EnumRotationTypeHourly EnumRotationType = "hourly"
+	EnumRotationTypeWeekly EnumRotationType = "weekly"
 )
 
 func (e *EnumRotationType) Scan(src interface{}) error {
@@ -660,12 +660,12 @@ func (ns NullEnumThrottleType) Value() (driver.Value, error) {
 type EnumUserContactMethodType string
 
 const (
-	EnumUserContactMethodTypePUSH    EnumUserContactMethodType = "PUSH"
 	EnumUserContactMethodTypeEMAIL   EnumUserContactMethodType = "EMAIL"
-	EnumUserContactMethodTypeVOICE   EnumUserContactMethodType = "VOICE"
-	EnumUserContactMethodTypeSMS     EnumUserContactMethodType = "SMS"
-	EnumUserContactMethodTypeWEBHOOK EnumUserContactMethodType = "WEBHOOK"
+	EnumUserContactMethodTypePUSH    EnumUserContactMethodType = "PUSH"
 	EnumUserContactMethodTypeSLACKDM EnumUserContactMethodType = "SLACK_DM"
+	EnumUserContactMethodTypeSMS     EnumUserContactMethodType = "SMS"
+	EnumUserContactMethodTypeVOICE   EnumUserContactMethodType = "VOICE"
+	EnumUserContactMethodTypeWEBHOOK EnumUserContactMethodType = "WEBHOOK"
 )
 
 func (e *EnumUserContactMethodType) Scan(src interface{}) error {
@@ -706,9 +706,9 @@ func (ns NullEnumUserContactMethodType) Value() (driver.Value, error) {
 type EnumUserRole string
 
 const (
+	EnumUserRoleAdmin   EnumUserRole = "admin"
 	EnumUserRoleUnknown EnumUserRole = "unknown"
 	EnumUserRoleUser    EnumUserRole = "user"
-	EnumUserRoleAdmin   EnumUserRole = "admin"
 )
 
 func (e *EnumUserRole) Scan(src interface{}) error {
@@ -747,17 +747,17 @@ func (ns NullEnumUserRole) Value() (driver.Value, error) {
 }
 
 type Alert struct {
+	CreatedAt       time.Time
+	DedupKey        sql.NullString
+	Details         string
+	EscalationLevel int32
 	ID              int64
+	LastEscalation  sql.NullTime
+	LastProcessed   sql.NullTime
 	ServiceID       uuid.NullUUID
 	Source          EnumAlertSource
 	Status          EnumAlertStatus
-	EscalationLevel int32
-	LastEscalation  sql.NullTime
-	LastProcessed   sql.NullTime
-	CreatedAt       time.Time
-	DedupKey        sql.NullString
 	Summary         string
-	Details         string
 }
 
 type AlertFeedback struct {
@@ -766,80 +766,80 @@ type AlertFeedback struct {
 }
 
 type AlertLog struct {
-	ID                  int64
 	AlertID             sql.NullInt64
-	Timestamp           sql.NullTime
 	Event               EnumAlertLogEvent
+	ID                  int64
 	Message             string
+	Meta                pqtype.NullRawMessage
+	SubChannelID        uuid.NullUUID
+	SubClassifier       string
+	SubHbMonitorID      uuid.NullUUID
+	SubIntegrationKeyID uuid.NullUUID
 	SubType             NullEnumAlertLogSubjectType
 	SubUserID           uuid.NullUUID
-	SubIntegrationKeyID uuid.NullUUID
-	SubClassifier       string
-	Meta                pqtype.NullRawMessage
-	SubHbMonitorID      uuid.NullUUID
-	SubChannelID        uuid.NullUUID
+	Timestamp           sql.NullTime
 }
 
 type AlertMetric struct {
-	ID          int64
 	AlertID     int64
+	ClosedAt    time.Time
+	Escalated   bool
+	ID          int64
 	ServiceID   uuid.UUID
 	TimeToAck   sql.NullInt64
 	TimeToClose sql.NullInt64
-	Escalated   bool
-	ClosedAt    time.Time
 }
 
 type AlertStatusSubscription struct {
-	ID              int64
+	AlertID         int64
 	ChannelID       uuid.NullUUID
 	ContactMethodID uuid.NullUUID
-	AlertID         int64
+	ID              int64
 	LastAlertStatus EnumAlertStatus
 }
 
 type AuthBasicUser struct {
+	ID           int64
+	PasswordHash string
 	UserID       uuid.UUID
 	Username     string
-	PasswordHash string
-	ID           int64
 }
 
 type AuthLinkRequest struct {
+	CreatedAt  time.Time
+	ExpiresAt  time.Time
 	ID         uuid.UUID
+	Metadata   json.RawMessage
 	ProviderID string
 	SubjectID  string
-	ExpiresAt  time.Time
-	CreatedAt  time.Time
-	Metadata   json.RawMessage
 }
 
 type AuthNonce struct {
-	ID        uuid.UUID
 	CreatedAt time.Time
+	ID        uuid.UUID
 }
 
 type AuthSubject struct {
+	CmID       uuid.NullUUID
+	ID         int64
 	ProviderID string
 	SubjectID  string
 	UserID     uuid.UUID
-	ID         int64
-	CmID       uuid.NullUUID
 }
 
 type AuthUserSession struct {
-	ID           uuid.UUID
 	CreatedAt    time.Time
+	ID           uuid.UUID
+	LastAccessAt time.Time
 	UserAgent    string
 	UserID       uuid.NullUUID
-	LastAccessAt time.Time
 }
 
 type Config struct {
+	CreatedAt time.Time
+	Data      []byte
 	ID        int32
 	Schema    int32
-	Data      []byte
-	CreatedAt time.Time
 }
 
 type ConfigLimit struct {
@@ -848,331 +848,331 @@ type ConfigLimit struct {
 }
 
 type EngineProcessingVersion struct {
+	State   json.RawMessage
 	TypeID  EngineProcessingType
 	Version int32
-	State   json.RawMessage
 }
 
 type EpStepOnCallUser struct {
-	UserID    uuid.UUID
-	EpStepID  uuid.UUID
-	StartTime time.Time
 	EndTime   sql.NullTime
+	EpStepID  uuid.UUID
 	ID        int64
+	StartTime time.Time
+	UserID    uuid.UUID
 }
 
 type EscalationPolicy struct {
+	Description string
 	ID          uuid.UUID
 	Name        string
-	Description string
 	Repeat      int32
 	StepCount   int32
 }
 
 type EscalationPolicyAction struct {
-	ID                     uuid.UUID
-	EscalationPolicyStepID uuid.UUID
-	UserID                 uuid.NullUUID
-	ScheduleID             uuid.NullUUID
-	RotationID             uuid.NullUUID
 	ChannelID              uuid.NullUUID
+	EscalationPolicyStepID uuid.UUID
+	ID                     uuid.UUID
+	RotationID             uuid.NullUUID
+	ScheduleID             uuid.NullUUID
+	UserID                 uuid.NullUUID
 }
 
 type EscalationPolicyState struct {
+	AlertID                    int64
 	EscalationPolicyID         uuid.UUID
 	EscalationPolicyStepID     uuid.NullUUID
 	EscalationPolicyStepNumber int32
-	AlertID                    int64
+	ForceEscalation            bool
+	ID                         int64
 	LastEscalation             sql.NullTime
 	LoopCount                  int32
-	ForceEscalation            bool
-	ServiceID                  uuid.UUID
 	NextEscalation             sql.NullTime
-	ID                         int64
+	ServiceID                  uuid.UUID
 }
 
 type EscalationPolicyStep struct {
-	ID                 uuid.UUID
 	Delay              int32
-	StepNumber         int32
 	EscalationPolicyID uuid.UUID
+	ID                 uuid.UUID
+	StepNumber         int32
 }
 
 type GorpMigration struct {
-	ID        string
 	AppliedAt sql.NullTime
+	ID        string
 }
 
 type HeartbeatMonitor struct {
+	HeartbeatInterval int64
 	ID                uuid.UUID
+	LastHeartbeat     sql.NullTime
+	LastState         EnumHeartbeatState
 	Name              string
 	ServiceID         uuid.UUID
-	HeartbeatInterval int64
-	LastState         EnumHeartbeatState
-	LastHeartbeat     sql.NullTime
 }
 
 type IntegrationKey struct {
 	ID        uuid.UUID
 	Name      string
-	Type      EnumIntegrationKeysType
 	ServiceID uuid.UUID
+	Type      EnumIntegrationKeysType
 }
 
 type Keyring struct {
 	ID               string
-	VerificationKeys []byte
-	SigningKey       []byte
 	NextKey          []byte
 	NextRotation     sql.NullTime
 	RotationCount    int64
+	SigningKey       []byte
+	VerificationKeys []byte
 }
 
 type Label struct {
 	ID           int64
-	TgtServiceID uuid.UUID
 	Key          string
+	TgtServiceID uuid.UUID
 	Value        string
 }
 
 type NotificationChannel struct {
-	ID        uuid.UUID
 	CreatedAt time.Time
-	Type      EnumNotifChannelType
-	Name      string
-	Value     string
+	ID        uuid.UUID
 	Meta      json.RawMessage
+	Name      string
+	Type      EnumNotifChannelType
+	Value     string
 }
 
 type NotificationPolicyCycle struct {
-	ID          uuid.UUID
-	UserID      uuid.UUID
 	AlertID     int32
+	Checked     bool
+	ID          uuid.UUID
+	LastTick    sql.NullTime
 	RepeatCount int32
 	StartedAt   time.Time
-	Checked     bool
-	LastTick    sql.NullTime
+	UserID      uuid.UUID
 }
 
 type OutgoingMessage struct {
-	ID                     uuid.UUID
-	MessageType            EnumOutgoingMessagesType
+	AlertID                sql.NullInt64
+	AlertLogID             sql.NullInt64
+	ChannelID              uuid.NullUUID
 	ContactMethodID        uuid.NullUUID
 	CreatedAt              time.Time
+	CycleID                uuid.NullUUID
+	EscalationPolicyID     uuid.NullUUID
+	FiredAt                sql.NullTime
+	ID                     uuid.UUID
 	LastStatus             EnumOutgoingMessagesStatus
 	LastStatusAt           sql.NullTime
-	StatusDetails          string
-	FiredAt                sql.NullTime
-	SentAt                 sql.NullTime
-	RetryCount             int32
+	MessageType            EnumOutgoingMessagesType
 	NextRetryAt            sql.NullTime
-	SendingDeadline        sql.NullTime
-	UserID                 uuid.NullUUID
-	AlertID                sql.NullInt64
-	CycleID                uuid.NullUUID
-	ServiceID              uuid.NullUUID
-	EscalationPolicyID     uuid.NullUUID
-	AlertLogID             sql.NullInt64
-	UserVerificationCodeID uuid.NullUUID
 	ProviderMsgID          sql.NullString
 	ProviderSeq            int32
-	ChannelID              uuid.NullUUID
-	StatusAlertIds         []int64
+	RetryCount             int32
 	ScheduleID             uuid.NullUUID
+	SendingDeadline        sql.NullTime
+	SentAt                 sql.NullTime
+	ServiceID              uuid.NullUUID
 	SrcValue               sql.NullString
+	StatusAlertIds         []int64
+	StatusDetails          string
+	UserID                 uuid.NullUUID
+	UserVerificationCodeID uuid.NullUUID
 }
 
 type RegionID struct {
-	Name string
 	ID   int32
+	Name string
 }
 
 type Rotation struct {
-	ID               uuid.UUID
-	Name             string
 	Description      string
-	Type             EnumRotationType
-	StartTime        time.Time
-	ShiftLength      int64
-	TimeZone         string
+	ID               uuid.UUID
 	LastProcessed    sql.NullTime
+	Name             string
 	ParticipantCount int32
+	ShiftLength      int64
+	StartTime        time.Time
+	TimeZone         string
+	Type             EnumRotationType
 }
 
 type RotationParticipant struct {
 	ID         uuid.UUID
-	RotationID uuid.UUID
 	Position   int32
+	RotationID uuid.UUID
 	UserID     uuid.UUID
 }
 
 type RotationState struct {
-	RotationID            uuid.UUID
+	ID                    int64
 	Position              int32
+	RotationID            uuid.UUID
 	RotationParticipantID uuid.UUID
 	ShiftStart            time.Time
-	ID                    int64
 	Version               int32
 }
 
 type Schedule struct {
-	ID            uuid.UUID
-	Name          string
 	Description   string
-	TimeZone      string
+	ID            uuid.UUID
 	LastProcessed sql.NullTime
+	Name          string
+	TimeZone      string
 }
 
 type ScheduleDatum struct {
-	ScheduleID    uuid.UUID
-	LastCleanupAt sql.NullTime
 	Data          json.RawMessage
 	ID            int64
+	LastCleanupAt sql.NullTime
+	ScheduleID    uuid.UUID
 }
 
 type ScheduleOnCallUser struct {
+	EndTime    sql.NullTime
+	ID         int64
 	ScheduleID uuid.UUID
 	StartTime  time.Time
-	EndTime    sql.NullTime
 	UserID     uuid.UUID
-	ID         int64
 }
 
 type ScheduleRule struct {
+	CreatedAt     time.Time
+	EndTime       time.Time
+	Friday        bool
 	ID            uuid.UUID
-	ScheduleID    uuid.UUID
-	Sunday        bool
+	IsActive      bool
 	Monday        bool
+	Saturday      bool
+	ScheduleID    uuid.UUID
+	StartTime     time.Time
+	Sunday        bool
+	TgtRotationID uuid.NullUUID
+	TgtUserID     uuid.NullUUID
+	Thursday      bool
 	Tuesday       bool
 	Wednesday     bool
-	Thursday      bool
-	Friday        bool
-	Saturday      bool
-	StartTime     time.Time
-	EndTime       time.Time
-	CreatedAt     time.Time
-	TgtUserID     uuid.NullUUID
-	TgtRotationID uuid.NullUUID
-	IsActive      bool
 }
 
 type Service struct {
-	ID                   uuid.UUID
-	Name                 string
 	Description          string
 	EscalationPolicyID   uuid.UUID
+	ID                   uuid.UUID
 	MaintenanceExpiresAt sql.NullTime
+	Name                 string
 }
 
 type SwitchoverLog struct {
+	Data      json.RawMessage
 	ID        int64
 	Timestamp time.Time
-	Data      json.RawMessage
 }
 
 type SwitchoverState struct {
-	Ok           bool
 	CurrentState EnumSwitchoverState
 	DbID         uuid.UUID
+	Ok           bool
 }
 
 type TwilioSmsCallback struct {
-	PhoneNumber string
+	AlertID     sql.NullInt64
 	CallbackID  uuid.UUID
 	Code        int32
 	ID          int64
+	PhoneNumber string
 	SentAt      time.Time
-	AlertID     sql.NullInt64
 	ServiceID   uuid.NullUUID
 }
 
 type TwilioSmsError struct {
-	PhoneNumber  string
 	ErrorMessage string
-	Outgoing     bool
-	OccurredAt   time.Time
 	ID           int64
+	OccurredAt   time.Time
+	Outgoing     bool
+	PhoneNumber  string
 }
 
 type TwilioVoiceError struct {
-	PhoneNumber  string
 	ErrorMessage string
-	Outgoing     bool
-	OccurredAt   time.Time
 	ID           int64
+	OccurredAt   time.Time
+	Outgoing     bool
+	PhoneNumber  string
 }
 
 type User struct {
-	ID                            uuid.UUID
+	AlertStatusLogContactMethodID uuid.NullUUID
+	AvatarUrl                     string
 	Bio                           string
 	Email                         string
-	Role                          EnumUserRole
+	ID                            uuid.UUID
 	Name                          string
-	AvatarUrl                     string
-	AlertStatusLogContactMethodID uuid.NullUUID
+	Role                          EnumUserRole
 }
 
 type UserCalendarSubscription struct {
-	ID         uuid.UUID
-	Name       string
-	UserID     uuid.UUID
-	LastAccess sql.NullTime
-	LastUpdate time.Time
+	Config     json.RawMessage
 	CreatedAt  time.Time
 	Disabled   bool
+	ID         uuid.UUID
+	LastAccess sql.NullTime
+	LastUpdate time.Time
+	Name       string
 	ScheduleID uuid.UUID
-	Config     json.RawMessage
+	UserID     uuid.UUID
 }
 
 type UserContactMethod struct {
-	ID                  uuid.UUID
-	Name                string
-	Type                EnumUserContactMethodType
-	Value               string
 	Disabled            bool
-	UserID              uuid.UUID
+	EnableStatusUpdates bool
+	ID                  uuid.UUID
 	LastTestVerifyAt    sql.NullTime
 	Metadata            pqtype.NullRawMessage
-	EnableStatusUpdates bool
+	Name                string
 	Pending             bool
+	Type                EnumUserContactMethodType
+	UserID              uuid.UUID
+	Value               string
 }
 
 type UserFavorite struct {
-	UserID                uuid.UUID
-	TgtServiceID          uuid.NullUUID
 	ID                    int64
+	TgtEscalationPolicyID uuid.NullUUID
 	TgtRotationID         uuid.NullUUID
 	TgtScheduleID         uuid.NullUUID
-	TgtEscalationPolicyID uuid.NullUUID
+	TgtServiceID          uuid.NullUUID
 	TgtUserID             uuid.NullUUID
+	UserID                uuid.UUID
 }
 
 type UserNotificationRule struct {
-	ID              uuid.UUID
-	DelayMinutes    int32
 	ContactMethodID uuid.UUID
-	UserID          uuid.UUID
 	CreatedAt       sql.NullTime
+	DelayMinutes    int32
+	ID              uuid.UUID
+	UserID          uuid.UUID
 }
 
 type UserOverride struct {
-	ID            uuid.UUID
-	StartTime     time.Time
-	EndTime       time.Time
 	AddUserID     uuid.NullUUID
+	EndTime       time.Time
+	ID            uuid.UUID
 	RemoveUserID  uuid.NullUUID
+	StartTime     time.Time
 	TgtScheduleID uuid.UUID
 }
 
 type UserSlackDatum struct {
-	ID          uuid.UUID
 	AccessToken string
+	ID          uuid.UUID
 }
 
 type UserVerificationCode struct {
-	ID              uuid.UUID
 	Code            int32
-	ExpiresAt       time.Time
 	ContactMethodID uuid.UUID
+	ExpiresAt       time.Time
+	ID              uuid.UUID
 	Sent            bool
 }
