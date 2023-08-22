@@ -119,11 +119,16 @@ CREATE TYPE enum_outgoing_messages_type AS ENUM (
 	'verification_message'
 );
 
-CREATE TYPE enum_rotation_type AS ENUM (
-	'daily',
-	'hourly',
-	'monthly',
-	'weekly'
+
+--
+-- Name: enum_rotation_type; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.enum_rotation_type AS ENUM (
+    'weekly',
+    'daily',
+    'hourly',
+    'monthly'
 );
 
 CREATE TYPE enum_switchover_state AS ENUM (
