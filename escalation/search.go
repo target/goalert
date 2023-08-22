@@ -55,7 +55,7 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		AND NOT pol.id = any(:omit)
 	{{end}}
 	{{if .Search}}
-		AND {{orderedSearch "search" "pol.name"}}
+		AND {{orderedPrefixSearch "search" "pol.name"}}
 	{{end}}
 	{{if .After.Name}}
 		AND

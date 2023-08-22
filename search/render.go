@@ -23,7 +23,7 @@ type RenderData interface {
 // Helpers returns a map of all the helper functions that can be used in a template.
 func Helpers() template.FuncMap {
 	return template.FuncMap{
-		"orderedSearch": func(argName string, columnName string) string {
+		"orderedPrefixSearch": func(argName string, columnName string) string {
 			return fmt.Sprintf("lower(%s) ~ :~%s", columnName, argName)
 		},
 		"textSearch": func(argName string, columnNames ...string) string {
@@ -42,7 +42,7 @@ func Helpers() template.FuncMap {
 	}
 }
 
-func orderedRxFromTerms(terms string) pgtype.Text {
+func orderedPrefixRxFromTerms(terms string) pgtype.Text {
 	terms = strings.ToLower(terms)
 	var rx string
 	var cur string
@@ -55,12 +55,12 @@ func orderedRxFromTerms(terms string) pgtype.Text {
 			continue
 		}
 
+		// prefix match terms with the \m "word start" symbol
 		if rx == "" {
 			rx = "\\m" + cur
 		} else {
-			// match end of word to ensure previous term is matched exactly
-			// consume greedily until current term prefix matches next word
-			rx = rx + "\\M.*\\m" + cur
+			// extra words in between are allowed with .*
+			rx = rx + ".*\\m" + cur
 		}
 		cur = ""
 	}
@@ -69,7 +69,7 @@ func orderedRxFromTerms(terms string) pgtype.Text {
 		if rx == "" {
 			rx = "\\m" + cur
 		} else {
-			rx = rx + "\\M.*\\m" + cur
+			rx = rx + ".*\\m" + cur
 		}
 	}
 
@@ -104,7 +104,7 @@ func RenderQuery(ctx context.Context, tmpl *template.Template, data RenderData) 
 			}
 
 			query = strings.ReplaceAll(query, ":~"+arg.Name, "$"+strconv.Itoa(n))
-			args = append(args, orderedRxFromTerms(val))
+			args = append(args, orderedPrefixRxFromTerms(val))
 			n++
 		}
 		rep := ":" + arg.Name

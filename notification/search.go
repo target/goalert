@@ -91,9 +91,9 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 	{{end}}
 	{{if .Search}}
 		AND (
-			{{orderedSearch "search" "u.name"}}
+			{{orderedPrefixSearch "search" "u.name"}}
 			OR
-			{{orderedSearch "search" "s.name"}}
+			{{orderedPrefixSearch "search" "s.name"}}
 			OR
 				cm.value ILIKE '%' || :search || '%'
 			OR
