@@ -678,7 +678,6 @@ export interface OnCallShift {
   start: ISOTimestamp
   end: ISOTimestamp
   truncated: boolean
-  target: Target
 }
 
 export interface ScheduleTarget {
@@ -1061,6 +1060,7 @@ export interface User {
   sessions: UserSession[]
   onCallSteps: EscalationPolicyStep[]
   isFavorite: boolean
+  assignedSchedules?: null | Schedule[]
 }
 
 export interface UserSession {

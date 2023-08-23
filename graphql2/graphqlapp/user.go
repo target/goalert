@@ -7,6 +7,7 @@ import (
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/calsub"
+	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
@@ -68,6 +69,31 @@ func (a *User) CalendarSubscriptions(ctx context.Context, obj *user.User) ([]cal
 
 func (a *User) OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.Step, error) {
 	return a.PolicyStore.FindAllOnCallStepsForUserTx(ctx, nil, obj.ID)
+}
+
+func (a *User) AssignedSchedules(ctx context.Context, obj *user.User) (schedules []schedule.Schedule, err error) {
+	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+		// get list of rotations user is on
+		rIDs, err := (*App)(a).RotationStore.FindManyByUserID(ctx, tx, obj.ID)
+		if err != nil {
+			return err
+		}
+
+		// get list of schedules user is on as a direct assignment, or indirectly from a rotation
+		sIDs, err := (*App)(a).ScheduleStore.FindManyByAssignments(ctx, tx, obj.ID, rIDs)
+		if err != nil {
+			return err
+		}
+
+		schedules, err = (*App)(a).ScheduleStore.FindManyTx(ctx, tx, sIDs)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return schedules, nil
 }
 
 func (a *Mutation) CreateBasicAuth(ctx context.Context, input graphql2.CreateBasicAuthInput) (bool, error) {

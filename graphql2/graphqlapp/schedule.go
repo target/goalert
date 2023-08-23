@@ -81,14 +81,22 @@ func (q *Query) Schedule(ctx context.Context, id string) (*schedule.Schedule, er
 	return (*App)(q).FindOneSchedule(ctx, id)
 }
 
-func (s *Schedule) Shifts(ctx context.Context, raw *schedule.Schedule, start, end time.Time) ([]oncall.Shift, error) {
+func (s *Schedule) Shifts(ctx context.Context, raw *schedule.Schedule, start, end time.Time, userIDs []string) ([]oncall.Shift, error) {
 	if end.Before(start) {
 		return nil, validation.NewFieldError("EndTime", "must be after StartTime")
 	}
 	if end.After(start.AddDate(0, 0, 50)) {
 		return nil, validation.NewFieldError("EndTime", "cannot be more than 50 days past StartTime")
 	}
-	return s.OnCallStore.HistoryBySchedule(ctx, raw.ID, start, end)
+
+	for _, userID := range userIDs {
+		err := validate.UUID("UserID", userID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return s.OnCallStore.HistoryBySchedule(ctx, raw.ID, start, end, userIDs)
 }
 
 func (s *Schedule) TemporarySchedules(ctx context.Context, raw *schedule.Schedule) ([]schedule.TemporarySchedule, error) {

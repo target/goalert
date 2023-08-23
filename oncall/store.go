@@ -52,7 +52,6 @@ type Store struct {
 	schedOverrides      *sql.Stmt
 
 	schedOnCall *sql.Stmt
-	schedName   *sql.Stmt
 	schedTZ     *sql.Stmt
 	schedRot    *sql.Stmt
 	rotParts    *sql.Stmt
@@ -109,8 +108,7 @@ func NewStore(ctx context.Context, db *sql.DB, ruleStore *rule.Store, schedStore
 				tstzrange($2, $3) && tstzrange(start_time, end_time) and
 				(end_time isnull or (end_time - start_time) > '1 minute'::interval)
 		`),
-		schedName: p.P(`select name from schedules where id = $1`),
-		schedTZ:   p.P(`select time_zone, now() from schedules where id = $1`),
+		schedTZ: p.P(`select time_zone, now() from schedules where id = $1`),
 		schedRot: p.P(`
 			select distinct
 				rot.id,
@@ -195,7 +193,7 @@ func (s *Store) OnCallUsersBySchedule(ctx context.Context, scheduleID string) ([
 }
 
 // HistoryBySchedule will return the list of shifts that overlap the start and end time for the given schedule.
-func (s *Store) HistoryBySchedule(ctx context.Context, scheduleID string, start, end time.Time) ([]Shift, error) {
+func (s *Store) HistoryBySchedule(ctx context.Context, scheduleID string, start, end time.Time, userIDs []string) ([]Shift, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
@@ -213,12 +211,6 @@ func (s *Store) HistoryBySchedule(ctx context.Context, scheduleID string, start,
 		return nil, errors.Wrap(err, "begin transaction")
 	}
 	defer sqlutil.Rollback(ctx, "oncall: fetch schedule history", tx)
-
-	var schedName string
-	err = tx.StmtContext(ctx, s.schedName).QueryRowContext(ctx, scheduleID).Scan(&schedName)
-	if err != nil {
-		return nil, errors.Wrap(err, "lookup schedule name")
-	}
 
 	var schedTZ string
 	var now time.Time
@@ -334,10 +326,6 @@ func (s *Store) HistoryBySchedule(ctx context.Context, scheduleID string, start,
 		return nil, errors.Wrap(err, "load time zone info")
 	}
 	st := state{
-		schedule: schedule.Schedule{
-			ID:   scheduleID,
-			Name: schedName,
-		},
 		rules:      rules,
 		overrides:  overrides,
 		history:    userHistory,
@@ -346,5 +334,5 @@ func (s *Store) HistoryBySchedule(ctx context.Context, scheduleID string, start,
 		tempScheds: tempScheds,
 	}
 
-	return st.CalculateShifts(start, end), nil
+	return st.CalculateShifts(start, end, userIDs), nil
 }

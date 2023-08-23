@@ -27,18 +27,11 @@ func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	shifts, err := s.oc.HistoryBySchedule(ctx, info.ScheduleID.String(), info.Now, info.Now.AddDate(1, 0, 0))
+	var userIDs []string
+	userIDs = append(userIDs, info.UserID.String())
+	shifts, err := s.oc.HistoryBySchedule(ctx, info.ScheduleID.String(), info.Now, info.Now.AddDate(1, 0, 0), userIDs)
 	if errutil.HTTPError(ctx, w, err) {
 		return
-	}
-
-	// filter out other users
-	filtered := shifts[:0]
-	for _, s := range shifts {
-		if s.UserID != info.UserID.String() {
-			continue
-		}
-		filtered = append(filtered, s)
 	}
 
 	var subCfg SubscriptionConfig
@@ -51,7 +44,7 @@ func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 		ApplicationName: cfg.ApplicationName(),
 		ScheduleID:      info.ScheduleID,
 		ScheduleName:    info.ScheduleName,
-		Shifts:          filtered,
+		Shifts:          shifts,
 		ReminderMinutes: subCfg.ReminderMinutes,
 		Version:         version.GitVersion(),
 		GeneratedAt:     info.Now,

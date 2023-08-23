@@ -1,6 +1,7 @@
 package oncall
 
 import (
+	"slices"
 	"sort"
 	"time"
 
@@ -24,7 +25,6 @@ type ResolvedRotation struct {
 }
 
 type state struct {
-	schedule   schedule.Schedule
 	tempScheds []schedule.TemporarySchedule
 	rules      []ResolvedRule
 	overrides  []override.UserOverride
@@ -93,7 +93,18 @@ func sortShifts(s []Shift) {
 	})
 }
 
-func (s *state) CalculateShifts(start, end time.Time) []Shift {
+func filterShiftsByUserIDs(shifts []Shift, userIDs []string) []Shift {
+	var filteredShifts []Shift
+	for _, shift := range shifts {
+		if slices.Contains(userIDs, shift.UserID) {
+			filteredShifts = append(filteredShifts, shift)
+		}
+	}
+
+	return filteredShifts
+}
+
+func (s *state) CalculateShifts(start, end time.Time, userIDs []string) []Shift {
 	start = start.Truncate(time.Minute)
 	end = end.Truncate(time.Minute)
 	tiStart := start
@@ -125,7 +136,7 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 	isOnCall := make(map[string]*Shift)
 	stillOnCall := make(map[string]bool)
 
-	setOnCall := func(userIDs []string, shiftType assignment.TargetType) {
+	setOnCall := func(userIDs []string) {
 		// reset map
 		for id := range stillOnCall {
 			delete(stillOnCall, id)
@@ -140,22 +151,11 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 			isOnCall[id] = &Shift{
 				Start:  now,
 				UserID: id,
-				Target: assignment.RawTarget{
-					Type: shiftType,
-					ID:   s.schedule.ID,
-					Name: s.schedule.Name,
-				},
 			}
 		}
 		for id, shift := range isOnCall {
 			if stillOnCall[id] {
 				continue
-			}
-
-			shift.Target = assignment.RawTarget{
-				Type: shiftType,
-				ID:   s.schedule.ID,
-				Name: s.schedule.Name,
 			}
 
 			// no longer on call
@@ -170,18 +170,18 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 	for t.Next() {
 		if time.Unix(t.Unix(), 0).Before(historyCutoff) {
 			// use history if in the past
-			setOnCall(hist.ActiveUsers(), assignment.TargetTypeSchedule)
+			setOnCall(hist.ActiveUsers())
 			continue
 		}
 
 		if tempScheds.Active() {
 			// use TemporarySchedule if one is active
-			setOnCall(tempScheds.ActiveUsers(), assignment.TargetTypeSchedule)
+			setOnCall(tempScheds.ActiveUsers())
 			continue
 		}
 
 		// apply any overrides
-		setOnCall(overrides.MapUsers(rules.ActiveUsers()), assignment.TargetTypeUserOverride)
+		setOnCall(overrides.MapUsers(rules.ActiveUsers()))
 	}
 
 	// remaining shifts are truncated
@@ -189,6 +189,11 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 		s.Truncated = true
 		s.End = time.Unix(t.Unix(), 0)
 		shifts = append(shifts, *s)
+	}
+
+	// if any userIDs given, filter shifts to include only those
+	if userIDs != nil {
+		shifts = filterShiftsByUserIDs(shifts, userIDs)
 	}
 
 	sortShifts(shifts)

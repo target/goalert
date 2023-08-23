@@ -27,6 +27,7 @@ type Store struct {
 	findRotationForUpdate *sql.Stmt
 	deleteRotation        *sql.Stmt
 	findMany              *sql.Stmt
+	findManyByUserID      *sql.Stmt
 
 	findAllParticipants *sql.Stmt
 	addParticipant      *sql.Stmt
@@ -92,6 +93,12 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			LEFT JOIN user_favorites fav ON fav.tgt_rotation_id = r.id 
 			AND fav.user_id = $2 
 			WHERE r.id = ANY($1)
+		`),
+
+		findManyByUserID: p.P(`
+			SELECT rp.rotation_id
+			FROM rotation_participants rp
+			WHERE rp.user_id = $1
 		`),
 
 		addParticipant: p.P(`
@@ -257,6 +264,42 @@ func (s *Store) FindMany(ctx context.Context, ids []string) ([]Rotation, error) 
 	}
 
 	return result, nil
+}
+
+func (s *Store) FindManyByUserID(ctx context.Context, tx *sql.Tx, userID string) (rotationIDs []string, err error) {
+	err = permission.LimitCheckAny(ctx, permission.All)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validate.UUID("UserID", userID)
+	if err != nil {
+		return nil, err
+	}
+
+	stmt := s.findManyByUserID
+	if tx != nil {
+		stmt = tx.Stmt(stmt)
+	}
+	rows, err := stmt.QueryContext(ctx, userID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id string
+		err = rows.Scan(&id)
+		if err != nil {
+			return nil, err
+		}
+		rotationIDs = append(rotationIDs, id)
+	}
+
+	return rotationIDs, nil
 }
 
 func (s *Store) FindRotation(ctx context.Context, id string) (*Rotation, error) {

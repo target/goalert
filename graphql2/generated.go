@@ -360,7 +360,6 @@ type ComplexityRoot struct {
 	OnCallShift struct {
 		End       func(childComplexity int) int
 		Start     func(childComplexity int) int
-		Target    func(childComplexity int) int
 		Truncated func(childComplexity int) int
 		User      func(childComplexity int) int
 		UserID    func(childComplexity int) int
@@ -477,7 +476,7 @@ type ComplexityRoot struct {
 		IsFavorite              func(childComplexity int) int
 		Name                    func(childComplexity int) int
 		OnCallNotificationRules func(childComplexity int) int
-		Shifts                  func(childComplexity int, start time.Time, end time.Time) int
+		Shifts                  func(childComplexity int, start time.Time, end time.Time, userIDs []string) int
 		Target                  func(childComplexity int, input assignment.RawTarget) int
 		Targets                 func(childComplexity int) int
 		TemporarySchedules      func(childComplexity int) int
@@ -592,6 +591,7 @@ type ComplexityRoot struct {
 
 	User struct {
 		AlertStatusCMID       func(childComplexity int) int
+		AssignedSchedules     func(childComplexity int) int
 		AuthSubjects          func(childComplexity int) int
 		CalendarSubscriptions func(childComplexity int) int
 		ContactMethods        func(childComplexity int) int
@@ -822,7 +822,7 @@ type RotationResolver interface {
 type ScheduleResolver interface {
 	TimeZone(ctx context.Context, obj *schedule.Schedule) (string, error)
 	AssignedTo(ctx context.Context, obj *schedule.Schedule) ([]assignment.RawTarget, error)
-	Shifts(ctx context.Context, obj *schedule.Schedule, start time.Time, end time.Time) ([]oncall.Shift, error)
+	Shifts(ctx context.Context, obj *schedule.Schedule, start time.Time, end time.Time, userIDs []string) ([]oncall.Shift, error)
 	Targets(ctx context.Context, obj *schedule.Schedule) ([]ScheduleTarget, error)
 	Target(ctx context.Context, obj *schedule.Schedule, input assignment.RawTarget) (*ScheduleTarget, error)
 	IsFavorite(ctx context.Context, obj *schedule.Schedule) (bool, error)
@@ -859,6 +859,7 @@ type UserResolver interface {
 	Sessions(ctx context.Context, obj *user.User) ([]auth.UserSession, error)
 	OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.Step, error)
 	IsFavorite(ctx context.Context, obj *user.User) (bool, error)
+	AssignedSchedules(ctx context.Context, obj *user.User) ([]schedule.Schedule, error)
 }
 type UserCalendarSubscriptionResolver interface {
 	ReminderMinutes(ctx context.Context, obj *calsub.Subscription) ([]int, error)
@@ -2344,13 +2345,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.OnCallShift.Start(childComplexity), true
 
-	case "OnCallShift.target":
-		if e.complexity.OnCallShift.Target == nil {
-			break
-		}
-
-		return e.complexity.OnCallShift.Target(childComplexity), true
-
 	case "OnCallShift.truncated":
 		if e.complexity.OnCallShift.Truncated == nil {
 			break
@@ -3164,7 +3158,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Schedule.Shifts(childComplexity, args["start"].(time.Time), args["end"].(time.Time)), true
+		return e.complexity.Schedule.Shifts(childComplexity, args["start"].(time.Time), args["end"].(time.Time), args["userIDs"].([]string)), true
 
 	case "Schedule.target":
 		if e.complexity.Schedule.Target == nil {
@@ -3590,6 +3584,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.AlertStatusCMID(childComplexity), true
+
+	case "User.assignedSchedules":
+		if e.complexity.User.AssignedSchedules == nil {
+			break
+		}
+
+		return e.complexity.User.AssignedSchedules(childComplexity), true
 
 	case "User.authSubjects":
 		if e.complexity.User.AuthSubjects == nil {
@@ -5494,6 +5495,15 @@ func (ec *executionContext) field_Schedule_shifts_args(ctx context.Context, rawA
 		}
 	}
 	args["end"] = arg1
+	var arg2 []string
+	if tmp, ok := rawArgs["userIDs"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDs"))
+		arg2, err = ec.unmarshalOID2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userIDs"] = arg2
 	return args, nil
 }
 
@@ -12599,6 +12609,8 @@ func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context
 				return ec.fieldContext_User_onCallSteps(ctx, field)
 			case "isFavorite":
 				return ec.fieldContext_User_isFavorite(ctx, field)
+			case "assignedSchedules":
+				return ec.fieldContext_User_assignedSchedules(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -14156,6 +14168,8 @@ func (ec *executionContext) fieldContext_OnCallShift_user(ctx context.Context, f
 				return ec.fieldContext_User_onCallSteps(ctx, field)
 			case "isFavorite":
 				return ec.fieldContext_User_isFavorite(ctx, field)
+			case "assignedSchedules":
+				return ec.fieldContext_User_assignedSchedules(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -14290,58 +14304,6 @@ func (ec *executionContext) fieldContext_OnCallShift_truncated(ctx context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _OnCallShift_target(ctx context.Context, field graphql.CollectedField, obj *oncall.Shift) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_OnCallShift_target(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Target, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(assignment.RawTarget)
-	fc.Result = res
-	return ec.marshalNTarget2githubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_OnCallShift_target(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "OnCallShift",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Target_id(ctx, field)
-			case "type":
-				return ec.fieldContext_Target_type(ctx, field)
-			case "name":
-				return ec.fieldContext_Target_name(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Target", field.Name)
 		},
 	}
 	return fc, nil
@@ -15016,6 +14978,8 @@ func (ec *executionContext) fieldContext_Query_user(ctx context.Context, field g
 				return ec.fieldContext_User_onCallSteps(ctx, field)
 			case "isFavorite":
 				return ec.fieldContext_User_isFavorite(ctx, field)
+			case "assignedSchedules":
+				return ec.fieldContext_User_assignedSchedules(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -17932,6 +17896,8 @@ func (ec *executionContext) fieldContext_Rotation_users(ctx context.Context, fie
 				return ec.fieldContext_User_onCallSteps(ctx, field)
 			case "isFavorite":
 				return ec.fieldContext_User_isFavorite(ctx, field)
+			case "assignedSchedules":
+				return ec.fieldContext_User_assignedSchedules(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -19127,7 +19093,7 @@ func (ec *executionContext) _Schedule_shifts(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Schedule().Shifts(rctx, obj, fc.Args["start"].(time.Time), fc.Args["end"].(time.Time))
+		return ec.resolvers.Schedule().Shifts(rctx, obj, fc.Args["start"].(time.Time), fc.Args["end"].(time.Time), fc.Args["userIDs"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19162,8 +19128,6 @@ func (ec *executionContext) fieldContext_Schedule_shifts(ctx context.Context, fi
 				return ec.fieldContext_OnCallShift_end(ctx, field)
 			case "truncated":
 				return ec.fieldContext_OnCallShift_truncated(ctx, field)
-			case "target":
-				return ec.fieldContext_OnCallShift_target(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OnCallShift", field.Name)
 		},
@@ -21793,8 +21757,6 @@ func (ec *executionContext) fieldContext_TemporarySchedule_shifts(ctx context.Co
 				return ec.fieldContext_OnCallShift_end(ctx, field)
 			case "truncated":
 				return ec.fieldContext_OnCallShift_truncated(ctx, field)
-			case "target":
-				return ec.fieldContext_OnCallShift_target(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OnCallShift", field.Name)
 		},
@@ -22688,6 +22650,71 @@ func (ec *executionContext) fieldContext_User_isFavorite(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _User_assignedSchedules(ctx context.Context, field graphql.CollectedField, obj *user.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_assignedSchedules(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().AssignedSchedules(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]schedule.Schedule)
+	fc.Result = res
+	return ec.marshalOSchedule2ᚕgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚐScheduleᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_assignedSchedules(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Schedule_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Schedule_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Schedule_description(ctx, field)
+			case "timeZone":
+				return ec.fieldContext_Schedule_timeZone(ctx, field)
+			case "assignedTo":
+				return ec.fieldContext_Schedule_assignedTo(ctx, field)
+			case "shifts":
+				return ec.fieldContext_Schedule_shifts(ctx, field)
+			case "targets":
+				return ec.fieldContext_Schedule_targets(ctx, field)
+			case "target":
+				return ec.fieldContext_Schedule_target(ctx, field)
+			case "isFavorite":
+				return ec.fieldContext_Schedule_isFavorite(ctx, field)
+			case "temporarySchedules":
+				return ec.fieldContext_Schedule_temporarySchedules(ctx, field)
+			case "onCallNotificationRules":
+				return ec.fieldContext_Schedule_onCallNotificationRules(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Schedule", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UserCalendarSubscription_id(ctx context.Context, field graphql.CollectedField, obj *calsub.Subscription) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserCalendarSubscription_id(ctx, field)
 	if err != nil {
@@ -23121,6 +23148,8 @@ func (ec *executionContext) fieldContext_UserConnection_nodes(ctx context.Contex
 				return ec.fieldContext_User_onCallSteps(ctx, field)
 			case "isFavorite":
 				return ec.fieldContext_User_isFavorite(ctx, field)
+			case "assignedSchedules":
+				return ec.fieldContext_User_assignedSchedules(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -24143,6 +24172,8 @@ func (ec *executionContext) fieldContext_UserOverride_addUser(ctx context.Contex
 				return ec.fieldContext_User_onCallSteps(ctx, field)
 			case "isFavorite":
 				return ec.fieldContext_User_isFavorite(ctx, field)
+			case "assignedSchedules":
+				return ec.fieldContext_User_assignedSchedules(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -24210,6 +24241,8 @@ func (ec *executionContext) fieldContext_UserOverride_removeUser(ctx context.Con
 				return ec.fieldContext_User_onCallSteps(ctx, field)
 			case "isFavorite":
 				return ec.fieldContext_User_isFavorite(ctx, field)
+			case "assignedSchedules":
+				return ec.fieldContext_User_assignedSchedules(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -33172,11 +33205,6 @@ func (ec *executionContext) _OnCallShift(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
-		case "target":
-			out.Values[i] = ec._OnCallShift_target(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -36507,6 +36535,39 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "assignedSchedules":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_assignedSchedules(ctx, field, obj)
 				return res
 			}
 
@@ -41440,6 +41501,53 @@ func (ec *executionContext) marshalOSWOConnection2ᚕgithubᚗcomᚋtargetᚋgoa
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalNSWOConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSWOConnection(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalOSchedule2ᚕgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚐScheduleᚄ(ctx context.Context, sel ast.SelectionSet, v []schedule.Schedule) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSchedule2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐSchedule(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
