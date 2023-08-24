@@ -2,8 +2,6 @@
 
 Switchover (SWO) is a feature that allows a live system to switch from one database to another safely and with little to no user impact.
 
-Certainly, adding a section at the top to guide users and admins through the switchover process would be very useful. Here's how you can structure it:
-
 ## Steps to Perform Switchover
 
 1. **Preparation:** Configure all GoAlert instances with the `--db-url-next` flag (or using `GOALERT_DB_URL_NEXT` environment variable). Ensure that every instance is started or restarted with this configuration.
