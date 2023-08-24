@@ -26634,7 +26634,7 @@ func (ec *executionContext) unmarshalInputCalcRotationHandoffTimesInput(ctx cont
 				return it, err
 			}
 			it.TimeZone = data
-		case "shiftLength":
+		case "shiftLengthHours":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shiftLength"))
