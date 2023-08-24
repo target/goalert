@@ -1,6 +1,6 @@
 # Quick Switchover Guide for GoAlert
 
-This guide provides a quick and easy-to-follow set of steps for performing a database switchover in GoAlert. For a detailed understanding, see the [README in the swo package](../swo/README.md).
+This guide provides a quick and easy-to-follow set of steps for performing a database switchover in GoAlert. For a detailed understanding, see the [`swo` package README](../swo/README.md).
 
 ## Steps to Perform Switchover
 
