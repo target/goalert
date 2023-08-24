@@ -42,11 +42,11 @@ func Helpers() template.FuncMap {
 	}
 }
 
-func orderedPrefixRxFromTerms(terms string) pgtype.Text {
-	terms = strings.ToLower(terms)
-	var rx string
+func splitSearchTerms(search string) []string {
+	search = strings.ToLower(search)
+	var terms []string
 	var cur string
-	for _, r := range terms {
+	for _, r := range search {
 		if unicode.IsLetter(r) || unicode.IsDigit(r) {
 			cur += string(r)
 			continue
@@ -55,23 +55,19 @@ func orderedPrefixRxFromTerms(terms string) pgtype.Text {
 			continue
 		}
 
-		// prefix match terms with the \m "word start" symbol
-		if rx == "" {
-			rx = "\\m" + cur
-		} else {
-			// extra words in between are allowed with .*
-			rx = rx + ".*\\m" + cur
-		}
+		terms = append(terms, cur)
 		cur = ""
 	}
 
 	if cur != "" {
-		if rx == "" {
-			rx = "\\m" + cur
-		} else {
-			rx = rx + ".*\\m" + cur
-		}
+		terms = append(terms, cur)
 	}
+
+	return terms
+}
+
+func orderedPrefixRxFromTerms(terms []string) pgtype.Text {
+	rx := "\\m" + strings.Join(terms, ".*\\m")
 
 	var t pgtype.Text
 	_ = t.Set(rx)
@@ -104,7 +100,8 @@ func RenderQuery(ctx context.Context, tmpl *template.Template, data RenderData) 
 			}
 
 			query = strings.ReplaceAll(query, ":~"+arg.Name, "$"+strconv.Itoa(n))
-			args = append(args, orderedPrefixRxFromTerms(val))
+			terms := splitSearchTerms(val)
+			args = append(args, orderedPrefixRxFromTerms(terms))
 			n++
 		}
 		rep := ":" + arg.Name
