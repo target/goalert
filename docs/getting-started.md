@@ -26,7 +26,7 @@ Note: If you are using default install of Postgres on Debian (maybe others) you 
 
 GoAlert natively supports database switchover functionality, allowing you to switch between databases with minimal disruption. This can be especially useful for maintenance, migration, or certain disaster recovery scenarios (it does require both old and new DB to be usable).
 
-To perform a database switchover, GoAlert offers an easy-to-follow, step-by-step guide that you can find in the [Quick Switchover Guide](./switchover.md). We strongly recommend reviewing this guide to understand the best practices and the sequence of steps involved.
+To perform a database switchover, GoAlert offers an easy-to-follow, step-by-step guide that you can find in the [Switchover Guide](./switchover.md). We strongly recommend reviewing this guide to understand the best practices and the sequence of steps involved.
 
 Further information about the theory of operation and implementation is available in the [`swo` package README](../swo/README.md).
 
