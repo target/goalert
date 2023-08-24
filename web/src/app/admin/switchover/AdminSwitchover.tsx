@@ -12,6 +12,9 @@ import { AdminSWODone } from './AdminSWODone'
 import { AdminSWOWrongMode } from './AdminSWOWrongMode'
 import { AdminSWODBVersionCard } from './AdminSWODBVersionCard'
 import { AdminSWOStatusCard } from './AdminSWOStatusCard'
+import { Button } from '@mui/material'
+import AppLink from '../../util/AppLink'
+import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 
 const query = gql`
   query {
@@ -45,7 +48,7 @@ const mutation = gql`
   }
 `
 
-export default function AdminSwitchover(): JSX.Element {
+export function AdminSwitchoverInterface(): JSX.Element {
   const [{ fetching, error, data: _data }, refetch] = useQuery({
     query,
   })
@@ -152,5 +155,22 @@ export default function AdminSwitchover(): JSX.Element {
             ))}
       </Grid>
     </Grid>
+  )
+}
+
+export default function AdminSwitchover(): JSX.Element {
+  return (
+    <React.Fragment>
+      <Button
+        variant='contained'
+        endIcon={<OpenInNewIcon />}
+        component={AppLink}
+        to='/admin/switchover/guide'
+        newTab
+      >
+        Switchover Guide
+      </Button>
+      <AdminSwitchoverInterface />
+    </React.Fragment>
   )
 }
