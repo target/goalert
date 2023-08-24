@@ -50,3 +50,29 @@ This guide provides a quick and easy-to-follow set of steps for performing a dat
    export GOALERT_DB_URL=<new-db-url>
    unset GOALERT_DB_URL_NEXT
    ```
+
+## Rollback Procedures
+
+In case you encounter issues during the switchover or decide to cancel the operation, you can do so safely by following these rollback steps:
+
+1. **Cancel Switchover in UI:**
+
+   - Navigate to the `Switchover` page under the `Admin` section in the UI.
+   - Click the `RESET` button. This will cancel the ongoing switchover process and restore the original database configuration.
+
+2. **Reconfigure Instances:**
+
+   - Redeploy or restart your GoAlert instances with the original `--db-url` flag, while removing the `--db-url-next` flag or the corresponding environment variable `GOALERT_DB_URL_NEXT`.
+
+   ```
+   goalert --db-url=<old-db-url>
+   ```
+
+   OR using environment variables:
+
+   ```
+   export GOALERT_DB_URL=<old-db-url>
+   unset GOALERT_DB_URL_NEXT
+   ```
+
+**Note:** After a successful switchover, the old database will be marked as obsolete. GoAlert instances will refuse to start if configured to use this old database. Therefore, rollback after a successful switchover is not possible without administrative intervention.
