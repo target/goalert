@@ -12,6 +12,7 @@ import (
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/timeutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
@@ -380,13 +381,9 @@ func (m *Mutation) UpdateRotation(ctx context.Context, input graphql2.UpdateRota
 func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.CalcRotationHandoffTimesInput) ([]time.Time, error) {
 	var result []time.Time
 	var err error
+	var rot rotation.Rotation
 
-	err = validate.Many(
-		err,
-		validate.Range("count", input.Count, 0, 20),
-		validate.Range("hours", input.ShiftLength, 0, 99999),
-		validate.OneOf("type", input.ShiftType, rotation.TypeMonthly, rotation.TypeWeekly, rotation.TypeDaily, rotation.TypeHourly),
-	)
+	err = validate.Range("count", input.Count, 0, 20)
 	if err != nil {
 		return result, err
 	}
@@ -396,10 +393,24 @@ func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.Ca
 		return result, validation.NewFieldError("timeZone", err.Error())
 	}
 
-	rot := &rotation.Rotation{
-		Start:       input.Handoff.In(loc),
-		ShiftLength: input.ShiftLength,
-		Type:        input.ShiftType,
+	switch {
+	case input.ShiftLengthIso != nil:
+		rot, err = getRotationFromISO(input.Handoff.In(loc), input.ShiftLengthIso)
+		if err != nil {
+			return result, err
+		}
+	case input.ShiftLengthHours != nil:
+		err = validate.Range("hours", *input.ShiftLengthHours, 0, 99999)
+		if err != nil {
+			return result, err
+		}
+		rot = rotation.Rotation{
+			Start:       input.Handoff.In(loc),
+			ShiftLength: *input.ShiftLengthHours,
+			Type:        rotation.TypeHourly,
+		}
+	default:
+		return result, validation.NewFieldError("shiftLength", err.Error())
 	}
 
 	t := time.Now()
@@ -413,4 +424,27 @@ func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.Ca
 	}
 
 	return result, nil
+}
+
+func getRotationFromISO(start time.Time, dur *timeutil.ISODuration) (rotation.Rotation, error) {
+	rot := rotation.Rotation{
+		Start: start,
+	}
+	switch {
+	case dur.Months > 0:
+		rot.Type = rotation.TypeMonthly
+		rot.ShiftLength = dur.Months
+	case dur.Days > 0 && dur.Days%7 == 0:
+		rot.Type = rotation.TypeWeekly
+		rot.ShiftLength = dur.Days / 7
+	case dur.Days > 0:
+		rot.Type = rotation.TypeDaily
+		rot.ShiftLength = dur.Days
+	case dur.TimePart > 0:
+		rot.Type = rotation.TypeHourly
+		rot.ShiftLength = int(dur.TimePart.Hours())
+	default:
+		return rot, errors.New("invalid rotation type :(")
+	}
+	return rot, nil
 }
