@@ -42,6 +42,7 @@ func Helpers() template.FuncMap {
 	}
 }
 
+// splitSearchTerms will separate the words present in search and return a slice with them
 func splitSearchTerms(search string) []string {
 	search = strings.ToLower(search)
 	var terms []string
@@ -66,8 +67,14 @@ func splitSearchTerms(search string) []string {
 	return terms
 }
 
-func orderedPrefixRxFromTerms(terms []string) pgtype.Text {
-	rx := "\\m" + strings.Join(terms, ".*\\m")
+// orderedPrefixRxFromTerms returns a PSQL regular expression that will match
+// a string if:
+//
+// - it includes words with the all the given prefixes
+//
+// - those words are in the same order as the prefixes
+func orderedPrefixRxFromTerms(prefixes []string) pgtype.Text {
+	rx := "\\m" + strings.Join(prefixes, ".*\\m")
 
 	var t pgtype.Text
 	_ = t.Set(rx)
