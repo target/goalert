@@ -1,5 +1,7 @@
 # Quick Switchover Guide for GoAlert
 
+Switchover (SWO) is a feature that allows a live system to switch from one database to another safely and with little to no user impact.
+
 This guide provides a quick and easy-to-follow set of steps for performing a database switchover in GoAlert.
 
 ## Steps to Perform Switchover
