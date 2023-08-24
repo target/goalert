@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/binary"
+	"fmt"
 	"strings"
 	"time"
 
@@ -56,7 +57,11 @@ func (s *Store) UserExists(ctx context.Context) (ExistanceChecker, error) {
 
 func (s *Store) userExistMap(ctx context.Context) (map[uuid.UUID]struct{}, error) {
 	var data []byte
-	err := s.grp.Get(ctx, timeKey("userIDs", time.Minute), groupcache.AllocatingByteSliceSink(&data))
+	tk := timeKey("userIDs", time.Minute)
+	fmt.Println("tk: ", tk)
+	sink := groupcache.AllocatingByteSliceSink(&data)
+	fmt.Printf("sink: %v\n", sink)
+	err := s.grp.Get(ctx, tk, sink)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +85,6 @@ func (s *Store) userExistMap(ctx context.Context) (map[uuid.UUID]struct{}, error
 	}
 	s.userExistHash = data[:sha256.Size]
 	s.userExist <- m
-
 	return m, nil
 }
 

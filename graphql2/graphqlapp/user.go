@@ -93,7 +93,7 @@ func (a *User) AssignedSchedules(ctx context.Context, obj *user.User) (schedules
 		return nil
 	})
 
-	return schedules, nil
+	return schedules, err
 }
 
 func (a *Mutation) CreateBasicAuth(ctx context.Context, input graphql2.CreateBasicAuthInput) (bool, error) {

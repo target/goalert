@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/override"
@@ -307,14 +306,14 @@ func (s *Store) HistoryBySchedule(ctx context.Context, scheduleID string, start,
 		ov.RemoveUserID = rem.String
 		overrides = append(overrides, ov)
 	}
-	id, err := uuid.Parse(scheduleID)
-	if err != nil {
-		return nil, errors.Wrap(err, "parse schedule ID")
-	}
-	tempScheds, err := s.schedStore.TemporarySchedules(ctx, tx, id)
-	if err != nil {
-		return nil, errors.Wrap(err, "lookup temporary schedules")
-	}
+	// id, err := uuid.Parse(scheduleID)
+	// if err != nil {
+	// 	return nil, errors.Wrap(err, "parse schedule ID")
+	// }
+	// tempScheds, err := s.schedStore.TemporarySchedules(ctx, tx, id)
+	// if err != nil {
+	// 	return nil, errors.Wrap(err, "lookup temporary schedules")
+	// }
 
 	err = tx.Commit()
 	if err != nil {
@@ -326,12 +325,12 @@ func (s *Store) HistoryBySchedule(ctx context.Context, scheduleID string, start,
 		return nil, errors.Wrap(err, "load time zone info")
 	}
 	st := state{
-		rules:      rules,
-		overrides:  overrides,
-		history:    userHistory,
-		now:        now,
-		loc:        tz,
-		tempScheds: tempScheds,
+		rules:     rules,
+		overrides: overrides,
+		history:   userHistory,
+		now:       now,
+		loc:       tz,
+		// tempScheds: tempScheds,
 	}
 
 	return st.CalculateShifts(start, end, userIDs), nil
