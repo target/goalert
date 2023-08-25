@@ -42,7 +42,9 @@ export default function SWONode({ node, name }: SWONodeProps): JSX.Element {
             </ListItem>
             <ListItem>
               <ListItemText primary='Connections' />
-              <ListItemSecondaryAction>
+              <ListItemSecondaryAction
+                sx={{ width: '24px', textAlign: 'center' }}
+              >
                 <Typography>
                   {node.connections?.reduce((acc, cur) => acc + cur.count, 0)}
                 </Typography>
@@ -93,7 +95,9 @@ export default function SWONode({ node, name }: SWONodeProps): JSX.Element {
           </ListItem>
           <ListItem>
             <ListItemText primary='Connections' />
-            <ListItemSecondaryAction>
+            <ListItemSecondaryAction
+              sx={{ width: '24px', textAlign: 'center' }}
+            >
               <Typography>
                 {node.connections?.reduce((acc, cur) => acc + cur.count, 0)}
               </Typography>

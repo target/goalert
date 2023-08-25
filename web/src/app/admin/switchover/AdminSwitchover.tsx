@@ -146,7 +146,7 @@ export default function AdminSwitchover(): JSX.Element {
         <AdminSWODBVersionCard data={data} />
       </Grid>
 
-      <Grid item xs={12} container spacing={2} justifyContent='space-between'>
+      <Grid item xs={12} container spacing={2}>
         {data?.nodes.length > 0 &&
           data.nodes
             .slice()
