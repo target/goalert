@@ -12,9 +12,7 @@ import { AdminSWODone } from './AdminSWODone'
 import { AdminSWOWrongMode } from './AdminSWOWrongMode'
 import { AdminSWODBVersionCard } from './AdminSWODBVersionCard'
 import { AdminSWOStatusCard } from './AdminSWOStatusCard'
-import { Button } from '@mui/material'
-import AppLink from '../../util/AppLink'
-import OpenInNewIcon from '@mui/icons-material/OpenInNew'
+import { AdminSwitchoverGuideButton } from './AdminSwitchoverGuide'
 
 const query = gql`
   query {
@@ -48,7 +46,7 @@ const mutation = gql`
   }
 `
 
-export function AdminSwitchoverInterface(): JSX.Element {
+export default function AdminSwitchover(): JSX.Element {
   const [{ fetching, error, data: _data }, refetch] = useQuery({
     query,
   })
@@ -69,12 +67,35 @@ export function AdminSwitchoverInterface(): JSX.Element {
   }, [fetching, refetch, data?.state, mutationStatus.fetching])
 
   // remember if we are done and stay that way
-  if (data?.state === 'done') return <AdminSWODone />
+  if (data?.state === 'done')
+    return (
+      <React.Fragment>
+        <AdminSWODone />
+        <center style={{ paddingTop: '1em' }}>
+          <AdminSwitchoverGuideButton />
+        </center>
+      </React.Fragment>
+    )
 
   if (error && error.message === '[GraphQL] not in SWO mode' && !data)
-    return <AdminSWOWrongMode />
+    return (
+      <React.Fragment>
+        <AdminSWOWrongMode />
+        <center style={{ paddingTop: '1em' }}>
+          <AdminSwitchoverGuideButton />
+        </center>
+      </React.Fragment>
+    )
 
-  if (!data) return <Spinner />
+  if (!data)
+    return (
+      <React.Fragment>
+        <Spinner />
+        <center style={{ paddingTop: '1em' }}>
+          <AdminSwitchoverGuideButton />
+        </center>
+      </React.Fragment>
+    )
 
   function actionHandler(action: 'reset' | 'execute'): () => void {
     return () => {
@@ -155,22 +176,5 @@ export function AdminSwitchoverInterface(): JSX.Element {
             ))}
       </Grid>
     </Grid>
-  )
-}
-
-export default function AdminSwitchover(): JSX.Element {
-  return (
-    <React.Fragment>
-      <Button
-        variant='contained'
-        endIcon={<OpenInNewIcon />}
-        component={AppLink}
-        to='/admin/switchover/guide'
-        newTab
-      >
-        Switchover Guide
-      </Button>
-      <AdminSwitchoverInterface />
-    </React.Fragment>
   )
 }
