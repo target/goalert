@@ -86,10 +86,9 @@ export function AdminSWOStatusCard(
           sx={{ p: 0 }}
         />
         {getDetails(props.data)}
-        <div style={{ flexGrow: 1 }} />
         <ButtonGroup
           orientation={theme.breakpoints.up('md') ? 'vertical' : 'horizontal'}
-          sx={{ width: '100%', pb: '32px' }}
+          sx={{ width: '100%', pb: '16px', pt: '16px' }}
         >
           <LoadingButton
             startIcon={<ResetIcon />}
