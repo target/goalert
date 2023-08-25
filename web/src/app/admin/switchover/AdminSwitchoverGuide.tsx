@@ -2,7 +2,12 @@ import React from 'react'
 import swoGuide from '../../../../../docs/switchover.md'
 
 import Markdown from '../../util/Markdown'
+import { Typography } from '@mui/material'
 
 export default function AdminSwitchoverGuide(): JSX.Element {
-  return <Markdown value={swoGuide} />
+  return (
+    <Typography>
+      <Markdown value={swoGuide} />
+    </Typography>
+  )
 }
