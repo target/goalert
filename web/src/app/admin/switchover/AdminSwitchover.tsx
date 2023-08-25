@@ -68,11 +68,11 @@ export default function AdminSwitchover(): JSX.Element {
 
   // loading/error states to show before page load
   let msgJSX: ReactNode
-  const err = error && error.message === '[GraphQL] not in SWO mode' && !data
-  if (err) msgJSX = <AdminSWOWrongMode />
-  if (!data) msgJSX = <Spinner />
-  if (data?.state === 'done') msgJSX = <AdminSWODone />
-  if (err || !data || data?.state === 'done') {
+  if (error?.message === '[GraphQL] not in SWO mode' && !data)
+    msgJSX = <AdminSWOWrongMode />
+  else if (!data) msgJSX = <Spinner />
+  else if (data?.state === 'done') msgJSX = <AdminSWODone />
+  if (msgJSX) {
     return (
       <React.Fragment>
         {msgJSX}
