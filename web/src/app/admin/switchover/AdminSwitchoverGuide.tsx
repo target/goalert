@@ -6,7 +6,7 @@ import { Typography } from '@mui/material'
 
 export default function AdminSwitchoverGuide(): JSX.Element {
   return (
-    <Typography>
+    <Typography component='div'>
       <Markdown value={swoGuide} />
     </Typography>
   )
