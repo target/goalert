@@ -14,6 +14,7 @@ import (
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -50,7 +51,11 @@ func (s *Session) AuthPlain(username, password string) error { return smtp.ErrAu
 func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
 	addr, err := mail.ParseAddress(from)
 	if err != nil {
-		return err
+		return &smtp.SMTPError{
+			Code:         501,
+			EnhancedCode: smtp.EnhancedCode{5, 5, 2},
+			Message:      "Syntax error in sender address",
+		}
 	}
 
 	s.from = addr.String()
@@ -64,24 +69,61 @@ func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
 func (s *Session) Rcpt(recipient string) error {
 	addr, err := mail.ParseAddress(recipient)
 	if err != nil {
-		return err
+		return &smtp.SMTPError{
+			Code:         501,
+			EnhancedCode: smtp.EnhancedCode{5, 5, 2},
+			Message:      "Syntax error in recipient address",
+		}
 	}
 	id, domain, ok := strings.Cut(addr.Address, "@")
 	if !ok {
-		return errors.New("invalid recipient")
+		return &smtp.SMTPError{
+			Code:         501,
+			EnhancedCode: smtp.EnhancedCode{5, 5, 2},
+			Message:      "Syntax error in recipient address",
+		}
 	}
 	if !s.isValidDomain(domain) {
-		return errors.New("invalid domain")
+		return &smtp.SMTPError{
+			Code:         550,
+			EnhancedCode: smtp.EnhancedCode{5, 7, 1},
+			Message:      "Recipient domain not handled here",
+		}
 	}
 	id, s.dedup, _ = strings.Cut(id, "+")
 	err = validate.UUID("recipient", id)
 	if err != nil {
-		return err
+		return &smtp.SMTPError{
+			Code:         501,
+			EnhancedCode: smtp.EnhancedCode{5, 5, 2},
+			Message:      "Syntax error in recipient address",
+		}
+	}
+
+	if s.authCtx != nil {
+		return &smtp.SMTPError{
+			Code:         452,
+			EnhancedCode: smtp.EnhancedCode{4, 5, 3},
+			Message:      "Only one recipient is allowed",
+		}
 	}
 
 	ctx, err := s.cfg.AuthorizeFunc(context.Background(), id)
 	if err != nil {
-		return err
+		if permission.IsUnauthorized(err) {
+			return &smtp.SMTPError{
+				Code:         550,
+				EnhancedCode: smtp.EnhancedCode{5, 1, 1},
+				Message:      "Invalid API key",
+			}
+		}
+
+		log.Log(ctx, err) // log unexpected error
+		return &smtp.SMTPError{
+			Code:         451,
+			EnhancedCode: smtp.EnhancedCode{4, 3, 0},
+			Message:      "Temporary local error, please try again",
+		}
 	}
 
 	s.authCtx = ctx
@@ -96,7 +138,11 @@ func (s *Session) Data(r io.Reader) error {
 
 	email, err := letters.ParseEmail(r)
 	if err != nil {
-		return err
+		return &smtp.SMTPError{
+			Code:         554,
+			EnhancedCode: smtp.EnhancedCode{5, 6, 0},
+			Message:      "Malformed email message",
+		}
 	}
 	body := email.Text
 
@@ -116,13 +162,22 @@ func (s *Session) Data(r io.Reader) error {
 		Dedup:     dedup,
 	}
 
-	return retry.DoTemporaryError(func(_ int) error {
+	err = retry.DoTemporaryError(func(_ int) error {
 		return s.cfg.CreateAlertFunc(s.authCtx, newAlert)
 	},
 		retry.Log(s.authCtx),
 		retry.Limit(12),
 		retry.FibBackoff(time.Second),
 	)
+	if err != nil {
+		return &smtp.SMTPError{
+			Code:         451,
+			EnhancedCode: smtp.EnhancedCode{4, 3, 0},
+			Message:      "Temporary local error, please try again",
+		}
+	}
+
+	return nil
 }
 
 // Reset resets the session state.
