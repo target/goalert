@@ -2,7 +2,7 @@
 // versions:
 //   sqlc v1.20.0
 
-package swodb
+package pgd
 
 import (
 	"context"
