@@ -24,7 +24,7 @@ type Session struct {
 
 	from    string
 	dedup   string
-	authCtx context.Context
+	authCtx []context.Context
 }
 
 func (s *Session) isValidDomain(d string) bool {
@@ -100,11 +100,11 @@ func (s *Session) Rcpt(recipient string) error {
 		}
 	}
 
-	if s.authCtx != nil {
+	if len(s.authCtx) >= s.cfg.MaxRecipients {
 		return &smtp.SMTPError{
 			Code:         452,
 			EnhancedCode: smtp.EnhancedCode{4, 5, 3},
-			Message:      "Only one recipient is allowed",
+			Message:      "Too many recipients",
 		}
 	}
 
@@ -126,7 +126,7 @@ func (s *Session) Rcpt(recipient string) error {
 		}
 	}
 
-	s.authCtx = ctx
+	s.authCtx = append(s.authCtx, ctx)
 	return nil
 }
 
@@ -153,27 +153,31 @@ func (s *Session) Data(r io.Reader) error {
 	if s.dedup != "" {
 		dedup = alert.NewUserDedup(s.dedup)
 	}
-	newAlert := &alert.Alert{
-		Summary:   summary,
-		Details:   details,
-		ServiceID: permission.ServiceID(s.authCtx),
-		Status:    alert.StatusTriggered,
-		Source:    alert.SourceEmail,
-		Dedup:     dedup,
-	}
 
-	err = retry.DoTemporaryError(func(_ int) error {
-		return s.cfg.CreateAlertFunc(s.authCtx, newAlert)
-	},
-		retry.Log(s.authCtx),
-		retry.Limit(12),
-		retry.FibBackoff(time.Second),
-	)
-	if err != nil {
-		return &smtp.SMTPError{
-			Code:         451,
-			EnhancedCode: smtp.EnhancedCode{4, 3, 0},
-			Message:      "Temporary local error, please try again",
+	for _, authCtx := range s.authCtx {
+
+		newAlert := &alert.Alert{
+			Summary:   summary,
+			Details:   details,
+			ServiceID: permission.ServiceID(authCtx),
+			Status:    alert.StatusTriggered,
+			Source:    alert.SourceEmail,
+			Dedup:     dedup,
+		}
+
+		err = retry.DoTemporaryError(func(_ int) error {
+			return s.cfg.CreateAlertFunc(authCtx, newAlert)
+		},
+			retry.Log(authCtx),
+			retry.Limit(12),
+			retry.FibBackoff(time.Second),
+		)
+		if err != nil {
+			return &smtp.SMTPError{
+				Code:         451,
+				EnhancedCode: smtp.EnhancedCode{4, 3, 0},
+				Message:      "Temporary local error, please try again",
+			}
 		}
 	}
 
