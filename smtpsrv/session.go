@@ -2,7 +2,6 @@ package smtpsrv
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"net/mail"
@@ -132,8 +131,12 @@ func (s *Session) Rcpt(recipient string) error {
 
 // Data is called when a new SMTP message is received.
 func (s *Session) Data(r io.Reader) error {
-	if s.authCtx == nil {
-		return errors.New("no recipient")
+	if len(s.authCtx) == 0 {
+		return &smtp.SMTPError{
+			Code:         503,
+			EnhancedCode: smtp.EnhancedCode{5, 5, 1},
+			Message:      "Need RCPT TO command before DATA",
+		}
 	}
 
 	email, err := letters.ParseEmail(r)
@@ -155,7 +158,6 @@ func (s *Session) Data(r io.Reader) error {
 	}
 
 	for _, authCtx := range s.authCtx {
-
 		newAlert := &alert.Alert{
 			Summary:   summary,
 			Details:   details,
