@@ -71,7 +71,7 @@ func TestSession_Data(t *testing.T) {
 	err := sess.Data(bytes.NewReader(nil))
 	assert.ErrorContains(t, err, "recipient")
 
-	sess.authCtx = permission.ServiceContext(context.Background(), "svc")
+	sess.authCtx = []context.Context{permission.ServiceContext(context.Background(), "svc")}
 	sess.from = "test@localhost"
 	sess.dedup = "dedup-value"
 
