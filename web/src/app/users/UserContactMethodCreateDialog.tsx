@@ -35,7 +35,7 @@ const userConflictQuery = gql`
 `
 
 export default function UserContactMethodCreateDialog(props: {
-  userID: string | null
+  userID: string
   onClose: (contactMethodID?: string) => void
   title?: string
   subtitle?: string
