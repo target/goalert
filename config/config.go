@@ -23,7 +23,7 @@ type Config struct {
 	General struct {
 		ApplicationName              string `public:"true" info:"The name used in messaging and page titles. Defaults to \"GoAlert\"."`
 		PublicURL                    string `public:"true" info:"Publicly routable URL for UI links and API calls." deprecated:"Use --public-url flag instead, which takes precedence."`
-		GoogleAnalyticsID            string `public:"true" info:"No longer used." deprecated:"No longer used."`
+		GoogleAnalyticsID            string `public:"true" info:"If set, will post user metrics to the corresponding data stream in Google Analytics."`
 		NotificationDisclaimer       string `public:"true" info:"Disclaimer text for receiving pre-recorded notifications (appears on profile page)."`
 		DisableMessageBundles        bool   `public:"true" info:"Disable bundling status updates and alert notifications."`
 		ShortURL                     string `public:"true" info:"If set, messages will contain a shorter URL using this as a prefix (e.g. http://example.com). It should point to GoAlert and can be the same as the PublicURL."`

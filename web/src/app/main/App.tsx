@@ -26,6 +26,8 @@ import NavBar from './NavBar'
 import AuthLink from './components/AuthLink'
 import { useExpFlag } from '../util/useExpFlag'
 import { NotificationProvider } from './SnackbarNotification'
+import ReactGA from 'react-ga4'
+import { useConfigValue } from '../util/RequireConfig'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -54,6 +56,9 @@ const useStyles = makeStyles((theme: Theme) => ({
 }))
 
 export default function App(): JSX.Element {
+  const [analyticsID] = useConfigValue('General.GoogleAnalyticsID') as [string]
+  if (analyticsID) ReactGA.initialize(analyticsID)
+
   const classes = useStyles()
   const [showMobile, setShowMobile] = useState(false)
   const fullScreen = useIsWidthDown('md')
