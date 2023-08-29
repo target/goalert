@@ -570,6 +570,8 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 	switch req.URL.Path {
 	case "/v1/api/alerts", "/api/v2/generic/incoming":
 		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, *tok, integrationkey.TypeGeneric)
+	case "/api/v2/notify/incoming":
+		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, *tok, integrationkey.TypeNotify)
 	case "/v1/webhooks/grafana", "/api/v2/grafana/incoming":
 		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, *tok, integrationkey.TypeGrafana)
 	case "/api/v2/site24x7/incoming":

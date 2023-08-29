@@ -217,6 +217,7 @@ function createIntKey(
     intKey.type ||
     c.pickone([
       'email',
+      'notify',
       'generic',
       'grafana',
       'site24x7',

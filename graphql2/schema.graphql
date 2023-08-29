@@ -1205,6 +1205,7 @@ type IntegrationKey {
 
 enum IntegrationKeyType {
   generic
+  notify
   grafana
   site24x7
   prometheusAlertmanager

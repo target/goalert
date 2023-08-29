@@ -173,6 +173,10 @@ export default function WizardForm(props) {
                 value: 'generic',
               },
               {
+                label: 'Notify API',
+                value: 'notify',
+              },
+              {
                 label: 'Grafana Webhook URL',
                 value: 'grafana',
               },

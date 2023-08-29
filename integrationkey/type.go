@@ -14,6 +14,7 @@ const (
 	TypeSite24x7               Type = "site24x7"
 	TypePrometheusAlertmanager Type = "prometheusAlertmanager"
 	TypeGeneric                Type = "generic"
+	TypeNotify                 Type = "notify"
 	TypeEmail                  Type = "email"
 )
 
