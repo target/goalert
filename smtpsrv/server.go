@@ -34,6 +34,8 @@ var _ smtp.Backend = &Server{}
 // ServeSMTP starts the SMTP server on the given listener.
 func (s *Server) ServeSMTP(l net.Listener) error { return s.srv.Serve(l) }
 
+func (s *Session) Rcpt(to string, opts *smtp.RcptOptions) error { return nil }
+
 // NewSession implements the smtp.Backend interface.
 func (s *Server) NewSession(_ *smtp.Conn) (smtp.Session, error) { return &Session{cfg: s.cfg}, nil }
 
