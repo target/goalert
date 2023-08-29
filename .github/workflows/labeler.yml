@@ -42,3 +42,4 @@ jobs:
             "go.mod"
             "go.sum"
             ".yarn/releases/*"
+            "devtools/pgdump-lite/pgd/*"
