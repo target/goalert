@@ -61,7 +61,7 @@ func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
 // that the recipient is valid and stores it in the session.
 //
 // It also checks that the recipient is authorized to create alerts.
-func (s *Session) Rcpt(recipient string) error {
+func (s *Session) Rcpt(recipient string, opts *smtp.RcptOptions) error {
 	addr, err := mail.ParseAddress(recipient)
 	if err != nil {
 		return err

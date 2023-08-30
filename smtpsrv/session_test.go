@@ -32,17 +32,17 @@ func TestSession_Mail(t *testing.T) {
 
 func TestSession_Rcpt(t *testing.T) {
 	var sess Session
-	err := sess.Rcpt("")
+	err := sess.Rcpt("", nil)
 	assert.ErrorContains(t, err, "no address")
 
-	err = sess.Rcpt("test")
+	err = sess.Rcpt("test", nil)
 	assert.ErrorContains(t, err, "@")
 
-	err = sess.Rcpt("test@localhost")
+	err = sess.Rcpt("test@localhost", nil)
 	assert.ErrorContains(t, err, "invalid domain")
 
 	sess.cfg.Domain = "localhost"
-	err = sess.Rcpt("test@localhost")
+	err = sess.Rcpt("test@localhost", nil)
 	assert.ErrorContains(t, err, "invalid value") // must be uuid
 
 	authCtx := context.Background()
@@ -52,7 +52,7 @@ func TestSession_Rcpt(t *testing.T) {
 		return authCtx, nil
 	}
 
-	err = sess.Rcpt("00000000-0000-0000-0000-000000000000+dedup-value@localhost")
+	err = sess.Rcpt("00000000-0000-0000-0000-000000000000+dedup-value@localhost", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, authCtx, sess.authCtx)
 	assert.Equal(t, "dedup-value", sess.dedup)
@@ -62,7 +62,7 @@ func TestSession_Rcpt(t *testing.T) {
 		return nil, errFailed
 	}
 
-	err = sess.Rcpt("00000000-0000-0000-0000-000000000000+dedup-value@localhost")
+	err = sess.Rcpt("00000000-0000-0000-0000-000000000000+dedup-value@localhost", nil)
 	assert.ErrorIs(t, err, errFailed)
 }
 
