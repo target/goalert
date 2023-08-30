@@ -156,6 +156,12 @@ func (m *Mocker) AdvanceTime(ctx context.Context, d time.Duration) error {
 	return m.readErr("advance time")
 }
 
+// AdvanceTime advances the time by the given duration in seconds (workaround for pgmocktime milliseconds interval field value out of range error (~2147520000 milliseconds)).
+func (m *Mocker) AdvanceTimeSeconds(ctx context.Context, d time.Duration) error {
+	m.exec(ctx, `update %s.flux_capacitor set ref_time = current_timestamp, base_time = %s.now() + '%d seconds'::interval`, m.safeSchema(), m.safeSchema(), d/time.Second)
+	return m.readErr("advance time")
+}
+
 // SetTime sets the database time to the given time.
 func (m *Mocker) SetTime(ctx context.Context, t time.Time) error {
 	m.exec(ctx, `update %s.flux_capacitor set ref_time = current_timestamp, base_time = '%s'::timestamptz`, m.safeSchema(), t.Format(time.RFC3339Nano))

@@ -51,6 +51,36 @@ func (h *Harness) insertGraphQLUser(userID string) string {
 	return h.gqlSessions[userID]
 }
 
+// RefreshGraphQLUser refreshes the gql session token for an existing specified user.
+func (h *Harness) RefreshGraphQLUser(userID string) string {
+	h.t.Helper()
+	var err error
+	var user *user.User
+	if userID == DefaultGraphQLAdminUserID {
+		permission.SudoContext(context.Background(), func(ctx context.Context) {
+			user, err = h.backend.UserStore.FindOne(ctx, userID)
+		})
+		if err != nil {
+			h.t.Fatal(errors.Wrap(err, "find GraphQL user"))
+		}
+		if user == nil {
+			h.t.Fatal(errors.Wrap(err, "GraphQL user does not exist"))
+		}
+	}
+
+	tok, err := h.backend.AuthHandler.CreateSession(context.Background(), "goalert-smoketest", userID)
+	if err != nil {
+		h.t.Fatal(errors.Wrap(err, "create auth session"))
+	}
+
+	h.gqlSessions[userID], err = tok.Encode(h.backend.SessionKeyring.Sign)
+	if err != nil {
+		h.t.Fatal(errors.Wrap(err, "sign auth session"))
+	}
+
+	return h.gqlSessions[userID]
+}
+
 // GraphQLQuery2 will perform a GraphQL2 query against the backend, internally
 // handling authentication. Queries are performed with Admin role.
 func (h *Harness) GraphQLQuery2(query string) *QLResponse {
