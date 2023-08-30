@@ -27,7 +27,7 @@ To test the Grafana integration, ensure you have a service with a configured int
 6. Add alert
    1. Click panel title
    2. Edit
-   3. Scenario=Predictible Pulse, Step=1, on count=10, off count=10
+   3. Scenario=Predictable Pulse, Step=1, on count=10, off count=10
    4. Click Alert tab
    5. Click Create Alert
    6. Evaluate every=1s, For=3s, WHEN=last(), IS ABOVE=1.5, Send to=test

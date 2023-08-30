@@ -42,7 +42,7 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 /*
 	Theory of Operation:
 
-	1. Aquire processing lock
+	1. Acquire processing lock
 	2. Get batch of oldest alert IDs after cursor (use LastLogID as a tie breaker)
 	3. Insert metrics for these alerts
 	4. Set cursor to last inserted

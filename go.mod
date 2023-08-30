@@ -1,13 +1,14 @@
 module github.com/target/goalert
 
-go 1.20
+go 1.21
 
 require (
-	github.com/99designs/gqlgen v0.17.35
-	github.com/brianvoe/gofakeit/v6 v6.23.0
+	github.com/99designs/gqlgen v0.17.36
+	github.com/brianvoe/gofakeit/v6 v6.23.1
 	github.com/coreos/go-oidc/v3 v3.6.0
 	github.com/creack/pty v1.1.18
 	github.com/davecgh/go-spew v1.1.1
+	github.com/emersion/go-smtp v0.18.0
 	github.com/fatih/color v1.15.0
 	github.com/felixge/httpsnoop v1.0.3
 	github.com/fullstorydev/grpcui v1.3.1
@@ -17,7 +18,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gordonklaus/ineffassign v0.0.0-20230610083614-0e73809eb601
 	github.com/hashicorp/yamux v0.1.1
-	github.com/jackc/pgconn v1.14.0
+	github.com/jackc/pgconn v1.14.1
 	github.com/jackc/pgtype v1.14.0
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/jmespath/go-jmespath v0.4.0
@@ -29,11 +30,12 @@ require (
 	github.com/mailhog/data v1.0.1
 	github.com/mailhog/storage v1.0.1
 	github.com/matcornic/hermes/v2 v2.1.0
+	github.com/mnako/letters v0.2.0
 	github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282
 	github.com/pelletier/go-toml/v2 v2.0.9
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.16.0
-	github.com/rubenv/sql-migrate v1.5.1
+	github.com/rubenv/sql-migrate v1.5.2
 	github.com/sirupsen/logrus v1.9.3
 	github.com/slack-go/slack v0.12.2
 	github.com/spf13/cobra v1.7.0
@@ -42,16 +44,16 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/ttacon/libphonenumber v1.2.1
 	github.com/vektah/gqlparser/v2 v2.5.8
-	golang.org/x/crypto v0.11.0
-	golang.org/x/oauth2 v0.10.0
-	golang.org/x/sys v0.10.0
-	golang.org/x/term v0.10.0
-	golang.org/x/tools v0.11.0
-	google.golang.org/grpc v1.56.2
+	golang.org/x/crypto v0.12.0
+	golang.org/x/oauth2 v0.11.0
+	golang.org/x/sys v0.11.0
+	golang.org/x/term v0.11.0
+	golang.org/x/tools v0.12.0
+	google.golang.org/grpc v1.57.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
-	honnef.co/go/tools v0.4.3
+	honnef.co/go/tools v0.4.5
 )
 
 require (
@@ -76,6 +78,7 @@ require (
 	github.com/cncf/udpa/go v0.0.0-20220112060539-c52dc94e7fbe // indirect
 	github.com/cncf/xds/go v0.0.0-20230607035331-e9ce68804cb4 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
+	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21 // indirect
 	github.com/envoyproxy/go-control-plane v0.11.1 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.0.2 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
@@ -146,9 +149,9 @@ require (
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20230626212559-97b1e661b5df // indirect
 	golang.org/x/mod v0.12.0 // indirect
-	golang.org/x/net v0.12.0 // indirect
+	golang.org/x/net v0.14.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/text v0.11.0 // indirect
+	golang.org/x/text v0.12.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230626202813-9b080da550b3 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230626202813-9b080da550b3 // indirect

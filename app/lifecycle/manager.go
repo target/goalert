@@ -257,7 +257,7 @@ func (m *Manager) Shutdown(ctx context.Context) error {
 	return err
 }
 
-// Pause will bein a pause opperation.
+// Pause will bein a pause operation.
 // SetPauseResumer must have been called or ErrPauseUnsupported is returned.
 //
 // Pause is atomic and guarantees a paused state if nil is returned
