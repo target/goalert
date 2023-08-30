@@ -36,17 +36,17 @@ func TestSession_Rcpt(t *testing.T) {
 	sess.cfg.MaxRecipients = 1
 	sess.cfg.BackgroundContext = func() context.Context { return log.WithLogger(context.Background(), log.NewLogger()) }
 
-	err := sess.Rcpt("")
+	err := sess.Rcpt("", nil)
 	assert.ErrorContains(t, err, "recipient address")
 
-	err = sess.Rcpt("test")
+	err = sess.Rcpt("test", nil)
 	assert.ErrorContains(t, err, "recipient address")
 
-	err = sess.Rcpt("test@localhost")
+	err = sess.Rcpt("test@localhost", nil)
 	assert.ErrorContains(t, err, "domain not handled here")
 
 	sess.cfg.Domain = "localhost"
-	err = sess.Rcpt("test@localhost")
+	err = sess.Rcpt("test@localhost", nil)
 	assert.ErrorContains(t, err, "recipient address") // must be uuid
 
 	authCtx := sess.cfg.BackgroundContext()
@@ -57,7 +57,7 @@ func TestSession_Rcpt(t *testing.T) {
 		return authCtx, nil
 	}
 
-	err = sess.Rcpt("00000000-0000-0000-0000-000000000000+dedup-value@localhost")
+	err = sess.Rcpt("00000000-0000-0000-0000-000000000000+dedup-value@localhost", nil)
 	assert.NoError(t, err)
 	assert.Contains(t, sess.authCtx, authCtx)
 	assert.Equal(t, "dedup-value", sess.dedup)
@@ -68,14 +68,14 @@ func TestSession_Rcpt(t *testing.T) {
 	}
 
 	sess.authCtx = nil
-	err = sess.Rcpt("00000000-0000-0000-0000-000000000000+dedup-value@localhost")
+	err = sess.Rcpt("00000000-0000-0000-0000-000000000000+dedup-value@localhost", nil)
 	assert.ErrorContains(t, err, "local error")
 }
 
 func TestSession_Data(t *testing.T) {
 	var sess Session
 	err := sess.Data(bytes.NewReader(nil))
-	assert.ErrorContains(t, err, "recipient")
+	assert.ErrorContains(t, err, "RCPT TO")
 
 	sess.authCtx = []context.Context{permission.ServiceContext(context.Background(), "svc")}
 	sess.from = "test@localhost"
