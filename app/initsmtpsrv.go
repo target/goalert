@@ -19,10 +19,11 @@ func (app *App) initSMTPServer(ctx context.Context) error {
 	}
 
 	cfg := smtpsrv.Config{
-		Domain:         app.cfg.EmailIntegrationDomain,
-		AllowedDomains: parseAllowedDomains(app.cfg.SMTPAdditionalDomains, app.cfg.EmailIntegrationDomain),
-		TLSConfig:      app.cfg.TLSConfigSMTP,
-		MaxRecipients:  app.cfg.SMTPMaxRecipients,
+		Domain:            app.cfg.EmailIntegrationDomain,
+		AllowedDomains:    parseAllowedDomains(app.cfg.SMTPAdditionalDomains, app.cfg.EmailIntegrationDomain),
+		TLSConfig:         app.cfg.TLSConfigSMTP,
+		MaxRecipients:     app.cfg.SMTPMaxRecipients,
+		BackgroundContext: app.LogBackgroundContext,
 		AuthorizeFunc: func(ctx context.Context, id string) (context.Context, error) {
 			tok, _, err := authtoken.Parse(id, nil)
 			if err != nil {

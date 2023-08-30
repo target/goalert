@@ -107,7 +107,7 @@ func (s *Session) Rcpt(recipient string) error {
 		}
 	}
 
-	ctx, err := s.cfg.AuthorizeFunc(context.Background(), id)
+	ctx, err := s.cfg.AuthorizeFunc(s.cfg.BackgroundContext(), id)
 	if err != nil {
 		if permission.IsUnauthorized(err) {
 			return &smtp.SMTPError{
