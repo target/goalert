@@ -2,7 +2,11 @@ import { test, expect } from '@playwright/test'
 import { adminUserCreds } from './lib'
 const baseURL = 'http://localhost:6110'
 
-test('should perform switchover', async ({ page }) => {
+test('should perform switchover', async ({ page, isMobile }) => {
+  if (isMobile) {
+    // we can only do this test once, so skip it on mobile
+    return
+  }
   await page.goto(`${baseURL}/admin/switchover`)
   await page.fill('input[name=username]', adminUserCreds.user)
   await page.fill('input[name=password]', adminUserCreds.pass)
