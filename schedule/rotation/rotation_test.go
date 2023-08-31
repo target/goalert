@@ -169,7 +169,7 @@ func TestRotation_StartEnd_BruteForce(t *testing.T) {
 	check(&Rotation{
 		Type:        TypeMonthly,
 		ShiftLength: 1,
-		Start:       time.Date(2020, time.October, 2, 1, 30, 0, 0, loc),
+		Start:       time.Date(2020, time.January, 2, 1, 30, 0, 0, loc),
 	},
 		time.Date(2020, time.April, 5, 1, 0, 0, 0, loc),
 		time.Date(2020, time.June, 12, 1, 0, 0, 0, loc),
@@ -184,15 +184,15 @@ func TestRotation_StartEnd_BruteForce(t *testing.T) {
 	check(&Rotation{
 		Type:        TypeMonthly,
 		ShiftLength: 1,
-		Start:       time.Date(2020, time.October, 2, 1, 30, 0, 0, loc),
+		Start:       time.Date(2020, time.October, 1, 1, 30, 0, 0, loc),
 	},
 		time.Date(2020, time.October, 2, 1, 0, 0, 0, loc),
 		time.Date(2020, time.December, 2, 1, 0, 0, 0, loc),
 
-		"2020-09-02 01:30:00 -0500 CDT",
-		"2020-10-02 01:30:00 -0500 CDT",
-		"2020-11-02 01:30:00 -0600 CST",
-		"2020-12-02 01:30:00 -0600 CST",
+		"2020-10-01 01:30:00 -0500 CDT",
+		"2020-11-01 01:30:00 -0500 CDT",
+		"2020-12-01 01:30:00 -0600 CST",
+		"2021-01-01 01:30:00 -0600 CST",
 	)
 
 	loc, err = time.LoadLocation("Australia/Lord_Howe")
@@ -429,11 +429,11 @@ func TestRotation_EndTime(t *testing.T) {
 	// monthly
 	data := []dat{
 		{s: "Jun 1 2017 12:00 am", l: 1, exp: "Jul 1 2017 12:00 am", dur: time.Hour * 24 * 30},
-		{s: "Jul 1 2017 12:00 am", l: 2, exp: "Aug 1 2017 12:00 am", dur: time.Hour * 24 * 31},
+		{s: "Jul 1 2017 12:00 am", l: 2, exp: "Sep 1 2017 12:00 am", dur: time.Hour * 24 * 31 * 2},
 
 		// DST tests
 		{s: "Mar 1 2017 12:00 am", l: 1, exp: "Apr 1 2017 12:00 am", dur: time.Hour*24*31 - time.Hour},
-		{s: "Nov 1 2017 12:00 am", l: 2, exp: "Dec 1 2017 12:00 am", dur: time.Hour*24*30 + time.Hour},
+		{s: "Nov 1 2017 12:00 am", l: 2, exp: "Jan 1 2018 12:00 am", dur: time.Hour*(24*(30+31)) + time.Hour},
 	}
 	for _, d := range data {
 		test(d.s, d.exp, d.l, d.dur, TypeMonthly)
@@ -513,7 +513,7 @@ func TestRotation_EndTime(t *testing.T) {
 	})
 
 	t.Run("subsequent calls (monthly)", func(t *testing.T) {
-		orig := time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC)
+		orig := time.Date(2020, time.January, 10, 0, 0, 0, 0, time.UTC)
 		r := &Rotation{
 			Type:        TypeMonthly,
 			ShiftLength: 1,
@@ -627,11 +627,11 @@ func TestRotation_StartTime(t *testing.T) {
 	// monthly
 	data := []dat{
 		{s: "Jun 1 2017 12:00 am", l: 1, exp: "Jul 1 2017 12:00 am", dur: time.Hour * 24 * 30},
-		{s: "Jul 1 2017 12:00 am", l: 2, exp: "Aug 1 2017 12:00 am", dur: time.Hour * 24 * 31},
+		{s: "Jul 1 2017 12:00 am", l: 2, exp: "Sep 1 2017 12:00 am", dur: time.Hour * 24 * 31 * 2},
 
 		// DST tests
 		{s: "Mar 1 2017 12:00 am", l: 1, exp: "Apr 1 2017 12:00 am", dur: time.Hour*24*31 - time.Hour},
-		{s: "Nov 1 2017 12:00 am", l: 2, exp: "Dec 1 2017 12:00 am", dur: time.Hour*24*30 + time.Hour},
+		{s: "Nov 1 2017 12:00 am", l: 2, exp: "Jan 1 2018 12:00 am", dur: time.Hour*(24*(31+30)) + time.Hour},
 	}
 	for _, d := range data {
 		test(d.s, d.exp, d.l, d.dur, TypeMonthly)
