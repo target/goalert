@@ -187,7 +187,15 @@ func (m *Manager) withConnFromBoth(ctx context.Context, f func(ctx context.Conte
 
 func withPGXConn(ctx context.Context, db *pgxpool.Pool, runFunc func(context.Context, *pgx.Conn) error) error {
 	return db.AcquireFunc(ctx, func(conn *pgxpool.Conn) error {
-		return runFunc(ctx, conn.Conn())
+		err := runFunc(ctx, conn.Conn())
+		if err != nil {
+			_ = conn.Conn().Close(ctx)
+			return err
+		}
+
+		// Close connection instead of returning it to the pool, to ensure
+		// locks are released.
+		return conn.Conn().Close(ctx)
 	})
 }
 
