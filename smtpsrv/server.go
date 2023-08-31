@@ -26,6 +26,19 @@ func NewServer(cfg Config) *Server {
 	srv.TLSConfig = cfg.TLSConfig
 	s.srv = srv
 
+	if cfg.MaxRecipients == 0 {
+		cfg.MaxRecipients = 1
+	}
+	if cfg.BackgroundContext == nil {
+		panic("smtpsrv: BackgroundContext is required")
+	}
+	if cfg.AuthorizeFunc == nil {
+		panic("smtpsrv: AuthorizeFunc is required")
+	}
+	if cfg.CreateAlertFunc == nil {
+		panic("smtpsrv: CreateAlertFunc is required")
+	}
+
 	return s
 }
 
