@@ -155,7 +155,7 @@ start-swo: bin/psql-lite bin/goalert bin/waitfor bin/mockoidc bin/runproc $(NODE
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert2
 	GOALERT_VERSION=$(GIT_VERSION) ./bin/runproc -f Procfile.swo -l Procfile.local
 
-reset-integration: bin/waitfor bin/goalert.cover bin/psql-lite
+reset-integration: bin/waitfor bin/goalert.cover bin/psql-lite bin/resetdb
 	rm -rf test/coverage/integration/reset
 	mkdir -p test/coverage/integration/reset
 	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
