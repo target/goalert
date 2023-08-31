@@ -24,7 +24,9 @@ const (
 	// Deprecated: Alert status messages are no longer bundled, status bundle
 	// messages are now dropped.
 	MessageTypeAlertStatusBundle
+
 	MessageTypeScheduleOnCallUsers
+	MessageTypeSignal
 )
 
 func (s MessageType) Value() (driver.Value, error) {
@@ -43,6 +45,8 @@ func (s MessageType) Value() (driver.Value, error) {
 		return "alert_status_update_bundle", nil
 	case MessageTypeScheduleOnCallUsers:
 		return "schedule_on_call_notification", nil
+	case MessageTypeSignal:
+		return "signal_notification", nil
 	}
 	return nil, fmt.Errorf("could not process unknown type for MessageType %s", s)
 }
@@ -65,6 +69,8 @@ func (s *MessageType) Scan(value interface{}) error {
 		*s = MessageTypeAlertStatusBundle
 	case "schedule_on_call_notification":
 		*s = MessageTypeScheduleOnCallUsers
+	case "signal_notification":
+		*s = MessageTypeSignal
 	default:
 		return fmt.Errorf("could not process unknown type for MessageType %str", str)
 	}
