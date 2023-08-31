@@ -473,6 +473,10 @@ func (cfg Config) Validate() error {
 		validateKey("Slack.SigningSecret", cfg.Slack.SigningSecret),
 	)
 
+	if cfg.General.GoogleAnalyticsID != "" {
+		err = validate.Many(err, validate.MeasurementID("General.GoogleAnalyticsID", cfg.General.GoogleAnalyticsID))
+	}
+
 	if cfg.Twilio.VoiceName != "" && cfg.Twilio.VoiceLanguage == "" {
 		err = validate.Many(err, validation.NewFieldError("Twilio.VoiceLanguage", "required when Twilio.VoiceName is set"))
 	}

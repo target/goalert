@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useState } from 'react'
 import AppBar from '@mui/material/AppBar'
 import Hidden from '@mui/material/Hidden'
 import Toolbar from '@mui/material/Toolbar'
@@ -57,7 +57,10 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 export default function App(): JSX.Element {
   const [analyticsID] = useConfigValue('General.GoogleAnalyticsID') as [string]
-  if (analyticsID) ReactGA.initialize(analyticsID)
+
+  useEffect(() => {
+    if (analyticsID) ReactGA.initialize(analyticsID)
+  }, [analyticsID])
 
   const classes = useStyles()
   const [showMobile, setShowMobile] = useState(false)
