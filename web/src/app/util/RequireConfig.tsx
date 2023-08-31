@@ -14,7 +14,7 @@ const ConfigContext = React.createContext({
   integrationKeyTypes: [] as IntegrationKeyTypeInfo[],
   config: [] as ConfigValue[],
   isAdmin: false as boolean,
-  userID: "" as string,
+  userID: '' as string,
   userName: null as string | null,
 })
 ConfigContext.displayName = 'ConfigContext'
