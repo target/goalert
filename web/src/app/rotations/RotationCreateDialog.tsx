@@ -56,7 +56,6 @@ const RotationCreateDialog = (props: { onClose?: () => void }): JSX.Element => {
       form={
         <RotationForm
           errors={fieldErrors(error)}
-          disabled={loading}
           value={value}
           onChange={(value) => setValue(value)}
         />

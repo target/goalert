@@ -69,7 +69,6 @@ export default function RotationEditDialog(props: {
       form={
         <RotationForm
           errors={fieldErrors(editRotationStatus.error)}
-          disabled={editRotationStatus.fetching}
           value={
             value || {
               name: data.rotation.name,
