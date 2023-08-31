@@ -12,5 +12,5 @@ func MeasurementID(fname, value string) error {
 		return validation.NewFieldError(fname, "must start with G-")
 	}
 
-	return Text(fname, value, 10, 50)
+	return Text(fname, value, 0, 50)
 }
