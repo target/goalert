@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/stdlib"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/swo/swodb"
 	"github.com/target/goalert/swo/swogrp"
@@ -23,8 +23,8 @@ import (
 type Manager struct {
 	// sql.DB instance safe for the application to use (instrumented for safe SWO operation)
 	dbApp  *sql.DB
-	dbMain *sql.DB
-	dbNext *sql.DB
+	dbMain *pgxpool.Pool
+	dbNext *pgxpool.Pool
 
 	pauseResume lifecycle.PauseResumer
 
@@ -71,7 +71,11 @@ func NewManager(cfg Config) (*Manager, error) {
 		}.String()
 	}
 
-	mainDB, err := sqldrv.NewDB(cfg.OldDBURL, appStr(ConnTypeMainMgr))
+	mainURL, err := sqldrv.AppURL(cfg.OldDBURL, appStr(ConnTypeMainMgr))
+	if err != nil {
+		return nil, fmt.Errorf("connect to old db: %w", err)
+	}
+	mainPool, err := pgxpool.New(context.Background(), mainURL)
 	if err != nil {
 		return nil, fmt.Errorf("connect to old db: %w", err)
 	}
@@ -79,7 +83,11 @@ func NewManager(cfg Config) (*Manager, error) {
 	if err != nil {
 		return nil, fmt.Errorf("connect to old db: %w", err)
 	}
-	nextDB, err := sqldrv.NewDB(cfg.NewDBURL, appStr(ConnTypeNextMgr))
+	nextURL, err := sqldrv.AppURL(cfg.NewDBURL, appStr(ConnTypeNextMgr))
+	if err != nil {
+		return nil, fmt.Errorf("connect to new db: %w", err)
+	}
+	nextPool, err := pgxpool.New(context.Background(), nextURL)
 	if err != nil {
 		return nil, fmt.Errorf("connect to new db: %w", err)
 	}
@@ -91,8 +99,8 @@ func NewManager(cfg Config) (*Manager, error) {
 	m := &Manager{
 		Config: cfg,
 		dbApp:  sql.OpenDB(NewConnector(mainAppDBC, nextAppDBC)),
-		dbMain: mainDB,
-		dbNext: nextDB,
+		dbMain: mainPool,
+		dbNext: nextPool,
 	}
 
 	ctx := cfg.Logger.BackgroundContext()
@@ -177,19 +185,9 @@ func (m *Manager) withConnFromBoth(ctx context.Context, f func(ctx context.Conte
 	})
 }
 
-func withPGXConn(ctx context.Context, db *sql.DB, runFunc func(context.Context, *pgx.Conn) error) error {
-	conn, err := db.Conn(ctx)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
-	return conn.Raw(func(driverConn interface{}) error {
-		conn := driverConn.(*stdlib.Conn).Conn()
-		defer conn.Close(context.Background())
-		defer conn.PgConn().Close(context.Background())
-
-		return runFunc(ctx, conn)
+func withPGXConn(ctx context.Context, db *pgxpool.Pool, runFunc func(context.Context, *pgx.Conn) error) error {
+	return db.AcquireFunc(ctx, func(conn *pgxpool.Conn) error {
+		return runFunc(ctx, conn.Conn())
 	})
 }
 
