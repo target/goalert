@@ -20,7 +20,8 @@ func TestServer(t *testing.T) {
 
 	var lastAlert *alert.Alert
 	srv := smtpsrv.NewServer(smtpsrv.Config{
-		Domain: "localhost",
+		Domain:        "localhost",
+		MaxRecipients: 1,
 		AuthorizeFunc: func(ctx context.Context, id string) (context.Context, error) {
 			return permission.ServiceContext(ctx, "svc"), nil
 		},
@@ -28,6 +29,7 @@ func TestServer(t *testing.T) {
 			lastAlert = a
 			return nil
 		},
+		BackgroundContext: func() context.Context { return context.Background() },
 	})
 
 	go func() { _ = srv.ServeSMTP(l) }()
@@ -38,7 +40,7 @@ func TestServer(t *testing.T) {
 	t.Cleanup(func() { c.Close() })
 
 	err = smtp.SendMail(l.Addr().String(), nil, "test@localhost", []string{"test@localhost"}, []byte("test"))
-	assert.ErrorContains(t, err, "UUID")
+	assert.ErrorContains(t, err, "recipient address")
 
 	// test with uuid
 	err = smtp.SendMail(l.Addr().String(), nil, "test@localhost", []string{"00000000-0000-0000-0000-000000000000+dedup-value@localhost"}, []byte("Subject: test\r\n\r\nbody"))

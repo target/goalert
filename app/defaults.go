@@ -12,5 +12,6 @@ func Defaults() Config {
 		MaxReqHeaderBytes: 4096,
 		RegionName:        "default",
 		EngineCycleTime:   5 * time.Second,
+		SMTPMaxRecipients: 1,
 	}
 }

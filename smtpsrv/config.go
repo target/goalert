@@ -12,6 +12,9 @@ type Config struct {
 	Domain         string
 	AllowedDomains []string
 	TLSConfig      *tls.Config
+	MaxRecipients  int
+
+	BackgroundContext func() context.Context
 
 	AuthorizeFunc   func(ctx context.Context, id string) (context.Context, error)
 	CreateAlertFunc func(ctx context.Context, a *alert.Alert) error

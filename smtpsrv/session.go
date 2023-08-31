@@ -2,7 +2,6 @@ package smtpsrv
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"net/mail"
@@ -14,6 +13,7 @@ import (
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -23,7 +23,7 @@ type Session struct {
 
 	from    string
 	dedup   string
-	authCtx context.Context
+	authCtx []context.Context
 }
 
 func (s *Session) isValidDomain(d string) bool {
@@ -50,7 +50,11 @@ func (s *Session) AuthPlain(username, password string) error { return smtp.ErrAu
 func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
 	addr, err := mail.ParseAddress(from)
 	if err != nil {
-		return err
+		return &smtp.SMTPError{
+			Code:         501,
+			EnhancedCode: smtp.EnhancedCode{5, 5, 2},
+			Message:      "Syntax error in sender address",
+		}
 	}
 
 	s.from = addr.String()
@@ -64,39 +68,84 @@ func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
 func (s *Session) Rcpt(recipient string, opts *smtp.RcptOptions) error {
 	addr, err := mail.ParseAddress(recipient)
 	if err != nil {
-		return err
+		return &smtp.SMTPError{
+			Code:         501,
+			EnhancedCode: smtp.EnhancedCode{5, 5, 2},
+			Message:      "Syntax error in recipient address",
+		}
 	}
 	id, domain, ok := strings.Cut(addr.Address, "@")
 	if !ok {
-		return errors.New("invalid recipient")
+		return &smtp.SMTPError{
+			Code:         501,
+			EnhancedCode: smtp.EnhancedCode{5, 5, 2},
+			Message:      "Syntax error in recipient address",
+		}
 	}
 	if !s.isValidDomain(domain) {
-		return errors.New("invalid domain")
+		return &smtp.SMTPError{
+			Code:         550,
+			EnhancedCode: smtp.EnhancedCode{5, 7, 1},
+			Message:      "Recipient domain not handled here",
+		}
 	}
 	id, s.dedup, _ = strings.Cut(id, "+")
 	err = validate.UUID("recipient", id)
 	if err != nil {
-		return err
+		return &smtp.SMTPError{
+			Code:         501,
+			EnhancedCode: smtp.EnhancedCode{5, 5, 2},
+			Message:      "Syntax error in recipient address",
+		}
 	}
 
-	ctx, err := s.cfg.AuthorizeFunc(context.Background(), id)
+	if len(s.authCtx) >= s.cfg.MaxRecipients {
+		return &smtp.SMTPError{
+			Code:         452,
+			EnhancedCode: smtp.EnhancedCode{4, 5, 3},
+			Message:      "Too many recipients",
+		}
+	}
+
+	ctx, err := s.cfg.AuthorizeFunc(s.cfg.BackgroundContext(), id)
 	if err != nil {
-		return err
+		if permission.IsUnauthorized(err) {
+			return &smtp.SMTPError{
+				Code:         550,
+				EnhancedCode: smtp.EnhancedCode{5, 1, 1},
+				Message:      "Invalid API key",
+			}
+		}
+
+		log.Log(ctx, err) // log unexpected error
+		return &smtp.SMTPError{
+			Code:         451,
+			EnhancedCode: smtp.EnhancedCode{4, 3, 0},
+			Message:      "Temporary local error, please try again",
+		}
 	}
 
-	s.authCtx = ctx
+	s.authCtx = append(s.authCtx, ctx)
 	return nil
 }
 
 // Data is called when a new SMTP message is received.
 func (s *Session) Data(r io.Reader) error {
-	if s.authCtx == nil {
-		return errors.New("no recipient")
+	if len(s.authCtx) == 0 {
+		return &smtp.SMTPError{
+			Code:         503,
+			EnhancedCode: smtp.EnhancedCode{5, 5, 1},
+			Message:      "Need RCPT TO command before DATA",
+		}
 	}
 
 	email, err := letters.ParseEmail(r)
 	if err != nil {
-		return err
+		return &smtp.SMTPError{
+			Code:         554,
+			EnhancedCode: smtp.EnhancedCode{5, 6, 0},
+			Message:      "Malformed email message",
+		}
 	}
 	body := email.Text
 
@@ -107,22 +156,34 @@ func (s *Session) Data(r io.Reader) error {
 	if s.dedup != "" {
 		dedup = alert.NewUserDedup(s.dedup)
 	}
-	newAlert := &alert.Alert{
-		Summary:   summary,
-		Details:   details,
-		ServiceID: permission.ServiceID(s.authCtx),
-		Status:    alert.StatusTriggered,
-		Source:    alert.SourceEmail,
-		Dedup:     dedup,
+
+	for _, authCtx := range s.authCtx {
+		newAlert := &alert.Alert{
+			Summary:   summary,
+			Details:   details,
+			ServiceID: permission.ServiceID(authCtx),
+			Status:    alert.StatusTriggered,
+			Source:    alert.SourceEmail,
+			Dedup:     dedup,
+		}
+
+		err = retry.DoTemporaryError(func(_ int) error {
+			return s.cfg.CreateAlertFunc(authCtx, newAlert)
+		},
+			retry.Log(authCtx),
+			retry.Limit(12),
+			retry.FibBackoff(time.Second),
+		)
+		if err != nil {
+			return &smtp.SMTPError{
+				Code:         451,
+				EnhancedCode: smtp.EnhancedCode{4, 3, 0},
+				Message:      "Temporary local error, please try again",
+			}
+		}
 	}
 
-	return retry.DoTemporaryError(func(_ int) error {
-		return s.cfg.CreateAlertFunc(s.authCtx, newAlert)
-	},
-		retry.Log(s.authCtx),
-		retry.Limit(12),
-		retry.FibBackoff(time.Second),
-	)
+	return nil
 }
 
 // Reset resets the session state.

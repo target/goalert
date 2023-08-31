@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/util/log"
 )
 
 func TestSession_Auth(t *testing.T) {
@@ -21,10 +22,10 @@ func TestSession_Auth(t *testing.T) {
 func TestSession_Mail(t *testing.T) {
 	var sess Session
 	err := sess.Mail("", nil)
-	assert.ErrorContains(t, err, "no address")
+	assert.ErrorContains(t, err, "sender address")
 
 	err = sess.Mail("test", nil)
-	assert.ErrorContains(t, err, "@")
+	assert.ErrorContains(t, err, "sender address")
 
 	err = sess.Mail("test@localhost", nil)
 	assert.NoError(t, err)
@@ -32,20 +33,24 @@ func TestSession_Mail(t *testing.T) {
 
 func TestSession_Rcpt(t *testing.T) {
 	var sess Session
+	sess.cfg.MaxRecipients = 1
+	sess.cfg.BackgroundContext = func() context.Context { return log.WithLogger(context.Background(), log.NewLogger()) }
+
 	err := sess.Rcpt("", nil)
-	assert.ErrorContains(t, err, "no address")
+	assert.ErrorContains(t, err, "recipient address")
 
 	err = sess.Rcpt("test", nil)
-	assert.ErrorContains(t, err, "@")
+	assert.ErrorContains(t, err, "recipient address")
 
 	err = sess.Rcpt("test@localhost", nil)
-	assert.ErrorContains(t, err, "invalid domain")
+	assert.ErrorContains(t, err, "domain not handled here")
 
 	sess.cfg.Domain = "localhost"
 	err = sess.Rcpt("test@localhost", nil)
-	assert.ErrorContains(t, err, "invalid value") // must be uuid
+	assert.ErrorContains(t, err, "recipient address") // must be uuid
 
-	authCtx := context.Background()
+	authCtx := sess.cfg.BackgroundContext()
+
 	sess.cfg.AuthorizeFunc = func(ctx context.Context, id string) (context.Context, error) {
 		t.Helper()
 		assert.Equal(t, "00000000-0000-0000-0000-000000000000", id)
@@ -54,24 +59,25 @@ func TestSession_Rcpt(t *testing.T) {
 
 	err = sess.Rcpt("00000000-0000-0000-0000-000000000000+dedup-value@localhost", nil)
 	assert.NoError(t, err)
-	assert.Equal(t, authCtx, sess.authCtx)
+	assert.Contains(t, sess.authCtx, authCtx)
 	assert.Equal(t, "dedup-value", sess.dedup)
 
 	errFailed := errors.New("failed")
 	sess.cfg.AuthorizeFunc = func(ctx context.Context, id string) (context.Context, error) {
-		return nil, errFailed
+		return sess.cfg.BackgroundContext(), errFailed
 	}
 
+	sess.authCtx = nil
 	err = sess.Rcpt("00000000-0000-0000-0000-000000000000+dedup-value@localhost", nil)
-	assert.ErrorIs(t, err, errFailed)
+	assert.ErrorContains(t, err, "local error")
 }
 
 func TestSession_Data(t *testing.T) {
 	var sess Session
 	err := sess.Data(bytes.NewReader(nil))
-	assert.ErrorContains(t, err, "recipient")
+	assert.ErrorContains(t, err, "RCPT TO")
 
-	sess.authCtx = permission.ServiceContext(context.Background(), "svc")
+	sess.authCtx = []context.Context{permission.ServiceContext(context.Background(), "svc")}
 	sess.from = "test@localhost"
 	sess.dedup = "dedup-value"
 
