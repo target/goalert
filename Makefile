@@ -13,6 +13,12 @@ CFGPARAMS = devtools/configparams/*.go
 DB_URL = postgres://goalert@localhost:5432/goalert
 INT_DB = goalert_integration
 INT_DB_URL = $(shell go run ./devtools/scripts/db-url "$(DB_URL)" "$(INT_DB)")
+
+SWO_DB_MAIN = goalert_swo_main
+SWO_DB_NEXT = goalert_swo_next
+SWO_DB_URL_MAIN = $(shell go run ./devtools/scripts/db-url "$(DB_URL)" "$(SWO_DB_MAIN)")
+SWO_DB_URL_NEXT = $(shell go run ./devtools/scripts/db-url "$(DB_URL)" "$(SWO_DB_NEXT)")
+
 LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
 YARN_VERSION=3.5.0
@@ -154,6 +160,10 @@ reset-integration: bin/waitfor bin/goalert.cover bin/psql-lite
 	mkdir -p test/coverage/integration/reset
 	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	./bin/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(INT_DB); CREATE DATABASE $(INT_DB);'
+	./bin/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(SWO_DB_MAIN); CREATE DATABASE $(SWO_DB_MAIN);'
+	./bin/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(SWO_DB_NEXT); CREATE DATABASE $(SWO_DB_NEXT);'
+	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001 -db-url "$(SWO_DB_URL_MAIN)" -admin-db-url "$(DB_URL)" -mult 0.1
+	./bin/goalert.cover add-user --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123 "--db-url=$(SWO_DB_URL_MAIN)"
 	GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover --db-url "$(INT_DB_URL)" migrate
 	./bin/psql-lite -d "$(INT_DB_URL)" -c "insert into users (id, role, name) values ('00000000-0000-0000-0000-000000000001', 'admin', 'Admin McIntegrationFace'),('00000000-0000-0000-0000-000000000002', 'user', 'User McIntegrationFace');"
 	GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123
