@@ -6,9 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/jackc/pgx/v4"
-	pgx5 "github.com/jackc/pgx/v5"
-
+	"github.com/jackc/pgx/v5"
 	"github.com/target/goalert/util/log"
 )
 
@@ -39,7 +37,6 @@ func RollbackContext(ctx context.Context, errMsg string, tx Tx) {
 	case err == nil:
 	case errors.Is(err, context.Canceled):
 	case errors.Is(err, pgx.ErrTxClosed):
-	case errors.Is(err, pgx5.ErrTxClosed):
 	default:
 		log.Log(ctx, fmt.Errorf("%s: tx rollback: %w", errMsg, err))
 	}

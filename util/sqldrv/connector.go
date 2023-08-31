@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/jackc/pgx/v4/stdlib"
+	"github.com/jackc/pgx/v5/stdlib"
 )
 
 // NewDB is a convenience function for creating a *sql.DB from a DB URL and application_name.
