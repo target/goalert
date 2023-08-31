@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v5"
 	"github.com/target/goalert/swo/swoinfo"
 	"github.com/target/goalert/util/sqlutil"
 )
