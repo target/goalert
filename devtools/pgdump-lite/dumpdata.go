@@ -8,8 +8,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/jackc/pgtype"
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/target/goalert/util/sqlutil"
 )
 
@@ -58,11 +58,11 @@ func queryStrings(ctx context.Context, tx pgx.Tx, sql string, args ...interface{
 
 type scannable string
 
-func (s *scannable) DecodeText(ci *pgtype.ConnInfo, src []byte) error {
-	if src == nil {
+func (s *scannable) ScanText(v pgtype.Text) error {
+	if !v.Valid {
 		*s = "\\N"
 	} else {
-		*s = scannable(strings.ReplaceAll(string(src), "\\", "\\\\"))
+		*s = scannable(strings.ReplaceAll(v.String, "\\", "\\\\"))
 	}
 
 	return nil
@@ -135,7 +135,7 @@ func DumpData(ctx context.Context, conn *pgx.Conn, out io.Writer, skip []string)
 				table,
 				orderBy,
 			),
-			pgx.QuerySimpleProtocol(true),
+			pgx.QueryExecModeSimpleProtocol,
 		)
 		if err != nil {
 			return fmt.Errorf("read data on '%s': %w", table, err)
