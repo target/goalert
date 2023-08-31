@@ -12,9 +12,12 @@ import (
 )
 
 const activeTxCount = `-- name: ActiveTxCount :one
-SELECT COUNT(*)
-FROM pg_stat_activity
-WHERE "state" <> 'idle'
+SELECT
+    COUNT(*)
+FROM
+    pg_stat_activity
+WHERE
+    "state" <> 'idle'
     AND "xact_start" <= $1
 `
 
@@ -26,11 +29,15 @@ func (q *Queries) ActiveTxCount(ctx context.Context, xactStart pgtype.Timestampt
 }
 
 const connectionInfo = `-- name: ConnectionInfo :many
-SELECT application_name AS NAME,
+SELECT
+    application_name AS NAME,
     COUNT(*)
-FROM pg_stat_activity
-WHERE datname = current_database()
-GROUP BY NAME
+FROM
+    pg_stat_activity
+WHERE
+    datname = current_database()
+GROUP BY
+    NAME
 `
 
 type ConnectionInfoRow struct {
@@ -59,9 +66,11 @@ func (q *Queries) ConnectionInfo(ctx context.Context) ([]ConnectionInfoRow, erro
 }
 
 const databaseInfo = `-- name: DatabaseInfo :one
-SELECT db_id AS id,
+SELECT
+    db_id AS id,
     version()
-FROM switchover_state
+FROM
+    switchover_state
 `
 
 type DatabaseInfoRow struct {
@@ -77,9 +86,12 @@ func (q *Queries) DatabaseInfo(ctx context.Context) (DatabaseInfoRow, error) {
 }
 
 const disableChangeLogTriggers = `-- name: DisableChangeLogTriggers :exec
-UPDATE switchover_state
-SET current_state = 'idle'
-WHERE current_state = 'in_progress'
+UPDATE
+    switchover_state
+SET
+    current_state = 'idle'
+WHERE
+    current_state = 'in_progress'
 `
 
 func (q *Queries) DisableChangeLogTriggers(ctx context.Context) error {
@@ -88,9 +100,12 @@ func (q *Queries) DisableChangeLogTriggers(ctx context.Context) error {
 }
 
 const enableChangeLogTriggers = `-- name: EnableChangeLogTriggers :exec
-UPDATE switchover_state
-SET current_state = 'in_progress'
-WHERE current_state = 'idle'
+UPDATE
+    switchover_state
+SET
+    current_state = 'in_progress'
+WHERE
+    current_state = 'idle'
 `
 
 func (q *Queries) EnableChangeLogTriggers(ctx context.Context) error {
@@ -99,14 +114,17 @@ func (q *Queries) EnableChangeLogTriggers(ctx context.Context) error {
 }
 
 const foreignKeyRefs = `-- name: ForeignKeyRefs :many
-SELECT src.relname::text,
+SELECT
+    src.relname::text,
     dst.relname::text
-FROM pg_catalog.pg_constraint con
+FROM
+    pg_catalog.pg_constraint con
     JOIN pg_catalog.pg_namespace ns ON ns.nspname = 'public'
-    AND ns.oid = con.connamespace
+        AND ns.oid = con.connamespace
     JOIN pg_catalog.pg_class src ON src.oid = con.conrelid
     JOIN pg_catalog.pg_class dst ON dst.oid = con.confrelid
-WHERE con.contype = 'f'
+WHERE
+    con.contype = 'f'
     AND NOT con.condeferrable
 `
 
@@ -136,8 +154,10 @@ func (q *Queries) ForeignKeyRefs(ctx context.Context) ([]ForeignKeyRefsRow, erro
 }
 
 const lastLogID = `-- name: LastLogID :one
-SELECT COALESCE(MAX(id), 0)::bigint
-FROM switchover_log
+SELECT
+    COALESCE(MAX(id), 0)::bigint
+FROM
+    switchover_log
 `
 
 func (q *Queries) LastLogID(ctx context.Context) (int64, error) {
@@ -148,12 +168,16 @@ func (q *Queries) LastLogID(ctx context.Context) (int64, error) {
 }
 
 const logEvents = `-- name: LogEvents :many
-SELECT id,
+SELECT
+    id,
     TIMESTAMP,
     DATA
-FROM switchover_log
-WHERE id > $1
-ORDER BY id ASC
+FROM
+    switchover_log
+WHERE
+    id > $1
+ORDER BY
+    id ASC
 LIMIT 100
 `
 
@@ -178,7 +202,8 @@ func (q *Queries) LogEvents(ctx context.Context, id int64) ([]SwitchoverLog, err
 }
 
 const now = `-- name: Now :one
-SELECT now()::timestamptz
+SELECT
+    now()::timestamptz
 `
 
 func (q *Queries) Now(ctx context.Context) (pgtype.Timestamptz, error) {
@@ -189,9 +214,12 @@ func (q *Queries) Now(ctx context.Context) (pgtype.Timestamptz, error) {
 }
 
 const sequenceNames = `-- name: SequenceNames :many
-SELECT sequence_name::text
-FROM information_schema.sequences
-WHERE sequence_catalog = current_database()
+SELECT
+    sequence_name::text
+FROM
+    information_schema.sequences
+WHERE
+    sequence_catalog = current_database()
     AND sequence_schema = 'public'
     AND sequence_name != 'change_log_id_seq'
 `
@@ -217,16 +245,19 @@ func (q *Queries) SequenceNames(ctx context.Context) ([]string, error) {
 }
 
 const tableColumns = `-- name: TableColumns :many
-SELECT col.table_name::text,
+SELECT
+    col.table_name::text,
     col.column_name::text,
     col.data_type::text,
-    col.ordinal_position::INT
-FROM information_schema.columns col
+    col.ordinal_position::int
+FROM
+    information_schema.columns col
     JOIN information_schema.tables t ON t.table_catalog = col.table_catalog
-    AND t.table_schema = col.table_schema
-    AND t.table_name = col.table_name
-    AND t.table_type = 'BASE TABLE'
-WHERE col.table_catalog = current_database()
+        AND t.table_schema = col.table_schema
+        AND t.table_name = col.table_name
+        AND t.table_type = 'BASE TABLE'
+WHERE
+    col.table_catalog = current_database()
     AND col.table_schema = 'public'
 `
 
