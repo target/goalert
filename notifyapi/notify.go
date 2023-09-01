@@ -2,6 +2,8 @@ package notifyapi
 
 import (
 	"encoding/json"
+	"fmt"
+	"hash/fnv"
 	"io"
 	"mime"
 	"net/http"
@@ -25,6 +27,12 @@ func NewHandler(c Config) *Handler {
 	return &Handler{c: c}
 }
 
+func hash(b []byte) uint64 {
+	h := fnv.New64a()
+	h.Write(b)
+	return h.Sum64()
+}
+
 // ServeCreateAlert allows creating or closing an alert.
 func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -35,10 +43,10 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	}
 	serviceID := permission.ServiceID(ctx)
 
-	summary := r.FormValue("summary")
-	details := r.FormValue("details")
 	action := r.FormValue("action")
-	dedup := r.FormValue("dedup")
+
+	b := make(map[string]interface{})
+	var dedupeHash uint64
 
 	ct, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if ct == "application/json" {
@@ -48,26 +56,38 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var b struct {
-			Summary, Details, Action, Dedup *string
-		}
 		err = json.Unmarshal(data, &b)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		if b.Summary != nil {
-			summary = *b.Summary
+		if b["action"] != nil {
+			actionValue, ok := b["action"].(string)
+			if !ok {
+				http.Error(w, fmt.Sprintf("Field 'action' is not a string: %s", b["action"]), http.StatusBadRequest)
+				return
+			}
+			fmt.Println(action, "here")
+			action = actionValue
+			delete(b, "action")
+			data, err = json.Marshal(&b)
 		}
-		if b.Details != nil {
-			details = *b.Details
-		}
-		if b.Dedup != nil {
-			dedup = *b.Dedup
-		}
-		if b.Action != nil {
-			action = *b.Action
+		fmt.Println(action, "here")
+		dedupeHash = hash(data)
+	}
+
+	rules, err := FindMatchingRules(serviceID, b)
+	if len(rules) == 0 {
+		http.Error(w, fmt.Sprintf("No rules found for ServiceID: %s", serviceID), http.StatusAccepted)
+		return
+	}
+	var summary string
+	var details string
+	for _, rule := range rules {
+		for _, action := range rule.Actions {
+			summary += fmt.Sprintf("%s", action.Destination)
+			details += action.Message
 		}
 	}
 
@@ -84,7 +104,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		Details:   details,
 		Source:    alert.SourceNotify,
 		ServiceID: serviceID,
-		Dedup:     alert.NewUserDedup(dedup),
+		Dedup:     alert.NewUserDedup(fmt.Sprintf("%d", dedupeHash)),
 		Status:    status,
 	}
 
@@ -95,6 +115,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = retry.DoTemporaryError(func(int) error {
+		fmt.Println(a.Status, "Alert")
 		createdAlert, isNew, err := h.c.AlertStore.CreateOrUpdate(ctx, a)
 		if createdAlert != nil {
 			resp.AlertID = createdAlert.ID
