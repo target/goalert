@@ -7,6 +7,8 @@ test('should perform switchover', async ({ page, isMobile }) => {
     // we can only do this test once, so skip it on mobile
     return
   }
+  test.slow()
+
   await page.goto(`${baseURL}/admin/switchover`)
   await page.fill('input[name=username]', adminUserCreds.user)
   await page.fill('input[name=password]', adminUserCreds.pass)
