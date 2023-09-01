@@ -26,15 +26,20 @@ WHERE
     alert_id = ANY($1::int[])
 `
 
-func (q *Queries) AlertFeedback(ctx context.Context, dollar_1 []int32) ([]AlertFeedback, error) {
+type AlertFeedbackRow struct {
+	AlertID     int64
+	NoiseReason string
+}
+
+func (q *Queries) AlertFeedback(ctx context.Context, dollar_1 []int32) ([]AlertFeedbackRow, error) {
 	rows, err := q.db.QueryContext(ctx, alertFeedback, pq.Array(dollar_1))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []AlertFeedback
+	var items []AlertFeedbackRow
 	for rows.Next() {
-		var i AlertFeedback
+		var i AlertFeedbackRow
 		if err := rows.Scan(&i.AlertID, &i.NoiseReason); err != nil {
 			return nil, err
 		}
