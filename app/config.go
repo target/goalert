@@ -35,6 +35,7 @@ type Config struct {
 
 	SMTPListenAddr        string
 	SMTPListenAddrTLS     string
+	SMTPMaxRecipients     int
 	TLSConfigSMTP         *tls.Config
 	SMTPAdditionalDomains string
 

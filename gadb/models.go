@@ -764,6 +764,7 @@ type Alert struct {
 
 type AlertFeedback struct {
 	AlertID     int64
+	ID          int64
 	NoiseReason string
 }
 

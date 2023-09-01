@@ -7,7 +7,8 @@ package pgd
 
 import (
 	"context"
-	"database/sql"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const listCheckConstraints = `-- name: ListCheckConstraints :many
@@ -407,11 +408,11 @@ ORDER BY
 type ListSequencesRow struct {
 	SchemaName   string
 	SequenceName string
-	StartValue   sql.NullInt64
-	Increment    sql.NullInt64
-	MinValue     sql.NullInt64
-	MaxValue     sql.NullInt64
-	Cache        sql.NullInt64
+	StartValue   pgtype.Int8
+	Increment    pgtype.Int8
+	MinValue     pgtype.Int8
+	MaxValue     pgtype.Int8
+	Cache        pgtype.Int8
 	TableSchema  string
 	TableName    string
 	ColumnName   string
