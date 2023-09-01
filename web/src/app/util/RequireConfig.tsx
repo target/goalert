@@ -14,7 +14,7 @@ const ConfigContext = React.createContext({
   integrationKeyTypes: [] as IntegrationKeyTypeInfo[],
   config: [] as ConfigValue[],
   isAdmin: false as boolean,
-  userID: null as string | null,
+  userID: '' as string,
   userName: null as string | null,
 })
 ConfigContext.displayName = 'ConfigContext'
@@ -94,7 +94,7 @@ const mapConfig = (value: ConfigValue[]): ConfigData => {
 
 export type SessionInfo = {
   isAdmin: boolean
-  userID: string | null
+  userID: string
   userName: string | null
   ready: boolean
 }
