@@ -1,4 +1,4 @@
-import React, { ReactElement, useState, useContext } from 'react'
+import React, { ReactElement, useState, useContext, useEffect } from 'react'
 import { useMutation } from '@apollo/client'
 import { useQuery, gql } from 'urql'
 import { Grid, Hidden, ListItemText } from '@mui/material'
@@ -18,6 +18,8 @@ import { ControlledPaginatedListAction } from '../lists/ControlledPaginatedList'
 import ServiceNotices from '../services/ServiceNotices'
 import { Time } from '../util/Time'
 import { NotificationContext } from '../main/SnackbarNotification'
+import ReactGA from 'react-ga4'
+import { useConfigValue } from '../util/RequireConfig'
 
 interface AlertsListProps {
   serviceID: string
@@ -104,12 +106,19 @@ function getStatusFilter(s: string): string[] {
 export default function AlertsList(props: AlertsListProps): JSX.Element {
   const classes = useStyles()
 
+  const [event, setEvent] = useState('')
+  const [analyticsID] = useConfigValue('General.GoogleAnalyticsID') as [string]
   const [selectedCount, setSelectedCount] = useState(0)
   const [checkedCount, setCheckedCount] = useState(0)
 
   const [allServices] = useURLParam('allServices', false)
   const [fullTime] = useURLParam('fullTime', false)
   const [filter] = useURLParam<string>('filter', 'active')
+
+  useEffect(() => {
+    if (analyticsID && event.length)
+      ReactGA.event({ category: 'Bulk Alert Action', action: event })
+  }, [event, analyticsID])
 
   // query for current service name if props.serviceID is provided
   const [serviceNameQuery] = useQuery({
@@ -170,9 +179,18 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
         input: { newStatus, alertIDs },
       }
 
-      if (newStatus === 'StatusUnacknowledged') {
-        mutation = escalateMutation
-        variables = { input: alertIDs }
+      switch (newStatus) {
+        case 'StatusUnacknowledged':
+          mutation = escalateMutation
+          variables = { input: alertIDs }
+          setEvent('alertlist_escalated')
+          break
+        case 'StatusAcknowledged':
+          setEvent('alertlist_acknowledged')
+          break
+        case 'StatusClosed':
+          setEvent('alertlist_closed')
+          break
       }
 
       mutate({ mutation, variables })
