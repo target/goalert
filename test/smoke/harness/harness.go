@@ -366,21 +366,6 @@ func (h *Harness) FastForward(d time.Duration) {
 	}
 }
 
-// FastForwardExtended handles time advances of > 30 days refreshing DefaultGraphQLAdminUserID auth which would otherwise be expired.
-func (h *Harness) FastForwardExtended(d time.Duration) {
-	h.t.Helper()
-	h.t.Logf("Fast-forward %s", d.String())
-
-	err := h.pgTime.AdvanceTimeSeconds(context.Background(), d)
-	if err != nil {
-		h.t.Fatalf("failed to fast-forward time: %v", err)
-	}
-
-	if d >= 30*24*time.Hour {
-		h.gqlSessions[DefaultGraphQLAdminUserID] = h.RefreshGraphQLUser(DefaultGraphQLAdminUserID)
-	}
-}
-
 func (h *Harness) execQuery(sql string, data interface{}) {
 	h.t.Helper()
 	t := template.New("sql")

@@ -62,7 +62,7 @@ func TestRotation_Monthly(t *testing.T) {
 
 	h.WaitAndAssertOnCallUsers(sid, uid1)
 
-	h.FastForwardExtended(32 * 24 * time.Hour)
+	h.FastForward(32 * 24 * time.Hour)
 
 	h.WaitAndAssertOnCallUsers(sid, uid2)
 }

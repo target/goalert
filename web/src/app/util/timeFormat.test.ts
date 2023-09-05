@@ -12,18 +12,21 @@ describe('formatTimestamp', () => {
     })
   }
 
-  check({ time: '2020-01-01T00:00:00Z', zone: 'UTC' }, 'Jan 1, 2020, 12:00 AM')
+  check(
+    { time: '2020-01-01T00:00:00Z', zone: 'UTC' },
+    'Jan 1, 2020, 12:00\u202fAM',
+  )
   check(
     { time: '2020-01-01T00:00:00Z', zone: 'UTC', format: 'default' },
-    'Jan 1, 2020, 12:00 AM',
+    'Jan 1, 2020, 12:00\u202fAM',
   )
   check(
     { time: '2020-01-01T00:00:00Z', zone: 'UTC', format: 'clock' },
-    '12:00 AM',
+    '12:00\u202fAM',
   )
   check(
     { time: '2020-01-01T00:00:00Z', zone: 'UTC', format: 'weekday-clock' },
-    'Wed 12:00 AM',
+    'Wed 12:00\u202fAM',
   )
   check(
     {
