@@ -48,3 +48,12 @@ ON CONFLICT (alert_id)
         noise_reason = $2
     WHERE
         alert_feedback.alert_id = $1;
+
+-- name: SetManyAlertFeedback :exec
+INSERT INTO alert_feedback(alert_id, noise_reason)
+VALUES (unnest($1::bigint[]), $2)
+ON CONFLICT (alert_id)
+    DO UPDATE SET
+        noise_reason = excluded.noise_reason
+    WHERE
+        alert_feedback.alert_id = excluded.alert_id;

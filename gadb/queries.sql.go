@@ -733,6 +733,26 @@ func (q *Queries) SetAlertFeedback(ctx context.Context, arg SetAlertFeedbackPara
 	return err
 }
 
+const setManyAlertFeedback = `-- name: SetManyAlertFeedback :exec
+INSERT INTO alert_feedback(alert_id, noise_reason)
+VALUES (unnest($1::bigint[]), $2)
+ON CONFLICT (alert_id)
+    DO UPDATE SET
+        noise_reason = excluded.noise_reason
+    WHERE
+        alert_feedback.alert_id = excluded.alert_id
+`
+
+type SetManyAlertFeedbackParams struct {
+	Column1     []int64
+	NoiseReason string
+}
+
+func (q *Queries) SetManyAlertFeedback(ctx context.Context, arg SetManyAlertFeedbackParams) error {
+	_, err := q.db.ExecContext(ctx, setManyAlertFeedback, pq.Array(arg.Column1), arg.NoiseReason)
+	return err
+}
+
 const statusMgrCMInfo = `-- name: StatusMgrCMInfo :one
 SELECT
     user_id,

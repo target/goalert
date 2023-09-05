@@ -499,23 +499,43 @@ func (m *Mutation) EscalateAlerts(ctx context.Context, ids []int) ([]alert.Alert
 
 func (m *Mutation) UpdateAlerts(ctx context.Context, args graphql2.UpdateAlertsInput) ([]alert.Alert, error) {
 	var status alert.Status
+	updatedIDs := make([]int, 0, len(args.AlertIDs))
 
-	err := validate.OneOf("Status", args.NewStatus, graphql2.AlertStatusStatusAcknowledged, graphql2.AlertStatusStatusClosed)
-	if err != nil {
-		return nil, err
+	if args.NewStatus != nil {
+		err := validate.OneOf("Status", args.NewStatus, graphql2.AlertStatusStatusAcknowledged, graphql2.AlertStatusStatusClosed)
+		if err != nil {
+			return nil, err
+		}
+
+		switch *args.NewStatus {
+		case graphql2.AlertStatusStatusAcknowledged:
+			status = alert.StatusActive
+		case graphql2.AlertStatusStatusClosed:
+			status = alert.StatusClosed
+		}
+
+		ids, err := m.AlertStore.UpdateManyAlertStatus(ctx, status, args.AlertIDs, nil)
+		if err != nil {
+			return nil, err
+		}
+		updatedIDs = append(updatedIDs, ids...)
 	}
 
-	switch args.NewStatus {
-	case graphql2.AlertStatusStatusAcknowledged:
-		status = alert.StatusActive
-	case graphql2.AlertStatusStatusClosed:
-		status = alert.StatusClosed
-	}
+	if args.NoiseReason != nil {
+		// GraphQL generates type of int[], while sqlc
+		// expects an int64[] as a result of the unnest function
+		_ids := make([]int64, 0, len(args.AlertIDs))
+		if args.AlertIDs != nil {
+			for i, v := range args.AlertIDs {
+				_ids[i] = int64(v)
+			}
+		}
 
-	var updatedIDs []int
-	updatedIDs, err = m.AlertStore.UpdateManyAlertStatus(ctx, status, args.AlertIDs, nil)
-	if err != nil {
-		return nil, err
+		ids, err := m.AlertStore.UpdateManyAlertFeedback(ctx, *args.NoiseReason, _ids, nil)
+		if err != nil {
+			return nil, err
+		}
+		updatedIDs = append(updatedIDs, ids...)
 	}
 
 	return m.AlertStore.FindMany(ctx, updatedIDs)

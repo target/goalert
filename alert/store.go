@@ -822,6 +822,28 @@ func (s *Store) Feedback(ctx context.Context, alertIDs []int) ([]Feedback, error
 	return result, nil
 }
 
+func (s Store) UpdateManyAlertFeedback(ctx context.Context, noiseReason string, alertIDs []int64, logMeta interface{}) ([]int, error) {
+	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validate.Text("NoiseReason", noiseReason, 1, 255)
+	if err != nil {
+		return nil, err
+	}
+
+	err = gadb.New(s.db).SetManyAlertFeedback(ctx, gadb.SetManyAlertFeedbackParams{
+		Column1:     alertIDs, // TODO: fix sqlc generation naming this Column1 instead of AlertIDs
+		NoiseReason: noiseReason,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
 func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {

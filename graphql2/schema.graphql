@@ -935,7 +935,8 @@ input UpdateAlertsInput {
   # List of alertIDs.
   alertIDs: [Int!]!
 
-  newStatus: AlertStatus!
+  newStatus: AlertStatus
+  noiseReason: String
 }
 
 input UpdateRotationInput {
