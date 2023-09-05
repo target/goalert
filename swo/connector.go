@@ -5,8 +5,8 @@ import (
 	"database/sql/driver"
 	"sync"
 
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/stdlib"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/stdlib"
 )
 
 // Connector is a driver.Connector that will use the old database until the

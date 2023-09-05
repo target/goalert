@@ -2,13 +2,12 @@ package swomsg
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/stdlib"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/target/goalert/swo/swodb"
 	"github.com/target/goalert/util/log"
 )
@@ -18,7 +17,7 @@ const pollInterval = time.Second / 3
 
 // Log is a reader for the switchover log.
 type Log struct {
-	db *sql.DB
+	pool *pgxpool.Pool
 
 	lastLoad time.Time
 
@@ -26,30 +25,18 @@ type Log struct {
 }
 
 // NewLog will create a new log reader, skipping any existing events.
-func NewLog(ctx context.Context, db *sql.DB) (*Log, error) {
-	conn, err := stdlib.AcquireConn(db)
-	if err != nil {
-		return nil, err
-	}
-	defer releaseConn(db, conn)
-
-	// only ever load new events
-	lastID, err := swodb.New(conn).LastLogID(ctx)
+func NewLog(ctx context.Context, pool *pgxpool.Pool) (*Log, error) {
+	lastID, err := swodb.New(pool).LastLogID(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	l := &Log{
-		db:      db,
+		pool:    pool,
 		eventCh: make(chan Message),
 	}
 	go l.readLoop(log.FromContext(ctx).BackgroundContext(), lastID)
 	return l, nil
-}
-
-// releaseConn will release the current db connection
-func releaseConn(db *sql.DB, conn *pgx.Conn) {
-	_ = stdlib.ReleaseConn(db, conn)
 }
 
 // Events will return a channel that will receive all events in the log.
@@ -66,12 +53,12 @@ func (l *Log) readLoop(ctx context.Context, lastID int64) {
 		for _, e := range events {
 			lastID = e.ID
 			var w Message
-			err = json.Unmarshal(e.Data.Bytes, &w)
+			err = json.Unmarshal(e.Data, &w)
 			if err != nil {
 				log.Log(ctx, fmt.Errorf("error parsing event: %v", err))
 				continue
 			}
-			w.TS = e.Timestamp
+			w.TS = e.Timestamp.Time
 			l.eventCh <- w
 		}
 	}
@@ -100,13 +87,7 @@ func (l *Log) loadEvents(ctx context.Context, lastID int64) ([]swodb.SwitchoverL
 	}
 	l.lastLoad = time.Now()
 
-	conn, err := stdlib.AcquireConn(l.db)
-	if err != nil {
-		return nil, err
-	}
-	defer releaseConn(l.db, conn)
-
-	return swodb.New(conn).LogEvents(ctx, lastID)
+	return swodb.New(l.pool).LogEvents(ctx, lastID)
 }
 
 // Append will append a message to the end of the log. Using an exclusive lock on the table, it ensures that each message will increment the log ID
@@ -124,16 +105,5 @@ func (l *Log) Append(ctx context.Context, msg Message) error {
 	b.Queue("commit")
 	b.Queue("rollback")
 
-	conn, err := stdlib.AcquireConn(l.db)
-	if err != nil {
-		return err
-	}
-	defer releaseConn(l.db, conn)
-
-	err = conn.SendBatch(ctx, &b).Close()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return l.pool.SendBatch(ctx, &b).Close()
 }
