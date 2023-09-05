@@ -5,13 +5,10 @@
 package swodb
 
 import (
-	"database/sql"
 	"database/sql/driver"
 	"fmt"
-	"time"
 
-	"github.com/google/uuid"
-	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type EnumSwitchoverState string
@@ -64,19 +61,19 @@ type ChangeLog struct {
 }
 
 type PgStatActivity struct {
-	State           sql.NullString
-	XactStart       time.Time
-	ApplicationName sql.NullString
+	State           pgtype.Text
+	XactStart       pgtype.Timestamptz
+	ApplicationName pgtype.Text
 }
 
 type SwitchoverLog struct {
 	ID        int64
-	Timestamp time.Time
-	Data      pgtype.JSONB
+	Timestamp pgtype.Timestamptz
+	Data      []byte
 }
 
 type SwitchoverState struct {
 	Ok           bool
 	CurrentState EnumSwitchoverState
-	DbID         uuid.UUID
+	DbID         pgtype.UUID
 }

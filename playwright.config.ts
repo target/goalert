@@ -5,6 +5,14 @@ const dbURL = process.env.CI
   ? 'postgres://postgres@/goalert_integration?client_encoding=UTF8'
   : 'postgres://goalert:goalert@localhost:5432/goalert_integration?client_encoding=UTF8'
 
+const swoMainURL = process.env.CI
+  ? 'postgres://postgres@/goalert_swo_main?client_encoding=UTF8'
+  : 'postgres://goalert:goalert@localhost:5432/goalert_swo_main?client_encoding=UTF8'
+
+const swoNextURL = process.env.CI
+  ? 'postgres://postgres@/goalert_swo_next?client_encoding=UTF8'
+  : 'postgres://goalert:goalert@localhost:5432/goalert_swo_next?client_encoding=UTF8'
+
 const wsEnv = {
   GOALERT_DB_URL: dbURL,
   GOALERT_ENGINE_CYCLE_TIME: '50ms',
@@ -55,6 +63,16 @@ const config = {
     {
       command: './bin/mockoidc -addr=127.0.0.1:9997',
       port: 9997,
+    },
+    {
+      command:
+        './bin/goalert.cover -l=localhost:6110 --public-url=http://localhost:6110', // switchover instance
+      env: {
+        ...wsEnv,
+        GOALERT_DB_URL: swoMainURL,
+        GOALERT_DB_URL_NEXT: swoNextURL,
+      },
+      url: 'http://localhost:6110/health',
     },
     {
       command: './bin/goalert.cover -l=localhost:6120', // no public url (fallback code)

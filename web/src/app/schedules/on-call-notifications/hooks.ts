@@ -6,7 +6,7 @@ import {
   useQuery,
 } from '@apollo/client'
 import { DateTime } from 'luxon'
-import { OnCallNotificationRule, Schedule } from '../../../schema'
+import { OnCallNotificationRule } from '../../../schema'
 import {
   EVERY_DAY,
   formatLocalClockTime,
@@ -70,7 +70,7 @@ export function useFormatScheduleLocalISOTime(
 }
 
 type _Data = {
-  q: QueryResult<Schedule, { id: string }>
+  q: QueryResult
   zone: string
   rules: OnCallNotificationRule[]
 }

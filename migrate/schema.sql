@@ -1256,11 +1256,14 @@ AS $function$
 
 CREATE TABLE alert_feedback (
 	alert_id bigint NOT NULL,
+	id bigint DEFAULT nextval('alert_feedback_id_seq'::regclass) NOT NULL,
 	noise_reason text NOT NULL,
 	CONSTRAINT alert_feedback_alert_id_fkey FOREIGN KEY (alert_id) REFERENCES alerts(id) ON DELETE CASCADE,
+	CONSTRAINT alert_feedback_id_key UNIQUE (id),
 	CONSTRAINT alert_feedback_pkey PRIMARY KEY (alert_id)
 );
 
+CREATE UNIQUE INDEX alert_feedback_id_key ON public.alert_feedback USING btree (id);
 CREATE UNIQUE INDEX alert_feedback_pkey ON public.alert_feedback USING btree (alert_id);
 
 

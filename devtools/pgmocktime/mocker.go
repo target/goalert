@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Mocker struct {
@@ -23,7 +23,7 @@ var mx sync.Mutex
 
 // New creates a new Mocker capable of manipulating time in a postgres database.
 func New(ctx context.Context, dbURL string) (*Mocker, error) {
-	db, err := pgxpool.Connect(context.Background(), dbURL)
+	db, err := pgxpool.New(context.Background(), dbURL)
 	if err != nil {
 		return nil, fmt.Errorf("connect to database: %w", err)
 	}
