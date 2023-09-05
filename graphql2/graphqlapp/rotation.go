@@ -399,14 +399,14 @@ func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.Ca
 		if err != nil {
 			return result, err
 		}
-	case input.ShiftLengthHours != nil:
-		err = validate.Range("hours", *input.ShiftLengthHours, 0, 99999)
+	case input.ShiftLength != nil:
+		err = validate.Range("hours", *input.ShiftLength, 0, 99999)
 		if err != nil {
 			return result, err
 		}
 		rot = rotation.Rotation{
 			Start:       input.Handoff.In(loc),
-			ShiftLength: *input.ShiftLengthHours,
+			ShiftLength: *input.ShiftLength,
 			Type:        rotation.TypeHourly,
 		}
 	default:

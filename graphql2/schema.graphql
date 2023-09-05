@@ -973,7 +973,10 @@ input CalcRotationHandoffTimesInput {
   handoff: ISOTimestamp!
   from: ISOTimestamp
   timeZone: String!
-  shiftLengthHours: Int
+
+  # Deprecated shiftLength as an integer of length in hours
+  shiftLength: Int
+  
   shiftLengthISO: ISODuration
   count: Int!
 }
