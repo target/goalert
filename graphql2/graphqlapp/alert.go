@@ -499,7 +499,7 @@ func (m *Mutation) EscalateAlerts(ctx context.Context, ids []int) ([]alert.Alert
 
 func (m *Mutation) UpdateAlerts(ctx context.Context, args graphql2.UpdateAlertsInput) ([]alert.Alert, error) {
 	var status alert.Status
-	updatedIDs := make([]int, 0, len(args.AlertIDs))
+	updatedIDs := make([]int, len(args.AlertIDs))
 
 	if args.NewStatus != nil {
 		err := validate.OneOf("Status", args.NewStatus, graphql2.AlertStatusStatusAcknowledged, graphql2.AlertStatusStatusClosed)
@@ -524,14 +524,12 @@ func (m *Mutation) UpdateAlerts(ctx context.Context, args graphql2.UpdateAlertsI
 	if args.NoiseReason != nil {
 		// GraphQL generates type of int[], while sqlc
 		// expects an int64[] as a result of the unnest function
-		_ids := make([]int64, 0, len(args.AlertIDs))
-		if args.AlertIDs != nil {
-			for i, v := range args.AlertIDs {
-				_ids[i] = int64(v)
-			}
+		_ids := make([]int64, len(args.AlertIDs))
+		for i, v := range args.AlertIDs {
+			_ids[i] = int64(v)
 		}
 
-		ids, err := m.AlertStore.UpdateManyAlertFeedback(ctx, *args.NoiseReason, _ids, nil)
+		ids, err := m.AlertStore.UpdateManyAlertFeedback(ctx, *args.NoiseReason, _ids)
 		if err != nil {
 			return nil, err
 		}

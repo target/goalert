@@ -822,7 +822,7 @@ func (s *Store) Feedback(ctx context.Context, alertIDs []int) ([]Feedback, error
 	return result, nil
 }
 
-func (s Store) UpdateManyAlertFeedback(ctx context.Context, noiseReason string, alertIDs []int64, logMeta interface{}) ([]int, error) {
+func (s Store) UpdateManyAlertFeedback(ctx context.Context, noiseReason string, alertIDs []int64) ([]int, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
