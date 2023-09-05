@@ -10304,6 +10304,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-ga4@npm:2.1.0":
+  version: 2.1.0
+  resolution: "react-ga4@npm:2.1.0"
+  checksum: f7fb41141418d4ad14756f1126a1e9958db37d4d84ae6cd798043dc03a390b6dba74d69311af0349f0b9580a43bda8930138194ccc29c4100efe446e2d6eb057
+  languageName: node
+  linkType: hard
+
 "react-infinite-scroll-component@npm:6.1.0":
   version: 6.1.0
   resolution: "react-infinite-scroll-component@npm:6.1.0"
@@ -11020,6 +11027,7 @@ __metadata:
     react-colorful: 5.6.1
     react-countdown: 2.3.5
     react-dom: 18.2.0
+    react-ga4: 2.1.0
     react-infinite-scroll-component: 6.1.0
     react-markdown: 8.0.7
     react-redux: 8.1.1
