@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
+import { useMutation, gql } from 'urql'
 import Button from '@mui/material/Button'
 import Checkbox from '@mui/material/Checkbox'
 import Dialog from '@mui/material/Dialog'
@@ -9,6 +10,16 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import TextField from '@mui/material/TextField'
 import { options } from './AlertFeedback'
 import { DialogActions, Typography } from '@mui/material'
+import { NotificationContext } from '../../main/SnackbarNotification'
+
+const updateMutation = gql`
+  mutation UpdateAlertsMutation($input: UpdateAlertsInput!) {
+    updateAlerts(input: $input) {
+      status
+      id
+    }
+  }
+`
 
 interface AlertFeedbackDialogProps {
   open: boolean
@@ -24,6 +35,10 @@ export default function AlertFeedbackDialog(
   const [noiseReasons, setNoiseReasons] = useState<Array<string>>([])
   const [other, setOther] = useState('')
   const [otherChecked, setOtherChecked] = useState(false)
+  const [mutationStatus, commit] = useMutation(updateMutation)
+  const { error } = mutationStatus
+
+  const { setNotification } = useContext(NotificationContext)
 
   function handleCheck(
     e: React.ChangeEvent<HTMLInputElement>,
@@ -34,6 +49,31 @@ export default function AlertFeedbackDialog(
     } else {
       setNoiseReasons(noiseReasons.filter((n) => n !== noiseReason))
     }
+  }
+
+  function handleSubmit(): void {
+    let n = noiseReasons.slice()
+    if (other !== '' && otherChecked) n = [...n, other]
+    commit({
+      input: {
+        alertIDs,
+        noiseReason: n.join('|'),
+      },
+    }).then((result) => {
+      const numUpdated = result.data.updateAlerts.length
+      const count = alertIDs.length
+
+      const msg = `${numUpdated} of ${count} alert${
+        count === 1 ? '' : 's'
+      } updated`
+
+      setNotification({
+        message: msg,
+        severity: 'info',
+      })
+
+      onClose()
+    })
   }
 
   return (
@@ -84,9 +124,21 @@ export default function AlertFeedbackDialog(
             disableTypography
           />
         </FormGroup>
+        {error?.message && (
+          <Typography color='error' sx={{ pt: 2 }}>
+            {error?.message}
+          </Typography>
+        )}
       </DialogContent>
       <DialogActions>
-        <Button>Submit</Button>
+        <Button
+          aria-label='Submit noise reasons'
+          variant='contained'
+          onClick={handleSubmit}
+          disabled={!noiseReasons.length && !other}
+        >
+          Submit
+        </Button>
       </DialogActions>
     </Dialog>
   )

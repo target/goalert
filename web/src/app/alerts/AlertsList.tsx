@@ -38,7 +38,7 @@ interface StatusUnacknowledgedVariables {
 
 interface MutationVariablesInput {
   alertIDs: (string | number)[]
-  newStatus?: string
+  newStatus: string
   noiseReason?: string
 }
 
