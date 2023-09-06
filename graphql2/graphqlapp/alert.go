@@ -522,14 +522,7 @@ func (m *Mutation) UpdateAlerts(ctx context.Context, args graphql2.UpdateAlertsI
 	}
 
 	if args.NoiseReason != nil {
-		// GraphQL generates type of int[], while sqlc
-		// expects an int64[] as a result of the unnest function
-		_ids := make([]int64, len(args.AlertIDs))
-		for i, v := range args.AlertIDs {
-			_ids[i] = int64(v)
-		}
-
-		ids, err := m.AlertStore.UpdateManyAlertFeedback(ctx, *args.NoiseReason, _ids)
+		ids, err := m.AlertStore.UpdateManyAlertFeedback(ctx, *args.NoiseReason, args.AlertIDs)
 		if err != nil {
 			return nil, err
 		}
