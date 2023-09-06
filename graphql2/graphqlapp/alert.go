@@ -502,7 +502,7 @@ func (m *Mutation) UpdateAlerts(ctx context.Context, args graphql2.UpdateAlertsI
 	updatedIDs := make([]int, len(args.AlertIDs))
 
 	if args.NewStatus != nil {
-		err := validate.OneOf("Status", args.NewStatus, graphql2.AlertStatusStatusAcknowledged, graphql2.AlertStatusStatusClosed)
+		err := validate.OneOf("Status", *args.NewStatus, graphql2.AlertStatusStatusAcknowledged, graphql2.AlertStatusStatusClosed)
 		if err != nil {
 			return nil, err
 		}
