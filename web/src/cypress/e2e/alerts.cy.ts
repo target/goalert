@@ -269,6 +269,25 @@ function testAlerts(screen: ScreenFormat): void {
       // first two already acked, third now acked
       cy.get('[role="alert"]').should('contain', '1 of 3 alerts updated')
     })
+
+    it('should set a noise reason on multiple alerts', () => {
+      cy.get(`span[data-cy=item-${alert1.id}] input`).check()
+      cy.get(`span[data-cy=item-${alert2.id}] input`).check()
+
+      cy.get('button[aria-label="Set Noise Reason"]').click()
+      cy.dialogTitle('Set Selected Alerts Noise Reason')
+
+      cy.get('[placeholder="Other (please specify)"]').type('Test')
+      cy.dialogFinish('Submit')
+
+      cy.get('[role="alert"]').should('contain', '2 of 2 alerts updated')
+
+      cy.visit('/alerts/' + alert1.id)
+      cy.get('body').should('contain.text', 'Reason: Test')
+
+      cy.visit('/alerts/' + alert2.id)
+      cy.get('body').should('contain.text', 'Reason: Test')
+    })
   })
 
   describe('Alert Creation', () => {

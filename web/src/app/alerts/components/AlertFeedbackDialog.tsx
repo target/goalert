@@ -78,7 +78,7 @@ export default function AlertFeedbackDialog(
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Mark Selected Alerts as Noise</DialogTitle>
+      <DialogTitle>Set Selected Alerts Noise Reason</DialogTitle>
       <DialogContent>
         <Typography sx={{ pb: 1 }}>Alerts: {alertIDs.join(', ')}</Typography>
         <FormGroup>

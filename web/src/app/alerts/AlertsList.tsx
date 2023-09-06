@@ -288,7 +288,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
 
     actions.push({
       icon: <NoiseControlOff />,
-      label: 'Mark as noise',
+      label: 'Set Noise Reason',
       onClick: makeUpdateAlerts('noise'),
     })
 
