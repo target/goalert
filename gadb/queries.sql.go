@@ -733,7 +733,7 @@ func (q *Queries) SetAlertFeedback(ctx context.Context, arg SetAlertFeedbackPara
 	return err
 }
 
-const setManyAlertFeedback = `-- name: SetManyAlertFeedback :exec
+const setManyAlertFeedback = `-- name: SetManyAlertFeedback :many
 INSERT INTO alert_feedback(alert_id, noise_reason)
 VALUES (unnest($1::bigint[]), $2)
 ON CONFLICT (alert_id)
@@ -741,6 +741,7 @@ ON CONFLICT (alert_id)
         noise_reason = excluded.noise_reason
     WHERE
         alert_feedback.alert_id = excluded.alert_id
+RETURNING alert_id
 `
 
 type SetManyAlertFeedbackParams struct {
@@ -748,9 +749,27 @@ type SetManyAlertFeedbackParams struct {
 	NoiseReason string
 }
 
-func (q *Queries) SetManyAlertFeedback(ctx context.Context, arg SetManyAlertFeedbackParams) error {
-	_, err := q.db.ExecContext(ctx, setManyAlertFeedback, pq.Array(arg.Column1), arg.NoiseReason)
-	return err
+func (q *Queries) SetManyAlertFeedback(ctx context.Context, arg SetManyAlertFeedbackParams) ([]int64, error) {
+	rows, err := q.db.QueryContext(ctx, setManyAlertFeedback, pq.Array(arg.Column1), arg.NoiseReason)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var alert_id int64
+		if err := rows.Scan(&alert_id); err != nil {
+			return nil, err
+		}
+		items = append(items, alert_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const statusMgrCMInfo = `-- name: StatusMgrCMInfo :one

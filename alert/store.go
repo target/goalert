@@ -840,7 +840,7 @@ func (s Store) UpdateManyAlertFeedback(ctx context.Context, noiseReason string, 
 		ids[i] = int64(v)
 	}
 
-	err = gadb.New(s.db).SetManyAlertFeedback(ctx, gadb.SetManyAlertFeedbackParams{
+	res, err := gadb.New(s.db).SetManyAlertFeedback(ctx, gadb.SetManyAlertFeedbackParams{
 		Column1:     ids, // TODO: fix sqlc generation naming this Column1 instead of AlertIDs
 		NoiseReason: noiseReason,
 	})
@@ -848,8 +848,13 @@ func (s Store) UpdateManyAlertFeedback(ctx context.Context, noiseReason string, 
 		return nil, err
 	}
 
-	// TODO: return updated alert IDs
-	return nil, nil
+	// cast back to []int
+	updatedIDs := make([]int, len(res))
+	for i, v := range res {
+		updatedIDs[i] = int(v)
+	}
+
+	return updatedIDs, nil
 }
 
 func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
