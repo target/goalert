@@ -140,9 +140,10 @@ type CreateEscalationPolicyStepInput struct {
 }
 
 type CreateGQLAPIKeyInput struct {
-	Name      string    `json:"name"`
-	Query     string    `json:"query"`
-	ExpiresAt time.Time `json:"expiresAt"`
+	Name          string    `json:"name"`
+	Description   string    `json:"description"`
+	AllowedFields []string  `json:"allowedFields"`
+	ExpiresAt     time.Time `json:"expiresAt"`
 }
 
 type CreateHeartbeatMonitorInput struct {
@@ -289,10 +290,16 @@ type EscalationPolicySearchOptions struct {
 }
 
 type GQLAPIKey struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Token     *string   `json:"token,omitempty"`
-	ExpiresAt time.Time `json:"expiresAt"`
+	ID            string     `json:"id"`
+	Name          string     `json:"name"`
+	Description   string     `json:"description"`
+	CreatedAt     time.Time  `json:"createdAt"`
+	CreatedBy     *user.User `json:"createdBy,omitempty"`
+	LastUsed      time.Time  `json:"lastUsed"`
+	LastUsedUa    string     `json:"lastUsedUA"`
+	ExpiresAt     time.Time  `json:"expiresAt"`
+	AllowedFields []string   `json:"allowedFields"`
+	Token         *string    `json:"token,omitempty"`
 }
 
 type IntegrationKeyConnection struct {
@@ -601,6 +608,12 @@ type UpdateEscalationPolicyStepInput struct {
 	ID           string                 `json:"id"`
 	DelayMinutes *int                   `json:"delayMinutes,omitempty"`
 	Targets      []assignment.RawTarget `json:"targets,omitempty"`
+}
+
+type UpdateGQLAPIKeyInput struct {
+	ID          string  `json:"id"`
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
 }
 
 type UpdateHeartbeatMonitorInput struct {

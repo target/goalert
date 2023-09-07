@@ -42,6 +42,8 @@ export interface Query {
   generateSlackAppManifest: string
   linkAccountInfo?: null | LinkAccountInfo
   swoStatus: SWOStatus
+  gqlAPIKeys: GQLAPIKey[]
+  listGQLFields: string[]
 }
 
 export interface IntegrationKeyTypeInfo {
@@ -423,21 +425,36 @@ export interface Mutation {
   setConfig: boolean
   setSystemLimits: boolean
   createGQLAPIKey: GQLAPIKey
+  updateGQLAPIKey: boolean
+  deleteGQLAPIKey: boolean
   createBasicAuth: boolean
   updateBasicAuth: boolean
 }
 
 export interface CreateGQLAPIKeyInput {
   name: string
-  query: string
+  description: string
+  allowedFields: string[]
   expiresAt: ISOTimestamp
+}
+
+export interface UpdateGQLAPIKeyInput {
+  id: string
+  name?: null | string
+  description?: null | string
 }
 
 export interface GQLAPIKey {
   id: string
   name: string
-  token?: null | string
+  description: string
+  createdAt: ISOTimestamp
+  createdBy?: null | User
+  lastUsed: ISOTimestamp
+  lastUsedUA: string
   expiresAt: ISOTimestamp
+  allowedFields: string[]
+  token?: null | string
 }
 
 export interface CreateBasicAuthInput {

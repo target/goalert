@@ -800,15 +800,15 @@ type AlertStatusSubscription struct {
 }
 
 type ApiKey struct {
-	ID         uuid.UUID
-	Name       string
-	UserID     uuid.NullUUID
-	ServiceID  uuid.NullUUID
-	Policy     json.RawMessage
 	CreatedAt  time.Time
-	UpdatedAt  time.Time
 	ExpiresAt  time.Time
+	ID         uuid.UUID
 	LastUsedAt sql.NullTime
+	Name       string
+	Policy     json.RawMessage
+	ServiceID  uuid.NullUUID
+	UpdatedAt  time.Time
+	UserID     uuid.NullUUID
 }
 
 type AuthBasicUser struct {

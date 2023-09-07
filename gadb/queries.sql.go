@@ -24,22 +24,22 @@ SET
 WHERE
     id = $1
 RETURNING
-    id, name, user_id, service_id, policy, created_at, updated_at, expires_at, last_used_at
+    created_at, expires_at, id, last_used_at, name, policy, service_id, updated_at, user_id
 `
 
 func (q *Queries) APIKeyAuth(ctx context.Context, id uuid.UUID) (ApiKey, error) {
 	row := q.db.QueryRowContext(ctx, aPIKeyAuth, id)
 	var i ApiKey
 	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.UserID,
-		&i.ServiceID,
-		&i.Policy,
 		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.ExpiresAt,
+		&i.ID,
 		&i.LastUsedAt,
+		&i.Name,
+		&i.Policy,
+		&i.ServiceID,
+		&i.UpdatedAt,
+		&i.UserID,
 	)
 	return i, err
 }
@@ -56,7 +56,7 @@ func (q *Queries) APIKeyDelete(ctx context.Context, id uuid.UUID) error {
 
 const aPIKeyGet = `-- name: APIKeyGet :one
 SELECT
-    id, name, user_id, service_id, policy, created_at, updated_at, expires_at, last_used_at
+    created_at, expires_at, id, last_used_at, name, policy, service_id, updated_at, user_id
 FROM
     api_keys
 WHERE
@@ -67,15 +67,15 @@ func (q *Queries) APIKeyGet(ctx context.Context, id uuid.UUID) (ApiKey, error) {
 	row := q.db.QueryRowContext(ctx, aPIKeyGet, id)
 	var i ApiKey
 	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.UserID,
-		&i.ServiceID,
-		&i.Policy,
 		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.ExpiresAt,
+		&i.ID,
 		&i.LastUsedAt,
+		&i.Name,
+		&i.Policy,
+		&i.ServiceID,
+		&i.UpdatedAt,
+		&i.UserID,
 	)
 	return i, err
 }

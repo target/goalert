@@ -128,6 +128,10 @@ type Query {
   linkAccountInfo(token: ID!): LinkAccountInfo
 
   swoStatus: SWOStatus!
+
+  gqlAPIKeys: [GQLAPIKey!]!
+
+  listGQLFields(query: String): [String!]!
 }
 
 type IntegrationKeyTypeInfo {
@@ -580,6 +584,8 @@ type Mutation {
   setSystemLimits(input: [SystemLimitInput!]!): Boolean!
 
   createGQLAPIKey(input: CreateGQLAPIKeyInput!): GQLAPIKey!
+  updateGQLAPIKey(input: UpdateGQLAPIKeyInput!): Boolean!
+  deleteGQLAPIKey(id: ID!): Boolean!
 
   createBasicAuth(input: CreateBasicAuthInput!): Boolean!
   updateBasicAuth(input: UpdateBasicAuthInput!): Boolean!
@@ -587,15 +593,28 @@ type Mutation {
 
 input CreateGQLAPIKeyInput {
   name: String!
-  query: String!
+  description: String!
+  allowedFields: [String!]!
   expiresAt: ISOTimestamp!
+}
+
+input UpdateGQLAPIKeyInput {
+  id: ID!
+  name: String
+  description: String
 }
 
 type GQLAPIKey {
   id: ID!
   name: String!
-  token: String
+  description: String!
+  createdAt: ISOTimestamp!
+  createdBy: User
+  lastUsed: ISOTimestamp!
+  lastUsedUA: String!
   expiresAt: ISOTimestamp!
+  allowedFields: [String!]!
+  token: String
 }
 
 input CreateBasicAuthInput {
