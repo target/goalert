@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"sort"
@@ -190,7 +191,6 @@ func (s *Store) AuthorizeGraphQL(ctx context.Context, tok, ua, ip string) (conte
 	var claims Claims
 	_, err := s.key.VerifyJWT(tok, &claims, Issuer, Audience)
 	if err != nil {
-		log.Logf(ctx, "apikey: verify failed: %v", err)
 		return ctx, permission.Unauthorized()
 	}
 	id, err := uuid.Parse(claims.Subject)
@@ -201,7 +201,9 @@ func (s *Store) AuthorizeGraphQL(ctx context.Context, tok, ua, ip string) (conte
 
 	polData, err := gadb.New(s.db).APIKeyAuthPolicy(ctx, id)
 	if err != nil {
-		log.Logf(ctx, "apikey: lookup failed: %v", err)
+		if !errors.Is(err, sql.ErrNoRows) {
+			log.Log(ctx, err)
+		}
 		return ctx, permission.Unauthorized()
 	}
 	var buf bytes.Buffer
@@ -239,7 +241,8 @@ func (s *Store) AuthorizeGraphQL(ctx context.Context, tok, ua, ip string) (conte
 	}
 	err = gadb.New(s.db).APIKeyRecordUsage(ctx, params)
 	if err != nil {
-		log.Logf(ctx, "apikey: failed to record usage: %v", err)
+		log.Log(ctx, err)
+		// don't fail authorization if we can't record usage
 	}
 
 	s.mx.Lock()
