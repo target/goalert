@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { ReactNode, useEffect, useState } from 'react'
 import Grid from '@mui/material/Grid'
 import { gql, useMutation, useQuery } from 'urql'
 import { DateTime } from 'luxon'
@@ -12,6 +12,7 @@ import { AdminSWODone } from './AdminSWODone'
 import { AdminSWOWrongMode } from './AdminSWOWrongMode'
 import { AdminSWODBVersionCard } from './AdminSWODBVersionCard'
 import { AdminSWOStatusCard } from './AdminSWOStatusCard'
+import { AdminSwitchoverGuideButton } from './AdminSwitchoverGuide'
 
 const query = gql`
   query {
@@ -65,13 +66,22 @@ export default function AdminSwitchover(): JSX.Element {
     return () => clearInterval(t)
   }, [fetching, refetch, data?.state, mutationStatus.fetching])
 
-  // remember if we are done and stay that way
-  if (data?.state === 'done') return <AdminSWODone />
-
-  if (error && error.message === '[GraphQL] not in SWO mode' && !data)
-    return <AdminSWOWrongMode />
-
-  if (!data) return <Spinner />
+  // loading/error states to show before page load
+  let msgJSX: ReactNode
+  if (error?.message === '[GraphQL] not in SWO mode' && !data)
+    msgJSX = <AdminSWOWrongMode />
+  else if (!data) msgJSX = <Spinner />
+  else if (data?.state === 'done') msgJSX = <AdminSWODone />
+  if (msgJSX) {
+    return (
+      <React.Fragment>
+        {msgJSX}
+        <center style={{ paddingTop: '1em' }}>
+          <AdminSwitchoverGuideButton />
+        </center>
+      </React.Fragment>
+    )
+  }
 
   function actionHandler(action: 'reset' | 'execute'): () => void {
     return () => {
@@ -136,7 +146,7 @@ export default function AdminSwitchover(): JSX.Element {
         <AdminSWODBVersionCard data={data} />
       </Grid>
 
-      <Grid item xs={12} container spacing={2} justifyContent='space-between'>
+      <Grid item xs={12} container spacing={2}>
         {data?.nodes.length > 0 &&
           data.nodes
             .slice()

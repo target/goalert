@@ -7,7 +7,7 @@ import (
 
 // JoinURL will join a base URL and suffix, taking care to preserve and merge query parameters.
 func JoinURL(base, suffix string) (string, error) {
-	bu, err := url.Parse(base)
+	u, err := url.Parse(base)
 	if err != nil {
 		return "", err
 	}
@@ -17,13 +17,13 @@ func JoinURL(base, suffix string) (string, error) {
 		return "", err
 	}
 
-	bu.Path = strings.TrimSuffix(bu.Path, "/") + "/" + strings.TrimPrefix(su.Path, "/")
+	u.Path = strings.TrimSuffix(u.Path, "/") + "/" + strings.TrimPrefix(su.Path, "/")
 
-	v := bu.Query()
+	v := u.Query()
 	for name := range su.Query() {
 		v.Set(name, su.Query().Get(name))
 	}
-	bu.RawQuery = v.Encode()
+	u.RawQuery = v.Encode()
 
-	return bu.String(), nil
+	return u.String(), nil
 }

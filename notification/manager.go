@@ -10,7 +10,7 @@ import (
 )
 
 // Manager is used as an intermediary between Senders and Receivers.
-// It should be contstructed first (with NewManager()) and passed to
+// It should be constructed first (with NewManager()) and passed to
 // Senders and Receivers that require it.
 type Manager struct {
 	providers   map[string]*namedSender

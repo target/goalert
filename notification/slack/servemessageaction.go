@@ -146,7 +146,7 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 		switch {
 		case payload.User.Name == "", payload.User.Username == "", payload.Team.ID == "", payload.Team.Domain == "":
 			// missing data, don't allow linking
-			log.Log(ctx, errors.New("slack payload missing requried data"))
+			log.Log(ctx, errors.New("slack payload missing required data"))
 		default:
 			linkURL, err = s.recv.AuthLinkURL(ctx, "slack:"+payload.Team.ID, payload.User.ID, authlink.Metadata{
 				UserDetails: fmt.Sprintf("Slack user %s (@%s) from %s.slack.com", payload.User.Name, payload.User.Username, payload.Team.Domain),

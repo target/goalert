@@ -139,29 +139,26 @@ function testRotations(screen: ScreenFormat): void {
       // ensure list has fully loaded before drag/drop
       cy.get('ul[data-cy=users]').find('li').should('have.length', 4)
 
-      // toggle edit mode
-      cy.get('button[aria-label="Toggle Drag and Drop"]').click()
-
       // pick up a participant
-      cy.get('svg[id="drag-0"]').focus()
+      cy.get('[id="drag-0"]').focus()
       cy.focused().type('{enter}')
       cy.get('body').should(
         'contain',
-        'Picked up sortable item 0. Sortable item 0 is in position 1 of 3',
+        'Picked up sortable item 1. Sortable item 1 is in position 1 of 3',
       )
 
       // re-order
       cy.focused().type('{downarrow}', { force: true })
       cy.get('body').should(
         'contain',
-        'Sortable item 0 was moved into position 2 of 3',
+        'Sortable item 1 was moved into position 2 of 3',
       )
 
       // place user, calls mutation
       cy.focused().type('{enter}', { force: true })
       cy.get('body').should(
         'contain',
-        'Sortable item 0 was dropped at position 2 of 3',
+        'Sortable item 1 was dropped at position 2 of 3',
       )
 
       cy.get('ul[data-cy=users]').find('li').as('parts')

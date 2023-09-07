@@ -78,7 +78,7 @@ func TestValidReferer(t *testing.T) {
 		assert.False(t, cfg.ValidReferer("https://foobar.com/bin", "http://example.com/baz"), "public URL match, wrong schema")
 	})
 
-	t.Run("auth referers set", func(t *testing.T) {
+	t.Run("auth referrer set", func(t *testing.T) {
 		var cfg Config
 		cfg.General.PublicURL = "https://example.com"
 		cfg.Auth.RefererURLs = []string{

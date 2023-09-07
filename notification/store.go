@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/jackc/pgtype"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util"
@@ -66,7 +67,8 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 				created_at,
 				src_value,
 				(select type from user_contact_methods cm where cm.id = om.contact_method_id),
-				(select type from notification_channels ch where ch.id = om.channel_id)
+				(select type from notification_channels ch where ch.id = om.channel_id),
+				last_status_at - created_at
 			from outgoing_messages om
 			where
 				message_type = 'alert_notification' and
@@ -150,7 +152,8 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 					created_at,
 					src_value,
 					(select type from user_contact_methods cm where cm.id = om.contact_method_id),
-					(select type from notification_channels ch where ch.id = om.channel_id)
+					(select type from notification_channels ch where ch.id = om.channel_id),
+					last_status_at - created_at
 				from outgoing_messages om
 				where id = any($1)
 		`),
@@ -165,7 +168,8 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 				created_at,
 				src_value,
 				(select type from user_contact_methods cm where cm.id = om.contact_method_id),
-				(select type from notification_channels ch where ch.id = om.channel_id)
+				(select type from notification_channels ch where ch.id = om.channel_id),
+				last_status_at - created_at
 			from outgoing_messages om
 			where message_type = $1 and contact_method_id = $2 and created_at >= $3
 		`),
@@ -455,7 +459,8 @@ func scanStatus(row scannable) (*SendResult, time.Time, error) {
 	var createdAt sql.NullTime
 	var srcValue sql.NullString
 	var dt ScannableDestType
-	err := row.Scan(&s.ID, &lastStatus, &s.Details, &s.ProviderMessageID, &s.Sequence, &hasNextRetry, &createdAt, &srcValue, &dt.CM, &dt.NC)
+	var age pgtype.Interval
+	err := row.Scan(&s.ID, &lastStatus, &s.Details, &s.ProviderMessageID, &s.Sequence, &hasNextRetry, &createdAt, &srcValue, &dt.CM, &dt.NC, &age)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, time.Time{}, nil
 	}
@@ -468,6 +473,10 @@ func scanStatus(row scannable) (*SendResult, time.Time, error) {
 	}
 	s.SrcValue = srcValue.String
 	s.DestType = dt.DestType()
+	err = age.AssignTo(&s.age)
+	if err != nil {
+		return nil, time.Time{}, err
+	}
 
 	return &s, createdAt.Time, nil
 }

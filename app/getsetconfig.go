@@ -42,7 +42,11 @@ func getSetConfig(ctx context.Context, setCfg bool, data []byte) error {
 	}
 	defer sqlutil.Rollback(ctx, "app: get/set config", tx)
 
-	s, err := config.NewStore(ctx, db, c.EncryptionKeys, "", "")
+	storeCfg := config.StoreConfig{
+		DB:   db,
+		Keys: c.EncryptionKeys,
+	}
+	s, err := config.NewStore(ctx, storeCfg)
 	if err != nil {
 		return errors.Wrap(err, "init config store")
 	}

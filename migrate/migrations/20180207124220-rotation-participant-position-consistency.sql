@@ -5,7 +5,7 @@
 -- read/write lock the table so once unlocked it will be both fixed and triggers in place to ensure future consistency.
 LOCK rotation_participants;
 
--- Fix any existing discrepencies
+-- Fix any existing discrepancies
 UPDATE rotation_participants part
 SET position = computed.position
 FROM (
