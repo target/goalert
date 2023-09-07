@@ -556,7 +556,7 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 
 	ctx := req.Context()
 	if req.URL.Path == "/api/graphql" && strings.HasPrefix(tokStr, "ey") {
-		ctx, err = h.cfg.APIKeyStore.AuthorizeGraphQL(ctx, tokStr)
+		ctx, err = h.cfg.APIKeyStore.AuthorizeGraphQL(ctx, tokStr, req.UserAgent(), req.RemoteAddr)
 		if errutil.HTTPError(req.Context(), w, err) {
 			return true
 		}

@@ -8,7 +8,9 @@ CREATE TABLE gql_api_keys(
     updated_at timestamp with time zone NOT NULL DEFAULT now(),
     updated_by uuid REFERENCES users(id) ON DELETE SET NULL,
     policy jsonb NOT NULL,
-    expires_at timestamp with time zone NOT NULL
+    expires_at timestamp with time zone NOT NULL,
+    deleted_at timestamp with time zone,
+    deleted_by uuid REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE gql_api_key_usage(

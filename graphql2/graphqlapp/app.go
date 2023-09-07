@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"slices"
 	"strconv"
 	"time"
 
@@ -162,7 +163,7 @@ func (a *App) Handler() http.Handler {
 		}
 
 		p := apikey.PolicyFromContext(ctx)
-		if p == nil || p.GraphQLV1 == nil {
+		if p == nil || p.Version != 1 {
 			return nil, permission.NewAccessDenied("invalid API key")
 		}
 
@@ -170,10 +171,10 @@ func (a *App) Handler() http.Handler {
 		objName := f.Field.Field.ObjectDefinition.Name
 		fieldName := f.Field.Field.Definition.Name
 
-		for _, allowed := range p.GraphQLV1.AllowedFields {
-			if allowed.ObjectName == objName && allowed.Name == fieldName {
-				return next(ctx)
-			}
+		field := objName + "." + fieldName
+
+		if slices.Contains(p.AllowedFields, field) {
+			return next(ctx)
 		}
 
 		return nil, permission.NewAccessDenied("field not allowed by API key")

@@ -41,7 +41,7 @@ type GraphQLField struct {
 
 type Claims struct {
 	jwt.RegisteredClaims
-	PolicyHash []byte `json:"ph"`
+	PolicyHash []byte `json:"pol"`
 }
 
 func NewGraphQLClaims(id uuid.UUID, policyHash []byte, expires time.Time) jwt.Claims {

@@ -227,6 +227,11 @@ type CreateUserOverrideInput struct {
 	RemoveUserID *string   `json:"removeUserID,omitempty"`
 }
 
+type CreatedGQLAPIKey struct {
+	ID    string `json:"id"`
+	Token string `json:"token"`
+}
+
 type DebugCarrierInfoInput struct {
 	Number string `json:"number"`
 }
@@ -290,16 +295,23 @@ type EscalationPolicySearchOptions struct {
 }
 
 type GQLAPIKey struct {
-	ID            string     `json:"id"`
-	Name          string     `json:"name"`
-	Description   string     `json:"description"`
-	CreatedAt     time.Time  `json:"createdAt"`
-	CreatedBy     *user.User `json:"createdBy,omitempty"`
-	LastUsed      time.Time  `json:"lastUsed"`
-	LastUsedUa    string     `json:"lastUsedUA"`
-	ExpiresAt     time.Time  `json:"expiresAt"`
-	AllowedFields []string   `json:"allowedFields"`
-	Token         *string    `json:"token,omitempty"`
+	ID            string          `json:"id"`
+	Name          string          `json:"name"`
+	Description   string          `json:"description"`
+	CreatedAt     time.Time       `json:"createdAt"`
+	CreatedBy     *user.User      `json:"createdBy,omitempty"`
+	UpdatedAt     time.Time       `json:"updatedAt"`
+	UpdatedBy     *user.User      `json:"updatedBy,omitempty"`
+	LastUsed      *GQLAPIKeyUsage `json:"lastUsed,omitempty"`
+	ExpiresAt     time.Time       `json:"expiresAt"`
+	AllowedFields []string        `json:"allowedFields"`
+	Token         *string         `json:"token,omitempty"`
+}
+
+type GQLAPIKeyUsage struct {
+	Time time.Time `json:"time"`
+	Ua   string    `json:"ua"`
+	IP   string    `json:"ip"`
 }
 
 type IntegrationKeyConnection struct {
@@ -710,6 +722,14 @@ type UserSearchOptions struct {
 	CMType         *contactmethod.Type `json:"CMType,omitempty"`
 	FavoritesOnly  *bool               `json:"favoritesOnly,omitempty"`
 	FavoritesFirst *bool               `json:"favoritesFirst,omitempty"`
+}
+
+type UserSession struct {
+	ID           string    `json:"id"`
+	Current      bool      `json:"current"`
+	UserAgent    string    `json:"userAgent"`
+	CreatedAt    time.Time `json:"createdAt"`
+	LastAccessAt time.Time `json:"lastAccessAt"`
 }
 
 type VerifyContactMethodInput struct {

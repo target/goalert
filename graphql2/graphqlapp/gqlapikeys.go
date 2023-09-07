@@ -2,84 +2,125 @@ package graphqlapp
 
 import (
 	"context"
-	"fmt"
-	"sort"
+	"database/sql"
+	"time"
 
+	"github.com/target/goalert/apikey"
 	"github.com/target/goalert/graphql2"
-	"github.com/target/goalert/validation"
-	"github.com/vektah/gqlparser/v2"
-	"github.com/vektah/gqlparser/v2/ast"
-	"github.com/vektah/gqlparser/v2/parser"
-	"github.com/vektah/gqlparser/v2/validator"
+	"github.com/target/goalert/permission"
+	"github.com/target/goalert/user"
 )
 
+type GQLAPIKey App
+
+func (a *App) GQLAPIKey() graphql2.GQLAPIKeyResolver { return (*GQLAPIKey)(a) }
+
+func (a *GQLAPIKey) CreatedBy(ctx context.Context, obj *graphql2.GQLAPIKey) (*user.User, error) {
+	if obj.CreatedBy == nil {
+		return nil, nil
+	}
+
+	return (*App)(a).FindOneUser(ctx, obj.CreatedBy.ID)
+}
+
+func (a *GQLAPIKey) UpdatedBy(ctx context.Context, obj *graphql2.GQLAPIKey) (*user.User, error) {
+	if obj.UpdatedBy == nil {
+		return nil, nil
+	}
+
+	return (*App)(a).FindOneUser(ctx, obj.UpdatedBy.ID)
+}
+
 func (q *Query) GqlAPIKeys(ctx context.Context) ([]graphql2.GQLAPIKey, error) {
-	return nil, nil
+	err := permission.LimitCheckAny(ctx, permission.Admin)
+	if err != nil {
+		return nil, err
+	}
+
+	keys, err := q.APIKeyStore.FindAllAdminGraphQLKeys(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]graphql2.GQLAPIKey, len(keys))
+	for i, k := range keys {
+		res[i] = graphql2.GQLAPIKey{
+			ID:            k.ID.String(),
+			Name:          k.Name,
+			Description:   k.Description,
+			CreatedAt:     k.CreatedAt,
+			UpdatedAt:     k.UpdatedAt,
+			ExpiresAt:     k.ExpiresAt,
+			AllowedFields: k.AllowedFields,
+		}
+
+		if k.CreatedBy != nil {
+			res[i].CreatedBy = &user.User{ID: k.CreatedBy.String()}
+		}
+		if k.UpdatedBy != nil {
+			res[i].UpdatedBy = &user.User{ID: k.UpdatedBy.String()}
+		}
+
+		if k.LastUsed != nil {
+			res[i].LastUsed = &graphql2.GQLAPIKeyUsage{
+				Time: k.LastUsed.Time,
+				Ua:   k.LastUsed.UserAgent,
+				IP:   k.LastUsed.IP,
+			}
+		}
+	}
+
+	return res, nil
+}
+
+func nullTimeToPointer(nt sql.NullTime) *time.Time {
+	if !nt.Valid {
+		return nil
+	}
+	return &nt.Time
 }
 
 func (q *Query) ListGQLFields(ctx context.Context, query *string) ([]string, error) {
 	if query == nil || *query == "" {
-		sch, err := parser.ParseSchema(&ast.Source{Input: graphql2.Schema()})
-		if err != nil {
-			return nil, fmt.Errorf("parse schema: %w", err)
-		}
-
-		var fields []string
-		for _, typ := range sch.Definitions {
-			if typ.Kind != ast.Object {
-				continue
-			}
-			for _, f := range typ.Fields {
-				fields = append(fields, typ.Name+"."+f.Name)
-			}
-		}
-		sort.Strings(fields)
-		return fields, nil
+		return graphql2.SchemaFields(), nil
 	}
 
-	sch, err := gqlparser.LoadSchema(&ast.Source{Input: graphql2.Schema()})
-	if err != nil {
-		return nil, fmt.Errorf("parse schema: %w", err)
-	}
-
-	qDoc, qErr := gqlparser.LoadQuery(sch, *query)
-	if len(qErr) > 0 {
-		return nil, validation.NewFieldError("Query", qErr.Error())
-	}
-
-	var fields []string
-	var e validator.Events
-	e.OnField(func(w *validator.Walker, field *ast.Field) {
-		fields = append(fields, field.ObjectDefinition.Name+"."+field.Name)
-	})
-	validator.Walk(sch, qDoc, &e)
-
-	sort.Strings(fields)
-	return fields, nil
+	return graphql2.QueryFields(*query)
 }
 
 func (a *Mutation) UpdateGQLAPIKey(ctx context.Context, input graphql2.UpdateGQLAPIKeyInput) (bool, error) {
-	return false, nil
+	id, err := parseUUID("ID", input.ID)
+	if err != nil {
+		return false, err
+	}
+
+	err = a.APIKeyStore.UpdateAdminGraphQLKey(ctx, id, input.Name, input.Description)
+	return err == nil, err
 }
+
 func (a *Mutation) DeleteGQLAPIKey(ctx context.Context, input string) (bool, error) {
-	return false, nil
+	id, err := parseUUID("ID", input)
+	if err != nil {
+		return false, err
+	}
+
+	err = a.APIKeyStore.DeleteAdminGraphQLKey(ctx, id)
+	return err == nil, err
 }
-func (a *Mutation) CreateGQLAPIKey(ctx context.Context, input graphql2.CreateGQLAPIKeyInput) (*graphql2.GQLAPIKey, error) {
-	return nil, nil
-	// _, err := gqlauth.NewQuery(input.Query)
-	// if err != nil {
-	// 	return nil, validation.NewFieldError("Query", err.Error())
-	// }
 
-	// key, err := a.APIKeyStore.CreateAdminGraphQLKey(ctx, input.Name, input.Query, input.ExpiresAt)
-	// if err != nil {
-	// 	return nil, err
-	// }
+func (a *Mutation) CreateGQLAPIKey(ctx context.Context, input graphql2.CreateGQLAPIKeyInput) (*graphql2.CreatedGQLAPIKey, error) {
+	id, tok, err := a.APIKeyStore.CreateAdminGraphQLKey(ctx, apikey.NewAdminGQLKeyOpts{
+		Name:    input.Name,
+		Desc:    input.Description,
+		Expires: input.ExpiresAt,
+		Fields:  input.AllowedFields,
+	})
+	if err != nil {
+		return nil, err
+	}
 
-	// return &graphql2.GQLAPIKey{
-	// 	ID:        key.ID.String(),
-	// 	Name:      key.Name,
-	// 	ExpiresAt: key.ExpiresAt,
-	// 	Token:     &key.Token,
-	// }, nil
+	return &graphql2.CreatedGQLAPIKey{
+		ID:    id.String(),
+		Token: tok,
+	}, nil
 }

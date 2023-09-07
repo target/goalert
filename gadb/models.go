@@ -799,18 +799,6 @@ type AlertStatusSubscription struct {
 	LastAlertStatus EnumAlertStatus
 }
 
-type ApiKey struct {
-	CreatedAt  time.Time
-	ExpiresAt  time.Time
-	ID         uuid.UUID
-	LastUsedAt sql.NullTime
-	Name       string
-	Policy     json.RawMessage
-	ServiceID  uuid.NullUUID
-	UpdatedAt  time.Time
-	UserID     uuid.NullUUID
-}
-
 type AuthBasicUser struct {
 	ID           int64
 	PasswordHash string
@@ -914,6 +902,26 @@ type EscalationPolicyStep struct {
 type GorpMigration struct {
 	AppliedAt sql.NullTime
 	ID        string
+}
+
+type GqlApiKey struct {
+	CreatedAt   time.Time
+	CreatedBy   uuid.NullUUID
+	Description string
+	ExpiresAt   time.Time
+	ID          uuid.UUID
+	Name        string
+	Policy      json.RawMessage
+	UpdatedAt   time.Time
+	UpdatedBy   uuid.NullUUID
+}
+
+type GqlApiKeyUsage struct {
+	ApiKeyID  uuid.NullUUID
+	ID        int64
+	IpAddress pqtype.Inet
+	UsedAt    time.Time
+	UserAgent sql.NullString
 }
 
 type HeartbeatMonitor struct {
