@@ -98,7 +98,7 @@ func (q *Queries) APIKeyInsert(ctx context.Context, arg APIKeyInsertParams) erro
 }
 
 const aPIKeyList = `-- name: APIKeyList :many
-SELECT DISTINCT ON (gql_api_keys.id)
+SELECT
     gql_api_keys.created_at, gql_api_keys.created_by, gql_api_keys.description, gql_api_keys.expires_at, gql_api_keys.id, gql_api_keys.name, gql_api_keys.policy, gql_api_keys.updated_at, gql_api_keys.updated_by,
     gql_api_key_usage.used_at AS last_used_at,
     gql_api_key_usage.user_agent AS last_user_agent,
@@ -108,9 +108,6 @@ FROM
     LEFT JOIN gql_api_key_usage ON gql_api_keys.id = gql_api_key_usage.api_key_id
 WHERE
     gql_api_keys.deleted_at IS NULL
-ORDER BY
-    gql_api_keys.id,
-    gql_api_key_usage.used_at DESC
 `
 
 type APIKeyListRow struct {
@@ -168,6 +165,9 @@ func (q *Queries) APIKeyList(ctx context.Context) ([]APIKeyListRow, error) {
 const aPIKeyRecordUsage = `-- name: APIKeyRecordUsage :exec
 INSERT INTO gql_api_key_usage(api_key_id, user_agent, ip_address)
     VALUES ($1::uuid, $2::text, $3::inet)
+ON CONFLICT (api_key_id)
+    DO UPDATE SET
+        used_at = now(), user_agent = $2::text, ip_address = $3::inet
 `
 
 type APIKeyRecordUsageParams struct {

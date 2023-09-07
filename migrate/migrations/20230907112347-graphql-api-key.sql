@@ -15,7 +15,7 @@ CREATE TABLE gql_api_keys(
 
 CREATE TABLE gql_api_key_usage(
     id bigserial PRIMARY KEY,
-    api_key_id uuid REFERENCES gql_api_keys(id) ON DELETE CASCADE,
+    api_key_id uuid REFERENCES gql_api_keys(id) ON DELETE CASCADE UNIQUE,
     used_at timestamp with time zone NOT NULL DEFAULT now(),
     user_agent text,
     ip_address inet

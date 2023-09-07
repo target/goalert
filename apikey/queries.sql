@@ -30,7 +30,10 @@ WHERE id = $1;
 -- name: APIKeyRecordUsage :exec
 -- APIKeyRecordUsage records the usage of an API key.
 INSERT INTO gql_api_key_usage(api_key_id, user_agent, ip_address)
-    VALUES (@key_id::uuid, @user_agent::text, @ip_address::inet);
+    VALUES (@key_id::uuid, @user_agent::text, @ip_address::inet)
+ON CONFLICT (api_key_id)
+    DO UPDATE SET
+        used_at = now(), user_agent = @user_agent::text, ip_address = @ip_address::inet;
 
 -- name: APIKeyAuthPolicy :one
 -- APIKeyAuth returns the API key policy with the given id, if it exists and is not expired.
@@ -45,7 +48,7 @@ WHERE
 
 -- name: APIKeyList :many
 -- APIKeyList returns all API keys, along with the last time they were used.
-SELECT DISTINCT ON (gql_api_keys.id)
+SELECT
     gql_api_keys.*,
     gql_api_key_usage.used_at AS last_used_at,
     gql_api_key_usage.user_agent AS last_user_agent,
@@ -54,8 +57,5 @@ FROM
     gql_api_keys
     LEFT JOIN gql_api_key_usage ON gql_api_keys.id = gql_api_key_usage.api_key_id
 WHERE
-    gql_api_keys.deleted_at IS NULL
-ORDER BY
-    gql_api_keys.id,
-    gql_api_key_usage.used_at DESC;
+    gql_api_keys.deleted_at IS NULL;
 
