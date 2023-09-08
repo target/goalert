@@ -219,15 +219,9 @@ func (s *Store) AuthorizeGraphQL(ctx context.Context, tok, ua, ip string) (conte
 		}
 		return ctx, permission.Unauthorized()
 	}
-	var buf bytes.Buffer
-	err = json.Compact(&buf, polData)
-	if err != nil {
-		log.Logf(ctx, "apikey: invalid policy: %v", err)
-		return ctx, permission.Unauthorized()
-	}
 
 	// TODO: cache policy hash by key ID when loading
-	policyHash := sha256.Sum256(buf.Bytes())
+	policyHash := sha256.Sum256(polData)
 	if !bytes.Equal(policyHash[:], claims.PolicyHash) {
 		log.Logf(ctx, "apikey: policy hash mismatch")
 		return ctx, permission.Unauthorized()
