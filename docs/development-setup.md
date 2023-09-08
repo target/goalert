@@ -44,7 +44,7 @@ ngrok: ngrok http -subdomain=localdev 3030
 GoAlert is built and tested against Postgres 13. Version 11+ should still work as of this writing.
 
 The easiest way to setup Postgres for development is to run `make postgres`.
-You can connect to the local DB at `postgres://goalert@localhost:5432/goalert`.
+You can connect to the local DB at `postgres://goalert@localhost:5432/goalert` (no password).
 This will start a container with the correct configuration for the dev environment.
 
 ### Manual Configuration
