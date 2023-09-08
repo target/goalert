@@ -30,6 +30,8 @@ type Store struct {
 
 	mx       sync.Mutex
 	policies map[uuid.UUID]*policyInfo
+
+	lastUsed map[uuid.UUID]time.Time
 }
 
 type policyInfo struct {
@@ -38,7 +40,12 @@ type policyInfo struct {
 }
 
 func NewStore(ctx context.Context, db *sql.DB, key keyring.Keyring) (*Store, error) {
-	s := &Store{db: db, key: key, policies: make(map[uuid.UUID]*policyInfo)}
+	s := &Store{
+		db:       db,
+		key:      key,
+		policies: make(map[uuid.UUID]*policyInfo),
+		lastUsed: make(map[uuid.UUID]time.Time),
+	}
 
 	return s, nil
 }
@@ -199,6 +206,12 @@ func (s *Store) AuthorizeGraphQL(ctx context.Context, tok, ua, ip string) (conte
 		return ctx, permission.Unauthorized()
 	}
 
+	// TODO: cache policy hash by key ID when loading and just do an existence check here
+	// if the policy hash for this key is already known.
+	//
+	// map key = hash, value = policy
+	//
+	// cleanup on negative db lookup or on timer?
 	polData, err := gadb.New(s.db).APIKeyAuthPolicy(ctx, id)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
@@ -227,22 +240,27 @@ func (s *Store) AuthorizeGraphQL(ctx context.Context, tok, ua, ip string) (conte
 		return ctx, permission.Unauthorized()
 	}
 
-	ua = validate.SanitizeText(ua, 1024)
-	ip, _, _ = net.SplitHostPort(ip)
-	ip = validate.SanitizeText(ip, 255)
-	params := gadb.APIKeyRecordUsageParams{
-		KeyID:     id,
-		UserAgent: ua,
-	}
-	params.IpAddress.IPNet.IP = net.ParseIP(ip)
-	params.IpAddress.IPNet.Mask = net.CIDRMask(32, 32)
-	if params.IpAddress.IPNet.IP != nil {
-		params.IpAddress.Valid = true
-	}
-	err = gadb.New(s.db).APIKeyRecordUsage(ctx, params)
-	if err != nil {
-		log.Log(ctx, err)
-		// don't fail authorization if we can't record usage
+	if time.Since(s.lastUsed[id]) > time.Minute {
+		// TODO: cleanup lastUsed map on timer
+		// set time as a constant and use for both
+		s.lastUsed[id] = time.Now()
+		ua = validate.SanitizeText(ua, 1024)
+		ip, _, _ = net.SplitHostPort(ip)
+		ip = validate.SanitizeText(ip, 255)
+		params := gadb.APIKeyRecordUsageParams{
+			KeyID:     id,
+			UserAgent: ua,
+		}
+		params.IpAddress.IPNet.IP = net.ParseIP(ip)
+		params.IpAddress.IPNet.Mask = net.CIDRMask(32, 32)
+		if params.IpAddress.IPNet.IP != nil {
+			params.IpAddress.Valid = true
+		}
+		err = gadb.New(s.db).APIKeyRecordUsage(ctx, params)
+		if err != nil {
+			log.Log(ctx, err)
+			// don't fail authorization if we can't record usage
+		}
 	}
 
 	s.mx.Lock()
