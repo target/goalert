@@ -89,7 +89,7 @@
     "lodash": "4.17.21",
     "luxon": "3.3.0",
     "mdi-material-ui": "7.7.0",
-    "prettier": "2.8.8",
+    "prettier": "3.0.3",
     "prop-types": "15.8.1",
     "react": "18.2.0",
     "react-big-calendar": "1.8.2",
