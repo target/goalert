@@ -16,6 +16,24 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
+const aPIKeyAuthCheck = `-- name: APIKeyAuthCheck :one
+SELECT
+    TRUE
+FROM
+    gql_api_keys
+WHERE
+    gql_api_keys.id = $1
+    AND gql_api_keys.deleted_at IS NULL
+    AND gql_api_keys.expires_at > now()
+`
+
+func (q *Queries) APIKeyAuthCheck(ctx context.Context, id uuid.UUID) (bool, error) {
+	row := q.db.QueryRowContext(ctx, aPIKeyAuthCheck, id)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const aPIKeyAuthPolicy = `-- name: APIKeyAuthPolicy :one
 SELECT
     gql_api_keys.policy
@@ -99,7 +117,7 @@ func (q *Queries) APIKeyInsert(ctx context.Context, arg APIKeyInsertParams) erro
 
 const aPIKeyList = `-- name: APIKeyList :many
 SELECT
-    gql_api_keys.created_at, gql_api_keys.created_by, gql_api_keys.description, gql_api_keys.expires_at, gql_api_keys.id, gql_api_keys.name, gql_api_keys.policy, gql_api_keys.updated_at, gql_api_keys.updated_by,
+    gql_api_keys.created_at, gql_api_keys.created_by, gql_api_keys.deleted_at, gql_api_keys.deleted_by, gql_api_keys.description, gql_api_keys.expires_at, gql_api_keys.id, gql_api_keys.name, gql_api_keys.policy, gql_api_keys.updated_at, gql_api_keys.updated_by,
     gql_api_key_usage.used_at AS last_used_at,
     gql_api_key_usage.user_agent AS last_user_agent,
     gql_api_key_usage.ip_address AS last_ip_address
@@ -113,6 +131,8 @@ WHERE
 type APIKeyListRow struct {
 	CreatedAt     time.Time
 	CreatedBy     uuid.NullUUID
+	DeletedAt     sql.NullTime
+	DeletedBy     uuid.NullUUID
 	Description   string
 	ExpiresAt     time.Time
 	ID            uuid.UUID
@@ -138,6 +158,8 @@ func (q *Queries) APIKeyList(ctx context.Context) ([]APIKeyListRow, error) {
 		if err := rows.Scan(
 			&i.CreatedAt,
 			&i.CreatedBy,
+			&i.DeletedAt,
+			&i.DeletedBy,
 			&i.Description,
 			&i.ExpiresAt,
 			&i.ID,

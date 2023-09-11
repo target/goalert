@@ -6,11 +6,8 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"net"
 	"sort"
-	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -28,10 +25,8 @@ type Store struct {
 	db  *sql.DB
 	key keyring.Keyring
 
-	mx       sync.Mutex
-	policies map[uuid.UUID]*policyInfo
-
-	lastUsed map[uuid.UUID]time.Time
+	polCache      *polCache
+	lastUsedCache *lastUsedCache
 }
 
 type policyInfo struct {
@@ -41,11 +36,17 @@ type policyInfo struct {
 
 func NewStore(ctx context.Context, db *sql.DB, key keyring.Keyring) (*Store, error) {
 	s := &Store{
-		db:       db,
-		key:      key,
-		policies: make(map[uuid.UUID]*policyInfo),
-		lastUsed: make(map[uuid.UUID]time.Time),
+		db:  db,
+		key: key,
 	}
+
+	s.polCache = newPolCache(polCacheConfig{
+		FillFunc: s._fetchPolicyInfo,
+		Verify:   s._verifyPolicyID,
+		MaxSize:  1000,
+	})
+
+	s.lastUsedCache = newLastUsedCache(1000, s._updateLastUsed)
 
 	return s, nil
 }
@@ -206,63 +207,28 @@ func (s *Store) AuthorizeGraphQL(ctx context.Context, tok, ua, ip string) (conte
 		return ctx, permission.Unauthorized()
 	}
 
-	// TODO: cache policy hash by key ID when loading and just do an existence check here
-	// if the policy hash for this key is already known.
-	//
-	// map key = hash, value = policy
-	//
-	// cleanup on negative db lookup or on timer?
-	polData, err := gadb.New(s.db).APIKeyAuthPolicy(ctx, id)
+	info, valid, err := s.polCache.Get(ctx, id)
 	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			log.Log(ctx, err)
-		}
+		return nil, err
+	}
+	if !valid {
+		// Successful negative cache lookup, we return Unauthorized because althought the token was validated, the key was revoked/removed.
+		return ctx, permission.Unauthorized()
+	}
+	if !bytes.Equal(info.Hash, claims.PolicyHash) {
+		// Successful cache lookup, but the policy has changed since the token was issued and so the token is no longer valid.
+		s.polCache.Revoke(ctx, id)
+
+		// We want to log this as a warning, because it is a potential security issue.
+		log.Log(ctx, fmt.Errorf("apikey: policy hash mismatch for key %s", id))
 		return ctx, permission.Unauthorized()
 	}
 
-	// TODO: cache policy hash by key ID when loading
-	policyHash := sha256.Sum256(polData)
-	if !bytes.Equal(policyHash[:], claims.PolicyHash) {
-		log.Logf(ctx, "apikey: policy hash mismatch")
-		return ctx, permission.Unauthorized()
+	err = s.lastUsedCache.RecordUsage(ctx, id, ua, ip)
+	if err != nil {
+		// Recording usage is not critical, so we log the error and continue.
+		log.Log(ctx, err)
 	}
-
-	var p GQLPolicy
-	err = json.Unmarshal(polData, &p)
-	if err != nil || p.Version != 1 {
-		log.Logf(ctx, "apikey: invalid policy: %v", err)
-		return ctx, permission.Unauthorized()
-	}
-
-	if time.Since(s.lastUsed[id]) > time.Minute {
-		// TODO: cleanup lastUsed map on timer
-		// set time as a constant and use for both
-		s.lastUsed[id] = time.Now()
-		ua = validate.SanitizeText(ua, 1024)
-		ip, _, _ = net.SplitHostPort(ip)
-		ip = validate.SanitizeText(ip, 255)
-		params := gadb.APIKeyRecordUsageParams{
-			KeyID:     id,
-			UserAgent: ua,
-		}
-		params.IpAddress.IPNet.IP = net.ParseIP(ip)
-		params.IpAddress.IPNet.Mask = net.CIDRMask(32, 32)
-		if params.IpAddress.IPNet.IP != nil {
-			params.IpAddress.Valid = true
-		}
-		err = gadb.New(s.db).APIKeyRecordUsage(ctx, params)
-		if err != nil {
-			log.Log(ctx, err)
-			// don't fail authorization if we can't record usage
-		}
-	}
-
-	s.mx.Lock()
-	s.policies[id] = &policyInfo{
-		Hash:   policyHash[:],
-		Policy: p,
-	}
-	s.mx.Unlock()
 
 	ctx = permission.SourceContext(ctx, &permission.SourceInfo{
 		ID:   id.String(),
@@ -270,7 +236,7 @@ func (s *Store) AuthorizeGraphQL(ctx context.Context, tok, ua, ip string) (conte
 	})
 	ctx = permission.UserContext(ctx, "", permission.RoleUnknown)
 
-	ctx = ContextWithPolicy(ctx, &p)
+	ctx = ContextWithPolicy(ctx, &info.Policy)
 	return ctx, nil
 }
 

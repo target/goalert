@@ -46,6 +46,16 @@ WHERE
     AND gql_api_keys.deleted_at IS NULL
     AND gql_api_keys.expires_at > now();
 
+-- name: APIKeyAuthCheck :one
+SELECT
+    TRUE
+FROM
+    gql_api_keys
+WHERE
+    gql_api_keys.id = $1
+    AND gql_api_keys.deleted_at IS NULL
+    AND gql_api_keys.expires_at > now();
+
 -- name: APIKeyList :many
 -- APIKeyList returns all API keys, along with the last time they were used.
 SELECT

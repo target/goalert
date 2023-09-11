@@ -907,6 +907,8 @@ type GorpMigration struct {
 type GqlApiKey struct {
 	CreatedAt   time.Time
 	CreatedBy   uuid.NullUUID
+	DeletedAt   sql.NullTime
+	DeletedBy   uuid.NullUUID
 	Description string
 	ExpiresAt   time.Time
 	ID          uuid.UUID
