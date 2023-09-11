@@ -13,6 +13,8 @@ import (
 	"github.com/target/goalert/gadb"
 )
 
+// polCache handles caching of policyInfo objects, as well as negative caching
+// of invalid keys.
 type polCache struct {
 	lru *lru.Cache
 	neg *lru.Cache
@@ -35,6 +37,7 @@ func newPolCache(cfg polCacheConfig) *polCache {
 	}
 }
 
+// Revoke will add the key to the negative cache.
 func (c *polCache) Revoke(ctx context.Context, key uuid.UUID) error {
 	c.mx.Lock()
 	defer c.mx.Unlock()
