@@ -758,8 +758,8 @@ export interface CalcRotationHandoffTimesInput {
   handoff: ISOTimestamp
   from?: null | ISOTimestamp
   timeZone: string
-  shiftLength?: null | number
-  shiftLengthISO?: null | ISODuration
+  shiftLengthHours?: null | number
+  shiftLength?: null | ISODuration
   count: number
 }
 

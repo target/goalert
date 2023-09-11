@@ -26600,7 +26600,7 @@ func (ec *executionContext) unmarshalInputCalcRotationHandoffTimesInput(ctx cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"handoff", "from", "timeZone", "shiftLength", "shiftLengthISO", "count"}
+	fieldsInOrder := [...]string{"handoff", "from", "timeZone", "shiftLengthHours", "shiftLength", "count"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -26637,21 +26637,21 @@ func (ec *executionContext) unmarshalInputCalcRotationHandoffTimesInput(ctx cont
 		case "shiftLengthHours":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shiftLength"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shiftLengthHours"))
 			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ShiftLength = data
-		case "shiftLengthISO":
+			it.ShiftLengthHours = data
+		case "shiftLength":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shiftLengthISO"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shiftLength"))
 			data, err := ec.unmarshalOISODuration2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ShiftLengthIso = data
+			it.ShiftLength = data
 		case "count":
 			var err error
 

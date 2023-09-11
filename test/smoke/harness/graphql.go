@@ -22,27 +22,23 @@ import (
 // DefaultGraphQLAdminUserID is the UserID created & used for GraphQL calls by default.
 const DefaultGraphQLAdminUserID = "00000000-0000-0000-0000-000000000002"
 
-func (h *Harness) insertGraphQLUser(userID string) string {
+func (h *Harness) createGraphQLUser(userID string) {
 	h.t.Helper()
-	if userID == DefaultGraphQLAdminUserID {
-		permission.SudoContext(context.Background(), func(ctx context.Context) {
-			foundUser, err := h.backend.UserStore.FindOne(ctx, userID)
-			if foundUser == nil {
-				_, err = h.backend.UserStore.Insert(ctx, &user.User{
-					Name: "GraphQL User",
-					ID:   userID,
-					Role: permission.RoleAdmin,
-				})
-				if err != nil {
-					h.t.Fatal(errors.Wrap(err, "create GraphQL user"))
-				}
-			}
-			if err != nil {
-				h.t.Fatal(errors.Wrap(err, "find GraphQL user"))
-			}
+	permission.SudoContext(context.Background(), func(ctx context.Context) {
+		h.t.Helper()
+		_, err := h.backend.UserStore.Insert(ctx, &user.User{
+			Name: "GraphQL User",
+			ID:   userID,
+			Role: permission.RoleAdmin,
 		})
-	}
+		if err != nil {
+			h.t.Fatal(errors.Wrap(err, "create GraphQL user"))
+		}
+	})
+}
 
+func (h *Harness) createGraphQLSession(userID string) string {
+	h.t.Helper()
 	tok, err := h.backend.AuthHandler.CreateSession(context.Background(), "goalert-smoketest", userID)
 	if err != nil {
 		h.t.Fatal(errors.Wrap(err, "create auth session"))
@@ -104,7 +100,10 @@ func (h *Harness) GraphQLQueryUserT(t *testing.T, userID, query string) *QLRespo
 	h.mx.Lock()
 	tok = h.gqlSessions[userID]
 	if tok == "" {
-		tok = h.insertGraphQLUser(userID)
+		if userID == DefaultGraphQLAdminUserID {
+			h.createGraphQLUser(userID)
+		}
+		tok = h.createGraphQLSession(userID)
 	}
 	h.mx.Unlock()
 
@@ -134,8 +133,9 @@ func (h *Harness) GraphQLQueryUserT(t *testing.T, userID, query string) *QLRespo
 		}
 		if resp.StatusCode == 401 && retry > 0 {
 			h.mx.Lock()
-			tok = h.insertGraphQLUser(userID)
+			tok = h.createGraphQLSession(userID)
 			h.mx.Unlock()
+			resp.Body.Close()
 			retry--
 			continue
 		} else if resp.StatusCode != 200 {

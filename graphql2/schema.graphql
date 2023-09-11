@@ -975,9 +975,9 @@ input CalcRotationHandoffTimesInput {
   timeZone: String!
 
   # Deprecated shiftLength as an integer of length in hours
-  shiftLength: Int
+  shiftLengthHours: Int
   
-  shiftLengthISO: ISODuration
+  shiftLength: ISODuration
   count: Int!
 }
 

@@ -394,19 +394,19 @@ func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.Ca
 	}
 
 	switch {
-	case input.ShiftLengthIso != nil:
-		rot, err = getRotationFromISO(input.Handoff.In(loc), input.ShiftLengthIso)
+	case input.ShiftLength != nil:
+		err = setRotationShiftFromISO(&rot, input.ShiftLength)
 		if err != nil {
 			return result, err
 		}
-	case input.ShiftLength != nil:
-		err = validate.Range("hours", *input.ShiftLength, 0, 99999)
+	case input.ShiftLengthHours != nil:
+		err = validate.Range("hours", *input.ShiftLengthHours, 0, 99999)
 		if err != nil {
 			return result, err
 		}
 		rot = rotation.Rotation{
 			Start:       input.Handoff.In(loc),
-			ShiftLength: *input.ShiftLength,
+			ShiftLength: *input.ShiftLengthHours,
 			Type:        rotation.TypeHourly,
 		}
 	default:
@@ -426,25 +426,44 @@ func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.Ca
 	return result, nil
 }
 
-func getRotationFromISO(start time.Time, dur *timeutil.ISODuration) (rotation.Rotation, error) {
-	rot := rotation.Rotation{
-		Start: start,
+// getRotationFromISO determines the rotation type based on the given ISODuration. An error is given if the unsupported year field or multiple non-zero fields are given.
+func setRotationShiftFromISO(rot *rotation.Rotation, dur *timeutil.ISODuration) error {
+
+	// validate only one time field (year, month, days, timepart) is non-zero
+	nonZeroFields := 0
+
+	if dur.YearPart > 0 {
+		// these validation errors are only possible from direct api calls, thus using ISO standard terminology "designator"
+		return validation.NewFieldError("shiftLength", "year designator not allowed")
 	}
-	switch {
-	case dur.Months > 0:
+
+	if dur.MonthPart > 0 {
 		rot.Type = rotation.TypeMonthly
-		rot.ShiftLength = dur.Months
-	case dur.Days > 0 && dur.Days%7 == 0:
-		rot.Type = rotation.TypeWeekly
-		rot.ShiftLength = dur.Days / 7
-	case dur.Days > 0:
-		rot.Type = rotation.TypeDaily
-		rot.ShiftLength = dur.Days
-	case dur.TimePart > 0:
-		rot.Type = rotation.TypeHourly
-		rot.ShiftLength = int(dur.TimePart.Hours())
-	default:
-		return rot, errors.New("invalid rotation type :(")
+		rot.ShiftLength = dur.MonthPart
+		nonZeroFields++
 	}
-	return rot, nil
+	if dur.WeekPart > 0 {
+		rot.Type = rotation.TypeWeekly
+		rot.ShiftLength = dur.WeekPart
+		nonZeroFields++
+	}
+	if dur.DayPart > 0 {
+		rot.Type = rotation.TypeDaily
+		rot.ShiftLength = dur.DayPart
+		nonZeroFields++
+	}
+	if dur.HourPart > 0 {
+		rot.Type = rotation.TypeHourly
+		rot.ShiftLength = dur.HourPart
+		nonZeroFields++
+	}
+
+	if nonZeroFields == 0 {
+		return validation.NewFieldError("shiftLength", "must not be zero")
+	}
+	if nonZeroFields > 1 {
+		return validation.NewFieldError("shiftLength", "only one of (M, W, D, H) is allowed")
+	}
+
+	return nil
 }
