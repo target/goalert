@@ -1,0 +1,16 @@
+# We need to keep a separate sqlc.yaml file for pgdump-lite because
+# it's used by make db-schema, which is used by the rest of GoAlert in
+# the main sqlc.yaml file.
+#
+# If we combine them then we end up with a circular dependency that's
+# difficult to resolve.
+#
+# Separating them means we can build/run pgdump-lite without make db-schema.
+version: '2'
+sql:
+  - queries: [queries.sql]
+    engine: postgresql
+    gen:
+      go:
+        out: pgd
+        sql_package: pgx/v5
