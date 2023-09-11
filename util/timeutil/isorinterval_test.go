@@ -22,37 +22,37 @@ func TestParseISORInterval(t *testing.T) {
 	check("R0/2022-01-31T00:00:00Z/2023-01-31T00:00:00Z", timeutil.ISORInterval{
 		Repeat: 0,
 		Start:  time.Date(2022, 1, 31, 0, 0, 0, 0, time.UTC),
-		Period: timeutil.ISODuration{TimePart: time.Hour * 24 * 365},
+		Period: timeutil.ISODuration{HourPart: 24 * 365},
 	}, time.Date(2023, 1, 31, 0, 0, 0, 0, time.UTC))
 
 	check("R1/2022-01-31T00:00:00Z/2024-01-31T00:00:00Z", timeutil.ISORInterval{
 		Repeat: 1,
 		Start:  time.Date(2022, 1, 31, 0, 0, 0, 0, time.UTC),
-		Period: timeutil.ISODuration{TimePart: time.Hour * 24 * 365},
+		Period: timeutil.ISODuration{HourPart: 24 * 365},
 	}, time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC))
 
 	check("R0/2022-01-31T00:00:00Z/P1Y", timeutil.ISORInterval{
 		Repeat: 0,
 		Start:  time.Date(2022, 1, 31, 0, 0, 0, 0, time.UTC),
-		Period: timeutil.ISODuration{Years: 1},
+		Period: timeutil.ISODuration{YearPart: 1},
 	}, time.Date(2023, 1, 31, 0, 0, 0, 0, time.UTC))
 
 	check("R1/2022-01-31T00:00:00Z/P1Y", timeutil.ISORInterval{
 		Repeat: 1,
 		Start:  time.Date(2022, 1, 31, 0, 0, 0, 0, time.UTC),
-		Period: timeutil.ISODuration{Years: 1},
+		Period: timeutil.ISODuration{YearPart: 1},
 	}, time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC))
 
 	check("R0/P1Y/2023-01-31T00:00:00Z", timeutil.ISORInterval{
 		Repeat: 0,
 		Start:  time.Date(2022, 1, 31, 0, 0, 0, 0, time.UTC),
-		Period: timeutil.ISODuration{Years: 1},
+		Period: timeutil.ISODuration{YearPart: 1},
 	}, time.Date(2023, 1, 31, 0, 0, 0, 0, time.UTC))
 
 	check("R1/P1Y/2024-01-31T00:00:00Z", timeutil.ISORInterval{
 		Repeat: 1,
 		Start:  time.Date(2022, 1, 31, 0, 0, 0, 0, time.UTC),
-		Period: timeutil.ISODuration{Years: 1},
+		Period: timeutil.ISODuration{YearPart: 1},
 	}, time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC))
 
 }
@@ -67,22 +67,22 @@ func TestISORInterval_String(t *testing.T) {
 	check("R0/2022-01-31T00:00:00Z/P1Y", timeutil.ISORInterval{
 		Repeat: 0,
 		Start:  time.Date(2022, 1, 31, 0, 0, 0, 0, time.UTC),
-		Period: timeutil.ISODuration{Years: 1},
+		Period: timeutil.ISODuration{YearPart: 1},
 	})
 	check("R1/2022-01-31T00:00:00Z/P1Y", timeutil.ISORInterval{
 		Repeat: 1,
 		Start:  time.Date(2022, 1, 31, 0, 0, 0, 0, time.UTC),
-		Period: timeutil.ISODuration{Years: 1},
+		Period: timeutil.ISODuration{YearPart: 1},
 	})
 
 	check("R0/2022-01-31T00:00:00Z/2022-01-31T01:00:00Z", timeutil.ISORInterval{
 		Repeat: 0,
 		Start:  time.Date(2022, 1, 31, 0, 0, 0, 0, time.UTC),
-		Period: timeutil.ISODuration{TimePart: time.Hour},
+		Period: timeutil.ISODuration{HourPart: 1},
 	})
 	check("R1/2022-01-31T00:00:00Z/2022-01-31T02:00:00Z", timeutil.ISORInterval{
 		Repeat: 1,
 		Start:  time.Date(2022, 1, 31, 0, 0, 0, 0, time.UTC),
-		Period: timeutil.ISODuration{TimePart: time.Hour},
+		Period: timeutil.ISODuration{HourPart: 1},
 	})
 }

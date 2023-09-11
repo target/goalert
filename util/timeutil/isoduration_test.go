@@ -18,20 +18,23 @@ func TestISODuration_String(t *testing.T) {
 		assert.Equal(t, exp, dur.String())
 	}
 
-	check("P1Y", ISODuration{Years: 1})
-	check("P1Y4M", ISODuration{Years: 1, Months: 4})
-	check("P1D", ISODuration{Days: 1})
-	check("PT1H", ISODuration{TimePart: time.Hour})
-	check("P1YT0.1S", ISODuration{Years: 1, TimePart: time.Millisecond * 100})
+	check("P1Y", ISODuration{YearPart: 1})
+	check("P1Y4M", ISODuration{YearPart: 1, MonthPart: 4})
+	check("P1D", ISODuration{DayPart: 1})
+	check("PT1H", ISODuration{HourPart: 1})
+	check("P1YT0.1S", ISODuration{YearPart: 1, SecondPart: 0.1})
 
 	check("P1Y2M3W4DT5H6M7S", ISODuration{
-		Years:  1,
-		Months: 2,
-		Days:   25,
+		YearPart:  1,
+		MonthPart: 2,
+		WeekPart:  3,
+		DayPart:   4,
 
-		TimePart: 5*time.Hour + 6*time.Minute + 7*time.Second,
+		HourPart:   5,
+		MinutePart: 6,
+		SecondPart: 7,
 	})
-	check("P1Y2W1D", ISODuration{Years: 1, Days: 15})
+	check("P1Y15D", ISODuration{YearPart: 1, DayPart: 15})
 	check("P0D", ISODuration{}) // must contain at least one element
 }
 
@@ -45,86 +48,111 @@ func TestParseISODuration(t *testing.T) {
 		assert.Equal(t, res, exp, desc)
 	}
 
-	dur := func(s string) time.Duration {
-		res, _ := time.ParseDuration(s)
-		return res
-	}
-
 	check("year only", "P12345Y", ISODuration{
-		Years: 12345,
+		YearPart: 12345,
 	})
 
 	check("one month", "P1M", ISODuration{
-		Months: 1,
+		MonthPart: 1,
 	})
 
 	check("one minute", "PT1M", ISODuration{
-		TimePart: dur("60s"),
+		MinutePart: 1,
 	})
 
 	check("one month and 1 minute", "P1MT1M", ISODuration{
-		Months:   1,
-		TimePart: dur("60s"),
+		MonthPart:  1,
+		MinutePart: 1,
 	})
 
 	check("two days with leading zeros", "P0002D", ISODuration{
 		// If a time element in a defined representation has a defined length, then leading zeros shall be used as required
-		Days: 2,
+		DayPart: 2,
 	})
 
 	check("mixed", "P3Y6M14DT12H30M5S", ISODuration{
-		Years:    3,
-		Months:   6,
-		Days:     14,
-		TimePart: dur("12h30m5s"),
+		YearPart:   3,
+		MonthPart:  6,
+		DayPart:    14,
+		HourPart:   12,
+		MinutePart: 30,
+		SecondPart: 5,
 	})
 
 	check("mixed with week", "P3Y6M2W14DT12H30M5S", ISODuration{
-		Years:    3,
-		Months:   6,
-		Days:     2*7 + 14,
-		TimePart: dur("12h30m5s"),
+		YearPart:   3,
+		MonthPart:  6,
+		WeekPart:   2,
+		DayPart:    14,
+		HourPart:   12,
+		MinutePart: 30,
+		SecondPart: 5,
 	})
 
 	check("time without seconds", "PT1H22M", ISODuration{
 		// The lowest order components may be omitted to represent duration with reduced accuracy.
-		TimePart: dur("1h22m"),
+		HourPart:   1,
+		MinutePart: 22,
 	})
 
 	check("time without minutes", "PT1H22S", ISODuration{
-		TimePart: dur("1h22s"),
+		HourPart:   1,
+		SecondPart: 22,
 	})
 
 	check("date only", "P1997Y11M26D", ISODuration{
 		// The designator [T] shall be absent if all of the time components are absent.
-		Years:  1997,
-		Months: 11,
-		Days:   26,
+		YearPart:  1997,
+		MonthPart: 11,
+		DayPart:   26,
 	})
 
 	check("week only", "P12W", ISODuration{
-		Days: 12 * 7,
+		WeekPart: 12,
 	})
 
 	check("fractional seconds", "PT0.1S", ISODuration{
-		TimePart: dur("100ms"),
+		SecondPart: 0.1,
 	})
 
 	check("fractional seconds with comma", "PT0,1S", ISODuration{
 		// comma [,] is preferred over full stop [.]
-		TimePart: dur("100ms"),
+		SecondPart: 0.1,
 	})
 
 	check("one and a half seconds", "PT1,5S", ISODuration{
-		TimePart: dur("1.5s"),
+		SecondPart: 1.5,
 	})
 
 	check("full fractional", "P23Y0M2W012DT1H1M0123.0522S", ISODuration{
-		Years:    23,
-		Months:   0,
-		Days:     2*7 + 12,
-		TimePart: dur("1h1m123.0522s"),
+		YearPart: 23,
+		WeekPart: 2,
+		DayPart:  12,
+
+		HourPart:   1,
+		MinutePart: 1,
+		SecondPart: 123.0522,
 	})
+}
+
+func TestISODurationFromTime(t *testing.T) {
+	check := func(desc string, dur time.Duration, exp string) {
+		t.Helper()
+
+		isoDur := ISODurationFromTime(dur)
+		assert.Equal(t, dur, isoDur.TimePart(), "TimePart(): "+desc)
+		assert.Equal(t, exp, isoDur.String(), desc)
+	}
+
+	check("1 second", time.Second, "PT1S")
+	check("1 minute", time.Minute, "PT1M")
+	check("1 hour", time.Hour, "PT1H")
+	check("24 hours", 24*time.Hour, "PT24H")
+
+	// fractional
+	check("1.5 seconds", 1500*time.Millisecond, "PT1.5S")
+	check("1.5 minutes", 90*time.Second, "PT1M30S")
+	check("1.5 hours", 90*time.Minute, "PT1H30M")
 }
 
 func TestParseISODurationErrors(t *testing.T) {
