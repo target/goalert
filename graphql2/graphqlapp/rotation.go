@@ -390,14 +390,13 @@ func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.Ca
 		return nil, validation.NewFieldError("timeZone", err.Error())
 	}
 
-	rot := rotation.Rotation{
-		Start: input.Handoff.In(loc),
-	}
-
 	if input.ShiftLength != nil && input.ShiftLengthHours != nil {
 		return nil, validation.NewFieldError("shiftLength", "only one of (shiftLength, shiftLengthHours) is allowed")
 	}
 
+	rot := rotation.Rotation{
+		Start: input.Handoff.In(loc),
+	}
 	switch {
 	case input.ShiftLength != nil:
 		err = setRotationShiftFromISO(&rot, input.ShiftLength)

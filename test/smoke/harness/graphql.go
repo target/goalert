@@ -132,13 +132,15 @@ func (h *Harness) GraphQLQueryUserT(t *testing.T, userID, query string) *QLRespo
 			t.Fatal("failed to make http request:", err)
 		}
 		if resp.StatusCode == 401 && retry > 0 {
+			h.t.Logf("GraphQL request failed with 401, retrying with new session (%d left)", retry)
 			h.mx.Lock()
 			tok = h.createGraphQLSession(userID)
 			h.mx.Unlock()
 			resp.Body.Close()
 			retry--
 			continue
-		} else if resp.StatusCode != 200 {
+		}
+		if resp.StatusCode != 200 {
 			data, _ := io.ReadAll(resp.Body)
 			t.Fatal("failed to make graphql request:", resp.Status, string(data))
 		}
