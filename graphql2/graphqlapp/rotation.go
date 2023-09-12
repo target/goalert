@@ -379,38 +379,36 @@ func (m *Mutation) UpdateRotation(ctx context.Context, input graphql2.UpdateRota
 }
 
 func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.CalcRotationHandoffTimesInput) ([]time.Time, error) {
-	var result []time.Time
-	var err error
-	var rot rotation.Rotation
 
-	err = validate.Range("count", input.Count, 0, 20)
+	err := validate.Range("count", input.Count, 0, 20)
 	if err != nil {
-		return result, err
+		return nil, err
 	}
 
 	loc, err := util.LoadLocation(input.TimeZone)
 	if err != nil {
-		return result, validation.NewFieldError("timeZone", err.Error())
+		return nil, validation.NewFieldError("timeZone", err.Error())
+	}
+
+	rot := rotation.Rotation{
+		Start: input.Handoff.In(loc),
 	}
 
 	switch {
 	case input.ShiftLength != nil:
 		err = setRotationShiftFromISO(&rot, input.ShiftLength)
 		if err != nil {
-			return result, err
+			return nil, err
 		}
 	case input.ShiftLengthHours != nil:
 		err = validate.Range("hours", *input.ShiftLengthHours, 0, 99999)
 		if err != nil {
-			return result, err
+			return nil, err
 		}
-		rot = rotation.Rotation{
-			Start:       input.Handoff.In(loc),
-			ShiftLength: *input.ShiftLengthHours,
-			Type:        rotation.TypeHourly,
-		}
+		rot.Type = rotation.TypeHourly
+		rot.ShiftLength = *input.ShiftLengthHours
 	default:
-		return result, validation.NewFieldError("shiftLength", err.Error())
+		return nil, validation.NewFieldError("shiftLength", err.Error())
 	}
 
 	t := time.Now()
@@ -418,6 +416,7 @@ func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.Ca
 		t = input.From.In(loc)
 	}
 
+	var result []time.Time
 	for len(result) < input.Count {
 		t = rot.EndTime(t)
 		result = append(result, t)
