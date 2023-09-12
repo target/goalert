@@ -1,11 +1,5 @@
 version: '2'
 sql:
-  - queries: [devtools/pgdump-lite/queries.sql]
-    engine: postgresql
-    gen:
-      go:
-        out: devtools/pgdump-lite/pgd
-        sql_package: pgx/v5
   - schema:
       - swo/swoinfo/pgtables.sql
       - swo/swosync/changelog.sql

@@ -14,11 +14,41 @@ import (
 )
 
 // ISODuration represents an ISO duration string.
-// The time components are combined, and the weeks component
-// is interpreted as a shorthand for 7 days.
+// It is a subset of the ISO 8601 Durations format (https://en.wikipedia.org/wiki/ISO_8601#Durations).
+//
+// Notably, it does not support negative values, and fractional values are only supported for seconds.
 type ISODuration struct {
-	Years, Months, Days int
-	TimePart            time.Duration
+	YearPart   int
+	MonthPart  int
+	WeekPart   int
+	DayPart    int
+	HourPart   int
+	MinutePart int
+	SecondPart float64
+}
+
+// ISODurationFromTime returns an ISODuration with the given time.Duration as the time part.
+func ISODurationFromTime(t time.Duration) ISODuration {
+	var dur ISODuration
+	dur.SetTimePart(t)
+	return dur
+}
+
+// Days returns the total number of days in the duration (adds DayPart and WeekPart appropriately).
+func (dur ISODuration) Days() int {
+	return dur.DayPart + (dur.WeekPart * 7)
+}
+
+// TimePart returns the time portion of the duration as a time.Duration.
+func (dur ISODuration) TimePart() time.Duration {
+	return time.Duration(dur.HourPart)*time.Hour + time.Duration(dur.MinutePart)*time.Minute + time.Duration(dur.SecondPart*float64(time.Second))
+}
+
+// SetTimePart sets the time portion of the duration from a time.Duration.
+func (dur *ISODuration) SetTimePart(timeDur time.Duration) {
+	dur.HourPart = int(timeDur.Hours())
+	dur.MinutePart = int(timeDur.Minutes()) % 60
+	dur.SecondPart = timeDur.Seconds() - float64(dur.HourPart*60*60+dur.MinutePart*60)
 }
 
 var zeroDur ISODuration
@@ -29,7 +59,7 @@ func (dur ISODuration) IsZero() bool {
 
 // AddTo adds the duration to the given time.
 func (dur ISODuration) AddTo(t time.Time) time.Time {
-	return t.AddDate(dur.Years, dur.Months, dur.Days).Add(dur.TimePart)
+	return t.AddDate(dur.YearPart, dur.MonthPart, dur.Days()).Add(dur.TimePart())
 }
 
 // LessThan returns true if the duration is less than the other duration from the given reference time.
@@ -51,38 +81,35 @@ func (dur ISODuration) String() string {
 	var b strings.Builder
 	b.WriteRune('P')
 
-	if dur.Years > 0 {
-		fmt.Fprintf(&b, "%dY", dur.Years)
+	if dur.YearPart > 0 {
+		fmt.Fprintf(&b, "%dY", dur.YearPart)
 	}
-	if dur.Months > 0 {
-		fmt.Fprintf(&b, "%dM", dur.Months)
+	if dur.MonthPart > 0 {
+		fmt.Fprintf(&b, "%dM", dur.MonthPart)
 	}
-	if dur.Days/7 > 0 {
-		fmt.Fprintf(&b, "%dW", dur.Days/7)
-		dur.Days %= 7
+	if dur.WeekPart > 0 {
+		fmt.Fprintf(&b, "%dW", dur.WeekPart)
 	}
-	if dur.Days > 0 {
-		fmt.Fprintf(&b, "%dD", dur.Days)
+	if dur.DayPart > 0 {
+		fmt.Fprintf(&b, "%dD", dur.DayPart)
 	}
 
-	if dur.TimePart == 0 {
+	if dur.SecondPart <= 0 && dur.MinutePart <= 0 && dur.HourPart <= 0 {
 		return b.String()
 	}
 
 	b.WriteRune('T')
 
-	if dur.TimePart/time.Hour > 0 {
-		fmt.Fprintf(&b, "%dH", dur.TimePart/time.Hour)
-		dur.TimePart %= time.Hour
+	if dur.HourPart > 0 {
+		fmt.Fprintf(&b, "%dH", dur.HourPart)
 	}
 
-	if dur.TimePart/time.Minute > 0 {
-		fmt.Fprintf(&b, "%dM", dur.TimePart/time.Minute)
-		dur.TimePart %= time.Minute
+	if dur.MinutePart > 0 {
+		fmt.Fprintf(&b, "%dM", dur.MinutePart)
 	}
 
-	if dur.TimePart.Seconds() > 0 {
-		sec := dur.TimePart.Seconds()
+	if dur.SecondPart > 0 {
+		sec := dur.SecondPart
 		// round to microseconds
 		sec = math.Round(sec*1e6) / 1e6
 		fmt.Fprintf(&b, "%gS", sec)
@@ -117,43 +144,43 @@ func ParseISODuration(s string) (d ISODuration, err error) {
 			if err != nil {
 				return zeroDur, err
 			}
-			d.Years += val
+			d.YearPart = val
 		case "month":
 			val, err := strconv.Atoi(m)
 			if err != nil {
 				return zeroDur, err
 			}
-			d.Months += val
+			d.MonthPart = val
 		case "week":
 			val, err := strconv.Atoi(m)
 			if err != nil {
 				return zeroDur, err
 			}
-			d.Days += (val * 7)
+			d.WeekPart = val
 		case "day":
 			val, err := strconv.Atoi(m)
 			if err != nil {
 				return zeroDur, err
 			}
-			d.Days += val
+			d.DayPart = val
 		case "hour":
-			val, err := time.ParseDuration(m + "h")
+			val, err := strconv.Atoi(m)
 			if err != nil {
 				return zeroDur, err
 			}
-			d.TimePart += val
+			d.HourPart = val
 		case "minute":
-			val, err := time.ParseDuration(m + "m")
+			val, err := strconv.Atoi(m)
 			if err != nil {
 				return zeroDur, err
 			}
-			d.TimePart += val
+			d.MinutePart = val
 		case "second":
-			val, err := time.ParseDuration(strings.ReplaceAll(m, ",", ".") + "s")
+			val, err := strconv.ParseFloat(strings.ReplaceAll(m, ",", "."), 64)
 			if err != nil {
 				return zeroDur, err
 			}
-			d.TimePart += val
+			d.SecondPart = val
 		default:
 			return zeroDur, fmt.Errorf("unknown field %s", name)
 		}
