@@ -42,11 +42,13 @@ func (a *AlertLogEntry) ID(ctx context.Context, obj *alertlog.Entry) (int, error
 }
 
 func (a *AlertMetric) TimeToAck(ctx context.Context, obj *alertmetrics.Metric) (*timeutil.ISODuration, error) {
-	return &timeutil.ISODuration{TimePart: obj.TimeToAck}, nil
+	dur := timeutil.ISODurationFromTime(obj.TimeToAck)
+	return &dur, nil
 }
 
 func (a *AlertMetric) TimeToClose(ctx context.Context, obj *alertmetrics.Metric) (*timeutil.ISODuration, error) {
-	return &timeutil.ISODuration{TimePart: obj.TimeToClose}, nil
+	dur := timeutil.ISODurationFromTime(obj.TimeToClose)
+	return &dur, nil
 }
 
 func (a *AlertLogEntry) Timestamp(ctx context.Context, obj *alertlog.Entry) (*time.Time, error) {
