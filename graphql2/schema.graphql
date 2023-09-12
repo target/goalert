@@ -596,6 +596,7 @@ input CreateGQLAPIKeyInput {
   description: String!
   allowedFields: [String!]!
   expiresAt: ISOTimestamp!
+  role: UserRole!
 }
 
 input CreateBasicAuthInput {

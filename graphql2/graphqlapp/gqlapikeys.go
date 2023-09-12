@@ -5,6 +5,7 @@ import (
 
 	"github.com/target/goalert/apikey"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/permission"
 )
 
 func (a *Mutation) DeleteGQLAPIKey(ctx context.Context, input string) (bool, error) {
@@ -23,6 +24,7 @@ func (a *Mutation) CreateGQLAPIKey(ctx context.Context, input graphql2.CreateGQL
 		Desc:    input.Description,
 		Expires: input.ExpiresAt,
 		Fields:  input.AllowedFields,
+		Role:    permission.Role(input.Role),
 	})
 	if err != nil {
 		return nil, err
