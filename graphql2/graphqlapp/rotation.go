@@ -394,6 +394,10 @@ func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.Ca
 		Start: input.Handoff.In(loc),
 	}
 
+	if input.ShiftLength != nil && input.ShiftLengthHours != nil {
+		return nil, validation.NewFieldError("shiftLength", "only one of (shiftLength, shiftLengthHours) is allowed")
+	}
+
 	switch {
 	case input.ShiftLength != nil:
 		err = setRotationShiftFromISO(&rot, input.ShiftLength)
@@ -408,7 +412,7 @@ func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.Ca
 		rot.Type = rotation.TypeHourly
 		rot.ShiftLength = *input.ShiftLengthHours
 	default:
-		return nil, validation.NewFieldError("shiftLength", err.Error())
+		return nil, validation.NewFieldError("shiftLength", "must be specified")
 	}
 
 	t := time.Now()
@@ -432,7 +436,8 @@ func setRotationShiftFromISO(rot *rotation.Rotation, dur *timeutil.ISODuration) 
 	nonZeroFields := 0
 
 	if dur.YearPart > 0 {
-		// these validation errors are only possible from direct api calls, thus using ISO standard terminology "designator"
+		// These validation errors are only possible from direct api calls,
+		// thus using ISO standard terminology "designator" to match the spec.
 		return validation.NewFieldError("shiftLength", "year designator not allowed")
 	}
 
@@ -461,6 +466,7 @@ func setRotationShiftFromISO(rot *rotation.Rotation, dur *timeutil.ISODuration) 
 		return validation.NewFieldError("shiftLength", "must not be zero")
 	}
 	if nonZeroFields > 1 {
+		// Same as above, this error is only possible from direct api calls.
 		return validation.NewFieldError("shiftLength", "only one of (M, W, D, H) is allowed")
 	}
 
