@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"sort"
 	"time"
 
@@ -126,11 +127,15 @@ func (s *Store) CreateAdminGraphQLKey(ctx context.Context, opt NewAdminGQLKeyOpt
 		validate.Text("Description", opt.Desc, 0, 255),
 		validate.Range("Fields", len(opt.Fields), 1, len(graphql2.SchemaFields())),
 	)
-	for i, f := range opt.Fields {
-		err = validate.Many(err, validate.OneOf(fmt.Sprintf("Fields[%d]", i), f, graphql2.SchemaFields()...))
-	}
 	if time.Until(opt.Expires) <= 0 {
 		err = validate.Many(err, validation.NewFieldError("Expires", "must be in the future"))
+	}
+	for i, f := range opt.Fields {
+		if slices.Contains(graphql2.SchemaFields(), f) {
+			continue
+		}
+
+		err = validate.Many(err, validation.NewFieldError(fmt.Sprintf("Fields[%d]", i), "is not a valid field"))
 	}
 	if err != nil {
 		return uuid.Nil, "", err
