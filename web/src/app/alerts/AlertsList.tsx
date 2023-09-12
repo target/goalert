@@ -7,7 +7,7 @@ import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
   Close as CloseIcon,
-  NoiseControlOff,
+  ThumbDownOffAlt,
 } from '@mui/icons-material'
 
 import AlertsListFilter from './components/AlertsListFilter'
@@ -287,7 +287,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
     }
 
     actions.push({
-      icon: <NoiseControlOff />,
+      icon: <ThumbDownOffAlt />,
       label: 'Set Noise Reason',
       onClick: makeUpdateAlerts('noise'),
     })
