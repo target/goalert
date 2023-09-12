@@ -38,7 +38,7 @@ SELECT
 FROM
     alert_feedback
 WHERE
-    alert_id = ANY($1::int[]);
+    alert_id = ANY ($1::int[]);
 
 -- name: SetAlertFeedback :exec
 INSERT INTO alert_feedback(alert_id, noise_reason)
@@ -51,10 +51,12 @@ ON CONFLICT (alert_id)
 
 -- name: SetManyAlertFeedback :many
 INSERT INTO alert_feedback(alert_id, noise_reason)
-VALUES (unnest($1::bigint[]), $2)
+    VALUES (unnest(@alert_ids::bigint[]), @noise_reason)
 ON CONFLICT (alert_id)
     DO UPDATE SET
         noise_reason = excluded.noise_reason
     WHERE
         alert_feedback.alert_id = excluded.alert_id
-RETURNING alert_id;
+    RETURNING
+        alert_id;
+

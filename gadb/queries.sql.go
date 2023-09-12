@@ -23,7 +23,7 @@ SELECT
 FROM
     alert_feedback
 WHERE
-    alert_id = ANY($1::int[])
+    alert_id = ANY ($1::int[])
 `
 
 type AlertFeedbackRow struct {
@@ -735,22 +735,23 @@ func (q *Queries) SetAlertFeedback(ctx context.Context, arg SetAlertFeedbackPara
 
 const setManyAlertFeedback = `-- name: SetManyAlertFeedback :many
 INSERT INTO alert_feedback(alert_id, noise_reason)
-VALUES (unnest($1::bigint[]), $2)
+    VALUES (unnest($1::bigint[]), $2)
 ON CONFLICT (alert_id)
     DO UPDATE SET
         noise_reason = excluded.noise_reason
     WHERE
         alert_feedback.alert_id = excluded.alert_id
-RETURNING alert_id
+    RETURNING
+        alert_id
 `
 
 type SetManyAlertFeedbackParams struct {
-	Column1     []int64
+	AlertIds    []int64
 	NoiseReason string
 }
 
 func (q *Queries) SetManyAlertFeedback(ctx context.Context, arg SetManyAlertFeedbackParams) ([]int64, error) {
-	rows, err := q.db.QueryContext(ctx, setManyAlertFeedback, pq.Array(arg.Column1), arg.NoiseReason)
+	rows, err := q.db.QueryContext(ctx, setManyAlertFeedback, pq.Array(arg.AlertIds), arg.NoiseReason)
 	if err != nil {
 		return nil, err
 	}
