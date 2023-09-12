@@ -22,6 +22,7 @@ import (
 	"github.com/target/goalert/service"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/timeutil"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -500,15 +501,19 @@ func (m *Mutation) EscalateAlerts(ctx context.Context, ids []int) ([]alert.Alert
 }
 
 func (m *Mutation) UpdateAlerts(ctx context.Context, args graphql2.UpdateAlertsInput) ([]alert.Alert, error) {
-	var status alert.Status
-	updatedIDs := make([]int, len(args.AlertIDs))
+	if args.NewStatus != nil && args.NoiseReason != nil {
+		return nil, validation.NewGenericError("cannot set both 'newStatus' and 'noiseReason'")
+	}
 
+	var err error
+	var updatedIDs []int
 	if args.NewStatus != nil {
 		err := validate.OneOf("Status", *args.NewStatus, graphql2.AlertStatusStatusAcknowledged, graphql2.AlertStatusStatusClosed)
 		if err != nil {
 			return nil, err
 		}
 
+		var status alert.Status
 		switch *args.NewStatus {
 		case graphql2.AlertStatusStatusAcknowledged:
 			status = alert.StatusActive
@@ -516,19 +521,17 @@ func (m *Mutation) UpdateAlerts(ctx context.Context, args graphql2.UpdateAlertsI
 			status = alert.StatusClosed
 		}
 
-		ids, err := m.AlertStore.UpdateManyAlertStatus(ctx, status, args.AlertIDs, nil)
+		updatedIDs, err = m.AlertStore.UpdateManyAlertStatus(ctx, status, args.AlertIDs, nil)
 		if err != nil {
 			return nil, err
 		}
-		updatedIDs = append(updatedIDs, ids...)
 	}
 
 	if args.NoiseReason != nil {
-		ids, err := m.AlertStore.UpdateManyAlertFeedback(ctx, *args.NoiseReason, args.AlertIDs)
+		updatedIDs, err = m.AlertStore.UpdateManyAlertFeedback(ctx, *args.NoiseReason, args.AlertIDs)
 		if err != nil {
 			return nil, err
 		}
-		updatedIDs = append(updatedIDs, ids...)
 	}
 
 	return m.AlertStore.FindMany(ctx, updatedIDs)
