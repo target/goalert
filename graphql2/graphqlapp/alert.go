@@ -505,7 +505,6 @@ func (m *Mutation) UpdateAlerts(ctx context.Context, args graphql2.UpdateAlertsI
 		return nil, validation.NewGenericError("cannot set both 'newStatus' and 'noiseReason'")
 	}
 
-	var err error
 	var updatedIDs []int
 	if args.NewStatus != nil {
 		err := validate.OneOf("Status", *args.NewStatus, graphql2.AlertStatusStatusAcknowledged, graphql2.AlertStatusStatusClosed)
@@ -528,6 +527,7 @@ func (m *Mutation) UpdateAlerts(ctx context.Context, args graphql2.UpdateAlertsI
 	}
 
 	if args.NoiseReason != nil {
+		var err error
 		updatedIDs, err = m.AlertStore.UpdateManyAlertFeedback(ctx, *args.NoiseReason, args.AlertIDs)
 		if err != nil {
 			return nil, err
