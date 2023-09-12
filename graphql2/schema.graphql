@@ -530,6 +530,7 @@ type Mutation {
 
   createAlert(input: CreateAlertInput!): Alert
   setAlertNoiseReason(input: SetAlertNoiseReasonInput!): Boolean!
+    @deprecated(reason: "Use updateAlerts instead with the noiseReason field.")
 
   createService(input: CreateServiceInput!): Service
   createEscalationPolicy(input: CreateEscalationPolicyInput!): EscalationPolicy
