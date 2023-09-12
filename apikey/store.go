@@ -25,14 +25,6 @@ import (
 type Store struct {
 	db  *sql.DB
 	key keyring.Keyring
-
-	polCache      *polCache
-	lastUsedCache *lastUsedCache
-}
-
-type policyInfo struct {
-	Hash   []byte
-	Policy GQLPolicy
 }
 
 // NewStore will create a new Store.
@@ -41,14 +33,6 @@ func NewStore(ctx context.Context, db *sql.DB, key keyring.Keyring) (*Store, err
 		db:  db,
 		key: key,
 	}
-
-	s.polCache = newPolCache(polCacheConfig{
-		FillFunc: s._fetchPolicyInfo,
-		Verify:   s._verifyPolicyID,
-		MaxSize:  1000,
-	})
-
-	s.lastUsedCache = newLastUsedCache(1000, s._updateLastUsed)
 
 	return s, nil
 }
@@ -74,7 +58,7 @@ func (s *Store) AuthorizeGraphQL(ctx context.Context, tok, ua, ip string) (conte
 		return ctx, permission.Unauthorized()
 	}
 
-	info, valid, err := s.polCache.Get(ctx, id)
+	info, valid, err := s._fetchPolicyInfo(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -83,15 +67,12 @@ func (s *Store) AuthorizeGraphQL(ctx context.Context, tok, ua, ip string) (conte
 		return ctx, permission.Unauthorized()
 	}
 	if !bytes.Equal(info.Hash, claims.PolicyHash) {
-		// Successful cache lookup, but the policy has changed since the token was issued and so the token is no longer valid.
-		s.polCache.Revoke(ctx, id)
-
 		// We want to log this as a warning, because it is a potential security issue.
 		log.Log(ctx, fmt.Errorf("apikey: policy hash mismatch for key %s", id))
 		return ctx, permission.Unauthorized()
 	}
 
-	err = s.lastUsedCache.RecordUsage(ctx, id, ua, ip)
+	err = s._updateLastUsed(ctx, id, ua, ip)
 	if err != nil {
 		// Recording usage is not critical, so we log the error and continue.
 		log.Log(ctx, err)
