@@ -91,6 +91,26 @@ func (q *Queries) APIKeyInsert(ctx context.Context, arg APIKeyInsertParams) erro
 	return err
 }
 
+const aPIKeyRecordUsage = `-- name: APIKeyRecordUsage :exec
+INSERT INTO gql_api_key_usage(api_key_id, user_agent, ip_address)
+    VALUES ($1::uuid, $2::text, $3::inet)
+ON CONFLICT (api_key_id)
+    DO UPDATE SET
+        used_at = now(), user_agent = $2::text, ip_address = $3::inet
+`
+
+type APIKeyRecordUsageParams struct {
+	KeyID     uuid.UUID
+	UserAgent string
+	IpAddress pqtype.Inet
+}
+
+// APIKeyRecordUsage records the usage of an API key.
+func (q *Queries) APIKeyRecordUsage(ctx context.Context, arg APIKeyRecordUsageParams) error {
+	_, err := q.db.ExecContext(ctx, aPIKeyRecordUsage, arg.KeyID, arg.UserAgent, arg.IpAddress)
+	return err
+}
+
 const alertFeedback = `-- name: AlertFeedback :many
 SELECT
     alert_id,
