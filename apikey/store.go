@@ -101,7 +101,7 @@ func (s *Store) AuthorizeGraphQL(ctx context.Context, tok, ua, ip string) (conte
 		ID:   id.String(),
 		Type: permission.SourceTypeGQLAPIKey,
 	})
-	ctx = permission.UserContext(ctx, "", permission.RoleUnknown)
+	ctx = permission.UserContext(ctx, "", info.Policy.Role)
 
 	ctx = ContextWithPolicy(ctx, &info.Policy)
 	return ctx, nil
@@ -113,6 +113,7 @@ type NewAdminGQLKeyOpts struct {
 	Desc    string
 	Fields  []string
 	Expires time.Time
+	Role    permission.Role
 }
 
 // CreateAdminGraphQLKey will create a new GraphQL API key returning the ID and token.
@@ -126,6 +127,7 @@ func (s *Store) CreateAdminGraphQLKey(ctx context.Context, opt NewAdminGQLKeyOpt
 		validate.IDName("Name", opt.Name),
 		validate.Text("Description", opt.Desc, 0, 255),
 		validate.Range("Fields", len(opt.Fields), 1, len(graphql2.SchemaFields())),
+		validate.OneOf("Role", opt.Role, permission.RoleAdmin, permission.RoleUser),
 	)
 	if time.Until(opt.Expires) <= 0 {
 		err = validate.Many(err, validation.NewFieldError("Expires", "must be in the future"))
@@ -145,6 +147,7 @@ func (s *Store) CreateAdminGraphQLKey(ctx context.Context, opt NewAdminGQLKeyOpt
 	policyData, err := json.Marshal(GQLPolicy{
 		Version:       1,
 		AllowedFields: opt.Fields,
+		Role:          opt.Role,
 	})
 	if err != nil {
 		return uuid.Nil, "", err
