@@ -16,6 +16,81 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
+const aPIKeyAuthCheck = `-- name: APIKeyAuthCheck :one
+SELECT
+    TRUE
+FROM
+    gql_api_keys
+WHERE
+    gql_api_keys.id = $1
+    AND gql_api_keys.deleted_at IS NULL
+    AND gql_api_keys.expires_at > now()
+`
+
+func (q *Queries) APIKeyAuthCheck(ctx context.Context, id uuid.UUID) (bool, error) {
+	row := q.db.QueryRowContext(ctx, aPIKeyAuthCheck, id)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const aPIKeyAuthPolicy = `-- name: APIKeyAuthPolicy :one
+SELECT
+    gql_api_keys.policy
+FROM
+    gql_api_keys
+WHERE
+    gql_api_keys.id = $1
+    AND gql_api_keys.deleted_at IS NULL
+    AND gql_api_keys.expires_at > now()
+`
+
+// APIKeyAuth returns the API key policy with the given id, if it exists and is not expired.
+func (q *Queries) APIKeyAuthPolicy(ctx context.Context, id uuid.UUID) (json.RawMessage, error) {
+	row := q.db.QueryRowContext(ctx, aPIKeyAuthPolicy, id)
+	var policy json.RawMessage
+	err := row.Scan(&policy)
+	return policy, err
+}
+
+const aPIKeyDelete = `-- name: APIKeyDelete :exec
+DELETE FROM gql_api_keys
+WHERE id = $1
+`
+
+func (q *Queries) APIKeyDelete(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, aPIKeyDelete, id)
+	return err
+}
+
+const aPIKeyInsert = `-- name: APIKeyInsert :exec
+INSERT INTO gql_api_keys(id, name, description, POLICY, created_by, updated_by, expires_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+`
+
+type APIKeyInsertParams struct {
+	ID          uuid.UUID
+	Name        string
+	Description string
+	Policy      json.RawMessage
+	CreatedBy   uuid.NullUUID
+	UpdatedBy   uuid.NullUUID
+	ExpiresAt   time.Time
+}
+
+func (q *Queries) APIKeyInsert(ctx context.Context, arg APIKeyInsertParams) error {
+	_, err := q.db.ExecContext(ctx, aPIKeyInsert,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.Policy,
+		arg.CreatedBy,
+		arg.UpdatedBy,
+		arg.ExpiresAt,
+	)
+	return err
+}
+
 const alertFeedback = `-- name: AlertFeedback :many
 SELECT
     alert_id,
