@@ -828,7 +828,10 @@ func (s Store) UpdateManyAlertFeedback(ctx context.Context, noiseReason string, 
 		return nil, err
 	}
 
-	err = validate.Text("NoiseReason", noiseReason, 1, 255)
+	err = validate.Many(
+		validate.Range("AlertIDs", len(alertIDs), 1, maxBatch),
+		validate.Text("NoiseReason", noiseReason, 1, 255),
+	)
 	if err != nil {
 		return nil, err
 	}
