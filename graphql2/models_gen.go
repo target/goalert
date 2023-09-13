@@ -686,6 +686,14 @@ type UserSearchOptions struct {
 	FavoritesFirst *bool               `json:"favoritesFirst,omitempty"`
 }
 
+type UserSession struct {
+	ID           string    `json:"id"`
+	Current      bool      `json:"current"`
+	UserAgent    string    `json:"userAgent"`
+	CreatedAt    time.Time `json:"createdAt"`
+	LastAccessAt time.Time `json:"lastAccessAt"`
+}
+
 type VerifyContactMethodInput struct {
 	ContactMethodID string `json:"contactMethodID"`
 	Code            int    `json:"code"`

@@ -19,7 +19,6 @@ import (
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/assignment"
-	"github.com/target/goalert/auth"
 	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/heartbeat"
@@ -85,7 +84,6 @@ type ResolverRoot interface {
 	UserContactMethod() UserContactMethodResolver
 	UserNotificationRule() UserNotificationRuleResolver
 	UserOverride() UserOverrideResolver
-	UserSession() UserSessionResolver
 }
 
 type DirectiveRoot struct {
@@ -400,6 +398,7 @@ type ComplexityRoot struct {
 		LabelValues              func(childComplexity int, input *LabelValueSearchOptions) int
 		Labels                   func(childComplexity int, input *LabelSearchOptions) int
 		LinkAccountInfo          func(childComplexity int, token string) int
+		ListGQLFields            func(childComplexity int, query *string) int
 		MessageLogs              func(childComplexity int, input *MessageLogSearchOptions) int
 		PhoneNumberInfo          func(childComplexity int, number string) int
 		Rotation                 func(childComplexity int, id string) int
@@ -807,6 +806,7 @@ type QueryResolver interface {
 	GenerateSlackAppManifest(ctx context.Context) (string, error)
 	LinkAccountInfo(ctx context.Context, token string) (*LinkAccountInfo, error)
 	SwoStatus(ctx context.Context) (*SWOStatus, error)
+	ListGQLFields(ctx context.Context, query *string) ([]string, error)
 }
 type RotationResolver interface {
 	IsFavorite(ctx context.Context, obj *rotation.Rotation) (bool, error)
@@ -855,7 +855,7 @@ type UserResolver interface {
 	CalendarSubscriptions(ctx context.Context, obj *user.User) ([]calsub.Subscription, error)
 
 	AuthSubjects(ctx context.Context, obj *user.User) ([]user.AuthSubject, error)
-	Sessions(ctx context.Context, obj *user.User) ([]auth.UserSession, error)
+	Sessions(ctx context.Context, obj *user.User) ([]UserSession, error)
 	OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.Step, error)
 	IsFavorite(ctx context.Context, obj *user.User) (bool, error)
 }
@@ -881,9 +881,6 @@ type UserOverrideResolver interface {
 	AddUser(ctx context.Context, obj *override.UserOverride) (*user.User, error)
 	RemoveUser(ctx context.Context, obj *override.UserOverride) (*user.User, error)
 	Target(ctx context.Context, obj *override.UserOverride) (*assignment.RawTarget, error)
-}
-type UserSessionResolver interface {
-	Current(ctx context.Context, obj *auth.UserSession) (bool, error)
 }
 
 type executableSchema struct {
@@ -2639,6 +2636,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.LinkAccountInfo(childComplexity, args["token"].(string)), true
+
+	case "Query.listGQLFields":
+		if e.complexity.Query.ListGQLFields == nil {
+			break
+		}
+
+		args, err := ec.field_Query_listGQLFields_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ListGQLFields(childComplexity, args["query"].(*string)), true
 
 	case "Query.messageLogs":
 		if e.complexity.Query.MessageLogs == nil {
@@ -5135,6 +5144,21 @@ func (ec *executionContext) field_Query_linkAccountInfo_args(ctx context.Context
 		}
 	}
 	args["token"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_listGQLFields_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg0
 	return args, nil
 }
 
@@ -17240,6 +17264,61 @@ func (ec *executionContext) fieldContext_Query_swoStatus(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_listGQLFields(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_listGQLFields(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ListGQLFields(rctx, fc.Args["query"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_listGQLFields(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_listGQLFields_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query___type(ctx, field)
 	if err != nil {
@@ -22494,9 +22573,9 @@ func (ec *executionContext) _User_sessions(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]auth.UserSession)
+	res := resTmp.([]UserSession)
 	fc.Result = res
-	return ec.marshalNUserSession2ᚕgithubᚗcomᚋtargetᚋgoalertᚋauthᚐUserSessionᚄ(ctx, field.Selections, res)
+	return ec.marshalNUserSession2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserSessionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_sessions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -24317,7 +24396,7 @@ func (ec *executionContext) fieldContext_UserOverrideConnection_pageInfo(ctx con
 	return fc, nil
 }
 
-func (ec *executionContext) _UserSession_id(ctx context.Context, field graphql.CollectedField, obj *auth.UserSession) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserSession_id(ctx context.Context, field graphql.CollectedField, obj *UserSession) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserSession_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -24361,7 +24440,7 @@ func (ec *executionContext) fieldContext_UserSession_id(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _UserSession_current(ctx context.Context, field graphql.CollectedField, obj *auth.UserSession) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserSession_current(ctx context.Context, field graphql.CollectedField, obj *UserSession) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserSession_current(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -24375,7 +24454,7 @@ func (ec *executionContext) _UserSession_current(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.UserSession().Current(rctx, obj)
+		return obj.Current, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -24396,8 +24475,8 @@ func (ec *executionContext) fieldContext_UserSession_current(ctx context.Context
 	fc = &graphql.FieldContext{
 		Object:     "UserSession",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
 		},
@@ -24405,7 +24484,7 @@ func (ec *executionContext) fieldContext_UserSession_current(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _UserSession_userAgent(ctx context.Context, field graphql.CollectedField, obj *auth.UserSession) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserSession_userAgent(ctx context.Context, field graphql.CollectedField, obj *UserSession) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserSession_userAgent(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -24449,7 +24528,7 @@ func (ec *executionContext) fieldContext_UserSession_userAgent(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _UserSession_createdAt(ctx context.Context, field graphql.CollectedField, obj *auth.UserSession) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserSession_createdAt(ctx context.Context, field graphql.CollectedField, obj *UserSession) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserSession_createdAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -24493,7 +24572,7 @@ func (ec *executionContext) fieldContext_UserSession_createdAt(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _UserSession_lastAccessAt(ctx context.Context, field graphql.CollectedField, obj *auth.UserSession) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserSession_lastAccessAt(ctx context.Context, field graphql.CollectedField, obj *UserSession) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserSession_lastAccessAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -34112,6 +34191,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "listGQLFields":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_listGQLFields(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -37210,7 +37311,7 @@ func (ec *executionContext) _UserOverrideConnection(ctx context.Context, sel ast
 
 var userSessionImplementors = []string{"UserSession"}
 
-func (ec *executionContext) _UserSession(ctx context.Context, sel ast.SelectionSet, obj *auth.UserSession) graphql.Marshaler {
+func (ec *executionContext) _UserSession(ctx context.Context, sel ast.SelectionSet, obj *UserSession) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, userSessionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -37222,58 +37323,27 @@ func (ec *executionContext) _UserSession(ctx context.Context, sel ast.SelectionS
 		case "id":
 			out.Values[i] = ec._UserSession_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "current":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._UserSession_current(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
+			out.Values[i] = ec._UserSession_current(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "userAgent":
 			out.Values[i] = ec._UserSession_userAgent(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "createdAt":
 			out.Values[i] = ec._UserSession_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "lastAccessAt":
 			out.Values[i] = ec._UserSession_lastAccessAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -40333,11 +40403,11 @@ func (ec *executionContext) marshalNUserRole2githubᚗcomᚋtargetᚋgoalertᚋg
 	return v
 }
 
-func (ec *executionContext) marshalNUserSession2githubᚗcomᚋtargetᚋgoalertᚋauthᚐUserSession(ctx context.Context, sel ast.SelectionSet, v auth.UserSession) graphql.Marshaler {
+func (ec *executionContext) marshalNUserSession2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserSession(ctx context.Context, sel ast.SelectionSet, v UserSession) graphql.Marshaler {
 	return ec._UserSession(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUserSession2ᚕgithubᚗcomᚋtargetᚋgoalertᚋauthᚐUserSessionᚄ(ctx context.Context, sel ast.SelectionSet, v []auth.UserSession) graphql.Marshaler {
+func (ec *executionContext) marshalNUserSession2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserSessionᚄ(ctx context.Context, sel ast.SelectionSet, v []UserSession) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -40361,7 +40431,7 @@ func (ec *executionContext) marshalNUserSession2ᚕgithubᚗcomᚋtargetᚋgoale
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNUserSession2githubᚗcomᚋtargetᚋgoalertᚋauthᚐUserSession(ctx, sel, v[i])
+			ret[i] = ec.marshalNUserSession2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserSession(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
