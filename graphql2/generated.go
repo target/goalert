@@ -26961,7 +26961,7 @@ func (ec *executionContext) unmarshalInputCalcRotationHandoffTimesInput(ctx cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"handoff", "from", "timeZone", "shiftLengthHours", "count"}
+	fieldsInOrder := [...]string{"handoff", "from", "timeZone", "shiftLengthHours", "shiftLength", "count"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -26999,11 +26999,20 @@ func (ec *executionContext) unmarshalInputCalcRotationHandoffTimesInput(ctx cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shiftLengthHours"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.ShiftLengthHours = data
+		case "shiftLength":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shiftLength"))
+			data, err := ec.unmarshalOISODuration2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ShiftLength = data
 		case "count":
 			var err error
 
@@ -41640,6 +41649,22 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 	}
 	res := graphql.MarshalID(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOISODuration2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx context.Context, v interface{}) (*timeutil.ISODuration, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(timeutil.ISODuration)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOISODuration2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx context.Context, sel ast.SelectionSet, v *timeutil.ISODuration) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOISOTimestamp2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {

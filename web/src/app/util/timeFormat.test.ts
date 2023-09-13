@@ -8,7 +8,9 @@ import {
 describe('formatTimestamp', () => {
   const check = (opts: FormatTimestampArg, exp: string): void => {
     it(`${opts.time} === ${exp}`, () => {
-      expect(formatTimestamp(opts)).toBe(exp)
+      // different versions of node have different whitespace, so normalize it
+      const result = formatTimestamp(opts).replace(/[\s\u00A0\u202F]+/g, ' ')
+      expect(result).toBe(exp)
     })
   }
 
