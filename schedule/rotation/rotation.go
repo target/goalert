@@ -43,7 +43,7 @@ func (r Rotation) monthStartTime(t time.Time, n int) time.Time {
 		panic("too many iterations")
 	}
 
-	if t.After(r.Start) || t.Equal(r.Start) { // t is at or after start of rotation
+	if !t.Before(r.Start) { // t is at or after start of rotation
 		next := r.Start.AddDate(0, r.ShiftLength*n, 0)
 		if next.After(t) {
 			return r.Start.AddDate(0, r.ShiftLength*(n-1), 0)
@@ -69,7 +69,7 @@ func (r Rotation) monthEndTime(t time.Time, n int) time.Time {
 		panic("too many iterations")
 	}
 
-	if t.After(r.Start) || t.Equal(r.Start) { // t is at or after start of rotation
+	if !t.Before(r.Start) { // t is at or after start of rotation
 		next := r.Start.AddDate(0, r.ShiftLength*n, 0)
 		if next.After(t) {
 			return next
