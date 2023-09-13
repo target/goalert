@@ -42,6 +42,7 @@ export interface Query {
   generateSlackAppManifest: string
   linkAccountInfo?: null | LinkAccountInfo
   swoStatus: SWOStatus
+  listGQLFields: string[]
 }
 
 export interface IntegrationKeyTypeInfo {
