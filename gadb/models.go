@@ -532,9 +532,10 @@ func (ns NullEnumOutgoingMessagesType) Value() (driver.Value, error) {
 type EnumRotationType string
 
 const (
-	EnumRotationTypeDaily  EnumRotationType = "daily"
-	EnumRotationTypeHourly EnumRotationType = "hourly"
-	EnumRotationTypeWeekly EnumRotationType = "weekly"
+	EnumRotationTypeDaily   EnumRotationType = "daily"
+	EnumRotationTypeHourly  EnumRotationType = "hourly"
+	EnumRotationTypeMonthly EnumRotationType = "monthly"
+	EnumRotationTypeWeekly  EnumRotationType = "weekly"
 )
 
 func (e *EnumRotationType) Scan(src interface{}) error {

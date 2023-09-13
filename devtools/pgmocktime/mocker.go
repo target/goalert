@@ -152,7 +152,7 @@ func (m *Mocker) Close() error { m.db.Close(); return nil }
 
 // AdvanceTime advances the time by the given duration.
 func (m *Mocker) AdvanceTime(ctx context.Context, d time.Duration) error {
-	m.exec(ctx, `update %s.flux_capacitor set ref_time = current_timestamp, base_time = %s.now() + '%d milliseconds'::interval`, m.safeSchema(), m.safeSchema(), d/time.Millisecond)
+	m.exec(ctx, `update %s.flux_capacitor set ref_time = current_timestamp, base_time = %s.now() + '%d hours'::interval + '%d milliseconds'::interval`, m.safeSchema(), m.safeSchema(), d/time.Hour, (d % time.Hour).Milliseconds())
 	return m.readErr("advance time")
 }
 
