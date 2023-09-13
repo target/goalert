@@ -9,14 +9,15 @@ export interface HandoffSummaryProps {
   timeZone: string
 }
 
-function dur(p: HandoffSummaryProps): JSX.Element {
+function dur(p: HandoffSummaryProps): JSX.Element | string {
   if (p.type === 'hourly') return <Time duration={{ hours: p.shiftLength }} />
   if (p.type === 'daily') return <Time duration={{ days: p.shiftLength }} />
   if (p.type === 'weekly') return <Time duration={{ weeks: p.shiftLength }} />
+  if (p.type === 'monthly') return `${p.shiftLength} month(s)` // TODO: update Time to support months
   throw new Error('unknown rotation type: ' + p.type)
 }
 
-function ts(p: HandoffSummaryProps): JSX.Element {
+function ts(p: HandoffSummaryProps): JSX.Element | string {
   if (p.type === 'hourly')
     return <Time prefix='from ' time={p.start} zone={p.timeZone} />
   if (p.type === 'daily')
@@ -30,6 +31,8 @@ function ts(p: HandoffSummaryProps): JSX.Element {
         format='weekday-clock'
       />
     )
+  if (p.type === 'monthly')
+    return 'NOTE: Monthly rotations are not fully supported yet'
   throw new Error('unknown rotation type: ' + p.type)
 }
 
