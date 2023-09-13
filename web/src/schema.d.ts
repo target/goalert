@@ -439,6 +439,7 @@ export interface CreateGQLAPIKeyInput {
   description: string
   allowedFields: string[]
   expiresAt: ISOTimestamp
+  role: UserRole
 }
 
 export interface CreateBasicAuthInput {
