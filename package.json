@@ -90,6 +90,7 @@
     "luxon": "3.3.0",
     "mdi-material-ui": "7.7.0",
     "prettier": "3.0.3",
+    "prettier-plugin-go-template": "0.0.15",
     "prop-types": "15.8.1",
     "react": "18.2.0",
     "react-big-calendar": "1.8.2",
@@ -114,5 +115,13 @@
     "wonka": "6.3.2",
     "wouter": "2.11.0"
   },
-  "packageManager": "yarn@3.5.0"
+  "packageManager": "yarn@3.5.0",
+  "dependenciesMeta": {
+    "prettier@3.0.3": {
+      "unplugged": true
+    },
+    "prettier-plugin-go-template@0.0.15": {
+      "unplugged": true
+    }
+  }
 }

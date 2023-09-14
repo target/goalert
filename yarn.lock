@@ -10068,6 +10068,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"prettier-plugin-go-template@npm:0.0.15":
+  version: 0.0.15
+  resolution: "prettier-plugin-go-template@npm:0.0.15"
+  dependencies:
+    ulid: ^2.3.0
+  peerDependencies:
+    prettier: ^3.0.0
+  checksum: f244e93fe5a85f8250b9d991e2f74a6adf731e9e5215c57d95d800b84ed4f4b4242a9dbc5c14c5538d065aeb49df8b052ca7395bf6c64d262c4550cd4f124333
+  languageName: node
+  linkType: hard
+
 "prettier@npm:3.0.3":
   version: 3.0.3
   resolution: "prettier@npm:3.0.3"
@@ -11021,6 +11032,7 @@ __metadata:
     luxon: 3.3.0
     mdi-material-ui: 7.7.0
     prettier: 3.0.3
+    prettier-plugin-go-template: 0.0.15
     prop-types: 15.8.1
     react: 18.2.0
     react-big-calendar: 1.8.2
@@ -11044,6 +11056,11 @@ __metadata:
     urql: 4.0.4
     wonka: 6.3.2
     wouter: 2.11.0
+  dependenciesMeta:
+    prettier-plugin-go-template@0.0.15:
+      unplugged: true
+    prettier@3.0.3:
+      unplugged: true
   languageName: unknown
   linkType: soft
 
@@ -12158,6 +12175,15 @@ __metadata:
   version: 1.0.6
   resolution: "uc.micro@npm:1.0.6"
   checksum: 6898bb556319a38e9cf175e3628689347bd26fec15fc6b29fa38e0045af63075ff3fea4cf1fdba9db46c9f0cbf07f2348cd8844889dd31ebd288c29fe0d27e7a
+  languageName: node
+  linkType: hard
+
+"ulid@npm:^2.3.0":
+  version: 2.3.0
+  resolution: "ulid@npm:2.3.0"
+  bin:
+    ulid: ./bin/cli.js
+  checksum: d6dbf253fdc189f60fe2829d934ee5447b3dab62d05449a2e0fe89670d77087dd6eba4f844a69f9ffdb01384ec6fd97bdd9be638fc67d593569a45e8969f1e69
   languageName: node
   linkType: hard
 
