@@ -84,10 +84,7 @@ export default function RotationForm(props: RotationFormProps): JSX.Element {
         handoff: value.start,
         from: value.start,
         timeZone: value.timeZone,
-        shiftLengthISO: getShiftDuration(
-          value.shiftLength as number,
-          value.type,
-        ),
+        shiftLength: getShiftDuration(value.shiftLength as number, value.type),
         count: 3,
       },
     },

@@ -1,7 +1,6 @@
 import React from 'react'
 import { RotationType } from '../../schema'
 import { Time } from '../util/Time'
-import { DateTime } from 'luxon'
 
 export interface HandoffSummaryProps {
   start: string
@@ -33,13 +32,7 @@ function ts(p: HandoffSummaryProps): JSX.Element | string {
       />
     )
   if (p.type === 'monthly')
-    return (
-      <Time
-        prefix='from '
-        time={DateTime.fromISO(p.start).plus({ months: 1 }).startOf('month')}
-        zone={p.timeZone}
-      />
-    )
+    return <Time prefix='from ' time={p.start} zone={p.timeZone} />
   throw new Error('unknown rotation type: ' + p.type)
 }
 
@@ -53,7 +46,9 @@ export const HandoffSummary: React.FC<HandoffSummaryProps> =
         <br />
         {props.type === 'monthly' ? (
           <React.Fragment>
-            Hands off at the beginning of every month starting {ts(props)}.
+            Hands off every{' '}
+            {props.shiftLength === 1 ? 'month' : `${props.shiftLength} months`}{' '}
+            {ts(props)}.
           </React.Fragment>
         ) : (
           <React.Fragment>
