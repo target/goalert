@@ -10715,9 +10715,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-redux@npm:8.1.1":
-  version: 8.1.1
-  resolution: "react-redux@npm:8.1.1"
+"react-redux@npm:8.1.2":
+  version: 8.1.2
+  resolution: "react-redux@npm:8.1.2"
   dependencies:
     "@babel/runtime": ^7.12.1
     "@types/hoist-non-react-statics": ^3.3.1
@@ -10743,7 +10743,7 @@ __metadata:
       optional: true
     redux:
       optional: true
-  checksum: 370676330727764d78f35e9c5a0ed0591d79482fe9b70fffcab4aa6bcccc6194e4f1ebd818b4b390351dea5557e70d3bd4d95d7a0ac9baa1f45d6bf2230ee713
+  checksum: 4d5976b0f721e4148475871fcabce2fee875cc7f70f9a292f3370d63b38aa1dd474eb303c073c5555f3e69fc732f3bac05303def60304775deb28361e3f4b7cc
   languageName: node
   linkType: hard
 
@@ -11021,13 +11021,13 @@ __metadata:
   linkType: hard
 
 "regexp.prototype.flags@npm:^1.5.0":
-  version: 1.5.1
-  resolution: "regexp.prototype.flags@npm:1.5.1"
+  version: 1.5.0
+  resolution: "regexp.prototype.flags@npm:1.5.0"
   dependencies:
     call-bind: ^1.0.2
     define-properties: ^1.2.0
-    set-function-name: ^2.0.0
-  checksum: 869edff00288442f8d7fa4c9327f91d85f3b3acf8cbbef9ea7a220345cf23e9241b6def9263d2c1ebcf3a316b0aa52ad26a43a84aa02baca3381717b3e307f47
+    functions-have-names: ^1.2.3
+  checksum: c541687cdbdfff1b9a07f6e44879f82c66bbf07665f9a7544c5fd16acdb3ec8d1436caab01662d2fbcad403f3499d49ab0b77fbc7ef29ef961d98cc4bc9755b4
   languageName: node
   linkType: hard
 
@@ -11369,7 +11369,7 @@ __metadata:
     react-ga4: 2.1.0
     react-infinite-scroll-component: 6.1.0
     react-markdown: 8.0.7
-    react-redux: 8.1.1
+    react-redux: 8.1.2
     react-transition-group: 4.4.5
     react-virtualized-auto-sizer: 1.0.20
     recharts: 2.8.0
@@ -11556,17 +11556,6 @@ __metadata:
   version: 2.0.0
   resolution: "set-blocking@npm:2.0.0"
   checksum: 6e65a05f7cf7ebdf8b7c75b101e18c0b7e3dff4940d480efed8aad3a36a4005140b660fa1d804cb8bce911cac290441dc728084a30504d3516ac2ff7ad607b02
-  languageName: node
-  linkType: hard
-
-"set-function-name@npm:^2.0.0":
-  version: 2.0.1
-  resolution: "set-function-name@npm:2.0.1"
-  dependencies:
-    define-data-property: ^1.0.1
-    functions-have-names: ^1.2.3
-    has-property-descriptors: ^1.0.0
-  checksum: 4975d17d90c40168eee2c7c9c59d023429f0a1690a89d75656306481ece0c3c1fb1ebcc0150ea546d1913e35fbd037bace91372c69e543e51fc5d1f31a9fa126
   languageName: node
   linkType: hard
 
