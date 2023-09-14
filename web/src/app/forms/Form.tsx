@@ -1,7 +1,12 @@
 import React, { useRef } from 'react'
-import p from 'prop-types'
 import { FormContext } from './context'
 
+type FormProps = {
+  onSubmit: any,
+  disabled: boolean,
+  // children: Node,
+  className: string,
+}
 /*
  * Form will render a form element and wrap the onSubmit handler
  * to check validation on any nested FormContainers rendered as
@@ -9,20 +14,20 @@ import { FormContext } from './context'
  *
  * onSubmit (if provided) will be called with a second `isValid` argument.
  */
-export function Form(props) {
+export function Form(props: FormProps): JSX.Element {
   const checks = useRef([])
 
-  function handleFormSubmit(e) {
-    const valid = !checks.current.some((f) => !f())
+  function handleFormSubmit(e: any) {
+    const valid = !checks.current.some((f: any) => !f())
     return props.onSubmit(e, valid)
   }
 
-  function addSubmitCheck(checkFn) {
+  function addSubmitCheck(checkFn: never) {
     checks.current.push(checkFn)
 
     // return function to un-register it
     return () => {
-      checks.current = checks.current.filter((fn) => fn !== checkFn)
+      checks.current = checks.current.filter((fn: string) => fn !== checkFn)
     }
   }
 
@@ -40,11 +45,4 @@ export function Form(props) {
       </FormContext.Provider>
     </form>
   )
-}
-
-Form.propTypes = {
-  onSubmit: p.func,
-  disabled: p.bool,
-  children: p.node,
-  className: p.string,
 }

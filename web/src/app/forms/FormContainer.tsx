@@ -1,55 +1,53 @@
 import React from 'react'
-import p from 'prop-types'
 import MountWatcher from '../util/MountWatcher'
 
 import { FormContext, FormContainerContext } from './context'
 import { get, set, cloneDeep } from 'lodash'
 
+interface Error {
+  message: string
+  field: string
+  helpLink?: string
+}
+
+interface FormContainerProps {
+  value?: Object | undefined;
+  errors?: Error[] | any;
+  onChange?: any;
+  disabled?: boolean | any;
+  mapValue?: any;
+  mapOnChangeValue?: any;
+  // If true, will render optional fields with `(optional)` appended to the label.
+  // In addition, required fields will not be appended with `*`.
+  optionalLabels?: boolean;
+  // Enables functionality to remove an incoming value at it's index from
+  // an array field if the new value is falsey.
+  removeFalseyIdxs?: boolean;
+}
+
+interface Formcheck {
+  disabled: boolean, 
+  addSubmitCheck: any 
+}
+
 // FormContainer handles grouping multiple FormFields.
 // It works with the Form component to handle validation.
-export class FormContainer extends React.PureComponent {
-  static propTypes = {
-    value: p.object,
-
-    errors: p.arrayOf(
-      p.shape({
-        message: p.string.isRequired,
-        field: p.string.isRequired,
-        helpLink: p.string,
-      }),
-    ),
-
-    onChange: p.func,
-    disabled: p.bool,
-
-    mapValue: p.func,
-    mapOnChangeValue: p.func,
-
-    // If true, will render optional fields with `(optional)` appended to the label.
-    // In addition, required fields will not be appended with `*`.
-    optionalLabels: p.bool,
-
-    // Enables functionality to remove an incoming value at it's index from
-    // an array field if the new value is falsey.
-    removeFalseyIdxs: p.bool,
-  }
-
-  static defaultProps = {
+export class FormContainer extends React.PureComponent <FormContainerProps> {
+  static defaultProps: Partial<FormContainerProps> = {
     errors: [],
     value: {},
     onChange: () => {},
-
-    mapValue: (value) => value,
-    mapOnChangeValue: (value) => value,
-  }
+    mapValue: (value: any) => value,
+    mapOnChangeValue: (value: any) => value,
+  };
 
   state = {
     validationErrors: [],
   }
 
-  _fields = {}
+  _fields: any = {}
 
-  addField = (fieldName, validate) => {
+  addField = (fieldName: string, validate: any) => {
     if (!this._fields[fieldName]) {
       this._fields[fieldName] = []
     }
@@ -57,7 +55,7 @@ export class FormContainer extends React.PureComponent {
 
     return () => {
       this._fields[fieldName] = this._fields[fieldName].filter(
-        (v) => v !== validate,
+        (v: any) => v !== validate,
       )
       if (this._fields[fieldName].length === 0) {
         delete this._fields[fieldName]
@@ -66,14 +64,20 @@ export class FormContainer extends React.PureComponent {
   }
 
   onSubmit = () => {
-    const validate = (field) => {
-      let err
+    const validate = (field: any) => {
+      let err: Error
       // find first error
-      this._fields[field].find((validate) => {
+      err = this._fields[field].find((validate: any) => {
+        // console.log to check value
+        console.log("ERRORForm",err)
         err = validate(get(this.props.value, field))
+        console.log("ERROR", err)
         return err
       })
-      if (err) err.field = field
+      
+      if (err) { 
+        err.field = field 
+      }
       return err
     }
     const validationErrors = Object.keys(this._fields)
@@ -85,7 +89,7 @@ export class FormContainer extends React.PureComponent {
     return true
   }
 
-  onChange = (fieldName, e) => {
+  onChange = (fieldName: string, e: any) => {
     const {
       mapValue,
       mapOnChangeValue,
@@ -113,7 +117,7 @@ export class FormContainer extends React.PureComponent {
         fieldName.lastIndexOf(']'),
       )
 
-      const newArr = get(oldValue, arrayPath, []).filter((_, i) => {
+      const newArr = get(oldValue, arrayPath, []).filter((_: undefined, i: Number) => {
         return i !== parseInt(idx, 10)
       })
 
@@ -126,12 +130,15 @@ export class FormContainer extends React.PureComponent {
       mapOnChangeValue(set(mapValue(oldValue), fieldName, value)),
     )
   }
+  _unregister: any
 
   render() {
     return <FormContext.Consumer>{this.renderComponent}</FormContext.Consumer>
   }
 
-  renderComponent = ({ disabled: formDisabled, addSubmitCheck }) => {
+  renderComponent = (formcheck: Formcheck) => {
+    const { disabled: formDisabled, addSubmitCheck }:Formcheck= formcheck
+
     const {
       value,
       mapValue,
@@ -158,7 +165,7 @@ export class FormContainer extends React.PureComponent {
             optionalLabels,
           }}
         >
-          {this.props.children}
+          {this.props?.children}
         </FormContainerContext.Provider>
       </MountWatcher>
     )
