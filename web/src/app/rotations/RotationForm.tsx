@@ -19,6 +19,7 @@ interface RotationFormProps {
   value: CreateRotationInput
   errors: FieldError[]
   onChange: (value: CreateRotationInput) => void
+  disabled?: boolean
 }
 
 const query = gql`
