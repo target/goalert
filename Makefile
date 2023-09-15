@@ -361,7 +361,7 @@ test/coverage/total.out: test/coverage/integration/*/* test/coverage/*/* Makefil
 test/coverage/report.txt: test/coverage/total.out
 	go tool cover -func=test/coverage/total.out | tee test/coverage/report.txt
 
-timezone/zones.txt: # generate a list of all canonocal zones
+timezone/zones.txt: # generate a list of all canonical zones
 	grep -v '^#' /usr/share/zoneinfo/zone.tab | awk '{print $$3}' >>$@.tmp
 # add all non-symlink posix Etc/ zones
 	find /usr/share/zoneinfo/Etc -type f ! -type l -exec basename {} \; | awk '{print "Etc/"$$0}' >>$@.tmp
