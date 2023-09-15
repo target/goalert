@@ -243,6 +243,13 @@ type MessageLogConnection {
   stats: MessageLogConnectionStats!
 }
 
+enum MessageLogSegmentBy {
+  service
+  messageType
+  user
+  # Add other segments specific to message logs here
+}
+
 type MessageLogConnectionStats {
   timeSeries(input: TimeSeriesOptions!): [TimeSeriesBucket!]!
 }
@@ -250,12 +257,14 @@ type MessageLogConnectionStats {
 input TimeSeriesOptions {
   bucketDuration: ISODuration!
   bucketOrigin: ISOTimestamp
+  segmentBy: MessageLogSegmentBy
 }
 
 type TimeSeriesBucket {
   start: ISOTimestamp!
   end: ISOTimestamp!
   count: Int!
+  segmentLabel: String!  # Display-friendly label for the segment, e.g., "Service A"
 }
 
 input SlackUserGroupSearchOptions {

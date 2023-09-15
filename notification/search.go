@@ -67,6 +67,15 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 	SELECT
 		(trunc((extract('epoch' from om.created_at)-:timeSeriesOrigin)/:timeSeriesInterval))::bigint AS bucket,
 		count(*)
+		{{if .SegmentByService}}
+		, s.name
+		{{end}}
+		{{if .SegmentByUser}}
+		, u.name
+		{{end}}
+		{{if .SegmentByMessageType}}
+		, om.message_type
+		{{end}}
 	{{else}}
 	SELECT
 		om.id, om.created_at, om.last_status_at, om.message_type, om.last_status, om.status_details,
@@ -109,10 +118,22 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		OR (om.created_at = :cursorCreatedAt AND om.id > :afterID)
 	{{end}}
 		AND om.last_status != 'bundled'
-	{{if .TimeSeries}}
+
+	{{if and .TimeSeries .SegmentByService}}
+	GROUP BY bucket, s.name
+
+	{{else if and .TimeSeries .SegmentByUser}}
+	GROUP BY bucket, u.name
+
+	{{else if and .TimeSeries .SegmentByMessageType}}
+	GROUP BY bucket, om.message_type
+
+	{{else if .TimeSeries}}
 	GROUP BY bucket
+	
 	{{else}}
 	ORDER BY om.last_status = 'pending' desc, coalesce(om.sent_at, om.last_status_at) desc, om.created_at desc, om.id asc
+
 	LIMIT {{.Limit}}
 	{{end}}
 `))
@@ -123,6 +144,10 @@ type renderData struct {
 	TimeSeries         bool
 	TimeSeriesOrigin   time.Time
 	TimeSeriesInterval time.Duration
+
+	SegmentByService     bool
+	SegmentByUser        bool
+	SegmentByMessageType bool
 }
 
 func (opts renderData) Normalize() (*renderData, error) {
@@ -178,11 +203,15 @@ type TimeSeriesOpts struct {
 	SearchOptions
 	TimeSeriesOrigin   time.Time
 	TimeSeriesInterval time.Duration
+	SegmentBy          string
 }
+
 type TimeSeriesBucket struct {
-	Start time.Time
-	End   time.Time
-	Count int
+	Start        time.Time
+	End          time.Time
+	Count        int
+	Index        int
+	SegmentLabel string
 }
 
 // TimeSeries returns a list of time series buckets for the given search options.
@@ -193,10 +222,13 @@ func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeri
 	}
 
 	data := &renderData{
-		SearchOptions:      opts.SearchOptions,
-		TimeSeries:         true,
-		TimeSeriesOrigin:   opts.TimeSeriesOrigin,
-		TimeSeriesInterval: opts.TimeSeriesInterval,
+		SearchOptions:        opts.SearchOptions,
+		TimeSeries:           true,
+		TimeSeriesOrigin:     opts.TimeSeriesOrigin,
+		TimeSeriesInterval:   opts.TimeSeriesInterval,
+		SegmentByService:     opts.SegmentBy == "service",
+		SegmentByUser:        opts.SegmentBy == "user",
+		SegmentByMessageType: opts.SegmentBy == "messageType",
 	}
 	data, err = data.Normalize()
 	if err != nil {
@@ -217,35 +249,33 @@ func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeri
 	}
 	defer rows.Close()
 
-	counts := make(map[int]int)
+	var series []TimeSeriesBucket
 	for rows.Next() {
 		var index, count int
-		err := rows.Scan(&index, &count)
-		if err != nil {
-			return nil, err
+		var segmentLabel sql.NullString
+
+		if opts.SegmentBy != "" {
+			err := rows.Scan(&index, &count, &segmentLabel)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			err := rows.Scan(&index, &count)
+			if err != nil {
+				return nil, err
+			}
 		}
 
-		counts[index] = count
+		series = append(series, TimeSeriesBucket{
+			Count:        count,
+			Index:        index,
+			SegmentLabel: segmentLabel.String,
+			Start:        data.CreatedAfter,
+			End:          data.CreatedAfter.Add(data.TimeSeriesInterval),
+		})
 	}
 
-	return makeTimeSeries(data.CreatedAfter, data.CreatedBefore, data.TimeSeriesOrigin, data.TimeSeriesInterval, counts), nil
-}
-
-func timeToIndex(origin time.Time, interval time.Duration, t time.Time) int {
-	return int(t.Sub(origin) / interval)
-}
-
-func makeTimeSeries(start, end, origin time.Time, duration time.Duration, counts map[int]int) []TimeSeriesBucket {
-	var buckets []TimeSeriesBucket
-	for t := start; t.Before(end); t = t.Add(duration) {
-		var b TimeSeriesBucket
-		b.Start = t
-		b.End = t.Add(duration)
-		b.Count = counts[timeToIndex(origin, duration, t)]
-		buckets = append(buckets, b)
-	}
-
-	return buckets
+	return series, nil
 }
 
 func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, error) {

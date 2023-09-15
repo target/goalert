@@ -575,9 +575,10 @@ type ComplexityRoot struct {
 	}
 
 	TimeSeriesBucket struct {
-		Count func(childComplexity int) int
-		End   func(childComplexity int) int
-		Start func(childComplexity int) int
+		Count        func(childComplexity int) int
+		End          func(childComplexity int) int
+		SegmentLabel func(childComplexity int) int
+		Start        func(childComplexity int) int
 	}
 
 	TimeZone struct {
@@ -3547,6 +3548,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.TimeSeriesBucket.End(childComplexity), true
+
+	case "TimeSeriesBucket.segmentLabel":
+		if e.complexity.TimeSeriesBucket.SegmentLabel == nil {
+			break
+		}
+
+		return e.complexity.TimeSeriesBucket.SegmentLabel(childComplexity), true
 
 	case "TimeSeriesBucket.start":
 		if e.complexity.TimeSeriesBucket.Start == nil {
@@ -10671,6 +10679,8 @@ func (ec *executionContext) fieldContext_MessageLogConnectionStats_timeSeries(ct
 				return ec.fieldContext_TimeSeriesBucket_end(ctx, field)
 			case "count":
 				return ec.fieldContext_TimeSeriesBucket_count(ctx, field)
+			case "segmentLabel":
+				return ec.fieldContext_TimeSeriesBucket_segmentLabel(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesBucket", field.Name)
 		},
@@ -21870,6 +21880,50 @@ func (ec *executionContext) fieldContext_TimeSeriesBucket_count(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _TimeSeriesBucket_segmentLabel(ctx context.Context, field graphql.CollectedField, obj *TimeSeriesBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TimeSeriesBucket_segmentLabel(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SegmentLabel, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TimeSeriesBucket_segmentLabel(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TimeSeriesBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _TimeZone_id(ctx context.Context, field graphql.CollectedField, obj *TimeZone) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_TimeZone_id(ctx, field)
 	if err != nil {
@@ -29229,7 +29283,7 @@ func (ec *executionContext) unmarshalInputTimeSeriesOptions(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"bucketDuration", "bucketOrigin"}
+	fieldsInOrder := [...]string{"bucketDuration", "bucketOrigin", "segmentBy"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -29254,6 +29308,15 @@ func (ec *executionContext) unmarshalInputTimeSeriesOptions(ctx context.Context,
 				return it, err
 			}
 			it.BucketOrigin = data
+		case "segmentBy":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("segmentBy"))
+			data, err := ec.unmarshalOMessageLogSegmentBy2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSegmentBy(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SegmentBy = data
 		}
 	}
 
@@ -36036,6 +36099,11 @@ func (ec *executionContext) _TimeSeriesBucket(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "segmentLabel":
+			out.Values[i] = ec._TimeSeriesBucket_segmentLabel(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -41280,6 +41348,22 @@ func (ec *executionContext) unmarshalOMessageLogSearchOptions2ᚖgithubᚗcomᚋ
 	}
 	res, err := ec.unmarshalInputMessageLogSearchOptions(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOMessageLogSegmentBy2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSegmentBy(ctx context.Context, v interface{}) (*MessageLogSegmentBy, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(MessageLogSegmentBy)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOMessageLogSegmentBy2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSegmentBy(ctx context.Context, sel ast.SelectionSet, v *MessageLogSegmentBy) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalONotificationState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationState(ctx context.Context, sel ast.SelectionSet, v *NotificationState) graphql.Marshaler {

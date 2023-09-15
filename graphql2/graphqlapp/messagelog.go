@@ -98,7 +98,11 @@ func (a *App) MessageLogConnectionStats() graphql2.MessageLogConnectionStatsReso
 	return (*MessageLogConnectionStats)(a)
 }
 
-func (q *MessageLogConnectionStats) TimeSeries(ctx context.Context, opts *notification.SearchOptions, input graphql2.TimeSeriesOptions) ([]graphql2.TimeSeriesBucket, error) {
+func (q *MessageLogConnectionStats) TimeSeries(
+	ctx context.Context,
+	opts *notification.SearchOptions,
+	input graphql2.TimeSeriesOptions,
+) ([]graphql2.TimeSeriesBucket, error) {
 	if opts == nil {
 		opts = &notification.SearchOptions{}
 	}
@@ -113,10 +117,28 @@ func (q *MessageLogConnectionStats) TimeSeries(ctx context.Context, opts *notifi
 		origin = *input.BucketOrigin
 	}
 
+	// validate segment type if given
+	// if input.SegmentBy != nil {
+	// 	var segments []string
+	// 	for _, segment := range graphql2.AllMessageLogSegmentBy {
+	// 		segments = append(segments, "\""+segment.String()+"\"")
+	// 	}
+
+	// 	if !slices.Contains(segments, input.SegmentBy.String()) {
+	// 		return nil, fmt.Errorf("invalid segment type. please use one of: %v", strings.Join(segments, ", "))
+	// 	}
+	// }
+
+	var s string
+	if input.SegmentBy != nil {
+		s = input.SegmentBy.String()
+	}
+
 	buckets, err := q.NotificationStore.TimeSeries(ctx, notification.TimeSeriesOpts{
 		SearchOptions:      *opts,
 		TimeSeriesInterval: dur,
 		TimeSeriesOrigin:   origin,
+		SegmentBy:          s,
 	})
 	if err != nil {
 		return nil, err
@@ -124,7 +146,15 @@ func (q *MessageLogConnectionStats) TimeSeries(ctx context.Context, opts *notifi
 
 	out := make([]graphql2.TimeSeriesBucket, len(buckets))
 	for i, b := range buckets {
-		out[i] = graphql2.TimeSeriesBucket(b)
+
+		var gb graphql2.TimeSeriesBucket
+
+		gb.Count = b.Count
+		gb.Start = b.Start
+		gb.End = b.End
+		gb.SegmentLabel = b.SegmentLabel
+
+		out[i] = graphql2.TimeSeriesBucket(gb)
 	}
 
 	return out, nil

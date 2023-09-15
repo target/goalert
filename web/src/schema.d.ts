@@ -141,6 +141,8 @@ export interface MessageLogConnection {
   stats: MessageLogConnectionStats
 }
 
+export type MessageLogSegmentBy = 'service' | 'messageType' | 'user'
+
 export interface MessageLogConnectionStats {
   timeSeries: TimeSeriesBucket[]
 }
@@ -148,12 +150,14 @@ export interface MessageLogConnectionStats {
 export interface TimeSeriesOptions {
   bucketDuration: ISODuration
   bucketOrigin?: null | ISOTimestamp
+  segmentBy?: null | MessageLogSegmentBy
 }
 
 export interface TimeSeriesBucket {
   start: ISOTimestamp
   end: ISOTimestamp
   count: number
+  segmentLabel: string
 }
 
 export interface SlackUserGroupSearchOptions {
