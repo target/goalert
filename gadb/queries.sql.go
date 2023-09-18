@@ -968,3 +968,138 @@ func (q *Queries) UpdateCalSub(ctx context.Context, arg UpdateCalSubParams) erro
 	)
 	return err
 }
+
+const userFavFindAll = `-- name: UserFavFindAll :many
+SELECT
+    tgt_service_id,
+    tgt_schedule_id,
+    tgt_rotation_id,
+    tgt_escalation_policy_id,
+    tgt_user_id
+FROM
+    user_favorites
+WHERE
+    user_id = $1
+    AND ((tgt_service_id NOTNULL
+            AND $2::bool)
+        OR (tgt_schedule_id NOTNULL
+            AND $3::bool)
+        OR (tgt_rotation_id NOTNULL
+            AND $4::bool)
+        OR (tgt_escalation_policy_id NOTNULL
+            AND $5::bool)
+        OR (tgt_user_id NOTNULL
+            AND $6::bool))
+`
+
+type UserFavFindAllParams struct {
+	UserID                  uuid.UUID
+	AllowServices           bool
+	AllowSchedules          bool
+	AllowRotations          bool
+	AllowEscalationPolicies bool
+	AllowUsers              bool
+}
+
+type UserFavFindAllRow struct {
+	TgtServiceID          uuid.NullUUID
+	TgtScheduleID         uuid.NullUUID
+	TgtRotationID         uuid.NullUUID
+	TgtEscalationPolicyID uuid.NullUUID
+	TgtUserID             uuid.NullUUID
+}
+
+func (q *Queries) UserFavFindAll(ctx context.Context, arg UserFavFindAllParams) ([]UserFavFindAllRow, error) {
+	rows, err := q.db.QueryContext(ctx, userFavFindAll,
+		arg.UserID,
+		arg.AllowServices,
+		arg.AllowSchedules,
+		arg.AllowRotations,
+		arg.AllowEscalationPolicies,
+		arg.AllowUsers,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserFavFindAllRow
+	for rows.Next() {
+		var i UserFavFindAllRow
+		if err := rows.Scan(
+			&i.TgtServiceID,
+			&i.TgtScheduleID,
+			&i.TgtRotationID,
+			&i.TgtEscalationPolicyID,
+			&i.TgtUserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const userFavSet = `-- name: UserFavSet :exec
+INSERT INTO user_favorites(user_id, tgt_service_id, tgt_schedule_id, tgt_rotation_id, tgt_escalation_policy_id, tgt_user_id)
+    VALUES ($1, $2, $3, $4, $5, $6)
+ON CONFLICT
+    DO NOTHING
+`
+
+type UserFavSetParams struct {
+	UserID                uuid.UUID
+	TgtServiceID          uuid.NullUUID
+	TgtScheduleID         uuid.NullUUID
+	TgtRotationID         uuid.NullUUID
+	TgtEscalationPolicyID uuid.NullUUID
+	TgtUserID             uuid.NullUUID
+}
+
+func (q *Queries) UserFavSet(ctx context.Context, arg UserFavSetParams) error {
+	_, err := q.db.ExecContext(ctx, userFavSet,
+		arg.UserID,
+		arg.TgtServiceID,
+		arg.TgtScheduleID,
+		arg.TgtRotationID,
+		arg.TgtEscalationPolicyID,
+		arg.TgtUserID,
+	)
+	return err
+}
+
+const userFavUnset = `-- name: UserFavUnset :exec
+DELETE FROM user_favorites
+WHERE user_id = $1
+    AND tgt_service_id = $2
+    OR tgt_schedule_id = $3
+    OR tgt_rotation_id = $4
+    OR tgt_escalation_policy_id = $5
+    OR tgt_user_id = $6
+`
+
+type UserFavUnsetParams struct {
+	UserID                uuid.UUID
+	TgtServiceID          uuid.NullUUID
+	TgtScheduleID         uuid.NullUUID
+	TgtRotationID         uuid.NullUUID
+	TgtEscalationPolicyID uuid.NullUUID
+	TgtUserID             uuid.NullUUID
+}
+
+func (q *Queries) UserFavUnset(ctx context.Context, arg UserFavUnsetParams) error {
+	_, err := q.db.ExecContext(ctx, userFavUnset,
+		arg.UserID,
+		arg.TgtServiceID,
+		arg.TgtScheduleID,
+		arg.TgtRotationID,
+		arg.TgtEscalationPolicyID,
+		arg.TgtUserID,
+	)
+	return err
+}
