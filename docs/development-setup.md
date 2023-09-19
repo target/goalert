@@ -1,6 +1,6 @@
 # Development Setup
 
-This guide assumes you have the commands `podman` (or `docker`), `go` (>= 1.19), `node` (>= 16.10), and `make` installed/available.
+This guide assumes you have the commands `podman` (or `docker`), `go` (>= 1.21), `node` (>= 16.10), and `make` installed/available.
 
 Targets like `make start` will automatically fallback to the `docker` command if `podman` is not available. The container tool command can be overridden by setting the `CONTAINER_TOOL` variable.
 
@@ -18,7 +18,7 @@ make start CONTAINER_TOOL=docker
 
 To build cross-platform container images you will need `qemu-user-static` installed.
 
-If using MacOS you can do this with the following one-time commands:
+If using MacOS with `podman` you can do this with the following one-time commands:
 
 ```sh
 podman machine ssh sudo rpm-ostree install qemu-user-static
@@ -41,9 +41,10 @@ ngrok: ngrok http -subdomain=localdev 3030
 
 ## Database (PostgreSQL)
 
-GoAlert is built and tested against Postgres 11. Version 9.6 should still work as of this writing, but is not recommended as future versions may begin using newer features.
+GoAlert is built and tested against Postgres 13. Version 11+ should still work as of this writing.
 
 The easiest way to setup Postgres for development is to run `make postgres`.
+You can connect to the local DB at `postgres://goalert@localhost:5432/goalert` (no password).
 This will start a container with the correct configuration for the dev environment.
 
 ### Manual Configuration

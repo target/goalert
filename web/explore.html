@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -7,7 +7,7 @@
       content="user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, minimal-ui"
     />
     <title>{{ .ApplicationName }} - GraphQL API</title>
-    <link rel="stylesheet" href="{{.Prefix}}/static/explore.css" />
+    <link rel="stylesheet" href="{{ .Prefix }}/static/explore.css" />
   </head>
   <body>
     <div id="root" />
@@ -15,9 +15,9 @@
       pathPrefix = {{.PathPrefix}};
       applicationName = {{.ApplicationName}};
     </script>
-    <script src="{{.Prefix}}/static/explore.js" defer></script>
-    {{- if .ExtraJS}}
-    <script src="{{.Prefix}}{{.ExtraJS}}"></script>
-    {{- end}}
+    <script src="{{ .Prefix }}/static/explore.js" defer></script>
+    {{- if .ExtraJS }}
+      <script src="{{ .Prefix }}{{ .ExtraJS }}"></script>
+    {{- end }}
   </body>
 </html>

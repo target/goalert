@@ -128,6 +128,8 @@ type Query {
   linkAccountInfo(token: ID!): LinkAccountInfo
 
   swoStatus: SWOStatus!
+
+  listGQLFields(query: String): [String!]!
 }
 
 type IntegrationKeyTypeInfo {
@@ -926,6 +928,7 @@ type Rotation {
 }
 
 enum RotationType {
+  monthly
   weekly
   daily
   hourly
@@ -972,7 +975,12 @@ input CalcRotationHandoffTimesInput {
   handoff: ISOTimestamp!
   from: ISOTimestamp
   timeZone: String!
-  shiftLengthHours: Int!
+  shiftLengthHours: Int
+    @deprecated(
+      reason: "Only accurate for hourly-type rotations. Use shiftLength instead."
+    )
+
+  shiftLength: ISODuration
   count: Int!
 }
 
