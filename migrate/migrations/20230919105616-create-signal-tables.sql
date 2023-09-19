@@ -8,7 +8,7 @@ CREATE TABLE service_rules (
     actions JSONB
 );
 
-CREATE TABLE service_rule_integration_key (
+CREATE TABLE service_rule_integration_keys (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     service_rule_id UUID NOT NULL REFERENCES service_rules(id) ON DELETE CASCADE,
     integration_key_id UUID NOT NULL REFERENCES integration_keys(id) ON DELETE CASCADE
@@ -35,6 +35,6 @@ DROP TABLE outgoing_signals;
 
 DROP TABLE signals;
 
-DROP TABLE service_rule_integration_key;
+DROP TABLE service_rule_integration_keys;
 
 DROP TABLE service_rules;
