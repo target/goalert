@@ -82,6 +82,7 @@ export default function NavBar(): JSX.Element {
               <NavBarSubLink to='/admin/message-logs' title='Message Logs' />
               <NavBarSubLink to='/admin/alert-counts' title='Alert Counts' />
               <NavBarSubLink to='/admin/switchover' title='Switchover' />
+              <NavBarSubLink to='/admin/api-keys' title='API Keys' />
             </NavBarLink>
           </RequireConfig>
 
