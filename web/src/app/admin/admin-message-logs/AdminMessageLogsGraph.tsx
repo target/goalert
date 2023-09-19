@@ -45,8 +45,9 @@ type Stats = Array<{
 
 interface MessageLogGraphData {
   date: string
-  label: JSX.Element
+  segmentLabel: string
   count: number
+  timeRange: JSX.Element
 }
 
 const statsQuery = gql`
@@ -103,10 +104,11 @@ export default function AdminMessageLogsGraph(): JSX.Element {
 
   const graphData = React.useMemo(
     (): MessageLogGraphData[] =>
-      stats.map(({ start, end, count }) => ({
+      stats.map(({ start, end, count, segmentLabel }) => ({
         count,
         date: start,
-        label: (
+        segmentLabel,
+        timeRange: (
           <React.Fragment>
             <Time time={start} /> - <Time time={end} />
           </React.Fragment>
@@ -264,18 +266,27 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                       cursor={{ fill: theme.palette.background.default }}
                       content={({ active, payload }) => {
                         if (!active || !payload?.length) return null
+                        console.log(payload)
 
-                        const p = payload[0].payload
                         return (
                           <Paper
                             data-cy='message-log-tooltip'
                             variant='outlined'
                             sx={{ p: 1 }}
                           >
-                            <Typography variant='body2'>{p.label}</Typography>
-                            <Typography variant='body2'>
-                              Count: {p.count}
-                            </Typography>
+                            {payload.map((p) => (
+                              <React.Fragment key={p.name}>
+                                <Typography variant='body2'>
+                                  {p.name}
+                                </Typography>
+                                <Typography variant='body2'>
+                                  {p.payload.timeRange}
+                                </Typography>
+                                <Typography variant='body2'>
+                                  Count: {p.payload.count}
+                                </Typography>
+                              </React.Fragment>
+                            ))}
                           </Paper>
                         )
                       }}
