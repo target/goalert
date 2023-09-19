@@ -251,6 +251,7 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                       stroke={theme.palette.text.secondary}
                       tickFormatter={formatIntervals}
                       minTickGap={15}
+                      allowDuplicatedCategory={false}
                     />
                     <YAxis
                       type='number'
