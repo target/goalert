@@ -1,7 +1,7 @@
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
 import { FormContainer, FormField } from '../../forms'
-import { Grid, TextField } from '@mui/material'
+import { Checkbox, FormControlLabel, Grid, TextField } from '@mui/material'
 import { ScheduleSelect } from '../../selection'
 
 export default function CalendarSubscribeForm(props) {
@@ -33,6 +33,15 @@ export default function CalendarSubscribeForm(props) {
             required
             label='Schedule'
             name='scheduleID'
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <FormControlLabel
+            control={
+              <FormField component={Checkbox} checkbox name='fullSchedule' />
+            }
+            label='Include all user shifts (full schedule)'
+            labelPlacement='end'
           />
         </Grid>
       </Grid>
