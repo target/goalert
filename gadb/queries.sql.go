@@ -625,18 +625,24 @@ func (q *Queries) FindOneCalSubForUpdate(ctx context.Context, id uuid.UUID) (Fin
 
 const getRulesForIntegrationKey = `-- name: GetRulesForIntegrationKey :many
 SELECT
-    service_rules.id,
-    service_rules.name,
-    service_rules.service_id,
-    service_rules.filter,
-    service_rules.send_alert,
-    service_rules.actions
+    r.id,
+    r.name,
+    r.service_id,
+    r.filter,
+    r.send_alert,
+    r.actions
 FROM
-    service_rule_integration_keys
-JOIN service_rules ON service_rule_integration_keys.service_rule_id = service_rules.id
-WHERE
-    service_rule_integration_keys.integration_key_id = $1
+    service_rule_integration_keys AS sk
+JOIN service_rules AS r 
+	ON sk.service_rule_id = r.id
+    AND r.service_id = $1
+    AND sk.integration_key_id = $2
 `
+
+type GetRulesForIntegrationKeyParams struct {
+	ServiceID        uuid.UUID
+	IntegrationKeyID uuid.UUID
+}
 
 type GetRulesForIntegrationKeyRow struct {
 	ID        uuid.UUID
@@ -647,8 +653,8 @@ type GetRulesForIntegrationKeyRow struct {
 	Actions   pqtype.NullRawMessage
 }
 
-func (q *Queries) GetRulesForIntegrationKey(ctx context.Context, integrationKeyID uuid.UUID) ([]GetRulesForIntegrationKeyRow, error) {
-	rows, err := q.db.QueryContext(ctx, getRulesForIntegrationKey, integrationKeyID)
+func (q *Queries) GetRulesForIntegrationKey(ctx context.Context, arg GetRulesForIntegrationKeyParams) ([]GetRulesForIntegrationKeyRow, error) {
+	rows, err := q.db.QueryContext(ctx, getRulesForIntegrationKey, arg.ServiceID, arg.IntegrationKeyID)
 	if err != nil {
 		return nil, err
 	}

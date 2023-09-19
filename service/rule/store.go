@@ -28,7 +28,10 @@ func NewStore(ctx context.Context, db *sql.DB) *Store {
 
 // GetRulesForService returns all service rules associated with the given serviceID
 func (s *Store) GetRulesForService(ctx context.Context, serviceID string) ([]Rule, error) {
-	err := permission.LimitCheckAny(ctx, permission.User)
+	err := permission.LimitCheckAny(ctx,
+		permission.User,
+		permission.MatchService(serviceID),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -67,9 +70,16 @@ func (s *Store) GetRulesForService(ctx context.Context, serviceID string) ([]Rul
 	return rules, nil
 }
 
-// GetRulesForService returns all service rules associated with the given serviceID
-func (s *Store) GetRulesForIntegrationKey(ctx context.Context, integrationKeyID string) ([]Rule, error) {
-	err := permission.LimitCheckAny(ctx, permission.User)
+// GetRulesForIntegrationKey returns all service rules associated with the given serviceID and integrationKeyID
+func (s *Store) GetRulesForIntegrationKey(ctx context.Context, serviceID string, integrationKeyID string) ([]Rule, error) {
+	err := permission.LimitCheckAny(ctx,
+		permission.User,
+		permission.MatchService(serviceID),
+	)
+	if err != nil {
+		return nil, err
+	}
+	err = validate.UUID("ServiceID", serviceID)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +87,10 @@ func (s *Store) GetRulesForIntegrationKey(ctx context.Context, integrationKeyID 
 	if err != nil {
 		return nil, err
 	}
-	rows, err := gadb.New(s.db).GetRulesForIntegrationKey(ctx, uuid.MustParse(integrationKeyID))
+	rows, err := gadb.New(s.db).GetRulesForIntegrationKey(ctx, gadb.GetRulesForIntegrationKeyParams{
+		ServiceID:        uuid.MustParse(serviceID),
+		IntegrationKeyID: uuid.MustParse(integrationKeyID),
+	})
 	if err != nil {
 		return nil, errors.Wrap(err, "get rules for integration key")
 	}
