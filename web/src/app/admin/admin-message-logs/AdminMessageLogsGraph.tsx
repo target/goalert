@@ -115,8 +115,6 @@ export default function AdminMessageLogsGraph(): JSX.Element {
     [stats],
   )
 
-  console.log('graph data: ', graphData)
-
   const formatIntervals = (label: string): string => {
     if (label.toString() === '0' || label === 'auto') return ''
     const dt = DateTime.fromISO(label)
@@ -142,6 +140,17 @@ export default function AdminMessageLogsGraph(): JSX.Element {
     setParams({
       segmentBy: (event.target as HTMLInputElement).value,
     })
+  }
+
+  function getLineStroke(index: number): string {
+    switch (index) {
+      case 0:
+        return theme.palette.primary.main
+      case 1:
+        return theme.palette.secondary.main
+      default:
+        return Math.floor(Math.random() * 16777215).toString(16)
+    }
   }
 
   return (
@@ -272,14 +281,14 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                     />
                     <Legend />
                     {segmentBy ? (
-                      Object.keys(segmentLabels).map((label) => (
+                      Object.keys(segmentLabels).map((label, index) => (
                         <Line
                           key={label}
                           dataKey='count'
                           name={label}
                           type='monotone'
+                          stroke={getLineStroke(index)}
                           strokeWidth={2}
-                          stroke={theme.palette.primary.main}
                           activeDot={{ r: 8 }}
                           isAnimationActive={false}
                           dot={(props) => (
