@@ -40,7 +40,7 @@ export default function CalendarSubscribeForm(props) {
             control={
               <FormField component={Checkbox} checkbox name='fullSchedule' />
             }
-            label='Include all user shifts (full schedule)'
+            label='Include on-call shifts of other users'
             labelPlacement='end'
           />
         </Grid>
