@@ -78,11 +78,12 @@ type AuthSubjectConnection struct {
 }
 
 type CalcRotationHandoffTimesInput struct {
-	Handoff          time.Time  `json:"handoff"`
-	From             *time.Time `json:"from,omitempty"`
-	TimeZone         string     `json:"timeZone"`
-	ShiftLengthHours int        `json:"shiftLengthHours"`
-	Count            int        `json:"count"`
+	Handoff          time.Time             `json:"handoff"`
+	From             *time.Time            `json:"from,omitempty"`
+	TimeZone         string                `json:"timeZone"`
+	ShiftLengthHours *int                  `json:"shiftLengthHours,omitempty"`
+	ShiftLength      *timeutil.ISODuration `json:"shiftLength,omitempty"`
+	Count            int                   `json:"count"`
 }
 
 type ClearTemporarySchedulesInput struct {
@@ -686,6 +687,14 @@ type UserSearchOptions struct {
 	CMType         *contactmethod.Type `json:"CMType,omitempty"`
 	FavoritesOnly  *bool               `json:"favoritesOnly,omitempty"`
 	FavoritesFirst *bool               `json:"favoritesFirst,omitempty"`
+}
+
+type UserSession struct {
+	ID           string    `json:"id"`
+	Current      bool      `json:"current"`
+	UserAgent    string    `json:"userAgent"`
+	CreatedAt    time.Time `json:"createdAt"`
+	LastAccessAt time.Time `json:"lastAccessAt"`
 }
 
 type VerifyContactMethodInput struct {
