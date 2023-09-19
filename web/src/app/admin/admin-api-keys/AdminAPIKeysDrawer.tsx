@@ -35,9 +35,22 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
   const classes = useStyles()
   const isOpen = Boolean(apiKey)
   const [deleteDialog, onDeleteDialog] = useState(false)
-
+  const [showEdit, setShowEdit] = useState(true)
+  const [showSave, setShowSave] = useState(false)
   const handleDeleteConfirmation = (): void => {
     onDeleteDialog(!deleteDialog)
+  }
+  let comma = ''
+  const allowFieldsStr = apiKey?.allowedFields.map((inp: string): string => {
+    const inpComma = comma + inp
+    comma = ', '
+
+    return inpComma
+  })
+
+  const handleSave = (): void => {
+    setShowSave(!showSave)
+    setShowEdit(!showEdit)
   }
 
   return (
@@ -65,17 +78,35 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
             <List disablePadding>
               <ListItem divider>
                 <ListItemText primary='Name' secondary={apiKey?.name} />
+                <FormField
+                  fullWidth
+                  label='Name'
+                  name='name'
+                  required
+                  component={TextField}
+                />
               </ListItem>
               <ListItem divider>
                 <ListItemText
                   primary='Description'
                   secondary={apiKey?.description}
                 />
+                <FormField
+                  fullWidth
+                  label='Description'
+                  name='description'
+                  multiline
+                  rows={4}
+                  required
+                  component={TextField}
+                  charCount={MaxDetailsLength}
+                  hint='Markdown Supported'
+                />
               </ListItem>
               <ListItem divider>
                 <ListItemText
                   primary='Allowed Fields'
-                  secondary={apiKey?.allowedFields}
+                  secondary={allowFieldsStr}
                 />
               </ListItem>
               <ListItem divider>
@@ -105,20 +136,29 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
             </List>
             <Grid className={classes.buttons}>
               <ButtonGroup variant='outlined'>
-                <Button
-                  data-cy='delete'
-                  // disabled={isEmpty(values)}
-                  onClick={handleDeleteConfirmation}
-                >
+                <Button data-cy='delete' onClick={handleDeleteConfirmation}>
                   DELETE
                 </Button>
-                <Button
-                  data-cy='save'
-                  // disabled={isEmpty(values)}
-                  // onClick={() => setValues({})}
-                >
-                  SAVE
-                </Button>
+                {showSave ? (
+                  <Button
+                    data-cy='save'
+                    // disabled={isEmpty(values)}
+                    onClick={handleSave}
+                  >
+                    SAVE
+                  </Button>
+                ) : null}
+                {showEdit ? (
+                  <Button
+                    data-cy='edit'
+                    onClick={() => {
+                      setShowSave(!showSave)
+                      setShowEdit(!showEdit)
+                    }}
+                  >
+                    EDIT
+                  </Button>
+                ) : null}
               </ButtonGroup>
             </Grid>
           </Grid>
