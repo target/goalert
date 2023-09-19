@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import {
   Accordion,
@@ -89,6 +89,18 @@ export default function AdminMessageLogsGraph(): JSX.Element {
     },
   })
   const stats: Stats = data?.messageLogs?.stats?.timeSeries ?? []
+
+  // get list of segment labels from data to map out Lines
+  type OM = { [key: string]: boolean }
+  const [segmentLabels, setSegmentLabels] = useState<OM>({})
+  useEffect(() => {
+    const sl: OM = {}
+    stats.forEach((stat) => {
+      sl[stat.segmentLabel] = true
+    })
+    setSegmentLabels(sl)
+  }, [stats])
+
   const graphData = React.useMemo(
     (): MessageLogGraphData[] =>
       stats.map(({ start, end, count }) => ({
@@ -102,6 +114,8 @@ export default function AdminMessageLogsGraph(): JSX.Element {
       })),
     [stats],
   )
+
+  console.log('graph data: ', graphData)
 
   const formatIntervals = (label: string): string => {
     if (label.toString() === '0' || label === 'auto') return ''
@@ -258,10 +272,11 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                     />
                     <Legend />
                     {segmentBy ? (
-                      stats.map((stat) => (
+                      Object.keys(segmentLabels).map((label) => (
                         <Line
-                          key={stat.segmentLabel}
-                          dataKey={stat.segmentLabel}
+                          key={label}
+                          dataKey='count'
+                          name={label}
                           type='monotone'
                           strokeWidth={2}
                           stroke={theme.palette.primary.main}
