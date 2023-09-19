@@ -6,10 +6,15 @@ import {
   AccordionSummary,
   CardContent,
   CardHeader,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
   Grid,
   InputLabel,
   MenuItem,
   Paper,
+  Radio,
+  RadioGroup,
   Select,
   Typography,
 } from '@mui/material'
@@ -35,6 +40,7 @@ type Stats = Array<{
   start: string
   end: string
   count: number
+  segmentLabel: string
 }>
 
 interface MessageLogGraphData {
@@ -54,6 +60,7 @@ const statsQuery = gql`
           start
           end
           count
+          segmentLabel
         }
       }
     }
@@ -63,7 +70,7 @@ const statsQuery = gql`
 export default function AdminMessageLogsGraph(): JSX.Element {
   const theme = useTheme()
 
-  const [{ search, start, end, graphInterval }, setParams] =
+  const [{ search, start, end, graphInterval, segmentBy }, setParams] =
     useMessageLogsParams()
 
   const [{ data, fetching, error }] = useQuery({
@@ -77,11 +84,11 @@ export default function AdminMessageLogsGraph(): JSX.Element {
       statsInput: {
         bucketDuration: graphInterval,
         bucketOrigin: start,
+        segmentBy: segmentBy || null,
       },
     },
   })
   const stats: Stats = data?.messageLogs?.stats?.timeSeries ?? []
-
   const graphData = React.useMemo(
     (): MessageLogGraphData[] =>
       stats.map(({ start, end, count }) => ({
@@ -112,6 +119,14 @@ export default function AdminMessageLogsGraph(): JSX.Element {
     return dt.toLocaleString({
       month: 'short',
       day: 'numeric',
+    })
+  }
+
+  function handleOnSegmentByChange(
+    event: React.ChangeEvent<HTMLInputElement>,
+  ): void {
+    setParams({
+      segmentBy: (event.target as HTMLInputElement).value,
     })
   }
 
@@ -156,6 +171,34 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                   ))}
                 </Select>
               </CardContent>
+            </Grid>
+            <Grid item>
+              <FormControl>
+                <FormLabel id='segment-by'>Segment By</FormLabel>
+                <RadioGroup
+                  row
+                  aria-labelledby='segment-by'
+                  name='segment-by-group'
+                  value={segmentBy}
+                  onChange={handleOnSegmentByChange}
+                >
+                  <FormControlLabel
+                    value='service'
+                    control={<Radio />}
+                    label='Service'
+                  />
+                  <FormControlLabel
+                    value='user'
+                    control={<Radio />}
+                    label='User'
+                  />
+                  <FormControlLabel
+                    value='messageType'
+                    control={<Radio />}
+                    label='Message Type'
+                  />
+                </RadioGroup>
+              </FormControl>
             </Grid>
             <Grid
               item
@@ -214,16 +257,35 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                       }}
                     />
                     <Legend />
-                    <Line
-                      type='monotone'
-                      strokeWidth={2}
-                      stroke={theme.palette.primary.main}
-                      activeDot={{ r: 8 }}
-                      isAnimationActive={false}
-                      dot={(props) => <circle {..._.omit(props, 'dataKey')} />}
-                      name='Message Counts'
-                      dataKey='count'
-                    />
+                    {segmentBy ? (
+                      stats.map((stat) => (
+                        <Line
+                          key={stat.segmentLabel}
+                          dataKey={stat.segmentLabel}
+                          type='monotone'
+                          strokeWidth={2}
+                          stroke={theme.palette.primary.main}
+                          activeDot={{ r: 8 }}
+                          isAnimationActive={false}
+                          dot={(props) => (
+                            <circle {..._.omit(props, 'dataKey')} />
+                          )}
+                        />
+                      ))
+                    ) : (
+                      <Line
+                        name='Message Counts'
+                        dataKey='count'
+                        type='monotone'
+                        strokeWidth={2}
+                        stroke={theme.palette.primary.main}
+                        activeDot={{ r: 8 }}
+                        isAnimationActive={false}
+                        dot={(props) => (
+                          <circle {..._.omit(props, 'dataKey')} />
+                        )}
+                      />
+                    )}
                   </LineChart>
                 )}
               </AutoSizer>

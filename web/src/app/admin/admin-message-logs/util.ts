@@ -71,6 +71,7 @@ export type MessageLogsParams = {
   start: string
   end: string
   graphInterval: string
+  segmentBy: string
 }
 
 export function useMessageLogsParams(): [
@@ -88,6 +89,7 @@ export function useMessageLogsParams(): [
       start: start.toISO(),
       end: end.toISO(),
     })[0].value,
+    segmentBy: '',
   })
 
   return [
