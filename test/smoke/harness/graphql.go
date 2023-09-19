@@ -22,22 +22,23 @@ import (
 // DefaultGraphQLAdminUserID is the UserID created & used for GraphQL calls by default.
 const DefaultGraphQLAdminUserID = "00000000-0000-0000-0000-000000000002"
 
-func (h *Harness) insertGraphQLUser(userID string) string {
+func (h *Harness) createGraphQLUser(userID string) {
 	h.t.Helper()
-	var err error
-	if userID == DefaultGraphQLAdminUserID {
-		permission.SudoContext(context.Background(), func(ctx context.Context) {
-			_, err = h.backend.UserStore.Insert(ctx, &user.User{
-				Name: "GraphQL User",
-				ID:   userID,
-				Role: permission.RoleAdmin,
-			})
+	permission.SudoContext(context.Background(), func(ctx context.Context) {
+		h.t.Helper()
+		_, err := h.backend.UserStore.Insert(ctx, &user.User{
+			Name: "GraphQL User",
+			ID:   userID,
+			Role: permission.RoleAdmin,
 		})
 		if err != nil {
 			h.t.Fatal(errors.Wrap(err, "create GraphQL user"))
 		}
-	}
+	})
+}
 
+func (h *Harness) createGraphQLSession(userID string) string {
+	h.t.Helper()
 	tok, err := h.backend.AuthHandler.CreateSession(context.Background(), "goalert-smoketest", userID)
 	if err != nil {
 		h.t.Fatal(errors.Wrap(err, "create auth session"))
@@ -91,43 +92,61 @@ func (h *Harness) GraphQLQueryT(t *testing.T, query string) *QLResponse {
 // handling authentication. Queries are performed with the provided UserID.
 func (h *Harness) GraphQLQueryUserT(t *testing.T, userID, query string) *QLResponse {
 	t.Helper()
+	retry := 1
+	var err error
+	var resp *http.Response
+	var tok string
 
 	h.mx.Lock()
-	tok := h.gqlSessions[userID]
+	tok = h.gqlSessions[userID]
 	if tok == "" {
-		tok = h.insertGraphQLUser(userID)
+		if userID == DefaultGraphQLAdminUserID {
+			h.createGraphQLUser(userID)
+		}
+		tok = h.createGraphQLSession(userID)
 	}
 	h.mx.Unlock()
 
-	query = strings.Replace(query, "\t", "", -1)
-	q := struct{ Query string }{Query: query}
+	for {
+		query = strings.Replace(query, "\t", "", -1)
+		q := struct{ Query string }{Query: query}
 
-	data, err := json.Marshal(q)
-	if err != nil {
-		h.t.Fatal("failed to marshal graphql query")
-	}
-	t.Log("Query:", query)
+		data, err := json.Marshal(q)
+		if err != nil {
+			h.t.Fatal("failed to marshal graphql query")
+		}
+		t.Log("Query:", query)
 
-	url := h.URL() + "/api/graphql"
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
-	if err != nil {
-		t.Fatal("failed to make request:", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.AddCookie(&http.Cookie{
-		Name:  auth.CookieName,
-		Value: tok,
-	})
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.Fatal("failed to make http request:", err)
+		url := h.URL() + "/api/graphql"
+		req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
+		if err != nil {
+			t.Fatal("failed to make request:", err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.AddCookie(&http.Cookie{
+			Name:  auth.CookieName,
+			Value: tok,
+		})
+		resp, err = http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal("failed to make http request:", err)
+		}
+		if resp.StatusCode == 401 && retry > 0 {
+			h.t.Logf("GraphQL request failed with 401, retrying with new session (%d left)", retry)
+			h.mx.Lock()
+			tok = h.createGraphQLSession(userID)
+			h.mx.Unlock()
+			resp.Body.Close()
+			retry--
+			continue
+		}
+		if resp.StatusCode != 200 {
+			data, _ := io.ReadAll(resp.Body)
+			t.Fatal("failed to make graphql request:", resp.Status, string(data))
+		}
+		break
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		data, _ := io.ReadAll(resp.Body)
-		t.Fatal("failed to make graphql request:", resp.Status, string(data))
-	}
-
 	var r QLResponse
 	err = json.NewDecoder(resp.Body).Decode(&r)
 	if err != nil {

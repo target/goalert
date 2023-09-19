@@ -42,7 +42,6 @@ export interface Query {
   generateSlackAppManifest: string
   linkAccountInfo?: null | LinkAccountInfo
   swoStatus: SWOStatus
-  gqlAPIKeys: GQLAPIKey[]
   listGQLFields: string[]
 }
 
@@ -769,7 +768,7 @@ export interface Rotation {
   nextHandoffTimes: ISOTimestamp[]
 }
 
-export type RotationType = 'weekly' | 'daily' | 'hourly'
+export type RotationType = 'monthly' | 'weekly' | 'daily' | 'hourly'
 
 export interface UpdateAlertsInput {
   alertIDs: number[]
@@ -801,7 +800,8 @@ export interface CalcRotationHandoffTimesInput {
   handoff: ISOTimestamp
   from?: null | ISOTimestamp
   timeZone: string
-  shiftLengthHours: number
+  shiftLengthHours?: null | number
+  shiftLength?: null | ISODuration
   count: number
 }
 
