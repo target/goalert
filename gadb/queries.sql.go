@@ -623,6 +623,146 @@ func (q *Queries) FindOneCalSubForUpdate(ctx context.Context, id uuid.UUID) (Fin
 	return i, err
 }
 
+const getRulesForIntegrationKey = `-- name: GetRulesForIntegrationKey :many
+SELECT
+    service_rules.id,
+    service_rules.name,
+    service_rules.service_id,
+    service_rules.filter,
+    service_rules.send_alert,
+    service_rules.actions
+FROM
+    service_rule_integration_keys
+JOIN service_rules ON service_rule_integration_keys.service_rule_id = service_rules.id
+WHERE
+    service_rule_integration_keys.integration_key_id = $1
+`
+
+type GetRulesForIntegrationKeyRow struct {
+	ID        uuid.UUID
+	Name      string
+	ServiceID uuid.UUID
+	Filter    string
+	SendAlert bool
+	Actions   pqtype.NullRawMessage
+}
+
+func (q *Queries) GetRulesForIntegrationKey(ctx context.Context, integrationKeyID uuid.UUID) ([]GetRulesForIntegrationKeyRow, error) {
+	rows, err := q.db.QueryContext(ctx, getRulesForIntegrationKey, integrationKeyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetRulesForIntegrationKeyRow
+	for rows.Next() {
+		var i GetRulesForIntegrationKeyRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.ServiceID,
+			&i.Filter,
+			&i.SendAlert,
+			&i.Actions,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getRulesForService = `-- name: GetRulesForService :many
+SELECT
+    service_rules.id,
+    service_rules.name,
+    service_rules.service_id,
+    service_rules.filter,
+    service_rules.send_alert,
+    service_rules.actions,
+    STRING_AGG (
+      service_rule_integration_keys.integration_key_id::text,
+      ','
+    )::TEXT integration_keys
+FROM
+    service_rules
+JOIN service_rule_integration_keys ON service_rule_integration_keys.service_rule_id = service_rules.id
+WHERE 
+    service_rules.service_id = $1
+GROUP BY
+		service_rules.id
+`
+
+type GetRulesForServiceRow struct {
+	ID              uuid.UUID
+	Name            string
+	ServiceID       uuid.UUID
+	Filter          string
+	SendAlert       bool
+	Actions         pqtype.NullRawMessage
+	IntegrationKeys string
+}
+
+func (q *Queries) GetRulesForService(ctx context.Context, serviceID uuid.UUID) ([]GetRulesForServiceRow, error) {
+	rows, err := q.db.QueryContext(ctx, getRulesForService, serviceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetRulesForServiceRow
+	for rows.Next() {
+		var i GetRulesForServiceRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.ServiceID,
+			&i.Filter,
+			&i.SendAlert,
+			&i.Actions,
+			&i.IntegrationKeys,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const insertServiceRule = `-- name: InsertServiceRule :exec
+INSERT INTO service_rules(name, service_id, filter, send_alert, actions)
+    VALUES ($1, $2, $3, $4, $5)
+`
+
+type InsertServiceRuleParams struct {
+	Name      string
+	ServiceID uuid.UUID
+	Filter    string
+	SendAlert bool
+	Actions   pqtype.NullRawMessage
+}
+
+func (q *Queries) InsertServiceRule(ctx context.Context, arg InsertServiceRuleParams) error {
+	_, err := q.db.ExecContext(ctx, insertServiceRule,
+		arg.Name,
+		arg.ServiceID,
+		arg.Filter,
+		arg.SendAlert,
+		arg.Actions,
+	)
+	return err
+}
+
 const lockOneAlertService = `-- name: LockOneAlertService :one
 SELECT
     maintenance_expires_at NOTNULL::bool AS is_maint_mode,

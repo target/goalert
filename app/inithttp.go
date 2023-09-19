@@ -130,6 +130,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 		IntegrationKeyStore: app.IntegrationKeyStore,
 		HeartbeatStore:      app.HeartbeatStore,
 		UserStore:           app.UserStore,
+		ServiceRuleStore:    app.ServiceRuleStore,
 	})
 
 	mux.Handle("/api/graphql", app.graphql2.Handler())

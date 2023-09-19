@@ -27,8 +27,9 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
-	"github.com/target/goalert/schedule/rule"
+	schedulerule "github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/service"
+	servicerule "github.com/target/goalert/service/rule"
 	"github.com/target/goalert/timezone"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
@@ -170,6 +171,10 @@ func (app *App) initStores(ctx context.Context) error {
 		return errors.Wrap(err, "init service store")
 	}
 
+	if app.ServiceRuleStore == nil {
+		app.ServiceRuleStore = servicerule.NewStore(ctx, app.db)
+	}
+
 	if app.AuthBasicStore == nil {
 		app.AuthBasicStore, err = basic.NewStore(ctx, app.db)
 	}
@@ -226,7 +231,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.ScheduleRuleStore == nil {
-		app.ScheduleRuleStore, err = rule.NewStore(ctx, app.db)
+		app.ScheduleRuleStore, err = schedulerule.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init schedule rule store")
