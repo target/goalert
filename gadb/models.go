@@ -986,6 +986,13 @@ type OutgoingMessage struct {
 	UserVerificationCodeID uuid.NullUUID
 }
 
+type OutgoingSignal struct {
+	ChannelID       uuid.UUID
+	ID              uuid.UUID
+	OutgoingPayload json.RawMessage
+	ServiceID       uuid.UUID
+}
+
 type RegionID struct {
 	ID   int32
 	Name string
@@ -1066,6 +1073,30 @@ type Service struct {
 	ID                   uuid.UUID
 	MaintenanceExpiresAt sql.NullTime
 	Name                 string
+}
+
+type ServiceRule struct {
+	Actions   pqtype.NullRawMessage
+	Filter    string
+	ID        uuid.UUID
+	Name      string
+	SendAlert bool
+	ServiceID uuid.UUID
+}
+
+type ServiceRuleIntegrationKey struct {
+	ID               uuid.UUID
+	IntegrationKeyID uuid.UUID
+	ServiceRuleID    uuid.UUID
+}
+
+type Signal struct {
+	ID              int64
+	OutgoingPayload json.RawMessage
+	Scheduled       bool
+	ServiceID       uuid.UUID
+	ServiceRuleID   uuid.UUID
+	Timestamp       time.Time
 }
 
 type SwitchoverLog struct {
