@@ -36,14 +36,12 @@ func newPolCache(cfg polCacheConfig) *polCache {
 }
 
 // Revoke will add the key to the negative cache.
-func (c *polCache) Revoke(ctx context.Context, key uuid.UUID) error {
+func (c *polCache) Revoke(ctx context.Context, key uuid.UUID) {
 	c.mx.Lock()
 	defer c.mx.Unlock()
 
 	c.neg.Add(key, nil)
 	c.lru.Remove(key)
-
-	return nil
 }
 
 // Get will return the policyInfo for the given key.
