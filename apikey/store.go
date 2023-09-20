@@ -176,7 +176,15 @@ func (s *Store) DeleteAdminGraphQLKey(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
-	return gadb.New(s.db).APIKeyDelete(ctx, id)
+	var byID uuid.NullUUID
+	if id, err := uuid.Parse(permission.UserID(ctx)); err == nil {
+		byID = uuid.NullUUID{UUID: id, Valid: true}
+	}
+
+	return gadb.New(s.db).APIKeyDelete(ctx, gadb.APIKeyDeleteParams{
+		DeletedBy: byID,
+		ID:        id,
+	})
 }
 
 func (s *Store) AuthorizeGraphQL(ctx context.Context, tok, ua, ip string) (context.Context, error) {

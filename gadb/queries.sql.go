@@ -54,12 +54,22 @@ func (q *Queries) APIKeyAuthPolicy(ctx context.Context, id uuid.UUID) (json.RawM
 }
 
 const aPIKeyDelete = `-- name: APIKeyDelete :exec
-DELETE FROM gql_api_keys
-WHERE id = $1
+UPDATE
+    gql_api_keys
+SET
+    deleted_at = now(),
+    deleted_by = $2
+WHERE
+    id = $1
 `
 
-func (q *Queries) APIKeyDelete(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, aPIKeyDelete, id)
+type APIKeyDeleteParams struct {
+	ID        uuid.UUID
+	DeletedBy uuid.NullUUID
+}
+
+func (q *Queries) APIKeyDelete(ctx context.Context, arg APIKeyDeleteParams) error {
+	_, err := q.db.ExecContext(ctx, aPIKeyDelete, arg.ID, arg.DeletedBy)
 	return err
 }
 
@@ -210,6 +220,7 @@ UPDATE
 SET
     name = $2,
     description = $3,
+    updated_at = now(),
     updated_by = $4
 WHERE
     id = $1
