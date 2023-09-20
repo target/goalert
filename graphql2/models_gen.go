@@ -307,7 +307,6 @@ type GQLAPIKey struct {
 	LastUsed      *GQLAPIKeyUsage `json:"lastUsed,omitempty"`
 	ExpiresAt     time.Time       `json:"expiresAt"`
 	AllowedFields []string        `json:"allowedFields"`
-	Token         *string         `json:"token,omitempty"`
 }
 
 type GQLAPIKeyUsage struct {

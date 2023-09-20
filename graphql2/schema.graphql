@@ -627,7 +627,6 @@ type GQLAPIKey {
   lastUsed: GQLAPIKeyUsage
   expiresAt: ISOTimestamp!
   allowedFields: [String!]!
-  token: String
 }
 
 type GQLAPIKeyUsage {
