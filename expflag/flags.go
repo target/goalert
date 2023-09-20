@@ -5,11 +5,13 @@ import "sort"
 type Flag string
 
 const (
-	Example Flag = "example"
+	Example   Flag = "example"
+	GQLAPIKey Flag = "gql-api-keys"
 )
 
 var desc = map[Flag]string{
-	Example: "An example experimental flag to demonstrate usage.",
+	Example:   "An example experimental flag to demonstrate usage.",
+	GQLAPIKey: "Admin-only GraphQL API key support.",
 }
 
 // AllFlags returns a slice of all experimental flags sorted by name.

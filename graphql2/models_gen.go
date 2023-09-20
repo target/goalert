@@ -140,6 +140,14 @@ type CreateEscalationPolicyStepInput struct {
 	NewSchedule        *CreateScheduleInput   `json:"newSchedule,omitempty"`
 }
 
+type CreateGQLAPIKeyInput struct {
+	Name          string    `json:"name"`
+	Description   string    `json:"description"`
+	AllowedFields []string  `json:"allowedFields"`
+	ExpiresAt     time.Time `json:"expiresAt"`
+	Role          UserRole  `json:"role"`
+}
+
 type CreateHeartbeatMonitorInput struct {
 	ServiceID      *string `json:"serviceID,omitempty"`
 	Name           string  `json:"name"`
@@ -219,6 +227,11 @@ type CreateUserOverrideInput struct {
 	End          time.Time `json:"end"`
 	AddUserID    *string   `json:"addUserID,omitempty"`
 	RemoveUserID *string   `json:"removeUserID,omitempty"`
+}
+
+type CreatedGQLAPIKey struct {
+	ID    string `json:"id"`
+	Token string `json:"token"`
 }
 
 type DebugCarrierInfoInput struct {

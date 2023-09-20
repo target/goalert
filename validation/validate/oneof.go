@@ -2,12 +2,13 @@ package validate
 
 import (
 	"fmt"
-	"github.com/target/goalert/validation"
 	"strings"
+
+	"github.com/target/goalert/validation"
 )
 
 // OneOf will check that value is one of the provided options.
-func OneOf(fname string, value interface{}, options ...interface{}) error {
+func OneOf[T comparable](fname string, value T, options ...T) error {
 	for _, o := range options {
 		if o == value {
 			return nil
