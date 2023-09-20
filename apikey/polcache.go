@@ -72,7 +72,7 @@ func (c *polCache) Get(ctx context.Context, key uuid.UUID) (value *policyInfo, o
 
 		// Since each key has a unique ID and is signed, we can
 		// safely assume that an invalid key will always be invalid
-		// and can be cached.
+		// and can be negatively cached.
 		if !isValid {
 			c.neg.Add(key, nil)
 			c.lru.Remove(key)
@@ -84,7 +84,7 @@ func (c *polCache) Get(ctx context.Context, key uuid.UUID) (value *policyInfo, o
 
 	// If the key is not in the cache, we need to fetch it,
 	// and add it to the cache. We can safely assume that
-	// the key is valid, when returned from the FillFunc.
+	// the key is valid when returned from the FillFunc.
 	value, isValid, err := c.cfg.FillFunc(ctx, key)
 	if err != nil {
 		return value, false, err

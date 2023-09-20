@@ -25,6 +25,8 @@ func newLastUsedCache(max int, updateFunc func(ctx context.Context, id uuid.UUID
 func (c *lastUsedCache) RecordUsage(ctx context.Context, id uuid.UUID, ua, ip string) error {
 	c.mx.Lock()
 	defer c.mx.Unlock()
+
+	// check if we've seen this key recently, and if it's been less than a minute
 	if t, ok := c.lru.Get(id); ok && time.Since(t.(time.Time)) < time.Minute {
 		return nil
 	}

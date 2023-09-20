@@ -94,7 +94,7 @@ func (s *Store) AuthorizeGraphQL(ctx context.Context, tok, ua, ip string) (conte
 		ID:   id.String(),
 		Type: permission.SourceTypeGQLAPIKey,
 	})
-	ctx = permission.UserContext(ctx, "", permission.RoleUnknown)
+	ctx = permission.UserContext(ctx, "", info.Policy.Role)
 
 	ctx = ContextWithPolicy(ctx, &info.Policy)
 	return ctx, nil
