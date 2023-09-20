@@ -8,6 +8,7 @@ UPDATE
 SET
     name = $2,
     description = $3,
+    updated_at = now(),
     updated_by = $4
 WHERE
     id = $1;
