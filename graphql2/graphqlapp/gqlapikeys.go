@@ -2,8 +2,6 @@ package graphqlapp
 
 import (
 	"context"
-	"database/sql"
-	"time"
 
 	"github.com/target/goalert/apikey"
 	"github.com/target/goalert/expflag"
@@ -76,13 +74,6 @@ func (q *Query) GqlAPIKeys(ctx context.Context) ([]graphql2.GQLAPIKey, error) {
 	}
 
 	return res, nil
-}
-
-func nullTimeToPointer(nt sql.NullTime) *time.Time {
-	if !nt.Valid {
-		return nil
-	}
-	return &nt.Time
 }
 
 func (a *Mutation) UpdateGQLAPIKey(ctx context.Context, input graphql2.UpdateGQLAPIKeyInput) (bool, error) {
