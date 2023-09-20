@@ -7,15 +7,18 @@ import {
   List,
   ListItem,
   ListItemText,
+  TextField,
   Toolbar,
   Typography,
   Button,
   ButtonGroup,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-
+import { FormField } from '../../forms'
 import { GQLAPIKey } from '../../../schema'
 import AdminAPIKeysDeleteDialog from './AdminAPIKeysDeleteDialog'
+
+const MaxDetailsLength = 6 * 1024 // 6KiB
 
 interface Props {
   onClose: () => void
