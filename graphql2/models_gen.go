@@ -296,6 +296,25 @@ type EscalationPolicySearchOptions struct {
 	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
 }
 
+type GQLAPIKey struct {
+	ID            string          `json:"id"`
+	Name          string          `json:"name"`
+	Description   string          `json:"description"`
+	CreatedAt     time.Time       `json:"createdAt"`
+	CreatedBy     *user.User      `json:"createdBy,omitempty"`
+	UpdatedAt     time.Time       `json:"updatedAt"`
+	UpdatedBy     *user.User      `json:"updatedBy,omitempty"`
+	LastUsed      *GQLAPIKeyUsage `json:"lastUsed,omitempty"`
+	ExpiresAt     time.Time       `json:"expiresAt"`
+	AllowedFields []string        `json:"allowedFields"`
+}
+
+type GQLAPIKeyUsage struct {
+	Time time.Time `json:"time"`
+	Ua   string    `json:"ua"`
+	IP   string    `json:"ip"`
+}
+
 type IntegrationKeyConnection struct {
 	Nodes    []integrationkey.IntegrationKey `json:"nodes"`
 	PageInfo *PageInfo                       `json:"pageInfo"`
@@ -602,6 +621,12 @@ type UpdateEscalationPolicyStepInput struct {
 	ID           string                 `json:"id"`
 	DelayMinutes *int                   `json:"delayMinutes,omitempty"`
 	Targets      []assignment.RawTarget `json:"targets,omitempty"`
+}
+
+type UpdateGQLAPIKeyInput struct {
+	ID          string  `json:"id"`
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
 }
 
 type UpdateHeartbeatMonitorInput struct {

@@ -54,13 +54,47 @@ func (q *Queries) APIKeyAuthPolicy(ctx context.Context, id uuid.UUID) (json.RawM
 }
 
 const aPIKeyDelete = `-- name: APIKeyDelete :exec
-DELETE FROM gql_api_keys
-WHERE id = $1
+UPDATE
+    gql_api_keys
+SET
+    deleted_at = now(),
+    deleted_by = $2
+WHERE
+    id = $1
 `
 
-func (q *Queries) APIKeyDelete(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, aPIKeyDelete, id)
+type APIKeyDeleteParams struct {
+	ID        uuid.UUID
+	DeletedBy uuid.NullUUID
+}
+
+func (q *Queries) APIKeyDelete(ctx context.Context, arg APIKeyDeleteParams) error {
+	_, err := q.db.ExecContext(ctx, aPIKeyDelete, arg.ID, arg.DeletedBy)
 	return err
+}
+
+const aPIKeyForUpdate = `-- name: APIKeyForUpdate :one
+SELECT
+    name,
+    description
+FROM
+    gql_api_keys
+WHERE
+    id = $1
+    AND deleted_at IS NULL
+FOR UPDATE
+`
+
+type APIKeyForUpdateRow struct {
+	Name        string
+	Description string
+}
+
+func (q *Queries) APIKeyForUpdate(ctx context.Context, id uuid.UUID) (APIKeyForUpdateRow, error) {
+	row := q.db.QueryRowContext(ctx, aPIKeyForUpdate, id)
+	var i APIKeyForUpdateRow
+	err := row.Scan(&i.Name, &i.Description)
+	return i, err
 }
 
 const aPIKeyInsert = `-- name: APIKeyInsert :exec
@@ -91,6 +125,75 @@ func (q *Queries) APIKeyInsert(ctx context.Context, arg APIKeyInsertParams) erro
 	return err
 }
 
+const aPIKeyList = `-- name: APIKeyList :many
+SELECT
+    gql_api_keys.created_at, gql_api_keys.created_by, gql_api_keys.deleted_at, gql_api_keys.deleted_by, gql_api_keys.description, gql_api_keys.expires_at, gql_api_keys.id, gql_api_keys.name, gql_api_keys.policy, gql_api_keys.updated_at, gql_api_keys.updated_by,
+    gql_api_key_usage.used_at AS last_used_at,
+    gql_api_key_usage.user_agent AS last_user_agent,
+    gql_api_key_usage.ip_address AS last_ip_address
+FROM
+    gql_api_keys
+    LEFT JOIN gql_api_key_usage ON gql_api_keys.id = gql_api_key_usage.api_key_id
+WHERE
+    gql_api_keys.deleted_at IS NULL
+`
+
+type APIKeyListRow struct {
+	CreatedAt     time.Time
+	CreatedBy     uuid.NullUUID
+	DeletedAt     sql.NullTime
+	DeletedBy     uuid.NullUUID
+	Description   string
+	ExpiresAt     time.Time
+	ID            uuid.UUID
+	Name          string
+	Policy        json.RawMessage
+	UpdatedAt     time.Time
+	UpdatedBy     uuid.NullUUID
+	LastUsedAt    sql.NullTime
+	LastUserAgent sql.NullString
+	LastIpAddress pqtype.Inet
+}
+
+// APIKeyList returns all API keys, along with the last time they were used.
+func (q *Queries) APIKeyList(ctx context.Context) ([]APIKeyListRow, error) {
+	rows, err := q.db.QueryContext(ctx, aPIKeyList)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []APIKeyListRow
+	for rows.Next() {
+		var i APIKeyListRow
+		if err := rows.Scan(
+			&i.CreatedAt,
+			&i.CreatedBy,
+			&i.DeletedAt,
+			&i.DeletedBy,
+			&i.Description,
+			&i.ExpiresAt,
+			&i.ID,
+			&i.Name,
+			&i.Policy,
+			&i.UpdatedAt,
+			&i.UpdatedBy,
+			&i.LastUsedAt,
+			&i.LastUserAgent,
+			&i.LastIpAddress,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const aPIKeyRecordUsage = `-- name: APIKeyRecordUsage :exec
 INSERT INTO gql_api_key_usage(api_key_id, user_agent, ip_address)
     VALUES ($1::uuid, $2::text, $3::inet)
@@ -108,6 +211,35 @@ type APIKeyRecordUsageParams struct {
 // APIKeyRecordUsage records the usage of an API key.
 func (q *Queries) APIKeyRecordUsage(ctx context.Context, arg APIKeyRecordUsageParams) error {
 	_, err := q.db.ExecContext(ctx, aPIKeyRecordUsage, arg.KeyID, arg.UserAgent, arg.IpAddress)
+	return err
+}
+
+const aPIKeyUpdate = `-- name: APIKeyUpdate :exec
+UPDATE
+    gql_api_keys
+SET
+    name = $2,
+    description = $3,
+    updated_at = now(),
+    updated_by = $4
+WHERE
+    id = $1
+`
+
+type APIKeyUpdateParams struct {
+	ID          uuid.UUID
+	Name        string
+	Description string
+	UpdatedBy   uuid.NullUUID
+}
+
+func (q *Queries) APIKeyUpdate(ctx context.Context, arg APIKeyUpdateParams) error {
+	_, err := q.db.ExecContext(ctx, aPIKeyUpdate,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.UpdatedBy,
+	)
 	return err
 }
 
