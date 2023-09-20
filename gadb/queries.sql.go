@@ -479,6 +479,37 @@ func (q *Queries) CreateCalSub(ctx context.Context, arg CreateCalSubParams) (tim
 	return created_at, err
 }
 
+const createIntegrationKey = `-- name: CreateIntegrationKey :exec
+INSERT INTO integration_keys (id, name, type, service_id)
+VALUES ($1, $2, $3, $4)
+`
+
+type CreateIntegrationKeyParams struct {
+	ID        uuid.UUID
+	Name      string
+	Type      EnumIntegrationKeysType
+	ServiceID uuid.UUID
+}
+
+func (q *Queries) CreateIntegrationKey(ctx context.Context, arg CreateIntegrationKeyParams) error {
+	_, err := q.db.ExecContext(ctx, createIntegrationKey,
+		arg.ID,
+		arg.Name,
+		arg.Type,
+		arg.ServiceID,
+	)
+	return err
+}
+
+const deleteIntegrationKey = `-- name: DeleteIntegrationKey :exec
+DELETE FROM integration_keys WHERE id = any($1::uuid[])
+`
+
+func (q *Queries) DeleteIntegrationKey(ctx context.Context, ids []uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteIntegrationKey, pq.Array(ids))
+	return err
+}
+
 const deleteManyCalSub = `-- name: DeleteManyCalSub :exec
 DELETE FROM user_calendar_subscriptions
 WHERE id = ANY($1::uuid [ ])
@@ -493,6 +524,47 @@ type DeleteManyCalSubParams struct {
 func (q *Queries) DeleteManyCalSub(ctx context.Context, arg DeleteManyCalSubParams) error {
 	_, err := q.db.ExecContext(ctx, deleteManyCalSub, pq.Array(arg.Column1), arg.UserID)
 	return err
+}
+
+const findIntegrationKeysByService = `-- name: FindIntegrationKeysByService :many
+SELECT id, name, type, service_id 
+FROM integration_keys
+WHERE service_id = $1
+`
+
+type FindIntegrationKeysByServiceRow struct {
+	ID        uuid.UUID
+	Name      string
+	Type      EnumIntegrationKeysType
+	ServiceID uuid.UUID
+}
+
+func (q *Queries) FindIntegrationKeysByService(ctx context.Context, serviceID uuid.UUID) ([]FindIntegrationKeysByServiceRow, error) {
+	rows, err := q.db.QueryContext(ctx, findIntegrationKeysByService, serviceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindIntegrationKeysByServiceRow
+	for rows.Next() {
+		var i FindIntegrationKeysByServiceRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Type,
+			&i.ServiceID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const findManyCalSubByUser = `-- name: FindManyCalSubByUser :many
@@ -621,6 +693,48 @@ func (q *Queries) FindOneCalSubForUpdate(ctx context.Context, id uuid.UUID) (Fin
 		&i.LastAccess,
 	)
 	return i, err
+}
+
+const findOneIntegrationKey = `-- name: FindOneIntegrationKey :one
+SELECT id, name, type, service_id 
+FROM integration_keys
+WHERE id = $1
+`
+
+type FindOneIntegrationKeyRow struct {
+	ID        uuid.UUID
+	Name      string
+	Type      EnumIntegrationKeysType
+	ServiceID uuid.UUID
+}
+
+func (q *Queries) FindOneIntegrationKey(ctx context.Context, id uuid.UUID) (FindOneIntegrationKeyRow, error) {
+	row := q.db.QueryRowContext(ctx, findOneIntegrationKey, id)
+	var i FindOneIntegrationKeyRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Type,
+		&i.ServiceID,
+	)
+	return i, err
+}
+
+const getServiceID = `-- name: GetServiceID :one
+SELECT service_id FROM integration_keys
+WHERE id = $1 AND type = $2
+`
+
+type GetServiceIDParams struct {
+	ID   uuid.UUID
+	Type EnumIntegrationKeysType
+}
+
+func (q *Queries) GetServiceID(ctx context.Context, arg GetServiceIDParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, getServiceID, arg.ID, arg.Type)
+	var service_id uuid.UUID
+	err := row.Scan(&service_id)
+	return service_id, err
 }
 
 const lockOneAlertService = `-- name: LockOneAlertService :one

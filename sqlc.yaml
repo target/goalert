@@ -24,6 +24,7 @@ sql:
       - engine/statusmgr/queries.sql
       - auth/authlink/queries.sql
       - alert/alertlog/queries.sql
+      - integrationkey/queries.sql
     engine: postgresql
     gen:
       go:

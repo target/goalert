@@ -5,9 +5,9 @@ import (
 	"database/sql"
 
 	"github.com/target/goalert/auth/authtoken"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
-	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/google/uuid"
@@ -16,12 +16,6 @@ import (
 
 type Store struct {
 	db *sql.DB
-
-	getServiceID     *sql.Stmt
-	create           *sql.Stmt
-	findOne          *sql.Stmt
-	findAllByService *sql.Stmt
-	delete           *sql.Stmt
 }
 
 func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
@@ -29,13 +23,14 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 	return &Store{
 		db: db,
-
-		getServiceID:     p.P("SELECT service_id FROM integration_keys WHERE id = $1 AND type = $2"),
-		create:           p.P("INSERT INTO integration_keys (id, name, type, service_id) VALUES ($1, $2, $3, $4)"),
-		findOne:          p.P("SELECT id, name, type, service_id FROM integration_keys WHERE id = $1"),
-		findAllByService: p.P("SELECT id, name, type, service_id FROM integration_keys WHERE service_id = $1"),
-		delete:           p.P("DELETE FROM integration_keys WHERE id = any($1)"),
 	}, p.Err
+}
+
+func (s *Store) queries(tx *sql.Tx) *gadb.Queries {
+	if tx != nil {
+		return gadb.New(tx)
+	}
+	return gadb.New(s.db)
 }
 
 func (s *Store) Authorize(ctx context.Context, tok authtoken.Token, t Type) (context.Context, error) {
@@ -58,8 +53,9 @@ func (s *Store) Authorize(ctx context.Context, tok authtoken.Token, t Type) (con
 }
 
 func (s *Store) GetServiceID(ctx context.Context, id string, t Type) (string, error) {
-	err := validate.Many(
-		validate.UUID("IntegrationKeyID", id),
+	keyUUID, err := validate.ParseUUID("IntegrationKeyID", id)
+	err = validate.Many(
+		err,
 		validate.OneOf("IntegrationType", t, TypeGrafana, TypeSite24x7, TypePrometheusAlertmanager, TypeGeneric, TypeEmail),
 	)
 	if err != nil {
@@ -70,10 +66,11 @@ func (s *Store) GetServiceID(ctx context.Context, id string, t Type) (string, er
 		return "", err
 	}
 
-	row := s.getServiceID.QueryRowContext(ctx, id, t)
+	serviceID, err := gadb.New(s.db).GetServiceID(ctx, gadb.GetServiceIDParams{
+		ID:   keyUUID,
+		Type: gadb.EnumIntegrationKeysType(t),
+	})
 
-	var serviceID string
-	err = row.Scan(&serviceID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return "", err
 	}
@@ -81,7 +78,7 @@ func (s *Store) GetServiceID(ctx context.Context, id string, t Type) (string, er
 		return "", errors.WithMessage(err, "lookup failure")
 	}
 
-	return serviceID, nil
+	return serviceID.String(), nil
 }
 
 func (s *Store) Create(ctx context.Context, i *IntegrationKey) (*IntegrationKey, error) {
@@ -99,13 +96,19 @@ func (s *Store) CreateKeyTx(ctx context.Context, tx *sql.Tx, i *IntegrationKey) 
 		return nil, err
 	}
 
-	stmt := s.create
-	if tx != nil {
-		stmt = tx.Stmt(stmt)
+	serviceUUID, err := uuid.Parse(n.ServiceID)
+	if err != nil {
+		return nil, err
 	}
 
-	n.ID = uuid.New().String()
-	_, err = stmt.ExecContext(ctx, n.ID, n.Name, n.Type, n.ServiceID)
+	keyUUID := uuid.New()
+	n.ID = keyUUID.String()
+	err = s.queries(tx).CreateIntegrationKey(ctx, gadb.CreateIntegrationKeyParams{
+		ID:        keyUUID,
+		Name:      n.Name,
+		Type:      gadb.EnumIntegrationKeysType(n.Type),
+		ServiceID: serviceUUID,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -125,21 +128,18 @@ func (s *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) erro
 	if err != nil {
 		return err
 	}
-	err = validate.ManyUUID("IntegrationKeyID", ids, 50)
+
+	uuids, err := validate.ParseManyUUID("IntegrationKeyID", ids, 50)
 	if err != nil {
 		return err
 	}
 
-	stmt := s.delete
-	if tx != nil {
-		stmt = tx.Stmt(stmt)
-	}
-	_, err = stmt.ExecContext(ctx, sqlutil.UUIDArray(ids))
+	err = s.queries(tx).DeleteIntegrationKey(ctx, uuids)
 	return err
 }
 
 func (s *Store) FindOne(ctx context.Context, id string) (*IntegrationKey, error) {
-	err := validate.UUID("IntegrationKeyID", id)
+	keyUUID, err := validate.ParseUUID("IntegrationKeyID", id)
 	if err != nil {
 		return nil, err
 	}
@@ -149,9 +149,7 @@ func (s *Store) FindOne(ctx context.Context, id string) (*IntegrationKey, error)
 		return nil, err
 	}
 
-	row := s.findOne.QueryRowContext(ctx, id)
-	var i IntegrationKey
-	err = scanFrom(&i, row.Scan)
+	row, err := gadb.New(s.db).FindOneIntegrationKey(ctx, keyUUID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -159,11 +157,16 @@ func (s *Store) FindOne(ctx context.Context, id string) (*IntegrationKey, error)
 		return nil, err
 	}
 
-	return &i, nil
+	return &IntegrationKey{
+		ID:        row.ID.String(),
+		Name:      row.Name,
+		Type:      Type(row.Type),
+		ServiceID: row.ServiceID.String(),
+	}, nil
 }
 
 func (s *Store) FindAllByService(ctx context.Context, serviceID string) ([]IntegrationKey, error) {
-	err := validate.UUID("ServiceID", serviceID)
+	serviceUUID, err := validate.ParseUUID("ServiceID", serviceID)
 	if err != nil {
 		return nil, err
 	}
@@ -173,26 +176,18 @@ func (s *Store) FindAllByService(ctx context.Context, serviceID string) ([]Integ
 		return nil, err
 	}
 
-	rows, err := s.findAllByService.QueryContext(ctx, serviceID)
+	rows, err := gadb.New(s.db).FindIntegrationKeysByService(ctx, serviceUUID)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	return scanAllFrom(rows)
-}
-
-func scanFrom(i *IntegrationKey, f func(args ...interface{}) error) error {
-	return f(&i.ID, &i.Name, &i.Type, &i.ServiceID)
-}
-
-func scanAllFrom(rows *sql.Rows) (integrationKeys []IntegrationKey, err error) {
-	var i IntegrationKey
-	for rows.Next() {
-		err = scanFrom(&i, rows.Scan)
-		if err != nil {
-			return nil, err
+	keys := make([]IntegrationKey, len(rows))
+	for i, row := range rows {
+		keys[i] = IntegrationKey{
+			ID:        row.ID.String(),
+			Name:      row.Name,
+			Type:      Type(row.Type),
+			ServiceID: row.ServiceID.String(),
 		}
-		integrationKeys = append(integrationKeys, i)
 	}
-	return integrationKeys, nil
+	return keys, nil
 }
