@@ -21,13 +21,6 @@ func NewStore(ctx context.Context, db *sql.DB) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) queries(tx *sql.Tx) *gadb.Queries {
-	if tx != nil {
-		return gadb.New(tx)
-	}
-	return gadb.New(s.db)
-}
-
 func (s *Store) Authorize(ctx context.Context, tok authtoken.Token, t Type) (context.Context, error) {
 	var serviceID string
 	var err error
@@ -76,11 +69,7 @@ func (s *Store) GetServiceID(ctx context.Context, id string, t Type) (string, er
 	return serviceID.String(), nil
 }
 
-func (s *Store) Create(ctx context.Context, i *IntegrationKey) (*IntegrationKey, error) {
-	return s.CreateKeyTx(ctx, nil, i)
-}
-
-func (s *Store) CreateKeyTx(ctx context.Context, tx *sql.Tx, i *IntegrationKey) (*IntegrationKey, error) {
+func (s *Store) Create(ctx context.Context, dbtx gadb.DBTX, i *IntegrationKey) (*IntegrationKey, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return nil, err
@@ -98,7 +87,7 @@ func (s *Store) CreateKeyTx(ctx context.Context, tx *sql.Tx, i *IntegrationKey) 
 
 	keyUUID := uuid.New()
 	n.ID = keyUUID.String()
-	err = s.queries(tx).IntKeyCreate(ctx, gadb.IntKeyCreateParams{
+	err = gadb.New(dbtx).IntKeyCreate(ctx, gadb.IntKeyCreateParams{
 		ID:        keyUUID,
 		Name:      n.Name,
 		Type:      gadb.EnumIntegrationKeysType(n.Type),
@@ -110,15 +99,11 @@ func (s *Store) CreateKeyTx(ctx context.Context, tx *sql.Tx, i *IntegrationKey) 
 	return n, nil
 }
 
-func (s *Store) Delete(ctx context.Context, id string) error {
-	return s.DeleteTx(ctx, nil, id)
+func (s *Store) Delete(ctx context.Context, dbtx gadb.DBTX, id string) error {
+	return s.DeleteMany(ctx, dbtx, []string{id})
 }
 
-func (s *Store) DeleteTx(ctx context.Context, tx *sql.Tx, id string) error {
-	return s.DeleteManyTx(ctx, tx, []string{id})
-}
-
-func (s *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error {
+func (s *Store) DeleteMany(ctx context.Context, dbtx gadb.DBTX, ids []string) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return err
@@ -129,7 +114,7 @@ func (s *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) erro
 		return err
 	}
 
-	err = s.queries(tx).IntKeyDelete(ctx, uuids)
+	err = gadb.New(dbtx).IntKeyDelete(ctx, uuids)
 	return err
 }
 
