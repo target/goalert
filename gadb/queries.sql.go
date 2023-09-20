@@ -718,6 +718,138 @@ func (q *Queries) FindOneCalSubForUpdate(ctx context.Context, id uuid.UUID) (Fin
 	return i, err
 }
 
+const intKeyCreate = `-- name: IntKeyCreate :exec
+INSERT INTO integration_keys(id, name, type, service_id)
+    VALUES ($1, $2, $3, $4)
+`
+
+type IntKeyCreateParams struct {
+	ID        uuid.UUID
+	Name      string
+	Type      EnumIntegrationKeysType
+	ServiceID uuid.UUID
+}
+
+func (q *Queries) IntKeyCreate(ctx context.Context, arg IntKeyCreateParams) error {
+	_, err := q.db.ExecContext(ctx, intKeyCreate,
+		arg.ID,
+		arg.Name,
+		arg.Type,
+		arg.ServiceID,
+	)
+	return err
+}
+
+const intKeyDelete = `-- name: IntKeyDelete :exec
+DELETE FROM integration_keys
+WHERE id = ANY ($1::uuid[])
+`
+
+func (q *Queries) IntKeyDelete(ctx context.Context, ids []uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, intKeyDelete, pq.Array(ids))
+	return err
+}
+
+const intKeyFindByService = `-- name: IntKeyFindByService :many
+SELECT
+    id,
+    name,
+    type,
+    service_id
+FROM
+    integration_keys
+WHERE
+    service_id = $1
+`
+
+type IntKeyFindByServiceRow struct {
+	ID        uuid.UUID
+	Name      string
+	Type      EnumIntegrationKeysType
+	ServiceID uuid.UUID
+}
+
+func (q *Queries) IntKeyFindByService(ctx context.Context, serviceID uuid.UUID) ([]IntKeyFindByServiceRow, error) {
+	rows, err := q.db.QueryContext(ctx, intKeyFindByService, serviceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []IntKeyFindByServiceRow
+	for rows.Next() {
+		var i IntKeyFindByServiceRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Type,
+			&i.ServiceID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const intKeyFindOne = `-- name: IntKeyFindOne :one
+SELECT
+    id,
+    name,
+    type,
+    service_id
+FROM
+    integration_keys
+WHERE
+    id = $1
+`
+
+type IntKeyFindOneRow struct {
+	ID        uuid.UUID
+	Name      string
+	Type      EnumIntegrationKeysType
+	ServiceID uuid.UUID
+}
+
+func (q *Queries) IntKeyFindOne(ctx context.Context, id uuid.UUID) (IntKeyFindOneRow, error) {
+	row := q.db.QueryRowContext(ctx, intKeyFindOne, id)
+	var i IntKeyFindOneRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Type,
+		&i.ServiceID,
+	)
+	return i, err
+}
+
+const intKeyGetServiceID = `-- name: IntKeyGetServiceID :one
+SELECT
+    service_id
+FROM
+    integration_keys
+WHERE
+    id = $1
+    AND type = $2
+`
+
+type IntKeyGetServiceIDParams struct {
+	ID   uuid.UUID
+	Type EnumIntegrationKeysType
+}
+
+func (q *Queries) IntKeyGetServiceID(ctx context.Context, arg IntKeyGetServiceIDParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, intKeyGetServiceID, arg.ID, arg.Type)
+	var service_id uuid.UUID
+	err := row.Scan(&service_id)
+	return service_id, err
+}
+
 const lockOneAlertService = `-- name: LockOneAlertService :one
 SELECT
     maintenance_expires_at NOTNULL::bool AS is_maint_mode,
