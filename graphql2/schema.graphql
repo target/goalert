@@ -581,8 +581,24 @@ type Mutation {
   setConfig(input: [ConfigValueInput!]): Boolean!
   setSystemLimits(input: [SystemLimitInput!]!): Boolean!
 
+  createGQLAPIKey(input: CreateGQLAPIKeyInput!): CreatedGQLAPIKey!
+  deleteGQLAPIKey(id: ID!): Boolean!
+
   createBasicAuth(input: CreateBasicAuthInput!): Boolean!
   updateBasicAuth(input: UpdateBasicAuthInput!): Boolean!
+}
+
+type CreatedGQLAPIKey {
+  id: ID!
+  token: String!
+}
+
+input CreateGQLAPIKeyInput {
+  name: String!
+  description: String!
+  allowedFields: [String!]!
+  expiresAt: ISOTimestamp!
+  role: UserRole!
 }
 
 input CreateBasicAuthInput {

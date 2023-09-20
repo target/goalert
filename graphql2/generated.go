@@ -170,6 +170,11 @@ type ComplexityRoot struct {
 		Value       func(childComplexity int) int
 	}
 
+	CreatedGQLAPIKey struct {
+		ID    func(childComplexity int) int
+		Token func(childComplexity int) int
+	}
+
 	DebugCarrierInfo struct {
 		MobileCountryCode func(childComplexity int) int
 		MobileNetworkCode func(childComplexity int) int
@@ -292,6 +297,7 @@ type ComplexityRoot struct {
 		CreateBasicAuth                    func(childComplexity int, input CreateBasicAuthInput) int
 		CreateEscalationPolicy             func(childComplexity int, input CreateEscalationPolicyInput) int
 		CreateEscalationPolicyStep         func(childComplexity int, input CreateEscalationPolicyStepInput) int
+		CreateGQLAPIKey                    func(childComplexity int, input CreateGQLAPIKeyInput) int
 		CreateHeartbeatMonitor             func(childComplexity int, input CreateHeartbeatMonitorInput) int
 		CreateIntegrationKey               func(childComplexity int, input CreateIntegrationKeyInput) int
 		CreateRotation                     func(childComplexity int, input CreateRotationInput) int
@@ -306,6 +312,7 @@ type ComplexityRoot struct {
 		DebugSendSms                       func(childComplexity int, input DebugSendSMSInput) int
 		DeleteAll                          func(childComplexity int, input []assignment.RawTarget) int
 		DeleteAuthSubject                  func(childComplexity int, input user.AuthSubject) int
+		DeleteGQLAPIKey                    func(childComplexity int, id string) int
 		EndAllAuthSessionsByCurrentUser    func(childComplexity int) int
 		EscalateAlerts                     func(childComplexity int, input []int) int
 		LinkAccount                        func(childComplexity int, token string) int
@@ -755,6 +762,8 @@ type MutationResolver interface {
 	UpdateAlertsByService(ctx context.Context, input UpdateAlertsByServiceInput) (bool, error)
 	SetConfig(ctx context.Context, input []ConfigValueInput) (bool, error)
 	SetSystemLimits(ctx context.Context, input []SystemLimitInput) (bool, error)
+	CreateGQLAPIKey(ctx context.Context, input CreateGQLAPIKeyInput) (*CreatedGQLAPIKey, error)
+	DeleteGQLAPIKey(ctx context.Context, id string) (bool, error)
 	CreateBasicAuth(ctx context.Context, input CreateBasicAuthInput) (bool, error)
 	UpdateBasicAuth(ctx context.Context, input UpdateBasicAuthInput) (bool, error)
 }
@@ -1210,6 +1219,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigValue.Value(childComplexity), true
+
+	case "CreatedGQLAPIKey.id":
+		if e.complexity.CreatedGQLAPIKey.ID == nil {
+			break
+		}
+
+		return e.complexity.CreatedGQLAPIKey.ID(childComplexity), true
+
+	case "CreatedGQLAPIKey.token":
+		if e.complexity.CreatedGQLAPIKey.Token == nil {
+			break
+		}
+
+		return e.complexity.CreatedGQLAPIKey.Token(childComplexity), true
 
 	case "DebugCarrierInfo.mobileCountryCode":
 		if e.complexity.DebugCarrierInfo.MobileCountryCode == nil {
@@ -1757,6 +1780,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateEscalationPolicyStep(childComplexity, args["input"].(CreateEscalationPolicyStepInput)), true
 
+	case "Mutation.createGQLAPIKey":
+		if e.complexity.Mutation.CreateGQLAPIKey == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createGQLAPIKey_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateGQLAPIKey(childComplexity, args["input"].(CreateGQLAPIKeyInput)), true
+
 	case "Mutation.createHeartbeatMonitor":
 		if e.complexity.Mutation.CreateHeartbeatMonitor == nil {
 			break
@@ -1924,6 +1959,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteAuthSubject(childComplexity, args["input"].(user.AuthSubject)), true
+
+	case "Mutation.deleteGQLAPIKey":
+		if e.complexity.Mutation.DeleteGQLAPIKey == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteGQLAPIKey_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteGQLAPIKey(childComplexity, args["id"].(string)), true
 
 	case "Mutation.endAllAuthSessionsByCurrentUser":
 		if e.complexity.Mutation.EndAllAuthSessionsByCurrentUser == nil {
@@ -3968,6 +4015,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCreateBasicAuthInput,
 		ec.unmarshalInputCreateEscalationPolicyInput,
 		ec.unmarshalInputCreateEscalationPolicyStepInput,
+		ec.unmarshalInputCreateGQLAPIKeyInput,
 		ec.unmarshalInputCreateHeartbeatMonitorInput,
 		ec.unmarshalInputCreateIntegrationKeyInput,
 		ec.unmarshalInputCreateRotationInput,
@@ -4259,6 +4307,21 @@ func (ec *executionContext) field_Mutation_createEscalationPolicy_args(ctx conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createGQLAPIKey_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 CreateGQLAPIKeyInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreateGQLAPIKeyInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateGQLAPIKeyInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createHeartbeatMonitor_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4466,6 +4529,21 @@ func (ec *executionContext) field_Mutation_deleteAuthSubject_args(ctx context.Co
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteGQLAPIKey_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -7614,6 +7692,94 @@ func (ec *executionContext) _ConfigValue_deprecated(ctx context.Context, field g
 func (ec *executionContext) fieldContext_ConfigValue_deprecated(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ConfigValue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CreatedGQLAPIKey_id(ctx context.Context, field graphql.CollectedField, obj *CreatedGQLAPIKey) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CreatedGQLAPIKey_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CreatedGQLAPIKey_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CreatedGQLAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CreatedGQLAPIKey_token(ctx context.Context, field graphql.CollectedField, obj *CreatedGQLAPIKey) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CreatedGQLAPIKey_token(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Token, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CreatedGQLAPIKey_token(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CreatedGQLAPIKey",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -13513,6 +13679,122 @@ func (ec *executionContext) fieldContext_Mutation_setSystemLimits(ctx context.Co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_setSystemLimits_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createGQLAPIKey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createGQLAPIKey(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateGQLAPIKey(rctx, fc.Args["input"].(CreateGQLAPIKeyInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*CreatedGQLAPIKey)
+	fc.Result = res
+	return ec.marshalNCreatedGQLAPIKey2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreatedGQLAPIKey(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createGQLAPIKey(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CreatedGQLAPIKey_id(ctx, field)
+			case "token":
+				return ec.fieldContext_CreatedGQLAPIKey_token(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CreatedGQLAPIKey", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createGQLAPIKey_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteGQLAPIKey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteGQLAPIKey(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteGQLAPIKey(rctx, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteGQLAPIKey(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteGQLAPIKey_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -27071,6 +27353,71 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyStepInput(ctx co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCreateGQLAPIKeyInput(ctx context.Context, obj interface{}) (CreateGQLAPIKeyInput, error) {
+	var it CreateGQLAPIKeyInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "description", "allowedFields", "expiresAt", "role"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		case "allowedFields":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("allowedFields"))
+			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AllowedFields = data
+		case "expiresAt":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("expiresAt"))
+			data, err := ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ExpiresAt = data
+		case "role":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
+			data, err := ec.unmarshalNUserRole2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserRole(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Role = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateHeartbeatMonitorInput(ctx context.Context, obj interface{}) (CreateHeartbeatMonitorInput, error) {
 	var it CreateHeartbeatMonitorInput
 	asMap := map[string]interface{}{}
@@ -31441,6 +31788,50 @@ func (ec *executionContext) _ConfigValue(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
+var createdGQLAPIKeyImplementors = []string{"CreatedGQLAPIKey"}
+
+func (ec *executionContext) _CreatedGQLAPIKey(ctx context.Context, sel ast.SelectionSet, obj *CreatedGQLAPIKey) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, createdGQLAPIKeyImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CreatedGQLAPIKey")
+		case "id":
+			out.Values[i] = ec._CreatedGQLAPIKey_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "token":
+			out.Values[i] = ec._CreatedGQLAPIKey_token(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var debugCarrierInfoImplementors = []string{"DebugCarrierInfo"}
 
 func (ec *executionContext) _DebugCarrierInfo(ctx context.Context, sel ast.SelectionSet, obj *twilio.CarrierInfo) graphql.Marshaler {
@@ -32917,6 +33308,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "setSystemLimits":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_setSystemLimits(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createGQLAPIKey":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createGQLAPIKey(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteGQLAPIKey":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteGQLAPIKey(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -38128,6 +38533,11 @@ func (ec *executionContext) unmarshalNCreateEscalationPolicyStepInput2githubᚗc
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNCreateGQLAPIKeyInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateGQLAPIKeyInput(ctx context.Context, v interface{}) (CreateGQLAPIKeyInput, error) {
+	res, err := ec.unmarshalInputCreateGQLAPIKeyInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreateHeartbeatMonitorInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateHeartbeatMonitorInput(ctx context.Context, v interface{}) (CreateHeartbeatMonitorInput, error) {
 	res, err := ec.unmarshalInputCreateHeartbeatMonitorInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -38176,6 +38586,20 @@ func (ec *executionContext) unmarshalNCreateUserNotificationRuleInput2githubᚗc
 func (ec *executionContext) unmarshalNCreateUserOverrideInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateUserOverrideInput(ctx context.Context, v interface{}) (CreateUserOverrideInput, error) {
 	res, err := ec.unmarshalInputCreateUserOverrideInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCreatedGQLAPIKey2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreatedGQLAPIKey(ctx context.Context, sel ast.SelectionSet, v CreatedGQLAPIKey) graphql.Marshaler {
+	return ec._CreatedGQLAPIKey(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCreatedGQLAPIKey2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreatedGQLAPIKey(ctx context.Context, sel ast.SelectionSet, v *CreatedGQLAPIKey) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CreatedGQLAPIKey(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNDebugCarrierInfo2githubᚗcomᚋtargetᚋgoalertᚋnotificationᚋtwilioᚐCarrierInfo(ctx context.Context, sel ast.SelectionSet, v twilio.CarrierInfo) graphql.Marshaler {
