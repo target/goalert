@@ -145,6 +145,7 @@ type CreateGQLAPIKeyInput struct {
 	Description   string    `json:"description"`
 	AllowedFields []string  `json:"allowedFields"`
 	ExpiresAt     time.Time `json:"expiresAt"`
+	Role          UserRole  `json:"role"`
 }
 
 type CreateHeartbeatMonitorInput struct {
