@@ -220,10 +220,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.IntegrationKeyStore == nil {
-		app.IntegrationKeyStore, err = integrationkey.NewStore(ctx, app.db)
-	}
-	if err != nil {
-		return errors.Wrap(err, "init integration key store")
+		app.IntegrationKeyStore = integrationkey.NewStore(ctx, app.db)
 	}
 
 	if app.ScheduleRuleStore == nil {

@@ -7,7 +7,6 @@ import (
 	"github.com/target/goalert/auth/authtoken"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
-	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/google/uuid"
@@ -18,12 +17,8 @@ type Store struct {
 	db *sql.DB
 }
 
-func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
-	p := &util.Prepare{DB: db, Ctx: ctx}
-
-	return &Store{
-		db: db,
-	}, p.Err
+func NewStore(ctx context.Context, db *sql.DB) *Store {
+	return &Store{db: db}
 }
 
 func (s *Store) queries(tx *sql.Tx) *gadb.Queries {
