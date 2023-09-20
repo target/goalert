@@ -61,7 +61,7 @@ func (s *Store) GetServiceID(ctx context.Context, id string, t Type) (string, er
 		return "", err
 	}
 
-	serviceID, err := gadb.New(s.db).GetServiceID(ctx, gadb.GetServiceIDParams{
+	serviceID, err := gadb.New(s.db).IntKeyGetServiceID(ctx, gadb.IntKeyGetServiceIDParams{
 		ID:   keyUUID,
 		Type: gadb.EnumIntegrationKeysType(t),
 	})
@@ -98,7 +98,7 @@ func (s *Store) CreateKeyTx(ctx context.Context, tx *sql.Tx, i *IntegrationKey) 
 
 	keyUUID := uuid.New()
 	n.ID = keyUUID.String()
-	err = s.queries(tx).CreateIntegrationKey(ctx, gadb.CreateIntegrationKeyParams{
+	err = s.queries(tx).IntKeyCreate(ctx, gadb.IntKeyCreateParams{
 		ID:        keyUUID,
 		Name:      n.Name,
 		Type:      gadb.EnumIntegrationKeysType(n.Type),
@@ -129,7 +129,7 @@ func (s *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) erro
 		return err
 	}
 
-	err = s.queries(tx).DeleteIntegrationKey(ctx, uuids)
+	err = s.queries(tx).IntKeyDelete(ctx, uuids)
 	return err
 }
 
@@ -144,7 +144,7 @@ func (s *Store) FindOne(ctx context.Context, id string) (*IntegrationKey, error)
 		return nil, err
 	}
 
-	row, err := gadb.New(s.db).FindOneIntegrationKey(ctx, keyUUID)
+	row, err := gadb.New(s.db).IntKeyFindOne(ctx, keyUUID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -171,7 +171,7 @@ func (s *Store) FindAllByService(ctx context.Context, serviceID string) ([]Integ
 		return nil, err
 	}
 
-	rows, err := gadb.New(s.db).FindIntegrationKeysByService(ctx, serviceUUID)
+	rows, err := gadb.New(s.db).IntKeyFindByService(ctx, serviceUUID)
 	if err != nil {
 		return nil, err
 	}

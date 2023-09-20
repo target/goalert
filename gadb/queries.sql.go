@@ -574,37 +574,6 @@ func (q *Queries) CreateCalSub(ctx context.Context, arg CreateCalSubParams) (tim
 	return created_at, err
 }
 
-const createIntegrationKey = `-- name: CreateIntegrationKey :exec
-INSERT INTO integration_keys (id, name, type, service_id)
-VALUES ($1, $2, $3, $4)
-`
-
-type CreateIntegrationKeyParams struct {
-	ID        uuid.UUID
-	Name      string
-	Type      EnumIntegrationKeysType
-	ServiceID uuid.UUID
-}
-
-func (q *Queries) CreateIntegrationKey(ctx context.Context, arg CreateIntegrationKeyParams) error {
-	_, err := q.db.ExecContext(ctx, createIntegrationKey,
-		arg.ID,
-		arg.Name,
-		arg.Type,
-		arg.ServiceID,
-	)
-	return err
-}
-
-const deleteIntegrationKey = `-- name: DeleteIntegrationKey :exec
-DELETE FROM integration_keys WHERE id = any($1::uuid[])
-`
-
-func (q *Queries) DeleteIntegrationKey(ctx context.Context, ids []uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteIntegrationKey, pq.Array(ids))
-	return err
-}
-
 const deleteManyCalSub = `-- name: DeleteManyCalSub :exec
 DELETE FROM user_calendar_subscriptions
 WHERE id = ANY($1::uuid [ ])
@@ -619,47 +588,6 @@ type DeleteManyCalSubParams struct {
 func (q *Queries) DeleteManyCalSub(ctx context.Context, arg DeleteManyCalSubParams) error {
 	_, err := q.db.ExecContext(ctx, deleteManyCalSub, pq.Array(arg.Column1), arg.UserID)
 	return err
-}
-
-const findIntegrationKeysByService = `-- name: FindIntegrationKeysByService :many
-SELECT id, name, type, service_id 
-FROM integration_keys
-WHERE service_id = $1
-`
-
-type FindIntegrationKeysByServiceRow struct {
-	ID        uuid.UUID
-	Name      string
-	Type      EnumIntegrationKeysType
-	ServiceID uuid.UUID
-}
-
-func (q *Queries) FindIntegrationKeysByService(ctx context.Context, serviceID uuid.UUID) ([]FindIntegrationKeysByServiceRow, error) {
-	rows, err := q.db.QueryContext(ctx, findIntegrationKeysByService, serviceID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []FindIntegrationKeysByServiceRow
-	for rows.Next() {
-		var i FindIntegrationKeysByServiceRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.Type,
-			&i.ServiceID,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const findManyCalSubByUser = `-- name: FindManyCalSubByUser :many
@@ -790,22 +718,107 @@ func (q *Queries) FindOneCalSubForUpdate(ctx context.Context, id uuid.UUID) (Fin
 	return i, err
 }
 
-const findOneIntegrationKey = `-- name: FindOneIntegrationKey :one
-SELECT id, name, type, service_id 
-FROM integration_keys
-WHERE id = $1
+const intKeyCreate = `-- name: IntKeyCreate :exec
+INSERT INTO integration_keys(id, name, type, service_id)
+    VALUES ($1, $2, $3, $4)
 `
 
-type FindOneIntegrationKeyRow struct {
+type IntKeyCreateParams struct {
 	ID        uuid.UUID
 	Name      string
 	Type      EnumIntegrationKeysType
 	ServiceID uuid.UUID
 }
 
-func (q *Queries) FindOneIntegrationKey(ctx context.Context, id uuid.UUID) (FindOneIntegrationKeyRow, error) {
-	row := q.db.QueryRowContext(ctx, findOneIntegrationKey, id)
-	var i FindOneIntegrationKeyRow
+func (q *Queries) IntKeyCreate(ctx context.Context, arg IntKeyCreateParams) error {
+	_, err := q.db.ExecContext(ctx, intKeyCreate,
+		arg.ID,
+		arg.Name,
+		arg.Type,
+		arg.ServiceID,
+	)
+	return err
+}
+
+const intKeyDelete = `-- name: IntKeyDelete :exec
+DELETE FROM integration_keys
+WHERE id = ANY ($1::uuid[])
+`
+
+func (q *Queries) IntKeyDelete(ctx context.Context, ids []uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, intKeyDelete, pq.Array(ids))
+	return err
+}
+
+const intKeyFindByService = `-- name: IntKeyFindByService :many
+SELECT
+    id,
+    name,
+    type,
+    service_id
+FROM
+    integration_keys
+WHERE
+    service_id = $1
+`
+
+type IntKeyFindByServiceRow struct {
+	ID        uuid.UUID
+	Name      string
+	Type      EnumIntegrationKeysType
+	ServiceID uuid.UUID
+}
+
+func (q *Queries) IntKeyFindByService(ctx context.Context, serviceID uuid.UUID) ([]IntKeyFindByServiceRow, error) {
+	rows, err := q.db.QueryContext(ctx, intKeyFindByService, serviceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []IntKeyFindByServiceRow
+	for rows.Next() {
+		var i IntKeyFindByServiceRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Type,
+			&i.ServiceID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const intKeyFindOne = `-- name: IntKeyFindOne :one
+SELECT
+    id,
+    name,
+    type,
+    service_id
+FROM
+    integration_keys
+WHERE
+    id = $1
+`
+
+type IntKeyFindOneRow struct {
+	ID        uuid.UUID
+	Name      string
+	Type      EnumIntegrationKeysType
+	ServiceID uuid.UUID
+}
+
+func (q *Queries) IntKeyFindOne(ctx context.Context, id uuid.UUID) (IntKeyFindOneRow, error) {
+	row := q.db.QueryRowContext(ctx, intKeyFindOne, id)
+	var i IntKeyFindOneRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
@@ -815,18 +828,23 @@ func (q *Queries) FindOneIntegrationKey(ctx context.Context, id uuid.UUID) (Find
 	return i, err
 }
 
-const getServiceID = `-- name: GetServiceID :one
-SELECT service_id FROM integration_keys
-WHERE id = $1 AND type = $2
+const intKeyGetServiceID = `-- name: IntKeyGetServiceID :one
+SELECT
+    service_id
+FROM
+    integration_keys
+WHERE
+    id = $1
+    AND type = $2
 `
 
-type GetServiceIDParams struct {
+type IntKeyGetServiceIDParams struct {
 	ID   uuid.UUID
 	Type EnumIntegrationKeysType
 }
 
-func (q *Queries) GetServiceID(ctx context.Context, arg GetServiceIDParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, getServiceID, arg.ID, arg.Type)
+func (q *Queries) IntKeyGetServiceID(ctx context.Context, arg IntKeyGetServiceIDParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, intKeyGetServiceID, arg.ID, arg.Type)
 	var service_id uuid.UUID
 	err := row.Scan(&service_id)
 	return service_id, err
