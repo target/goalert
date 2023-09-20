@@ -21,6 +21,7 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
+// Store is used to manage API keys.
 type Store struct {
 	db  *sql.DB
 	key keyring.Keyring
@@ -29,6 +30,7 @@ type Store struct {
 	lastUsedCache *lastUsedCache
 }
 
+// NewStore will create a new Store.
 func NewStore(ctx context.Context, db *sql.DB, key keyring.Keyring) (*Store, error) {
 	s := &Store{
 		db:  db,
@@ -72,7 +74,7 @@ func (s *Store) AuthorizeGraphQL(ctx context.Context, tok, ua, ip string) (conte
 		return nil, err
 	}
 	if !valid {
-		// Successful negative cache lookup, we return Unauthorized because althought the token was validated, the key was revoked/removed.
+		// Successful negative cache lookup, we return Unauthorized because although the token was validated, the key was revoked/removed.
 		return ctx, permission.Unauthorized()
 	}
 	if !bytes.Equal(info.Hash, claims.PolicyHash) {
