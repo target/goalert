@@ -66,6 +66,7 @@ type ResolverRoot interface {
 	AlertMetric() AlertMetricResolver
 	EscalationPolicy() EscalationPolicyResolver
 	EscalationPolicyStep() EscalationPolicyStepResolver
+	GQLAPIKey() GQLAPIKeyResolver
 	HeartbeatMonitor() HeartbeatMonitorResolver
 	IntegrationKey() IntegrationKeyResolver
 	MessageLogConnectionStats() MessageLogConnectionStatsResolver
@@ -234,6 +235,26 @@ type ComplexityRoot struct {
 		Targets          func(childComplexity int) int
 	}
 
+	GQLAPIKey struct {
+		AllowedFields func(childComplexity int) int
+		CreatedAt     func(childComplexity int) int
+		CreatedBy     func(childComplexity int) int
+		Description   func(childComplexity int) int
+		ExpiresAt     func(childComplexity int) int
+		ID            func(childComplexity int) int
+		LastUsed      func(childComplexity int) int
+		Name          func(childComplexity int) int
+		Token         func(childComplexity int) int
+		UpdatedAt     func(childComplexity int) int
+		UpdatedBy     func(childComplexity int) int
+	}
+
+	GQLAPIKeyUsage struct {
+		IP   func(childComplexity int) int
+		Time func(childComplexity int) int
+		Ua   func(childComplexity int) int
+	}
+
 	HeartbeatMonitor struct {
 		Href           func(childComplexity int) int
 		ID             func(childComplexity int) int
@@ -331,6 +352,7 @@ type ComplexityRoot struct {
 		UpdateBasicAuth                    func(childComplexity int, input UpdateBasicAuthInput) int
 		UpdateEscalationPolicy             func(childComplexity int, input UpdateEscalationPolicyInput) int
 		UpdateEscalationPolicyStep         func(childComplexity int, input UpdateEscalationPolicyStepInput) int
+		UpdateGQLAPIKey                    func(childComplexity int, input UpdateGQLAPIKeyInput) int
 		UpdateHeartbeatMonitor             func(childComplexity int, input UpdateHeartbeatMonitorInput) int
 		UpdateRotation                     func(childComplexity int, input UpdateRotationInput) int
 		UpdateSchedule                     func(childComplexity int, input UpdateScheduleInput) int
@@ -397,6 +419,7 @@ type ComplexityRoot struct {
 		EscalationPolicy         func(childComplexity int, id string) int
 		ExperimentalFlags        func(childComplexity int) int
 		GenerateSlackAppManifest func(childComplexity int) int
+		GqlAPIKeys               func(childComplexity int) int
 		HeartbeatMonitor         func(childComplexity int, id string) int
 		IntegrationKey           func(childComplexity int, id string) int
 		IntegrationKeyTypes      func(childComplexity int) int
@@ -702,6 +725,11 @@ type EscalationPolicyStepResolver interface {
 	Targets(ctx context.Context, obj *escalation.Step) ([]assignment.RawTarget, error)
 	EscalationPolicy(ctx context.Context, obj *escalation.Step) (*escalation.Policy, error)
 }
+type GQLAPIKeyResolver interface {
+	CreatedBy(ctx context.Context, obj *GQLAPIKey) (*user.User, error)
+
+	UpdatedBy(ctx context.Context, obj *GQLAPIKey) (*user.User, error)
+}
 type HeartbeatMonitorResolver interface {
 	TimeoutMinutes(ctx context.Context, obj *heartbeat.Monitor) (int, error)
 
@@ -763,6 +791,7 @@ type MutationResolver interface {
 	SetConfig(ctx context.Context, input []ConfigValueInput) (bool, error)
 	SetSystemLimits(ctx context.Context, input []SystemLimitInput) (bool, error)
 	CreateGQLAPIKey(ctx context.Context, input CreateGQLAPIKeyInput) (*CreatedGQLAPIKey, error)
+	UpdateGQLAPIKey(ctx context.Context, input UpdateGQLAPIKeyInput) (bool, error)
 	DeleteGQLAPIKey(ctx context.Context, id string) (bool, error)
 	CreateBasicAuth(ctx context.Context, input CreateBasicAuthInput) (bool, error)
 	UpdateBasicAuth(ctx context.Context, input UpdateBasicAuthInput) (bool, error)
@@ -815,6 +844,7 @@ type QueryResolver interface {
 	GenerateSlackAppManifest(ctx context.Context) (string, error)
 	LinkAccountInfo(ctx context.Context, token string) (*LinkAccountInfo, error)
 	SwoStatus(ctx context.Context) (*SWOStatus, error)
+	GqlAPIKeys(ctx context.Context) ([]GQLAPIKey, error)
 	ListGQLFields(ctx context.Context, query *string) ([]string, error)
 }
 type RotationResolver interface {
@@ -1500,6 +1530,104 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.EscalationPolicyStep.Targets(childComplexity), true
 
+	case "GQLAPIKey.allowedFields":
+		if e.complexity.GQLAPIKey.AllowedFields == nil {
+			break
+		}
+
+		return e.complexity.GQLAPIKey.AllowedFields(childComplexity), true
+
+	case "GQLAPIKey.createdAt":
+		if e.complexity.GQLAPIKey.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.GQLAPIKey.CreatedAt(childComplexity), true
+
+	case "GQLAPIKey.createdBy":
+		if e.complexity.GQLAPIKey.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.GQLAPIKey.CreatedBy(childComplexity), true
+
+	case "GQLAPIKey.description":
+		if e.complexity.GQLAPIKey.Description == nil {
+			break
+		}
+
+		return e.complexity.GQLAPIKey.Description(childComplexity), true
+
+	case "GQLAPIKey.expiresAt":
+		if e.complexity.GQLAPIKey.ExpiresAt == nil {
+			break
+		}
+
+		return e.complexity.GQLAPIKey.ExpiresAt(childComplexity), true
+
+	case "GQLAPIKey.id":
+		if e.complexity.GQLAPIKey.ID == nil {
+			break
+		}
+
+		return e.complexity.GQLAPIKey.ID(childComplexity), true
+
+	case "GQLAPIKey.lastUsed":
+		if e.complexity.GQLAPIKey.LastUsed == nil {
+			break
+		}
+
+		return e.complexity.GQLAPIKey.LastUsed(childComplexity), true
+
+	case "GQLAPIKey.name":
+		if e.complexity.GQLAPIKey.Name == nil {
+			break
+		}
+
+		return e.complexity.GQLAPIKey.Name(childComplexity), true
+
+	case "GQLAPIKey.token":
+		if e.complexity.GQLAPIKey.Token == nil {
+			break
+		}
+
+		return e.complexity.GQLAPIKey.Token(childComplexity), true
+
+	case "GQLAPIKey.updatedAt":
+		if e.complexity.GQLAPIKey.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.GQLAPIKey.UpdatedAt(childComplexity), true
+
+	case "GQLAPIKey.updatedBy":
+		if e.complexity.GQLAPIKey.UpdatedBy == nil {
+			break
+		}
+
+		return e.complexity.GQLAPIKey.UpdatedBy(childComplexity), true
+
+	case "GQLAPIKeyUsage.ip":
+		if e.complexity.GQLAPIKeyUsage.IP == nil {
+			break
+		}
+
+		return e.complexity.GQLAPIKeyUsage.IP(childComplexity), true
+
+	case "GQLAPIKeyUsage.time":
+		if e.complexity.GQLAPIKeyUsage.Time == nil {
+			break
+		}
+
+		return e.complexity.GQLAPIKeyUsage.Time(childComplexity), true
+
+	case "GQLAPIKeyUsage.ua":
+		if e.complexity.GQLAPIKeyUsage.Ua == nil {
+			break
+		}
+
+		return e.complexity.GQLAPIKeyUsage.Ua(childComplexity), true
+
 	case "HeartbeatMonitor.href":
 		if e.complexity.HeartbeatMonitor.Href == nil {
 			break
@@ -2183,6 +2311,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateEscalationPolicyStep(childComplexity, args["input"].(UpdateEscalationPolicyStepInput)), true
 
+	case "Mutation.updateGQLAPIKey":
+		if e.complexity.Mutation.UpdateGQLAPIKey == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateGQLAPIKey_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateGQLAPIKey(childComplexity, args["input"].(UpdateGQLAPIKeyInput)), true
+
 	case "Mutation.updateHeartbeatMonitor":
 		if e.complexity.Mutation.UpdateHeartbeatMonitor == nil {
 			break
@@ -2592,6 +2732,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GenerateSlackAppManifest(childComplexity), true
+
+	case "Query.gqlAPIKeys":
+		if e.complexity.Query.GqlAPIKeys == nil {
+			break
+		}
+
+		return e.complexity.Query.GqlAPIKeys(childComplexity), true
 
 	case "Query.heartbeatMonitor":
 		if e.complexity.Query.HeartbeatMonitor == nil {
@@ -4060,6 +4207,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUpdateBasicAuthInput,
 		ec.unmarshalInputUpdateEscalationPolicyInput,
 		ec.unmarshalInputUpdateEscalationPolicyStepInput,
+		ec.unmarshalInputUpdateGQLAPIKeyInput,
 		ec.unmarshalInputUpdateHeartbeatMonitorInput,
 		ec.unmarshalInputUpdateRotationInput,
 		ec.unmarshalInputUpdateScheduleInput,
@@ -4794,6 +4942,21 @@ func (ec *executionContext) field_Mutation_updateEscalationPolicy_args(ctx conte
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNUpdateEscalationPolicyInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateEscalationPolicyInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateGQLAPIKey_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 UpdateGQLAPIKeyInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUpdateGQLAPIKeyInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateGQLAPIKeyInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9521,6 +9684,670 @@ func (ec *executionContext) fieldContext_EscalationPolicyStep_escalationPolicy(c
 	return fc, nil
 }
 
+func (ec *executionContext) _GQLAPIKey_id(ctx context.Context, field graphql.CollectedField, obj *GQLAPIKey) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GQLAPIKey_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GQLAPIKey_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GQLAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GQLAPIKey_name(ctx context.Context, field graphql.CollectedField, obj *GQLAPIKey) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GQLAPIKey_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GQLAPIKey_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GQLAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GQLAPIKey_description(ctx context.Context, field graphql.CollectedField, obj *GQLAPIKey) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GQLAPIKey_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GQLAPIKey_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GQLAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GQLAPIKey_createdAt(ctx context.Context, field graphql.CollectedField, obj *GQLAPIKey) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GQLAPIKey_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GQLAPIKey_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GQLAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GQLAPIKey_createdBy(ctx context.Context, field graphql.CollectedField, obj *GQLAPIKey) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GQLAPIKey_createdBy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.GQLAPIKey().CreatedBy(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*user.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖgithubᚗcomᚋtargetᚋgoalertᚋuserᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GQLAPIKey_createdBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GQLAPIKey",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "role":
+				return ec.fieldContext_User_role(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "contactMethods":
+				return ec.fieldContext_User_contactMethods(ctx, field)
+			case "notificationRules":
+				return ec.fieldContext_User_notificationRules(ctx, field)
+			case "calendarSubscriptions":
+				return ec.fieldContext_User_calendarSubscriptions(ctx, field)
+			case "statusUpdateContactMethodID":
+				return ec.fieldContext_User_statusUpdateContactMethodID(ctx, field)
+			case "authSubjects":
+				return ec.fieldContext_User_authSubjects(ctx, field)
+			case "sessions":
+				return ec.fieldContext_User_sessions(ctx, field)
+			case "onCallSteps":
+				return ec.fieldContext_User_onCallSteps(ctx, field)
+			case "isFavorite":
+				return ec.fieldContext_User_isFavorite(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GQLAPIKey_updatedAt(ctx context.Context, field graphql.CollectedField, obj *GQLAPIKey) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GQLAPIKey_updatedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GQLAPIKey_updatedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GQLAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GQLAPIKey_updatedBy(ctx context.Context, field graphql.CollectedField, obj *GQLAPIKey) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GQLAPIKey_updatedBy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.GQLAPIKey().UpdatedBy(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*user.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖgithubᚗcomᚋtargetᚋgoalertᚋuserᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GQLAPIKey_updatedBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GQLAPIKey",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "role":
+				return ec.fieldContext_User_role(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "contactMethods":
+				return ec.fieldContext_User_contactMethods(ctx, field)
+			case "notificationRules":
+				return ec.fieldContext_User_notificationRules(ctx, field)
+			case "calendarSubscriptions":
+				return ec.fieldContext_User_calendarSubscriptions(ctx, field)
+			case "statusUpdateContactMethodID":
+				return ec.fieldContext_User_statusUpdateContactMethodID(ctx, field)
+			case "authSubjects":
+				return ec.fieldContext_User_authSubjects(ctx, field)
+			case "sessions":
+				return ec.fieldContext_User_sessions(ctx, field)
+			case "onCallSteps":
+				return ec.fieldContext_User_onCallSteps(ctx, field)
+			case "isFavorite":
+				return ec.fieldContext_User_isFavorite(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GQLAPIKey_lastUsed(ctx context.Context, field graphql.CollectedField, obj *GQLAPIKey) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GQLAPIKey_lastUsed(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastUsed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*GQLAPIKeyUsage)
+	fc.Result = res
+	return ec.marshalOGQLAPIKeyUsage2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐGQLAPIKeyUsage(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GQLAPIKey_lastUsed(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GQLAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "time":
+				return ec.fieldContext_GQLAPIKeyUsage_time(ctx, field)
+			case "ua":
+				return ec.fieldContext_GQLAPIKeyUsage_ua(ctx, field)
+			case "ip":
+				return ec.fieldContext_GQLAPIKeyUsage_ip(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type GQLAPIKeyUsage", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GQLAPIKey_expiresAt(ctx context.Context, field graphql.CollectedField, obj *GQLAPIKey) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GQLAPIKey_expiresAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExpiresAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GQLAPIKey_expiresAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GQLAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GQLAPIKey_allowedFields(ctx context.Context, field graphql.CollectedField, obj *GQLAPIKey) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GQLAPIKey_allowedFields(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AllowedFields, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GQLAPIKey_allowedFields(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GQLAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GQLAPIKey_token(ctx context.Context, field graphql.CollectedField, obj *GQLAPIKey) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GQLAPIKey_token(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Token, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GQLAPIKey_token(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GQLAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GQLAPIKeyUsage_time(ctx context.Context, field graphql.CollectedField, obj *GQLAPIKeyUsage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GQLAPIKeyUsage_time(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Time, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GQLAPIKeyUsage_time(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GQLAPIKeyUsage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GQLAPIKeyUsage_ua(ctx context.Context, field graphql.CollectedField, obj *GQLAPIKeyUsage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GQLAPIKeyUsage_ua(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Ua, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GQLAPIKeyUsage_ua(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GQLAPIKeyUsage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GQLAPIKeyUsage_ip(ctx context.Context, field graphql.CollectedField, obj *GQLAPIKeyUsage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GQLAPIKeyUsage_ip(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IP, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GQLAPIKeyUsage_ip(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GQLAPIKeyUsage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _HeartbeatMonitor_id(ctx context.Context, field graphql.CollectedField, obj *heartbeat.Monitor) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_HeartbeatMonitor_id(ctx, field)
 	if err != nil {
@@ -13746,6 +14573,61 @@ func (ec *executionContext) fieldContext_Mutation_createGQLAPIKey(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_updateGQLAPIKey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateGQLAPIKey(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateGQLAPIKey(rctx, fc.Args["input"].(UpdateGQLAPIKeyInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateGQLAPIKey(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateGQLAPIKey_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_deleteGQLAPIKey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_deleteGQLAPIKey(ctx, field)
 	if err != nil {
@@ -17541,6 +18423,74 @@ func (ec *executionContext) fieldContext_Query_swoStatus(ctx context.Context, fi
 				return ec.fieldContext_SWOStatus_nextDBVersion(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SWOStatus", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_gqlAPIKeys(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_gqlAPIKeys(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GqlAPIKeys(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]GQLAPIKey)
+	fc.Result = res
+	return ec.marshalNGQLAPIKey2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐGQLAPIKeyᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_gqlAPIKeys(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_GQLAPIKey_id(ctx, field)
+			case "name":
+				return ec.fieldContext_GQLAPIKey_name(ctx, field)
+			case "description":
+				return ec.fieldContext_GQLAPIKey_description(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_GQLAPIKey_createdAt(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_GQLAPIKey_createdBy(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_GQLAPIKey_updatedAt(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_GQLAPIKey_updatedBy(ctx, field)
+			case "lastUsed":
+				return ec.fieldContext_GQLAPIKey_lastUsed(ctx, field)
+			case "expiresAt":
+				return ec.fieldContext_GQLAPIKey_expiresAt(ctx, field)
+			case "allowedFields":
+				return ec.fieldContext_GQLAPIKey_allowedFields(ctx, field)
+			case "token":
+				return ec.fieldContext_GQLAPIKey_token(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type GQLAPIKey", field.Name)
 		},
 	}
 	return fc, nil
@@ -27360,7 +28310,7 @@ func (ec *executionContext) unmarshalInputCreateGQLAPIKeyInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "description", "allowedFields", "expiresAt", "role"}
+	fieldsInOrder := [...]string{"name", "description", "allowedFields", "expiresAt"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -27403,15 +28353,6 @@ func (ec *executionContext) unmarshalInputCreateGQLAPIKeyInput(ctx context.Conte
 				return it, err
 			}
 			it.ExpiresAt = data
-		case "role":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
-			data, err := ec.unmarshalNUserRole2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserRole(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Role = data
 		}
 	}
 
@@ -29996,6 +30937,53 @@ func (ec *executionContext) unmarshalInputUpdateEscalationPolicyStepInput(ctx co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateGQLAPIKeyInput(ctx context.Context, obj interface{}) (UpdateGQLAPIKeyInput, error) {
+	var it UpdateGQLAPIKeyInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "name", "description"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateHeartbeatMonitorInput(ctx context.Context, obj interface{}) (UpdateHeartbeatMonitorInput, error) {
 	var it UpdateHeartbeatMonitorInput
 	asMap := map[string]interface{}{}
@@ -32419,6 +33407,194 @@ func (ec *executionContext) _EscalationPolicyStep(ctx context.Context, sel ast.S
 	return out
 }
 
+var gQLAPIKeyImplementors = []string{"GQLAPIKey"}
+
+func (ec *executionContext) _GQLAPIKey(ctx context.Context, sel ast.SelectionSet, obj *GQLAPIKey) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, gQLAPIKeyImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GQLAPIKey")
+		case "id":
+			out.Values[i] = ec._GQLAPIKey_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "name":
+			out.Values[i] = ec._GQLAPIKey_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "description":
+			out.Values[i] = ec._GQLAPIKey_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "createdAt":
+			out.Values[i] = ec._GQLAPIKey_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "createdBy":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._GQLAPIKey_createdBy(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "updatedAt":
+			out.Values[i] = ec._GQLAPIKey_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "updatedBy":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._GQLAPIKey_updatedBy(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "lastUsed":
+			out.Values[i] = ec._GQLAPIKey_lastUsed(ctx, field, obj)
+		case "expiresAt":
+			out.Values[i] = ec._GQLAPIKey_expiresAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "allowedFields":
+			out.Values[i] = ec._GQLAPIKey_allowedFields(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "token":
+			out.Values[i] = ec._GQLAPIKey_token(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var gQLAPIKeyUsageImplementors = []string{"GQLAPIKeyUsage"}
+
+func (ec *executionContext) _GQLAPIKeyUsage(ctx context.Context, sel ast.SelectionSet, obj *GQLAPIKeyUsage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, gQLAPIKeyUsageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GQLAPIKeyUsage")
+		case "time":
+			out.Values[i] = ec._GQLAPIKeyUsage_time(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "ua":
+			out.Values[i] = ec._GQLAPIKeyUsage_ua(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "ip":
+			out.Values[i] = ec._GQLAPIKeyUsage_ip(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var heartbeatMonitorImplementors = []string{"HeartbeatMonitor"}
 
 func (ec *executionContext) _HeartbeatMonitor(ctx context.Context, sel ast.SelectionSet, obj *heartbeat.Monitor) graphql.Marshaler {
@@ -33315,6 +34491,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "createGQLAPIKey":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createGQLAPIKey(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateGQLAPIKey":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateGQLAPIKey(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -34593,6 +35776,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_swoStatus(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "gqlAPIKeys":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_gqlAPIKeys(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -38803,6 +40008,54 @@ func (ec *executionContext) marshalNEscalationPolicyStep2ᚕgithubᚗcomᚋtarge
 	return ret
 }
 
+func (ec *executionContext) marshalNGQLAPIKey2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐGQLAPIKey(ctx context.Context, sel ast.SelectionSet, v GQLAPIKey) graphql.Marshaler {
+	return ec._GQLAPIKey(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNGQLAPIKey2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐGQLAPIKeyᚄ(ctx context.Context, sel ast.SelectionSet, v []GQLAPIKey) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNGQLAPIKey2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐGQLAPIKey(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) marshalNHeartbeatMonitor2githubᚗcomᚋtargetᚋgoalertᚋheartbeatᚐMonitor(ctx context.Context, sel ast.SelectionSet, v heartbeat.Monitor) graphql.Marshaler {
 	return ec._HeartbeatMonitor(ctx, sel, &v)
 }
@@ -40508,6 +41761,11 @@ func (ec *executionContext) unmarshalNUpdateEscalationPolicyStepInput2githubᚗc
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNUpdateGQLAPIKeyInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateGQLAPIKeyInput(ctx context.Context, v interface{}) (UpdateGQLAPIKeyInput, error) {
+	res, err := ec.unmarshalInputUpdateGQLAPIKeyInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNUpdateHeartbeatMonitorInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateHeartbeatMonitorInput(ctx context.Context, v interface{}) (UpdateHeartbeatMonitorInput, error) {
 	res, err := ec.unmarshalInputUpdateHeartbeatMonitorInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -41578,6 +42836,13 @@ func (ec *executionContext) marshalOEscalationPolicyStep2ᚖgithubᚗcomᚋtarge
 		return graphql.Null
 	}
 	return ec._EscalationPolicyStep(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOGQLAPIKeyUsage2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐGQLAPIKeyUsage(ctx context.Context, sel ast.SelectionSet, v *GQLAPIKeyUsage) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._GQLAPIKeyUsage(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOHeartbeatMonitor2ᚖgithubᚗcomᚋtargetᚋgoalertᚋheartbeatᚐMonitor(ctx context.Context, sel ast.SelectionSet, v *heartbeat.Monitor) graphql.Marshaler {

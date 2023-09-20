@@ -1,3 +1,9 @@
+directive @goField(
+  forceResolver: Boolean
+  name: String
+  omittable: Boolean
+) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+
 type Query {
   phoneNumberInfo(number: String!): PhoneNumberInfo
 
@@ -128,6 +134,8 @@ type Query {
   linkAccountInfo(token: ID!): LinkAccountInfo
 
   swoStatus: SWOStatus!
+
+  gqlAPIKeys: [GQLAPIKey!]!
 
   listGQLFields(query: String): [String!]!
 }
@@ -582,6 +590,7 @@ type Mutation {
   setSystemLimits(input: [SystemLimitInput!]!): Boolean!
 
   createGQLAPIKey(input: CreateGQLAPIKeyInput!): CreatedGQLAPIKey!
+  updateGQLAPIKey(input: UpdateGQLAPIKeyInput!): Boolean!
   deleteGQLAPIKey(id: ID!): Boolean!
 
   createBasicAuth(input: CreateBasicAuthInput!): Boolean!
@@ -598,7 +607,32 @@ input CreateGQLAPIKeyInput {
   description: String!
   allowedFields: [String!]!
   expiresAt: ISOTimestamp!
-  role: UserRole!
+}
+
+input UpdateGQLAPIKeyInput {
+  id: ID!
+  name: String
+  description: String
+}
+
+type GQLAPIKey {
+  id: ID!
+  name: String!
+  description: String!
+  createdAt: ISOTimestamp!
+  createdBy: User @goField(forceResolver: true)
+  updatedAt: ISOTimestamp!
+  updatedBy: User @goField(forceResolver: true)
+  lastUsed: GQLAPIKeyUsage
+  expiresAt: ISOTimestamp!
+  allowedFields: [String!]!
+  token: String
+}
+
+type GQLAPIKeyUsage {
+  time: ISOTimestamp!
+  ua: String!
+  ip: String!
 }
 
 input CreateBasicAuthInput {
