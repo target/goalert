@@ -21,7 +21,7 @@ SWO_DB_URL_NEXT = $(shell go run ./devtools/scripts/db-url "$(DB_URL)" "$(SWO_DB
 
 LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
-YARN_VERSION=3.5.0
+YARN_VERSION=3.6.3
 PG_VERSION=13
 
 NODE_DEPS=.pnp.cjs .yarnrc.yml

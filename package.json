@@ -115,5 +115,5 @@
     "wonka": "6.3.2",
     "wouter": "2.11.0"
   },
-  "packageManager": "yarn@3.5.0"
+  "packageManager": "yarn@3.6.3"
 }
