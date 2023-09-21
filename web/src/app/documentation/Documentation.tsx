@@ -34,14 +34,27 @@ export default function Documentation(): JSX.Element {
       publicURL || `${window.location.origin}${pathPrefix}`,
     ),
   )
+  interface H1Props {
+    children: React.ReactNode
+  }
 
   return (
     <React.Fragment>
       {markdownDocs.map((doc, i) => (
-        <Card key={i} className={classes.mBottom}>
+        <Card key={i} className={classes.mBottom} id={i}>
           <CardContent>
             <Typography variant='body1' component='div'>
-              <Markdown value={doc} />
+              <Markdown value={doc}  components={{
+                  h1: (props: H1Props) => {
+                  const title = props.children?.toString().replace(' ', '-')
+                  return (
+                    <h1 id={title}>
+                    {title}
+                    <a href={`#${title}`}> #</a>
+                    </h1>
+                  )
+                  },
+                }}/>
             </Typography>
           </CardContent>
         </Card>
