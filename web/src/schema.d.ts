@@ -42,6 +42,7 @@ export interface Query {
   generateSlackAppManifest: string
   linkAccountInfo?: null | LinkAccountInfo
   swoStatus: SWOStatus
+  gqlAPIKeys: GQLAPIKey[]
   listGQLFields: string[]
 }
 
@@ -440,6 +441,7 @@ export interface CreateGQLAPIKeyInput {
   description: string
   allowedFields: string[]
   expiresAt: ISOTimestamp
+  role: UserRole
 }
 
 export interface UpdateGQLAPIKeyInput {
@@ -459,7 +461,6 @@ export interface GQLAPIKey {
   lastUsed?: null | GQLAPIKeyUsage
   expiresAt: ISOTimestamp
   allowedFields: string[]
-  token?: null | string
 }
 
 export interface GQLAPIKeyUsage {

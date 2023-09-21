@@ -8,6 +8,7 @@ UPDATE
 SET
     name = $2,
     description = $3,
+    updated_at = now(),
     updated_by = $4
 WHERE
     id = $1;
@@ -24,8 +25,13 @@ WHERE
 FOR UPDATE;
 
 -- name: APIKeyDelete :exec
-DELETE FROM gql_api_keys
-WHERE id = $1;
+UPDATE
+    gql_api_keys
+SET
+    deleted_at = now(),
+    deleted_by = $2
+WHERE
+    id = $1;
 
 -- name: APIKeyRecordUsage :exec
 -- APIKeyRecordUsage records the usage of an API key.

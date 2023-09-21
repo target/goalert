@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"sort"
 	"time"
 
@@ -21,38 +22,21 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
+// Store is used to manage API keys.
 type Store struct {
 	db  *sql.DB
 	key keyring.Keyring
-
-	polCache      *polCache
-	lastUsedCache *lastUsedCache
 }
 
-type policyInfo struct {
-	Hash   []byte
-	Policy GQLPolicy
-}
-
+// NewStore will create a new Store.
 func NewStore(ctx context.Context, db *sql.DB, key keyring.Keyring) (*Store, error) {
 	s := &Store{
 		db:  db,
 		key: key,
 	}
 
-	s.polCache = newPolCache(polCacheConfig{
-		FillFunc: s._fetchPolicyInfo,
-		Verify:   s._verifyPolicyID,
-		MaxSize:  1000,
-	})
-
-	s.lastUsedCache = newLastUsedCache(1000, s._updateLastUsed)
-
 	return s, nil
 }
-
-const Issuer = "goalert"
-const Audience = "apikey-v1/graphql-v1"
 
 type APIKeyInfo struct {
 	ID            uuid.UUID
@@ -192,7 +176,15 @@ func (s *Store) DeleteAdminGraphQLKey(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
-	return gadb.New(s.db).APIKeyDelete(ctx, id)
+	var byID uuid.NullUUID
+	if id, err := uuid.Parse(permission.UserID(ctx)); err == nil {
+		byID = uuid.NullUUID{UUID: id, Valid: true}
+	}
+
+	return gadb.New(s.db).APIKeyDelete(ctx, gadb.APIKeyDeleteParams{
+		DeletedBy: byID,
+		ID:        id,
+	})
 }
 
 func (s *Store) AuthorizeGraphQL(ctx context.Context, tok, ua, ip string) (context.Context, error) {
@@ -207,24 +199,21 @@ func (s *Store) AuthorizeGraphQL(ctx context.Context, tok, ua, ip string) (conte
 		return ctx, permission.Unauthorized()
 	}
 
-	info, valid, err := s.polCache.Get(ctx, id)
+	info, valid, err := s._fetchPolicyInfo(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	if !valid {
-		// Successful negative cache lookup, we return Unauthorized because althought the token was validated, the key was revoked/removed.
+		// Successful negative cache lookup, we return Unauthorized because although the token was validated, the key was revoked/removed.
 		return ctx, permission.Unauthorized()
 	}
 	if !bytes.Equal(info.Hash, claims.PolicyHash) {
-		// Successful cache lookup, but the policy has changed since the token was issued and so the token is no longer valid.
-		s.polCache.Revoke(ctx, id)
-
 		// We want to log this as a warning, because it is a potential security issue.
 		log.Log(ctx, fmt.Errorf("apikey: policy hash mismatch for key %s", id))
 		return ctx, permission.Unauthorized()
 	}
 
-	err = s.lastUsedCache.RecordUsage(ctx, id, ua, ip)
+	err = s._updateLastUsed(ctx, id, ua, ip)
 	if err != nil {
 		// Recording usage is not critical, so we log the error and continue.
 		log.Log(ctx, err)
@@ -234,24 +223,22 @@ func (s *Store) AuthorizeGraphQL(ctx context.Context, tok, ua, ip string) (conte
 		ID:   id.String(),
 		Type: permission.SourceTypeGQLAPIKey,
 	})
-	ctx = permission.UserContext(ctx, "", permission.RoleUnknown)
+	ctx = permission.UserContext(ctx, "", info.Policy.Role)
 
 	ctx = ContextWithPolicy(ctx, &info.Policy)
 	return ctx, nil
 }
 
+// NewAdminGQLKeyOpts is used to create a new GraphQL API key.
 type NewAdminGQLKeyOpts struct {
 	Name    string
 	Desc    string
 	Fields  []string
 	Expires time.Time
+	Role    permission.Role
 }
 
-type GQLPolicy struct {
-	Version       int
-	AllowedFields []string
-}
-
+// CreateAdminGraphQLKey will create a new GraphQL API key returning the ID and token.
 func (s *Store) CreateAdminGraphQLKey(ctx context.Context, opt NewAdminGQLKeyOpts) (uuid.UUID, string, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
@@ -262,12 +249,17 @@ func (s *Store) CreateAdminGraphQLKey(ctx context.Context, opt NewAdminGQLKeyOpt
 		validate.IDName("Name", opt.Name),
 		validate.Text("Description", opt.Desc, 0, 255),
 		validate.Range("Fields", len(opt.Fields), 1, len(graphql2.SchemaFields())),
+		validate.OneOf("Role", opt.Role, permission.RoleAdmin, permission.RoleUser),
 	)
-	for i, f := range opt.Fields {
-		err = validate.Many(err, validate.OneOf(fmt.Sprintf("Fields[%d]", i), f, graphql2.SchemaFields()...))
-	}
 	if time.Until(opt.Expires) <= 0 {
 		err = validate.Many(err, validation.NewFieldError("Expires", "must be in the future"))
+	}
+	for i, f := range opt.Fields {
+		if slices.Contains(graphql2.SchemaFields(), f) {
+			continue
+		}
+
+		err = validate.Many(err, validation.NewFieldError(fmt.Sprintf("Fields[%d]", i), "is not a valid field"))
 	}
 	if err != nil {
 		return uuid.Nil, "", err
@@ -277,6 +269,7 @@ func (s *Store) CreateAdminGraphQLKey(ctx context.Context, opt NewAdminGQLKeyOpt
 	policyData, err := json.Marshal(GQLPolicy{
 		Version:       1,
 		AllowedFields: opt.Fields,
+		Role:          opt.Role,
 	})
 	if err != nil {
 		return uuid.Nil, "", err

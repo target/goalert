@@ -2,13 +2,13 @@ package graphqlapp
 
 import (
 	"context"
-	"database/sql"
-	"time"
 
 	"github.com/target/goalert/apikey"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
+	"github.com/target/goalert/validation"
 )
 
 type GQLAPIKey App
@@ -32,6 +32,9 @@ func (a *GQLAPIKey) UpdatedBy(ctx context.Context, obj *graphql2.GQLAPIKey) (*us
 }
 
 func (q *Query) GqlAPIKeys(ctx context.Context) ([]graphql2.GQLAPIKey, error) {
+	if !expflag.ContextHas(ctx, expflag.GQLAPIKey) {
+		return nil, validation.NewGenericError("experimental flag not enabled")
+	}
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
 		return nil, err
@@ -73,22 +76,10 @@ func (q *Query) GqlAPIKeys(ctx context.Context) ([]graphql2.GQLAPIKey, error) {
 	return res, nil
 }
 
-func nullTimeToPointer(nt sql.NullTime) *time.Time {
-	if !nt.Valid {
-		return nil
-	}
-	return &nt.Time
-}
-
-func (q *Query) ListGQLFields(ctx context.Context, query *string) ([]string, error) {
-	if query == nil || *query == "" {
-		return graphql2.SchemaFields(), nil
-	}
-
-	return graphql2.QueryFields(*query)
-}
-
 func (a *Mutation) UpdateGQLAPIKey(ctx context.Context, input graphql2.UpdateGQLAPIKeyInput) (bool, error) {
+	if !expflag.ContextHas(ctx, expflag.GQLAPIKey) {
+		return false, validation.NewGenericError("experimental flag not enabled")
+	}
 	id, err := parseUUID("ID", input.ID)
 	if err != nil {
 		return false, err
@@ -109,11 +100,16 @@ func (a *Mutation) DeleteGQLAPIKey(ctx context.Context, input string) (bool, err
 }
 
 func (a *Mutation) CreateGQLAPIKey(ctx context.Context, input graphql2.CreateGQLAPIKeyInput) (*graphql2.CreatedGQLAPIKey, error) {
+	if !expflag.ContextHas(ctx, expflag.GQLAPIKey) {
+		return nil, validation.NewGenericError("experimental flag not enabled")
+	}
+
 	id, tok, err := a.APIKeyStore.CreateAdminGraphQLKey(ctx, apikey.NewAdminGQLKeyOpts{
 		Name:    input.Name,
 		Desc:    input.Description,
 		Expires: input.ExpiresAt,
 		Fields:  input.AllowedFields,
+		Role:    permission.Role(input.Role),
 	})
 	if err != nil {
 		return nil, err

@@ -1,7 +1,11 @@
+# Directive definitions are as per gqlgen documentation:
+# https://gqlgen.com/master/config#inline-config-with-directives
+
+# goField is used to tweak individual field configurations, rather than using gqlgen.yml
 directive @goField(
-  forceResolver: Boolean
-  name: String
-  omittable: Boolean
+  forceResolver: Boolean # forces the field to be resolved by a resolver, even if it already has a value; useful for computed fields where the model already has a partial value
+  name: String # overrides the field name in the generated Go code
+  omittable: Boolean # creates the field with a wrapper type (graphql.Omittable[T]) with a boolean indicating if the field is null (similar to sql.NullString and friends)
 ) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
 
 type Query {
@@ -134,6 +138,8 @@ type Query {
   linkAccountInfo(token: ID!): LinkAccountInfo
 
   swoStatus: SWOStatus!
+
+  gqlAPIKeys: [GQLAPIKey!]!
 
   listGQLFields(query: String): [String!]!
 }
@@ -605,6 +611,7 @@ input CreateGQLAPIKeyInput {
   description: String!
   allowedFields: [String!]!
   expiresAt: ISOTimestamp!
+  role: UserRole!
 }
 
 input UpdateGQLAPIKeyInput {
@@ -624,7 +631,6 @@ type GQLAPIKey {
   lastUsed: GQLAPIKeyUsage
   expiresAt: ISOTimestamp!
   allowedFields: [String!]!
-  token: String
 }
 
 type GQLAPIKeyUsage {
