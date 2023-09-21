@@ -107,12 +107,12 @@
     "redux": "4.2.1",
     "redux-devtools-extension": "2.13.9",
     "redux-thunk": "2.4.2",
-    "remark-gfm": "3.0.1",
+    "remark-gfm": "4.0.0",
     "stylelint": "15.10.3",
     "stylelint-config-standard": "34.0.0",
     "typescript": "5.2.2",
-    "urql": "4.0.4",
-    "wonka": "6.3.2",
+    "urql": "4.0.5",
+    "wonka": "6.3.4",
     "wouter": "2.11.0"
   },
   "packageManager": "yarn@3.6.3"
