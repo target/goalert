@@ -23,8 +23,8 @@ module.exports = defineConfig({
     setupNodeEvents,
     baseUrl: 'http://localhost:3030',
     excludeSpecPattern: '*.map',
-    supportFile: 'web/src/cypress/support/e2e.ts',
-    specPattern: 'web/src/cypress/e2e/*.cy.{js,ts}',
+    supportFile: 'bin/build/integration/cypress/support/index.js',
+    specPattern: 'bin/build/integration/cypress/integration/*.cy.js',
   },
 
   component: {
