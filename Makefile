@@ -190,7 +190,7 @@ check: check-go check-js ## Run all lint checks
 	$(MAKE) yarn
 
 .yarn/releases/yarn-$(YARN_VERSION).cjs:
-	yarn set version stable || $(MAKE) yarn
+	yarn set version $(YARN_VERSION) || $(MAKE) yarn
 
 ensure-yarn: # Yarn ensures the correct version of yarn is installed
 	@echo "Checking yarn version..."
