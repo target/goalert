@@ -86,7 +86,7 @@ export default function AdminMessageLogsGraph(): JSX.Element {
   const stats: Stats = data?.messageLogs?.stats?.timeSeries ?? []
 
   // get list of segment labels from data to map out Lines
-  type LabelDict = { [key: string]: Stat[] }
+  type LabelDict = { [key: string]: Stats }
   const [segmentLabels, setSegmentLabels] = useState<LabelDict>({})
   useEffect(() => {
     const sl: LabelDict = {}
@@ -246,7 +246,6 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                       content={(data) => {
                         const { active, payload } = data
                         if (!active || !payload?.length) return null
-                        console.log('data: ', data)
 
                         return (
                           <Paper
