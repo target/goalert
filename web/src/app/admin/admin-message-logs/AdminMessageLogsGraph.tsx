@@ -36,19 +36,13 @@ import { gql, useQuery } from 'urql'
 import { Time } from '../../util/Time'
 import { getValidIntervals, useMessageLogsParams } from './util'
 
-type Stats = Array<{
+type Stat = {
   start: string
   end: string
   count: number
   segmentLabel: string
-}>
-
-interface MessageLogGraphData {
-  date: string
-  segmentLabel: string
-  count: number
-  timeRange: JSX.Element
 }
+type Stats = Array<Stat>
 
 const statsQuery = gql`
   query messageStatsQuery(
@@ -92,30 +86,16 @@ export default function AdminMessageLogsGraph(): JSX.Element {
   const stats: Stats = data?.messageLogs?.stats?.timeSeries ?? []
 
   // get list of segment labels from data to map out Lines
-  type OM = { [key: string]: boolean }
-  const [segmentLabels, setSegmentLabels] = useState<OM>({})
+  type LabelDict = { [key: string]: Stat[] }
+  const [segmentLabels, setSegmentLabels] = useState<LabelDict>({})
   useEffect(() => {
-    const sl: OM = {}
+    const sl: LabelDict = {}
     stats.forEach((stat) => {
-      sl[stat.segmentLabel] = true
+      if (!sl[stat.segmentLabel]) sl[stat.segmentLabel] = [stat]
+      else sl[stat.segmentLabel].push(stat)
     })
     setSegmentLabels(sl)
   }, [stats])
-
-  const graphData = React.useMemo(
-    (): MessageLogGraphData[] =>
-      stats.map(({ start, end, count, segmentLabel }) => ({
-        count,
-        date: start,
-        segmentLabel,
-        timeRange: (
-          <React.Fragment>
-            <Time time={start} /> - <Time time={end} />
-          </React.Fragment>
-        ),
-      })),
-    [stats],
-  )
 
   const formatIntervals = (label: string): string => {
     if (label.toString() === '0' || label === 'auto') return ''
@@ -234,7 +214,6 @@ export default function AdminMessageLogsGraph(): JSX.Element {
               <AutoSizer>
                 {({ width, height }: { width: number; height: number }) => (
                   <LineChart
-                    data={graphData}
                     width={width}
                     height={height}
                     margin={{
@@ -248,7 +227,7 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                       stroke={theme.palette.text.secondary}
                     />
                     <XAxis
-                      dataKey='date'
+                      dataKey='start'
                       type='category'
                       stroke={theme.palette.text.secondary}
                       tickFormatter={formatIntervals}
@@ -264,9 +243,10 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                     />
                     <Tooltip
                       cursor={{ fill: theme.palette.background.default }}
-                      content={({ active, payload }) => {
+                      content={(data) => {
+                        const { active, payload } = data
                         if (!active || !payload?.length) return null
-                        console.log(payload)
+                        console.log('data: ', data)
 
                         return (
                           <Paper
@@ -274,16 +254,14 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                             variant='outlined'
                             sx={{ p: 1 }}
                           >
+                            <Typography variant='body2' sx={{ pb: 1 }}>
+                              <Time time={payload[0].payload.start} /> -{' '}
+                              <Time time={payload[0].payload.end} />
+                            </Typography>
                             {payload.map((p) => (
                               <React.Fragment key={p.name}>
                                 <Typography variant='body2'>
-                                  {p.name}
-                                </Typography>
-                                <Typography variant='body2'>
-                                  {p.payload.timeRange}
-                                </Typography>
-                                <Typography variant='body2'>
-                                  Count: {p.payload.count}
+                                  {p.payload.segmentLabel}: {p.payload.count}
                                 </Typography>
                               </React.Fragment>
                             ))}
@@ -297,11 +275,11 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                         <Line
                           key={label}
                           dataKey='count'
+                          data={segmentLabels[label]}
                           name={label}
                           type='monotone'
                           stroke={getLineStroke(index)}
                           strokeWidth={2}
-                          activeDot={{ r: 8 }}
                           isAnimationActive={false}
                           dot={(props) => (
                             <circle {..._.omit(props, 'dataKey')} />
