@@ -89,9 +89,7 @@ function testRotations(screen: ScreenFormat): void {
             shiftLength: shiftLength.toString(),
             start: '2020-05-30T15:04',
           })
-          cy.get(
-            '.MuiGrid-container > :nth-child(6) > .MuiTypography-root',
-          ).should(
+          cy.get('.MuiFormHelperText-root > .MuiTypography-root').should(
             'contain',
             'Unintended handoff behavior may occur when date starts after the 28th',
           )

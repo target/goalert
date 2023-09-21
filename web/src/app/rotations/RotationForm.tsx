@@ -1,7 +1,6 @@
 import React from 'react'
 import { TextField, Grid, MenuItem, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { Theme } from '@mui/material/styles'
 import { startCase } from 'lodash'
 import { DateTime } from 'luxon'
 import { useQuery, gql } from '@apollo/client'
@@ -30,7 +29,7 @@ const query = gql`
 
 const rotationTypes = ['hourly', 'daily', 'weekly', 'monthly']
 
-const useStyles = makeStyles((theme: Theme) => ({
+const useStyles = makeStyles({
   handoffTimestamp: {
     listStyle: 'none',
   },
@@ -47,10 +46,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     margin: 0,
     padding: 0,
   },
-  handoffWarning: {
-    color: theme.palette.warning.main,
-  },
-}))
+})
 
 // getShiftDuration converts a count and one of ['hourly', 'daily', 'weekly', 'monthly']
 // into the shift length to ISODuration.
@@ -168,17 +164,22 @@ export default function RotationForm(props: RotationFormProps): JSX.Element {
             name='start'
             required
             hint={
-              sameAsLocal(value.start, value.timeZone) ? undefined : (
-                <Time time={value.start} suffix=' local time' />
-              )
+              <React.Fragment>
+                {sameAsLocal(value.start, value.timeZone) ? undefined : (
+                  <Time time={value.start} suffix=' local time' />
+                )}
+                {handoffWarning && (
+                  <Typography
+                    variant='body2'
+                    sx={{ color: (theme) => theme.palette.warning.main }}
+                  >
+                    Unintended handoff behavior may occur when date starts after
+                    the 28th
+                  </Typography>
+                )}
+              </React.Fragment>
             }
           />
-          {handoffWarning && (
-            <Typography variant='body2' className={classes.handoffWarning}>
-              Unintended handoff behavior may occur when date starts after the
-              28th
-            </Typography>
-          )}
         </Grid>
 
         <Grid item xs={12} className={classes.handoffsContainer}>
