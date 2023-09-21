@@ -107,7 +107,7 @@
     "redux": "4.2.1",
     "redux-devtools-extension": "2.13.9",
     "redux-thunk": "2.4.2",
-    "remark-gfm": "4.0.0",
+    "remark-gfm": "3.0.1",
     "stylelint": "15.10.3",
     "stylelint-config-standard": "34.0.0",
     "typescript": "5.2.2",
