@@ -288,7 +288,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
 
     actions.push({
       icon: <ThumbDownOffAlt />,
-      label: 'Set Noise Reason',
+      label: 'Mark as Noise',
       onClick: makeUpdateAlerts('noise'),
     })
 
