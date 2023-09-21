@@ -34,9 +34,6 @@ export default function Documentation(): JSX.Element {
       publicURL || `${window.location.origin}${pathPrefix}`,
     ),
   )
-  interface H1Props {
-    children: React.ReactNode
-  }
 
   return (
     <React.Fragment>
@@ -44,17 +41,7 @@ export default function Documentation(): JSX.Element {
         <Card key={i} className={classes.mBottom} id={i}>
           <CardContent>
             <Typography variant='body1' component='div'>
-              <Markdown value={doc}  components={{
-                  h1: (props: H1Props) => {
-                  const title = props.children?.toString().replace(' ', '-')
-                  return (
-                    <h1 id={title}>
-                    {title}
-                    <a href={`#${title}`}> #</a>
-                    </h1>
-                  )
-                  },
-                }}/>
+              <Markdown value={doc} />
             </Typography>
           </CardContent>
         </Card>

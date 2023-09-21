@@ -253,7 +253,7 @@ function PolicyStepForm(props) {
                         name='webhooks'
                         mapValue={getTargetsByType('chanWebhook')}
                         mapOnChangeValue={setTargetType('chanWebhook')}
-                        hint={<AppLink to='/docs#Using-Webhooks'>Webhook Documentation</AppLink>}
+                        hint={<AppLink to='/docs'>Webhook Documentation</AppLink>}
                       />
                     </StepContent>
                   </Step>

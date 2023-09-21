@@ -74,7 +74,7 @@ function renderURLField(edit: boolean): JSX.Element {
       type='url'
       component={TextField}
       disabled={edit}
-      helperText={<AppLink to={'/docs#Using-Webhooks'} newTab>Webhook Documentation</AppLink>}
+      hint={<AppLink to='/docs' newTab>Webhook Documentation</AppLink>}
     />
   )
 }
