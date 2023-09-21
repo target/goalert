@@ -6,13 +6,14 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
+import { gql, useMutation } from '@apollo/client'
+import { GenericError } from '../../error-pages'
 
-/**
-const mutation = gql`
-  mutation delete($input: [TargetInput!]!) {
-    deleteAll(input: $input)
+const deleteGQLAPIKeyQuery = gql`
+  mutation DeleteGQLAPIKey($input: string!) {
+    deleteGQLAPIKey(input: $input)
   }
-` */
+`
 
 export default function AdminAPIKeysDeleteDialog(props: {
   apiKey: GQLAPIKey | null
@@ -22,13 +23,38 @@ export default function AdminAPIKeysDeleteDialog(props: {
   const { apiKey, onClose, close } = props
   const [dialogClose, onDialogClose] = useState(close)
   const handleNo = (): void => {
+    console.log('NO...........')
     onClose(false)
     onDialogClose(!dialogClose)
   }
-
+  const [deleteAPIKey, deleteAPIKeyStatus] = useMutation(deleteGQLAPIKeyQuery, {
+    onCompleted: (data) => {
+      if (data.deleteGQLAPIKey) {
+        onClose(false)
+        onDialogClose(!dialogClose)
+      }
+    },
+  })
+  const { loading, data, error } = deleteAPIKeyStatus
   const handleYes = (): void => {
-    onClose(false)
-    onDialogClose(!dialogClose)
+    console.log('YES...........')
+    deleteAPIKey({
+      variables: {
+        input: apiKey?.id,
+      },
+    }).then((result) => {
+      if (!result.errors) {
+        return result
+      }
+    })
+  }
+
+  if (error) {
+    return <GenericError error={error.message} />
+  }
+
+  if (loading && !data) {
+    // return <Spinner />
   }
 
   return (

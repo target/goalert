@@ -14,11 +14,18 @@ import {
   ButtonGroup,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { FormField } from '../../forms'
-import { GQLAPIKey } from '../../../schema'
+import { GQLAPIKey, UpdateGQLAPIKeyInput } from '../../../schema'
 import AdminAPIKeysDeleteDialog from './AdminAPIKeysDeleteDialog'
+import { gql, useMutation } from '@apollo/client'
+import { GenericError } from '../../error-pages'
 
-const MaxDetailsLength = 6 * 1024 // 6KiB
+const updateGQLAPIKeyQuery = gql`
+  mutation UpdateGQLAPIKey($input: UpdateGQLAPIKeyInput!) {
+    updateGQLAPIKey(input: $input)
+  }
+`
+
+// const MaxDetailsLength = 6 * 1024 // 6KiB
 
 interface Props {
   onClose: () => void
@@ -50,10 +57,39 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
 
     return inpComma
   })
+  const [key, setKey] = useState<UpdateGQLAPIKeyInput>({
+    id: apiKey?.id ?? '',
+    name: apiKey?.name,
+    description: apiKey?.description,
+  })
+  const [updateAPIKey, updateAPIKeyStatus] = useMutation(updateGQLAPIKeyQuery, {
+    onCompleted: (data) => {
+      if (data.updateGQLAPIKey) {
+        setShowSave(!showSave)
+        setShowEdit(!showEdit)
+      }
+    },
+  })
+  const { loading, data, error } = updateAPIKeyStatus
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const handleSave = () => {
+    updateAPIKey({
+      variables: {
+        input: key,
+      },
+    }).then((result) => {
+      if (!result.errors) {
+        return result
+      }
+    })
+  }
 
-  const handleSave = (): void => {
-    setShowSave(!showSave)
-    setShowEdit(!showEdit)
+  if (error) {
+    return <GenericError error={error.message} />
+  }
+
+  if (loading && !data) {
+    // return <Spinner />
   }
 
   return (
@@ -80,31 +116,47 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
             <Divider />
             <List disablePadding>
               <ListItem divider>
-                <ListItemText primary='Name' secondary={apiKey?.name} />
-                <FormField
-                  fullWidth
-                  label='Name'
-                  name='name'
-                  required
-                  component={TextField}
-                />
+                {showSave ? (
+                  <TextField
+                    required
+                    id='standard-required'
+                    label='Name'
+                    defaultValue={apiKey?.name}
+                    onChange={(e) => {
+                      const keyTemp = key
+                      keyTemp.name = e.target.value
+                      setKey(keyTemp)
+                    }}
+                    variant='standard'
+                    sx={{ width: '100%' }}
+                  />
+                ) : (
+                  <ListItemText primary='Name' secondary={apiKey?.name} />
+                )}
               </ListItem>
               <ListItem divider>
-                <ListItemText
-                  primary='Description'
-                  secondary={apiKey?.description}
-                />
-                <FormField
-                  fullWidth
-                  label='Description'
-                  name='description'
-                  multiline
-                  rows={4}
-                  required
-                  component={TextField}
-                  charCount={MaxDetailsLength}
-                  hint='Markdown Supported'
-                />
+                {showSave ? (
+                  <TextField
+                    id='standard-multiline-static'
+                    label='Description'
+                    required
+                    multiline
+                    rows={4}
+                    defaultValue={apiKey?.description}
+                    onChange={(e) => {
+                      const keyTemp = key
+                      keyTemp.description = e.target.value
+                      setKey(keyTemp)
+                    }}
+                    variant='standard'
+                    sx={{ width: '100%' }}
+                  />
+                ) : (
+                  <ListItemText
+                    primary='Description'
+                    secondary={apiKey?.description}
+                  />
+                )}
               </ListItem>
               <ListItem divider>
                 <ListItemText
@@ -138,20 +190,31 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
               </ListItem>
             </List>
             <Grid className={classes.buttons}>
-              <ButtonGroup variant='outlined'>
-                <Button data-cy='delete' onClick={handleDeleteConfirmation}>
-                  DELETE
-                </Button>
-                {showSave ? (
+              {showSave ? (
+                <ButtonGroup variant='outlined'>
+                  <Button
+                    data-cy='exit'
+                    onClick={() => {
+                      setShowSave(!showSave)
+                      setShowEdit(!showEdit)
+                    }}
+                  >
+                    EXIT
+                  </Button>
                   <Button
                     data-cy='save'
-                    // disabled={isEmpty(values)}
+                    // disabled={isEmpty(apiKey?.description + apiKey?.name)}
                     onClick={handleSave}
                   >
                     SAVE
                   </Button>
-                ) : null}
-                {showEdit ? (
+                </ButtonGroup>
+              ) : null}
+              {showEdit ? (
+                <ButtonGroup variant='outlined'>
+                  <Button data-cy='delete' onClick={handleDeleteConfirmation}>
+                    DELETE
+                  </Button>
                   <Button
                     data-cy='edit'
                     onClick={() => {
@@ -161,8 +224,8 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
                   >
                     EDIT
                   </Button>
-                ) : null}
-              </ButtonGroup>
+                </ButtonGroup>
+              ) : null}
             </Grid>
           </Grid>
         </Drawer>

@@ -146,10 +146,12 @@ export default function AdminAPIKeys(): JSX.Element {
   return (
     <React.Fragment>
       <div className={classes.root}>
-        <AdminAPIKeysDrawer
-          onClose={() => setSelectedAPIKey(null)}
-          apiKey={selectedAPIKey}
-        />
+        {selectedAPIKey ? (
+          <AdminAPIKeysDrawer
+            onClose={() => setSelectedAPIKey(null)}
+            apiKey={selectedAPIKey}
+          />
+        ) : null}
         {openCreateAPIKeyDialog ? (
           <AdminAPIKeysCreateDialog
             onClose={setOpenCreateAPIKeyDialog}
@@ -173,14 +175,14 @@ export default function AdminAPIKeys(): JSX.Element {
           </ButtonGroup>
         </Grid>
         <Card
-          style={{ width: '100%' }}
+          style={{ width: '100%', paddingLeft: '10px', paddingRight: '10px' }}
           className={
             selectedAPIKey
               ? classes.containerSelected
               : classes.containerDefault
           }
         >
-          <FlatList emptyMessage='API Key List is Empty' items={items} />
+          <FlatList emptyMessage='No Data Available' items={items} />
         </Card>
       </div>
     </React.Fragment>
