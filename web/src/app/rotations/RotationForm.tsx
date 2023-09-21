@@ -1,5 +1,11 @@
 import React from 'react'
-import { TextField, Grid, MenuItem, Typography } from '@mui/material'
+import {
+  TextField,
+  Grid,
+  MenuItem,
+  Typography,
+  FormHelperText,
+} from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { startCase } from 'lodash'
 import { DateTime } from 'luxon'
@@ -169,13 +175,16 @@ export default function RotationForm(props: RotationFormProps): JSX.Element {
                   <Time time={value.start} suffix=' local time' />
                 )}
                 {handoffWarning && (
-                  <Typography
-                    variant='body2'
-                    sx={{ color: (theme) => theme.palette.warning.main }}
+                  <FormHelperText
+                    sx={{
+                      color: (theme) => theme.palette.warning.main,
+                      marginLeft: 0,
+                      marginRight: 0,
+                    }}
                   >
                     Unintended handoff behavior may occur when date starts after
                     the 28th
-                  </Typography>
+                  </FormHelperText>
                 )}
               </React.Fragment>
             }
