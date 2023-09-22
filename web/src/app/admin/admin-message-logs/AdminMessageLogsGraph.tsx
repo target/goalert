@@ -10,6 +10,7 @@ import {
   FormControlLabel,
   FormLabel,
   Grid,
+  IconButton,
   InputLabel,
   MenuItem,
   Paper,
@@ -19,6 +20,7 @@ import {
   Typography,
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import ResetIcon from '@mui/icons-material/Replay'
 import {
   XAxis,
   YAxis,
@@ -207,6 +209,17 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                   />
                 </RadioGroup>
               </FormControl>
+            </Grid>
+            <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton
+                onClick={() =>
+                  setParams({
+                    segmentBy: '',
+                  })
+                }
+              >
+                <ResetIcon />
+              </IconButton>
             </Grid>
             <Grid
               item
