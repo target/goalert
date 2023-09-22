@@ -6,11 +6,9 @@ import { ServiceSearchOptions } from '../../../schema'
 import { useWorker } from '../../worker'
 import { ServiceMetrics } from './useServiceMetrics'
 import AdminServiceKeyGraph from './AdminServiceKeyGraph'
-import AdminServiceEPGraph from './AdminServiceEPGraph'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
 import AdminServiceKeyTable from './AdminServiceKeyTable'
-import AdminServiceEPTable from './AdminServiceEPTable'
 
 const useStyles = makeStyles((theme: Theme) => ({
   card: {
@@ -45,26 +43,6 @@ export default function AdminServiceMetrics(): JSX.Element {
           <CardContent>
             <AdminServiceKeyGraph metrics={metrics.integrationKeys} />
             <AdminServiceKeyTable
-              services={serviceData.services}
-              loading={serviceData.loading}
-            />
-          </CardContent>
-        </Card>
-      </Grid>
-      <Grid item xs={12}>
-        <Card className={styles.card}>
-          <CardHeader
-            title='Escalation Policy Metrics'
-            subheader={
-              serviceData.services?.length +
-              ' total services, of which ' +
-              metrics.noEPSteps?.length +
-              ' service(s) have empty escalation policies.'
-            }
-          />
-          <CardContent>
-            <AdminServiceEPGraph metrics={metrics.epSteps} />
-            <AdminServiceEPTable
               services={serviceData.services}
               loading={serviceData.loading}
             />
