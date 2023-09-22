@@ -158,9 +158,9 @@ export default function AdminMessageLogsGraph(): JSX.Element {
           >
             <Grid item>
               <CardContent
-                sx={{ display: 'flex', alignItems: 'center', pt: 0 }}
+                sx={{ display: 'grid', alignItems: 'center', pt: 0, pr: 3 }}
               >
-                <InputLabel id='interval-select-label' sx={{ pr: 1 }}>
+                <InputLabel id='interval-select-label' sx={{ pb: 1 }}>
                   Interval Duration
                 </InputLabel>
                 <Select
@@ -168,6 +168,7 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                   id='interval-select'
                   value={graphInterval}
                   onChange={(e) => setParams({ graphInterval: e.target.value })}
+                  size='small'
                 >
                   {getValidIntervals({ start, end }).map((ivl) => (
                     <MenuItem key={ivl.value} value={ivl.value}>
@@ -179,7 +180,9 @@ export default function AdminMessageLogsGraph(): JSX.Element {
             </Grid>
             <Grid item>
               <FormControl>
-                <FormLabel id='segment-by'>Segment By</FormLabel>
+                <FormLabel id='segment-by' sx={{ pb: 1 }}>
+                  Segment By
+                </FormLabel>
                 <RadioGroup
                   row
                   aria-labelledby='segment-by'
