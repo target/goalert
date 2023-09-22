@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import React, { useLayoutEffect, useEffect, useRef, useState } from 'react'
 import { gql, useClient } from 'urql'
-import { Service, ServiceSearchOptions } from '../../../schema'
+import { Service } from '../../../schema'
 
 const servicesQuery = gql`
   query services($input: ServiceSearchOptions!) {
@@ -48,11 +48,7 @@ export type ServiceData = {
   error: Error | undefined
 }
 
-export function useServices(
-  options: ServiceSearchOptions,
-  depKey: string,
-  pause?: boolean,
-): ServiceData {
+export function useServices(depKey: string, pause?: boolean): ServiceData {
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | undefined>()
