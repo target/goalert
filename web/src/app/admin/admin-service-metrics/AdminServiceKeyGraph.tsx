@@ -1,5 +1,5 @@
 import React from 'react'
-import { IntKeyMetric } from './useServiceMetrics'
+import { TargetMetrics } from './useServiceMetrics'
 import {
   BarChart,
   CartesianGrid,
@@ -15,7 +15,7 @@ import { Grid } from '@mui/material'
 import { makeStyles } from '@mui/styles'
 
 interface AdminServiceKeyGraphProps {
-  metrics: IntKeyMetric
+  metrics: TargetMetrics
 }
 const useStyles = makeStyles((theme: Theme) => ({
   graphContent: {

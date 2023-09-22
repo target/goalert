@@ -43,7 +43,7 @@ export default function AdminServiceMetrics(): JSX.Element {
             }
           />
           <CardContent>
-            <AdminServiceKeyGraph metrics={metrics.integrationKeys} />
+            <AdminServiceKeyGraph metrics={metrics.intKeyTargets} />
             <AdminServiceKeyTable
               services={serviceData.services}
               loading={serviceData.loading}
@@ -63,7 +63,7 @@ export default function AdminServiceMetrics(): JSX.Element {
             }
           />
           <CardContent>
-            <AdminServiceEPGraph metrics={metrics.epSteps} />
+            <AdminServiceEPGraph metrics={metrics.epStepTargets} />
             <AdminServiceEPTable
               services={serviceData.services}
               loading={serviceData.loading}

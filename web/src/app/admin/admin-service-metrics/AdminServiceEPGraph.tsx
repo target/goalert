@@ -1,5 +1,5 @@
 import React from 'react'
-import { EPStepMetric } from './useServiceMetrics'
+import { TargetMetrics } from './useServiceMetrics'
 import {
   BarChart,
   CartesianGrid,
@@ -15,7 +15,7 @@ import { makeStyles } from '@mui/styles'
 import { Grid } from '@mui/material'
 
 interface AdminServiceEPGraphProps {
-  metrics: EPStepMetric
+  metrics: TargetMetrics
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
