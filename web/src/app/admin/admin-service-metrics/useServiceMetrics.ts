@@ -1,14 +1,11 @@
 import { Service } from '../../../schema'
 
-export type IntKeyMetric = {
-  [type: string]: number
-}
-export type EPStepMetric = {
+export type TargetMetrics = {
   [type: string]: number
 }
 export type ServiceMetrics = {
-  integrationKeys: IntKeyMetric
-  epSteps: EPStepMetric
+  intKeyTargets: TargetMetrics
+  epStepTargets: TargetMetrics
   noIntKeys: Service[]
   noEPSteps: Service[]
 }
@@ -18,37 +15,33 @@ export type ServiceMetricOpts = {
 }
 
 export function useServiceMetrics(opts: ServiceMetricOpts): ServiceMetrics {
-  const svcsWithoutKeys: Service[] = []
-  const svcsWithoutEPSteps: Service[] = []
-
-  const svcMetrics = opts.services.reduce(
-    (res, svc) => {
-      if (svc.escalationPolicy?.steps.length === 0) svcsWithoutEPSteps.push(svc)
+  return opts.services.reduce(
+    (metrics: ServiceMetrics, svc) => {
+      if (svc.escalationPolicy?.steps.length === 0) metrics.noEPSteps.push(svc)
       else {
         svc.escalationPolicy?.steps.map((step) => {
           if (step.targets.length) {
             step.targets.map((tgt) => {
-              res.epSteps[tgt.type] = (res.epSteps[tgt.type] || 0) + 1
+              metrics.epStepTargets[tgt.type] =
+                (metrics.epStepTargets[tgt.type] || 0) + 1
             })
           }
         })
       }
-      if (svc.integrationKeys.length === 0) svcsWithoutKeys.push(svc)
+      if (svc.integrationKeys.length === 0) metrics.noIntKeys.push(svc)
       else {
         svc.integrationKeys.map((key) => {
-          res.integrationKeys[key.type] =
-            (res.integrationKeys[key.type] || 0) + 1
+          metrics.intKeyTargets[key.type] =
+            (metrics.intKeyTargets[key.type] || 0) + 1
         })
       }
-
-      return res
+      return metrics
     },
-    { integrationKeys: {}, epSteps: {} } as ServiceMetrics,
+    {
+      intKeyTargets: {},
+      epStepTargets: {},
+      noIntKeys: [],
+      noEPSteps: [],
+    },
   )
-
-  return {
-    ...svcMetrics,
-    noIntKeys: svcsWithoutKeys,
-    noEPSteps: svcsWithoutEPSteps,
-  }
 }
