@@ -37,14 +37,7 @@ import Spinner from '../../loading/components/Spinner'
 import { gql, useQuery } from 'urql'
 import { Time } from '../../util/Time'
 import { getValidIntervals, useMessageLogsParams } from './util'
-
-type Stat = {
-  start: string
-  end: string
-  count: number
-  segmentLabel: string
-}
-type Stats = Array<Stat>
+import { TimeSeriesBucket } from '../../../schema'
 
 const statsQuery = gql`
   query messageStatsQuery(
@@ -85,11 +78,11 @@ export default function AdminMessageLogsGraph(): JSX.Element {
       },
     },
   })
-  const stats: Stats = data?.messageLogs?.stats?.timeSeries ?? []
+  const stats: TimeSeriesBucket[] = data?.messageLogs?.stats?.timeSeries ?? []
 
   // get list of segment labels from data to map out each line on the graph
   // set one line of "Message Counts" if user hasn't selected a segmentBy option
-  type GraphDict = { [key: string]: Stats }
+  type GraphDict = { [key: string]: TimeSeriesBucket[] }
   const [graphLines, setGraphLines] = useState<GraphDict>({})
   useEffect(() => {
     const gl: GraphDict = {}
