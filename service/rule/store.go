@@ -39,7 +39,7 @@ func (s *Store) GetRulesForService(ctx context.Context, serviceID string) ([]Rul
 	if err != nil {
 		return nil, err
 	}
-	rows, err := gadb.New(s.db).GetRulesForService(ctx, uuid.MustParse(serviceID))
+	rows, err := gadb.New(s.db).SvcRuleGetByService(ctx, uuid.MustParse(serviceID))
 	if err != nil {
 		return nil, errors.Wrap(err, "get rules for service")
 	}
@@ -87,7 +87,7 @@ func (s *Store) GetRulesForIntegrationKey(ctx context.Context, serviceID string,
 	if err != nil {
 		return nil, err
 	}
-	rows, err := gadb.New(s.db).GetRulesForIntegrationKey(ctx, gadb.GetRulesForIntegrationKeyParams{
+	rows, err := gadb.New(s.db).SvcRuleGetByIntKey(ctx, gadb.SvcRuleGetByIntKeyParams{
 		ServiceID:        uuid.MustParse(serviceID),
 		IntegrationKeyID: uuid.MustParse(integrationKeyID),
 	})
@@ -138,7 +138,7 @@ func (s *Store) InsertRule(ctx context.Context, rule Rule) error {
 			return errors.Wrap(err, "marshal rule actions")
 		}
 	}
-	err = gadb.New(s.db).InsertServiceRule(ctx, gadb.InsertServiceRuleParams{
+	err = gadb.New(s.db).SvcRuleInsert(ctx, gadb.SvcRuleInsertParams{
 		Name:      rule.Name,
 		ServiceID: uuid.MustParse(rule.ServiceID),
 		Filter:    rule.FilterString,

@@ -1,4 +1,4 @@
--- name: GetRulesForService :many
+-- name: SvcRuleGetByService :many
 SELECT
     service_rules.id,
     service_rules.name,
@@ -18,11 +18,11 @@ WHERE
 GROUP BY
 		service_rules.id;
 
--- name: InsertServiceRule :exec
+-- name: SvcRuleInsert :exec
 INSERT INTO service_rules(name, service_id, filter, send_alert, actions)
     VALUES ($1, $2, $3, $4, $5);
 
--- name: GetRulesForIntegrationKey :many
+-- name: SvcRuleGetByIntKey :many
 SELECT
     r.id,
     r.name,
