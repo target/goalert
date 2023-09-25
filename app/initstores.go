@@ -7,6 +7,7 @@ import (
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/alert/alertmetrics"
+	"github.com/target/goalert/apikey"
 	"github.com/target/goalert/auth/authlink"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/auth/nonce"
@@ -224,10 +225,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.IntegrationKeyStore == nil {
-		app.IntegrationKeyStore, err = integrationkey.NewStore(ctx, app.db)
-	}
-	if err != nil {
-		return errors.Wrap(err, "init integration key store")
+		app.IntegrationKeyStore = integrationkey.NewStore(ctx, app.db)
 	}
 
 	if app.ScheduleRuleStore == nil {
@@ -300,6 +298,13 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 	if err != nil {
 		return errors.Wrap(err, "init notice store")
+	}
+
+	if app.APIKeyStore == nil {
+		app.APIKeyStore, err = apikey.NewStore(ctx, app.db, app.APIKeyring)
+	}
+	if err != nil {
+		return errors.Wrap(err, "init API key store")
 	}
 
 	return nil

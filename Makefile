@@ -21,7 +21,7 @@ SWO_DB_URL_NEXT = $(shell go run ./devtools/scripts/db-url "$(DB_URL)" "$(SWO_DB
 
 LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
-YARN_VERSION=3.5.0
+YARN_VERSION=3.6.3
 PG_VERSION=13
 
 NODE_DEPS=.pnp.cjs .yarnrc.yml
@@ -190,7 +190,7 @@ check: check-go check-js ## Run all lint checks
 	$(MAKE) yarn
 
 .yarn/releases/yarn-$(YARN_VERSION).cjs:
-	yarn set version stable || $(MAKE) yarn
+	yarn set version $(YARN_VERSION) || $(MAKE) yarn
 
 ensure-yarn: # Yarn ensures the correct version of yarn is installed
 	@echo "Checking yarn version..."

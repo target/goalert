@@ -1,3 +1,13 @@
+# Directive definitions are as per gqlgen documentation:
+# https://gqlgen.com/master/config#inline-config-with-directives
+
+# goField is used to tweak individual field configurations, rather than using gqlgen.yml
+directive @goField(
+  forceResolver: Boolean # forces the field to be resolved by a resolver, even if it already has a value; useful for computed fields where the model already has a partial value
+  name: String # overrides the field name in the generated Go code
+  omittable: Boolean # creates the field with a wrapper type (graphql.Omittable[T]) with a boolean indicating if the field is null (similar to sql.NullString and friends)
+) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+
 type Query {
   phoneNumberInfo(number: String!): PhoneNumberInfo
 
@@ -128,6 +138,8 @@ type Query {
   linkAccountInfo(token: ID!): LinkAccountInfo
 
   swoStatus: SWOStatus!
+
+  gqlAPIKeys: [GQLAPIKey!]!
 
   listGQLFields(query: String): [String!]!
 }
@@ -581,8 +593,50 @@ type Mutation {
   setConfig(input: [ConfigValueInput!]): Boolean!
   setSystemLimits(input: [SystemLimitInput!]!): Boolean!
 
+  createGQLAPIKey(input: CreateGQLAPIKeyInput!): CreatedGQLAPIKey!
+  updateGQLAPIKey(input: UpdateGQLAPIKeyInput!): Boolean!
+  deleteGQLAPIKey(id: ID!): Boolean!
+
   createBasicAuth(input: CreateBasicAuthInput!): Boolean!
   updateBasicAuth(input: UpdateBasicAuthInput!): Boolean!
+}
+
+type CreatedGQLAPIKey {
+  id: ID!
+  token: String!
+}
+
+input CreateGQLAPIKeyInput {
+  name: String!
+  description: String!
+  allowedFields: [String!]!
+  expiresAt: ISOTimestamp!
+  role: UserRole!
+}
+
+input UpdateGQLAPIKeyInput {
+  id: ID!
+  name: String
+  description: String
+}
+
+type GQLAPIKey {
+  id: ID!
+  name: String!
+  description: String!
+  createdAt: ISOTimestamp!
+  createdBy: User @goField(forceResolver: true)
+  updatedAt: ISOTimestamp!
+  updatedBy: User @goField(forceResolver: true)
+  lastUsed: GQLAPIKeyUsage
+  expiresAt: ISOTimestamp!
+  allowedFields: [String!]!
+}
+
+type GQLAPIKeyUsage {
+  time: ISOTimestamp!
+  ua: String!
+  ip: String!
 }
 
 input CreateBasicAuthInput {

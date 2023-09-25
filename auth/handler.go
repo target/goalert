@@ -16,6 +16,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/auth/authtoken"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
@@ -554,6 +555,17 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 		return false
 	}
 
+	ctx := req.Context()
+	if expflag.ContextHas(ctx, expflag.GQLAPIKey) && req.URL.Path == "/api/graphql" && strings.HasPrefix(tokStr, "ey") {
+		ctx, err = h.cfg.APIKeyStore.AuthorizeGraphQL(ctx, tokStr, req.UserAgent(), req.RemoteAddr)
+		if errutil.HTTPError(req.Context(), w, err) {
+			return true
+		}
+
+		next.ServeHTTP(w, req.WithContext(ctx))
+		return true
+	}
+
 	tok, _, err := authtoken.Parse(tokStr, func(t authtoken.Type, p, sig []byte) (bool, bool) {
 		if t == authtoken.TypeSession {
 			return h.cfg.SessionKeyring.Verify(p, sig)
@@ -565,8 +577,6 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 		return true
 	}
 
-	// TODO: update once scopes are implemented
-	ctx := req.Context()
 	switch req.URL.Path {
 	case "/v1/api/alerts", "/api/v2/generic/incoming":
 		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, *tok, integrationkey.TypeGeneric)
