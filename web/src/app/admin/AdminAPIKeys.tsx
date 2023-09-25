@@ -46,7 +46,6 @@ const getAPIKeysQuery = gql`
       }
       expiresAt
       allowedFields
-      token
     }
   }
 `

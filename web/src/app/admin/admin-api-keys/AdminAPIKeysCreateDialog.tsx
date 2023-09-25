@@ -27,6 +27,7 @@ export default function AdminAPIKeysCreateDialog(props: {
     description: '',
     allowedFields: [],
     expiresAt: '',
+    role: 'unknown',
   })
   const [createAPIKey, createAPIKeyStatus] = useMutation(newGQLAPIKeyQuery, {
     onCompleted: (data) => {
@@ -66,6 +67,7 @@ export default function AdminAPIKeysCreateDialog(props: {
       errors={nonFieldErrors(error)}
       onClose={props.onClose}
       onSubmit={handleOnSubmit}
+      disableBackdropClose
       form={
         <AdminAPIKeyCreateForm
           errors={fieldErrs}

@@ -21,7 +21,15 @@ export default function AdminAPIKeysTokenDialog(props: {
   const onClickCopy = (): void => {
     navigator.clipboard.writeText(props.input.token)
   }
-  const onCloseDialog = (): void => {
+  const onCloseDialog = (event: any, reason: any): any => {
+    if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
+      return false;
+    }
+
+    onClose(!close)
+  }
+
+  const onCloseDialogByButton = (): void => {
     onClose(!close)
   }
 
@@ -36,6 +44,7 @@ export default function AdminAPIKeysTokenDialog(props: {
       aria-labelledby='api-key-token-dialog'
       aria-describedby='api-key-token-information'
       maxWidth='xl'
+      disableEscapeKeyDown
     >
       <DialogTitle id='alert-dialog-api-key-token'>
         <Grid container direction='row' justifyContent='flex-start' display='block'>
@@ -48,7 +57,7 @@ export default function AdminAPIKeysTokenDialog(props: {
             </Typography>
           </Grid>
           <Grid item style={{ float: 'right' }}>
-            <IconButton aria-label='close' onClick={onCloseDialog}>
+            <IconButton aria-label='close' onClick={onCloseDialogByButton}>
               <CloseIcon />
             </IconButton>
           </Grid>
@@ -58,7 +67,6 @@ export default function AdminAPIKeysTokenDialog(props: {
         <DialogContentText id='alert-dialog-api-key-token-content'>
           <Typography sx={{ wordBreak: "break-word" }}>
             {props.input.token}
-            eyJhbGciOiJFUzIyNCIsImtleSI6MCwidHlwIjoiSldUIn0.eyJpc3MiOiJnb2FsZXJ0Iiwic3ViIjoiYzY2MDNiNmQtNzc1ZC00ZTc2LThiMzYtOThiMDkwM2NhZjg2IiwiYXVkIjpbImFwaWtleS12MS9ncmFwaHFsLXYxIl0sImV4cCI6MTY5NTM3ODA2MCwibmJmIjoxNjk1MTE4ODA3LCJpYXQiOjE2OTUxMTg4NjcsImp0aSI6ImEyNWM4N2RiLTUyMGUtNGZlMi04MmY5LWFmZmFlNjBmZjhiMCIsInBvbCI6IkE1RGp2TExERjkzaUI4cUpkRHBwTnFUWkw5OUkrMVJRbCtoT2NQNHU2NTA9In0.dXTqhTmKXPM-VVmBelnETs_o-QUxGoltECRZTdOhOLoJZ508WYZNNnJD8qcobNQMDoIsx25v-Yo
           </Typography>
         </DialogContentText>
       </DialogContent>

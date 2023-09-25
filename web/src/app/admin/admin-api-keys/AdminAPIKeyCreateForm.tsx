@@ -2,21 +2,21 @@ import React, { useState, useEffect, SyntheticEvent } from 'react'
 import Grid from '@mui/material/Grid'
 import { FormContainer, FormField } from '../../forms'
 import { FieldError } from '../../util/errutil'
-import { CreateGQLAPIKeyInput } from '../../../schema'
+import { CreateGQLAPIKeyInput, UserRole } from '../../../schema'
 import AdminAPIKeyExpirationField from './AdminAPIKeyExpirationField'
-import dayjs from 'dayjs'
 import { gql, useQuery } from '@apollo/client'
 import { GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
 import { TextField, Autocomplete, MenuItem } from '@mui/material'
 import CheckIcon from '@mui/icons-material/Check'
+import { DateTime } from 'luxon'
+import Select, { SelectChangeEvent } from '@mui/material/Select'
 
 const listGQLFieldsQuery = gql`
   query ListGQLFieldsQuery {
     listGQLFields
   }
 `
-
 const MaxDetailsLength = 6 * 1024 // 6KiB
 
 interface AdminAPIKeyCreateFormProps {
@@ -31,9 +31,18 @@ export default function AdminAPIKeyCreateForm(
 ): JSX.Element {
   const { ...containerProps } = props
   const [expiresAt, setExpiresAt] = useState<string>(
-    dayjs().add(7, 'day').toString(),
+    DateTime.now().plus({ days: 7 }).toLocaleString({
+      weekday: 'short',
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }),
   )
   const [allowedFields, setAllowedFields] = useState<string[]>([])
+  const [role, setRole] = useState<UserRole>('user')
   const handleAutocompleteChange = (
     event: SyntheticEvent<Element, Event>,
     value: string[],
@@ -41,10 +50,16 @@ export default function AdminAPIKeyCreateForm(
     setAllowedFields(value)
   }
 
+  const handleRoleChange = (event: SelectChangeEvent): void => {
+    const val = event.target.value as UserRole
+    setRole(val)
+  }
+
   useEffect(() => {
     const valTemp = props.value
     valTemp.expiresAt = new Date(expiresAt).toISOString()
     valTemp.allowedFields = allowedFields
+    valTemp.role = role as UserRole
 
     props.onChange(valTemp)
   })
@@ -85,6 +100,20 @@ export default function AdminAPIKeyCreateForm(
           />
         </Grid>
         <Grid item xs={12}>
+          <Select
+            labelId='role-select-label'
+            id='role-select'
+            value={role}
+            label='Role'
+            onChange={handleRoleChange}
+            required
+            style={{ width: '100%' }}
+          >
+            <MenuItem value='user'>User</MenuItem>
+            <MenuItem value='admin'>Admin</MenuItem>
+          </Select>
+        </Grid>
+        <Grid item xs={12}>
           <AdminAPIKeyExpirationField
             setValue={setExpiresAt}
             value={expiresAt}
@@ -92,7 +121,6 @@ export default function AdminAPIKeyCreateForm(
         </Grid>
         <Grid item xs={12}>
           <Autocomplete
-            sx={{ m: 1, width: 500 }}
             multiple
             options={data.listGQLFields}
             getOptionLabel={(option: string) => option}
@@ -117,6 +145,7 @@ export default function AdminAPIKeyCreateForm(
                 {selected ? <CheckIcon color='info' /> : null}
               </MenuItem>
             )}
+            style={{ width: '100%' }}
           />
         </Grid>
       </Grid>

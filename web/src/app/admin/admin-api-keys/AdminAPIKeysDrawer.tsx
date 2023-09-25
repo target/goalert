@@ -47,6 +47,8 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
   const [deleteDialog, onDeleteDialog] = useState(false)
   const [showEdit, setShowEdit] = useState(true)
   const [showSave, setShowSave] = useState(false)
+  const [reqNameText, setReqNameText] = useState<string>('')
+  const [reqDescText, setReqDescText] = useState<string>('')
   const handleDeleteConfirmation = (): void => {
     onDeleteDialog(!deleteDialog)
   }
@@ -73,15 +75,28 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
   const { loading, data, error } = updateAPIKeyStatus
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleSave = () => {
-    updateAPIKey({
-      variables: {
-        input: key,
-      },
-    }).then((result) => {
-      if (!result.errors) {
-        return result
+    const desc = key.description?.trim()
+    const name = key.name?.trim()
+
+    if (desc !== '' && name !== '') {
+      updateAPIKey({
+        variables: {
+          input: key,
+        },
+      }).then((result) => {
+        if (!result.errors) {
+          return result
+        }
+      })
+    } else {
+      if (desc === '') {
+        setReqDescText('This field is required.')
       }
-    })
+
+      if (name === '') {
+        setReqNameText('This field is required.')
+      }
+    }
   }
 
   if (error) {
@@ -101,7 +116,7 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
           close={deleteDialog}
         />
       ) : null}
-      <ClickAwayListener onClickAway={onClose} mouseEvent='onMouseUp'>
+      <ClickAwayListener onClickAway={onClose}>
         <Drawer
           anchor='right'
           open={isOpen}
@@ -119,9 +134,11 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
                 {showSave ? (
                   <TextField
                     required
+                    error={key?.name?.trim() === ''}
                     id='standard-required'
                     label='Name'
-                    defaultValue={apiKey?.name}
+                    defaultValue={key?.name}
+                    helperText={reqNameText}
                     onChange={(e) => {
                       const keyTemp = key
                       keyTemp.name = e.target.value
@@ -131,7 +148,7 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
                     sx={{ width: '100%' }}
                   />
                 ) : (
-                  <ListItemText primary='Name' secondary={apiKey?.name} />
+                  <ListItemText primary='Name' secondary={key?.name} />
                 )}
               </ListItem>
               <ListItem divider>
@@ -139,10 +156,12 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
                   <TextField
                     id='standard-multiline-static'
                     label='Description'
+                    error={key?.description?.trim() === ''}
                     required
                     multiline
                     rows={4}
-                    defaultValue={apiKey?.description}
+                    defaultValue={key?.description}
+                    helperText={reqDescText}
                     onChange={(e) => {
                       const keyTemp = key
                       keyTemp.description = e.target.value
@@ -154,7 +173,7 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
                 ) : (
                   <ListItemText
                     primary='Description'
-                    secondary={apiKey?.description}
+                    secondary={key?.description}
                   />
                 )}
               </ListItem>

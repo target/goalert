@@ -8,10 +8,11 @@ import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
 import { gql, useMutation } from '@apollo/client'
 import { GenericError } from '../../error-pages'
+import Spinner from '../../loading/components/Spinner'
 
 const deleteGQLAPIKeyQuery = gql`
-  mutation DeleteGQLAPIKey($input: string!) {
-    deleteGQLAPIKey(input: $input)
+  mutation DeleteGQLAPIKey($id: ID!) {
+    deleteGQLAPIKey(id: $id)
   }
 `
 
@@ -23,7 +24,6 @@ export default function AdminAPIKeysDeleteDialog(props: {
   const { apiKey, onClose, close } = props
   const [dialogClose, onDialogClose] = useState(close)
   const handleNo = (): void => {
-    console.log('NO...........')
     onClose(false)
     onDialogClose(!dialogClose)
   }
@@ -37,15 +37,10 @@ export default function AdminAPIKeysDeleteDialog(props: {
   })
   const { loading, data, error } = deleteAPIKeyStatus
   const handleYes = (): void => {
-    console.log('YES...........')
     deleteAPIKey({
       variables: {
-        input: apiKey?.id,
+        id: apiKey?.id,
       },
-    }).then((result) => {
-      if (!result.errors) {
-        return result
-      }
     })
   }
 
@@ -54,14 +49,15 @@ export default function AdminAPIKeysDeleteDialog(props: {
   }
 
   if (loading && !data) {
-    // return <Spinner />
+    return <Spinner />
   }
 
   return (
     <Dialog
       open={close}
-      aria-labelledby='delete-api-key-dialog'
-      aria-describedby='delete-api-key-dialog'
+      onClose={onClose}
+      aria-labelledby='delete-api-key-dialog-label'
+      aria-describedby='delete-api-key-dialog-desc'
     >
       <DialogTitle id='delete-api-key-title'>DELETE API KEY</DialogTitle>
       <DialogContent>

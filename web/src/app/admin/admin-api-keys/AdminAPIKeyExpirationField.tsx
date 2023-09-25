@@ -4,13 +4,11 @@ import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import dayjs, { Dayjs } from 'dayjs'
 import Grid from '@mui/material/Grid'
 import { Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
+import { ISODatePicker } from '../../util/ISOPickers'
+import { DateTime } from 'luxon'
 
 const useStyles = makeStyles(() => ({
   expiresCon: {
@@ -31,21 +29,43 @@ export default function AdminAPIKeyExpirationField(
   const [dateVal, setDateVal] = useState<string>(value)
   const [options, setOptions] = useState('7')
   const [showPicker, setShowPicker] = useState(false)
-  const today = dayjs()
+  // const today = DateTime.local({ zone: 'local' }).toFormat('ZZZZ')
   const handleChange = (event: SelectChangeEvent): void => {
     const val = event.target.value as string
     setOptions(val)
     setShowPicker(val.toString() === '0')
 
     if (val !== '0') {
-      setDateVal(today.add(parseInt(val), 'day').toString())
+      setDateVal(
+        DateTime.now()
+          .plus({ days: parseInt(val) })
+          .toLocaleString({
+            weekday: 'short',
+            month: 'short',
+            day: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          }),
+      )
     }
   }
 
-  const handleDatePickerChange = (val: Dayjs | null): void => {
+  const handleDatePickerChange = (val: string): void => {
     // eslint-disable-next-line prettier/prettier
-    if(val != null) {
-      setDateVal(val.toString())
+    if(val != null) {       
+      setDateVal(
+        new Date(val).toLocaleString([], {
+          weekday: 'short',
+          month: 'short',
+          day: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        }),
+      )
     }
   }
 
@@ -77,13 +97,10 @@ export default function AdminAPIKeyExpirationField(
           </Grid>
           {showPicker ? (
             <Grid item justifyContent='flex-end'>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker
-                  value={dayjs(dateVal)}
-                  minDate={today}
-                  onChange={handleDatePickerChange}
-                />
-              </LocalizationProvider>
+              <ISODatePicker
+                value={new Date(dateVal).toISOString()}
+                onChange={handleDatePickerChange}
+              />
             </Grid>
           ) : null}
           <Grid item justifyContent='flex-start'>
