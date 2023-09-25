@@ -1,4 +1,7 @@
 -- +migrate Up
+ALTER TYPE enum_integration_keys_type ADD VALUE IF NOT EXISTS 'notify';
+ALTER TYPE enum_alert_source ADD VALUE IF NOT EXISTS 'notify';
+
 CREATE TABLE service_rules (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
@@ -11,7 +14,8 @@ CREATE TABLE service_rules (
 CREATE TABLE service_rule_integration_keys (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     service_rule_id UUID NOT NULL REFERENCES service_rules(id) ON DELETE CASCADE,
-    integration_key_id UUID NOT NULL REFERENCES integration_keys(id) ON DELETE CASCADE
+    integration_key_id UUID NOT NULL REFERENCES integration_keys(id) ON DELETE CASCADE,
+    CONSTRAINT unique_int_key_service_rule UNIQUE(service_rule_id, integration_key_id)
 );
 
 CREATE TABLE signals (
