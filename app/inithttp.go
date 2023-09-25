@@ -127,6 +127,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 
 	notify := notifyapi.NewHandler(notifyapi.Config{
 		AlertStore:          app.AlertStore,
+		SignalStore:         app.SignalStore,
 		IntegrationKeyStore: app.IntegrationKeyStore,
 		HeartbeatStore:      app.HeartbeatStore,
 		UserStore:           app.UserStore,
@@ -161,7 +162,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	mux.HandleFunc("/api/v2/user-avatar/", generic.ServeUserAvatar)
 	mux.HandleFunc("/api/v2/calendar", app.CalSubStore.ServeICalData)
 
-	mux.HandleFunc("/api/v2/notify/incoming", notify.ServeCreateAlert)
+	mux.HandleFunc("/api/v2/notify/incoming", notify.ServeCreateSignals)
 
 	mux.HandleFunc("/api/v2/twilio/message", app.twilioSMS.ServeMessage)
 	mux.HandleFunc("/api/v2/twilio/message/status", app.twilioSMS.ServeStatusCallback)

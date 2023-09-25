@@ -21,9 +21,7 @@ type Store struct {
 }
 
 func NewStore(ctx context.Context, db *sql.DB) *Store {
-	s := &Store{db: db}
-
-	return s
+	return &Store{db: db}
 }
 
 // GetRulesForService returns all service rules associated with the given serviceID

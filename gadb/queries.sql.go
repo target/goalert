@@ -1092,6 +1092,31 @@ func (q *Queries) SetAlertFeedback(ctx context.Context, arg SetAlertFeedbackPara
 	return err
 }
 
+const signalInsert = `-- name: SignalInsert :one
+INSERT INTO signals(service_rule_id, service_id, outgoing_payload, scheduled)
+    VALUES ($1, $2, $3, false)
+RETURNING
+    id, timestamp
+`
+
+type SignalInsertParams struct {
+	ServiceRuleID   uuid.UUID
+	ServiceID       uuid.UUID
+	OutgoingPayload json.RawMessage
+}
+
+type SignalInsertRow struct {
+	ID        int64
+	Timestamp time.Time
+}
+
+func (q *Queries) SignalInsert(ctx context.Context, arg SignalInsertParams) (SignalInsertRow, error) {
+	row := q.db.QueryRowContext(ctx, signalInsert, arg.ServiceRuleID, arg.ServiceID, arg.OutgoingPayload)
+	var i SignalInsertRow
+	err := row.Scan(&i.ID, &i.Timestamp)
+	return i, err
+}
+
 const statusMgrCMInfo = `-- name: StatusMgrCMInfo :one
 SELECT
     user_id,
