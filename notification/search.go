@@ -69,11 +69,9 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		count(*)
 		{{if .SegmentByService}}
 		, s.name
-		{{end}}
-		{{if .SegmentByUser}}
+		{{else if .SegmentByUser}}
 		, u.name
-		{{end}}
-		{{if .SegmentByMessageType}}
+		{{else if .SegmentByMessageType}}
 		, om.message_type
 		{{end}}
 	{{else}}
