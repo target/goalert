@@ -5,6 +5,7 @@ module.exports = {
   semi: false,
   jsxSingleQuote: true,
   singleQuote: true,
+  tabWidth: 2,
   endOfLine: 'lf',
   plugins: [pluginGoTemplate],
   overrides: [
