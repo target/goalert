@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -118,16 +119,16 @@ func (q *MessageLogConnectionStats) TimeSeries(
 	}
 
 	// validate segment type if given
-	// if input.SegmentBy != nil {
-	// 	var segments []string
-	// 	for _, segment := range graphql2.AllMessageLogSegmentBy {
-	// 		segments = append(segments, "\""+segment.String()+"\"")
-	// 	}
+	if input.SegmentBy != nil {
+		var segments []string
+		for _, segment := range graphql2.AllMessageLogSegmentBy {
+			segments = append(segments, "\""+segment.String()+"\"")
+		}
 
-	// 	if !slices.Contains(segments, input.SegmentBy.String()) {
-	// 		return nil, fmt.Errorf("invalid segment type. please use one of: %v", strings.Join(segments, ", "))
-	// 	}
-	// }
+		if !slices.Contains(segments, input.SegmentBy.String()) {
+			return nil, fmt.Errorf("invalid segment type. please use one of: %v", strings.Join(segments, ", "))
+		}
+	}
 
 	var s string
 	if input.SegmentBy != nil {
