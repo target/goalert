@@ -249,11 +249,13 @@ function testAdmin(): void {
     before(() => {
       login() // required for before hooks
 
-      cy.createOutgoingMessage({ createdAt: DateTime.local().toISO() }).then(
-        (msg: DebugMessage) => {
-          debugMessage = msg
-        },
-      )
+      cy.createOutgoingMessage({
+        createdAt: DateTime.local().toISO(),
+        serviceName: 'Test Service',
+        userName: 'Test User',
+      }).then((msg: DebugMessage) => {
+        debugMessage = msg
+      })
     })
     beforeEach(() => {
       cy.visit('/admin/message-logs')
@@ -290,6 +292,48 @@ function testAdmin(): void {
       cy.get('@list').eq(0).should('contain.text', debugMessage.serviceName)
       cy.get('@list').eq(0).should('contain.text', debugMessage.userName)
       cy.get('@list').eq(0).should('include.text', debugMessage.status) // "Failed" or "Failed (Permanent)" can exist
+    })
+
+    it('should segment the graph by service', () => {
+      const now = DateTime.local().toLocaleString({
+        month: 'short',
+        day: 'numeric',
+      })
+
+      cy.get('[data-cy="spinner-loading"]').should('not.exist')
+      cy.get('input[value="service"]').click()
+      cy.get('[data-cy="spinner-loading"]').should('not.exist')
+
+      cy.get('span[class="recharts-legend-item-text"]').should(
+        'contain.text',
+        'Test Service',
+      )
+      cy.get(`.recharts-line-dots circle[value=1]`).trigger('mouseover')
+      cy.get('[data-cy=message-log-tooltip]')
+        .should('contain', now)
+        .should('contain', 'Test Service: 1')
+    })
+
+    it('should segment the graph by user', () => {
+      const now = DateTime.local().toLocaleString({
+        month: 'short',
+        day: 'numeric',
+      })
+
+      cy.get('[data-cy="spinner-loading"]').should('not.exist')
+      cy.get('input[value="user"]').click()
+      cy.get('[data-cy="spinner-loading"]').should('not.exist')
+
+      cy.get('span[class="recharts-legend-item-text"]').should(
+        'contain.text',
+        'Test User',
+      )
+      cy.get(`.recharts-line-dots circle[value=1]`).trigger('mouseover', {
+        force: true,
+      })
+      cy.get('[data-cy=message-log-tooltip]')
+        .should('contain', now)
+        .should('contain', 'Test User: 1')
     })
 
     it('should select and view a logs details', () => {

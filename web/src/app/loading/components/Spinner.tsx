@@ -61,7 +61,7 @@ export default function Spinner(props: SpinnerProps): JSX.Element | null {
       }
 
   return (
-    <div style={style}>
+    <div data-cy='spinner-loading' data-testid='spinner-loading' style={style}>
       <CircularProgress size={props.text ? '1em' : '40px'} />
       &nbsp;<Typography variant='body2'>{props.text}</Typography>
     </div>

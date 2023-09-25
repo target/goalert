@@ -67,7 +67,7 @@ function createOutgoingMessage(
   // user and contact method
   if (!msg.userID) {
     return cy
-      .createUser()
+      .createUser({ name: msg.userName })
       .then((u: Profile) =>
         createOutgoingMessage({ ...msg, userID: u.id, userName: u.name }),
       )
@@ -104,7 +104,7 @@ function createOutgoingMessage(
 
   // service
   if (!msg.serviceID) {
-    return cy.createService().then((s: Service) =>
+    return cy.createService({ name: msg.serviceName }).then((s: Service) =>
       createOutgoingMessage({
         ...msg,
         serviceID: s.id,

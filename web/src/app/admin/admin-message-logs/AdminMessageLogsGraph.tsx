@@ -87,16 +87,20 @@ export default function AdminMessageLogsGraph(): JSX.Element {
   })
   const stats: Stats = data?.messageLogs?.stats?.timeSeries ?? []
 
-  // get list of segment labels from data to map out Lines
-  type LabelDict = { [key: string]: Stats }
-  const [segmentLabels, setSegmentLabels] = useState<LabelDict>({})
+  // get list of segment labels from data to map out each line on the graph
+  // set one line of "Message Counts" if user hasn't selected a segmentBy option
+  type GraphDict = { [key: string]: Stats }
+  const [graphLines, setGraphLines] = useState<GraphDict>({})
   useEffect(() => {
-    const sl: LabelDict = {}
-    stats.forEach((stat) => {
-      if (!sl[stat.segmentLabel]) sl[stat.segmentLabel] = [stat]
-      else sl[stat.segmentLabel].push(stat)
-    })
-    setSegmentLabels(sl)
+    const gl: GraphDict = {}
+    if (!segmentBy) gl['Message Counts'] = stats
+    else {
+      stats.forEach((stat) => {
+        if (!gl[stat.segmentLabel]) gl[stat.segmentLabel] = [stat]
+        else gl[stat.segmentLabel].push(stat)
+      })
+    }
+    setGraphLines(gl)
   }, [stats])
 
   const formatIntervals = (label: string): string => {
@@ -276,7 +280,10 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                             {payload.map((p) => (
                               <React.Fragment key={p.name}>
                                 <Typography variant='body2'>
-                                  {p.payload.segmentLabel}: {p.payload.count}
+                                  {p.payload.segmentLabel === ''
+                                    ? 'Count'
+                                    : p.payload.segmentLabel}
+                                  : {p.payload.count}
                                 </Typography>
                               </React.Fragment>
                             ))}
@@ -285,36 +292,21 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                       }}
                     />
                     <Legend />
-                    {segmentBy ? (
-                      Object.keys(segmentLabels).map((label, index) => (
-                        <Line
-                          key={label}
-                          dataKey='count'
-                          data={segmentLabels[label]}
-                          name={label}
-                          type='monotone'
-                          stroke={getLineStroke(index)}
-                          strokeWidth={2}
-                          isAnimationActive={false}
-                          dot={(props) => (
-                            <circle {..._.omit(props, 'dataKey')} />
-                          )}
-                        />
-                      ))
-                    ) : (
+                    {Object.keys(graphLines).map((label, index) => (
                       <Line
-                        name='Message Counts'
+                        key={label}
                         dataKey='count'
+                        data={graphLines[label]}
+                        name={label}
                         type='monotone'
+                        stroke={getLineStroke(index)}
                         strokeWidth={2}
-                        stroke={theme.palette.primary.main}
-                        activeDot={{ r: 8 }}
                         isAnimationActive={false}
                         dot={(props) => (
                           <circle {..._.omit(props, 'dataKey')} />
                         )}
                       />
-                    )}
+                    ))}
                   </LineChart>
                 )}
               </AutoSizer>
