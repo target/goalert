@@ -7,40 +7,22 @@ import (
 	"github.com/antonmedv/expr"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/service/rule"
+	"github.com/target/goalert/util/log"
 )
 
-type Destination string
-
-const (
-	Slack Destination = "slack"
-	Email Destination = "email"
-	SMS   Destination = "sms"
-)
-
-type Filter struct {
-	Field   string
-	Operand string
-	Value   string
-}
-
-type Action struct {
-	Destination Destination
-	Message     string
-}
-
-func (h *Handler) FindMatchingRules(ctx context.Context, intKeyID string, alertBody map[string]interface{}) (rules []rule.Rule, err error) {
+// findMatchingRules returns all rules associated with the given integration key whose
+// filters match the given requestBody
+func (h *Handler) findMatchingRules(ctx context.Context, intKeyID string, requestBody map[string]interface{}) (rules []rule.Rule, err error) {
 	allRules, err := h.c.ServiceRuleStore.GetRulesForIntegrationKey(ctx, permission.ServiceID(ctx), intKeyID)
 	if err != nil {
 		return nil, err
 	}
-	if len(allRules) == 0 {
-		return
-	}
 
 	for _, rule := range allRules {
-		matched, err := matchExpressionWithExpr(rule.FilterString, alertBody)
+		matched, err := matchExpressionWithExpr(rule.FilterString, requestBody)
 		if err != nil {
-			fmt.Printf("Error evaluating rule: %v\n", err)
+			ctx := log.WithField(ctx, "RuleID", rule.ID)
+			log.Log(ctx, fmt.Errorf("evaluate rule: %s", err))
 			continue
 		}
 

@@ -53,7 +53,7 @@ func (h *Handler) ServeCreateSignals(w http.ResponseWriter, r *http.Request) {
 	}
 
 	integrationKey := r.URL.Query().Get("token")
-	rules, err := h.FindMatchingRules(ctx, integrationKey, requestBody)
+	rules, err := h.findMatchingRules(ctx, integrationKey, requestBody)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
