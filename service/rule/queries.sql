@@ -1,4 +1,4 @@
--- name: SvcRuleGetByService :many
+-- name: SvcRuleFindManyByService :many
 SELECT
     service_rules.id,
     service_rules.name,
@@ -19,7 +19,7 @@ GROUP BY
 INSERT INTO service_rules(name, service_id, filter, send_alert, actions)
     VALUES ($1, $2, $3, $4, $5);
 
--- name: SvcRuleGetByIntKey :many
+-- name: SvcRuleFindManyByIntKey :many
 SELECT
     r.id,
     r.name,

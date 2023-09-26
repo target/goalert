@@ -1324,7 +1324,7 @@ func (q *Queries) StatusMgrUpdateSub(ctx context.Context, arg StatusMgrUpdateSub
 	return err
 }
 
-const svcRuleGetByIntKey = `-- name: SvcRuleGetByIntKey :many
+const svcRuleFindManyByIntKey = `-- name: SvcRuleFindManyByIntKey :many
 SELECT
     r.id,
     r.name,
@@ -1339,12 +1339,12 @@ FROM
         AND sk.integration_key_id = $2
 `
 
-type SvcRuleGetByIntKeyParams struct {
+type SvcRuleFindManyByIntKeyParams struct {
 	ServiceID        uuid.UUID
 	IntegrationKeyID uuid.UUID
 }
 
-type SvcRuleGetByIntKeyRow struct {
+type SvcRuleFindManyByIntKeyRow struct {
 	ID        uuid.UUID
 	Name      string
 	ServiceID uuid.UUID
@@ -1353,15 +1353,15 @@ type SvcRuleGetByIntKeyRow struct {
 	Actions   pqtype.NullRawMessage
 }
 
-func (q *Queries) SvcRuleGetByIntKey(ctx context.Context, arg SvcRuleGetByIntKeyParams) ([]SvcRuleGetByIntKeyRow, error) {
-	rows, err := q.db.QueryContext(ctx, svcRuleGetByIntKey, arg.ServiceID, arg.IntegrationKeyID)
+func (q *Queries) SvcRuleFindManyByIntKey(ctx context.Context, arg SvcRuleFindManyByIntKeyParams) ([]SvcRuleFindManyByIntKeyRow, error) {
+	rows, err := q.db.QueryContext(ctx, svcRuleFindManyByIntKey, arg.ServiceID, arg.IntegrationKeyID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []SvcRuleGetByIntKeyRow
+	var items []SvcRuleFindManyByIntKeyRow
 	for rows.Next() {
-		var i SvcRuleGetByIntKeyRow
+		var i SvcRuleFindManyByIntKeyRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
@@ -1383,7 +1383,7 @@ func (q *Queries) SvcRuleGetByIntKey(ctx context.Context, arg SvcRuleGetByIntKey
 	return items, nil
 }
 
-const svcRuleGetByService = `-- name: SvcRuleGetByService :many
+const svcRuleFindManyByService = `-- name: SvcRuleFindManyByService :many
 SELECT
     service_rules.id,
     service_rules.name,
@@ -1401,7 +1401,7 @@ GROUP BY
     service_rules.id
 `
 
-type SvcRuleGetByServiceRow struct {
+type SvcRuleFindManyByServiceRow struct {
 	ID              uuid.UUID
 	Name            string
 	ServiceID       uuid.UUID
@@ -1411,15 +1411,15 @@ type SvcRuleGetByServiceRow struct {
 	IntegrationKeys string
 }
 
-func (q *Queries) SvcRuleGetByService(ctx context.Context, serviceID uuid.UUID) ([]SvcRuleGetByServiceRow, error) {
-	rows, err := q.db.QueryContext(ctx, svcRuleGetByService, serviceID)
+func (q *Queries) SvcRuleFindManyByService(ctx context.Context, serviceID uuid.UUID) ([]SvcRuleFindManyByServiceRow, error) {
+	rows, err := q.db.QueryContext(ctx, svcRuleFindManyByService, serviceID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []SvcRuleGetByServiceRow
+	var items []SvcRuleFindManyByServiceRow
 	for rows.Next() {
-		var i SvcRuleGetByServiceRow
+		var i SvcRuleFindManyByServiceRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
