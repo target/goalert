@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"slices"
 	"strconv"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/alert/alertmetrics"
+	"github.com/target/goalert/apikey"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/authlink"
 	"github.com/target/goalert/auth/basic"
@@ -77,6 +79,7 @@ type App struct {
 	SlackStore        *slack.ChannelSender
 	HeartbeatStore    *heartbeat.Store
 	NoticeStore       *notice.Store
+	APIKeyStore       *apikey.Store
 
 	AuthLinkStore *authlink.Store
 
@@ -152,6 +155,30 @@ func (a *App) Handler() http.Handler {
 		enabled, ok := ctx.Value(hasTraceKey(1)).(bool)
 		return ok && enabled
 	}})
+
+	h.AroundFields(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
+		src := permission.Source(ctx)
+		if src.Type != permission.SourceTypeGQLAPIKey {
+			return next(ctx)
+		}
+
+		p := apikey.PolicyFromContext(ctx)
+		if p == nil || p.Version != 1 {
+			return nil, permission.NewAccessDenied("invalid API key")
+		}
+
+		f := graphql.GetFieldContext(ctx)
+		objName := f.Field.Field.ObjectDefinition.Name
+		fieldName := f.Field.Field.Definition.Name
+
+		field := objName + "." + fieldName
+
+		if slices.Contains(p.AllowedFields, field) {
+			return next(ctx)
+		}
+
+		return nil, permission.NewAccessDenied("field not allowed by API key")
+	})
 
 	h.AroundFields(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
 		defer func() {
