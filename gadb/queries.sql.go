@@ -16,34 +16,6 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
-const addContactMethod = `-- name: AddContactMethod :exec
-INSERT INTO user_contact_methods(id, name, type, value, disabled, user_id, enable_status_updates)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
-`
-
-type AddContactMethodParams struct {
-	ID                  uuid.UUID
-	Name                string
-	Type                EnumUserContactMethodType
-	Value               string
-	Disabled            bool
-	UserID              uuid.UUID
-	EnableStatusUpdates bool
-}
-
-func (q *Queries) AddContactMethod(ctx context.Context, arg AddContactMethodParams) error {
-	_, err := q.db.ExecContext(ctx, addContactMethod,
-		arg.ID,
-		arg.Name,
-		arg.Type,
-		arg.Value,
-		arg.Disabled,
-		arg.UserID,
-		arg.EnableStatusUpdates,
-	)
-	return err
-}
-
 const aPIKeyAuthCheck = `-- name: APIKeyAuthCheck :one
 SELECT
     TRUE
@@ -267,6 +239,34 @@ func (q *Queries) APIKeyUpdate(ctx context.Context, arg APIKeyUpdateParams) erro
 		arg.Name,
 		arg.Description,
 		arg.UpdatedBy,
+	)
+	return err
+}
+
+const addContactMethod = `-- name: AddContactMethod :exec
+INSERT INTO user_contact_methods(id, name, type, value, disabled, user_id, enable_status_updates)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+`
+
+type AddContactMethodParams struct {
+	ID                  uuid.UUID
+	Name                string
+	Type                EnumUserContactMethodType
+	Value               string
+	Disabled            bool
+	UserID              uuid.UUID
+	EnableStatusUpdates bool
+}
+
+func (q *Queries) AddContactMethod(ctx context.Context, arg AddContactMethodParams) error {
+	_, err := q.db.ExecContext(ctx, addContactMethod,
+		arg.ID,
+		arg.Name,
+		arg.Type,
+		arg.Value,
+		arg.Disabled,
+		arg.UserID,
+		arg.EnableStatusUpdates,
 	)
 	return err
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/sqlc-dev/pqtype"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
-	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
@@ -22,11 +21,10 @@ type Store struct {
 }
 
 // NewStore will create a DB backend from a sql.DB. An error will be returned if statements fail to prepare.
-func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
-	p := &util.Prepare{DB: db, Ctx: ctx}
+func NewStore(ctx context.Context, db *sql.DB) *Store {
 	return &Store{
 		db: db,
-	}, p.Err
+	}
 }
 
 func (s *Store) MetadataByTypeValue(ctx context.Context, tx *sql.Tx, typ Type, value string) (*Metadata, error) {
@@ -194,9 +192,9 @@ func (s *Store) DeleteTx(ctx context.Context, tx *sql.Tx, ids ...string) error {
 		return err
 	}
 
-	uids := make([]uuid.UUID, len(ids))
-	for i, id := range ids {
-		uids[i] = uuid.MustParse(id)
+	uids, err := validate.ParseManyUUID("UserIDs", ids, len(ids))
+	if err != nil {
+		return err
 	}
 
 	rows, err := gadb.New(s.db).LookupUserIDContactMethod(ctx, uids)
@@ -224,12 +222,13 @@ func (s *Store) FindOneTx(ctx context.Context, tx *sql.Tx, id string) (*ContactM
 	if err != nil {
 		return nil, err
 	}
-	err = validate.UUID("ContactMethodID", id)
+
+	methodUUID, err := validate.ParseUUID("ContactMethodID", id)
 	if err != nil {
 		return nil, err
 	}
 
-	row, err := gadb.New(s.db).FindOneUpdateContactMethod(ctx, uuid.MustParse(id))
+	row, err := gadb.New(s.db).FindOneUpdateContactMethod(ctx, methodUUID)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +250,7 @@ func (s *Store) FindOneTx(ctx context.Context, tx *sql.Tx, id string) (*ContactM
 
 // FindOne finds the contact method from the database using the provided ID.
 func (s *Store) FindOne(ctx context.Context, id string) (*ContactMethod, error) {
-	err := validate.UUID("ContactMethodID", id)
+	methodUUID, err := validate.ParseUUID("ContactMethodID", id)
 	if err != nil {
 		return nil, err
 	}
@@ -261,7 +260,7 @@ func (s *Store) FindOne(ctx context.Context, id string) (*ContactMethod, error) 
 		return nil, err
 	}
 
-	row, err := gadb.New(s.db).FindOneContactMethod(ctx, uuid.MustParse(id))
+	row, err := gadb.New(s.db).FindOneContactMethod(ctx, methodUUID)
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +322,7 @@ func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, c *ContactMethod) erro
 
 // FindMany will fetch all contact methods matching the given ids.
 func (s *Store) FindMany(ctx context.Context, ids []string) ([]ContactMethod, error) {
-	err := validate.ManyUUID("ContactMethodID", ids, 50)
+	uids, err := validate.ParseManyUUID("ContactMethodID", ids, 50)
 	if err != nil {
 		return nil, err
 	}
@@ -331,11 +330,6 @@ func (s *Store) FindMany(ctx context.Context, ids []string) ([]ContactMethod, er
 	err = permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
-	}
-
-	uids := make([]uuid.UUID, len(ids))
-	for i, id := range ids {
-		uids[i] = uuid.MustParse(id)
 	}
 
 	rows, err := gadb.New(s.db).FindManyContactMethod(ctx, uids)
@@ -363,7 +357,7 @@ func (s *Store) FindMany(ctx context.Context, ids []string) ([]ContactMethod, er
 
 // FindAll finds all contact methods from the database associated with the given user ID.
 func (s *Store) FindAll(ctx context.Context, userID string) ([]ContactMethod, error) {
-	err := validate.UUID("UserID", userID)
+	uid, err := validate.ParseUUID("ContactMethodID", userID)
 	if err != nil {
 		return nil, err
 	}
@@ -373,7 +367,7 @@ func (s *Store) FindAll(ctx context.Context, userID string) ([]ContactMethod, er
 		return nil, err
 	}
 
-	rows, err := gadb.New(s.db).FindAllContactMethod(ctx, uuid.MustParse(userID))
+	rows, err := gadb.New(s.db).FindAllContactMethod(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
