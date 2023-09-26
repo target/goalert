@@ -44,6 +44,7 @@ export interface Query {
   swoStatus: SWOStatus
   gqlAPIKeys: GQLAPIKey[]
   listGQLFields: string[]
+  serviceRule?: null | ServiceRule
 }
 
 export interface IntegrationKeyTypeInfo {
@@ -429,6 +430,7 @@ export interface Mutation {
   deleteGQLAPIKey: boolean
   createBasicAuth: boolean
   updateBasicAuth: boolean
+  createServiceRule?: null | ServiceRule
 }
 
 export interface CreatedGQLAPIKey {
@@ -950,6 +952,7 @@ export interface Service {
   integrationKeys: IntegrationKey[]
   labels: Label[]
   heartbeatMonitors: HeartbeatMonitor[]
+  rules: ServiceRule[]
   notices: Notice[]
 }
 
@@ -1192,6 +1195,24 @@ export interface Notice {
 }
 
 export type NoticeType = 'WARNING' | 'ERROR' | 'INFO'
+
+export interface ServiceRule {
+  id: string
+  name: string
+  serviceID: string
+  integrationKeys: IntegrationKey[]
+  filterString: string
+  sendAlert: boolean
+}
+
+export interface CreateServiceRuleInput {
+  name: string
+  serviceID: string
+  filter: string
+  sendAlert: boolean
+  actions: string
+  integrationKeys: string[]
+}
 
 type ConfigID =
   | 'General.ApplicationName'

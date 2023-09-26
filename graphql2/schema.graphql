@@ -142,6 +142,9 @@ type Query {
   gqlAPIKeys: [GQLAPIKey!]!
 
   listGQLFields(query: String): [String!]!
+
+  # Returns a single service rule with the given ID.
+  serviceRule(id: ID!): ServiceRule
 }
 
 type IntegrationKeyTypeInfo {
@@ -599,6 +602,9 @@ type Mutation {
 
   createBasicAuth(input: CreateBasicAuthInput!): Boolean!
   updateBasicAuth(input: UpdateBasicAuthInput!): Boolean!
+
+
+  createServiceRule(input: CreateServiceRuleInput!): ServiceRule
 }
 
 type CreatedGQLAPIKey {
@@ -1214,6 +1220,7 @@ type Service {
   integrationKeys: [IntegrationKey!]!
   labels: [Label!]!
   heartbeatMonitors: [HeartbeatMonitor!]!
+  rules: [ServiceRule!]!
 
   notices: [Notice!]!
 }
@@ -1504,4 +1511,22 @@ enum NoticeType {
   WARNING
   ERROR
   INFO
+}
+
+type ServiceRule {
+  id: ID!
+  name: String!
+  serviceID: ID!
+  integrationKeys: [IntegrationKey!]!
+  filterString: String!
+  sendAlert: Boolean!
+}
+
+input CreateServiceRuleInput {
+  name: String!
+  serviceID: ID!
+  filter: String!
+  sendAlert: Boolean!
+  actions: String!
+  integrationKeys: [ID!]!
 }

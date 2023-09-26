@@ -39,8 +39,9 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
-	"github.com/target/goalert/schedule/rule"
+	schedulerule "github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/service"
+	servicerule "github.com/target/goalert/service/rule"
 	"github.com/target/goalert/swo"
 	"github.com/target/goalert/timezone"
 	"github.com/target/goalert/user"
@@ -72,7 +73,7 @@ type App struct {
 	OnCallStore       *oncall.Store
 	IntKeyStore       *integrationkey.Store
 	LabelStore        *label.Store
-	RuleStore         *rule.Store
+	RuleStore         *schedulerule.Store
 	OverrideStore     *override.Store
 	ConfigStore       *config.Store
 	LimitStore        *limit.Store
@@ -80,6 +81,7 @@ type App struct {
 	HeartbeatStore    *heartbeat.Store
 	NoticeStore       *notice.Store
 	APIKeyStore       *apikey.Store
+	ServiceRuleStore  *servicerule.Store
 
 	AuthLinkStore *authlink.Store
 

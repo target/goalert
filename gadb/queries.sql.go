@@ -929,6 +929,53 @@ func (q *Queries) IntKeyFindByService(ctx context.Context, serviceID uuid.UUID) 
 	return items, nil
 }
 
+const intKeyFindByServiceRule = `-- name: IntKeyFindByServiceRule :many
+SELECT
+    i.id,
+    i.name,
+    i.type,
+    i.service_id
+FROM
+    integration_keys i
+    JOIN service_rule_integration_keys si ON si.integration_key_id = i.id
+        AND si.service_rule_id = $1
+`
+
+type IntKeyFindByServiceRuleRow struct {
+	ID        uuid.UUID
+	Name      string
+	Type      EnumIntegrationKeysType
+	ServiceID uuid.UUID
+}
+
+func (q *Queries) IntKeyFindByServiceRule(ctx context.Context, serviceRuleID uuid.UUID) ([]IntKeyFindByServiceRuleRow, error) {
+	rows, err := q.db.QueryContext(ctx, intKeyFindByServiceRule, serviceRuleID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []IntKeyFindByServiceRuleRow
+	for rows.Next() {
+		var i IntKeyFindByServiceRuleRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Type,
+			&i.ServiceID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const intKeyFindOne = `-- name: IntKeyFindOne :one
 SELECT
     id,
@@ -1299,6 +1346,62 @@ func (q *Queries) StatusMgrUpdateSub(ctx context.Context, arg StatusMgrUpdateSub
 	return err
 }
 
+const svcRuleAddIntKey = `-- name: SvcRuleAddIntKey :exec
+INSERT INTO service_rule_integration_keys(service_rule_id, integration_key_id)
+    VALUES ($1, $2)
+`
+
+type SvcRuleAddIntKeyParams struct {
+	ServiceRuleID    uuid.UUID
+	IntegrationKeyID uuid.UUID
+}
+
+func (q *Queries) SvcRuleAddIntKey(ctx context.Context, arg SvcRuleAddIntKeyParams) error {
+	_, err := q.db.ExecContext(ctx, svcRuleAddIntKey, arg.ServiceRuleID, arg.IntegrationKeyID)
+	return err
+}
+
+const svcRuleFindOne = `-- name: SvcRuleFindOne :one
+SELECT
+    r.id,
+    r.name,
+    r.service_id,
+    r.filter,
+    r.send_alert,
+    r.actions,
+    STRING_AGG(si.integration_key_id::text, ',')::text integration_keys
+FROM
+    service_rules r
+    JOIN service_rule_integration_keys si ON si.service_rule_id = r.id
+WHERE
+    r.id = $1
+`
+
+type SvcRuleFindOneRow struct {
+	ID              uuid.UUID
+	Name            string
+	ServiceID       uuid.UUID
+	Filter          string
+	SendAlert       bool
+	Actions         pqtype.NullRawMessage
+	IntegrationKeys string
+}
+
+func (q *Queries) SvcRuleFindOne(ctx context.Context, id uuid.UUID) (SvcRuleFindOneRow, error) {
+	row := q.db.QueryRowContext(ctx, svcRuleFindOne, id)
+	var i SvcRuleFindOneRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.ServiceID,
+		&i.Filter,
+		&i.SendAlert,
+		&i.Actions,
+		&i.IntegrationKeys,
+	)
+	return i, err
+}
+
 const svcRuleGetByIntKey = `-- name: SvcRuleGetByIntKey :many
 SELECT
     r.id,
@@ -1309,10 +1412,9 @@ SELECT
     r.actions
 FROM
     service_rule_integration_keys AS sk
-JOIN service_rules AS r 
-	ON sk.service_rule_id = r.id
-    AND r.service_id = $1
-    AND sk.integration_key_id = $2
+    JOIN service_rules AS r ON sk.service_rule_id = r.id
+        AND r.service_id = $1
+        AND sk.integration_key_id = $2
 `
 
 type SvcRuleGetByIntKeyParams struct {
@@ -1367,17 +1469,14 @@ SELECT
     service_rules.filter,
     service_rules.send_alert,
     service_rules.actions,
-    STRING_AGG (
-      service_rule_integration_keys.integration_key_id::text,
-      ','
-    )::TEXT integration_keys
+    STRING_AGG(service_rule_integration_keys.integration_key_id::text, ',')::text integration_keys
 FROM
     service_rules
-JOIN service_rule_integration_keys ON service_rule_integration_keys.service_rule_id = service_rules.id
-WHERE 
+    JOIN service_rule_integration_keys ON service_rule_integration_keys.service_rule_id = service_rules.id
+WHERE
     service_rules.service_id = $1
 GROUP BY
-		service_rules.id
+    service_rules.id
 `
 
 type SvcRuleGetByServiceRow struct {
@@ -1421,9 +1520,11 @@ func (q *Queries) SvcRuleGetByService(ctx context.Context, serviceID uuid.UUID) 
 	return items, nil
 }
 
-const svcRuleInsert = `-- name: SvcRuleInsert :exec
-INSERT INTO service_rules(name, service_id, filter, send_alert, actions)
+const svcRuleInsert = `-- name: SvcRuleInsert :one
+INSERT INTO service_rules(name, service_id, FILTER, send_alert, actions)
     VALUES ($1, $2, $3, $4, $5)
+RETURNING
+    id
 `
 
 type SvcRuleInsertParams struct {
@@ -1434,15 +1535,17 @@ type SvcRuleInsertParams struct {
 	Actions   pqtype.NullRawMessage
 }
 
-func (q *Queries) SvcRuleInsert(ctx context.Context, arg SvcRuleInsertParams) error {
-	_, err := q.db.ExecContext(ctx, svcRuleInsert,
+func (q *Queries) SvcRuleInsert(ctx context.Context, arg SvcRuleInsertParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, svcRuleInsert,
 		arg.Name,
 		arg.ServiceID,
 		arg.Filter,
 		arg.SendAlert,
 		arg.Actions,
 	)
-	return err
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const updateCalSub = `-- name: UpdateCalSub :exec

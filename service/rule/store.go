@@ -26,6 +26,39 @@ func NewStore(ctx context.Context, db *sql.DB) *Store {
 	return s
 }
 
+func (s *Store) FindOne(ctx context.Context, id string) (*Rule, error) {
+	ruleID, err := validate.ParseUUID("ServiceRuleID", id)
+	if err != nil {
+		return nil, err
+	}
+
+	row, err := gadb.New(s.db).SvcRuleFindOne(ctx, ruleID)
+	if err != nil {
+		return nil, errors.Wrap(err, "get rules for service")
+	}
+
+	actions := []map[string]interface{}{}
+	if !row.SendAlert {
+		if !row.Actions.Valid {
+			return nil, fmt.Errorf("service rule has null action")
+		}
+		actionsRaw := row.Actions.RawMessage
+		err := json.Unmarshal(actionsRaw, &actions)
+		if err != nil {
+			return nil, fmt.Errorf("bad actions value for service rule")
+		}
+	}
+
+	return &Rule{
+		ID:              row.ID.String(),
+		Name:            row.Name,
+		ServiceID:       row.ServiceID.String(),
+		IntegrationKeys: strings.Split(row.IntegrationKeys, ","),
+		FilterString:    row.Filter,
+		Actions:         actions,
+	}, nil
+}
+
 // GetRulesForService returns all service rules associated with the given serviceID
 func (s *Store) GetRulesForService(ctx context.Context, serviceID string) ([]Rule, error) {
 	err := permission.LimitCheckAny(ctx,
@@ -120,29 +153,54 @@ func (s *Store) GetRulesForIntegrationKey(ctx context.Context, serviceID string,
 	return rules, nil
 }
 
-// InsertRule inserts the given rule, validating that the IntegrationKeyID and ServiceID
-// are valid UUIDs.
-func (s *Store) InsertRule(ctx context.Context, rule Rule) error {
+// Create inserts the given rule, validating that the IntegrationKeyIDs and ServiceID
+// are valid UUIDs. It also updates the service_rule_integration_keys pivot table
+// with the rule's integration keys.
+func (s *Store) Create(ctx context.Context, tx *sql.Tx, rule Rule) (*Rule, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	err = validate.UUID("ServiceID", rule.ServiceID)
-	if err != nil {
-		return err
+
+	serviceID, err1 := validate.ParseUUID("ServiceID", rule.ServiceID)
+	intKeyIDs, err2 := validate.ParseManyUUID("IntegrationKeyID", rule.IntegrationKeys, -1)
+	if err = validate.Many(err1, err2); err != nil {
+		return nil, err
 	}
+
 	actionsJson := pqtype.NullRawMessage{Valid: len(rule.Actions) > 0}
 	if actionsJson.Valid {
 		actionsJson.RawMessage, err = json.Marshal(rule.Actions)
 		if err != nil {
-			return errors.Wrap(err, "marshal rule actions")
+			return nil, errors.Wrap(err, "marshal rule actions")
 		}
 	}
-	err = gadb.New(s.db).SvcRuleInsert(ctx, gadb.SvcRuleInsertParams{
+
+	ruleID, err := gadb.New(s.db).SvcRuleInsert(ctx, gadb.SvcRuleInsertParams{
 		Name:      rule.Name,
-		ServiceID: uuid.MustParse(rule.ServiceID),
+		ServiceID: serviceID,
 		Filter:    rule.FilterString,
 		SendAlert: rule.SendAlert,
+		Actions:   actionsJson,
 	})
-	return errors.Wrap(err, "insert service rule")
+	if err != nil {
+		return nil, err
+	}
+
+	for _, key := range intKeyIDs {
+		err := gadb.New(tx).SvcRuleAddIntKey(ctx, gadb.SvcRuleAddIntKeyParams{
+			IntegrationKeyID: key,
+			ServiceRuleID:    ruleID,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	rule.ID = ruleID.String()
+	return &rule, nil
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/service"
+	"github.com/target/goalert/service/rule"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -113,6 +114,10 @@ func (s *Service) IntegrationKeys(ctx context.Context, raw *service.Service) ([]
 
 func (s *Service) HeartbeatMonitors(ctx context.Context, raw *service.Service) ([]heartbeat.Monitor, error) {
 	return s.HeartbeatStore.FindAllByService(ctx, raw.ID)
+}
+
+func (s *Service) Rules(ctx context.Context, raw *service.Service) ([]rule.Rule, error) {
+	return s.ServiceRuleStore.GetRulesForService(ctx, raw.ID)
 }
 
 func (m *Mutation) CreateService(ctx context.Context, input graphql2.CreateServiceInput) (result *service.Service, err error) {

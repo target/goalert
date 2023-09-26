@@ -171,3 +171,30 @@ func (s *Store) FindAllByService(ctx context.Context, serviceID string) ([]Integ
 	}
 	return keys, nil
 }
+
+func (s *Store) FindAllByServiceRule(ctx context.Context, serviceRuleID string) ([]IntegrationKey, error) {
+	ruleUUID, err := validate.ParseUUID("ServiceRuleID", serviceRuleID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := gadb.New(s.db).IntKeyFindByServiceRule(ctx, ruleUUID)
+	if err != nil {
+		return nil, err
+	}
+	keys := make([]IntegrationKey, len(rows))
+	for i, row := range rows {
+		keys[i] = IntegrationKey{
+			ID:        row.ID.String(),
+			Name:      row.Name,
+			Type:      Type(row.Type),
+			ServiceID: row.ServiceID.String(),
+		}
+	}
+	return keys, nil
+}

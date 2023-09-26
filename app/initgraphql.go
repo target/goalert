@@ -42,6 +42,7 @@ func (app *App) initGraphQL(ctx context.Context) error {
 		AuthLinkStore:       app.AuthLinkStore,
 		SWO:                 app.cfg.SWO,
 		APIKeyStore:         app.APIKeyStore,
+		ServiceRuleStore:    app.ServiceRuleStore,
 	}
 
 	return nil

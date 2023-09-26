@@ -191,6 +191,15 @@ type CreateServiceInput struct {
 	NewHeartbeatMonitors []CreateHeartbeatMonitorInput `json:"newHeartbeatMonitors,omitempty"`
 }
 
+type CreateServiceRuleInput struct {
+	Name            string   `json:"name"`
+	ServiceID       string   `json:"serviceID"`
+	Filter          string   `json:"filter"`
+	SendAlert       bool     `json:"sendAlert"`
+	Actions         string   `json:"actions"`
+	IntegrationKeys []string `json:"integrationKeys"`
+}
+
 type CreateUserCalendarSubscriptionInput struct {
 	Name            string `json:"name"`
 	ReminderMinutes []int  `json:"reminderMinutes,omitempty"`
