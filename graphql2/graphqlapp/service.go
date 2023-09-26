@@ -117,7 +117,7 @@ func (s *Service) HeartbeatMonitors(ctx context.Context, raw *service.Service) (
 }
 
 func (s *Service) Rules(ctx context.Context, raw *service.Service) ([]rule.Rule, error) {
-	return s.ServiceRuleStore.GetRulesForService(ctx, raw.ID)
+	return s.ServiceRuleStore.FindAllByService(ctx, raw.ID)
 }
 
 func (m *Mutation) CreateService(ctx context.Context, input graphql2.CreateServiceInput) (result *service.Service, err error) {

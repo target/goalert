@@ -1,4 +1,4 @@
--- name: SvcRuleGetByService :many
+-- name: SvcRuleFindManyByService :many
 SELECT
     service_rules.id,
     service_rules.name,
@@ -25,7 +25,7 @@ RETURNING
 INSERT INTO service_rule_integration_keys(service_rule_id, integration_key_id)
     VALUES ($1, $2);
 
--- name: SvcRuleGetByIntKey :many
+-- name: SvcRuleFindManyByIntKey :many
 SELECT
     r.id,
     r.name,
