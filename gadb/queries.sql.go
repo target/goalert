@@ -1094,7 +1094,7 @@ func (q *Queries) SetAlertFeedback(ctx context.Context, arg SetAlertFeedbackPara
 
 const signalInsert = `-- name: SignalInsert :one
 INSERT INTO signals(service_rule_id, service_id, outgoing_payload, scheduled)
-    VALUES ($1, $2, $3, false)
+    VALUES ($1, $2, $3, FALSE)
 RETURNING
     id, timestamp
 `
@@ -1334,10 +1334,9 @@ SELECT
     r.actions
 FROM
     service_rule_integration_keys AS sk
-JOIN service_rules AS r 
-	ON sk.service_rule_id = r.id
-    AND r.service_id = $1
-    AND sk.integration_key_id = $2
+    JOIN service_rules AS r ON sk.service_rule_id = r.id
+        AND r.service_id = $1
+        AND sk.integration_key_id = $2
 `
 
 type SvcRuleGetByIntKeyParams struct {
@@ -1392,17 +1391,14 @@ SELECT
     service_rules.filter,
     service_rules.send_alert,
     service_rules.actions,
-    STRING_AGG (
-      service_rule_integration_keys.integration_key_id::text,
-      ','
-    )::TEXT integration_keys
+    STRING_AGG(service_rule_integration_keys.integration_key_id::text, ',')::text integration_keys
 FROM
     service_rules
-JOIN service_rule_integration_keys ON service_rule_integration_keys.service_rule_id = service_rules.id
-WHERE 
+    JOIN service_rule_integration_keys ON service_rule_integration_keys.service_rule_id = service_rules.id
+WHERE
     service_rules.service_id = $1
 GROUP BY
-		service_rules.id
+    service_rules.id
 `
 
 type SvcRuleGetByServiceRow struct {

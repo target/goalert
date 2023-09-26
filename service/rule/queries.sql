@@ -16,7 +16,7 @@ GROUP BY
     service_rules.id;
 
 -- name: SvcRuleInsert :exec
-INSERT INTO service_rules(name, service_id, FILTER, send_alert, actions)
+INSERT INTO service_rules(name, service_id, filter, send_alert, actions)
     VALUES ($1, $2, $3, $4, $5);
 
 -- name: SvcRuleGetByIntKey :many
