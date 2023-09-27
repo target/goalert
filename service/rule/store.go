@@ -12,8 +12,6 @@ import (
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation/validate"
-
-	"github.com/google/uuid"
 )
 
 type Store struct {
@@ -21,13 +19,11 @@ type Store struct {
 }
 
 func NewStore(ctx context.Context, db *sql.DB) *Store {
-	s := &Store{db: db}
-
-	return s
+	return &Store{db: db}
 }
 
-// GetRulesForService returns all service rules associated with the given serviceID
-func (s *Store) GetRulesForService(ctx context.Context, serviceID string) ([]Rule, error) {
+// FindAllByService returns all service rules associated with the given serviceID
+func (s *Store) FindAllByService(ctx context.Context, serviceID string) ([]Rule, error) {
 	err := permission.LimitCheckAny(ctx,
 		permission.User,
 		permission.MatchService(serviceID),
@@ -35,13 +31,15 @@ func (s *Store) GetRulesForService(ctx context.Context, serviceID string) ([]Rul
 	if err != nil {
 		return nil, err
 	}
-	err = validate.UUID("ServiceID", serviceID)
+
+	serviceUUID, err := validate.ParseUUID("ServiceID", serviceID)
 	if err != nil {
 		return nil, err
 	}
-	rows, err := gadb.New(s.db).SvcRuleGetByService(ctx, uuid.MustParse(serviceID))
+
+	rows, err := gadb.New(s.db).SvcRuleFindManyByService(ctx, serviceUUID)
 	if err != nil {
-		return nil, errors.Wrap(err, "get rules for service")
+		return nil, errors.Wrap(err, "find rules for service")
 	}
 
 	rules := make([]Rule, len(rows))
@@ -70,8 +68,8 @@ func (s *Store) GetRulesForService(ctx context.Context, serviceID string) ([]Rul
 	return rules, nil
 }
 
-// GetRulesForIntegrationKey returns all service rules associated with the given serviceID and integrationKeyID
-func (s *Store) GetRulesForIntegrationKey(ctx context.Context, serviceID string, integrationKeyID string) ([]Rule, error) {
+// FindAllByIntegrationKey returns all service rules associated with the given serviceID and integrationKeyID
+func (s *Store) FindAllByIntegrationKey(ctx context.Context, serviceID string, integrationKeyID string) ([]Rule, error) {
 	err := permission.LimitCheckAny(ctx,
 		permission.User,
 		permission.MatchService(serviceID),
@@ -79,17 +77,16 @@ func (s *Store) GetRulesForIntegrationKey(ctx context.Context, serviceID string,
 	if err != nil {
 		return nil, err
 	}
-	err = validate.UUID("ServiceID", serviceID)
-	if err != nil {
+
+	serviceUUID, err1 := validate.ParseUUID("ServiceID", serviceID)
+	keyUUID, err2 := validate.ParseUUID("IntegrationKeyID", integrationKeyID)
+	if err = validate.Many(err1, err2); err != nil {
 		return nil, err
 	}
-	err = validate.UUID("IntegrationKeyID", integrationKeyID)
-	if err != nil {
-		return nil, err
-	}
-	rows, err := gadb.New(s.db).SvcRuleGetByIntKey(ctx, gadb.SvcRuleGetByIntKeyParams{
-		ServiceID:        uuid.MustParse(serviceID),
-		IntegrationKeyID: uuid.MustParse(integrationKeyID),
+
+	rows, err := gadb.New(s.db).SvcRuleFindManyByIntKey(ctx, gadb.SvcRuleFindManyByIntKeyParams{
+		ServiceID:        serviceUUID,
+		IntegrationKeyID: keyUUID,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "get rules for integration key")
@@ -127,10 +124,12 @@ func (s *Store) InsertRule(ctx context.Context, rule Rule) error {
 	if err != nil {
 		return err
 	}
-	err = validate.UUID("ServiceID", rule.ServiceID)
+
+	serviceUUID, err := validate.ParseUUID("ServiceID", rule.ServiceID)
 	if err != nil {
 		return err
 	}
+
 	actionsJson := pqtype.NullRawMessage{Valid: len(rule.Actions) > 0}
 	if actionsJson.Valid {
 		actionsJson.RawMessage, err = json.Marshal(rule.Actions)
@@ -140,7 +139,7 @@ func (s *Store) InsertRule(ctx context.Context, rule Rule) error {
 	}
 	err = gadb.New(s.db).SvcRuleInsert(ctx, gadb.SvcRuleInsertParams{
 		Name:      rule.Name,
-		ServiceID: uuid.MustParse(rule.ServiceID),
+		ServiceID: serviceUUID,
 		Filter:    rule.FilterString,
 		SendAlert: rule.SendAlert,
 	})
