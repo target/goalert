@@ -244,6 +244,7 @@ type ComplexityRoot struct {
 		ID            func(childComplexity int) int
 		LastUsed      func(childComplexity int) int
 		Name          func(childComplexity int) int
+		Role          func(childComplexity int) int
 		UpdatedAt     func(childComplexity int) int
 		UpdatedBy     func(childComplexity int) int
 	}
@@ -1584,6 +1585,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.GQLAPIKey.Name(childComplexity), true
+
+	case "GQLAPIKey.role":
+		if e.complexity.GQLAPIKey.Role == nil {
+			break
+		}
+
+		return e.complexity.GQLAPIKey.Role(childComplexity), true
 
 	case "GQLAPIKey.updatedAt":
 		if e.complexity.GQLAPIKey.UpdatedAt == nil {
@@ -10167,6 +10175,50 @@ func (ec *executionContext) fieldContext_GQLAPIKey_allowedFields(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _GQLAPIKey_role(ctx context.Context, field graphql.CollectedField, obj *GQLAPIKey) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GQLAPIKey_role(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Role, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(UserRole)
+	fc.Result = res
+	return ec.marshalNUserRole2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserRole(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GQLAPIKey_role(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GQLAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type UserRole does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _GQLAPIKeyUsage_time(ctx context.Context, field graphql.CollectedField, obj *GQLAPIKeyUsage) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_GQLAPIKeyUsage_time(ctx, field)
 	if err != nil {
@@ -18438,6 +18490,8 @@ func (ec *executionContext) fieldContext_Query_gqlAPIKeys(ctx context.Context, f
 				return ec.fieldContext_GQLAPIKey_expiresAt(ctx, field)
 			case "allowedFields":
 				return ec.fieldContext_GQLAPIKey_allowedFields(ctx, field)
+			case "role":
+				return ec.fieldContext_GQLAPIKey_role(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GQLAPIKey", field.Name)
 		},
@@ -33476,6 +33530,11 @@ func (ec *executionContext) _GQLAPIKey(ctx context.Context, sel ast.SelectionSet
 			}
 		case "allowedFields":
 			out.Values[i] = ec._GQLAPIKey_allowedFields(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "role":
+			out.Values[i] = ec._GQLAPIKey_role(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
