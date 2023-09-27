@@ -172,7 +172,7 @@ export function formatTimestamp(arg: FormatTimestampArg): string {
 
   if (arg.format === 'relative')
     return formatRelative({
-      dur: dt.diff(from),
+      dur: dt.diff(from, [...arg.units ?? ['days', 'hours', 'minutes']]),
       precise: arg.precise,
       min: arg.min,
       units: arg.units,
