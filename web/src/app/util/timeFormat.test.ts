@@ -107,5 +107,5 @@ describe('toRelative', () => {
     },
     '1 min, 5 sec ago',
   )
-  check({dur: { month: 3 }, units: ['month'], precise: true }, 'in 3 mths')
+  check({ dur: { month: 3 }, units: ['month'], precise: true }, 'in 3 mths')
 })
