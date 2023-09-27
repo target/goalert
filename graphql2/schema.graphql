@@ -1541,3 +1541,15 @@ input UpdateServiceRuleInput {
   actions: String!
   integrationKeys: [ID!]!
 }
+
+type Signal {
+  id: ID!
+  signalID: Int!
+  timestamp: ISOTimestamp!
+  serviceRuleID: ID!
+  serviceRule: ServiceRule!
+  serviceID: ID!
+  service: Service!
+  outgoingPayload: String!
+  scheduled: Boolean!
+}

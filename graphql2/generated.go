@@ -36,6 +36,7 @@ import (
 	rule1 "github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/service"
 	"github.com/target/goalert/service/rule"
+	"github.com/target/goalert/signal"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/user/notificationrule"
@@ -80,6 +81,7 @@ type ResolverRoot interface {
 	ScheduleRule() ScheduleRuleResolver
 	Service() ServiceResolver
 	ServiceRule() ServiceRuleResolver
+	Signal() SignalResolver
 	Target() TargetResolver
 	TemporarySchedule() TemporaryScheduleResolver
 	User() UserResolver
@@ -574,6 +576,18 @@ type ComplexityRoot struct {
 		ServiceID       func(childComplexity int) int
 	}
 
+	Signal struct {
+		ID              func(childComplexity int) int
+		OutgoingPayload func(childComplexity int) int
+		Scheduled       func(childComplexity int) int
+		Service         func(childComplexity int) int
+		ServiceID       func(childComplexity int) int
+		ServiceRule     func(childComplexity int) int
+		ServiceRuleID   func(childComplexity int) int
+		SignalID        func(childComplexity int) int
+		Timestamp       func(childComplexity int) int
+	}
+
 	SlackChannel struct {
 		ID     func(childComplexity int) int
 		Name   func(childComplexity int) int
@@ -903,6 +917,15 @@ type ServiceResolver interface {
 }
 type ServiceRuleResolver interface {
 	IntegrationKeys(ctx context.Context, obj *rule.Rule) ([]integrationkey.IntegrationKey, error)
+}
+type SignalResolver interface {
+	ID(ctx context.Context, obj *signal.Signal) (string, error)
+	SignalID(ctx context.Context, obj *signal.Signal) (int, error)
+
+	ServiceRule(ctx context.Context, obj *signal.Signal) (*rule.Rule, error)
+
+	Service(ctx context.Context, obj *signal.Signal) (*service.Service, error)
+	OutgoingPayload(ctx context.Context, obj *signal.Signal) (string, error)
 }
 type TargetResolver interface {
 	Name(ctx context.Context, obj *assignment.RawTarget) (string, error)
@@ -3710,6 +3733,69 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ServiceRule.ServiceID(childComplexity), true
+
+	case "Signal.id":
+		if e.complexity.Signal.ID == nil {
+			break
+		}
+
+		return e.complexity.Signal.ID(childComplexity), true
+
+	case "Signal.outgoingPayload":
+		if e.complexity.Signal.OutgoingPayload == nil {
+			break
+		}
+
+		return e.complexity.Signal.OutgoingPayload(childComplexity), true
+
+	case "Signal.scheduled":
+		if e.complexity.Signal.Scheduled == nil {
+			break
+		}
+
+		return e.complexity.Signal.Scheduled(childComplexity), true
+
+	case "Signal.service":
+		if e.complexity.Signal.Service == nil {
+			break
+		}
+
+		return e.complexity.Signal.Service(childComplexity), true
+
+	case "Signal.serviceID":
+		if e.complexity.Signal.ServiceID == nil {
+			break
+		}
+
+		return e.complexity.Signal.ServiceID(childComplexity), true
+
+	case "Signal.serviceRule":
+		if e.complexity.Signal.ServiceRule == nil {
+			break
+		}
+
+		return e.complexity.Signal.ServiceRule(childComplexity), true
+
+	case "Signal.serviceRuleID":
+		if e.complexity.Signal.ServiceRuleID == nil {
+			break
+		}
+
+		return e.complexity.Signal.ServiceRuleID(childComplexity), true
+
+	case "Signal.signalID":
+		if e.complexity.Signal.SignalID == nil {
+			break
+		}
+
+		return e.complexity.Signal.SignalID(childComplexity), true
+
+	case "Signal.timestamp":
+		if e.complexity.Signal.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.Signal.Timestamp(childComplexity), true
 
 	case "SlackChannel.id":
 		if e.complexity.SlackChannel.ID == nil {
@@ -22860,6 +22946,444 @@ func (ec *executionContext) fieldContext_ServiceRule_sendAlert(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Signal_id(ctx context.Context, field graphql.CollectedField, obj *signal.Signal) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Signal_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Signal().ID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Signal_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Signal",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Signal_signalID(ctx context.Context, field graphql.CollectedField, obj *signal.Signal) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Signal_signalID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Signal().SignalID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Signal_signalID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Signal",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Signal_timestamp(ctx context.Context, field graphql.CollectedField, obj *signal.Signal) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Signal_timestamp(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Timestamp, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Signal_timestamp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Signal",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Signal_serviceRuleID(ctx context.Context, field graphql.CollectedField, obj *signal.Signal) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Signal_serviceRuleID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceRuleID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Signal_serviceRuleID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Signal",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Signal_serviceRule(ctx context.Context, field graphql.CollectedField, obj *signal.Signal) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Signal_serviceRule(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Signal().ServiceRule(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*rule.Rule)
+	fc.Result = res
+	return ec.marshalNServiceRule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐRule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Signal_serviceRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Signal",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ServiceRule_id(ctx, field)
+			case "name":
+				return ec.fieldContext_ServiceRule_name(ctx, field)
+			case "serviceID":
+				return ec.fieldContext_ServiceRule_serviceID(ctx, field)
+			case "integrationKeys":
+				return ec.fieldContext_ServiceRule_integrationKeys(ctx, field)
+			case "filterString":
+				return ec.fieldContext_ServiceRule_filterString(ctx, field)
+			case "sendAlert":
+				return ec.fieldContext_ServiceRule_sendAlert(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceRule", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Signal_serviceID(ctx context.Context, field graphql.CollectedField, obj *signal.Signal) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Signal_serviceID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Signal_serviceID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Signal",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Signal_service(ctx context.Context, field graphql.CollectedField, obj *signal.Signal) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Signal_service(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Signal().Service(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*service.Service)
+	fc.Result = res
+	return ec.marshalNService2ᚖgithubᚗcomᚋtargetᚋgoalertᚋserviceᚐService(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Signal_service(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Signal",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Service_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Service_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Service_description(ctx, field)
+			case "escalationPolicyID":
+				return ec.fieldContext_Service_escalationPolicyID(ctx, field)
+			case "escalationPolicy":
+				return ec.fieldContext_Service_escalationPolicy(ctx, field)
+			case "isFavorite":
+				return ec.fieldContext_Service_isFavorite(ctx, field)
+			case "maintenanceExpiresAt":
+				return ec.fieldContext_Service_maintenanceExpiresAt(ctx, field)
+			case "onCallUsers":
+				return ec.fieldContext_Service_onCallUsers(ctx, field)
+			case "integrationKeys":
+				return ec.fieldContext_Service_integrationKeys(ctx, field)
+			case "labels":
+				return ec.fieldContext_Service_labels(ctx, field)
+			case "heartbeatMonitors":
+				return ec.fieldContext_Service_heartbeatMonitors(ctx, field)
+			case "rules":
+				return ec.fieldContext_Service_rules(ctx, field)
+			case "notices":
+				return ec.fieldContext_Service_notices(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Service", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Signal_outgoingPayload(ctx context.Context, field graphql.CollectedField, obj *signal.Signal) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Signal_outgoingPayload(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Signal().OutgoingPayload(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Signal_outgoingPayload(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Signal",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Signal_scheduled(ctx context.Context, field graphql.CollectedField, obj *signal.Signal) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Signal_scheduled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Scheduled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Signal_scheduled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Signal",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _SlackChannel_id(ctx context.Context, field graphql.CollectedField, obj *slack.Channel) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SlackChannel_id(ctx, field)
 	if err != nil {
@@ -38397,6 +38921,240 @@ func (ec *executionContext) _ServiceRule(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
+var signalImplementors = []string{"Signal"}
+
+func (ec *executionContext) _Signal(ctx context.Context, sel ast.SelectionSet, obj *signal.Signal) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, signalImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Signal")
+		case "id":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Signal_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "signalID":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Signal_signalID(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "timestamp":
+			out.Values[i] = ec._Signal_timestamp(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "serviceRuleID":
+			out.Values[i] = ec._Signal_serviceRuleID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "serviceRule":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Signal_serviceRule(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "serviceID":
+			out.Values[i] = ec._Signal_serviceID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "service":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Signal_service(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "outgoingPayload":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Signal_outgoingPayload(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "scheduled":
+			out.Values[i] = ec._Signal_scheduled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var slackChannelImplementors = []string{"SlackChannel"}
 
 func (ec *executionContext) _SlackChannel(ctx context.Context, sel ast.SelectionSet, obj *slack.Channel) graphql.Marshaler {
@@ -42216,6 +42974,16 @@ func (ec *executionContext) marshalNService2ᚕgithubᚗcomᚋtargetᚋgoalert�
 	return ret
 }
 
+func (ec *executionContext) marshalNService2ᚖgithubᚗcomᚋtargetᚋgoalertᚋserviceᚐService(ctx context.Context, sel ast.SelectionSet, v *service.Service) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Service(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNServiceConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐServiceConnection(ctx context.Context, sel ast.SelectionSet, v ServiceConnection) graphql.Marshaler {
 	return ec._ServiceConnection(ctx, sel, &v)
 }
@@ -42324,6 +43092,16 @@ func (ec *executionContext) marshalNServiceRule2ᚕgithubᚗcomᚋtargetᚋgoale
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalNServiceRule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐRule(ctx context.Context, sel ast.SelectionSet, v *rule.Rule) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ServiceRule(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNSetAlertNoiseReasonInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetAlertNoiseReasonInput(ctx context.Context, v interface{}) (SetAlertNoiseReasonInput, error) {

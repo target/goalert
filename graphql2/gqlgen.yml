@@ -109,3 +109,5 @@ models:
     model: github.com/target/goalert/notification.SearchOptions
   ServiceRule:
     model: github.com/target/goalert/service/rule.Rule
+  Signal:
+    model: github.com/target/goalert/signal.Signal

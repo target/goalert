@@ -1226,6 +1226,18 @@ export interface UpdateServiceRuleInput {
   integrationKeys: string[]
 }
 
+export interface Signal {
+  id: string
+  signalID: number
+  timestamp: ISOTimestamp
+  serviceRuleID: string
+  serviceRule: ServiceRule
+  serviceID: string
+  service: Service
+  outgoingPayload: string
+  scheduled: boolean
+}
+
 type ConfigID =
   | 'General.ApplicationName'
   | 'General.PublicURL'
