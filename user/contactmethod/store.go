@@ -178,22 +178,13 @@ func (s *Store) DeleteTx(ctx context.Context, tx *sql.Tx, ids ...string) error {
 		return nil
 	}
 
-	err = validate.ManyUUID("ContactMethodID", ids, 50)
+	uids, err := validate.ParseManyUUID("ContactMethodID", ids, 50)
 	if err != nil {
 		return err
 	}
 
 	if permission.Admin(ctx) {
-		uids := make([]uuid.UUID, len(ids))
-		for i, id := range ids {
-			uids[i] = uuid.MustParse(id)
-		}
 		err = gadb.New(tx).DeleteContactMethod(ctx, uids)
-		return err
-	}
-
-	uids, err := validate.ParseManyUUID("UserIDs", ids, len(ids))
-	if err != nil {
 		return err
 	}
 
