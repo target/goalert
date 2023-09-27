@@ -187,16 +187,74 @@ func (s *Store) Create(ctx context.Context, tx *sql.Tx, rule Rule) (*Rule, error
 		return nil, err
 	}
 
-	for _, key := range intKeyIDs {
-		err := gadb.New(tx).SvcRuleAddIntKey(ctx, gadb.SvcRuleAddIntKeyParams{
-			IntegrationKeyID: key,
-			ServiceRuleID:    ruleID,
-		})
-		if err != nil {
-			return nil, err
-		}
+	err = gadb.New(tx).SvcRuleSetIntKeys(ctx, gadb.SvcRuleSetIntKeysParams{
+		ServiceRuleID:     ruleID,
+		IntegrationKeyIds: intKeyIDs,
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	rule.ID = ruleID.String()
 	return &rule, nil
+}
+
+// Update updates the given rule, validating that the RuleID and IntegrationKeyIDs
+// are valid UUIDs. It also updates the service_rule_integration_keys pivot table
+// with the rule's integration keys.
+func (s *Store) Update(ctx context.Context, tx *sql.Tx, rule Rule) (*Rule, error) {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return nil, err
+	}
+
+	ruleID, err1 := validate.ParseUUID("ServiceRuleID", rule.ID)
+	intKeyIDs, err2 := validate.ParseManyUUID("IntegrationKeyID", rule.IntegrationKeys, -1)
+	if err = validate.Many(err1, err2); err != nil {
+		return nil, err
+	}
+
+	actionsJson := pqtype.NullRawMessage{Valid: len(rule.Actions) > 0}
+	if actionsJson.Valid {
+		actionsJson.RawMessage, err = json.Marshal(rule.Actions)
+		if err != nil {
+			return nil, errors.Wrap(err, "marshal rule actions")
+		}
+	}
+
+	err = gadb.New(s.db).SvcRuleUpdate(ctx, gadb.SvcRuleUpdateParams{
+		ID:        ruleID,
+		Name:      rule.Name,
+		Filter:    rule.FilterString,
+		SendAlert: rule.SendAlert,
+		Actions:   actionsJson,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = gadb.New(tx).SvcRuleSetIntKeys(ctx, gadb.SvcRuleSetIntKeysParams{
+		ServiceRuleID:     ruleID,
+		IntegrationKeyIds: intKeyIDs,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &rule, nil
+}
+
+// Delete deletes the rule with the given ID.
+func (s *Store) Delete(ctx context.Context, id string) error {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return err
+	}
+
+	ruleID, err := validate.ParseUUID("RuleID", id)
+	if err != nil {
+		return err
+	}
+
+	return gadb.New(s.db).SvcRuleDelete(ctx, ruleID)
 }

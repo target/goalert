@@ -1346,18 +1346,13 @@ func (q *Queries) StatusMgrUpdateSub(ctx context.Context, arg StatusMgrUpdateSub
 	return err
 }
 
-const svcRuleAddIntKey = `-- name: SvcRuleAddIntKey :exec
-INSERT INTO service_rule_integration_keys(service_rule_id, integration_key_id)
-    VALUES ($1, $2)
+const svcRuleDelete = `-- name: SvcRuleDelete :exec
+DELETE FROM service_rules
+WHERE id = $1
 `
 
-type SvcRuleAddIntKeyParams struct {
-	ServiceRuleID    uuid.UUID
-	IntegrationKeyID uuid.UUID
-}
-
-func (q *Queries) SvcRuleAddIntKey(ctx context.Context, arg SvcRuleAddIntKeyParams) error {
-	_, err := q.db.ExecContext(ctx, svcRuleAddIntKey, arg.ServiceRuleID, arg.IntegrationKeyID)
+func (q *Queries) SvcRuleDelete(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, svcRuleDelete, id)
 	return err
 }
 
@@ -1546,6 +1541,64 @@ func (q *Queries) SvcRuleInsert(ctx context.Context, arg SvcRuleInsertParams) (u
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const svcRuleSetIntKeys = `-- name: SvcRuleSetIntKeys :exec
+WITH deleted_rows AS (
+    DELETE FROM service_rule_integration_keys sk
+    WHERE sk.service_rule_id = $1
+        AND sk.integration_key_id != ALL ($2::uuid[])
+    RETURNING
+        id, integration_key_id, service_rule_id)
+INSERT INTO service_rule_integration_keys(service_rule_id, integration_key_id)
+SELECT
+    $1,
+    ik
+FROM
+    unnest($2::uuid[]) ik
+ON CONFLICT
+    DO NOTHING
+`
+
+type SvcRuleSetIntKeysParams struct {
+	ServiceRuleID     uuid.UUID
+	IntegrationKeyIds []uuid.UUID
+}
+
+func (q *Queries) SvcRuleSetIntKeys(ctx context.Context, arg SvcRuleSetIntKeysParams) error {
+	_, err := q.db.ExecContext(ctx, svcRuleSetIntKeys, arg.ServiceRuleID, pq.Array(arg.IntegrationKeyIds))
+	return err
+}
+
+const svcRuleUpdate = `-- name: SvcRuleUpdate :exec
+UPDATE
+    service_rules
+SET
+    name = $2,
+    FILTER = $3,
+    send_alert = $4,
+    actions = $5
+WHERE
+    id = $1
+`
+
+type SvcRuleUpdateParams struct {
+	ID        uuid.UUID
+	Name      string
+	Filter    string
+	SendAlert bool
+	Actions   pqtype.NullRawMessage
+}
+
+func (q *Queries) SvcRuleUpdate(ctx context.Context, arg SvcRuleUpdateParams) error {
+	_, err := q.db.ExecContext(ctx, svcRuleUpdate,
+		arg.ID,
+		arg.Name,
+		arg.Filter,
+		arg.SendAlert,
+		arg.Actions,
+	)
+	return err
 }
 
 const updateCalSub = `-- name: UpdateCalSub :exec

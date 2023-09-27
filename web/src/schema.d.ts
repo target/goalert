@@ -431,6 +431,8 @@ export interface Mutation {
   createBasicAuth: boolean
   updateBasicAuth: boolean
   createServiceRule?: null | ServiceRule
+  updateServiceRule?: null | ServiceRule
+  deleteServiceRule: boolean
 }
 
 export interface CreatedGQLAPIKey {
@@ -1208,6 +1210,15 @@ export interface ServiceRule {
 export interface CreateServiceRuleInput {
   name: string
   serviceID: string
+  filter: string
+  sendAlert: boolean
+  actions: string
+  integrationKeys: string[]
+}
+
+export interface UpdateServiceRuleInput {
+  id: string
+  name: string
   filter: string
   sendAlert: boolean
   actions: string

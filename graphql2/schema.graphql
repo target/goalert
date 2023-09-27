@@ -603,8 +603,9 @@ type Mutation {
   createBasicAuth(input: CreateBasicAuthInput!): Boolean!
   updateBasicAuth(input: UpdateBasicAuthInput!): Boolean!
 
-
   createServiceRule(input: CreateServiceRuleInput!): ServiceRule
+  updateServiceRule(input: UpdateServiceRuleInput!): ServiceRule
+  deleteServiceRule(id: ID!): Boolean!
 }
 
 type CreatedGQLAPIKey {
@@ -1525,6 +1526,15 @@ type ServiceRule {
 input CreateServiceRuleInput {
   name: String!
   serviceID: ID!
+  filter: String!
+  sendAlert: Boolean!
+  actions: String!
+  integrationKeys: [ID!]!
+}
+
+input UpdateServiceRuleInput {
+  id: ID!
+  name: String!
   filter: String!
   sendAlert: Boolean!
   actions: String!

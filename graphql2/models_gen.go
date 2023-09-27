@@ -671,6 +671,15 @@ type UpdateServiceInput struct {
 	MaintenanceExpiresAt *time.Time `json:"maintenanceExpiresAt,omitempty"`
 }
 
+type UpdateServiceRuleInput struct {
+	ID              string   `json:"id"`
+	Name            string   `json:"name"`
+	Filter          string   `json:"filter"`
+	SendAlert       bool     `json:"sendAlert"`
+	Actions         string   `json:"actions"`
+	IntegrationKeys []string `json:"integrationKeys"`
+}
+
 type UpdateUserCalendarSubscriptionInput struct {
 	ID              string  `json:"id"`
 	Name            *string `json:"name,omitempty"`

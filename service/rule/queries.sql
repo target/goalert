@@ -21,9 +21,21 @@ INSERT INTO service_rules(name, service_id, FILTER, send_alert, actions)
 RETURNING
     id;
 
--- name: SvcRuleAddIntKey :exec
+-- name: SvcRuleSetIntKeys :exec
+WITH deleted_rows AS (
+    DELETE FROM service_rule_integration_keys sk
+    WHERE sk.service_rule_id = $1
+        AND sk.integration_key_id != ALL (@integration_key_ids::uuid[])
+    RETURNING
+        *)
 INSERT INTO service_rule_integration_keys(service_rule_id, integration_key_id)
-    VALUES ($1, $2);
+SELECT
+    $1,
+    ik
+FROM
+    unnest(@integration_key_ids::uuid[]) ik
+ON CONFLICT
+    DO NOTHING;
 
 -- name: SvcRuleFindManyByIntKey :many
 SELECT
@@ -53,4 +65,19 @@ FROM
     JOIN service_rule_integration_keys si ON si.service_rule_id = r.id
 WHERE
     r.id = $1;
+
+-- name: SvcRuleUpdate :exec
+UPDATE
+    service_rules
+SET
+    name = $2,
+    FILTER = $3,
+    send_alert = $4,
+    actions = $5
+WHERE
+    id = $1;
+
+-- name: SvcRuleDelete :exec
+DELETE FROM service_rules
+WHERE id = $1;
 

@@ -336,6 +336,7 @@ type ComplexityRoot struct {
 		DeleteAll                          func(childComplexity int, input []assignment.RawTarget) int
 		DeleteAuthSubject                  func(childComplexity int, input user.AuthSubject) int
 		DeleteGQLAPIKey                    func(childComplexity int, id string) int
+		DeleteServiceRule                  func(childComplexity int, id string) int
 		EndAllAuthSessionsByCurrentUser    func(childComplexity int) int
 		EscalateAlerts                     func(childComplexity int, input []int) int
 		LinkAccount                        func(childComplexity int, token string) int
@@ -360,6 +361,7 @@ type ComplexityRoot struct {
 		UpdateSchedule                     func(childComplexity int, input UpdateScheduleInput) int
 		UpdateScheduleTarget               func(childComplexity int, input ScheduleTargetInput) int
 		UpdateService                      func(childComplexity int, input UpdateServiceInput) int
+		UpdateServiceRule                  func(childComplexity int, input UpdateServiceRuleInput) int
 		UpdateUser                         func(childComplexity int, input UpdateUserInput) int
 		UpdateUserCalendarSubscription     func(childComplexity int, input UpdateUserCalendarSubscriptionInput) int
 		UpdateUserContactMethod            func(childComplexity int, input UpdateUserContactMethodInput) int
@@ -809,6 +811,8 @@ type MutationResolver interface {
 	CreateBasicAuth(ctx context.Context, input CreateBasicAuthInput) (bool, error)
 	UpdateBasicAuth(ctx context.Context, input UpdateBasicAuthInput) (bool, error)
 	CreateServiceRule(ctx context.Context, input CreateServiceRuleInput) (*rule.Rule, error)
+	UpdateServiceRule(ctx context.Context, input UpdateServiceRuleInput) (*rule.Rule, error)
+	DeleteServiceRule(ctx context.Context, id string) (bool, error)
 }
 type OnCallNotificationRuleResolver interface {
 	Target(ctx context.Context, obj *schedule.OnCallNotificationRule) (*assignment.RawTarget, error)
@@ -2124,6 +2128,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteGQLAPIKey(childComplexity, args["id"].(string)), true
 
+	case "Mutation.deleteServiceRule":
+		if e.complexity.Mutation.DeleteServiceRule == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteServiceRule_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteServiceRule(childComplexity, args["id"].(string)), true
+
 	case "Mutation.endAllAuthSessionsByCurrentUser":
 		if e.complexity.Mutation.EndAllAuthSessionsByCurrentUser == nil {
 			break
@@ -2406,6 +2422,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateService(childComplexity, args["input"].(UpdateServiceInput)), true
+
+	case "Mutation.updateServiceRule":
+		if e.complexity.Mutation.UpdateServiceRule == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateServiceRule_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateServiceRule(childComplexity, args["input"].(UpdateServiceRuleInput)), true
 
 	case "Mutation.updateUser":
 		if e.complexity.Mutation.UpdateUser == nil {
@@ -4298,6 +4326,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUpdateRotationInput,
 		ec.unmarshalInputUpdateScheduleInput,
 		ec.unmarshalInputUpdateServiceInput,
+		ec.unmarshalInputUpdateServiceRuleInput,
 		ec.unmarshalInputUpdateUserCalendarSubscriptionInput,
 		ec.unmarshalInputUpdateUserContactMethodInput,
 		ec.unmarshalInputUpdateUserInput,
@@ -4796,6 +4825,21 @@ func (ec *executionContext) field_Mutation_deleteGQLAPIKey_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteServiceRule_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_escalateAlerts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -5118,6 +5162,21 @@ func (ec *executionContext) field_Mutation_updateSchedule_args(ctx context.Conte
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNUpdateScheduleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateScheduleInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateServiceRule_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 UpdateServiceRuleInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUpdateServiceRuleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateServiceRuleInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -14932,6 +14991,127 @@ func (ec *executionContext) fieldContext_Mutation_createServiceRule(ctx context.
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createServiceRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateServiceRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateServiceRule(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateServiceRule(rctx, fc.Args["input"].(UpdateServiceRuleInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*rule.Rule)
+	fc.Result = res
+	return ec.marshalOServiceRule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐRule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateServiceRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ServiceRule_id(ctx, field)
+			case "name":
+				return ec.fieldContext_ServiceRule_name(ctx, field)
+			case "serviceID":
+				return ec.fieldContext_ServiceRule_serviceID(ctx, field)
+			case "integrationKeys":
+				return ec.fieldContext_ServiceRule_integrationKeys(ctx, field)
+			case "filterString":
+				return ec.fieldContext_ServiceRule_filterString(ctx, field)
+			case "sendAlert":
+				return ec.fieldContext_ServiceRule_sendAlert(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceRule", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateServiceRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteServiceRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteServiceRule(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteServiceRule(rctx, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteServiceRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteServiceRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -31883,6 +32063,80 @@ func (ec *executionContext) unmarshalInputUpdateServiceInput(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateServiceRuleInput(ctx context.Context, obj interface{}) (UpdateServiceRuleInput, error) {
+	var it UpdateServiceRuleInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "name", "filter", "sendAlert", "actions", "integrationKeys"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "filter":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Filter = data
+		case "sendAlert":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sendAlert"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SendAlert = data
+		case "actions":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("actions"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Actions = data
+		case "integrationKeys":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("integrationKeys"))
+			data, err := ec.unmarshalNID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IntegrationKeys = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateUserCalendarSubscriptionInput(ctx context.Context, obj interface{}) (UpdateUserCalendarSubscriptionInput, error) {
 	var it UpdateUserCalendarSubscriptionInput
 	asMap := map[string]interface{}{}
@@ -35155,6 +35409,17 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createServiceRule(ctx, field)
 			})
+		case "updateServiceRule":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateServiceRule(ctx, field)
+			})
+		case "deleteServiceRule":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteServiceRule(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -42618,6 +42883,11 @@ func (ec *executionContext) unmarshalNUpdateScheduleInput2githubᚗcomᚋtarget�
 
 func (ec *executionContext) unmarshalNUpdateServiceInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateServiceInput(ctx context.Context, v interface{}) (UpdateServiceInput, error) {
 	res, err := ec.unmarshalInputUpdateServiceInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateServiceRuleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateServiceRuleInput(ctx context.Context, v interface{}) (UpdateServiceRuleInput, error) {
+	res, err := ec.unmarshalInputUpdateServiceRuleInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
