@@ -64,7 +64,7 @@
     "bowser": "2.11.0",
     "chance": "1.1.11",
     "classnames": "2.3.2",
-    "cypress": "13.2.0",
+    "cypress": "13.3.0",
     "diff": "5.1.0",
     "esbuild": "0.19.3",
     "esbuild-jest": "0.5.0",
