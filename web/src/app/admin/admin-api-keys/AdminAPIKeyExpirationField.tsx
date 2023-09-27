@@ -19,6 +19,7 @@ const useStyles = makeStyles(() => ({
 interface FieldProps {
   setValue: (val: string) => void
   value: string
+  create: boolean
 }
 
 export default function AdminAPIKeyExpirationField(
@@ -86,6 +87,7 @@ export default function AdminAPIKeyExpirationField(
               label='Expires At'
               onChange={handleChange}
               required
+              disabled={!props.create}
             >
               <MenuItem value={7}>7 days</MenuItem>
               <MenuItem value={15}>15 days</MenuItem>

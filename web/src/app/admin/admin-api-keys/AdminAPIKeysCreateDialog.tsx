@@ -1,11 +1,10 @@
 import React, { useState } from 'react'
-import { gql, useMutation } from '@apollo/client'
+import { gql, useMutation } from 'urql'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
-import AdminAPIKeyCreateForm from './AdminAPIKeyCreateForm'
+import AdminAPIKeyForm from './AdminAPIKeyForm'
 import { CreateGQLAPIKeyInput, CreatedGQLAPIKey } from '../../../schema'
 import Spinner from '../../loading/components/Spinner'
-import { GenericError } from '../../error-pages'
 
 const newGQLAPIKeyQuery = gql`
   mutation CreateGQLAPIKey($input: CreateGQLAPIKeyInput!) {
@@ -29,40 +28,32 @@ export default function AdminAPIKeysCreateDialog(props: {
     expiresAt: '',
     role: 'unknown',
   })
-  const [createAPIKey, createAPIKeyStatus] = useMutation(newGQLAPIKeyQuery, {
-    onCompleted: (data) => {
-      props.setToken(data.createGQLAPIKey)
-      props.onClose(false)
-      props.onTokenDialogClose(true)
-      props.setReloadFlag(Math.random())
-    },
-  })
-  const [ allowFieldsError, setAllowFieldsError] = useState<string>('')
+  const [createAPIKeyStatus, createAPIKey] = useMutation(newGQLAPIKeyQuery)
+  const [allowFieldsError, setAllowFieldsError] = useState(true)
   const { loading, data, error } = createAPIKeyStatus
-  const fieldErrs = fieldErrors(error)
+  let fieldErrs = fieldErrors(error)
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleOnSubmit = () => {
-    if (key.allowedFields.length > 0) {
-      createAPIKey({
-        variables: {
-          input: key,
-        },
-      }).then((result) => {
-        if (!result.errors) {
-          return result
-        }
-      })
-    } else {
-      setAllowFieldsError('Please choose at least one Allowed Fields.')
-    }
-  }
-
-  if (error) {
-    return <GenericError error={error.message} />
+    createAPIKey({
+      input: key,
+    }).then((result: any) => {
+      if (!result.error) {
+        props.setToken(result.data.createGQLAPIKey)
+        props.onClose(false)
+        props.onTokenDialogClose(true)
+        props.setReloadFlag(Math.random())
+      }
+    })
   }
 
   if (loading && !data) {
     return <Spinner />
+  }
+
+  if (error) {
+    fieldErrs = fieldErrs.map((err) => {
+      return err
+    })
   }
 
   return (
@@ -70,16 +61,20 @@ export default function AdminAPIKeysCreateDialog(props: {
       title='New API Key'
       loading={loading}
       errors={nonFieldErrors(error)}
-      onClose={props.onClose}
+      onClose={() => {
+        props.onClose(false)
+      }}
       onSubmit={handleOnSubmit}
       disableBackdropClose
       form={
-        <AdminAPIKeyCreateForm
+        <AdminAPIKeyForm
           errors={fieldErrs}
           disabled={loading}
           value={key}
           onChange={setKey}
           allowFieldsError={allowFieldsError}
+          setAllowFieldsError={setAllowFieldsError}
+          create
         />
       }
     />

@@ -18,6 +18,7 @@ import { GQLAPIKey, UpdateGQLAPIKeyInput } from '../../../schema'
 import AdminAPIKeysDeleteDialog from './AdminAPIKeysDeleteDialog'
 import { gql, useMutation } from '@apollo/client'
 import { GenericError } from '../../error-pages'
+import { Time } from '../../util/Time'
 
 const updateGQLAPIKeyQuery = gql`
   mutation UpdateGQLAPIKey($input: UpdateGQLAPIKeyInput!) {
@@ -186,7 +187,7 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
               <ListItem divider>
                 <ListItemText
                   primary='Creation Time'
-                  secondary={apiKey?.createdAt}
+                  secondary={<Time prefix='' time={apiKey?.createdAt} />}
                 />
               </ListItem>
               <ListItem divider>
@@ -198,7 +199,7 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
               <ListItem divider>
                 <ListItemText
                   primary='Expires At'
-                  secondary={apiKey?.expiresAt}
+                  secondary={<Time prefix='' time={apiKey?.expiresAt} />}
                 />
               </ListItem>
               <ListItem divider>

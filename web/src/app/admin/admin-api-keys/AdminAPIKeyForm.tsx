@@ -19,16 +19,18 @@ const listGQLFieldsQuery = gql`
 `
 const MaxDetailsLength = 6 * 1024 // 6KiB
 
-interface AdminAPIKeyCreateFormProps {
+interface AdminAPIKeyFormProps {
   value: CreateGQLAPIKeyInput
   errors: FieldError[]
   onChange: (key: CreateGQLAPIKeyInput) => void
   disabled?: boolean
-  allowFieldsError: string
+  allowFieldsError: boolean
+  setAllowFieldsError: (param: boolean) => void
+  create: boolean
 }
 
-export default function AdminAPIKeyCreateForm(
-  props: AdminAPIKeyCreateFormProps,
+export default function AdminAPIKeyForm(
+  props: AdminAPIKeyFormProps,
 ): JSX.Element {
   const { ...containerProps } = props
   const [expiresAt, setExpiresAt] = useState<string>(
@@ -61,7 +63,7 @@ export default function AdminAPIKeyCreateForm(
     valTemp.expiresAt = new Date(expiresAt).toISOString()
     valTemp.allowedFields = allowedFields
     valTemp.role = role as UserRole
-
+    props.setAllowFieldsError(props.value.allowedFields.length <= 0)
     props.onChange(valTemp)
   })
 
@@ -106,6 +108,7 @@ export default function AdminAPIKeyCreateForm(
             id='role-select'
             value={role}
             label='User Role'
+            disabled={!props.create}
             name='userrole'
             onChange={handleRoleChange}
             required
@@ -119,6 +122,7 @@ export default function AdminAPIKeyCreateForm(
           <AdminAPIKeyExpirationField
             setValue={setExpiresAt}
             value={expiresAt}
+            create
           />
         </Grid>
         <Grid item xs={12}>
@@ -129,13 +133,14 @@ export default function AdminAPIKeyCreateForm(
             onChange={handleAutocompleteChange}
             disableCloseOnSelect
             renderInput={(params) => (
-              <TextField
+              <FormField
                 {...params}
-                variant='outlined'
-                label='Allowed Fields'
-                placeholder='Allowed Fields'
-                helperText={props.allowFieldsError}
-                error={props.allowFieldsError !== ''}
+                fullWidth
+                label='allowedFields'
+                name='Allowed Fields'
+                required={props.allowFieldsError}
+                component={TextField}
+                disabled={!props.create}
               />
             )}
             renderOption={(props, option, { selected }) => (
