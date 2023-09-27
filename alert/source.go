@@ -16,7 +16,7 @@ const (
 	SourcePrometheusAlertmanager Source = "prometheusAlertmanager" // prometheus alertmanager alert
 	SourceManual                 Source = "manual"                 // manually triggered
 	SourceGeneric                Source = "generic"                // generic API
-	SourceNotify                 Source = "notify"                 // notify API
+	SourceSignal                 Source = "signal"                 // signal API
 )
 
 func (s Source) Value() (driver.Value, error) {

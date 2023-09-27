@@ -394,8 +394,8 @@ func (s *Store) logEntry(ctx context.Context, tx *sql.Tx, _type Type, meta inter
 			switch ikeyType {
 			case integrationkey.TypeGeneric:
 				r.subject.classifier = "Generic API"
-			case integrationkey.TypeNotify:
-				r.subject.classifier = "Notify API"
+			case integrationkey.TypeSignal:
+				r.subject.classifier = "Signal API"
 			case integrationkey.TypeGrafana:
 				r.subject.classifier = "Grafana"
 			case integrationkey.TypeSite24x7:
