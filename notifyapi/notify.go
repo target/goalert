@@ -2,7 +2,6 @@ package notifyapi
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"mime"
 	"net/http"
@@ -58,8 +57,15 @@ func (h *Handler) ServeCreateSignals(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	if len(rules) == 0 {
-		http.Error(w, fmt.Sprintf("No rules found for integration key: %s", integrationKey), http.StatusAccepted)
+		if r.Header.Get("Accept") != "application/json" {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusAccepted)
+		_, _ = w.Write([]byte("[]"))
 		return
 	}
 
@@ -94,7 +100,7 @@ func (h *Handler) ServeCreateSignals(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Header.Get("Accept") != "application/json" {
-		w.WriteHeader(204)
+		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 
