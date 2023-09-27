@@ -15,7 +15,7 @@ func (i IntegrationKey) Normalize() (*IntegrationKey, error) {
 	err := validate.Many(
 		validate.IDName("Name", i.Name),
 		validate.UUID("ServiceID", i.ServiceID),
-		validate.OneOf("Type", i.Type, TypeGrafana, TypeSite24x7, TypePrometheusAlertmanager, TypeGeneric, TypeEmail, TypeNotify),
+		validate.OneOf("Type", i.Type, TypeGrafana, TypeSite24x7, TypePrometheusAlertmanager, TypeGeneric, TypeEmail, TypeSignal),
 	)
 	if err != nil {
 		return nil, err

@@ -44,7 +44,7 @@ func (s *Store) GetServiceID(ctx context.Context, id string, t Type) (string, er
 	keyUUID, err := validate.ParseUUID("IntegrationKeyID", id)
 	err = validate.Many(
 		err,
-		validate.OneOf("IntegrationType", t, TypeGrafana, TypeSite24x7, TypePrometheusAlertmanager, TypeGeneric, TypeNotify, TypeEmail),
+		validate.OneOf("IntegrationType", t, TypeGrafana, TypeSite24x7, TypePrometheusAlertmanager, TypeGeneric, TypeSignal, TypeEmail),
 	)
 	if err != nil {
 		return "", err

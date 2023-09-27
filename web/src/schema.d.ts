@@ -999,7 +999,7 @@ export interface IntegrationKey {
 
 export type IntegrationKeyType =
   | 'generic'
-  | 'notify'
+  | 'signal'
   | 'grafana'
   | 'site24x7'
   | 'prometheusAlertmanager'

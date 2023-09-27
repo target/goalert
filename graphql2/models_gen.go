@@ -874,7 +874,7 @@ type IntegrationKeyType string
 
 const (
 	IntegrationKeyTypeGeneric                IntegrationKeyType = "generic"
-	IntegrationKeyTypeNotify                 IntegrationKeyType = "notify"
+	IntegrationKeyTypeSignal                 IntegrationKeyType = "signal"
 	IntegrationKeyTypeGrafana                IntegrationKeyType = "grafana"
 	IntegrationKeyTypeSite24x7               IntegrationKeyType = "site24x7"
 	IntegrationKeyTypePrometheusAlertmanager IntegrationKeyType = "prometheusAlertmanager"
@@ -883,7 +883,7 @@ const (
 
 var AllIntegrationKeyType = []IntegrationKeyType{
 	IntegrationKeyTypeGeneric,
-	IntegrationKeyTypeNotify,
+	IntegrationKeyTypeSignal,
 	IntegrationKeyTypeGrafana,
 	IntegrationKeyTypeSite24x7,
 	IntegrationKeyTypePrometheusAlertmanager,
@@ -892,7 +892,7 @@ var AllIntegrationKeyType = []IntegrationKeyType{
 
 func (e IntegrationKeyType) IsValid() bool {
 	switch e {
-	case IntegrationKeyTypeGeneric, IntegrationKeyTypeNotify, IntegrationKeyTypeGrafana, IntegrationKeyTypeSite24x7, IntegrationKeyTypePrometheusAlertmanager, IntegrationKeyTypeEmail:
+	case IntegrationKeyTypeGeneric, IntegrationKeyTypeSignal, IntegrationKeyTypeGrafana, IntegrationKeyTypeSite24x7, IntegrationKeyTypePrometheusAlertmanager, IntegrationKeyTypeEmail:
 		return true
 	}
 	return false

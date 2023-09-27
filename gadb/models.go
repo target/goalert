@@ -170,8 +170,8 @@ const (
 	EnumAlertSourceGeneric                EnumAlertSource = "generic"
 	EnumAlertSourceGrafana                EnumAlertSource = "grafana"
 	EnumAlertSourceManual                 EnumAlertSource = "manual"
-	EnumAlertSourceNotify                 EnumAlertSource = "notify"
 	EnumAlertSourcePrometheusAlertmanager EnumAlertSource = "prometheusAlertmanager"
+	EnumAlertSourceSignal                 EnumAlertSource = "signal"
 	EnumAlertSourceSite24x7               EnumAlertSource = "site24x7"
 )
 
@@ -302,8 +302,8 @@ const (
 	EnumIntegrationKeysTypeEmail                  EnumIntegrationKeysType = "email"
 	EnumIntegrationKeysTypeGeneric                EnumIntegrationKeysType = "generic"
 	EnumIntegrationKeysTypeGrafana                EnumIntegrationKeysType = "grafana"
-	EnumIntegrationKeysTypeNotify                 EnumIntegrationKeysType = "notify"
 	EnumIntegrationKeysTypePrometheusAlertmanager EnumIntegrationKeysType = "prometheusAlertmanager"
+	EnumIntegrationKeysTypeSignal                 EnumIntegrationKeysType = "signal"
 	EnumIntegrationKeysTypeSite24x7               EnumIntegrationKeysType = "site24x7"
 )
 
