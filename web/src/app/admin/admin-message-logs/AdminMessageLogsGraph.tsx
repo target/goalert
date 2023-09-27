@@ -225,83 +225,96 @@ export default function AdminMessageLogsGraph(): JSX.Element {
               sx={{ height: 500 }}
             >
               <AutoSizer>
-                {({ width, height }: { width: number; height: number }) => (
-                  <LineChart
-                    width={width}
-                    height={height}
-                    margin={{
-                      top: 30,
-                      right: 50,
-                    }}
-                  >
-                    <CartesianGrid
-                      strokeDasharray='4'
-                      vertical={false}
-                      stroke={theme.palette.text.secondary}
-                    />
-                    <XAxis
-                      dataKey='start'
-                      type='category'
-                      stroke={theme.palette.text.secondary}
-                      tickFormatter={formatIntervals}
-                      minTickGap={15}
-                      allowDuplicatedCategory={false}
-                    />
-                    <YAxis
-                      type='number'
-                      dataKey='count'
-                      allowDecimals={false}
-                      interval='preserveStart'
-                      stroke={theme.palette.text.secondary}
-                    />
-                    <Tooltip
-                      cursor={{ fill: theme.palette.background.default }}
-                      content={(data) => {
-                        const { active, payload } = data
-                        if (!active || !payload?.length) return null
-
-                        return (
-                          <Paper
-                            data-cy='message-log-tooltip'
-                            variant='outlined'
-                            sx={{ p: 1 }}
-                          >
-                            <Typography variant='body2' sx={{ pb: 1 }}>
-                              <Time time={payload[0].payload.start} /> -{' '}
-                              <Time time={payload[0].payload.end} />
-                            </Typography>
-                            {payload.map((p) => (
-                              <React.Fragment key={p.name}>
-                                <Typography variant='body2'>
-                                  {p.payload.segmentLabel === ''
-                                    ? 'Count'
-                                    : p.payload.segmentLabel}
-                                  : {p.payload.count}
-                                </Typography>
-                              </React.Fragment>
-                            ))}
-                          </Paper>
-                        )
+                {({ width, height }: { width: number; height: number }) =>
+                  stats.length === 0 ? (
+                    <div
+                      style={{
+                        width,
+                        height,
+                        display: 'flex',
+                        alignItems: 'center',
                       }}
-                    />
-                    <Legend />
-                    {Object.keys(graphLines).map((label, index) => (
-                      <Line
-                        key={label}
-                        dataKey='count'
-                        data={graphLines[label]}
-                        name={label}
-                        type='monotone'
-                        stroke={getLineStroke(index)}
-                        strokeWidth={2}
-                        isAnimationActive={false}
-                        dot={(props) => (
-                          <circle {..._.omit(props, 'dataKey')} />
-                        )}
+                    >
+                      No Results
+                    </div>
+                  ) : (
+                    <LineChart
+                      width={width}
+                      height={height}
+                      margin={{
+                        top: 30,
+                        right: 50,
+                      }}
+                    >
+                      <CartesianGrid
+                        strokeDasharray='4'
+                        vertical={false}
+                        stroke={theme.palette.text.secondary}
                       />
-                    ))}
-                  </LineChart>
-                )}
+                      <XAxis
+                        dataKey='start'
+                        type='category'
+                        stroke={theme.palette.text.secondary}
+                        tickFormatter={formatIntervals}
+                        minTickGap={15}
+                        allowDuplicatedCategory={false}
+                      />
+                      <YAxis
+                        type='number'
+                        dataKey='count'
+                        allowDecimals={false}
+                        interval='preserveStart'
+                        stroke={theme.palette.text.secondary}
+                      />
+                      <Tooltip
+                        cursor={{ fill: theme.palette.background.default }}
+                        content={(data) => {
+                          const { active, payload } = data
+                          if (!active || !payload?.length) return null
+
+                          return (
+                            <Paper
+                              data-cy='message-log-tooltip'
+                              variant='outlined'
+                              sx={{ p: 1 }}
+                            >
+                              <Typography variant='body2' sx={{ pb: 1 }}>
+                                <Time time={payload[0].payload.start} /> -{' '}
+                                <Time time={payload[0].payload.end} />
+                              </Typography>
+                              {payload.map((p) => (
+                                <React.Fragment key={p.name}>
+                                  <Typography variant='body2'>
+                                    {p.payload.segmentLabel === ''
+                                      ? 'Count'
+                                      : p.payload.segmentLabel}
+                                    : {p.payload.count}
+                                  </Typography>
+                                </React.Fragment>
+                              ))}
+                            </Paper>
+                          )
+                        }}
+                      />
+                      <Legend />
+                      {Object.keys(graphLines).map((label, index) => (
+                        <Line
+                          key={label}
+                          dataKey='count'
+                          data={graphLines[label]}
+                          name={label}
+                          type='monotone'
+                          stroke={getLineStroke(index)}
+                          strokeWidth={2}
+                          isAnimationActive={false}
+                          dot={(props) => (
+                            <circle {..._.omit(props, 'dataKey')} />
+                          )}
+                        />
+                      ))}
+                    </LineChart>
+                  )
+                }
               </AutoSizer>
             </Grid>
           </Grid>
