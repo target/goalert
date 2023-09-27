@@ -41,6 +41,7 @@ import (
 	schedulerule "github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/service"
 	servicerule "github.com/target/goalert/service/rule"
+	"github.com/target/goalert/signal"
 	"github.com/target/goalert/smtpsrv"
 	"github.com/target/goalert/timezone"
 	"github.com/target/goalert/user"
@@ -124,6 +125,8 @@ type App struct {
 	NoticeStore   *notice.Store
 	AuthLinkStore *authlink.Store
 	APIKeyStore   *apikey.Store
+
+	SignalStore *signal.Store
 }
 
 // NewApp constructs a new App and binds the listening socket.

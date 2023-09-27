@@ -2,19 +2,16 @@ package notifyapi
 
 import (
 	"encoding/json"
-	"fmt"
-	"hash/fnv"
 	"io"
 	"mime"
 	"net/http"
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/target/goalert/alert"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
+	"github.com/target/goalert/signal"
 	"github.com/target/goalert/util/errutil"
-	"github.com/target/goalert/validation/validate"
 )
 
 // Handler responds to generic API requests
@@ -27,26 +24,17 @@ func NewHandler(c Config) *Handler {
 	return &Handler{c: c}
 }
 
-func hash(b []byte) uint64 {
-	h := fnv.New64a()
-	h.Write(b)
-	return h.Sum64()
-}
-
-// ServeCreateAlert allows creating or closing an alert.
-func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
+// ServeCreateSignals allows creating signals.
+func (h *Handler) ServeCreateSignals(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	err := permission.LimitCheckAny(ctx, permission.Service)
 	if errutil.HTTPError(ctx, w, err) {
 		return
 	}
+
 	serviceID := permission.ServiceID(ctx)
-
-	action := r.FormValue("action")
-
-	b := make(map[string]interface{})
-	var dedupeHash uint64
+	requestBody := make(map[string]interface{})
 
 	ct, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if ct == "application/json" {
@@ -56,92 +44,84 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err = json.Unmarshal(data, &b)
+		err = json.Unmarshal(data, &requestBody)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-
-		if b["action"] != nil {
-			actionValue, ok := b["action"].(string)
-			if !ok {
-				http.Error(w, fmt.Sprintf("Field 'action' is not a string: %s", b["action"]), http.StatusBadRequest)
-				return
-			}
-			fmt.Println(action, "here")
-			action = actionValue
-			delete(b, "action")
-			data, err = json.Marshal(&b)
-		}
-		fmt.Println(action, "here")
-		dedupeHash = hash(data)
 	}
 
-	rules, err := FindMatchingRules(serviceID, b)
-	if len(rules) == 0 {
-		http.Error(w, fmt.Sprintf("No rules found for ServiceID: %s", serviceID), http.StatusAccepted)
+	integrationKey := r.URL.Query().Get("token")
+	rules, err := h.findMatchingRules(ctx, integrationKey, requestBody)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	var summary string
-	var details string
+
+	if len(rules) == 0 {
+		if r.Header.Get("Accept") != "application/json" {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusAccepted)
+		_, _ = w.Write([]byte("[]"))
+		return
+	}
+
+	signals := []signal.Signal{}
+
 	for _, rule := range rules {
+		if rule.SendAlert {
+			// TODO: implement create alert logic
+			continue
+		}
 		for _, action := range rule.Actions {
-			summary += fmt.Sprintf("%s", action.Destination)
-			details += action.Message
+			signals = append(signals, signal.Signal{
+				ServiceID:       serviceID,
+				ServiceRuleID:   rule.ID,
+				OutgoingPayload: buildOutgoingPayload(action, requestBody),
+			})
 		}
 	}
 
-	status := alert.StatusTriggered
-	if action == "close" {
-		status = alert.StatusClosed
-	}
-
-	summary = validate.SanitizeText(summary, alert.MaxSummaryLength)
-	details = validate.SanitizeText(details, alert.MaxDetailsLength)
-
-	a := &alert.Alert{
-		Summary:   summary,
-		Details:   details,
-		Source:    alert.SourceNotify,
-		ServiceID: serviceID,
-		Dedup:     alert.NewUserDedup(fmt.Sprintf("%d", dedupeHash)),
-		Status:    status,
-	}
-
-	var resp struct {
-		AlertID   int
-		ServiceID string
-		IsNew     bool
-	}
+	createdSignals := []*signal.Signal{}
 
 	err = retry.DoTemporaryError(func(int) error {
-		fmt.Println(a.Status, "Alert")
-		createdAlert, isNew, err := h.c.AlertStore.CreateOrUpdate(ctx, a)
-		if createdAlert != nil {
-			resp.AlertID = createdAlert.ID
-			resp.ServiceID = createdAlert.ServiceID
-			resp.IsNew = isNew
-		}
-
+		createdSignals, err = h.c.SignalStore.CreateMany(ctx, signals)
 		return err
 	},
 		retry.Log(ctx),
 		retry.Limit(10),
 		retry.FibBackoff(time.Second),
 	)
-	if errutil.HTTPError(ctx, w, errors.Wrap(err, "create alert")) {
+	if errutil.HTTPError(ctx, w, errors.Wrap(err, "create signals")) {
 		return
 	}
 
 	if r.Header.Get("Accept") != "application/json" {
-		w.WriteHeader(204)
+		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 
-	data, err := json.Marshal(&resp)
+	data, err := json.Marshal(createdSignals)
 	if errutil.HTTPError(ctx, w, err) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(data)
+}
+
+// buildOutgoingPayload is a hypothetical implementation.
+// TODO: update when plugin implementation has been defined
+func buildOutgoingPayload(action map[string]interface{}, incomingPayload map[string]interface{}) map[string]interface{} {
+	outgoingPayload := make(map[string]interface{})
+
+	if destType, ok := action["destination_type"]; ok {
+		outgoingPayload["destination_type"] = destType
+	}
+
+	outgoingPayload["received_payload"] = incomingPayload
+
+	return outgoingPayload
 }

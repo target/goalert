@@ -638,6 +638,7 @@ type GQLAPIKey {
   lastUsed: GQLAPIKeyUsage
   expiresAt: ISOTimestamp!
   allowedFields: [String!]!
+  role: UserRole!
 }
 
 type GQLAPIKeyUsage {

@@ -27,6 +27,7 @@ sql:
       - service/rule/queries.sql
       - integrationkey/queries.sql
       - apikey/queries.sql
+      - signal/queries.sql
     engine: postgresql
     gen:
       go:

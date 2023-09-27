@@ -31,6 +31,7 @@ import (
 	schedulerule "github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/service"
 	servicerule "github.com/target/goalert/service/rule"
+	"github.com/target/goalert/signal"
 	"github.com/target/goalert/timezone"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
@@ -305,6 +306,10 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 	if err != nil {
 		return errors.Wrap(err, "init API key store")
+	}
+
+	if app.SignalStore == nil {
+		app.SignalStore = signal.NewStore(ctx, app.db)
 	}
 
 	return nil

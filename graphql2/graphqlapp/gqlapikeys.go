@@ -55,6 +55,7 @@ func (q *Query) GqlAPIKeys(ctx context.Context) ([]graphql2.GQLAPIKey, error) {
 			UpdatedAt:     k.UpdatedAt,
 			ExpiresAt:     k.ExpiresAt,
 			AllowedFields: k.AllowedFields,
+			Role:          graphql2.UserRole(k.Role),
 		}
 
 		if k.CreatedBy != nil {
