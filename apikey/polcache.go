@@ -2,9 +2,7 @@ package apikey
 
 import (
 	"context"
-	"crypto/sha256"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"sync"
 
@@ -38,14 +36,12 @@ func newPolCache(cfg polCacheConfig) *polCache {
 }
 
 // Revoke will add the key to the negative cache.
-func (c *polCache) Revoke(ctx context.Context, key uuid.UUID) error {
+func (c *polCache) Revoke(ctx context.Context, key uuid.UUID) {
 	c.mx.Lock()
 	defer c.mx.Unlock()
 
 	c.neg.Add(key, nil)
 	c.lru.Remove(key)
-
-	return nil
 }
 
 // Get will return the policyInfo for the given key.
@@ -74,7 +70,7 @@ func (c *polCache) Get(ctx context.Context, key uuid.UUID) (value *policyInfo, o
 
 		// Since each key has a unique ID and is signed, we can
 		// safely assume that an invalid key will always be invalid
-		// and can be cached.
+		// and can be negatively cached.
 		if !isValid {
 			c.neg.Add(key, nil)
 			c.lru.Remove(key)
@@ -86,7 +82,7 @@ func (c *polCache) Get(ctx context.Context, key uuid.UUID) (value *policyInfo, o
 
 	// If the key is not in the cache, we need to fetch it,
 	// and add it to the cache. We can safely assume that
-	// the key is valid, when returned from the FillFunc.
+	// the key is valid when returned from the FillFunc.
 	value, isValid, err := c.cfg.FillFunc(ctx, key)
 	if err != nil {
 		return value, false, err
@@ -110,25 +106,4 @@ func (s *Store) _verifyPolicyID(ctx context.Context, id uuid.UUID) (bool, error)
 	}
 
 	return valid, nil
-}
-
-func (s *Store) _fetchPolicyInfo(ctx context.Context, id uuid.UUID) (*policyInfo, bool, error) {
-	polData, err := gadb.New(s.db).APIKeyAuthPolicy(ctx, id)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, false, nil
-	}
-	if err != nil {
-		return nil, false, err
-	}
-
-	var info policyInfo
-	err = json.Unmarshal(polData, &info.Policy)
-	if err != nil {
-		return nil, false, err
-	}
-
-	h := sha256.Sum256(polData)
-	info.Hash = h[:]
-
-	return &info, true, nil
 }
