@@ -461,6 +461,7 @@ export interface GQLAPIKey {
   lastUsed?: null | GQLAPIKeyUsage
   expiresAt: ISOTimestamp
   allowedFields: string[]
+  role: UserRole
 }
 
 export interface GQLAPIKeyUsage {

@@ -60,6 +60,7 @@ type APIKeyInfo struct {
 	CreatedBy     *uuid.UUID
 	UpdatedBy     *uuid.UUID
 	AllowedFields []string
+	Role          permission.Role
 }
 
 func (s *Store) FindAllAdminGraphQLKeys(ctx context.Context) ([]APIKeyInfo, error) {
@@ -112,6 +113,7 @@ func (s *Store) FindAllAdminGraphQLKeys(ctx context.Context) ([]APIKeyInfo, erro
 			CreatedBy:     &k.CreatedBy.UUID,
 			UpdatedBy:     &k.UpdatedBy.UUID,
 			AllowedFields: p.AllowedFields,
+			Role:          p.Role,
 		})
 	}
 
