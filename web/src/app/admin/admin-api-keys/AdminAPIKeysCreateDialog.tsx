@@ -37,19 +37,24 @@ export default function AdminAPIKeysCreateDialog(props: {
       props.setReloadFlag(Math.random())
     },
   })
+  const [ allowFieldsError, setAllowFieldsError] = useState<string>('')
   const { loading, data, error } = createAPIKeyStatus
   const fieldErrs = fieldErrors(error)
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleOnSubmit = () => {
-    createAPIKey({
-      variables: {
-        input: key,
-      },
-    }).then((result) => {
-      if (!result.errors) {
-        return result
-      }
-    })
+    if (key.allowedFields.length > 0) {
+      createAPIKey({
+        variables: {
+          input: key,
+        },
+      }).then((result) => {
+        if (!result.errors) {
+          return result
+        }
+      })
+    } else {
+      setAllowFieldsError('Please choose at least one Allowed Fields.')
+    }
   }
 
   if (error) {
@@ -74,6 +79,7 @@ export default function AdminAPIKeysCreateDialog(props: {
           disabled={loading}
           value={key}
           onChange={setKey}
+          allowFieldsError={allowFieldsError}
         />
       }
     />

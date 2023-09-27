@@ -24,6 +24,7 @@ interface AdminAPIKeyCreateFormProps {
   errors: FieldError[]
   onChange: (key: CreateGQLAPIKeyInput) => void
   disabled?: boolean
+  allowFieldsError: string
 }
 
 export default function AdminAPIKeyCreateForm(
@@ -104,7 +105,8 @@ export default function AdminAPIKeyCreateForm(
             labelId='role-select-label'
             id='role-select'
             value={role}
-            label='Role'
+            label='User Role'
+            name='userrole'
             onChange={handleRoleChange}
             required
             style={{ width: '100%' }}
@@ -132,6 +134,8 @@ export default function AdminAPIKeyCreateForm(
                 variant='outlined'
                 label='Allowed Fields'
                 placeholder='Allowed Fields'
+                helperText={props.allowFieldsError}
+                error={props.allowFieldsError !== ''}
               />
             )}
             renderOption={(props, option, { selected }) => (
