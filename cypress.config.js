@@ -10,6 +10,7 @@ module.exports = defineConfig({
   viewportHeight: 900,
   requestTimeout: 15000,
   defaultCommandTimeout: 15000,
+  numTestsKeptInMemory: 1,
   video: false,
 
   retries: {
