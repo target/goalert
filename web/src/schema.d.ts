@@ -45,6 +45,7 @@ export interface Query {
   gqlAPIKeys: GQLAPIKey[]
   listGQLFields: string[]
   serviceRule?: null | ServiceRule
+  signal?: null | Signal
 }
 
 export interface IntegrationKeyTypeInfo {

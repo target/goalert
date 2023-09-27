@@ -145,6 +145,9 @@ type Query {
 
   # Returns a single service rule with the given ID.
   serviceRule(id: ID!): ServiceRule
+
+  # Returns a single signal with the given ID.
+  signal(id: Int!): Signal
 }
 
 type IntegrationKeyTypeInfo {

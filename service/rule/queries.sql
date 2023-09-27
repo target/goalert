@@ -64,7 +64,9 @@ FROM
     service_rules r
     JOIN service_rule_integration_keys si ON si.service_rule_id = r.id
 WHERE
-    r.id = $1;
+    r.id = $1
+GROUP BY
+    r.id;
 
 -- name: SvcRuleUpdate :exec
 UPDATE

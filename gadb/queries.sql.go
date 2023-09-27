@@ -1139,6 +1139,59 @@ func (q *Queries) SetAlertFeedback(ctx context.Context, arg SetAlertFeedbackPara
 	return err
 }
 
+const signalFindMany = `-- name: SignalFindMany :many
+SELECT
+    id,
+    service_rule_id,
+    service_id,
+    outgoing_payload,
+    scheduled,
+    timestamp
+FROM
+    signals
+WHERE
+    id = ANY ($1::bigint[])
+`
+
+type SignalFindManyRow struct {
+	ID              int64
+	ServiceRuleID   uuid.UUID
+	ServiceID       uuid.UUID
+	OutgoingPayload json.RawMessage
+	Scheduled       bool
+	Timestamp       time.Time
+}
+
+func (q *Queries) SignalFindMany(ctx context.Context, ids []int64) ([]SignalFindManyRow, error) {
+	rows, err := q.db.QueryContext(ctx, signalFindMany, pq.Array(ids))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SignalFindManyRow
+	for rows.Next() {
+		var i SignalFindManyRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ServiceRuleID,
+			&i.ServiceID,
+			&i.OutgoingPayload,
+			&i.Scheduled,
+			&i.Timestamp,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const signalInsert = `-- name: SignalInsert :one
 INSERT INTO signals(service_rule_id, service_id, outgoing_payload, scheduled)
     VALUES ($1, $2, $3, FALSE)
@@ -1513,6 +1566,8 @@ FROM
     JOIN service_rule_integration_keys si ON si.service_rule_id = r.id
 WHERE
     r.id = $1
+GROUP BY
+    r.id
 `
 
 type SvcRuleFindOneRow struct {

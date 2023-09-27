@@ -16,11 +16,11 @@ type Signal App
 func (a *App) Signal() graphql2.SignalResolver { return (*Signal)(a) }
 
 func (s *Signal) ID(ctx context.Context, raw *signal.Signal) (string, error) {
-	return strconv.Itoa(raw.ID), nil
+	return strconv.FormatInt(raw.ID, 10), nil
 }
 
 func (s *Signal) SignalID(ctx context.Context, raw *signal.Signal) (int, error) {
-	return raw.ID, nil
+	return int(raw.ID), nil
 }
 
 func (s *Signal) OutgoingPayload(ctx context.Context, raw *signal.Signal) (string, error) {
@@ -37,4 +37,8 @@ func (s *Signal) Service(ctx context.Context, raw *signal.Signal) (*service.Serv
 
 func (s *Signal) ServiceRule(ctx context.Context, raw *signal.Signal) (*rule.Rule, error) {
 	return s.ServiceRuleStore.FindOne(ctx, raw.ServiceRuleID)
+}
+
+func (q *Query) Signal(ctx context.Context, id int) (*signal.Signal, error) {
+	return q.SignalStore.FindOne(ctx, id)
 }

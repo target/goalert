@@ -42,6 +42,7 @@ import (
 	schedulerule "github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/service"
 	servicerule "github.com/target/goalert/service/rule"
+	"github.com/target/goalert/signal"
 	"github.com/target/goalert/swo"
 	"github.com/target/goalert/timezone"
 	"github.com/target/goalert/user"
@@ -81,7 +82,9 @@ type App struct {
 	HeartbeatStore    *heartbeat.Store
 	NoticeStore       *notice.Store
 	APIKeyStore       *apikey.Store
-	ServiceRuleStore  *servicerule.Store
+
+	SignalStore      *signal.Store
+	ServiceRuleStore *servicerule.Store
 
 	AuthLinkStore *authlink.Store
 
