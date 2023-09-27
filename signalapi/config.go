@@ -1,4 +1,4 @@
-package notifyapi
+package signalapi
 
 import (
 	"github.com/target/goalert/alert"
