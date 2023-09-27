@@ -975,10 +975,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/js@npm:8.49.0":
-  version: 8.49.0
-  resolution: "@eslint/js@npm:8.49.0"
-  checksum: a6601807c8aeeefe866926ad92ed98007c034a735af20ff709009e39ad1337474243d47908500a3bde04e37bfba16bcf1d3452417f962e1345bc8756edd6b830
+"@eslint/js@npm:8.50.0":
+  version: 8.50.0
+  resolution: "@eslint/js@npm:8.50.0"
+  checksum: 302478f2acaaa7228729ec6a04f56641590185e1d8cd1c836a6db8a6b8009f80a57349341be9fbb9aa1721a7a569d1be3ffc598a33300d22816f11832095386c
   languageName: node
   linkType: hard
 
@@ -2632,10 +2632,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/diff@npm:5.0.4":
-  version: 5.0.4
-  resolution: "@types/diff@npm:5.0.4"
-  checksum: 58f8c3e9c8ed40e97fc8039af95d8f12a620e9facf351273906612ad795678c3f64309e0ce29b03bce8e04a2913f0e6bc5cf2289821bdd312b99f1220025f90a
+"@types/diff@npm:5.0.5":
+  version: 5.0.5
+  resolution: "@types/diff@npm:5.0.5"
+  checksum: 5f093341d5488cd33079400d4b2ff463dfd4f589bf0a54fbb25f7c87a7bdc16bd1e6125f252c081fa9a3ad44fc78b156c0a5f38bd8128edceb40ba084e051885
   languageName: node
   linkType: hard
 
@@ -2733,10 +2733,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:4.14.198":
-  version: 4.14.198
-  resolution: "@types/lodash@npm:4.14.198"
-  checksum: b290e4480707151bcec738bca40527915defe52a0d8e26c83685c674163a265e1a88cb2ee56b0fb587a89819d0cd5df86ada836aec3e9c2e4bf516e7d348d524
+"@types/lodash@npm:4.14.199":
+  version: 4.14.199
+  resolution: "@types/lodash@npm:4.14.199"
+  checksum: e68d1fcbbfce953ed87b296a628573f62939227bcda0c934954e862b421e8a34c5e71cad6fea27b9980567909e6a4698f09025692958e36d64ea9ed99ec6fb2e
   languageName: node
   linkType: hard
 
@@ -5567,14 +5567,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:8.49.0":
-  version: 8.49.0
-  resolution: "eslint@npm:8.49.0"
+"eslint@npm:8.50.0":
+  version: 8.50.0
+  resolution: "eslint@npm:8.50.0"
   dependencies:
     "@eslint-community/eslint-utils": ^4.2.0
     "@eslint-community/regexpp": ^4.6.1
     "@eslint/eslintrc": ^2.1.2
-    "@eslint/js": 8.49.0
+    "@eslint/js": 8.50.0
     "@humanwhocodes/config-array": ^0.11.11
     "@humanwhocodes/module-importer": ^1.0.1
     "@nodelib/fs.walk": ^1.2.8
@@ -5610,7 +5610,7 @@ __metadata:
     text-table: ^0.2.0
   bin:
     eslint: bin/eslint.js
-  checksum: 4dfe257e1e42da2f9da872b05aaaf99b0f5aa022c1a91eee8f2af1ab72651b596366320c575ccd4e0469f7b4c97aff5bb85ae3323ebd6a293c3faef4028b0d81
+  checksum: 9ebfe5615dc84700000d218e32ddfdcfc227ca600f65f18e5541ec34f8902a00356a9a8804d9468fd6c8637a5ef6a3897291dad91ba6579d5b32ffeae5e31768
   languageName: node
   linkType: hard
 
@@ -11053,10 +11053,10 @@ __metadata:
     "@mui/x-data-grid": 6.14.0
     "@playwright/test": 1.38.0
     "@types/chance": 1.1.4
-    "@types/diff": 5.0.4
+    "@types/diff": 5.0.5
     "@types/glob": 8.1.0
     "@types/jest": 29.5.5
-    "@types/lodash": 4.14.198
+    "@types/lodash": 4.14.199
     "@types/luxon": 3.3.2
     "@types/prop-types": 15.7.6
     "@types/react": 18.2.22
@@ -11074,7 +11074,7 @@ __metadata:
     diff: 5.1.0
     esbuild: 0.19.3
     esbuild-jest: 0.5.0
-    eslint: 8.49.0
+    eslint: 8.50.0
     eslint-config-prettier: 9.0.0
     eslint-config-standard: 17.1.0
     eslint-config-standard-jsx: 11.0.0
