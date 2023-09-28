@@ -29,7 +29,7 @@ export default function NumberField(props: NumberFieldProps): JSX.Element {
       {...rest}
       value={inputValue}
       type='number'
-      onBlur={(e: { target: { value: string } }) => {
+      onBlur={(e) => {
         let num = parse(inputValue)
         if (typeof min === 'number' && min > num) num = min
         if (typeof max === 'number' && max < num) num = max
@@ -47,7 +47,7 @@ export default function NumberField(props: NumberFieldProps): JSX.Element {
         e.target.value = num.toString()
         onChange(e)
       }}
-      onChange={(e: { target: { value: string } }) => {
+      onChange={(e) => {
         const val = e.target.value
         const num = parse(val)
 

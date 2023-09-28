@@ -11,7 +11,6 @@ import {
 import { useConfigValue } from '../util/RequireConfig'
 import TelTextField from '../util/TelTextField'
 import { FieldError } from '../util/errutil'
-import AppLink from '../util/AppLink'
 
 type Value = {
   name: string
@@ -74,7 +73,6 @@ function renderURLField(edit: boolean): JSX.Element {
       type='url'
       component={TextField}
       disabled={edit}
-      hint={<AppLink to='/docs' newTab>Webhook Documentation</AppLink>}
     />
   )
 }
