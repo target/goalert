@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useMemo } from 'react'
 import { useTheme } from '@mui/material/styles'
 import {
   Accordion,
@@ -82,10 +82,8 @@ export default function AdminMessageLogsGraph(): JSX.Element {
 
   // get list of segment labels from data to map out each line on the graph
   // set one line of "Message Counts" if user hasn't selected a segmentBy option
-  type GraphDict = { [key: string]: TimeSeriesBucket[] }
-  const [graphLines, setGraphLines] = useState<GraphDict>({})
-  useEffect(() => {
-    const gl: GraphDict = {}
+  const graphLines = useMemo(() => {
+    const gl: { [key: string]: TimeSeriesBucket[] } = {}
     if (!segmentBy) gl['Message Counts'] = stats
     else {
       stats.forEach((stat) => {
@@ -93,7 +91,7 @@ export default function AdminMessageLogsGraph(): JSX.Element {
         else gl[stat.segmentLabel].push(stat)
       })
     }
-    setGraphLines(gl)
+    return gl
   }, [stats])
 
   const formatIntervals = (label: string): string => {
@@ -233,6 +231,7 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                         height,
                         display: 'flex',
                         alignItems: 'center',
+                        justifyContent: 'center',
                       }}
                     >
                       No Results
