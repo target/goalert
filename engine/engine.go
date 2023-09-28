@@ -358,7 +358,7 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 
 	var usr *user.User
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		cm, serr := p.cfg.ContactMethodStore.FindOne(ctx, cb.ContactMethodID)
+		cm, serr := p.cfg.ContactMethodStore.FindOne(ctx, nil, cb.ContactMethodID)
 		if serr != nil {
 			err = errors.Wrap(serr, "lookup contact method")
 			return

@@ -146,7 +146,7 @@ func (app *App) FindOneAlertMetric(ctx context.Context, id int) (*alertmetrics.M
 func (app *App) FindOneCM(ctx context.Context, id string) (*contactmethod.ContactMethod, error) {
 	loader, ok := ctx.Value(dataLoaderKeyCM).(*dataloader.Loader[string, contactmethod.ContactMethod])
 	if !ok {
-		return app.CMStore.FindOne(ctx, id)
+		return app.CMStore.FindOne(ctx, nil, id)
 	}
 
 	return loader.FetchOne(ctx, id)

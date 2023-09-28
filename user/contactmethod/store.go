@@ -25,20 +25,20 @@ func NewStore(ctx context.Context, db *sql.DB) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) queries(tx *sql.Tx) *gadb.Queries {
-	if tx != nil {
-		return gadb.New(tx)
+func (s *Store) queries(dbtx gadb.DBTX) *gadb.Queries {
+	if dbtx != nil {
+		return gadb.New(dbtx)
 	}
 	return gadb.New(s.db)
 }
 
-func (s *Store) MetadataByTypeValue(ctx context.Context, tx *sql.Tx, typ Type, value string) (*Metadata, error) {
+func (s *Store) MetadataByTypeValue(ctx context.Context, dbtx gadb.DBTX, typ Type, value string) (*Metadata, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := s.queries(tx).MetaTVContactMethod(ctx, gadb.MetaTVContactMethodParams{Type: gadb.EnumUserContactMethodType(typ), Value: value})
+	data, err := s.queries(dbtx).MetaTVContactMethod(ctx, gadb.MetaTVContactMethodParams{Type: gadb.EnumUserContactMethodType(typ), Value: value})
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func (s *Store) DisableByValue(ctx context.Context, t Type, v string) error {
 }
 
 // CreateTx inserts the new ContactMethod into the database. A new ID is always created.
-func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, c *ContactMethod) (*ContactMethod, error) {
+func (s *Store) Create(ctx context.Context, dbtx gadb.DBTX, c *ContactMethod) (*ContactMethod, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin, permission.MatchUser(c.UserID))
 	if err != nil {
 		return nil, err
@@ -156,7 +156,7 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, c *ContactMethod) (*Co
 		return nil, err
 	}
 
-	err = gadb.New(tx).AddContactMethod(ctx, gadb.AddContactMethodParams{
+	err = gadb.New(dbtx).AddContactMethod(ctx, gadb.AddContactMethodParams{
 		ID:                  uuid.MustParse(n.ID),
 		Name:                n.Name,
 		Type:                gadb.EnumUserContactMethodType(n.Type),
@@ -173,7 +173,7 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, c *ContactMethod) (*Co
 }
 
 // Delete removes the ContactMethod from the database using the provided ID within a transaction.
-func (s *Store) DeleteTx(ctx context.Context, tx *sql.Tx, ids ...string) error {
+func (s *Store) Delete(ctx context.Context, dbtx gadb.DBTX, ids ...string) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return err
@@ -189,7 +189,7 @@ func (s *Store) DeleteTx(ctx context.Context, tx *sql.Tx, ids ...string) error {
 	}
 
 	if permission.Admin(ctx) {
-		err = gadb.New(tx).DeleteContactMethod(ctx, uids)
+		err = gadb.New(dbtx).DeleteContactMethod(ctx, uids)
 		return err
 	}
 
@@ -208,12 +208,12 @@ func (s *Store) DeleteTx(ctx context.Context, tx *sql.Tx, ids ...string) error {
 		return err
 	}
 
-	err = gadb.New(tx).DeleteContactMethod(ctx, uids)
+	err = gadb.New(dbtx).DeleteContactMethod(ctx, uids)
 	return err
 }
 
 // FindOneTx finds the contact method from the database using the provided ID within a transaction.
-func (s *Store) FindOneTx(ctx context.Context, tx *sql.Tx, id string) (*ContactMethod, error) {
+func (s *Store) FindOne(ctx context.Context, dbtx gadb.DBTX, id string) (*ContactMethod, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
@@ -224,7 +224,7 @@ func (s *Store) FindOneTx(ctx context.Context, tx *sql.Tx, id string) (*ContactM
 		return nil, err
 	}
 
-	row, err := gadb.New(tx).FindOneUpdateContactMethod(ctx, methodUUID)
+	row, err := s.queries(dbtx).FindOneUpdateContactMethod(ctx, methodUUID)
 	if err != nil {
 		return nil, err
 	}
@@ -244,40 +244,40 @@ func (s *Store) FindOneTx(ctx context.Context, tx *sql.Tx, id string) (*ContactM
 	return &c, nil
 }
 
-// FindOne finds the contact method from the database using the provided ID.
-func (s *Store) FindOne(ctx context.Context, id string) (*ContactMethod, error) {
-	methodUUID, err := validate.ParseUUID("ContactMethodID", id)
-	if err != nil {
-		return nil, err
-	}
+// // FindOne finds the contact method from the database using the provided ID.
+// func (s *Store) FindOne(ctx context.Context, id string) (*ContactMethod, error) {
+// 	methodUUID, err := validate.ParseUUID("ContactMethodID", id)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	err = permission.LimitCheckAny(ctx, permission.All)
-	if err != nil {
-		return nil, err
-	}
+// 	err = permission.LimitCheckAny(ctx, permission.All)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	row, err := gadb.New(s.db).FindOneContactMethod(ctx, methodUUID)
-	if err != nil {
-		return nil, err
-	}
+// 	row, err := gadb.New(s.db).FindOneContactMethod(ctx, methodUUID)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	c := ContactMethod{
-		ID:               row.ID.String(),
-		Name:             row.Name,
-		Type:             Type(row.Type),
-		Value:            row.Value,
-		Disabled:         row.Disabled,
-		UserID:           row.UserID.String(),
-		Pending:          row.Pending,
-		StatusUpdates:    row.EnableStatusUpdates,
-		lastTestVerifyAt: row.LastTestVerifyAt,
-	}
+// 	c := ContactMethod{
+// 		ID:               row.ID.String(),
+// 		Name:             row.Name,
+// 		Type:             Type(row.Type),
+// 		Value:            row.Value,
+// 		Disabled:         row.Disabled,
+// 		UserID:           row.UserID.String(),
+// 		Pending:          row.Pending,
+// 		StatusUpdates:    row.EnableStatusUpdates,
+// 		lastTestVerifyAt: row.LastTestVerifyAt,
+// 	}
 
-	return &c, nil
-}
+// 	return &c, nil
+// }
 
 // UpdateTx updates the contact method with the newly provided values within a transaction.
-func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, c *ContactMethod) error {
+func (s *Store) Update(ctx context.Context, dbtx gadb.DBTX, c *ContactMethod) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return err
@@ -288,7 +288,7 @@ func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, c *ContactMethod) erro
 		return err
 	}
 
-	cm, err := s.FindOneTx(ctx, tx, c.ID)
+	cm, err := s.FindOne(ctx, dbtx, c.ID)
 	if err != nil {
 		return err
 	}
@@ -303,7 +303,7 @@ func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, c *ContactMethod) erro
 	}
 
 	if permission.Admin(ctx) {
-		err = gadb.New(tx).UpdateContactMethod(ctx, gadb.UpdateContactMethodParams{ID: uuid.MustParse(n.ID), Name: n.Name, Disabled: n.Disabled, EnableStatusUpdates: n.StatusUpdates})
+		err = gadb.New(dbtx).UpdateContactMethod(ctx, gadb.UpdateContactMethodParams{ID: uuid.MustParse(n.ID), Name: n.Name, Disabled: n.Disabled, EnableStatusUpdates: n.StatusUpdates})
 		return err
 	}
 
@@ -312,7 +312,7 @@ func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, c *ContactMethod) erro
 		return err
 	}
 
-	err = gadb.New(tx).UpdateContactMethod(ctx, gadb.UpdateContactMethodParams{ID: uuid.MustParse(n.ID), Name: n.Name, Disabled: n.Disabled, EnableStatusUpdates: n.StatusUpdates})
+	err = gadb.New(dbtx).UpdateContactMethod(ctx, gadb.UpdateContactMethodParams{ID: uuid.MustParse(n.ID), Name: n.Name, Disabled: n.Disabled, EnableStatusUpdates: n.StatusUpdates})
 	return err
 }
 
