@@ -43,10 +43,11 @@ const statsQuery = gql`
   query messageStatsQuery(
     $logsInput: MessageLogSearchOptions
     $statsInput: TimeSeriesOptions!
+    $segmentBy: MessageLogSegmentBy
   ) {
     messageLogs(input: $logsInput) {
       stats {
-        timeSeries(input: $statsInput) {
+        timeSeries(input: $statsInput, segmentBy: $segmentBy) {
           start
           end
           count
@@ -74,8 +75,8 @@ export default function AdminMessageLogsGraph(): JSX.Element {
       statsInput: {
         bucketDuration: graphInterval,
         bucketOrigin: start,
-        segmentBy: segmentBy || null,
       },
+      segmentBy: segmentBy || null,
     },
   })
   const stats: TimeSeriesBucket[] = data?.messageLogs?.stats?.timeSeries ?? []
