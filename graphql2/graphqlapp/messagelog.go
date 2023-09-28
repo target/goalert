@@ -3,7 +3,6 @@ package graphqlapp
 import (
 	"context"
 	"fmt"
-	"slices"
 	"strings"
 	"time"
 
@@ -118,23 +117,14 @@ func (q *MessageLogConnectionStats) TimeSeries(
 		origin = *input.BucketOrigin
 	}
 
-	// validate segment type if given
-	if input.SegmentBy != nil {
-		var segments []string
-		for _, segment := range graphql2.AllMessageLogSegmentBy {
-			segments = append(segments, "\""+segment.String()+"\"")
-		}
-
-		if !slices.Contains(segments, input.SegmentBy.String()) {
-			return nil, fmt.Errorf("invalid segment type. please use one of: %v", strings.Join(segments, ", "))
-		}
-	}
-
 	var s string
 	if input.SegmentBy != nil {
-		s = input.SegmentBy.String()
+		value, err := input.SegmentBy.Value()
+		if err != nil {
+			return nil, err
+		}
+		s = value.(string)
 	}
-
 	buckets, err := q.NotificationStore.TimeSeries(ctx, notification.TimeSeriesOpts{
 		SearchOptions:      *opts,
 		TimeSeriesInterval: dur,

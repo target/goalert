@@ -29400,7 +29400,7 @@ func (ec *executionContext) unmarshalInputTimeSeriesOptions(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("segmentBy"))
-			data, err := ec.unmarshalOMessageLogSegmentBy2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSegmentBy(ctx, v)
+			data, err := ec.unmarshalOMessageLogSegmentBy2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSegmenyBy(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41445,20 +41445,21 @@ func (ec *executionContext) unmarshalOMessageLogSearchOptions2ᚖgithubᚗcomᚋ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOMessageLogSegmentBy2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSegmentBy(ctx context.Context, v interface{}) (*MessageLogSegmentBy, error) {
+func (ec *executionContext) unmarshalOMessageLogSegmentBy2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSegmenyBy(ctx context.Context, v interface{}) (*MessageLogSegmenyBy, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var res = new(MessageLogSegmentBy)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
+	tmp, err := graphql.UnmarshalString(v)
+	res := MessageLogSegmenyBy(tmp)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOMessageLogSegmentBy2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSegmentBy(ctx context.Context, sel ast.SelectionSet, v *MessageLogSegmentBy) graphql.Marshaler {
+func (ec *executionContext) marshalOMessageLogSegmentBy2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSegmenyBy(ctx context.Context, sel ast.SelectionSet, v *MessageLogSegmenyBy) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return v
+	res := graphql.MarshalString(string(*v))
+	return res
 }
 
 func (ec *executionContext) marshalONotificationState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationState(ctx context.Context, sel ast.SelectionSet, v *NotificationState) graphql.Marshaler {

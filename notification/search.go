@@ -247,10 +247,9 @@ func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeri
 	}
 	defer rows.Close()
 
-	var series []TimeSeriesBucket
-
 	// counts is a map of { timeToIndex: count }
 	counts := make(map[int]int)
+	segments := make(map[string]bool)
 	for rows.Next() {
 		var index, count int
 		var segmentLabel sql.NullString
@@ -268,13 +267,27 @@ func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeri
 		}
 
 		counts[index] = count
+		segments[segmentLabel.String] = true
 
-		series = append(
-			series,
-			makeTimeSeries(data.CreatedAfter, data.CreatedBefore, data.TimeSeriesOrigin, data.TimeSeriesInterval, counts, segmentLabel.String)...,
-		)
+		// make time series for each segment if set. otherwise make time series once at end
+		// if opts.SegmentBy != "" {
+		// 	series = append(
+		// 		series,
+		// 		makeTimeSeries(data.CreatedAfter, data.CreatedBefore, data.TimeSeriesOrigin, data.TimeSeriesInterval, counts, segmentLabel.String)...,
+		// 	)
+		// }
 	}
 
+	// if opts.SegmentBy != "" {
+	// 	return series, nil
+	// }
+	var series []TimeSeriesBucket
+	for label := range segments {
+		series = append(
+			series,
+			makeTimeSeries(data.CreatedAfter, data.CreatedBefore, data.TimeSeriesOrigin, data.TimeSeriesInterval, counts, label)...,
+		)
+	}
 	return series, nil
 }
 
