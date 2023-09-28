@@ -151,7 +151,6 @@ export interface MessageLogConnectionStats {
 export interface TimeSeriesOptions {
   bucketDuration: ISODuration
   bucketOrigin?: null | ISOTimestamp
-  segmentBy?: null | MessageLogSegmentBy
 }
 
 export interface TimeSeriesBucket {

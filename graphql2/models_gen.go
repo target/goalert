@@ -544,7 +544,6 @@ type TimeSeriesBucket struct {
 type TimeSeriesOptions struct {
 	BucketDuration timeutil.ISODuration `json:"bucketDuration"`
 	BucketOrigin   *time.Time           `json:"bucketOrigin,omitempty"`
-	SegmentBy      *MessageLogSegmenyBy `json:"segmentBy,omitempty"`
 }
 
 type TimeZone struct {

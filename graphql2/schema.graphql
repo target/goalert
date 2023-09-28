@@ -253,13 +253,12 @@ enum MessageLogSegmentBy {
 }
 
 type MessageLogConnectionStats {
-  timeSeries(input: TimeSeriesOptions!): [TimeSeriesBucket!]!
+  timeSeries(input: TimeSeriesOptions!, segmentBy: MessageLogSegmentBy): [TimeSeriesBucket!]!
 }
 
 input TimeSeriesOptions {
   bucketDuration: ISODuration!
   bucketOrigin: ISOTimestamp
-  segmentBy: MessageLogSegmentBy
 }
 
 type TimeSeriesBucket {

@@ -102,6 +102,7 @@ func (q *MessageLogConnectionStats) TimeSeries(
 	ctx context.Context,
 	opts *notification.SearchOptions,
 	input graphql2.TimeSeriesOptions,
+	segmentBy *graphql2.MessageLogSegmenyBy,
 ) ([]graphql2.TimeSeriesBucket, error) {
 	if opts == nil {
 		opts = &notification.SearchOptions{}
@@ -118,8 +119,8 @@ func (q *MessageLogConnectionStats) TimeSeries(
 	}
 
 	var s string
-	if input.SegmentBy != nil {
-		value, err := input.SegmentBy.Value()
+	if segmentBy != nil {
+		value, err := segmentBy.Value()
 		if err != nil {
 			return nil, err
 		}

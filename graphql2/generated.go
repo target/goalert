@@ -282,7 +282,7 @@ type ComplexityRoot struct {
 	}
 
 	MessageLogConnectionStats struct {
-		TimeSeries func(childComplexity int, input TimeSeriesOptions) int
+		TimeSeries func(childComplexity int, input TimeSeriesOptions, segmentBy *MessageLogSegmenyBy) int
 	}
 
 	Mutation struct {
@@ -707,7 +707,7 @@ type IntegrationKeyResolver interface {
 	Href(ctx context.Context, obj *integrationkey.IntegrationKey) (string, error)
 }
 type MessageLogConnectionStatsResolver interface {
-	TimeSeries(ctx context.Context, obj *notification.SearchOptions, input TimeSeriesOptions) ([]TimeSeriesBucket, error)
+	TimeSeries(ctx context.Context, obj *notification.SearchOptions, input TimeSeriesOptions, segmentBy *MessageLogSegmenyBy) ([]TimeSeriesBucket, error)
 }
 type MutationResolver interface {
 	SwoAction(ctx context.Context, action SWOAction) (bool, error)
@@ -1684,7 +1684,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.MessageLogConnectionStats.TimeSeries(childComplexity, args["input"].(TimeSeriesOptions)), true
+		return e.complexity.MessageLogConnectionStats.TimeSeries(childComplexity, args["input"].(TimeSeriesOptions), args["segmentBy"].(*MessageLogSegmenyBy)), true
 
 	case "Mutation.addAuthSubject":
 		if e.complexity.Mutation.AddAuthSubject == nil {
@@ -4174,6 +4174,15 @@ func (ec *executionContext) field_MessageLogConnectionStats_timeSeries_args(ctx 
 		}
 	}
 	args["input"] = arg0
+	var arg1 *MessageLogSegmenyBy
+	if tmp, ok := rawArgs["segmentBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("segmentBy"))
+		arg1, err = ec.unmarshalOMessageLogSegmentBy2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSegmenyBy(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["segmentBy"] = arg1
 	return args, nil
 }
 
@@ -10672,7 +10681,7 @@ func (ec *executionContext) _MessageLogConnectionStats_timeSeries(ctx context.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.MessageLogConnectionStats().TimeSeries(rctx, obj, fc.Args["input"].(TimeSeriesOptions))
+		return ec.resolvers.MessageLogConnectionStats().TimeSeries(rctx, obj, fc.Args["input"].(TimeSeriesOptions), fc.Args["segmentBy"].(*MessageLogSegmenyBy))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -29371,7 +29380,7 @@ func (ec *executionContext) unmarshalInputTimeSeriesOptions(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"bucketDuration", "bucketOrigin", "segmentBy"}
+	fieldsInOrder := [...]string{"bucketDuration", "bucketOrigin"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -29396,15 +29405,6 @@ func (ec *executionContext) unmarshalInputTimeSeriesOptions(ctx context.Context,
 				return it, err
 			}
 			it.BucketOrigin = data
-		case "segmentBy":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("segmentBy"))
-			data, err := ec.unmarshalOMessageLogSegmentBy2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSegmenyBy(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.SegmentBy = data
 		}
 	}
 
