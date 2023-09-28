@@ -4,7 +4,6 @@ const { defineConfig } = require('cypress')
 const setupNodeEvents = require('./web/src/cypress/plugins/index')
 
 module.exports = defineConfig({
-  videoUploadOnPasses: false,
   waitForAnimations: false,
   viewportWidth: 1440,
   viewportHeight: 900,
