@@ -247,9 +247,8 @@ func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeri
 	}
 	defer rows.Close()
 
-	// counts is a map of { timeToIndex: count }
-	counts := make(map[int]int)
-	segments := make(map[string]bool)
+	// counts is a map of { timeToIndex: [label: count] }
+	counts := make(map[int]map[string]int)
 	for rows.Next() {
 		var index, count int
 		var segmentLabel sql.NullString
@@ -265,30 +264,16 @@ func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeri
 				return nil, err
 			}
 		}
+		label := segmentLabel.String
+		if label == "" {
+			label = "Message Counts"
+		}
 
-		counts[index] = count
-		segments[segmentLabel.String] = true
-
-		// make time series for each segment if set. otherwise make time series once at end
-		// if opts.SegmentBy != "" {
-		// 	series = append(
-		// 		series,
-		// 		makeTimeSeries(data.CreatedAfter, data.CreatedBefore, data.TimeSeriesOrigin, data.TimeSeriesInterval, counts, segmentLabel.String)...,
-		// 	)
-		// }
+		counts[index] = make(map[string]int)
+		counts[index][label] = count
 	}
 
-	// if opts.SegmentBy != "" {
-	// 	return series, nil
-	// }
-	var series []TimeSeriesBucket
-	for label := range segments {
-		series = append(
-			series,
-			makeTimeSeries(data.CreatedAfter, data.CreatedBefore, data.TimeSeriesOrigin, data.TimeSeriesInterval, counts, label)...,
-		)
-	}
-	return series, nil
+	return makeTimeSeries(data.CreatedAfter, data.CreatedBefore, data.TimeSeriesOrigin, data.TimeSeriesInterval, counts), nil
 }
 
 func timeToIndex(origin time.Time, interval time.Duration, t time.Time) int {
@@ -299,15 +284,19 @@ func timeToIndex(origin time.Time, interval time.Duration, t time.Time) int {
 //
 // This is to ensure a time series with a bucket for every time interval is returned,
 // even if there are no counts for that interval for a particular label.
-func makeTimeSeries(start, end, origin time.Time, duration time.Duration, counts map[int]int, label string) []TimeSeriesBucket {
+func makeTimeSeries(start, end, origin time.Time, duration time.Duration, counts map[int]map[string]int) []TimeSeriesBucket {
 	var buckets []TimeSeriesBucket
 	for t := start; t.Before(end); t = t.Add(duration) {
-		var b TimeSeriesBucket
-		b.SegmentLabel = label
-		b.Start = t
-		b.End = t.Add(duration)
-		b.Count = counts[timeToIndex(origin, duration, t)]
-		buckets = append(buckets, b)
+		for _, value := range counts {
+			for label := range value {
+				var b TimeSeriesBucket
+				b.SegmentLabel = label
+				b.Start = t
+				b.End = t.Add(duration)
+				b.Count = counts[timeToIndex(origin, duration, t)][label]
+				buckets = append(buckets, b)
+			}
+		}
 	}
 
 	return buckets
