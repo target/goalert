@@ -446,6 +446,7 @@ type ComplexityRoot struct {
 		ServiceRule              func(childComplexity int, id string) int
 		Services                 func(childComplexity int, input *ServiceSearchOptions) int
 		Signal                   func(childComplexity int, id int) int
+		Signals                  func(childComplexity int, input *SignalSearchOptions) int
 		SlackChannel             func(childComplexity int, id string) int
 		SlackChannels            func(childComplexity int, input *SlackChannelSearchOptions) int
 		SlackUserGroup           func(childComplexity int, id string) int
@@ -587,6 +588,11 @@ type ComplexityRoot struct {
 		ServiceRuleID   func(childComplexity int) int
 		SignalID        func(childComplexity int) int
 		Timestamp       func(childComplexity int) int
+	}
+
+	SignalConnection struct {
+		Nodes    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
 	}
 
 	SlackChannel struct {
@@ -882,6 +888,7 @@ type QueryResolver interface {
 	ListGQLFields(ctx context.Context, query *string) ([]string, error)
 	ServiceRule(ctx context.Context, id string) (*rule.Rule, error)
 	Signal(ctx context.Context, id int) (*signal.Signal, error)
+	Signals(ctx context.Context, input *SignalSearchOptions) (*SignalConnection, error)
 }
 type RotationResolver interface {
 	IsFavorite(ctx context.Context, obj *rotation.Rotation) (bool, error)
@@ -3048,6 +3055,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Signal(childComplexity, args["id"].(int)), true
 
+	case "Query.signals":
+		if e.complexity.Query.Signals == nil {
+			break
+		}
+
+		args, err := ec.field_Query_signals_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Signals(childComplexity, args["input"].(*SignalSearchOptions)), true
+
 	case "Query.slackChannel":
 		if e.complexity.Query.SlackChannel == nil {
 			break
@@ -3811,6 +3830,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Signal.Timestamp(childComplexity), true
 
+	case "SignalConnection.nodes":
+		if e.complexity.SignalConnection.Nodes == nil {
+			break
+		}
+
+		return e.complexity.SignalConnection.Nodes(childComplexity), true
+
+	case "SignalConnection.pageInfo":
+		if e.complexity.SignalConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.SignalConnection.PageInfo(childComplexity), true
+
 	case "SlackChannel.id":
 		if e.complexity.SlackChannel.ID == nil {
 			break
@@ -4418,6 +4451,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSetScheduleOnCallNotificationRulesInput,
 		ec.unmarshalInputSetScheduleShiftInput,
 		ec.unmarshalInputSetTemporaryScheduleInput,
+		ec.unmarshalInputSignalSearchOptions,
 		ec.unmarshalInputSlackChannelSearchOptions,
 		ec.unmarshalInputSlackUserGroupSearchOptions,
 		ec.unmarshalInputSystemLimitInput,
@@ -5818,6 +5852,21 @@ func (ec *executionContext) field_Query_signal_args(ctx context.Context, rawArgs
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_signals_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *SignalSearchOptions
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOSignalSearchOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSignalSearchOptions(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -19183,6 +19232,67 @@ func (ec *executionContext) fieldContext_Query_signal(ctx context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_signals(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_signals(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Signals(rctx, fc.Args["input"].(*SignalSearchOptions))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*SignalConnection)
+	fc.Result = res
+	return ec.marshalNSignalConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSignalConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_signals(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "nodes":
+				return ec.fieldContext_SignalConnection_nodes(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_SignalConnection_pageInfo(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SignalConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_signals_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query___type(ctx, field)
 	if err != nil {
@@ -23480,6 +23590,120 @@ func (ec *executionContext) fieldContext_Signal_scheduled(ctx context.Context, f
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SignalConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *SignalConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SignalConnection_nodes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Nodes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]signal.Signal)
+	fc.Result = res
+	return ec.marshalNSignal2ᚕgithubᚗcomᚋtargetᚋgoalertᚋsignalᚐSignalᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SignalConnection_nodes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SignalConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Signal_id(ctx, field)
+			case "signalID":
+				return ec.fieldContext_Signal_signalID(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_Signal_timestamp(ctx, field)
+			case "serviceRuleID":
+				return ec.fieldContext_Signal_serviceRuleID(ctx, field)
+			case "serviceRule":
+				return ec.fieldContext_Signal_serviceRule(ctx, field)
+			case "serviceID":
+				return ec.fieldContext_Signal_serviceID(ctx, field)
+			case "service":
+				return ec.fieldContext_Signal_service(ctx, field)
+			case "outgoingPayload":
+				return ec.fieldContext_Signal_outgoingPayload(ctx, field)
+			case "scheduled":
+				return ec.fieldContext_Signal_scheduled(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Signal", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SignalConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *SignalConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SignalConnection_pageInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SignalConnection_pageInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SignalConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			case "hasNextPage":
+				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
 		},
 	}
 	return fc, nil
@@ -31879,6 +32103,108 @@ func (ec *executionContext) unmarshalInputSetTemporaryScheduleInput(ctx context.
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputSignalSearchOptions(ctx context.Context, obj interface{}) (SignalSearchOptions, error) {
+	var it SignalSearchOptions
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["first"]; !present {
+		asMap["first"] = 15
+	}
+	if _, present := asMap["after"]; !present {
+		asMap["after"] = ""
+	}
+	if _, present := asMap["sort"]; !present {
+		asMap["sort"] = "dateID"
+	}
+
+	fieldsInOrder := [...]string{"filterByServiceID", "filterByServiceRuleID", "first", "after", "omit", "sort", "createdBefore", "notCreatedBefore"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "filterByServiceID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterByServiceID"))
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FilterByServiceID = data
+		case "filterByServiceRuleID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterByServiceRuleID"))
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FilterByServiceRuleID = data
+		case "first":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.First = data
+		case "after":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.After = data
+		case "omit":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Omit = data
+		case "sort":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
+			data, err := ec.unmarshalOSignalSearchSort2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSignalSearchSort(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Sort = data
+		case "createdBefore":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBefore"))
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CreatedBefore = data
+		case "notCreatedBefore":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("notCreatedBefore"))
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NotCreatedBefore = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputSlackChannelSearchOptions(ctx context.Context, obj interface{}) (SlackChannelSearchOptions, error) {
 	var it SlackChannelSearchOptions
 	asMap := map[string]interface{}{}
@@ -37451,6 +37777,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "signals":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_signals(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -39251,6 +39599,50 @@ func (ec *executionContext) _Signal(ctx context.Context, sel ast.SelectionSet, o
 			out.Values[i] = ec._Signal_scheduled(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var signalConnectionImplementors = []string{"SignalConnection"}
+
+func (ec *executionContext) _SignalConnection(ctx context.Context, sel ast.SelectionSet, obj *SignalConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, signalConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SignalConnection")
+		case "nodes":
+			out.Values[i] = ec._SignalConnection_nodes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pageInfo":
+			out.Values[i] = ec._SignalConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -43271,6 +43663,68 @@ func (ec *executionContext) unmarshalNSetTemporaryScheduleInput2githubᚗcomᚋt
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNSignal2githubᚗcomᚋtargetᚋgoalertᚋsignalᚐSignal(ctx context.Context, sel ast.SelectionSet, v signal.Signal) graphql.Marshaler {
+	return ec._Signal(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSignal2ᚕgithubᚗcomᚋtargetᚋgoalertᚋsignalᚐSignalᚄ(ctx context.Context, sel ast.SelectionSet, v []signal.Signal) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSignal2githubᚗcomᚋtargetᚋgoalertᚋsignalᚐSignal(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNSignalConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSignalConnection(ctx context.Context, sel ast.SelectionSet, v SignalConnection) graphql.Marshaler {
+	return ec._SignalConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSignalConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSignalConnection(ctx context.Context, sel ast.SelectionSet, v *SignalConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SignalConnection(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNSlackChannel2githubᚗcomᚋtargetᚋgoalertᚋnotificationᚋslackᚐChannel(ctx context.Context, sel ast.SelectionSet, v slack.Channel) graphql.Marshaler {
 	return ec._SlackChannel(ctx, sel, &v)
 }
@@ -45325,6 +45779,30 @@ func (ec *executionContext) marshalOSignal2ᚖgithubᚗcomᚋtargetᚋgoalertᚋ
 		return graphql.Null
 	}
 	return ec._Signal(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOSignalSearchOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSignalSearchOptions(ctx context.Context, v interface{}) (*SignalSearchOptions, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputSignalSearchOptions(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOSignalSearchSort2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSignalSearchSort(ctx context.Context, v interface{}) (*SignalSearchSort, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(SignalSearchSort)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOSignalSearchSort2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSignalSearchSort(ctx context.Context, sel ast.SelectionSet, v *SignalSearchSort) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOSlackChannel2ᚖgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋslackᚐChannel(ctx context.Context, sel ast.SelectionSet, v *slack.Channel) graphql.Marshaler {

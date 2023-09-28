@@ -46,6 +46,7 @@ export interface Query {
   listGQLFields: string[]
   serviceRule?: null | ServiceRule
   signal?: null | Signal
+  signals: SignalConnection
 }
 
 export interface IntegrationKeyTypeInfo {
@@ -1238,6 +1239,24 @@ export interface Signal {
   outgoingPayload: string
   scheduled: boolean
 }
+
+export interface SignalConnection {
+  nodes: Signal[]
+  pageInfo: PageInfo
+}
+
+export interface SignalSearchOptions {
+  filterByServiceID?: null | string[]
+  filterByServiceRuleID?: null | string[]
+  first?: null | number
+  after?: null | string
+  omit?: null | number[]
+  sort?: null | SignalSearchSort
+  createdBefore?: null | ISOTimestamp
+  notCreatedBefore?: null | ISOTimestamp
+}
+
+export type SignalSearchSort = 'dateID' | 'dateIDReverse'
 
 type ConfigID =
   | 'General.ApplicationName'

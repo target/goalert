@@ -148,6 +148,9 @@ type Query {
 
   # Returns a single signal with the given ID.
   signal(id: Int!): Signal
+
+  # Returns a paginated list of signals.
+  signals(input: SignalSearchOptions): SignalConnection!
 }
 
 type IntegrationKeyTypeInfo {
@@ -1555,4 +1558,25 @@ type Signal {
   service: Service!
   outgoingPayload: String!
   scheduled: Boolean!
+}
+
+type SignalConnection {
+  nodes: [Signal!]!
+  pageInfo: PageInfo!
+}
+
+input SignalSearchOptions {
+  filterByServiceID: [ID!]
+  filterByServiceRuleID: [ID!]
+  first: Int = 15
+  after: String = ""
+  omit: [Int!]
+  sort: SignalSearchSort = dateID
+  createdBefore: ISOTimestamp
+  notCreatedBefore: ISOTimestamp
+}
+
+enum SignalSearchSort {
+  dateID
+  dateIDReverse
 }
