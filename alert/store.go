@@ -822,6 +822,44 @@ func (s *Store) Feedback(ctx context.Context, alertIDs []int) ([]Feedback, error
 	return result, nil
 }
 
+func (s Store) UpdateManyAlertFeedback(ctx context.Context, noiseReason string, alertIDs []int) ([]int, error) {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validate.Many(
+		validate.Range("AlertIDs", len(alertIDs), 1, maxBatch),
+		validate.Text("NoiseReason", noiseReason, 1, 255),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// GraphQL generates type of int[], while sqlc
+	// expects an int64[] as a result of the unnest function
+	ids := make([]int64, len(alertIDs))
+	for i, v := range alertIDs {
+		ids[i] = int64(v)
+	}
+
+	res, err := gadb.New(s.db).SetManyAlertFeedback(ctx, gadb.SetManyAlertFeedbackParams{
+		AlertIds:    ids,
+		NoiseReason: noiseReason,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// cast back to []int
+	updatedIDs := make([]int, len(res))
+	for i, v := range res {
+		updatedIDs[i] = int(v)
+	}
+
+	return updatedIDs, nil
+}
+
 func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
