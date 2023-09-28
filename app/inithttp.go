@@ -13,8 +13,8 @@ import (
 	"github.com/target/goalert/grafana"
 	"github.com/target/goalert/mailgun"
 	"github.com/target/goalert/notification/twilio"
-	"github.com/target/goalert/notifyapi"
 	prometheus "github.com/target/goalert/prometheusalertmanager"
+	"github.com/target/goalert/signalapi"
 	"github.com/target/goalert/site24x7"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
@@ -125,7 +125,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 		UserStore:           app.UserStore,
 	})
 
-	notify := notifyapi.NewHandler(notifyapi.Config{
+	signal := signalapi.NewHandler(signalapi.Config{
 		AlertStore:          app.AlertStore,
 		SignalStore:         app.SignalStore,
 		IntegrationKeyStore: app.IntegrationKeyStore,
@@ -162,7 +162,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	mux.HandleFunc("/api/v2/user-avatar/", generic.ServeUserAvatar)
 	mux.HandleFunc("/api/v2/calendar", app.CalSubStore.ServeICalData)
 
-	mux.HandleFunc("/api/v2/notify/incoming", notify.ServeCreateSignals)
+	mux.HandleFunc("/api/v2/signal/incoming", signal.ServeCreateSignals)
 
 	mux.HandleFunc("/api/v2/twilio/message", app.twilioSMS.ServeMessage)
 	mux.HandleFunc("/api/v2/twilio/message/status", app.twilioSMS.ServeStatusCallback)

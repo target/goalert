@@ -44,8 +44,8 @@ func (key *IntegrationKey) Href(ctx context.Context, raw *integrationkey.Integra
 	switch raw.Type {
 	case integrationkey.TypeGeneric:
 		return cfg.CallbackURL("/api/v2/generic/incoming", q), nil
-	case integrationkey.TypeNotify:
-		return cfg.CallbackURL("/api/v2/notify/incoming", q), nil
+	case integrationkey.TypeSignal:
+		return cfg.CallbackURL("/api/v2/signal/incoming", q), nil
 	case integrationkey.TypeGrafana:
 		return cfg.CallbackURL("/api/v2/grafana/incoming", q), nil
 	case integrationkey.TypeSite24x7:

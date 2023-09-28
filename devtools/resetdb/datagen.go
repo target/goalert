@@ -314,7 +314,7 @@ func (d *datagen) NewIntKey(svcID string) {
 	case 3:
 		typ = integrationkey.TypeSite24x7
 	case 4:
-		typ = integrationkey.TypeNotify
+		typ = integrationkey.TypeSignal
 	}
 	d.IntKeys = append(d.IntKeys, integrationkey.IntegrationKey{
 		ID:        d.UUID(),
@@ -366,7 +366,7 @@ func (d *datagen) NewAlert(status alert.Status) {
 	case 4:
 		src = alert.SourceSite24x7
 	case 5:
-		src = alert.SourceNotify
+		src = alert.SourceSignal
 	}
 	var serviceID string
 	if status == alert.StatusTriggered {

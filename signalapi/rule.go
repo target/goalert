@@ -1,4 +1,4 @@
-package notifyapi
+package signalapi
 
 import (
 	"context"
