@@ -38,7 +38,7 @@ export default function Documentation(): JSX.Element {
   return (
     <React.Fragment>
       {markdownDocs.map((doc, i) => (
-        <Card key={i} className={classes.mBottom} id={i}>
+        <Card key={i} className={classes.mBottom}>
           <CardContent>
             <Typography variant='body1' component='div'>
               <Markdown value={doc} />
