@@ -90,10 +90,10 @@ var searchTemplate = template.Must(template.New("signal-search").Funcs(search.He
 	{{ end }}
 	{{ if .After.ID }}
 		AND (
-			{{ if eq .Sort 1 }}
+			{{ if eq .Sort 0 }}
 				s.timestamp < :afterTimestamp OR
 				(s.timestamp = :afterTimestamp AND s.id < :afterID)
-			{{ else if eq .Sort 2}}
+			{{ else if eq .Sort 1}}
 				s.timestamp > :afterTimestamp OR
 				(s.timestamp = :afterTimestamp AND s.id > :afterID)
 			{{ end }}
