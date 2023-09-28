@@ -3,7 +3,7 @@ import { gql, useMutation } from 'urql'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import AdminAPIKeyForm from './AdminAPIKeyForm'
-import { CreateGQLAPIKeyInput, CreatedGQLAPIKey } from '../../../schema'
+import { CreatedGQLAPIKey, GQLAPIKey } from '../../../schema'
 import Spinner from '../../loading/components/Spinner'
 
 const newGQLAPIKeyQuery = gql`
@@ -15,33 +15,58 @@ const newGQLAPIKeyQuery = gql`
   }
 `
 
-export default function AdminAPIKeysCreateDialog(props: {
+const updateGQLAPIKeyQuery = gql`
+  mutation UpdateGQLAPIKey($input: UpdateGQLAPIKeyInput!) {
+    updateGQLAPIKey(input: $input)
+  }
+`
+
+export default function AdminAPIKeysActionDialog(props: {
   onClose: (param: boolean) => void
   setToken: (token: CreatedGQLAPIKey) => void
   setReloadFlag: (inc: number) => void
   onTokenDialogClose: (prama: boolean) => void
+  create: boolean
+  apiKey: GQLAPIKey
+  setAPIKey: (param: GQLAPIKey) => void
 }): JSX.Element {
-  const [key, setKey] = useState<CreateGQLAPIKeyInput>({
-    name: '',
-    description: '',
-    allowedFields: [],
-    expiresAt: '',
-    role: 'unknown',
-  })
-  const [createAPIKeyStatus, createAPIKey] = useMutation(newGQLAPIKeyQuery)
+  let query = updateGQLAPIKeyQuery
+  const { create, apiKey, setAPIKey } = props
+  if (props.create) {
+    query = newGQLAPIKeyQuery
+  }
+
+  const [apiKeyActionStatus, apiKeyAction] = useMutation(query)
   const [allowFieldsError, setAllowFieldsError] = useState(true)
-  const { loading, data, error } = createAPIKeyStatus
+  const { loading, data, error } = apiKeyActionStatus
   let fieldErrs = fieldErrors(error)
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleOnSubmit = () => {
-    createAPIKey({
-      input: key,
+    const updateKey = {
+      name: apiKey.name,
+      description: apiKey.description,
+      id: apiKey.id,
+    }
+
+    const createKey = {
+      name: apiKey.name,
+      description: apiKey.description,
+      allowedFields: apiKey.allowedFields,
+      expiresAt: apiKey.expiresAt,
+      role: apiKey.role,
+    }
+
+    apiKeyAction({
+      input: create ? createKey : updateKey,
     }).then((result: any) => {
       if (!result.error) {
-        props.setToken(result.data.createGQLAPIKey)
-        props.onClose(false)
-        props.onTokenDialogClose(true)
         props.setReloadFlag(Math.random())
+        props.onClose(false)
+
+        if (props.create) {
+          props.setToken(result.data.createGQLAPIKey)
+          props.onTokenDialogClose(true)
+        }
       }
     })
   }
@@ -58,7 +83,7 @@ export default function AdminAPIKeysCreateDialog(props: {
 
   return (
     <FormDialog
-      title='New API Key'
+      title={props.create ? 'New API Key' : 'Update API Key'}
       loading={loading}
       errors={nonFieldErrors(error)}
       onClose={() => {
@@ -70,11 +95,11 @@ export default function AdminAPIKeysCreateDialog(props: {
         <AdminAPIKeyForm
           errors={fieldErrs}
           disabled={loading}
-          value={key}
-          onChange={setKey}
+          value={apiKey}
+          onChange={setAPIKey}
           allowFieldsError={allowFieldsError}
           setAllowFieldsError={setAllowFieldsError}
-          create
+          create={props.create}
         />
       }
     />

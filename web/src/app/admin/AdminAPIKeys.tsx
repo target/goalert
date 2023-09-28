@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import {
   Button,
@@ -16,7 +16,7 @@ import FlatList, { FlatListListItem } from '../lists/FlatList'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 import { Theme } from '@mui/material/styles'
-import AdminAPIKeysCreateDialog from './admin-api-keys/AdminAPIKeysCreateDialog'
+import AdminAPIKeysActionDialog from './admin-api-keys/AdminAPIKeysActionDialog'
 import AdminAPIKeysTokenDialog from './admin-api-keys/AdminAPIKeysTokenDialog'
 
 const getAPIKeysQuery = gql`
@@ -46,6 +46,7 @@ const getAPIKeysQuery = gql`
       }
       expiresAt
       allowedFields
+      role
     }
   }
 `
@@ -86,13 +87,28 @@ export default function AdminAPIKeys(): JSX.Element {
   const [selectedAPIKey, setSelectedAPIKey] = useState<GQLAPIKey | null>(null)
   const [reloadFlag, setReloadFlag] = useState<number>(0)
   const [tokenDialogClose, onTokenDialogClose] = useState(false)
-  const [openCreateAPIKeyDialog, setOpenCreateAPIKeyDialog] = useState(false)
+  const [openActionAPIKeyDialog, setOpenActionAPIKeyDialog] = useState(false)
+  const [create, setCreate] = useState(false)
+  const [apiKey, setAPIKey] = useState<GQLAPIKey>({
+    id: '',
+    name: '',
+    description: '',
+    createdAt: '',
+    createdBy: null,
+    updatedAt: '',
+    updatedBy: null,
+    lastUsed: null,
+    expiresAt: '',
+    allowedFields: [],
+    role: 'user',
+  })
   const [token, setToken] = useState<CreatedGQLAPIKey>({
     id: '',
     token: '',
   })
   const handleOpenCreateDialog = (): void => {
-    setOpenCreateAPIKeyDialog(!openCreateAPIKeyDialog)
+    setCreate(true)
+    setOpenActionAPIKeyDialog(!openActionAPIKeyDialog)
   }
   const { data, loading, error } = useQuery(getAPIKeysQuery, {
     variables: {
@@ -147,16 +163,34 @@ export default function AdminAPIKeys(): JSX.Element {
       <div className={classes.root}>
         {selectedAPIKey ? (
           <AdminAPIKeysDrawer
-            onClose={() => setSelectedAPIKey(null)}
+            onClose={() => {
+              if (!openActionAPIKeyDialog) {
+                setSelectedAPIKey(null)
+              }
+            }}
             apiKey={selectedAPIKey}
+            setCreate={setCreate}
+            setOpenActionAPIKeyDialog={setOpenActionAPIKeyDialog}
+            setAPIKey={setAPIKey}
           />
         ) : null}
-        {openCreateAPIKeyDialog ? (
-          <AdminAPIKeysCreateDialog
-            onClose={setOpenCreateAPIKeyDialog}
+        {openActionAPIKeyDialog ? (
+          <AdminAPIKeysActionDialog
+            onClose={() => {
+              if (!create && selectedAPIKey) {
+                selectedAPIKey.name = apiKey.name
+                selectedAPIKey.description = apiKey.description
+                setSelectedAPIKey(selectedAPIKey)
+              }
+
+              setOpenActionAPIKeyDialog(false)
+            }}
             onTokenDialogClose={onTokenDialogClose}
             setReloadFlag={setReloadFlag}
             setToken={setToken}
+            create={create}
+            apiKey={apiKey}
+            setAPIKey={setAPIKey}
           />
         ) : null}
         {tokenDialogClose ? (

@@ -2,7 +2,7 @@ import React, { useState, useEffect, SyntheticEvent } from 'react'
 import Grid from '@mui/material/Grid'
 import { FormContainer, FormField } from '../../forms'
 import { FieldError } from '../../util/errutil'
-import { CreateGQLAPIKeyInput, UserRole } from '../../../schema'
+import { GQLAPIKey } from '../../../schema'
 import AdminAPIKeyExpirationField from './AdminAPIKeyExpirationField'
 import { gql, useQuery } from '@apollo/client'
 import { GenericError } from '../../error-pages'
@@ -10,7 +10,6 @@ import Spinner from '../../loading/components/Spinner'
 import { TextField, Autocomplete, MenuItem } from '@mui/material'
 import CheckIcon from '@mui/icons-material/Check'
 import { DateTime } from 'luxon'
-import Select, { SelectChangeEvent } from '@mui/material/Select'
 
 const listGQLFieldsQuery = gql`
   query ListGQLFieldsQuery {
@@ -20,9 +19,9 @@ const listGQLFieldsQuery = gql`
 const MaxDetailsLength = 6 * 1024 // 6KiB
 
 interface AdminAPIKeyFormProps {
-  value: CreateGQLAPIKeyInput
+  value: GQLAPIKey
   errors: FieldError[]
-  onChange: (key: CreateGQLAPIKeyInput) => void
+  onChange: (key: GQLAPIKey) => void
   disabled?: boolean
   allowFieldsError: boolean
   setAllowFieldsError: (param: boolean) => void
@@ -45,7 +44,6 @@ export default function AdminAPIKeyForm(
     }),
   )
   const [allowedFields, setAllowedFields] = useState<string[]>([])
-  const [role, setRole] = useState<UserRole>('user')
   const handleAutocompleteChange = (
     event: SyntheticEvent<Element, Event>,
     value: string[],
@@ -53,20 +51,13 @@ export default function AdminAPIKeyForm(
     setAllowedFields(value)
   }
 
-  const handleRoleChange = (event: SelectChangeEvent): void => {
-    const val = event.target.value as UserRole
-    setRole(val)
-  }
-
   useEffect(() => {
     const valTemp = props.value
     valTemp.expiresAt = new Date(expiresAt).toISOString()
     valTemp.allowedFields = allowedFields
-    valTemp.role = role as UserRole
-    props.setAllowFieldsError(props.value.allowedFields.length <= 0)
+    props.setAllowFieldsError(valTemp.allowedFields.length <= 0)
     props.onChange(valTemp)
   })
-
   const { data, loading, error } = useQuery(listGQLFieldsQuery)
 
   if (error) {
@@ -87,6 +78,7 @@ export default function AdminAPIKeyForm(
             name='name'
             required
             component={TextField}
+            value={props.value.name}
           />
         </Grid>
         <Grid item xs={12}>
@@ -99,31 +91,46 @@ export default function AdminAPIKeyForm(
             required
             component={TextField}
             charCount={MaxDetailsLength}
+            value={props.value.description}
             hint='Markdown Supported'
           />
         </Grid>
         <Grid item xs={12}>
-          <Select
-            labelId='role-select-label'
-            id='role-select'
-            value={role}
-            label='User Role'
-            disabled={!props.create}
-            name='userrole'
-            onChange={handleRoleChange}
+          <FormField
+            fullWidth
+            component={TextField}
+            select
             required
-            style={{ width: '100%' }}
+            label='Role'
+            name='role'
+            disabled={!props.create}
+            value={props.value.role}
           >
-            <MenuItem value='user'>User</MenuItem>
-            <MenuItem value='admin'>Admin</MenuItem>
-          </Select>
+            <MenuItem value='user' key='user'>
+              User
+            </MenuItem>
+            <MenuItem value='admin' key='user'>
+              Admin
+            </MenuItem>
+          </FormField>
         </Grid>
         <Grid item xs={12}>
-          <AdminAPIKeyExpirationField
-            setValue={setExpiresAt}
-            value={expiresAt}
-            create
-          />
+          {props.create ? (
+            <AdminAPIKeyExpirationField
+              setValue={setExpiresAt}
+              value={expiresAt}
+              create
+            />
+          ) : (
+            <FormField
+              fullWidth
+              label='Expires At'
+              name='expiresAt'
+              component={TextField}
+              value={props.value.expiresAt}
+              disabled
+            />
+          )}
         </Grid>
         <Grid item xs={12}>
           <Autocomplete
@@ -131,14 +138,16 @@ export default function AdminAPIKeyForm(
             options={data.listGQLFields}
             getOptionLabel={(option: string) => option}
             onChange={handleAutocompleteChange}
+            disabled={!props.create}
             disableCloseOnSelect
+            defaultValue={props.value.allowedFields}
             renderInput={(params) => (
               <FormField
                 {...params}
                 fullWidth
                 label='allowedFields'
                 name='Allowed Fields'
-                required={props.allowFieldsError}
+                required={props.allowFieldsError && props.create}
                 component={TextField}
                 disabled={!props.create}
               />

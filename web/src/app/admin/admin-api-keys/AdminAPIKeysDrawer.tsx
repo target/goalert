@@ -7,30 +7,24 @@ import {
   List,
   ListItem,
   ListItemText,
-  TextField,
   Toolbar,
   Typography,
   Button,
   ButtonGroup,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { GQLAPIKey, UpdateGQLAPIKeyInput } from '../../../schema'
+import { GQLAPIKey } from '../../../schema'
 import AdminAPIKeysDeleteDialog from './AdminAPIKeysDeleteDialog'
-import { gql, useMutation } from '@apollo/client'
-import { GenericError } from '../../error-pages'
 import { Time } from '../../util/Time'
-
-const updateGQLAPIKeyQuery = gql`
-  mutation UpdateGQLAPIKey($input: UpdateGQLAPIKeyInput!) {
-    updateGQLAPIKey(input: $input)
-  }
-`
 
 // const MaxDetailsLength = 6 * 1024 // 6KiB
 
 interface Props {
   onClose: () => void
-  apiKey: GQLAPIKey | null
+  apiKey: GQLAPIKey
+  setCreate: (param: boolean) => void
+  setAPIKey: (param: GQLAPIKey) => void
+  setOpenActionAPIKeyDialog: (param: boolean) => void
 }
 
 const useStyles = makeStyles(() => ({
@@ -42,14 +36,11 @@ const useStyles = makeStyles(() => ({
 }))
 
 export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
-  const { onClose, apiKey } = props
+  const { onClose, apiKey, setCreate, setOpenActionAPIKeyDialog, setAPIKey } =
+    props
   const classes = useStyles()
   const isOpen = Boolean(apiKey)
   const [deleteDialog, onDeleteDialog] = useState(false)
-  const [showEdit, setShowEdit] = useState(true)
-  const [showSave, setShowSave] = useState(false)
-  const [reqNameText, setReqNameText] = useState<string>('')
-  const [reqDescText, setReqDescText] = useState<string>('')
   const handleDeleteConfirmation = (): void => {
     onDeleteDialog(!deleteDialog)
   }
@@ -60,53 +51,6 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
 
     return inpComma
   })
-  const [key, setKey] = useState<UpdateGQLAPIKeyInput>({
-    id: apiKey?.id ?? '',
-    name: apiKey?.name,
-    description: apiKey?.description,
-  })
-  const [updateAPIKey, updateAPIKeyStatus] = useMutation(updateGQLAPIKeyQuery, {
-    onCompleted: (data) => {
-      if (data.updateGQLAPIKey) {
-        setShowSave(!showSave)
-        setShowEdit(!showEdit)
-      }
-    },
-  })
-  const { loading, data, error } = updateAPIKeyStatus
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const handleSave = () => {
-    const desc = key.description?.trim()
-    const name = key.name?.trim()
-
-    if (desc !== '' && name !== '') {
-      updateAPIKey({
-        variables: {
-          input: key,
-        },
-      }).then((result) => {
-        if (!result.errors) {
-          return result
-        }
-      })
-    } else {
-      if (desc === '') {
-        setReqDescText('This field is required.')
-      }
-
-      if (name === '') {
-        setReqNameText('This field is required.')
-      }
-    }
-  }
-
-  if (error) {
-    return <GenericError error={error.message} />
-  }
-
-  if (loading && !data) {
-    // return <Spinner />
-  }
 
   return (
     <React.Fragment>
@@ -132,51 +76,13 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
             <Divider />
             <List disablePadding>
               <ListItem divider>
-                {showSave ? (
-                  <TextField
-                    required
-                    error={key?.name?.trim() === ''}
-                    id='standard-required'
-                    label='Name'
-                    defaultValue={key?.name}
-                    helperText={reqNameText}
-                    onChange={(e) => {
-                      const keyTemp = key
-                      keyTemp.name = e.target.value
-                      setKey(keyTemp)
-                    }}
-                    variant='standard'
-                    sx={{ width: '100%' }}
-                  />
-                ) : (
-                  <ListItemText primary='Name' secondary={key?.name} />
-                )}
+                <ListItemText primary='Name' secondary={apiKey?.name} />
               </ListItem>
               <ListItem divider>
-                {showSave ? (
-                  <TextField
-                    id='standard-multiline-static'
-                    label='Description'
-                    error={key?.description?.trim() === ''}
-                    required
-                    multiline
-                    rows={4}
-                    defaultValue={key?.description}
-                    helperText={reqDescText}
-                    onChange={(e) => {
-                      const keyTemp = key
-                      keyTemp.description = e.target.value
-                      setKey(keyTemp)
-                    }}
-                    variant='standard'
-                    sx={{ width: '100%' }}
-                  />
-                ) : (
-                  <ListItemText
-                    primary='Description'
-                    secondary={key?.description}
-                  />
-                )}
+                <ListItemText
+                  primary='Description'
+                  secondary={apiKey?.description}
+                />
               </ListItem>
               <ListItem divider>
                 <ListItemText
@@ -208,44 +114,26 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
                   secondary={apiKey?.updatedBy?.name}
                 />
               </ListItem>
+              <ListItem divider>
+                <ListItemText primary='Role' secondary={apiKey?.role} />
+              </ListItem>
             </List>
             <Grid className={classes.buttons}>
-              {showSave ? (
-                <ButtonGroup variant='outlined'>
-                  <Button
-                    data-cy='exit'
-                    onClick={() => {
-                      setShowSave(!showSave)
-                      setShowEdit(!showEdit)
-                    }}
-                  >
-                    EXIT
-                  </Button>
-                  <Button
-                    data-cy='save'
-                    // disabled={isEmpty(apiKey?.description + apiKey?.name)}
-                    onClick={handleSave}
-                  >
-                    SAVE
-                  </Button>
-                </ButtonGroup>
-              ) : null}
-              {showEdit ? (
-                <ButtonGroup variant='outlined'>
-                  <Button data-cy='delete' onClick={handleDeleteConfirmation}>
-                    DELETE
-                  </Button>
-                  <Button
-                    data-cy='edit'
-                    onClick={() => {
-                      setShowSave(!showSave)
-                      setShowEdit(!showEdit)
-                    }}
-                  >
-                    EDIT
-                  </Button>
-                </ButtonGroup>
-              ) : null}
+              <ButtonGroup variant='outlined'>
+                <Button data-cy='delete' onClick={handleDeleteConfirmation}>
+                  DELETE
+                </Button>
+                <Button
+                  data-cy='edit'
+                  onClick={() => {
+                    setAPIKey(apiKey)
+                    setCreate(false)
+                    setOpenActionAPIKeyDialog(true)
+                  }}
+                >
+                  EDIT
+                </Button>
+              </ButtonGroup>
             </Grid>
           </Grid>
         </Drawer>
