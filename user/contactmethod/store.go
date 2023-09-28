@@ -22,9 +22,14 @@ type Store struct {
 
 // NewStore will create a DB backend from a sql.DB. An error will be returned if statements fail to prepare.
 func NewStore(ctx context.Context, db *sql.DB) *Store {
-	return &Store{
-		db: db,
+	return &Store{db: db}
+}
+
+func (s *Store) queries(tx *sql.Tx) *gadb.Queries {
+	if tx != nil {
+		return gadb.New(tx)
 	}
+	return gadb.New(s.db)
 }
 
 func (s *Store) MetadataByTypeValue(ctx context.Context, tx *sql.Tx, typ Type, value string) (*Metadata, error) {
@@ -33,7 +38,7 @@ func (s *Store) MetadataByTypeValue(ctx context.Context, tx *sql.Tx, typ Type, v
 		return nil, err
 	}
 
-	data, err := gadb.New(tx).MetaTVContactMethod(ctx, gadb.MetaTVContactMethodParams{Type: gadb.EnumUserContactMethodType(typ), Value: value})
+	data, err := s.queries(tx).MetaTVContactMethod(ctx, gadb.MetaTVContactMethodParams{Type: gadb.EnumUserContactMethodType(typ), Value: value})
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +80,7 @@ func (s *Store) SetCarrierV1MetadataByTypeValue(ctx context.Context, tx *sql.Tx,
 		return err
 	}
 
-	err = gadb.New(tx).UpdateMetaTVContactMethod(ctx, gadb.UpdateMetaTVContactMethodParams{Type: gadb.EnumUserContactMethodType(typ), Value: value, Metadata: pqtype.NullRawMessage{RawMessage: data}})
+	err = gadb.New(tx).UpdateMetaTVContactMethod(ctx, gadb.UpdateMetaTVContactMethodParams{Type: gadb.EnumUserContactMethodType(typ), Value: value, Metadata: pqtype.NullRawMessage{RawMessage: data, Valid: data != nil}})
 	if err != nil {
 		return err
 	}
@@ -99,7 +104,7 @@ func (s *Store) EnableByValue(ctx context.Context, t Type, v string) error {
 		return err
 	}
 
-	id, err := gadb.New(s.db).EnableContactMethod(ctx, gadb.EnableContactMethodParams{Type: gadb.EnumUserContactMethodType(n.Type), Value: uuid.MustParse(n.Value).String()})
+	id, err := gadb.New(s.db).EnableContactMethod(ctx, gadb.EnableContactMethodParams{Type: gadb.EnumUserContactMethodType(n.Type), Value: n.Value})
 
 	if err == nil {
 		// NOTE: maintain a record of consent/dissent
@@ -219,7 +224,7 @@ func (s *Store) FindOneTx(ctx context.Context, tx *sql.Tx, id string) (*ContactM
 		return nil, err
 	}
 
-	row, err := gadb.New(s.db).FindOneUpdateContactMethod(ctx, methodUUID)
+	row, err := gadb.New(tx).FindOneUpdateContactMethod(ctx, methodUUID)
 	if err != nil {
 		return nil, err
 	}
