@@ -1,4 +1,5 @@
-import React, { useContext, useEffect, ReactNode } from 'react'
+import React, { useContext, useEffect } from 'react'
+import p from 'prop-types'
 import FormControl from '@mui/material/FormControl'
 import FormHelperText from '@mui/material/FormHelperText'
 import FormLabel from '@mui/material/FormLabel'
@@ -8,57 +9,7 @@ import AppLink from '../util/AppLink'
 import { FormContainerContext } from './context'
 import { Grid } from '@mui/material'
 
-interface Options {
-  label: string,
-  value: string,
-}
-
-interface FormFieldProps {
-  children: ReactNode,
-  component: any,
-  render: () => void,
-  mapValue: () => void,
-  mapOnChangeValue: () => void,
-  checkbox: boolean,
-  float: boolean,
-  name: string,
-  fieldName: string,
-  // min and max values specify the range to clamp a int value
-  // expects an ISO timestamp, if string
-  min: number | string,
-  max: number | string,
-  errorName: string,
-  label: ReactNode,
-  formLabel: boolean,
-  required: boolean,
-  validate: (value: any) => void,
-  hint: ReactNode,
-  noError: boolean,
-  step: number | string,
-  InputProps: Object,
-  disabled: boolean,
-  multiline: boolean,
-  rows: number,
-  autoComplete: string,
-  charCount: number,
-  fullWidth: boolean,
-
-  placeholder: string,
-
-  type: string,
-  select: boolean,
-  timeZone: string,
-
-  userID: string,
-
-  value: string | string[],
-
-  multiple: boolean,
-
-  options: Options
-}
-
-export function FormField(props: FormFieldProps) {
+export function FormField(props) {
   const {
     errors,
     value,
@@ -81,9 +32,9 @@ export function FormField(props: FormFieldProps) {
     disabled: fieldDisabled,
     hint,
     label: _label,
-    InputProps: _inputProps,
-    mapValue = (value: any) => value,
-    mapOnChangeValue = (value: any) => value,
+    InputLabelProps: _inputProps,
+    mapValue = (value) => value,
+    mapOnChangeValue = (value) => value,
     min,
     max,
     checkbox,
@@ -94,7 +45,7 @@ export function FormField(props: FormFieldProps) {
 
   const fieldName = _fieldName || name
 
-  const validateField = (value: any) => {
+  const validateField = (value) => {
     if (
       required &&
       !['boolean', 'number'].includes(typeof value) &&
@@ -234,88 +185,88 @@ export function FormField(props: FormFieldProps) {
     </FormControl>
   )
 }
-// FormField.propTypes = {
-//   // pass select dropdown items as children
-//   children: p.node,
+FormField.propTypes = {
+  // pass select dropdown items as children
+  children: p.node,
 
-//   // one of component or render must be provided
-//   component: p.any,
-//   render: p.func,
+  // one of component or render must be provided
+  component: p.any,
+  render: p.func,
 
-//   // mapValue can be used to map a value before it's passed to the form component
-//   mapValue: p.func,
+  // mapValue can be used to map a value before it's passed to the form component
+  mapValue: p.func,
 
-//   // mapOnChangeValue can be used to map a changed value from the component, before it's
-//   // passed to the parent form's state.
-//   mapOnChangeValue: p.func,
+  // mapOnChangeValue can be used to map a changed value from the component, before it's
+  // passed to the parent form's state.
+  mapOnChangeValue: p.func,
 
-//   // Adjusts props for usage with a Checkbox component.
-//   checkbox: p.bool,
+  // Adjusts props for usage with a Checkbox component.
+  checkbox: p.bool,
 
-//   // Allows entering decimal number into a numeric field.
-//   float: p.bool,
+  // Allows entering decimal number into a numeric field.
+  float: p.bool,
 
-//   // fieldName specifies the field used for
-//   // checking errors, change handlers, and value.
-//   //
-//   // If unset, it defaults to `name`.
-//   name: p.string.isRequired,
-//   fieldName: p.string,
+  // fieldName specifies the field used for
+  // checking errors, change handlers, and value.
+  //
+  // If unset, it defaults to `name`.
+  name: p.string.isRequired,
+  fieldName: p.string,
 
-//   // min and max values specify the range to clamp a int value
-//   // expects an ISO timestamp, if string
-//   min: p.oneOfType([p.number, p.string]),
-//   max: p.oneOfType([p.number, p.string]),
+  // min and max values specify the range to clamp a int value
+  // expects an ISO timestamp, if string
+  min: p.oneOfType([p.number, p.string]),
+  max: p.oneOfType([p.number, p.string]),
 
-//   // used if name is set,
-//   // but the error name is different from graphql responses
-//   errorName: p.string,
+  // used if name is set,
+  // but the error name is different from graphql responses
+  errorName: p.string,
 
-//   // label above form component
-//   label: p.node,
-//   formLabel: p.bool, // use formLabel instead of label if true
+  // label above form component
+  label: p.node,
+  formLabel: p.bool, // use formLabel instead of label if true
 
-//   // required indicates the field may not be left blank.
-//   required: p.bool,
+  // required indicates the field may not be left blank.
+  required: p.bool,
 
-//   // validate can be used to provide client-side validation of a
-//   // field.
-//   validate: p.func,
+  // validate can be used to provide client-side validation of a
+  // field.
+  validate: p.func,
 
-//   // a hint for the user on a form field. errors take priority
-//   hint: p.node,
+  // a hint for the user on a form field. errors take priority
+  hint: p.node,
 
-//   // disable the form helper text for errors.
-//   noError: p.bool,
+  // disable the form helper text for errors.
+  noError: p.bool,
 
-//   step: p.oneOfType([p.number, p.string]),
+  step: p.oneOfType([p.number, p.string]),
 
-//   InputProps: p.object,
+  InputProps: p.object,
 
-//   disabled: p.bool,
+  disabled: p.bool,
 
-//   multiline: p.bool,
-//   rows: p.number,
-//   autoComplete: p.string,
+  multiline: p.bool,
+  rows: p.number,
+  autoComplete: p.string,
 
-//   charCount: p.number,
+  charCount: p.number,
 
-//   fullWidth: p.bool,
+  fullWidth: p.bool,
 
-//   placeholder: p.string,
+  placeholder: p.string,
 
-//   type: p.string,
-//   select: p.bool,
-//   timeZone: p.string,
+  type: p.string,
+  select: p.bool,
+  timeZone: p.string,
 
-//   userID: p.string,
+  userID: p.string,
 
-//   value: p.oneOfType([p.string, p.arrayOf(p.string)]),
+  value: p.oneOfType([p.string, p.arrayOf(p.string)]),
 
-//   multiple: p.bool,
+  multiple: p.bool,
 
-//   options: p.shape({
-//     label: p.string,
-//     value: p.string,
-//   }),
-// }
+  options: p.shape({
+    label: p.string,
+    value: p.string,
+  }),
+}
