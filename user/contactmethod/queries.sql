@@ -114,7 +114,7 @@ WHERE
 UPDATE
     user_contact_methods
 SET
-    metadata = $3
+    metadata = jsonb_set(jsonb_set(metadata, '{CarrierV1}', @carrier_v1::jsonb), '{CarrierV1,UpdatedAt}',('"' || NOW()::timestamptz AT TIME ZONE 'UTC' || '"')::jsonb) 
 WHERE
     type = $1
     AND value = $2;

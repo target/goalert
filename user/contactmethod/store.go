@@ -6,11 +6,9 @@ import (
 	"encoding/json"
 
 	"github.com/google/uuid"
-	"github.com/sqlc-dev/pqtype"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
@@ -25,20 +23,13 @@ func NewStore(ctx context.Context, db *sql.DB) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) queries(dbtx gadb.DBTX) *gadb.Queries {
-	if dbtx != nil {
-		return gadb.New(dbtx)
-	}
-	return gadb.New(s.db)
-}
-
 func (s *Store) MetadataByTypeValue(ctx context.Context, dbtx gadb.DBTX, typ Type, value string) (*Metadata, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := s.queries(dbtx).MetaTVContactMethod(ctx, gadb.MetaTVContactMethodParams{Type: gadb.EnumUserContactMethodType(typ), Value: value})
+	data, err := gadb.New(dbtx).MetaTVContactMethod(ctx, gadb.MetaTVContactMethodParams{Type: gadb.EnumUserContactMethodType(typ), Value: value})
 	if err != nil {
 		return nil, err
 	}
@@ -53,40 +44,20 @@ func (s *Store) MetadataByTypeValue(ctx context.Context, dbtx gadb.DBTX, typ Typ
 	return &m, nil
 }
 
-func (s *Store) SetCarrierV1MetadataByTypeValue(ctx context.Context, tx *sql.Tx, typ Type, value string, newM *Metadata) error {
+func (s *Store) SetCarrierV1MetadataByTypeValue(ctx context.Context, dbtx gadb.DBTX, typ Type, value string, newM *Metadata) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
 		return err
 	}
-	var ownTx bool
-	if tx == nil {
-		tx, err = s.db.BeginTx(ctx, nil)
-		if err != nil {
-			return err
-		}
-		defer sqlutil.Rollback(ctx, "cm: set carrier metadata", tx)
 
-		ownTx = true
-	}
-	m, err := s.MetadataByTypeValue(ctx, tx, typ, value)
-	if err != nil {
-		return err
-	}
-	m.CarrierV1 = newM.CarrierV1
-	m.CarrierV1.UpdatedAt = m.FetchedAt
-
-	data, err := json.Marshal(m)
+	data, err := json.Marshal(newM.CarrierV1)
 	if err != nil {
 		return err
 	}
 
-	err = gadb.New(tx).UpdateMetaTVContactMethod(ctx, gadb.UpdateMetaTVContactMethodParams{Type: gadb.EnumUserContactMethodType(typ), Value: value, Metadata: pqtype.NullRawMessage{RawMessage: data, Valid: data != nil}})
+	err = gadb.New(dbtx).UpdateMetaTVContactMethod(ctx, gadb.UpdateMetaTVContactMethodParams{Type: gadb.EnumUserContactMethodType(typ), Value: value, CarrierV1: data})
 	if err != nil {
 		return err
-	}
-
-	if ownTx {
-		return tx.Commit()
 	}
 
 	return nil
@@ -224,7 +195,7 @@ func (s *Store) FindOne(ctx context.Context, dbtx gadb.DBTX, id string) (*Contac
 		return nil, err
 	}
 
-	row, err := s.queries(dbtx).FindOneUpdateContactMethod(ctx, methodUUID)
+	row, err := gadb.New(dbtx).FindOneUpdateContactMethod(ctx, methodUUID)
 	if err != nil {
 		return nil, err
 	}
@@ -243,38 +214,6 @@ func (s *Store) FindOne(ctx context.Context, dbtx gadb.DBTX, id string) (*Contac
 
 	return &c, nil
 }
-
-// // FindOne finds the contact method from the database using the provided ID.
-// func (s *Store) FindOne(ctx context.Context, id string) (*ContactMethod, error) {
-// 	methodUUID, err := validate.ParseUUID("ContactMethodID", id)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	err = permission.LimitCheckAny(ctx, permission.All)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	row, err := gadb.New(s.db).FindOneContactMethod(ctx, methodUUID)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	c := ContactMethod{
-// 		ID:               row.ID.String(),
-// 		Name:             row.Name,
-// 		Type:             Type(row.Type),
-// 		Value:            row.Value,
-// 		Disabled:         row.Disabled,
-// 		UserID:           row.UserID.String(),
-// 		Pending:          row.Pending,
-// 		StatusUpdates:    row.EnableStatusUpdates,
-// 		lastTestVerifyAt: row.LastTestVerifyAt,
-// 	}
-
-// 	return &c, nil
-// }
 
 // UpdateTx updates the contact method with the newly provided values within a transaction.
 func (s *Store) Update(ctx context.Context, dbtx gadb.DBTX, c *ContactMethod) error {

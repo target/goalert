@@ -1723,19 +1723,19 @@ const updateMetaTVContactMethod = `-- name: UpdateMetaTVContactMethod :exec
 UPDATE
     user_contact_methods
 SET
-    metadata = $3
+    metadata = jsonb_set(jsonb_set(metadata, '{CarrierV1}', $3::jsonb), '{CarrierV1,UpdatedAt}',('"' || NOW()::timestamptz AT TIME ZONE 'UTC' || '"')::jsonb) 
 WHERE
     type = $1
     AND value = $2
 `
 
 type UpdateMetaTVContactMethodParams struct {
-	Type     EnumUserContactMethodType
-	Value    string
-	Metadata pqtype.NullRawMessage
+	Type      EnumUserContactMethodType
+	Value     string
+	CarrierV1 json.RawMessage
 }
 
 func (q *Queries) UpdateMetaTVContactMethod(ctx context.Context, arg UpdateMetaTVContactMethodParams) error {
-	_, err := q.db.ExecContext(ctx, updateMetaTVContactMethod, arg.Type, arg.Value, arg.Metadata)
+	_, err := q.db.ExecContext(ctx, updateMetaTVContactMethod, arg.Type, arg.Value, arg.CarrierV1)
 	return err
 }
