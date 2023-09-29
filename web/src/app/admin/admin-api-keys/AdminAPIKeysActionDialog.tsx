@@ -29,9 +29,10 @@ export default function AdminAPIKeysActionDialog(props: {
   create: boolean
   apiKey: GQLAPIKey
   setAPIKey: (param: GQLAPIKey) => void
+  setSelectedAPIKey: (param: GQLAPIKey) => void
 }): JSX.Element {
   let query = updateGQLAPIKeyQuery
-  const { create, apiKey, setAPIKey } = props
+  const { create, apiKey, setAPIKey, setSelectedAPIKey } = props
   if (props.create) {
     query = newGQLAPIKeyQuery
   }
@@ -66,6 +67,8 @@ export default function AdminAPIKeysActionDialog(props: {
         if (props.create) {
           props.setToken(result.data.createGQLAPIKey)
           props.onTokenDialogClose(true)
+        } else {
+          setSelectedAPIKey(apiKey)
         }
       }
     })

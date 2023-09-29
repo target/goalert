@@ -119,7 +119,7 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
               </ListItem>
             </List>
             <Grid className={classes.buttons}>
-              <ButtonGroup variant='outlined'>
+              <ButtonGroup variant='contained'>
                 <Button data-cy='delete' onClick={handleDeleteConfirmation}>
                   DELETE
                 </Button>

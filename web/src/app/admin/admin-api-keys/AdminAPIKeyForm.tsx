@@ -10,6 +10,8 @@ import Spinner from '../../loading/components/Spinner'
 import { TextField, Autocomplete, MenuItem } from '@mui/material'
 import CheckIcon from '@mui/icons-material/Check'
 import { DateTime } from 'luxon'
+import { Time } from '../../util/Time'
+import { ISODateTimePicker } from '../../util/ISOPickers'
 
 const listGQLFieldsQuery = gql`
   query ListGQLFieldsQuery {
@@ -109,7 +111,7 @@ export default function AdminAPIKeyForm(
             <MenuItem value='user' key='user'>
               User
             </MenuItem>
-            <MenuItem value='admin' key='user'>
+            <MenuItem value='admin' key='admin'>
               Admin
             </MenuItem>
           </FormField>
@@ -124,10 +126,9 @@ export default function AdminAPIKeyForm(
           ) : (
             <FormField
               fullWidth
-              label='Expires At'
+              component={ISODateTimePicker}
               name='expiresAt'
-              component={TextField}
-              value={props.value.expiresAt}
+              required
               disabled
             />
           )}

@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import {
   Button,
-  ButtonGroup,
   Grid,
   Typography,
   Card,
   ButtonBase,
+  CardHeader,
 } from '@mui/material'
+import { Add } from '@mui/icons-material'
 import AdminAPIKeysDrawer from './admin-api-keys/AdminAPIKeysDrawer'
 import { GQLAPIKey, CreatedGQLAPIKey } from '../../schema'
 import { Time } from '../util/Time'
@@ -55,12 +56,9 @@ const useStyles = makeStyles((theme: Theme) => ({
     '& .MuiListItem-root': {
       'border-bottom': '1px solid #333333',
     },
-    '& .MuiListItem-root:not(.Mui-selected):hover ': {
-      'background-color': '#474747',
-    },
   },
   buttons: {
-    'padding-bottom': '15px',
+    'margin-bottom': '15px',
   },
   containerDefault: {
     [theme.breakpoints.up('md')]: {
@@ -160,64 +158,70 @@ export default function AdminAPIKeys(): JSX.Element {
 
   return (
     <React.Fragment>
-      <div className={classes.root}>
-        {selectedAPIKey ? (
-          <AdminAPIKeysDrawer
-            onClose={() => {
-              if (!openActionAPIKeyDialog) {
-                setSelectedAPIKey(null)
-              }
-            }}
-            apiKey={selectedAPIKey}
-            setCreate={setCreate}
-            setOpenActionAPIKeyDialog={setOpenActionAPIKeyDialog}
-            setAPIKey={setAPIKey}
-          />
-        ) : null}
-        {openActionAPIKeyDialog ? (
-          <AdminAPIKeysActionDialog
-            onClose={() => {
-              if (!create && selectedAPIKey) {
-                selectedAPIKey.name = apiKey.name
-                selectedAPIKey.description = apiKey.description
-                setSelectedAPIKey(selectedAPIKey)
-              }
+      {selectedAPIKey ? (
+        <AdminAPIKeysDrawer
+          onClose={() => {
+            if (!openActionAPIKeyDialog) {
+              setSelectedAPIKey(null)
+            }
+          }}
+          apiKey={selectedAPIKey}
+          setCreate={setCreate}
+          setOpenActionAPIKeyDialog={setOpenActionAPIKeyDialog}
+          setAPIKey={setAPIKey}
+        />
+      ) : null}
+      {openActionAPIKeyDialog ? (
+        <AdminAPIKeysActionDialog
+          onClose={() => {
+            if (!create && selectedAPIKey) {
+              selectedAPIKey.name = apiKey.name
+              selectedAPIKey.description = apiKey.description
+              setSelectedAPIKey(selectedAPIKey)
+            }
 
-              setOpenActionAPIKeyDialog(false)
-            }}
-            onTokenDialogClose={onTokenDialogClose}
-            setReloadFlag={setReloadFlag}
-            setToken={setToken}
-            create={create}
-            apiKey={apiKey}
-            setAPIKey={setAPIKey}
-          />
-        ) : null}
-        {tokenDialogClose ? (
-          <AdminAPIKeysTokenDialog
-            input={token}
-            onTokenDialogClose={onTokenDialogClose}
-            tokenDialogClose={tokenDialogClose}
-          />
-        ) : null}
-        <Grid item xs={12} container justifyContent='flex-end'>
-          <ButtonGroup variant='outlined' className={classes.buttons}>
-            <Button data-cy='new' onClick={handleOpenCreateDialog}>
+            setOpenActionAPIKeyDialog(false)
+          }}
+          onTokenDialogClose={onTokenDialogClose}
+          setReloadFlag={setReloadFlag}
+          setToken={setToken}
+          create={create}
+          apiKey={apiKey}
+          setAPIKey={setAPIKey}
+          setSelectedAPIKey={setSelectedAPIKey}
+        />
+      ) : null}
+      {tokenDialogClose ? (
+        <AdminAPIKeysTokenDialog
+          input={token}
+          onTokenDialogClose={onTokenDialogClose}
+          tokenDialogClose={tokenDialogClose}
+        />
+      ) : null}
+      <Card
+        style={{ width: '100%', padding: '10px' }}
+        className={
+          selectedAPIKey ? classes.containerSelected : classes.containerDefault
+        }
+      >
+        <CardHeader
+          title='API Key List'
+          component='h2'
+          sx={{ paddingBottom: 0, margin: 0 }}
+          action={
+            <Button
+              data-cy='new'
+              variant='contained'
+              className={classes.buttons}
+              onClick={handleOpenCreateDialog}
+              startIcon={<Add />}
+            >
               Create API Key
             </Button>
-          </ButtonGroup>
-        </Grid>
-        <Card
-          style={{ width: '100%', paddingLeft: '10px', paddingRight: '10px' }}
-          className={
-            selectedAPIKey
-              ? classes.containerSelected
-              : classes.containerDefault
           }
-        >
-          <FlatList emptyMessage='No Data Available' items={items} />
-        </Card>
-      </div>
+        />
+        <FlatList emptyMessage='No Data Available' items={items} />
+      </Card>
     </React.Fragment>
   )
 }
