@@ -266,7 +266,6 @@ func (a *App) Handler() http.Handler {
 		// ensure some sort of auth before continuing
 		err := permission.LimitCheckAny(ctx)
 		if errutil.HTTPError(ctx, w, err) {
-			log.Logf(ctx, "GraphQL: %s", err)
 			return
 		}
 
