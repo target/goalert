@@ -173,7 +173,7 @@ func (s *Store) Create(ctx context.Context, tx *sql.Tx, rule Rule) (*Rule, error
 		}
 	}
 
-	ruleID, err := gadb.New(s.db).SvcRuleInsert(ctx, gadb.SvcRuleInsertParams{
+	ruleID, err := gadb.New(tx).SvcRuleInsert(ctx, gadb.SvcRuleInsertParams{
 		Name:      rule.Name,
 		ServiceID: serviceID,
 		Filter:    rule.FilterString,
@@ -219,7 +219,7 @@ func (s *Store) Update(ctx context.Context, tx *sql.Tx, rule Rule) (*Rule, error
 		}
 	}
 
-	err = gadb.New(s.db).SvcRuleUpdate(ctx, gadb.SvcRuleUpdateParams{
+	err = gadb.New(tx).SvcRuleUpdate(ctx, gadb.SvcRuleUpdateParams{
 		ID:        ruleID,
 		Name:      rule.Name,
 		Filter:    rule.FilterString,
