@@ -54,7 +54,7 @@
     "@types/luxon": "3.3.2",
     "@types/prop-types": "15.7.6",
     "@types/react": "18.2.22",
-    "@types/react-big-calendar": "1.6.4",
+    "@types/react-big-calendar": "1.6.5",
     "@types/react-dom": "18.2.7",
     "@types/react-transition-group": "4.4.6",
     "@types/react-virtualized-auto-sizer": "1.0.1",
