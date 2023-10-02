@@ -600,8 +600,9 @@ type UpdateAlertsByServiceInput struct {
 }
 
 type UpdateAlertsInput struct {
-	AlertIDs  []int       `json:"alertIDs"`
-	NewStatus AlertStatus `json:"newStatus"`
+	AlertIDs    []int        `json:"alertIDs"`
+	NewStatus   *AlertStatus `json:"newStatus,omitempty"`
+	NoiseReason *string      `json:"noiseReason,omitempty"`
 }
 
 type UpdateBasicAuthInput struct {
