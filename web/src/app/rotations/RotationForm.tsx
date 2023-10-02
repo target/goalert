@@ -181,6 +181,7 @@ export default function RotationForm(props: RotationFormProps): JSX.Element {
                       marginLeft: 0,
                       marginRight: 0,
                     }}
+                    data-cy='handoff-warning'
                   >
                     Unintended handoff behavior may occur when date starts after
                     the 28th
