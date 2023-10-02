@@ -39,7 +39,7 @@ export default function AdminAPIKeysActionDialog(props: {
 
   const [apiKeyActionStatus, apiKeyAction] = useMutation(query)
   const [allowFieldsError, setAllowFieldsError] = useState(true)
-  const { loading, data, error } = apiKeyActionStatus
+  const { fetching, data, error } = apiKeyActionStatus
   let fieldErrs = fieldErrors(error)
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleOnSubmit = () => {
@@ -59,7 +59,7 @@ export default function AdminAPIKeysActionDialog(props: {
 
     apiKeyAction({
       input: create ? createKey : updateKey,
-    }).then((result: any) => {
+    }).then((result) => {
       if (!result.error) {
         props.setReloadFlag(Math.random())
         props.onClose(false)
@@ -74,7 +74,7 @@ export default function AdminAPIKeysActionDialog(props: {
     })
   }
 
-  if (loading && !data) {
+  if (fetching && !data) {
     return <Spinner />
   }
 
@@ -87,7 +87,7 @@ export default function AdminAPIKeysActionDialog(props: {
   return (
     <FormDialog
       title={props.create ? 'New API Key' : 'Update API Key'}
-      loading={loading}
+      loading={fetching}
       errors={nonFieldErrors(error)}
       onClose={() => {
         props.onClose(false)
@@ -97,7 +97,7 @@ export default function AdminAPIKeysActionDialog(props: {
       form={
         <AdminAPIKeyForm
           errors={fieldErrs}
-          disabled={loading}
+          disabled={fetching}
           value={apiKey}
           onChange={setAPIKey}
           allowFieldsError={allowFieldsError}

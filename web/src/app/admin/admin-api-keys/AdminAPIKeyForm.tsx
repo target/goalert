@@ -10,7 +10,6 @@ import Spinner from '../../loading/components/Spinner'
 import { TextField, Autocomplete, MenuItem } from '@mui/material'
 import CheckIcon from '@mui/icons-material/Check'
 import { DateTime } from 'luxon'
-import { Time } from '../../util/Time'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 
 const listGQLFieldsQuery = gql`

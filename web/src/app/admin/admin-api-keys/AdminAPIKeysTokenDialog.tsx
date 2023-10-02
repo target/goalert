@@ -21,9 +21,12 @@ export default function AdminAPIKeysTokenDialog(props: {
   const onClickCopy = (): void => {
     navigator.clipboard.writeText(props.input.token)
   }
-  const onCloseDialog = (event: any, reason: any): any => {
+  const onCloseDialog = (
+    event: object,
+    reason: string,
+  ): boolean | undefined => {
     if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
-      return false;
+      return false
     }
 
     onClose(!close)
@@ -47,12 +50,18 @@ export default function AdminAPIKeysTokenDialog(props: {
       disableEscapeKeyDown
     >
       <DialogTitle id='alert-dialog-api-key-token'>
-        <Grid container direction='row' justifyContent='flex-start' display='block'>
+        <Grid
+          container
+          direction='row'
+          justifyContent='flex-start'
+          display='block'
+        >
           <Grid item style={{ float: 'left' }}>
             <Typography variant='h5'>API Key Token</Typography>
             <Typography variant='subtitle2'>
               <i>
-                (Please copy and save the token as this is the only time you'll be able to view it.)
+                (Please copy and save the token as this is the only time you'll
+                be able to view it.)
               </i>
             </Typography>
           </Grid>
@@ -65,7 +74,7 @@ export default function AdminAPIKeysTokenDialog(props: {
       </DialogTitle>
       <DialogContent dividers>
         <DialogContentText id='alert-dialog-api-key-token-content'>
-          <Typography sx={{ wordBreak: "break-word" }}>
+          <Typography sx={{ wordBreak: 'break-word' }}>
             {props.input.token}
           </Typography>
         </DialogContentText>

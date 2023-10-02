@@ -55,7 +55,7 @@ export default function AdminAPIKeyExpirationField(
 
   const handleDatePickerChange = (val: string): void => {
     // eslint-disable-next-line prettier/prettier
-    if(val != null) {       
+    if (val != null) {
       setDateVal(
         new Date(val).toLocaleString([], {
           weekday: 'short',
