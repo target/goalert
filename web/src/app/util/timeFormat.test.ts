@@ -78,7 +78,7 @@ describe('formatTimestamp', () => {
       units: ['months', 'weeks', 'days', 'hours', 'minutes', 'seconds'],
       precise: true,
     },
-    'in 3 mths, 1 day, 23 hr',
+    'in 3 mths, 2 days',
   )
 })
 

@@ -156,7 +156,10 @@ export type FormatTimestampArg = {
 export function formatTimestamp(arg: FormatTimestampArg): string {
   const { zone = 'local' } = arg
   const dt = getDT(arg.time, zone)
-  const from = getDT('from' in arg && arg.from ? arg.from : DateTime.utc())
+  const from = getDT(
+    'from' in arg && arg.from ? arg.from : DateTime.utc(),
+    zone,
+  )
 
   if (!arg.format || arg.format === 'default')
     return dt.toLocaleString(DateTime.DATETIME_MED)
