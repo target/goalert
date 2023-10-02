@@ -1217,6 +1217,110 @@ func (q *Queries) SignalInsert(ctx context.Context, arg SignalInsertParams) (Sig
 	return i, err
 }
 
+const signalSearch = `-- name: SignalSearch :many
+SELECT
+    id,
+    service_rule_id,
+    service_id,
+    outgoing_payload,
+    scheduled,
+    timestamp
+FROM
+    signals
+WHERE (id <> ALL ($2::bigint[]))
+    AND (array_length($3::uuid[], 1) IS NULL
+        OR service_id = ANY ($3::uuid[]))
+    AND (array_length($4::uuid[], 1) IS NULL
+        OR service_rule_id = ANY ($4::uuid[]))
+    AND ($5::timestamptz IS NULL
+        OR timestamp < $5)
+    AND ($6::timestamptz IS NULL
+        OR timestamp >= $6)
+    AND ($7::bigint IS NULL
+        OR ($8::int = 0
+            AND (timestamp < $9
+                OR (timestamp = $9
+                    AND id < $7)))
+        OR ($8 = 1
+            AND (timestamp > $9
+                OR (timestamp = $9
+                    AND id > $7))))
+ORDER BY
+    CASE $8::int
+    WHEN 0 THEN
+        ROW (timestamp,
+            id)
+    END DESC,
+    CASE $8
+    WHEN 1 THEN
+        ROW (timestamp,
+            id)
+    END
+LIMIT $1
+`
+
+type SignalSearchParams struct {
+	Limit            int32
+	Omit             []int64
+	AnyServiceID     []uuid.UUID
+	AnyServiceRuleID []uuid.UUID
+	BeforeTime       sql.NullTime
+	NotBeforeTime    sql.NullTime
+	AfterID          sql.NullInt64
+	SortMode         int32
+	AfterTimestamp   time.Time
+}
+
+type SignalSearchRow struct {
+	ID              int64
+	ServiceRuleID   uuid.UUID
+	ServiceID       uuid.UUID
+	OutgoingPayload json.RawMessage
+	Scheduled       bool
+	Timestamp       time.Time
+}
+
+// array_length returns NULL for empty arrays
+func (q *Queries) SignalSearch(ctx context.Context, arg SignalSearchParams) ([]SignalSearchRow, error) {
+	rows, err := q.db.QueryContext(ctx, signalSearch,
+		arg.Limit,
+		pq.Array(arg.Omit),
+		pq.Array(arg.AnyServiceID),
+		pq.Array(arg.AnyServiceRuleID),
+		arg.BeforeTime,
+		arg.NotBeforeTime,
+		arg.AfterID,
+		arg.SortMode,
+		arg.AfterTimestamp,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SignalSearchRow
+	for rows.Next() {
+		var i SignalSearchRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ServiceRuleID,
+			&i.ServiceID,
+			&i.OutgoingPayload,
+			&i.Scheduled,
+			&i.Timestamp,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const statusMgrCMInfo = `-- name: StatusMgrCMInfo :one
 SELECT
     user_id,

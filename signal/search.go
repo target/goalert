@@ -3,12 +3,13 @@ package signal
 import (
 	"context"
 	"database/sql"
-	"text/template"
+	"encoding/json"
 	"time"
 
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
-	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
@@ -63,66 +64,13 @@ type SearchCursor struct {
 	Timestamp time.Time `json:"c,omitempty"`
 }
 
-var searchTemplate = template.Must(template.New("signal-search").Funcs(search.Helpers()).Parse(`
-	SELECT
-		s.id,
-		s.service_rule_id,
-		s.service_id,
-		s.outgoing_payload,
-		s.scheduled,
-		s.timestamp
-	FROM signals s
-	WHERE true
-	{{ if .Omit }}
-		AND not s.id = any(:omit)
-	{{ end }}
-	{{ if .ServiceFilter.Valid }}
-		AND (s.service_id = any(:services))
-	{{ end }}
-	{{ if .ServiceRuleFilter.Valid }}
-		AND (s.service_rule_id = any(:serviceRules))
-	{{ end }}
-	{{ if not .Before.IsZero }}
-		AND s.timestamp < :beforeTime
-	{{ end }}
-	{{ if not .NotBefore.IsZero }}
-		AND s.timestamp >= :notBeforeTime
-	{{ end }}
-	{{ if .After.ID }}
-		AND (
-			{{ if eq .Sort 0 }}
-				s.timestamp < :afterTimestamp OR
-				(s.timestamp = :afterTimestamp AND s.id < :afterID)
-			{{ else if eq .Sort 1}}
-				s.timestamp > :afterTimestamp OR
-				(s.timestamp = :afterTimestamp AND s.id > :afterID)
-			{{ end }}
-		)
-	{{ end }}
-	ORDER BY {{.SortStr}}
-	LIMIT {{.Limit}}
-`))
-
-type renderData SearchOptions
-
-func (opts renderData) SortStr() string {
-	if opts.Sort == SortModeDateIDReverse {
-		return "timestamp, id"
-	}
-
-	// SortModeDateID
-	return "timestamp DESC, id DESC"
-}
-
-func (opts renderData) Normalize() (*renderData, error) {
+func (opts SearchOptions) Normalize() (*SearchOptions, error) {
 	if opts.Limit == 0 {
 		opts.Limit = search.DefaultMaxResults
 	}
 
 	err := validate.Many(
 		validate.Range("Limit", opts.Limit, 0, 1001),
-		validate.ManyUUID("Services", opts.ServiceFilter.IDs, 50),
-		validate.ManyUUID("ServiceRules", opts.ServiceRuleFilter.IDs, 50),
 		validate.Range("Omit", len(opts.Omit), 0, 50),
 		validate.OneOf("Sort", opts.Sort, SortModeDateID, SortModeDateIDReverse),
 	)
@@ -131,21 +79,6 @@ func (opts renderData) Normalize() (*renderData, error) {
 	}
 
 	return &opts, err
-}
-
-func (opts renderData) QueryArgs() []sql.NamedArg {
-	var searchID sql.NullInt64
-
-	return []sql.NamedArg{
-		sql.Named("searchID", searchID),
-		sql.Named("services", sqlutil.UUIDArray(opts.ServiceFilter.IDs)),
-		sql.Named("serviceRules", sqlutil.UUIDArray(opts.ServiceRuleFilter.IDs)),
-		sql.Named("afterID", opts.After.ID),
-		sql.Named("afterTimestamp", opts.After.Timestamp),
-		sql.Named("omit", sqlutil.IntArray(opts.Omit)),
-		sql.Named("beforeTime", opts.Before),
-		sql.Named("notBeforeTime", opts.NotBefore),
-	}
 }
 
 func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]Signal, error) {
@@ -157,31 +90,59 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]Signal, erro
 		opts = new(SearchOptions)
 	}
 
-	data, err := (*renderData)(opts).Normalize()
+	opts, err = opts.Normalize()
 	if err != nil {
 		return nil, err
 	}
 
-	query, args, err := search.RenderQuery(ctx, searchTemplate, data)
-	if err != nil {
-		return nil, errors.Wrap(err, "render query")
+	params := gadb.SignalSearchParams{SortMode: int32(opts.Sort), Limit: int32(opts.Limit)}
+	params.Omit = make([]int64, len(opts.Omit))
+	for i, id := range opts.Omit {
+		params.Omit[i] = int64(id)
 	}
-
-	rows, err := s.db.QueryContext(ctx, query, args...)
-	if err != nil {
-		return nil, errors.Wrap(err, "query")
-	}
-	defer rows.Close()
-
-	signals := make([]Signal, 0, opts.Limit)
-
-	for rows.Next() {
-		var a Signal
-		err = errors.Wrap(a.scanFrom(rows.Scan), "scan")
+	if opts.ServiceFilter.Valid {
+		params.AnyServiceID, err = validate.ParseManyUUID("ServiceIDs", opts.ServiceFilter.IDs, 50)
 		if err != nil {
 			return nil, err
 		}
-		signals = append(signals, a)
+	}
+	if opts.ServiceRuleFilter.Valid {
+		params.AnyServiceRuleID, err = validate.ParseManyUUID("ServiceRuleIDs", opts.ServiceRuleFilter.IDs, 50)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if !opts.Before.IsZero() {
+		params.BeforeTime = sql.NullTime{Valid: true, Time: opts.Before}
+	}
+	if !opts.NotBefore.IsZero() {
+		params.NotBeforeTime = sql.NullTime{Valid: true, Time: opts.NotBefore}
+	}
+	if opts.After.ID != 0 {
+		params.AfterID = sql.NullInt64{Valid: true, Int64: int64(opts.After.ID)}
+		params.AfterTimestamp = opts.After.Timestamp
+	}
+
+	rows, err := gadb.New(s.db).SignalSearch(ctx, params)
+	if err != nil {
+		return nil, errors.Wrap(err, "query")
+	}
+
+	signals := make([]Signal, 0, opts.Limit)
+	for _, row := range rows {
+		payload := make(map[string]interface{})
+		err := json.Unmarshal(row.OutgoingPayload, &payload)
+		if err != nil {
+			log.Log(log.WithField(ctx, "SignalID", row.ID), errors.Wrap(err, "unmarshal signal payload"))
+		}
+		signals = append(signals, Signal{
+			ID:              row.ID,
+			ServiceID:       row.ServiceID.String(),
+			ServiceRuleID:   row.ServiceRuleID.String(),
+			OutgoingPayload: payload,
+			Scheduled:       row.Scheduled,
+			Timestamp:       row.Timestamp,
+		})
 	}
 
 	return signals, nil
