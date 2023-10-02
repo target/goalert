@@ -95,7 +95,8 @@ export default function RotationForm(props: RotationFormProps): JSX.Element {
   const isCalculating = !data || loading
 
   const isHandoffValid = DateTime.fromISO(value.start).isValid
-  const handoffWarning = DateTime.fromISO(value.start).day > 28
+  const handoffWarning =
+    DateTime.fromISO(value.start).day > 28 && value.type === 'monthly'
   const nextHandoffs = isCalculating ? [] : data.calcRotationHandoffTimes
 
   return (
