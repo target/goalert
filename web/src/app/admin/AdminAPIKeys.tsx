@@ -19,7 +19,7 @@ import { GenericError } from '../error-pages'
 import { Theme } from '@mui/material/styles'
 import AdminAPIKeysActionDialog from './admin-api-keys/AdminAPIKeysActionDialog'
 import AdminAPIKeysTokenDialog from './admin-api-keys/AdminAPIKeysTokenDialog'
-
+// query for getting existing API Keys
 const getAPIKeysQuery = gql`
   query gqlAPIKeysQuery {
     gqlAPIKeys {
@@ -104,10 +104,12 @@ export default function AdminAPIKeys(): JSX.Element {
     id: '',
     token: '',
   })
+  // handles the openning of the create dialog form which is used for creating new API Key
   const handleOpenCreateDialog = (): void => {
     setCreate(true)
     setOpenActionAPIKeyDialog(!openActionAPIKeyDialog)
   }
+  // Get API Key triggers/actions
   const { data, loading, error } = useQuery(getAPIKeysQuery, {
     variables: {
       reloadData: reloadFlag,

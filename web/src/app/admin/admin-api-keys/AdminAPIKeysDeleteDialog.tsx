@@ -10,6 +10,7 @@ import { gql, useMutation } from '@apollo/client'
 import { GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
 
+// query for deleting API Key which accepts API Key ID
 const deleteGQLAPIKeyQuery = gql`
   mutation DeleteGQLAPIKey($id: ID!) {
     deleteGQLAPIKey(id: $id)
@@ -23,6 +24,7 @@ export default function AdminAPIKeysDeleteDialog(props: {
 }): JSX.Element {
   const { apiKey, onClose, close } = props
   const [dialogClose, onDialogClose] = useState(close)
+  // handles the no confirmation option for delete API Key transactions
   const handleNo = (): void => {
     onClose(false)
     onDialogClose(!dialogClose)
@@ -36,6 +38,7 @@ export default function AdminAPIKeysDeleteDialog(props: {
     },
   })
   const { loading, data, error } = deleteAPIKeyStatus
+  // handles the yes confirmation option for delete API Key transactions
   const handleYes = (): void => {
     deleteAPIKey({
       variables: {

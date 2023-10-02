@@ -15,7 +15,7 @@ const useStyles = makeStyles(() => ({
     'padding-top': '15px',
   },
 }))
-
+// props object for this compoenent
 interface FieldProps {
   setValue: (val: string) => void
   value: string
@@ -30,7 +30,7 @@ export default function AdminAPIKeyExpirationField(
   const [dateVal, setDateVal] = useState<string>(value)
   const [options, setOptions] = useState('7')
   const [showPicker, setShowPicker] = useState(false)
-  // const today = DateTime.local({ zone: 'local' }).toFormat('ZZZZ')
+  // handles expiration date field options changes: sets and computes expirates at value based on the selected additional days value or sets value to +7 days today if custom option is selected
   const handleChange = (event: SelectChangeEvent): void => {
     const val = event.target.value as string
     setOptions(val)
@@ -52,7 +52,7 @@ export default function AdminAPIKeyExpirationField(
       )
     }
   }
-
+  // handles custon expiration date field option changes: sets and computes expires at value based on the selected date
   const handleDatePickerChange = (val: string): void => {
     // eslint-disable-next-line prettier/prettier
     if (val != null) {
@@ -69,7 +69,7 @@ export default function AdminAPIKeyExpirationField(
       )
     }
   }
-
+  // set expirate at date value to state
   useEffect(() => {
     setValue(dateVal)
   })

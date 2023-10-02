@@ -21,6 +21,7 @@ export default function AdminAPIKeysTokenDialog(props: {
   const onClickCopy = (): void => {
     navigator.clipboard.writeText(props.input.token)
   }
+  // handles onclose dialog for the token dialog, rejects close for backdropclick or escapekeydown actions
   const onCloseDialog = (
     event: object,
     reason: string,
@@ -31,11 +32,11 @@ export default function AdminAPIKeysTokenDialog(props: {
 
     onClose(!close)
   }
-
+  // handles close dialog button action
   const onCloseDialogByButton = (): void => {
     onClose(!close)
   }
-
+  // trigger token dialog close for parent container
   useEffect(() => {
     props.onTokenDialogClose(close)
   })

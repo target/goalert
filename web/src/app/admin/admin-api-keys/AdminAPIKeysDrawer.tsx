@@ -17,8 +17,7 @@ import { GQLAPIKey } from '../../../schema'
 import AdminAPIKeysDeleteDialog from './AdminAPIKeysDeleteDialog'
 import { Time } from '../../util/Time'
 
-// const MaxDetailsLength = 6 * 1024 // 6KiB
-
+// property for this object
 interface Props {
   onClose: () => void
   apiKey: GQLAPIKey
@@ -41,14 +40,15 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
   const classes = useStyles()
   const isOpen = Boolean(apiKey)
   const [deleteDialog, onDeleteDialog] = useState(false)
+  // handle for opening/closing delete confirmation dialog of the API Key Delete transaction
   const handleDeleteConfirmation = (): void => {
     onDeleteDialog(!deleteDialog)
   }
   let comma = ''
+  // convert allowedfields option array data to comma separated values which will be use for display
   const allowFieldsStr = apiKey?.allowedFields.map((inp: string): string => {
     const inpComma = comma + inp
     comma = ', '
-
     return inpComma
   })
 

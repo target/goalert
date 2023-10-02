@@ -19,6 +19,7 @@ const listGQLFieldsQuery = gql`
 `
 const MaxDetailsLength = 6 * 1024 // 6KiB
 
+// property object for this component
 interface AdminAPIKeyFormProps {
   value: GQLAPIKey
   errors: FieldError[]
@@ -45,13 +46,14 @@ export default function AdminAPIKeyForm(
     }),
   )
   const [allowedFields, setAllowedFields] = useState<string[]>([])
+  // handle AllowedFields field option changes: sets selected value to state
   const handleAutocompleteChange = (
     event: SyntheticEvent<Element, Event>,
     value: string[],
   ): void => {
     setAllowedFields(value)
   }
-
+  // sets GQLAPIKey updated value to state
   useEffect(() => {
     const valTemp = props.value
     valTemp.expiresAt = new Date(expiresAt).toISOString()
