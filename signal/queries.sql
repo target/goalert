@@ -29,10 +29,10 @@ FROM
     signals
 WHERE (id <> ALL (@omit::bigint[]))
 /* array_length returns NULL for empty arrays*/
-    AND (array_length(@any_service_id::uuid[], 1) IS NULL
-        OR service_id = ANY (@any_service_id::uuid[]))
-    AND (array_length(@any_service_rule_id::uuid[], 1) IS NULL
-        OR service_rule_id = ANY (@any_service_rule_id::uuid[]))
+    AND (@any_service_id::uuid[] IS NULL
+        OR service_id = ANY (@any_service_id))
+    AND (@any_service_rule_id::uuid[] IS NULL
+        OR service_rule_id = ANY (@any_service_rule_id))
     AND (sqlc.narg(before_time)::timestamptz IS NULL
         OR timestamp < @before_time)
     AND (sqlc.narg(not_before_time)::timestamptz IS NULL

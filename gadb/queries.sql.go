@@ -1228,10 +1228,10 @@ SELECT
 FROM
     signals
 WHERE (id <> ALL ($2::bigint[]))
-    AND (array_length($3::uuid[], 1) IS NULL
-        OR service_id = ANY ($3::uuid[]))
-    AND (array_length($4::uuid[], 1) IS NULL
-        OR service_rule_id = ANY ($4::uuid[]))
+    AND ($3::uuid[] IS NULL
+        OR service_id = ANY ($3))
+    AND ($4::uuid[] IS NULL
+        OR service_rule_id = ANY ($4))
     AND ($5::timestamptz IS NULL
         OR timestamp < $5)
     AND ($6::timestamptz IS NULL

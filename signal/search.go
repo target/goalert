@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/target/goalert/gadb"
@@ -29,11 +30,11 @@ const (
 // SearchOptions contains criteria for filtering and sorting signals.
 type SearchOptions struct {
 
-	// ServiceFilter, if specified, will restrict signals to those with a matching ServiceID on IDs, if valid.
-	ServiceFilter IDFilter `json:"v,omitempty"`
+	// ServiceIDs, if specified, will restrict signals to those with a matching ServiceID on IDs, if valid.
+	ServiceIDs []string `json:"v,omitempty"`
 
-	// ServiceRuleFilter, if specified, will restrict signals to those with a matching ServiceRuleID on IDs, if valid.
-	ServiceRuleFilter IDFilter `json:"r,omitempty"`
+	// ServiceRuleIDs, if specified, will restrict signals to those with a matching ServiceRuleID on IDs, if valid.
+	ServiceRuleIDs []string `json:"r,omitempty"`
 
 	After SearchCursor `json:"a,omitempty"`
 
@@ -100,17 +101,14 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]Signal, erro
 	for i, id := range opts.Omit {
 		params.Omit[i] = int64(id)
 	}
-	if opts.ServiceFilter.Valid {
-		params.AnyServiceID, err = validate.ParseManyUUID("ServiceIDs", opts.ServiceFilter.IDs, 50)
-		if err != nil {
-			return nil, err
-		}
+	params.AnyServiceID, err = validate.ParseManyUUID("ServiceIDs", opts.ServiceIDs, 50)
+	if err != nil {
+		return nil, err
 	}
-	if opts.ServiceRuleFilter.Valid {
-		params.AnyServiceRuleID, err = validate.ParseManyUUID("ServiceRuleIDs", opts.ServiceRuleFilter.IDs, 50)
-		if err != nil {
-			return nil, err
-		}
+	fmt.Println(params.AnyServiceID)
+	params.AnyServiceRuleID, err = validate.ParseManyUUID("ServiceRuleIDs", opts.ServiceRuleIDs, 50)
+	if err != nil {
+		return nil, err
 	}
 	if !opts.Before.IsZero() {
 		params.BeforeTime = sql.NullTime{Valid: true, Time: opts.Before}

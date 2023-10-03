@@ -78,16 +78,8 @@ func (q *Query) Signals(ctx context.Context, opts *graphql2.SignalSearchOptions)
 			return nil, errors.Wrap(err, "parse cursor")
 		}
 	} else {
-		s.ServiceFilter.IDs = opts.FilterByServiceID
-		if s.ServiceFilter.IDs != nil {
-			s.ServiceFilter.Valid = true
-		}
-
-		s.ServiceRuleFilter.IDs = opts.FilterByServiceRuleID
-		if s.ServiceRuleFilter.IDs != nil {
-			s.ServiceRuleFilter.Valid = true
-		}
-
+		s.ServiceIDs = opts.FilterByServiceID
+		s.ServiceRuleIDs = opts.FilterByServiceRuleID
 		if opts.Sort != nil {
 			switch *opts.Sort {
 			case graphql2.SignalSearchSortDateID:
