@@ -1068,8 +1068,8 @@ SELECT
 FROM
     user_overrides o
     LEFT JOIN AFTER ON TRUE
-WHERE (TRUE
-    OR o.id <> ALL ($1::uuid[]))
+WHERE ($1::uuid[] ISNULL
+    OR o.id <> ALL ($1))
 AND ($2::uuid ISNULL
     OR o.tgt_schedule_id = $2)
 AND ($3::uuid[] ISNULL

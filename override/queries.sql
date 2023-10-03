@@ -19,8 +19,8 @@ SELECT
 FROM
     user_overrides o
     LEFT JOIN AFTER ON TRUE
-WHERE (TRUE
-    OR o.id <> ALL (@omit::uuid[]))
+WHERE (@omit::uuid[] ISNULL
+    OR o.id <> ALL (@omit))
 AND (sqlc.narg(schedule_id)::uuid ISNULL
     OR o.tgt_schedule_id = @schedule_id)
 AND (@any_user_id::uuid[] ISNULL
