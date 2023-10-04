@@ -15,7 +15,7 @@ type ServiceRule App
 func (a *App) ServiceRule() graphql2.ServiceRuleResolver { return (*ServiceRule)(a) }
 
 func (q *Query) ServiceRule(ctx context.Context, id string) (*rule.Rule, error) {
-	return q.ServiceRuleStore.FindOne(ctx, id)
+	return (*App)(q).FindOneServiceRule(ctx, id)
 }
 
 func (s *ServiceRule) IntegrationKeys(ctx context.Context, r *rule.Rule) ([]integrationkey.IntegrationKey, error) {
@@ -62,8 +62,11 @@ func (m *Mutation) UpdateServiceRule(ctx context.Context, input graphql2.UpdateS
 	return
 }
 
-func (m *Mutation) DeleteServiceRule(ctx context.Context, id string) (bool, error) {
-	err := m.ServiceRuleStore.Delete(ctx, id)
+func (m *Mutation) DeleteServiceRule(ctx context.Context, id string) (success bool, err error) {
+	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
+		err = m.ServiceRuleStore.Delete(ctx, tx, id)
+		return err
+	})
 	if err != nil {
 		return false, err
 	}

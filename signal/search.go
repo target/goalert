@@ -82,7 +82,7 @@ func (opts SearchOptions) Normalize() (*SearchOptions, error) {
 	return &opts, err
 }
 
-func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]Signal, error) {
+func (s *Store) Search(ctx context.Context, dbtx gadb.DBTX, opts *SearchOptions) ([]Signal, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
@@ -121,7 +121,7 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]Signal, erro
 		params.AfterTimestamp = opts.After.Timestamp
 	}
 
-	rows, err := gadb.New(s.db).SignalSearch(ctx, params)
+	rows, err := gadb.New(dbtx).SignalSearch(ctx, params)
 	if err != nil {
 		return nil, errors.Wrap(err, "query")
 	}

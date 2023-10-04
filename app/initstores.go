@@ -174,7 +174,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.ServiceRuleStore == nil {
-		app.ServiceRuleStore = servicerule.NewStore(ctx, app.db)
+		app.ServiceRuleStore = &servicerule.Store{}
 	}
 
 	if app.AuthBasicStore == nil {
@@ -309,7 +309,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.SignalStore == nil {
-		app.SignalStore = signal.NewStore(ctx, app.db)
+		app.SignalStore = &signal.Store{}
 	}
 
 	return nil

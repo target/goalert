@@ -14,21 +14,15 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
-type Store struct {
-	db *sql.DB
-}
+type Store struct{}
 
-func NewStore(ctx context.Context, db *sql.DB) *Store {
-	return &Store{db: db}
-}
-
-func (s *Store) FindOne(ctx context.Context, id string) (*Rule, error) {
+func (s *Store) FindOne(ctx context.Context, dbtx gadb.DBTX, id string) (*Rule, error) {
 	ruleID, err := validate.ParseUUID("ServiceRuleID", id)
 	if err != nil {
 		return nil, err
 	}
 
-	row, err := gadb.New(s.db).SvcRuleFindOne(ctx, ruleID)
+	row, err := gadb.New(dbtx).SvcRuleFindOne(ctx, ruleID)
 	if err != nil {
 		return nil, errors.Wrap(err, "get rules for service")
 	}
@@ -55,8 +49,8 @@ func (s *Store) FindOne(ctx context.Context, id string) (*Rule, error) {
 	}, nil
 }
 
-// FindAllByService returns all service rules associated with the given serviceID
-func (s *Store) FindAllByService(ctx context.Context, serviceID string) ([]Rule, error) {
+// FindManyByService returns all service rules associated with the given serviceID
+func (s *Store) FindManyByService(ctx context.Context, dbtx gadb.DBTX, serviceID string) ([]Rule, error) {
 	err := permission.LimitCheckAny(ctx,
 		permission.User,
 		permission.MatchService(serviceID),
@@ -70,7 +64,7 @@ func (s *Store) FindAllByService(ctx context.Context, serviceID string) ([]Rule,
 		return nil, err
 	}
 
-	rows, err := gadb.New(s.db).SvcRuleFindManyByService(ctx, serviceUUID)
+	rows, err := gadb.New(dbtx).SvcRuleFindManyByService(ctx, serviceUUID)
 	if err != nil {
 		return nil, errors.Wrap(err, "find rules for service")
 	}
@@ -101,8 +95,52 @@ func (s *Store) FindAllByService(ctx context.Context, serviceID string) ([]Rule,
 	return rules, nil
 }
 
-// FindAllByIntegrationKey returns all service rules associated with the given serviceID and integrationKeyID
-func (s *Store) FindAllByIntegrationKey(ctx context.Context, serviceID string, integrationKeyID string) ([]Rule, error) {
+// FindManyByIntegrationKey returns all service rules associated with the given serviceID and integrationKeyID
+func (s *Store) FindMany(ctx context.Context, dbtx gadb.DBTX, ids []string) ([]Rule, error) {
+	err := permission.LimitCheckAny(ctx,
+		permission.User,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	ruleIDs, err := validate.ParseManyUUID("ServiceRuleID", ids, len(ids))
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := gadb.New(dbtx).SvcRuleFindMany(ctx, ruleIDs)
+	if err != nil {
+		return nil, errors.Wrap(err, "find many service rules")
+	}
+
+	rules := make([]Rule, len(rows))
+	for i, row := range rows {
+		actions := []map[string]interface{}{}
+		if !row.SendAlert {
+			if !row.Actions.Valid {
+				return nil, fmt.Errorf("signal rule %d has null action", i)
+			}
+			actionsRaw := row.Actions.RawMessage
+			err := json.Unmarshal(actionsRaw, &actions)
+			if err != nil {
+				return nil, fmt.Errorf("bad actions value for signal rule %d", i)
+			}
+		}
+		rules[i] = Rule{
+			ID:           row.ID.String(),
+			Name:         row.Name,
+			ServiceID:    row.ServiceID.String(),
+			FilterString: row.Filter,
+			Actions:      actions,
+		}
+	}
+
+	return rules, nil
+}
+
+// FindManyByIntegrationKey returns all service rules associated with the given serviceID and integrationKeyID
+func (s *Store) FindManyByIntegrationKey(ctx context.Context, dbtx gadb.DBTX, serviceID string, integrationKeyID string) ([]Rule, error) {
 	err := permission.LimitCheckAny(ctx,
 		permission.User,
 		permission.MatchService(serviceID),
@@ -117,12 +155,12 @@ func (s *Store) FindAllByIntegrationKey(ctx context.Context, serviceID string, i
 		return nil, err
 	}
 
-	rows, err := gadb.New(s.db).SvcRuleFindManyByIntKey(ctx, gadb.SvcRuleFindManyByIntKeyParams{
+	rows, err := gadb.New(dbtx).SvcRuleFindManyByIntKey(ctx, gadb.SvcRuleFindManyByIntKeyParams{
 		ServiceID:        serviceUUID,
 		IntegrationKeyID: keyUUID,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "get rules for integration key")
+		return nil, errors.Wrap(err, "find many service rules by integration key")
 	}
 
 	rules := make([]Rule, len(rows))
@@ -242,7 +280,7 @@ func (s *Store) Update(ctx context.Context, tx *sql.Tx, rule Rule) (*Rule, error
 }
 
 // Delete deletes the rule with the given ID.
-func (s *Store) Delete(ctx context.Context, id string) error {
+func (s *Store) Delete(ctx context.Context, dbtx gadb.DBTX, id string) error {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return err
@@ -253,5 +291,5 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	return gadb.New(s.db).SvcRuleDelete(ctx, ruleID)
+	return gadb.New(dbtx).SvcRuleDelete(ctx, ruleID)
 }

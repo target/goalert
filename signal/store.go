@@ -9,22 +9,15 @@ import (
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 )
 
 const maxBatch = 500
 
-type Store struct {
-	db *sql.DB
-}
+type Store struct{}
 
-func NewStore(ctx context.Context, db *sql.DB) *Store {
-	return &Store{db: db}
-}
-
-func (s *Store) FindOne(ctx context.Context, id int) (*Signal, error) {
-	signals, err := s.FindMany(ctx, []int{id})
+func (s *Store) FindOne(ctx context.Context, dbtx gadb.DBTX, id int) (*Signal, error) {
+	signals, err := s.FindMany(ctx, dbtx, []int{id})
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +28,7 @@ func (s *Store) FindOne(ctx context.Context, id int) (*Signal, error) {
 	return &signals[0], nil
 }
 
-func (s *Store) FindMany(ctx context.Context, signalIDs []int) ([]Signal, error) {
+func (s *Store) FindMany(ctx context.Context, dbtx gadb.DBTX, signalIDs []int) ([]Signal, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
@@ -54,7 +47,7 @@ func (s *Store) FindMany(ctx context.Context, signalIDs []int) ([]Signal, error)
 		ids = append(ids, int64(id))
 	}
 
-	rows, err := gadb.New(s.db).SignalFindMany(ctx, ids)
+	rows, err := gadb.New(dbtx).SignalFindMany(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -80,24 +73,13 @@ func (s *Store) FindMany(ctx context.Context, signalIDs []int) ([]Signal, error)
 	return signals, nil
 }
 
-func (s *Store) CreateMany(ctx context.Context, signals []Signal) ([]*Signal, error) {
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer sqlutil.Rollback(ctx, "signal: create", tx)
-
-	createdSignals := make([]*Signal, len(signals))
+func (s *Store) CreateMany(ctx context.Context, dbtx gadb.DBTX, signals []Signal) (createdSignals []*Signal, err error) {
+	createdSignals = make([]*Signal, len(signals))
 	for i := range signals {
-		createdSignals[i], err = s.Create(ctx, tx, &signals[i])
+		createdSignals[i], err = s.Create(ctx, dbtx, &signals[i])
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return nil, err
 	}
 
 	return createdSignals, nil

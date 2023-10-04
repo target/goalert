@@ -1538,6 +1538,65 @@ func (q *Queries) SvcRuleDelete(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const svcRuleFindMany = `-- name: SvcRuleFindMany :many
+SELECT
+    service_rules.id,
+    service_rules.name,
+    service_rules.service_id,
+    service_rules.filter,
+    service_rules.send_alert,
+    service_rules.actions,
+    STRING_AGG(service_rule_integration_keys.integration_key_id::text, ',')::text integration_keys
+FROM
+    service_rules
+    JOIN service_rule_integration_keys ON service_rule_integration_keys.service_rule_id = service_rules.id
+WHERE
+    service_rules.id = ANY ($1::uuid[])
+GROUP BY
+    service_rules.id
+`
+
+type SvcRuleFindManyRow struct {
+	ID              uuid.UUID
+	Name            string
+	ServiceID       uuid.UUID
+	Filter          string
+	SendAlert       bool
+	Actions         pqtype.NullRawMessage
+	IntegrationKeys string
+}
+
+func (q *Queries) SvcRuleFindMany(ctx context.Context, serviceRuleIds []uuid.UUID) ([]SvcRuleFindManyRow, error) {
+	rows, err := q.db.QueryContext(ctx, svcRuleFindMany, pq.Array(serviceRuleIds))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SvcRuleFindManyRow
+	for rows.Next() {
+		var i SvcRuleFindManyRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.ServiceID,
+			&i.Filter,
+			&i.SendAlert,
+			&i.Actions,
+			&i.IntegrationKeys,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const svcRuleFindManyByIntKey = `-- name: SvcRuleFindManyByIntKey :many
 SELECT
     r.id,

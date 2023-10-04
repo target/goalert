@@ -126,6 +126,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	})
 
 	signal := signalapi.NewHandler(signalapi.Config{
+		DB:                  app.db,
 		AlertStore:          app.AlertStore,
 		SignalStore:         app.SignalStore,
 		IntegrationKeyStore: app.IntegrationKeyStore,

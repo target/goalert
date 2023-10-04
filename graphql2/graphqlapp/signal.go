@@ -39,11 +39,11 @@ func (s *Signal) Service(ctx context.Context, raw *signal.Signal) (*service.Serv
 }
 
 func (s *Signal) ServiceRule(ctx context.Context, raw *signal.Signal) (*rule.Rule, error) {
-	return s.ServiceRuleStore.FindOne(ctx, raw.ServiceRuleID)
+	return (*App)(s).FindOneServiceRule(ctx, raw.ServiceRuleID)
 }
 
 func (q *Query) Signal(ctx context.Context, id int) (*signal.Signal, error) {
-	return q.SignalStore.FindOne(ctx, id)
+	return (*App)(q).FindOneSignal(ctx, id)
 }
 
 func (q *Query) Signals(ctx context.Context, opts *graphql2.SignalSearchOptions) (conn *graphql2.SignalConnection, err error) {
@@ -98,7 +98,7 @@ func (q *Query) Signals(ctx context.Context, opts *graphql2.SignalSearchOptions)
 
 	s.Limit++
 
-	signals, err := q.SignalStore.Search(ctx, &s)
+	signals, err := q.SignalStore.Search(ctx, q.DB, &s)
 	if err != nil {
 		return conn, err
 	}
