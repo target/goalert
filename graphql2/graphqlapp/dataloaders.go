@@ -51,7 +51,7 @@ func (a *App) registerLoaders(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, dataLoaderKeySchedule, dataloader.NewStoreLoader(ctx, a.ScheduleStore.FindMany))
 	ctx = context.WithValue(ctx, dataLoaderKeyService, dataloader.NewStoreLoader(ctx, a.ServiceStore.FindMany))
 	ctx = context.WithValue(ctx, dataLoaderKeyUser, dataloader.NewStoreLoader(ctx, a.UserStore.FindMany))
-	ctx = context.WithValue(ctx, dataLoaderKeyCM, dataloader.NewStoreLoader(ctx, a.CMStore.FindMany))
+	ctx = context.WithValue(ctx, dataLoaderKeyCM, dataloader.NewStoreLoaderWithDB(ctx, a.DB, a.CMStore.FindMany))
 	ctx = context.WithValue(ctx, dataLoaderKeyNotificationMessageStatus, dataloader.NewStoreLoader(ctx, a.NotificationStore.FindManyMessageStatuses))
 	ctx = context.WithValue(ctx, dataLoaderKeyHeartbeatMonitor, dataloader.NewStoreLoader(ctx, a.HeartbeatStore.FindMany))
 	ctx = context.WithValue(ctx, dataLoaderKeyNC, dataloader.NewStoreLoader(ctx, a.NCStore.FindMany))

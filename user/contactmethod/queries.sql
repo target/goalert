@@ -1,8 +1,8 @@
--- name: AddContactMethod :exec
+-- name: ContactMethodAdd :exec
 INSERT INTO user_contact_methods(id, name, type, value, disabled, user_id, enable_status_updates)
     VALUES ($1, $2, $3, $4, $5, $6, $7);
 
--- name: UpdateContactMethod :exec
+-- name: ContactMethodUpdate :exec
 UPDATE
     user_contact_methods
 SET
@@ -16,7 +16,7 @@ WHERE
 DELETE FROM user_contact_methods
 WHERE id = ANY ($1::uuid[]);
 
--- name: FindOneContactMethod :one
+-- name: ContactMethodFineOne :one
 SELECT
     id,
     name,
@@ -32,7 +32,7 @@ FROM
 WHERE
     id = $1;
 
--- name: FindOneUpdateContactMethod :one
+-- name: ContactMethodFindOneUpdate :one
 SELECT
     id,
     name,
@@ -49,7 +49,7 @@ WHERE
     id = $1
 FOR UPDATE;
 
--- name: FindManyContactMethod :many
+-- name: ContactMethodFindMany :many
 SELECT
     id,
     name,
@@ -65,7 +65,7 @@ FROM
 WHERE
     id = ANY ($1::uuid[]);
 
--- name: FindAllContactMethod :many
+-- name: ContactMethodFindAll :many
 SELECT
     id,
     name,
@@ -81,7 +81,7 @@ FROM
 WHERE
     user_id = $1;
 
--- name: LookupUserIDContactMethod :many
+-- name: ContactMethodLookupUserID :many
 SELECT DISTINCT
     user_id
 FROM
@@ -89,7 +89,7 @@ FROM
 WHERE
     id = ANY ($1::uuid[]);
 
--- name: EnableContactMethod :one
+-- name: ContactMethodEnable :one
 UPDATE
     user_contact_methods
 SET
@@ -100,7 +100,7 @@ WHERE
 RETURNING
     id;
 
--- name: MetaTVContactMethod :one
+-- name: ContactMethodMetaTV :one
 SELECT
     coalesce(metadata, '{}'),
     now()::timestamptz AS now
@@ -110,7 +110,7 @@ WHERE
     type = $1
     AND value = $2;
 
--- name: UpdateMetaTVContactMethod :exec
+-- name: ContactMethodUpdateMetaTV :exec
 UPDATE
     user_contact_methods
 SET
@@ -119,7 +119,7 @@ WHERE
     type = $1
     AND value = $2;
 
--- name: DisableContactMethod :one
+-- name: ContactMethodDisable :one
 UPDATE
     user_contact_methods
 SET

@@ -26,6 +26,6 @@ type Config struct {
 	// CMStore is used for storing and fetching metadata (like carrier information).
 	CMStore *contactmethod.Store
 
-	// todo
+	// DB is used for storing DB connection data (needed for carrier metadata dbtx).
 	DB *sql.DB
 }
