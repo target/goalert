@@ -49,145 +49,171 @@ export default function AdminServiceMetrics(): JSX.Element {
   const getConfigIssueCounts = (
     services: Service[],
   ): {
-    noHBTotal: number
-    noIKTotal: number
-    noEPTotal: number
+    noIntegrationTotal: number
+    noNotifTotal: number
+    noIntKeyTotal: number
     alertLimitTotal: number
   } => {
-    let noHBTotal = 0
-    let noIKTotal = 0
-    let noEPTotal = 0
-    let alertLimitTotal = 0
-    services.map((svc: Service) => {
-      if (!svc.heartbeatMonitors.length) noHBTotal += 1
-      if (!svc.integrationKeys.length) noIKTotal += 1
-      if (!svc.escalationPolicy?.steps.length) noEPTotal += 1
-      else {
-        let emptyTargets = 0
-        svc.escalationPolicy.steps.map((step) => {
-          if (!step.targets.length) emptyTargets += 1
-          if (emptyTargets === svc.escalationPolicy?.steps.length)
-            noEPTotal += 1
-        })
-      }
-      if (svc.notices.length) alertLimitTotal += 1
-    })
-    return { noHBTotal, noIKTotal, noEPTotal, alertLimitTotal }
+    return services.reduce(
+      (counts, svc) => {
+        if (!svc.integrationKeys.length) {
+          if (!svc.heartbeatMonitors.length) counts.noIntegrationTotal++
+          counts.noIntKeyTotal++
+        }
+        if (!svc.escalationPolicy?.steps.length) counts.noNotifTotal++
+        else if (
+          svc.escalationPolicy.steps?.every((step) => !step.targets.length)
+        )
+          counts.noNotifTotal++
+        if (svc.notices.length) counts.alertLimitTotal++
+        return counts
+      },
+      {
+        noIntegrationTotal: 0,
+        noIntKeyTotal: 0,
+        noNotifTotal: 0,
+        alertLimitTotal: 0,
+      },
+    )
   }
 
-  const { noHBTotal, noIKTotal, noEPTotal, alertLimitTotal } =
+  const { noIntegrationTotal, noNotifTotal, alertLimitTotal } =
     getConfigIssueCounts(serviceData.services || [])
 
-  const { noIKTotal: filteredNoIKTotal, noEPTotal: filteredNoEPTotal } =
-    getConfigIssueCounts(metrics.filteredServices || [])
+  const {
+    noIntKeyTotal: filteredNoIntKeyTotal,
+    noNotifTotal: filteredNoNotifTotal,
+  } = getConfigIssueCounts(metrics.filteredServices || [])
+
+  function renderOverviewMetrics(): JSX.Element {
+    return (
+      <React.Fragment>
+        <Grid item xs>
+          <Card>
+            <CardHeader
+              title={serviceData.services.length}
+              subheader='Total Services'
+            />
+          </Card>
+        </Grid>
+        <Grid item xs>
+          <Card>
+            <CardHeader
+              title={noIntegrationTotal}
+              subheader='Services Missing Integration'
+              action={
+                !!noIntegrationTotal && (
+                  <Tooltip title='Services with no integration keys or heartbeat monitors.'>
+                    <WarningAmberOutlined color='warning' />
+                  </Tooltip>
+                )
+              }
+            />
+          </Card>
+        </Grid>
+        <Grid item xs>
+          <Card>
+            <CardHeader
+              title={noNotifTotal}
+              subheader='Services Missing Notifications'
+              action={
+                !!noNotifTotal && (
+                  <Tooltip title='Services with empty escalation policies.'>
+                    <WarningAmberOutlined color='warning' />
+                  </Tooltip>
+                )
+              }
+            />
+          </Card>
+        </Grid>
+        <Grid item xs>
+          <Card>
+            <CardHeader
+              title={alertLimitTotal}
+              subheader='Services Reaching Alert Limit'
+              action={
+                !!alertLimitTotal && (
+                  <Tooltip title='Services at or nearing unacknowledged alert limit.'>
+                    <ErrorOutline color='error' />
+                  </Tooltip>
+                )
+              }
+            />
+          </Card>
+        </Grid>
+      </React.Fragment>
+    )
+  }
+
+  function renderUsageGraphs(): JSX.Element {
+    return (
+      <React.Fragment>
+        <Grid item xs>
+          <Card className={styles.card}>
+            <CardHeader
+              title='Integration Key Usage'
+              subheader={
+                metrics.filteredServices?.length +
+                ' services, of which ' +
+                filteredNoIntKeyTotal +
+                ' service(s) have no integration keys configured.'
+              }
+            />
+            <CardContent>
+              <AdminServiceTargetGraph
+                metrics={metrics.keyTgtTotals}
+                loading={serviceData.loading}
+              />
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs>
+          <Card className={styles.card}>
+            <CardHeader
+              title='Escalation Policy Usage'
+              subheader={
+                metrics.filteredServices?.length +
+                ' services, of which ' +
+                filteredNoNotifTotal +
+                ' service(s) have empty escalation policies.'
+              }
+            />
+            <CardContent>
+              <AdminServiceTargetGraph
+                metrics={metrics.stepTgtTotals}
+                loading={serviceData.loading}
+              />
+            </CardContent>
+          </Card>
+        </Grid>
+      </React.Fragment>
+    )
+  }
+
+  function renderServiceTable(): JSX.Element {
+    return (
+      <Card className={styles.card}>
+        <CardHeader title='Services' />
+        <CardContent>
+          <AdminServiceTable
+            services={metrics.filteredServices}
+            loading={serviceData.loading}
+          />
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Grid container spacing={2}>
       {serviceData.loading && <Spinner />}
-      <Grid item xs={3}>
-        <Card>
-          <CardHeader
-            title={serviceData.services.length}
-            subheader='Total Services'
-          />
-        </Card>
-      </Grid>
-      <Grid item xs={3}>
-        <Card>
-          <CardHeader
-            title={noHBTotal + noIKTotal}
-            subheader='Services Missing Integrations'
-            action={
-              !!(noHBTotal + noIKTotal) && (
-                <Tooltip title='Services with no integration keys or heartbeat monitors.'>
-                  <WarningAmberOutlined color='warning' />
-                </Tooltip>
-              )
-            }
-          />
-        </Card>
-      </Grid>
-      <Grid item xs={3}>
-        <Card>
-          <CardHeader
-            title={noEPTotal}
-            subheader='Services Missing Notifications'
-            action={
-              !!noEPTotal && (
-                <Tooltip title='Services with empty escalation policies.'>
-                  <WarningAmberOutlined color='warning' />
-                </Tooltip>
-              )
-            }
-          />
-        </Card>
-      </Grid>
-      <Grid item xs={3}>
-        <Card>
-          <CardHeader
-            title={alertLimitTotal}
-            subheader='Services Reaching Alert Limit'
-            action={
-              !!alertLimitTotal && (
-                <Tooltip title='Services at or nearing unacknowledged alert limit.'>
-                  <ErrorOutline color='error' />
-                </Tooltip>
-              )
-            }
-          />
-        </Card>
-      </Grid>
+      {renderOverviewMetrics()}
       <Grid item xs={12}>
         <AdminServiceFilter />
       </Grid>
-      <Grid item xs={6}>
-        <Card className={styles.card}>
-          <CardHeader
-            title='Integration Key Usage'
-            subheader={
-              metrics.filteredServices?.length +
-              ' services, of which ' +
-              filteredNoIKTotal +
-              ' service(s) have no integration keys configured.'
-            }
-          />
-          <CardContent>
-            <AdminServiceTargetGraph
-              metrics={metrics.keyTgtTotals}
-              loading={serviceData.loading}
-            />
-          </CardContent>
-        </Card>
-      </Grid>
-      <Grid item xs={6}>
-        <Card className={styles.card}>
-          <CardHeader
-            title='Escalation Policy Usage'
-            subheader={
-              metrics.filteredServices?.length +
-              ' services, of which ' +
-              filteredNoEPTotal +
-              ' service(s) have empty escalation policies.'
-            }
-          />
-          <CardContent>
-            <AdminServiceTargetGraph
-              metrics={metrics.stepTgtTotals}
-              loading={serviceData.loading}
-            />
-          </CardContent>
-        </Card>
-      </Grid>
+      {renderUsageGraphs()}
       <Grid item xs={12}>
-        <Card className={styles.card}>
-          <CardHeader title='Services' />
-          <CardContent>
-            <AdminServiceTable
-              services={metrics.filteredServices}
-              loading={serviceData.loading}
-            />
-          </CardContent>
-        </Card>
+        {renderServiceTable()}
       </Grid>
     </Grid>
   )
