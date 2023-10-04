@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/emersion/go-smtp"
@@ -16,12 +17,20 @@ type SMTPLogger struct {
 	logger *log.Logger
 }
 
+// Printf adheres to smtp.Server's Logger interface while filtering out ECONNRESET errors caused by TCP health checks
 func (l *SMTPLogger) Printf(format string, v ...interface{}) {
-	l.logger.Error(context.Background(), errors.New(fmt.Sprintf(format, v...)))
+	s := fmt.Sprintf(format, v...)
+	if !strings.Contains(s, "read: connection reset by peer") {
+		l.logger.Error(context.Background(), errors.New(s))
+	}
 }
 
+// Print adheres to smtp.Server's Logger interface while filtering out ECONNRESET errors caused by TCP health checks
 func (l *SMTPLogger) Println(v ...interface{}) {
-	l.logger.Error(context.Background(), errors.New(fmt.Sprint(v...)))
+	s := fmt.Sprint(v...)
+	if !strings.Contains(s, "read: connection reset by peer") {
+		l.logger.Error(context.Background(), errors.New(s))
+	}
 }
 
 // Server implements an SMTP server that creates alerts.
