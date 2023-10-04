@@ -2,11 +2,27 @@ package smtpsrv
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"net"
 	"time"
 
 	"github.com/emersion/go-smtp"
+	"github.com/target/goalert/util/log"
 )
+
+// SMTPLogger implements the smtp.Logger interface using the main app Logger
+type SMTPLogger struct {
+	logger *log.Logger
+}
+
+func (l *SMTPLogger) Printf(format string, v ...interface{}) {
+	l.logger.Error(context.Background(), errors.New(fmt.Sprintf(format, v...)))
+}
+
+func (l *SMTPLogger) Println(v ...interface{}) {
+	l.logger.Error(context.Background(), errors.New(fmt.Sprint(v...)))
+}
 
 // Server implements an SMTP server that creates alerts.
 type Server struct {
@@ -19,6 +35,7 @@ func NewServer(cfg Config) *Server {
 	s := &Server{cfg: cfg}
 
 	srv := smtp.NewServer(s)
+	srv.ErrorLog = &SMTPLogger{logger: cfg.Logger}
 	srv.Domain = cfg.Domain
 	srv.ReadTimeout = 10 * time.Second
 	srv.WriteTimeout = 10 * time.Second
