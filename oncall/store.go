@@ -57,6 +57,8 @@ type Store struct {
 
 	ruleStore  *rule.Store
 	schedStore *schedule.Store
+
+	histLim chan struct{}
 }
 
 // NewStore will create a new DB, preparing required statements using the provided context.
@@ -67,6 +69,8 @@ func NewStore(ctx context.Context, db *sql.DB, ruleStore *rule.Store, schedStore
 		db:         db,
 		ruleStore:  ruleStore,
 		schedStore: schedStore,
+
+		histLim: make(chan struct{}, 3), // limit concurrent history queries to 3
 
 		schedOverrides: p.P(`
 			select
@@ -200,6 +204,16 @@ func (s *Store) HistoryBySchedule(ctx context.Context, scheduleID string, start,
 	err = validate.UUID("ScheduleID", scheduleID)
 	if err != nil {
 		return nil, err
+	}
+
+	// Since this operation is expensive, and holds open a transaction for a long time,
+	// for several queries, we limit the number of concurrent operations to prevent
+	// exhausting the database connection pool.
+	select {
+	case s.histLim <- struct{}{}:
+		defer func() { <-s.histLim }()
+	case <-ctx.Done():
+		return nil, ctx.Err()
 	}
 
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{
