@@ -1,4 +1,4 @@
-import React, { ReactElement, useState, useContext } from 'react'
+import React, { ReactElement, useState, useContext, useEffect } from 'react'
 import { useMutation } from '@apollo/client'
 import { useQuery, gql } from 'urql'
 import { Grid, Hidden, ListItemText } from '@mui/material'
@@ -7,6 +7,7 @@ import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
   Close as CloseIcon,
+  ThumbDownOffAlt,
 } from '@mui/icons-material'
 
 import AlertsListFilter from './components/AlertsListFilter'
@@ -18,6 +19,9 @@ import { ControlledPaginatedListAction } from '../lists/ControlledPaginatedList'
 import ServiceNotices from '../services/ServiceNotices'
 import { Time } from '../util/Time'
 import { NotificationContext } from '../main/SnackbarNotification'
+import ReactGA from 'react-ga4'
+import { useConfigValue } from '../util/RequireConfig'
+import AlertFeedbackDialog from './components/AlertFeedbackDialog'
 
 interface AlertsListProps {
   serviceID: string
@@ -33,8 +37,9 @@ interface StatusUnacknowledgedVariables {
 }
 
 interface MutationVariablesInput {
-  newStatus: string
   alertIDs: (string | number)[]
+  newStatus: string
+  noiseReason?: string
 }
 
 export const alertsListQuery = gql`
@@ -104,12 +109,25 @@ function getStatusFilter(s: string): string[] {
 export default function AlertsList(props: AlertsListProps): JSX.Element {
   const classes = useStyles()
 
+  // event sent to Google Analytics
+  const [event, setEvent] = useState('')
+  const [analyticsID] = useConfigValue('General.GoogleAnalyticsID') as [string]
+
+  // stores alertIDs, if length present, feedback dialog is shown
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState<Array<string>>(
+    [],
+  )
   const [selectedCount, setSelectedCount] = useState(0)
   const [checkedCount, setCheckedCount] = useState(0)
 
   const [allServices] = useURLParam('allServices', false)
   const [fullTime] = useURLParam('fullTime', false)
   const [filter] = useURLParam<string>('filter', 'active')
+
+  useEffect(() => {
+    if (analyticsID && event.length)
+      ReactGA.event({ category: 'Bulk Alert Action', action: event })
+  }, [event, analyticsID])
 
   // query for current service name if props.serviceID is provided
   const [serviceNameQuery] = useQuery({
@@ -139,6 +157,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
 
   const { setNotification } = useContext(NotificationContext)
 
+  // mutation to update alert status to either acknowledge, close, or escalate
   const [mutate] = useMutation(updateMutation, {
     onCompleted: (data) => {
       const numUpdated =
@@ -161,6 +180,7 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
     },
   })
 
+  // alertIDs passed onClick from ControlledPaginatedList "checkedItems"
   const makeUpdateAlerts =
     (newStatus: string) => (alertIDs: (string | number)[]) => {
       setCheckedCount(alertIDs.length)
@@ -170,12 +190,28 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
         input: { newStatus, alertIDs },
       }
 
-      if (newStatus === 'StatusUnacknowledged') {
-        mutation = escalateMutation
-        variables = { input: alertIDs }
+      switch (newStatus) {
+        case 'StatusUnacknowledged':
+          mutation = escalateMutation
+          variables = { input: alertIDs }
+          setEvent('alertlist_escalated')
+          break
+        case 'StatusAcknowledged':
+          setEvent('alertlist_acknowledged')
+          break
+        case 'StatusClosed':
+          setEvent('alertlist_closed')
+          break
+        case 'noise':
+          setEvent('alertlist_noise')
+          break
       }
 
-      mutate({ mutation, variables })
+      if (newStatus === 'noise') {
+        setShowFeedbackDialog(alertIDs.map((id) => id.toString()))
+      } else {
+        mutate({ mutation, variables })
+      }
     }
 
   /*
@@ -250,6 +286,12 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
       }
     }
 
+    actions.push({
+      icon: <ThumbDownOffAlt />,
+      label: 'Mark as Noise',
+      onClick: makeUpdateAlerts('noise'),
+    })
+
     return actions
   }
 
@@ -307,6 +349,13 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
           />
         </Grid>
       </Grid>
+      <AlertFeedbackDialog
+        open={showFeedbackDialog.length > 0}
+        onClose={() => {
+          setShowFeedbackDialog([])
+        }}
+        alertIDs={showFeedbackDialog}
+      />
     </React.Fragment>
   )
 }

@@ -37,7 +37,7 @@ func (c *cycleMonitor) _newID() {
 	c.cycles[c.history[0]] = make(chan struct{})
 }
 
-// startNextCycle marks the begining of the next engine cycle.
+// startNextCycle marks the beginning of the next engine cycle.
 // It returns a func that should be called when the cycle is finished.
 func (c *cycleMonitor) startNextCycle() func() {
 	c.mx.Lock()

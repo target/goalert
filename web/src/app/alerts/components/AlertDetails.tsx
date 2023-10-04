@@ -49,7 +49,8 @@ import AlertFeedback, {
 import LoadingButton from '../../loading/components/LoadingButton'
 import { Notice } from '../../details/Notices'
 import { useIsWidthDown } from '../../util/useWidth'
-
+import ReactGA from 'react-ga4'
+import { useConfigValue } from '../../util/RequireConfig'
 interface AlertDetailsProps {
   data: Alert
 }
@@ -86,8 +87,14 @@ const updateStatusMutation = gql`
 `
 
 export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
+  const [analyticsID] = useConfigValue('General.GoogleAnalyticsID') as [string]
   const classes = useStyles()
   const isMobile = useIsWidthDown('sm')
+
+  const alertAction = (action: string, mutation: () => void): void => {
+    if (analyticsID) ReactGA.event({ category: 'Alert Action', action })
+    mutation()
+  }
 
   const [undoFeedback, undoFeedbackStatus] = useMutation(undoFeedbackMutation, {
     variables: {
@@ -347,18 +354,24 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
         aria-label='Update Alert Status Button Group'
       >
         {status === 'StatusUnacknowledged' && (
-          <Button startIcon={<AcknowledgeIcon />} onClick={() => ack()}>
+          <Button
+            startIcon={<AcknowledgeIcon />}
+            onClick={() => alertAction('alert_acknowledged', ack)}
+          >
             Acknowledge
           </Button>
         )}
         <Button
           startIcon={<EscalateIcon />}
-          onClick={() => escalate()}
+          onClick={() => alertAction('alert_escalated', escalate)}
           disabled={isMaintMode}
         >
           Escalate
         </Button>
-        <Button startIcon={<CloseIcon />} onClick={() => close()}>
+        <Button
+          startIcon={<CloseIcon />}
+          onClick={() => alertAction('alert_closed', close)}
+        >
           Close
         </Button>
       </ButtonGroup>,

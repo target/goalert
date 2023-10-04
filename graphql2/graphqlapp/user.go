@@ -4,7 +4,6 @@ import (
 	context "context"
 	"database/sql"
 
-	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/schedule"
@@ -23,28 +22,41 @@ import (
 )
 
 type (
-	User        App
-	UserSession App
+	User App
 )
 
 func (a *App) User() graphql2.UserResolver { return (*User)(a) }
 
-func (a *App) UserSession() graphql2.UserSessionResolver { return (*UserSession)(a) }
+func (a *User) Sessions(ctx context.Context, obj *user.User) ([]graphql2.UserSession, error) {
+	sess, err := a.AuthHandler.FindAllUserSessions(ctx, obj.ID)
+	if err != nil {
+		return nil, err
+	}
 
-func (a *User) Sessions(ctx context.Context, obj *user.User) ([]auth.UserSession, error) {
-	return a.AuthHandler.FindAllUserSessions(ctx, obj.ID)
+	out := make([]graphql2.UserSession, len(sess))
+	for i, s := range sess {
+
+		out[i] = graphql2.UserSession{
+			ID:           s.ID,
+			UserAgent:    s.UserAgent,
+			CreatedAt:    s.CreatedAt,
+			LastAccessAt: s.LastAccessAt,
+			Current:      isCurrentSession(ctx, s.ID),
+		}
+	}
+
+	return out, nil
 }
-
-func (a *UserSession) Current(ctx context.Context, obj *auth.UserSession) (bool, error) {
+func isCurrentSession(ctx context.Context, sessID string) bool {
 	src := permission.Source(ctx)
 	if src == nil {
-		return false, nil
+		return false
 	}
 	if src.Type != permission.SourceTypeAuthProvider {
-		return false, nil
+		return false
 	}
 
-	return obj.ID == src.ID, nil
+	return src.ID == sessID
 }
 
 func (a *User) AuthSubjects(ctx context.Context, obj *user.User) ([]user.AuthSubject, error) {

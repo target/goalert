@@ -295,7 +295,7 @@ func (s *Store) DeleteTx(ctx context.Context, tx *sql.Tx, ids ...string) error {
 	return err
 }
 
-// FindOneTx finds the contact method from the database using the provided ID within a transation.
+// FindOneTx finds the contact method from the database using the provided ID within a transaction.
 func (s *Store) FindOneTx(ctx context.Context, tx *sql.Tx, id string) (*ContactMethod, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {

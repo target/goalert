@@ -185,7 +185,7 @@ func (sms *SMS) values(body bool) url.Values {
 	return v
 }
 
-// SMS will return a channel that will be fed incomming SMS messages as they arrive.
+// SMS will return a channel that will be fed incoming SMS messages as they arrive.
 func (s *Server) SMS() chan *SMS {
 	return s.smsCh
 }
@@ -199,7 +199,7 @@ func (s *Server) SendSMS(from, to, body string) error {
 	s.mx.RUnlock()
 
 	if cbURL == "" {
-		return fmt.Errorf(`unknown/unregistered desination (to) number "%s"`, to)
+		return fmt.Errorf(`unknown/unregistered destination (to) number "%s"`, to)
 	}
 
 	sms, err := s.sendSMS(from, to, body, "", cbURL)

@@ -54,7 +54,7 @@ const AppLink: ForwardRefRenderFunction<HTMLAnchorElement, AppLinkProps> =
         ref={ref}
         to={to}
         href={to}
-        component={external ? 'a' : WrapLink}
+        component={external || newTab ? 'a' : WrapLink}
         {...other}
       />
     )

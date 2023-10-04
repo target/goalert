@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v5"
 	"github.com/target/goalert/swo/swodb"
 )
 
@@ -22,11 +22,11 @@ func DBInfo(ctx context.Context, conn *pgx.Conn) (*DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	if info.ID == uuid.Nil {
+	if !info.ID.Valid {
 		return nil, fmt.Errorf("no database ID")
 	}
 	return &DB{
-		ID:      info.ID,
+		ID:      info.ID.Bytes,
 		Version: info.Version,
 	}, nil
 }

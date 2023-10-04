@@ -628,6 +628,7 @@ func getConfig(ctx context.Context) (Config, error) {
 		SMTPListenAddr:        viper.GetString("smtp-listen"),
 		SMTPListenAddrTLS:     viper.GetString("smtp-listen-tls"),
 		SMTPAdditionalDomains: viper.GetString("smtp-additional-domains"),
+		SMTPMaxRecipients:     viper.GetInt("smtp-max-recipients"),
 
 		EmailIntegrationDomain: viper.GetString("email-integration-domain"),
 
@@ -742,6 +743,7 @@ func init() {
 	RootCmd.Flags().String("smtp-tls-cert-data", "", "Specifies a PEM-encoded certificate.  Has no effect if --smtp-listen-tls is unset.")
 	RootCmd.Flags().String("smtp-tls-key-data", "", "Specifies a PEM-encoded private key.  Has no effect if --smtp-listen-tls is unset.")
 
+	RootCmd.Flags().Int("smtp-max-recipients", def.SMTPMaxRecipients, "Specifies the maximum number of recipients allowed per message.")
 	RootCmd.Flags().String("smtp-additional-domains", "", "Specifies additional destination domains that are allowed for the SMTP server.  For multiple domains, separate them with a comma, e.g., \"domain1.com,domain2.org,domain3.net\".")
 
 	RootCmd.Flags().Duration("engine-cycle-time", def.EngineCycleTime, "Time between engine cycles.")

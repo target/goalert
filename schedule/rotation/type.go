@@ -3,8 +3,9 @@ package rotation
 import (
 	"database/sql/driver"
 	"fmt"
-	"github.com/target/goalert/validation"
 	"io"
+
+	"github.com/target/goalert/validation"
 
 	"github.com/99designs/gqlgen/graphql"
 )
@@ -12,9 +13,10 @@ import (
 type Type string
 
 const (
-	TypeWeekly Type = "weekly"
-	TypeDaily  Type = "daily"
-	TypeHourly Type = "hourly"
+	TypeMonthly Type = "monthly"
+	TypeWeekly  Type = "weekly"
+	TypeDaily   Type = "daily"
+	TypeHourly  Type = "hourly"
 )
 
 // Scan handles reading a Role from the DB format
@@ -34,7 +36,7 @@ func (r *Type) Scan(value interface{}) error {
 // Value converts the Role to the DB representation
 func (r Type) Value() (driver.Value, error) {
 	switch r {
-	case TypeWeekly, TypeDaily, TypeHourly:
+	case TypeMonthly, TypeWeekly, TypeDaily, TypeHourly:
 		return string(r), nil
 	default:
 		return nil, fmt.Errorf("unknown rotation type specified '%s'", r)
@@ -48,6 +50,8 @@ func (t *Type) UnmarshalGQL(v interface{}) error {
 		return err
 	}
 	switch str {
+	case "monthly":
+		*t = TypeMonthly
 	case "weekly":
 		*t = TypeWeekly
 	case "daily":
@@ -64,6 +68,8 @@ func (t *Type) UnmarshalGQL(v interface{}) error {
 // MarshalGQL implements the graphql.Marshaler interface
 func (t Type) MarshalGQL(w io.Writer) {
 	switch t {
+	case TypeMonthly:
+		graphql.MarshalString("monthly").MarshalGQL(w)
 	case TypeWeekly:
 		graphql.MarshalString("weekly").MarshalGQL(w)
 	case TypeHourly:

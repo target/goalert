@@ -23,7 +23,7 @@ func (r *ISORInterval) calcStart(end time.Time) error {
 		return fmt.Errorf("invalid interval: duration must be non-zero")
 	}
 	n := r.Repeat + 1
-	r.Start = end.AddDate(-r.Period.Years*n, -r.Period.Months*n, -r.Period.Days*n).Add(-r.Period.TimePart * time.Duration(n))
+	r.Start = end.AddDate(-r.Period.YearPart*n, -r.Period.MonthPart*n, -r.Period.Days()*n).Add(-r.Period.TimePart() * time.Duration(n))
 	return nil
 }
 
@@ -32,7 +32,7 @@ func (r *ISORInterval) calcPeriod(end time.Time) error {
 		return fmt.Errorf("invalid interval: end time must be after start time: %s", end.Format(time.RFC3339Nano))
 	}
 
-	r.Period.TimePart = end.Sub(r.Start) / time.Duration(r.Repeat+1)
+	r.Period.SetTimePart(end.Sub(r.Start) / time.Duration(r.Repeat+1))
 
 	return nil
 }
@@ -44,12 +44,12 @@ func (r ISORInterval) End() time.Time {
 	}
 
 	n := r.Repeat + 1
-	return r.Start.UTC().AddDate(r.Period.Years*n, r.Period.Months*n, r.Period.Days*n).Add(r.Period.TimePart * time.Duration(n))
+	return r.Start.UTC().AddDate(r.Period.YearPart*n, r.Period.MonthPart*n, r.Period.Days()*n).Add(r.Period.TimePart() * time.Duration(n))
 }
 
 // String returns the string representation of the interval.
 func (r ISORInterval) String() string {
-	if r.Period.Years == 0 && r.Period.Months == 0 && r.Period.Days == 0 {
+	if r.Period.YearPart == 0 && r.Period.MonthPart == 0 && r.Period.Days() == 0 {
 		// just a duration, use start/end format
 		return fmt.Sprintf("R%d/%s/%s", r.Repeat, r.Start.Format(time.RFC3339Nano), r.End().Format(time.RFC3339Nano))
 	}

@@ -23,7 +23,7 @@ func TestQueue_Sort(t *testing.T) {
 		Pending:
 		- Alert to User A, Service A (first alert)
 		- Alert to User E, Service B (created 2nd -- SMS so Slack doesn't affect first alert status)
-		- Alert to User H, Service C (created 3nd) -- Not sent, user H already notified
+		- Alert to User H, Service C (created 3rd) -- Not sent, user H already notified
 		- Verify to User F
 		- Verify to User A -- Not sent, (will get an alert for Service A)
 		- Test to User B
