@@ -1714,6 +1714,83 @@ func (q *Queries) SetAlertFeedback(ctx context.Context, arg SetAlertFeedbackPara
 	return err
 }
 
+const signalsManagerFindNext = `-- name: SignalsManagerFindNext :one
+SELECT
+    id,
+    service_rule_id,
+    service_id,
+    outgoing_payload,
+    scheduled,
+    timestamp
+FROM
+    signals
+WHERE
+    NOT scheduled
+LIMIT 1
+FOR UPDATE
+    SKIP LOCKED
+`
+
+type SignalsManagerFindNextRow struct {
+	ID              int64
+	ServiceRuleID   uuid.UUID
+	ServiceID       uuid.UUID
+	OutgoingPayload json.RawMessage
+	Scheduled       bool
+	Timestamp       time.Time
+}
+
+func (q *Queries) SignalsManagerFindNext(ctx context.Context) (SignalsManagerFindNextRow, error) {
+	row := q.db.QueryRowContext(ctx, signalsManagerFindNext)
+	var i SignalsManagerFindNextRow
+	err := row.Scan(
+		&i.ID,
+		&i.ServiceRuleID,
+		&i.ServiceID,
+		&i.OutgoingPayload,
+		&i.Scheduled,
+		&i.Timestamp,
+	)
+	return i, err
+}
+
+const signalsManagerSendOutgoing = `-- name: SignalsManagerSendOutgoing :exec
+INSERT INTO outgoing_signals (id, service_id, outgoing_payload, channel_id)
+    VALUES ($1, $2, $3, $4)
+`
+
+type SignalsManagerSendOutgoingParams struct {
+	ID              uuid.UUID
+	ServiceID       uuid.UUID
+	OutgoingPayload json.RawMessage
+	ChannelID       uuid.UUID
+}
+
+func (q *Queries) SignalsManagerSendOutgoing(ctx context.Context, arg SignalsManagerSendOutgoingParams) error {
+	_, err := q.db.ExecContext(ctx, signalsManagerSendOutgoing,
+		arg.ID,
+		arg.ServiceID,
+		arg.OutgoingPayload,
+		arg.ChannelID,
+	)
+	return err
+}
+
+const signalsManagerSetScheduled = `-- name: SignalsManagerSetScheduled :exec
+UPDATE
+    signals
+SET
+    scheduled = NOT scheduled
+WHERE
+    NOT scheduled
+    AND id = $1
+`
+
+func (q *Queries) SignalsManagerSetScheduled(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, signalsManagerSetScheduled, id)
+	return err
+}
+
 const setManyAlertFeedback = `-- name: SetManyAlertFeedback :many
 INSERT INTO alert_feedback(alert_id, noise_reason)
     VALUES (unnest($1::bigint[]), $2)
