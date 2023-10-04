@@ -6,46 +6,72 @@ export type TargetMetrics = {
 export type ServiceMetrics = {
   keyTgtTotals: TargetMetrics
   stepTgtTotals: TargetMetrics
-  noIntKeys: Service[]
-  noEPSteps: Service[]
+  filteredServices: Service[]
+}
+export type ServiceMetricFilters = {
+  labelKey?: string
+  labelValue?: string
+  epStepTgts?: string[]
+  intKeyTgts?: string[]
 }
 
 export type ServiceMetricOpts = {
   services: Service[]
+  filters: ServiceMetricFilters
 }
-
 export function useServiceMetrics(opts: ServiceMetricOpts): ServiceMetrics {
-  return opts.services.reduce(
-    (metrics: ServiceMetrics, svc) => {
-      // get services without any escalation policy steps
-      if (svc.escalationPolicy?.steps.length === 0) metrics.noEPSteps.push(svc)
-      else {
-        svc.escalationPolicy?.steps.map((step) => {
-          if (step.targets.length) {
-            step.targets.map((tgt) => {
-              // get sum of each step target across all services
-              metrics.stepTgtTotals[tgt.type] =
-                (metrics.stepTgtTotals[tgt.type] || 0) + 1
-            })
-          }
-        })
+  const { services, filters } = opts
+
+  const filterServices = (
+    services: Service[],
+    filters: ServiceMetricFilters,
+  ): Service[] => {
+    return services.filter((svc) => {
+      if (filters.labelKey) {
+        const labelMatch = svc.labels.some(
+          (label) =>
+            filters.labelKey === label.key &&
+            (!filters.labelValue || filters.labelValue === label.value),
+        )
+        if (!labelMatch) return false
       }
-      // get services without integration keys
-      if (svc.integrationKeys.length === 0) metrics.noIntKeys.push(svc)
-      else {
-        svc.integrationKeys.map((key) => {
-          // get sum of each key type across all services
-          metrics.keyTgtTotals[key.type] =
-            (metrics.keyTgtTotals[key.type] || 0) + 1
-        })
+      if (filters.epStepTgts?.length) {
+        const stepTargetMatch = svc.escalationPolicy?.steps.some((step) =>
+          step.targets.some((tgt) => filters.epStepTgts?.includes(tgt.type)),
+        )
+        if (!stepTargetMatch) return false
       }
-      return metrics
-    },
-    {
+      if (filters.intKeyTgts?.length) {
+        const intKeyMatch = svc.integrationKeys.some(
+          (key) => filters.intKeyTgts?.includes(key.type),
+        )
+        if (!intKeyMatch) return false
+      }
+      return true
+    })
+  }
+
+  const calculateMetrics = (filteredServices: Service[]): ServiceMetrics => {
+    const metrics = {
       keyTgtTotals: {},
       stepTgtTotals: {},
-      noIntKeys: [],
-      noEPSteps: [],
-    },
-  )
+    } as ServiceMetrics
+    filteredServices.forEach((svc) => {
+      svc.escalationPolicy?.steps.forEach((step) => {
+        step.targets.forEach((tgt) => {
+          metrics.stepTgtTotals[tgt.type] =
+            (metrics.stepTgtTotals[tgt.type] || 0) + 1
+        })
+      })
+      svc.integrationKeys.forEach((key) => {
+        metrics.keyTgtTotals[key.type] =
+          (metrics.keyTgtTotals[key.type] || 0) + 1
+      })
+    })
+    return metrics
+  }
+
+  const filteredServices = filterServices(services, filters)
+  const metrics = calculateMetrics(filteredServices)
+  return { ...metrics, filteredServices }
 }
