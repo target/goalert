@@ -1047,6 +1047,121 @@ func (q *Queries) Now(ctx context.Context) (time.Time, error) {
 	return column_1, err
 }
 
+const overrideSearch = `-- name: OverrideSearch :many
+WITH AFTER AS (
+    SELECT
+        id,
+        start_time,
+        end_time
+    FROM
+        user_overrides
+    WHERE
+        id = $8::uuid
+)
+SELECT
+    o.id,
+    o.start_time,
+    o.end_time,
+    add_user_id,
+    remove_user_id,
+    tgt_schedule_id
+FROM
+    user_overrides o
+    LEFT JOIN AFTER ON TRUE
+WHERE ($1::uuid[] ISNULL
+    OR o.id <> ALL ($1))
+AND ($2::uuid ISNULL
+    OR o.tgt_schedule_id = $2)
+AND ($3::uuid[] ISNULL
+    OR add_user_id = ANY ($3::uuid[])
+    OR remove_user_id = ANY ($3::uuid[]))
+AND ($4::uuid[] ISNULL
+    OR add_user_id = ANY ($4::uuid[]))
+AND ($5::uuid[] ISNULL
+    OR remove_user_id = ANY ($5::uuid[]))
+AND (
+    /* only include overrides that end after the search start */
+    $6::timestamptz ISNULL
+    OR o.end_time > $6)
+AND (
+    /* only include overrides that start before/within the search end */
+    $7::timestamptz ISNULL
+    OR o.start_time <= $6)
+AND (
+    /* resume search after specified "cursor" override */
+    $8::uuid ISNULL
+    OR (o.start_time > after.start_time
+        OR (o.start_time = after.start_time
+            AND o.end_time > after.end_time)
+        OR (o.start_time = after.start_time
+            AND o.end_time = after.end_time
+            AND o.id > after.id)))
+ORDER BY
+    o.start_time,
+    o.end_time,
+    o.id
+LIMIT 150
+`
+
+type OverrideSearchParams struct {
+	Omit         []uuid.UUID
+	ScheduleID   uuid.NullUUID
+	AnyUserID    []uuid.UUID
+	AddUserID    []uuid.UUID
+	RemoveUserID []uuid.UUID
+	SearchStart  sql.NullTime
+	SearchEnd    sql.NullTime
+	AfterID      uuid.NullUUID
+}
+
+type OverrideSearchRow struct {
+	ID            uuid.UUID
+	StartTime     time.Time
+	EndTime       time.Time
+	AddUserID     uuid.NullUUID
+	RemoveUserID  uuid.NullUUID
+	TgtScheduleID uuid.UUID
+}
+
+func (q *Queries) OverrideSearch(ctx context.Context, arg OverrideSearchParams) ([]OverrideSearchRow, error) {
+	rows, err := q.db.QueryContext(ctx, overrideSearch,
+		pq.Array(arg.Omit),
+		arg.ScheduleID,
+		pq.Array(arg.AnyUserID),
+		pq.Array(arg.AddUserID),
+		pq.Array(arg.RemoveUserID),
+		arg.SearchStart,
+		arg.SearchEnd,
+		arg.AfterID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OverrideSearchRow
+	for rows.Next() {
+		var i OverrideSearchRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.StartTime,
+			&i.EndTime,
+			&i.AddUserID,
+			&i.RemoveUserID,
+			&i.TgtScheduleID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const requestAlertEscalationByTime = `-- name: RequestAlertEscalationByTime :one
 UPDATE
     escalation_policy_state
