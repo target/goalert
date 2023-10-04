@@ -13,11 +13,18 @@ import {
 } from '@mui/icons-material'
 import { AlertSearchOptions, Service } from '../../../schema'
 import { useAlerts } from '../../services/AlertMetrics/useAlerts'
+import { useURLParams } from '../../actions'
 
 const STALE_ALERT_LIMIT = 2
 
 export default function AdminServiceMetrics(): JSX.Element {
   const now = useMemo(() => DateTime.now(), [])
+  const [params] = useURLParams({
+    epStepTgts: [] as string[],
+    intKeyTgts: [] as string[],
+    labelKey: '',
+    labelValue: '',
+  })
 
   const depKey = `${now}`
   const serviceData = useServices(depKey)
@@ -34,6 +41,12 @@ export default function AdminServiceMetrics(): JSX.Element {
     {
       services: serviceData.services,
       alerts: alertsData.alerts,
+      filters: {
+        labelKey: params.labelKey,
+        labelValue: params.labelValue,
+        epStepTgts: params.epStepTgts,
+        intKeyTgts: params.intKeyTgts,
+      },
     },
     {} as ServiceMetrics,
   )
