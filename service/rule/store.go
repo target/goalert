@@ -95,7 +95,7 @@ func (s *Store) FindManyByService(ctx context.Context, dbtx gadb.DBTX, serviceID
 	return rules, nil
 }
 
-// FindManyByIntegrationKey returns all service rules associated with the given serviceID and integrationKeyID
+// FindMany returns the service rules with the given IDs
 func (s *Store) FindMany(ctx context.Context, dbtx gadb.DBTX, ids []string) ([]Rule, error) {
 	err := permission.LimitCheckAny(ctx,
 		permission.User,
