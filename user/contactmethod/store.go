@@ -2,7 +2,6 @@ package contactmethod
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 
 	"github.com/google/uuid"
@@ -15,11 +14,6 @@ import (
 
 // Store implements the lookup and management of ContactMethods against a *sql.Store backend.
 type Store struct {
-}
-
-// NewStore will create a DB backend from a sql.DB. An error will be returned if statements fail to prepare.
-func NewStore(ctx context.Context, db *sql.DB) *Store {
-	return &Store{}
 }
 
 func (s *Store) MetadataByTypeValue(ctx context.Context, dbtx gadb.DBTX, typ Type, value string) (*Metadata, error) {

@@ -151,7 +151,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.ContactMethodStore == nil {
-		app.ContactMethodStore = contactmethod.NewStore(ctx, app.db)
+		app.ContactMethodStore = &contactmethod.Store{}
 	}
 
 	if app.NotificationRuleStore == nil {
