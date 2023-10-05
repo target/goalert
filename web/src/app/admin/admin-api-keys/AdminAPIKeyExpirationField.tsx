@@ -9,6 +9,7 @@ import { Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { ISODatePicker, ISODateTimePicker } from '../../util/ISOPickers'
 import { DateTime } from 'luxon'
+import { Time } from '../../util/Time'
 
 const useStyles = makeStyles(() => ({
   expiresCon: {
@@ -129,15 +130,7 @@ export default function AdminAPIKeyExpirationField(
               component='div'
               className={classes.expiresCon}
             >
-              The token will expires on {new Date(value).toLocaleString([], {
-                weekday: 'short',
-                month: 'short',
-                day: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-              })}
+              The token will expires <Time time={value} />
             </Typography>
           </Grid>
         </Grid>
