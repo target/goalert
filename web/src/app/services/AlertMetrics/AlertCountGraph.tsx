@@ -74,7 +74,7 @@ export default function AlertCountGraph(
               <Tooltip
                 data-cy='metrics-tooltip'
                 cursor={{ fill: theme.palette.background.default }}
-                content={({ active, payload, label }) => {
+                content={({ active, payload }) => {
                   if (!active || !payload?.length) return null
 
                   const alertCountStr = `${payload[0].name}: ${payload[0].value}`
@@ -82,7 +82,9 @@ export default function AlertCountGraph(
                   const noiseCountStr = `${payload[2].name}: ${payload[2].value}`
                   return (
                     <Paper variant='outlined' sx={{ p: 1 }}>
-                      <Typography variant='body2'>{label}</Typography>
+                      <Typography variant='body2'>
+                        {payload[0].payload.label}
+                      </Typography>
                       <Typography variant='body2'>{alertCountStr}</Typography>
                       <Typography variant='body2'>
                         {escalatedCountStr}

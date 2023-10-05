@@ -39,7 +39,7 @@ export default function AlertMetrics({
 
   const unit = units[ivl]
   const since = now.minus(Duration.fromISO(range)).startOf(unit)
-  const until = now.startOf(unit)
+  const until = now
 
   const alertOptions: AlertSearchOptions = {
     filterByServiceID: [serviceID],
