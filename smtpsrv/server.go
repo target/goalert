@@ -12,25 +12,31 @@ import (
 	"github.com/target/goalert/util/log"
 )
 
-// SMTPLogger implements the smtp.Logger interface using the main app Logger
+// SMTPLogger implements the smtp.Logger interface using the main app Logger.
 type SMTPLogger struct {
 	logger *log.Logger
 }
 
-// Printf adheres to smtp.Server's Logger interface while filtering out ECONNRESET errors caused by TCP health checks
+// Printf adheres to smtp.Server's Logger interface.
 func (l *SMTPLogger) Printf(format string, v ...interface{}) {
 	s := fmt.Sprintf(format, v...)
-	if !strings.Contains(s, "read: connection reset by peer") {
-		l.logger.Error(context.Background(), errors.New(s))
+	// TODO: Uses string compare to filter out errors caused by TCP health checks,
+	// remove once https://github.com/emersion/go-smtp/issues/236 has been fixed.
+	if strings.Contains(s, "read: connection reset by peer") {
+		return
 	}
+	l.logger.Error(context.Background(), errors.New(s))
 }
 
-// Print adheres to smtp.Server's Logger interface while filtering out ECONNRESET errors caused by TCP health checks
+// Print adheres to smtp.Server's Logger interface.
 func (l *SMTPLogger) Println(v ...interface{}) {
 	s := fmt.Sprint(v...)
-	if !strings.Contains(s, "read: connection reset by peer") {
-		l.logger.Error(context.Background(), errors.New(s))
+	// TODO: Uses string compare to filter out errors caused by TCP health checks,
+	// remove once https://github.com/emersion/go-smtp/issues/236 has been fixed.
+	if strings.Contains(s, "read: connection reset by peer") {
+		return
 	}
+	l.logger.Error(context.Background(), errors.New(s))
 }
 
 // Server implements an SMTP server that creates alerts.
