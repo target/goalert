@@ -71,7 +71,24 @@ export default function AlertMetrics({
     return <GenericError error={alertsData.error.message} />
   }
 
-  const dayCount = Math.ceil(until.diff(since, unit).as(unit))
+  function getRange(range: string): string {
+    switch (range) {
+      case 'P1W':
+        return 'past week'
+      case 'P2W':
+        return 'past 2 weeks'
+      case 'P1M':
+        return 'past month'
+      case 'P3M':
+        return 'past 3 months'
+      case 'P6M':
+        return 'past 6 months'
+      case 'P1Y':
+        return 'past year'
+      default:
+        return `past ${Math.ceil(until.diff(since, unit).as(unit))} ${unit}s`
+    }
+  }
 
   return (
     <Grid container spacing={2}>
@@ -79,7 +96,7 @@ export default function AlertMetrics({
         <Card>
           <CardHeader
             component='h2'
-            title={`Daily alert metrics over the past ${dayCount} ${unit}s`}
+            title={`Daily alert metrics over the ${getRange(range)}`}
           />
           <CardContent>
             <AlertMetricsFilter />
