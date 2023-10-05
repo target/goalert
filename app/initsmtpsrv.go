@@ -24,6 +24,7 @@ func (app *App) initSMTPServer(ctx context.Context) error {
 		TLSConfig:         app.cfg.TLSConfigSMTP,
 		MaxRecipients:     app.cfg.SMTPMaxRecipients,
 		BackgroundContext: app.LogBackgroundContext,
+		Logger:            app.cfg.Logger,
 		AuthorizeFunc: func(ctx context.Context, id string) (context.Context, error) {
 			tok, _, err := authtoken.Parse(id, nil)
 			if err != nil {
