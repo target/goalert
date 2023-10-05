@@ -48,7 +48,7 @@ export default function AdminAPIKeyForm(
   }
 
   return (
-    <FormContainer {...props}>
+    <FormContainer optionalLabels {...props}>
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <FormField fullWidth name='name' required component={TextField} />
