@@ -19,6 +19,7 @@ import { GenericError } from '../error-pages'
 import { Theme } from '@mui/material/styles'
 import AdminAPIKeysActionDialog from './admin-api-keys/AdminAPIKeysActionDialog'
 import AdminAPIKeysTokenDialog from './admin-api-keys/AdminAPIKeysTokenDialog'
+import { DateTime } from 'luxon'
 // query for getting existing API Keys
 const query = gql`
   query gqlAPIKeysQuery {
@@ -91,7 +92,7 @@ export default function AdminAPIKeys(): JSX.Element {
     updatedAt: '',
     updatedBy: null,
     lastUsed: null,
-    expiresAt: '',
+    expiresAt: DateTime.utc().plus({ days: 7 }).toISO(),
     allowedFields: [],
     role: 'user',
   }

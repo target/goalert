@@ -105,7 +105,14 @@ export default function AdminAPIKeyForm(
               label: field,
               value: field,
             }))}
+            mapOnChangeValue={(selected: { value: string }[]) =>
+              selected.map((v) => v.value)
+            }
+            mapValue={(value: string[]) =>
+              value.map((v) => ({ label: v, value: v }))
+            }
             multiple
+            required
           />
         </Grid>
       </Grid>
