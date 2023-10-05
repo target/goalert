@@ -30,6 +30,7 @@ require (
 	github.com/mailhog/storage v1.0.1
 	github.com/matcornic/hermes/v2 v2.1.0
 	github.com/mnako/letters v0.2.1
+	github.com/nyaruka/phonenumbers v1.1.8
 	github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282
 	github.com/pelletier/go-toml/v2 v2.1.0
 	github.com/pkg/errors v0.9.1
@@ -41,7 +42,6 @@ require (
 	github.com/spf13/viper v1.16.0
 	github.com/sqlc-dev/pqtype v0.3.0
 	github.com/stretchr/testify v1.8.4
-	github.com/ttacon/libphonenumber v1.2.1
 	github.com/vektah/gqlparser/v2 v2.5.10
 	golang.org/x/crypto v0.13.0
 	golang.org/x/oauth2 v0.12.0
@@ -140,7 +140,6 @@ require (
 	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/t-k/fluent-logger-golang v1.0.0 // indirect
 	github.com/tinylib/msgp v1.1.8 // indirect
-	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/urfave/cli/v2 v2.25.7 // indirect
 	github.com/vanng822/css v1.0.1 // indirect
 	github.com/vanng822/go-premailer v1.20.2 // indirect
