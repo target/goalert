@@ -40,10 +40,6 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
   const classes = useStyles()
   const isOpen = Boolean(apiKey)
   const [deleteDialog, onDeleteDialog] = useState(false)
-  // handle for opening/closing delete confirmation dialog of the API Key Delete transaction
-  const handleDeleteConfirmation = (): void => {
-    onDeleteDialog(!deleteDialog)
-  }
   let comma = ''
   // convert allowedfields option array data to comma separated values which will be use for display
   const allowFieldsStr = apiKey?.allowedFields.map((inp: string): string => {
@@ -56,9 +52,8 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
     <React.Fragment>
       {deleteDialog ? (
         <AdminAPIKeysDeleteDialog
-          onClose={onDeleteDialog}
-          apiKey={props.apiKey}
-          close={deleteDialog}
+          onClose={() => onDeleteDialog(false)}
+          apiKeyId={apiKey.id}
         />
       ) : null}
       <ClickAwayListener onClickAway={onClose}>
@@ -120,7 +115,7 @@ export default function AdminAPIKeysDrawer(props: Props): JSX.Element {
             </List>
             <Grid className={classes.buttons}>
               <ButtonGroup variant='contained'>
-                <Button data-cy='delete' onClick={handleDeleteConfirmation}>
+                <Button data-cy='delete' onClick={() => onDeleteDialog(true)}>
                   DELETE
                 </Button>
                 <Button

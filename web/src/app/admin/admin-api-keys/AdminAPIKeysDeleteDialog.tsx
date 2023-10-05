@@ -1,77 +1,77 @@
-import React, { useState } from 'react'
-import { GQLAPIKey } from '../../../schema'
-import Button from '@mui/material/Button'
-import Dialog from '@mui/material/Dialog'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-import DialogTitle from '@mui/material/DialogTitle'
-import { gql, useMutation } from '@apollo/client'
+import React from 'react'
+import { nonFieldErrors } from '../../util/errutil'
+import FormDialog from '../../dialogs/FormDialog'
+import { gql, useMutation, useQuery } from 'urql'
 import { GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
+import { GQLAPIKey } from '../../../schema'
 
 // query for deleting API Key which accepts API Key ID
 const deleteGQLAPIKeyQuery = gql`
-  mutation DeleteGQLAPIKey($id: ID!) {
+  mutation DeleteGQLAPIKey($id: string!) {
     deleteGQLAPIKey(id: $id)
   }
 `
 
-export default function AdminAPIKeysDeleteDialog(props: {
-  apiKey: GQLAPIKey | null
-  onClose: (param: boolean) => void
-  close: boolean
-}): JSX.Element {
-  const { apiKey, onClose, close } = props
-  const [dialogClose, onDialogClose] = useState(close)
-  // handles the no confirmation option for delete API Key transactions
-  const handleNo = (): void => {
-    onClose(false)
-    onDialogClose(!dialogClose)
+// query for getting existing API Keys
+const query = gql`
+  query gqlAPIKeysQuery {
+    gqlAPIKeys {
+      id
+      name
+    }
   }
-  const [deleteAPIKey, deleteAPIKeyStatus] = useMutation(deleteGQLAPIKeyQuery, {
-    onCompleted: (data) => {
-      if (data.deleteGQLAPIKey) {
-        onClose(false)
-        onDialogClose(!dialogClose)
-      }
-    },
+`
+
+export default function AdminAPIKeysDeleteDialog(props: {
+  apiKeyId: string
+  onClose: () => void
+}): JSX.Element {
+  const [{ fetching, data, error }] = useQuery({
+    query,
   })
-  const { loading, data, error } = deleteAPIKeyStatus
-  // handles the yes confirmation option for delete API Key transactions
-  const handleYes = (): void => {
-    deleteAPIKey({
-      variables: {
-        id: apiKey?.id,
+  const { apiKeyId, onClose } = props
+  const [deleteAPIKeyStatus, deleteAPIKey] = useMutation(deleteGQLAPIKeyQuery)
+
+  if (fetching && !data) return <Spinner />
+  if (error) return <GenericError error={error.message} />
+
+  const apiKeyName = data?.gqlAPIKeys?.find((d: GQLAPIKey) => {
+    return d.id === apiKeyId
+  })?.name
+
+  const handleOnSubmit = (): void => {
+    deleteAPIKey(
+      {
+        id: apiKeyId,
       },
+      { additionalTypenames: ['GQLAPIKey'] },
+    ).then((result) => {
+      if (!result.error) onClose()
     })
   }
 
-  if (error) {
-    return <GenericError error={error.message} />
-  }
+  const handleOnClose = (
+    event: object,
+    reason: string,
+  ): boolean | undefined => {
+    if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
+      return false
+    }
 
-  if (loading && !data) {
-    return <Spinner />
+    props.onClose()
   }
 
   return (
-    <Dialog
-      open={close}
-      onClose={onClose}
-      aria-labelledby='delete-api-key-dialog-label'
-      aria-describedby='delete-api-key-dialog-desc'
-    >
-      <DialogTitle id='delete-api-key-title'>DELETE API KEY</DialogTitle>
-      <DialogContent>
-        <DialogContentText id='delete-api-key-content'>
-          Are you sure you want to delete the API KEY {apiKey?.name}?
-        </DialogContentText>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleNo}>NO</Button>
-        <Button onClick={handleYes}>YES</Button>
-      </DialogActions>
-    </Dialog>
+    <FormDialog
+      title='Are you sure?'
+      confirm
+      subTitle={'This will delete the API Key ' + apiKeyName + '.'}
+      loading={deleteAPIKeyStatus.fetching}
+      errors={nonFieldErrors(deleteAPIKeyStatus.error)}
+      disableBackdropClose
+      onClose={handleOnClose}
+      onSubmit={handleOnSubmit}
+    />
   )
 }
