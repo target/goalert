@@ -26,22 +26,16 @@ const updateGQLAPIKeyQuery = gql`
 export default function AdminAPIKeysActionDialog(props: {
   onClose: (param: boolean) => void
   setToken: (token: CreatedGQLAPIKey) => void
-  setReloadFlag: (inc: number) => void
   onTokenDialogClose: (prama: boolean) => void
   create: boolean
   apiKey: GQLAPIKey
   setAPIKey: (param: GQLAPIKey) => void
   setSelectedAPIKey: (param: GQLAPIKey) => void
 }): JSX.Element {
-  let query = updateGQLAPIKeyQuery
   const { create, apiKey, setAPIKey, setSelectedAPIKey } = props
-
-  if (props.create) {
-    query = newGQLAPIKeyQuery
-  }
-
+  const query = props.create ? newGQLAPIKeyQuery : updateGQLAPIKeyQuery
   const [apiKeyActionStatus, apiKeyAction] = useMutation(query)
-  const [allowFieldsError, setAllowFieldsError] = useState(true)
+  const [reqAllowFieldsFlag, setReqAllowFieldsFlag] = useState(true)
   const { fetching, data, error } = apiKeyActionStatus
   let fieldErrs = fieldErrors(error)
   // handles form on submit event, based on the action type (edit, create) it will send the necessary type of parameter
@@ -61,11 +55,15 @@ export default function AdminAPIKeysActionDialog(props: {
       role: apiKey.role,
     }
 
-    apiKeyAction({
-      input: create ? createKey : updateKey,
-    }).then((result) => {
+    apiKeyAction(
+      {
+        input: create ? createKey : updateKey,
+      },
+      { additionalTypenames: ['GQLAPIKey'] },
+    ).then((result) => {
+      setReqAllowFieldsFlag(apiKey.allowedFields.length <= 0)
+
       if (!result.error) {
-        props.setReloadFlag(Math.random())
         props.onClose(false)
 
         if (props.create) {
@@ -104,8 +102,8 @@ export default function AdminAPIKeysActionDialog(props: {
           disabled={fetching}
           value={apiKey}
           onChange={setAPIKey}
-          allowFieldsError={allowFieldsError}
-          setAllowFieldsError={setAllowFieldsError}
+          reqAllowFieldsFlag={reqAllowFieldsFlag}
+          setReqAllowFieldsFlag={setReqAllowFieldsFlag}
           create={props.create}
         />
       }

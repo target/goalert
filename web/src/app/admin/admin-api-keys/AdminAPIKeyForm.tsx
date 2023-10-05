@@ -4,15 +4,14 @@ import { FormContainer, FormField } from '../../forms'
 import { FieldError } from '../../util/errutil'
 import { GQLAPIKey } from '../../../schema'
 import AdminAPIKeyExpirationField from './AdminAPIKeyExpirationField'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery } from 'urql'
 import { GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
 import { TextField, Autocomplete, MenuItem } from '@mui/material'
 import CheckIcon from '@mui/icons-material/Check'
 import { DateTime } from 'luxon'
-import { ISODateTimePicker } from '../../util/ISOPickers'
 
-const listGQLFieldsQuery = gql`
+const query = gql`
   query ListGQLFieldsQuery {
     listGQLFields
   }
@@ -25,8 +24,8 @@ interface AdminAPIKeyFormProps {
   errors: FieldError[]
   onChange: (key: GQLAPIKey) => void
   disabled?: boolean
-  allowFieldsError: boolean
-  setAllowFieldsError: (param: boolean) => void
+  reqAllowFieldsFlag: boolean
+  setReqAllowFieldsFlag: (param: boolean) => void
   create: boolean
 }
 
@@ -55,19 +54,23 @@ export default function AdminAPIKeyForm(
   }
   // sets GQLAPIKey updated value to state
   useEffect(() => {
-    const valTemp = props.value
-    valTemp.expiresAt = new Date(expiresAt).toISOString()
-    valTemp.allowedFields = allowedFields
-    props.setAllowFieldsError(valTemp.allowedFields.length <= 0)
-    props.onChange(valTemp)
+    if (props.create) {
+      const valTemp = props.value
+      valTemp.expiresAt = new Date(expiresAt).toISOString()
+      valTemp.allowedFields = allowedFields
+      props.setReqAllowFieldsFlag(valTemp.allowedFields.length <= 0)
+      props.onChange(valTemp)
+    }
   })
-  const { data, loading, error } = useQuery(listGQLFieldsQuery)
+  const [{ data, fetching, error }] = useQuery({
+    query,
+  })
 
   if (error) {
     return <GenericError error={error.message} />
   }
 
-  if (loading && !data) {
+  if (fetching && !data) {
     return <Spinner />
   }
 
@@ -118,21 +121,11 @@ export default function AdminAPIKeyForm(
           </FormField>
         </Grid>
         <Grid item xs={12}>
-          {props.create ? (
-            <AdminAPIKeyExpirationField
-              setValue={setExpiresAt}
-              value={expiresAt}
-              create
-            />
-          ) : (
-            <FormField
-              fullWidth
-              component={ISODateTimePicker}
-              name='expiresAt'
-              required
-              disabled
-            />
-          )}
+          <AdminAPIKeyExpirationField
+            setValue={setExpiresAt}
+            value={props.value.expiresAt}
+            disabled={!props.create}
+          />
         </Grid>
         <Grid item xs={12}>
           <Autocomplete
@@ -147,9 +140,9 @@ export default function AdminAPIKeyForm(
               <FormField
                 {...params}
                 fullWidth
-                label='allowedFields'
-                name='Allowed Fields'
-                required={props.allowFieldsError && props.create}
+                label='Allowed Fields'
+                name='allowedFields'
+                required={props.reqAllowFieldsFlag && props.create}
                 component={TextField}
                 disabled={!props.create}
               />
