@@ -32562,7 +32562,7 @@ func (ec *executionContext) unmarshalInputUpdateAlertsInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"alertIDs", "newStatus"}
+	fieldsInOrder := [...]string{"alertIDs", "newStatus", "noiseReason"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -32582,11 +32582,20 @@ func (ec *executionContext) unmarshalInputUpdateAlertsInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("newStatus"))
-			data, err := ec.unmarshalNAlertStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertStatus(ctx, v)
+			data, err := ec.unmarshalOAlertStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.NewStatus = data
+		case "noiseReason":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("noiseReason"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NoiseReason = data
 		}
 	}
 

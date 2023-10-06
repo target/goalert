@@ -780,7 +780,8 @@ export type RotationType = 'monthly' | 'weekly' | 'daily' | 'hourly'
 
 export interface UpdateAlertsInput {
   alertIDs: number[]
-  newStatus: AlertStatus
+  newStatus?: null | AlertStatus
+  noiseReason?: null | string
 }
 
 export interface UpdateRotationInput {
