@@ -9,34 +9,21 @@ import {
   CardHeader,
 } from '@mui/material'
 import { Add } from '@mui/icons-material'
-import AdminAPIKeysDrawer from './admin-api-keys/AdminAPIKeysDrawer'
-import { GQLAPIKey, CreatedGQLAPIKey } from '../../schema'
+import AdminAPIKeysDrawer from './admin-api-keys/AdminAPIKeyDrawer'
+import { GQLAPIKey } from '../../schema'
 import { Time } from '../util/Time'
 import { gql, useQuery } from 'urql'
 import FlatList, { FlatListListItem } from '../lists/FlatList'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 import { Theme } from '@mui/material/styles'
-import AdminAPIKeysActionDialog from './admin-api-keys/AdminAPIKeysActionDialog'
-import AdminAPIKeysTokenDialog from './admin-api-keys/AdminAPIKeysTokenDialog'
-import { DateTime } from 'luxon'
+import AdminAPIKeyCreateDialog from './admin-api-keys/AdminAPIKeyCreateDialog'
 // query for getting existing API Keys
 const query = gql`
   query gqlAPIKeysQuery {
     gqlAPIKeys {
       id
       name
-      description
-      createdAt
-      createdBy {
-        id
-        name
-      }
-      updatedAt
-      updatedBy {
-        id
-        name
-      }
       lastUsed {
         time
         ua
@@ -44,7 +31,6 @@ const query = gql`
       }
       expiresAt
       allowedFields
-      role
     }
   }
 `
@@ -80,33 +66,10 @@ const useStyles = makeStyles((theme: Theme) => ({
 export default function AdminAPIKeys(): JSX.Element {
   const classes = useStyles()
   const [selectedAPIKey, setSelectedAPIKey] = useState<GQLAPIKey | null>(null)
-  const [tokenDialogClose, onTokenDialogClose] = useState(false)
-  const [openActionAPIKeyDialog, setOpenActionAPIKeyDialog] = useState(false)
-  const [create, setCreate] = useState(false)
-  const emptyAPIKey = {
-    id: '',
-    name: '',
-    description: '',
-    createdAt: '',
-    createdBy: null,
-    updatedAt: '',
-    updatedBy: null,
-    lastUsed: null,
-    expiresAt: DateTime.utc().plus({ days: 7 }).toISO(),
-    allowedFields: [],
-    role: 'user',
-  }
-  const [apiKey, setAPIKey] = useState<GQLAPIKey>(emptyAPIKey as GQLAPIKey)
-  const [token, setToken] = useState<CreatedGQLAPIKey>({
-    id: '',
-    token: '',
-  })
+  const [createAPIKeyDialogClose, onCreateAPIKeyDialogClose] = useState(false)
   // handles the openning of the create dialog form which is used for creating new API Key
   const handleOpenCreateDialog = (): void => {
-    setSelectedAPIKey(null)
-    setCreate(true)
-    setAPIKey(emptyAPIKey as GQLAPIKey)
-    setOpenActionAPIKeyDialog(!openActionAPIKeyDialog)
+    onCreateAPIKeyDialogClose(!createAPIKeyDialogClose)
   }
   // Get API Key triggers/actions
   const [{ data, fetching, error }] = useQuery({ query })
@@ -158,34 +121,16 @@ export default function AdminAPIKeys(): JSX.Element {
       {selectedAPIKey ? (
         <AdminAPIKeysDrawer
           onClose={() => {
-            if (!openActionAPIKeyDialog) {
-              setSelectedAPIKey(null)
-            }
+            setSelectedAPIKey(null)
           }}
-          apiKey={selectedAPIKey}
-          setCreate={setCreate}
-          setOpenActionAPIKeyDialog={setOpenActionAPIKeyDialog}
-          setAPIKey={setAPIKey}
+          apiKeyId={selectedAPIKey.id}
         />
       ) : null}
-      {openActionAPIKeyDialog ? (
-        <AdminAPIKeysActionDialog
+      {createAPIKeyDialogClose ? (
+        <AdminAPIKeyCreateDialog
           onClose={() => {
-            setOpenActionAPIKeyDialog(false)
+            onCreateAPIKeyDialogClose(false)
           }}
-          onTokenDialogClose={onTokenDialogClose}
-          setToken={setToken}
-          create={create}
-          apiKey={apiKey}
-          setAPIKey={setAPIKey}
-          setSelectedAPIKey={setSelectedAPIKey}
-        />
-      ) : null}
-      {tokenDialogClose ? (
-        <AdminAPIKeysTokenDialog
-          input={token}
-          onTokenDialogClose={onTokenDialogClose}
-          tokenDialogClose={tokenDialogClose}
         />
       ) : null}
       <Card

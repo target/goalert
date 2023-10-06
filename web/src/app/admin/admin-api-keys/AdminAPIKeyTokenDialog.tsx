@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { CreatedGQLAPIKey } from '../../../schema'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
@@ -12,14 +12,13 @@ import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
 import CloseIcon from '@mui/icons-material/Close'
 
-export default function AdminAPIKeysTokenDialog(props: {
-  input: CreatedGQLAPIKey
-  onTokenDialogClose: (input: boolean) => void
-  tokenDialogClose: boolean
+export default function AdminAPIKeyTokenDialog(props: {
+  value: CreatedGQLAPIKey
+  onClose: () => void
 }): JSX.Element {
-  const [close, onClose] = useState(props.tokenDialogClose)
+  const {onClose, value} = props
   const onClickCopy = (): void => {
-    navigator.clipboard.writeText(props.input.token)
+    navigator.clipboard.writeText(props.value.token)
   }
   // handles onclose dialog for the token dialog, rejects close for backdropclick or escapekeydown actions
   const onCloseDialog = (
@@ -30,20 +29,16 @@ export default function AdminAPIKeysTokenDialog(props: {
       return false
     }
 
-    onClose(!close)
+    onClose()
   }
   // handles close dialog button action
   const onCloseDialogByButton = (): void => {
-    onClose(!close)
+    onClose()
   }
-  // trigger token dialog close for parent container
-  useEffect(() => {
-    props.onTokenDialogClose(close)
-  })
 
   return (
     <Dialog
-      open={props.tokenDialogClose}
+      open
       onClose={onCloseDialog}
       aria-labelledby='api-key-token-dialog'
       aria-describedby='api-key-token-information'
@@ -76,7 +71,7 @@ export default function AdminAPIKeysTokenDialog(props: {
       <DialogContent dividers>
         <DialogContentText id='alert-dialog-api-key-token-content'>
           <Typography sx={{ wordBreak: 'break-word' }}>
-            {props.input.token}
+            {value.token}
           </Typography>
         </DialogContentText>
       </DialogContent>

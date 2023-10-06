@@ -8,7 +8,7 @@ import { GQLAPIKey } from '../../../schema'
 
 // query for deleting API Key which accepts API Key ID
 const deleteGQLAPIKeyQuery = gql`
-  mutation DeleteGQLAPIKey($id: string!) {
+  mutation DeleteGQLAPIKey($id: ID!) {
     deleteGQLAPIKey(id: $id)
   }
 `
@@ -23,9 +23,9 @@ const query = gql`
   }
 `
 
-export default function AdminAPIKeysDeleteDialog(props: {
+export default function AdminAPIKeyDeleteDialog(props: {
   apiKeyId: string
-  onClose: () => void
+  onClose: (yes: boolean) => void
 }): JSX.Element {
   const [{ fetching, data, error }] = useQuery({
     query,
@@ -47,7 +47,7 @@ export default function AdminAPIKeysDeleteDialog(props: {
       },
       { additionalTypenames: ['GQLAPIKey'] },
     ).then((result) => {
-      if (!result.error) onClose()
+      if (!result.error) onClose(true)
     })
   }
 
@@ -59,7 +59,7 @@ export default function AdminAPIKeysDeleteDialog(props: {
       return false
     }
 
-    props.onClose()
+    props.onClose(false)
   }
 
   return (
