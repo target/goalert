@@ -28,6 +28,7 @@ sql:
       - integrationkey/queries.sql
       - apikey/queries.sql
       - signal/queries.sql
+      - override/queries.sql
     engine: postgresql
     gen:
       go:

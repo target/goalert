@@ -519,6 +519,7 @@ export interface CreateUserCalendarSubscriptionInput {
   reminderMinutes?: null | number[]
   scheduleID: string
   disabled?: null | boolean
+  fullSchedule?: null | boolean
 }
 
 export interface UpdateUserCalendarSubscriptionInput {
@@ -526,12 +527,14 @@ export interface UpdateUserCalendarSubscriptionInput {
   name?: null | string
   reminderMinutes?: null | number[]
   disabled?: null | boolean
+  fullSchedule?: null | boolean
 }
 
 export interface UserCalendarSubscription {
   id: string
   name: string
   reminderMinutes: number[]
+  fullSchedule: boolean
   scheduleID: string
   schedule?: null | Schedule
   lastAccess: ISOTimestamp

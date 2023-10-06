@@ -206,6 +206,7 @@ type CreateUserCalendarSubscriptionInput struct {
 	ReminderMinutes []int  `json:"reminderMinutes,omitempty"`
 	ScheduleID      string `json:"scheduleID"`
 	Disabled        *bool  `json:"disabled,omitempty"`
+	FullSchedule    *bool  `json:"fullSchedule,omitempty"`
 }
 
 type CreateUserContactMethodInput struct {
@@ -704,6 +705,7 @@ type UpdateUserCalendarSubscriptionInput struct {
 	Name            *string `json:"name,omitempty"`
 	ReminderMinutes []int   `json:"reminderMinutes,omitempty"`
 	Disabled        *bool   `json:"disabled,omitempty"`
+	FullSchedule    *bool   `json:"fullSchedule,omitempty"`
 }
 
 type UpdateUserContactMethodInput struct {

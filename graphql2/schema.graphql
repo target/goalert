@@ -697,17 +697,20 @@ input CreateUserCalendarSubscriptionInput {
   reminderMinutes: [Int!]
   scheduleID: ID!
   disabled: Boolean
+  fullSchedule: Boolean
 }
 input UpdateUserCalendarSubscriptionInput {
   id: ID!
   name: String
   reminderMinutes: [Int!]
   disabled: Boolean
+  fullSchedule: Boolean
 }
 type UserCalendarSubscription {
   id: ID!
   name: String!
   reminderMinutes: [Int!]!
+  fullSchedule: Boolean!
   scheduleID: ID!
   schedule: Schedule
   lastAccess: ISOTimestamp!
