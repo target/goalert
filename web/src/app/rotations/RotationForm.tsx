@@ -61,7 +61,7 @@ function getShiftDuration(count: number, type: RotationType): ISODuration {
     case 'monthly':
       return `P${count}M`
     case 'weekly':
-      return `P${7 * count}D`
+      return `P${count}W`
     case 'daily':
       return `P${count}D`
     case 'hourly':
