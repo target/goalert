@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"sync"
 	"time"
+
+	"github.com/target/goalert/gadb"
 )
 
 func NewStoreLoaderInt[V any](ctx context.Context, fetchMany func(context.Context, []int) ([]V, error)) *Loader[int, V] {
@@ -22,6 +24,26 @@ func NewStoreLoader[V any](ctx context.Context, fetchMany func(context.Context, 
 		Delay:     time.Millisecond,
 		IDFunc:    func(v V) string { return reflect.ValueOf(v).FieldByName("ID").String() },
 		FetchFunc: fetchMany,
+	})
+}
+
+func NewStoreLoaderWithDB[V any](
+	ctx context.Context,
+	db gadb.DBTX,
+	fetchMany func(context.Context, gadb.DBTX, []string) ([]V, error),
+) *Loader[string, V] {
+	return NewStoreLoader(ctx, func(ctx context.Context, ids []string) ([]V, error) {
+		return fetchMany(ctx, db, ids)
+	})
+}
+
+func NewStoreLoaderIntWithDB[V any](
+	ctx context.Context,
+	db gadb.DBTX,
+	fetchMany func(context.Context, gadb.DBTX, []int) ([]V, error),
+) *Loader[int, V] {
+	return NewStoreLoaderInt(ctx, func(ctx context.Context, ids []int) ([]V, error) {
+		return fetchMany(ctx, db, ids)
 	})
 }
 

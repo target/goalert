@@ -54,6 +54,9 @@ func ParseManyUUID(fname string, ids []string, max int) ([]uuid.UUID, error) {
 	if max != -1 && len(ids) > max {
 		return nil, validation.NewFieldError(fname, "must not have more than "+strconv.Itoa(max))
 	}
+	if len(ids) == 0 {
+		return nil, nil
+	}
 	uuids := make([]uuid.UUID, len(ids))
 	errs := make([]error, 0, len(ids))
 	var err error

@@ -22,6 +22,7 @@ import (
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/service"
+	"github.com/target/goalert/signal"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util/timeutil"
@@ -189,6 +190,15 @@ type CreateServiceInput struct {
 	NewIntegrationKeys   []CreateIntegrationKeyInput   `json:"newIntegrationKeys,omitempty"`
 	Labels               []SetLabelInput               `json:"labels,omitempty"`
 	NewHeartbeatMonitors []CreateHeartbeatMonitorInput `json:"newHeartbeatMonitors,omitempty"`
+}
+
+type CreateServiceRuleInput struct {
+	Name            string   `json:"name"`
+	ServiceID       string   `json:"serviceID"`
+	Filter          string   `json:"filter"`
+	SendAlert       bool     `json:"sendAlert"`
+	Actions         string   `json:"actions"`
+	IntegrationKeys []string `json:"integrationKeys"`
 }
 
 type CreateUserCalendarSubscriptionInput struct {
@@ -527,6 +537,22 @@ type SetTemporaryScheduleInput struct {
 	Shifts     []schedule.FixedShift `json:"shifts"`
 }
 
+type SignalConnection struct {
+	Nodes    []signal.Signal `json:"nodes"`
+	PageInfo *PageInfo       `json:"pageInfo"`
+}
+
+type SignalSearchOptions struct {
+	FilterByServiceID     []string          `json:"filterByServiceID,omitempty"`
+	FilterByServiceRuleID []string          `json:"filterByServiceRuleID,omitempty"`
+	First                 *int              `json:"first,omitempty"`
+	After                 *string           `json:"after,omitempty"`
+	Omit                  []int             `json:"omit,omitempty"`
+	Sort                  *SignalSearchSort `json:"sort,omitempty"`
+	CreatedBefore         *time.Time        `json:"createdBefore,omitempty"`
+	NotCreatedBefore      *time.Time        `json:"notCreatedBefore,omitempty"`
+}
+
 type SlackChannelConnection struct {
 	Nodes    []slack.Channel `json:"nodes"`
 	PageInfo *PageInfo       `json:"pageInfo"`
@@ -661,6 +687,15 @@ type UpdateServiceInput struct {
 	Description          *string    `json:"description,omitempty"`
 	EscalationPolicyID   *string    `json:"escalationPolicyID,omitempty"`
 	MaintenanceExpiresAt *time.Time `json:"maintenanceExpiresAt,omitempty"`
+}
+
+type UpdateServiceRuleInput struct {
+	ID              string   `json:"id"`
+	Name            string   `json:"name"`
+	Filter          string   `json:"filter"`
+	SendAlert       bool     `json:"sendAlert"`
+	Actions         string   `json:"actions"`
+	IntegrationKeys []string `json:"integrationKeys"`
 }
 
 type UpdateUserCalendarSubscriptionInput struct {
@@ -1051,6 +1086,47 @@ func (e *SWOState) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SWOState) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SignalSearchSort string
+
+const (
+	SignalSearchSortDateID        SignalSearchSort = "dateID"
+	SignalSearchSortDateIDReverse SignalSearchSort = "dateIDReverse"
+)
+
+var AllSignalSearchSort = []SignalSearchSort{
+	SignalSearchSortDateID,
+	SignalSearchSortDateIDReverse,
+}
+
+func (e SignalSearchSort) IsValid() bool {
+	switch e {
+	case SignalSearchSortDateID, SignalSearchSortDateIDReverse:
+		return true
+	}
+	return false
+}
+
+func (e SignalSearchSort) String() string {
+	return string(e)
+}
+
+func (e *SignalSearchSort) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SignalSearchSort(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SignalSearchSort", str)
+	}
+	return nil
+}
+
+func (e SignalSearchSort) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

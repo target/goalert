@@ -13,7 +13,7 @@ import (
 // findMatchingRules returns all rules associated with the given integration key whose
 // filters match the given requestBody
 func (h *Handler) findMatchingRules(ctx context.Context, intKeyID string, requestBody map[string]interface{}) (rules []rule.Rule, err error) {
-	allRules, err := h.c.ServiceRuleStore.FindAllByIntegrationKey(ctx, permission.ServiceID(ctx), intKeyID)
+	allRules, err := h.c.ServiceRuleStore.FindManyByIntegrationKey(ctx, h.c.DB, permission.ServiceID(ctx), intKeyID)
 	if err != nil {
 		return nil, err
 	}

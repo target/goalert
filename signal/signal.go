@@ -1,9 +1,11 @@
 package signal
 
-import "time"
+import (
+	"time"
+)
 
 type Signal struct {
-	ID              int                    `json:"_id"`
+	ID              int64                  `json:"_id"`
 	ServiceID       string                 `json:"service_id"`
 	ServiceRuleID   string                 `json:"service_rule_id"`
 	OutgoingPayload map[string]interface{} `json:"outgoing_payload"`

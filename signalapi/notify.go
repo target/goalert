@@ -12,6 +12,7 @@ import (
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/signal"
 	"github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 // Handler responds to generic API requests
@@ -87,8 +88,13 @@ func (h *Handler) ServeCreateSignals(w http.ResponseWriter, r *http.Request) {
 
 	createdSignals := []*signal.Signal{}
 
+	tx, err := h.c.DB.BeginTx(ctx, nil)
+	if errutil.HTTPError(ctx, w, err) {
+		return
+	}
+	defer sqlutil.Rollback(ctx, "signal: create many", tx)
 	err = retry.DoTemporaryError(func(int) error {
-		createdSignals, err = h.c.SignalStore.CreateMany(ctx, signals)
+		createdSignals, err = h.c.SignalStore.CreateMany(ctx, tx, signals)
 		return err
 	},
 		retry.Log(ctx),
@@ -96,6 +102,11 @@ func (h *Handler) ServeCreateSignals(w http.ResponseWriter, r *http.Request) {
 		retry.FibBackoff(time.Second),
 	)
 	if errutil.HTTPError(ctx, w, errors.Wrap(err, "create signals")) {
+		return
+	}
+
+	err = tx.Commit()
+	if errutil.HTTPError(ctx, w, err) {
 		return
 	}
 

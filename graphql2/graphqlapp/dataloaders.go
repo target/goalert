@@ -15,6 +15,8 @@ import (
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/service"
+	servicerule "github.com/target/goalert/service/rule"
+	"github.com/target/goalert/signal"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
 
@@ -39,6 +41,8 @@ const (
 	dataLoaderKeyNC
 	dataLoaderAlertMetrics
 	dataLoaderAlertFeedback
+	dataLoaderKeyServiceRule
+	dataLoaderKeySignal
 
 	dataLoaderKeyLast // always keep as last
 )
@@ -57,6 +61,8 @@ func (a *App) registerLoaders(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, dataLoaderKeyNC, dataloader.NewStoreLoader(ctx, a.NCStore.FindMany))
 	ctx = context.WithValue(ctx, dataLoaderAlertMetrics, dataloader.NewStoreLoaderInt(ctx, a.AlertMetricsStore.FindMetrics))
 	ctx = context.WithValue(ctx, dataLoaderAlertFeedback, dataloader.NewStoreLoaderInt(ctx, a.AlertStore.Feedback))
+	ctx = context.WithValue(ctx, dataLoaderKeyServiceRule, dataloader.NewStoreLoaderWithDB(ctx, a.DB, a.ServiceRuleStore.FindMany))
+	ctx = context.WithValue(ctx, dataLoaderKeySignal, dataloader.NewStoreLoaderIntWithDB(ctx, a.DB, a.SignalStore.FindMany))
 	return ctx
 }
 
@@ -216,6 +222,24 @@ func (app *App) FindOneHeartbeatMonitor(ctx context.Context, id string) (*heartb
 			return nil, nil
 		}
 		return &hb[0], nil
+	}
+
+	return loader.FetchOne(ctx, id)
+}
+
+func (app *App) FindOneServiceRule(ctx context.Context, id string) (*servicerule.Rule, error) {
+	loader, ok := ctx.Value(dataLoaderKeyServiceRule).(*dataloader.Loader[string, servicerule.Rule])
+	if !ok {
+		return app.ServiceRuleStore.FindOne(ctx, app.DB, id)
+	}
+
+	return loader.FetchOne(ctx, id)
+}
+
+func (app *App) FindOneSignal(ctx context.Context, id int) (*signal.Signal, error) {
+	loader, ok := ctx.Value(dataLoaderKeySignal).(*dataloader.Loader[int, signal.Signal])
+	if !ok {
+		return app.SignalStore.FindOne(ctx, app.DB, id)
 	}
 
 	return loader.FetchOne(ctx, id)

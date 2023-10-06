@@ -142,6 +142,15 @@ type Query {
   gqlAPIKeys: [GQLAPIKey!]!
 
   listGQLFields(query: String): [String!]!
+
+  # Returns a single service rule with the given ID.
+  serviceRule(id: ID!): ServiceRule
+
+  # Returns a single signal with the given ID.
+  signal(id: Int!): Signal
+
+  # Returns a paginated list of signals.
+  signals(input: SignalSearchOptions): SignalConnection!
 }
 
 type IntegrationKeyTypeInfo {
@@ -599,6 +608,10 @@ type Mutation {
 
   createBasicAuth(input: CreateBasicAuthInput!): Boolean!
   updateBasicAuth(input: UpdateBasicAuthInput!): Boolean!
+
+  createServiceRule(input: CreateServiceRuleInput!): ServiceRule
+  updateServiceRule(input: UpdateServiceRuleInput!): ServiceRule
+  deleteServiceRule(id: ID!): Boolean!
 }
 
 type CreatedGQLAPIKey {
@@ -1215,6 +1228,7 @@ type Service {
   integrationKeys: [IntegrationKey!]!
   labels: [Label!]!
   heartbeatMonitors: [HeartbeatMonitor!]!
+  rules: [ServiceRule!]!
 
   notices: [Notice!]!
 }
@@ -1505,4 +1519,64 @@ enum NoticeType {
   WARNING
   ERROR
   INFO
+}
+
+type ServiceRule {
+  id: ID!
+  name: String!
+  serviceID: ID!
+  integrationKeys: [IntegrationKey!]!
+  filterString: String!
+  sendAlert: Boolean!
+}
+
+input CreateServiceRuleInput {
+  name: String!
+  serviceID: ID!
+  filter: String!
+  sendAlert: Boolean!
+  actions: String!
+  integrationKeys: [ID!]!
+}
+
+input UpdateServiceRuleInput {
+  id: ID!
+  name: String!
+  filter: String!
+  sendAlert: Boolean!
+  actions: String!
+  integrationKeys: [ID!]!
+}
+
+type Signal {
+  id: ID!
+  signalID: Int!
+  timestamp: ISOTimestamp!
+  serviceRuleID: ID!
+  serviceRule: ServiceRule!
+  serviceID: ID!
+  service: Service!
+  outgoingPayload: String!
+  scheduled: Boolean!
+}
+
+type SignalConnection {
+  nodes: [Signal!]!
+  pageInfo: PageInfo!
+}
+
+input SignalSearchOptions {
+  filterByServiceID: [ID!]
+  filterByServiceRuleID: [ID!]
+  first: Int = 15
+  after: String = ""
+  omit: [Int!]
+  sort: SignalSearchSort = dateID
+  createdBefore: ISOTimestamp
+  notCreatedBefore: ISOTimestamp
+}
+
+enum SignalSearchSort {
+  dateID
+  dateIDReverse
 }

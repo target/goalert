@@ -37,3 +37,14 @@ WHERE
 DELETE FROM integration_keys
 WHERE id = ANY (@ids::uuid[]);
 
+-- name: IntKeyFindByServiceRule :many
+SELECT
+    i.id,
+    i.name,
+    i.type,
+    i.service_id
+FROM
+    integration_keys i
+    JOIN service_rule_integration_keys si ON si.integration_key_id = i.id
+        AND si.service_rule_id = $1;
+

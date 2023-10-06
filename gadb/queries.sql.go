@@ -929,6 +929,53 @@ func (q *Queries) IntKeyFindByService(ctx context.Context, serviceID uuid.UUID) 
 	return items, nil
 }
 
+const intKeyFindByServiceRule = `-- name: IntKeyFindByServiceRule :many
+SELECT
+    i.id,
+    i.name,
+    i.type,
+    i.service_id
+FROM
+    integration_keys i
+    JOIN service_rule_integration_keys si ON si.integration_key_id = i.id
+        AND si.service_rule_id = $1
+`
+
+type IntKeyFindByServiceRuleRow struct {
+	ID        uuid.UUID
+	Name      string
+	Type      EnumIntegrationKeysType
+	ServiceID uuid.UUID
+}
+
+func (q *Queries) IntKeyFindByServiceRule(ctx context.Context, serviceRuleID uuid.UUID) ([]IntKeyFindByServiceRuleRow, error) {
+	rows, err := q.db.QueryContext(ctx, intKeyFindByServiceRule, serviceRuleID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []IntKeyFindByServiceRuleRow
+	for rows.Next() {
+		var i IntKeyFindByServiceRuleRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Type,
+			&i.ServiceID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const intKeyFindOne = `-- name: IntKeyFindOne :one
 SELECT
     id,
@@ -1092,6 +1139,59 @@ func (q *Queries) SetAlertFeedback(ctx context.Context, arg SetAlertFeedbackPara
 	return err
 }
 
+const signalFindMany = `-- name: SignalFindMany :many
+SELECT
+    id,
+    service_rule_id,
+    service_id,
+    outgoing_payload,
+    scheduled,
+    timestamp
+FROM
+    signals
+WHERE
+    id = ANY ($1::bigint[])
+`
+
+type SignalFindManyRow struct {
+	ID              int64
+	ServiceRuleID   uuid.UUID
+	ServiceID       uuid.UUID
+	OutgoingPayload json.RawMessage
+	Scheduled       bool
+	Timestamp       time.Time
+}
+
+func (q *Queries) SignalFindMany(ctx context.Context, ids []int64) ([]SignalFindManyRow, error) {
+	rows, err := q.db.QueryContext(ctx, signalFindMany, pq.Array(ids))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SignalFindManyRow
+	for rows.Next() {
+		var i SignalFindManyRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ServiceRuleID,
+			&i.ServiceID,
+			&i.OutgoingPayload,
+			&i.Scheduled,
+			&i.Timestamp,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const signalInsert = `-- name: SignalInsert :one
 INSERT INTO signals(service_rule_id, service_id, outgoing_payload, scheduled)
     VALUES ($1, $2, $3, FALSE)
@@ -1115,6 +1215,110 @@ func (q *Queries) SignalInsert(ctx context.Context, arg SignalInsertParams) (Sig
 	var i SignalInsertRow
 	err := row.Scan(&i.ID, &i.Timestamp)
 	return i, err
+}
+
+const signalSearch = `-- name: SignalSearch :many
+SELECT
+    id,
+    service_rule_id,
+    service_id,
+    outgoing_payload,
+    scheduled,
+    timestamp
+FROM
+    signals
+WHERE (id <> ALL ($2::bigint[]))
+    AND ($3::uuid[] IS NULL
+        OR service_id = ANY ($3))
+    AND ($4::uuid[] IS NULL
+        OR service_rule_id = ANY ($4))
+    AND ($5::timestamptz IS NULL
+        OR timestamp < $5)
+    AND ($6::timestamptz IS NULL
+        OR timestamp >= $6)
+    AND ($7::bigint IS NULL
+        OR ($8::int = 0
+            AND (timestamp < $9
+                OR (timestamp = $9
+                    AND id < $7)))
+        OR ($8 = 1
+            AND (timestamp > $9
+                OR (timestamp = $9
+                    AND id > $7))))
+ORDER BY
+    CASE $8::int
+    WHEN 0 THEN
+        ROW (timestamp,
+            id)
+    END DESC,
+    CASE $8
+    WHEN 1 THEN
+        ROW (timestamp,
+            id)
+    END
+LIMIT $1
+`
+
+type SignalSearchParams struct {
+	Limit            int32
+	Omit             []int64
+	AnyServiceID     []uuid.UUID
+	AnyServiceRuleID []uuid.UUID
+	BeforeTime       sql.NullTime
+	NotBeforeTime    sql.NullTime
+	AfterID          sql.NullInt64
+	SortMode         int32
+	AfterTimestamp   time.Time
+}
+
+type SignalSearchRow struct {
+	ID              int64
+	ServiceRuleID   uuid.UUID
+	ServiceID       uuid.UUID
+	OutgoingPayload json.RawMessage
+	Scheduled       bool
+	Timestamp       time.Time
+}
+
+// array_length returns NULL for empty arrays
+func (q *Queries) SignalSearch(ctx context.Context, arg SignalSearchParams) ([]SignalSearchRow, error) {
+	rows, err := q.db.QueryContext(ctx, signalSearch,
+		arg.Limit,
+		pq.Array(arg.Omit),
+		pq.Array(arg.AnyServiceID),
+		pq.Array(arg.AnyServiceRuleID),
+		arg.BeforeTime,
+		arg.NotBeforeTime,
+		arg.AfterID,
+		arg.SortMode,
+		arg.AfterTimestamp,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SignalSearchRow
+	for rows.Next() {
+		var i SignalSearchRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ServiceRuleID,
+			&i.ServiceID,
+			&i.OutgoingPayload,
+			&i.Scheduled,
+			&i.Timestamp,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const statusMgrCMInfo = `-- name: StatusMgrCMInfo :one
@@ -1324,6 +1528,75 @@ func (q *Queries) StatusMgrUpdateSub(ctx context.Context, arg StatusMgrUpdateSub
 	return err
 }
 
+const svcRuleDelete = `-- name: SvcRuleDelete :exec
+DELETE FROM service_rules
+WHERE id = $1
+`
+
+func (q *Queries) SvcRuleDelete(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, svcRuleDelete, id)
+	return err
+}
+
+const svcRuleFindMany = `-- name: SvcRuleFindMany :many
+SELECT
+    service_rules.id,
+    service_rules.name,
+    service_rules.service_id,
+    service_rules.filter,
+    service_rules.send_alert,
+    service_rules.actions,
+    STRING_AGG(service_rule_integration_keys.integration_key_id::text, ',')::text integration_keys
+FROM
+    service_rules
+    JOIN service_rule_integration_keys ON service_rule_integration_keys.service_rule_id = service_rules.id
+WHERE
+    service_rules.id = ANY ($1::uuid[])
+GROUP BY
+    service_rules.id
+`
+
+type SvcRuleFindManyRow struct {
+	ID              uuid.UUID
+	Name            string
+	ServiceID       uuid.UUID
+	Filter          string
+	SendAlert       bool
+	Actions         pqtype.NullRawMessage
+	IntegrationKeys string
+}
+
+func (q *Queries) SvcRuleFindMany(ctx context.Context, serviceRuleIds []uuid.UUID) ([]SvcRuleFindManyRow, error) {
+	rows, err := q.db.QueryContext(ctx, svcRuleFindMany, pq.Array(serviceRuleIds))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SvcRuleFindManyRow
+	for rows.Next() {
+		var i SvcRuleFindManyRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.ServiceID,
+			&i.Filter,
+			&i.SendAlert,
+			&i.Actions,
+			&i.IntegrationKeys,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const svcRuleFindManyByIntKey = `-- name: SvcRuleFindManyByIntKey :many
 SELECT
     r.id,
@@ -1442,9 +1715,54 @@ func (q *Queries) SvcRuleFindManyByService(ctx context.Context, serviceID uuid.U
 	return items, nil
 }
 
-const svcRuleInsert = `-- name: SvcRuleInsert :exec
-INSERT INTO service_rules(name, service_id, filter, send_alert, actions)
+const svcRuleFindOne = `-- name: SvcRuleFindOne :one
+SELECT
+    r.id,
+    r.name,
+    r.service_id,
+    r.filter,
+    r.send_alert,
+    r.actions,
+    STRING_AGG(si.integration_key_id::text, ',')::text integration_keys
+FROM
+    service_rules r
+    JOIN service_rule_integration_keys si ON si.service_rule_id = r.id
+WHERE
+    r.id = $1
+GROUP BY
+    r.id
+`
+
+type SvcRuleFindOneRow struct {
+	ID              uuid.UUID
+	Name            string
+	ServiceID       uuid.UUID
+	Filter          string
+	SendAlert       bool
+	Actions         pqtype.NullRawMessage
+	IntegrationKeys string
+}
+
+func (q *Queries) SvcRuleFindOne(ctx context.Context, id uuid.UUID) (SvcRuleFindOneRow, error) {
+	row := q.db.QueryRowContext(ctx, svcRuleFindOne, id)
+	var i SvcRuleFindOneRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.ServiceID,
+		&i.Filter,
+		&i.SendAlert,
+		&i.Actions,
+		&i.IntegrationKeys,
+	)
+	return i, err
+}
+
+const svcRuleInsert = `-- name: SvcRuleInsert :one
+INSERT INTO service_rules(name, service_id, FILTER, send_alert, actions)
     VALUES ($1, $2, $3, $4, $5)
+RETURNING
+    id
 `
 
 type SvcRuleInsertParams struct {
@@ -1455,10 +1773,70 @@ type SvcRuleInsertParams struct {
 	Actions   pqtype.NullRawMessage
 }
 
-func (q *Queries) SvcRuleInsert(ctx context.Context, arg SvcRuleInsertParams) error {
-	_, err := q.db.ExecContext(ctx, svcRuleInsert,
+func (q *Queries) SvcRuleInsert(ctx context.Context, arg SvcRuleInsertParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, svcRuleInsert,
 		arg.Name,
 		arg.ServiceID,
+		arg.Filter,
+		arg.SendAlert,
+		arg.Actions,
+	)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const svcRuleSetIntKeys = `-- name: SvcRuleSetIntKeys :exec
+WITH deleted_rows AS (
+    DELETE FROM service_rule_integration_keys sk
+    WHERE sk.service_rule_id = $1
+        AND sk.integration_key_id != ALL ($2::uuid[])
+    RETURNING
+        id, integration_key_id, service_rule_id)
+INSERT INTO service_rule_integration_keys(service_rule_id, integration_key_id)
+SELECT
+    $1,
+    ik
+FROM
+    unnest($2::uuid[]) ik
+ON CONFLICT
+    DO NOTHING
+`
+
+type SvcRuleSetIntKeysParams struct {
+	ServiceRuleID     uuid.UUID
+	IntegrationKeyIds []uuid.UUID
+}
+
+func (q *Queries) SvcRuleSetIntKeys(ctx context.Context, arg SvcRuleSetIntKeysParams) error {
+	_, err := q.db.ExecContext(ctx, svcRuleSetIntKeys, arg.ServiceRuleID, pq.Array(arg.IntegrationKeyIds))
+	return err
+}
+
+const svcRuleUpdate = `-- name: SvcRuleUpdate :exec
+UPDATE
+    service_rules
+SET
+    name = $2,
+    FILTER = $3,
+    send_alert = $4,
+    actions = $5
+WHERE
+    id = $1
+`
+
+type SvcRuleUpdateParams struct {
+	ID        uuid.UUID
+	Name      string
+	Filter    string
+	SendAlert bool
+	Actions   pqtype.NullRawMessage
+}
+
+func (q *Queries) SvcRuleUpdate(ctx context.Context, arg SvcRuleUpdateParams) error {
+	_, err := q.db.ExecContext(ctx, svcRuleUpdate,
+		arg.ID,
+		arg.Name,
 		arg.Filter,
 		arg.SendAlert,
 		arg.Actions,

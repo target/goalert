@@ -44,6 +44,9 @@ export interface Query {
   swoStatus: SWOStatus
   gqlAPIKeys: GQLAPIKey[]
   listGQLFields: string[]
+  serviceRule?: null | ServiceRule
+  signal?: null | Signal
+  signals: SignalConnection
 }
 
 export interface IntegrationKeyTypeInfo {
@@ -429,6 +432,9 @@ export interface Mutation {
   deleteGQLAPIKey: boolean
   createBasicAuth: boolean
   updateBasicAuth: boolean
+  createServiceRule?: null | ServiceRule
+  updateServiceRule?: null | ServiceRule
+  deleteServiceRule: boolean
 }
 
 export interface CreatedGQLAPIKey {
@@ -951,6 +957,7 @@ export interface Service {
   integrationKeys: IntegrationKey[]
   labels: Label[]
   heartbeatMonitors: HeartbeatMonitor[]
+  rules: ServiceRule[]
   notices: Notice[]
 }
 
@@ -1193,6 +1200,63 @@ export interface Notice {
 }
 
 export type NoticeType = 'WARNING' | 'ERROR' | 'INFO'
+
+export interface ServiceRule {
+  id: string
+  name: string
+  serviceID: string
+  integrationKeys: IntegrationKey[]
+  filterString: string
+  sendAlert: boolean
+}
+
+export interface CreateServiceRuleInput {
+  name: string
+  serviceID: string
+  filter: string
+  sendAlert: boolean
+  actions: string
+  integrationKeys: string[]
+}
+
+export interface UpdateServiceRuleInput {
+  id: string
+  name: string
+  filter: string
+  sendAlert: boolean
+  actions: string
+  integrationKeys: string[]
+}
+
+export interface Signal {
+  id: string
+  signalID: number
+  timestamp: ISOTimestamp
+  serviceRuleID: string
+  serviceRule: ServiceRule
+  serviceID: string
+  service: Service
+  outgoingPayload: string
+  scheduled: boolean
+}
+
+export interface SignalConnection {
+  nodes: Signal[]
+  pageInfo: PageInfo
+}
+
+export interface SignalSearchOptions {
+  filterByServiceID?: null | string[]
+  filterByServiceRuleID?: null | string[]
+  first?: null | number
+  after?: null | string
+  omit?: null | number[]
+  sort?: null | SignalSearchSort
+  createdBefore?: null | ISOTimestamp
+  notCreatedBefore?: null | ISOTimestamp
+}
+
+export type SignalSearchSort = 'dateID' | 'dateIDReverse'
 
 type ConfigID =
   | 'General.ApplicationName'
