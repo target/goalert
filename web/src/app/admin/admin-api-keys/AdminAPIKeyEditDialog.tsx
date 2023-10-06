@@ -40,7 +40,6 @@ export default function AdminAPIKeyEditDialog(props: {
     description: '',
     id: '',
   })
-  let fieldErrs = fieldErrors(error)
 
   useEffect(() => {
     // retrieve apiKey information by id
@@ -64,22 +63,16 @@ export default function AdminAPIKeyEditDialog(props: {
           id: apiKeyInput?.id,
         },
       },
-      { additionalTypenames: ['GQLAPIKey', 'UpdateGQLAPIKeyInput'] },
+      { additionalTypenames: ['GQLAPIKey'] },
     ).then((result) => {
-      if (!result.error) {
-        onClose(false)
-      }
+      if (result.error) return
+
+      onClose(false)
     })
   }
 
   if (fetching && !data) {
     return <Spinner />
-  }
-
-  if (error) {
-    fieldErrs = fieldErrs.map((err) => {
-      return err
-    })
   }
 
   return (
@@ -89,10 +82,9 @@ export default function AdminAPIKeyEditDialog(props: {
       errors={nonFieldErrors(apiKeyActionStatus.error)}
       onClose={onClose}
       onSubmit={handleOnSubmit}
-      disableBackdropClose
       form={
         <AdminAPIKeyForm
-          errors={fieldErrs}
+          errors={fieldErrors(apiKeyActionStatus.error)}
           onChange={setAPIKeyInput}
           create={false}
           value={apiKeyInput}
