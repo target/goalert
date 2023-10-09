@@ -170,7 +170,9 @@ export default function MaterialSelect(
       disableClearable={required}
       disabled={disabled}
       filterOptions={(o) => o}
-      isOptionEqualToValue={(opt, val) => opt.value === val.value}
+      isOptionEqualToValue={(opt: SelectOption, val: SelectOption) =>
+        opt.value === val.value
+      }
       noOptionsText={
         noOptionsError ? (
           <Alert severity='error'>{noOptionsError.message}</Alert>

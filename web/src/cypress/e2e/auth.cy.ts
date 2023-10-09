@@ -3,7 +3,11 @@ import { testScreen } from '../support/e2e'
 import prof from '../fixtures/profile.json'
 
 function testAuth(): void {
-  before(() => cy.clearCookies().resetConfig().visit('/'))
+  before(() => {
+    cy.clearCookies()
+    cy.resetConfig()
+    cy.visit('/')
+  })
 
   it('should authenticate a user', () => {
     cy.form(

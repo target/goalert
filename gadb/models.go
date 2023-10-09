@@ -905,6 +905,28 @@ type GorpMigration struct {
 	ID        string
 }
 
+type GqlApiKey struct {
+	CreatedAt   time.Time
+	CreatedBy   uuid.NullUUID
+	DeletedAt   sql.NullTime
+	DeletedBy   uuid.NullUUID
+	Description string
+	ExpiresAt   time.Time
+	ID          uuid.UUID
+	Name        string
+	Policy      json.RawMessage
+	UpdatedAt   time.Time
+	UpdatedBy   uuid.NullUUID
+}
+
+type GqlApiKeyUsage struct {
+	ApiKeyID  uuid.NullUUID
+	ID        int64
+	IpAddress pqtype.Inet
+	UsedAt    time.Time
+	UserAgent sql.NullString
+}
+
 type HeartbeatMonitor struct {
 	HeartbeatInterval int64
 	ID                uuid.UUID

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/nyaruka/phonenumbers"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/validation"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation/validate"
-	"github.com/ttacon/libphonenumber"
 )
 
 type safeErr struct{ error }
@@ -77,7 +77,7 @@ func (a *Mutation) DebugCarrierInfo(ctx context.Context, input graphql2.DebugCar
 }
 
 func (a *Query) PhoneNumberInfo(ctx context.Context, number string) (*graphql2.PhoneNumberInfo, error) {
-	p, err := libphonenumber.Parse(number, "")
+	p, err := phonenumbers.Parse(number, "")
 	if err != nil {
 		return &graphql2.PhoneNumberInfo{
 			ID:    number,
@@ -88,8 +88,8 @@ func (a *Query) PhoneNumberInfo(ctx context.Context, number string) (*graphql2.P
 	return &graphql2.PhoneNumberInfo{
 		ID:          number,
 		CountryCode: fmt.Sprintf("+%d", p.GetCountryCode()),
-		RegionCode:  libphonenumber.GetRegionCodeForNumber(p),
-		Formatted:   libphonenumber.Format(p, libphonenumber.INTERNATIONAL),
-		Valid:       libphonenumber.IsValidNumber(p),
+		RegionCode:  phonenumbers.GetRegionCodeForNumber(p),
+		Formatted:   phonenumbers.Format(p, phonenumbers.INTERNATIONAL),
+		Valid:       phonenumbers.IsValidNumber(p),
 	}, nil
 }
