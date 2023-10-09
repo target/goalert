@@ -51,17 +51,6 @@ export default function AdminAPIKeyDeleteDialog(props: {
     })
   }
 
-  const handleOnClose = (
-    event: object,
-    reason: string,
-  ): boolean | undefined => {
-    if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
-      return false
-    }
-
-    props.onClose(false)
-  }
-
   return (
     <FormDialog
       title='Are you sure?'
@@ -69,8 +58,7 @@ export default function AdminAPIKeyDeleteDialog(props: {
       subTitle={'This will delete the API Key ' + apiKeyName + '.'}
       loading={deleteAPIKeyStatus.fetching}
       errors={nonFieldErrors(deleteAPIKeyStatus.error)}
-      disableBackdropClose
-      onClose={handleOnClose}
+      onClose={onClose}
       onSubmit={handleOnSubmit}
     />
   )

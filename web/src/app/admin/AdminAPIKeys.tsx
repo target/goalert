@@ -35,11 +35,6 @@ const query = gql`
   }
 `
 const useStyles = makeStyles((theme: Theme) => ({
-  root: {
-    '& .MuiListItem-root': {
-      'border-bottom': '1px solid #333333',
-    },
-  },
   buttons: {
     'margin-bottom': '15px',
   },
@@ -48,17 +43,11 @@ const useStyles = makeStyles((theme: Theme) => ({
       maxWidth: '100%',
       transition: `max-width ${theme.transitions.duration.leavingScreen}ms ease`,
     },
-    '& .MuiListItem-root': {
-      padding: '0px',
-    },
   },
   containerSelected: {
     [theme.breakpoints.up('md')]: {
       maxWidth: '70%',
       transition: `max-width ${theme.transitions.duration.enteringScreen}ms ease`,
-    },
-    '& .MuiListItem-root': {
-      padding: '0px',
     },
   },
 }))
@@ -134,7 +123,7 @@ export default function AdminAPIKeys(): JSX.Element {
         />
       ) : null}
       <Card
-        style={{ width: '100%', padding: '10px' }}
+        sx={{ width: '100%', padding: '0px' }}
         className={
           selectedAPIKey ? classes.containerSelected : classes.containerDefault
         }
@@ -142,7 +131,7 @@ export default function AdminAPIKeys(): JSX.Element {
         <CardHeader
           title='API Key List'
           component='h2'
-          sx={{ paddingBottom: 0, margin: 0 }}
+          sx={{ padding: '20px 25px 0px', margin: 0 }}
           action={
             <Button
               data-cy='new'
