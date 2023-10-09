@@ -25,7 +25,10 @@ export const mutation = gql`
 
 interface AlertFeedbackProps {
   alertID: number
+  alertIDs?: Array<number>
 }
+
+export const options = ['False positive', 'Not actionable', 'Poor details']
 
 export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
   const { alertID } = props
@@ -36,8 +39,6 @@ export default function AlertFeedback(props: AlertFeedbackProps): JSX.Element {
       id: alertID,
     },
   })
-
-  const options = ['False positive', 'Not actionable', 'Poor details']
 
   const dataNoiseReason = data?.alert?.noiseReason ?? ''
 

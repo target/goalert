@@ -27,6 +27,7 @@ sql:
       - user/contactmethod/queries.sql
       - integrationkey/queries.sql
       - apikey/queries.sql
+      - override/queries.sql
     engine: postgresql
     gen:
       go:

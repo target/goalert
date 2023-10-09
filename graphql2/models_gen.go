@@ -196,6 +196,7 @@ type CreateUserCalendarSubscriptionInput struct {
 	ReminderMinutes []int  `json:"reminderMinutes,omitempty"`
 	ScheduleID      string `json:"scheduleID"`
 	Disabled        *bool  `json:"disabled,omitempty"`
+	FullSchedule    *bool  `json:"fullSchedule,omitempty"`
 }
 
 type CreateUserContactMethodInput struct {
@@ -307,6 +308,7 @@ type GQLAPIKey struct {
 	LastUsed      *GQLAPIKeyUsage `json:"lastUsed,omitempty"`
 	ExpiresAt     time.Time       `json:"expiresAt"`
 	AllowedFields []string        `json:"allowedFields"`
+	Role          UserRole        `json:"role"`
 }
 
 type GQLAPIKeyUsage struct {
@@ -599,8 +601,9 @@ type UpdateAlertsByServiceInput struct {
 }
 
 type UpdateAlertsInput struct {
-	AlertIDs  []int       `json:"alertIDs"`
-	NewStatus AlertStatus `json:"newStatus"`
+	AlertIDs    []int        `json:"alertIDs"`
+	NewStatus   *AlertStatus `json:"newStatus,omitempty"`
+	NoiseReason *string      `json:"noiseReason,omitempty"`
 }
 
 type UpdateBasicAuthInput struct {
@@ -667,6 +670,7 @@ type UpdateUserCalendarSubscriptionInput struct {
 	Name            *string `json:"name,omitempty"`
 	ReminderMinutes []int   `json:"reminderMinutes,omitempty"`
 	Disabled        *bool   `json:"disabled,omitempty"`
+	FullSchedule    *bool   `json:"fullSchedule,omitempty"`
 }
 
 type UpdateUserContactMethodInput struct {

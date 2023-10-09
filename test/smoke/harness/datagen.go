@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/nyaruka/phonenumbers"
 	"github.com/pkg/errors"
-	"github.com/ttacon/libphonenumber"
 )
 
 // DataGen handles generating random data for tests. It ties arbitrary ids to
@@ -101,11 +101,11 @@ func GenPhoneCC(cc string) string {
 	if err != nil {
 		panic(errors.Wrapf(err, "parse country code '%s'", cc))
 	}
-	region := libphonenumber.GetRegionCodeForCountryCode(ccInt)
+	region := phonenumbers.GetRegionCodeForCountryCode(ccInt)
 	if region == "" || region == "ZZ" {
 		panic(fmt.Sprintf("invalid cc '%s'", cc))
 	}
-	num := libphonenumber.GetExampleNumber(region)
+	num := phonenumbers.GetExampleNumber(region)
 	*num.NationalNumber = *num.NationalNumber + uint64(rand.Intn(9999))
-	return libphonenumber.Format(num, libphonenumber.E164)
+	return phonenumbers.Format(num, phonenumbers.E164)
 }

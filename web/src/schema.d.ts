@@ -461,6 +461,7 @@ export interface GQLAPIKey {
   lastUsed?: null | GQLAPIKeyUsage
   expiresAt: ISOTimestamp
   allowedFields: string[]
+  role: UserRole
 }
 
 export interface GQLAPIKeyUsage {
@@ -512,6 +513,7 @@ export interface CreateUserCalendarSubscriptionInput {
   reminderMinutes?: null | number[]
   scheduleID: string
   disabled?: null | boolean
+  fullSchedule?: null | boolean
 }
 
 export interface UpdateUserCalendarSubscriptionInput {
@@ -519,12 +521,14 @@ export interface UpdateUserCalendarSubscriptionInput {
   name?: null | string
   reminderMinutes?: null | number[]
   disabled?: null | boolean
+  fullSchedule?: null | boolean
 }
 
 export interface UserCalendarSubscription {
   id: string
   name: string
   reminderMinutes: number[]
+  fullSchedule: boolean
   scheduleID: string
   schedule?: null | Schedule
   lastAccess: ISOTimestamp
@@ -773,7 +777,8 @@ export type RotationType = 'monthly' | 'weekly' | 'daily' | 'hourly'
 
 export interface UpdateAlertsInput {
   alertIDs: number[]
-  newStatus: AlertStatus
+  newStatus?: null | AlertStatus
+  noiseReason?: null | string
 }
 
 export interface UpdateRotationInput {
