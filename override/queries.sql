@@ -37,7 +37,7 @@ AND (
 AND (
     /* only include overrides that start before/within the search end */
     sqlc.narg(search_end)::timestamptz ISNULL
-    OR o.start_time <= @search_start)
+    OR o.start_time <= @search_end)
 AND (
     /* resume search after specified "cursor" override */
     @after_id::uuid ISNULL
