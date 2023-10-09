@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"github.com/target/goalert/apikey"
 	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/keyring"
@@ -14,4 +15,5 @@ type HandlerConfig struct {
 	APIKeyring     keyring.Keyring
 	IntKeyStore    *integrationkey.Store
 	CalSubStore    *calsub.Store
+	APIKeyStore    *apikey.Store
 }

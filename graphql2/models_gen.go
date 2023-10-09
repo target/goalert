@@ -78,11 +78,12 @@ type AuthSubjectConnection struct {
 }
 
 type CalcRotationHandoffTimesInput struct {
-	Handoff          time.Time  `json:"handoff"`
-	From             *time.Time `json:"from,omitempty"`
-	TimeZone         string     `json:"timeZone"`
-	ShiftLengthHours int        `json:"shiftLengthHours"`
-	Count            int        `json:"count"`
+	Handoff          time.Time             `json:"handoff"`
+	From             *time.Time            `json:"from,omitempty"`
+	TimeZone         string                `json:"timeZone"`
+	ShiftLengthHours *int                  `json:"shiftLengthHours,omitempty"`
+	ShiftLength      *timeutil.ISODuration `json:"shiftLength,omitempty"`
+	Count            int                   `json:"count"`
 }
 
 type ClearTemporarySchedulesInput struct {
@@ -139,6 +140,14 @@ type CreateEscalationPolicyStepInput struct {
 	NewSchedule        *CreateScheduleInput   `json:"newSchedule,omitempty"`
 }
 
+type CreateGQLAPIKeyInput struct {
+	Name          string    `json:"name"`
+	Description   string    `json:"description"`
+	AllowedFields []string  `json:"allowedFields"`
+	ExpiresAt     time.Time `json:"expiresAt"`
+	Role          UserRole  `json:"role"`
+}
+
 type CreateHeartbeatMonitorInput struct {
 	ServiceID      *string `json:"serviceID,omitempty"`
 	Name           string  `json:"name"`
@@ -187,6 +196,7 @@ type CreateUserCalendarSubscriptionInput struct {
 	ReminderMinutes []int  `json:"reminderMinutes,omitempty"`
 	ScheduleID      string `json:"scheduleID"`
 	Disabled        *bool  `json:"disabled,omitempty"`
+	FullSchedule    *bool  `json:"fullSchedule,omitempty"`
 }
 
 type CreateUserContactMethodInput struct {
@@ -218,6 +228,11 @@ type CreateUserOverrideInput struct {
 	End          time.Time `json:"end"`
 	AddUserID    *string   `json:"addUserID,omitempty"`
 	RemoveUserID *string   `json:"removeUserID,omitempty"`
+}
+
+type CreatedGQLAPIKey struct {
+	ID    string `json:"id"`
+	Token string `json:"token"`
 }
 
 type DebugCarrierInfoInput struct {
@@ -280,6 +295,26 @@ type EscalationPolicySearchOptions struct {
 	Omit           []string `json:"omit,omitempty"`
 	FavoritesOnly  *bool    `json:"favoritesOnly,omitempty"`
 	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
+}
+
+type GQLAPIKey struct {
+	ID            string          `json:"id"`
+	Name          string          `json:"name"`
+	Description   string          `json:"description"`
+	CreatedAt     time.Time       `json:"createdAt"`
+	CreatedBy     *user.User      `json:"createdBy,omitempty"`
+	UpdatedAt     time.Time       `json:"updatedAt"`
+	UpdatedBy     *user.User      `json:"updatedBy,omitempty"`
+	LastUsed      *GQLAPIKeyUsage `json:"lastUsed,omitempty"`
+	ExpiresAt     time.Time       `json:"expiresAt"`
+	AllowedFields []string        `json:"allowedFields"`
+	Role          UserRole        `json:"role"`
+}
+
+type GQLAPIKeyUsage struct {
+	Time time.Time `json:"time"`
+	Ua   string    `json:"ua"`
+	IP   string    `json:"ip"`
 }
 
 type IntegrationKeyConnection struct {
@@ -566,8 +601,9 @@ type UpdateAlertsByServiceInput struct {
 }
 
 type UpdateAlertsInput struct {
-	AlertIDs  []int       `json:"alertIDs"`
-	NewStatus AlertStatus `json:"newStatus"`
+	AlertIDs    []int        `json:"alertIDs"`
+	NewStatus   *AlertStatus `json:"newStatus,omitempty"`
+	NoiseReason *string      `json:"noiseReason,omitempty"`
 }
 
 type UpdateBasicAuthInput struct {
@@ -588,6 +624,12 @@ type UpdateEscalationPolicyStepInput struct {
 	ID           string                 `json:"id"`
 	DelayMinutes *int                   `json:"delayMinutes,omitempty"`
 	Targets      []assignment.RawTarget `json:"targets,omitempty"`
+}
+
+type UpdateGQLAPIKeyInput struct {
+	ID          string  `json:"id"`
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
 }
 
 type UpdateHeartbeatMonitorInput struct {
@@ -628,6 +670,7 @@ type UpdateUserCalendarSubscriptionInput struct {
 	Name            *string `json:"name,omitempty"`
 	ReminderMinutes []int   `json:"reminderMinutes,omitempty"`
 	Disabled        *bool   `json:"disabled,omitempty"`
+	FullSchedule    *bool   `json:"fullSchedule,omitempty"`
 }
 
 type UpdateUserContactMethodInput struct {
@@ -684,6 +727,14 @@ type UserSearchOptions struct {
 	CMType         *contactmethod.Type `json:"CMType,omitempty"`
 	FavoritesOnly  *bool               `json:"favoritesOnly,omitempty"`
 	FavoritesFirst *bool               `json:"favoritesFirst,omitempty"`
+}
+
+type UserSession struct {
+	ID           string    `json:"id"`
+	Current      bool      `json:"current"`
+	UserAgent    string    `json:"userAgent"`
+	CreatedAt    time.Time `json:"createdAt"`
+	LastAccessAt time.Time `json:"lastAccessAt"`
 }
 
 type VerifyContactMethodInput struct {

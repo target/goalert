@@ -42,6 +42,8 @@ export interface Query {
   generateSlackAppManifest: string
   linkAccountInfo?: null | LinkAccountInfo
   swoStatus: SWOStatus
+  gqlAPIKeys: GQLAPIKey[]
+  listGQLFields: string[]
 }
 
 export interface IntegrationKeyTypeInfo {
@@ -422,8 +424,50 @@ export interface Mutation {
   updateAlertsByService: boolean
   setConfig: boolean
   setSystemLimits: boolean
+  createGQLAPIKey: CreatedGQLAPIKey
+  updateGQLAPIKey: boolean
+  deleteGQLAPIKey: boolean
   createBasicAuth: boolean
   updateBasicAuth: boolean
+}
+
+export interface CreatedGQLAPIKey {
+  id: string
+  token: string
+}
+
+export interface CreateGQLAPIKeyInput {
+  name: string
+  description: string
+  allowedFields: string[]
+  expiresAt: ISOTimestamp
+  role: UserRole
+}
+
+export interface UpdateGQLAPIKeyInput {
+  id: string
+  name?: null | string
+  description?: null | string
+}
+
+export interface GQLAPIKey {
+  id: string
+  name: string
+  description: string
+  createdAt: ISOTimestamp
+  createdBy?: null | User
+  updatedAt: ISOTimestamp
+  updatedBy?: null | User
+  lastUsed?: null | GQLAPIKeyUsage
+  expiresAt: ISOTimestamp
+  allowedFields: string[]
+  role: UserRole
+}
+
+export interface GQLAPIKeyUsage {
+  time: ISOTimestamp
+  ua: string
+  ip: string
 }
 
 export interface CreateBasicAuthInput {
@@ -469,6 +513,7 @@ export interface CreateUserCalendarSubscriptionInput {
   reminderMinutes?: null | number[]
   scheduleID: string
   disabled?: null | boolean
+  fullSchedule?: null | boolean
 }
 
 export interface UpdateUserCalendarSubscriptionInput {
@@ -476,12 +521,14 @@ export interface UpdateUserCalendarSubscriptionInput {
   name?: null | string
   reminderMinutes?: null | number[]
   disabled?: null | boolean
+  fullSchedule?: null | boolean
 }
 
 export interface UserCalendarSubscription {
   id: string
   name: string
   reminderMinutes: number[]
+  fullSchedule: boolean
   scheduleID: string
   schedule?: null | Schedule
   lastAccess: ISOTimestamp
@@ -726,11 +773,12 @@ export interface Rotation {
   nextHandoffTimes: ISOTimestamp[]
 }
 
-export type RotationType = 'weekly' | 'daily' | 'hourly'
+export type RotationType = 'monthly' | 'weekly' | 'daily' | 'hourly'
 
 export interface UpdateAlertsInput {
   alertIDs: number[]
-  newStatus: AlertStatus
+  newStatus?: null | AlertStatus
+  noiseReason?: null | string
 }
 
 export interface UpdateRotationInput {
@@ -758,7 +806,8 @@ export interface CalcRotationHandoffTimesInput {
   handoff: ISOTimestamp
   from?: null | ISOTimestamp
   timeZone: string
-  shiftLengthHours: number
+  shiftLengthHours?: null | number
+  shiftLength?: null | ISODuration
   count: number
 }
 

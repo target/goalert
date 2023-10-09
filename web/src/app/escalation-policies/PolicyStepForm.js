@@ -228,13 +228,13 @@ function PolicyStepForm(props) {
                   <Step>
                     <StepButton
                       aria-expanded={(
-                        step === (cfg['Webhook.Enable'] ? 4 : 3)
+                        step === (cfg['Slack.Enable'] ? 4 : 3)
                       ).toString()}
                       data-cy='webhook-step'
                       icon={<WebhookIcon />}
                       optional={optionalText}
                       onClick={() =>
-                        handleStepChange(cfg['Webhook.Enable'] ? 4 : 3)
+                        handleStepChange(cfg['Slack.Enable'] ? 4 : 3)
                       }
                       tabIndex={-1}
                     >

@@ -32,29 +32,58 @@ func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// filter out other users
-	filtered := shifts[:0]
-	for _, s := range shifts {
-		if s.UserID != info.UserID.String() {
-			continue
-		}
-		filtered = append(filtered, s)
-	}
-
 	var subCfg SubscriptionConfig
 	err = json.Unmarshal(info.Config, &subCfg)
 	if errutil.HTTPError(ctx, w, err) {
 		return
 	}
 
+	if !subCfg.FullSchedule {
+		// filter out other users
+		filtered := shifts[:0]
+		for _, s := range shifts {
+			if s.UserID != info.UserID.String() {
+				continue
+			}
+			filtered = append(filtered, s)
+		}
+		shifts = filtered
+	}
+
 	data := renderData{
 		ApplicationName: cfg.ApplicationName(),
 		ScheduleID:      info.ScheduleID,
 		ScheduleName:    info.ScheduleName,
-		Shifts:          filtered,
+		Shifts:          shifts,
 		ReminderMinutes: subCfg.ReminderMinutes,
 		Version:         version.GitVersion(),
 		GeneratedAt:     info.Now,
+		FullSchedule:    subCfg.FullSchedule,
+	}
+
+	if subCfg.FullSchedule {
+		// When rendering the full schedule, we need to fetch the names of all users.
+		data.UserNames = make(map[string]string)
+		var uniqueIDs []uuid.UUID
+		for _, s := range shifts {
+
+			// We'll use the map to track which IDs we've already seen.
+			// That way we don't ask the DB for the same user multiple times.
+			if _, ok := data.UserNames[s.UserID]; ok {
+				continue
+			}
+			data.UserNames[s.UserID] = "Unknown User"
+			uniqueIDs = append(uniqueIDs, uuid.MustParse(s.UserID))
+		}
+
+		users, err := gadb.New(s.db).CalSubUserNames(ctx, uniqueIDs)
+		if errutil.HTTPError(ctx, w, err) {
+			return
+		}
+
+		for _, u := range users {
+			data.UserNames[u.ID.String()] = u.Name
+		}
 	}
 
 	calData, err := data.renderICal()

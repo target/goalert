@@ -55,6 +55,7 @@ function getHours(count: number, unit: RotationType): number {
     hourly: 1,
     daily: 24,
     weekly: 24 * 7,
+    monthly: 24 * DateTime.local().daysInMonth,
   }
   return lookup[unit] * count
 }

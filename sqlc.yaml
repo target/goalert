@@ -1,11 +1,5 @@
 version: '2'
 sql:
-  - queries: [devtools/pgdump-lite/queries.sql]
-    engine: postgresql
-    gen:
-      go:
-        out: devtools/pgdump-lite/pgd
-        sql_package: pgx/v5
   - schema:
       - swo/swoinfo/pgtables.sql
       - swo/swosync/changelog.sql
@@ -19,7 +13,7 @@ sql:
     gen:
       go:
         out: swo/swodb
-        sql_package: pgx/v4
+        sql_package: pgx/v5
   - schema:
       - migrate/schema.sql
     queries:
@@ -30,6 +24,9 @@ sql:
       - engine/statusmgr/queries.sql
       - auth/authlink/queries.sql
       - alert/alertlog/queries.sql
+      - integrationkey/queries.sql
+      - apikey/queries.sql
+      - override/queries.sql
     engine: postgresql
     gen:
       go:

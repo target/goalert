@@ -19,6 +19,15 @@ type (
 
 func (a *App) Query() graphql2.QueryResolver { return (*Query)(a) }
 
+func (q *Query) ListGQLFields(ctx context.Context, query *string) ([]string, error) {
+	if query == nil || *query == "" {
+		// List all fields if no query is provided.
+		return graphql2.SchemaFields(), nil
+	}
+
+	return graphql2.QueryFields(*query)
+}
+
 func (a *Query) ExperimentalFlags(ctx context.Context) ([]string, error) {
 	var flags []string
 	for _, f := range expflag.AllFlags() {
