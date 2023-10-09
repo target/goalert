@@ -244,6 +244,7 @@ type ComplexityRoot struct {
 		ID            func(childComplexity int) int
 		LastUsed      func(childComplexity int) int
 		Name          func(childComplexity int) int
+		Role          func(childComplexity int) int
 		UpdatedAt     func(childComplexity int) int
 		UpdatedBy     func(childComplexity int) int
 	}
@@ -634,6 +635,7 @@ type ComplexityRoot struct {
 
 	UserCalendarSubscription struct {
 		Disabled        func(childComplexity int) int
+		FullSchedule    func(childComplexity int) int
 		ID              func(childComplexity int) int
 		LastAccess      func(childComplexity int) int
 		Name            func(childComplexity int) int
@@ -899,6 +901,7 @@ type UserResolver interface {
 }
 type UserCalendarSubscriptionResolver interface {
 	ReminderMinutes(ctx context.Context, obj *calsub.Subscription) ([]int, error)
+	FullSchedule(ctx context.Context, obj *calsub.Subscription) (bool, error)
 
 	Schedule(ctx context.Context, obj *calsub.Subscription) (*schedule.Schedule, error)
 
@@ -1584,6 +1587,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.GQLAPIKey.Name(childComplexity), true
+
+	case "GQLAPIKey.role":
+		if e.complexity.GQLAPIKey.Role == nil {
+			break
+		}
+
+		return e.complexity.GQLAPIKey.Role(childComplexity), true
 
 	case "GQLAPIKey.updatedAt":
 		if e.complexity.GQLAPIKey.UpdatedAt == nil {
@@ -3861,6 +3871,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserCalendarSubscription.Disabled(childComplexity), true
+
+	case "UserCalendarSubscription.fullSchedule":
+		if e.complexity.UserCalendarSubscription.FullSchedule == nil {
+			break
+		}
+
+		return e.complexity.UserCalendarSubscription.FullSchedule(childComplexity), true
 
 	case "UserCalendarSubscription.id":
 		if e.complexity.UserCalendarSubscription.ID == nil {
@@ -10167,6 +10184,50 @@ func (ec *executionContext) fieldContext_GQLAPIKey_allowedFields(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _GQLAPIKey_role(ctx context.Context, field graphql.CollectedField, obj *GQLAPIKey) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GQLAPIKey_role(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Role, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(UserRole)
+	fc.Result = res
+	return ec.marshalNUserRole2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserRole(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GQLAPIKey_role(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GQLAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type UserRole does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _GQLAPIKeyUsage_time(ctx context.Context, field graphql.CollectedField, obj *GQLAPIKeyUsage) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_GQLAPIKeyUsage_time(ctx, field)
 	if err != nil {
@@ -13622,6 +13683,8 @@ func (ec *executionContext) fieldContext_Mutation_createUserCalendarSubscription
 				return ec.fieldContext_UserCalendarSubscription_name(ctx, field)
 			case "reminderMinutes":
 				return ec.fieldContext_UserCalendarSubscription_reminderMinutes(ctx, field)
+			case "fullSchedule":
+				return ec.fieldContext_UserCalendarSubscription_fullSchedule(ctx, field)
 			case "scheduleID":
 				return ec.fieldContext_UserCalendarSubscription_scheduleID(ctx, field)
 			case "schedule":
@@ -16898,6 +16961,8 @@ func (ec *executionContext) fieldContext_Query_userCalendarSubscription(ctx cont
 				return ec.fieldContext_UserCalendarSubscription_name(ctx, field)
 			case "reminderMinutes":
 				return ec.fieldContext_UserCalendarSubscription_reminderMinutes(ctx, field)
+			case "fullSchedule":
+				return ec.fieldContext_UserCalendarSubscription_fullSchedule(ctx, field)
 			case "scheduleID":
 				return ec.fieldContext_UserCalendarSubscription_scheduleID(ctx, field)
 			case "schedule":
@@ -18438,6 +18503,8 @@ func (ec *executionContext) fieldContext_Query_gqlAPIKeys(ctx context.Context, f
 				return ec.fieldContext_GQLAPIKey_expiresAt(ctx, field)
 			case "allowedFields":
 				return ec.fieldContext_GQLAPIKey_allowedFields(ctx, field)
+			case "role":
+				return ec.fieldContext_GQLAPIKey_role(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GQLAPIKey", field.Name)
 		},
@@ -23615,6 +23682,8 @@ func (ec *executionContext) fieldContext_User_calendarSubscriptions(ctx context.
 				return ec.fieldContext_UserCalendarSubscription_name(ctx, field)
 			case "reminderMinutes":
 				return ec.fieldContext_UserCalendarSubscription_reminderMinutes(ctx, field)
+			case "fullSchedule":
+				return ec.fieldContext_UserCalendarSubscription_fullSchedule(ctx, field)
 			case "scheduleID":
 				return ec.fieldContext_UserCalendarSubscription_scheduleID(ctx, field)
 			case "schedule":
@@ -24011,6 +24080,50 @@ func (ec *executionContext) fieldContext_UserCalendarSubscription_reminderMinute
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserCalendarSubscription_fullSchedule(ctx context.Context, field graphql.CollectedField, obj *calsub.Subscription) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserCalendarSubscription_fullSchedule(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserCalendarSubscription().FullSchedule(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserCalendarSubscription_fullSchedule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserCalendarSubscription",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -28684,7 +28797,7 @@ func (ec *executionContext) unmarshalInputCreateUserCalendarSubscriptionInput(ct
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "reminderMinutes", "scheduleID", "disabled"}
+	fieldsInOrder := [...]string{"name", "reminderMinutes", "scheduleID", "disabled", "fullSchedule"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -28727,6 +28840,15 @@ func (ec *executionContext) unmarshalInputCreateUserCalendarSubscriptionInput(ct
 				return it, err
 			}
 			it.Disabled = data
+		case "fullSchedule":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fullSchedule"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FullSchedule = data
 		}
 	}
 
@@ -30705,7 +30827,7 @@ func (ec *executionContext) unmarshalInputUpdateAlertsInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"alertIDs", "newStatus"}
+	fieldsInOrder := [...]string{"alertIDs", "newStatus", "noiseReason"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -30725,11 +30847,20 @@ func (ec *executionContext) unmarshalInputUpdateAlertsInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("newStatus"))
-			data, err := ec.unmarshalNAlertStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertStatus(ctx, v)
+			data, err := ec.unmarshalOAlertStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.NewStatus = data
+		case "noiseReason":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("noiseReason"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NoiseReason = data
 		}
 	}
 
@@ -31218,7 +31349,7 @@ func (ec *executionContext) unmarshalInputUpdateUserCalendarSubscriptionInput(ct
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "reminderMinutes", "disabled"}
+	fieldsInOrder := [...]string{"id", "name", "reminderMinutes", "disabled", "fullSchedule"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -31261,6 +31392,15 @@ func (ec *executionContext) unmarshalInputUpdateUserCalendarSubscriptionInput(ct
 				return it, err
 			}
 			it.Disabled = data
+		case "fullSchedule":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fullSchedule"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FullSchedule = data
 		}
 	}
 
@@ -33476,6 +33616,11 @@ func (ec *executionContext) _GQLAPIKey(ctx context.Context, sel ast.SelectionSet
 			}
 		case "allowedFields":
 			out.Values[i] = ec._GQLAPIKey_allowedFields(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "role":
+			out.Values[i] = ec._GQLAPIKey_role(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
@@ -38191,6 +38336,42 @@ func (ec *executionContext) _UserCalendarSubscription(ctx context.Context, sel a
 					}
 				}()
 				res = ec._UserCalendarSubscription_reminderMinutes(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "fullSchedule":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserCalendarSubscription_fullSchedule(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

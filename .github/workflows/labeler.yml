@@ -43,3 +43,4 @@ jobs:
             "go.sum"
             ".yarn/releases/*"
             "devtools/pgdump-lite/pgd/*"
+            "timezone/*.txt"
