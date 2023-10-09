@@ -23,7 +23,7 @@ METHOD:PUBLISH
 {{- range $i, $s := .Shifts}}
 BEGIN:VEVENT
 UID:{{index $eventUIDs $i}}
-SUMMARY:On-Call ({{$.ApplicationName}}: {{$.ScheduleName}}){{if $s.Truncated}} Begins*
+SUMMARY:{{if $.FullSchedule}}{{index $.UserNames $s.UserID}} {{end}}On-Call ({{$.ApplicationName}}: {{$.ScheduleName}}){{if $s.Truncated}} Begins*
 DESCRIPTION:The end time of this shift is unknown and will continue beyond what is displayed.
 {{- end }}
 DTSTAMP:{{$genTime.UTC.Format "20060102T150405Z"}}

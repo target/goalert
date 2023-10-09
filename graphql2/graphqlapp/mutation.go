@@ -261,7 +261,7 @@ func (a *Mutation) tryDeleteAll(ctx context.Context, input []assignment.RawTarge
 		case assignment.TargetTypeEscalationPolicy:
 			err = errors.Wrap(a.PolicyStore.DeleteManyPoliciesTx(ctx, tx, ids), "delete escalation policies")
 		case assignment.TargetTypeIntegrationKey:
-			err = errors.Wrap(a.IntKeyStore.DeleteManyTx(ctx, tx, ids), "delete integration keys")
+			err = errors.Wrap(a.IntKeyStore.DeleteMany(ctx, tx, ids), "delete integration keys")
 		case assignment.TargetTypeSchedule:
 			err = errors.Wrap(a.ScheduleStore.DeleteManyTx(ctx, tx, ids), "delete schedules")
 		case assignment.TargetTypeCalendarSubscription:

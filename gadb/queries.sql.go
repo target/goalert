@@ -16,6 +16,233 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
+const aPIKeyAuthCheck = `-- name: APIKeyAuthCheck :one
+SELECT
+    TRUE
+FROM
+    gql_api_keys
+WHERE
+    gql_api_keys.id = $1
+    AND gql_api_keys.deleted_at IS NULL
+    AND gql_api_keys.expires_at > now()
+`
+
+func (q *Queries) APIKeyAuthCheck(ctx context.Context, id uuid.UUID) (bool, error) {
+	row := q.db.QueryRowContext(ctx, aPIKeyAuthCheck, id)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const aPIKeyAuthPolicy = `-- name: APIKeyAuthPolicy :one
+SELECT
+    gql_api_keys.policy
+FROM
+    gql_api_keys
+WHERE
+    gql_api_keys.id = $1
+    AND gql_api_keys.deleted_at IS NULL
+    AND gql_api_keys.expires_at > now()
+`
+
+// APIKeyAuth returns the API key policy with the given id, if it exists and is not expired.
+func (q *Queries) APIKeyAuthPolicy(ctx context.Context, id uuid.UUID) (json.RawMessage, error) {
+	row := q.db.QueryRowContext(ctx, aPIKeyAuthPolicy, id)
+	var policy json.RawMessage
+	err := row.Scan(&policy)
+	return policy, err
+}
+
+const aPIKeyDelete = `-- name: APIKeyDelete :exec
+UPDATE
+    gql_api_keys
+SET
+    deleted_at = now(),
+    deleted_by = $2
+WHERE
+    id = $1
+`
+
+type APIKeyDeleteParams struct {
+	ID        uuid.UUID
+	DeletedBy uuid.NullUUID
+}
+
+func (q *Queries) APIKeyDelete(ctx context.Context, arg APIKeyDeleteParams) error {
+	_, err := q.db.ExecContext(ctx, aPIKeyDelete, arg.ID, arg.DeletedBy)
+	return err
+}
+
+const aPIKeyForUpdate = `-- name: APIKeyForUpdate :one
+SELECT
+    name,
+    description
+FROM
+    gql_api_keys
+WHERE
+    id = $1
+    AND deleted_at IS NULL
+FOR UPDATE
+`
+
+type APIKeyForUpdateRow struct {
+	Name        string
+	Description string
+}
+
+func (q *Queries) APIKeyForUpdate(ctx context.Context, id uuid.UUID) (APIKeyForUpdateRow, error) {
+	row := q.db.QueryRowContext(ctx, aPIKeyForUpdate, id)
+	var i APIKeyForUpdateRow
+	err := row.Scan(&i.Name, &i.Description)
+	return i, err
+}
+
+const aPIKeyInsert = `-- name: APIKeyInsert :exec
+INSERT INTO gql_api_keys(id, name, description, POLICY, created_by, updated_by, expires_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+`
+
+type APIKeyInsertParams struct {
+	ID          uuid.UUID
+	Name        string
+	Description string
+	Policy      json.RawMessage
+	CreatedBy   uuid.NullUUID
+	UpdatedBy   uuid.NullUUID
+	ExpiresAt   time.Time
+}
+
+func (q *Queries) APIKeyInsert(ctx context.Context, arg APIKeyInsertParams) error {
+	_, err := q.db.ExecContext(ctx, aPIKeyInsert,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.Policy,
+		arg.CreatedBy,
+		arg.UpdatedBy,
+		arg.ExpiresAt,
+	)
+	return err
+}
+
+const aPIKeyList = `-- name: APIKeyList :many
+SELECT
+    gql_api_keys.created_at, gql_api_keys.created_by, gql_api_keys.deleted_at, gql_api_keys.deleted_by, gql_api_keys.description, gql_api_keys.expires_at, gql_api_keys.id, gql_api_keys.name, gql_api_keys.policy, gql_api_keys.updated_at, gql_api_keys.updated_by,
+    gql_api_key_usage.used_at AS last_used_at,
+    gql_api_key_usage.user_agent AS last_user_agent,
+    gql_api_key_usage.ip_address AS last_ip_address
+FROM
+    gql_api_keys
+    LEFT JOIN gql_api_key_usage ON gql_api_keys.id = gql_api_key_usage.api_key_id
+WHERE
+    gql_api_keys.deleted_at IS NULL
+`
+
+type APIKeyListRow struct {
+	CreatedAt     time.Time
+	CreatedBy     uuid.NullUUID
+	DeletedAt     sql.NullTime
+	DeletedBy     uuid.NullUUID
+	Description   string
+	ExpiresAt     time.Time
+	ID            uuid.UUID
+	Name          string
+	Policy        json.RawMessage
+	UpdatedAt     time.Time
+	UpdatedBy     uuid.NullUUID
+	LastUsedAt    sql.NullTime
+	LastUserAgent sql.NullString
+	LastIpAddress pqtype.Inet
+}
+
+// APIKeyList returns all API keys, along with the last time they were used.
+func (q *Queries) APIKeyList(ctx context.Context) ([]APIKeyListRow, error) {
+	rows, err := q.db.QueryContext(ctx, aPIKeyList)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []APIKeyListRow
+	for rows.Next() {
+		var i APIKeyListRow
+		if err := rows.Scan(
+			&i.CreatedAt,
+			&i.CreatedBy,
+			&i.DeletedAt,
+			&i.DeletedBy,
+			&i.Description,
+			&i.ExpiresAt,
+			&i.ID,
+			&i.Name,
+			&i.Policy,
+			&i.UpdatedAt,
+			&i.UpdatedBy,
+			&i.LastUsedAt,
+			&i.LastUserAgent,
+			&i.LastIpAddress,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const aPIKeyRecordUsage = `-- name: APIKeyRecordUsage :exec
+INSERT INTO gql_api_key_usage(api_key_id, user_agent, ip_address)
+    VALUES ($1::uuid, $2::text, $3::inet)
+ON CONFLICT (api_key_id)
+    DO UPDATE SET
+        used_at = now(), user_agent = $2::text, ip_address = $3::inet
+`
+
+type APIKeyRecordUsageParams struct {
+	KeyID     uuid.UUID
+	UserAgent string
+	IpAddress pqtype.Inet
+}
+
+// APIKeyRecordUsage records the usage of an API key.
+func (q *Queries) APIKeyRecordUsage(ctx context.Context, arg APIKeyRecordUsageParams) error {
+	_, err := q.db.ExecContext(ctx, aPIKeyRecordUsage, arg.KeyID, arg.UserAgent, arg.IpAddress)
+	return err
+}
+
+const aPIKeyUpdate = `-- name: APIKeyUpdate :exec
+UPDATE
+    gql_api_keys
+SET
+    name = $2,
+    description = $3,
+    updated_at = now(),
+    updated_by = $4
+WHERE
+    id = $1
+`
+
+type APIKeyUpdateParams struct {
+	ID          uuid.UUID
+	Name        string
+	Description string
+	UpdatedBy   uuid.NullUUID
+}
+
+func (q *Queries) APIKeyUpdate(ctx context.Context, arg APIKeyUpdateParams) error {
+	_, err := q.db.ExecContext(ctx, aPIKeyUpdate,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.UpdatedBy,
+	)
+	return err
+}
+
 const alertFeedback = `-- name: AlertFeedback :many
 SELECT
     alert_id,
@@ -23,7 +250,7 @@ SELECT
 FROM
     alert_feedback
 WHERE
-    alert_id = ANY($1::int[])
+    alert_id = ANY ($1::int[])
 `
 
 type AlertFeedbackRow struct {
@@ -390,11 +617,16 @@ func (q *Queries) AuthLinkUseReq(ctx context.Context, id uuid.UUID) (AuthLinkUse
 }
 
 const calSubAuthUser = `-- name: CalSubAuthUser :one
-UPDATE user_calendar_subscriptions
-SET last_access = now()
-WHERE NOT disabled
+UPDATE
+    user_calendar_subscriptions
+SET
+    last_access = now()
+WHERE
+    NOT disabled
     AND id = $1
-    AND date_trunc('second', created_at) = $2 RETURNING user_id
+    AND date_trunc('second', created_at) = $2
+RETURNING
+    user_id
 `
 
 type CalSubAuthUserParams struct {
@@ -444,16 +676,49 @@ func (q *Queries) CalSubRenderInfo(ctx context.Context, id uuid.UUID) (CalSubRen
 	return i, err
 }
 
+const calSubUserNames = `-- name: CalSubUserNames :many
+SELECT
+    id,
+    name
+FROM
+    users
+WHERE
+    id = ANY ($1::uuid[])
+`
+
+type CalSubUserNamesRow struct {
+	ID   uuid.UUID
+	Name string
+}
+
+func (q *Queries) CalSubUserNames(ctx context.Context, dollar_1 []uuid.UUID) ([]CalSubUserNamesRow, error) {
+	rows, err := q.db.QueryContext(ctx, calSubUserNames, pq.Array(dollar_1))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CalSubUserNamesRow
+	for rows.Next() {
+		var i CalSubUserNamesRow
+		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const createCalSub = `-- name: CreateCalSub :one
-INSERT INTO user_calendar_subscriptions (
-        id,
-        NAME,
-        user_id,
-        disabled,
-        schedule_id,
-        config
-    )
-VALUES ($1, $2, $3, $4, $5, $6) RETURNING created_at
+INSERT INTO user_calendar_subscriptions(id, NAME, user_id, disabled, schedule_id, config)
+    VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING
+    created_at
 `
 
 type CreateCalSubParams struct {
@@ -481,7 +746,7 @@ func (q *Queries) CreateCalSub(ctx context.Context, arg CreateCalSubParams) (tim
 
 const deleteManyCalSub = `-- name: DeleteManyCalSub :exec
 DELETE FROM user_calendar_subscriptions
-WHERE id = ANY($1::uuid [ ])
+WHERE id = ANY ($1::uuid[])
     AND user_id = $2
 `
 
@@ -496,15 +761,18 @@ func (q *Queries) DeleteManyCalSub(ctx context.Context, arg DeleteManyCalSubPara
 }
 
 const findManyCalSubByUser = `-- name: FindManyCalSubByUser :many
-SELECT id,
+SELECT
+    id,
     NAME,
     user_id,
     disabled,
     schedule_id,
     config,
     last_access
-FROM user_calendar_subscriptions
-WHERE user_id = $1
+FROM
+    user_calendar_subscriptions
+WHERE
+    user_id = $1
 `
 
 type FindManyCalSubByUserRow struct {
@@ -549,15 +817,18 @@ func (q *Queries) FindManyCalSubByUser(ctx context.Context, userID uuid.UUID) ([
 }
 
 const findOneCalSub = `-- name: FindOneCalSub :one
-SELECT id,
+SELECT
+    id,
     NAME,
     user_id,
     disabled,
     schedule_id,
     config,
     last_access
-FROM user_calendar_subscriptions
-WHERE id = $1
+FROM
+    user_calendar_subscriptions
+WHERE
+    id = $1
 `
 
 type FindOneCalSubRow struct {
@@ -586,16 +857,19 @@ func (q *Queries) FindOneCalSub(ctx context.Context, id uuid.UUID) (FindOneCalSu
 }
 
 const findOneCalSubForUpdate = `-- name: FindOneCalSubForUpdate :one
-SELECT id,
+SELECT
+    id,
     NAME,
     user_id,
     disabled,
     schedule_id,
     config,
     last_access
-FROM user_calendar_subscriptions
-WHERE id = $1 FOR
-UPDATE
+FROM
+    user_calendar_subscriptions
+WHERE
+    id = $1
+FOR UPDATE
 `
 
 type FindOneCalSubForUpdateRow struct {
@@ -621,6 +895,138 @@ func (q *Queries) FindOneCalSubForUpdate(ctx context.Context, id uuid.UUID) (Fin
 		&i.LastAccess,
 	)
 	return i, err
+}
+
+const intKeyCreate = `-- name: IntKeyCreate :exec
+INSERT INTO integration_keys(id, name, type, service_id)
+    VALUES ($1, $2, $3, $4)
+`
+
+type IntKeyCreateParams struct {
+	ID        uuid.UUID
+	Name      string
+	Type      EnumIntegrationKeysType
+	ServiceID uuid.UUID
+}
+
+func (q *Queries) IntKeyCreate(ctx context.Context, arg IntKeyCreateParams) error {
+	_, err := q.db.ExecContext(ctx, intKeyCreate,
+		arg.ID,
+		arg.Name,
+		arg.Type,
+		arg.ServiceID,
+	)
+	return err
+}
+
+const intKeyDelete = `-- name: IntKeyDelete :exec
+DELETE FROM integration_keys
+WHERE id = ANY ($1::uuid[])
+`
+
+func (q *Queries) IntKeyDelete(ctx context.Context, ids []uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, intKeyDelete, pq.Array(ids))
+	return err
+}
+
+const intKeyFindByService = `-- name: IntKeyFindByService :many
+SELECT
+    id,
+    name,
+    type,
+    service_id
+FROM
+    integration_keys
+WHERE
+    service_id = $1
+`
+
+type IntKeyFindByServiceRow struct {
+	ID        uuid.UUID
+	Name      string
+	Type      EnumIntegrationKeysType
+	ServiceID uuid.UUID
+}
+
+func (q *Queries) IntKeyFindByService(ctx context.Context, serviceID uuid.UUID) ([]IntKeyFindByServiceRow, error) {
+	rows, err := q.db.QueryContext(ctx, intKeyFindByService, serviceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []IntKeyFindByServiceRow
+	for rows.Next() {
+		var i IntKeyFindByServiceRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Type,
+			&i.ServiceID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const intKeyFindOne = `-- name: IntKeyFindOne :one
+SELECT
+    id,
+    name,
+    type,
+    service_id
+FROM
+    integration_keys
+WHERE
+    id = $1
+`
+
+type IntKeyFindOneRow struct {
+	ID        uuid.UUID
+	Name      string
+	Type      EnumIntegrationKeysType
+	ServiceID uuid.UUID
+}
+
+func (q *Queries) IntKeyFindOne(ctx context.Context, id uuid.UUID) (IntKeyFindOneRow, error) {
+	row := q.db.QueryRowContext(ctx, intKeyFindOne, id)
+	var i IntKeyFindOneRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Type,
+		&i.ServiceID,
+	)
+	return i, err
+}
+
+const intKeyGetServiceID = `-- name: IntKeyGetServiceID :one
+SELECT
+    service_id
+FROM
+    integration_keys
+WHERE
+    id = $1
+    AND type = $2
+`
+
+type IntKeyGetServiceIDParams struct {
+	ID   uuid.UUID
+	Type EnumIntegrationKeysType
+}
+
+func (q *Queries) IntKeyGetServiceID(ctx context.Context, arg IntKeyGetServiceIDParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, intKeyGetServiceID, arg.ID, arg.Type)
+	var service_id uuid.UUID
+	err := row.Scan(&service_id)
+	return service_id, err
 }
 
 const lockOneAlertService = `-- name: LockOneAlertService :one
@@ -678,7 +1084,8 @@ func (q *Queries) NoticeUnackedAlertsByService(ctx context.Context, dollar_1 uui
 }
 
 const now = `-- name: Now :one
-SELECT now()::timestamptz
+SELECT
+    now()::timestamptz
 `
 
 func (q *Queries) Now(ctx context.Context) (time.Time, error) {
@@ -686,6 +1093,121 @@ func (q *Queries) Now(ctx context.Context) (time.Time, error) {
 	var column_1 time.Time
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const overrideSearch = `-- name: OverrideSearch :many
+WITH AFTER AS (
+    SELECT
+        id,
+        start_time,
+        end_time
+    FROM
+        user_overrides
+    WHERE
+        id = $8::uuid
+)
+SELECT
+    o.id,
+    o.start_time,
+    o.end_time,
+    add_user_id,
+    remove_user_id,
+    tgt_schedule_id
+FROM
+    user_overrides o
+    LEFT JOIN AFTER ON TRUE
+WHERE ($1::uuid[] ISNULL
+    OR o.id <> ALL ($1))
+AND ($2::uuid ISNULL
+    OR o.tgt_schedule_id = $2)
+AND ($3::uuid[] ISNULL
+    OR add_user_id = ANY ($3::uuid[])
+    OR remove_user_id = ANY ($3::uuid[]))
+AND ($4::uuid[] ISNULL
+    OR add_user_id = ANY ($4::uuid[]))
+AND ($5::uuid[] ISNULL
+    OR remove_user_id = ANY ($5::uuid[]))
+AND (
+    /* only include overrides that end after the search start */
+    $6::timestamptz ISNULL
+    OR o.end_time > $6)
+AND (
+    /* only include overrides that start before/within the search end */
+    $7::timestamptz ISNULL
+    OR o.start_time <= $7)
+AND (
+    /* resume search after specified "cursor" override */
+    $8::uuid ISNULL
+    OR (o.start_time > after.start_time
+        OR (o.start_time = after.start_time
+            AND o.end_time > after.end_time)
+        OR (o.start_time = after.start_time
+            AND o.end_time = after.end_time
+            AND o.id > after.id)))
+ORDER BY
+    o.start_time,
+    o.end_time,
+    o.id
+LIMIT 150
+`
+
+type OverrideSearchParams struct {
+	Omit         []uuid.UUID
+	ScheduleID   uuid.NullUUID
+	AnyUserID    []uuid.UUID
+	AddUserID    []uuid.UUID
+	RemoveUserID []uuid.UUID
+	SearchStart  sql.NullTime
+	SearchEnd    sql.NullTime
+	AfterID      uuid.NullUUID
+}
+
+type OverrideSearchRow struct {
+	ID            uuid.UUID
+	StartTime     time.Time
+	EndTime       time.Time
+	AddUserID     uuid.NullUUID
+	RemoveUserID  uuid.NullUUID
+	TgtScheduleID uuid.UUID
+}
+
+func (q *Queries) OverrideSearch(ctx context.Context, arg OverrideSearchParams) ([]OverrideSearchRow, error) {
+	rows, err := q.db.QueryContext(ctx, overrideSearch,
+		pq.Array(arg.Omit),
+		arg.ScheduleID,
+		pq.Array(arg.AnyUserID),
+		pq.Array(arg.AddUserID),
+		pq.Array(arg.RemoveUserID),
+		arg.SearchStart,
+		arg.SearchEnd,
+		arg.AfterID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OverrideSearchRow
+	for rows.Next() {
+		var i OverrideSearchRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.StartTime,
+			&i.EndTime,
+			&i.AddUserID,
+			&i.RemoveUserID,
+			&i.TgtScheduleID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const requestAlertEscalationByTime = `-- name: RequestAlertEscalationByTime :one
@@ -731,6 +1253,46 @@ type SetAlertFeedbackParams struct {
 func (q *Queries) SetAlertFeedback(ctx context.Context, arg SetAlertFeedbackParams) error {
 	_, err := q.db.ExecContext(ctx, setAlertFeedback, arg.AlertID, arg.NoiseReason)
 	return err
+}
+
+const setManyAlertFeedback = `-- name: SetManyAlertFeedback :many
+INSERT INTO alert_feedback(alert_id, noise_reason)
+    VALUES (unnest($1::bigint[]), $2)
+ON CONFLICT (alert_id)
+    DO UPDATE SET
+        noise_reason = excluded.noise_reason
+    WHERE
+        alert_feedback.alert_id = excluded.alert_id
+    RETURNING
+        alert_id
+`
+
+type SetManyAlertFeedbackParams struct {
+	AlertIds    []int64
+	NoiseReason string
+}
+
+func (q *Queries) SetManyAlertFeedback(ctx context.Context, arg SetManyAlertFeedbackParams) ([]int64, error) {
+	rows, err := q.db.QueryContext(ctx, setManyAlertFeedback, pq.Array(arg.AlertIds), arg.NoiseReason)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var alert_id int64
+		if err := rows.Scan(&alert_id); err != nil {
+			return nil, err
+		}
+		items = append(items, alert_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const statusMgrCMInfo = `-- name: StatusMgrCMInfo :one
@@ -941,12 +1503,15 @@ func (q *Queries) StatusMgrUpdateSub(ctx context.Context, arg StatusMgrUpdateSub
 }
 
 const updateCalSub = `-- name: UpdateCalSub :exec
-UPDATE user_calendar_subscriptions
-SET NAME = $1,
+UPDATE
+    user_calendar_subscriptions
+SET
+    NAME = $1,
     disabled = $2,
     config = $3,
     last_update = now()
-WHERE id = $4
+WHERE
+    id = $4
     AND user_id = $5
 `
 

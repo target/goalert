@@ -6,8 +6,8 @@ import (
 	"path"
 	"strconv"
 
+	"github.com/nyaruka/phonenumbers"
 	"github.com/target/goalert/notification/twilio"
-	"github.com/ttacon/libphonenumber"
 )
 
 func (s *Server) serveLookup(w http.ResponseWriter, req *http.Request) {
@@ -23,14 +23,14 @@ func (s *Server) serveLookup(w http.ResponseWriter, req *http.Request) {
 		AddOns     *struct{}           `json:"add_ons"`
 		URL        string              `json:"url"`
 	}
-	n, err := libphonenumber.Parse(number, "")
+	n, err := phonenumbers.Parse(number, "")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	info.CC = strconv.Itoa(int(n.GetCountryCode()))
-	info.Fmt = libphonenumber.Format(n, libphonenumber.NATIONAL)
-	info.Number = libphonenumber.Format(n, libphonenumber.E164)
+	info.Fmt = phonenumbers.Format(n, phonenumbers.NATIONAL)
+	info.Number = phonenumbers.Format(n, phonenumbers.E164)
 	req.URL.Host = req.Host
 	info.URL = req.URL.String()
 
