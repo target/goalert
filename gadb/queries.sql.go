@@ -1134,7 +1134,7 @@ AND (
 AND (
     /* only include overrides that start before/within the search end */
     $7::timestamptz ISNULL
-    OR o.start_time <= $6)
+    OR o.start_time <= $7)
 AND (
     /* resume search after specified "cursor" override */
     $8::uuid ISNULL
