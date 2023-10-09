@@ -21,6 +21,9 @@ func (a *App) UserCalendarSubscription() graphql2.UserCalendarSubscriptionResolv
 func (a *UserCalendarSubscription) ReminderMinutes(ctx context.Context, obj *calsub.Subscription) ([]int, error) {
 	return obj.Config.ReminderMinutes, nil
 }
+func (a *UserCalendarSubscription) FullSchedule(ctx context.Context, obj *calsub.Subscription) (bool, error) {
+	return obj.Config.FullSchedule, nil
+}
 
 func (a *UserCalendarSubscription) Schedule(ctx context.Context, obj *calsub.Subscription) (*schedule.Schedule, error) {
 	return a.ScheduleStore.FindOne(ctx, obj.ScheduleID)
@@ -55,6 +58,9 @@ func (m *Mutation) CreateUserCalendarSubscription(ctx context.Context, input gra
 		cs.Disabled = *input.Disabled
 	}
 	cs.Config.ReminderMinutes = input.ReminderMinutes
+	if input.FullSchedule != nil {
+		cs.Config.FullSchedule = *input.FullSchedule
+	}
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
 		cs, err = m.CalSubStore.CreateTx(ctx, tx, cs)
@@ -79,6 +85,9 @@ func (m *Mutation) UpdateUserCalendarSubscription(ctx context.Context, input gra
 		}
 		if input.ReminderMinutes != nil {
 			cs.Config.ReminderMinutes = input.ReminderMinutes
+		}
+		if input.FullSchedule != nil {
+			cs.Config.FullSchedule = *input.FullSchedule
 		}
 
 		return m.CalSubStore.UpdateTx(ctx, tx, cs)
