@@ -36,7 +36,7 @@ export default function Documentation(): JSX.Element {
     ),
   }))
 
-  // useLayoutEffect to ensure that the page scrolls to the correct section
+  // useEffect to ensure that the page scrolls to the correct section after rendering
   useEffect(() => {
     const hash = window.location.hash
     if (!hash) return
