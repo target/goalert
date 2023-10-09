@@ -1,7 +1,7 @@
-import { Service } from '../../../schema'
+import { IntegrationKeyType, Service, TargetType } from '../../../schema'
 
 export type TargetMetrics = {
-  [type: string]: number
+  [type in IntegrationKeyType | TargetType]: number
 }
 export type ServiceMetrics = {
   keyTgtTotals: TargetMetrics
