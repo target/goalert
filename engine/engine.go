@@ -358,7 +358,7 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 
 	var usr *user.User
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		cm, serr := p.cfg.ContactMethodStore.FindOne(ctx, cb.ContactMethodID)
+		cm, serr := p.cfg.ContactMethodStore.FindOne(ctx, p.b.db, cb.ContactMethodID)
 		if serr != nil {
 			err = errors.Wrap(serr, "lookup contact method")
 			return
@@ -411,7 +411,7 @@ func (p *Engine) Start(ctx context.Context, d notification.Dest) error {
 
 	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		err = p.cfg.ContactMethodStore.EnableByValue(ctx, d.Type.CMType(), d.Value)
+		err = p.cfg.ContactMethodStore.EnableByValue(ctx, p.b.db, d.Type.CMType(), d.Value)
 	})
 
 	return err
@@ -426,7 +426,7 @@ func (p *Engine) Stop(ctx context.Context, d notification.Dest) error {
 
 	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		err = p.cfg.ContactMethodStore.DisableByValue(ctx, d.Type.CMType(), d.Value)
+		err = p.cfg.ContactMethodStore.DisableByValue(ctx, p.b.db, d.Type.CMType(), d.Value)
 	})
 
 	return err
