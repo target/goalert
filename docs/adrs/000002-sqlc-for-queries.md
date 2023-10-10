@@ -49,24 +49,24 @@ Chosen option: "Adopt `sqlc` as a replacement for managing the majority of our D
 
 ### Continue using "stores" with strings directly in Go as prepared statements
 
-- Good, because it's the current system, and no changes would be required
-- Bad, because it's harder to read and maintain
-- Bad, because it immediately prepares and consumes database resources on startup
-- Bad, because it doesn't scale well with the growth of the application
+- ✅ Good, because it's the current system, and no changes would be required
+- ❌ Bad, because it's harder to read and maintain
+- ❌ Bad, because it immediately prepares and consumes database resources on startup
+- ❌ Bad, because it doesn't scale well with the growth of the application
 
 ### Adopt `sqlc` as a replacement for managing the majority of our DB queries
 
-- Good, because it offers a more structured and readable way of managing SQL queries
-- Good, because `.sql` files provide enhanced tooling/IDE support
-- Good, because it prepares queries as-needed, optimizing database resources
-- Good, because of the potential for PostgreSQL-backed build-time query validation
-- Bad, because there's an initial learning curve for developers unfamiliar with `sqlc`
+- ✅ Good, because it offers a more structured and readable way of managing SQL queries
+- ✅ Good, because `.sql` files provide enhanced tooling/IDE support
+- ✅ Good, because it prepares queries as-needed, optimizing database resources
+- ✅ Good, because of the potential for PostgreSQL-backed build-time query validation
+- ❌ Bad, because there's an initial learning curve for developers unfamiliar with `sqlc`
 
 ### Use GORM or another ORM/SQL query builder library
 
-- Good, because it could offer a different set of features and benefits
-- Bad, because past experience with GORM led to complications, and it was replaced with `sqlc`
-- Bad, because it would also have an associated learning curve and migration effort
+- ✅ Good, because it could offer a different set of features and benefits
+- ❌ Bad, because past experience with GORM led to complications, and it was replaced with `sqlc`
+- ❌ Bad, because it would also have an associated learning curve and migration effort
 
 ## Links
 
