@@ -34,21 +34,10 @@ export default function AdminAPIKeyEditDialog(props: {
   const [{ fetching, data, error }] = useQuery({
     query,
   })
+  const key: GQLAPIKey | null =
+    data?.gqlAPIKeys?.find((d: GQLAPIKey) => d.id === apiKeyId) || null
   const [apiKeyActionStatus, apiKeyAction] = useMutation(updateGQLAPIKeyQuery)
-  const [apiKeyInput, setAPIKeyInput] = useState<UpdateGQLAPIKeyInput>({
-    name: '',
-    description: '',
-    id: '',
-  })
-
-  useEffect(() => {
-    // retrieve apiKey information by id
-    setAPIKeyInput(
-      data?.gqlAPIKeys?.find((d: GQLAPIKey) => {
-        return d.id === apiKeyId
-      }),
-    )
-  }, [data])
+  const [apiKeyInput, setAPIKeyInput] = useState<GQLAPIKey | null>(null)
 
   if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
@@ -60,7 +49,7 @@ export default function AdminAPIKeyEditDialog(props: {
         input: {
           name: apiKeyInput?.name,
           description: apiKeyInput?.description,
-          id: apiKeyInput?.id,
+          id: apiKeyId,
         },
       },
       { additionalTypenames: ['GQLAPIKey'] },
@@ -71,7 +60,7 @@ export default function AdminAPIKeyEditDialog(props: {
     })
   }
 
-  if (fetching && !data) {
+  if (fetching || key === null) {
     return <Spinner />
   }
 
@@ -86,8 +75,7 @@ export default function AdminAPIKeyEditDialog(props: {
         <AdminAPIKeyForm
           errors={fieldErrors(apiKeyActionStatus.error)}
           onChange={setAPIKeyInput}
-          create={false}
-          value={apiKeyInput}
+          value={apiKeyInput || key}
         />
       }
     />
