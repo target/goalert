@@ -27,11 +27,18 @@ export function useAlertMetrics(opts: AlertMetricsOpts): AlertMetricPoint[] {
         month: 'short',
         day: 'numeric',
       })
-      const label = i.start.toLocaleString({
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      })
+      const label =
+        i.start.toLocaleString({
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        }) +
+        ' - ' +
+        i.end.toLocaleString({
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        })
 
       const nextIvl = alerts.findIndex(
         (a) => !i.contains(DateTime.fromISO(a.metrics?.closedAt as string)),
