@@ -78,7 +78,7 @@ export default function AlertMetrics({
           <CardContent>
             <AlertMetricsFilter />
             <CardHeader
-              title='Alert Averages'
+              title='Alert Counts'
               component='h2'
               sx={{ ml: '2rem', mb: 0, pb: 0 }}
             />
