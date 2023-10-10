@@ -10,6 +10,7 @@ import (
 // SubscriptionConfig is the configuration for a calendar subscription.
 type SubscriptionConfig struct {
 	ReminderMinutes []int
+	FullSchedule    bool
 }
 
 var (
