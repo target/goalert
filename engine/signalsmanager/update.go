@@ -20,8 +20,6 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 		return err
 	}
 
-	log.Debugf(ctx, "Processing signal scheduling.")
-
 	for i := 0; i < 50; i++ {
 		err = db.lock.WithTx(ctx, db.update)
 		if errors.Is(err, errDone) {
@@ -39,8 +37,8 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 var errDone = errors.New("done")
 
 type payload struct {
-	Destination string          `json:"destination"`
-	Message     json.RawMessage `json:"message"`
+	Destination string          `json:"channel_id"`
+	Message     json.RawMessage `json:"payload"`
 }
 
 func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
@@ -61,7 +59,6 @@ func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
 	}
 
 	err = q.SignalsManagerSendOutgoing(ctx, gadb.SignalsManagerSendOutgoingParams{
-		ID:              uuid.MustParse(string(rune(sig.ID))),
 		ServiceID:       sig.ServiceID,
 		OutgoingPayload: pay.Message,
 		ChannelID:       uuid.MustParse(pay.Destination),

@@ -27,6 +27,7 @@ const (
 	EngineProcessingTypeNpCycle      EngineProcessingType = "np_cycle"
 	EngineProcessingTypeRotation     EngineProcessingType = "rotation"
 	EngineProcessingTypeSchedule     EngineProcessingType = "schedule"
+	EngineProcessingTypeSignals      EngineProcessingType = "signals"
 	EngineProcessingTypeStatusUpdate EngineProcessingType = "status_update"
 	EngineProcessingTypeVerify       EngineProcessingType = "verify"
 )

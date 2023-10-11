@@ -7,7 +7,7 @@ import (
 	"github.com/target/goalert/engine/processinglock"
 )
 
-const engineVersion = 3
+const engineVersion = 1
 
 // DB handles updating metrics
 type DB struct {

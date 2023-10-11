@@ -24,6 +24,6 @@ WHERE
     AND id = $1;
 
 -- name: SignalsManagerSendOutgoing :exec
-INSERT INTO outgoing_signals (id, service_id, outgoing_payload, channel_id)
-    VALUES ($1, $2, $3, $4);
+INSERT INTO outgoing_signals (service_id, outgoing_payload, channel_id)
+    VALUES ($1, $2, $3);
 

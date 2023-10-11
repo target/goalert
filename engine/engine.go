@@ -21,6 +21,7 @@ import (
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/engine/rotationmanager"
 	"github.com/target/goalert/engine/schedulemanager"
+	"github.com/target/goalert/engine/signalsmanager"
 	"github.com/target/goalert/engine/statusmgr"
 	"github.com/target/goalert/engine/verifymanager"
 	"github.com/target/goalert/notification"
@@ -133,6 +134,10 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "compatibility backend")
 	}
+	signalsMgr, err := signalsmanager.NewDB(ctx, db)
+	if err != nil {
+		return nil, errors.Wrap(err, "signals management backend")
+	}
 
 	p.modules = []updater{
 		compatMgr,
@@ -145,6 +150,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 		hbMgr,
 		cleanMgr,
 		metricsMgr,
+		signalsMgr,
 	}
 
 	p.msg, err = message.NewDB(ctx, db, c.AlertLogStore, p.mgr)
