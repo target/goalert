@@ -97,17 +97,7 @@ func (a *User) AssignedSchedules(ctx context.Context, obj *user.User) (schedules
 		}
 
 		// get list of schedules user is on as a direct assignment, or indirectly from a rotation
-		schedules, err := (*App)(a).ScheduleStore.FindManyByAssignments(ctx, tx, obj.ID, rIDs)
-		if err != nil {
-			return err
-		}
-
-		var sIDs []string
-		for _, s := range schedules {
-			sIDs = append(sIDs, s.ID)
-		}
-
-		schedules, err = (*App)(a).ScheduleStore.FindManyTx(ctx, tx, sIDs)
+		schedules, err = (*App)(a).ScheduleStore.FindManyByAssignments(ctx, tx, obj.ID, rIDs)
 		if err != nil {
 			return err
 		}
