@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestToExprString(t *testing.T) {
+func TestFiltersToExprString(t *testing.T) {
 	t.Run("all types", func(t *testing.T) {
 		str := `Temp > 25 && age <= 42.2 && other != false && message == "alert"`
 		expected := []Filter{
@@ -14,28 +14,28 @@ func TestToExprString(t *testing.T) {
 				Field:     "Temp",
 				Operator:  ">",
 				Value:     "25",
-				ValueType: NumberType,
+				ValueType: TypeNumber,
 			},
 			{
 				Field:     "age",
 				Operator:  "<=",
 				Value:     "42.2",
-				ValueType: NumberType,
+				ValueType: TypeNumber,
 			},
 			{
 				Field:     "other",
 				Operator:  "!=",
 				Value:     "false",
-				ValueType: BoolType,
+				ValueType: TypeBool,
 			},
 			{
 				Field:     "message",
 				Operator:  "==",
 				Value:     "alert",
-				ValueType: StringType,
+				ValueType: TypeString,
 			},
 		}
-		filters, err := FromExprString(str)
+		filters, err := FiltersFromExprString(str)
 		assert.NoError(t, err)
 		assert.ElementsMatch(t, expected, filters)
 	})
@@ -46,51 +46,51 @@ func TestToExprString(t *testing.T) {
 				Field:     "weather",
 				Operator:  "startsWith",
 				Value:     "cloud",
-				ValueType: StringType,
+				ValueType: TypeString,
 			},
 			{
 				Field:     "message",
 				Operator:  "contains",
 				Value:     `alert\ && another`,
-				ValueType: StringType,
+				ValueType: TypeString,
 			},
 		}
-		filters, err := FromExprString(str)
+		filters, err := FiltersFromExprString(str)
 		assert.NoError(t, err)
 		assert.ElementsMatch(t, expected, filters)
 	})
 }
 
-func TestFromExprString(t *testing.T) {
+func TestFiltersFromExprString(t *testing.T) {
 	t.Run("all types", func(t *testing.T) {
 		filters := []Filter{
 			{
 				Field:     "Temp",
 				Operator:  ">",
 				Value:     "25",
-				ValueType: NumberType,
+				ValueType: TypeNumber,
 			},
 			{
 				Field:     "age",
 				Operator:  "<=",
 				Value:     "42.2",
-				ValueType: NumberType,
+				ValueType: TypeNumber,
 			},
 			{
 				Field:     "other",
 				Operator:  "!=",
 				Value:     "FALSE",
-				ValueType: BoolType,
+				ValueType: TypeBool,
 			},
 			{
 				Field:     "message",
 				Operator:  "==",
 				Value:     "alert",
-				ValueType: StringType,
+				ValueType: TypeString,
 			},
 		}
 		expected := `Temp > 25 && age <= 42.2 && other != false && message == "alert"`
-		str, err := ToExprString(filters)
+		str, err := FiltersToExprString(filters)
 		assert.NoError(t, err)
 		assert.Equal(t, expected, str)
 	})
@@ -100,17 +100,17 @@ func TestFromExprString(t *testing.T) {
 				Field:     "weather",
 				Operator:  "startsWith",
 				Value:     `"cloud"`,
-				ValueType: StringType,
+				ValueType: TypeString,
 			},
 			{
 				Field:     "message",
 				Operator:  "contains",
 				Value:     `alert\ && another`,
-				ValueType: StringType,
+				ValueType: TypeString,
 			},
 		}
 		expected := `weather startsWith "\"cloud\"" && message contains "alert\\ \u0026\u0026 another"`
-		filterString, err := ToExprString(filters)
+		filterString, err := FiltersToExprString(filters)
 		assert.NoError(t, err)
 		assert.Equal(t, expected, filterString)
 	})

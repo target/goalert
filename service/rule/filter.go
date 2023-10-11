@@ -3,9 +3,11 @@ package rule
 import (
 	"context"
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/ast"
 	"github.com/antonmedv/expr/parser"
@@ -15,29 +17,20 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
-type ValueType int
-
 type Filter struct {
 	Field     string
 	Operator  string
 	Value     string
-	ValueType ValueType
+	ValueType FilterValueType
 }
-
-const (
-	UnknownType ValueType = iota
-	StringType
-	NumberType
-	BoolType
-)
 
 const (
 	filterDelimeter = " && "
 )
 
-// ToExprString takes in a slice of filters, validates them, and returns the
+// FiltersToExprString takes in a slice of filters, validates them, and returns the
 // valid expr string that represents them
-func ToExprString(filters []Filter) (string, error) {
+func FiltersToExprString(filters []Filter) (string, error) {
 	str := ""
 
 	// slice of errors lets us validate all filters at once
@@ -74,13 +67,13 @@ func filterToExprString(filter Filter) (string, error) {
 
 	value := filter.Value
 	switch filter.ValueType {
-	case StringType:
+	case TypeString:
 		value = quoteAndEscapeValue(value)
 		errs[1] = validate.FilterStringOperator("Operator", filter.Operator)
-	case NumberType:
+	case TypeNumber:
 		errs[1] = validate.FilterNumberOperator("Operator", filter.Operator)
 		errs[2] = validate.FilterNumberValue("Value", value)
-	case BoolType:
+	case TypeBool:
 		value = strings.ToLower(filter.Value)
 		errs[1] = validate.FilterBoolOperator("Operator", filter.Operator)
 		errs[2] = validate.FilterBoolValue("Value", value)
@@ -94,8 +87,9 @@ func filterToExprString(filter Filter) (string, error) {
 	return fmt.Sprintf("%s %s %s", filter.Field, filter.Operator, value), nil
 }
 
-// FromExprString
-func FromExprString(str string) ([]Filter, error) {
+// FiltersFromExprString returns a slice of Filter structs parsed from the
+// given expr string (which should be ' && ' delimited)
+func FiltersFromExprString(str string) ([]Filter, error) {
 	tree, err := parser.Parse(str)
 	if err != nil {
 		return nil, errors.Wrap(err, "parse expr tree")
@@ -116,4 +110,50 @@ func quoteAndEscapeValue(value string) string {
 	quoted := strconv.Quote(value)
 	// when parsing, strconv.Unquote will replace '\u0026' with '&' automatically
 	return strings.ReplaceAll(quoted, "&", `\u0026`)
+}
+
+type FilterValueType int
+
+const (
+	TypeUnknown FilterValueType = iota
+	TypeString
+	TypeNumber
+	TypeBool
+)
+
+// UnmarshalGQL implements the graphql.Marshaler interface
+func (t *FilterValueType) UnmarshalGQL(v interface{}) error {
+	str, err := graphql.UnmarshalString(v)
+	if err != nil {
+		return err
+	}
+
+	switch str {
+	case "UNKNOWN":
+		*t = TypeUnknown
+	case "STRING":
+		*t = TypeString
+	case "NUMBER":
+		*t = TypeNumber
+	case "BOOL":
+		*t = TypeBool
+	default:
+		return validation.NewFieldError("Type", "unknown type "+str)
+	}
+
+	return nil
+}
+
+// MarshalGQL implements the graphql.Marshaler interface
+func (t FilterValueType) MarshalGQL(w io.Writer) {
+	switch t {
+	case TypeUnknown:
+		graphql.MarshalString("UNKNOWN").MarshalGQL(w)
+	case TypeString:
+		graphql.MarshalString("STRING").MarshalGQL(w)
+	case TypeNumber:
+		graphql.MarshalString("NUMBER").MarshalGQL(w)
+	case TypeBool:
+		graphql.MarshalString("BOOL").MarshalGQL(w)
+	}
 }

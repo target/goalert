@@ -1210,7 +1210,7 @@ export interface ServiceRule {
   name: string
   serviceID: string
   integrationKeys: IntegrationKey[]
-  filterString: string
+  filters: ServiceRuleFilter[]
   sendAlert: boolean
 }
 
@@ -1261,6 +1261,19 @@ export interface SignalSearchOptions {
 }
 
 export type SignalSearchSort = 'dateID' | 'dateIDReverse'
+
+export interface ServiceRuleFilter {
+  field: string
+  operator: string
+  value: string
+  valueType: ServiceRuleFilterValueType
+}
+
+export type ServiceRuleFilterValueType =
+  | 'UNKNOWN'
+  | 'STRING'
+  | 'NUMBER'
+  | 'BOOL'
 
 type ConfigID =
   | 'General.ApplicationName'

@@ -1531,7 +1531,7 @@ type ServiceRule {
   name: String!
   serviceID: ID!
   integrationKeys: [IntegrationKey!]!
-  filterString: String!
+  filters: [ServiceRuleFilter!]!
   sendAlert: Boolean!
 }
 
@@ -1584,4 +1584,18 @@ input SignalSearchOptions {
 enum SignalSearchSort {
   dateID
   dateIDReverse
+}
+
+type ServiceRuleFilter {
+  field: String!
+  operator: String!
+  value: String!
+  valueType: ServiceRuleFilterValueType!
+}
+
+enum ServiceRuleFilterValueType {
+  UNKNOWN
+  STRING
+  NUMBER
+  BOOL
 }

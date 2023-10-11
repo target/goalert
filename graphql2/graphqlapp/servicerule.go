@@ -22,6 +22,10 @@ func (s *ServiceRule) IntegrationKeys(ctx context.Context, r *rule.Rule) ([]inte
 	return s.IntKeyStore.FindAllByServiceRule(ctx, r.ID)
 }
 
+func (s *ServiceRule) Filters(ctx context.Context, r *rule.Rule) ([]rule.Filter, error) {
+	return rule.FiltersFromExprString(r.FilterString)
+}
+
 func (m *Mutation) CreateServiceRule(ctx context.Context, input graphql2.CreateServiceRuleInput) (r *rule.Rule, err error) {
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		actions := []map[string]interface{}{}

@@ -42,7 +42,7 @@ func filterFromTreeNode(n *ast.BinaryNode) (f Filter, err error) {
 
 	value := n.Right.String()
 	valueType := valueTypeFromNode(n.Right)
-	if valueType == StringType {
+	if valueType == TypeString {
 		value, err = strconv.Unquote(value)
 		if err != nil {
 			return Filter{}, fmt.Errorf("unquote/unescape filter value")
@@ -57,15 +57,15 @@ func filterFromTreeNode(n *ast.BinaryNode) (f Filter, err error) {
 	}, nil
 }
 
-func valueTypeFromNode(node ast.Node) ValueType {
+func valueTypeFromNode(node ast.Node) FilterValueType {
 	switch node.(type) {
 	case *ast.StringNode:
-		return StringType
+		return TypeString
 	case *ast.IntegerNode, *ast.FloatNode:
-		return NumberType
+		return TypeNumber
 	case *ast.BoolNode:
-		return BoolType
+		return TypeBool
 	default:
-		return UnknownType
+		return TypeUnknown
 	}
 }
