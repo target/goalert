@@ -3,7 +3,7 @@ import { gql, useMutation, useQuery } from 'urql'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import AdminAPIKeyForm from './AdminAPIKeyForm'
-import { GQLAPIKey } from '../../../schema'
+import { CreateGQLAPIKeyInput, GQLAPIKey } from '../../../schema'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
 
@@ -37,7 +37,9 @@ export default function AdminAPIKeyEditDialog(props: {
   const key: GQLAPIKey | null =
     data?.gqlAPIKeys?.find((d: GQLAPIKey) => d.id === apiKeyId) || null
   const [apiKeyActionStatus, apiKeyAction] = useMutation(updateGQLAPIKeyQuery)
-  const [apiKeyInput, setAPIKeyInput] = useState<GQLAPIKey | null>(null)
+  const [apiKeyInput, setAPIKeyInput] = useState<CreateGQLAPIKeyInput | null>(
+    null,
+  )
 
   if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
