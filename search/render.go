@@ -26,6 +26,9 @@ func Helpers() template.FuncMap {
 		"orderedPrefixSearch": func(argName string, columnName string) string {
 			return fmt.Sprintf("lower(%s) ~ :~%s", columnName, argName)
 		},
+		"contains": func(argName string, columnName string) string {
+			return fmt.Sprintf("%s ilike :%s", columnName, argName)
+		},
 		"textSearch": func(argName string, columnNames ...string) string {
 			var buf strings.Builder
 			buf.WriteRune('(')
