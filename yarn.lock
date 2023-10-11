@@ -34,9 +34,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@apollo/client@npm:3.8.4":
-  version: 3.8.4
-  resolution: "@apollo/client@npm:3.8.4"
+"@apollo/client@npm:3.8.5":
+  version: 3.8.5
+  resolution: "@apollo/client@npm:3.8.5"
   dependencies:
     "@graphql-typed-document-node/core": ^3.1.1
     "@wry/context": ^0.7.3
@@ -66,7 +66,7 @@ __metadata:
       optional: true
     subscriptions-transport-ws:
       optional: true
-  checksum: 509e37cdce7462cacda0a86c413ce471cd8f618625fb8ac3a60d6347d12f37a4fc60e12fc3fc1a375799caa21e56ff58d709e13ef5e13ab15e4dfc828a527848
+  checksum: 242db8340d5f04ff8f2c9ad6a0dc6ab6d596fb5c763865b0d392f6e5771d55de28faa981dcadaea80ee8b21d4ff40bfa51152a10bcae4158ecf035e47b0d17c4
   languageName: node
   linkType: hard
 
@@ -515,6 +515,15 @@ __metadata:
   dependencies:
     regenerator-runtime: ^0.14.0
   checksum: 793296df1e41599a935a3d77ec01eb6088410d3fd4dbe4e92f06c6b7bb2f8355024e6d78621a3a35f44e0e23b0b59107f23d585384df4f3123256a1e1492040e
+  languageName: node
+  linkType: hard
+
+"@babel/runtime@npm:^7.23.1":
+  version: 7.23.1
+  resolution: "@babel/runtime@npm:7.23.1"
+  dependencies:
+    regenerator-runtime: ^0.14.0
+  checksum: 0cd0d43e6e7dc7f9152fda8c8312b08321cda2f56ef53d6c22ebdd773abdc6f5d0a69008de90aa41908d00e2c1facb24715ff121274e689305c858355ff02c70
   languageName: node
   linkType: hard
 
@@ -1849,7 +1858,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/utils@npm:^5.14.10, @mui/utils@npm:^5.14.3, @mui/utils@npm:^5.14.8":
+"@mui/utils@npm:^5.14.10, @mui/utils@npm:^5.14.3":
   version: 5.14.10
   resolution: "@mui/utils@npm:5.14.10"
   dependencies:
@@ -1867,12 +1876,30 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/x-data-grid@npm:6.14.0":
-  version: 6.14.0
-  resolution: "@mui/x-data-grid@npm:6.14.0"
+"@mui/utils@npm:^5.14.11":
+  version: 5.14.12
+  resolution: "@mui/utils@npm:5.14.12"
   dependencies:
-    "@babel/runtime": ^7.22.15
-    "@mui/utils": ^5.14.8
+    "@babel/runtime": ^7.23.1
+    "@types/prop-types": ^15.7.7
+    prop-types: ^15.8.1
+    react-is: ^18.2.0
+  peerDependencies:
+    "@types/react": ^17.0.0 || ^18.0.0
+    react: ^17.0.0 || ^18.0.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 41470b6292b7a46c71fb0a0acc6a5f05a5e080648106b8805555de920e8f748669c7e8d39cbbcf0f52be9053927bb8439a748e24bd02bc1a220c9bded4435f42
+  languageName: node
+  linkType: hard
+
+"@mui/x-data-grid@npm:6.16.1":
+  version: 6.16.1
+  resolution: "@mui/x-data-grid@npm:6.16.1"
+  dependencies:
+    "@babel/runtime": ^7.23.1
+    "@mui/utils": ^5.14.11
     clsx: ^2.0.0
     prop-types: ^15.8.1
     reselect: ^4.1.8
@@ -1881,7 +1908,7 @@ __metadata:
     "@mui/system": ^5.4.1
     react: ^17.0.0 || ^18.0.0
     react-dom: ^17.0.0 || ^18.0.0
-  checksum: 7ab5b04f5c26f94fe7a6717c57e825d11064b4c27de0e48e35719f939635fed7b0d7534de8e997553dfbc892628983fd78c418e82e5402700182901912f93411
+  checksum: 668140e844cc1ec2ae96b24d9e126472695ce4af3ae42cfa6d0e6b651a8975b14ddd0442fe3f815a51e2fc43e3b025dd8caf05db5b75bf9ec5b1cb1453a90113
   languageName: node
   linkType: hard
 
@@ -2927,6 +2954,13 @@ __metadata:
   version: 15.7.6
   resolution: "@types/prop-types@npm:15.7.6"
   checksum: 5f2796c7330461a556c4d18035fb914b372f96b1619a4f8302d07e1ea708e06a2dbe666dfcd8ff03f64c625aa4c12b31f677d0298a32910f5ab7ee51521d8086
+  languageName: node
+  linkType: hard
+
+"@types/prop-types@npm:^15.7.7":
+  version: 15.7.8
+  resolution: "@types/prop-types@npm:15.7.8"
+  checksum: 61dfad79da8b1081c450bab83b77935df487ae1cdd4660ec7df6be8e74725c15fa45cf486ce057addc956ca4ae78300b97091e2a25061133d1b9a1440bc896ae
   languageName: node
   linkType: hard
 
@@ -11248,7 +11282,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "root-workspace-0b6124@workspace:."
   dependencies:
-    "@apollo/client": 3.8.4
+    "@apollo/client": 3.8.5
     "@babel/core": 7.23.0
     "@babel/plugin-transform-modules-commonjs": 7.22.15
     "@dnd-kit/core": 6.0.8
@@ -11262,7 +11296,7 @@ __metadata:
     "@mui/material": 5.14.10
     "@mui/styles": 5.14.10
     "@mui/system": 5.14.10
-    "@mui/x-data-grid": 6.14.0
+    "@mui/x-data-grid": 6.16.1
     "@playwright/test": 1.38.0
     "@types/chance": 1.1.4
     "@types/diff": 5.0.5

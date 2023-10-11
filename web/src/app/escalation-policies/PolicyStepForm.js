@@ -26,6 +26,7 @@ import {
 import { SlackBW as SlackIcon } from '../icons/components/Icons'
 import { Config } from '../util/RequireConfig'
 import NumberField from '../util/NumberField'
+import AppLink from '../util/AppLink'
 
 const useStyles = makeStyles({
   badge: {
@@ -252,6 +253,11 @@ function PolicyStepForm(props) {
                         name='webhooks'
                         mapValue={getTargetsByType('chanWebhook')}
                         mapOnChangeValue={setTargetType('chanWebhook')}
+                        hint={
+                          <AppLink newTab to='/docs#webhooks'>
+                            Webhook Documentation
+                          </AppLink>
+                        }
                       />
                     </StepContent>
                   </Step>

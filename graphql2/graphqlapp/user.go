@@ -67,7 +67,7 @@ func (a *User) Role(ctx context.Context, usr *user.User) (graphql2.UserRole, err
 }
 
 func (a *User) ContactMethods(ctx context.Context, obj *user.User) ([]contactmethod.ContactMethod, error) {
-	return a.CMStore.FindAll(ctx, obj.ID)
+	return a.CMStore.FindAll(ctx, a.DB, obj.ID)
 }
 
 func (a *User) NotificationRules(ctx context.Context, obj *user.User) ([]notificationrule.NotificationRule, error) {
