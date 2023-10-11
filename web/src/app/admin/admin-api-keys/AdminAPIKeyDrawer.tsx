@@ -99,7 +99,7 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
 
   return (
     <React.Fragment>
-      <ClickAwayListener onClickAway={onClose}>
+      <ClickAwayListener onClickAway={onClose} mouseEvent='onMouseUp'>
         <Drawer
           anchor='right'
           open={isOpen}
