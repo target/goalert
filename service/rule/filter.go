@@ -31,6 +31,11 @@ const (
 // FiltersToExprString takes in a slice of filters, validates them, and returns the
 // valid expr string that represents them
 func FiltersToExprString(filters []Filter) (string, error) {
+	// no filters means the expression should always evalutate to true
+	if len(filters) == 0 {
+		return "true", nil
+	}
+
 	str := ""
 
 	// slice of errors lets us validate all filters at once
@@ -90,6 +95,11 @@ func filterToExprString(filter Filter) (string, error) {
 // FiltersFromExprString returns a slice of Filter structs parsed from the
 // given expr string (which should be ' && ' delimited)
 func FiltersFromExprString(str string) ([]Filter, error) {
+	// always true expression means there are no filters
+	if str == "true" {
+		return []Filter{}, nil
+	}
+
 	tree, err := parser.Parse(str)
 	if err != nil {
 		return nil, errors.Wrap(err, "parse expr tree")
