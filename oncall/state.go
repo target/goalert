@@ -1,7 +1,6 @@
 package oncall
 
 import (
-	"slices"
 	"sort"
 	"time"
 
@@ -91,17 +90,6 @@ func sortShifts(s []Shift) {
 		}
 		return s[i].Start.Before(s[j].Start)
 	})
-}
-
-func filterShiftsByUserIDs(shifts []Shift, userIDs []string) []Shift {
-	var filteredShifts []Shift
-	for _, shift := range shifts {
-		if slices.Contains(userIDs, shift.UserID) {
-			filteredShifts = append(filteredShifts, shift)
-		}
-	}
-
-	return filteredShifts
 }
 
 func (s *state) CalculateShifts(start, end time.Time, userIDs []string) []Shift {
