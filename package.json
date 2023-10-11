@@ -30,8 +30,8 @@
     ]
   },
   "devDependencies": {
-    "@apollo/client": "3.8.4",
-    "@babel/core": "7.22.20",
+    "@apollo/client": "3.8.5",
+    "@babel/core": "7.23.0",
     "@babel/plugin-transform-modules-commonjs": "7.22.15",
     "@dnd-kit/core": "6.0.8",
     "@dnd-kit/sortable": "7.0.2",
@@ -44,7 +44,7 @@
     "@mui/material": "5.14.10",
     "@mui/styles": "5.14.10",
     "@mui/system": "5.14.10",
-    "@mui/x-data-grid": "6.14.0",
+    "@mui/x-data-grid": "6.16.1",
     "@playwright/test": "1.38.0",
     "@types/chance": "1.1.4",
     "@types/diff": "5.0.5",

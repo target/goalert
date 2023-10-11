@@ -714,6 +714,408 @@ func (q *Queries) CalSubUserNames(ctx context.Context, dollar_1 []uuid.UUID) ([]
 	return items, nil
 }
 
+const contactMethodAdd = `-- name: ContactMethodAdd :exec
+INSERT INTO user_contact_methods(id, name, type, value, disabled, user_id, enable_status_updates)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+`
+
+type ContactMethodAddParams struct {
+	ID                  uuid.UUID
+	Name                string
+	Type                EnumUserContactMethodType
+	Value               string
+	Disabled            bool
+	UserID              uuid.UUID
+	EnableStatusUpdates bool
+}
+
+func (q *Queries) ContactMethodAdd(ctx context.Context, arg ContactMethodAddParams) error {
+	_, err := q.db.ExecContext(ctx, contactMethodAdd,
+		arg.ID,
+		arg.Name,
+		arg.Type,
+		arg.Value,
+		arg.Disabled,
+		arg.UserID,
+		arg.EnableStatusUpdates,
+	)
+	return err
+}
+
+const contactMethodDisable = `-- name: ContactMethodDisable :one
+UPDATE
+    user_contact_methods
+SET
+    disabled = TRUE
+WHERE
+    type = $1
+    AND value = $2
+RETURNING
+    id
+`
+
+type ContactMethodDisableParams struct {
+	Type  EnumUserContactMethodType
+	Value string
+}
+
+func (q *Queries) ContactMethodDisable(ctx context.Context, arg ContactMethodDisableParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, contactMethodDisable, arg.Type, arg.Value)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const contactMethodEnable = `-- name: ContactMethodEnable :one
+UPDATE
+    user_contact_methods
+SET
+    disabled = FALSE
+WHERE
+    type = $1
+    AND value = $2
+RETURNING
+    id
+`
+
+type ContactMethodEnableParams struct {
+	Type  EnumUserContactMethodType
+	Value string
+}
+
+func (q *Queries) ContactMethodEnable(ctx context.Context, arg ContactMethodEnableParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, contactMethodEnable, arg.Type, arg.Value)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const contactMethodFindAll = `-- name: ContactMethodFindAll :many
+SELECT
+    id,
+    name,
+    type,
+    value,
+    disabled,
+    user_id,
+    last_test_verify_at,
+    enable_status_updates,
+    pending
+FROM
+    user_contact_methods
+WHERE
+    user_id = $1
+`
+
+type ContactMethodFindAllRow struct {
+	ID                  uuid.UUID
+	Name                string
+	Type                EnumUserContactMethodType
+	Value               string
+	Disabled            bool
+	UserID              uuid.UUID
+	LastTestVerifyAt    sql.NullTime
+	EnableStatusUpdates bool
+	Pending             bool
+}
+
+func (q *Queries) ContactMethodFindAll(ctx context.Context, userID uuid.UUID) ([]ContactMethodFindAllRow, error) {
+	rows, err := q.db.QueryContext(ctx, contactMethodFindAll, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ContactMethodFindAllRow
+	for rows.Next() {
+		var i ContactMethodFindAllRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Type,
+			&i.Value,
+			&i.Disabled,
+			&i.UserID,
+			&i.LastTestVerifyAt,
+			&i.EnableStatusUpdates,
+			&i.Pending,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const contactMethodFindMany = `-- name: ContactMethodFindMany :many
+SELECT
+    id,
+    name,
+    type,
+    value,
+    disabled,
+    user_id,
+    last_test_verify_at,
+    enable_status_updates,
+    pending
+FROM
+    user_contact_methods
+WHERE
+    id = ANY ($1::uuid[])
+`
+
+type ContactMethodFindManyRow struct {
+	ID                  uuid.UUID
+	Name                string
+	Type                EnumUserContactMethodType
+	Value               string
+	Disabled            bool
+	UserID              uuid.UUID
+	LastTestVerifyAt    sql.NullTime
+	EnableStatusUpdates bool
+	Pending             bool
+}
+
+func (q *Queries) ContactMethodFindMany(ctx context.Context, dollar_1 []uuid.UUID) ([]ContactMethodFindManyRow, error) {
+	rows, err := q.db.QueryContext(ctx, contactMethodFindMany, pq.Array(dollar_1))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ContactMethodFindManyRow
+	for rows.Next() {
+		var i ContactMethodFindManyRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Type,
+			&i.Value,
+			&i.Disabled,
+			&i.UserID,
+			&i.LastTestVerifyAt,
+			&i.EnableStatusUpdates,
+			&i.Pending,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const contactMethodFindOneUpdate = `-- name: ContactMethodFindOneUpdate :one
+SELECT
+    id,
+    name,
+    type,
+    value,
+    disabled,
+    user_id,
+    last_test_verify_at,
+    enable_status_updates,
+    pending
+FROM
+    user_contact_methods
+WHERE
+    id = $1
+FOR UPDATE
+`
+
+type ContactMethodFindOneUpdateRow struct {
+	ID                  uuid.UUID
+	Name                string
+	Type                EnumUserContactMethodType
+	Value               string
+	Disabled            bool
+	UserID              uuid.UUID
+	LastTestVerifyAt    sql.NullTime
+	EnableStatusUpdates bool
+	Pending             bool
+}
+
+func (q *Queries) ContactMethodFindOneUpdate(ctx context.Context, id uuid.UUID) (ContactMethodFindOneUpdateRow, error) {
+	row := q.db.QueryRowContext(ctx, contactMethodFindOneUpdate, id)
+	var i ContactMethodFindOneUpdateRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Type,
+		&i.Value,
+		&i.Disabled,
+		&i.UserID,
+		&i.LastTestVerifyAt,
+		&i.EnableStatusUpdates,
+		&i.Pending,
+	)
+	return i, err
+}
+
+const contactMethodFineOne = `-- name: ContactMethodFineOne :one
+SELECT
+    id,
+    name,
+    type,
+    value,
+    disabled,
+    user_id,
+    last_test_verify_at,
+    enable_status_updates,
+    pending
+FROM
+    user_contact_methods
+WHERE
+    id = $1
+`
+
+type ContactMethodFineOneRow struct {
+	ID                  uuid.UUID
+	Name                string
+	Type                EnumUserContactMethodType
+	Value               string
+	Disabled            bool
+	UserID              uuid.UUID
+	LastTestVerifyAt    sql.NullTime
+	EnableStatusUpdates bool
+	Pending             bool
+}
+
+func (q *Queries) ContactMethodFineOne(ctx context.Context, id uuid.UUID) (ContactMethodFineOneRow, error) {
+	row := q.db.QueryRowContext(ctx, contactMethodFineOne, id)
+	var i ContactMethodFineOneRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Type,
+		&i.Value,
+		&i.Disabled,
+		&i.UserID,
+		&i.LastTestVerifyAt,
+		&i.EnableStatusUpdates,
+		&i.Pending,
+	)
+	return i, err
+}
+
+const contactMethodLookupUserID = `-- name: ContactMethodLookupUserID :many
+SELECT DISTINCT
+    user_id
+FROM
+    user_contact_methods
+WHERE
+    id = ANY ($1::uuid[])
+`
+
+func (q *Queries) ContactMethodLookupUserID(ctx context.Context, dollar_1 []uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, contactMethodLookupUserID, pq.Array(dollar_1))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var user_id uuid.UUID
+		if err := rows.Scan(&user_id); err != nil {
+			return nil, err
+		}
+		items = append(items, user_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const contactMethodMetaTV = `-- name: ContactMethodMetaTV :one
+SELECT
+    coalesce(metadata, '{}'),
+    now()::timestamptz AS now
+FROM
+    user_contact_methods
+WHERE
+    type = $1
+    AND value = $2
+`
+
+type ContactMethodMetaTVParams struct {
+	Type  EnumUserContactMethodType
+	Value string
+}
+
+type ContactMethodMetaTVRow struct {
+	Metadata json.RawMessage
+	Now      time.Time
+}
+
+func (q *Queries) ContactMethodMetaTV(ctx context.Context, arg ContactMethodMetaTVParams) (ContactMethodMetaTVRow, error) {
+	row := q.db.QueryRowContext(ctx, contactMethodMetaTV, arg.Type, arg.Value)
+	var i ContactMethodMetaTVRow
+	err := row.Scan(&i.Metadata, &i.Now)
+	return i, err
+}
+
+const contactMethodUpdate = `-- name: ContactMethodUpdate :exec
+UPDATE
+    user_contact_methods
+SET
+    name = $2,
+    disabled = $3,
+    enable_status_updates = $4
+WHERE
+    id = $1
+`
+
+type ContactMethodUpdateParams struct {
+	ID                  uuid.UUID
+	Name                string
+	Disabled            bool
+	EnableStatusUpdates bool
+}
+
+func (q *Queries) ContactMethodUpdate(ctx context.Context, arg ContactMethodUpdateParams) error {
+	_, err := q.db.ExecContext(ctx, contactMethodUpdate,
+		arg.ID,
+		arg.Name,
+		arg.Disabled,
+		arg.EnableStatusUpdates,
+	)
+	return err
+}
+
+const contactMethodUpdateMetaTV = `-- name: ContactMethodUpdateMetaTV :exec
+UPDATE
+    user_contact_methods
+SET
+    metadata = jsonb_set(jsonb_set(metadata, '{CarrierV1}', $3::jsonb), '{CarrierV1,UpdatedAt}',('"' || NOW()::timestamptz AT TIME ZONE 'UTC' || '"')::jsonb) 
+WHERE
+    type = $1
+    AND value = $2
+`
+
+type ContactMethodUpdateMetaTVParams struct {
+	Type      EnumUserContactMethodType
+	Value     string
+	CarrierV1 json.RawMessage
+}
+
+func (q *Queries) ContactMethodUpdateMetaTV(ctx context.Context, arg ContactMethodUpdateMetaTVParams) error {
+	_, err := q.db.ExecContext(ctx, contactMethodUpdateMetaTV, arg.Type, arg.Value, arg.CarrierV1)
+	return err
+}
+
 const createCalSub = `-- name: CreateCalSub :one
 INSERT INTO user_calendar_subscriptions(id, NAME, user_id, disabled, schedule_id, config)
     VALUES ($1, $2, $3, $4, $5, $6)
@@ -742,6 +1144,16 @@ func (q *Queries) CreateCalSub(ctx context.Context, arg CreateCalSubParams) (tim
 	var created_at time.Time
 	err := row.Scan(&created_at)
 	return created_at, err
+}
+
+const deleteContactMethod = `-- name: DeleteContactMethod :exec
+DELETE FROM user_contact_methods
+WHERE id = ANY ($1::uuid[])
+`
+
+func (q *Queries) DeleteContactMethod(ctx context.Context, dollar_1 []uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteContactMethod, pq.Array(dollar_1))
+	return err
 }
 
 const deleteManyCalSub = `-- name: DeleteManyCalSub :exec

@@ -269,7 +269,7 @@ func (a *Mutation) tryDeleteAll(ctx context.Context, input []assignment.RawTarge
 		case assignment.TargetTypeRotation:
 			err = errors.Wrap(a.RotationStore.DeleteManyTx(ctx, tx, ids), "delete rotations")
 		case assignment.TargetTypeContactMethod:
-			err = errors.Wrap(a.CMStore.DeleteTx(ctx, tx, ids...), "delete contact methods")
+			err = errors.Wrap(a.CMStore.Delete(ctx, tx, ids...), "delete contact methods")
 		case assignment.TargetTypeNotificationRule:
 			err = errors.Wrap(a.NRStore.DeleteTx(ctx, tx, ids...), "delete notification rules")
 		case assignment.TargetTypeHeartbeatMonitor:

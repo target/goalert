@@ -25,6 +25,7 @@ sql:
       - auth/authlink/queries.sql
       - alert/alertlog/queries.sql
       - user/favorite/queries.sql
+      - user/contactmethod/queries.sql
       - integrationkey/queries.sql
       - apikey/queries.sql
       - override/queries.sql

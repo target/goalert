@@ -12,7 +12,7 @@ if [ "$PKG_JSON_VER" != "$DOCKERFILE_VER" ]; then
 fi
 
 # assert build-env versions are identical
-BUILD_ENV_VER=go1.21.1-postgres13
+BUILD_ENV_VER=go1.21.3-postgres13
 for file in $(find devtools -name 'Dockerfile*'); do
   if ! grep -q "goalert/build-env" "$file"; then
     continue
