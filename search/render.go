@@ -27,7 +27,12 @@ func Helpers() template.FuncMap {
 			return fmt.Sprintf("lower(%s) ~ :~%s", columnName, argName)
 		},
 		"contains": func(argName string, columnName string) string {
-			return fmt.Sprintf("%s ilike :%s", columnName, argName)
+			// search for the term in the column
+			//
+			// - case insensitive
+			// - allow for partial matches
+			// - escape % and _ using `\` (backslash -- the default escape character)
+			return fmt.Sprintf(`%s ilike '%%' || REPLACE(REPLACE(REPLACE(:%s, '\', '\\'), '%%', '\%%'), '_', '\_') || '%%'`, columnName, argName)
 		},
 		"textSearch": func(argName string, columnNames ...string) string {
 			var buf strings.Builder
