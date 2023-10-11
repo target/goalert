@@ -1109,7 +1109,7 @@ export interface User {
   sessions: UserSession[]
   onCallSteps: EscalationPolicyStep[]
   isFavorite: boolean
-  assignedSchedules?: null | Schedule[]
+  assignedSchedules: Schedule[]
 }
 
 export interface UserSession {

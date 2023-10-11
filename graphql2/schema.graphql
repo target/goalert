@@ -1405,7 +1405,7 @@ type User {
 
   isFavorite: Boolean!
 
-  assignedSchedules: [Schedule!]
+  assignedSchedules: [Schedule!]!
 }
 
 type UserSession {

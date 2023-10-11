@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
@@ -27,7 +28,6 @@ type Store struct {
 	findRotationForUpdate *sql.Stmt
 	deleteRotation        *sql.Stmt
 	findMany              *sql.Stmt
-	findManyByUserID      *sql.Stmt
 
 	findAllParticipants *sql.Stmt
 	addParticipant      *sql.Stmt
@@ -93,12 +93,6 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			LEFT JOIN user_favorites fav ON fav.tgt_rotation_id = r.id 
 			AND fav.user_id = $2 
 			WHERE r.id = ANY($1)
-		`),
-
-		findManyByUserID: p.P(`
-			SELECT rp.rotation_id
-			FROM rotation_participants rp
-			WHERE rp.user_id = $1
 		`),
 
 		addParticipant: p.P(`
@@ -266,8 +260,8 @@ func (s *Store) FindMany(ctx context.Context, ids []string) ([]Rotation, error) 
 	return result, nil
 }
 
-func (s *Store) FindManyByUserID(ctx context.Context, tx *sql.Tx, userID string) (rotationIDs []string, err error) {
-	err = permission.LimitCheckAny(ctx, permission.All)
+func (s *Store) FindManyByUserID(ctx context.Context, tx *sql.Tx, userID string) ([]Rotation, error) {
+	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
 	}
@@ -277,29 +271,34 @@ func (s *Store) FindManyByUserID(ctx context.Context, tx *sql.Tx, userID string)
 		return nil, err
 	}
 
-	stmt := s.findManyByUserID
-	if tx != nil {
-		stmt = tx.Stmt(stmt)
+	id, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, err
 	}
-	rows, err := stmt.QueryContext(ctx, userID)
+
+	rows, err := gadb.New(s.db).FindManyByUserID(ctx, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var id string
-		err = rows.Scan(&id)
-		if err != nil {
-			return nil, err
-		}
-		rotationIDs = append(rotationIDs, id)
+	var result []Rotation
+
+	for _, r := range rows {
+		result = append(result, Rotation{
+			ID:          r.ID.String(),
+			Name:        r.Name,
+			Description: r.Description,
+
+			Type:        Type(r.Type),
+			Start:       r.StartTime,
+			ShiftLength: int(r.ShiftLength),
+		})
 	}
 
-	return rotationIDs, nil
+	return result, nil
 }
 
 func (s *Store) FindRotation(ctx context.Context, id string) (*Rotation, error) {

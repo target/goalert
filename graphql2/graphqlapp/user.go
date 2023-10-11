@@ -86,15 +86,25 @@ func (a *User) OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.St
 func (a *User) AssignedSchedules(ctx context.Context, obj *user.User) (schedules []schedule.Schedule, err error) {
 	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
 		// get list of rotations user is on
-		rIDs, err := (*App)(a).RotationStore.FindManyByUserID(ctx, tx, obj.ID)
+		rotations, err := (*App)(a).RotationStore.FindManyByUserID(ctx, tx, obj.ID)
 		if err != nil {
 			return err
 		}
 
+		var rIDs []string
+		for _, r := range rotations {
+			rIDs = append(rIDs, r.ID)
+		}
+
 		// get list of schedules user is on as a direct assignment, or indirectly from a rotation
-		sIDs, err := (*App)(a).ScheduleStore.FindManyByAssignments(ctx, tx, obj.ID, rIDs)
+		schedules, err := (*App)(a).ScheduleStore.FindManyByAssignments(ctx, tx, obj.ID, rIDs)
 		if err != nil {
 			return err
+		}
+
+		var sIDs []string
+		for _, s := range schedules {
+			sIDs = append(sIDs, s.ID)
 		}
 
 		schedules, err = (*App)(a).ScheduleStore.FindManyTx(ctx, tx, sIDs)

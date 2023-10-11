@@ -27,6 +27,8 @@ sql:
       - integrationkey/queries.sql
       - apikey/queries.sql
       - override/queries.sql
+      - schedule/queries.sql
+      - schedule/rotation/queries.sql
     engine: postgresql
     gen:
       go:

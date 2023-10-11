@@ -4,7 +4,9 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/util"
@@ -132,8 +134,8 @@ func (store *Store) FindMany(ctx context.Context, ids []string) ([]Schedule, err
 	return store.FindManyTx(ctx, nil, ids)
 }
 
-func (store *Store) FindManyByAssignments(ctx context.Context, tx *sql.Tx, userID string, rotationIDs []string) (scheduleIDs []string, err error) {
-	err = permission.LimitCheckAny(ctx, permission.All)
+func (store *Store) FindManyByAssignments(ctx context.Context, tx *sql.Tx, userID string, rotationIDs []string) ([]Schedule, error) {
+	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
 	}
@@ -142,31 +144,73 @@ func (store *Store) FindManyByAssignments(ctx context.Context, tx *sql.Tx, userI
 	if err != nil {
 		return nil, err
 	}
-
-	stmt := store.findManyByAssignments
-	if tx != nil {
-		stmt = tx.Stmt(stmt)
+	uid, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, err
 	}
 
-	rows, err := stmt.QueryContext(ctx, userID, rotationIDs)
+	var rids = []uuid.UUID{}
+	for _, r := range rotationIDs {
+		rid, err := uuid.Parse(r)
+		if err != nil {
+			return nil, err
+		}
+		rids = append(rids, rid)
+	}
+
+	rows, err := gadb.New(store.db).FindManyByAssignments(ctx, gadb.FindManyByAssignmentsParams{
+		TgtUserID: uuid.NullUUID{
+			Valid: true,
+			UUID:  uid,
+		},
+		Tgtrotationids: rids,
+	})
+
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var id string
-		err = rows.Scan(&id)
-		if err != nil {
-			return nil, err
-		}
-		scheduleIDs = append(scheduleIDs, id)
+	var result []Schedule
+
+	for _, r := range rows {
+		result = append(result, Schedule{
+			ID:          r.ID.String(),
+			Name:        r.Name,
+			Description: r.Description,
+		})
 	}
 
-	return scheduleIDs, nil
+	return result, nil
+
+	//
+
+	// stmt := store.findManyByAssignments
+	// if tx != nil {
+	// 	stmt = tx.Stmt(stmt)
+	// }
+
+	// rows, err := stmt.QueryContext(ctx, userID, rotationIDs)
+	// if errors.Is(err, sql.ErrNoRows) {
+	// 	return nil, nil
+	// }
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer rows.Close()
+
+	// for rows.Next() {
+	// 	var id string
+	// 	err = rows.Scan(&id)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	scheduleIDs = append(scheduleIDs, id)
+	// }
+
+	// return scheduleIDs, nil
 }
 
 func (store *Store) Create(ctx context.Context, s *Schedule) (*Schedule, error) {
