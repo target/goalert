@@ -2,7 +2,7 @@ import React from 'react'
 import Grid from '@mui/material/Grid'
 import { FormContainer, FormField } from '../../forms'
 import { FieldError } from '../../util/errutil'
-import { CreateGQLAPIKeyInput, UpdateGQLAPIKeyInput } from '../../../schema'
+import { CreateGQLAPIKeyInput } from '../../../schema'
 import AdminAPIKeyExpirationField from './AdminAPIKeyExpirationField'
 import { gql, useQuery } from 'urql'
 import { GenericError } from '../../error-pages'
@@ -16,21 +16,15 @@ const query = gql`
   }
 `
 
-type EditProps = {
-  value: UpdateGQLAPIKeyInput
-  onChange: (key: UpdateGQLAPIKeyInput) => void
-  create?: false
-}
-
-type CreateProps = {
-  value: CreateGQLAPIKeyInput
-  onChange: (key: CreateGQLAPIKeyInput) => void
-  create: true
-}
-
 type AdminAPIKeyFormProps = {
   errors: FieldError[]
-} & (EditProps | CreateProps)
+
+  // even while editing, we need all the fields
+  value: CreateGQLAPIKeyInput
+  onChange: (key: CreateGQLAPIKeyInput) => void
+
+  create?: boolean
+}
 
 export default function AdminAPIKeyForm(
   props: AdminAPIKeyFormProps,
