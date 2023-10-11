@@ -3,10 +3,13 @@ import { gql, useMutation } from 'urql'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import AdminAPIKeyForm from './AdminAPIKeyForm'
-import { CreatedGQLAPIKey, CreateGQLAPIKeyInput } from '../../../schema'
-import AdminAPIKeysTokenDialog from './AdminAPIKeyTokenDialog'
-import Spinner from '../../loading/components/Spinner'
+import { CreateGQLAPIKeyInput } from '../../../schema'
+import { CheckCircleOutline as SuccessIcon } from '@mui/icons-material'
+import makeStyles from '@mui/styles/makeStyles'
+
 import { DateTime } from 'luxon'
+import { Grid, Typography, FormHelperText } from '@mui/material'
+import CopyText from '../../util/CopyText'
 // query for creating new api key which accepts CreateGQLAPIKeyInput param
 // return token created upon successfull transaction
 const newGQLAPIKeyQuery = gql`
@@ -18,84 +21,94 @@ const newGQLAPIKeyQuery = gql`
   }
 `
 
+const useStyles = makeStyles(() => ({
+  successIcon: {
+    marginRight: 8, // TODO: ts definitions are wrong, should be: theme.spacing(1),
+  },
+  successTitle: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+}))
+
+function AdminAPIKeyToken(props: { token: string }): React.ReactNode {
+  return (
+    <Grid item xs={12}>
+      <Typography>
+        <CopyText title={props.token} value={props.token} placement='bottom' />
+      </Typography>
+      <FormHelperText>
+        Please copy and save the token as this is the only time you'll be able
+        to view it.
+      </FormHelperText>
+    </Grid>
+  )
+}
+
 export default function AdminAPIKeyCreateDialog(props: {
-  onClose: (param: boolean) => void
-}): JSX.Element {
-  const { onClose } = props
-  const [apiKey, setAPIKey] = useState<CreateGQLAPIKeyInput>({
+  onClose: () => void
+}): React.ReactNode {
+  const classes = useStyles()
+  const [value, setValue] = useState<CreateGQLAPIKeyInput>({
     name: '',
     description: '',
     expiresAt: DateTime.utc().plus({ days: 7 }).toISO(),
     allowedFields: [],
     role: 'user',
   })
-  const [apiKeyActionStatus, apiKeyAction] = useMutation(newGQLAPIKeyQuery)
-  const { fetching, data, error } = apiKeyActionStatus
-  const [tokenDialogClose, onTokenDialogClose] = useState<boolean>(true)
-  const [token, setToken] = useState<CreatedGQLAPIKey>({} as CreatedGQLAPIKey)
-  let fieldErrs = fieldErrors(error)
+  const [status, createKey] = useMutation(newGQLAPIKeyQuery)
+  const token = status.data?.createGQLAPIKey?.token || null
+
   // handles form on submit event, based on the action type (edit, create) it will send the necessary type of parameter
   // token is also being set here when create action is used
   const handleOnSubmit = (): void => {
-    apiKeyAction(
+    createKey(
       {
         input: {
-          name: apiKey.name,
-          description: apiKey.description,
-          allowedFields: apiKey.allowedFields,
-          expiresAt: apiKey.expiresAt,
-          role: apiKey.role,
+          name: value.name,
+          description: value.description,
+          allowedFields: value.allowedFields,
+          expiresAt: value.expiresAt,
+          role: value.role,
         },
       },
       { additionalTypenames: ['GQLAPIKey'] },
-    ).then((result) => {
-      if (!result.error) {
-        setToken(result.data.createGQLAPIKey)
-        onTokenDialogClose(false)
-      }
-    })
-  }
-
-  if (fetching && !data) {
-    return <Spinner />
-  }
-
-  if (error) {
-    fieldErrs = fieldErrs.map((err) => {
-      return err
-    })
+    )
   }
 
   return (
-    <React.Fragment>
-      {tokenDialogClose ? (
-        <FormDialog
-          title='New API Key'
-          loading={fetching}
-          errors={nonFieldErrors(error)}
-          onClose={() => {
-            props.onClose(false)
-          }}
-          onSubmit={handleOnSubmit}
-          disableBackdropClose
-          form={
-            <AdminAPIKeyForm
-              errors={fieldErrs}
-              value={apiKey}
-              onChange={setAPIKey}
-              create
-            />
-          }
-        />
-      ) : (
-        <AdminAPIKeysTokenDialog
-          value={token}
-          onClose={() => {
-            onTokenDialogClose(true)
-            onClose(false)
-          }}
-        />
-      )}
-    </React.Fragment>
+    <FormDialog
+      title={
+        token ? (
+          <div className={classes.successTitle}>
+            <SuccessIcon className={classes.successIcon} />
+            <Typography>Success!</Typography>
+          </div>
+        ) : (
+          'Create New API Key'
+        )
+      }
+      subTitle={token ? 'Your API key has been created!' : ''}
+      loading={status.fetching}
+      errors={nonFieldErrors(status.error)}
+      onClose={() => {
+        props.onClose()
+      }}
+      onSubmit={token ? props.onClose : handleOnSubmit}
+      alert={!!token}
+      disableBackdropClose={!!token}
+      form={
+        token ? (
+          <AdminAPIKeyToken token={token} />
+        ) : (
+          <AdminAPIKeyForm
+            errors={fieldErrors(status.error)}
+            value={value}
+            onChange={setValue}
+            create
+          />
+        )
+      }
+    />
   )
 }
