@@ -90,11 +90,9 @@ func (s *Schedule) Shifts(ctx context.Context, raw *schedule.Schedule, start, en
 		return nil, validation.NewFieldError("EndTime", "cannot be more than 50 days past StartTime")
 	}
 
-	for _, userID := range userIDs {
-		err := validate.UUID("UserID", userID)
-		if err != nil {
-			return nil, err
-		}
+	err := validate.ManyUUID("userID", userIDs, 50)
+	if err != nil {
+		return nil, err
 	}
 
 	shifts, err := s.OnCallStore.HistoryBySchedule(ctx, raw.ID, start, end, userIDs)
