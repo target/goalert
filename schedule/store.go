@@ -184,33 +184,6 @@ func (store *Store) FindManyByAssignments(ctx context.Context, tx *sql.Tx, userI
 	}
 
 	return result, nil
-
-	//
-
-	// stmt := store.findManyByAssignments
-	// if tx != nil {
-	// 	stmt = tx.Stmt(stmt)
-	// }
-
-	// rows, err := stmt.QueryContext(ctx, userID, rotationIDs)
-	// if errors.Is(err, sql.ErrNoRows) {
-	// 	return nil, nil
-	// }
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer rows.Close()
-
-	// for rows.Next() {
-	// 	var id string
-	// 	err = rows.Scan(&id)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	scheduleIDs = append(scheduleIDs, id)
-	// }
-
-	// return scheduleIDs, nil
 }
 
 func (store *Store) Create(ctx context.Context, s *Schedule) (*Schedule, error) {

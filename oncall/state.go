@@ -191,11 +191,6 @@ func (s *state) CalculateShifts(start, end time.Time, userIDs []string) []Shift 
 		shifts = append(shifts, *s)
 	}
 
-	// if any userIDs given, filter shifts to include only those
-	if userIDs != nil {
-		shifts = filterShiftsByUserIDs(shifts, userIDs)
-	}
-
 	sortShifts(shifts)
 	return shifts
 }

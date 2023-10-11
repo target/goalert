@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -96,7 +97,24 @@ func (s *Schedule) Shifts(ctx context.Context, raw *schedule.Schedule, start, en
 		}
 	}
 
-	return s.OnCallStore.HistoryBySchedule(ctx, raw.ID, start, end, userIDs)
+	shifts, err := s.OnCallStore.HistoryBySchedule(ctx, raw.ID, start, end, userIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	// filter by slice of userIDs if given
+	if userIDs != nil {
+		var filteredShifts []oncall.Shift
+		for _, shift := range shifts {
+			if slices.Contains(userIDs, shift.UserID) {
+				filteredShifts = append(filteredShifts, shift)
+			}
+		}
+
+		return filteredShifts, nil
+	}
+
+	return shifts, nil
 }
 
 func (s *Schedule) TemporarySchedules(ctx context.Context, raw *schedule.Schedule) ([]schedule.TemporarySchedule, error) {
