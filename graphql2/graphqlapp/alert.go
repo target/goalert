@@ -188,7 +188,7 @@ func (q *Query) Alert(ctx context.Context, alertID int) (*alert.Alert, error) {
  * Merges favorites and user-specified serviceIDs in opts.FilterByServiceID
  */
 func (q *Query) mergeFavorites(ctx context.Context, svcs []string) ([]string, error) {
-	targets, err := q.FavoriteStore.FindAll(ctx, permission.UserID(ctx), []assignment.TargetType{assignment.TargetTypeService})
+	targets, err := q.FavoriteStore.FindAll(ctx, q.DB, permission.UserID(ctx), []assignment.TargetType{assignment.TargetTypeService})
 	if err != nil {
 		return nil, err
 	}

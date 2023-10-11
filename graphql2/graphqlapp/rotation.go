@@ -51,7 +51,7 @@ func (m *Mutation) CreateRotation(ctx context.Context, input graphql2.CreateRota
 		}
 
 		if input.Favorite != nil && *input.Favorite {
-			err = m.FavoriteStore.SetTx(ctx, tx, permission.UserID(ctx), assignment.RotationTarget(result.ID))
+			err = m.FavoriteStore.Set(ctx, tx, permission.UserID(ctx), assignment.RotationTarget(result.ID))
 			if err != nil {
 				return err
 			}
