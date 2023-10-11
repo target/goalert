@@ -20,8 +20,9 @@ import (
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
-	"github.com/target/goalert/schedule/rule"
+	rule1 "github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/service"
+	"github.com/target/goalert/service/rule"
 	"github.com/target/goalert/signal"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
@@ -193,12 +194,12 @@ type CreateServiceInput struct {
 }
 
 type CreateServiceRuleInput struct {
-	Name            string   `json:"name"`
-	ServiceID       string   `json:"serviceID"`
-	Filter          string   `json:"filter"`
-	SendAlert       bool     `json:"sendAlert"`
-	Actions         string   `json:"actions"`
-	IntegrationKeys []string `json:"integrationKeys"`
+	Name            string        `json:"name"`
+	ServiceID       string        `json:"serviceID"`
+	Filters         []rule.Filter `json:"filters"`
+	SendAlert       bool          `json:"sendAlert"`
+	Actions         string        `json:"actions"`
+	IntegrationKeys []string      `json:"integrationKeys"`
 }
 
 type CreateUserCalendarSubscriptionInput struct {
@@ -480,7 +481,7 @@ type ScheduleSearchOptions struct {
 type ScheduleTarget struct {
 	ScheduleID string                `json:"scheduleID"`
 	Target     *assignment.RawTarget `json:"target"`
-	Rules      []rule.Rule           `json:"rules"`
+	Rules      []rule1.Rule          `json:"rules"`
 }
 
 type ScheduleTargetInput struct {
@@ -692,12 +693,12 @@ type UpdateServiceInput struct {
 }
 
 type UpdateServiceRuleInput struct {
-	ID              string   `json:"id"`
-	Name            string   `json:"name"`
-	Filter          string   `json:"filter"`
-	SendAlert       bool     `json:"sendAlert"`
-	Actions         string   `json:"actions"`
-	IntegrationKeys []string `json:"integrationKeys"`
+	ID              string        `json:"id"`
+	Name            string        `json:"name"`
+	Filters         []rule.Filter `json:"filters"`
+	SendAlert       bool          `json:"sendAlert"`
+	Actions         string        `json:"actions"`
+	IntegrationKeys []string      `json:"integrationKeys"`
 }
 
 type UpdateUserCalendarSubscriptionInput struct {

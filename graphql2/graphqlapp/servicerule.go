@@ -8,6 +8,7 @@ import (
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/service/rule"
+	"github.com/target/goalert/validation"
 )
 
 type ServiceRule App
@@ -31,12 +32,16 @@ func (m *Mutation) CreateServiceRule(ctx context.Context, input graphql2.CreateS
 		actions := []map[string]interface{}{}
 		err = json.Unmarshal([]byte(input.Actions), &actions)
 		if err != nil {
+			return validation.NewFieldError("Actions", "unmarshal actions")
+		}
+		filterString, err := rule.FiltersToExprString(input.Filters)
+		if err != nil {
 			return err
 		}
 		r, err = m.ServiceRuleStore.Create(ctx, tx, rule.Rule{
 			Name:            input.Name,
 			ServiceID:       input.ServiceID,
-			FilterString:    input.Filter,
+			FilterString:    filterString,
 			SendAlert:       input.SendAlert,
 			Actions:         actions,
 			IntegrationKeys: input.IntegrationKeys,
@@ -51,12 +56,16 @@ func (m *Mutation) UpdateServiceRule(ctx context.Context, input graphql2.UpdateS
 		actions := []map[string]interface{}{}
 		err = json.Unmarshal([]byte(input.Actions), &actions)
 		if err != nil {
+			return validation.NewFieldError("Actions", "unmarshal actions")
+		}
+		filterString, err := rule.FiltersToExprString(input.Filters)
+		if err != nil {
 			return err
 		}
 		r, err = m.ServiceRuleStore.Update(ctx, tx, rule.Rule{
 			ID:              input.ID,
 			Name:            input.Name,
-			FilterString:    input.Filter,
+			FilterString:    filterString,
 			SendAlert:       input.SendAlert,
 			Actions:         actions,
 			IntegrationKeys: input.IntegrationKeys,

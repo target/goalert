@@ -4489,6 +4489,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputScheduleSearchOptions,
 		ec.unmarshalInputScheduleTargetInput,
 		ec.unmarshalInputSendContactMethodVerificationInput,
+		ec.unmarshalInputServiceRuleFilterInput,
 		ec.unmarshalInputServiceSearchOptions,
 		ec.unmarshalInputSetAlertNoiseReasonInput,
 		ec.unmarshalInputSetFavoriteInput,
@@ -30646,7 +30647,7 @@ func (ec *executionContext) unmarshalInputCreateServiceRuleInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "serviceID", "filter", "sendAlert", "actions", "integrationKeys"}
+	fieldsInOrder := [...]string{"name", "serviceID", "filters", "sendAlert", "actions", "integrationKeys"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -30671,15 +30672,15 @@ func (ec *executionContext) unmarshalInputCreateServiceRuleInput(ctx context.Con
 				return it, err
 			}
 			it.ServiceID = data
-		case "filter":
+		case "filters":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+			data, err := ec.unmarshalNServiceRuleFilterInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐFilterᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Filter = data
+			it.Filters = data
 		case "sendAlert":
 			var err error
 
@@ -32015,6 +32016,62 @@ func (ec *executionContext) unmarshalInputSendContactMethodVerificationInput(ctx
 				return it, err
 			}
 			it.ContactMethodID = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputServiceRuleFilterInput(ctx context.Context, obj interface{}) (rule.Filter, error) {
+	var it rule.Filter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"field", "operator", "value", "valueType"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "field":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Field = data
+		case "operator":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("operator"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Operator = data
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
+		case "valueType":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueType"))
+			data, err := ec.unmarshalNServiceRuleFilterValueType2githubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐFilterValueType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ValueType = data
 		}
 	}
 
@@ -33374,7 +33431,7 @@ func (ec *executionContext) unmarshalInputUpdateServiceRuleInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "filter", "sendAlert", "actions", "integrationKeys"}
+	fieldsInOrder := [...]string{"id", "name", "filters", "sendAlert", "actions", "integrationKeys"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -33399,15 +33456,15 @@ func (ec *executionContext) unmarshalInputUpdateServiceRuleInput(ctx context.Con
 				return it, err
 			}
 			it.Name = data
-		case "filter":
+		case "filters":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+			data, err := ec.unmarshalNServiceRuleFilterInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐFilterᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Filter = data
+			it.Filters = data
 		case "sendAlert":
 			var err error
 
@@ -44091,6 +44148,28 @@ func (ec *executionContext) marshalNServiceRuleFilter2ᚕgithubᚗcomᚋtarget�
 	}
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalNServiceRuleFilterInput2githubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐFilter(ctx context.Context, v interface{}) (rule.Filter, error) {
+	res, err := ec.unmarshalInputServiceRuleFilterInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNServiceRuleFilterInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐFilterᚄ(ctx context.Context, v interface{}) ([]rule.Filter, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]rule.Filter, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNServiceRuleFilterInput2githubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐFilter(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalNServiceRuleFilterValueType2githubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐFilterValueType(ctx context.Context, v interface{}) (rule.FilterValueType, error) {
