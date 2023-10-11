@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { gql, useMutation, useQuery } from '@apollo/client'
+import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import makeStyles from '@mui/styles/makeStyles'
 import CardHeader from '@mui/material/CardHeader'
+import { Theme } from '@mui/material/styles'
+import { Add } from '@mui/icons-material'
 import FlatList from '../lists/FlatList'
 import { reorderList, calcNewActiveIndex } from './util'
 import OtherActions from '../util/OtherActions'
@@ -12,9 +15,11 @@ import { UserAvatar } from '../util/avatars'
 import { styles as globalStyles } from '../styles/materialStyles'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
-import { Theme } from '@mui/material/styles'
 import { User, Rotation } from '../../schema'
 import { Time } from '../util/Time'
+import CreateFAB from '../lists/CreateFAB'
+import RotationAddUserDialog from './RotationAddUserDialog'
+import { useIsWidthDown } from '../util/useWidth'
 
 const query = gql`
   query rotationUsers($id: ID!) {
@@ -27,6 +32,7 @@ const query = gql`
       timeZone
       activeUserIndex
       nextHandoffTimes
+      userIDs
     }
   }
 `
@@ -59,7 +65,9 @@ function RotationUserList(props: RotationUserListProps): JSX.Element {
   const { rotationID } = props
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null)
   const [setActiveIndex, setSetActiveIndex] = useState<number | null>(null)
+  const [showAddUser, setShowAddUser] = useState(false)
   const [lastSwap, setLastSwap] = useState<SwapType[]>([])
+  const isMobile = useIsWidthDown('md')
 
   const {
     data,
@@ -81,7 +89,7 @@ function RotationUserList(props: RotationUserListProps): JSX.Element {
   if (qError || mError)
     return <GenericError error={qError?.message || mError?.message} />
 
-  const { users, activeUserIndex, nextHandoffTimes } = data.rotation
+  const { users, userIDs, activeUserIndex, nextHandoffTimes } = data.rotation
 
   // duplicate first entry
   const _nextHandoffTimes = (nextHandoffTimes || [])
@@ -130,6 +138,9 @@ function RotationUserList(props: RotationUserListProps): JSX.Element {
 
   return (
     <React.Fragment>
+      {isMobile && (
+        <CreateFAB title='Add User' onClick={() => setShowAddUser(true)} />
+      )}
       {deleteIndex !== null && (
         <RotationUserDeleteDialog
           rotationID={rotationID}
@@ -144,18 +155,34 @@ function RotationUserList(props: RotationUserListProps): JSX.Element {
           onClose={() => setSetActiveIndex(null)}
         />
       )}
+      {showAddUser && (
+        <RotationAddUserDialog
+          rotationID={rotationID}
+          userIDs={userIDs ?? []}
+          onClose={() => setShowAddUser(false)}
+        />
+      )}
       <Card>
         <CardHeader
           className={classes.cardHeader}
           component='h3'
           title='Users'
+          action={
+            !isMobile ? (
+              <Button
+                variant='contained'
+                onClick={() => setShowAddUser(true)}
+                startIcon={<Add />}
+              >
+                Add User
+              </Button>
+            ) : null
+          }
         />
 
         <FlatList
           data-cy='users'
           emptyMessage='No users currently assigned to this rotation'
-          headerNote={users.length ? 'Toggle edit to reorder users' : ''}
-          toggleDnD
           items={users.map((u: User, index: number) => ({
             title: u.name,
             id: String(listIDs[index]),

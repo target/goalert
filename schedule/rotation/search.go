@@ -57,7 +57,7 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		AND NOT rot.id = any(:omit)
 	{{end}}
 	{{if .Search}}
-		AND {{prefixSearch "search" "rot.name"}} OR {{prefixSearch "search" "rot.description"}}
+		AND ({{orderedPrefixSearch "search" "rot.name"}} OR {{contains "search" "rot.description"}})
 	{{end}}
 	{{if .After.Name}}
 		AND

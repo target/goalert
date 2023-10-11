@@ -27,7 +27,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 	return []ConfigValue{
 		{ID: "General.ApplicationName", Type: ConfigTypeString, Description: "The name used in messaging and page titles. Defaults to \"GoAlert\".", Value: cfg.General.ApplicationName},
 		{ID: "General.PublicURL", Type: ConfigTypeString, Description: "Publicly routable URL for UI links and API calls.", Value: cfg.General.PublicURL, Deprecated: "Use --public-url flag instead, which takes precedence."},
-		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "No longer used.", Value: cfg.General.GoogleAnalyticsID, Deprecated: "No longer used."},
+		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "If set, will post user metrics to the corresponding data stream in Google Analytics 4.", Value: cfg.General.GoogleAnalyticsID},
 		{ID: "General.NotificationDisclaimer", Type: ConfigTypeString, Description: "Disclaimer text for receiving pre-recorded notifications (appears on profile page).", Value: cfg.General.NotificationDisclaimer},
 		{ID: "General.DisableMessageBundles", Type: ConfigTypeBoolean, Description: "Disable bundling status updates and alert notifications.", Value: fmt.Sprintf("%t", cfg.General.DisableMessageBundles)},
 		{ID: "General.ShortURL", Type: ConfigTypeString, Description: "If set, messages will contain a shorter URL using this as a prefix (e.g. http://example.com). It should point to GoAlert and can be the same as the PublicURL.", Value: cfg.General.ShortURL},
@@ -79,7 +79,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Twilio.SMSFromNumberOverride", Type: ConfigTypeStringList, Description: "List of 'carrier=number' pairs, SMS messages to numbers of the provided carrier string (exact match) will use the alternate From Number.", Value: strings.Join(cfg.Twilio.SMSFromNumberOverride, "\n")},
 		{ID: "SMTP.Enable", Type: ConfigTypeBoolean, Description: "Enables email as a contact method.", Value: fmt.Sprintf("%t", cfg.SMTP.Enable)},
 		{ID: "SMTP.From", Type: ConfigTypeString, Description: "The email address messages should be sent from.", Value: cfg.SMTP.From},
-		{ID: "SMTP.Address", Type: ConfigTypeString, Description: "The server address to use for sending email. Port is optional.", Value: cfg.SMTP.Address},
+		{ID: "SMTP.Address", Type: ConfigTypeString, Description: "The server address to use for sending email. Port is optional and defaults to 465, or 25 if Disable TLS is set. Common ports are: 25 or 587 for STARTTLS (or unencrypted) and 465 for TLS.", Value: cfg.SMTP.Address},
 		{ID: "SMTP.DisableTLS", Type: ConfigTypeBoolean, Description: "Disables TLS on the connection (STARTTLS will still be used if supported).", Value: fmt.Sprintf("%t", cfg.SMTP.DisableTLS)},
 		{ID: "SMTP.SkipVerify", Type: ConfigTypeBoolean, Description: "Disables certificate validation for TLS/STARTTLS (insecure).", Value: fmt.Sprintf("%t", cfg.SMTP.SkipVerify)},
 		{ID: "SMTP.Username", Type: ConfigTypeString, Description: "Username for authentication.", Value: cfg.SMTP.Username},
@@ -96,7 +96,7 @@ func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 	return []ConfigValue{
 		{ID: "General.ApplicationName", Type: ConfigTypeString, Description: "The name used in messaging and page titles. Defaults to \"GoAlert\".", Value: cfg.General.ApplicationName},
 		{ID: "General.PublicURL", Type: ConfigTypeString, Description: "Publicly routable URL for UI links and API calls.", Value: cfg.General.PublicURL, Deprecated: "Use --public-url flag instead, which takes precedence."},
-		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "No longer used.", Value: cfg.General.GoogleAnalyticsID, Deprecated: "No longer used."},
+		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "If set, will post user metrics to the corresponding data stream in Google Analytics 4.", Value: cfg.General.GoogleAnalyticsID},
 		{ID: "General.NotificationDisclaimer", Type: ConfigTypeString, Description: "Disclaimer text for receiving pre-recorded notifications (appears on profile page).", Value: cfg.General.NotificationDisclaimer},
 		{ID: "General.DisableMessageBundles", Type: ConfigTypeBoolean, Description: "Disable bundling status updates and alert notifications.", Value: fmt.Sprintf("%t", cfg.General.DisableMessageBundles)},
 		{ID: "General.ShortURL", Type: ConfigTypeString, Description: "If set, messages will contain a shorter URL using this as a prefix (e.g. http://example.com). It should point to GoAlert and can be the same as the PublicURL.", Value: cfg.General.ShortURL},
@@ -136,7 +136,7 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 		if v == "" {
 			return 0, nil
 		}
-		val, err := strconv.ParseInt(v, 10, 64)
+		val, err := strconv.ParseInt(v, 10, 32)
 		if err != nil {
 			return 0, validation.NewFieldError("\""+id+"\".Value", "integer value invalid: "+err.Error())
 		}

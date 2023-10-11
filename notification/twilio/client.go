@@ -13,11 +13,12 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/notification"
 	"github.com/target/goalert/util/log"
 )
 
 // DefaultTwilioAPIURL is the value that will be used for API calls if Config.BaseURL is empty.
-const DefaultTwilioAPIURL = "https://api.twilio.com/2010-04-01"
+const DefaultTwilioAPIURL = "https://api.twilio.com"
 
 // SMSOptions allows configuring outgoing SMS messages.
 type SMSOptions struct {
@@ -71,13 +72,15 @@ func urlJoin(base string, parts ...string) string {
 	}
 	return base + "/" + strings.Join(parts, "/")
 }
+
 func (c *Config) url(parts ...string) string {
 	base := c.BaseURL
 	if base == "" {
 		base = DefaultTwilioAPIURL
 	}
-	return urlJoin(base, parts...)
+	return urlJoin(urlJoin(base, "2010-04-01"), parts...)
 }
+
 func (c *Config) httpClient() *http.Client {
 	if c.Client != nil {
 		return c.Client
@@ -85,6 +88,7 @@ func (c *Config) httpClient() *http.Client {
 
 	return http.DefaultClient
 }
+
 func (c *Config) get(ctx context.Context, urlStr string) (*http.Response, error) {
 	req, err := http.NewRequest("GET", urlStr, nil)
 	if err != nil {
@@ -98,6 +102,7 @@ func (c *Config) get(ctx context.Context, urlStr string) (*http.Response, error)
 
 	return c.httpClient().Do(req)
 }
+
 func (c *Config) post(ctx context.Context, urlStr string, v url.Values) (*http.Response, error) {
 	req, err := http.NewRequest("POST", urlStr, bytes.NewBufferString(v.Encode()))
 	if err != nil {
@@ -185,6 +190,51 @@ func (voice *VoiceOptions) CallbackURL(cfg config.Config) (string, error) {
 		return "", errors.New("CallType missing")
 	}
 	return cfg.CallbackURL("/api/v2/twilio/call?type="+url.QueryEscape(string(voice.CallType)), voice.CallbackParams, voice.Params), nil
+}
+
+// setMsgBody will encode and set/update the message body parameter.
+func (voice *VoiceOptions) setMsgBody(body string) {
+	if voice.Params == nil {
+		voice.Params = make(url.Values)
+	}
+
+	// Encode the body, so we don't need to worry about
+	// buggy apps not escaping URL params properly.
+	voice.Params.Set(msgParamBody, b64enc.EncodeToString([]byte(body)))
+}
+
+// setMsgParams will set parameters for the provided message.
+func (voice *VoiceOptions) setMsgParams(msg notification.Message) (err error) {
+	if voice.CallbackParams == nil {
+		voice.CallbackParams = make(url.Values)
+	}
+	if voice.Params == nil {
+		voice.Params = make(url.Values)
+	}
+
+	subID := -1
+	switch t := msg.(type) {
+	case notification.AlertBundle:
+		voice.Params.Set(msgParamBundle, "1")
+		voice.CallType = CallTypeAlert
+	case notification.Alert:
+		voice.CallType = CallTypeAlert
+		subID = t.AlertID
+	case notification.AlertStatus:
+		voice.CallType = CallTypeAlertStatus
+		subID = t.AlertID
+	case notification.Test:
+		voice.CallType = CallTypeTest
+	case notification.Verification:
+		voice.CallType = CallTypeVerify
+	default:
+		return errors.Errorf("unhandled message type: %T", t)
+	}
+
+	voice.Params.Set(msgParamSubID, strconv.Itoa(subID))
+	voice.CallbackParams.Set(msgParamID, msg.ID())
+
+	return nil
 }
 
 // StatusCallbackURL will return the status callback url for the given configuration.

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
@@ -34,13 +35,16 @@ func NewServer() *Server {
 	srv.mux.HandleFunc("/api/conversations.info", srv.ServeConversationsInfo)
 	srv.mux.HandleFunc("/api/conversations.list", srv.ServeConversationsList)
 	srv.mux.HandleFunc("/api/users.conversations", srv.ServeConversationsList) // same data
+	srv.mux.HandleFunc("/api/users.info", srv.ServeUsersInfo)
 	srv.mux.HandleFunc("/api/oauth.access", srv.ServeOAuthAccess)
 	srv.mux.HandleFunc("/api/auth.revoke", srv.ServeAuthRevoke)
 	srv.mux.HandleFunc("/api/auth.test", srv.ServeAuthTest)
 	srv.mux.HandleFunc("/api/channels.create", srv.ServeChannelsCreate)
 	srv.mux.HandleFunc("/api/groups.create", srv.ServeGroupsCreate)
+	srv.mux.HandleFunc("/api/team.info", srv.ServeTeamInfo)
+	srv.mux.HandleFunc("/api/usergroups.list", srv.ServeUserGroupList)
+	srv.mux.HandleFunc("/api/usergroups.users.update", srv.ServeUserGroupsUsersUpdate)
 	// TODO: history, leave, join
-	srv.mux.HandleFunc("/oauth/authorize", srv.ServeOAuthAuthorize)
 
 	srv.mux.HandleFunc("/stats", func(w http.ResponseWriter, req *http.Request) {
 		srv.state.mx.Lock()
@@ -50,7 +54,7 @@ func NewServer() *Server {
 
 	// handle 404/unknown api methods
 	srv.mux.HandleFunc("/api/", func(w http.ResponseWriter, req *http.Request) {
-		err := json.NewEncoder(w).Encode(response{Err: "unknown_method"})
+		err := json.NewEncoder(w).Encode(response{Err: "unknown_method: " + strings.TrimPrefix(req.URL.Path, "/api/")})
 		if err != nil {
 			log.Println("ERROR:", err)
 		}
@@ -204,6 +208,47 @@ func (st *state) NewChannel(name string) ChannelInfo {
 	st.mx.Unlock()
 
 	return info
+}
+
+// UserGroupInfo contains information about a newly created Slack user group.
+type UserGroupInfo struct {
+	ID, Name, Handle string
+}
+
+// NewUserGroup will create a new Slack user group with the given name.
+func (st *state) NewUserGroup(name string) UserGroupInfo {
+	info := UserGroupInfo{
+		ID:     st.gen.UserGroupID(),
+		Name:   name,
+		Handle: name,
+	}
+
+	st.mx.Lock()
+	st.usergroups[info.ID] = &usergroupState{UserGroup: UserGroup{
+		ID:          info.ID,
+		Name:        info.Name,
+		Handle:      info.Handle,
+		IsUserGroup: true,
+	}}
+	st.mx.Unlock()
+
+	return info
+}
+
+// UserGroupUserIDs will return all users from a given user group.
+func (st *state) UserGroupUserIDs(ugID string) []string {
+	st.mx.Lock()
+	defer st.mx.Unlock()
+
+	ug := st.usergroups[ugID]
+	if ug == nil {
+		return nil
+	}
+
+	users := make([]string, len(ug.Users))
+	copy(users, ug.Users)
+
+	return users
 }
 
 // Messages will return all messages from a given channel/group.

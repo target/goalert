@@ -19,7 +19,6 @@ import (
 
 // Config is used to configure the mock server.
 type Config struct {
-
 	// The SID and token should match values given to the backend
 	// as the mock server will send and validate signatures.
 	AccountSID string
@@ -83,7 +82,7 @@ func NewServer(cfg Config) *Server {
 		carrierInfo: make(map[string]twilio.CarrierInfo),
 	}
 
-	base := "/Accounts/" + cfg.AccountSID
+	base := "/2010-04-01/Accounts/" + cfg.AccountSID
 
 	s.mux.HandleFunc(base+"/Calls.json", s.serveNewCall)
 	s.mux.HandleFunc(base+"/Messages.json", s.serveNewMessage)

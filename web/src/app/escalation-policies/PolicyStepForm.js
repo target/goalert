@@ -14,16 +14,19 @@ import {
   ScheduleSelect,
   SlackChannelSelect,
   UserSelect,
+  ChanWebhookSelect,
 } from '../selection'
 
 import {
   RotateRight as RotationsIcon,
   Today as SchedulesIcon,
   Group as UsersIcon,
+  Webhook as WebhookIcon,
 } from '@mui/icons-material'
 import { SlackBW as SlackIcon } from '../icons/components/Icons'
 import { Config } from '../util/RequireConfig'
 import NumberField from '../util/NumberField'
+import AppLink from '../util/AppLink'
 
 const useStyles = makeStyles({
   badge: {
@@ -221,6 +224,44 @@ function PolicyStepForm(props) {
                     />
                   </StepContent>
                 </Step>
+                {cfg['Webhook.Enable'] && (
+                  <Step>
+                    <StepButton
+                      aria-expanded={(
+                        step === (cfg['Slack.Enable'] ? 4 : 3)
+                      ).toString()}
+                      data-cy='webhook-step'
+                      icon={<WebhookIcon />}
+                      optional={optionalText}
+                      onClick={() =>
+                        handleStepChange(cfg['Slack.Enable'] ? 4 : 3)
+                      }
+                      tabIndex={-1}
+                    >
+                      {badgeMeUpScotty(
+                        getTargetsByType('chanWebhook')(value.targets).length,
+                        'Add Webhook',
+                      )}
+                    </StepButton>
+                    <StepContent>
+                      <FormField
+                        fullWidth
+                        disabled={disabled}
+                        component={ChanWebhookSelect}
+                        fieldName='targets'
+                        label='Webhook URL'
+                        name='webhooks'
+                        mapValue={getTargetsByType('chanWebhook')}
+                        mapOnChangeValue={setTargetType('chanWebhook')}
+                        hint={
+                          <AppLink newTab to='/docs#webhooks'>
+                            Webhook Documentation
+                          </AppLink>
+                        }
+                      />
+                    </StepContent>
+                  </Step>
+                )}
               </Stepper>
             )}
           </Config>

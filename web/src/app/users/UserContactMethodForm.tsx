@@ -1,18 +1,23 @@
-import React from 'react'
+import { Checkbox, FormControlLabel, Typography } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
+import React, { useMemo } from 'react'
+import { ContactMethodType, StatusUpdateState } from '../../schema'
 import { FormContainer, FormField } from '../forms'
-import TelTextField from '../util/TelTextField'
-import { MenuItem, Typography } from '@mui/material'
-import { ContactMethodType } from '../../schema'
+import {
+  renderMenuItem,
+  sortDisableableMenuItems,
+} from '../selection/DisableableMenuItem'
 import { useConfigValue } from '../util/RequireConfig'
+import TelTextField from '../util/TelTextField'
 import { FieldError } from '../util/errutil'
-import { useExpFlag } from '../util/useExpFlag'
+import AppLink from '../util/AppLink'
 
 type Value = {
   name: string
   type: ContactMethodType
   value: string
+  statusUpdates?: StatusUpdateState
 }
 
 export type UserContactMethodFormProps = {
@@ -69,6 +74,11 @@ function renderURLField(edit: boolean): JSX.Element {
       type='url'
       component={TextField}
       disabled={edit}
+      hint={
+        <AppLink newTab to='/docs#webhooks'>
+          Webhook Documentation
+        </AppLink>
+      }
     />
   )
 }
@@ -138,7 +148,43 @@ export default function UserContactMethodForm(
     'General.NotificationDisclaimer',
   )
 
-  const slackDMEnabled = useExpFlag('slack-dm')
+  const statusUpdateChecked =
+    value.statusUpdates === 'ENABLED' ||
+    value.statusUpdates === 'ENABLED_FORCED' ||
+    false
+
+  const contactMethods = useMemo(
+    () =>
+      [
+        {
+          value: 'SMS',
+          disabledMessage: 'Twilio must be configured by an administrator',
+          disabled: !smsVoiceEnabled,
+        },
+        {
+          value: 'VOICE',
+          disabledMessage: 'Twilio must be configured by an administrator',
+          disabled: !smsVoiceEnabled,
+        },
+        {
+          value: 'EMAIL',
+          disabledMessage: 'SMTP must be configured by an administrator',
+          disabled: !emailEnabled,
+        },
+        {
+          value: 'WEBHOOK',
+          disabledMessage: 'Webhooks must be enabled by an administrator',
+          disabled: !webhookEnabled,
+        },
+        {
+          value: 'SLACK_DM',
+          label: 'SLACK DM',
+          disabledMessage: 'Slack must be configured by an administrator',
+          disabled: !slackEnabled,
+        },
+      ].sort(sortDisableableMenuItems),
+    [smsVoiceEnabled, emailEnabled, webhookEnabled, slackEnabled],
+  )
 
   return (
     <FormContainer
@@ -173,17 +219,7 @@ export default function UserContactMethodForm(
             disabled={edit}
             component={TextField}
           >
-            {(edit || smsVoiceEnabled) && <MenuItem value='SMS'>SMS</MenuItem>}
-            {(edit || smsVoiceEnabled) && (
-              <MenuItem value='VOICE'>VOICE</MenuItem>
-            )}
-            {(edit || emailEnabled) && <MenuItem value='EMAIL'>EMAIL</MenuItem>}
-            {(edit || webhookEnabled) && (
-              <MenuItem value='WEBHOOK'>WEBHOOK</MenuItem>
-            )}
-            {(edit || (slackEnabled && slackDMEnabled)) && (
-              <MenuItem value='SLACK_DM'>SLACK DM</MenuItem>
-            )}
+            {contactMethods.map(renderMenuItem)}
           </FormField>
         </Grid>
         <Grid item xs={12}>
@@ -192,6 +228,30 @@ export default function UserContactMethodForm(
         <Grid item xs={12}>
           <Typography variant='caption'>{disclaimer}</Typography>
         </Grid>
+        {edit && (
+          <Grid item xs={12}>
+            <FormControlLabel
+              label='Enable status updates'
+              control={
+                <Checkbox
+                  name='enableStatusUpdates'
+                  disabled={
+                    value.statusUpdates === 'DISABLED_FORCED' ||
+                    value.statusUpdates === 'ENABLED_FORCED'
+                  }
+                  checked={statusUpdateChecked}
+                  onChange={(v) =>
+                    props.onChange &&
+                    props.onChange({
+                      ...value,
+                      statusUpdates: v.target.checked ? 'ENABLED' : 'DISABLED',
+                    })
+                  }
+                />
+              }
+            />
+          </Grid>
+        )}
       </Grid>
     </FormContainer>
   )

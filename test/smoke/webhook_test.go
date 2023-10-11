@@ -8,30 +8,35 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/test/smoke/harness"
 )
 
 type WebhookTestingAlert struct {
-	AlertID int
-	Type    string
-	Summary string
-	Details string
+	AlertID     int
+	Type        string
+	Summary     string
+	Details     string
+	ServiceID   string
+	ServiceName string
 }
 
 func TestWebhookAlert(t *testing.T) {
 	t.Parallel()
 
-	ch := make(chan WebhookTestingAlert)
+	ch := make(chan WebhookTestingAlert, 1)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var alert WebhookTestingAlert
 
 		data, err := io.ReadAll(r.Body)
-		require.Nil(t, err)
+		if !assert.NoError(t, err) {
+			return
+		}
 
 		err = json.Unmarshal(data, &alert)
-		require.Nil(t, err)
+		if !assert.NoError(t, err) {
+			return
+		}
 
 		ch <- alert
 	}))
@@ -76,4 +81,6 @@ func TestWebhookAlert(t *testing.T) {
 	assert.Equal(t, alert.Type, "Alert")
 	assert.Equal(t, alert.Summary, "testing summary")
 	assert.Equal(t, alert.Details, "testing details")
+	assert.Equal(t, alert.ServiceID, h.UUID("sid"))
+	assert.Equal(t, alert.ServiceName, "service")
 }

@@ -27,7 +27,6 @@ type Store struct {
 	update      *sql.Stmt
 	setUserRole *sql.Stmt
 	findOne     *sql.Stmt
-	findAll     *sql.Stmt
 
 	findMany *sql.Stmt
 
@@ -50,8 +49,6 @@ type Store struct {
 	usersMissingProvider *sql.Stmt
 	setAuthSubject       *sql.Stmt
 
-	findAuthSubjectsByUser *sql.Stmt
-
 	findAuthSubjects *sql.Stmt
 
 	grp *groupcache.Group
@@ -70,21 +67,20 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 		userExist: make(chan map[uuid.UUID]struct{}, 1),
 
-		ids: p.P(`SELECT id FROM users`),
-
 		insert: p.P(`
 			INSERT INTO users (
-				id, name, email, avatar_url, role, alert_status_log_contact_method_id
+				id, name, email, avatar_url, role
 			)
-			VALUES ($1, $2, $3, $4, $5, $6)
+			VALUES ($1, $2, $3, $4, $5)
 		`),
+
+		ids: p.P(`SELECT id FROM users`),
 
 		update: p.P(`
 			UPDATE users
 			SET
 				name = $2,
-				email = $3,
-				alert_status_log_contact_method_id = $4
+				email = $3
 			WHERE id = $1
 		`),
 
@@ -103,7 +99,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 		usersMissingProvider: p.P(`
 			SELECT
-				id, name, email, avatar_url, role, alert_status_log_contact_method_id, false
+				id, name, email, avatar_url, role, false
 			FROM users
 			WHERE id not in (select user_id from auth_subjects where provider_id = $1)
 		`),
@@ -116,7 +112,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 		findMany: p.P(`
 			SELECT
-				u.id, u.name, u.email, u.avatar_url, u.role, u.alert_status_log_contact_method_id, fav is distinct from null
+				u.id, u.name, u.email, u.avatar_url, u.role, fav is distinct from null
 			FROM users u
 			LEFT JOIN user_favorites fav ON
 				fav.tgt_user_id = u.id AND fav.user_id = $2
@@ -131,7 +127,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 		findOneBySubject: p.P(`
 			SELECT
-				u.id, u.name, u.email, u.avatar_url, u.role, u.alert_status_log_contact_method_id, false
+				u.id, u.name, u.email, u.avatar_url, u.role, false
 			FROM auth_subjects s
 			JOIN users u ON u.id = s.user_id
 			WHERE s.provider_id = $1 AND s.subject_id = $2
@@ -139,30 +135,19 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 		findOne: p.P(`
 			SELECT
-				u.id, u.name, u.email, u.avatar_url, u.role, u.alert_status_log_contact_method_id, fav is distinct from null
+				u.id, u.name, u.email, u.avatar_url, u.role, fav is distinct from null
 			FROM users u
 			LEFT JOIN user_favorites fav ON
 				fav.tgt_user_id = u.id AND fav.user_id = $2
 			WHERE u.id = $1
 		`),
+
 		findOneForUpdate: p.P(`
 			SELECT
-				id, name, email, avatar_url, role, alert_status_log_contact_method_id, false
+				id, name, email, avatar_url, role, false
 			FROM users
 			WHERE id = $1
 			FOR UPDATE
-		`),
-
-		findAuthSubjectsByUser: p.P(`
-			SELECT provider_id, subject_id
-			FROM auth_subjects 
-			WHERE user_id = $1
-		`),
-
-		findAll: p.P(`
-			SELECT
-				id, name, email, avatar_url, role, alert_status_log_contact_method_id, false
-			FROM users
 		`),
 
 		insertUserAuthSubject: p.P(`
@@ -257,7 +242,11 @@ func (s *Store) WithoutAuthProviderFunc(ctx context.Context, providerID string, 
 // providerID, if not empty, will limit AuthSubjects to those with the same providerID.
 // userID, if not empty, will limit AuthSubjects to those assigned to the given userID(s).
 func (s *Store) AuthSubjectsFunc(ctx context.Context, providerID string, userIDs []string, forEachFn func(AuthSubject) error) error {
-	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
+	checks := []permission.Checker{permission.Admin}
+	if len(userIDs) == 1 {
+		checks = append(checks, permission.MatchUser(userIDs[0]))
+	}
+	err := permission.LimitCheckAny(ctx, checks...)
 	if err != nil {
 		return err
 	}
@@ -498,10 +487,7 @@ func (s *Store) removeUserFromRotation(ctx context.Context, tx *sql.Tx, userID, 
 	return nil
 }
 
-// Update id equivalent to calling UpdateTx(ctx, nil, u).
-func (s *Store) Update(ctx context.Context, u *User) error { return s.UpdateTx(ctx, nil, u) }
-
-// UpdateTx allows updating a user name, email, and status update preference.
+// UpdateTx allows updating a user name and email.
 func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, u *User) error {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin, permission.MatchUser(u.ID))
 	if err != nil {
@@ -706,31 +692,6 @@ func (s *Store) FindAllAuthSubjectsForUser(ctx context.Context, userID string) (
 	}
 
 	return result, nil
-}
-
-// FindAll returns all users, favorites information is not included (always false).
-func (s *Store) FindAll(ctx context.Context) ([]User, error) {
-	err := permission.LimitCheckAny(ctx, permission.All)
-	if err != nil {
-		return nil, err
-	}
-	rows, err := s.findAll.QueryContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	users := []User{}
-	for rows.Next() {
-		var u User
-		err = u.scanFrom(rows.Scan)
-		if err != nil {
-			return nil, err
-		}
-		users = append(users, u)
-	}
-
-	return users, nil
 }
 
 // AddAuthSubjectTx adds an auth subject for a user.

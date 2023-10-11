@@ -15,14 +15,11 @@ import { useURLParam } from '../actions'
 
 const useStyles = makeStyles((theme) => {
   return {
-    textField: {
-      backgroundColor: theme.palette.mode === 'dark' ? 'inherit' : 'white',
-      borderRadius: '4px',
+    transition: {
       [theme.breakpoints.down('md')]: {
         flex: 1,
       },
       [theme.breakpoints.up('md')]: {
-        minWidth: 250,
         '& input:focus': {
           minWidth: 275,
         },
@@ -98,8 +95,14 @@ export default function Search(props) {
         hiddenLabel
         onChange={(e) => setSearch(e.target.value)}
         value={search}
-        className={classes.textField}
         size='small'
+        fullWidth={props.fullWidth}
+        className={props.transition ? classes.transition : null}
+        sx={(theme) => ({
+          minWidth: 250,
+          backgroundColor: theme.palette.mode === 'dark' ? 'inherit' : 'white',
+          borderRadius: '4px',
+        })}
       />
     )
   }
@@ -164,4 +167,10 @@ export default function Search(props) {
 
 Search.propTypes = {
   endAdornment: p.node,
+  transition: p.bool,
+  fullWidth: p.bool,
+}
+
+Search.defaultProps = {
+  transition: true,
 }

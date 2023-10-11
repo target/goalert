@@ -88,6 +88,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	summary := r.FormValue("summary")
 	details := r.FormValue("details")
 	action := r.FormValue("action")
+	dedup := r.FormValue("dedup")
 
 	ct, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if ct == "application/json" {
@@ -98,7 +99,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var b struct {
-			Summary, Details, Action *string
+			Summary, Details, Action, Dedup *string
 		}
 		err = json.Unmarshal(data, &b)
 		if err != nil {
@@ -111,6 +112,9 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		}
 		if b.Details != nil {
 			details = *b.Details
+		}
+		if b.Dedup != nil {
+			dedup = *b.Dedup
 		}
 		if b.Action != nil {
 			action = *b.Action
@@ -130,12 +134,24 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		Details:   details,
 		Source:    alert.SourceGeneric,
 		ServiceID: serviceID,
-		Dedup:     alert.NewUserDedup(r.FormValue("dedup")),
+		Dedup:     alert.NewUserDedup(dedup),
 		Status:    status,
 	}
 
+	var resp struct {
+		AlertID   int
+		ServiceID string
+		IsNew     bool
+	}
+
 	err = retry.DoTemporaryError(func(int) error {
-		_, err = h.c.AlertStore.CreateOrUpdate(ctx, a)
+		createdAlert, isNew, err := h.c.AlertStore.CreateOrUpdate(ctx, a)
+		if createdAlert != nil {
+			resp.AlertID = createdAlert.ID
+			resp.ServiceID = createdAlert.ServiceID
+			resp.IsNew = isNew
+		}
+
 		return err
 	},
 		retry.Log(ctx),
@@ -146,5 +162,15 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(204)
+	if r.Header.Get("Accept") != "application/json" {
+		w.WriteHeader(204)
+		return
+	}
+
+	data, err := json.Marshal(&resp)
+	if errutil.HTTPError(ctx, w, err) {
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(data)
 }

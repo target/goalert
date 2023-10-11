@@ -1,4 +1,3 @@
-import { startCase } from 'lodash'
 declare global {
   namespace Cypress {
     interface Chainable {
@@ -10,6 +9,13 @@ declare global {
       navigateToAndFrom: typeof navigateToAndFrom
     }
   }
+}
+
+function startCase(str: string): string {
+  return str
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
 }
 
 /*

@@ -62,8 +62,8 @@ func NewDB(ctx context.Context, db *sql.DB, cs *slack.ChannelSender) (*DB, error
 		`),
 
 		insertCM: p.P(`
-			insert into user_contact_methods (id, name, type, value, user_id)
-			values ($1, $2, $3, $4, $5)
+			insert into user_contact_methods (id, name, type, value, user_id, pending)
+			values ($1, $2, $3, $4, $5, false)
 			on conflict (type, value) do nothing
 		`),
 

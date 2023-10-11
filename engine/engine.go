@@ -21,7 +21,7 @@ import (
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/engine/rotationmanager"
 	"github.com/target/goalert/engine/schedulemanager"
-	"github.com/target/goalert/engine/statusupdatemanager"
+	"github.com/target/goalert/engine/statusmgr"
 	"github.com/target/goalert/engine/verifymanager"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
@@ -35,7 +35,7 @@ type updater interface {
 	UpdateAll(context.Context) error
 }
 
-// Engine handles automatic escaltion of unacknowledged(triggered) alerts, as well as
+// Engine handles automatic escalation of unacknowledged(triggered) alerts, as well as
 // passing to-be-sent notifications to the notification.Sender.
 //
 // Care is taken to ensure only one attempt is made per contact-method
@@ -109,7 +109,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "notification cycle backend")
 	}
-	statMgr, err := statusupdatemanager.NewDB(ctx, db)
+	statMgr, err := statusmgr.NewDB(ctx, db)
 	if err != nil {
 		return nil, errors.Wrap(err, "status update backend")
 	}
@@ -238,7 +238,7 @@ func (p *Engine) _pause(ctx context.Context) error {
 	case p.triggerPauseCh <- &pauseReq{ch: ch, ctx: ctx}:
 		select {
 		case <-ctx.Done():
-			defer p.Resume(ctx)
+			defer func() { _ = p.Resume(ctx) }()
 			return ctx.Err()
 		case err := <-ch:
 			return err
@@ -358,7 +358,7 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 
 	var usr *user.User
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		cm, serr := p.cfg.ContactMethodStore.FindOne(ctx, cb.ContactMethodID)
+		cm, serr := p.cfg.ContactMethodStore.FindOne(ctx, p.b.db, cb.ContactMethodID)
 		if serr != nil {
 			err = errors.Wrap(serr, "lookup contact method")
 			return
@@ -411,7 +411,7 @@ func (p *Engine) Start(ctx context.Context, d notification.Dest) error {
 
 	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		err = p.cfg.ContactMethodStore.EnableByValue(ctx, d.Type.CMType(), d.Value)
+		err = p.cfg.ContactMethodStore.EnableByValue(ctx, p.b.db, d.Type.CMType(), d.Value)
 	})
 
 	return err
@@ -426,7 +426,7 @@ func (p *Engine) Stop(ctx context.Context, d notification.Dest) error {
 
 	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		err = p.cfg.ContactMethodStore.DisableByValue(ctx, d.Type.CMType(), d.Value)
+		err = p.cfg.ContactMethodStore.DisableByValue(ctx, p.b.db, d.Type.CMType(), d.Value)
 	})
 
 	return err

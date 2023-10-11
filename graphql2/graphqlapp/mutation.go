@@ -4,10 +4,14 @@ import (
 	context "context"
 	"database/sql"
 	"fmt"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
@@ -27,9 +31,9 @@ func (a *App) Mutation() graphql2.MutationResolver { return (*Mutation)(a) }
 func (a *Mutation) SetFavorite(ctx context.Context, input graphql2.SetFavoriteInput) (bool, error) {
 	var err error
 	if input.Favorite {
-		err = a.FavoriteStore.Set(ctx, permission.UserID(ctx), input.Target)
+		err = a.FavoriteStore.Set(ctx, a.DB, permission.UserID(ctx), input.Target)
 	} else {
-		err = a.FavoriteStore.Unset(ctx, permission.UserID(ctx), input.Target)
+		err = a.FavoriteStore.Unset(ctx, a.DB, permission.UserID(ctx), input.Target)
 	}
 
 	if err != nil {
@@ -52,21 +56,63 @@ func (a *Mutation) SetScheduleOnCallNotificationRules(ctx context.Context, input
 	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
 		rules := make([]schedule.OnCallNotificationRule, 0, len(input.Rules))
 		for i, r := range input.Rules {
-			err := validate.OneOf(fmt.Sprintf("Rules[%d].Target.Type", i), r.Target.Type, assignment.TargetTypeSlackChannel)
+			err := validate.OneOf(fmt.Sprintf("Rules[%d].Target.Type", i), r.Target.Type, assignment.TargetTypeSlackChannel, assignment.TargetTypeSlackUserGroup, assignment.TargetTypeChanWebhook)
 			if err != nil {
 				return err
 			}
 
-			ch, err := a.SlackStore.Channel(ctx, r.Target.ID)
-			if err != nil {
-				return err
+			var nfyChan *notificationchannel.Channel
+			switch r.Target.Type {
+			case assignment.TargetTypeSlackUserGroup:
+				grpID, chanID, _ := strings.Cut(r.Target.ID, ":")
+				grp, err := a.SlackStore.UserGroup(ctx, grpID)
+				if err != nil {
+					return validation.WrapError(err)
+				}
+				ch, err := a.SlackStore.Channel(ctx, chanID)
+				if err != nil {
+					return validation.WrapError(err)
+				}
+
+				nfyChan = &notificationchannel.Channel{
+					Type:  notificationchannel.TypeSlackUG,
+					Name:  fmt.Sprintf("%s (%s)", grp.Handle, ch.Name),
+					Value: r.Target.ID,
+				}
+			case assignment.TargetTypeSlackChannel:
+				ch, err := a.SlackStore.Channel(ctx, r.Target.ID)
+				if err != nil {
+					return err
+				}
+
+				nfyChan = &notificationchannel.Channel{
+					Type:  notificationchannel.TypeSlackChan,
+					Name:  ch.Name,
+					Value: ch.ID,
+				}
+			case assignment.TargetTypeChanWebhook:
+				url, err := url.Parse(r.Target.ID)
+				if err != nil {
+					return validation.NewFieldError("Rules[%d].Target.ID", "Invalid URL format")
+				}
+				url.RawQuery = ""
+				if len(url.Path) > 15 {
+					url.Path = url.Path[:12] + "..."
+				}
+
+				cfg := config.FromContext(ctx)
+				if !cfg.ValidWebhookURL(r.Target.ID) {
+					return validation.NewFieldError("Rules[%d].Target.ID", "URL not allowed by administrator")
+				}
+
+				nfyChan = &notificationchannel.Channel{
+					Type:  notificationchannel.TypeWebhook,
+					Name:  webhook.MaskURLPass(url),
+					Value: r.Target.ID,
+				}
 			}
 
-			r.ChannelID, err = a.NCStore.MapToID(ctx, tx, &notificationchannel.Channel{
-				Type:  notificationchannel.TypeSlack,
-				Name:  ch.Name,
-				Value: ch.ID,
-			})
+			r.ChannelID, err = a.NCStore.MapToID(ctx, tx, nfyChan)
 			if err != nil {
 				return err
 			}
@@ -215,7 +261,7 @@ func (a *Mutation) tryDeleteAll(ctx context.Context, input []assignment.RawTarge
 		case assignment.TargetTypeEscalationPolicy:
 			err = errors.Wrap(a.PolicyStore.DeleteManyPoliciesTx(ctx, tx, ids), "delete escalation policies")
 		case assignment.TargetTypeIntegrationKey:
-			err = errors.Wrap(a.IntKeyStore.DeleteManyTx(ctx, tx, ids), "delete integration keys")
+			err = errors.Wrap(a.IntKeyStore.DeleteMany(ctx, tx, ids), "delete integration keys")
 		case assignment.TargetTypeSchedule:
 			err = errors.Wrap(a.ScheduleStore.DeleteManyTx(ctx, tx, ids), "delete schedules")
 		case assignment.TargetTypeCalendarSubscription:
@@ -223,7 +269,7 @@ func (a *Mutation) tryDeleteAll(ctx context.Context, input []assignment.RawTarge
 		case assignment.TargetTypeRotation:
 			err = errors.Wrap(a.RotationStore.DeleteManyTx(ctx, tx, ids), "delete rotations")
 		case assignment.TargetTypeContactMethod:
-			err = errors.Wrap(a.CMStore.DeleteTx(ctx, tx, ids...), "delete contact methods")
+			err = errors.Wrap(a.CMStore.Delete(ctx, tx, ids...), "delete contact methods")
 		case assignment.TargetTypeNotificationRule:
 			err = errors.Wrap(a.NRStore.DeleteTx(ctx, tx, ids...), "delete notification rules")
 		case assignment.TargetTypeHeartbeatMonitor:

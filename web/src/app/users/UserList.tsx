@@ -1,10 +1,8 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { gql } from '@apollo/client'
-
 import { UserAvatar } from '../util/avatars'
 import QueryList from '../lists/QueryList'
 import UserPhoneNumberFilterContainer from './UserPhoneNumberFilterContainer'
-import CreateFAB from '../lists/CreateFAB'
 import UserCreateDialog from './UserCreateDialog'
 import { useSessionInfo } from '../util/RequireConfig'
 
@@ -26,7 +24,6 @@ const query = gql`
 `
 
 function UserList(): JSX.Element {
-  const [showCreateDialog, setShowCreateDialog] = useState(false)
   const { isAdmin, ready } = useSessionInfo()
 
   return (
@@ -42,23 +39,19 @@ function UserList(): JSX.Element {
           icon: <UserAvatar userID={n.id} />,
         })}
         mapVariables={(vars) => {
-          if (vars?.input.search.startsWith('phone=')) {
+          if (vars?.input?.search?.startsWith('phone=')) {
             vars.input.CMValue = vars.input.search.replace(/^phone=/, '')
             vars.input.search = ''
           }
           return vars
         }}
         searchAdornment={<UserPhoneNumberFilterContainer />}
+        renderCreateDialog={(onClose) => {
+          return <UserCreateDialog onClose={onClose} />
+        }}
+        createLabel='User'
+        hideCreate={!ready || (ready && !isAdmin)}
       />
-      {ready && isAdmin && (
-        <CreateFAB
-          onClick={() => setShowCreateDialog(true)}
-          title='Create User'
-        />
-      )}
-      {showCreateDialog && (
-        <UserCreateDialog onClose={() => setShowCreateDialog(false)} />
-      )}
     </React.Fragment>
   )
 }

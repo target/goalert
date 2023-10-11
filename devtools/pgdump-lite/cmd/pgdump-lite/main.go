@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v5"
 	"github.com/target/goalert/devtools/pgdump-lite"
 )
 
@@ -16,6 +16,7 @@ func main() {
 	file := flag.String("f", "", "Output file (default is stdout).")
 	db := flag.String("d", os.Getenv("DBURL"), "DB URL") // use same env var as pg_dump
 	dataOnly := flag.Bool("a", false, "dump only the data, not the schema")
+	schemaOnly := flag.Bool("s", false, "dump only the schema, no data")
 	skip := flag.String("T", "", "skip tables")
 	flag.Parse()
 
@@ -42,14 +43,25 @@ func main() {
 	}
 	defer conn.Close(ctx)
 
-	err = pgdump.DumpData(ctx, conn, out, strings.Split(*skip, ","))
-	if err != nil {
-		log.Fatalln("ERROR: dump data:", err)
+	if !*dataOnly {
+		s, err := pgdump.DumpSchema(ctx, conn)
+		if err != nil {
+			log.Fatalln("ERROR: dump data:", err)
+		}
+		_, err = out.WriteString("--\n-- pgdump-lite database dump\n--\n\n")
+		if err != nil {
+			log.Fatalln("ERROR: write header:", err)
+		}
+		_, err = out.WriteString(s.String())
+		if err != nil {
+			log.Fatalln("ERROR: write schema:", err)
+		}
 	}
 
-	if *dataOnly {
-		return
+	if !*schemaOnly {
+		err = pgdump.DumpData(ctx, conn, out, strings.Split(*skip, ","))
+		if err != nil {
+			log.Fatalln("ERROR: dump data:", err)
+		}
 	}
-
-	// TODO: dump schema
 }

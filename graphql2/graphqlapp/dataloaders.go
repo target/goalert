@@ -38,6 +38,7 @@ const (
 	dataLoaderKeyNotificationMessageStatus
 	dataLoaderKeyNC
 	dataLoaderAlertMetrics
+	dataLoaderAlertFeedback
 
 	dataLoaderKeyLast // always keep as last
 )
@@ -50,11 +51,12 @@ func (a *App) registerLoaders(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, dataLoaderKeySchedule, dataloader.NewStoreLoader(ctx, a.ScheduleStore.FindMany))
 	ctx = context.WithValue(ctx, dataLoaderKeyService, dataloader.NewStoreLoader(ctx, a.ServiceStore.FindMany))
 	ctx = context.WithValue(ctx, dataLoaderKeyUser, dataloader.NewStoreLoader(ctx, a.UserStore.FindMany))
-	ctx = context.WithValue(ctx, dataLoaderKeyCM, dataloader.NewStoreLoader(ctx, a.CMStore.FindMany))
+	ctx = context.WithValue(ctx, dataLoaderKeyCM, dataloader.NewStoreLoaderWithDB(ctx, a.DB, a.CMStore.FindMany))
 	ctx = context.WithValue(ctx, dataLoaderKeyNotificationMessageStatus, dataloader.NewStoreLoader(ctx, a.NotificationStore.FindManyMessageStatuses))
 	ctx = context.WithValue(ctx, dataLoaderKeyHeartbeatMonitor, dataloader.NewStoreLoader(ctx, a.HeartbeatStore.FindMany))
 	ctx = context.WithValue(ctx, dataLoaderKeyNC, dataloader.NewStoreLoader(ctx, a.NCStore.FindMany))
 	ctx = context.WithValue(ctx, dataLoaderAlertMetrics, dataloader.NewStoreLoaderInt(ctx, a.AlertMetricsStore.FindMetrics))
+	ctx = context.WithValue(ctx, dataLoaderAlertFeedback, dataloader.NewStoreLoaderInt(ctx, a.AlertStore.Feedback))
 	return ctx
 }
 
@@ -76,6 +78,22 @@ func (app *App) FindOneNotificationMessageStatus(ctx context.Context, id string)
 			return nil, err
 		}
 		return &ms[0], nil
+	}
+
+	return loader.FetchOne(ctx, id)
+}
+
+func (app *App) FindOneAlertFeedback(ctx context.Context, id int) (*alert.Feedback, error) {
+	loader, ok := ctx.Value(dataLoaderAlertFeedback).(*dataloader.Loader[int, alert.Feedback])
+	if !ok {
+		feedback, err := app.AlertStore.Feedback(ctx, []int{id})
+		if err != nil {
+			return nil, err
+		}
+		if len(feedback) == 0 {
+			return nil, nil
+		}
+		return &feedback[0], nil
 	}
 
 	return loader.FetchOne(ctx, id)
@@ -128,7 +146,7 @@ func (app *App) FindOneAlertMetric(ctx context.Context, id int) (*alertmetrics.M
 func (app *App) FindOneCM(ctx context.Context, id string) (*contactmethod.ContactMethod, error) {
 	loader, ok := ctx.Value(dataLoaderKeyCM).(*dataloader.Loader[string, contactmethod.ContactMethod])
 	if !ok {
-		return app.CMStore.FindOne(ctx, id)
+		return app.CMStore.FindOne(ctx, app.DB, id)
 	}
 
 	return loader.FetchOne(ctx, id)

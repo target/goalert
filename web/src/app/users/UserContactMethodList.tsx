@@ -19,7 +19,7 @@ import AppLink from '../util/AppLink'
 import { styles as globalStyles } from '../styles/materialStyles'
 import { UserContactMethod } from '../../schema'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
-import { useExpFlag } from '../util/useExpFlag'
+import { useSessionInfo } from '../util/RequireConfig'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -32,6 +32,7 @@ const query = gql`
         value
         formattedValue
         disabled
+        pending
       }
     }
   }
@@ -40,6 +41,8 @@ const query = gql`
 interface ListItemAction {
   label: string
   onClick: () => void
+  disabled?: boolean
+  tooltip?: string
 }
 
 interface UserContactMethodListProps {
@@ -62,13 +65,15 @@ export default function UserContactMethodList(
   const [showEditDialogByID, setShowEditDialogByID] = useState('')
   const [showDeleteDialogByID, setShowDeleteDialogByID] = useState('')
   const [showSendTestByID, setShowSendTestByID] = useState('')
-  const hasSlackDM = useExpFlag('slack-dm')
 
   const { loading, error, data } = useQuery(query, {
     variables: {
       id: props.userID,
     },
   })
+
+  const { userID: currentUserID } = useSessionInfo()
+  const isCurrentUser = props.userID === currentUserID
 
   if (loading && !data) return <Spinner />
   if (data && !data.user) return <ObjectNotFound type='user' />
@@ -97,25 +102,38 @@ export default function UserContactMethodList(
 
   function getActionMenuItems(cm: UserContactMethod): ListItemAction[] {
     const actions = [
-      { label: 'Edit', onClick: () => setShowEditDialogByID(cm.id) },
+      {
+        label: 'Edit',
+        onClick: () => setShowEditDialogByID(cm.id),
+        disabled: false,
+        tooltip: '',
+      },
       {
         label: 'Delete',
         onClick: () => setShowDeleteDialogByID(cm.id),
+        disabled: false,
+        tooltip: '',
       },
     ]
 
-    // don't show send test for slack DMs if disabled
-    if (cm.type === 'SLACK_DM' && !hasSlackDM) return actions
-
+    // disable send test and reactivate if not current user
     if (!cm.disabled) {
       actions.push({
         label: 'Send Test',
         onClick: () => setShowSendTestByID(cm.id),
+        disabled: !isCurrentUser,
+        tooltip: !isCurrentUser
+          ? 'Send Test only available for your own contact methods'
+          : '',
       })
     } else {
       actions.push({
         label: 'Reactivate',
         onClick: () => setShowVerifyDialogByID(cm.id),
+        disabled: !isCurrentUser,
+        tooltip: !isCurrentUser
+          ? 'Reactivate only available for your own contact methods'
+          : '',
       })
     }
     return actions
@@ -124,7 +142,7 @@ export default function UserContactMethodList(
   function getSecondaryAction(cm: UserContactMethod): JSX.Element {
     return (
       <Grid container spacing={2} alignItems='center' wrap='nowrap'>
-        {cm.disabled && !props.readOnly && !mobile && (
+        {cm.disabled && !props.readOnly && !mobile && isCurrentUser && (
           <Grid item>
             <Button
               aria-label='Reactivate contact method'
@@ -145,16 +163,20 @@ export default function UserContactMethodList(
   }
 
   function getSubText(cm: UserContactMethod): JSX.Element | string {
+    let cmText = cm.formattedValue
+    if (cm.pending) {
+      cmText = `${cm.formattedValue} - this contact method will be automatically deleted if not verified`
+    }
     if (cm.type === 'WEBHOOK') {
       return (
         <React.Fragment>
-          {`${cm.formattedValue} (`}
+          {`${cmText} (`}
           <AppLink to='/docs'>docs</AppLink>)
         </React.Fragment>
       )
     }
 
-    return cm.formattedValue
+    return cmText
   }
 
   return (
@@ -166,13 +188,14 @@ export default function UserContactMethodList(
           title='Contact Methods'
           action={
             !mobile ? (
-              <IconButton
-                title='Add contact method'
+              <Button
+                title='Create Contact Method'
+                variant='contained'
                 onClick={() => setShowAddDialog(true)}
-                size='large'
+                startIcon={<Add />}
               >
-                <Add fontSize='large' />
-              </IconButton>
+                Create Method
+              </Button>
             ) : null
           }
         />

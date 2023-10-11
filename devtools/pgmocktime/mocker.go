@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Mocker struct {
@@ -23,7 +23,7 @@ var mx sync.Mutex
 
 // New creates a new Mocker capable of manipulating time in a postgres database.
 func New(ctx context.Context, dbURL string) (*Mocker, error) {
-	db, err := pgxpool.Connect(context.Background(), dbURL)
+	db, err := pgxpool.New(context.Background(), dbURL)
 	if err != nil {
 		return nil, fmt.Errorf("connect to database: %w", err)
 	}
@@ -152,7 +152,7 @@ func (m *Mocker) Close() error { m.db.Close(); return nil }
 
 // AdvanceTime advances the time by the given duration.
 func (m *Mocker) AdvanceTime(ctx context.Context, d time.Duration) error {
-	m.exec(ctx, `update %s.flux_capacitor set ref_time = current_timestamp, base_time = %s.now() + '%d milliseconds'::interval`, m.safeSchema(), m.safeSchema(), d/time.Millisecond)
+	m.exec(ctx, `update %s.flux_capacitor set ref_time = current_timestamp, base_time = %s.now() + '%d hours'::interval + '%d milliseconds'::interval`, m.safeSchema(), m.safeSchema(), d/time.Hour, (d % time.Hour).Milliseconds())
 	return m.readErr("advance time")
 }
 

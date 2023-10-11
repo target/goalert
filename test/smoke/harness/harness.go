@@ -8,6 +8,7 @@ import (
 	"io"
 	stdlog "log"
 	"net/http/httptest"
+	"net/smtp"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -20,9 +21,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/stdlib"
+	"github.com/jackc/pgx/v5"
+	pgx5 "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/app"
@@ -292,6 +295,8 @@ func (h *Harness) Start() {
 	appCfg.TwilioBaseURL = h.twS.URL
 	appCfg.DBMaxOpen = 5
 	appCfg.SlackBaseURL = h.slackS.URL
+	appCfg.SMTPListenAddr = "localhost:0"
+	appCfg.EmailIntegrationDomain = "smoketest.example.com"
 	appCfg.InitialConfig = &h.cfg
 
 	r, w := io.Pipe()
@@ -314,7 +319,9 @@ func (h *Harness) Start() {
 	h.TwilioNumber("") // register default number
 	h.slack.SetActionURL(h.slackApp.ClientID, h.backend.URL()+"/api/v2/slack/message-action")
 
-	go h.backend.Run(context.Background())
+	go func() {
+		assert.NoError(h.t, h.backend.Run(context.Background())) // can't use require.NoError because we're in the background
+	}()
 	err = h.backend.WaitForStartup(ctx)
 	if err != nil {
 		h.t.Fatalf("failed to start backend: %v", err)
@@ -324,6 +331,14 @@ func (h *Harness) Start() {
 // URL returns the backend server's URL
 func (h *Harness) URL() string {
 	return h.backend.URL()
+}
+
+// SendMail will send an email to the backend's SMTP server.
+func (h *Harness) SendMail(from, to, subject, body string) {
+	h.t.Helper()
+
+	err := smtp.SendMail(h.App().SMTPAddr(), nil, from, []string{to}, []byte(fmt.Sprintf("Subject: %s\r\n\r\n%s", subject, body)))
+	require.NoError(h.t, err)
 }
 
 // Migrate will perform `steps` number of migrations.
@@ -356,12 +371,14 @@ func (h *Harness) execQuery(sql string, data interface{}) {
 	h.t.Helper()
 	t := template.New("sql")
 	t.Funcs(template.FuncMap{
-		"uuidJSON":       func(id string) string { return fmt.Sprintf(`"%s"`, h.uuidG.Get(id)) },
-		"uuid":           func(id string) string { return fmt.Sprintf("'%s'", h.uuidG.Get(id)) },
-		"phone":          func(id string) string { return fmt.Sprintf("'%s'", h.phoneCCG.Get(id)) },
-		"email":          func(id string) string { return fmt.Sprintf("'%s'", h.emailG.Get(id)) },
-		"phoneCC":        func(cc, id string) string { return fmt.Sprintf("'%s'", h.phoneCCG.GetWithArg(cc, id)) },
-		"slackChannelID": func(name string) string { return fmt.Sprintf("'%s'", h.Slack().Channel(name).ID()) },
+		"uuidJSON":         func(id string) string { return fmt.Sprintf(`"%s"`, h.uuidG.Get(id)) },
+		"uuid":             func(id string) string { return fmt.Sprintf("'%s'", h.uuidG.Get(id)) },
+		"phone":            func(id string) string { return fmt.Sprintf("'%s'", h.phoneCCG.Get(id)) },
+		"email":            func(id string) string { return fmt.Sprintf("'%s'", h.emailG.Get(id)) },
+		"phoneCC":          func(cc, id string) string { return fmt.Sprintf("'%s'", h.phoneCCG.GetWithArg(cc, id)) },
+		"slackChannelID":   func(name string) string { return fmt.Sprintf("'%s'", h.Slack().Channel(name).ID()) },
+		"slackUserID":      func(name string) string { return fmt.Sprintf("'%s'", h.Slack().User(name).ID()) },
+		"slackUserGroupID": func(name string) string { return fmt.Sprintf("'%s'", h.Slack().UserGroup(name).ID()) },
 	})
 	_, err := t.Parse(sql)
 	if err != nil {
@@ -468,23 +485,6 @@ func (h *Harness) CreateAlertWithDetails(serviceID, summary, details string) Tes
 	return testAlert{h: h, a: newAlert}
 }
 
-// CreateManyAlert will create multiple new unacknowledged alerts for a given service.
-func (h *Harness) CreateManyAlert(serviceID, summary string) {
-	h.t.Helper()
-	a := &alert.Alert{
-		ServiceID: serviceID,
-		Summary:   summary,
-	}
-	h.t.Logf("insert alert: %v", a)
-	permission.SudoContext(context.Background(), func(ctx context.Context) {
-		h.t.Helper()
-		_, err := h.backend.AlertStore.Create(ctx, a)
-		if err != nil {
-			h.t.Fatalf("failed to insert alert: %v", err)
-		}
-	})
-}
-
 // AddNotificationRule will add a notification rule to the database.
 func (h *Harness) AddNotificationRule(userID, cmID string, delayMinutes int) {
 	h.t.Helper()
@@ -507,7 +507,7 @@ func (h *Harness) AddNotificationRule(userID, cmID string, delayMinutes int) {
 func (h *Harness) Trigger() {
 	id := h.backend.Engine.NextCycleID()
 	go h.backend.Engine.Trigger()
-	h.backend.Engine.WaitCycleID(context.Background(), id)
+	require.NoError(h.t, h.backend.Engine.WaitCycleID(context.Background(), id))
 }
 
 // Escalate will escalate an alert in the database, when 'level' matches.
@@ -549,9 +549,11 @@ func (h *Harness) dumpDB() {
 	if err != nil {
 		h.t.Fatalf("failed to get abs dump path: %v", err)
 	}
-	os.MkdirAll(filepath.Dir(file), 0o755)
+	if err := os.MkdirAll(filepath.Dir(file), 0o755); err != nil {
+		h.t.Fatalf("failed to create abs dump path: %v", err)
+	}
 
-	conn, err := pgx.Connect(context.Background(), h.dbURL)
+	conn, err := pgx5.Connect(context.Background(), h.dbURL)
 	if err != nil {
 		h.t.Fatalf("failed to get db connection: %v", err)
 	}
@@ -587,6 +589,7 @@ func (h *Harness) Close() error {
 	if recErr := recover(); recErr != nil {
 		defer panic(recErr)
 	}
+	h.dumpDB() // early as possible
 
 	h.tw.WaitAndAssert(h.t)
 	h.slack.WaitAndAssert()
@@ -608,7 +611,6 @@ func (h *Harness) Close() error {
 	h.twS.Close()
 
 	h.tw.Close()
-	h.dumpDB()
 
 	h.pgTime.Close()
 

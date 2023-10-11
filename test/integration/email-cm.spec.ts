@@ -15,9 +15,9 @@ test('EMAIL contact method', async ({ page, browser, isMobile }) => {
 
   if (isMobile) {
     await page.click('[aria-label="Add Items"]')
-    await page.click('[aria-label="Add Contact Method"]')
+    await page.click('[aria-label="Create Contact Method"]')
   } else {
-    await page.click('[title="Add contact method"]')
+    await page.click('[title="Create Contact Method"]')
   }
 
   await page.fill('input[name=name]', name)
@@ -68,8 +68,9 @@ test('EMAIL contact method', async ({ page, browser, isMobile }) => {
     .locator('li', { hasText: email })
     .locator('[aria-label="Other Actions"]')
     .click()
-  await page.locator('[role=menuitem]', { hasText: 'Delete' }).click()
-  await page.locator('button[type=submit]', { hasText: 'Confirm' }).click()
+
+  await page.getByRole('menuitem', { name: 'Delete' }).click()
+  await page.getByRole('button', { name: 'Confirm' }).click()
   await page
     .locator('.MuiCard-root', {
       has: page.locator('div > div > h2', { hasText: 'Contact Methods' }),

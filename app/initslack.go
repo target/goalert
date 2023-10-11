@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 
-	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/slack"
 )
@@ -18,9 +17,8 @@ func (app *App) initSlack(ctx context.Context) error {
 		return err
 	}
 	app.notificationManager.RegisterSender(notification.DestTypeSlackChannel, "Slack-Channel", app.slackChan)
-	if expflag.ContextHas(ctx, expflag.SlackDM) {
-		app.notificationManager.RegisterSender(notification.DestTypeSlackDM, "Slack-DM", app.slackChan.DMSender())
-	}
+	app.notificationManager.RegisterSender(notification.DestTypeSlackDM, "Slack-DM", app.slackChan.DMSender())
+	app.notificationManager.RegisterSender(notification.DestTypeSlackUG, "Slack-UserGroup", app.slackChan.UserGroupSender())
 
 	return nil
 }

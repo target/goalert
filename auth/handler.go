@@ -16,6 +16,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/auth/authtoken"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
@@ -212,7 +213,7 @@ func (h *Handler) FindAllUserSessions(ctx context.Context, userID string) ([]Use
 
 // ServeLogout will clear the current session cookie and end the session(s) (if any).
 func (h *Handler) ServeLogout(w http.ResponseWriter, req *http.Request) {
-	ClearCookie(w, req, CookieName)
+	ClearCookie(w, req, CookieName, true)
 	var sessionIDs []string
 	for _, c := range req.Cookies() {
 		switch c.Name {
@@ -320,9 +321,12 @@ func (h *Handler) IdentityProviderHandler(id string) http.HandlerFunc {
 				errutil.HTTPError(ctx, w, validation.NewFieldError("login_redir", err.Error()))
 				return
 			}
-			refU, err = url.Parse(c.Value)
-			if err != nil {
-				errutil.HTTPError(ctx, w, validation.NewFieldError("login_redir", err.Error()))
+			refU, _ = url.Parse(c.Value)
+			if refU == nil || !cfg.ValidReferer(req.URL.String(), c.Value) {
+				// redirect with err
+				q := make(url.Values)
+				q.Set("login_error", "invalid referer")
+				http.Redirect(w, req, cfg.CallbackURL("", q), http.StatusTemporaryRedirect)
 				return
 			}
 		}
@@ -536,7 +540,7 @@ func (h *Handler) CreateSession(ctx context.Context, userAgent, userID string) (
 }
 
 func (h *Handler) setSessionCookie(w http.ResponseWriter, req *http.Request, val string) {
-	SetCookieAge(w, req, CookieName, val, 30*24*time.Hour)
+	SetCookieAge(w, req, CookieName, val, 30*24*time.Hour, true)
 }
 
 func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next http.Handler) bool {
@@ -551,6 +555,17 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 		return false
 	}
 
+	ctx := req.Context()
+	if expflag.ContextHas(ctx, expflag.GQLAPIKey) && req.URL.Path == "/api/graphql" && strings.HasPrefix(tokStr, "ey") {
+		ctx, err = h.cfg.APIKeyStore.AuthorizeGraphQL(ctx, tokStr, req.UserAgent(), req.RemoteAddr)
+		if errutil.HTTPError(req.Context(), w, err) {
+			return true
+		}
+
+		next.ServeHTTP(w, req.WithContext(ctx))
+		return true
+	}
+
 	tok, _, err := authtoken.Parse(tokStr, func(t authtoken.Type, p, sig []byte) (bool, bool) {
 		if t == authtoken.TypeSession {
 			return h.cfg.SessionKeyring.Verify(p, sig)
@@ -562,8 +577,6 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 		return true
 	}
 
-	// TODO: update once scopes are implemented
-	ctx := req.Context()
 	switch req.URL.Path {
 	case "/v1/api/alerts", "/api/v2/generic/incoming":
 		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, *tok, integrationkey.TypeGeneric)
@@ -714,7 +727,7 @@ func (h *Handler) refererURL(w http.ResponseWriter, req *http.Request) (*url.URL
 }
 
 func (h *Handler) serveProviderPost(id string, p IdentityProvider, refU *url.URL, w http.ResponseWriter, req *http.Request) {
-	SetCookie(w, req, "login_redir", refU.String())
+	SetCookie(w, req, "login_redir", refU.String(), false)
 
 	h.handleProvider(id, p, refU, w, req)
 }

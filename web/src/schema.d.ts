@@ -31,14 +31,26 @@ export interface Query {
   userOverride?: null | UserOverride
   config: ConfigValue[]
   configHints: ConfigHint[]
+  integrationKeyTypes: IntegrationKeyTypeInfo[]
   systemLimits: SystemLimit[]
   debugMessageStatus: DebugMessageStatusInfo
   userContactMethod?: null | UserContactMethod
   slackChannels: SlackChannelConnection
   slackChannel?: null | SlackChannel
+  slackUserGroups: SlackUserGroupConnection
+  slackUserGroup?: null | SlackUserGroup
   generateSlackAppManifest: string
   linkAccountInfo?: null | LinkAccountInfo
   swoStatus: SWOStatus
+  gqlAPIKeys: GQLAPIKey[]
+  listGQLFields: string[]
+}
+
+export interface IntegrationKeyTypeInfo {
+  id: string
+  name: string
+  label: string
+  enabled: boolean
 }
 
 export interface SWOStatus {
@@ -127,6 +139,40 @@ export interface MessageLogSearchOptions {
 
 export interface MessageLogConnection {
   nodes: DebugMessage[]
+  pageInfo: PageInfo
+  stats: MessageLogConnectionStats
+}
+
+export interface MessageLogConnectionStats {
+  timeSeries: TimeSeriesBucket[]
+}
+
+export interface TimeSeriesOptions {
+  bucketDuration: ISODuration
+  bucketOrigin?: null | ISOTimestamp
+}
+
+export interface TimeSeriesBucket {
+  start: ISOTimestamp
+  end: ISOTimestamp
+  count: number
+}
+
+export interface SlackUserGroupSearchOptions {
+  first?: null | number
+  after?: null | string
+  search?: null | string
+  omit?: null | string[]
+}
+
+export interface SlackUserGroup {
+  id: string
+  name: string
+  handle: string
+}
+
+export interface SlackUserGroupConnection {
+  nodes: SlackUserGroup[]
   pageInfo: PageInfo
 }
 
@@ -353,6 +399,7 @@ export interface Mutation {
   updateEscalationPolicyStep: boolean
   deleteAll: boolean
   createAlert?: null | Alert
+  setAlertNoiseReason: boolean
   createService?: null | Service
   createEscalationPolicy?: null | EscalationPolicy
   createEscalationPolicyStep?: null | EscalationPolicyStep
@@ -377,6 +424,62 @@ export interface Mutation {
   updateAlertsByService: boolean
   setConfig: boolean
   setSystemLimits: boolean
+  createGQLAPIKey: CreatedGQLAPIKey
+  updateGQLAPIKey: boolean
+  deleteGQLAPIKey: boolean
+  createBasicAuth: boolean
+  updateBasicAuth: boolean
+}
+
+export interface CreatedGQLAPIKey {
+  id: string
+  token: string
+}
+
+export interface CreateGQLAPIKeyInput {
+  name: string
+  description: string
+  allowedFields: string[]
+  expiresAt: ISOTimestamp
+  role: UserRole
+}
+
+export interface UpdateGQLAPIKeyInput {
+  id: string
+  name?: null | string
+  description?: null | string
+}
+
+export interface GQLAPIKey {
+  id: string
+  name: string
+  description: string
+  createdAt: ISOTimestamp
+  createdBy?: null | User
+  updatedAt: ISOTimestamp
+  updatedBy?: null | User
+  lastUsed?: null | GQLAPIKeyUsage
+  expiresAt: ISOTimestamp
+  allowedFields: string[]
+  role: UserRole
+}
+
+export interface GQLAPIKeyUsage {
+  time: ISOTimestamp
+  ua: string
+  ip: string
+}
+
+export interface CreateBasicAuthInput {
+  username: string
+  password: string
+  userID: string
+}
+
+export interface UpdateBasicAuthInput {
+  password: string
+  oldPassword?: null | string
+  userID: string
 }
 
 export interface UpdateAlertsByServiceInput {
@@ -389,6 +492,11 @@ export interface CreateAlertInput {
   details?: null | string
   serviceID: string
   sanitize?: null | boolean
+}
+
+export interface SetAlertNoiseReasonInput {
+  alertID: number
+  noiseReason: string
 }
 
 export interface CreateUserInput {
@@ -405,6 +513,7 @@ export interface CreateUserCalendarSubscriptionInput {
   reminderMinutes?: null | number[]
   scheduleID: string
   disabled?: null | boolean
+  fullSchedule?: null | boolean
 }
 
 export interface UpdateUserCalendarSubscriptionInput {
@@ -412,12 +521,14 @@ export interface UpdateUserCalendarSubscriptionInput {
   name?: null | string
   reminderMinutes?: null | number[]
   disabled?: null | boolean
+  fullSchedule?: null | boolean
 }
 
 export interface UserCalendarSubscription {
   id: string
   name: string
   reminderMinutes: number[]
+  fullSchedule: boolean
   scheduleID: string
   schedule?: null | Schedule
   lastAccess: ISOTimestamp
@@ -662,11 +773,12 @@ export interface Rotation {
   nextHandoffTimes: ISOTimestamp[]
 }
 
-export type RotationType = 'weekly' | 'daily' | 'hourly'
+export type RotationType = 'monthly' | 'weekly' | 'daily' | 'hourly'
 
 export interface UpdateAlertsInput {
   alertIDs: number[]
-  newStatus: AlertStatus
+  newStatus?: null | AlertStatus
+  noiseReason?: null | string
 }
 
 export interface UpdateRotationInput {
@@ -694,7 +806,8 @@ export interface CalcRotationHandoffTimesInput {
   handoff: ISOTimestamp
   from?: null | ISOTimestamp
   timeZone: string
-  shiftLengthHours: number
+  shiftLengthHours?: null | number
+  shiftLength?: null | ISODuration
   count: number
 }
 
@@ -785,6 +898,7 @@ export interface Alert {
   recentEvents: AlertLogEntryConnection
   pendingNotifications: AlertPendingNotification[]
   metrics?: null | AlertMetric
+  noiseReason?: null | string
 }
 
 export interface AlertMetric {
@@ -841,6 +955,7 @@ export interface Service {
   integrationKeys: IntegrationKey[]
   labels: Label[]
   heartbeatMonitors: HeartbeatMonitor[]
+  notices: Notice[]
 }
 
 export interface CreateIntegrationKeyInput {
@@ -930,6 +1045,7 @@ export type TargetType =
   | 'escalationPolicy'
   | 'notificationChannel'
   | 'slackChannel'
+  | 'slackUserGroup'
   | 'notificationPolicy'
   | 'rotation'
   | 'service'
@@ -1024,10 +1140,18 @@ export interface UserContactMethod {
   value: string
   formattedValue: string
   disabled: boolean
+  pending: boolean
   lastTestVerifyAt?: null | ISOTimestamp
   lastTestMessageState?: null | NotificationState
   lastVerifyMessageState?: null | NotificationState
+  statusUpdates: StatusUpdateState
 }
+
+export type StatusUpdateState =
+  | 'DISABLED'
+  | 'ENABLED'
+  | 'ENABLED_FORCED'
+  | 'DISABLED_FORCED'
 
 export interface CreateUserContactMethodInput {
   userID: string
@@ -1047,6 +1171,7 @@ export interface UpdateUserContactMethodInput {
   id: string
   name?: null | string
   value?: null | string
+  enableStatusUpdates?: null | boolean
 }
 
 export interface SendContactMethodVerificationInput {

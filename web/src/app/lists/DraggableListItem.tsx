@@ -3,24 +3,29 @@ import { FlatListItem as FlatListItemType } from './FlatList'
 import FlatListItem from './FlatListItem'
 import { Announcements, UniqueIdentifier } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
-import { useSortable } from '@dnd-kit/sortable'
-import { useTheme } from '@mui/material'
+import {
+  useSortable,
+  defaultAnimateLayoutChanges,
+  AnimateLayoutChanges,
+} from '@dnd-kit/sortable'
+import { Button, useTheme } from '@mui/material'
 import DragHandleIcon from '@mui/icons-material/DragHandle'
 
 export function getAnnouncements(
   items: string[],
   isFirstAnnouncement: MutableRefObject<boolean>,
 ): Announcements {
-  const getPosition = (id: UniqueIdentifier): number =>
-    items.indexOf(id.toString()) + 1
+  const getPosition = (id: UniqueIdentifier): number => {
+    return items.indexOf(id.toString()) + 1
+  }
 
   return {
     onDragStart({ active: { id } }) {
-      return `Picked up sortable item ${String(
+      return `Picked up sortable item ${getPosition(
         id,
-      )}. Sortable item ${id} is in position ${getPosition(id)} of ${
-        items.length
-      }`
+      )}. Sortable item ${getPosition(id)} is in position ${getPosition(
+        id,
+      )} of ${items.length}`
     },
     onDragOver({ active, over }) {
       // onDragOver is called right after onDragStart, cancel first run here
@@ -31,16 +36,16 @@ export function getAnnouncements(
       }
 
       if (over) {
-        return `Sortable item ${
-          active.id
-        } was moved into position ${getPosition(over.id)} of ${items.length}`
+        return `Sortable item ${getPosition(
+          active.id,
+        )} was moved into position ${getPosition(over.id)} of ${items.length}`
       }
     },
     onDragEnd({ active, over }) {
       if (over) {
-        return `Sortable item ${
-          active.id
-        } was dropped at position ${getPosition(over.id)} of ${items.length}`
+        return `Sortable item ${getPosition(
+          active.id,
+        )} was dropped at position ${getPosition(over.id)} of ${items.length}`
       }
     },
     onDragCancel({ active: { id } }) {
@@ -51,18 +56,19 @@ export function getAnnouncements(
   }
 }
 
+const animateLayoutChanges: AnimateLayoutChanges = (args) =>
+  args.isSorting || args.wasDragging ? defaultAnimateLayoutChanges(args) : true
+
 interface DraggableListItemProps {
   id: string
   index: number
   item: FlatListItemType
-  draggable: boolean
 }
 
 export function DraggableListItem({
   id,
   index,
   item,
-  draggable,
 }: DraggableListItemProps): JSX.Element {
   const theme = useTheme()
   const {
@@ -73,36 +79,50 @@ export function DraggableListItem({
     transform,
     transition,
   } = useSortable({
+    animateLayoutChanges,
     id,
   })
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    backgroundColor: isDragging ? theme.palette.background.default : 'inherit',
-    zIndex: isDragging ? 9001 : 1,
-  }
-
-  const draggableItem = {
-    ...item,
-    icon: (
-      <DragHandleIcon
-        {...listeners}
-        id={'drag-' + item?.id ?? index}
-        tabIndex={0}
-        focusable
-        sx={{ cursor: 'pointer', marginLeft: '8px' }}
-      />
-    ),
-  }
-
   return (
-    <div ref={setNodeRef} style={style} {...attributes}>
-      <FlatListItem
-        index={index}
-        item={draggable ? draggableItem : item}
-        showOptions={!draggable}
-      />
+    <div
+      ref={setNodeRef}
+      style={{
+        display: 'flex',
+        transform: CSS.Translate.toString(transform),
+        transition,
+        backgroundColor: isDragging
+          ? theme.palette.background.default
+          : 'inherit',
+        zIndex: isDragging ? 9001 : 1,
+      }}
+      {...attributes}
+    >
+      <div
+        style={{
+          position: 'absolute',
+          padding: '20px',
+          zIndex: 2,
+        }}
+      >
+        <Button
+          variant='outlined'
+          id={'drag-' + index}
+          sx={{
+            p: '2px',
+            width: 'fit-content',
+            height: 'fit-content',
+            minWidth: 0,
+            cursor: 'drag',
+          }}
+          {...listeners}
+        >
+          <DragHandleIcon />
+        </Button>
+      </div>
+
+      <div style={{ width: '100%' }}>
+        <FlatListItem index={index} item={{ ...item, draggable: true }} />
+      </div>
     </div>
   )
 }

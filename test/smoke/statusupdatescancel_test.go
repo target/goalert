@@ -75,7 +75,11 @@ func TestStatusUpdatesCancel(t *testing.T) {
 	d2.ExpectSMS("first")
 	h.Trigger() // cleanup subscription to cm2, since only cm1 is configured
 
-	h.GraphQLQueryUserT(t, h.UUID("user"), fmt.Sprintf(`mutation{updateUser(input:{id:"%s",statusUpdateContactMethodID:"%s"})}`, h.UUID("user"), h.UUID("cm2")))
+	h.GraphQLQueryUserT(t, h.UUID("user"), fmt.Sprintf(`
+		mutation{
+			updateUserContactMethod(input:{id:"%s",enableStatusUpdates: false})
+			updateUserContactMethod(input:{id:"%s",enableStatusUpdates: true})
+		}`, h.UUID("cm1"), h.UUID("cm2")))
 
 	h.Trigger() // cleanup subscription to cm1, now that cm2 is the only one configured
 	doClose("first")

@@ -39,9 +39,11 @@ func genTeamID() string {
 	return "T" + genID(idChars, 8)
 }
 
+var hexSrc = rand.New(rand.NewSource(0))
+
 func genHex(n int) string {
 	buf := make([]byte, n)
-	rand.Read(buf)
+	hexSrc.Read(buf)
 	return hex.EncodeToString(buf)
 }
 func timeString(t time.Time) string { return fmt.Sprintf("%d", t.UnixNano()/1000000)[1:] }
@@ -66,6 +68,7 @@ func (gen *idGen) UserID() string        { return gen.ID("W") }
 func (gen *idGen) AppID() string         { return gen.ID("A") }
 func (gen *idGen) ChannelID() string     { return gen.ID("D") }
 func (gen *idGen) GroupID() string       { return gen.ID("G") }
+func (gen *idGen) UserGroupID() string   { return gen.ID("U") }
 func (gen *idGen) ClientSecret() string  { return gen.next(func() string { return genHex(16) }) }
 func (gen *idGen) SigningSecret() string { return gen.next(func() string { return genHex(16) }) }
 

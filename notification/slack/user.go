@@ -17,9 +17,14 @@ func (s *ChannelSender) User(ctx context.Context, id string) (*User, error) {
 
 	usr, ok := s.userInfoCache.Get(id)
 	if ok {
+
+		name := usr.Profile.DisplayName
+		if name == "" {
+			name = usr.Name
+		}
 		return &User{
 			ID:     usr.ID,
-			Name:   usr.Name,
+			Name:   name,
 			TeamID: usr.TeamID,
 		}, nil
 	}

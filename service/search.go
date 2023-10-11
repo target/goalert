@@ -48,7 +48,8 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		svc.name,
 		svc.description,
 		svc.escalation_policy_id,
-		fav IS DISTINCT FROM NULL
+		fav IS DISTINCT FROM NULL,
+		svc.maintenance_expires_at
 	FROM services svc
 	{{if not .FavoritesOnly }}LEFT {{end}}JOIN user_favorites fav ON svc.id = fav.tgt_service_id AND {{if .FavoritesUserID}}fav.user_id = :favUserID{{else}}false{{end}}
 	{{if and .IntegrationKey}}
@@ -77,7 +78,7 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		)
 	{{end}}
 	{{- if and .Search (not .LabelKey) (not .IntegrationKey)}}
-		AND {{prefixSearch "search" "svc.name"}} OR {{prefixSearch "search" "svc.description"}}
+		AND ({{orderedPrefixSearch "search" "svc.name"}} OR {{contains "search" "svc.description"}})
 	{{- end}}
 	{{- if .After.Name}}
 		AND
@@ -234,10 +235,12 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]Service, err
 	var result []Service
 	for rows.Next() {
 		var s Service
-		err = rows.Scan(&s.ID, &s.Name, &s.Description, &s.EscalationPolicyID, &s.isUserFavorite)
+		var maintExpiresAt sql.NullTime
+		err = rows.Scan(&s.ID, &s.Name, &s.Description, &s.EscalationPolicyID, &s.isUserFavorite, &maintExpiresAt)
 		if err != nil {
 			return nil, err
 		}
+		s.MaintenanceExpiresAt = maintExpiresAt.Time
 
 		result = append(result, s)
 	}

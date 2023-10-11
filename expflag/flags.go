@@ -5,15 +5,13 @@ import "sort"
 type Flag string
 
 const (
-	Example     Flag = "example"
-	SlackDM     Flag = "slack-dm"
-	ChanWebhook Flag = "chan-webhook"
+	Example   Flag = "example"
+	GQLAPIKey Flag = "gql-api-keys"
 )
 
 var desc = map[Flag]string{
-	Example:     "An example experimental flag to demonstrate usage.",
-	SlackDM:     "Enables sending notifications to Slack DMs as a user contact method.",
-	ChanWebhook: "Enables webhooks as a notification channel type",
+	Example:   "An example experimental flag to demonstrate usage.",
+	GQLAPIKey: "Admin-only GraphQL API key support.",
 }
 
 // AllFlags returns a slice of all experimental flags sorted by name.

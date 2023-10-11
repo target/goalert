@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v5"
 	"github.com/pkg/errors"
 	"github.com/rubenv/sql-migrate/sqlparse"
 	"github.com/target/goalert/lock"
@@ -313,7 +313,9 @@ func readMigration(id string) ([]byte, error) {
 func DumpMigrations(dest string) error {
 	for _, id := range migrationIDs() {
 		fullPath := filepath.Join(dest, "migrations", id)
-		os.MkdirAll(filepath.Dir(fullPath), 0755)
+		if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
+			return err
+		}
 		data, err := readMigration(id)
 		if err != nil {
 			return err

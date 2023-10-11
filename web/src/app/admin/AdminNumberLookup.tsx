@@ -85,7 +85,7 @@ export default function AdminNumberLookup(): JSX.Element {
   return (
     <React.Fragment>
       <Form
-        onSubmit={(e) => {
+        onSubmit={(e: { preventDefault: () => void }) => {
           e.preventDefault()
           lookup()
           setStaleCarrier(false)

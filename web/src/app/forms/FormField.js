@@ -7,6 +7,7 @@ import { get, isEmpty, startCase } from 'lodash'
 import shrinkWorkaround from '../util/shrinkWorkaround'
 import AppLink from '../util/AppLink'
 import { FormContainerContext } from './context'
+import { Grid } from '@mui/material'
 
 export function FormField(props) {
   const {
@@ -38,6 +39,7 @@ export function FormField(props) {
     max,
     checkbox,
     float,
+    charCount,
     ...otherFieldProps
   } = props
 
@@ -107,7 +109,27 @@ export function FormField(props) {
     onChange(fieldName, mapOnChangeValue(newValue, value))
   }
 
-  function renderFormHelperText(error, hint) {
+  // wraps hints/errors within a grid containing character counter to align horizontally
+  function charCountWrapper(component, count) {
+    return (
+      <Grid container spacing={2}>
+        <Grid item xs={10}>
+          {component}
+        </Grid>
+        <Grid item xs={2}>
+          <FormHelperText style={{ textAlign: 'right' }}>
+            {value.description.length}/{count}
+          </FormHelperText>
+        </Grid>
+      </Grid>
+    )
+  }
+
+  function renderFormHelperText(error, hint, count) {
+    // handle optional count parameter
+    if (count === undefined) {
+      count = 0
+    }
     if (!noError) {
       if (error?.helpLink) {
         return (
@@ -120,16 +142,23 @@ export function FormField(props) {
       }
 
       if (error?.message) {
-        return (
+        const errorText = (
           <FormHelperText>
             {error.message.replace(/^./, (str) => str.toUpperCase())}
           </FormHelperText>
         )
+        if (count) {
+          return charCountWrapper(errorText, count)
+        }
+        return errorText
       }
     }
 
     if (hint) {
-      return <FormHelperText>{hint}</FormHelperText>
+      if (count) {
+        return charCountWrapper(<FormHelperText>{hint}</FormHelperText>, count)
+      }
+      return <FormHelperText component='span'>{hint}</FormHelperText>
     }
 
     return null
@@ -152,7 +181,7 @@ export function FormField(props) {
       >
         {fieldProps.children}
       </Component>
-      {renderFormHelperText(fieldProps.error, fieldProps.hint)}
+      {renderFormHelperText(fieldProps.error, fieldProps.hint, charCount)}
     </FormControl>
   )
 }
@@ -217,7 +246,10 @@ FormField.propTypes = {
   disabled: p.bool,
 
   multiline: p.bool,
+  rows: p.number,
   autoComplete: p.string,
+
+  charCount: p.number,
 
   fullWidth: p.bool,
 

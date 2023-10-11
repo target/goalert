@@ -4,19 +4,21 @@ import { DateTime } from 'luxon'
 import {
   OnCallNotificationRule,
   OnCallNotificationRuleInput,
+  TargetType,
   WeekdayFilter,
 } from '../../../schema'
 import { allErrors, fieldErrors, nonFieldErrors } from '../../util/errutil'
 import { weekdaySummary } from '../util'
 
 export type Value = {
-  slackChannelID: string | null
   time: string | null
   weekdayFilter: WeekdayFilter
+  type: TargetType
+  targetID: string | null
 }
 
 export type RuleFieldError = {
-  field: 'time' | 'weekdayFilter' | 'slackChannelID'
+  field: 'time' | 'weekdayFilter' | 'type' | 'slackChannelID' | 'slackUserGroup'
   message: string
 }
 
@@ -70,20 +72,21 @@ export const onCallValueToRuleInput = (
     ? DateTime.fromISO(v.time).setZone(zone).toFormat('HH:mm')
     : undefined,
   weekdayFilter: v.time ? v.weekdayFilter : undefined,
-  target: { type: 'slackChannel', id: v.slackChannelID || '' },
+  target: { id: v.targetID || '', type: v.type },
 })
 
 export const onCallRuleToInput = (
   v: OnCallNotificationRule,
-): OnCallNotificationRuleInput | null =>
-  v
-    ? {
-        time: v.time,
-        id: v.id,
-        weekdayFilter: v.weekdayFilter,
-        target: { type: v.target.type, id: v.target.id },
-      }
-    : null
+): OnCallNotificationRuleInput | null => {
+  if (!v.target) return null
+
+  return {
+    time: v.time,
+    id: v.id,
+    weekdayFilter: v.weekdayFilter,
+    target: { type: v.target.type, id: v.target.id },
+  }
+}
 
 export function mapOnCallErrors(
   mErr?: ApolloError | null,
@@ -96,7 +99,6 @@ export function mapOnCallErrors(
   }
 
   dialogErrs = dialogErrs.concat(nonFieldErrors(mErr))
-
   const fieldErrs = fieldErrors(mErr)
     .map((e) => {
       switch (e.field) {
@@ -105,8 +107,12 @@ export function mapOnCallErrors(
           return e
       }
 
-      if (e.field.startsWith('target')) {
+      if (e.field === 'targetTypeSlackChannel') {
         return { ...e, field: 'slackChannelID' }
+      }
+
+      if (e.field === 'targetTypeSlackUserGroup') {
+        return { ...e, field: 'slackUserGroup' }
       }
 
       dialogErrs.push(e)

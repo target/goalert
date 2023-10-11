@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nyaruka/phonenumbers"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
@@ -19,7 +20,6 @@ import (
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
-	"github.com/ttacon/libphonenumber"
 
 	"github.com/pkg/errors"
 )
@@ -112,32 +112,29 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 		return code
 	}
 
-	prefix := cfg.ApplicationName() + ": "
-	maxLen := maxGSMLen - len(prefix)
-
 	var message string
 	var err error
 	switch t := msg.(type) {
 	case notification.AlertStatus:
-		message, err = renderAlertStatusMessage(maxLen, t)
+		message, err = renderAlertStatusMessage(cfg.ApplicationName(), t)
 	case notification.AlertBundle:
 		var link string
 		if canContainURL(ctx, destNumber) {
 			link = cfg.CallbackURL(fmt.Sprintf("/services/%s/alerts", t.ServiceID))
 		}
 
-		message, err = renderAlertBundleMessage(maxLen, t, link, makeSMSCode(0, t.ServiceID))
+		message, err = renderAlertBundleMessage(cfg.ApplicationName(), t, link, makeSMSCode(0, t.ServiceID))
 	case notification.Alert:
 		var link string
 		if canContainURL(ctx, destNumber) {
 			link = cfg.CallbackURL(fmt.Sprintf("/alerts/%d", t.AlertID))
 		}
 
-		message, err = renderAlertMessage(maxLen, t, link, makeSMSCode(t.AlertID, ""))
+		message, err = renderAlertMessage(cfg.ApplicationName(), t, link, makeSMSCode(t.AlertID, ""))
 	case notification.Test:
-		message = "Test message."
+		message = fmt.Sprintf("%s: Test message.", cfg.ApplicationName())
 	case notification.Verification:
-		message = fmt.Sprintf("Verification code: %d", t.Code)
+		message = fmt.Sprintf("%s: Verification code: %d", cfg.ApplicationName(), t.Code)
 	default:
 		return nil, errors.Errorf("unhandled message type %T", t)
 	}
@@ -151,7 +148,7 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 	}
 	opts.CallbackParams.Set(msgParamID, msg.ID())
 	// Actually send notification to end user & receive Message Status
-	resp, err := s.c.SendSMS(ctx, destNumber, prefix+message, opts)
+	resp, err := s.c.SendSMS(ctx, destNumber, message, opts)
 	if err != nil {
 		return nil, errors.Wrap(err, "send message")
 	}
@@ -216,11 +213,11 @@ func isStartMessage(body string) bool {
 
 // FriendlyValue will return the international formatting of the phone number.
 func (s *SMS) FriendlyValue(ctx context.Context, value string) (string, error) {
-	num, err := libphonenumber.Parse(value, "")
+	num, err := phonenumbers.Parse(value, "")
 	if err != nil {
 		return "", fmt.Errorf("parse number for formatting: %w", err)
 	}
-	return libphonenumber.Format(num, libphonenumber.INTERNATIONAL), nil
+	return phonenumbers.Format(num, phonenumbers.INTERNATIONAL), nil
 }
 
 func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
@@ -261,8 +258,11 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 			}
 			s.limit.RecordPassiveReply(from)
 		}
-
-		_, err := s.c.SendSMS(ctx, from, msg, &SMSOptions{FromNumber: req.FormValue("to")})
+		smsFrom := req.FormValue("to")
+		if cfg.Twilio.MessagingServiceSID != "" {
+			smsFrom = cfg.Twilio.MessagingServiceSID
+		}
+		_, err := s.c.SendSMS(ctx, from, msg, &SMSOptions{FromNumber: smsFrom})
 		if err != nil {
 			log.Log(ctx, errors.Wrap(err, "send response"))
 		}

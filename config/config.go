@@ -20,10 +20,12 @@ type Config struct {
 	fallbackURL string
 	explicitURL string
 
+	intEmailDomain string
+
 	General struct {
 		ApplicationName              string `public:"true" info:"The name used in messaging and page titles. Defaults to \"GoAlert\"."`
 		PublicURL                    string `public:"true" info:"Publicly routable URL for UI links and API calls." deprecated:"Use --public-url flag instead, which takes precedence."`
-		GoogleAnalyticsID            string `public:"true" info:"No longer used." deprecated:"No longer used."`
+		GoogleAnalyticsID            string `public:"true" info:"If set, will post user metrics to the corresponding data stream in Google Analytics 4."`
 		NotificationDisclaimer       string `public:"true" info:"Disclaimer text for receiving pre-recorded notifications (appears on profile page)."`
 		DisableMessageBundles        bool   `public:"true" info:"Disable bundling status updates and alert notifications."`
 		ShortURL                     string `public:"true" info:"If set, messages will contain a shorter URL using this as a prefix (e.g. http://example.com). It should point to GoAlert and can be the same as the PublicURL."`
@@ -119,7 +121,7 @@ type Config struct {
 
 		From string `public:"true" info:"The email address messages should be sent from."`
 
-		Address    string `info:"The server address to use for sending email. Port is optional."`
+		Address    string `info:"The server address to use for sending email. Port is optional and defaults to 465, or 25 if Disable TLS is set. Common ports are: 25 or 587 for STARTTLS (or unencrypted) and 465 for TLS."`
 		DisableTLS bool   `info:"Disables TLS on the connection (STARTTLS will still be used if supported)."`
 		SkipVerify bool   `info:"Disables certificate validation for TLS/STARTTLS (insecure)."`
 
@@ -136,6 +138,26 @@ type Config struct {
 		Enable      bool   `public:"true" info:"Enables Feedback link in nav bar."`
 		OverrideURL string `public:"true" info:"Use a custom URL for Feedback link in nav bar."`
 	}
+}
+
+// EmailIngressEnabled returns true if a provider is configured for generating alerts from email, otherwise false
+func (cfg Config) EmailIngressEnabled() bool {
+	if (cfg.Mailgun.Enable && cfg.Mailgun.EmailDomain != "") || cfg.intEmailDomain != "" {
+		return true
+	}
+	return false
+}
+
+// EmailIngressDomain returns the domain configured to receive email for alert generation
+func (cfg Config) EmailIngressDomain() string {
+	if cfg.intEmailDomain != "" {
+		// cli flag always takes precedence
+		return cfg.intEmailDomain
+	}
+	if cfg.Mailgun.EmailDomain != "" {
+		return cfg.Mailgun.EmailDomain
+	}
+	return ""
 }
 
 // TwilioSMSFromNumber will determine the appropriate FROM number to use for SMS messages to the given number
@@ -450,6 +472,10 @@ func (cfg Config) Validate() error {
 		validatePath("OIDC.UserInfoNamePath", cfg.OIDC.UserInfoNamePath),
 		validateKey("Slack.SigningSecret", cfg.Slack.SigningSecret),
 	)
+
+	if cfg.General.GoogleAnalyticsID != "" {
+		err = validate.Many(err, validate.MeasurementID("General.GoogleAnalyticsID", cfg.General.GoogleAnalyticsID))
+	}
 
 	if cfg.Twilio.VoiceName != "" && cfg.Twilio.VoiceLanguage == "" {
 		err = validate.Many(err, validation.NewFieldError("Twilio.VoiceLanguage", "required when Twilio.VoiceName is set"))

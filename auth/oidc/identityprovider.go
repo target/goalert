@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	oidc "github.com/coreos/go-oidc"
+	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/jmespath/go-jmespath"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/auth"
@@ -115,7 +115,9 @@ func (p *Provider) newStateToken(nonceBytes []byte) (state string, err error) {
 
 	buf.Write(nonceBytes[:])
 	buf.WriteByte('N')
-	binary.Write(buf, binary.BigEndian, time.Now().Unix())
+	if err := binary.Write(buf, binary.BigEndian, time.Now().Unix()); err != nil {
+		return "", err
+	}
 
 	sig, err := p.cfg.Keyring.Sign(buf.Bytes())
 	if err != nil {
@@ -192,7 +194,7 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 			return nil, auth.Error("Failed to generate state token.")
 		}
 		nonceStr := b64enc.EncodeToString(nonce[:])
-		auth.SetCookie(w, req, nonceCookieName, nonceStr)
+		auth.SetCookie(w, req, nonceCookieName, nonceStr, false)
 
 		oaCfg, _, err := p.oaConfig(ctx)
 		if err != nil {
@@ -213,7 +215,7 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 	if err != nil {
 		return nil, auth.Error("There was a problem recognizing this browser. You can try again")
 	}
-	auth.ClearCookie(w, req, nonceCookieName)
+	auth.ClearCookie(w, req, nonceCookieName, false)
 
 	nonce, err := b64enc.DecodeString(nonceC.Value)
 	if err != nil || len(nonce) != 16 {

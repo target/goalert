@@ -1,7 +1,7 @@
 import React, { JSXElementConstructor, useLayoutEffect } from 'react'
 import { gql, useQuery } from 'urql'
 import { Switch, Route, useLocation, RouteProps, useRoute } from 'wouter'
-import AdminDebugMessagesLayout from '../admin/admin-message-logs/AdminDebugMessagesLayout'
+import AdminMessageLogsLayout from '../admin/admin-message-logs/AdminMessageLogsLayout'
 import AdminAlertCounts from '../admin/admin-alert-counts/AdminAlertCounts'
 import AdminConfig from '../admin/AdminConfig'
 import AdminLimits from '../admin/AdminLimits'
@@ -39,6 +39,7 @@ import UserSessionList from '../users/UserSessionList'
 import { useSessionInfo } from '../util/RequireConfig'
 import WizardRouter from '../wizard/WizardRouter'
 import LocalDev from '../localdev/LocalDev'
+import AdminSwitchoverGuide from '../admin/switchover/AdminSwitchoverGuide'
 
 // ParamRoute will pass route parameters as props to the route's child.
 function ParamRoute(props: RouteProps): JSX.Element {
@@ -113,9 +114,10 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/admin/config': AdminConfig,
   '/admin/limits': AdminLimits,
   '/admin/toolbox': AdminToolbox,
-  '/admin/message-logs': AdminDebugMessagesLayout,
+  '/admin/message-logs': AdminMessageLogsLayout,
   '/admin/alert-counts': AdminAlertCounts,
   '/admin/switchover': AdminSwitchover,
+  '/admin/switchover/guide': AdminSwitchoverGuide,
 
   '/wizard': WizardRouter,
   '/docs': Documentation,

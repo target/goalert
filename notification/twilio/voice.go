@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nyaruka/phonenumbers"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
@@ -22,7 +23,6 @@ import (
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
-	"github.com/ttacon/libphonenumber"
 )
 
 // CallType indicates a supported Twilio voice call type.
@@ -186,50 +186,17 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 
 	opts := &VoiceOptions{
 		ValidityPeriod: time.Second * 10,
-		CallbackParams: make(url.Values),
-		Params:         make(url.Values),
 	}
 
-	prefix := fmt.Sprintf("Hello! This is %s", cfg.ApplicationName())
-
-	var message string
-	subID := -1
-	switch t := msg.(type) {
-	case notification.AlertBundle:
-		message = fmt.Sprintf("%s with alert notifications. Service '%s' has %d unacknowledged alerts.", prefix, t.ServiceName, t.Count)
-		opts.Params.Set(msgParamBundle, "1")
-		opts.CallType = CallTypeAlert
-	case notification.Alert:
-		if t.Summary == "" {
-			t.Summary = "No summary provided"
-		}
-		message = fmt.Sprintf("%s with an alert notification. %s.", prefix, t.Summary)
-		opts.CallType = CallTypeAlert
-		subID = t.AlertID
-	case notification.AlertStatus:
-		message = rmParen.ReplaceAllString(t.LogEntry, "")
-		message = fmt.Sprintf("%s with a status update for alert '%s'. %s", prefix, t.Summary, message)
-		opts.CallType = CallTypeAlertStatus
-		subID = t.AlertID
-	case notification.Test:
-		message = fmt.Sprintf("%s with a test message.", prefix)
-		opts.CallType = CallTypeTest
-	case notification.Verification:
-		count := int(math.Log10(float64(t.Code)) + 1)
-		message = fmt.Sprintf(
-			"%s with your %d-digit verification code. The code is: %s. Again, your  %d-digit verification code is: %s.",
-			prefix, count, spellNumber(t.Code), count, spellNumber(t.Code),
-		)
-		opts.CallType = CallTypeVerify
-	default:
-		return nil, errors.Errorf("unhandled message type: %T", t)
+	if err := opts.setMsgParams(msg); err != nil {
+		return nil, err
 	}
 
-	opts.Params.Set(msgParamSubID, strconv.Itoa(subID))
-	opts.CallbackParams.Set(msgParamID, msg.ID())
-	// Encode the body so we don't need to worry about
-	// buggy apps not escaping url params properly.
-	opts.Params.Set(msgParamBody, b64enc.EncodeToString([]byte(message)))
+	msgBody, err := buildMessage(fmt.Sprintf("Hello! This is %s", cfg.ApplicationName()), msg)
+	if err != nil {
+		return nil, err
+	}
+	opts.setMsgBody(msgBody)
 
 	voiceResponse, err := v.c.StartVoice(ctx, toNumber, opts)
 	if err != nil {
@@ -638,9 +605,41 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 
 // FriendlyValue will return the international formatting of the phone number.
 func (v *Voice) FriendlyValue(ctx context.Context, value string) (string, error) {
-	num, err := libphonenumber.Parse(value, "")
+	num, err := phonenumbers.Parse(value, "")
 	if err != nil {
 		return "", fmt.Errorf("parse number for formatting: %w", err)
 	}
-	return libphonenumber.Format(num, libphonenumber.INTERNATIONAL), nil
+	return phonenumbers.Format(num, phonenumbers.INTERNATIONAL), nil
+}
+
+// buildMessage is a function that will build the VoiceOptions object with the proper message contents
+func buildMessage(prefix string, msg notification.Message) (message string, err error) {
+	if prefix == "" {
+		return "", errors.New("buildMessage error: no prefix provided")
+	}
+
+	switch t := msg.(type) {
+	case notification.AlertBundle:
+		message = fmt.Sprintf("%s with alert notifications. Service '%s' has %d unacknowledged alerts.", prefix, t.ServiceName, t.Count)
+	case notification.Alert:
+		if t.Summary == "" {
+			t.Summary = "No summary provided"
+		}
+		message = fmt.Sprintf("%s with an alert notification. %s.", prefix, t.Summary)
+	case notification.AlertStatus:
+		message = rmParen.ReplaceAllString(t.LogEntry, "")
+		message = fmt.Sprintf("%s with a status update for alert '%s'. %s", prefix, t.Summary, message)
+	case notification.Test:
+		message = fmt.Sprintf("%s with a test message.", prefix)
+	case notification.Verification:
+		count := int(math.Log10(float64(t.Code)) + 1)
+		message = fmt.Sprintf(
+			"%s with your %d-digit verification code. The code is: %s. Again, your %d-digit verification code is: %s.",
+			prefix, count, spellNumber(t.Code), count, spellNumber(t.Code),
+		)
+	default:
+		return "", errors.Errorf("unhandled message type: %T", t)
+	}
+
+	return
 }

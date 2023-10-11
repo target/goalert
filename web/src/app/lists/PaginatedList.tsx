@@ -48,7 +48,6 @@ export interface PaginatedListProps {
   items: PaginatedListItemProps[] | CheckboxItemsProps[]
   itemsPerPage?: number
 
-  pageCount?: number
   page?: number
 
   isLoading?: boolean
@@ -82,7 +81,6 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
   const {
     items = [],
     itemsPerPage = ITEMS_PER_PAGE,
-    pageCount,
     page,
     infiniteScroll,
     isLoading,
@@ -172,6 +170,9 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
           className={classes.itemText}
           primary={item.title}
           secondary={item.subText}
+          secondaryTypographyProps={{
+            component: typeof item.subText !== 'string' ? 'div' : 'p',
+          }}
         />
         {favIcon}
         {item.action && <div className={classes.itemAction}>{item.action}</div>}
@@ -180,7 +181,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
   }
 
   function renderListItems(): ReactElement | ReactElement[] {
-    if (pageCount === 0 && !isLoading) return renderNoResults()
+    if (items.length === 0 && !isLoading) return renderNoResults()
 
     let newItems: Array<PaginatedListItemProps> = items.slice()
     if (!infiniteScroll && page !== undefined) {

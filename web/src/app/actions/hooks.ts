@@ -1,10 +1,12 @@
 import { useLocation } from 'wouter'
+import { useSearch } from 'wouter/use-location'
 
 export type Value = string | boolean | number | string[]
 
 export function useURLKey(): string {
   const [path] = useLocation()
-  return path + location.search
+  const search = useSearch()
+  return path + search
 }
 
 // sanitizeURLParam serializes a value to be ready to store in a URL.
@@ -77,7 +79,8 @@ export function useURLParams<T extends Record<string, Value>>(
   params: T, // <name, default> pairs
 ): [T, (newValues: Partial<T>) => void] {
   const [path, navigate] = useLocation()
-  const q = new URLSearchParams(location.search)
+  const search = useSearch()
+  const q = new URLSearchParams(search)
   let called = false
 
   function setParams(newParams: Partial<T>): void {
@@ -110,7 +113,7 @@ export function useURLParams<T extends Record<string, Value>>(
     navigate(path + search + location.hash, { replace: true })
   }
 
-  const values = getParamValues<T>(location.search, params)
+  const values = getParamValues<T>(search, params)
 
   return [values, setParams]
 }
@@ -135,6 +138,7 @@ export function useURLParam<T extends Value>(
 // latest entry will be replaced.
 export function useResetURLParams(...names: string[]): () => void {
   const [path, navigate] = useLocation()
+  const searchVal = useSearch()
   let called = false
 
   return function resetURLParams(): void {
@@ -151,7 +155,7 @@ export function useResetURLParams(...names: string[]): () => void {
     }
     called = true
 
-    const params = new URLSearchParams(location.search)
+    const params = new URLSearchParams(searchVal)
     names.forEach((name) => params.delete(name))
 
     const [hasNew, search] = newSearch(params)

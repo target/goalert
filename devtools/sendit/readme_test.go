@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/devtools/sendit"
@@ -37,13 +37,11 @@ func TestReadme(t *testing.T) {
 	var c jwt.RegisteredClaims
 	tok, err := jwt.ParseWithClaims(token, &c, func(t *jwt.Token) (interface{}, error) {
 		return []byte(secret), nil
-	}, jwt.WithValidMethods([]string{"HS256"}))
+	}, jwt.WithValidMethods([]string{"HS256"}), jwt.WithAudience(sendit.TokenAudienceAuth), jwt.WithIssuer(sendit.TokenIssuer))
 	require.NoError(t, err, "must be valid jwt")
 	assert.True(t, tok.Valid, "token must be valid")
 
 	assert.Equal(t, "sendit", c.Issuer)
-	assert.True(t, c.VerifyAudience(sendit.TokenAudienceAuth, true), "must have auth audience")
-	assert.True(t, c.VerifyIssuer(sendit.TokenIssuer, true), "must have issuer")
 
 	// start server
 	cmd = logCmd(t, "go", "run", "./cmd/sendit-server",
@@ -56,7 +54,7 @@ func TestReadme(t *testing.T) {
 
 	rd := bufio.NewReader(r)
 	s, err := rd.ReadString('\n')
-	go io.Copy(io.Discard, rd)
+	go func(rd *bufio.Reader) { _, _ = io.Copy(io.Discard, rd) }(rd)
 	require.NoError(t, err)
 
 	_, srvAddr, ok := strings.Cut(strings.TrimSpace(s), "Listening: ")
@@ -89,7 +87,7 @@ func TestReadme(t *testing.T) {
 			break
 		}
 	}
-	go io.Copy(io.Discard, rd)
+	go func(rd *bufio.Reader) { _, _ = io.Copy(io.Discard, rd) }(rd)
 
 	resp, err := http.Get(srcURL + "/test")
 	require.NoError(t, err)

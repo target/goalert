@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 
-import { Value } from './util'
-import { useEditOnCallRule } from './hooks'
+import { DateTime } from 'luxon'
 import FormDialog from '../../dialogs/FormDialog'
+import { useOnCallRulesData, useSetOnCallRulesSubmit } from './hooks'
 import ScheduleOnCallNotificationsForm from './ScheduleOnCallNotificationsForm'
+import { EVERY_DAY, mapOnCallErrors, NO_DAY, Value } from './util'
 
 interface ScheduleOnCallNotificationsEditDialogProps {
   onClose: () => void
@@ -15,22 +16,41 @@ interface ScheduleOnCallNotificationsEditDialogProps {
 export default function ScheduleOnCallNotificationsEditDialog(
   p: ScheduleOnCallNotificationsEditDialogProps,
 ): JSX.Element {
-  const [_value, setValue] = useState<Value | null>(null)
-  const update = useEditOnCallRule(p.scheduleID, p.ruleID, _value)
+  const [value, setValue] = useState<Value | null>(null)
+
+  const { q, zone, rules } = useOnCallRulesData(p.scheduleID)
+
+  const rule = rules.find((r) => r.id === p.ruleID)
+  const newValue: Value = value || {
+    time: rule?.time
+      ? DateTime.fromFormat(rule.time, 'HH:mm', { zone }).toISO()
+      : null,
+    weekdayFilter: rule?.time ? rule.weekdayFilter || EVERY_DAY : NO_DAY,
+    type: rule?.target?.type ?? 'slackChannel',
+    targetID: rule?.target?.id ?? null,
+  }
+  const { m, submit } = useSetOnCallRulesSubmit(
+    p.scheduleID,
+    zone,
+    newValue,
+    ...rules.filter((r) => r.id !== p.ruleID),
+  )
+
+  const [dialogErrors, fieldErrors] = mapOnCallErrors(m.error, q.error)
 
   return (
     <FormDialog
       title='Edit Notification Rule'
-      errors={update.dialogErrors}
-      loading={update.busy}
+      errors={dialogErrors}
+      loading={(q.loading && !zone) || m.loading}
       onClose={() => p.onClose()}
-      onSubmit={() => update.submit().then(p.onClose)}
+      onSubmit={() => submit().then(p.onClose)}
       form={
         <ScheduleOnCallNotificationsForm
           scheduleID={p.scheduleID}
-          errors={update.fieldErrors}
-          value={update.value}
-          onChange={(value) => setValue(value)}
+          errors={fieldErrors}
+          value={newValue}
+          onChange={setValue}
         />
       }
     />

@@ -5,16 +5,14 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"fmt"
-	stdlog "log"
 	"net"
 	"net/http"
-	"sync"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/alert/alertmetrics"
+	"github.com/target/goalert/apikey"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/authlink"
@@ -42,6 +40,7 @@ import (
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/service"
+	"github.com/target/goalert/smtpsrv"
 	"github.com/target/goalert/timezone"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
@@ -51,9 +50,6 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 // App represents an instance of the GoAlert application.
@@ -63,21 +59,18 @@ type App struct {
 	mgr *lifecycle.Manager
 
 	db     *sql.DB
-	gdb    *gorm.DB
 	l      net.Listener
 	events *sqlutil.Listener
 
-	timeOffset time.Duration
-	timeMx     sync.Mutex
-
-	cooldown *cooldown
-	doneCh   chan struct{}
+	doneCh chan struct{}
 
 	sysAPIL   net.Listener
 	sysAPISrv *grpc.Server
 	hSrv      *health.Server
 
 	srv        *http.Server
+	smtpsrv    *smtpsrv.Server
+	smtpsrvL   net.Listener
 	startupErr error
 
 	notificationManager *notification.Manager
@@ -128,6 +121,7 @@ type App struct {
 	TimeZoneStore *timezone.Store
 	NoticeStore   *notice.Store
 	AuthLinkStore *authlink.Store
+	APIKeyStore   *apikey.Store
 }
 
 // NewApp constructs a new App and binds the listening socket.
@@ -184,46 +178,6 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 		doneCh: make(chan struct{}),
 	}
 
-	gCfg := &gorm.Config{
-		PrepareStmt: true,
-		NowFunc:     app.Now,
-	}
-	if c.JSON {
-		gCfg.Logger = &gormJSONLogger{}
-	} else {
-		gCfg.Logger = logger.New(stdlog.New(c.Logger, "", 0), logger.Config{
-			SlowThreshold:             50 * time.Millisecond,
-			LogLevel:                  logger.Warn,
-			IgnoreRecordNotFoundError: false,
-			Colorful:                  true,
-		})
-	}
-	gdb, err := gorm.Open(postgres.New(postgres.Config{Conn: db}), gCfg)
-	if err != nil {
-		return nil, fmt.Errorf("wrap db for GORM: %w", err)
-	}
-	app.gdb = gdb
-
-	var n time.Time
-	err = db.QueryRow("SELECT now()").Scan(&n)
-	if err != nil {
-		return nil, fmt.Errorf("get current time: %w", err)
-	}
-	app.SetTimeOffset(time.Until(n))
-
-	// permission check *before* query is run
-	gdb.Callback().Query().Before("gorm:query").
-		Register("goalert:permission-check", func(gDB *gorm.DB) {
-			err := permission.LimitCheckAny(gDB.Statement.Context, permission.All)
-			if err != nil {
-				gDB.AddError(err)
-			}
-		})
-
-	if c.KubernetesCooldown > 0 {
-		app.cooldown = newCooldown(c.KubernetesCooldown)
-	}
-
 	if c.StatusAddr != "" {
 		err = listenStatus(c.StatusAddr, app.doneCh)
 		if err != nil {
@@ -256,7 +210,10 @@ func (a *App) URL() string {
 	return "http://" + a.l.Addr().String()
 }
 
-// Status returns the current lifecycle status of the App.
-func (a *App) Status() lifecycle.Status {
-	return a.mgr.Status()
+func (a *App) SMTPAddr() string {
+	if a.smtpsrvL == nil {
+		return ""
+	}
+
+	return a.smtpsrvL.Addr().String()
 }

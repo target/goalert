@@ -269,6 +269,25 @@ function testAlerts(screen: ScreenFormat): void {
       // first two already acked, third now acked
       cy.get('[role="alert"]').should('contain', '1 of 3 alerts updated')
     })
+
+    it('should set a noise reason on multiple alerts', () => {
+      cy.get(`span[data-cy=item-${alert1.id}] input`).check()
+      cy.get(`span[data-cy=item-${alert2.id}] input`).check()
+
+      cy.get('button[aria-label="Mark as Noise"]').click()
+      cy.dialogTitle('Mark the Following Alerts as Noise')
+
+      cy.get('[placeholder="Other (please specify)"]').type('Test')
+      cy.dialogFinish('Submit')
+
+      cy.get('[role="alert"]').should('contain', '2 of 2 alerts updated')
+
+      cy.visit('/alerts/' + alert1.id)
+      cy.get('body').should('contain.text', 'Reason: Test')
+
+      cy.visit('/alerts/' + alert2.id)
+      cy.get('body').should('contain.text', 'Reason: Test')
+    })
   })
 
   describe('Alert Creation', () => {
@@ -293,7 +312,11 @@ function testAlerts(screen: ScreenFormat): void {
       })
       const details = c.word({ length: 10 })
 
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Alert').click()
+      }
 
       // Alert Info
       cy.dialogTitle('Create New Alert')
@@ -347,27 +370,21 @@ function testAlerts(screen: ScreenFormat): void {
 
     if (screen === 'widescreen') {
       it('should link to the escalation policy', () => {
-        cy.get('body')
-          .contains('a', 'Escalation Policy')
-          .click()
-          .url()
-          .should(
-            'eq',
-            Cypress.config().baseUrl +
-              `/escalation-policies/${alert.service.ep.id}`,
-          )
+        cy.get('body').contains('a', 'Escalation Policy').click()
+        cy.url().should(
+          'eq',
+          Cypress.config().baseUrl +
+            `/escalation-policies/${alert.service.ep.id}`,
+        )
       })
     }
 
     it('should link to the service', () => {
-      cy.get('body')
-        .contains('a', alert.service.name)
-        .click()
-        .url()
-        .should(
-          'eq',
-          Cypress.config().baseUrl + `/services/${alert.service.id}`,
-        )
+      cy.get('body').contains('a', alert.service.name).click()
+      cy.url().should(
+        'eq',
+        Cypress.config().baseUrl + `/services/${alert.service.id}`,
+      )
     })
 
     it('should have proper data', () => {
@@ -379,21 +396,61 @@ function testAlerts(screen: ScreenFormat): void {
 
     it('should allow the user to take action', () => {
       // ack
-      cy.get('button[aria-label=Acknowledge]').click()
+      cy.get('button').contains('Acknowledge').click()
 
       cy.get('body').should('contain', 'ACKNOWLEDGED')
       cy.get('body').should('not.contain', 'UNACKNOWLEDGED')
       cy.get('body').should('contain', 'Acknowledged by Cypress User')
 
       // escalate
-      cy.get('button[aria-label=Escalate]').click()
+      cy.get('button').contains('Escalate').click()
       cy.get('body').should('contain', 'Escalation requested by Cypress User')
       cy.reload() // allows time for escalation request to process
 
       // close
-      cy.get('button[aria-label=Close]').click()
+      cy.get('button').contains('Close').click()
       cy.get('body').should('contain', 'Closed by Cypress User')
       cy.get('body').should('contain', 'CLOSED')
+    })
+
+    it('should set alert noise reasons', () => {
+      // set all noise reasons, checking carefully because of async setState
+      cy.get('body').should('contain.text', 'Is this alert noise?')
+      cy.get('[data-cy="False positive"] input[type="checkbox"]').check()
+      cy.get('[data-cy="False positive"] input[type="checkbox"]').should(
+        'be.checked',
+      )
+      cy.get('[data-cy="Not actionable"] input[type="checkbox"]').check()
+      cy.get('[data-cy="Not actionable"] input[type="checkbox"]').should(
+        'be.checked',
+      )
+      cy.get('[data-cy="Poor details"] input[type="checkbox"]').check()
+      cy.get('[data-cy="Poor details"] input[type="checkbox"]').should(
+        'be.checked',
+      )
+      cy.get('[placeholder="Other (please specify)"]').type('Test')
+
+      // submit
+      cy.get('button[aria-label="Submit noise reasons"]').should(
+        'not.be.disabled',
+      )
+      cy.get('button[aria-label="Submit noise reasons"]').click()
+      cy.get('label').contains('False positive').should('not.exist')
+
+      // see notice
+      const noticeTitle = 'Info: This alert has been marked as noise'
+      cy.get('body').should('contain.text', noticeTitle)
+      cy.get('body').should(
+        'contain.text',
+        'Reasons: False positive, Not actionable, Poor details, Test',
+      )
+
+      // undo
+      cy.get('button[aria-label="Reset noise reasons"]').click()
+      cy.get('body').should('not.contain.text', noticeTitle)
+      cy.get('[data-cy="False positive"] input[type="checkbox"]').should(
+        'not.be.checked',
+      )
     })
   })
 

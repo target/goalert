@@ -9,14 +9,15 @@ export interface HandoffSummaryProps {
   timeZone: string
 }
 
-function dur(p: HandoffSummaryProps): JSX.Element {
+function dur(p: HandoffSummaryProps): JSX.Element | string {
   if (p.type === 'hourly') return <Time duration={{ hours: p.shiftLength }} />
   if (p.type === 'daily') return <Time duration={{ days: p.shiftLength }} />
   if (p.type === 'weekly') return <Time duration={{ weeks: p.shiftLength }} />
+  if (p.type === 'monthly') return <Time duration={{ months: p.shiftLength }} />
   throw new Error('unknown rotation type: ' + p.type)
 }
 
-function ts(p: HandoffSummaryProps): JSX.Element {
+function ts(p: HandoffSummaryProps): JSX.Element | string {
   if (p.type === 'hourly')
     return <Time prefix='from ' time={p.start} zone={p.timeZone} />
   if (p.type === 'daily')
@@ -30,6 +31,8 @@ function ts(p: HandoffSummaryProps): JSX.Element {
         format='weekday-clock'
       />
     )
+  if (p.type === 'monthly')
+    return <Time prefix='from ' time={p.start} zone={p.timeZone} />
   throw new Error('unknown rotation type: ' + p.type)
 }
 
@@ -37,12 +40,21 @@ function ts(p: HandoffSummaryProps): JSX.Element {
 export const HandoffSummary: React.FC<HandoffSummaryProps> =
   function HandoffSummary(props: HandoffSummaryProps): JSX.Element {
     if (!props.timeZone) return <span>Loading handoff information...</span>
-
     return (
       <span>
         Time Zone: {props.timeZone}
         <br />
-        Hands off every {dur(props)} {ts(props)}.
+        {props.type === 'monthly' ? (
+          <React.Fragment>
+            Hands off every{' '}
+            {props.shiftLength === 1 ? 'month' : `${props.shiftLength} months`}{' '}
+            {ts(props)}.
+          </React.Fragment>
+        ) : (
+          <React.Fragment>
+            Hands off every {dur(props)} {ts(props)}.
+          </React.Fragment>
+        )}
       </span>
     )
   }

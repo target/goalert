@@ -3,11 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"sort"
+	"strings"
 	"time"
 
-	"github.com/brianvoe/gofakeit"
+	"github.com/brianvoe/gofakeit/v6"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
@@ -29,7 +29,7 @@ import (
 
 var (
 	timeZones     = []string{"America/Chicago", "Europe/Berlin", "UTC"}
-	rotationTypes = []rotation.Type{rotation.TypeDaily, rotation.TypeHourly, rotation.TypeWeekly}
+	rotationTypes = []rotation.Type{rotation.TypeDaily, rotation.TypeHourly, rotation.TypeWeekly, rotation.TypeMonthly}
 )
 
 type AlertLog struct {
@@ -55,6 +55,8 @@ type AlertMsg struct {
 }
 
 type datagenConfig struct {
+	Seed int64
+
 	UserCount            int
 	CMMax                int
 	NRMax                int
@@ -113,6 +115,7 @@ type datagen struct {
 	Monitors           []heartbeat.Monitor
 	Alerts             []alert.Alert
 	AlertLogs          []AlertLog
+	AlertFeedback      []alert.Feedback
 	Favorites          []userFavorite
 	Labels             []label.Label
 	AlertMessages      []AlertMsg
@@ -122,19 +125,21 @@ type datagen struct {
 	alertDetails []string
 	labelKeyVal  map[string][]string
 	labelKeys    []string
+
+	*gofakeit.Faker
 }
 
 func (d *datagen) genPhone() string {
-	return fmt.Sprintf("+17633%06d", rand.Intn(999999))
+	return fmt.Sprintf("+17633%06d", d.Intn(1000000))
 }
 
 // NewUser generates a new user.User and adds it to the Users slice.
 func (d *datagen) NewUser() {
 	u := user.User{
-		ID:    gofakeit.UUID(),
-		Name:  d.ids.Gen(gofakeit.Name, "user"),
+		ID:    d.UUID(),
+		Name:  d.ids.Gen(d.Name, "user"),
 		Role:  permission.RoleUser,
-		Email: d.ids.Gen(gofakeit.Email, "user"),
+		Email: d.ids.Gen(d.Email, "user"),
 	}
 	d.Users = append(d.Users, u)
 }
@@ -142,13 +147,14 @@ func (d *datagen) NewUser() {
 // NewCM will generate a contact method for the given UserID.
 func (d *datagen) NewCM(userID string) {
 	cm := contactmethod.ContactMethod{
-		ID:       gofakeit.UUID(),
+		ID:       d.UUID(),
 		Type:     contactmethod.TypeSMS,
-		Name:     d.ids.Gen(gofakeit.FirstName, userID),
+		Name:     d.ids.Gen(d.FirstName, userID),
 		Disabled: true,
 		UserID:   userID,
+		Pending:  false,
 	}
-	if gofakeit.Bool() {
+	if d.Bool() {
 		cm.Type = contactmethod.TypeVoice
 	}
 
@@ -159,7 +165,7 @@ func (d *datagen) NewCM(userID string) {
 // NewNR will generate a notification rule for the user/contact method provided.
 func (d *datagen) NewNR(userID, cmID string) {
 	nr := notificationrule.NotificationRule{
-		ID:              gofakeit.UUID(),
+		ID:              d.UUID(),
 		UserID:          userID,
 		ContactMethodID: cmID,
 		DelayMinutes:    d.ints.Gen(60, cmID),
@@ -170,23 +176,27 @@ func (d *datagen) NewNR(userID, cmID string) {
 // NewRotation will generate a rotation.
 func (d *datagen) NewRotation() {
 	r := rotation.Rotation{
-		ID:          gofakeit.UUID(),
-		Name:        d.ids.Gen(idName("Rotation")),
-		Description: gofakeit.Sentence(rand.Intn(10) + 3),
-		Type:        rotationTypes[rand.Intn(len(rotationTypes))],
-		Start:       gofakeit.DateRange(time.Now().AddDate(-3, 0, 0), time.Now()).In(time.FixedZone(gofakeit.RandString(timeZones), 0)),
-		ShiftLength: rand.Intn(14) + 1,
+		ID:          d.UUID(),
+		Name:        d.ids.Gen(idName(d.Faker, "Rotation")),
+		Description: d.LoremIpsumSentence(d.Intn(10) + 3),
+		Type:        rotationTypes[d.Intn(len(rotationTypes))],
+		Start:       d.DateRange(time.Now().AddDate(-3, 0, 0), time.Now()).In(time.FixedZone(d.RandomString(timeZones), 0)),
+		ShiftLength: d.Intn(14) + 1,
 	}
 
 	d.Rotations = append(d.Rotations, r)
 }
 
+func (d *datagen) Intn(n int) int { return d.IntRange(0, n-1) }
+
+func (d *datagen) Int63n(n int64) int64 { return int64(d.IntRange(0, int(n))) }
+
 // NewRotationParticipant will create a new rotation participant for the given rotation and position.
 func (d *datagen) NewRotationParticipant(rotID string, pos int) {
 	d.RotationParts = append(d.RotationParts, rotationPart{
-		ID:         gofakeit.UUID(),
+		ID:         d.UUID(),
 		RotationID: rotID,
-		UserID:     d.Users[rand.Intn(len(d.Users))].ID,
+		UserID:     d.Users[d.Intn(len(d.Users))].ID,
 		Pos:        pos,
 	})
 }
@@ -194,10 +204,10 @@ func (d *datagen) NewRotationParticipant(rotID string, pos int) {
 // NewSchedule will generate a new random schedule.
 func (d *datagen) NewSchedule() {
 	d.Schedules = append(d.Schedules, schedule.Schedule{
-		ID:          gofakeit.UUID(),
-		Name:        d.ids.Gen(idName("Schedule")),
-		Description: gofakeit.Sentence(rand.Intn(10) + 3),
-		TimeZone:    time.FixedZone(gofakeit.RandString(timeZones), 0),
+		ID:          d.UUID(),
+		Name:        d.ids.Gen(idName(d.Faker, "Schedule")),
+		Description: d.LoremIpsumSentence(d.Intn(10) + 3),
+		TimeZone:    time.FixedZone(d.RandomString(timeZones), 0),
 	})
 }
 
@@ -205,40 +215,40 @@ func (d *datagen) NewSchedule() {
 func (d *datagen) NewScheduleRule(scheduleID string) {
 	var filter timeutil.WeekdayFilter
 	for i := range filter {
-		filter.SetDay(time.Weekday(i), gofakeit.Bool())
+		filter.SetDay(time.Weekday(i), d.Bool())
 	}
 	var tgt assignment.Target
-	if gofakeit.Bool() {
-		tgt = assignment.RotationTarget(d.Rotations[rand.Intn(len(d.Rotations))].ID)
+	if d.Bool() {
+		tgt = assignment.RotationTarget(d.Rotations[d.Intn(len(d.Rotations))].ID)
 	} else {
-		tgt = assignment.UserTarget(d.Users[rand.Intn(len(d.Users))].ID)
+		tgt = assignment.UserTarget(d.Users[d.Intn(len(d.Users))].ID)
 	}
 	d.ScheduleRules = append(d.ScheduleRules, rule.Rule{
-		ID:            gofakeit.UUID(),
+		ID:            d.UUID(),
 		ScheduleID:    scheduleID,
 		WeekdayFilter: filter,
-		Start:         timeutil.Clock(rand.Int63n(int64(24 * time.Hour))),
-		End:           timeutil.Clock(rand.Int63n(int64(24 * time.Hour))),
+		Start:         timeutil.Clock(d.Int63n(int64(24 * time.Hour))),
+		End:           timeutil.Clock(d.Int63n(int64(24 * time.Hour))),
 		Target:        tgt,
 	})
 }
 
 // NewScheduleOverride well generate a random override for the provided schedule ID.
 func (d *datagen) NewScheduleOverride(scheduleID string) {
-	end := gofakeit.DateRange(time.Now().Add(time.Hour), time.Now().Add(30*24*time.Hour))
-	start := gofakeit.DateRange(end.Add(-30*24*time.Hour), end.Add(-time.Hour))
+	end := d.DateRange(time.Now().Add(time.Hour), time.Now().Add(30*24*time.Hour))
+	start := d.DateRange(end.Add(-30*24*time.Hour), end.Add(-time.Hour))
 	o := override.UserOverride{
-		ID:     gofakeit.UUID(),
+		ID:     d.UUID(),
 		Target: assignment.ScheduleTarget(scheduleID),
 		Start:  start,
 		End:    end,
 	}
-	n := rand.Intn(3)
+	n := d.Intn(3)
 	if n < 2 {
-		o.AddUserID = d.ids.Gen(func() string { return d.Users[rand.Intn(len(d.Users))].ID }, scheduleID)
+		o.AddUserID = d.ids.Gen(func() string { return d.Users[d.Intn(len(d.Users))].ID }, scheduleID)
 	}
 	if n > 0 {
-		o.RemoveUserID = d.ids.Gen(func() string { return d.Users[rand.Intn(len(d.Users))].ID }, scheduleID)
+		o.RemoveUserID = d.ids.Gen(func() string { return d.Users[d.Intn(len(d.Users))].ID }, scheduleID)
 	}
 	d.Overrides = append(d.Overrides, o)
 }
@@ -246,19 +256,19 @@ func (d *datagen) NewScheduleOverride(scheduleID string) {
 // NewEP will generate a new escalation policy.
 func (d *datagen) NewEP() {
 	d.EscalationPolicies = append(d.EscalationPolicies, escalation.Policy{
-		ID:          gofakeit.UUID(),
-		Name:        d.ids.Gen(idName("Policy")),
-		Description: gofakeit.Sentence(rand.Intn(10) + 3),
-		Repeat:      rand.Intn(5),
+		ID:          d.UUID(),
+		Name:        d.ids.Gen(idName(d.Faker, "Policy")),
+		Description: d.LoremIpsumSentence(d.Intn(10) + 3),
+		Repeat:      d.Intn(5),
 	})
 }
 
 // NewEPStep will generate a random escalation policy step for the provided policy.
 func (d *datagen) NewEPStep(epID string, n int) {
 	d.EscalationSteps = append(d.EscalationSteps, escalation.Step{
-		ID:           gofakeit.UUID(),
+		ID:           d.UUID(),
 		PolicyID:     epID,
-		DelayMinutes: rand.Intn(25) + 5,
+		DelayMinutes: d.Intn(25) + 5,
 		StepNumber:   n,
 	})
 }
@@ -266,16 +276,16 @@ func (d *datagen) NewEPStep(epID string, n int) {
 // NewEPStepAction will generate a new action for the provided step ID.
 func (d *datagen) NewEPStepAction(stepID string) {
 	var tgt assignment.Target
-	switch rand.Intn(3) {
+	switch d.Intn(3) {
 	case 0:
-		tgt = assignment.UserTarget(d.ids.Gen(func() string { return d.Users[rand.Intn(len(d.Users))].ID }, stepID))
+		tgt = assignment.UserTarget(d.ids.Gen(func() string { return d.Users[d.Intn(len(d.Users))].ID }, stepID))
 	case 1:
-		tgt = assignment.RotationTarget(d.ids.Gen(func() string { return d.Rotations[rand.Intn(len(d.Rotations))].ID }, stepID))
+		tgt = assignment.RotationTarget(d.ids.Gen(func() string { return d.Rotations[d.Intn(len(d.Rotations))].ID }, stepID))
 	case 2:
-		tgt = assignment.ScheduleTarget(d.ids.Gen(func() string { return d.Schedules[rand.Intn(len(d.Schedules))].ID }, stepID))
+		tgt = assignment.ScheduleTarget(d.ids.Gen(func() string { return d.Schedules[d.Intn(len(d.Schedules))].ID }, stepID))
 	}
 	d.EscalationActions = append(d.EscalationActions, stepAction{
-		ID:     gofakeit.UUID(),
+		ID:     d.UUID(),
 		StepID: stepID,
 		Tgt:    tgt,
 	})
@@ -284,17 +294,17 @@ func (d *datagen) NewEPStepAction(stepID string) {
 // NewService will generate a random service.
 func (d *datagen) NewService() {
 	d.Services = append(d.Services, service.Service{
-		ID:                 gofakeit.UUID(),
-		Name:               d.ids.Gen(idName("Service")),
-		Description:        gofakeit.Sentence(rand.Intn(10) + 3),
-		EscalationPolicyID: d.EscalationPolicies[rand.Intn(len(d.EscalationPolicies))].ID,
+		ID:                 d.UUID(),
+		Name:               d.ids.Gen(idName(d.Faker, "Service")),
+		Description:        d.LoremIpsumSentence(d.Intn(10) + 3),
+		EscalationPolicyID: d.EscalationPolicies[d.Intn(len(d.EscalationPolicies))].ID,
 	})
 }
 
 // NewIntKey will generate a random integration key for the given service ID.
 func (d *datagen) NewIntKey(svcID string) {
 	var typ integrationkey.Type
-	switch rand.Intn(4) {
+	switch d.Intn(4) {
 	case 0:
 		typ = integrationkey.TypeEmail
 	case 1:
@@ -305,8 +315,8 @@ func (d *datagen) NewIntKey(svcID string) {
 		typ = integrationkey.TypeSite24x7
 	}
 	d.IntKeys = append(d.IntKeys, integrationkey.IntegrationKey{
-		ID:        gofakeit.UUID(),
-		Name:      d.ids.Gen(idName("Key")),
+		ID:        d.UUID(),
+		Name:      d.ids.Gen(idName(d.Faker, "Key")),
 		Type:      typ,
 		ServiceID: svcID,
 	})
@@ -315,12 +325,12 @@ func (d *datagen) NewIntKey(svcID string) {
 // NewLabel will generate a random label for the provided service ID.
 func (d *datagen) NewLabel(svcID string) {
 	key := d.ids.Gen(func() string {
-		return gofakeit.RandString(d.labelKeys)
+		return d.RandomString(d.labelKeys)
 	}, "labelKey", svcID)
 
 	d.Labels = append(d.Labels, label.Label{
 		Key:    key,
-		Value:  gofakeit.RandString(d.labelKeyVal[key]),
+		Value:  d.RandomString(d.labelKeyVal[key]),
 		Target: assignment.ServiceTarget(svcID),
 	})
 }
@@ -328,21 +338,21 @@ func (d *datagen) NewLabel(svcID string) {
 // NewMonitor will generate a random heartbreat monitor for the provided service ID.
 func (d *datagen) NewMonitor(svcID string) {
 	d.Monitors = append(d.Monitors, heartbeat.Monitor{
-		ID:        gofakeit.UUID(),
-		Name:      d.ids.Gen(idName("Monitor")),
+		ID:        d.UUID(),
+		Name:      d.ids.Gen(idName(d.Faker, "Monitor")),
 		ServiceID: svcID,
-		Timeout:   5*time.Minute + time.Duration(rand.Int63n(int64(60*time.Hour))),
+		Timeout:   5*time.Minute + time.Duration(d.Int63n(int64(60*time.Hour))),
 	})
 }
 
 // NewAlert will generate an alert with the provided status.
 func (d *datagen) NewAlert(status alert.Status) {
 	var details string
-	if gofakeit.Bool() {
-		details = gofakeit.RandString(d.alertDetails)
+	if d.Bool() {
+		details = d.RandomString(d.alertDetails)
 	}
 	var src alert.Source
-	switch rand.Intn(5) {
+	switch d.Intn(5) {
 	case 0:
 		src = alert.SourceEmail
 	case 1:
@@ -356,17 +366,17 @@ func (d *datagen) NewAlert(status alert.Status) {
 	}
 	var serviceID string
 	if status == alert.StatusTriggered {
-		serviceID = d.ids.GenN(200, func() string { return d.Services[rand.Intn(len(d.Services))].ID }, "active-alerts")
+		serviceID = d.ids.GenN(200, func() string { return d.Services[d.Intn(len(d.Services))].ID }, "active-alerts")
 	} else {
 		// unlimited closed alerts
-		serviceID = d.Services[rand.Intn(len(d.Services))].ID
+		serviceID = d.Services[d.Intn(len(d.Services))].ID
 	}
 	d.Alerts = append(d.Alerts, alert.Alert{
 		ID:        len(d.Alerts) + 1,
-		CreatedAt: gofakeit.DateRange(time.Now().Add(-30*24*time.Hour), time.Now().Add(-1*time.Hour)),
+		CreatedAt: d.DateRange(time.Now().Add(-180*24*time.Hour), time.Now().Add(-1*time.Hour)),
 		Status:    status,
 		ServiceID: serviceID,
-		Summary:   d.ids.Gen(func() string { return gofakeit.Sentence(rand.Intn(10) + 3) }, serviceID),
+		Summary:   d.ids.Gen(func() string { return d.LoremIpsumSentence(d.Intn(10) + 3) }, serviceID),
 		Details:   details,
 		Source:    src,
 	})
@@ -383,10 +393,10 @@ func (d *datagen) NewAlertMessages(a alert.Alert, max int) {
 		return d.Services[idx].EscalationPolicyID
 	}
 
-	for i := 0; i < rand.Intn(max); i++ {
-		cm := d.ContactMethods[rand.Intn(len(d.ContactMethods))]
-		ts := gofakeit.DateRange(a.CreatedAt, time.Now())
-		id := gofakeit.UUID()
+	for i := 0; i < d.Intn(max); i++ {
+		cm := d.ContactMethods[d.Intn(len(d.ContactMethods))]
+		ts := d.DateRange(a.CreatedAt, time.Now())
+		id := d.UUID()
 		d.AlertMessages = append(d.AlertMessages, AlertMsg{
 			ID:        id,
 			AlertID:   a.ID,
@@ -396,7 +406,7 @@ func (d *datagen) NewAlertMessages(a alert.Alert, max int) {
 			EPID:      getEPID(a.ServiceID),
 			CMID:      cm.ID,
 			SentAt:    ts,
-			CreatedAt: gofakeit.DateRange(ts.Add(-time.Minute), ts),
+			CreatedAt: d.DateRange(ts.Add(-time.Minute), ts),
 		})
 		var meta struct {
 			MessageID string
@@ -417,11 +427,37 @@ func (d *datagen) NewAlertMessages(a alert.Alert, max int) {
 	}
 }
 
+func (d *datagen) NewAlertFeedback(a alert.Alert) {
+	if d.Bool() {
+		// no feedback
+		return
+	}
+
+	var reasons []string
+	if d.Bool() {
+		reasons = append(reasons, "False positive")
+	}
+	if d.Bool() {
+		reasons = append(reasons, "Not actionable")
+	}
+	if d.Bool() {
+		reasons = append(reasons, "Poor details")
+	}
+	if d.Bool() {
+		reasons = append(reasons, d.Sentence(3))
+	}
+
+	d.AlertFeedback = append(d.AlertFeedback, alert.Feedback{
+		ID:          a.ID,
+		NoiseReason: strings.Join(reasons, "|"),
+	})
+}
+
 // NewAlertLog will generate an alert log for the provided alert.
 func (d *datagen) NewAlertLogs(a alert.Alert) {
 	t := a.CreatedAt
 	addEvent := func(event string) {
-		t = gofakeit.DateRange(t, t.Add(30*time.Minute))
+		t = d.DateRange(t, t.Add(30*time.Minute))
 		d.AlertLogs = append(d.AlertLogs, AlertLog{
 			AlertID:   a.ID,
 			Timestamp: t,
@@ -435,19 +471,19 @@ func (d *datagen) NewAlertLogs(a alert.Alert) {
 
 	switch a.Status {
 	case alert.StatusTriggered:
-		if gofakeit.Bool() {
+		if d.Bool() {
 			addEvent("escalated")
 		}
 	case alert.StatusActive:
-		if gofakeit.Bool() {
+		if d.Bool() {
 			addEvent("escalated")
 		}
 		addEvent("acknowledged")
 	case alert.StatusClosed:
-		if gofakeit.Bool() {
+		if d.Bool() {
 			addEvent("escalated")
 		}
-		if gofakeit.Bool() {
+		if d.Bool() {
 			addEvent("acknowledged")
 		}
 		addEvent("closed")
@@ -457,17 +493,17 @@ func (d *datagen) NewAlertLogs(a alert.Alert) {
 // NewFavorite will generate a new favorite for the provided user ID.
 func (d *datagen) NewFavorite(userID string) {
 	var tgt assignment.Target
-	switch rand.Intn(5) {
+	switch d.Intn(5) {
 	case 0:
-		tgt = assignment.ServiceTarget(d.ids.Gen(func() string { return d.Services[rand.Intn(len(d.Services))].ID }, "favSvc", userID))
+		tgt = assignment.ServiceTarget(d.ids.Gen(func() string { return d.Services[d.Intn(len(d.Services))].ID }, "favSvc", userID))
 	case 1:
-		tgt = assignment.RotationTarget(d.ids.Gen(func() string { return d.Rotations[rand.Intn(len(d.Rotations))].ID }, "favRot", userID))
+		tgt = assignment.RotationTarget(d.ids.Gen(func() string { return d.Rotations[d.Intn(len(d.Rotations))].ID }, "favRot", userID))
 	case 2:
-		tgt = assignment.ScheduleTarget(d.ids.Gen(func() string { return d.Schedules[rand.Intn(len(d.Schedules))].ID }, "favSched", userID))
+		tgt = assignment.ScheduleTarget(d.ids.Gen(func() string { return d.Schedules[d.Intn(len(d.Schedules))].ID }, "favSched", userID))
 	case 3:
-		tgt = assignment.EscalationPolicyTarget(d.ids.Gen(func() string { return d.EscalationPolicies[rand.Intn(len(d.EscalationPolicies))].ID }, "favEP", userID))
+		tgt = assignment.EscalationPolicyTarget(d.ids.Gen(func() string { return d.EscalationPolicies[d.Intn(len(d.EscalationPolicies))].ID }, "favEP", userID))
 	case 4:
-		tgt = assignment.UserTarget(d.ids.Gen(func() string { return d.Users[rand.Intn(len(d.Users))].ID }, "favUsr", userID))
+		tgt = assignment.UserTarget(d.ids.Gen(func() string { return d.Users[d.Intn(len(d.Users))].ID }, "favUsr", userID))
 	}
 
 	d.Favorites = append(d.Favorites, userFavorite{
@@ -527,9 +563,12 @@ func (cfg *datagenConfig) Multiply(n float64) {
 
 // Generate will produce a full random dataset based on the configuration.
 func (cfg datagenConfig) Generate() datagen {
+	f := gofakeit.New(cfg.Seed)
 	d := datagen{
-		ids:         newGen(),
-		ints:        newUniqIntGen(),
+		Faker: f,
+
+		ids:         newGen(f),
+		ints:        newUniqIntGen(f),
 		labelKeyVal: make(map[string][]string),
 		Alerts:      make([]alert.Alert, 0, cfg.AlertClosedCount+cfg.AlertActiveCount),
 	}
@@ -551,68 +590,68 @@ func (cfg datagenConfig) Generate() datagen {
 	}
 	run(cfg.UserCount, d.NewUser)
 	for _, u := range d.Users {
-		n := run(rand.Intn(cfg.CMMax), func() { d.NewCM(u.ID) })
+		n := run(d.Intn(cfg.CMMax), func() { d.NewCM(u.ID) })
 		cmMethods := d.ContactMethods[len(d.ContactMethods)-n:]
 		if len(cmMethods) == 0 {
 			continue
 		}
-		run(rand.Intn(cfg.NRMax), func() { d.NewNR(u.ID, cmMethods[rand.Intn(len(cmMethods))].ID) })
+		run(d.Intn(cfg.NRMax), func() { d.NewNR(u.ID, cmMethods[d.Intn(len(cmMethods))].ID) })
 	}
 
 	run(cfg.RotationCount, d.NewRotation)
 	for _, r := range d.Rotations {
 		var pos int
-		run(rand.Intn(cfg.RotationMaxPart), func() { d.NewRotationParticipant(r.ID, pos); pos++ })
+		run(d.Intn(cfg.RotationMaxPart), func() { d.NewRotationParticipant(r.ID, pos); pos++ })
 	}
 
 	run(cfg.ScheduleCount, d.NewSchedule)
 	for _, sched := range d.Schedules {
-		run(rand.Intn(cfg.ScheduleMaxRules), func() { d.NewScheduleRule(sched.ID) })
-		run(rand.Intn(cfg.ScheduleMaxOverrides), func() { d.NewScheduleOverride(sched.ID) })
+		run(d.Intn(cfg.ScheduleMaxRules), func() { d.NewScheduleRule(sched.ID) })
+		run(d.Intn(cfg.ScheduleMaxOverrides), func() { d.NewScheduleOverride(sched.ID) })
 	}
 
 	run(cfg.EPCount, d.NewEP)
 	for _, ep := range d.EscalationPolicies {
 		var stepNum int
-		run(rand.Intn(cfg.EPMaxStep), func() {
+		run(d.Intn(cfg.EPMaxStep), func() {
 			d.NewEPStep(ep.ID, stepNum)
 			stepNum++
 		})
 	}
 	for _, step := range d.EscalationSteps {
-		run(rand.Intn(cfg.EPMaxAssigned), func() { d.NewEPStepAction(step.ID) })
+		run(d.Intn(cfg.EPMaxAssigned), func() { d.NewEPStepAction(step.ID) })
 	}
 
 	d.labelKeys = make([]string, cfg.UniqueLabelKeys)
 	for i := range d.labelKeys {
 		d.labelKeys[i] = d.ids.Gen(func() string {
-			return gofakeit.DomainName() + "/" + gofakeit.HackerNoun()
+			return d.DomainName() + "/" + d.HackerNoun()
 		}, "labelKey")
 	}
 
 	for _, key := range d.labelKeys {
-		run(rand.Intn(cfg.LabelValueMax)+1, func() {
+		run(d.Intn(cfg.LabelValueMax)+1, func() {
 			d.labelKeyVal[key] = append(d.labelKeyVal[key], d.ids.Gen(func() string {
-				return gofakeit.HackerAdjective() + " " + gofakeit.HackerVerb()
+				return d.HackerAdjective() + " " + d.HackerVerb()
 			}, "labelKeyVal", key))
 		})
 	}
 
 	run(cfg.SvcCount, d.NewService)
 	for _, svc := range d.Services {
-		run(rand.Intn(cfg.IntegrationKeyMax), func() { d.NewIntKey(svc.ID) })
-		run(rand.Intn(cfg.HeartbeatMonitorMax), func() { d.NewMonitor(svc.ID) })
-		run(rand.Intn(cfg.SvcLabelMax), func() { d.NewLabel(svc.ID) })
+		run(d.Intn(cfg.IntegrationKeyMax), func() { d.NewIntKey(svc.ID) })
+		run(d.Intn(cfg.HeartbeatMonitorMax), func() { d.NewMonitor(svc.ID) })
+		run(d.Intn(cfg.SvcLabelMax), func() { d.NewLabel(svc.ID) })
 	}
 	sort.Slice(d.Services, func(i, j int) bool { return d.Services[i].ID < d.Services[j].ID })
 
 	for _, usr := range d.Users {
-		run(rand.Intn(cfg.UserFavMax), func() { d.NewFavorite(usr.ID) })
+		run(d.Intn(cfg.UserFavMax), func() { d.NewFavorite(usr.ID) })
 	}
 
 	d.alertDetails = make([]string, 20)
 	for i := range d.alertDetails {
-		d.alertDetails[i] = gofakeit.Paragraph(2, 4, 10, "\n\n")
+		d.alertDetails[i] = d.LoremIpsumParagraph(2, 4, 10, "\n\n")
 	}
 
 	run(cfg.AlertClosedCount, func() { d.NewAlert(alert.StatusClosed) })
@@ -621,6 +660,7 @@ func (cfg datagenConfig) Generate() datagen {
 	for _, alert := range d.Alerts {
 		d.NewAlertLogs(alert)
 		d.NewAlertMessages(alert, cfg.MsgPerAlertMax)
+		d.NewAlertFeedback(alert)
 	}
 
 	return d

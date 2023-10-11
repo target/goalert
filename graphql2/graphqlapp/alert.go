@@ -2,6 +2,7 @@ package graphqlapp
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"strconv"
 	"strings"
@@ -13,19 +14,16 @@ import (
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
-	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/service"
-	"github.com/target/goalert/user"
-	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/util/timeutil"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-	"gorm.io/gorm"
 )
 
 type (
@@ -35,9 +33,8 @@ type (
 	AlertLogEntryState App
 )
 
-func (a *App) Alert() graphql2.AlertResolver             { return (*Alert)(a) }
-func (a *App) AlertMetric() graphql2.AlertMetricResolver { return (*AlertMetric)(a) }
-
+func (a *App) Alert() graphql2.AlertResolver                 { return (*Alert)(a) }
+func (a *App) AlertMetric() graphql2.AlertMetricResolver     { return (*AlertMetric)(a) }
 func (a *App) AlertLogEntry() graphql2.AlertLogEntryResolver { return (*AlertLogEntry)(a) }
 
 func (a *AlertLogEntry) ID(ctx context.Context, obj *alertlog.Entry) (int, error) {
@@ -46,11 +43,13 @@ func (a *AlertLogEntry) ID(ctx context.Context, obj *alertlog.Entry) (int, error
 }
 
 func (a *AlertMetric) TimeToAck(ctx context.Context, obj *alertmetrics.Metric) (*timeutil.ISODuration, error) {
-	return &timeutil.ISODuration{TimePart: obj.TimeToAck}, nil
+	dur := timeutil.ISODurationFromTime(obj.TimeToAck)
+	return &dur, nil
 }
 
 func (a *AlertMetric) TimeToClose(ctx context.Context, obj *alertmetrics.Metric) (*timeutil.ISODuration, error) {
-	return &timeutil.ISODuration{TimePart: obj.TimeToClose}, nil
+	dur := timeutil.ISODurationFromTime(obj.TimeToClose)
+	return &dur, nil
 }
 
 func (a *AlertLogEntry) Timestamp(ctx context.Context, obj *alertlog.Entry) (*time.Time, error) {
@@ -96,11 +95,30 @@ func notificationStateFromSendResult(s notification.Status, formattedSrc string)
 		details = prefix + ": " + details
 	}
 
+	if s.Age() >= 2*time.Minute {
+		details += fmt.Sprintf(" (after %s)", friendlyDuration(s.Age().Truncate(time.Minute)))
+	}
+
 	return &graphql2.NotificationState{
 		Details:           details,
 		Status:            &status,
 		FormattedSrcValue: formattedSrc,
 	}
+}
+
+func friendlyDuration(dur time.Duration) string {
+	var parts []string
+	hr := dur / time.Hour
+	if hr > 0 {
+		parts = append(parts, fmt.Sprintf("%dh", hr))
+		dur -= hr * time.Hour
+	}
+	min := dur / time.Minute
+	if min > 0 {
+		parts = append(parts, fmt.Sprintf("%dm", min))
+	}
+
+	return strings.Join(parts, " ")
 }
 
 func (a *AlertLogEntry) escalationState(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {
@@ -170,7 +188,7 @@ func (q *Query) Alert(ctx context.Context, alertID int) (*alert.Alert, error) {
  * Merges favorites and user-specified serviceIDs in opts.FilterByServiceID
  */
 func (q *Query) mergeFavorites(ctx context.Context, svcs []string) ([]string, error) {
-	targets, err := q.FavoriteStore.FindAll(ctx, permission.UserID(ctx), []assignment.TargetType{assignment.TargetTypeService})
+	targets, err := q.FavoriteStore.FindAll(ctx, q.DB, permission.UserID(ctx), []assignment.TargetType{assignment.TargetTypeService})
 	if err != nil {
 		return nil, err
 	}
@@ -364,6 +382,31 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 	return m.AlertStore.Create(ctx, a)
 }
 
+func (a *Alert) NoiseReason(ctx context.Context, raw *alert.Alert) (*string, error) {
+	am, err := (*App)(a).FindOneAlertFeedback(ctx, raw.ID)
+	if err != nil {
+		return nil, err
+	}
+	if am == nil {
+		return nil, nil
+	}
+	if am.NoiseReason == "" {
+		return nil, nil
+	}
+	return &am.NoiseReason, nil
+}
+
+func (m *Mutation) SetAlertNoiseReason(ctx context.Context, input graphql2.SetAlertNoiseReasonInput) (bool, error) {
+	err := m.AlertStore.UpdateFeedback(ctx, &alert.Feedback{
+		ID:          input.AlertID,
+		NoiseReason: input.NoiseReason,
+	})
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphql2.AlertRecentEventsOptions) (*graphql2.AlertLogEntryConnection, error) {
 	if opts == nil {
 		opts = new(graphql2.AlertRecentEventsOptions)
@@ -418,32 +461,11 @@ func (a *Alert) PendingNotifications(ctx context.Context, obj *alert.Alert) ([]g
 		return nil, err
 	}
 
-	db := sqlutil.FromContext(ctx)
-
-	var rows []struct {
-		UserID          uuid.UUID
-		ChannelID       uuid.UUID
-		ContactMethodID uuid.UUID
-
-		User          *user.User                   `gorm:"foreignKey:UserID;references:ID"`
-		Channel       *notificationchannel.Channel `gorm:"foreignKey:ChannelID;references:ID"`
-		ContactMethod *contactmethod.ContactMethod `gorm:"foreignKey:ContactMethodID;references:ID"`
-	}
-
-	err = db.Table("outgoing_messages").
-		Select("UserID", "ChannelID", "ContactMethodID").Distinct().
-		Where("last_status = 'pending'").
-		Where("(now() - created_at) > interval '15 seconds'").
-		Where(
-			db.Where("alert_id = ?", obj.ID).Or(
-				"message_type = 'alert_notification_bundle' and service_id = ?", obj.ServiceID,
-			),
-		).
-		Preload("Channel", sqlutil.Columns("ID", "Type", "Name")).
-		Preload("ContactMethod", sqlutil.Columns("ID", "Type")).
-		Preload("User", sqlutil.Columns("ID", "Name")).
-		Find(&rows).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	rows, err := gadb.New(a.DB).AllPendingMsgDests(ctx, gadb.AllPendingMsgDestsParams{
+		AlertID:   int64(obj.ID),
+		ServiceID: uuid.MustParse(obj.ServiceID),
+	})
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -453,13 +475,13 @@ func (a *Alert) PendingNotifications(ctx context.Context, obj *alert.Alert) ([]g
 	var result []graphql2.AlertPendingNotification
 	for _, r := range rows {
 		switch {
-		case r.ContactMethod != nil && r.User != nil:
+		case r.CmType.Valid && r.UserName.Valid:
 			result = append(result, graphql2.AlertPendingNotification{
-				Destination: fmt.Sprintf("%s (%s)", r.User.Name, r.ContactMethod.Type),
+				Destination: fmt.Sprintf("%s (%s)", r.UserName.String, r.CmType.EnumUserContactMethodType),
 			})
-		case r.Channel != nil:
+		case r.NcName.Valid && r.NcType.Valid:
 			result = append(result, graphql2.AlertPendingNotification{
-				Destination: fmt.Sprintf("%s (%s)", r.Channel.Name, r.Channel.Type),
+				Destination: fmt.Sprintf("%s (%s)", r.NcName.String, r.NcType.EnumNotifChannelType),
 			})
 		default:
 			log.Debugf(ctx, "unknown destination type for pending notification for alert %d", obj.ID)
@@ -479,24 +501,37 @@ func (m *Mutation) EscalateAlerts(ctx context.Context, ids []int) ([]alert.Alert
 }
 
 func (m *Mutation) UpdateAlerts(ctx context.Context, args graphql2.UpdateAlertsInput) ([]alert.Alert, error) {
-	var status alert.Status
-
-	err := validate.OneOf("Status", args.NewStatus, graphql2.AlertStatusStatusAcknowledged, graphql2.AlertStatusStatusClosed)
-	if err != nil {
-		return nil, err
-	}
-
-	switch args.NewStatus {
-	case graphql2.AlertStatusStatusAcknowledged:
-		status = alert.StatusActive
-	case graphql2.AlertStatusStatusClosed:
-		status = alert.StatusClosed
+	if args.NewStatus != nil && args.NoiseReason != nil {
+		return nil, validation.NewGenericError("cannot set both 'newStatus' and 'noiseReason'")
 	}
 
 	var updatedIDs []int
-	updatedIDs, err = m.AlertStore.UpdateManyAlertStatus(ctx, status, args.AlertIDs, nil)
-	if err != nil {
-		return nil, err
+	if args.NewStatus != nil {
+		err := validate.OneOf("Status", *args.NewStatus, graphql2.AlertStatusStatusAcknowledged, graphql2.AlertStatusStatusClosed)
+		if err != nil {
+			return nil, err
+		}
+
+		var status alert.Status
+		switch *args.NewStatus {
+		case graphql2.AlertStatusStatusAcknowledged:
+			status = alert.StatusActive
+		case graphql2.AlertStatusStatusClosed:
+			status = alert.StatusClosed
+		}
+
+		updatedIDs, err = m.AlertStore.UpdateManyAlertStatus(ctx, status, args.AlertIDs, nil)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if args.NoiseReason != nil {
+		var err error
+		updatedIDs, err = m.AlertStore.UpdateManyAlertFeedback(ctx, *args.NoiseReason, args.AlertIDs)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return m.AlertStore.FindMany(ctx, updatedIDs)

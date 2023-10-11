@@ -1,6 +1,8 @@
 name: labeler
 
-on: [pull_request]
+on:
+  pull_request:
+    types: ['opened', 'ready_for_review', 'reopened', 'synchronize']
 
 jobs:
   labeler:
@@ -30,6 +32,7 @@ jobs:
             "graphql2/generated.go"
             "graphql2/maplimit.go"
             "graphql2/mapconfig.go"
+            "graphql2/models_gen.go"
             "pkg/sysapi/*.pb.go"
             "swo/swodb/*.go"
             "web/src/*.d.ts"
@@ -38,3 +41,6 @@ jobs:
             "migrate/schema.sql"
             "go.mod"
             "go.sum"
+            ".yarn/releases/*"
+            "devtools/pgdump-lite/pgd/*"
+            "timezone/*.txt"

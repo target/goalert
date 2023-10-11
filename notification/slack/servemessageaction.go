@@ -118,16 +118,20 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 	case alertCloseActionID:
 		res = notification.ResultResolve
 	case linkActActionID:
-		s.withClient(ctx, func(c *slack.Client) error {
+		err = s.withClient(ctx, func(c *slack.Client) error {
 			// remove ephemeral 'Link Account' button
 			_, err = c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID,
 				slack.MsgOptionText("", false), slack.MsgOptionReplaceOriginal(payload.ResponseURL),
 				slack.MsgOptionDeleteOriginal(payload.ResponseURL))
 			if err != nil {
-				return err
+				return fmt.Errorf("delete ephemeral message: %w", err)
 			}
 			return nil
 		})
+		if errutil.HTTPError(ctx, w, err) {
+			return
+		}
+
 		return
 	default:
 		errutil.HTTPError(ctx, w, validation.NewFieldErrorf("action_id", "unknown action ID '%s'", act.ActionID))
@@ -142,7 +146,7 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 		switch {
 		case payload.User.Name == "", payload.User.Username == "", payload.Team.ID == "", payload.Team.Domain == "":
 			// missing data, don't allow linking
-			log.Log(ctx, errors.New("slack payload missing requried data"))
+			log.Log(ctx, errors.New("slack payload missing required data"))
 		default:
 			linkURL, err = s.recv.AuthLinkURL(ctx, "slack:"+payload.Team.ID, payload.User.ID, authlink.Metadata{
 				UserDetails: fmt.Sprintf("Slack user %s (@%s) from %s.slack.com", payload.User.Name, payload.User.Username, payload.Team.Domain),

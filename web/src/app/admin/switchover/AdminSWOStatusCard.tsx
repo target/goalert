@@ -14,6 +14,7 @@ import InProgressIcon from 'mdi-material-ui/DatabaseEdit'
 import { SWOStatus } from '../../../schema'
 import LoadingButton from '@mui/lab/LoadingButton'
 import { toTitle } from './util'
+import { AdminSwitchoverGuideButton } from './AdminSwitchoverGuide'
 
 function getIcon(data: SWOStatus): JSX.Element {
   const i: SvgIconProps = { color: 'primary', sx: { fontSize: '3.5rem' } }
@@ -85,10 +86,9 @@ export function AdminSWOStatusCard(
           sx={{ p: 0 }}
         />
         {getDetails(props.data)}
-        <div style={{ flexGrow: 1 }} />
         <ButtonGroup
           orientation={theme.breakpoints.up('md') ? 'vertical' : 'horizontal'}
-          sx={{ width: '100%', pb: '32px' }}
+          sx={{ width: '100%', pb: '16px', pt: '16px' }}
         >
           <LoadingButton
             startIcon={<ResetIcon />}
@@ -118,6 +118,7 @@ export function AdminSWOStatusCard(
             {isExec ? 'Executing...' : 'Execute'}
           </LoadingButton>
         </ButtonGroup>
+        <AdminSwitchoverGuideButton />
       </CardContent>
     </Card>
   )

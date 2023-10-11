@@ -9,11 +9,13 @@ import {
   GridToolbarDensitySelector,
   GridToolbarFilterButton,
   gridClasses,
+  GridValidRowModel,
+  GridColDef,
 } from '@mui/x-data-grid'
 import { Button, Grid } from '@mui/material'
 import DownloadIcon from '@mui/icons-material/Download'
 import { makeStyles } from '@mui/styles'
-import { Alert } from '../../../schema'
+import { Alert, Service } from '../../../schema'
 import { DateTime, Duration } from 'luxon'
 import AppLink from '../../util/AppLink'
 import { useWorker } from '../../worker'
@@ -33,7 +35,7 @@ const useStyles = makeStyles(() => ({
   },
 }))
 
-const columns = [
+const columns: GridColDef[] = [
   {
     field: 'createdAt',
     headerName: 'Created At',
@@ -66,7 +68,7 @@ const columns = [
     field: 'alertID',
     headerName: 'Alert ID',
     width: 90,
-    renderCell: (params: GridRenderCellParams<string>) => (
+    renderCell: (params: GridRenderCellParams<GridValidRowModel>) => (
       <AppLink to={`/alerts/${params.row.alertID}`}>{params.value}</AppLink>
     ),
   },
@@ -75,7 +77,7 @@ const columns = [
     headerName: 'Escalated',
     width: 90,
   },
-
+  { field: 'noiseReason', headerName: 'Noise Reason', width: 90 },
   {
     field: 'status',
     headerName: 'Status',
@@ -100,18 +102,17 @@ const columns = [
     valueGetter: (params: GridValueGetterParams) => {
       return params.row.service?.id || ''
     },
-    hide: true,
     width: 300,
   },
   {
     field: 'serviceName',
     headerName: 'Service Name',
-    hide: true,
     width: 200,
     valueGetter: (params: GridValueGetterParams) => {
       return params.row.service?.name || ''
     },
-    renderCell: (params: GridRenderCellParams<string>) => {
+
+    renderCell: (params: GridRenderCellParams<{ service: Service }>) => {
       if (params.row.service?.id && params.value) {
         return (
           <AppLink to={`/services/${params.row.service.id}`}>
@@ -183,7 +184,7 @@ export default function AlertMetricsTable(
           rows={alerts}
           loading={props.loading}
           columns={columns}
-          disableSelectionOnClick
+          rowSelection={false}
           components={{
             ExportIcon: DownloadIcon,
             Toolbar: CustomToolbar,

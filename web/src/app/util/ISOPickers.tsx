@@ -1,14 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { DateTime, DateTimeUnit } from 'luxon'
-import { TextField, TextFieldProps } from '@mui/material'
-import DatePicker from '@mui/lab/DatePicker'
-import DateTimePicker from '@mui/lab/DateTimePicker'
-import TimePicker from '@mui/lab/TimePicker'
-import { inputtypes } from 'modernizr-esm/feature/inputtypes'
+import { TextField, TextFieldProps, useTheme } from '@mui/material'
 import { useURLParam } from '../actions'
 
 interface ISOPickerProps extends ISOTextFieldProps {
-  Fallback: typeof TimePicker | typeof DatePicker | typeof DateTimePicker
   format: string
   timeZone?: string
   truncateTo: DateTimeUnit
@@ -20,22 +15,13 @@ interface ISOPickerProps extends ISOTextFieldProps {
 
 // Used for the native textfield component or the nested input component
 // that the Fallback renders.
-type ISOTextFieldProps = Partial<Omit<TextFieldProps, 'value'>> & {
+type ISOTextFieldProps = Partial<Omit<TextFieldProps, 'value' | 'onChange'>> & {
   value?: string
   onChange: (value: string) => void
 }
 
-function hasInputSupport(name: string): boolean {
-  if (new URLSearchParams(location.search).get('nativeInput') === '0') {
-    return false
-  }
-
-  return inputtypes[name]
-}
-
 function ISOPicker(props: ISOPickerProps): JSX.Element {
   const {
-    Fallback,
     format,
     timeZone,
     truncateTo,
@@ -49,15 +35,19 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
     ...textFieldProps
   } = props
 
-  const native = hasInputSupport(type)
+  const theme = useTheme()
   const [_zone] = useURLParam('tz', 'local')
   const zone = timeZone || _zone
   let valueAsDT = props.value ? DateTime.fromISO(props.value, { zone }) : null
 
   // store input value as DT.format() string. pass to parent onChange as ISO string
   const [inputValue, setInputValue] = useState(
-    valueAsDT ? valueAsDT.toFormat(format) : '',
+    valueAsDT?.toFormat(format) ?? '',
   )
+
+  useEffect(() => {
+    setInputValue(valueAsDT?.toFormat(format) ?? '')
+  }, [valueAsDT])
 
   // update isopickers render on reset
   useEffect(() => {
@@ -95,7 +85,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
     return ''
   }
 
-  function handleNativeChange(e: React.ChangeEvent<HTMLInputElement>): void {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
     setInputValue(e.target.value)
     const newVal = parseInputToISO(e.target.value)
 
@@ -106,92 +96,35 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
     }
   }
 
-  function handleFallbackChange(
-    date: DateTime | null,
-    keyboardInputValue = '',
-  ): void {
-    // attempt to set value from DateTime object first
-    if (date?.isValid) {
-      setInputValue(date.toFormat(format))
-      onChange(dtToISO(date))
-    } else {
-      setInputValue(keyboardInputValue)
-      // likely invalid, but validate keyboard input just to be sure
-      const dt = DateTime.fromFormat(keyboardInputValue, format, { zone })
-      if (dt.isValid) onChange(dtToISO(dt))
-      else onChange(keyboardInputValue) // set invalid input for form validation
-    }
-  }
-
   const defaultLabel = type === 'time' ? 'Select a time...' : 'Select a date...'
-  if (native) {
-    return (
-      <TextField
-        label={defaultLabel}
-        {...textFieldProps}
-        type={type}
-        value={valueAsDT ? valueAsDT.toFormat(format) : inputValue}
-        onChange={handleNativeChange}
-        InputLabelProps={{ shrink: true, ...textFieldProps?.InputLabelProps }}
-        inputProps={{
-          min: min
-            ? DateTime.fromISO(min, { zone }).toFormat(format)
-            : undefined,
-          max: max
-            ? DateTime.fromISO(max, { zone }).toFormat(format)
-            : undefined,
-          ...textFieldProps?.inputProps,
-        }}
-      />
-    )
-  }
 
   return (
-    <Fallback
-      value={valueAsDT}
-      onChange={handleFallbackChange}
-      showTodayButton
-      minDate={min ? DateTime.fromISO(min, { zone }) : undefined}
-      maxDate={max ? DateTime.fromISO(max, { zone }) : undefined}
-      disabled={textFieldProps?.disabled}
-      renderInput={(params) => (
-        <TextField
-          data-cy-fallback-type={type}
-          {...params}
-          label={defaultLabel}
-          {...textFieldProps}
-        />
-      )}
-      PopperProps={{
-        // @ts-expect-error DOM attribute for testing
-        'data-cy': props.name + '-picker-fallback',
+    <TextField
+      label={defaultLabel}
+      {...textFieldProps}
+      type={type}
+      value={valueAsDT ? valueAsDT.toFormat(format) : inputValue}
+      onChange={handleChange}
+      InputLabelProps={{ shrink: true, ...textFieldProps?.InputLabelProps }}
+      inputProps={{
+        min: min ? DateTime.fromISO(min, { zone }).toFormat(format) : undefined,
+        max: max ? DateTime.fromISO(max, { zone }).toFormat(format) : undefined,
+        style: {
+          colorScheme: theme.palette.mode,
+        },
+        ...textFieldProps?.inputProps,
       }}
-      style={{ width: 'fit-container' }}
     />
   )
 }
 
 export function ISOTimePicker(props: ISOTextFieldProps): JSX.Element {
-  return (
-    <ISOPicker
-      {...props}
-      format='HH:mm'
-      truncateTo='minute'
-      type='time'
-      Fallback={TimePicker}
-    />
-  )
+  return <ISOPicker {...props} format='HH:mm' truncateTo='minute' type='time' />
 }
 
 export function ISODatePicker(props: ISOTextFieldProps): JSX.Element {
   return (
-    <ISOPicker
-      {...props}
-      format='yyyy-MM-dd'
-      truncateTo='day'
-      type='date'
-      Fallback={DatePicker}
-    />
+    <ISOPicker {...props} format='yyyy-MM-dd' truncateTo='day' type='date' />
   )
 }
 
@@ -202,7 +135,6 @@ export function ISODateTimePicker(props: ISOTextFieldProps): JSX.Element {
       format={`yyyy-MM-dd'T'HH:mm`}
       truncateTo='minute'
       type='datetime-local'
-      Fallback={DateTimePicker}
     />
   )
 }

@@ -84,6 +84,7 @@ func NewMonitor(cfg Config) (*Monitor, error) {
 	m.appCfg.Twilio.AccountSID = cfg.Twilio.AccountSID
 	m.appCfg.Twilio.AuthToken = cfg.Twilio.AuthToken
 	m.appCfg.Twilio.FromNumber = cfg.Twilio.FromNumber
+	m.appCfg.Twilio.MessagingServiceSID = cfg.Twilio.MessageSID
 	mux.Handle("/", twilio.WrapHeaderHack(h))
 	m.srv = &http.Server{
 		Handler: config.Handler(
@@ -126,7 +127,12 @@ func (m *Monitor) reportErr(i Instance, err error, action string) {
 			log.Println("No ErrorAPIKey for", ins.Location)
 			continue
 		}
-		go ins.createGenericAlert(ins.ErrorAPIKey, "", summary, details)
+		ins := ins // copy
+		go func() {
+			if err := ins.createGenericAlert(ins.ErrorAPIKey, "", summary, details); err != nil {
+				log.Printf("ERROR: create generic alert: %v", err)
+			}
+		}()
 	}
 	log.Println("ERROR:", summary)
 }

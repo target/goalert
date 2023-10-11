@@ -2,11 +2,13 @@ package notification
 
 // Alert represents outgoing notifications for alerts.
 type Alert struct {
-	Dest       Dest
-	CallbackID string // CallbackID is the identifier used to communicate a response to the notification
-	AlertID    int    // The global alert number
-	Summary    string
-	Details    string
+	Dest        Dest
+	CallbackID  string // CallbackID is the identifier used to communicate a response to the notification
+	AlertID     int    // The global alert number
+	Summary     string
+	Details     string
+	ServiceID   string
+	ServiceName string
 
 	// OriginalStatus is the status of the first Alert notification to this Dest for this AlertID.
 	OriginalStatus *SendResult

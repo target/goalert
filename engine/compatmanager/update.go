@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 // UpdateAll will process compatibility entries for the cycle.
@@ -19,16 +19,14 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	}
 	log.Debugf(ctx, "Running compat operations.")
 
-	if expflag.ContextHas(ctx, expflag.SlackDM) {
-		err = db.updateContactMethods(ctx)
-		if err != nil {
-			return fmt.Errorf("update contact methods: %w", err)
-		}
+	err = db.updateContactMethods(ctx)
+	if err != nil {
+		return fmt.Errorf("update contact methods: %w", err)
+	}
 
-		err = db.updateAuthSubjects(ctx)
-		if err != nil {
-			return fmt.Errorf("update auth subjects: %w", err)
-		}
+	err = db.updateAuthSubjects(ctx)
+	if err != nil {
+		return fmt.Errorf("update auth subjects: %w", err)
 	}
 
 	return nil
@@ -39,7 +37,7 @@ func (db *DB) updateAuthSubjects(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "engine: update auth subjects", tx)
 
 	type cm struct {
 		ID          uuid.UUID
@@ -62,7 +60,7 @@ func (db *DB) updateAuthSubjects(ctx context.Context) error {
 
 		u, err := db.cs.User(ctx, c.SlackUserID)
 		if err != nil {
-			log.Log(ctx, err)
+			log.Log(ctx, fmt.Errorf("update auth subjects: lookup Slack user (%s): %w", c.SlackUserID, err))
 			continue
 		}
 
@@ -90,7 +88,7 @@ func (db *DB) updateContactMethods(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
-	defer tx.Rollback()
+	defer sqlutil.Rollback(ctx, "engine: update contact methods", tx)
 
 	type sub struct {
 		ID         int

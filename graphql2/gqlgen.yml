@@ -74,6 +74,8 @@ models:
     model: github.com/target/goalert/graphql2.ContactMethodType
   SlackChannel:
     model: github.com/target/goalert/notification/slack.Channel
+  SlackUserGroup:
+    model: github.com/target/goalert/notification/slack.UserGroup
   HeartbeatMonitor:
     model: github.com/target/goalert/heartbeat.Monitor
   HeartbeatMonitorState:
@@ -82,8 +84,6 @@ models:
     model: github.com/target/goalert/limit.ID
   DebugCarrierInfo:
     model: github.com/target/goalert/notification/twilio.CarrierInfo
-  UserSession:
-    model: github.com/target/goalert/auth.UserSession
   Notice:
     model: github.com/target/goalert/notice.Notice
   NoticeType:
@@ -105,3 +105,5 @@ models:
       - github.com/99designs/gqlgen/graphql.ID
       - github.com/google/uuid.UUID
       - github.com/target/goalert/schedule.RuleID
+  MessageLogConnectionStats:
+    model: github.com/target/goalert/notification.SearchOptions

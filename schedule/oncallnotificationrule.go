@@ -91,7 +91,7 @@ func (r *RuleID) UnmarshalText(data []byte) error {
 	if err != nil {
 		return err
 	}
-	i, err := strconv.ParseInt(string(data[37:]), 10, 64)
+	i, err := strconv.ParseInt(string(data[37:]), 10, 32)
 	if err != nil {
 		return err
 	}

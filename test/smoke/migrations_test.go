@@ -17,7 +17,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	_ "github.com/jackc/pgx/v4/stdlib" // import db driver
+	_ "github.com/jackc/pgx/v5/stdlib" // import db driver
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/test/smoke/harness"
 	"github.com/target/goalert/util/sqlutil"
@@ -414,12 +414,12 @@ func parsePGDump(data []byte, name string) []pgDumpEntry {
 		if strings.HasPrefix(line, "-- Name: ") {
 			entry.Name = strings.TrimSpace(strings.TrimPrefix(line, "-- Name: "))
 			entry.Body = ""
-			rd.ReadString('\n') // skip next line
+			_, _ = rd.ReadString('\n') // skip next line
 			continue
 		} else if strings.HasPrefix(line, "-- Data for Name: ") {
 			entry.Name = strings.TrimSpace(strings.TrimPrefix(line, "-- Data for Name: "))
 			entry.Body = ""
-			rd.ReadString('\n') // skip next line
+			_, _ = rd.ReadString('\n') // skip next line
 			continue
 		} else if strings.HasPrefix(line, "--") {
 			if entry.Name != "" {
@@ -550,7 +550,7 @@ func TestMigrations(t *testing.T) {
 	if err != nil {
 		t.Fatal("failed to create db:", err)
 	}
-	defer db.Exec("drop database " + sqlutil.QuoteID(dbName))
+	defer func() { _, _ = db.Exec("drop database " + sqlutil.QuoteID(dbName)) }()
 
 	n, err := migrate.Up(context.Background(), harness.DBURL(dbName), start)
 	if err != nil {

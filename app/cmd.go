@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	toml "github.com/pelletier/go-toml"
+	"github.com/pelletier/go-toml/v2"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -258,13 +258,16 @@ Migration: %s (#%d)
 
 				ctx := cmd.Context()
 
-				store, err := config.NewStore(ctx, conn, cf.EncryptionKeys, "", "")
+				storeCfg := config.StoreConfig{
+					DB:   conn,
+					Keys: cf.EncryptionKeys,
+				}
+				store, err := config.NewStore(ctx, storeCfg)
 				if err != nil {
 					return fmt.Errorf("read config: %w", err)
 				}
 				cfg = store.Config()
-				store.Shutdown(ctx)
-				return nil
+				return store.Shutdown(ctx)
 			}
 			if cf.DBURL != "" && !offlineOnly {
 				result("DB", loadConfigDB())
@@ -355,13 +358,13 @@ Migration: %s (#%d)
 				return errors.New("config file is required")
 			}
 
-			t, err := toml.LoadFile(file)
+			data, err := os.ReadFile(file)
 			if err != nil {
 				return err
 			}
 
 			var cfg remotemonitor.Config
-			err = t.Unmarshal(&cfg)
+			err = toml.Unmarshal(data, &cfg)
 			if err != nil {
 				return err
 			}
@@ -570,7 +573,12 @@ Migration: %s (#%d)
 				fmt.Fprintln(os.Stderr)
 			}
 
-			err = basicStore.CreateTx(ctx, tx, id, username, pass)
+			pw, err := basicStore.NewHashedPassword(ctx, pass)
+			if err != nil {
+				return errors.Wrap(err, "hash password")
+			}
+
+			err = basicStore.CreateTx(ctx, tx, id, username, pw)
 			if err != nil {
 				return errors.Wrap(err, "add basic auth entry")
 			}
@@ -617,6 +625,13 @@ func getConfig(ctx context.Context) (Config, error) {
 		SysAPIKeyFile:    viper.GetString("sysapi-key-file"),
 		SysAPICAFile:     viper.GetString("sysapi-ca-file"),
 
+		SMTPListenAddr:        viper.GetString("smtp-listen"),
+		SMTPListenAddrTLS:     viper.GetString("smtp-listen-tls"),
+		SMTPAdditionalDomains: viper.GetString("smtp-additional-domains"),
+		SMTPMaxRecipients:     viper.GetInt("smtp-max-recipients"),
+
+		EmailIntegrationDomain: viper.GetString("email-integration-domain"),
+
 		EngineCycleTime: viper.GetDuration("engine-cycle-time"),
 
 		HTTPPrefix: viper.GetString("http-prefix"),
@@ -627,8 +642,7 @@ func getConfig(ctx context.Context) (Config, error) {
 		DBURL:     viper.GetString("db-url"),
 		DBURLNext: viper.GetString("db-url-next"),
 
-		KubernetesCooldown: viper.GetDuration("kubernetes-cooldown"),
-		StatusAddr:         viper.GetString("status-addr"),
+		StatusAddr: viper.GetString("status-addr"),
 
 		EncryptionKeys: keyring.Keys{[]byte(viper.GetString("data-encryption-key")), []byte(viper.GetString("data-encryption-key-old"))},
 
@@ -670,7 +684,21 @@ func getConfig(ctx context.Context) (Config, error) {
 	}
 
 	var err error
-	cfg.TLSConfig, err = getTLSConfig()
+	cfg.TLSConfig, err = getTLSConfig("")
+	if err != nil {
+		return cfg, err
+	}
+	if cfg.TLSConfig != nil {
+		cfg.TLSConfig.NextProtos = []string{"h2", "http/1.1"}
+	}
+
+	if cfg.SMTPListenAddr != "" || cfg.SMTPListenAddrTLS != "" {
+		if cfg.EmailIntegrationDomain == "" {
+			return cfg, errors.New("email-integration-domain is required when smtp-listen or smtp-listen-tls is set")
+		}
+	}
+
+	cfg.TLSConfigSMTP, err = getTLSConfig("smtp-")
 	if err != nil {
 		return cfg, err
 	}
@@ -678,7 +706,6 @@ func getConfig(ctx context.Context) (Config, error) {
 	if viper.GetBool("stack-traces") {
 		log.FromContext(ctx).EnableStacks()
 	}
-
 	return cfg, nil
 }
 
@@ -688,11 +715,11 @@ func init() {
 
 	RootCmd.Flags().StringP("listen-tls", "t", def.TLSListenAddr, "HTTPS listen address:port for the application.  Requires setting --tls-cert-data and --tls-key-data OR --tls-cert-file and --tls-key-file.")
 
-	RootCmd.Flags().String("listen-sysapi", "", "(Experimental) Listen address:port for the system API (gRPC).")
-
 	RootCmd.Flags().StringSlice("experimental", nil, "Enable experimental features.")
 	RootCmd.Flags().Bool("list-experimental", false, "List experimental features.")
 	RootCmd.Flags().Bool("strict-experimental", false, "Fail to start if unknown experimental features are specified.")
+
+	RootCmd.Flags().String("listen-sysapi", "", "(Experimental) Listen address:port for the system API (gRPC).")
 
 	RootCmd.Flags().String("sysapi-cert-file", "", "(Experimental) Specifies a path to a PEM-encoded certificate to use when connecting to plugin services.")
 	RootCmd.Flags().String("sysapi-key-file", "", "(Experimental) Specifies a path to a PEM-encoded private key file use when connecting to plugin services.")
@@ -707,10 +734,22 @@ func init() {
 	RootCmd.Flags().String("tls-cert-data", "", "Specifies a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")
 	RootCmd.Flags().String("tls-key-data", "", "Specifies a PEM-encoded private key.  Has no effect if --listen-tls is unset.")
 
+	RootCmd.Flags().String("smtp-listen", "", "Listen address:port for an internal SMTP server.")
+	RootCmd.Flags().String("smtp-listen-tls", "", "SMTPS listen address:port for an internal SMTP server.  Requires setting --smtp-tls-cert-data and --smtp-tls-key-data OR --smtp-tls-cert-file and --smtp-tls-key-file.")
+	RootCmd.Flags().String("email-integration-domain", "", "This flag is required to set the domain used for email integration keys when --smtp-listen or --smtp-listen-tls are set.")
+
+	RootCmd.Flags().String("smtp-tls-cert-file", "", "Specifies a path to a PEM-encoded certificate.  Has no effect if --smtp-listen-tls is unset.")
+	RootCmd.Flags().String("smtp-tls-key-file", "", "Specifies a path to a PEM-encoded private key file.  Has no effect if --smtp-listen-tls is unset.")
+	RootCmd.Flags().String("smtp-tls-cert-data", "", "Specifies a PEM-encoded certificate.  Has no effect if --smtp-listen-tls is unset.")
+	RootCmd.Flags().String("smtp-tls-key-data", "", "Specifies a PEM-encoded private key.  Has no effect if --smtp-listen-tls is unset.")
+
+	RootCmd.Flags().Int("smtp-max-recipients", def.SMTPMaxRecipients, "Specifies the maximum number of recipients allowed per message.")
+	RootCmd.Flags().String("smtp-additional-domains", "", "Specifies additional destination domains that are allowed for the SMTP server.  For multiple domains, separate them with a comma, e.g., \"domain1.com,domain2.org,domain3.net\".")
+
 	RootCmd.Flags().Duration("engine-cycle-time", def.EngineCycleTime, "Time between engine cycles.")
 
 	RootCmd.Flags().String("http-prefix", def.HTTPPrefix, "Specify the HTTP prefix of the application.")
-	RootCmd.Flags().MarkDeprecated("http-prefix", "use --public-url instead")
+	_ = RootCmd.Flags().MarkDeprecated("http-prefix", "use --public-url instead")
 
 	RootCmd.Flags().Bool("api-only", def.APIOnly, "Starts in API-only mode (schedules & notifications will not be processed). Useful in clusters.")
 
@@ -733,28 +772,29 @@ func init() {
 
 	RootCmd.Flags().String("jaeger-endpoint", "", "Jaeger HTTP Thrift endpoint")
 	RootCmd.Flags().String("jaeger-agent-endpoint", "", "Instructs Jaeger exporter to send spans to jaeger-agent at this address.")
-	RootCmd.Flags().MarkDeprecated("jaeger-endpoint", "Jaeger support has been removed.")
-	RootCmd.Flags().MarkDeprecated("jaeger-agent-endpoint", "Jaeger support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("jaeger-endpoint", "Jaeger support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("jaeger-agent-endpoint", "Jaeger support has been removed.")
 	RootCmd.Flags().String("stackdriver-project-id", "", "Project ID for Stackdriver. Enables tracing output to Stackdriver.")
-	RootCmd.Flags().MarkDeprecated("stackdriver-project-id", "Stackdriver support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("stackdriver-project-id", "Stackdriver support has been removed.")
 	RootCmd.Flags().String("tracing-cluster-name", "", "Cluster name to use for tracing (i.e. kubernetes, Stackdriver/GKE environment).")
-	RootCmd.Flags().MarkDeprecated("tracing-cluster-name", "Tracing support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("tracing-cluster-name", "Tracing support has been removed.")
 	RootCmd.Flags().String("tracing-pod-namespace", "", "Pod namespace to use for tracing.")
-	RootCmd.Flags().MarkDeprecated("tracing-pod-namespace", "Tracing support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("tracing-pod-namespace", "Tracing support has been removed.")
 	RootCmd.Flags().String("tracing-pod-name", "", "Pod name to use for tracing.")
-	RootCmd.Flags().MarkDeprecated("tracing-pod-name", "Tracing support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("tracing-pod-name", "Tracing support has been removed.")
 	RootCmd.Flags().String("tracing-container-name", "", "Container name to use for tracing.")
-	RootCmd.Flags().MarkDeprecated("tracing-container-name", "Tracing support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("tracing-container-name", "Tracing support has been removed.")
 	RootCmd.Flags().String("tracing-node-name", "", "Node name to use for tracing.")
-	RootCmd.Flags().MarkDeprecated("tracing-node-name", "Tracing support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("tracing-node-name", "Tracing support has been removed.")
 	RootCmd.Flags().Float64("tracing-probability", 0, "Probability of a new trace to be recorded.")
-	RootCmd.Flags().MarkDeprecated("tracing-probability", "Tracing support has been removed.")
+	_ = RootCmd.Flags().MarkDeprecated("tracing-probability", "Tracing support has been removed.")
 
-	RootCmd.Flags().Duration("kubernetes-cooldown", def.KubernetesCooldown, "Cooldown period, from the last TCP connection, before terminating the listener when receiving a shutdown signal.")
+	RootCmd.Flags().Duration("kubernetes-cooldown", 0, "Cooldown period, from the last TCP connection, before terminating the listener when receiving a shutdown signal.")
+	_ = RootCmd.Flags().MarkDeprecated("kubernetes-cooldown", "Use lifecycle hooks (preStop) instead.")
 	RootCmd.Flags().String("status-addr", def.StatusAddr, "Open a port to emit status updates. Connections are closed when the server shuts down. Can be used to keep containers running until GoAlert has exited.")
 
-	RootCmd.PersistentFlags().String("data-encryption-key", "", "Used to generate an encryption key for sensitive data like signing keys. Can be any length.")
-	RootCmd.PersistentFlags().String("data-encryption-key-old", "", "Fallback key. Used for decrypting existing data only.")
+	RootCmd.PersistentFlags().String("data-encryption-key", "", "Used to generate an encryption key for sensitive data like signing keys. Can be any length. Only use this when performing a switchover.")
+	RootCmd.PersistentFlags().String("data-encryption-key-old", "", "Fallback key. Used for decrypting existing data only. Only necessary when changing --data-encryption-key.")
 	RootCmd.PersistentFlags().Bool("stack-traces", false, "Enables stack traces with all error logs.")
 
 	RootCmd.Flags().Bool("stub-notifiers", def.StubNotifiers, "If true, notification senders will be replaced with a stub notifier that always succeeds (useful for staging/sandbox environments).")

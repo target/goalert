@@ -4,8 +4,9 @@ import (
 	context "context"
 	"database/sql"
 
-	"github.com/target/goalert/auth"
+	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/calsub"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
@@ -20,28 +21,41 @@ import (
 )
 
 type (
-	User        App
-	UserSession App
+	User App
 )
 
 func (a *App) User() graphql2.UserResolver { return (*User)(a) }
 
-func (a *App) UserSession() graphql2.UserSessionResolver { return (*UserSession)(a) }
+func (a *User) Sessions(ctx context.Context, obj *user.User) ([]graphql2.UserSession, error) {
+	sess, err := a.AuthHandler.FindAllUserSessions(ctx, obj.ID)
+	if err != nil {
+		return nil, err
+	}
 
-func (a *User) Sessions(ctx context.Context, obj *user.User) ([]auth.UserSession, error) {
-	return a.AuthHandler.FindAllUserSessions(ctx, obj.ID)
+	out := make([]graphql2.UserSession, len(sess))
+	for i, s := range sess {
+
+		out[i] = graphql2.UserSession{
+			ID:           s.ID,
+			UserAgent:    s.UserAgent,
+			CreatedAt:    s.CreatedAt,
+			LastAccessAt: s.LastAccessAt,
+			Current:      isCurrentSession(ctx, s.ID),
+		}
+	}
+
+	return out, nil
 }
-
-func (a *UserSession) Current(ctx context.Context, obj *auth.UserSession) (bool, error) {
+func isCurrentSession(ctx context.Context, sessID string) bool {
 	src := permission.Source(ctx)
 	if src == nil {
-		return false, nil
+		return false
 	}
 	if src.Type != permission.SourceTypeAuthProvider {
-		return false, nil
+		return false
 	}
 
-	return obj.ID == src.ID, nil
+	return src.ID == sessID
 }
 
 func (a *User) AuthSubjects(ctx context.Context, obj *user.User) ([]user.AuthSubject, error) {
@@ -53,7 +67,7 @@ func (a *User) Role(ctx context.Context, usr *user.User) (graphql2.UserRole, err
 }
 
 func (a *User) ContactMethods(ctx context.Context, obj *user.User) ([]contactmethod.ContactMethod, error) {
-	return a.CMStore.FindAll(ctx, obj.ID)
+	return a.CMStore.FindAll(ctx, a.DB, obj.ID)
 }
 
 func (a *User) NotificationRules(ctx context.Context, obj *user.User) ([]notificationrule.NotificationRule, error) {
@@ -68,12 +82,60 @@ func (a *User) OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.St
 	return a.PolicyStore.FindAllOnCallStepsForUserTx(ctx, nil, obj.ID)
 }
 
+func (a *Mutation) CreateBasicAuth(ctx context.Context, input graphql2.CreateBasicAuthInput) (bool, error) {
+	pw, err := a.AuthBasicStore.NewHashedPassword(ctx, input.Password)
+	if err != nil {
+		return false, err
+	}
+
+	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+		return a.AuthBasicStore.CreateTx(ctx, tx, input.UserID, input.Username, pw)
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (a *Mutation) UpdateBasicAuth(ctx context.Context, input graphql2.UpdateBasicAuthInput) (bool, error) {
+	var validatedPW basic.ValidatedPassword
+	var err error
+	if input.OldPassword != nil {
+		if *input.OldPassword == input.Password {
+			return false, validation.NewFieldError("Password", "Cannot match OldPassword")
+		}
+		validatedPW, err = a.AuthBasicStore.ValidatePassword(ctx, *input.OldPassword)
+		if err != nil {
+			return false, err
+		}
+	}
+	pw, err := a.AuthBasicStore.NewHashedPassword(ctx, input.Password)
+	if err != nil {
+		return false, err
+	}
+
+	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+		return a.AuthBasicStore.UpdateTx(ctx, tx, input.UserID, validatedPW, pw)
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInput) (*user.User, error) {
 	var newUser *user.User
 
 	// NOTE input.username must be validated before input.name
 	// user's name defaults to input.username and a user must be created before an auth_basic_user
 	err := validate.Username("Username", input.Username)
+	if err != nil {
+		return nil, err
+	}
+
+	pass, err := a.AuthBasicStore.NewHashedPassword(ctx, input.Password)
 	if err != nil {
 		return nil, err
 	}
@@ -103,12 +165,12 @@ func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInpu
 			return err
 		}
 		if input.Favorite != nil && *input.Favorite {
-			err = a.FavoriteStore.SetTx(ctx, tx, permission.UserID(ctx), assignment.UserTarget(newUser.ID))
+			err = a.FavoriteStore.Set(ctx, tx, permission.UserID(ctx), assignment.UserTarget(newUser.ID))
 			if err != nil {
 				return err
 			}
 		}
-		err = a.AuthBasicStore.CreateTx(ctx, tx, newUser.ID, input.Username, input.Password)
+		err = a.AuthBasicStore.CreateTx(ctx, tx, newUser.ID, input.Username, pass)
 		if err != nil {
 			return err
 		}
@@ -138,9 +200,7 @@ func (a *Mutation) UpdateUser(ctx context.Context, input graphql2.UpdateUserInpu
 		if input.Email != nil {
 			usr.Email = *input.Email
 		}
-		if input.StatusUpdateContactMethodID != nil {
-			usr.AlertStatusCMID = *input.StatusUpdateContactMethodID
-		}
+
 		return a.UserStore.UpdateTx(ctx, tx, usr)
 	})
 	return err == nil, err

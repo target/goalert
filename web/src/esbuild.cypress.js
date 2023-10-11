@@ -4,18 +4,20 @@ const path = require('path')
 const glob = require('glob')
 
 const intEntry = {}
-glob.sync(path.join(__dirname, 'cypress/integration/*')).forEach((file) => {
+glob.globSync(path.join(__dirname, 'cypress/e2e/*')).forEach((file) => {
   const name = path.basename(file, '.ts')
   intEntry['integration/' + name] = file
 })
 
 async function run() {
-  const ctx = await require('esbuild').context({
+  const method = process.argv.includes('--watch') ? 'context' : 'build'
+
+  const ctx = await require('esbuild')[method]({
     entryPoints: {
-      'support/index': 'cypress/support/e2e.ts',
+      'support/index': path.join(__dirname, 'cypress/support/e2e.ts'),
       ...intEntry,
     },
-    outdir: '../../bin/build/integration/cypress',
+    outdir: 'bin/build/integration/cypress',
     logLevel: 'info',
     bundle: true,
     define: { global: 'window' },
@@ -26,8 +28,6 @@ async function run() {
 
   if (process.argv.includes('--watch')) {
     await ctx.watch()
-  } else {
-    await ctx.dispose()
   }
 }
 

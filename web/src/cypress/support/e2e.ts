@@ -39,6 +39,15 @@ import './form'
 import './dialog'
 import './limits'
 
+import { Settings } from 'luxon'
+Settings.throwOnInvalid = true
+
+declare module 'luxon' {
+  interface TSSettings {
+    throwOnInvalid: true
+  }
+}
+
 Cypress.Keyboard.defaults({
   keystrokeDelay: 0,
 })

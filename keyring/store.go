@@ -21,7 +21,7 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
 )
 
@@ -44,7 +44,7 @@ type Keyring interface {
 	Verify(p []byte, signature []byte) (valid, oldKey bool)
 
 	SignJWT(jwt.Claims) (string, error)
-	VerifyJWT(string, jwt.Claims) (bool, error)
+	VerifyJWT(token string, c jwt.Claims, iss, aud string) (bool, error)
 
 	Shutdown(context.Context) error
 }
@@ -98,8 +98,6 @@ type DB struct {
 	setKeys    *sql.Stmt
 	txTime     *sql.Stmt
 	insertKeys *sql.Stmt
-
-	parser *jwt.Parser
 }
 
 func marshalVerificationKeys(keys map[byte]ecdsa.PublicKey) ([]byte, error) {
@@ -152,6 +150,7 @@ func NewDB(ctx context.Context, logger *log.Logger, db *sql.DB, cfg *Config) (*D
 
 		validate.Range("RotationDays", cfg.RotationDays, 0, 9000),
 	)
+
 	if err != nil {
 		return nil, err
 	}
@@ -164,8 +163,6 @@ func NewDB(ctx context.Context, logger *log.Logger, db *sql.DB, cfg *Config) (*D
 
 		forceRotate: make(chan chan error),
 		shutdown:    make(chan context.Context),
-
-		parser: &jwt.Parser{ValidMethods: []string{"ES224"}},
 
 		txTime: p.P(`select now()`),
 		insertKeys: p.P(`
@@ -523,12 +520,12 @@ func (db *DB) Sign(p []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (db *DB) VerifyJWT(s string, c jwt.Claims) (bool, error) {
+func (db *DB) VerifyJWT(s string, c jwt.Claims, iss, aud string) (bool, error) {
 	db.mx.RLock()
 	defer db.mx.RUnlock()
 
 	var currentKey bool
-	_, err := db.parser.ParseWithClaims(s, c, func(tok *jwt.Token) (interface{}, error) {
+	_, err := jwt.ParseWithClaims(s, c, func(tok *jwt.Token) (interface{}, error) {
 		keyIndex, ok := tok.Header["key"].(float64)
 		if !ok {
 			return nil, errors.New("invalid key index")
@@ -540,12 +537,16 @@ func (db *DB) VerifyJWT(s string, c jwt.Claims) (bool, error) {
 
 		currentKey = byte(keyIndex) == byte(db.rotationCount) || byte(keyIndex) == byte(db.rotationCount+1)
 		return &key, nil
-	})
+	},
+		jwt.WithValidMethods([]string{"ES224"}),
+		jwt.WithIssuer(iss),
+		jwt.WithAudience(aud),
+	)
 	if err != nil {
 		return false, err
 	}
 
-	return currentKey, c.Valid()
+	return currentKey, nil
 }
 
 // Verify will validate the signature and metadata, and optionally length, of a message.

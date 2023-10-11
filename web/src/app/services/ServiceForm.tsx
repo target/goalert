@@ -5,6 +5,8 @@ import { EscalationPolicySelect } from '../selection/EscalationPolicySelect'
 import { FormContainer, FormField } from '../forms'
 import { FieldError } from '../util/errutil'
 
+const MaxDetailsLength = 6 * 1024 // 6KiB
+
 export interface Value {
   name: string
   description: string
@@ -43,7 +45,10 @@ export default function ServiceForm(props: ServiceFormProps): JSX.Element {
             label='Description'
             name='description'
             multiline
+            rows={4}
             component={TextField}
+            charCount={MaxDetailsLength}
+            hint='Markdown Supported'
           />
         </Grid>
         <Grid item xs={12}>

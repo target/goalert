@@ -55,6 +55,10 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			Count:       count,
 		}
 	case notification.MessageTypeAlert:
+		name, _, err := p.a.ServiceInfo(ctx, msg.ServiceID)
+		if err != nil {
+			return nil, errors.Wrap(err, "lookup service info")
+		}
 		a, err := p.a.FindOne(ctx, msg.AlertID)
 		if err != nil {
 			return nil, errors.Wrap(err, "lookup alert")
@@ -68,11 +72,13 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			stat = nil
 		}
 		notifMsg = notification.Alert{
-			Dest:       msg.Dest,
-			AlertID:    msg.AlertID,
-			Summary:    a.Summary,
-			Details:    a.Details,
-			CallbackID: msg.ID,
+			Dest:        msg.Dest,
+			AlertID:     msg.AlertID,
+			Summary:     a.Summary,
+			Details:     a.Details,
+			CallbackID:  msg.ID,
+			ServiceID:   a.ServiceID,
+			ServiceName: name,
 
 			OriginalStatus: stat,
 		}

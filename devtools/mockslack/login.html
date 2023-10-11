@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -23,12 +23,22 @@
         }
       </script>
       <form method="POST">
-        {{- range $key, $value := .Data}} <input name={{ $key }} type="hidden"
-        value={{StringsJoin $value " "}} /> {{- end}} {{range .Users}}
-        <label
-          ><input type="radio" name="userID" value="{{.ID}}" />{{.Name}}</label
-        ><br />
-        {{end}}
+        {{- range $key, $value := .Data }}
+          <input
+            name="{{ $key }}"
+            type="hidden"
+            value="{{ StringsJoin $value " " }}"
+          />
+        {{- end }}
+        {{ range .Users }}
+          <label
+            ><input
+              type="radio"
+              name="userID"
+              value="{{ .ID }}"
+            />{{ .Name }}</label
+          ><br />
+        {{ end }}
         <br />
         <label
           ><input

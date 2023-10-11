@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/graphql2"
@@ -30,7 +31,7 @@ func (a *App) formatNC(ctx context.Context, id string) (string, error) {
 	}
 	var typeName string
 	switch n.Type {
-	case notificationchannel.TypeSlack:
+	case notificationchannel.TypeSlackChan:
 		typeName = "Slack"
 	default:
 		typeName = string(n.Type)
@@ -89,6 +90,44 @@ func msgStatus(stat notification.Status) string {
 		str.WriteString(stat.Details)
 	}
 	return str.String()
+}
+
+type MessageLogConnectionStats App
+
+func (a *App) MessageLogConnectionStats() graphql2.MessageLogConnectionStatsResolver {
+	return (*MessageLogConnectionStats)(a)
+}
+
+func (q *MessageLogConnectionStats) TimeSeries(ctx context.Context, opts *notification.SearchOptions, input graphql2.TimeSeriesOptions) ([]graphql2.TimeSeriesBucket, error) {
+	if opts == nil {
+		opts = &notification.SearchOptions{}
+	}
+
+	dur := input.BucketDuration.TimePart()
+	dur += time.Duration(input.BucketDuration.Days()) * 24 * time.Hour
+	dur += time.Duration(input.BucketDuration.MonthPart) * 30 * 24 * time.Hour
+	dur += time.Duration(input.BucketDuration.YearPart) * 365 * 24 * time.Hour
+
+	var origin time.Time
+	if input.BucketOrigin != nil {
+		origin = *input.BucketOrigin
+	}
+
+	buckets, err := q.NotificationStore.TimeSeries(ctx, notification.TimeSeriesOpts{
+		SearchOptions:      *opts,
+		TimeSeriesInterval: dur,
+		TimeSeriesOrigin:   origin,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]graphql2.TimeSeriesBucket, len(buckets))
+	for i, b := range buckets {
+		out[i] = graphql2.TimeSeriesBucket(b)
+	}
+
+	return out, nil
 }
 
 func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearchOptions) (conn *graphql2.MessageLogConnection, err error) {
@@ -216,6 +255,7 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 
 		conn.Nodes = append(conn.Nodes, dm)
 	}
+	conn.Stats = &searchOpts
 
 	return conn, nil
 }

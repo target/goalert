@@ -1,3 +1,13 @@
+# Directive definitions are as per gqlgen documentation:
+# https://gqlgen.com/master/config#inline-config-with-directives
+
+# goField is used to tweak individual field configurations, rather than using gqlgen.yml
+directive @goField(
+  forceResolver: Boolean # forces the field to be resolved by a resolver, even if it already has a value; useful for computed fields where the model already has a partial value
+  name: String # overrides the field name in the generated Go code
+  omittable: Boolean # creates the field with a wrapper type (graphql.Omittable[T]) with a boolean indicating if the field is null (similar to sql.NullString and friends)
+) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+
 type Query {
   phoneNumberInfo(number: String!): PhoneNumberInfo
 
@@ -100,6 +110,8 @@ type Query {
   # Returns configuration hints (must be admin).
   configHints: [ConfigHint!]!
 
+  integrationKeyTypes: [IntegrationKeyTypeInfo!]!
+
   # Returns configuration limits
   systemLimits: [SystemLimit!]!
 
@@ -115,11 +127,34 @@ type Query {
   # Returns a Slack channel with the given ID.
   slackChannel(id: ID!): SlackChannel
 
+  # Returns the list of Slack user groups available.
+  slackUserGroups(input: SlackUserGroupSearchOptions): SlackUserGroupConnection!
+
+  # Returns a Slack user group with the given ID.
+  slackUserGroup(id: ID!): SlackUserGroup
+
   generateSlackAppManifest: String!
 
   linkAccountInfo(token: ID!): LinkAccountInfo
 
   swoStatus: SWOStatus!
+
+  gqlAPIKeys: [GQLAPIKey!]!
+
+  listGQLFields(query: String): [String!]!
+}
+
+type IntegrationKeyTypeInfo {
+  id: ID!
+
+  # User-displayable name of the integration key type.
+  name: String!
+
+  # User-displayable description of the integration key value (i.e., copy/paste instructions).
+  label: String!
+
+  # Indicates if the type is currently enabled.
+  enabled: Boolean!
 }
 
 type SWOStatus {
@@ -217,6 +252,41 @@ input MessageLogSearchOptions {
 
 type MessageLogConnection {
   nodes: [DebugMessage!]!
+  pageInfo: PageInfo!
+
+  stats: MessageLogConnectionStats!
+}
+
+type MessageLogConnectionStats {
+  timeSeries(input: TimeSeriesOptions!): [TimeSeriesBucket!]!
+}
+
+input TimeSeriesOptions {
+  bucketDuration: ISODuration!
+  bucketOrigin: ISOTimestamp
+}
+
+type TimeSeriesBucket {
+  start: ISOTimestamp!
+  end: ISOTimestamp!
+  count: Int!
+}
+
+input SlackUserGroupSearchOptions {
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [ID!]
+}
+
+type SlackUserGroup {
+  id: ID!
+  name: String!
+  handle: String!
+}
+
+type SlackUserGroupConnection {
+  nodes: [SlackUserGroup!]!
   pageInfo: PageInfo!
 }
 
@@ -473,6 +543,8 @@ type Mutation {
   deleteAll(input: [TargetInput!]): Boolean!
 
   createAlert(input: CreateAlertInput!): Alert
+  setAlertNoiseReason(input: SetAlertNoiseReasonInput!): Boolean!
+    @deprecated(reason: "Use updateAlerts instead with the noiseReason field.")
 
   createService(input: CreateServiceInput!): Service
   createEscalationPolicy(input: CreateEscalationPolicyInput!): EscalationPolicy
@@ -521,6 +593,64 @@ type Mutation {
 
   setConfig(input: [ConfigValueInput!]): Boolean!
   setSystemLimits(input: [SystemLimitInput!]!): Boolean!
+
+  createGQLAPIKey(input: CreateGQLAPIKeyInput!): CreatedGQLAPIKey!
+  updateGQLAPIKey(input: UpdateGQLAPIKeyInput!): Boolean!
+  deleteGQLAPIKey(id: ID!): Boolean!
+
+  createBasicAuth(input: CreateBasicAuthInput!): Boolean!
+  updateBasicAuth(input: UpdateBasicAuthInput!): Boolean!
+}
+
+type CreatedGQLAPIKey {
+  id: ID!
+  token: String!
+}
+
+input CreateGQLAPIKeyInput {
+  name: String!
+  description: String!
+  allowedFields: [String!]!
+  expiresAt: ISOTimestamp!
+  role: UserRole!
+}
+
+input UpdateGQLAPIKeyInput {
+  id: ID!
+  name: String
+  description: String
+}
+
+type GQLAPIKey {
+  id: ID!
+  name: String!
+  description: String!
+  createdAt: ISOTimestamp!
+  createdBy: User @goField(forceResolver: true)
+  updatedAt: ISOTimestamp!
+  updatedBy: User @goField(forceResolver: true)
+  lastUsed: GQLAPIKeyUsage
+  expiresAt: ISOTimestamp!
+  allowedFields: [String!]!
+  role: UserRole!
+}
+
+type GQLAPIKeyUsage {
+  time: ISOTimestamp!
+  ua: String!
+  ip: String!
+}
+
+input CreateBasicAuthInput {
+  username: String!
+  password: String!
+  userID: ID!
+}
+
+input UpdateBasicAuthInput {
+  password: String!
+  oldPassword: String
+  userID: ID!
 }
 
 input UpdateAlertsByServiceInput {
@@ -533,6 +663,11 @@ input CreateAlertInput {
   details: String
   serviceID: ID!
   sanitize: Boolean
+}
+
+input SetAlertNoiseReasonInput {
+  alertID: Int!
+  noiseReason: String!
 }
 
 input CreateUserInput {
@@ -549,17 +684,20 @@ input CreateUserCalendarSubscriptionInput {
   reminderMinutes: [Int!]
   scheduleID: ID!
   disabled: Boolean
+  fullSchedule: Boolean
 }
 input UpdateUserCalendarSubscriptionInput {
   id: ID!
   name: String
   reminderMinutes: [Int!]
   disabled: Boolean
+  fullSchedule: Boolean
 }
 type UserCalendarSubscription {
   id: ID!
   name: String!
   reminderMinutes: [Int!]!
+  fullSchedule: Boolean!
   scheduleID: ID!
   schedule: Schedule
   lastAccess: ISOTimestamp!
@@ -849,6 +987,7 @@ type Rotation {
 }
 
 enum RotationType {
+  monthly
   weekly
   daily
   hourly
@@ -858,7 +997,8 @@ input UpdateAlertsInput {
   # List of alertIDs.
   alertIDs: [Int!]!
 
-  newStatus: AlertStatus!
+  newStatus: AlertStatus
+  noiseReason: String
 }
 
 input UpdateRotationInput {
@@ -895,7 +1035,12 @@ input CalcRotationHandoffTimesInput {
   handoff: ISOTimestamp!
   from: ISOTimestamp
   timeZone: String!
-  shiftLengthHours: Int!
+  shiftLengthHours: Int
+    @deprecated(
+      reason: "Only accurate for hourly-type rotations. Use shiftLength instead."
+    )
+
+  shiftLength: ISODuration
   count: Int!
 }
 
@@ -1011,6 +1156,8 @@ type Alert {
 
   # metrics are only available for closed alerts
   metrics: AlertMetric
+
+  noiseReason: String
 }
 
 type AlertMetric {
@@ -1073,6 +1220,8 @@ type Service {
   integrationKeys: [IntegrationKey!]!
   labels: [Label!]!
   heartbeatMonitors: [HeartbeatMonitor!]!
+
+  notices: [Notice!]!
 }
 
 input CreateIntegrationKeyInput {
@@ -1171,6 +1320,7 @@ enum TargetType {
   escalationPolicy
   notificationChannel
   slackChannel
+  slackUserGroup
   notificationPolicy
   rotation
   service
@@ -1213,6 +1363,9 @@ input UpdateUserInput {
   role: UserRole
 
   statusUpdateContactMethodID: ID
+    @deprecated(
+      reason: "Use `UpdateUserContactMethodInput.enableStatusUpdates` instead."
+    )
 }
 
 input AuthSubjectInput {
@@ -1243,6 +1396,7 @@ type User {
   calendarSubscriptions: [UserCalendarSubscription!]!
 
   statusUpdateContactMethodID: ID!
+    @deprecated(reason: "Use `UserContactMethod.statusUpdates` instead.")
 
   authSubjects: [AuthSubject!]!
   sessions: [UserSession!]!
@@ -1286,10 +1440,20 @@ type UserContactMethod {
   value: String!
   formattedValue: String!
   disabled: Boolean!
+  pending: Boolean!
 
   lastTestVerifyAt: ISOTimestamp
   lastTestMessageState: NotificationState
   lastVerifyMessageState: NotificationState
+
+  statusUpdates: StatusUpdateState!
+}
+
+enum StatusUpdateState {
+  DISABLED
+  ENABLED
+  ENABLED_FORCED
+  DISABLED_FORCED
 }
 
 input CreateUserContactMethodInput {
@@ -1312,6 +1476,12 @@ input UpdateUserContactMethodInput {
 
   name: String
   value: String
+
+  # If true, this contact method will receive status updates.
+  #
+  # Note: Some contact method types, like webhooks, will always receive status
+  # updates and this value is ignored.
+  enableStatusUpdates: Boolean
 }
 
 input SendContactMethodVerificationInput {

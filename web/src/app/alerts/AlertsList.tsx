@@ -1,25 +1,27 @@
-import React, { ReactElement, useState } from 'react'
+import React, { ReactElement, useState, useContext, useEffect } from 'react'
 import { useMutation } from '@apollo/client'
 import { useQuery, gql } from 'urql'
-import { Alert, Grid, Hidden, ListItemText } from '@mui/material'
-import Snackbar from '@mui/material/Snackbar'
+import { Grid, Hidden, ListItemText } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
   Close as CloseIcon,
+  ThumbDownOffAlt,
 } from '@mui/icons-material'
 
 import AlertsListFilter from './components/AlertsListFilter'
 import AlertsListControls from './components/AlertsListControls'
 import QueryList from '../lists/QueryList'
-import { useIsWidthDown } from '../util/useWidth'
-import CreateFAB from '../lists/CreateFAB'
 import CreateAlertDialog from './CreateAlertDialog/CreateAlertDialog'
 import { useURLParam } from '../actions'
 import { ControlledPaginatedListAction } from '../lists/ControlledPaginatedList'
-import ServiceMaintenanceNotice from '../services/ServiceMaintenanceNotice'
+import ServiceNotices from '../services/ServiceNotices'
 import { Time } from '../util/Time'
+import { NotificationContext } from '../main/SnackbarNotification'
+import ReactGA from 'react-ga4'
+import { useConfigValue } from '../util/RequireConfig'
+import AlertFeedbackDialog from './components/AlertFeedbackDialog'
 
 interface AlertsListProps {
   serviceID: string
@@ -35,8 +37,9 @@ interface StatusUnacknowledgedVariables {
 }
 
 interface MutationVariablesInput {
-  newStatus: string
   alertIDs: (string | number)[]
+  newStatus: string
+  noiseReason?: string
 }
 
 export const alertsListQuery = gql`
@@ -105,19 +108,26 @@ function getStatusFilter(s: string): string[] {
 
 export default function AlertsList(props: AlertsListProps): JSX.Element {
   const classes = useStyles()
-  // transition fab above snackbar when snackbar width overlaps fab placement
-  const isXs = useIsWidthDown('sm')
 
+  // event sent to Google Analytics
+  const [event, setEvent] = useState('')
+  const [analyticsID] = useConfigValue('General.GoogleAnalyticsID') as [string]
+
+  // stores alertIDs, if length present, feedback dialog is shown
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState<Array<string>>(
+    [],
+  )
   const [selectedCount, setSelectedCount] = useState(0)
   const [checkedCount, setCheckedCount] = useState(0)
-  const [showCreate, setShowCreate] = useState(false)
-
-  // used if user dismisses snackbar before the auto-close timer finishes
-  const [actionCompleteDismissed, setActionCompleteDismissed] = useState(true)
 
   const [allServices] = useURLParam('allServices', false)
   const [fullTime] = useURLParam('fullTime', false)
   const [filter] = useURLParam<string>('filter', 'active')
+
+  useEffect(() => {
+    if (analyticsID && event.length)
+      ReactGA.event({ category: 'Bulk Alert Action', action: event })
+  }, [event, analyticsID])
 
   // query for current service name if props.serviceID is provided
   const [serviceNameQuery] = useQuery({
@@ -145,45 +155,64 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
     },
   }
 
-  const [mutate, status] = useMutation(updateMutation)
+  const { setNotification } = useContext(NotificationContext)
 
+  // mutation to update alert status to either acknowledge, close, or escalate
+  const [mutate] = useMutation(updateMutation, {
+    onCompleted: (data) => {
+      const numUpdated =
+        data.updateAlerts?.length || data.escalateAlerts?.length || 0
+
+      const msg = `${numUpdated} of ${checkedCount} alert${
+        checkedCount === 1 ? '' : 's'
+      } updated`
+
+      setNotification({
+        message: msg,
+        severity: 'info',
+      })
+    },
+    onError: (error) => {
+      setNotification({
+        message: error.message,
+        severity: 'error',
+      })
+    },
+  })
+
+  // alertIDs passed onClick from ControlledPaginatedList "checkedItems"
   const makeUpdateAlerts =
     (newStatus: string) => (alertIDs: (string | number)[]) => {
       setCheckedCount(alertIDs.length)
-      setActionCompleteDismissed(false)
 
       let mutation = updateMutation
       let variables: MutationVariables | StatusUnacknowledgedVariables = {
         input: { newStatus, alertIDs },
       }
 
-      if (newStatus === 'StatusUnacknowledged') {
-        mutation = escalateMutation
-        variables = { input: alertIDs }
+      switch (newStatus) {
+        case 'StatusUnacknowledged':
+          mutation = escalateMutation
+          variables = { input: alertIDs }
+          setEvent('alertlist_escalated')
+          break
+        case 'StatusAcknowledged':
+          setEvent('alertlist_acknowledged')
+          break
+        case 'StatusClosed':
+          setEvent('alertlist_closed')
+          break
+        case 'noise':
+          setEvent('alertlist_noise')
+          break
       }
 
-      mutate({ mutation, variables })
+      if (newStatus === 'noise') {
+        setShowFeedbackDialog(alertIDs.map((id) => id.toString()))
+      } else {
+        mutate({ mutation, variables })
+      }
     }
-
-  let updateMessage, errorMessage
-  if (status.error && !status.loading) {
-    errorMessage = status.error.message
-  }
-
-  if (status.data && !status.loading) {
-    const numUpdated =
-      status.data.updateAlerts?.length ||
-      status.data.escalateAlerts?.length ||
-      0
-
-    updateMessage = `${numUpdated} of ${checkedCount} alert${
-      checkedCount === 1 ? '' : 's'
-    } updated`
-  }
-
-  const showAlertActionSnackbar = Boolean(
-    !actionCompleteDismissed && (errorMessage || updateMessage),
-  )
 
   /*
    * Adds border of color depending on each alert's status
@@ -257,14 +286,19 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
       }
     }
 
+    actions.push({
+      icon: <ThumbDownOffAlt />,
+      label: 'Mark as Noise',
+      onClick: makeUpdateAlerts('noise'),
+    })
+
     return actions
   }
 
-  // render
   return (
     <React.Fragment>
       <Grid container direction='column' spacing={2}>
-        <ServiceMaintenanceNotice serviceID={props.serviceID} />
+        <ServiceNotices serviceID={props.serviceID} />
         <Grid item>
           <QueryList
             query={alertsListQuery}
@@ -299,6 +333,13 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
                 <AlertsListFilter serviceID={props.serviceID} />
               )
             }
+            renderCreateDialog={(onClose) => (
+              <CreateAlertDialog
+                serviceID={props.serviceID}
+                onClose={onClose}
+              />
+            )}
+            createLabel='Alert'
             cardHeader={
               <Hidden lgDown>
                 <AlertsListControls />
@@ -308,32 +349,13 @@ export default function AlertsList(props: AlertsListProps): JSX.Element {
           />
         </Grid>
       </Grid>
-      <CreateFAB
-        title='Create Alert'
-        transition={isXs && showAlertActionSnackbar}
-        onClick={() => setShowCreate(true)}
+      <AlertFeedbackDialog
+        open={showFeedbackDialog.length > 0}
+        onClose={() => {
+          setShowFeedbackDialog([])
+        }}
+        alertIDs={showFeedbackDialog}
       />
-      {showCreate && (
-        <CreateAlertDialog
-          onClose={() => setShowCreate(false)}
-          serviceID={props.serviceID}
-        />
-      )}
-
-      {/* Update message after using checkbox actions */}
-      <Snackbar
-        autoHideDuration={errorMessage ? null : 6000}
-        onClose={() => setActionCompleteDismissed(true)}
-        open={showAlertActionSnackbar}
-      >
-        <Alert
-          severity={errorMessage ? 'error' : 'info'}
-          onClose={() => setActionCompleteDismissed(true)}
-          variant='filled'
-        >
-          {errorMessage || updateMessage}
-        </Alert>
-      </Snackbar>
     </React.Fragment>
   )
 }

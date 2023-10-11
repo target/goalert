@@ -1,13 +1,15 @@
 package main
 
 import (
-	"math/rand"
 	"strings"
 	"sync"
+
+	"github.com/brianvoe/gofakeit/v6"
 )
 
 // uniqIntGen works like uniqGen but returns integers.
 type uniqIntGen struct {
+	f  *gofakeit.Faker
 	m  map[intScope]bool
 	mx sync.Mutex
 }
@@ -17,8 +19,9 @@ type intScope struct {
 	value int
 }
 
-func newUniqIntGen() *uniqIntGen {
+func newUniqIntGen(f *gofakeit.Faker) *uniqIntGen {
 	return &uniqIntGen{
+		f: f,
 		m: make(map[intScope]bool),
 	}
 }
@@ -36,7 +39,7 @@ func (g *uniqIntGen) Gen(n int, scope ...string) int {
 			panic("aborted after 5 tries")
 		}
 		scope := intScope{
-			value: rand.Intn(n),
+			value: g.f.IntRange(0, n-1),
 			scope: scopeVal,
 		}
 		if g.m[scope] {

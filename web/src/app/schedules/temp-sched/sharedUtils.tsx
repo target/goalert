@@ -12,10 +12,29 @@ export type Shift = {
   start: string
   end: string
   userID: string
+  truncated: boolean
 
   user?: null | {
     id: string
     name: string
+  }
+}
+
+// defaultTempScheduleValue returns a timespan, with no shifts,
+// of the following week.
+export function defaultTempSchedValue(zone: string): TempSchedValue {
+  // We want the start to be the _next_ start-of-week for the current locale.
+  // For example, if today is Sunday, we want the start to be next Sunday.
+  // If today is Saturday, we want the start to be tomorrow.
+  const startDT = DateTime.local()
+    .setZone(zone)
+    .startOf('week')
+    .plus({ weeks: 1 })
+
+  return {
+    start: startDT.toISO(),
+    end: startDT.plus({ days: 7 }).toISO(),
+    shifts: [],
   }
 }
 

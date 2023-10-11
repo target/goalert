@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation/validate"
 )
@@ -44,6 +45,12 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 		return nil, auth.Error("invalid username")
 	}
 	ctx = log.WithField(ctx, "username", username)
+
+	err = p.lim.Lock(ctx, username)
+	if errutil.HTTPError(ctx, w, err) {
+		return nil, err
+	}
+	defer p.lim.Unlock(username)
 
 	_, err = p.b.Validate(ctx, username, password)
 	if err != nil {

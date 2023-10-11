@@ -38,7 +38,9 @@ func applyValues(dst, src map[string]interface{}, prefix ...string) error {
 			case nil:
 				dst[key] = valMap
 			case map[string]interface{}:
-				applyValues(d, valMap, append(prefix, key)...)
+				if err := applyValues(d, valMap, append(prefix, key)...); err != nil {
+					return err
+				}
 			default:
 				return errors.Errorf("schema type mismatch: expected %s.%s in DB to be map[string]interface{} but was %T", strings.Join(prefix, "."), key, d)
 			}

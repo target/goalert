@@ -19,6 +19,7 @@ func (app *App) initAuth(ctx context.Context) error {
 		IntKeyStore:    app.IntegrationKeyStore,
 		CalSubStore:    app.CalSubStore,
 		APIKeyring:     app.APIKeyring,
+		APIKeyStore:    app.APIKeyStore,
 	})
 	if err != nil {
 		return errors.Wrap(err, "init auth handler")
@@ -32,7 +33,9 @@ func (app *App) initAuth(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "init OIDC auth provider")
 	}
-	app.AuthHandler.AddIdentityProvider("oidc", oidcProvider)
+	if err := app.AuthHandler.AddIdentityProvider("oidc", oidcProvider); err != nil {
+		return err
+	}
 
 	githubConfig := &github.Config{
 		Keyring:    app.OAuthKeyring,
@@ -43,13 +46,13 @@ func (app *App) initAuth(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "init GitHub auth provider")
 	}
-	app.AuthHandler.AddIdentityProvider("github", githubProvider)
+	if err := app.AuthHandler.AddIdentityProvider("github", githubProvider); err != nil {
+		return err
+	}
 
 	basicProvider, err := basic.NewProvider(ctx, app.AuthBasicStore)
 	if err != nil {
 		return errors.Wrap(err, "init basic auth provider")
 	}
-	app.AuthHandler.AddIdentityProvider("basic", basicProvider)
-
-	return err
+	return app.AuthHandler.AddIdentityProvider("basic", basicProvider)
 }

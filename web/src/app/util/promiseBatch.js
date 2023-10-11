@@ -17,7 +17,7 @@ function _finally(p, fn) {
 }
 
 // BatchPromise allows batching promises together so they resolve at the same time.
-// It differes from Promise.all and Promise.allSettled in that you can add
+// It differs from Promise.all and Promise.allSettled in that you can add
 // additional promises after creation.
 class BatchPromise {
   _p = new Promise((resolve) => {

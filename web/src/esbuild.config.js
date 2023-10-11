@@ -36,11 +36,11 @@ async function run() {
 
   const ctx = await require('esbuild')[method]({
     entryPoints: {
-      explore: 'explore/explore.tsx',
-      app: 'app/index.tsx',
-      worker: 'app/worker/worker.ts',
+      explore: 'web/src/explore/explore.tsx',
+      app: 'web/src/app/index.tsx',
+      worker: 'web/src/app/worker/worker.ts',
     },
-    outdir: 'build/static/',
+    outdir: 'web/src/build/static/',
     logLevel: 'info',
     bundle: true,
     define: {

@@ -4,11 +4,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/brianvoe/gofakeit"
+	"github.com/brianvoe/gofakeit/v6"
 )
 
 // uniqGen allows generating unique string values.
 type uniqGen struct {
+	f  *gofakeit.Faker
 	m  map[strScope]int
 	mx sync.Mutex
 }
@@ -18,8 +19,9 @@ type strScope struct {
 	value string
 }
 
-func newGen() *uniqGen {
+func newGen(f *gofakeit.Faker) *uniqGen {
 	return &uniqGen{
+		f: f,
 		m: make(map[strScope]int, 100000),
 	}
 }
@@ -27,7 +29,7 @@ func newGen() *uniqGen {
 // PickOne will return a random item from a slice, and will not return the
 // same value twice.
 func (g *uniqGen) PickOne(s []string) string {
-	return g.Gen(func() string { return gofakeit.RandString(s) })
+	return g.Gen(func() string { return g.f.RandomString(s) })
 }
 
 // Gen will call `fn` until a unique value is returned.

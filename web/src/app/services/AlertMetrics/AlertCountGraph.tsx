@@ -9,13 +9,14 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  BarChart,
+  ComposedChart,
+  Area,
   Bar,
   Legend,
 } from 'recharts'
 
 interface AlertCountGraphProps {
-  data: typeof BarChart.defaultProps['data']
+  data: (typeof ComposedChart.defaultProps)['data']
   loading: boolean
 }
 
@@ -39,10 +40,13 @@ export default function AlertCountGraph(
   return (
     <Grid container className={classes.graphContent}>
       <Grid item xs={12} data-cy='metrics-count-graph'>
+        <Typography color='textSecondary' sx={{ ml: '3rem', pt: 1 }}>
+          Showing data for closed alerts
+        </Typography>
         {props.loading && <Spinner />}
         <AutoSizer>
-          {({ width, height }) => (
-            <BarChart
+          {({ width, height }: { width: number; height: number }) => (
+            <ComposedChart
               width={width}
               height={height}
               data={props.data}
@@ -70,36 +74,30 @@ export default function AlertCountGraph(
               <Tooltip
                 data-cy='metrics-tooltip'
                 cursor={{ fill: theme.palette.background.default }}
-                content={({ active, payload, label }) => {
+                content={({ active, payload }) => {
                   if (!active || !payload?.length) return null
 
-                  const alertCountStr = `${payload[1].name}: ${
-                    (payload[1].value as number) + (payload[0].value as number)
-                  }`
-                  const escalatedCountStr = `${payload[0].name}: ${payload[0].value}`
+                  const alertCountStr = `${payload[0].name}: ${payload[0].value}`
+                  const escalatedCountStr = `${payload[1].name}: ${payload[1].value}`
+                  const noiseCountStr = `${payload[2].name}: ${payload[2].value}`
                   return (
                     <Paper variant='outlined' sx={{ p: 1 }}>
-                      <Typography variant='body2'>{label}</Typography>
+                      <Typography variant='body2'>
+                        {payload[0].payload.label}
+                      </Typography>
                       <Typography variant='body2'>{alertCountStr}</Typography>
                       <Typography variant='body2'>
                         {escalatedCountStr}
                       </Typography>
+                      <Typography variant='body2'>{noiseCountStr}</Typography>
                     </Paper>
                   )
                 }}
               />
               <Legend />
               <Bar
-                dataKey='escalatedCount'
                 stackId='a'
-                fillOpacity={props.loading ? 0.5 : 1}
-                fill={theme.palette.primary.main}
-                className={classes.bar}
-                name='Escalated'
-              />
-              <Bar
-                stackId='a'
-                dataKey='nonEscalatedCount'
+                dataKey='count'
                 fillOpacity={props.loading ? 0.5 : 1}
                 fill={
                   theme.palette.mode === 'light'
@@ -107,9 +105,39 @@ export default function AlertCountGraph(
                     : theme.palette.secondary.light
                 }
                 className={classes.bar}
-                name='Alert Count'
+                name='Total Alerts'
               />
-            </BarChart>
+              <Area
+                dataKey='escalatedCount'
+                type='monotone'
+                stroke={
+                  theme.palette.mode === 'light'
+                    ? theme.palette.info.dark
+                    : theme.palette.info.light
+                }
+                fill={
+                  theme.palette.mode === 'light'
+                    ? theme.palette.info.light
+                    : theme.palette.info.dark
+                }
+                name='Escalated'
+              />
+              <Area
+                dataKey='noiseCount'
+                type='monotone'
+                stroke={
+                  theme.palette.mode === 'light'
+                    ? theme.palette.warning.dark
+                    : theme.palette.warning.light
+                }
+                fill={
+                  theme.palette.mode === 'light'
+                    ? theme.palette.warning.light
+                    : theme.palette.warning.dark
+                }
+                name='Noisy'
+              />
+            </ComposedChart>
           )}
         </AutoSizer>
       </Grid>

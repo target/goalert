@@ -15,9 +15,9 @@ function countryCodeCheck(
     const type = c.pickone(['SMS', 'VOICE'])
 
     if (screen === 'mobile') {
-      cy.pageFab('Add Contact Method')
+      cy.pageFab('Create Contact Method')
     } else {
-      cy.get('button[title="Add contact method"]').click()
+      cy.get('button[title="Create Contact Method"]').click()
     }
 
     cy.get('input[name=name]').type(name)
@@ -40,19 +40,6 @@ function testProfile(screen: ScreenFormat): void {
         return cy.visit('/profile')
       }),
   )
-
-  it('should allow configuring status updates', () => {
-    cy.get('input[name=alert-status-contact-method]').selectByLabel(cm.name)
-    cy.get('input[name=alert-status-contact-method]').should(
-      'have.value',
-      cm.id,
-    )
-    cy.get('input[name=alert-status-contact-method]').selectByLabel('Disable')
-    cy.get('input[name=alert-status-contact-method]').should(
-      'not.have.value',
-      cm.id,
-    )
-  })
 
   it('should list and link on-call services', () => {
     const name = 'SVC ' + c.word({ length: 8 })
@@ -158,9 +145,9 @@ function testProfile(screen: ScreenFormat): void {
   describe('Contact Methods', () => {
     function check(name: string, type: string, value: string): void {
       if (screen === 'mobile') {
-        cy.pageFab('Add Contact Method')
+        cy.pageFab('Create Contact Method')
       } else {
-        cy.get('button[title="Add contact method"]').click()
+        cy.get('button[title="Create Contact Method"]').click()
       }
 
       cy.dialogTitle('Create New Contact Method')
@@ -232,9 +219,9 @@ function testProfile(screen: ScreenFormat): void {
       cy.addContactMethod({ userID: profile.id }).then(
         (contactMethod: ContactMethod) => {
           if (screen === 'mobile') {
-            cy.pageFab('Add Contact Method')
+            cy.pageFab('Create Contact Method')
           } else {
-            cy.get('button[title="Add contact method"]').click()
+            cy.get('button[title="Create Contact Method"]').click()
           }
 
           cy.dialogTitle('Create New Contact Method')
@@ -304,7 +291,7 @@ function testProfile(screen: ScreenFormat): void {
           )}] button[role=menuitem]`,
         ).should('be.disabled')
       } else {
-        cy.get('button[title="Add notification rule"]').should('be.disabled')
+        cy.get('button[title="Add Notification Rule"]').should('be.disabled')
       }
     })
 
@@ -318,9 +305,9 @@ function testProfile(screen: ScreenFormat): void {
       cy.reload()
 
       if (screen === 'mobile') {
-        cy.pageFab('Add Contact Method')
+        cy.pageFab('Create Contact Method')
       } else {
-        cy.get('button[title="Add contact method"]').click()
+        cy.get('button[title="Create Contact Method"]').click()
       }
 
       cy.dialogTitle('New Contact Method')
@@ -334,9 +321,9 @@ function testProfile(screen: ScreenFormat): void {
       cy.reload()
 
       if (screen === 'mobile') {
-        cy.pageFab('Add Contact Method')
+        cy.pageFab('Create Contact Method')
       } else {
-        cy.get('button[title="Add contact method"]').click()
+        cy.get('button[title="Create Contact Method"]').click()
       }
 
       cy.dialogTitle('New Contact Method')
@@ -352,9 +339,9 @@ function testProfile(screen: ScreenFormat): void {
       const type = c.pickone(['SMS', 'VOICE'])
 
       if (screen === 'mobile') {
-        cy.pageFab('Add Contact Method')
+        cy.pageFab('Create Contact Method')
       } else {
-        cy.get('button[title="Add contact method"]').click()
+        cy.get('button[title="Create Contact Method"]').click()
       }
 
       cy.dialogTitle('New Contact Method')
@@ -402,7 +389,7 @@ function testProfile(screen: ScreenFormat): void {
       if (screen === 'mobile') {
         cy.pageFab('Add Notification Rule')
       } else {
-        cy.get('button[title="Add notification rule"]').click()
+        cy.get('button[title="Add Notification Rule"]').click()
       }
 
       cy.dialogTitle('New Notification Rule')
@@ -434,7 +421,7 @@ function testProfile(screen: ScreenFormat): void {
       if (screen === 'mobile') {
         cy.pageFab('Add Notification Rule')
       } else {
-        cy.get('button[title="Add notification rule"]').click()
+        cy.get('button[title="Add Notification Rule"]').click()
       }
 
       cy.dialogTitle('New Notification Rule')

@@ -11,6 +11,7 @@ import (
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
+	"github.com/target/goalert/notice"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
@@ -86,6 +87,10 @@ func (q *Query) Services(ctx context.Context, opts *graphql2.ServiceSearchOption
 	return conn, err
 }
 
+func (s *Service) Notices(ctx context.Context, raw *service.Service) ([]notice.Notice, error) {
+	return s.NoticeStore.FindAllServiceNotices(ctx, raw.ID)
+}
+
 func (s *Service) Labels(ctx context.Context, raw *service.Service) ([]label.Label, error) {
 	return s.LabelStore.FindAllByService(ctx, raw.ID)
 }
@@ -152,7 +157,7 @@ func (m *Mutation) CreateService(ctx context.Context, input graphql2.CreateServi
 		}
 
 		if input.Favorite != nil && *input.Favorite {
-			err = m.FavoriteStore.SetTx(ctx, tx, permission.UserID(ctx), assignment.ServiceTarget(result.ID))
+			err = m.FavoriteStore.Set(ctx, tx, permission.UserID(ctx), assignment.ServiceTarget(result.ID))
 			if err != nil {
 				return err
 			}

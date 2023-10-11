@@ -17,7 +17,6 @@ import (
 	"github.com/target/goalert/site24x7"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/web"
 )
 
@@ -32,19 +31,6 @@ func (app *App) initHTTP(ctx context.Context) error {
 		func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 				w.Header().Set("Referrer-Policy", "same-origin")
-				next.ServeHTTP(w, req)
-			})
-		},
-
-		// request cooldown tracking (for graceful shutdown)
-		func(next http.Handler) http.Handler {
-			if app.cooldown == nil {
-				return next
-			}
-			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-				if !strings.HasPrefix(req.URL.Path, "/health") {
-					app.cooldown.Trigger()
-				}
 				next.ServeHTTP(w, req)
 			})
 		},
@@ -110,33 +96,13 @@ func (app *App) initHTTP(ctx context.Context) error {
 		// limit max request size
 		maxBodySizeMiddleware(app.cfg.MaxReqBodyBytes),
 
-		// DB access
-		func(next http.Handler) http.Handler {
-			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-				ctx := req.Context()
-				next.ServeHTTP(w, req.WithContext(sqlutil.Context(ctx, app.gdb.WithContext(ctx))))
-			})
-		},
-
 		// authenticate requests
 		app.AuthHandler.WrapHandler,
-
-		// authed DB access
-		func(next http.Handler) http.Handler {
-			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-				ctx := req.Context()
-				next.ServeHTTP(w, req.WithContext(sqlutil.Context(ctx, sqlutil.FromContext(ctx).WithContext(ctx))))
-			})
-		},
 
 		// add auth info to request logs
 		logRequestAuth,
 
-		conReqLimit{
-			perIntKey:  1,
-			perService: 2,
-			perUser:    3,
-		}.Middleware,
+		LimitConcurrencyByAuthSource,
 
 		wrapGzip,
 	}
@@ -261,7 +227,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	app.srv.Handler = promhttp.InstrumentHandlerInFlight(metricReqInFlight, app.srv.Handler)
 	app.srv.Handler = promhttp.InstrumentHandlerCounter(metricReqTotal, app.srv.Handler)
 
-	// Ingress/load balancer/proxy can do keep-alives, backend doesn't need it.
+	// Ingress/load balancer/proxy can do a keep-alive, backend doesn't need it.
 	// It also makes zero downtime deploys nearly impossible; an idle connection
 	// could have an in-flight request when the server closes it.
 	app.srv.SetKeepAlivesEnabled(false)

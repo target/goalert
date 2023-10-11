@@ -2,7 +2,7 @@ import { Chance } from 'chance'
 import { testScreen } from '../support/e2e'
 const c = new Chance()
 
-function testRotations(): void {
+function testRotations(screen: ScreenFormat): void {
   describe('List Page', () => {
     let rot: Rotation
     beforeEach(() => {
@@ -29,18 +29,26 @@ function testRotations(): void {
 
     describe('Creation', () => {
       it('should allow canceling', () => {
-        cy.pageFab()
+        if (screen === 'mobile') {
+          cy.pageFab()
+        } else {
+          cy.get('button').contains('Create Rotation').click()
+        }
         cy.dialogTitle('Create Rotation')
         cy.dialogFinish('Cancel')
       })
-      ;['Hourly', 'Daily', 'Weekly'].forEach((type) => {
+      ;['Hourly', 'Daily', 'Weekly', 'Monthly'].forEach((type) => {
         it(`should create a ${type} rotation when submitted`, () => {
           const name = 'SM Rot ' + c.word({ length: 8 })
           const description = c.word({ length: 10 })
           const tz = c.pickone(['America/Chicago', 'Africa/Accra', 'Etc/UTC'])
           const shiftLength = c.integer({ min: 1, max: 10 })
 
-          cy.pageFab()
+          if (screen === 'mobile') {
+            cy.pageFab()
+          } else {
+            cy.get('button').contains('Create Rotation').click()
+          }
           cy.dialogTitle('Create Rotation')
           cy.dialogForm({
             name,
@@ -57,6 +65,34 @@ function testRotations(): void {
             .should('contain', name)
             .should('contain', description)
             .should('contain', tz)
+        })
+      })
+
+      describe('Hint', () => {
+        it('should show handoff start time hint on certain dates', () => {
+          const name = 'SM Rot ' + c.word({ length: 8 })
+          const description = c.word({ length: 10 })
+          const tz = c.pickone(['America/Chicago', 'Africa/Accra', 'Etc/UTC'])
+          const shiftLength = c.integer({ min: 1, max: 10 })
+
+          if (screen === 'mobile') {
+            cy.pageFab()
+          } else {
+            cy.get('button').contains('Create Rotation').click()
+          }
+          cy.dialogTitle('Create Rotation')
+          cy.dialogForm({
+            name,
+            description,
+            timeZone: tz,
+            type: 'Monthly',
+            shiftLength: shiftLength.toString(),
+            start: '2020-05-30T15:04',
+          })
+          cy.get('[data-cy="handoff-warning"]').should(
+            'contain',
+            'Unintended handoff behavior may occur when date starts after the 28th',
+          )
         })
       })
     })
@@ -89,7 +125,11 @@ function testRotations(): void {
       cy.get('@parts').should('not.contain', rot.users[1].name)
 
       // add again
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Add User').click()
+      }
       cy.dialogTitle('Add User')
       cy.dialogForm({ users: rot.users[1].name })
       cy.dialogFinish('Submit')
@@ -106,9 +146,14 @@ function testRotations(): void {
       cy.createUser({ name, email })
       cy.createUser({ name, email: dupEmail })
 
-      cy.pageFab()
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Add User').click()
+      }
       cy.dialogTitle('Add User')
-      cy.get('input').click().type(name)
+      cy.get('input').click()
+      cy.focused().type(name)
 
       cy.get('body').should('contain', email)
       cy.get('body').should('contain', dupEmail)
@@ -122,28 +167,26 @@ function testRotations(): void {
       // ensure list has fully loaded before drag/drop
       cy.get('ul[data-cy=users]').find('li').should('have.length', 4)
 
-      // toggle edit mode
-      cy.get('button[aria-label="Toggle Drag and Drop"]').click()
-
       // pick up a participant
-      cy.get('svg[id="drag-0"]').focus().type('{enter}')
+      cy.get('[id="drag-0"]').focus()
+      cy.focused().type('{enter}')
       cy.get('body').should(
         'contain',
-        'Picked up sortable item 0. Sortable item 0 is in position 1 of 3',
+        'Picked up sortable item 1. Sortable item 1 is in position 1 of 3',
       )
 
       // re-order
       cy.focused().type('{downarrow}', { force: true })
       cy.get('body').should(
         'contain',
-        'Sortable item 0 was moved into position 2 of 3',
+        'Sortable item 1 was moved into position 2 of 3',
       )
 
       // place user, calls mutation
       cy.focused().type('{enter}', { force: true })
       cy.get('body').should(
         'contain',
-        'Sortable item 0 was dropped at position 2 of 3',
+        'Sortable item 1 was dropped at position 2 of 3',
       )
 
       cy.get('ul[data-cy=users]').find('li').as('parts')

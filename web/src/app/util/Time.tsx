@@ -58,6 +58,7 @@ const TimeTimestamp: React.FC<TimeTimestampProps> = (props) => {
         title={display !== local ? title : undefined}
         style={{
           textDecorationStyle: 'dotted',
+          textUnderlineOffset: '0.25rem',
           textDecorationLine: display !== local ? 'underline' : 'none',
         }}
       >

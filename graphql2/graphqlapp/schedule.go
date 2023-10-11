@@ -41,15 +41,28 @@ func (a *OnCallNotificationRule) Target(ctx context.Context, raw *schedule.OnCal
 		return nil, err
 	}
 
-	if ch.Type == notificationchannel.TypeSlack {
+	switch ch.Type {
+	case notificationchannel.TypeSlackChan:
 		return &assignment.RawTarget{
 			Type: assignment.TargetTypeSlackChannel,
 			ID:   ch.Value,
 			Name: ch.Name,
 		}, nil
+	case notificationchannel.TypeSlackUG:
+		return &assignment.RawTarget{
+			Type: assignment.TargetTypeSlackUserGroup,
+			ID:   ch.Value,
+			Name: ch.Name,
+		}, nil
+	case notificationchannel.TypeWebhook:
+		return &assignment.RawTarget{
+			Type: assignment.TargetTypeChanWebhook,
+			ID:   ch.Value,
+			Name: ch.Name,
+		}, nil
 	}
 
-	return &assignment.RawTarget{Type: assignment.TargetTypeNotificationChannel, ID: ch.ID}, nil
+	return &assignment.RawTarget{Type: assignment.TargetTypeNotificationChannel, ID: ch.ID, Name: ch.Name}, nil
 }
 
 func (a *TemporarySchedule) Shifts(ctx context.Context, temp *schedule.TemporarySchedule) ([]oncall.Shift, error) {
@@ -235,7 +248,7 @@ func (m *Mutation) CreateSchedule(ctx context.Context, input graphql2.CreateSche
 			return err
 		}
 		if input.Favorite != nil && *input.Favorite {
-			err = m.FavoriteStore.SetTx(ctx, tx, permission.UserID(ctx), assignment.ScheduleTarget(sched.ID))
+			err = m.FavoriteStore.Set(ctx, tx, permission.UserID(ctx), assignment.ScheduleTarget(sched.ID))
 			if err != nil {
 				return err
 			}

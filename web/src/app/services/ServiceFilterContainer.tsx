@@ -11,7 +11,7 @@ import FilterContainer from '../util/FilterContainer'
 interface Value {
   labelKey: string
   labelValue: string
-  integrationKey: string
+  integrationKey?: string
 }
 
 interface ServiceFilterContainerProps {
@@ -56,7 +56,7 @@ export default function ServiceFilterContainer(
             }
             return input
           }}
-          onChange={(integrationKey) =>
+          onChange={(integrationKey: string) =>
             props.onChange({ ...props.value, integrationKey })
           }
         />
@@ -71,7 +71,9 @@ export default function ServiceFilterContainer(
           name='label-key'
           label='Select Label Key'
           value={labelKey}
-          onChange={(labelKey) => props.onChange({ ...props.value, labelKey })}
+          onChange={(labelKey: string) =>
+            props.onChange({ ...props.value, labelKey })
+          }
         />
       </Grid>
       <Grid data-cy='label-value-container' item xs={12}>
@@ -80,7 +82,7 @@ export default function ServiceFilterContainer(
           label='Select Label Value'
           labelKey={labelKey}
           value={labelValue}
-          onChange={(v) =>
+          onChange={(v: string) =>
             props.onChange({ ...props.value, labelValue: v || '' })
           }
           disabled={!labelKey}

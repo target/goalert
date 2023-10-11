@@ -18,6 +18,9 @@ const useStyles = makeStyles(() => ({
     opacity: 0.6,
     width: '100%',
   },
+  listItemDraggable: {
+    paddingLeft: '75px',
+  },
   secondaryText: {
     whiteSpace: 'pre-line',
   },
@@ -26,15 +29,12 @@ const useStyles = makeStyles(() => ({
 export interface FlatListItemProps extends MUIListItemProps {
   item: FlatListItem
   index: number
-  showOptions?: boolean
 }
 
 export default function FlatListItem(props: FlatListItemProps): JSX.Element {
   const classes = useStyles()
 
-  const showOptions = props?.showOptions ?? true
   const {
-    disabled,
     highlight,
     icon,
     secondaryAction,
@@ -42,6 +42,9 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
     subText,
     title,
     url,
+    draggable,
+    disabled,
+    disableTypography,
     ...muiListItemProps
   } = props.item
 
@@ -69,6 +72,7 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
       className={classnames({
         [classes.listItem]: true,
         [classes.listItemDisabled]: disabled,
+        [classes.listItemDraggable]: draggable,
       })}
       selected={highlight}
     >
@@ -76,17 +80,17 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
       <ListItemText
         primary={title}
         secondary={subText}
+        disableTypography={disableTypography}
         secondaryTypographyProps={{
           className: classnames({
             [classes.secondaryText]: true,
             [classes.listItemDisabled]: disabled,
           }),
+          tabIndex: 0,
         }}
       />
-      {secondaryAction && showOptions && (
-        <ListItemSecondaryAction sx={{ zIndex: 9002 }}>
-          {secondaryAction}
-        </ListItemSecondaryAction>
+      {secondaryAction && (
+        <ListItemSecondaryAction>{secondaryAction}</ListItemSecondaryAction>
       )}
     </MUIListItem>
   )
