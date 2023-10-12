@@ -1553,11 +1553,6 @@ input UpdateServiceRuleInput {
   integrationKeys: [ID!]!
 }
 
-enum SignalSearchSort {
-  dateID
-  dateIDReverse
-}
-
 type ServiceRuleFilter {
   field: String!
   operator: String!
@@ -1605,4 +1600,9 @@ input SignalSearchOptions {
   sort: SignalSearchSort = dateID
   createdBefore: ISOTimestamp
   notCreatedBefore: ISOTimestamp
+}
+
+enum SignalSearchSort {
+  dateID
+  dateIDReverse
 }
