@@ -1232,8 +1232,6 @@ export interface UpdateServiceRuleInput {
   integrationKeys: string[]
 }
 
-export type SignalSearchSort = 'dateID' | 'dateIDReverse'
-
 export interface ServiceRuleFilter {
   field: string
   operator: string
@@ -1281,6 +1279,8 @@ export interface SignalSearchOptions {
   createdBefore?: null | ISOTimestamp
   notCreatedBefore?: null | ISOTimestamp
 }
+
+export type SignalSearchSort = 'dateID' | 'dateIDReverse'
 
 type ConfigID =
   | 'General.ApplicationName'

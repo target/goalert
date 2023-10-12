@@ -37,7 +37,7 @@ func (p FilterParser) Visit(node *ast.Node) {
 func filterFromTreeNode(n *ast.BinaryNode) (f Filter, err error) {
 	// left node should be the field
 	switch n.Left.(type) {
-	case *ast.IdentifierNode:
+	case *ast.IdentifierNode, *ast.MemberNode:
 	default:
 		return Filter{}, fmt.Errorf("invalid filter string")
 	}
