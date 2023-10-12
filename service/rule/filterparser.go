@@ -12,6 +12,8 @@ type FilterParser struct {
 	Err     *error
 }
 
+// Visit lets FilterParser implement the ast.Visitor interface. It is called on
+// each node of the syntax tree, and adds a filter for each non-&& binary node.
 func (p FilterParser) Visit(node *ast.Node) {
 	if node == nil {
 		return

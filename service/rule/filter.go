@@ -58,6 +58,7 @@ func FiltersToExprString(filters []Filter) (string, error) {
 		return "", err
 	}
 
+	// ensure resulting string compiles
 	if _, err := expr.Compile(str); err != nil {
 		log.Log(context.Background(), errors.Wrapf(err, "compile filter expr '%s'", str))
 		return "", fmt.Errorf("compile filters expr")
