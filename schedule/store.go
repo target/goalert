@@ -134,7 +134,7 @@ func (store *Store) FindMany(ctx context.Context, ids []string) ([]Schedule, err
 	return store.FindManyTx(ctx, nil, ids)
 }
 
-func (store *Store) FindManyByAssignments(ctx context.Context, tx *sql.Tx, userID string, rotationIDs []string) ([]Schedule, error) {
+func (store *Store) FindManyByUserID(ctx context.Context, tx *sql.Tx, userID string) ([]Schedule, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
@@ -149,21 +149,11 @@ func (store *Store) FindManyByAssignments(ctx context.Context, tx *sql.Tx, userI
 		return nil, err
 	}
 
-	var rids = []uuid.UUID{}
-	for _, r := range rotationIDs {
-		rid, err := uuid.Parse(r)
-		if err != nil {
-			return nil, err
-		}
-		rids = append(rids, rid)
-	}
-
 	rows, err := gadb.New(store.db).FindManyByAssignments(ctx, gadb.FindManyByAssignmentsParams{
 		TgtUserID: uuid.NullUUID{
 			Valid: true,
 			UUID:  uid,
 		},
-		Tgtrotationids: rids,
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {

@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/assignment"
-	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
@@ -255,47 +254,6 @@ func (s *Store) FindMany(ctx context.Context, ids []string) ([]Rotation, error) 
 		}
 		r.Start = r.Start.In(loc)
 		result = append(result, r)
-	}
-
-	return result, nil
-}
-
-func (s *Store) FindManyByUserID(ctx context.Context, tx *sql.Tx, userID string) ([]Rotation, error) {
-	err := permission.LimitCheckAny(ctx, permission.All)
-	if err != nil {
-		return nil, err
-	}
-
-	err = validate.UUID("UserID", userID)
-	if err != nil {
-		return nil, err
-	}
-
-	id, err := uuid.Parse(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	rows, err := gadb.New(s.db).FindManyByUserID(ctx, id)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	var result []Rotation
-
-	for _, r := range rows {
-		result = append(result, Rotation{
-			ID:          r.ID.String(),
-			Name:        r.Name,
-			Description: r.Description,
-
-			Type:        Type(r.Type),
-			Start:       r.StartTime,
-			ShiftLength: int(r.ShiftLength),
-		})
 	}
 
 	return result, nil
