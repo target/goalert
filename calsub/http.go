@@ -27,9 +27,7 @@ func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var userIDs []string
-	userIDs = append(userIDs, info.UserID.String())
-	shifts, err := s.oc.HistoryBySchedule(ctx, info.ScheduleID.String(), info.Now, info.Now.AddDate(1, 0, 0), userIDs)
+	shifts, err := s.oc.HistoryBySchedule(ctx, info.ScheduleID.String(), info.Now, info.Now.AddDate(1, 0, 0))
 	if errutil.HTTPError(ctx, w, err) {
 		return
 	}
