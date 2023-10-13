@@ -197,7 +197,7 @@ func (s *Store) OnCallUsersBySchedule(ctx context.Context, scheduleID string) ([
 }
 
 // HistoryBySchedule will return the list of shifts that overlap the start and end time for the given schedule.
-func (s *Store) HistoryBySchedule(ctx context.Context, scheduleID string, start, end time.Time, userIDs []string) ([]Shift, error) {
+func (s *Store) HistoryBySchedule(ctx context.Context, scheduleID string, start, end time.Time) ([]Shift, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
@@ -348,5 +348,5 @@ func (s *Store) HistoryBySchedule(ctx context.Context, scheduleID string, start,
 		tempScheds: tempScheds,
 	}
 
-	return st.CalculateShifts(start, end, userIDs), nil
+	return st.CalculateShifts(start, end), nil
 }

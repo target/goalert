@@ -92,7 +92,7 @@ func sortShifts(s []Shift) {
 	})
 }
 
-func (s *state) CalculateShifts(start, end time.Time, userIDs []string) []Shift {
+func (s *state) CalculateShifts(start, end time.Time) []Shift {
 	start = start.Truncate(time.Minute)
 	end = end.Truncate(time.Minute)
 	tiStart := start

@@ -119,7 +119,6 @@ func BenchmarkState_CalculateShifts(b *testing.B) {
 	s.CalculateShifts(
 		time.Date(2018, 1, 1, 8, 0, 0, 0, time.UTC), // 8:00AM
 		time.Date(2018, 1, 1, 9, 0, 0, 0, time.UTC), // 9:00AM
-		[]string{"foobar", "foobar2", "foob3ar", "fooba4r", "binbaz", "binbaz2"},
 	)
 
 	b.ResetTimer()
@@ -127,7 +126,6 @@ func BenchmarkState_CalculateShifts(b *testing.B) {
 		s.CalculateShifts(
 			time.Date(2018, 1, 1, 8, 0, 0, 0, time.UTC), // 8:00AM
 			time.Date(2019, 1, 1, 8, 0, 0, 0, time.UTC), // 9:00AM
-			[]string{"foobar", "foobar2", "foob3ar", "fooba4r", "binbaz", "binbaz2"},
 		)
 	}
 }
@@ -177,11 +175,11 @@ func TestResolvedRotation_UserID(t *testing.T) {
 }
 
 func TestState_CalculateShifts(t *testing.T) {
-	check := func(name string, start, end time.Time, s *state, exp []Shift, userIDs []string) {
+	check := func(name string, start, end time.Time, s *state, exp []Shift) {
 		t.Helper()
 		t.Run(name, func(t *testing.T) {
 			t.Helper()
-			res := s.CalculateShifts(start, end, userIDs)
+			res := s.CalculateShifts(start, end)
 			for i, exp := range exp {
 				if i >= len(res) {
 					t.Errorf("shift[%d]: missing", i)
@@ -253,7 +251,6 @@ func TestState_CalculateShifts(t *testing.T) {
 				UserID:    "has-gap",
 			},
 		},
-		[]string{"still-active", "has-gap"},
 	)
 
 	check("HistoryRemainder",
@@ -281,7 +278,6 @@ func TestState_CalculateShifts(t *testing.T) {
 		[]Shift{
 			// no shift is expected since it ended before/at the start time
 		},
-		[]string{"foobar"},
 	)
 
 	check("Simple",
@@ -306,7 +302,6 @@ func TestState_CalculateShifts(t *testing.T) {
 				UserID:    "foobar",
 			},
 		},
-		[]string{"foobar"},
 	)
 
 	check("Temporary Schedule",
@@ -353,7 +348,7 @@ func TestState_CalculateShifts(t *testing.T) {
 				Truncated: true,
 				UserID:    "foobar",
 			},
-		}, []string{"foobar", "baz"},
+		},
 	)
 
 	check("SimpleWeek",
@@ -407,7 +402,6 @@ func TestState_CalculateShifts(t *testing.T) {
 				UserID: "foobar",
 			},
 		},
-		[]string{"foobar"},
 	)
 
 	check("ReplaceOverride",
@@ -452,7 +446,6 @@ func TestState_CalculateShifts(t *testing.T) {
 				UserID:    "foobar",
 			},
 		},
-		[]string{"foobar", "binbaz"},
 	)
 
 	check("AddOverride",
@@ -502,7 +495,6 @@ func TestState_CalculateShifts(t *testing.T) {
 				UserID:    "binbaz",
 			},
 		},
-		[]string{"foobar", "bizbaz"},
 	)
 
 	check("RemoveOverride",
@@ -540,7 +532,6 @@ func TestState_CalculateShifts(t *testing.T) {
 				UserID:    "foobar",
 			},
 		},
-		[]string{"foobar"},
 	)
 
 	check("History",
@@ -572,7 +563,6 @@ func TestState_CalculateShifts(t *testing.T) {
 				UserID:    "foobar",
 			},
 		},
-		[]string{"foobar"},
 	)
 
 	check("Rotation",
@@ -666,7 +656,6 @@ func TestState_CalculateShifts(t *testing.T) {
 				UserID:    "Javon Goodwin",
 			},
 		},
-		[]string{"Javon Goodwin"},
 	)
 
 	central, err := time.LoadLocation("America/Chicago")
@@ -759,7 +748,6 @@ func TestState_CalculateShifts(t *testing.T) {
 			{UserID: "Cook", Start: time.Date(2018, 9, 15, 20, 0, 0, 0, central), End: time.Date(2018, 9, 16, 8, 0, 0, 0, central)},
 			{UserID: "Donna", Start: time.Date(2018, 9, 16, 8, 0, 0, 0, central), End: time.Date(2018, 9, 16, 19, 0, 0, 0, central), Truncated: true},
 		},
-		[]string{"Craig", "Cook", "Donna", "Caza", "Aru"},
 	)
 
 }

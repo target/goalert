@@ -95,7 +95,7 @@ func (s *Schedule) Shifts(ctx context.Context, raw *schedule.Schedule, start, en
 		return nil, err
 	}
 
-	shifts, err := s.OnCallStore.HistoryBySchedule(ctx, raw.ID, start, end, userIDs)
+	shifts, err := s.OnCallStore.HistoryBySchedule(ctx, raw.ID, start, end)
 	if err != nil {
 		return nil, err
 	}
