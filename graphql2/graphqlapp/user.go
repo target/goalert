@@ -4,6 +4,7 @@ import (
 	context "context"
 	"database/sql"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/schedule"
@@ -85,8 +86,21 @@ func (a *User) OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.St
 
 func (a *User) AssignedSchedules(ctx context.Context, obj *user.User) (schedules []schedule.Schedule, err error) {
 	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+		err = validate.UUID("UserID", obj.ID)
+		if err != nil {
+			return err
+		}
+		_uid, err := uuid.Parse(obj.ID)
+		if err != nil {
+			return err
+		}
+		uid := uuid.NullUUID{
+			Valid: true,
+			UUID:  _uid,
+		}
+
 		// get list of schedules user is on as a direct assignment, or indirectly from a rotation
-		schedules, err = (*App)(a).ScheduleStore.FindManyByUserID(ctx, tx, obj.ID)
+		schedules, err = (*App)(a).ScheduleStore.FindManyByUserID(ctx, tx, uid)
 		if err != nil {
 			return err
 		}

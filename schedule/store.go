@@ -134,26 +134,14 @@ func (store *Store) FindMany(ctx context.Context, ids []string) ([]Schedule, err
 	return store.FindManyTx(ctx, nil, ids)
 }
 
-func (store *Store) FindManyByUserID(ctx context.Context, db gadb.DBTX, userID string) ([]Schedule, error) {
+func (store *Store) FindManyByUserID(ctx context.Context, db gadb.DBTX, userID uuid.NullUUID) ([]Schedule, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
 	}
 
-	err = validate.UUID("UserID", userID)
-	if err != nil {
-		return nil, err
-	}
-	uid, err := uuid.Parse(userID)
-	if err != nil {
-		return nil, err
-	}
-
 	rows, err := gadb.New(db).FindManyByAssignments(ctx, gadb.FindManyByAssignmentsParams{
-		TgtUserID: uuid.NullUUID{
-			Valid: true,
-			UUID:  uid,
-		},
+		TgtUserID: userID,
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
