@@ -100,7 +100,7 @@
     "react-dom": "18.2.0",
     "react-ga4": "2.1.0",
     "react-infinite-scroll-component": "6.1.0",
-    "react-markdown": "8.0.7",
+    "react-markdown": "9.0.0",
     "react-redux": "8.1.2",
     "react-transition-group": "4.4.5",
     "react-virtualized-auto-sizer": "1.0.20",
