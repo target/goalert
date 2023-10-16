@@ -129,7 +129,7 @@ export default function AdminMessageLogsGraph(): JSX.Element {
       case 1:
         return theme.palette.secondary.main
       default:
-        return Math.floor(Math.random() * 16777215).toString(16)
+        return `hsl(${index * 137.508},60%,75%)`
     }
   }
 
@@ -225,7 +225,7 @@ export default function AdminMessageLogsGraph(): JSX.Element {
             >
               <AutoSizer>
                 {({ width, height }: { width: number; height: number }) =>
-                  stats.length === 0 ? (
+                  stats.length === 0 && !fetching ? (
                     <div
                       style={{
                         width,
@@ -282,16 +282,20 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                                 <Time time={payload[0].payload.start} /> -{' '}
                                 <Time time={payload[0].payload.end} />
                               </Typography>
-                              {payload.map((p) => (
-                                <React.Fragment key={p.name}>
-                                  <Typography variant='body2'>
-                                    {p.payload.segmentLabel === ''
-                                      ? 'Count'
-                                      : p.payload.segmentLabel}
-                                    : {p.payload.count}
-                                  </Typography>
-                                </React.Fragment>
-                              ))}
+                              {payload.map((p) => {
+                                if (p.payload.count === 0) return null
+
+                                return (
+                                  <React.Fragment key={p.name}>
+                                    <Typography variant='body2'>
+                                      {p.payload.segmentLabel === ''
+                                        ? 'Count'
+                                        : p.payload.segmentLabel}
+                                      : {p.payload.count}
+                                    </Typography>
+                                  </React.Fragment>
+                                )
+                              })}
                             </Paper>
                           )
                         }}
