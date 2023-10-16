@@ -91,7 +91,11 @@ export default function AdminAPIKeys(): JSX.Element {
                 <Time prefix='Expires At: ' time={key.expiresAt} />
               </Typography>
               <Typography gutterBottom variant='subtitle2' component='div'>
-                {key.allowedFields.length + ' allowed fields (read-only)'}
+                {key.allowedFields.length +
+                  ' allowed fields' +
+                  (key.allowedFields.some((f) => f.startsWith('Mutation.'))
+                    ? ''
+                    : ' (read-only)')}
               </Typography>
             </Grid>
             <Grid item>
