@@ -143,7 +143,9 @@ export default function AdminServiceTable(
           params.row.escalationPolicy.name
         ) {
           return (
-            <AppLink to={`/escalation-policies/${params.row.escalationPolicy.id}`}>
+            <AppLink
+              to={`/escalation-policies/${params.row.escalationPolicy.id}`}
+            >
               {params.row.escalationPolicy.name}
             </AppLink>
           )
