@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import {
   ClickAwayListener,
   Divider,
@@ -70,24 +70,14 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
   const isOpen = Boolean(apiKeyId)
   const [deleteDialog, onDeleteDialog] = useState(false)
   const [editDialog, onEditDialog] = useState(false)
-  const [apiKey, setAPIKey] = useState<GQLAPIKey>({} as GQLAPIKey)
+
   // Get API Key triggers/actions
   const [{ data, fetching, error }] = useQuery({ query })
-  let allowFieldsStr: string[] = []
-  let comma = ''
-
-  useEffect(() => {
-    const dataInfo = data?.gqlAPIKeys?.find((d: GQLAPIKey) => {
+  const apiKey =
+    data?.gqlAPIKeys?.find((d: GQLAPIKey) => {
       return d.id === apiKeyId
-    })
-    // retrieve apiKey information by id
-    setAPIKey(dataInfo)
-    allowFieldsStr = dataInfo?.allowedFields.map((inp: string): string => {
-      const inpComma = comma + inp
-      comma = ', '
-      return inpComma
-    })
-  }, [data])
+    }) || ({} as GQLAPIKey)
+  const allowFieldsStr = (apiKey?.allowedFields || []).join(', ')
 
   if (error) {
     return <GenericError error={error.message} />
