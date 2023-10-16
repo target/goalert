@@ -3,6 +3,7 @@ package notification
 import (
 	"context"
 	"database/sql"
+	"sort"
 	"text/template"
 	"time"
 
@@ -298,6 +299,10 @@ func makeTimeSeries(start, end, origin time.Time, duration time.Duration, counts
 			}
 		}
 	}
+
+	sort.SliceStable(buckets, func(i, j int) bool {
+		return buckets[i].SegmentLabel < buckets[j].SegmentLabel
+	})
 
 	return buckets
 }
