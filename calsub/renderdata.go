@@ -15,4 +15,6 @@ type renderData struct {
 	ReminderMinutes []int
 	Version         string
 	GeneratedAt     time.Time
+	FullSchedule    bool
+	UserNames       map[string]string
 }

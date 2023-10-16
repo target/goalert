@@ -544,6 +544,7 @@ type Mutation {
 
   createAlert(input: CreateAlertInput!): Alert
   setAlertNoiseReason(input: SetAlertNoiseReasonInput!): Boolean!
+    @deprecated(reason: "Use updateAlerts instead with the noiseReason field.")
 
   createService(input: CreateServiceInput!): Service
   createEscalationPolicy(input: CreateEscalationPolicyInput!): EscalationPolicy
@@ -631,6 +632,7 @@ type GQLAPIKey {
   lastUsed: GQLAPIKeyUsage
   expiresAt: ISOTimestamp!
   allowedFields: [String!]!
+  role: UserRole!
 }
 
 type GQLAPIKeyUsage {
@@ -682,17 +684,20 @@ input CreateUserCalendarSubscriptionInput {
   reminderMinutes: [Int!]
   scheduleID: ID!
   disabled: Boolean
+  fullSchedule: Boolean
 }
 input UpdateUserCalendarSubscriptionInput {
   id: ID!
   name: String
   reminderMinutes: [Int!]
   disabled: Boolean
+  fullSchedule: Boolean
 }
 type UserCalendarSubscription {
   id: ID!
   name: String!
   reminderMinutes: [Int!]!
+  fullSchedule: Boolean!
   scheduleID: ID!
   schedule: Schedule
   lastAccess: ISOTimestamp!
@@ -992,7 +997,8 @@ input UpdateAlertsInput {
   # List of alertIDs.
   alertIDs: [Int!]!
 
-  newStatus: AlertStatus!
+  newStatus: AlertStatus
+  noiseReason: String
 }
 
 input UpdateRotationInput {

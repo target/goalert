@@ -67,7 +67,7 @@ func (a *User) Role(ctx context.Context, usr *user.User) (graphql2.UserRole, err
 }
 
 func (a *User) ContactMethods(ctx context.Context, obj *user.User) ([]contactmethod.ContactMethod, error) {
-	return a.CMStore.FindAll(ctx, obj.ID)
+	return a.CMStore.FindAll(ctx, a.DB, obj.ID)
 }
 
 func (a *User) NotificationRules(ctx context.Context, obj *user.User) ([]notificationrule.NotificationRule, error) {
@@ -165,7 +165,7 @@ func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInpu
 			return err
 		}
 		if input.Favorite != nil && *input.Favorite {
-			err = a.FavoriteStore.SetTx(ctx, tx, permission.UserID(ctx), assignment.UserTarget(newUser.ID))
+			err = a.FavoriteStore.Set(ctx, tx, permission.UserID(ctx), assignment.UserTarget(newUser.ID))
 			if err != nil {
 				return err
 			}

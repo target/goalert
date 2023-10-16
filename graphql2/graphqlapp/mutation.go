@@ -31,9 +31,9 @@ func (a *App) Mutation() graphql2.MutationResolver { return (*Mutation)(a) }
 func (a *Mutation) SetFavorite(ctx context.Context, input graphql2.SetFavoriteInput) (bool, error) {
 	var err error
 	if input.Favorite {
-		err = a.FavoriteStore.Set(ctx, permission.UserID(ctx), input.Target)
+		err = a.FavoriteStore.Set(ctx, a.DB, permission.UserID(ctx), input.Target)
 	} else {
-		err = a.FavoriteStore.Unset(ctx, permission.UserID(ctx), input.Target)
+		err = a.FavoriteStore.Unset(ctx, a.DB, permission.UserID(ctx), input.Target)
 	}
 
 	if err != nil {
@@ -269,7 +269,7 @@ func (a *Mutation) tryDeleteAll(ctx context.Context, input []assignment.RawTarge
 		case assignment.TargetTypeRotation:
 			err = errors.Wrap(a.RotationStore.DeleteManyTx(ctx, tx, ids), "delete rotations")
 		case assignment.TargetTypeContactMethod:
-			err = errors.Wrap(a.CMStore.DeleteTx(ctx, tx, ids...), "delete contact methods")
+			err = errors.Wrap(a.CMStore.Delete(ctx, tx, ids...), "delete contact methods")
 		case assignment.TargetTypeNotificationRule:
 			err = errors.Wrap(a.NRStore.DeleteTx(ctx, tx, ids...), "delete notification rules")
 		case assignment.TargetTypeHeartbeatMonitor:

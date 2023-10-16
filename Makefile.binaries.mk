@@ -71,10 +71,7 @@ ifeq ($(PUSH),1)
 	podman manifest push --all $(IMAGE_REPO)/goalert:$(IMAGE_TAG) docker://$(IMAGE_REPO)/goalert:$(IMAGE_TAG)
 endif
 
-$(BIN_DIR)/build/integration/cypress.json: web/src/cypress.json
-	cp web/src/cypress.json $@
-
-$(BIN_DIR)/build/integration/cypress: node_modules $(BIN_DIR)/build/integration/cypress.json web/src/esbuild.cypress.js $(shell find ./web/src/cypress)
+$(BIN_DIR)/build/integration/cypress/plugins/index.js: package.json yarn.lock web/src/esbuild.cypress.js $(shell find ./web/src/cypress)
 	rm -rf $@
 	yarn run esbuild-cy
 	mkdir -p $@/plugins

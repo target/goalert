@@ -250,7 +250,7 @@ SELECT
 FROM
     alert_feedback
 WHERE
-    alert_id = ANY($1::int[])
+    alert_id = ANY ($1::int[])
 `
 
 type AlertFeedbackRow struct {
@@ -617,11 +617,16 @@ func (q *Queries) AuthLinkUseReq(ctx context.Context, id uuid.UUID) (AuthLinkUse
 }
 
 const calSubAuthUser = `-- name: CalSubAuthUser :one
-UPDATE user_calendar_subscriptions
-SET last_access = now()
-WHERE NOT disabled
+UPDATE
+    user_calendar_subscriptions
+SET
+    last_access = now()
+WHERE
+    NOT disabled
     AND id = $1
-    AND date_trunc('second', created_at) = $2 RETURNING user_id
+    AND date_trunc('second', created_at) = $2
+RETURNING
+    user_id
 `
 
 type CalSubAuthUserParams struct {
@@ -671,16 +676,451 @@ func (q *Queries) CalSubRenderInfo(ctx context.Context, id uuid.UUID) (CalSubRen
 	return i, err
 }
 
+const calSubUserNames = `-- name: CalSubUserNames :many
+SELECT
+    id,
+    name
+FROM
+    users
+WHERE
+    id = ANY ($1::uuid[])
+`
+
+type CalSubUserNamesRow struct {
+	ID   uuid.UUID
+	Name string
+}
+
+func (q *Queries) CalSubUserNames(ctx context.Context, dollar_1 []uuid.UUID) ([]CalSubUserNamesRow, error) {
+	rows, err := q.db.QueryContext(ctx, calSubUserNames, pq.Array(dollar_1))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CalSubUserNamesRow
+	for rows.Next() {
+		var i CalSubUserNamesRow
+		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const contactMethodAdd = `-- name: ContactMethodAdd :exec
+INSERT INTO user_contact_methods(id, name, type, value, disabled, user_id, enable_status_updates)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+`
+
+type ContactMethodAddParams struct {
+	ID                  uuid.UUID
+	Name                string
+	Type                EnumUserContactMethodType
+	Value               string
+	Disabled            bool
+	UserID              uuid.UUID
+	EnableStatusUpdates bool
+}
+
+func (q *Queries) ContactMethodAdd(ctx context.Context, arg ContactMethodAddParams) error {
+	_, err := q.db.ExecContext(ctx, contactMethodAdd,
+		arg.ID,
+		arg.Name,
+		arg.Type,
+		arg.Value,
+		arg.Disabled,
+		arg.UserID,
+		arg.EnableStatusUpdates,
+	)
+	return err
+}
+
+const contactMethodDisable = `-- name: ContactMethodDisable :one
+UPDATE
+    user_contact_methods
+SET
+    disabled = TRUE
+WHERE
+    type = $1
+    AND value = $2
+RETURNING
+    id
+`
+
+type ContactMethodDisableParams struct {
+	Type  EnumUserContactMethodType
+	Value string
+}
+
+func (q *Queries) ContactMethodDisable(ctx context.Context, arg ContactMethodDisableParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, contactMethodDisable, arg.Type, arg.Value)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const contactMethodEnable = `-- name: ContactMethodEnable :one
+UPDATE
+    user_contact_methods
+SET
+    disabled = FALSE
+WHERE
+    type = $1
+    AND value = $2
+RETURNING
+    id
+`
+
+type ContactMethodEnableParams struct {
+	Type  EnumUserContactMethodType
+	Value string
+}
+
+func (q *Queries) ContactMethodEnable(ctx context.Context, arg ContactMethodEnableParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, contactMethodEnable, arg.Type, arg.Value)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const contactMethodFindAll = `-- name: ContactMethodFindAll :many
+SELECT
+    id,
+    name,
+    type,
+    value,
+    disabled,
+    user_id,
+    last_test_verify_at,
+    enable_status_updates,
+    pending
+FROM
+    user_contact_methods
+WHERE
+    user_id = $1
+`
+
+type ContactMethodFindAllRow struct {
+	ID                  uuid.UUID
+	Name                string
+	Type                EnumUserContactMethodType
+	Value               string
+	Disabled            bool
+	UserID              uuid.UUID
+	LastTestVerifyAt    sql.NullTime
+	EnableStatusUpdates bool
+	Pending             bool
+}
+
+func (q *Queries) ContactMethodFindAll(ctx context.Context, userID uuid.UUID) ([]ContactMethodFindAllRow, error) {
+	rows, err := q.db.QueryContext(ctx, contactMethodFindAll, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ContactMethodFindAllRow
+	for rows.Next() {
+		var i ContactMethodFindAllRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Type,
+			&i.Value,
+			&i.Disabled,
+			&i.UserID,
+			&i.LastTestVerifyAt,
+			&i.EnableStatusUpdates,
+			&i.Pending,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const contactMethodFindMany = `-- name: ContactMethodFindMany :many
+SELECT
+    id,
+    name,
+    type,
+    value,
+    disabled,
+    user_id,
+    last_test_verify_at,
+    enable_status_updates,
+    pending
+FROM
+    user_contact_methods
+WHERE
+    id = ANY ($1::uuid[])
+`
+
+type ContactMethodFindManyRow struct {
+	ID                  uuid.UUID
+	Name                string
+	Type                EnumUserContactMethodType
+	Value               string
+	Disabled            bool
+	UserID              uuid.UUID
+	LastTestVerifyAt    sql.NullTime
+	EnableStatusUpdates bool
+	Pending             bool
+}
+
+func (q *Queries) ContactMethodFindMany(ctx context.Context, dollar_1 []uuid.UUID) ([]ContactMethodFindManyRow, error) {
+	rows, err := q.db.QueryContext(ctx, contactMethodFindMany, pq.Array(dollar_1))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ContactMethodFindManyRow
+	for rows.Next() {
+		var i ContactMethodFindManyRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Type,
+			&i.Value,
+			&i.Disabled,
+			&i.UserID,
+			&i.LastTestVerifyAt,
+			&i.EnableStatusUpdates,
+			&i.Pending,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const contactMethodFindOneUpdate = `-- name: ContactMethodFindOneUpdate :one
+SELECT
+    id,
+    name,
+    type,
+    value,
+    disabled,
+    user_id,
+    last_test_verify_at,
+    enable_status_updates,
+    pending
+FROM
+    user_contact_methods
+WHERE
+    id = $1
+FOR UPDATE
+`
+
+type ContactMethodFindOneUpdateRow struct {
+	ID                  uuid.UUID
+	Name                string
+	Type                EnumUserContactMethodType
+	Value               string
+	Disabled            bool
+	UserID              uuid.UUID
+	LastTestVerifyAt    sql.NullTime
+	EnableStatusUpdates bool
+	Pending             bool
+}
+
+func (q *Queries) ContactMethodFindOneUpdate(ctx context.Context, id uuid.UUID) (ContactMethodFindOneUpdateRow, error) {
+	row := q.db.QueryRowContext(ctx, contactMethodFindOneUpdate, id)
+	var i ContactMethodFindOneUpdateRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Type,
+		&i.Value,
+		&i.Disabled,
+		&i.UserID,
+		&i.LastTestVerifyAt,
+		&i.EnableStatusUpdates,
+		&i.Pending,
+	)
+	return i, err
+}
+
+const contactMethodFineOne = `-- name: ContactMethodFineOne :one
+SELECT
+    id,
+    name,
+    type,
+    value,
+    disabled,
+    user_id,
+    last_test_verify_at,
+    enable_status_updates,
+    pending
+FROM
+    user_contact_methods
+WHERE
+    id = $1
+`
+
+type ContactMethodFineOneRow struct {
+	ID                  uuid.UUID
+	Name                string
+	Type                EnumUserContactMethodType
+	Value               string
+	Disabled            bool
+	UserID              uuid.UUID
+	LastTestVerifyAt    sql.NullTime
+	EnableStatusUpdates bool
+	Pending             bool
+}
+
+func (q *Queries) ContactMethodFineOne(ctx context.Context, id uuid.UUID) (ContactMethodFineOneRow, error) {
+	row := q.db.QueryRowContext(ctx, contactMethodFineOne, id)
+	var i ContactMethodFineOneRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Type,
+		&i.Value,
+		&i.Disabled,
+		&i.UserID,
+		&i.LastTestVerifyAt,
+		&i.EnableStatusUpdates,
+		&i.Pending,
+	)
+	return i, err
+}
+
+const contactMethodLookupUserID = `-- name: ContactMethodLookupUserID :many
+SELECT DISTINCT
+    user_id
+FROM
+    user_contact_methods
+WHERE
+    id = ANY ($1::uuid[])
+`
+
+func (q *Queries) ContactMethodLookupUserID(ctx context.Context, dollar_1 []uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, contactMethodLookupUserID, pq.Array(dollar_1))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var user_id uuid.UUID
+		if err := rows.Scan(&user_id); err != nil {
+			return nil, err
+		}
+		items = append(items, user_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const contactMethodMetaTV = `-- name: ContactMethodMetaTV :one
+SELECT
+    coalesce(metadata, '{}'),
+    now()::timestamptz AS now
+FROM
+    user_contact_methods
+WHERE
+    type = $1
+    AND value = $2
+`
+
+type ContactMethodMetaTVParams struct {
+	Type  EnumUserContactMethodType
+	Value string
+}
+
+type ContactMethodMetaTVRow struct {
+	Metadata json.RawMessage
+	Now      time.Time
+}
+
+func (q *Queries) ContactMethodMetaTV(ctx context.Context, arg ContactMethodMetaTVParams) (ContactMethodMetaTVRow, error) {
+	row := q.db.QueryRowContext(ctx, contactMethodMetaTV, arg.Type, arg.Value)
+	var i ContactMethodMetaTVRow
+	err := row.Scan(&i.Metadata, &i.Now)
+	return i, err
+}
+
+const contactMethodUpdate = `-- name: ContactMethodUpdate :exec
+UPDATE
+    user_contact_methods
+SET
+    name = $2,
+    disabled = $3,
+    enable_status_updates = $4
+WHERE
+    id = $1
+`
+
+type ContactMethodUpdateParams struct {
+	ID                  uuid.UUID
+	Name                string
+	Disabled            bool
+	EnableStatusUpdates bool
+}
+
+func (q *Queries) ContactMethodUpdate(ctx context.Context, arg ContactMethodUpdateParams) error {
+	_, err := q.db.ExecContext(ctx, contactMethodUpdate,
+		arg.ID,
+		arg.Name,
+		arg.Disabled,
+		arg.EnableStatusUpdates,
+	)
+	return err
+}
+
+const contactMethodUpdateMetaTV = `-- name: ContactMethodUpdateMetaTV :exec
+UPDATE
+    user_contact_methods
+SET
+    metadata = jsonb_set(jsonb_set(metadata, '{CarrierV1}', $3::jsonb), '{CarrierV1,UpdatedAt}',('"' || NOW()::timestamptz AT TIME ZONE 'UTC' || '"')::jsonb) 
+WHERE
+    type = $1
+    AND value = $2
+`
+
+type ContactMethodUpdateMetaTVParams struct {
+	Type      EnumUserContactMethodType
+	Value     string
+	CarrierV1 json.RawMessage
+}
+
+func (q *Queries) ContactMethodUpdateMetaTV(ctx context.Context, arg ContactMethodUpdateMetaTVParams) error {
+	_, err := q.db.ExecContext(ctx, contactMethodUpdateMetaTV, arg.Type, arg.Value, arg.CarrierV1)
+	return err
+}
+
 const createCalSub = `-- name: CreateCalSub :one
-INSERT INTO user_calendar_subscriptions (
-        id,
-        NAME,
-        user_id,
-        disabled,
-        schedule_id,
-        config
-    )
-VALUES ($1, $2, $3, $4, $5, $6) RETURNING created_at
+INSERT INTO user_calendar_subscriptions(id, NAME, user_id, disabled, schedule_id, config)
+    VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING
+    created_at
 `
 
 type CreateCalSubParams struct {
@@ -706,9 +1146,19 @@ func (q *Queries) CreateCalSub(ctx context.Context, arg CreateCalSubParams) (tim
 	return created_at, err
 }
 
+const deleteContactMethod = `-- name: DeleteContactMethod :exec
+DELETE FROM user_contact_methods
+WHERE id = ANY ($1::uuid[])
+`
+
+func (q *Queries) DeleteContactMethod(ctx context.Context, dollar_1 []uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteContactMethod, pq.Array(dollar_1))
+	return err
+}
+
 const deleteManyCalSub = `-- name: DeleteManyCalSub :exec
 DELETE FROM user_calendar_subscriptions
-WHERE id = ANY($1::uuid [ ])
+WHERE id = ANY ($1::uuid[])
     AND user_id = $2
 `
 
@@ -723,15 +1173,18 @@ func (q *Queries) DeleteManyCalSub(ctx context.Context, arg DeleteManyCalSubPara
 }
 
 const findManyCalSubByUser = `-- name: FindManyCalSubByUser :many
-SELECT id,
+SELECT
+    id,
     NAME,
     user_id,
     disabled,
     schedule_id,
     config,
     last_access
-FROM user_calendar_subscriptions
-WHERE user_id = $1
+FROM
+    user_calendar_subscriptions
+WHERE
+    user_id = $1
 `
 
 type FindManyCalSubByUserRow struct {
@@ -776,15 +1229,18 @@ func (q *Queries) FindManyCalSubByUser(ctx context.Context, userID uuid.UUID) ([
 }
 
 const findOneCalSub = `-- name: FindOneCalSub :one
-SELECT id,
+SELECT
+    id,
     NAME,
     user_id,
     disabled,
     schedule_id,
     config,
     last_access
-FROM user_calendar_subscriptions
-WHERE id = $1
+FROM
+    user_calendar_subscriptions
+WHERE
+    id = $1
 `
 
 type FindOneCalSubRow struct {
@@ -813,16 +1269,19 @@ func (q *Queries) FindOneCalSub(ctx context.Context, id uuid.UUID) (FindOneCalSu
 }
 
 const findOneCalSubForUpdate = `-- name: FindOneCalSubForUpdate :one
-SELECT id,
+SELECT
+    id,
     NAME,
     user_id,
     disabled,
     schedule_id,
     config,
     last_access
-FROM user_calendar_subscriptions
-WHERE id = $1 FOR
-UPDATE
+FROM
+    user_calendar_subscriptions
+WHERE
+    id = $1
+FOR UPDATE
 `
 
 type FindOneCalSubForUpdateRow struct {
@@ -1037,7 +1496,8 @@ func (q *Queries) NoticeUnackedAlertsByService(ctx context.Context, dollar_1 uui
 }
 
 const now = `-- name: Now :one
-SELECT now()::timestamptz
+SELECT
+    now()::timestamptz
 `
 
 func (q *Queries) Now(ctx context.Context) (time.Time, error) {
@@ -1045,6 +1505,121 @@ func (q *Queries) Now(ctx context.Context) (time.Time, error) {
 	var column_1 time.Time
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const overrideSearch = `-- name: OverrideSearch :many
+WITH AFTER AS (
+    SELECT
+        id,
+        start_time,
+        end_time
+    FROM
+        user_overrides
+    WHERE
+        id = $8::uuid
+)
+SELECT
+    o.id,
+    o.start_time,
+    o.end_time,
+    add_user_id,
+    remove_user_id,
+    tgt_schedule_id
+FROM
+    user_overrides o
+    LEFT JOIN AFTER ON TRUE
+WHERE ($1::uuid[] ISNULL
+    OR o.id <> ALL ($1))
+AND ($2::uuid ISNULL
+    OR o.tgt_schedule_id = $2)
+AND ($3::uuid[] ISNULL
+    OR add_user_id = ANY ($3::uuid[])
+    OR remove_user_id = ANY ($3::uuid[]))
+AND ($4::uuid[] ISNULL
+    OR add_user_id = ANY ($4::uuid[]))
+AND ($5::uuid[] ISNULL
+    OR remove_user_id = ANY ($5::uuid[]))
+AND (
+    /* only include overrides that end after the search start */
+    $6::timestamptz ISNULL
+    OR o.end_time > $6)
+AND (
+    /* only include overrides that start before/within the search end */
+    $7::timestamptz ISNULL
+    OR o.start_time <= $7)
+AND (
+    /* resume search after specified "cursor" override */
+    $8::uuid ISNULL
+    OR (o.start_time > after.start_time
+        OR (o.start_time = after.start_time
+            AND o.end_time > after.end_time)
+        OR (o.start_time = after.start_time
+            AND o.end_time = after.end_time
+            AND o.id > after.id)))
+ORDER BY
+    o.start_time,
+    o.end_time,
+    o.id
+LIMIT 150
+`
+
+type OverrideSearchParams struct {
+	Omit         []uuid.UUID
+	ScheduleID   uuid.NullUUID
+	AnyUserID    []uuid.UUID
+	AddUserID    []uuid.UUID
+	RemoveUserID []uuid.UUID
+	SearchStart  sql.NullTime
+	SearchEnd    sql.NullTime
+	AfterID      uuid.NullUUID
+}
+
+type OverrideSearchRow struct {
+	ID            uuid.UUID
+	StartTime     time.Time
+	EndTime       time.Time
+	AddUserID     uuid.NullUUID
+	RemoveUserID  uuid.NullUUID
+	TgtScheduleID uuid.UUID
+}
+
+func (q *Queries) OverrideSearch(ctx context.Context, arg OverrideSearchParams) ([]OverrideSearchRow, error) {
+	rows, err := q.db.QueryContext(ctx, overrideSearch,
+		pq.Array(arg.Omit),
+		arg.ScheduleID,
+		pq.Array(arg.AnyUserID),
+		pq.Array(arg.AddUserID),
+		pq.Array(arg.RemoveUserID),
+		arg.SearchStart,
+		arg.SearchEnd,
+		arg.AfterID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OverrideSearchRow
+	for rows.Next() {
+		var i OverrideSearchRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.StartTime,
+			&i.EndTime,
+			&i.AddUserID,
+			&i.RemoveUserID,
+			&i.TgtScheduleID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const requestAlertEscalationByTime = `-- name: RequestAlertEscalationByTime :one
@@ -1090,6 +1665,46 @@ type SetAlertFeedbackParams struct {
 func (q *Queries) SetAlertFeedback(ctx context.Context, arg SetAlertFeedbackParams) error {
 	_, err := q.db.ExecContext(ctx, setAlertFeedback, arg.AlertID, arg.NoiseReason)
 	return err
+}
+
+const setManyAlertFeedback = `-- name: SetManyAlertFeedback :many
+INSERT INTO alert_feedback(alert_id, noise_reason)
+    VALUES (unnest($1::bigint[]), $2)
+ON CONFLICT (alert_id)
+    DO UPDATE SET
+        noise_reason = excluded.noise_reason
+    WHERE
+        alert_feedback.alert_id = excluded.alert_id
+    RETURNING
+        alert_id
+`
+
+type SetManyAlertFeedbackParams struct {
+	AlertIds    []int64
+	NoiseReason string
+}
+
+func (q *Queries) SetManyAlertFeedback(ctx context.Context, arg SetManyAlertFeedbackParams) ([]int64, error) {
+	rows, err := q.db.QueryContext(ctx, setManyAlertFeedback, pq.Array(arg.AlertIds), arg.NoiseReason)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var alert_id int64
+		if err := rows.Scan(&alert_id); err != nil {
+			return nil, err
+		}
+		items = append(items, alert_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const statusMgrCMInfo = `-- name: StatusMgrCMInfo :one
@@ -1300,12 +1915,15 @@ func (q *Queries) StatusMgrUpdateSub(ctx context.Context, arg StatusMgrUpdateSub
 }
 
 const updateCalSub = `-- name: UpdateCalSub :exec
-UPDATE user_calendar_subscriptions
-SET NAME = $1,
+UPDATE
+    user_calendar_subscriptions
+SET
+    NAME = $1,
     disabled = $2,
     config = $3,
     last_update = now()
-WHERE id = $4
+WHERE
+    id = $4
     AND user_id = $5
 `
 
@@ -1324,6 +1942,141 @@ func (q *Queries) UpdateCalSub(ctx context.Context, arg UpdateCalSubParams) erro
 		arg.Config,
 		arg.ID,
 		arg.UserID,
+	)
+	return err
+}
+
+const userFavFindAll = `-- name: UserFavFindAll :many
+SELECT
+    tgt_service_id,
+    tgt_schedule_id,
+    tgt_rotation_id,
+    tgt_escalation_policy_id,
+    tgt_user_id
+FROM
+    user_favorites
+WHERE
+    user_id = $1
+    AND ((tgt_service_id NOTNULL
+            AND $2::bool)
+        OR (tgt_schedule_id NOTNULL
+            AND $3::bool)
+        OR (tgt_rotation_id NOTNULL
+            AND $4::bool)
+        OR (tgt_escalation_policy_id NOTNULL
+            AND $5::bool)
+        OR (tgt_user_id NOTNULL
+            AND $6::bool))
+`
+
+type UserFavFindAllParams struct {
+	UserID                  uuid.UUID
+	AllowServices           bool
+	AllowSchedules          bool
+	AllowRotations          bool
+	AllowEscalationPolicies bool
+	AllowUsers              bool
+}
+
+type UserFavFindAllRow struct {
+	TgtServiceID          uuid.NullUUID
+	TgtScheduleID         uuid.NullUUID
+	TgtRotationID         uuid.NullUUID
+	TgtEscalationPolicyID uuid.NullUUID
+	TgtUserID             uuid.NullUUID
+}
+
+func (q *Queries) UserFavFindAll(ctx context.Context, arg UserFavFindAllParams) ([]UserFavFindAllRow, error) {
+	rows, err := q.db.QueryContext(ctx, userFavFindAll,
+		arg.UserID,
+		arg.AllowServices,
+		arg.AllowSchedules,
+		arg.AllowRotations,
+		arg.AllowEscalationPolicies,
+		arg.AllowUsers,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserFavFindAllRow
+	for rows.Next() {
+		var i UserFavFindAllRow
+		if err := rows.Scan(
+			&i.TgtServiceID,
+			&i.TgtScheduleID,
+			&i.TgtRotationID,
+			&i.TgtEscalationPolicyID,
+			&i.TgtUserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const userFavSet = `-- name: UserFavSet :exec
+INSERT INTO user_favorites(user_id, tgt_service_id, tgt_schedule_id, tgt_rotation_id, tgt_escalation_policy_id, tgt_user_id)
+    VALUES ($1, $2, $3, $4, $5, $6)
+ON CONFLICT
+    DO NOTHING
+`
+
+type UserFavSetParams struct {
+	UserID                uuid.UUID
+	TgtServiceID          uuid.NullUUID
+	TgtScheduleID         uuid.NullUUID
+	TgtRotationID         uuid.NullUUID
+	TgtEscalationPolicyID uuid.NullUUID
+	TgtUserID             uuid.NullUUID
+}
+
+func (q *Queries) UserFavSet(ctx context.Context, arg UserFavSetParams) error {
+	_, err := q.db.ExecContext(ctx, userFavSet,
+		arg.UserID,
+		arg.TgtServiceID,
+		arg.TgtScheduleID,
+		arg.TgtRotationID,
+		arg.TgtEscalationPolicyID,
+		arg.TgtUserID,
+	)
+	return err
+}
+
+const userFavUnset = `-- name: UserFavUnset :exec
+DELETE FROM user_favorites
+WHERE user_id = $1
+    AND tgt_service_id = $2
+    OR tgt_schedule_id = $3
+    OR tgt_rotation_id = $4
+    OR tgt_escalation_policy_id = $5
+    OR tgt_user_id = $6
+`
+
+type UserFavUnsetParams struct {
+	UserID                uuid.UUID
+	TgtServiceID          uuid.NullUUID
+	TgtScheduleID         uuid.NullUUID
+	TgtRotationID         uuid.NullUUID
+	TgtEscalationPolicyID uuid.NullUUID
+	TgtUserID             uuid.NullUUID
+}
+
+func (q *Queries) UserFavUnset(ctx context.Context, arg UserFavUnsetParams) error {
+	_, err := q.db.ExecContext(ctx, userFavUnset,
+		arg.UserID,
+		arg.TgtServiceID,
+		arg.TgtScheduleID,
+		arg.TgtRotationID,
+		arg.TgtEscalationPolicyID,
+		arg.TgtUserID,
 	)
 	return err
 }

@@ -158,7 +158,7 @@ export function FormField(props) {
       if (count) {
         return charCountWrapper(<FormHelperText>{hint}</FormHelperText>, count)
       }
-      return <FormHelperText>{hint}</FormHelperText>
+      return <FormHelperText component='span'>{hint}</FormHelperText>
     }
 
     return null

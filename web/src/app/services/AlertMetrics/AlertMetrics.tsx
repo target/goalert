@@ -39,7 +39,7 @@ export default function AlertMetrics({
 
   const unit = units[ivl]
   const since = now.minus(Duration.fromISO(range)).startOf(unit)
-  const until = now.startOf(unit)
+  const until = now
 
   const alertOptions: AlertSearchOptions = {
     filterByServiceID: [serviceID],
@@ -71,21 +71,25 @@ export default function AlertMetrics({
     return <GenericError error={alertsData.error.message} />
   }
 
-  const dayCount = Math.ceil(until.diff(since, unit).as(unit))
-
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
         <Card>
-          <CardHeader
-            component='h2'
-            title={`Daily alert metrics over the past ${dayCount} ${unit}s`}
-          />
           <CardContent>
             <AlertMetricsFilter />
+            <CardHeader
+              title='Alert Counts'
+              component='h2'
+              sx={{ ml: '2rem', mb: 0, pb: 0 }}
+            />
             <AlertCountGraph
               data={graphData}
               loading={graphDataStatus.loading || alertsData.loading}
+            />
+            <CardHeader
+              title='Alert Averages'
+              component='h2'
+              sx={{ ml: '2rem', mb: 0, pb: 0 }}
             />
             <AlertAveragesGraph
               data={graphData}
