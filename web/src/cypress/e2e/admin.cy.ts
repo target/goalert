@@ -270,7 +270,7 @@ function testAdmin(): void {
       cy.get(`.recharts-line-dots circle[value=1]`).trigger('mouseover')
       cy.get('[data-cy=message-log-tooltip]')
         .should('contain', now)
-        .should('contain', 'Count: 1')
+        .should('contain', debugMessage.userName + ': 1')
 
       cy.get('[data-cy="paginated-list"]').as('list')
       cy.get('@list').should('have.length', 1)
