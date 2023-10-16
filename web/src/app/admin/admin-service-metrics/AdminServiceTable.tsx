@@ -33,6 +33,32 @@ export default function AdminServiceTable(
   props: AdminServiceTableProps,
 ): JSX.Element {
   const { services, loading } = props
+
+  const getServiceStatus = (
+    service: Service,
+  ): {
+    hasEPSteps: boolean
+    hasIntegrations: boolean
+    hasNotices: boolean
+    inMaintenance: boolean
+  } => {
+    const targets: TargetType[] = []
+    if (service.escalationPolicy?.steps?.length) {
+      service.escalationPolicy?.steps?.map((step: EscalationPolicyStep) => {
+        step.targets.map((tgt: Target) => {
+          if (!targets.includes(tgt.type)) targets.push(tgt.type)
+        })
+      })
+    }
+
+    return {
+      hasEPSteps: !!targets.length,
+      hasIntegrations:
+        !!service.integrationKeys.length && !!service.heartbeatMonitors.length,
+      hasNotices: !!service.notices.length,
+      inMaintenance: !!service.maintenanceExpiresAt,
+    }
+  }
   const columns = [
     {
       field: 'name',
@@ -54,36 +80,35 @@ export default function AdminServiceTable(
       field: 'status',
       headerName: 'Status',
       width: 150,
+      valueGetter: (params: GridValueGetterParams) => {
+        const { hasEPSteps, hasIntegrations, hasNotices, inMaintenance } =
+          getServiceStatus(params.row as Service)
+        const warnings = []
+
+        if (hasEPSteps && hasIntegrations && !hasNotices && !inMaintenance)
+          return ''
+        if (!hasEPSteps) warnings.push('Missing Alert Notifications')
+        if (!hasIntegrations) warnings.push('Missing Alert Integrations')
+        if (hasNotices) warnings.push('Service Reaching Alert Limit')
+        if (inMaintenance) warnings.push('Service in Maintenance Mode')
+
+        return warnings.join(',')
+      },
       renderCell: (params: GridRenderCellParams<GridValidRowModel>) => {
-        const targets: TargetType[] = []
-        if (params.row.escalationPolicy.steps?.length) {
-          params.row.escalationPolicy.steps?.map(
-            (step: EscalationPolicyStep) => {
-              step.targets.map((tgt: Target) => {
-                if (!targets.includes(tgt.type)) targets.push(tgt.type)
-              })
-            },
-          )
-        }
+        const { hasEPSteps, hasIntegrations, hasNotices, inMaintenance } =
+          getServiceStatus(params.row as Service)
 
-        const noEPSteps = !targets.length
-        const noIntegrations =
-          !params.row.integrationKeys.length &&
-          !params.row.heartbeatMonitors.length
-        const hasNotices = !!params.row.notices.length
-        const inMaintenance = params.row.maintenanceExpiresAt
-
-        if (!noEPSteps && !noIntegrations && !hasNotices && !inMaintenance)
+        if (hasEPSteps && hasIntegrations && !hasNotices && !inMaintenance)
           return <CheckCircleOutlineIcon color='success' />
 
         return (
           <Stack direction='row'>
-            {noEPSteps && (
+            {!hasEPSteps && (
               <Tooltip title='Service has empty escalation policy.'>
                 <WarningAmberOutlined color='warning' />
               </Tooltip>
             )}
-            {noIntegrations && (
+            {!hasIntegrations && (
               <Tooltip title='Service has no alert integrations configured.'>
                 <WarningAmberOutlined color='warning' />
               </Tooltip>
