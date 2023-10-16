@@ -17,17 +17,17 @@ export type ServiceMetricFilters = {
 
 export type ServiceMetricOpts = {
   services: Service[]
-  filters: ServiceMetricFilters
+  filters?: ServiceMetricFilters
 }
 export function useServiceMetrics(opts: ServiceMetricOpts): ServiceMetrics {
   const { services, filters } = opts
 
   const filterServices = (
     services: Service[],
-    filters: ServiceMetricFilters,
+    filters?: ServiceMetricFilters,
   ): Service[] => {
     return services.filter((svc) => {
-      if (filters.labelKey) {
+      if (filters?.labelKey) {
         const labelMatch = svc.labels.some(
           (label) =>
             filters.labelKey === label.key &&
@@ -35,13 +35,13 @@ export function useServiceMetrics(opts: ServiceMetricOpts): ServiceMetrics {
         )
         if (!labelMatch) return false
       }
-      if (filters.epStepTgts?.length) {
+      if (filters?.epStepTgts?.length) {
         const stepTargetMatch = svc.escalationPolicy?.steps.some((step) =>
           step.targets.some((tgt) => filters.epStepTgts?.includes(tgt.type)),
         )
         if (!stepTargetMatch) return false
       }
-      if (filters.intKeyTgts?.length) {
+      if (filters?.intKeyTgts?.length) {
         const intKeyMatch = svc.integrationKeys.some(
           (key) => filters.intKeyTgts?.includes(key.type),
         )
