@@ -168,7 +168,7 @@ func (d *datagen) NewNR(userID, cmID string) {
 		ID:              d.UUID(),
 		UserID:          userID,
 		ContactMethodID: cmID,
-		DelayMinutes:    d.ints.Gen(60, cmID),
+		DelayMinutes:    d.ints.Gen(600, cmID),
 	}
 	d.NotificationRules = append(d.NotificationRules, nr)
 }

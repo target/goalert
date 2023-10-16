@@ -37,7 +37,7 @@ function testRotations(screen: ScreenFormat): void {
         cy.dialogTitle('Create Rotation')
         cy.dialogFinish('Cancel')
       })
-      ;['Hourly', 'Daily', 'Weekly'].forEach((type) => {
+      ;['Hourly', 'Daily', 'Weekly', 'Monthly'].forEach((type) => {
         it(`should create a ${type} rotation when submitted`, () => {
           const name = 'SM Rot ' + c.word({ length: 8 })
           const description = c.word({ length: 10 })
@@ -65,6 +65,34 @@ function testRotations(screen: ScreenFormat): void {
             .should('contain', name)
             .should('contain', description)
             .should('contain', tz)
+        })
+      })
+
+      describe('Hint', () => {
+        it('should show handoff start time hint on certain dates', () => {
+          const name = 'SM Rot ' + c.word({ length: 8 })
+          const description = c.word({ length: 10 })
+          const tz = c.pickone(['America/Chicago', 'Africa/Accra', 'Etc/UTC'])
+          const shiftLength = c.integer({ min: 1, max: 10 })
+
+          if (screen === 'mobile') {
+            cy.pageFab()
+          } else {
+            cy.get('button').contains('Create Rotation').click()
+          }
+          cy.dialogTitle('Create Rotation')
+          cy.dialogForm({
+            name,
+            description,
+            timeZone: tz,
+            type: 'Monthly',
+            shiftLength: shiftLength.toString(),
+            start: '2020-05-30T15:04',
+          })
+          cy.get('[data-cy="handoff-warning"]').should(
+            'contain',
+            'Unintended handoff behavior may occur when date starts after the 28th',
+          )
         })
       })
     })

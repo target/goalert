@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { render } from 'react-dom'
+import { createRoot } from 'react-dom/client'
 import { GraphiQL } from 'graphiql'
 import { Provider as ReduxProvider } from 'react-redux'
 import { StyledEngineProvider } from '@mui/material/styles'
@@ -55,7 +55,9 @@ const App = (): JSX.Element => {
   )
 }
 
-render(
+const container = createRoot(document.getElementById('root') as HTMLElement)
+
+container.render(
   <div style={{ height: '100vh' }}>
     <StyledEngineProvider injectFirst>
       <ThemeProvider>
@@ -65,5 +67,4 @@ render(
       </ThemeProvider>
     </StyledEngineProvider>
   </div>,
-  document.getElementById('root'),
 )

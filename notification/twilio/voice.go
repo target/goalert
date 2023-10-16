@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nyaruka/phonenumbers"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
@@ -22,7 +23,6 @@ import (
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
-	"github.com/ttacon/libphonenumber"
 )
 
 // CallType indicates a supported Twilio voice call type.
@@ -605,11 +605,11 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 
 // FriendlyValue will return the international formatting of the phone number.
 func (v *Voice) FriendlyValue(ctx context.Context, value string) (string, error) {
-	num, err := libphonenumber.Parse(value, "")
+	num, err := phonenumbers.Parse(value, "")
 	if err != nil {
 		return "", fmt.Errorf("parse number for formatting: %w", err)
 	}
-	return libphonenumber.Format(num, libphonenumber.INTERNATIONAL), nil
+	return phonenumbers.Format(num, phonenumbers.INTERNATIONAL), nil
 }
 
 // buildMessage is a function that will build the VoiceOptions object with the proper message contents

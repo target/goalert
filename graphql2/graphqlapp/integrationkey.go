@@ -29,7 +29,7 @@ func (m *Mutation) CreateIntegrationKey(ctx context.Context, input graphql2.Crea
 			Name:      input.Name,
 			Type:      integrationkey.Type(input.Type),
 		}
-		key, err = m.IntKeyStore.CreateKeyTx(ctx, tx, key)
+		key, err = m.IntKeyStore.Create(ctx, tx, key)
 		return err
 	})
 	return key, err
