@@ -14,7 +14,7 @@ export default function AlertMetricsFilter(): JSX.Element {
   const [ivl, setIvl] = useURLParam<string>('interval', 'P1D')
 
   return (
-    <Grid container sx={{ marginLeft: '3rem' }}>
+    <Grid container sx={{ marginLeft: '3rem', pt: 3 }}>
       <Grid item xs={5}>
         <FormControl sx={{ width: '100%' }}>
           <InputLabel id='demo-simple-select-helper-label'>

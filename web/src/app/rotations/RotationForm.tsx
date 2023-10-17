@@ -1,5 +1,11 @@
 import React from 'react'
-import { TextField, Grid, MenuItem, Typography } from '@mui/material'
+import {
+  TextField,
+  Grid,
+  MenuItem,
+  Typography,
+  FormHelperText,
+} from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { startCase } from 'lodash'
 import { DateTime } from 'luxon'
@@ -11,7 +17,7 @@ import { ISODateTimePicker } from '../util/ISOPickers'
 import NumberField from '../util/NumberField'
 import Spinner from '../loading/components/Spinner'
 import { FieldError } from '../util/errutil'
-import { RotationType, CreateRotationInput } from '../../schema'
+import { CreateRotationInput, ISODuration, RotationType } from '../../schema'
 import { Time } from '../util/Time'
 
 interface RotationFormProps {
@@ -27,7 +33,7 @@ const query = gql`
   }
 `
 
-const rotationTypes = ['hourly', 'daily', 'weekly']
+const rotationTypes = ['hourly', 'daily', 'weekly', 'monthly']
 
 const useStyles = makeStyles({
   handoffTimestamp: {
@@ -48,16 +54,21 @@ const useStyles = makeStyles({
   },
 })
 
-// getHours converts a count and one of ['hourly', 'daily', 'weekly']
-// into length in hours e.g. (2, daily) => 48
-function getHours(count: number, unit: RotationType): number {
-  const lookup = {
-    hourly: 1,
-    daily: 24,
-    weekly: 24 * 7,
-    monthly: 24 * DateTime.local().daysInMonth,
+// getShiftDuration converts a count and one of ['hourly', 'daily', 'weekly', 'monthly']
+// into the shift length to ISODuration.
+function getShiftDuration(count: number, type: RotationType): ISODuration {
+  switch (type) {
+    case 'monthly':
+      return `P${count}M`
+    case 'weekly':
+      return `P${count}W`
+    case 'daily':
+      return `P${count}D`
+    case 'hourly':
+      return `PT${count}H`
+    default:
+      throw new Error('unknown rotation type: ' + type)
   }
-  return lookup[unit] * count
 }
 
 const sameAsLocal = (t: string, z: string): boolean => {
@@ -74,9 +85,8 @@ export default function RotationForm(props: RotationFormProps): JSX.Element {
     variables: {
       input: {
         handoff: value.start,
-        from: value.start,
         timeZone: value.timeZone,
-        shiftLengthHours: getHours(value.shiftLength as number, value.type),
+        shiftLength: getShiftDuration(value.shiftLength as number, value.type),
         count: 3,
       },
     },
@@ -85,6 +95,8 @@ export default function RotationForm(props: RotationFormProps): JSX.Element {
   const isCalculating = !data || loading
 
   const isHandoffValid = DateTime.fromISO(value.start).isValid
+  const handoffWarning =
+    DateTime.fromISO(value.start).day > 28 && value.type === 'monthly'
   const nextHandoffs = isCalculating ? [] : data.calcRotationHandoffTimes
 
   return (
@@ -158,9 +170,24 @@ export default function RotationForm(props: RotationFormProps): JSX.Element {
             name='start'
             required
             hint={
-              sameAsLocal(value.start, value.timeZone) ? undefined : (
-                <Time time={value.start} suffix=' local time' />
-              )
+              <React.Fragment>
+                {sameAsLocal(value.start, value.timeZone) ? undefined : (
+                  <Time time={value.start} suffix=' local time' />
+                )}
+                {handoffWarning && (
+                  <FormHelperText
+                    sx={{
+                      color: (theme) => theme.palette.warning.main,
+                      marginLeft: 0,
+                      marginRight: 0,
+                    }}
+                    data-cy='handoff-warning'
+                  >
+                    Unintended handoff behavior may occur when date starts after
+                    the 28th
+                  </FormHelperText>
+                )}
+              </React.Fragment>
             }
           />
         </Grid>
