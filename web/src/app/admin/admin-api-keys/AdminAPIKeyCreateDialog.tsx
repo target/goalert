@@ -1,15 +1,14 @@
 import React, { useState } from 'react'
 import { gql, useMutation } from 'urql'
+import CopyText from '../../util/CopyText'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import AdminAPIKeyForm from './AdminAPIKeyForm'
 import { CreateGQLAPIKeyInput } from '../../../schema'
 import { CheckCircleOutline as SuccessIcon } from '@mui/icons-material'
-import makeStyles from '@mui/styles/makeStyles'
-
 import { DateTime } from 'luxon'
 import { Grid, Typography, FormHelperText } from '@mui/material'
-import CopyText from '../../util/CopyText'
+
 // query for creating new api key which accepts CreateGQLAPIKeyInput param
 // return token created upon successfull transaction
 const newGQLAPIKeyQuery = gql`
@@ -20,16 +19,6 @@ const newGQLAPIKeyQuery = gql`
     }
   }
 `
-
-const useStyles = makeStyles(() => ({
-  successIcon: {
-    marginRight: 8, // TODO: ts definitions are wrong, should be: theme.spacing(1),
-  },
-  successTitle: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-}))
 
 function AdminAPIKeyToken(props: { token: string }): React.ReactNode {
   return (
@@ -48,7 +37,6 @@ function AdminAPIKeyToken(props: { token: string }): React.ReactNode {
 export default function AdminAPIKeyCreateDialog(props: {
   onClose: () => void
 }): React.ReactNode {
-  const classes = useStyles()
   const [value, setValue] = useState<CreateGQLAPIKeyInput>({
     name: '',
     description: '',
@@ -80,8 +68,13 @@ export default function AdminAPIKeyCreateDialog(props: {
     <FormDialog
       title={
         token ? (
-          <div className={classes.successTitle}>
-            <SuccessIcon className={classes.successIcon} />
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <SuccessIcon sx={{ marginRight: (theme) => theme.spacing(1) }} />
             <Typography>Success!</Typography>
           </div>
         ) : (

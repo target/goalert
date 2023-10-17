@@ -101,6 +101,7 @@ export interface FlatListNotice extends Notice {
 }
 export interface FlatListItem extends ListItemProps {
   title?: string
+  primaryText?: React.ReactNode
   highlight?: boolean
   subText?: JSX.Element | string
   icon?: JSX.Element | null
