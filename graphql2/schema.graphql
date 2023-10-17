@@ -1531,14 +1531,14 @@ type ServiceRule {
   name: String!
   serviceID: ID!
   integrationKeys: [IntegrationKey!]!
-  filterString: String!
+  filters: [ServiceRuleFilter!]!
   sendAlert: Boolean!
 }
 
 input CreateServiceRuleInput {
   name: String!
   serviceID: ID!
-  filter: String!
+  filters: [ServiceRuleFilterInput!]!
   sendAlert: Boolean!
   actions: String!
   integrationKeys: [ID!]!
@@ -1547,10 +1547,31 @@ input CreateServiceRuleInput {
 input UpdateServiceRuleInput {
   id: ID!
   name: String!
-  filter: String!
+  filters: [ServiceRuleFilterInput!]!
   sendAlert: Boolean!
   actions: String!
   integrationKeys: [ID!]!
+}
+
+type ServiceRuleFilter {
+  field: String!
+  operator: String!
+  value: String!
+  valueType: ServiceRuleFilterValueType!
+}
+
+enum ServiceRuleFilterValueType {
+  UNKNOWN
+  STRING
+  NUMBER
+  BOOL
+}
+
+input ServiceRuleFilterInput {
+  field: String!
+  operator: String!
+  value: String!
+  valueType: ServiceRuleFilterValueType!
 }
 
 type Signal {

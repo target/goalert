@@ -111,3 +111,9 @@ models:
     model: github.com/target/goalert/service/rule.Rule
   Signal:
     model: github.com/target/goalert/signal.Signal
+  ServiceRuleFilter:
+    model: github.com/target/goalert/service/rule.Filter
+  ServiceRuleFilterInput:
+    model: github.com/target/goalert/service/rule.Filter
+  ServiceRuleFilterValueType:
+    model: github.com/target/goalert/service/rule.FilterValueType

@@ -1210,14 +1210,14 @@ export interface ServiceRule {
   name: string
   serviceID: string
   integrationKeys: IntegrationKey[]
-  filterString: string
+  filters: ServiceRuleFilter[]
   sendAlert: boolean
 }
 
 export interface CreateServiceRuleInput {
   name: string
   serviceID: string
-  filter: string
+  filters: ServiceRuleFilterInput[]
   sendAlert: boolean
   actions: string
   integrationKeys: string[]
@@ -1226,10 +1226,30 @@ export interface CreateServiceRuleInput {
 export interface UpdateServiceRuleInput {
   id: string
   name: string
-  filter: string
+  filters: ServiceRuleFilterInput[]
   sendAlert: boolean
   actions: string
   integrationKeys: string[]
+}
+
+export interface ServiceRuleFilter {
+  field: string
+  operator: string
+  value: string
+  valueType: ServiceRuleFilterValueType
+}
+
+export type ServiceRuleFilterValueType =
+  | 'UNKNOWN'
+  | 'STRING'
+  | 'NUMBER'
+  | 'BOOL'
+
+export interface ServiceRuleFilterInput {
+  field: string
+  operator: string
+  value: string
+  valueType: ServiceRuleFilterValueType
 }
 
 export interface Signal {

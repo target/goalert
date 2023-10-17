@@ -572,12 +572,19 @@ type ComplexityRoot struct {
 	}
 
 	ServiceRule struct {
-		FilterString    func(childComplexity int) int
+		Filters         func(childComplexity int) int
 		ID              func(childComplexity int) int
 		IntegrationKeys func(childComplexity int) int
 		Name            func(childComplexity int) int
 		SendAlert       func(childComplexity int) int
 		ServiceID       func(childComplexity int) int
+	}
+
+	ServiceRuleFilter struct {
+		Field     func(childComplexity int) int
+		Operator  func(childComplexity int) int
+		Value     func(childComplexity int) int
+		ValueType func(childComplexity int) int
 	}
 
 	Signal struct {
@@ -929,6 +936,7 @@ type ServiceResolver interface {
 }
 type ServiceRuleResolver interface {
 	IntegrationKeys(ctx context.Context, obj *rule.Rule) ([]integrationkey.IntegrationKey, error)
+	Filters(ctx context.Context, obj *rule.Rule) ([]rule.Filter, error)
 }
 type SignalResolver interface {
 	ID(ctx context.Context, obj *signal.Signal) (string, error)
@@ -3733,12 +3741,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ServiceOnCallUser.UserName(childComplexity), true
 
-	case "ServiceRule.filterString":
-		if e.complexity.ServiceRule.FilterString == nil {
+	case "ServiceRule.filters":
+		if e.complexity.ServiceRule.Filters == nil {
 			break
 		}
 
-		return e.complexity.ServiceRule.FilterString(childComplexity), true
+		return e.complexity.ServiceRule.Filters(childComplexity), true
 
 	case "ServiceRule.id":
 		if e.complexity.ServiceRule.ID == nil {
@@ -3774,6 +3782,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ServiceRule.ServiceID(childComplexity), true
+
+	case "ServiceRuleFilter.field":
+		if e.complexity.ServiceRuleFilter.Field == nil {
+			break
+		}
+
+		return e.complexity.ServiceRuleFilter.Field(childComplexity), true
+
+	case "ServiceRuleFilter.operator":
+		if e.complexity.ServiceRuleFilter.Operator == nil {
+			break
+		}
+
+		return e.complexity.ServiceRuleFilter.Operator(childComplexity), true
+
+	case "ServiceRuleFilter.value":
+		if e.complexity.ServiceRuleFilter.Value == nil {
+			break
+		}
+
+		return e.complexity.ServiceRuleFilter.Value(childComplexity), true
+
+	case "ServiceRuleFilter.valueType":
+		if e.complexity.ServiceRuleFilter.ValueType == nil {
+			break
+		}
+
+		return e.complexity.ServiceRuleFilter.ValueType(childComplexity), true
 
 	case "Signal.id":
 		if e.complexity.Signal.ID == nil {
@@ -4459,6 +4495,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputScheduleSearchOptions,
 		ec.unmarshalInputScheduleTargetInput,
 		ec.unmarshalInputSendContactMethodVerificationInput,
+		ec.unmarshalInputServiceRuleFilterInput,
 		ec.unmarshalInputServiceSearchOptions,
 		ec.unmarshalInputSetAlertNoiseReasonInput,
 		ec.unmarshalInputSetFavoriteInput,
@@ -15208,8 +15245,8 @@ func (ec *executionContext) fieldContext_Mutation_createServiceRule(ctx context.
 				return ec.fieldContext_ServiceRule_serviceID(ctx, field)
 			case "integrationKeys":
 				return ec.fieldContext_ServiceRule_integrationKeys(ctx, field)
-			case "filterString":
-				return ec.fieldContext_ServiceRule_filterString(ctx, field)
+			case "filters":
+				return ec.fieldContext_ServiceRule_filters(ctx, field)
 			case "sendAlert":
 				return ec.fieldContext_ServiceRule_sendAlert(ctx, field)
 			}
@@ -15274,8 +15311,8 @@ func (ec *executionContext) fieldContext_Mutation_updateServiceRule(ctx context.
 				return ec.fieldContext_ServiceRule_serviceID(ctx, field)
 			case "integrationKeys":
 				return ec.fieldContext_ServiceRule_integrationKeys(ctx, field)
-			case "filterString":
-				return ec.fieldContext_ServiceRule_filterString(ctx, field)
+			case "filters":
+				return ec.fieldContext_ServiceRule_filters(ctx, field)
 			case "sendAlert":
 				return ec.fieldContext_ServiceRule_sendAlert(ctx, field)
 			}
@@ -19157,8 +19194,8 @@ func (ec *executionContext) fieldContext_Query_serviceRule(ctx context.Context, 
 				return ec.fieldContext_ServiceRule_serviceID(ctx, field)
 			case "integrationKeys":
 				return ec.fieldContext_ServiceRule_integrationKeys(ctx, field)
-			case "filterString":
-				return ec.fieldContext_ServiceRule_filterString(ctx, field)
+			case "filters":
+				return ec.fieldContext_ServiceRule_filters(ctx, field)
 			case "sendAlert":
 				return ec.fieldContext_ServiceRule_sendAlert(ctx, field)
 			}
@@ -22583,8 +22620,8 @@ func (ec *executionContext) fieldContext_Service_rules(ctx context.Context, fiel
 				return ec.fieldContext_ServiceRule_serviceID(ctx, field)
 			case "integrationKeys":
 				return ec.fieldContext_ServiceRule_integrationKeys(ctx, field)
-			case "filterString":
-				return ec.fieldContext_ServiceRule_filterString(ctx, field)
+			case "filters":
+				return ec.fieldContext_ServiceRule_filters(ctx, field)
 			case "sendAlert":
 				return ec.fieldContext_ServiceRule_sendAlert(ctx, field)
 			}
@@ -23088,8 +23125,8 @@ func (ec *executionContext) fieldContext_ServiceRule_integrationKeys(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _ServiceRule_filterString(ctx context.Context, field graphql.CollectedField, obj *rule.Rule) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ServiceRule_filterString(ctx, field)
+func (ec *executionContext) _ServiceRule_filters(ctx context.Context, field graphql.CollectedField, obj *rule.Rule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRule_filters(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -23102,7 +23139,7 @@ func (ec *executionContext) _ServiceRule_filterString(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.FilterString, nil
+		return ec.resolvers.ServiceRule().Filters(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23114,19 +23151,29 @@ func (ec *executionContext) _ServiceRule_filterString(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.([]rule.Filter)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNServiceRuleFilter2ᚕgithubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐFilterᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ServiceRule_filterString(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ServiceRule_filters(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceRule",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "field":
+				return ec.fieldContext_ServiceRuleFilter_field(ctx, field)
+			case "operator":
+				return ec.fieldContext_ServiceRuleFilter_operator(ctx, field)
+			case "value":
+				return ec.fieldContext_ServiceRuleFilter_value(ctx, field)
+			case "valueType":
+				return ec.fieldContext_ServiceRuleFilter_valueType(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceRuleFilter", field.Name)
 		},
 	}
 	return fc, nil
@@ -23171,6 +23218,182 @@ func (ec *executionContext) fieldContext_ServiceRule_sendAlert(ctx context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceRuleFilter_field(ctx context.Context, field graphql.CollectedField, obj *rule.Filter) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRuleFilter_field(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Field, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceRuleFilter_field(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceRuleFilter",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceRuleFilter_operator(ctx context.Context, field graphql.CollectedField, obj *rule.Filter) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRuleFilter_operator(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Operator, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceRuleFilter_operator(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceRuleFilter",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceRuleFilter_value(ctx context.Context, field graphql.CollectedField, obj *rule.Filter) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRuleFilter_value(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceRuleFilter_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceRuleFilter",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceRuleFilter_valueType(ctx context.Context, field graphql.CollectedField, obj *rule.Filter) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceRuleFilter_valueType(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ValueType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(rule.FilterValueType)
+	fc.Result = res
+	return ec.marshalNServiceRuleFilterValueType2githubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐFilterValueType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceRuleFilter_valueType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceRuleFilter",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ServiceRuleFilterValueType does not have child fields")
 		},
 	}
 	return fc, nil
@@ -23399,8 +23622,8 @@ func (ec *executionContext) fieldContext_Signal_serviceRule(ctx context.Context,
 				return ec.fieldContext_ServiceRule_serviceID(ctx, field)
 			case "integrationKeys":
 				return ec.fieldContext_ServiceRule_integrationKeys(ctx, field)
-			case "filterString":
-				return ec.fieldContext_ServiceRule_filterString(ctx, field)
+			case "filters":
+				return ec.fieldContext_ServiceRule_filters(ctx, field)
 			case "sendAlert":
 				return ec.fieldContext_ServiceRule_sendAlert(ctx, field)
 			}
@@ -30430,7 +30653,7 @@ func (ec *executionContext) unmarshalInputCreateServiceRuleInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "serviceID", "filter", "sendAlert", "actions", "integrationKeys"}
+	fieldsInOrder := [...]string{"name", "serviceID", "filters", "sendAlert", "actions", "integrationKeys"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -30455,15 +30678,15 @@ func (ec *executionContext) unmarshalInputCreateServiceRuleInput(ctx context.Con
 				return it, err
 			}
 			it.ServiceID = data
-		case "filter":
+		case "filters":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+			data, err := ec.unmarshalNServiceRuleFilterInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐFilterᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Filter = data
+			it.Filters = data
 		case "sendAlert":
 			var err error
 
@@ -31799,6 +32022,62 @@ func (ec *executionContext) unmarshalInputSendContactMethodVerificationInput(ctx
 				return it, err
 			}
 			it.ContactMethodID = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputServiceRuleFilterInput(ctx context.Context, obj interface{}) (rule.Filter, error) {
+	var it rule.Filter
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"field", "operator", "value", "valueType"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "field":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Field = data
+		case "operator":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("operator"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Operator = data
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
+		case "valueType":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueType"))
+			data, err := ec.unmarshalNServiceRuleFilterValueType2githubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐFilterValueType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ValueType = data
 		}
 	}
 
@@ -33158,7 +33437,7 @@ func (ec *executionContext) unmarshalInputUpdateServiceRuleInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "filter", "sendAlert", "actions", "integrationKeys"}
+	fieldsInOrder := [...]string{"id", "name", "filters", "sendAlert", "actions", "integrationKeys"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -33183,15 +33462,15 @@ func (ec *executionContext) unmarshalInputUpdateServiceRuleInput(ctx context.Con
 				return it, err
 			}
 			it.Name = data
-		case "filter":
+		case "filters":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+			data, err := ec.unmarshalNServiceRuleFilterInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐFilterᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Filter = data
+			it.Filters = data
 		case "sendAlert":
 			var err error
 
@@ -39448,15 +39727,100 @@ func (ec *executionContext) _ServiceRule(ctx context.Context, sel ast.SelectionS
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "filterString":
-			out.Values[i] = ec._ServiceRule_filterString(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+		case "filters":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ServiceRule_filters(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "sendAlert":
 			out.Values[i] = ec._ServiceRule_sendAlert(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var serviceRuleFilterImplementors = []string{"ServiceRuleFilter"}
+
+func (ec *executionContext) _ServiceRuleFilter(ctx context.Context, sel ast.SelectionSet, obj *rule.Filter) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, serviceRuleFilterImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ServiceRuleFilter")
+		case "field":
+			out.Values[i] = ec._ServiceRuleFilter_field(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "operator":
+			out.Values[i] = ec._ServiceRuleFilter_operator(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "value":
+			out.Values[i] = ec._ServiceRuleFilter_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "valueType":
+			out.Values[i] = ec._ServiceRuleFilter_valueType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -43742,6 +44106,86 @@ func (ec *executionContext) marshalNServiceRule2ᚖgithubᚗcomᚋtargetᚋgoale
 		return graphql.Null
 	}
 	return ec._ServiceRule(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNServiceRuleFilter2githubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐFilter(ctx context.Context, sel ast.SelectionSet, v rule.Filter) graphql.Marshaler {
+	return ec._ServiceRuleFilter(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNServiceRuleFilter2ᚕgithubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐFilterᚄ(ctx context.Context, sel ast.SelectionSet, v []rule.Filter) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNServiceRuleFilter2githubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐFilter(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNServiceRuleFilterInput2githubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐFilter(ctx context.Context, v interface{}) (rule.Filter, error) {
+	res, err := ec.unmarshalInputServiceRuleFilterInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNServiceRuleFilterInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐFilterᚄ(ctx context.Context, v interface{}) ([]rule.Filter, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]rule.Filter, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNServiceRuleFilterInput2githubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐFilter(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNServiceRuleFilterValueType2githubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐFilterValueType(ctx context.Context, v interface{}) (rule.FilterValueType, error) {
+	var res rule.FilterValueType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNServiceRuleFilterValueType2githubᚗcomᚋtargetᚋgoalertᚋserviceᚋruleᚐFilterValueType(ctx context.Context, sel ast.SelectionSet, v rule.FilterValueType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNSetAlertNoiseReasonInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetAlertNoiseReasonInput(ctx context.Context, v interface{}) (SetAlertNoiseReasonInput, error) {
