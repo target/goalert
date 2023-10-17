@@ -33,33 +33,29 @@ export default function AdminServiceMetrics(): JSX.Element {
   const getConfigIssueCounts = (
     services: Service[],
   ): {
-    noHBTotal: number
-    noIKTotal: number
+    noIntegrationTotal: number
     noEPTotal: number
     alertLimitTotal: number
   } => {
-    let noHBTotal = 0
-    let noIKTotal = 0
+    let noIntegrationTotal = 0
     let noEPTotal = 0
     let alertLimitTotal = 0
+
     services.map((svc: Service) => {
-      if (!svc.heartbeatMonitors.length) noHBTotal += 1
-      if (!svc.integrationKeys.length) noIKTotal += 1
+      if (!svc.heartbeatMonitors.length && !svc.integrationKeys.length)
+        noIntegrationTotal += 1
       if (!svc.escalationPolicy?.steps.length) noEPTotal += 1
-      else {
-        let emptyTargets = 0
-        svc.escalationPolicy.steps.map((step) => {
-          if (!step.targets.length) emptyTargets += 1
-          if (emptyTargets === svc.escalationPolicy?.steps.length)
-            noEPTotal += 1
-        })
+      else if (
+        svc.escalationPolicy.steps.every((step) => step.targets.length === 0)
+      ) {
+        noEPTotal += 1
       }
       if (svc.notices.length) alertLimitTotal += 1
     })
-    return { noHBTotal, noIKTotal, noEPTotal, alertLimitTotal }
+    return { noIntegrationTotal, noEPTotal, alertLimitTotal }
   }
 
-  const { noHBTotal, noIKTotal, noEPTotal, alertLimitTotal } =
+  const { noIntegrationTotal, noEPTotal, alertLimitTotal } =
     getConfigIssueCounts(serviceData.services || [])
 
   return (
@@ -75,10 +71,10 @@ export default function AdminServiceMetrics(): JSX.Element {
       <Grid item xs={3}>
         <Card>
           <CardHeader
-            title={noHBTotal + noIKTotal}
+            title={noIntegrationTotal}
             subheader='Services Missing Integrations'
             action={
-              !!(noHBTotal + noIKTotal) && (
+              !!noIntegrationTotal && (
                 <Tooltip title='Services with no integration keys or heartbeat monitors.'>
                   <WarningAmberOutlined color='warning' />
                 </Tooltip>

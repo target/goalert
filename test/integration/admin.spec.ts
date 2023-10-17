@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test'
 import { adminSessionFile } from './lib'
+import Chance from 'chance'
+import { createService } from './lib/service'
+const c = new Chance()
 test.describe.configure({ mode: 'parallel' })
 test.use({ storageState: adminSessionFile })
 
@@ -11,10 +14,15 @@ test('Admin', async ({ page }) => {
       }),
     ).toBeVisible()
   }
+
+  const name = 'pw-service ' + c.name()
+  const description = c.sentence()
+  await createService(page, name, description)
+
   await page.goto('./admin/service-metrics')
 
-  testMetricsOverview('3Total Services')
-  testMetricsOverview('6Services Missing Integrations')
-  testMetricsOverview('0Services Missing Notifications')
-  testMetricsOverview('0Services Reaching Alert Limit')
+  await testMetricsOverview('1Total Services')
+  await testMetricsOverview('1Services Missing Integrations')
+  await testMetricsOverview('0Services Missing Notifications')
+  await testMetricsOverview('0Services Reaching Alert Limit')
 })
