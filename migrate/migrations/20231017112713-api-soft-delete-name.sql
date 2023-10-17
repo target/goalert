@@ -10,5 +10,6 @@ WHERE
 -- +migrate Down
 DROP INDEX gql_api_keys_name_key;
 
-CREATE UNIQUE INDEX gql_api_keys_name_key ON public.gql_api_keys(name);
+ALTER TABLE ONLY public.gql_api_keys
+    ADD CONSTRAINT gql_api_keys_name_key UNIQUE (name);
 
