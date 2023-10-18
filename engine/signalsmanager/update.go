@@ -37,30 +37,32 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 var errDone = errors.New("done")
 
 type payload struct {
-	Destination string          `json:"channel_id"`
-	Message     json.RawMessage `json:"payload"`
+	Destination string          `json:"destination_id"`
+	Message     json.RawMessage `json:"received_payload"`
 }
 
 func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
 	q := gadb.New(tx)
 
+	// gets the next signal in db that is not locked
 	sig, err := q.SignalsManagerFindNext(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
 		return errDone
 	}
 	if err != nil {
-		return fmt.Errorf("query out-of-date alert status: %w", err)
+		return fmt.Errorf("find next signal error: %w", err)
 	}
 
 	pay := payload{}
 	err = json.Unmarshal(sig.OutgoingPayload, &pay)
 	if err != nil {
 		log.Log(log.WithField(ctx, "SignalID", sig.ID), fmt.Errorf("unmarshal signal payload: %w", err))
+		return err
 	}
 
 	err = q.SignalsManagerSendOutgoing(ctx, gadb.SignalsManagerSendOutgoingParams{
 		ServiceID:       sig.ServiceID,
-		OutgoingPayload: pay.Message,
+		OutgoingPayload: sig.OutgoingPayload,
 		ChannelID:       uuid.MustParse(pay.Destination),
 	})
 	if err != nil {

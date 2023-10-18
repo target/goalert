@@ -180,6 +180,14 @@ func buildOutgoingPayload(action rule.Action, incomingPayload map[string]interfa
 		outgoingPayload["dest_type"] = action.DestType
 	}
 
+	if destID, ok := action["destination_id"]; ok {
+		outgoingPayload["destination_id"] = destID
+	}
+
+	if destVal, ok := action["destination_val"]; ok {
+		outgoingPayload["destination_val"] = destVal
+	}
+
 	outgoingPayload["received_payload"] = incomingPayload
 
 	return outgoingPayload
