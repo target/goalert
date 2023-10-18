@@ -73,10 +73,11 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
 
   // Get API Key triggers/actions
   const [{ data, fetching, error }] = useQuery({ query })
-  const apiKey =
+  const apiKey: GQLAPIKey =
     data?.gqlAPIKeys?.find((d: GQLAPIKey) => {
       return d.id === apiKeyId
     }) || ({} as GQLAPIKey)
+
   const allowFieldsStr = (apiKey?.allowedFields || []).join(', ')
 
   if (error) {
@@ -88,95 +89,93 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
   }
 
   return (
-    <React.Fragment>
-      <ClickAwayListener onClickAway={onClose} mouseEvent='onMouseUp'>
-        <Drawer
-          anchor='right'
-          open={isOpen}
-          variant='persistent'
-          data-cy='debug-message-details'
-        >
-          <Toolbar />
-          {deleteDialog ? (
-            <AdminAPIKeyDeleteDialog
-              onClose={(yes: boolean): void => {
-                setDialogDialog(false)
+    <ClickAwayListener onClickAway={onClose} mouseEvent='onMouseUp'>
+      <Drawer
+        anchor='right'
+        open={isOpen}
+        variant='persistent'
+        data-cy='debug-message-details'
+      >
+        <Toolbar />
+        {deleteDialog ? (
+          <AdminAPIKeyDeleteDialog
+            onClose={(yes: boolean): void => {
+              setDialogDialog(false)
 
-                if (yes) {
-                  onClose()
-                }
-              }}
-              apiKeyId={apiKey.id}
-            />
-          ) : null}
-          {editDialog ? (
-            <AdminAPIKeyEditDialog
-              onClose={() => setEditDialog(false)}
-              apiKeyId={apiKey.id}
-            />
-          ) : null}
-          <Grid style={{ width: '30vw' }}>
-            <Typography variant='h6' style={{ margin: '16px' }}>
-              API Key Details
-            </Typography>
-            <Divider />
-            <List disablePadding>
-              <ListItem divider>
-                <ListItemText primary='Name' secondary={apiKey?.name} />
-              </ListItem>
-              <ListItem divider>
-                <ListItemText
-                  primary='Description'
-                  secondary={apiKey?.description}
-                />
-              </ListItem>
-              <ListItem divider>
-                <ListItemText
-                  primary='Allowed Fields'
-                  secondary={allowFieldsStr}
-                />
-              </ListItem>
-              <ListItem divider>
-                <ListItemText
-                  primary='Creation Time'
-                  secondary={<Time prefix='' time={apiKey?.createdAt} />}
-                />
-              </ListItem>
-              <ListItem divider>
-                <ListItemText
-                  primary='Created By'
-                  secondary={apiKey?.createdBy?.name}
-                />
-              </ListItem>
-              <ListItem divider>
-                <ListItemText
-                  primary='Expires At'
-                  secondary={<Time prefix='' time={apiKey?.expiresAt} />}
-                />
-              </ListItem>
-              <ListItem divider>
-                <ListItemText
-                  primary='Updated By'
-                  secondary={apiKey?.updatedBy?.name}
-                />
-              </ListItem>
-              <ListItem divider>
-                <ListItemText primary='Role' secondary={apiKey?.role} />
-              </ListItem>
-            </List>
-            <Grid className={classes.buttons}>
-              <ButtonGroup variant='contained'>
-                <Button data-cy='delete' onClick={() => setDialogDialog(true)}>
-                  Delete
-                </Button>
-                <Button data-cy='edit' onClick={() => setEditDialog(true)}>
-                  Edit
-                </Button>
-              </ButtonGroup>
-            </Grid>
+              if (yes) {
+                onClose()
+              }
+            }}
+            apiKeyId={apiKey.id}
+          />
+        ) : null}
+        {editDialog ? (
+          <AdminAPIKeyEditDialog
+            onClose={() => setEditDialog(false)}
+            apiKeyId={apiKey.id}
+          />
+        ) : null}
+        <Grid style={{ width: '30vw' }}>
+          <Typography variant='h6' style={{ margin: '16px' }}>
+            API Key Details
+          </Typography>
+          <Divider />
+          <List disablePadding>
+            <ListItem divider>
+              <ListItemText primary='Name' secondary={apiKey?.name} />
+            </ListItem>
+            <ListItem divider>
+              <ListItemText
+                primary='Description'
+                secondary={apiKey?.description}
+              />
+            </ListItem>
+            <ListItem divider>
+              <ListItemText
+                primary='Allowed Fields'
+                secondary={allowFieldsStr}
+              />
+            </ListItem>
+            <ListItem divider>
+              <ListItemText
+                primary='Creation Time'
+                secondary={<Time prefix='' time={apiKey?.createdAt} />}
+              />
+            </ListItem>
+            <ListItem divider>
+              <ListItemText
+                primary='Created By'
+                secondary={apiKey?.createdBy?.name}
+              />
+            </ListItem>
+            <ListItem divider>
+              <ListItemText
+                primary='Expires At'
+                secondary={<Time prefix='' time={apiKey?.expiresAt} />}
+              />
+            </ListItem>
+            <ListItem divider>
+              <ListItemText
+                primary='Updated By'
+                secondary={apiKey?.updatedBy?.name}
+              />
+            </ListItem>
+            <ListItem divider>
+              <ListItemText primary='Role' secondary={apiKey?.role} />
+            </ListItem>
+          </List>
+          <Grid className={classes.buttons}>
+            <ButtonGroup variant='contained'>
+              <Button data-cy='delete' onClick={() => setDialogDialog(true)}>
+                Delete
+              </Button>
+              <Button data-cy='edit' onClick={() => setEditDialog(true)}>
+                Edit
+              </Button>
+            </ButtonGroup>
           </Grid>
-        </Drawer>
-      </ClickAwayListener>
-    </React.Fragment>
+        </Grid>
+      </Drawer>
+    </ClickAwayListener>
   )
 }
