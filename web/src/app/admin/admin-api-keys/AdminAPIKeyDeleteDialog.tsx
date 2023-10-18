@@ -40,7 +40,7 @@ export default function AdminAPIKeyDeleteDialog(props: {
     return d.id === apiKeyId
   })?.name
 
-  const handleOnSubmit = (): void => {
+  function handleOnSubmit(): void {
     deleteAPIKey(
       {
         id: apiKeyId,

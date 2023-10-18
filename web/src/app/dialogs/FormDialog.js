@@ -161,6 +161,10 @@ function FormDialog(props) {
             if (!onNext) {
               setAttemptCount(attemptCount + 1)
             }
+
+            if (!props.form) {
+              onSubmit()
+            }
           }}
           attemptCount={attemptCount}
           buttonText={primaryActionLabel || (confirm ? 'Confirm' : submitText)}
