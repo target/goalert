@@ -24,26 +24,26 @@ const query = gql`
 `
 
 export default function AdminAPIKeyDeleteDialog(props: {
-  apiKeyId: string
+  apiKeyID: string
   onClose: (yes: boolean) => void
 }): JSX.Element {
   const [{ fetching, data, error }] = useQuery({
     query,
   })
-  const { apiKeyId, onClose } = props
+  const { apiKeyID, onClose } = props
   const [deleteAPIKeyStatus, deleteAPIKey] = useMutation(deleteGQLAPIKeyQuery)
 
   if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
   const apiKeyName = data?.gqlAPIKeys?.find((d: GQLAPIKey) => {
-    return d.id === apiKeyId
+    return d.id === apiKeyID
   })?.name
 
   function handleOnSubmit(): void {
     deleteAPIKey(
       {
-        id: apiKeyId,
+        id: apiKeyID,
       },
       { additionalTypenames: ['GQLAPIKey'] },
     ).then((result) => {

@@ -53,7 +53,7 @@ const query = gql`
 // property for this object
 interface Props {
   onClose: () => void
-  apiKeyId: string
+  apiKeyID?: string
 }
 
 const useStyles = makeStyles(() => ({
@@ -65,9 +65,9 @@ const useStyles = makeStyles(() => ({
 }))
 
 export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
-  const { onClose, apiKeyId } = props
+  const { onClose, apiKeyID } = props
   const classes = useStyles()
-  const isOpen = Boolean(apiKeyId)
+  const isOpen = Boolean(apiKeyID)
   const [deleteDialog, setDialogDialog] = useState(false)
   const [editDialog, setEditDialog] = useState(false)
 
@@ -75,7 +75,7 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
   const [{ data, fetching, error }] = useQuery({ query })
   const apiKey: GQLAPIKey =
     data?.gqlAPIKeys?.find((d: GQLAPIKey) => {
-      return d.id === apiKeyId
+      return d.id === apiKeyID
     }) || ({} as GQLAPIKey)
 
   const allowFieldsStr = (apiKey?.allowedFields || []).join(', ')
@@ -106,13 +106,13 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
                 onClose()
               }
             }}
-            apiKeyId={apiKey.id}
+            apiKeyID={apiKey.id}
           />
         ) : null}
         {editDialog ? (
           <AdminAPIKeyEditDialog
             onClose={() => setEditDialog(false)}
-            apiKeyId={apiKey.id}
+            apiKeyID={apiKey.id}
           />
         ) : null}
         <Grid style={{ width: '30vw' }}>

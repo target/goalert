@@ -134,14 +134,12 @@ export default function AdminAPIKeys(): JSX.Element {
 
   return (
     <React.Fragment>
-      {selectedAPIKey ? (
-        <AdminAPIKeysDrawer
-          onClose={() => {
-            setSelectedAPIKey(null)
-          }}
-          apiKeyId={selectedAPIKey.id}
-        />
-      ) : null}
+      <AdminAPIKeysDrawer
+        onClose={() => {
+          setSelectedAPIKey(null)
+        }}
+        apiKeyID={selectedAPIKey?.id}
+      />
       {createAPIKeyDialogClose ? (
         <AdminAPIKeyCreateDialog
           onClose={() => {
@@ -154,34 +152,35 @@ export default function AdminAPIKeys(): JSX.Element {
           onClose={(): void => {
             setDeleteDialog('')
           }}
-          apiKeyId={deleteDialog}
+          apiKeyID={deleteDialog}
         />
       ) : null}
       {editDialog ? (
         <AdminAPIKeyEditDialog
           onClose={() => setEditDialog('')}
-          apiKeyId={editDialog}
+          apiKeyID={editDialog}
         />
       ) : null}
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Button
-          data-cy='new'
-          variant='contained'
-          className={classes.buttons}
-          onClick={handleOpenCreateDialog}
-          startIcon={<Add />}
-        >
-          Create API Key
-        </Button>
-      </div>
-      <Card
-        sx={{ width: '100%', padding: '0px' }}
+      <div
         className={
           selectedAPIKey ? classes.containerSelected : classes.containerDefault
         }
       >
-        <FlatList emptyMessage='No Results' items={items} />
-      </Card>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            data-cy='new'
+            variant='contained'
+            className={classes.buttons}
+            onClick={handleOpenCreateDialog}
+            startIcon={<Add />}
+          >
+            Create API Key
+          </Button>
+        </div>
+        <Card sx={{ width: '100%', padding: '0px' }}>
+          <FlatList emptyMessage='No Results' items={items} />
+        </Card>
+      </div>
     </React.Fragment>
   )
 }

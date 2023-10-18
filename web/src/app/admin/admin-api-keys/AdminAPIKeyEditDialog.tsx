@@ -28,14 +28,14 @@ const query = gql`
 `
 export default function AdminAPIKeyEditDialog(props: {
   onClose: (param: boolean) => void
-  apiKeyId: string
+  apiKeyID: string
 }): JSX.Element {
-  const { apiKeyId, onClose } = props
+  const { apiKeyID, onClose } = props
   const [{ fetching, data, error }] = useQuery({
     query,
   })
   const key: GQLAPIKey | null =
-    data?.gqlAPIKeys?.find((d: GQLAPIKey) => d.id === apiKeyId) || null
+    data?.gqlAPIKeys?.find((d: GQLAPIKey) => d.id === apiKeyID) || null
   const [apiKeyActionStatus, apiKeyAction] = useMutation(updateGQLAPIKeyQuery)
   const [apiKeyInput, setAPIKeyInput] = useState<CreateGQLAPIKeyInput | null>(
     null,
@@ -51,7 +51,7 @@ export default function AdminAPIKeyEditDialog(props: {
         input: {
           name: apiKeyInput?.name,
           description: apiKeyInput?.description,
-          id: apiKeyId,
+          id: apiKeyID,
         },
       },
       { additionalTypenames: ['GQLAPIKey'] },
