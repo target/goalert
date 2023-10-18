@@ -115,13 +115,13 @@ export default function AdminServiceTable(
 
         return (
           <Stack direction='row'>
-            {!hasEPSteps && (
-              <Tooltip title='Service has empty escalation policy.'>
+            {!hasIntegrations && (
+              <Tooltip title='Service has no alert integrations configured.'>
                 <WarningAmberOutlined color='warning' />
               </Tooltip>
             )}
-            {!hasIntegrations && (
-              <Tooltip title='Service has no alert integrations configured.'>
+            {!hasEPSteps && (
+              <Tooltip title='Service has empty escalation policy.'>
                 <VolumeOffOutlined color='warning' />
               </Tooltip>
             )}
