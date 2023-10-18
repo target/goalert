@@ -23,7 +23,7 @@ const newGQLAPIKeyQuery = gql`
 function AdminAPIKeyToken(props: { token: string }): React.ReactNode {
   return (
     <Grid item xs={12}>
-      <Typography>
+      <Typography sx={{ mb: 3 }}>
         <CopyText title={props.token} value={props.token} placement='bottom' />
       </Typography>
       <FormHelperText>
@@ -72,9 +72,10 @@ export default function AdminAPIKeyCreateDialog(props: {
             style={{
               display: 'flex',
               alignItems: 'center',
+              marginTop: '8px',
             }}
           >
-            <SuccessIcon sx={{ marginRight: (theme) => theme.spacing(1) }} />
+            <SuccessIcon sx={{ mr: (theme) => theme.spacing(1) }} />
             <Typography>Success!</Typography>
           </div>
         ) : (
