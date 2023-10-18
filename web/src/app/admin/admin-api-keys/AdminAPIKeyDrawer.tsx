@@ -68,8 +68,8 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
   const { onClose, apiKeyId } = props
   const classes = useStyles()
   const isOpen = Boolean(apiKeyId)
-  const [deleteDialog, onDeleteDialog] = useState(false)
-  const [editDialog, onEditDialog] = useState(false)
+  const [deleteDialog, setDialogDialog] = useState(false)
+  const [editDialog, setEditDialog] = useState(false)
 
   // Get API Key triggers/actions
   const [{ data, fetching, error }] = useQuery({ query })
@@ -100,7 +100,7 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
           {deleteDialog ? (
             <AdminAPIKeyDeleteDialog
               onClose={(yes: boolean): void => {
-                onDeleteDialog(false)
+                setDialogDialog(false)
 
                 if (yes) {
                   onClose()
@@ -111,7 +111,7 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
           ) : null}
           {editDialog ? (
             <AdminAPIKeyEditDialog
-              onClose={() => onEditDialog(false)}
+              onClose={() => setEditDialog(false)}
               apiKeyId={apiKey.id}
             />
           ) : null}
@@ -166,11 +166,11 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
             </List>
             <Grid className={classes.buttons}>
               <ButtonGroup variant='contained'>
-                <Button data-cy='delete' onClick={() => onDeleteDialog(true)}>
-                  DELETE
+                <Button data-cy='delete' onClick={() => setDialogDialog(true)}>
+                  Delete
                 </Button>
-                <Button data-cy='edit' onClick={() => onEditDialog(true)}>
-                  EDIT
+                <Button data-cy='edit' onClick={() => setEditDialog(true)}>
+                  Edit
                 </Button>
               </ButtonGroup>
             </Grid>

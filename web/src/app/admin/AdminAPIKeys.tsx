@@ -11,6 +11,9 @@ import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 import { Theme } from '@mui/material/styles'
 import AdminAPIKeyCreateDialog from './admin-api-keys/AdminAPIKeyCreateDialog'
+import AdminAPIKeyDeleteDialog from './admin-api-keys/AdminAPIKeyDeleteDialog'
+import AdminAPIKeyEditDialog from './admin-api-keys/AdminAPIKeyEditDialog'
+import OtherActions from '../util/OtherActions'
 
 const query = gql`
   query gqlAPIKeysQuery {
@@ -50,6 +53,8 @@ export default function AdminAPIKeys(): JSX.Element {
   const classes = useStyles()
   const [selectedAPIKey, setSelectedAPIKey] = useState<GQLAPIKey | null>(null)
   const [createAPIKeyDialogClose, onCreateAPIKeyDialogClose] = useState(false)
+  const [editDialog, setEditDialog] = useState<string | undefined>()
+  const [deleteDialog, setDeleteDialog] = useState<string | undefined>()
 
   // handles the openning of the create dialog form which is used for creating new API Key
   const handleOpenCreateDialog = (): void => {
@@ -89,10 +94,37 @@ export default function AdminAPIKeys(): JSX.Element {
       ),
       secondaryAction: (
         <Grid container>
-          <Grid item>
-            <Typography gutterBottom variant='subtitle2' component='div'>
+          <Grid
+            item
+            xs={12}
+            sx={{ display: 'flex', justifyContent: 'flex-end' }}
+          >
+            <Typography
+              gutterBottom
+              variant='subtitle2'
+              component='div'
+              color='textSecondary'
+            >
               <Time prefix='Last Used: ' time={key.expiresAt} />
             </Typography>
+          </Grid>
+          <Grid
+            item
+            xs={12}
+            sx={{ display: 'flex', justifyContent: 'flex-end' }}
+          >
+            <OtherActions
+              actions={[
+                {
+                  label: 'Edit',
+                  onClick: () => setEditDialog(key.id),
+                },
+                {
+                  label: 'Delete',
+                  onClick: () => setDeleteDialog(key.id),
+                },
+              ]}
+            />
           </Grid>
         </Grid>
       ),
@@ -115,6 +147,20 @@ export default function AdminAPIKeys(): JSX.Element {
           onClose={() => {
             onCreateAPIKeyDialogClose(false)
           }}
+        />
+      ) : null}
+      {deleteDialog ? (
+        <AdminAPIKeyDeleteDialog
+          onClose={(): void => {
+            setDeleteDialog('')
+          }}
+          apiKeyId={deleteDialog}
+        />
+      ) : null}
+      {editDialog ? (
+        <AdminAPIKeyEditDialog
+          onClose={() => setEditDialog('')}
+          apiKeyId={editDialog}
         />
       ) : null}
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
