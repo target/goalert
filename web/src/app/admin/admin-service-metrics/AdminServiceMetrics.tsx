@@ -7,7 +7,11 @@ import { ServiceMetrics } from './useServiceMetrics'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
 import AdminServiceTable from './AdminServiceTable'
-import { ErrorOutline, WarningAmberOutlined } from '@mui/icons-material'
+import {
+  ErrorOutline,
+  WarningAmberOutlined,
+  VolumeOffOutlined,
+} from '@mui/icons-material'
 import { Service } from '../../../schema'
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -91,7 +95,7 @@ export default function AdminServiceMetrics(): JSX.Element {
             action={
               !!noEPTotal && (
                 <Tooltip title='Services with empty escalation policies.'>
-                  <WarningAmberOutlined color='warning' />
+                  <VolumeOffOutlined color='warning' />
                 </Tooltip>
               )
             }

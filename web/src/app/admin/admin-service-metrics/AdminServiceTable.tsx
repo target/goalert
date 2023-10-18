@@ -1,10 +1,11 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   DataGrid,
   GridValueGetterParams,
   GridRenderCellParams,
   GridValidRowModel,
   GridToolbar,
+  GridSortItem,
 } from '@mui/x-data-grid'
 import AppLink from '../../util/AppLink'
 import {
@@ -22,6 +23,7 @@ import {
   ConstructionOutlined,
   ErrorOutline,
   WarningAmberOutlined,
+  VolumeOffOutlined,
 } from '@mui/icons-material'
 
 interface AdminServiceTableProps {
@@ -33,6 +35,16 @@ export default function AdminServiceTable(
   props: AdminServiceTableProps,
 ): JSX.Element {
   const { services, loading } = props
+  const [sortModel, setSortModel] = useState<GridSortItem[]>([
+    {
+      field: 'status',
+      sort: 'desc',
+    },
+    {
+      field: 'name',
+      sort: 'asc',
+    },
+  ])
 
   const getServiceStatus = (
     service: Service,
@@ -110,7 +122,7 @@ export default function AdminServiceTable(
             )}
             {!hasIntegrations && (
               <Tooltip title='Service has no alert integrations configured.'>
-                <WarningAmberOutlined color='warning' />
+                <VolumeOffOutlined color='warning' />
               </Tooltip>
             )}
             {inMaintenance && (
@@ -203,6 +215,9 @@ export default function AdminServiceTable(
         rowSelection={false}
         slots={{ toolbar: GridToolbar }}
         pageSizeOptions={[10, 25, 50, 100]}
+        sortingOrder={['desc', 'asc']}
+        sortModel={sortModel}
+        onSortModelChange={(model) => setSortModel(model)}
       />
     </Grid>
   )
