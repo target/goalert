@@ -17,8 +17,11 @@ import {
   List,
   ListItem,
   ListItemText,
+  createFilterOptions,
+  FilterOptionsState,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
+import { Check } from '@mui/icons-material'
 
 const useStyles = makeStyles({
   listItemIcon: {
@@ -71,6 +74,9 @@ interface CommonSelectProps {
   onInputChange?: (value: string) => void
   options: SelectOption[]
   placeholder?: string
+  clientSideFilter?: boolean
+  disableCloseOnSelect?: boolean
+  optionsLimit?: number
 }
 
 interface SingleSelectProps {
@@ -105,6 +111,7 @@ export default function MaterialSelect(
     placeholder,
     required,
     value,
+    disableCloseOnSelect,
   } = props
 
   // handle AutoComplete expecting current value to be present within options array
@@ -158,18 +165,31 @@ export default function MaterialSelect(
     return val === value.value
   }
 
+  let filterOptions: (
+    options: SelectOption[],
+    state: FilterOptionsState<SelectOption>,
+  ) => SelectOption[] = (o) => o
+  if (props.clientSideFilter) {
+    filterOptions = createFilterOptions<SelectOption>()
+    if (props.optionsLimit) {
+      const base = filterOptions
+      filterOptions = (o, s) => base(o, s).slice(0, props.optionsLimit)
+    }
+  }
+
   return (
     <Autocomplete
       data-cy='material-select'
       data-cy-ready={!isLoading}
       classes={customCSS}
       multiple={multiple}
-      filterSelectedOptions={multiple}
+      filterSelectedOptions={multiple && !disableCloseOnSelect}
       value={value}
       inputValue={inputValue}
       disableClearable={required}
       disabled={disabled}
-      filterOptions={(o) => o}
+      disableCloseOnSelect={disableCloseOnSelect}
+      filterOptions={props.clientSideFilter ? filterOptions : (o) => o}
       isOptionEqualToValue={(opt: SelectOption, val: SelectOption) =>
         opt.value === val.value
       }
@@ -184,7 +204,7 @@ export default function MaterialSelect(
         event: SyntheticEvent<Element, Event>,
         selected: SelectOption | SelectOption[] | null,
       ) => {
-        if (selected) {
+        if (selected && !disableCloseOnSelect) {
           if (Array.isArray(selected)) {
             setInputValue('') // clear input so user can keep typing to select another item
           } else {
@@ -247,6 +267,11 @@ export default function MaterialSelect(
             {icon && (
               <ListItemIcon className={classes.listItemIcon}>
                 {icon}
+              </ListItemIcon>
+            )}
+            {disableCloseOnSelect && isSelected(value) && (
+              <ListItemIcon className={classes.listItemIcon}>
+                <Check color='info' />
               </ListItemIcon>
             )}
           </List>

@@ -19,6 +19,7 @@ import RequireConfig from '../util/RequireConfig'
 import logo from '../public/logos/black/goalert-alt-logo.png'
 import darkModeLogo from '../public/logos/white/goalert-alt-logo-white.png'
 import NavBarLink, { NavBarSubLink } from './NavBarLink'
+import { ExpFlag } from '../util/useExpFlag'
 
 const useStyles = makeStyles((theme: Theme) => ({
   ...globalStyles(theme),
@@ -82,6 +83,9 @@ export default function NavBar(): JSX.Element {
               <NavBarSubLink to='/admin/message-logs' title='Message Logs' />
               <NavBarSubLink to='/admin/alert-counts' title='Alert Counts' />
               <NavBarSubLink to='/admin/switchover' title='Switchover' />
+              <ExpFlag flag='gql-api-keys'>
+                <NavBarSubLink to='/admin/api-keys' title='API Keys' />
+              </ExpFlag>
             </NavBarLink>
           </RequireConfig>
 

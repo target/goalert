@@ -92,7 +92,24 @@ function FormDialog(props) {
       return null
     }
 
-    return <div className={classes.form}>{form}</div>
+    return (
+      <DialogContent className={classes.dialogContent}>
+        <Form
+          id='dialog-form'
+          className={classes.formContainer}
+          onSubmit={(e, valid) => {
+            e.preventDefault()
+            if (valid) {
+              onNext ? onNext() : onSubmit()
+            }
+          }}
+        >
+          <ErrorBoundary>
+            <div className={classes.form}>{form}</div>
+          </ErrorBoundary>
+        </Form>
+      </DialogContent>
+    )
   }
 
   function renderCaption() {
@@ -144,6 +161,10 @@ function FormDialog(props) {
             if (!onNext) {
               setAttemptCount(attemptCount + 1)
             }
+
+            if (!props.form) {
+              onSubmit()
+            }
           }}
           attemptCount={attemptCount}
           buttonText={primaryActionLabel || (confirm ? 'Confirm' : submitText)}
@@ -186,20 +207,7 @@ function FormDialog(props) {
         title={title}
         subTitle={subTitle}
       />
-      <DialogContent className={classes.dialogContent}>
-        <Form
-          id='dialog-form'
-          className={classes.formContainer}
-          onSubmit={(e, valid) => {
-            e.preventDefault()
-            if (valid) {
-              onNext ? onNext() : onSubmit()
-            }
-          }}
-        >
-          <ErrorBoundary>{renderForm()}</ErrorBoundary>
-        </Form>
-      </DialogContent>
+      {renderForm()}
       {renderCaption()}
       {renderErrors()}
       {renderActions()}

@@ -7,6 +7,7 @@ import AdminConfig from '../admin/AdminConfig'
 import AdminLimits from '../admin/AdminLimits'
 import AdminToolbox from '../admin/AdminToolbox'
 import AdminSwitchover from '../admin/switchover/AdminSwitchover'
+import AdminAPIKeys from '../admin/AdminAPIKeys'
 import AlertsList from '../alerts/AlertsList'
 import AlertDetailPage from '../alerts/pages/AlertDetailPage'
 import Documentation from '../documentation/Documentation'
@@ -118,6 +119,7 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/admin/alert-counts': AdminAlertCounts,
   '/admin/switchover': AdminSwitchover,
   '/admin/switchover/guide': AdminSwitchoverGuide,
+  '/admin/api-keys': AdminAPIKeys,
 
   '/wizard': WizardRouter,
   '/docs': Documentation,
