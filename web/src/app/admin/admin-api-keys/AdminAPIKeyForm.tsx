@@ -134,6 +134,10 @@ export default function AdminAPIKeyForm(
                   >
                     Select fields manually
                   </ClickableText>
+                  <div>
+                    Allowed fields:{' '}
+                    {exampleFields.length ? exampleFields.join(', ') : 'none'}
+                  </div>
                 </React.Fragment>
               }
             />
