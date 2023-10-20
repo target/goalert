@@ -160,12 +160,14 @@ export default function AdminAPIKeyForm(
               multiple
               required
               hint={
-                <ClickableText
-                  onClick={() => setShowQuery(true)}
-                  endIcon={<CompareArrows />}
-                >
-                  Enter example query instead
-                </ClickableText>
+                props.create && (
+                  <ClickableText
+                    onClick={() => setShowQuery(true)}
+                    endIcon={<CompareArrows />}
+                  >
+                    Enter example query instead
+                  </ClickableText>
+                )
               }
             />
           )}
