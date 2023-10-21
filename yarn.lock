@@ -1970,14 +1970,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@playwright/test@npm:1.38.0":
-  version: 1.38.0
-  resolution: "@playwright/test@npm:1.38.0"
+"@playwright/test@npm:1.39.0":
+  version: 1.39.0
+  resolution: "@playwright/test@npm:1.39.0"
   dependencies:
-    playwright: 1.38.0
+    playwright: 1.39.0
   bin:
     playwright: cli.js
-  checksum: 0768b6b98f0993d9d8017e4bcca3a5c3fe1bf0270acaa89b141479c4319c16350d60e6d2511cbd655283942059fa409ce23fce30435f0936f5e2577834f356ba
+  checksum: e93e58fc1af4239f239b890374f066c9a758e2492d25e2c1a532f3f00782ab8e7706956a07540fd14882c74e75f5de36273621adce9b79afb8e36e6c15f1d539
   languageName: node
   linkType: hard
 
@@ -10278,27 +10278,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.38.0":
-  version: 1.38.0
-  resolution: "playwright-core@npm:1.38.0"
+"playwright-core@npm:1.39.0":
+  version: 1.39.0
+  resolution: "playwright-core@npm:1.39.0"
   bin:
     playwright-core: cli.js
-  checksum: 9eb43fc6c3cb392d5f35b0fd0b7291b38a8cbdc3cbb944a8261f744f30d09196dfa3b5d84aa02ffc09af87d08d31b385b007b6af20d0b6cd50a29344f3b0db8d
+  checksum: 556e78dee4f9890facf2af8249972e0d6e01a5ae98737b0f6b0166c660a95ffee4cb79350335b1ef96430a0ef01d3669daae9099fa46c8d403d11c623988238b
   languageName: node
   linkType: hard
 
-"playwright@npm:1.38.0":
-  version: 1.38.0
-  resolution: "playwright@npm:1.38.0"
+"playwright@npm:1.39.0":
+  version: 1.39.0
+  resolution: "playwright@npm:1.39.0"
   dependencies:
     fsevents: 2.3.2
-    playwright-core: 1.38.0
+    playwright-core: 1.39.0
   dependenciesMeta:
     fsevents:
       optional: true
   bin:
     playwright: cli.js
-  checksum: c5356690a391d5dd41f814d4e2694b93ba9e79381ce63de752da1c6c59b1f9c69bc6be853d973d0542d73a44a6b15f7c0081a164a64cd27b6b31207710c0ab34
+  checksum: 96d8ca5aa25465c1c5d554d0d6071981d55e22477800ff8f5d47a53ca75193d60ece2df538a01b7165b3277dd5493c67603a5acda713029df7fbd95ce2417bc9
   languageName: node
   linkType: hard
 
@@ -11278,7 +11278,7 @@ __metadata:
     "@mui/styles": 5.14.10
     "@mui/system": 5.14.10
     "@mui/x-data-grid": 6.16.2
-    "@playwright/test": 1.38.0
+    "@playwright/test": 1.39.0
     "@types/chance": 1.1.4
     "@types/diff": 5.0.5
     "@types/glob": 8.1.0
