@@ -1078,8 +1078,8 @@ github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyua
 github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/mitchellh/reflectwalk v1.0.2 h1:G2LzWKi524PWgd3mLHV8Y5k7s6XUvT0Gef6zxSIeXaQ=
 github.com/mitchellh/reflectwalk v1.0.2/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx0jmZXqmk4esnw=
-github.com/mnako/letters v0.2.1 h1:ZGFDSLruG2cbFM0bb1sYnCbBdTj6qAX9UlPO0qkxdIk=
-github.com/mnako/letters v0.2.1/go.mod h1:r1Z7i+QHqscls2Go1y2Q05RmrsNh2uDQz84DiSx7Bc4=
+github.com/mnako/letters v0.2.2 h1:koVahnzazHIq3aQnjVZE5SBJ7ZG/mXK6uSM4Jh70Naw=
+github.com/mnako/letters v0.2.2/go.mod h1:8DKs/xAQ9A7TP8zrLiZPvlrX5synZnvRyTT5Ja+QUK4=
 github.com/nyaruka/phonenumbers v1.1.8 h1:mjFu85FeoH2Wy18aOMUvxqi1GgAqiQSJsa/cCC5yu2s=
 github.com/nyaruka/phonenumbers v1.1.8/go.mod h1:DC7jZd321FqUe+qWSNcHi10tyIyGNXGcNbfkPvdp1Vs=
 github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282 h1:TQMyrpijtkFyXpNI3rY5hsZQZw+paiH+BfAlsb81HBY=
