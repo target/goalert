@@ -127,17 +127,19 @@ export default function AdminAPIKeyForm(
               error={!!example?.error}
               helperText={
                 <React.Fragment>
-                  <div>{example?.error?.message}</div>
+                  <span style={{ display: 'block' }}>
+                    {example?.error?.message}
+                  </span>
                   <ClickableText
                     onClick={() => setShowQuery(false)}
                     endIcon={<CompareArrows />}
                   >
                     Select fields manually
                   </ClickableText>
-                  <div>
+                  <span style={{ display: 'block' }}>
                     Allowed fields:{' '}
                     {exampleFields.length ? exampleFields.join(', ') : 'none'}
-                  </div>
+                  </span>
                 </React.Fragment>
               }
             />
@@ -169,7 +171,7 @@ export default function AdminAPIKeyForm(
                     onClick={() => setShowQuery(true)}
                     endIcon={<CompareArrows />}
                   >
-                    Enter example query instead
+                    Click here to enter example query instead
                   </ClickableText>
                 )
               }
