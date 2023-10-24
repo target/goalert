@@ -294,7 +294,7 @@ func timeToIndex(origin time.Time, interval time.Duration, t time.Time) int {
 func makeTimeSeries(start, end, origin time.Time, duration time.Duration, buckets map[bucketID]int) []TimeSeriesBucket {
 	var tsb []TimeSeriesBucket
 	for t := start; t.Before(end); t = t.Add(duration) {
-		for bID, _ := range buckets {
+		for bID := range buckets {
 			var b TimeSeriesBucket
 			b.SegmentLabel = bID.Label
 			b.Start = t
