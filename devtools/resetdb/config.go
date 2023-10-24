@@ -4,11 +4,11 @@ package main
 const (
 	UserCount            = 1619  // select count(id) from users
 	CMMax                = 7     // select count(id) from user_contact_methods group by user_id order by count desc limit 1
-	NRMax                = 15    // select count(id) from user_notification_rules group by user_id order by count desc limit 1
-	NRCMMax              = 11    // select count(id) from user_notification_rules group by user_id,contact_method_id order by count desc limit 1
+	NRMax                = 4     // select count(id) from user_notification_rules group by user_id order by count desc limit 1
+	NRCMMax              = 3     // select count(id) from user_notification_rules group by user_id,contact_method_id order by count desc limit 1
 	EPCount              = 371   // select count(id) from escalation_policies
-	EPMaxStep            = 8     // select count(id) from escalation_policy_steps group by escalation_policy_id order by count desc limit 1
-	EPMaxAssigned        = 19    // select count(id) from escalation_policy_actions group by escalation_policy_step_id order by count desc limit 1
+	EPMaxStep            = 4     // select count(id) from escalation_policy_steps group by escalation_policy_id order by count desc limit 1
+	EPMaxAssigned        = 5     // select count(id) from escalation_policy_actions group by escalation_policy_step_id order by count desc limit 1
 	SvcCount             = 397   // select count(id) from services
 	RotationMaxPart      = 50    // select count(id) from rotation_participants group by rotation_id order by count desc limit 1
 	ScheduleCount        = 404   // select count(id) from schedules

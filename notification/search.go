@@ -119,13 +119,13 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		AND om.last_status != 'bundled'
 
 	{{if and .TimeSeries .SegmentByService}}
-	GROUP BY bucket, s.name
+	GROUP BY bucket, om.created_at, s.name
 
 	{{else if and .TimeSeries .SegmentByUser}}
-	GROUP BY bucket, u.name
+	GROUP BY bucket, om.created_at, u.name
 
 	{{else if and .TimeSeries .SegmentByMessageType}}
-	GROUP BY bucket, om.message_type
+	GROUP BY bucket, om.created_at, om.message_type
 
 	{{else if .TimeSeries}}
 	GROUP BY bucket
@@ -213,6 +213,11 @@ type TimeSeriesBucket struct {
 	SegmentLabel string
 }
 
+type bucketID struct {
+	Bucket int
+	Label  string
+}
+
 // TimeSeries returns a list of time series buckets for the given search options.
 func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeriesBucket, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
@@ -248,19 +253,18 @@ func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeri
 	}
 	defer rows.Close()
 
-	// counts is a map of { timeToIndex: [label: count] }
-	counts := make(map[int]map[string]int)
+	buckets := make(map[bucketID]int) // bucketID{}: count
 	for rows.Next() {
-		var index, count int
+		var bucket, count int
 		var segmentLabel sql.NullString
 
 		if opts.SegmentBy != "" {
-			err := rows.Scan(&index, &count, &segmentLabel)
+			err := rows.Scan(&bucket, &count, &segmentLabel)
 			if err != nil {
 				return nil, err
 			}
 		} else {
-			err := rows.Scan(&index, &count)
+			err := rows.Scan(&bucket, &count)
 			if err != nil {
 				return nil, err
 			}
@@ -270,11 +274,13 @@ func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeri
 			label = "Message Counts"
 		}
 
-		counts[index] = make(map[string]int)
-		counts[index][label] = count
+		buckets[bucketID{
+			Bucket: bucket,
+			Label:  label,
+		}] = count
 	}
-
-	return makeTimeSeries(data.CreatedAfter, data.CreatedBefore, data.TimeSeriesOrigin, data.TimeSeriesInterval, counts), nil
+	ts := makeTimeSeries(data.CreatedAfter, data.CreatedBefore, data.TimeSeriesOrigin, data.TimeSeriesInterval, buckets)
+	return ts, nil
 }
 
 func timeToIndex(origin time.Time, interval time.Duration, t time.Time) int {
@@ -285,26 +291,31 @@ func timeToIndex(origin time.Time, interval time.Duration, t time.Time) int {
 //
 // This is to ensure a time series with a bucket for every time interval is returned,
 // even if there are no counts for that interval for a particular label.
-func makeTimeSeries(start, end, origin time.Time, duration time.Duration, counts map[int]map[string]int) []TimeSeriesBucket {
-	var buckets []TimeSeriesBucket
+func makeTimeSeries(start, end, origin time.Time, duration time.Duration, buckets map[bucketID]int) []TimeSeriesBucket {
+	var tsb []TimeSeriesBucket
 	for t := start; t.Before(end); t = t.Add(duration) {
-		for _, value := range counts {
-			for label := range value {
-				var b TimeSeriesBucket
-				b.SegmentLabel = label
-				b.Start = t
-				b.End = t.Add(duration)
-				b.Count = counts[timeToIndex(origin, duration, t)][label]
-				buckets = append(buckets, b)
-			}
+		for bID, _ := range buckets {
+			var b TimeSeriesBucket
+			b.SegmentLabel = bID.Label
+			b.Start = t
+			b.End = t.Add(duration)
+
+			// gets the count from original buckets
+			// returning 0 if nothing present for current time range
+			b.Count = buckets[bucketID{
+				Bucket: timeToIndex(origin, duration, t),
+				Label:  bID.Label,
+			}]
+			tsb = append(tsb, b)
 		}
 	}
 
-	sort.SliceStable(buckets, func(i, j int) bool {
-		return buckets[i].SegmentLabel < buckets[j].SegmentLabel
+	// keep names in alphabetical order for graph labels
+	sort.SliceStable(tsb, func(i, j int) bool {
+		return tsb[i].SegmentLabel < tsb[j].SegmentLabel
 	})
 
-	return buckets
+	return tsb
 }
 
 func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, error) {
