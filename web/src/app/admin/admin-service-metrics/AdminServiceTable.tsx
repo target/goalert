@@ -23,26 +23,25 @@ import {
   ConstructionOutlined,
   ErrorOutline,
   WarningAmberOutlined,
-  VolumeOffOutlined,
+  NotificationsOffOutlined,
+  UpdateDisabledOutlined,
 } from '@mui/icons-material'
 
 interface AdminServiceTableProps {
   services: Service[]
+  staleAlertServices: { [serviceName in string]: number }
   loading: boolean
 }
 
 export default function AdminServiceTable(
   props: AdminServiceTableProps,
 ): JSX.Element {
-  const { services, loading } = props
+  const { services, loading, staleAlertServices } = props
+  // Community version of MUI DataGrid only supports sortModels with a single SortItem
   const [sortModel, setSortModel] = useState<GridSortItem[]>([
     {
       field: 'status',
       sort: 'desc',
-    },
-    {
-      field: 'name',
-      sort: 'asc',
     },
   ])
 
@@ -53,6 +52,7 @@ export default function AdminServiceTable(
     hasIntegrations: boolean
     hasNotices: boolean
     inMaintenance: boolean
+    hasStaleAlerts: boolean
   } => {
     const targets: TargetType[] = []
     if (service.escalationPolicy?.steps?.length) {
@@ -69,6 +69,7 @@ export default function AdminServiceTable(
         !!service.integrationKeys.length && !!service.heartbeatMonitors.length,
       hasNotices: !!service.notices.length,
       inMaintenance: !!service.maintenanceExpiresAt,
+      hasStaleAlerts: staleAlertServices[service.name] > 0,
     }
   }
   const columns = [
@@ -93,22 +94,43 @@ export default function AdminServiceTable(
       headerName: 'Status',
       width: 150,
       valueGetter: (params: GridValueGetterParams) => {
-        const { hasEPSteps, hasIntegrations, hasNotices, inMaintenance } =
-          getServiceStatus(params.row as Service)
+        const {
+          hasEPSteps,
+          hasIntegrations,
+          hasNotices,
+          inMaintenance,
+          hasStaleAlerts,
+        } = getServiceStatus(params.row as Service)
         const warnings = []
 
-        if (hasEPSteps && hasIntegrations && !hasNotices && !inMaintenance)
-          return ''
-        if (!hasEPSteps) warnings.push('Missing Alert Notifications')
-        if (!hasIntegrations) warnings.push('Missing Alert Integrations')
+        if (
+          hasEPSteps &&
+          hasIntegrations &&
+          !hasNotices &&
+          !inMaintenance &&
+          !hasStaleAlerts
+        )
+          return warnings.push('OK')
+        if (!hasIntegrations)
+          warnings.push('Service Missing Alert Integrations')
+        if (!hasEPSteps) warnings.push('Service Has Empty Escalation Policy')
+        if (inMaintenance) warnings.push('Service In Maintenance Mode')
         if (hasNotices) warnings.push('Service Reaching Alert Limit')
-        if (inMaintenance) warnings.push('Service in Maintenance Mode')
+        if (hasStaleAlerts)
+          warnings.push(
+            `Service Has ${staleAlertServices[params.row.name]} Stale Alerts`,
+          )
 
         return warnings.join(',')
       },
       renderCell: (params: GridRenderCellParams<GridValidRowModel>) => {
-        const { hasEPSteps, hasIntegrations, hasNotices, inMaintenance } =
-          getServiceStatus(params.row as Service)
+        const {
+          hasEPSteps,
+          hasIntegrations,
+          hasNotices,
+          inMaintenance,
+          hasStaleAlerts,
+        } = getServiceStatus(params.row as Service)
 
         if (hasEPSteps && hasIntegrations && !hasNotices && !inMaintenance)
           return <CheckCircleOutlineIcon color='success' />
@@ -122,7 +144,7 @@ export default function AdminServiceTable(
             )}
             {!hasEPSteps && (
               <Tooltip title='Service has empty escalation policy.'>
-                <VolumeOffOutlined color='warning' />
+                <NotificationsOffOutlined color='error' />
               </Tooltip>
             )}
             {inMaintenance && (
@@ -138,6 +160,15 @@ export default function AdminServiceTable(
                   </Tooltip>
                 )
               })}
+            {hasStaleAlerts && (
+              <Tooltip
+                title={`Service has ${
+                  staleAlertServices[params.row?.name]
+                } stale alerts.`}
+              >
+                <UpdateDisabledOutlined color='warning' />
+              </Tooltip>
+            )}
           </Stack>
         )
       },

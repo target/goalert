@@ -10,9 +10,11 @@ import AdminServiceTable from './AdminServiceTable'
 import {
   ErrorOutline,
   WarningAmberOutlined,
-  VolumeOffOutlined,
+  NotificationsOffOutlined,
+  UpdateDisabledOutlined,
 } from '@mui/icons-material'
-import { Service } from '../../../schema'
+import { AlertSearchOptions, Service } from '../../../schema'
+import { useAlerts } from '../../services/AlertMetrics/useAlerts'
 
 const useStyles = makeStyles((theme: Theme) => ({
   card: {
@@ -20,16 +22,27 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
+const STALE_ALERT_LIMIT = 2
+
 export default function AdminServiceMetrics(): JSX.Element {
   const now = useMemo(() => DateTime.now(), [])
   const styles = useStyles()
 
   const depKey = `${now}`
   const serviceData = useServices(depKey)
+
+  const alertOptions: AlertSearchOptions = {
+    createdBefore: now.minus({ month: STALE_ALERT_LIMIT }).toISO(),
+    filterByStatus: ['StatusAcknowledged'],
+  }
+
+  const alertsData = useAlerts(alertOptions, depKey)
+
   const [metrics] = useWorker(
     'useServiceMetrics',
     {
       services: serviceData.services,
+      alerts: alertsData.alerts,
     },
     {} as ServiceMetrics,
   )
@@ -64,7 +77,7 @@ export default function AdminServiceMetrics(): JSX.Element {
 
   return (
     <Grid container spacing={2}>
-      <Grid item xs={3}>
+      <Grid item xs={2.4}>
         <Card>
           <CardHeader
             title={serviceData.services.length}
@@ -72,11 +85,11 @@ export default function AdminServiceMetrics(): JSX.Element {
           />
         </Card>
       </Grid>
-      <Grid item xs={3}>
+      <Grid item xs={2.4}>
         <Card>
           <CardHeader
             title={noIntegrationTotal}
-            subheader='Services Missing Integrations'
+            subheader='Services With No Integrations'
             action={
               !!noIntegrationTotal && (
                 <Tooltip title='Services with no integration keys or heartbeat monitors.'>
@@ -87,22 +100,43 @@ export default function AdminServiceMetrics(): JSX.Element {
           />
         </Card>
       </Grid>
-      <Grid item xs={3}>
+      <Grid item xs={2.4}>
         <Card>
           <CardHeader
             title={noEPTotal}
-            subheader='Services Missing Notifications'
+            subheader='Services With Empty Escalation Policies'
             action={
               !!noEPTotal && (
                 <Tooltip title='Services with empty escalation policies.'>
-                  <VolumeOffOutlined color='warning' />
+                  <NotificationsOffOutlined color='error' />
                 </Tooltip>
               )
             }
           />
         </Card>
       </Grid>
-      <Grid item xs={3}>
+      <Grid item xs={2.4}>
+        <Card>
+          <CardHeader
+            title={
+              metrics.staleAlertTotals
+                ? Object.keys(metrics.staleAlertTotals).length
+                : 0
+            }
+            subheader='Services With Stale Alerts'
+            action={
+              !!metrics.staleAlertTotals && (
+                <Tooltip
+                  title={`Services with acknowledged alerts created more than ${STALE_ALERT_LIMIT} months ago.`}
+                >
+                  <UpdateDisabledOutlined color='warning' />
+                </Tooltip>
+              )
+            }
+          />
+        </Card>
+      </Grid>
+      <Grid item xs={2.4}>
         <Card>
           <CardHeader
             title={alertLimitTotal}
@@ -123,6 +157,7 @@ export default function AdminServiceMetrics(): JSX.Element {
           <CardContent>
             <AdminServiceTable
               services={metrics.filteredServices}
+              staleAlertServices={metrics.staleAlertTotals}
               loading={serviceData.loading}
             />
           </CardContent>

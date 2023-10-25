@@ -1,4 +1,4 @@
-import { IntegrationKeyType, Service, TargetType } from '../../../schema'
+import { Alert, IntegrationKeyType, Service, TargetType } from '../../../schema'
 
 export type TargetMetrics = {
   [type in IntegrationKeyType | TargetType]: number
@@ -6,6 +6,7 @@ export type TargetMetrics = {
 export type ServiceMetrics = {
   keyTgtTotals: TargetMetrics
   stepTgtTotals: TargetMetrics
+  staleAlertTotals: { [serviceName in string]: number }
   filteredServices: Service[]
 }
 export type ServiceMetricFilters = {
@@ -17,10 +18,11 @@ export type ServiceMetricFilters = {
 
 export type ServiceMetricOpts = {
   services: Service[]
+  alerts: Alert[]
   filters?: ServiceMetricFilters
 }
 export function useServiceMetrics(opts: ServiceMetricOpts): ServiceMetrics {
-  const { services, filters } = opts
+  const { services, alerts, filters } = opts
 
   const filterServices = (
     services: Service[],
@@ -51,11 +53,20 @@ export function useServiceMetrics(opts: ServiceMetricOpts): ServiceMetrics {
     })
   }
 
-  const calculateMetrics = (filteredServices: Service[]): ServiceMetrics => {
+  const calculateMetrics = (
+    filteredServices: Service[],
+    alerts: Alert[],
+  ): ServiceMetrics => {
     const metrics = {
       keyTgtTotals: {},
       stepTgtTotals: {},
+      staleAlertTotals: {},
     } as ServiceMetrics
+    alerts.forEach((alrt) => {
+      if (alrt?.service?.name)
+        metrics.staleAlertTotals[alrt.service.name] =
+          (metrics.staleAlertTotals[alrt.service.name] || 0) + 1
+    })
     filteredServices.forEach((svc) => {
       svc.escalationPolicy?.steps.forEach((step) => {
         step.targets.forEach((tgt) => {
@@ -72,6 +83,6 @@ export function useServiceMetrics(opts: ServiceMetricOpts): ServiceMetrics {
   }
 
   const filteredServices = filterServices(services, filters)
-  const metrics = calculateMetrics(filteredServices)
+  const metrics = calculateMetrics(filteredServices, alerts)
   return { ...metrics, filteredServices }
 }
