@@ -16,6 +16,7 @@ import { useScheduleTZ } from './useScheduleTZ'
 import { useIsWidthDown } from '../util/useWidth'
 import { OverrideDialogContext } from './ScheduleDetails'
 import TempSchedDialog from './temp-sched/TempSchedDialog'
+import { defaultTempSchedValue } from './temp-sched/sharedUtils'
 import ScheduleOverrideDialog from './ScheduleOverrideDialog'
 import CreateFAB from '../lists/CreateFAB'
 
@@ -58,9 +59,12 @@ export default function ScheduleOverrideList({ scheduleID }) {
 
   const [overrideDialog, setOverrideDialog] = useState(null)
   const [configTempSchedule, setConfigTempSchedule] = useState(null)
-  const onNewTempSched = useCallback(() => setConfigTempSchedule({}), [])
 
   const { zone, isLocalZone } = useScheduleTZ(scheduleID)
+  const onNewTempSched = useCallback(
+    () => setConfigTempSchedule(defaultTempSchedValue(zone)),
+    [],
+  )
 
   const subText = (n) => {
     const tzTimeStr = formatOverrideTime(n.start, n.end, zone)
