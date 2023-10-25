@@ -167,7 +167,6 @@ export default function TempSchedShiftsList({
                 <span>{subText}</span>
               </Tooltip>
             ),
-            userID: s.userID,
             icon: <UserAvatar userID={s.userID} />,
             disabled: isHistoricShift,
             secondaryAction: index === 0 && (
