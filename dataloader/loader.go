@@ -37,6 +37,16 @@ func NewStoreLoaderWithDB[V any](
 	})
 }
 
+func NewStoreLoaderIntWithDB[V any](
+	ctx context.Context,
+	db gadb.DBTX,
+	fetchMany func(context.Context, gadb.DBTX, []int) ([]V, error),
+) *Loader[int, V] {
+	return NewStoreLoaderInt(ctx, func(ctx context.Context, ids []int) ([]V, error) {
+		return fetchMany(ctx, db, ids)
+	})
+}
+
 type loaderConfig[K comparable, V any] struct {
 	FetchFunc func(context.Context, []K) ([]V, error) // FetchFunc should return resources for the provided IDs (order doesn't matter).
 	IDFunc    func(V) K                               // Should return the unique ID for a given resource.
