@@ -30,8 +30,7 @@ type Store struct {
 
 	findOneUp *sql.Stmt
 
-	findMany              *sql.Stmt
-	findManyByAssignments *sql.Stmt
+	findMany *sql.Stmt
 
 	usr *user.Store
 }
@@ -76,11 +75,6 @@ func NewStore(ctx context.Context, db *sql.DB, usr *user.Store) (*Store, error) 
 			LEFT JOIN user_favorites fav ON
 				fav.tgt_schedule_id = s.id AND fav.user_id = $2
 			WHERE s.id = any($1)
-		`),
-		findManyByAssignments: p.P(`
-			SELECT sr.schedule_id
-			FROM schedule_rules sr
-			WHERE sr.tgt_user_id = $1 OR sr.tgt_rotation_id = ANY($2)
 		`),
 
 		delete: p.P(`DELETE FROM schedules WHERE id = any($1)`),
@@ -140,9 +134,7 @@ func (store *Store) FindManyByUserID(ctx context.Context, db gadb.DBTX, userID u
 		return nil, err
 	}
 
-	rows, err := gadb.New(db).FindManyByAssignments(ctx, gadb.FindManyByAssignmentsParams{
-		TgtUserID: userID,
-	})
+	rows, err := gadb.New(db).ScheduleFindManyByUser(ctx, userID)
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil

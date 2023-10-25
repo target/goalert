@@ -760,83 +760,6 @@ func (q *Queries) DeleteManyCalSub(ctx context.Context, arg DeleteManyCalSubPara
 	return err
 }
 
-const findManyByAssignments = `-- name: FindManyByAssignments :many
-SELECT description, id, last_processed, name, time_zone FROM schedules
-WHERE id = any(SELECT schedule_id FROM schedule_rules WHERE tgt_user_id = $1 OR tgt_rotation_id = any($2::UUID[]))
-`
-
-type FindManyByAssignmentsParams struct {
-	TgtUserID      uuid.NullUUID
-	Tgtrotationids []uuid.UUID
-}
-
-func (q *Queries) FindManyByAssignments(ctx context.Context, arg FindManyByAssignmentsParams) ([]Schedule, error) {
-	rows, err := q.db.QueryContext(ctx, findManyByAssignments, arg.TgtUserID, pq.Array(arg.Tgtrotationids))
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Schedule
-	for rows.Next() {
-		var i Schedule
-		if err := rows.Scan(
-			&i.Description,
-			&i.ID,
-			&i.LastProcessed,
-			&i.Name,
-			&i.TimeZone,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const findManyByUserID = `-- name: FindManyByUserID :many
-SELECT description, id, last_processed, name, participant_count, shift_length, start_time, time_zone, type FROM rotations
-WHERE id = any(SELECT rotation_id FROM rotation_participants WHERE user_id = $1)
-`
-
-func (q *Queries) FindManyByUserID(ctx context.Context, userID uuid.UUID) ([]Rotation, error) {
-	rows, err := q.db.QueryContext(ctx, findManyByUserID, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Rotation
-	for rows.Next() {
-		var i Rotation
-		if err := rows.Scan(
-			&i.Description,
-			&i.ID,
-			&i.LastProcessed,
-			&i.Name,
-			&i.ParticipantCount,
-			&i.ShiftLength,
-			&i.StartTime,
-			&i.TimeZone,
-			&i.Type,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const findManyCalSubByUser = `-- name: FindManyCalSubByUser :many
 SELECT
     id,
@@ -1310,6 +1233,57 @@ func (q *Queries) RequestAlertEscalationByTime(ctx context.Context, arg RequestA
 	var column_1 bool
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const scheduleFindManyByUser = `-- name: ScheduleFindManyByUser :many
+SELECT
+    description, id, last_processed, name, time_zone
+FROM
+    schedules
+WHERE
+    id = ANY (
+        SELECT
+            schedule_id
+        FROM
+            schedule_rules
+        WHERE
+            tgt_user_id = $1
+            OR tgt_rotation_id = ANY (
+                SELECT
+                    rotation_id
+                FROM
+                    rotation_participants
+                WHERE
+                    user_id = $1))
+`
+
+func (q *Queries) ScheduleFindManyByUser(ctx context.Context, tgtUserID uuid.NullUUID) ([]Schedule, error) {
+	rows, err := q.db.QueryContext(ctx, scheduleFindManyByUser, tgtUserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Schedule
+	for rows.Next() {
+		var i Schedule
+		if err := rows.Scan(
+			&i.Description,
+			&i.ID,
+			&i.LastProcessed,
+			&i.Name,
+			&i.TimeZone,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const setAlertFeedback = `-- name: SetAlertFeedback :exec

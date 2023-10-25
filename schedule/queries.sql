@@ -1,3 +1,4 @@
+-- name: ScheduleFindManyByUser :many
 SELECT
     *
 FROM
