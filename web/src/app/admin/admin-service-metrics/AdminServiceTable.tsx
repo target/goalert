@@ -36,7 +36,7 @@ interface AdminServiceTableProps {
 export default function AdminServiceTable(
   props: AdminServiceTableProps,
 ): JSX.Element {
-  const { services, loading, staleAlertServices } = props
+  const { services = [], loading, staleAlertServices } = props
   // Community version of MUI DataGrid only supports sortModels with a single SortItem
   const [sortModel, setSortModel] = useState<GridSortItem[]>([
     {
@@ -240,7 +240,7 @@ export default function AdminServiceTable(
   return (
     <Grid container sx={{ height: '800px' }}>
       <DataGrid
-        rows={services || []}
+        rows={services}
         loading={loading}
         columns={columns}
         rowSelection={false}

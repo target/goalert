@@ -4,8 +4,6 @@ import { DateTime } from 'luxon'
 import { useServices } from './useServices'
 import { useWorker } from '../../worker'
 import { ServiceMetrics } from './useServiceMetrics'
-import makeStyles from '@mui/styles/makeStyles'
-import { Theme } from '@mui/material/styles'
 import AdminServiceTable from './AdminServiceTable'
 import {
   ErrorOutline,
@@ -16,17 +14,10 @@ import {
 import { AlertSearchOptions, Service } from '../../../schema'
 import { useAlerts } from '../../services/AlertMetrics/useAlerts'
 
-const useStyles = makeStyles((theme: Theme) => ({
-  card: {
-    marginTop: theme.spacing(1),
-  },
-}))
-
 const STALE_ALERT_LIMIT = 2
 
 export default function AdminServiceMetrics(): JSX.Element {
   const now = useMemo(() => DateTime.now(), [])
-  const styles = useStyles()
 
   const depKey = `${now}`
   const serviceData = useServices(depKey)
@@ -78,7 +69,7 @@ export default function AdminServiceMetrics(): JSX.Element {
   return (
     <Grid container spacing={2}>
       <Grid item xs={2.4}>
-        <Card>
+        <Card sx={{ height: '100%' }}>
           <CardHeader
             title={serviceData.services.length}
             subheader='Total Services'
@@ -86,7 +77,7 @@ export default function AdminServiceMetrics(): JSX.Element {
         </Card>
       </Grid>
       <Grid item xs={2.4}>
-        <Card>
+        <Card sx={{ height: '100%' }}>
           <CardHeader
             title={totalNoIntegration}
             subheader='Services With No Integrations'
@@ -101,7 +92,7 @@ export default function AdminServiceMetrics(): JSX.Element {
         </Card>
       </Grid>
       <Grid item xs={2.4}>
-        <Card>
+        <Card sx={{ height: '100%' }}>
           <CardHeader
             title={totalNoEP}
             subheader='Services With Empty Escalation Policies'
@@ -116,7 +107,7 @@ export default function AdminServiceMetrics(): JSX.Element {
         </Card>
       </Grid>
       <Grid item xs={2.4}>
-        <Card>
+        <Card sx={{ height: '100%' }}>
           <CardHeader
             title={
               metrics.totalStaleAlerts
@@ -137,7 +128,7 @@ export default function AdminServiceMetrics(): JSX.Element {
         </Card>
       </Grid>
       <Grid item xs={2.4}>
-        <Card>
+        <Card sx={{ height: '100%' }}>
           <CardHeader
             title={totalAlertLimit}
             subheader='Services Reaching Alert Limit'
