@@ -6,7 +6,7 @@ export type TargetMetrics = {
 export type ServiceMetrics = {
   keyTgtTotals: TargetMetrics
   stepTgtTotals: TargetMetrics
-  staleAlertTotals: { [serviceName in string]: number }
+  totalStaleAlerts: { [serviceName in string]: number }
   filteredServices: Service[]
 }
 export type ServiceMetricFilters = {
@@ -60,12 +60,12 @@ export function useServiceMetrics(opts: ServiceMetricOpts): ServiceMetrics {
     const metrics = {
       keyTgtTotals: {},
       stepTgtTotals: {},
-      staleAlertTotals: {},
+      totalStaleAlerts: {},
     } as ServiceMetrics
     alerts.forEach((alrt) => {
       if (alrt?.service?.name)
-        metrics.staleAlertTotals[alrt.service.name] =
-          (metrics.staleAlertTotals[alrt.service.name] || 0) + 1
+        metrics.totalStaleAlerts[alrt.service.name] =
+          (metrics.totalStaleAlerts[alrt.service.name] || 0) + 1
     })
     filteredServices.forEach((svc) => {
       svc.escalationPolicy?.steps.forEach((step) => {

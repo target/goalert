@@ -50,29 +50,29 @@ export default function AdminServiceMetrics(): JSX.Element {
   const getConfigIssueCounts = (
     services: Service[],
   ): {
-    noIntegrationTotal: number
-    noEPTotal: number
-    alertLimitTotal: number
+    totalNoIntegration: number
+    totalNoEP: number
+    totalAlertLimit: number
   } => {
-    let noIntegrationTotal = 0
-    let noEPTotal = 0
-    let alertLimitTotal = 0
+    let totalNoIntegration = 0
+    let totalNoEP = 0
+    let totalAlertLimit = 0
 
     services.map((svc: Service) => {
       if (!svc.heartbeatMonitors.length && !svc.integrationKeys.length)
-        noIntegrationTotal += 1
-      if (!svc.escalationPolicy?.steps.length) noEPTotal += 1
+        totalNoIntegration += 1
+      if (!svc.escalationPolicy?.steps.length) totalNoEP += 1
       else if (
         svc.escalationPolicy.steps.every((step) => step.targets.length === 0)
       ) {
-        noEPTotal += 1
+        totalNoEP += 1
       }
-      if (svc.notices.length) alertLimitTotal += 1
+      if (svc.notices.length) totalAlertLimit += 1
     })
-    return { noIntegrationTotal, noEPTotal, alertLimitTotal }
+    return { totalNoIntegration, totalNoEP, totalAlertLimit }
   }
 
-  const { noIntegrationTotal, noEPTotal, alertLimitTotal } =
+  const { totalNoIntegration, totalNoEP, totalAlertLimit } =
     getConfigIssueCounts(serviceData.services || [])
 
   return (
@@ -88,10 +88,10 @@ export default function AdminServiceMetrics(): JSX.Element {
       <Grid item xs={2.4}>
         <Card>
           <CardHeader
-            title={noIntegrationTotal}
+            title={totalNoIntegration}
             subheader='Services With No Integrations'
             action={
-              !!noIntegrationTotal && (
+              !!totalNoIntegration && (
                 <Tooltip title='Services with no integration keys or heartbeat monitors.'>
                   <WarningAmberOutlined color='warning' />
                 </Tooltip>
@@ -103,10 +103,10 @@ export default function AdminServiceMetrics(): JSX.Element {
       <Grid item xs={2.4}>
         <Card>
           <CardHeader
-            title={noEPTotal}
+            title={totalNoEP}
             subheader='Services With Empty Escalation Policies'
             action={
-              !!noEPTotal && (
+              !!totalNoEP && (
                 <Tooltip title='Services with empty escalation policies.'>
                   <NotificationsOffOutlined color='error' />
                 </Tooltip>
@@ -119,13 +119,13 @@ export default function AdminServiceMetrics(): JSX.Element {
         <Card>
           <CardHeader
             title={
-              metrics.staleAlertTotals
-                ? Object.keys(metrics.staleAlertTotals).length
+              metrics.totalStaleAlerts
+                ? Object.keys(metrics.totalStaleAlerts).length
                 : 0
             }
             subheader='Services With Stale Alerts'
             action={
-              !!metrics.staleAlertTotals && (
+              !!metrics.totalStaleAlerts && (
                 <Tooltip
                   title={`Services with acknowledged alerts created more than ${STALE_ALERT_LIMIT} months ago.`}
                 >
@@ -139,10 +139,10 @@ export default function AdminServiceMetrics(): JSX.Element {
       <Grid item xs={2.4}>
         <Card>
           <CardHeader
-            title={alertLimitTotal}
+            title={totalAlertLimit}
             subheader='Services Reaching Alert Limit'
             action={
-              !!alertLimitTotal && (
+              !!totalAlertLimit && (
                 <Tooltip title='Services at or nearing unacknowledged alert limit.'>
                   <ErrorOutline color='error' />
                 </Tooltip>
@@ -157,7 +157,7 @@ export default function AdminServiceMetrics(): JSX.Element {
           <CardContent>
             <AdminServiceTable
               services={metrics.filteredServices}
-              staleAlertServices={metrics.staleAlertTotals}
+              staleAlertServices={metrics.totalStaleAlerts}
               loading={serviceData.loading}
             />
           </CardContent>

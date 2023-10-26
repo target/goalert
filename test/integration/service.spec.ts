@@ -269,13 +269,7 @@ test('Service', async ({ page, isMobile }) => {
   const diffName = 'pw-service ' + c.name()
   const diffDescription = c.sentence()
 
-  await page.goto('./services')
-  await page.getByRole('button', { name: 'Create Service' }).click()
-
-  await page.fill('input[name=name]', diffName)
-  await page.fill('textarea[name=description]', diffDescription)
-
-  await page.click('[role=dialog] button[type=submit]')
+  await createService(page, diffName, diffDescription)
 
   // Set the label with the existing key and a new value
   const diffValue = c.word({ length: 8 })
