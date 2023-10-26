@@ -152,7 +152,7 @@ export default function AdminServiceMetrics(): JSX.Element {
         </Card>
       </Grid>
       <Grid item xs={12}>
-        <Card className={styles.card}>
+        <Card sx={{ marginTop: (theme) => theme.spacing(1) }}>
           <CardHeader title='Services' />
           <CardContent>
             <AdminServiceTable
