@@ -66,9 +66,13 @@ export default function AdminServiceMetrics(): JSX.Element {
   const { totalNoIntegration, totalNoEP, totalAlertLimit } =
     getConfigIssueCounts(serviceData.services || [])
 
+  const cardSubHeader = serviceData.loading
+    ? 'Loading services... This may take a minute'
+    : `Metrics pulled from ${serviceData.services.length} total services.`
+
   return (
     <Grid container spacing={2}>
-      <Grid item xs={2.4}>
+      <Grid item xs={4} sm={2.4}>
         <Card sx={{ height: '100%' }}>
           <CardHeader
             title={serviceData.services.length}
@@ -76,7 +80,7 @@ export default function AdminServiceMetrics(): JSX.Element {
           />
         </Card>
       </Grid>
-      <Grid item xs={2.4}>
+      <Grid item xs={4} sm={2.4}>
         <Card sx={{ height: '100%' }}>
           <CardHeader
             title={totalNoIntegration}
@@ -91,7 +95,7 @@ export default function AdminServiceMetrics(): JSX.Element {
           />
         </Card>
       </Grid>
-      <Grid item xs={2.4}>
+      <Grid item xs={4} sm={2.4}>
         <Card sx={{ height: '100%' }}>
           <CardHeader
             title={totalNoEP}
@@ -106,7 +110,7 @@ export default function AdminServiceMetrics(): JSX.Element {
           />
         </Card>
       </Grid>
-      <Grid item xs={2.4}>
+      <Grid item xs={4} sm={2.4}>
         <Card sx={{ height: '100%' }}>
           <CardHeader
             title={
@@ -127,7 +131,7 @@ export default function AdminServiceMetrics(): JSX.Element {
           />
         </Card>
       </Grid>
-      <Grid item xs={2.4}>
+      <Grid item xs={3} sm={2.4}>
         <Card sx={{ height: '100%' }}>
           <CardHeader
             title={totalAlertLimit}
@@ -144,7 +148,7 @@ export default function AdminServiceMetrics(): JSX.Element {
       </Grid>
       <Grid item xs={12}>
         <Card sx={{ marginTop: (theme) => theme.spacing(1) }}>
-          <CardHeader title='Services' />
+          <CardHeader title='Services' subheader={cardSubHeader} />
           <CardContent>
             <AdminServiceTable
               services={metrics.filteredServices}
