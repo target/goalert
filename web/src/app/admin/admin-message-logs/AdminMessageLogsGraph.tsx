@@ -143,7 +143,11 @@ export default function AdminMessageLogsGraph(): JSX.Element {
               (fetching && <Spinner text='Loading...' />) ||
               (error && (
                 <Typography>Error loading graph: {error.message}</Typography>
-              ))
+              )) || (
+                <Typography color='textSecondary'>
+                  Click on a point to view more information
+                </Typography>
+              )
             }
           />
         </AccordionSummary>
@@ -267,6 +271,7 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                         stroke={theme.palette.text.secondary}
                       />
                       <Tooltip
+                        trigger='click'
                         cursor={{ fill: theme.palette.background.default }}
                         content={(data) => {
                           const { active, payload } = data
@@ -276,7 +281,12 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                             <Paper
                               data-cy='message-log-tooltip'
                               variant='outlined'
-                              sx={{ p: 1 }}
+                              sx={{
+                                p: 1,
+                                maxHeight: '250px',
+                                overflow: 'scroll',
+                                pointerEvents: 'auto',
+                              }}
                             >
                               <Typography variant='body2' sx={{ pb: 1 }}>
                                 <Time time={payload[0].payload.start} /> -{' '}
@@ -300,7 +310,12 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                           )
                         }}
                       />
-                      <Legend />
+                      <Legend
+                        wrapperStyle={{
+                          maxHeight: '100px',
+                          overflow: 'scroll',
+                        }}
+                      />
                       {Object.keys(graphLines).map((label, index) => (
                         <Line
                           key={label}
