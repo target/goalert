@@ -4,25 +4,24 @@ import { DateTime } from 'luxon'
 import { useServices } from './useServices'
 import { useWorker } from '../../worker'
 import { ServiceMetrics } from './useServiceMetrics'
-import AdminServiceTargetGraph from './AdminServiceTargetGraph'
-import makeStyles from '@mui/styles/makeStyles'
-import { Theme } from '@mui/material/styles'
 import AdminServiceTable from './AdminServiceTable'
+import {
+  ErrorOutline,
+  WarningAmberOutlined,
+  NotificationsOffOutlined,
+  UpdateDisabledOutlined,
+} from '@mui/icons-material'
+import { AlertSearchOptions, Service } from '../../../schema'
+import { useAlerts } from '../../services/AlertMetrics/useAlerts'
 import AdminServiceFilter from './AdminServiceFilter'
-import { useURLParams } from '../../actions'
-import { ErrorOutline, WarningAmberOutlined } from '@mui/icons-material'
 import Spinner from '../../loading/components/Spinner'
-import { Service } from '../../../schema'
+import { useURLParams } from '../../actions'
+import AdminServiceTargetGraph from './AdminServiceTargetGraph'
 
-const useStyles = makeStyles((theme: Theme) => ({
-  card: {
-    marginTop: theme.spacing(1),
-  },
-}))
+const STALE_ALERT_LIMIT = 2
 
 export default function AdminServiceMetrics(): JSX.Element {
   const now = useMemo(() => DateTime.now(), [])
-  const styles = useStyles()
   const [params] = useURLParams({
     epStepTgts: [] as string[],
     intKeyTgts: [] as string[],
@@ -32,10 +31,19 @@ export default function AdminServiceMetrics(): JSX.Element {
 
   const depKey = `${now}`
   const serviceData = useServices(depKey)
+
+  const alertOptions: AlertSearchOptions = {
+    createdBefore: now.minus({ month: STALE_ALERT_LIMIT }).toISO(),
+    filterByStatus: ['StatusAcknowledged'],
+  }
+
+  const alertsData = useAlerts(alertOptions, depKey)
+
   const [metrics] = useWorker(
     'useServiceMetrics',
     {
       services: serviceData.services,
+      alerts: alertsData.alerts,
       filters: {
         labelKey: params.labelKey,
         labelValue: params.labelValue,
@@ -49,60 +57,62 @@ export default function AdminServiceMetrics(): JSX.Element {
   const getConfigIssueCounts = (
     services: Service[],
   ): {
-    noIntegrationTotal: number
-    noNotifTotal: number
-    noIntKeyTotal: number
-    alertLimitTotal: number
+    totalNoIntegration: number
+    totalNoEP: number
+    totalNoIntKey: number
+    totalAlertLimit: number
   } => {
     return services.reduce(
       (counts, svc) => {
         if (!svc.integrationKeys.length) {
-          if (!svc.heartbeatMonitors.length) counts.noIntegrationTotal++
-          counts.noIntKeyTotal++
+          if (!svc.heartbeatMonitors.length) counts.totalNoIntegration++
+          counts.totalNoIntKey++
         }
-        if (!svc.escalationPolicy?.steps.length) counts.noNotifTotal++
+        if (!svc.escalationPolicy?.steps.length) counts.totalNoEP++
         else if (
           svc.escalationPolicy.steps?.every((step) => !step.targets.length)
         )
-          counts.noNotifTotal++
-        if (svc.notices.length) counts.alertLimitTotal++
+          counts.totalNoEP++
+        if (svc.notices.length) counts.totalAlertLimit++
         return counts
       },
       {
-        noIntegrationTotal: 0,
-        noIntKeyTotal: 0,
-        noNotifTotal: 0,
-        alertLimitTotal: 0,
+        totalNoIntegration: 0,
+        totalNoEP: 0,
+        totalNoIntKey: 0,
+        totalAlertLimit: 0,
       },
     )
   }
 
-  const { noIntegrationTotal, noNotifTotal, alertLimitTotal } =
+  const { totalNoIntegration, totalNoEP, totalAlertLimit } =
     getConfigIssueCounts(serviceData.services || [])
 
-  const {
-    noIntKeyTotal: filteredNoIntKeyTotal,
-    noNotifTotal: filteredNoNotifTotal,
-  } = getConfigIssueCounts(metrics.filteredServices || [])
+  const { totalNoIntKey: filteredTotalNoIntKey, totalNoEP: filteredTotalNoEP } =
+    getConfigIssueCounts(metrics.filteredServices || [])
+
+  const cardSubHeader = serviceData.loading
+    ? 'Loading services... This may take a minute'
+    : `Metrics pulled from ${serviceData.services.length} total services.`
 
   function renderOverviewMetrics(): JSX.Element {
     return (
       <React.Fragment>
-        <Grid item xs>
-          <Card>
+        <Grid item xs={4} sm={2.4}>
+          <Card sx={{ height: '100%' }}>
             <CardHeader
               title={serviceData.services.length}
               subheader='Total Services'
             />
           </Card>
         </Grid>
-        <Grid item xs>
-          <Card>
+        <Grid item xs={4} sm={2.4}>
+          <Card sx={{ height: '100%' }}>
             <CardHeader
-              title={noIntegrationTotal}
-              subheader='Services Missing Integration'
+              title={totalNoIntegration}
+              subheader='Services With No Integrations'
               action={
-                !!noIntegrationTotal && (
+                !!totalNoIntegration && (
                   <Tooltip title='Services with no integration keys or heartbeat monitors.'>
                     <WarningAmberOutlined color='warning' />
                   </Tooltip>
@@ -111,28 +121,49 @@ export default function AdminServiceMetrics(): JSX.Element {
             />
           </Card>
         </Grid>
-        <Grid item xs>
-          <Card>
+        <Grid item xs={4} sm={2.4}>
+          <Card sx={{ height: '100%' }}>
             <CardHeader
-              title={noNotifTotal}
-              subheader='Services Missing Notifications'
+              title={totalNoEP}
+              subheader='Services With Empty Escalation Policies'
               action={
-                !!noNotifTotal && (
+                !!totalNoEP && (
                   <Tooltip title='Services with empty escalation policies.'>
-                    <WarningAmberOutlined color='warning' />
+                    <NotificationsOffOutlined color='error' />
                   </Tooltip>
                 )
               }
             />
           </Card>
         </Grid>
-        <Grid item xs>
-          <Card>
+        <Grid item xs={4} sm={2.4}>
+          <Card sx={{ height: '100%' }}>
             <CardHeader
-              title={alertLimitTotal}
+              title={
+                metrics.totalStaleAlerts
+                  ? Object.keys(metrics.totalStaleAlerts).length
+                  : 0
+              }
+              subheader='Services With Stale Alerts'
+              action={
+                !!metrics.totalStaleAlerts && (
+                  <Tooltip
+                    title={`Services with acknowledged alerts created more than ${STALE_ALERT_LIMIT} months ago.`}
+                  >
+                    <UpdateDisabledOutlined color='warning' />
+                  </Tooltip>
+                )
+              }
+            />
+          </Card>
+        </Grid>
+        <Grid item xs={3} sm={2.4}>
+          <Card sx={{ height: '100%' }}>
+            <CardHeader
+              title={totalAlertLimit}
               subheader='Services Reaching Alert Limit'
               action={
-                !!alertLimitTotal && (
+                !!totalAlertLimit && (
                   <Tooltip title='Services at or nearing unacknowledged alert limit.'>
                     <ErrorOutline color='error' />
                   </Tooltip>
@@ -149,13 +180,13 @@ export default function AdminServiceMetrics(): JSX.Element {
     return (
       <React.Fragment>
         <Grid item xs>
-          <Card className={styles.card}>
+          <Card sx={{ marginTop: (theme) => theme.spacing(1) }}>
             <CardHeader
               title='Integration Key Usage'
               subheader={
                 metrics.filteredServices?.length +
                 ' services, of which ' +
-                filteredNoIntKeyTotal +
+                filteredTotalNoIntKey +
                 ' service(s) have no integration keys configured.'
               }
             />
@@ -168,13 +199,13 @@ export default function AdminServiceMetrics(): JSX.Element {
           </Card>
         </Grid>
         <Grid item xs>
-          <Card className={styles.card}>
+          <Card sx={{ marginTop: (theme) => theme.spacing(1) }}>
             <CardHeader
               title='Escalation Policy Usage'
               subheader={
                 metrics.filteredServices?.length +
                 ' services, of which ' +
-                filteredNoNotifTotal +
+                filteredTotalNoEP +
                 ' service(s) have empty escalation policies.'
               }
             />
@@ -192,11 +223,12 @@ export default function AdminServiceMetrics(): JSX.Element {
 
   function renderServiceTable(): JSX.Element {
     return (
-      <Card className={styles.card}>
-        <CardHeader title='Services' />
+      <Card sx={{ marginTop: (theme) => theme.spacing(1) }}>
+        <CardHeader title='Services' subheader={cardSubHeader} />
         <CardContent>
           <AdminServiceTable
             services={metrics.filteredServices}
+            staleAlertServices={metrics.totalStaleAlerts}
             loading={serviceData.loading}
           />
         </CardContent>

@@ -21,11 +21,6 @@ export const styles = (theme: Theme): StyleRules => ({
     paddingBottom: 0,
     margin: 0,
   },
-  asLink: {
-    color: 'blue',
-    cursor: 'pointer',
-    textDecoration: 'underline',
-  },
   block: {
     display: 'inline-block',
   },

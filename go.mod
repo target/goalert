@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/99designs/gqlgen v0.17.39
 	github.com/brianvoe/gofakeit/v6 v6.23.2
-	github.com/coreos/go-oidc/v3 v3.6.0
+	github.com/coreos/go-oidc/v3 v3.7.0
 	github.com/creack/pty v1.1.18
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/emersion/go-smtp v0.18.1
@@ -29,7 +29,7 @@ require (
 	github.com/mailhog/data v1.0.1
 	github.com/mailhog/storage v1.0.1
 	github.com/matcornic/hermes/v2 v2.1.0
-	github.com/mnako/letters v0.2.1
+	github.com/mnako/letters v0.2.2
 	github.com/nyaruka/phonenumbers v1.1.8
 	github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282
 	github.com/pelletier/go-toml/v2 v2.1.0
@@ -48,7 +48,7 @@ require (
 	golang.org/x/sys v0.13.0
 	golang.org/x/term v0.13.0
 	golang.org/x/tools v0.14.0
-	google.golang.org/grpc v1.58.2
+	google.golang.org/grpc v1.59.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df

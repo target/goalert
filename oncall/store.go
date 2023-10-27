@@ -36,10 +36,11 @@ type ServiceOnCallUser struct {
 // the time the user stopped being on call, instead it indicates
 // they were still on-call at that time.
 type Shift struct {
-	UserID    string    `json:"user_id"`
-	Start     time.Time `json:"start_time"`
-	End       time.Time `json:"end_time"`
-	Truncated bool      `json:"truncated"`
+	UserID    string               `json:"user_id"`
+	Start     time.Time            `json:"start_time"`
+	End       time.Time            `json:"end_time"`
+	Truncated bool                 `json:"truncated"`
+	Target    assignment.RawTarget `json:"target"`
 }
 
 // Store allows retrieving and calculating on-call information.

@@ -1,10 +1,11 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   DataGrid,
   GridValueGetterParams,
   GridRenderCellParams,
   GridValidRowModel,
   GridToolbar,
+  GridSortItem,
 } from '@mui/x-data-grid'
 import AppLink from '../../util/AppLink'
 import {
@@ -22,17 +23,55 @@ import {
   ConstructionOutlined,
   ErrorOutline,
   WarningAmberOutlined,
+  NotificationsOffOutlined,
+  UpdateDisabledOutlined,
 } from '@mui/icons-material'
 
 interface AdminServiceTableProps {
   services: Service[]
+  staleAlertServices: { [serviceName in string]: number }
   loading: boolean
 }
 
 export default function AdminServiceTable(
   props: AdminServiceTableProps,
 ): JSX.Element {
-  const { services, loading } = props
+  const { services = [], loading, staleAlertServices } = props
+  // Community version of MUI DataGrid only supports sortModels with a single SortItem
+  const [sortModel, setSortModel] = useState<GridSortItem[]>([
+    {
+      field: 'status',
+      sort: 'desc',
+    },
+  ])
+
+  const getServiceStatus = (
+    service: Service,
+  ): {
+    hasEPSteps: boolean
+    hasIntegrations: boolean
+    hasNotices: boolean
+    inMaintenance: boolean
+    hasStaleAlerts: boolean
+  } => {
+    const targets: TargetType[] = []
+    if (service.escalationPolicy?.steps?.length) {
+      service.escalationPolicy?.steps?.map((step: EscalationPolicyStep) => {
+        step.targets.map((tgt: Target) => {
+          if (!targets.includes(tgt.type)) targets.push(tgt.type)
+        })
+      })
+    }
+
+    return {
+      hasEPSteps: !!targets.length,
+      hasIntegrations:
+        !!service.integrationKeys.length && !!service.heartbeatMonitors.length,
+      hasNotices: !!service.notices.length,
+      inMaintenance: !!service.maintenanceExpiresAt,
+      hasStaleAlerts: staleAlertServices[service.name] > 0,
+    }
+  }
   const columns = [
     {
       field: 'name',
@@ -54,38 +93,58 @@ export default function AdminServiceTable(
       field: 'status',
       headerName: 'Status',
       width: 150,
-      renderCell: (params: GridRenderCellParams<GridValidRowModel>) => {
-        const targets: TargetType[] = []
-        if (params.row.escalationPolicy.steps?.length) {
-          params.row.escalationPolicy.steps?.map(
-            (step: EscalationPolicyStep) => {
-              step.targets.map((tgt: Target) => {
-                if (!targets.includes(tgt.type)) targets.push(tgt.type)
-              })
-            },
+      valueGetter: (params: GridValueGetterParams) => {
+        const {
+          hasEPSteps,
+          hasIntegrations,
+          hasNotices,
+          inMaintenance,
+          hasStaleAlerts,
+        } = getServiceStatus(params.row as Service)
+        const warnings = []
+
+        if (
+          hasEPSteps &&
+          hasIntegrations &&
+          !hasNotices &&
+          !inMaintenance &&
+          !hasStaleAlerts
+        )
+          return warnings.push('OK')
+        if (!hasIntegrations)
+          warnings.push('Service Missing Alert Integrations')
+        if (!hasEPSteps) warnings.push('Service Has Empty Escalation Policy')
+        if (inMaintenance) warnings.push('Service In Maintenance Mode')
+        if (hasNotices) warnings.push('Service Reaching Alert Limit')
+        if (hasStaleAlerts)
+          warnings.push(
+            `Service Has ${staleAlertServices[params.row.name]} Stale Alerts`,
           )
-        }
 
-        const noEPSteps = !targets.length
-        const noIntegrations =
-          !params.row.integrationKeys.length &&
-          !params.row.heartbeatMonitors.length
-        const hasNotices = !!params.row.notices.length
-        const inMaintenance = params.row.maintenanceExpiresAt
+        return warnings.join(',')
+      },
+      renderCell: (params: GridRenderCellParams<GridValidRowModel>) => {
+        const {
+          hasEPSteps,
+          hasIntegrations,
+          hasNotices,
+          inMaintenance,
+          hasStaleAlerts,
+        } = getServiceStatus(params.row as Service)
 
-        if (!noEPSteps && !noIntegrations && !hasNotices && !inMaintenance)
+        if (hasEPSteps && hasIntegrations && !hasNotices && !inMaintenance)
           return <CheckCircleOutlineIcon color='success' />
 
         return (
           <Stack direction='row'>
-            {noEPSteps && (
-              <Tooltip title='Service has empty escalation policy.'>
+            {!hasIntegrations && (
+              <Tooltip title='Service has no alert integrations configured.'>
                 <WarningAmberOutlined color='warning' />
               </Tooltip>
             )}
-            {noIntegrations && (
-              <Tooltip title='Service has no alert integrations configured.'>
-                <WarningAmberOutlined color='warning' />
+            {!hasEPSteps && (
+              <Tooltip title='Service has empty escalation policy.'>
+                <NotificationsOffOutlined color='error' />
               </Tooltip>
             )}
             {inMaintenance && (
@@ -101,6 +160,15 @@ export default function AdminServiceTable(
                   </Tooltip>
                 )
               })}
+            {hasStaleAlerts && (
+              <Tooltip
+                title={`Service has ${
+                  staleAlertServices[params.row?.name]
+                } stale alerts.`}
+              >
+                <UpdateDisabledOutlined color='warning' />
+              </Tooltip>
+            )}
           </Stack>
         )
       },
@@ -118,7 +186,9 @@ export default function AdminServiceTable(
           params.row.escalationPolicy.name
         ) {
           return (
-            <AppLink to={`/services/${params.row.escalationPolicy.id}`}>
+            <AppLink
+              to={`/escalation-policies/${params.row.escalationPolicy.id}`}
+            >
               {params.row.escalationPolicy.name}
             </AppLink>
           )
@@ -170,12 +240,15 @@ export default function AdminServiceTable(
   return (
     <Grid container sx={{ height: '800px' }}>
       <DataGrid
-        rows={services || []}
+        rows={services}
         loading={loading}
         columns={columns}
         rowSelection={false}
         slots={{ toolbar: GridToolbar }}
         pageSizeOptions={[10, 25, 50, 100]}
+        sortingOrder={['desc', 'asc']}
+        sortModel={sortModel}
+        onSortModelChange={(model) => setSortModel(model)}
       />
     </Grid>
   )
