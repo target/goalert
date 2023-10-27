@@ -4,7 +4,9 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/util"
@@ -78,7 +80,8 @@ func NewStore(ctx context.Context, db *sql.DB, usr *user.Store) (*Store, error) 
 		delete: p.P(`DELETE FROM schedules WHERE id = any($1)`),
 	}, p.Err
 }
-func (store *Store) FindMany(ctx context.Context, ids []string) ([]Schedule, error) {
+
+func (store *Store) FindManyTx(ctx context.Context, tx *sql.Tx, ids []string) ([]Schedule, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
@@ -88,7 +91,12 @@ func (store *Store) FindMany(ctx context.Context, ids []string) ([]Schedule, err
 		return nil, err
 	}
 	userID := permission.UserID(ctx)
-	rows, err := store.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids), userID)
+
+	stmt := store.findMany
+	if tx != nil {
+		stmt = tx.Stmt(stmt)
+	}
+	rows, err := stmt.QueryContext(ctx, sqlutil.UUIDArray(ids), userID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -115,6 +123,38 @@ func (store *Store) FindMany(ctx context.Context, ids []string) ([]Schedule, err
 
 	return result, nil
 }
+
+func (store *Store) FindMany(ctx context.Context, ids []string) ([]Schedule, error) {
+	return store.FindManyTx(ctx, nil, ids)
+}
+
+func (store *Store) FindManyByUserID(ctx context.Context, db gadb.DBTX, userID uuid.NullUUID) ([]Schedule, error) {
+	err := permission.LimitCheckAny(ctx, permission.All)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := gadb.New(db).ScheduleFindManyByUser(ctx, userID)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	var result []Schedule
+	for _, r := range rows {
+		result = append(result, Schedule{
+			ID:          r.ID.String(),
+			Name:        r.Name,
+			Description: r.Description,
+		})
+	}
+
+	return result, nil
+}
+
 func (store *Store) Create(ctx context.Context, s *Schedule) (*Schedule, error) {
 	return store.CreateScheduleTx(ctx, nil, s)
 }

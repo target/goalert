@@ -1647,6 +1647,57 @@ func (q *Queries) RequestAlertEscalationByTime(ctx context.Context, arg RequestA
 	return column_1, err
 }
 
+const scheduleFindManyByUser = `-- name: ScheduleFindManyByUser :many
+SELECT
+    description, id, last_processed, name, time_zone
+FROM
+    schedules
+WHERE
+    id = ANY (
+        SELECT
+            schedule_id
+        FROM
+            schedule_rules
+        WHERE
+            tgt_user_id = $1
+            OR tgt_rotation_id = ANY (
+                SELECT
+                    rotation_id
+                FROM
+                    rotation_participants
+                WHERE
+                    user_id = $1))
+`
+
+func (q *Queries) ScheduleFindManyByUser(ctx context.Context, tgtUserID uuid.NullUUID) ([]Schedule, error) {
+	rows, err := q.db.QueryContext(ctx, scheduleFindManyByUser, tgtUserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Schedule
+	for rows.Next() {
+		var i Schedule
+		if err := rows.Scan(
+			&i.Description,
+			&i.ID,
+			&i.LastProcessed,
+			&i.Name,
+			&i.TimeZone,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const setAlertFeedback = `-- name: SetAlertFeedback :exec
 INSERT INTO alert_feedback(alert_id, noise_reason)
     VALUES ($1, $2)

@@ -880,7 +880,7 @@ type Schedule {
   timeZone: String!
 
   assignedTo: [Target!]!
-  shifts(start: ISOTimestamp!, end: ISOTimestamp!): [OnCallShift!]!
+  shifts(start: ISOTimestamp!, end: ISOTimestamp!, userIDs: [ID!]): [OnCallShift!]!
 
   targets: [ScheduleTarget!]!
   target(input: TargetInput!): ScheduleTarget
@@ -1404,6 +1404,8 @@ type User {
   onCallSteps: [EscalationPolicyStep!]!
 
   isFavorite: Boolean!
+
+  assignedSchedules: [Schedule!]!
 }
 
 type UserSession {
