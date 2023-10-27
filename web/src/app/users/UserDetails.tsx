@@ -137,11 +137,13 @@ export default function UserDetails(props: {
       subText: 'View your shifts across all schedules',
     })
 
-    links.push({
-      label: 'External Calendar Subscriptions',
-      url: 'schedule-calendar-subscriptions',
-      subText: 'Manage schedules you have subscribed to',
-    })
+    if (!mobile) {
+      links.push({
+        label: 'External Calendar Subscriptions',
+        url: 'schedule-calendar-subscriptions',
+        subText: 'Manage schedules you have subscribed to',
+      })
+    }
   }
 
   if (isAdmin || userID === currentUserID) {
