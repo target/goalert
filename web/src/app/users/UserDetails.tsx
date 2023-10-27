@@ -21,6 +21,7 @@ import UserDeleteDialog from './UserDeleteDialog'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import { EscalationPolicyStep } from '../../schema'
 import { useIsWidthDown } from '../util/useWidth'
+import UserShiftsCalendar from './UserShiftsCalendar'
 
 const userQuery = gql`
   query userInfo($id: ID!) {
@@ -132,18 +133,10 @@ export default function UserDetails(props: {
 
   if (userID === currentUserID) {
     links.push({
-      label: 'Schedule Calendar',
-      url: 'schedule-calendar',
-      subText: 'View your shifts across all schedules',
+      label: 'External Calendar Subscriptions',
+      url: 'schedule-calendar-subscriptions',
+      subText: 'Manage schedules you have subscribed to',
     })
-
-    if (!mobile) {
-      links.push({
-        label: 'External Calendar Subscriptions',
-        url: 'schedule-calendar-subscriptions',
-        subText: 'Manage schedules you have subscribed to',
-      })
-    }
   }
 
   if (isAdmin || userID === currentUserID) {
@@ -253,6 +246,11 @@ export default function UserDetails(props: {
               userID={userID}
               readOnly={props.readOnly}
             />
+            {!mobile && (
+              <Grid item xs={12}>
+                <UserShiftsCalendar userID={userID} />
+              </Grid>
+            )}
           </Grid>
         }
         secondaryActions={options}

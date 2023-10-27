@@ -199,7 +199,7 @@ function testUsers(screen: ScreenFormat): void {
             type: 'user',
           },
         }).then((sched) => {
-          cy.visit(`users/${user.id}/schedule-calendar`)
+          cy.visit(`users/${user.id}`)
 
           cy.get('[data-cy-spin-loading=false]').should('exist')
 

@@ -37,7 +37,6 @@ import UserCalendarSubscriptionList from '../users/UserCalendarSubscriptionList'
 import UserDetails from '../users/UserDetails'
 import UserList from '../users/UserList'
 import UserOnCallAssignmentList from '../users/UserOnCallAssignmentList'
-import UserShiftsCalendar from '../users/UserShiftsCalendar'
 import UserSessionList from '../users/UserSessionList'
 import { useSessionInfo } from '../util/RequireConfig'
 import WizardRouter from '../wizard/WizardRouter'
@@ -107,7 +106,6 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/users': UserList,
   '/users/:userID': UserDetails,
   '/users/:userID/on-call-assignments': UserOnCallAssignmentList,
-  '/users/:userID/schedule-calendar': UserShiftsCalendar,
   '/users/:userID/schedule-calendar-subscriptions':
     UserCalendarSubscriptionList,
   '/users/:userID/active-sessions': UserSessionList,
