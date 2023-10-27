@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { userSessionFile } from './lib'
 import Chance from 'chance'
+import { createService } from './lib/service'
 const c = new Chance()
 
 test.describe.configure({ mode: 'parallel' })
@@ -11,13 +12,7 @@ test('Service', async ({ page, isMobile }) => {
   let name = 'pw-service ' + c.name()
   const description = c.sentence()
 
-  await page.goto('./services')
-  await page.getByRole('button', { name: 'Create Service' }).click()
-
-  await page.fill('input[name=name]', name)
-  await page.fill('textarea[name=description]', description)
-
-  await page.click('[role=dialog] button[type=submit]')
+  await createService(page, name, description)
 
   // We should be on the details page, so let's try editing it after validating the data on the page.
 
@@ -274,13 +269,7 @@ test('Service', async ({ page, isMobile }) => {
   const diffName = 'pw-service ' + c.name()
   const diffDescription = c.sentence()
 
-  await page.goto('./services')
-  await page.getByRole('button', { name: 'Create Service' }).click()
-
-  await page.fill('input[name=name]', diffName)
-  await page.fill('textarea[name=description]', diffDescription)
-
-  await page.click('[role=dialog] button[type=submit]')
+  await createService(page, diffName, diffDescription)
 
   // Set the label with the existing key and a new value
   const diffValue = c.word({ length: 8 })
