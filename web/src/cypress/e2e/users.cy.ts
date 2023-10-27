@@ -190,6 +190,28 @@ function testUsers(screen: ScreenFormat): void {
         )
       })
     })
+
+    it('should view and interact with the profile calendar', () => {
+      cy.createUser().then((user: Profile) => {
+        cy.setScheduleTarget({
+          target: {
+            id: user.id,
+            type: 'user',
+          },
+        }).then((sched) => {
+          cy.visit(`users/${user.id}/schedule-calendar`)
+
+          cy.get('[data-cy-spin-loading=false]').should('exist')
+
+          cy.get('div').contains(sched.name).click()
+          cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
+          cy.get(
+            'div[data-cy="shift-tooltip"] a:contains("Visit Schedule")',
+          ).click()
+          cy.url().should('include', sched.id)
+        })
+      })
+    })
   })
 }
 
