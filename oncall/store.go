@@ -53,7 +53,6 @@ type Store struct {
 
 	schedOnCall *sql.Stmt
 	schedTZ     *sql.Stmt
-	schedName   *sql.Stmt
 	schedRot    *sql.Stmt
 	rotParts    *sql.Stmt
 
@@ -113,8 +112,7 @@ func NewStore(ctx context.Context, db *sql.DB, ruleStore *rule.Store, schedStore
 				tstzrange($2, $3) && tstzrange(start_time, end_time) and
 				(end_time isnull or (end_time - start_time) > '1 minute'::interval)
 		`),
-		schedTZ:   p.P(`select time_zone, now() from schedules where id = $1`),
-		schedName: p.P(`select name from schedules where id = $1`),
+		schedTZ: p.P(`select time_zone, now() from schedules where id = $1`),
 		schedRot: p.P(`
 			select distinct
 				rot.id,
@@ -198,22 +196,6 @@ func (s *Store) OnCallUsersBySchedule(ctx context.Context, scheduleID string) ([
 	return result, nil
 }
 
-func (s *Store) ShiftsByUser(ctx context.Context, scheduleID string, start, end time.Time, userID string) ([]Shift, error) {
-	shifts, err := s.HistoryBySchedule(ctx, scheduleID, start, end)
-	if err != nil {
-		return nil, err
-	}
-
-	var filteredShifts []Shift
-	for _, shift := range shifts {
-		if shift.UserID == userID {
-			filteredShifts = append(filteredShifts, shift)
-		}
-	}
-
-	return filteredShifts, nil
-}
-
 // HistoryBySchedule will return the list of shifts that overlap the start and end time for the given schedule.
 func (s *Store) HistoryBySchedule(ctx context.Context, scheduleID string, start, end time.Time) ([]Shift, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
@@ -243,12 +225,6 @@ func (s *Store) HistoryBySchedule(ctx context.Context, scheduleID string, start,
 		return nil, errors.Wrap(err, "begin transaction")
 	}
 	defer sqlutil.Rollback(ctx, "oncall: fetch schedule history", tx)
-
-	var schedName string
-	err = tx.StmtContext(ctx, s.schedName).QueryRowContext(ctx, scheduleID).Scan(&schedName)
-	if err != nil {
-		return nil, errors.Wrap(err, "lookup schedule name")
-	}
 
 	var schedTZ string
 	var now time.Time
@@ -364,10 +340,6 @@ func (s *Store) HistoryBySchedule(ctx context.Context, scheduleID string, start,
 		return nil, errors.Wrap(err, "load time zone info")
 	}
 	st := state{
-		schedule: schedule.Schedule{
-			ID:   scheduleID,
-			Name: schedName,
-		},
 		rules:      rules,
 		overrides:  overrides,
 		history:    userHistory,
