@@ -737,12 +737,6 @@ type UserSession struct {
 	LastAccessAt time.Time `json:"lastAccessAt"`
 }
 
-type UserShiftsOptions struct {
-	ID    string    `json:"id"`
-	Start time.Time `json:"start"`
-	End   time.Time `json:"end"`
-}
-
 type VerifyContactMethodInput struct {
 	ContactMethodID string `json:"contactMethodID"`
 	Code            int    `json:"code"`

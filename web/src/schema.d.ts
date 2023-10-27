@@ -29,7 +29,6 @@ export interface Query {
   integrationKeys: IntegrationKeyConnection
   userOverrides: UserOverrideConnection
   userOverride?: null | UserOverride
-  userShifts: OnCallShift[]
   config: ConfigValue[]
   configHints: ConfigHint[]
   integrationKeyTypes: IntegrationKeyTypeInfo[]
@@ -267,12 +266,6 @@ export interface UserOverride {
   addUser?: null | User
   removeUser?: null | User
   target: Target
-}
-
-export interface UserShiftsOptions {
-  id: string
-  start: ISOTimestamp
-  end: ISOTimestamp
 }
 
 export interface LabelSearchOptions {
@@ -729,7 +722,6 @@ export interface OnCallNotificationRule {
 export interface OnCallShift {
   userID: string
   user?: null | User
-  target: Target
   start: ISOTimestamp
   end: ISOTimestamp
   truncated: boolean
