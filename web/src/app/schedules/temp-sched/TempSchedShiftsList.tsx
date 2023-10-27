@@ -69,9 +69,12 @@ export default function TempSchedShiftsList({
 
   useEffect(() => {
     if (edit) {
-      const interval = setTimeout(() => {
-        setNow(DateTime.now().setZone(zone))
-      }, Duration.fromObject({ minutes: 1 }).as('millisecond'))
+      const interval = setTimeout(
+        () => {
+          setNow(DateTime.now().setZone(zone))
+        },
+        Duration.fromObject({ minutes: 1 }).as('millisecond'),
+      )
       return () => clearTimeout(interval)
     }
   }, [now])
@@ -164,7 +167,6 @@ export default function TempSchedShiftsList({
                 <span>{subText}</span>
               </Tooltip>
             ),
-            userID: s.userID,
             icon: <UserAvatar userID={s.userID} />,
             disabled: isHistoricShift,
             secondaryAction: index === 0 && (

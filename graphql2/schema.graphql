@@ -1,3 +1,13 @@
+# Directive definitions are as per gqlgen documentation:
+# https://gqlgen.com/master/config#inline-config-with-directives
+
+# goField is used to tweak individual field configurations, rather than using gqlgen.yml
+directive @goField(
+  forceResolver: Boolean # forces the field to be resolved by a resolver, even if it already has a value; useful for computed fields where the model already has a partial value
+  name: String # overrides the field name in the generated Go code
+  omittable: Boolean # creates the field with a wrapper type (graphql.Omittable[T]) with a boolean indicating if the field is null (similar to sql.NullString and friends)
+) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+
 type Query {
   phoneNumberInfo(number: String!): PhoneNumberInfo
 
@@ -132,6 +142,10 @@ type Query {
   linkAccountInfo(token: ID!): LinkAccountInfo
 
   swoStatus: SWOStatus!
+
+  gqlAPIKeys: [GQLAPIKey!]!
+
+  listGQLFields(query: String): [String!]!
 }
 
 type IntegrationKeyTypeInfo {
@@ -541,6 +555,7 @@ type Mutation {
 
   createAlert(input: CreateAlertInput!): Alert
   setAlertNoiseReason(input: SetAlertNoiseReasonInput!): Boolean!
+    @deprecated(reason: "Use updateAlerts instead with the noiseReason field.")
 
   createService(input: CreateServiceInput!): Service
   createEscalationPolicy(input: CreateEscalationPolicyInput!): EscalationPolicy
@@ -590,8 +605,51 @@ type Mutation {
   setConfig(input: [ConfigValueInput!]): Boolean!
   setSystemLimits(input: [SystemLimitInput!]!): Boolean!
 
+  createGQLAPIKey(input: CreateGQLAPIKeyInput!): CreatedGQLAPIKey!
+  updateGQLAPIKey(input: UpdateGQLAPIKeyInput!): Boolean!
+  deleteGQLAPIKey(id: ID!): Boolean!
+
   createBasicAuth(input: CreateBasicAuthInput!): Boolean!
   updateBasicAuth(input: UpdateBasicAuthInput!): Boolean!
+}
+
+type CreatedGQLAPIKey {
+  id: ID!
+  token: String!
+}
+
+input CreateGQLAPIKeyInput {
+  name: String!
+  description: String!
+  allowedFields: [String!]!
+  expiresAt: ISOTimestamp!
+  role: UserRole!
+}
+
+input UpdateGQLAPIKeyInput {
+  id: ID!
+  name: String
+  description: String
+}
+
+type GQLAPIKey {
+  id: ID!
+  name: String!
+  description: String!
+  createdAt: ISOTimestamp!
+  createdBy: User @goField(forceResolver: true)
+  updatedAt: ISOTimestamp!
+  updatedBy: User @goField(forceResolver: true)
+  lastUsed: GQLAPIKeyUsage
+  expiresAt: ISOTimestamp!
+  allowedFields: [String!]!
+  role: UserRole!
+}
+
+type GQLAPIKeyUsage {
+  time: ISOTimestamp!
+  ua: String!
+  ip: String!
 }
 
 input CreateBasicAuthInput {
@@ -637,17 +695,20 @@ input CreateUserCalendarSubscriptionInput {
   reminderMinutes: [Int!]
   scheduleID: ID!
   disabled: Boolean
+  fullSchedule: Boolean
 }
 input UpdateUserCalendarSubscriptionInput {
   id: ID!
   name: String
   reminderMinutes: [Int!]
   disabled: Boolean
+  fullSchedule: Boolean
 }
 type UserCalendarSubscription {
   id: ID!
   name: String!
   reminderMinutes: [Int!]!
+  fullSchedule: Boolean!
   scheduleID: ID!
   schedule: Schedule
   lastAccess: ISOTimestamp!
@@ -830,7 +891,7 @@ type Schedule {
   timeZone: String!
 
   assignedTo: [Target!]!
-  shifts(start: ISOTimestamp!, end: ISOTimestamp!): [OnCallShift!]!
+  shifts(start: ISOTimestamp!, end: ISOTimestamp!, userIDs: [ID!]): [OnCallShift!]!
 
   targets: [ScheduleTarget!]!
   target(input: TargetInput!): ScheduleTarget
@@ -938,6 +999,7 @@ type Rotation {
 }
 
 enum RotationType {
+  monthly
   weekly
   daily
   hourly
@@ -947,7 +1009,8 @@ input UpdateAlertsInput {
   # List of alertIDs.
   alertIDs: [Int!]!
 
-  newStatus: AlertStatus!
+  newStatus: AlertStatus
+  noiseReason: String
 }
 
 input UpdateRotationInput {
@@ -984,7 +1047,12 @@ input CalcRotationHandoffTimesInput {
   handoff: ISOTimestamp!
   from: ISOTimestamp
   timeZone: String!
-  shiftLengthHours: Int!
+  shiftLengthHours: Int
+    @deprecated(
+      reason: "Only accurate for hourly-type rotations. Use shiftLength instead."
+    )
+
+  shiftLength: ISODuration
   count: Int!
 }
 
@@ -1348,6 +1416,8 @@ type User {
   onCallSteps: [EscalationPolicyStep!]!
 
   isFavorite: Boolean!
+
+  assignedSchedules: [Schedule!]!
 }
 
 type UserSession {

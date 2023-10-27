@@ -3,10 +3,12 @@ import { gql, useQuery } from 'urql'
 import { Switch, Route, useLocation, RouteProps, useRoute } from 'wouter'
 import AdminMessageLogsLayout from '../admin/admin-message-logs/AdminMessageLogsLayout'
 import AdminAlertCounts from '../admin/admin-alert-counts/AdminAlertCounts'
+import AdminServiceMetrics from '../admin/admin-service-metrics/AdminServiceMetrics'
 import AdminConfig from '../admin/AdminConfig'
 import AdminLimits from '../admin/AdminLimits'
 import AdminToolbox from '../admin/AdminToolbox'
 import AdminSwitchover from '../admin/switchover/AdminSwitchover'
+import AdminAPIKeys from '../admin/AdminAPIKeys'
 import AlertsList from '../alerts/AlertsList'
 import AlertDetailPage from '../alerts/pages/AlertDetailPage'
 import Documentation from '../documentation/Documentation'
@@ -40,6 +42,7 @@ import UserSessionList from '../users/UserSessionList'
 import { useSessionInfo } from '../util/RequireConfig'
 import WizardRouter from '../wizard/WizardRouter'
 import LocalDev from '../localdev/LocalDev'
+import AdminSwitchoverGuide from '../admin/switchover/AdminSwitchoverGuide'
 
 // ParamRoute will pass route parameters as props to the route's child.
 function ParamRoute(props: RouteProps): JSX.Element {
@@ -117,7 +120,10 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/admin/toolbox': AdminToolbox,
   '/admin/message-logs': AdminMessageLogsLayout,
   '/admin/alert-counts': AdminAlertCounts,
+  '/admin/service-metrics': AdminServiceMetrics,
   '/admin/switchover': AdminSwitchover,
+  '/admin/switchover/guide': AdminSwitchoverGuide,
+  '/admin/api-keys': AdminAPIKeys,
 
   '/wizard': WizardRouter,
   '/docs': Documentation,

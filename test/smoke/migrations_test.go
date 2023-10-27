@@ -17,7 +17,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	_ "github.com/jackc/pgx/v4/stdlib" // import db driver
+	_ "github.com/jackc/pgx/v5/stdlib" // import db driver
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/test/smoke/harness"
 	"github.com/target/goalert/util/sqlutil"

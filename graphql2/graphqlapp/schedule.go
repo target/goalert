@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -81,14 +82,37 @@ func (q *Query) Schedule(ctx context.Context, id string) (*schedule.Schedule, er
 	return (*App)(q).FindOneSchedule(ctx, id)
 }
 
-func (s *Schedule) Shifts(ctx context.Context, raw *schedule.Schedule, start, end time.Time) ([]oncall.Shift, error) {
+func (s *Schedule) Shifts(ctx context.Context, raw *schedule.Schedule, start, end time.Time, userIDs []string) ([]oncall.Shift, error) {
 	if end.Before(start) {
 		return nil, validation.NewFieldError("EndTime", "must be after StartTime")
 	}
 	if end.After(start.AddDate(0, 0, 50)) {
 		return nil, validation.NewFieldError("EndTime", "cannot be more than 50 days past StartTime")
 	}
-	return s.OnCallStore.HistoryBySchedule(ctx, raw.ID, start, end)
+
+	err := validate.ManyUUID("userID", userIDs, 50)
+	if err != nil {
+		return nil, err
+	}
+
+	shifts, err := s.OnCallStore.HistoryBySchedule(ctx, raw.ID, start, end)
+	if err != nil {
+		return nil, err
+	}
+
+	// filter by slice of userIDs if given
+	if userIDs != nil {
+		var filteredShifts []oncall.Shift
+		for _, shift := range shifts {
+			if slices.Contains(userIDs, shift.UserID) {
+				filteredShifts = append(filteredShifts, shift)
+			}
+		}
+
+		return filteredShifts, nil
+	}
+
+	return shifts, nil
 }
 
 func (s *Schedule) TemporarySchedules(ctx context.Context, raw *schedule.Schedule) ([]schedule.TemporarySchedule, error) {
@@ -248,7 +272,7 @@ func (m *Mutation) CreateSchedule(ctx context.Context, input graphql2.CreateSche
 			return err
 		}
 		if input.Favorite != nil && *input.Favorite {
-			err = m.FavoriteStore.SetTx(ctx, tx, permission.UserID(ctx), assignment.ScheduleTarget(sched.ID))
+			err = m.FavoriteStore.Set(ctx, tx, permission.UserID(ctx), assignment.ScheduleTarget(sched.ID))
 			if err != nil {
 				return err
 			}

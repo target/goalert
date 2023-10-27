@@ -54,6 +54,7 @@ export default function CalendarSubscribeCreateDialog(props) {
     name: '',
     scheduleID: props.scheduleID || null,
     reminderMinutes: [],
+    fullSchedule: false,
   })
 
   const [createSubscription, status] = useMutation(mutation, {
@@ -63,6 +64,7 @@ export default function CalendarSubscribeCreateDialog(props) {
         name: value.name,
         reminderMinutes: [0], // default reminder at shift start time
         disabled: false,
+        fullSchedule: value.fullSchedule,
       },
     },
   })

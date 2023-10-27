@@ -6,7 +6,6 @@ import React, {
   ReactNode,
 } from 'react'
 import ButtonBase from '@mui/material/ButtonBase'
-import IconButton from '@mui/material/IconButton'
 import List, { ListProps } from '@mui/material/List'
 import MUIListItem, { ListItemProps } from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
@@ -21,13 +20,12 @@ import {
   ListItemIcon,
   Collapse,
 } from '@mui/material'
-import EditIcon from '@mui/icons-material/Edit'
-import DoneIcon from '@mui/icons-material/Done'
 import {
   closestCenter,
   DndContext,
   DragEndEvent,
   KeyboardSensor,
+  MeasuringStrategy,
   PointerSensor,
   useSensor,
   useSensors,
@@ -36,6 +34,7 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import classnames from 'classnames'
 import { Notice, toSeverity } from '../details/Notices'
@@ -82,6 +81,12 @@ const useStyles = makeStyles({
   },
 })
 
+const measuringConfig = {
+  droppable: {
+    strategy: MeasuringStrategy.Always,
+  },
+}
+
 export interface FlatListSub {
   id?: string
   subHeader: JSX.Element | string
@@ -96,6 +101,7 @@ export interface FlatListNotice extends Notice {
 }
 export interface FlatListItem extends ListItemProps {
   title?: string
+  primaryText?: React.ReactNode
   highlight?: boolean
   subText?: JSX.Element | string
   icon?: JSX.Element | null
@@ -105,7 +111,9 @@ export interface FlatListItem extends ListItemProps {
   id?: string // required for drag and drop functionality
   scrollIntoView?: boolean
   'data-cy'?: string
+  draggable?: boolean // set by DraggableListItem
   disabled?: boolean
+  disableTypography?: boolean
 }
 
 export interface SectionTitle {
@@ -142,9 +150,6 @@ export interface FlatListProps extends ListProps {
 
   // will render items in collaspable sections in list
   collapsable?: boolean
-
-  // renders an edit button that hides the options buttons until toggled on
-  toggleDnD?: boolean
 }
 
 export default function FlatList({
@@ -157,7 +162,6 @@ export default function FlatList({
   sections,
   transition,
   collapsable,
-  toggleDnD,
   ...listProps
 }: FlatListProps): JSX.Element {
   const classes = useStyles()
@@ -195,18 +199,14 @@ export default function FlatList({
     setDndItems(items.map((i, idx) => (i.id ? i.id : idx.toString())))
   }, [items])
 
-  const [dragging, setDragging] = useState(false)
-  const [draggable, setDraggable] = useState(false)
   const isFirstAnnouncement = useRef(false)
   const announcements = getAnnouncements(dndItems, isFirstAnnouncement)
   function handleDragStart(): void {
     if (!isFirstAnnouncement.current) {
       isFirstAnnouncement.current = true
     }
-    setDragging(true)
   }
   function handleDragEnd(e: DragEndEvent): void {
-    setDragging(false)
     if (!onReorder || !e.over) return
     if (e.active.id !== e.over.id) {
       const oldIndex = dndItems.indexOf(e.active.id.toString())
@@ -323,11 +323,7 @@ export default function FlatList({
             exitActive: classes.slideExitActive,
           }}
         >
-          <FlatListItem
-            index={idx}
-            item={item}
-            showOptions={toggleDnD ? draggable : true}
-          />
+          <FlatListItem index={idx} item={item} />
         </CSSTransition>
       )
     })
@@ -352,19 +348,11 @@ export default function FlatList({
             index={idx}
             item={item}
             id={item.id ?? idx.toString()}
-            draggable={toggleDnD ? draggable : true}
           />
         )
       }
 
-      return (
-        <FlatListItem
-          key={`${idx}-${item.id}`}
-          index={idx}
-          item={item}
-          showOptions={toggleDnD ? draggable : true}
-        />
-      )
+      return <FlatListItem key={`${idx}-${item.id}`} index={idx} item={item} />
     })
   }
 
@@ -392,14 +380,7 @@ export default function FlatList({
               {items
                 .filter((item: FlatListItem) => item.section === section.title)
                 .map((item, idx) => {
-                  return (
-                    <FlatListItem
-                      index={idx}
-                      key={idx}
-                      item={item}
-                      showOptions={toggleDnD ? draggable : true}
-                    />
-                  )
+                  return <FlatListItem index={idx} key={idx} item={item} />
                 })}
             </List>
           </Collapse>
@@ -409,14 +390,6 @@ export default function FlatList({
   }
 
   function renderList(): JSX.Element {
-    let sx = listProps.sx
-    if (onReorder) {
-      sx = {
-        ...sx,
-        display: 'grid',
-      }
-    }
-
     const renderListItems = ():
       | (JSX.Element | undefined)[]
       | JSX.Element
@@ -427,23 +400,21 @@ export default function FlatList({
       return renderItems()
     }
 
+    // if drag and drop is enabled, this is needed
+    // to resolve z-index issues when dragging an
+    // item down the y-axis
+    let sx = listProps.sx
+    if (onReorder) {
+      sx = {
+        ...sx,
+        display: 'grid',
+      }
+    }
+
     return (
       <List {...listProps} sx={sx}>
         {(headerNote || headerAction || onReorder) && (
           <MUIListItem>
-            {toggleDnD && (
-              <IconButton
-                onClick={() => setDraggable(!draggable)}
-                disabled={draggable && dragging}
-                sx={{
-                  marginRight: (t) => t.spacing(2),
-                  textOverflow: 'wrap',
-                }}
-                aria-label='Toggle Drag and Drop'
-              >
-                {draggable ? <DoneIcon /> : <EditIcon />}
-              </IconButton>
-            )}
             {headerNote && (
               <ListItemText
                 disableTypography
@@ -470,8 +441,14 @@ export default function FlatList({
         collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
+        measuring={measuringConfig}
       >
-        <SortableContext items={dndItems}>{renderList()}</SortableContext>
+        <SortableContext
+          items={dndItems}
+          strategy={verticalListSortingStrategy}
+        >
+          {renderList()}
+        </SortableContext>
       </DndContext>
     )
   }

@@ -3,7 +3,7 @@ package permission
 import "github.com/pkg/errors"
 
 // Error represents an auth error where the context does not have
-// a sufficient role for the opertion.
+// a sufficient role for the operation.
 type Error interface {
 	error
 	Permission() bool // Is the error permission denied?

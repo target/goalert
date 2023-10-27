@@ -103,10 +103,10 @@ func (q *MessageLogConnectionStats) TimeSeries(ctx context.Context, opts *notifi
 		opts = &notification.SearchOptions{}
 	}
 
-	dur := input.BucketDuration.TimePart
-	dur += time.Duration(input.BucketDuration.Days) * 24 * time.Hour
-	dur += time.Duration(input.BucketDuration.Months) * 30 * 24 * time.Hour
-	dur += time.Duration(input.BucketDuration.Years) * 365 * 24 * time.Hour
+	dur := input.BucketDuration.TimePart()
+	dur += time.Duration(input.BucketDuration.Days()) * 24 * time.Hour
+	dur += time.Duration(input.BucketDuration.MonthPart) * 30 * 24 * time.Hour
+	dur += time.Duration(input.BucketDuration.YearPart) * 365 * 24 * time.Hour
 
 	var origin time.Time
 	if input.BucketOrigin != nil {

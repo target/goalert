@@ -12,6 +12,7 @@ import (
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/alert/alertmetrics"
+	"github.com/target/goalert/apikey"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/authlink"
@@ -39,6 +40,7 @@ import (
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/service"
+	"github.com/target/goalert/smtpsrv"
 	"github.com/target/goalert/timezone"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
@@ -67,6 +69,8 @@ type App struct {
 	hSrv      *health.Server
 
 	srv        *http.Server
+	smtpsrv    *smtpsrv.Server
+	smtpsrvL   net.Listener
 	startupErr error
 
 	notificationManager *notification.Manager
@@ -117,6 +121,7 @@ type App struct {
 	TimeZoneStore *timezone.Store
 	NoticeStore   *notice.Store
 	AuthLinkStore *authlink.Store
+	APIKeyStore   *apikey.Store
 }
 
 // NewApp constructs a new App and binds the listening socket.
@@ -203,4 +208,12 @@ func (a *App) DB() *sql.DB { return a.db }
 // URL returns the non-TLS listener URL of the application.
 func (a *App) URL() string {
 	return "http://" + a.l.Addr().String()
+}
+
+func (a *App) SMTPAddr() string {
+	if a.smtpsrvL == nil {
+		return ""
+	}
+
+	return a.smtpsrvL.Addr().String()
 }

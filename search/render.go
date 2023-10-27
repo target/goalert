@@ -23,8 +23,16 @@ type RenderData interface {
 // Helpers returns a map of all the helper functions that can be used in a template.
 func Helpers() template.FuncMap {
 	return template.FuncMap{
-		"prefixSearch": func(argName string, columnName string) string {
-			return fmt.Sprintf("lower(%s) ~ all(:~%s)", columnName, argName)
+		"orderedPrefixSearch": func(argName string, columnName string) string {
+			return fmt.Sprintf("lower(%s) ~ :~%s", columnName, argName)
+		},
+		"contains": func(argName string, columnName string) string {
+			// search for the term in the column
+			//
+			// - case insensitive
+			// - allow for partial matches
+			// - escape % and _ using `\` (backslash -- the default escape character)
+			return fmt.Sprintf(`%s ilike '%%' || REPLACE(REPLACE(REPLACE(:%s, '\', '\\'), '%%', '\%%'), '_', '\_') || '%%'`, columnName, argName)
 		},
 		"textSearch": func(argName string, columnNames ...string) string {
 			var buf strings.Builder
@@ -42,11 +50,12 @@ func Helpers() template.FuncMap {
 	}
 }
 
-func splitRxTerms(rx string) pgtype.TextArray {
-	rx = strings.ToLower(rx)
+// splitSearchTerms will separate the words present in search and return a slice with them
+func splitSearchTerms(search string) []string {
+	search = strings.ToLower(search)
 	var terms []string
 	var cur string
-	for _, r := range rx {
+	for _, r := range search {
 		if unicode.IsLetter(r) || unicode.IsDigit(r) {
 			cur += string(r)
 			continue
@@ -55,16 +64,28 @@ func splitRxTerms(rx string) pgtype.TextArray {
 			continue
 		}
 
-		terms = append(terms, "\\m"+cur)
+		terms = append(terms, cur)
 		cur = ""
 	}
 
 	if cur != "" {
-		terms = append(terms, "\\m"+cur)
+		terms = append(terms, cur)
 	}
 
-	var t pgtype.TextArray
-	_ = t.Set(terms)
+	return terms
+}
+
+// orderedPrefixRxFromTerms returns a PSQL regular expression that will match
+// a string if:
+//
+// - it includes words with the all the given prefixes
+//
+// - those words are in the same order as the prefixes
+func orderedPrefixRxFromTerms(prefixes []string) pgtype.Text {
+	rx := "\\m" + strings.Join(prefixes, ".*\\m")
+
+	var t pgtype.Text
+	_ = t.Set(rx)
 
 	return t
 }
@@ -94,7 +115,8 @@ func RenderQuery(ctx context.Context, tmpl *template.Template, data RenderData) 
 			}
 
 			query = strings.ReplaceAll(query, ":~"+arg.Name, "$"+strconv.Itoa(n))
-			args = append(args, splitRxTerms(val))
+			terms := splitSearchTerms(val)
+			args = append(args, orderedPrefixRxFromTerms(terms))
 			n++
 		}
 		rep := ":" + arg.Name

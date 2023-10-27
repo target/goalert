@@ -2,6 +2,7 @@ import React from 'react'
 import ReactMarkdown from 'react-markdown'
 import { safeURL } from './safeURL'
 import remarkGfm from 'remark-gfm'
+import remarkBreaks from 'remark-breaks'
 import makeStyles from '@mui/styles/makeStyles'
 import AppLink from './AppLink'
 
@@ -72,7 +73,7 @@ export default function Markdown(props) {
           </AppLink>
         ),
       }}
-      remarkPlugins={[remarkGfm]}
+      remarkPlugins={[remarkGfm, remarkBreaks]}
       allowElement={(element) => {
         if (
           element.tagName === 'a' &&

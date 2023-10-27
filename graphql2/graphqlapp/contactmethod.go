@@ -112,7 +112,7 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
-		cm, err = m.CMStore.CreateTx(ctx, tx, &contactmethod.ContactMethod{
+		cm, err = m.CMStore.Create(ctx, tx, &contactmethod.ContactMethod{
 			Name:     input.Name,
 			Type:     input.Type,
 			UserID:   input.UserID,
@@ -144,7 +144,7 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 
 func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.UpdateUserContactMethodInput) (bool, error) {
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
-		cm, err := m.CMStore.FindOneTx(ctx, tx, input.ID)
+		cm, err := m.CMStore.FindOne(ctx, tx, input.ID)
 		if errors.Is(err, sql.ErrNoRows) {
 			return validation.NewFieldError("id", "contact method not found")
 		}
@@ -161,7 +161,7 @@ func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.U
 			cm.StatusUpdates = *input.EnableStatusUpdates
 		}
 
-		return m.CMStore.UpdateTx(ctx, tx, cm)
+		return m.CMStore.Update(ctx, tx, cm)
 	})
 	return err == nil, err
 }

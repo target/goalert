@@ -26,6 +26,7 @@ import {
 import { SlackBW as SlackIcon } from '../icons/components/Icons'
 import { Config } from '../util/RequireConfig'
 import NumberField from '../util/NumberField'
+import AppLink from '../util/AppLink'
 
 const useStyles = makeStyles({
   badge: {
@@ -227,13 +228,13 @@ function PolicyStepForm(props) {
                   <Step>
                     <StepButton
                       aria-expanded={(
-                        step === (cfg['Webhook.Enable'] ? 4 : 3)
+                        step === (cfg['Slack.Enable'] ? 4 : 3)
                       ).toString()}
                       data-cy='webhook-step'
                       icon={<WebhookIcon />}
                       optional={optionalText}
                       onClick={() =>
-                        handleStepChange(cfg['Webhook.Enable'] ? 4 : 3)
+                        handleStepChange(cfg['Slack.Enable'] ? 4 : 3)
                       }
                       tabIndex={-1}
                     >
@@ -252,6 +253,11 @@ function PolicyStepForm(props) {
                         name='webhooks'
                         mapValue={getTargetsByType('chanWebhook')}
                         mapOnChangeValue={setTargetType('chanWebhook')}
+                        hint={
+                          <AppLink newTab to='/docs#webhooks'>
+                            Webhook Documentation
+                          </AppLink>
+                        }
                       />
                     </StepContent>
                   </Step>

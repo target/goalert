@@ -26,7 +26,7 @@ const (
 	// Used exclusively by engine instances to elect a leader.
 	//
 	// Only the instance and connection with this lock is allowed
-	// to perform trigger updates and syncronization.
+	// to perform trigger updates and synchronization.
 	//
 	// It must be acquired before the global switchover lock.
 	GlobalSwitchOverExec = uint32(0x1112) // 4370

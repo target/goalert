@@ -8,7 +8,9 @@ import {
 describe('formatTimestamp', () => {
   const check = (opts: FormatTimestampArg, exp: string): void => {
     it(`${opts.time} === ${exp}`, () => {
-      expect(formatTimestamp(opts)).toBe(exp)
+      // different versions of node have different whitespace, so normalize it
+      const result = formatTimestamp(opts).replace(/[\s\u00A0\u202F]+/g, ' ')
+      expect(result).toBe(exp)
     })
   }
 
@@ -66,6 +68,18 @@ describe('formatTimestamp', () => {
     },
     'in 24 hr, 10 sec',
   )
+
+  check(
+    {
+      time: '2023-12-28T00:00:00Z',
+      zone: 'UTC',
+      format: 'relative',
+      from: '2023-09-26T00:00:00Z',
+      units: ['months', 'weeks', 'days', 'hours', 'minutes', 'seconds'],
+      precise: true,
+    },
+    'in 3 mths, 2 days',
+  )
 })
 
 describe('toRelative', () => {
@@ -93,4 +107,5 @@ describe('toRelative', () => {
     },
     '1 min, 5 sec ago',
   )
+  check({ dur: { month: 3 }, units: ['month'], precise: true }, 'in 3 mths')
 })

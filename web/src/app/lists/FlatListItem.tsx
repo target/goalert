@@ -18,6 +18,9 @@ const useStyles = makeStyles(() => ({
     opacity: 0.6,
     width: '100%',
   },
+  listItemDraggable: {
+    paddingLeft: '75px',
+  },
   secondaryText: {
     whiteSpace: 'pre-line',
   },
@@ -26,15 +29,12 @@ const useStyles = makeStyles(() => ({
 export interface FlatListItemProps extends MUIListItemProps {
   item: FlatListItem
   index: number
-  showOptions?: boolean
 }
 
 export default function FlatListItem(props: FlatListItemProps): JSX.Element {
   const classes = useStyles()
 
-  const showOptions = props?.showOptions ?? true
   const {
-    disabled,
     highlight,
     icon,
     secondaryAction,
@@ -42,6 +42,11 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
     subText,
     title,
     url,
+    draggable,
+    disabled,
+    disableTypography,
+    onClick,
+    primaryText,
     ...muiListItemProps
   } = props.item
 
@@ -61,21 +66,32 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
     }
   }
 
+  const onClickProps = onClick && {
+    onClick,
+
+    // NOTE: needed for error: button: false? not assignable to type 'true'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    button: true as any,
+  }
+
   return (
     <MUIListItem
       key={props.index}
       {...linkProps}
+      {...onClickProps}
       {...muiListItemProps}
       className={classnames({
         [classes.listItem]: true,
         [classes.listItemDisabled]: disabled,
+        [classes.listItemDraggable]: draggable,
       })}
       selected={highlight}
     >
       {icon && <ListItemIcon tabIndex={-1}>{icon}</ListItemIcon>}
       <ListItemText
-        primary={title}
+        primary={title || primaryText}
         secondary={subText}
+        disableTypography={disableTypography}
         secondaryTypographyProps={{
           className: classnames({
             [classes.secondaryText]: true,
@@ -84,10 +100,8 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
           tabIndex: 0,
         }}
       />
-      {secondaryAction && showOptions && (
-        <ListItemSecondaryAction sx={{ zIndex: 9002 }}>
-          {secondaryAction}
-        </ListItemSecondaryAction>
+      {secondaryAction && (
+        <ListItemSecondaryAction>{secondaryAction}</ListItemSecondaryAction>
       )}
     </MUIListItem>
   )

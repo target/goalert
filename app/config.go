@@ -33,6 +33,14 @@ type Config struct {
 	SysAPIKeyFile    string
 	SysAPICAFile     string
 
+	SMTPListenAddr        string
+	SMTPListenAddrTLS     string
+	SMTPMaxRecipients     int
+	TLSConfigSMTP         *tls.Config
+	SMTPAdditionalDomains string
+
+	EmailIntegrationDomain string
+
 	HTTPPrefix string
 
 	DBMaxOpen int

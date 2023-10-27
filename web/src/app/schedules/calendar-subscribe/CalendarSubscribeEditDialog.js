@@ -14,6 +14,7 @@ const query = gql`
       id
       name
       scheduleID
+      fullSchedule
     }
   }
 `
@@ -31,6 +32,7 @@ export function CalendarSubscribeEditDialogContent(props) {
   const [value, setValue] = useState({
     name: _.get(data, 'name', ''),
     scheduleID: _.get(data, 'scheduleID', null),
+    fullSchedule: _.get(data, 'fullSchedule', false),
   })
 
   // setup the mutation
@@ -39,6 +41,7 @@ export function CalendarSubscribeEditDialogContent(props) {
       input: {
         id: props.data.id,
         name: value.name,
+        fullSchedule: value.fullSchedule,
       },
     },
     onCompleted: () => props.onClose(),

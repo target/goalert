@@ -135,8 +135,7 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 		// get list of users who are currently on-call
 		for _, id := range userIDs {
 			stillOnCall[id] = true
-			x := isOnCall[id]
-			if x != nil {
+			if isOnCall[id] != nil {
 				continue
 			}
 

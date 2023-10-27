@@ -158,7 +158,7 @@ export function FormField(props) {
       if (count) {
         return charCountWrapper(<FormHelperText>{hint}</FormHelperText>, count)
       }
-      return <FormHelperText>{hint}</FormHelperText>
+      return <FormHelperText component='span'>{hint}</FormHelperText>
     }
 
     return null
@@ -265,8 +265,15 @@ FormField.propTypes = {
 
   multiple: p.bool,
 
-  options: p.shape({
-    label: p.string,
-    value: p.string,
-  }),
+  options: p.arrayOf(
+    p.shape({
+      label: p.string,
+      value: p.string,
+    }),
+  ),
+
+  // material select stuff
+  clientSideFilter: p.bool,
+  disableCloseOnSelect: p.bool,
+  optionsLimit: p.number,
 }

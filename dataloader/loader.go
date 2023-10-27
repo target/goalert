@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"sync"
 	"time"
+
+	"github.com/target/goalert/gadb"
 )
 
 func NewStoreLoaderInt[V any](ctx context.Context, fetchMany func(context.Context, []int) ([]V, error)) *Loader[int, V] {
@@ -22,6 +24,16 @@ func NewStoreLoader[V any](ctx context.Context, fetchMany func(context.Context, 
 		Delay:     time.Millisecond,
 		IDFunc:    func(v V) string { return reflect.ValueOf(v).FieldByName("ID").String() },
 		FetchFunc: fetchMany,
+	})
+}
+
+func NewStoreLoaderWithDB[V any](
+	ctx context.Context,
+	db gadb.DBTX,
+	fetchMany func(context.Context, gadb.DBTX, []string) ([]V, error),
+) *Loader[string, V] {
+	return NewStoreLoader(ctx, func(ctx context.Context, ids []string) ([]V, error) {
+		return fetchMany(ctx, db, ids)
 	})
 }
 
@@ -110,7 +122,7 @@ func (l *Loader[K, V]) load(entries []*entry[K, V]) []*entry[K, V] {
 		// Call fetch for everything we're loading
 		res, err := l.cfg.FetchFunc(ctx, ids)
 		if err != nil {
-			// If the fetch failed, set all the pending entires err property to
+			// If the fetch failed, set all the pending entries err property to
 			// reflect the failure, and close the done channel to indicate the load/fetch
 			// completed.
 			for _, e := range cpy {
@@ -132,7 +144,7 @@ func (l *Loader[K, V]) load(entries []*entry[K, V]) []*entry[K, V] {
 			e.data = &res[i]
 		}
 
-		// nil or not, all entires are now done loading, if the .data prop was not set
+		// nil or not, all entries are now done loading, if the .data prop was not set
 		// then the entry does not exist.
 		for _, e := range cpy {
 			close(e.done)

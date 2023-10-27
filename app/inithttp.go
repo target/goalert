@@ -227,7 +227,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	app.srv.Handler = promhttp.InstrumentHandlerInFlight(metricReqInFlight, app.srv.Handler)
 	app.srv.Handler = promhttp.InstrumentHandlerCounter(metricReqTotal, app.srv.Handler)
 
-	// Ingress/load balancer/proxy can do keep-alives, backend doesn't need it.
+	// Ingress/load balancer/proxy can do a keep-alive, backend doesn't need it.
 	// It also makes zero downtime deploys nearly impossible; an idle connection
 	// could have an in-flight request when the server closes it.
 	app.srv.SetKeepAlivesEnabled(false)

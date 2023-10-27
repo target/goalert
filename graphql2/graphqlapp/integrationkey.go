@@ -29,7 +29,7 @@ func (m *Mutation) CreateIntegrationKey(ctx context.Context, input graphql2.Crea
 			Name:      input.Name,
 			Type:      integrationkey.Type(input.Type),
 		}
-		key, err = m.IntKeyStore.CreateKeyTx(ctx, tx, key)
+		key, err = m.IntKeyStore.Create(ctx, tx, key)
 		return err
 	})
 	return key, err
@@ -51,10 +51,10 @@ func (key *IntegrationKey) Href(ctx context.Context, raw *integrationkey.Integra
 	case integrationkey.TypePrometheusAlertmanager:
 		return cfg.CallbackURL("/api/v2/prometheusalertmanager/incoming", q), nil
 	case integrationkey.TypeEmail:
-		if !cfg.Mailgun.Enable || cfg.Mailgun.EmailDomain == "" {
+		if !cfg.EmailIngressEnabled() {
 			return "", nil
 		}
-		return "mailto:" + raw.ID + "@" + cfg.Mailgun.EmailDomain, nil
+		return "mailto:" + raw.ID + "@" + cfg.EmailIngressDomain(), nil
 	}
 
 	return "", nil

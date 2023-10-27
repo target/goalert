@@ -4,10 +4,11 @@ import (
 	context "context"
 	"database/sql"
 
-	"github.com/target/goalert/auth"
+	"github.com/google/uuid"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/oncall"
+	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
@@ -23,28 +24,41 @@ import (
 )
 
 type (
-	User        App
-	UserSession App
+	User App
 )
 
 func (a *App) User() graphql2.UserResolver { return (*User)(a) }
 
-func (a *App) UserSession() graphql2.UserSessionResolver { return (*UserSession)(a) }
+func (a *User) Sessions(ctx context.Context, obj *user.User) ([]graphql2.UserSession, error) {
+	sess, err := a.AuthHandler.FindAllUserSessions(ctx, obj.ID)
+	if err != nil {
+		return nil, err
+	}
 
-func (a *User) Sessions(ctx context.Context, obj *user.User) ([]auth.UserSession, error) {
-	return a.AuthHandler.FindAllUserSessions(ctx, obj.ID)
+	out := make([]graphql2.UserSession, len(sess))
+	for i, s := range sess {
+
+		out[i] = graphql2.UserSession{
+			ID:           s.ID,
+			UserAgent:    s.UserAgent,
+			CreatedAt:    s.CreatedAt,
+			LastAccessAt: s.LastAccessAt,
+			Current:      isCurrentSession(ctx, s.ID),
+		}
+	}
+
+	return out, nil
 }
-
-func (a *UserSession) Current(ctx context.Context, obj *auth.UserSession) (bool, error) {
+func isCurrentSession(ctx context.Context, sessID string) bool {
 	src := permission.Source(ctx)
 	if src == nil {
-		return false, nil
+		return false
 	}
 	if src.Type != permission.SourceTypeAuthProvider {
-		return false, nil
+		return false
 	}
 
-	return obj.ID == src.ID, nil
+	return src.ID == sessID
 }
 
 func (a *User) AuthSubjects(ctx context.Context, obj *user.User) ([]user.AuthSubject, error) {
@@ -56,7 +70,7 @@ func (a *User) Role(ctx context.Context, usr *user.User) (graphql2.UserRole, err
 }
 
 func (a *User) ContactMethods(ctx context.Context, obj *user.User) ([]contactmethod.ContactMethod, error) {
-	return a.CMStore.FindAll(ctx, obj.ID)
+	return a.CMStore.FindAll(ctx, a.DB, obj.ID)
 }
 
 func (a *User) NotificationRules(ctx context.Context, obj *user.User) ([]notificationrule.NotificationRule, error) {
@@ -69,6 +83,33 @@ func (a *User) CalendarSubscriptions(ctx context.Context, obj *user.User) ([]cal
 
 func (a *User) OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.Step, error) {
 	return a.PolicyStore.FindAllOnCallStepsForUserTx(ctx, nil, obj.ID)
+}
+
+func (a *User) AssignedSchedules(ctx context.Context, obj *user.User) (schedules []schedule.Schedule, err error) {
+	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+		err = validate.UUID("UserID", obj.ID)
+		if err != nil {
+			return err
+		}
+		_uid, err := uuid.Parse(obj.ID)
+		if err != nil {
+			return err
+		}
+		uid := uuid.NullUUID{
+			Valid: true,
+			UUID:  _uid,
+		}
+
+		// get list of schedules user is on as a direct assignment, or indirectly from a rotation
+		schedules, err = (*App)(a).ScheduleStore.FindManyByUserID(ctx, tx, uid)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return schedules, err
 }
 
 func (a *Mutation) CreateBasicAuth(ctx context.Context, input graphql2.CreateBasicAuthInput) (bool, error) {
@@ -154,7 +195,7 @@ func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInpu
 			return err
 		}
 		if input.Favorite != nil && *input.Favorite {
-			err = a.FavoriteStore.SetTx(ctx, tx, permission.UserID(ctx), assignment.UserTarget(newUser.ID))
+			err = a.FavoriteStore.Set(ctx, tx, permission.UserID(ctx), assignment.UserTarget(newUser.ID))
 			if err != nil {
 				return err
 			}

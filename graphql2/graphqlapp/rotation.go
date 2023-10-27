@@ -12,6 +12,7 @@ import (
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/timeutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
@@ -50,7 +51,7 @@ func (m *Mutation) CreateRotation(ctx context.Context, input graphql2.CreateRota
 		}
 
 		if input.Favorite != nil && *input.Favorite {
-			err = m.FavoriteStore.SetTx(ctx, tx, permission.UserID(ctx), assignment.RotationTarget(result.ID))
+			err = m.FavoriteStore.Set(ctx, tx, permission.UserID(ctx), assignment.RotationTarget(result.ID))
 			if err != nil {
 				return err
 			}
@@ -378,27 +379,39 @@ func (m *Mutation) UpdateRotation(ctx context.Context, input graphql2.UpdateRota
 }
 
 func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.CalcRotationHandoffTimesInput) ([]time.Time, error) {
-	var result []time.Time
-	var err error
 
-	err = validate.Many(
-		err,
-		validate.Range("count", input.Count, 0, 20),
-		validate.Range("hours", input.ShiftLengthHours, 0, 99999),
-	)
+	err := validate.Range("count", input.Count, 0, 20)
 	if err != nil {
-		return result, err
+		return nil, err
 	}
 
 	loc, err := util.LoadLocation(input.TimeZone)
 	if err != nil {
-		return result, validation.NewFieldError("timeZone", err.Error())
+		return nil, validation.NewFieldError("timeZone", err.Error())
 	}
 
-	rot := &rotation.Rotation{
-		Start:       input.Handoff.In(loc),
-		ShiftLength: input.ShiftLengthHours,
-		Type:        rotation.TypeHourly,
+	if input.ShiftLength != nil && input.ShiftLengthHours != nil {
+		return nil, validation.NewFieldError("shiftLength", "only one of (shiftLength, shiftLengthHours) is allowed")
+	}
+
+	rot := rotation.Rotation{
+		Start: input.Handoff.In(loc),
+	}
+	switch {
+	case input.ShiftLength != nil:
+		err = setRotationShiftFromISO(&rot, input.ShiftLength)
+		if err != nil {
+			return nil, err
+		}
+	case input.ShiftLengthHours != nil:
+		err = validate.Range("hours", *input.ShiftLengthHours, 0, 99999)
+		if err != nil {
+			return nil, err
+		}
+		rot.Type = rotation.TypeHourly
+		rot.ShiftLength = *input.ShiftLengthHours
+	default:
+		return nil, validation.NewFieldError("shiftLength", "must be specified")
 	}
 
 	t := time.Now()
@@ -406,10 +419,55 @@ func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.Ca
 		t = input.From.In(loc)
 	}
 
+	var result []time.Time
 	for len(result) < input.Count {
 		t = rot.EndTime(t)
 		result = append(result, t)
 	}
 
 	return result, nil
+}
+
+// getRotationFromISO determines the rotation type based on the given ISODuration. An error is given if the unsupported year field or multiple non-zero fields are given.
+func setRotationShiftFromISO(rot *rotation.Rotation, dur *timeutil.ISODuration) error {
+
+	// validate only one time field (year, month, days, timepart) is non-zero
+	nonZeroFields := 0
+
+	if dur.YearPart > 0 {
+		// These validation errors are only possible from direct api calls,
+		// thus using ISO standard terminology "designator" to match the spec.
+		return validation.NewFieldError("shiftLength", "year designator not allowed")
+	}
+
+	if dur.MonthPart > 0 {
+		rot.Type = rotation.TypeMonthly
+		rot.ShiftLength = dur.MonthPart
+		nonZeroFields++
+	}
+	if dur.WeekPart > 0 {
+		rot.Type = rotation.TypeWeekly
+		rot.ShiftLength = dur.WeekPart
+		nonZeroFields++
+	}
+	if dur.DayPart > 0 {
+		rot.Type = rotation.TypeDaily
+		rot.ShiftLength = dur.DayPart
+		nonZeroFields++
+	}
+	if dur.HourPart > 0 {
+		rot.Type = rotation.TypeHourly
+		rot.ShiftLength = dur.HourPart
+		nonZeroFields++
+	}
+
+	if nonZeroFields == 0 {
+		return validation.NewFieldError("shiftLength", "must not be zero")
+	}
+	if nonZeroFields > 1 {
+		// Same as above, this error is only possible from direct api calls.
+		return validation.NewFieldError("shiftLength", "only one of (M, W, D, H) is allowed")
+	}
+
+	return nil
 }

@@ -258,7 +258,11 @@ Migration: %s (#%d)
 
 				ctx := cmd.Context()
 
-				store, err := config.NewStore(ctx, conn, cf.EncryptionKeys, "", "")
+				storeCfg := config.StoreConfig{
+					DB:   conn,
+					Keys: cf.EncryptionKeys,
+				}
+				store, err := config.NewStore(ctx, storeCfg)
 				if err != nil {
 					return fmt.Errorf("read config: %w", err)
 				}
@@ -621,6 +625,13 @@ func getConfig(ctx context.Context) (Config, error) {
 		SysAPIKeyFile:    viper.GetString("sysapi-key-file"),
 		SysAPICAFile:     viper.GetString("sysapi-ca-file"),
 
+		SMTPListenAddr:        viper.GetString("smtp-listen"),
+		SMTPListenAddrTLS:     viper.GetString("smtp-listen-tls"),
+		SMTPAdditionalDomains: viper.GetString("smtp-additional-domains"),
+		SMTPMaxRecipients:     viper.GetInt("smtp-max-recipients"),
+
+		EmailIntegrationDomain: viper.GetString("email-integration-domain"),
+
 		EngineCycleTime: viper.GetDuration("engine-cycle-time"),
 
 		HTTPPrefix: viper.GetString("http-prefix"),
@@ -673,7 +684,21 @@ func getConfig(ctx context.Context) (Config, error) {
 	}
 
 	var err error
-	cfg.TLSConfig, err = getTLSConfig()
+	cfg.TLSConfig, err = getTLSConfig("")
+	if err != nil {
+		return cfg, err
+	}
+	if cfg.TLSConfig != nil {
+		cfg.TLSConfig.NextProtos = []string{"h2", "http/1.1"}
+	}
+
+	if cfg.SMTPListenAddr != "" || cfg.SMTPListenAddrTLS != "" {
+		if cfg.EmailIntegrationDomain == "" {
+			return cfg, errors.New("email-integration-domain is required when smtp-listen or smtp-listen-tls is set")
+		}
+	}
+
+	cfg.TLSConfigSMTP, err = getTLSConfig("smtp-")
 	if err != nil {
 		return cfg, err
 	}
@@ -681,7 +706,6 @@ func getConfig(ctx context.Context) (Config, error) {
 	if viper.GetBool("stack-traces") {
 		log.FromContext(ctx).EnableStacks()
 	}
-
 	return cfg, nil
 }
 
@@ -691,11 +715,11 @@ func init() {
 
 	RootCmd.Flags().StringP("listen-tls", "t", def.TLSListenAddr, "HTTPS listen address:port for the application.  Requires setting --tls-cert-data and --tls-key-data OR --tls-cert-file and --tls-key-file.")
 
-	RootCmd.Flags().String("listen-sysapi", "", "(Experimental) Listen address:port for the system API (gRPC).")
-
 	RootCmd.Flags().StringSlice("experimental", nil, "Enable experimental features.")
 	RootCmd.Flags().Bool("list-experimental", false, "List experimental features.")
 	RootCmd.Flags().Bool("strict-experimental", false, "Fail to start if unknown experimental features are specified.")
+
+	RootCmd.Flags().String("listen-sysapi", "", "(Experimental) Listen address:port for the system API (gRPC).")
 
 	RootCmd.Flags().String("sysapi-cert-file", "", "(Experimental) Specifies a path to a PEM-encoded certificate to use when connecting to plugin services.")
 	RootCmd.Flags().String("sysapi-key-file", "", "(Experimental) Specifies a path to a PEM-encoded private key file use when connecting to plugin services.")
@@ -709,6 +733,18 @@ func init() {
 	RootCmd.Flags().String("tls-key-file", "", "Specifies a path to a PEM-encoded private key file.  Has no effect if --listen-tls is unset.")
 	RootCmd.Flags().String("tls-cert-data", "", "Specifies a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")
 	RootCmd.Flags().String("tls-key-data", "", "Specifies a PEM-encoded private key.  Has no effect if --listen-tls is unset.")
+
+	RootCmd.Flags().String("smtp-listen", "", "Listen address:port for an internal SMTP server.")
+	RootCmd.Flags().String("smtp-listen-tls", "", "SMTPS listen address:port for an internal SMTP server.  Requires setting --smtp-tls-cert-data and --smtp-tls-key-data OR --smtp-tls-cert-file and --smtp-tls-key-file.")
+	RootCmd.Flags().String("email-integration-domain", "", "This flag is required to set the domain used for email integration keys when --smtp-listen or --smtp-listen-tls are set.")
+
+	RootCmd.Flags().String("smtp-tls-cert-file", "", "Specifies a path to a PEM-encoded certificate.  Has no effect if --smtp-listen-tls is unset.")
+	RootCmd.Flags().String("smtp-tls-key-file", "", "Specifies a path to a PEM-encoded private key file.  Has no effect if --smtp-listen-tls is unset.")
+	RootCmd.Flags().String("smtp-tls-cert-data", "", "Specifies a PEM-encoded certificate.  Has no effect if --smtp-listen-tls is unset.")
+	RootCmd.Flags().String("smtp-tls-key-data", "", "Specifies a PEM-encoded private key.  Has no effect if --smtp-listen-tls is unset.")
+
+	RootCmd.Flags().Int("smtp-max-recipients", def.SMTPMaxRecipients, "Specifies the maximum number of recipients allowed per message.")
+	RootCmd.Flags().String("smtp-additional-domains", "", "Specifies additional destination domains that are allowed for the SMTP server.  For multiple domains, separate them with a comma, e.g., \"domain1.com,domain2.org,domain3.net\".")
 
 	RootCmd.Flags().Duration("engine-cycle-time", def.EngineCycleTime, "Time between engine cycles.")
 
