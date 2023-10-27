@@ -160,8 +160,7 @@ export default function ScheduleCalendarEventWrapper({
 
   function renderButtons(): JSX.Element {
     if (!scheduleID) {
-      console.log(event)
-      const id = event?.target?.id ?? ''
+      const id = event?.targetID ?? ''
       return (
         <React.Fragment>
           <Grid item className={classes.flexGrow} />
@@ -240,7 +239,7 @@ export default function ScheduleCalendarEventWrapper({
       <Grid container spacing={1}>
         <Grid item xs={12}>
           <Typography variant='body2'>
-            <b>{scheduleID ? event?.user?.name : event?.target?.name}</b>
+            <b>{scheduleID ? event?.user?.name : event?.targetName}</b>
           </Typography>
         </Grid>
         {event.type === 'override' &&

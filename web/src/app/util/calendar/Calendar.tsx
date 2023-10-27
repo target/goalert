@@ -84,11 +84,8 @@ interface CalendarEvent {
     name: string
     id: string
   }
-  target?: {
-    id: string
-    type: string
-    name: string
-  }
+  targetName?: string
+  targetID?: string
 }
 
 export interface OnCallShiftEvent extends CalendarEvent {
@@ -119,9 +116,14 @@ export type ScheduleCalendarEvent =
   | TempSchedEvent
   | TempSchedShiftEvent
 
+export interface Shift extends OnCallShift {
+  targetName?: string
+  targetID?: string
+}
+
 interface CalendarProps {
   scheduleID?: string
-  shifts: OnCallShift[]
+  shifts: Shift[]
   overrides?: UserOverride[]
   temporarySchedules?: TemporarySchedule[]
   loading: boolean
@@ -233,7 +235,7 @@ export default function Calendar(props: CalendarProps): JSX.Element {
   }
 
   const getCalEvents = (
-    shifts: OnCallShift[] = [],
+    shifts: Shift[] = [],
     _tempScheds: TemporarySchedule[] = [],
     userOverrides: UserOverride[] = [],
   ): ScheduleCalendarEvent[] => {
@@ -284,7 +286,7 @@ export default function Calendar(props: CalendarProps): JSX.Element {
       start: new Date(s.start),
       end: new Date(s.end),
       type: 'onCallShift',
-      title: s.user?.name ?? '',
+      title: s.user?.name ?? s.targetName ?? '',
       user: s.user ?? undefined,
     }))
 

@@ -5,22 +5,20 @@ import { DateTime } from 'luxon'
 import { useIsWidthDown } from '../util/useWidth'
 import { GenericError } from '../error-pages'
 import { useCalendarNavigation } from '../util/calendar/hooks'
-import Calendar from '../util/calendar/Calendar'
+import Calendar, { Shift } from '../util/calendar/Calendar'
+import { OnCallShift, Schedule } from '../../schema'
 
 const query = gql`
-  query userCalendarShifts(
-    $id: ID!
-    $start: ISOTimestamp!
-    $end: ISOTimestamp!
-  ) {
-    userShifts(input: { id: $id, start: $start, end: $end }) {
-      start
-      end
-      truncated
-      target {
+  query user($id: ID!, $start: ISOTimestamp!, $end: ISOTimestamp!) {
+    user(id: $id) {
+      id
+      assignedSchedules {
         id
-        type
         name
+        shifts(start: $start, end: $end, userIDs: [$id]) {
+          start
+          end
+        }
       }
     }
   }
@@ -59,5 +57,25 @@ export default function UserShiftsCalendar({
   if (isMobile) return null
   if (error) return <GenericError error={error.message} />
 
-  return <Calendar loading={fetching} shifts={data?.userShifts} />
+  function makeCalendarShifts(): OnCallShift[] {
+    const assignedSchedules: Schedule[] = data?.user?.assignedSchedules ?? []
+
+    const s: Shift[] = []
+    assignedSchedules.forEach((a) => {
+      a.shifts.forEach((shift) => {
+        s.push({
+          userID: shift.userID,
+          start: shift.start,
+          end: shift.end,
+          truncated: shift.truncated,
+          targetName: a.name,
+          targetID: a.id,
+        })
+      })
+    })
+
+    return s
+  }
+
+  return <Calendar loading={fetching} shifts={makeCalendarShifts()} />
 }
