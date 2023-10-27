@@ -49,7 +49,7 @@ const useStyles = makeStyles({
   },
 })
 
-const sortItems = (a: IntegrationKey, b: IntegrationKey): number => {
+export const sortItems = (a: IntegrationKey, b: IntegrationKey): number => {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
   if (a.name.toLowerCase() > b.name.toLowerCase()) return 1
   if (a.name < b.name) return -1

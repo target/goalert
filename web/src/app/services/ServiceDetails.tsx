@@ -173,6 +173,11 @@ export default function ServiceDetails(props: {
             url: 'alert-metrics',
             subText: 'Review alert activity',
           },
+          {
+            label: 'Rules',
+            url: 'rules',
+            subText: 'Manage service rules',
+          },
         ]}
       />
       {showEdit && (
