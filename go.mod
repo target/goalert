@@ -11,7 +11,7 @@ require (
 	github.com/emersion/go-smtp v0.18.1
 	github.com/fatih/color v1.15.0
 	github.com/felixge/httpsnoop v1.0.3
-	github.com/fullstorydev/grpcui v1.3.2
+	github.com/fullstorydev/grpcui v1.3.3
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/google/go-github/v55 v55.0.0
@@ -108,7 +108,7 @@ require (
 	github.com/jackc/pgx/v4 v4.18.1 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jaytaylor/html2text v0.0.0-20230321000545-74c2419ad056 // indirect
-	github.com/jhump/protoreflect v1.15.2 // indirect
+	github.com/jhump/protoreflect v1.15.3 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailhog/MailHog-UI v1.0.1 // indirect
 	github.com/mailhog/http v1.0.1 // indirect
