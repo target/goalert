@@ -68,7 +68,36 @@ export default function AdminAPIKeys(): JSX.Element {
     return <Spinner />
   }
 
-  const items = data.gqlAPIKeys.map(
+  const sortedByName = data.gqlAPIKeys.sort((a: GQLAPIKey, b: GQLAPIKey) => {
+    // We want to sort by name, but handle numbers in the name, in addition to text, so we'll break them out
+    // into words and sort by each "word".
+
+    // Split the name into words
+    const aWords = a.name.split(' ')
+    const bWords = b.name.split(' ')
+
+    // Loop through each word
+    for (let i = 0; i < aWords.length; i++) {
+      // If the word doesn't exist in the other name, it should be sorted first
+      if (!bWords[i]) {
+        return 1
+      }
+
+      // If the word is a number, convert it to a number
+      const aWord = isNaN(Number(aWords[i])) ? aWords[i] : Number(aWords[i])
+      const bWord = isNaN(Number(bWords[i])) ? bWords[i] : Number(bWords[i])
+
+      // If the words are not equal, return the comparison
+      if (aWord !== bWord) {
+        return aWord > bWord ? 1 : -1
+      }
+    }
+
+    // If we've made it this far, the words are equal, so return 0
+    return 0
+  })
+
+  const items = sortedByName.map(
     (key: GQLAPIKey): FlatListListItem => ({
       selected: (key as GQLAPIKey).id === selectedAPIKey?.id,
       highlight: (key as GQLAPIKey).id === selectedAPIKey?.id,
