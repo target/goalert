@@ -26,15 +26,19 @@ const query = gql`
         id
         name
         serviceID
-        integrationKeys {
-          name
-        }
         filters {
           field
           operator
           value
         }
         sendAlert
+      }
+      integrationKeys {
+        id
+        name
+        type
+        name
+        href
       }
     }
   }
@@ -141,6 +145,7 @@ export default function SignalRules(props: { serviceID: string }): JSX.Element {
         <ServiceRuleCreateDialog
           serviceID={props.serviceID}
           onClose={(): void => setCreate(false)}
+          integrationKeys={data.service.integrationKeys}
         />
       )}
       {deleteDialog && (

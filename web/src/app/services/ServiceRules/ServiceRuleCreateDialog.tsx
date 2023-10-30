@@ -8,6 +8,7 @@ import ServiceRuleForm, {
   ServiceRuleValue,
 } from './ServiceRuleForm'
 import {
+  IntegrationKey,
   ServiceRuleFilterInput,
   ServiceRuleFilterValueType,
 } from '../../../schema'
@@ -35,6 +36,7 @@ const mutation = gql`
 export default function ServiceRuleCreateDialog(props: {
   serviceID: string
   onClose: () => void
+  integrationKeys: IntegrationKey[]
 }): JSX.Element {
   const { serviceID, onClose } = props
   const [value, setValue] = useState<ServiceRuleValue>({
@@ -75,6 +77,17 @@ export default function ServiceRuleCreateDialog(props: {
     return valueType
   }
 
+  // getIntegrationKeyValues returns a list of integration key IDs from key objects
+  const getIntegrationKeyValues = (): string[] => {
+    const integrationKeys: string[] = []
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    value.integrationKeys.forEach((key: any): void => {
+      console.log(key)
+      integrationKeys.push(key.value)
+    })
+    return integrationKeys
+  }
+
   const getFiltersWithValueTypes = (): ServiceRuleFilterInput[] => {
     const filters: ServiceRuleFilterInput[] = []
     value.filters.forEach((filter: ServiceRuleFilterInput) => {
@@ -107,7 +120,7 @@ export default function ServiceRuleCreateDialog(props: {
               sendAlert: value.sendAlert,
               actions: JSON.stringify(validActions),
               filters: getFiltersWithValueTypes(),
-              integrationKeys: value.integrationKeys,
+              integrationKeys: getIntegrationKeyValues(),
             },
           },
           { additionalTypenames: ['ServiceRule'] },
@@ -123,6 +136,7 @@ export default function ServiceRuleCreateDialog(props: {
           }}
           serviceID={serviceID}
           actionsError={actionsError}
+          integrationKeys={props.integrationKeys}
         />
       }
     />

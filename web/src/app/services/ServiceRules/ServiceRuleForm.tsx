@@ -10,12 +10,12 @@ import {
   FormControlLabel,
 } from '@mui/material'
 import { FormContainer, FormField } from '../../forms'
-import { ServiceRuleFilterInput } from '../../../schema'
+import { IntegrationKey, ServiceRuleFilterInput } from '../../../schema'
 import makeStyles from '@mui/styles/makeStyles'
 import AddIcon from '@mui/icons-material/Add'
 import ClearIcon from '@mui/icons-material/Clear'
-import { IntegrationKeySelect } from '../../selection/IntegrationKeySelect'
 import { FieldError } from '../../util/errutil'
+import MaterialSelect from '../../selection/MaterialSelect'
 
 // exists so we can use actions as an array instead of a json string
 export interface ServiceRuleValue {
@@ -46,6 +46,7 @@ interface ServiceRuleFormProps {
 
   onChange: (val: ServiceRuleValue) => void
   disabled: boolean
+  integrationKeys: IntegrationKey[]
 }
 
 type FieldProps = {
@@ -114,7 +115,7 @@ export default function ServiceRuleForm(
   props: ServiceRuleFormProps,
 ): JSX.Element {
   const classes = useStyles()
-  const { serviceID, actionsError, ...formProps } = props
+  const { serviceID, actionsError, integrationKeys, ...formProps } = props
 
   const handleAddFilter = (): void => {
     formProps.onChange({
@@ -254,13 +255,17 @@ export default function ServiceRuleForm(
         </Grid>
         <Grid item style={{ flexGrow: 1 }} xs={12}>
           <FormField
-            component={IntegrationKeySelect}
-            fullWidth
-            label='Select Integration Key(s)'
-            multiple
-            name='integrationKeys'
-            required
             value={formProps.value.integrationKeys}
+            component={MaterialSelect}
+            name='integrationKeys'
+            label='Select Integration Key(s)'
+            required
+            fullWidth
+            multiple
+            options={integrationKeys.map((key: IntegrationKey) => ({
+              label: key.name,
+              value: key.id,
+            }))}
           />
         </Grid>
         <Grid item xs={12}>
