@@ -3,7 +3,7 @@ module github.com/target/goalert
 go 1.21
 
 require (
-	github.com/99designs/gqlgen v0.17.39
+	github.com/99designs/gqlgen v0.17.40
 	github.com/brianvoe/gofakeit/v6 v6.23.2
 	github.com/coreos/go-oidc/v3 v3.7.0
 	github.com/creack/pty v1.1.18
