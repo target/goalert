@@ -54,6 +54,7 @@ const query = gql`
 interface Props {
   onClose: () => void
   apiKeyID?: string
+  onDuplicateClick: () => void
 }
 
 const useStyles = makeStyles(() => ({
@@ -166,11 +167,13 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
           </List>
           <Grid className={classes.buttons}>
             <ButtonGroup variant='contained'>
-              <Button data-cy='delete' onClick={() => setDialogDialog(true)}>
-                Delete
-              </Button>
-              <Button data-cy='edit' onClick={() => setEditDialog(true)}>
-                Edit
+              <Button onClick={() => setDialogDialog(true)}>Delete</Button>
+              <Button onClick={() => setEditDialog(true)}>Edit</Button>
+              <Button
+                onClick={() => props.onDuplicateClick()}
+                title='Create a new API Key with the same settings as this one.'
+              >
+                Duplicate
               </Button>
             </ButtonGroup>
           </Grid>

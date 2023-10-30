@@ -52,14 +52,10 @@ const useStyles = makeStyles((theme: Theme) => ({
 export default function AdminAPIKeys(): JSX.Element {
   const classes = useStyles()
   const [selectedAPIKey, setSelectedAPIKey] = useState<GQLAPIKey | null>(null)
-  const [createAPIKeyDialogClose, onCreateAPIKeyDialogClose] = useState(false)
+  const [createDialog, setCreateDialog] = useState<boolean>(false)
+  const [createFromID, setCreateFromID] = useState('')
   const [editDialog, setEditDialog] = useState<string | undefined>()
   const [deleteDialog, setDeleteDialog] = useState<string | undefined>()
-
-  // handles the openning of the create dialog form which is used for creating new API Key
-  const handleOpenCreateDialog = (): void => {
-    onCreateAPIKeyDialogClose(!createAPIKeyDialogClose)
-  }
 
   // Get API Key triggers/actions
   const [{ data, fetching, error }] = useQuery({ query })
@@ -123,6 +119,13 @@ export default function AdminAPIKeys(): JSX.Element {
                   label: 'Delete',
                   onClick: () => setDeleteDialog(key.id),
                 },
+                {
+                  label: 'Duplicate',
+                  onClick: () => {
+                    setCreateDialog(true)
+                    setCreateFromID(key.id)
+                  },
+                },
               ]}
             />
           </Grid>
@@ -139,28 +142,31 @@ export default function AdminAPIKeys(): JSX.Element {
           setSelectedAPIKey(null)
         }}
         apiKeyID={selectedAPIKey?.id}
+        onDuplicateClick={() => {
+          setCreateDialog(true)
+          setCreateFromID(selectedAPIKey?.id || '')
+        }}
       />
-      {createAPIKeyDialogClose ? (
+      {createDialog && (
         <AdminAPIKeyCreateDialog
-          onClose={() => {
-            onCreateAPIKeyDialogClose(false)
-          }}
+          fromID={createFromID}
+          onClose={() => setCreateDialog(false)}
         />
-      ) : null}
-      {deleteDialog ? (
+      )}
+      {deleteDialog && (
         <AdminAPIKeyDeleteDialog
           onClose={(): void => {
             setDeleteDialog('')
           }}
           apiKeyID={deleteDialog}
         />
-      ) : null}
-      {editDialog ? (
+      )}
+      {editDialog && (
         <AdminAPIKeyEditDialog
           onClose={() => setEditDialog('')}
           apiKeyID={editDialog}
         />
-      ) : null}
+      )}
       <div
         className={
           selectedAPIKey ? classes.containerSelected : classes.containerDefault
@@ -171,7 +177,7 @@ export default function AdminAPIKeys(): JSX.Element {
             data-cy='new'
             variant='contained'
             className={classes.buttons}
-            onClick={handleOpenCreateDialog}
+            onClick={() => setCreateDialog(true)}
             startIcon={<Add />}
           >
             Create API Key

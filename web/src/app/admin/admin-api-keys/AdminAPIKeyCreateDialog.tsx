@@ -1,10 +1,10 @@
-import React, { useState } from 'react'
-import { gql, useMutation } from 'urql'
+import React, { useEffect, useState } from 'react'
+import { gql, useMutation, useQuery } from 'urql'
 import CopyText from '../../util/CopyText'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import AdminAPIKeyForm from './AdminAPIKeyForm'
-import { CreateGQLAPIKeyInput } from '../../../schema'
+import { CreateGQLAPIKeyInput, GQLAPIKey } from '../../../schema'
 import { CheckCircleOutline as SuccessIcon } from '@mui/icons-material'
 import { DateTime } from 'luxon'
 import { Grid, Typography, FormHelperText } from '@mui/material'
@@ -16,6 +16,20 @@ const newGQLAPIKeyQuery = gql`
     createGQLAPIKey(input: $input) {
       id
       token
+    }
+  }
+`
+
+const fromExistingQuery = gql`
+  query {
+    gqlAPIKeys {
+      id
+      name
+      description
+      role
+      allowedFields
+      createdAt
+      expiresAt
     }
   }
 `
@@ -34,8 +48,18 @@ function AdminAPIKeyToken(props: { token: string }): React.ReactNode {
   )
 }
 
+// nextName will increment the number (if any) at the end of the name.
+function nextName(name: string): string {
+  const match = name.match(/^(.*?)\s*(\d+)?$/)
+  if (!match) return name
+  const [, base, num] = match
+  if (!num) return `${base} 2`
+  return `${base} ${parseInt(num) + 1}`
+}
+
 export default function AdminAPIKeyCreateDialog(props: {
   onClose: () => void
+  fromID?: string
 }): React.ReactNode {
   const [value, setValue] = useState<CreateGQLAPIKeyInput>({
     name: '',
@@ -46,6 +70,29 @@ export default function AdminAPIKeyCreateDialog(props: {
   })
   const [status, createKey] = useMutation(newGQLAPIKeyQuery)
   const token = status.data?.createGQLAPIKey?.token || null
+  const [{ data }] = useQuery({
+    query: fromExistingQuery,
+    pause: !props.fromID,
+  })
+
+  useEffect(() => {
+    if (!data?.gqlAPIKeys?.length) return
+    const from = data.gqlAPIKeys.find((k: GQLAPIKey) => k.id === props.fromID)
+    if (!from) return
+
+    const created = DateTime.fromISO(from.createdAt)
+    const expires = DateTime.fromISO(from.expiresAt)
+
+    const keyLifespan = expires.diff(created, 'days').days
+
+    setValue({
+      name: nextName(from.name),
+      description: from.description,
+      allowedFields: from.allowedFields,
+      expiresAt: DateTime.utc().plus({ days: keyLifespan }).toISO(),
+      role: from.role,
+    })
+  }, [data?.gqlAPIKeys])
 
   // handles form on submit event, based on the action type (edit, create) it will send the necessary type of parameter
   // token is also being set here when create action is used
