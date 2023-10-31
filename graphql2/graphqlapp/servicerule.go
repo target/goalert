@@ -3,12 +3,10 @@ package graphqlapp
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/service/rule"
-	"github.com/target/goalert/validation"
 )
 
 type ServiceRule App
@@ -29,11 +27,6 @@ func (s *ServiceRule) Filters(ctx context.Context, r *rule.Rule) ([]rule.Filter,
 
 func (m *Mutation) CreateServiceRule(ctx context.Context, input graphql2.CreateServiceRuleInput) (r *rule.Rule, err error) {
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
-		actions := []map[string]interface{}{}
-		err = json.Unmarshal([]byte(input.Actions), &actions)
-		if err != nil {
-			return validation.NewFieldError("Actions", "unmarshal actions")
-		}
 		filterString, err := rule.FiltersToExprString(input.Filters)
 		if err != nil {
 			return err
@@ -43,7 +36,7 @@ func (m *Mutation) CreateServiceRule(ctx context.Context, input graphql2.CreateS
 			ServiceID:       input.ServiceID,
 			FilterString:    filterString,
 			SendAlert:       input.SendAlert,
-			Actions:         actions,
+			Actions:         input.Actions,
 			IntegrationKeys: input.IntegrationKeys,
 		})
 		return err
@@ -53,11 +46,6 @@ func (m *Mutation) CreateServiceRule(ctx context.Context, input graphql2.CreateS
 
 func (m *Mutation) UpdateServiceRule(ctx context.Context, input graphql2.UpdateServiceRuleInput) (r *rule.Rule, err error) {
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
-		actions := []map[string]interface{}{}
-		err = json.Unmarshal([]byte(input.Actions), &actions)
-		if err != nil {
-			return validation.NewFieldError("Actions", "unmarshal actions")
-		}
 		filterString, err := rule.FiltersToExprString(input.Filters)
 		if err != nil {
 			return err
@@ -67,7 +55,7 @@ func (m *Mutation) UpdateServiceRule(ctx context.Context, input graphql2.UpdateS
 			Name:            input.Name,
 			FilterString:    filterString,
 			SendAlert:       input.SendAlert,
-			Actions:         actions,
+			Actions:         input.Actions,
 			IntegrationKeys: input.IntegrationKeys,
 		})
 		return err

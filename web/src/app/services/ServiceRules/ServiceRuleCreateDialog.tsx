@@ -3,21 +3,30 @@ import { useMutation, gql } from 'urql'
 
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
-import ServiceRuleForm, {
-  ServiceRuleAction,
-  ServiceRuleValue,
-} from './ServiceRuleForm'
 import {
+  CreateServiceRuleInput,
   IntegrationKey,
+  ServiceRuleActionInput,
   ServiceRuleFilterInput,
   ServiceRuleFilterValueType,
+  UpdateServiceRuleInput,
 } from '../../../schema'
+import ServiceRuleForm from './ServiceRuleForm'
 
 const mutation = gql`
   mutation ($input: CreateServiceRuleInput!) {
     createServiceRule(input: $input) {
       name
       serviceID
+      actions {
+        destType
+        destID
+        destValue
+        contents {
+          prop
+          value
+        }
+      }
       sendAlert
       filters {
         field
@@ -39,7 +48,9 @@ export default function ServiceRuleCreateDialog(props: {
   integrationKeys: IntegrationKey[]
 }): JSX.Element {
   const { serviceID, onClose } = props
-  const [value, setValue] = useState<ServiceRuleValue>({
+  const [value, setValue] = useState<
+    CreateServiceRuleInput | UpdateServiceRuleInput
+  >({
     name: '',
     serviceID,
     filters: [],
@@ -52,12 +63,12 @@ export default function ServiceRuleCreateDialog(props: {
   const [createRuleStatus, commit] = useMutation(mutation)
 
   // getValidActions filters out any actions that have an empty destination
-  const getValidActions = (): ServiceRuleAction[] => {
-    const validActions: ServiceRuleAction[] = []
+  const getValidActions = (): ServiceRuleActionInput[] => {
+    const validActions: ServiceRuleActionInput[] = []
     if (value.actions.length === 0) return []
 
-    value.actions.forEach((action: ServiceRuleAction) => {
-      if (action.destination) validActions.push(action)
+    value.actions.forEach((action: ServiceRuleActionInput) => {
+      if (action.destType) validActions.push(action)
     })
 
     return validActions
@@ -82,7 +93,6 @@ export default function ServiceRuleCreateDialog(props: {
     const integrationKeys: string[] = []
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value.integrationKeys.forEach((key: any): void => {
-      console.log(key)
       integrationKeys.push(key.value)
     })
     return integrationKeys
@@ -118,7 +128,7 @@ export default function ServiceRuleCreateDialog(props: {
               name: value.name,
               serviceID,
               sendAlert: value.sendAlert,
-              actions: JSON.stringify(validActions),
+              actions: validActions,
               filters: getFiltersWithValueTypes(),
               integrationKeys: getIntegrationKeyValues(),
             },

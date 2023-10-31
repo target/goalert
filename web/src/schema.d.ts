@@ -1212,6 +1212,19 @@ export interface ServiceRule {
   integrationKeys: IntegrationKey[]
   filters: ServiceRuleFilter[]
   sendAlert: boolean
+  actions: ServiceRuleAction[]
+}
+
+export interface ServiceRuleAction {
+  destType: string
+  destID: string
+  destValue: string
+  contents: Content[]
+}
+
+export interface Content {
+  prop: string
+  value: string
 }
 
 export interface CreateServiceRuleInput {
@@ -1219,7 +1232,7 @@ export interface CreateServiceRuleInput {
   serviceID: string
   filters: ServiceRuleFilterInput[]
   sendAlert: boolean
-  actions: string
+  actions: ServiceRuleActionInput[]
   integrationKeys: string[]
 }
 
@@ -1228,7 +1241,7 @@ export interface UpdateServiceRuleInput {
   name: string
   filters: ServiceRuleFilterInput[]
   sendAlert: boolean
-  actions: string
+  actions: ServiceRuleActionInput[]
   integrationKeys: string[]
 }
 
@@ -1250,6 +1263,18 @@ export interface ServiceRuleFilterInput {
   operator: string
   value: string
   valueType: ServiceRuleFilterValueType
+}
+
+export interface ServiceRuleActionInput {
+  destType: string
+  destID: string
+  destValue: string
+  contents: ContentInput[]
+}
+
+export interface ContentInput {
+  prop: string
+  value: string
 }
 
 export interface Signal {

@@ -10,41 +10,28 @@ import {
   FormControlLabel,
 } from '@mui/material'
 import { FormContainer, FormField } from '../../forms'
-import { IntegrationKey, ServiceRuleFilterInput } from '../../../schema'
+import {
+  Content,
+  CreateServiceRuleInput,
+  IntegrationKey,
+  ServiceRuleActionInput,
+  ServiceRuleFilterInput,
+  UpdateServiceRuleInput,
+} from '../../../schema'
 import makeStyles from '@mui/styles/makeStyles'
 import AddIcon from '@mui/icons-material/Add'
 import ClearIcon from '@mui/icons-material/Clear'
 import { FieldError } from '../../util/errutil'
 import MaterialSelect from '../../selection/MaterialSelect'
 
-// exists so we can use actions as an array instead of a json string
-export interface ServiceRuleValue {
-  name: string
-  serviceID: string
-  filters: ServiceRuleFilterInput[]
-  sendAlert: boolean
-  actions: ServiceRuleAction[]
-  integrationKeys: string[]
-}
-
-export interface ServiceRuleAction {
-  destination?: null | string
-  contents?: null | Content[]
-}
-
-export interface Content {
-  prop: string
-  value: string
-}
-
 interface ServiceRuleFormProps {
-  value: ServiceRuleValue
+  value: CreateServiceRuleInput | UpdateServiceRuleInput
   serviceID: string
   errors: FieldError[]
 
   actionsError: boolean
 
-  onChange: (val: ServiceRuleValue) => void
+  onChange: (val: CreateServiceRuleInput | UpdateServiceRuleInput) => void
   disabled: boolean
   integrationKeys: IntegrationKey[]
 }
@@ -145,7 +132,10 @@ export default function ServiceRuleForm(
       actions: [
         ...formProps.value.actions,
         {
-          destination: '',
+          destType: '',
+          destID: '',
+          destValue: '',
+          contents: [],
         },
       ],
       integrationKeys: formProps.value.integrationKeys,
@@ -154,7 +144,7 @@ export default function ServiceRuleForm(
 
   const handleActionDestSelect = (dest: string, actionIdx: number): void => {
     const actions = formProps.value.actions
-    actions[actionIdx].destination = dest
+    actions[actionIdx].destType = dest
     switch (dest) {
       case 'slack':
         actions[actionIdx].contents = [
@@ -228,15 +218,17 @@ export default function ServiceRuleForm(
     })
   }
 
-  const handleDeleteAction = (deleteAction: ServiceRuleAction): void => {
+  const handleDeleteAction = (deleteAction: ServiceRuleActionInput): void => {
     formProps.onChange({
       name: formProps.value.name,
       serviceID,
       filters: formProps.value.filters,
       sendAlert: formProps.value.sendAlert,
-      actions: formProps.value.actions.filter((action: ServiceRuleAction) => {
-        return action !== deleteAction
-      }),
+      actions: formProps.value.actions.filter(
+        (action: ServiceRuleActionInput) => {
+          return action !== deleteAction
+        },
+      ),
       integrationKeys: formProps.value.integrationKeys,
     })
   }
@@ -366,7 +358,7 @@ export default function ServiceRuleForm(
         <Grid item xs={12}>
           <Field label='Actions'>
             {formProps.value.actions.map(
-              (action: ServiceRuleAction, actionIdx: number) => {
+              (action: ServiceRuleActionInput, actionIdx: number) => {
                 return (
                   <React.Fragment key={actionIdx}>
                     <Grid container>
@@ -375,7 +367,7 @@ export default function ServiceRuleForm(
                           fullWidth
                           select
                           label='Select Action'
-                          value={action.destination}
+                          value={action.destType}
                         >
                           {destinations.map((dest) => (
                             <MenuItem

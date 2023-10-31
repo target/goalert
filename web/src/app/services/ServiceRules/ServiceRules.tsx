@@ -26,6 +26,15 @@ const query = gql`
         id
         name
         serviceID
+        actions {
+          destType
+          destID
+          destValue
+          contents {
+            prop
+            value
+          }
+        }
         filters {
           field
           operator

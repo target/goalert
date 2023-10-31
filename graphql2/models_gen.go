@@ -198,7 +198,7 @@ type CreateServiceRuleInput struct {
 	ServiceID       string        `json:"serviceID"`
 	Filters         []rule.Filter `json:"filters"`
 	SendAlert       bool          `json:"sendAlert"`
-	Actions         string        `json:"actions"`
+	Actions         []rule.Action `json:"actions"`
 	IntegrationKeys []string      `json:"integrationKeys"`
 }
 
@@ -697,7 +697,7 @@ type UpdateServiceRuleInput struct {
 	Name            string        `json:"name"`
 	Filters         []rule.Filter `json:"filters"`
 	SendAlert       bool          `json:"sendAlert"`
-	Actions         string        `json:"actions"`
+	Actions         []rule.Action `json:"actions"`
 	IntegrationKeys []string      `json:"integrationKeys"`
 }
 
