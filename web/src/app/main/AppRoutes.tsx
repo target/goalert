@@ -31,7 +31,7 @@ import ServiceAlerts from '../services/ServiceAlerts'
 import ServiceDetails from '../services/ServiceDetails'
 import ServiceLabelList from '../services/ServiceLabelList'
 import ServiceList from '../services/ServiceList'
-import ServiceRules from '../services/ServiceRules/ServiceRules'
+import ServiceRulesList from '../services/ServiceRules/ServiceRulesList'
 import UserCalendarSubscriptionList from '../users/UserCalendarSubscriptionList'
 import UserDetails from '../users/UserDetails'
 import UserList from '../users/UserList'
@@ -101,7 +101,7 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/services/:serviceID/integration-keys': IntegrationKeyList,
   '/services/:serviceID/labels': ServiceLabelList,
   '/services/:serviceID/alert-metrics': AlertMetrics,
-  '/services/:serviceID/rules': ServiceRules,
+  '/services/:serviceID/rules': ServiceRulesList,
 
   '/users': UserList,
   '/users/:userID': UserDetails,

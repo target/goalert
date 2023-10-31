@@ -4,14 +4,12 @@ import { useMutation, gql } from 'urql'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import {
-  CreateServiceRuleInput,
   IntegrationKey,
   ServiceRuleActionInput,
   ServiceRuleFilterInput,
   ServiceRuleFilterValueType,
-  UpdateServiceRuleInput,
 } from '../../../schema'
-import ServiceRuleForm from './ServiceRuleForm'
+import ServiceRuleForm, { ServiceRuleValue } from './ServiceRuleForm'
 
 const mutation = gql`
   mutation ($input: CreateServiceRuleInput!) {
@@ -42,15 +40,62 @@ const mutation = gql`
   }
 `
 
+// getValidActions filters out any actions that have an empty destination
+export const getValidActions = (
+  v: ServiceRuleValue,
+): ServiceRuleActionInput[] => {
+  const validActions: ServiceRuleActionInput[] = []
+  if (v.actions.length === 0) return []
+
+  v.actions.forEach((action: ServiceRuleActionInput) => {
+    if (action.destType) validActions.push(action)
+  })
+
+  return validActions
+}
+
+export const getFilterValueType = (v: string): ServiceRuleFilterValueType => {
+  let valueType: ServiceRuleFilterValueType = 'UNKNOWN'
+  v = v.trim()
+  if (v.toLowerCase() === 'true' || v.toLowerCase() === 'false') {
+    valueType = 'BOOL'
+  } else if (!isNaN(Number(v)) && !isNaN(parseFloat(v))) {
+    valueType = 'NUMBER'
+  } else {
+    valueType = 'STRING'
+  }
+
+  return valueType
+}
+
+export const getFiltersWithValueTypes = (
+  v: ServiceRuleValue,
+): ServiceRuleFilterInput[] => {
+  const filters: ServiceRuleFilterInput[] = []
+  v.filters.forEach((filter: ServiceRuleFilterInput) => {
+    filter.valueType = getFilterValueType(filter.value)
+    filters.push(filter)
+  })
+  return filters
+}
+
+// getIntegrationKeyValues returns a list of integration key IDs from key objects
+export const getIntegrationKeyValues = (v: ServiceRuleValue): string[] => {
+  const integrationKeys: string[] = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  v.integrationKeys.forEach((key: any): void => {
+    integrationKeys.push(key.value)
+  })
+  return integrationKeys
+}
+
 export default function ServiceRuleCreateDialog(props: {
   serviceID: string
   onClose: () => void
   integrationKeys: IntegrationKey[]
 }): JSX.Element {
-  const { serviceID, onClose } = props
-  const [value, setValue] = useState<
-    CreateServiceRuleInput | UpdateServiceRuleInput
-  >({
+  const { serviceID, onClose, integrationKeys } = props
+  const [value, setValue] = useState<ServiceRuleValue>({
     name: '',
     serviceID,
     filters: [],
@@ -59,53 +104,7 @@ export default function ServiceRuleCreateDialog(props: {
     integrationKeys: [],
   })
   const [actionsError, setActionsError] = useState<boolean>(false)
-
   const [createRuleStatus, commit] = useMutation(mutation)
-
-  // getValidActions filters out any actions that have an empty destination
-  const getValidActions = (): ServiceRuleActionInput[] => {
-    const validActions: ServiceRuleActionInput[] = []
-    if (value.actions.length === 0) return []
-
-    value.actions.forEach((action: ServiceRuleActionInput) => {
-      if (action.destType) validActions.push(action)
-    })
-
-    return validActions
-  }
-
-  const getFilterValueType = (value: string): ServiceRuleFilterValueType => {
-    let valueType: ServiceRuleFilterValueType = 'UNKNOWN'
-    value = value.trim()
-    if (value.toLowerCase() === 'true' || value.toLowerCase() === 'false') {
-      valueType = 'BOOL'
-    } else if (!isNaN(Number(value)) && !isNaN(parseFloat(value))) {
-      valueType = 'NUMBER'
-    } else {
-      valueType = 'STRING'
-    }
-
-    return valueType
-  }
-
-  // getIntegrationKeyValues returns a list of integration key IDs from key objects
-  const getIntegrationKeyValues = (): string[] => {
-    const integrationKeys: string[] = []
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    value.integrationKeys.forEach((key: any): void => {
-      integrationKeys.push(key.value)
-    })
-    return integrationKeys
-  }
-
-  const getFiltersWithValueTypes = (): ServiceRuleFilterInput[] => {
-    const filters: ServiceRuleFilterInput[] = []
-    value.filters.forEach((filter: ServiceRuleFilterInput) => {
-      filter.valueType = getFilterValueType(filter.value)
-      filters.push(filter)
-    })
-    return filters
-  }
 
   return (
     <FormDialog
@@ -115,7 +114,7 @@ export default function ServiceRuleCreateDialog(props: {
       errors={nonFieldErrors(createRuleStatus.error)}
       onClose={onClose}
       onSubmit={() => {
-        const validActions = getValidActions()
+        const validActions = getValidActions(value)
         if (validActions.length === 0) {
           setActionsError(true)
           return
@@ -129,8 +128,8 @@ export default function ServiceRuleCreateDialog(props: {
               serviceID,
               sendAlert: value.sendAlert,
               actions: validActions,
-              filters: getFiltersWithValueTypes(),
-              integrationKeys: getIntegrationKeyValues(),
+              filters: getFiltersWithValueTypes(value),
+              integrationKeys: getIntegrationKeyValues(value),
             },
           },
           { additionalTypenames: ['ServiceRule'] },
@@ -146,7 +145,7 @@ export default function ServiceRuleCreateDialog(props: {
           }}
           serviceID={serviceID}
           actionsError={actionsError}
-          integrationKeys={props.integrationKeys}
+          integrationKeys={integrationKeys}
         />
       }
     />

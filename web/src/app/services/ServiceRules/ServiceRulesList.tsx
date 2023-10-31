@@ -6,10 +6,7 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import CreateFAB from '../../lists/CreateFAB'
 import FlatList, { FlatListListItem } from '../../lists/FlatList'
-import IconButton from '@mui/material/IconButton'
-import { Trash } from '../../icons'
 import ServiceRuleCreateDialog from './ServiceRuleCreateDialog'
-import IntegrationKeyDeleteDialog from '../IntegrationKeyDeleteDialog'
 import { useIsWidthDown } from '../../util/useWidth'
 import { Add } from '@mui/icons-material'
 import makeStyles from '@mui/styles/makeStyles'
@@ -18,6 +15,9 @@ import { GenericError } from '../../error-pages'
 import { IntegrationKey, ServiceRule } from '../../../schema'
 import { sortItems } from '../IntegrationKeyList'
 import { Typography, Chip } from '@mui/material'
+import OtherActions from '../../util/OtherActions'
+import ServiceRuleEditDialog from './ServiceRuleEditDialog'
+import ServiceRuleDeleteDialog from './ServiceRuleDeleteDialog'
 
 const query = gql`
   query ($serviceID: ID!) {
@@ -41,6 +41,13 @@ const query = gql`
           value
         }
         sendAlert
+        integrationKeys {
+          id
+          name
+          type
+          name
+          href
+        }
       }
       integrationKeys {
         id
@@ -86,11 +93,14 @@ export function ServiceRuleDetails(props: { rule: ServiceRule }): JSX.Element {
   )
 }
 
-export default function SignalRules(props: { serviceID: string }): JSX.Element {
+export default function ServiceRulesList(props: {
+  serviceID: string
+}): JSX.Element {
   const classes = useStyles()
   const isMobile = useIsWidthDown('md')
   const [create, setCreate] = useState<boolean>(false)
-  const [deleteDialog, setDeleteDialog] = useState<string | null>(null)
+  const [editRule, setEditRule] = useState<ServiceRule | null>(null)
+  const [deleteRule, setDeleteRule] = useState<string | null>(null)
 
   const [{ fetching, error, data }] = useQuery({
     query,
@@ -107,12 +117,18 @@ export default function SignalRules(props: { serviceID: string }): JSX.Element {
         title: rule.name,
         subText: <ServiceRuleDetails key={rule.id} rule={rule} />,
         secondaryAction: (
-          <IconButton
-            onClick={(): void => setDeleteDialog(rule.id)}
-            size='large'
-          >
-            <Trash />
-          </IconButton>
+          <OtherActions
+            actions={[
+              {
+                label: 'Edit',
+                onClick: () => setEditRule(rule),
+              },
+              {
+                label: 'Delete',
+                onClick: () => setDeleteRule(rule.id),
+              },
+            ]}
+          />
         ),
       }),
     )
@@ -157,10 +173,18 @@ export default function SignalRules(props: { serviceID: string }): JSX.Element {
           integrationKeys={data.service.integrationKeys}
         />
       )}
-      {deleteDialog && (
-        <IntegrationKeyDeleteDialog
-          integrationKeyID={deleteDialog}
-          onClose={(): void => setDeleteDialog(null)}
+      {editRule && (
+        <ServiceRuleEditDialog
+          serviceID={props.serviceID}
+          rule={editRule}
+          onClose={(): void => setEditRule(null)}
+          integrationKeys={data.service.integrationKeys}
+        />
+      )}
+      {deleteRule && (
+        <ServiceRuleDeleteDialog
+          ruleID={deleteRule}
+          onClose={(): void => setDeleteRule(null)}
         />
       )}
     </React.Fragment>

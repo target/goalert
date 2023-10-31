@@ -12,11 +12,10 @@ import {
 import { FormContainer, FormField } from '../../forms'
 import {
   Content,
-  CreateServiceRuleInput,
   IntegrationKey,
   ServiceRuleActionInput,
   ServiceRuleFilterInput,
-  UpdateServiceRuleInput,
+  ServiceRuleFilterValueType,
 } from '../../../schema'
 import makeStyles from '@mui/styles/makeStyles'
 import AddIcon from '@mui/icons-material/Add'
@@ -26,14 +25,48 @@ import MaterialSelect from '../../selection/MaterialSelect'
 import toTitleCase from '../../util/toTitleCase'
 import { SlackChannelSelect } from '../../selection'
 
+export interface ServiceRuleValue {
+  id?: string
+  name: string
+  serviceID?: string
+  filters: ServiceRuleFilterValue[]
+  sendAlert: boolean
+  actions: ServiceRuleActionValue[]
+  integrationKeys: IntegrationKeySelectVal[]
+}
+
+interface ServiceRuleFilterValue {
+  field: string
+  operator: string
+  value: string
+  valueType: ServiceRuleFilterValueType
+}
+
+interface ServiceRuleActionValue {
+  destType: string
+  destID: string
+  destValue: string
+  contents: ContentValue[]
+}
+
+interface ContentValue {
+  prop: string
+  value: string
+}
+
+interface IntegrationKeySelectVal {
+  label: string
+  value: string
+}
+
 interface ServiceRuleFormProps {
-  value: CreateServiceRuleInput | UpdateServiceRuleInput
+  value: ServiceRuleValue
   serviceID: string
   errors: FieldError[]
 
   actionsError: boolean
 
-  onChange: (val: CreateServiceRuleInput | UpdateServiceRuleInput) => void
+  onChange: (val: ServiceRuleValue) => void
   disabled: boolean
   integrationKeys: IntegrationKey[]
 }
@@ -246,7 +279,6 @@ export default function ServiceRuleForm(
         </Grid>
         <Grid item style={{ flexGrow: 1 }} xs={12}>
           <FormField
-            value={formProps.value.integrationKeys}
             component={MaterialSelect}
             name='integrationKeys'
             label='Select Integration Key(s)'
