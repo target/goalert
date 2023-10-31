@@ -8,6 +8,7 @@ import {
   Fab,
   Checkbox,
   FormControlLabel,
+  Switch,
 } from '@mui/material'
 import { FormContainer, FormField } from '../../forms'
 import {
@@ -22,7 +23,6 @@ import AddIcon from '@mui/icons-material/Add'
 import ClearIcon from '@mui/icons-material/Clear'
 import { FieldError } from '../../util/errutil'
 import MaterialSelect from '../../selection/MaterialSelect'
-import toTitleCase from '../../util/toTitleCase'
 import { SlackChannelSelect } from '../../selection'
 
 export interface ServiceRuleValue {
@@ -33,6 +33,13 @@ export interface ServiceRuleValue {
   sendAlert: boolean
   actions: ServiceRuleActionValue[]
   integrationKeys: IntegrationKeySelectVal[]
+
+  customFields?: CustomFields
+}
+
+export interface CustomFields {
+  summary: string
+  details: string
 }
 
 interface ServiceRuleFilterValue {
@@ -103,7 +110,7 @@ const useStyles = makeStyles({
     paddingBottom: 0,
   },
   fab: {
-    marginTop: '1em',
+    marginTop: '0.5em',
   },
   filterRow: {
     marginBottom: '1em',
@@ -155,6 +162,7 @@ export default function ServiceRuleForm(
       sendAlert: formProps.value.sendAlert,
       actions: formProps.value.actions,
       integrationKeys: formProps.value.integrationKeys,
+      customFields: formProps.value.customFields,
     })
   }
 
@@ -174,6 +182,7 @@ export default function ServiceRuleForm(
         },
       ],
       integrationKeys: formProps.value.integrationKeys,
+      customFields: formProps.value.customFields,
     })
   }
 
@@ -216,7 +225,35 @@ export default function ServiceRuleForm(
       sendAlert: formProps.value.sendAlert,
       actions,
       integrationKeys: formProps.value.integrationKeys,
+      customFields: formProps.value.customFields,
     })
+  }
+
+  const handleAddCustomAlertFields = (e: boolean): void => {
+    if (e) {
+      formProps.onChange({
+        name: formProps.value.name,
+        serviceID,
+        filters: formProps.value.filters,
+        sendAlert: formProps.value.sendAlert,
+        actions: formProps.value.actions,
+        integrationKeys: formProps.value.integrationKeys,
+        customFields: {
+          summary: '',
+          details: '',
+        },
+      })
+    } else {
+      formProps.onChange({
+        name: formProps.value.name,
+        serviceID,
+        filters: formProps.value.filters,
+        sendAlert: formProps.value.sendAlert,
+        actions: formProps.value.actions,
+        integrationKeys: formProps.value.integrationKeys,
+        customFields: undefined,
+      })
+    }
   }
 
   const handleDeleteFilter = (deleteFilter: ServiceRuleFilterInput): void => {
@@ -231,6 +268,7 @@ export default function ServiceRuleForm(
       sendAlert: formProps.value.sendAlert,
       actions: formProps.value.actions,
       integrationKeys: formProps.value.integrationKeys,
+      customFields: formProps.value.customFields,
     })
   }
 
@@ -247,6 +285,7 @@ export default function ServiceRuleForm(
       sendAlert: formProps.value.sendAlert,
       actions: formProps.value.actions,
       integrationKeys: formProps.value.integrationKeys,
+      customFields: formProps.value.customFields,
     })
   }
 
@@ -262,6 +301,7 @@ export default function ServiceRuleForm(
         },
       ),
       integrationKeys: formProps.value.integrationKeys,
+      customFields: formProps.value.customFields,
     })
   }
 
@@ -384,92 +424,131 @@ export default function ServiceRuleForm(
               />
             }
           />
+          <FormControlLabel
+            label='Custom Fields'
+            labelPlacement='end'
+            control={
+              <Switch
+                checked={formProps.value.customFields !== undefined}
+                onChange={(e) => handleAddCustomAlertFields(e.target.checked)}
+              />
+            }
+            disabled={!formProps.value.sendAlert}
+          />
         </Grid>
-
+        {formProps.value.customFields && (
+          <React.Fragment>
+            <Grid item style={{ flexGrow: 1 }} xs={12}>
+              <FormField
+                fullWidth
+                component={TextField}
+                label='Summary'
+                name='customFields.summary'
+                required
+              />
+            </Grid>
+            <Grid item style={{ flexGrow: 1 }} xs={12}>
+              <FormField
+                fullWidth
+                component={TextField}
+                label='Details'
+                name='customFields.details'
+                required
+              />
+            </Grid>
+          </React.Fragment>
+        )}
         <Grid item xs={12}>
           <Field label='Actions'>
             {formProps.value.actions.map(
               (action: ServiceRuleActionInput, actionIdx: number) => {
-                return (
-                  <React.Fragment key={actionIdx}>
-                    <Grid container>
-                      <Grid item style={{ flexGrow: 1 }} xs={11}>
-                        <TextField
-                          fullWidth
-                          select
-                          label='Select Action'
-                          value={action.destType}
-                        >
-                          {destinations.map((dest) => (
-                            <MenuItem
-                              key={dest.value}
-                              onClick={() =>
-                                handleActionDestSelect(dest.value, actionIdx)
-                              }
-                              value={dest.value}
-                            >
-                              {dest.label}
-                            </MenuItem>
-                          ))}
-                        </TextField>
-                      </Grid>
+                if (action.destType !== 'GOALERT') {
+                  return (
+                    <React.Fragment key={actionIdx}>
+                      <Grid container>
+                        <Grid item style={{ flexGrow: 1 }} xs={11}>
+                          <TextField
+                            fullWidth
+                            select
+                            label='Select Action'
+                            value={action.destType}
+                          >
+                            {destinations.map((dest) => (
+                              <MenuItem
+                                key={dest.value}
+                                onClick={() =>
+                                  handleActionDestSelect(dest.value, actionIdx)
+                                }
+                                value={dest.value}
+                              >
+                                {dest.label}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        </Grid>
 
-                      <Grid item style={{ flexGrow: 1 }} xs={1} sx={{ pl: 1 }}>
-                        <Fab
-                          className={classes.fab}
-                          size='small'
-                          color='error'
-                          aria-label='delete'
-                          onClick={() => handleDeleteAction(action)}
-                        >
-                          <ClearIcon />
-                        </Fab>
-                      </Grid>
-
-                      {action.destType === 'SLACK' && (
                         <Grid
                           item
-                          style={{ flexGrow: 1, marginTop: '1em' }}
-                          xs={12}
+                          style={{ flexGrow: 1 }}
+                          xs={1}
+                          sx={{ pl: 1 }}
                         >
-                          <FormField
-                            required
-                            component={SlackChannelSelect}
-                            fullWidth
-                            label='Select Channel(s)'
-                            name={`actions[${actionIdx}].destID`}
-                            value={formProps.value.actions[actionIdx].destID}
-                          />
+                          <Fab
+                            className={classes.fab}
+                            size='small'
+                            color='error'
+                            aria-label='delete'
+                            onClick={() => handleDeleteAction(action)}
+                          >
+                            <ClearIcon />
+                          </Fab>
                         </Grid>
-                      )}
-                      {action.contents &&
-                        action.contents.map(
-                          (c: Content, contentIdx: number) => {
-                            return (
-                              <Grid
-                                key={c.prop}
-                                item
-                                style={{ flexGrow: 1, marginTop: '1em' }}
-                                xs={12}
-                              >
-                                <FormField
-                                  fullWidth
-                                  component={TextField}
-                                  label={toTitleCase(c.prop)}
-                                  name={`actions[${actionIdx}].contents[${contentIdx}].value`}
-                                  required
-                                />
-                              </Grid>
-                            )
-                          },
+
+                        {action.destType === 'SLACK' && (
+                          <Grid
+                            item
+                            style={{ flexGrow: 1, marginTop: '1em' }}
+                            xs={12}
+                          >
+                            <FormField
+                              required
+                              component={SlackChannelSelect}
+                              fullWidth
+                              label='Select Channel(s)'
+                              name={`actions[${actionIdx}].destID`}
+                              value={formProps.value.actions[actionIdx].destID}
+                            />
+                          </Grid>
                         )}
-                    </Grid>
-                    {formProps.value.actions.length > 1 &&
-                      actionIdx !== formProps.value.actions.length - 1 && (
-                        <Divider className={classes.actionDivider} />
-                      )}
-                  </React.Fragment>
-                )
+                        {action.contents &&
+                          action.contents.map(
+                            (c: Content, contentIdx: number) => {
+                              return (
+                                <Grid
+                                  key={c.prop}
+                                  item
+                                  style={{ flexGrow: 1, marginTop: '1em' }}
+                                  xs={12}
+                                >
+                                  <FormField
+                                    fullWidth
+                                    component={TextField}
+                                    label={c.prop}
+                                    name={`actions[${actionIdx}].contents[${contentIdx}].value`}
+                                    required
+                                  />
+                                </Grid>
+                              )
+                            },
+                          )}
+                      </Grid>
+                      {formProps.value.actions.length > 1 &&
+                        actionIdx !== formProps.value.actions.length - 1 && (
+                          <Divider className={classes.actionDivider} />
+                        )}
+                    </React.Fragment>
+                  )
+                }
               },
             )}
             {actionsError && (

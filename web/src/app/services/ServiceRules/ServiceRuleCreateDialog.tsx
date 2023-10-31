@@ -51,6 +51,19 @@ export const getValidActions = (
     if (action.destType) validActions.push(action)
   })
 
+  // add GoAlert custom fields action
+  if (v.customFields) {
+    validActions.push({
+      destType: 'GOALERT',
+      destID: '',
+      destValue: '',
+      contents: [
+        { prop: 'summary', value: v.customFields.summary },
+        { prop: 'details', value: v.customFields.details },
+      ],
+    })
+  }
+
   return validActions
 }
 
