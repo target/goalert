@@ -23,6 +23,8 @@ import AddIcon from '@mui/icons-material/Add'
 import ClearIcon from '@mui/icons-material/Clear'
 import { FieldError } from '../../util/errutil'
 import MaterialSelect from '../../selection/MaterialSelect'
+import toTitleCase from '../../util/toTitleCase'
+import { SlackChannelSelect } from '../../selection'
 
 interface ServiceRuleFormProps {
   value: CreateServiceRuleInput | UpdateServiceRuleInput
@@ -54,10 +56,10 @@ const operators = [
 ]
 
 const destinations = [
-  { label: 'Slack', value: 'slack' },
-  { label: 'ServiceNow Proactice Incident', value: 'servicenow' },
-  { label: 'Webhook', value: 'webhook' },
-  { label: 'Email', value: 'email' },
+  { label: 'Slack', value: 'SLACK' },
+  { label: 'ServiceNow Proactice Incident', value: 'SERVICENOW' },
+  { label: 'Webhook', value: 'WEBHOOK' },
+  { label: 'Email', value: 'EMAIL' },
 ]
 
 const useStyles = makeStyles({
@@ -146,27 +148,24 @@ export default function ServiceRuleForm(
     const actions = formProps.value.actions
     actions[actionIdx].destType = dest
     switch (dest) {
-      case 'slack':
-        actions[actionIdx].contents = [
-          { prop: 'channel', value: '' },
-          { prop: 'message', value: '' },
-        ]
+      case 'SLACK':
+        actions[actionIdx].contents = [{ prop: 'message', value: '' }]
         break
-      case 'servicenow':
+      case 'SERVICENOW':
         actions[actionIdx].contents = [
           { prop: 'assignment_group', value: '' },
           { prop: 'caused_by_this', value: '' },
           { prop: 'short_description', value: '' },
         ]
         break
-      case 'webhook':
+      case 'WEBHOOK':
         actions[actionIdx].contents = [
           { prop: 'body', value: '' },
           { prop: 'URL', value: '' },
           { prop: 'Method', value: '' },
         ]
         break
-      case 'email':
+      case 'EMAIL':
         actions[actionIdx].contents = [
           { prop: 'address', value: '' },
           { prop: 'subject', value: '' },
@@ -394,6 +393,23 @@ export default function ServiceRuleForm(
                           <ClearIcon />
                         </Fab>
                       </Grid>
+
+                      {action.destType === 'SLACK' && (
+                        <Grid
+                          item
+                          style={{ flexGrow: 1, marginTop: '1em' }}
+                          xs={12}
+                        >
+                          <FormField
+                            required
+                            component={SlackChannelSelect}
+                            fullWidth
+                            label='Select Channel(s)'
+                            name={`actions[${actionIdx}].destID`}
+                            value={formProps.value.actions[actionIdx].destID}
+                          />
+                        </Grid>
+                      )}
                       {action.contents &&
                         action.contents.map(
                           (c: Content, contentIdx: number) => {
@@ -407,7 +423,7 @@ export default function ServiceRuleForm(
                                 <FormField
                                   fullWidth
                                   component={TextField}
-                                  label={c.prop}
+                                  label={toTitleCase(c.prop)}
                                   name={`actions[${actionIdx}].contents[${contentIdx}].value`}
                                   required
                                 />
