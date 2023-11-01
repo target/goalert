@@ -179,7 +179,10 @@ export default function AdminAPIKeys(): JSX.Element {
       {createDialog && (
         <AdminAPIKeyCreateDialog
           fromID={createFromID}
-          onClose={() => setCreateDialog(false)}
+          onClose={() => {
+            setCreateDialog(false)
+            setCreateFromID('')
+          }}
         />
       )}
       {deleteDialog && (
