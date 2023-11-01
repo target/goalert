@@ -1533,6 +1533,19 @@ type ServiceRule {
   integrationKeys: [IntegrationKey!]!
   filters: [ServiceRuleFilter!]!
   sendAlert: Boolean!
+  actions: [ServiceRuleAction!]!
+}
+
+type ServiceRuleAction {
+  destType: String!
+  destID: String!
+  destValue: String!
+  contents: [Content!]!
+}
+
+type Content {
+  prop: String!
+  value: String!
 }
 
 input CreateServiceRuleInput {
@@ -1540,7 +1553,7 @@ input CreateServiceRuleInput {
   serviceID: ID!
   filters: [ServiceRuleFilterInput!]!
   sendAlert: Boolean!
-  actions: String!
+  actions: [ServiceRuleActionInput!]!
   integrationKeys: [ID!]!
 }
 
@@ -1549,7 +1562,7 @@ input UpdateServiceRuleInput {
   name: String!
   filters: [ServiceRuleFilterInput!]!
   sendAlert: Boolean!
-  actions: String!
+  actions: [ServiceRuleActionInput!]!
   integrationKeys: [ID!]!
 }
 
@@ -1572,6 +1585,18 @@ input ServiceRuleFilterInput {
   operator: String!
   value: String!
   valueType: ServiceRuleFilterValueType!
+}
+
+input ServiceRuleActionInput {
+  destType: String!
+  destID: String!
+  destValue: String!
+  contents: [ContentInput!]!
+}
+
+input ContentInput {
+  prop: String!
+  value: String!
 }
 
 type Signal {

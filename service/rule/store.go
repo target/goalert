@@ -27,7 +27,7 @@ func (s *Store) FindOne(ctx context.Context, dbtx gadb.DBTX, id string) (*Rule, 
 		return nil, errors.Wrap(err, "get rules for service")
 	}
 
-	actions := []map[string]interface{}{}
+	actions := []Action{}
 	if !row.SendAlert {
 		if !row.Actions.Valid {
 			return nil, fmt.Errorf("service rule has null action")
@@ -71,16 +71,14 @@ func (s *Store) FindManyByService(ctx context.Context, dbtx gadb.DBTX, serviceID
 
 	rules := make([]Rule, len(rows))
 	for i, row := range rows {
-		actions := []map[string]interface{}{}
-		if !row.SendAlert {
-			if !row.Actions.Valid {
-				return nil, fmt.Errorf("signal rule %d has null action", i)
-			}
-			actionsRaw := row.Actions.RawMessage
-			err := json.Unmarshal(actionsRaw, &actions)
-			if err != nil {
-				return nil, fmt.Errorf("bad actions value for signal rule %d", i)
-			}
+		actions := []Action{}
+		if !row.Actions.Valid {
+			return nil, fmt.Errorf("signal rule %d has null action", i)
+		}
+		actionsRaw := row.Actions.RawMessage
+		err := json.Unmarshal(actionsRaw, &actions)
+		if err != nil {
+			return nil, fmt.Errorf("bad actions value for signal rule %d", i)
 		}
 		rules[i] = Rule{
 			ID:              row.ID.String(),
@@ -89,6 +87,7 @@ func (s *Store) FindManyByService(ctx context.Context, dbtx gadb.DBTX, serviceID
 			IntegrationKeys: strings.Split(row.IntegrationKeys, ","),
 			FilterString:    row.Filter,
 			Actions:         actions,
+			SendAlert:       row.SendAlert,
 		}
 	}
 
@@ -116,7 +115,7 @@ func (s *Store) FindMany(ctx context.Context, dbtx gadb.DBTX, ids []string) ([]R
 
 	rules := make([]Rule, len(rows))
 	for i, row := range rows {
-		actions := []map[string]interface{}{}
+		actions := []Action{}
 		if !row.SendAlert {
 			if !row.Actions.Valid {
 				return nil, fmt.Errorf("signal rule %d has null action", i)
@@ -165,7 +164,7 @@ func (s *Store) FindManyByIntegrationKey(ctx context.Context, dbtx gadb.DBTX, se
 
 	rules := make([]Rule, len(rows))
 	for i, row := range rows {
-		actions := []map[string]interface{}{}
+		actions := []Action{}
 		if !row.SendAlert {
 			if !row.Actions.Valid {
 				return nil, fmt.Errorf("signal rule %d has null action", i)

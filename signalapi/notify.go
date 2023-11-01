@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
+	"github.com/target/goalert/service/rule"
 	"github.com/target/goalert/signal"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/sqlutil"
@@ -125,11 +126,11 @@ func (h *Handler) ServeCreateSignals(w http.ResponseWriter, r *http.Request) {
 
 // buildOutgoingPayload is a hypothetical implementation.
 // TODO: update when plugin implementation has been defined
-func buildOutgoingPayload(action map[string]interface{}, incomingPayload map[string]interface{}) map[string]interface{} {
+func buildOutgoingPayload(action rule.Action, incomingPayload map[string]interface{}) map[string]interface{} {
 	outgoingPayload := make(map[string]interface{})
 
-	if destType, ok := action["destination_type"]; ok {
-		outgoingPayload["destination_type"] = destType
+	if action.DestType != "" {
+		outgoingPayload["dest_type"] = action.DestType
 	}
 
 	outgoingPayload["received_payload"] = incomingPayload

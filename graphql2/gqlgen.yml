@@ -117,3 +117,12 @@ models:
     model: github.com/target/goalert/service/rule.Filter
   ServiceRuleFilterValueType:
     model: github.com/target/goalert/service/rule.FilterValueType
+  ServiceRuleAction:
+    model: github.com/target/goalert/service/rule.Action
+  ServiceRuleActionInput:
+    model: github.com/target/goalert/service/rule.Action
+  Content:
+    model: github.com/target/goalert/service/rule.Content
+  ContentInput:
+    model: github.com/target/goalert/service/rule.Content
+    
