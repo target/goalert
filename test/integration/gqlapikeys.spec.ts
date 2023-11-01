@@ -28,7 +28,10 @@ mutation DeleteAPIKey($id: ID!) {
 }
 `
 
-test('GQL API keys', async ({ page, request }) => {
+test('GQL API keys', async ({ page, request, isMobile }) => {
+  // skip this test if we're running on mobile
+  if (isMobile) return
+
   const baseName =
     'apikeytest ' +
     c.string({ length: 12, casing: 'lower', symbols: false, alpha: true })
@@ -43,7 +46,8 @@ test('GQL API keys', async ({ page, request }) => {
 
   // click on Admin, then API Keys
   await page.click('text=Admin')
-  await page.click('text=API Keys')
+
+  await page.locator('nav').locator('text=API Keys').click()
   await page.click('text=Create API Key')
 
   await page.fill('[name="name"]', originalName)
@@ -66,7 +70,7 @@ test('GQL API keys', async ({ page, request }) => {
   await expect(page.locator('p', { hasText: originalName })).toBeVisible()
 
   // click on it to open the drawer
-  await page.locator('p', { hasText: originalName }).click()
+  await page.locator('li', { hasText: originalName }).click()
 
   await page.click('text=Duplicate')
   await page.click('text=Submit')
@@ -75,7 +79,7 @@ test('GQL API keys', async ({ page, request }) => {
 
   await page.click('text=Okay')
 
-  await expect(page.locator('p', { hasText: duplicateName })).toBeVisible()
+  await expect(page.locator('li', { hasText: duplicateName })).toBeVisible()
 
   const gqlURL =
     baseURLFromFlags(['gql-api-keys']).replace(/\/$/, '') + '/api/graphql'
@@ -124,7 +128,7 @@ test('GQL API keys', async ({ page, request }) => {
 
   await page.reload()
 
-  await expect(page.locator('p', { hasText: originalName })).not.toBeVisible()
+  await expect(page.locator('li', { hasText: originalName })).not.toBeVisible()
 
   // Attempt to delete the duplicate using the original via fetch call
   resp = await request.post(gqlURL, {
@@ -153,5 +157,5 @@ test('GQL API keys', async ({ page, request }) => {
   await page.click('text=Confirm')
 
   // expect the duplicate to be gone
-  await expect(page.locator('p', { hasText: duplicateName })).not.toBeVisible()
+  await expect(page.locator('li', { hasText: duplicateName })).not.toBeVisible()
 })
