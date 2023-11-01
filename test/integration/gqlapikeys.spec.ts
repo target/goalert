@@ -126,7 +126,7 @@ test('GQL API keys', async ({ page, request }) => {
 
   await expect(page.locator('p', { hasText: originalName })).not.toBeVisible()
 
-  // Delete the original using the duplicate via fetch call
+  // Attempt to delete the duplicate using the original via fetch call
   resp = await request.post(gqlURL, {
     headers: {
       Authorization: `Bearer ${originalToken}`,
@@ -140,7 +140,7 @@ test('GQL API keys', async ({ page, request }) => {
     },
   })
 
-  // expect the delete to fail, since the original was already deleted
+  // expect the delete to fail, since the original was already deleted, and can no longer be used
   expect(resp.status()).toBe(401)
 
   // Delete the duplicate via the UI menu
