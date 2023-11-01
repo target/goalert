@@ -44,6 +44,28 @@ const mutation = gql`
   }
 `
 
+export const getCustomFields = (r: ServiceRule): CustomFields | undefined => {
+  const customFields: CustomFields = {
+    summary: '',
+    details: '',
+  }
+  let hasCustomFields = false
+  r.actions.map((action) => {
+    if (action.destType === 'GOALERT') {
+      hasCustomFields = true
+      action.contents.map((content) => {
+        if (content.prop === 'summary') {
+          customFields.summary = content.value
+        } else if (content.prop === 'details') {
+          customFields.details = content.value
+        }
+      })
+    }
+  })
+
+  return hasCustomFields ? customFields : undefined
+}
+
 export default function ServiceRuleEditDialog(props: {
   rule: ServiceRule
   onClose: () => void
@@ -51,28 +73,6 @@ export default function ServiceRuleEditDialog(props: {
   serviceID: string
 }): JSX.Element {
   const { rule, onClose, serviceID, integrationKeys } = props
-
-  const getCustomFields = (): CustomFields | undefined => {
-    const customFields: CustomFields = {
-      summary: '',
-      details: '',
-    }
-    let hasCustomFields = false
-    rule.actions.map((action) => {
-      if (action.destType === 'GOALERT') {
-        hasCustomFields = true
-        action.contents.map((content) => {
-          if (content.prop === 'summary') {
-            customFields.summary = content.value
-          } else if (content.prop === 'details') {
-            customFields.details = content.value
-          }
-        })
-      }
-    })
-
-    return hasCustomFields ? customFields : undefined
-  }
 
   const [value, setValue] = useState<ServiceRuleValue>({
     name: rule.name,
@@ -85,7 +85,7 @@ export default function ServiceRuleEditDialog(props: {
         value: key.id,
       }
     }),
-    customFields: getCustomFields(),
+    customFields: getCustomFields(rule),
   })
   const [actionsError, setActionsError] = useState<boolean>(false)
   const [editRuleStatus, commit] = useMutation(mutation)

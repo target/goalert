@@ -12,11 +12,11 @@ import { Add } from '@mui/icons-material'
 import makeStyles from '@mui/styles/makeStyles'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
-import { IntegrationKey, ServiceRule } from '../../../schema'
+import { IntegrationKey, ServiceRule, ServiceRuleFilter } from '../../../schema'
 import { sortItems } from '../IntegrationKeyList'
 import { Typography, Chip } from '@mui/material'
 import OtherActions from '../../util/OtherActions'
-import ServiceRuleEditDialog from './ServiceRuleEditDialog'
+import ServiceRuleEditDialog, { getCustomFields } from './ServiceRuleEditDialog'
 import ServiceRuleDeleteDialog from './ServiceRuleDeleteDialog'
 
 const query = gql`
@@ -73,21 +73,61 @@ const useStyles = makeStyles({
   spacing: {
     marginBottom: 96,
   },
+  chip: {
+    marginRight: '0.5em',
+  },
 })
 
 export function ServiceRuleDetails(props: { rule: ServiceRule }): JSX.Element {
   const { rule } = props
+  const classes = useStyles()
+
+  const customFields = getCustomFields(rule)
+
   return (
-    <Grid container>
+    <Grid container spacing={1}>
       <Grid item style={{ flexGrow: 1 }} xs={12}>
-        <Typography variant='subtitle1'>Integration Keys</Typography>
-        {!rule.integrationKeys ? (
-          <Typography variant='body1'>No Integrations Keys Set</Typography>
-        ) : (
-          rule.integrationKeys.map((key: IntegrationKey) => (
-            <Chip key={key.id} label={key.name} />
-          ))
-        )}
+        <Typography variant='body1'>Integration Keys</Typography>
+        {rule.integrationKeys.map((key: IntegrationKey) => (
+          <Chip key={key.id} label={key.name} className={classes.chip} />
+        ))}
+      </Grid>
+      {rule.filters.length > 0 && (
+        <Grid item style={{ flexGrow: 1 }} xs={12}>
+          <Typography variant='body1'>Filters</Typography>
+          {rule.filters.map((f: ServiceRuleFilter, idx: number) => (
+            <Chip
+              key={idx}
+              label={`${f.field} ${f.operator} ${f.value}`}
+              className={classes.chip}
+            />
+          ))}
+        </Grid>
+      )}
+      <Grid item style={{ flexGrow: 1 }} xs={12}>
+        <Typography variant='body1'>Create Alert</Typography>
+        <Chip label={rule.sendAlert ? 'True' : 'False'} />
+      </Grid>
+      {customFields && (
+        <Grid item style={{ flexGrow: 1 }} xs={12}>
+          <Typography variant='body1'>Alert Custom Fields</Typography>
+          <Typography
+            variant='body1'
+            sx={{ pl: 1 }}
+          >{`Summary: ${customFields?.summary}`}</Typography>
+          <Typography
+            variant='body1'
+            sx={{ pl: 1 }}
+          >{`Details: ${customFields?.details}`}</Typography>
+        </Grid>
+      )}
+      <Grid item style={{ flexGrow: 1 }} xs={12}>
+        <Typography variant='body1'>Destinations</Typography>
+        {rule.actions.map((action, idx) => {
+          if (action.destType !== 'GOALERT') {
+            return <Chip key={idx} label={action.destType} />
+          }
+        })}
       </Grid>
     </Grid>
   )
