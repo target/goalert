@@ -92,11 +92,16 @@ test('GQL API keys', async ({ page, request }) => {
   expect(data).toHaveProperty('data')
   expect(data.data).toHaveProperty('gqlAPIKeys')
 
+  type Key = {
+    id: string
+    name: string
+  }
+
   const originalID = data.data.gqlAPIKeys.find(
-    (key: any) => key.name === originalName,
+    (key: Key) => key.name === originalName,
   ).id
   const duplicateID = data.data.gqlAPIKeys.find(
-    (key: any) => key.name === duplicateName,
+    (key: Key) => key.name === duplicateName,
   ).id
   expect(originalID).toBeDefined()
   expect(duplicateID).toBeDefined()
