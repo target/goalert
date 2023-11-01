@@ -21,6 +21,7 @@ import (
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/engine/rotationmanager"
 	"github.com/target/goalert/engine/schedulemanager"
+	"github.com/target/goalert/engine/signal"
 	"github.com/target/goalert/engine/signalsmanager"
 	"github.com/target/goalert/engine/statusmgr"
 	"github.com/target/goalert/engine/verifymanager"
@@ -53,6 +54,7 @@ type Engine struct {
 
 	modules []updater
 	msg     *message.DB
+	sig     *signal.DB
 
 	a   *alert.Store
 	cfg *Config
@@ -158,6 +160,11 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 		return nil, errors.Wrap(err, "messaging backend")
 	}
 
+	p.sig, err = signal.NewDB(ctx, db)
+	if err != nil {
+		return nil, errors.Wrap(err, "signal backend")
+	}
+
 	p.b, err = newBackend(db)
 	if err != nil {
 		return nil, errors.Wrap(err, "init backend")
@@ -209,6 +216,16 @@ func (p *Engine) processMessages(ctx context.Context) {
 	}
 	if err != nil {
 		log.Log(ctx, errors.Wrap(err, "send outgoing messages"))
+	}
+}
+
+func (p *Engine) processSignals(ctx context.Context) {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
+	err := p.sig.SendSignals(ctx, p.sendSignal)
+	if err != nil {
+		log.Log(ctx, errors.Wrap(err, "send outgoing signals"))
 	}
 }
 
@@ -508,6 +525,7 @@ func (p *Engine) cycle(ctx context.Context) {
 	}
 	startMsg := time.Now()
 	p.processMessages(ctx)
+	p.processSignals(ctx)
 	metricModuleDuration.WithLabelValues("Engine.Message").Observe(time.Since(startMsg).Seconds())
 	metricModuleDuration.WithLabelValues("Engine").Observe(time.Since(startAll).Seconds())
 	metricCycleTotal.Inc()

@@ -1554,6 +1554,67 @@ func (q *Queries) Now(ctx context.Context) (time.Time, error) {
 	return column_1, err
 }
 
+const outgoingSignalFindNext = `-- name: OutgoingSignalFindNext :one
+SELECT
+    id,
+    signal_id,
+    service_id,
+    sent_at,
+    destination_type,
+    destination_id,
+    destination_val,
+    content
+FROM
+    outgoing_signals
+WHERE
+    sent_at IS NULL
+LIMIT 1
+FOR UPDATE
+    SKIP LOCKED
+`
+
+type OutgoingSignalFindNextRow struct {
+	ID              uuid.UUID
+	SignalID        int32
+	ServiceID       uuid.UUID
+	SentAt          sql.NullTime
+	DestinationType string
+	DestinationID   string
+	DestinationVal  string
+	Content         json.RawMessage
+}
+
+func (q *Queries) OutgoingSignalFindNext(ctx context.Context) (OutgoingSignalFindNextRow, error) {
+	row := q.db.QueryRowContext(ctx, outgoingSignalFindNext)
+	var i OutgoingSignalFindNextRow
+	err := row.Scan(
+		&i.ID,
+		&i.SignalID,
+		&i.ServiceID,
+		&i.SentAt,
+		&i.DestinationType,
+		&i.DestinationID,
+		&i.DestinationVal,
+		&i.Content,
+	)
+	return i, err
+}
+
+const outgoingSignalUpdateSent = `-- name: OutgoingSignalUpdateSent :exec
+UPDATE
+    outgoing_signals
+SET
+    sent_at = now()
+WHERE
+    id = $1
+    AND sent_at IS NULL
+`
+
+func (q *Queries) OutgoingSignalUpdateSent(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, outgoingSignalUpdateSent, id)
+	return err
+}
+
 const overrideSearch = `-- name: OverrideSearch :many
 WITH AFTER AS (
     SELECT
@@ -1977,18 +2038,28 @@ func (q *Queries) SignalsManagerFindNext(ctx context.Context) (SignalsManagerFin
 }
 
 const signalsManagerSendOutgoing = `-- name: SignalsManagerSendOutgoing :exec
-INSERT INTO outgoing_signals (service_id, outgoing_payload, channel_id)
-    VALUES ($1, $2, $3)
+INSERT INTO outgoing_signals (signal_id, service_id, destination_type, destination_id, destination_val, content)
+    VALUES ($1, $2, $3, $4, $5, $6)
 `
 
 type SignalsManagerSendOutgoingParams struct {
+	SignalID        int32
 	ServiceID       uuid.UUID
-	OutgoingPayload json.RawMessage
-	ChannelID       uuid.UUID
+	DestinationType string
+	DestinationID   string
+	DestinationVal  string
+	Content         json.RawMessage
 }
 
 func (q *Queries) SignalsManagerSendOutgoing(ctx context.Context, arg SignalsManagerSendOutgoingParams) error {
-	_, err := q.db.ExecContext(ctx, signalsManagerSendOutgoing, arg.ServiceID, arg.OutgoingPayload, arg.ChannelID)
+	_, err := q.db.ExecContext(ctx, signalsManagerSendOutgoing,
+		arg.SignalID,
+		arg.ServiceID,
+		arg.DestinationType,
+		arg.DestinationID,
+		arg.DestinationVal,
+		arg.Content,
+	)
 	return err
 }
 

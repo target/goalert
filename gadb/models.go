@@ -1010,10 +1010,15 @@ type OutgoingMessage struct {
 }
 
 type OutgoingSignal struct {
-	ChannelID       uuid.UUID
+	Content         json.RawMessage
+	CreatedAt       time.Time
+	DestinationID   string
+	DestinationType string
+	DestinationVal  string
 	ID              uuid.UUID
-	OutgoingPayload json.RawMessage
+	SentAt          sql.NullTime
 	ServiceID       uuid.UUID
+	SignalID        int32
 }
 
 type RegionID struct {

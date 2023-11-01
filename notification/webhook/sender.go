@@ -82,6 +82,13 @@ type POSTDataTest struct {
 	Type    string
 }
 
+type POSTDataSignal struct {
+	ServiceName string
+	ServiceID   string
+	Summary     string
+	SignalID    int
+}
+
 func NewSender(ctx context.Context) *Sender {
 	return &Sender{}
 }
@@ -141,6 +148,13 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 			ScheduleID:   m.ScheduleID,
 			ScheduleName: m.ScheduleName,
 			ScheduleURL:  m.ScheduleURL,
+		}
+	case notification.Signal:
+		payload = POSTDataSignal{
+			ServiceName: m.ServiceName,
+			ServiceID:   m.ServiceID,
+			Summary:     m.Summary,
+			SignalID:    m.SignalID,
 		}
 	default:
 		return nil, fmt.Errorf("message type '%s' not supported", m.Type().String())

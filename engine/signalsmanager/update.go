@@ -6,11 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
-	"github.com/target/goalert/util/log"
 )
 
 // UpdateAll will update all schedule rules.
@@ -36,9 +34,16 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 
 var errDone = errors.New("done")
 
-type payload struct {
-	Destination string          `json:"destination_id"`
-	Message     json.RawMessage `json:"received_payload"`
+type content struct {
+	prop  string
+	value string
+}
+
+type destination struct {
+	DestinationType string    `json:"dest_type"`
+	DestinationID   string    `json:"dest_id"`
+	DestinationVal  string    `json:"dest_value"`
+	Content         []content `json:"contents"`
 }
 
 func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
@@ -53,20 +58,23 @@ func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
 		return fmt.Errorf("find next signal error: %w", err)
 	}
 
-	pay := payload{}
-	err = json.Unmarshal(sig.OutgoingPayload, &pay)
-	if err != nil {
-		log.Log(log.WithField(ctx, "SignalID", sig.ID), fmt.Errorf("unmarshal signal payload: %w", err))
-		return err
-	}
+	srvRule, err := q.SvcRuleFindOne(ctx, sig.ServiceRuleID)
 
-	err = q.SignalsManagerSendOutgoing(ctx, gadb.SignalsManagerSendOutgoingParams{
-		ServiceID:       sig.ServiceID,
-		OutgoingPayload: sig.OutgoingPayload,
-		ChannelID:       uuid.MustParse(pay.Destination),
-	})
-	if err != nil {
-		return fmt.Errorf("insert outgoing_signals error: %w", err)
+	destList := []destination{}
+	err = json.Unmarshal(srvRule.Actions.RawMessage, &destList)
+
+	for _, dest := range destList {
+		err = q.SignalsManagerSendOutgoing(ctx, gadb.SignalsManagerSendOutgoingParams{
+			SignalID:        int32(sig.ID),
+			ServiceID:       sig.ServiceID,
+			DestinationType: dest.DestinationType,
+			DestinationID:   dest.DestinationID,
+			DestinationVal:  dest.DestinationVal,
+			Content:         srvRule.Actions.RawMessage,
+		})
+		if err != nil {
+			return fmt.Errorf("insert outgoing_signals error: %w", err)
+		}
 	}
 
 	return q.SignalsManagerSetScheduled(ctx, sig.ID)

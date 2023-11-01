@@ -125,4 +125,3 @@ models:
     model: github.com/target/goalert/service/rule.Content
   ContentInput:
     model: github.com/target/goalert/service/rule.Content
-    

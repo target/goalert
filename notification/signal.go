@@ -6,7 +6,6 @@ type Signal struct {
 	CallbackID  string // CallbackID is the identifier used to communicate a response to the notification
 	SignalID    int    // The global signal number
 	Summary     string
-	Details     string
 	ServiceID   string
 	ServiceName string
 
