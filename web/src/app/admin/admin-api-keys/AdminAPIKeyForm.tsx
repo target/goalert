@@ -121,6 +121,7 @@ export default function AdminAPIKeyForm(
               fullWidth
               multiline
               label='Example Query'
+              name='query'
               placeholder='Enter GraphQL query here...'
               value={exampleQuery}
               onChange={(e) => setExampleQuery(e.target.value)}
