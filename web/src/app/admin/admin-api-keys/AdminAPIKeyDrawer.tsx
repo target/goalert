@@ -20,6 +20,7 @@ import { Time } from '../../util/Time'
 import { gql, useQuery } from 'urql'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
+import AdminAPIKeyShowQueryDialog from './AdminAPIKeyShowQueryDialog'
 
 // query for getting existing API Keys
 const query = gql`
@@ -71,6 +72,7 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
   const isOpen = Boolean(apiKeyID)
   const [deleteDialog, setDialogDialog] = useState(false)
   const [editDialog, setEditDialog] = useState(false)
+  const [showQuery, setShowQuery] = useState(false)
 
   // Get API Key triggers/actions
   const [{ data, fetching, error }] = useQuery({ query })
@@ -96,6 +98,12 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
         data-cy='debug-message-details'
       >
         <Toolbar />
+        {showQuery && (
+          <AdminAPIKeyShowQueryDialog
+            apiKeyID={apiKey.id}
+            onClose={() => setShowQuery(false)}
+          />
+        )}
         {deleteDialog ? (
           <AdminAPIKeyDeleteDialog
             onClose={(yes: boolean): void => {
@@ -132,7 +140,11 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
             <ListItem divider>
               <ListItemText
                 primary='Query'
-                secondary={<Button variant='text'>Show Query</Button>}
+                secondary={
+                  <Button variant='text' onClick={() => setShowQuery(true)}>
+                    Show Query
+                  </Button>
+                }
               />
             </ListItem>
             <ListItem divider>
