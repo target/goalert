@@ -7,8 +7,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"slices"
-	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -50,17 +48,17 @@ func NewStore(ctx context.Context, db *sql.DB, key keyring.Keyring) (*Store, err
 }
 
 type APIKeyInfo struct {
-	ID            uuid.UUID
-	Name          string
-	Description   string
-	ExpiresAt     time.Time
-	LastUsed      *APIKeyUsage
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	CreatedBy     *uuid.UUID
-	UpdatedBy     *uuid.UUID
-	AllowedFields []string
-	Role          permission.Role
+	ID          uuid.UUID
+	Name        string
+	Description string
+	ExpiresAt   time.Time
+	LastUsed    *APIKeyUsage
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	CreatedBy   *uuid.UUID
+	UpdatedBy   *uuid.UUID
+	Query       string
+	Role        permission.Role
 }
 
 func (s *Store) FindAllAdminGraphQLKeys(ctx context.Context) ([]APIKeyInfo, error) {
@@ -103,17 +101,17 @@ func (s *Store) FindAllAdminGraphQLKeys(ctx context.Context) ([]APIKeyInfo, erro
 		}
 
 		res = append(res, APIKeyInfo{
-			ID:            k.ID,
-			Name:          k.Name,
-			Description:   k.Description,
-			ExpiresAt:     k.ExpiresAt,
-			LastUsed:      lastUsed,
-			CreatedAt:     k.CreatedAt,
-			UpdatedAt:     k.UpdatedAt,
-			CreatedBy:     &k.CreatedBy.UUID,
-			UpdatedBy:     &k.UpdatedBy.UUID,
-			AllowedFields: p.AllowedFields,
-			Role:          p.Role,
+			ID:          k.ID,
+			Name:        k.Name,
+			Description: k.Description,
+			ExpiresAt:   k.ExpiresAt,
+			LastUsed:    lastUsed,
+			CreatedAt:   k.CreatedAt,
+			UpdatedAt:   k.UpdatedAt,
+			CreatedBy:   &k.CreatedBy.UUID,
+			UpdatedBy:   &k.UpdatedBy.UUID,
+			Query:       p.Query,
+			Role:        p.Role,
 		})
 	}
 
@@ -249,9 +247,9 @@ func (s *Store) AuthorizeGraphQL(ctx context.Context, tok, ua, ip string) (conte
 type NewAdminGQLKeyOpts struct {
 	Name    string
 	Desc    string
-	Fields  []string
 	Expires time.Time
 	Role    permission.Role
+	Query   string
 }
 
 // CreateAdminGraphQLKey will create a new GraphQL API key returning the ID and token.
@@ -261,31 +259,24 @@ func (s *Store) CreateAdminGraphQLKey(ctx context.Context, opt NewAdminGQLKeyOpt
 		return uuid.Nil, "", err
 	}
 
+	_, qErr := graphql2.QueryFields(opt.Query)
 	err = validate.Many(
+		qErr,
 		validate.IDName("Name", opt.Name),
 		validate.Text("Description", opt.Desc, 0, 255),
-		validate.Range("Fields", len(opt.Fields), 1, len(graphql2.SchemaFields())),
 		validate.OneOf("Role", opt.Role, permission.RoleAdmin, permission.RoleUser),
 	)
 	if time.Until(opt.Expires) <= 0 {
 		err = validate.Many(err, validation.NewFieldError("Expires", "must be in the future"))
 	}
-	for i, f := range opt.Fields {
-		if slices.Contains(graphql2.SchemaFields(), f) {
-			continue
-		}
-
-		err = validate.Many(err, validation.NewFieldError(fmt.Sprintf("Fields[%d]", i), "is not a valid field"))
-	}
 	if err != nil {
 		return uuid.Nil, "", err
 	}
 
-	sort.Strings(opt.Fields)
 	policyData, err := json.Marshal(GQLPolicy{
-		Version:       1,
-		AllowedFields: opt.Fields,
-		Role:          opt.Role,
+		Version: 1,
+		Query:   opt.Query,
+		Role:    opt.Role,
 	})
 	if err != nil {
 		return uuid.Nil, "", err

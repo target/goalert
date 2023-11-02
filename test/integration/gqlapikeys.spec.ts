@@ -56,7 +56,6 @@ test('GQL API keys', async ({ page, request, isMobile }) => {
   // click the li with the text "Admin"
   await page.click('li:text("Admin")')
 
-  await page.click('text=example query')
   await page.fill('[name="query"]', query)
 
   await page.click('text=Submit')
