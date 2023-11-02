@@ -6,7 +6,7 @@ import { Theme } from '@mui/material/styles'
 import { gql, useQuery } from 'urql'
 import { DateTime } from 'luxon'
 import AdminAPIKeysDrawer from './admin-api-keys/AdminAPIKeyDrawer'
-import { GQLAPIKey } from '../../schema'
+import { GQLAPIKey, Query } from '../../schema'
 import { Time } from '../util/Time'
 import FlatList, { FlatListListItem } from '../lists/FlatList'
 import Spinner from '../loading/components/Spinner'
@@ -28,7 +28,7 @@ const query = gql`
         ip
       }
       expiresAt
-      allowedFields
+      query
     }
   }
 `
@@ -61,13 +61,16 @@ export default function AdminAPIKeys(): JSX.Element {
 
   // Get API Key triggers/actions
   const context = useMemo(() => ({ additionalTypenames: ['GQLAPIKey'] }), [])
-  const [{ data, fetching, error }] = useQuery({ query, context })
+  const [{ data, error }] = useQuery<Pick<Query, 'gqlAPIKeys'>>({
+    query,
+    context,
+  })
 
   if (error) {
     return <GenericError error={error.message} />
   }
 
-  if (fetching && !data) {
+  if (!data) {
     return <Spinner />
   }
 
@@ -125,12 +128,7 @@ export default function AdminAPIKeys(): JSX.Element {
             />
           </Typography>
           <Typography variant='subtitle2' component='div' color='textSecondary'>
-            {key.allowedFields.length +
-              ' allowed field' +
-              (key.allowedFields.length > 1 ? 's' : '') +
-              (key.allowedFields.some((f) => f.startsWith('Mutation.'))
-                ? ''
-                : ' (read-only)')}
+            {key.query.includes('mutation') ? '' : '(read-only)'}
           </Typography>
         </React.Fragment>
       ),

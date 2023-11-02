@@ -27,7 +27,7 @@ const fromExistingQuery = gql`
       name
       description
       role
-      allowedFields
+      query
       createdAt
       expiresAt
     }
@@ -65,7 +65,7 @@ export default function AdminAPIKeyCreateDialog(props: {
     name: '',
     description: '',
     expiresAt: DateTime.utc().plus({ days: 7 }).toISO(),
-    allowedFields: [],
+    query: '',
     role: 'user',
   })
   const [status, createKey] = useMutation(newGQLAPIKeyQuery)
@@ -88,7 +88,7 @@ export default function AdminAPIKeyCreateDialog(props: {
     setValue({
       name: nextName(from.name),
       description: from.description,
-      allowedFields: from.allowedFields,
+      query: from.query,
       expiresAt: DateTime.utc().plus({ days: keyLifespan }).toISO(),
       role: from.role,
     })
@@ -102,7 +102,7 @@ export default function AdminAPIKeyCreateDialog(props: {
         input: {
           name: value.name,
           description: value.description,
-          allowedFields: value.allowedFields,
+          query: value.query,
           expiresAt: value.expiresAt,
           role: value.role,
         },

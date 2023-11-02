@@ -140,8 +140,6 @@ type Query {
   swoStatus: SWOStatus!
 
   gqlAPIKeys: [GQLAPIKey!]!
-
-  listGQLFields(query: String): [String!]!
 }
 
 type IntegrationKeyTypeInfo {
@@ -610,9 +608,9 @@ type CreatedGQLAPIKey {
 input CreateGQLAPIKeyInput {
   name: String!
   description: String!
-  allowedFields: [String!]!
   expiresAt: ISOTimestamp!
   role: UserRole!
+  query: String!
 }
 
 input UpdateGQLAPIKeyInput {
@@ -631,7 +629,7 @@ type GQLAPIKey {
   updatedBy: User @goField(forceResolver: true)
   lastUsed: GQLAPIKeyUsage
   expiresAt: ISOTimestamp!
-  allowedFields: [String!]!
+  query: String!
   role: UserRole!
 }
 

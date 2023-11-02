@@ -44,7 +44,7 @@ const query = gql`
         ip
       }
       expiresAt
-      allowedFields
+      query
       role
     }
   }
@@ -78,8 +78,6 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
     data?.gqlAPIKeys?.find((d: GQLAPIKey) => {
       return d.id === apiKeyID
     }) || ({} as GQLAPIKey)
-
-  const allowFieldsStr = (apiKey?.allowedFields || []).join(', ')
 
   if (error) {
     return <GenericError error={error.message} />
@@ -133,8 +131,8 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
             </ListItem>
             <ListItem divider>
               <ListItemText
-                primary='Allowed Fields'
-                secondary={allowFieldsStr}
+                primary='Query'
+                secondary={<Button variant='text'>Show Query</Button>}
               />
             </ListItem>
             <ListItem divider>

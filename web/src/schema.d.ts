@@ -43,7 +43,6 @@ export interface Query {
   linkAccountInfo?: null | LinkAccountInfo
   swoStatus: SWOStatus
   gqlAPIKeys: GQLAPIKey[]
-  listGQLFields: string[]
 }
 
 export interface IntegrationKeyTypeInfo {
@@ -439,9 +438,9 @@ export interface CreatedGQLAPIKey {
 export interface CreateGQLAPIKeyInput {
   name: string
   description: string
-  allowedFields: string[]
   expiresAt: ISOTimestamp
   role: UserRole
+  query: string
 }
 
 export interface UpdateGQLAPIKeyInput {
@@ -460,7 +459,7 @@ export interface GQLAPIKey {
   updatedBy?: null | User
   lastUsed?: null | GQLAPIKeyUsage
   expiresAt: ISOTimestamp
-  allowedFields: string[]
+  query: string
   role: UserRole
 }
 
