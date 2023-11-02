@@ -1,19 +1,21 @@
 import React, { useMemo, useState } from 'react'
-import makeStyles from '@mui/styles/makeStyles'
-import { Button, Grid, Typography, Card } from '@mui/material'
+import { Button, Card, Grid, Typography } from '@mui/material'
 import { Add } from '@mui/icons-material'
+import makeStyles from '@mui/styles/makeStyles'
+import { Theme } from '@mui/material/styles'
+import { gql, useQuery } from 'urql'
+import { DateTime } from 'luxon'
 import AdminAPIKeysDrawer from './admin-api-keys/AdminAPIKeyDrawer'
 import { GQLAPIKey } from '../../schema'
 import { Time } from '../util/Time'
-import { gql, useQuery } from 'urql'
 import FlatList, { FlatListListItem } from '../lists/FlatList'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
-import { Theme } from '@mui/material/styles'
 import AdminAPIKeyCreateDialog from './admin-api-keys/AdminAPIKeyCreateDialog'
 import AdminAPIKeyDeleteDialog from './admin-api-keys/AdminAPIKeyDeleteDialog'
 import AdminAPIKeyEditDialog from './admin-api-keys/AdminAPIKeyEditDialog'
 import OtherActions from '../util/OtherActions'
+import { Warning } from '../icons'
 
 const query = gql`
   query gqlAPIKeysQuery {
@@ -98,20 +100,34 @@ export default function AdminAPIKeys(): JSX.Element {
     return 0
   })
 
-  const items = sortedByName.map(
-    (key: GQLAPIKey): FlatListListItem => ({
+  const items = sortedByName.map((key: GQLAPIKey): FlatListListItem => {
+    const hasExpired = DateTime.now() > DateTime.fromISO(key.expiresAt)
+
+    return {
       selected: (key as GQLAPIKey).id === selectedAPIKey?.id,
       highlight: (key as GQLAPIKey).id === selectedAPIKey?.id,
       primaryText: <Typography>{key.name}</Typography>,
       disableTypography: true,
+      icon: hasExpired ? (
+        <Warning
+          message={
+            'This key expired ' + DateTime.fromISO(key.expiresAt).toRelative()
+          }
+          placement='top'
+        />
+      ) : undefined,
       subText: (
         <React.Fragment>
           <Typography variant='subtitle2' component='div' color='textSecondary'>
-            <Time prefix='Expires At: ' time={key.expiresAt} />
+            <Time
+              prefix={hasExpired ? 'Expired ' : 'Expires '}
+              time={key.expiresAt}
+            />
           </Typography>
           <Typography variant='subtitle2' component='div' color='textSecondary'>
             {key.allowedFields.length +
-              ' allowed fields' +
+              ' allowed field' +
+              (key.allowedFields.length > 1 ? 's' : '') +
               (key.allowedFields.some((f) => f.startsWith('Mutation.'))
                 ? ''
                 : ' (read-only)')}
@@ -162,8 +178,8 @@ export default function AdminAPIKeys(): JSX.Element {
         </Grid>
       ),
       onClick: () => setSelectedAPIKey(key),
-    }),
-  )
+    }
+  })
 
   return (
     <React.Fragment>
