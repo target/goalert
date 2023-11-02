@@ -1441,6 +1441,109 @@ func (q *Queries) IntKeyGetServiceID(ctx context.Context, arg IntKeyGetServiceID
 	return service_id, err
 }
 
+const labelDeleteKeyByTarget = `-- name: LabelDeleteKeyByTarget :exec
+DELETE FROM labels
+WHERE key = $1
+    AND tgt_service_id = $2
+`
+
+type LabelDeleteKeyByTargetParams struct {
+	Key          string
+	TgtServiceID uuid.UUID
+}
+
+func (q *Queries) LabelDeleteKeyByTarget(ctx context.Context, arg LabelDeleteKeyByTargetParams) error {
+	_, err := q.db.ExecContext(ctx, labelDeleteKeyByTarget, arg.Key, arg.TgtServiceID)
+	return err
+}
+
+const labelFindAllByTarget = `-- name: LabelFindAllByTarget :many
+SELECT
+    key,
+    value
+FROM
+    labels
+WHERE
+    tgt_service_id = $1
+`
+
+type LabelFindAllByTargetRow struct {
+	Key   string
+	Value string
+}
+
+func (q *Queries) LabelFindAllByTarget(ctx context.Context, tgtServiceID uuid.UUID) ([]LabelFindAllByTargetRow, error) {
+	rows, err := q.db.QueryContext(ctx, labelFindAllByTarget, tgtServiceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []LabelFindAllByTargetRow
+	for rows.Next() {
+		var i LabelFindAllByTargetRow
+		if err := rows.Scan(&i.Key, &i.Value); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const labelSetByTarget = `-- name: LabelSetByTarget :exec
+INSERT INTO labels(key, value, tgt_service_id)
+    VALUES ($1, $2, $3)
+ON CONFLICT (key, tgt_service_id)
+    DO UPDATE SET
+        value = $2
+`
+
+type LabelSetByTargetParams struct {
+	Key          string
+	Value        string
+	TgtServiceID uuid.UUID
+}
+
+func (q *Queries) LabelSetByTarget(ctx context.Context, arg LabelSetByTargetParams) error {
+	_, err := q.db.ExecContext(ctx, labelSetByTarget, arg.Key, arg.Value, arg.TgtServiceID)
+	return err
+}
+
+const labelUniqueKeys = `-- name: LabelUniqueKeys :many
+SELECT DISTINCT
+    key
+FROM
+    labels
+`
+
+func (q *Queries) LabelUniqueKeys(ctx context.Context) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, labelUniqueKeys)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var key string
+		if err := rows.Scan(&key); err != nil {
+			return nil, err
+		}
+		items = append(items, key)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const lockOneAlertService = `-- name: LockOneAlertService :one
 SELECT
     maintenance_expires_at NOTNULL::bool AS is_maint_mode,
