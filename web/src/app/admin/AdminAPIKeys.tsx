@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Button, Card, Grid, Typography } from '@mui/material'
 import { Add } from '@mui/icons-material'
 import makeStyles from '@mui/styles/makeStyles'
@@ -60,7 +60,8 @@ export default function AdminAPIKeys(): JSX.Element {
   const [deleteDialog, setDeleteDialog] = useState<string | undefined>()
 
   // Get API Key triggers/actions
-  const [{ data, fetching, error }] = useQuery({ query })
+  const context = useMemo(() => ({ additionalTypenames: ['GQLAPIKey'] }), [])
+  const [{ data, fetching, error }] = useQuery({ query, context })
 
   if (error) {
     return <GenericError error={error.message} />
