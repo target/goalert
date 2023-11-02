@@ -20,7 +20,7 @@ func FilterField(fname, field string) error {
 
 func FilterStringOperator(fname, operator string) error {
 	switch operator {
-	case "==", "!=", "contains", "startsWith", "endsWith":
+	case "==", "!=", "<", ">", "<=", ">=", "contains", "startsWith", "endsWith":
 		return nil
 	default:
 		return validation.NewFieldError(fname, "bad operator for string value")
