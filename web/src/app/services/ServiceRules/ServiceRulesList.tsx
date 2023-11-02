@@ -3,6 +3,7 @@ import { gql, useQuery } from 'urql'
 import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
+import Box from '@mui/material/Box'
 import CardContent from '@mui/material/CardContent'
 import CreateFAB from '../../lists/CreateFAB'
 import FlatList, { FlatListListItem } from '../../lists/FlatList'
@@ -12,12 +13,20 @@ import { Add } from '@mui/icons-material'
 import makeStyles from '@mui/styles/makeStyles'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
-import { IntegrationKey, ServiceRule, ServiceRuleFilter } from '../../../schema'
+import {
+  Content,
+  IntegrationKey,
+  ServiceRule,
+  ServiceRuleAction,
+  ServiceRuleFilter,
+} from '../../../schema'
 import { sortItems } from '../IntegrationKeyList'
-import { Typography, Chip } from '@mui/material'
+import { Typography, Chip, Switch } from '@mui/material'
 import OtherActions from '../../util/OtherActions'
 import ServiceRuleEditDialog, { getCustomFields } from './ServiceRuleEditDialog'
 import ServiceRuleDeleteDialog from './ServiceRuleDeleteDialog'
+import { destType } from './ServiceRuleForm'
+import toTitleCase from '../../util/toTitleCase'
 
 const query = gql`
   query ($serviceID: ID!) {
@@ -76,56 +85,104 @@ const useStyles = makeStyles({
   chip: {
     marginRight: '0.5em',
   },
+  items: {
+    paddingLeft: '1em',
+  },
+  actionItems: {
+    padding: '0.5em',
+    borderRadius: 2,
+    boxShadow: '0px 0px 0px 1px rgba(0, 0, 0, 0.23)',
+    marginBottom: '1em',
+  },
 })
 
-export function ServiceRuleDetails(props: { rule: ServiceRule }): JSX.Element {
-  const { rule } = props
+function ActionDetails(props: { action: ServiceRuleAction }): JSX.Element {
+  const { action } = props
   const classes = useStyles()
 
+  return (
+    <Box className={classes.actionItems}>
+      <Typography variant='body1'>{action.destType}</Typography>
+      <Box className={classes.items}>
+        {action.contents.map((content: Content, idx: number) => {
+          return (
+            <React.Fragment key={idx}>
+              <Typography variant='body1'>
+                {toTitleCase(content.prop.replace(/_/g, ' '))}
+              </Typography>
+              <Typography className={classes.items} variant='body1'>
+                {content.value}
+              </Typography>
+            </React.Fragment>
+          )
+        })}
+      </Box>
+    </Box>
+  )
+}
+
+function RuleDetails(props: { rule: ServiceRule }): JSX.Element {
+  const { rule } = props
+  const classes = useStyles()
   const customFields = getCustomFields(rule)
 
   return (
     <Grid container spacing={1}>
       <Grid item style={{ flexGrow: 1 }} xs={12}>
+        <Typography variant='h4'>{rule.name}</Typography>
+      </Grid>
+      <Grid item style={{ flexGrow: 1 }} xs={12}>
         <Typography variant='body1'>Integration Keys</Typography>
-        {rule.integrationKeys.map((key: IntegrationKey) => (
-          <Chip key={key.id} label={key.name} className={classes.chip} />
-        ))}
+        <Box className={classes.items}>
+          {rule.integrationKeys.map((key: IntegrationKey) => (
+            <Chip key={key.id} label={key.name} className={classes.chip} />
+          ))}
+        </Box>
       </Grid>
       {rule.filters.length > 0 && (
         <Grid item style={{ flexGrow: 1 }} xs={12}>
           <Typography variant='body1'>Filters</Typography>
-          {rule.filters.map((f: ServiceRuleFilter, idx: number) => (
-            <Chip
-              key={idx}
-              label={`${f.field} ${f.operator} ${f.value}`}
-              className={classes.chip}
-            />
-          ))}
+          <Box className={classes.items}>
+            {rule.filters.map((f: ServiceRuleFilter, idx: number) => (
+              <Chip
+                key={idx}
+                label={`${f.field} ${f.operator} ${f.value}`}
+                className={classes.chip}
+              />
+            ))}
+          </Box>
         </Grid>
       )}
       <Grid item style={{ flexGrow: 1 }} xs={12}>
         <Typography variant='body1'>Create Alert</Typography>
-        <Chip label={rule.sendAlert ? 'True' : 'False'} />
+        <Switch checked={rule.sendAlert} disabled />
       </Grid>
       {customFields && (
         <Grid item style={{ flexGrow: 1 }} xs={12}>
           <Typography variant='body1'>Alert Custom Fields</Typography>
-          <Typography
-            variant='body1'
-            sx={{ pl: 1 }}
-          >{`Summary: ${customFields?.summary}`}</Typography>
-          <Typography
-            variant='body1'
-            sx={{ pl: 1 }}
-          >{`Details: ${customFields?.details}`}</Typography>
+          <Box className={classes.items}>
+            <Typography variant='body1' display='inline'>
+              Summary
+            </Typography>
+            <Typography variant='body1' display='inline'>
+              : {`${customFields?.summary}`}
+            </Typography>
+          </Box>
+          <Box className={classes.items}>
+            <Typography variant='body1' display='inline'>
+              Details
+            </Typography>
+            <Typography variant='body1' display='inline'>
+              : {`${customFields?.details}`}
+            </Typography>
+          </Box>
         </Grid>
       )}
       <Grid item style={{ flexGrow: 1 }} xs={12}>
         <Typography variant='body1'>Destinations</Typography>
         {rule.actions.map((action, idx) => {
-          if (action.destType !== 'GOALERT') {
-            return <Chip key={idx} label={action.destType} />
+          if (action.destType !== destType.ALERT) {
+            return <ActionDetails key={idx} action={action} />
           }
         })}
       </Grid>
@@ -154,8 +211,7 @@ export default function ServiceRulesList(props: {
     .sort(sortItems)
     .map(
       (rule: ServiceRule): FlatListListItem => ({
-        title: rule.name,
-        subText: <ServiceRuleDetails key={rule.id} rule={rule} />,
+        subText: <RuleDetails key={rule.id} rule={rule} />,
         secondaryAction: (
           <OtherActions
             actions={[

@@ -6,7 +6,6 @@ import {
   TextField,
   MenuItem,
   Fab,
-  Checkbox,
   FormControlLabel,
   Switch,
 } from '@mui/material'
@@ -24,6 +23,7 @@ import ClearIcon from '@mui/icons-material/Clear'
 import { FieldError } from '../../util/errutil'
 import MaterialSelect from '../../selection/MaterialSelect'
 import { SlackChannelSelect } from '../../selection'
+import toTitleCase from '../../util/toTitleCase'
 
 export interface ServiceRuleValue {
   id?: string
@@ -95,11 +95,19 @@ const operators = [
   'contains',
 ]
 
+export const destType = {
+  ALERT: 'ALERT',
+  SLACK: 'SLACK',
+  SERVICENOW: 'SERVICENOW',
+  WEBHOOK: 'WEBHOOK',
+  EMAIL: 'EMAIL',
+}
+
 const destinations = [
-  { label: 'Slack', value: 'SLACK' },
-  { label: 'ServiceNow Proactice Incident', value: 'SERVICENOW' },
-  { label: 'Webhook', value: 'WEBHOOK' },
-  { label: 'Email', value: 'EMAIL' },
+  { label: 'Slack', value: destType.SLACK },
+  { label: 'ServiceNow Proactice Incident', value: destType.SERVICENOW },
+  { label: 'Webhook', value: destType.WEBHOOK },
+  { label: 'Email', value: destType.EMAIL },
 ]
 
 const useStyles = makeStyles({
@@ -190,24 +198,24 @@ export default function ServiceRuleForm(
     const actions = formProps.value.actions
     actions[actionIdx].destType = dest
     switch (dest) {
-      case 'SLACK':
+      case destType.SLACK:
         actions[actionIdx].contents = [{ prop: 'message', value: '' }]
         break
-      case 'SERVICENOW':
+      case destType.SERVICENOW:
         actions[actionIdx].contents = [
           { prop: 'assignment_group', value: '' },
           { prop: 'caused_by_this', value: '' },
           { prop: 'short_description', value: '' },
         ]
         break
-      case 'WEBHOOK':
+      case destType.WEBHOOK:
         actions[actionIdx].contents = [
           { prop: 'body', value: '' },
           { prop: 'URL', value: '' },
           { prop: 'Method', value: '' },
         ]
         break
-      case 'EMAIL':
+      case destType.EMAIL:
         actions[actionIdx].contents = [
           { prop: 'address', value: '' },
           { prop: 'subject', value: '' },
@@ -416,12 +424,7 @@ export default function ServiceRuleForm(
             label='Create Alert'
             labelPlacement='end'
             control={
-              <FormField
-                noError
-                component={Checkbox}
-                checkbox
-                name='sendAlert'
-              />
+              <FormField noError component={Switch} checkbox name='sendAlert' />
             }
           />
           <FormControlLabel
@@ -429,14 +432,17 @@ export default function ServiceRuleForm(
             labelPlacement='end'
             control={
               <Switch
-                checked={formProps.value.customFields !== undefined}
+                checked={
+                  formProps.value.customFields !== undefined &&
+                  formProps.value.sendAlert
+                }
                 onChange={(e) => handleAddCustomAlertFields(e.target.checked)}
               />
             }
             disabled={!formProps.value.sendAlert}
           />
         </Grid>
-        {formProps.value.customFields && (
+        {formProps.value.customFields && formProps.value.sendAlert && (
           <React.Fragment>
             <Grid item style={{ flexGrow: 1 }} xs={12}>
               <FormField
@@ -462,7 +468,7 @@ export default function ServiceRuleForm(
           <Field label='Actions'>
             {formProps.value.actions.map(
               (action: ServiceRuleActionInput, actionIdx: number) => {
-                if (action.destType !== 'GOALERT') {
+                if (action.destType !== destType.ALERT) {
                   return (
                     <React.Fragment key={actionIdx}>
                       <Grid container>
@@ -533,7 +539,9 @@ export default function ServiceRuleForm(
                                   <FormField
                                     fullWidth
                                     component={TextField}
-                                    label={c.prop}
+                                    label={toTitleCase(
+                                      c.prop.replace(/_/g, ' '),
+                                    )}
                                     name={`actions[${actionIdx}].contents[${contentIdx}].value`}
                                     required
                                   />

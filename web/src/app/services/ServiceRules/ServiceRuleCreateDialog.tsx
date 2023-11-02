@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useMutation, gql } from 'urql'
+import { useMutation, gql, useQuery } from 'urql'
 
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
@@ -8,8 +8,11 @@ import {
   ServiceRuleActionInput,
   ServiceRuleFilterInput,
   ServiceRuleFilterValueType,
+  SlackChannel,
 } from '../../../schema'
-import ServiceRuleForm, { ServiceRuleValue } from './ServiceRuleForm'
+import ServiceRuleForm, { ServiceRuleValue, destType } from './ServiceRuleForm'
+import Spinner from '../../loading/components/Spinner'
+import { GenericError } from '../../error-pages'
 
 const mutation = gql`
   mutation ($input: CreateServiceRuleInput!) {
@@ -40,30 +43,67 @@ const mutation = gql`
   }
 `
 
-// getValidActions filters out any actions that have an empty destination
+const query = gql`
+  query ($input: SlackChannelSearchOptions) {
+    slackChannels(input: $input) {
+      nodes {
+        id
+        name
+      }
+    }
+  }
+`
+
+// getValidActions returns a list of valid actions
 export const getValidActions = (
   v: ServiceRuleValue,
+  slackChannels: SlackChannel[],
 ): ServiceRuleActionInput[] => {
   const validActions: ServiceRuleActionInput[] = []
   if (v.actions.length === 0) return []
 
   v.actions.forEach((action: ServiceRuleActionInput) => {
-    if (action.destType) validActions.push(action)
+    if (action.destType === destType.SLACK) {
+      validActions.push({
+        destID: action.destID,
+        destType: action.destType,
+        destValue: action.destValue,
+        contents: [
+          { prop: 'message', value: action.contents[0].value },
+          {
+            prop: 'channel',
+            value:
+              slackChannels.find((chan) => chan.id === action.destID)?.name ||
+              '',
+          },
+        ],
+      })
+    } else if (action.destType && action.destType !== destType.ALERT) {
+      validActions.push(action)
+    }
   })
 
-  // add GoAlert custom fields action
-  if (v.customFields) {
-    validActions.push({
-      destType: 'GOALERT',
-      destID: '',
-      destValue: '',
-      contents: [
-        { prop: 'summary', value: v.customFields.summary },
-        { prop: 'details', value: v.customFields.details },
-      ],
-    })
+  // add Alert information
+  if (v.sendAlert) {
+    if (v.customFields) {
+      validActions.push({
+        destType: destType.ALERT,
+        destID: '',
+        destValue: '',
+        contents: [
+          { prop: 'summary', value: v.customFields.summary },
+          { prop: 'details', value: v.customFields.details },
+        ],
+      })
+    } else {
+      validActions.push({
+        destType: destType.ALERT,
+        destID: '',
+        destValue: '',
+        contents: [],
+      })
+    }
   }
-
   return validActions
 }
 
@@ -119,6 +159,13 @@ export default function ServiceRuleCreateDialog(props: {
   const [actionsError, setActionsError] = useState<boolean>(false)
   const [createRuleStatus, commit] = useMutation(mutation)
 
+  const [{ fetching, error, data }] = useQuery({
+    query,
+    variables: {},
+  })
+  if (fetching && !data) return <Spinner />
+  if (error) return <GenericError error={error.message} />
+
   return (
     <FormDialog
       maxWidth='sm'
@@ -127,7 +174,7 @@ export default function ServiceRuleCreateDialog(props: {
       errors={nonFieldErrors(createRuleStatus.error)}
       onClose={onClose}
       onSubmit={() => {
-        const validActions = getValidActions(value)
+        const validActions = getValidActions(value, data.slackChannels.nodes)
         if (validActions.length === 0) {
           setActionsError(true)
           return

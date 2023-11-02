@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useMutation, gql } from 'urql'
+import { useMutation, useQuery, gql } from 'urql'
 
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
@@ -7,12 +7,15 @@ import { IntegrationKey, ServiceRule } from '../../../schema'
 import ServiceRuleForm, {
   CustomFields,
   ServiceRuleValue,
+  destType,
 } from './ServiceRuleForm'
 import {
   getFiltersWithValueTypes,
   getIntegrationKeyValues,
   getValidActions,
 } from './ServiceRuleCreateDialog'
+import Spinner from '../../loading/components/Spinner'
+import { GenericError } from '../../error-pages'
 
 const mutation = gql`
   mutation ($input: UpdateServiceRuleInput!) {
@@ -44,15 +47,24 @@ const mutation = gql`
   }
 `
 
+const query = gql`
+  query ($input: SlackChannelSearchOptions) {
+    slackChannels(input: $input) {
+      nodes {
+        id
+        name
+      }
+    }
+  }
+`
+
 export const getCustomFields = (r: ServiceRule): CustomFields | undefined => {
   const customFields: CustomFields = {
     summary: '',
     details: '',
   }
-  let hasCustomFields = false
   r.actions.map((action) => {
-    if (action.destType === 'GOALERT') {
-      hasCustomFields = true
+    if (action.destType === destType.ALERT) {
       action.contents.map((content) => {
         if (content.prop === 'summary') {
           customFields.summary = content.value
@@ -63,7 +75,7 @@ export const getCustomFields = (r: ServiceRule): CustomFields | undefined => {
     }
   })
 
-  return hasCustomFields ? customFields : undefined
+  return customFields.summary && customFields.details ? customFields : undefined
 }
 
 export default function ServiceRuleEditDialog(props: {
@@ -90,15 +102,22 @@ export default function ServiceRuleEditDialog(props: {
   const [actionsError, setActionsError] = useState<boolean>(false)
   const [editRuleStatus, commit] = useMutation(mutation)
 
+  const [{ fetching, error, data }] = useQuery({
+    query,
+    variables: {},
+  })
+  if (fetching && !data) return <Spinner />
+  if (error) return <GenericError error={error.message} />
+
   return (
     <FormDialog
       maxWidth='sm'
-      title='Create New Service Rule'
+      title='Edit New Service Rule'
       loading={editRuleStatus.fetching}
       errors={nonFieldErrors(editRuleStatus.error)}
       onClose={onClose}
       onSubmit={() => {
-        const validActions = getValidActions(value)
+        const validActions = getValidActions(value, data.slackChannels.nodes)
         if (validActions.length === 0) {
           setActionsError(true)
           return
