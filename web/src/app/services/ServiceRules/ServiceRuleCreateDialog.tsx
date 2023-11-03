@@ -169,7 +169,7 @@ export default function ServiceRuleCreateDialog(props: {
   return (
     <FormDialog
       maxWidth='sm'
-      title='Create New Service Rule'
+      title='Create New Signal Rule'
       loading={createRuleStatus.fetching}
       errors={nonFieldErrors(createRuleStatus.error)}
       onClose={onClose}

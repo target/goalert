@@ -339,6 +339,56 @@ export default function ServiceRuleForm(
             }))}
           />
         </Grid>
+        <Grid item>
+          <FormControlLabel
+            label='Create GoAlert'
+            labelPlacement='end'
+            control={
+              <FormField noError component={Switch} checkbox name='sendAlert' />
+            }
+          />
+          <Typography variant='body2'>
+            If enabled, all signals matching this rule will create a standard
+            GoAlert alert and trigger the escalation policy steps for this
+            service.
+          </Typography>
+          <FormControlLabel
+            label='Custom Fields'
+            labelPlacement='end'
+            control={
+              <Switch
+                checked={
+                  formProps.value.customFields !== undefined &&
+                  formProps.value.sendAlert
+                }
+                onChange={(e) => handleAddCustomAlertFields(e.target.checked)}
+              />
+            }
+            disabled={!formProps.value.sendAlert}
+          />
+        </Grid>
+        {formProps.value.customFields && formProps.value.sendAlert && (
+          <React.Fragment>
+            <Grid item style={{ flexGrow: 1 }} xs={12}>
+              <FormField
+                fullWidth
+                component={TextField}
+                label='Summary'
+                name='customFields.summary'
+                required
+              />
+            </Grid>
+            <Grid item style={{ flexGrow: 1 }} xs={12}>
+              <FormField
+                fullWidth
+                component={TextField}
+                label='Details'
+                name='customFields.details'
+                required
+              />
+            </Grid>
+          </React.Fragment>
+        )}
         <Grid item xs={12}>
           <Field label='Filters'>
             {formProps.value.filters.map(
@@ -419,53 +469,8 @@ export default function ServiceRuleForm(
             <AddIcon />
           </Fab>
         </Grid>
-        <Grid item>
-          <FormControlLabel
-            label='Create Alert'
-            labelPlacement='end'
-            control={
-              <FormField noError component={Switch} checkbox name='sendAlert' />
-            }
-          />
-          <FormControlLabel
-            label='Custom Fields'
-            labelPlacement='end'
-            control={
-              <Switch
-                checked={
-                  formProps.value.customFields !== undefined &&
-                  formProps.value.sendAlert
-                }
-                onChange={(e) => handleAddCustomAlertFields(e.target.checked)}
-              />
-            }
-            disabled={!formProps.value.sendAlert}
-          />
-        </Grid>
-        {formProps.value.customFields && formProps.value.sendAlert && (
-          <React.Fragment>
-            <Grid item style={{ flexGrow: 1 }} xs={12}>
-              <FormField
-                fullWidth
-                component={TextField}
-                label='Summary'
-                name='customFields.summary'
-                required
-              />
-            </Grid>
-            <Grid item style={{ flexGrow: 1 }} xs={12}>
-              <FormField
-                fullWidth
-                component={TextField}
-                label='Details'
-                name='customFields.details'
-                required
-              />
-            </Grid>
-          </React.Fragment>
-        )}
         <Grid item xs={12}>
-          <Field label='Actions'>
+          <Field label='Destinations'>
             {formProps.value.actions.map(
               (action: ServiceRuleActionInput, actionIdx: number) => {
                 if (action.destType !== destType.ALERT) {
@@ -476,7 +481,7 @@ export default function ServiceRuleForm(
                           <TextField
                             fullWidth
                             select
-                            label='Select Action'
+                            label='Select Destination'
                             value={action.destType}
                           >
                             {destinations.map((dest) => (
@@ -510,7 +515,7 @@ export default function ServiceRuleForm(
                           </Fab>
                         </Grid>
 
-                        {action.destType === 'SLACK' && (
+                        {action.destType === destType.SLACK && (
                           <Grid
                             item
                             style={{ flexGrow: 1, marginTop: '1em' }}

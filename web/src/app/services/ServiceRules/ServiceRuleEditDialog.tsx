@@ -58,12 +58,14 @@ const query = gql`
   }
 `
 
-export const getCustomFields = (r: ServiceRule): CustomFields | undefined => {
+export const getCustomFields = (
+  r: ServiceRule | null,
+): CustomFields | undefined => {
   const customFields: CustomFields = {
     summary: '',
     details: '',
   }
-  r.actions.map((action) => {
+  r?.actions.map((action) => {
     if (action.destType === destType.ALERT) {
       action.contents.map((content) => {
         if (content.prop === 'summary') {

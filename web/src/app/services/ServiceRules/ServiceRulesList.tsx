@@ -3,7 +3,6 @@ import { gql, useQuery } from 'urql'
 import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
-import Box from '@mui/material/Box'
 import CardContent from '@mui/material/CardContent'
 import CreateFAB from '../../lists/CreateFAB'
 import FlatList, { FlatListListItem } from '../../lists/FlatList'
@@ -13,20 +12,12 @@ import { Add } from '@mui/icons-material'
 import makeStyles from '@mui/styles/makeStyles'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
-import {
-  Content,
-  IntegrationKey,
-  ServiceRule,
-  ServiceRuleAction,
-  ServiceRuleFilter,
-} from '../../../schema'
+import { ServiceRule } from '../../../schema'
 import { sortItems } from '../IntegrationKeyList'
-import { Typography, Chip, Switch } from '@mui/material'
 import OtherActions from '../../util/OtherActions'
-import ServiceRuleEditDialog, { getCustomFields } from './ServiceRuleEditDialog'
+import ServiceRuleEditDialog from './ServiceRuleEditDialog'
 import ServiceRuleDeleteDialog from './ServiceRuleDeleteDialog'
-import { destType } from './ServiceRuleForm'
-import toTitleCase from '../../util/toTitleCase'
+import ServiceRulesDrawer from './ServiceRulesDrawer'
 
 const query = gql`
   query ($serviceID: ID!) {
@@ -96,105 +87,12 @@ const useStyles = makeStyles({
   },
 })
 
-function ActionDetails(props: { action: ServiceRuleAction }): JSX.Element {
-  const { action } = props
-  const classes = useStyles()
-
-  return (
-    <Box className={classes.actionItems}>
-      <Typography variant='body1'>{action.destType}</Typography>
-      <Box className={classes.items}>
-        {action.contents.map((content: Content, idx: number) => {
-          return (
-            <React.Fragment key={idx}>
-              <Typography variant='body1'>
-                {toTitleCase(content.prop.replace(/_/g, ' '))}
-              </Typography>
-              <Typography className={classes.items} variant='body1'>
-                {content.value}
-              </Typography>
-            </React.Fragment>
-          )
-        })}
-      </Box>
-    </Box>
-  )
-}
-
-function RuleDetails(props: { rule: ServiceRule }): JSX.Element {
-  const { rule } = props
-  const classes = useStyles()
-  const customFields = getCustomFields(rule)
-
-  return (
-    <Grid container spacing={1}>
-      <Grid item style={{ flexGrow: 1 }} xs={12}>
-        <Typography variant='h4'>{rule.name}</Typography>
-      </Grid>
-      <Grid item style={{ flexGrow: 1 }} xs={12}>
-        <Typography variant='body1'>Integration Keys</Typography>
-        <Box className={classes.items}>
-          {rule.integrationKeys.map((key: IntegrationKey) => (
-            <Chip key={key.id} label={key.name} className={classes.chip} />
-          ))}
-        </Box>
-      </Grid>
-      {rule.filters.length > 0 && (
-        <Grid item style={{ flexGrow: 1 }} xs={12}>
-          <Typography variant='body1'>Filters</Typography>
-          <Box className={classes.items}>
-            {rule.filters.map((f: ServiceRuleFilter, idx: number) => (
-              <Chip
-                key={idx}
-                label={`${f.field} ${f.operator} ${f.value}`}
-                className={classes.chip}
-              />
-            ))}
-          </Box>
-        </Grid>
-      )}
-      <Grid item style={{ flexGrow: 1 }} xs={12}>
-        <Typography variant='body1'>Create Alert</Typography>
-        <Switch checked={rule.sendAlert} disabled />
-      </Grid>
-      {customFields && (
-        <Grid item style={{ flexGrow: 1 }} xs={12}>
-          <Typography variant='body1'>Alert Custom Fields</Typography>
-          <Box className={classes.items}>
-            <Typography variant='body1' display='inline'>
-              Summary
-            </Typography>
-            <Typography variant='body1' display='inline'>
-              : {`${customFields?.summary}`}
-            </Typography>
-          </Box>
-          <Box className={classes.items}>
-            <Typography variant='body1' display='inline'>
-              Details
-            </Typography>
-            <Typography variant='body1' display='inline'>
-              : {`${customFields?.details}`}
-            </Typography>
-          </Box>
-        </Grid>
-      )}
-      <Grid item style={{ flexGrow: 1 }} xs={12}>
-        <Typography variant='body1'>Destinations</Typography>
-        {rule.actions.map((action, idx) => {
-          if (action.destType !== destType.ALERT) {
-            return <ActionDetails key={idx} action={action} />
-          }
-        })}
-      </Grid>
-    </Grid>
-  )
-}
-
 export default function ServiceRulesList(props: {
   serviceID: string
 }): JSX.Element {
   const classes = useStyles()
   const isMobile = useIsWidthDown('md')
+  const [selectedRule, setSelectedRule] = useState<ServiceRule | null>(null)
   const [create, setCreate] = useState<boolean>(false)
   const [editRule, setEditRule] = useState<ServiceRule | null>(null)
   const [deleteRule, setDeleteRule] = useState<string | null>(null)
@@ -211,7 +109,9 @@ export default function ServiceRulesList(props: {
     .sort(sortItems)
     .map(
       (rule: ServiceRule): FlatListListItem => ({
-        subText: <RuleDetails key={rule.id} rule={rule} />,
+        selected: rule.id === selectedRule?.id,
+        highlight: rule.id === selectedRule?.id,
+        title: rule.name,
         secondaryAction: (
           <OtherActions
             actions={[
@@ -226,16 +126,24 @@ export default function ServiceRulesList(props: {
             ]}
           />
         ),
+        onClick: () => setSelectedRule(rule),
       }),
     )
 
   return (
     <React.Fragment>
+      <ServiceRulesDrawer
+        onClose={() => {
+          setSelectedRule(null)
+        }}
+        rule={selectedRule}
+        integrationKeys={data.service.integrationKeys}
+      />
       <Grid item xs={12} className={classes.spacing}>
         <Card>
           <CardContent>
             <FlatList
-              data-cy='int-keys'
+              data-cy='signal-rules'
               headerNote='Rules are used to determine the action taken when a signal is received.'
               emptyMessage='No rules exist for this service.'
               items={items}
@@ -245,9 +153,9 @@ export default function ServiceRulesList(props: {
                     variant='contained'
                     onClick={(): void => setCreate(true)}
                     startIcon={<Add />}
-                    data-testid='create-key'
+                    data-testid='create-signal-rule'
                   >
-                    Create New Rule
+                    Create Signal Rule
                   </Button>
                 )
               }

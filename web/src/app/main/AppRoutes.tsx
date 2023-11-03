@@ -101,7 +101,7 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/services/:serviceID/integration-keys': IntegrationKeyList,
   '/services/:serviceID/labels': ServiceLabelList,
   '/services/:serviceID/alert-metrics': AlertMetrics,
-  '/services/:serviceID/rules': ServiceRulesList,
+  '/services/:serviceID/signal-rules': ServiceRulesList,
 
   '/users': UserList,
   '/users/:userID': UserDetails,
