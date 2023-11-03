@@ -66,6 +66,29 @@ const useStyles = makeStyles(() => ({
   },
 }))
 
+function ActionBy(props: {
+  label: string
+  time?: string
+  name?: string
+}): React.ReactNode {
+  let record: React.ReactNode = 'Never'
+  if (props.time && props.name) {
+    record = (
+      <React.Fragment>
+        <Time format='relative' time={props.time} /> by {props.name}
+      </React.Fragment>
+    )
+  } else if (props.time) {
+    record = <Time format='relative' time={props.time} />
+  }
+
+  return (
+    <ListItem divider>
+      <ListItemText primary={props.label} secondary={record} />
+    </ListItem>
+  )
+}
+
 export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
   const { onClose, apiKeyID } = props
   const classes = useStyles()
@@ -80,6 +103,8 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
     data?.gqlAPIKeys?.find((d: GQLAPIKey) => {
       return d.id === apiKeyID
     }) || ({} as GQLAPIKey)
+
+  const lastUsed = apiKey?.lastUsed || null
 
   if (error) {
     return <GenericError error={error.message} />
@@ -138,6 +163,9 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
               />
             </ListItem>
             <ListItem divider>
+              <ListItemText primary='Role' secondary={apiKey?.role} />
+            </ListItem>
+            <ListItem divider>
               <ListItemText
                 primary='Query'
                 secondary={
@@ -147,33 +175,23 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
                 }
               />
             </ListItem>
-            <ListItem divider>
-              <ListItemText
-                primary='Creation Time'
-                secondary={<Time prefix='' time={apiKey?.createdAt} />}
-              />
-            </ListItem>
-            <ListItem divider>
-              <ListItemText
-                primary='Created By'
-                secondary={apiKey?.createdBy?.name}
-              />
-            </ListItem>
-            <ListItem divider>
-              <ListItemText
-                primary='Expires At'
-                secondary={<Time prefix='' time={apiKey?.expiresAt} />}
-              />
-            </ListItem>
-            <ListItem divider>
-              <ListItemText
-                primary='Updated By'
-                secondary={apiKey?.updatedBy?.name}
-              />
-            </ListItem>
-            <ListItem divider>
-              <ListItemText primary='Role' secondary={apiKey?.role} />
-            </ListItem>
+            <ActionBy
+              label='Created'
+              time={apiKey?.createdAt}
+              name={apiKey?.createdBy?.name}
+            />
+            <ActionBy
+              label='Updated'
+              time={apiKey?.updatedAt}
+              name={apiKey?.updatedBy?.name}
+            />
+            <ActionBy label='Expires' time={apiKey?.expiresAt} />
+
+            <ActionBy
+              label='Last Used'
+              time={lastUsed?.time}
+              name={lastUsed ? lastUsed.ua + ' from ' + lastUsed.ip : ''}
+            />
           </List>
           <Grid className={classes.buttons}>
             <ButtonGroup variant='contained'>
