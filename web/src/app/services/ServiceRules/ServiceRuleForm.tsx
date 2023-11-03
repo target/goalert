@@ -341,7 +341,7 @@ export default function ServiceRuleForm(
         </Grid>
         <Grid item>
           <FormControlLabel
-            label='Create GoAlert'
+            label='Create Alert'
             labelPlacement='end'
             control={
               <FormField noError component={Switch} checkbox name='sendAlert' />

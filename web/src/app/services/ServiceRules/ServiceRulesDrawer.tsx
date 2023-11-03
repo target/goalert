@@ -109,7 +109,7 @@ export default function ServiceRulesDrawer(
           <List disablePadding>
             <ListItem>
               <ListItemText
-                primary='Create GoAlert'
+                primary='Create Alert'
                 secondary={
                   <React.Fragment>
                     <Typography>
