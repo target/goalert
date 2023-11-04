@@ -42,7 +42,7 @@
     "@mui/icons-material": "5.14.9",
     "@mui/lab": "5.0.0-alpha.145",
     "@mui/material": "5.14.10",
-    "@mui/styles": "5.14.10",
+    "@mui/styles": "5.14.16",
     "@mui/system": "5.14.10",
     "@mui/x-data-grid": "6.16.2",
     "@playwright/test": "1.39.0",
