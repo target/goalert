@@ -10,7 +10,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/emersion/go-smtp v0.18.1
 	github.com/fatih/color v1.15.0
-	github.com/felixge/httpsnoop v1.0.3
+	github.com/felixge/httpsnoop v1.0.4
 	github.com/fullstorydev/grpcui v1.3.3
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
