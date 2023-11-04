@@ -2913,10 +2913,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/prop-types@npm:*, @types/prop-types@npm:15.7.6, @types/prop-types@npm:^15.7.5":
+"@types/prop-types@npm:*, @types/prop-types@npm:^15.7.5":
   version: 15.7.6
   resolution: "@types/prop-types@npm:15.7.6"
   checksum: 5f2796c7330461a556c4d18035fb914b372f96b1619a4f8302d07e1ea708e06a2dbe666dfcd8ff03f64c625aa4c12b31f677d0298a32910f5ab7ee51521d8086
+  languageName: node
+  linkType: hard
+
+"@types/prop-types@npm:15.7.9":
+  version: 15.7.9
+  resolution: "@types/prop-types@npm:15.7.9"
+  checksum: c7591d3ff7593e243908a07e1d3e2bb6e8879008af5800d8378115a90d0fdf669a1cae72a6d7f69e59c4fa7bb4c8ed61f6ebc1c520fe110c6f2b03ac02414072
   languageName: node
   linkType: hard
 
@@ -11277,7 +11284,7 @@ __metadata:
     "@types/jest": 29.5.5
     "@types/lodash": 4.14.199
     "@types/luxon": 3.3.2
-    "@types/prop-types": 15.7.6
+    "@types/prop-types": 15.7.9
     "@types/react": 18.2.22
     "@types/react-big-calendar": 1.6.5
     "@types/react-dom": 18.2.13
