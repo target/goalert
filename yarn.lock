@@ -11340,7 +11340,7 @@ __metadata:
     typescript: 5.2.2
     urql: 4.0.5
     wonka: 6.3.4
-    wouter: 2.11.0
+    wouter: 2.12.1
   languageName: unknown
   linkType: soft
 
@@ -12992,14 +12992,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wouter@npm:2.11.0":
-  version: 2.11.0
-  resolution: "wouter@npm:2.11.0"
+"wouter@npm:2.12.1":
+  version: 2.12.1
+  resolution: "wouter@npm:2.12.1"
   dependencies:
     use-sync-external-store: ^1.0.0
   peerDependencies:
     react: ">=16.8.0"
-  checksum: 52ae7231db44d187c1c7f55029513413d270ada09f33a5dd3ab50bf01038f8dbda59669fbf201ae90e27262d18c5ae5fd11881ea8a31854727a14947c2003a0b
+  checksum: 89f41a6d7c7cd5e56eea9f4c98e0594f2a6c1fc5166cbee44a08aa87c2c9a10fb3e32db6b50dfd8afa880a1e94ecda121daef2768ba0bbb92a1ea87ed2f6b878
   languageName: node
   linkType: hard
 
