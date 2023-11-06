@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   ClickAwayListener,
   Divider,
@@ -66,6 +66,29 @@ const useStyles = makeStyles(() => ({
   },
 }))
 
+function ActionBy(props: {
+  label: string
+  time?: string
+  name?: string
+}): React.ReactNode {
+  let record: React.ReactNode = 'Never'
+  if (props.time && props.name) {
+    record = (
+      <React.Fragment>
+        <Time format='relative' time={props.time} /> by {props.name}
+      </React.Fragment>
+    )
+  } else if (props.time) {
+    record = <Time format='relative' time={props.time} />
+  }
+
+  return (
+    <ListItem divider>
+      <ListItemText primary={props.label} secondary={record} />
+    </ListItem>
+  )
+}
+
 export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
   const { onClose, apiKeyID } = props
   const classes = useStyles()
@@ -75,17 +98,28 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
   const [showQuery, setShowQuery] = useState(false)
 
   // Get API Key triggers/actions
-  const [{ data, fetching, error }] = useQuery({ query })
+  const context = useMemo(() => ({ additionalTypenames: ['GQLAPIKey'] }), [])
+  const [{ data, error }] = useQuery({ query, context })
   const apiKey: GQLAPIKey =
     data?.gqlAPIKeys?.find((d: GQLAPIKey) => {
       return d.id === apiKeyID
     }) || ({} as GQLAPIKey)
 
+  useEffect(() => {
+    if (!isOpen) return
+    if (!data || apiKey.id) return
+
+    // If the API Key is not found, close the drawer.
+    onClose()
+  }, [isOpen, data, apiKey.id])
+
+  const lastUsed = apiKey?.lastUsed || null
+
   if (error) {
     return <GenericError error={error.message} />
   }
 
-  if (fetching && !data) {
+  if (isOpen && !apiKey.id) {
     return <Spinner />
   }
 
@@ -129,13 +163,16 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
           <Divider />
           <List disablePadding>
             <ListItem divider>
-              <ListItemText primary='Name' secondary={apiKey?.name} />
+              <ListItemText primary='Name' secondary={apiKey.name} />
             </ListItem>
             <ListItem divider>
               <ListItemText
                 primary='Description'
-                secondary={apiKey?.description}
+                secondary={apiKey.description}
               />
+            </ListItem>
+            <ListItem divider>
+              <ListItemText primary='Role' secondary={apiKey.role} />
             </ListItem>
             <ListItem divider>
               <ListItemText
@@ -147,33 +184,23 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
                 }
               />
             </ListItem>
-            <ListItem divider>
-              <ListItemText
-                primary='Creation Time'
-                secondary={<Time prefix='' time={apiKey?.createdAt} />}
-              />
-            </ListItem>
-            <ListItem divider>
-              <ListItemText
-                primary='Created By'
-                secondary={apiKey?.createdBy?.name}
-              />
-            </ListItem>
-            <ListItem divider>
-              <ListItemText
-                primary='Expires At'
-                secondary={<Time prefix='' time={apiKey?.expiresAt} />}
-              />
-            </ListItem>
-            <ListItem divider>
-              <ListItemText
-                primary='Updated By'
-                secondary={apiKey?.updatedBy?.name}
-              />
-            </ListItem>
-            <ListItem divider>
-              <ListItemText primary='Role' secondary={apiKey?.role} />
-            </ListItem>
+            <ActionBy
+              label='Created'
+              time={apiKey.createdAt}
+              name={apiKey.createdBy?.name}
+            />
+            <ActionBy
+              label='Updated'
+              time={apiKey.updatedAt}
+              name={apiKey.updatedBy?.name}
+            />
+            <ActionBy label='Expires' time={apiKey.expiresAt} />
+
+            <ActionBy
+              label='Last Used'
+              time={lastUsed?.time}
+              name={lastUsed ? lastUsed.ua + ' from ' + lastUsed.ip : ''}
+            />
           </List>
           <Grid className={classes.buttons}>
             <ButtonGroup variant='contained'>

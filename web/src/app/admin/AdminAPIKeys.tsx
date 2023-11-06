@@ -125,6 +125,7 @@ export default function AdminAPIKeys(): JSX.Element {
             <Time
               prefix={hasExpired ? 'Expired ' : 'Expires '}
               time={key.expiresAt}
+              format='relative'
             />
           </Typography>
           <Typography variant='subtitle2' component='div' color='textSecondary'>
@@ -145,7 +146,12 @@ export default function AdminAPIKeys(): JSX.Element {
               component='div'
               color='textSecondary'
             >
-              <Time prefix='Last Used: ' time={key.expiresAt} />
+              Last Used:&nbsp;
+              {key.lastUsed ? (
+                <Time format='relative' time={key.lastUsed.time} />
+              ) : (
+                `Never`
+              )}
             </Typography>
           </Grid>
           <Grid
