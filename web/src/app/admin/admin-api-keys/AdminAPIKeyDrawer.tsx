@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   ClickAwayListener,
   Divider,
@@ -98,11 +98,20 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
   const [showQuery, setShowQuery] = useState(false)
 
   // Get API Key triggers/actions
-  const [{ data, fetching, error }] = useQuery({ query })
+  const context = useMemo(() => ({ additionalTypenames: ['GQLAPIKey'] }), [])
+  const [{ data, error }] = useQuery({ query, context })
   const apiKey: GQLAPIKey =
     data?.gqlAPIKeys?.find((d: GQLAPIKey) => {
       return d.id === apiKeyID
     }) || ({} as GQLAPIKey)
+
+  useEffect(() => {
+    if (!isOpen) return
+    if (!data || apiKey.id) return
+
+    // If the API Key is not found, close the drawer.
+    onClose()
+  }, [isOpen, data, apiKey.id])
 
   const lastUsed = apiKey?.lastUsed || null
 
@@ -110,7 +119,7 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
     return <GenericError error={error.message} />
   }
 
-  if (fetching && !data) {
+  if (isOpen && !apiKey.id) {
     return <Spinner />
   }
 
@@ -154,16 +163,16 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
           <Divider />
           <List disablePadding>
             <ListItem divider>
-              <ListItemText primary='Name' secondary={apiKey?.name} />
+              <ListItemText primary='Name' secondary={apiKey.name} />
             </ListItem>
             <ListItem divider>
               <ListItemText
                 primary='Description'
-                secondary={apiKey?.description}
+                secondary={apiKey.description}
               />
             </ListItem>
             <ListItem divider>
-              <ListItemText primary='Role' secondary={apiKey?.role} />
+              <ListItemText primary='Role' secondary={apiKey.role} />
             </ListItem>
             <ListItem divider>
               <ListItemText
@@ -177,15 +186,15 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
             </ListItem>
             <ActionBy
               label='Created'
-              time={apiKey?.createdAt}
-              name={apiKey?.createdBy?.name}
+              time={apiKey.createdAt}
+              name={apiKey.createdBy?.name}
             />
             <ActionBy
               label='Updated'
-              time={apiKey?.updatedAt}
-              name={apiKey?.updatedBy?.name}
+              time={apiKey.updatedAt}
+              name={apiKey.updatedBy?.name}
             />
-            <ActionBy label='Expires' time={apiKey?.expiresAt} />
+            <ActionBy label='Expires' time={apiKey.expiresAt} />
 
             <ActionBy
               label='Last Used'
