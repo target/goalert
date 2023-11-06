@@ -21,8 +21,6 @@ const mutation = gql`
       serviceID
       actions {
         destType
-        destID
-        destValue
         contents {
           prop
           value
@@ -65,16 +63,21 @@ export const getValidActions = (
   v.actions.forEach((action: ServiceRuleActionInput) => {
     if (action.destType === destType.SLACK) {
       validActions.push({
-        destID: action.destID,
         destType: action.destType,
-        destValue: action.destValue,
         contents: [
-          { prop: 'message', value: action.contents[0].value },
+          {
+            prop: 'channel_id',
+            value: action.contents[0].value,
+          },
           {
             prop: 'channel',
             value:
-              slackChannels.find((chan) => chan.id === action.destID)?.name ||
-              '',
+              slackChannels.find((chan) => chan.id === action.contents[0].value)
+                ?.name || '',
+          },
+          {
+            prop: 'message',
+            value: action.contents[1].value,
           },
         ],
       })
@@ -88,8 +91,6 @@ export const getValidActions = (
     if (v.customFields) {
       validActions.push({
         destType: destType.ALERT,
-        destID: '',
-        destValue: '',
         contents: [
           { prop: 'summary', value: v.customFields.summary },
           { prop: 'details', value: v.customFields.details },
@@ -98,8 +99,6 @@ export const getValidActions = (
     } else {
       validActions.push({
         destType: destType.ALERT,
-        destID: '',
-        destValue: '',
         contents: [],
       })
     }

@@ -51,8 +51,6 @@ interface ServiceRuleFilterValue {
 
 interface ServiceRuleActionValue {
   destType: string
-  destID: string
-  destValue: string
   contents: ContentValue[]
 }
 
@@ -184,8 +182,6 @@ export default function ServiceRuleForm(
         ...formProps.value.actions,
         {
           destType: '',
-          destID: '',
-          destValue: '',
           contents: [],
         },
       ],
@@ -199,7 +195,10 @@ export default function ServiceRuleForm(
     actions[actionIdx].destType = dest
     switch (dest) {
       case destType.SLACK:
-        actions[actionIdx].contents = [{ prop: 'message', value: '' }]
+        actions[actionIdx].contents = [
+          { prop: 'channel', value: '' },
+          { prop: 'message', value: '' },
+        ]
         break
       case destType.SERVICENOW:
         actions[actionIdx].contents = [
@@ -526,14 +525,23 @@ export default function ServiceRuleForm(
                               component={SlackChannelSelect}
                               fullWidth
                               label='Select Channel(s)'
-                              name={`actions[${actionIdx}].destID`}
-                              value={formProps.value.actions[actionIdx].destID}
+                              name={`actions[${actionIdx}].contents[0].value`}
+                              value={
+                                formProps.value.actions[actionIdx].contents[0]
+                                  .value
+                              }
                             />
                           </Grid>
                         )}
                         {action.contents &&
                           action.contents.map(
                             (c: Content, contentIdx: number) => {
+                              if (
+                                action.destType === destType.SLACK &&
+                                c.prop === 'channel'
+                              ) {
+                                return <React.Fragment key={contentIdx} />
+                              }
                               return (
                                 <Grid
                                   key={c.prop}

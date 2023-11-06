@@ -28,8 +28,6 @@ const query = gql`
         serviceID
         actions {
           destType
-          destID
-          destValue
           contents {
             prop
             value

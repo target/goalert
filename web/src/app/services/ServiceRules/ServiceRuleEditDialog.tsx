@@ -25,8 +25,6 @@ const mutation = gql`
       serviceID
       actions {
         destType
-        destID
-        destValue
         contents {
           prop
           value
