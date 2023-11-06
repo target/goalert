@@ -953,10 +953,13 @@ type Keyring struct {
 }
 
 type Label struct {
-	ID           int64
-	Key          string
-	TgtServiceID uuid.UUID
-	Value        string
+	ID            int64
+	Key           string
+	TgtEpID       uuid.NullUUID
+	TgtRotationID uuid.NullUUID
+	TgtScheduleID uuid.NullUUID
+	TgtServiceID  uuid.UUID
+	Value         string
 }
 
 type NotificationChannel struct {

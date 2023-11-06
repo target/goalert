@@ -19,9 +19,9 @@ WHERE
 -- name: LabelDeleteKeyByTarget :exec
 DELETE FROM labels
 WHERE key = $1
-    AND (tgt_service_id = sqlc.narg(service_id)::uuid,
-        OR tgt_schedule_id = sqlc.narg(schedule_id)::uuid,
-        OR tgt_rotation_id = sqlc.narg(rotation_id)::uuid,
+    AND (tgt_service_id = sqlc.narg(service_id)::uuid
+        OR tgt_schedule_id = sqlc.narg(schedule_id)::uuid
+        OR tgt_rotation_id = sqlc.narg(rotation_id)::uuid
         OR tgt_ep_id = sqlc.narg(ep_id)::uuid);
 
 -- name: LabelSetByTarget :exec
