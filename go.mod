@@ -19,7 +19,7 @@ require (
 	github.com/gordonklaus/ineffassign v0.0.0-20230610083614-0e73809eb601
 	github.com/hashicorp/yamux v0.1.1
 	github.com/jackc/pgtype v1.14.0
-	github.com/jackc/pgx/v5 v5.4.3
+	github.com/jackc/pgx/v5 v5.5.0
 	github.com/jmespath/go-jmespath v0.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/kffl/speedbump v1.1.0
