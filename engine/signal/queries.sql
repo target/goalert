@@ -7,7 +7,8 @@ SELECT
     destination_type,
     destination_id,
     destination_val,
-    content
+    content,
+    message
 FROM
     outgoing_signals
 WHERE

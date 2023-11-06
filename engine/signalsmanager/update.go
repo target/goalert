@@ -7,8 +7,10 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	"github.com/target/goalert/engine/signal"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/service/rule"
 )
 
 // UpdateAll will update all schedule rules.
@@ -34,18 +36,6 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 
 var errDone = errors.New("done")
 
-type content struct {
-	prop  string
-	value string
-}
-
-type destination struct {
-	DestinationType string    `json:"dest_type"`
-	DestinationID   string    `json:"dest_id"`
-	DestinationVal  string    `json:"dest_value"`
-	Content         []content `json:"contents"`
-}
-
 func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
 	q := gadb.New(tx)
 
@@ -59,18 +49,39 @@ func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
 	}
 
 	srvRule, err := q.SvcRuleFindOne(ctx, sig.ServiceRuleID)
+	if err != nil {
+		return fmt.Errorf("find signal service rule error: %w", err)
+	}
 
-	destList := []destination{}
-	err = json.Unmarshal(srvRule.Actions.RawMessage, &destList)
+	actionList := []rule.Action{}
+	err = json.Unmarshal(srvRule.Actions.RawMessage, &actionList)
+	if err != nil {
+		return fmt.Errorf("unmarshal service rule actions error: %w", err)
+	}
 
-	for _, dest := range destList {
+	for _, action := range actionList {
+		// aquires information nested in the service rule's actions
+		// messages could use processing for variables
+		// destination value may be sent as a Content object inside actions
+		// content is reorganized to include only necessary aditional context
+		message, destVal, content, err := signal.ProcessContent(action)
+		if err != nil {
+			return fmt.Errorf("signalsmanager process signal content error: %w", err)
+		}
+
+		// perhaps just continue and log failed action instead of erroring out here?
+		if destVal == "" {
+			return errors.New("signal missing outgoing destination value.")
+		}
+
 		err = q.SignalsManagerSendOutgoing(ctx, gadb.SignalsManagerSendOutgoingParams{
 			SignalID:        int32(sig.ID),
 			ServiceID:       sig.ServiceID,
-			DestinationType: dest.DestinationType,
-			DestinationID:   dest.DestinationID,
-			DestinationVal:  dest.DestinationVal,
-			Content:         srvRule.Actions.RawMessage,
+			DestinationType: action.DestType,
+			DestinationID:   action.DestID,
+			DestinationVal:  destVal,
+			Message:         message,
+			Content:         content,
 		})
 		if err != nil {
 			return fmt.Errorf("insert outgoing_signals error: %w", err)

@@ -95,6 +95,13 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 			},
 		}}
 		e.Body.Outros = []string{"You are receiving this message because you have status updates enabled. Visit your Profile page to change this."}
+	case notification.Signal:
+		// TODO: refine
+		if m.Email == nil {
+			return nil, errors.New("message missing signal Email field")
+		}
+		subject = m.Email.Subject
+		e.Body.Title = m.Email.Body
 	default:
 		return nil, errors.New("message type not supported")
 	}

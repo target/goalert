@@ -8,6 +8,7 @@ ADD column IF NOT EXISTS destination_type text NOT NULL,
 ADD column IF NOT EXISTS destination_id text NOT NULL,
 ADD column IF NOT EXISTS destination_val text NOT NULL,
 ADD column IF NOT EXISTS content jsonb NOT NULL,
+ADD column IF NOT EXISTS message text NOT NULL,
 ADD column IF NOT EXISTS created_at timestamptz NOT NULL DEFAULT now(),
 ADD column IF NOT EXISTS sent_at timestamptz;
 

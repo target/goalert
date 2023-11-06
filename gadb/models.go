@@ -1016,6 +1016,7 @@ type OutgoingSignal struct {
 	DestinationType string
 	DestinationVal  string
 	ID              uuid.UUID
+	Message         string
 	SentAt          sql.NullTime
 	ServiceID       uuid.UUID
 	SignalID        int32

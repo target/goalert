@@ -61,6 +61,7 @@ export const getValidActions = (
   if (v.actions.length === 0) return []
 
   v.actions.forEach((action: ServiceRuleActionInput) => {
+    console.info(slackChannels)
     if (action.destType === destType.SLACK) {
       validActions.push({
         destType: action.destType,

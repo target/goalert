@@ -401,6 +401,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	case notification.ScheduleOnCallUsers:
 		opts = append(opts, slack.MsgOptionText(s.onCallNotificationText(ctx, t), false))
 	case notification.Signal:
+		// TODO: refine
 		opts = append(opts, slack.MsgOptionText(fmt.Sprintf("This is a signal message: %s", t.Summary), false))
 	default:
 		return nil, errors.Errorf("unsupported message type: %T", t)

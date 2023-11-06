@@ -1563,7 +1563,8 @@ SELECT
     destination_type,
     destination_id,
     destination_val,
-    content
+    content,
+    message
 FROM
     outgoing_signals
 WHERE
@@ -1582,6 +1583,7 @@ type OutgoingSignalFindNextRow struct {
 	DestinationID   string
 	DestinationVal  string
 	Content         json.RawMessage
+	Message         string
 }
 
 func (q *Queries) OutgoingSignalFindNext(ctx context.Context) (OutgoingSignalFindNextRow, error) {
@@ -1596,6 +1598,7 @@ func (q *Queries) OutgoingSignalFindNext(ctx context.Context) (OutgoingSignalFin
 		&i.DestinationID,
 		&i.DestinationVal,
 		&i.Content,
+		&i.Message,
 	)
 	return i, err
 }
@@ -2038,8 +2041,8 @@ func (q *Queries) SignalsManagerFindNext(ctx context.Context) (SignalsManagerFin
 }
 
 const signalsManagerSendOutgoing = `-- name: SignalsManagerSendOutgoing :exec
-INSERT INTO outgoing_signals (signal_id, service_id, destination_type, destination_id, destination_val, content)
-    VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO outgoing_signals (signal_id, service_id, destination_type, destination_id, destination_val, content, message)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
 `
 
 type SignalsManagerSendOutgoingParams struct {
@@ -2049,6 +2052,7 @@ type SignalsManagerSendOutgoingParams struct {
 	DestinationID   string
 	DestinationVal  string
 	Content         json.RawMessage
+	Message         string
 }
 
 func (q *Queries) SignalsManagerSendOutgoing(ctx context.Context, arg SignalsManagerSendOutgoingParams) error {
@@ -2059,6 +2063,7 @@ func (q *Queries) SignalsManagerSendOutgoing(ctx context.Context, arg SignalsMan
 		arg.DestinationID,
 		arg.DestinationVal,
 		arg.Content,
+		arg.Message,
 	)
 	return err
 }

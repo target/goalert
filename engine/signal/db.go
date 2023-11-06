@@ -75,6 +75,7 @@ func (db *DB) _sendSignal(ctx context.Context, send SendFunc, tx gadb.DBTX) erro
 		return fmt.Errorf("find next signal error: %w", err)
 	}
 
+	// TODO: refine, "SLACK" overlaps both nc and cm.
 	var sigType notification.ScannableDestType
 	sigType.NC = notificationchannel.Type(sig.DestinationType)
 	sigType.CM = contactmethod.Type(sig.DestinationType)
@@ -90,9 +91,12 @@ func (db *DB) _sendSignal(ctx context.Context, send SendFunc, tx gadb.DBTX) erro
 		SignalID:  int(sig.SignalID),
 		UserID:    permission.UserID(ctx),
 		ServiceID: sig.ServiceID.String(),
-		Message:   string(sig.Content),
+
 		CreatedAt: time.Now(),
 		SentAt:    time.Now(),
+
+		Message: sig.Message,
+		Content: sig.Content,
 	}
 
 	res, err := send(ctx, &signal)

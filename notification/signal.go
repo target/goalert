@@ -9,8 +9,16 @@ type Signal struct {
 	ServiceID   string
 	ServiceName string
 
+	// Email is an optional field containing additional info required for sending signals via email
+	Email *SignalEmail
+
 	// OriginalStatus is the status of the first Alert notification to this Dest for this AlertID.
 	OriginalStatus *SendResult
+}
+
+type SignalEmail struct {
+	Subject string
+	Body    string
 }
 
 var _ Message = &Signal{}
