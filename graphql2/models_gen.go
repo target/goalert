@@ -141,11 +141,11 @@ type CreateEscalationPolicyStepInput struct {
 }
 
 type CreateGQLAPIKeyInput struct {
-	Name          string    `json:"name"`
-	Description   string    `json:"description"`
-	AllowedFields []string  `json:"allowedFields"`
-	ExpiresAt     time.Time `json:"expiresAt"`
-	Role          UserRole  `json:"role"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	ExpiresAt   time.Time `json:"expiresAt"`
+	Role        UserRole  `json:"role"`
+	Query       string    `json:"query"`
 }
 
 type CreateHeartbeatMonitorInput struct {
@@ -298,17 +298,17 @@ type EscalationPolicySearchOptions struct {
 }
 
 type GQLAPIKey struct {
-	ID            string          `json:"id"`
-	Name          string          `json:"name"`
-	Description   string          `json:"description"`
-	CreatedAt     time.Time       `json:"createdAt"`
-	CreatedBy     *user.User      `json:"createdBy,omitempty"`
-	UpdatedAt     time.Time       `json:"updatedAt"`
-	UpdatedBy     *user.User      `json:"updatedBy,omitempty"`
-	LastUsed      *GQLAPIKeyUsage `json:"lastUsed,omitempty"`
-	ExpiresAt     time.Time       `json:"expiresAt"`
-	AllowedFields []string        `json:"allowedFields"`
-	Role          UserRole        `json:"role"`
+	ID          string          `json:"id"`
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	CreatedAt   time.Time       `json:"createdAt"`
+	CreatedBy   *user.User      `json:"createdBy,omitempty"`
+	UpdatedAt   time.Time       `json:"updatedAt"`
+	UpdatedBy   *user.User      `json:"updatedBy,omitempty"`
+	LastUsed    *GQLAPIKeyUsage `json:"lastUsed,omitempty"`
+	ExpiresAt   time.Time       `json:"expiresAt"`
+	Query       string          `json:"query"`
+	Role        UserRole        `json:"role"`
 }
 
 type GQLAPIKeyUsage struct {

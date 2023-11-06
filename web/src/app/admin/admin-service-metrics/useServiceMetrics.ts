@@ -19,17 +19,18 @@ export type ServiceMetricFilters = {
 export type ServiceMetricOpts = {
   services: Service[]
   alerts: Alert[]
-  filters?: ServiceMetricFilters
+  filters: ServiceMetricFilters
 }
+
 export function useServiceMetrics(opts: ServiceMetricOpts): ServiceMetrics {
-  const { services, alerts, filters } = opts
+  const { services, filters, alerts } = opts
 
   const filterServices = (
     services: Service[],
-    filters?: ServiceMetricFilters,
+    filters: ServiceMetricFilters,
   ): Service[] => {
     return services.filter((svc) => {
-      if (filters?.labelKey) {
+      if (filters.labelKey) {
         const labelMatch = svc.labels.some(
           (label) =>
             filters.labelKey === label.key &&
@@ -54,8 +55,8 @@ export function useServiceMetrics(opts: ServiceMetricOpts): ServiceMetrics {
   }
 
   const calculateMetrics = (
-    filteredServices: Service[],
     alerts: Alert[],
+    filteredServices: Service[],
   ): ServiceMetrics => {
     const metrics = {
       keyTgtTotals: {},
@@ -83,6 +84,6 @@ export function useServiceMetrics(opts: ServiceMetricOpts): ServiceMetrics {
   }
 
   const filteredServices = filterServices(services, filters)
-  const metrics = calculateMetrics(filteredServices, alerts)
+  const metrics = calculateMetrics(alerts, filteredServices)
   return { ...metrics, filteredServices }
 }

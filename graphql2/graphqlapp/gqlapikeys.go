@@ -48,14 +48,14 @@ func (q *Query) GqlAPIKeys(ctx context.Context) ([]graphql2.GQLAPIKey, error) {
 	res := make([]graphql2.GQLAPIKey, len(keys))
 	for i, k := range keys {
 		res[i] = graphql2.GQLAPIKey{
-			ID:            k.ID.String(),
-			Name:          k.Name,
-			Description:   k.Description,
-			CreatedAt:     k.CreatedAt,
-			UpdatedAt:     k.UpdatedAt,
-			ExpiresAt:     k.ExpiresAt,
-			AllowedFields: k.AllowedFields,
-			Role:          graphql2.UserRole(k.Role),
+			ID:          k.ID.String(),
+			Name:        k.Name,
+			Description: k.Description,
+			CreatedAt:   k.CreatedAt,
+			UpdatedAt:   k.UpdatedAt,
+			ExpiresAt:   k.ExpiresAt,
+			Query:       k.Query,
+			Role:        graphql2.UserRole(k.Role),
 		}
 
 		if k.CreatedBy != nil {
@@ -109,7 +109,7 @@ func (a *Mutation) CreateGQLAPIKey(ctx context.Context, input graphql2.CreateGQL
 		Name:    input.Name,
 		Desc:    input.Description,
 		Expires: input.ExpiresAt,
-		Fields:  input.AllowedFields,
+		Query:   input.Query,
 		Role:    permission.Role(input.Role),
 	})
 	if err != nil {

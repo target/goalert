@@ -93,7 +93,7 @@ export default function AdminServiceMetrics(): JSX.Element {
 
   const cardSubHeader = serviceData.loading
     ? 'Loading services... This may take a minute'
-    : `Metrics pulled from ${serviceData.services.length} total services.`
+    : `Metrics pulled from ${metrics.filteredServices.length} services`
 
   function renderOverviewMetrics(): JSX.Element {
     return (

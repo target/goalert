@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"slices"
 	"strconv"
 	"time"
 
@@ -156,29 +155,7 @@ func (a *App) Handler() http.Handler {
 		return ok && enabled
 	}})
 
-	h.AroundFields(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
-		src := permission.Source(ctx)
-		if src.Type != permission.SourceTypeGQLAPIKey {
-			return next(ctx)
-		}
-
-		p := apikey.PolicyFromContext(ctx)
-		if p == nil || p.Version != 1 {
-			return nil, permission.NewAccessDenied("invalid API key")
-		}
-
-		f := graphql.GetFieldContext(ctx)
-		objName := f.Field.Field.ObjectDefinition.Name
-		fieldName := f.Field.Field.Definition.Name
-
-		field := objName + "." + fieldName
-
-		if slices.Contains(p.AllowedFields, field) {
-			return next(ctx)
-		}
-
-		return nil, permission.NewAccessDenied("field not allowed by API key")
-	})
+	h.Use(apikey.Middleware{})
 
 	h.AroundFields(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
 		defer func() {

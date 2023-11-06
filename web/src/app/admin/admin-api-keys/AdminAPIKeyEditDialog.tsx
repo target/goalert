@@ -21,7 +21,7 @@ const query = gql`
       name
       description
       expiresAt
-      allowedFields
+      query
       role
     }
   }
