@@ -130,6 +130,7 @@ type CreateEscalationPolicyInput struct {
 	Repeat      *int                              `json:"repeat,omitempty"`
 	Favorite    *bool                             `json:"favorite,omitempty"`
 	Steps       []CreateEscalationPolicyStepInput `json:"steps,omitempty"`
+	Labels      []SetLabelInput                   `json:"labels,omitempty"`
 }
 
 type CreateEscalationPolicyStepInput struct {
@@ -161,14 +162,15 @@ type CreateIntegrationKeyInput struct {
 }
 
 type CreateRotationInput struct {
-	Name        string        `json:"name"`
-	Description *string       `json:"description,omitempty"`
-	TimeZone    string        `json:"timeZone"`
-	Start       time.Time     `json:"start"`
-	Favorite    *bool         `json:"favorite,omitempty"`
-	Type        rotation.Type `json:"type"`
-	ShiftLength *int          `json:"shiftLength,omitempty"`
-	UserIDs     []string      `json:"userIDs,omitempty"`
+	Name        string          `json:"name"`
+	Description *string         `json:"description,omitempty"`
+	TimeZone    string          `json:"timeZone"`
+	Start       time.Time       `json:"start"`
+	Favorite    *bool           `json:"favorite,omitempty"`
+	Type        rotation.Type   `json:"type"`
+	ShiftLength *int            `json:"shiftLength,omitempty"`
+	UserIDs     []string        `json:"userIDs,omitempty"`
+	Labels      []SetLabelInput `json:"labels,omitempty"`
 }
 
 type CreateScheduleInput struct {
@@ -178,6 +180,7 @@ type CreateScheduleInput struct {
 	Favorite         *bool                     `json:"favorite,omitempty"`
 	Targets          []ScheduleTargetInput     `json:"targets,omitempty"`
 	NewUserOverrides []CreateUserOverrideInput `json:"newUserOverrides,omitempty"`
+	Labels           []SetLabelInput           `json:"labels,omitempty"`
 }
 
 type CreateServiceInput struct {

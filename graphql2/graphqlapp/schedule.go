@@ -311,6 +311,14 @@ func (m *Mutation) CreateSchedule(ctx context.Context, input graphql2.CreateSche
 			}
 		}
 
+		for i, lbl := range input.Labels {
+			lbl.Target = &assignment.RawTarget{Type: assignment.TargetTypeSchedule, ID: sched.ID}
+			_, err = m.SetLabel(ctx, lbl)
+			if err != nil {
+				return validation.AddPrefix("labels["+strconv.Itoa(i)+"].", err)
+			}
+		}
+
 		return nil
 	})
 

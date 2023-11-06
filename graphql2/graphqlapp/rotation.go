@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"strconv"
 	"time"
 
 	"github.com/target/goalert/assignment"
@@ -62,6 +63,14 @@ func (m *Mutation) CreateRotation(ctx context.Context, input graphql2.CreateRota
 			err := m.RotationStore.AddRotationUsersTx(ctx, tx, result.ID, input.UserIDs)
 			if err != nil {
 				return err
+			}
+		}
+
+		for i, lbl := range input.Labels {
+			lbl.Target = &assignment.RawTarget{Type: assignment.TargetTypeRotation, ID: result.ID}
+			_, err = m.SetLabel(ctx, lbl)
+			if err != nil {
+				return validation.AddPrefix("labels["+strconv.Itoa(i)+"].", err)
 			}
 		}
 		return err

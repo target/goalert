@@ -155,6 +155,15 @@ func (m *Mutation) CreateEscalationPolicy(ctx context.Context, input graphql2.Cr
 				return validation.AddPrefix("Steps["+strconv.Itoa(i)+"].", err)
 			}
 		}
+
+		for i, lbl := range input.Labels {
+			lbl.Target = &assignment.RawTarget{Type: assignment.TargetTypeEscalationPolicy, ID: pol.ID}
+			_, err = m.SetLabel(ctx, lbl)
+			if err != nil {
+				return validation.AddPrefix("labels["+strconv.Itoa(i)+"].", err)
+			}
+		}
+
 		return err
 	})
 

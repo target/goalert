@@ -738,6 +738,8 @@ input CreateScheduleInput {
 
   targets: [ScheduleTargetInput!]
   newUserOverrides: [CreateUserOverrideInput!]
+
+  labels: [SetLabelInput!]
 }
 
 input ScheduleTargetInput {
@@ -802,6 +804,8 @@ input CreateEscalationPolicyInput {
   favorite: Boolean
 
   steps: [CreateEscalationPolicyStepInput!]
+
+  labels: [SetLabelInput!]
 }
 
 input CreateEscalationPolicyStepInput {
@@ -964,6 +968,8 @@ input CreateRotationInput {
   shiftLength: Int = 1
 
   userIDs: [ID!]
+
+  labels: [SetLabelInput!]
 }
 
 type Rotation {

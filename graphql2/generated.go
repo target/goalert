@@ -28471,7 +28471,7 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyInput(ctx contex
 		asMap["repeat"] = 3
 	}
 
-	fieldsInOrder := [...]string{"name", "description", "repeat", "favorite", "steps"}
+	fieldsInOrder := [...]string{"name", "description", "repeat", "favorite", "steps", "labels"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -28523,6 +28523,15 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyInput(ctx contex
 				return it, err
 			}
 			it.Steps = data
+		case "labels":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("labels"))
+			data, err := ec.unmarshalOSetLabelInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetLabelInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Labels = data
 		}
 	}
 
@@ -28764,7 +28773,7 @@ func (ec *executionContext) unmarshalInputCreateRotationInput(ctx context.Contex
 		asMap["shiftLength"] = 1
 	}
 
-	fieldsInOrder := [...]string{"name", "description", "timeZone", "start", "favorite", "type", "shiftLength", "userIDs"}
+	fieldsInOrder := [...]string{"name", "description", "timeZone", "start", "favorite", "type", "shiftLength", "userIDs", "labels"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -28843,6 +28852,15 @@ func (ec *executionContext) unmarshalInputCreateRotationInput(ctx context.Contex
 				return it, err
 			}
 			it.UserIDs = data
+		case "labels":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("labels"))
+			data, err := ec.unmarshalOSetLabelInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetLabelInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Labels = data
 		}
 	}
 
@@ -28856,7 +28874,7 @@ func (ec *executionContext) unmarshalInputCreateScheduleInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "description", "timeZone", "favorite", "targets", "newUserOverrides"}
+	fieldsInOrder := [...]string{"name", "description", "timeZone", "favorite", "targets", "newUserOverrides", "labels"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -28917,6 +28935,15 @@ func (ec *executionContext) unmarshalInputCreateScheduleInput(ctx context.Contex
 				return it, err
 			}
 			it.NewUserOverrides = data
+		case "labels":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("labels"))
+			data, err := ec.unmarshalOSetLabelInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetLabelInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Labels = data
 		}
 	}
 
