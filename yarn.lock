@@ -486,7 +486,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-transform-modules-commonjs@npm:7.22.15, @babel/plugin-transform-modules-commonjs@npm:^7.12.13":
+"@babel/plugin-transform-modules-commonjs@npm:7.23.0":
+  version: 7.23.0
+  resolution: "@babel/plugin-transform-modules-commonjs@npm:7.23.0"
+  dependencies:
+    "@babel/helper-module-transforms": ^7.23.0
+    "@babel/helper-plugin-utils": ^7.22.5
+    "@babel/helper-simple-access": ^7.22.5
+  peerDependencies:
+    "@babel/core": ^7.0.0-0
+  checksum: 7fb25997194053e167c4207c319ff05362392da841bd9f42ddb3caf9c8798a5d203bd926d23ddf5830fdf05eddc82c2810f40d1287e3a4f80b07eff13d1024b5
+  languageName: node
+  linkType: hard
+
+"@babel/plugin-transform-modules-commonjs@npm:^7.12.13":
   version: 7.22.15
   resolution: "@babel/plugin-transform-modules-commonjs@npm:7.22.15"
   dependencies:
@@ -11282,7 +11295,7 @@ __metadata:
   dependencies:
     "@apollo/client": 3.8.5
     "@babel/core": 7.23.0
-    "@babel/plugin-transform-modules-commonjs": 7.22.15
+    "@babel/plugin-transform-modules-commonjs": 7.23.0
     "@dnd-kit/core": 6.0.8
     "@dnd-kit/sortable": 7.0.2
     "@dnd-kit/utilities": 3.2.1
