@@ -196,6 +196,7 @@ export default function ServiceRuleForm(
     switch (dest) {
       case destType.SLACK:
         actions[actionIdx].contents = [
+          { prop: 'channel_id', value: '' },
           { prop: 'channel', value: '' },
           { prop: 'message', value: '' },
         ]
@@ -537,8 +538,10 @@ export default function ServiceRuleForm(
                           action.contents.map(
                             (c: Content, contentIdx: number) => {
                               if (
-                                action.destType === destType.SLACK &&
-                                c.prop === 'channel'
+                                (action.destType === destType.SLACK &&
+                                  c.prop === 'channel') ||
+                                (action.destType === destType.SLACK &&
+                                  c.prop === 'channel_id')
                               ) {
                                 return <React.Fragment key={contentIdx} />
                               }

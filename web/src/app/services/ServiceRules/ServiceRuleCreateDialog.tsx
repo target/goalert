@@ -77,7 +77,7 @@ export const getValidActions = (
           },
           {
             prop: 'message',
-            value: action.contents[1].value,
+            value: action.contents[2].value,
           },
         ],
       })
