@@ -96,11 +96,6 @@ func (s *Store) SetTx(ctx context.Context, db gadb.DBTX, label *Label) error {
 	return nil
 }
 
-// FindAllByService finds all labels for a particular service. It returns all key-value pairs.
-func (s *Store) FindAllByService(ctx context.Context, db gadb.DBTX, serviceID string) ([]Label, error) {
-	return s.FindAllByTarget(ctx, db, assignment.ServiceTarget(serviceID))
-}
-
 // FindAllByTarget finds all labels for a particular target. It returns all key-value pairs.
 func (s *Store) FindAllByTarget(ctx context.Context, db gadb.DBTX, t assignment.Target) ([]Label, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)

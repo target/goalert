@@ -886,6 +886,8 @@ type Schedule {
 
   temporarySchedules: [TemporarySchedule!]!
   onCallNotificationRules: [OnCallNotificationRule!]!
+
+  labels: [Label!]!
 }
 
 input SetScheduleOnCallNotificationRulesInput {
@@ -982,6 +984,8 @@ type Rotation {
   users: [User!]!
 
   nextHandoffTimes(num: Int): [ISOTimestamp!]!
+
+  labels: [Label!]!
 }
 
 enum RotationType {
@@ -1294,6 +1298,8 @@ type EscalationPolicy {
   steps: [EscalationPolicyStep!]!
 
   notices: [Notice!]!
+
+  labels: [Label!]!
 }
 
 # Different Alert Status.

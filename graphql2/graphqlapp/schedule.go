@@ -13,6 +13,7 @@ import (
 
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/label"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/permission"
@@ -80,6 +81,10 @@ func (a *TemporarySchedule) Shifts(ctx context.Context, temp *schedule.Temporary
 
 func (q *Query) Schedule(ctx context.Context, id string) (*schedule.Schedule, error) {
 	return (*App)(q).FindOneSchedule(ctx, id)
+}
+
+func (s *Schedule) Labels(ctx context.Context, raw *schedule.Schedule) ([]label.Label, error) {
+	return s.LabelStore.FindAllByTarget(ctx, s.DB, assignment.ScheduleTarget(raw.ID))
 }
 
 func (s *Schedule) Shifts(ctx context.Context, raw *schedule.Schedule, start, end time.Time, userIDs []string) ([]oncall.Shift, error) {
