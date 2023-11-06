@@ -174,9 +174,9 @@ export default function ServiceDetails(props: {
             subText: 'Review alert activity',
           },
           {
-            label: 'Rules',
-            url: 'rules',
-            subText: 'Manage service rules',
+            label: 'Signal Rules',
+            url: 'signal-rules',
+            subText: 'Manage signal rules',
           },
         ]}
       />

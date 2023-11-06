@@ -33,7 +33,6 @@ export interface ServiceRuleValue {
   sendAlert: boolean
   actions: ServiceRuleActionValue[]
   integrationKeys: IntegrationKeySelectVal[]
-
   customFields?: CustomFields
 }
 
@@ -51,8 +50,6 @@ interface ServiceRuleFilterValue {
 
 interface ServiceRuleActionValue {
   destType: string
-  destID: string
-  destValue: string
   contents: ContentValue[]
 }
 
@@ -154,44 +151,76 @@ export default function ServiceRuleForm(
   const classes = useStyles()
   const { serviceID, actionsError, integrationKeys, ...formProps } = props
 
-  const handleAddFilter = (): void => {
-    formProps.onChange({
-      name: formProps.value.name,
-      serviceID,
-      filters: [
-        ...formProps.value.filters,
-        {
-          field: '',
-          operator: '==',
-          value: '',
-          valueType: 'UNKNOWN',
-        },
-      ],
-      sendAlert: formProps.value.sendAlert,
-      actions: formProps.value.actions,
-      integrationKeys: formProps.value.integrationKeys,
-      customFields: formProps.value.customFields,
-    })
-  }
-
-  const handleAddAction = (): void => {
-    formProps.onChange({
+  const updateServiceRuleValues = (
+    updateKey: string,
+    newValue:
+      | string
+      | ServiceRuleFilterValue[]
+      | boolean
+      | ServiceRuleActionValue[]
+      | IntegrationKeySelectVal[]
+      | CustomFields
+      | undefined,
+  ): void => {
+    const update: {
+      [key: string]:
+        | string
+        | ServiceRuleFilterValue[]
+        | boolean
+        | ServiceRuleActionValue[]
+        | IntegrationKeySelectVal[]
+        | CustomFields
+        | undefined
+    } = {
       name: formProps.value.name,
       serviceID,
       filters: formProps.value.filters,
       sendAlert: formProps.value.sendAlert,
-      actions: [
-        ...formProps.value.actions,
-        {
-          destType: '',
-          destID: '',
-          destValue: '',
-          contents: [],
-        },
-      ],
+      actions: formProps.value.actions,
       integrationKeys: formProps.value.integrationKeys,
       customFields: formProps.value.customFields,
+    }
+
+    Object.keys(update).map((key: string) => {
+      if (key === updateKey) {
+        update[key] = newValue
+      }
     })
+
+    formProps.onChange({
+      name: update.name as string,
+      serviceID,
+      filters: update.filters as ServiceRuleFilterValue[],
+      sendAlert: update.sendAlert as boolean,
+      actions: update.actions as ServiceRuleActionValue[],
+      integrationKeys: update.integrationKeys as IntegrationKeySelectVal[],
+      customFields:
+        update.customFields === undefined
+          ? update.customFields
+          : (update.customFields as CustomFields),
+    })
+  }
+
+  const handleAddFilter = (): void => {
+    updateServiceRuleValues('filters', [
+      ...formProps.value.filters,
+      {
+        field: '',
+        operator: '==',
+        value: '',
+        valueType: 'UNKNOWN',
+      },
+    ])
+  }
+
+  const handleAddAction = (): void => {
+    updateServiceRuleValues('actions', [
+      ...formProps.value.actions,
+      {
+        destType: '',
+        contents: [],
+      },
+    ])
   }
 
   const handleActionDestSelect = (dest: string, actionIdx: number): void => {
@@ -199,7 +228,11 @@ export default function ServiceRuleForm(
     actions[actionIdx].destType = dest
     switch (dest) {
       case destType.SLACK:
-        actions[actionIdx].contents = [{ prop: 'message', value: '' }]
+        actions[actionIdx].contents = [
+          { prop: 'channel_id', value: '' },
+          { prop: 'channel', value: '' },
+          { prop: 'message', value: '' },
+        ]
         break
       case destType.SERVICENOW:
         actions[actionIdx].contents = [
@@ -226,58 +259,27 @@ export default function ServiceRuleForm(
         actions[actionIdx].contents = []
     }
 
-    formProps.onChange({
-      name: formProps.value.name,
-      serviceID,
-      filters: formProps.value.filters,
-      sendAlert: formProps.value.sendAlert,
-      actions,
-      integrationKeys: formProps.value.integrationKeys,
-      customFields: formProps.value.customFields,
-    })
+    updateServiceRuleValues('actions', actions)
   }
 
   const handleAddCustomAlertFields = (e: boolean): void => {
     if (e) {
-      formProps.onChange({
-        name: formProps.value.name,
-        serviceID,
-        filters: formProps.value.filters,
-        sendAlert: formProps.value.sendAlert,
-        actions: formProps.value.actions,
-        integrationKeys: formProps.value.integrationKeys,
-        customFields: {
-          summary: '',
-          details: '',
-        },
+      updateServiceRuleValues('customFields', {
+        summary: '',
+        details: '',
       })
     } else {
-      formProps.onChange({
-        name: formProps.value.name,
-        serviceID,
-        filters: formProps.value.filters,
-        sendAlert: formProps.value.sendAlert,
-        actions: formProps.value.actions,
-        integrationKeys: formProps.value.integrationKeys,
-        customFields: undefined,
-      })
+      updateServiceRuleValues('customFields', undefined)
     }
   }
 
   const handleDeleteFilter = (deleteFilter: ServiceRuleFilterInput): void => {
-    formProps.onChange({
-      name: formProps.value.name,
-      serviceID,
-      filters: formProps.value.filters.filter(
-        (filter: ServiceRuleFilterInput) => {
-          return filter !== deleteFilter
-        },
-      ),
-      sendAlert: formProps.value.sendAlert,
-      actions: formProps.value.actions,
-      integrationKeys: formProps.value.integrationKeys,
-      customFields: formProps.value.customFields,
-    })
+    updateServiceRuleValues(
+      'filters',
+      formProps.value.filters.filter((filter: ServiceRuleFilterInput) => {
+        return filter !== deleteFilter
+      }),
+    )
   }
 
   const handleSelectFilterOperator = (
@@ -286,31 +288,16 @@ export default function ServiceRuleForm(
   ): void => {
     const updatedFilters = formProps.value.filters
     updatedFilters[filterIdx].operator = operator
-    formProps.onChange({
-      name: formProps.value.name,
-      serviceID,
-      filters: updatedFilters,
-      sendAlert: formProps.value.sendAlert,
-      actions: formProps.value.actions,
-      integrationKeys: formProps.value.integrationKeys,
-      customFields: formProps.value.customFields,
-    })
+    updateServiceRuleValues('filters', updatedFilters)
   }
 
   const handleDeleteAction = (deleteAction: ServiceRuleActionInput): void => {
-    formProps.onChange({
-      name: formProps.value.name,
-      serviceID,
-      filters: formProps.value.filters,
-      sendAlert: formProps.value.sendAlert,
-      actions: formProps.value.actions.filter(
-        (action: ServiceRuleActionInput) => {
-          return action !== deleteAction
-        },
-      ),
-      integrationKeys: formProps.value.integrationKeys,
-      customFields: formProps.value.customFields,
-    })
+    updateServiceRuleValues(
+      'actions',
+      formProps.value.actions.filter((action: ServiceRuleActionInput) => {
+        return action !== deleteAction
+      }),
+    )
   }
 
   return (
@@ -339,6 +326,58 @@ export default function ServiceRuleForm(
             }))}
           />
         </Grid>
+        <Grid item>
+          <FormControlLabel
+            label='Create Alert'
+            labelPlacement='end'
+            control={
+              <FormField noError component={Switch} checkbox name='sendAlert' />
+            }
+          />
+          <Typography variant='body2'>
+            If enabled, all signals matching this rule will create a standard
+            GoAlert alert and trigger the escalation policy steps for this
+            service.
+          </Typography>
+          <FormControlLabel
+            label='Custom Fields'
+            labelPlacement='end'
+            control={
+              <Switch
+                checked={
+                  formProps.value.customFields !== undefined &&
+                  formProps.value.sendAlert
+                }
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleAddCustomAlertFields(e.target.checked)
+                }
+              />
+            }
+            disabled={!formProps.value.sendAlert}
+          />
+        </Grid>
+        {formProps.value.customFields && formProps.value.sendAlert && (
+          <React.Fragment>
+            <Grid item style={{ flexGrow: 1 }} xs={12}>
+              <FormField
+                fullWidth
+                component={TextField}
+                label='Summary'
+                name='customFields.summary'
+                required
+              />
+            </Grid>
+            <Grid item style={{ flexGrow: 1 }} xs={12}>
+              <FormField
+                fullWidth
+                component={TextField}
+                label='Details'
+                name='customFields.details'
+                required
+              />
+            </Grid>
+          </React.Fragment>
+        )}
         <Grid item xs={12}>
           <Field label='Filters'>
             {formProps.value.filters.map(
@@ -419,53 +458,8 @@ export default function ServiceRuleForm(
             <AddIcon />
           </Fab>
         </Grid>
-        <Grid item>
-          <FormControlLabel
-            label='Create Alert'
-            labelPlacement='end'
-            control={
-              <FormField noError component={Switch} checkbox name='sendAlert' />
-            }
-          />
-          <FormControlLabel
-            label='Custom Fields'
-            labelPlacement='end'
-            control={
-              <Switch
-                checked={
-                  formProps.value.customFields !== undefined &&
-                  formProps.value.sendAlert
-                }
-                onChange={(e) => handleAddCustomAlertFields(e.target.checked)}
-              />
-            }
-            disabled={!formProps.value.sendAlert}
-          />
-        </Grid>
-        {formProps.value.customFields && formProps.value.sendAlert && (
-          <React.Fragment>
-            <Grid item style={{ flexGrow: 1 }} xs={12}>
-              <FormField
-                fullWidth
-                component={TextField}
-                label='Summary'
-                name='customFields.summary'
-                required
-              />
-            </Grid>
-            <Grid item style={{ flexGrow: 1 }} xs={12}>
-              <FormField
-                fullWidth
-                component={TextField}
-                label='Details'
-                name='customFields.details'
-                required
-              />
-            </Grid>
-          </React.Fragment>
-        )}
         <Grid item xs={12}>
-          <Field label='Actions'>
+          <Field label='Destinations'>
             {formProps.value.actions.map(
               (action: ServiceRuleActionInput, actionIdx: number) => {
                 if (action.destType !== destType.ALERT) {
@@ -476,7 +470,7 @@ export default function ServiceRuleForm(
                           <TextField
                             fullWidth
                             select
-                            label='Select Action'
+                            label='Select Destination'
                             value={action.destType}
                           >
                             {destinations.map((dest) => (
@@ -510,7 +504,7 @@ export default function ServiceRuleForm(
                           </Fab>
                         </Grid>
 
-                        {action.destType === 'SLACK' && (
+                        {action.destType === destType.SLACK && (
                           <Grid
                             item
                             style={{ flexGrow: 1, marginTop: '1em' }}
@@ -521,14 +515,25 @@ export default function ServiceRuleForm(
                               component={SlackChannelSelect}
                               fullWidth
                               label='Select Channel(s)'
-                              name={`actions[${actionIdx}].destID`}
-                              value={formProps.value.actions[actionIdx].destID}
+                              name={`actions[${actionIdx}].contents[0].value`}
+                              value={
+                                formProps.value.actions[actionIdx].contents[0]
+                                  .value
+                              }
                             />
                           </Grid>
                         )}
                         {action.contents &&
                           action.contents.map(
                             (c: Content, contentIdx: number) => {
+                              if (
+                                (action.destType === destType.SLACK &&
+                                  c.prop === 'channel') ||
+                                (action.destType === destType.SLACK &&
+                                  c.prop === 'channel_id')
+                              ) {
+                                return <React.Fragment key={contentIdx} />
+                              }
                               return (
                                 <Grid
                                   key={c.prop}

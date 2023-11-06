@@ -1538,8 +1538,6 @@ type ServiceRule {
 
 type ServiceRuleAction {
   destType: String!
-  destID: String!
-  destValue: String!
   contents: [Content!]!
 }
 
@@ -1589,8 +1587,6 @@ input ServiceRuleFilterInput {
 
 input ServiceRuleActionInput {
   destType: String!
-  destID: String!
-  destValue: String!
   contents: [ContentInput!]!
 }
 

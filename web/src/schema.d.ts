@@ -1217,8 +1217,6 @@ export interface ServiceRule {
 
 export interface ServiceRuleAction {
   destType: string
-  destID: string
-  destValue: string
   contents: Content[]
 }
 
@@ -1267,8 +1265,6 @@ export interface ServiceRuleFilterInput {
 
 export interface ServiceRuleActionInput {
   destType: string
-  destID: string
-  destValue: string
   contents: ContentInput[]
 }
 
