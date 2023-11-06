@@ -541,6 +541,13 @@ type Mutation {
   deleteAll(input: [TargetInput!]): Boolean!
 
   createAlert(input: CreateAlertInput!): Alert
+
+  # closeMatchingAlert is used to close an alert without knowing it's ID.
+  #
+  # This allows stateless upstream systems to close alerts without needing to
+  # store the alert ID.
+  closeMatchingAlert(input: CloseAlertInput!): Boolean!
+
   setAlertNoiseReason(input: SetAlertNoiseReasonInput!): Boolean!
     @deprecated(reason: "Use updateAlerts instead with the noiseReason field.")
 
@@ -660,7 +667,26 @@ input CreateAlertInput {
   summary: String!
   details: String
   serviceID: ID!
+
+  # If true, summary and details will be automatically sanitized and truncaded (if necessary).
   sanitize: Boolean
+
+  # dedup allows setting a unique value to de-duplicate multiple alerts.
+  #
+  # It can also be used to close an alert using closeMatchingAlert mutation.
+  dedup: ID
+}
+
+input CloseAlertInput {
+  serviceID: ID! # service ID for the close operation.
+
+  # summary (and details) will match an alert with the same values.
+  #
+  # They can be omitted if the dedup field is provided.
+  summary: String
+  details: String
+
+  dedup: ID # prefered over providing the summary & details.
 }
 
 input SetAlertNoiseReasonInput {
