@@ -2,12 +2,14 @@ package signalapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime"
 	"net/http"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/target/goalert/alert"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/service/rule"
@@ -19,6 +21,10 @@ import (
 // Handler responds to generic API requests
 type Handler struct {
 	c Config
+}
+type SignalAlertMapper struct {
+	Summary, Details, Action, Dedup string
+	Status                          alert.Status
 }
 
 // NewHandler creates a new Handler, registering generic API routes using chi.
@@ -74,11 +80,46 @@ func (h *Handler) ServeCreateSignals(w http.ResponseWriter, r *http.Request) {
 	signals := []signal.Signal{}
 
 	for _, rule := range rules {
-		if rule.SendAlert {
-			// TODO: implement create alert logic
-			continue
-		}
 		for _, action := range rule.Actions {
+			if rule.SendAlert && action.DestType == "goalert" {
+				sigAlert, err := buildOutgoingAlertPayload(action, requestBody)
+				if errutil.HTTPError(ctx, w, errors.Wrap(err, "create alert")) {
+					return
+				}
+
+				a := &alert.Alert{
+					Summary:   sigAlert.Summary,
+					Details:   sigAlert.Details,
+					Source:    alert.SourceSignal,
+					ServiceID: serviceID,
+					Dedup:     alert.NewUserDedup(sigAlert.Dedup),
+					Status:    sigAlert.Status,
+				}
+
+				var resp struct {
+					AlertID   int
+					ServiceID string
+					IsNew     bool
+				}
+
+				err = retry.DoTemporaryError(func(int) error {
+					createdAlert, isNew, err := h.c.AlertStore.CreateOrUpdate(ctx, a)
+					if createdAlert != nil {
+						resp.AlertID = createdAlert.ID
+						resp.ServiceID = createdAlert.ServiceID
+						resp.IsNew = isNew
+					}
+					return err
+				},
+					retry.Log(ctx),
+					retry.Limit(10),
+					retry.FibBackoff(time.Second),
+				)
+				if errutil.HTTPError(ctx, w, errors.Wrap(err, "create alert")) {
+					return
+				}
+				continue
+			}
 			signals = append(signals, signal.Signal{
 				ServiceID:       serviceID,
 				ServiceRuleID:   rule.ID,
@@ -136,4 +177,43 @@ func buildOutgoingPayload(action rule.Action, incomingPayload map[string]interfa
 	outgoingPayload["received_payload"] = incomingPayload
 
 	return outgoingPayload
+}
+
+func buildOutgoingAlertPayload(action rule.Action, incomingPayload map[string]interface{}) (SignalAlertMapper, error) {
+	var sigAlert SignalAlertMapper
+	if incomingPayload["action"] != nil {
+		val, ok := incomingPayload["action"].(string)
+		if !ok {
+			return sigAlert, fmt.Errorf("Field 'action' is not a string: %s", incomingPayload["action"])
+		}
+		sigAlert.Action = val
+	}
+	if incomingPayload["summary"] != nil {
+		val, ok := incomingPayload["summary"].(string)
+		if !ok {
+			return sigAlert, fmt.Errorf("Field 'summary' is not a string: %s", incomingPayload["summary"])
+		}
+		sigAlert.Summary = val
+	}
+	if incomingPayload["details"] != nil {
+		val, ok := incomingPayload["details"].(string)
+		if !ok {
+			return sigAlert, fmt.Errorf("Field 'details' is not a string: %s", incomingPayload["details"])
+		}
+		sigAlert.Details = val
+	}
+	if incomingPayload["dedup"] != nil {
+		val, ok := incomingPayload["dedup"].(string)
+		if !ok {
+			return sigAlert, fmt.Errorf("Field 'dedup' is not a string: %s", incomingPayload["dedup"])
+		}
+		sigAlert.Dedup = val
+	}
+
+	sigAlert.Status = alert.StatusTriggered
+	if sigAlert.Action == "close" {
+		sigAlert.Status = alert.StatusClosed
+	}
+
+	return sigAlert, nil
 }

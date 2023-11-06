@@ -165,22 +165,22 @@ func (s *Store) FindManyByIntegrationKey(ctx context.Context, dbtx gadb.DBTX, se
 	rules := make([]Rule, len(rows))
 	for i, row := range rows {
 		actions := []Action{}
-		if !row.SendAlert {
-			if !row.Actions.Valid {
-				return nil, fmt.Errorf("signal rule %d has null action", i)
-			}
-			actionsRaw := row.Actions.RawMessage
-			err := json.Unmarshal(actionsRaw, &actions)
-			if err != nil {
-				return nil, fmt.Errorf("bad actions value for signal rule %d", i)
-			}
+		if !row.Actions.Valid {
+			return nil, fmt.Errorf("signal rule %d has null action", i)
 		}
+		actionsRaw := row.Actions.RawMessage
+		err := json.Unmarshal(actionsRaw, &actions)
+		if err != nil {
+			return nil, fmt.Errorf("bad actions value for signal rule %d", i)
+		}
+
 		rules[i] = Rule{
 			ID:           row.ID.String(),
 			Name:         row.Name,
 			ServiceID:    row.ServiceID.String(),
 			FilterString: row.Filter,
 			Actions:      actions,
+			SendAlert:    row.SendAlert,
 		}
 	}
 
