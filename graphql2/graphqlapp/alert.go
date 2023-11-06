@@ -379,6 +379,10 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 		a.Details = validate.SanitizeText(a.Details, alert.MaxDetailsLength)
 	}
 
+	if input.Dedup != nil {
+		a.Dedup = alert.NewUserDedup(*input.Dedup)
+	}
+
 	return m.AlertStore.Create(ctx, a)
 }
 
