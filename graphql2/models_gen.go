@@ -92,7 +92,7 @@ type ClearTemporarySchedulesInput struct {
 	End        time.Time `json:"end"`
 }
 
-type CloseAlertInput struct {
+type CloseMatchingAlertInput struct {
 	ServiceID string  `json:"serviceID"`
 	Summary   *string `json:"summary,omitempty"`
 	Details   *string `json:"details,omitempty"`

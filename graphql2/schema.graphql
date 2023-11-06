@@ -546,7 +546,7 @@ type Mutation {
   #
   # This allows stateless upstream systems to close alerts without needing to
   # store the alert ID.
-  closeMatchingAlert(input: CloseAlertInput!): Boolean!
+  closeMatchingAlert(input: CloseMatchingAlertInput!): Boolean!
 
   setAlertNoiseReason(input: SetAlertNoiseReasonInput!): Boolean!
     @deprecated(reason: "Use updateAlerts instead with the noiseReason field.")
@@ -677,7 +677,7 @@ input CreateAlertInput {
   dedup: ID
 }
 
-input CloseAlertInput {
+input CloseMatchingAlertInput {
   serviceID: ID! # service ID for the close operation.
 
   # summary (and details) will match an alert with the same values.

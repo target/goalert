@@ -316,7 +316,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddAuthSubject                     func(childComplexity int, input user.AuthSubject) int
 		ClearTemporarySchedules            func(childComplexity int, input ClearTemporarySchedulesInput) int
-		CloseMatchingAlert                 func(childComplexity int, input CloseAlertInput) int
+		CloseMatchingAlert                 func(childComplexity int, input CloseMatchingAlertInput) int
 		CreateAlert                        func(childComplexity int, input CreateAlertInput) int
 		CreateBasicAuth                    func(childComplexity int, input CreateBasicAuthInput) int
 		CreateEscalationPolicy             func(childComplexity int, input CreateEscalationPolicyInput) int
@@ -769,7 +769,7 @@ type MutationResolver interface {
 	UpdateEscalationPolicyStep(ctx context.Context, input UpdateEscalationPolicyStepInput) (bool, error)
 	DeleteAll(ctx context.Context, input []assignment.RawTarget) (bool, error)
 	CreateAlert(ctx context.Context, input CreateAlertInput) (*alert.Alert, error)
-	CloseMatchingAlert(ctx context.Context, input CloseAlertInput) (bool, error)
+	CloseMatchingAlert(ctx context.Context, input CloseMatchingAlertInput) (bool, error)
 	SetAlertNoiseReason(ctx context.Context, input SetAlertNoiseReasonInput) (bool, error)
 	CreateService(ctx context.Context, input CreateServiceInput) (*service.Service, error)
 	CreateEscalationPolicy(ctx context.Context, input CreateEscalationPolicyInput) (*escalation.Policy, error)
@@ -1880,7 +1880,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CloseMatchingAlert(childComplexity, args["input"].(CloseAlertInput)), true
+		return e.complexity.Mutation.CloseMatchingAlert(childComplexity, args["input"].(CloseMatchingAlertInput)), true
 
 	case "Mutation.createAlert":
 		if e.complexity.Mutation.CreateAlert == nil {
@@ -4181,7 +4181,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputAuthSubjectInput,
 		ec.unmarshalInputCalcRotationHandoffTimesInput,
 		ec.unmarshalInputClearTemporarySchedulesInput,
-		ec.unmarshalInputCloseAlertInput,
+		ec.unmarshalInputCloseMatchingAlertInput,
 		ec.unmarshalInputConfigValueInput,
 		ec.unmarshalInputCreateAlertInput,
 		ec.unmarshalInputCreateBasicAuthInput,
@@ -4423,10 +4423,10 @@ func (ec *executionContext) field_Mutation_clearTemporarySchedules_args(ctx cont
 func (ec *executionContext) field_Mutation_closeMatchingAlert_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 CloseAlertInput
+	var arg0 CloseMatchingAlertInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNCloseAlertInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCloseAlertInput(ctx, tmp)
+		arg0, err = ec.unmarshalNCloseMatchingAlertInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCloseMatchingAlertInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -12995,7 +12995,7 @@ func (ec *executionContext) _Mutation_closeMatchingAlert(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CloseMatchingAlert(rctx, fc.Args["input"].(CloseAlertInput))
+		return ec.resolvers.Mutation().CloseMatchingAlert(rctx, fc.Args["input"].(CloseMatchingAlertInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28198,8 +28198,8 @@ func (ec *executionContext) unmarshalInputClearTemporarySchedulesInput(ctx conte
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputCloseAlertInput(ctx context.Context, obj interface{}) (CloseAlertInput, error) {
-	var it CloseAlertInput
+func (ec *executionContext) unmarshalInputCloseMatchingAlertInput(ctx context.Context, obj interface{}) (CloseMatchingAlertInput, error) {
+	var it CloseMatchingAlertInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -39926,8 +39926,8 @@ func (ec *executionContext) marshalNClockTime2githubᚗcomᚋtargetᚋgoalertᚋ
 	return v
 }
 
-func (ec *executionContext) unmarshalNCloseAlertInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCloseAlertInput(ctx context.Context, v interface{}) (CloseAlertInput, error) {
-	res, err := ec.unmarshalInputCloseAlertInput(ctx, v)
+func (ec *executionContext) unmarshalNCloseMatchingAlertInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCloseMatchingAlertInput(ctx context.Context, v interface{}) (CloseMatchingAlertInput, error) {
+	res, err := ec.unmarshalInputCloseMatchingAlertInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
