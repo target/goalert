@@ -138,15 +138,7 @@ func (q *MessageLogConnectionStats) TimeSeries(
 
 	out := make([]graphql2.TimeSeriesBucket, len(buckets))
 	for i, b := range buckets {
-
-		var gb graphql2.TimeSeriesBucket
-
-		gb.Count = b.Count
-		gb.Start = b.Start
-		gb.End = b.End
-		gb.SegmentLabel = b.SegmentLabel
-
-		out[i] = graphql2.TimeSeriesBucket(gb)
+		out[i] = graphql2.TimeSeriesBucket(b)
 	}
 
 	return out, nil

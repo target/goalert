@@ -209,7 +209,6 @@ type TimeSeriesBucket struct {
 	Start        time.Time
 	End          time.Time
 	Count        int
-	Index        int
 	SegmentLabel string
 }
 
@@ -217,6 +216,10 @@ type bucketID struct {
 	Bucket int
 	Label  string
 }
+
+const SegmentByService = "service"
+const SegmentByUser = "user"
+const SegmentByMessageType = "messageType"
 
 // TimeSeries returns a list of time series buckets for the given search options.
 func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeriesBucket, error) {
@@ -230,9 +233,9 @@ func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeri
 		TimeSeries:           true,
 		TimeSeriesOrigin:     opts.TimeSeriesOrigin,
 		TimeSeriesInterval:   opts.TimeSeriesInterval,
-		SegmentByService:     opts.SegmentBy == "service",
-		SegmentByUser:        opts.SegmentBy == "user",
-		SegmentByMessageType: opts.SegmentBy == "messageType",
+		SegmentByService:     opts.SegmentBy == SegmentByService,
+		SegmentByUser:        opts.SegmentBy == SegmentByUser,
+		SegmentByMessageType: opts.SegmentBy == SegmentByMessageType,
 	}
 	data, err = data.Normalize()
 	if err != nil {
