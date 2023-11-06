@@ -33,7 +33,6 @@ export interface ServiceRuleValue {
   sendAlert: boolean
   actions: ServiceRuleActionValue[]
   integrationKeys: IntegrationKeySelectVal[]
-
   customFields?: CustomFields
 }
 
@@ -152,42 +151,76 @@ export default function ServiceRuleForm(
   const classes = useStyles()
   const { serviceID, actionsError, integrationKeys, ...formProps } = props
 
-  const handleAddFilter = (): void => {
-    formProps.onChange({
-      name: formProps.value.name,
-      serviceID,
-      filters: [
-        ...formProps.value.filters,
-        {
-          field: '',
-          operator: '==',
-          value: '',
-          valueType: 'UNKNOWN',
-        },
-      ],
-      sendAlert: formProps.value.sendAlert,
-      actions: formProps.value.actions,
-      integrationKeys: formProps.value.integrationKeys,
-      customFields: formProps.value.customFields,
-    })
-  }
-
-  const handleAddAction = (): void => {
-    formProps.onChange({
+  const updateServiceRuleValues = (
+    updateKey: string,
+    newValue:
+      | string
+      | ServiceRuleFilterValue[]
+      | boolean
+      | ServiceRuleActionValue[]
+      | IntegrationKeySelectVal[]
+      | CustomFields
+      | undefined,
+  ): void => {
+    const update: {
+      [key: string]:
+        | string
+        | ServiceRuleFilterValue[]
+        | boolean
+        | ServiceRuleActionValue[]
+        | IntegrationKeySelectVal[]
+        | CustomFields
+        | undefined
+    } = {
       name: formProps.value.name,
       serviceID,
       filters: formProps.value.filters,
       sendAlert: formProps.value.sendAlert,
-      actions: [
-        ...formProps.value.actions,
-        {
-          destType: '',
-          contents: [],
-        },
-      ],
+      actions: formProps.value.actions,
       integrationKeys: formProps.value.integrationKeys,
       customFields: formProps.value.customFields,
+    }
+
+    Object.keys(update).map((key: string) => {
+      if (key === updateKey) {
+        update[key] = newValue
+      }
     })
+
+    formProps.onChange({
+      name: update.name as string,
+      serviceID,
+      filters: update.filters as ServiceRuleFilterValue[],
+      sendAlert: update.sendAlert as boolean,
+      actions: update.actions as ServiceRuleActionValue[],
+      integrationKeys: update.integrationKeys as IntegrationKeySelectVal[],
+      customFields:
+        update.customFields === undefined
+          ? update.customFields
+          : (update.customFields as CustomFields),
+    })
+  }
+
+  const handleAddFilter = (): void => {
+    updateServiceRuleValues('filters', [
+      ...formProps.value.filters,
+      {
+        field: '',
+        operator: '==',
+        value: '',
+        valueType: 'UNKNOWN',
+      },
+    ])
+  }
+
+  const handleAddAction = (): void => {
+    updateServiceRuleValues('actions', [
+      ...formProps.value.actions,
+      {
+        destType: '',
+        contents: [],
+      },
+    ])
   }
 
   const handleActionDestSelect = (dest: string, actionIdx: number): void => {
@@ -226,58 +259,27 @@ export default function ServiceRuleForm(
         actions[actionIdx].contents = []
     }
 
-    formProps.onChange({
-      name: formProps.value.name,
-      serviceID,
-      filters: formProps.value.filters,
-      sendAlert: formProps.value.sendAlert,
-      actions,
-      integrationKeys: formProps.value.integrationKeys,
-      customFields: formProps.value.customFields,
-    })
+    updateServiceRuleValues('actions', actions)
   }
 
   const handleAddCustomAlertFields = (e: boolean): void => {
     if (e) {
-      formProps.onChange({
-        name: formProps.value.name,
-        serviceID,
-        filters: formProps.value.filters,
-        sendAlert: formProps.value.sendAlert,
-        actions: formProps.value.actions,
-        integrationKeys: formProps.value.integrationKeys,
-        customFields: {
-          summary: '',
-          details: '',
-        },
+      updateServiceRuleValues('customFields', {
+        summary: '',
+        details: '',
       })
     } else {
-      formProps.onChange({
-        name: formProps.value.name,
-        serviceID,
-        filters: formProps.value.filters,
-        sendAlert: formProps.value.sendAlert,
-        actions: formProps.value.actions,
-        integrationKeys: formProps.value.integrationKeys,
-        customFields: undefined,
-      })
+      updateServiceRuleValues('customFields', undefined)
     }
   }
 
   const handleDeleteFilter = (deleteFilter: ServiceRuleFilterInput): void => {
-    formProps.onChange({
-      name: formProps.value.name,
-      serviceID,
-      filters: formProps.value.filters.filter(
-        (filter: ServiceRuleFilterInput) => {
-          return filter !== deleteFilter
-        },
-      ),
-      sendAlert: formProps.value.sendAlert,
-      actions: formProps.value.actions,
-      integrationKeys: formProps.value.integrationKeys,
-      customFields: formProps.value.customFields,
-    })
+    updateServiceRuleValues(
+      'filters',
+      formProps.value.filters.filter((filter: ServiceRuleFilterInput) => {
+        return filter !== deleteFilter
+      }),
+    )
   }
 
   const handleSelectFilterOperator = (
@@ -286,31 +288,16 @@ export default function ServiceRuleForm(
   ): void => {
     const updatedFilters = formProps.value.filters
     updatedFilters[filterIdx].operator = operator
-    formProps.onChange({
-      name: formProps.value.name,
-      serviceID,
-      filters: updatedFilters,
-      sendAlert: formProps.value.sendAlert,
-      actions: formProps.value.actions,
-      integrationKeys: formProps.value.integrationKeys,
-      customFields: formProps.value.customFields,
-    })
+    updateServiceRuleValues('filters', updatedFilters)
   }
 
   const handleDeleteAction = (deleteAction: ServiceRuleActionInput): void => {
-    formProps.onChange({
-      name: formProps.value.name,
-      serviceID,
-      filters: formProps.value.filters,
-      sendAlert: formProps.value.sendAlert,
-      actions: formProps.value.actions.filter(
-        (action: ServiceRuleActionInput) => {
-          return action !== deleteAction
-        },
-      ),
-      integrationKeys: formProps.value.integrationKeys,
-      customFields: formProps.value.customFields,
-    })
+    updateServiceRuleValues(
+      'actions',
+      formProps.value.actions.filter((action: ServiceRuleActionInput) => {
+        return action !== deleteAction
+      }),
+    )
   }
 
   return (
@@ -361,7 +348,9 @@ export default function ServiceRuleForm(
                   formProps.value.customFields !== undefined &&
                   formProps.value.sendAlert
                 }
-                onChange={(e) => handleAddCustomAlertFields(e.target.checked)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleAddCustomAlertFields(e.target.checked)
+                }
               />
             }
             disabled={!formProps.value.sendAlert}
