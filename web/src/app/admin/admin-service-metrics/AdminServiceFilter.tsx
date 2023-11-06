@@ -105,7 +105,7 @@ function AdminServiceFilter(): JSX.Element {
               Service Filters
             </Typography>
             <Divider />
-            <List disablePadding>
+            <List>
               <ListItem>
                 <ListItemText primary='EP Step Targets' />
               </ListItem>
@@ -124,7 +124,7 @@ function AdminServiceFilter(): JSX.Element {
                   )}
                 />
               </ListItem>
-              <Divider />
+              <Divider sx={{ padding: '10px' }} />
               <ListItem>
                 <ListItemText primary='Integration Key Targets' />
               </ListItem>
@@ -149,7 +149,7 @@ function AdminServiceFilter(): JSX.Element {
                   )}
                 />
               </ListItem>
-              <Divider />
+              <Divider sx={{ padding: '10px' }} />
               <ListItem>
                 <ListItemText primary='Labels' />
               </ListItem>
