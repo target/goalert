@@ -13,11 +13,19 @@ import {
 } from '@mui/icons-material'
 import { AlertSearchOptions, Service } from '../../../schema'
 import { useAlerts } from '../../services/AlertMetrics/useAlerts'
+import AdminServiceFilter from './AdminServiceFilter'
+import { useURLParams } from '../../actions'
 
 const STALE_ALERT_LIMIT = 2
 
 export default function AdminServiceMetrics(): JSX.Element {
   const now = useMemo(() => DateTime.now(), [])
+  const [params] = useURLParams({
+    epStepTgts: [] as string[],
+    intKeyTgts: [] as string[],
+    labelKey: '',
+    labelValue: '',
+  })
 
   const depKey = `${now}`
   const serviceData = useServices(depKey)
@@ -34,6 +42,12 @@ export default function AdminServiceMetrics(): JSX.Element {
     {
       services: serviceData.services,
       alerts: alertsData.alerts,
+      filters: {
+        labelKey: params.labelKey,
+        labelValue: params.labelValue,
+        epStepTgts: params.epStepTgts,
+        intKeyTgts: params.intKeyTgts,
+      },
     },
     {} as ServiceMetrics,
   )
@@ -45,22 +59,25 @@ export default function AdminServiceMetrics(): JSX.Element {
     totalNoEP: number
     totalAlertLimit: number
   } => {
-    let totalNoIntegration = 0
-    let totalNoEP = 0
-    let totalAlertLimit = 0
-
-    services.map((svc: Service) => {
-      if (!svc.heartbeatMonitors.length && !svc.integrationKeys.length)
-        totalNoIntegration += 1
-      if (!svc.escalationPolicy?.steps.length) totalNoEP += 1
-      else if (
-        svc.escalationPolicy.steps.every((step) => step.targets.length === 0)
-      ) {
-        totalNoEP += 1
-      }
-      if (svc.notices.length) totalAlertLimit += 1
-    })
-    return { totalNoIntegration, totalNoEP, totalAlertLimit }
+    return services.reduce(
+      (counts, svc) => {
+        if (!svc.integrationKeys.length) {
+          if (!svc.heartbeatMonitors.length) counts.totalNoIntegration++
+        }
+        if (!svc.escalationPolicy?.steps.length) counts.totalNoEP++
+        else if (
+          svc.escalationPolicy.steps?.every((step) => !step.targets.length)
+        )
+          counts.totalNoEP++
+        if (svc.notices.length) counts.totalAlertLimit++
+        return counts
+      },
+      {
+        totalNoIntegration: 0,
+        totalNoEP: 0,
+        totalAlertLimit: 0,
+      },
+    )
   }
 
   const { totalNoIntegration, totalNoEP, totalAlertLimit } =
@@ -68,7 +85,7 @@ export default function AdminServiceMetrics(): JSX.Element {
 
   const cardSubHeader = serviceData.loading
     ? 'Loading services... This may take a minute'
-    : `Metrics pulled from ${serviceData.services.length} total services.`
+    : `Metrics pulled from ${metrics.filteredServices.length} services`
 
   return (
     <Grid container spacing={2}>
@@ -145,6 +162,9 @@ export default function AdminServiceMetrics(): JSX.Element {
             }
           />
         </Card>
+      </Grid>
+      <Grid item xs={12}>
+        <AdminServiceFilter />
       </Grid>
       <Grid item xs={12}>
         <Card sx={{ marginTop: (theme) => theme.spacing(1) }}>
