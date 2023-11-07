@@ -81,7 +81,7 @@ func (h *Handler) ServeCreateSignals(w http.ResponseWriter, r *http.Request) {
 
 	for _, rule := range rules {
 		for _, action := range rule.Actions {
-			if rule.SendAlert && action.DestType == "goalert" {
+			if rule.SendAlert && strings.EqualFold(action.DestType, "alert") {
 				sigAlert, err := buildOutgoingAlertPayload(action, requestBody)
 				if errutil.HTTPError(ctx, w, errors.Wrap(err, "create alert")) {
 					return
