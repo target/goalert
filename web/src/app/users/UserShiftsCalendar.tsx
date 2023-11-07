@@ -6,6 +6,7 @@ import { GenericError } from '../error-pages'
 import { useCalendarNavigation } from '../util/calendar/hooks'
 import Calendar, { Shift } from '../util/calendar/Calendar'
 import { OnCallShift, Schedule } from '../../schema'
+import { useSuspenseContext } from './UserDetails'
 
 const query = gql`
   query user($id: ID!, $start: ISOTimestamp!, $end: ISOTimestamp!) {
@@ -42,13 +43,14 @@ export default function UserShiftsCalendar({
         getEndOfWeek(DateTime.fromISO(start).endOf('month')).toISO(),
       ]
 
-  const [{ data, error, fetching }] = useQuery({
+  const [{ data, error }] = useQuery({
     query,
     variables: {
       id: userID,
       start: queryStart,
       end: queryEnd,
     },
+    context: useSuspenseContext(),
   })
 
   if (error) return <GenericError error={error.message} />
@@ -73,5 +75,5 @@ export default function UserShiftsCalendar({
     return s
   }
 
-  return <Calendar loading={fetching} shifts={makeCalendarShifts()} />
+  return <Calendar loading={false} shifts={makeCalendarShifts()} />
 }
