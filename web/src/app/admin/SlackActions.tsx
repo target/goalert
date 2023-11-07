@@ -8,7 +8,7 @@ import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
 import Divider from '@mui/material/Divider'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
-import { gql, useLazyQuery } from '@apollo/client'
+import { gql, useQuery } from 'urql'
 import CardActions from '../details/CardActions'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
@@ -36,13 +36,13 @@ export default function SlackActions(): JSX.Element {
   const classes = useStyles()
   const [showManifest, setShowManifest] = useState(false)
 
-  const [getManifest, { called, loading, error, data }] = useLazyQuery(query, {
-    pollInterval: 0,
+  const [{ fetching, error, data }, commit] = useQuery({
+    query,
   })
   const manifest = data?.generateSlackAppManifest ?? ''
 
   function renderContent(): JSX.Element {
-    if (called && loading) return <Spinner />
+    if (fetching) return <Spinner />
     if (error) return <GenericError error={error.message} />
 
     return (
@@ -63,7 +63,7 @@ export default function SlackActions(): JSX.Element {
           {
             label: 'App Manifest',
             handleOnClick: () => {
-              getManifest()
+              commit()
               setShowManifest(true)
             },
           },

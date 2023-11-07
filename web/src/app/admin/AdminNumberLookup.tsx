@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Form } from '../forms'
 import {
   Button,
@@ -15,7 +15,7 @@ import {
   ListItemText,
   Tooltip,
 } from '@mui/material'
-import { useMutation, useQuery, ApolloError, gql } from '@apollo/client'
+import { useMutation, useQuery, gql, CombinedError } from 'urql'
 import CopyText from '../util/CopyText'
 import TelTextField from '../util/TelTextField'
 import LoadingButton from '../loading/components/LoadingButton'
@@ -50,23 +50,26 @@ const numInfoQuery = gql`
 export default function AdminNumberLookup(): JSX.Element {
   const [number, setNumber] = useState('')
   const [staleCarrier, setStaleCarrier] = useState(true)
-  const [lastError, setLastError] = useState(null as null | ApolloError)
 
-  const { data: numData } = useQuery(numInfoQuery, {
+  const [{ data: numData, error: queryError }] = useQuery({
+    query: numInfoQuery,
     variables: { number },
-    pollInterval: 0,
-    onError: (err) => setLastError(err),
   })
   const numInfo = numData?.phoneNumberInfo as PhoneNumberInfo
 
-  const [lookup, { data: carrData, loading: carrLoading }] = useMutation(
-    carrierInfoMut,
-    {
-      variables: { number },
-      onError: (err) => setLastError(err),
-    },
-  )
+  const [
+    { data: carrData, fetching: carrLoading, error: mutationError },
+    commit,
+  ] = useMutation(carrierInfoMut)
   const carrInfo = carrData?.debugCarrierInfo as DebugCarrierInfo
+
+  const [lastError, setLastError] = useState<CombinedError>()
+  useEffect(() => {
+    setLastError(queryError)
+  }, [queryError])
+  useEffect(() => {
+    setLastError(mutationError)
+  }, [mutationError])
 
   function renderListItem(label: string, text = ''): JSX.Element {
     return (
@@ -87,7 +90,7 @@ export default function AdminNumberLookup(): JSX.Element {
       <Form
         onSubmit={(e: { preventDefault: () => void }) => {
           e.preventDefault()
-          lookup()
+          commit({ number })
           setStaleCarrier(false)
         }}
       >
@@ -145,11 +148,11 @@ export default function AdminNumberLookup(): JSX.Element {
         </Card>
       </Form>
 
-      <Dialog open={Boolean(lastError)} onClose={() => setLastError(null)}>
+      <Dialog open={Boolean(lastError)} onClose={() => setLastError(undefined)}>
         <DialogTitle>An error occurred</DialogTitle>
         <DialogContentError error={lastError?.message ?? ''} />
         <DialogActions>
-          <Button variant='contained' onClick={() => setLastError(null)}>
+          <Button variant='contained' onClick={() => setLastError(undefined)}>
             Okay
           </Button>
         </DialogActions>
