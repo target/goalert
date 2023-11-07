@@ -284,7 +284,7 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                               sx={{
                                 p: 1,
                                 maxHeight: '250px',
-                                overflow: 'scroll',
+                                overflow: 'auto',
                                 pointerEvents: 'auto',
                               }}
                             >
@@ -313,7 +313,7 @@ export default function AdminMessageLogsGraph(): JSX.Element {
                       <Legend
                         wrapperStyle={{
                           maxHeight: '100px',
-                          overflow: 'scroll',
+                          overflow: 'auto',
                         }}
                       />
                       {Object.keys(graphLines).map((label, index) => (
