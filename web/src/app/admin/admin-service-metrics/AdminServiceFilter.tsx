@@ -159,7 +159,7 @@ function AdminServiceFilter(): JSX.Element {
                   label='Select Label Key'
                   fullWidth
                   value={params.labelKey}
-                  onChange={(value) =>
+                  onChange={(value: string) =>
                     setParams({
                       ...params,
                       labelKey: value,
@@ -175,7 +175,7 @@ function AdminServiceFilter(): JSX.Element {
                   label='Select Label Value'
                   labelKey={params.labelKey}
                   value={params.labelValue}
-                  onChange={(value) =>
+                  onChange={(value: string) =>
                     setParams({ ...params, labelValue: value })
                   }
                   disabled={!params.labelKey}
