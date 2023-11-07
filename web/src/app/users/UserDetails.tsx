@@ -189,7 +189,7 @@ export default function UserDetails(props: {
   }
 
   return (
-    <Suspense fallback={<Spinner />}>
+    <React.Fragment>
       {showEdit && (
         <UserEditDialog
           onClose={() => setShowEdit(false)}
@@ -244,22 +244,27 @@ export default function UserDetails(props: {
           onClose={() => setCreateNR(false)}
         />
       )}
-      <DetailsPage
-        avatar={<UserAvatar userID={userID} />}
-        title={user.name + (svcCount ? ' (On-Call)' : '')}
-        subheader={user.email}
-        pageContent={
-          <Grid container spacing={2}>
-            <UserContactMethodList userID={userID} readOnly={props.readOnly} />
-            <UserNotificationRuleList
-              userID={userID}
-              readOnly={props.readOnly}
-            />
-          </Grid>
-        }
-        secondaryActions={options}
-        links={links}
-      />
-    </Suspense>
+      <Suspense fallback={<Spinner />}>
+        <DetailsPage
+          avatar={<UserAvatar userID={userID} />}
+          title={user.name + (svcCount ? ' (On-Call)' : '')}
+          subheader={user.email}
+          pageContent={
+            <Grid container spacing={2}>
+              <UserContactMethodList
+                userID={userID}
+                readOnly={props.readOnly}
+              />
+              <UserNotificationRuleList
+                userID={userID}
+                readOnly={props.readOnly}
+              />
+            </Grid>
+          }
+          secondaryActions={options}
+          links={links}
+        />
+      </Suspense>
+    </React.Fragment>
   )
 }
