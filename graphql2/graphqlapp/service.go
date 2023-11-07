@@ -92,7 +92,7 @@ func (s *Service) Notices(ctx context.Context, raw *service.Service) ([]notice.N
 }
 
 func (s *Service) Labels(ctx context.Context, raw *service.Service) ([]label.Label, error) {
-	return s.LabelStore.FindAllByService(ctx, raw.ID)
+	return s.LabelStore.FindAllByService(ctx, s.DB, raw.ID)
 }
 
 func (s *Service) EscalationPolicy(ctx context.Context, raw *service.Service) (*escalation.Policy, error) {

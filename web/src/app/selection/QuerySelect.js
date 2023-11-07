@@ -128,6 +128,7 @@ export const querySelectPropTypes = {
   formatInputOnChange: p.func,
   onChange: p.func,
   value: valueCheck,
+  fullWidth: p.bool,
   label: p.string,
   multiple: p.bool,
   name: p.string,

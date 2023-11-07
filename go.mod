@@ -3,23 +3,23 @@ module github.com/target/goalert
 go 1.21
 
 require (
-	github.com/99designs/gqlgen v0.17.39
-	github.com/brianvoe/gofakeit/v6 v6.23.2
+	github.com/99designs/gqlgen v0.17.40
+	github.com/brianvoe/gofakeit/v6 v6.24.0
 	github.com/coreos/go-oidc/v3 v3.7.0
-	github.com/creack/pty v1.1.18
+	github.com/creack/pty v1.1.20
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/emersion/go-smtp v0.18.1
 	github.com/fatih/color v1.15.0
-	github.com/felixge/httpsnoop v1.0.3
-	github.com/fullstorydev/grpcui v1.3.2
+	github.com/felixge/httpsnoop v1.0.4
+	github.com/fullstorydev/grpcui v1.3.3
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/google/go-github/v55 v55.0.0
-	github.com/google/uuid v1.3.1
+	github.com/google/uuid v1.4.0
 	github.com/gordonklaus/ineffassign v0.0.0-20230610083614-0e73809eb601
 	github.com/hashicorp/yamux v0.1.1
 	github.com/jackc/pgtype v1.14.0
-	github.com/jackc/pgx/v5 v5.4.3
+	github.com/jackc/pgx/v5 v5.5.0
 	github.com/jmespath/go-jmespath v0.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/kffl/speedbump v1.1.0
@@ -45,7 +45,7 @@ require (
 	github.com/vektah/gqlparser/v2 v2.5.10
 	golang.org/x/crypto v0.14.0
 	golang.org/x/oauth2 v0.13.0
-	golang.org/x/sys v0.13.0
+	golang.org/x/sys v0.14.0
 	golang.org/x/term v0.13.0
 	golang.org/x/tools v0.14.0
 	google.golang.org/grpc v1.59.0
@@ -108,7 +108,7 @@ require (
 	github.com/jackc/pgx/v4 v4.18.1 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jaytaylor/html2text v0.0.0-20230321000545-74c2419ad056 // indirect
-	github.com/jhump/protoreflect v1.15.2 // indirect
+	github.com/jhump/protoreflect v1.15.3 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailhog/MailHog-UI v1.0.1 // indirect
 	github.com/mailhog/http v1.0.1 // indirect

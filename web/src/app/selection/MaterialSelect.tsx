@@ -62,6 +62,7 @@ interface SelectOption {
 }
 
 interface CommonSelectProps {
+  fullWidth?: boolean
   disabled?: boolean
   error?: boolean
   isLoading?: boolean
@@ -96,6 +97,7 @@ export default function MaterialSelect(
 ): JSX.Element {
   const classes = useStyles()
   const {
+    fullWidth,
     disabled,
     error,
     isLoading,
@@ -182,6 +184,7 @@ export default function MaterialSelect(
       data-cy='material-select'
       data-cy-ready={!isLoading}
       classes={customCSS}
+      fullWidth={fullWidth}
       multiple={multiple}
       filterSelectedOptions={multiple && !disableCloseOnSelect}
       value={value}

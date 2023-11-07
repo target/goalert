@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   ClickAwayListener,
   Divider,
@@ -20,6 +20,7 @@ import { Time } from '../../util/Time'
 import { gql, useQuery } from 'urql'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
+import AdminAPIKeyShowQueryDialog from './AdminAPIKeyShowQueryDialog'
 
 // query for getting existing API Keys
 const query = gql`
@@ -44,7 +45,7 @@ const query = gql`
         ip
       }
       expiresAt
-      allowedFields
+      query
       role
     }
   }
@@ -54,6 +55,7 @@ const query = gql`
 interface Props {
   onClose: () => void
   apiKeyID?: string
+  onDuplicateClick: () => void
 }
 
 const useStyles = makeStyles(() => ({
@@ -64,27 +66,60 @@ const useStyles = makeStyles(() => ({
   },
 }))
 
+function ActionBy(props: {
+  label: string
+  time?: string
+  name?: string
+}): React.ReactNode {
+  let record: React.ReactNode = 'Never'
+  if (props.time && props.name) {
+    record = (
+      <React.Fragment>
+        <Time format='relative' time={props.time} /> by {props.name}
+      </React.Fragment>
+    )
+  } else if (props.time) {
+    record = <Time format='relative' time={props.time} />
+  }
+
+  return (
+    <ListItem divider>
+      <ListItemText primary={props.label} secondary={record} />
+    </ListItem>
+  )
+}
+
 export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
   const { onClose, apiKeyID } = props
   const classes = useStyles()
   const isOpen = Boolean(apiKeyID)
   const [deleteDialog, setDialogDialog] = useState(false)
   const [editDialog, setEditDialog] = useState(false)
+  const [showQuery, setShowQuery] = useState(false)
 
   // Get API Key triggers/actions
-  const [{ data, fetching, error }] = useQuery({ query })
+  const context = useMemo(() => ({ additionalTypenames: ['GQLAPIKey'] }), [])
+  const [{ data, error }] = useQuery({ query, context })
   const apiKey: GQLAPIKey =
     data?.gqlAPIKeys?.find((d: GQLAPIKey) => {
       return d.id === apiKeyID
     }) || ({} as GQLAPIKey)
 
-  const allowFieldsStr = (apiKey?.allowedFields || []).join(', ')
+  useEffect(() => {
+    if (!isOpen) return
+    if (!data || apiKey.id) return
+
+    // If the API Key is not found, close the drawer.
+    onClose()
+  }, [isOpen, data, apiKey.id])
+
+  const lastUsed = apiKey?.lastUsed || null
 
   if (error) {
     return <GenericError error={error.message} />
   }
 
-  if (fetching && !data) {
+  if (isOpen && !apiKey.id) {
     return <Spinner />
   }
 
@@ -97,6 +132,12 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
         data-cy='debug-message-details'
       >
         <Toolbar />
+        {showQuery && (
+          <AdminAPIKeyShowQueryDialog
+            apiKeyID={apiKey.id}
+            onClose={() => setShowQuery(false)}
+          />
+        )}
         {deleteDialog ? (
           <AdminAPIKeyDeleteDialog
             onClose={(yes: boolean): void => {
@@ -122,55 +163,54 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
           <Divider />
           <List disablePadding>
             <ListItem divider>
-              <ListItemText primary='Name' secondary={apiKey?.name} />
+              <ListItemText primary='Name' secondary={apiKey.name} />
             </ListItem>
             <ListItem divider>
               <ListItemText
                 primary='Description'
-                secondary={apiKey?.description}
+                secondary={apiKey.description}
               />
+            </ListItem>
+            <ListItem divider>
+              <ListItemText primary='Role' secondary={apiKey.role} />
             </ListItem>
             <ListItem divider>
               <ListItemText
-                primary='Allowed Fields'
-                secondary={allowFieldsStr}
+                primary='Query'
+                secondary={
+                  <Button variant='text' onClick={() => setShowQuery(true)}>
+                    Show Query
+                  </Button>
+                }
               />
             </ListItem>
-            <ListItem divider>
-              <ListItemText
-                primary='Creation Time'
-                secondary={<Time prefix='' time={apiKey?.createdAt} />}
-              />
-            </ListItem>
-            <ListItem divider>
-              <ListItemText
-                primary='Created By'
-                secondary={apiKey?.createdBy?.name}
-              />
-            </ListItem>
-            <ListItem divider>
-              <ListItemText
-                primary='Expires At'
-                secondary={<Time prefix='' time={apiKey?.expiresAt} />}
-              />
-            </ListItem>
-            <ListItem divider>
-              <ListItemText
-                primary='Updated By'
-                secondary={apiKey?.updatedBy?.name}
-              />
-            </ListItem>
-            <ListItem divider>
-              <ListItemText primary='Role' secondary={apiKey?.role} />
-            </ListItem>
+            <ActionBy
+              label='Created'
+              time={apiKey.createdAt}
+              name={apiKey.createdBy?.name}
+            />
+            <ActionBy
+              label='Updated'
+              time={apiKey.updatedAt}
+              name={apiKey.updatedBy?.name}
+            />
+            <ActionBy label='Expires' time={apiKey.expiresAt} />
+
+            <ActionBy
+              label='Last Used'
+              time={lastUsed?.time}
+              name={lastUsed ? lastUsed.ua + ' from ' + lastUsed.ip : ''}
+            />
           </List>
           <Grid className={classes.buttons}>
             <ButtonGroup variant='contained'>
-              <Button data-cy='delete' onClick={() => setDialogDialog(true)}>
-                Delete
-              </Button>
-              <Button data-cy='edit' onClick={() => setEditDialog(true)}>
-                Edit
+              <Button onClick={() => setDialogDialog(true)}>Delete</Button>
+              <Button onClick={() => setEditDialog(true)}>Edit</Button>
+              <Button
+                onClick={() => props.onDuplicateClick()}
+                title='Create a new API Key with the same settings as this one.'
+              >
+                Duplicate
               </Button>
             </ButtonGroup>
           </Grid>
