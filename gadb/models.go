@@ -1012,7 +1012,6 @@ type OutgoingMessage struct {
 type OutgoingSignal struct {
 	Content         json.RawMessage
 	CreatedAt       time.Time
-	DestinationID   string
 	DestinationType string
 	DestinationVal  string
 	ID              uuid.UUID

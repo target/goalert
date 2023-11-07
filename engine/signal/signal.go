@@ -3,6 +3,8 @@ package signal
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"strings"
 	"time"
 
 	"github.com/target/goalert/notification"
@@ -43,8 +45,8 @@ func MapContent(content []rule.Content) map[string]string {
 // ProcessContent handles preparing signals and their corresponding service rule actions to more easily usable data to create an outoging signal
 func ProcessContent(action rule.Action) (string, string, json.RawMessage, error) {
 	var dest Destination
-	var destValue string = action.DestValue
 	var message string = ""
+	var destValue string
 
 	// utilize a map of contents to more easily access contents
 	contentMap := MapContent(action.Contents)
@@ -60,14 +62,42 @@ func ProcessContent(action rule.Action) (string, string, json.RawMessage, error)
 
 	// what is the point of this??? we already aquire the message/body in the switch statement
 	// content should be the additional context needed that varies between the notification channels
-	content, value, message, err := dest.Content(contentMap)
+	content, destValue, message, err := dest.Content(contentMap)
 	if err != nil {
 		err = fmt.Errorf("signalsmanager destination content error: %w", err)
 	}
 
-	if value != "" {
-		destValue = value
+	return message, destValue, content, err
+}
+
+func mapToStruct(data map[string]string, obj interface{}) error {
+	v := reflect.ValueOf(obj)
+
+	if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
+		return fmt.Errorf("obj must be a pointer to a struct")
 	}
 
-	return message, destValue, content, err
+	elem := v.Elem()
+	elemType := elem.Type()
+
+	for i := 0; i < elem.NumField(); i++ {
+		field := elem.Field(i)
+		fieldName := strings.ToLower(elemType.Field(i).Name)
+		jsonTag := elemType.Field(i).Tag.Get("json")
+
+		if jsonTag != "" {
+			jsonTag = strings.TrimSuffix(jsonTag, ",omitempty")
+			fieldName = jsonTag
+		}
+
+		if val, ok := data[fieldName]; ok {
+			if field.CanSet() {
+				if field.Type().Kind() == reflect.String {
+					field.SetString(val)
+				}
+			}
+		}
+	}
+
+	return nil
 }

@@ -32363,7 +32363,7 @@ func (ec *executionContext) unmarshalInputServiceRuleActionInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"destType", "destID", "destValue", "contents"}
+	fieldsInOrder := [...]string{"destType", "contents"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -32379,24 +32379,6 @@ func (ec *executionContext) unmarshalInputServiceRuleActionInput(ctx context.Con
 				return it, err
 			}
 			it.DestType = data
-		case "destID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destID"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.DestID = data
-		case "destValue":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destValue"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.DestValue = data
 		case "contents":
 			var err error
 

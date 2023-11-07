@@ -11,10 +11,8 @@ type Rule struct {
 }
 
 type Action struct {
-	DestType  string    `json:"dest_type"`
-	DestID    string    `json:"dest_id"`    // for existing slack channels (for existing slack channel options) row id from notification_channels
-	DestValue string    `json:"dest_value"` // slack destination id
-	Contents  []Content `json:"contents"`
+	DestType string    `json:"dest_type"`
+	Contents []Content `json:"contents"`
 }
 
 type Content struct {

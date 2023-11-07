@@ -69,16 +69,10 @@ func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
 			return fmt.Errorf("signalsmanager process signal content error: %w", err)
 		}
 
-		// perhaps just continue and log failed action instead of erroring out here?
-		if destVal == "" {
-			return errors.New("signal missing outgoing destination value.")
-		}
-
 		err = q.SignalsManagerSendOutgoing(ctx, gadb.SignalsManagerSendOutgoingParams{
 			SignalID:        int32(sig.ID),
 			ServiceID:       sig.ServiceID,
 			DestinationType: action.DestType,
-			DestinationID:   action.DestID,
 			DestinationVal:  destVal,
 			Message:         message,
 			Content:         content,

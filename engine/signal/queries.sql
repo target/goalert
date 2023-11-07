@@ -5,7 +5,6 @@ SELECT
     service_id,
     sent_at,
     destination_type,
-    destination_id,
     destination_val,
     content,
     message

@@ -84,7 +84,7 @@ func (db *DB) _sendSignal(ctx context.Context, send SendFunc, tx gadb.DBTX) erro
 		ID:   sig.ID.String(),
 		Type: notification.MessageTypeSignal,
 		Dest: notification.Dest{
-			ID:    sig.DestinationID,
+			ID:    "",
 			Type:  sigType.DestType(),
 			Value: sig.DestinationVal,
 		},

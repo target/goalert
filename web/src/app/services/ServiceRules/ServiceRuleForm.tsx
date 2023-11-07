@@ -244,8 +244,8 @@ export default function ServiceRuleForm(
       case destType.WEBHOOK:
         actions[actionIdx].contents = [
           { prop: 'body', value: '' },
-          { prop: 'URL', value: '' },
-          { prop: 'Method', value: '' },
+          { prop: 'url', value: '' },
+          { prop: 'method', value: '' },
         ]
         break
       case destType.EMAIL:

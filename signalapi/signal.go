@@ -180,14 +180,6 @@ func buildOutgoingPayload(action rule.Action, incomingPayload map[string]interfa
 		outgoingPayload["dest_type"] = action.DestType
 	}
 
-	if action.DestID != "" {
-		outgoingPayload["dest_id"] = action.DestID
-	}
-
-	if action.DestValue != "" {
-		outgoingPayload["dest_value"] = action.DestValue
-	}
-
 	if action.Contents != nil {
 		outgoingPayload["content"] = action.Contents
 	}

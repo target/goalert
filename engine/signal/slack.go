@@ -2,39 +2,26 @@ package signal
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 )
 
 type SlackChannel struct {
-	Message string `json:"message,omitempty"`
-}
-
-// fields returns a list of the SlackChannel struct's fields along with there corresponding json tag value
-func (sc *SlackChannel) fields() ([]string, []interface{}) {
-	return []string{"message"}, []interface{}{
-		sc.Message,
-	}
+	ChannelID string `json:"channel_id,omitempty"`
+	Message   string `json:"message,omitempty"`
 }
 
 // Content returns a json marshalled SlackChannel object containing the signal message
 func (sc SlackChannel) Content(m map[string]string) (res json.RawMessage, destVal string, message string, err error) {
 
-	key, field := sc.fields()
-	for i := 0; i < len(key); i++ {
-		if val, ok := m[key[i]]; ok {
-			field[i] = val
-		} else {
-			return res, destVal, message, fmt.Errorf("SlackChannel missing %s field", m[key[i]])
-		}
+	err = mapToStruct(m, &sc)
+	if err != nil {
+		return res, destVal, message, errors.New("SlackChannel mapToStruct error")
 	}
 
-	return res, destVal, sc.Message, nil
+	res, err = json.Marshal(sc)
+	if err != nil {
+		return res, destVal, message, errors.New("SlackChannel json marshal error")
+	}
 
-	// res, err = json.Marshal(sc)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return res, destVal, message, errors.New("SlackChannel json marshal error")
-	// }
-
-	// return
+	return res, sc.ChannelID, sc.Message, nil
 }

@@ -1561,7 +1561,6 @@ SELECT
     service_id,
     sent_at,
     destination_type,
-    destination_id,
     destination_val,
     content,
     message
@@ -1580,7 +1579,6 @@ type OutgoingSignalFindNextRow struct {
 	ServiceID       uuid.UUID
 	SentAt          sql.NullTime
 	DestinationType string
-	DestinationID   string
 	DestinationVal  string
 	Content         json.RawMessage
 	Message         string
@@ -1595,7 +1593,6 @@ func (q *Queries) OutgoingSignalFindNext(ctx context.Context) (OutgoingSignalFin
 		&i.ServiceID,
 		&i.SentAt,
 		&i.DestinationType,
-		&i.DestinationID,
 		&i.DestinationVal,
 		&i.Content,
 		&i.Message,
@@ -2041,15 +2038,14 @@ func (q *Queries) SignalsManagerFindNext(ctx context.Context) (SignalsManagerFin
 }
 
 const signalsManagerSendOutgoing = `-- name: SignalsManagerSendOutgoing :exec
-INSERT INTO outgoing_signals (signal_id, service_id, destination_type, destination_id, destination_val, content, message)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO outgoing_signals (signal_id, service_id, destination_type, destination_val, content, message)
+    VALUES ($1, $2, $3, $4, $5, $6)
 `
 
 type SignalsManagerSendOutgoingParams struct {
 	SignalID        int32
 	ServiceID       uuid.UUID
 	DestinationType string
-	DestinationID   string
 	DestinationVal  string
 	Content         json.RawMessage
 	Message         string
@@ -2060,7 +2056,6 @@ func (q *Queries) SignalsManagerSendOutgoing(ctx context.Context, arg SignalsMan
 		arg.SignalID,
 		arg.ServiceID,
 		arg.DestinationType,
-		arg.DestinationID,
 		arg.DestinationVal,
 		arg.Content,
 		arg.Message,
