@@ -398,6 +398,7 @@ export interface Mutation {
   updateEscalationPolicyStep: boolean
   deleteAll: boolean
   createAlert?: null | Alert
+  closeMatchingAlert: boolean
   setAlertNoiseReason: boolean
   createService?: null | Service
   createEscalationPolicy?: null | EscalationPolicy
@@ -491,6 +492,14 @@ export interface CreateAlertInput {
   details?: null | string
   serviceID: string
   sanitize?: null | boolean
+  dedup?: null | string
+}
+
+export interface CloseMatchingAlertInput {
+  serviceID: string
+  summary?: null | string
+  details?: null | string
+  dedup?: null | string
 }
 
 export interface SetAlertNoiseReasonInput {
