@@ -42,6 +42,7 @@ import { useSessionInfo } from '../util/RequireConfig'
 import WizardRouter from '../wizard/WizardRouter'
 import LocalDev from '../localdev/LocalDev'
 import AdminSwitchoverGuide from '../admin/switchover/AdminSwitchoverGuide'
+import { FallbackPageWrapper } from '../util/Suspense'
 
 // ParamRoute will pass route parameters as props to the route's child.
 function ParamRoute(props: RouteProps): JSX.Element {
@@ -53,11 +54,13 @@ function ParamRoute(props: RouteProps): JSX.Element {
 
   return (
     <Route {...rest}>
-      {children
-        ? React.Children.map(children as React.ReactChild, (child) =>
-            React.cloneElement(child as React.ReactElement, params || {}),
-          )
-        : React.createElement(component as React.ComponentType, params)}
+      <FallbackPageWrapper>
+        {children
+          ? React.Children.map(children as React.ReactChild, (child) =>
+              React.cloneElement(child as React.ReactElement, params || {}),
+            )
+          : React.createElement(component as React.ComponentType, params)}
+      </FallbackPageWrapper>
     </Route>
   )
 }

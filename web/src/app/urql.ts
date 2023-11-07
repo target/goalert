@@ -107,6 +107,7 @@ const apolloRefetchExchange: Exchange = ({ forward }) => {
 
 export const client = createClient({
   url: pathPrefix + '/api/graphql',
+  suspense: true,
   exchanges: [
     dedupExchange,
     refetchExchange(),

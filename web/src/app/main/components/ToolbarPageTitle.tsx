@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React, { useMemo } from 'react'
 import Typography from '@mui/material/Typography'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
 import { ChevronRight } from '@mui/icons-material'
@@ -107,6 +107,12 @@ function useName(type = '', id = ''): string {
       }`,
     variables: { id },
     pause: !type || !isUUID,
+    context: useMemo(
+      () => ({
+        suspense: false,
+      }),
+      [],
+    ),
   })
 
   if (type && isUUID && result?.data?.data?.name) {

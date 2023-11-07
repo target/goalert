@@ -28,6 +28,7 @@ import { useExpFlag } from '../util/useExpFlag'
 import { NotificationProvider } from './SnackbarNotification'
 import ReactGA from 'react-ga4'
 import { useConfigValue } from '../util/RequireConfig'
+import { FallbackProvider } from '../util/Suspense'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -43,7 +44,6 @@ const useStyles = makeStyles((theme: Theme) => ({
     overflowY: 'auto',
     marginTop: '64px',
   },
-  mainContainer: { position: 'relative', height: '100%' },
   appBar: {
     [theme.breakpoints.up('md')]: { width: `calc(100% - ${drawerWidth})` },
     zIndex: theme.zIndex.drawer + 1,
@@ -137,15 +137,17 @@ export default function App(): JSX.Element {
               <ErrorBoundary>
                 <LazyNewUserSetup />
                 <AuthLink />
-                <Grid
-                  container
-                  justifyContent='center'
-                  className={classes.mainContainer}
-                >
-                  <Grid className={classes.containerClass} item>
-                    <AppRoutes />
+                <FallbackProvider>
+                  <Grid
+                    container
+                    justifyContent='center'
+                    sx={{ position: 'relative', height: '100%' }}
+                  >
+                    <Grid className={classes.containerClass} item>
+                      <AppRoutes />
+                    </Grid>
                   </Grid>
-                </Grid>
+                </FallbackProvider>
               </ErrorBoundary>
             </main>
           </NotificationProvider>
