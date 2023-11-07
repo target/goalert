@@ -310,7 +310,7 @@ type ComplexityRoot struct {
 	}
 
 	MessageLogConnectionStats struct {
-		TimeSeries func(childComplexity int, input TimeSeriesOptions, segmentBy *MessageLogSegmenyBy) int
+		TimeSeries func(childComplexity int, input TimeSeriesOptions, segmentBy *MessageLogSegmentBy) int
 	}
 
 	Mutation struct {
@@ -745,7 +745,7 @@ type IntegrationKeyResolver interface {
 	Href(ctx context.Context, obj *integrationkey.IntegrationKey) (string, error)
 }
 type MessageLogConnectionStatsResolver interface {
-	TimeSeries(ctx context.Context, obj *notification.SearchOptions, input TimeSeriesOptions, segmentBy *MessageLogSegmenyBy) ([]TimeSeriesBucket, error)
+	TimeSeries(ctx context.Context, obj *notification.SearchOptions, input TimeSeriesOptions, segmentBy *MessageLogSegmentBy) ([]TimeSeriesBucket, error)
 }
 type MutationResolver interface {
 	SwoAction(ctx context.Context, action SWOAction) (bool, error)
@@ -1843,7 +1843,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.MessageLogConnectionStats.TimeSeries(childComplexity, args["input"].(TimeSeriesOptions), args["segmentBy"].(*MessageLogSegmenyBy)), true
+		return e.complexity.MessageLogConnectionStats.TimeSeries(childComplexity, args["input"].(TimeSeriesOptions), args["segmentBy"].(*MessageLogSegmentBy)), true
 
 	case "Mutation.addAuthSubject":
 		if e.complexity.Mutation.AddAuthSubject == nil {
@@ -4385,10 +4385,10 @@ func (ec *executionContext) field_MessageLogConnectionStats_timeSeries_args(ctx 
 		}
 	}
 	args["input"] = arg0
-	var arg1 *MessageLogSegmenyBy
+	var arg1 *MessageLogSegmentBy
 	if tmp, ok := rawArgs["segmentBy"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("segmentBy"))
-		arg1, err = ec.unmarshalOMessageLogSegmentBy2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSegmenyBy(ctx, tmp)
+		arg1, err = ec.unmarshalOMessageLogSegmentBy2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSegmentBy(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -11692,7 +11692,7 @@ func (ec *executionContext) _MessageLogConnectionStats_timeSeries(ctx context.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.MessageLogConnectionStats().TimeSeries(rctx, obj, fc.Args["input"].(TimeSeriesOptions), fc.Args["segmentBy"].(*MessageLogSegmenyBy))
+		return ec.resolvers.MessageLogConnectionStats().TimeSeries(rctx, obj, fc.Args["input"].(TimeSeriesOptions), fc.Args["segmentBy"].(*MessageLogSegmentBy))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -43277,21 +43277,20 @@ func (ec *executionContext) unmarshalOMessageLogSearchOptions2ᚖgithubᚗcomᚋ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOMessageLogSegmentBy2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSegmenyBy(ctx context.Context, v interface{}) (*MessageLogSegmenyBy, error) {
+func (ec *executionContext) unmarshalOMessageLogSegmentBy2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSegmentBy(ctx context.Context, v interface{}) (*MessageLogSegmentBy, error) {
 	if v == nil {
 		return nil, nil
 	}
-	tmp, err := graphql.UnmarshalString(v)
-	res := MessageLogSegmenyBy(tmp)
-	return &res, graphql.ErrorOnPath(ctx, err)
+	var res = new(MessageLogSegmentBy)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOMessageLogSegmentBy2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSegmenyBy(ctx context.Context, sel ast.SelectionSet, v *MessageLogSegmenyBy) graphql.Marshaler {
+func (ec *executionContext) marshalOMessageLogSegmentBy2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogSegmentBy(ctx context.Context, sel ast.SelectionSet, v *MessageLogSegmentBy) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	res := graphql.MarshalString(string(*v))
-	return res
+	return v
 }
 
 func (ec *executionContext) marshalONotificationState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationState(ctx context.Context, sel ast.SelectionSet, v *NotificationState) graphql.Marshaler {

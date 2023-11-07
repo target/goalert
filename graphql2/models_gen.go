@@ -921,6 +921,49 @@ func (e IntegrationKeyType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type MessageLogSegmentBy string
+
+const (
+	MessageLogSegmentByService     MessageLogSegmentBy = "service"
+	MessageLogSegmentByMessageType MessageLogSegmentBy = "messageType"
+	MessageLogSegmentByUser        MessageLogSegmentBy = "user"
+)
+
+var AllMessageLogSegmentBy = []MessageLogSegmentBy{
+	MessageLogSegmentByService,
+	MessageLogSegmentByMessageType,
+	MessageLogSegmentByUser,
+}
+
+func (e MessageLogSegmentBy) IsValid() bool {
+	switch e {
+	case MessageLogSegmentByService, MessageLogSegmentByMessageType, MessageLogSegmentByUser:
+		return true
+	}
+	return false
+}
+
+func (e MessageLogSegmentBy) String() string {
+	return string(e)
+}
+
+func (e *MessageLogSegmentBy) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = MessageLogSegmentBy(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid MessageLogSegmentBy", str)
+	}
+	return nil
+}
+
+func (e MessageLogSegmentBy) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type NotificationStatus string
 
 const (

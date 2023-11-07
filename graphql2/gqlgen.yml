@@ -107,5 +107,4 @@ models:
       - github.com/target/goalert/schedule.RuleID
   MessageLogConnectionStats:
     model: github.com/target/goalert/notification.SearchOptions
-  MessageLogSegmentBy:
-    model: github.com/target/goalert/graphql2.MessageLogSegmenyBy
+
