@@ -143,7 +143,14 @@ export default function App(): JSX.Element {
                     justifyContent='center'
                     sx={{ position: 'relative', height: '100%' }}
                   >
-                    <Grid className={classes.containerClass} item>
+                    <Grid
+                      item
+                      sx={(theme) => ({
+                        padding: '1em',
+                        [theme.breakpoints.up('md')]: { width: '75%' },
+                        [theme.breakpoints.down('md')]: { width: '100%' },
+                      })}
+                    >
                       <AppRoutes />
                     </Grid>
                   </Grid>

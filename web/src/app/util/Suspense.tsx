@@ -12,7 +12,7 @@ import React, {
   useEffect,
   useState,
 } from 'react'
-import { LinearProgress } from '@mui/material'
+import { Grid, LinearProgress } from '@mui/material'
 
 export interface FallbackContextType {
   updateFallback: (fallbackElement: ReactNode) => void
@@ -41,7 +41,21 @@ export const FallbackProvider: FC<FallbackProviderProps> = ({ children }) => {
         fallback={
           <Fragment>
             <LinearProgress />
-            {fallback}
+            <Grid
+              container
+              justifyContent='center'
+              sx={{ position: 'relative', height: '100%' }}
+            >
+              <Grid
+                sx={(theme) => ({
+                  padding: '1em',
+                  [theme.breakpoints.up('md')]: { width: '75%' },
+                  [theme.breakpoints.down('md')]: { width: '100%' },
+                })}
+              >
+                {fallback}
+              </Grid>
+            </Grid>
           </Fragment>
         }
       >
