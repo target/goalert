@@ -6,6 +6,7 @@ import (
 	"io"
 	"mime"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -26,6 +27,11 @@ type SignalAlertMapper struct {
 	Summary, Details, Action, Dedup string
 	Status                          alert.Status
 }
+
+// ContactMethod types
+const (
+	DestTypeAlert = "ALERT"
+)
 
 // NewHandler creates a new Handler, registering generic API routes using chi.
 func NewHandler(c Config) *Handler {
@@ -81,7 +87,7 @@ func (h *Handler) ServeCreateSignals(w http.ResponseWriter, r *http.Request) {
 
 	for _, rule := range rules {
 		for _, action := range rule.Actions {
-			if rule.SendAlert && strings.EqualFold(action.DestType, "alert") {
+			if rule.SendAlert && strings.EqualFold(action.DestType, DestTypeAlert) {
 				sigAlert, err := buildOutgoingAlertPayload(action, requestBody)
 				if errutil.HTTPError(ctx, w, errors.Wrap(err, "create alert")) {
 					return
