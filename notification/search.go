@@ -64,7 +64,7 @@ type SearchCursor struct {
 }
 
 var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()).Parse(`
-	{{if .TimeSeries}}
+	{{if .TimeSeriesOpts}}
 	SELECT
 		(trunc((extract('epoch' from om.created_at)-:timeSeriesOrigin)/:timeSeriesInterval))::bigint AS bucket,
 		count(*)
@@ -118,16 +118,16 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 	{{end}}
 		AND om.last_status != 'bundled'
 
-	{{if and .TimeSeries .SegmentByService}}
+	{{if .SegmentByService}}
 	GROUP BY bucket, om.created_at, s.name
 
-	{{else if and .TimeSeries .SegmentByUser}}
+	{{else if .SegmentByUser}}
 	GROUP BY bucket, om.created_at, u.name
 
-	{{else if and .TimeSeries .SegmentByMessageType}}
+	{{else if .SegmentByMessageType}}
 	GROUP BY bucket, om.created_at, om.message_type
 
-	{{else if .TimeSeries}}
+	{{else if .TimeSeriesOpts}}
 	GROUP BY bucket
 	
 	{{else}}
@@ -139,14 +139,19 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 
 type renderData struct {
 	SearchOptions
+	*TimeSeriesOpts
+}
 
-	TimeSeries         bool
-	TimeSeriesOrigin   time.Time
-	TimeSeriesInterval time.Duration
+func (opts renderData) SegmentByService() bool {
+	return opts.TimeSeriesOpts != nil && opts.TimeSeriesOpts.SegmentBy == SegmentByService
+}
 
-	SegmentByService     bool
-	SegmentByUser        bool
-	SegmentByMessageType bool
+func (opts renderData) SegmentByUser() bool {
+	return opts.TimeSeriesOpts != nil && opts.TimeSeriesOpts.SegmentBy == SegmentByUser
+}
+
+func (opts renderData) SegmentByMessageType() bool {
+	return opts.TimeSeriesOpts != nil && opts.TimeSeriesOpts.SegmentBy == SegmentByMessageType
 }
 
 func (opts renderData) Normalize() (*renderData, error) {
@@ -164,7 +169,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 		return nil, err
 	}
 
-	if opts.TimeSeries {
+	if opts.TimeSeriesOpts != nil {
 		opts.TimeSeriesInterval = opts.TimeSeriesInterval.Truncate(time.Second)
 		if opts.CreatedBefore.IsZero() {
 			return nil, validation.NewFieldError("CreatedBefore", "required for time series queries")
@@ -186,6 +191,13 @@ func (opts renderData) Normalize() (*renderData, error) {
 }
 
 func (opts renderData) QueryArgs() []sql.NamedArg {
+	var tsOrigin int64
+	var tsInterval int64
+	if opts.TimeSeriesOpts != nil {
+		tsOrigin = opts.TimeSeriesOrigin.Unix()
+		tsInterval = int64(opts.TimeSeriesInterval.Seconds())
+	}
+
 	return []sql.NamedArg{
 		sql.Named("search", opts.Search),
 		sql.Named("cursorCreatedAt", opts.After.CreatedAt),
@@ -193,8 +205,8 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("afterID", opts.After.ID),
 		sql.Named("createdBefore", opts.CreatedBefore),
 		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
-		sql.Named("timeSeriesOrigin", opts.TimeSeriesOrigin.Unix()),
-		sql.Named("timeSeriesInterval", int(opts.TimeSeriesInterval.Seconds())),
+		sql.Named("timeSeriesOrigin", tsOrigin),
+		sql.Named("timeSeriesInterval", tsInterval),
 	}
 }
 
@@ -202,7 +214,7 @@ type TimeSeriesOpts struct {
 	SearchOptions
 	TimeSeriesOrigin   time.Time
 	TimeSeriesInterval time.Duration
-	SegmentBy          string
+	SegmentBy          SegmentBy
 }
 
 type TimeSeriesBucket struct {
@@ -217,9 +229,11 @@ type bucketID struct {
 	Label  string
 }
 
-const SegmentByService = "service"
-const SegmentByUser = "user"
-const SegmentByMessageType = "messageType"
+type SegmentBy string
+
+const SegmentByService SegmentBy = "service"
+const SegmentByUser SegmentBy = "user"
+const SegmentByMessageType SegmentBy = "messageType"
 
 // TimeSeries returns a list of time series buckets for the given search options.
 func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeriesBucket, error) {
@@ -229,13 +243,8 @@ func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeri
 	}
 
 	data := &renderData{
-		SearchOptions:        opts.SearchOptions,
-		TimeSeries:           true,
-		TimeSeriesOrigin:     opts.TimeSeriesOrigin,
-		TimeSeriesInterval:   opts.TimeSeriesInterval,
-		SegmentByService:     opts.SegmentBy == SegmentByService,
-		SegmentByUser:        opts.SegmentBy == SegmentByUser,
-		SegmentByMessageType: opts.SegmentBy == SegmentByMessageType,
+		SearchOptions:  opts.SearchOptions,
+		TimeSeriesOpts: &opts,
 	}
 	data, err = data.Normalize()
 	if err != nil {
@@ -273,9 +282,6 @@ func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeri
 			}
 		}
 		label := segmentLabel.String
-		if label == "" {
-			label = "Message Counts"
-		}
 
 		buckets[bucketID{
 			Bucket: bucket,
