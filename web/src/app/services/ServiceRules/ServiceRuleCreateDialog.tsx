@@ -158,12 +158,11 @@ export default function ServiceRuleCreateDialog(props: {
   const [actionsError, setActionsError] = useState<boolean>(false)
   const [createRuleStatus, commit] = useMutation(mutation)
 
-  const [{ fetching, error, data }] = useQuery({
+  const [{ fetching, data }] = useQuery({
     query,
     variables: {},
   })
   if (fetching && !data) return <Spinner />
-  if (error) return <GenericError error={error.message} />
 
   return (
     <FormDialog
