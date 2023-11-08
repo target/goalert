@@ -1,9 +1,8 @@
 import React from 'react'
-import { gql } from '@apollo/client'
+import { useQuery, gql } from 'urql'
 import p from 'prop-types'
 import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
-import Query from '../util/Query'
 import { sortContactMethods } from './util'
 
 const query = gql`
@@ -25,32 +24,32 @@ export default function UserContactMethodSelect({
   extraItems,
   ...rest
 }) {
-  function renderControl(cms) {
-    return (
-      <TextField select {...rest}>
-        {sortContactMethods(cms)
-          .map((cm) => (
-            <MenuItem key={cm.id} value={cm.id}>
-              {cm.name} ({cm.type})
-            </MenuItem>
-          ))
-          .concat(
-            extraItems.map((item) => (
-              <MenuItem key={item.value} value={item.value}>
-                {item.label || item.value}
-              </MenuItem>
-            )),
-          )}
-      </TextField>
-    )
-  }
+  const [{ data }] = useQuery({
+    query,
+    requestPolicy: 'network-only',
+    variables: {
+      id: userID,
+    },
+  })
+
+  const cms = data?.user ? data?.user?.contactMethods : []
 
   return (
-    <Query
-      query={query}
-      variables={{ id: userID }}
-      render={({ data }) => renderControl(data.user.contactMethods)}
-    />
+    <TextField select {...rest}>
+      {sortContactMethods(cms)
+        .map((cm) => (
+          <MenuItem key={cm.id} value={cm.id}>
+            {cm.name} ({cm.type})
+          </MenuItem>
+        ))
+        .concat(
+          extraItems.map((item) => (
+            <MenuItem key={item.value} value={item.value}>
+              {item.label || item.value}
+            </MenuItem>
+          )),
+        )}
+    </TextField>
   )
 }
 
