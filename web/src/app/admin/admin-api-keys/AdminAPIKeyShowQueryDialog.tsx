@@ -47,13 +47,15 @@ export default function AdminAPIKeyShowQueryDialog(props: {
         <Grid item xs={12}>
           <Typography sx={{ mb: 3 }}>
             <code>
-              <CopyText
-                title={key.query}
-                value={key.query}
-                placement='bottom'
-              />
+              <pre>{key.query}</pre>
             </code>
           </Typography>
+          <CopyText title='Copy Query' value={key.query} placement='bottom' />
+          <CopyText
+            title='Copy Query (as JSON)'
+            value={JSON.stringify(key.query)}
+            placement='bottom'
+          />
         </Grid>
       }
       onClose={onClose}
