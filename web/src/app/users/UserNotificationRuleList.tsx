@@ -17,7 +17,6 @@ import { styles as globalStyles } from '../styles/materialStyles'
 import UserNotificationRuleCreateDialog from './UserNotificationRuleCreateDialog'
 import { useIsWidthDown } from '../util/useWidth'
 import { User } from '../../schema'
-import { useSuspenseContext } from './UserDetails'
 import { ObjectNotFound, GenericError } from '../error-pages'
 
 const query = gql`
@@ -61,10 +60,8 @@ export default function UserNotificationRuleList(props: {
   const [{ data, error, fetching }] = useQuery({
     query,
     variables: { id: props.userID },
-    context: useSuspenseContext(),
   })
 
-  if (fetching && !data) return null
   if (data && !data.user)
     return <ObjectNotFound type='notifcation rules list' />
   if (error) return <GenericError error={error.message} />
