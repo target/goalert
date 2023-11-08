@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-sockaddr/template"
 	"github.com/hashicorp/vault/sdk/helper/template"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
@@ -247,7 +248,7 @@ func buildOutgoingAlertPayload(action rule.Action, incomingPayload map[string]in
 }
 
 func InjectTemplateValues(tmplStr string, data map[string]interface{}) (string, error) {
-	tmpl, err := template.New("").Parse(tmplStr)
+	tmpl, err := template.Parse(tmplStr)
 	if err != nil {
 		return "", err
 	}
