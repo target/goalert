@@ -1,5 +1,4 @@
-import React from 'react'
-import p from 'prop-types'
+import React, { ReactNode } from 'react'
 import classNames from 'classnames'
 import { FormContainer, FormField } from '../forms'
 import {
@@ -26,6 +25,7 @@ import { DateTime } from 'luxon'
 import { useScheduleTZ } from './useScheduleTZ'
 import { fmtLocal } from '../util/timeFormat'
 import { useIsWidthDown } from '../util/useWidth'
+import { TargetType } from '../../schema'
 
 const days = [
   'Sunday',
@@ -37,13 +37,13 @@ const days = [
   'Saturday',
 ]
 
-const renderDaysValue = (value) => {
-  const parts = []
+const renderDaysValue = (value: string): string => {
+  const parts = [] as string[]
   let start = ''
   let last = ''
   let lastIdx = -1
 
-  const flush = () => {
+  const flush = (): void => {
     if (lastIdx === -1) return
     if (start === last) {
       parts.push(start)
@@ -93,16 +93,36 @@ const useStyles = makeStyles({
   },
 })
 
-export default function ScheduleRuleForm(props) {
+type ScheduleRuleFormValue = {
+  targetID: string
+  rules: {
+    start: string
+    end: string
+    weekdayFilter: boolean[]
+  }[]
+}
+
+interface ScheduleRuleFormProps {
+  targetType: TargetType
+  targetDisabled?: boolean
+
+  scheduleID: string
+  value: ScheduleRuleFormValue
+  onChange: (value: ScheduleRuleFormValue) => void
+}
+
+export default function ScheduleRuleForm(
+  props: ScheduleRuleFormProps,
+): ReactNode {
   const { value, scheduleID, onChange } = props
   const classes = useStyles()
   const { zone, isLocalZone } = useScheduleTZ(scheduleID)
   const isMobile = useIsWidthDown('md')
 
-  const Spacer = () =>
+  const Spacer = (): ReactNode =>
     isLocalZone ? null : <FormHelperText>&nbsp;</FormHelperText>
 
-  function renderRuleField(idx) {
+  function renderRuleField(idx: number): ReactNode {
     return (
       <TableRow key={idx}>
         <TableCell className={classNames(classes.startEnd, classes.noBorder)}>
@@ -168,8 +188,10 @@ export default function ScheduleRuleForm(props) {
               name={`rules[${idx}].weekdayFilter`}
               aria-label='Weekday Filter'
               multiple
-              mapValue={(value) => days.filter((d, idx) => value[idx])}
-              mapOnChangeValue={(value) =>
+              mapValue={(value: string[]) =>
+                days.filter((d, idx) => value[idx])
+              }
+              mapOnChangeValue={(value: string[]) =>
                 days.map((day) => value.includes(day))
               }
             >
@@ -289,22 +311,4 @@ export default function ScheduleRuleForm(props) {
       </Grid>
     </FormContainer>
   )
-}
-
-ScheduleRuleForm.propTypes = {
-  targetType: p.oneOf(['rotation', 'user']).isRequired,
-  targetDisabled: p.bool,
-
-  scheduleID: p.string.isRequired,
-
-  value: p.shape({
-    targetID: p.string.isRequired,
-    rules: p.arrayOf(
-      p.shape({
-        start: p.string.isRequired,
-        end: p.string.isRequired,
-        weekdayFilter: p.arrayOf(p.bool).isRequired,
-      }),
-    ).isRequired,
-  }).isRequired,
 }
