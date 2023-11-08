@@ -96,8 +96,8 @@ export default function AdminSMSSend(): JSX.Element {
           }).then((res) => {
             if (res.error) {
               setShowErrorDialog(true)
+              return
             }
-            console.log('res.data: ', res.data)
             setMessageID(res.data.debugSendSMS.id)
           })
         }}

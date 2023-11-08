@@ -36,9 +36,7 @@ export default function SlackActions(): JSX.Element {
   const classes = useStyles()
   const [showManifest, setShowManifest] = useState(false)
 
-  const [{ fetching, error, data }, commit] = useQuery({
-    query,
-  })
+  const [{ fetching, error, data }] = useQuery({ query })
   const manifest = data?.generateSlackAppManifest ?? ''
 
   function renderContent(): JSX.Element {
@@ -63,7 +61,6 @@ export default function SlackActions(): JSX.Element {
           {
             label: 'App Manifest',
             handleOnClick: () => {
-              commit()
               setShowManifest(true)
             },
           },

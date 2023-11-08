@@ -63,12 +63,12 @@ export default function AdminNumberLookup(): JSX.Element {
   ] = useMutation(carrierInfoMut)
   const carrInfo = carrData?.debugCarrierInfo as DebugCarrierInfo
 
-  const [lastError, setLastError] = useState<CombinedError>()
+  const [lastError, setLastError] = useState<CombinedError | null>(null)
   useEffect(() => {
-    setLastError(queryError)
+    if (queryError) setLastError(queryError)
   }, [queryError])
   useEffect(() => {
-    setLastError(mutationError)
+    if (mutationError) setLastError(mutationError)
   }, [mutationError])
 
   function renderListItem(label: string, text = ''): JSX.Element {
@@ -148,11 +148,11 @@ export default function AdminNumberLookup(): JSX.Element {
         </Card>
       </Form>
 
-      <Dialog open={Boolean(lastError)} onClose={() => setLastError(undefined)}>
+      <Dialog open={Boolean(lastError)} onClose={() => setLastError(null)}>
         <DialogTitle>An error occurred</DialogTitle>
         <DialogContentError error={lastError?.message ?? ''} />
         <DialogActions>
-          <Button variant='contained' onClick={() => setLastError(undefined)}>
+          <Button variant='contained' onClick={() => setLastError(null)}>
             Okay
           </Button>
         </DialogActions>
