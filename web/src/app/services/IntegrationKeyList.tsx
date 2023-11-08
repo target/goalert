@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { Suspense, useState } from 'react'
 import { gql, useQuery } from 'urql'
 import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
@@ -160,19 +160,20 @@ export default function IntegrationKeyList(props: {
           title='Create Integration Key'
         />
       )}
-
-      {create && (
-        <IntegrationKeyCreateDialog
-          serviceID={props.serviceID}
-          onClose={(): void => setCreate(false)}
-        />
-      )}
-      {deleteDialog && (
-        <IntegrationKeyDeleteDialog
-          integrationKeyID={deleteDialog}
-          onClose={(): void => setDeleteDialog(null)}
-        />
-      )}
+      <Suspense>
+        {create && (
+          <IntegrationKeyCreateDialog
+            serviceID={props.serviceID}
+            onClose={(): void => setCreate(false)}
+          />
+        )}
+        {deleteDialog && (
+          <IntegrationKeyDeleteDialog
+            integrationKeyID={deleteDialog}
+            onClose={(): void => setDeleteDialog(null)}
+          />
+        )}
+      </Suspense>
     </React.Fragment>
   )
 }
