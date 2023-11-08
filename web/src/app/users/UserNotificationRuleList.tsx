@@ -16,7 +16,6 @@ import UserNotificationRuleDeleteDialog from './UserNotificationRuleDeleteDialog
 import { styles as globalStyles } from '../styles/materialStyles'
 import UserNotificationRuleCreateDialog from './UserNotificationRuleCreateDialog'
 import { useIsWidthDown } from '../util/useWidth'
-import { User } from '../../schema'
 import { useSuspenseContext } from './UserDetails'
 import { ObjectNotFound, GenericError } from '../error-pages'
 
@@ -58,18 +57,17 @@ export default function UserNotificationRuleList(props: {
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [deleteID, setDeleteID] = useState(null)
 
-  const [{ data, error, fetching }] = useQuery({
+  const [{ data, error }] = useQuery({
     query,
     variables: { id: props.userID },
     context: useSuspenseContext(),
   })
 
-  if (fetching && !data) return null
   if (data && !data.user)
     return <ObjectNotFound type='notifcation rules list' />
   if (error) return <GenericError error={error.message} />
 
-  const { user }: { user: User } = data
+  const user = data?.user
 
   return (
     <Grid item xs={12}>
@@ -85,7 +83,7 @@ export default function UserNotificationRuleList(props: {
                 variant='contained'
                 onClick={() => setShowAddDialog(true)}
                 startIcon={<Add />}
-                disabled={user.contactMethods.length === 0}
+                disabled={user?.contactMethods.length === 0}
               >
                 Add Rule
               </Button>
@@ -94,18 +92,20 @@ export default function UserNotificationRuleList(props: {
         />
         <FlatList
           data-cy='notification-rules'
-          items={sortNotificationRules(user.notificationRules).map((nr) => ({
-            title: formatNotificationRule(nr.delayMinutes, nr.contactMethod),
-            secondaryAction: props.readOnly ? null : (
-              <IconButton
-                aria-label='Delete notification rule'
-                onClick={() => setDeleteID(nr.id)}
-                color='secondary'
-              >
-                <Delete />
-              </IconButton>
-            ),
-          }))}
+          items={sortNotificationRules(user?.notificationRules ?? []).map(
+            (nr) => ({
+              title: formatNotificationRule(nr.delayMinutes, nr.contactMethod),
+              secondaryAction: props.readOnly ? null : (
+                <IconButton
+                  aria-label='Delete notification rule'
+                  onClick={() => setDeleteID(nr.id)}
+                  color='secondary'
+                >
+                  <Delete />
+                </IconButton>
+              ),
+            }),
+          )}
           emptyMessage='No notification rules'
         />
       </Card>

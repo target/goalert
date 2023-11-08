@@ -66,7 +66,7 @@ export default function UserContactMethodList(
   const [showDeleteDialogByID, setShowDeleteDialogByID] = useState('')
   const [showSendTestByID, setShowSendTestByID] = useState('')
 
-  const [{ fetching, error, data }] = useQuery({
+  const [{ error, data }] = useQuery({
     query,
     variables: {
       id: props.userID,
@@ -77,11 +77,10 @@ export default function UserContactMethodList(
   const { userID: currentUserID } = useSessionInfo()
   const isCurrentUser = props.userID === currentUserID
 
-  if (fetching && !data) return null
   if (data && !data.user) return <ObjectNotFound type='user' />
   if (error) return <GenericError error={error.message} />
 
-  const contactMethods = data.user.contactMethods
+  const contactMethods = data?.user?.contactMethods ?? []
 
   const getIcon = (cm: UserContactMethod): JSX.Element | null => {
     if (!cm.disabled) return null
