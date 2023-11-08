@@ -1,6 +1,5 @@
-import React from 'react'
+import React, { ReactNode } from 'react'
 import { useQuery, gql } from 'urql'
-import p from 'prop-types'
 import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import { sortContactMethods } from './util'
@@ -19,11 +18,21 @@ const query = gql`
   }
 `
 
+type CMExtraItems = {
+  label?: ReactNode
+  value: string
+}
+
+interface UserContactMethodSelectProps {
+  userID: string
+  extraItems: CMExtraItems[]
+}
+
 export default function UserContactMethodSelect({
   userID,
-  extraItems,
+  extraItems = [] as CMExtraItems[],
   ...rest
-}) {
+}: UserContactMethodSelectProps): ReactNode {
   const [{ data }] = useQuery({
     query,
     requestPolicy: 'network-only',
@@ -51,19 +60,4 @@ export default function UserContactMethodSelect({
         )}
     </TextField>
   )
-}
-
-UserContactMethodSelect.propTypes = {
-  userID: p.string.isRequired,
-
-  extraItems: p.arrayOf(
-    p.shape({
-      label: p.node,
-      value: p.string.isRequired,
-    }),
-  ),
-}
-
-UserContactMethodSelect.defaultProps = {
-  extraItems: [],
 }
