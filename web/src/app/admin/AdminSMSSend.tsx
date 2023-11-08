@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import { useMutation } from '@apollo/client'
-import { gql, useQuery } from 'urql'
+import { gql, useQuery, useMutation } from 'urql'
 import { Form } from '../forms'
 import {
   Button,
@@ -64,18 +63,8 @@ export default function AdminSMSSend(): JSX.Element {
   const [body, setBody] = useState('')
   const [showErrorDialog, setShowErrorDialog] = useState(false)
 
-  const [send, { data: smsData, loading: smsLoading, error: smsError }] =
-    useMutation(sendSMSMutation, {
-      variables: {
-        input: {
-          from: fromNumber,
-          to: toNumber,
-          body,
-        },
-      },
-      onError: () => setShowErrorDialog(true),
-      onCompleted: (data) => setMessageID(data.debugSendSMS.id),
-    })
+  const [{ data: smsData, fetching: smsLoading, error: smsError }, commit] =
+    useMutation(sendSMSMutation)
 
   const [{ data }] = useQuery({
     query: debugMessageStatusQuery,
@@ -98,7 +87,19 @@ export default function AdminSMSSend(): JSX.Element {
       <Form
         onSubmit={(e: { preventDefault: () => void }) => {
           e.preventDefault()
-          send()
+          commit({
+            input: {
+              from: fromNumber,
+              to: toNumber,
+              body,
+            },
+          }).then((res) => {
+            if (res.error) {
+              setShowErrorDialog(true)
+              return
+            }
+            setMessageID(res.data.debugSendSMS.id)
+          })
         }}
       >
         <Card>
