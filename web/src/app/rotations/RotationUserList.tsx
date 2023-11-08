@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
 import { gql, useMutation, useQuery } from '@apollo/client'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
@@ -141,27 +141,29 @@ function RotationUserList(props: RotationUserListProps): JSX.Element {
       {isMobile && (
         <CreateFAB title='Add User' onClick={() => setShowAddUser(true)} />
       )}
-      {deleteIndex !== null && (
-        <RotationUserDeleteDialog
-          rotationID={rotationID}
-          userIndex={deleteIndex}
-          onClose={() => setDeleteIndex(null)}
-        />
-      )}
-      {setActiveIndex !== null && (
-        <RotationSetActiveDialog
-          rotationID={rotationID}
-          userIndex={setActiveIndex}
-          onClose={() => setSetActiveIndex(null)}
-        />
-      )}
-      {showAddUser && (
-        <RotationAddUserDialog
-          rotationID={rotationID}
-          userIDs={userIDs ?? []}
-          onClose={() => setShowAddUser(false)}
-        />
-      )}
+      <Suspense>
+        {deleteIndex !== null && (
+          <RotationUserDeleteDialog
+            rotationID={rotationID}
+            userIndex={deleteIndex}
+            onClose={() => setDeleteIndex(null)}
+          />
+        )}
+        {setActiveIndex !== null && (
+          <RotationSetActiveDialog
+            rotationID={rotationID}
+            userIndex={setActiveIndex}
+            onClose={() => setSetActiveIndex(null)}
+          />
+        )}
+        {showAddUser && (
+          <RotationAddUserDialog
+            rotationID={rotationID}
+            userIDs={userIDs ?? []}
+            onClose={() => setShowAddUser(false)}
+          />
+        )}
+      </Suspense>
       <Card>
         <CardHeader
           className={classes.cardHeader}
