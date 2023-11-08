@@ -12,7 +12,6 @@ import {
 } from '../../../schema'
 import ServiceRuleForm, { ServiceRuleValue, destType } from './ServiceRuleForm'
 import Spinner from '../../loading/components/Spinner'
-import { GenericError } from '../../error-pages'
 
 const mutation = gql`
   mutation ($input: CreateServiceRuleInput!) {
