@@ -9,31 +9,19 @@ import {
   Legend,
   Bar,
 } from 'recharts'
-import { useTheme, Theme } from '@mui/material/styles'
+import { useTheme } from '@mui/material/styles'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import { Grid } from '@mui/material'
-import { makeStyles } from '@mui/styles'
 
 interface AdminServiceTargetGraphProps {
   metrics: TargetMetrics
   loading: boolean
 }
-const useStyles = makeStyles((theme: Theme) => ({
-  graphContent: {
-    height: '500px',
-    fontFamily: theme.typography.body2.fontFamily,
-  },
-  bar: {
-    '&:hover': {
-      cursor: 'pointer',
-    },
-  },
-}))
+
 export default function AdminServiceTargetGraph(
   props: AdminServiceTargetGraphProps,
 ): JSX.Element {
   const theme = useTheme()
-  const classes = useStyles()
   const { metrics, loading } = props
   let targetMetrics = [] as { type: string; count: number }[]
   if (metrics) {
@@ -44,7 +32,13 @@ export default function AdminServiceTargetGraph(
   }
 
   return (
-    <Grid container className={classes.graphContent}>
+    <Grid
+      container
+      sx={{
+        height: '500px',
+        fontFamily: (theme) => theme.typography.body2.fontFamily,
+      }}
+    >
       <Grid item xs={12} data-cy='alert-count-graph'>
         <AutoSizer>
           {({ width, height }: { width: number; height: number }) => (
