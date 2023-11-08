@@ -26,6 +26,8 @@ const useStyles = makeStyles({
   },
 })
 
+const noSuspense = { suspense: false }
+
 export default function TelTextField(
   props: TextFieldProps & { value: string },
 ): JSX.Element {
@@ -46,6 +48,7 @@ export default function TelTextField(
     variables: { number: '+' + phoneNumber },
     requestPolicy: 'cache-first',
     pause: !phoneNumber || props.disabled,
+    context: noSuspense,
   })
 
   // fetch validation
