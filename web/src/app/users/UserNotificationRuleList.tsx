@@ -57,7 +57,7 @@ export default function UserNotificationRuleList(props: {
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [deleteID, setDeleteID] = useState(null)
 
-  const [{ data, error, fetching }] = useQuery({
+  const [{ data, error }] = useQuery({
     query,
     variables: { id: props.userID },
   })
