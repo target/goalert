@@ -300,6 +300,53 @@ export default function ServiceRuleForm(
     )
   }
 
+  const renderContents = (
+    actionIdx: number,
+    action: ServiceRuleActionInput,
+  ): React.ReactNode => {
+    return action.contents.map((c: Content, contentIdx: number) => {
+      if (
+        (action.destType === destType.SLACK && c.prop === 'channel') ||
+        (action.destType === destType.SLACK && c.prop === 'channel_id')
+      ) {
+        return <React.Fragment key={contentIdx} />
+      }
+      return (
+        <Grid
+          key={c.prop}
+          item
+          style={{ flexGrow: 1, marginTop: '1em' }}
+          xs={12}
+        >
+          <FormField
+            fullWidth
+            component={TextField}
+            label={toTitleCase(c.prop.replace(/_/g, ' '))}
+            name={`actions[${actionIdx}].contents[${contentIdx}].value`}
+            required
+            validate={(value) => {
+              if (action.destType === destType.EMAIL && c.prop === 'address') {
+                return /^\S+@\S+$/.test(value)
+                  ? null
+                  : new Error('Valid email required')
+              }
+              if (action.destType === destType.WEBHOOK && c.prop === 'URL') {
+                let url
+                try {
+                  url = new URL(value)
+                } catch {
+                  return new Error('Valid URL required')
+                }
+                return url && null
+              }
+              return null
+            }}
+          />
+        </Grid>
+      )
+    })
+  }
+
   return (
     <FormContainer {...formProps} optionalLabels>
       <Grid container spacing={2}>
@@ -523,37 +570,7 @@ export default function ServiceRuleForm(
                             />
                           </Grid>
                         )}
-                        {action.contents &&
-                          action.contents.map(
-                            (c: Content, contentIdx: number) => {
-                              if (
-                                (action.destType === destType.SLACK &&
-                                  c.prop === 'channel') ||
-                                (action.destType === destType.SLACK &&
-                                  c.prop === 'channel_id')
-                              ) {
-                                return <React.Fragment key={contentIdx} />
-                              }
-                              return (
-                                <Grid
-                                  key={c.prop}
-                                  item
-                                  style={{ flexGrow: 1, marginTop: '1em' }}
-                                  xs={12}
-                                >
-                                  <FormField
-                                    fullWidth
-                                    component={TextField}
-                                    label={toTitleCase(
-                                      c.prop.replace(/_/g, ' '),
-                                    )}
-                                    name={`actions[${actionIdx}].contents[${contentIdx}].value`}
-                                    required
-                                  />
-                                </Grid>
-                              )
-                            },
-                          )}
+                        {action.contents && renderContents(actionIdx, action)}
                       </Grid>
                       {formProps.value.actions.length > 1 &&
                         actionIdx !== formProps.value.actions.length - 1 && (
