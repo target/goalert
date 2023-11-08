@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/vault/sdk/helper/template"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/permission"
@@ -185,8 +186,7 @@ func buildOutgoingPayload(action rule.Action, incomingPayload map[string]interfa
 	return outgoingPayload
 }
 
-func buildOutgoingAlertPayload(action rule.Action, incomingPayload map[string]interface{}) (SignalAlertMapper, error) {
-	var sigAlert SignalAlertMapper
+func buildOutgoingAlertPayload(action rule.Action, incomingPayload map[string]interface{}) (sigAlert SignalAlertMapper, err error) {
 	if incomingPayload["action"] != nil {
 		val, ok := incomingPayload["action"].(string)
 		if !ok {
@@ -200,6 +200,17 @@ func buildOutgoingAlertPayload(action rule.Action, incomingPayload map[string]in
 			return sigAlert, fmt.Errorf("Field 'summary' is not a string: %s", incomingPayload["summary"])
 		}
 		sigAlert.Summary = val
+	} else {
+		var val string
+		for _, content := range action.Contents {
+			if content.Prop == "summary" {
+				val, err = InjectTemplateValues(content.Value, incomingPayload)
+				if err != nil {
+					return sigAlert, fmt.Errorf("Error creating 'summary' from template: %s", err)
+				}
+			}
+		}
+		sigAlert.Summary = val
 	}
 	if incomingPayload["details"] != nil {
 		val, ok := incomingPayload["details"].(string)
@@ -207,6 +218,17 @@ func buildOutgoingAlertPayload(action rule.Action, incomingPayload map[string]in
 			return sigAlert, fmt.Errorf("Field 'details' is not a string: %s", incomingPayload["details"])
 		}
 		sigAlert.Details = val
+	} else {
+		var val string
+		for _, content := range action.Contents {
+			if content.Prop == "details" {
+				val, err = InjectTemplateValues(content.Value, incomingPayload)
+				if err != nil {
+					return sigAlert, fmt.Errorf("Error creating 'details' from template: %s", err)
+				}
+			}
+		}
+		sigAlert.Summary = val
 	}
 	if incomingPayload["dedup"] != nil {
 		val, ok := incomingPayload["dedup"].(string)
@@ -222,4 +244,17 @@ func buildOutgoingAlertPayload(action rule.Action, incomingPayload map[string]in
 	}
 
 	return sigAlert, nil
+}
+
+func InjectTemplateValues(tmplStr string, data map[string]interface{}) (string, error) {
+	tmpl, err := template.New("").Parse(tmplStr)
+	if err != nil {
+		return "", err
+	}
+	var result strings.Builder
+	err = tmpl.Execute(&result, data)
+	if err != nil {
+		return "", err
+	}
+	return result.String(), nil
 }
