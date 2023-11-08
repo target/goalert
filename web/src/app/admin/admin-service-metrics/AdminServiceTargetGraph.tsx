@@ -53,8 +53,8 @@ export default function AdminServiceTargetGraph(
               }}
             >
               <CartesianGrid strokeDasharray='3 3' />
-              <XAxis dataKey='type' />
-              <YAxis />
+              <XAxis dataKey='type' stroke={theme.palette.text.secondary} />
+              <YAxis stroke={theme.palette.text.secondary} />
               <Tooltip />
               <Legend />
               <Bar
