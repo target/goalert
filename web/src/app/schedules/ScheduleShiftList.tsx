@@ -12,7 +12,7 @@ import {
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { DateTime, DateTimeFormatOptions, Duration, Interval } from 'luxon'
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { Suspense, useCallback, useMemo, useState } from 'react'
 import CreateFAB from '../lists/CreateFAB'
 import FlatList, { FlatListListItem } from '../lists/FlatList'
 import { UserSelect } from '../selection'
@@ -410,22 +410,24 @@ function ScheduleShiftList({
       )}
 
       {/* create dialogs */}
-      {overrideDialog && (
-        <ScheduleOverrideDialog
-          defaultValue={overrideDialog.defaultValue}
-          variantOptions={overrideDialog.variantOptions}
-          scheduleID={scheduleID}
-          onClose={() => setOverrideDialog(null)}
-          removeUserReadOnly={overrideDialog.removeUserReadOnly}
-        />
-      )}
-      {configTempSchedule && (
-        <TempSchedDialog
-          value={configTempSchedule}
-          onClose={() => setConfigTempSchedule(null)}
-          scheduleID={scheduleID}
-        />
-      )}
+      <Suspense>
+        {overrideDialog && (
+          <ScheduleOverrideDialog
+            defaultValue={overrideDialog.defaultValue}
+            variantOptions={overrideDialog.variantOptions}
+            scheduleID={scheduleID}
+            onClose={() => setOverrideDialog(null)}
+            removeUserReadOnly={overrideDialog.removeUserReadOnly}
+          />
+        )}
+        {configTempSchedule && (
+          <TempSchedDialog
+            value={configTempSchedule}
+            onClose={() => setConfigTempSchedule(null)}
+            scheduleID={scheduleID}
+          />
+        )}
+      </Suspense>
     </OverrideDialogContext.Provider>
   )
 }

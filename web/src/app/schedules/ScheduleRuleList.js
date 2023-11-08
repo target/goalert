@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { Suspense, useState } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import FlatList from '../lists/FlatList'
 import { Button, ButtonGroup, Card } from '@mui/material'
@@ -165,27 +165,29 @@ export default function ScheduleRuleList({ scheduleID }) {
           />
         )}
 
-        {createType && (
-          <ScheduleRuleCreateDialog
-            targetType={createType}
-            scheduleID={scheduleID}
-            onClose={() => setCreateType(null)}
-          />
-        )}
-        {editTarget && (
-          <ScheduleRuleEditDialog
-            target={editTarget}
-            scheduleID={scheduleID}
-            onClose={() => setEditTarget(null)}
-          />
-        )}
-        {deleteTarget && (
-          <ScheduleRuleDeleteDialog
-            target={deleteTarget}
-            scheduleID={scheduleID}
-            onClose={() => setDeleteTarget(null)}
-          />
-        )}
+        <Suspense>
+          {createType && (
+            <ScheduleRuleCreateDialog
+              targetType={createType}
+              scheduleID={scheduleID}
+              onClose={() => setCreateType(null)}
+            />
+          )}
+          {editTarget && (
+            <ScheduleRuleEditDialog
+              target={editTarget}
+              scheduleID={scheduleID}
+              onClose={() => setEditTarget(null)}
+            />
+          )}
+          {deleteTarget && (
+            <ScheduleRuleDeleteDialog
+              target={deleteTarget}
+              scheduleID={scheduleID}
+              onClose={() => setDeleteTarget(null)}
+            />
+          )}
+        </Suspense>
       </React.Fragment>
     )
   }

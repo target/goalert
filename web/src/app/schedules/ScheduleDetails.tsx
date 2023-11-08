@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, Suspense } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import _ from 'lodash'
 import { Edit, Delete } from '@mui/icons-material'
@@ -116,32 +116,34 @@ export default function ScheduleDetails({
 
   return (
     <React.Fragment>
-      {showEdit && (
-        <ScheduleEditDialog
-          scheduleID={scheduleID}
-          onClose={() => setShowEdit(false)}
-        />
-      )}
-      {showDelete && (
-        <ScheduleDeleteDialog
-          scheduleID={scheduleID}
-          onClose={() => setShowDelete(false)}
-        />
-      )}
-      {configTempSchedule && (
-        <TempSchedDialog
-          value={configTempSchedule}
-          onClose={() => setConfigTempSchedule(null)}
-          scheduleID={scheduleID}
-        />
-      )}
-      {deleteTempSchedule && (
-        <TempSchedDeleteConfirmation
-          value={deleteTempSchedule}
-          onClose={() => setDeleteTempSchedule(null)}
-          scheduleID={scheduleID}
-        />
-      )}
+      <Suspense>
+        {showEdit && (
+          <ScheduleEditDialog
+            scheduleID={scheduleID}
+            onClose={() => setShowEdit(false)}
+          />
+        )}
+        {showDelete && (
+          <ScheduleDeleteDialog
+            scheduleID={scheduleID}
+            onClose={() => setShowDelete(false)}
+          />
+        )}
+        {configTempSchedule && (
+          <TempSchedDialog
+            value={configTempSchedule}
+            onClose={() => setConfigTempSchedule(null)}
+            scheduleID={scheduleID}
+          />
+        )}
+        {deleteTempSchedule && (
+          <TempSchedDeleteConfirmation
+            value={deleteTempSchedule}
+            onClose={() => setDeleteTempSchedule(null)}
+            scheduleID={scheduleID}
+          />
+        )}
+      </Suspense>
       <DetailsPage
         avatar={<ScheduleAvatar />}
         title={data.name}
@@ -157,15 +159,17 @@ export default function ScheduleDetails({
             }}
           >
             {!isMobile && <ScheduleCalendarQuery scheduleID={scheduleID} />}
-            {overrideDialog && (
-              <ScheduleOverrideDialog
-                defaultValue={overrideDialog.defaultValue}
-                variantOptions={overrideDialog.variantOptions}
-                scheduleID={scheduleID}
-                onClose={() => setOverrideDialog(null)}
-                removeUserReadOnly={overrideDialog.removeUserReadOnly}
-              />
-            )}
+            <Suspense>
+              {overrideDialog && (
+                <ScheduleOverrideDialog
+                  defaultValue={overrideDialog.defaultValue}
+                  variantOptions={overrideDialog.variantOptions}
+                  scheduleID={scheduleID}
+                  onClose={() => setOverrideDialog(null)}
+                  removeUserReadOnly={overrideDialog.removeUserReadOnly}
+                />
+              )}
+            </Suspense>
           </OverrideDialogContext.Provider>
         }
         primaryActions={[
