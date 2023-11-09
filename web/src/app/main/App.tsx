@@ -92,11 +92,11 @@ export default function App(): JSX.Element {
                 />
                 <Suspense>
                   <ToolbarPageTitle />
-                  <div style={{ flex: 1 }} />
-                  <PageActionContainer />
-                  <SearchContainer />
-                  <UserSettingsPopover />
                 </Suspense>
+                <div style={{ flex: 1 }} />
+                <PageActionContainer />
+                <SearchContainer />
+                <UserSettingsPopover />
               </Toolbar>
             </AppBar>
 
