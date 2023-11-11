@@ -1081,8 +1081,8 @@ github.com/mitchellh/reflectwalk v1.0.2 h1:G2LzWKi524PWgd3mLHV8Y5k7s6XUvT0Gef6zx
 github.com/mitchellh/reflectwalk v1.0.2/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx0jmZXqmk4esnw=
 github.com/mnako/letters v0.2.2 h1:koVahnzazHIq3aQnjVZE5SBJ7ZG/mXK6uSM4Jh70Naw=
 github.com/mnako/letters v0.2.2/go.mod h1:8DKs/xAQ9A7TP8zrLiZPvlrX5synZnvRyTT5Ja+QUK4=
-github.com/nyaruka/phonenumbers v1.1.8 h1:mjFu85FeoH2Wy18aOMUvxqi1GgAqiQSJsa/cCC5yu2s=
-github.com/nyaruka/phonenumbers v1.1.8/go.mod h1:DC7jZd321FqUe+qWSNcHi10tyIyGNXGcNbfkPvdp1Vs=
+github.com/nyaruka/phonenumbers v1.1.9 h1:/7bJVqIWLb+5erm10aMlojaKhXoMM6JKmlWLNg5laYc=
+github.com/nyaruka/phonenumbers v1.1.9/go.mod h1:DC7jZd321FqUe+qWSNcHi10tyIyGNXGcNbfkPvdp1Vs=
 github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282 h1:TQMyrpijtkFyXpNI3rY5hsZQZw+paiH+BfAlsb81HBY=
 github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282/go.mod h1:rW25Kyd08Wdn3UVn0YBsDTSvReu0jqpmJKzxITPSjks=
 github.com/ogier/pflag v0.0.1 h1:RW6JSWSu/RkSatfcLtogGfFgpim5p7ARQ10ECk5O750=
