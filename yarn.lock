@@ -725,7 +725,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dnd-kit/utilities@npm:3.2.1, @dnd-kit/utilities@npm:^3.2.0, @dnd-kit/utilities@npm:^3.2.1":
+"@dnd-kit/utilities@npm:3.2.2":
+  version: 3.2.2
+  resolution: "@dnd-kit/utilities@npm:3.2.2"
+  dependencies:
+    tslib: ^2.0.0
+  peerDependencies:
+    react: ">=16.8.0"
+  checksum: 8a5015c2faa52760ab82a64287b2ac6a3d798867a1bca5ccbc1178560dbd9a1f9f1a21faea80f590ba1a4277c3eb7e7c4d3b4a39f1f32171bf6bc8174b370547
+  languageName: node
+  linkType: hard
+
+"@dnd-kit/utilities@npm:^3.2.0, @dnd-kit/utilities@npm:^3.2.1":
   version: 3.2.1
   resolution: "@dnd-kit/utilities@npm:3.2.1"
   dependencies:
@@ -11353,7 +11364,7 @@ __metadata:
     "@babel/plugin-transform-modules-commonjs": 7.23.0
     "@dnd-kit/core": 6.0.8
     "@dnd-kit/sortable": 7.0.2
-    "@dnd-kit/utilities": 3.2.1
+    "@dnd-kit/utilities": 3.2.2
     "@emotion/react": 11.11.1
     "@emotion/styled": 11.11.0
     "@material/material-color-utilities": 0.2.7
