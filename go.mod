@@ -9,7 +9,7 @@ require (
 	github.com/creack/pty v1.1.20
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/emersion/go-smtp v0.18.1
-	github.com/fatih/color v1.15.0
+	github.com/fatih/color v1.16.0
 	github.com/felixge/httpsnoop v1.0.4
 	github.com/fullstorydev/grpcui v1.3.3
 	github.com/golang-jwt/jwt/v5 v5.0.0
@@ -115,7 +115,7 @@ require (
 	github.com/mailhog/mhsendmail v0.2.0 // indirect
 	github.com/mailhog/smtp v1.0.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
