@@ -51,7 +51,7 @@
     "@types/glob": "8.1.0",
     "@types/jest": "29.5.5",
     "@types/lodash": "4.14.199",
-    "@types/luxon": "3.3.2",
+    "@types/luxon": "3.3.4",
     "@types/prop-types": "15.7.9",
     "@types/react": "18.2.22",
     "@types/react-big-calendar": "1.6.5",
