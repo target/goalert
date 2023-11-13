@@ -28,12 +28,6 @@ export default function AdminMessageLogsControls(): JSX.Element {
           />
         </Grid>
         <Grid item>
-          {/* TODO: allow temporary invalid state if typing.
-        
-          e.g. start: 9/14. with an end set at 9/30, the user wants to
-          set end to 9/15 by typing "1" then "5" in the day field.
-          This currently results in a no-op as "9/1" is less than "9/14"
-         */}
           <ISODateTimePicker
             placeholder='End'
             name='endDate'

@@ -85,13 +85,13 @@ export default function AdminMessageLogsGraph(): JSX.Element {
   // set one line of "Message Counts" if user hasn't selected a segmentBy option
   const graphLines = useMemo(() => {
     const gl: { [key: string]: TimeSeriesBucket[] } = {}
-    if (!segmentBy) gl['Message Counts'] = stats
-    else {
-      stats.forEach((stat) => {
-        if (!gl[stat.segmentLabel]) gl[stat.segmentLabel] = [stat]
-        else gl[stat.segmentLabel].push(stat)
-      })
-    }
+    if (!segmentBy) return { 'Message Counts': stats }
+
+    stats.forEach((stat) => {
+      if (!gl[stat.segmentLabel]) gl[stat.segmentLabel] = [stat]
+      else gl[stat.segmentLabel].push(stat)
+    })
+
     return gl
   }, [stats])
 

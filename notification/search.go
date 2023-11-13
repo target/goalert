@@ -74,6 +74,8 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		, u.name
 		{{else if .SegmentByMessageType}}
 		, om.message_type
+		{{ else }}
+		, ''
 		{{end}}
 	{{else}}
 	SELECT
@@ -265,30 +267,22 @@ func (s *Store) TimeSeries(ctx context.Context, opts TimeSeriesOpts) ([]TimeSeri
 	}
 	defer rows.Close()
 
-	buckets := make(map[bucketID]int) // bucketID{}: count
+	bucketCounts := make(map[bucketID]int)
 	for rows.Next() {
 		var bucket, count int
 		var segmentLabel sql.NullString
 
-		if opts.SegmentBy != "" {
-			err := rows.Scan(&bucket, &count, &segmentLabel)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			err := rows.Scan(&bucket, &count)
-			if err != nil {
-				return nil, err
-			}
+		err := rows.Scan(&bucket, &count, &segmentLabel)
+		if err != nil {
+			return nil, err
 		}
-		label := segmentLabel.String
 
-		buckets[bucketID{
+		bucketCounts[bucketID{
 			Bucket: bucket,
-			Label:  label,
+			Label:  segmentLabel.String,
 		}] = count
 	}
-	ts := makeTimeSeries(data.CreatedAfter, data.CreatedBefore, data.TimeSeriesOrigin, data.TimeSeriesInterval, buckets)
+	ts := makeTimeSeries(data.CreatedAfter, data.CreatedBefore, data.TimeSeriesOrigin, data.TimeSeriesInterval, bucketCounts)
 	return ts, nil
 }
 
