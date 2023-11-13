@@ -47,7 +47,7 @@
     "@mui/x-data-grid": "6.18.1",
     "@playwright/test": "1.39.0",
     "@types/chance": "1.1.4",
-    "@types/diff": "5.0.5",
+    "@types/diff": "5.0.8",
     "@types/glob": "8.1.0",
     "@types/jest": "29.5.5",
     "@types/lodash": "4.14.199",
