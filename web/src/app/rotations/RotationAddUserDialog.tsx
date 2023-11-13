@@ -23,7 +23,7 @@ const mutation = gql`
 
 const RotationAddUserDialog = (
   props: RotationAddUserDialogProps,
-): JSX.Element => {
+): React.ReactNode => {
   const { rotationID, userIDs, onClose } = props
   const [value, setValue] = useState<Value>({
     users: [],

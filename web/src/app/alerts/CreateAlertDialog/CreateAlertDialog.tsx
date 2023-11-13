@@ -40,7 +40,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 export default function CreateAlertDialog(props: {
   onClose: () => void
   serviceID?: string
-}): JSX.Element {
+}): React.ReactNode {
   const classes = useStyles()
   const [step, setStep] = useState(0)
   const serviceID = props.serviceID

@@ -20,7 +20,7 @@ const query = gql`
 
 export default function ScheduleAssignedToList(props: {
   scheduleID: string
-}): JSX.Element {
+}): React.ReactNode {
   const [{ data, fetching, error }] = useQuery({
     query,
     variables: { id: props.scheduleID },

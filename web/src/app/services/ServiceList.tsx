@@ -23,7 +23,7 @@ const query = gql`
   }
 `
 
-export default function ServiceList(): JSX.Element {
+export default function ServiceList(): React.ReactNode {
   const [searchParam, setSearchParam] = useURLParam<string>('search', '')
   const { labelKey, labelValue, integrationKey } =
     getServiceFilters(searchParam)

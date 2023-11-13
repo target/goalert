@@ -17,7 +17,7 @@ type SpinContainerProps = {
   children: React.ReactNode
 }
 
-export default function SpinContainer(props: SpinContainerProps): JSX.Element {
+export default function SpinContainer(props: SpinContainerProps): React.ReactNode {
   const id = useMemo(() => 'spin_' + uniqID++, [])
   const ref = useRef<HTMLDivElement>(null)
   const [rect, setRect] = useState({ top: 0, left: 0, width: 0, height: 0 })

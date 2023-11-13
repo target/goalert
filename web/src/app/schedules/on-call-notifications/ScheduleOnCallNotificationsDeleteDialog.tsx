@@ -11,7 +11,7 @@ interface ScheduleOnCallNotificationsDeleteDialogProps {
 
 export default function ScheduleOnCallNotificationsDeleteDialog(
   p: ScheduleOnCallNotificationsDeleteDialogProps,
-): JSX.Element {
+): React.ReactNode {
   const update = useDeleteOnCallRule(p.scheduleID, p.ruleID)
 
   if (!update.busy && !update.rule) {

@@ -60,7 +60,7 @@ export default function ScheduleOverrideCreateDialog({
   variant,
   onClose,
   removeUserReadOnly,
-}: ScheduleOverrideCreateDialogProps): JSX.Element {
+}: ScheduleOverrideCreateDialogProps): React.ReactNode {
   const [value, setValue] = useState({
     addUserID: '',
     removeUserID: '',

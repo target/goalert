@@ -10,7 +10,7 @@ interface LoadingButtonProps extends ButtonProps {
   style?: React.CSSProperties
 }
 
-const LoadingButton = (props: LoadingButtonProps): JSX.Element => {
+const LoadingButton = (props: LoadingButtonProps): React.ReactNode => {
   const {
     attemptCount,
     buttonText,

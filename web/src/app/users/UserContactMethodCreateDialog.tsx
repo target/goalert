@@ -39,7 +39,7 @@ export default function UserContactMethodCreateDialog(props: {
   onClose: (contactMethodID?: string) => void
   title?: string
   subtitle?: string
-}): JSX.Element {
+}): React.ReactNode {
   const [allowSV, allowE, allowW, allowS] = useConfigValue(
     'Twilio.Enable',
     'SMTP.Enable',

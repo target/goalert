@@ -40,7 +40,7 @@ const mutation = gql`
 
 export default function ScheduleRuleDeleteDialog(
   props: ScheduleRuleDeleteDialogProps,
-): JSX.Element {
+): React.ReactNode {
   const [{ data, error, fetching }] = useQuery({
     query,
     variables: { id: props.scheduleID, tgt: props.target },

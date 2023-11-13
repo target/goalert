@@ -32,14 +32,14 @@ const useStyles = makeStyles({
   },
 })
 
-export default function SlackActions(): JSX.Element {
+export default function SlackActions(): React.ReactNode {
   const classes = useStyles()
   const [showManifest, setShowManifest] = useState(false)
 
   const [{ fetching, error, data }] = useQuery({ query })
   const manifest = data?.generateSlackAppManifest ?? ''
 
-  function renderContent(): JSX.Element {
+  function renderContent(): React.ReactNode {
     if (fetching) return <Spinner />
     if (error) return <GenericError error={error.message} />
 

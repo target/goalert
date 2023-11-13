@@ -50,7 +50,7 @@ interface CustomDotProps extends DotProps {
   }
 }
 
-const CustomDot = (props: CustomDotProps): JSX.Element => {
+const CustomDot = (props: CustomDotProps): React.ReactNode => {
   const { cy, cx, fill, r, stroke, strokeWidth, name, payload } = props
   return (
     <circle
@@ -68,7 +68,7 @@ const CustomDot = (props: CustomDotProps): JSX.Element => {
 
 export default function AlertCountLineGraph(
   props: AlertCountLineGraphProps,
-): JSX.Element {
+): React.ReactNode {
   const [active, setActive] = useState('')
   const classes = useStyles()
   const theme = useTheme()

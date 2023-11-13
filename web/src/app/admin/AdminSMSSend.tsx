@@ -51,7 +51,7 @@ const useStyles = makeStyles({
   },
 })
 
-export default function AdminSMSSend(): JSX.Element {
+export default function AdminSMSSend(): React.ReactNode {
   const classes = useStyles()
   const [cfgFromNumber, cfgSID] = useConfigValue(
     'Twilio.FromNumber',

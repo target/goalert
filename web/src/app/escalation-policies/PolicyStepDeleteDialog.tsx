@@ -27,7 +27,7 @@ function PolicyStepDeleteDialog(props: {
   escalationPolicyID: string
   stepID: string
   onClose: () => void
-}): JSX.Element {
+}): React.ReactNode {
   const [{ fetching, data, error }] = useQuery({
     query,
     variables: { id: props.escalationPolicyID },

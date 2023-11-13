@@ -23,7 +23,7 @@ export const policyStepsQuery = gql`
   }
 `
 
-function PolicyStepsQuery(props: { escalationPolicyID: string }): JSX.Element {
+function PolicyStepsQuery(props: { escalationPolicyID: string }): React.ReactNode {
   const { data, loading, error } = useQuery(policyStepsQuery, {
     variables: { id: props.escalationPolicyID },
   })

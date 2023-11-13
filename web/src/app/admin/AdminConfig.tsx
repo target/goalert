@@ -81,7 +81,7 @@ function formatHeading(s = ''): string {
     .replace(/R Ls\b/, 'RLs') // fix usages of `URLs`
 }
 
-export default function AdminConfig(): JSX.Element {
+export default function AdminConfig(): React.ReactNode {
   const classes = useStyles()
   const [confirm, setConfirm] = useState(false)
   const [values, setValues] = useState({})

@@ -22,7 +22,7 @@ const mutation = gql`
 export default function ScheduleDeleteDialog(props: {
   onClose: () => void
   scheduleID: string
-}): JSX.Element {
+}): React.ReactNode {
   const [{ data, fetching }] = useQuery({
     query,
     variables: { id: props.scheduleID },

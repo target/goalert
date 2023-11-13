@@ -21,14 +21,14 @@ interface DetailsPageProps {
   title: string
 
   // optional content
-  avatar?: JSX.Element // placement for an icon or image
-  subheader?: string | JSX.Element
+  avatar?: React.ReactNode // placement for an icon or image
+  subheader?: string | React.ReactNode
   details?: string
-  notices?: Array<Notice> | JSX.Element
+  notices?: Array<Notice> | React.ReactNode
   links?: Array<Link>
-  pageContent?: JSX.Element
-  primaryActions?: Array<Action | JSX.Element>
-  secondaryActions?: Array<Action | JSX.Element>
+  pageContent?: React.ReactNode
+  primaryActions?: Array<Action | React.ReactNode>
+  secondaryActions?: Array<Action | React.ReactNode>
 }
 
 export type LinkStatus = 'ok' | 'warn' | 'err'
@@ -58,7 +58,7 @@ const useStyles = makeStyles({
 })
 
 const LIApplink = forwardRef<HTMLAnchorElement, AppLinkProps>(
-  function LIApplink(props, ref): JSX.Element {
+  function LIApplink(props, ref): React.ReactNode {
     return (
       <li>
         <AppLink ref={ref} {...props} />
@@ -67,7 +67,7 @@ const LIApplink = forwardRef<HTMLAnchorElement, AppLinkProps>(
   },
 )
 
-export default function DetailsPage(p: DetailsPageProps): JSX.Element {
+export default function DetailsPage(p: DetailsPageProps): React.ReactNode {
   const classes = useStyles()
   const isMobile = useIsWidthDown('sm')
   const statusColors = useStatusColors()

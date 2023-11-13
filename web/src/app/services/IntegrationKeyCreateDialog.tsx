@@ -20,7 +20,7 @@ const mutation = gql`
 export default function IntegrationKeyCreateDialog(props: {
   serviceID: string
   onClose: () => void
-}): JSX.Element {
+}): React.ReactNode {
   const [value, setValue] = useState<Value | null>(null)
   const { serviceID, onClose } = props
 

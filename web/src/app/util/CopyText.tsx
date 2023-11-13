@@ -25,7 +25,7 @@ interface CopyTextProps {
   asURL?: boolean
 }
 
-export default function CopyText(props: CopyTextProps): JSX.Element {
+export default function CopyText(props: CopyTextProps): React.ReactNode {
   const classes = useStyles()
   const [copied, setCopied] = useState(false)
 

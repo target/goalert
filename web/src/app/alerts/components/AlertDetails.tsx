@@ -86,7 +86,7 @@ const updateStatusMutation = gql`
   }
 `
 
-export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
+export default function AlertDetails(props: AlertDetailsProps): React.ReactNode {
   const [analyticsID] = useConfigValue('General.GoogleAnalyticsID') as [string]
   const classes = useStyles()
   const isMobile = useIsWidthDown('sm')
@@ -214,7 +214,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
     return true
   }
 
-  function getNextEscalation(): JSX.Element | string {
+  function getNextEscalation(): React.ReactNode | string {
     const { currentLevel, lastEscalation, steps } = epsHelper()
     if (!canAutoEscalate()) return 'None'
 
@@ -233,7 +233,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
     )
   }
 
-  function renderEscalationPolicySteps(): JSX.Element[] | JSX.Element {
+  function renderEscalationPolicySteps(): React.ReactNode[] | React.ReactNode {
     const { steps, status, currentLevel } = epsHelper()
 
     if (!steps?.length) {
@@ -342,7 +342,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
   /*
    * Options to show for alert details menu
    */
-  function getMenuOptions(): Array<JSX.Element> {
+  function getMenuOptions(): Array<React.ReactNode> {
     const { status } = props.data
     if (status === 'StatusClosed') return []
     const isMaintMode = Boolean(props.data?.service?.maintenanceExpiresAt)

@@ -13,7 +13,7 @@ interface UserFormProps {
   value: UserFormValue
 }
 
-export default function UserForm(props: UserFormProps): JSX.Element {
+export default function UserForm(props: UserFormProps): React.ReactNode {
   return (
     <FormContainer {...props}>
       <FormField

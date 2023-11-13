@@ -19,7 +19,7 @@ const mutation = gql`
 
 export default function ScheduleCreateDialog(props: {
   onClose: () => void
-}): JSX.Element {
+}): React.ReactNode {
   const [value, setValue] = useState<Value>({
     name: '',
     description: '',

@@ -80,7 +80,7 @@ const alertStatus = (a: AlertNode[]): LinkStatus | null => {
 
 export default function ServiceDetails(props: {
   serviceID: string
-}): JSX.Element {
+}): React.ReactNode {
   const { serviceID } = props
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)

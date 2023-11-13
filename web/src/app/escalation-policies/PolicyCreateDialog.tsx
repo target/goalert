@@ -13,7 +13,7 @@ const mutation = gql`
   }
 `
 
-function PolicyCreateDialog(props: { onClose: () => void }): JSX.Element {
+function PolicyCreateDialog(props: { onClose: () => void }): React.ReactNode {
   const defaultValue = {
     name: '',
     description: '',

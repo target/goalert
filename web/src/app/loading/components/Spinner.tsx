@@ -24,7 +24,7 @@ interface SpinnerProps {
 /*
  * Show a loading spinner in the center of the container.
  */
-export default function Spinner(props: SpinnerProps): JSX.Element | null {
+export default function Spinner(props: SpinnerProps): React.ReactNode | null {
   const [spin, setSpin] = useState(false)
   const { delayMs = DEFAULT_SPIN_DELAY_MS, waitMs = DEFAULT_SPIN_WAIT_MS } =
     props

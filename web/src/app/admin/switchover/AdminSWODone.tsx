@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography'
 import DatabaseCheck from 'mdi-material-ui/DatabaseCheck'
 import { TransitionGroup } from 'react-transition-group'
 
-export function AdminSWODone(): JSX.Element {
+export function AdminSWODone(): React.ReactNode {
   return (
     <TransitionGroup appear={false}>
       <Zoom in timeout={500}>

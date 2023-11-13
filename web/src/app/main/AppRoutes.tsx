@@ -44,7 +44,7 @@ import LocalDev from '../localdev/LocalDev'
 import AdminSwitchoverGuide from '../admin/switchover/AdminSwitchoverGuide'
 
 // ParamRoute will pass route parameters as props to the route's child.
-function ParamRoute(props: RouteProps): JSX.Element {
+function ParamRoute(props: RouteProps): React.ReactNode {
   if (!props.path) {
     throw new Error('ParamRoute requires a path prop')
   }
@@ -131,7 +131,7 @@ if (process.env.NODE_ENV !== 'production') {
   routes['/dev'] = LocalDev
 }
 
-export default function AppRoutes(): JSX.Element {
+export default function AppRoutes(): React.ReactNode {
   const [path, setPath] = useLocation()
   const { userID } = useSessionInfo()
 

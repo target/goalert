@@ -30,7 +30,7 @@ const query = gql`
 
 export default function PolicyDetails(props: {
   policyID: string
-}): JSX.Element {
+}): React.ReactNode {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
 

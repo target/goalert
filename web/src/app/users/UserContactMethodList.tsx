@@ -83,7 +83,7 @@ export default function UserContactMethodList(
 
   const contactMethods = data.user.contactMethods
 
-  const getIcon = (cm: UserContactMethod): JSX.Element | null => {
+  const getIcon = (cm: UserContactMethod): React.ReactNode | null => {
     if (!cm.disabled) return null
     if (props.readOnly) {
       return <Warning message='Contact method disabled' />
@@ -141,7 +141,7 @@ export default function UserContactMethodList(
     return actions
   }
 
-  function getSecondaryAction(cm: UserContactMethod): JSX.Element {
+  function getSecondaryAction(cm: UserContactMethod): React.ReactNode {
     return (
       <Grid container spacing={2} alignItems='center' wrap='nowrap'>
         {cm.disabled && !props.readOnly && !mobile && isCurrentUser && (
@@ -164,7 +164,7 @@ export default function UserContactMethodList(
     )
   }
 
-  function getSubText(cm: UserContactMethod): JSX.Element | string {
+  function getSubText(cm: UserContactMethod): React.ReactNode | string {
     let cmText = cm.formattedValue
     if (cm.pending) {
       cmText = `${cm.formattedValue} - this contact method will be automatically deleted if not verified`

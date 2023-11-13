@@ -16,7 +16,7 @@ const createMutation = gql`
 export default function HeartbeatMonitorCreateDialog(props: {
   serviceID: string
   onClose: () => void
-}): JSX.Element {
+}): React.ReactNode {
   const [value, setValue] = useState<Value>({ name: '', timeoutMinutes: 15 })
   const [createHeartbeatStatus, createHeartbeat] = useMutation(createMutation)
 

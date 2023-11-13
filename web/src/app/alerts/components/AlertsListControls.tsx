@@ -5,7 +5,7 @@ import { useURLParam } from '../../actions'
 
 const tabs = ['active', 'unacknowledged', 'acknowledged', 'closed', 'all']
 
-function AlertsListControls(): JSX.Element {
+function AlertsListControls(): React.ReactNode {
   const [filter, setFilter] = useURLParam<string>('filter', 'active')
 
   let currTab = tabs.indexOf(filter)

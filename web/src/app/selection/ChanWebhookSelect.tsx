@@ -20,7 +20,7 @@ function isValidURL(str: string): boolean {
 
 export const ChanWebhookSelect = (
   props: ChanWebhookSelectProps,
-): JSX.Element => {
+): React.ReactNode => {
   const [newURL, setNewURL] = useState<string>('')
   const { value, onChange } = props
 

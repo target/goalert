@@ -23,7 +23,7 @@ const useStyles = makeStyles({
 
 export default function ServiceAlerts(props: {
   serviceID: string
-}): JSX.Element {
+}): React.ReactNode {
   const classes = useStyles()
 
   const [alertStatus, setAlertStatus] = useState('')

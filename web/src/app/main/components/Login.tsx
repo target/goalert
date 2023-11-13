@@ -78,7 +78,7 @@ type Provider = {
   URL: string
 }
 
-export default function Login(): JSX.Element {
+export default function Login(): React.ReactNode {
   const classes = useStyles()
   const theme = useTheme()
   const [error, setError] = useState(getParameterByName('login_error') || '')
@@ -96,7 +96,7 @@ export default function Login(): JSX.Element {
    * Renders a field from a provider
    */
 
-  function renderField(field: Field): JSX.Element {
+  function renderField(field: Field): React.ReactNode {
     const {
       ID: id, // unique name/identifier of the field
       Label: label, // placeholder text that is displayed to the use in the field
@@ -123,7 +123,7 @@ export default function Login(): JSX.Element {
   function renderHasNextDivider(
     idx: number,
     len: number,
-  ): JSX.Element | undefined {
+  ): React.ReactNode | undefined {
     if (idx + 1 < len) {
       return (
         <Grid item xs={12} className={classes.hasNext}>
@@ -143,7 +143,7 @@ export default function Login(): JSX.Element {
     provider: Provider,
     idx: number,
     len: number,
-  ): JSX.Element | null {
+  ): React.ReactNode | null {
     const {
       ID: id, // unique identifier of the provider
       Fields: fields, // holds a list of fields to include with the request

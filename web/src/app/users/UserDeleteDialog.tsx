@@ -25,7 +25,7 @@ interface RotationDeleteDialogProps {
   onClose: () => void
 }
 
-function UserDeleteDialog(props: RotationDeleteDialogProps): JSX.Element {
+function UserDeleteDialog(props: RotationDeleteDialogProps): React.ReactNode {
   const { userID: currentUserID, ready: isSessionReady } = useSessionInfo()
   const [, navigate] = useLocation()
 

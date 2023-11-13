@@ -56,7 +56,7 @@ export interface ControlledPaginatedListProps
 
   items: CheckboxItemsProps[] | PaginatedListItemProps[]
 
-  renderCreateDialog?: (onClose: () => void) => JSX.Element | undefined
+  renderCreateDialog?: (onClose: () => void) => React.ReactNode | undefined
 
   createLabel?: string
   hideCreate?: boolean
@@ -90,7 +90,7 @@ export interface CheckboxItemsProps extends PaginatedListItemProps {
 
 export default function ControlledPaginatedList(
   props: ControlledPaginatedListProps,
-): JSX.Element {
+): React.ReactNode {
   const classes = useStyles()
   const {
     checkboxActions,
@@ -235,7 +235,7 @@ export default function ControlledPaginatedList(
     )
   }
 
-  function getItemIcon(item: CheckboxItemsProps): JSX.Element | undefined {
+  function getItemIcon(item: CheckboxItemsProps): React.ReactNode | undefined {
     if (!checkboxActions) return item.icon
 
     const checked = checkedItems.includes(item.id)

@@ -26,7 +26,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-export function FavoriteIcon(): JSX.Element {
+export function FavoriteIcon(): React.ReactNode {
   const classes = useStyles()
   return <MUIFavoriteIcon data-cy='fav-icon' className={classes.favorited} />
 }
@@ -36,7 +36,7 @@ export function SetFavoriteButton({
   onClick,
   isFavorite,
   loading,
-}: SetFavoriteButtonProps): JSX.Element | null {
+}: SetFavoriteButtonProps): React.ReactNode | null {
   const classes = useStyles()
 
   if (loading) {

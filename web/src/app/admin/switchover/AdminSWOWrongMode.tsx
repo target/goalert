@@ -3,7 +3,7 @@ import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import DatabaseOff from 'mdi-material-ui/DatabaseOff'
 
-export function AdminSWOWrongMode(): JSX.Element {
+export function AdminSWOWrongMode(): React.ReactNode {
   return (
     <Grid item container alignItems='center' justifyContent='center'>
       <DatabaseOff color='secondary' style={{ width: '100%', height: 256 }} />

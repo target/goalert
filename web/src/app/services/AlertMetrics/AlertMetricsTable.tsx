@@ -127,7 +127,7 @@ const columns: GridColDef[] = [
 
 export default function AlertMetricsTable(
   props: AlertMetricsTableProps,
-): JSX.Element {
+): React.ReactNode {
   const classes = useStyles()
   const alerts = useMemo(
     () => props.alerts.map((a) => ({ ...a, ...a.metrics })),
@@ -147,7 +147,7 @@ export default function AlertMetricsTable(
     [csvData],
   )
 
-  function CustomToolbar(): JSX.Element {
+  function CustomToolbar(): React.ReactNode {
     return (
       <GridToolbarContainer className={gridClasses.toolbarContainer}>
         <Grid container justifyContent='space-between'>

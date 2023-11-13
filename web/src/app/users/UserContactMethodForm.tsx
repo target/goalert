@@ -31,7 +31,7 @@ export type UserContactMethodFormProps = {
   onChange?: (CMValue: Value) => void
 }
 
-function renderEmailField(edit: boolean): JSX.Element {
+function renderEmailField(edit: boolean): React.ReactNode {
   return (
     <FormField
       placeholder='foobar@example.com'
@@ -46,7 +46,7 @@ function renderEmailField(edit: boolean): JSX.Element {
   )
 }
 
-function renderPhoneField(edit: boolean): JSX.Element {
+function renderPhoneField(edit: boolean): React.ReactNode {
   return (
     <React.Fragment>
       <FormField
@@ -63,7 +63,7 @@ function renderPhoneField(edit: boolean): JSX.Element {
   )
 }
 
-function renderURLField(edit: boolean): JSX.Element {
+function renderURLField(edit: boolean): React.ReactNode {
   return (
     <FormField
       placeholder='https://example.com'
@@ -83,7 +83,7 @@ function renderURLField(edit: boolean): JSX.Element {
   )
 }
 
-function renderSlackField(edit: boolean): JSX.Element {
+function renderSlackField(edit: boolean): React.ReactNode {
   return (
     <FormField
       fullWidth
@@ -99,7 +99,7 @@ function renderSlackField(edit: boolean): JSX.Element {
   )
 }
 
-function renderTypeField(type: ContactMethodType, edit: boolean): JSX.Element {
+function renderTypeField(type: ContactMethodType, edit: boolean): React.ReactNode {
   switch (type) {
     case 'SMS':
     case 'VOICE':
@@ -131,7 +131,7 @@ const isPhoneType = (val: Value): boolean =>
 
 export default function UserContactMethodForm(
   props: UserContactMethodFormProps,
-): JSX.Element {
+): React.ReactNode {
   const { value, edit = false, ...other } = props
 
   const [

@@ -57,7 +57,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-export default function AdminSection(props: AdminSectionProps): JSX.Element {
+export default function AdminSection(props: AdminSectionProps): React.ReactNode {
   // TODO: add 'reset to default' buttons
   const classes = useStyles()
   const { fields, value, headerNote } = props

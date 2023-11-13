@@ -96,7 +96,7 @@ function serviceCount(onCallSteps: EscalationPolicyStep[] = []): number {
 export default function UserDetails(props: {
   userID: string
   readOnly: boolean
-}): JSX.Element {
+}): React.ReactNode {
   const userID = props.userID
   const {
     userID: currentUserID,
@@ -159,10 +159,10 @@ export default function UserDetails(props: {
   }
 
   const options: (
-    | JSX.Element
+    | React.ReactNode
     | {
         label: string
-        icon: JSX.Element
+        icon: React.ReactNode
         handleOnClick: () => void
       }
   )[] = [

@@ -26,7 +26,7 @@ const mutation = gql`
 export default function ScheduleEditDialog(props: {
   scheduleID: string
   onClose: () => void
-}): JSX.Element {
+}): React.ReactNode {
   const [value, setValue] = useState<Value | null>(null)
 
   const [{ data, error, fetching }] = useQuery({

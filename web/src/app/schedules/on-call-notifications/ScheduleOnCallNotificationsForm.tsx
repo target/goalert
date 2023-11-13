@@ -40,7 +40,7 @@ const useStyles = makeStyles({
 
 export default function ScheduleOnCallNotificationsForm(
   props: ScheduleOnCallNotificationsFormProps,
-): JSX.Element {
+): React.ReactNode {
   const { scheduleID, ...formProps } = props
   const classes = useStyles()
   const [slackEnabled] = useConfigValue('Slack.Enable')
@@ -97,7 +97,7 @@ export default function ScheduleOnCallNotificationsForm(
     [slackEnabled, webhookEnabled],
   )
 
-  function renderTypeFields(type: TargetType): JSX.Element {
+  function renderTypeFields(type: TargetType): React.ReactNode {
     switch (type) {
       case 'slackUserGroup':
         return (

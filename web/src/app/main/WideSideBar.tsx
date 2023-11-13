@@ -20,7 +20,7 @@ interface WideSideBarProps {
   children: ReactNode
 }
 
-function WideSideBar(props: WideSideBarProps): JSX.Element {
+function WideSideBar(props: WideSideBarProps): React.ReactNode {
   const classes = useStyles()
 
   return (

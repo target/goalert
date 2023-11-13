@@ -46,7 +46,7 @@ const mutation = gql`
   }
 `
 
-export default function AdminSwitchover(): JSX.Element {
+export default function AdminSwitchover(): React.ReactNode {
   const [{ fetching, error, data: _data }, refetch] = useQuery({
     query,
   })

@@ -20,7 +20,7 @@ const query = gql`
   }
 `
 
-export default function RotationList(): JSX.Element {
+export default function RotationList(): React.ReactNode {
   return (
     <QueryList
       query={query}

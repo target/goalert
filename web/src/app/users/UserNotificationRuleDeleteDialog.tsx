@@ -11,7 +11,7 @@ const mutation = gql`
 export default function UserNotificationRuleDeleteDialog(props: {
   ruleID: string
   onClose: () => void
-}): JSX.Element {
+}): React.ReactNode {
   const { ruleID, ...rest } = props
 
   const [deleteNotification, { loading, error }] = useMutation(mutation, {

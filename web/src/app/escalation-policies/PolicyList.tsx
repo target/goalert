@@ -20,7 +20,7 @@ const query = gql`
   }
 `
 
-export default function PolicyList(): JSX.Element {
+export default function PolicyList(): React.ReactNode {
   return (
     <QueryList
       query={query}

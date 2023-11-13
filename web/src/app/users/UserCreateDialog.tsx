@@ -18,7 +18,7 @@ interface UserCreateDialogProps {
   onClose: () => void
 }
 
-function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
+function UserCreateDialog(props: UserCreateDialogProps): React.ReactNode {
   const [, navigate] = useLocation()
   const [value, setValue] = useState({
     username: '',

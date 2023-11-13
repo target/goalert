@@ -25,7 +25,7 @@ interface ServiceFormProps {
   epRequired?: boolean
 }
 
-export default function ServiceForm(props: ServiceFormProps): JSX.Element {
+export default function ServiceForm(props: ServiceFormProps): React.ReactNode {
   const { epRequired, ...containerProps } = props
   return (
     <FormContainer {...containerProps} optionalLabels={epRequired}>

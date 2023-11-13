@@ -32,7 +32,7 @@ interface CreateAlertServiceListItemProps {
 
 export default function CreateAlertServiceListItem(
   props: CreateAlertServiceListItemProps,
-): JSX.Element {
+): React.ReactNode {
   const { id, err } = props
 
   const classes = useStyles()

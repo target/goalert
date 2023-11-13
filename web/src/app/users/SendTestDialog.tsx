@@ -40,7 +40,7 @@ const mutation = gql`
 
 export default function SendTestDialog(
   props: SendTestDialogProps,
-): JSX.Element {
+): React.ReactNode {
   const { title = 'Test Delivery Status', onClose, messageID } = props
 
   const [sendTestStatus, sendTest] = useMutation(mutation)

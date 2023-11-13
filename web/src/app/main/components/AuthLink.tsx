@@ -31,7 +31,7 @@ const updateStatusMutation = gql`
   }
 `
 
-export default function AuthLink(): JSX.Element | null {
+export default function AuthLink(): React.ReactNode | null {
   const [token, setToken] = useURLParam('authLinkToken', '')
   const [, navigate] = useLocation()
 

@@ -30,7 +30,7 @@ const mutation = gql`
 function PolicyStepCreateDialog(props: {
   escalationPolicyID: string
   onClose: () => void
-}): JSX.Element {
+}): React.ReactNode {
   const [value, setValue] = useState<Value | null>(null)
   const defaultValue = {
     targets: [],

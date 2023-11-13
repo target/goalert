@@ -26,7 +26,7 @@ const RotationUserDeleteDialog = (props: {
   rotationID: string
   userIndex: number
   onClose: () => void
-}): JSX.Element => {
+}): React.ReactNode => {
   const { rotationID, userIndex, onClose } = props
   const [deleteUserMutationStatus, deleteUserMutation] = useMutation(mutation)
   const [{ fetching, data, error }] = useQuery({

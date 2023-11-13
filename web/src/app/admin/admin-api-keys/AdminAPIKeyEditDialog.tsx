@@ -29,7 +29,7 @@ const query = gql`
 export default function AdminAPIKeyEditDialog(props: {
   onClose: (param: boolean) => void
   apiKeyID: string
-}): JSX.Element {
+}): React.ReactNode {
   const { apiKeyID, onClose } = props
   const [{ fetching, data, error }] = useQuery({
     query,

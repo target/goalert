@@ -74,7 +74,7 @@ interface ScheduleCalendarQueryProps {
 
 function ScheduleCalendarQuery({
   scheduleID,
-}: ScheduleCalendarQueryProps): JSX.Element | null {
+}: ScheduleCalendarQueryProps): React.ReactNode | null {
   const isMobile = useIsWidthDown('md')
   const { weekly, start } = useCalendarNavigation()
 

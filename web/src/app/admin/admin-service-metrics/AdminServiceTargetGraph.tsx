@@ -20,7 +20,7 @@ interface AdminServiceTargetGraphProps {
 
 export default function AdminServiceTargetGraph(
   props: AdminServiceTargetGraphProps,
-): JSX.Element {
+): React.ReactNode {
   const theme = useTheme()
   const { metrics, loading } = props
   let targetMetrics = [] as { type: string; count: number }[]

@@ -5,7 +5,7 @@ export default function AdminSWOConfirmDialog(props: {
   messages: string[]
   onConfirm: () => void
   onClose: () => void
-}): JSX.Element {
+}): React.ReactNode {
   return (
     <FormDialog
       title='Continue with switchover?'

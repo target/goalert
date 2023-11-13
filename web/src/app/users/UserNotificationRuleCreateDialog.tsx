@@ -16,7 +16,7 @@ const mutation = gql`
 export default function UserNotificationRuleCreateDialog(props: {
   onClose: () => void
   userID: string
-}): JSX.Element {
+}): React.ReactNode {
   const [value, setValue] = useState({ contactMethodID: '', delayMinutes: 0 })
 
   const [createNotification, { loading, error }] = useMutation(mutation, {

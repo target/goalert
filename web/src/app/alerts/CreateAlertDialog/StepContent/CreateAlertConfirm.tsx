@@ -19,7 +19,7 @@ type FieldProps = {
   label: string
 }
 
-function Field(props: FieldProps): JSX.Element {
+function Field(props: FieldProps): React.ReactNode {
   const classes = useStyles()
   return (
     <Grid item xs={12}>
@@ -38,7 +38,7 @@ function Field(props: FieldProps): JSX.Element {
   )
 }
 
-export function CreateAlertConfirm(): JSX.Element {
+export function CreateAlertConfirm(): React.ReactNode {
   return (
     <Grid container spacing={2}>
       <FormField

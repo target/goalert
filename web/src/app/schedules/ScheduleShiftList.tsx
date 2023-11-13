@@ -73,7 +73,7 @@ interface ScheduleShiftListProps {
 
 function ScheduleShiftList({
   scheduleID,
-}: ScheduleShiftListProps): JSX.Element {
+}: ScheduleShiftListProps): React.ReactNode {
   const classes = useStyles()
   const isMobile = useIsWidthDown('md')
 
@@ -135,7 +135,7 @@ function ScheduleShiftList({
       truncated: boolean
     },
     day: Interval,
-  ): JSX.Element | string {
+  ): React.ReactNode | string {
     const tzAbbr = DateTime.local({ zone }).toFormat('ZZZZ')
     const localTzAbbr = DateTime.local({ zone: 'local' }).toFormat('ZZZZ')
 
@@ -255,7 +255,7 @@ function ScheduleShiftList({
     return result
   }
 
-  function renderDurationSelector(): JSX.Element {
+  function renderDurationSelector(): React.ReactNode {
     // Dropdown options (in ISO_8601 format)
     // https://en.wikipedia.org/wiki/ISO_8601#Durations
     const quickOptions = ['P1D', 'P3D', 'P7D', 'P14D', 'P1M']

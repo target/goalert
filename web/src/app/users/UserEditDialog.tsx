@@ -42,7 +42,7 @@ interface UserEditDialogProps {
   onClose: () => void
 }
 
-function UserEditDialog(props: UserEditDialogProps): JSX.Element {
+function UserEditDialog(props: UserEditDialogProps): React.ReactNode {
   const [authDisableBasic] = useConfigValue('Auth.DisableBasic')
   const defaultValue: Value = {
     username: '',

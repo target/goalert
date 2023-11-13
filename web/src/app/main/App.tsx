@@ -55,7 +55,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-export default function App(): JSX.Element {
+export default function App(): React.ReactNode {
   const [analyticsID] = useConfigValue('General.GoogleAnalyticsID') as [string]
 
   useEffect(() => {

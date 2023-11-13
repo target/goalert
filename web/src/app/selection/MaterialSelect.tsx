@@ -94,7 +94,7 @@ interface MultiSelectProps {
 
 export default function MaterialSelect(
   props: CommonSelectProps & (MultiSelectProps | SingleSelectProps),
-): JSX.Element {
+): React.ReactNode {
   const classes = useStyles()
   const {
     fullWidth,

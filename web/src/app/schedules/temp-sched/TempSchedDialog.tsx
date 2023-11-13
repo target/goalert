@@ -87,7 +87,7 @@ export default function TempSchedDialog({
   onClose,
   scheduleID,
   value: _value,
-}: TempScheduleDialogProps): JSX.Element {
+}: TempScheduleDialogProps): React.ReactNode {
   const classes = useStyles()
   const edit = !_.isEmpty(_value)
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)

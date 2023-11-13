@@ -20,7 +20,7 @@ export default function TempSchedDeleteConfirmation({
   scheduleID,
   onClose,
   value,
-}: TempSchedDeleteConfirmationProps): JSX.Element {
+}: TempSchedDeleteConfirmationProps): React.ReactNode {
   const [deleteTempSchedule, { loading, error }] = useMutation(mutation, {
     onCompleted: () => onClose(),
     variables: {

@@ -25,7 +25,7 @@ interface ServiceFilterContainerProps {
 
 export default function ServiceFilterContainer(
   props: ServiceFilterContainerProps,
-): JSX.Element {
+): React.ReactNode {
   const { labelKey, labelValue, integrationKey } = props.value
   return (
     <FilterContainer

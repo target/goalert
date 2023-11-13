@@ -41,7 +41,7 @@ const useStyles = makeStyles({ spacing: { marginBottom: 96 } })
 
 export default function ServiceLabelList(props: {
   serviceID: string
-}): JSX.Element {
+}): React.ReactNode {
   const [create, setCreate] = useState(false)
   const [editKey, setEditKey] = useState<string | null>(null)
   const [deleteKey, setDeleteKey] = useState<string | null>(null)

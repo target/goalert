@@ -36,7 +36,7 @@ const mutation = gql`
 export default function ScheduleOverrideDeleteDialog(props: {
   overrideID: string
   onClose: () => void
-}): JSX.Element {
+}): React.ReactNode {
   const [zone] = useURLParam('tz', 'local')
 
   const [{ data, fetching, error }] = useQuery({

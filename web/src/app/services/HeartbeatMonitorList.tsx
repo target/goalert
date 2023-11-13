@@ -61,7 +61,7 @@ const sortItems = (a: HeartbeatMonitor, b: HeartbeatMonitor): number => {
 
 export default function HeartbeatMonitorList(props: {
   serviceID: string
-}): JSX.Element {
+}): React.ReactNode {
   const classes = useStyles()
   const isMobile = useIsWidthDown('md')
   const [showCreateDialog, setShowCreateDialog] = useState(false)

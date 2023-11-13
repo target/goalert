@@ -25,7 +25,7 @@ interface IntegrationKeyFormProps {
 
 export default function IntegrationKeyForm(
   props: IntegrationKeyFormProps,
-): JSX.Element {
+): React.ReactNode {
   const types = useFeatures().integrationKeyTypes
 
   const { ...formProps } = props

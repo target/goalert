@@ -86,7 +86,7 @@ const columns = [
 
 export default function AlertCountTable(
   props: AlertCountTableProps,
-): JSX.Element {
+): React.ReactNode {
   const classes = useStyles()
 
   const csvOpts = useMemo(
@@ -102,7 +102,7 @@ export default function AlertCountTable(
     [csvData],
   )
 
-  function CustomToolbar(): JSX.Element {
+  function CustomToolbar(): React.ReactNode {
     const apiRef = useGridApiContext()
     const currentPage = gridPaginatedVisibleSortedGridRowEntriesSelector(
       apiRef,

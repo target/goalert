@@ -15,7 +15,7 @@ interface Props {
   onClose: () => void
 }
 
-function label(hours: number): JSX.Element {
+function label(hours: number): React.ReactNode {
   return (
     <span>
       For <Time duration={{ hours }} /> (
@@ -27,7 +27,7 @@ function label(hours: number): JSX.Element {
 function ServiceMaintenanceForm(props: {
   onChange: (val: number) => void
   selectedIndex: number
-}): JSX.Element {
+}): React.ReactNode {
   return (
     <FormControl>
       <RadioGroup
@@ -50,7 +50,7 @@ const mutation = gql`
 
 export default function ServiceMaintenanceModeDialog(
   props: Props,
-): JSX.Element {
+): React.ReactNode {
   const [selectedHours, setSelectedHours] = useState(1)
   const [updateServiceStatus, updateService] = useMutation(mutation)
 

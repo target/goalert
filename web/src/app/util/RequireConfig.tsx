@@ -44,7 +44,7 @@ type ConfigProviderProps = {
   children: ReactChild | ReactChild[]
 }
 
-export function ConfigProvider(props: ConfigProviderProps): JSX.Element {
+export function ConfigProvider(props: ConfigProviderProps): React.ReactNode {
   const { data } = useQuery(query)
 
   return (
@@ -155,8 +155,8 @@ export function useConfigValue(...fields: ConfigID[]): Value[] {
 }
 
 export function Config(props: {
-  children: (x: ConfigData, s?: SessionInfo) => JSX.Element
-}): JSX.Element {
+  children: (x: ConfigData, s?: SessionInfo) => React.ReactNode
+}): React.ReactNode {
   return props.children(useConfig(), useSessionInfo()) || null
 }
 
@@ -166,14 +166,14 @@ export type RequireConfigProps = {
   test?: (x: Value) => boolean
 
   // react element to render if checks failed
-  else?: JSX.Element
+  else?: React.ReactNode
   isAdmin?: boolean
   children?: ReactChild
 }
 
 export default function RequireConfig(
   props: RequireConfigProps,
-): JSX.Element | null {
+): React.ReactNode | null {
   const {
     configID,
     test = isTrue,

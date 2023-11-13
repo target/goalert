@@ -43,7 +43,7 @@ export type NavBarSubLinkProps = {
   to: string
   title: string
 }
-export function NavBarSubLink({ to, title }: NavBarSubLinkProps): JSX.Element {
+export function NavBarSubLink({ to, title }: NavBarSubLinkProps): React.ReactNode {
   const { navSelected, nav, subMenuLinkText } = useStyles()
   const [path] = useLocation()
   return (
@@ -56,10 +56,10 @@ export function NavBarSubLink({ to, title }: NavBarSubLinkProps): JSX.Element {
 }
 
 export type NavBarLinkProps = {
-  icon: JSX.Element
+  icon: React.ReactNode
   title: string
   to: string
-  children?: JSX.Element[] | JSX.Element
+  children?: React.ReactNode[] | React.ReactNode
 }
 
 export default function NavBarLink({
@@ -67,7 +67,7 @@ export default function NavBarLink({
   title,
   to,
   children,
-}: NavBarLinkProps): JSX.Element {
+}: NavBarLinkProps): React.ReactNode {
   const classes = useStyles()
   const [path] = useLocation()
   const isRoute = path.startsWith(to)

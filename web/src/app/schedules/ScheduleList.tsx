@@ -20,7 +20,7 @@ const query = gql`
   }
 `
 
-export default function ScheduleList(): JSX.Element {
+export default function ScheduleList(): React.ReactNode {
   return (
     <QueryList
       query={query}

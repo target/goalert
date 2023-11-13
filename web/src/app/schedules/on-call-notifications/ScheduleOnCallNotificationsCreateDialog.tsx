@@ -18,7 +18,7 @@ const defaultValue: Value = {
 
 export default function ScheduleOnCallNotificationsCreateDialog(
   props: ScheduleOnCallNotificationsCreateDialogProps,
-): JSX.Element {
+): React.ReactNode {
   const { onClose, scheduleID } = props
   const [value, setValue] = useState<Value>(defaultValue)
 

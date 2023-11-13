@@ -4,7 +4,7 @@ import { AccountSwitch, AccountMinus, AccountPlus } from 'mdi-material-ui'
 
 export default function ScheduleNewOverrideFAB(props: {
   onClick: (action: string) => void
-}): JSX.Element {
+}): React.ReactNode {
   const actions = [
     {
       label: 'Temporarily Replace a User',

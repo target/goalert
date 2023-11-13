@@ -15,7 +15,7 @@ const useStyles = makeStyles({
   },
 })
 
-export default function Documentation(): JSX.Element {
+export default function Documentation(): React.ReactNode {
   const [publicURL, webhookEnabled] = useConfigValue(
     'General.PublicURL',
     'Webhook.Enable',

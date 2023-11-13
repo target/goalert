@@ -23,7 +23,7 @@ const query = gql`
   }
 `
 
-function UserList(): JSX.Element {
+function UserList(): React.ReactNode {
   const { isAdmin, ready } = useSessionInfo()
 
   return (

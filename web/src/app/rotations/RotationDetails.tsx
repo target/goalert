@@ -36,7 +36,7 @@ const query = gql`
 
 export default function RotationDetails(props: {
   rotationID: string
-}): JSX.Element {
+}): React.ReactNode {
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
 

@@ -18,7 +18,7 @@ type AdminAPIKeyFormProps = {
 
 export default function AdminAPIKeyForm(
   props: AdminAPIKeyFormProps,
-): JSX.Element {
+): React.ReactNode {
   return (
     <FormContainer optionalLabels {...props}>
       <Grid container spacing={2}>

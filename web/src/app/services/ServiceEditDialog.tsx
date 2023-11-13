@@ -35,7 +35,7 @@ const mutation = gql`
 export default function ServiceEditDialog(props: {
   serviceID: string
   onClose: () => void
-}): JSX.Element {
+}): React.ReactNode {
   const [value, setValue] = useState<Value | null>(null)
   const [{ data, fetching: dataFetching, error: dataError }] = useQuery({
     query,

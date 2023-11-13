@@ -19,7 +19,7 @@ const fetchCurrentVersion = (): Promise<string> =>
           ?.getAttribute('content') || '',
     )
 
-export default function NewVersionCheck(): JSX.Element {
+export default function NewVersionCheck(): React.ReactNode {
   const [currentVersion, setCurrentVersion] = useState(GOALERT_VERSION)
   const [firstSeen, setFirstSeen] = useState(DateTime.utc())
   const [lastCheck, setLastCheck] = useState(DateTime.utc())

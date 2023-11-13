@@ -13,7 +13,7 @@ export default function ServiceLabelDeleteDialog(props: {
   serviceID: string
   labelKey: string
   onClose: () => void
-}): JSX.Element {
+}): React.ReactNode {
   const { labelKey, onClose, serviceID } = props
 
   const [deleteLabelStatus, deleteLabel] = useMutation(mutation)

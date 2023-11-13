@@ -9,7 +9,7 @@ import {
 import React from 'react'
 import { useURLParam } from '../../actions/hooks'
 
-export default function AlertMetricsFilter(): JSX.Element {
+export default function AlertMetricsFilter(): React.ReactNode {
   const [range, setRange] = useURLParam<string>('range', 'P1M')
   const [ivl, setIvl] = useURLParam<string>('interval', 'P1D')
 

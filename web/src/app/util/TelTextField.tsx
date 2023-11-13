@@ -28,7 +28,7 @@ const useStyles = makeStyles({
 
 export default function TelTextField(
   props: TextFieldProps & { value: string },
-): JSX.Element {
+): React.ReactNode {
   const classes = useStyles()
   const [phoneNumber, setPhoneNumber] = useState('')
 

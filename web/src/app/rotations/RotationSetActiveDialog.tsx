@@ -26,7 +26,7 @@ const RotationSetActiveDialog = (props: {
   rotationID: string
   userIndex: number
   onClose: () => void
-}): JSX.Element => {
+}): React.ReactNode => {
   const { rotationID, userIndex, onClose } = props
   const [{ fetching, data, error }] = useQuery({
     query,

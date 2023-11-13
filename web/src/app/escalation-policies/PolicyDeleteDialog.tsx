@@ -12,7 +12,7 @@ const mutation = gql`
 export default function PolicyDeleteDialog(props: {
   escalationPolicyID: string
   onClose: () => void
-}): JSX.Element {
+}): React.ReactNode {
   const [, navigate] = useLocation()
   const [deletePolicyStatus, deletePolicy] = useMutation(mutation)
 

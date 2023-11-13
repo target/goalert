@@ -37,7 +37,7 @@ export const calendarSubscriptionsQuery = gql`
 
 export default function UserCalendarSubscriptionList(props: {
   userID: string
-}): JSX.Element {
+}): React.ReactNode {
   const userID = props.userID
   const [creationDisabled] = useConfigValue(
     'General.DisableCalendarSubscriptions',
@@ -73,7 +73,7 @@ export default function UserCalendarSubscriptionList(props: {
   const subheaderDict: { [key: string]: boolean } = {}
   const items: FlatListListItem[] = []
 
-  function renderOtherActions(id: string): JSX.Element {
+  function renderOtherActions(id: string): React.ReactNode {
     return (
       <OtherActions
         actions={[

@@ -33,7 +33,7 @@ const WrapLink = forwardRef(function WrapLink(
 })
 
 const AppLink: ForwardRefRenderFunction<HTMLAnchorElement, AppLinkProps> =
-  function AppLink(props, ref): JSX.Element {
+  function AppLink(props, ref): React.ReactNode {
     let { to, newTab, ...other } = props
     const [location] = useLocation()
 

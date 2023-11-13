@@ -13,7 +13,7 @@ import { CurrentUserAvatar } from '../../util/avatars'
 import AppLink from '../../util/AppLink'
 import { useConfigValue, useSessionInfo } from '../../util/RequireConfig'
 
-export default function UserSettingsPopover(): JSX.Element {
+export default function UserSettingsPopover(): React.ReactNode {
   const [feedbackEnabled, feedbackOverrideURL] = useConfigValue(
     'Feedback.Enable',
     'Feedback.OverrideURL',

@@ -26,7 +26,7 @@ const units: Record<string, DateTimeUnit> = {
 
 export default function AlertMetrics({
   serviceID,
-}: AlertMetricsProps): JSX.Element {
+}: AlertMetricsProps): React.ReactNode {
   const now = useMemo(() => DateTime.now(), [])
 
   const [svc] = useQuery({

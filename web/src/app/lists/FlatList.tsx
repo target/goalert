@@ -89,12 +89,12 @@ const measuringConfig = {
 
 export interface FlatListSub {
   id?: string
-  subHeader: JSX.Element | string
+  subHeader: React.ReactNode | string
 }
 
 export interface FlatListNotice extends Notice {
   id?: string
-  icon?: JSX.Element
+  icon?: React.ReactNode
   transition?: boolean
   handleOnClick?: (event: MouseEvent) => void
   'data-cy'?: string
@@ -103,10 +103,10 @@ export interface FlatListItem extends ListItemProps {
   title?: string
   primaryText?: React.ReactNode
   highlight?: boolean
-  subText?: JSX.Element | string
-  icon?: JSX.Element | null
+  subText?: React.ReactNode | string
+  icon?: React.ReactNode | null
   section?: string | number
-  secondaryAction?: JSX.Element | null
+  secondaryAction?: React.ReactNode | null
   url?: string
   id?: string // required for drag and drop functionality
   scrollIntoView?: boolean
@@ -118,8 +118,8 @@ export interface FlatListItem extends ListItemProps {
 
 export interface SectionTitle {
   title: string
-  icon?: JSX.Element | null
-  subText?: JSX.Element | string
+  icon?: React.ReactNode | null
+  subText?: React.ReactNode | string
 }
 
 export type FlatListListItem = FlatListSub | FlatListItem | FlatListNotice
@@ -131,8 +131,8 @@ export interface FlatListProps extends ListProps {
   sections?: SectionTitle[]
 
   // header elements will be displayed at the top of the list.
-  headerNote?: JSX.Element | string | ReactNode // left-aligned
-  headerAction?: JSX.Element // right-aligned
+  headerNote?: React.ReactNode | string | ReactNode // left-aligned
+  headerAction?: React.ReactNode // right-aligned
 
   // emptyMessage will be displayed if there are no items in the list.
   emptyMessage?: string
@@ -163,7 +163,7 @@ export default function FlatList({
   transition,
   collapsable,
   ...listProps
-}: FlatListProps): JSX.Element {
+}: FlatListProps): React.ReactNode {
   const classes = useStyles()
 
   // collapsable sections state
@@ -216,7 +216,7 @@ export default function FlatList({
     }
   }
 
-  function renderEmptyMessage(): JSX.Element {
+  function renderEmptyMessage(): React.ReactNode {
     return (
       <MUIListItem>
         <ListItemText
@@ -231,7 +231,7 @@ export default function FlatList({
     )
   }
 
-  function renderNoticeItem(item: FlatListNotice, idx: number): JSX.Element {
+  function renderNoticeItem(item: FlatListNotice, idx: number): React.ReactNode {
     if (item.handleOnClick) {
       return (
         <ButtonBase
@@ -265,7 +265,7 @@ export default function FlatList({
     )
   }
 
-  function renderSubheaderItem(item: FlatListSub, idx: number): JSX.Element {
+  function renderSubheaderItem(item: FlatListSub, idx: number): React.ReactNode {
     return (
       <ListSubheader key={idx} className={classes.background}>
         <Typography
@@ -280,7 +280,7 @@ export default function FlatList({
     )
   }
 
-  function renderTransitionItems(): JSX.Element[] {
+  function renderTransitionItems(): React.ReactNode[] {
     return items.map((item, idx) => {
       if ('subHeader' in item) {
         return (
@@ -329,11 +329,11 @@ export default function FlatList({
     })
   }
 
-  function renderTransitions(): JSX.Element {
+  function renderTransitions(): React.ReactNode {
     return <TransitionGroup>{renderTransitionItems()}</TransitionGroup>
   }
 
-  function renderItems(): (JSX.Element | undefined)[] | JSX.Element {
+  function renderItems(): (React.ReactNode | undefined)[] | React.ReactNode {
     return items.map((item: FlatListListItem, idx: number) => {
       if ('subHeader' in item) {
         return renderSubheaderItem(item, idx)
@@ -356,7 +356,7 @@ export default function FlatList({
     })
   }
 
-  function renderCollapsableItems(): JSX.Element[] | undefined {
+  function renderCollapsableItems(): React.ReactNode[] | undefined {
     const toggleSection = (section: string): void => {
       if (openSections?.includes(section)) {
         setOpenSections(
@@ -389,11 +389,11 @@ export default function FlatList({
     })
   }
 
-  function renderList(): JSX.Element {
+  function renderList(): React.ReactNode {
     const renderListItems = ():
-      | (JSX.Element | undefined)[]
-      | JSX.Element
-      | JSX.Element[]
+      | (React.ReactNode | undefined)[]
+      | React.ReactNode
+      | React.ReactNode[]
       | undefined => {
       if (transition) return renderTransitions()
       if (collapsable) return renderCollapsableItems()

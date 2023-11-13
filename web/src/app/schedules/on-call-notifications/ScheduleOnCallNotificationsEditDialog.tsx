@@ -15,7 +15,7 @@ interface ScheduleOnCallNotificationsEditDialogProps {
 
 export default function ScheduleOnCallNotificationsEditDialog(
   p: ScheduleOnCallNotificationsEditDialogProps,
-): JSX.Element {
+): React.ReactNode {
   const [value, setValue] = useState<Value | null>(null)
 
   const { q, zone, rules } = useOnCallRulesData(p.scheduleID)

@@ -36,7 +36,7 @@ interface Error {
 export function CreateAlertForm({
   activeStep,
   ...otherProps
-}: CreateAlertFormProps): JSX.Element {
+}: CreateAlertFormProps): React.ReactNode {
   return (
     <FormContainer optionalLabels {...otherProps}>
       {activeStep === 0 && <CreateAlertInfo />}

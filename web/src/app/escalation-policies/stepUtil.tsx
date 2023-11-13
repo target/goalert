@@ -37,7 +37,7 @@ export function renderChips({ targets: _t }: Step): ReactElement {
   const items = targets.map((tgt) => {
     const tgtChip = (
       Chip: ComponentType<{ id: string; label: string }>,
-    ): JSX.Element => <Chip id={tgt.id} label={tgt.name} />
+    ): React.ReactNode => <Chip id={tgt.id} label={tgt.name} />
 
     let chip = null
     switch (tgt.type) {

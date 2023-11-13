@@ -33,14 +33,14 @@ const useStyles = makeStyles({
 })
 
 interface ScheduleCalendarEventWrapperProps {
-  children: JSX.Element
+  children: React.ReactNode
   event: ScheduleCalendarEvent
 }
 
 export default function ScheduleCalendarEventWrapper({
   event,
   children,
-}: ScheduleCalendarEventWrapperProps): JSX.Element {
+}: ScheduleCalendarEventWrapperProps): React.ReactNode {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
 
@@ -83,7 +83,7 @@ export default function ScheduleCalendarEventWrapper({
 
   function renderTempSchedButtons(
     calEvent: TempSchedEvent | TempSchedShiftEvent,
-  ): JSX.Element {
+  ): React.ReactNode {
     if (DateTime.fromJSDate(calEvent.end) <= DateTime.utc()) {
       // no actions on past events
       return <React.Fragment />
@@ -119,7 +119,7 @@ export default function ScheduleCalendarEventWrapper({
     )
   }
 
-  function renderOverrideButtons(calEvent: OverrideEvent): JSX.Element {
+  function renderOverrideButtons(calEvent: OverrideEvent): React.ReactNode {
     return (
       <div className={classes.cardActionContainer}>
         <CardActions
@@ -146,7 +146,7 @@ export default function ScheduleCalendarEventWrapper({
     )
   }
 
-  function renderShiftButtons(calEvent: OnCallShiftEvent): JSX.Element {
+  function renderShiftButtons(calEvent: OnCallShiftEvent): React.ReactNode {
     return (
       <React.Fragment>
         <Grid item className={classes.flexGrow} />
@@ -165,7 +165,7 @@ export default function ScheduleCalendarEventWrapper({
     )
   }
 
-  function renderButtons(): JSX.Element {
+  function renderButtons(): React.ReactNode {
     if (DateTime.fromJSDate(event.end) <= DateTime.utc())
       return <React.Fragment />
     if (event.type === 'tempSched')
@@ -178,8 +178,8 @@ export default function ScheduleCalendarEventWrapper({
     return renderShiftButtons(event as OnCallShiftEvent)
   }
 
-  function renderOverrideDescription(calEvent: OverrideEvent): JSX.Element {
-    const getDesc = (addUser?: User, removeUser?: User): JSX.Element => {
+  function renderOverrideDescription(calEvent: OverrideEvent): React.ReactNode {
+    const getDesc = (addUser?: User, removeUser?: User): React.ReactNode => {
       if (addUser && removeUser)
         return (
           <React.Fragment>
@@ -220,7 +220,7 @@ export default function ScheduleCalendarEventWrapper({
    * the full shift start and end date times, as
    * well as the controls relevant to the event.
    */
-  function renderShiftInfo(): JSX.Element {
+  function renderShiftInfo(): React.ReactNode {
     const fmt = (date: Date): string =>
       DateTime.fromJSDate(date).toLocaleString(DateTime.DATETIME_FULL)
 

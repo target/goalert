@@ -14,7 +14,7 @@ import { ISODateTimePicker } from '../../util/ISOPickers'
 import { useURLParams, useResetURLParams } from '../../actions'
 import { DateTime } from 'luxon'
 
-export default function AlertCountControls(): JSX.Element {
+export default function AlertCountControls(): React.ReactNode {
   const now = useMemo(() => DateTime.now(), [])
   const [params, setParams] = useURLParams({
     createdAfter: now.minus({ days: 1 }).toISO(),

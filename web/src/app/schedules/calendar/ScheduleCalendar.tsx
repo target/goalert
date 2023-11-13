@@ -122,7 +122,7 @@ interface ScheduleCalendarProps {
   loading: boolean
 }
 
-function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
+function ScheduleCalendar(props: ScheduleCalendarProps): React.ReactNode {
   const classes = useStyles()
   const theme = useTheme()
 
@@ -187,7 +187,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
     }
   }
 
-  const getOverrideTitle = (o: UserOverride): JSX.Element => {
+  const getOverrideTitle = (o: UserOverride): React.ReactNode => {
     if (o.addUser && o.removeUser) {
       // replace override
       return (

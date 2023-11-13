@@ -24,7 +24,7 @@ const serviceQuery = gql`
 
 type WithID<T> = { id: string } & T
 
-export function ServiceChip(props: WithID<ChipProps>): JSX.Element {
+export function ServiceChip(props: WithID<ChipProps>): React.ReactNode {
   const { id, label, ...rest } = props
   const [, navigate] = useLocation()
 
@@ -55,7 +55,7 @@ export function ServiceChip(props: WithID<ChipProps>): JSX.Element {
   )
 }
 
-export function UserChip(props: WithID<ChipProps>): JSX.Element {
+export function UserChip(props: WithID<ChipProps>): React.ReactNode {
   const { id, ...rest } = props
   const [, navigate] = useLocation()
 
@@ -69,7 +69,7 @@ export function UserChip(props: WithID<ChipProps>): JSX.Element {
   )
 }
 
-export function RotationChip(props: WithID<ChipProps>): JSX.Element {
+export function RotationChip(props: WithID<ChipProps>): React.ReactNode {
   const { id, ...rest } = props
   const [, navigate] = useLocation()
 
@@ -87,7 +87,7 @@ export function RotationChip(props: WithID<ChipProps>): JSX.Element {
   )
 }
 
-export function ScheduleChip(props: WithID<ChipProps>): JSX.Element {
+export function ScheduleChip(props: WithID<ChipProps>): React.ReactNode {
   const { id, ...rest } = props
   const [, navigate] = useLocation()
 
@@ -105,7 +105,7 @@ export function ScheduleChip(props: WithID<ChipProps>): JSX.Element {
   )
 }
 
-export function SlackChip(props: WithID<ChipProps>): JSX.Element {
+export function SlackChip(props: WithID<ChipProps>): React.ReactNode {
   const { id: channelID, ...rest } = props
 
   const query = gql`
@@ -150,7 +150,7 @@ export function SlackChip(props: WithID<ChipProps>): JSX.Element {
   )
 }
 
-export function WebhookChip(props: WithID<ChipProps>): JSX.Element {
+export function WebhookChip(props: WithID<ChipProps>): React.ReactNode {
   const { id: urlStr, ...rest } = props
 
   const url = new URL(urlStr)

@@ -61,7 +61,7 @@ interface QuerySetFavoriteButtonProps {
 export function QuerySetFavoriteButton({
   id,
   type,
-}: QuerySetFavoriteButtonProps): JSX.Element {
+}: QuerySetFavoriteButtonProps): React.ReactNode {
   const { data, loading } = useQuery(queries[type], {
     variables: { id },
   })

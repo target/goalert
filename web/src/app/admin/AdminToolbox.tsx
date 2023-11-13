@@ -20,7 +20,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-export default function AdminToolbox(): JSX.Element {
+export default function AdminToolbox(): React.ReactNode {
   const classes = useStyles()
 
   return (

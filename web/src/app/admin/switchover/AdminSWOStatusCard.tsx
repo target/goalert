@@ -16,7 +16,7 @@ import LoadingButton from '@mui/lab/LoadingButton'
 import { toTitle } from './util'
 import { AdminSwitchoverGuideButton } from './AdminSwitchoverGuide'
 
-function getIcon(data: SWOStatus): JSX.Element {
+function getIcon(data: SWOStatus): React.ReactNode {
   const i: SvgIconProps = { color: 'primary', sx: { fontSize: '3.5rem' } }
 
   if (data.lastError) {
@@ -61,7 +61,7 @@ type AdminSWOStatusCardProps = {
 
 export function AdminSWOStatusCard(
   props: AdminSWOStatusCardProps,
-): JSX.Element {
+): React.ReactNode {
   const theme = useTheme()
 
   // We track this separately so we can wait for a NEW status without

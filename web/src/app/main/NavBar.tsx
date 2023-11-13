@@ -39,7 +39,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-export default function NavBar(): JSX.Element {
+export default function NavBar(): React.ReactNode {
   const classes = useStyles()
   const theme = useTheme()
 

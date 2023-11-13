@@ -18,7 +18,7 @@ export type ScheduleOnCallNotificationsListProps = {
   scheduleID: string
 }
 
-function getChannelIcon(targetType: string): JSX.Element {
+function getChannelIcon(targetType: string): React.ReactNode {
   if (targetType === 'slackUserGroup' || targetType === 'slackChannel') {
     return <SlackBW />
   }
@@ -30,7 +30,7 @@ function getChannelIcon(targetType: string): JSX.Element {
 
 export default function ScheduleOnCallNotificationsList({
   scheduleID,
-}: ScheduleOnCallNotificationsListProps): JSX.Element {
+}: ScheduleOnCallNotificationsListProps): React.ReactNode {
   const [createRule, setCreateRule] = useState(false)
   const [editRuleID, setEditRuleID] = useState('')
   const [deleteRuleID, setDeleteRuleID] = useState('')

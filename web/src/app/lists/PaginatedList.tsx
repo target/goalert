@@ -34,7 +34,7 @@ const useStyles = makeStyles(() => ({
   },
 }))
 
-function LoadingItem(props: { dense?: boolean }): JSX.Element {
+function LoadingItem(props: { dense?: boolean }): React.ReactNode {
   return (
     <ListItem dense={props.dense}>
       <Skeleton variant='rectangular' animation='wave' width='100%'>
@@ -77,7 +77,7 @@ export interface PaginatedListItemProps {
   selected?: boolean
 }
 
-export function PaginatedList(props: PaginatedListProps): JSX.Element {
+export function PaginatedList(props: PaginatedListProps): React.ReactNode {
   const {
     items = [],
     itemsPerPage = ITEMS_PER_PAGE,

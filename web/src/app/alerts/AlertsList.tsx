@@ -106,7 +106,7 @@ function getStatusFilter(s: string): string[] {
   }
 }
 
-export default function AlertsList(props: AlertsListProps): JSX.Element {
+export default function AlertsList(props: AlertsListProps): React.ReactNode {
   const classes = useStyles()
 
   // event sent to Google Analytics

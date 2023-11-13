@@ -47,7 +47,7 @@ const renderCrumb = (
   index: number,
   title: string,
   link?: string,
-): JSX.Element => {
+): React.ReactNode => {
   const text = (
     <Typography
       data-cy={`breadcrumb-${index}`}
@@ -116,11 +116,11 @@ function useName(type = '', id = ''): string {
   return toTitleCase(isUUID ? typeMap[type] ?? type : id)
 }
 
-function useBreadcrumbs(): [string, JSX.Element[] | JSX.Element] {
+function useBreadcrumbs(): [string, React.ReactNode[] | React.ReactNode] {
   const [path] = useLocation()
 
   let title = ''
-  const crumbs: Array<JSX.Element> = []
+  const crumbs: Array<React.ReactNode> = []
   const parts = path.split('/')
   const name = useName(parts[1], parts[2])
   parts.slice(1).forEach((part, i) => {
@@ -150,7 +150,7 @@ function useBreadcrumbs(): [string, JSX.Element[] | JSX.Element] {
   return [title, crumbs]
 }
 
-export default function ToolbarPageTitle(): JSX.Element {
+export default function ToolbarPageTitle(): React.ReactNode {
   const [title, crumbs] = useBreadcrumbs()
   const [applicationName] = useConfigValue('General.ApplicationName')
   const isMobile = useIsWidthDown('md')

@@ -65,7 +65,7 @@ function inputVars(
 
 export default function ServiceCreateDialog(props: {
   onClose: () => void
-}): JSX.Element {
+}): React.ReactNode {
   const [value, setValue] = useState<Value>({
     name: '',
     description: '',

@@ -33,7 +33,7 @@ interface CreateFabProps extends Omit<FabProps, 'children'> {
   transition?: boolean
 }
 
-export default function CreateFAB(props: CreateFabProps): JSX.Element {
+export default function CreateFAB(props: CreateFabProps): React.ReactNode {
   const { title, transition, ...fabProps } = props
   const classes = useStyles()
 

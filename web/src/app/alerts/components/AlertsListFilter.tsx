@@ -42,7 +42,7 @@ interface AlertsListFilterProps {
   serviceID: string
 }
 
-function AlertsListFilter(props: AlertsListFilterProps): JSX.Element {
+function AlertsListFilter(props: AlertsListFilterProps): React.ReactNode {
   const classes = useStyles()
   const [show, setShow] = useState(false)
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
@@ -72,7 +72,7 @@ function AlertsListFilter(props: AlertsListFilterProps): JSX.Element {
     setShow(false)
   }
 
-  function renderFilters(): JSX.Element {
+  function renderFilters(): React.ReactNode {
     let favoritesFilter = null
     if (!props.serviceID) {
       favoritesFilter = (
