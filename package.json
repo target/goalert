@@ -35,7 +35,7 @@
     "@babel/plugin-transform-modules-commonjs": "7.23.0",
     "@dnd-kit/core": "6.0.8",
     "@dnd-kit/sortable": "7.0.2",
-    "@dnd-kit/utilities": "3.2.1",
+    "@dnd-kit/utilities": "3.2.2",
     "@emotion/react": "11.11.1",
     "@emotion/styled": "11.11.0",
     "@material/material-color-utilities": "0.2.7",
