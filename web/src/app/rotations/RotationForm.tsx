@@ -77,7 +77,9 @@ const sameAsLocal = (t: string, z: string): boolean => {
   return inZone.toFormat('Z') === inLocal.toFormat('Z')
 }
 
-export default function RotationForm(props: RotationFormProps): React.ReactNode {
+export default function RotationForm(
+  props: RotationFormProps,
+): React.ReactNode {
   const { value } = props
   const classes = useStyles()
 

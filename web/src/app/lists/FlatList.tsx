@@ -231,7 +231,10 @@ export default function FlatList({
     )
   }
 
-  function renderNoticeItem(item: FlatListNotice, idx: number): React.ReactNode {
+  function renderNoticeItem(
+    item: FlatListNotice,
+    idx: number,
+  ): React.ReactNode {
     if (item.handleOnClick) {
       return (
         <ButtonBase
@@ -265,7 +268,10 @@ export default function FlatList({
     )
   }
 
-  function renderSubheaderItem(item: FlatListSub, idx: number): React.ReactNode {
+  function renderSubheaderItem(
+    item: FlatListSub,
+    idx: number,
+  ): React.ReactNode {
     return (
       <ListSubheader key={idx} className={classes.background}>
         <Typography

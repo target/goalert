@@ -31,7 +31,9 @@ export interface FlatListItemProps extends MUIListItemProps {
   index: number
 }
 
-export default function FlatListItem(props: FlatListItemProps): React.ReactNode {
+export default function FlatListItem(
+  props: FlatListItemProps,
+): React.ReactNode {
   const classes = useStyles()
 
   const {

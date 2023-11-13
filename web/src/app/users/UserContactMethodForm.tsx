@@ -99,7 +99,10 @@ function renderSlackField(edit: boolean): React.ReactNode {
   )
 }
 
-function renderTypeField(type: ContactMethodType, edit: boolean): React.ReactNode {
+function renderTypeField(
+  type: ContactMethodType,
+  edit: boolean,
+): React.ReactNode {
   switch (type) {
     case 'SMS':
     case 'VOICE':

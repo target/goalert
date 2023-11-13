@@ -20,7 +20,9 @@ export function sortDisableableMenuItems(
 
 // the parent Form element is looking for the value prop, which doesn't exist on
 // the base Tooltip.
-const MenuTooltip = (props: TooltipProps & { value: string }): React.ReactNode => {
+const MenuTooltip = (
+  props: TooltipProps & { value: string },
+): React.ReactNode => {
   return <Tooltip {...props}>{props.children}</Tooltip>
 }
 

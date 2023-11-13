@@ -43,7 +43,10 @@ export type NavBarSubLinkProps = {
   to: string
   title: string
 }
-export function NavBarSubLink({ to, title }: NavBarSubLinkProps): React.ReactNode {
+export function NavBarSubLink({
+  to,
+  title,
+}: NavBarSubLinkProps): React.ReactNode {
   const { navSelected, nav, subMenuLinkText } = useStyles()
   const [path] = useLocation()
   return (

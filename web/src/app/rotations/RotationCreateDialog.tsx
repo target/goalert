@@ -21,7 +21,9 @@ const mutation = gql`
   }
 `
 
-const RotationCreateDialog = (props: { onClose?: () => void }): React.ReactNode => {
+const RotationCreateDialog = (props: {
+  onClose?: () => void
+}): React.ReactNode => {
   const [value, setValue] = useState<CreateRotationInput>({
     name: '',
     description: '',

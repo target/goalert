@@ -17,7 +17,9 @@ const mutation = gql`
   }
 `
 
-function PolicyStepEditDialog(props: PolicyStepEditDialogProps): React.ReactNode {
+function PolicyStepEditDialog(
+  props: PolicyStepEditDialogProps,
+): React.ReactNode {
   const [value, setValue] = useState<UpdateEscalationPolicyStepInput | null>(
     null,
   )

@@ -30,7 +30,9 @@ interface AlertFeedbackProps {
 
 export const options = ['False positive', 'Not actionable', 'Poor details']
 
-export default function AlertFeedback(props: AlertFeedbackProps): React.ReactNode {
+export default function AlertFeedback(
+  props: AlertFeedbackProps,
+): React.ReactNode {
   const { alertID } = props
 
   const [{ data }] = useQuery({

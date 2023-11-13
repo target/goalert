@@ -86,7 +86,9 @@ const updateStatusMutation = gql`
   }
 `
 
-export default function AlertDetails(props: AlertDetailsProps): React.ReactNode {
+export default function AlertDetails(
+  props: AlertDetailsProps,
+): React.ReactNode {
   const [analyticsID] = useConfigValue('General.GoogleAnalyticsID') as [string]
   const classes = useStyles()
   const isMobile = useIsWidthDown('sm')
