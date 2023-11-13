@@ -22,7 +22,7 @@ interface CustomDotProps extends DotProps {
   }
 }
 
-const CustomDot = (props: CustomDotProps): React.ReactNode => {
+const CustomDot = (props: CustomDotProps): React.ReactElement => {
   const { cy, cx, fill, r, stroke, strokeWidth, dataKey, payload } = props
   return (
     <circle

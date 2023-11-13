@@ -235,7 +235,9 @@ export default function ControlledPaginatedList(
     )
   }
 
-  function getItemIcon(item: CheckboxItemsProps): React.ReactNode | undefined {
+  function getItemIcon(
+    item: CheckboxItemsProps,
+  ): React.ReactElement | undefined {
     if (!checkboxActions) return item.icon
 
     const checked = checkedItems.includes(item.id)

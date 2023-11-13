@@ -33,7 +33,7 @@ const useStyles = makeStyles({
 })
 
 interface ScheduleCalendarEventWrapperProps {
-  children: React.ReactNode
+  children: React.ReactElement
   event: ScheduleCalendarEvent
 }
 

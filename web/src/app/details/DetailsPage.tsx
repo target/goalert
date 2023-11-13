@@ -21,7 +21,7 @@ interface DetailsPageProps {
   title: string
 
   // optional content
-  avatar?: React.ReactNode // placement for an icon or image
+  avatar?: React.ReactElement // placement for an icon or image
   subheader?: string | React.ReactNode
   details?: string
   notices?: Array<Notice> | React.ReactNode

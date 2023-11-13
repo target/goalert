@@ -43,7 +43,12 @@ export default function CardActions(p: CardActionProps): React.ReactNode {
     key: string,
     secondary?: boolean,
   ): React.ReactNode => {
-    if ('label' in action && 'handleOnClick' in action) {
+    if (
+      action &&
+      typeof action === 'object' &&
+      'label' in action &&
+      'handleOnClick' in action
+    ) {
       return <Action key={key} action={action} secondary={secondary} />
     }
     return action
