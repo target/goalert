@@ -267,10 +267,10 @@ function testAdmin(): void {
         day: 'numeric',
       })
 
-      cy.get(`.recharts-line-dots circle[value=1]`).trigger('mouseover')
+      cy.get(`.recharts-line-dots circle[value=1]`).trigger('click')
       cy.get('[data-cy=message-log-tooltip]')
         .should('contain', now)
-        .should('contain', debugMessage.userName + ': 1')
+        .should('contain', 'Count: 1')
 
       cy.get('[data-cy="paginated-list"]').as('list')
       cy.get('@list').should('have.length', 1)
@@ -308,7 +308,7 @@ function testAdmin(): void {
         'contain.text',
         'Test Service',
       )
-      cy.get(`.recharts-line-dots circle[value=1]`).trigger('mouseover')
+      cy.get(`.recharts-line-dots circle[value=1]`).trigger('click')
       cy.get('[data-cy=message-log-tooltip]')
         .should('contain', now)
         .should('contain', 'Test Service: 1')
@@ -328,7 +328,7 @@ function testAdmin(): void {
         'contain.text',
         'Test User',
       )
-      cy.get(`.recharts-line-dots circle[value=1]`).trigger('mouseover', {
+      cy.get(`.recharts-line-dots circle[value=1]`).trigger('click', {
         force: true,
       })
       cy.get('[data-cy=message-log-tooltip]')
