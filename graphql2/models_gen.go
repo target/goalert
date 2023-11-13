@@ -92,6 +92,13 @@ type ClearTemporarySchedulesInput struct {
 	End        time.Time `json:"end"`
 }
 
+type CloseMatchingAlertInput struct {
+	ServiceID string  `json:"serviceID"`
+	Summary   *string `json:"summary,omitempty"`
+	Details   *string `json:"details,omitempty"`
+	Dedup     *string `json:"dedup,omitempty"`
+}
+
 type ConfigHint struct {
 	ID    string `json:"id"`
 	Value string `json:"value"`
@@ -116,6 +123,7 @@ type CreateAlertInput struct {
 	Details   *string `json:"details,omitempty"`
 	ServiceID string  `json:"serviceID"`
 	Sanitize  *bool   `json:"sanitize,omitempty"`
+	Dedup     *string `json:"dedup,omitempty"`
 }
 
 type CreateBasicAuthInput struct {

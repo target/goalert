@@ -68,12 +68,15 @@ function AdminDialog(props: AdminDialogProps): JSX.Element {
       title={`Apply Configuration Change${changes.length > 1 ? 's' : ''}?`}
       onClose={props.onClose}
       onSubmit={() =>
-        commit({
-          input: changes.map((c: { value: string; type: string }) => {
-            c.value = c.value === '' && c.type === 'number' ? '0' : c.value
-            return omit(c, ['oldValue', 'type'])
-          }),
-        }).then((res) => {
+        commit(
+          {
+            input: changes.map((c: { value: string; type: string }) => {
+              c.value = c.value === '' && c.type === 'number' ? '0' : c.value
+              return omit(c, ['oldValue', 'type'])
+            }),
+          },
+          { additionalTypenames: ['ConfigValue', 'SystemLimit'] },
+        ).then((res) => {
           if (res.error) return
 
           if (props.onComplete) props.onComplete()

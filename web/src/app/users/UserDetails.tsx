@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { useQuery, gql } from 'urql'
+import React, { Suspense, useState, useMemo } from 'react'
+import { useQuery, gql, OperationContext } from 'urql'
 import Delete from '@mui/icons-material/Delete'
 import LockOpenIcon from '@mui/icons-material/LockOpen'
 import DetailsPage from '../details/DetailsPage'
@@ -73,6 +73,15 @@ const profileQuery = gql`
   }
 `
 
+export function useSuspenseContext(): Partial<OperationContext> {
+  return useMemo(
+    () => ({
+      suspense: true,
+    }),
+    [],
+  )
+}
+
 function serviceCount(onCallSteps: EscalationPolicyStep[] = []): number {
   const svcs: { [Key: string]: boolean } = {}
   ;(onCallSteps || []).forEach((s) =>
@@ -107,6 +116,7 @@ export default function UserDetails(props: {
     query: isAdmin || userID === currentUserID ? profileQuery : userQuery,
     variables: { id: userID },
     pause: !userID,
+    context: useSuspenseContext(),
   })
 
   const loading = !isSessionReady || isQueryLoading
@@ -234,22 +244,27 @@ export default function UserDetails(props: {
           onClose={() => setCreateNR(false)}
         />
       )}
-      <DetailsPage
-        avatar={<UserAvatar userID={userID} />}
-        title={user.name + (svcCount ? ' (On-Call)' : '')}
-        subheader={user.email}
-        pageContent={
-          <Grid container spacing={2}>
-            <UserContactMethodList userID={userID} readOnly={props.readOnly} />
-            <UserNotificationRuleList
-              userID={userID}
-              readOnly={props.readOnly}
-            />
-          </Grid>
-        }
-        secondaryActions={options}
-        links={links}
-      />
+      <Suspense fallback={<Spinner />}>
+        <DetailsPage
+          avatar={<UserAvatar userID={userID} />}
+          title={user.name + (svcCount ? ' (On-Call)' : '')}
+          subheader={user.email}
+          pageContent={
+            <Grid container spacing={2}>
+              <UserContactMethodList
+                userID={userID}
+                readOnly={props.readOnly}
+              />
+              <UserNotificationRuleList
+                userID={userID}
+                readOnly={props.readOnly}
+              />
+            </Grid>
+          }
+          secondaryActions={options}
+          links={links}
+        />
+      </Suspense>
     </React.Fragment>
   )
 }

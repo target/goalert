@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useQuery, gql } from '@apollo/client'
+import { useQuery, gql } from 'urql'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import Divider from '@mui/material/Divider'
@@ -87,13 +87,13 @@ export default function AdminConfig(): JSX.Element {
   const [values, setValues] = useState({})
   const [section, setSection] = useState(false as false | string)
 
-  const { data, loading, error } = useQuery(query)
+  const [{ data, fetching, error }] = useQuery({ query })
 
   if (error) {
     return <GenericError error={error.message} />
   }
 
-  if (loading && !data) {
+  if (fetching && !data) {
     return <Spinner />
   }
 

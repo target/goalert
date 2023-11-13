@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { gql, useQuery } from '@apollo/client'
+import React, { useState, ReactNode } from 'react'
+import { gql, useQuery } from 'urql'
 import FlatList from '../lists/FlatList'
 import { Button, Card, CardHeader, Grid, IconButton } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
@@ -12,7 +12,6 @@ import UserContactMethodEditDialog from './UserContactMethodEditDialog'
 import { Warning } from '../icons'
 import UserContactMethodVerificationDialog from './UserContactMethodVerificationDialog'
 import { useIsWidthDown } from '../util/useWidth'
-import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import SendTestDialog from './SendTestDialog'
 import AppLink from '../util/AppLink'
@@ -20,6 +19,7 @@ import { styles as globalStyles } from '../styles/materialStyles'
 import { UserContactMethod } from '../../schema'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
 import { useSessionInfo } from '../util/RequireConfig'
+import { useSuspenseContext } from './UserDetails'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -56,7 +56,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 export default function UserContactMethodList(
   props: UserContactMethodListProps,
-): JSX.Element {
+): ReactNode {
   const classes = useStyles()
   const mobile = useIsWidthDown('md')
 
@@ -66,16 +66,18 @@ export default function UserContactMethodList(
   const [showDeleteDialogByID, setShowDeleteDialogByID] = useState('')
   const [showSendTestByID, setShowSendTestByID] = useState('')
 
-  const { loading, error, data } = useQuery(query, {
+  const [{ fetching, error, data }] = useQuery({
+    query,
     variables: {
       id: props.userID,
     },
+    context: useSuspenseContext(),
   })
 
   const { userID: currentUserID } = useSessionInfo()
   const isCurrentUser = props.userID === currentUserID
 
-  if (loading && !data) return <Spinner />
+  if (fetching && !data) return null
   if (data && !data.user) return <ObjectNotFound type='user' />
   if (error) return <GenericError error={error.message} />
 
