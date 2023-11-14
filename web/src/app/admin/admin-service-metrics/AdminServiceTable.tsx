@@ -66,7 +66,7 @@ export default function AdminServiceTable(
     return {
       hasEPSteps: !!targets.length,
       hasIntegrations:
-        !!service.integrationKeys.length && !!service.heartbeatMonitors.length,
+        !(!service.integrationKeys.length && !service.heartbeatMonitors.length),
       hasNotices: !!service.notices.length,
       inMaintenance: !!service.maintenanceExpiresAt,
       hasStaleAlerts: staleAlertServices[service.name] > 0,
