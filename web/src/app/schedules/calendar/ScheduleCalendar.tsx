@@ -384,11 +384,7 @@ function ScheduleCalendar(props: ScheduleCalendarProps): JSX.Element {
             onView={() => {}} // stub to hide false console err
             components={{
               // @ts-expect-error Property 'children' does not exist on type - yes it does
-              eventWrapper: ({ children, event }) => (
-                <ScheduleCalendarEventWrapper event={event}>
-                  {children}
-                </ScheduleCalendarEventWrapper>
-              ),
+              eventWrapper: ScheduleCalendarEventWrapper,
               toolbar: () => null,
             }}
           />

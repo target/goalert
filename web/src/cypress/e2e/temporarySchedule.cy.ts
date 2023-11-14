@@ -112,9 +112,7 @@ function testTemporarySchedule(screen: string): void {
       cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
       cy.get(
         '[data-cy="shifts-list"] li [data-cy="delete shift index: 0"]',
-      ).click({
-        force: true,
-      }) // delete
+      ).click() // delete
       cy.get('[data-cy="shifts-list"]').should(
         'not.contain',
         graphQLAddUser.name,
@@ -158,9 +156,7 @@ function testTemporarySchedule(screen: string): void {
       cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
       cy.get(
         '[data-cy="shifts-list"] li [data-cy="delete shift index: 0"]',
-      ).click({
-        force: true,
-      }) // delete
+      ).click() // delete
       cy.get('[data-cy="shifts-list"]').should(
         'not.contain',
         graphQLAddUser.name,
