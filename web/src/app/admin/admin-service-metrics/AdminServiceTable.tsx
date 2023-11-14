@@ -63,11 +63,12 @@ export default function AdminServiceTable(
       })
     }
 
+    const intKeys = service.integrationKeys
+    const hbMonitors = service.heartbeatMonitors
+
     return {
       hasEPSteps: !!targets.length,
-      hasIntegrations: !(
-        !service.integrationKeys.length && !service.heartbeatMonitors.length
-      ),
+      hasIntegrations: !(!intKeys.length && !hbMonitors.length),
       hasNotices: !!service.notices.length,
       inMaintenance: !!service.maintenanceExpiresAt,
       hasStaleAlerts: staleAlertServices[service.name] > 0,
