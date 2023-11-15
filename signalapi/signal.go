@@ -238,7 +238,7 @@ func buildOutgoingAlertPayload(action rule.Action, incomingPayload map[string]in
 	return sigAlert, nil
 }
 
-func InjectTemplateValues(tmplStr string, data map[string]interface{}) (string, error) {
+func injectTemplateValues(tmplStr string, data map[string]interface{}) (string, error) {
 	tmpl, err := template.New("").Parse(tmplStr)
 	if err != nil {
 		return "", err
