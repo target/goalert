@@ -88,11 +88,20 @@ export default function TempSchedShiftsList({
     )
   }
 
-  const schedInterval = parseInterval({ start, end }, zone)
-
   function items(): FlatListListItem[] {
+    if (start > end) {
+      return [
+        {
+          id: 'invalid-sched-interval',
+          type: 'ERROR',
+          message: 'Invalid Start/End',
+          details: 'Start date cannot be after end date',
+        },
+      ]
+    }
+
     // render helpful message if interval is invalid
-    // shouldn't ever be seen because of our validation checks, but just in case
+    const schedInterval = parseInterval({ start, end }, zone)
     if (!schedInterval.isValid) {
       return [
         {
@@ -100,7 +109,8 @@ export default function TempSchedShiftsList({
           type: 'ERROR',
           message: 'Invalid Start/End',
           details:
-            'Oops! There was a problem with the interval selected for your temporary schedule. Please try again.',
+            schedInterval.invalidExplanation ||
+            'Oops! There was a problem with the interval selected. Please try again.',
         },
       ]
     }

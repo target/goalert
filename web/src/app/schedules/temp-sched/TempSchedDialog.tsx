@@ -24,7 +24,6 @@ import TempSchedShiftsList from './TempSchedShiftsList'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { getCoverageGapItems } from './shiftsListUtil'
 import { fmtLocal } from '../../util/timeFormat'
-import { ensureInterval } from '../timeUtil'
 
 const mutation = gql`
   mutation ($input: SetTemporaryScheduleInput!) {
@@ -110,6 +109,7 @@ export default function TempSchedDialog({
         return true
       }),
   })
+  const invalidInterval = value.start > value.end
   const startDT = DateTime.fromISO(value.start, { zone })
   const [shift, setShift] = useState<Shift>({
     start: startDT.toISO(),
@@ -128,7 +128,7 @@ export default function TempSchedDialog({
   }
 
   const hasInvalidShift = (() => {
-    if (q.loading) return false
+    if (q.loading || invalidInterval) return false
     const schedInterval = parseInterval(value, zone)
     return value.shifts.some(
       (s) =>
@@ -165,7 +165,7 @@ export default function TempSchedDialog({
   }
 
   const hasCoverageGaps = (() => {
-    if (q.loading) return false
+    if (q.loading || invalidInterval) return false
     const schedInterval = parseInterval(value, zone)
     return (
       getCoverageGapItems(
@@ -260,7 +260,7 @@ export default function TempSchedDialog({
           disabled={loading}
           value={value}
           onChange={(newValue: TempSchedValue) => {
-            setValue({ ...value, ...ensureInterval(value, newValue) })
+            setValue({ ...value, ...newValue })
           }}
         >
           <Grid
