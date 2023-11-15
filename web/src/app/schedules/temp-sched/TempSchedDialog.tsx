@@ -18,7 +18,7 @@ import FormDialog from '../../dialogs/FormDialog'
 import { contentText, dtToDuration, Shift, TempSchedValue } from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
 import TempSchedAddNewShift from './TempSchedAddNewShift'
-import { isISOAfter, parseInterval } from '../../util/shifts'
+import { parseInterval } from '../../util/shifts'
 import { useScheduleTZ } from '../useScheduleTZ'
 import TempSchedShiftsList from './TempSchedShiftsList'
 import { ISODateTimePicker } from '../../util/ISOPickers'
@@ -120,13 +120,6 @@ export default function TempSchedDialog({
   const [allowNoCoverage, setAllowNoCoverage] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(false)
 
-  function validate(): Error | null {
-    if (isISOAfter(value.start, value.end)) {
-      return new Error('Start date/time cannot be after end date/time.')
-    }
-    return null
-  }
-
   const hasInvalidShift = (() => {
     if (q.loading || invalidInterval) return false
     const schedInterval = parseInterval(value, zone)
@@ -167,6 +160,7 @@ export default function TempSchedDialog({
   const hasCoverageGaps = (() => {
     if (q.loading || invalidInterval) return false
     const schedInterval = parseInterval(value, zone)
+    if (schedInterval.length('days') > 365) return false
     return (
       getCoverageGapItems(
         schedInterval,
@@ -260,6 +254,7 @@ export default function TempSchedDialog({
           disabled={loading}
           value={value}
           onChange={(newValue: TempSchedValue) => {
+            console.log('on change called')
             setValue({ ...value, ...newValue })
           }}
         >
@@ -297,11 +292,6 @@ export default function TempSchedDialog({
                   required
                   name='start'
                   label='Schedule Start'
-                  min={now}
-                  max={DateTime.fromISO(now, { zone })
-                    .plus({ year: 1 })
-                    .toISO()}
-                  validate={() => validate()}
                   timeZone={zone}
                   disabled={q.loading}
                   hint={isLocalZone ? '' : fmtLocal(value.start)}
@@ -314,11 +304,6 @@ export default function TempSchedDialog({
                   required
                   name='end'
                   label='Schedule End'
-                  min={value.start}
-                  max={DateTime.fromISO(value.start, { zone })
-                    .plus({ month: 3 })
-                    .toISO()}
-                  validate={() => validate()}
                   timeZone={zone}
                   disabled={q.loading}
                   hint={isLocalZone ? '' : fmtLocal(value.end)}

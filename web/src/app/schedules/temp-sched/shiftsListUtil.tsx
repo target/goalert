@@ -32,7 +32,7 @@ export function getSubheaderItems(
   shifts: Shift[],
   zone: ExplicitZone,
 ): Sortable<FlatListSub>[] {
-  if (!schedInterval.isValid) {
+  if (!schedInterval.isValid || schedInterval.length('year') > 1) {
     return []
   }
 
@@ -67,7 +67,7 @@ export function getOutOfBoundsItems(
   shifts: Shift[],
   zone: ExplicitZone,
 ): Sortable<FlatListNotice>[] {
-  if (!schedInterval.isValid) {
+  if (!schedInterval.isValid || schedInterval.length('year') > 1) {
     return []
   }
 
@@ -121,7 +121,7 @@ export function getCoverageGapItems(
   zone: ExplicitZone,
   handleCoverageClick: (coverageGap: Interval) => void,
 ): Sortable<FlatListNotice>[] {
-  if (!schedInterval.isValid) {
+  if (!schedInterval.isValid || schedInterval.length('year') > 1) {
     return []
   }
   const shiftIntervals = shifts.map((s) => parseInterval(s, zone))
