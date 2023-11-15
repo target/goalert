@@ -207,7 +207,7 @@ func applyTemplateOrDefault(fieldName string, action rule.Action, payload map[st
 	if val == "" {
 		for _, content := range action.Contents {
 			if content.Prop == fieldName {
-				return InjectTemplateValues(content.Value, payload)
+				return injectTemplateValues(content.Value, payload)
 			}
 		}
 	}
