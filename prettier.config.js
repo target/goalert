@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const pluginGoTemplate = require('prettier-plugin-go-template')
+const pluginGoTemplate = require.resolve('prettier-plugin-go-template')
 module.exports = {
   trailingComma: 'all',
   semi: false,
