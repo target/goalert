@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"text/template"
+
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/permission"
@@ -185,41 +187,66 @@ func buildOutgoingPayload(action rule.Action, incomingPayload map[string]interfa
 	return outgoingPayload
 }
 
-func buildOutgoingAlertPayload(action rule.Action, incomingPayload map[string]interface{}) (SignalAlertMapper, error) {
-	var sigAlert SignalAlertMapper
-	if incomingPayload["action"] != nil {
-		val, ok := incomingPayload["action"].(string)
-		if !ok {
-			return sigAlert, fmt.Errorf("Field 'action' is not a string: %s", incomingPayload["action"])
-		}
-		sigAlert.Action = val
+func getStringField(fieldName string, payload map[string]interface{}) (string, error) {
+	value, exists := payload[fieldName]
+	if !exists {
+		return "", nil // or return an error if the field must exist
 	}
-	if incomingPayload["summary"] != nil {
-		val, ok := incomingPayload["summary"].(string)
-		if !ok {
-			return sigAlert, fmt.Errorf("Field 'summary' is not a string: %s", incomingPayload["summary"])
-		}
-		sigAlert.Summary = val
+	strValue, ok := value.(string)
+	if !ok {
+		return "", fmt.Errorf("Field '%s' is not a string: %v", fieldName, value)
 	}
-	if incomingPayload["details"] != nil {
-		val, ok := incomingPayload["details"].(string)
-		if !ok {
-			return sigAlert, fmt.Errorf("Field 'details' is not a string: %s", incomingPayload["details"])
-		}
-		sigAlert.Details = val
-	}
-	if incomingPayload["dedup"] != nil {
-		val, ok := incomingPayload["dedup"].(string)
-		if !ok {
-			return sigAlert, fmt.Errorf("Field 'dedup' is not a string: %s", incomingPayload["dedup"])
-		}
-		sigAlert.Dedup = val
-	}
+	return strValue, nil
+}
 
+func applyTemplateOrDefault(fieldName string, action rule.Action, payload map[string]interface{}) (string, error) {
+	val, err := getStringField(fieldName, payload)
+	if err != nil {
+		return "", err
+	}
+	if val == "" {
+		for _, content := range action.Contents {
+			if content.Prop == fieldName {
+				return injectTemplateValues(content.Value, payload)
+			}
+		}
+	}
+	return val, nil
+}
+
+func buildOutgoingAlertPayload(action rule.Action, incomingPayload map[string]interface{}) (sigAlert SignalAlertMapper, err error) {
+	sigAlert.Action, err = getStringField("action", incomingPayload)
+	if err != nil {
+		return sigAlert, err
+	}
+	sigAlert.Summary, err = applyTemplateOrDefault("summary", action, incomingPayload)
+	if err != nil {
+		return sigAlert, err
+	}
+	sigAlert.Details, err = applyTemplateOrDefault("details", action, incomingPayload)
+	if err != nil {
+		return sigAlert, err
+	}
+	sigAlert.Dedup, err = getStringField("dedup", incomingPayload)
+	if err != nil {
+		return sigAlert, err
+	}
 	sigAlert.Status = alert.StatusTriggered
 	if sigAlert.Action == "close" {
 		sigAlert.Status = alert.StatusClosed
 	}
-
 	return sigAlert, nil
+}
+
+func injectTemplateValues(tmplStr string, data map[string]interface{}) (string, error) {
+	tmpl, err := template.New("").Parse(tmplStr)
+	if err != nil {
+		return "", err
+	}
+	var result strings.Builder
+	err = tmpl.Execute(&result, data)
+	if err != nil {
+		return "", err
+	}
+	return result.String(), nil
 }
