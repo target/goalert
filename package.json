@@ -117,5 +117,13 @@
     "wonka": "6.3.4",
     "wouter": "2.12.1"
   },
-  "packageManager": "yarn@3.6.3"
+  "packageManager": "yarn@3.6.3",
+  "dependenciesMeta": {
+    "prettier@3.0.3": {
+      "unplugged": true
+    },
+    "prettier-plugin-go-template@0.0.15": {
+      "unplugged": true
+    }
+  }
 }

@@ -11387,6 +11387,11 @@ __metadata:
     urql: 4.0.5
     wonka: 6.3.4
     wouter: 2.12.1
+  dependenciesMeta:
+    prettier-plugin-go-template@0.0.15:
+      unplugged: true
+    prettier@3.0.3:
+      unplugged: true
   languageName: unknown
   linkType: soft
 
