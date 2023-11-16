@@ -5,7 +5,6 @@ import { useServices } from './useServices'
 import { useWorker } from '../../worker'
 import { ServiceMetrics } from './useServiceMetrics'
 import AdminServiceTable from './AdminServiceTable'
-import { Theme } from '@mui/material/styles'
 import {
   ErrorOutline,
   WarningAmberOutlined,
@@ -181,7 +180,7 @@ export default function AdminServiceMetrics(): JSX.Element {
     return (
       <React.Fragment>
         <Grid item xs>
-          <Card sx={{ marginTop: (theme: Theme) => theme.spacing(1) }}>
+          <Card sx={{ marginTop: (theme) => theme.spacing(1) }}>
             <CardHeader
               title='Integration Key Usage'
               subheader={
@@ -200,7 +199,7 @@ export default function AdminServiceMetrics(): JSX.Element {
           </Card>
         </Grid>
         <Grid item xs>
-          <Card sx={{ marginTop: (theme: Theme) => theme.spacing(1) }}>
+          <Card sx={{ marginTop: (theme) => theme.spacing(1) }}>
             <CardHeader
               title='Escalation Policy Usage'
               subheader={
@@ -224,7 +223,7 @@ export default function AdminServiceMetrics(): JSX.Element {
 
   function renderServiceTable(): JSX.Element {
     return (
-      <Card sx={{ marginTop: (theme: Theme) => theme.spacing(1) }}>
+      <Card sx={{ marginTop: (theme) => theme.spacing(1) }}>
         <CardHeader title='Services' subheader={cardSubHeader} />
         <CardContent>
           <AdminServiceTable
