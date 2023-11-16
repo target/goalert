@@ -180,7 +180,11 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
               <ListItemText
                 primary='Query'
                 secondary={
-                  <Button variant='text' onClick={() => setShowQuery(true)}>
+                  <Button
+                    variant='outlined'
+                    onClick={() => setShowQuery(true)}
+                    sx={{ mt: 0.5 }}
+                  >
                     Show Query
                   </Button>
                 }

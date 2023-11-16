@@ -4,7 +4,7 @@ import { gql, useQuery } from 'urql'
 import { GenericError } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
 import { GQLAPIKey } from '../../../schema'
-import { Grid, Typography } from '@mui/material'
+import { Grid, useTheme } from '@mui/material'
 import CopyText from '../../util/CopyText'
 
 // query for getting existing API Keys
@@ -22,6 +22,7 @@ export default function AdminAPIKeyShowQueryDialog(props: {
   apiKeyID: string
   onClose: (yes: boolean) => void
 }): JSX.Element {
+  const theme = useTheme()
   const [{ fetching, data, error }] = useQuery({
     query,
   })
@@ -44,16 +45,37 @@ export default function AdminAPIKeyShowQueryDialog(props: {
       }
       loading={fetching}
       form={
-        <Grid item xs={12}>
-          <Typography sx={{ mb: 3 }}>
-            <code>
-              <CopyText
-                title={key.query}
-                value={key.query}
-                placement='bottom'
-              />
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <code
+              style={{
+                fontSize: 'large',
+                color: theme.palette.getContrastText(
+                  theme.palette.secondary.main,
+                ),
+              }}
+            >
+              <pre
+                style={{
+                  backgroundColor: theme.palette.secondary.main,
+                  padding: 12,
+                  borderRadius: 6,
+                }}
+              >
+                {key.query}
+              </pre>
             </code>
-          </Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <CopyText title='Copy Query' value={key.query} placement='bottom' />
+          </Grid>
+          <Grid item xs={12}>
+            <CopyText
+              title='Copy Query (as JSON)'
+              value={JSON.stringify(key.query)}
+              placement='bottom'
+            />
+          </Grid>
         </Grid>
       }
       onClose={onClose}
