@@ -7,6 +7,12 @@ export interface SpanISO {
   end: string
 }
 
+export function checkInterval(s: SpanISO): boolean {
+  if (!s.start || !s.end) return false
+  if (s.end < s.start) return false
+  return true
+}
+
 export function parseInterval(s: SpanISO, zone: ExplicitZone): Interval {
   return Interval.fromDateTimes(
     DateTime.fromISO(s.start, { zone }),

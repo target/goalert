@@ -1,5 +1,5 @@
 import { Notice, TemporarySchedule } from '../../schema'
-import { parseInterval, SpanISO } from '../util/shifts'
+import { checkInterval, parseInterval, SpanISO } from '../util/shifts'
 import { useQuery, gql } from 'urql'
 
 const scheduleQuery = gql`
@@ -34,10 +34,14 @@ export default function useOverrideNotices(
 
   const tempSchedules = data?.schedule?.temporarySchedules
   const zone = data?.schedule?.timeZone
+  if (!checkInterval(value)) {
+    return []
+  }
   const valueInterval = parseInterval(value, zone)
-  const doesOverlap = tempSchedules.some((t: TemporarySchedule) =>
-    parseInterval(t, zone).overlaps(valueInterval),
-  )
+  const doesOverlap = tempSchedules.some((t: TemporarySchedule) => {
+    if (!checkInterval(t)) return false
+    return parseInterval(t, zone).overlaps(valueInterval)
+  })
 
   if (!doesOverlap) {
     return []

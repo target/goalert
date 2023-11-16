@@ -18,7 +18,7 @@ import FormDialog from '../../dialogs/FormDialog'
 import { contentText, dtToDuration, Shift, TempSchedValue } from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
 import TempSchedAddNewShift from './TempSchedAddNewShift'
-import { parseInterval } from '../../util/shifts'
+import { checkInterval, parseInterval } from '../../util/shifts'
 import { useScheduleTZ } from '../useScheduleTZ'
 import TempSchedShiftsList from './TempSchedShiftsList'
 import { ISODateTimePicker } from '../../util/ISOPickers'
@@ -109,7 +109,7 @@ export default function TempSchedDialog({
         return true
       }),
   })
-  const invalidInterval = value.start > value.end
+  const isValidIvl = checkInterval(value)
   const startDT = DateTime.fromISO(value.start, { zone })
   const [shift, setShift] = useState<Shift>({
     start: startDT.toISO(),
@@ -121,8 +121,9 @@ export default function TempSchedDialog({
   const [hasSubmitted, setHasSubmitted] = useState(false)
 
   const hasInvalidShift = (() => {
-    if (q.loading || invalidInterval) return false
+    if (q.loading || !isValidIvl) return false
     const schedInterval = parseInterval(value, zone)
+
     return value.shifts.some(
       (s) =>
         DateTime.fromISO(s.end) > DateTime.fromISO(now) &&
@@ -158,7 +159,7 @@ export default function TempSchedDialog({
   }
 
   const hasCoverageGaps = (() => {
-    if (q.loading || invalidInterval) return false
+    if (q.loading || !isValidIvl) return false
     const schedInterval = parseInterval(value, zone)
     if (schedInterval.length('days') > 365) return false
     return (
@@ -175,8 +176,8 @@ export default function TempSchedDialog({
     onCompleted: () => onClose(),
     variables: {
       input: {
-        start: value.start,
-        end: value.end,
+        start: DateTime.fromISO(value.start),
+        end: DateTime.fromISO(value.end),
         clearStart: value.clearStart,
         clearEnd: value.clearEnd,
         shifts: value.shifts
@@ -254,7 +255,6 @@ export default function TempSchedDialog({
           disabled={loading}
           value={value}
           onChange={(newValue: TempSchedValue) => {
-            console.log('on change called')
             setValue({ ...value, ...newValue })
           }}
         >

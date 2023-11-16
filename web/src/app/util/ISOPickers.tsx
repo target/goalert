@@ -55,45 +55,9 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
     setInputValue(valueAsDT ? valueAsDT.toFormat(format) : '')
   }, [props.value])
 
-  const dtToISO = (dt: DateTime): string => {
-    return dt.startOf(truncateTo).setZone(zone).toISO()
-  }
-
-  // parseInputToISO takes input from the form control and returns a string
-  // ISO value representing the current form value ('' if invalid or empty).
-  function parseInputToISO(input?: string): string {
-    if (!input) return ''
-
-    // handle input in specific format e.g. MM/dd/yyyy
-    const inputAsDT = DateTime.fromFormat(input, format, { zone })
-    if (inputAsDT.isValid) {
-      if (valueAsDT && type === 'time') {
-        return dtToISO(
-          valueAsDT.set({
-            hour: inputAsDT.hour,
-            minute: inputAsDT.minute,
-          }),
-        )
-      }
-      return dtToISO(inputAsDT)
-    }
-
-    // if format string invalid, try validating input as iso string
-    const iso = DateTime.fromISO(input, { zone })
-    if (iso.isValid) return dtToISO(iso)
-
-    return ''
-  }
-
   function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
     setInputValue(e.target.value)
-    const newVal = parseInputToISO(e.target.value)
-
-    // only fire the parent's `onChange` handler when we have a new valid value,
-    // taking care to ensure we ignore any zonal differences.
-    if (!valueAsDT || (newVal && newVal !== valueAsDT.toISO())) {
-      onChange(newVal)
-    }
+    onChange(e.target.value)
   }
 
   const defaultLabel = type === 'time' ? 'Select a time...' : 'Select a date...'
@@ -103,7 +67,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
       label={defaultLabel}
       {...textFieldProps}
       type={type}
-      value={valueAsDT ? valueAsDT.toFormat(format) : inputValue}
+      value={inputValue}
       onChange={handleChange}
       InputLabelProps={{ shrink: true, ...textFieldProps?.InputLabelProps }}
       inputProps={{

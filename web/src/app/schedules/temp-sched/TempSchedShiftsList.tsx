@@ -16,7 +16,7 @@ import FlatList, {
 } from '../../lists/FlatList'
 import { UserAvatar } from '../../util/avatars'
 import { useUserInfo } from '../../util/useUserInfo'
-import { parseInterval } from '../../util/shifts'
+import { checkInterval, parseInterval } from '../../util/shifts'
 import { useScheduleTZ } from '../useScheduleTZ'
 import { CircularProgress } from '@mui/material'
 import { splitAtMidnight } from '../../util/luxon-helpers'
@@ -89,31 +89,18 @@ export default function TempSchedShiftsList({
   }
 
   function items(): FlatListListItem[] {
-    if (start > end) {
+    if (!checkInterval({ start, end })) {
       return [
         {
           id: 'invalid-sched-interval',
           type: 'ERROR',
           message: 'Invalid Start/End',
-          details: 'Start date cannot be after end date',
         },
       ]
     }
 
     // render helpful message if interval is invalid
     const schedInterval = parseInterval({ start, end }, zone)
-    if (!schedInterval.isValid) {
-      return [
-        {
-          id: 'invalid-sched-interval',
-          type: 'ERROR',
-          message: 'Invalid Start/End',
-          details:
-            schedInterval.invalidExplanation ||
-            'Oops! There was a problem with the interval selected. Please try again.',
-        },
-      ]
-    }
 
     const subheaderItems = getSubheaderItems(schedInterval, shifts, zone)
     const coverageGapItems = getCoverageGapItems(
