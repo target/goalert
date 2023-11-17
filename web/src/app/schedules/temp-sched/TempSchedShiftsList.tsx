@@ -102,6 +102,16 @@ export default function TempSchedShiftsList({
     }
 
     const schedInterval = parseInterval({ start, end }, zone)
+    if (schedInterval.length('months') > 6) {
+      return [
+        {
+          id: 'invalid-sched-interval',
+          type: 'ERROR',
+          message: 'Interval Duration Too Long',
+          details: 'Please ensure the date range is less than 6 months.',
+        },
+      ]
+    }
 
     const subheaderItems = getSubheaderItems(schedInterval, shifts, zone)
     const coverageGapItems = getCoverageGapItems(
