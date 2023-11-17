@@ -168,7 +168,7 @@ export default function ServiceRuleCreateDialog(props: {
       maxWidth='sm'
       title='Create New Signal Rule'
       loading={createRuleStatus.fetching}
-      errors={nonFieldErrors(createRuleStatus.error) || error}
+      errors={nonFieldErrors(createRuleStatus.error || error)}
       onClose={onClose}
       onSubmit={() => {
         const validActions = getValidActions(value, data.slackChannels.nodes)
