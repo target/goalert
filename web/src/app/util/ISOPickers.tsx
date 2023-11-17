@@ -57,7 +57,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
     setInputValue(e.target.value)
-    onChange(e.target.value)
+    onChange(DateTime.fromISO(e.target.value).toISO())
   }
 
   const defaultLabel = type === 'time' ? 'Select a time...' : 'Select a date...'

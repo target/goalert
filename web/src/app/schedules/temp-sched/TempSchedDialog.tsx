@@ -176,8 +176,8 @@ export default function TempSchedDialog({
     onCompleted: () => onClose(),
     variables: {
       input: {
-        start: DateTime.fromISO(value.start),
-        end: DateTime.fromISO(value.end),
+        start: value.start,
+        end: value.end,
         clearStart: value.clearStart,
         clearEnd: value.clearEnd,
         shifts: value.shifts
