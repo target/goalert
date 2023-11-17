@@ -89,17 +89,18 @@ export default function TempSchedShiftsList({
   }
 
   function items(): FlatListListItem[] {
+    // render helpful message if interval is invalid
     if (!checkInterval({ start, end })) {
       return [
         {
           id: 'invalid-sched-interval',
           type: 'ERROR',
           message: 'Invalid Start/End',
+          details: 'Please ensure the start date is before the end date.',
         },
       ]
     }
 
-    // render helpful message if interval is invalid
     const schedInterval = parseInterval({ start, end }, zone)
 
     const subheaderItems = getSubheaderItems(schedInterval, shifts, zone)
