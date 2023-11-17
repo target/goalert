@@ -30,6 +30,7 @@ type AddShiftsStepProps = {
   setShowForm: (showForm: boolean) => void
   shift: Shift | null
   setShift: (shift: Shift) => void
+  intervalValid: boolean
 }
 
 type DTShift = {
@@ -84,6 +85,7 @@ export default function TempSchedAddNewShift({
   setShowForm,
   shift,
   setShift,
+  intervalValid,
 }: AddShiftsStepProps): JSX.Element {
   const [submitted, setSubmitted] = useState(false)
 
@@ -129,6 +131,7 @@ export default function TempSchedAddNewShift({
   }
 
   function handleAddShift(): void {
+    if (!intervalValid) return
     if (fieldErrors(true).length) {
       setSubmitted(true)
       return
@@ -289,6 +292,7 @@ export default function TempSchedAddNewShift({
             color='secondary'
             variant='contained'
             onClick={handleAddShift}
+            disabled={!intervalValid}
           >
             Add
           </Button>

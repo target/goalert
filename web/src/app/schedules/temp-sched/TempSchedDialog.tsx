@@ -109,6 +109,7 @@ export default function TempSchedDialog({
         return true
       }),
   })
+
   const isValidIvl = checkInterval(value)
   const startDT = DateTime.fromISO(value.start, { zone })
   const [shift, setShift] = useState<Shift>({
@@ -320,6 +321,7 @@ export default function TempSchedDialog({
                   setShowForm={setShowForm}
                   shift={shift}
                   setShift={setShift}
+                  intervalValid={isValidIvl}
                 />
               </Grid>
             </Grid>
