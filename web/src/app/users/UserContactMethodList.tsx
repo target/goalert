@@ -19,7 +19,6 @@ import { styles as globalStyles } from '../styles/materialStyles'
 import { UserContactMethod } from '../../schema'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
 import { useSessionInfo } from '../util/RequireConfig'
-import { useSuspenseContext } from './UserDetails'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -71,13 +70,12 @@ export default function UserContactMethodList(
     variables: {
       id: props.userID,
     },
-    context: useSuspenseContext(),
   })
 
   const { userID: currentUserID } = useSessionInfo()
   const isCurrentUser = props.userID === currentUserID
 
-  if (data && !data.user) return <ObjectNotFound type='user' />
+  if (!data?.user) return <ObjectNotFound type='user' />
   if (error) return <GenericError error={error.message} />
 
   const contactMethods = data?.user?.contactMethods ?? []

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { Suspense, useRef, useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
@@ -201,20 +201,22 @@ export default function PolicyStepsCard(props) {
         />
         <DialogContentError error={errMsg} />
       </Dialog>
-      {editStepID && (
-        <PolicyStepEditDialog
-          escalationPolicyID={escalationPolicyID}
-          onClose={resetEditStep}
-          step={steps.filter((step) => step.id === editStepID)[0]}
-        />
-      )}
-      {deleteStep && (
-        <PolicyStepDeleteDialog
-          escalationPolicyID={escalationPolicyID}
-          onClose={() => setDeleteStep(false)}
-          stepID={deleteStep}
-        />
-      )}
+      <Suspense>
+        {editStepID && (
+          <PolicyStepEditDialog
+            escalationPolicyID={escalationPolicyID}
+            onClose={resetEditStep}
+            step={steps.filter((step) => step.id === editStepID)[0]}
+          />
+        )}
+        {deleteStep && (
+          <PolicyStepDeleteDialog
+            escalationPolicyID={escalationPolicyID}
+            onClose={() => setDeleteStep(false)}
+            stepID={deleteStep}
+          />
+        )}
+      </Suspense>
     </React.Fragment>
   )
 }

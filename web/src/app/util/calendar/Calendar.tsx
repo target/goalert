@@ -394,15 +394,17 @@ export default function Calendar(props: CalendarProps): JSX.Element {
             onNavigate={() => {}} // stub to hide false console err
             onView={() => {}} // stub to hide false console err
             components={{
+              // // @ts-expect-error Property 'children' does not exist on type - yes it does
+              // eventWrapper: ({ children, event }) => (
+              //   <ScheduleCalendarEventWrapper
+              //     event={event}
+              //     scheduleID={scheduleID}
+              //   >
+              //     {children}
+              //   </ScheduleCalendarEventWrapper>
+              // ),
               // @ts-expect-error Property 'children' does not exist on type - yes it does
-              eventWrapper: ({ children, event }) => (
-                <ScheduleCalendarEventWrapper
-                  event={event}
-                  scheduleID={scheduleID}
-                >
-                  {children}
-                </ScheduleCalendarEventWrapper>
-              ),
+              eventWrapper: ScheduleCalendarEventWrapper,
               toolbar: () => null,
             }}
           />

@@ -16,7 +16,6 @@ import UserNotificationRuleDeleteDialog from './UserNotificationRuleDeleteDialog
 import { styles as globalStyles } from '../styles/materialStyles'
 import UserNotificationRuleCreateDialog from './UserNotificationRuleCreateDialog'
 import { useIsWidthDown } from '../util/useWidth'
-import { useSuspenseContext } from './UserDetails'
 import { ObjectNotFound, GenericError } from '../error-pages'
 
 const query = gql`
@@ -60,7 +59,6 @@ export default function UserNotificationRuleList(props: {
   const [{ data, error }] = useQuery({
     query,
     variables: { id: props.userID },
-    context: useSuspenseContext(),
   })
 
   if (data && !data.user)

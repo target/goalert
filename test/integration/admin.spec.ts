@@ -16,31 +16,35 @@ test('Admin', async ({ page }) => {
   // wait for services to finish loading
   await expect(page.locator('.MuiDataGrid-overlay')).toHaveCount(0)
 
-  // get totalServices count
-  const totalServices = await page
+  const totalServicesLocator = page
+    .locator('.MuiCardHeader-content', { hasText: 'Total Services' })
     .locator('.MuiCardHeader-title')
-    .nth(0)
-    .innerText()
-  expect(parseInt(totalServices)).toBeGreaterThan(0)
+
+  // This will retry until the locator's text matches the regex (a number greater than 0)
+  // or the timeout is reached.
+  await expect(totalServicesLocator).toHaveText(/^[1-9]\d*$/)
 
   // get services missing integrations count
-  const missingInts = await page
+  const missingIntsLocator = page
+    .locator('.MuiCardHeader-content', {
+      hasText: 'Services With No Integrations',
+    })
     .locator('.MuiCardHeader-title')
-    .nth(1)
-    .innerText()
-  expect(parseInt(missingInts)).toBeGreaterThan(0)
+  await expect(missingIntsLocator).toHaveText(/^[1-9]\d*$/)
 
   // get services missing notifications count
-  const missingNotifs = await page
+  const missingNotifLocator = page
+    .locator('.MuiCardHeader-content', {
+      hasText: 'Services With Empty Escalation Policies',
+    })
     .locator('.MuiCardHeader-title')
-    .nth(2)
-    .innerText()
-  expect(missingNotifs).toBe('0')
+  await expect(missingNotifLocator).toHaveText('0')
 
   // get services reaching alert limit
-  const alertLimit = await page
+  const alertLimitLocator = page
+    .locator('.MuiCardHeader-content', {
+      hasText: 'Services Reaching Alert Limit',
+    })
     .locator('.MuiCardHeader-title')
-    .nth(3)
-    .innerText()
-  expect(alertLimit).toBe('0')
+  await expect(alertLimitLocator).toHaveText('0')
 })

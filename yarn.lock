@@ -521,15 +521,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.23.1":
-  version: 7.23.1
-  resolution: "@babel/runtime@npm:7.23.1"
-  dependencies:
-    regenerator-runtime: ^0.14.0
-  checksum: 0cd0d43e6e7dc7f9152fda8c8312b08321cda2f56ef53d6c22ebdd773abdc6f5d0a69008de90aa41908d00e2c1facb24715ff121274e689305c858355ff02c70
-  languageName: node
-  linkType: hard
-
 "@babel/runtime@npm:^7.23.2":
   version: 7.23.2
   resolution: "@babel/runtime@npm:7.23.2"
@@ -725,7 +716,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dnd-kit/utilities@npm:3.2.1, @dnd-kit/utilities@npm:^3.2.0, @dnd-kit/utilities@npm:^3.2.1":
+"@dnd-kit/utilities@npm:3.2.2":
+  version: 3.2.2
+  resolution: "@dnd-kit/utilities@npm:3.2.2"
+  dependencies:
+    tslib: ^2.0.0
+  peerDependencies:
+    react: ">=16.8.0"
+  checksum: 8a5015c2faa52760ab82a64287b2ac6a3d798867a1bca5ccbc1178560dbd9a1f9f1a21faea80f590ba1a4277c3eb7e7c4d3b4a39f1f32171bf6bc8174b370547
+  languageName: node
+  linkType: hard
+
+"@dnd-kit/utilities@npm:^3.2.0, @dnd-kit/utilities@npm:^3.2.1":
   version: 3.2.1
   resolution: "@dnd-kit/utilities@npm:3.2.1"
   dependencies:
@@ -1882,24 +1884,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/utils@npm:^5.14.11":
-  version: 5.14.12
-  resolution: "@mui/utils@npm:5.14.12"
-  dependencies:
-    "@babel/runtime": ^7.23.1
-    "@types/prop-types": ^15.7.7
-    prop-types: ^15.8.1
-    react-is: ^18.2.0
-  peerDependencies:
-    "@types/react": ^17.0.0 || ^18.0.0
-    react: ^17.0.0 || ^18.0.0
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-  checksum: 41470b6292b7a46c71fb0a0acc6a5f05a5e080648106b8805555de920e8f748669c7e8d39cbbcf0f52be9053927bb8439a748e24bd02bc1a220c9bded4435f42
-  languageName: node
-  linkType: hard
-
 "@mui/utils@npm:^5.14.16":
   version: 5.14.16
   resolution: "@mui/utils@npm:5.14.16"
@@ -1936,12 +1920,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/x-data-grid@npm:6.16.2":
-  version: 6.16.2
-  resolution: "@mui/x-data-grid@npm:6.16.2"
+"@mui/x-data-grid@npm:6.18.1":
+  version: 6.18.1
+  resolution: "@mui/x-data-grid@npm:6.18.1"
   dependencies:
-    "@babel/runtime": ^7.23.1
-    "@mui/utils": ^5.14.11
+    "@babel/runtime": ^7.23.2
+    "@mui/utils": ^5.14.16
     clsx: ^2.0.0
     prop-types: ^15.8.1
     reselect: ^4.1.8
@@ -1950,7 +1934,7 @@ __metadata:
     "@mui/system": ^5.4.1
     react: ^17.0.0 || ^18.0.0
     react-dom: ^17.0.0 || ^18.0.0
-  checksum: a558af904d4f4e8000eb867c45b12ba7b870e9810567ccdb1f1c2266d8b696f6b462e0380d3294eb8fe1a2828f614a0edbdc32c898a6b4f9c02190e3a625ec23
+  checksum: 606b4ead13a97d1811d73f76a059bdff60a2d92f0d03afac9d9873502d6793a31594df6ee060da184f69a2442007a6a3f968da9432dd95be1560ab3dcec9704a
   languageName: node
   linkType: hard
 
@@ -2810,10 +2794,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/diff@npm:5.0.5":
-  version: 5.0.5
-  resolution: "@types/diff@npm:5.0.5"
-  checksum: 5f093341d5488cd33079400d4b2ff463dfd4f589bf0a54fbb25f7c87a7bdc16bd1e6125f252c081fa9a3ad44fc78b156c0a5f38bd8128edceb40ba084e051885
+"@types/diff@npm:5.0.8":
+  version: 5.0.8
+  resolution: "@types/diff@npm:5.0.8"
+  checksum: 729c74c408905cb88ae7a8245e8c1d03359f2c01168beee4d90304af1cdf99462e4a1f2c49b3a64e27623baae3ea7a5a8f883b1db5a3ec075770700a14ad0904
   languageName: node
   linkType: hard
 
@@ -2918,10 +2902,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/luxon@npm:3.3.2":
-  version: 3.3.2
-  resolution: "@types/luxon@npm:3.3.2"
-  checksum: b9111132720eae0269538872a5a496b29587ecfc8edc3b0ff7d269aa93a5ff00a131b23d1e9d1f12ec39f2c779ad21bd8d9f90b122c85a182771aabde7f676b8
+"@types/luxon@npm:3.3.4":
+  version: 3.3.4
+  resolution: "@types/luxon@npm:3.3.4"
+  checksum: aa4862bd62d748e7966f9a0ec76058e9d74397ee426c7d64f61c677d83de0303c303cc78515001833df3f4ad16c95f572b0e2ffaee6e55bc50b80857e8437f3a
   languageName: node
   linkType: hard
 
@@ -2994,13 +2978,6 @@ __metadata:
   version: 15.7.9
   resolution: "@types/prop-types@npm:15.7.9"
   checksum: c7591d3ff7593e243908a07e1d3e2bb6e8879008af5800d8378115a90d0fdf669a1cae72a6d7f69e59c4fa7bb4c8ed61f6ebc1c520fe110c6f2b03ac02414072
-  languageName: node
-  linkType: hard
-
-"@types/prop-types@npm:^15.7.7":
-  version: 15.7.8
-  resolution: "@types/prop-types@npm:15.7.8"
-  checksum: 61dfad79da8b1081c450bab83b77935df487ae1cdd4660ec7df6be8e74725c15fa45cf486ce057addc956ca4ae78300b97091e2a25061133d1b9a1440bc896ae
   languageName: node
   linkType: hard
 
@@ -4728,13 +4705,6 @@ __metadata:
     mdn-data: 2.0.30
     source-map-js: ^1.0.1
   checksum: 493cc24b5c22b05ee5314b8a0d72d8a5869491c1458017ae5ed75aeb6c3596637dbe1b11dac2548974624adec9f7a1f3a6cf40593dc1f9185eb0e8279543fbc0
-  languageName: node
-  linkType: hard
-
-"css-unit-converter@npm:^1.1.1":
-  version: 1.1.2
-  resolution: "css-unit-converter@npm:1.1.2"
-  checksum: 07888033346a5128f34dbe2f72884c966d24e9f29db24416dcde92860242490617ef9a178ac193a92f730834bbeea026cdc7027701d92ba9bbbe59db7a37eb2a
   languageName: node
   linkType: hard
 
@@ -10421,13 +10391,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-value-parser@npm:^3.3.0":
-  version: 3.3.1
-  resolution: "postcss-value-parser@npm:3.3.1"
-  checksum: 62cd26e1cdbcf2dcc6bcedf3d9b409c9027bc57a367ae20d31dd99da4e206f730689471fd70a2abe866332af83f54dc1fa444c589e2381bf7f8054c46209ce16
-  languageName: node
-  linkType: hard
-
 "postcss-value-parser@npm:^4.2.0":
   version: 4.2.0
   resolution: "postcss-value-parser@npm:4.2.0"
@@ -10833,9 +10796,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-smooth@npm:^2.0.2":
-  version: 2.0.4
-  resolution: "react-smooth@npm:2.0.4"
+"react-smooth@npm:^2.0.4":
+  version: 2.0.5
+  resolution: "react-smooth@npm:2.0.5"
   dependencies:
     fast-equals: ^5.0.0
     react-transition-group: 2.9.0
@@ -10843,7 +10806,7 @@ __metadata:
     prop-types: ^15.6.0
     react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
     react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
-  checksum: 21731e2f9ebc9594eae0f0d875526185392a87c00abf013c9769ed642a4077b62c04c1001b2527a196aabafb87af208f6c7107db674538c4bb95c253ed123447
+  checksum: 914c17f741e8b533ff6e3d5e3285aea0625cdd0f98e04202d01351f9516dbdc0a0e297dc22cc2377d6916fb819da8d4ed999c0314a4c186592ca51870012e6f7
   languageName: node
   linkType: hard
 
@@ -10956,24 +10919,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"recharts@npm:2.8.0":
-  version: 2.8.0
-  resolution: "recharts@npm:2.8.0"
+"recharts@npm:2.9.3":
+  version: 2.9.3
+  resolution: "recharts@npm:2.9.3"
   dependencies:
     classnames: ^2.2.5
     eventemitter3: ^4.0.1
     lodash: ^4.17.19
     react-is: ^16.10.2
     react-resize-detector: ^8.0.4
-    react-smooth: ^2.0.2
+    react-smooth: ^2.0.4
     recharts-scale: ^0.4.4
-    reduce-css-calc: ^2.1.8
+    tiny-invariant: ^1.3.1
     victory-vendor: ^36.6.8
   peerDependencies:
     prop-types: ^15.6.0
     react: ^16.0.0 || ^17.0.0 || ^18.0.0
     react-dom: ^16.0.0 || ^17.0.0 || ^18.0.0
-  checksum: 4638bd5c6c2af8f5c79de5e13cce0e38f06e0bbb0a3c4df27a9b12632fd72c0a0604c8246f55e830f323dfa84a3da7cb2634c2243bb9c775d899fd71f9d4c87a
+  checksum: e08bcc76a1ec2ea0cbcfcf8f57013acd11fb5ac44f40f43bb208880a8c410a9bc8d0eb421e8d1a5943eb0899729ae136a579a8008c720cb2e18367771edd86d7
   languageName: node
   linkType: hard
 
@@ -10984,16 +10947,6 @@ __metadata:
     indent-string: ^5.0.0
     strip-indent: ^4.0.0
   checksum: 6944e7b1d8f3fd28c2515f5c605b9f7f0ea0f4edddf41890bbbdd4d9ee35abb7540c3b278f03ff827bd278bb6ff4a5bd8692ca406b748c5c1c3ce7355e9fbf8f
-  languageName: node
-  linkType: hard
-
-"reduce-css-calc@npm:^2.1.8":
-  version: 2.1.8
-  resolution: "reduce-css-calc@npm:2.1.8"
-  dependencies:
-    css-unit-converter: ^1.1.1
-    postcss-value-parser: ^3.3.0
-  checksum: 8fd27c06c4b443b84749a69a8b97d10e6ec7d142b625b41923a8807abb22b9e37e44df14e26cc606a802957be07bdce5e8ee2976a6952a7b438a7727007101e9
   languageName: node
   linkType: hard
 
@@ -11353,7 +11306,7 @@ __metadata:
     "@babel/plugin-transform-modules-commonjs": 7.23.0
     "@dnd-kit/core": 6.0.8
     "@dnd-kit/sortable": 7.0.2
-    "@dnd-kit/utilities": 3.2.1
+    "@dnd-kit/utilities": 3.2.2
     "@emotion/react": 11.11.1
     "@emotion/styled": 11.11.0
     "@material/material-color-utilities": 0.2.7
@@ -11362,14 +11315,14 @@ __metadata:
     "@mui/material": 5.14.10
     "@mui/styles": 5.14.16
     "@mui/system": 5.14.10
-    "@mui/x-data-grid": 6.16.2
+    "@mui/x-data-grid": 6.18.1
     "@playwright/test": 1.39.0
     "@types/chance": 1.1.4
-    "@types/diff": 5.0.5
+    "@types/diff": 5.0.8
     "@types/glob": 8.1.0
     "@types/jest": 29.5.5
     "@types/lodash": 4.14.199
-    "@types/luxon": 3.3.2
+    "@types/luxon": 3.3.4
     "@types/prop-types": 15.7.9
     "@types/react": 18.2.22
     "@types/react-big-calendar": 1.6.5
@@ -11422,7 +11375,7 @@ __metadata:
     react-redux: 8.1.3
     react-transition-group: 4.4.5
     react-virtualized-auto-sizer: 1.0.20
-    recharts: 2.8.0
+    recharts: 2.9.3
     redux: 4.2.1
     redux-devtools-extension: 2.13.9
     redux-thunk: 2.4.2
@@ -11434,6 +11387,11 @@ __metadata:
     urql: 4.0.5
     wonka: 6.3.4
     wouter: 2.12.1
+  dependenciesMeta:
+    prettier-plugin-go-template@0.0.15:
+      unplugged: true
+    prettier@3.0.3:
+      unplugged: true
   languageName: unknown
   linkType: soft
 
@@ -12322,6 +12280,13 @@ __metadata:
   version: 2.3.8
   resolution: "through@npm:2.3.8"
   checksum: a38c3e059853c494af95d50c072b83f8b676a9ba2818dcc5b108ef252230735c54e0185437618596c790bbba8fcdaef5b290405981ffa09dce67b1f1bf190cbd
+  languageName: node
+  linkType: hard
+
+"tiny-invariant@npm:^1.3.1":
+  version: 1.3.1
+  resolution: "tiny-invariant@npm:1.3.1"
+  checksum: 872dbd1ff20a21303a2fd20ce3a15602cfa7fcf9b228bd694a52e2938224313b5385a1078cb667ed7375d1612194feaca81c4ecbe93121ca1baebe344de4f84c
   languageName: node
   linkType: hard
 

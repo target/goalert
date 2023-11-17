@@ -206,6 +206,8 @@ FormField.propTypes = {
   // Allows entering decimal number into a numeric field.
   float: p.bool,
 
+  className: p.string,
+
   // fieldName specifies the field used for
   // checking errors, change handlers, and value.
   //
@@ -242,6 +244,7 @@ FormField.propTypes = {
   step: p.oneOfType([p.number, p.string]),
 
   InputProps: p.object,
+  SelectProps: p.object,
 
   disabled: p.bool,
 

@@ -1,5 +1,5 @@
-import React, { Suspense, useState, useMemo } from 'react'
-import { useQuery, gql, OperationContext } from 'urql'
+import React, { Suspense, useState } from 'react'
+import { useQuery, gql } from 'urql'
 import Delete from '@mui/icons-material/Delete'
 import LockOpenIcon from '@mui/icons-material/LockOpen'
 import DetailsPage from '../details/DetailsPage'
@@ -13,7 +13,6 @@ import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
 import UserNotificationRuleCreateDialog from './UserNotificationRuleCreateDialog'
 import UserContactMethodVerificationDialog from './UserContactMethodVerificationDialog'
 import _ from 'lodash'
-import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import { useSessionInfo } from '../util/RequireConfig'
 import UserEditDialog from './UserEditDialog'
@@ -74,15 +73,6 @@ const profileQuery = gql`
   }
 `
 
-export function useSuspenseContext(): Partial<OperationContext> {
-  return useMemo(
-    () => ({
-      suspense: true,
-    }),
-    [],
-  )
-}
-
 function serviceCount(onCallSteps: EscalationPolicyStep[] = []): number {
   const svcs: { [Key: string]: boolean } = {}
   ;(onCallSteps || []).forEach((s) =>
@@ -99,11 +89,8 @@ export default function UserDetails(props: {
   readOnly: boolean
 }): JSX.Element {
   const userID = props.userID
-  const {
-    userID: currentUserID,
-    isAdmin,
-    ready: isSessionReady,
-  } = useSessionInfo()
+  const { userID: currentUserID, isAdmin } = useSessionInfo()
+
   const [createCM, setCreateCM] = useState(false)
   const [createNR, setCreateNR] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
@@ -113,17 +100,13 @@ export default function UserDetails(props: {
   const [showUserDeleteDialog, setShowUserDeleteDialog] = useState(false)
   const mobile = useIsWidthDown('md')
 
-  const [{ data, fetching: isQueryLoading, error }] = useQuery({
+  const [{ data, error }] = useQuery({
     query: isAdmin || userID === currentUserID ? profileQuery : userQuery,
     variables: { id: userID },
-    pause: !userID,
-    context: useSuspenseContext(),
   })
 
-  const loading = !isSessionReady || isQueryLoading
-
   if (error) return <GenericError error={error.message} />
-  if (!_.get(data, 'user.id')) return loading ? <Spinner /> : <ObjectNotFound />
+  if (!_.get(data, 'user.id')) return <ObjectNotFound />
 
   const user = _.get(data, 'user')
   const svcCount = serviceCount(user.onCallSteps)
@@ -191,20 +174,6 @@ export default function UserDetails(props: {
 
   return (
     <React.Fragment>
-      {showEdit && (
-        <UserEditDialog
-          onClose={() => setShowEdit(false)}
-          userID={userID}
-          role={user.role}
-        />
-      )}
-      {showUserDeleteDialog && (
-        <UserDeleteDialog
-          userID={userID}
-          onClose={() => setShowUserDeleteDialog(false)}
-        />
-      )}
-
       {/* dialogs only shown on mobile via FAB button */}
       {mobile && !props.readOnly ? (
         <SpeedDial
@@ -224,53 +193,64 @@ export default function UserDetails(props: {
           ]}
         />
       ) : null}
-      {createCM && (
-        <UserContactMethodCreateDialog
-          userID={userID}
-          onClose={(contactMethodID) => {
-            setCreateCM(false)
-            setShowVerifyDialogByID(contactMethodID)
-          }}
-        />
-      )}
-      {showVerifyDialogByID && (
-        <UserContactMethodVerificationDialog
-          contactMethodID={showVerifyDialogByID}
-          onClose={() => setShowVerifyDialogByID(null)}
-        />
-      )}
-      {createNR && (
-        <UserNotificationRuleCreateDialog
-          userID={userID}
-          onClose={() => setCreateNR(false)}
-        />
-      )}
-      <Suspense fallback={<Spinner />}>
-        <DetailsPage
-          avatar={<UserAvatar userID={userID} />}
-          title={user.name + (svcCount ? ' (On-Call)' : '')}
-          subheader={user.email}
-          pageContent={
-            <Grid container spacing={2}>
-              <UserContactMethodList
-                userID={userID}
-                readOnly={props.readOnly}
-              />
-              <UserNotificationRuleList
-                userID={userID}
-                readOnly={props.readOnly}
-              />
-              {!mobile && (
-                <Grid item xs={12}>
-                  <UserShiftsCalendar userID={userID} />
-                </Grid>
-              )}
-            </Grid>
-          }
-          secondaryActions={options}
-          links={links}
-        />
+      <Suspense>
+        {showEdit && (
+          <UserEditDialog
+            onClose={() => setShowEdit(false)}
+            userID={userID}
+            role={user.role}
+          />
+        )}
+        {showUserDeleteDialog && (
+          <UserDeleteDialog
+            userID={userID}
+            onClose={() => setShowUserDeleteDialog(false)}
+          />
+        )}
+        {createCM && (
+          <UserContactMethodCreateDialog
+            userID={userID}
+            onClose={(contactMethodID) => {
+              setCreateCM(false)
+              setShowVerifyDialogByID(contactMethodID)
+            }}
+          />
+        )}
+        {showVerifyDialogByID && (
+          <UserContactMethodVerificationDialog
+            contactMethodID={showVerifyDialogByID}
+            onClose={() => setShowVerifyDialogByID(null)}
+          />
+        )}
+        {createNR && (
+          <UserNotificationRuleCreateDialog
+            userID={userID}
+            onClose={() => setCreateNR(false)}
+          />
+        )}
       </Suspense>
+
+      <DetailsPage
+        avatar={<UserAvatar userID={userID} />}
+        title={user.name + (svcCount ? ' (On-Call)' : '')}
+        subheader={user.email}
+        pageContent={
+          <Grid container spacing={2}>
+            <UserContactMethodList userID={userID} readOnly={props.readOnly} />
+            <UserNotificationRuleList
+              userID={userID}
+              readOnly={props.readOnly}
+            />
+            {!mobile && (
+              <Grid item xs={12}>
+                <UserShiftsCalendar userID={userID} />
+              </Grid>
+            )}
+          </Grid>
+        }
+        secondaryActions={options}
+        links={links}
+      />
     </React.Fragment>
   )
 }

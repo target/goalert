@@ -1,4 +1,10 @@
-import React, { useContext, useState, MouseEvent, KeyboardEvent } from 'react'
+import React, {
+  useContext,
+  useState,
+  MouseEvent,
+  KeyboardEvent,
+  Suspense,
+} from 'react'
 import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import Popover from '@mui/material/Popover'
@@ -289,18 +295,20 @@ export default function ScheduleCalendarEventWrapper({
         'aria-pressed': open,
         'aria-describedby': id,
       })}
-      {scheduleID && showEditDialog && (
-        <ScheduleOverrideEditDialog
-          overrideID={showEditDialog}
-          onClose={() => setShowEditDialog('')}
-        />
-      )}
-      {scheduleID && showDeleteDialog && (
-        <ScheduleOverrideDeleteDialog
-          overrideID={showDeleteDialog}
-          onClose={() => setShowDeleteDialog('')}
-        />
-      )}
+      <Suspense>
+        {showEditDialog && (
+          <ScheduleOverrideEditDialog
+            overrideID={showEditDialog}
+            onClose={() => setShowEditDialog('')}
+          />
+        )}
+        {showDeleteDialog && (
+          <ScheduleOverrideDeleteDialog
+            overrideID={showDeleteDialog}
+            onClose={() => setShowDeleteDialog('')}
+          />
+        )}
+      </Suspense>
     </React.Fragment>
   )
 }

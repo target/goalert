@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { Suspense, useState } from 'react'
 import { gql, useQuery } from 'urql'
 import _ from 'lodash'
 import { Redirect } from 'wouter'
@@ -59,18 +59,20 @@ export default function RotationDetails(props: {
 
   return (
     <React.Fragment>
-      {showEdit && (
-        <RotationEditDialog
-          rotationID={props.rotationID}
-          onClose={() => setShowEdit(false)}
-        />
-      )}
-      {showDelete && (
-        <RotationDeleteDialog
-          rotationID={props.rotationID}
-          onClose={() => setShowDelete(false)}
-        />
-      )}
+      <Suspense>
+        {showEdit && (
+          <RotationEditDialog
+            rotationID={props.rotationID}
+            onClose={() => setShowEdit(false)}
+          />
+        )}
+        {showDelete && (
+          <RotationDeleteDialog
+            rotationID={props.rotationID}
+            onClose={() => setShowDelete(false)}
+          />
+        )}
+      </Suspense>
       <DetailsPage
         avatar={<RotationAvatar />}
         title={data.name}

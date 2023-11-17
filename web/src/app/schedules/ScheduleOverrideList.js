@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { Suspense, useCallback, useState } from 'react'
 import { Button, Grid, FormControlLabel, Switch, Tooltip } from '@mui/material'
 import { GroupAdd } from '@mui/icons-material'
 import { DateTime } from 'luxon'
@@ -207,36 +207,38 @@ export default function ScheduleOverrideList({ scheduleID }) {
       )}
 
       {/* create dialogs */}
-      {overrideDialog && (
-        <ScheduleOverrideDialog
-          defaultValue={overrideDialog.defaultValue}
-          variantOptions={overrideDialog.variantOptions}
-          scheduleID={scheduleID}
-          onClose={() => setOverrideDialog(null)}
-          removeUserReadOnly={overrideDialog.removeUserReadOnly}
-        />
-      )}
-      {configTempSchedule && (
-        <TempSchedDialog
-          value={configTempSchedule}
-          onClose={() => setConfigTempSchedule(null)}
-          scheduleID={scheduleID}
-        />
-      )}
+      <Suspense>
+        {overrideDialog && (
+          <ScheduleOverrideDialog
+            defaultValue={overrideDialog.defaultValue}
+            variantOptions={overrideDialog.variantOptions}
+            scheduleID={scheduleID}
+            onClose={() => setOverrideDialog(null)}
+            removeUserReadOnly={overrideDialog.removeUserReadOnly}
+          />
+        )}
+        {configTempSchedule && (
+          <TempSchedDialog
+            value={configTempSchedule}
+            onClose={() => setConfigTempSchedule(null)}
+            scheduleID={scheduleID}
+          />
+        )}
 
-      {/* edit dialogs by ID */}
-      {deleteID && (
-        <ScheduleOverrideDeleteDialog
-          overrideID={deleteID}
-          onClose={() => setDeleteID(null)}
-        />
-      )}
-      {editID && (
-        <ScheduleOverrideEditDialog
-          overrideID={editID}
-          onClose={() => setEditID(null)}
-        />
-      )}
+        {/* edit dialogs by ID */}
+        {deleteID && (
+          <ScheduleOverrideDeleteDialog
+            overrideID={deleteID}
+            onClose={() => setDeleteID(null)}
+          />
+        )}
+        {editID && (
+          <ScheduleOverrideEditDialog
+            overrideID={editID}
+            onClose={() => setEditID(null)}
+          />
+        )}
+      </Suspense>
     </OverrideDialogContext.Provider>
   )
 }
