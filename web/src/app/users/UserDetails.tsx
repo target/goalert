@@ -242,9 +242,11 @@ export default function UserDetails(props: {
               readOnly={props.readOnly}
             />
             {!mobile && (
-              <Grid item xs={12}>
-                <UserShiftsCalendar userID={userID} />
-              </Grid>
+              <Suspense>
+                <Grid item xs={12}>
+                  <UserShiftsCalendar userID={userID} />
+                </Grid>
+              </Suspense>
             )}
           </Grid>
         }
