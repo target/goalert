@@ -315,7 +315,7 @@ export default function ServiceRuleForm(
         <Grid
           key={c.prop}
           item
-          style={{ flexGrow: 1, marginTop: '1em' }}
+          sx={{ flexGrow: 1, marginTop: '1em' }}
           xs={12}
         >
           <FormField
