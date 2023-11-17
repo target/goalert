@@ -184,8 +184,12 @@ export default function TempSchedDialog({
         shifts: value.shifts
           .map((s) => _.pick(s, 'start', 'end', 'userID'))
           .filter((s) => {
-            // clamp/filter out shifts that are in the past
+            // filter out shifts that are in the past
             if (DateTime.fromISO(s.end) <= DateTime.fromISO(now)) {
+              return false
+            }
+            // filter out shifts out of interval bounds
+            if (DateTime.fromISO(s.end) <= DateTime.fromISO(s.start)) {
               return false
             }
 
