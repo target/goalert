@@ -57,8 +57,6 @@ export default function ScheduleOverrideDialog(props) {
     variables: {
       input: {
         ...value,
-        start: value.start,
-        end: value.end,
         scheduleID: props.scheduleID,
       },
     },
