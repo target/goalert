@@ -18,7 +18,6 @@ import GroupAdd from '@mui/icons-material/GroupAdd'
 import { AccountSwitch, AccountMinus, AccountPlus } from 'mdi-material-ui'
 import FilterContainer from '../FilterContainer'
 import { UserSelect } from '../../selection'
-import SpinContainer from '../../loading/components/SpinContainer'
 import { useCalendarNavigation } from './hooks'
 import { OverrideDialogContext } from '../../schedules/ScheduleDetails'
 import {
@@ -379,27 +378,25 @@ export default function Calendar(props: CalendarProps): JSX.Element {
             )
           }
         />
-        <SpinContainer loading={props.loading}>
-          <RBCalendar
-            date={DateTime.fromISO(start).toJSDate()}
-            localizer={localizer}
-            events={getCalEvents(shifts, temporarySchedules, props.overrides)}
-            className={classes.calendar}
-            tooltipAccessor={() => ''}
-            views={['month', 'week']}
-            view={weekly ? 'week' : 'month'}
-            showAllEvents
-            eventPropGetter={eventStyleGetter}
-            dayPropGetter={dayStyleGetter}
-            onNavigate={() => {}} // stub to hide false console err
-            onView={() => {}} // stub to hide false console err
-            components={{
-              // @ts-expect-error Property 'children' does not exist on type - yes it does
-              eventWrapper: ScheduleCalendarEventWrapper,
-              toolbar: () => null,
-            }}
-          />
-        </SpinContainer>
+        <RBCalendar
+          date={DateTime.fromISO(start).toJSDate()}
+          localizer={localizer}
+          events={getCalEvents(shifts, temporarySchedules, props.overrides)}
+          className={classes.calendar}
+          tooltipAccessor={() => ''}
+          views={['month', 'week']}
+          view={weekly ? 'week' : 'month'}
+          showAllEvents
+          eventPropGetter={eventStyleGetter}
+          dayPropGetter={dayStyleGetter}
+          onNavigate={() => {}} // stub to hide false console err
+          onView={() => {}} // stub to hide false console err
+          components={{
+            // @ts-expect-error Property 'children' does not exist on type - yes it does
+            eventWrapper: ScheduleCalendarEventWrapper,
+            toolbar: () => null,
+          }}
+        />
       </Card>
     </React.Fragment>
   )
