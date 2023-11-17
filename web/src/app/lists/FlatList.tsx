@@ -1,4 +1,5 @@
 import React, {
+  createRef,
   useEffect,
   useRef,
   useState,
@@ -283,20 +284,25 @@ export default function FlatList({
   function renderTransitionItems(): JSX.Element[] {
     return items.map((item, idx) => {
       if ('subHeader' in item) {
+        const subheaderRef = createRef<HTMLDivElement>()
         return (
           <CSSTransition
+            nodeRef={subheaderRef}
             key={'header_' + item.id}
             timeout={0}
             exit={false}
             enter={false}
           >
-            {renderSubheaderItem(item, idx)}
+            <div ref={subheaderRef}>{renderSubheaderItem(item, idx)}</div>
           </CSSTransition>
         )
       }
+
       if ('type' in item) {
+        const noticeRef = createRef<HTMLDivElement>()
         return (
           <CSSTransition
+            nodeRef={noticeRef}
             key={'notice_' + item.id}
             timeout={500}
             exit={Boolean(item.transition)}
@@ -308,12 +314,15 @@ export default function FlatList({
               exitActive: classes.slideExitActive,
             }}
           >
-            {renderNoticeItem(item, idx)}
+            <div ref={noticeRef}>{renderNoticeItem(item, idx)}</div>
           </CSSTransition>
         )
       }
+
+      const itemRef = createRef<HTMLDivElement>()
       return (
         <CSSTransition
+          nodeRef={itemRef}
           key={'item_' + item.id}
           timeout={500}
           classNames={{
@@ -323,7 +332,9 @@ export default function FlatList({
             exitActive: classes.slideExitActive,
           }}
         >
-          <FlatListItem index={idx} item={item} />
+          <div ref={itemRef}>
+            <FlatListItem index={idx} item={item} />
+          </div>
         </CSSTransition>
       )
     })
