@@ -6,7 +6,6 @@ import { GenericError } from '../error-pages'
 import { useCalendarNavigation } from '../util/calendar/hooks'
 import Calendar, { Shift } from '../util/calendar/Calendar'
 import { OnCallShift, Schedule } from '../../schema'
-import { useSuspenseContext } from './UserDetails'
 
 const query = gql`
   query user($id: ID!, $start: ISOTimestamp!, $end: ISOTimestamp!) {
@@ -50,7 +49,6 @@ export default function UserShiftsCalendar({
       start: queryStart,
       end: queryEnd,
     },
-    context: useSuspenseContext(),
   })
 
   if (error) return <GenericError error={error.message} />
