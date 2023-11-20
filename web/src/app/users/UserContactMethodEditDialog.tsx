@@ -50,7 +50,7 @@ function UserContactMethodEditDialog(props: {
 
   const [mutationStatus, commit] = useMutation(mutation)
   const { error } = mutationStatus
-  const [value, setValue] = useState<Value>({} as Value)
+  const [value, setValue] = useState<Value | null>(null)
 
   const fieldErrs = fieldErrors(error)
 
@@ -71,12 +71,13 @@ function UserContactMethodEditDialog(props: {
           }).statusUpdates
         }
         return commit({
-          variables: {
-            input: {
-              ...updates,
-              id: contactMethodID,
-            },
+          input: {
+            ...updates,
+            id: contactMethodID,
           },
+        }).then((res) => {
+          if (res.error) return
+          props.onClose()
         })
       }}
       form={
