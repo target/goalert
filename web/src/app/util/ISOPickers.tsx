@@ -102,8 +102,6 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
     setInputValue(valueAsDT?.toFormat(format) ?? '')
   }, [valueAsDT])
 
-  useEffect(() => {})
-
   const dtToISO = (dt: DateTime): string => {
     return dt.startOf(truncateTo).toUTC().toISO()
   }
@@ -141,13 +139,22 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
     return ''
   }
 
-  useEffect(() => {
-    const newVal = parseInputToISO(inputValue)
+  const handleChange = (newInputValue: string): void => {
+    const newVal = parseInputToISO(newInputValue)
     if (!newVal) return
     if (getSoftValidationError(newVal)) return
 
     onChange(newVal)
-  }, [inputValue, softMin, softMax])
+  }
+
+  useEffect(() => {
+    handleChange(inputValue)
+  }, [softMin, softMax]) // inputValue intentionally omitted to prevent loop
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    setInputValue(e.target.value)
+    handleChange(e.target.value)
+  }
 
   const defaultLabel = type === 'time' ? 'Select a time...' : 'Select a date...'
 
@@ -157,7 +164,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
       {...textFieldProps}
       type={type}
       value={inputValue}
-      onChange={(e) => setInputValue(e.target.value)}
+      onChange={handleInputChange}
       InputLabelProps={{ shrink: true, ...textFieldProps?.InputLabelProps }}
       inputProps={{
         min: min ? DateTime.fromISO(min, { zone }).toFormat(format) : undefined,
