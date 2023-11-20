@@ -66,6 +66,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
   )
 
   function getSoftValidationError(value: string): string {
+    if (props.disabled) return ''
     let dt: DateTime
     try {
       dt = DateTime.fromISO(value, { zone })
@@ -95,7 +96,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
   useEffect(
     () =>
       setValidationError(props.name || '', getSoftValidationError(inputValue)),
-    [inputValue, valueAsDT, props.name, softMin, softMax],
+    [inputValue, props.disabled, valueAsDT, props.name, softMin, softMax],
   )
 
   useEffect(() => {
