@@ -220,6 +220,16 @@ FormField.propTypes = {
   min: p.oneOfType([p.number, p.string]),
   max: p.oneOfType([p.number, p.string]),
 
+  // softMin and softMax values specify the range to filter changes
+  // expects an ISO timestamp, if string
+  softMin: p.oneOfType([p.number, p.string]),
+  softMax: p.oneOfType([p.number, p.string]),
+
+  // softMinLabel and softMaxLabel values specify the label to display
+  // if the softMin or softMax is exceeded.
+  softMinLabel: p.string,
+  softMaxLabel: p.string,
+
   // used if name is set,
   // but the error name is different from graphql responses
   errorName: p.string,
