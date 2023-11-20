@@ -45,7 +45,7 @@
     "@mui/styles": "5.14.16",
     "@mui/system": "5.14.10",
     "@mui/x-data-grid": "6.18.1",
-    "@playwright/test": "1.39.0",
+    "@playwright/test": "1.40.0",
     "@types/chance": "1.1.4",
     "@types/diff": "5.0.8",
     "@types/glob": "8.1.0",
