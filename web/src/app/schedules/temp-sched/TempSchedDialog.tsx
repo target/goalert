@@ -69,6 +69,7 @@ type TempScheduleDialogProps = {
   onClose: () => void
   scheduleID: string
   value: TempSchedValue
+  edit?: boolean
 }
 
 const clampForward = (nowISO: string, iso: string): string => {
@@ -86,15 +87,17 @@ export default function TempSchedDialog({
   onClose,
   scheduleID,
   value: _value,
+  edit = false,
 }: TempScheduleDialogProps): JSX.Element {
   const classes = useStyles()
-  const edit = !_.isEmpty(_value)
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
   const [showForm, setShowForm] = useState(false)
   const [value, setValue] = useState({
     start: clampForward(now, _value.start),
     end: _value.end,
+    clearStart: edit ? _value.start : null,
+    clearEnd: edit ? _value.end : null,
     shifts: _value.shifts
       .map((s) =>
         _.pick(s, 'start', 'end', 'userID', 'truncated', 'displayStart'),
@@ -180,6 +183,8 @@ export default function TempSchedDialog({
       input: {
         start: value.start,
         end: value.end,
+        clearStart: value.clearStart,
+        clearEnd: value.clearEnd,
         shifts: value.shifts
           .map((s) => _.pick(s, 'start', 'end', 'userID'))
           .filter((s) => {
