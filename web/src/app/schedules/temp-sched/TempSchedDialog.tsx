@@ -12,7 +12,6 @@ import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
 import _ from 'lodash'
 import { DateTime, Interval } from 'luxon'
-
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import { contentText, dtToDuration, Shift, TempSchedValue } from './sharedUtils'
@@ -96,8 +95,6 @@ export default function TempSchedDialog({
   const [value, setValue] = useState({
     start: clampForward(now, _value.start),
     end: _value.end,
-    clearStart: _value.start,
-    clearEnd: _value.end,
     shifts: _value.shifts
       .map((s) =>
         _.pick(s, 'start', 'end', 'userID', 'truncated', 'displayStart'),
@@ -183,8 +180,6 @@ export default function TempSchedDialog({
       input: {
         start: value.start,
         end: value.end,
-        clearStart: value.clearStart,
-        clearEnd: value.clearEnd,
         shifts: value.shifts
           .map((s) => _.pick(s, 'start', 'end', 'userID'))
           .filter((s) => {
