@@ -81,7 +81,7 @@
     "eslint-plugin-promise": "6.1.1",
     "eslint-plugin-react": "7.33.2",
     "eslint-plugin-react-hooks": "4.6.0",
-    "fuse.js": "6.6.2",
+    "fuse.js": "7.0.0",
     "glob": "10.3.5",
     "graphiql": "3.0.6",
     "graphql": "16.8.1",
