@@ -285,7 +285,11 @@ export default function TempSchedDialog({
               </Grid>
 
               <Grid item xs={12}>
-                <Typography color='textSecondary' className={classes.tzNote}>
+                <Typography
+                  data-testid='tz-text'
+                  color='textSecondary'
+                  className={classes.tzNote}
+                >
                   Times shown in schedule timezone ({zone})
                 </Typography>
               </Grid>

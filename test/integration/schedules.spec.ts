@@ -54,7 +54,7 @@ test('local time hover', async ({ page, isMobile }) => {
   }
 
   // should display correct timezone in form
-  await expect(page.locator('form[id=dialog-form]')).toContainText(
+  await expect(page.getByTestId('tz-text')).toContainText(
     'Times shown in schedule timezone (Europe/Amsterdam)',
   )
   await page.locator('input[name=addUserID]').fill('Admin McIntegrationFace')

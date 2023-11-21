@@ -241,7 +241,11 @@ export default function ScheduleRuleForm(
           />
         </Grid>
         <Grid item xs={12}>
-          <Typography color='textSecondary' sx={{ fontStyle: 'italic' }}>
+          <Typography
+            data-testid='tz-text'
+            color='textSecondary'
+            sx={{ fontStyle: 'italic' }}
+          >
             Times shown in schedule timezone ({zone || '...'})
           </Typography>
         </Grid>
