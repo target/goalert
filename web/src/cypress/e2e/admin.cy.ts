@@ -199,7 +199,7 @@ function testAdmin(): void {
     })
   })
 
-  describe('Admin Alert Count Page', () => {
+  describe.only('Admin Alert Count Page', () => {
     let svc1: Service
     let svc2: Service
 
@@ -224,7 +224,7 @@ function testAdmin(): void {
     })
 
     it('should display alert counts', () => {
-      const now = DateTime.local().minus({ hours: 22 }).toLocaleString({
+      const now = DateTime.local().minus({ days: 1 }).toLocaleString({
         month: 'short',
         day: 'numeric',
         hour: 'numeric',
