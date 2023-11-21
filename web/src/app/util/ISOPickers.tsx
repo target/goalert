@@ -144,6 +144,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
     const newVal = parseInputToISO(newInputValue)
     if (!newVal) return
     if (getSoftValidationError(newVal)) return
+    if (newVal === valueAsDT?.toUTC().toISO()) return
 
     onChange(newVal)
   }
