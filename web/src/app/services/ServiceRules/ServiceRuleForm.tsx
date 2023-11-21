@@ -309,7 +309,7 @@ export default function ServiceRuleForm(
         (action.destType === destType.SLACK && c.prop === 'channel') ||
         (action.destType === destType.SLACK && c.prop === 'channel_id')
       ) {
-        return <React.Fragment key={contentIdx} />
+        return <React.Fragment key={contentIdx+c.prop} />
       }
       return (
         <Grid key={c.prop} item sx={{ flexGrow: 1, marginTop: '1em' }} xs={12}>
