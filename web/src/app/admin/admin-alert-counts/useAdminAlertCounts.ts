@@ -12,7 +12,6 @@ export type AlertCountSeries = {
 }
 export type AlertCountDataPoint = {
   date: string
-  label: string
   dayTotal: number
 }
 export type AlertCountOpts = {
@@ -31,26 +30,11 @@ export function useAdminAlertCounts(opts: AlertCountOpts): AlertCountSeries[] {
     Interval.fromISO(opts.int)
       .splitBy(Duration.fromISO(opts.dur))
       .map((i) => {
-        const date = i.start.toLocaleString({
-          month: 'short',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: 'numeric',
-        })
-        const label = i.start.toLocaleString({
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-          hour: 'numeric',
-          minute: 'numeric',
-        })
-
         const bucket = alerts.filter((a) => {
           return i.contains(DateTime.fromISO(a.createdAt as string))
         })
         alertCounts.push({
-          date,
-          label,
+          date: i.start.toUTC().toISO(),
           dayTotal: bucket.length,
         })
         svcTotal += bucket.length
