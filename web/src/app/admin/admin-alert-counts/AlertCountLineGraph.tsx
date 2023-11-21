@@ -24,6 +24,7 @@ import {
   Tooltip,
 } from 'recharts'
 import Spinner from '../../loading/components/Spinner'
+import { Time } from '../../util/Time'
 
 interface AlertCountLineGraphProps {
   data: (typeof LineChart.defaultProps)['data']
@@ -148,7 +149,9 @@ export default function AlertCountLineGraph(
                   if (!active || !payload?.length) return null
                   return (
                     <Paper variant='outlined' sx={{ p: 1 }}>
-                      <Typography variant='body2'>{label}</Typography>
+                      <Typography variant='body2'>
+                        <Time time={label} />
+                      </Typography>
                       {payload.map((svc, idx) => {
                         return (
                           <React.Fragment key={idx}>
