@@ -106,7 +106,7 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/users': UserList,
   '/users/:userID': UserDetails,
   '/users/:userID/on-call-assignments': UserOnCallAssignmentList,
-  '/users/:userID/schedule-calendar-subscriptions':
+  '/users/:userID/external-calendar-subscriptions':
     UserCalendarSubscriptionList,
   '/users/:userID/active-sessions': UserSessionList,
 

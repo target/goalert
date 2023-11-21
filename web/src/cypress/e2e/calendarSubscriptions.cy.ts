@@ -46,7 +46,7 @@ function testSubs(screen: ScreenFormat): void {
     it('should create a subscription from their profile', () => {
       const name = c.word({ length: 5 })
 
-      cy.visit('/profile/schedule-calendar-subscriptions')
+      cy.visit('/profile/external-calendar-subscriptions')
 
       cy.get('[data-cy="list-empty-message"]').should(
         'contain',
@@ -121,7 +121,7 @@ function testSubs(screen: ScreenFormat): void {
     beforeEach(() => {
       cy.createCalendarSubscription().then((sub: CalendarSubscription) => {
         cs = sub
-        cy.visit('/profile/schedule-calendar-subscriptions')
+        cy.visit('/profile/external-calendar-subscriptions')
       })
     })
 
@@ -131,8 +131,8 @@ function testSubs(screen: ScreenFormat): void {
         screen,
         'Users',
         'Cypress User',
-        'Schedule Calendar Subscriptions',
-        `/users/${profile.id}/schedule-calendar-subscriptions`,
+        'External Calendar Subscriptions',
+        `/users/${profile.id}/external-calendar-subscriptions`,
       )
     })
 
@@ -205,7 +205,7 @@ function testSubs(screen: ScreenFormat): void {
       cy.visit(`/users/${users[0].id}`)
       cy.get('[data-cy="route-links"]').should(
         'not.contain',
-        'Schedule Calendar Subscriptions',
+        'External Calendar Subscriptions',
       )
     })
 
