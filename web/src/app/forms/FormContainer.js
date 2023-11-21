@@ -18,7 +18,10 @@ export function FormContainer(props) {
     children,
   } = props
   const [validationErrors, setValidationErrors] = useState([])
+  const [fieldErrors, setFieldErrors] = useState({})
   const _fields = useRef({}).current
+
+  const fieldErrorList = Object.values(fieldErrors).filter((e) => e)
 
   const { disabled: formDisabled, addSubmitCheck } = useContext(FormContext)
 
@@ -33,6 +36,21 @@ export function FormContainer(props) {
       if (_fields[fieldName].length === 0) {
         delete _fields[fieldName]
       }
+    }
+  }
+
+  const setValidationError = (fieldName, errMsg) => {
+    if (!errMsg) {
+      setFieldErrors((errs) => ({ ...errs, [fieldName]: null }))
+      return
+    }
+
+    const err = new Error(errMsg)
+    err.field = fieldName
+    setFieldErrors((errs) => ({ ...errs, [fieldName]: err }))
+
+    return () => {
+      setFieldErrors((errs) => ({ ...errs, [fieldName]: null }))
     }
   }
 
@@ -52,11 +70,12 @@ export function FormContainer(props) {
       .filter((e) => e)
     setValidationErrors(errs)
     if (errs.length) return false
+    if (fieldErrorList.length) return false
 
     return true
   }
 
-  useEffect(() => addSubmitCheck(onSubmit), [value])
+  useEffect(() => addSubmitCheck(onSubmit), [value, fieldErrors])
 
   const onChange = (fieldName, e) => {
     // copy into a mutable object
@@ -99,9 +118,10 @@ export function FormContainer(props) {
         value={{
           value: mapValue(value),
           disabled: formDisabled || containerDisabled,
-          errors: validationErrors.concat(errors),
+          errors: validationErrors.concat(errors).concat(fieldErrorList),
           onChange,
           addField,
+          setValidationError,
           optionalLabels,
         }}
       >
