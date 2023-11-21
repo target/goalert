@@ -309,10 +309,10 @@ export default function ServiceRuleForm(
         (action.destType === destType.SLACK && c.prop === 'channel') ||
         (action.destType === destType.SLACK && c.prop === 'channel_id')
       ) {
-        return <React.Fragment key={contentIdx+c.prop} />
+        return <React.Fragment key={contentIdx + c.prop} />
       }
       return (
-        <Grid key={c.prop} item sx={{ flexGrow: 1, marginTop: '1em' }} xs={12}>
+        <Grid key={contentIdx + c.prop} item sx={{ flexGrow: 1, marginTop: '1em' }} xs={12}>
           <FormField
             fullWidth
             component={TextField}
@@ -427,7 +427,7 @@ export default function ServiceRuleForm(
                 return (
                   <Grid
                     container
-                    key={filterIdx}
+                    key={filterIdx + v.field}
                     spacing={1}
                     className={classes.filterRow}
                     style={{ flexGrow: 1 }}
@@ -506,7 +506,7 @@ export default function ServiceRuleForm(
               (action: ServiceRuleActionInput, actionIdx: number) => {
                 if (action.destType !== destType.ALERT) {
                   return (
-                    <React.Fragment key={actionIdx}>
+                    <React.Fragment key={actionIdx + action.destType}>
                       <Grid container>
                         <Grid item style={{ flexGrow: 1 }} xs={11}>
                           <TextField

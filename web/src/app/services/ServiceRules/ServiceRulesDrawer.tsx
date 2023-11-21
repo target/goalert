@@ -145,7 +145,7 @@ export default function ServiceRulesDrawer(
                   secondary={rule?.filters.map(
                     (f: ServiceRuleFilter, idx: number) => (
                       <Chip
-                        key={idx}
+                        key={idx + f.field}
                         label={`${f.field} ${f.operator} ${f.value}`}
                         className={classes.chip}
                       />
@@ -164,13 +164,13 @@ export default function ServiceRulesDrawer(
                   (action: ServiceRuleAction, idx: number) => {
                     if (action.destType !== destType.ALERT) {
                       return (
-                        <List disablePadding key={idx}>
+                        <List disablePadding key={idx + action.destType}>
                           <ListItem>
                             <ListItemText
                               primary={action.destType}
                               secondary={action.contents.map(
                                 (content: Content, idx: number) => (
-                                  <List disablePadding key={idx}>
+                                  <List disablePadding key={idx + action.destType}>
                                     <ListItem>
                                       <ListItemText
                                         primary={toTitleCase(
