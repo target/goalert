@@ -186,7 +186,7 @@ function testUsers(screen: ScreenFormat): void {
           'Users',
           user.name,
           'Sessions',
-          `${user.id}/active-sessions`,
+          `${user.id}/sessions`,
         )
       })
     })

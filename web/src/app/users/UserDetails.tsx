@@ -126,8 +126,8 @@ export default function UserDetails(props: {
 
   if (userID === currentUserID) {
     links.push({
-      label: 'External Calendar Subscriptions',
-      url: 'external-calendar-subscriptions',
+      label: 'Schedule Calendar Subscriptions',
+      url: 'schedule-calendar-subscriptions',
       subText: 'Manage schedules you have subscribed to',
     })
   }
@@ -135,7 +135,7 @@ export default function UserDetails(props: {
   if (isAdmin || userID === currentUserID) {
     links.push({
       label: 'Active Sessions',
-      url: 'active-sessions',
+      url: 'sessions',
       subText: `${sessCount || 'No'} active session${
         sessCount === 1 ? '' : 's'
       }`,

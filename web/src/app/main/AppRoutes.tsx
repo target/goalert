@@ -106,9 +106,9 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/users': UserList,
   '/users/:userID': UserDetails,
   '/users/:userID/on-call-assignments': UserOnCallAssignmentList,
-  '/users/:userID/external-calendar-subscriptions':
+  '/users/:userID/schedule-calendar-subscriptions':
     UserCalendarSubscriptionList,
-  '/users/:userID/active-sessions': UserSessionList,
+  '/users/:userID/sessions': UserSessionList,
 
   '/profile': Spinner, // should redirect once user ID loads
   '/profile/*': Spinner, // should redirect once user ID loads
