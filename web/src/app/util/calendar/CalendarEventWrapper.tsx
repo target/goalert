@@ -185,13 +185,12 @@ export default function ScheduleCalendarEventWrapper({
         </React.Fragment>
       )
     }
-    if (
-      event.type === 'tempSchedShift' ||
-      DateTime.fromJSDate(event.end) <= DateTime.utc()
-    )
+    if (DateTime.fromJSDate(event.end) <= DateTime.utc())
       return <React.Fragment />
     if (event.type === 'tempSched')
       return renderTempSchedButtons(event as TempSchedEvent)
+    if (event.type === 'tempSchedShift')
+      return renderTempSchedButtons(event as TempSchedShiftEvent)
     if (event.type === 'override')
       return renderOverrideButtons(event as OverrideEvent)
 
