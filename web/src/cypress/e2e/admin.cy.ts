@@ -224,12 +224,16 @@ function testAdmin(): void {
     })
 
     it('should display alert counts', () => {
-      const now = DateTime.local().minus({ hours: 22 }).toLocaleString({
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: 'numeric',
-      })
+      const now = DateTime.local()
+        .minus({ hours: 21 })
+        .set({ minute: 0 })
+        .toLocaleString({
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+        })
 
       cy.get(`.recharts-line-dots circle[r=3]`).last().trigger('mouseover')
       cy.get('[data-cy=alert-count-graph]')

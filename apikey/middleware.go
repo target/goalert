@@ -21,6 +21,19 @@ func (Middleware) MutateOperationContext(ctx context.Context, rc *graphql.Operat
 		return nil
 	}
 
+	if rc.RawQuery == "" {
+		// Allow query to be omitted for API key requests,
+		// since they are always fixed to the key itself.
+		//
+		// The stored query hass been validated beforehand against
+		// the API key's embedded hash.
+		//
+		// This helps with things like key rotations, where the
+		// query may not be known to the client, or would otherwise
+		// be difficult to update.
+		rc.RawQuery = p.Query
+	}
+
 	if p.Query != rc.RawQuery {
 		return &gqlerror.Error{
 			Err:     permission.Unauthorized(),
