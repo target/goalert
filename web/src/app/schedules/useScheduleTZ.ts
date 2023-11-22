@@ -1,4 +1,4 @@
-import { gql, QueryResult, useQuery } from '@apollo/client'
+import { gql, useQuery } from 'urql'
 import { DateTime } from 'luxon'
 
 const schedTZQuery = gql`
@@ -11,8 +11,7 @@ const schedTZQuery = gql`
 `
 
 interface ScheduleTZResult {
-  // q is the Apollo query status
-  q: QueryResult
+  q: { loading: false } // for compatability, until loading logic is removed (in favor of suspense)
   // zone is schedule time zone name if ready; else empty string
   zone: string
   // isLocalZone is true if schedule and system time zone are equal
@@ -22,7 +21,8 @@ interface ScheduleTZResult {
 }
 
 export function useScheduleTZ(scheduleID: string): ScheduleTZResult {
-  const q = useQuery(schedTZQuery, {
+  const [q] = useQuery({
+    query: schedTZQuery,
     variables: { id: scheduleID },
   })
   const zone = q.data?.schedule?.timeZone ?? 'local'
@@ -35,5 +35,5 @@ export function useScheduleTZ(scheduleID: string): ScheduleTZResult {
     )
   }
 
-  return { q, zone, isLocalZone, zoneAbbr }
+  return { q: { loading: false }, zone, isLocalZone, zoneAbbr }
 }

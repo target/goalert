@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState } from 'react'
+import React, { Suspense, useEffect, useLayoutEffect, useState } from 'react'
 import AppBar from '@mui/material/AppBar'
 import Hidden from '@mui/material/Hidden'
 import Toolbar from '@mui/material/Toolbar'
@@ -6,13 +6,10 @@ import ToolbarPageTitle from './components/ToolbarPageTitle'
 import ToolbarAction from './components/ToolbarAction'
 import ErrorBoundary from './ErrorBoundary'
 import Grid from '@mui/material/Grid'
-import { useSelector } from 'react-redux'
-import { authSelector } from '../selectors'
 import { PageActionContainer, PageActionProvider } from '../util/PageActions'
 import SwipeableDrawer from '@mui/material/SwipeableDrawer'
 import LazyWideSideBar, { drawerWidth } from './WideSideBar'
 import LazyNewUserSetup from './components/NewUserSetup'
-import Login from './components/Login'
 import { SkipToContentLink } from '../util/SkipToContentLink'
 import { SearchContainer, SearchProvider } from '../util/AppBarSearchContainer'
 import makeStyles from '@mui/styles/makeStyles'
@@ -28,6 +25,7 @@ import { useExpFlag } from '../util/useExpFlag'
 import { NotificationProvider } from './SnackbarNotification'
 import ReactGA from 'react-ga4'
 import { useConfigValue } from '../util/RequireConfig'
+import Spinner from '../loading/components/Spinner'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -66,21 +64,12 @@ export default function App(): JSX.Element {
   const [showMobile, setShowMobile] = useState(false)
   const fullScreen = useIsWidthDown('md')
   const marginLeft = fullScreen ? 0 : drawerWidth
-  const authValid = useSelector(authSelector)
   const urlKey = useURLKey()
   const hasExampleFlag = useExpFlag('example')
 
   useLayoutEffect(() => {
     setShowMobile(false)
   }, [urlKey])
-
-  if (!authValid) {
-    return (
-      <div className={classes.root}>
-        <Login />
-      </div>
-    )
-  }
 
   let cyFormat = 'wide'
   if (fullScreen) cyFormat = 'mobile'
@@ -101,7 +90,9 @@ export default function App(): JSX.Element {
                   showMobileSidebar={showMobile}
                   openMobileSidebar={() => setShowMobile(true)}
                 />
-                <ToolbarPageTitle />
+                <Suspense>
+                  <ToolbarPageTitle />
+                </Suspense>
                 <div style={{ flex: 1 }} />
                 <PageActionContainer />
                 <SearchContainer />
@@ -135,17 +126,19 @@ export default function App(): JSX.Element {
               data-exp-flag-example={String(hasExampleFlag)}
             >
               <ErrorBoundary>
-                <LazyNewUserSetup />
-                <AuthLink />
-                <Grid
-                  container
-                  justifyContent='center'
-                  className={classes.mainContainer}
-                >
-                  <Grid className={classes.containerClass} item>
-                    <AppRoutes />
+                <Suspense fallback={<Spinner />}>
+                  <LazyNewUserSetup />
+                  <AuthLink />
+                  <Grid
+                    container
+                    justifyContent='center'
+                    className={classes.mainContainer}
+                  >
+                    <Grid className={classes.containerClass} item>
+                      <AppRoutes />
+                    </Grid>
                   </Grid>
-                </Grid>
+                </Suspense>
               </ErrorBoundary>
             </main>
           </NotificationProvider>

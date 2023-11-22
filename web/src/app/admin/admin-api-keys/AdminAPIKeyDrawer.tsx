@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { Suspense, useEffect, useMemo, useState } from 'react'
 import {
   ClickAwayListener,
   Divider,
@@ -132,30 +132,32 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
         data-cy='debug-message-details'
       >
         <Toolbar />
-        {showQuery && (
-          <AdminAPIKeyShowQueryDialog
-            apiKeyID={apiKey.id}
-            onClose={() => setShowQuery(false)}
-          />
-        )}
-        {deleteDialog ? (
-          <AdminAPIKeyDeleteDialog
-            onClose={(yes: boolean): void => {
-              setDialogDialog(false)
+        <Suspense>
+          {showQuery && (
+            <AdminAPIKeyShowQueryDialog
+              apiKeyID={apiKey.id}
+              onClose={() => setShowQuery(false)}
+            />
+          )}
+          {deleteDialog ? (
+            <AdminAPIKeyDeleteDialog
+              onClose={(yes: boolean): void => {
+                setDialogDialog(false)
 
-              if (yes) {
-                onClose()
-              }
-            }}
-            apiKeyID={apiKey.id}
-          />
-        ) : null}
-        {editDialog ? (
-          <AdminAPIKeyEditDialog
-            onClose={() => setEditDialog(false)}
-            apiKeyID={apiKey.id}
-          />
-        ) : null}
+                if (yes) {
+                  onClose()
+                }
+              }}
+              apiKeyID={apiKey.id}
+            />
+          ) : null}
+          {editDialog ? (
+            <AdminAPIKeyEditDialog
+              onClose={() => setEditDialog(false)}
+              apiKeyID={apiKey.id}
+            />
+          ) : null}
+        </Suspense>
         <Grid style={{ width: '30vw' }}>
           <Typography variant='h6' style={{ margin: '16px' }}>
             API Key Details
@@ -178,7 +180,11 @@ export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
               <ListItemText
                 primary='Query'
                 secondary={
-                  <Button variant='text' onClick={() => setShowQuery(true)}>
+                  <Button
+                    variant='outlined'
+                    onClick={() => setShowQuery(true)}
+                    sx={{ mt: 0.5 }}
+                  >
                     Show Query
                   </Button>
                 }

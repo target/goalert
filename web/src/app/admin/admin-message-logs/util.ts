@@ -35,7 +35,7 @@ export function getValidIntervals(s: {
   return INTERVAL_OPTIONS.filter((o) => {
     const interval = Duration.fromISO(o.value).as('milliseconds')
     const points = duration / interval
-    return points >= 4 && points <= 1000
+    return points >= 4 && points <= 75
   })
 }
 

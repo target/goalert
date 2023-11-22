@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { Suspense, useMemo, useState } from 'react'
 import { Button, Card, Grid, Typography } from '@mui/material'
 import { Add } from '@mui/icons-material'
 import makeStyles from '@mui/styles/makeStyles'
@@ -187,39 +187,44 @@ export default function AdminAPIKeys(): JSX.Element {
 
   return (
     <React.Fragment>
-      <AdminAPIKeysDrawer
-        onClose={() => {
-          setSelectedAPIKey(null)
-        }}
-        apiKeyID={selectedAPIKey?.id}
-        onDuplicateClick={() => {
-          setCreateDialog(true)
-          setCreateFromID(selectedAPIKey?.id || '')
-        }}
-      />
-      {createDialog && (
-        <AdminAPIKeyCreateDialog
-          fromID={createFromID}
+      <Suspense>
+        <AdminAPIKeysDrawer
           onClose={() => {
-            setCreateDialog(false)
-            setCreateFromID('')
+            setSelectedAPIKey(null)
+          }}
+          apiKeyID={selectedAPIKey?.id}
+          onDuplicateClick={() => {
+            setCreateDialog(true)
+            setCreateFromID(selectedAPIKey?.id || '')
           }}
         />
-      )}
-      {deleteDialog && (
-        <AdminAPIKeyDeleteDialog
-          onClose={(): void => {
-            setDeleteDialog('')
-          }}
-          apiKeyID={deleteDialog}
-        />
-      )}
-      {editDialog && (
-        <AdminAPIKeyEditDialog
-          onClose={() => setEditDialog('')}
-          apiKeyID={editDialog}
-        />
-      )}
+      </Suspense>
+
+      <Suspense>
+        {createDialog && (
+          <AdminAPIKeyCreateDialog
+            fromID={createFromID}
+            onClose={() => {
+              setCreateDialog(false)
+              setCreateFromID('')
+            }}
+          />
+        )}
+        {deleteDialog && (
+          <AdminAPIKeyDeleteDialog
+            onClose={(): void => {
+              setDeleteDialog('')
+            }}
+            apiKeyID={deleteDialog}
+          />
+        )}
+        {editDialog && (
+          <AdminAPIKeyEditDialog
+            onClose={() => setEditDialog('')}
+            apiKeyID={editDialog}
+          />
+        )}
+      </Suspense>
       <div
         className={
           selectedAPIKey ? classes.containerSelected : classes.containerDefault

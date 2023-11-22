@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { Suspense, useState } from 'react'
 import { gql, useQuery } from 'urql'
 import { Redirect } from 'wouter'
 import _ from 'lodash'
@@ -175,25 +175,27 @@ export default function ServiceDetails(props: {
           },
         ]}
       />
-      {showEdit && (
-        <ServiceEditDialog
-          onClose={() => setShowEdit(false)}
-          serviceID={serviceID}
-        />
-      )}
-      {showDelete && (
-        <ServiceDeleteDialog
-          onClose={() => setShowDelete(false)}
-          serviceID={serviceID}
-        />
-      )}
-      {showMaintMode && (
-        <ServiceMaintenanceModeDialog
-          onClose={() => setShowMaintMode(false)}
-          serviceID={serviceID}
-          expiresAt={data.service.maintenanceExpiresAt}
-        />
-      )}
+      <Suspense>
+        {showEdit && (
+          <ServiceEditDialog
+            onClose={() => setShowEdit(false)}
+            serviceID={serviceID}
+          />
+        )}
+        {showDelete && (
+          <ServiceDeleteDialog
+            onClose={() => setShowDelete(false)}
+            serviceID={serviceID}
+          />
+        )}
+        {showMaintMode && (
+          <ServiceMaintenanceModeDialog
+            onClose={() => setShowMaintMode(false)}
+            serviceID={serviceID}
+            expiresAt={data.service.maintenanceExpiresAt}
+          />
+        )}
+      </Suspense>
     </React.Fragment>
   )
 }

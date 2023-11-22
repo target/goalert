@@ -47,6 +47,8 @@ const numInfoQuery = gql`
   }
 `
 
+const noSuspense = { suspense: false }
+
 export default function AdminNumberLookup(): JSX.Element {
   const [number, setNumber] = useState('')
   const [staleCarrier, setStaleCarrier] = useState(true)
@@ -54,6 +56,7 @@ export default function AdminNumberLookup(): JSX.Element {
   const [{ data: numData, error: queryError }] = useQuery({
     query: numInfoQuery,
     variables: { number },
+    context: noSuspense,
   })
   const numInfo = numData?.phoneNumberInfo as PhoneNumberInfo
 

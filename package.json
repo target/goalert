@@ -31,11 +31,11 @@
   },
   "devDependencies": {
     "@apollo/client": "3.8.5",
-    "@babel/core": "7.23.0",
+    "@babel/core": "7.23.3",
     "@babel/plugin-transform-modules-commonjs": "7.23.0",
     "@dnd-kit/core": "6.0.8",
     "@dnd-kit/sortable": "7.0.2",
-    "@dnd-kit/utilities": "3.2.1",
+    "@dnd-kit/utilities": "3.2.2",
     "@emotion/react": "11.11.1",
     "@emotion/styled": "11.11.0",
     "@material/material-color-utilities": "0.2.7",
@@ -44,18 +44,18 @@
     "@mui/material": "5.14.10",
     "@mui/styles": "5.14.16",
     "@mui/system": "5.14.10",
-    "@mui/x-data-grid": "6.16.2",
-    "@playwright/test": "1.39.0",
+    "@mui/x-data-grid": "6.18.1",
+    "@playwright/test": "1.40.0",
     "@types/chance": "1.1.4",
-    "@types/diff": "5.0.5",
+    "@types/diff": "5.0.8",
     "@types/glob": "8.1.0",
-    "@types/jest": "29.5.5",
+    "@types/jest": "29.5.8",
     "@types/lodash": "4.14.199",
-    "@types/luxon": "3.3.2",
+    "@types/luxon": "3.3.4",
     "@types/prop-types": "15.7.9",
     "@types/react": "18.2.22",
     "@types/react-big-calendar": "1.6.5",
-    "@types/react-dom": "18.2.13",
+    "@types/react-dom": "18.2.15",
     "@types/react-transition-group": "4.4.7",
     "@types/react-virtualized-auto-sizer": "1.0.1",
     "@typescript-eslint/eslint-plugin": "6.8.0",
@@ -81,7 +81,7 @@
     "eslint-plugin-promise": "6.1.1",
     "eslint-plugin-react": "7.33.2",
     "eslint-plugin-react-hooks": "4.6.0",
-    "fuse.js": "6.6.2",
+    "fuse.js": "7.0.0",
     "glob": "10.3.5",
     "graphiql": "3.0.6",
     "graphql": "16.8.1",
@@ -117,5 +117,13 @@
     "wonka": "6.3.4",
     "wouter": "2.12.1"
   },
-  "packageManager": "yarn@3.6.3"
+  "packageManager": "yarn@3.6.3",
+  "dependenciesMeta": {
+    "prettier@3.0.3": {
+      "unplugged": true
+    },
+    "prettier-plugin-go-template@0.0.15": {
+      "unplugged": true
+    }
+  }
 }

@@ -7,7 +7,7 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Divider from '@mui/material/Divider'
 import makeStyles from '@mui/styles/makeStyles'
-import { useTheme } from '@mui/material'
+import { Theme, useTheme } from '@mui/material'
 import { getParameterByName } from '../../util/query_param'
 import { pathPrefix } from '../../env'
 
@@ -23,7 +23,15 @@ import darkModeLogoImgSrc from '../../public/logos/white/goalert-logo-white-scal
 
 const PROVIDERS_URL = pathPrefix + '/api/v2/identity/providers'
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme: Theme) => ({
+  root: {
+    flexGrow: 1,
+    zIndex: 1,
+    position: 'relative',
+    display: 'flex',
+    backgroundColor: theme.palette.background.default,
+    height: '100%',
+  },
   card: {
     width: 'fit-content',
     maxWidth: '30em',
@@ -62,7 +70,7 @@ const useStyles = makeStyles({
     paddingLeft: '1em',
     paddingRight: '1em',
   },
-})
+}))
 type Field = {
   ID: string
   Label: string
@@ -240,20 +248,22 @@ export default function Login(): JSX.Element {
     )
 
   return (
-    <div className={classes.center}>
-      <Card className={classes.card}>
-        <CardContent>
-          <Grid container spacing={2} className={classes.gridContainer}>
-            <Grid item xs={12}>
-              {logo}
+    <div className={classes.root}>
+      <div className={classes.center}>
+        <Card className={classes.card}>
+          <CardContent>
+            <Grid container spacing={2} className={classes.gridContainer}>
+              <Grid item xs={12}>
+                {logo}
+              </Grid>
+              {providers.map((provider, idx) =>
+                renderProvider(provider, idx, providers.length),
+              )}
+              {errorJSX}
             </Grid>
-            {providers.map((provider, idx) =>
-              renderProvider(provider, idx, providers.length),
-            )}
-            {errorJSX}
-          </Grid>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/creack/pty"
+	"github.com/creack/pty/v2"
 	"github.com/fatih/color"
 )
 

@@ -206,6 +206,8 @@ FormField.propTypes = {
   // Allows entering decimal number into a numeric field.
   float: p.bool,
 
+  className: p.string,
+
   // fieldName specifies the field used for
   // checking errors, change handlers, and value.
   //
@@ -217,6 +219,16 @@ FormField.propTypes = {
   // expects an ISO timestamp, if string
   min: p.oneOfType([p.number, p.string]),
   max: p.oneOfType([p.number, p.string]),
+
+  // softMin and softMax values specify the range to filter changes
+  // expects an ISO timestamp, if string
+  softMin: p.oneOfType([p.number, p.string]),
+  softMax: p.oneOfType([p.number, p.string]),
+
+  // softMinLabel and softMaxLabel values specify the label to display
+  // if the softMin or softMax is exceeded.
+  softMinLabel: p.string,
+  softMaxLabel: p.string,
 
   // used if name is set,
   // but the error name is different from graphql responses
@@ -242,6 +254,7 @@ FormField.propTypes = {
   step: p.oneOfType([p.number, p.string]),
 
   InputProps: p.object,
+  SelectProps: p.object,
 
   disabled: p.bool,
 

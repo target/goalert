@@ -6,6 +6,7 @@ export const FormContainerContext = React.createContext({
   errors: [],
   value: {},
   addField: () => () => {},
+  setValidationError: () => {},
   optionalLabels: false,
 })
 FormContainerContext.displayName = 'FormContainerContext'

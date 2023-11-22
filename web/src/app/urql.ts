@@ -2,7 +2,6 @@ import { retryExchange } from '@urql/exchange-retry'
 import {
   cacheExchange,
   createClient,
-  dedupExchange,
   fetchExchange,
   Exchange,
   Operation,
@@ -107,8 +106,8 @@ const apolloRefetchExchange: Exchange = ({ forward }) => {
 
 export const client = createClient({
   url: pathPrefix + '/api/graphql',
+  suspense: true,
   exchanges: [
-    dedupExchange,
     refetchExchange(),
     cacheExchange,
     apolloRefetchExchange,
