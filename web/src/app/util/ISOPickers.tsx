@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { DateTime, DateTimeUnit } from 'luxon'
 import { TextField, TextFieldProps, useTheme } from '@mui/material'
 import { useURLParam } from '../actions'
+import { FormContainerContext } from '../forms/context'
 
 interface ISOPickerProps extends ISOTextFieldProps {
   format: string
@@ -11,6 +12,16 @@ interface ISOPickerProps extends ISOTextFieldProps {
 
   min?: string
   max?: string
+
+  // softMin and softMax are used to set the min and max values of the input
+  // without restricting the value that can be entered.
+  //
+  // Values outside of the softMin and softMax will be stored in local state
+  // and will not be passed to the parent onChange.
+  softMin?: string
+  softMinLabel?: string
+  softMax?: string
+  softMaxLabel?: string
 }
 
 // Used for the native textfield component or the nested input component
@@ -32,31 +43,68 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
     min,
     max,
 
+    softMin,
+    softMax,
+
+    softMinLabel,
+    softMaxLabel,
+
     ...textFieldProps
   } = props
 
   const theme = useTheme()
   const [_zone] = useURLParam('tz', 'local')
   const zone = timeZone || _zone
-  let valueAsDT = props.value ? DateTime.fromISO(props.value, { zone }) : null
+  const valueAsDT = React.useMemo(
+    () => (props.value ? DateTime.fromISO(props.value, { zone }) : null),
+    [props.value, zone],
+  )
 
   // store input value as DT.format() string. pass to parent onChange as ISO string
   const [inputValue, setInputValue] = useState(
     valueAsDT?.toFormat(format) ?? '',
   )
 
+  function getSoftValidationError(value: string): string {
+    if (props.disabled) return ''
+    let dt: DateTime
+    try {
+      dt = DateTime.fromISO(value, { zone })
+    } catch (e) {
+      return `Invalid date/time`
+    }
+
+    if (softMin) {
+      const sMin = DateTime.fromISO(softMin)
+      if (dt < sMin) {
+        return `Value must be after ${softMinLabel || sMin.toFormat(format)}`
+      }
+    }
+    if (softMax) {
+      const sMax = DateTime.fromISO(softMax)
+      if (dt > sMax) {
+        return `Value must be before ${softMaxLabel || sMax.toFormat(format)}`
+      }
+    }
+
+    return ''
+  }
+
+  const { setValidationError } = React.useContext(FormContainerContext) as {
+    setValidationError: (name: string, errMsg: string) => void
+  }
+  useEffect(
+    () =>
+      setValidationError(props.name || '', getSoftValidationError(inputValue)),
+    [inputValue, props.disabled, valueAsDT, props.name, softMin, softMax],
+  )
+
   useEffect(() => {
     setInputValue(valueAsDT?.toFormat(format) ?? '')
   }, [valueAsDT])
 
-  // update isopickers render on reset
-  useEffect(() => {
-    valueAsDT = props.value ? DateTime.fromISO(props.value, { zone }) : null
-    setInputValue(valueAsDT ? valueAsDT.toFormat(format) : '')
-  }, [props.value])
-
   const dtToISO = (dt: DateTime): string => {
-    return dt.startOf(truncateTo).setZone(zone).toISO()
+    return dt.startOf(truncateTo).toUTC().toISO()
   }
 
   // parseInputToISO takes input from the form control and returns a string
@@ -65,8 +113,9 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
     if (!input) return ''
 
     // handle input in specific format e.g. MM/dd/yyyy
-    const inputAsDT = DateTime.fromFormat(input, format, { zone })
-    if (inputAsDT.isValid) {
+    try {
+      const inputAsDT = DateTime.fromFormat(input, format, { zone })
+
       if (valueAsDT && type === 'time') {
         return dtToISO(
           valueAsDT.set({
@@ -76,24 +125,37 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
         )
       }
       return dtToISO(inputAsDT)
+    } catch (e) {
+      // ignore if input doesn't match format
     }
 
     // if format string invalid, try validating input as iso string
-    const iso = DateTime.fromISO(input, { zone })
-    if (iso.isValid) return dtToISO(iso)
+    try {
+      const iso = DateTime.fromISO(input, { zone })
+      return dtToISO(iso)
+    } catch (e) {
+      // ignore if input doesn't match iso format
+    }
 
     return ''
   }
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
-    setInputValue(e.target.value)
-    const newVal = parseInputToISO(e.target.value)
+  const handleChange = (newInputValue: string): void => {
+    const newVal = parseInputToISO(newInputValue)
+    if (!newVal) return
+    if (getSoftValidationError(newVal)) return
+    if (newVal === valueAsDT?.toUTC().toISO()) return
 
-    // only fire the parent's `onChange` handler when we have a new valid value,
-    // taking care to ensure we ignore any zonal differences.
-    if (!valueAsDT || (newVal && newVal !== valueAsDT.toISO())) {
-      onChange(newVal)
-    }
+    onChange(newVal)
+  }
+
+  useEffect(() => {
+    handleChange(inputValue)
+  }, [softMin, softMax]) // inputValue intentionally omitted to prevent loop
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    setInputValue(e.target.value)
+    handleChange(e.target.value)
   }
 
   const defaultLabel = type === 'time' ? 'Select a time...' : 'Select a date...'
@@ -103,8 +165,8 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
       label={defaultLabel}
       {...textFieldProps}
       type={type}
-      value={valueAsDT ? valueAsDT.toFormat(format) : inputValue}
-      onChange={handleChange}
+      value={inputValue}
+      onChange={handleInputChange}
       InputLabelProps={{ shrink: true, ...textFieldProps?.InputLabelProps }}
       inputProps={{
         min: min ? DateTime.fromISO(min, { zone }).toFormat(format) : undefined,
