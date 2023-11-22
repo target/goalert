@@ -20,7 +20,7 @@ export type AlertCountOpts = {
   alerts: Alert[]
 }
 
-function truncateDateTime(dateTime, duration) {
+function truncateDateTime(dateTime: DateTime, duration: Duration): DateTime {
   const durValues = duration.toObject()
   let truncDateTime = dateTime
 
