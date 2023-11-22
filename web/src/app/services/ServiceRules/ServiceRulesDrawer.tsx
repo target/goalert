@@ -170,7 +170,10 @@ export default function ServiceRulesDrawer(
                               primary={action.destType}
                               secondary={action.contents.map(
                                 (content: Content, idx: number) => (
-                                  <List disablePadding key={idx + action.destType}>
+                                  <List
+                                    disablePadding
+                                    key={idx + action.destType}
+                                  >
                                     <ListItem>
                                       <ListItemText
                                         primary={toTitleCase(
