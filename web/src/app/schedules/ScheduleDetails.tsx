@@ -76,17 +76,19 @@ export default function ScheduleDetails({
   const [slackEnabled] = useConfigValue('Slack.Enable')
   const [webhookEnabled] = useConfigValue('Webhook.Enable')
 
+  const [editTempSched, setEditTempSched] = useState(false)
+
   const [configTempSchedule, setConfigTempSchedule] =
     useState<TempSchedValue | null>(null)
   const { zone } = useScheduleTZ(scheduleID)
-  const onNewTempSched = useCallback(
-    () => setConfigTempSchedule(defaultTempSchedValue(zone)),
-    [],
-  )
-  const onEditTempSched = useCallback(
-    (v: TempSchedValue) => setConfigTempSchedule(v),
-    [],
-  )
+  const onNewTempSched = useCallback(() => {
+    setEditTempSched(false)
+    setConfigTempSchedule(defaultTempSchedValue(zone))
+  }, [])
+  const onEditTempSched = useCallback((v: TempSchedValue) => {
+    setEditTempSched(true)
+    setConfigTempSchedule(v)
+  }, [])
 
   const [deleteTempSchedule, setDeleteTempSchedule] =
     useState<TempSchedValue | null>(null)
@@ -128,6 +130,7 @@ export default function ScheduleDetails({
             value={configTempSchedule}
             onClose={() => setConfigTempSchedule(null)}
             scheduleID={scheduleID}
+            edit={editTempSched}
           />
         )}
         {deleteTempSchedule && (
