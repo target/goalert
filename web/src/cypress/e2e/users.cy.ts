@@ -201,7 +201,7 @@ function testUsers(screen: ScreenFormat): void {
         }).then((sched) => {
           cy.visit(`users/${user.id}`)
 
-          cy.get('[data-cy-spin-loading=false]').should('exist')
+          cy.get('[data-cy=loading-spinner]').should('not.exist')
 
           cy.get('div').contains(sched.name).click()
           cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
