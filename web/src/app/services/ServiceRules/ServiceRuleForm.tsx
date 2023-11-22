@@ -312,7 +312,12 @@ export default function ServiceRuleForm(
         return <React.Fragment key={contentIdx + c.prop} />
       }
       return (
-        <Grid key={contentIdx + c.prop} item sx={{ flexGrow: 1, marginTop: '1em' }} xs={12}>
+        <Grid
+          key={contentIdx + c.prop}
+          item
+          sx={{ flexGrow: 1, marginTop: '1em' }}
+          xs={12}
+        >
           <FormField
             fullWidth
             component={TextField}
