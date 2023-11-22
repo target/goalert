@@ -17,6 +17,7 @@ import { styles as globalStyles } from '../styles/materialStyles'
 import UserNotificationRuleCreateDialog from './UserNotificationRuleCreateDialog'
 import { useIsWidthDown } from '../util/useWidth'
 import { ObjectNotFound, GenericError } from '../error-pages'
+import { User } from '../../schema'
 
 const query = gql`
   query nrList($id: ID!) {
@@ -65,7 +66,7 @@ export default function UserNotificationRuleList(props: {
     return <ObjectNotFound type='notifcation rules list' />
   if (error) return <GenericError error={error.message} />
 
-  const user = data?.user
+  const { user }: { user: User } = data
 
   return (
     <Grid item xs={12}>

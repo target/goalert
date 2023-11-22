@@ -78,7 +78,7 @@ export default function UserContactMethodList(
   if (!data?.user) return <ObjectNotFound type='user' />
   if (error) return <GenericError error={error.message} />
 
-  const contactMethods = data?.user?.contactMethods ?? []
+  const contactMethods = data.user.contactMethods
 
   const getIcon = (cm: UserContactMethod): JSX.Element | null => {
     if (!cm.disabled) return null

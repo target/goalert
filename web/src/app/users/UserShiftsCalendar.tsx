@@ -32,15 +32,13 @@ export default function UserShiftsCalendar({
 }: UserShiftsCalendarProps): JSX.Element | null {
   const { weekly, start } = useCalendarNavigation()
 
-  const [queryStart, queryEnd] = weekly
-    ? [
-        getStartOfWeek(DateTime.fromISO(start)).toISO(),
-        getEndOfWeek(DateTime.fromISO(start)).toISO(),
-      ]
-    : [
-        getStartOfWeek(DateTime.fromISO(start).startOf('month')).toISO(),
-        getEndOfWeek(DateTime.fromISO(start).endOf('month')).toISO(),
-      ]
+  const queryStart = weekly
+    ? getStartOfWeek(DateTime.fromISO(start)).toISO()
+    : getStartOfWeek(DateTime.fromISO(start).startOf('month')).toISO()
+
+  const queryEnd = weekly
+    ? getEndOfWeek(DateTime.fromISO(start)).toISO()
+    : getEndOfWeek(DateTime.fromISO(start).endOf('month')).toISO()
 
   const [{ data, error }] = useQuery({
     query,

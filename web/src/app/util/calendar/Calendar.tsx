@@ -26,7 +26,7 @@ import {
   User,
   UserOverride,
 } from '../../../schema'
-import ScheduleCalendarEventWrapper from './CalendarEventWrapper'
+import CalendarEventWrapper from './CalendarEventWrapper'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
@@ -393,7 +393,7 @@ export default function Calendar(props: CalendarProps): JSX.Element {
           onView={() => {}} // stub to hide false console err
           components={{
             // @ts-expect-error Property 'children' does not exist on type - yes it does
-            eventWrapper: ScheduleCalendarEventWrapper,
+            eventWrapper: CalendarEventWrapper,
             toolbar: () => null,
           }}
         />
