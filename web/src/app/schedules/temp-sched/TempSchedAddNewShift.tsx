@@ -289,6 +289,7 @@ export default function TempSchedAddNewShift({
             color='secondary'
             variant='contained'
             onClick={handleAddShift}
+            type='submit'
           >
             Add
           </Button>
