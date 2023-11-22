@@ -102,7 +102,8 @@ export default function AlertCountLineGraph(
     if (props.unit === 'month') return dt.toLocaleString({ month: 'long' })
     if (props.unit === 'week' || props.unit === 'day')
       return dt.toLocaleString({ month: 'short', day: 'numeric' })
-    if (props.unit === 'hour' || props.unit === 'minute')
+    if (props.unit === 'hour') return dt.toLocaleString({ hour: 'numeric' })
+    if (props.unit === 'minute')
       return dt.toLocaleString({ hour: 'numeric', minute: 'numeric' })
 
     return date

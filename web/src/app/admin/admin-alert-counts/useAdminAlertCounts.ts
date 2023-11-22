@@ -20,6 +20,45 @@ export type AlertCountOpts = {
   alerts: Alert[]
 }
 
+function truncateDateTime(dateTime, duration) {
+  const durValues = duration.toObject()
+  let truncDateTime = dateTime
+
+  if (durValues.years) {
+    truncDateTime = truncDateTime.set({
+      month: 1,
+      day: 1,
+      hour: 0,
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+    })
+  } else if (durValues.months) {
+    truncDateTime = truncDateTime.set({
+      day: 1,
+      hour: 0,
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+    })
+  } else if (durValues.days) {
+    truncDateTime = truncDateTime.set({
+      hour: 0,
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+    })
+  } else if (durValues.hours) {
+    truncDateTime = truncDateTime.set({ minute: 0, second: 0, millisecond: 0 })
+  } else if (durValues.minutes) {
+    truncDateTime = truncDateTime.set({ second: 0, millisecond: 0 })
+  } else if (durValues.seconds) {
+    truncDateTime = truncDateTime.set({ millisecond: 0 })
+  }
+
+  return truncDateTime
+}
+
 export function useAdminAlertCounts(opts: AlertCountOpts): AlertCountSeries[] {
   const alerts = opts.alerts
   const groupBySvcTest = _.groupBy(alerts, 'service.id')
@@ -27,8 +66,14 @@ export function useAdminAlertCounts(opts: AlertCountOpts): AlertCountSeries[] {
     const alertCounts: AlertCountDataPoint[] = []
     let svcTotal = 0
     let svcMax = 0
-    Interval.fromISO(opts.int)
-      .splitBy(Duration.fromISO(opts.dur))
+    const rawInt = Interval.fromISO(opts.int)
+    const dur = Duration.fromISO(opts.dur)
+
+    rawInt
+      .set({
+        start: truncateDateTime(rawInt.start, dur),
+      })
+      .splitBy(dur)
       .map((i) => {
         const bucket = alerts.filter((a) => {
           return i.contains(DateTime.fromISO(a.createdAt as string))
