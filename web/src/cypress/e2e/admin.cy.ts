@@ -199,7 +199,7 @@ function testAdmin(): void {
     })
   })
 
-  describe.only('Admin Alert Count Page', () => {
+  describe('Admin Alert Count Page', () => {
     let svc1: Service
     let svc2: Service
 
