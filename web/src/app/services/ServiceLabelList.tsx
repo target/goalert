@@ -1,4 +1,4 @@
-import React, { ReactElement, useState } from 'react'
+import React, { ReactElement, Suspense, useState } from 'react'
 import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
@@ -112,26 +112,29 @@ export default function ServiceLabelList(props: {
       {isMobile && (
         <CreateFAB onClick={() => setCreate(true)} title='Add Label' />
       )}
-      {create && (
-        <ServiceLabelSetDialog
-          serviceID={props.serviceID}
-          onClose={() => setCreate(false)}
-        />
-      )}
-      {editKey && (
-        <ServiceLabelEditDialog
-          serviceID={props.serviceID}
-          labelKey={editKey}
-          onClose={() => setEditKey(null)}
-        />
-      )}
-      {deleteKey && (
-        <ServiceLabelDeleteDialog
-          serviceID={props.serviceID}
-          labelKey={deleteKey}
-          onClose={() => setDeleteKey(null)}
-        />
-      )}
+
+      <Suspense>
+        {create && (
+          <ServiceLabelSetDialog
+            serviceID={props.serviceID}
+            onClose={() => setCreate(false)}
+          />
+        )}
+        {editKey && (
+          <ServiceLabelEditDialog
+            serviceID={props.serviceID}
+            labelKey={editKey}
+            onClose={() => setEditKey(null)}
+          />
+        )}
+        {deleteKey && (
+          <ServiceLabelDeleteDialog
+            serviceID={props.serviceID}
+            labelKey={deleteKey}
+            onClose={() => setDeleteKey(null)}
+          />
+        )}
+      </Suspense>
     </React.Fragment>
   )
 }

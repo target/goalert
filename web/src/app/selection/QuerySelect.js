@@ -30,6 +30,8 @@ const asArray = (value) => {
 const mapValueQuery = (query, index) =>
   mapInputVars(fieldAlias(query, 'data' + index), { id: 'id' + index })
 
+const noSuspenseContext = { suspense: false }
+
 // makeUseValues will return a hook that will fetch select values for the
 // given ids.
 function makeUseValues(query, mapNode) {
@@ -61,6 +63,7 @@ function makeUseValues(query, mapNode) {
       pause: !value.length,
       variables,
       requestPolicy: 'cache-first',
+      context: noSuspenseContext,
     })
 
     if (!value.length) {
@@ -100,6 +103,7 @@ function makeUseOptions(query, mapNode, vars, defaultVars) {
 
       pollInterval: 0,
       errorPolicy: 'all', // needs to be set explicitly for some reason
+      context: noSuspenseContext,
     })
 
     let result = []
@@ -128,6 +132,7 @@ export const querySelectPropTypes = {
   formatInputOnChange: p.func,
   onChange: p.func,
   value: valueCheck,
+  fullWidth: p.bool,
   label: p.string,
   multiple: p.bool,
   name: p.string,

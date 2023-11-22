@@ -45,6 +45,8 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
     draggable,
     disabled,
     disableTypography,
+    onClick,
+    primaryText,
     ...muiListItemProps
   } = props.item
 
@@ -64,10 +66,19 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
     }
   }
 
+  const onClickProps = onClick && {
+    onClick,
+
+    // NOTE: needed for error: button: false? not assignable to type 'true'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    button: true as any,
+  }
+
   return (
     <MUIListItem
       key={props.index}
       {...linkProps}
+      {...onClickProps}
       {...muiListItemProps}
       className={classnames({
         [classes.listItem]: true,
@@ -78,7 +89,7 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
     >
       {icon && <ListItemIcon tabIndex={-1}>{icon}</ListItemIcon>}
       <ListItemText
-        primary={title}
+        primary={title || primaryText}
         secondary={subText}
         disableTypography={disableTypography}
         secondaryTypographyProps={{

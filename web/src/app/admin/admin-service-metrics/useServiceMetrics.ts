@@ -1,4 +1,4 @@
-import { IntegrationKeyType, Service, TargetType } from '../../../schema'
+import { Alert, IntegrationKeyType, Service, TargetType } from '../../../schema'
 
 export type TargetMetrics = {
   [type in IntegrationKeyType | TargetType]: number
@@ -6,6 +6,7 @@ export type TargetMetrics = {
 export type ServiceMetrics = {
   keyTgtTotals: TargetMetrics
   stepTgtTotals: TargetMetrics
+  totalStaleAlerts: { [serviceName in string]: number }
   filteredServices: Service[]
 }
 export type ServiceMetricFilters = {
@@ -17,10 +18,12 @@ export type ServiceMetricFilters = {
 
 export type ServiceMetricOpts = {
   services: Service[]
+  alerts: Alert[]
   filters: ServiceMetricFilters
 }
+
 export function useServiceMetrics(opts: ServiceMetricOpts): ServiceMetrics {
-  const { services, filters } = opts
+  const { services, filters, alerts } = opts
 
   const filterServices = (
     services: Service[],
@@ -35,13 +38,13 @@ export function useServiceMetrics(opts: ServiceMetricOpts): ServiceMetrics {
         )
         if (!labelMatch) return false
       }
-      if (filters.epStepTgts?.length) {
+      if (filters?.epStepTgts?.length) {
         const stepTargetMatch = svc.escalationPolicy?.steps.some((step) =>
           step.targets.some((tgt) => filters.epStepTgts?.includes(tgt.type)),
         )
         if (!stepTargetMatch) return false
       }
-      if (filters.intKeyTgts?.length) {
+      if (filters?.intKeyTgts?.length) {
         const intKeyMatch = svc.integrationKeys.some(
           (key) => filters.intKeyTgts?.includes(key.type),
         )
@@ -51,11 +54,20 @@ export function useServiceMetrics(opts: ServiceMetricOpts): ServiceMetrics {
     })
   }
 
-  const calculateMetrics = (filteredServices: Service[]): ServiceMetrics => {
+  const calculateMetrics = (
+    alerts: Alert[],
+    filteredServices: Service[],
+  ): ServiceMetrics => {
     const metrics = {
       keyTgtTotals: {},
       stepTgtTotals: {},
+      totalStaleAlerts: {},
     } as ServiceMetrics
+    alerts.forEach((alrt) => {
+      if (alrt?.service?.name)
+        metrics.totalStaleAlerts[alrt.service.name] =
+          (metrics.totalStaleAlerts[alrt.service.name] || 0) + 1
+    })
     filteredServices.forEach((svc) => {
       svc.escalationPolicy?.steps.forEach((step) => {
         step.targets.forEach((tgt) => {
@@ -72,6 +84,6 @@ export function useServiceMetrics(opts: ServiceMetricOpts): ServiceMetrics {
   }
 
   const filteredServices = filterServices(services, filters)
-  const metrics = calculateMetrics(filteredServices)
+  const metrics = calculateMetrics(alerts, filteredServices)
   return { ...metrics, filteredServices }
 }

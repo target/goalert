@@ -62,7 +62,7 @@ export default function TempSchedShiftsList({
   handleCoverageGapClick,
 }: TempSchedShiftsListProps): JSX.Element {
   const classes = useStyles()
-  const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
+  const { zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now, setNow] = useState(DateTime.now().setZone(zone))
   const shifts = useUserInfo(value)
   const [existingShifts] = useState(shifts)
@@ -80,7 +80,7 @@ export default function TempSchedShiftsList({
   }, [now])
 
   // wait for zone
-  if (q.loading || zone === '') {
+  if (zone === '') {
     return (
       <div className={classes.spinContainer}>
         <CircularProgress />
@@ -167,7 +167,6 @@ export default function TempSchedShiftsList({
                 <span>{subText}</span>
               </Tooltip>
             ),
-            userID: s.userID,
             icon: <UserAvatar userID={s.userID} />,
             disabled: isHistoricShift,
             secondaryAction: index === 0 && (

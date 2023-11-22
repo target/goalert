@@ -32,6 +32,7 @@ const toTitleCase = (str: string): string =>
     .replace('Limits', 'System Limits')
     .replace('Admin ', 'Admin: ')
     .replace(/Config$/, 'Configuration')
+    .replace('Api', 'API')
 
 // todo: not needed once appbar is using same color prop for dark/light modes
 const getContrastColor = (theme: Theme): string => {

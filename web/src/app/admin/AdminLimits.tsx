@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useQuery, gql } from '@apollo/client'
+import { useQuery, gql } from 'urql'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import Card from '@mui/material/Card'
@@ -22,6 +22,7 @@ const query = gql`
     }
   }
 `
+
 const mutation = gql`
   mutation ($input: [SystemLimitInput!]!) {
     setSystemLimits(input: $input)
@@ -56,13 +57,13 @@ export default function AdminLimits(): JSX.Element {
   const [confirm, setConfirm] = useState(false)
   const [values, setValues] = useState({})
 
-  const { data, loading, error } = useQuery(query)
+  const [{ data, fetching, error }] = useQuery({ query })
 
   if (error) {
     return <GenericError error={error.message} />
   }
 
-  if (loading && !data) {
+  if (fetching && !data) {
     return <Spinner />
   }
 

@@ -362,6 +362,26 @@ func (a *Alert) Metrics(ctx context.Context, raw *alert.Alert) (*alertmetrics.Me
 	return (*App)(a).FindOneAlertMetric(ctx, raw.ID)
 }
 
+func (m *Mutation) CloseMatchingAlert(ctx context.Context, input graphql2.CloseMatchingAlertInput) (bool, error) {
+	a := &alert.Alert{
+		ServiceID: input.ServiceID,
+		Status:    alert.StatusClosed,
+	}
+
+	if input.Summary != nil {
+		a.Summary = validate.SanitizeText(*input.Summary, alert.MaxSummaryLength)
+	}
+	if input.Details != nil {
+		a.Details = validate.SanitizeText(*input.Details, alert.MaxDetailsLength)
+	}
+	if input.Dedup != nil {
+		a.Dedup = alert.NewUserDedup(*input.Dedup)
+	}
+
+	a, _, err := m.AlertStore.CreateOrUpdate(ctx, a)
+	return a != nil, err
+}
+
 func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertInput) (*alert.Alert, error) {
 	// An alert when created will always have triggered status
 	a := &alert.Alert{
@@ -377,6 +397,10 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 	if input.Sanitize != nil && *input.Sanitize {
 		a.Summary = validate.SanitizeText(a.Summary, alert.MaxSummaryLength)
 		a.Details = validate.SanitizeText(a.Details, alert.MaxDetailsLength)
+	}
+
+	if input.Dedup != nil {
+		a.Dedup = alert.NewUserDedup(*input.Dedup)
 	}
 
 	return m.AlertStore.Create(ctx, a)

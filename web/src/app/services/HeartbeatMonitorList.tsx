@@ -1,4 +1,4 @@
-import React, { useState, ReactElement } from 'react'
+import React, { useState, ReactElement, Suspense } from 'react'
 import { useQuery, gql } from 'urql'
 import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
@@ -157,24 +157,26 @@ export default function HeartbeatMonitorList(props: {
           title='Create Heartbeat Monitor'
         />
       )}
-      {showCreateDialog && (
-        <HeartbeatMonitorCreateDialog
-          serviceID={props.serviceID}
-          onClose={() => setShowCreateDialog(false)}
-        />
-      )}
-      {showEditDialogByID && (
-        <HeartbeatMonitorEditDialog
-          monitorID={showEditDialogByID}
-          onClose={() => setShowEditDialogByID(null)}
-        />
-      )}
-      {showDeleteDialogByID && (
-        <HeartbeatMonitorDeleteDialog
-          monitorID={showDeleteDialogByID}
-          onClose={() => setShowDeleteDialogByID(null)}
-        />
-      )}
+      <Suspense>
+        {showCreateDialog && (
+          <HeartbeatMonitorCreateDialog
+            serviceID={props.serviceID}
+            onClose={() => setShowCreateDialog(false)}
+          />
+        )}
+        {showEditDialogByID && (
+          <HeartbeatMonitorEditDialog
+            monitorID={showEditDialogByID}
+            onClose={() => setShowEditDialogByID(null)}
+          />
+        )}
+        {showDeleteDialogByID && (
+          <HeartbeatMonitorDeleteDialog
+            monitorID={showDeleteDialogByID}
+            onClose={() => setShowDeleteDialogByID(null)}
+          />
+        )}
+      </Suspense>
     </React.Fragment>
   )
 }

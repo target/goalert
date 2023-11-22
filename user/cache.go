@@ -56,6 +56,7 @@ func (s *Store) UserExists(ctx context.Context) (ExistanceChecker, error) {
 
 func (s *Store) userExistMap(ctx context.Context) (map[uuid.UUID]struct{}, error) {
 	var data []byte
+
 	err := s.grp.Get(ctx, timeKey("userIDs", time.Minute), groupcache.AllocatingByteSliceSink(&data))
 	if err != nil {
 		return nil, err

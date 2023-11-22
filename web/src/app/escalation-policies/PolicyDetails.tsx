@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { Suspense, useState } from 'react'
 import { useQuery, gql } from 'urql'
 import _ from 'lodash'
 import { Edit, Delete } from '@mui/icons-material'
@@ -87,18 +87,20 @@ export default function PolicyDetails(props: {
           },
         ]}
       />
-      {showEditDialog && (
-        <PolicyEditDialog
-          escalationPolicyID={data.id}
-          onClose={() => setShowEditDialog(false)}
-        />
-      )}
-      {showDeleteDialog && (
-        <PolicyDeleteDialog
-          escalationPolicyID={data.id}
-          onClose={() => setShowDeleteDialog(false)}
-        />
-      )}
+      <Suspense>
+        {showEditDialog && (
+          <PolicyEditDialog
+            escalationPolicyID={data.id}
+            onClose={() => setShowEditDialog(false)}
+          />
+        )}
+        {showDeleteDialog && (
+          <PolicyDeleteDialog
+            escalationPolicyID={data.id}
+            onClose={() => setShowDeleteDialog(false)}
+          />
+        )}
+      </Suspense>
     </React.Fragment>
   )
 }

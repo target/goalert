@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"text/template"
 
 	"github.com/pkg/errors"
@@ -72,6 +73,9 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 			(fav isnull AND lower(usr.name) > lower(:afterName))
 		{{end}}
 	{{end}}
+	{{ if .Email }}
+		AND lower(usr.email) = lower(:Email)
+	{{ end }}
 	{{ if .CMValue }}
 		AND ucm.value = :CMValue
 	{{ end }}
@@ -89,6 +93,21 @@ func (opts renderData) OrderBy() string {
 		return "fav isnull, lower(usr.name), usr.id"
 	}
 	return "lower(usr.name), usr.id"
+}
+
+func (opts renderData) SearchString() string {
+	if opts.Email() != "" {
+		return ""
+	}
+
+	return opts.Search
+}
+
+func (opts renderData) Email() string {
+	if !strings.HasPrefix(opts.Search, "email=") {
+		return ""
+	}
+	return strings.TrimPrefix(opts.Search, "email=")
 }
 
 func (opts renderData) Normalize() (*renderData, error) {
@@ -125,12 +144,13 @@ func (opts renderData) Normalize() (*renderData, error) {
 
 func (opts renderData) QueryArgs() []sql.NamedArg {
 	return []sql.NamedArg{
-		sql.Named("search", opts.Search),
+		sql.Named("search", opts.SearchString()),
 		sql.Named("afterName", opts.After.Name),
 		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
 		sql.Named("CMValue", opts.CMValue),
 		sql.Named("CMType", opts.CMType),
 		sql.Named("favUserID", opts.FavoritesUserID),
+		sql.Named("Email", opts.Email()),
 	}
 }
 

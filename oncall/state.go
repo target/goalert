@@ -132,8 +132,7 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 		now := time.Unix(t.Unix(), 0)
 		for _, id := range userIDs {
 			stillOnCall[id] = true
-			s := isOnCall[id]
-			if s != nil {
+			if isOnCall[id] != nil {
 				continue
 			}
 
@@ -142,15 +141,15 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 				UserID: id,
 			}
 		}
-		for id, s := range isOnCall {
+		for id, shift := range isOnCall {
 			if stillOnCall[id] {
 				continue
 			}
 
 			// no longer on call
 			if now.After(start) {
-				s.End = now
-				shifts = append(shifts, *s)
+				shift.End = now
+				shifts = append(shifts, *shift)
 			}
 			delete(isOnCall, id)
 		}

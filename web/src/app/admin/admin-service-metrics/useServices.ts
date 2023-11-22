@@ -9,27 +9,29 @@ const servicesQuery = gql`
       nodes {
         id
         name
-        onCallUsers {
-          userID
+        maintenanceExpiresAt
+        notices {
+          type
+          message
+        }
+        labels {
+          key
+          value
         }
         escalationPolicy {
           id
           name
           steps {
             targets {
-              name
               type
             }
           }
         }
         integrationKeys {
           type
-          name
         }
         heartbeatMonitors {
           name
-          timeoutMinutes
-          lastHeartbeat
         }
       }
       pageInfo {
@@ -40,7 +42,7 @@ const servicesQuery = gql`
   }
 `
 
-const QUERY_LIMIT = 10
+const QUERY_LIMIT = 5
 
 export type ServiceData = {
   services: Service[]

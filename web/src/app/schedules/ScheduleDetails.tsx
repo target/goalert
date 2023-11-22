@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react'
-import { gql, useQuery } from '@apollo/client'
+import React, { useState, useCallback, Suspense } from 'react'
+import { gql, useQuery } from 'urql'
 import _ from 'lodash'
 import { Edit, Delete } from '@mui/icons-material'
 
@@ -9,7 +9,6 @@ import ScheduleDeleteDialog from './ScheduleDeleteDialog'
 import ScheduleCalendarQuery from './calendar/ScheduleCalendarQuery'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import CalendarSubscribeButton from './calendar-subscribe/CalendarSubscribeButton'
-import Spinner from '../loading/components/Spinner'
 import { ObjectNotFound, GenericError } from '../error-pages'
 import TempSchedDialog from './temp-sched/TempSchedDialog'
 import TempSchedDeleteConfirmation from './temp-sched/TempSchedDeleteConfirmation'
@@ -77,17 +76,19 @@ export default function ScheduleDetails({
   const [slackEnabled] = useConfigValue('Slack.Enable')
   const [webhookEnabled] = useConfigValue('Webhook.Enable')
 
+  const [editTempSched, setEditTempSched] = useState(false)
+
   const [configTempSchedule, setConfigTempSchedule] =
     useState<TempSchedValue | null>(null)
   const { zone } = useScheduleTZ(scheduleID)
-  const onNewTempSched = useCallback(
-    () => setConfigTempSchedule(defaultTempSchedValue(zone)),
-    [],
-  )
-  const onEditTempSched = useCallback(
-    (v: TempSchedValue) => setConfigTempSchedule(v),
-    [],
-  )
+  const onNewTempSched = useCallback(() => {
+    setEditTempSched(false)
+    setConfigTempSchedule(defaultTempSchedValue(zone))
+  }, [])
+  const onEditTempSched = useCallback((v: TempSchedValue) => {
+    setEditTempSched(true)
+    setConfigTempSchedule(v)
+  }, [])
 
   const [deleteTempSchedule, setDeleteTempSchedule] =
     useState<TempSchedValue | null>(null)
@@ -96,18 +97,13 @@ export default function ScheduleDetails({
     null,
   )
 
-  const {
-    data: _data,
-    loading,
-    error,
-  } = useQuery(query, {
+  const [{ data: _data, error }] = useQuery({
+    query,
     variables: { id: scheduleID },
-    returnPartialData: true,
   })
 
   const data = _.get(_data, 'schedule', null)
 
-  if (loading && !data?.name) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
   if (!data) {
@@ -116,32 +112,35 @@ export default function ScheduleDetails({
 
   return (
     <React.Fragment>
-      {showEdit && (
-        <ScheduleEditDialog
-          scheduleID={scheduleID}
-          onClose={() => setShowEdit(false)}
-        />
-      )}
-      {showDelete && (
-        <ScheduleDeleteDialog
-          scheduleID={scheduleID}
-          onClose={() => setShowDelete(false)}
-        />
-      )}
-      {configTempSchedule && (
-        <TempSchedDialog
-          value={configTempSchedule}
-          onClose={() => setConfigTempSchedule(null)}
-          scheduleID={scheduleID}
-        />
-      )}
-      {deleteTempSchedule && (
-        <TempSchedDeleteConfirmation
-          value={deleteTempSchedule}
-          onClose={() => setDeleteTempSchedule(null)}
-          scheduleID={scheduleID}
-        />
-      )}
+      <Suspense>
+        {showEdit && (
+          <ScheduleEditDialog
+            scheduleID={scheduleID}
+            onClose={() => setShowEdit(false)}
+          />
+        )}
+        {showDelete && (
+          <ScheduleDeleteDialog
+            scheduleID={scheduleID}
+            onClose={() => setShowDelete(false)}
+          />
+        )}
+        {configTempSchedule && (
+          <TempSchedDialog
+            value={configTempSchedule}
+            onClose={() => setConfigTempSchedule(null)}
+            scheduleID={scheduleID}
+            edit={editTempSched}
+          />
+        )}
+        {deleteTempSchedule && (
+          <TempSchedDeleteConfirmation
+            value={deleteTempSchedule}
+            onClose={() => setDeleteTempSchedule(null)}
+            scheduleID={scheduleID}
+          />
+        )}
+      </Suspense>
       <DetailsPage
         avatar={<ScheduleAvatar />}
         title={data.name}
@@ -157,15 +156,17 @@ export default function ScheduleDetails({
             }}
           >
             {!isMobile && <ScheduleCalendarQuery scheduleID={scheduleID} />}
-            {overrideDialog && (
-              <ScheduleOverrideDialog
-                defaultValue={overrideDialog.defaultValue}
-                variantOptions={overrideDialog.variantOptions}
-                scheduleID={scheduleID}
-                onClose={() => setOverrideDialog(null)}
-                removeUserReadOnly={overrideDialog.removeUserReadOnly}
-              />
-            )}
+            <Suspense>
+              {overrideDialog && (
+                <ScheduleOverrideDialog
+                  defaultValue={overrideDialog.defaultValue}
+                  variantOptions={overrideDialog.variantOptions}
+                  scheduleID={scheduleID}
+                  onClose={() => setOverrideDialog(null)}
+                  removeUserReadOnly={overrideDialog.removeUserReadOnly}
+                />
+              )}
+            </Suspense>
           </OverrideDialogContext.Provider>
         }
         primaryActions={[

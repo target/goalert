@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { Suspense, useCallback, useState } from 'react'
 import { Button, Grid, FormControlLabel, Switch, Tooltip } from '@mui/material'
 import { GroupAdd } from '@mui/icons-material'
 import { DateTime } from 'luxon'
@@ -16,6 +16,7 @@ import { useScheduleTZ } from './useScheduleTZ'
 import { useIsWidthDown } from '../util/useWidth'
 import { OverrideDialogContext } from './ScheduleDetails'
 import TempSchedDialog from './temp-sched/TempSchedDialog'
+import { defaultTempSchedValue } from './temp-sched/sharedUtils'
 import ScheduleOverrideDialog from './ScheduleOverrideDialog'
 import CreateFAB from '../lists/CreateFAB'
 
@@ -58,9 +59,12 @@ export default function ScheduleOverrideList({ scheduleID }) {
 
   const [overrideDialog, setOverrideDialog] = useState(null)
   const [configTempSchedule, setConfigTempSchedule] = useState(null)
-  const onNewTempSched = useCallback(() => setConfigTempSchedule({}), [])
 
   const { zone, isLocalZone } = useScheduleTZ(scheduleID)
+  const onNewTempSched = useCallback(
+    () => setConfigTempSchedule(defaultTempSchedValue(zone)),
+    [],
+  )
 
   const subText = (n) => {
     const tzTimeStr = formatOverrideTime(n.start, n.end, zone)
@@ -203,36 +207,38 @@ export default function ScheduleOverrideList({ scheduleID }) {
       )}
 
       {/* create dialogs */}
-      {overrideDialog && (
-        <ScheduleOverrideDialog
-          defaultValue={overrideDialog.defaultValue}
-          variantOptions={overrideDialog.variantOptions}
-          scheduleID={scheduleID}
-          onClose={() => setOverrideDialog(null)}
-          removeUserReadOnly={overrideDialog.removeUserReadOnly}
-        />
-      )}
-      {configTempSchedule && (
-        <TempSchedDialog
-          value={configTempSchedule}
-          onClose={() => setConfigTempSchedule(null)}
-          scheduleID={scheduleID}
-        />
-      )}
+      <Suspense>
+        {overrideDialog && (
+          <ScheduleOverrideDialog
+            defaultValue={overrideDialog.defaultValue}
+            variantOptions={overrideDialog.variantOptions}
+            scheduleID={scheduleID}
+            onClose={() => setOverrideDialog(null)}
+            removeUserReadOnly={overrideDialog.removeUserReadOnly}
+          />
+        )}
+        {configTempSchedule && (
+          <TempSchedDialog
+            value={configTempSchedule}
+            onClose={() => setConfigTempSchedule(null)}
+            scheduleID={scheduleID}
+          />
+        )}
 
-      {/* edit dialogs by ID */}
-      {deleteID && (
-        <ScheduleOverrideDeleteDialog
-          overrideID={deleteID}
-          onClose={() => setDeleteID(null)}
-        />
-      )}
-      {editID && (
-        <ScheduleOverrideEditDialog
-          overrideID={editID}
-          onClose={() => setEditID(null)}
-        />
-      )}
+        {/* edit dialogs by ID */}
+        {deleteID && (
+          <ScheduleOverrideDeleteDialog
+            overrideID={deleteID}
+            onClose={() => setDeleteID(null)}
+          />
+        )}
+        {editID && (
+          <ScheduleOverrideEditDialog
+            overrideID={editID}
+            onClose={() => setEditID(null)}
+          />
+        )}
+      </Suspense>
     </OverrideDialogContext.Provider>
   )
 }

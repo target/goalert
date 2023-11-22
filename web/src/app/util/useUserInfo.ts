@@ -22,6 +22,8 @@ const infoQuery = gql`
   }
 `
 
+const noSuspense = { suspense: false }
+
 // useUserInfo will add `user` info to array items that contain a `userID`.
 export function useUserInfo<T extends HasUserID>(
   items: T[],
@@ -35,6 +37,7 @@ export function useUserInfo<T extends HasUserID>(
     variables,
     requestPolicy: 'cache-first',
     pause: items.length === 0,
+    context: noSuspense,
   })
 
   // handle error

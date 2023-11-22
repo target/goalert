@@ -140,8 +140,6 @@ type Query {
   swoStatus: SWOStatus!
 
   gqlAPIKeys: [GQLAPIKey!]!
-
-  listGQLFields(query: String): [String!]!
 }
 
 type IntegrationKeyTypeInfo {
@@ -551,6 +549,13 @@ type Mutation {
   deleteAll(input: [TargetInput!]): Boolean!
 
   createAlert(input: CreateAlertInput!): Alert
+
+  # closeMatchingAlert is used to close an alert without knowing it's ID.
+  #
+  # This allows stateless upstream systems to close alerts without needing to
+  # store the alert ID.
+  closeMatchingAlert(input: CloseMatchingAlertInput!): Boolean!
+
   setAlertNoiseReason(input: SetAlertNoiseReasonInput!): Boolean!
     @deprecated(reason: "Use updateAlerts instead with the noiseReason field.")
 
@@ -618,9 +623,9 @@ type CreatedGQLAPIKey {
 input CreateGQLAPIKeyInput {
   name: String!
   description: String!
-  allowedFields: [String!]!
   expiresAt: ISOTimestamp!
   role: UserRole!
+  query: String!
 }
 
 input UpdateGQLAPIKeyInput {
@@ -639,7 +644,7 @@ type GQLAPIKey {
   updatedBy: User @goField(forceResolver: true)
   lastUsed: GQLAPIKeyUsage
   expiresAt: ISOTimestamp!
-  allowedFields: [String!]!
+  query: String!
   role: UserRole!
 }
 
@@ -670,7 +675,26 @@ input CreateAlertInput {
   summary: String!
   details: String
   serviceID: ID!
+
+  # If true, summary and details will be automatically sanitized and truncaded (if necessary).
   sanitize: Boolean
+
+  # dedup allows setting a unique value to de-duplicate multiple alerts.
+  #
+  # It can also be used to close an alert using closeMatchingAlert mutation.
+  dedup: String
+}
+
+input CloseMatchingAlertInput {
+  serviceID: ID! # service ID for the close operation.
+
+  # summary (and details) will match an alert with the same values.
+  #
+  # They can be omitted if the dedup field is provided.
+  summary: String
+  details: String
+
+  dedup: String # prefered over providing the summary & details.
 }
 
 input SetAlertNoiseReasonInput {
@@ -888,7 +912,7 @@ type Schedule {
   timeZone: String!
 
   assignedTo: [Target!]!
-  shifts(start: ISOTimestamp!, end: ISOTimestamp!): [OnCallShift!]!
+  shifts(start: ISOTimestamp!, end: ISOTimestamp!, userIDs: [ID!]): [OnCallShift!]!
 
   targets: [ScheduleTarget!]!
   target(input: TargetInput!): ScheduleTarget
@@ -1412,6 +1436,8 @@ type User {
   onCallSteps: [EscalationPolicyStep!]!
 
   isFavorite: Boolean!
+
+  assignedSchedules: [Schedule!]!
 }
 
 type UserSession {

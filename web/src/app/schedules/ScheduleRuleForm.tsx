@@ -1,5 +1,4 @@
-import React from 'react'
-import p from 'prop-types'
+import React, { ReactNode } from 'react'
 import classNames from 'classnames'
 import { FormContainer, FormField } from '../forms'
 import {
@@ -21,13 +20,12 @@ import makeStyles from '@mui/styles/makeStyles'
 import { UserSelect, RotationSelect } from '../selection'
 import { startCase } from 'lodash'
 import { Add, Trash } from '../icons'
-import Query from '../util/Query'
-import { gql } from '@apollo/client'
 import { ISOTimePicker } from '../util/ISOPickers'
 import { DateTime } from 'luxon'
 import { useScheduleTZ } from './useScheduleTZ'
 import { fmtLocal } from '../util/timeFormat'
 import { useIsWidthDown } from '../util/useWidth'
+import { TargetType } from '../../schema'
 
 const days = [
   'Sunday',
@@ -39,13 +37,13 @@ const days = [
   'Saturday',
 ]
 
-const renderDaysValue = (value) => {
-  const parts = []
+const renderDaysValue = (value: string): string => {
+  const parts = [] as string[]
   let start = ''
   let last = ''
   let lastIdx = -1
 
-  const flush = () => {
+  const flush = (): void => {
     if (lastIdx === -1) return
     if (start === last) {
       parts.push(start)
@@ -73,14 +71,6 @@ const renderDaysValue = (value) => {
   return parts.join(',')
 }
 
-const query = gql`
-  query ($id: ID!) {
-    schedule(id: $id) {
-      id
-      timeZone
-    }
-  }
-`
 const useStyles = makeStyles({
   noPadding: {
     padding: 0,
@@ -103,16 +93,36 @@ const useStyles = makeStyles({
   },
 })
 
-export default function ScheduleRuleForm(props) {
+type ScheduleRuleFormValue = {
+  targetID: string
+  rules: {
+    start: string
+    end: string
+    weekdayFilter: boolean[]
+  }[]
+}
+
+interface ScheduleRuleFormProps {
+  targetType: TargetType
+  targetDisabled?: boolean
+
+  scheduleID: string
+  value: ScheduleRuleFormValue
+  onChange: (value: ScheduleRuleFormValue) => void
+}
+
+export default function ScheduleRuleForm(
+  props: ScheduleRuleFormProps,
+): ReactNode {
   const { value, scheduleID, onChange } = props
   const classes = useStyles()
   const { zone, isLocalZone } = useScheduleTZ(scheduleID)
   const isMobile = useIsWidthDown('md')
 
-  const Spacer = () =>
+  const Spacer = (): ReactNode =>
     isLocalZone ? null : <FormHelperText>&nbsp;</FormHelperText>
 
-  function renderRuleField(idx) {
+  function renderRuleField(idx: number): ReactNode {
     return (
       <TableRow key={idx}>
         <TableCell className={classNames(classes.startEnd, classes.noBorder)}>
@@ -178,8 +188,10 @@ export default function ScheduleRuleForm(props) {
               name={`rules[${idx}].weekdayFilter`}
               aria-label='Weekday Filter'
               multiple
-              mapValue={(value) => days.filter((d, idx) => value[idx])}
-              mapOnChangeValue={(value) =>
+              mapValue={(value: string[]) =>
+                days.filter((d, idx) => value[idx])
+              }
+              mapOnChangeValue={(value: string[]) =>
                 days.map((day) => value.includes(day))
               }
             >
@@ -213,122 +225,90 @@ export default function ScheduleRuleForm(props) {
     )
   }
 
-  function renderForm() {
-    const { targetDisabled, targetType, ...formProps } = props
-
-    return (
-      <FormContainer {...formProps} optionalLabels>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <FormField
-              fullWidth
-              required
-              component={targetType === 'user' ? UserSelect : RotationSelect}
-              label={startCase(targetType)}
-              disabled={targetDisabled}
-              name='targetID'
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Typography color='textSecondary' sx={{ fontStyle: 'italic' }}>
-              Times shown in schedule timezone ({zone || '...'})
-            </Typography>
-          </Grid>
-          <Grid item xs={12} style={{ paddingTop: 0 }}>
-            <Table data-cy='target-rules' className={classes.table}>
-              <TableHead>
-                <TableRow>
-                  <TableCell
-                    className={classNames(classes.startEnd, classes.noBorder)}
-                  >
-                    Start
-                  </TableCell>
-                  <TableCell
-                    className={classNames(classes.startEnd, classes.noBorder)}
-                  >
-                    End
-                  </TableCell>
-                  <Hidden mdDown>
-                    {days.map((d) => (
-                      <TableCell key={d} padding='checkbox'>
-                        {d.slice(0, 3)}
-                      </TableCell>
-                    ))}
-                  </Hidden>
-                  <Hidden mdUp>
-                    <TableCell
-                      className={classNames(
-                        classes.dayFilter,
-                        classes.noBorder,
-                      )}
-                    >
-                      Days
-                    </TableCell>
-                  </Hidden>
-                  <TableCell
-                    padding='none'
-                    className={classNames({ [classes.noBorder]: isMobile })}
-                  >
-                    <IconButton
-                      aria-label='Add rule'
-                      onClick={() =>
-                        onChange({
-                          ...value,
-                          rules: value.rules.concat({
-                            start: DateTime.local()
-                              .startOf('day')
-                              .toUTC()
-                              .toISO(),
-                            end: DateTime.local()
-                              .plus({ day: 1 })
-                              .startOf('day')
-                              .toUTC()
-                              .toISO(),
-                            weekdayFilter: Array(days.length).fill(true),
-                          }),
-                        })
-                      }
-                      size='large'
-                    >
-                      <Add />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {props.value.rules.map((r, idx) => renderRuleField(idx))}
-              </TableBody>
-            </Table>
-          </Grid>
-        </Grid>
-      </FormContainer>
-    )
-  }
+  const { targetDisabled, targetType, ...formProps } = props
 
   return (
-    <Query
-      query={query}
-      variables={{ id: props.scheduleID }}
-      noPoll
-      render={({ data }) => renderForm(data.schedule.timeZone)}
-    />
+    <FormContainer {...formProps} optionalLabels>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <FormField
+            fullWidth
+            required
+            component={targetType === 'user' ? UserSelect : RotationSelect}
+            label={startCase(targetType)}
+            disabled={targetDisabled}
+            name='targetID'
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <Typography color='textSecondary' sx={{ fontStyle: 'italic' }}>
+            Times shown in schedule timezone ({zone || '...'})
+          </Typography>
+        </Grid>
+        <Grid item xs={12} style={{ paddingTop: 0 }}>
+          <Table data-cy='target-rules' className={classes.table}>
+            <TableHead>
+              <TableRow>
+                <TableCell
+                  className={classNames(classes.startEnd, classes.noBorder)}
+                >
+                  Start
+                </TableCell>
+                <TableCell
+                  className={classNames(classes.startEnd, classes.noBorder)}
+                >
+                  End
+                </TableCell>
+                <Hidden mdDown>
+                  {days.map((d) => (
+                    <TableCell key={d} padding='checkbox'>
+                      {d.slice(0, 3)}
+                    </TableCell>
+                  ))}
+                </Hidden>
+                <Hidden mdUp>
+                  <TableCell
+                    className={classNames(classes.dayFilter, classes.noBorder)}
+                  >
+                    Days
+                  </TableCell>
+                </Hidden>
+                <TableCell
+                  padding='none'
+                  className={classNames({ [classes.noBorder]: isMobile })}
+                >
+                  <IconButton
+                    aria-label='Add rule'
+                    onClick={() =>
+                      onChange({
+                        ...value,
+                        rules: value.rules.concat({
+                          start: DateTime.local()
+                            .startOf('day')
+                            .toUTC()
+                            .toISO(),
+                          end: DateTime.local()
+                            .plus({ day: 1 })
+                            .startOf('day')
+                            .toUTC()
+                            .toISO(),
+                          weekdayFilter: Array(days.length).fill(true),
+                        }),
+                      })
+                    }
+                    size='large'
+                  >
+                    <Add />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {props.value.rules.map((r, idx) => renderRuleField(idx))}
+            </TableBody>
+          </Table>
+        </Grid>
+      </Grid>
+    </FormContainer>
   )
-}
-
-ScheduleRuleForm.propTypes = {
-  targetType: p.oneOf(['rotation', 'user']).isRequired,
-  targetDisabled: p.bool,
-
-  scheduleID: p.string.isRequired,
-
-  value: p.shape({
-    targetID: p.string.isRequired,
-    rules: p.arrayOf(
-      p.shape({
-        start: p.string.isRequired,
-        end: p.string.isRequired,
-        weekdayFilter: p.arrayOf(p.bool).isRequired,
-      }),
-    ).isRequired,
-  }).isRequired,
 }

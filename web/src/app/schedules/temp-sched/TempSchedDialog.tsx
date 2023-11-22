@@ -12,7 +12,6 @@ import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
 import _ from 'lodash'
 import { DateTime, Interval } from 'luxon'
-
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import { contentText, dtToDuration, Shift, TempSchedValue } from './sharedUtils'
@@ -70,6 +69,7 @@ type TempScheduleDialogProps = {
   onClose: () => void
   scheduleID: string
   value: TempSchedValue
+  edit?: boolean
 }
 
 const clampForward = (nowISO: string, iso: string): string => {
@@ -87,17 +87,17 @@ export default function TempSchedDialog({
   onClose,
   scheduleID,
   value: _value,
+  edit = false,
 }: TempScheduleDialogProps): JSX.Element {
   const classes = useStyles()
-  const edit = !_.isEmpty(_value)
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
   const [showForm, setShowForm] = useState(false)
   const [value, setValue] = useState({
     start: clampForward(now, _value.start),
     end: _value.end,
-    clearStart: _value.start,
-    clearEnd: _value.end,
+    clearStart: edit ? _value.start : null,
+    clearEnd: edit ? _value.end : null,
     shifts: _value.shifts
       .map((s) =>
         _.pick(s, 'start', 'end', 'userID', 'truncated', 'displayStart'),
@@ -301,6 +301,8 @@ export default function TempSchedDialog({
                   max={DateTime.fromISO(now, { zone })
                     .plus({ year: 1 })
                     .toISO()}
+                  softMax={value.end}
+                  softMaxLabel='end time'
                   validate={() => validate()}
                   timeZone={zone}
                   disabled={q.loading}
@@ -314,7 +316,8 @@ export default function TempSchedDialog({
                   required
                   name='end'
                   label='Schedule End'
-                  min={value.start}
+                  softMin={value.start}
+                  softMinLabel='start time'
                   max={DateTime.fromISO(value.start, { zone })
                     .plus({ month: 3 })
                     .toISO()}

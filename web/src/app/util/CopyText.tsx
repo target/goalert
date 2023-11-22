@@ -3,7 +3,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import copyToClipboard from './copyToClipboard'
 import ContentCopy from 'mdi-material-ui/ContentCopy'
 import AppLink from './AppLink'
-import Tooltip, { TooltipProps } from '@mui/material/Tooltip'
+import { Typography, Tooltip, TooltipProps } from '@mui/material'
 
 const useStyles = makeStyles({
   copyContainer: {
@@ -52,7 +52,7 @@ export default function CopyText(props: CopyTextProps): JSX.Element {
     )
   } else {
     content = (
-      <span
+      <Typography
         className={classes.copyContainer}
         role='button'
         tabIndex={0}
@@ -75,7 +75,7 @@ export default function CopyText(props: CopyTextProps): JSX.Element {
           fontSize='small'
         />
         {props.title}
-      </span>
+      </Typography>
     )
   }
 

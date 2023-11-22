@@ -43,7 +43,6 @@ export interface Query {
   linkAccountInfo?: null | LinkAccountInfo
   swoStatus: SWOStatus
   gqlAPIKeys: GQLAPIKey[]
-  listGQLFields: string[]
 }
 
 export interface IntegrationKeyTypeInfo {
@@ -402,6 +401,7 @@ export interface Mutation {
   updateEscalationPolicyStep: boolean
   deleteAll: boolean
   createAlert?: null | Alert
+  closeMatchingAlert: boolean
   setAlertNoiseReason: boolean
   createService?: null | Service
   createEscalationPolicy?: null | EscalationPolicy
@@ -442,9 +442,9 @@ export interface CreatedGQLAPIKey {
 export interface CreateGQLAPIKeyInput {
   name: string
   description: string
-  allowedFields: string[]
   expiresAt: ISOTimestamp
   role: UserRole
+  query: string
 }
 
 export interface UpdateGQLAPIKeyInput {
@@ -463,7 +463,7 @@ export interface GQLAPIKey {
   updatedBy?: null | User
   lastUsed?: null | GQLAPIKeyUsage
   expiresAt: ISOTimestamp
-  allowedFields: string[]
+  query: string
   role: UserRole
 }
 
@@ -495,6 +495,14 @@ export interface CreateAlertInput {
   details?: null | string
   serviceID: string
   sanitize?: null | boolean
+  dedup?: null | string
+}
+
+export interface CloseMatchingAlertInput {
+  serviceID: string
+  summary?: null | string
+  details?: null | string
+  dedup?: null | string
 }
 
 export interface SetAlertNoiseReasonInput {
@@ -1112,6 +1120,7 @@ export interface User {
   sessions: UserSession[]
   onCallSteps: EscalationPolicyStep[]
   isFavorite: boolean
+  assignedSchedules: Schedule[]
 }
 
 export interface UserSession {

@@ -1,5 +1,5 @@
 import React, { ReactChild, useContext } from 'react'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery } from 'urql'
 import {
   ConfigType,
   ConfigValue,
@@ -44,8 +44,8 @@ type ConfigProviderProps = {
   children: ReactChild | ReactChild[]
 }
 
-export function ConfigProvider(props: ConfigProviderProps): JSX.Element {
-  const { data } = useQuery(query)
+export function ConfigProvider(props: ConfigProviderProps): React.ReactNode {
+  const [{ data }] = useQuery({ query })
 
   return (
     <ConfigContext.Provider
