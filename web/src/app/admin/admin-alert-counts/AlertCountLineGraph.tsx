@@ -24,6 +24,7 @@ import {
   Tooltip,
 } from 'recharts'
 import Spinner from '../../loading/components/Spinner'
+import { Time } from '../../util/Time'
 
 interface AlertCountLineGraphProps {
   data: (typeof LineChart.defaultProps)['data']
@@ -94,17 +95,18 @@ export default function AlertCountLineGraph(
     }
   }
 
-  const formatTick = (label: string): string => {
+  const formatTick = (date: string): string => {
+    const dt = DateTime.fromISO(date)
     // check for default bounds
-    if (label.toString() !== '0' && label !== 'auto') {
-      const dateTime = DateTime.fromFormat(label, 'MMM d, t')
-      if (props.unit === 'month') return dateTime.toFormat('MMM')
-      if (props.unit === 'week' || props.unit === 'day')
-        return dateTime.toFormat('MMM d')
-      if (props.unit === 'hour' || props.unit === 'minute')
-        return dateTime.toFormat('t')
-    }
-    return ''
+
+    if (props.unit === 'month') return dt.toLocaleString({ month: 'long' })
+    if (props.unit === 'week' || props.unit === 'day')
+      return dt.toLocaleString({ month: 'short', day: 'numeric' })
+    if (props.unit === 'hour') return dt.toLocaleString({ hour: 'numeric' })
+    if (props.unit === 'minute')
+      return dt.toLocaleString({ hour: 'numeric', minute: 'numeric' })
+
+    return date
   }
 
   return (
@@ -148,7 +150,9 @@ export default function AlertCountLineGraph(
                   if (!active || !payload?.length) return null
                   return (
                     <Paper variant='outlined' sx={{ p: 1 }}>
-                      <Typography variant='body2'>{label}</Typography>
+                      <Typography variant='body2'>
+                        <Time time={label} />
+                      </Typography>
                       {payload.map((svc, idx) => {
                         return (
                           <React.Fragment key={idx}>
