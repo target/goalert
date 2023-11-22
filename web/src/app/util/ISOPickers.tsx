@@ -77,13 +77,13 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
     if (softMin) {
       const sMin = DateTime.fromISO(softMin)
       if (dt < sMin) {
-        return `Value must be after ${softMinLabel || sMin.toFormat(format)}`
+        return softMinLabel || `Value must be after ${sMin.toFormat(format)}`
       }
     }
     if (softMax) {
       const sMax = DateTime.fromISO(softMax)
       if (dt > sMax) {
-        return `Value must be before ${softMaxLabel || sMax.toFormat(format)}`
+        return softMaxLabel || `Value must be before ${sMax.toFormat(format)}`
       }
     }
 

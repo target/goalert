@@ -135,7 +135,7 @@ export default function ScheduleOverrideForm(
             required
             name='start'
             softMax={props.value.end}
-            softMaxLabel='end time'
+            softMaxLabel='Must be before end time.'
             disabled={!zone}
             hint={isLocalZone ? '' : fmtLocal(value.start)}
           />
@@ -148,7 +148,7 @@ export default function ScheduleOverrideForm(
             name='end'
             required
             softMin={props.value.start}
-            softMinLabel='start time'
+            softMinLabel='Must be after start time.'
             disabled={!zone}
             hint={isLocalZone ? '' : fmtLocal(value.end)}
           />

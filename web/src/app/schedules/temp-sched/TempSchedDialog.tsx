@@ -302,7 +302,11 @@ export default function TempSchedDialog({
                     .plus({ year: 1 })
                     .toISO()}
                   softMax={value.end}
-                  softMaxLabel='end time'
+                  softMaxLabel='Must be before end time.'
+                  softMin={DateTime.fromISO(value.end)
+                    .plus({ month: -3 })
+                    .toISO()}
+                  softMinLabel='Must be within 3 months of end time.'
                   validate={() => validate()}
                   timeZone={zone}
                   disabled={q.loading}
@@ -316,11 +320,13 @@ export default function TempSchedDialog({
                   required
                   name='end'
                   label='Schedule End'
+                  min={now}
                   softMin={value.start}
-                  softMinLabel='start time'
-                  max={DateTime.fromISO(value.start, { zone })
+                  softMinLabel='Must be after start time.'
+                  softMax={DateTime.fromISO(value.start)
                     .plus({ month: 3 })
                     .toISO()}
+                  softMaxLabel='Must be within 3 months of start time.'
                   validate={() => validate()}
                   timeZone={zone}
                   disabled={q.loading}
