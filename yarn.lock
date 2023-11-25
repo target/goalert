@@ -1985,9 +1985,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/x-data-grid@npm:6.18.1":
-  version: 6.18.1
-  resolution: "@mui/x-data-grid@npm:6.18.1"
+"@mui/x-data-grid@npm:6.18.2":
+  version: 6.18.2
+  resolution: "@mui/x-data-grid@npm:6.18.2"
   dependencies:
     "@babel/runtime": ^7.23.2
     "@mui/utils": ^5.14.16
@@ -1999,7 +1999,7 @@ __metadata:
     "@mui/system": ^5.4.1
     react: ^17.0.0 || ^18.0.0
     react-dom: ^17.0.0 || ^18.0.0
-  checksum: 606b4ead13a97d1811d73f76a059bdff60a2d92f0d03afac9d9873502d6793a31594df6ee060da184f69a2442007a6a3f968da9432dd95be1560ab3dcec9704a
+  checksum: a02695ab1001dd238dc6d346d9066b8b0592ff46142956ec4c8fbcfaa055f423d0b31504148fd3b346119faabcc12e423c5d10d7f8edb00d7c8660502ba0dd62
   languageName: node
   linkType: hard
 
@@ -11404,7 +11404,7 @@ __metadata:
     "@mui/material": 5.14.10
     "@mui/styles": 5.14.16
     "@mui/system": 5.14.10
-    "@mui/x-data-grid": 6.18.1
+    "@mui/x-data-grid": 6.18.2
     "@playwright/test": 1.40.0
     "@types/chance": 1.1.4
     "@types/diff": 5.0.8
