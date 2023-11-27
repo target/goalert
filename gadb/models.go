@@ -958,7 +958,7 @@ type Label struct {
 	TgtEpID       uuid.NullUUID
 	TgtRotationID uuid.NullUUID
 	TgtScheduleID uuid.NullUUID
-	TgtServiceID  uuid.UUID
+	TgtServiceID  uuid.NullUUID
 	Value         string
 }
 

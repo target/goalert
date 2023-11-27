@@ -572,6 +572,7 @@ export interface CreateScheduleInput {
   favorite?: null | boolean
   targets?: null | ScheduleTargetInput[]
   newUserOverrides?: null | CreateUserOverrideInput[]
+  labels?: null | SetLabelInput[]
 }
 
 export interface ScheduleTargetInput {
@@ -627,6 +628,7 @@ export interface CreateEscalationPolicyInput {
   repeat?: null | number
   favorite?: null | boolean
   steps?: null | CreateEscalationPolicyStepInput[]
+  labels?: null | SetLabelInput[]
 }
 
 export interface CreateEscalationPolicyStepInput {
@@ -706,6 +708,7 @@ export interface Schedule {
   isFavorite: boolean
   temporarySchedules: TemporarySchedule[]
   onCallNotificationRules: OnCallNotificationRule[]
+  labels: Label[]
 }
 
 export interface SetScheduleOnCallNotificationRulesInput {
@@ -764,6 +767,7 @@ export interface CreateRotationInput {
   type: RotationType
   shiftLength?: null | number
   userIDs?: null | string[]
+  labels?: null | SetLabelInput[]
 }
 
 export interface Rotation {
@@ -779,6 +783,7 @@ export interface Rotation {
   userIDs: string[]
   users: User[]
   nextHandoffTimes: ISOTimestamp[]
+  labels: Label[]
 }
 
 export type RotationType = 'monthly' | 'weekly' | 'daily' | 'hourly'
@@ -1031,6 +1036,7 @@ export interface EscalationPolicy {
   assignedTo: Target[]
   steps: EscalationPolicyStep[]
   notices: Notice[]
+  labels: Label[]
 }
 
 export type AlertStatus =
