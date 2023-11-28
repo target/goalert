@@ -89,8 +89,8 @@ function testTemporarySchedule(screen: string): void {
     cy.visit('/schedules/' + schedule.id + '?start=' + start.toISO())
     cy.get('div').contains('Temporary Schedule').click()
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-    cy.get('button[data-cy="edit-temp-sched"]').should('be.visible')
-    cy.get('button[data-cy="delete-temp-sched"]').should('be.visible')
+    cy.get('[data-cy="edit-temp-sched"]').should('be.visible')
+    cy.get('[data-cy="delete-temp-sched"]').should('be.visible')
     cy.get('body').trigger('keydown', { key: 'Escape' })
     cy.get('div').contains(manualAddUser.name).click()
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
@@ -108,7 +108,7 @@ function testTemporarySchedule(screen: string): void {
       cy.reload()
       cy.get('div').contains('Temporary Schedule').click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-      cy.get('button[data-cy="edit-temp-sched"]').click()
+      cy.get('[data-cy="edit-temp-sched"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
       cy.get(
         '[data-cy="shifts-list"] li [data-cy="delete shift index: 0"]',
@@ -152,7 +152,7 @@ function testTemporarySchedule(screen: string): void {
       cy.reload()
       cy.get('div').contains('Temporary Schedule').click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-      cy.get('button[data-cy="edit-temp-sched"]').click()
+      cy.get('[data-cy="edit-temp-sched"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
       cy.get(
         '[data-cy="shifts-list"] li [data-cy="delete shift index: 0"]',
@@ -182,7 +182,7 @@ function testTemporarySchedule(screen: string): void {
       cy.reload()
       cy.get('div').contains('Temporary Schedule').click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-      cy.get('button[data-cy="edit-temp-sched"]').click()
+      cy.get('[data-cy="edit-temp-sched"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
 
       cy.get('[data-cy="add-shift-expander"]').click()
@@ -215,7 +215,7 @@ function testTemporarySchedule(screen: string): void {
       cy.reload()
       cy.get('div').contains('Temporary Schedule').click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-      cy.get('button[data-cy="delete-temp-sched"]').click()
+      cy.get('[data-cy="delete-temp-sched"]').click()
       cy.dialogFinish('Confirm')
       cy.get('div').contains('Temporary Schedule').should('not.exist')
     })

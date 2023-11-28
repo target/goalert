@@ -106,12 +106,12 @@ export default function ScheduleCalendarEventWrapper({
         <CardActions
           secondaryActions={[
             {
-              icon: <EditIcon fontSize='small' />,
+              icon: <EditIcon data-cy='edit-temp-sched' fontSize='small' />,
               label: 'Edit',
               handleOnClick: () => onEditTempSched(calEvent.tempSched),
             },
             {
-              icon: <DeleteIcon fontSize='small' />,
+              icon: <DeleteIcon data-cy='delete-temp-sched' fontSize='small' />,
               label: 'Delete',
               handleOnClick: () => onDeleteTempSched(calEvent.tempSched),
             },
