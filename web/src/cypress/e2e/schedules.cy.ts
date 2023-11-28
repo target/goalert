@@ -1,6 +1,6 @@
 import { Chance } from 'chance'
 import { testScreen, testScreenWithFlags } from '../support/e2e'
-import { Schedule, ScheduleTarget } from '../../schema'
+import { Schedule } from '../../schema'
 import users from '../fixtures/users.json'
 
 const c = new Chance()
@@ -167,7 +167,6 @@ function testSchedules(screen: ScreenFormat): void {
 
   describe('Schedule Assignments', () => {
     let rot: Rotation
-    let sched: ScheduleTarget
     beforeEach(() => {
       cy.createRotation()
         .then((r: Rotation) => {
@@ -176,9 +175,8 @@ function testSchedules(screen: ScreenFormat): void {
             target: { id: r.id, type: 'rotation' },
           })
         })
-        .then((s: ScheduleTarget) => {
-          sched = s
-          cy.visit('/schedules/' + sched.scheduleID + '/assignments')
+        .then((s) => {
+          cy.visit('/schedules/' + s.id + '/assignments')
           return cy.get('[role="progressbar"]').should('not.exist')
         })
     })

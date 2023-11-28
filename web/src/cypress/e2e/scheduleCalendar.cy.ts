@@ -78,7 +78,7 @@ function testCalendar(screen: ScreenFormat): void {
   })
 
   it(`should view a shift's tooltip`, () => {
-    cy.get('[data-cy-spin-loading=false]').should('exist')
+    cy.get('[data-cy=loading-spinner]').should('not.exist')
 
     cy.get('div').contains(rot.users[0].name).click()
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
@@ -168,7 +168,7 @@ function testCalendar(screen: ScreenFormat): void {
   })
 
   it('should create a replace override from a shift tooltip', () => {
-    cy.get('[data-cy-spin-loading=false]').should('exist')
+    cy.get('[data-cy=loading-spinner]').should('not.exist')
     const name1 = rot.users[0].name
     const name2 = rot.users[1].name
 
@@ -191,7 +191,7 @@ function testCalendar(screen: ScreenFormat): void {
   })
 
   it('should create a remove override from a shift tooltip', () => {
-    cy.get('[data-cy-spin-loading=false]').should('exist')
+    cy.get('[data-cy=loading-spinner]').should('not.exist')
     const name = rot.users[0].name
 
     cy.get('[data-cy=calendar]').contains('div', name).click()
@@ -212,7 +212,7 @@ function testCalendar(screen: ScreenFormat): void {
   })
 
   it('should open override edit dialog from tooltip', () => {
-    cy.get('[data-cy-spin-loading=false]').should('exist')
+    cy.get('[data-cy=loading-spinner]').should('not.exist')
     const name1 = rot.users[0].name
     const name2 = rot.users[1].name
 
@@ -244,7 +244,7 @@ function testCalendar(screen: ScreenFormat): void {
   })
 
   it('should show overrides on calendar and open delete dialog from tooltip', () => {
-    cy.get('[data-cy-spin-loading=false]').should('exist')
+    cy.get('[data-cy=loading-spinner]').should('not.exist')
     const name1 = rot.users[0].name
     const name2 = rot.users[1].name
 

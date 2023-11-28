@@ -1,6 +1,6 @@
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
-import { Schedule, ScheduleTarget } from '../../schema'
+import { Schedule } from '../../schema'
 import users from '../fixtures/users.json'
 
 import { testScreen } from '../support/e2e'
@@ -21,8 +21,8 @@ function testTimePickers(screen: ScreenFormat): void {
             ],
           },
           { timeZone: 'America/New_York' },
-        ).then((tgt: ScheduleTarget) => {
-          return cy.visit(`/schedules/${tgt.scheduleID}/assignments${params}`)
+        ).then((sched: Schedule) => {
+          return cy.visit(`/schedules/${sched.id}/assignments${params}`)
         })
         // sanity check
         cy.get('body').contains(display)
