@@ -1,17 +1,11 @@
 import React, { useState } from 'react'
-import { gql, useMutation, useQuery } from 'urql'
-import FormDialog from '../dialogs/FormDialog'
+import { gql, useMutation } from '@apollo/client'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
+import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodForm'
 import { pick } from 'lodash'
+import { useQuery } from 'urql'
 import { ContactMethodType, StatusUpdateState } from '../../schema'
-
-type Value = {
-  name: string
-  type: ContactMethodType
-  value: string
-  statusUpdates?: StatusUpdateState
-}
 
 const query = gql`
   query ($id: ID!) {
@@ -30,16 +24,28 @@ const mutation = gql`
     updateUserContactMethod(input: $input)
   }
 `
-function UserContactMethodEditDialog(props: {
-  contactMethodID: string
-  onClose: () => void
-}): JSX.Element {
-  const { contactMethodID, onClose } = props
 
+type Value = {
+  name: string
+  type: ContactMethodType
+  value: string
+  statusUpdates?: StatusUpdateState
+}
+
+export default function UserContactMethodEditDialog({
+  onClose,
+  contactMethodID,
+}: {
+  onClose: () => void
+  contactMethodID: string
+}): React.ReactNode {
+  const [value, setValue] = useState<Value | null>(null)
   const [{ data, fetching }] = useQuery({
     query,
     variables: { id: contactMethodID },
   })
+  const [commit, status] = useMutation(mutation)
+  const { error } = status
 
   const defaultValue = {
     name: data.userContactMethod.name,
@@ -47,10 +53,6 @@ function UserContactMethodEditDialog(props: {
     value: data.userContactMethod.value,
     statusUpdates: data.userContactMethod.statusUpdates,
   }
-
-  const [mutationStatus, commit] = useMutation(mutation)
-  const { error } = mutationStatus
-  const [value, setValue] = useState<Value | null>(null)
 
   const fieldErrs = fieldErrors(error)
 
@@ -61,7 +63,7 @@ function UserContactMethodEditDialog(props: {
       errors={nonFieldErrors(error)}
       onClose={onClose}
       onSubmit={() => {
-        const updates = pick(value, 'name', 'statusUpdates') || {}
+        const updates = pick(value, 'name', 'statusUpdates')
         // the form uses the 'statusUpdates' enum but the mutation simply
         // needs to know if the status updates should be enabled or not via
         // the 'enableStatusUpdates' boolean
@@ -70,14 +72,16 @@ function UserContactMethodEditDialog(props: {
             enableStatusUpdates: updates.statusUpdates === 'ENABLED',
           }).statusUpdates
         }
-        return commit({
-          input: {
-            ...updates,
-            id: contactMethodID,
+        commit({
+          variables: {
+            input: {
+              ...updates,
+              id: contactMethodID,
+            },
           },
-        }).then((res) => {
-          if (res.error) return
-          props.onClose()
+        }).then((result) => {
+          if (result.errors) return
+          onClose()
         })
       }}
       form={
@@ -92,5 +96,3 @@ function UserContactMethodEditDialog(props: {
     />
   )
 }
-
-export default UserContactMethodEditDialog
