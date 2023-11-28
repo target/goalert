@@ -71,5 +71,7 @@ export default function UserShiftsCalendar({
     return s
   }
 
-  return <Calendar loading={false} shifts={makeCalendarShifts()} />
+  return (
+    <Calendar loading={false} shifts={makeCalendarShifts()} showScheduleLink />
+  )
 }

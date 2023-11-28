@@ -5,7 +5,6 @@ import React, {
   KeyboardEvent,
   Suspense,
 } from 'react'
-import { useLocation } from 'wouter'
 import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import Popover from '@mui/material/Popover'
@@ -43,21 +42,19 @@ const useStyles = makeStyles({
 interface ScheduleCalendarEventWrapperProps {
   children: JSX.Element
   event: ScheduleCalendarEvent
+  showScheduleLink?: boolean
 }
 
 export default function ScheduleCalendarEventWrapper({
-  event,
   children,
+  event,
+  showScheduleLink,
 }: ScheduleCalendarEventWrapperProps): JSX.Element {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
 
   const [showEditDialog, setShowEditDialog] = useState('')
   const [showDeleteDialog, setShowDeleteDialog] = useState('')
-
-  // for showing "Visit Schedule" buttons when on user profile
-  const [path] = useLocation()
-  const onProfile = path.includes('users') || path.includes('profile')
 
   const { setOverrideDialog, onEditTempSched, onDeleteTempSched } = useContext(
     OverrideDialogContext,
@@ -168,7 +165,7 @@ export default function ScheduleCalendarEventWrapper({
   }
 
   function renderButtons(): JSX.Element {
-    if (onProfile) {
+    if (showScheduleLink) {
       const id = event?.targetID ?? ''
       return (
         <React.Fragment>
@@ -247,7 +244,7 @@ export default function ScheduleCalendarEventWrapper({
       <Grid container spacing={1}>
         <Grid item xs={12}>
           <Typography variant='body2'>
-            <b>{onProfile ? event?.user?.name : event?.targetName}</b>
+            <b>{showScheduleLink ? event?.user?.name : event?.targetName}</b>
           </Typography>
         </Grid>
         {event.type === 'override' &&

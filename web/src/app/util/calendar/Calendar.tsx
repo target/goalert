@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React, { ReactElement, useContext } from 'react'
 import { Card, Button } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { darken, lighten, useTheme, Theme } from '@mui/material/styles'
@@ -126,13 +126,29 @@ interface CalendarProps {
   overrides?: UserOverride[]
   temporarySchedules?: TemporarySchedule[]
   loading: boolean
+  showScheduleLink?: boolean
+}
+
+interface CalendarEventWrapperProps extends CalendarProps {
+  event: ScheduleCalendarEvent
+  children: ReactElement
+}
+
+function CalendarEventWrapperWithLink(
+  props: CalendarEventWrapperProps,
+): JSX.Element {
+  return (
+    <CalendarEventWrapper {...props} event={props.event} showScheduleLink>
+      {props.children}
+    </CalendarEventWrapper>
+  )
 }
 
 export default function Calendar(props: CalendarProps): JSX.Element {
   const classes = useStyles()
   const theme = useTheme()
 
-  const { scheduleID, shifts, temporarySchedules } = props
+  const { scheduleID, shifts, temporarySchedules, showScheduleLink } = props
   const { weekly, start } = useCalendarNavigation()
   const { setOverrideDialog } = useContext(OverrideDialogContext)
 
@@ -393,7 +409,9 @@ export default function Calendar(props: CalendarProps): JSX.Element {
           onView={() => {}} // stub to hide false console err
           components={{
             // @ts-expect-error Property 'children' does not exist on type - yes it does
-            eventWrapper: CalendarEventWrapper,
+            eventWrapper: showScheduleLink
+              ? CalendarEventWrapperWithLink
+              : CalendarEventWrapper,
             toolbar: () => null,
           }}
         />
