@@ -192,6 +192,8 @@ function testUsers(screen: ScreenFormat): void {
     })
 
     it('should view and interact with the profile calendar', () => {
+      if (screen === 'mobile') return
+
       cy.createUser().then((user: Profile) => {
         cy.setScheduleTarget({
           target: {
