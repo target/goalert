@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { useMutation, useQuery, gql } from 'urql'
-import p from 'prop-types'
 import FormDialog from '../dialogs/FormDialog'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import UserContactMethodVerificationForm from './UserContactMethodVerificationForm'
@@ -32,9 +31,16 @@ const contactMethodQuery = gql`
   }
 `
 
+interface UserContactMethodVerificationDialogProps {
+  onClose: () => void
+  contactMethodID: string
+}
+
 const noSuspense = { suspense: false }
-export default function UserContactMethodVerificationDialog(props) {
-  const [value, setValue] = useState({
+export default function UserContactMethodVerificationDialog(
+  props: UserContactMethodVerificationDialogProps,
+): React.ReactNode {
+  const [value, setValue] = useState<{ code: string }>({
     code: '',
   })
   const [sendError, setSendError] = useState('')
@@ -89,14 +95,9 @@ export default function UserContactMethodVerificationDialog(props) {
           setSendError={setSendError}
           disabled={fetching}
           value={value}
-          onChange={(value) => setValue(value)}
+          onChange={(value: { code: string }) => setValue(value)}
         />
       }
     />
   )
-}
-
-UserContactMethodVerificationDialog.propTypes = {
-  onClose: p.func.isRequired,
-  contactMethodID: p.string.isRequired,
 }
