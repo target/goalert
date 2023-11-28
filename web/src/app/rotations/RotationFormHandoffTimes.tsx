@@ -3,7 +3,6 @@ import { Grid, Typography } from '@mui/material'
 import { DateTime } from 'luxon'
 import { gql, useQuery } from 'urql'
 import { RotationType, ISODuration, CreateRotationInput } from '../../schema'
-import Spinner from '../loading/components/Spinner'
 import { Time } from '../util/Time'
 
 const query = gql`
@@ -76,7 +75,6 @@ export default function RotationFormHandoffTimes({
         </Typography>
       )}
 
-      {isCalculating && isHandoffValid && <Spinner text='Calculating...' />}
       {error && isHandoffValid && (
         <Typography variant='body2' color='error'>
           {error.message}

@@ -10,6 +10,7 @@ import { FieldError } from '../util/errutil'
 import { CreateRotationInput } from '../../schema'
 import { Time } from '../util/Time'
 import RotationFormHandoffTimes from './RotationFormHandoffTimes'
+import Spinner from '../loading/components/Spinner'
 
 interface RotationFormProps {
   value: CreateRotationInput
@@ -124,7 +125,13 @@ export default function RotationForm(props: RotationFormProps): JSX.Element {
             }
           />
         </Grid>
-        <Suspense>
+        <Suspense
+          fallback={
+            <Grid item xs={12} sx={{ height: '7rem' }}>
+              <Spinner text='Calculating...' />
+            </Grid>
+          }
+        >
           <RotationFormHandoffTimes value={value} />
         </Suspense>
       </Grid>
