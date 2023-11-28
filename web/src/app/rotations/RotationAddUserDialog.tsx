@@ -46,7 +46,10 @@ const RotationAddUserDialog = (
             id: rotationID,
             userIDs: users,
           },
-        }).then(() => onClose())
+        }).then((result) => {
+          if (result.error) return
+          onClose()
+        })
       }
       form={
         <UserForm
