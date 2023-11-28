@@ -1844,7 +1844,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/private-theming@npm:^5.14.10, @mui/private-theming@npm:^5.14.16":
+"@mui/private-theming@npm:^5.14.10":
   version: 5.14.17
   resolution: "@mui/private-theming@npm:5.14.17"
   dependencies:
@@ -1920,15 +1920,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/styles@npm:5.14.16":
-  version: 5.14.16
-  resolution: "@mui/styles@npm:5.14.16"
+"@mui/styles@npm:5.14.18":
+  version: 5.14.18
+  resolution: "@mui/styles@npm:5.14.18"
   dependencies:
     "@babel/runtime": ^7.23.2
     "@emotion/hash": ^0.9.1
-    "@mui/private-theming": ^5.14.16
-    "@mui/types": ^7.2.8
-    "@mui/utils": ^5.14.16
+    "@mui/private-theming": ^5.14.18
+    "@mui/types": ^7.2.9
+    "@mui/utils": ^5.14.18
     clsx: ^2.0.0
     csstype: ^3.1.2
     hoist-non-react-statics: ^3.3.2
@@ -1947,7 +1947,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: f30e7abeec3c4f6c5694047717b998c88eb0eb94cb0f8bcebc854eaa83b0e7a9ea40d48a81a6d44b98af2cf055ed9f4530e367a7e3fa9ebfa7bffd5418b9fbfa
+  checksum: c3a50ff3ab96e931f1506431de70c173af49c7a7d9410a2d132f65ef789f38f4cc742f456cfc16b24ecb7cb492b30dc1afb653cf31318b7059fd52fa790983b5
   languageName: node
   linkType: hard
 
@@ -2016,18 +2016,6 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 16bea0547492193a22fd1794382f314698a114f6c673825314c66b56766c3a9d305992cc495684722b7be16a1ecf7e6e48a79caa64f90c439b530e8c02611a61
-  languageName: node
-  linkType: hard
-
-"@mui/types@npm:^7.2.8":
-  version: 7.2.8
-  resolution: "@mui/types@npm:7.2.8"
-  peerDependencies:
-    "@types/react": ^17.0.0 || ^18.0.0
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-  checksum: 1302d2d1b5a13201efede82ef16438737bd890f9b0a728714fc2da204f6031f055fbd84623ea63ff4ae5d4306b458699d85925608eb8f35df78e1dc0d7a44fc5
   languageName: node
   linkType: hard
 
@@ -11548,7 +11536,7 @@ __metadata:
     "@mui/icons-material": 5.14.9
     "@mui/lab": 5.0.0-alpha.145
     "@mui/material": 5.14.18
-    "@mui/styles": 5.14.16
+    "@mui/styles": 5.14.18
     "@mui/system": 5.14.10
     "@mui/x-data-grid": 6.18.2
     "@playwright/test": 1.40.0
