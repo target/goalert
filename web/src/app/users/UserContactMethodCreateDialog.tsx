@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useMutation, useLazyQuery, gql } from '@apollo/client'
+import { useMutation, useQuery, gql } from 'urql'
 
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
@@ -34,12 +34,14 @@ const userConflictQuery = gql`
   }
 `
 
+const noSuspense = { suspense: false }
+
 export default function UserContactMethodCreateDialog(props: {
   userID: string
   onClose: (contactMethodID?: string) => void
   title?: string
   subtitle?: string
-}): JSX.Element {
+}): React.ReactNode {
   const [allowSV, allowE, allowW, allowS] = useConfigValue(
     'Twilio.Enable',
     'SMTP.Enable',
@@ -65,34 +67,18 @@ export default function UserContactMethodCreateDialog(props: {
     value: '',
   })
 
-  const [query, { data, loading: queryLoading }] = useLazyQuery(
-    userConflictQuery,
-    {
-      variables: {
-        input: {
-          CMValue: CMValue.value,
-          CMType: CMValue.type,
-        },
-      },
-      pollInterval: 0, // override config poll interval to query once
-    },
-  )
-
-  const [createCM, createCMStatus] = useMutation(createMutation, {
-    onCompleted: (result) => {
-      props.onClose(result.createUserContactMethod.id)
-    },
-    onError: () => query(),
+  const [{ data, fetching: queryLoading }, query] = useQuery({
+    query: userConflictQuery,
     variables: {
       input: {
-        ...CMValue,
-        userID: props.userID,
-        newUserNotificationRule: {
-          delayMinutes: 0,
-        },
+        CMValue: CMValue.value,
+        CMType: CMValue.type,
       },
     },
+    context: noSuspense,
   })
+
+  const [createCMStatus, createCM] = useMutation(createMutation)
 
   if (!typeVal) {
     return (
@@ -108,7 +94,7 @@ export default function UserContactMethodCreateDialog(props: {
     )
   }
 
-  const { loading, error } = createCMStatus
+  const { fetching, error } = createCMStatus
   const { title = 'Create New Contact Method', subtitle } = props
 
   let fieldErrs = fieldErrors(error)
@@ -129,7 +115,7 @@ export default function UserContactMethodCreateDialog(props: {
 
   const form = (
     <UserContactMethodForm
-      disabled={loading}
+      disabled={fetching}
       errors={fieldErrs}
       onChange={(CMValue: Value) => setCMValue(CMValue)}
       value={CMValue}
@@ -141,11 +127,27 @@ export default function UserContactMethodCreateDialog(props: {
       data-cy='create-form'
       title={title}
       subTitle={subtitle}
-      loading={loading}
+      loading={fetching}
       errors={nonFieldErrors(error)}
       onClose={props.onClose}
       // wrapped to prevent event from passing into createCM
-      onSubmit={() => createCM()}
+      onSubmit={() =>
+        createCM({
+          input: {
+            ...CMValue,
+            userID: props.userID,
+            newUserNotificationRule: {
+              delayMinutes: 0,
+            },
+          },
+        }).then((result) => {
+          if (result.error) {
+            query()
+            return
+          }
+          props.onClose(result.data.createUserContactMethod.id)
+        })
+      }
       form={form}
     />
   )
