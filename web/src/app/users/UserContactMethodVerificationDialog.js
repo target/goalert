@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useMutation, useQuery, gql } from '@apollo/client'
+import { useMutation, useQuery, gql } from 'urql'
 import p from 'prop-types'
 import FormDialog from '../dialogs/FormDialog'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
@@ -32,31 +32,26 @@ const contactMethodQuery = gql`
   }
 `
 
+const noSuspense = { suspense: false }
 export default function UserContactMethodVerificationDialog(props) {
   const [value, setValue] = useState({
     code: '',
   })
   const [sendError, setSendError] = useState('')
 
-  const [submitVerify, status] = useMutation(verifyContactMethodMutation, {
-    variables: {
-      input: {
-        contactMethodID: props.contactMethodID,
-        code: value.code,
-      },
-    },
-    onCompleted: props.onClose,
-  })
+  const [status, submitVerify] = useMutation(verifyContactMethodMutation)
 
-  const { data } = useQuery(contactMethodQuery, {
+  const [{ data }] = useQuery({
+    query: contactMethodQuery,
     variables: { id: props.contactMethodID },
+    context: noSuspense,
   })
 
   const fromNumber =
     data?.userContactMethod?.lastVerifyMessageState?.formattedSrcValue ?? ''
   const cm = data?.userContactMethod ?? {}
 
-  const { loading, error } = status
+  const { fetching, error } = status
   const fieldErrs = fieldErrors(error)
 
   let caption = null
@@ -68,7 +63,7 @@ export default function UserContactMethodVerificationDialog(props) {
       title='Verify Contact Method'
       subTitle={`A verification code has been sent to ${cm.formattedValue} (${cm.type})`}
       caption={caption}
-      loading={loading || !cm.type}
+      loading={fetching || !cm.type}
       errors={
         sendError
           ? [new Error(sendError)].concat(nonFieldErrors(error))
@@ -78,14 +73,21 @@ export default function UserContactMethodVerificationDialog(props) {
       onClose={props.onClose}
       onSubmit={() => {
         setSendError('')
-        return submitVerify()
+        submitVerify({
+          input: {
+            contactMethodID: props.contactMethodID,
+            code: value.code,
+          },
+        }).then((result) => {
+          if (!result.error) props.onClose()
+        })
       }}
       form={
         <UserContactMethodVerificationForm
           contactMethodID={props.contactMethodID}
           errors={fieldErrs}
           setSendError={setSendError}
-          disabled={loading}
+          disabled={fetching}
           value={value}
           onChange={(value) => setValue(value)}
         />
