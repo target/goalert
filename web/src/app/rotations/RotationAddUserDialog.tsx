@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import { useMutation } from '@apollo/client'
-import { gql } from 'urql'
+import { gql, useMutation } from 'urql'
 import { nonFieldErrors } from '../util/errutil'
 import UserForm from './UserForm'
 import FormDialog from '../dialogs/FormDialog'
@@ -34,27 +33,24 @@ const RotationAddUserDialog = (
   userIDs.forEach((u) => users.push(u))
   uIDs.forEach((u) => users.push(u))
 
-  const [updateRotationMutation, { loading, error }] = useMutation(mutation, {
-    variables: {
-      input: {
-        id: rotationID,
-        userIDs: users,
-      },
-    },
-    onCompleted: onClose,
-  })
+  const [{ error }, commit] = useMutation(mutation)
 
   return (
     <FormDialog
       title='Add User'
-      loading={loading}
       errors={nonFieldErrors(error)}
       onClose={onClose}
-      onSubmit={() => updateRotationMutation()}
+      onSubmit={() =>
+        commit({
+          input: {
+            id: rotationID,
+            userIDs: users,
+          },
+        }).then(() => onClose())
+      }
       form={
         <UserForm
           errors={nonFieldErrors(error)}
-          disabled={loading}
           value={value}
           onChange={(value: Value) => setValue(value)}
         />
