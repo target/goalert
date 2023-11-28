@@ -247,7 +247,7 @@ test('Service', async ({ page, isMobile }) => {
     await page.getByTestId('create-key').click()
   }
   await page.getByLabel('Name').fill(grafanaKey)
-  await page.getByRole('button', { name: 'Type Generic API' }).click()
+  await page.getByLabel('Type').click()
   await page.getByRole('option', { name: 'Grafana' }).click()
   await page.getByRole('button', { name: 'Submit' }).click()
 
