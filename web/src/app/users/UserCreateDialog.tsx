@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { gql, useMutation } from '@apollo/client'
+import { gql, useMutation } from 'urql'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import { FormContainer, FormField } from '../forms'
@@ -18,7 +18,7 @@ interface UserCreateDialogProps {
   onClose: () => void
 }
 
-function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
+function UserCreateDialog(props: UserCreateDialogProps): React.ReactNode {
   const [, navigate] = useLocation()
   const [value, setValue] = useState({
     username: '',
@@ -30,27 +30,30 @@ function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
   })
 
   const [authDisableBasic] = useConfigValue('Auth.DisableBasic')
-  const [createUser, { loading, error }] = useMutation(mutation, {
-    variables: {
-      input: {
-        username: value.username,
-        password: value.password,
-        name: value.name ? value.name : null,
-        email: value.email,
-        role: value.isAdmin ? 'admin' : 'user',
-        favorite: true,
-      },
-    },
-    onCompleted: (data) => navigate(`/users/${data.createUser.id}`),
-  })
+  const [{ fetching, error }, createUser] = useMutation(mutation)
 
   return (
     <FormDialog
       title='Create User'
-      loading={loading}
+      loading={fetching}
       errors={nonFieldErrors(error)}
       onClose={props.onClose}
-      onSubmit={() => createUser()}
+      onSubmit={() =>
+        createUser({
+          input: {
+            username: value.username,
+            password: value.password,
+            name: value.name ? value.name : null,
+            email: value.email,
+            role: value.isAdmin ? 'admin' : 'user',
+            favorite: true,
+          },
+        }).then((result) => {
+          if (!result.error) {
+            navigate(`/users/${result.data.createUser.id}`)
+          }
+        })
+      }
       notices={
         authDisableBasic
           ? [
