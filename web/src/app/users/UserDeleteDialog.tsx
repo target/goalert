@@ -1,5 +1,5 @@
 import React from 'react'
-import { gql, useQuery, useMutation } from '@apollo/client'
+import { gql, useQuery, useMutation } from 'urql'
 import Spinner from '../loading/components/Spinner'
 import FormDialog from '../dialogs/FormDialog'
 import { useSessionInfo } from '../util/RequireConfig'
@@ -25,34 +25,17 @@ interface RotationDeleteDialogProps {
   onClose: () => void
 }
 
-function UserDeleteDialog(props: RotationDeleteDialogProps): JSX.Element {
+function UserDeleteDialog(props: RotationDeleteDialogProps): React.ReactNode {
   const { userID: currentUserID, ready: isSessionReady } = useSessionInfo()
   const [, navigate] = useLocation()
 
-  const {
-    data,
-    loading: qLoading,
-    error: qError,
-  } = useQuery(query, {
+  const [{ data, fetching: qLoading, error: qError }] = useQuery({
+    query,
     variables: { id: props.userID },
   })
 
-  const [deleteUser, { loading: mLoading, error: mError }] = useMutation(
-    mutation,
-    {
-      variables: {
-        input: [
-          {
-            id: props.userID,
-            type: 'user',
-          },
-        ],
-      },
-      onCompleted: ({ deleteAll }) => {
-        if (deleteAll) return navigate('/users')
-      },
-    },
-  )
+  const [{ fetching: mLoading, error: mError }, deleteUser] =
+    useMutation(mutation)
 
   if (!isSessionReady || (!data && qLoading)) return <Spinner />
   if (qError) return <GenericError error={qError.message} />
@@ -65,7 +48,18 @@ function UserDeleteDialog(props: RotationDeleteDialogProps): JSX.Element {
       loading={mLoading}
       errors={mError ? [mError] : []}
       onClose={props.onClose}
-      onSubmit={() => deleteUser()}
+      onSubmit={() =>
+        deleteUser({
+          input: [
+            {
+              id: props.userID,
+              type: 'user',
+            },
+          ],
+        }).then((result) => {
+          if (!result.error) return navigate('/users')
+        })
+      }
       notices={
         props.userID === currentUserID
           ? [
