@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { ApolloError, gql, useMutation, useQuery } from '@apollo/client'
+import { gql, useMutation, useQuery, CombinedError } from 'urql'
 import Spinner from '../loading/components/Spinner'
 import FormDialog from '../dialogs/FormDialog'
 import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
 import { FieldError, fieldErrors, nonFieldErrors } from '../util/errutil'
 import UserEditForm, { Value } from './UserEditForm'
-import { Query } from '../../schema'
+import { AuthSubject } from '../../schema'
 
 const userAuthQuery = gql`
   query ($id: ID!) {
@@ -42,7 +42,7 @@ interface UserEditDialogProps {
   onClose: () => void
 }
 
-function UserEditDialog(props: UserEditDialogProps): JSX.Element {
+function UserEditDialog(props: UserEditDialogProps): React.ReactNode {
   const [authDisableBasic] = useConfigValue('Auth.DisableBasic')
   const defaultValue: Value = {
     username: '',
@@ -61,14 +61,15 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
   const [value, setValue] = useState(defaultValue)
   const [errors, setErrors] = useState<FieldError[]>([])
 
-  const { loading, data } = useQuery<Pick<Query, 'user'>>(userAuthQuery, {
+  const [{ fetching, data }] = useQuery({
+    query: userAuthQuery,
     variables: { id: props.userID },
   })
   useEffect(() => {
     if (!data?.user?.authSubjects) return
 
     const basicAuth = data.user.authSubjects.find(
-      (s) => s.providerID === 'basic',
+      (s: AuthSubject) => s.providerID === 'basic',
     )
     if (!basicAuth) return
 
@@ -76,48 +77,18 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
     setValue({ ...value, username: basicAuth.subjectID })
   }, [data?.user?.authSubjects])
 
-  const [createBasicAuth, createBasicAuthStatus] = useMutation(
+  const [createBasicAuthStatus, createBasicAuth] = useMutation(
     createBasicAuthMutation,
-    {
-      variables: {
-        input: {
-          userID: props.userID,
-          username: value.username || null,
-          password: value.password || null,
-        },
-      },
-    },
   )
 
-  const [editBasicAuth, editBasicAuthStatus] = useMutation(
+  const [editBasicAuthStatus, editBasicAuth] = useMutation(
     updateBasicAuthMutation,
-    {
-      variables: {
-        input: {
-          userID: props.userID,
-          oldPassword: value.oldPassword || null,
-          password: value.password || null,
-        },
-      },
-    },
   )
 
-  const [editUser, editUserStatus] = useMutation(updateUserMutation, {
-    variables: {
-      input: {
-        id: props.userID,
-        role:
-          defaultValue.isAdmin !== value.isAdmin
-            ? value.isAdmin
-              ? 'admin'
-              : 'user'
-            : null,
-      },
-    },
-  })
+  const [editUserStatus, editUser] = useMutation(updateUserMutation)
 
   const userHasBasicAuth = (data?.user?.authSubjects ?? []).some(
-    (s) => s.providerID === 'basic',
+    (s: AuthSubject) => s.providerID === 'basic',
   )
 
   // Checks if any of the password fields are used. Used to skip any unnecessary updateUserMutation
@@ -157,7 +128,7 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
     caughtError: unknown,
     errorList: FieldError[],
   ): FieldError[] {
-    if (caughtError instanceof ApolloError) {
+    if (caughtError instanceof CombinedError) {
       errorList = [...errorList, ...fieldErrors(caughtError)]
     } else {
       console.error(caughtError)
@@ -172,7 +143,13 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
 
     if (!errorList?.length && passwordChanged() && userHasBasicAuth) {
       try {
-        await editBasicAuth()
+        await editBasicAuth({
+          input: {
+            userID: props.userID,
+            oldPassword: value.oldPassword || null,
+            password: value.password || null,
+          },
+        })
       } catch (err) {
         console.error(err)
         errorList = errorHandler(err, errorList)
@@ -181,7 +158,13 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
 
     if (!errorList?.length && passwordChanged() && !userHasBasicAuth) {
       try {
-        await createBasicAuth()
+        await createBasicAuth({
+          input: {
+            userID: props.userID,
+            username: value.username || null,
+            password: value.password || null,
+          },
+        })
       } catch (err) {
         console.error(err)
         errorList = errorHandler(err, errorList)
@@ -190,7 +173,17 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
 
     if (!errorList?.length && defaultValue.isAdmin !== value.isAdmin) {
       try {
-        await editUser()
+        await editUser({
+          input: {
+            id: props.userID,
+            role:
+              defaultValue.isAdmin !== value.isAdmin
+                ? value.isAdmin
+                  ? 'admin'
+                  : 'user'
+                : null,
+          },
+        })
       } catch (err) {
         console.error(err)
         errorList = errorHandler(err, errorList)
@@ -229,7 +222,9 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
   return (
     <FormDialog
       title='Edit User Access'
-      loading={editBasicAuthStatus.loading || editUserStatus.loading || loading}
+      loading={
+        editBasicAuthStatus.fetching || editUserStatus.fetching || fetching
+      }
       errors={[
         ...nonFieldErrors(editBasicAuthStatus.error),
         ...nonFieldErrors(editUserStatus.error),
