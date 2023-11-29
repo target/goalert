@@ -67,7 +67,7 @@ export default function UserContactMethodCreateDialog(props: {
     value: '',
   })
 
-  const [{ data, fetching: queryLoading }, query] = useQuery({
+  const [{ data, fetching: queryLoading }] = useQuery({
     query: userConflictQuery,
     variables: {
       input: {
@@ -142,7 +142,6 @@ export default function UserContactMethodCreateDialog(props: {
           },
         }).then((result) => {
           if (result.error) {
-            query()
             return
           }
           props.onClose(result.data.createUserContactMethod.id)
