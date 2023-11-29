@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import { useMutation } from '@apollo/client'
-import { gql } from 'urql'
+import { gql, useMutation } from 'urql'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import UserNotificationRuleForm from './UserNotificationRuleForm'
@@ -19,29 +18,27 @@ export default function UserNotificationRuleCreateDialog(props: {
 }): JSX.Element {
   const [value, setValue] = useState({ contactMethodID: '', delayMinutes: 0 })
 
-  const [createNotification, { loading, error }] = useMutation(mutation, {
-    onCompleted: props.onClose,
-  })
+  const [{ fetching, error }, createNotification] = useMutation(mutation)
 
   const fieldErrs = fieldErrors(error)
 
   return (
     <FormDialog
       title='Create New Notification Rule'
-      loading={loading}
+      loading={fetching}
       errors={nonFieldErrors(error)}
       onSubmit={() => {
-        return createNotification({
-          variables: {
-            input: { ...value, userID: props.userID },
-          },
+        createNotification({
+          input: { ...value, userID: props.userID },
+        }).then((result) => {
+          if (!result.error) props.onClose()
         })
       }}
       form={
         <UserNotificationRuleForm
           userID={props.userID}
           errors={fieldErrs}
-          disabled={loading}
+          disabled={fetching}
           value={value}
           onChange={(value) => setValue(value)}
         />
