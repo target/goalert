@@ -140,6 +140,70 @@ type Query {
   swoStatus: SWOStatus!
 
   gqlAPIKeys: [GQLAPIKey!]!
+
+  destinationTypes(
+    isContactMethod: Boolean # only return destination types that can be used as user contact methods
+    isEPTarget: Boolean # only return destination types that can be used on escalation policy steps
+    isSchedOnCallNotify: Boolean # only return destination types that can be used for schedule on-call notifications
+  ): [DestinationType!]!
+
+  destinationType(id: ID!): DestinationType!
+
+  destinationInputIsValid(id: ID!, value: String!): Boolean!
+
+  destination(id: ID!, typeID: ID!): DestinationInfo!
+
+  destinationSearch(typeID: ID!, input: DestinationSearchInput!): DestinationInfoConnection!
+}
+
+input DestinationSearchInput {
+  search: String # search string to match against
+  omit: [ID!] # IDs to omit from results
+  after: String # cursor to start search from
+  first: Int = 15 # number of results to return
+}
+
+type DestinationInfoConnection {
+  nodes: [DestinationInfo!]!
+  pageInfo: PageInfo!
+}
+
+type DestinationInfo {
+  id: ID!
+  typeID: ID!
+  name: String!
+  isFavorite: Boolean!
+}
+
+type DestinationType {
+  id: ID!
+
+  enabled: Boolean! # if false, the destination type is disabled and cannot be used
+
+  # one of input or compoundInput will be set
+  input: DestinationInput # input field configuration
+  compoundInput: [DestinationInput!] # input field configuration for compound destinations
+}
+
+type DestinationInput {
+  typeID: ID! # the type ID to use when creating/updating/validating/searching
+
+  nameSingular: String! # user-friendly name
+  namePlural: String! # user-friendly plural name
+
+  iconURL: String! # URL to an icon to display for the destination type
+  iconAlt: String! # alt text for the icon
+
+  hint: String! # user-friendly helper text for input fields (i.e., "Enter a phone number")
+  hintURL: String! # URL to link to for more information about the destination type
+  placeholderText: String! # placeholder text to display in input fields (i.e., "Phone Number")
+  userDisclaimer: String! # disclaimer text to display when a user is selecting this destination type for a contact method
+
+  prefix: String! # the prefix to use when displaying the destination (i.e., "+" for phone numbers)
+  inputType: String! # the type of input field to use (i.e., "text" or "tel")
+
+  isSearchSelectable: Boolean! # if true, the destination can be selected via search
+  supportsValidation: Boolean! # if true, the destination type supports validation
 }
 
 type IntegrationKeyTypeInfo {
@@ -679,7 +743,6 @@ input CreateAlertInput {
 
 input CloseMatchingAlertInput {
   serviceID: ID! # service ID for the close operation.
-
   # summary (and details) will match an alert with the same values.
   #
   # They can be omitted if the dedup field is provided.
@@ -904,7 +967,11 @@ type Schedule {
   timeZone: String!
 
   assignedTo: [Target!]!
-  shifts(start: ISOTimestamp!, end: ISOTimestamp!, userIDs: [ID!]): [OnCallShift!]!
+  shifts(
+    start: ISOTimestamp!
+    end: ISOTimestamp!
+    userIDs: [ID!]
+  ): [OnCallShift!]!
 
   targets: [ScheduleTarget!]!
   target(input: TargetInput!): ScheduleTarget
