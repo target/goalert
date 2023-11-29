@@ -1,24 +1,16 @@
-import React from 'react'
-import {
-  TextField,
-  Grid,
-  MenuItem,
-  Typography,
-  FormHelperText,
-} from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import React, { Suspense } from 'react'
+import { TextField, Grid, MenuItem, FormHelperText } from '@mui/material'
 import { startCase } from 'lodash'
 import { DateTime } from 'luxon'
-import { useQuery, gql } from '@apollo/client'
-
 import { FormContainer, FormField } from '../forms'
 import { TimeZoneSelect } from '../selection'
 import { ISODateTimePicker } from '../util/ISOPickers'
 import NumberField from '../util/NumberField'
-import Spinner from '../loading/components/Spinner'
 import { FieldError } from '../util/errutil'
-import { CreateRotationInput, ISODuration, RotationType } from '../../schema'
+import { CreateRotationInput } from '../../schema'
 import { Time } from '../util/Time'
+import RotationFormHandoffTimes from './RotationFormHandoffTimes'
+import Spinner from '../loading/components/Spinner'
 
 interface RotationFormProps {
   value: CreateRotationInput
@@ -27,49 +19,7 @@ interface RotationFormProps {
   disabled?: boolean
 }
 
-const query = gql`
-  query calcRotationHandoffTimes($input: CalcRotationHandoffTimesInput) {
-    calcRotationHandoffTimes(input: $input)
-  }
-`
-
 const rotationTypes = ['hourly', 'daily', 'weekly', 'monthly']
-
-const useStyles = makeStyles({
-  handoffTimestamp: {
-    listStyle: 'none',
-  },
-  handoffsTitle: {
-    fontWeight: 'bolder',
-  },
-  tzContainer: {
-    display: 'flex',
-  },
-  handoffsContainer: {
-    height: '7rem',
-  },
-  handoffsList: {
-    margin: 0,
-    padding: 0,
-  },
-})
-
-// getShiftDuration converts a count and one of ['hourly', 'daily', 'weekly', 'monthly']
-// into the shift length to ISODuration.
-function getShiftDuration(count: number, type: RotationType): ISODuration {
-  switch (type) {
-    case 'monthly':
-      return `P${count}M`
-    case 'weekly':
-      return `P${count}W`
-    case 'daily':
-      return `P${count}D`
-    case 'hourly':
-      return `PT${count}H`
-    default:
-      throw new Error('unknown rotation type: ' + type)
-  }
-}
 
 const sameAsLocal = (t: string, z: string): boolean => {
   const inZone = DateTime.fromISO(t, { zone: z })
@@ -79,25 +29,9 @@ const sameAsLocal = (t: string, z: string): boolean => {
 
 export default function RotationForm(props: RotationFormProps): JSX.Element {
   const { value } = props
-  const classes = useStyles()
 
-  const { data, loading, error } = useQuery(query, {
-    variables: {
-      input: {
-        handoff: value.start,
-        timeZone: value.timeZone,
-        shiftLength: getShiftDuration(value.shiftLength as number, value.type),
-        count: 3,
-      },
-    },
-  })
-
-  const isCalculating = !data || loading
-
-  const isHandoffValid = DateTime.fromISO(value.start).isValid
   const handoffWarning =
     DateTime.fromISO(value.start).day > 28 && value.type === 'monthly'
-  const nextHandoffs = isCalculating ? [] : data.calcRotationHandoffTimes
 
   return (
     <FormContainer optionalLabels {...props}>
@@ -191,37 +125,15 @@ export default function RotationForm(props: RotationFormProps): JSX.Element {
             }
           />
         </Grid>
-
-        <Grid item xs={12} className={classes.handoffsContainer}>
-          <Typography variant='body2' className={classes.handoffsTitle}>
-            Upcoming Handoff times:
-          </Typography>
-          {isHandoffValid ? (
-            <ol className={classes.handoffsList}>
-              {nextHandoffs.map((time: string, i: number) => (
-                <Typography
-                  key={i}
-                  component='li'
-                  className={classes.handoffTimestamp}
-                  variant='body2'
-                >
-                  <Time time={time} zone={value.timeZone} />
-                </Typography>
-              ))}
-            </ol>
-          ) : (
-            <Typography variant='body2' color='textSecondary'>
-              Please enter a valid handoff time.
-            </Typography>
-          )}
-
-          {isCalculating && isHandoffValid && <Spinner text='Calculating...' />}
-          {error && isHandoffValid && (
-            <Typography variant='body2' color='error'>
-              {error.message}
-            </Typography>
-          )}
-        </Grid>
+        <Suspense
+          fallback={
+            <Grid item xs={12} sx={{ height: '7rem' }}>
+              <Spinner text='Calculating...' />
+            </Grid>
+          }
+        >
+          <RotationFormHandoffTimes value={value} />
+        </Suspense>
       </Grid>
     </FormContainer>
   )
