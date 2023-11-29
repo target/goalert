@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useQuery, gql } from '@apollo/client'
+import { useQuery, gql } from 'urql'
 import { Card, Alert } from '@mui/material'
 import FlatList, { FlatListListItem } from '../lists/FlatList'
 import OtherActions from '../util/OtherActions'
@@ -50,14 +50,16 @@ export default function UserCalendarSubscriptionList(props: {
     string | null
   >(null)
 
-  const { data, loading, error } = useQuery(calendarSubscriptionsQuery, {
+  const [{ data, fetching, error }] = useQuery({
+    query: calendarSubscriptionsQuery,
     variables: {
       id: userID,
     },
   })
 
   if (error) return <GenericError error={error.message} />
-  if (!_.get(data, 'user.id')) return loading ? <Spinner /> : <ObjectNotFound />
+  if (!_.get(data, 'user.id'))
+    return fetching ? <Spinner /> : <ObjectNotFound />
 
   // sort by schedule names, then subscription names
   const subs: UserCalendarSubscription[] = data.user.calendarSubscriptions
