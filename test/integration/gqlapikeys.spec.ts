@@ -95,6 +95,18 @@ test('GQL API keys', async ({ page, request, isMobile }) => {
   expect(data).toHaveProperty('data')
   expect(data.data).toHaveProperty('gqlAPIKeys')
 
+  resp = await request.post(gqlURL, {
+    headers: {
+      Authorization: `Bearer ${duplicateToken}`,
+    },
+    data: { query: '{wrongQuery}' },
+  })
+
+  expect(resp.status()).toBe(200)
+  const badResp = await resp.json()
+
+  expect(badResp).toHaveProperty('errors')
+
   type Key = {
     id: string
     name: string
@@ -115,7 +127,7 @@ test('GQL API keys', async ({ page, request, isMobile }) => {
       Authorization: `Bearer ${duplicateToken}`,
     },
     data: {
-      query,
+      // Note: `query` is omitted to validate that it is not required for gql API keys.
       operationName: 'DeleteAPIKey',
       variables: {
         id: originalID,
