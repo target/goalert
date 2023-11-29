@@ -1,5 +1,5 @@
 import React from 'react'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery } from 'urql'
 import { Card } from '@mui/material'
 import FlatList from '../lists/FlatList'
 import { sortBy, values } from 'lodash'
@@ -85,11 +85,12 @@ export default function UserOnCallAssignmentList(props: {
   currentUser?: boolean
 }): JSX.Element {
   const userID = props.userID
-  const { data, loading, error } = useQuery(query, {
+  const [{ data, fetching, error }] = useQuery({
+    query,
     variables: { id: userID },
   })
 
-  if (!data && loading) {
+  if (!data && fetching) {
     return <Spinner />
   }
   if (error) {
