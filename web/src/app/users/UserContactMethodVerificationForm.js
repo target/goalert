@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { useMutation, gql } from '@apollo/client'
+import { useMutation, gql } from 'urql'
 import p from 'prop-types'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
@@ -32,25 +32,27 @@ const useStyles = makeStyles({
 export default function UserContactMethodVerificationForm(props) {
   const classes = useStyles()
 
-  const [sendCode, sendCodeStatus] = useMutation(sendVerificationCodeMutation, {
-    variables: {
-      input: {
-        contactMethodID: props.contactMethodID,
-      },
-    },
-  })
+  const [sendCodeStatus, sendCode] = useMutation(sendVerificationCodeMutation)
 
   function sendAndCatch() {
     // Clear error on new actions.
     props.setSendError(null)
-    sendCode().catch((err) => props.setSendError(err.message))
+    sendCode({
+      input: {
+        contactMethodID: props.contactMethodID,
+      },
+    }).catch((err) => props.setSendError(err.message))
   }
 
   // Attempt to send a code on load, but it's ok if it fails.
   //
   // We only want to display an error in response to a user action.
   useEffect(() => {
-    sendCode().catch(() => {})
+    sendCode({
+      input: {
+        contactMethodID: props.contactMethodID,
+      },
+    }).catch(() => {})
   }, [])
 
   return (
