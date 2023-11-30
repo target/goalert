@@ -1,9 +1,8 @@
 import React from 'react'
 import { gql, useQuery, useMutation } from 'urql'
-import Spinner from '../loading/components/Spinner'
 import FormDialog from '../dialogs/FormDialog'
 import { useSessionInfo } from '../util/RequireConfig'
-import { GenericError } from '../error-pages'
+import { GenericError, ObjectNotFound } from '../error-pages'
 import { useLocation } from 'wouter'
 
 const query = gql`
@@ -26,10 +25,10 @@ interface RotationDeleteDialogProps {
 }
 
 function UserDeleteDialog(props: RotationDeleteDialogProps): React.ReactNode {
-  const { userID: currentUserID, ready: isSessionReady } = useSessionInfo()
+  const { userID: currentUserID } = useSessionInfo()
   const [, navigate] = useLocation()
 
-  const [{ data, fetching: qLoading, error: qError }] = useQuery({
+  const [{ data, error: qError }] = useQuery({
     query,
     variables: { id: props.userID },
   })
@@ -37,7 +36,7 @@ function UserDeleteDialog(props: RotationDeleteDialogProps): React.ReactNode {
   const [{ fetching: mLoading, error: mError }, deleteUser] =
     useMutation(mutation)
 
-  if (!isSessionReady || (!data && qLoading)) return <Spinner />
+  if (!data) return <ObjectNotFound />
   if (qError) return <GenericError error={qError.message} />
 
   return (

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { gql, useMutation, useQuery, CombinedError } from 'urql'
-import Spinner from '../loading/components/Spinner'
 import FormDialog from '../dialogs/FormDialog'
 import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
 import { FieldError, fieldErrors, nonFieldErrors } from '../util/errutil'
@@ -52,16 +51,12 @@ function UserEditDialog(props: UserEditDialogProps): React.ReactNode {
     isAdmin: props.role === 'admin',
   }
 
-  const {
-    ready: isSessionReady,
-    userID: currentUserID,
-    isAdmin: currentUserAdmin,
-  } = useSessionInfo()
+  const { userID: currentUserID, isAdmin: currentUserAdmin } = useSessionInfo()
 
   const [value, setValue] = useState(defaultValue)
   const [errors, setErrors] = useState<FieldError[]>([])
 
-  const [{ fetching, data }] = useQuery({
+  const [{ data }] = useQuery({
     query: userAuthQuery,
     variables: { id: props.userID },
   })
@@ -217,14 +212,10 @@ function UserEditDialog(props: UserEditDialogProps): React.ReactNode {
     })
   }
 
-  if (!isSessionReady) return <Spinner />
-
   return (
     <FormDialog
       title='Edit User Access'
-      loading={
-        editBasicAuthStatus.fetching || editUserStatus.fetching || fetching
-      }
+      loading={editBasicAuthStatus.fetching || editUserStatus.fetching}
       errors={[
         ...nonFieldErrors(editBasicAuthStatus.error),
         ...nonFieldErrors(editUserStatus.error),
