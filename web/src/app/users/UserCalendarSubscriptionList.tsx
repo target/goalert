@@ -10,7 +10,6 @@ import CalendarSubscribeDeleteDialog from '../schedules/calendar-subscribe/Calen
 import CalendarSubscribeEditDialog from '../schedules/calendar-subscribe/CalendarSubscribeEditDialog'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import _ from 'lodash'
-import Spinner from '../loading/components/Spinner'
 import { useConfigValue } from '../util/RequireConfig'
 import AppLink from '../util/AppLink'
 import { UserCalendarSubscription } from '../../schema'
@@ -50,7 +49,7 @@ export default function UserCalendarSubscriptionList(props: {
     string | null
   >(null)
 
-  const [{ data, fetching, error }] = useQuery({
+  const [{ data, error }] = useQuery({
     query: calendarSubscriptionsQuery,
     variables: {
       id: userID,
@@ -58,8 +57,7 @@ export default function UserCalendarSubscriptionList(props: {
   })
 
   if (error) return <GenericError error={error.message} />
-  if (!_.get(data, 'user.id'))
-    return fetching ? <Spinner /> : <ObjectNotFound />
+  if (!_.get(data, 'user.id')) return <ObjectNotFound />
 
   // sort by schedule names, then subscription names
   const subs: UserCalendarSubscription[] = data.user.calendarSubscriptions
