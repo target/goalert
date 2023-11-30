@@ -20,6 +20,7 @@ import UserDeleteDialog from './UserDeleteDialog'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import { EscalationPolicyStep } from '../../schema'
 import { useIsWidthDown } from '../util/useWidth'
+import UserShiftsCalendar from './UserShiftsCalendar'
 
 const userQuery = gql`
   query userInfo($id: ID!) {
@@ -240,6 +241,13 @@ export default function UserDetails(props: {
               userID={userID}
               readOnly={props.readOnly}
             />
+            {!mobile && (
+              <Suspense>
+                <Grid item xs={12}>
+                  <UserShiftsCalendar userID={userID} />
+                </Grid>
+              </Suspense>
+            )}
           </Grid>
         }
         secondaryActions={options}

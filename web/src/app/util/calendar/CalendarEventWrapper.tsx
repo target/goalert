@@ -11,11 +11,11 @@ import Popover from '@mui/material/Popover'
 import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
-import { OverrideDialogContext } from '../ScheduleDetails'
+import { OverrideDialogContext } from '../../schedules/ScheduleDetails'
 import CardActions from '../../details/CardActions'
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material'
-import ScheduleOverrideEditDialog from '../ScheduleOverrideEditDialog'
-import ScheduleOverrideDeleteDialog from '../ScheduleOverrideDeleteDialog'
+import ScheduleOverrideEditDialog from '../../schedules/ScheduleOverrideEditDialog'
+import ScheduleOverrideDeleteDialog from '../../schedules/ScheduleOverrideDeleteDialog'
 import { User } from '../../../schema'
 import {
   OverrideEvent,
@@ -23,7 +23,8 @@ import {
   TempSchedEvent,
   TempSchedShiftEvent,
   OnCallShiftEvent,
-} from './ScheduleCalendar'
+} from './Calendar'
+import AppLink from '../AppLink'
 
 const useStyles = makeStyles({
   cardActionContainer: {
@@ -41,11 +42,13 @@ const useStyles = makeStyles({
 interface ScheduleCalendarEventWrapperProps {
   children: JSX.Element
   event: ScheduleCalendarEvent
+  showScheduleLink?: boolean
 }
 
 export default function ScheduleCalendarEventWrapper({
-  event,
   children,
+  event,
+  showScheduleLink,
 }: ScheduleCalendarEventWrapperProps): JSX.Element {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
@@ -90,38 +93,28 @@ export default function ScheduleCalendarEventWrapper({
   function renderTempSchedButtons(
     calEvent: TempSchedEvent | TempSchedShiftEvent,
   ): JSX.Element {
+    // don't display actions on events in the past
     if (DateTime.fromJSDate(calEvent.end) <= DateTime.utc()) {
-      // no actions on past events
       return <React.Fragment />
     }
+
     return (
-      <React.Fragment>
-        <Grid item>
-          <Button
-            data-cy='edit-temp-sched'
-            size='small'
-            onClick={() => onEditTempSched(calEvent.tempSched)}
-            variant='contained'
-            title='Edit this temporary schedule'
-          >
-            Edit
-          </Button>
-        </Grid>
-        <React.Fragment>
-          <Grid item className={classes.flexGrow} />
-          <Grid item>
-            <Button
-              data-cy='delete-temp-sched'
-              size='small'
-              onClick={() => onDeleteTempSched(calEvent.tempSched)}
-              variant='contained'
-              title='Delete this temporary schedule'
-            >
-              Delete
-            </Button>
-          </Grid>
-        </React.Fragment>
-      </React.Fragment>
+      <div className={classes.cardActionContainer}>
+        <CardActions
+          secondaryActions={[
+            {
+              icon: <EditIcon data-cy='edit-temp-sched' fontSize='small' />,
+              label: 'Edit',
+              handleOnClick: () => onEditTempSched(calEvent.tempSched),
+            },
+            {
+              icon: <DeleteIcon data-cy='delete-temp-sched' fontSize='small' />,
+              label: 'Delete',
+              handleOnClick: () => onDeleteTempSched(calEvent.tempSched),
+            },
+          ]}
+        />
+      </div>
     )
   }
 
@@ -172,6 +165,23 @@ export default function ScheduleCalendarEventWrapper({
   }
 
   function renderButtons(): JSX.Element {
+    if (showScheduleLink) {
+      const id = event?.targetID ?? ''
+      return (
+        <React.Fragment>
+          <Grid item className={classes.flexGrow} />
+          <Grid item>
+            <Button
+              variant='contained'
+              component={AppLink}
+              to={/schedules/ + id}
+            >
+              Visit Schedule
+            </Button>
+          </Grid>
+        </React.Fragment>
+      )
+    }
     if (DateTime.fromJSDate(event.end) <= DateTime.utc())
       return <React.Fragment />
     if (event.type === 'tempSched')
@@ -232,6 +242,11 @@ export default function ScheduleCalendarEventWrapper({
 
     return (
       <Grid container spacing={1}>
+        <Grid item xs={12}>
+          <Typography variant='body2'>
+            <b>{showScheduleLink ? event?.user?.name : event?.targetName}</b>
+          </Typography>
+        </Grid>
         {event.type === 'override' &&
           renderOverrideDescription(event as OverrideEvent)}
         <Grid item xs={12}>
@@ -252,7 +267,7 @@ export default function ScheduleCalendarEventWrapper({
         anchorEl={anchorEl}
         onClose={handleCloseShiftInfo}
         anchorOrigin={{
-          vertical: 'bottom',
+          vertical: 'top',
           horizontal: 'left',
         }}
         transformOrigin={{

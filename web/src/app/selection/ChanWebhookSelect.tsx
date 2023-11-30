@@ -56,8 +56,8 @@ export const ChanWebhookSelect = (
             !isValidURL(newURL) && newURL.length > 0
               ? 'Must be a valid URL.'
               : value.includes(newURL)
-              ? 'Must be a new URL.'
-              : ''
+                ? 'Must be a new URL.'
+                : ''
           }
           placeholder='https://example.com/...'
           InputProps={{

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { gql, useMutation } from '@apollo/client'
+import { gql, useMutation } from 'urql'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import RotationForm from './RotationForm'
@@ -31,16 +31,7 @@ const RotationCreateDialog = (props: { onClose?: () => void }): JSX.Element => {
     shiftLength: 1,
     favorite: true,
   })
-  const [createRotationMutation, { loading, data, error }] = useMutation(
-    mutation,
-    {
-      variables: {
-        input: {
-          ...value,
-        },
-      },
-    },
-  )
+  const [{ data, error }, commit] = useMutation(mutation)
 
   if (data?.createRotation) {
     return <Redirect to={`/rotations/${data.createRotation.id}`} />
@@ -49,14 +40,18 @@ const RotationCreateDialog = (props: { onClose?: () => void }): JSX.Element => {
   return (
     <FormDialog
       title='Create Rotation'
-      loading={loading}
       errors={nonFieldErrors(error)}
       onClose={props.onClose}
-      onSubmit={() => createRotationMutation()}
+      onSubmit={() =>
+        commit({
+          input: {
+            ...value,
+          },
+        })
+      }
       form={
         <RotationForm
           errors={fieldErrors(error)}
-          disabled={loading}
           value={value}
           onChange={(value) => setValue(value)}
         />
