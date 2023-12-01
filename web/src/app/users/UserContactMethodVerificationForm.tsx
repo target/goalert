@@ -31,7 +31,7 @@ const useStyles = makeStyles({
 interface UserContactMethodVerificationFormProps {
   contactMethodID: string
   disabled: boolean
-  errors: Error[]
+  errors?: Error[]
   onChange: (value: { code: string }) => void
   setSendError: (err: string) => void
   value: {
