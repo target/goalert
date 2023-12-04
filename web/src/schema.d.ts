@@ -43,6 +43,55 @@ export interface Query {
   linkAccountInfo?: null | LinkAccountInfo
   swoStatus: SWOStatus
   gqlAPIKeys: GQLAPIKey[]
+  destinationTypes: DestinationTypeInfo[]
+  destinationType: DestinationTypeInfo
+  destinationInputIsValid: boolean
+  destination: DestinationInfo
+  destinationSearch: DestinationInfoConnection
+}
+
+export interface DestinationSearchInput {
+  search?: null | string
+  omit?: null | string[]
+  after?: null | string
+  first?: null | number
+}
+
+export interface DestinationInfoConnection {
+  nodes: DestinationInfo[]
+  pageInfo: PageInfo
+}
+
+export interface DestinationInfo {
+  value: string
+  typeID: string
+  name: string
+  isFavorite: boolean
+}
+
+export interface DestinationTypeInfo {
+  typeID: string
+  name: string
+  disabledMessage: string
+  enabled: boolean
+  input?: null | DestinationInput
+  compoundInput?: null | DestinationInput[]
+}
+
+export interface DestinationInput {
+  typeID: string
+  nameSingular: string
+  namePlural: string
+  iconURL: string
+  iconAlt: string
+  hint: string
+  hintURL: string
+  placeholderText: string
+  userDisclaimer: string
+  prefix: string
+  inputType: string
+  isSearchSelectable: boolean
+  supportsValidation: boolean
 }
 
 export interface IntegrationKeyTypeInfo {

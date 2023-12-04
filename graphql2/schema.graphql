@@ -145,13 +145,16 @@ type Query {
     isContactMethod: Boolean # only return destination types that can be used as user contact methods
     isEPTarget: Boolean # only return destination types that can be used on escalation policy steps
     isSchedOnCallNotify: Boolean # only return destination types that can be used for schedule on-call notifications
-  ): [DestinationType!]!
+  ): [DestinationTypeInfo!]!
 
-  destinationType(id: ID!): DestinationType!
+  destinationType(typeID: ID!): DestinationTypeInfo!
 
-  destinationInputIsValid(id: ID!, value: String!): Boolean!
+  destinationInputIsValid(typeID: ID!, value: String!): Boolean!
 
-  destination(id: ID!, typeID: ID!): DestinationInfo!
+  # destination will return information about a specific destination.
+  #
+  # For example, for a type ID representing a slack channel, the ID would be the channel ID.
+  destination(typeID: ID!, value: ID!): DestinationInfo!
 
   destinationSearch(typeID: ID!, input: DestinationSearchInput!): DestinationInfoConnection!
 }
@@ -169,14 +172,17 @@ type DestinationInfoConnection {
 }
 
 type DestinationInfo {
-  id: ID!
+  value: ID!
   typeID: ID!
   name: String!
   isFavorite: Boolean!
 }
 
-type DestinationType {
-  id: ID!
+type DestinationTypeInfo {
+  typeID: ID!
+
+  name: String!
+  disabledMessage: String!
 
   enabled: Boolean! # if false, the destination type is disabled and cannot be used
 

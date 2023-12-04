@@ -2,7 +2,11 @@ import { Checkbox, FormControlLabel, Typography } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import React, { useMemo } from 'react'
-import { ContactMethodType, StatusUpdateState } from '../../schema'
+import {
+  ContactMethodType,
+  DestinationTypeInfo,
+  StatusUpdateState,
+} from '../../schema'
 import { FormContainer, FormField } from '../forms'
 import {
   renderMenuItem,
@@ -12,6 +16,21 @@ import { useConfigValue } from '../util/RequireConfig'
 import TelTextField from '../util/TelTextField'
 import { FieldError } from '../util/errutil'
 import AppLink from '../util/AppLink'
+import { gql, useQuery } from 'urql'
+
+const query = gql`
+  query ListCMTypes {
+    destinationTypes(isContactMethod: true) {
+      typeID
+      name
+      enabled
+      disabledMessage
+      input {
+        userDisclaimer
+      }
+    }
+  }
+`
 
 type Value = {
   name: string
@@ -134,57 +153,18 @@ export default function UserContactMethodForm(
 ): JSX.Element {
   const { value, edit = false, ...other } = props
 
-  const [
-    smsVoiceEnabled,
-    emailEnabled,
-    webhookEnabled,
-    slackEnabled,
-    disclaimer,
-  ] = useConfigValue(
-    'Twilio.Enable',
-    'SMTP.Enable',
-    'Webhook.Enable',
-    'Slack.Enable',
-    'General.NotificationDisclaimer',
-  )
+  const [{ data, error }] = useQuery({ query })
+  if (error) {
+    return <div>Error fetching contact method types</div>
+  }
+
+  const destinationTypes: DestinationTypeInfo[] = data?.destinationTypes ?? []
+  const currentType = destinationTypes.find((d) => d.typeID === value.type)
 
   const statusUpdateChecked =
     value.statusUpdates === 'ENABLED' ||
     value.statusUpdates === 'ENABLED_FORCED' ||
     false
-
-  const contactMethods = useMemo(
-    () =>
-      [
-        {
-          value: 'SMS',
-          disabledMessage: 'Twilio must be configured by an administrator',
-          disabled: !smsVoiceEnabled,
-        },
-        {
-          value: 'VOICE',
-          disabledMessage: 'Twilio must be configured by an administrator',
-          disabled: !smsVoiceEnabled,
-        },
-        {
-          value: 'EMAIL',
-          disabledMessage: 'SMTP must be configured by an administrator',
-          disabled: !emailEnabled,
-        },
-        {
-          value: 'WEBHOOK',
-          disabledMessage: 'Webhooks must be enabled by an administrator',
-          disabled: !webhookEnabled,
-        },
-        {
-          value: 'SLACK_DM',
-          label: 'SLACK DM',
-          disabledMessage: 'Slack must be configured by an administrator',
-          disabled: !slackEnabled,
-        },
-      ].sort(sortDisableableMenuItems),
-    [smsVoiceEnabled, emailEnabled, webhookEnabled, slackEnabled],
-  )
 
   return (
     <FormContainer
@@ -219,14 +199,23 @@ export default function UserContactMethodForm(
             disabled={edit}
             component={TextField}
           >
-            {contactMethods.map(renderMenuItem)}
+            {destinationTypes.map((t) =>
+              renderMenuItem({
+                label: t.name,
+                value: t.typeID,
+                disabled: !t.enabled,
+                disabledMessage: t.enabled ? '' : t.disabledMessage,
+              }),
+            )}
           </FormField>
         </Grid>
         <Grid item xs={12}>
           {renderTypeField(value.type, edit)}
         </Grid>
         <Grid item xs={12}>
-          <Typography variant='caption'>{disclaimer}</Typography>
+          <Typography variant='caption'>
+            {currentType?.input?.userDisclaimer}
+          </Typography>
         </Grid>
         {edit && (
           <Grid item xs={12}>

@@ -291,6 +291,50 @@ type DebugSendSMSInput struct {
 	Body string `json:"body"`
 }
 
+type DestinationInfo struct {
+	Value      string `json:"value"`
+	TypeID     string `json:"typeID"`
+	Name       string `json:"name"`
+	IsFavorite bool   `json:"isFavorite"`
+}
+
+type DestinationInfoConnection struct {
+	Nodes    []DestinationInfo `json:"nodes"`
+	PageInfo *PageInfo         `json:"pageInfo"`
+}
+
+type DestinationInput struct {
+	TypeID             string `json:"typeID"`
+	NameSingular       string `json:"nameSingular"`
+	NamePlural         string `json:"namePlural"`
+	IconURL            string `json:"iconURL"`
+	IconAlt            string `json:"iconAlt"`
+	Hint               string `json:"hint"`
+	HintURL            string `json:"hintURL"`
+	PlaceholderText    string `json:"placeholderText"`
+	UserDisclaimer     string `json:"userDisclaimer"`
+	Prefix             string `json:"prefix"`
+	InputType          string `json:"inputType"`
+	IsSearchSelectable bool   `json:"isSearchSelectable"`
+	SupportsValidation bool   `json:"supportsValidation"`
+}
+
+type DestinationSearchInput struct {
+	Search *string  `json:"search,omitempty"`
+	Omit   []string `json:"omit,omitempty"`
+	After  *string  `json:"after,omitempty"`
+	First  *int     `json:"first,omitempty"`
+}
+
+type DestinationTypeInfo struct {
+	TypeID          string             `json:"typeID"`
+	Name            string             `json:"name"`
+	DisabledMessage string             `json:"disabledMessage"`
+	Enabled         bool               `json:"enabled"`
+	Input           *DestinationInput  `json:"input,omitempty"`
+	CompoundInput   []DestinationInput `json:"compoundInput,omitempty"`
+}
+
 type EscalationPolicyConnection struct {
 	Nodes    []escalation.Policy `json:"nodes"`
 	PageInfo *PageInfo           `json:"pageInfo"`
