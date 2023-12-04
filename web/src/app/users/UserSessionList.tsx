@@ -1,12 +1,6 @@
 import React, { useState } from 'react'
 import FlatList from '../lists/FlatList'
-import {
-  QueryHookOptions,
-  useMutation,
-  useQuery,
-  ApolloError,
-  gql,
-} from '@apollo/client'
+import { useMutation, useQuery, CombinedError, gql } from 'urql'
 import { Button, Card, Grid, IconButton } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { UserSession } from '../../schema'
@@ -96,24 +90,22 @@ export default function UserSessionList({
   // handles both logout all and logout individual sessions
   const [endSession, setEndSession] = useState<Session | 'all' | null>(null)
 
-  const options: QueryHookOptions = {}
+  let variables = {}
   if (userID) {
-    options.variables = { userID }
+    variables = { userID }
   }
-  const { data } = useQuery(userID ? byUserQuery : profileQuery, options)
+  const [{ data }] = useQuery({
+    query: userID ? byUserQuery : profileQuery,
+    variables,
+  })
 
   const sessions: UserSession[] = _.sortBy(
     data?.user?.sessions || [],
     (s: UserSession) => (s.current ? '_' + s.lastAccessAt : s.lastAccessAt),
   ).reverse()
 
-  const [logoutOne, logoutOneStatus] = useMutation(mutationLogoutOne, {
-    variables: { id: (endSession as Session)?.id },
-    onCompleted: () => setEndSession(null),
-  })
-  const [logoutAll, logoutAllStatus] = useMutation(mutationLogoutAll, {
-    onCompleted: () => setEndSession(null),
-  })
+  const [logoutOneStatus, logoutOne] = useMutation(mutationLogoutOne)
+  const [logoutAllStatus, logoutAll] = useMutation(mutationLogoutAll)
 
   return (
     <React.Fragment>
@@ -167,10 +159,14 @@ export default function UserSessionList({
         <FormDialog
           title='Are you sure?'
           confirm
-          loading={logoutAllStatus.loading}
-          errors={nonFieldErrors(logoutAllStatus.error as ApolloError)}
+          loading={logoutAllStatus.fetching}
+          errors={nonFieldErrors(logoutAllStatus.error as CombinedError)}
           subTitle='This will log you out of all other sessions.'
-          onSubmit={() => logoutAll()}
+          onSubmit={() =>
+            logoutAll().then((result) => {
+              if (!result.error) setEndSession(null)
+            })
+          }
           onClose={() => setEndSession(null)}
         />
       )}
@@ -179,12 +175,16 @@ export default function UserSessionList({
         <FormDialog
           title='Are you sure?'
           confirm
-          loading={logoutOneStatus.loading}
-          errors={nonFieldErrors(logoutOneStatus.error as ApolloError)}
+          loading={logoutOneStatus.fetching}
+          errors={nonFieldErrors(logoutOneStatus.error as CombinedError)}
           subTitle={`This will log you out of your "${friendlyUAString(
             endSession.userAgent,
           )}" session.`}
-          onSubmit={() => logoutOne()}
+          onSubmit={() =>
+            logoutOne({ id: (endSession as Session)?.id }).then((result) => {
+              if (!result.error) setEndSession(null)
+            })
+          }
           onClose={() => setEndSession(null)}
         />
       )}

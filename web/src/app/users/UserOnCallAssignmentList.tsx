@@ -1,9 +1,8 @@
 import React from 'react'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery } from 'urql'
 import { Card } from '@mui/material'
 import FlatList from '../lists/FlatList'
 import { sortBy, values } from 'lodash'
-import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 
 const query = gql`
@@ -85,13 +84,11 @@ export default function UserOnCallAssignmentList(props: {
   currentUser?: boolean
 }): JSX.Element {
   const userID = props.userID
-  const { data, loading, error } = useQuery(query, {
+  const [{ data, error }] = useQuery({
+    query,
     variables: { id: userID },
   })
 
-  if (!data && loading) {
-    return <Spinner />
-  }
   if (error) {
     return <GenericError error={error.message} />
   }
