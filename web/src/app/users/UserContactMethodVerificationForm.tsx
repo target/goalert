@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react'
-import { useMutation, gql } from '@apollo/client'
-import p from 'prop-types'
+import { useMutation, gql } from 'urql'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import LoadingButton from '../loading/components/LoadingButton'
@@ -29,28 +28,42 @@ const useStyles = makeStyles({
   },
 })
 
-export default function UserContactMethodVerificationForm(props) {
+interface UserContactMethodVerificationFormProps {
+  contactMethodID: string
+  disabled: boolean
+  errors?: Error[]
+  onChange: (value: { code: string }) => void
+  setSendError: (err: string) => void
+  value: {
+    code: string
+  }
+}
+export default function UserContactMethodVerificationForm(
+  props: UserContactMethodVerificationFormProps,
+): React.ReactNode {
   const classes = useStyles()
 
-  const [sendCode, sendCodeStatus] = useMutation(sendVerificationCodeMutation, {
-    variables: {
+  const [sendCodeStatus, sendCode] = useMutation(sendVerificationCodeMutation)
+
+  function sendAndCatch(): void {
+    // Clear error on new actions.
+    props.setSendError('')
+    sendCode({
       input: {
         contactMethodID: props.contactMethodID,
       },
-    },
-  })
-
-  function sendAndCatch() {
-    // Clear error on new actions.
-    props.setSendError(null)
-    sendCode().catch((err) => props.setSendError(err.message))
+    }).catch((err) => props.setSendError(err.message))
   }
 
   // Attempt to send a code on load, but it's ok if it fails.
   //
   // We only want to display an error in response to a user action.
   useEffect(() => {
-    sendCode().catch(() => {})
+    sendCode({
+      input: {
+        contactMethodID: props.contactMethodID,
+      },
+    }).catch(() => {})
   }, [])
 
   return (
@@ -58,7 +71,7 @@ export default function UserContactMethodVerificationForm(props) {
       <Grid container spacing={2}>
         <Grid item className={classes.sendGridItem}>
           <LoadingButton
-            loading={sendCodeStatus.loading}
+            loading={sendCodeStatus.fetching}
             disabled={props.disabled}
             buttonText='Resend Code'
             noSubmit
@@ -74,26 +87,10 @@ export default function UserContactMethodVerificationForm(props) {
             component={TextField}
             type='number'
             step='1'
-            mapOnChangeValue={(value) => value.toString()}
+            mapOnChangeValue={(value: number) => value.toString()}
           />
         </Grid>
       </Grid>
     </FormContainer>
   )
-}
-
-UserContactMethodVerificationForm.propTypes = {
-  contactMethodID: p.string.isRequired,
-  disabled: p.bool.isRequired,
-  errors: p.arrayOf(
-    p.shape({
-      field: p.oneOf(['code']).isRequired,
-      message: p.string.isRequired,
-    }),
-  ),
-  onChange: p.func.isRequired,
-  setSendError: p.func.isRequired,
-  value: p.shape({
-    code: p.string.isRequired,
-  }).isRequired,
 }
