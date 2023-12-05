@@ -1,17 +1,17 @@
 import React from 'react'
 import { gql, useQuery } from 'urql'
-import { PropTypes as p } from 'prop-types'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import { UserAvatar } from '../util/avatars'
 import makeStyles from '@mui/styles/makeStyles'
 import { styles as globalStyles } from '../styles/materialStyles'
-import FlatList from '../lists/FlatList'
+import FlatList, { SectionTitle } from '../lists/FlatList'
 import { Error } from '@mui/icons-material'
 import _ from 'lodash'
 import { Warning } from '../icons'
+import { Theme } from '@mui/material'
 
-const useStyles = makeStyles((theme) => {
+const useStyles = makeStyles((theme: Theme) => {
   const { cardHeader } = globalStyles(theme)
 
   return {
@@ -42,19 +42,23 @@ const query = gql`
   }
 `
 
-const stepText = (s) => {
+const stepText = (s: number): string => {
   return `Step #${s + 1}`
 }
-const stepLengthText = (s) => {
+const stepLengthText = (s: number): string => {
   if (s > 0) {
     if (s === 1) {
-      return `${s + 1} user assigned`
+      return `${s} user assigned`
     }
-    return `${s + 1} users assigned`
+    return `${s} users assigned`
   }
   return 'No users assigned'
 }
-export default function ServiceOnCallList({ serviceID }) {
+export default function ServiceOnCallList({
+  serviceID,
+}: {
+  serviceID: string
+}): React.ReactNode {
   const classes = useStyles()
   const [{ data, error }] = useQuery({
     query,
@@ -62,8 +66,7 @@ export default function ServiceOnCallList({ serviceID }) {
   })
 
   let items = []
-  let sections = []
-  const style = {}
+  let sections: SectionTitle[] = []
   if (error) {
     items = [
       {
@@ -71,7 +74,6 @@ export default function ServiceOnCallList({ serviceID }) {
         icon: <Error />,
       },
     ]
-    style.color = 'gray'
   } else {
     const chainedSteps = _.chain(data?.service?.escalationPolicy?.steps)
     const sortedItems = _.chain(data?.service?.onCallUsers)
@@ -116,7 +118,4 @@ export default function ServiceOnCallList({ serviceID }) {
       />
     </Card>
   )
-}
-ServiceOnCallList.propTypes = {
-  serviceID: p.string.isRequired,
 }
