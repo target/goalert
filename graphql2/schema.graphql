@@ -147,19 +147,22 @@ type Query {
     isSchedOnCallNotify: Boolean # only return destination types that can be used for schedule on-call notifications
   ): [DestinationTypeInfo!]!
 
-  destinationType(typeID: ID!): DestinationTypeInfo!
+  destinationType(type: DestinationType!): DestinationTypeInfo!
 
-  destinationInputIsValid(typeID: ID!, value: String!): Boolean!
 
   # destination will return information about a specific destination.
   #
   # For example, for a type ID representing a slack channel, the ID would be the channel ID.
-  destination(typeID: ID!, value: ID!): DestinationInfo!
+  destination(type: DestinationType!, value: ID!): DestinationInfo!
 
-  destinationSearch(typeID: ID!, input: DestinationSearchInput!): DestinationInfoConnection!
+  inputFieldValidate(type: InputFieldDataType!, value: String!): Boolean!
+  inputFieldSearch(type: InputFieldDataType!, input: InputFieldSearchInput!): DestinationInfoConnection!
 }
 
-input DestinationSearchInput {
+scalar DestinationType
+scalar InputFieldDataType
+
+input InputFieldSearchInput {
   search: String # search string to match against
   omit: [ID!] # IDs to omit from results
   after: String # cursor to start search from
@@ -173,7 +176,7 @@ type DestinationInfoConnection {
 
 type DestinationInfo {
   value: ID!
-  typeID: ID!
+  type: DestinationType!
   name: String!
   isFavorite: Boolean!
 }
@@ -186,16 +189,14 @@ type DestinationTypeInfo {
 
   enabled: Boolean! # if false, the destination type is disabled and cannot be used
 
-  # one of input or compoundInput will be set
-  input: DestinationInput # input field configuration
-  compoundInput: [DestinationInput!] # input field configuration for compound destinations
+  requiredFields: [InputFieldConfig!]!
 }
 
-type DestinationInput {
-  typeID: ID! # the type ID to use when creating/updating/validating/searching
+type InputFieldConfig {
+  dataType: InputFieldDataType!
 
-  nameSingular: String! # user-friendly name
-  namePlural: String! # user-friendly plural name
+  labelSingular: String! # user-friendly label
+  labelPlural: String! # user-friendly plural label
 
   iconURL: String! # URL to an icon to display for the destination type
   iconAlt: String! # alt text for the icon
