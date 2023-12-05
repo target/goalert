@@ -1,10 +1,9 @@
 import React from 'react'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery } from 'urql'
 import { PropTypes as p } from 'prop-types'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import { UserAvatar } from '../util/avatars'
-import { CircularProgress } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { styles as globalStyles } from '../styles/materialStyles'
 import FlatList from '../lists/FlatList'
@@ -57,7 +56,8 @@ const stepLengthText = (s) => {
 }
 export default function ServiceOnCallList({ serviceID }) {
   const classes = useStyles()
-  const { data, loading, error } = useQuery(query, {
+  const [{ data, error }] = useQuery({
+    query,
     variables: { id: serviceID },
   })
 
@@ -72,20 +72,6 @@ export default function ServiceOnCallList({ serviceID }) {
       },
     ]
     style.color = 'gray'
-  } else if (!data && loading) {
-    items = [
-      {
-        title: 'Fetching users...',
-        icon: <CircularProgress />,
-      },
-    ]
-    style.color = 'gray'
-    sections = [
-      {
-        title: 'Fetching users...',
-        icon: <CircularProgress />,
-      },
-    ]
   } else {
     const chainedSteps = _.chain(data?.service?.escalationPolicy?.steps)
     const sortedItems = _.chain(data?.service?.onCallUsers)
