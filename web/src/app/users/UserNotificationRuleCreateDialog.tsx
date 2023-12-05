@@ -28,9 +28,12 @@ export default function UserNotificationRuleCreateDialog(props: {
       loading={fetching}
       errors={nonFieldErrors(error)}
       onSubmit={() => {
-        createNotification({
-          input: { ...value, userID: props.userID },
-        }).then((result) => {
+        createNotification(
+          {
+            input: { ...value, userID: props.userID },
+          },
+          { additionalTypenames: ['UserNotificationRule'] },
+        ).then((result) => {
           if (!result.error) props.onClose()
         })
       }}
