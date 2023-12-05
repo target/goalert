@@ -44,13 +44,16 @@ export interface Query {
   swoStatus: SWOStatus
   gqlAPIKeys: GQLAPIKey[]
   destinationTypes: DestinationTypeInfo[]
-  destinationType: DestinationTypeInfo
-  destinationInputIsValid: boolean
   destination: DestinationInfo
-  destinationSearch: DestinationInfoConnection
+  inputFieldValidate: boolean
+  inputFieldSearch: DestinationInfoConnection
 }
 
-export interface DestinationSearchInput {
+export type DestinationType = string
+
+export type InputFieldDataType = string
+
+export interface InputFieldSearchInput {
   search?: null | string
   omit?: null | string[]
   after?: null | string
@@ -64,30 +67,32 @@ export interface DestinationInfoConnection {
 
 export interface DestinationInfo {
   value: string
-  typeID: string
+  type: DestinationType
   name: string
   isFavorite: boolean
 }
 
 export interface DestinationTypeInfo {
-  typeID: string
+  type: DestinationType
   name: string
   disabledMessage: string
   enabled: boolean
-  input?: null | DestinationInput
-  compoundInput?: null | DestinationInput[]
+  requiredFields: InputFieldConfig[]
+  userDisclaimer: string
+  isContactMethod: boolean
+  isEPTarget: boolean
+  isSchedOnCallNotify: boolean
 }
 
-export interface DestinationInput {
-  typeID: string
-  nameSingular: string
-  namePlural: string
+export interface InputFieldConfig {
+  dataType: InputFieldDataType
+  labelSingular: string
+  labelPlural: string
   iconURL: string
   iconAlt: string
   hint: string
   hintURL: string
   placeholderText: string
-  userDisclaimer: string
   prefix: string
   inputType: string
   isSearchSelectable: boolean

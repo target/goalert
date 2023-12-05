@@ -304,11 +304,15 @@ type DestinationInfoConnection struct {
 }
 
 type DestinationTypeInfo struct {
-	TypeID          string             `json:"typeID"`
-	Name            string             `json:"name"`
-	DisabledMessage string             `json:"disabledMessage"`
-	Enabled         bool               `json:"enabled"`
-	RequiredFields  []InputFieldConfig `json:"requiredFields"`
+	Type                string             `json:"type"`
+	Name                string             `json:"name"`
+	DisabledMessage     string             `json:"disabledMessage"`
+	Enabled             bool               `json:"enabled"`
+	RequiredFields      []InputFieldConfig `json:"requiredFields"`
+	UserDisclaimer      string             `json:"userDisclaimer"`
+	IsContactMethod     bool               `json:"isContactMethod"`
+	IsEPTarget          bool               `json:"isEPTarget"`
+	IsSchedOnCallNotify bool               `json:"isSchedOnCallNotify"`
 }
 
 type EscalationPolicyConnection struct {
@@ -354,7 +358,6 @@ type InputFieldConfig struct {
 	Hint               string `json:"hint"`
 	HintURL            string `json:"hintURL"`
 	PlaceholderText    string `json:"placeholderText"`
-	UserDisclaimer     string `json:"userDisclaimer"`
 	Prefix             string `json:"prefix"`
 	InputType          string `json:"inputType"`
 	IsSearchSelectable bool   `json:"isSearchSelectable"`

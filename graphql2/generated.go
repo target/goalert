@@ -226,11 +226,15 @@ type ComplexityRoot struct {
 	}
 
 	DestinationTypeInfo struct {
-		DisabledMessage func(childComplexity int) int
-		Enabled         func(childComplexity int) int
-		Name            func(childComplexity int) int
-		RequiredFields  func(childComplexity int) int
-		TypeID          func(childComplexity int) int
+		DisabledMessage     func(childComplexity int) int
+		Enabled             func(childComplexity int) int
+		IsContactMethod     func(childComplexity int) int
+		IsEPTarget          func(childComplexity int) int
+		IsSchedOnCallNotify func(childComplexity int) int
+		Name                func(childComplexity int) int
+		RequiredFields      func(childComplexity int) int
+		Type                func(childComplexity int) int
+		UserDisclaimer      func(childComplexity int) int
 	}
 
 	EscalationPolicy struct {
@@ -300,7 +304,6 @@ type ComplexityRoot struct {
 		PlaceholderText    func(childComplexity int) int
 		Prefix             func(childComplexity int) int
 		SupportsValidation func(childComplexity int) int
-		UserDisclaimer     func(childComplexity int) int
 	}
 
 	IntegrationKey struct {
@@ -454,16 +457,13 @@ type ComplexityRoot struct {
 		ConfigHints              func(childComplexity int) int
 		DebugMessageStatus       func(childComplexity int, input DebugMessageStatusInput) int
 		DebugMessages            func(childComplexity int, input *DebugMessagesInput) int
-		Destination              func(childComplexity int, typeArg string, value string) int
-		DestinationType          func(childComplexity int, typeArg string) int
-		DestinationTypes         func(childComplexity int, isContactMethod *bool, isEPTarget *bool, isSchedOnCallNotify *bool) int
+		DestinationTypes         func(childComplexity int) int
 		EscalationPolicies       func(childComplexity int, input *EscalationPolicySearchOptions) int
 		EscalationPolicy         func(childComplexity int, id string) int
 		ExperimentalFlags        func(childComplexity int) int
 		GenerateSlackAppManifest func(childComplexity int) int
 		GqlAPIKeys               func(childComplexity int) int
 		HeartbeatMonitor         func(childComplexity int, id string) int
-		InputFieldSearch         func(childComplexity int, typeArg string, input InputFieldSearchInput) int
 		InputFieldValidate       func(childComplexity int, typeArg string, value string) int
 		IntegrationKey           func(childComplexity int, id string) int
 		IntegrationKeyTypes      func(childComplexity int) int
@@ -891,11 +891,8 @@ type QueryResolver interface {
 	LinkAccountInfo(ctx context.Context, token string) (*LinkAccountInfo, error)
 	SwoStatus(ctx context.Context) (*SWOStatus, error)
 	GqlAPIKeys(ctx context.Context) ([]GQLAPIKey, error)
-	DestinationTypes(ctx context.Context, isContactMethod *bool, isEPTarget *bool, isSchedOnCallNotify *bool) ([]DestinationTypeInfo, error)
-	DestinationType(ctx context.Context, typeArg string) (*DestinationTypeInfo, error)
-	Destination(ctx context.Context, typeArg string, value string) (*DestinationInfo, error)
+	DestinationTypes(ctx context.Context) ([]DestinationTypeInfo, error)
 	InputFieldValidate(ctx context.Context, typeArg string, value string) (bool, error)
-	InputFieldSearch(ctx context.Context, typeArg string, input InputFieldSearchInput) (*DestinationInfoConnection, error)
 }
 type RotationResolver interface {
 	IsFavorite(ctx context.Context, obj *rotation.Rotation) (bool, error)
@@ -1537,6 +1534,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DestinationTypeInfo.Enabled(childComplexity), true
 
+	case "DestinationTypeInfo.isContactMethod":
+		if e.complexity.DestinationTypeInfo.IsContactMethod == nil {
+			break
+		}
+
+		return e.complexity.DestinationTypeInfo.IsContactMethod(childComplexity), true
+
+	case "DestinationTypeInfo.isEPTarget":
+		if e.complexity.DestinationTypeInfo.IsEPTarget == nil {
+			break
+		}
+
+		return e.complexity.DestinationTypeInfo.IsEPTarget(childComplexity), true
+
+	case "DestinationTypeInfo.isSchedOnCallNotify":
+		if e.complexity.DestinationTypeInfo.IsSchedOnCallNotify == nil {
+			break
+		}
+
+		return e.complexity.DestinationTypeInfo.IsSchedOnCallNotify(childComplexity), true
+
 	case "DestinationTypeInfo.name":
 		if e.complexity.DestinationTypeInfo.Name == nil {
 			break
@@ -1551,12 +1569,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DestinationTypeInfo.RequiredFields(childComplexity), true
 
-	case "DestinationTypeInfo.typeID":
-		if e.complexity.DestinationTypeInfo.TypeID == nil {
+	case "DestinationTypeInfo.type":
+		if e.complexity.DestinationTypeInfo.Type == nil {
 			break
 		}
 
-		return e.complexity.DestinationTypeInfo.TypeID(childComplexity), true
+		return e.complexity.DestinationTypeInfo.Type(childComplexity), true
+
+	case "DestinationTypeInfo.userDisclaimer":
+		if e.complexity.DestinationTypeInfo.UserDisclaimer == nil {
+			break
+		}
+
+		return e.complexity.DestinationTypeInfo.UserDisclaimer(childComplexity), true
 
 	case "EscalationPolicy.assignedTo":
 		if e.complexity.EscalationPolicy.AssignedTo == nil {
@@ -1893,13 +1918,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.InputFieldConfig.SupportsValidation(childComplexity), true
-
-	case "InputFieldConfig.userDisclaimer":
-		if e.complexity.InputFieldConfig.UserDisclaimer == nil {
-			break
-		}
-
-		return e.complexity.InputFieldConfig.UserDisclaimer(childComplexity), true
 
 	case "IntegrationKey.href":
 		if e.complexity.IntegrationKey.Href == nil {
@@ -2931,41 +2949,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.DebugMessages(childComplexity, args["input"].(*DebugMessagesInput)), true
 
-	case "Query.destination":
-		if e.complexity.Query.Destination == nil {
-			break
-		}
-
-		args, err := ec.field_Query_destination_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Destination(childComplexity, args["type"].(string), args["value"].(string)), true
-
-	case "Query.destinationType":
-		if e.complexity.Query.DestinationType == nil {
-			break
-		}
-
-		args, err := ec.field_Query_destinationType_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.DestinationType(childComplexity, args["type"].(string)), true
-
 	case "Query.destinationTypes":
 		if e.complexity.Query.DestinationTypes == nil {
 			break
 		}
 
-		args, err := ec.field_Query_destinationTypes_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.DestinationTypes(childComplexity, args["isContactMethod"].(*bool), args["isEPTarget"].(*bool), args["isSchedOnCallNotify"].(*bool)), true
+		return e.complexity.Query.DestinationTypes(childComplexity), true
 
 	case "Query.escalationPolicies":
 		if e.complexity.Query.EscalationPolicies == nil {
@@ -3023,18 +3012,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.HeartbeatMonitor(childComplexity, args["id"].(string)), true
-
-	case "Query.inputFieldSearch":
-		if e.complexity.Query.InputFieldSearch == nil {
-			break
-		}
-
-		args, err := ec.field_Query_inputFieldSearch_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.InputFieldSearch(childComplexity, args["type"].(string), args["input"].(InputFieldSearchInput)), true
 
 	case "Query.inputFieldValidate":
 		if e.complexity.Query.InputFieldValidate == nil {
@@ -5568,78 +5545,6 @@ func (ec *executionContext) field_Query_debugMessages_args(ctx context.Context, 
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_destinationType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["type"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-		arg0, err = ec.unmarshalNDestinationType2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["type"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_destinationTypes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *bool
-	if tmp, ok := rawArgs["isContactMethod"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isContactMethod"))
-		arg0, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["isContactMethod"] = arg0
-	var arg1 *bool
-	if tmp, ok := rawArgs["isEPTarget"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isEPTarget"))
-		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["isEPTarget"] = arg1
-	var arg2 *bool
-	if tmp, ok := rawArgs["isSchedOnCallNotify"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isSchedOnCallNotify"))
-		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["isSchedOnCallNotify"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_destination_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["type"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-		arg0, err = ec.unmarshalNDestinationType2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["type"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["value"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["value"] = arg1
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_escalationPolicies_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -5682,30 +5587,6 @@ func (ec *executionContext) field_Query_heartbeatMonitor_args(ctx context.Contex
 		}
 	}
 	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_inputFieldSearch_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["type"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-		arg0, err = ec.unmarshalNInputFieldDataType2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["type"] = arg0
-	var arg1 InputFieldSearchInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg1, err = ec.unmarshalNInputFieldSearchInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐInputFieldSearchInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg1
 	return args, nil
 }
 
@@ -9658,8 +9539,8 @@ func (ec *executionContext) fieldContext_DestinationInfoConnection_pageInfo(ctx 
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationTypeInfo_typeID(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DestinationTypeInfo_typeID(ctx, field)
+func (ec *executionContext) _DestinationTypeInfo_type(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DestinationTypeInfo_type(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -9672,7 +9553,7 @@ func (ec *executionContext) _DestinationTypeInfo_typeID(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TypeID, nil
+		return obj.Type, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9686,17 +9567,17 @@ func (ec *executionContext) _DestinationTypeInfo_typeID(ctx context.Context, fie
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNDestinationType2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_DestinationTypeInfo_typeID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_DestinationTypeInfo_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "DestinationTypeInfo",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
+			return nil, errors.New("field of type DestinationType does not have child fields")
 		},
 	}
 	return fc, nil
@@ -9889,8 +9770,6 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_requiredFields(ctx 
 				return ec.fieldContext_InputFieldConfig_hintURL(ctx, field)
 			case "placeholderText":
 				return ec.fieldContext_InputFieldConfig_placeholderText(ctx, field)
-			case "userDisclaimer":
-				return ec.fieldContext_InputFieldConfig_userDisclaimer(ctx, field)
 			case "prefix":
 				return ec.fieldContext_InputFieldConfig_prefix(ctx, field)
 			case "inputType":
@@ -9901,6 +9780,182 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_requiredFields(ctx 
 				return ec.fieldContext_InputFieldConfig_supportsValidation(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type InputFieldConfig", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DestinationTypeInfo_userDisclaimer(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DestinationTypeInfo_userDisclaimer(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserDisclaimer, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DestinationTypeInfo_userDisclaimer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DestinationTypeInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DestinationTypeInfo_isContactMethod(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DestinationTypeInfo_isContactMethod(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsContactMethod, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DestinationTypeInfo_isContactMethod(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DestinationTypeInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DestinationTypeInfo_isEPTarget(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DestinationTypeInfo_isEPTarget(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsEPTarget, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DestinationTypeInfo_isEPTarget(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DestinationTypeInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DestinationTypeInfo_isSchedOnCallNotify(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DestinationTypeInfo_isSchedOnCallNotify(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsSchedOnCallNotify, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DestinationTypeInfo_isSchedOnCallNotify(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DestinationTypeInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -11957,50 +12012,6 @@ func (ec *executionContext) _InputFieldConfig_placeholderText(ctx context.Contex
 }
 
 func (ec *executionContext) fieldContext_InputFieldConfig_placeholderText(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "InputFieldConfig",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _InputFieldConfig_userDisclaimer(ctx context.Context, field graphql.CollectedField, obj *InputFieldConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_InputFieldConfig_userDisclaimer(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UserDisclaimer, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_InputFieldConfig_userDisclaimer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "InputFieldConfig",
 		Field:      field,
@@ -20111,7 +20122,7 @@ func (ec *executionContext) _Query_destinationTypes(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().DestinationTypes(rctx, fc.Args["isContactMethod"].(*bool), fc.Args["isEPTarget"].(*bool), fc.Args["isSchedOnCallNotify"].(*bool))
+		return ec.resolvers.Query().DestinationTypes(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20136,162 +20147,27 @@ func (ec *executionContext) fieldContext_Query_destinationTypes(ctx context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "typeID":
-				return ec.fieldContext_DestinationTypeInfo_typeID(ctx, field)
-			case "name":
-				return ec.fieldContext_DestinationTypeInfo_name(ctx, field)
-			case "disabledMessage":
-				return ec.fieldContext_DestinationTypeInfo_disabledMessage(ctx, field)
-			case "enabled":
-				return ec.fieldContext_DestinationTypeInfo_enabled(ctx, field)
-			case "requiredFields":
-				return ec.fieldContext_DestinationTypeInfo_requiredFields(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type DestinationTypeInfo", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_destinationTypes_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_destinationType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_destinationType(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().DestinationType(rctx, fc.Args["type"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*DestinationTypeInfo)
-	fc.Result = res
-	return ec.marshalNDestinationTypeInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationTypeInfo(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_destinationType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "typeID":
-				return ec.fieldContext_DestinationTypeInfo_typeID(ctx, field)
-			case "name":
-				return ec.fieldContext_DestinationTypeInfo_name(ctx, field)
-			case "disabledMessage":
-				return ec.fieldContext_DestinationTypeInfo_disabledMessage(ctx, field)
-			case "enabled":
-				return ec.fieldContext_DestinationTypeInfo_enabled(ctx, field)
-			case "requiredFields":
-				return ec.fieldContext_DestinationTypeInfo_requiredFields(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type DestinationTypeInfo", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_destinationType_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_destination(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_destination(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Destination(rctx, fc.Args["type"].(string), fc.Args["value"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*DestinationInfo)
-	fc.Result = res
-	return ec.marshalNDestinationInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInfo(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_destination(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "value":
-				return ec.fieldContext_DestinationInfo_value(ctx, field)
 			case "type":
-				return ec.fieldContext_DestinationInfo_type(ctx, field)
+				return ec.fieldContext_DestinationTypeInfo_type(ctx, field)
 			case "name":
-				return ec.fieldContext_DestinationInfo_name(ctx, field)
-			case "isFavorite":
-				return ec.fieldContext_DestinationInfo_isFavorite(ctx, field)
+				return ec.fieldContext_DestinationTypeInfo_name(ctx, field)
+			case "disabledMessage":
+				return ec.fieldContext_DestinationTypeInfo_disabledMessage(ctx, field)
+			case "enabled":
+				return ec.fieldContext_DestinationTypeInfo_enabled(ctx, field)
+			case "requiredFields":
+				return ec.fieldContext_DestinationTypeInfo_requiredFields(ctx, field)
+			case "userDisclaimer":
+				return ec.fieldContext_DestinationTypeInfo_userDisclaimer(ctx, field)
+			case "isContactMethod":
+				return ec.fieldContext_DestinationTypeInfo_isContactMethod(ctx, field)
+			case "isEPTarget":
+				return ec.fieldContext_DestinationTypeInfo_isEPTarget(ctx, field)
+			case "isSchedOnCallNotify":
+				return ec.fieldContext_DestinationTypeInfo_isSchedOnCallNotify(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type DestinationInfo", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type DestinationTypeInfo", field.Name)
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_destination_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
 	}
 	return fc, nil
 }
@@ -20345,67 +20221,6 @@ func (ec *executionContext) fieldContext_Query_inputFieldValidate(ctx context.Co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_inputFieldValidate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_inputFieldSearch(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_inputFieldSearch(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().InputFieldSearch(rctx, fc.Args["type"].(string), fc.Args["input"].(InputFieldSearchInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*DestinationInfoConnection)
-	fc.Result = res
-	return ec.marshalNDestinationInfoConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInfoConnection(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_inputFieldSearch(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "nodes":
-				return ec.fieldContext_DestinationInfoConnection_nodes(ctx, field)
-			case "pageInfo":
-				return ec.fieldContext_DestinationInfoConnection_pageInfo(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type DestinationInfoConnection", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_inputFieldSearch_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -35300,8 +35115,8 @@ func (ec *executionContext) _DestinationTypeInfo(ctx context.Context, sel ast.Se
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("DestinationTypeInfo")
-		case "typeID":
-			out.Values[i] = ec._DestinationTypeInfo_typeID(ctx, field, obj)
+		case "type":
+			out.Values[i] = ec._DestinationTypeInfo_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -35322,6 +35137,26 @@ func (ec *executionContext) _DestinationTypeInfo(ctx context.Context, sel ast.Se
 			}
 		case "requiredFields":
 			out.Values[i] = ec._DestinationTypeInfo_requiredFields(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "userDisclaimer":
+			out.Values[i] = ec._DestinationTypeInfo_userDisclaimer(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "isContactMethod":
+			out.Values[i] = ec._DestinationTypeInfo_isContactMethod(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "isEPTarget":
+			out.Values[i] = ec._DestinationTypeInfo_isEPTarget(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "isSchedOnCallNotify":
+			out.Values[i] = ec._DestinationTypeInfo_isSchedOnCallNotify(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -36075,11 +35910,6 @@ func (ec *executionContext) _InputFieldConfig(ctx context.Context, sel ast.Selec
 			}
 		case "placeholderText":
 			out.Values[i] = ec._InputFieldConfig_placeholderText(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "userDisclaimer":
-			out.Values[i] = ec._InputFieldConfig_userDisclaimer(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -38242,50 +38072,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "destinationType":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_destinationType(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "destination":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_destination(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "inputFieldValidate":
 			field := field
 
@@ -38296,28 +38082,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_inputFieldValidate(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "inputFieldSearch":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_inputFieldSearch(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -42521,30 +42285,6 @@ func (ec *executionContext) marshalNDestinationInfo2ᚕgithubᚗcomᚋtargetᚋg
 	return ret
 }
 
-func (ec *executionContext) marshalNDestinationInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInfo(ctx context.Context, sel ast.SelectionSet, v *DestinationInfo) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._DestinationInfo(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNDestinationInfoConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInfoConnection(ctx context.Context, sel ast.SelectionSet, v DestinationInfoConnection) graphql.Marshaler {
-	return ec._DestinationInfoConnection(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNDestinationInfoConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInfoConnection(ctx context.Context, sel ast.SelectionSet, v *DestinationInfoConnection) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._DestinationInfoConnection(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalNDestinationType2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -42606,16 +42346,6 @@ func (ec *executionContext) marshalNDestinationTypeInfo2ᚕgithubᚗcomᚋtarget
 	}
 
 	return ret
-}
-
-func (ec *executionContext) marshalNDestinationTypeInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationTypeInfo(ctx context.Context, sel ast.SelectionSet, v *DestinationTypeInfo) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._DestinationTypeInfo(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNEscalationPolicy2githubᚗcomᚋtargetᚋgoalertᚋescalationᚐPolicy(ctx context.Context, sel ast.SelectionSet, v escalation.Policy) graphql.Marshaler {
@@ -43041,11 +42771,6 @@ func (ec *executionContext) marshalNInputFieldDataType2string(ctx context.Contex
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNInputFieldSearchInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐInputFieldSearchInput(ctx context.Context, v interface{}) (InputFieldSearchInput, error) {
-	res, err := ec.unmarshalInputInputFieldSearchInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {

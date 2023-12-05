@@ -141,22 +141,9 @@ type Query {
 
   gqlAPIKeys: [GQLAPIKey!]!
 
-  destinationTypes(
-    isContactMethod: Boolean # only return destination types that can be used as user contact methods
-    isEPTarget: Boolean # only return destination types that can be used on escalation policy steps
-    isSchedOnCallNotify: Boolean # only return destination types that can be used for schedule on-call notifications
-  ): [DestinationTypeInfo!]!
-
-  destinationType(type: DestinationType!): DestinationTypeInfo!
-
-
-  # destination will return information about a specific destination.
-  #
-  # For example, for a type ID representing a slack channel, the ID would be the channel ID.
-  destination(type: DestinationType!, value: ID!): DestinationInfo!
+  destinationTypes: [DestinationTypeInfo!]!
 
   inputFieldValidate(type: InputFieldDataType!, value: String!): Boolean!
-  inputFieldSearch(type: InputFieldDataType!, input: InputFieldSearchInput!): DestinationInfoConnection!
 }
 
 scalar DestinationType
@@ -182,7 +169,7 @@ type DestinationInfo {
 }
 
 type DestinationTypeInfo {
-  typeID: ID!
+  type: DestinationType!
 
   name: String!
   disabledMessage: String!
@@ -190,6 +177,12 @@ type DestinationTypeInfo {
   enabled: Boolean! # if false, the destination type is disabled and cannot be used
 
   requiredFields: [InputFieldConfig!]!
+
+  userDisclaimer: String! # disclaimer text to display when a user is selecting this destination type for a contact method
+
+    isContactMethod: Boolean! # only return destination types that can be used as user contact methods
+    isEPTarget: Boolean! # only return destination types that can be used on escalation policy steps
+    isSchedOnCallNotify: Boolean! # only return destination types that can be used for schedule on-call notifications
 }
 
 type InputFieldConfig {
@@ -204,7 +197,6 @@ type InputFieldConfig {
   hint: String! # user-friendly helper text for input fields (i.e., "Enter a phone number")
   hintURL: String! # URL to link to for more information about the destination type
   placeholderText: String! # placeholder text to display in input fields (i.e., "Phone Number")
-  userDisclaimer: String! # disclaimer text to display when a user is selecting this destination type for a contact method
 
   prefix: String! # the prefix to use when displaying the destination (i.e., "+" for phone numbers)
   inputType: String! # the type of input field to use (i.e., "text" or "tel")

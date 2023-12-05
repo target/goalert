@@ -21,6 +21,7 @@ import { Settings } from 'luxon'
 import Spinner from './loading/components/Spinner'
 import RequireAuth from './main/RequireAuth'
 import Login from './main/components/Login'
+import { DestTypeProvider } from './util/useDestinationTypes'
 Settings.throwOnInvalid = true
 
 declare module 'luxon' {
@@ -60,7 +61,9 @@ root.render(
                 <Suspense fallback={<Spinner />}>
                   <RequireAuth fallback={<Login />}>
                     <ConfigProvider>
-                      <App />
+                      <DestTypeProvider>
+                        <App />
+                      </DestTypeProvider>
                     </ConfigProvider>
                   </RequireAuth>
                 </Suspense>

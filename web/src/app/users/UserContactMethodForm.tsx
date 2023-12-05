@@ -1,36 +1,13 @@
 import { Checkbox, FormControlLabel, Typography } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
-import React, { useMemo } from 'react'
-import {
-  ContactMethodType,
-  DestinationTypeInfo,
-  StatusUpdateState,
-} from '../../schema'
+import React from 'react'
+import { ContactMethodType, StatusUpdateState } from '../../schema'
 import { FormContainer, FormField } from '../forms'
-import {
-  renderMenuItem,
-  sortDisableableMenuItems,
-} from '../selection/DisableableMenuItem'
-import { useConfigValue } from '../util/RequireConfig'
-import TelTextField from '../util/TelTextField'
+import { renderMenuItem } from '../selection/DisableableMenuItem'
 import { FieldError } from '../util/errutil'
-import AppLink from '../util/AppLink'
-import { gql, useQuery } from 'urql'
-
-const query = gql`
-  query ListCMTypes {
-    destinationTypes(isContactMethod: true) {
-      typeID
-      name
-      enabled
-      disabledMessage
-      input {
-        userDisclaimer
-      }
-    }
-  }
-`
+import DestinationField from '../selection/DestinationField'
+import { useContactMethodTypes } from '../util/useDestinationTypes'
 
 type Value = {
   name: string
@@ -50,101 +27,6 @@ export type UserContactMethodFormProps = {
   onChange?: (CMValue: Value) => void
 }
 
-function renderEmailField(edit: boolean): JSX.Element {
-  return (
-    <FormField
-      placeholder='foobar@example.com'
-      fullWidth
-      name='value'
-      required
-      label='Email Address'
-      type='email'
-      component={TextField}
-      disabled={edit}
-    />
-  )
-}
-
-function renderPhoneField(edit: boolean): JSX.Element {
-  return (
-    <React.Fragment>
-      <FormField
-        placeholder='11235550123'
-        aria-labelledby='countryCodeIndicator'
-        fullWidth
-        name='value'
-        required
-        label='Phone Number'
-        component={TelTextField}
-        disabled={edit}
-      />
-    </React.Fragment>
-  )
-}
-
-function renderURLField(edit: boolean): JSX.Element {
-  return (
-    <FormField
-      placeholder='https://example.com'
-      fullWidth
-      name='value'
-      required
-      label='Webhook URL'
-      type='url'
-      component={TextField}
-      disabled={edit}
-      hint={
-        <AppLink newTab to='/docs#webhooks'>
-          Webhook Documentation
-        </AppLink>
-      }
-    />
-  )
-}
-
-function renderSlackField(edit: boolean): JSX.Element {
-  return (
-    <FormField
-      fullWidth
-      name='value'
-      required
-      label='Slack Member ID'
-      placeholder='member ID'
-      component={TextField}
-      disabled={edit}
-      // @ts-expect-error TS2322 -- FormField has not been converted to ts, and inferred type is incorrect.
-      helperText='Go to your Slack profile, click the three dots, and select "Copy member ID".'
-    />
-  )
-}
-
-function renderTypeField(type: ContactMethodType, edit: boolean): JSX.Element {
-  switch (type) {
-    case 'SMS':
-    case 'VOICE':
-      return renderPhoneField(edit)
-    case 'EMAIL':
-      return renderEmailField(edit)
-    case 'WEBHOOK':
-      return renderURLField(edit)
-    case 'SLACK_DM':
-      return renderSlackField(edit)
-    default:
-  }
-
-  // fallback to generic
-  return (
-    <FormField
-      fullWidth
-      name='value'
-      required
-      label='Value'
-      component={TextField}
-      disabled={edit}
-    />
-  )
-}
-
 const isPhoneType = (val: Value): boolean =>
   val.type === 'SMS' || val.type === 'VOICE'
 
@@ -153,13 +35,8 @@ export default function UserContactMethodForm(
 ): JSX.Element {
   const { value, edit = false, ...other } = props
 
-  const [{ data, error }] = useQuery({ query })
-  if (error) {
-    return <div>Error fetching contact method types</div>
-  }
-
-  const destinationTypes: DestinationTypeInfo[] = data?.destinationTypes ?? []
-  const currentType = destinationTypes.find((d) => d.typeID === value.type)
+  const destinationTypes = useContactMethodTypes()
+  const currentType = destinationTypes.find((d) => d.type === value.type)
 
   const statusUpdateChecked =
     value.statusUpdates === 'ENABLED' ||
@@ -202,7 +79,7 @@ export default function UserContactMethodForm(
             {destinationTypes.map((t) =>
               renderMenuItem({
                 label: t.name,
-                value: t.typeID,
+                value: t.type,
                 disabled: !t.enabled,
                 disabledMessage: t.enabled ? '' : t.disabledMessage,
               }),
@@ -210,11 +87,18 @@ export default function UserContactMethodForm(
           </FormField>
         </Grid>
         <Grid item xs={12}>
-          {renderTypeField(value.type, edit)}
+          <FormField
+            fullWidth
+            name='value'
+            required
+            destType={value.type}
+            component={DestinationField}
+            disabled={edit}
+          />
         </Grid>
         <Grid item xs={12}>
           <Typography variant='caption'>
-            {currentType?.input?.userDisclaimer}
+            {currentType?.userDisclaimer}
           </Typography>
         </Grid>
         {edit && (
