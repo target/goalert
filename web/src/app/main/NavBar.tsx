@@ -1,6 +1,7 @@
 import React from 'react'
 import Divider from '@mui/material/Divider'
 import List from '@mui/material/List'
+import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
 import { styles as globalStyles } from '../styles/materialStyles'
 import {
@@ -16,18 +17,24 @@ import {
 import { WizardHat as WizardIcon } from 'mdi-material-ui'
 import { Theme, useTheme } from '@mui/material/styles'
 import RequireConfig from '../util/RequireConfig'
-import logo from '../public/logos/black/goalert-alt-logo.png'
-import darkModeLogo from '../public/logos/white/goalert-alt-logo-white.png'
 import NavBarLink, { NavBarSubLink } from './NavBarLink'
 import { ExpFlag } from '../util/useExpFlag'
+
+import logoSrcSet1 from '../public/logos/lightmode/lightmode_logo@1x.webp'
+import logoSrcSet2 from '../public/logos/lightmode/lightmode_logo@1.5x.webp'
+import logoSrcSet3 from '../public/logos/lightmode/lightmode_logo@2x.webp'
+import logoImgSrc from '../public/logos/lightmode/lightmode_logo@2x.png'
+
+import darkModeLogoSrcSet1 from '../public/logos/darkmode/darkmode_logo@1x.webp'
+import darkModeLogoSrcSet2 from '../public/logos/darkmode/darkmode_logo@1.5x.webp'
+import darkModeLogoSrcSet3 from '../public/logos/darkmode/darkmode_logo@2x.webp'
+import darkModeLogoImgSrc from '../public/logos/darkmode/darkmode_logo@2x.png'
 
 const useStyles = makeStyles((theme: Theme) => ({
   ...globalStyles(theme),
   logoDiv: {
     ...theme.mixins.toolbar,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingLeft: 8,
   },
   navIcon: {
     width: '1em',
@@ -48,15 +55,49 @@ export default function NavBar(): JSX.Element {
     localDev = <NavBarLink to='/dev' title='Dev' icon={<DeveloperBoard />} />
   }
 
+  const logo =
+    theme.palette.mode === 'dark' ? (
+      <picture>
+        <source
+          srcSet={`
+          ${darkModeLogoSrcSet1},
+          ${darkModeLogoSrcSet2} 1.5x,
+          ${darkModeLogoSrcSet3} 2x
+        `}
+          type='image/webp'
+        />
+        <img src={darkModeLogoImgSrc} height={61} alt='GoAlert' />
+      </picture>
+    ) : (
+      <picture>
+        <source
+          srcSet={`
+          ${logoSrcSet1},
+          ${logoSrcSet2} 1.5x,
+          ${logoSrcSet3} 2x
+        `}
+          type='image/webp'
+        />
+        <img src={logoImgSrc} height={61} alt='GoAlert' />
+      </picture>
+    )
+
   return (
     <React.Fragment>
-      <a href='/' aria-hidden className={classes.logoDiv}>
-        <img
-          height={38}
-          src={theme.palette.mode === 'dark' ? darkModeLogo : logo}
-          alt='GoAlert Logo'
-        />
-      </a>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'left',
+        }}
+      >
+        <a href='/' aria-hidden className={classes.logoDiv}>
+          {logo}
+        </a>
+        <Typography variant='h5' sx={{ pl: 1 }}>
+          <b>GoAlert</b>
+        </Typography>
+      </div>
       <Divider />
       <nav>
         <List role='navigation' className={classes.list} data-cy='nav-list'>

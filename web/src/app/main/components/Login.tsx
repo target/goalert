@@ -11,15 +11,15 @@ import { Theme, useTheme } from '@mui/material'
 import { getParameterByName } from '../../util/query_param'
 import { pathPrefix } from '../../env'
 
-import logoSrcSet1 from '../../public/logos/black/goalert-logo-scaled.webp'
-import logoSrcSet2 from '../../public/logos/black/goalert-logo-scaled@1.5.webp'
-import logoSrcSet3 from '../../public/logos/black/goalert-logo-scaled@2.webp'
-import logoImgSrc from '../../public/logos/black/goalert-logo-scaled@2.png'
+import logoSrcSet1 from '../../public/logos/lightmode/lightmode_logo@1x.webp'
+import logoSrcSet2 from '../../public/logos/lightmode/lightmode_logo@1.5x.webp'
+import logoSrcSet3 from '../../public/logos/lightmode/lightmode_logo@2x.webp'
+import logoImgSrc from '../../public/logos/lightmode/lightmode_logo@2x.png'
 
-import darkModeLogoSrcSet1 from '../../public/logos/white/goalert-logo-white-scaled.webp'
-import darkModeLogoSrcSet2 from '../../public/logos/white/goalert-logo-white-scaled@1.5.webp'
-import darkModeLogoSrcSet3 from '../../public/logos/white/goalert-logo-white-scaled@2.webp'
-import darkModeLogoImgSrc from '../../public/logos/white/goalert-logo-white-scaled@2.png'
+import darkModeLogoSrcSet1 from '../../public/logos/darkmode/darkmode_logo@1x.webp'
+import darkModeLogoSrcSet2 from '../../public/logos/darkmode/darkmode_logo@1.5x.webp'
+import darkModeLogoSrcSet3 from '../../public/logos/darkmode/darkmode_logo@2x.webp'
+import darkModeLogoImgSrc from '../../public/logos/darkmode/darkmode_logo@2x.png'
 
 const PROVIDERS_URL = pathPrefix + '/api/v2/identity/providers'
 
@@ -71,12 +71,14 @@ const useStyles = makeStyles((theme: Theme) => ({
     paddingRight: '1em',
   },
 }))
+
 type Field = {
   ID: string
   Label: string
   Password: string
   Required: boolean
 }
+
 type Provider = {
   ID: string
   Fields: Field[]
@@ -253,8 +255,13 @@ export default function Login(): JSX.Element {
         <Card className={classes.card}>
           <CardContent>
             <Grid container spacing={2} className={classes.gridContainer}>
-              <Grid item xs={12}>
-                {logo}
+              <Grid container sx={{ justifyContent: 'center' }}>
+                <Grid item>{logo}</Grid>
+                <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Typography variant='h5' sx={{ pl: 1 }}>
+                    <b>GoAlert</b>
+                  </Typography>
+                </Grid>
               </Grid>
               {providers.map((provider, idx) =>
                 renderProvider(provider, idx, providers.length),
