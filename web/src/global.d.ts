@@ -5,6 +5,8 @@
 declare namespace NodeJS {
   declare module '*.md'
   declare module '*.png'
+  declare module '*.svg'
+  declare module '*.gif'
 }
 
 var pathPrefix: string

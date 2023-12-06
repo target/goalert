@@ -54,9 +54,11 @@ async function run() {
     banner: {
       js: `var GOALERT_VERSION=${JSON.stringify(process.env.GOALERT_VERSION)};`,
     },
+    assetNames: '[name]',
     loader: {
       '.png': 'file',
       '.webp': 'file',
+      '.gif': 'file',
       '.js': 'jsx',
       '.svg': 'dataurl',
       '.md': 'text',
