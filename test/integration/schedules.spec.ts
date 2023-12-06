@@ -53,7 +53,7 @@ test('local time hover', async ({ page, isMobile }) => {
     await page.keyboard.press('Enter')
   }
 
-  // should display correct timezone in form
+  // should display schedule timezone in form
   await expect(page.locator('form[id=dialog-form]')).toContainText(
     'Times shown in schedule timezone (Europe/Amsterdam)',
   )
@@ -62,7 +62,7 @@ test('local time hover', async ({ page, isMobile }) => {
   await page.click('li:has-text("Admin McIntegrationFace")')
   await page.locator('button[type=submit]').click()
 
-  // should display local tz on hover
-  await page.hover('span:has-text("GMT")')
-  await expect(page.locator('div[role=tooltip]')).not.toContainText('GMT')
+  // should display schedule tz on hover
+  await page.hover(`span:has-text("CST")`) // local TZ is configured to CST
+  await expect(page.locator('div[role=tooltip]')).toContainText('GMT')
 })
