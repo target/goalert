@@ -62,7 +62,7 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		AND not usr.id = any(:omit)
 	{{end}}
 	{{if .Search}}
-		AND {{orderedPrefixSearch "search" "usr.name"}} 
+		AND ({{orderedPrefixSearch "search" "usr.name"}}  OR {{contains "search" "usr.name"}})
 	{{end}}
 	{{if .After.Name}}
 		AND {{if not .FavoritesFirst}}
