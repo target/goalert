@@ -24,7 +24,7 @@ type RenderData interface {
 func Helpers() template.FuncMap {
 	return template.FuncMap{
 		"orderedPrefixSearch": func(argName string, columnName string) string {
-			return fmt.Sprintf("lower(%s) ~ :~%s", columnName, argName)
+			return fmt.Sprintf("lower(REPLACE(REPLACE(%s, '_', ' '), '-', ' ')) ~ :~%s", columnName, argName)
 		},
 		"contains": func(argName string, columnName string) string {
 			// search for the term in the column
