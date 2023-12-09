@@ -83,7 +83,7 @@
     "eslint-plugin-react-hooks": "4.6.0",
     "fuse.js": "7.0.0",
     "glob": "10.3.10",
-    "graphiql": "3.0.6",
+    "graphiql": "3.0.10",
     "graphql": "16.8.1",
     "jest": "29.7.0",
     "lodash": "4.17.21",
