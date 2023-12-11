@@ -1,18 +1,17 @@
 import React from 'react'
-import { gql, useQuery } from '@apollo/client'
-import { PropTypes as p } from 'prop-types'
+import { gql, useQuery } from 'urql'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import { UserAvatar } from '../util/avatars'
-import { CircularProgress } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { styles as globalStyles } from '../styles/materialStyles'
-import FlatList from '../lists/FlatList'
+import FlatList, { SectionTitle } from '../lists/FlatList'
 import { Error } from '@mui/icons-material'
 import _ from 'lodash'
 import { Warning } from '../icons'
+import { Theme } from '@mui/material'
 
-const useStyles = makeStyles((theme) => {
+const useStyles = makeStyles((theme: Theme) => {
   const { cardHeader } = globalStyles(theme)
 
   return {
@@ -43,47 +42,36 @@ const query = gql`
   }
 `
 
-const stepText = (s) => {
+const stepText = (s: number): string => {
   return `Step #${s + 1}`
 }
-const stepLengthText = (s) => {
+const stepLengthText = (s: number): string => {
   if (s > 0) {
     if (s === 1) {
-      return `${s + 1} user assigned`
+      return `${s} user assigned`
     }
-    return `${s + 1} users assigned`
+    return `${s} users assigned`
   }
   return 'No users assigned'
 }
-export default function ServiceOnCallList({ serviceID }) {
+export default function ServiceOnCallList({
+  serviceID,
+}: {
+  serviceID: string
+}): React.ReactNode {
   const classes = useStyles()
-  const { data, loading, error } = useQuery(query, {
+  const [{ data, error }] = useQuery({
+    query,
     variables: { id: serviceID },
   })
 
   let items = []
-  let sections = []
-  const style = {}
+  let sections: SectionTitle[] = []
   if (error) {
     items = [
       {
         title: 'Error: ' + error.message,
         icon: <Error />,
-      },
-    ]
-    style.color = 'gray'
-  } else if (!data && loading) {
-    items = [
-      {
-        title: 'Fetching users...',
-        icon: <CircularProgress />,
-      },
-    ]
-    style.color = 'gray'
-    sections = [
-      {
-        title: 'Fetching users...',
-        icon: <CircularProgress />,
       },
     ]
   } else {
@@ -130,7 +118,4 @@ export default function ServiceOnCallList({ serviceID }) {
       />
     </Card>
   )
-}
-ServiceOnCallList.propTypes = {
-  serviceID: p.string.isRequired,
 }
