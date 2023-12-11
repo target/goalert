@@ -7,6 +7,7 @@
     <meta http-equiv="x-goalert-build-date" content="{{ .BuildStamp }}" />
     <meta http-equiv="x-goalert-git-commit" content="{{ .GitCommit }}" />
     <meta http-equiv="x-goalert-git-tree-state" content="{{ .GitTreeState }}" />
+    <link rel="stylesheet" html="{{ .Prefix }}/static/loading.css" />
 
     <title>{{ .ApplicationName }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -45,9 +46,7 @@
           justify-content: center;
           align-items: center;"
       >
-        <div style="position: relative;">
-          <img src="{{ .Prefix }}/static/splash_logo.gif" alt='GoAlert' style="height: 30vh;" />
-        </div>
+        <img src="{{ .Prefix }}/static/splash_logo.gif" alt='GoAlert' style="height: 30vh;" />
       </div>
     </div>
     <div id="graceful-unmount"></div>

@@ -20,15 +20,8 @@ import RequireConfig from '../util/RequireConfig'
 import NavBarLink, { NavBarSubLink } from './NavBarLink'
 import { ExpFlag } from '../util/useExpFlag'
 
-import logoSrcSet1 from '../public/logos/lightmode/lightmode_logo@1x.webp'
-import logoSrcSet2 from '../public/logos/lightmode/lightmode_logo@1.5x.webp'
-import logoSrcSet3 from '../public/logos/lightmode/lightmode_logo@2x.webp'
-import logoImgSrc from '../public/logos/lightmode/lightmode_logo@2x.png'
-
-import darkModeLogoSrcSet1 from '../public/logos/darkmode/darkmode_logo@1x.webp'
-import darkModeLogoSrcSet2 from '../public/logos/darkmode/darkmode_logo@1.5x.webp'
-import darkModeLogoSrcSet3 from '../public/logos/darkmode/darkmode_logo@2x.webp'
-import darkModeLogoImgSrc from '../public/logos/darkmode/darkmode_logo@2x.png'
+import logoImgSrc from '../public/logos/lightmode_logo.svg'
+import darkModeLogoImgSrc from '../public/logos/darkmode_logo.svg'
 
 const useStyles = makeStyles((theme: Theme) => ({
   ...globalStyles(theme),
@@ -57,29 +50,9 @@ export default function NavBar(): JSX.Element {
 
   const logo =
     theme.palette.mode === 'dark' ? (
-      <picture>
-        <source
-          srcSet={`
-          ${darkModeLogoSrcSet1},
-          ${darkModeLogoSrcSet2} 1.5x,
-          ${darkModeLogoSrcSet3} 2x
-        `}
-          type='image/webp'
-        />
-        <img src={darkModeLogoImgSrc} height={61} alt='GoAlert' />
-      </picture>
+      <img src={darkModeLogoImgSrc} height={61} alt='GoAlert' />
     ) : (
-      <picture>
-        <source
-          srcSet={`
-          ${logoSrcSet1},
-          ${logoSrcSet2} 1.5x,
-          ${logoSrcSet3} 2x
-        `}
-          type='image/webp'
-        />
-        <img src={logoImgSrc} height={61} alt='GoAlert' />
-      </picture>
+      <img src={logoImgSrc} height={61} alt='GoAlert' />
     )
 
   return (
