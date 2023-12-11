@@ -8,7 +8,7 @@ const isProdBuild =
 const dynamicPublicPathPlugin = {
   name: 'prefix-path',
   setup(build) {
-    build.onResolve({ filter: /\.(png|webp)$/ }, (args) => {
+    build.onResolve({ filter: /\.(png|webp|gif)$/ }, (args) => {
       const needsPrefix =
         args.kind === 'import-statement' && args.pluginData !== 'dynamic'
       return {

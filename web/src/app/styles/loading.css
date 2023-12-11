@@ -1,0 +1,23 @@
+circle#dot1 {
+    animation: dots 1.3s linear infinite;
+}
+
+circle#dot2 {
+    animation: dots 1.3s linear infinite;
+    animation-delay: -1.1s;
+}
+
+circle#dot3 {
+    animation: dots 1.3s linear infinite;
+    animation-delay: -0.9s;
+}
+
+@keyframes dots {
+	0%, 60%, 100% {
+		transform: initial;
+	}
+
+	30% {
+		transform: translateY(-15px);
+	}
+}
