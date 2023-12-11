@@ -39,7 +39,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/slack-go/slack v0.12.3
 	github.com/spf13/cobra v1.8.0
-	github.com/spf13/viper v1.17.0
+	github.com/spf13/viper v1.18.1
 	github.com/sqlc-dev/pqtype v0.3.0
 	github.com/stretchr/testify v1.8.4
 	github.com/vektah/gqlparser/v2 v2.5.10
@@ -56,7 +56,7 @@ require (
 )
 
 require (
-	cloud.google.com/go/compute v1.23.0 // indirect
+	cloud.google.com/go/compute v1.23.3 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
@@ -78,7 +78,7 @@ require (
 	github.com/emersion/go-sasl v0.0.0-20231106173351-e73c9f7bad43 // indirect
 	github.com/envoyproxy/go-control-plane v0.11.1 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.0.2 // indirect
-	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/fullstorydev/grpcurl v1.8.8 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.1 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
@@ -129,13 +129,13 @@ require (
 	github.com/prometheus/procfs v0.11.1 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/sagikazarmark/locafero v0.3.0 // indirect
+	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/smartystreets/goconvey v1.7.2 // indirect
 	github.com/sosodev/duration v1.1.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
-	github.com/spf13/afero v1.10.0 // indirect
-	github.com/spf13/cast v1.5.1 // indirect
+	github.com/spf13/afero v1.11.0 // indirect
+	github.com/spf13/cast v1.6.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
@@ -154,9 +154,9 @@ require (
 	golang.org/x/sync v0.5.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/genproto v0.0.0-20230913181813-007df8e322eb // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20230913181813-007df8e322eb // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230920204549-e6e6cdab5c13 // indirect
+	google.golang.org/genproto v0.0.0-20231106174013-bbf56f31fb17 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20231106174013-bbf56f31fb17 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20231120223509-83a465c0220f // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
