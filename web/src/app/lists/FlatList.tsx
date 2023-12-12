@@ -118,7 +118,7 @@ export interface FlatListItem extends ListItemProps {
 
 export interface SectionTitle {
   title: string
-  icon?: JSX.Element | null
+  icon?: React.ReactNode | null
   subText?: JSX.Element | string
 }
 

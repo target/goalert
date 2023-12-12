@@ -18,10 +18,11 @@ import { client as urqlClient } from './urql'
 import { Router } from 'wouter'
 
 import { Settings } from 'luxon'
-import Spinner from './loading/components/Spinner'
 import RequireAuth from './main/RequireAuth'
 import Login from './main/components/Login'
 import { DestTypeProvider } from './util/useDestinationTypes'
+import Spinner from './loading/components/Spinner'
+
 Settings.throwOnInvalid = true
 
 declare module 'luxon' {

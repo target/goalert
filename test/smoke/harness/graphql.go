@@ -88,17 +88,9 @@ func (h *Harness) GraphQLQueryT(t *testing.T, query string) *QLResponse {
 	return h.GraphQLQueryUserT(t, DefaultGraphQLAdminUserID, query)
 }
 
-// GraphQLQueryUserT will perform a GraphQL query against the backend, internally
-// handling authentication. Queries are performed with the provided UserID.
-func (h *Harness) GraphQLQueryUserT(t *testing.T, userID, query string) *QLResponse {
-	t.Helper()
-	retry := 1
-	var err error
-	var resp *http.Response
-	var tok string
-
+func (h *Harness) GraphQLToken(userID string) string {
 	h.mx.Lock()
-	tok = h.gqlSessions[userID]
+	tok := h.gqlSessions[userID]
 	if tok == "" {
 		if userID == DefaultGraphQLAdminUserID {
 			h.createGraphQLUser(userID)
@@ -106,6 +98,18 @@ func (h *Harness) GraphQLQueryUserT(t *testing.T, userID, query string) *QLRespo
 		tok = h.createGraphQLSession(userID)
 	}
 	h.mx.Unlock()
+	return tok
+}
+
+// GraphQLQueryUserT will perform a GraphQL query against the backend, internally
+// handling authentication. Queries are performed with the provided UserID.
+func (h *Harness) GraphQLQueryUserT(t *testing.T, userID, query string) *QLResponse {
+	t.Helper()
+	retry := 1
+	var err error
+	var resp *http.Response
+
+	tok := h.GraphQLToken(userID)
 
 	for {
 		query = strings.Replace(query, "\t", "", -1)

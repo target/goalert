@@ -83,30 +83,38 @@ function ScheduleShiftList({
   const [overrideDialog, setOverrideDialog] = useState<OverrideDialog | null>(
     null,
   )
-  const { zone, isLocalZone } = useScheduleTZ(scheduleID)
+  const { zone: scheduleTZ } = useScheduleTZ(scheduleID)
   const [configTempSchedule, setConfigTempSchedule] =
     useState<TempSchedValue | null>(null)
   const onNewTempSched = useCallback(
-    () => setConfigTempSchedule(defaultTempSchedValue(zone)),
+    () => setConfigTempSchedule(defaultTempSchedValue(scheduleTZ)),
     [],
   )
   const [duration, setDuration] = useURLParam<string>('duration', 'P14D')
   const [userFilter, setUserFilter] = useURLParam<string[]>('userFilter', [])
   const [activeOnly, setActiveOnly] = useURLParam<boolean>('activeOnly', false)
 
-  const defaultStart = useMemo(
-    () => DateTime.local({ zone }).startOf('day').toISO(),
-    [zone],
-  )
+  const defaultStart = DateTime.local().startOf('day').toISO()
   const [_start, setStart] = useURLParam('start', defaultStart)
   const start = useMemo(
     () => (activeOnly ? DateTime.utc().toISO() : _start),
     [activeOnly, _start],
   )
 
-  const end = DateTime.fromISO(start, { zone })
-    .plus(Duration.fromISO(duration))
-    .toISO()
+  const end = DateTime.fromISO(start).plus(Duration.fromISO(duration)).toISO()
+
+  const dur = Duration.fromISO(duration)
+  const timeStr = durString(dur)
+
+  const tzAbbr = DateTime.local({ zone: scheduleTZ }).toFormat('ZZZZ')
+  const localTzAbbr = DateTime.local({ zone: 'local' }).toFormat('ZZZZ')
+
+  const userText = userFilter.length ? ' for selected users' : ''
+  const note = activeOnly
+    ? `Showing currently active shifts${userText} in ${localTzAbbr}.`
+    : `Showing shifts${userText} up to ${timeStr} from ${DateTime.fromISO(
+        start,
+      ).toLocaleString()} in ${localTzAbbr}.`
 
   const handleFilterReset = useResetURLParams(
     'userFilter',
@@ -125,8 +133,7 @@ function ScheduleShiftList({
   })
 
   // getShiftDetails uses the inputted shift (s) and day interval (day) values and returns either a string or a hover tooltip element.
-  // If the schedule's tz is local, it will return the local time string.
-  // If the schedule's tz is not local, it will return a hover tooltip which converts the shift time to the user's local tz.
+  // Defaults to the user's local tz, with the schedule tz info offered as a tooltip
   function getShiftDetails(
     s: {
       start: DateTime
@@ -136,72 +143,67 @@ function ScheduleShiftList({
     },
     day: Interval,
   ): JSX.Element | string {
-    const tzAbbr = DateTime.local({ zone }).toFormat('ZZZZ')
-    const localTzAbbr = DateTime.local({ zone: 'local' }).toFormat('ZZZZ')
-
     const locale: DateTimeFormatOptions = {
       hour: 'numeric',
       minute: 'numeric',
     }
-
-    let shiftDetails = ''
-    const startTime = s.start.toLocaleString(locale)
-    const endTime = s.end.toLocaleString(locale)
-    const localStartTime = DateTime.fromISO(s.start.toISO(), {
+    let schedLocale: DateTimeFormatOptions = locale
+    const _localStartTime = DateTime.fromISO(s.start.toISO(), {
       zone: 'local',
-    }).toLocaleString(locale)
-    const localEndTime = DateTime.fromISO(s.end.toISO(), {
+    })
+    const _localEndTime = DateTime.fromISO(s.end.toISO(), {
       zone: 'local',
-    }).toLocaleString(locale)
+    })
 
-    // shift (s.interval) spans all day
+    // show full date in tooltip if the schedule tz day is not the locale day
+    if (s.start.day > _localStartTime.day || s.end.day > _localEndTime.day) {
+      schedLocale = {
+        hour: 'numeric',
+        minute: 'numeric',
+        month: 'short',
+        day: '2-digit',
+      }
+    }
+
+    const schedStartTime = s.start.toLocaleString(schedLocale)
+    const schedEndTime = s.end.toLocaleString(schedLocale)
+    const localStartTime = _localStartTime.toLocaleString(locale)
+    const localEndTime = _localEndTime.toLocaleString(locale)
+
     if (s.interval.engulfs(day)) {
       return 'All day'
     }
+
     if (day.engulfs(s.interval)) {
-      // shift is inside the day
-      shiftDetails = `From ${startTime} to ${endTime} ${tzAbbr}`
-      if (isLocalZone) {
-        return shiftDetails
-      }
+      const scheduleTZDetails = `From ${schedStartTime} to ${schedEndTime} ${tzAbbr}`
+      const localTZDetails = `From ${localStartTime} to ${localEndTime} ${localTzAbbr}`
       return (
-        <Tooltip
-          title={`From ${localStartTime} to ${localEndTime} ${localTzAbbr}`}
-          placement='bottom-start'
-        >
-          <span data-cy='shift-details'>{shiftDetails}</span>
+        <Tooltip title={scheduleTZDetails} placement='right'>
+          <span data-cy='shift-details'>{localTZDetails}</span>
         </Tooltip>
       )
     }
+
     if (day.contains(s.end)) {
-      shiftDetails = `Active until${
+      const scheduleTZDetails = `Active until${
         s.truncated ? ' at least' : ''
-      } ${endTime} ${tzAbbr}`
-      if (isLocalZone) {
-        return shiftDetails
-      }
+      } ${schedEndTime} ${tzAbbr}`
+      const localTZDetails = `Active until${
+        s.truncated ? ' at least' : ''
+      } ${localEndTime} ${localTzAbbr}`
       return (
-        <Tooltip
-          title={`Active until${
-            s.truncated ? ' at least' : ''
-          } ${localEndTime} ${localTzAbbr}`}
-          placement='bottom-start'
-        >
-          <span>{shiftDetails}</span>
+        <Tooltip title={scheduleTZDetails} placement='right'>
+          <span>{localTZDetails}</span>
         </Tooltip>
       )
     }
+
     // shift starts and continues on for the rest of the day
-    shiftDetails = `Active after ${startTime} ${tzAbbr}`
-    if (isLocalZone) {
-      return shiftDetails
-    }
+    const scheduleTZDetails = `Active after ${schedStartTime} ${tzAbbr}`
+    const localTZDetails = `Active after ${localStartTime} ${localTzAbbr}`
     return (
-      <Tooltip
-        title={`Active after ${localStartTime} ${localTzAbbr}`}
-        placement='bottom-start'
-      >
-        <span>{shiftDetails}</span>
+      <Tooltip title={scheduleTZDetails} placement='right'>
+        <span>{localTZDetails}</span>
       </Tooltip>
     )
   }
@@ -217,23 +219,23 @@ function ScheduleShiftList({
       .filter((s) => !userFilter.length || userFilter.includes(s.userID))
       .map((s) => ({
         ...s,
-        start: DateTime.fromISO(s.start, { zone }),
-        end: DateTime.fromISO(s.end, { zone }),
+        start: DateTime.fromISO(s.start, { zone: scheduleTZ }),
+        end: DateTime.fromISO(s.end, { zone: scheduleTZ }),
         interval: Interval.fromDateTimes(
-          DateTime.fromISO(s.start, { zone }),
-          DateTime.fromISO(s.end, { zone }),
+          DateTime.fromISO(s.start),
+          DateTime.fromISO(s.end),
         ),
       }))
     if (activeOnly) {
-      const now = DateTime.local({ zone })
+      const now = DateTime.local()
       shifts = shifts.filter((s) => s.interval.contains(now))
     }
 
     if (!shifts.length) return []
 
     const displaySpan = Interval.fromDateTimes(
-      DateTime.fromISO(start, { zone }).startOf('day'),
-      DateTime.fromISO(end, { zone }).startOf('day'),
+      DateTime.fromISO(start).startOf('day'),
+      DateTime.fromISO(end).startOf('day'),
     )
 
     const result: FlatListListItem[] = []
@@ -309,19 +311,6 @@ function ScheduleShiftList({
     )
   }
 
-  const dur = Duration.fromISO(duration)
-  const timeStr = durString(dur)
-
-  const zoneText = zone === 'local' ? 'local time' : zone
-  const userText = userFilter.length ? ' for selected users' : ''
-  const note = activeOnly
-    ? `Showing currently active shifts${userText} in ${zoneText}.`
-    : `Showing shifts${userText} up to ${timeStr} from ${DateTime.fromISO(
-        start,
-        {
-          zone,
-        },
-      ).toLocaleString()} in ${zoneText}.`
   return (
     <OverrideDialogContext.Provider
       value={{
