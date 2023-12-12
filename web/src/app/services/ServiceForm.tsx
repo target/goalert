@@ -73,7 +73,7 @@ export default function ServiceForm(props: ServiceFormProps): JSX.Element {
               <FormField
                 fullWidth
                 name={labelName}
-                required
+                required={!epRequired} // optional when editing
                 component={TextField}
                 fieldName='labels'
                 mapOnChangeValue={(newVal: string, value: Value) => {
