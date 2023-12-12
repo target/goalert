@@ -2,7 +2,7 @@ import React, { Suspense, useState } from 'react'
 import { gql, useQuery } from 'urql'
 import { Redirect } from 'wouter'
 import _ from 'lodash'
-import { Button } from '@mui/material'
+import { Button, Chip } from '@mui/material'
 import { Edit, Delete } from '@mui/icons-material'
 
 import DetailsPage, { LinkStatus } from '../details/DetailsPage'
@@ -16,7 +16,7 @@ import AppLink from '../util/AppLink'
 import { ServiceAvatar } from '../util/avatars'
 import ServiceMaintenanceModeDialog from './ServiceMaintenanceDialog'
 import ServiceNotices from './ServiceNotices'
-import { HeartbeatMonitor } from '../../schema'
+import type { HeartbeatMonitor, Label } from '../../schema'
 
 interface AlertNode {
   id: string
@@ -34,6 +34,10 @@ const query = gql`
     service(id: $serviceID) {
       ...ServiceTitleQuery
       maintenanceExpiresAt
+      labels {
+        key
+        value
+      }
       ep: escalationPolicy {
         id
         name
@@ -97,6 +101,8 @@ export default function ServiceDetails(props: {
     return showDelete ? <Redirect to='/services' /> : <ObjectNotFound />
   }
 
+  const labels: Label[] = data.service.labels || []
+
   return (
     <React.Fragment>
       <DetailsPage
@@ -113,6 +119,11 @@ export default function ServiceDetails(props: {
             ) : (
               <Spinner text='Looking up policy...' />
             )}
+            <div>
+              {labels.map((l) => (
+                <Chip key={l.key} label={l.key + '=' + l.value} />
+              ))}
+            </div>
           </React.Fragment>
         }
         details={data.service.description}
