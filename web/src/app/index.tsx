@@ -1,4 +1,4 @@
-import React, { StrictMode, Suspense } from 'react'
+import React, { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Provider as ReduxProvider } from 'react-redux'
 import { ApolloProvider } from '@apollo/client'
@@ -21,7 +21,6 @@ import { Settings } from 'luxon'
 import RequireAuth from './main/RequireAuth'
 import Login from './main/components/Login'
 import { DestTypeProvider } from './util/useDestinationTypes'
-import Spinner from './loading/components/Spinner'
 
 Settings.throwOnInvalid = true
 
@@ -59,15 +58,13 @@ root.render(
             <Router base={pathPrefix}>
               <URQLProvider value={urqlClient}>
                 <NewVersionCheck />
-                <Suspense fallback={<Spinner />}>
-                  <RequireAuth fallback={<Login />}>
-                    <ConfigProvider>
-                      <DestTypeProvider>
-                        <App />
-                      </DestTypeProvider>
-                    </ConfigProvider>
-                  </RequireAuth>
-                </Suspense>
+                <RequireAuth fallback={<Login />}>
+                  <ConfigProvider>
+                    <DestTypeProvider>
+                      <App />
+                    </DestTypeProvider>
+                  </ConfigProvider>
+                </RequireAuth>
               </URQLProvider>
             </Router>
           </ReduxProvider>
