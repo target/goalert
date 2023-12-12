@@ -10738,9 +10738,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-big-calendar@npm:1.8.4":
-  version: 1.8.4
-  resolution: "react-big-calendar@npm:1.8.4"
+"react-big-calendar@npm:1.8.5":
+  version: 1.8.5
+  resolution: "react-big-calendar@npm:1.8.5"
   dependencies:
     "@babel/runtime": ^7.20.7
     clsx: ^1.2.1
@@ -10761,7 +10761,7 @@ __metadata:
   peerDependencies:
     react: ^16.14.0 || ^17 || ^18
     react-dom: ^16.14.0 || ^17 || ^18
-  checksum: 20d4c115699d67b110d1884ca35b47df29300964f913fdd20075d8862b99e34c6554bf3f05bdf609a0d417aa3e0bfd16d79886a8dfd9032af68906894a975551
+  checksum: 57ce758abec0dc949047df586d202ed1b2d9afded0add416d187fe09bfee72812c3652d9e49a6d4f15953301bb92d9d2db09c1dd7c7dfd7a0f8ab8612d844a1a
   languageName: node
   linkType: hard
 
@@ -11537,7 +11537,7 @@ __metadata:
     prop-types: 15.8.1
     punycode: 2.3.1
     react: 18.2.0
-    react-big-calendar: 1.8.4
+    react-big-calendar: 1.8.5
     react-colorful: 5.6.1
     react-countdown: 2.3.5
     react-dom: 18.2.0
