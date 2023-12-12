@@ -5,13 +5,14 @@ import (
 
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/user/contactmethod"
 )
 
 func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTypeInfo, error) {
 	cfg := config.FromContext(ctx)
 	return []graphql2.DestinationTypeInfo{
 		{
-			Type:            "SMS",
+			Type:            string(contactmethod.TypeSMS), // Must match contactmethod.TypeSMS for compatibility
 			Name:            "Text Message (SMS)",
 			Enabled:         cfg.Twilio.Enable,
 			DisabledMessage: "Twilio must be configured by an administrator",
@@ -29,7 +30,7 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			}},
 		},
 		{
-			Type:            "VOICE",
+			Type:            string(contactmethod.TypeVoice),
 			Name:            "Voice Call",
 			Enabled:         cfg.Twilio.Enable,
 			DisabledMessage: "Twilio must be configured by an administrator",
@@ -47,7 +48,7 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			}},
 		},
 		{
-			Type:            "EMAIL",
+			Type:            string(contactmethod.TypeEmail),
 			Name:            "Email",
 			Enabled:         cfg.SMTP.Enable,
 			IsContactMethod: true,
@@ -62,7 +63,7 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			}},
 		},
 		{
-			Type:            "WEBHOOK",
+			Type:            string(contactmethod.TypeWebhook),
 			Name:            "Webhook",
 			Enabled:         cfg.Webhook.Enable,
 			IsContactMethod: true,
@@ -80,7 +81,7 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			}},
 		},
 		{
-			Type:            "SLACK_DM",
+			Type:            string(contactmethod.TypeSlackDM),
 			Name:            "Slack Message (DM)",
 			Enabled:         cfg.Slack.Enable,
 			IsContactMethod: true,
