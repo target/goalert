@@ -34,6 +34,10 @@ type Config struct {
 		DisableCalendarSubscriptions bool   `public:"true" info:"If set, disables all active calendar subscriptions as well as the ability to create new calendar subscriptions."`
 	}
 
+	Services struct {
+		RequiredLabels []string `public:"true" info:"List of label names to require new services to define."`
+	}
+
 	Maintenance struct {
 		AlertCleanupDays    int `public:"true" info:"Closed alerts will be deleted after this many days (0 means disable cleanup)."`
 		AlertAutoCloseDays  int `public:"true" info:"Unacknowledged alerts will automatically be closed after this many days of inactivity. (0 means disable auto-close)."`
