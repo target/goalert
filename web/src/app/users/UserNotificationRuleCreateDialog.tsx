@@ -32,7 +32,9 @@ export default function UserNotificationRuleCreateDialog(props: {
           {
             input: { ...value, userID: props.userID },
           },
-          { additionalTypenames: ['UserNotificationRule'] },
+          {
+            additionalTypenames: ['UserNotificationRule', 'UserContactMethod'],
+          },
         ).then((result) => {
           if (!result.error) props.onClose()
         })
