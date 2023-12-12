@@ -6,6 +6,7 @@ import (
 	"github.com/nyaruka/phonenumbers"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/validation"
+	"github.com/target/goalert/validation/validate"
 )
 
 // TODO: sort destination types (i.e., disabled last)
@@ -18,6 +19,10 @@ func (q *Query) InputFieldValidate(ctx context.Context, dataType, value string) 
 			return false, nil
 		}
 		return phonenumbers.IsValidNumber(n), nil
+	case "EMAIL":
+		return validate.Email("Email", value) == nil, nil
+	case "URL":
+		return validate.AbsoluteURL("URL", value) == nil, nil
 	}
 
 	return false, validation.NewGenericError("unsupported data type")
