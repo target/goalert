@@ -26,7 +26,9 @@ export default function UserNotificationRuleDeleteDialog(props: {
       onSubmit={() =>
         deleteNotification(
           { id: ruleID },
-          { additionalTypenames: ['UserNotificationRule'] },
+          {
+            additionalTypenames: ['UserNotificationRule', 'UserContactMethod'],
+          },
         ).then((result) => {
           if (!result.error) props.onClose()
         })

@@ -168,17 +168,20 @@ function UserEditDialog(props: UserEditDialogProps): React.ReactNode {
 
     if (!errorList?.length && defaultValue.isAdmin !== value.isAdmin) {
       try {
-        await editUser({
-          input: {
-            id: props.userID,
-            role:
-              defaultValue.isAdmin !== value.isAdmin
-                ? value.isAdmin
-                  ? 'admin'
-                  : 'user'
-                : null,
+        await editUser(
+          {
+            input: {
+              id: props.userID,
+              role:
+                defaultValue.isAdmin !== value.isAdmin
+                  ? value.isAdmin
+                    ? 'admin'
+                    : 'user'
+                  : null,
+            },
           },
-        })
+          { additionalTypenames: ['User'] },
+        )
       } catch (err) {
         console.error(err)
         errorList = errorHandler(err, errorList)

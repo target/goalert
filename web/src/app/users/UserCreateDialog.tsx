@@ -39,16 +39,21 @@ function UserCreateDialog(props: UserCreateDialogProps): React.ReactNode {
       errors={nonFieldErrors(error)}
       onClose={props.onClose}
       onSubmit={() =>
-        createUser({
-          input: {
-            username: value.username,
-            password: value.password,
-            name: value.name ? value.name : null,
-            email: value.email,
-            role: value.isAdmin ? 'admin' : 'user',
-            favorite: true,
+        createUser(
+          {
+            input: {
+              username: value.username,
+              password: value.password,
+              name: value.name ? value.name : null,
+              email: value.email,
+              role: value.isAdmin ? 'admin' : 'user',
+              favorite: true,
+            },
           },
-        }).then((result) => {
+          {
+            additionalTypenames: ['User'],
+          },
+        ).then((result) => {
           if (!result.error) {
             navigate(`/users/${result.data.createUser.id}`)
           }
