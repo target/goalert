@@ -44,9 +44,7 @@ export interface Query {
   swoStatus: SWOStatus
   gqlAPIKeys: GQLAPIKey[]
   destinationTypes: DestinationTypeInfo[]
-  destination: DestinationInfo
   inputFieldValidate: boolean
-  inputFieldSearch: DestinationInfoConnection
 }
 
 export type DestinationType = string
