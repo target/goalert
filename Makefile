@@ -293,7 +293,7 @@ web/src/build/static: web/src/esbuild.config.js $(NODE_DEPS) $(shell find ./web/
 	$(MAKE) ensure-yarn
 	rm -rf web/src/build/static
 	mkdir -p web/src/build/static
-	cp -f web/src/app/public/icons/favicon-* web/src/app/public/logos/black/goalert-alt-logo.png web/src/build/static/
+	cp -f web/src/app/public/icons/favicon-* web/src/app/public/logos/lightmode_* web/src/app/public/logos/darkmode_* web/src/build/static/
 	GOALERT_VERSION=$(GIT_VERSION) yarn run esbuild
 
 web/src/build/static/app.js: web/src/build/static $(NODE_DEPS)
