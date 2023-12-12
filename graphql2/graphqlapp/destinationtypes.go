@@ -86,12 +86,11 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			IsContactMethod: true,
 			DisabledMessage: "Slack must be enabled by an administrator",
 			RequiredFields: []graphql2.InputFieldConfig{{
-				DataType:           "SLACK_USER_ID",
-				LabelSingular:      "Slack User",
-				LabelPlural:        "Slack Users",
-				PlaceholderText:    "member ID",
-				InputType:          "text",
-				SupportsValidation: true,
+				DataType:        "SLACK_USER_ID",
+				LabelSingular:   "Slack User",
+				LabelPlural:     "Slack Users",
+				PlaceholderText: "member ID",
+				InputType:       "text",
 				// IsSearchSelectable: true, // TODO: implement search select functionality for users
 				Hint: `Go to your Slack profile, click the three dots, and select "Copy member ID".`,
 			}},
