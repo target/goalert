@@ -137,55 +137,57 @@ function UserEditDialog(props: UserEditDialogProps): React.ReactNode {
     errorList = [...errorList, ...handleValidation()]
 
     if (!errorList?.length && passwordChanged() && userHasBasicAuth) {
-      try {
-        await editBasicAuth({
+      await editBasicAuth(
+        {
           input: {
             userID: props.userID,
             oldPassword: value.oldPassword || null,
             password: value.password || null,
           },
-        })
-      } catch (err) {
-        console.error(err)
-        errorList = errorHandler(err, errorList)
-      }
+        },
+        { additionalTypenames: ['UpdateBasicAuth'] },
+      ).then((result) => {
+        console.error(result.error)
+        errorList = errorHandler(result.error, errorList)
+      })
     }
 
     if (!errorList?.length && passwordChanged() && !userHasBasicAuth) {
-      try {
-        await createBasicAuth({
+      await createBasicAuth(
+        {
           input: {
             userID: props.userID,
             username: value.username || null,
             password: value.password || null,
           },
-        })
-      } catch (err) {
-        console.error(err)
-        errorList = errorHandler(err, errorList)
-      }
+        },
+        {
+          additionalTypenames: ['CreateBasicAuthInput'],
+        },
+      ).then((result) => {
+        console.error(result.error)
+        errorList = errorHandler(result.error, errorList)
+      })
     }
 
     if (!errorList?.length && defaultValue.isAdmin !== value.isAdmin) {
-      try {
-        await editUser(
-          {
-            input: {
-              id: props.userID,
-              role:
-                defaultValue.isAdmin !== value.isAdmin
-                  ? value.isAdmin
-                    ? 'admin'
-                    : 'user'
-                  : null,
-            },
+      await editUser(
+        {
+          input: {
+            id: props.userID,
+            role:
+              defaultValue.isAdmin !== value.isAdmin
+                ? value.isAdmin
+                  ? 'admin'
+                  : 'user'
+                : null,
           },
-          { additionalTypenames: ['User'] },
-        )
-      } catch (err) {
-        console.error(err)
-        errorList = errorHandler(err, errorList)
-      }
+        },
+        { additionalTypenames: ['User'] },
+      ).then((result) => {
+        console.error(result.error)
+        errorList = errorHandler(result.error, errorList)
+      })
     }
 
     setErrors(errorList)

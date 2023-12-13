@@ -51,7 +51,7 @@ function UserCreateDialog(props: UserCreateDialogProps): React.ReactNode {
             },
           },
           {
-            additionalTypenames: ['User'],
+            additionalTypenames: ['CreateBasicAuthInput'],
           },
         ).then((result) => {
           if (!result.error) {
