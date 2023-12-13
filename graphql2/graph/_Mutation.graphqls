@@ -96,10 +96,6 @@ type Mutation {
   setConfig(input: [ConfigValueInput!]): Boolean!
   setSystemLimits(input: [SystemLimitInput!]!): Boolean!
 
-  createGQLAPIKey(input: CreateGQLAPIKeyInput!): CreatedGQLAPIKey!
-  updateGQLAPIKey(input: UpdateGQLAPIKeyInput!): Boolean!
-  deleteGQLAPIKey(id: ID!): Boolean!
-
   createBasicAuth(input: CreateBasicAuthInput!): Boolean!
   updateBasicAuth(input: UpdateBasicAuthInput!): Boolean!
 }

@@ -129,6 +129,4 @@ type Query {
   linkAccountInfo(token: ID!): LinkAccountInfo
 
   swoStatus: SWOStatus!
-
-  gqlAPIKeys: [GQLAPIKey!]!
 }
