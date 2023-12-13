@@ -182,6 +182,7 @@ export interface CreateEscalationPolicyInput {
 }
 
 export interface CreateEscalationPolicyStepInput {
+  actions?: null | DestinationInput[]
   delayMinutes: number
   escalationPolicyID?: null | string
   newRotation?: null | CreateRotationInput
@@ -249,11 +250,12 @@ export interface CreateUserCalendarSubscriptionInput {
 }
 
 export interface CreateUserContactMethodInput {
+  dest?: null | DestinationInput
   name: string
   newUserNotificationRule?: null | CreateUserNotificationRuleInput
-  type: ContactMethodType
+  type?: null | ContactMethodType
   userID: string
-  value: string
+  value?: null | string
 }
 
 export interface CreateUserInput {
@@ -339,16 +341,38 @@ export interface DebugSendSMSInput {
   to: string
 }
 
-export interface DestinationInfo {
-  isFavorite: boolean
+export interface Destination {
+  id: string
   name: string
   type: DestinationType
-  value: string
+  values: FieldValuePair[]
 }
 
-export interface DestinationInfoConnection {
-  nodes: DestinationInfo[]
-  pageInfo: PageInfo
+export interface DestinationFieldConfig {
+  fieldID: string
+  hint: string
+  hintURL: string
+  iconAltText: string
+  iconURL: string
+  inputType: string
+  isSearchSelectable: boolean
+  labelPlural: string
+  labelSingular: string
+  placeholderText: string
+  prefix: string
+  supportsValidation: boolean
+}
+
+export interface DestinationFieldSearchInput {
+  after?: null | string
+  first?: null | number
+  omit?: null | string[]
+  search?: null | string
+}
+
+export interface DestinationInput {
+  type: DestinationType
+  values: FieldValueInput[]
 }
 
 export type DestinationType = string
@@ -360,7 +384,7 @@ export interface DestinationTypeInfo {
   isEPTarget: boolean
   isSchedOnCallNotify: boolean
   name: string
-  requiredFields: InputFieldConfig[]
+  requiredFields: DestinationFieldConfig[]
   type: DestinationType
   userDisclaimer: string
 }
@@ -391,11 +415,28 @@ export interface EscalationPolicySearchOptions {
 }
 
 export interface EscalationPolicyStep {
+  actions: Destination[]
   delayMinutes: number
   escalationPolicy?: null | EscalationPolicy
   id: string
   stepNumber: number
   targets: Target[]
+}
+
+export interface FieldValueConnection {
+  nodes: FieldValuePair[]
+  pageInfo: PageInfo
+}
+
+export interface FieldValueInput {
+  fieldID: string
+  value: string
+}
+
+export interface FieldValuePair {
+  fieldID: string
+  value: string
+  valueName: string
 }
 
 export type Float = string
@@ -439,30 +480,6 @@ export type ISODuration = string
 export type ISORInterval = string
 
 export type ISOTimestamp = string
-
-export interface InputFieldConfig {
-  dataType: InputFieldDataType
-  hint: string
-  hintURL: string
-  iconAlt: string
-  iconURL: string
-  inputType: string
-  isSearchSelectable: boolean
-  labelPlural: string
-  labelSingular: string
-  placeholderText: string
-  prefix: string
-  supportsValidation: boolean
-}
-
-export type InputFieldDataType = string
-
-export interface InputFieldSearchInput {
-  after?: null | string
-  first?: null | number
-  omit?: null | string[]
-  search?: null | string
-}
 
 export type Int = string
 
@@ -630,6 +647,7 @@ export interface NotificationState {
 export type NotificationStatus = 'ERROR' | 'OK' | 'WARN'
 
 export interface OnCallNotificationRule {
+  dest: Destination
   id: string
   target: Target
   time?: null | ClockTime
@@ -637,8 +655,9 @@ export interface OnCallNotificationRule {
 }
 
 export interface OnCallNotificationRuleInput {
+  dest?: null | DestinationInput
   id?: null | string
-  target: TargetInput
+  target?: null | TargetInput
   time?: null | ClockTime
   weekdayFilter?: null | WeekdayFilter
 }
@@ -676,6 +695,8 @@ export interface Query {
   configHints: ConfigHint[]
   debugMessageStatus: DebugMessageStatusInfo
   debugMessages: DebugMessage[]
+  destinationFieldSearch: FieldValueConnection
+  destinationFieldValidate: boolean
   destinationTypes: DestinationTypeInfo[]
   escalationPolicies: EscalationPolicyConnection
   escalationPolicy?: null | EscalationPolicy
@@ -683,7 +704,6 @@ export interface Query {
   generateSlackAppManifest: string
   gqlAPIKeys: GQLAPIKey[]
   heartbeatMonitor?: null | HeartbeatMonitor
-  inputFieldValidate: boolean
   integrationKey?: null | IntegrationKey
   integrationKeyTypes: IntegrationKeyTypeInfo[]
   integrationKeys: IntegrationKeyConnection
@@ -1077,6 +1097,7 @@ export interface UpdateEscalationPolicyInput {
 }
 
 export interface UpdateEscalationPolicyStepInput {
+  actions?: null | DestinationInput[]
   delayMinutes?: null | number
   id: string
   targets?: null | TargetInput[]
@@ -1186,6 +1207,7 @@ export interface UserConnection {
 }
 
 export interface UserContactMethod {
+  dest: Destination
   disabled: boolean
   formattedValue: string
   id: string
@@ -1195,7 +1217,7 @@ export interface UserContactMethod {
   name: string
   pending: boolean
   statusUpdates: StatusUpdateState
-  type?: null | ContactMethodType
+  type: ContactMethodType
   value: string
 }
 

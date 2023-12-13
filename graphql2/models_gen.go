@@ -144,6 +144,7 @@ type CreateEscalationPolicyStepInput struct {
 	EscalationPolicyID *string                `json:"escalationPolicyID,omitempty"`
 	DelayMinutes       int                    `json:"delayMinutes"`
 	Targets            []assignment.RawTarget `json:"targets,omitempty"`
+	Actions            []DestinationInput     `json:"actions,omitempty"`
 	NewRotation        *CreateRotationInput   `json:"newRotation,omitempty"`
 	NewSchedule        *CreateScheduleInput   `json:"newSchedule,omitempty"`
 }
@@ -209,9 +210,10 @@ type CreateUserCalendarSubscriptionInput struct {
 
 type CreateUserContactMethodInput struct {
 	UserID                  string                           `json:"userID"`
-	Type                    contactmethod.Type               `json:"type"`
+	Type                    *contactmethod.Type              `json:"type,omitempty"`
+	Value                   *string                          `json:"value,omitempty"`
+	Dest                    *DestinationInput                `json:"dest,omitempty"`
 	Name                    string                           `json:"name"`
-	Value                   string                           `json:"value"`
 	NewUserNotificationRule *CreateUserNotificationRuleInput `json:"newUserNotificationRule,omitempty"`
 }
 
@@ -291,28 +293,50 @@ type DebugSendSMSInput struct {
 	Body string `json:"body"`
 }
 
-type DestinationInfo struct {
-	Value      string `json:"value"`
-	Type       string `json:"type"`
-	Name       string `json:"name"`
-	IsFavorite bool   `json:"isFavorite"`
+type Destination struct {
+	ID     string           `json:"id"`
+	Type   string           `json:"type"`
+	Name   string           `json:"name"`
+	Values []FieldValuePair `json:"values"`
 }
 
-type DestinationInfoConnection struct {
-	Nodes    []DestinationInfo `json:"nodes"`
-	PageInfo *PageInfo         `json:"pageInfo"`
+type DestinationFieldConfig struct {
+	FieldID            string `json:"fieldID"`
+	LabelSingular      string `json:"labelSingular"`
+	LabelPlural        string `json:"labelPlural"`
+	IconURL            string `json:"iconURL"`
+	IconAltText        string `json:"iconAltText"`
+	Hint               string `json:"hint"`
+	HintURL            string `json:"hintURL"`
+	PlaceholderText    string `json:"placeholderText"`
+	Prefix             string `json:"prefix"`
+	InputType          string `json:"inputType"`
+	IsSearchSelectable bool   `json:"isSearchSelectable"`
+	SupportsValidation bool   `json:"supportsValidation"`
+}
+
+type DestinationFieldSearchInput struct {
+	Search *string  `json:"search,omitempty"`
+	Omit   []string `json:"omit,omitempty"`
+	After  *string  `json:"after,omitempty"`
+	First  *int     `json:"first,omitempty"`
+}
+
+type DestinationInput struct {
+	Type   string            `json:"type"`
+	Values []FieldValueInput `json:"values"`
 }
 
 type DestinationTypeInfo struct {
-	Type                string             `json:"type"`
-	Name                string             `json:"name"`
-	DisabledMessage     string             `json:"disabledMessage"`
-	Enabled             bool               `json:"enabled"`
-	RequiredFields      []InputFieldConfig `json:"requiredFields"`
-	UserDisclaimer      string             `json:"userDisclaimer"`
-	IsContactMethod     bool               `json:"isContactMethod"`
-	IsEPTarget          bool               `json:"isEPTarget"`
-	IsSchedOnCallNotify bool               `json:"isSchedOnCallNotify"`
+	Type                string                   `json:"type"`
+	Name                string                   `json:"name"`
+	DisabledMessage     string                   `json:"disabledMessage"`
+	Enabled             bool                     `json:"enabled"`
+	RequiredFields      []DestinationFieldConfig `json:"requiredFields"`
+	UserDisclaimer      string                   `json:"userDisclaimer"`
+	IsContactMethod     bool                     `json:"isContactMethod"`
+	IsEPTarget          bool                     `json:"isEPTarget"`
+	IsSchedOnCallNotify bool                     `json:"isSchedOnCallNotify"`
 }
 
 type EscalationPolicyConnection struct {
@@ -327,6 +351,22 @@ type EscalationPolicySearchOptions struct {
 	Omit           []string `json:"omit,omitempty"`
 	FavoritesOnly  *bool    `json:"favoritesOnly,omitempty"`
 	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
+}
+
+type FieldValueConnection struct {
+	Nodes    []FieldValuePair `json:"nodes"`
+	PageInfo *PageInfo        `json:"pageInfo"`
+}
+
+type FieldValueInput struct {
+	FieldID string `json:"fieldID"`
+	Value   string `json:"value"`
+}
+
+type FieldValuePair struct {
+	FieldID   string `json:"fieldID"`
+	Value     string `json:"value"`
+	ValueName string `json:"valueName"`
 }
 
 type GQLAPIKey struct {
@@ -347,28 +387,6 @@ type GQLAPIKeyUsage struct {
 	Time time.Time `json:"time"`
 	Ua   string    `json:"ua"`
 	IP   string    `json:"ip"`
-}
-
-type InputFieldConfig struct {
-	DataType           string `json:"dataType"`
-	LabelSingular      string `json:"labelSingular"`
-	LabelPlural        string `json:"labelPlural"`
-	IconURL            string `json:"iconURL"`
-	IconAlt            string `json:"iconAlt"`
-	Hint               string `json:"hint"`
-	HintURL            string `json:"hintURL"`
-	PlaceholderText    string `json:"placeholderText"`
-	Prefix             string `json:"prefix"`
-	InputType          string `json:"inputType"`
-	IsSearchSelectable bool   `json:"isSearchSelectable"`
-	SupportsValidation bool   `json:"supportsValidation"`
-}
-
-type InputFieldSearchInput struct {
-	Search *string  `json:"search,omitempty"`
-	Omit   []string `json:"omit,omitempty"`
-	After  *string  `json:"after,omitempty"`
-	First  *int     `json:"first,omitempty"`
 }
 
 type IntegrationKeyConnection struct {
@@ -678,6 +696,7 @@ type UpdateEscalationPolicyStepInput struct {
 	ID           string                 `json:"id"`
 	DelayMinutes *int                   `json:"delayMinutes,omitempty"`
 	Targets      []assignment.RawTarget `json:"targets,omitempty"`
+	Actions      []DestinationInput     `json:"actions,omitempty"`
 }
 
 type UpdateGQLAPIKeyInput struct {

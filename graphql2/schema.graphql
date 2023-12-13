@@ -547,7 +547,8 @@ input CreateEscalationPolicyStepInput {
 
   delayMinutes: Int!
 
-  targets: [TargetInput!]
+  targets: [TargetInput!] @deprecated(reason: "Use actions instead.")
+  actions: [DestinationInput!]
   newRotation: CreateRotationInput
   newSchedule: CreateScheduleInput
 }
@@ -556,7 +557,10 @@ type EscalationPolicyStep {
   id: ID!
   stepNumber: Int!
   delayMinutes: Int!
-  targets: [Target!]!
+  targets: [Target!]! @deprecated(reason: "Use actions instead.")
+
+  # actions are the users, schedules, rotations, webhooks, etc that this step will notify.
+  actions: [Destination!]!
   escalationPolicy: EscalationPolicy
 }
 
@@ -586,7 +590,8 @@ input UpdateEscalationPolicyInput {
 input UpdateEscalationPolicyStepInput {
   id: ID!
   delayMinutes: Int
-  targets: [TargetInput!]
+  targets: [TargetInput!] @deprecated(reason: "Use assignments and destinations instead.")
+  actions: [DestinationInput!]
 }
 
 input SetFavoriteInput {
@@ -637,7 +642,9 @@ input SetScheduleOnCallNotificationRulesInput {
 
 input OnCallNotificationRuleInput {
   id: ID
-  target: TargetInput!
+  target: TargetInput @deprecated(reason: "Use dest instead.")
+
+  dest: DestinationInput
 
   # time indicates a time-of-day (in the schedule's time zone)
   # to send a message of current on-call users.
@@ -654,7 +661,8 @@ input OnCallNotificationRuleInput {
 
 type OnCallNotificationRule {
   id: ID!
-  target: Target!
+  target: Target! @deprecated(reason: "Use dest instead.")
+  dest: Destination!
   time: ClockTime
   weekdayFilter: WeekdayFilter
 }
@@ -1175,11 +1183,15 @@ enum ContactMethodType {
 # A method of contacting a user.
 type UserContactMethod {
   id: ID!
-  type: ContactMethodType
+
+  dest: Destination!
 
   # User-defined label for this contact method.
   name: String!
-  value: String!
+
+  type: ContactMethodType! @deprecated(reason: "Use `dest` instead.")
+  value: String! @deprecated(reason: "Use `dest` instead.")
+
   formattedValue: String!
   disabled: Boolean!
   pending: Boolean!
@@ -1201,9 +1213,12 @@ enum StatusUpdateState {
 input CreateUserContactMethodInput {
   userID: ID!
 
-  type: ContactMethodType!
+  type: ContactMethodType @deprecated(reason: "Use `dest` instead.")
+  value: String @deprecated(reason: "Use `dest` instead.")
+
+  dest: DestinationInput
+
   name: String!
-  value: String!
   newUserNotificationRule: CreateUserNotificationRuleInput
 }
 
@@ -1217,7 +1232,7 @@ input UpdateUserContactMethodInput {
   id: ID!
 
   name: String
-  value: String
+  value: String @deprecated(reason: "Updating value is not supported, delete and create a new contact method instead.")
 
   # If true, this contact method will receive status updates.
   #
