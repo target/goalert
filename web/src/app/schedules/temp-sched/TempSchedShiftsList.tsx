@@ -44,12 +44,12 @@ const useStyles = makeStyles({
 
 type TempSchedShiftsListProps = {
   value: Shift[]
-  onRemove: (shift: Shift) => void
+  onRemove?: (shift: Shift) => void
   start: string
   end: string
   edit?: boolean
   scheduleID: string
-  handleCoverageGapClick: (coverageGap: Interval) => void
+  handleCoverageGapClick?: (coverageGap: Interval) => void
 }
 
 export default function TempSchedShiftsList({
@@ -179,7 +179,7 @@ export default function TempSchedShiftsList({
                     <Error color='error' />
                   </Tooltip>
                 )}
-                {!isHistoricShift && (
+                {!isHistoricShift && onRemove && (
                   <IconButton
                     data-cy={'delete shift index: ' + idx}
                     aria-label='delete shift'
