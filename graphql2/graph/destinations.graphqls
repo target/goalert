@@ -1,0 +1,64 @@
+extend type Query {
+  destinationTypes: [DestinationTypeInfo!]!
+  inputFieldValidate(type: InputFieldDataType!, value: String!): Boolean!
+}
+
+
+scalar DestinationType
+scalar InputFieldDataType
+
+input InputFieldSearchInput {
+  search: String # search string to match against
+  omit: [ID!] # IDs to omit from results
+  after: String # cursor to start search from
+  first: Int = 15 # number of results to return
+}
+
+type DestinationInfoConnection {
+  nodes: [DestinationInfo!]!
+  pageInfo: PageInfo!
+}
+
+type DestinationInfo {
+  value: ID!
+  type: DestinationType!
+  name: String!
+  isFavorite: Boolean!
+}
+
+type DestinationTypeInfo {
+  type: DestinationType!
+
+  name: String!
+  disabledMessage: String!
+
+  enabled: Boolean! # if false, the destination type is disabled and cannot be used
+
+  requiredFields: [InputFieldConfig!]!
+
+  userDisclaimer: String! # disclaimer text to display when a user is selecting this destination type for a contact method
+
+    isContactMethod: Boolean! # only return destination types that can be used as user contact methods
+    isEPTarget: Boolean! # only return destination types that can be used on escalation policy steps
+    isSchedOnCallNotify: Boolean! # only return destination types that can be used for schedule on-call notifications
+}
+
+type InputFieldConfig {
+  dataType: InputFieldDataType!
+
+  labelSingular: String! # user-friendly label
+  labelPlural: String! # user-friendly plural label
+
+  iconURL: String! # URL to an icon to display for the destination type
+  iconAlt: String! # alt text for the icon
+
+  hint: String! # user-friendly helper text for input fields (i.e., "Enter a phone number")
+  hintURL: String! # URL to link to for more information about the destination type
+  placeholderText: String! # placeholder text to display in input fields (i.e., "Phone Number")
+
+  prefix: String! # the prefix to use when displaying the destination (i.e., "+" for phone numbers)
+  inputType: String! # the type of input field to use (i.e., "text" or "tel")
+
+  isSearchSelectable: Boolean! # if true, the destination can be selected via search
+  supportsValidation: Boolean! # if true, the destination type supports validation
+}
