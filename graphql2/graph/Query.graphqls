@@ -1,0 +1,134 @@
+
+type Query {
+  phoneNumberInfo(number: String!): PhoneNumberInfo
+
+  experimentalFlags: [ID!]!
+
+  # Returns the list of recent messages.
+  messageLogs(input: MessageLogSearchOptions): MessageLogConnection!
+  debugMessages(input: DebugMessagesInput): [DebugMessage!]!
+    @deprecated(reason: "debugMessages is deprecated. Use messageLogs instead.")
+
+  # Returns the user with the given ID. If no ID is specified,
+  # the current user is implied.
+  user(id: ID): User
+
+  # Returns a list of users who's name or email match search string.
+  users(
+    input: UserSearchOptions
+    first: Int = 15
+    after: String = ""
+    search: String = ""
+  ): UserConnection!
+
+  # Returns a single alert with the given ID.
+  alert(id: Int!): Alert
+
+  # Returns a paginated list of alerts.
+  alerts(input: AlertSearchOptions): AlertConnection!
+
+  # Returns a single service with the given ID.
+  service(id: ID!): Service
+
+  # Returns a single integration key with the given ID.
+  integrationKey(id: ID!): IntegrationKey
+
+  # Returns a heartbeat monitor with the given ID
+  heartbeatMonitor(id: ID!): HeartbeatMonitor
+
+  # Returns a paginated list of services.
+  services(input: ServiceSearchOptions): ServiceConnection!
+
+  # Returns a single rotation with the given ID.
+  rotation(id: ID!): Rotation
+
+  # Returns a paginated list of rotations.
+  rotations(input: RotationSearchOptions): RotationConnection!
+
+  calcRotationHandoffTimes(
+    input: CalcRotationHandoffTimesInput
+  ): [ISOTimestamp!]!
+
+  # Returns a single schedule with the given ID.
+  schedule(id: ID!): Schedule
+
+  # Returns the public information of a calendar subscription
+  userCalendarSubscription(id: ID!): UserCalendarSubscription
+
+  # Returns a paginated list of schedules.
+  schedules(input: ScheduleSearchOptions): ScheduleConnection!
+
+  # Returns a single escalation policy with the given ID.
+  escalationPolicy(id: ID!): EscalationPolicy
+
+  # Returns a paginated list of escalation policies.
+  escalationPolicies(
+    input: EscalationPolicySearchOptions
+  ): EscalationPolicyConnection!
+
+  # Returns the list of auth subjects for the given provider ID.
+  authSubjectsForProvider(
+    first: Int = 15
+    after: String = ""
+    providerID: ID!
+  ): AuthSubjectConnection!
+
+  # Returns a paginated list of time zones.
+  timeZones(input: TimeZoneSearchOptions): TimeZoneConnection!
+
+  # Allows searching for assigned labels.
+  labels(input: LabelSearchOptions): LabelConnection!
+
+  # Allows searching for label keys.
+  labelKeys(input: LabelKeySearchOptions): StringConnection!
+
+  # Allows searching for label values.
+  labelValues(input: LabelValueSearchOptions): StringConnection!
+
+  # Allows searching for integration keys.
+  integrationKeys(input: IntegrationKeySearchOptions): IntegrationKeyConnection!
+
+  # Allows searching for user overrides.
+  userOverrides(input: UserOverrideSearchOptions): UserOverrideConnection!
+
+  # Returns a single user override with the given ID.
+  userOverride(id: ID!): UserOverride
+
+  # Returns public server configuration values. If all is set to true,
+  # then all values are returned (must be admin).
+  config(all: Boolean): [ConfigValue!]!
+
+  # Returns configuration hints (must be admin).
+  configHints: [ConfigHint!]!
+
+  integrationKeyTypes: [IntegrationKeyTypeInfo!]!
+
+  # Returns configuration limits
+  systemLimits: [SystemLimit!]!
+
+  # Returns the message status
+  debugMessageStatus(input: DebugMessageStatusInput!): DebugMessageStatusInfo!
+
+  # Returns a contact method with the given ID.
+  userContactMethod(id: ID!): UserContactMethod
+
+  # Returns the list of Slack channels available to the current user.
+  slackChannels(input: SlackChannelSearchOptions): SlackChannelConnection!
+
+  # Returns a Slack channel with the given ID.
+  slackChannel(id: ID!): SlackChannel
+
+  # Returns the list of Slack user groups available.
+  slackUserGroups(input: SlackUserGroupSearchOptions): SlackUserGroupConnection!
+
+  # Returns a Slack user group with the given ID.
+  slackUserGroup(id: ID!): SlackUserGroup
+
+  generateSlackAppManifest: String!
+
+  linkAccountInfo(token: ID!): LinkAccountInfo
+
+  swoStatus: SWOStatus!
+
+  gqlAPIKeys: [GQLAPIKey!]!
+}

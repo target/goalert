@@ -1,0 +1,105 @@
+
+type Mutation {
+  swoAction(action: SWOAction!): Boolean!
+  linkAccount(token: ID!): Boolean!
+
+  setTemporarySchedule(input: SetTemporaryScheduleInput!): Boolean!
+  clearTemporarySchedules(input: ClearTemporarySchedulesInput!): Boolean!
+
+  setScheduleOnCallNotificationRules(
+    input: SetScheduleOnCallNotificationRulesInput!
+  ): Boolean!
+
+  debugCarrierInfo(input: DebugCarrierInfoInput!): DebugCarrierInfo!
+  debugSendSMS(input: DebugSendSMSInput!): DebugSendSMSInfo
+  addAuthSubject(input: AuthSubjectInput!): Boolean!
+  deleteAuthSubject(input: AuthSubjectInput!): Boolean!
+  endAllAuthSessionsByCurrentUser: Boolean!
+  updateUser(input: UpdateUserInput!): Boolean!
+
+  testContactMethod(id: ID!): Boolean!
+
+  # Updates the status for multiple alerts given the list of alertIDs and the status they want to be updated to.
+  updateAlerts(input: UpdateAlertsInput!): [Alert!]
+
+  # Updates the fields for a rotation given the rotationID, also updates ordering of and number of users for the rotation.
+  updateRotation(input: UpdateRotationInput!): Boolean!
+
+  # Escalates multiple alerts given the list of alertIDs.
+  escalateAlerts(input: [Int!]): [Alert!]
+
+  # Updates the favorite status of a target.
+  setFavorite(input: SetFavoriteInput!): Boolean!
+
+  updateService(input: UpdateServiceInput!): Boolean!
+  updateEscalationPolicy(input: UpdateEscalationPolicyInput!): Boolean!
+  updateEscalationPolicyStep(input: UpdateEscalationPolicyStepInput!): Boolean!
+
+  deleteAll(input: [TargetInput!]): Boolean!
+
+  createAlert(input: CreateAlertInput!): Alert
+
+  # closeMatchingAlert is used to close an alert without knowing it's ID.
+  #
+  # This allows stateless upstream systems to close alerts without needing to
+  # store the alert ID.
+  closeMatchingAlert(input: CloseMatchingAlertInput!): Boolean!
+
+  setAlertNoiseReason(input: SetAlertNoiseReasonInput!): Boolean!
+    @deprecated(reason: "Use updateAlerts instead with the noiseReason field.")
+
+  createService(input: CreateServiceInput!): Service
+  createEscalationPolicy(input: CreateEscalationPolicyInput!): EscalationPolicy
+  createEscalationPolicyStep(
+    input: CreateEscalationPolicyStepInput!
+  ): EscalationPolicyStep
+  createRotation(input: CreateRotationInput!): Rotation
+
+  createIntegrationKey(input: CreateIntegrationKeyInput!): IntegrationKey
+
+  createHeartbeatMonitor(input: CreateHeartbeatMonitorInput!): HeartbeatMonitor
+
+  setLabel(input: SetLabelInput!): Boolean!
+
+  createSchedule(input: CreateScheduleInput!): Schedule
+
+  createUser(input: CreateUserInput!): User
+
+  createUserCalendarSubscription(
+    input: CreateUserCalendarSubscriptionInput!
+  ): UserCalendarSubscription!
+  updateUserCalendarSubscription(
+    input: UpdateUserCalendarSubscriptionInput!
+  ): Boolean!
+
+  updateScheduleTarget(input: ScheduleTargetInput!): Boolean!
+  createUserOverride(input: CreateUserOverrideInput!): UserOverride
+
+  createUserContactMethod(
+    input: CreateUserContactMethodInput!
+  ): UserContactMethod
+  createUserNotificationRule(
+    input: CreateUserNotificationRuleInput!
+  ): UserNotificationRule
+  updateUserContactMethod(input: UpdateUserContactMethodInput!): Boolean!
+  sendContactMethodVerification(
+    input: SendContactMethodVerificationInput!
+  ): Boolean!
+  verifyContactMethod(input: VerifyContactMethodInput!): Boolean!
+
+  updateSchedule(input: UpdateScheduleInput!): Boolean!
+  updateUserOverride(input: UpdateUserOverrideInput!): Boolean!
+  updateHeartbeatMonitor(input: UpdateHeartbeatMonitorInput!): Boolean!
+
+  updateAlertsByService(input: UpdateAlertsByServiceInput!): Boolean!
+
+  setConfig(input: [ConfigValueInput!]): Boolean!
+  setSystemLimits(input: [SystemLimitInput!]!): Boolean!
+
+  createGQLAPIKey(input: CreateGQLAPIKeyInput!): CreatedGQLAPIKey!
+  updateGQLAPIKey(input: UpdateGQLAPIKeyInput!): Boolean!
+  deleteGQLAPIKey(id: ID!): Boolean!
+
+  createBasicAuth(input: CreateBasicAuthInput!): Boolean!
+  updateBasicAuth(input: UpdateBasicAuthInput!): Boolean!
+}
