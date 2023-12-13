@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/parser"
@@ -15,15 +16,21 @@ func main() {
 	flag.Parse()
 	log.SetFlags(log.Lshortfile)
 	var src []*ast.Source
-	for _, file := range flag.Args() {
-		data, err := os.ReadFile(file)
+	for _, pattern := range flag.Args() {
+		files, err := filepath.Glob(pattern)
 		if err != nil {
 			log.Fatal("ERROR:", err)
 		}
-		src = append(src, &ast.Source{
-			Name:  file,
-			Input: string(data),
-		})
+		for _, file := range files {
+			data, err := os.ReadFile(file)
+			if err != nil {
+				log.Fatal("ERROR:", err)
+			}
+			src = append(src, &ast.Source{
+				Name:  file,
+				Input: string(data),
+			})
+		}
 	}
 
 	doc, err := parser.ParseSchemas(src...)
