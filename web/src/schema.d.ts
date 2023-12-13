@@ -105,6 +105,8 @@ export interface AuthSubjectInput {
   userID: string
 }
 
+export type Boolean = string
+
 export interface CalcRotationHandoffTimesInput {
   count: number
   from?: null | ISOTimestamp
@@ -370,6 +372,8 @@ export interface EscalationPolicyStep {
   targets: Target[]
 }
 
+export type Float = string
+
 export interface GQLAPIKey {
   createdAt: ISOTimestamp
   createdBy?: null | User
@@ -402,11 +406,15 @@ export interface HeartbeatMonitor {
 
 export type HeartbeatMonitorState = 'healthy' | 'inactive' | 'unhealthy'
 
+export type ID = string
+
 export type ISODuration = string
 
 export type ISORInterval = string
 
 export type ISOTimestamp = string
+
+export type Int = string
 
 export interface IntegrationKey {
   href: string
@@ -608,6 +616,8 @@ export interface PhoneNumberInfo {
 }
 
 export interface Query {
+  __schema: __Schema
+  __type?: null | __Type
   alert?: null | Alert
   alerts: AlertConnection
   authSubjectsForProvider: AuthSubjectConnection
@@ -893,6 +903,8 @@ export type StatusUpdateState =
   | 'DISABLED_FORCED'
   | 'ENABLED'
   | 'ENABLED_FORCED'
+
+export type String = string
 
 export interface StringConnection {
   nodes: string[]
@@ -1205,6 +1217,90 @@ export type WeekdayFilter = [
   boolean,
   boolean,
 ]
+
+export interface __Directive {
+  args: __InputValue[]
+  description?: null | string
+  isRepeatable: boolean
+  locations: __DirectiveLocation[]
+  name: string
+}
+
+export type __DirectiveLocation =
+  | 'ARGUMENT_DEFINITION'
+  | 'ENUM'
+  | 'ENUM_VALUE'
+  | 'FIELD'
+  | 'FIELD_DEFINITION'
+  | 'FRAGMENT_DEFINITION'
+  | 'FRAGMENT_SPREAD'
+  | 'INLINE_FRAGMENT'
+  | 'INPUT_FIELD_DEFINITION'
+  | 'INPUT_OBJECT'
+  | 'INTERFACE'
+  | 'MUTATION'
+  | 'OBJECT'
+  | 'QUERY'
+  | 'SCALAR'
+  | 'SCHEMA'
+  | 'SUBSCRIPTION'
+  | 'UNION'
+  | 'VARIABLE_DEFINITION'
+
+export interface __EnumValue {
+  deprecationReason?: null | string
+  description?: null | string
+  isDeprecated: boolean
+  name: string
+}
+
+export interface __Field {
+  args: __InputValue[]
+  deprecationReason?: null | string
+  description?: null | string
+  isDeprecated: boolean
+  name: string
+  type: __Type
+}
+
+export interface __InputValue {
+  defaultValue?: null | string
+  description?: null | string
+  name: string
+  type: __Type
+}
+
+export interface __Schema {
+  description?: null | string
+  directives: __Directive[]
+  mutationType?: null | __Type
+  queryType: __Type
+  subscriptionType?: null | __Type
+  types: __Type[]
+}
+
+export interface __Type {
+  description?: null | string
+  enumValues?: null | __EnumValue[]
+  fields?: null | __Field[]
+  inputFields?: null | __InputValue[]
+  interfaces?: null | __Type[]
+  kind: __TypeKind
+  name?: null | string
+  ofType?: null | __Type
+  possibleTypes?: null | __Type[]
+  specifiedByURL?: null | string
+}
+
+export type __TypeKind =
+  | 'ENUM'
+  | 'INPUT_OBJECT'
+  | 'INTERFACE'
+  | 'LIST'
+  | 'NON_NULL'
+  | 'OBJECT'
+  | 'SCALAR'
+  | 'UNION'
 
 type ConfigID =
   | 'General.ApplicationName'
