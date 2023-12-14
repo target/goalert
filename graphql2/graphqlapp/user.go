@@ -264,13 +264,7 @@ func (q *Query) Users(ctx context.Context, opts *graphql2.UserSearchOptions, fir
 	}
 
 	if opts.Dest != nil {
-		t, v := CompatDestToCMTypeVal(*opts.Dest)
-		if t != "" {
-			opts.CMType = &t
-		}
-		if v != "" {
-			opts.CMValue = &v
-		}
+		searchOpts.CMType, searchOpts.CMValue = CompatDestToCMTypeVal(*opts.Dest)
 	}
 
 	if opts.CMValue != nil {

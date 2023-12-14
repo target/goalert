@@ -24,7 +24,7 @@ const createMutation = gql`
 `
 
 const userConflictQuery = gql`
-  query ($input: UserSearchOptions) {
+  query UserConflictCheck($input: UserSearchOptions) {
     users(input: $input) {
       nodes {
         id
@@ -70,7 +70,6 @@ export default function UserContactMethodCreateDialog(props: {
       values: [],
     },
   })
-  console.log(CMValue)
 
   const [{ data, fetching: queryLoading }] = useQuery({
     query: userConflictQuery,
