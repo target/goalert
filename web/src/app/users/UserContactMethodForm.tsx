@@ -30,7 +30,6 @@ export default function UserContactMethodForm(
   props: UserContactMethodFormProps,
 ): JSX.Element {
   const { value, edit = false, ...other } = props
-  console.log(value)
 
   const destinationTypes = useContactMethodTypes()
   const currentType = destinationTypes.find((d) => d.type === value.dest.type)
