@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react'
 import { useQuery, gql } from 'urql'
-import TextField, { TextFieldProps } from '@mui/material/TextField'
+import TextField from '@mui/material/TextField'
 import { InputProps } from '@mui/material/Input'
 import { Check, Close } from '@mui/icons-material'
 import InputAdornment from '@mui/material/InputAdornment'
 import makeStyles from '@mui/styles/makeStyles'
 import { DEBOUNCE_DELAY } from '../config'
-import { InputFieldConfig } from '../../schema'
+import { DestinationFieldConfig, DestinationType } from '../../schema'
 import AppLink from '../util/AppLink'
 
 const isValidValue = gql`
-  query ($type: InputFieldDataType!, $value: String!) {
-    inputFieldValidate(type: $type, value: $value)
+  query ValidateDestination($input: DestinationFieldValidateInput!) {
+    destinationFieldValidate(input: $input)
   }
 `
 
@@ -33,8 +33,17 @@ function trimPrefix(value: string, prefix: string): string {
   return value
 }
 
-export default function DestinationField(
-  props: TextFieldProps & { value: string; config: InputFieldConfig },
+export type DestinationInputDirectProps = {
+  value: string
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
+  config: DestinationFieldConfig
+  destType: DestinationType
+
+  disabled?: boolean
+}
+
+export default function DestinationInputDirect(
+  props: DestinationInputDirectProps,
 ): JSX.Element {
   const classes = useStyles()
 
@@ -51,16 +60,22 @@ export default function DestinationField(
   }, [props.value])
 
   // check validation of the input phoneNumber through graphql
-  const [{ data }] = useQuery({
+  const [{ data }] = useQuery<{ destinationFieldValidate: boolean }>({
     query: isValidValue,
-    variables: { value: debouncedValue, type: props.config.dataType },
+    variables: {
+      input: {
+        destType: props.destType,
+        value: debouncedValue,
+        fieldID: props.config.fieldID,
+      },
+    },
     requestPolicy: 'cache-first',
     pause: !props.value || props.disabled || !props.config.supportsValidation,
     context: noSuspense,
   })
 
   // fetch validation
-  const valid = !!data?.inputFieldValidate
+  const valid = !!data?.destinationFieldValidate
 
   let adorn
   if (!props.value || !props.config.supportsValidation) {
@@ -79,14 +94,6 @@ export default function DestinationField(
         {props.config.prefix}
       </InputAdornment>
     )
-  }
-
-  // if has inputProps from parent component, spread it in the iprops
-  if (props.InputProps !== undefined) {
-    iprops = {
-      ...iprops,
-      ...props.InputProps,
-    }
   }
 
   // add live validation icon to the right of the textfield as an endAdornment

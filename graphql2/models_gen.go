@@ -144,7 +144,6 @@ type CreateEscalationPolicyStepInput struct {
 	EscalationPolicyID *string                `json:"escalationPolicyID,omitempty"`
 	DelayMinutes       int                    `json:"delayMinutes"`
 	Targets            []assignment.RawTarget `json:"targets,omitempty"`
-	Actions            []DestinationInput     `json:"actions,omitempty"`
 	NewRotation        *CreateRotationInput   `json:"newRotation,omitempty"`
 	NewSchedule        *CreateScheduleInput   `json:"newSchedule,omitempty"`
 }
@@ -294,10 +293,9 @@ type DebugSendSMSInput struct {
 }
 
 type Destination struct {
-	ID     string           `json:"id"`
-	Type   string           `json:"type"`
-	Name   string           `json:"name"`
-	Values []FieldValuePair `json:"values"`
+	Type        string           `json:"type"`
+	DisplayText string           `json:"displayText"`
+	Values      []FieldValuePair `json:"values"`
 }
 
 type DestinationFieldConfig struct {
@@ -315,11 +313,10 @@ type DestinationFieldConfig struct {
 	SupportsValidation bool   `json:"supportsValidation"`
 }
 
-type DestinationFieldSearchInput struct {
-	Search *string  `json:"search,omitempty"`
-	Omit   []string `json:"omit,omitempty"`
-	After  *string  `json:"after,omitempty"`
-	First  *int     `json:"first,omitempty"`
+type DestinationFieldValidateInput struct {
+	DestType string `json:"destType"`
+	FieldID  string `json:"fieldID"`
+	Value    string `json:"value"`
 }
 
 type DestinationInput struct {
@@ -351,11 +348,6 @@ type EscalationPolicySearchOptions struct {
 	Omit           []string `json:"omit,omitempty"`
 	FavoritesOnly  *bool    `json:"favoritesOnly,omitempty"`
 	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
-}
-
-type FieldValueConnection struct {
-	Nodes    []FieldValuePair `json:"nodes"`
-	PageInfo *PageInfo        `json:"pageInfo"`
 }
 
 type FieldValueInput struct {
@@ -798,6 +790,7 @@ type UserSearchOptions struct {
 	Omit           []string            `json:"omit,omitempty"`
 	CMValue        *string             `json:"CMValue,omitempty"`
 	CMType         *contactmethod.Type `json:"CMType,omitempty"`
+	Dest           *DestinationInput   `json:"dest,omitempty"`
 	FavoritesOnly  *bool               `json:"favoritesOnly,omitempty"`
 	FavoritesFirst *bool               `json:"favoritesFirst,omitempty"`
 }

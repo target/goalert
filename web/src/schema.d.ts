@@ -182,7 +182,6 @@ export interface CreateEscalationPolicyInput {
 }
 
 export interface CreateEscalationPolicyStepInput {
-  actions?: null | DestinationInput[]
   delayMinutes: number
   escalationPolicyID?: null | string
   newRotation?: null | CreateRotationInput
@@ -342,8 +341,7 @@ export interface DebugSendSMSInput {
 }
 
 export interface Destination {
-  id: string
-  name: string
+  displayText: string
   type: DestinationType
   values: FieldValuePair[]
 }
@@ -363,11 +361,10 @@ export interface DestinationFieldConfig {
   supportsValidation: boolean
 }
 
-export interface DestinationFieldSearchInput {
-  after?: null | string
-  first?: null | number
-  omit?: null | string[]
-  search?: null | string
+export interface DestinationFieldValidateInput {
+  destType: DestinationType
+  fieldID: string
+  value: string
 }
 
 export interface DestinationInput {
@@ -415,17 +412,11 @@ export interface EscalationPolicySearchOptions {
 }
 
 export interface EscalationPolicyStep {
-  actions: Destination[]
   delayMinutes: number
   escalationPolicy?: null | EscalationPolicy
   id: string
   stepNumber: number
   targets: Target[]
-}
-
-export interface FieldValueConnection {
-  nodes: FieldValuePair[]
-  pageInfo: PageInfo
 }
 
 export interface FieldValueInput {
@@ -647,7 +638,6 @@ export interface NotificationState {
 export type NotificationStatus = 'ERROR' | 'OK' | 'WARN'
 
 export interface OnCallNotificationRule {
-  dest: Destination
   id: string
   target: Target
   time?: null | ClockTime
@@ -655,7 +645,6 @@ export interface OnCallNotificationRule {
 }
 
 export interface OnCallNotificationRuleInput {
-  dest?: null | DestinationInput
   id?: null | string
   target?: null | TargetInput
   time?: null | ClockTime
@@ -695,7 +684,6 @@ export interface Query {
   configHints: ConfigHint[]
   debugMessageStatus: DebugMessageStatusInfo
   debugMessages: DebugMessage[]
-  destinationFieldSearch: FieldValueConnection
   destinationFieldValidate: boolean
   destinationTypes: DestinationTypeInfo[]
   escalationPolicies: EscalationPolicyConnection

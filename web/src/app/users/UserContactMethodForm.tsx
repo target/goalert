@@ -2,7 +2,7 @@ import { Checkbox, FormControlLabel, Typography } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import React from 'react'
-import { ContactMethodType, StatusUpdateState } from '../../schema'
+import { DestinationInput, StatusUpdateState } from '../../schema'
 import { FormContainer, FormField } from '../forms'
 import { renderMenuItem } from '../selection/DisableableMenuItem'
 import { FieldError } from '../util/errutil'
@@ -11,8 +11,7 @@ import { useContactMethodTypes } from '../util/useDestinationTypes'
 
 type Value = {
   name: string
-  type: ContactMethodType
-  value: string
+  dest: DestinationInput
   statusUpdates?: StatusUpdateState
 }
 
@@ -27,16 +26,16 @@ export type UserContactMethodFormProps = {
   onChange?: (CMValue: Value) => void
 }
 
-const isPhoneType = (val: Value): boolean =>
-  val.type === 'SMS' || val.type === 'VOICE'
-
 export default function UserContactMethodForm(
   props: UserContactMethodFormProps,
 ): JSX.Element {
   const { value, edit = false, ...other } = props
+  console.log(value)
 
   const destinationTypes = useContactMethodTypes()
-  const currentType = destinationTypes.find((d) => d.type === value.type)
+  const currentType = destinationTypes.find((d) => d.type === value.dest.type)
+
+  if (!currentType) throw new Error('invalid destination type')
 
   const statusUpdateChecked =
     value.statusUpdates === 'ENABLED' ||
@@ -48,17 +47,17 @@ export default function UserContactMethodForm(
       {...other}
       value={value}
       mapOnChangeValue={(newValue: Value): Value => {
-        // if switching between phone types (or same type), keep the value
-        if (
-          (isPhoneType(value) && isPhoneType(newValue)) ||
-          value.type === newValue.type
-        ) {
+        if (newValue.dest.type === value.dest.type) {
           return newValue
         }
 
+        // reset otherwise
         return {
           ...newValue,
-          value: '',
+          dest: {
+            ...newValue.dest,
+            values: [],
+          },
         }
       }}
       optionalLabels
@@ -70,7 +69,7 @@ export default function UserContactMethodForm(
         <Grid item xs={12} sm={12} md={6}>
           <FormField
             fullWidth
-            name='type'
+            name='dest.type'
             required
             select
             disabled={edit}
@@ -90,8 +89,9 @@ export default function UserContactMethodForm(
           <FormField
             fullWidth
             name='value'
+            fieldName='dest.values'
             required
-            destType={value.type}
+            destType={value.dest.type}
             component={DestinationField}
             disabled={edit}
           />

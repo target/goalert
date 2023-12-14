@@ -1,17 +1,18 @@
 extend type Query {
   destinationTypes: [DestinationTypeInfo!]!
   destinationFieldValidate(input: DestinationFieldValidateInput!): Boolean!
-  destinationFieldSearch(input: DestinationFieldSearchInput!): FieldValueConnection!
+  # destinationFieldSearch(input: DestinationFieldSearchInput!): FieldValueConnection!
 }
 
 # FieldValueConnection is a connection to a list of FieldValuePairs.
-type FieldValueConnection {
-  nodes: [FieldValuePair!]!
-  pageInfo: PageInfo!
-}
+# type FieldValueConnection {
+#   nodes: [FieldValuePair!]!
+#   pageInfo: PageInfo!
+# }
 
-type DestinationFieldValidateInput {
-  inputID: ID! # the ID of the input field to validate
+input DestinationFieldValidateInput {
+  destType: DestinationType! # the type of destination to validate
+  fieldID: ID! # the ID of the input field to validate
   value: String! # the value to validate
 }
 
@@ -19,19 +20,19 @@ type DestinationFieldValidateInput {
 # notifications.
 scalar DestinationType
 
-input DestinationFieldSearchInput {
-  inputID: ID! # the ID of the input field to search for
-  search: String # search string to match against
-  omit: [String!] # values/ids to omit from results
-  after: String # cursor to start search from
-  first: Int = 15 # number of results to return
-}
+# input DestinationFieldSearchInput {
+#   destType: DestinationType! # the type of destination to search for
+#   fieldID: ID! # the ID of the input field to search for
+#   search: String # search string to match against
+#   omit: [String!] # values/ids to omit from results
+#   after: String # cursor to start search from
+#   first: Int = 15 # number of results to return
+# }
 
 # Destination represents a destination that can be used for notifications.
 type Destination {
-  id: ID!
   type: DestinationType!
-  name: String!
+  displayText: String!
   values: [FieldValuePair!]!
 }
 

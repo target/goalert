@@ -19,11 +19,11 @@ const query = gql`
       isSchedOnCallNotify
 
       requiredFields {
-        dataType
+        fieldID
         labelSingular
         labelPlural
         iconURL
-        iconAlt
+        iconAltText
         hint
         hintURL
         placeholderText

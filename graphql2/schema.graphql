@@ -548,7 +548,7 @@ input CreateEscalationPolicyStepInput {
   delayMinutes: Int!
 
   targets: [TargetInput!] @deprecated(reason: "Use actions instead.")
-  actions: [DestinationInput!]
+  # actions: [DestinationInput!]
   newRotation: CreateRotationInput
   newSchedule: CreateScheduleInput
 }
@@ -560,7 +560,7 @@ type EscalationPolicyStep {
   targets: [Target!]! @deprecated(reason: "Use actions instead.")
 
   # actions are the users, schedules, rotations, webhooks, etc that this step will notify.
-  actions: [Destination!]!
+  # actions: [Destination!]!
   escalationPolicy: EscalationPolicy
 }
 
@@ -644,7 +644,7 @@ input OnCallNotificationRuleInput {
   id: ID
   target: TargetInput @deprecated(reason: "Use dest instead.")
 
-  dest: DestinationInput
+  # dest: DestinationInput
 
   # time indicates a time-of-day (in the schedule's time zone)
   # to send a message of current on-call users.
@@ -662,7 +662,7 @@ input OnCallNotificationRuleInput {
 type OnCallNotificationRule {
   id: ID!
   target: Target! @deprecated(reason: "Use dest instead.")
-  dest: Destination!
+  # dest: Destination!
   time: ClockTime
   weekdayFilter: WeekdayFilter
 }
@@ -838,6 +838,7 @@ input UserSearchOptions {
   omit: [ID!]
   CMValue: String = ""
   CMType: ContactMethodType
+  dest: DestinationInput
 
   # Include only favorited services in the results.
   favoritesOnly: Boolean = false

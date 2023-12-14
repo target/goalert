@@ -1,24 +1,48 @@
 import React from 'react'
-import { TextFieldProps } from '@mui/material/TextField'
-import { DestinationType } from '../../schema'
+import { DestinationType, FieldValueInput } from '../../schema'
 import DestinationInputDirect from './DestinationInputDirect'
 import { useDestinationType } from '../util/useDestinationTypes'
 
+export type DestinationFieldProps = {
+  value: FieldValueInput[]
+  onChange?: (value: FieldValueInput[]) => void
+  destType: DestinationType
+
+  disabled?: boolean
+}
+
 export default function DestinationField(
-  props: TextFieldProps & { value: string; destType: DestinationType },
+  props: DestinationFieldProps,
 ): React.ReactNode {
   const dest = useDestinationType(props.destType)
 
   return dest.requiredFields.map((field, idx) => {
     if (field.isSearchSelectable)
-      throw new Error('query select not implemented')
+      throw new Error('query select not implemented yet')
+
+    const fieldValue =
+      (props.value || []).find((v) => v.fieldID === field.fieldID)?.value || ''
 
     return (
       <DestinationInputDirect
         key={idx}
-        {...props}
+        value={fieldValue}
         config={field}
+        destType={props.destType}
         disabled={props.disabled || !dest.enabled}
+        onChange={(e) => {
+          if (!props.onChange) return
+
+          const newValue = e.target.value || ''
+          const newValues = (props.value || [])
+            .filter((v) => v.fieldID !== field.fieldID)
+            .concat({
+              fieldID: field.fieldID,
+              value: newValue,
+            })
+
+          props.onChange(newValues)
+        }}
       />
     )
   })

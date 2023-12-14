@@ -5,15 +5,24 @@ import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodForm'
 import { pick } from 'lodash'
 import { useQuery } from 'urql'
-import { ContactMethodType, StatusUpdateState } from '../../schema'
+import {
+  DestinationInput,
+  StatusUpdateState,
+  UserContactMethod,
+} from '../../schema'
 
 const query = gql`
   query ($id: ID!) {
     userContactMethod(id: $id) {
       id
       name
-      type
-      value
+      dest {
+        type
+        values {
+          fieldID
+          value
+        }
+      }
       statusUpdates
     }
   }
@@ -27,8 +36,7 @@ const mutation = gql`
 
 type Value = {
   name: string
-  type: ContactMethodType
-  value: string
+  dest: DestinationInput
   statusUpdates?: StatusUpdateState
 }
 
@@ -40,17 +48,19 @@ export default function UserContactMethodEditDialog({
   contactMethodID: string
 }): React.ReactNode {
   const [value, setValue] = useState<Value | null>(null)
-  const [{ data, fetching }] = useQuery({
+  const [{ data, fetching }] = useQuery<{
+    userContactMethod: UserContactMethod
+  }>({
     query,
     variables: { id: contactMethodID },
   })
   const [commit, status] = useMutation(mutation)
   const { error } = status
+  if (!data) throw new Error('no data') // shouldn't happen since we're using suspense
 
   const defaultValue = {
     name: data.userContactMethod.name,
-    type: data.userContactMethod.type,
-    value: data.userContactMethod.value,
+    dest: data.userContactMethod.dest,
     statusUpdates: data.userContactMethod.statusUpdates,
   }
 
