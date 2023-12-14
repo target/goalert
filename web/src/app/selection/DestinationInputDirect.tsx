@@ -109,6 +109,10 @@ export default function DestinationInputDirect(
     if (!props.onChange) return
     if (!e.target.value) return props.onChange(e)
 
+    if (props.config.inputType === 'tel') {
+      e.target.value = e.target.value.replace(/[^0-9+]/g, '')
+    }
+
     e.target.value = props.config.prefix + e.target.value
     return props.onChange(e)
   }
