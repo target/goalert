@@ -79,12 +79,15 @@ export default function UserContactMethodVerificationDialog(
       onClose={props.onClose}
       onSubmit={() => {
         setSendError('')
-        submitVerify({
-          input: {
-            contactMethodID: props.contactMethodID,
-            code: value.code,
+        submitVerify(
+          {
+            input: {
+              contactMethodID: props.contactMethodID,
+              code: value.code,
+            },
           },
-        }).then((result) => {
+          { additionalTypenames: ['UserContactMethod'] },
+        ).then((result) => {
           if (!result.error) props.onClose()
         })
       }}
