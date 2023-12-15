@@ -1250,6 +1250,7 @@ export interface UserSearchOptions {
   CMType?: null | ContactMethodType
   CMValue?: null | string
   after?: null | string
+  dest?: null | DestinationInput
   favoritesFirst?: null | boolean
   favoritesOnly?: null | boolean
   first?: null | number
