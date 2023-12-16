@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@apollo/client": "3.8.5",
-    "@babel/core": "7.23.5",
+    "@babel/core": "7.23.6",
     "@babel/plugin-transform-modules-commonjs": "7.23.0",
     "@dnd-kit/core": "6.0.8",
     "@dnd-kit/sortable": "7.0.2",
