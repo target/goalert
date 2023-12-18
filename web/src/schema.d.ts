@@ -341,7 +341,6 @@ export interface DebugSendSMSInput {
 }
 
 export interface Destination {
-  displayText: string
   type: DestinationType
   values: FieldValuePair[]
 }
@@ -359,6 +358,15 @@ export interface DestinationFieldConfig {
   placeholderText: string
   prefix: string
   supportsValidation: boolean
+}
+
+export interface DestinationFieldSearchInput {
+  after?: null | string
+  destType: DestinationType
+  fieldID: string
+  first?: null | number
+  omit?: null | string[]
+  search?: null | string
 }
 
 export interface DestinationFieldValidateInput {
@@ -419,6 +427,11 @@ export interface EscalationPolicyStep {
   targets: Target[]
 }
 
+export interface FieldValueConnection {
+  nodes: FieldValuePair[]
+  pageInfo: PageInfo
+}
+
 export interface FieldValueInput {
   fieldID: string
   value: string
@@ -426,8 +439,9 @@ export interface FieldValueInput {
 
 export interface FieldValuePair {
   fieldID: string
+  isFavorite: boolean
+  label: string
   value: string
-  valueName: string
 }
 
 export type Float = string
@@ -638,6 +652,7 @@ export interface NotificationState {
 export type NotificationStatus = 'ERROR' | 'OK' | 'WARN'
 
 export interface OnCallNotificationRule {
+  dest: Destination
   id: string
   target: Target
   time?: null | ClockTime
@@ -645,6 +660,7 @@ export interface OnCallNotificationRule {
 }
 
 export interface OnCallNotificationRuleInput {
+  dest?: null | DestinationInput
   id?: null | string
   target?: null | TargetInput
   time?: null | ClockTime
@@ -684,7 +700,9 @@ export interface Query {
   configHints: ConfigHint[]
   debugMessageStatus: DebugMessageStatusInfo
   debugMessages: DebugMessage[]
+  destinationFieldSearch: FieldValueConnection
   destinationFieldValidate: boolean
+  destinationFieldValueName: string
   destinationTypes: DestinationTypeInfo[]
   escalationPolicies: EscalationPolicyConnection
   escalationPolicy?: null | EscalationPolicy

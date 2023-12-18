@@ -18,12 +18,92 @@ const (
 	destSMTP        = "builtin-smtp-email"
 	destWebhook     = "builtin-webhook"
 	destSlackDM     = "builtin-slack-dm"
+	destSlackChan   = "builtin-slack-channel"
+	destSlackUG     = "builtin-slack-usergroup"
 
 	fieldPhoneNumber  = "phone-number"
 	fieldEmailAddress = "email-address"
 	fieldWebhookURL   = "webhook-url"
 	fieldSlackUserID  = "slack-user-id"
+	fieldSlackChanID  = "slack-channel-id"
+	fieldSlackUGID    = "slack-usergroup-id"
 )
+
+func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.DestinationFieldValidateInput) (string, error) {
+	switch input.FieldID {
+	case fieldSlackChanID:
+		ch, err := q.SlackChannel(ctx, input.Value)
+		if err != nil {
+			return "", err
+		}
+
+		return ch.Name, nil
+	case fieldSlackUGID:
+		ug, err := q.SlackUserGroup(ctx, input.Value)
+		if err != nil {
+			return "", err
+		}
+
+		return ug.Handle, nil
+	}
+
+	return "", validation.NewGenericError("unsupported fieldID")
+}
+
+func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.DestinationFieldSearchInput) (*graphql2.FieldValueConnection, error) {
+	switch input.FieldID {
+	case fieldSlackChanID:
+		res, err := q.SlackChannels(ctx, &graphql2.SlackChannelSearchOptions{
+			Omit:   input.Omit,
+			First:  input.First,
+			Search: input.Search,
+			After:  input.After,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		var nodes []graphql2.FieldValuePair
+		for _, c := range res.Nodes {
+			nodes = append(nodes, graphql2.FieldValuePair{
+				FieldID: input.FieldID,
+				Value:   c.ID,
+				Label:   c.Name,
+			})
+		}
+
+		return &graphql2.FieldValueConnection{
+			Nodes:    nodes,
+			PageInfo: res.PageInfo,
+		}, nil
+	case fieldSlackUGID:
+		res, err := q.SlackUserGroups(ctx, &graphql2.SlackUserGroupSearchOptions{
+			Omit:   input.Omit,
+			First:  input.First,
+			Search: input.Search,
+			After:  input.After,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		var nodes []graphql2.FieldValuePair
+		for _, ug := range res.Nodes {
+			nodes = append(nodes, graphql2.FieldValuePair{
+				FieldID: input.FieldID,
+				Value:   ug.ID,
+				Label:   ug.Handle,
+			})
+		}
+
+		return &graphql2.FieldValueConnection{
+			Nodes:    nodes,
+			PageInfo: res.PageInfo,
+		}, nil
+	}
+
+	return nil, validation.NewGenericError("unsupported fieldID")
+}
 
 func (q *Query) DestinationFieldValidate(ctx context.Context, input graphql2.DestinationFieldValidateInput) (bool, error) {
 	switch input.DestType {
@@ -109,12 +189,13 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			}},
 		},
 		{
-			Type:            destWebhook,
-			Name:            "Webhook",
-			Enabled:         cfg.Webhook.Enable,
-			IsContactMethod: true,
-			IsEPTarget:      true,
-			DisabledMessage: "Webhooks must be enabled by an administrator",
+			Type:                destWebhook,
+			Name:                "Webhook",
+			Enabled:             cfg.Webhook.Enable,
+			IsContactMethod:     true,
+			IsEPTarget:          true,
+			IsSchedOnCallNotify: true,
+			DisabledMessage:     "Webhooks must be enabled by an administrator",
 			RequiredFields: []graphql2.DestinationFieldConfig{{
 				FieldID:            fieldWebhookURL,
 				LabelSingular:      "Webhook URL",
@@ -140,6 +221,43 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 				InputType:       "text",
 				// IsSearchSelectable: true, // TODO: implement search select functionality for users
 				Hint: `Go to your Slack profile, click the three dots, and select "Copy member ID".`,
+			}},
+		},
+		{
+			Type:                destSlackChan,
+			Name:                "Slack Channel",
+			Enabled:             cfg.Slack.Enable,
+			IsEPTarget:          true,
+			IsSchedOnCallNotify: true,
+			DisabledMessage:     "Slack must be enabled by an administrator",
+			RequiredFields: []graphql2.DestinationFieldConfig{{
+				FieldID:            fieldSlackChanID,
+				LabelSingular:      "Slack Channel",
+				LabelPlural:        "Slack Channels",
+				InputType:          "text",
+				IsSearchSelectable: true,
+			}},
+		},
+		{
+			Type:                destSlackUG,
+			Name:                "Update Slack User Group",
+			Enabled:             cfg.Slack.Enable,
+			IsSchedOnCallNotify: true,
+			DisabledMessage:     "Slack must be enabled by an administrator",
+			RequiredFields: []graphql2.DestinationFieldConfig{{
+				FieldID:            fieldSlackUGID,
+				LabelSingular:      "User Group",
+				LabelPlural:        "User Groups",
+				InputType:          "text",
+				IsSearchSelectable: true,
+				Hint:               "The selected group's membership will be replaced/set to the schedule's on-call user(s).",
+			}, {
+				FieldID:            fieldSlackChanID,
+				LabelSingular:      "Slack Channel (for errors)",
+				LabelPlural:        "Slack Channels (for errors)",
+				InputType:          "text",
+				IsSearchSelectable: true,
+				Hint:               "If the user group update fails, an error will be posted to this channel.",
 			}},
 		},
 	}

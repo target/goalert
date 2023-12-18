@@ -26,42 +26,37 @@ func (a *ContactMethod) Dest(ctx context.Context, obj *contactmethod.ContactMeth
 	switch obj.Type {
 	case contactmethod.TypeSMS:
 		return &graphql2.Destination{
-			Type:        destTwilioSMS,
-			DisplayText: a.FormatDestFunc(ctx, notification.DestTypeSMS, obj.Value),
+			Type: destTwilioSMS,
 			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldPhoneNumber, Value: obj.Value},
+				{FieldID: fieldPhoneNumber, Value: obj.Value, Label: a.FormatDestFunc(ctx, notification.DestTypeSMS, obj.Value)},
 			},
 		}, nil
 	case contactmethod.TypeVoice:
 		return &graphql2.Destination{
-			Type:        destTwilioVoice,
-			DisplayText: a.FormatDestFunc(ctx, notification.DestTypeVoice, obj.Value),
+			Type: destTwilioVoice,
 			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldPhoneNumber, Value: obj.Value},
+				{FieldID: fieldPhoneNumber, Value: obj.Value, Label: a.FormatDestFunc(ctx, notification.DestTypeVoice, obj.Value)},
 			},
 		}, nil
 	case contactmethod.TypeEmail:
 		return &graphql2.Destination{
-			Type:        destSMTP,
-			DisplayText: a.FormatDestFunc(ctx, notification.DestTypeUserEmail, obj.Value),
+			Type: destSMTP,
 			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldEmailAddress, Value: obj.Value},
+				{FieldID: fieldEmailAddress, Value: obj.Value, Label: a.FormatDestFunc(ctx, notification.DestTypeUserEmail, obj.Value)},
 			},
 		}, nil
 	case contactmethod.TypeWebhook:
 		return &graphql2.Destination{
-			Type:        destWebhook,
-			DisplayText: a.FormatDestFunc(ctx, notification.DestTypeUserWebhook, obj.Value),
+			Type: destWebhook,
 			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldWebhookURL, Value: obj.Value},
+				{FieldID: fieldWebhookURL, Value: obj.Value, Label: a.FormatDestFunc(ctx, notification.DestTypeUserWebhook, obj.Value)},
 			},
 		}, nil
 	case contactmethod.TypeSlackDM:
 		return &graphql2.Destination{
-			Type:        destSlackDM,
-			DisplayText: a.FormatDestFunc(ctx, notification.DestTypeSlackChannel, obj.Value),
+			Type: destSlackDM,
 			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldSlackUserID, Value: obj.Value},
+				{FieldID: fieldSlackUserID, Value: obj.Value, Label: a.FormatDestFunc(ctx, notification.DestTypeSlackChannel, obj.Value)},
 			},
 		}, nil
 	}

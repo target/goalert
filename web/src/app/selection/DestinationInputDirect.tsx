@@ -121,7 +121,6 @@ export default function DestinationInputDirect(
   return (
     <TextField
       fullWidth
-      {...props}
       InputProps={iprops}
       type={props.config.inputType}
       placeholder={props.config.placeholderText}

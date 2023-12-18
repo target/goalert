@@ -2,9 +2,9 @@ import { ApolloError } from '@apollo/client'
 import { DateTime } from 'luxon'
 
 import {
+  DestinationInput,
   OnCallNotificationRule,
   OnCallNotificationRuleInput,
-  TargetType,
   WeekdayFilter,
 } from '../../../schema'
 import { allErrors, fieldErrors, nonFieldErrors } from '../../util/errutil'
@@ -13,8 +13,7 @@ import { weekdaySummary } from '../util'
 export type Value = {
   time: string | null
   weekdayFilter: WeekdayFilter
-  type: TargetType
-  targetID: string | null
+  dest: DestinationInput
 }
 
 export type RuleFieldError = {

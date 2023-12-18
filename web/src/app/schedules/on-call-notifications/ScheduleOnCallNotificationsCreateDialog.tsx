@@ -3,24 +3,26 @@ import FormDialog from '../../dialogs/FormDialog'
 import ScheduleOnCallNotificationsForm from './ScheduleOnCallNotificationsForm'
 import { useOnCallRulesData, useSetOnCallRulesSubmit } from './hooks'
 import { NO_DAY, Value, mapOnCallErrors } from './util'
+import { useSchedOnCallNotifyTypes } from '../../util/useDestinationTypes'
 
 interface ScheduleOnCallNotificationsCreateDialogProps {
   onClose: () => void
   scheduleID: string
 }
 
-const defaultValue: Value = {
-  time: null,
-  weekdayFilter: NO_DAY,
-  type: 'slackChannel',
-  targetID: null,
-}
-
 export default function ScheduleOnCallNotificationsCreateDialog(
   props: ScheduleOnCallNotificationsCreateDialogProps,
 ): JSX.Element {
   const { onClose, scheduleID } = props
-  const [value, setValue] = useState<Value>(defaultValue)
+  const destTypes = useSchedOnCallNotifyTypes()
+  const [value, setValue] = useState<Value>({
+    time: null,
+    weekdayFilter: NO_DAY,
+    dest: {
+      type: destTypes[0].type,
+      values: [],
+    },
+  })
 
   const { q, zone, rules } = useOnCallRulesData(scheduleID)
 

@@ -9,20 +9,17 @@ import {
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
-import React, { useMemo } from 'react'
+import React from 'react'
 
 import { TargetType } from '../../../schema'
 import { FormContainer, FormField } from '../../forms'
-import { SlackChannelSelect, SlackUserGroupSelect } from '../../selection'
-import {
-  renderMenuItem,
-  sortDisableableMenuItems,
-} from '../../selection/DisableableMenuItem'
+import { renderMenuItem } from '../../selection/DisableableMenuItem'
 import { ISOTimePicker } from '../../util/ISOPickers'
-import { useConfigValue } from '../../util/RequireConfig'
 import { Time } from '../../util/Time'
 import { useScheduleTZ } from '../useScheduleTZ'
 import { EVERY_DAY, NO_DAY, RuleFieldError, Value } from './util'
+import { useSchedOnCallNotifyTypes } from '../../util/useDestinationTypes'
+import DestinationField from '../../selection/DestinationField'
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -43,8 +40,9 @@ export default function ScheduleOnCallNotificationsForm(
 ): JSX.Element {
   const { scheduleID, ...formProps } = props
   const classes = useStyles()
-  const [slackEnabled] = useConfigValue('Slack.Enable')
-  const [webhookEnabled] = useConfigValue('Webhook.Enable')
+
+  const destinationTypes = useSchedOnCallNotifyTypes()
+
   const { zone } = useScheduleTZ(scheduleID)
 
   const handleRuleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -61,83 +59,15 @@ export default function ScheduleOnCallNotificationsForm(
 
   const handleTypeChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const newType = e.target.value as TargetType
-    if (props.value.type !== newType) {
-      props.onChange({
-        ...props.value,
+    if (props.value.dest.type === newType) return
+
+    props.onChange({
+      ...props.value,
+      dest: {
         type: newType,
-        targetID: null,
-      })
-    }
-  }
-
-  const notificationChannels = useMemo(
-    () =>
-      [
-        {
-          value: 'slackChannel',
-          label: 'SLACK CHANNEL',
-          disabledMessage: 'Slack must be configured by an administrator',
-          disabled: !slackEnabled,
-        },
-
-        {
-          value: 'slackUserGroup',
-          label: 'SLACK USER GROUP',
-          disabledMessage: 'Slack must be configured by an administrator',
-          disabled: !slackEnabled,
-        },
-
-        {
-          value: 'chanWebhook',
-          label: 'WEBHOOK',
-          disabledMessage: 'Webhooks must be enabled by an administrator',
-          disabled: !webhookEnabled,
-        },
-      ].sort(sortDisableableMenuItems),
-    [slackEnabled, webhookEnabled],
-  )
-
-  function renderTypeFields(type: TargetType): JSX.Element {
-    switch (type) {
-      case 'slackUserGroup':
-        return (
-          <Grid item>
-            <FormField
-              component={SlackUserGroupSelect}
-              fullWidth
-              name='targetID'
-              label='Slack User Group'
-            />
-          </Grid>
-        )
-      case 'slackChannel':
-        return (
-          <Grid item>
-            <FormField
-              component={SlackChannelSelect}
-              fullWidth
-              required
-              label='Slack Channel'
-              name='targetID'
-            />
-          </Grid>
-        )
-      case 'chanWebhook':
-        return (
-          <Grid item>
-            <FormField
-              component={TextField}
-              fullWidth
-              required
-              label='Webhook'
-              name='targetID'
-            />
-          </Grid>
-        )
-      default:
-        // unsupported type
-        return <Grid item />
-    }
+        values: [],
+      },
+    })
   }
 
   return (
@@ -213,18 +143,31 @@ export default function ScheduleOnCallNotificationsForm(
         <Grid item>
           <TextField
             fullWidth
-            value={props.value.type}
+            value={props.value.dest.type}
             required
             name='notificationType'
             label='Type'
             select
             onChange={handleTypeChange}
-            disabled={notificationChannels.length <= 1}
           >
-            {notificationChannels.map(renderMenuItem)}
+            {destinationTypes.map((t) =>
+              renderMenuItem({
+                value: t.type,
+                label: t.name,
+                disabled: !t.enabled,
+                disabledMessage: t.enabled ? '' : t.disabledMessage,
+              }),
+            )}
           </TextField>
         </Grid>
-        {renderTypeFields(formProps.value.type)}
+        <Grid item>
+          <FormField
+            component={DestinationField}
+            fullWidth
+            name='dest.values'
+            destType={formProps.value.dest.type}
+          />
+        </Grid>
       </Grid>
     </FormContainer>
   )

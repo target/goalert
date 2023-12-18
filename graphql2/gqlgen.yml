@@ -95,10 +95,6 @@ models:
     model: github.com/target/goalert/schedule.FixedShift
   TemporarySchedule:
     model: github.com/target/goalert/schedule.TemporarySchedule
-  OnCallNotificationRule:
-    model: github.com/target/goalert/schedule.OnCallNotificationRule
-  OnCallNotificationRuleInput:
-    model: github.com/target/goalert/graphql2.OnCallNotificationRuleInput
   WeekdayFilter:
     model: github.com/target/goalert/util/timeutil.WeekdayFilter
   AlertMetric:

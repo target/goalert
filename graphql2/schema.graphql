@@ -644,7 +644,7 @@ input OnCallNotificationRuleInput {
   id: ID
   target: TargetInput @deprecated(reason: "Use dest instead.")
 
-  # dest: DestinationInput
+  dest: DestinationInput
 
   # time indicates a time-of-day (in the schedule's time zone)
   # to send a message of current on-call users.
@@ -662,7 +662,7 @@ input OnCallNotificationRuleInput {
 type OnCallNotificationRule {
   id: ID!
   target: Target! @deprecated(reason: "Use dest instead.")
-  # dest: Destination!
+  dest: Destination!
   time: ClockTime
   weekdayFilter: WeekdayFilter
 }
