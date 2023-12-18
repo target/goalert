@@ -50,6 +50,7 @@ type TempSchedShiftsListProps = {
   edit?: boolean
   scheduleID: string
   handleCoverageGapClick?: (coverageGap: Interval) => void
+  confirmationStep?: boolean
 }
 
 export default function TempSchedShiftsList({
@@ -60,6 +61,7 @@ export default function TempSchedShiftsList({
   onRemove,
   scheduleID,
   handleCoverageGapClick,
+  confirmationStep,
 }: TempSchedShiftsListProps): JSX.Element {
   const classes = useStyles()
   const { zone, isLocalZone } = useScheduleTZ(scheduleID)
@@ -256,7 +258,7 @@ export default function TempSchedShiftsList({
       } as Sortable<FlatListNotice>
     })()
 
-    return sortItems([
+    let items = sortItems([
       ...shiftItems,
       ...coverageGapItems,
       ...subheaderItems,
@@ -264,6 +266,17 @@ export default function TempSchedShiftsList({
       startItem,
       endItem,
     ])
+
+    // don't show out of bound items when confirming final submit
+    if (confirmationStep) {
+      items = items.filter((item) => {
+        return (
+          item.at >= DateTime.fromISO(start) && item.at <= DateTime.fromISO(end)
+        )
+      })
+    }
+
+    return items
   }
 
   return (

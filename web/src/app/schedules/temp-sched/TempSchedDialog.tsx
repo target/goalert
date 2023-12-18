@@ -119,7 +119,8 @@ export default function TempSchedDialog({
     truncated: false,
   })
   const [allowNoCoverage, setAllowNoCoverage] = useState(false)
-  const [hasSubmitted, setHasSubmitted] = useState(false)
+  const [submitAttempt, setSubmitAttempt] = useState(false) // helps with error messaging on step 1
+  const [submitSuccess, setSubmitSuccess] = useState(false)
 
   const [commit, { loading, error }] = useMutation(mutation, {
     onCompleted: () => onClose(),
@@ -206,16 +207,18 @@ export default function TempSchedDialog({
 
   const handleNext = (): void => {
     if (hasCoverageGaps && !allowNoCoverage) {
+      setSubmitAttempt(true)
       // Scroll to show gap in coverage error on top of shift list
       if (shiftListRef?.current) {
         shiftListRef.current.scrollIntoView({ behavior: 'smooth' })
       }
     } else {
-      setHasSubmitted(true)
+      setSubmitSuccess(true)
     }
   }
   const handleBack = (): void => {
-    setHasSubmitted(false)
+    setSubmitAttempt(false)
+    setSubmitSuccess(false)
   }
   const handleSubmit = (): void => {
     commit()
@@ -228,7 +231,7 @@ export default function TempSchedDialog({
     message: `${e.field}: ${e.message}`,
   }))
   const noCoverageErrs =
-    hasSubmitted && hasCoverageGaps && !allowNoCoverage
+    submitSuccess && hasCoverageGaps && !allowNoCoverage
       ? [new Error('This temporary schedule has gaps in coverage.')]
       : []
   const errs = nonFieldErrs
@@ -243,36 +246,24 @@ export default function TempSchedDialog({
       title='Define a Temporary Schedule'
       onClose={onClose}
       onSubmit={handleSubmit}
-      onNext={handleNext}
-      onBack={handleBack}
+      onNext={edit && !submitSuccess ? handleNext : null}
+      onBack={edit && submitSuccess ? handleBack : null}
       loading={loading}
       errors={errs}
       disableBackdropClose
-      notices={
-        DateTime.fromISO(value.start) > DateTime.utc().minus({ hour: 1 }) ||
-        edit
-          ? []
-          : [
-              {
-                type: 'WARNING',
-                message: 'Start time occurs in the past',
-                details:
-                  'Any shifts or changes made to shifts in the past will be ignored when submitting.',
-              },
-            ]
-      }
       form={
-        hasSubmitted ? (
-          <TempSchedConfirmation value={value} scheduleID={scheduleID} />
-        ) : (
-          <FormContainer
-            optionalLabels
-            disabled={loading}
-            value={value}
-            onChange={(newValue: TempSchedValue) => {
-              setValue({ ...value, ...ensureInterval(value, newValue) })
-            }}
-          >
+        <FormContainer
+          optionalLabels
+          disabled={loading}
+          value={value}
+          onChange={(newValue: TempSchedValue) => {
+            setValue({ ...value, ...ensureInterval(value, newValue) })
+          }}
+        >
+          {(edit && submitSuccess && !hasCoverageGaps) ||
+          (edit && submitSuccess && hasCoverageGaps && allowNoCoverage) ? (
+            <TempSchedConfirmation value={value} scheduleID={scheduleID} />
+          ) : (
             <Grid
               container
               className={classes.formContainer}
@@ -373,13 +364,42 @@ export default function TempSchedDialog({
                     Shifts
                   </Typography>
 
-                  {hasSubmitted && hasCoverageGaps && (
+                  {submitAttempt && hasCoverageGaps && (
                     <Alert severity='error' className={classes.noCoverageError}>
                       <AlertTitle>Gaps in coverage</AlertTitle>
                       <FormHelperText>
                         There are gaps in coverage. During these gaps, nobody on
                         the schedule will receive alerts. If you still want to
                         proceed, check the box below and retry.
+                      </FormHelperText>
+                      <FormControlLabel
+                        label='Allow gaps in coverage'
+                        labelPlacement='end'
+                        control={
+                          <Checkbox
+                            data-cy='no-coverage-checkbox'
+                            checked={allowNoCoverage}
+                            onChange={(e) => {
+                              setSubmitSuccess(false)
+                              setAllowNoCoverage(e.target.checked)
+                            }}
+                            name='allowCoverageGaps'
+                          />
+                        }
+                      />
+                    </Alert>
+                  )}
+
+                  {DateTime.fromISO(value.start) >
+                    DateTime.utc().minus({ hour: 1 }) || edit ? null : (
+                    <Alert
+                      severity='warning'
+                      className={classes.noCoverageError}
+                    >
+                      <AlertTitle>Start time occurs in the past</AlertTitle>
+                      <FormHelperText>
+                        Any shifts or changes made to shifts in the past will be
+                        ignored when submitting.
                       </FormHelperText>
                       <FormControlLabel
                         label='Allow gaps in coverage'
@@ -417,8 +437,8 @@ export default function TempSchedDialog({
                 </Grid>
               </Grid>
             </Grid>
-          </FormContainer>
-        )
+          )}
+        </FormContainer>
       }
     />
   )
