@@ -3432,13 +3432,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@urql/core@npm:>=4.0.0, @urql/core@npm:^4.1.0":
+"@urql/core@npm:>=4.0.0":
   version: 4.1.3
   resolution: "@urql/core@npm:4.1.3"
   dependencies:
     "@0no-co/graphql.web": ^1.0.1
     wonka: ^6.3.2
   checksum: bb8bea3caa4cdcf92c5109da8d643b4a70784d7a8987bb48aa466d41c126cb48fcd8693f0ee160bd363b0438c525068816a9e77f60984a63473e503f8b39b7d8
+  languageName: node
+  linkType: hard
+
+"@urql/core@npm:^4.2.0":
+  version: 4.2.2
+  resolution: "@urql/core@npm:4.2.2"
+  dependencies:
+    "@0no-co/graphql.web": ^1.0.1
+    wonka: ^6.3.2
+  checksum: 5ac5b1101f2db160968c945529d16d640b7761a4edbb320abe2bd31cab83cce424db6f833e368885882da75c5f9bf94f408ff0003662d6c845bbd6d6e660004d
   languageName: node
   linkType: hard
 
@@ -11618,7 +11628,7 @@ __metadata:
     stylelint: 15.11.0
     stylelint-config-standard: 34.0.0
     typescript: 5.2.2
-    urql: 4.0.5
+    urql: 4.0.6
     wonka: 6.3.4
     wouter: 2.12.1
   dependenciesMeta:
@@ -13006,15 +13016,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"urql@npm:4.0.5":
-  version: 4.0.5
-  resolution: "urql@npm:4.0.5"
+"urql@npm:4.0.6":
+  version: 4.0.6
+  resolution: "urql@npm:4.0.6"
   dependencies:
-    "@urql/core": ^4.1.0
+    "@urql/core": ^4.2.0
     wonka: ^6.3.2
   peerDependencies:
     react: ">= 16.8.0"
-  checksum: e8fe5ee624970d289f5832d3f62bab980e26d2e1b141cc6f82d4c1d009f6481bf58ff5f27971fac55bc8f953dbed6d7aaf62f005782bfd9d130c5c3e4033188b
+  checksum: 1af8471991be3ddd897e8268bc359e605f6a65bae8ff0b624764fb9fb2c555f678ad4f119220d84c279e3bb08418b4e7f0b256b73e766824cb55b07e3a8736a2
   languageName: node
   linkType: hard
 
