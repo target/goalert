@@ -45,15 +45,16 @@ import { ExpandLess, ExpandMore } from '@mui/icons-material'
 const useStyles = makeStyles({
   alert: {
     margin: '0.5rem 0 0.5rem 0',
-    width: '100%',
   },
   alertAsButton: {
     width: '100%',
+    margin: '0.5rem 0 0.5rem 0',
     '&:hover, &.Mui-focusVisible': {
       filter: 'brightness(90%)',
     },
   },
   buttonBase: {
+    width: '100%',
     borderRadius: 4,
   },
   background: { backgroundColor: 'transparent' },
