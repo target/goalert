@@ -12,6 +12,7 @@ import { parseInterval } from '../../util/shifts'
 import { Shift } from './sharedUtils'
 import { Tooltip } from '@mui/material'
 import { fmtLocal, fmtTime } from '../../util/timeFormat'
+import { InfoOutlined } from '@mui/icons-material'
 
 export type Sortable<T> = T & {
   // at is the earliest point in time for a list item
@@ -159,6 +160,11 @@ export function getCoverageGapItems(
       details: (
         <Tooltip title={!isLocalZone ? title : ''} placement='right'>
           <span>{details}</span>
+        </Tooltip>
+      ),
+      action: (
+        <Tooltip title='Click me to use this time range for a new shift'>
+          <InfoOutlined />
         </Tooltip>
       ),
       at: gap.start,
