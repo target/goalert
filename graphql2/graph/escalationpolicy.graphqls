@@ -1,0 +1,13 @@
+
+
+extend type EscalationPolicyStep {
+    actions: [Destination!]!
+}
+
+extend input CreateEscalationPolicyStepInput {
+    actions: [DestinationInput!] @goField(forceResolver: true) # force resolver for initial compat
+}
+
+extend input UpdateEscalationPolicyStepInput {
+    actions: [DestinationInput!] @goField(forceResolver: true) # force resolver for initial compat
+}

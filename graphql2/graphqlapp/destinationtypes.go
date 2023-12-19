@@ -20,6 +20,9 @@ const (
 	destSlackDM     = "builtin-slack-dm"
 	destSlackChan   = "builtin-slack-channel"
 	destSlackUG     = "builtin-slack-usergroup"
+	destUser        = "builtin-user"
+	destRotation    = "builtin-rotation"
+	destSchedule    = "builtin-schedule"
 
 	fieldPhoneNumber  = "phone-number"
 	fieldEmailAddress = "email-address"
@@ -27,6 +30,9 @@ const (
 	fieldSlackUserID  = "slack-user-id"
 	fieldSlackChanID  = "slack-channel-id"
 	fieldSlackUGID    = "slack-usergroup-id"
+	fieldUserID       = "user-id"
+	fieldRotationID   = "rotation-id"
+	fieldScheduleID   = "schedule-id"
 )
 
 func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.DestinationFieldValidateInput) (string, error) {

@@ -146,6 +146,7 @@ type CreateEscalationPolicyStepInput struct {
 	Targets            []assignment.RawTarget `json:"targets,omitempty"`
 	NewRotation        *CreateRotationInput   `json:"newRotation,omitempty"`
 	NewSchedule        *CreateScheduleInput   `json:"newSchedule,omitempty"`
+	Actions            []DestinationInput     `json:"actions,omitempty"`
 }
 
 type CreateGQLAPIKeyInput struct {
@@ -702,6 +703,7 @@ type UpdateEscalationPolicyStepInput struct {
 	ID           string                 `json:"id"`
 	DelayMinutes *int                   `json:"delayMinutes,omitempty"`
 	Targets      []assignment.RawTarget `json:"targets,omitempty"`
+	Actions      []DestinationInput     `json:"actions,omitempty"`
 }
 
 type UpdateGQLAPIKeyInput struct {

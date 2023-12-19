@@ -19,10 +19,56 @@ import (
 
 type EscalationPolicy App
 type EscalationPolicyStep App
+type CreateEscalationPolicyStepInput App
+type UpdateEscalationPolicyStepInput App
 
 func (a *App) EscalationPolicy() graphql2.EscalationPolicyResolver { return (*EscalationPolicy)(a) }
 func (a *App) EscalationPolicyStep() graphql2.EscalationPolicyStepResolver {
 	return (*EscalationPolicyStep)(a)
+}
+func (a *App) CreateEscalationPolicyStepInput() graphql2.CreateEscalationPolicyStepInputResolver {
+	return (*CreateEscalationPolicyStepInput)(a)
+}
+func (a *App) UpdateEscalationPolicyStepInput() graphql2.UpdateEscalationPolicyStepInputResolver {
+	return (*UpdateEscalationPolicyStepInput)(a)
+}
+
+func (a *CreateEscalationPolicyStepInput) Actions(ctx context.Context, input *graphql2.CreateEscalationPolicyStepInput, actions []graphql2.DestinationInput) error {
+	tgts := make([]assignment.RawTarget, len(actions))
+	var err error
+	for i, action := range actions {
+		tgts[i], err = CompatDestToTarget(action)
+		if err != nil {
+			return err
+		}
+	}
+	input.Targets = tgts
+	return nil
+}
+func (a *UpdateEscalationPolicyStepInput) Actions(ctx context.Context, input *graphql2.UpdateEscalationPolicyStepInput, actions []graphql2.DestinationInput) error {
+	tgts := make([]assignment.RawTarget, len(actions))
+	var err error
+	for i, action := range actions {
+		tgts[i], err = CompatDestToTarget(action)
+		if err != nil {
+			return err
+		}
+	}
+	input.Targets = tgts
+	return nil
+}
+
+func (a *EscalationPolicyStep) Actions(ctx context.Context, raw *escalation.Step) ([]graphql2.Destination, error) {
+	actions := make([]graphql2.Destination, len(raw.Targets))
+	var err error
+	for i, tgt := range raw.Targets {
+		actions[i], err = CompatTargetToDest(tgt)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return actions, nil
 }
 
 func contains(ids []string, id string) bool {
