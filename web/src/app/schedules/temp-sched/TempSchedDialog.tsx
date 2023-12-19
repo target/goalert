@@ -243,7 +243,7 @@ export default function TempSchedDialog({
     <FormDialog
       fullHeight
       maxWidth='lg'
-      title='Define a Temporary Schedule'
+      title={edit ? 'Edit a Temporary Schedule' : 'Define a Temporary Schedule'}
       onClose={onClose}
       onSubmit={handleSubmit}
       onNext={edit && !submitSuccess ? handleNext : null}
@@ -360,7 +360,11 @@ export default function TempSchedDialog({
                 className={classes.rightPane}
               >
                 <Grid item xs={12} ref={shiftListRef}>
-                  <Typography variant='subtitle1' component='h3'>
+                  <Typography
+                    variant='subtitle1'
+                    component='h3'
+                    sx={{ fontSize: '1.15rem' }}
+                  >
                     Shifts
                   </Typography>
 

@@ -45,7 +45,9 @@ export default function TempSchedConfirmation({
   return (
     <Grid container spacing={4}>
       <Grid item xs={6}>
-        <Typography variant='h6'>Current Temporary Schedule</Typography>
+        <Typography component='h3' sx={{ fontSize: '1.15rem' }}>
+          Current Temporary Schedule
+        </Typography>
         <TempSchedShiftsList
           confirmationStep
           scheduleID={scheduleID}
@@ -57,7 +59,9 @@ export default function TempSchedConfirmation({
         />
       </Grid>
       <Grid item xs={6}>
-        <Typography variant='h6'>Proposed Changes</Typography>
+        <Typography component='h3' sx={{ fontSize: '1.15rem' }}>
+          Proposed Changes
+        </Typography>
         <TempSchedShiftsList
           confirmationStep
           scheduleID={scheduleID}
