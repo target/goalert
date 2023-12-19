@@ -3,6 +3,7 @@ extend type Query {
   destinationFieldValidate(input: DestinationFieldValidateInput!): Boolean!
   destinationFieldSearch(input: DestinationFieldSearchInput!): FieldValueConnection!
   destinationFieldValueName(input: DestinationFieldValidateInput!): String!
+  destinationDisplayInfo(input: DestinationInput!): DestinationDisplayInfo!
 }
 
 # FieldValueConnection is a connection to a list of FieldValuePairs.
@@ -34,6 +35,15 @@ input DestinationFieldSearchInput {
 type Destination {
   type: DestinationType!
   values: [FieldValuePair!]!
+  typeInfo: DestinationTypeInfo!
+  display: DestinationDisplayInfo!
+}
+
+type DestinationDisplayInfo {
+  text: String! # user-friendly text to display for this destination
+  iconURL: String! # URL to an icon to display for this destination
+  iconAltText: String! # alt text for the icon
+  linkURL: String! # URL to link to for more information about this destination
 }
 
 type FieldValuePair {
@@ -59,6 +69,10 @@ type DestinationTypeInfo {
   type: DestinationType!
 
   name: String!
+
+  iconURL: String! # URL to an icon to display for the destination type
+  iconAltText: String! # alt text for the icon
+
   disabledMessage: String!
 
   enabled: Boolean! # if false, the destination type is disabled and cannot be used
@@ -77,9 +91,6 @@ type DestinationFieldConfig {
 
   labelSingular: String! # user-friendly label
   labelPlural: String! # user-friendly plural label
-
-  iconURL: String! # URL to an icon to display for the destination type
-  iconAltText: String! # alt text for the icon
 
   hint: String! # user-friendly helper text for input fields (i.e., "Enter a phone number")
   hintURL: String! # URL to link to for more information about the destination type
