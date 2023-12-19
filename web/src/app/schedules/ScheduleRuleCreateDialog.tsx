@@ -81,7 +81,9 @@ export default function ScheduleRuleCreateDialog(
             },
           },
           { additionalTypenames: ['Schedule'] },
-        ).then(() => onClose())
+        ).then((result) => {
+          if (!result.error) onClose()
+        })
       }
       form={
         <ScheduleRuleForm
