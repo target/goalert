@@ -73,6 +73,7 @@ type ResolverRoot interface {
 	IntegrationKey() IntegrationKeyResolver
 	MessageLogConnectionStats() MessageLogConnectionStatsResolver
 	Mutation() MutationResolver
+	OnCallNotificationRule() OnCallNotificationRuleResolver
 	OnCallShift() OnCallShiftResolver
 	Query() QueryResolver
 	Rotation() RotationResolver
@@ -86,6 +87,7 @@ type ResolverRoot interface {
 	UserContactMethod() UserContactMethodResolver
 	UserNotificationRule() UserNotificationRuleResolver
 	UserOverride() UserOverrideResolver
+	OnCallNotificationRuleInput() OnCallNotificationRuleInputResolver
 }
 
 type DirectiveRoot struct {
@@ -850,6 +852,10 @@ type MutationResolver interface {
 	UpdateGQLAPIKey(ctx context.Context, input UpdateGQLAPIKeyInput) (bool, error)
 	DeleteGQLAPIKey(ctx context.Context, id string) (bool, error)
 }
+type OnCallNotificationRuleResolver interface {
+	Target(ctx context.Context, obj *schedule.OnCallNotificationRule) (*assignment.RawTarget, error)
+	Dest(ctx context.Context, obj *schedule.OnCallNotificationRule) (*Destination, error)
+}
 type OnCallShiftResolver interface {
 	User(ctx context.Context, obj *oncall.Shift) (*user.User, error)
 }
@@ -919,7 +925,7 @@ type ScheduleResolver interface {
 	Target(ctx context.Context, obj *schedule.Schedule, input assignment.RawTarget) (*ScheduleTarget, error)
 	IsFavorite(ctx context.Context, obj *schedule.Schedule) (bool, error)
 	TemporarySchedules(ctx context.Context, obj *schedule.Schedule) ([]schedule.TemporarySchedule, error)
-	OnCallNotificationRules(ctx context.Context, obj *schedule.Schedule) ([]OnCallNotificationRule, error)
+	OnCallNotificationRules(ctx context.Context, obj *schedule.Schedule) ([]schedule.OnCallNotificationRule, error)
 }
 type ScheduleRuleResolver interface {
 	Target(ctx context.Context, obj *rule.Rule) (*assignment.RawTarget, error)
@@ -978,6 +984,10 @@ type UserOverrideResolver interface {
 	AddUser(ctx context.Context, obj *override.UserOverride) (*user.User, error)
 	RemoveUser(ctx context.Context, obj *override.UserOverride) (*user.User, error)
 	Target(ctx context.Context, obj *override.UserOverride) (*assignment.RawTarget, error)
+}
+
+type OnCallNotificationRuleInputResolver interface {
+	Dest(ctx context.Context, obj *OnCallNotificationRuleInput, data *DestinationInput) error
 }
 
 type executableSchema struct {
@@ -16850,7 +16860,7 @@ func (ec *executionContext) fieldContext_NotificationState_formattedSrcValue(ctx
 	return fc, nil
 }
 
-func (ec *executionContext) _OnCallNotificationRule_id(ctx context.Context, field graphql.CollectedField, obj *OnCallNotificationRule) (ret graphql.Marshaler) {
+func (ec *executionContext) _OnCallNotificationRule_id(ctx context.Context, field graphql.CollectedField, obj *schedule.OnCallNotificationRule) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_OnCallNotificationRule_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -16876,9 +16886,9 @@ func (ec *executionContext) _OnCallNotificationRule_id(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(schedule.RuleID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐRuleID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_OnCallNotificationRule_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -16894,7 +16904,7 @@ func (ec *executionContext) fieldContext_OnCallNotificationRule_id(ctx context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _OnCallNotificationRule_target(ctx context.Context, field graphql.CollectedField, obj *OnCallNotificationRule) (ret graphql.Marshaler) {
+func (ec *executionContext) _OnCallNotificationRule_target(ctx context.Context, field graphql.CollectedField, obj *schedule.OnCallNotificationRule) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_OnCallNotificationRule_target(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -16908,7 +16918,7 @@ func (ec *executionContext) _OnCallNotificationRule_target(ctx context.Context, 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Target, nil
+		return ec.resolvers.OnCallNotificationRule().Target(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16929,8 +16939,8 @@ func (ec *executionContext) fieldContext_OnCallNotificationRule_target(ctx conte
 	fc = &graphql.FieldContext{
 		Object:     "OnCallNotificationRule",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -16946,7 +16956,7 @@ func (ec *executionContext) fieldContext_OnCallNotificationRule_target(ctx conte
 	return fc, nil
 }
 
-func (ec *executionContext) _OnCallNotificationRule_dest(ctx context.Context, field graphql.CollectedField, obj *OnCallNotificationRule) (ret graphql.Marshaler) {
+func (ec *executionContext) _OnCallNotificationRule_dest(ctx context.Context, field graphql.CollectedField, obj *schedule.OnCallNotificationRule) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_OnCallNotificationRule_dest(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -16960,7 +16970,7 @@ func (ec *executionContext) _OnCallNotificationRule_dest(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Dest, nil
+		return ec.resolvers.OnCallNotificationRule().Dest(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16981,8 +16991,8 @@ func (ec *executionContext) fieldContext_OnCallNotificationRule_dest(ctx context
 	fc = &graphql.FieldContext{
 		Object:     "OnCallNotificationRule",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "type":
@@ -16996,7 +17006,7 @@ func (ec *executionContext) fieldContext_OnCallNotificationRule_dest(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _OnCallNotificationRule_time(ctx context.Context, field graphql.CollectedField, obj *OnCallNotificationRule) (ret graphql.Marshaler) {
+func (ec *executionContext) _OnCallNotificationRule_time(ctx context.Context, field graphql.CollectedField, obj *schedule.OnCallNotificationRule) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_OnCallNotificationRule_time(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -17037,7 +17047,7 @@ func (ec *executionContext) fieldContext_OnCallNotificationRule_time(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _OnCallNotificationRule_weekdayFilter(ctx context.Context, field graphql.CollectedField, obj *OnCallNotificationRule) (ret graphql.Marshaler) {
+func (ec *executionContext) _OnCallNotificationRule_weekdayFilter(ctx context.Context, field graphql.CollectedField, obj *schedule.OnCallNotificationRule) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_OnCallNotificationRule_weekdayFilter(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -22701,9 +22711,9 @@ func (ec *executionContext) _Schedule_onCallNotificationRules(ctx context.Contex
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]OnCallNotificationRule)
+	res := resTmp.([]schedule.OnCallNotificationRule)
 	fc.Result = res
-	return ec.marshalNOnCallNotificationRule2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐOnCallNotificationRuleᚄ(ctx, field.Selections, res)
+	return ec.marshalNOnCallNotificationRule2ᚕgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚐOnCallNotificationRuleᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Schedule_onCallNotificationRules(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -31841,14 +31851,14 @@ func (ec *executionContext) unmarshalInputOnCallNotificationRuleInput(ctx contex
 		switch k {
 		case "id":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOID2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐRuleID(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.ID = data
 		case "target":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("target"))
-			data, err := ec.unmarshalOTargetInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx, v)
+			data, err := ec.unmarshalOTargetInput2githubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -31859,7 +31869,9 @@ func (ec *executionContext) unmarshalInputOnCallNotificationRuleInput(ctx contex
 			if err != nil {
 				return it, err
 			}
-			it.Dest = data
+			if err = ec.resolvers.OnCallNotificationRuleInput().Dest(ctx, &it, data); err != nil {
+				return it, err
+			}
 		case "time":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("time"))
 			data, err := ec.unmarshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx, v)
@@ -32937,7 +32949,7 @@ func (ec *executionContext) unmarshalInputUpdateEscalationPolicyStepInput(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "delayMinutes", "targets", "actions"}
+	fieldsInOrder := [...]string{"id", "delayMinutes", "targets"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -32965,13 +32977,6 @@ func (ec *executionContext) unmarshalInputUpdateEscalationPolicyStepInput(ctx co
 				return it, err
 			}
 			it.Targets = data
-		case "actions":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("actions"))
-			data, err := ec.unmarshalODestinationInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInputᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Actions = data
 		}
 	}
 
@@ -36901,7 +36906,7 @@ func (ec *executionContext) _NotificationState(ctx context.Context, sel ast.Sele
 
 var onCallNotificationRuleImplementors = []string{"OnCallNotificationRule"}
 
-func (ec *executionContext) _OnCallNotificationRule(ctx context.Context, sel ast.SelectionSet, obj *OnCallNotificationRule) graphql.Marshaler {
+func (ec *executionContext) _OnCallNotificationRule(ctx context.Context, sel ast.SelectionSet, obj *schedule.OnCallNotificationRule) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, onCallNotificationRuleImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -36913,18 +36918,80 @@ func (ec *executionContext) _OnCallNotificationRule(ctx context.Context, sel ast
 		case "id":
 			out.Values[i] = ec._OnCallNotificationRule_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "target":
-			out.Values[i] = ec._OnCallNotificationRule_target(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._OnCallNotificationRule_target(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "dest":
-			out.Values[i] = ec._OnCallNotificationRule_dest(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._OnCallNotificationRule_dest(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "time":
 			out.Values[i] = ec._OnCallNotificationRule_time(ctx, field, obj)
 		case "weekdayFilter":
@@ -42384,11 +42451,6 @@ func (ec *executionContext) unmarshalNDestinationFieldValidateInput2githubᚗcom
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNDestinationInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx context.Context, v interface{}) (DestinationInput, error) {
-	res, err := ec.unmarshalInputDestinationInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNDestinationType2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -42756,6 +42818,16 @@ func (ec *executionContext) marshalNHeartbeatMonitorState2githubᚗcomᚋtarget�
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNID2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐRuleID(ctx context.Context, v interface{}) (schedule.RuleID, error) {
+	var res schedule.RuleID
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNID2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐRuleID(ctx context.Context, sel ast.SelectionSet, v schedule.RuleID) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
@@ -43209,11 +43281,11 @@ func (ec *executionContext) marshalNNotificationState2ᚖgithubᚗcomᚋtarget�
 	return ec._NotificationState(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNOnCallNotificationRule2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐOnCallNotificationRule(ctx context.Context, sel ast.SelectionSet, v OnCallNotificationRule) graphql.Marshaler {
+func (ec *executionContext) marshalNOnCallNotificationRule2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐOnCallNotificationRule(ctx context.Context, sel ast.SelectionSet, v schedule.OnCallNotificationRule) graphql.Marshaler {
 	return ec._OnCallNotificationRule(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNOnCallNotificationRule2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐOnCallNotificationRuleᚄ(ctx context.Context, sel ast.SelectionSet, v []OnCallNotificationRule) graphql.Marshaler {
+func (ec *executionContext) marshalNOnCallNotificationRule2ᚕgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚐOnCallNotificationRuleᚄ(ctx context.Context, sel ast.SelectionSet, v []schedule.OnCallNotificationRule) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -43237,7 +43309,7 @@ func (ec *executionContext) marshalNOnCallNotificationRule2ᚕgithubᚗcomᚋtar
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNOnCallNotificationRule2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐOnCallNotificationRule(ctx, sel, v[i])
+			ret[i] = ec.marshalNOnCallNotificationRule2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐOnCallNotificationRule(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -45434,26 +45506,6 @@ func (ec *executionContext) marshalODebugSendSMSInfo2ᚖgithubᚗcomᚋtargetᚋ
 	return ec._DebugSendSMSInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalODestinationInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInputᚄ(ctx context.Context, v interface{}) ([]DestinationInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]DestinationInput, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNDestinationInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
 func (ec *executionContext) unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx context.Context, v interface{}) (*DestinationInput, error) {
 	if v == nil {
 		return nil, nil
@@ -45496,6 +45548,16 @@ func (ec *executionContext) marshalOHeartbeatMonitor2ᚖgithubᚗcomᚋtargetᚋ
 		return graphql.Null
 	}
 	return ec._HeartbeatMonitor(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOID2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐRuleID(ctx context.Context, v interface{}) (schedule.RuleID, error) {
+	var res schedule.RuleID
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐRuleID(ctx context.Context, sel ast.SelectionSet, v schedule.RuleID) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalOID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
@@ -45969,6 +46031,11 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOTargetInput2githubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx context.Context, v interface{}) (assignment.RawTarget, error) {
+	res, err := ec.unmarshalInputTargetInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOTargetInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTargetᚄ(ctx context.Context, v interface{}) ([]assignment.RawTarget, error) {

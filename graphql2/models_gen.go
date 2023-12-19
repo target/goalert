@@ -469,22 +469,6 @@ type NotificationState struct {
 	FormattedSrcValue string              `json:"formattedSrcValue"`
 }
 
-type OnCallNotificationRule struct {
-	ID            string                  `json:"id"`
-	Target        *assignment.RawTarget   `json:"target"`
-	Dest          *Destination            `json:"dest"`
-	Time          *timeutil.Clock         `json:"time,omitempty"`
-	WeekdayFilter *timeutil.WeekdayFilter `json:"weekdayFilter,omitempty"`
-}
-
-type OnCallNotificationRuleInput struct {
-	ID            *string                 `json:"id,omitempty"`
-	Target        *assignment.RawTarget   `json:"target,omitempty"`
-	Dest          *DestinationInput       `json:"dest,omitempty"`
-	Time          *timeutil.Clock         `json:"time,omitempty"`
-	WeekdayFilter *timeutil.WeekdayFilter `json:"weekdayFilter,omitempty"`
-}
-
 type PageInfo struct {
 	EndCursor   *string `json:"endCursor,omitempty"`
 	HasNextPage bool    `json:"hasNextPage"`
@@ -718,7 +702,6 @@ type UpdateEscalationPolicyStepInput struct {
 	ID           string                 `json:"id"`
 	DelayMinutes *int                   `json:"delayMinutes,omitempty"`
 	Targets      []assignment.RawTarget `json:"targets,omitempty"`
-	Actions      []DestinationInput     `json:"actions,omitempty"`
 }
 
 type UpdateGQLAPIKeyInput struct {

@@ -392,6 +392,7 @@ input CreateAlertInput {
 
 input CloseMatchingAlertInput {
   serviceID: ID! # service ID for the close operation.
+
   # summary (and details) will match an alert with the same values.
   #
   # They can be omitted if the dedup field is provided.
@@ -547,8 +548,7 @@ input CreateEscalationPolicyStepInput {
 
   delayMinutes: Int!
 
-  targets: [TargetInput!] @deprecated(reason: "Use actions instead.")
-  # actions: [DestinationInput!]
+  targets: [TargetInput!]
   newRotation: CreateRotationInput
   newSchedule: CreateScheduleInput
 }
@@ -557,10 +557,7 @@ type EscalationPolicyStep {
   id: ID!
   stepNumber: Int!
   delayMinutes: Int!
-  targets: [Target!]! @deprecated(reason: "Use actions instead.")
-
-  # actions are the users, schedules, rotations, webhooks, etc that this step will notify.
-  # actions: [Destination!]!
+  targets: [Target!]!
   escalationPolicy: EscalationPolicy
 }
 
@@ -590,8 +587,7 @@ input UpdateEscalationPolicyInput {
 input UpdateEscalationPolicyStepInput {
   id: ID!
   delayMinutes: Int
-  targets: [TargetInput!] @deprecated(reason: "Use assignments and destinations instead.")
-  actions: [DestinationInput!]
+  targets: [TargetInput!]
 }
 
 input SetFavoriteInput {
@@ -621,11 +617,7 @@ type Schedule {
   timeZone: String!
 
   assignedTo: [Target!]!
-  shifts(
-    start: ISOTimestamp!
-    end: ISOTimestamp!
-    userIDs: [ID!]
-  ): [OnCallShift!]!
+  shifts(start: ISOTimestamp!, end: ISOTimestamp!, userIDs: [ID!]): [OnCallShift!]!
 
   targets: [ScheduleTarget!]!
   target(input: TargetInput!): ScheduleTarget

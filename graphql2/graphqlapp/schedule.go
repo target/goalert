@@ -32,6 +32,9 @@ type (
 
 func (a *App) Schedule() graphql2.ScheduleResolver                   { return (*Schedule)(a) }
 func (a *App) TemporarySchedule() graphql2.TemporaryScheduleResolver { return (*TemporarySchedule)(a) }
+func (a *App) OnCallNotificationRule() graphql2.OnCallNotificationRuleResolver {
+	return (*OnCallNotificationRule)(a)
+}
 
 func (a *OnCallNotificationRule) Target(ctx context.Context, raw *schedule.OnCallNotificationRule) (*assignment.RawTarget, error) {
 	ch, err := (*App)(a).FindOneNC(ctx, raw.ChannelID)
@@ -120,59 +123,12 @@ func (s *Schedule) TemporarySchedules(ctx context.Context, raw *schedule.Schedul
 	return s.ScheduleStore.TemporarySchedules(ctx, nil, id)
 }
 
-func (s *Schedule) OnCallNotificationRules(ctx context.Context, raw *schedule.Schedule) ([]graphql2.OnCallNotificationRule, error) {
+func (s *Schedule) OnCallNotificationRules(ctx context.Context, raw *schedule.Schedule) ([]schedule.OnCallNotificationRule, error) {
 	id, err := parseUUID("ScheduleID", raw.ID)
 	if err != nil {
 		return nil, err
 	}
-
-	rules, err := s.ScheduleStore.OnCallNotificationRules(ctx, nil, id)
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]graphql2.OnCallNotificationRule, len(rules))
-	for i, r := range rules {
-		dst, err := (*App)(s).CompatNCToDest(ctx, r.ChannelID)
-		if err != nil {
-			return nil, err
-		}
-
-		result[i] = graphql2.OnCallNotificationRule{
-			ID:            r.ID.String(),
-			Dest:          dst,
-			Time:          r.Time,
-			WeekdayFilter: r.WeekdayFilter,
-		}
-
-		switch dst.Type {
-		case destSlackChan:
-			ch := dst.FieldValuePair(fieldSlackChanID)
-			result[i].Target = &assignment.RawTarget{
-				Type: assignment.TargetTypeSlackChannel,
-				ID:   ch.Value,
-				Name: ch.Label,
-			}
-		case destSlackUG:
-			ch := dst.FieldValuePair(fieldSlackChanID)
-			ug := dst.FieldValuePair(fieldSlackUGID)
-			result[i].Target = &assignment.RawTarget{
-				Type: assignment.TargetTypeSlackUserGroup,
-				ID:   ug.Value + ":" + ch.Value,
-				Name: ug.Label,
-			}
-		case destWebhook:
-			u := dst.FieldValuePair(fieldWebhookURL)
-			result[i].Target = &assignment.RawTarget{
-				Type: assignment.TargetTypeChanWebhook,
-				ID:   u.Value,
-				Name: u.Label,
-			}
-		}
-
-	}
-
-	return result, nil
+	return s.ScheduleStore.OnCallNotificationRules(ctx, nil, id)
 }
 
 func (s *Schedule) Target(ctx context.Context, raw *schedule.Schedule, input assignment.RawTarget) (*graphql2.ScheduleTarget, error) {
