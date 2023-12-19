@@ -14,7 +14,6 @@ import { ruleSummary } from './util'
 import ScheduleRuleEditDialog from './ScheduleRuleEditDialog'
 import ScheduleRuleDeleteDialog from './ScheduleRuleDeleteDialog'
 import { GenericError } from '../error-pages'
-import Spinner from '../loading/components/Spinner'
 import { DateTime } from 'luxon'
 import { useScheduleTZ } from './useScheduleTZ'
 import { useIsWidthDown } from '../util/useWidth'
@@ -60,7 +59,7 @@ export default function ScheduleRuleList(
   const [createType, setCreateType] = useState<TargetType | null>(null)
   const isMobile = useIsWidthDown('md')
 
-  const [{ data, fetching, error }] = useQuery({
+  const [{ data, error }] = useQuery({
     query,
     variables: { id: scheduleID },
   })
@@ -69,10 +68,6 @@ export default function ScheduleRuleList(
 
   if (error) {
     return <GenericError error={error.message} />
-  }
-
-  if (fetching && !data) {
-    return <Spinner />
   }
 
   function renderSubText(rules: ScheduleRule[], timeZone: string): JSX.Element {
