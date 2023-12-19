@@ -40,9 +40,9 @@ type FieldValuePair {
   fieldID: ID! # The ID of the input field that this value is for.
 
   value: String! # The value of the input field.
-  label: String! # The user-friendly text for this value of the input field (e.g., if the value is a user ID, label would be the user's name).
+  label: String! @goField(forceResolver: true) # The user-friendly text for this value of the input field (e.g., if the value is a user ID, label would be the user's name).
 
-  isFavorite: Boolean! # if true, this value is a favorite for the user
+  isFavorite: Boolean! # if true, this value is a favorite for the user, only set for search results
 }
 
 input DestinationInput {

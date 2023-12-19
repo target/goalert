@@ -59,9 +59,13 @@ func (a *UpdateEscalationPolicyStepInput) Actions(ctx context.Context, input *gr
 }
 
 func (a *EscalationPolicyStep) Actions(ctx context.Context, raw *escalation.Step) ([]graphql2.Destination, error) {
-	actions := make([]graphql2.Destination, len(raw.Targets))
-	var err error
-	for i, tgt := range raw.Targets {
+	tgts, err := a.Targets(ctx, raw)
+	if err != nil {
+		return nil, err
+	}
+
+	actions := make([]graphql2.Destination, len(tgts))
+	for i, tgt := range tgts {
 		actions[i], err = CompatTargetToDest(tgt)
 		if err != nil {
 			return nil, err

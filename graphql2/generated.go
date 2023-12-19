@@ -68,6 +68,7 @@ type ResolverRoot interface {
 	AlertMetric() AlertMetricResolver
 	EscalationPolicy() EscalationPolicyResolver
 	EscalationPolicyStep() EscalationPolicyStepResolver
+	FieldValuePair() FieldValuePairResolver
 	GQLAPIKey() GQLAPIKeyResolver
 	HeartbeatMonitor() HeartbeatMonitorResolver
 	IntegrationKey() IntegrationKeyResolver
@@ -783,6 +784,9 @@ type EscalationPolicyStepResolver interface {
 	Targets(ctx context.Context, obj *escalation.Step) ([]assignment.RawTarget, error)
 	EscalationPolicy(ctx context.Context, obj *escalation.Step) (*escalation.Policy, error)
 	Actions(ctx context.Context, obj *escalation.Step) ([]Destination, error)
+}
+type FieldValuePairResolver interface {
+	Label(ctx context.Context, obj *FieldValuePair) (string, error)
 }
 type GQLAPIKeyResolver interface {
 	CreatedBy(ctx context.Context, obj *GQLAPIKey) (*user.User, error)
@@ -11418,7 +11422,7 @@ func (ec *executionContext) _FieldValuePair_label(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Label, nil
+		return ec.resolvers.FieldValuePair().Label(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11439,8 +11443,8 @@ func (ec *executionContext) fieldContext_FieldValuePair_label(ctx context.Contex
 	fc = &graphql.FieldContext{
 		Object:     "FieldValuePair",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -35748,22 +35752,53 @@ func (ec *executionContext) _FieldValuePair(ctx context.Context, sel ast.Selecti
 		case "fieldID":
 			out.Values[i] = ec._FieldValuePair_fieldID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "value":
 			out.Values[i] = ec._FieldValuePair_value(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "label":
-			out.Values[i] = ec._FieldValuePair_label(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._FieldValuePair_label(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "isFavorite":
 			out.Values[i] = ec._FieldValuePair_isFavorite(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
