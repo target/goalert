@@ -2,18 +2,45 @@ import { ApolloError } from '@apollo/client'
 import { DateTime } from 'luxon'
 
 import {
+  Destination,
   DestinationInput,
   OnCallNotificationRule,
   OnCallNotificationRuleInput,
+  TargetType,
   WeekdayFilter,
 } from '../../../schema'
 import { allErrors, fieldErrors, nonFieldErrors } from '../../util/errutil'
 import { weekdaySummary } from '../util'
+import { FormValue } from './ScheduleOnCallNotificationsForm'
+
+export function destToDestInput(
+  dest: Destination | DestinationInput,
+): DestinationInput {
+  return {
+    type: dest.type,
+    values: dest.values.map((v) => ({
+      fieldID: v.fieldID,
+      value: v.value,
+    })),
+  }
+}
+
+export function ruleToFormValue(
+  r: OnCallNotificationRule | FormValue,
+): FormValue {
+  return {
+    id: r.id,
+    time: r.time,
+    weekdayFilter: r.time ? r.weekdayFilter : null,
+    dest: destToDestInput(r.dest),
+  }
+}
 
 export type Value = {
   time: string | null
   weekdayFilter: WeekdayFilter
-  dest: DestinationInput
+  type: TargetType
+  targetID: string | null
 }
 
 export type RuleFieldError = {

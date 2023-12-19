@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { Suspense, useState } from 'react'
 import { Button, Grid, Card } from '@mui/material'
 import Avatar from '@mui/material/Avatar'
 
@@ -92,26 +92,28 @@ export default function ScheduleOnCallNotificationsList({
           title='Create Notification Rule'
         />
       )}
-      {createRule && (
-        <ScheduleOnCallNotificationsCreateDialog
-          scheduleID={scheduleID}
-          onClose={() => setCreateRule(false)}
-        />
-      )}
-      {editRuleID && (
-        <ScheduleOnCallNotificationsEditDialog
-          scheduleID={scheduleID}
-          ruleID={editRuleID}
-          onClose={() => setEditRuleID('')}
-        />
-      )}
-      {deleteRuleID && (
-        <ScheduleOnCallNotificationsDeleteDialog
-          scheduleID={scheduleID}
-          ruleID={deleteRuleID}
-          onClose={() => setDeleteRuleID('')}
-        />
-      )}
+      <Suspense>
+        {createRule && (
+          <ScheduleOnCallNotificationsCreateDialog
+            scheduleID={scheduleID}
+            onClose={() => setCreateRule(false)}
+          />
+        )}
+        {editRuleID && (
+          <ScheduleOnCallNotificationsEditDialog
+            scheduleID={scheduleID}
+            ruleID={editRuleID}
+            onClose={() => setEditRuleID('')}
+          />
+        )}
+        {deleteRuleID && (
+          <ScheduleOnCallNotificationsDeleteDialog
+            scheduleID={scheduleID}
+            ruleID={deleteRuleID}
+            onClose={() => setDeleteRuleID('')}
+          />
+        )}
+      </Suspense>
     </React.Fragment>
   )
 }

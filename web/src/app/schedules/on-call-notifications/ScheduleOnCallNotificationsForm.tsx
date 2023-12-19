@@ -11,23 +11,31 @@ import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
 import React from 'react'
 
-import { TargetType } from '../../../schema'
+import {
+  DestinationInput,
+  OnCallNotificationRuleInput,
+  TargetType,
+} from '../../../schema'
 import { FormContainer, FormField } from '../../forms'
 import { renderMenuItem } from '../../selection/DisableableMenuItem'
 import { ISOTimePicker } from '../../util/ISOPickers'
 import { Time } from '../../util/Time'
 import { useScheduleTZ } from '../useScheduleTZ'
-import { EVERY_DAY, NO_DAY, RuleFieldError, Value } from './util'
+import { EVERY_DAY, NO_DAY, RuleFieldError } from './util'
 import { useSchedOnCallNotifyTypes } from '../../util/useDestinationTypes'
 import DestinationField from '../../selection/DestinationField'
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
+export type FormValue = Omit<OnCallNotificationRuleInput, 'target'> & {
+  dest: DestinationInput
+}
+
 interface ScheduleOnCallNotificationsFormProps {
   scheduleID: string
-  value: Value
+  value: FormValue
   errors: RuleFieldError[]
-  onChange: (val: Value) => void
+  onChange: (val: FormValue) => void
 }
 
 const useStyles = makeStyles({

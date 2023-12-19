@@ -148,7 +148,7 @@ func (a *App) CompatNCToDest(ctx context.Context, ncID uuid.UUID) (*graphql2.Des
 			Values: []graphql2.FieldValuePair{
 				{
 					FieldID: fieldSlackUGID,
-					Value:   nc.Value,
+					Value:   ugID,
 					Label:   ug.Handle,
 				},
 				{
