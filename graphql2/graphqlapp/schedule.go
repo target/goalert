@@ -28,12 +28,50 @@ type (
 	Schedule               App
 	TemporarySchedule      App
 	OnCallNotificationRule App
+
+	OnCallNotificationRuleInput App
 )
 
 func (a *App) Schedule() graphql2.ScheduleResolver                   { return (*Schedule)(a) }
 func (a *App) TemporarySchedule() graphql2.TemporaryScheduleResolver { return (*TemporarySchedule)(a) }
 func (a *App) OnCallNotificationRule() graphql2.OnCallNotificationRuleResolver {
 	return (*OnCallNotificationRule)(a)
+}
+func (a *App) OnCallNotificationRuleInput() graphql2.OnCallNotificationRuleInputResolver {
+	return (*OnCallNotificationRuleInput)(a)
+}
+
+// Dest will map a dest field input onto the existing raw target field.
+//
+// This is used for backwards compatibility with the old GraphQL API.
+//
+// In the future, we should use dest directly, and map target for compatibility.
+func (a *OnCallNotificationRuleInput) Dest(ctx context.Context, raw *graphql2.OnCallNotificationRuleInput, dest *graphql2.DestinationInput) error {
+	switch dest.Type {
+	case destSlackChan:
+		raw.Target = assignment.RawTarget{
+			Type: assignment.TargetTypeSlackChannel,
+			ID:   dest.FieldValue(fieldSlackChanID),
+		}
+	case destSlackUG:
+		raw.Target = assignment.RawTarget{
+			Type: assignment.TargetTypeSlackUserGroup,
+			ID:   dest.FieldValue(fieldSlackUGID) + ":" + dest.FieldValue(fieldSlackChanID),
+		}
+	case destWebhook:
+		raw.Target = assignment.RawTarget{
+			Type: assignment.TargetTypeChanWebhook,
+			ID:   dest.FieldValue(fieldWebhookURL),
+		}
+	default:
+		return validation.NewFieldError("Dest.Type", "unsupported type")
+	}
+
+	return nil
+}
+
+func (a *OnCallNotificationRule) Dest(ctx context.Context, raw *schedule.OnCallNotificationRule) (*graphql2.Destination, error) {
+	return (*App)(a).CompatNCToDest(ctx, raw.ChannelID)
 }
 
 func (a *OnCallNotificationRule) Target(ctx context.Context, raw *schedule.OnCallNotificationRule) (*assignment.RawTarget, error) {
