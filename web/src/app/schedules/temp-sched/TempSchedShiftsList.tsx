@@ -6,6 +6,8 @@ import { Shift } from './sharedUtils'
 import ScheduleIcon from '@mui/icons-material/Schedule'
 import Delete from '@mui/icons-material/Delete'
 import Error from '@mui/icons-material/Error'
+import { green, red, lightGreen } from '@mui/material/colors'
+import { CircularProgress, useTheme } from '@mui/material'
 import _ from 'lodash'
 import { DateTime, Duration, Interval } from 'luxon'
 
@@ -18,7 +20,6 @@ import { UserAvatar } from '../../util/avatars'
 import { useUserInfo } from '../../util/useUserInfo'
 import { parseInterval } from '../../util/shifts'
 import { useScheduleTZ } from '../useScheduleTZ'
-import { CircularProgress } from '@mui/material'
 import { splitAtMidnight } from '../../util/luxon-helpers'
 import {
   getCoverageGapItems,
@@ -51,6 +52,10 @@ type TempSchedShiftsListProps = {
   scheduleID: string
   handleCoverageGapClick?: (coverageGap: Interval) => void
   confirmationStep?: boolean
+
+  // shows red/green diff colors if provided, for edit confirmation step
+  compareAdditions?: Shift[]
+  compareRemovals?: Shift[]
 }
 
 export default function TempSchedShiftsList({
@@ -58,6 +63,8 @@ export default function TempSchedShiftsList({
   start,
   end,
   value,
+  compareAdditions,
+  compareRemovals,
   onRemove,
   scheduleID,
   handleCoverageGapClick,
@@ -68,6 +75,7 @@ export default function TempSchedShiftsList({
   const [now, setNow] = useState(DateTime.now().setZone(zone))
   const shifts = useUserInfo(value)
   const [existingShifts] = useState(shifts)
+  const theme = useTheme()
 
   useEffect(() => {
     if (edit) {
@@ -160,6 +168,39 @@ export default function TempSchedShiftsList({
             titleText = `Active starting at ${fmtLocal(inv.start.toISO())}`
           }
 
+          let diffColor = ''
+          const compare = (compareWith: Shift[]): boolean => {
+            console.log()
+            const res = compareWith.find((val) => {
+              // console.log('shiftStart: ', DateTime.fromISO(s.start))
+              // console.log('compareVal: ', DateTime.fromISO(val.start), '\n')
+
+              return (
+                DateTime.fromISO(s.start).toISO() ===
+                  DateTime.fromISO(val.start).toISO() &&
+                DateTime.fromISO(s.end).toISO() ===
+                  DateTime.fromISO(val.end).toISO() &&
+                s.userID === val.userID
+              )
+            })
+            return !!res
+          }
+          if (compareAdditions) {
+            if (!compare(compareAdditions)) {
+              diffColor =
+                theme.palette.mode === 'dark'
+                  ? green[900] + '50'
+                  : lightGreen[100]
+            }
+          }
+
+          if (compareRemovals) {
+            if (!compare(compareRemovals)) {
+              diffColor =
+                theme.palette.mode === 'dark' ? red[900] + '50' : red[100]
+            }
+          }
+
           return {
             scrollIntoView: true,
             id: DateTime.fromISO(s.start).toISO() + s.userID + index.toString(),
@@ -194,6 +235,9 @@ export default function TempSchedShiftsList({
             ),
             at: inv.start,
             itemType: 'shift',
+            sx: {
+              backgroundColor: diffColor,
+            },
           } as Sortable<FlatListItem>
         })
       })

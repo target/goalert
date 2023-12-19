@@ -53,6 +53,7 @@ export default function TempSchedConfirmation({
           start={value.start}
           end={value.end}
           edit={false}
+          compareRemovals={value.shifts}
         />
       </Grid>
       <Grid item xs={6}>
@@ -64,6 +65,7 @@ export default function TempSchedConfirmation({
           start={value.start}
           end={value.end}
           edit={false}
+          compareAdditions={data.schedule.shifts}
         />
       </Grid>
     </Grid>
