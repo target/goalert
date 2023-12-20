@@ -3,15 +3,7 @@ import { gql, useMutation } from 'urql'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import PolicyStepForm from './PolicyStepForm'
 import FormDialog from '../dialogs/FormDialog'
-
-interface Value {
-  targets?: {
-    id: string
-    type: string
-    name?: null | string
-  }
-  delayMinutes: string
-}
+import PolicyStepForm2, { FormValue } from './PolicyStepForm2'
 
 const mutation = gql`
   mutation ($input: CreateEscalationPolicyStepInput!) {
@@ -31,9 +23,9 @@ function PolicyStepCreateDialog(props: {
   escalationPolicyID: string
   onClose: () => void
 }): JSX.Element {
-  const [value, setValue] = useState<Value | null>(null)
+  const [value, setValue] = useState<FormValue | null>(null)
   const defaultValue = {
-    targets: [],
+    actions: [],
     delayMinutes: '15',
   }
 
@@ -65,7 +57,7 @@ function PolicyStepCreateDialog(props: {
         })
       }
       form={
-        <PolicyStepForm
+        <PolicyStepForm2
           errors={fieldErrs}
           disabled={fetching}
           value={value || defaultValue}

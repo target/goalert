@@ -1,15 +1,34 @@
 import React, { useState } from 'react'
-import { gql, useMutation } from 'urql'
+import { gql, useMutation, useQuery } from 'urql'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
-import PolicyStepForm from './PolicyStepForm'
 import FormDialog from '../dialogs/FormDialog'
-import { UpdateEscalationPolicyStepInput } from '../../schema'
+import { EscalationPolicy } from '../../schema'
+import PolicyStepForm2, { FormValue } from './PolicyStepForm2'
 
 interface PolicyStepEditDialogProps {
   escalationPolicyID: string
+  stepID: string
   onClose: () => void
-  step: UpdateEscalationPolicyStepInput
 }
+
+const query = gql`
+  query PolicyStepEditDialog($id: ID!) {
+    escalationPolicy(id: $id) {
+      id
+      steps {
+        id
+        delayMinutes
+        actions {
+          type
+          values {
+            fieldID
+            value
+          }
+        }
+      }
+    }
+  }
+`
 
 const mutation = gql`
   mutation ($input: UpdateEscalationPolicyStepInput!) {
@@ -18,24 +37,27 @@ const mutation = gql`
 `
 
 function PolicyStepEditDialog(props: PolicyStepEditDialogProps): JSX.Element {
-  const [value, setValue] = useState<UpdateEscalationPolicyStepInput | null>(
-    null,
+  const [{ data, error }] = useQuery<{ escalationPolicy: EscalationPolicy }>({
+    query,
+    variables: { id: props.escalationPolicyID },
+  })
+  if (error) throw error
+  const step = data?.escalationPolicy.steps?.find(
+    (step) => step.id === props.stepID,
   )
+  if (!step) throw new Error('Step not found')
 
-  const defaultValue = {
-    targets: props.step?.targets?.map(({ id, type }) => ({ id, type })),
-    delayMinutes: props.step?.delayMinutes?.toString(),
-  }
+  const [value, setValue] = useState<FormValue>({
+    delayMinutes: step.delayMinutes,
+    actions: step.actions,
+  })
 
-  const [editStepMutationStatus, editStepMutation] = useMutation(mutation)
-
-  const { fetching, error } = editStepMutationStatus
-  const fieldErrs = fieldErrors(error)
+  const [status, editStepMutation] = useMutation(mutation)
 
   return (
     <FormDialog
       title='Edit Step'
-      loading={fetching}
+      loading={status.fetching}
       errors={nonFieldErrors(error)}
       maxWidth='sm'
       onClose={props.onClose}
@@ -43,10 +65,8 @@ function PolicyStepEditDialog(props: PolicyStepEditDialogProps): JSX.Element {
         editStepMutation(
           {
             input: {
-              id: props.step.id,
-              delayMinutes:
-                (value && value.delayMinutes) || defaultValue.delayMinutes,
-              targets: (value && value.targets) || defaultValue.targets,
+              id: step.id,
+              ...value,
             },
           },
           { additionalTypenames: ['EscalationPolicy'] },
@@ -55,11 +75,11 @@ function PolicyStepEditDialog(props: PolicyStepEditDialogProps): JSX.Element {
         })
       }
       form={
-        <PolicyStepForm
-          errors={fieldErrs}
-          disabled={fetching}
-          value={value || defaultValue}
-          onChange={(value: UpdateEscalationPolicyStepInput) => setValue(value)}
+        <PolicyStepForm2
+          errors={fieldErrors(status.error)}
+          disabled={status.fetching}
+          value={value}
+          onChange={(value: FormValue) => setValue(value)}
         />
       }
     />

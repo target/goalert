@@ -206,7 +206,7 @@ export default function PolicyStepsCard(props) {
           <PolicyStepEditDialog
             escalationPolicyID={escalationPolicyID}
             onClose={resetEditStep}
-            step={steps.filter((step) => step.id === editStepID)[0]}
+            stepID={editStepID}
           />
         )}
         {deleteStep && (

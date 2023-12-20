@@ -2,7 +2,6 @@ package graphqlapp
 
 import (
 	"context"
-	"fmt"
 	"slices"
 
 	"github.com/nyaruka/phonenumbers"
@@ -41,7 +40,42 @@ type DestinationDisplayInfo App
 
 func (a *App) FieldValuePair() graphql2.FieldValuePairResolver { return (*FieldValuePair)(a) }
 func (a *Query) DestinationDisplayInfo(ctx context.Context, dest graphql2.DestinationInput) (*graphql2.DestinationDisplayInfo, error) {
-	return nil, fmt.Errorf("not implemented")
+	app := (*App)(a)
+	cfg := config.FromContext(ctx)
+	switch dest.Type {
+	case destRotation:
+		r, err := app.FindOneRotation(ctx, dest.FieldValue(fieldRotationID))
+		if err != nil {
+			return nil, err
+		}
+		return &graphql2.DestinationDisplayInfo{
+			IconURL: "builtin://rotation",
+			LinkURL: cfg.CallbackURL("/rotations/" + r.ID),
+			Text:    r.Name,
+		}, nil
+	case destSchedule:
+		s, err := app.FindOneSchedule(ctx, dest.FieldValue(fieldScheduleID))
+		if err != nil {
+			return nil, err
+		}
+		return &graphql2.DestinationDisplayInfo{
+			IconURL: "builtin://schedule",
+			LinkURL: cfg.CallbackURL("/schedules/" + s.ID),
+			Text:    s.Name,
+		}, nil
+	case destUser:
+		u, err := app.FindOneUser(ctx, dest.FieldValue(fieldUserID))
+		if err != nil {
+			return nil, err
+		}
+		return &graphql2.DestinationDisplayInfo{
+			IconURL: cfg.CallbackURL("/api/v2/user-avatar/" + u.ID),
+			LinkURL: cfg.CallbackURL("/users/" + u.ID),
+			Text:    u.Name,
+		}, nil
+	}
+
+	return nil, validation.NewGenericError("unsupported data type")
 }
 
 func (a *FieldValuePair) Label(ctx context.Context, fvp *graphql2.FieldValuePair) (string, error) {
