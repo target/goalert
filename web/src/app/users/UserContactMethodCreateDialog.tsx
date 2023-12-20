@@ -7,12 +7,12 @@ import UserContactMethodForm from './UserContactMethodForm'
 import { useConfigValue } from '../util/RequireConfig'
 import { Dialog, DialogTitle, DialogActions, Button } from '@mui/material'
 import DialogContentError from '../dialogs/components/DialogContentError'
-import { ContactMethodType } from '../../schema'
+import { ContactMethodType, DestinationInput } from '../../schema'
+import { useContactMethodTypes } from '../util/useDestinationTypes'
 
 type Value = {
   name: string
-  type: ContactMethodType
-  value: string
+  dest: DestinationInput
 }
 
 const createMutation = gql`
@@ -24,7 +24,7 @@ const createMutation = gql`
 `
 
 const userConflictQuery = gql`
-  query ($input: UserSearchOptions) {
+  query UserConflictCheck($input: UserSearchOptions) {
     users(input: $input) {
       nodes {
         id
@@ -49,6 +49,8 @@ export default function UserContactMethodCreateDialog(props: {
     'Slack.Enable',
   )
 
+  const defaultType = useContactMethodTypes()[0]
+
   let typeVal: ContactMethodType = 'VOICE'
   if (allowSV) {
     typeVal = 'SMS'
@@ -63,18 +65,23 @@ export default function UserContactMethodCreateDialog(props: {
   // values for contact method form
   const [CMValue, setCMValue] = useState<Value>({
     name: '',
-    type: typeVal,
-    value: '',
+    dest: {
+      type: defaultType.type,
+      values: [],
+    },
   })
 
   const [{ data, fetching: queryLoading }] = useQuery({
     query: userConflictQuery,
     variables: {
       input: {
-        CMValue: CMValue.value,
-        CMType: CMValue.type,
+        dest: CMValue.dest,
       },
     },
+    pause:
+      !CMValue.dest ||
+      !CMValue.dest.values.length ||
+      !CMValue.dest.values[0].value,
     context: noSuspense,
   })
 

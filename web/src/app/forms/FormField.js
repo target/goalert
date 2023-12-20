@@ -258,6 +258,8 @@ FormField.propTypes = {
 
   disabled: p.bool,
 
+  destType: p.string,
+
   multiline: p.bool,
   rows: p.number,
   autoComplete: p.string,
