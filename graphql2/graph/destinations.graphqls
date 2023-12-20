@@ -1,5 +1,13 @@
 extend type Query {
+
+  # destinationTypes returns a list of destination types that can be used for
+  # notifications.
   destinationTypes: [DestinationTypeInfo!]! @experimental(flagName: "dest-types")
+
+  # destinationFieldValidate validates a destination field value as valid or invalid.
+  #
+  # It does not guarantee that the value is valid for the destination type, only
+  # that it is valid for the field (i.e., syntax/formatting).
   destinationFieldValidate(input: DestinationFieldValidateInput!): Boolean! @experimental(flagName: "dest-types")
 }
 
