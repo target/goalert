@@ -125,7 +125,7 @@ export default function TempSchedShiftsList({
     const outOfBoundsItems = getOutOfBoundsItems(schedInterval, shifts, zone)
 
     const shiftItems = (() => {
-      return _.flatMap(shifts, (s, idx) => {
+      return _.flatMap(shifts, (s: Shift, idx) => {
         const shiftInv = parseInterval(s, zone)
         const isValid = schedInterval.engulfs(shiftInv)
         const dayInvs = splitAtMidnight(shiftInv)
@@ -185,8 +185,10 @@ export default function TempSchedShiftsList({
             })
             return !!res
           }
+          let dataCY = s.userID
           if (compareAdditions) {
             if (!compare(compareAdditions)) {
+              dataCY = s.userID + '-' + 'added'
               diffColor =
                 theme.palette.mode === 'dark'
                   ? green[900] + '50'
@@ -196,6 +198,7 @@ export default function TempSchedShiftsList({
 
           if (compareRemovals) {
             if (!compare(compareRemovals)) {
+              dataCY = s.userID + '-' + 'removed'
               diffColor =
                 theme.palette.mode === 'dark' ? red[900] + '50' : red[100]
             }
@@ -204,7 +207,7 @@ export default function TempSchedShiftsList({
           return {
             scrollIntoView: true,
             id: DateTime.fromISO(s.start).toISO() + s.userID + index.toString(),
-            title: s.user.name,
+            title: s.user?.name,
             subText: (
               <Tooltip title={!isLocalZone ? titleText : ''} placement='right'>
                 <span>{subText}</span>
@@ -235,6 +238,7 @@ export default function TempSchedShiftsList({
             ),
             at: inv.start,
             itemType: 'shift',
+            'data-cy': dataCY,
             sx: {
               backgroundColor: diffColor,
             },

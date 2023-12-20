@@ -221,7 +221,15 @@ export default function TempSchedDialog({
     setSubmitSuccess(false)
   }
   const handleSubmit = (): void => {
-    commit()
+    if (hasCoverageGaps && !allowNoCoverage) {
+      setSubmitAttempt(true)
+      // Scroll to show gap in coverage error on top of shift list
+      if (shiftListRef?.current) {
+        shiftListRef.current.scrollIntoView({ behavior: 'smooth' })
+      }
+    } else {
+      commit()
+    }
   }
 
   const nonFieldErrs = nonFieldErrors(error).map((e) => ({
