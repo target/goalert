@@ -294,16 +294,23 @@ type DebugSendSMSInput struct {
 }
 
 type Destination struct {
-	Type   string           `json:"type"`
-	Values []FieldValuePair `json:"values"`
+	Type     string                  `json:"type"`
+	Values   []FieldValuePair        `json:"values"`
+	TypeInfo *DestinationTypeInfo    `json:"typeInfo"`
+	Display  *DestinationDisplayInfo `json:"display"`
+}
+
+type DestinationDisplayInfo struct {
+	Text        string `json:"text"`
+	IconURL     string `json:"iconURL"`
+	IconAltText string `json:"iconAltText"`
+	LinkURL     string `json:"linkURL"`
 }
 
 type DestinationFieldConfig struct {
 	FieldID            string `json:"fieldID"`
 	LabelSingular      string `json:"labelSingular"`
 	LabelPlural        string `json:"labelPlural"`
-	IconURL            string `json:"iconURL"`
-	IconAltText        string `json:"iconAltText"`
 	Hint               string `json:"hint"`
 	HintURL            string `json:"hintURL"`
 	PlaceholderText    string `json:"placeholderText"`
@@ -336,6 +343,8 @@ type DestinationInput struct {
 type DestinationTypeInfo struct {
 	Type                string                   `json:"type"`
 	Name                string                   `json:"name"`
+	IconURL             string                   `json:"iconURL"`
+	IconAltText         string                   `json:"iconAltText"`
 	DisabledMessage     string                   `json:"disabledMessage"`
 	Enabled             bool                     `json:"enabled"`
 	RequiredFields      []DestinationFieldConfig `json:"requiredFields"`

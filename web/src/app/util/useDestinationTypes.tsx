@@ -22,8 +22,6 @@ const query = gql`
         fieldID
         labelSingular
         labelPlural
-        iconURL
-        iconAltText
         hint
         hintURL
         placeholderText

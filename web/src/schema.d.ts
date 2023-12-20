@@ -182,6 +182,7 @@ export interface CreateEscalationPolicyInput {
 }
 
 export interface CreateEscalationPolicyStepInput {
+  actions?: null | DestinationInput[]
   delayMinutes: number
   escalationPolicyID?: null | string
   newRotation?: null | CreateRotationInput
@@ -341,16 +342,23 @@ export interface DebugSendSMSInput {
 }
 
 export interface Destination {
+  display: DestinationDisplayInfo
   type: DestinationType
+  typeInfo: DestinationTypeInfo
   values: FieldValuePair[]
+}
+
+export interface DestinationDisplayInfo {
+  iconAltText: string
+  iconURL: string
+  linkURL: string
+  text: string
 }
 
 export interface DestinationFieldConfig {
   fieldID: string
   hint: string
   hintURL: string
-  iconAltText: string
-  iconURL: string
   inputType: string
   isSearchSelectable: boolean
   labelPlural: string
@@ -385,6 +393,8 @@ export type DestinationType = string
 export interface DestinationTypeInfo {
   disabledMessage: string
   enabled: boolean
+  iconAltText: string
+  iconURL: string
   isContactMethod: boolean
   isEPTarget: boolean
   isSchedOnCallNotify: boolean
@@ -420,6 +430,7 @@ export interface EscalationPolicySearchOptions {
 }
 
 export interface EscalationPolicyStep {
+  actions: Destination[]
   delayMinutes: number
   escalationPolicy?: null | EscalationPolicy
   id: string
@@ -700,6 +711,7 @@ export interface Query {
   configHints: ConfigHint[]
   debugMessageStatus: DebugMessageStatusInfo
   debugMessages: DebugMessage[]
+  destinationDisplayInfo: DestinationDisplayInfo
   destinationFieldSearch: FieldValueConnection
   destinationFieldValidate: boolean
   destinationFieldValueName: string
@@ -1103,6 +1115,7 @@ export interface UpdateEscalationPolicyInput {
 }
 
 export interface UpdateEscalationPolicyStepInput {
+  actions?: null | DestinationInput[]
   delayMinutes?: null | number
   id: string
   targets?: null | TargetInput[]

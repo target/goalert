@@ -2,6 +2,7 @@ package graphqlapp
 
 import (
 	"context"
+	"fmt"
 	"slices"
 
 	"github.com/nyaruka/phonenumbers"
@@ -36,8 +37,12 @@ const (
 )
 
 type FieldValuePair App
+type DestinationDisplayInfo App
 
 func (a *App) FieldValuePair() graphql2.FieldValuePairResolver { return (*FieldValuePair)(a) }
+func (a *Query) DestinationDisplayInfo(ctx context.Context, dest graphql2.DestinationInput) (*graphql2.DestinationDisplayInfo, error) {
+	return nil, fmt.Errorf("not implemented")
+}
 
 func (a *FieldValuePair) Label(ctx context.Context, fvp *graphql2.FieldValuePair) (string, error) {
 	if fvp.Label != "" {
