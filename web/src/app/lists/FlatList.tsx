@@ -44,7 +44,8 @@ import { ExpandLess, ExpandMore } from '@mui/icons-material'
 const useStyles = makeStyles({
   alertAsButton: {
     width: '100%',
-    margin: '0.5rem 0 0.5rem 0',
+    marginTop: '6px',
+    marginBottom: '6px',
     '&:hover, &.Mui-focusVisible': {
       filter: 'brightness(90%)',
     },
