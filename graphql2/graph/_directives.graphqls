@@ -7,3 +7,10 @@ directive @goField(
   name: String # overrides the field name in the generated Go code
   omittable: Boolean # creates the field with a wrapper type (graphql.Omittable[T]) with a boolean indicating if the field is null (similar to sql.NullString and friends)
 ) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+
+# experimental is used to mark fields as experimental.
+#
+# Experimental fields are subject to change/removal without warning.
+directive @experimental(
+  flagName: String! # the name of the feature flag to use to enable this field
+) on FIELD_DEFINITION

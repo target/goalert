@@ -1,6 +1,6 @@
 extend type Query {
-  destinationTypes: [DestinationTypeInfo!]!
-  destinationFieldValidate(input: DestinationFieldValidateInput!): Boolean!
+  destinationTypes: [DestinationTypeInfo!]! @experimental(flagName: "dest-types")
+  destinationFieldValidate(input: DestinationFieldValidateInput!): Boolean! @experimental(flagName: "dest-types")
 }
 
 input DestinationFieldValidateInput {
