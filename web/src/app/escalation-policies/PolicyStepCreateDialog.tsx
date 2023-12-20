@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { gql, useMutation } from 'urql'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
-import PolicyStepForm from './PolicyStepForm'
 import FormDialog from '../dialogs/FormDialog'
 import PolicyStepForm2, { FormValue } from './PolicyStepForm2'
 
@@ -26,7 +25,7 @@ function PolicyStepCreateDialog(props: {
   const [value, setValue] = useState<FormValue | null>(null)
   const defaultValue = {
     actions: [],
-    delayMinutes: '15',
+    delayMinutes: 15,
   }
 
   const [createStepStatus, createStep] = useMutation(mutation)
@@ -47,8 +46,9 @@ function PolicyStepCreateDialog(props: {
             escalationPolicyID: props.escalationPolicyID,
             delayMinutes: parseInt(
               (value && value.delayMinutes) || defaultValue.delayMinutes,
+              10,
             ),
-            targets: (value && value.targets) || defaultValue.targets,
+            actions: (value && value.actions) || defaultValue.actions,
           },
         }).then((result) => {
           if (!result.error) {

@@ -13,6 +13,7 @@ const query = gql`
     destinationDisplayInfo(input: $input) {
       text
       iconURL
+      iconAltText
       linkURL
     }
   }

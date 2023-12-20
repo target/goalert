@@ -83,9 +83,9 @@ func CompatTargetToDest(tgt assignment.Target) (graphql2.Destination, error) {
 			}}}, nil
 	case assignment.TargetTypeSlackChannel:
 		return graphql2.Destination{
-			Type: destUser,
+			Type: destSlackChan,
 			Values: []graphql2.FieldValuePair{{
-				FieldID: fieldUserID,
+				FieldID: fieldSlackChanID,
 				Value:   tgt.TargetID(),
 			}}}, nil
 	}

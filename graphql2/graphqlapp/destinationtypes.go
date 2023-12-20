@@ -2,6 +2,7 @@ package graphqlapp
 
 import (
 	"context"
+	"net/url"
 	"slices"
 
 	"github.com/nyaruka/phonenumbers"
@@ -49,9 +50,10 @@ func (a *Query) DestinationDisplayInfo(ctx context.Context, dest graphql2.Destin
 			return nil, err
 		}
 		return &graphql2.DestinationDisplayInfo{
-			IconURL: "builtin://rotation",
-			LinkURL: cfg.CallbackURL("/rotations/" + r.ID),
-			Text:    r.Name,
+			IconURL:     "builtin://rotation",
+			IconAltText: "Rotation",
+			LinkURL:     cfg.CallbackURL("/rotations/" + r.ID),
+			Text:        r.Name,
 		}, nil
 	case destSchedule:
 		s, err := app.FindOneSchedule(ctx, dest.FieldValue(fieldScheduleID))
@@ -59,9 +61,10 @@ func (a *Query) DestinationDisplayInfo(ctx context.Context, dest graphql2.Destin
 			return nil, err
 		}
 		return &graphql2.DestinationDisplayInfo{
-			IconURL: "builtin://schedule",
-			LinkURL: cfg.CallbackURL("/schedules/" + s.ID),
-			Text:    s.Name,
+			IconURL:     "builtin://schedule",
+			IconAltText: "Schedule",
+			LinkURL:     cfg.CallbackURL("/schedules/" + s.ID),
+			Text:        s.Name,
 		}, nil
 	case destUser:
 		u, err := app.FindOneUser(ctx, dest.FieldValue(fieldUserID))
@@ -69,10 +72,47 @@ func (a *Query) DestinationDisplayInfo(ctx context.Context, dest graphql2.Destin
 			return nil, err
 		}
 		return &graphql2.DestinationDisplayInfo{
-			IconURL: cfg.CallbackURL("/api/v2/user-avatar/" + u.ID),
-			LinkURL: cfg.CallbackURL("/users/" + u.ID),
-			Text:    u.Name,
+			IconURL:     cfg.CallbackURL("/api/v2/user-avatar/" + u.ID),
+			IconAltText: "User",
+			LinkURL:     cfg.CallbackURL("/users/" + u.ID),
+			Text:        u.Name,
 		}, nil
+
+	case destWebhook:
+		u, err := url.Parse(dest.FieldValue(fieldWebhookURL))
+		if err != nil {
+			return nil, validation.WrapError(err)
+		}
+		return &graphql2.DestinationDisplayInfo{
+			IconURL:     "builtin://webhook",
+			IconAltText: "Webhook",
+			Text:        u.Hostname(),
+		}, nil
+	case destSlackChan:
+		ch, err := app.SlackStore.Channel(ctx, dest.FieldValue(fieldSlackChanID))
+		if err != nil {
+			return nil, err
+		}
+
+		teamName, err := app.SlackStore.TeamName(ctx, ch.TeamID)
+		if err != nil {
+			return nil, err
+		}
+
+		iconURL, err := app.SlackStore.TeamIcon(ctx, ch.TeamID)
+		if err != nil {
+			return nil, err
+		}
+		if iconURL == "" {
+			iconURL = "builtin://slack"
+		}
+		return &graphql2.DestinationDisplayInfo{
+			IconURL:     iconURL,
+			IconAltText: teamName,
+			LinkURL:     "https://app.slack.com/client/" + ch.TeamID + "/" + ch.ID,
+			Text:        ch.Name,
+		}, nil
+
 	}
 
 	return nil, validation.NewGenericError("unsupported data type")

@@ -129,6 +129,31 @@ func (s *ChannelSender) Channel(ctx context.Context, channelID string) (*Channel
 	return res, nil
 }
 
+func (s *ChannelSender) TeamIcon(ctx context.Context, id string) (url string, err error) {
+	s.teamInfoMx.Lock()
+	defer s.teamInfoMx.Unlock()
+
+	info, ok := s.teamInfoCache.Get(id)
+	if ok {
+		url, _ = info.Icon["image_44"].(string)
+		return url, nil
+	}
+
+	err = s.withClient(ctx, func(c *slack.Client) error {
+		info, err := c.GetTeamInfoContext(ctx)
+		if err != nil {
+			return err
+		}
+
+		url, _ = info.Icon["image_44"].(string)
+
+		s.teamInfoCache.Add(id, info)
+		return nil
+	})
+
+	return url, err
+}
+
 func (s *ChannelSender) TeamName(ctx context.Context, id string) (name string, err error) {
 	s.teamInfoMx.Lock()
 	defer s.teamInfoMx.Unlock()

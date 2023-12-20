@@ -86,7 +86,10 @@ export default function DestinationChip(
       {...opts}
       avatar={
         props.config.iconURL ? (
-          <Avatar src={builtInIcon ? undefined : props.config.iconURL}>
+          <Avatar
+            src={builtInIcon ? undefined : props.config.iconURL}
+            alt={props.config.iconAltText}
+          >
             {builtInIcon}
           </Avatar>
         ) : undefined
