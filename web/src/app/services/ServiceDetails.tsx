@@ -2,7 +2,7 @@ import React, { Suspense, useState } from 'react'
 import { gql, useQuery } from 'urql'
 import { Redirect } from 'wouter'
 import _ from 'lodash'
-import { Button, Chip } from '@mui/material'
+import { Button } from '@mui/material'
 import { Edit, Delete } from '@mui/icons-material'
 
 import DetailsPage, { LinkStatus } from '../details/DetailsPage'
