@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgtype"
+	"github.com/target/goalert/alert"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 )
@@ -14,6 +15,8 @@ type Monitor struct {
 	Name      string        `json:"name,omitempty"`
 	ServiceID string        `json:"service_id,omitempty"`
 	Timeout   time.Duration `json:"timeout,omitempty"`
+
+	AddtionalDetails string
 
 	lastState     State
 	lastHeartbeat time.Time
@@ -31,6 +34,7 @@ func (m Monitor) Normalize() (*Monitor, error) {
 		validate.UUID("ServiceID", m.ServiceID),
 		validate.IDName("Name", m.Name),
 		validate.Duration("Timeout", m.Timeout, 5*time.Minute, 9000*time.Hour),
+		validate.Text("AdditionalDetails", m.AddtionalDetails, 0, alert.MaxDetailsLength),
 	)
 	if err != nil {
 		return nil, err
@@ -47,7 +51,7 @@ func (m *Monitor) scanFrom(scanFn func(...interface{}) error) error {
 		timeout pgtype.Interval
 	)
 
-	err := scanFn(&m.ID, &m.Name, &m.ServiceID, &timeout, &m.lastState, &t)
+	err := scanFn(&m.ID, &m.Name, &m.ServiceID, &timeout, &m.lastState, &t, &m.AddtionalDetails)
 	if err != nil {
 		return err
 	}
