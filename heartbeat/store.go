@@ -66,7 +66,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			update heartbeat_monitors
 			set
 				name = $2,
-				heartbeat_interval = $3
+				heartbeat_interval = $3,
 				additional_details = $4
 			where id = $1
 		`),
