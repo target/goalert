@@ -157,9 +157,10 @@ type CreateGQLAPIKeyInput struct {
 }
 
 type CreateHeartbeatMonitorInput struct {
-	ServiceID      *string `json:"serviceID,omitempty"`
-	Name           string  `json:"name"`
-	TimeoutMinutes int     `json:"timeoutMinutes"`
+	ServiceID         *string `json:"serviceID,omitempty"`
+	Name              string  `json:"name"`
+	TimeoutMinutes    int     `json:"timeoutMinutes"`
+	AdditionalDetails *string `json:"additionalDetails,omitempty"`
 }
 
 type CreateIntegrationKeyInput struct {
@@ -641,9 +642,10 @@ type UpdateGQLAPIKeyInput struct {
 }
 
 type UpdateHeartbeatMonitorInput struct {
-	ID             string  `json:"id"`
-	Name           *string `json:"name,omitempty"`
-	TimeoutMinutes *int    `json:"timeoutMinutes,omitempty"`
+	ID                string  `json:"id"`
+	Name              *string `json:"name,omitempty"`
+	TimeoutMinutes    *int    `json:"timeoutMinutes,omitempty"`
+	AdditionalDetails *string `json:"additionalDetails,omitempty"`
 }
 
 type UpdateRotationInput struct {

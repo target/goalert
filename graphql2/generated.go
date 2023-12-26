@@ -258,13 +258,14 @@ type ComplexityRoot struct {
 	}
 
 	HeartbeatMonitor struct {
-		Href           func(childComplexity int) int
-		ID             func(childComplexity int) int
-		LastHeartbeat  func(childComplexity int) int
-		LastState      func(childComplexity int) int
-		Name           func(childComplexity int) int
-		ServiceID      func(childComplexity int) int
-		TimeoutMinutes func(childComplexity int) int
+		AdditionalDetails func(childComplexity int) int
+		Href              func(childComplexity int) int
+		ID                func(childComplexity int) int
+		LastHeartbeat     func(childComplexity int) int
+		LastState         func(childComplexity int) int
+		Name              func(childComplexity int) int
+		ServiceID         func(childComplexity int) int
+		TimeoutMinutes    func(childComplexity int) int
 	}
 
 	IntegrationKey struct {
@@ -738,6 +739,7 @@ type HeartbeatMonitorResolver interface {
 	TimeoutMinutes(ctx context.Context, obj *heartbeat.Monitor) (int, error)
 
 	Href(ctx context.Context, obj *heartbeat.Monitor) (string, error)
+	AdditionalDetails(ctx context.Context, obj *heartbeat.Monitor) (string, error)
 }
 type IntegrationKeyResolver interface {
 	Type(ctx context.Context, obj *integrationkey.IntegrationKey) (IntegrationKeyType, error)
@@ -1637,6 +1639,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.GQLAPIKeyUsage.Ua(childComplexity), true
+
+	case "HeartbeatMonitor.additionalDetails":
+		if e.complexity.HeartbeatMonitor.AdditionalDetails == nil {
+			break
+		}
+
+		return e.complexity.HeartbeatMonitor.AdditionalDetails(childComplexity), true
 
 	case "HeartbeatMonitor.href":
 		if e.complexity.HeartbeatMonitor.Href == nil {
@@ -10698,6 +10707,50 @@ func (ec *executionContext) fieldContext_HeartbeatMonitor_href(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _HeartbeatMonitor_additionalDetails(ctx context.Context, field graphql.CollectedField, obj *heartbeat.Monitor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HeartbeatMonitor_additionalDetails(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.HeartbeatMonitor().AdditionalDetails(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HeartbeatMonitor_additionalDetails(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HeartbeatMonitor",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _IntegrationKey_id(ctx context.Context, field graphql.CollectedField, obj *integrationkey.IntegrationKey) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_IntegrationKey_id(ctx, field)
 	if err != nil {
@@ -13499,6 +13552,8 @@ func (ec *executionContext) fieldContext_Mutation_createHeartbeatMonitor(ctx con
 				return ec.fieldContext_HeartbeatMonitor_lastHeartbeat(ctx, field)
 			case "href":
 				return ec.fieldContext_HeartbeatMonitor_href(ctx, field)
+			case "additionalDetails":
+				return ec.fieldContext_HeartbeatMonitor_additionalDetails(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HeartbeatMonitor", field.Name)
 		},
@@ -16664,6 +16719,8 @@ func (ec *executionContext) fieldContext_Query_heartbeatMonitor(ctx context.Cont
 				return ec.fieldContext_HeartbeatMonitor_lastHeartbeat(ctx, field)
 			case "href":
 				return ec.fieldContext_HeartbeatMonitor_href(ctx, field)
+			case "additionalDetails":
+				return ec.fieldContext_HeartbeatMonitor_additionalDetails(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HeartbeatMonitor", field.Name)
 		},
@@ -21825,6 +21882,8 @@ func (ec *executionContext) fieldContext_Service_heartbeatMonitors(ctx context.C
 				return ec.fieldContext_HeartbeatMonitor_lastHeartbeat(ctx, field)
 			case "href":
 				return ec.fieldContext_HeartbeatMonitor_href(ctx, field)
+			case "additionalDetails":
+				return ec.fieldContext_HeartbeatMonitor_additionalDetails(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HeartbeatMonitor", field.Name)
 		},
@@ -28501,7 +28560,7 @@ func (ec *executionContext) unmarshalInputCreateHeartbeatMonitorInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"serviceID", "name", "timeoutMinutes"}
+	fieldsInOrder := [...]string{"serviceID", "name", "timeoutMinutes", "additionalDetails"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -28529,6 +28588,13 @@ func (ec *executionContext) unmarshalInputCreateHeartbeatMonitorInput(ctx contex
 				return it, err
 			}
 			it.TimeoutMinutes = data
+		case "additionalDetails":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("additionalDetails"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AdditionalDetails = data
 		}
 	}
 
@@ -30792,7 +30858,7 @@ func (ec *executionContext) unmarshalInputUpdateHeartbeatMonitorInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "timeoutMinutes"}
+	fieldsInOrder := [...]string{"id", "name", "timeoutMinutes", "additionalDetails"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -30820,6 +30886,13 @@ func (ec *executionContext) unmarshalInputUpdateHeartbeatMonitorInput(ctx contex
 				return it, err
 			}
 			it.TimeoutMinutes = data
+		case "additionalDetails":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("additionalDetails"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AdditionalDetails = data
 		}
 	}
 
@@ -33369,6 +33442,42 @@ func (ec *executionContext) _HeartbeatMonitor(ctx context.Context, sel ast.Selec
 					}
 				}()
 				res = ec._HeartbeatMonitor_href(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "additionalDetails":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._HeartbeatMonitor_additionalDetails(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

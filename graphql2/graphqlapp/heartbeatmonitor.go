@@ -22,6 +22,9 @@ func (a *HeartbeatMonitor) Href(ctx context.Context, hb *heartbeat.Monitor) (str
 	cfg := config.FromContext(ctx)
 	return cfg.CallbackURL("/api/v2/heartbeat/" + url.PathEscape(hb.ID)), nil
 }
+func (a *HeartbeatMonitor) AdditionalDetails(ctx context.Context, hb *heartbeat.Monitor) (string, error) {
+	return hb.AddtionalDetails, nil
+}
 
 func (q *Query) HeartbeatMonitor(ctx context.Context, id string) (*heartbeat.Monitor, error) {
 	return (*App)(q).FindOneHeartbeatMonitor(ctx, id)
@@ -33,10 +36,15 @@ func (m *Mutation) CreateHeartbeatMonitor(ctx context.Context, input graphql2.Cr
 		serviceID = *input.ServiceID
 	}
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
+		var details string
+		if input.AdditionalDetails != nil {
+			details = *input.AdditionalDetails
+		}
 		hb = &heartbeat.Monitor{
-			ServiceID: serviceID,
-			Name:      input.Name,
-			Timeout:   time.Duration(input.TimeoutMinutes) * time.Minute,
+			ServiceID:        serviceID,
+			Name:             input.Name,
+			Timeout:          time.Duration(input.TimeoutMinutes) * time.Minute,
+			AddtionalDetails: details,
 		}
 		hb, err = m.HeartbeatStore.CreateTx(ctx, tx, hb)
 		return err
@@ -55,6 +63,9 @@ func (m *Mutation) UpdateHeartbeatMonitor(ctx context.Context, input graphql2.Up
 		}
 		if input.TimeoutMinutes != nil {
 			hb.Timeout = time.Duration(*input.TimeoutMinutes) * time.Minute
+		}
+		if input.AdditionalDetails != nil {
+			hb.AddtionalDetails = *input.AdditionalDetails
 		}
 
 		return m.HeartbeatStore.UpdateTx(ctx, tx, hb)
