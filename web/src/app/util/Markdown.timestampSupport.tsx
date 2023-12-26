@@ -22,8 +22,8 @@ function fromISO(iso: string): Node {
 }
 
 // Mon Jan _2 15:04:05 MST 2006
-const unixStampRegex = /\w+\s+\w+\s+\d+\s+\d{2}:\d{2}:\d{2}\s\w+\s\d{4}/g
-function fromUnixStamp(unix: string): Node {
+const unixDateRegex = /\w+\s+\w+\s+\d+\s+\d{2}:\d{2}:\d{2}\s\w+\s\d{4}/g
+function fromUnixDate(unix: string): Node {
   return fromISO(new Date(unix).toISOString())
 }
 
@@ -31,8 +31,8 @@ function fromUnixStamp(unix: string): Node {
 // type.
 const isoTuple = [isoTimestampRegex, fromISO] as unknown as FindAndReplaceTuple
 const unixTuple = [
-  unixStampRegex,
-  fromUnixStamp,
+  unixDateRegex,
+  fromUnixDate,
 ] as unknown as FindAndReplaceTuple
 
 export default function timestampSupport() {
