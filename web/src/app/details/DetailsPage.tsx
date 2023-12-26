@@ -16,6 +16,8 @@ import CardActions, { Action } from './CardActions'
 import AppLink, { AppLinkProps } from '../util/AppLink'
 import { useIsWidthDown } from '../util/useWidth'
 import useStatusColors from '../theme/useStatusColors'
+import { Label } from '../../schema'
+import { Chip } from '@mui/material'
 
 interface DetailsPageProps {
   title: string
@@ -25,6 +27,7 @@ interface DetailsPageProps {
   subheader?: string | JSX.Element
   details?: string
   notices?: Array<Notice> | JSX.Element
+  labels?: Array<Label>
   links?: Array<Link>
   pageContent?: JSX.Element
   primaryActions?: Array<Action | JSX.Element>
@@ -126,6 +129,16 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
                 }}
               />
             </Grid>
+
+            {p.labels && (
+              <Grid item>
+                <CardContent>
+                  {p.labels.map((l) => (
+                    <Chip key={l.key} label={l.key + ' = ' + l.value} />
+                  ))}
+                </CardContent>
+              </Grid>
+            )}
 
             {p.details && (
               <Grid item>

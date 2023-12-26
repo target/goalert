@@ -109,6 +109,7 @@ export default function ServiceDetails(props: {
         avatar={<ServiceAvatar />}
         title={data.service.name}
         notices={<ServiceNotices serviceID={serviceID} />}
+        labels={labels}
         subheader={
           <React.Fragment>
             Escalation Policy:{' '}
@@ -119,11 +120,6 @@ export default function ServiceDetails(props: {
             ) : (
               <Spinner text='Looking up policy...' />
             )}
-            <div>
-              {labels.map((l) => (
-                <Chip key={l.key} label={l.key + '=' + l.value} />
-              ))}
-            </div>
           </React.Fragment>
         }
         details={data.service.description}
