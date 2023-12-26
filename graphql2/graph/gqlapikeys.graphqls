@@ -1,0 +1,48 @@
+extend type Query {
+  gqlAPIKeys: [GQLAPIKey!]!
+}
+
+extend type Mutation {
+  createGQLAPIKey(input: CreateGQLAPIKeyInput!): CreatedGQLAPIKey!
+  updateGQLAPIKey(input: UpdateGQLAPIKeyInput!): Boolean!
+  deleteGQLAPIKey(id: ID!): Boolean!
+}
+
+type CreatedGQLAPIKey {
+  id: ID!
+  token: String!
+}
+
+input CreateGQLAPIKeyInput {
+  name: String!
+  description: String!
+  expiresAt: ISOTimestamp!
+  role: UserRole!
+  query: String!
+}
+
+input UpdateGQLAPIKeyInput {
+  id: ID!
+  name: String
+  description: String
+}
+
+type GQLAPIKey {
+  id: ID!
+  name: String!
+  description: String!
+  createdAt: ISOTimestamp!
+  createdBy: User @goField(forceResolver: true)
+  updatedAt: ISOTimestamp!
+  updatedBy: User @goField(forceResolver: true)
+  lastUsed: GQLAPIKeyUsage
+  expiresAt: ISOTimestamp!
+  query: String!
+  role: UserRole!
+}
+
+type GQLAPIKeyUsage {
+  time: ISOTimestamp!
+  ua: String!
+  ip: String!
+}

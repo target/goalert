@@ -7,34 +7,16 @@ import (
 	"github.com/target/goalert/validation"
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
-	"github.com/vektah/gqlparser/v2/parser"
 	"github.com/vektah/gqlparser/v2/validator"
 )
-
-//go:embed schema.graphql
-var schema string
 
 var schemaFields []string
 var astSchema *ast.Schema
 
-// Schema will return the GraphQL schema.
-func Schema() string {
-	return schema
-}
-
 func init() {
-	schDoc, err := parser.ParseSchema(&ast.Source{Input: schema})
-	if err != nil {
-		panic(err)
-	}
+	astSchema = NewExecutableSchema(Config{}).Schema()
 
-	sch, err := gqlparser.LoadSchema(&ast.Source{Input: schema})
-	if err != nil {
-		panic(err)
-	}
-	astSchema = sch
-
-	for _, typ := range schDoc.Definitions {
+	for _, typ := range astSchema.Types {
 		if typ.Kind != ast.Object {
 			continue
 		}
