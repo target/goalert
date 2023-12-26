@@ -16,13 +16,20 @@ const useStyles = makeStyles({
   icon: {
     paddingRight: 4,
   },
+  noTypography: {
+    display: 'inline',
+    textDecorationStyle: 'dotted',
+    textUnderlineOffset: '0.25rem',
+    textDecorationLine: 'underline',
+  },
 })
 
 interface CopyTextProps {
   placement?: TooltipProps['placement']
-  title?: string
+  title?: React.ReactNode
   value: string
   asURL?: boolean
+  noTypography?: boolean
 }
 
 export default function CopyText(props: CopyTextProps): JSX.Element {
@@ -49,6 +56,33 @@ export default function CopyText(props: CopyTextProps): JSX.Element {
         />
         {props.title}
       </AppLink>
+    )
+  } else if (props.noTypography) {
+    content = (
+      <span
+        className={classes.copyContainer + ' ' + classes.noTypography}
+        role='button'
+        tabIndex={0}
+        onClick={() => {
+          copyToClipboard(props.value)
+          setCopied(true)
+        }}
+        onKeyPress={(e) => {
+          if (e.key !== 'Enter') {
+            return
+          }
+
+          copyToClipboard(props.value)
+          setCopied(true)
+        }}
+      >
+        <ContentCopy
+          color='primary'
+          className={props.title ? classes.icon : undefined}
+          fontSize='small'
+        />
+        {props.title}
+      </span>
     )
   } else {
     content = (

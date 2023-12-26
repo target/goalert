@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm'
 import remarkBreaks from 'remark-breaks'
 import makeStyles from '@mui/styles/makeStyles'
 import AppLink from './AppLink'
+import timestampSupport from './Markdown.timestampSupport'
 
 const useStyles = makeStyles({
   markdown: {
@@ -73,7 +74,7 @@ export default function Markdown(props) {
           </AppLink>
         ),
       }}
-      remarkPlugins={[remarkGfm, remarkBreaks]}
+      remarkPlugins={[timestampSupport, remarkGfm, remarkBreaks]}
       allowElement={(element) => {
         if (
           element.tagName === 'a' &&
