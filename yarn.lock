@@ -4259,6 +4259,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"builtin-modules@npm:^3.3.0":
+  version: 3.3.0
+  resolution: "builtin-modules@npm:3.3.0"
+  checksum: db021755d7ed8be048f25668fe2117620861ef6703ea2c65ed2779c9e3636d5c3b82325bd912244293959ff3ae303afa3471f6a15bf5060c103e4cc3a839749d
+  languageName: node
+  linkType: hard
+
 "builtins@npm:^5.0.1":
   version: 5.0.1
   resolution: "builtins@npm:5.0.1"
@@ -5674,6 +5681,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eslint-compat-utils@npm:^0.1.2":
+  version: 0.1.2
+  resolution: "eslint-compat-utils@npm:0.1.2"
+  peerDependencies:
+    eslint: ">=6.0.0"
+  checksum: 2315d9db81efb7f58808053bf32a1d5970b38e01cd8244f4f1b5aa05d883255c5c93fc184e9c29a0e7e2dcf16ff16330977302474d3fa870e41c5bed9c66f76b
+  languageName: node
+  linkType: hard
+
 "eslint-config-prettier@npm:9.0.0":
   version: 9.0.0
   resolution: "eslint-config-prettier@npm:9.0.0"
@@ -5741,15 +5757,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-es-x@npm:^7.1.0":
-  version: 7.2.0
-  resolution: "eslint-plugin-es-x@npm:7.2.0"
+"eslint-plugin-es-x@npm:^7.5.0":
+  version: 7.5.0
+  resolution: "eslint-plugin-es-x@npm:7.5.0"
   dependencies:
     "@eslint-community/eslint-utils": ^4.1.2
     "@eslint-community/regexpp": ^4.6.0
+    eslint-compat-utils: ^0.1.2
   peerDependencies:
     eslint: ">=8"
-  checksum: eece76ef6bcfce463659338b487e516e962ddf3ae34a8a65240ebd318fc991cabfe3573b1c3af5226474193b9c83f030c7900a8e5ffdbe731a3928ca8f2799c9
+  checksum: e770e57df78c3c38582de9bc4b9632ec5101a6dae8ac84f6ac219e8d8eb137f943db9730e037cfbc82f5d3ab6358e1b494fa6c628f425ebfc7e3094d5aa9d223
   languageName: node
   linkType: hard
 
@@ -5818,22 +5835,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-n@npm:16.2.0":
-  version: 16.2.0
-  resolution: "eslint-plugin-n@npm:16.2.0"
+"eslint-plugin-n@npm:16.5.0":
+  version: 16.5.0
+  resolution: "eslint-plugin-n@npm:16.5.0"
   dependencies:
     "@eslint-community/eslint-utils": ^4.4.0
     builtins: ^5.0.1
-    eslint-plugin-es-x: ^7.1.0
+    eslint-plugin-es-x: ^7.5.0
     get-tsconfig: ^4.7.0
     ignore: ^5.2.4
+    is-builtin-module: ^3.2.1
     is-core-module: ^2.12.1
     minimatch: ^3.1.2
     resolve: ^1.22.2
     semver: ^7.5.3
   peerDependencies:
     eslint: ">=7.0.0"
-  checksum: 124ba4f418c895d81201ddc0c61cdca246c8aaa652e572653fad0dd66701aaef30598956fbe676726ab1037e600eddeaba52cd1a71b86f41e50a97f6e725055e
+  checksum: 5914ae71e10d8ac48aefc7090c79e10a7628f81c9dcdce72035f6c9f126b176141fc3d5951de0ff215056cdd588e843427a4ace4089ee31405fee6c48569bd98
   languageName: node
   linkType: hard
 
@@ -7470,6 +7488,15 @@ __metadata:
   version: 1.1.6
   resolution: "is-buffer@npm:1.1.6"
   checksum: 4a186d995d8bbf9153b4bd9ff9fd04ae75068fe695d29025d25e592d9488911eeece84eefbd8fa41b8ddcc0711058a71d4c466dcf6f1f6e1d83830052d8ca707
+  languageName: node
+  linkType: hard
+
+"is-builtin-module@npm:^3.2.1":
+  version: 3.2.1
+  resolution: "is-builtin-module@npm:3.2.1"
+  dependencies:
+    builtin-modules: ^3.3.0
+  checksum: e8f0ffc19a98240bda9c7ada84d846486365af88d14616e737d280d378695c8c448a621dcafc8332dbf0fcd0a17b0763b845400709963fa9151ddffece90ae88
   languageName: node
   linkType: hard
 
@@ -11575,7 +11602,7 @@ __metadata:
     eslint-plugin-cypress: 2.15.1
     eslint-plugin-import: 2.28.1
     eslint-plugin-jsx-a11y: 6.8.0
-    eslint-plugin-n: 16.2.0
+    eslint-plugin-n: 16.5.0
     eslint-plugin-node: 11.1.0
     eslint-plugin-prettier: 5.0.0
     eslint-plugin-promise: 6.1.1
