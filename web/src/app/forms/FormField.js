@@ -110,7 +110,7 @@ export function FormField(props) {
   }
 
   // wraps hints/errors within a grid containing character counter to align horizontally
-  function charCountWrapper(component, count) {
+  function charCountWrapper(component, count, fieldName) {
     return (
       <Grid container spacing={2}>
         <Grid item xs={10}>
@@ -118,14 +118,14 @@ export function FormField(props) {
         </Grid>
         <Grid item xs={2}>
           <FormHelperText style={{ textAlign: 'right' }}>
-            {value.description.length}/{count}
+            {value[fieldName].length}/{count}
           </FormHelperText>
         </Grid>
       </Grid>
     )
   }
 
-  function renderFormHelperText(error, hint, count) {
+  function renderFormHelperText(error, hint, count, fieldName) {
     // handle optional count parameter
     if (count === undefined) {
       count = 0
@@ -148,7 +148,7 @@ export function FormField(props) {
           </FormHelperText>
         )
         if (count) {
-          return charCountWrapper(errorText, count)
+          return charCountWrapper(errorText, count, fieldName)
         }
         return errorText
       }
@@ -156,7 +156,11 @@ export function FormField(props) {
 
     if (hint) {
       if (count) {
-        return charCountWrapper(<FormHelperText>{hint}</FormHelperText>, count)
+        return charCountWrapper(
+          <FormHelperText>{hint}</FormHelperText>,
+          count,
+          fieldName,
+        )
       }
       return <FormHelperText component='span'>{hint}</FormHelperText>
     }
@@ -181,7 +185,12 @@ export function FormField(props) {
       >
         {fieldProps.children}
       </Component>
-      {renderFormHelperText(fieldProps.error, fieldProps.hint, charCount)}
+      {renderFormHelperText(
+        fieldProps.error,
+        fieldProps.hint,
+        charCount,
+        fieldProps.name,
+      )}
     </FormControl>
   )
 }
