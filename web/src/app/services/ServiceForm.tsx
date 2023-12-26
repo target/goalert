@@ -29,12 +29,27 @@ interface ServiceFormProps {
 }
 
 export default function ServiceForm(props: ServiceFormProps): JSX.Element {
-  const { epRequired, ...containerProps } = props
+  const { epRequired, errors, ...containerProps } = props
+
+  const formErrs = errors.map((e) => {
+    if (e.field !== 'value') {
+      // label value
+      return e
+    }
+    return {
+      ...e,
+      field: 'labels',
+    }
+  })
 
   const [reqLabels] = useConfigValue('Services.RequiredLabels') as [string[]]
 
   return (
-    <FormContainer {...containerProps} optionalLabels={epRequired}>
+    <FormContainer
+      {...containerProps}
+      errors={formErrs}
+      optionalLabels={epRequired}
+    >
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <FormField
