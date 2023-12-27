@@ -23,10 +23,24 @@ test('should work', async ({ mount, page }) => {
     })
   })
 
-  let component = await mount(<TelTextField value='17635550123' />)
+  let newValue = ''
+
+  let component = await mount(
+    <TelTextField
+      value='17635550123'
+      onChange={(v) => {
+        newValue = v.target.value
+      }}
+    />,
+  )
   // ensure we have an SVG with attribute `data-testid="CheckIcon"`
 
   await expect(component.locator('svg[data-testid="CheckIcon"]')).toBeVisible()
+
+  await component.locator('input').fill('123abc456')
+
+  expect(newValue).toBe('+123456') // should be stripped of non-numeric characters
+
   await component.unmount()
 
   component = await mount(<TelTextField value='1111' />)
