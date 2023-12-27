@@ -5,7 +5,8 @@
     "fmt": "prettier -l --write '**/*.{js,jsx,yml,yaml,json,css,ts,tsx,html}'",
     "check": "tsc -p web/src/app/tsconfig.json && tsc -p web/src/cypress/tsconfig.json",
     "esbuild": "./web/src/esbuild.config.js",
-    "esbuild-cy": "./web/src/esbuild.cypress.js"
+    "esbuild-cy": "./web/src/esbuild.cypress.js",
+    "test-ct": "playwright test -c playwright-ct.config.ts"
   },
   "jest": {
     "transform": {
@@ -45,6 +46,7 @@
     "@mui/styles": "5.14.16",
     "@mui/system": "5.14.10",
     "@mui/x-data-grid": "6.18.2",
+    "@playwright/experimental-ct-react": "1.40.1",
     "@playwright/test": "1.40.0",
     "@types/chance": "1.1.4",
     "@types/diff": "5.0.8",
@@ -52,6 +54,7 @@
     "@types/jest": "29.5.10",
     "@types/lodash": "4.14.202",
     "@types/luxon": "3.3.4",
+    "@types/node": "20.10.5",
     "@types/prop-types": "15.7.9",
     "@types/react": "18.2.22",
     "@types/react-big-calendar": "1.6.5",
@@ -90,6 +93,7 @@
     "luxon": "3.4.3",
     "mdast-util-find-and-replace": "3.0.1",
     "mdi-material-ui": "7.7.0",
+    "playwright": "1.40.1",
     "prettier": "3.1.0",
     "prettier-plugin-go-template": "0.0.15",
     "prop-types": "15.8.1",
@@ -115,11 +119,18 @@
     "stylelint-config-standard": "34.0.0",
     "typescript": "5.2.2",
     "urql": "4.0.6",
+    "vite": "5.0.10",
     "wonka": "6.3.4",
     "wouter": "2.12.1"
   },
   "packageManager": "yarn@3.6.3",
   "dependenciesMeta": {
+    "@playwright/test@1.40.0": {
+      "unplugged": true
+    },
+    "playwright@1.40.1": {
+      "unplugged": true
+    },
     "prettier@3.0.3": {
       "unplugged": true
     },
