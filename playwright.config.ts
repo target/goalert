@@ -28,6 +28,7 @@ const config = {
     './test/integration/setup/global-teardown.ts',
   ),
   retries: process.env.CI ? 3 : 0,
+  forbidOnly: !!process.env.CI, // fail CI if .only() is used
   use: {
     trace: 'on-first-retry',
     baseURL: 'http://localhost:6130',

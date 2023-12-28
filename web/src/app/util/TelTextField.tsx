@@ -45,7 +45,7 @@ export default function TelTextField(
   // check validation of the input phoneNumber through graphql
   const [{ data }] = useQuery({
     query: isValidNumber,
-    variables: { number: '+' + phoneNumber },
+    variables: { number: phoneNumber },
     requestPolicy: 'cache-first',
     pause: !phoneNumber || props.disabled,
     context: noSuspense,
