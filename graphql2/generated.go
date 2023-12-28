@@ -30227,8 +30227,6 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyInput(ctx contex
 			}
 			it.Steps = data
 		case "labels":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("labels"))
 			data, err := ec.unmarshalOSetLabelInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetLabelInputᚄ(ctx, v)
 			if err != nil {
@@ -30508,8 +30506,6 @@ func (ec *executionContext) unmarshalInputCreateRotationInput(ctx context.Contex
 			}
 			it.UserIDs = data
 		case "labels":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("labels"))
 			data, err := ec.unmarshalOSetLabelInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetLabelInputᚄ(ctx, v)
 			if err != nil {
@@ -30579,8 +30575,6 @@ func (ec *executionContext) unmarshalInputCreateScheduleInput(ctx context.Contex
 			}
 			it.NewUserOverrides = data
 		case "labels":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("labels"))
 			data, err := ec.unmarshalOSetLabelInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetLabelInputᚄ(ctx, v)
 			if err != nil {
