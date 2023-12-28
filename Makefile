@@ -233,10 +233,12 @@ generate: $(NODE_DEPS) pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go $(BI
 	go generate ./...
 
 
-test-all: test-unit test-smoke test-integration
+test-all: test-unit test-components test-smoke test-integration
 test-integration: playwright-run cy-wide-prod-run cy-mobile-prod-run
 test-smoke: smoketest
 test-unit: test
+test-components:
+	NODE_OPTIONS=--max-old-space-size=8192 yarn playwright test -c playwright-ct.config.ts
 
 bin/MailHog: go.mod go.sum
 	go build -o bin/MailHog github.com/mailhog/MailHog
