@@ -3,7 +3,7 @@ import Drawer from '@mui/material/Drawer'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
 
-export const drawerWidth = '220px'
+export const drawerWidth = '190px'
 
 const useStyles = makeStyles((theme: Theme) => ({
   sidebarPaper: {

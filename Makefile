@@ -128,7 +128,7 @@ cy-mobile-prod-run: web/src/build/static/app.js cypress
 swo/swodb/queries.sql.go: $(BIN_DIR)/tools/sqlc sqlc.yaml swo/*/*.sql migrate/migrations/*.sql */queries.sql */*/queries.sql migrate/schema.sql
 	$(BIN_DIR)/tools/sqlc generate
 
-web/src/schema.d.ts: graphql2/schema.graphql $(NODE_DEPS) web/src/genschema.go
+web/src/schema.d.ts: graphql2/schema.graphql graphql2/graph/*.graphqls $(NODE_DEPS) web/src/genschema.go
 	go generate ./web/src
 
 help: ## Show all valid options
@@ -220,7 +220,7 @@ graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devto
 graphql2/maplimit.go: $(CFGPARAMS) limit/id.go graphql2/generated.go devtools/limitapigen/*
 	(cd ./graphql2 && go run ../devtools/limitapigen -out maplimit.go && go run golang.org/x/tools/cmd/goimports -w ./maplimit.go) || go generate ./graphql2
 
-graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod
+graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod graphql2/graph/*.graphqls
 	go generate ./graphql2
 
 pkg/sysapi/sysapi_grpc.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go-grpc $(BIN_DIR)/tools/protoc
@@ -293,7 +293,7 @@ web/src/build/static: web/src/esbuild.config.js $(NODE_DEPS) $(shell find ./web/
 	$(MAKE) ensure-yarn
 	rm -rf web/src/build/static
 	mkdir -p web/src/build/static
-	cp -f web/src/app/public/icons/favicon-* web/src/app/public/logos/black/goalert-alt-logo.png web/src/build/static/
+	cp -f web/src/app/public/icons/favicon-* web/src/app/public/logos/lightmode_* web/src/app/public/logos/darkmode_* web/src/build/static/
 	GOALERT_VERSION=$(GIT_VERSION) yarn run esbuild
 
 web/src/build/static/app.js: web/src/build/static $(NODE_DEPS)

@@ -1,4 +1,7 @@
-schema: ./schema.graphql
+schema:
+  - ./schema.graphql
+  - ./graph/*.graphqls
+
 omit_slice_element_pointers: true
 exec:
   filename: generated.go
