@@ -1,6 +1,6 @@
 import React from 'react'
 import { test, expect } from '@playwright/experimental-ct-react'
-import { TestWrapper } from './TelTextField.story'
+import { TelTextValueWrapper } from './TelTextField.story'
 
 test.use({ viewport: { width: 500, height: 500 } })
 
@@ -23,7 +23,7 @@ test('should work', async ({ mount, page }) => {
     })
   })
 
-  const component = await mount(<TestWrapper />)
+  const component = await mount(<TelTextValueWrapper />)
   await component.locator('input').fill('17635550123')
 
   // ensure we have an SVG with attribute `data-testid="CheckIcon"`

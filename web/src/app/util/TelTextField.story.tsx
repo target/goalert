@@ -1,7 +1,7 @@
 import React from 'react'
 import TelTextField from './TelTextField'
 
-export function TestWrapper(): React.ReactNode {
+export function TelTextValueWrapper(): React.ReactNode {
   const [value, setValue] = React.useState('')
 
   return (
