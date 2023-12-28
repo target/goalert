@@ -3216,14 +3216,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:18.2.22":
-  version: 18.2.22
-  resolution: "@types/react@npm:18.2.22"
+"@types/react@npm:18.2.46":
+  version: 18.2.46
+  resolution: "@types/react@npm:18.2.46"
   dependencies:
     "@types/prop-types": "*"
     "@types/scheduler": "*"
     csstype: ^3.0.2
-  checksum: 44289523dabaadcd3fd85689abb98f9ebcc8492d7e978348d1c986138acef4801030b279e89a19e38a6319e294bcea77559e37e0c803e4bacf2b8ae3a56ba587
+  checksum: cb0e4dc7f41988a059e1246a19ec377101f5b16097ec4bf7000ef3c431ec0c8c873f40e95075821f908db1f4e3352775f0f18cea53dcad14dce67c0f5110f2bd
   languageName: node
   linkType: hard
 
@@ -11613,7 +11613,7 @@ __metadata:
     "@types/luxon": 3.3.4
     "@types/node": 20.10.5
     "@types/prop-types": 15.7.9
-    "@types/react": 18.2.22
+    "@types/react": 18.2.46
     "@types/react-big-calendar": 1.6.5
     "@types/react-dom": 18.2.17
     "@types/react-transition-group": 4.4.7
