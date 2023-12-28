@@ -340,6 +340,52 @@ export interface DebugSendSMSInput {
   to: string
 }
 
+export interface Destination {
+  type: DestinationType
+  typeInfo: DestinationTypeInfo
+  values: FieldValuePair[]
+}
+
+export interface DestinationFieldConfig {
+  fieldID: string
+  hint: string
+  hintURL: string
+  inputType: string
+  isSearchSelectable: boolean
+  labelPlural: string
+  labelSingular: string
+  placeholderText: string
+  prefix: string
+  supportsValidation: boolean
+}
+
+export interface DestinationFieldValidateInput {
+  destType: DestinationType
+  fieldID: string
+  value: string
+}
+
+export interface DestinationInput {
+  type: DestinationType
+  values: FieldValueInput[]
+}
+
+export type DestinationType = string
+
+export interface DestinationTypeInfo {
+  disabledMessage: string
+  enabled: boolean
+  iconAltText: string
+  iconURL: string
+  isContactMethod: boolean
+  isEPTarget: boolean
+  isSchedOnCallNotify: boolean
+  name: string
+  requiredFields: DestinationFieldConfig[]
+  type: DestinationType
+  userDisclaimer: string
+}
+
 export interface EscalationPolicy {
   assignedTo: Target[]
   description: string
@@ -371,6 +417,16 @@ export interface EscalationPolicyStep {
   id: string
   stepNumber: number
   targets: Target[]
+}
+
+export interface FieldValueInput {
+  fieldID: string
+  value: string
+}
+
+export interface FieldValuePair {
+  fieldID: string
+  value: string
 }
 
 export type Float = string
@@ -628,6 +684,8 @@ export interface Query {
   configHints: ConfigHint[]
   debugMessageStatus: DebugMessageStatusInfo
   debugMessages: DebugMessage[]
+  destinationFieldValidate: boolean
+  destinationTypes: DestinationTypeInfo[]
   escalationPolicies: EscalationPolicyConnection
   escalationPolicy?: null | EscalationPolicy
   experimentalFlags: string[]
