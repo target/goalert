@@ -928,6 +928,7 @@ type GqlApiKeyUsage struct {
 }
 
 type HeartbeatMonitor struct {
+	AdditionalDetails sql.NullString
 	HeartbeatInterval int64
 	ID                uuid.UUID
 	LastHeartbeat     sql.NullTime
