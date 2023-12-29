@@ -78,7 +78,6 @@ const useStyles = makeStyles({
   },
   subheader: {
     backgroundColor: 'transparent',
-    paddingLeft: 0,
     paddingBottom: '4px',
   },
 })
@@ -92,6 +91,7 @@ const measuringConfig = {
 export interface FlatListSub {
   id?: string
   subHeader: JSX.Element | string
+  disableGutter?: boolean
 }
 
 export interface FlatListNotice extends Notice {
@@ -256,7 +256,12 @@ export default function FlatList({
     }
 
     return (
-      <Alert key={idx} severity={toSeverity(item.type)} icon={item.icon}>
+      <Alert
+        key={idx}
+        severity={toSeverity(item.type)}
+        icon={item.icon}
+        sx={{ mt: '16px', mb: '16px' }}
+      >
         {item.message && <AlertTitle>{item.message}</AlertTitle>}
         {item.details}
       </Alert>
@@ -265,7 +270,11 @@ export default function FlatList({
 
   function renderSubheaderItem(item: FlatListSub, idx: number): JSX.Element {
     return (
-      <ListSubheader key={idx} className={classes.subheader}>
+      <ListSubheader
+        key={idx}
+        className={classes.subheader}
+        sx={item.disableGutter ? { pl: 0 } : null}
+      >
         <Typography
           component='h2'
           variant='subtitle1'

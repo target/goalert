@@ -59,6 +59,7 @@ export function getSubheaderItems(
       subHeader: day.start.toFormat('cccc, LLLL d'),
       at,
       itemType: 'subheader',
+      disableGutter: true,
     }
   })
 }
