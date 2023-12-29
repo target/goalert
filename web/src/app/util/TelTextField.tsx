@@ -9,7 +9,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import { DEBOUNCE_DELAY } from '../config'
 
 const isValidNumber = gql`
-  query ($number: String!) {
+  query TelTextInfo($number: String!) {
     phoneNumberInfo(number: $number) {
       id
       valid
