@@ -1,6 +1,6 @@
 import React from 'react'
 import { test, expect } from '@playwright/experimental-ct-react'
-import { DestinationInput } from '../../schema'
+import { DestinationInput, Query } from '../../schema'
 import DestinationInputChip from './DestinationInputChip'
 import { DestInputChipValueWrapper } from './DestinationInputChip.story'
 
@@ -20,7 +20,7 @@ test('should render', async ({ mount, page }) => {
             iconURL: 'builtin://rotation',
             linkURL: 'test.com',
           },
-        },
+        } as Query,
       },
     })
   })
@@ -55,7 +55,7 @@ test('should delete', async ({ mount, page }) => {
             iconURL: 'builtin://rotation',
             linkURL: 'test.com',
           },
-        },
+        } as Query,
       },
     })
   })
