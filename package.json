@@ -6,7 +6,9 @@
     "check": "tsc -p web/src/app/tsconfig.json && tsc -p web/src/cypress/tsconfig.json",
     "esbuild": "./web/src/esbuild.config.js",
     "esbuild-cy": "./web/src/esbuild.cypress.js",
-    "test-ct": "playwright test -c playwright-ct.config.ts"
+    "playwright-ct": "./playwright/playwright-ct.bin.js",
+    "playwright-e2e": "./playwright/playwright-e2e.bin.js",
+    "test-ct": "./playwright/playwright-ct.bin.js test -c playwright-ct.config.ts"
   },
   "jest": {
     "transform": {
@@ -125,12 +127,6 @@
   },
   "packageManager": "yarn@3.6.3",
   "dependenciesMeta": {
-    "@playwright/test@1.40.0": {
-      "unplugged": true
-    },
-    "playwright@1.40.1": {
-      "unplugged": true
-    },
     "prettier@3.0.3": {
       "unplugged": true
     },

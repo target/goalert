@@ -238,7 +238,8 @@ test-integration: playwright-run cy-wide-prod-run cy-mobile-prod-run
 test-smoke: smoketest
 test-unit: test
 test-components:
-	NODE_OPTIONS=--max-old-space-size=8192 yarn playwright test -c playwright-ct.config.ts
+	yarn playwright-ct install chromium
+	NODE_OPTIONS=--max-old-space-size=8192 yarn playwright-ct test -c playwright-ct.config.ts
 
 bin/MailHog: go.mod go.sum
 	go build -o bin/MailHog github.com/mailhog/MailHog
@@ -247,13 +248,13 @@ playwright-run: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goaler
 	$(MAKE) ensure-yarn
 	rm -rf test/coverage/integration/playwright
 	mkdir -p test/coverage/integration/playwright
-	yarn playwright install chromium
-	GOCOVERDIR=test/coverage/integration/playwright yarn playwright test
+	yarn playwright-e2e install chromium
+	GOCOVERDIR=test/coverage/integration/playwright yarn playwright-e2e test
 
 playwright-ui: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog ## Start the Playwright UI
 	$(MAKE) ensure-yarn
-	yarn playwright install chromium
-	yarn playwright test --ui
+	yarn playwright-e2e install chromium
+	yarn playwright-e2e test --ui
 
 smoketest:
 	rm -rf test/coverage/smoke
