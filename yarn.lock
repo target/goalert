@@ -11680,10 +11680,6 @@ __metadata:
     wonka: 6.3.4
     wouter: 2.12.1
   dependenciesMeta:
-    "@playwright/test@1.40.0":
-      unplugged: true
-    playwright@1.40.1:
-      unplugged: true
     prettier-plugin-go-template@0.0.15:
       unplugged: true
     prettier@3.0.3:
