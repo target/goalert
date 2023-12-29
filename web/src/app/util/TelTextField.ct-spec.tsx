@@ -1,27 +1,22 @@
 import React from 'react'
 import { test, expect } from '@playwright/experimental-ct-react'
 import { TelTextValueWrapper } from './TelTextField.story'
+import { GQLMock } from '../../playwright/gqlMock'
 
 test.use({ viewport: { width: 500, height: 500 } })
 
 test('should work', async ({ mount, page }) => {
-  await page.route('/api/graphql', (route) => {
-    const body: { query: string; variables: { number: string } } = route
-      .request()
-      .postDataJSON()
+  const gql = new GQLMock(page)
+  await gql.init()
 
-    route.fulfill({
-      status: 200,
-      json: {
-        data: {
-          phoneNumberInfo: {
-            id: body.variables.number,
-            valid: body.variables.number === '+17635550123',
-          },
-        },
+  gql.setGQL('TelTextInfo', (vars) => ({
+    data: {
+      phoneNumberInfo: {
+        id: vars.number,
+        valid: vars.number === '+17635550123',
       },
-    })
-  })
+    },
+  }))
 
   const component = await mount(<TelTextValueWrapper />)
   await component.locator('input').fill('17635550123')
