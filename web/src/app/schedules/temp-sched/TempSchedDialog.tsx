@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, Suspense } from 'react'
 import { useMutation, gql } from '@apollo/client'
 import Checkbox from '@mui/material/Checkbox'
 import DialogContentText from '@mui/material/DialogContentText'
@@ -260,197 +260,205 @@ export default function TempSchedDialog({
       errors={errs}
       disableBackdropClose
       form={
-        <FormContainer
-          optionalLabels
-          disabled={loading}
-          value={value}
-          onChange={(newValue: TempSchedValue) => {
-            setValue({ ...value, ...ensureInterval(value, newValue) })
-          }}
-        >
-          {(edit && submitSuccess && !hasCoverageGaps) ||
-          (edit && submitSuccess && hasCoverageGaps && allowNoCoverage) ? (
-            <TempSchedConfirmation value={value} scheduleID={scheduleID} />
-          ) : (
-            <Grid
-              container
-              className={classes.formContainer}
-              justifyContent='space-between'
-            >
-              {/* left pane */}
+        <Suspense>
+          <FormContainer
+            optionalLabels
+            disabled={loading}
+            value={value}
+            onChange={(newValue: TempSchedValue) => {
+              setValue({ ...value, ...ensureInterval(value, newValue) })
+            }}
+          >
+            {(edit && submitSuccess && !hasCoverageGaps) ||
+            (edit && submitSuccess && hasCoverageGaps && allowNoCoverage) ? (
+              <TempSchedConfirmation value={value} scheduleID={scheduleID} />
+            ) : (
               <Grid
-                item
-                xs={12}
-                md={6}
                 container
-                alignContent='flex-start'
-                spacing={2}
+                className={classes.formContainer}
+                justifyContent='space-between'
               >
-                <Grid item xs={12}>
-                  <DialogContentText className={classes.contentText}>
-                    The schedule will be exactly as configured here for the
-                    entire duration (ignoring all assignments and overrides).
-                  </DialogContentText>
-                </Grid>
+                {/* left pane */}
+                <Grid
+                  item
+                  xs={12}
+                  md={6}
+                  container
+                  alignContent='flex-start'
+                  spacing={2}
+                >
+                  <Grid item xs={12}>
+                    <DialogContentText className={classes.contentText}>
+                      The schedule will be exactly as configured here for the
+                      entire duration (ignoring all assignments and overrides).
+                    </DialogContentText>
+                  </Grid>
 
-                <Grid item xs={12}>
-                  <Typography color='textSecondary' className={classes.tzNote}>
-                    Times shown in schedule timezone ({zone})
-                  </Typography>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <FormField
-                    fullWidth
-                    component={ISODateTimePicker}
-                    required
-                    name='start'
-                    label='Schedule Start'
-                    min={now}
-                    max={DateTime.fromISO(now, { zone })
-                      .plus({ year: 1 })
-                      .toISO()}
-                    softMax={value.end}
-                    softMaxLabel='Must be before end time.'
-                    softMin={DateTime.fromISO(value.end)
-                      .plus({ month: -3 })
-                      .toISO()}
-                    softMinLabel='Must be within 3 months of end time.'
-                    validate={() => validate()}
-                    timeZone={zone}
-                    disabled={q.loading}
-                    hint={isLocalZone ? '' : fmtLocal(value.start)}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FormField
-                    fullWidth
-                    component={ISODateTimePicker}
-                    required
-                    name='end'
-                    label='Schedule End'
-                    min={now}
-                    softMin={value.start}
-                    softMinLabel='Must be after start time.'
-                    softMax={DateTime.fromISO(value.start)
-                      .plus({ month: 3 })
-                      .toISO()}
-                    softMaxLabel='Must be within 3 months of start time.'
-                    validate={() => validate()}
-                    timeZone={zone}
-                    disabled={q.loading}
-                    hint={isLocalZone ? '' : fmtLocal(value.end)}
-                  />
-                </Grid>
-
-                <Grid item xs={12} className={classes.sticky}>
-                  <TempSchedAddNewShift
-                    value={value}
-                    onChange={(shifts: Shift[]) =>
-                      setValue({ ...value, shifts })
-                    }
-                    scheduleID={scheduleID}
-                    showForm={showForm}
-                    setShowForm={setShowForm}
-                    shift={shift}
-                    setShift={setShift}
-                  />
-                </Grid>
-              </Grid>
-
-              {/* right pane */}
-              <Grid
-                item
-                xs={12}
-                md={6}
-                container
-                spacing={2}
-                className={classes.rightPane}
-              >
-                <Grid item xs={12} ref={shiftListRef}>
-                  <Typography
-                    variant='subtitle1'
-                    component='h3'
-                    sx={{ fontSize: '1.15rem' }}
-                  >
-                    Shifts
-                  </Typography>
-
-                  {submitAttempt && hasCoverageGaps && (
-                    <Alert severity='error' className={classes.noCoverageError}>
-                      <AlertTitle>Gaps in coverage</AlertTitle>
-                      <FormHelperText>
-                        There are gaps in coverage. During these gaps, nobody on
-                        the schedule will receive alerts. If you still want to
-                        proceed, check the box below and retry.
-                      </FormHelperText>
-                      <FormControlLabel
-                        label='Allow gaps in coverage'
-                        labelPlacement='end'
-                        control={
-                          <Checkbox
-                            data-cy='no-coverage-checkbox'
-                            checked={allowNoCoverage}
-                            onChange={(e) => {
-                              setSubmitSuccess(false)
-                              setAllowNoCoverage(e.target.checked)
-                            }}
-                            name='allowCoverageGaps'
-                          />
-                        }
-                      />
-                    </Alert>
-                  )}
-
-                  {DateTime.fromISO(value.start) >
-                    DateTime.utc().minus({ hour: 1 }) || edit ? null : (
-                    <Alert
-                      severity='warning'
-                      className={classes.noCoverageError}
+                  <Grid item xs={12}>
+                    <Typography
+                      color='textSecondary'
+                      className={classes.tzNote}
                     >
-                      <AlertTitle>Start time occurs in the past</AlertTitle>
-                      <FormHelperText>
-                        Any shifts or changes made to shifts in the past will be
-                        ignored when submitting.
-                      </FormHelperText>
-                      <FormControlLabel
-                        label='Allow gaps in coverage'
-                        labelPlacement='end'
-                        control={
-                          <Checkbox
-                            data-cy='no-coverage-checkbox'
-                            checked={allowNoCoverage}
-                            onChange={(e) =>
-                              setAllowNoCoverage(e.target.checked)
-                            }
-                            name='allowCoverageGaps'
-                          />
-                        }
-                      />
-                    </Alert>
-                  )}
+                      Times shown in schedule timezone ({zone})
+                    </Typography>
+                  </Grid>
 
-                  <TempSchedShiftsList
-                    scheduleID={scheduleID}
-                    value={value.shifts}
-                    start={value.start}
-                    end={value.end}
-                    onRemove={(shift: Shift) => {
-                      setValue({
-                        ...value,
-                        shifts: value.shifts.filter(
-                          (s) => !shiftEquals(shift, s),
-                        ),
-                      })
-                    }}
-                    edit={edit}
-                    handleCoverageGapClick={handleCoverageGapClick}
-                  />
+                  <Grid item xs={12} md={6}>
+                    <FormField
+                      fullWidth
+                      component={ISODateTimePicker}
+                      required
+                      name='start'
+                      label='Schedule Start'
+                      min={now}
+                      max={DateTime.fromISO(now, { zone })
+                        .plus({ year: 1 })
+                        .toISO()}
+                      softMax={value.end}
+                      softMaxLabel='Must be before end time.'
+                      softMin={DateTime.fromISO(value.end)
+                        .plus({ month: -3 })
+                        .toISO()}
+                      softMinLabel='Must be within 3 months of end time.'
+                      validate={() => validate()}
+                      timeZone={zone}
+                      disabled={q.loading}
+                      hint={isLocalZone ? '' : fmtLocal(value.start)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormField
+                      fullWidth
+                      component={ISODateTimePicker}
+                      required
+                      name='end'
+                      label='Schedule End'
+                      min={now}
+                      softMin={value.start}
+                      softMinLabel='Must be after start time.'
+                      softMax={DateTime.fromISO(value.start)
+                        .plus({ month: 3 })
+                        .toISO()}
+                      softMaxLabel='Must be within 3 months of start time.'
+                      validate={() => validate()}
+                      timeZone={zone}
+                      disabled={q.loading}
+                      hint={isLocalZone ? '' : fmtLocal(value.end)}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} className={classes.sticky}>
+                    <TempSchedAddNewShift
+                      value={value}
+                      onChange={(shifts: Shift[]) =>
+                        setValue({ ...value, shifts })
+                      }
+                      scheduleID={scheduleID}
+                      showForm={showForm}
+                      setShowForm={setShowForm}
+                      shift={shift}
+                      setShift={setShift}
+                    />
+                  </Grid>
+                </Grid>
+
+                {/* right pane */}
+                <Grid
+                  item
+                  xs={12}
+                  md={6}
+                  container
+                  spacing={2}
+                  className={classes.rightPane}
+                >
+                  <Grid item xs={12} ref={shiftListRef}>
+                    <Typography
+                      variant='subtitle1'
+                      component='h3'
+                      sx={{ fontSize: '1.15rem' }}
+                    >
+                      Shifts
+                    </Typography>
+
+                    {submitAttempt && hasCoverageGaps && (
+                      <Alert
+                        severity='error'
+                        className={classes.noCoverageError}
+                      >
+                        <AlertTitle>Gaps in coverage</AlertTitle>
+                        <FormHelperText>
+                          There are gaps in coverage. During these gaps, nobody
+                          on the schedule will receive alerts. If you still want
+                          to proceed, check the box below and retry.
+                        </FormHelperText>
+                        <FormControlLabel
+                          label='Allow gaps in coverage'
+                          labelPlacement='end'
+                          control={
+                            <Checkbox
+                              data-cy='no-coverage-checkbox'
+                              checked={allowNoCoverage}
+                              onChange={(e) => {
+                                setSubmitSuccess(false)
+                                setAllowNoCoverage(e.target.checked)
+                              }}
+                              name='allowCoverageGaps'
+                            />
+                          }
+                        />
+                      </Alert>
+                    )}
+
+                    {DateTime.fromISO(value.start) >
+                      DateTime.utc().minus({ hour: 1 }) || edit ? null : (
+                      <Alert
+                        severity='warning'
+                        className={classes.noCoverageError}
+                      >
+                        <AlertTitle>Start time occurs in the past</AlertTitle>
+                        <FormHelperText>
+                          Any shifts or changes made to shifts in the past will
+                          be ignored when submitting.
+                        </FormHelperText>
+                        <FormControlLabel
+                          label='Allow gaps in coverage'
+                          labelPlacement='end'
+                          control={
+                            <Checkbox
+                              data-cy='no-coverage-checkbox'
+                              checked={allowNoCoverage}
+                              onChange={(e) =>
+                                setAllowNoCoverage(e.target.checked)
+                              }
+                              name='allowCoverageGaps'
+                            />
+                          }
+                        />
+                      </Alert>
+                    )}
+
+                    <TempSchedShiftsList
+                      scheduleID={scheduleID}
+                      value={value.shifts}
+                      start={value.start}
+                      end={value.end}
+                      onRemove={(shift: Shift) => {
+                        setValue({
+                          ...value,
+                          shifts: value.shifts.filter(
+                            (s) => !shiftEquals(shift, s),
+                          ),
+                        })
+                      }}
+                      edit={edit}
+                      handleCoverageGapClick={handleCoverageGapClick}
+                    />
+                  </Grid>
                 </Grid>
               </Grid>
-            </Grid>
-          )}
-        </FormContainer>
+            )}
+          </FormContainer>
+        </Suspense>
       }
     />
   )
