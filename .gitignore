@@ -72,4 +72,7 @@ smoketest_db_dump
 
 /.yarn
 /.pnp.*
-
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
