@@ -84,6 +84,23 @@ export const defaultMocks: Record<string, OperationHandler> = {
 
 type RawHandler = (route: Route, request: Request) => unknown
 
+// GQLMock is a helper class for mocking GraphQL requests.
+//
+// Example:
+//   const mock = new GQLMock(page)
+//   await mock.init()
+//   mock.setGQL('MyQuery', (vars, query) => {
+//     expect(vars).toMatchObject({ number: '123' })
+//     expect(query).toMatch(/query MyQuery/)
+//     return {
+//       data: {
+//         myQuery: {
+//           id: '123',
+//           name: 'Test',
+//         },
+//       },
+//     }
+//   })
 export class GQLMock {
   private page: Page
   private mocks: Record<string, OperationHandler> = { ...defaultMocks }
@@ -120,15 +137,23 @@ export class GQLMock {
     this._init = true
   }
 
-  setRaw(name: string, handler: RawHandler): void {
+  // setRaw allows direct access to the Route and Request objects.
+  //
+  // This can be used to similate a server 500 error, or other
+  // non-200 response.
+  setRaw(operationName: string, handler: RawHandler): void {
     if (!this._init) throw new Error('must call init() first')
-    delete this.mocks[name]
-    this.raw[name] = handler
+    delete this.mocks[operationName]
+    this.raw[operationName] = handler
   }
 
-  setGQL(name: string, handler: OperationHandler): void {
+  // setGQL allows mocking a GraphQL response.
+  //
+  // This can be used to simulate the response for a single named
+  // GraphQL operation.
+  setGQL(operationName: string, handler: OperationHandler): void {
     if (!this._init) throw new Error('must call init() first')
-    delete this.raw[name]
-    this.mocks[name] = handler
+    delete this.raw[operationName]
+    this.mocks[operationName] = handler
   }
 }
