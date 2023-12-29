@@ -1,17 +1,41 @@
 import { Page, Request, Route } from 'playwright/test'
 import { ConfigID, ConfigType, Mutation, Query } from '../schema'
 
-type RecursivePartial<T> = {
-  [P in keyof T]?: T[P] extends (infer U)[]
-    ? RecursivePartial<U>[]
-    : T[P] extends object | undefined
-      ? RecursivePartial<T[P]>
-      : T[P]
+type DeepPartial<T> = T extends object
+  ? {
+      [P in keyof T]?: DeepPartial<T[P]>
+    }
+  : T
+
+type Error = FieldError | MultiFieldError | GenericError
+
+interface GenericError {
+  message: string
 }
 
-type GraphQLResponse = {
-  data?: RecursivePartial<Query | Mutation>
-  errors?: { message: string }[] // TODO
+interface FieldError extends GenericError {
+  message: string
+  path: string[]
+  extensions: {
+    fieldName: string
+    isFieldError: true
+  }
+}
+
+interface MultiFieldError extends GenericError {
+  message: string
+  extensions: {
+    isMultiFieldError: true
+    errors: {
+      message: string
+      fieldName: string
+    }[]
+  }
+}
+
+interface GraphQLResponse {
+  data?: DeepPartial<Query | Mutation>
+  errors?: Error[]
 }
 
 export type OperationHandler = (
