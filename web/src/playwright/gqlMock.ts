@@ -85,9 +85,10 @@ export const defaultMocks: Record<string, OperationHandler> = {
 type RawHandler = (route: Route, request: Request) => unknown
 
 export class GQLMock {
-  page: Page
-  mocks: Record<string, OperationHandler> = { ...defaultMocks }
-  raw: Record<string, RawHandler> = {}
+  private page: Page
+  private mocks: Record<string, OperationHandler> = { ...defaultMocks }
+  private raw: Record<string, RawHandler> = {}
+  private _init = false
 
   constructor(page: Page) {
     this.page = page
@@ -116,14 +117,17 @@ export class GQLMock {
 
       throw new Error(`no mock for ${body.operationName}`)
     })
+    this._init = true
   }
 
   setRaw(name: string, handler: RawHandler): void {
+    if (!this._init) throw new Error('must call init() first')
     delete this.mocks[name]
     this.raw[name] = handler
   }
 
   setGQL(name: string, handler: OperationHandler): void {
+    if (!this._init) throw new Error('must call init() first')
     delete this.raw[name]
     this.mocks[name] = handler
   }
