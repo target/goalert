@@ -9,6 +9,7 @@ import { StyledEngineProvider } from '@mui/material'
 import { ThemeProvider } from '../web/src/app/theme/themeConfig'
 
 import { Settings } from 'luxon'
+import { DestTypeProvider } from '../web/src/app/util/useDestinationTypes'
 Settings.throwOnInvalid = true
 
 beforeMount(async ({ App }) => {
@@ -18,7 +19,9 @@ beforeMount(async ({ App }) => {
         <URQLProvider value={urqlClient}>
           <React.Suspense>
             <ConfigProvider>
-              <App />
+              <DestTypeProvider>
+                <App />
+              </DestTypeProvider>
             </ConfigProvider>
           </React.Suspense>
         </URQLProvider>
