@@ -15,7 +15,7 @@ type TimeBaseProps = {
 
 type TimeTimestampProps = TimeBaseProps &
   Omit<FormatTimestampArg, 'time'> & {
-    time: string | DateTime | null | undefined
+    time: string | DateTime | null | undefined | number
     zero?: string
   }
 
@@ -103,8 +103,12 @@ const TimeDuration: React.FC<TimeDurationProps> = (props) => {
 
 export type TimeProps = TimeTimestampProps | TimeDurationProps
 
+function isTime(props: TimeProps): props is TimeTimestampProps {
+  return 'time' in props && !!props.time
+}
+
 // Time will render a <time> element using Luxon to format the time.
 export const Time: React.FC<TimeProps> = (props) => {
-  if ('time' in props) return <TimeTimestamp {...props} />
+  if (isTime(props)) return <TimeTimestamp {...props} />
   return <TimeDuration {...props} />
 }

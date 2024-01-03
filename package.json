@@ -8,7 +8,9 @@
     "esbuild-cy": "./web/src/esbuild.cypress.js",
     "playwright-ct": "./playwright/playwright-ct.bin.js",
     "playwright-e2e": "./playwright/playwright-e2e.bin.js",
-    "test-ct": "./playwright/playwright-ct.bin.js test -c playwright-ct.config.ts"
+    "test-ct": "./playwright/playwright-ct.bin.js test -c playwright-ct.config.ts",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "jest": {
     "transform": {
@@ -50,6 +52,17 @@
     "@mui/x-data-grid": "6.18.2",
     "@playwright/experimental-ct-react": "1.40.1",
     "@playwright/test": "1.40.0",
+    "@storybook/addon-essentials": "^7.6.7",
+    "@storybook/addon-interactions": "^7.6.7",
+    "@storybook/addon-links": "^7.6.7",
+    "@storybook/addon-onboarding": "^1.0.10",
+    "@storybook/blocks": "^7.6.7",
+    "@storybook/jest": "0.2.3",
+    "@storybook/react": "^7.6.7",
+    "@storybook/react-vite": "^7.6.7",
+    "@storybook/test": "^7.6.7",
+    "@storybook/test-runner": "0.16.0",
+    "@storybook/testing-library": "0.2.2",
     "@types/chance": "1.1.4",
     "@types/diff": "5.0.8",
     "@types/glob": "8.1.0",
@@ -86,6 +99,7 @@
     "eslint-plugin-promise": "6.1.1",
     "eslint-plugin-react": "7.33.2",
     "eslint-plugin-react-hooks": "4.6.0",
+    "eslint-plugin-storybook": "0.6.15",
     "fuse.js": "7.0.0",
     "glob": "10.3.10",
     "graphiql": "3.0.10",
@@ -95,6 +109,8 @@
     "luxon": "3.4.3",
     "mdast-util-find-and-replace": "3.0.1",
     "mdi-material-ui": "7.7.0",
+    "msw": "2.0.11",
+    "msw-storybook-addon": "2.0.0--canary.122.b3ed3b1.0",
     "playwright": "1.40.1",
     "prettier": "3.1.0",
     "prettier-plugin-go-template": "0.0.15",
@@ -105,6 +121,7 @@
     "react-colorful": "5.6.1",
     "react-countdown": "2.3.5",
     "react-dom": "18.2.0",
+    "react-error-boundary": "4.0.12",
     "react-ga4": "2.1.0",
     "react-infinite-scroll-component": "6.1.0",
     "react-markdown": "9.0.0",
@@ -117,6 +134,8 @@
     "redux-thunk": "2.4.2",
     "remark-breaks": "4.0.0",
     "remark-gfm": "4.0.0",
+    "storybook": "^7.6.7",
+    "storybook-addon-mock": "4.3.0",
     "stylelint": "15.11.0",
     "stylelint-config-standard": "34.0.0",
     "typescript": "5.2.2",
@@ -133,5 +152,8 @@
     "prettier-plugin-go-template@0.0.15": {
       "unplugged": true
     }
+  },
+  "msw": {
+    "workerDirectory": ".storybook/static"
   }
 }
