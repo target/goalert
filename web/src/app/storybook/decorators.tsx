@@ -7,6 +7,8 @@ import { ThemeProvider } from '../theme/themeConfig'
 import { ErrorBoundary } from 'react-error-boundary'
 
 import { Settings } from 'luxon'
+import { DecoratorFunction } from '@storybook/types'
+import { ReactRenderer } from '@storybook/react'
 Settings.throwOnInvalid = true
 
 interface Error {
@@ -31,18 +33,13 @@ function fallbackRender({
   )
 }
 
-type StoryArgs = {
-  globals: {
-    backgrounds: {
-      value: string
-    }
-  }
-}
+type Func = DecoratorFunction<ReactRenderer, object>
+type FuncParams = Parameters<Func>
 
 export default function DefaultDecorator(
-  Story: React.JSXElementConstructor<unknown>,
-  args: StoryArgs,
-): React.ReactNode {
+  Story: FuncParams[0],
+  args: FuncParams[1],
+): ReturnType<Func> {
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider
