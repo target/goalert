@@ -9,7 +9,19 @@ import { ErrorBoundary } from 'react-error-boundary'
 import { Settings } from 'luxon'
 Settings.throwOnInvalid = true
 
-function fallbackRender({ error, resetErrorBoundary }): React.ReactNode {
+interface Error {
+  message: string
+}
+
+type FallbackProps = {
+  error: Error
+  resetErrorBoundary: () => void
+}
+
+function fallbackRender({
+  error,
+  resetErrorBoundary,
+}: FallbackProps): React.ReactNode {
   return (
     <div role='alert'>
       <p>Thrown error:</p>
@@ -19,7 +31,18 @@ function fallbackRender({ error, resetErrorBoundary }): React.ReactNode {
   )
 }
 
-export default function DefaultDecorator(Story, args): StoryFnReactReturnType {
+type StoryArgs = {
+  globals: {
+    backgrounds: {
+      value: string
+    }
+  }
+}
+
+export default function DefaultDecorator(
+  Story: React.JSXElementConstructor<unknown>,
+  args: StoryArgs,
+): React.ReactNode {
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider
