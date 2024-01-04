@@ -4522,19 +4522,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/addon-onboarding@npm:^1.0.10":
-  version: 1.0.10
-  resolution: "@storybook/addon-onboarding@npm:1.0.10"
-  dependencies:
-    "@storybook/telemetry": ^7.1.0
-    react-confetti: ^6.1.0
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
-  checksum: 2351cf260ab92f26ecbdd2a1bac7c5ff0e8674ea7a3dd177751f594434f77b74403b9f2b24f243f1899c6d727941fc21838213953959a80685de9f043f17723c
-  languageName: node
-  linkType: hard
-
 "@storybook/addon-outline@npm:7.6.7":
   version: 7.6.7
   resolution: "@storybook/addon-outline@npm:7.6.7"
@@ -5148,7 +5135,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/telemetry@npm:7.6.7, @storybook/telemetry@npm:^7.1.0":
+"@storybook/telemetry@npm:7.6.7":
   version: 7.6.7
   resolution: "@storybook/telemetry@npm:7.6.7"
   dependencies:
@@ -16596,17 +16583,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-confetti@npm:^6.1.0":
-  version: 6.1.0
-  resolution: "react-confetti@npm:6.1.0"
-  dependencies:
-    tween-functions: ^1.2.0
-  peerDependencies:
-    react: ^16.3.0 || ^17.0.1 || ^18.0.0
-  checksum: 24b6975df144d2bf09d8e1c95ddc49e547775f911efaa8d96b49e522659d931539e9d9e48cc0db3a01f3a671be7e3824e6e728db85096f5527db5d1c69ebb153
-  languageName: node
-  linkType: hard
-
 "react-countdown@npm:2.3.5":
   version: 2.3.5
   resolution: "react-countdown@npm:2.3.5"
@@ -17664,7 +17640,6 @@ __metadata:
     "@storybook/addon-essentials": ^7.6.7
     "@storybook/addon-interactions": ^7.6.7
     "@storybook/addon-links": ^7.6.7
-    "@storybook/addon-onboarding": ^1.0.10
     "@storybook/blocks": ^7.6.7
     "@storybook/jest": 0.2.3
     "@storybook/react": ^7.6.7
@@ -19202,13 +19177,6 @@ __metadata:
   dependencies:
     safe-buffer: ^5.0.1
   checksum: 05f6510358f8afc62a057b8b692f05d70c1782b70db86d6a1e0d5e28a32389e52fa6e7707b6c5ecccacc031462e4bc35af85ecfe4bbc341767917b7cf6965711
-  languageName: node
-  linkType: hard
-
-"tween-functions@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "tween-functions@npm:1.2.0"
-  checksum: 880708d680eff5c347ddcb9f922ad121703a91c78ce308ed309073e73a794b633eb0b80589a839365803f150515ad34c9646809ae8a0e90f09e62686eefb1ab6
   languageName: node
   linkType: hard
 

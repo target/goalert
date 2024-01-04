@@ -56,6 +56,8 @@ export const InvalidNumber: Story = {
   parameters: {
     msw: {
       handlers: [
+        handleDefaultConfig,
+
         graphql.query('PhoneNumberValidate', ({ variables: vars }) => {
           return HttpResponse.json({
             data: { phoneNumberInfo: { id: vars.number, valid: false } },
