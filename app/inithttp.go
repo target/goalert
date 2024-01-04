@@ -15,6 +15,7 @@ import (
 	"github.com/target/goalert/notification/twilio"
 	prometheus "github.com/target/goalert/prometheusalertmanager"
 	"github.com/target/goalert/site24x7"
+	"github.com/target/goalert/universalapi"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/web"
@@ -124,6 +125,10 @@ func (app *App) initHTTP(ctx context.Context) error {
 		UserStore:           app.UserStore,
 	})
 
+	universal := universalapi.NewHandler(universalapi.Config{
+		AlertStore: app.AlertStore,
+	})
+
 	mux.Handle("/api/graphql", app.graphql2.Handler())
 
 	mux.HandleFunc("/api/v2/config", app.ConfigStore.ServeConfig)
@@ -151,6 +156,8 @@ func (app *App) initHTTP(ctx context.Context) error {
 	mux.HandleFunc("/api/v2/heartbeat/", generic.ServeHeartbeatCheck)
 	mux.HandleFunc("/api/v2/user-avatar/", generic.ServeUserAvatar)
 	mux.HandleFunc("/api/v2/calendar", app.CalSubStore.ServeICalData)
+
+	mux.HandleFunc("/api/v2/universal/incoming", universal.ServeCreateAlert)
 
 	mux.HandleFunc("/api/v2/twilio/message", app.twilioSMS.ServeMessage)
 	mux.HandleFunc("/api/v2/twilio/message/status", app.twilioSMS.ServeStatusCallback)

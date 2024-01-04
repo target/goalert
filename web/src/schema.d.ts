@@ -1015,6 +1015,7 @@ export type IntegrationKeyType =
   | 'site24x7'
   | 'prometheusAlertmanager'
   | 'email'
+  | 'universal'
 
 export interface ServiceOnCallUser {
   userID: string

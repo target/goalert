@@ -304,7 +304,7 @@ func (d *datagen) NewService() {
 // NewIntKey will generate a random integration key for the given service ID.
 func (d *datagen) NewIntKey(svcID string) {
 	var typ integrationkey.Type
-	switch d.Intn(4) {
+	switch d.Intn(5) {
 	case 0:
 		typ = integrationkey.TypeEmail
 	case 1:
@@ -313,6 +313,8 @@ func (d *datagen) NewIntKey(svcID string) {
 		typ = integrationkey.TypeGrafana
 	case 3:
 		typ = integrationkey.TypeSite24x7
+	case 4:
+		typ = integrationkey.TypeUniversal
 	}
 	d.IntKeys = append(d.IntKeys, integrationkey.IntegrationKey{
 		ID:        d.UUID(),
@@ -352,7 +354,7 @@ func (d *datagen) NewAlert(status alert.Status) {
 		details = d.RandomString(d.alertDetails)
 	}
 	var src alert.Source
-	switch d.Intn(5) {
+	switch d.Intn(6) {
 	case 0:
 		src = alert.SourceEmail
 	case 1:
@@ -363,6 +365,8 @@ func (d *datagen) NewAlert(status alert.Status) {
 		src = alert.SourceManual
 	case 4:
 		src = alert.SourceSite24x7
+	case 5:
+		src = alert.SourceUniversal
 	}
 	var serviceID string
 	if status == alert.StatusTriggered {

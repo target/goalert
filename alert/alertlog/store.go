@@ -400,6 +400,8 @@ func (s *Store) logEntry(ctx context.Context, tx *sql.Tx, _type Type, meta inter
 				r.subject.classifier = "Site24x7"
 			case integrationkey.TypeEmail:
 				r.subject.classifier = "Email"
+			case integrationkey.TypeUniversal:
+				r.subject.classifier = "Universal"
 			}
 			r.subject.integrationKeyID.Valid = true
 			r.subject.integrationKeyID.UUID = uuid.MustParse(src.ID)

@@ -1301,6 +1301,7 @@ enum IntegrationKeyType {
   site24x7
   prometheusAlertmanager
   email
+  universal
 }
 
 type ServiceOnCallUser {

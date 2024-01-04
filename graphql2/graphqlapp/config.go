@@ -15,7 +15,8 @@ func (a *Query) IntegrationKeyTypes(ctx context.Context) ([]graphql2.Integration
 		{ID: "generic", Name: "Generic API", Label: "Generic Webhook URL", Enabled: true},
 		{ID: "grafana", Name: "Grafana", Label: "Grafana Webhook URL", Enabled: true},
 		{ID: "site24x7", Name: "Generic", Label: "Site24x7 Webhook URL", Enabled: true},
-		{ID: "prometheusAlertmanager", Label: "Alertmanager Webhook URL", Name: "Prometheus Alertmanager", Enabled: true},
+		{ID: "prometheusAlertmanager", Name: "Prometheus Alertmanager", Label: "Alertmanager Webhook URL", Enabled: true},
+		{ID: "universal", Name: "Universal", Label: "Universal API URL", Enabled: true},
 	}, nil
 }
 
