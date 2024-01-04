@@ -2,7 +2,9 @@ import type { Preview } from '@storybook/react'
 import DefaultDecorator from '../web/src/app/storybook/decorators'
 import { initialize, mswLoader } from 'msw-storybook-addon'
 
-initialize()
+initialize({
+  onUnhandledRequest: 'bypass',
+})
 
 const preview: Preview = {
   parameters: {

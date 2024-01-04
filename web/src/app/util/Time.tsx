@@ -9,7 +9,14 @@ import {
 } from './timeFormat'
 
 type TimeBaseProps = {
+  /**
+   * Prefix to display before the time.
+   */
   prefix?: string
+
+  /**
+   * Suffix to display after the time.
+   */
   suffix?: string
 }
 

@@ -237,9 +237,12 @@ test-all: test-unit test-components test-smoke test-integration
 test-integration: playwright-run cy-wide-prod-run cy-mobile-prod-run
 test-smoke: smoketest
 test-unit: test
-test-components:
-	yarn playwright-ct install chromium
-	NODE_OPTIONS=--max-old-space-size=8192 yarn playwright-ct test -c playwright-ct.config.ts
+
+test-components:  $(NODE_DEPS) bin/waitfor
+	yarn storybook dev --ci -p 6008 & echo "$$!" >.storybook.pid
+	./bin/waitfor -timeout 15s http://localhost:6008
+	yarn test-storybook --ci  --url http://127.0.0.1:6008 || (kill `cat .storybook.pid` && false)
+	kill `cat .storybook.pid` || true
 
 bin/MailHog: go.mod go.sum
 	go build -o bin/MailHog github.com/mailhog/MailHog

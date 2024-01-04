@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import TelTextField from './TelTextField'
-import { graphql } from 'msw'
+import { HttpResponse, graphql } from 'msw'
+import { within } from '@storybook/testing-library'
+import { expect } from '@storybook/jest'
+import { handleDefaultConfig } from '../storybook/graphql'
 
 const meta = {
   title: 'util/TelTextField',
@@ -22,23 +25,56 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const ValidNumber: Story = {
-  //   msw: {
-  //     handlers: [
-  //       graphql.query('AllFilmsQuery', (req, res, ctx) => {
-  //         return res(
-  //           ctx.delay(800),
-  //           ctx.errors([
-  //             {
-  //               message: 'Access denied',
-  //             },
-  //           ]),
-  //         )
-  //       }),
-  //     ],
-  //   },
+  parameters: {
+    msw: {
+      handlers: [
+        handleDefaultConfig,
+
+        graphql.query('PhoneNumberValidate', ({ variables: vars }) => {
+          return HttpResponse.json({
+            data: { phoneNumberInfo: { id: vars.number, valid: true } },
+          })
+        }),
+      ],
+    },
+  },
+
   args: {
     value: '+17635550123',
     label: 'Phone Number',
     error: false,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    // ensure we get the red X
+
+    await expect(await canvas.findByTestId('CheckIcon')).toBeVisible()
+  },
+}
+
+export const InvalidNumber: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        graphql.query('PhoneNumberValidate', ({ variables: vars }) => {
+          return HttpResponse.json({
+            data: { phoneNumberInfo: { id: vars.number, valid: false } },
+          })
+        }),
+      ],
+    },
+  },
+
+  args: {
+    value: '+1763555012',
+    label: 'Phone Number',
+    error: false,
+  },
+
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    // ensure we get the red X
+
+    await expect(await canvas.findByTestId('CloseIcon')).toBeVisible()
   },
 }
