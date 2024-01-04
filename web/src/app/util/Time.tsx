@@ -111,7 +111,8 @@ const TimeDuration: React.FC<TimeDurationProps> = (props) => {
 export type TimeProps = TimeTimestampProps | TimeDurationProps
 
 function isTime(props: TimeProps): props is TimeTimestampProps {
-  return 'time' in props && !!props.time
+  if ('duration' in props && !!props.duration) return false
+  return true
 }
 
 // Time will render a <time> element using Luxon to format the time.
