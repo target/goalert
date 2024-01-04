@@ -6,6 +6,7 @@ import { FormContainer, FormField } from '../forms'
 import { FieldError } from '../util/errutil'
 import { useConfigValue } from '../util/RequireConfig'
 import { Label } from '../../schema'
+import { InputAdornment } from '@mui/material'
 
 const MaxDetailsLength = 6 * 1024 // 6KiB
 
@@ -83,7 +84,7 @@ export default function ServiceForm(props: ServiceFormProps): JSX.Element {
           />
         </Grid>
         {reqLabels &&
-          reqLabels.map((labelName: string) => (
+          reqLabels.map((labelName: string, idx: number) => (
             <Grid item xs={12} key={labelName}>
               <FormField
                 fullWidth
@@ -91,6 +92,20 @@ export default function ServiceForm(props: ServiceFormProps): JSX.Element {
                 required={!epRequired} // optional when editing
                 component={TextField}
                 fieldName='labels'
+                label={
+                  reqLabels.length === 1
+                    ? 'Service Label'
+                    : reqLabels.length > 1 && idx === 0
+                      ? 'Service Labels'
+                      : ''
+                }
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      {labelName}:
+                    </InputAdornment>
+                  ),
+                }}
                 mapOnChangeValue={(newVal: string, value: Value) => {
                   return [
                     ...value.labels.filter((l) => l.key !== labelName),
