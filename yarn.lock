@@ -16108,7 +16108,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright@npm:^1.14.0":
+"playwright@npm:1.40.1, playwright@npm:^1.14.0":
   version: 1.40.1
   resolution: "playwright@npm:1.40.1"
   dependencies:
@@ -17695,6 +17695,7 @@ __metadata:
     mdi-material-ui: 7.7.0
     msw: 2.0.11
     msw-storybook-addon: 2.0.0--canary.122.b3ed3b1.0
+    playwright: 1.40.1
     prettier: 3.1.0
     prettier-plugin-go-template: 0.0.15
     prop-types: 15.8.1
