@@ -18,12 +18,6 @@ const meta = {
   },
   decorators: [],
   tags: ['autodocs'],
-} satisfies Meta<typeof TelTextField>
-
-export default meta
-type Story = StoryObj<typeof meta>
-
-export const ValidNumber: Story = {
   parameters: {
     msw: {
       handlers: [
@@ -31,13 +25,23 @@ export const ValidNumber: Story = {
 
         graphql.query('PhoneNumberValidate', ({ variables: vars }) => {
           return HttpResponse.json({
-            data: { phoneNumberInfo: { id: vars.number, valid: true } },
+            data: {
+              phoneNumberInfo: {
+                id: vars.number,
+                valid: vars.number.length === 12,
+              },
+            },
           })
         }),
       ],
     },
   },
+} satisfies Meta<typeof TelTextField>
 
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const ValidNumber: Story = {
   args: {
     value: '+17635550123',
     label: 'Phone Number',
@@ -52,20 +56,6 @@ export const ValidNumber: Story = {
 }
 
 export const InvalidNumber: Story = {
-  parameters: {
-    msw: {
-      handlers: [
-        handleDefaultConfig,
-
-        graphql.query('PhoneNumberValidate', ({ variables: vars }) => {
-          return HttpResponse.json({
-            data: { phoneNumberInfo: { id: vars.number, valid: false } },
-          })
-        }),
-      ],
-    },
-  },
-
   args: {
     value: '+1763555012',
     label: 'Phone Number',
