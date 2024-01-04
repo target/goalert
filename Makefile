@@ -239,10 +239,10 @@ test-smoke: smoketest
 test-unit: test
 
 test-components:  $(NODE_DEPS) bin/waitfor
-	yarn storybook dev --ci -p 6008 & echo "$$!" >.storybook.pid
-	./bin/waitfor -timeout 15s http://localhost:6008
-	yarn test-storybook --ci  --url http://127.0.0.1:6008 || (kill `cat .storybook.pid` && false)
-	kill `cat .storybook.pid` || true
+	yarn build-storybook --ci --test --quiet
+	yarn concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
+		"yarn http-server storybook-static -a 127.0.0.1 --port 6008 --silent" \
+		"./bin/waitfor tcp://localhost:6008 && yarn test-storybook --ci --url http://127.0.0.1:6008"
 
 bin/MailHog: go.mod go.sum
 	go build -o bin/MailHog github.com/mailhog/MailHog
