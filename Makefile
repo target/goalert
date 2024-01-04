@@ -244,6 +244,9 @@ test-components:  $(NODE_DEPS) bin/waitfor
 		"yarn http-server storybook-static -a 127.0.0.1 --port 6008 --silent" \
 		"./bin/waitfor tcp://localhost:6008 && yarn test-storybook --ci --url http://127.0.0.1:6008"
 
+storybook: $(NODE_DEPS) # Start the Storybook UI
+	yarn storybook
+
 bin/MailHog: go.mod go.sum
 	go build -o bin/MailHog github.com/mailhog/MailHog
 
