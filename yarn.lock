@@ -4507,7 +4507,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/addons@npm:^7.4.2":
+"@storybook/addons@npm:7.6.7, @storybook/addons@npm:^7.4.2":
   version: 7.6.7
   resolution: "@storybook/addons@npm:7.6.7"
   dependencies:
@@ -17637,6 +17637,7 @@ __metadata:
     "@storybook/addon-essentials": ^7.6.7
     "@storybook/addon-interactions": ^7.6.7
     "@storybook/addon-links": ^7.6.7
+    "@storybook/addons": 7.6.7
     "@storybook/blocks": ^7.6.7
     "@storybook/react": ^7.6.7
     "@storybook/react-vite": ^7.6.7
