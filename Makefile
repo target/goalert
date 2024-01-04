@@ -251,13 +251,13 @@ playwright-run: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goaler
 	$(MAKE) ensure-yarn
 	rm -rf test/coverage/integration/playwright
 	mkdir -p test/coverage/integration/playwright
-	yarn playwright-e2e install chromium
-	GOCOVERDIR=test/coverage/integration/playwright yarn playwright-e2e test
+	yarn playwright install chromium
+	GOCOVERDIR=test/coverage/integration/playwright yarn playwright test
 
 playwright-ui: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog ## Start the Playwright UI
 	$(MAKE) ensure-yarn
-	yarn playwright-e2e install chromium
-	yarn playwright-e2e test --ui
+	yarn playwright install chromium
+	yarn playwright test --ui
 
 smoketest:
 	rm -rf test/coverage/smoke
@@ -345,10 +345,8 @@ new-migration:
 	@echo "-- +migrate Up\n\n\n-- +migrate Down\n" >migrate/migrations/$(shell date +%Y%m%d%H%M%S)-$(NAME).sql
 	@echo "Created: migrate/migrations/$(shell date +%Y%m%d%H%M%S)-$(NAME).sql"
 
-.yarn/sdks/integrations.yml: $(NODE_DEPS)
+vscode: $(NODE_DEPS) 
 	yarn dlx @yarnpkg/sdks vscode
-
-vscode: .yarn/sdks/integrations.yml ## Setup vscode integrations	
 
 .yarn/plugins/@yarnpkg/plugin-interactive-tools.cjs: $(NODE_DEPS)
 	yarn plugin import interactive-tools
