@@ -1,8 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import TelTextField from './TelTextField'
 import { HttpResponse, graphql } from 'msw'
-import { within } from '@storybook/testing-library'
-import { expect } from '@storybook/jest'
+import { within, expect } from '@storybook/test'
 import { handleDefaultConfig } from '../storybook/graphql'
 
 const meta = {
