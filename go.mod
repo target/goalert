@@ -39,7 +39,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/slack-go/slack v0.12.3
 	github.com/spf13/cobra v1.8.0
-	github.com/spf13/viper v1.18.1
+	github.com/spf13/viper v1.18.2
 	github.com/sqlc-dev/pqtype v0.3.0
 	github.com/stretchr/testify v1.8.4
 	github.com/vektah/gqlparser/v2 v2.5.10
@@ -48,9 +48,9 @@ require (
 	golang.org/x/sys v0.15.0
 	golang.org/x/term v0.15.0
 	golang.org/x/tools v0.16.1
-	google.golang.org/grpc v1.59.0
+	google.golang.org/grpc v1.60.1
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
-	google.golang.org/protobuf v1.31.0
+	google.golang.org/protobuf v1.32.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	honnef.co/go/tools v0.4.6
 )

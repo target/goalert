@@ -291,6 +291,50 @@ type DebugSendSMSInput struct {
 	Body string `json:"body"`
 }
 
+type Destination struct {
+	Type     string               `json:"type"`
+	Values   []FieldValuePair     `json:"values"`
+	TypeInfo *DestinationTypeInfo `json:"typeInfo"`
+}
+
+type DestinationFieldConfig struct {
+	FieldID            string `json:"fieldID"`
+	LabelSingular      string `json:"labelSingular"`
+	LabelPlural        string `json:"labelPlural"`
+	Hint               string `json:"hint"`
+	HintURL            string `json:"hintURL"`
+	PlaceholderText    string `json:"placeholderText"`
+	Prefix             string `json:"prefix"`
+	InputType          string `json:"inputType"`
+	IsSearchSelectable bool   `json:"isSearchSelectable"`
+	SupportsValidation bool   `json:"supportsValidation"`
+}
+
+type DestinationFieldValidateInput struct {
+	DestType string `json:"destType"`
+	FieldID  string `json:"fieldID"`
+	Value    string `json:"value"`
+}
+
+type DestinationInput struct {
+	Type   string            `json:"type"`
+	Values []FieldValueInput `json:"values"`
+}
+
+type DestinationTypeInfo struct {
+	Type                string                   `json:"type"`
+	Name                string                   `json:"name"`
+	IconURL             string                   `json:"iconURL"`
+	IconAltText         string                   `json:"iconAltText"`
+	DisabledMessage     string                   `json:"disabledMessage"`
+	Enabled             bool                     `json:"enabled"`
+	RequiredFields      []DestinationFieldConfig `json:"requiredFields"`
+	UserDisclaimer      string                   `json:"userDisclaimer"`
+	IsContactMethod     bool                     `json:"isContactMethod"`
+	IsEPTarget          bool                     `json:"isEPTarget"`
+	IsSchedOnCallNotify bool                     `json:"isSchedOnCallNotify"`
+}
+
 type EscalationPolicyConnection struct {
 	Nodes    []escalation.Policy `json:"nodes"`
 	PageInfo *PageInfo           `json:"pageInfo"`
@@ -303,6 +347,16 @@ type EscalationPolicySearchOptions struct {
 	Omit           []string `json:"omit,omitempty"`
 	FavoritesOnly  *bool    `json:"favoritesOnly,omitempty"`
 	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
+}
+
+type FieldValueInput struct {
+	FieldID string `json:"fieldID"`
+	Value   string `json:"value"`
+}
+
+type FieldValuePair struct {
+	FieldID string `json:"fieldID"`
+	Value   string `json:"value"`
 }
 
 type GQLAPIKey struct {
