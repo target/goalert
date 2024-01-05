@@ -1,3 +1,4 @@
+import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import TelTextField from './TelTextField'
 import { HttpResponse, graphql } from 'msw'
@@ -69,5 +70,33 @@ export const InvalidNumber: Story = {
     // ensure we get the red X
 
     await expect(await canvas.findByTestId('CloseIcon')).toBeVisible()
+  },
+}
+
+export const Interactable: Story = {
+  args: {
+    value: '+1763555012',
+    label: 'Phone Number',
+    error: false,
+  },
+
+  render: function Interactable(args) {
+    const { value, onChange, ...props } = args
+    const [valueState, setValueState] = React.useState(value)
+
+    React.useEffect(() => {
+      setValueState(value)
+    }, [value])
+
+    return (
+      <TelTextField
+        {...props}
+        value={valueState}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+          if (onChange) onChange(e)
+          setValueState(e.target.value)
+        }}
+      />
+    )
   },
 }
