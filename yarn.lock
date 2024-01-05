@@ -17529,6 +17529,7 @@ __metadata:
     "@storybook/addons": 7.6.7
     "@storybook/blocks": 7.6.7
     "@storybook/jest": 0.2.3
+    "@storybook/preview-api": 7.6.7
     "@storybook/react": 7.6.7
     "@storybook/react-vite": 7.6.7
     "@storybook/test-runner": 0.16.0

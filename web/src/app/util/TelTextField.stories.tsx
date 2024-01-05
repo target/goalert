@@ -4,6 +4,7 @@ import TelTextField from './TelTextField'
 import { HttpResponse, graphql } from 'msw'
 import { expect } from '@storybook/jest'
 import { within } from '@storybook/testing-library'
+import { useArgs } from '@storybook/preview-api'
 
 import { handleDefaultConfig } from '../storybook/graphql'
 
@@ -19,7 +20,14 @@ const meta = {
     error: { control: 'boolean' },
     onChange: { action: 'onChange' },
   },
-  decorators: [],
+  render: function Component(args) {
+    const [, setArgs] = useArgs()
+    const onChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+      if (args.onChange) args.onChange(e)
+      setArgs({ value: e.target.value })
+    }
+    return <TelTextField {...args} onChange={onChange} />
+  },
   tags: ['autodocs'],
   parameters: {
     msw: {
@@ -70,33 +78,5 @@ export const InvalidNumber: Story = {
     // ensure we get the red X
 
     await expect(await canvas.findByTestId('CloseIcon')).toBeVisible()
-  },
-}
-
-export const Interactable: Story = {
-  args: {
-    value: '+1763555012',
-    label: 'Phone Number',
-    error: false,
-  },
-
-  render: function Interactable(args) {
-    const { value, onChange, ...props } = args
-    const [valueState, setValueState] = React.useState(value)
-
-    React.useEffect(() => {
-      setValueState(value)
-    }, [value])
-
-    return (
-      <TelTextField
-        {...props}
-        value={valueState}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-          if (onChange) onChange(e)
-          setValueState(e.target.value)
-        }}
-      />
-    )
   },
 }
