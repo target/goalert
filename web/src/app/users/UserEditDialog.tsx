@@ -125,8 +125,6 @@ function UserEditDialog(props: UserEditDialogProps): React.ReactNode {
   ): FieldError[] {
     if (caughtError instanceof CombinedError) {
       errorList = [...errorList, ...fieldErrors(caughtError)]
-    } else {
-      console.error(caughtError)
     }
     return errorList
   }
@@ -147,7 +145,6 @@ function UserEditDialog(props: UserEditDialogProps): React.ReactNode {
         },
         { additionalTypenames: ['UpdateBasicAuth'] },
       ).then((result) => {
-        console.error(result.error)
         errorList = errorHandler(result.error, errorList)
       })
     }
@@ -165,7 +162,6 @@ function UserEditDialog(props: UserEditDialogProps): React.ReactNode {
           additionalTypenames: ['CreateBasicAuthInput'],
         },
       ).then((result) => {
-        console.error(result.error)
         errorList = errorHandler(result.error, errorList)
       })
     }
@@ -185,7 +181,6 @@ function UserEditDialog(props: UserEditDialogProps): React.ReactNode {
         },
         { additionalTypenames: ['User'] },
       ).then((result) => {
-        console.error(result.error)
         errorList = errorHandler(result.error, errorList)
       })
     }
