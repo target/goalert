@@ -2,7 +2,6 @@ import React, { cloneElement, forwardRef, ReactNode } from 'react'
 import makeStyles from '@mui/styles/makeStyles'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
-import CardContent from '@mui/material/CardContent'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import { ChevronRight } from '@mui/icons-material'
@@ -16,6 +15,8 @@ import CardActions, { Action } from './CardActions'
 import AppLink, { AppLinkProps } from '../util/AppLink'
 import { useIsWidthDown } from '../util/useWidth'
 import useStatusColors from '../theme/useStatusColors'
+import { Label } from '../../schema'
+import { Chip } from '@mui/material'
 
 interface DetailsPageProps {
   title: string
@@ -25,6 +26,7 @@ interface DetailsPageProps {
   subheader?: string | JSX.Element
   details?: string
   notices?: Array<Notice> | JSX.Element
+  labels?: Array<Label>
   links?: Array<Link>
   pageContent?: JSX.Element
   primaryActions?: Array<Action | JSX.Element>
@@ -127,18 +129,26 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
               />
             </Grid>
 
+            {p.labels && (
+              <Grid item container spacing={1} sx={{ pl: '16px', pr: '16px' }}>
+                {p.labels.map((l) => (
+                  <Grid key={l.key} item>
+                    <Chip label={l.key + ' = ' + l.value} />
+                  </Grid>
+                ))}
+              </Grid>
+            )}
+
             {p.details && (
-              <Grid item>
-                <CardContent className={classes.headerContent}>
-                  <Typography
-                    component='div'
-                    variant='subtitle1'
-                    color='textSecondary'
-                    data-cy='details'
-                  >
-                    <Markdown value={p.details} />
-                  </Typography>
-                </CardContent>
+              <Grid item sx={{ pl: '16px', pr: '16px' }}>
+                <Typography
+                  component='div'
+                  variant='subtitle1'
+                  color='textSecondary'
+                  data-cy='details'
+                >
+                  <Markdown value={p.details} />
+                </Typography>
               </Grid>
             )}
 

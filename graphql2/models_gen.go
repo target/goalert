@@ -473,6 +473,9 @@ type MessageLogSearchOptions struct {
 	Omit          []string   `json:"omit,omitempty"`
 }
 
+type Mutation struct {
+}
+
 type NotificationState struct {
 	Details           string              `json:"details"`
 	Status            *NotificationStatus `json:"status,omitempty"`
@@ -491,6 +494,9 @@ type PhoneNumberInfo struct {
 	Formatted   string `json:"formatted"`
 	Valid       bool   `json:"valid"`
 	Error       string `json:"error"`
+}
+
+type Query struct {
 }
 
 type RotationConnection struct {

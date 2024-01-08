@@ -237,9 +237,15 @@ test-all: test-unit test-components test-smoke test-integration
 test-integration: playwright-run cy-wide-prod-run cy-mobile-prod-run
 test-smoke: smoketest
 test-unit: test
-test-components:
-	yarn playwright-ct install chromium
-	NODE_OPTIONS=--max-old-space-size=8192 yarn playwright-ct test -c playwright-ct.config.ts
+
+test-components:  $(NODE_DEPS) bin/waitfor
+	yarn build-storybook --test --quiet 2>/dev/null
+	yarn concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
+		"yarn http-server storybook-static -a 127.0.0.1 --port 6008 --silent" \
+		"./bin/waitfor tcp://localhost:6008 && yarn test-storybook --ci --url http://127.0.0.1:6008"
+
+storybook: ensure-yarn $(NODE_DEPS) # Start the Storybook UI
+	yarn storybook
 
 bin/MailHog: go.mod go.sum
 	go build -o bin/MailHog github.com/mailhog/MailHog
@@ -248,13 +254,13 @@ playwright-run: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goaler
 	$(MAKE) ensure-yarn
 	rm -rf test/coverage/integration/playwright
 	mkdir -p test/coverage/integration/playwright
-	yarn playwright-e2e install chromium
-	GOCOVERDIR=test/coverage/integration/playwright yarn playwright-e2e test
+	yarn playwright install chromium
+	GOCOVERDIR=test/coverage/integration/playwright yarn playwright test
 
 playwright-ui: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog ## Start the Playwright UI
 	$(MAKE) ensure-yarn
-	yarn playwright-e2e install chromium
-	yarn playwright-e2e test --ui
+	yarn playwright install chromium
+	yarn playwright test --ui
 
 smoketest:
 	rm -rf test/coverage/smoke
@@ -334,7 +340,7 @@ resetdb: config.json.bak ## Recreate the database leaving it empty (no migration
 	go run ./devtools/resetdb --no-migrate
 
 clean: ## Clean up build artifacts
-	rm -rf bin node_modules web/src/node_modules .pnp.cjs .pnp.loader.mjs web/src/build/static .yarn/cache .yarn/install-state.gz .yarn/unplugged
+	rm -rf bin node_modules web/src/node_modules .pnp.cjs .pnp.loader.mjs web/src/build/static .yarn/cache .yarn/install-state.gz .yarn/unplugged storybook-static
 
 new-migration:
 	@test "$(NAME)" != "" || (echo "NAME is required" && false)
@@ -342,10 +348,8 @@ new-migration:
 	@echo "-- +migrate Up\n\n\n-- +migrate Down\n" >migrate/migrations/$(shell date +%Y%m%d%H%M%S)-$(NAME).sql
 	@echo "Created: migrate/migrations/$(shell date +%Y%m%d%H%M%S)-$(NAME).sql"
 
-.yarn/sdks/integrations.yml: $(NODE_DEPS)
+vscode: $(NODE_DEPS) 
 	yarn dlx @yarnpkg/sdks vscode
-
-vscode: .yarn/sdks/integrations.yml ## Setup vscode integrations	
 
 .yarn/plugins/@yarnpkg/plugin-interactive-tools.cjs: $(NODE_DEPS)
 	yarn plugin import interactive-tools

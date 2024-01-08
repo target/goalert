@@ -29,6 +29,7 @@ const config = {
   ),
   retries: process.env.CI ? 3 : 0,
   forbidOnly: !!process.env.CI, // fail CI if .only() is used
+  workers: process.env.CI ? 2 : undefined,
   use: {
     trace: 'on-first-retry',
     baseURL: 'http://localhost:6130',

@@ -22,6 +22,7 @@ import { blueGrey } from '@mui/material/colors'
 
 interface ThemeProviderProps {
   children: ReactNode
+  mode?: MUIThemeMode
 }
 
 interface ThemeContextParams {
@@ -178,7 +179,9 @@ export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
         .removeEventListener('change', listener)
   }, [])
 
-  const mode = savedThemeMode === 'system' ? systemThemeMode : savedThemeMode
+  const mode =
+    props.mode ||
+    (savedThemeMode === 'system' ? systemThemeMode : savedThemeMode)
   // Use deferred and memoized values so we don't regenerate the entire theme on every render/change event
   const defMode = useDeferredValue(mode)
   const defSrc = useDeferredValue(sourceColor)
