@@ -3,6 +3,7 @@ package slack
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -86,8 +87,19 @@ type User struct {
 // Team contains information about a Slack team.
 type Team struct {
 	ID      string
+	Domain  string
 	Name    string
 	IconURL string
+}
+
+func (t Team) Link(id string) string {
+	var u url.URL
+
+	u.Host = t.Domain + ".slack.com"
+	u.Scheme = "https"
+	u.Path = "/archives/" + url.PathEscape(id)
+
+	return u.String()
 }
 
 func rootMsg(err error) string {
@@ -147,6 +159,7 @@ func (s *ChannelSender) Team(ctx context.Context, id string) (t *Team, err error
 			ID:      info.ID,
 			Name:    info.Name,
 			IconURL: url,
+			Domain:  info.Domain,
 		}, nil
 	}
 
@@ -161,6 +174,7 @@ func (s *ChannelSender) Team(ctx context.Context, id string) (t *Team, err error
 			ID:      info.ID,
 			Name:    info.Name,
 			IconURL: url,
+			Domain:  info.Domain,
 		}
 
 		s.teamInfoCache.Add(id, info)
