@@ -92,12 +92,22 @@ type Team struct {
 	IconURL string
 }
 
-func (t Team) Link(id string) string {
+func (t Team) ChannelLink(id string) string {
 	var u url.URL
 
 	u.Host = t.Domain + ".slack.com"
 	u.Scheme = "https"
 	u.Path = "/archives/" + url.PathEscape(id)
+
+	return u.String()
+}
+
+func (t Team) UserLink(id string) string {
+	var u url.URL
+
+	u.Host = t.Domain + ".slack.com"
+	u.Scheme = "https"
+	u.Path = "/team/" + url.PathEscape(id)
 
 	return u.String()
 }

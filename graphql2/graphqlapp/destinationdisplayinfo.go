@@ -108,7 +108,7 @@ func (a *Query) DestinationDisplayInfo(ctx context.Context, dest graphql2.Destin
 		return &graphql2.DestinationDisplayInfo{
 			IconURL:     team.IconURL,
 			IconAltText: team.Name,
-			LinkURL:     team.Link(u.ID),
+			LinkURL:     team.UserLink(u.ID),
 			Text:        u.Name,
 		}, nil
 	case destSlackChan:
@@ -128,7 +128,7 @@ func (a *Query) DestinationDisplayInfo(ctx context.Context, dest graphql2.Destin
 		return &graphql2.DestinationDisplayInfo{
 			IconURL:     team.IconURL,
 			IconAltText: team.Name,
-			LinkURL:     team.Link(ch.ID),
+			LinkURL:     team.ChannelLink(ch.ID),
 			Text:        ch.Name,
 		}, nil
 
