@@ -239,7 +239,7 @@ test-smoke: smoketest
 test-unit: test
 
 test-components:  $(NODE_DEPS) bin/waitfor
-	yarn build-storybook --test --quiet
+	yarn build-storybook --test --quiet 2>/dev/null
 	yarn concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
 		"yarn http-server storybook-static -a 127.0.0.1 --port 6008 --silent" \
 		"./bin/waitfor tcp://localhost:6008 && yarn test-storybook --ci --url http://127.0.0.1:6008"
