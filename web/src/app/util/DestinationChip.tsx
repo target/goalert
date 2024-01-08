@@ -82,6 +82,7 @@ export default function DestinationChip(
 
   return (
     <Chip
+      data-testid='destination-chip'
       clickable={!!props.config.linkURL}
       {...opts}
       avatar={
