@@ -11,6 +11,7 @@ import (
 
 type UserGroup struct {
 	ID     string
+	TeamID string
 	Name   string
 	Handle string
 }
@@ -72,6 +73,7 @@ func (s *ChannelSender) ListUserGroups(ctx context.Context) ([]UserGroup, error)
 			ID:     g.ID,
 			Name:   g.Name,
 			Handle: "@" + g.Handle,
+			TeamID: g.TeamID,
 		}
 		res = append(res, grp)
 		s.ugInfoCache.Add(g.ID, grp)
