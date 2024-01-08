@@ -2,6 +2,7 @@ package graphqlapp
 
 import (
 	"context"
+	"net/mail"
 	"net/url"
 	"slices"
 
@@ -41,22 +42,35 @@ func (a *Query) DestinationDisplayInfo(ctx context.Context, dest graphql2.Destin
 	cfg := config.FromContext(ctx)
 	switch dest.Type {
 	case destTwilioSMS:
+		n, err := phonenumbers.Parse(dest.FieldValue(fieldPhoneNumber), "")
+		if err != nil {
+			return nil, validation.WrapError(err)
+		}
+
 		return &graphql2.DestinationDisplayInfo{
 			IconURL:     "builtin://phone-text",
 			IconAltText: "Text Message",
-			Text:        dest.FieldValue(fieldPhoneNumber),
+			Text:        phonenumbers.Format(n, phonenumbers.INTERNATIONAL),
 		}, nil
 	case destTwilioVoice:
+		n, err := phonenumbers.Parse(dest.FieldValue(fieldPhoneNumber), "")
+		if err != nil {
+			return nil, validation.WrapError(err)
+		}
 		return &graphql2.DestinationDisplayInfo{
 			IconURL:     "builtin://phone-voice",
 			IconAltText: "Voice Call",
-			Text:        dest.FieldValue(fieldPhoneNumber),
+			Text:        phonenumbers.Format(n, phonenumbers.INTERNATIONAL),
 		}, nil
 	case destSMTP:
+		e, err := mail.ParseAddress(dest.FieldValue(fieldEmailAddress))
+		if err != nil {
+			return nil, validation.WrapError(err)
+		}
 		return &graphql2.DestinationDisplayInfo{
 			IconURL:     "builtin://email",
 			IconAltText: "Email",
-			Text:        dest.FieldValue(fieldEmailAddress),
+			Text:        e.Address,
 		}, nil
 	case destRotation:
 		r, err := app.FindOneRotation(ctx, dest.FieldValue(fieldRotationID))
