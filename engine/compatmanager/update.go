@@ -117,13 +117,13 @@ func (db *DB) updateContactMethods(ctx context.Context) error {
 		// but we need to store the contact method id in the format "team_id:subject_id"
 		teamID := strings.TrimPrefix(s.ProviderID, "slack:")
 		value := s.SubjectID
-		name, err := db.cs.TeamName(ctx, teamID)
+		team, err := db.cs.Team(ctx, teamID)
 		if err != nil {
 			log.Log(ctx, err)
 			continue
 		}
 
-		_, err = tx.StmtContext(ctx, db.insertCM).ExecContext(ctx, uuid.New(), name, "SLACK_DM", value, s.UserID)
+		_, err = tx.StmtContext(ctx, db.insertCM).ExecContext(ctx, uuid.New(), team.Name, "SLACK_DM", value, s.UserID)
 		if err != nil {
 			return fmt.Errorf("insert cm: %w", err)
 		}

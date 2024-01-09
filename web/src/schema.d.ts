@@ -340,9 +340,17 @@ export interface DebugSendSMSInput {
 }
 
 export interface Destination {
+  display: DestinationDisplayInfo
   type: DestinationType
   typeInfo: DestinationTypeInfo
   values: FieldValuePair[]
+}
+
+export interface DestinationDisplayInfo {
+  iconAltText: string
+  iconURL: string
+  linkURL: string
+  text: string
 }
 
 export interface DestinationFieldConfig {
@@ -682,6 +690,7 @@ export interface Query {
   configHints: ConfigHint[]
   debugMessageStatus: DebugMessageStatusInfo
   debugMessages: DebugMessage[]
+  destinationDisplayInfo: DestinationDisplayInfo
   destinationFieldValidate: boolean
   destinationTypes: DestinationTypeInfo[]
   escalationPolicies: EscalationPolicyConnection

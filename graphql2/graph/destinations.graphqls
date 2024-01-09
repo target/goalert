@@ -9,6 +9,10 @@ extend type Query {
   # It does not guarantee that the value is valid for the destination type, only
   # that it is valid for the field (i.e., syntax/formatting).
   destinationFieldValidate(input: DestinationFieldValidateInput!): Boolean! @experimental(flagName: "dest-types")
+
+
+  # destinationDisplayInfo returns the display information for a destination.
+  destinationDisplayInfo(input: DestinationInput!): DestinationDisplayInfo! @experimental(flagName: "dest-types")
 }
 
 input DestinationFieldValidateInput {
@@ -26,6 +30,15 @@ type Destination {
   type: DestinationType!
   values: [FieldValuePair!]!
   typeInfo: DestinationTypeInfo!
+  display: DestinationDisplayInfo!
+}
+
+# DestinationDisplayInfo provides information for displaying a destination.
+type DestinationDisplayInfo {
+  text: String! # user-friendly text to display for this destination
+  iconURL: String! # URL to an icon to display for this destination
+  iconAltText: String! # alt text for the icon
+  linkURL: String! # URL to link to for more information about this destination
 }
 
 type FieldValuePair {
