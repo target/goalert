@@ -20,7 +20,6 @@ import { Router } from 'wouter'
 import { Settings } from 'luxon'
 import RequireAuth from './main/RequireAuth'
 import Login from './main/components/Login'
-import { DestTypeProvider } from './util/useDestinationTypes'
 
 Settings.throwOnInvalid = true
 
@@ -60,9 +59,7 @@ root.render(
                 <NewVersionCheck />
                 <RequireAuth fallback={<Login />}>
                   <ConfigProvider>
-                    <DestTypeProvider>
-                      <App />
-                    </DestTypeProvider>
+                    <App />
                   </ConfigProvider>
                 </RequireAuth>
               </URQLProvider>
