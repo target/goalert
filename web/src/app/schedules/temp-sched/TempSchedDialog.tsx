@@ -1,5 +1,5 @@
 import React, { useState, useRef, Suspense } from 'react'
-import { useMutation, gql } from '@apollo/client'
+import { useMutation, gql } from 'urql'
 import Checkbox from '@mui/material/Checkbox'
 import DialogContentText from '@mui/material/DialogContentText'
 import FormControlLabel from '@mui/material/FormControlLabel'
@@ -122,29 +122,7 @@ export default function TempSchedDialog({
   const [submitAttempt, setSubmitAttempt] = useState(false) // helps with error messaging on step 1
   const [submitSuccess, setSubmitSuccess] = useState(false)
 
-  const [commit, { loading, error }] = useMutation(mutation, {
-    onCompleted: () => onClose(),
-    variables: {
-      input: {
-        start: value.start,
-        end: value.end,
-        clearStart: value.clearStart,
-        clearEnd: value.clearEnd,
-        shifts: value.shifts
-          .map((s) => _.pick(s, 'start', 'end', 'userID'))
-          .filter((s) => {
-            // clamp/filter out shifts that are in the past
-            if (DateTime.fromISO(s.end) <= DateTime.fromISO(now)) {
-              return false
-            }
-
-            s.start = clampForward(now, s.start)
-            return true
-          }),
-        scheduleID,
-      },
-    },
-  })
+  const [{ fetching, error }, commit] = useMutation(mutation)
 
   function validate(): Error | null {
     if (isISOAfter(value.start, value.end)) {
@@ -228,7 +206,33 @@ export default function TempSchedDialog({
         shiftListRef.current.scrollIntoView({ behavior: 'smooth' })
       }
     } else {
-      commit()
+      commit(
+        {
+          input: {
+            start: value.start,
+            end: value.end,
+            clearStart: value.clearStart,
+            clearEnd: value.clearEnd,
+            shifts: value.shifts
+              .map((s) => _.pick(s, 'start', 'end', 'userID'))
+              .filter((s) => {
+                // clamp/filter out shifts that are in the past
+                if (DateTime.fromISO(s.end) <= DateTime.fromISO(now)) {
+                  return false
+                }
+
+                s.start = clampForward(now, s.start)
+                return true
+              }),
+            scheduleID,
+          },
+        },
+        { additionalTypenames: ['Schedule'] },
+      ).then((result) => {
+        if (!result.error) {
+          onClose()
+        }
+      })
     }
   }
 
@@ -256,14 +260,14 @@ export default function TempSchedDialog({
       onSubmit={handleSubmit}
       onNext={edit && !submitSuccess ? handleNext : null}
       onBack={edit && submitSuccess ? handleBack : null}
-      loading={loading}
+      loading={fetching}
       errors={errs}
       disableBackdropClose
       form={
         <Suspense>
           <FormContainer
             optionalLabels
-            disabled={loading}
+            disabled={fetching}
             value={value}
             onChange={(newValue: TempSchedValue) => {
               setValue({ ...value, ...ensureInterval(value, newValue) })
