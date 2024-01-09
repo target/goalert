@@ -89,7 +89,6 @@ export const Error: Story = {
     const canvas = within(canvasElement)
 
     await expect(canvas.getByText('ERROR: something went wrong')).toBeVisible()
-    await expect(await canvas.findByTestId('TodayIcon')).toBeVisible()
-    await expect(await canvas.findByTestId('CancelIcon')).toBeVisible()
+    await expect(await canvas.findByTestId('BrokenImageIcon')).toBeVisible()
   },
 }
