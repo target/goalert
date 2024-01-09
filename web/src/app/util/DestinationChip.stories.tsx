@@ -12,6 +12,21 @@ const meta = {
     return <DestinationChip {...args} />
   },
   tags: ['autodocs'],
+  argTypes: {
+    iconURL: {
+      control: 'select',
+      options: [
+        'builtin://schedule',
+        'builtin://rotation',
+        'builtin://webhook',
+        'builtin://slack',
+      ],
+    },
+    onDelete: {
+      control: 'select',
+      options: [() => null, undefined],
+    },
+  },
   parameters: {
     msw: {
       handlers: [handleDefaultConfig],
@@ -24,12 +39,11 @@ type Story = StoryObj<typeof meta>
 
 export const TextAndHref: Story = {
   args: {
-    config: {
-      iconAltText: 'Schedule',
-      iconURL: 'builtin://schedule',
-      linkURL: 'test.com',
-      text: 'Forward Integrated Functionality Schedule',
-    },
+    iconAltText: 'Schedule',
+    iconURL: 'builtin://schedule',
+    linkURL: 'test.com',
+    text: 'Forward Integrated Functionality Schedule',
+
     onDelete: () => null,
   },
   play: async ({ canvasElement }) => {
@@ -51,12 +65,11 @@ export const TextAndHref: Story = {
 
 export const RotationIcon: Story = {
   args: {
-    config: {
-      iconAltText: 'Rotation',
-      iconURL: 'builtin://rotation',
-      linkURL: 'test.com',
-      text: 'Icon Test',
-    },
+    iconAltText: 'Rotation',
+    iconURL: 'builtin://rotation',
+    linkURL: 'test.com',
+    text: 'Icon Test',
+
     onDelete: undefined,
   },
   play: async ({ canvasElement }) => {
@@ -67,12 +80,11 @@ export const RotationIcon: Story = {
 
 export const WebhookIcon: Story = {
   args: {
-    config: {
-      iconAltText: 'Webhook',
-      iconURL: 'builtin://webhook',
-      linkURL: 'test.com',
-      text: 'Icon Test',
-    },
+    iconAltText: 'Webhook',
+    iconURL: 'builtin://webhook',
+    linkURL: 'test.com',
+    text: 'Icon Test',
+
     onDelete: undefined,
   },
   play: async ({ canvasElement }) => {
@@ -83,6 +95,10 @@ export const WebhookIcon: Story = {
 
 export const Error: Story = {
   args: {
+    iconAltText: '',
+    iconURL: '',
+    linkURL: '',
+    text: '',
     error: 'something went wrong',
     onDelete: undefined,
   },

@@ -1,5 +1,4 @@
 import React from 'react'
-import { DestinationDisplayInfo } from '../../schema'
 import { Avatar, Chip, CircularProgress } from '@mui/material'
 
 import {
@@ -10,8 +9,10 @@ import {
 } from '@mui/icons-material'
 
 export type DestinationChipProps = {
-  config?: DestinationDisplayInfo
-
+  iconAltText: string
+  iconURL: string
+  linkURL: string
+  text: string
   error?: string
 
   // If onDelete is provided, a delete icon will be shown.
@@ -48,7 +49,7 @@ export default function DestinationChip(
       />
     )
   }
-  if (!props.config) {
+  if (!props.text) {
     return (
       <Chip
         avatar={
@@ -70,11 +71,11 @@ export default function DestinationChip(
     )
   }
 
-  const builtInIcon = builtInIcons[props.config.iconURL] || null
+  const builtInIcon = builtInIcons[props.iconURL] || null
 
   const opts: { [key: string]: unknown } = {}
-  if (props.config.linkURL) {
-    opts.href = props.config.linkURL
+  if (props.linkURL) {
+    opts.href = props.linkURL
     opts.target = '_blank'
     opts.component = 'a'
     opts.rel = 'noopener noreferrer'
@@ -83,19 +84,19 @@ export default function DestinationChip(
   return (
     <Chip
       data-testid='destination-chip'
-      clickable={!!props.config.linkURL}
+      clickable={!!props.linkURL}
       {...opts}
       avatar={
-        props.config.iconURL ? (
+        props.iconURL ? (
           <Avatar
-            src={builtInIcon ? undefined : props.config.iconURL}
-            alt={props.config.iconAltText}
+            src={builtInIcon ? undefined : props.iconURL}
+            alt={props.iconAltText}
           >
             {builtInIcon}
           </Avatar>
         ) : undefined
       }
-      label={props.config.text}
+      label={props.text}
       onDelete={
         props.onDelete
           ? (e) => {
