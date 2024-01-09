@@ -11,6 +11,13 @@ const meta = {
   title: 'util/DestinationInputDirect',
   component: DestinationInputDirect,
   tags: ['autodocs'],
+  argTypes: {
+    inputType: {
+      control: 'select',
+      options: ['text', 'url', 'tel', 'email'],
+      description: 'The type of input to use. tel will only allow numbers.',
+    },
+  },
   parameters: {
     msw: {
       handlers: [
@@ -41,21 +48,19 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const Webook: Story = {
+export const WebookWithDocLink: Story = {
   args: {
     value: '',
-    config: {
-      fieldID: 'webhook-url',
-      hint: 'Webhook Documentation',
-      hintURL: '/docs#webhooks',
-      inputType: 'url',
-      isSearchSelectable: false,
-      labelPlural: 'Webhook URLs',
-      labelSingular: 'Webhook URL',
-      placeholderText: 'https://example.com',
-      prefix: '',
-      supportsValidation: true,
-    },
+
+    fieldID: 'webhook-url',
+    hint: 'Webhook Documentation',
+    hintURL: '/docs#webhooks',
+    inputType: 'url',
+    labelSingular: 'Webhook URL',
+    placeholderText: 'https://example.com',
+    prefix: '',
+    supportsValidation: true,
+
     destType: 'builtin-webhook',
   },
   play: async ({ canvasElement }) => {
@@ -92,18 +97,16 @@ export const Webook: Story = {
 export const PhoneNumbers: Story = {
   args: {
     value: '',
-    config: {
-      fieldID: 'phone-number',
-      hint: 'Include country code e.g. +1 (USA), +91 (India), +44 (UK)',
-      hintURL: '',
-      inputType: 'tel',
-      isSearchSelectable: false,
-      labelPlural: 'Phone Numbers',
-      labelSingular: 'Phone Number',
-      placeholderText: '11235550123',
-      prefix: '+',
-      supportsValidation: true,
-    },
+
+    fieldID: 'phone-number',
+    hint: 'Include country code e.g. +1 (USA), +91 (India), +44 (UK)',
+    hintURL: '',
+    inputType: 'tel',
+    labelSingular: 'Phone Number',
+    placeholderText: '11235550123',
+    prefix: '+',
+    supportsValidation: true,
+
     destType: 'builtin-twilio-sms',
   },
   play: async ({ canvasElement }) => {
@@ -141,18 +144,16 @@ export const PhoneNumbers: Story = {
 export const Email: Story = {
   args: {
     value: '',
-    config: {
-      fieldID: 'email-address',
-      hint: '',
-      hintURL: '',
-      inputType: 'email',
-      isSearchSelectable: false,
-      labelPlural: 'Email Addresses',
-      labelSingular: 'Email Address',
-      placeholderText: 'foobar@example.com',
-      prefix: '',
-      supportsValidation: true,
-    },
+
+    fieldID: 'email-address',
+    hint: '',
+    hintURL: '',
+    inputType: 'email',
+    labelSingular: 'Email Address',
+    placeholderText: 'foobar@example.com',
+    prefix: '',
+    supportsValidation: true,
+
     destType: 'builtin-smtp-email',
   },
   play: async ({ canvasElement }) => {

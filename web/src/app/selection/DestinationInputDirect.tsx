@@ -6,7 +6,7 @@ import { Check, Close } from '@mui/icons-material'
 import InputAdornment from '@mui/material/InputAdornment'
 import makeStyles from '@mui/styles/makeStyles'
 import { DEBOUNCE_DELAY } from '../config'
-import { DestinationFieldConfig, DestinationType } from '../../schema'
+import { DestinationType } from '../../schema'
 import AppLink from '../util/AppLink'
 
 const isValidValue = gql`
@@ -36,10 +36,19 @@ function trimPrefix(value: string, prefix: string): string {
 export type DestinationInputDirectProps = {
   value: string
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
-  config: DestinationFieldConfig
   destType: DestinationType
 
   disabled?: boolean
+
+  fieldID: string
+  hint: string
+  hintURL: string
+  inputType: string
+
+  labelSingular: string
+  placeholderText: string
+  prefix: string
+  supportsValidation: boolean
 }
 
 export default function DestinationInputDirect(
@@ -66,11 +75,11 @@ export default function DestinationInputDirect(
       input: {
         destType: props.destType,
         value: debouncedValue,
-        fieldID: props.config.fieldID,
+        fieldID: props.fieldID,
       },
     },
     requestPolicy: 'cache-first',
-    pause: !props.value || props.disabled || !props.config.supportsValidation,
+    pause: !props.value || props.disabled || !props.supportsValidation,
     context: noSuspense,
   })
 
@@ -78,7 +87,7 @@ export default function DestinationInputDirect(
   const valid = !!data?.destinationFieldValidate
 
   let adorn
-  if (!props.value || !props.config.supportsValidation) {
+  if (!props.value || !props.supportsValidation) {
     // no adornment if empty
   } else if (valid) {
     adorn = <Check className={classes.valid} />
@@ -88,16 +97,16 @@ export default function DestinationInputDirect(
 
   let iprops: Partial<InputProps> = {}
 
-  if (props.config.prefix) {
+  if (props.prefix) {
     iprops.startAdornment = (
       <InputAdornment position='start' style={{ marginBottom: '0.1em' }}>
-        {props.config.prefix}
+        {props.prefix}
       </InputAdornment>
     )
   }
 
   // add live validation icon to the right of the textfield as an endAdornment
-  if (adorn) {
+  if (adorn && props.value === debouncedValue) {
     iprops = {
       endAdornment: <InputAdornment position='end'>{adorn}</InputAdornment>,
       ...iprops,
@@ -109,11 +118,11 @@ export default function DestinationInputDirect(
     if (!props.onChange) return
     if (!e.target.value) return props.onChange(e)
 
-    if (props.config.inputType === 'tel') {
+    if (props.inputType === 'tel') {
       e.target.value = e.target.value.replace(/[^0-9+]/g, '')
     }
 
-    e.target.value = props.config.prefix + e.target.value
+    e.target.value = props.prefix + e.target.value
     return props.onChange(e)
   }
 
@@ -121,21 +130,22 @@ export default function DestinationInputDirect(
   return (
     <TextField
       fullWidth
+      disabled={props.disabled}
       InputProps={iprops}
-      type={props.config.inputType}
-      placeholder={props.config.placeholderText}
-      label={props.config.labelSingular}
+      type={props.inputType}
+      placeholder={props.placeholderText}
+      label={props.labelSingular}
       helperText={
-        props.config.hintURL ? (
-          <AppLink newTab to={props.config.hintURL}>
-            {props.config.hint}
+        props.hintURL ? (
+          <AppLink newTab to={props.hintURL}>
+            {props.hint}
           </AppLink>
         ) : (
-          props.config.hint
+          props.hint
         )
       }
       onChange={handleChange}
-      value={trimPrefix(props.value, props.config.prefix)}
+      value={trimPrefix(props.value, props.prefix)}
     />
   )
 }

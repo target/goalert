@@ -37,9 +37,9 @@ export default function DestinationField(
 
     return (
       <DestinationInputDirect
+        {...field}
         key={field.fieldID}
         value={fieldValue}
-        config={field}
         destType={props.destType}
         disabled={props.disabled || !dest.enabled}
         onChange={(e) => handleChange(e.target.value)}
