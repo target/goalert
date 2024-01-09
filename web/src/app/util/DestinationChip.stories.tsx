@@ -30,6 +30,7 @@ export const TextAndHref: Story = {
       linkURL: 'test.com',
       text: 'Forward Integrated Functionality Schedule',
     },
+    onDelete: () => null,
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)

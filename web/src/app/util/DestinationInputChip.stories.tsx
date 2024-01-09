@@ -48,12 +48,13 @@ export const Render: Story = {
         },
       ],
     },
+    onDelete: () => null,
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
     await expect(
-      canvas.getByText('Corporate array Communications Rotation'),
+      await canvas.findByText('Corporate array Communications Rotation'),
     ).toBeVisible()
 
     await expect(canvas.getByTestId('destination-chip')).toHaveAttribute(
