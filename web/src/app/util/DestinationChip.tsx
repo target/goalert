@@ -7,12 +7,9 @@ import {
   Today as ScheduleIcon,
   Webhook as WebhookIcon,
 } from '@mui/icons-material'
+import { DestinationDisplayInfo } from '../../schema'
 
-export type DestinationChipProps = {
-  iconAltText: string
-  iconURL: string
-  linkURL: string
-  text: string
+export type DestinationChipProps = DestinationDisplayInfo & {
   error?: string
 
   // If onDelete is provided, a delete icon will be shown.
@@ -25,6 +22,13 @@ const builtInIcons: { [key: string]: React.ReactNode } = {
   'builtin://webhook': <WebhookIcon />,
 }
 
+/**
+ * DestinationChip is used to display a selected destination value.
+ *
+ * You should almost never use this component directly. Instead, use
+ * DestinationInputChip, which will select the correct values based on the
+ * provided DestinationInput value.
+ */
 export default function DestinationChip(
   props: DestinationChipProps,
 ): React.ReactNode {
