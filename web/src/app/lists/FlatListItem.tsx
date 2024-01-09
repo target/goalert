@@ -13,6 +13,9 @@ import { FlatListItem } from './FlatList'
 const useStyles = makeStyles(() => ({
   listItem: {
     width: '100%',
+    marginTop: '8px',
+    marginBottom: '8px',
+    borderRadius: '4px',
   },
   listItemDisabled: {
     opacity: 0.6,

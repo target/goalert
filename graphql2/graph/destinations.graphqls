@@ -9,7 +9,9 @@ extend type Query {
   destinationFieldValidate(input: DestinationFieldValidateInput!): Boolean! @experimental(flagName: "dest-types")
   destinationFieldSearch(input: DestinationFieldSearchInput!): FieldValueConnection!
   destinationFieldValueName(input: DestinationFieldValidateInput!): String!
-  destinationDisplayInfo(input: DestinationInput!): DestinationDisplayInfo!
+
+  # destinationDisplayInfo returns the display information for a destination.
+  destinationDisplayInfo(input: DestinationInput!): DestinationDisplayInfo! @experimental(flagName: "dest-types")
 }
 
 # FieldValueConnection is a connection to a list of FieldValuePairs.
@@ -45,6 +47,7 @@ type Destination {
   display: DestinationDisplayInfo!
 }
 
+# DestinationDisplayInfo provides information for displaying a destination.
 type DestinationDisplayInfo {
   text: String! # user-friendly text to display for this destination
   iconURL: String! # URL to an icon to display for this destination
