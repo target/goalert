@@ -60,6 +60,8 @@ export const WebookWithDocLink: Story = {
     placeholderText: 'https://example.com',
     prefix: '',
     supportsValidation: true,
+    isSearchSelectable: false,
+    labelPlural: 'Webhook URLs',
 
     destType: 'builtin-webhook',
   },
@@ -106,6 +108,8 @@ export const PhoneNumbers: Story = {
     placeholderText: '11235550123',
     prefix: '+',
     supportsValidation: true,
+    labelPlural: 'Phone Numbers',
+    isSearchSelectable: false,
 
     destType: 'builtin-twilio-sms',
   },
@@ -153,6 +157,8 @@ export const Email: Story = {
     placeholderText: 'foobar@example.com',
     prefix: '',
     supportsValidation: true,
+    isSearchSelectable: false,
+    labelPlural: 'Email Addresses',
 
     destType: 'builtin-smtp-email',
   },

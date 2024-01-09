@@ -6,7 +6,7 @@ import { Check, Close } from '@mui/icons-material'
 import InputAdornment from '@mui/material/InputAdornment'
 import makeStyles from '@mui/styles/makeStyles'
 import { DEBOUNCE_DELAY } from '../config'
-import { DestinationType } from '../../schema'
+import { DestinationFieldConfig, DestinationType } from '../../schema'
 import AppLink from '../util/AppLink'
 
 const isValidValue = gql`
@@ -33,24 +33,22 @@ function trimPrefix(value: string, prefix: string): string {
   return value
 }
 
-export type DestinationInputDirectProps = {
+export type DestinationInputDirectProps = DestinationFieldConfig & {
   value: string
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
   destType: DestinationType
 
   disabled?: boolean
-
-  fieldID: string
-  hint: string
-  hintURL: string
-  inputType: string
-
-  labelSingular: string
-  placeholderText: string
-  prefix: string
-  supportsValidation: boolean
 }
 
+/**
+ * DestinationInputDirect is a text field that allows the user to enter a
+ * destination directly. It supports validation and live feedback.
+ *
+ * You should almost never use this component directly. Instead, use
+ * DestinationField, which will select the correct component based on the
+ * destination type.
+ */
 export default function DestinationInputDirect(
   props: DestinationInputDirectProps,
 ): JSX.Element {
