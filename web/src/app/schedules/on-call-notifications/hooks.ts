@@ -1,10 +1,10 @@
 import {
   gql,
-  MutationResult,
-  QueryResult,
   useMutation,
   useQuery,
-} from '@apollo/client'
+  UseMutationState,
+  UseQueryState,
+} from 'urql'
 import { DateTime } from 'luxon'
 import { OnCallNotificationRule } from '../../../schema'
 import {
@@ -56,7 +56,8 @@ const updateMutation = gql`
 export function useFormatScheduleLocalISOTime(
   scheduleID: string,
 ): [(isoTime: string | null) => string, string] {
-  const { data } = useQuery(schedTZQuery, {
+  const [{ data }] = useQuery({
+    query: schedTZQuery,
     variables: { id: scheduleID },
   })
   const tz = data?.schedule?.timeZone
@@ -70,13 +71,16 @@ export function useFormatScheduleLocalISOTime(
 }
 
 type _Data = {
-  q: QueryResult
+  q: UseQueryState
   zone: string
   rules: OnCallNotificationRule[]
 }
 
 export function useOnCallRulesData(scheduleID: string): _Data {
-  const q = useQuery(rulesQuery, { variables: { id: scheduleID } })
+  const [q] = useQuery({
+    query: rulesQuery,
+    variables: { id: scheduleID },
+  })
   const zone = q.data?.schedule?.timeZone || ''
   const rules: OnCallNotificationRule[] = (
     q.data?.schedule?.rules || []
@@ -85,7 +89,7 @@ export function useOnCallRulesData(scheduleID: string): _Data {
 }
 
 type _Submit = {
-  m: MutationResult
+  m: UseMutationState
   submit: () => Promise<void>
 }
 export function useSetOnCallRulesSubmit(
@@ -113,10 +117,8 @@ export function useSetOnCallRulesSubmit(
     },
   }
 
-  const [submit, m] = useMutation(updateMutation, {
-    variables,
-  })
-  return { m, submit: () => submit().then(() => {}) }
+  const [m, commit] = useMutation(updateMutation)
+  return { m, submit: () => commit(variables).then(() => {}) }
 }
 
 export type UpdateOnCallRuleState = {
@@ -158,7 +160,7 @@ export function useEditOnCallRule(
   return {
     dialogErrors,
     fieldErrors,
-    busy: (q.loading && !zone) || m.loading,
+    busy: (q.fetching && !zone) || m.fetching,
     value: newValue,
     submit,
   }
@@ -186,7 +188,7 @@ export function useDeleteOnCallRule(
   return {
     dialogErrors,
     fieldErrors,
-    busy: (q.loading && !zone) || m.loading,
+    busy: (q.fetching && !zone) || m.fetching,
     rule,
     ruleSummary: onCallRuleSummary(zone, rule),
     submit,
