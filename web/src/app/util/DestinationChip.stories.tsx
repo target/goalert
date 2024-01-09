@@ -41,7 +41,7 @@ export const TextAndHref: Story = {
   args: {
     iconAltText: 'Schedule',
     iconURL: 'builtin://schedule',
-    linkURL: 'test.com',
+    linkURL: 'https://example.com',
     text: 'Forward Integrated Functionality Schedule',
 
     onDelete: () => null,
@@ -55,7 +55,7 @@ export const TextAndHref: Story = {
 
     await expect(canvas.getByTestId('destination-chip')).toHaveAttribute(
       'href',
-      'test.com',
+      'https://example.com',
     )
 
     await expect(await canvas.findByTestId('TodayIcon')).toBeVisible()
@@ -67,7 +67,7 @@ export const RotationIcon: Story = {
   args: {
     iconAltText: 'Rotation',
     iconURL: 'builtin://rotation',
-    linkURL: 'test.com',
+    linkURL: 'https://example.com',
     text: 'Icon Test',
 
     onDelete: undefined,
@@ -82,8 +82,38 @@ export const WebhookIcon: Story = {
   args: {
     iconAltText: 'Webhook',
     iconURL: 'builtin://webhook',
-    linkURL: 'test.com',
+    linkURL: 'https://example.com',
     text: 'Icon Test',
+
+    onDelete: undefined,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(await canvas.findByTestId('WebhookIcon')).toBeVisible()
+  },
+}
+
+export const Loading: Story = {
+  args: {
+    iconAltText: 'Webhook',
+    iconURL: 'builtin://webhook',
+    linkURL: 'https://example.com',
+    text: '',
+
+    onDelete: undefined,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(await canvas.findByTestId('WebhookIcon')).toBeVisible()
+  },
+}
+
+export const NoIcon: Story = {
+  args: {
+    iconAltText: '',
+    iconURL: '',
+    linkURL: '',
+    text: 'No Icon Test',
 
     onDelete: undefined,
   },
