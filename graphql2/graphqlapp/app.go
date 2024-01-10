@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -132,6 +133,17 @@ func isGQLValidation(gqlErr *gqlerror.Error) bool {
 		return true
 	}
 
+	if strings.HasPrefix(gqlErr.Message, "json request body") {
+		var body string
+		gqlErr.Message, body, _ = strings.Cut(gqlErr.Message, " body:") // remove body
+		if !strings.HasPrefix(strings.TrimSpace(body), "{") {
+			// Make the error more readable for common JSON errors.
+			gqlErr.Message = "json request body could not be decoded: body must be an object, missing '{'"
+		}
+
+		return true
+	}
+
 	if gqlErr.Extensions == nil {
 		return false
 	}
@@ -146,7 +158,12 @@ func isGQLValidation(gqlErr *gqlerror.Error) bool {
 
 func (a *App) Handler() http.Handler {
 	h := handler.NewDefaultServer(
-		graphql2.NewExecutableSchema(graphql2.Config{Resolvers: a}),
+		graphql2.NewExecutableSchema(graphql2.Config{
+			Resolvers: a,
+			Directives: graphql2.DirectiveRoot{
+				Experimental: Experimental,
+			},
+		}),
 	)
 
 	type hasTraceKey int

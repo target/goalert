@@ -36,27 +36,24 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import classnames from 'classnames'
 import { Notice, toSeverity } from '../details/Notices'
 import FlatListItem from './FlatListItem'
 import { DraggableListItem, getAnnouncements } from './DraggableListItem'
 import { ExpandLess, ExpandMore } from '@mui/icons-material'
 
 const useStyles = makeStyles({
-  alert: {
-    margin: '0.5rem 0 0.5rem 0',
-    width: '100%',
-  },
   alertAsButton: {
     width: '100%',
+    marginTop: '6px',
+    marginBottom: '6px',
     '&:hover, &.Mui-focusVisible': {
       filter: 'brightness(90%)',
     },
   },
   buttonBase: {
+    width: '100%',
     borderRadius: 4,
   },
-  background: { backgroundColor: 'transparent' },
   slideEnter: {
     maxHeight: '0px',
     opacity: 0,
@@ -79,6 +76,10 @@ const useStyles = makeStyles({
     transform: 'translateX(-100%)',
     transition: 'all 500ms',
   },
+  subheader: {
+    backgroundColor: 'transparent',
+    paddingBottom: '4px',
+  },
 })
 
 const measuringConfig = {
@@ -90,6 +91,7 @@ const measuringConfig = {
 export interface FlatListSub {
   id?: string
   subHeader: JSX.Element | string
+  disableGutter?: boolean
 }
 
 export interface FlatListNotice extends Notice {
@@ -118,7 +120,7 @@ export interface FlatListItem extends ListItemProps {
 
 export interface SectionTitle {
   title: string
-  icon?: JSX.Element | null
+  icon?: React.ReactNode | null
   subText?: JSX.Element | string
 }
 
@@ -235,7 +237,7 @@ export default function FlatList({
     if (item.handleOnClick) {
       return (
         <ButtonBase
-          className={classnames(classes.buttonBase, classes.alert)}
+          className={classes.buttonBase}
           onClick={item.handleOnClick}
           data-cy={item['data-cy']}
         >
@@ -244,6 +246,7 @@ export default function FlatList({
             key={idx}
             severity={toSeverity(item.type)}
             icon={item.icon}
+            action={item.action}
           >
             {item.message && <AlertTitle>{item.message}</AlertTitle>}
             {item.details}
@@ -255,9 +258,9 @@ export default function FlatList({
     return (
       <Alert
         key={idx}
-        className={classes.alert}
         severity={toSeverity(item.type)}
         icon={item.icon}
+        sx={{ mt: '16px', mb: '16px' }}
       >
         {item.message && <AlertTitle>{item.message}</AlertTitle>}
         {item.details}
@@ -267,7 +270,11 @@ export default function FlatList({
 
   function renderSubheaderItem(item: FlatListSub, idx: number): JSX.Element {
     return (
-      <ListSubheader key={idx} className={classes.background}>
+      <ListSubheader
+        key={idx}
+        className={classes.subheader}
+        sx={item.disableGutter ? { pl: 0 } : null}
+      >
         <Typography
           component='h2'
           variant='subtitle1'

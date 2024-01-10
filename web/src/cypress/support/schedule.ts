@@ -3,7 +3,6 @@ import { DateTime, Interval } from 'luxon'
 import {
   OnCallNotificationRuleInput,
   Schedule,
-  ScheduleTarget,
   ScheduleTargetInput,
   SetScheduleShiftInput,
   SetTemporaryScheduleInput,
@@ -120,7 +119,7 @@ function setScheduleNotificationRules(
 function setScheduleTarget(
   scheduleTgt?: Partial<ScheduleTargetInput>,
   createScheduleInput?: Partial<Schedule>,
-): Cypress.Chainable<ScheduleTarget> {
+): Cypress.Chainable<Schedule> {
   if (!scheduleTgt) {
     scheduleTgt = {}
   }
@@ -188,11 +187,7 @@ function setScheduleTarget(
           tgt: params.target,
         })
         .then((res: GraphQLResponse) => {
-          const { target, ...schedule } = res.schedule
-          return {
-            ...target,
-            scheduleID: schedule.id,
-          }
+          return res.schedule
         })
     })
 }

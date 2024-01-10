@@ -1,5 +1,5 @@
 import React from 'react'
-import { gql, useMutation } from '@apollo/client'
+import { gql, useMutation } from 'urql'
 import FormDialog from '../dialogs/FormDialog'
 import { nonFieldErrors } from '../util/errutil'
 
@@ -14,18 +14,25 @@ export default function UserNotificationRuleDeleteDialog(props: {
 }): JSX.Element {
   const { ruleID, ...rest } = props
 
-  const [deleteNotification, { loading, error }] = useMutation(mutation, {
-    onCompleted: props.onClose,
-  })
+  const [{ fetching, error }, deleteNotification] = useMutation(mutation)
 
   return (
     <FormDialog
       title='Are you sure?'
       confirm
-      loading={loading}
+      loading={fetching}
       errors={nonFieldErrors(error)}
       subTitle='This will delete the notification rule.'
-      onSubmit={() => deleteNotification({ variables: { id: ruleID } })}
+      onSubmit={() =>
+        deleteNotification(
+          { id: ruleID },
+          {
+            additionalTypenames: ['UserNotificationRule', 'UserContactMethod'],
+          },
+        ).then((result) => {
+          if (!result.error) props.onClose()
+        })
+      }
       {...rest}
     />
   )

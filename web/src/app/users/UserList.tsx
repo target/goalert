@@ -1,5 +1,5 @@
 import React from 'react'
-import { gql } from '@apollo/client'
+import { gql } from 'urql'
 import { UserAvatar } from '../util/avatars'
 import QueryList from '../lists/QueryList'
 import UserPhoneNumberFilterContainer from './UserPhoneNumberFilterContainer'

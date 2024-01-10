@@ -78,7 +78,7 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 		)
 	{{end}}
 	{{- if and .Search (not .LabelKey) (not .IntegrationKey)}}
-		AND ({{orderedPrefixSearch "search" "svc.name"}} OR {{contains "search" "svc.description"}})
+		AND ({{orderedPrefixSearch "search" "svc.name"}} OR {{contains "search" "svc.description"}} OR {{contains "search" "svc.name"}})
 	{{- end}}
 	{{- if .After.Name}}
 		AND

@@ -89,8 +89,8 @@ function testTemporarySchedule(screen: string): void {
     cy.visit('/schedules/' + schedule.id + '?start=' + start.toISO())
     cy.get('div').contains('Temporary Schedule').click()
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-    cy.get('button[data-cy="edit-temp-sched"]').should('be.visible')
-    cy.get('button[data-cy="delete-temp-sched"]').should('be.visible')
+    cy.get('[data-cy="edit-temp-sched"]').should('be.visible')
+    cy.get('[data-cy="delete-temp-sched"]').should('be.visible')
     cy.get('body').trigger('keydown', { key: 'Escape' })
     cy.get('div').contains(manualAddUser.name).click()
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
@@ -108,7 +108,7 @@ function testTemporarySchedule(screen: string): void {
       cy.reload()
       cy.get('div').contains('Temporary Schedule').click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-      cy.get('button[data-cy="edit-temp-sched"]').click()
+      cy.get('[data-cy="edit-temp-sched"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
       cy.get(
         '[data-cy="shifts-list"] li [data-cy="delete shift index: 0"]',
@@ -129,9 +129,15 @@ function testTemporarySchedule(screen: string): void {
       )
       cy.get('button[data-cy="add-shift"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
-      cy.dialogClick('Submit')
+      cy.dialogClick('Next')
       cy.get('input[name="allowCoverageGaps"]').check()
-      cy.dialogFinish('Retry')
+      cy.dialogClick('Next')
+
+      // verify shifts on confirm screen
+      cy.get(`div[data-cy="${graphQLAddUser.id}-removed"]`).should('be.visible')
+      cy.get(`div[data-cy="${manualAddUser.id}-added"]`).should('be.visible')
+      cy.dialogFinish('Submit')
+
       cy.reload() // ensure calendar update
       cy.get('div').contains(manualAddUser.name).click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
@@ -152,7 +158,7 @@ function testTemporarySchedule(screen: string): void {
       cy.reload()
       cy.get('div').contains('Temporary Schedule').click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-      cy.get('button[data-cy="edit-temp-sched"]').click()
+      cy.get('[data-cy="edit-temp-sched"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
       cy.get(
         '[data-cy="shifts-list"] li [data-cy="delete shift index: 0"]',
@@ -162,9 +168,15 @@ function testTemporarySchedule(screen: string): void {
         graphQLAddUser.name,
       )
 
-      cy.dialogClick('Submit')
+      cy.dialogClick('Next')
       cy.get('input[name="allowCoverageGaps"]').check()
-      cy.dialogFinish('Retry')
+      cy.dialogClick('Next')
+
+      // verify shifts on confirm screen
+      cy.get(`div[data-cy="${graphQLAddUser.id}-removed"]`).should('be.visible')
+      cy.get(`div[data-cy="${graphQLAddSecondUser.id}"]`).should('be.visible')
+      cy.dialogFinish('Submit')
+
       cy.reload() // ensure calendar update
       cy.get('div').contains(graphQLAddSecondUser.name).click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
@@ -182,7 +194,7 @@ function testTemporarySchedule(screen: string): void {
       cy.reload()
       cy.get('div').contains('Temporary Schedule').click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-      cy.get('button[data-cy="edit-temp-sched"]').click()
+      cy.get('[data-cy="edit-temp-sched"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
 
       cy.get('[data-cy="add-shift-expander"]').click()
@@ -196,9 +208,15 @@ function testTemporarySchedule(screen: string): void {
       )
       cy.get('button[data-cy="add-shift"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
-      cy.dialogClick('Submit')
+      cy.dialogClick('Next')
       cy.get('input[name="allowCoverageGaps"]').check()
-      cy.dialogFinish('Retry')
+      cy.dialogClick('Next')
+
+      // verify shifts on confirm screen
+      cy.get(`div[data-cy="${graphQLAddUser.id}"]`).should('be.visible')
+      cy.get(`div[data-cy="${manualAddUser.id}-added"]`).should('be.visible')
+      cy.dialogFinish('Submit')
+
       cy.reload() // ensure calendar update
       cy.get('div').contains(manualAddUser.name).click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
@@ -215,7 +233,7 @@ function testTemporarySchedule(screen: string): void {
       cy.reload()
       cy.get('div').contains('Temporary Schedule').click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-      cy.get('button[data-cy="delete-temp-sched"]').click()
+      cy.get('[data-cy="delete-temp-sched"]').click()
       cy.dialogFinish('Confirm')
       cy.get('div').contains('Temporary Schedule').should('not.exist')
     })

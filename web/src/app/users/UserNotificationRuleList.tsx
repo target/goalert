@@ -1,4 +1,4 @@
-import React, { useState, ReactNode } from 'react'
+import React, { useState, ReactNode, Suspense } from 'react'
 import { gql, useQuery } from 'urql'
 import {
   Button,
@@ -16,8 +16,8 @@ import UserNotificationRuleDeleteDialog from './UserNotificationRuleDeleteDialog
 import { styles as globalStyles } from '../styles/materialStyles'
 import UserNotificationRuleCreateDialog from './UserNotificationRuleCreateDialog'
 import { useIsWidthDown } from '../util/useWidth'
-import { User } from '../../schema'
 import { ObjectNotFound, GenericError } from '../error-pages'
+import { User } from '../../schema'
 
 const query = gql`
   query nrList($id: ID!) {
@@ -82,7 +82,7 @@ export default function UserNotificationRuleList(props: {
                 variant='contained'
                 onClick={() => setShowAddDialog(true)}
                 startIcon={<Add />}
-                disabled={user.contactMethods.length === 0}
+                disabled={user?.contactMethods.length === 0}
               >
                 Add Rule
               </Button>
@@ -91,33 +91,37 @@ export default function UserNotificationRuleList(props: {
         />
         <FlatList
           data-cy='notification-rules'
-          items={sortNotificationRules(user.notificationRules).map((nr) => ({
-            title: formatNotificationRule(nr.delayMinutes, nr.contactMethod),
-            secondaryAction: props.readOnly ? null : (
-              <IconButton
-                aria-label='Delete notification rule'
-                onClick={() => setDeleteID(nr.id)}
-                color='secondary'
-              >
-                <Delete />
-              </IconButton>
-            ),
-          }))}
+          items={sortNotificationRules(user?.notificationRules ?? []).map(
+            (nr) => ({
+              title: formatNotificationRule(nr.delayMinutes, nr.contactMethod),
+              secondaryAction: props.readOnly ? null : (
+                <IconButton
+                  aria-label='Delete notification rule'
+                  onClick={() => setDeleteID(nr.id)}
+                  color='secondary'
+                >
+                  <Delete />
+                </IconButton>
+              ),
+            }),
+          )}
           emptyMessage='No notification rules'
         />
       </Card>
-      {showAddDialog && (
-        <UserNotificationRuleCreateDialog
-          userID={props.userID}
-          onClose={() => setShowAddDialog(false)}
-        />
-      )}
-      {deleteID && (
-        <UserNotificationRuleDeleteDialog
-          ruleID={deleteID}
-          onClose={() => setDeleteID(null)}
-        />
-      )}
+      <Suspense>
+        {showAddDialog && (
+          <UserNotificationRuleCreateDialog
+            userID={props.userID}
+            onClose={() => setShowAddDialog(false)}
+          />
+        )}
+        {deleteID && (
+          <UserNotificationRuleDeleteDialog
+            ruleID={deleteID}
+            onClose={() => setDeleteID(null)}
+          />
+        )}
+      </Suspense>
     </Grid>
   )
 }
