@@ -61,7 +61,7 @@ export default function DestinationChip(
             <CircularProgress size='1em' />
           </Avatar>
         }
-        label='loading...'
+        label='Loading...'
         onDelete={
           props.onDelete
             ? (e) => {
