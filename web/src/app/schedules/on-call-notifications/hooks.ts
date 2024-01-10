@@ -118,7 +118,11 @@ export function useSetOnCallRulesSubmit(
   }
 
   const [m, commit] = useMutation(updateMutation)
-  return { m, submit: () => commit(variables).then(() => {}) }
+  return {
+    m,
+    submit: () =>
+      commit(variables, { additionalTypenames: ['Schedule'] }).then(() => {}),
+  }
 }
 
 export type UpdateOnCallRuleState = {
