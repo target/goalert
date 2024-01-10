@@ -54,7 +54,7 @@ export default function ScheduleRuleCreateDialog(
     ],
   })
 
-  const [{ error }, mutate] = useMutation(mutation)
+  const [{ error, fetching: mFetching }, mutate] = useMutation(mutation)
 
   return (
     <FormDialog
@@ -62,7 +62,7 @@ export default function ScheduleRuleCreateDialog(
       title={`Add ${startCase(targetType)} to Schedule`}
       errors={nonFieldErrors(error)}
       maxWidth='md'
-      loading={!data && fetching}
+      loading={(!data && fetching) || mFetching}
       onSubmit={() =>
         mutate(
           {
@@ -89,7 +89,7 @@ export default function ScheduleRuleCreateDialog(
         <ScheduleRuleForm
           targetType={targetType}
           scheduleID={scheduleID}
-          targetDisabled={!data && fetching}
+          disabled={(!data && fetching) || mFetching}
           value={value}
           onChange={setValue}
         />

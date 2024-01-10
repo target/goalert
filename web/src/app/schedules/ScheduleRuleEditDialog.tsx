@@ -42,7 +42,9 @@ interface ScheduleRuleEditDialog {
 export default function ScheduleRuleEditDialog(
   props: ScheduleRuleEditDialog,
 ): JSX.Element {
-  const [state, setState] = useState<ScheduleRuleFormValue | null>(null)
+  const [state, setState] = useState<{ value: ScheduleRuleFormValue | null }>({
+    value: null,
+  })
 
   const [{ data, fetching, error: readError }] = useQuery({
     query,
@@ -52,7 +54,7 @@ export default function ScheduleRuleEditDialog(
       tgt: props.target,
     },
   })
-  const [{ error }, commit] = useMutation(mutation)
+  const [{ error, fetching: mFetching }, commit] = useMutation(mutation)
   const { zone } = useScheduleTZ(props.scheduleID)
 
   if (readError) return <GenericError error={readError.message} />
@@ -67,14 +69,16 @@ export default function ScheduleRuleEditDialog(
       end: gqlClockTimeToISO(r.end, zone),
     })),
   }
+
   return (
     <FormDialog
       onClose={props.onClose}
       title={`Edit Rules for ${_.startCase(props.target.type)}`}
       errors={nonFieldErrors(error)}
       maxWidth='md'
+      loading={mFetching}
       onSubmit={() => {
-        if (!state) {
+        if (!state.value) {
           // no changes
           props.onClose()
           return
@@ -85,7 +89,7 @@ export default function ScheduleRuleEditDialog(
               target: props.target,
               scheduleID: props.scheduleID,
 
-              rules: state.rules.map((r) => ({
+              rules: state.value.rules.map((r) => ({
                 ...r,
                 start: isoToGQLClockTime(r.start, zone),
                 end: isoToGQLClockTime(r.end, zone),
@@ -101,9 +105,10 @@ export default function ScheduleRuleEditDialog(
         <ScheduleRuleForm
           targetType={props.target.type}
           targetDisabled
+          disabled={mFetching}
           scheduleID={props.scheduleID}
-          value={state || defaults}
-          onChange={(value) => setState(value)}
+          value={state.value || defaults}
+          onChange={(value) => setState({ value })}
         />
       }
     />
