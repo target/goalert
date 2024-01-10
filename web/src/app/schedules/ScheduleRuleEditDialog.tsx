@@ -42,9 +42,7 @@ interface ScheduleRuleEditDialog {
 export default function ScheduleRuleEditDialog(
   props: ScheduleRuleEditDialog,
 ): JSX.Element {
-  const [state, setState] = useState<{ value: ScheduleRuleFormValue | null }>({
-    value: null,
-  })
+  const [state, setState] = useState<ScheduleRuleFormValue | null>(null)
 
   const [{ data, fetching, error: readError }] = useQuery({
     query,
@@ -78,7 +76,7 @@ export default function ScheduleRuleEditDialog(
       maxWidth='md'
       loading={mFetching}
       onSubmit={() => {
-        if (!state.value) {
+        if (!state) {
           // no changes
           props.onClose()
           return
@@ -89,7 +87,7 @@ export default function ScheduleRuleEditDialog(
               target: props.target,
               scheduleID: props.scheduleID,
 
-              rules: state.value.rules.map((r) => ({
+              rules: state.rules.map((r) => ({
                 ...r,
                 start: isoToGQLClockTime(r.start, zone),
                 end: isoToGQLClockTime(r.end, zone),
@@ -107,8 +105,8 @@ export default function ScheduleRuleEditDialog(
           targetDisabled
           disabled={mFetching}
           scheduleID={props.scheduleID}
-          value={state.value || defaults}
-          onChange={(value) => setState({ value })}
+          value={state || defaults}
+          onChange={(value) => setState(value)}
         />
       }
     />
