@@ -26,6 +26,7 @@ import { useScheduleTZ } from './useScheduleTZ'
 import { fmtLocal } from '../util/timeFormat'
 import { useIsWidthDown } from '../util/useWidth'
 import { TargetType } from '../../schema'
+import { FieldError } from '../util/errutil'
 
 const days = [
   'Sunday',
@@ -110,6 +111,7 @@ interface ScheduleRuleFormProps {
   scheduleID: string
   value: ScheduleRuleFormValue
   onChange: (value: ScheduleRuleFormValue) => void
+  errors?: FieldError[]
 }
 
 export default function ScheduleRuleForm(

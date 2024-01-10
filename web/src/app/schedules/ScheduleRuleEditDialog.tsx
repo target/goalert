@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useQuery, gql, useMutation } from 'urql'
 import FormDialog from '../dialogs/FormDialog'
 import ScheduleRuleForm, { ScheduleRuleFormValue } from './ScheduleRuleForm'
-import { nonFieldErrors } from '../util/errutil'
+import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import _ from 'lodash'
 import { gqlClockTimeToISO, isoToGQLClockTime } from './util'
 import { useScheduleTZ } from './useScheduleTZ'
@@ -103,6 +103,7 @@ export default function ScheduleRuleEditDialog(
         <ScheduleRuleForm
           targetType={props.target.type}
           targetDisabled
+          errors={fieldErrors(error)}
           disabled={mFetching}
           scheduleID={props.scheduleID}
           value={state || defaults}
