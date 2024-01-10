@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { Suspense, useState } from 'react'
 import { useQuery, gql } from 'urql'
 import { Card, Alert } from '@mui/material'
 import FlatList, { FlatListListItem } from '../lists/FlatList'
@@ -151,10 +151,12 @@ export default function UserCalendarSubscriptionList(props: {
         />
       )}
       {showEditDialogByID && (
-        <CalendarSubscribeEditDialog
-          calSubscriptionID={showEditDialogByID}
-          onClose={() => setShowEditDialogByID(null)}
-        />
+        <Suspense>
+          <CalendarSubscribeEditDialog
+            calSubscriptionID={showEditDialogByID}
+            onClose={() => setShowEditDialogByID(null)}
+          />
+        </Suspense>
       )}
       {showDeleteDialogByID && (
         <CalendarSubscribeDeleteDialog
