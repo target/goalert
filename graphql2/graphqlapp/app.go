@@ -158,7 +158,12 @@ func isGQLValidation(gqlErr *gqlerror.Error) bool {
 
 func (a *App) Handler() http.Handler {
 	h := handler.NewDefaultServer(
-		graphql2.NewExecutableSchema(graphql2.Config{Resolvers: a}),
+		graphql2.NewExecutableSchema(graphql2.Config{
+			Resolvers: a,
+			Directives: graphql2.DirectiveRoot{
+				Experimental: Experimental,
+			},
+		}),
 	)
 
 	type hasTraceKey int

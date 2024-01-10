@@ -9,7 +9,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import { DEBOUNCE_DELAY } from '../config'
 
 const isValidNumber = gql`
-  query ($number: String!) {
+  query PhoneNumberValidate($number: String!) {
     phoneNumberInfo(number: $number) {
       id
       valid
@@ -45,7 +45,7 @@ export default function TelTextField(
   // check validation of the input phoneNumber through graphql
   const [{ data }] = useQuery({
     query: isValidNumber,
-    variables: { number: '+' + phoneNumber },
+    variables: { number: phoneNumber },
     requestPolicy: 'cache-first',
     pause: !phoneNumber || props.disabled,
     context: noSuspense,

@@ -132,15 +132,18 @@ export default function UserContactMethodCreateDialog(props: {
       onClose={props.onClose}
       // wrapped to prevent event from passing into createCM
       onSubmit={() =>
-        createCM({
-          input: {
-            ...CMValue,
-            userID: props.userID,
-            newUserNotificationRule: {
-              delayMinutes: 0,
+        createCM(
+          {
+            input: {
+              ...CMValue,
+              userID: props.userID,
+              newUserNotificationRule: {
+                delayMinutes: 0,
+              },
             },
           },
-        }).then((result) => {
+          { additionalTypenames: ['UserContactMethod', 'User'] },
+        ).then((result) => {
           if (result.error) {
             return
           }
