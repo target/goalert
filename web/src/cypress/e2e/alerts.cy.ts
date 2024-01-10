@@ -440,7 +440,7 @@ function testAlerts(screen: ScreenFormat): void {
       cy.get('label').contains('False positive').should('not.exist')
 
       // see notice
-      const noticeTitle = 'Info: This alert has been marked as noise'
+      const noticeTitle = 'This alert has been marked as noise'
       cy.get('body').should('contain.text', noticeTitle)
       cy.get('body').should(
         'contain.text',
