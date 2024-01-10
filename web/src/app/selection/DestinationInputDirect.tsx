@@ -4,25 +4,16 @@ import TextField from '@mui/material/TextField'
 import { InputProps } from '@mui/material/Input'
 import { Check, Close } from '@mui/icons-material'
 import InputAdornment from '@mui/material/InputAdornment'
-import makeStyles from '@mui/styles/makeStyles'
 import { DEBOUNCE_DELAY } from '../config'
 import { DestinationFieldConfig, DestinationType } from '../../schema'
 import AppLink from '../util/AppLink'
+import { green, red } from '@mui/material/colors'
 
 const isValidValue = gql`
   query ValidateDestination($input: DestinationFieldValidateInput!) {
     destinationFieldValidate(input: $input)
   }
 `
-
-const useStyles = makeStyles({
-  valid: {
-    fill: 'green',
-  },
-  invalid: {
-    fill: 'red',
-  },
-})
 
 const noSuspense = { suspense: false }
 
@@ -52,8 +43,6 @@ export type DestinationInputDirectProps = DestinationFieldConfig & {
 export default function DestinationInputDirect(
   props: DestinationInputDirectProps,
 ): JSX.Element {
-  const classes = useStyles()
-
   const [debouncedValue, setDebouncedValue] = useState(props.value)
 
   // debounce the input
@@ -88,16 +77,16 @@ export default function DestinationInputDirect(
   if (!props.value || !props.supportsValidation) {
     // no adornment if empty
   } else if (valid) {
-    adorn = <Check className={classes.valid} />
+    adorn = <Check sx={{ fill: green[500] }} />
   } else if (valid === false) {
-    adorn = <Close className={classes.invalid} />
+    adorn = <Close sx={{ fill: red[500] }} />
   }
 
   let iprops: Partial<InputProps> = {}
 
   if (props.prefix) {
     iprops.startAdornment = (
-      <InputAdornment position='start' style={{ marginBottom: '0.1em' }}>
+      <InputAdornment position='start' sx={{ mb: '0.1em' }}>
         {props.prefix}
       </InputAdornment>
     )
@@ -124,7 +113,6 @@ export default function DestinationInputDirect(
     return props.onChange(e)
   }
 
-  // TODO: what to do with input limiting (e.g., only allow digits)
   return (
     <TextField
       fullWidth
