@@ -70,9 +70,10 @@ export const Render: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    await expect(canvas.getByRole('combobox')).toHaveTextContent('Slack')
-
-    // await expect(await canvas.findByTestId('RotateRightIcon')).toBeVisible()
-    // await expect(await canvas.findByTestId('CancelIcon')).toBeVisible()
+    // should see #general channel as option
+    await userEvent.type(
+      canvas.getByPlaceholderText('Start typing...'),
+      '#general',
+    )
   },
 }

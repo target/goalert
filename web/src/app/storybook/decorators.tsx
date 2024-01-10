@@ -1,5 +1,6 @@
 import React from 'react'
 import { ConfigProvider } from '../util/RequireConfig'
+import { DestTypeProvider } from '../util/useDestinationTypes'
 import { Provider as URQLProvider } from 'urql'
 import { client as urqlClient } from '../urql'
 import { StyledEngineProvider } from '@mui/material'
@@ -49,9 +50,11 @@ export default function DefaultDecorator(
       >
         <URQLProvider value={urqlClient}>
           <ConfigProvider>
-            <ErrorBoundary fallbackRender={fallbackRender}>
-              <Story />
-            </ErrorBoundary>
+            <DestTypeProvider>
+              <ErrorBoundary fallbackRender={fallbackRender}>
+                <Story />
+              </ErrorBoundary>
+            </DestTypeProvider>
           </ConfigProvider>
         </URQLProvider>
       </ThemeProvider>
