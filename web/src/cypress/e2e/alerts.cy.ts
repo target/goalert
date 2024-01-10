@@ -413,7 +413,7 @@ function testAlerts(screen: ScreenFormat): void {
       cy.get('body').should('contain', 'CLOSED')
     })
 
-    it.only('should set alert noise reasons', () => {
+    it('should set alert noise reasons', () => {
       // set all noise reasons, checking carefully because of async setState
       cy.get('path[id=crane-body]').should('not.exist')
       cy.get('[data-cy=loading-spinner]').should('not.exist')
