@@ -1,6 +1,6 @@
 import React, { Suspense, useState } from 'react'
-import { gql, useQuery } from '@apollo/client'
-import FlatList from '../lists/FlatList'
+import { useQuery, gql } from 'urql'
+import FlatList, { FlatListListItem } from '../lists/FlatList'
 import { Button, ButtonGroup, Card } from '@mui/material'
 import { GroupAdd, PersonAdd } from '@mui/icons-material'
 import Tooltip from '@mui/material/Tooltip'
@@ -14,10 +14,10 @@ import { ruleSummary } from './util'
 import ScheduleRuleEditDialog from './ScheduleRuleEditDialog'
 import ScheduleRuleDeleteDialog from './ScheduleRuleDeleteDialog'
 import { GenericError } from '../error-pages'
-import Spinner from '../loading/components/Spinner'
 import { DateTime } from 'luxon'
 import { useScheduleTZ } from './useScheduleTZ'
 import { useIsWidthDown } from '../util/useWidth'
+import { ScheduleRule, ScheduleTarget, TargetType } from '../../schema'
 
 const query = gql`
   query scheduleRules($id: ID!) {
@@ -41,27 +41,36 @@ const query = gql`
   }
 `
 
-export default function ScheduleRuleList({ scheduleID }) {
-  const [editTarget, setEditTarget] = useState(null)
-  const [deleteTarget, setDeleteTarget] = useState(null)
-  const [createType, setCreateType] = useState(null)
+interface ScheduleRuleListProps {
+  scheduleID: string
+}
+
+interface TargetValue {
+  id: string
+  type: TargetType
+}
+
+export default function ScheduleRuleList(
+  props: ScheduleRuleListProps,
+): JSX.Element {
+  const { scheduleID } = props
+  const [editTarget, setEditTarget] = useState<TargetValue | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<TargetValue | null>(null)
+  const [createType, setCreateType] = useState<TargetType | null>(null)
   const isMobile = useIsWidthDown('md')
 
-  const { data, loading, error } = useQuery(query, {
+  const [{ data, error }] = useQuery({
+    query,
     variables: { id: scheduleID },
-    pollInterval: 0,
   })
+
   const { isLocalZone } = useScheduleTZ(scheduleID)
 
   if (error) {
     return <GenericError error={error.message} />
   }
 
-  if (loading && !data) {
-    return <Spinner />
-  }
-
-  function renderSubText(rules, timeZone) {
+  function renderSubText(rules: ScheduleRule[], timeZone: string): JSX.Element {
     const tzSummary = ruleSummary(rules, timeZone, timeZone)
     const tzAbbr = DateTime.local({ zone: timeZone }).toFormat('ZZZZ')
     const localTzSummary = ruleSummary(rules, timeZone, 'local')
@@ -86,10 +95,13 @@ export default function ScheduleRuleList({ scheduleID }) {
     )
   }
 
-  function renderList(targets, timeZone) {
-    const items = []
+  function renderList(
+    targets: ScheduleTarget[],
+    timeZone: string,
+  ): JSX.Element {
+    const items: FlatListListItem[] = []
 
-    let lastType
+    let lastType: TargetType
     sortBy(targets, ['target.type', 'target.name']).forEach((tgt) => {
       const { name, id, type } = tgt.target
       if (type !== lastType) {
@@ -127,7 +139,7 @@ export default function ScheduleRuleList({ scheduleID }) {
             headerNote={`Showing times in ${data.schedule.timeZone}.`}
             items={items}
             headerAction={
-              !isMobile && (
+              !isMobile ? (
                 <ButtonGroup variant='contained'>
                   <Button
                     startIcon={<GroupAdd />}
@@ -142,7 +154,7 @@ export default function ScheduleRuleList({ scheduleID }) {
                     Add User
                   </Button>
                 </ButtonGroup>
-              )
+              ) : undefined
             }
           />
         </Card>
