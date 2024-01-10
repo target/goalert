@@ -93,7 +93,7 @@ const useStyles = makeStyles({
   },
 })
 
-type ScheduleRuleFormValue = {
+export type ScheduleRuleFormValue = {
   targetID: string
   rules: {
     start: string

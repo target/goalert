@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
 import { useQuery, gql, useMutation } from 'urql'
-import p from 'prop-types'
 import FormDialog from '../dialogs/FormDialog'
-import ScheduleRuleForm from './ScheduleRuleForm'
-import { fieldErrors, nonFieldErrors } from '../util/errutil'
+import ScheduleRuleForm, { ScheduleRuleFormValue } from './ScheduleRuleForm'
+import { nonFieldErrors } from '../util/errutil'
 import _ from 'lodash'
 import { gqlClockTimeToISO, isoToGQLClockTime } from './util'
 import { useScheduleTZ } from './useScheduleTZ'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
+import { ScheduleRuleInput, TargetInput } from '../../schema'
 
 const query = gql`
   query ($id: ID!, $tgt: TargetInput!) {
@@ -33,8 +33,16 @@ const mutation = gql`
   }
 `
 
-export default function ScheduleRuleEditDialog(props) {
-  const [state, setState] = useState({ value: null })
+interface ScheduleRuleEditDialog {
+  scheduleID: string
+  target: TargetInput
+  onClose: () => void
+}
+
+export default function ScheduleRuleEditDialog(
+  props: ScheduleRuleEditDialog,
+): JSX.Element {
+  const [state, setState] = useState<ScheduleRuleFormValue | null>(null)
 
   const [{ data, fetching, error: readError }] = useQuery({
     query,
@@ -52,7 +60,7 @@ export default function ScheduleRuleEditDialog(props) {
 
   const defaults = {
     targetID: props.target.id,
-    rules: data.schedule.target.rules.map((r) => ({
+    rules: data.schedule.target.rules.map((r: ScheduleRuleInput) => ({
       id: r.id,
       weekdayFilter: r.weekdayFilter,
       start: gqlClockTimeToISO(r.start, zone),
@@ -66,23 +74,26 @@ export default function ScheduleRuleEditDialog(props) {
       errors={nonFieldErrors(error)}
       maxWidth='md'
       onSubmit={() => {
-        if (!state.value) {
+        if (!state) {
           // no changes
           props.onClose()
           return
         }
-        commit({
-          input: {
-            target: props.target,
-            scheduleID: props.scheduleID,
+        commit(
+          {
+            input: {
+              target: props.target,
+              scheduleID: props.scheduleID,
 
-            rules: state.value.rules.map((r) => ({
-              ...r,
-              start: isoToGQLClockTime(r.start, zone),
-              end: isoToGQLClockTime(r.end, zone),
-            })),
+              rules: state.rules.map((r) => ({
+                ...r,
+                start: isoToGQLClockTime(r.start, zone),
+                end: isoToGQLClockTime(r.end, zone),
+              })),
+            },
           },
-        }).then(() => {
+          { additionalTypenames: ['Schedule'] },
+        ).then(() => {
           props.onClose()
         })
       }}
@@ -91,20 +102,10 @@ export default function ScheduleRuleEditDialog(props) {
           targetType={props.target.type}
           targetDisabled
           scheduleID={props.scheduleID}
-          disabled={fetching}
-          errors={fieldErrors(error)}
-          value={state.value || defaults}
-          onChange={(value) => setState({ value })}
+          value={state || defaults}
+          onChange={(value) => setState(value)}
         />
       }
     />
   )
-}
-ScheduleRuleEditDialog.propTypes = {
-  scheduleID: p.string.isRequired,
-  target: p.shape({
-    type: p.oneOf(['rotation', 'user']).isRequired,
-    id: p.string.isRequired,
-  }).isRequired,
-  onClose: p.func,
 }
