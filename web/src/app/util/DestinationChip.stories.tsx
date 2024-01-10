@@ -104,7 +104,7 @@ export const Loading: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    await expect(await canvas.findByTestId('WebhookIcon')).toBeVisible()
+    await expect(await canvas.findByTestId('spinner')).toBeVisible()
   },
 }
 
@@ -119,7 +119,7 @@ export const NoIcon: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    await expect(await canvas.findByTestId('WebhookIcon')).toBeVisible()
+    await expect(canvas.getByText('No Icon Test')).toBeVisible()
   },
 }
 

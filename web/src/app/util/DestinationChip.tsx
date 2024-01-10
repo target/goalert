@@ -58,7 +58,7 @@ export default function DestinationChip(
       <Chip
         avatar={
           <Avatar>
-            <CircularProgress size='1em' />
+            <CircularProgress data-testid='spinner' size='1em' />
           </Avatar>
         }
         label='Loading...'
