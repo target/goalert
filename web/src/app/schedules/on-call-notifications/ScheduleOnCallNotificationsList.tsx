@@ -46,7 +46,7 @@ export default function ScheduleOnCallNotificationsList({
             <FlatList
               headerNote={zone ? `Showing times for schedule in ${zone}.` : ''}
               emptyMessage={
-                q.loading
+                q.fetching
                   ? 'Loading notification rules...'
                   : 'No notification rules.'
               }
