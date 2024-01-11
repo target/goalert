@@ -9,7 +9,7 @@ import MaterialSelect from './MaterialSelect'
 import { FavoriteIcon } from '../util/SetFavoriteButton'
 
 const searchOptionsQuery = gql`
-  query DestinationSearchSelect($input: DestinationFieldSearchInput!) {
+  query DestinationFieldSearch($input: DestinationFieldSearchInput!) {
     destinationFieldSearch(input: $input) {
       nodes {
         value
@@ -28,20 +28,19 @@ const selectedLabelQuery = gql`
 
 const noSuspense = { suspense: false }
 
-export type DestinationSearchSelectProps = {
+export type DestinationSearchSelectProps = DestinationFieldConfig & {
   value: string
   onChange?: (newValue: string) => void
-  config: DestinationFieldConfig
   destType: DestinationType
 
   disabled?: boolean
 }
 
-const cacheByJSON = {}
+const cacheByJSON: Record<string, unknown> = {}
 
 function cachify<T>(val: T): T {
   const json = JSON.stringify(val)
-  if (cacheByJSON[json]) return cacheByJSON[json]
+  if (cacheByJSON[json]) return cacheByJSON[json] as T
   cacheByJSON[json] = val
 
   return val
@@ -61,7 +60,7 @@ export default function DestinationSearchSelect(
       input: {
         destType: props.destType,
         search: inputValue,
-        fieldID: props.config.fieldID,
+        fieldID: props.fieldID,
       },
     },
     requestPolicy: 'cache-first',
@@ -78,7 +77,7 @@ export default function DestinationSearchSelect(
       input: {
         destType: props.destType,
         value: props.value,
-        fieldID: props.config.fieldID,
+        fieldID: props.fieldID,
       },
     },
     requestPolicy: 'cache-first',
@@ -92,13 +91,13 @@ export default function DestinationSearchSelect(
     label: string
   }
 
-  function handleChange(val: SelectOption | SelectOption[]): void {
+  function handleChange(val: SelectOption | null): void {
     if (!props.onChange) return
 
     // should not be possible since multiple is false
     if (Array.isArray(val)) throw new Error('Multiple values not supported')
 
-    props.onChange(val.value)
+    props.onChange(val?.value || '')
   }
 
   const value = props.value
@@ -113,7 +112,7 @@ export default function DestinationSearchSelect(
       noOptionsError={error}
       onInputChange={(val) => setInputValue(val)}
       value={value as unknown as SelectOption}
-      label={props.config.labelSingular}
+      label={props.labelSingular}
       options={options
         .map((opt) => ({
           label: opt.label,
