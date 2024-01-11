@@ -4,25 +4,16 @@ import TextField from '@mui/material/TextField'
 import { InputProps } from '@mui/material/Input'
 import { Check, Close } from '@mui/icons-material'
 import InputAdornment from '@mui/material/InputAdornment'
-import makeStyles from '@mui/styles/makeStyles'
 import { DEBOUNCE_DELAY } from '../config'
 import { DestinationFieldConfig, DestinationType } from '../../schema'
 import AppLink from '../util/AppLink'
+import { green, red } from '@mui/material/colors'
 
 const isValidValue = gql`
   query ValidateDestination($input: DestinationFieldValidateInput!) {
     destinationFieldValidate(input: $input)
   }
 `
-
-const useStyles = makeStyles({
-  valid: {
-    fill: 'green',
-  },
-  invalid: {
-    fill: 'red',
-  },
-})
 
 const noSuspense = { suspense: false }
 
@@ -33,20 +24,25 @@ function trimPrefix(value: string, prefix: string): string {
   return value
 }
 
-export type DestinationInputDirectProps = {
+export type DestinationInputDirectProps = DestinationFieldConfig & {
   value: string
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
-  config: DestinationFieldConfig
   destType: DestinationType
 
   disabled?: boolean
 }
 
+/**
+ * DestinationInputDirect is a text field that allows the user to enter a
+ * destination directly. It supports validation and live feedback.
+ *
+ * You should almost never use this component directly. Instead, use
+ * DestinationField, which will select the correct component based on the
+ * destination type.
+ */
 export default function DestinationInputDirect(
   props: DestinationInputDirectProps,
 ): JSX.Element {
-  const classes = useStyles()
-
   const [debouncedValue, setDebouncedValue] = useState(props.value)
 
   // debounce the input
@@ -66,11 +62,11 @@ export default function DestinationInputDirect(
       input: {
         destType: props.destType,
         value: debouncedValue,
-        fieldID: props.config.fieldID,
+        fieldID: props.fieldID,
       },
     },
     requestPolicy: 'cache-first',
-    pause: !props.value || props.disabled || !props.config.supportsValidation,
+    pause: !props.value || props.disabled || !props.supportsValidation,
     context: noSuspense,
   })
 
@@ -78,26 +74,26 @@ export default function DestinationInputDirect(
   const valid = !!data?.destinationFieldValidate
 
   let adorn
-  if (!props.value || !props.config.supportsValidation) {
+  if (!props.value || !props.supportsValidation) {
     // no adornment if empty
   } else if (valid) {
-    adorn = <Check className={classes.valid} />
+    adorn = <Check sx={{ fill: green[500] }} />
   } else if (valid === false) {
-    adorn = <Close className={classes.invalid} />
+    adorn = <Close sx={{ fill: red[500] }} />
   }
 
   let iprops: Partial<InputProps> = {}
 
-  if (props.config.prefix) {
+  if (props.prefix) {
     iprops.startAdornment = (
-      <InputAdornment position='start' style={{ marginBottom: '0.1em' }}>
-        {props.config.prefix}
+      <InputAdornment position='start' sx={{ mb: '0.1em' }}>
+        {props.prefix}
       </InputAdornment>
     )
   }
 
   // add live validation icon to the right of the textfield as an endAdornment
-  if (adorn) {
+  if (adorn && props.value === debouncedValue) {
     iprops = {
       endAdornment: <InputAdornment position='end'>{adorn}</InputAdornment>,
       ...iprops,
@@ -109,33 +105,33 @@ export default function DestinationInputDirect(
     if (!props.onChange) return
     if (!e.target.value) return props.onChange(e)
 
-    if (props.config.inputType === 'tel') {
+    if (props.inputType === 'tel') {
       e.target.value = e.target.value.replace(/[^0-9+]/g, '')
     }
 
-    e.target.value = props.config.prefix + e.target.value
+    e.target.value = props.prefix + e.target.value
     return props.onChange(e)
   }
 
-  // TODO: what to do with input limiting (e.g., only allow digits)
   return (
     <TextField
       fullWidth
+      disabled={props.disabled}
       InputProps={iprops}
-      type={props.config.inputType}
-      placeholder={props.config.placeholderText}
-      label={props.config.labelSingular}
+      type={props.inputType}
+      placeholder={props.placeholderText}
+      label={props.labelSingular}
       helperText={
-        props.config.hintURL ? (
-          <AppLink newTab to={props.config.hintURL}>
-            {props.config.hint}
+        props.hintURL ? (
+          <AppLink newTab to={props.hintURL}>
+            {props.hint}
           </AppLink>
         ) : (
-          props.config.hint
+          props.hint
         )
       }
       onChange={handleChange}
-      value={trimPrefix(props.value, props.config.prefix)}
+      value={trimPrefix(props.value, props.prefix)}
     />
   )
 }

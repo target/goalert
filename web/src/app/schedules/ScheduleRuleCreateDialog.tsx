@@ -1,13 +1,12 @@
 import React, { useState } from 'react'
-import { gql, useMutation, useQuery } from '@apollo/client'
-import p from 'prop-types'
-
+import { useQuery, useMutation, gql } from 'urql'
 import FormDialog from '../dialogs/FormDialog'
 import ScheduleRuleForm from './ScheduleRuleForm'
-import { fieldErrors, nonFieldErrors } from '../util/errutil'
+import { nonFieldErrors } from '../util/errutil'
 import { startCase } from 'lodash'
 import { DateTime } from 'luxon'
 import { isoToGQLClockTime } from './util'
+import { TargetType } from '../../schema'
 
 const mutation = gql`
   mutation ($input: ScheduleTargetInput!) {
@@ -23,10 +22,19 @@ const query = gql`
   }
 `
 
-export default function ScheduleRuleCreateDialog(props) {
+interface ScheduleRuleCreateDialogProps {
+  scheduleID: string
+  targetType: TargetType
+  onClose: () => void
+}
+
+export default function ScheduleRuleCreateDialog(
+  props: ScheduleRuleCreateDialogProps,
+): JSX.Element {
   const { scheduleID, targetType, onClose } = props
 
-  const { data, ...queryStatus } = useQuery(query, {
+  const [{ data, fetching }] = useQuery({
+    query,
     variables: { id: scheduleID },
   })
 
@@ -46,51 +54,46 @@ export default function ScheduleRuleCreateDialog(props) {
     ],
   })
 
-  const [mutate, mutationStatus] = useMutation(mutation, {
-    onCompleted: onClose,
-    variables: {
-      input: {
-        target: {
-          type: targetType,
-          id: value.targetID,
-        },
-        scheduleID,
-
-        rules: value.rules.map((r) => ({
-          ...r,
-          start: isoToGQLClockTime(r.start, data.schedule.timeZone),
-          end: isoToGQLClockTime(r.end, data.schedule.timeZone),
-        })),
-      },
-    },
-  })
+  const [{ error, fetching: mFetching }, mutate] = useMutation(mutation)
 
   return (
     <FormDialog
       onClose={onClose}
       title={`Add ${startCase(targetType)} to Schedule`}
-      errors={nonFieldErrors(mutationStatus.error)}
+      errors={nonFieldErrors(error)}
       maxWidth='md'
-      loading={(!data && queryStatus.loading) || mutationStatus.loading}
-      onSubmit={() => {
-        mutate()
-      }}
+      loading={(!data && fetching) || mFetching}
+      onSubmit={() =>
+        mutate(
+          {
+            input: {
+              target: {
+                type: targetType,
+                id: value.targetID,
+              },
+              scheduleID,
+
+              rules: value.rules.map((r) => ({
+                ...r,
+                start: isoToGQLClockTime(r.start, data.schedule.timeZone),
+                end: isoToGQLClockTime(r.end, data.schedule.timeZone),
+              })),
+            },
+          },
+          { additionalTypenames: ['Schedule'] },
+        ).then((result) => {
+          if (!result.error) onClose()
+        })
+      }
       form={
         <ScheduleRuleForm
           targetType={targetType}
           scheduleID={scheduleID}
-          disabled={(!data && queryStatus.loading) || mutationStatus.loading}
-          errors={fieldErrors(mutationStatus.error)}
+          disabled={(!data && fetching) || mFetching}
           value={value}
           onChange={setValue}
         />
       }
     />
   )
-}
-
-ScheduleRuleCreateDialog.propTypes = {
-  scheduleID: p.string.isRequired,
-  targetType: p.oneOf(['rotation', 'user']).isRequired,
-  onClose: p.func,
 }
