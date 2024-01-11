@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client'
+import { gql } from 'urql'
 import { print } from 'graphql'
 
 import {
