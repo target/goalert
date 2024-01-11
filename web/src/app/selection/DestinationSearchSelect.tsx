@@ -81,7 +81,7 @@ export default function DestinationSearchSelect(
       },
     },
     requestPolicy: 'cache-first',
-    pause: props.disabled || !props.value,
+    pause: !props.value,
     context: noSuspense,
   })
   const selectedLabel = selectedLabelData?.destinationFieldValueName || ''
@@ -109,6 +109,7 @@ export default function DestinationSearchSelect(
       isLoading={fetching}
       multiple={false}
       noOptionsText='No options'
+      disabled={props.disabled}
       noOptionsError={error}
       onInputChange={(val) => setInputValue(val)}
       value={value as unknown as SelectOption}
