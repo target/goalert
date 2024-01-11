@@ -5,26 +5,38 @@ import { expect } from '@storybook/jest'
 import { within } from '@storybook/testing-library'
 import { handleDefaultConfig } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
+import { useArgs } from '@storybook/preview-api'
 
 const meta = {
   title: 'util/DestinationSearchSelect',
   component: DestinationSearchSelect,
   render: function Component(args) {
-    return <DestinationSearchSelect {...args} />
+    const [, setArgs] = useArgs()
+    const onChange = (value: string): void => {
+      if (args.onChange) args.onChange(value)
+      setArgs({ value })
+    }
+    return <DestinationSearchSelect {...args} onChange={onChange} />
   },
   tags: ['autodocs'],
   parameters: {
     msw: {
       handlers: [
         handleDefaultConfig,
-        graphql.query('DestinationSearchSelect', () => {
+        graphql.query('DestinationFieldSearch', () => {
           return HttpResponse.json({
             data: {
               destinationFieldSearch: {
                 nodes: [
                   {
-                    value: 'C03SJES5FA7',
-                    label: '#general',
+                    value: 'value-id-1',
+                    label: '#value-one',
+                    isFavorite: false,
+                    __typename: 'FieldValuePair',
+                  },
+                  {
+                    value: 'value-id-2',
+                    label: '#value-two',
                     isFavorite: false,
                     __typename: 'FieldValuePair',
                   },
@@ -35,10 +47,13 @@ const meta = {
           })
         }),
         graphql.query('DestinationFieldValueName', ({ variables: vars }) => {
+          const names: Record<string, string> = {
+            'value-id-1': '#value-one',
+            'value-id-2': '#value-two',
+          }
           return HttpResponse.json({
             data: {
-              destinationFieldValueName:
-                vars.input.value === 'C03SJES5FA7' ? '#general' : '',
+              destinationFieldValueName: names[vars.input.value] || '',
             },
           })
         }),
@@ -50,30 +65,87 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const Render: Story = {
+export const EmptyValue: Story = {
   args: {
     value: '',
-    config: {
-      fieldID: 'slack-channel-id',
-      hint: '',
-      hintURL: '',
-      inputType: 'text',
-      isSearchSelectable: true,
-      labelPlural: 'Slack Channels',
-      labelSingular: 'Slack Channel',
-      placeholderText: '',
-      prefix: '',
-      supportsValidation: false,
-    },
-    destType: 'builtin-slack-channel',
-  },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
 
-    // should see #general channel as option
-    await userEvent.type(
-      canvas.getByPlaceholderText('Start typing...'),
-      '#general',
-    )
+    fieldID: 'field-id',
+    hint: '',
+    hintURL: '',
+    inputType: 'text',
+    isSearchSelectable: true,
+    labelPlural: 'Select Values',
+    labelSingular: 'Select Value',
+    placeholderText: 'asdf',
+    prefix: '',
+    supportsValidation: false,
+
+    destType: 'test-type',
   },
+  // play: async ({ canvasElement }) => {
+  //   const canvas = within(canvasElement)
+
+  //   // should see #general channel as option
+  //   await userEvent.type(
+  //     canvas.getByPlaceholderText('Start typing...'),
+  //     '#general',
+  //   )
+  // },
+}
+
+export const SelectedValue: Story = {
+  args: {
+    value: 'value-id-1',
+
+    fieldID: 'field-id',
+    hint: '',
+    hintURL: '',
+    inputType: 'text',
+    isSearchSelectable: true,
+    labelPlural: 'Select Values',
+    labelSingular: 'Select Value',
+    placeholderText: '',
+    prefix: '',
+    supportsValidation: false,
+
+    destType: 'test-type',
+  },
+  // play: async ({ canvasElement }) => {
+  //   const canvas = within(canvasElement)
+
+  //   // should see #general channel as option
+  //   await userEvent.type(
+  //     canvas.getByPlaceholderText('Start typing...'),
+  //     '#general',
+  //   )
+  // },
+}
+
+export const Disabled: Story = {
+  args: {
+    value: 'value-id-1',
+
+    fieldID: 'field-id',
+    hint: '',
+    hintURL: '',
+    inputType: 'text',
+    isSearchSelectable: true,
+    labelPlural: 'Select Values',
+    labelSingular: 'Select Value',
+    placeholderText: '',
+    prefix: '',
+    supportsValidation: false,
+
+    destType: 'test-type',
+    disabled: true,
+  },
+  // play: async ({ canvasElement }) => {
+  //   const canvas = within(canvasElement)
+
+  //   // should see #general channel as option
+  //   await userEvent.type(
+  //     canvas.getByPlaceholderText('Start typing...'),
+  //     '#general',
+  //   )
+  // },
 }
