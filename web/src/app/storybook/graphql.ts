@@ -57,7 +57,7 @@ export const defaultConfig: RequireConfigDoc = {
       id: 'example-disabled',
       name: 'Disabled Example',
       label: 'Disabled Example Value',
-      enabled: true,
+      enabled: false,
     },
   ],
   destinationTypes: destTypes,
