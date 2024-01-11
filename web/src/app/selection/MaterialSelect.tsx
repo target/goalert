@@ -82,7 +82,7 @@ interface CommonSelectProps {
 
 interface SingleSelectProps {
   multiple: false
-  value: SelectOption
+  value: SelectOption | null
   onChange: (value: SelectOption | null) => void
 }
 
