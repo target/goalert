@@ -1,5 +1,5 @@
 import React from 'react'
-import { useMutation, gql } from '@apollo/client'
+import { useMutation, gql } from 'urql'
 import FormDialog from '../../dialogs/FormDialog'
 import { fmt, TempSchedValue } from './sharedUtils'
 import { DateTime } from 'luxon'
@@ -21,16 +21,7 @@ export default function TempSchedDeleteConfirmation({
   onClose,
   value,
 }: TempSchedDeleteConfirmationProps): JSX.Element {
-  const [deleteTempSchedule, { loading, error }] = useMutation(mutation, {
-    onCompleted: () => onClose(),
-    variables: {
-      input: {
-        scheduleID,
-        start: value.start, // actual truncation will be handled by backend
-        end: value.end,
-      },
-    },
-  })
+  const [{ fetching, error }, commit] = useMutation(mutation)
 
   const start = DateTime.max(
     DateTime.fromISO(value.start),
@@ -44,10 +35,23 @@ export default function TempSchedDeleteConfirmation({
       subTitle={`This will clear all temporary schedule data from ${fmt(
         start,
       )} to ${fmt(value.end)}.`}
-      loading={loading}
+      loading={fetching}
       errors={error ? [error] : []}
       onClose={onClose}
-      onSubmit={() => deleteTempSchedule()}
+      onSubmit={() =>
+        commit(
+          {
+            input: {
+              scheduleID,
+              start: value.start, // actual truncation will be handled by backend
+              end: value.end,
+            },
+          },
+          { additionalTypenames: ['Schedule'] },
+        ).then((result) => {
+          if (!result.error) onClose()
+        })
+      }
     />
   )
 }
