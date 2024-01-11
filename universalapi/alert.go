@@ -2,6 +2,7 @@ package universalapi
 
 import (
 	"github.com/target/goalert/alert"
+	"github.com/target/goalert/integrationkey/integrationkeyrule"
 )
 
 // Temporary implementation
@@ -14,18 +15,18 @@ type AlertMapper struct {
 
 // BuildOutgoingAlert creates an outgoing alert applying templating for the
 // summary and detail fields when applicable.
-func BuildOutgoingAlert(payload map[string]interface{}, rule Rule) (outgoingAlert AlertMapper, err error) {
-	outgoingAlert.Summary, err = applyTemplateOrDefault("summary", payload, rule.Template)
+func BuildOutgoingAlert(payload map[string]interface{}, rule integrationkeyrule.Rule) (outgoingAlert AlertMapper, err error) {
+	outgoingAlert.Summary, err = applyTemplateOrDefault("summary", payload, rule.Summary)
 	if err != nil {
 		return outgoingAlert, err
 	}
-	outgoingAlert.Details, err = applyTemplateOrDefault("details", payload, rule.Template)
+	outgoingAlert.Details, err = applyTemplateOrDefault("details", payload, rule.Details)
 	if err != nil {
 		return outgoingAlert, err
 	}
 
 	outgoingAlert.Status = alert.StatusTriggered
-	if rule.Action == "close" {
+	if rule.Action == integrationkeyrule.CloseAlert {
 		outgoingAlert.Status = alert.StatusClosed
 	}
 	return

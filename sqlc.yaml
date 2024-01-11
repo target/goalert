@@ -27,6 +27,7 @@ sql:
       - user/favorite/queries.sql
       - user/contactmethod/queries.sql
       - integrationkey/queries.sql
+      - integrationkey/integrationkeyrule/queries.sql
       - apikey/queries.sql
       - override/queries.sql
       - schedule/queries.sql

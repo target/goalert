@@ -34,7 +34,6 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// get int key from context
 	intkey := permission.Source(ctx).ID
 
 	serviceID := permission.ServiceID(ctx)
@@ -56,14 +55,14 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// gets the ruleset of the corresponding intkey stopping after finding the first rule
-	rules, err := h.FetchRules(ctx, intkey, nil)
+	rules, err := h.FetchRules(ctx, intkey)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// gets the list of rules which matches with the request body
-	matchedRules := MatchRules(ctx, rules, requestBody)
+	matchedRules := MatchRules(ctx, rules, requestBody, nil)
 
 	if len(matchedRules) == 0 {
 		w.WriteHeader(http.StatusNoContent)
@@ -71,9 +70,6 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, rule := range matchedRules {
-		if !rule.SendAlert {
-			continue
-		}
 		outgoingAlert, err := BuildOutgoingAlert(requestBody, rule)
 		if errutil.HTTPError(ctx, w, errors.Wrap(err, "create alert")) {
 			return

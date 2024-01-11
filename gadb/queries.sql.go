@@ -1441,6 +1441,75 @@ func (q *Queries) IntKeyGetServiceID(ctx context.Context, arg IntKeyGetServiceID
 	return service_id, err
 }
 
+const intKeyRuleFindManyByIntKey = `-- name: IntKeyRuleFindManyByIntKey :many
+SELECT
+    action, filter, filterobj, id, integration_key_id, msgtemplate, name
+FROM
+    integration_key_rules
+WHERE integration_key_id = $1
+`
+
+func (q *Queries) IntKeyRuleFindManyByIntKey(ctx context.Context, integrationKeyID uuid.UUID) ([]IntegrationKeyRule, error) {
+	rows, err := q.db.QueryContext(ctx, intKeyRuleFindManyByIntKey, integrationKeyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []IntegrationKeyRule
+	for rows.Next() {
+		var i IntegrationKeyRule
+		if err := rows.Scan(
+			&i.Action,
+			&i.Filter,
+			&i.Filterobj,
+			&i.ID,
+			&i.IntegrationKeyID,
+			&i.Msgtemplate,
+			&i.Name,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const intKeyRuleInsert = `-- name: IntKeyRuleInsert :one
+INSERT INTO integration_key_rules(name, integration_key_id, filter, filterobj, msgTemplate, action)
+    VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING
+    id
+`
+
+type IntKeyRuleInsertParams struct {
+	Name             string
+	IntegrationKeyID uuid.UUID
+	Filter           string
+	Filterobj        json.RawMessage
+	Msgtemplate      json.RawMessage
+	Action           int32
+}
+
+func (q *Queries) IntKeyRuleInsert(ctx context.Context, arg IntKeyRuleInsertParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, intKeyRuleInsert,
+		arg.Name,
+		arg.IntegrationKeyID,
+		arg.Filter,
+		arg.Filterobj,
+		arg.Msgtemplate,
+		arg.Action,
+	)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const labelDeleteKeyByTarget = `-- name: LabelDeleteKeyByTarget :exec
 DELETE FROM labels
 WHERE key = $1

@@ -126,7 +126,10 @@ func (app *App) initHTTP(ctx context.Context) error {
 	})
 
 	universal := universalapi.NewHandler(universalapi.Config{
-		AlertStore: app.AlertStore,
+		AlertStore:          app.AlertStore,
+		IntegrationKeyStore: app.IntegrationKeyStore,
+		IntKeyRuleStore:     app.IntKeyRuleStore,
+		DB:                  app.db,
 	})
 
 	mux.Handle("/api/graphql", app.graphql2.Handler())

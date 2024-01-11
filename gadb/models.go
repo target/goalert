@@ -945,6 +945,16 @@ type IntegrationKey struct {
 	Type      EnumIntegrationKeysType
 }
 
+type IntegrationKeyRule struct {
+	Action           int32
+	Filter           string
+	Filterobj        json.RawMessage
+	ID               uuid.UUID
+	IntegrationKeyID uuid.UUID
+	Msgtemplate      json.RawMessage
+	Name             string
+}
+
 type Keyring struct {
 	ID               string
 	NextKey          []byte
