@@ -42,8 +42,11 @@ export default function DestinationInputChip(
 
   return (
     <DestinationChip
+      iconAltText={data?.destinationDisplayInfo.iconAltText || ''}
+      iconURL={data?.destinationDisplayInfo.iconURL || ''}
+      linkURL={data?.destinationDisplayInfo.linkURL || ''}
+      text={data?.destinationDisplayInfo.text || ''}
       error={error?.message}
-      config={data?.destinationDisplayInfo}
       onDelete={props.onDelete}
     />
   )

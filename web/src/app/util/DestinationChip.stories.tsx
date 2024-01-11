@@ -12,6 +12,21 @@ const meta = {
     return <DestinationChip {...args} />
   },
   tags: ['autodocs'],
+  argTypes: {
+    iconURL: {
+      control: 'select',
+      options: [
+        'builtin://schedule',
+        'builtin://rotation',
+        'builtin://webhook',
+        'builtin://slack',
+      ],
+    },
+    onDelete: {
+      control: 'select',
+      options: [() => null, undefined],
+    },
+  },
   parameters: {
     msw: {
       handlers: [handleDefaultConfig],
@@ -24,12 +39,12 @@ type Story = StoryObj<typeof meta>
 
 export const TextAndHref: Story = {
   args: {
-    config: {
-      iconAltText: 'Schedule',
-      iconURL: 'builtin://schedule',
-      linkURL: 'test.com',
-      text: 'Forward Integrated Functionality Schedule',
-    },
+    iconAltText: 'Schedule',
+    iconURL: 'builtin://schedule',
+    linkURL: 'https://example.com',
+    text: 'Forward Integrated Functionality Schedule',
+
+    onDelete: () => null,
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -40,7 +55,7 @@ export const TextAndHref: Story = {
 
     await expect(canvas.getByTestId('destination-chip')).toHaveAttribute(
       'href',
-      'test.com',
+      'https://example.com',
     )
 
     await expect(await canvas.findByTestId('TodayIcon')).toBeVisible()
@@ -50,12 +65,11 @@ export const TextAndHref: Story = {
 
 export const RotationIcon: Story = {
   args: {
-    config: {
-      iconAltText: 'Rotation',
-      iconURL: 'builtin://rotation',
-      linkURL: 'test.com',
-      text: 'Icon Test',
-    },
+    iconAltText: 'Rotation',
+    iconURL: 'builtin://rotation',
+    linkURL: 'https://example.com',
+    text: 'Icon Test',
+
     onDelete: undefined,
   },
   play: async ({ canvasElement }) => {
@@ -66,12 +80,11 @@ export const RotationIcon: Story = {
 
 export const WebhookIcon: Story = {
   args: {
-    config: {
-      iconAltText: 'Webhook',
-      iconURL: 'builtin://webhook',
-      linkURL: 'test.com',
-      text: 'Icon Test',
-    },
+    iconAltText: 'Webhook',
+    iconURL: 'builtin://webhook',
+    linkURL: 'https://example.com',
+    text: 'Icon Test',
+
     onDelete: undefined,
   },
   play: async ({ canvasElement }) => {
@@ -80,8 +93,42 @@ export const WebhookIcon: Story = {
   },
 }
 
+export const Loading: Story = {
+  args: {
+    iconAltText: 'Webhook',
+    iconURL: 'builtin://webhook',
+    linkURL: 'https://example.com',
+    text: '',
+
+    onDelete: undefined,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(await canvas.findByTestId('spinner')).toBeVisible()
+  },
+}
+
+export const NoIcon: Story = {
+  args: {
+    iconAltText: '',
+    iconURL: '',
+    linkURL: '',
+    text: 'No Icon Test',
+
+    onDelete: undefined,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(canvas.getByText('No Icon Test')).toBeVisible()
+  },
+}
+
 export const Error: Story = {
   args: {
+    iconAltText: '',
+    iconURL: '',
+    linkURL: '',
+    text: '',
     error: 'something went wrong',
     onDelete: undefined,
   },
