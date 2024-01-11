@@ -318,6 +318,15 @@ type DestinationFieldConfig struct {
 	SupportsValidation bool   `json:"supportsValidation"`
 }
 
+type DestinationFieldSearchInput struct {
+	DestType string   `json:"destType"`
+	FieldID  string   `json:"fieldID"`
+	Search   *string  `json:"search,omitempty"`
+	Omit     []string `json:"omit,omitempty"`
+	After    *string  `json:"after,omitempty"`
+	First    *int     `json:"first,omitempty"`
+}
+
 type DestinationFieldValidateInput struct {
 	DestType string `json:"destType"`
 	FieldID  string `json:"fieldID"`
@@ -357,14 +366,21 @@ type EscalationPolicySearchOptions struct {
 	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
 }
 
+type FieldValueConnection struct {
+	Nodes    []FieldValuePair `json:"nodes"`
+	PageInfo *PageInfo        `json:"pageInfo"`
+}
+
 type FieldValueInput struct {
 	FieldID string `json:"fieldID"`
 	Value   string `json:"value"`
 }
 
 type FieldValuePair struct {
-	FieldID string `json:"fieldID"`
-	Value   string `json:"value"`
+	FieldID    string `json:"fieldID"`
+	Value      string `json:"value"`
+	Label      string `json:"label"`
+	IsFavorite bool   `json:"isFavorite"`
 }
 
 type GQLAPIKey struct {
