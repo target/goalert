@@ -1,8 +1,7 @@
 import React from 'react'
 import { DestinationType, FieldValueInput } from '../../schema'
 import DestinationInputDirect from './DestinationInputDirect'
-import { useDestinationType } from '../util/useDestinationTypes'
-import DestinationSearchSelect from './DestinationSearchSelect'
+import { useDestinationType } from '../util/RequireConfig'
 
 export type DestinationFieldProps = {
   value: FieldValueInput[]
@@ -35,22 +34,22 @@ export default function DestinationField(
     }
 
     if (field.isSearchSelectable)
-      return (
-        <DestinationSearchSelect
-          key={field.fieldID}
-          value={fieldValue}
-          config={field}
-          destType={props.destType}
-          disabled={props.disabled || !dest.enabled}
-          onChange={handleChange}
-        />
-      )
+      throw new Error('search select is not enabled')
 
     return (
       <DestinationInputDirect
         key={field.fieldID}
         value={fieldValue}
-        config={field}
+        fieldID={field.fieldID}
+        hint={field.hint}
+        hintURL={field.hintURL}
+        inputType={field.inputType}
+        labelSingular={field.labelSingular}
+        placeholderText={field.placeholderText}
+        prefix={field.prefix}
+        supportsValidation={field.supportsValidation}
+        isSearchSelectable={field.isSearchSelectable}
+        labelPlural={field.labelPlural}
         destType={props.destType}
         disabled={props.disabled || !dest.enabled}
         onChange={(e) => handleChange(e.target.value)}

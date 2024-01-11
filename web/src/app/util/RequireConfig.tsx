@@ -5,6 +5,8 @@ import {
   ConfigValue,
   ConfigID,
   IntegrationKeyTypeInfo,
+  DestinationTypeInfo,
+  DestinationType,
 } from '../../schema'
 
 type Value = boolean | number | string | string[] | null
@@ -16,11 +18,12 @@ const ConfigContext = React.createContext({
   isAdmin: false as boolean,
   userID: '' as string,
   userName: null as string | null,
+  destTypes: [] as DestinationTypeInfo[],
 })
 ConfigContext.displayName = 'ConfigContext'
 
 const query = gql`
-  query RequireConfigData {
+  query RequireConfig {
     user {
       id
       name
@@ -36,6 +39,30 @@ const query = gql`
       name
       label
       enabled
+    }
+    destinationTypes {
+      type
+      name
+      enabled
+      disabledMessage
+      userDisclaimer
+
+      isContactMethod
+      isEPTarget
+      isSchedOnCallNotify
+
+      requiredFields {
+        fieldID
+        labelSingular
+        labelPlural
+        hint
+        hintURL
+        placeholderText
+        prefix
+        inputType
+        isSearchSelectable
+        supportsValidation
+      }
     }
   }
 `
@@ -55,6 +82,7 @@ export function ConfigProvider(props: ConfigProviderProps): React.ReactNode {
         isAdmin: data?.user?.role === 'admin',
         userID: data?.user?.id || null,
         userName: data?.user?.name || null,
+        destTypes: data?.destinationTypes || [],
       }}
     >
       {props.children}
@@ -152,6 +180,16 @@ export function useConfig(): ConfigData {
 export function useConfigValue(...fields: ConfigID[]): Value[] {
   const config = useConfig()
   return fields.map((f) => config[f])
+}
+
+// useDestinationType returns information about the given destination type.
+export function useDestinationType(type: DestinationType): DestinationTypeInfo {
+  const ctx = React.useContext(ConfigContext)
+  const typeInfo = ctx.destTypes.find((t) => t.type === type)
+
+  if (!typeInfo) throw new Error(`unknown destination type '${type}'`)
+
+  return typeInfo
 }
 
 export function Config(props: {
