@@ -2,9 +2,11 @@ import { GraphQLHandler, HttpResponse, graphql } from 'msw'
 import {
   ConfigID,
   ConfigType,
+  DestinationTypeInfo,
   IntegrationKeyTypeInfo,
   UserRole,
 } from '../../schema'
+import { destTypes } from './defaultDestTypes'
 
 export type ConfigItem = {
   id: ConfigID
@@ -20,6 +22,7 @@ export type RequireConfigDoc = {
   }
   config: ConfigItem[]
   integrationKeyTypes: IntegrationKeyTypeInfo[]
+  destinationTypes: DestinationTypeInfo[]
 }
 
 export function handleConfig(doc: RequireConfigDoc): GraphQLHandler {
@@ -54,9 +57,10 @@ export const defaultConfig: RequireConfigDoc = {
       id: 'example-disabled',
       name: 'Disabled Example',
       label: 'Disabled Example Value',
-      enabled: false,
+      enabled: true,
     },
   ],
+  destinationTypes: destTypes,
 }
 
 export const handleDefaultConfig = handleConfig(defaultConfig)
