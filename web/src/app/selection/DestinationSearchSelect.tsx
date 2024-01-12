@@ -7,6 +7,7 @@ import {
 } from '../../schema'
 import MaterialSelect from './MaterialSelect'
 import { FavoriteIcon } from '../util/SetFavoriteButton'
+import AppLink from '../util/AppLink'
 
 const searchOptionsQuery = gql`
   query DestinationFieldSearch($input: DestinationFieldSearchInput!) {
@@ -34,6 +35,7 @@ export type DestinationSearchSelectProps = DestinationFieldConfig & {
   destType: DestinationType
 
   disabled?: boolean
+  error?: boolean
 }
 
 const cacheByJSON: Record<string, unknown> = {}
@@ -46,6 +48,14 @@ function cachify<T>(val: T): T {
   return val
 }
 
+/**
+ * DestinationSearchSelect is a select field that allows the user to select a
+ * destination from a list of options.
+ *
+ * You should almost never use this component directly. Instead, use
+ * DestinationField, which will select the correct component based on the
+ * destination type.
+ */
 export default function DestinationSearchSelect(
   props: DestinationSearchSelectProps,
 ): JSX.Element {
@@ -115,9 +125,19 @@ export default function DestinationSearchSelect(
       noOptionsText='No options'
       disabled={props.disabled}
       noOptionsError={error}
+      error={props.error}
       onInputChange={(val) => setInputValue(val)}
       value={value as unknown as SelectOption}
       label={props.labelSingular}
+      helperText={
+        props.hintURL ? (
+          <AppLink newTab to={props.hintURL}>
+            {props.hint}
+          </AppLink>
+        ) : (
+          props.hint
+        )
+      }
       options={options
         .map((opt) => ({
           label: opt.label,

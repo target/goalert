@@ -6,10 +6,18 @@ import { userEvent, within } from '@storybook/testing-library'
 import { handleDefaultConfig } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 import { useArgs } from '@storybook/preview-api'
+import { FieldValueConnection } from '../../schema'
 
 const meta = {
   title: 'util/DestinationSearchSelect',
   component: DestinationSearchSelect,
+  argTypes: {
+    inputType: { table: { disable: true } },
+    placeholderText: { table: { disable: true } },
+    isSearchSelectable: { table: { disable: true } },
+    supportsValidation: { table: { disable: true } },
+    prefix: { table: { disable: true } },
+  },
   render: function Component(args) {
     const [, setArgs] = useArgs()
     const onChange = (value: string): void => {
@@ -29,27 +37,38 @@ const meta = {
               errors: [{ message: 'some_backend_error_message' }],
             })
           }
+          if (vars.input.search === 'empty') {
+            return HttpResponse.json({
+              data: {
+                destinationFieldSearch: {
+                  nodes: [],
+                  __typename: 'FieldValueConnection',
+                },
+              },
+            })
+          }
 
           return HttpResponse.json({
             data: {
               destinationFieldSearch: {
                 nodes: [
                   {
+                    fieldID: 'field-id',
                     value: 'value-id-1',
                     label: '#value-one',
                     isFavorite: false,
-                    __typename: 'FieldValuePair',
                   },
                   {
+                    fieldID: 'field-id',
                     value: 'value-id-2',
                     label: '#value-two',
                     isFavorite: false,
-                    __typename: 'FieldValuePair',
                   },
                 ],
-                __typename: 'FieldValueConnection',
               },
             },
+          } satisfies {
+            data: { destinationFieldSearch: Partial<FieldValueConnection> }
           })
         }),
         graphql.query('DestinationFieldValueName', ({ variables: vars }) => {
@@ -151,6 +170,34 @@ export const InvalidOptionSelected: Story = {
     supportsValidation: false,
 
     destType: 'test-type',
+  },
+}
+
+export const NoOptions: Story = {
+  args: {
+    value: '',
+
+    fieldID: 'field-id',
+    hint: '',
+    hintURL: '',
+    inputType: 'text',
+    isSearchSelectable: true,
+    labelPlural: 'Select Values',
+    labelSingular: 'Select Value',
+    placeholderText: '',
+    prefix: '',
+    supportsValidation: false,
+
+    destType: 'test-type',
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    const box = await canvas.findByRole('combobox')
+    await userEvent.click(box)
+    await userEvent.type(box, 'empty', { delay: null })
+
+    expect(await within(document.body).findByText('No options')).toBeVisible()
   },
 }
 
