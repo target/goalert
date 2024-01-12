@@ -69,7 +69,7 @@ export default function DestinationSearchSelect(
   })
   const options = data?.destinationFieldSearch.nodes || []
 
-  const [{ data: selectedLabelData }] = useQuery<{
+  const [{ data: selectedLabelData, error: selectedErr }] = useQuery<{
     destinationFieldValueName: string
   }>({
     query: selectedLabelQuery,
@@ -84,7 +84,11 @@ export default function DestinationSearchSelect(
     pause: !props.value,
     context: noSuspense,
   })
-  const selectedLabel = selectedLabelData?.destinationFieldValueName || ''
+
+  let selectedLabel = selectedLabelData?.destinationFieldValueName || ''
+  if (selectedErr) {
+    selectedLabel = `ERROR: ${selectedErr.message}`
+  }
 
   interface SelectOption {
     value: string
