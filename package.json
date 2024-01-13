@@ -73,7 +73,7 @@
     "@types/react-dom": "18.2.18",
     "@types/react-transition-group": "4.4.7",
     "@types/react-virtualized-auto-sizer": "1.0.4",
-    "@typescript-eslint/eslint-plugin": "6.18.0",
+    "@typescript-eslint/eslint-plugin": "6.18.1",
     "@typescript-eslint/parser": "6.15.0",
     "@urql/exchange-retry": "1.2.0",
     "bowser": "2.11.0",
