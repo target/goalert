@@ -25,7 +25,6 @@ type AddShiftsStepProps = {
   onChange: (newValue: Shift[]) => void
 
   scheduleID: string
-  edit?: boolean
   showForm: boolean
   setShowForm: (showForm: boolean) => void
   shift: Shift | null

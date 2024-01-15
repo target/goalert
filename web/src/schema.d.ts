@@ -339,6 +339,69 @@ export interface DebugSendSMSInput {
   to: string
 }
 
+export interface Destination {
+  display: DestinationDisplayInfo
+  type: DestinationType
+  typeInfo: DestinationTypeInfo
+  values: FieldValuePair[]
+}
+
+export interface DestinationDisplayInfo {
+  iconAltText: string
+  iconURL: string
+  linkURL: string
+  text: string
+}
+
+export interface DestinationFieldConfig {
+  fieldID: string
+  hint: string
+  hintURL: string
+  inputType: string
+  isSearchSelectable: boolean
+  labelPlural: string
+  labelSingular: string
+  placeholderText: string
+  prefix: string
+  supportsValidation: boolean
+}
+
+export interface DestinationFieldSearchInput {
+  after?: null | string
+  destType: DestinationType
+  fieldID: string
+  first?: null | number
+  omit?: null | string[]
+  search?: null | string
+}
+
+export interface DestinationFieldValidateInput {
+  destType: DestinationType
+  fieldID: string
+  value: string
+}
+
+export interface DestinationInput {
+  type: DestinationType
+  values: FieldValueInput[]
+}
+
+export type DestinationType = string
+
+export interface DestinationTypeInfo {
+  disabledMessage: string
+  enabled: boolean
+  iconAltText: string
+  iconURL: string
+  isContactMethod: boolean
+  isEPTarget: boolean
+  isSchedOnCallNotify: boolean
+  name: string
+  requiredFields: DestinationFieldConfig[]
+  type: DestinationType
+  userDisclaimer: string
+}
+
 export interface EscalationPolicy {
   assignedTo: Target[]
   description: string
@@ -370,6 +433,23 @@ export interface EscalationPolicyStep {
   id: string
   stepNumber: number
   targets: Target[]
+}
+
+export interface FieldValueConnection {
+  nodes: FieldValuePair[]
+  pageInfo: PageInfo
+}
+
+export interface FieldValueInput {
+  fieldID: string
+  value: string
+}
+
+export interface FieldValuePair {
+  fieldID: string
+  isFavorite: boolean
+  label: string
+  value: string
 }
 
 export type Float = string
@@ -626,6 +706,11 @@ export interface Query {
   configHints: ConfigHint[]
   debugMessageStatus: DebugMessageStatusInfo
   debugMessages: DebugMessage[]
+  destinationDisplayInfo: DestinationDisplayInfo
+  destinationFieldSearch: FieldValueConnection
+  destinationFieldValidate: boolean
+  destinationFieldValueName: string
+  destinationTypes: DestinationTypeInfo[]
   escalationPolicies: EscalationPolicyConnection
   escalationPolicy?: null | EscalationPolicy
   experimentalFlags: string[]
@@ -1312,6 +1397,7 @@ type ConfigID =
   | 'General.DisableSMSLinks'
   | 'General.DisableLabelCreation'
   | 'General.DisableCalendarSubscriptions'
+  | 'Services.RequiredLabels'
   | 'Maintenance.AlertCleanupDays'
   | 'Maintenance.AlertAutoCloseDays'
   | 'Maintenance.APIKeyExpireDays'

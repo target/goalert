@@ -32,7 +32,7 @@ export default function ScheduleOnCallNotificationsCreateDialog(
   )
 
   const [dialogErrors, fieldErrors] = mapOnCallErrors(m.error, q.error)
-  const busy = (q.loading && !zone) || m.loading
+  const busy = (q.fetching && !zone) || m.fetching
 
   return (
     <FormDialog

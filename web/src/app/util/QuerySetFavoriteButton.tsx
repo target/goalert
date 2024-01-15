@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { gql, useQuery, useMutation } from '@apollo/client'
+import { gql, useQuery, useMutation } from 'urql'
 import { SetFavoriteButton } from './SetFavoriteButton'
 import { Button, Dialog, DialogActions, DialogTitle } from '@mui/material'
 import DialogContentError from '../dialogs/components/DialogContentError'
+import toTitleCase from './toTitleCase'
 
 const queries = {
   service: gql`
@@ -62,25 +63,33 @@ export function QuerySetFavoriteButton({
   id,
   type,
 }: QuerySetFavoriteButtonProps): JSX.Element {
-  const { data, loading } = useQuery(queries[type], {
+  const [{ data, fetching }] = useQuery({
+    query: queries[type],
     variables: { id },
   })
   const isFavorite = data && data.data && data.data.isFavorite
   const [showMutationErrorDialog, setShowMutationErrorDialog] = useState(false)
-  const [toggleFav, toggleFavStatus] = useMutation(mutation, {
-    variables: {
-      input: { target: { id, type }, favorite: !isFavorite },
-    },
-    onError: () => setShowMutationErrorDialog(true),
-  })
+  const [toggleFavStatus, commit] = useMutation(mutation)
 
   return (
     <React.Fragment>
       <SetFavoriteButton
         typeName={type}
         isFavorite={isFavorite}
-        loading={!data && loading}
-        onClick={() => toggleFav()}
+        loading={!data && fetching}
+        onClick={() => {
+          console.log(toTitleCase(type))
+          commit(
+            {
+              input: { target: { id, type }, favorite: !isFavorite },
+            },
+            { additionalTypenames: [toTitleCase(type)] },
+          ).then((result) => {
+            if (result.error) {
+              setShowMutationErrorDialog(true)
+            }
+          })
+        }}
       />
       <Dialog
         // if showMutationErrorDialog is true, the dialog will open

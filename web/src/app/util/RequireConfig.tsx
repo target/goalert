@@ -20,7 +20,7 @@ const ConfigContext = React.createContext({
 ConfigContext.displayName = 'ConfigContext'
 
 const query = gql`
-  query {
+  query RequireConfig {
     user {
       id
       name

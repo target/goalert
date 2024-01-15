@@ -129,9 +129,15 @@ function testTemporarySchedule(screen: string): void {
       )
       cy.get('button[data-cy="add-shift"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
-      cy.dialogClick('Submit')
+      cy.dialogClick('Next')
       cy.get('input[name="allowCoverageGaps"]').check()
-      cy.dialogFinish('Retry')
+      cy.dialogClick('Next')
+
+      // verify shifts on confirm screen
+      cy.get(`div[data-cy="${graphQLAddUser.id}-removed"]`).should('be.visible')
+      cy.get(`div[data-cy="${manualAddUser.id}-added"]`).should('be.visible')
+      cy.dialogFinish('Submit')
+
       cy.reload() // ensure calendar update
       cy.get('div').contains(manualAddUser.name).click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
@@ -162,9 +168,15 @@ function testTemporarySchedule(screen: string): void {
         graphQLAddUser.name,
       )
 
-      cy.dialogClick('Submit')
+      cy.dialogClick('Next')
       cy.get('input[name="allowCoverageGaps"]').check()
-      cy.dialogFinish('Retry')
+      cy.dialogClick('Next')
+
+      // verify shifts on confirm screen
+      cy.get(`div[data-cy="${graphQLAddUser.id}-removed"]`).should('be.visible')
+      cy.get(`div[data-cy="${graphQLAddSecondUser.id}"]`).should('be.visible')
+      cy.dialogFinish('Submit')
+
       cy.reload() // ensure calendar update
       cy.get('div').contains(graphQLAddSecondUser.name).click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
@@ -196,9 +208,15 @@ function testTemporarySchedule(screen: string): void {
       )
       cy.get('button[data-cy="add-shift"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
-      cy.dialogClick('Submit')
+      cy.dialogClick('Next')
       cy.get('input[name="allowCoverageGaps"]').check()
-      cy.dialogFinish('Retry')
+      cy.dialogClick('Next')
+
+      // verify shifts on confirm screen
+      cy.get(`div[data-cy="${graphQLAddUser.id}"]`).should('be.visible')
+      cy.get(`div[data-cy="${manualAddUser.id}-added"]`).should('be.visible')
+      cy.dialogFinish('Submit')
+
       cy.reload() // ensure calendar update
       cy.get('div').contains(manualAddUser.name).click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')

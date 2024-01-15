@@ -1,4 +1,4 @@
-import React, { useState, ReactNode } from 'react'
+import React, { useState, ReactNode, Suspense } from 'react'
 import { gql, useQuery } from 'urql'
 import {
   Button,
@@ -108,18 +108,20 @@ export default function UserNotificationRuleList(props: {
           emptyMessage='No notification rules'
         />
       </Card>
-      {showAddDialog && (
-        <UserNotificationRuleCreateDialog
-          userID={props.userID}
-          onClose={() => setShowAddDialog(false)}
-        />
-      )}
-      {deleteID && (
-        <UserNotificationRuleDeleteDialog
-          ruleID={deleteID}
-          onClose={() => setDeleteID(null)}
-        />
-      )}
+      <Suspense>
+        {showAddDialog && (
+          <UserNotificationRuleCreateDialog
+            userID={props.userID}
+            onClose={() => setShowAddDialog(false)}
+          />
+        )}
+        {deleteID && (
+          <UserNotificationRuleDeleteDialog
+            ruleID={deleteID}
+            onClose={() => setDeleteID(null)}
+          />
+        )}
+      </Suspense>
     </Grid>
   )
 }

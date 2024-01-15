@@ -128,7 +128,7 @@ cy-mobile-prod-run: web/src/build/static/app.js cypress
 swo/swodb/queries.sql.go: $(BIN_DIR)/tools/sqlc sqlc.yaml swo/*/*.sql migrate/migrations/*.sql */queries.sql */*/queries.sql migrate/schema.sql
 	$(BIN_DIR)/tools/sqlc generate
 
-web/src/schema.d.ts: graphql2/schema.graphql $(NODE_DEPS) web/src/genschema.go
+web/src/schema.d.ts: graphql2/schema.graphql graphql2/graph/*.graphqls $(NODE_DEPS) web/src/genschema.go
 	go generate ./web/src
 
 help: ## Show all valid options
@@ -220,7 +220,7 @@ graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devto
 graphql2/maplimit.go: $(CFGPARAMS) limit/id.go graphql2/generated.go devtools/limitapigen/*
 	(cd ./graphql2 && go run ../devtools/limitapigen -out maplimit.go && go run golang.org/x/tools/cmd/goimports -w ./maplimit.go) || go generate ./graphql2
 
-graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod
+graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod graphql2/graph/*.graphqls
 	go generate ./graphql2
 
 pkg/sysapi/sysapi_grpc.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go-grpc $(BIN_DIR)/tools/protoc
@@ -233,10 +233,19 @@ generate: $(NODE_DEPS) pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go $(BI
 	go generate ./...
 
 
-test-all: test-unit test-smoke test-integration
+test-all: test-unit test-components test-smoke test-integration
 test-integration: playwright-run cy-wide-prod-run cy-mobile-prod-run
 test-smoke: smoketest
 test-unit: test
+
+test-components:  $(NODE_DEPS) bin/waitfor
+	yarn build-storybook --test --quiet 2>/dev/null
+	yarn concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
+		"yarn http-server storybook-static -a 127.0.0.1 --port 6008 --silent" \
+		"./bin/waitfor tcp://localhost:6008 && yarn test-storybook --ci --url http://127.0.0.1:6008"
+
+storybook: ensure-yarn $(NODE_DEPS) # Start the Storybook UI
+	yarn storybook
 
 bin/MailHog: go.mod go.sum
 	go build -o bin/MailHog github.com/mailhog/MailHog
@@ -331,7 +340,7 @@ resetdb: config.json.bak ## Recreate the database leaving it empty (no migration
 	go run ./devtools/resetdb --no-migrate
 
 clean: ## Clean up build artifacts
-	rm -rf bin node_modules web/src/node_modules .pnp.cjs .pnp.loader.mjs web/src/build/static .yarn/cache .yarn/install-state.gz .yarn/unplugged
+	rm -rf bin node_modules web/src/node_modules .pnp.cjs .pnp.loader.mjs web/src/build/static .yarn/cache .yarn/install-state.gz .yarn/unplugged storybook-static
 
 new-migration:
 	@test "$(NAME)" != "" || (echo "NAME is required" && false)
@@ -339,10 +348,8 @@ new-migration:
 	@echo "-- +migrate Up\n\n\n-- +migrate Down\n" >migrate/migrations/$(shell date +%Y%m%d%H%M%S)-$(NAME).sql
 	@echo "Created: migrate/migrations/$(shell date +%Y%m%d%H%M%S)-$(NAME).sql"
 
-.yarn/sdks/integrations.yml: $(NODE_DEPS)
+vscode: $(NODE_DEPS) 
 	yarn dlx @yarnpkg/sdks vscode
-
-vscode: .yarn/sdks/integrations.yml ## Setup vscode integrations	
 
 .yarn/plugins/@yarnpkg/plugin-interactive-tools.cjs: $(NODE_DEPS)
 	yarn plugin import interactive-tools
