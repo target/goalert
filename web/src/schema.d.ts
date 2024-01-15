@@ -1400,6 +1400,7 @@ type ConfigID =
   | 'Services.RequiredLabels'
   | 'Maintenance.AlertCleanupDays'
   | 'Maintenance.AlertAutoCloseDays'
+  | 'Maintenance.AutoCloseAckedAlerts'
   | 'Maintenance.APIKeyExpireDays'
   | 'Maintenance.ScheduleCleanupDays'
   | 'Auth.RefererURLs'
