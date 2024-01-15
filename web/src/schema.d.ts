@@ -341,9 +341,17 @@ export interface DebugSendSMSInput {
 }
 
 export interface Destination {
+  display: DestinationDisplayInfo
   type: DestinationType
   typeInfo: DestinationTypeInfo
   values: FieldValuePair[]
+}
+
+export interface DestinationDisplayInfo {
+  iconAltText: string
+  iconURL: string
+  linkURL: string
+  text: string
 }
 
 export interface DestinationFieldConfig {
@@ -357,6 +365,15 @@ export interface DestinationFieldConfig {
   placeholderText: string
   prefix: string
   supportsValidation: boolean
+}
+
+export interface DestinationFieldSearchInput {
+  after?: null | string
+  destType: DestinationType
+  fieldID: string
+  first?: null | number
+  omit?: null | string[]
+  search?: null | string
 }
 
 export interface DestinationFieldValidateInput {
@@ -419,6 +436,11 @@ export interface EscalationPolicyStep {
   targets: Target[]
 }
 
+export interface FieldValueConnection {
+  nodes: FieldValuePair[]
+  pageInfo: PageInfo
+}
+
 export interface FieldValueInput {
   fieldID: string
   value: string
@@ -426,6 +448,8 @@ export interface FieldValueInput {
 
 export interface FieldValuePair {
   fieldID: string
+  isFavorite: boolean
+  label: string
   value: string
 }
 
@@ -684,7 +708,10 @@ export interface Query {
   configHints: ConfigHint[]
   debugMessageStatus: DebugMessageStatusInfo
   debugMessages: DebugMessage[]
+  destinationDisplayInfo: DestinationDisplayInfo
+  destinationFieldSearch: FieldValueConnection
   destinationFieldValidate: boolean
+  destinationFieldValueName: string
   destinationTypes: DestinationTypeInfo[]
   escalationPolicies: EscalationPolicyConnection
   escalationPolicy?: null | EscalationPolicy
@@ -1373,6 +1400,7 @@ type ConfigID =
   | 'General.DisableSMSLinks'
   | 'General.DisableLabelCreation'
   | 'General.DisableCalendarSubscriptions'
+  | 'Services.RequiredLabels'
   | 'Maintenance.AlertCleanupDays'
   | 'Maintenance.AlertAutoCloseDays'
   | 'Maintenance.APIKeyExpireDays'

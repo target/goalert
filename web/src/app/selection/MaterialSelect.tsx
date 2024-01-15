@@ -78,11 +78,12 @@ interface CommonSelectProps {
   clientSideFilter?: boolean
   disableCloseOnSelect?: boolean
   optionsLimit?: number
+  helperText?: ReactNode
 }
 
 interface SingleSelectProps {
   multiple: false
-  value: SelectOption
+  value: SelectOption | null
   onChange: (value: SelectOption | null) => void
 }
 
@@ -251,6 +252,7 @@ export default function MaterialSelect(
               const newInputVal: string = target.value
               setInputValue(newInputVal)
             }}
+            helperText={props.helperText}
             error={error}
           />
         )

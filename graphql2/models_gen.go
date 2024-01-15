@@ -293,9 +293,17 @@ type DebugSendSMSInput struct {
 }
 
 type Destination struct {
-	Type     string               `json:"type"`
-	Values   []FieldValuePair     `json:"values"`
-	TypeInfo *DestinationTypeInfo `json:"typeInfo"`
+	Type     string                  `json:"type"`
+	Values   []FieldValuePair        `json:"values"`
+	TypeInfo *DestinationTypeInfo    `json:"typeInfo"`
+	Display  *DestinationDisplayInfo `json:"display"`
+}
+
+type DestinationDisplayInfo struct {
+	Text        string `json:"text"`
+	IconURL     string `json:"iconURL"`
+	IconAltText string `json:"iconAltText"`
+	LinkURL     string `json:"linkURL"`
 }
 
 type DestinationFieldConfig struct {
@@ -309,6 +317,15 @@ type DestinationFieldConfig struct {
 	InputType          string `json:"inputType"`
 	IsSearchSelectable bool   `json:"isSearchSelectable"`
 	SupportsValidation bool   `json:"supportsValidation"`
+}
+
+type DestinationFieldSearchInput struct {
+	DestType string   `json:"destType"`
+	FieldID  string   `json:"fieldID"`
+	Search   *string  `json:"search,omitempty"`
+	Omit     []string `json:"omit,omitempty"`
+	After    *string  `json:"after,omitempty"`
+	First    *int     `json:"first,omitempty"`
 }
 
 type DestinationFieldValidateInput struct {
@@ -350,14 +367,21 @@ type EscalationPolicySearchOptions struct {
 	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
 }
 
+type FieldValueConnection struct {
+	Nodes    []FieldValuePair `json:"nodes"`
+	PageInfo *PageInfo        `json:"pageInfo"`
+}
+
 type FieldValueInput struct {
 	FieldID string `json:"fieldID"`
 	Value   string `json:"value"`
 }
 
 type FieldValuePair struct {
-	FieldID string `json:"fieldID"`
-	Value   string `json:"value"`
+	FieldID    string `json:"fieldID"`
+	Value      string `json:"value"`
+	Label      string `json:"label"`
+	IsFavorite bool   `json:"isFavorite"`
 }
 
 type GQLAPIKey struct {
@@ -448,6 +472,9 @@ type MessageLogSearchOptions struct {
 	Omit          []string   `json:"omit,omitempty"`
 }
 
+type Mutation struct {
+}
+
 type NotificationState struct {
 	Details           string              `json:"details"`
 	Status            *NotificationStatus `json:"status,omitempty"`
@@ -466,6 +493,9 @@ type PhoneNumberInfo struct {
 	Formatted   string `json:"formatted"`
 	Valid       bool   `json:"valid"`
 	Error       string `json:"error"`
+}
+
+type Query struct {
 }
 
 type RotationConnection struct {

@@ -22,6 +22,7 @@ module.exports = {
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
     'prettier',
+    'plugin:storybook/recommended',
   ],
   rules: {
     'no-else-return': ['error', { allowElseIf: false }],

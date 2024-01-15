@@ -6,6 +6,8 @@ import { Shift } from './sharedUtils'
 import ScheduleIcon from '@mui/icons-material/Schedule'
 import Delete from '@mui/icons-material/Delete'
 import Error from '@mui/icons-material/Error'
+import { green, red, lightGreen } from '@mui/material/colors'
+import { CircularProgress, useTheme } from '@mui/material'
 import _ from 'lodash'
 import { DateTime, Duration, Interval } from 'luxon'
 
@@ -18,7 +20,6 @@ import { UserAvatar } from '../../util/avatars'
 import { useUserInfo } from '../../util/useUserInfo'
 import { parseInterval } from '../../util/shifts'
 import { useScheduleTZ } from '../useScheduleTZ'
-import { CircularProgress } from '@mui/material'
 import { splitAtMidnight } from '../../util/luxon-helpers'
 import {
   getCoverageGapItems,
@@ -44,12 +45,17 @@ const useStyles = makeStyles({
 
 type TempSchedShiftsListProps = {
   value: Shift[]
-  onRemove: (shift: Shift) => void
+  onRemove?: (shift: Shift) => void
   start: string
   end: string
   edit?: boolean
   scheduleID: string
-  handleCoverageGapClick: (coverageGap: Interval) => void
+  handleCoverageGapClick?: (coverageGap: Interval) => void
+  confirmationStep?: boolean
+
+  // shows red/green diff colors if provided, for edit confirmation step
+  compareAdditions?: Shift[]
+  compareRemovals?: Shift[]
 }
 
 export default function TempSchedShiftsList({
@@ -57,15 +63,19 @@ export default function TempSchedShiftsList({
   start,
   end,
   value,
+  compareAdditions,
+  compareRemovals,
   onRemove,
   scheduleID,
   handleCoverageGapClick,
+  confirmationStep,
 }: TempSchedShiftsListProps): JSX.Element {
   const classes = useStyles()
   const { zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now, setNow] = useState(DateTime.now().setZone(zone))
   const shifts = useUserInfo(value)
   const [existingShifts] = useState(shifts)
+  const theme = useTheme()
 
   useEffect(() => {
     if (edit) {
@@ -115,7 +125,7 @@ export default function TempSchedShiftsList({
     const outOfBoundsItems = getOutOfBoundsItems(schedInterval, shifts, zone)
 
     const shiftItems = (() => {
-      return _.flatMap(shifts, (s, idx) => {
+      return _.flatMap(shifts, (s: Shift, idx) => {
         const shiftInv = parseInterval(s, zone)
         const isValid = schedInterval.engulfs(shiftInv)
         const dayInvs = splitAtMidnight(shiftInv)
@@ -158,10 +168,46 @@ export default function TempSchedShiftsList({
             titleText = `Active starting at ${fmtLocal(inv.start.toISO())}`
           }
 
+          let diffColor = ''
+          const compare = (compareWith: Shift[]): boolean => {
+            console.log()
+            const res = compareWith.find((val) => {
+              // console.log('shiftStart: ', DateTime.fromISO(s.start))
+              // console.log('compareVal: ', DateTime.fromISO(val.start), '\n')
+
+              return (
+                DateTime.fromISO(s.start).toISO() ===
+                  DateTime.fromISO(val.start).toISO() &&
+                DateTime.fromISO(s.end).toISO() ===
+                  DateTime.fromISO(val.end).toISO() &&
+                s.userID === val.userID
+              )
+            })
+            return !!res
+          }
+          let dataCY = s.userID
+          if (compareAdditions) {
+            if (!compare(compareAdditions)) {
+              dataCY = s.userID + '-' + 'added'
+              diffColor =
+                theme.palette.mode === 'dark'
+                  ? green[900] + '50'
+                  : lightGreen[100]
+            }
+          }
+
+          if (compareRemovals) {
+            if (!compare(compareRemovals)) {
+              dataCY = s.userID + '-' + 'removed'
+              diffColor =
+                theme.palette.mode === 'dark' ? red[900] + '50' : red[100]
+            }
+          }
+
           return {
             scrollIntoView: true,
             id: DateTime.fromISO(s.start).toISO() + s.userID + index.toString(),
-            title: s.user.name,
+            title: s.user?.name,
             subText: (
               <Tooltip title={!isLocalZone ? titleText : ''} placement='right'>
                 <span>{subText}</span>
@@ -179,7 +225,7 @@ export default function TempSchedShiftsList({
                     <Error color='error' />
                   </Tooltip>
                 )}
-                {!isHistoricShift && (
+                {!isHistoricShift && onRemove && (
                   <IconButton
                     data-cy={'delete shift index: ' + idx}
                     aria-label='delete shift'
@@ -192,6 +238,10 @@ export default function TempSchedShiftsList({
             ),
             at: inv.start,
             itemType: 'shift',
+            'data-cy': dataCY,
+            sx: {
+              backgroundColor: diffColor,
+            },
           } as Sortable<FlatListItem>
         })
       })
@@ -256,7 +306,7 @@ export default function TempSchedShiftsList({
       } as Sortable<FlatListNotice>
     })()
 
-    return sortItems([
+    let items = sortItems([
       ...shiftItems,
       ...coverageGapItems,
       ...subheaderItems,
@@ -264,6 +314,17 @@ export default function TempSchedShiftsList({
       startItem,
       endItem,
     ])
+
+    // don't show out of bound items when confirming final submit
+    if (confirmationStep) {
+      items = items.filter((item) => {
+        return (
+          item.at >= DateTime.fromISO(start) && item.at <= DateTime.fromISO(end)
+        )
+      })
+    }
+
+    return items
   }
 
   return (

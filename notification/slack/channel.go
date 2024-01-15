@@ -3,6 +3,7 @@ package slack
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -83,6 +84,34 @@ type User struct {
 	TeamID string
 }
 
+// Team contains information about a Slack team.
+type Team struct {
+	ID      string
+	Domain  string
+	Name    string
+	IconURL string
+}
+
+func (t Team) ChannelLink(id string) string {
+	var u url.URL
+
+	u.Host = t.Domain + ".slack.com"
+	u.Scheme = "https"
+	u.Path = "/archives/" + url.PathEscape(id)
+
+	return u.String()
+}
+
+func (t Team) UserLink(id string) string {
+	var u url.URL
+
+	u.Host = t.Domain + ".slack.com"
+	u.Scheme = "https"
+	u.Path = "/team/" + url.PathEscape(id)
+
+	return u.String()
+}
+
 func rootMsg(err error) string {
 	unwrapped := errors.Unwrap(err)
 	if unwrapped == nil {
@@ -129,13 +158,19 @@ func (s *ChannelSender) Channel(ctx context.Context, channelID string) (*Channel
 	return res, nil
 }
 
-func (s *ChannelSender) TeamName(ctx context.Context, id string) (name string, err error) {
+func (s *ChannelSender) Team(ctx context.Context, id string) (t *Team, err error) {
 	s.teamInfoMx.Lock()
 	defer s.teamInfoMx.Unlock()
 
 	info, ok := s.teamInfoCache.Get(id)
 	if ok {
-		return info.Name, nil
+		url, _ := info.Icon["image_44"].(string)
+		return &Team{
+			ID:      info.ID,
+			Name:    info.Name,
+			IconURL: url,
+			Domain:  info.Domain,
+		}, nil
 	}
 
 	err = s.withClient(ctx, func(c *slack.Client) error {
@@ -144,12 +179,19 @@ func (s *ChannelSender) TeamName(ctx context.Context, id string) (name string, e
 			return err
 		}
 
-		name = info.Name
+		url, _ := info.Icon["image_44"].(string)
+		t = &Team{
+			ID:      info.ID,
+			Name:    info.Name,
+			IconURL: url,
+			Domain:  info.Domain,
+		}
+
 		s.teamInfoCache.Add(id, info)
 		return nil
 	})
 
-	return name, err
+	return t, err
 }
 
 func (s *ChannelSender) TeamID(ctx context.Context) (string, error) {
