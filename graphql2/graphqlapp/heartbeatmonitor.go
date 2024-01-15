@@ -23,7 +23,7 @@ func (a *HeartbeatMonitor) Href(ctx context.Context, hb *heartbeat.Monitor) (str
 	return cfg.CallbackURL("/api/v2/heartbeat/" + url.PathEscape(hb.ID)), nil
 }
 func (a *HeartbeatMonitor) AdditionalDetails(ctx context.Context, hb *heartbeat.Monitor) (string, error) {
-	return hb.AddtionalDetails, nil
+	return hb.AdditionalDetails, nil
 }
 
 func (q *Query) HeartbeatMonitor(ctx context.Context, id string) (*heartbeat.Monitor, error) {
@@ -41,10 +41,10 @@ func (m *Mutation) CreateHeartbeatMonitor(ctx context.Context, input graphql2.Cr
 			details = *input.AdditionalDetails
 		}
 		hb = &heartbeat.Monitor{
-			ServiceID:        serviceID,
-			Name:             input.Name,
-			Timeout:          time.Duration(input.TimeoutMinutes) * time.Minute,
-			AddtionalDetails: details,
+			ServiceID:         serviceID,
+			Name:              input.Name,
+			Timeout:           time.Duration(input.TimeoutMinutes) * time.Minute,
+			AdditionalDetails: details,
 		}
 		hb, err = m.HeartbeatStore.CreateTx(ctx, tx, hb)
 		return err
@@ -65,7 +65,7 @@ func (m *Mutation) UpdateHeartbeatMonitor(ctx context.Context, input graphql2.Up
 			hb.Timeout = time.Duration(*input.TimeoutMinutes) * time.Minute
 		}
 		if input.AdditionalDetails != nil {
-			hb.AddtionalDetails = *input.AdditionalDetails
+			hb.AdditionalDetails = *input.AdditionalDetails
 		}
 
 		return m.HeartbeatStore.UpdateTx(ctx, tx, hb)

@@ -99,7 +99,7 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, m *Monitor) (*Monitor,
 
 	n.ID = uuid.New().String()
 	n.lastState = StateInactive
-	_, err = tx.StmtContext(ctx, s.create).ExecContext(ctx, n.ID, n.Name, n.ServiceID, &timeout, m.AddtionalDetails)
+	_, err = tx.StmtContext(ctx, s.create).ExecContext(ctx, n.ID, n.Name, n.ServiceID, &timeout, m.AdditionalDetails)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +170,7 @@ func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, m *Monitor) error {
 		return err
 	}
 
-	_, err = stmt.ExecContext(ctx, n.ID, n.Name, &timeout, m.AddtionalDetails)
+	_, err = stmt.ExecContext(ctx, n.ID, n.Name, &timeout, m.AdditionalDetails)
 
 	return err
 }
