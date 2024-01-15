@@ -34,7 +34,7 @@ export default function DestinationField(
     }
 
     if (field.isSearchSelectable)
-      throw new Error('search select is not enabled')
+      throw new Error('Search select is not enabled')
 
     return (
       <DestinationInputDirect
