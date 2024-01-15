@@ -30,6 +30,7 @@ export type DestinationInputDirectProps = DestinationFieldConfig & {
   destType: DestinationType
 
   disabled?: boolean
+  error?: boolean
 }
 
 /**
@@ -132,6 +133,7 @@ export default function DestinationInputDirect(
       }
       onChange={handleChange}
       value={trimPrefix(props.value, props.prefix)}
+      error={props.error}
     />
   )
 }

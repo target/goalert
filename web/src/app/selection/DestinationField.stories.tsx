@@ -63,14 +63,18 @@ export const SingleField: Story = {
 
 export const MultiField: Story = {
   args: {
-    destType: 'multi-field',
+    destType: 'triple-field',
     value: [
       {
-        fieldID: 'phone-number',
+        fieldID: 'first-field',
         value: '',
       },
       {
-        fieldID: 'email-address',
+        fieldID: 'second-field',
+        value: 'test@example.com',
+      },
+      {
+        fieldID: 'third-field',
         value: '',
       },
     ],
@@ -118,5 +122,36 @@ export const DisabledField: Story = {
     await expect(
       canvas.getByPlaceholderText('This field is disabled.'),
     ).toBeVisible()
+  },
+}
+
+export const FieldError: Story = {
+  args: {
+    destType: 'triple-field',
+    value: [
+      {
+        fieldID: 'first-field',
+        value: '',
+      },
+      {
+        fieldID: 'second-field',
+        value: 'test@example.com',
+      },
+      {
+        fieldID: 'third-field',
+        value: '',
+      },
+    ],
+    disabled: false,
+    destFieldErrors: [
+      {
+        fieldID: 'third-field',
+        message: 'This is an error message (third)',
+      },
+      {
+        fieldID: 'first-field',
+        message: 'This is an error message (first)',
+      },
+    ],
   },
 }

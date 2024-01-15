@@ -2,6 +2,7 @@ import React from 'react'
 import { DestinationType, FieldValueInput } from '../../schema'
 import DestinationInputDirect from './DestinationInputDirect'
 import { useDestinationType } from '../util/RequireConfig'
+import DestinationSearchSelect from './DestinationSearchSelect'
 
 export type DestinationFieldProps = {
   value: FieldValueInput[]
@@ -9,6 +10,13 @@ export type DestinationFieldProps = {
   destType: DestinationType
 
   disabled?: boolean
+
+  destFieldErrors?: DestFieldError[]
+}
+
+export interface DestFieldError {
+  fieldID: string
+  message: string
 }
 
 export default function DestinationField(
@@ -33,26 +41,36 @@ export default function DestinationField(
       props.onChange(newValues)
     }
 
+    const fieldErrMsg =
+      props.destFieldErrors?.find((err) => err.fieldID === field.fieldID)
+        ?.message || ''
+
     if (field.isSearchSelectable)
-      throw new Error('search select is not enabled')
+      return (
+        <DestinationSearchSelect
+          key={field.fieldID}
+          {...field}
+          value={fieldValue}
+          destType={props.destType}
+          disabled={props.disabled || !dest.enabled}
+          onChange={(val) => handleChange(val)}
+          error={!!fieldErrMsg}
+          hint={fieldErrMsg || field.hint}
+          hintURL={fieldErrMsg ? '' : field.hintURL}
+        />
+      )
 
     return (
       <DestinationInputDirect
         key={field.fieldID}
+        {...field}
         value={fieldValue}
-        fieldID={field.fieldID}
-        hint={field.hint}
-        hintURL={field.hintURL}
-        inputType={field.inputType}
-        labelSingular={field.labelSingular}
-        placeholderText={field.placeholderText}
-        prefix={field.prefix}
-        supportsValidation={field.supportsValidation}
-        isSearchSelectable={field.isSearchSelectable}
-        labelPlural={field.labelPlural}
         destType={props.destType}
         disabled={props.disabled || !dest.enabled}
         onChange={(e) => handleChange(e.target.value)}
+        error={!!fieldErrMsg}
+        hint={fieldErrMsg || field.hint}
+        hintURL={fieldErrMsg ? '' : field.hintURL}
       />
     )
   })
