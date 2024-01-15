@@ -168,6 +168,8 @@ func msgSvcID(msg Message) string {
 		return msg.ServiceID
 	case AlertBundle:
 		return msg.ServiceID
+	case AlertStatus:
+		return msg.ServiceID
 	}
 
 	return ""
