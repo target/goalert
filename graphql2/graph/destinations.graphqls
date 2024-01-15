@@ -1,18 +1,23 @@
 extend type Query {
-
   # destinationTypes returns a list of destination types that can be used for
   # notifications.
   destinationTypes: [DestinationTypeInfo!]! @experimental(flagName: "dest-types")
-
   # destinationFieldValidate validates a destination field value as valid or invalid.
   #
   # It does not guarantee that the value is valid for the destination type, only
   # that it is valid for the field (i.e., syntax/formatting).
   destinationFieldValidate(input: DestinationFieldValidateInput!): Boolean! @experimental(flagName: "dest-types")
-
+  destinationFieldSearch(input: DestinationFieldSearchInput!): FieldValueConnection!
+  destinationFieldValueName(input: DestinationFieldValidateInput!): String!
 
   # destinationDisplayInfo returns the display information for a destination.
   destinationDisplayInfo(input: DestinationInput!): DestinationDisplayInfo! @experimental(flagName: "dest-types")
+}
+
+# FieldValueConnection is a connection to a list of FieldValuePairs.
+type FieldValueConnection {
+  nodes: [FieldValuePair!]!
+  pageInfo: PageInfo!
 }
 
 input DestinationFieldValidateInput {
@@ -24,6 +29,15 @@ input DestinationFieldValidateInput {
 # DestinationType represents a type of destination that can be used for
 # notifications.
 scalar DestinationType
+
+input DestinationFieldSearchInput {
+  destType: DestinationType! # the type of destination to search for
+  fieldID: ID! # the ID of the input field to search for
+  search: String # search string to match against
+  omit: [String!] # values/ids to omit from results
+  after: String # cursor to start search from
+  first: Int = 15 # number of results to return
+}
 
 # Destination represents a destination that can be used for notifications.
 type Destination {
@@ -45,6 +59,9 @@ type FieldValuePair {
   fieldID: ID! # The ID of the input field that this value is for.
 
   value: String! # The value of the input field.
+  label: String! @goField(forceResolver: true) # The user-friendly text for this value of the input field (e.g., if the value is a user ID, label would be the user's name).
+
+  isFavorite: Boolean! # if true, this value is a favorite for the user, only set for search results
 }
 
 input DestinationInput {

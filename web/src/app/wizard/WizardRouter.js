@@ -12,8 +12,7 @@ import { DateTime } from 'luxon'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import WizardForm from './WizardForm'
 import LoadingButton from '../loading/components/LoadingButton'
-import { Mutation } from '@apollo/client/react/components'
-import { gql } from '@apollo/client'
+import { gql, useMutation } from 'urql'
 import { Form } from '../forms'
 import {
   getService,
@@ -84,6 +83,7 @@ export default function WizardRouter() {
       },
     },
   })
+  const [{ data, fetching, error }, commit] = useMutation(mutation)
 
   /*
    * Get steps for the EP
@@ -139,13 +139,10 @@ export default function WizardRouter() {
     }
 
     if (variables) {
-      commit({ variables })
-        .then(() => {
-          setComplete(true)
-        })
-        .catch((err) => {
-          const generalErrors = nonFieldErrors(err)
-          const graphqlErrors = fieldErrors(err).map((error) => {
+      commit(variables).then((result) => {
+        if (result.error) {
+          const generalErrors = nonFieldErrors(result.error)
+          const graphqlErrors = fieldErrors(result.error).map((error) => {
             const name = error.field
               .split('.')
               .pop() // get last occurrence
@@ -160,7 +157,10 @@ export default function WizardRouter() {
           if (errors.length) {
             setErrorMessage(errors.map((e) => e.message || e).join('\n'))
           }
-        })
+        } else {
+          setComplete(true)
+        }
+      })
     }
   }
 
@@ -191,57 +191,51 @@ export default function WizardRouter() {
     }
   }
 
-  return (
-    <Mutation mutation={mutation}>
-      {(commit, { data, error, loading }) => {
-        if (redirect && data && data.createService) {
-          return <Redirect to={`/services/${data.createService.id}`} />
-        }
+  if (redirect && data && data.createService) {
+    return <Redirect to={`/services/${data.createService.id}`} />
+  }
 
-        return (
-          <React.Fragment>
-            <Card>
-              <Form
-                onSubmit={(e, isValid) => submit(e, isValid, commit)}
-                disabled={loading}
-              >
-                <CardContent>
-                  <WizardForm
-                    disabled={status.loading}
-                    errors={fieldErrors(error)}
-                    value={value}
-                    onChange={(value) => setValue(value)}
-                  />
-                </CardContent>
-                <CardActions className={classes.cardActions}>
-                  <LoadingButton
-                    attemptCount={fieldErrors(error).length ? 1 : 0}
-                    buttonText='Submit'
-                    loading={loading}
-                    type='submit'
-                  />
-                </CardActions>
-              </Form>
-            </Card>
-            <Dialog
-              fullScreen={fullScreen && !errorMessage}
-              open={complete || Boolean(errorMessage)}
-              onClose={() => onDialogClose(data)}
-            >
-              <DialogTitleWrapper
-                fullScreen={fullScreen}
-                title={complete ? 'Success!' : 'An error occurred'}
-              />
-              {renderSubmittedContent()}
-              <DialogActions>
-                <Button onClick={() => onDialogClose(data)} color='primary'>
-                  Close
-                </Button>
-              </DialogActions>
-            </Dialog>
-          </React.Fragment>
-        )
-      }}
-    </Mutation>
+  return (
+    <React.Fragment>
+      <Card>
+        <Form
+          onSubmit={(e, isValid) => submit(e, isValid, commit)}
+          disabled={fetching}
+        >
+          <CardContent>
+            <WizardForm
+              disabled={fetching}
+              errors={fieldErrors(error)}
+              value={value}
+              onChange={(value) => setValue(value)}
+            />
+          </CardContent>
+          <CardActions className={classes.cardActions}>
+            <LoadingButton
+              attemptCount={fieldErrors(error).length ? 1 : 0}
+              buttonText='Submit'
+              loading={fetching}
+              type='submit'
+            />
+          </CardActions>
+        </Form>
+      </Card>
+      <Dialog
+        fullScreen={fullScreen && !errorMessage}
+        open={complete || Boolean(errorMessage)}
+        onClose={() => onDialogClose(data)}
+      >
+        <DialogTitleWrapper
+          fullScreen={fullScreen}
+          title={complete ? 'Success!' : 'An error occurred'}
+        />
+        {renderSubmittedContent()}
+        <DialogActions>
+          <Button onClick={() => onDialogClose(data)} color='primary'>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </React.Fragment>
   )
 }
