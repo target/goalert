@@ -4,12 +4,14 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import ServiceForm, { Value } from './ServiceForm'
 import { Redirect } from 'wouter'
+import { Label } from '../../schema'
 
 interface InputVar {
   name: string
   description: string
   escalationPolicyID?: string
   favorite: boolean
+  labels: Label[]
   newEscalationPolicy?: {
     name: string
     description: string
@@ -30,7 +32,7 @@ const createMutation = gql`
 `
 
 function inputVars(
-  { name, description, escalationPolicyID }: Value,
+  { name, description, escalationPolicyID, labels }: Value,
   attempt = 0,
 ): InputVar {
   const vars: InputVar = {
@@ -38,6 +40,7 @@ function inputVars(
     description,
     escalationPolicyID,
     favorite: true,
+    labels,
   }
   if (!vars.escalationPolicyID) {
     vars.newEscalationPolicy = {
@@ -68,6 +71,7 @@ export default function ServiceCreateDialog(props: {
     name: '',
     description: '',
     escalationPolicyID: '',
+    labels: [],
   })
 
   const [createKeyStatus, commit] = useMutation(createMutation)
