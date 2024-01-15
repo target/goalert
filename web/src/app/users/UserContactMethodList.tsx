@@ -19,8 +19,6 @@ import { styles as globalStyles } from '../styles/materialStyles'
 import { UserContactMethod } from '../../schema'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
 import { useSessionInfo } from '../util/RequireConfig'
-import { useExpFlag } from '../util/useExpFlag'
-import UserContactMethodEditDialogDest from './UserContactMethodEditDialogDest'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -60,8 +58,6 @@ export default function UserContactMethodList(
 ): ReactNode {
   const classes = useStyles()
   const mobile = useIsWidthDown('md')
-
-  const isDestTypesSet = useExpFlag('dest-types')
 
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [showVerifyDialogByID, setShowVerifyDialogByID] = useState('')
@@ -227,18 +223,12 @@ export default function UserContactMethodList(
             onClose={() => setShowVerifyDialogByID('')}
           />
         )}
-        {showEditDialogByID &&
-          (isDestTypesSet ? (
-            <UserContactMethodEditDialogDest
-              contactMethodID={showEditDialogByID}
-              onClose={() => setShowEditDialogByID('')}
-            />
-          ) : (
-            <UserContactMethodEditDialog
-              contactMethodID={showEditDialogByID}
-              onClose={() => setShowEditDialogByID('')}
-            />
-          ))}
+        {showEditDialogByID && (
+          <UserContactMethodEditDialog
+            contactMethodID={showEditDialogByID}
+            onClose={() => setShowEditDialogByID('')}
+          />
+        )}
         {showDeleteDialogByID && (
           <UserContactMethodDeleteDialog
             contactMethodID={showDeleteDialogByID}
