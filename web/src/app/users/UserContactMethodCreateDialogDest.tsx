@@ -3,16 +3,15 @@ import { useMutation, useQuery, gql } from 'urql'
 
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
-import UserContactMethodFormDest from './UserContactMethodFormDest'
-import { useConfigValue } from '../util/RequireConfig'
+import UserContactMethodForm from './UserContactMethodFormDest'
+import { useContactMethodTypes } from '../util/RequireConfig'
 import { Dialog, DialogTitle, DialogActions, Button } from '@mui/material'
 import DialogContentError from '../dialogs/components/DialogContentError'
-import { ContactMethodType } from '../../schema'
+import { DestinationInput } from '../../schema'
 
 type Value = {
   name: string
-  type: ContactMethodType
-  value: string
+  dest: DestinationInput
 }
 
 const createMutation = gql`
@@ -24,7 +23,7 @@ const createMutation = gql`
 `
 
 const userConflictQuery = gql`
-  query ($input: UserSearchOptions) {
+  query UserConflictCheck($input: UserSearchOptions) {
     users(input: $input) {
       nodes {
         id
@@ -42,45 +41,35 @@ export default function UserContactMethodCreateDialogDest(props: {
   title?: string
   subtitle?: string
 }): React.ReactNode {
-  const [allowSV, allowE, allowW, allowS] = useConfigValue(
-    'Twilio.Enable',
-    'SMTP.Enable',
-    'Webhook.Enable',
-    'Slack.Enable',
-  )
-
-  let typeVal: ContactMethodType = 'VOICE'
-  if (allowSV) {
-    typeVal = 'SMS'
-  } else if (allowE) {
-    typeVal = 'EMAIL'
-  } else if (allowW) {
-    typeVal = 'WEBHOOK'
-  } else if (allowS) {
-    typeVal = 'SLACK_DM'
-  }
+  const defaultType = useContactMethodTypes()[0] // will be sorted by priority, and enabled first
 
   // values for contact method form
   const [CMValue, setCMValue] = useState<Value>({
     name: '',
-    type: typeVal,
-    value: '',
+    dest: {
+      type: defaultType.type,
+      values: [],
+    },
   })
 
   const [{ data, fetching: queryLoading }] = useQuery({
     query: userConflictQuery,
     variables: {
       input: {
-        CMValue: CMValue.value,
-        CMType: CMValue.type,
+        dest: CMValue.dest,
       },
     },
+    pause:
+      !CMValue.dest ||
+      !CMValue.dest.values.length ||
+      !CMValue.dest.values[0].value,
     context: noSuspense,
   })
 
   const [createCMStatus, createCM] = useMutation(createMutation)
 
-  if (!typeVal) {
+  if (!defaultType.enabled) {
+    // default type will be the first enabled type, so if it's not enabled, none are enabled
     return (
       <Dialog open onClose={() => props.onClose()}>
         <DialogTitle>No Contact Types Available</DialogTitle>
@@ -114,7 +103,7 @@ export default function UserContactMethodCreateDialogDest(props: {
   }
 
   const form = (
-    <UserContactMethodFormDest
+    <UserContactMethodForm
       disabled={fetching}
       errors={fieldErrs}
       onChange={(CMValue: Value) => setCMValue(CMValue)}
