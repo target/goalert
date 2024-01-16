@@ -201,10 +201,8 @@ describe('getCoverageGapItems', () => {
 
       result.forEach((r, i) => {
         expect(r.at.zoneName).toEqual(tc.zone)
-        expect(r.at).toEqual(tc.expected[i])
-        expect(r.at).toEqual(
-          DateTime.fromISO(tc.expected[i], { zone: tc.zone }),
-        )
+        const expectedDT = DateTime.fromISO(tc.expected[i], { zone: tc.zone })
+        expect(r.at.toISO()).toEqual(expectedDT.toISO())
       })
     })
   }
