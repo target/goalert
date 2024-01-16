@@ -162,7 +162,7 @@ export default function TempSchedShiftsList({
           let titleText = ''
           if (inv.length('hours') === 24) {
             // shift spans all day
-            subText = 'All day'
+            subText = `All day ${inv.start.toFormat('ccc')}`
           } else if (inv.engulfs(shiftInv)) {
             // shift is inside the day
             subText = `From ${startTime} to ${endTime}`
