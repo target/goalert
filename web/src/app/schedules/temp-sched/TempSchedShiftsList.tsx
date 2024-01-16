@@ -19,7 +19,7 @@ import { useUserInfo } from '../../util/useUserInfo'
 import { parseInterval } from '../../util/shifts'
 import { useScheduleTZ } from '../useScheduleTZ'
 import { CircularProgress } from '@mui/material'
-import { splitAtMidnight } from '../../util/luxon-helpers'
+import { splitShift } from '../../util/luxon-helpers'
 import {
   getCoverageGapItems,
   getSubheaderItems,
@@ -45,6 +45,7 @@ const useStyles = makeStyles({
 type TempSchedShiftsListProps = {
   value: Shift[]
   onRemove: (shift: Shift) => void
+  shiftDur: Duration
   start: string
   end: string
   edit?: boolean
@@ -56,6 +57,7 @@ export default function TempSchedShiftsList({
   edit,
   start,
   end,
+  shiftDur,
   value,
   onRemove,
   scheduleID,
@@ -105,28 +107,36 @@ export default function TempSchedShiftsList({
       ]
     }
 
-    const subheaderItems = getSubheaderItems(schedInterval, shifts, zone)
     const coverageGapItems = getCoverageGapItems(
       schedInterval,
+      shiftDur,
       shifts,
       zone,
       handleCoverageGapClick,
     )
+    const subheaderItems = getSubheaderItems(
+      schedInterval,
+      shifts,
+      shiftDur,
+      zone,
+    )
+
     const outOfBoundsItems = getOutOfBoundsItems(schedInterval, shifts, zone)
 
     const shiftItems = (() => {
       return _.flatMap(shifts, (s, idx) => {
         const shiftInv = parseInterval(s, zone)
         const isValid = schedInterval.engulfs(shiftInv)
-        const dayInvs = splitAtMidnight(shiftInv)
+        const fixedShifts = splitShift(shiftInv)
 
-        return dayInvs.map((inv, index) => {
+        return fixedShifts.map((inv, index) => {
           const startTime = fmtTime(
             s.displayStart ? s.displayStart : inv.start,
             zone,
             false,
+            false,
           )
-          const endTime = fmtTime(inv.end, zone, false)
+          const endTime = fmtTime(inv.end, zone, false, false)
           const shiftExists = existingShifts.find((shift) => {
             return (
               DateTime.fromISO(s.start).equals(DateTime.fromISO(shift.start)) &&
@@ -213,7 +223,7 @@ export default function TempSchedShiftsList({
           }
         : {
             message: '',
-            details: `Starts at ${fmtTime(start, zone, false)}`,
+            details: `Starts at ${fmtTime(start, zone, false, false)}`,
             at: DateTime.fromISO(start, { zone }),
             itemType: 'start',
             tooltipTitle: `Starts at ${fmtLocal(start)}`,
@@ -238,7 +248,7 @@ export default function TempSchedShiftsList({
       const at = DateTime.fromISO(end, { zone })
       const details = at.equals(at.startOf('day'))
         ? 'Ends at midnight'
-        : 'Ends at ' + fmtTime(at, zone, false)
+        : 'Ends at ' + fmtTime(at, zone, false, false)
       const detailsTooltip = `Ends at ${fmtLocal(end)}`
 
       return {
