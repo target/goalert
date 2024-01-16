@@ -41,6 +41,13 @@ export default function UserContactMethodFormDest(
     value.statusUpdates === 'ENABLED_FORCED' ||
     false
 
+  let statusLabel = 'Send status updates'
+  if (value.statusUpdates === 'ENABLED_FORCED') {
+    statusLabel = 'Send alert status updates (cannot be disabled for this type)'
+  } else if (value.statusUpdates === 'DISABLED_FORCED') {
+    statusLabel = 'Send alert status updates (not supported for this type)'
+  }
+
   return (
     <FormContainer
       {...other}
@@ -103,7 +110,7 @@ export default function UserContactMethodFormDest(
         {edit && (
           <Grid item xs={12}>
             <FormControlLabel
-              label='Enable status updates'
+              label={statusLabel}
               control={
                 <Checkbox
                   name='enableStatusUpdates'
