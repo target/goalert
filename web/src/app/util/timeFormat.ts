@@ -7,10 +7,15 @@ import {
 } from 'luxon'
 import { ExplicitZone } from './luxon-helpers'
 
-export const getDT = (t: string | DateTime, z?: ExplicitZone): DateTime =>
-  DateTime.isDateTime(t)
-    ? t.setZone(z || 'local')
-    : DateTime.fromISO(t, { zone: z })
+export const getDT = (
+  t: string | DateTime | number,
+  z?: ExplicitZone,
+): DateTime => {
+  if (DateTime.isDateTime(t)) return t.setZone(z || 'local')
+  if (typeof t === 'number') return DateTime.fromMillis(t, { zone: z })
+
+  return DateTime.fromISO(t, { zone: z })
+}
 
 export const getDur = (d: string | DurationLikeObject | Duration): Duration => {
   if (typeof d === 'string') return Duration.fromISO(d)

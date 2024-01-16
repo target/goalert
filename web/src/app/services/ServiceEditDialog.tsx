@@ -6,11 +6,13 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import ServiceForm from './ServiceForm'
 import Spinner from '../loading/components/Spinner'
+import { Label } from '../../schema'
 
 interface Value {
   name: string
   description: string
   escalationPolicyID?: string
+  labels: Label[]
 }
 
 const query = gql`
@@ -19,6 +21,10 @@ const query = gql`
       id
       name
       description
+      labels {
+        key
+        value
+      }
       ep: escalationPolicy {
         id
         name
@@ -29,6 +35,11 @@ const query = gql`
 const mutation = gql`
   mutation updateService($input: UpdateServiceInput!) {
     updateService(input: $input)
+  }
+`
+const setLabel = gql`
+  mutation setLabel($input: SetLabelInput!) {
+    setLabel(input: $input)
   }
 `
 
@@ -43,6 +54,7 @@ export default function ServiceEditDialog(props: {
   })
 
   const [saveStatus, save] = useMutation(mutation)
+  const [saveLabelStatus, saveLabel] = useMutation(setLabel)
 
   if (dataFetching && !data) {
     return <Spinner />
@@ -52,9 +64,12 @@ export default function ServiceEditDialog(props: {
     name: data?.service?.name,
     description: data?.service?.description,
     escalationPolicyID: data?.service?.ep?.id,
+    labels: data?.service?.labels || [],
   }
 
-  const fieldErrs = fieldErrors(saveStatus.error)
+  const fieldErrs = fieldErrors(saveStatus.error).concat(
+    fieldErrors(saveLabelStatus.error),
+  )
 
   return (
     <FormDialog
@@ -62,23 +77,40 @@ export default function ServiceEditDialog(props: {
       loading={saveStatus.fetching || (!data && dataFetching)}
       errors={nonFieldErrors(saveStatus.error).concat(
         nonFieldErrors(dataError),
+        nonFieldErrors(saveLabelStatus.error),
       )}
       onClose={props.onClose}
-      onSubmit={() => {
-        save(
+      onSubmit={async () => {
+        const saveRes = await save(
           {
             input: {
-              ...value,
               id: props.serviceID,
+              name: value?.name || '',
+              description: value?.description || '',
+              escalationPolicyID: value?.escalationPolicyID || '',
             },
           },
           {
             additionalTypenames: ['Service'],
           },
-        ).then((res) => {
+        )
+        if (saveRes.error) return
+
+        for (const label of value?.labels || []) {
+          const res = await saveLabel({
+            input: {
+              target: {
+                type: 'service',
+                id: props.serviceID,
+              },
+              key: label.key,
+              value: label.value,
+            },
+          })
           if (res.error) return
-          props.onClose()
-        })
+        }
+
+        props.onClose()
       }}
       form={
         <ServiceForm

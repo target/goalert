@@ -26,6 +26,7 @@ import { useScheduleTZ } from './useScheduleTZ'
 import { fmtLocal } from '../util/timeFormat'
 import { useIsWidthDown } from '../util/useWidth'
 import { TargetType } from '../../schema'
+import { FieldError } from '../util/errutil'
 
 const days = [
   'Sunday',
@@ -93,7 +94,7 @@ const useStyles = makeStyles({
   },
 })
 
-type ScheduleRuleFormValue = {
+export type ScheduleRuleFormValue = {
   targetID: string
   rules: {
     start: string
@@ -104,17 +105,27 @@ type ScheduleRuleFormValue = {
 
 interface ScheduleRuleFormProps {
   targetType: TargetType
-  targetDisabled?: boolean
+  targetDisabled?: boolean // can't change target when editing
+  disabled?: boolean
 
   scheduleID: string
   value: ScheduleRuleFormValue
   onChange: (value: ScheduleRuleFormValue) => void
+  errors?: FieldError[]
 }
 
 export default function ScheduleRuleForm(
   props: ScheduleRuleFormProps,
 ): ReactNode {
-  const { value, scheduleID, onChange } = props
+  const {
+    value,
+    scheduleID,
+    onChange,
+    disabled,
+    targetDisabled,
+    targetType,
+    ...formProps
+  } = props
   const classes = useStyles()
   const { zone, isLocalZone } = useScheduleTZ(scheduleID)
   const isMobile = useIsWidthDown('md')
@@ -133,7 +144,7 @@ export default function ScheduleRuleForm(
             required
             label=''
             name={`rules[${idx}].start`}
-            disabled={!zone}
+            disabled={!zone || disabled}
             timeZone={zone}
             hint={isLocalZone ? '' : fmtLocal(value.rules[idx].start)}
           />
@@ -146,7 +157,7 @@ export default function ScheduleRuleForm(
             required
             label=''
             name={`rules[${idx}].end`}
-            disabled={!zone}
+            disabled={!zone || disabled}
             timeZone={zone}
             hint={isLocalZone ? '' : fmtLocal(value.rules[idx].end)}
           />
@@ -163,6 +174,7 @@ export default function ScheduleRuleForm(
                 className={classes.noPadding}
                 component={Checkbox}
                 checkbox
+                disabled={disabled}
                 fieldName={`rules[${idx}].weekdayFilter[${dayIdx}]`}
                 name={day}
               />
@@ -180,6 +192,7 @@ export default function ScheduleRuleForm(
               select
               noError
               required
+              disabled={disabled}
               SelectProps={{
                 renderValue: renderDaysValue,
                 multiple: true,
@@ -208,6 +221,7 @@ export default function ScheduleRuleForm(
           {props.value.rules.length > 1 && (
             <IconButton
               aria-label='Delete rule'
+              disabled={disabled}
               onClick={() =>
                 onChange({
                   ...value,
@@ -225,10 +239,13 @@ export default function ScheduleRuleForm(
     )
   }
 
-  const { targetDisabled, targetType, ...formProps } = props
-
   return (
-    <FormContainer {...formProps} optionalLabels>
+    <FormContainer
+      {...formProps}
+      value={value}
+      onChange={onChange}
+      optionalLabels
+    >
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <FormField
@@ -236,7 +253,7 @@ export default function ScheduleRuleForm(
             required
             component={targetType === 'user' ? UserSelect : RotationSelect}
             label={startCase(targetType)}
-            disabled={targetDisabled}
+            disabled={disabled || targetDisabled}
             name='targetID'
           />
         </Grid>
@@ -279,6 +296,7 @@ export default function ScheduleRuleForm(
                 >
                   <IconButton
                     aria-label='Add rule'
+                    disabled={disabled}
                     onClick={() =>
                       onChange({
                         ...value,

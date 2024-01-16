@@ -12,6 +12,7 @@ import { parseInterval } from '../../util/shifts'
 import { Shift } from './sharedUtils'
 import { Tooltip } from '@mui/material'
 import { fmtLocal, fmtTime } from '../../util/timeFormat'
+import { InfoOutlined } from '@mui/icons-material'
 
 export type Sortable<T> = T & {
   // at is the earliest point in time for a list item
@@ -60,6 +61,7 @@ export function getSubheaderItems(
       subHeader: day.start.toFormat('cccc, LLLL d'),
       at,
       itemType: 'subheader',
+      disableGutter: true,
     }
   })
 }
@@ -122,7 +124,7 @@ export function getCoverageGapItems(
   shiftDuration: Duration,
   shifts: Shift[],
   zone: ExplicitZone,
-  handleCoverageClick: (coverageGap: Interval) => void,
+  handleCoverageClick?: (coverageGap: Interval) => void,
 ): Sortable<FlatListNotice>[] {
   if (!schedInterval.isValid) {
     return []
@@ -168,10 +170,17 @@ export function getCoverageGapItems(
           <span>{details}</span>
         </Tooltip>
       ),
+      action: (
+        <Tooltip title='Click me to use this time range for a new shift'>
+          <InfoOutlined />
+        </Tooltip>
+      ),
       at: gap.start,
       itemType: 'gap',
       handleOnClick: () => {
-        handleCoverageClick(gap)
+        if (handleCoverageClick) {
+          handleCoverageClick(gap)
+        }
       },
     }
   })

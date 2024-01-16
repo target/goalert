@@ -16,7 +16,7 @@ import AppLink from '../util/AppLink'
 import { ServiceAvatar } from '../util/avatars'
 import ServiceMaintenanceModeDialog from './ServiceMaintenanceDialog'
 import ServiceNotices from './ServiceNotices'
-import { HeartbeatMonitor } from '../../schema'
+import type { HeartbeatMonitor, Label } from '../../schema'
 
 interface AlertNode {
   id: string
@@ -34,6 +34,10 @@ const query = gql`
     service(id: $serviceID) {
       ...ServiceTitleQuery
       maintenanceExpiresAt
+      labels {
+        key
+        value
+      }
       ep: escalationPolicy {
         id
         name
@@ -97,12 +101,15 @@ export default function ServiceDetails(props: {
     return showDelete ? <Redirect to='/services' /> : <ObjectNotFound />
   }
 
+  const labels: Label[] = data.service.labels || []
+
   return (
     <React.Fragment>
       <DetailsPage
         avatar={<ServiceAvatar />}
         title={data.service.name}
         notices={<ServiceNotices serviceID={serviceID} />}
+        labels={labels}
         subheader={
           <React.Fragment>
             Escalation Policy:{' '}

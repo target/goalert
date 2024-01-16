@@ -142,7 +142,7 @@ export default function UserContactMethodCreateDialog(props: {
               },
             },
           },
-          { additionalTypenames: ['UserContactMethod'] },
+          { additionalTypenames: ['UserContactMethod', 'User'] },
         ).then((result) => {
           if (result.error) {
             return

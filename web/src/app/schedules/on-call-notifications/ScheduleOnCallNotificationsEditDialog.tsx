@@ -42,7 +42,7 @@ export default function ScheduleOnCallNotificationsEditDialog(
     <FormDialog
       title='Edit Notification Rule'
       errors={dialogErrors}
-      loading={(q.loading && !zone) || m.loading}
+      loading={(q.fetching && !zone) || m.fetching}
       onClose={() => p.onClose()}
       onSubmit={() => submit().then(p.onClose)}
       form={
