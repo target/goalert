@@ -214,6 +214,7 @@ type CreateUserContactMethodInput struct {
 	Name                    string                           `json:"name"`
 	Value                   *string                          `json:"value,omitempty"`
 	NewUserNotificationRule *CreateUserNotificationRuleInput `json:"newUserNotificationRule,omitempty"`
+	EnableStatusUpdates     *bool                            `json:"enableStatusUpdates,omitempty"`
 }
 
 type CreateUserInput struct {
@@ -340,17 +341,19 @@ type DestinationInput struct {
 }
 
 type DestinationTypeInfo struct {
-	Type                string                   `json:"type"`
-	Name                string                   `json:"name"`
-	IconURL             string                   `json:"iconURL"`
-	IconAltText         string                   `json:"iconAltText"`
-	DisabledMessage     string                   `json:"disabledMessage"`
-	Enabled             bool                     `json:"enabled"`
-	RequiredFields      []DestinationFieldConfig `json:"requiredFields"`
-	UserDisclaimer      string                   `json:"userDisclaimer"`
-	IsContactMethod     bool                     `json:"isContactMethod"`
-	IsEPTarget          bool                     `json:"isEPTarget"`
-	IsSchedOnCallNotify bool                     `json:"isSchedOnCallNotify"`
+	Type                  string                   `json:"type"`
+	Name                  string                   `json:"name"`
+	IconURL               string                   `json:"iconURL"`
+	IconAltText           string                   `json:"iconAltText"`
+	DisabledMessage       string                   `json:"disabledMessage"`
+	Enabled               bool                     `json:"enabled"`
+	RequiredFields        []DestinationFieldConfig `json:"requiredFields"`
+	UserDisclaimer        string                   `json:"userDisclaimer"`
+	IsContactMethod       bool                     `json:"isContactMethod"`
+	IsEPTarget            bool                     `json:"isEPTarget"`
+	IsSchedOnCallNotify   bool                     `json:"isSchedOnCallNotify"`
+	SupportsStatusUpdates bool                     `json:"supportsStatusUpdates"`
+	StatusUpdatesRequired bool                     `json:"statusUpdatesRequired"`
 }
 
 type EscalationPolicyConnection struct {

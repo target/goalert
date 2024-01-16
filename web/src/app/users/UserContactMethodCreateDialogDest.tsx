@@ -12,6 +12,7 @@ import { DestinationInput } from '../../schema'
 type Value = {
   name: string
   dest: DestinationInput
+  statusUpdates: boolean
 }
 
 const createMutation = gql`
@@ -50,6 +51,7 @@ export default function UserContactMethodCreateDialogDest(props: {
       type: defaultType.type,
       values: [],
     },
+    statusUpdates: false,
   })
 
   const [{ data, fetching: queryLoading }] = useQuery({
@@ -124,7 +126,9 @@ export default function UserContactMethodCreateDialogDest(props: {
         createCM(
           {
             input: {
-              ...CMValue,
+              name: CMValue.name,
+              dest: CMValue.dest,
+              enableStatusUpdates: CMValue.statusUpdates,
               userID: props.userID,
               newUserNotificationRule: {
                 delayMinutes: 0,

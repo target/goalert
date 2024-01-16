@@ -2,7 +2,7 @@ import { Checkbox, FormControlLabel, Typography } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import React from 'react'
-import { DestinationInput, StatusUpdateState } from '../../schema'
+import { DestinationInput } from '../../schema'
 import { FormContainer, FormField } from '../forms'
 import { renderMenuItem } from '../selection/DisableableMenuItem'
 import { FieldError } from '../util/errutil'
@@ -12,7 +12,7 @@ import { useContactMethodTypes } from '../util/RequireConfig'
 type Value = {
   name: string
   dest: DestinationInput
-  statusUpdates?: StatusUpdateState
+  statusUpdates: boolean
 }
 
 export type UserContactMethodFormProps = {
@@ -36,16 +36,14 @@ export default function UserContactMethodFormDest(
 
   if (!currentType) throw new Error('invalid destination type')
 
-  const statusUpdateChecked =
-    value.statusUpdates === 'ENABLED' ||
-    value.statusUpdates === 'ENABLED_FORCED' ||
-    false
-
-  let statusLabel = 'Send status updates'
-  if (value.statusUpdates === 'ENABLED_FORCED') {
+  let statusLabel = 'Send alert status updates'
+  let statusUpdateChecked = value.statusUpdates
+  if (currentType.statusUpdatesRequired) {
     statusLabel = 'Send alert status updates (cannot be disabled for this type)'
-  } else if (value.statusUpdates === 'DISABLED_FORCED') {
+    statusUpdateChecked = true
+  } else if (!currentType.supportsStatusUpdates) {
     statusLabel = 'Send alert status updates (not supported for this type)'
+    statusUpdateChecked = false
   }
 
   return (
@@ -107,30 +105,30 @@ export default function UserContactMethodFormDest(
             {currentType?.userDisclaimer}
           </Typography>
         </Grid>
-        {edit && (
-          <Grid item xs={12}>
-            <FormControlLabel
-              label={statusLabel}
-              control={
-                <Checkbox
-                  name='enableStatusUpdates'
-                  disabled={
-                    value.statusUpdates === 'DISABLED_FORCED' ||
-                    value.statusUpdates === 'ENABLED_FORCED'
-                  }
-                  checked={statusUpdateChecked}
-                  onChange={(v) =>
-                    props.onChange &&
-                    props.onChange({
-                      ...value,
-                      statusUpdates: v.target.checked ? 'ENABLED' : 'DISABLED',
-                    })
-                  }
-                />
-              }
-            />
-          </Grid>
-        )}
+
+        <Grid item xs={12}>
+          <FormControlLabel
+            label={statusLabel}
+            title='Alert status updates are sent when an alert is acknowledged, closed, or escalated.'
+            control={
+              <Checkbox
+                name='enableStatusUpdates'
+                disabled={
+                  !currentType.supportsStatusUpdates ||
+                  currentType.statusUpdatesRequired
+                }
+                checked={statusUpdateChecked}
+                onChange={(v) =>
+                  props.onChange &&
+                  props.onChange({
+                    ...value,
+                    statusUpdates: v.target.checked,
+                  })
+                }
+              />
+            }
+          />
+        </Grid>
       </Grid>
     </FormContainer>
   )

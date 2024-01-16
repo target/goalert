@@ -399,6 +399,8 @@ export interface DestinationTypeInfo {
   isSchedOnCallNotify: boolean
   name: string
   requiredFields: DestinationFieldConfig[]
+  statusUpdatesRequired: boolean
+  supportsStatusUpdates: boolean
   type: DestinationType
   userDisclaimer: string
 }

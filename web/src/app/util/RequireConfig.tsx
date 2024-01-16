@@ -51,6 +51,9 @@ const query = gql`
       isEPTarget
       isSchedOnCallNotify
 
+      supportsStatusUpdates
+      statusUpdatesRequired
+
       requiredFields {
         fieldID
         labelSingular

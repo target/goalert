@@ -170,6 +170,8 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 			UserID:   input.UserID,
 			Value:    *input.Value,
 			Disabled: true,
+
+			StatusUpdates: input.EnableStatusUpdates != nil && *input.EnableStatusUpdates,
 		})
 		if err != nil {
 			return err

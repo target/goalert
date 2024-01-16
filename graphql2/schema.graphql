@@ -1208,6 +1208,12 @@ input CreateUserContactMethodInput {
   name: String!
   value: String
   newUserNotificationRule: CreateUserNotificationRuleInput
+
+  # If true, this contact method will receive status updates.
+  #
+  # Note: Some contact method types, like Slack, will always receive status
+  # updates and this value is ignored.
+  enableStatusUpdates: Boolean
 }
 
 input CreateUserNotificationRuleInput {
@@ -1224,7 +1230,7 @@ input UpdateUserContactMethodInput {
 
   # If true, this contact method will receive status updates.
   #
-  # Note: Some contact method types, like webhooks, will always receive status
+  # Note: Some contact method types, like Slack, will always receive status
   # updates and this value is ignored.
   enableStatusUpdates: Boolean
 }
