@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Grid } from '@mui/material'
+import { Button, Checkbox, FormControlLabel, Grid } from '@mui/material'
 import Accordion from '@mui/material/Accordion'
 import AccordionActions from '@mui/material/AccordionActions'
 import AccordionSummary from '@mui/material/AccordionSummary'
@@ -87,7 +87,8 @@ export default function TempSchedAddNewShift({
 }: AddShiftsStepProps): JSX.Element {
   const [submitted, setSubmitted] = useState(false)
 
-  const [manualEntry, setManualEntry] = useState(false)
+  const [custom, setCustom] = useState(false)
+  const [manualEntry, setManualEntry] = useState(true)
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
 
   // set start equal to the temporary schedule's start
@@ -97,11 +98,11 @@ export default function TempSchedAddNewShift({
 
     setShift({
       start: value.start,
-      end: DateTime.fromISO(value.start, { zone }).plus({ hours: 8 }).toISO(),
+      end: DateTime.fromISO(value.start, { zone }).plus(value.shiftDur).toISO(),
       userID: '',
       truncated: false,
     })
-  }, [value.start, zone])
+  }, [value.start, zone, value.shiftDur])
 
   // fieldErrors handles errors manually through the client
   // as this step form is nested inside the greater form
@@ -137,13 +138,13 @@ export default function TempSchedAddNewShift({
 
     onChange(mergeShifts(value.shifts.concat(shift)))
     const end = DateTime.fromISO(shift.end, { zone })
-    const diff = end.diff(DateTime.fromISO(shift.start, { zone }))
     setShift({
       userID: '',
       truncated: false,
       start: shift.end,
-      end: end.plus(diff).toISO(),
+      end: end.plus(value.shiftDur).toISO(),
     })
+    setCustom(false)
     setSubmitted(false)
   }
 
@@ -180,6 +181,20 @@ export default function TempSchedAddNewShift({
                 name='userID'
               />
             </Grid>
+            <Grid item xs={12}>
+              <FormControlLabel
+                control={<Checkbox checked={custom} />}
+                label={
+                  <Typography
+                    color='textSecondary'
+                    sx={{ fontStyle: 'italic' }}
+                  >
+                    Configure custom shift
+                  </Typography>
+                }
+                onChange={() => setCustom(!custom)}
+              />
+            </Grid>
             <Grid item xs={6}>
               <FormField
                 fullWidth
@@ -206,7 +221,7 @@ export default function TempSchedAddNewShift({
                   return value
                 }}
                 timeZone={zone}
-                disabled={q.loading}
+                disabled={q.loading || !custom}
                 hint={isLocalZone ? '' : fmtLocal(value?.start)}
               />
             </Grid>
@@ -223,21 +238,23 @@ export default function TempSchedAddNewShift({
                     .plus({ year: 1 })
                     .toISO()}
                   hint={
-                    <React.Fragment>
-                      {!isLocalZone && fmtLocal(value?.end)}
-                      <div>
-                        <ClickableText
-                          data-cy='toggle-duration-on'
-                          onClick={() => setManualEntry(false)}
-                          endIcon={<ToggleIcon />}
-                        >
-                          Configure as duration
-                        </ClickableText>
-                      </div>
-                    </React.Fragment>
+                    custom ? (
+                      <React.Fragment>
+                        {!isLocalZone && fmtLocal(value?.end)}
+                        <div>
+                          <ClickableText
+                            data-cy='toggle-duration-on'
+                            onClick={() => setManualEntry(false)}
+                            endIcon={<ToggleIcon />}
+                          >
+                            Configure as duration
+                          </ClickableText>
+                        </div>
+                      </React.Fragment>
+                    ) : null
                   }
                   timeZone={zone}
-                  disabled={q.loading}
+                  disabled={q.loading || !custom}
                 />
               ) : (
                 <FormField
@@ -268,15 +285,17 @@ export default function TempSchedAddNewShift({
                   }}
                   step='any'
                   min={0}
-                  disabled={q.loading}
+                  disabled={q.loading || !custom}
                   hint={
-                    <ClickableText
-                      data-cy='toggle-duration-off'
-                      onClick={() => setManualEntry(true)}
-                      endIcon={<ToggleIcon />}
-                    >
-                      Configure as date/time
-                    </ClickableText>
+                    custom ? (
+                      <ClickableText
+                        data-cy='toggle-duration-off'
+                        onClick={() => setManualEntry(true)}
+                        endIcon={<ToggleIcon />}
+                      >
+                        Configure as date/time
+                      </ClickableText>
+                    ) : null
                   }
                 />
               )}
