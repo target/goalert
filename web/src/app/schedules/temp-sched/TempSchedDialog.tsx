@@ -114,7 +114,7 @@ export default function TempSchedDialog({
 
   let defaultShiftDur = {} as DurationValues
   // if editing infer shift duration
-  if (!edit) {
+  if (edit) {
     const inferred = inferDuration(_value.shifts)?.toObject()
     defaultShiftDur = {
       ivl: Object.keys(inferred as object)[0],
