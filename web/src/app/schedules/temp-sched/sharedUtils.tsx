@@ -1,10 +1,11 @@
-import { DateTime } from 'luxon'
+import { DateTime, Duration, Interval } from 'luxon'
 import React, { ReactNode } from 'react'
 
 export type TempSchedValue = {
   start: string
   end: string
   shifts: Shift[]
+  shiftDur: Duration
 }
 
 export type Shift = {
@@ -13,11 +14,46 @@ export type Shift = {
   end: string
   userID: string
   truncated: boolean
+  custom?: boolean
 
   user?: null | {
     id: string
     name: string
   }
+}
+
+export function inferDuration(shifts: Shift[]): Duration | null {
+  if (shifts.length === 0) {
+    return null
+  }
+  const durations: Duration[] = []
+  for (let i = 0; i < shifts.length; i++) {
+    const startDateTime = DateTime.fromISO(shifts[i].start).toObject()
+    const endDateTime = DateTime.fromISO(shifts[i].end).toObject()
+    if (startDateTime && endDateTime) {
+      const interval = Interval.fromDateTimes(
+        DateTime.fromISO(shifts[i].start),
+        DateTime.fromISO(shifts[i].end),
+      )
+      durations.push(interval.toDuration())
+    }
+  }
+  if (durations.length === 0) {
+    return null
+  }
+
+  const totalDurations = durations.reduce((acc, duration) => acc.plus(duration))
+
+  const hours = totalDurations.as('hours') / durations.length
+  const days = totalDurations.as('days') / durations.length
+  const weeks = totalDurations.as('weeks') / durations.length
+
+  const maxDuration = Math.max(hours, days, weeks)
+  if (maxDuration === hours) return Duration.fromObject({ hours })
+  if (maxDuration === days) return Duration.fromObject({ days })
+  if (maxDuration === weeks) return Duration.fromObject({ weeks })
+
+  return null
 }
 
 // defaultTempScheduleValue returns a timespan, with no shifts,
@@ -35,6 +71,7 @@ export function defaultTempSchedValue(zone: string): TempSchedValue {
     start: startDT.toISO(),
     end: startDT.plus({ days: 7 }).toISO(),
     shifts: [],
+    shiftDur: Duration.fromObject({ days: 1 }),
   }
 }
 
