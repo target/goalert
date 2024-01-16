@@ -51,7 +51,7 @@ export default function DestinationField(
 
         if (field.isSearchSelectable)
           return (
-            <Grid key={field.fieldID} item xs={12} sm={12} md={6}>
+            <Grid key={field.fieldID} item xs={12} sm={12} md={12}>
               <DestinationSearchSelect
                 {...field}
                 value={fieldValue}
@@ -66,7 +66,7 @@ export default function DestinationField(
           )
 
         return (
-          <Grid key={field.fieldID} item xs={12} sm={12} md={6}>
+          <Grid key={field.fieldID} item xs={12} sm={12} md={12}>
             <DestinationInputDirect
               {...field}
               value={fieldValue}
