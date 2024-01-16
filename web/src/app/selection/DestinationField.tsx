@@ -20,6 +20,8 @@ export interface DestFieldError {
   message: string
 }
 
+// DestinationField renders the appropriate information depending on the fieldID given.
+// List of built-in fieldIDs: phone-number, email-address, webhook-url, slack-user-id, slack-channel-id, slack-usergroup-id, user-id, rotation-id, schedule-id
 export default function DestinationField(
   props: DestinationFieldProps,
 ): React.ReactNode {
