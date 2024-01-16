@@ -827,6 +827,7 @@ input UserSearchOptions {
   omit: [ID!]
   CMValue: String = ""
   CMType: ContactMethodType
+  dest: DestinationInput @experimental(flagName: "dest-types")
 
   # Include only favorited services in the results.
   favoritesOnly: Boolean = false
@@ -1174,6 +1175,8 @@ type UserContactMethod {
   id: ID!
   type: ContactMethodType
 
+  dest: Destination! @experimental(flagName: "dest-types")
+
   # User-defined label for this contact method.
   name: String!
   value: String!
@@ -1198,9 +1201,12 @@ enum StatusUpdateState {
 input CreateUserContactMethodInput {
   userID: ID!
 
-  type: ContactMethodType!
+  type: ContactMethodType
+
+  dest: DestinationInput @experimental(flagName: "dest-types")
+
   name: String!
-  value: String!
+  value: String
   newUserNotificationRule: CreateUserNotificationRuleInput
 }
 
@@ -1214,7 +1220,7 @@ input UpdateUserContactMethodInput {
   id: ID!
 
   name: String
-  value: String
+  value: String @deprecated(reason: "Updating value is not supported, delete and create a new contact method instead.")
 
   # If true, this contact method will receive status updates.
   #

@@ -13,4 +13,4 @@ directive @goField(
 # Experimental fields are subject to change/removal without warning.
 directive @experimental(
   flagName: String! # the name of the feature flag to use to enable this field
-) on FIELD_DEFINITION
+) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION

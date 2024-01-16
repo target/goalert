@@ -714,6 +714,7 @@ type ComplexityRoot struct {
 	}
 
 	UserContactMethod struct {
+		Dest                   func(childComplexity int) int
 		Disabled               func(childComplexity int) int
 		FormattedValue         func(childComplexity int) int
 		ID                     func(childComplexity int) int
@@ -980,6 +981,8 @@ type UserCalendarSubscriptionResolver interface {
 	URL(ctx context.Context, obj *calsub.Subscription) (*string, error)
 }
 type UserContactMethodResolver interface {
+	Dest(ctx context.Context, obj *contactmethod.ContactMethod) (*Destination, error)
+
 	Value(ctx context.Context, obj *contactmethod.ContactMethod) (string, error)
 	FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error)
 
@@ -4324,6 +4327,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserConnection.PageInfo(childComplexity), true
+
+	case "UserContactMethod.dest":
+		if e.complexity.UserContactMethod.Dest == nil {
+			break
+		}
+
+		return e.complexity.UserContactMethod.Dest(childComplexity), true
 
 	case "UserContactMethod.disabled":
 		if e.complexity.UserContactMethod.Disabled == nil {
@@ -16093,6 +16103,8 @@ func (ec *executionContext) fieldContext_Mutation_createUserContactMethod(ctx co
 				return ec.fieldContext_UserContactMethod_id(ctx, field)
 			case "type":
 				return ec.fieldContext_UserContactMethod_type(ctx, field)
+			case "dest":
+				return ec.fieldContext_UserContactMethod_dest(ctx, field)
 			case "name":
 				return ec.fieldContext_UserContactMethod_name(ctx, field)
 			case "value":
@@ -20168,6 +20180,8 @@ func (ec *executionContext) fieldContext_Query_userContactMethod(ctx context.Con
 				return ec.fieldContext_UserContactMethod_id(ctx, field)
 			case "type":
 				return ec.fieldContext_UserContactMethod_type(ctx, field)
+			case "dest":
+				return ec.fieldContext_UserContactMethod_dest(ctx, field)
 			case "name":
 				return ec.fieldContext_UserContactMethod_name(ctx, field)
 			case "value":
@@ -26045,6 +26059,8 @@ func (ec *executionContext) fieldContext_User_contactMethods(ctx context.Context
 				return ec.fieldContext_UserContactMethod_id(ctx, field)
 			case "type":
 				return ec.fieldContext_UserContactMethod_type(ctx, field)
+			case "dest":
+				return ec.fieldContext_UserContactMethod_dest(ctx, field)
 			case "name":
 				return ec.fieldContext_UserContactMethod_name(ctx, field)
 			case "value":
@@ -27129,6 +27145,84 @@ func (ec *executionContext) fieldContext_UserContactMethod_type(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _UserContactMethod_dest(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserContactMethod_dest(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.UserContactMethod().Dest(rctx, obj)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			flagName, err := ec.unmarshalNString2string(ctx, "dest-types")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Experimental == nil {
+				return nil, errors.New("directive experimental is not implemented")
+			}
+			return ec.directives.Experimental(ctx, obj, directive0, flagName)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*Destination); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/target/goalert/graphql2.Destination`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*Destination)
+	fc.Result = res
+	return ec.marshalNDestination2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestination(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserContactMethod_dest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserContactMethod",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "type":
+				return ec.fieldContext_Destination_type(ctx, field)
+			case "values":
+				return ec.fieldContext_Destination_values(ctx, field)
+			case "typeInfo":
+				return ec.fieldContext_Destination_typeInfo(ctx, field)
+			case "display":
+				return ec.fieldContext_Destination_display(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Destination", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UserContactMethod_name(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserContactMethod_name(ctx, field)
 	if err != nil {
@@ -27704,6 +27798,8 @@ func (ec *executionContext) fieldContext_UserNotificationRule_contactMethod(ctx 
 				return ec.fieldContext_UserContactMethod_id(ctx, field)
 			case "type":
 				return ec.fieldContext_UserContactMethod_type(ctx, field)
+			case "dest":
+				return ec.fieldContext_UserContactMethod_dest(ctx, field)
 			case "name":
 				return ec.fieldContext_UserContactMethod_name(ctx, field)
 			case "value":
@@ -31306,7 +31402,7 @@ func (ec *executionContext) unmarshalInputCreateUserContactMethodInput(ctx conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"userID", "type", "name", "value", "newUserNotificationRule"}
+	fieldsInOrder := [...]string{"userID", "type", "dest", "name", "value", "newUserNotificationRule"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -31322,11 +31418,39 @@ func (ec *executionContext) unmarshalInputCreateUserContactMethodInput(ctx conte
 			it.UserID = data
 		case "type":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			data, err := ec.unmarshalNContactMethodType2githubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx, v)
+			data, err := ec.unmarshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Type = data
+		case "dest":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dest"))
+			directive0 := func(ctx context.Context) (interface{}, error) {
+				return ec.unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, v)
+			}
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				flagName, err := ec.unmarshalNString2string(ctx, "dest-types")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.Experimental == nil {
+					return nil, errors.New("directive experimental is not implemented")
+				}
+				return ec.directives.Experimental(ctx, obj, directive0, flagName)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(*DestinationInput); ok {
+				it.Dest = data
+			} else if tmp == nil {
+				it.Dest = nil
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be *github.com/target/goalert/graphql2.DestinationInput`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
 		case "name":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -31336,7 +31460,7 @@ func (ec *executionContext) unmarshalInputCreateUserContactMethodInput(ctx conte
 			it.Name = data
 		case "value":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33962,7 +34086,7 @@ func (ec *executionContext) unmarshalInputUserSearchOptions(ctx context.Context,
 		asMap["favoritesFirst"] = false
 	}
 
-	fieldsInOrder := [...]string{"first", "after", "search", "omit", "CMValue", "CMType", "favoritesOnly", "favoritesFirst"}
+	fieldsInOrder := [...]string{"first", "after", "search", "omit", "CMValue", "CMType", "dest", "favoritesOnly", "favoritesFirst"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -34011,6 +34135,34 @@ func (ec *executionContext) unmarshalInputUserSearchOptions(ctx context.Context,
 				return it, err
 			}
 			it.CMType = data
+		case "dest":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dest"))
+			directive0 := func(ctx context.Context) (interface{}, error) {
+				return ec.unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, v)
+			}
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				flagName, err := ec.unmarshalNString2string(ctx, "dest-types")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.Experimental == nil {
+					return nil, errors.New("directive experimental is not implemented")
+				}
+				return ec.directives.Experimental(ctx, obj, directive0, flagName)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(*DestinationInput); ok {
+				it.Dest = data
+			} else if tmp == nil {
+				it.Dest = nil
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be *github.com/target/goalert/graphql2.DestinationInput`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
 		case "favoritesOnly":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favoritesOnly"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
@@ -41320,6 +41472,42 @@ func (ec *executionContext) _UserContactMethod(ctx context.Context, sel ast.Sele
 			}
 		case "type":
 			out.Values[i] = ec._UserContactMethod_type(ctx, field, obj)
+		case "dest":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserContactMethod_dest(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "name":
 			out.Values[i] = ec._UserContactMethod_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -42601,21 +42789,6 @@ func (ec *executionContext) unmarshalNConfigValueInput2githubᚗcomᚋtargetᚋg
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNContactMethodType2githubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx context.Context, v interface{}) (contactmethod.Type, error) {
-	res, err := UnmarshalContactMethodType(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNContactMethodType2githubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx context.Context, sel ast.SelectionSet, v contactmethod.Type) graphql.Marshaler {
-	res := MarshalContactMethodType(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
-}
-
 func (ec *executionContext) unmarshalNCreateAlertInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateAlertInput(ctx context.Context, v interface{}) (CreateAlertInput, error) {
 	res, err := ec.unmarshalInputCreateAlertInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -42794,6 +42967,20 @@ func (ec *executionContext) unmarshalNDebugMessageStatusInput2githubᚗcomᚋtar
 func (ec *executionContext) unmarshalNDebugSendSMSInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugSendSMSInput(ctx context.Context, v interface{}) (DebugSendSMSInput, error) {
 	res, err := ec.unmarshalInputDebugSendSMSInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDestination2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestination(ctx context.Context, sel ast.SelectionSet, v Destination) graphql.Marshaler {
+	return ec._Destination(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDestination2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestination(ctx context.Context, sel ast.SelectionSet, v *Destination) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Destination(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNDestinationDisplayInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationDisplayInfo(ctx context.Context, sel ast.SelectionSet, v DestinationDisplayInfo) graphql.Marshaler {
@@ -45946,6 +46133,14 @@ func (ec *executionContext) marshalODebugSendSMSInfo2ᚖgithubᚗcomᚋtargetᚋ
 		return graphql.Null
 	}
 	return ec._DebugSendSMSInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx context.Context, v interface{}) (*DestinationInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputDestinationInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOEscalationPolicy2ᚖgithubᚗcomᚋtargetᚋgoalertᚋescalationᚐPolicy(ctx context.Context, sel ast.SelectionSet, v *escalation.Policy) graphql.Marshaler {

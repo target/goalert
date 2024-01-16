@@ -249,11 +249,12 @@ export interface CreateUserCalendarSubscriptionInput {
 }
 
 export interface CreateUserContactMethodInput {
+  dest?: null | DestinationInput
   name: string
   newUserNotificationRule?: null | CreateUserNotificationRuleInput
-  type: ContactMethodType
+  type?: null | ContactMethodType
   userID: string
-  value: string
+  value?: null | string
 }
 
 export interface CreateUserInput {
@@ -1219,6 +1220,7 @@ export interface UserConnection {
 }
 
 export interface UserContactMethod {
+  dest: Destination
   disabled: boolean
   formattedValue: string
   id: string
@@ -1273,6 +1275,7 @@ export interface UserSearchOptions {
   CMType?: null | ContactMethodType
   CMValue?: null | string
   after?: null | string
+  dest?: null | DestinationInput
   favoritesFirst?: null | boolean
   favoritesOnly?: null | boolean
   first?: null | number

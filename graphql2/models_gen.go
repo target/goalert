@@ -209,9 +209,10 @@ type CreateUserCalendarSubscriptionInput struct {
 
 type CreateUserContactMethodInput struct {
 	UserID                  string                           `json:"userID"`
-	Type                    contactmethod.Type               `json:"type"`
+	Type                    *contactmethod.Type              `json:"type,omitempty"`
+	Dest                    *DestinationInput                `json:"dest,omitempty"`
 	Name                    string                           `json:"name"`
-	Value                   string                           `json:"value"`
+	Value                   *string                          `json:"value,omitempty"`
 	NewUserNotificationRule *CreateUserNotificationRuleInput `json:"newUserNotificationRule,omitempty"`
 }
 
@@ -817,6 +818,7 @@ type UserSearchOptions struct {
 	Omit           []string            `json:"omit,omitempty"`
 	CMValue        *string             `json:"CMValue,omitempty"`
 	CMType         *contactmethod.Type `json:"CMType,omitempty"`
+	Dest           *DestinationInput   `json:"dest,omitempty"`
 	FavoritesOnly  *bool               `json:"favoritesOnly,omitempty"`
 	FavoritesFirst *bool               `json:"favoritesFirst,omitempty"`
 }
