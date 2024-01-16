@@ -5,7 +5,7 @@ export type TempSchedValue = {
   start: string
   end: string
   shifts: Shift[]
-  shiftDur: Duration
+  shiftDur?: Duration
 }
 
 export type Shift = {

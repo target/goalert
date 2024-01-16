@@ -10,7 +10,7 @@ import ToggleIcon from '@mui/icons-material/CompareArrows'
 import _ from 'lodash'
 import { dtToDuration, Shift, TempSchedValue } from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
-import { DateTime, Interval } from 'luxon'
+import { DateTime, Duration, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
 import { isISOAfter } from '../../util/shifts'
 import { useScheduleTZ } from '../useScheduleTZ'
@@ -97,7 +97,9 @@ export default function TempSchedAddNewShift({
 
     setShift({
       start: value.start,
-      end: DateTime.fromISO(value.start, { zone }).plus(value.shiftDur).toISO(),
+      end: DateTime.fromISO(value.start, { zone })
+        .plus(value.shiftDur as Duration)
+        .toISO(),
       userID: '',
       truncated: false,
     })
@@ -141,7 +143,7 @@ export default function TempSchedAddNewShift({
       userID: '',
       truncated: false,
       start: shift.end,
-      end: end.plus(value.shiftDur).toISO(),
+      end: end.plus(value.shiftDur as Duration).toISO(),
     })
     setCustom(false)
     setSubmitted(false)

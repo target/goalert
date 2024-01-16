@@ -45,8 +45,8 @@ const useStyles = makeStyles({
 
 type TempSchedShiftsListProps = {
   value: Shift[]
-  onRemove: (shift: Shift) => void
-  shiftDur: Duration
+  onRemove?: (shift: Shift) => void
+  shiftDur?: Duration
   start: string
   end: string
   edit?: boolean
@@ -119,7 +119,7 @@ export default function TempSchedShiftsList({
 
     const coverageGapItems = getCoverageGapItems(
       schedInterval,
-      shiftDur,
+      shiftDur as Duration,
       shifts,
       zone,
       handleCoverageGapClick,
@@ -127,7 +127,7 @@ export default function TempSchedShiftsList({
     const subheaderItems = getSubheaderItems(
       schedInterval,
       shifts,
-      shiftDur,
+      shiftDur as Duration,
       zone,
     )
 

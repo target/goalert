@@ -121,7 +121,7 @@ export default function TempSchedDialog({
       ivl: Object.keys(inferred as object)[0],
       dur: Math.floor(Object.values(inferred as object)[0]),
     }
-  } else {
+  } else if (_value.shiftDur) {
     defaultShiftDur = {
       ivl: Object.keys(_value.shiftDur.toObject())[0],
       dur: Object.values(_value.shiftDur.toObject())[0],
@@ -388,57 +388,57 @@ export default function TempSchedDialog({
                   </Grid>
 
                   <FormContainer
-                value={durValues}
-                onChange={(newValue: DurationValues) => {
-                  if (newValue.dur) {
-                    setDurValues({ ...durValues, ...newValue })
-                    setValue({
-                      ...value,
-                      shiftDur: Duration.fromObject({
-                        [newValue.ivl]: newValue.dur,
-                      }),
-                    })
-                  }
-                }}
-              >
-                <Grid item xs={12} md={6}>
-                  <FormField
-                    fullWidth
-                    component={TextField}
-                    required
-                    type='number'
-                    name='dur'
-                    label='Shift Duration'
-                    min={1}
-                    validate={() => validate()}
-                    disabled={q.loading}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FormControl sx={{ width: '100%' }}>
-                    <InputLabel>Shift Interval</InputLabel>
-                    <Select
-                      fullWidth
-                      required
-                      name='ivl'
-                      value={durValues.ivl}
-                      onChange={(e: SelectChangeEvent<string>) => {
-                        setDurValues({ ...durValues, ivl: e.target.value })
+                    value={durValues}
+                    onChange={(newValue: DurationValues) => {
+                      if (newValue.dur) {
+                        setDurValues({ ...durValues, ...newValue })
                         setValue({
                           ...value,
                           shiftDur: Duration.fromObject({
-                            [e.target.value]: durValues.dur,
+                            [newValue.ivl]: newValue.dur,
                           }),
                         })
-                      }}
-                    >
-                      <MenuItem value='hours'>Hour</MenuItem>
-                      <MenuItem value='days'>Day</MenuItem>
-                      <MenuItem value='weeks'>Week</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-              </FormContainer>
+                      }
+                    }}
+                  >
+                    <Grid item xs={12} md={6}>
+                      <FormField
+                        fullWidth
+                        component={TextField}
+                        required
+                        type='number'
+                        name='dur'
+                        label='Shift Duration'
+                        min={1}
+                        validate={() => validate()}
+                        disabled={q.loading}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <FormControl sx={{ width: '100%' }}>
+                        <InputLabel>Shift Interval</InputLabel>
+                        <Select
+                          fullWidth
+                          required
+                          name='ivl'
+                          value={durValues.ivl}
+                          onChange={(e: SelectChangeEvent<string>) => {
+                            setDurValues({ ...durValues, ivl: e.target.value })
+                            setValue({
+                              ...value,
+                              shiftDur: Duration.fromObject({
+                                [e.target.value]: durValues.dur,
+                              }),
+                            })
+                          }}
+                        >
+                          <MenuItem value='hours'>Hour</MenuItem>
+                          <MenuItem value='days'>Day</MenuItem>
+                          <MenuItem value='weeks'>Week</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  </FormContainer>
 
                   <Grid item xs={12} className={classes.sticky}>
                     <TempSchedAddNewShift
