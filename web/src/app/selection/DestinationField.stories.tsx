@@ -14,7 +14,7 @@ const meta = {
   argTypes: {
     destType: {
       control: 'select',
-      options: ['single-field', 'multi-field', 'disabled-destination'],
+      options: ['single-field', 'triple-field', 'disabled-destination'],
     },
   },
   parameters: {
