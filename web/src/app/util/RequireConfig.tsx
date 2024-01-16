@@ -182,6 +182,24 @@ export function useConfigValue(...fields: ConfigID[]): Value[] {
   return fields.map((f) => config[f])
 }
 
+// useContactMethodTypes returns a list of contact method destination types.
+export function useContactMethodTypes(): DestinationTypeInfo[] {
+  const cfg = React.useContext(ConfigContext)
+  return cfg.destTypes.filter((t) => t.isContactMethod)
+}
+
+// useEPTargetTypes returns a list of escalation policy target destination types.
+export function useEPTargetTypes(): DestinationTypeInfo[] {
+  const cfg = React.useContext(ConfigContext)
+  return cfg.destTypes.filter((t) => t.isEPTarget)
+}
+
+// useSchedOnCallNotifyTypes returns a list of schedule on-call notification destination types.
+export function useSchedOnCallNotifyTypes(): DestinationTypeInfo[] {
+  const cfg = React.useContext(ConfigContext)
+  return cfg.destTypes.filter((t) => t.isSchedOnCallNotify)
+}
+
 // useDestinationType returns information about the given destination type.
 export function useDestinationType(type: DestinationType): DestinationTypeInfo {
   const ctx = React.useContext(ConfigContext)
