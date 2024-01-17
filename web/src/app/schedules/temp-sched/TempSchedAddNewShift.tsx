@@ -184,7 +184,7 @@ export default function TempSchedAddNewShift({
             </Grid>
             <Grid item xs={12}>
               <FormControlLabel
-                control={<Checkbox checked={custom} />}
+                control={<Checkbox checked={custom} data-cy='toggle-custom' />}
                 label={
                   <Typography
                     color='textSecondary'

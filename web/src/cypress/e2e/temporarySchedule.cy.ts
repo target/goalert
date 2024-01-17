@@ -27,8 +27,8 @@ function testTemporarySchedule(screen: string): void {
 
   const schedTZ = (t: DateTime): DateTime => t.setZone(schedule.timeZone)
 
-  it('should toggle duration field', () => {
-    const defaultDurationHrs = 8
+  it('should toggle duration field for custom shift', () => {
+    const defaultDurationHrs = 24
     cy.get('[data-cy="new-override"]').click()
     cy.dialogTitle('Choose')
     cy.dialogForm({ variant: 'temp' })
@@ -36,12 +36,9 @@ function testTemporarySchedule(screen: string): void {
 
     cy.get('[data-cy="add-shift-expander"]').click()
 
-    // check default state of duration
-    cy.get(dialog)
-      .find('input[name="shift-end"]')
-      .should('have.value', defaultDurationHrs)
-    cy.get(dialog).find('[data-cy="toggle-duration-off"]').click()
+    cy.get(dialog).find('[data-cy="toggle-custom"]').click()
 
+    // check default state of duration
     cy.get('input[name="shift-start"]')
       .invoke('val')
       .then((shiftStart) => {
@@ -55,6 +52,12 @@ function testTemporarySchedule(screen: string): void {
             )
           })
       })
+
+    cy.get(dialog).find('[data-cy="toggle-duration-on"]').click()
+
+    cy.get(dialog)
+      .find('input[name="shift-end"]')
+      .should('have.value', defaultDurationHrs)
   })
 
   it('should cancel and close form', () => {
@@ -119,6 +122,9 @@ function testTemporarySchedule(screen: string): void {
       )
 
       cy.get('[data-cy="add-shift-expander"]').click()
+
+      cy.get(dialog).find('[data-cy="toggle-custom"]').click()
+
       cy.dialogForm({
         userID: manualAddUser.name,
         'shift-start': schedTZ(startTime.plus({ hour: 1 })),
@@ -198,6 +204,9 @@ function testTemporarySchedule(screen: string): void {
       cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
 
       cy.get('[data-cy="add-shift-expander"]').click()
+
+      cy.get(dialog).find('[data-cy="toggle-custom"]').click()
+
       cy.dialogForm({
         userID: manualAddUser.name,
         'shift-start': schedTZ(startTime.plus({ hour: 1 })),
@@ -251,6 +260,8 @@ function testTemporarySchedule(screen: string): void {
     })
     cy.get('[data-cy="add-shift-expander"]').click()
 
+    cy.get(dialog).find('[data-cy="toggle-custom"]').click()
+    cy.get(dialog).find('[data-cy="toggle-duration-on"]').click()
     // add first shift
     cy.dialogForm({
       userID: manualAddUser.name,
@@ -298,12 +309,17 @@ function testTemporarySchedule(screen: string): void {
     // add shift to split up coverage for a given day
     const shiftStart = start.plus({ day: 1 }).toFormat(dtFmt)
     const duration = 2
+
+    cy.get(dialog).find('[data-cy="toggle-custom"]').click()
+
     cy.dialogForm({
       userID: manualAddUser.name,
       'shift-start': shiftStart,
       'shift-end': duration.toString(), // this value should not change
     })
     cy.get('button[data-cy="add-shift"]').click()
+
+    cy.get(dialog).find('[data-cy="toggle-custom"]').click()
 
     // reset shift start field to a random value
     const randDate = randDTWithinInterval(Interval.fromDateTimes(start, end))
