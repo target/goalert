@@ -32,11 +32,7 @@ import { ensureInterval } from '../timeUtil'
 import TempSchedConfirmation from './TempSchedConfirmation'
 import {
   TextField,
-  Select,
   MenuItem,
-  InputLabel,
-  FormControl,
-  SelectChangeEvent,
   Divider,
 } from '@mui/material'
 
@@ -117,13 +113,13 @@ export default function TempSchedDialog({
   let defaultShiftDur = {} as DurationValues
 
   const getDurValues = (dur: Duration): DurationValues => {
-    if (dur.hours < 24 && dur.days < 1) return { ivl: 'hours', dur: dur.hours}
+    if (dur.hours < 24 && dur.days < 1) return { ivl: 'hours', dur: dur.hours }
     if (dur.days < 7) return { ivl: 'days', dur: dur.days }
     return { ivl: 'weeks', dur: dur.weeks }
   }
 
   if (edit) {
-  // if editing infer shift duration
+    // if editing infer shift duration
     defaultShiftDur = getDurValues(inferDuration(_value.shifts))
   } else {
     defaultShiftDur = getDurValues(_value?.shiftDur as Duration)
@@ -424,7 +420,7 @@ export default function TempSchedDialog({
                         <MenuItem value='hours'>Hour</MenuItem>
                         <MenuItem value='days'>Day</MenuItem>
                         <MenuItem value='weeks'>Week</MenuItem>
-                      </FormField> 
+                      </FormField>
                     </Grid>
                   </FormContainer>
 

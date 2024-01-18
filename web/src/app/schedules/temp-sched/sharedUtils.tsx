@@ -24,24 +24,23 @@ export type Shift = {
 
 export function inferDuration(shifts: Shift[]): Duration {
   const totalDurations = shifts.reduce((acc, shift) => {
-    const startDateTime = DateTime.fromISO(shift.start);
-    const endDateTime = DateTime.fromISO(shift.end);
+    const startDateTime = DateTime.fromISO(shift.start)
+    const endDateTime = DateTime.fromISO(shift.end)
 
     if (startDateTime.isValid && endDateTime.isValid) {
-      const interval = Interval.fromDateTimes(startDateTime, endDateTime);
-      return acc.plus(interval.toDuration());
+      const interval = Interval.fromDateTimes(startDateTime, endDateTime)
+      return acc.plus(interval.toDuration())
     }
 
-    return acc;
+    return acc
   }, Duration.fromObject({}))
-  
+
   return Duration.fromObject({
     hours: totalDurations.as('hours') / shifts.length,
     days: totalDurations.as('days') / shifts.length,
     weeks: totalDurations.as('weeks') / shifts.length,
   })
 }
-
 
 // defaultTempScheduleValue returns a timespan, with no shifts,
 // of the following week.

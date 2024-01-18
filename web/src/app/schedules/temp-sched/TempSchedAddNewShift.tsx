@@ -74,8 +74,6 @@ export default function TempSchedAddNewShift({
   scheduleID,
   onChange,
   value,
-  showForm,
-  setShowForm,
   shift,
   setShift,
 }: AddShiftsStepProps): JSX.Element {
@@ -285,7 +283,7 @@ export default function TempSchedAddNewShift({
             Add
           </Button>
         </Grid>
-      </Grid>      
+      </Grid>
     </FormContainer>
   )
 }
