@@ -391,53 +391,40 @@ export default function TempSchedDialog({
                   <FormContainer
                     value={durValues}
                     onChange={(newValue: DurationValues) => {
-                      if (newValue.dur) {
-                        setDurValues({ ...durValues, ...newValue })
-                        setValue({
-                          ...value,
-                          shiftDur: Duration.fromObject({
-                            [newValue.ivl]: newValue.dur,
-                          }),
-                        })
-                      }
+                      setDurValues({ ...durValues, ...newValue })
+                      setValue({
+                        ...value,
+                        shiftDur: Duration.fromObject({
+                          [newValue.ivl]: newValue.dur,
+                        }),
+                      })
                     }}
                   >
                     <Grid item xs={12} md={6}>
                       <FormField
                         fullWidth
                         component={TextField}
-                        required
                         type='number'
                         name='dur'
                         label='Shift Duration'
-                        min={1}
                         validate={() => validate()}
                         disabled={q.loading}
                       />
                     </Grid>
                     <Grid item xs={12} md={6}>
-                      <FormControl sx={{ width: '100%' }}>
-                        <InputLabel>Shift Interval</InputLabel>
-                        <Select
-                          fullWidth
-                          required
-                          name='ivl'
-                          value={durValues.ivl}
-                          onChange={(e: SelectChangeEvent<string>) => {
-                            setDurValues({ ...durValues, ivl: e.target.value })
-                            setValue({
-                              ...value,
-                              shiftDur: Duration.fromObject({
-                                [e.target.value]: durValues.dur,
-                              }),
-                            })
-                          }}
-                        >
-                          <MenuItem value='hours'>Hour</MenuItem>
-                          <MenuItem value='days'>Day</MenuItem>
-                          <MenuItem value='weeks'>Week</MenuItem>
-                        </Select>
-                      </FormControl>
+                      <FormField
+                        fullWidth
+                        component={TextField}
+                        name='ivl'
+                        select
+                        label='Shift Interval'
+                        validate={() => validate()}
+                        disabled={q.loading}
+                      >
+                        <MenuItem value='hours'>Hour</MenuItem>
+                        <MenuItem value='days'>Day</MenuItem>
+                        <MenuItem value='weeks'>Week</MenuItem>
+                      </FormField> 
                     </Grid>
                   </FormContainer>
 
