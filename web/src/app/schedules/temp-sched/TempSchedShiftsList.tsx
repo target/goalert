@@ -137,7 +137,11 @@ export default function TempSchedShiftsList({
       return _.flatMap(shifts, (s: Shift, idx) => {
         const shiftInv = parseInterval(s, zone)
         const isValid = schedInterval.engulfs(shiftInv)
-        const fixedShifts = splitShift(shiftInv)
+        let fixedShifts = splitShift(shiftInv)
+
+        // splitShift with shift duration if duration spans multiple days, otherwise default to 1 day
+        if (shiftDur?.days && shiftDur?.days > 1)
+          fixedShifts = splitShift(shiftInv, shiftDur)
 
         return fixedShifts.map((inv, index) => {
           const startTime = fmtTime(
@@ -162,10 +166,15 @@ export default function TempSchedShiftsList({
           let titleText = ''
           if (inv.length('hours') === 24) {
             // shift spans all day
-            subText = `All day ${inv.start.toFormat('ccc')}`
+            subText = `All day`
           } else if (inv.engulfs(shiftInv)) {
-            // shift is inside the day
+            // shift is inside the interval
             subText = `From ${startTime} to ${endTime}`
+            if (inv.length('days') > 1) {
+              subText = `From ${inv.start.toFormat(
+                't ccc',
+              )} to ${inv.end.toFormat('t ccc')}`
+            }
             titleText = `From ${fmtLocal(inv.start.toISO())} to ${fmtLocal(
               inv.end.toISO(),
             )}`

@@ -122,7 +122,7 @@ function testTemporarySchedule(screen: string): void {
 
       cy.dialogForm({
         userID: manualAddUser.name,
-        'shift-start': schedTZ(startTime.plus({ hour: 1 })),
+        'shift-end': schedTZ(startTime.plus({ hour: 1 })),
       })
       cy.get('[data-cy="shifts-list"]').should(
         'not.contain',
@@ -202,7 +202,7 @@ function testTemporarySchedule(screen: string): void {
 
       cy.dialogForm({
         userID: manualAddUser.name,
-        'shift-start': schedTZ(startTime.plus({ hour: 1 })),
+        'shift-end': schedTZ(startTime.plus({ hour: 1 })),
       })
       cy.get('[data-cy="shifts-list"]').should(
         'not.contain',
@@ -257,8 +257,6 @@ function testTemporarySchedule(screen: string): void {
     // add first shift
     cy.dialogForm({
       userID: manualAddUser.name,
-      'shift-start': schedTZ(ivl.start),
-      'shift-end': (ivl.toDuration().as('hours') / 3).toFixed(2),
     })
     cy.get('[data-cy="shifts-list"]').should('not.contain', manualAddUser.name)
     cy.get('button[data-cy="add-shift"]').click()
@@ -302,6 +300,7 @@ function testTemporarySchedule(screen: string): void {
     const duration = 2
 
     cy.get(dialog).find('[data-cy="toggle-custom"]').click()
+    cy.get(dialog).find('[data-cy="toggle-duration-on"]').click()
 
     cy.dialogForm({
       userID: manualAddUser.name,
@@ -321,7 +320,7 @@ function testTemporarySchedule(screen: string): void {
 
     const shiftEnd = start.plus({ day: 1, hours: duration }).toFormat(dtFmt)
     cy.get('input[name="shift-start"]').should('have.value', shiftEnd)
-    cy.get('input[name="shift-end"]').should('have.value', duration) // ensure duration remains the same
+    cy.get('input[name="shift-end"]').should('have.value', 24) // ensure duration remains the fixed duration
   })
 }
 

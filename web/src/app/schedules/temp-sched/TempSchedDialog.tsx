@@ -109,9 +109,10 @@ export default function TempSchedDialog({
   let defaultShiftDur = {} as DurationValues
 
   const getDurValues = (dur: Duration): DurationValues => {
-    if (dur.hours < 24 && dur.days < 1) return { ivl: 'hours', dur: dur.hours }
-    if (dur.days < 7) return { ivl: 'days', dur: dur.days }
-    return { ivl: 'weeks', dur: dur.weeks }
+    if (dur.hours < 24 && dur.days < 1)
+      return { ivl: 'hours', dur: Math.ceil(dur.hours) }
+    if (dur.days < 7) return { ivl: 'days', dur: Math.ceil(dur.days) }
+    return { ivl: 'weeks', dur: Math.ceil(dur.weeks) }
   }
 
   if (edit) {
@@ -398,6 +399,7 @@ export default function TempSchedDialog({
                         component={TextField}
                         type='number'
                         name='dur'
+                        min={1}
                         label='Shift Duration'
                         validate={() => validate()}
                         disabled={q.loading}
@@ -424,7 +426,7 @@ export default function TempSchedDialog({
                     <Divider />
                   </Grid>
 
-                  <Grid item xs={12}>
+                  <Grid item xs={12} className={classes.sticky}>
                     <TempSchedAddNewShift
                       value={value}
                       onChange={(shifts: Shift[]) =>
