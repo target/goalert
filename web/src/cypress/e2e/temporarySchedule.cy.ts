@@ -34,8 +34,6 @@ function testTemporarySchedule(screen: string): void {
     cy.dialogForm({ variant: 'temp' })
     cy.dialogClick('Next')
 
-    cy.get('[data-cy="add-shift-expander"]').click()
-
     cy.get(dialog).find('[data-cy="toggle-custom"]').click()
 
     // check default state of duration
@@ -78,7 +76,6 @@ function testTemporarySchedule(screen: string): void {
     cy.dialogForm({ variant: 'temp' })
     cy.dialogClick('Next')
     cy.dialogForm({ start: schedTZ(start), end: schedTZ(end) })
-    cy.get('[data-cy="add-shift-expander"]').click()
     cy.get('[data-cy="no-coverage-checkbox"]').should('not.exist')
     cy.get('[data-cy="shifts-list"]').should('not.contain', manualAddUser.name)
     cy.dialogForm({ userID: manualAddUser.name })
@@ -120,8 +117,6 @@ function testTemporarySchedule(screen: string): void {
         'not.contain',
         graphQLAddUser.name,
       )
-
-      cy.get('[data-cy="add-shift-expander"]').click()
 
       cy.get(dialog).find('[data-cy="toggle-custom"]').click()
 
@@ -203,8 +198,6 @@ function testTemporarySchedule(screen: string): void {
       cy.get('[data-cy="edit-temp-sched"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
 
-      cy.get('[data-cy="add-shift-expander"]').click()
-
       cy.get(dialog).find('[data-cy="toggle-custom"]').click()
 
       cy.dialogForm({
@@ -258,7 +251,6 @@ function testTemporarySchedule(screen: string): void {
       start: schedTZ(ivl.start),
       end: schedTZ(ivl.end),
     })
-    cy.get('[data-cy="add-shift-expander"]').click()
 
     cy.get(dialog).find('[data-cy="toggle-custom"]').click()
     cy.get(dialog).find('[data-cy="toggle-duration-on"]').click()
@@ -300,7 +292,6 @@ function testTemporarySchedule(screen: string): void {
 
     // click on first no coverage notice in list
     cy.get('[data-cy="day-no-coverage"]').eq(0).click()
-    cy.get('[data-cy="add-shift-container"]').should('be.visible')
     cy.get('input[name="shift-start"]').should(
       'have.value',
       start.toFormat(dtFmt),
@@ -327,7 +318,6 @@ function testTemporarySchedule(screen: string): void {
 
     // click on second no coverage notice in list (partial day)
     cy.get('[data-cy="day-no-coverage"]').eq(1).click()
-    cy.get('[data-cy="add-shift-container"]').should('be.visible')
 
     const shiftEnd = start.plus({ day: 1, hours: duration }).toFormat(dtFmt)
     cy.get('input[name="shift-start"]').should('have.value', shiftEnd)
