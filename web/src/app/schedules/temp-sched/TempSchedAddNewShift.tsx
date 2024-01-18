@@ -152,11 +152,7 @@ export default function TempSchedAddNewShift({
     >
       <Grid container spacing={2}>
         <Grid item xs={12}>
-          <Typography
-            color='textSecondary'
-          >
-            Add Shift
-          </Typography>
+          <Typography color='textSecondary'>Add Shift</Typography>
         </Grid>
         <Grid item xs={12}>
           <FormField
@@ -170,10 +166,7 @@ export default function TempSchedAddNewShift({
           <FormControlLabel
             control={<Checkbox checked={custom} data-cy='toggle-custom' />}
             label={
-              <Typography
-                color='textSecondary'
-                sx={{ fontStyle: 'italic' }}
-              >
+              <Typography color='textSecondary' sx={{ fontStyle: 'italic' }}>
                 Configure custom shift
               </Typography>
             }
@@ -191,10 +184,7 @@ export default function TempSchedAddNewShift({
             max={DateTime.fromISO(value.end, { zone })
               .plus({ year: 1 })
               .toISO()}
-            mapOnChangeValue={(
-              value: string,
-              formValue: TempSchedValue,
-            ) => {
+            mapOnChangeValue={(value: string, formValue: TempSchedValue) => {
               if (!manualEntry) {
                 const diff = DateTime.fromISO(value, { zone }).diff(
                   DateTime.fromISO(formValue.start, { zone }),
@@ -295,8 +285,7 @@ export default function TempSchedAddNewShift({
             Add
           </Button>
         </Grid>
-      </Grid>
-      
+      </Grid>      
     </FormContainer>
   )
 }
