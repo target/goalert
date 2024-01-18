@@ -81,7 +81,8 @@ INSERT INTO outgoing_messages(id, message_type, channel_id, alert_id, alert_log_
 UPDATE
     alert_status_subscriptions
 SET
-    last_alert_status = $2
+    last_alert_status = $2,
+    updated_at = now()
 WHERE
     id = $1;
 

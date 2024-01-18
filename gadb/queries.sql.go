@@ -2063,7 +2063,8 @@ const statusMgrUpdateSub = `-- name: StatusMgrUpdateSub :exec
 UPDATE
     alert_status_subscriptions
 SET
-    last_alert_status = $2
+    last_alert_status = $2,
+    updated_at = now()
 WHERE
     id = $1
 `
