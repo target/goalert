@@ -115,18 +115,18 @@ export default function TempSchedDialog({
   const [showForm, setShowForm] = useState(false)
 
   let defaultShiftDur = {} as DurationValues
-  // if editing infer shift duration
+
+  const getDurValues = (dur: Duration): DurationValues => {
+    if (dur.hours < 24 && dur.days < 1) return { ivl: 'hours', dur: dur.hours}
+    if (dur.days < 7) return { ivl: 'days', dur: dur.days }
+    return { ivl: 'weeks', dur: dur.weeks }
+  }
+
   if (edit) {
-    const inferred = inferDuration(_value.shifts)?.toObject()
-    defaultShiftDur = {
-      ivl: Object.keys(inferred as object)[0],
-      dur: Math.floor(Object.values(inferred as object)[0]),
-    }
-  } else if (_value.shiftDur) {
-    defaultShiftDur = {
-      ivl: Object.keys(_value.shiftDur.toObject())[0],
-      dur: Object.values(_value.shiftDur.toObject())[0],
-    }
+  // if editing infer shift duration
+    defaultShiftDur = getDurValues(inferDuration(_value.shifts))
+  } else {
+    defaultShiftDur = getDurValues(_value?.shiftDur as Duration)
   }
 
   const [durValues, setDurValues] = useState<DurationValues>(defaultShiftDur)

@@ -22,39 +22,26 @@ export type Shift = {
   }
 }
 
-export function inferDuration(shifts: Shift[]): Duration | null {
-  if (shifts.length === 0) {
-    return null
-  }
-  const durations: Duration[] = []
-  for (let i = 0; i < shifts.length; i++) {
-    const startDateTime = DateTime.fromISO(shifts[i].start).toObject()
-    const endDateTime = DateTime.fromISO(shifts[i].end).toObject()
-    if (startDateTime && endDateTime) {
-      const interval = Interval.fromDateTimes(
-        DateTime.fromISO(shifts[i].start),
-        DateTime.fromISO(shifts[i].end),
-      )
-      durations.push(interval.toDuration())
+export function inferDuration(shifts: Shift[]): Duration {
+  const totalDurations = shifts.reduce((acc, shift) => {
+    const startDateTime = DateTime.fromISO(shift.start);
+    const endDateTime = DateTime.fromISO(shift.end);
+
+    if (startDateTime.isValid && endDateTime.isValid) {
+      const interval = Interval.fromDateTimes(startDateTime, endDateTime);
+      return acc.plus(interval.toDuration());
     }
-  }
-  if (durations.length === 0) {
-    return null
-  }
 
-  const totalDurations = durations.reduce((acc, duration) => acc.plus(duration))
-
-  const hours = totalDurations.as('hours') / durations.length
-  const days = totalDurations.as('days') / durations.length
-  const weeks = totalDurations.as('weeks') / durations.length
-
-  const maxDuration = Math.max(hours, days, weeks)
-  if (maxDuration === hours) return Duration.fromObject({ hours })
-  if (maxDuration === days) return Duration.fromObject({ days })
-  if (maxDuration === weeks) return Duration.fromObject({ weeks })
-
-  return null
+    return acc;
+  }, Duration.fromObject({}))
+  
+  return Duration.fromObject({
+    hours: totalDurations.as('hours') / shifts.length,
+    days: totalDurations.as('days') / shifts.length,
+    weeks: totalDurations.as('weeks') / shifts.length,
+  })
 }
+
 
 // defaultTempScheduleValue returns a timespan, with no shifts,
 // of the following week.
