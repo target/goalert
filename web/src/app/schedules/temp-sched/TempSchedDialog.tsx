@@ -37,6 +37,7 @@ import {
   InputLabel,
   FormControl,
   SelectChangeEvent,
+  Divider,
 } from '@mui/material'
 
 const mutation = gql`
@@ -440,7 +441,11 @@ export default function TempSchedDialog({
                     </Grid>
                   </FormContainer>
 
-                  <Grid item xs={12} className={classes.sticky}>
+                  <Grid item xs={12}>
+                    <Divider />
+                  </Grid>
+
+                  <Grid item xs={12}>
                     <TempSchedAddNewShift
                       value={value}
                       onChange={(shifts: Shift[]) =>
