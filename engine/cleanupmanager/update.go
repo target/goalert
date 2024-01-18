@@ -66,7 +66,7 @@ func (db *DB) update(ctx context.Context) error {
 	}
 
 	if cfg.Maintenance.AlertAutoCloseDays > 0 {
-		rows, err := tx.StmtContext(ctx, db.unackAlerts).QueryContext(ctx, cfg.Maintenance.AlertAutoCloseDays)
+		rows, err := tx.StmtContext(ctx, db.staleAlerts).QueryContext(ctx, cfg.Maintenance.AlertAutoCloseDays, cfg.Maintenance.AutoCloseAckedAlerts)
 		if err != nil {
 			return fmt.Errorf("query auto-close alerts: %w", err)
 		}
