@@ -30,11 +30,7 @@ import { getCoverageGapItems } from './shiftsListUtil'
 import { fmtLocal } from '../../util/timeFormat'
 import { ensureInterval } from '../timeUtil'
 import TempSchedConfirmation from './TempSchedConfirmation'
-import {
-  TextField,
-  MenuItem,
-  Divider,
-} from '@mui/material'
+import { TextField, MenuItem, Divider } from '@mui/material'
 
 const mutation = gql`
   mutation ($input: SetTemporaryScheduleInput!) {
