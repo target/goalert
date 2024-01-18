@@ -1897,6 +1897,16 @@ func (q *Queries) StatusMgrCleanupDisabledSubs(ctx context.Context) error {
 	return err
 }
 
+const statusMgrCleanupStaleSubs = `-- name: StatusMgrCleanupStaleSubs :exec
+DELETE FROM alert_status_subscriptions sub
+WHERE sub.updated_at < now() - '7 days'::interval
+`
+
+func (q *Queries) StatusMgrCleanupStaleSubs(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, statusMgrCleanupStaleSubs)
+	return err
+}
+
 const statusMgrDeleteSub = `-- name: StatusMgrDeleteSub :exec
 DELETE FROM alert_status_subscriptions
 WHERE id = $1
@@ -1945,7 +1955,7 @@ SELECT
     channel_id,
     contact_method_id,
     alert_id,
-    (
+(
         SELECT
             status
         FROM
@@ -1955,7 +1965,7 @@ SELECT
 FROM
     alert_status_subscriptions sub
 WHERE
-    sub.last_alert_status != (
+    sub.last_alert_status !=(
         SELECT
             status
         FROM
@@ -1989,7 +1999,7 @@ func (q *Queries) StatusMgrNextUpdate(ctx context.Context) (StatusMgrNextUpdateR
 }
 
 const statusMgrSendChannelMsg = `-- name: StatusMgrSendChannelMsg :exec
-INSERT INTO outgoing_messages (id, message_type, channel_id, alert_id, alert_log_id)
+INSERT INTO outgoing_messages(id, message_type, channel_id, alert_id, alert_log_id)
     VALUES ($1::uuid, 'alert_status_update', $2::uuid, $3::bigint, $4)
 `
 
@@ -2011,7 +2021,7 @@ func (q *Queries) StatusMgrSendChannelMsg(ctx context.Context, arg StatusMgrSend
 }
 
 const statusMgrSendUserMsg = `-- name: StatusMgrSendUserMsg :exec
-INSERT INTO outgoing_messages (id, message_type, contact_method_id, user_id, alert_id, alert_log_id)
+INSERT INTO outgoing_messages(id, message_type, contact_method_id, user_id, alert_id, alert_log_id)
     VALUES ($1::uuid, 'alert_status_update', $2::uuid, $3::uuid, $4::bigint, $5)
 `
 
