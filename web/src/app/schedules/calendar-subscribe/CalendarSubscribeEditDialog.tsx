@@ -59,7 +59,7 @@ export function CalendarSubscribeEditDialogContent(
               fullSchedule: value.fullSchedule,
             },
           },
-          { additionalTypenames: ['User'] },
+          { additionalTypenames: ['UserCalendarSubscription'] },
         ).then((result) => {
           if (!result.error) props.onClose()
         })
