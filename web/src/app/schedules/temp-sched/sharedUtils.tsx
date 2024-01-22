@@ -1,10 +1,11 @@
-import { DateTime } from 'luxon'
+import { DateTime, Duration, Interval } from 'luxon'
 import React, { ReactNode } from 'react'
 
 export type TempSchedValue = {
   start: string
   end: string
   shifts: Shift[]
+  shiftDur?: Duration
 }
 
 export type Shift = {
@@ -13,11 +14,32 @@ export type Shift = {
   end: string
   userID: string
   truncated: boolean
+  custom?: boolean
 
   user?: null | {
     id: string
     name: string
   }
+}
+
+export function inferDuration(shifts: Shift[]): Duration {
+  const totalDurations = shifts.reduce((acc, shift) => {
+    const startDateTime = DateTime.fromISO(shift.start)
+    const endDateTime = DateTime.fromISO(shift.end)
+
+    if (startDateTime.isValid && endDateTime.isValid) {
+      const interval = Interval.fromDateTimes(startDateTime, endDateTime)
+      return acc.plus(interval.toDuration())
+    }
+
+    return acc
+  }, Duration.fromObject({}))
+
+  return Duration.fromObject({
+    hours: totalDurations.as('hours') / shifts.length,
+    days: totalDurations.as('days') / shifts.length,
+    weeks: totalDurations.as('weeks') / shifts.length,
+  })
 }
 
 // defaultTempScheduleValue returns a timespan, with no shifts,
@@ -35,6 +57,7 @@ export function defaultTempSchedValue(zone: string): TempSchedValue {
     start: startDT.toISO(),
     end: startDT.plus({ days: 7 }).toISO(),
     shifts: [],
+    shiftDur: Duration.fromObject({ days: 1 }),
   }
 }
 
