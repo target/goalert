@@ -3,7 +3,7 @@ import { Chance } from 'chance'
 import {
   getStartOfWeek,
   getEndOfWeek,
-  splitAtMidnight,
+  splitShift,
   getNextWeekday,
 } from './luxon-helpers'
 
@@ -296,7 +296,7 @@ describe('getNextWeekday', () => {
   })
 })
 
-describe('splitAtMidnight', () => {
+describe('splitShift', () => {
   function rand(): DateTime {
     const c = new Chance()
     return DateTime.fromJSDate(c.date())
@@ -307,7 +307,7 @@ describe('splitAtMidnight', () => {
       DateTime.fromObject({ hour: 1 }),
       DateTime.fromObject({ hour: 2 }),
     )
-    const result = splitAtMidnight(hour)
+    const result = splitShift(hour)
     expect(result.length).toEqual(1)
     expect(result[0]).toEqual(hour)
   })
@@ -317,7 +317,7 @@ describe('splitAtMidnight', () => {
       DateTime.fromObject({ hour: 0 }).startOf('day'),
       DateTime.fromObject({ hour: 2 }),
     )
-    const result = splitAtMidnight(startOfDay)
+    const result = splitShift(startOfDay)
     expect(result.length).toEqual(1)
     expect(result[0]).toEqual(startOfDay)
   })
@@ -326,7 +326,7 @@ describe('splitAtMidnight', () => {
     const start = rand().startOf('day')
     const end = start.plus({ day: 1 }).startOf('day')
     const inv = Interval.fromDateTimes(start, end)
-    const result = splitAtMidnight(inv)
+    const result = splitShift(inv)
 
     expect(result.length).toEqual(1)
     expect(result[0]).toEqual(inv)
@@ -336,7 +336,7 @@ describe('splitAtMidnight', () => {
     const start = rand().set({ hour: 4 })
     const end = start.plus({ day: 1 }).startOf('day')
     const inv = Interval.fromDateTimes(start, end)
-    const result = splitAtMidnight(inv)
+    const result = splitShift(inv)
 
     expect(result.length).toEqual(1)
     expect(result[0]).toEqual(inv)
@@ -346,7 +346,7 @@ describe('splitAtMidnight', () => {
     const start = rand().startOf('day')
     const end = start.plus({ day: 1, hour: 4 })
     const inv = Interval.fromDateTimes(start, end)
-    const result = splitAtMidnight(inv)
+    const result = splitShift(inv)
 
     expect(result.length).toEqual(2)
     expect(result[0]).toEqual(Interval.fromDateTimes(start, end.startOf('day')))
@@ -357,7 +357,7 @@ describe('splitAtMidnight', () => {
     const start = rand().set({ hour: 4 })
     const end = start.plus({ day: 3 })
     const inv = Interval.fromDateTimes(start, end)
-    const result = splitAtMidnight(inv)
+    const result = splitShift(inv)
 
     expect(result.length).toEqual(4)
     expect(result[0]).toEqual(

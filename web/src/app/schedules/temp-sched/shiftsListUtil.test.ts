@@ -1,4 +1,4 @@
-import { DateTime, Interval } from 'luxon'
+import { DateTime, Duration, Interval } from 'luxon'
 import { Shift } from './sharedUtils'
 import {
   getCoverageGapItems,
@@ -15,6 +15,7 @@ const newYork = 'America/New_York'
 interface TestConfig {
   name: string
   schedIntervalISO: string
+  shiftDuration?: Duration
   shifts: Shift[]
   // expected is an array of start times for each coverage gap
   expected: string[]
@@ -27,7 +28,12 @@ describe('getSubheaderItems', () => {
       const schedInterval = Interval.fromISO(tc.schedIntervalISO, {
         zone: tc.zone,
       })
-      const result = getSubheaderItems(schedInterval, tc.shifts, tc.zone)
+      const result = getSubheaderItems(
+        schedInterval,
+        tc.shifts,
+        tc.shiftDuration as Duration,
+        tc.zone,
+      )
 
       expect(result).toHaveLength(tc.expected.length)
       expect(_.uniq(result.map((r) => r.id))).toHaveLength(tc.expected.length)
@@ -44,6 +50,7 @@ describe('getSubheaderItems', () => {
     name: '0 hr sched interval; no shifts',
     schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T00:00:00.000-05:00'}`,
     shifts: [],
+    shiftDuration: Duration.fromObject({ hours: 0 }),
     expected: [],
     zone: chicago,
   })
@@ -52,6 +59,7 @@ describe('getSubheaderItems', () => {
     name: '1 hr sched interval; no shifts',
     schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T01:00:00.000-05:00'}`,
     shifts: [],
+    shiftDuration: Duration.fromObject({ hours: 1 }),
     expected: ['Friday, August 13'],
     zone: chicago,
   })
@@ -60,6 +68,7 @@ describe('getSubheaderItems', () => {
     name: '1 hr sched interval; no shifts; alternate zone',
     schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T01:00:00.000-05:00'}`,
     shifts: [],
+    shiftDuration: Duration.fromObject({ hours: 1 }),
     expected: ['Friday, August 13'],
     zone: newYork,
   })
@@ -68,6 +77,7 @@ describe('getSubheaderItems', () => {
     name: '24 hr sched interval; no shifts',
     schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-14T00:00:00.000-05:00'}`,
     shifts: [],
+    shiftDuration: Duration.fromObject({ hours: 24 }),
     expected: ['Friday, August 13'],
     zone: chicago,
   })
@@ -76,7 +86,8 @@ describe('getSubheaderItems', () => {
     name: '25 hr sched interval; no shifts',
     schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-14T01:00:00.000-05:00'}`,
     shifts: [],
-    expected: ['Friday, August 13', 'Saturday, August 14'],
+    shiftDuration: Duration.fromObject({ hours: 25 }),
+    expected: ['Friday, August 13'],
     zone: chicago,
   })
 
@@ -84,7 +95,8 @@ describe('getSubheaderItems', () => {
     name: '50 hr sched interval; no shifts',
     schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-15T02:00:00.000-05:00'}`,
     shifts: [],
-    expected: ['Friday, August 13', 'Saturday, August 14', 'Sunday, August 15'],
+    shiftDuration: Duration.fromObject({ hours: 50 }),
+    expected: ['Friday, August 13'],
     zone: chicago,
   })
 
@@ -99,6 +111,7 @@ describe('getSubheaderItems', () => {
         truncated: false,
       },
     ],
+    shiftDuration: Duration.fromObject({ hours: 24 }),
     expected: ['Thursday, August 12', 'Friday, August 13'],
     zone: chicago,
   })
@@ -114,6 +127,7 @@ describe('getSubheaderItems', () => {
         truncated: false,
       },
     ],
+    shiftDuration: Duration.fromObject({ hours: 24 }),
     expected: ['Friday, August 13'],
     zone: chicago,
   })
@@ -129,6 +143,7 @@ describe('getSubheaderItems', () => {
         truncated: false,
       },
     ],
+    shiftDuration: Duration.fromObject({ hours: 24 }),
     expected: [
       'Friday, August 13',
       'Saturday, August 14',
@@ -161,7 +176,8 @@ describe('getSubheaderItems', () => {
         truncated: false,
       },
     ],
-    expected: ['Friday, August 13', 'Saturday, August 14', 'Sunday, August 15'],
+    shiftDuration: Duration.fromObject({ hours: 30 }),
+    expected: ['Friday, August 13', 'Saturday, August 14'],
     zone: chicago,
   })
 })
@@ -174,6 +190,7 @@ describe('getCoverageGapItems', () => {
       })
       const result = getCoverageGapItems(
         schedInterval,
+        tc.shiftDuration as Duration,
         tc.shifts,
         tc.zone,
         () => {},
@@ -184,9 +201,8 @@ describe('getCoverageGapItems', () => {
 
       result.forEach((r, i) => {
         expect(r.at.zoneName).toEqual(tc.zone)
-        expect(r.at).toEqual(
-          DateTime.fromISO(tc.expected[i], { zone: tc.zone }),
-        )
+        const expectedDT = DateTime.fromISO(tc.expected[i], { zone: tc.zone })
+        expect(r.at.toISO()).toEqual(expectedDT.toISO())
       })
     })
   }
@@ -195,6 +211,7 @@ describe('getCoverageGapItems', () => {
     name: '0 hr sched interval; no shifts',
     schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T00:00:00.000-05:00'}`,
     shifts: [],
+    shiftDuration: Duration.fromObject({ hours: 0 }),
     expected: [],
     zone: chicago,
   })
@@ -203,6 +220,7 @@ describe('getCoverageGapItems', () => {
     name: '1 hr sched interval; no shifts; alternate zone',
     schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-13T01:00:00.000-05:00'}`,
     shifts: [],
+    shiftDuration: Duration.fromObject({ hours: 1 }),
     expected: ['2021-08-13T00:00:00.000-05:00'],
     zone: newYork,
   })
@@ -218,6 +236,7 @@ describe('getCoverageGapItems', () => {
         truncated: false,
       },
     ],
+    shiftDuration: Duration.fromObject({ hours: 3 }),
     expected: [
       '2021-08-13T00:00:00.000-05:00',
       '2021-08-13T02:00:00.000-05:00',
@@ -236,6 +255,7 @@ describe('getCoverageGapItems', () => {
         truncated: false,
       },
     ],
+    shiftDuration: Duration.fromObject({ hours: 3 }),
     expected: ['2021-08-13T00:00:00.000-05:00'],
     zone: chicago,
   })
@@ -251,6 +271,7 @@ describe('getCoverageGapItems', () => {
         truncated: false,
       },
     ],
+    shiftDuration: Duration.fromObject({ hours: 3 }),
     expected: ['2021-08-13T01:00:00.000-05:00'],
     zone: chicago,
   })

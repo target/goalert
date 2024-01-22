@@ -11,10 +11,15 @@ import { Theme } from '@mui/material/styles'
 import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
 import _ from 'lodash'
-import { DateTime, Interval } from 'luxon'
+import { DateTime, Duration, Interval } from 'luxon'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
-import { contentText, dtToDuration, Shift, TempSchedValue } from './sharedUtils'
+import {
+  contentText,
+  inferDuration,
+  Shift,
+  TempSchedValue,
+} from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
 import TempSchedAddNewShift from './TempSchedAddNewShift'
 import { isISOAfter, parseInterval } from '../../util/shifts'
@@ -25,6 +30,7 @@ import { getCoverageGapItems } from './shiftsListUtil'
 import { fmtLocal } from '../../util/timeFormat'
 import { ensureInterval } from '../timeUtil'
 import TempSchedConfirmation from './TempSchedConfirmation'
+import { TextField, MenuItem, Divider } from '@mui/material'
 
 const mutation = gql`
   mutation ($input: SetTemporaryScheduleInput!) {
@@ -84,6 +90,11 @@ const clampForward = (nowISO: string, iso: string): string => {
   return iso
 }
 
+interface DurationValues {
+  dur: number
+  ivl: string
+}
+
 export default function TempSchedDialog({
   onClose,
   scheduleID,
@@ -94,6 +105,25 @@ export default function TempSchedDialog({
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
   const [showForm, setShowForm] = useState(false)
+
+  let defaultShiftDur = {} as DurationValues
+
+  const getDurValues = (dur: Duration): DurationValues => {
+    if (dur.hours < 24 && dur.days < 1)
+      return { ivl: 'hours', dur: Math.ceil(dur.hours) }
+    if (dur.days < 7) return { ivl: 'days', dur: Math.ceil(dur.days) }
+    return { ivl: 'weeks', dur: Math.ceil(dur.weeks) }
+  }
+
+  if (edit) {
+    // if editing infer shift duration
+    defaultShiftDur = getDurValues(inferDuration(_value.shifts))
+  } else {
+    defaultShiftDur = getDurValues(_value?.shiftDur as Duration)
+  }
+
+  const [durValues, setDurValues] = useState<DurationValues>(defaultShiftDur)
+
   const [value, setValue] = useState({
     start: clampForward(now, _value.start),
     end: _value.end,
@@ -110,11 +140,14 @@ export default function TempSchedDialog({
         }
         return true
       }),
+    shiftDur:
+      _value.shiftDur ||
+      Duration.fromObject({ [durValues.ivl]: durValues.dur }),
   })
   const startDT = DateTime.fromISO(value.start, { zone })
   const [shift, setShift] = useState<Shift>({
     start: startDT.toISO(),
-    end: startDT.plus({ hours: 8 }).toISO(),
+    end: startDT.plus(value.shiftDur).toISO(),
     userID: '',
     truncated: false,
   })
@@ -153,12 +186,8 @@ export default function TempSchedDialog({
   function handleCoverageGapClick(coverageGap: Interval): void {
     if (!showForm) setShowForm(true)
 
-    // make sure duration remains the same (evaluated off of the end timestamp)
-    const startDT = DateTime.fromISO(shift?.start ?? '', { zone })
-    const endDT = DateTime.fromISO(shift?.end ?? '', { zone })
-    const duration = dtToDuration(startDT, endDT)
     const nextStart = coverageGap?.start
-    const nextEnd = nextStart.plus({ hours: duration })
+    const nextEnd = nextStart.plus(value.shiftDur)
 
     setShift({
       userID: shift?.userID ?? '',
@@ -174,6 +203,7 @@ export default function TempSchedDialog({
     return (
       getCoverageGapItems(
         schedInterval,
+        value.shiftDur,
         value.shifts,
         zone,
         handleCoverageGapClick,
@@ -351,6 +381,51 @@ export default function TempSchedDialog({
                     />
                   </Grid>
 
+                  <FormContainer
+                    value={durValues}
+                    onChange={(newValue: DurationValues) => {
+                      setDurValues({ ...durValues, ...newValue })
+                      setValue({
+                        ...value,
+                        shiftDur: Duration.fromObject({
+                          [newValue.ivl]: newValue.dur,
+                        }),
+                      })
+                    }}
+                  >
+                    <Grid item xs={12} md={6}>
+                      <FormField
+                        fullWidth
+                        component={TextField}
+                        type='number'
+                        name='dur'
+                        min={1}
+                        label='Shift Duration'
+                        validate={() => validate()}
+                        disabled={q.loading}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <FormField
+                        fullWidth
+                        component={TextField}
+                        name='ivl'
+                        select
+                        label='Shift Interval'
+                        validate={() => validate()}
+                        disabled={q.loading}
+                      >
+                        <MenuItem value='hours'>Hour</MenuItem>
+                        <MenuItem value='days'>Day</MenuItem>
+                        <MenuItem value='weeks'>Week</MenuItem>
+                      </FormField>
+                    </Grid>
+                  </FormContainer>
+
+                  <Grid item xs={12}>
+                    <Divider />
+                  </Grid>
+
                   <Grid item xs={12} className={classes.sticky}>
                     <TempSchedAddNewShift
                       value={value}
@@ -444,6 +519,7 @@ export default function TempSchedDialog({
                     <TempSchedShiftsList
                       scheduleID={scheduleID}
                       value={value.shifts}
+                      shiftDur={value.shiftDur}
                       start={value.start}
                       end={value.end}
                       onRemove={(shift: Shift) => {
