@@ -3125,7 +3125,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/private-theming@npm:^5.14.16, @mui/private-theming@npm:^5.15.2":
+"@mui/private-theming@npm:^5.15.2":
   version: 5.15.2
   resolution: "@mui/private-theming@npm:5.15.2"
   dependencies:
@@ -3201,16 +3201,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/styles@npm:5.14.16":
-  version: 5.14.16
-  resolution: "@mui/styles@npm:5.14.16"
+"@mui/styles@npm:5.15.5":
+  version: 5.15.5
+  resolution: "@mui/styles@npm:5.15.5"
   dependencies:
-    "@babel/runtime": ^7.23.2
+    "@babel/runtime": ^7.23.8
     "@emotion/hash": ^0.9.1
-    "@mui/private-theming": ^5.14.16
-    "@mui/types": ^7.2.8
-    "@mui/utils": ^5.14.16
-    clsx: ^2.0.0
+    "@mui/private-theming": ^5.15.5
+    "@mui/types": ^7.2.13
+    "@mui/utils": ^5.15.5
+    clsx: ^2.1.0
     csstype: ^3.1.2
     hoist-non-react-statics: ^3.3.2
     jss: ^10.10.0
@@ -3228,7 +3228,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: f30e7abeec3c4f6c5694047717b998c88eb0eb94cb0f8bcebc854eaa83b0e7a9ea40d48a81a6d44b98af2cf055ed9f4530e367a7e3fa9ebfa7bffd5418b9fbfa
+  checksum: dc131c0e7763f7ac4fd96a1db3dd85abf59de5429a73f7cf9ed15d423fb9bb5883835c1951d36e8804da9ab2ed13d603ed349f12e7cd15885f8279d90d13511b
   languageName: node
   linkType: hard
 
@@ -3288,7 +3288,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/types@npm:^7.2.11, @mui/types@npm:^7.2.4, @mui/types@npm:^7.2.8":
+"@mui/types@npm:^7.2.11, @mui/types@npm:^7.2.4":
   version: 7.2.11
   resolution: "@mui/types@npm:7.2.11"
   peerDependencies:
@@ -17619,7 +17619,7 @@ __metadata:
     "@mui/icons-material": 5.14.9
     "@mui/lab": 5.0.0-alpha.145
     "@mui/material": 5.15.5
-    "@mui/styles": 5.14.16
+    "@mui/styles": 5.15.5
     "@mui/system": 5.15.5
     "@mui/x-data-grid": 6.18.7
     "@playwright/test": 1.40.1
