@@ -42,8 +42,7 @@ function fillFormField(
       }
 
       const isSelect =
-        el.parents('[data-cy=material-select]').data('cy') ===
-          'material-select' ||
+        el.siblings('[role=combobox]').attr('aria-haspopup') === 'listbox' ||
         el.siblings('[role=button]').attr('aria-haspopup') === 'listbox'
 
       if (isSelect) {
