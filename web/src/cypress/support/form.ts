@@ -43,17 +43,17 @@ function fillFormField(
 
       // select dropdowns
       if (el.attr('role') === 'combobox') {
+        // action to clear multi-select
         if (value === '') {
           cy.get(selector).clear()
 
-          // clear chips on multi-select
           el.parent()
             .find('[data-cy="multi-value"]')
             .each(() => {
               cy.get(selector).type(`{backspace}`)
             })
 
-          return cy.get(selector).selectByLabel(value)
+          return cy.get(selector)
         }
 
         if (DateTime.isDateTime(value)) {
