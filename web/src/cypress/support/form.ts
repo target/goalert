@@ -46,6 +46,10 @@ function fillFormField(
         el.siblings('[role=button]').attr('aria-haspopup') === 'listbox'
 
       if (isSelect) {
+        cy.get('[data-cy=select-dropdown]').should(
+          'not.contain.text',
+          'Loading...',
+        )
         if (value === '') {
           cy.get(selector).clear()
 
