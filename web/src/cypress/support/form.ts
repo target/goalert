@@ -42,7 +42,10 @@ function fillFormField(
       }
 
       // select dropdowns
-      if (el.siblings().attr('aria-haspopup') === 'listbox') {
+      if (
+        el.attr('role') === 'combobox' ||
+        el.siblings().attr('aria-haspopup') === 'listbox'
+      ) {
         // action to clear multi-select
         if (value === '') {
           cy.get(selector).clear()
