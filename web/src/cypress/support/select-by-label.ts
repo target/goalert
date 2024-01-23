@@ -61,8 +61,10 @@ function findByLabel(
         .click()
 
       cy.focused().should('be.visible').type(label)
-
-      cy.get('[data-cy=select-dropdown]').should('not.contain', 'Loading')
+      cy.get('[data-cy=select-dropdown]').should(
+        'not.contain.text',
+        'Loading...',
+      )
 
       return cy
         .get('body')
