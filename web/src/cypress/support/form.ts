@@ -42,9 +42,11 @@ function fillFormField(
       }
 
       // select dropdowns
-      if (el.attr('role') === 'combobox') {
+      if (el.siblings().attr('aria-haspopup') === 'listbox') {
+        cy.log('log: is a select')
         // action to clear multi-select
         if (value === '') {
+          cy.log('log: clear multi')
           cy.get(selector).clear()
 
           el.parent()
@@ -69,6 +71,7 @@ function fillFormField(
 
         return cy.get(selector).selectByLabel(value)
       }
+      cy.log('log: not a select')
 
       if (Array.isArray(value)) {
         throw new TypeError('arrays only supported for search-select inputs')
