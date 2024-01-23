@@ -41,11 +41,8 @@ function fillFormField(
         return cy.get(selector).check()
       }
 
-      const isSelect =
-        el.siblings('[role=combobox]').attr('aria-haspopup') === 'listbox' ||
-        el.siblings('[role=button]').attr('aria-haspopup') === 'listbox'
-
-      if (isSelect) {
+      // select dropdowns
+      if (el.attr('role') === 'combobox') {
         if (value === '') {
           cy.get(selector).clear()
 
@@ -56,7 +53,7 @@ function fillFormField(
               cy.get(selector).type(`{backspace}`)
             })
 
-          return cy.get(selector)
+          return cy.get(selector).selectByLabel(value)
         }
 
         if (DateTime.isDateTime(value)) {
@@ -77,8 +74,11 @@ function fillFormField(
         throw new TypeError('arrays only supported for search-select inputs')
       }
 
-      if (value === '') return cy.get(selector).clear()
+      if (value === '') {
+        return cy.get(selector).clear()
+      }
 
+      // everything else
       return cy.get(selector).then((el) => {
         if (!DateTime.isDateTime(value)) {
           if (el.attr('type') === 'hidden') {
@@ -89,7 +89,6 @@ function fillFormField(
         }
 
         cy.wrap(el).clear()
-        // material Select
         switch (el.attr('type')) {
           case 'time':
             return cy.focused().type(value.toFormat('HH:mm'))

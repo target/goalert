@@ -43,7 +43,7 @@ function testSubs(screen: ScreenFormat): void {
       cy.get('body').should('contain', 'You have 1 active subscription')
     })
 
-    it.only('should create a subscription from their profile', () => {
+    it('should create a subscription from their profile', () => {
       const name = c.word({ length: 5 })
 
       cy.visit('/profile/schedule-calendar-subscriptions')
@@ -59,8 +59,8 @@ function testSubs(screen: ScreenFormat): void {
       cy.dialogTitle('Create New Calendar Subscription')
       cy.dialogForm({
         name,
+        scheduleID: sched.name,
       })
-      cy.get('input[name=scheduleID]').selectByLabel(sched.name)
       cy.dialogClick('Submit')
       cy.dialogTitle('Success!')
       cy.dialogContains(Cypress.config().baseUrl + '/api/v2/calendar?token=')
