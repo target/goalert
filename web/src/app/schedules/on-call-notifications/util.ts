@@ -1,4 +1,3 @@
-import { ApolloError } from '@apollo/client'
 import { DateTime } from 'luxon'
 
 import {
@@ -9,6 +8,8 @@ import {
 } from '../../../schema'
 import { allErrors, fieldErrors, nonFieldErrors } from '../../util/errutil'
 import { weekdaySummary } from '../util'
+import { ApolloError } from '@apollo/client'
+import { CombinedError } from 'urql'
 
 export type Value = {
   time: string | null
@@ -89,8 +90,8 @@ export const onCallRuleToInput = (
 }
 
 export function mapOnCallErrors(
-  mErr?: ApolloError | null,
-  ...qErr: Array<ApolloError | undefined>
+  mErr?: ApolloError | CombinedError | null,
+  ...qErr: Array<ApolloError | CombinedError | undefined>
 ): [Error[], RuleFieldError[]] {
   let dialogErrs: Error[] = []
   qErr.forEach((e) => (dialogErrs = dialogErrs.concat(allErrors(e))))

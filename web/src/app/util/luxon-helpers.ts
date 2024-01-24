@@ -1,4 +1,4 @@
-import { DateTime, DateTimeOptions, Interval } from 'luxon'
+import { DateTime, DateTimeOptions, Duration, Interval } from 'luxon'
 
 export type ExplicitZone = NonNullable<DateTimeOptions['zone']>
 
@@ -55,16 +55,25 @@ export function getNextWeekday(
   return start.plus({ days: weekday + (7 - start.weekday) }).startOf('day')
 }
 
-export function splitAtMidnight(inv: Interval): Interval[] {
-  // dummy interval shifted forward 1 day
-  const dummy = inv.mapEndpoints((e) => e.plus({ day: 1 }))
-
-  const midnights: DateTime[] = []
-  let iter = dummy.start
-  while (iter < dummy.end) {
-    midnights.push(iter.startOf('day'))
-    iter = iter.plus({ day: 1 })
+export function splitShift(inv: Interval, dur?: Duration): Interval[] {
+  let duration = Duration.fromObject({ days: 1 })
+  if (dur && dur.isValid) {
+    duration = dur
   }
 
-  return inv.splitAt(...midnights)
+  // dummy interval shifted forward 1 day
+  const dummy = inv.mapEndpoints((e) => e.plus(duration))
+
+  const shifts: DateTime[] = []
+  let iter = dummy.start
+  while (iter < dummy.end) {
+    if (dur && dur.isValid) {
+      shifts.push(iter)
+    } else {
+      shifts.push(iter.startOf('day'))
+    }
+    iter = iter.plus(duration)
+  }
+
+  return inv.splitAt(...shifts)
 }

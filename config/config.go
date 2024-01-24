@@ -34,11 +34,16 @@ type Config struct {
 		DisableCalendarSubscriptions bool   `public:"true" info:"If set, disables all active calendar subscriptions as well as the ability to create new calendar subscriptions."`
 	}
 
+	Services struct {
+		RequiredLabels []string `public:"true" info:"List of label names to require new services to define."`
+	}
+
 	Maintenance struct {
-		AlertCleanupDays    int `public:"true" info:"Closed alerts will be deleted after this many days (0 means disable cleanup)."`
-		AlertAutoCloseDays  int `public:"true" info:"Unacknowledged alerts will automatically be closed after this many days of inactivity. (0 means disable auto-close)."`
-		APIKeyExpireDays    int `public:"true" info:"Unused calendar API keys will be disabled after this many days (0 means disable cleanup)."`
-		ScheduleCleanupDays int `public:"true" info:"Schedule on-call history will be deleted after this many days (0 means disable cleanup)."`
+		AlertCleanupDays     int  `public:"true" info:"Closed alerts will be deleted after this many days (0 means disable cleanup)."`
+		AlertAutoCloseDays   int  `public:"true" info:"Unacknowledged alerts will automatically be closed after this many days of inactivity. (0 means disable auto-close)."`
+		AutoCloseAckedAlerts bool `public:"true" info:"If set, alerts that are acknowledged will also be automatically closed after the configured number of days of inactivity."`
+		APIKeyExpireDays     int  `public:"true" info:"Unused calendar API keys will be disabled after this many days (0 means disable cleanup)."`
+		ScheduleCleanupDays  int  `public:"true" info:"Schedule on-call history will be deleted after this many days (0 means disable cleanup)."`
 	}
 
 	Auth struct {
@@ -447,6 +452,12 @@ func (cfg Config) Validate() error {
 		}
 		return validate.OAuthScope(fname, val, "openid")
 	}
+	validateLabels := func(fname string, vals []string) (err error) {
+		for i, v := range vals {
+			err = validate.Many(err, validate.LabelKey(fmt.Sprintf("%s[%d]", fname, i), v))
+		}
+		return err
+	}
 
 	err = validate.Many(
 		err,
@@ -456,6 +467,7 @@ func (cfg Config) Validate() error {
 		validateKey("Slack.ClientSecret", cfg.Slack.ClientSecret),
 		validateKey("Twilio.AccountSID", cfg.Twilio.AccountSID),
 		validateKey("Twilio.AuthToken", cfg.Twilio.AuthToken),
+		validateLabels("Services.RequiredLabels", cfg.Services.RequiredLabels),
 		validateKey("Twilio.AlternateAuthToken", cfg.Twilio.AlternateAuthToken),
 		validate.ASCII("Twilio.VoiceName", cfg.Twilio.VoiceName, 0, 50),
 		validate.ASCII("Twilio.VoiceLanguage", cfg.Twilio.VoiceLanguage, 0, 10),

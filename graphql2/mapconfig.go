@@ -34,8 +34,10 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "General.DisableSMSLinks", Type: ConfigTypeBoolean, Description: "If set, SMS messages will not contain a URL pointing to GoAlert.", Value: fmt.Sprintf("%t", cfg.General.DisableSMSLinks)},
 		{ID: "General.DisableLabelCreation", Type: ConfigTypeBoolean, Description: "Disables the ability to create new labels for services.", Value: fmt.Sprintf("%t", cfg.General.DisableLabelCreation)},
 		{ID: "General.DisableCalendarSubscriptions", Type: ConfigTypeBoolean, Description: "If set, disables all active calendar subscriptions as well as the ability to create new calendar subscriptions.", Value: fmt.Sprintf("%t", cfg.General.DisableCalendarSubscriptions)},
+		{ID: "Services.RequiredLabels", Type: ConfigTypeStringList, Description: "List of label names to require new services to define.", Value: strings.Join(cfg.Services.RequiredLabels, "\n")},
 		{ID: "Maintenance.AlertCleanupDays", Type: ConfigTypeInteger, Description: "Closed alerts will be deleted after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.AlertCleanupDays)},
 		{ID: "Maintenance.AlertAutoCloseDays", Type: ConfigTypeInteger, Description: "Unacknowledged alerts will automatically be closed after this many days of inactivity. (0 means disable auto-close).", Value: fmt.Sprintf("%d", cfg.Maintenance.AlertAutoCloseDays)},
+		{ID: "Maintenance.AutoCloseAckedAlerts", Type: ConfigTypeBoolean, Description: "If set, alerts that are acknowledged will also be automatically closed after the configured number of days of inactivity.", Value: fmt.Sprintf("%t", cfg.Maintenance.AutoCloseAckedAlerts)},
 		{ID: "Maintenance.APIKeyExpireDays", Type: ConfigTypeInteger, Description: "Unused calendar API keys will be disabled after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.APIKeyExpireDays)},
 		{ID: "Maintenance.ScheduleCleanupDays", Type: ConfigTypeInteger, Description: "Schedule on-call history will be deleted after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.ScheduleCleanupDays)},
 		{ID: "Auth.RefererURLs", Type: ConfigTypeStringList, Description: "Allowed referer URLs for auth and redirects.", Value: strings.Join(cfg.Auth.RefererURLs, "\n"), Deprecated: "Use --public-url flag instead, which takes precedence."},
@@ -103,8 +105,10 @@ func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "General.DisableSMSLinks", Type: ConfigTypeBoolean, Description: "If set, SMS messages will not contain a URL pointing to GoAlert.", Value: fmt.Sprintf("%t", cfg.General.DisableSMSLinks)},
 		{ID: "General.DisableLabelCreation", Type: ConfigTypeBoolean, Description: "Disables the ability to create new labels for services.", Value: fmt.Sprintf("%t", cfg.General.DisableLabelCreation)},
 		{ID: "General.DisableCalendarSubscriptions", Type: ConfigTypeBoolean, Description: "If set, disables all active calendar subscriptions as well as the ability to create new calendar subscriptions.", Value: fmt.Sprintf("%t", cfg.General.DisableCalendarSubscriptions)},
+		{ID: "Services.RequiredLabels", Type: ConfigTypeStringList, Description: "List of label names to require new services to define.", Value: strings.Join(cfg.Services.RequiredLabels, "\n")},
 		{ID: "Maintenance.AlertCleanupDays", Type: ConfigTypeInteger, Description: "Closed alerts will be deleted after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.AlertCleanupDays)},
 		{ID: "Maintenance.AlertAutoCloseDays", Type: ConfigTypeInteger, Description: "Unacknowledged alerts will automatically be closed after this many days of inactivity. (0 means disable auto-close).", Value: fmt.Sprintf("%d", cfg.Maintenance.AlertAutoCloseDays)},
+		{ID: "Maintenance.AutoCloseAckedAlerts", Type: ConfigTypeBoolean, Description: "If set, alerts that are acknowledged will also be automatically closed after the configured number of days of inactivity.", Value: fmt.Sprintf("%t", cfg.Maintenance.AutoCloseAckedAlerts)},
 		{ID: "Maintenance.APIKeyExpireDays", Type: ConfigTypeInteger, Description: "Unused calendar API keys will be disabled after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.APIKeyExpireDays)},
 		{ID: "Maintenance.ScheduleCleanupDays", Type: ConfigTypeInteger, Description: "Schedule on-call history will be deleted after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.ScheduleCleanupDays)},
 		{ID: "Auth.DisableBasic", Type: ConfigTypeBoolean, Description: "Disallow username/password login.", Value: fmt.Sprintf("%t", cfg.Auth.DisableBasic)},
@@ -188,6 +192,8 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 				return cfg, err
 			}
 			cfg.General.DisableCalendarSubscriptions = val
+		case "Services.RequiredLabels":
+			cfg.Services.RequiredLabels = parseStringList(v.Value)
 		case "Maintenance.AlertCleanupDays":
 			val, err := parseInt(v.ID, v.Value)
 			if err != nil {
@@ -200,6 +206,12 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 				return cfg, err
 			}
 			cfg.Maintenance.AlertAutoCloseDays = val
+		case "Maintenance.AutoCloseAckedAlerts":
+			val, err := parseBool(v.ID, v.Value)
+			if err != nil {
+				return cfg, err
+			}
+			cfg.Maintenance.AutoCloseAckedAlerts = val
 		case "Maintenance.APIKeyExpireDays":
 			val, err := parseInt(v.ID, v.Value)
 			if err != nil {
