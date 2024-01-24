@@ -1,6 +1,5 @@
 import React from 'react'
-import { useMutation } from '@apollo/client'
-import { useQuery, gql } from 'urql'
+import { gql, useQuery, useMutation } from 'urql'
 import { get } from 'lodash'
 import FormDialog from '../dialogs/FormDialog'
 import Spinner from '../loading/components/Spinner'
@@ -13,6 +12,7 @@ const query = gql`
     }
   }
 `
+
 const mutation = gql`
   mutation delete($input: [TargetInput!]!) {
     deleteAll(input: $input)
@@ -28,16 +28,7 @@ export default function ScheduleDeleteDialog(props: {
     variables: { id: props.scheduleID },
   })
 
-  const [deleteSchedule, deleteScheduleStatus] = useMutation(mutation, {
-    variables: {
-      input: [
-        {
-          type: 'schedule',
-          id: props.scheduleID,
-        },
-      ],
-    },
-  })
+  const [deleteScheduleStatus, commit] = useMutation(mutation)
 
   if (!data && fetching) return <Spinner />
 
@@ -47,10 +38,19 @@ export default function ScheduleDeleteDialog(props: {
       confirm
       subTitle={`This will delete the schedule: ${get(data, 'schedule.name')}`}
       caption='Deleting a schedule will also delete all associated rules and overrides.'
-      loading={deleteScheduleStatus.loading}
+      loading={deleteScheduleStatus.fetching}
       errors={deleteScheduleStatus.error ? [deleteScheduleStatus.error] : []}
       onClose={props.onClose}
-      onSubmit={() => deleteSchedule()}
+      onSubmit={() =>
+        commit({
+          input: [
+            {
+              type: 'schedule',
+              id: props.scheduleID,
+            },
+          ],
+        })
+      }
     />
   )
 }

@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import { useMutation } from '@apollo/client'
-import { gql } from 'urql'
+import { gql, useMutation } from 'urql'
 import FormDialog from '../dialogs/FormDialog'
 import ScheduleForm, { Value } from './ScheduleForm'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
@@ -27,7 +26,7 @@ export default function ScheduleCreateDialog(props: {
     favorite: true,
   })
 
-  const [createSchedule, { loading, data, error }] = useMutation(mutation)
+  const [{ fetching, data, error }, commit] = useMutation(mutation)
 
   if (data && data.createSchedule) {
     return <Redirect to={`/schedules/${data.createSchedule.id}`} />
@@ -39,7 +38,7 @@ export default function ScheduleCreateDialog(props: {
       title='Create New Schedule'
       errors={nonFieldErrors(error)}
       onSubmit={() =>
-        createSchedule({
+        commit({
           variables: {
             input: {
               ...value,
@@ -55,7 +54,7 @@ export default function ScheduleCreateDialog(props: {
       }
       form={
         <ScheduleForm
-          disabled={loading}
+          disabled={fetching}
           errors={fieldErrors(error)}
           value={value}
           onChange={(value: Value) => setValue(value)}
