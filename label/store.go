@@ -9,7 +9,6 @@ import (
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
-	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
 )
@@ -21,6 +20,38 @@ type Store struct {
 
 // NewStore will Set a DB backend from a sql.DB. An error will be returned if statements fail to prepare.
 func NewStore(ctx context.Context, db *sql.DB) (*Store, error) { return &Store{db: db}, nil }
+
+func (l *Label) tgtEP() uuid.NullUUID {
+	if l.Target.TargetType() != assignment.TargetTypeEscalationPolicy {
+		return uuid.NullUUID{}
+	}
+
+	return uuid.NullUUID{UUID: uuid.MustParse(l.Target.TargetID()), Valid: true}
+}
+
+func (l *Label) tgtSvc() uuid.NullUUID {
+	if l.Target.TargetType() != assignment.TargetTypeService {
+		return uuid.NullUUID{}
+	}
+
+	return uuid.NullUUID{UUID: uuid.MustParse(l.Target.TargetID()), Valid: true}
+}
+
+func (l *Label) tgtSched() uuid.NullUUID {
+	if l.Target.TargetType() != assignment.TargetTypeSchedule {
+		return uuid.NullUUID{}
+	}
+
+	return uuid.NullUUID{UUID: uuid.MustParse(l.Target.TargetID()), Valid: true}
+}
+
+func (l *Label) tgtRot() uuid.NullUUID {
+	if l.Target.TargetType() != assignment.TargetTypeRotation {
+		return uuid.NullUUID{}
+	}
+
+	return uuid.NullUUID{UUID: uuid.MustParse(l.Target.TargetID()), Valid: true}
+}
 
 // SetTx will set a label for the service. It can be used to set the key-value pair for the label,
 // delete a label or update the value given the label's key.
@@ -37,8 +68,11 @@ func (s *Store) SetTx(ctx context.Context, db gadb.DBTX, label *Label) error {
 
 	if n.Value == "" { // delete if value is empty
 		err = gadb.New(db).LabelDeleteKeyByTarget(ctx, gadb.LabelDeleteKeyByTargetParams{
-			Key:          label.Key,
-			TgtServiceID: uuid.MustParse(label.Target.TargetID()),
+			Key:        label.Key,
+			ServiceID:  label.tgtSvc(),
+			ScheduleID: label.tgtSched(),
+			RotationID: label.tgtRot(),
+			EpID:       label.tgtEP(),
 		})
 		if err != nil {
 			return fmt.Errorf("delete label: %w", err)
@@ -48,9 +82,12 @@ func (s *Store) SetTx(ctx context.Context, db gadb.DBTX, label *Label) error {
 	}
 
 	err = gadb.New(db).LabelSetByTarget(ctx, gadb.LabelSetByTargetParams{
-		Key:          label.Key,
-		Value:        label.Value,
-		TgtServiceID: uuid.MustParse(label.Target.TargetID()),
+		Key:        label.Key,
+		Value:      label.Value,
+		ServiceID:  label.tgtSvc(),
+		ScheduleID: label.tgtSched(),
+		RotationID: label.tgtRot(),
+		EpID:       label.tgtEP(),
 	})
 	if err != nil {
 		return fmt.Errorf("set label: %w", err)
@@ -59,19 +96,20 @@ func (s *Store) SetTx(ctx context.Context, db gadb.DBTX, label *Label) error {
 	return nil
 }
 
-// FindAllByService finds all labels for a particular service. It returns all key-value pairs.
-func (s *Store) FindAllByService(ctx context.Context, db gadb.DBTX, serviceID string) ([]Label, error) {
+// FindAllByTarget finds all labels for a particular target. It returns all key-value pairs.
+func (s *Store) FindAllByTarget(ctx context.Context, db gadb.DBTX, t assignment.Target) ([]Label, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
 	}
 
-	svc, err := validate.ParseUUID("ServiceID", serviceID)
-	if err != nil {
-		return nil, err
-	}
-
-	rows, err := gadb.New(db).LabelFindAllByTarget(ctx, svc)
+	label := Label{Target: t}
+	rows, err := gadb.New(db).LabelFindAllByTarget(ctx, gadb.LabelFindAllByTargetParams{
+		ServiceID:  label.tgtSvc(),
+		ScheduleID: label.tgtSched(),
+		RotationID: label.tgtRot(),
+		EpID:       label.tgtEP(),
+	})
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -83,7 +121,7 @@ func (s *Store) FindAllByService(ctx context.Context, db gadb.DBTX, serviceID st
 	for i, l := range rows {
 		labels[i].Key = l.Key
 		labels[i].Value = l.Value
-		labels[i].Target = assignment.ServiceTarget(serviceID)
+		labels[i].Target = t
 	}
 
 	return labels, nil
