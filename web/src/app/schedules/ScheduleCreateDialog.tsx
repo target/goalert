@@ -39,16 +39,14 @@ export default function ScheduleCreateDialog(props: {
       errors={nonFieldErrors(error)}
       onSubmit={() =>
         commit({
-          variables: {
-            input: {
-              ...value,
-              targets: [
-                {
-                  target: { type: 'user', id: '__current_user' },
-                  rules: [{}],
-                },
-              ],
-            },
+          input: {
+            ...value,
+            targets: [
+              {
+                target: { type: 'user', id: '__current_user' },
+                rules: [{}],
+              },
+            ],
           },
         })
       }

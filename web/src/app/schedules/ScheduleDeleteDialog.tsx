@@ -42,14 +42,17 @@ export default function ScheduleDeleteDialog(props: {
       errors={deleteScheduleStatus.error ? [deleteScheduleStatus.error] : []}
       onClose={props.onClose}
       onSubmit={() =>
-        commit({
-          input: [
-            {
-              type: 'schedule',
-              id: props.scheduleID,
-            },
-          ],
-        })
+        commit(
+          {
+            input: [
+              {
+                type: 'schedule',
+                id: props.scheduleID,
+              },
+            ],
+          },
+          { additionalTypenames: ['Schedule'] },
+        )
       }
     />
   )
