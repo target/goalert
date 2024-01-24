@@ -98,15 +98,18 @@ export default function CalendarSubscribeCreateDialog(
       onSubmit={() =>
         isComplete
           ? props.onClose()
-          : commit({
-              input: {
-                scheduleID: value.scheduleID,
-                name: value.name,
-                reminderMinutes: [0], // default reminder at shift start time
-                disabled: false,
-                fullSchedule: value.fullSchedule,
+          : commit(
+              {
+                input: {
+                  scheduleID: value.scheduleID,
+                  name: value.name,
+                  reminderMinutes: [0], // default reminder at shift start time
+                  disabled: false,
+                  fullSchedule: value.fullSchedule,
+                },
               },
-            })
+              { additionalTypenames: ['User'] },
+            )
       }
       form={getForm(isComplete, form, status.data)}
     />
