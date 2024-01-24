@@ -19,7 +19,7 @@ func (db *DB) Name() string { return "Engine.StatusUpdateManager" }
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeStatusUpdate,
-		Version: 4,
+		Version: 5,
 	})
 	if err != nil {
 		return nil, err
