@@ -673,6 +673,8 @@ func getConfig(ctx context.Context) (Config, error) {
 		if err != nil {
 			return cfg, errors.Wrap(err, "parse public url")
 		}
+		u.Path = strings.TrimSuffix(u.Path, "/")
+		cfg.PublicURL = u.String()
 		if cfg.HTTPPrefix != "" {
 			return cfg, errors.New("public-url and http-prefix cannot be used together")
 		}
