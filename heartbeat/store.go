@@ -36,24 +36,24 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 		create: p.P(`
 			insert into heartbeat_monitors (
-				id, name, service_id, heartbeat_interval
-			) values ($1, $2, $3, $4)
+				id, name, service_id, heartbeat_interval, additional_details
+			) values ($1, $2, $3, $4, $5)
 		`),
 		findAll: p.P(`
 			select
-				id, name, service_id, heartbeat_interval, last_state, last_heartbeat
+				id, name, service_id, heartbeat_interval, last_state, last_heartbeat, coalesce(additional_details, '')
 			from heartbeat_monitors
 			where service_id = $1
 		`),
 		findMany: p.P(`
 			select
-				id, name, service_id, heartbeat_interval, last_state, last_heartbeat
+				id, name, service_id, heartbeat_interval, last_state, last_heartbeat, coalesce(additional_details, '')
 			from heartbeat_monitors
 			where id = any($1)
 		`),
 		findOneUpd: p.P(`
 			select
-				id, name, service_id, heartbeat_interval, last_state, last_heartbeat
+				id, name, service_id, heartbeat_interval, last_state, last_heartbeat, coalesce(additional_details, '')
 			from heartbeat_monitors
 			where id = $1
 			for update
@@ -66,7 +66,8 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			update heartbeat_monitors
 			set
 				name = $2,
-				heartbeat_interval = $3
+				heartbeat_interval = $3,
+				additional_details = $4
 			where id = $1
 		`),
 		getSvcID: p.P(`select service_id from heartbeat_monitors where id = $1`),
@@ -98,7 +99,7 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, m *Monitor) (*Monitor,
 
 	n.ID = uuid.New().String()
 	n.lastState = StateInactive
-	_, err = tx.StmtContext(ctx, s.create).ExecContext(ctx, n.ID, n.Name, n.ServiceID, &timeout)
+	_, err = tx.StmtContext(ctx, s.create).ExecContext(ctx, n.ID, n.Name, n.ServiceID, &timeout, m.AdditionalDetails)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +170,7 @@ func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, m *Monitor) error {
 		return err
 	}
 
-	_, err = stmt.ExecContext(ctx, n.ID, n.Name, &timeout)
+	_, err = stmt.ExecContext(ctx, n.ID, n.Name, &timeout, m.AdditionalDetails)
 
 	return err
 }

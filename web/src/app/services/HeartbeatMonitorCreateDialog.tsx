@@ -17,7 +17,11 @@ export default function HeartbeatMonitorCreateDialog(props: {
   serviceID: string
   onClose: () => void
 }): JSX.Element {
-  const [value, setValue] = useState<Value>({ name: '', timeoutMinutes: 15 })
+  const [value, setValue] = useState<Value>({
+    name: '',
+    timeoutMinutes: 15,
+    additionalDetails: '',
+  })
   const [createHeartbeatStatus, createHeartbeat] = useMutation(createMutation)
 
   return (
@@ -34,6 +38,7 @@ export default function HeartbeatMonitorCreateDialog(props: {
               name: value.name,
               timeoutMinutes: value.timeoutMinutes,
               serviceID: props.serviceID,
+              additionalDetails: value.additionalDetails,
             },
           },
           { additionalTypenames: ['HeartbeatMonitor', 'Service'] },
