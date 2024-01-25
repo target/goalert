@@ -88,7 +88,7 @@ export default function ScheduleOverrideCreateDialog({
               scheduleID,
             },
           },
-          { additionalTypenames: ['UserOverrides'] },
+          { additionalTypenames: ['UserOverrideConnection', 'Schedule'] },
         ).then((result) => {
           if (!result.error) onClose()
         })
