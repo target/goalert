@@ -1,12 +1,12 @@
-import React, { useState } from 'react'
-import { useQuery, useMutation, gql } from '@apollo/client'
-import { PropTypes as p } from 'prop-types'
+import React, { ReactNode, useState } from 'react'
+import { useQuery, useMutation, gql } from 'urql'
 import FormDialog from '../../dialogs/FormDialog'
 import CalendarSubscribeForm from './CalendarSubscribeForm'
 import { GenericError, ObjectNotFound } from '../../error-pages'
 import _ from 'lodash'
 import Spinner from '../../loading/components/Spinner'
 import { fieldErrors } from '../../util/errutil'
+import { UserCalendarSubscription } from '../../../schema'
 
 const query = gql`
   query ($id: ID!) {
@@ -25,7 +25,14 @@ const mutation = gql`
   }
 `
 
-export function CalendarSubscribeEditDialogContent(props) {
+interface CalendarSubscribeEditDialogContentProps {
+  data: UserCalendarSubscription
+  onClose: () => void
+}
+
+export function CalendarSubscribeEditDialogContent(
+  props: CalendarSubscribeEditDialogContentProps,
+): ReactNode {
   const { data, onClose } = props
 
   // set default values from retrieved data
@@ -36,27 +43,31 @@ export function CalendarSubscribeEditDialogContent(props) {
   })
 
   // setup the mutation
-  const [updateSubscription, updateSubscriptionStatus] = useMutation(mutation, {
-    variables: {
-      input: {
-        id: props.data.id,
-        name: value.name,
-        fullSchedule: value.fullSchedule,
-      },
-    },
-    onCompleted: () => props.onClose(),
-  })
+  const [updateSubscriptionStatus, commit] = useMutation(mutation)
 
   return (
     <FormDialog
       title='Edit Calendar Subscription'
       onClose={onClose}
-      loading={updateSubscriptionStatus.loading}
-      onSubmit={() => updateSubscription()}
+      loading={updateSubscriptionStatus.fetching}
+      onSubmit={() =>
+        commit(
+          {
+            input: {
+              id: props.data.id,
+              name: value.name,
+              fullSchedule: value.fullSchedule,
+            },
+          },
+          { additionalTypenames: ['UserCalendarSubscription'] },
+        ).then((result) => {
+          if (!result.error) props.onClose()
+        })
+      }
       form={
         <CalendarSubscribeForm
           errors={fieldErrors(updateSubscriptionStatus.error)}
-          loading={updateSubscriptionStatus.loading}
+          loading={updateSubscriptionStatus.fetching}
           onChange={setValue}
           value={value}
           scheduleReadOnly
@@ -66,23 +77,26 @@ export function CalendarSubscribeEditDialogContent(props) {
   )
 }
 
-CalendarSubscribeEditDialogContent.propTypes = {
-  data: p.object.isRequired,
-  onClose: p.func.isRequired,
+interface CalendarSubscribeEditDialogProps {
+  calSubscriptionID: string
+  onClose: () => void
 }
 
 /*
  * Load edit data here before rendering edit content to
  * avoid breaking any rules of hooks
  */
-export default function CalendarSubscribeEditDialog(props) {
-  const { data, loading, error } = useQuery(query, {
+export default function CalendarSubscribeEditDialog(
+  props: CalendarSubscribeEditDialogProps,
+): ReactNode {
+  const [{ data, fetching, error }] = useQuery({
+    query,
     variables: { id: props.calSubscriptionID },
   })
 
   if (error) return <GenericError error={error.message} />
   if (!_.get(data, 'userCalendarSubscription.id')) {
-    return loading ? <Spinner /> : <ObjectNotFound />
+    return fetching ? <Spinner /> : <ObjectNotFound />
   }
 
   return (
@@ -91,9 +105,4 @@ export default function CalendarSubscribeEditDialog(props) {
       onClose={props.onClose}
     />
   )
-}
-
-CalendarSubscribeEditDialog.propTypes = {
-  calSubscriptionID: p.string.isRequired,
-  onClose: p.func.isRequired,
 }
