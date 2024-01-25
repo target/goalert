@@ -141,7 +141,7 @@ export default function ScheduleOverrideDialog(props) {
               scheduleID: props.scheduleID,
             },
           },
-          { additionalTypenames: ['UserOverrides'] },
+          { additionalTypenames: ['UserOverrideConnection', 'Schedule'] },
         ).then((result) => {
           if (!result.error) props.onClose()
         })
