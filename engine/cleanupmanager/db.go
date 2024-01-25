@@ -31,7 +31,7 @@ type DB struct {
 	cleanupOverrides   *sql.Stmt
 	cleanupSchedOnCall *sql.Stmt
 	cleanupEPOnCall    *sql.Stmt
-	unackAlerts        *sql.Stmt
+	staleAlerts        *sql.Stmt
 	alertStore         *alert.Store
 
 	logIndex int
@@ -94,10 +94,10 @@ func NewDB(ctx context.Context, db *sql.DB, alertstore *alert.Store) (*DB, error
 		cleanupOverrides:   p.P(`DELETE FROM user_overrides WHERE id = ANY(SELECT id FROM user_overrides WHERE end_time < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)`),
 		cleanupSchedOnCall: p.P(`DELETE FROM schedule_on_call_users WHERE id = ANY(SELECT id FROM schedule_on_call_users WHERE end_time < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)`),
 		cleanupEPOnCall:    p.P(`DELETE FROM ep_step_on_call_users WHERE id = ANY(SELECT id FROM ep_step_on_call_users WHERE end_time < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)`),
-		unackAlerts: p.P(`
+		staleAlerts: p.P(`
 			select id from alerts a
 	     		where
-				a.status='triggered' and
+				(a.status='triggered' or ($2 and a.status = 'active')) and
 				created_at <= now() - '1 day'::interval * $1 and
 				not exists (
 					select 1 from alert_logs log

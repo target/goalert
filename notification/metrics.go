@@ -11,7 +11,7 @@ var (
 		Subsystem: "notification",
 		Name:      "sent_total",
 		Help:      "Total number of sent notifications.",
-	}, []string{"dest_type", "message_type"})
+	}, []string{"dest_type", "message_type", "service_id"})
 	metricRecvTotal = promauto.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "goalert",
 		Subsystem: "notification",

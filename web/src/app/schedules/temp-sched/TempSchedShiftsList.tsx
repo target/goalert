@@ -20,7 +20,7 @@ import { UserAvatar } from '../../util/avatars'
 import { useUserInfo } from '../../util/useUserInfo'
 import { parseInterval } from '../../util/shifts'
 import { useScheduleTZ } from '../useScheduleTZ'
-import { splitAtMidnight } from '../../util/luxon-helpers'
+import { splitShift } from '../../util/luxon-helpers'
 import {
   getCoverageGapItems,
   getSubheaderItems,
@@ -46,6 +46,7 @@ const useStyles = makeStyles({
 type TempSchedShiftsListProps = {
   value: Shift[]
   onRemove?: (shift: Shift) => void
+  shiftDur?: Duration
   start: string
   end: string
   edit?: boolean
@@ -62,6 +63,7 @@ export default function TempSchedShiftsList({
   edit,
   start,
   end,
+  shiftDur,
   value,
   compareAdditions,
   compareRemovals,
@@ -115,28 +117,40 @@ export default function TempSchedShiftsList({
       ]
     }
 
-    const subheaderItems = getSubheaderItems(schedInterval, shifts, zone)
     const coverageGapItems = getCoverageGapItems(
       schedInterval,
+      shiftDur as Duration,
       shifts,
       zone,
       handleCoverageGapClick,
     )
+    const subheaderItems = getSubheaderItems(
+      schedInterval,
+      shifts,
+      shiftDur as Duration,
+      zone,
+    )
+
     const outOfBoundsItems = getOutOfBoundsItems(schedInterval, shifts, zone)
 
     const shiftItems = (() => {
       return _.flatMap(shifts, (s: Shift, idx) => {
         const shiftInv = parseInterval(s, zone)
         const isValid = schedInterval.engulfs(shiftInv)
-        const dayInvs = splitAtMidnight(shiftInv)
+        let fixedShifts = splitShift(shiftInv)
 
-        return dayInvs.map((inv, index) => {
+        // splitShift with shift duration if duration spans multiple days, otherwise default to 1 day
+        if (shiftDur?.days && shiftDur?.days > 1)
+          fixedShifts = splitShift(shiftInv, shiftDur)
+
+        return fixedShifts.map((inv, index) => {
           const startTime = fmtTime(
             s.displayStart ? s.displayStart : inv.start,
             zone,
             false,
+            false,
           )
-          const endTime = fmtTime(inv.end, zone, false)
+          const endTime = fmtTime(inv.end, zone, false, false)
           const shiftExists = existingShifts.find((shift) => {
             return (
               DateTime.fromISO(s.start).equals(DateTime.fromISO(shift.start)) &&
@@ -152,10 +166,15 @@ export default function TempSchedShiftsList({
           let titleText = ''
           if (inv.length('hours') === 24) {
             // shift spans all day
-            subText = 'All day'
+            subText = `All day`
           } else if (inv.engulfs(shiftInv)) {
-            // shift is inside the day
+            // shift is inside the interval
             subText = `From ${startTime} to ${endTime}`
+            if (inv.length('days') > 1) {
+              subText = `From ${inv.start.toFormat(
+                't ccc',
+              )} to ${inv.end.toFormat('t ccc')}`
+            }
             titleText = `From ${fmtLocal(inv.start.toISO())} to ${fmtLocal(
               inv.end.toISO(),
             )}`
@@ -263,7 +282,7 @@ export default function TempSchedShiftsList({
           }
         : {
             message: '',
-            details: `Starts at ${fmtTime(start, zone, false)}`,
+            details: `Starts at ${fmtTime(start, zone, false, false)}`,
             at: DateTime.fromISO(start, { zone }),
             itemType: 'start',
             tooltipTitle: `Starts at ${fmtLocal(start)}`,
@@ -288,7 +307,7 @@ export default function TempSchedShiftsList({
       const at = DateTime.fromISO(end, { zone })
       const details = at.equals(at.startOf('day'))
         ? 'Ends at midnight'
-        : 'Ends at ' + fmtTime(at, zone, false)
+        : 'Ends at ' + fmtTime(at, zone, false, false)
       const detailsTooltip = `Ends at ${fmtLocal(end)}`
 
       return {

@@ -39,6 +39,7 @@ function testSubs(screen: ScreenFormat): void {
       cy.dialogContains(Cypress.config().baseUrl + '/api/v2/calendar?token=')
       cy.dialogFinish('Done')
 
+      cy.get('[data-cy="subscribe-btn"]').trigger('mouseover')
       cy.get('body').should('not.contain', defaultCptn)
       cy.get('body').should('contain', 'You have 1 active subscription')
     })
