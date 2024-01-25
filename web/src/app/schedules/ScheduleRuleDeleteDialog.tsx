@@ -1,6 +1,5 @@
 import React from 'react'
-import { useMutation } from '@apollo/client'
-import { gql, useQuery } from 'urql'
+import { gql, useQuery, useMutation } from 'urql'
 import FormDialog from '../dialogs/FormDialog'
 import { startCase } from 'lodash'
 import { GenericError } from '../error-pages'
@@ -46,9 +45,7 @@ export default function ScheduleRuleDeleteDialog(
     variables: { id: props.scheduleID, tgt: props.target },
   })
 
-  const [deleteRule] = useMutation(mutation, {
-    onCompleted: props.onClose,
-  })
+  const [, commit] = useMutation(mutation)
 
   if (error) {
     return <GenericError error={error.message} />
@@ -66,14 +63,17 @@ export default function ScheduleRuleDeleteDialog(
       caption='Overrides will not be affected.'
       confirm
       onSubmit={() => {
-        deleteRule({
-          variables: {
+        commit(
+          {
             input: {
               target: props.target,
               scheduleID: props.scheduleID,
               rules: [],
             },
           },
+          { additionalTypenames: ['Schedule'] },
+        ).then((result) => {
+          if (!result.error) props.onClose()
         })
       }}
     />
