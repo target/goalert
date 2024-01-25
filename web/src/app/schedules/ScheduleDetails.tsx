@@ -26,6 +26,7 @@ const query = gql`
     name
     description
   }
+
   query scheduleDetailsQuery($id: ID!) {
     schedule(id: $id) {
       ...ScheduleTitleQuery
