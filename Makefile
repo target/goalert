@@ -28,6 +28,13 @@ PG_VERSION=13
 # add all files except those under web/src/build and web/src/cypress
 NODE_DEPS=.pnp.cjs .yarnrc.yml $(shell find web/src -path web/src/build -prune -o -path web/src/cypress -prune -o -type f -print)
 
+# add .git/HEAD if it exists to NODE_DEPS
+# this is used to trigger a rebuild when committing changes to git
+# since the git commit hash is used in the build as the version
+ifneq ("$(wildcard .git/HEAD)","")
+NODE_DEPS += .git/HEAD
+endif
+
 # Use sha256sum on linux and shasum -a 256 on mac
 SHA_CMD := $(shell if [ -x "$(shell command -v sha256sum 2>/dev/null)" ]; then echo "sha256sum"; else echo "shasum -a 256"; fi)
 
