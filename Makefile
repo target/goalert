@@ -26,7 +26,7 @@ YARN_VERSION=3.6.3
 PG_VERSION=13
 
 # add all files except those under web/src/build and web/src/cypress
-NODE_DEPS=.pnp.cjs .yarnrc.yml $(shell find web/src -path web/src/build -prune -o -path web/src/cypress -prune -o -type f -print)
+NODE_DEPS=.pnp.cjs .yarnrc.yml .gitrev $(shell find web/src -path web/src/build -prune -o -path web/src/cypress -prune -o -type f -print)
 
 # add .git/HEAD if it exists to NODE_DEPS
 # this is used to trigger a rebuild when committing changes to git

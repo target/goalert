@@ -7,7 +7,7 @@ BIN_DIR=bin
 GO_DEPS := Makefile.binaries.mk $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print) go.sum
 GO_DEPS += migrate/migrations/ migrate/migrations/*.sql web/index.html graphql2/graphqlapp/slack.manifest.yaml swo/*/*.sql
 GO_DEPS += graphql2/mapconfig.go graphql2/maplimit.go graphql2/generated.go graphql2/models_gen.go
-GO_DEPS += web/explore.html web/live.js
+GO_DEPS += web/explore.html web/live.js .gitrev
 
 ifdef BUNDLE
 	GO_DEPS += web/src/build/static/app.js web/src/build/static/explore.js
@@ -18,6 +18,13 @@ GIT_TREE:=$(shell git diff-index --quiet HEAD -- && echo clean || echo dirty)
 GIT_VERSION:=$(shell git describe --tags --dirty --match 'v*' || echo dev-$(shell date -u +"%Y%m%d%H%M%S"))
 BUILD_DATE:=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 BUILD_FLAGS=
+
+# update .gitrev with GIT_VERSION (unless it matches the current value)
+ifneq ($(shell cat .gitrev 2>/dev/null),$(GIT_VERSION))
+$(shell echo "$(GIT_VERSION)" > .gitrev)
+endif
+.gitrev:
+	@echo "$(GIT_VERSION)" > .gitrev
 
 export ZONEINFO:=$(shell go env GOROOT)/lib/time/zoneinfo.zip
 
