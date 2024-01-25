@@ -25,7 +25,8 @@ GOPATH:=$(shell go env GOPATH)
 YARN_VERSION=3.6.3
 PG_VERSION=13
 
-NODE_DEPS=.pnp.cjs .yarnrc.yml
+# add all files except those under web/src/build and web/src/cypress
+NODE_DEPS=.pnp.cjs .yarnrc.yml $(shell find web/src -path web/src/build -prune -o -path web/src/cypress -prune -o -type f -print)
 
 # Use sha256sum on linux and shasum -a 256 on mac
 SHA_CMD := $(shell if [ -x "$(shell command -v sha256sum 2>/dev/null)" ]; then echo "sha256sum"; else echo "shasum -a 256"; fi)
@@ -128,7 +129,7 @@ cy-mobile-prod-run: web/src/build/static/app.js cypress
 swo/swodb/queries.sql.go: $(BIN_DIR)/tools/sqlc sqlc.yaml swo/*/*.sql migrate/migrations/*.sql */queries.sql */*/queries.sql migrate/schema.sql
 	$(BIN_DIR)/tools/sqlc generate
 
-web/src/schema.d.ts: graphql2/schema.graphql graphql2/graph/*.graphqls $(NODE_DEPS) web/src/genschema.go
+web/src/schema.d.ts: graphql2/schema.graphql graphql2/graph/*.graphqls web/src/genschema.go
 	go generate ./web/src
 
 help: ## Show all valid options
@@ -189,6 +190,7 @@ check: check-go check-js ## Run all lint checks
 
 .yarnrc.yml: package.json
 	$(MAKE) yarn
+	touch "$@"
 
 .yarn/releases/yarn-$(YARN_VERSION).cjs:
 	yarn set version $(YARN_VERSION) || $(MAKE) yarn
@@ -296,17 +298,14 @@ tools:
 	yarn install && touch "$@"
 
 
-web/src/build/static/explore.js: web/src/build/static
-
-web/src/build/static: web/src/esbuild.config.js $(NODE_DEPS) $(shell find ./web/src/app -type f ) $(shell find ./web/src/explore -type f ) web/src/schema.d.ts
+web/src/build/static/explore.js: web/src/build/static/app.js
+web/src/build/static/app.js: $(NODE_DEPS)
 	$(MAKE) ensure-yarn
 	rm -rf web/src/build/static
 	mkdir -p web/src/build/static
 	cp -f web/src/app/public/icons/favicon-* web/src/app/public/logos/lightmode_* web/src/app/public/logos/darkmode_* web/src/build/static/
 	GOALERT_VERSION=$(GIT_VERSION) yarn run esbuild
-
-web/src/build/static/app.js: web/src/build/static $(NODE_DEPS)
-	
+	touch "$@"
 
 notification/desttype_string.go: notification/desttype.go
 	go generate ./notification
