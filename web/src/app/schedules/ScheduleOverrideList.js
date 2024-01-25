@@ -2,7 +2,7 @@ import React, { Suspense, useCallback, useState } from 'react'
 import { Button, Grid, FormControlLabel, Switch, Tooltip } from '@mui/material'
 import { GroupAdd } from '@mui/icons-material'
 import { DateTime } from 'luxon'
-import { gql } from '@apollo/client'
+import { gql } from 'urql'
 import QueryList from '../lists/QueryList'
 import { UserAvatar } from '../util/avatars'
 import OtherActions from '../util/OtherActions'
@@ -20,7 +20,6 @@ import { defaultTempSchedValue } from './temp-sched/sharedUtils'
 import ScheduleOverrideDialog from './ScheduleOverrideDialog'
 import CreateFAB from '../lists/CreateFAB'
 
-// the query name `scheduleOverrides` is used for refetch queries
 const query = gql`
   query scheduleOverrides($input: UserOverrideSearchOptions) {
     userOverrides(input: $input) {

@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { gql, useMutation } from '@apollo/client'
+import { gql, useMutation } from 'urql'
 import p from 'prop-types'
 import FormDialog from '../dialogs/FormDialog'
 import { DateTime } from 'luxon'
@@ -32,6 +32,7 @@ const useStyles = makeStyles({
     marginTop: '.3rem',
   },
 })
+
 export default function ScheduleOverrideDialog(props) {
   const { variantOptions = ['replace', 'remove', 'add', 'temp'] } = props
   const classes = useStyles()
@@ -53,15 +54,7 @@ export default function ScheduleOverrideDialog(props) {
 
   const notices = useOverrideNotices(props.scheduleID, value)
 
-  const [mutate, { loading, error }] = useMutation(mutation, {
-    variables: {
-      input: {
-        ...value,
-        scheduleID: props.scheduleID,
-      },
-    },
-    onCompleted: props.onClose,
-  })
+  const [{ fetching, error }, commit] = useMutation(mutation)
 
   useEffect(() => {
     setFieldErrors(getFieldErrors(error))
@@ -93,7 +86,7 @@ export default function ScheduleOverrideDialog(props) {
       }
       errors={nonFieldErrors(error)}
       notices={step === 0 ? [] : notices} // create and edit dialog
-      loading={loading}
+      loading={fetching}
       form={
         <React.Fragment>
           {/* Step 0: Choose override variant page */}
@@ -131,7 +124,7 @@ export default function ScheduleOverrideDialog(props) {
               add={activeVariant !== 'remove'}
               remove={activeVariant !== 'add'}
               scheduleID={props.scheduleID}
-              disabled={loading}
+              disabled={fetching}
               errors={fieldErrors}
               value={value}
               onChange={(newValue) => setValue(newValue)}
@@ -140,7 +133,19 @@ export default function ScheduleOverrideDialog(props) {
           )}
         </React.Fragment>
       }
-      onSubmit={() => mutate()}
+      onSubmit={() =>
+        commit(
+          {
+            input: {
+              ...value,
+              scheduleID: props.scheduleID,
+            },
+          },
+          { additionalTypenames: ['UserOverrideConnection', 'Schedule'] },
+        ).then((result) => {
+          if (!result.error) props.onClose()
+        })
+      }
       onNext={step < 1 ? onNext : null}
     />
   )
