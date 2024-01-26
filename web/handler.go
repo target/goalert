@@ -27,6 +27,11 @@ var liveJS []byte
 
 // validateAppJS will return an error if the app.js file is not valid or missing.
 func validateAppJS(fs fs.FS) error {
+	if version.GitVersion() == "dev" {
+		// skip validation in dev mode
+		return nil
+	}
+
 	fd, err := fs.Open("static/app.js")
 	if err != nil {
 		return fmt.Errorf("unable to open bundled app.js and ui-dir is unset, was make invoked with BUNDLE=1? (%w)", err)
