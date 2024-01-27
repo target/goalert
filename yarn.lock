@@ -6516,7 +6516,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@urql/core@npm:>=4.0.0, @urql/core@npm:^4.2.0":
+"@urql/core@npm:>=4.2.0":
+  version: 4.2.3
+  resolution: "@urql/core@npm:4.2.3"
+  dependencies:
+    "@0no-co/graphql.web": ^1.0.1
+    wonka: ^6.3.2
+  checksum: 06bd53b28cc3610ce9ff282dd9ef900399e312080ad4ad14a6759de6ab2f82935c5d6d7f255b56707978f9dcae57f7e0cd0d798b72e1ae9169428130db50ee35
+  languageName: node
+  linkType: hard
+
+"@urql/core@npm:^4.2.0":
   version: 4.2.2
   resolution: "@urql/core@npm:4.2.2"
   dependencies:
@@ -6526,13 +6536,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@urql/exchange-retry@npm:1.2.0":
-  version: 1.2.0
-  resolution: "@urql/exchange-retry@npm:1.2.0"
+"@urql/exchange-retry@npm:1.2.1":
+  version: 1.2.1
+  resolution: "@urql/exchange-retry@npm:1.2.1"
   dependencies:
-    "@urql/core": ">=4.0.0"
+    "@urql/core": ">=4.2.0"
     wonka: ^6.3.2
-  checksum: 5bb30c1de9fc6c1cd25224da4c2445567dc3d6bacac43a15dcca07bbd87c2c30c765dc522a3150dc119dc76230b2da27328a4ccd4e9cfb02039d87a9beaf97b4
+  checksum: cb23faab68e6b66ae31c20ed2507a637b5397963c90d24f17371cfe5660016d9308a3ae1ad9855fd22b5c660d8390472ecf6cc9eb07ee4e43c08ebf9ab14019a
   languageName: node
   linkType: hard
 
@@ -17633,7 +17643,7 @@ __metadata:
     "@types/react-virtualized-auto-sizer": 1.0.4
     "@typescript-eslint/eslint-plugin": 6.18.1
     "@typescript-eslint/parser": 6.18.1
-    "@urql/exchange-retry": 1.2.0
+    "@urql/exchange-retry": 1.2.1
     bowser: 2.11.0
     chance: 1.1.11
     classnames: 2.3.2
