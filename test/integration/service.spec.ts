@@ -173,7 +173,65 @@ test('Metric', async ({ page, isMobile}) => {
   }
 })
 
-test('Integration Key', async ({ page, isMobile }) => {
+test('Label', async ({ page, isMobile}) => {
+  // Create a label for the service
+  await page.getByRole('link', { name: 'Labels' }).click()
+  const key = `${c.word({ length: 4 })}/${c.word({ length: 3 })}`
+  let value = c.word({ length: 8 })
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Add' }).click()
+  } else {
+    await page.getByTestId('create-label').click()
+  }
+
+  await page.getByLabel('Key', { exact: true }).fill(key)
+  await page.getByText('Create "' + key + '"').click()
+  await page.getByLabel('Value', { exact: true }).fill(value)
+  await page.click('[role=dialog] button[type=submit]')
+
+  await expect(page.getByText(key)).toBeVisible()
+  await expect(page.getByText(value)).toBeVisible()
+
+  // Edit the label, change the value, confirm new value is visible
+  value = c.word({ length: 8 })
+  await page.getByRole('button', { name: 'Other Actions' }).click()
+  await page.getByRole('menuitem', { name: 'Edit' }).click()
+  await page.getByLabel('Value', { exact: true }).fill(value)
+  await page.click('[role=dialog] button[type=submit]')
+
+  await expect(page.getByText(key)).toBeVisible()
+  await expect(page.getByText(value)).toBeVisible()
+
+  // Delete the label, confirm it's no longer visible
+  await page.getByRole('button', { name: 'Other Actions' }).click()
+  await page.getByRole('menuitem', { name: 'Delete' }).click()
+  await page.getByRole('button', { name: 'Confirm' }).click()
+
+  await expect(
+    page.getByText('No labels exist for this service.'),
+  ).toBeVisible()
+
+  // Create a second the label and value for the service
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Add' }).click()
+  } else {
+    await page.getByTestId('create-label').click()
+  }
+
+  await page.getByLabel('Key', { exact: true }).fill(key)
+  await page.getByText('Create "' + key + '"').click()
+  await page.getByLabel('Value', { exact: true }).fill(value)
+  await page.click('[role=dialog] button[type=submit]')
+
+  // Return to the service
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Back' }).click()
+  } else {
+    await page.getByRole('link', { name, exact: true }).click()
+  }
+})
+
+test('Integration Keys', async ({ page, isMobile }) => {
   // Return to the service
   if (isMobile) {
     await page.getByRole('button', { name: 'Back' }).click()
