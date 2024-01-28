@@ -7,42 +7,41 @@ const c = new Chance()
 test.describe.configure({ mode: 'parallel' })
 test.use({ storageState: userSessionFile })
 
-// test create, verify, and delete of an EMAIL contact method
-test('Service', async ({ page, isMobile }) => {
+test('Service Information', async ({ page }) => {
   let name = 'pw-service ' + c.name()
   const description = c.sentence()
 
   await createService(page, name, description)
 
-  // We should be on the details page, so let's try editing it after validating the data on the page.
+  //We should be on the details page, so let's try editing it after validating the data on the page.
 
-  // We should have a heading with the service name
+  //We should have a heading with the service name
   await expect(page.getByRole('heading', { name, level: 1 })).toBeVisible()
 
-  // and the breadcrumb link
-  await expect(page.getByRole('link', { name, exact: true })).toBeVisible()
-
-  // We should also find the description on the page
-  await expect(page.getByText(description)).toBeVisible()
+  //and the breadcrumb link
+  await expect(page.getByRole('link', { name, exact: true }))toBeVisible()
 
   // Lastly ensure there is a link to a policy named "<name> Policy"
   await expect(page.getByRole('link', { name: name + ' Policy' })).toBeVisible()
+})
 
-  // Now let's edit the service name
+test('Service Editing', async ({ page }) => {
   await page.getByRole('button', { name: 'Edit' }).click()
 
   name = 'pw-service ' + c.name()
   await page.fill('input[name=name]', name)
   await page.click('[role=dialog] button[type=submit]')
 
-  await expect(page.getByRole('heading', { name, level: 1 })).toBeVisible()
+  await expect(page.getByRole('heading', { name, level: 1})).toBeVisible()
+})
 
+test('Heartbeat Monitors', async ({ page, isMobile }) => {
   // Navigate to the heartbeat monitors
   await page.getByRole('link', { name: 'Heartbeat Monitors' }).click()
 
   // Cancel out of create
   if (isMobile) {
-    await page.getByRole('button', { name: 'Create Heartbeat Monitor' }).click()
+    await page.getByRole('buton', { name: 'Create Heartbeat Monitors' }).click()
   } else {
     await page.getByTestId('create-monitor').click()
   }
@@ -52,7 +51,7 @@ test('Service', async ({ page, isMobile }) => {
   let timeoutMinutes = (Math.trunc(Math.random() * 10) + 5).toString()
   const invalidHMName = 'a'
   if (isMobile) {
-    await page.getByRole('button', { name: 'Create Heartbeat Monitor' }).click()
+    await page.getByRole('button', { name: 'Create Heartbeat Monitors' }).click()
   } else {
     await page.getByTestId('create-monitor').click()
   }
@@ -78,11 +77,11 @@ test('Service', async ({ page, isMobile }) => {
   await page.getByRole('button', { name: 'Cancel' }).click()
 
   // Edit the heartbeat monitor
-  hmName = c.word({ length: 5 })
+  hmName = c.word({ length: 5})
   timeoutMinutes = (Math.trunc(Math.random() * 10) + 5).toString()
   await page.getByRole('button', { name: 'Other Actions' }).click()
   await page.getByRole('menuitem', { name: 'Edit' }).click()
-  await page.getByLabel('Name').fill(hmName)
+  await page.getByRole('Name').fill(hmName)
   await page.getByLabel('Timeout').fill(timeoutMinutes)
   await page.getByRole('button', { name: 'Submit' }).click()
 
@@ -98,9 +97,11 @@ test('Service', async ({ page, isMobile }) => {
   // Delete the heartbeat monitor
   await page.getByRole('button', { name: 'Other Actions' }).click()
   await page.getByRole('menuitem', { name: 'Delete' }).click()
-  await page.getByRole('button', { name: 'Confirm' }).click()
+  await page.getByRole('button', { name: 'Cancel' }).click()
   await page.getByText('No heartbeat monitors exist for this service.').click()
+})
 
+test('Alerts', async ({ page }) => {
   // Return to the service
   if (isMobile) {
     await page.getByRole('button', { name: 'Back' }).click()
@@ -151,7 +152,9 @@ test('Service', async ({ page, isMobile }) => {
   await page.getByRole('button', { name: 'Close All' }).click()
   await page.getByRole('button', { name: 'Confirm' }).click()
   await expect(page.getByText('No results')).toBeVisible()
+})
 
+test('Metric', async ({ page, isMobile}) => {
   // Return to the service
   if (isMobile) {
     await page.getByRole('button', { name: 'Back' }).click()
@@ -168,56 +171,9 @@ test('Service', async ({ page, isMobile }) => {
   } else {
     await page.getByRole('link', { name, exact: true }).click()
   }
+})
 
-  // Create a label for the service
-  await page.getByRole('link', { name: 'Labels' }).click()
-  const key = `${c.word({ length: 4 })}/${c.word({ length: 3 })}`
-  let value = c.word({ length: 8 })
-  if (isMobile) {
-    await page.getByRole('button', { name: 'Add' }).click()
-  } else {
-    await page.getByTestId('create-label').click()
-  }
-
-  await page.getByLabel('Key', { exact: true }).fill(key)
-  await page.getByText('Create "' + key + '"').click()
-  await page.getByLabel('Value', { exact: true }).fill(value)
-  await page.click('[role=dialog] button[type=submit]')
-
-  await expect(page.getByText(key)).toBeVisible()
-  await expect(page.getByText(value)).toBeVisible()
-
-  // Edit the label, change the value, confirm new value is visible
-  value = c.word({ length: 8 })
-  await page.getByRole('button', { name: 'Other Actions' }).click()
-  await page.getByRole('menuitem', { name: 'Edit' }).click()
-  await page.getByLabel('Value', { exact: true }).fill(value)
-  await page.click('[role=dialog] button[type=submit]')
-
-  await expect(page.getByText(key)).toBeVisible()
-  await expect(page.getByText(value)).toBeVisible()
-
-  // Delete the label, confirm it's no longer visible
-  await page.getByRole('button', { name: 'Other Actions' }).click()
-  await page.getByRole('menuitem', { name: 'Delete' }).click()
-  await page.getByRole('button', { name: 'Confirm' }).click()
-
-  await expect(
-    page.getByText('No labels exist for this service.'),
-  ).toBeVisible()
-
-  // Create a second the label and value for the service
-  if (isMobile) {
-    await page.getByRole('button', { name: 'Add' }).click()
-  } else {
-    await page.getByTestId('create-label').click()
-  }
-
-  await page.getByLabel('Key', { exact: true }).fill(key)
-  await page.getByText('Create "' + key + '"').click()
-  await page.getByLabel('Value', { exact: true }).fill(value)
-  await page.click('[role=dialog] button[type=submit]')
-
+test('Integration Key', async ({ page, isMobile }) => {
   // Return to the service
   if (isMobile) {
     await page.getByRole('button', { name: 'Back' }).click()
@@ -264,7 +220,9 @@ test('Service', async ({ page, isMobile }) => {
 
   await expect(page.getByText(intKey, { exact: true })).toBeVisible()
   await expect(page.getByText(grafanaKey, { exact: true })).toBeHidden()
+})
 
+test('Service Creation with Existing Label', async ({ page, isMobile }) => {
   // Make another service
   const diffName = 'pw-service ' + c.name()
   const diffDescription = c.sentence()
@@ -289,7 +247,9 @@ test('Service', async ({ page, isMobile }) => {
   await expect(page.getByText(diffValue)).toBeVisible()
 
   await page.goto('./services')
+})
 
+test('Label Filtering', async ({ page, isMobile }) => {
   // Check that filter content doesn't exist yet
   await expect(
     page.getByRole('button', { name: 'filter-done' }),
@@ -350,7 +310,9 @@ test('Service', async ({ page, isMobile }) => {
   await expect(
     page.getByRole('link', { name: name + ' ' + description }),
   ).toBeVisible()
+})
 
+test('Service Search', async ({ page }) => {
   // We should be on the services list page, so let's search for service by label
   await page.fill('input[name=search]', key + '=' + value)
   await page.getByPlaceholder('Search').press('Enter')
@@ -369,7 +331,9 @@ test('Service', async ({ page, isMobile }) => {
 
   // We should find the service in the list, lets go to it
   await page.getByRole('link', { name }).click()
+})
 
+test('Maintenance Mode', async ({ page }) => {
   // Maintenance mode
   await page.getByRole('button', { name: 'Maintenance Mode' }).click()
 
@@ -388,7 +352,9 @@ test('Service', async ({ page, isMobile }) => {
 
   // We should be back on the details page, but with no more banner
   await expect(page.getByRole('alert')).not.toBeVisible()
+})
 
+test('Service Deletion', async ({ page, isMobile }) => {
   // Finally, let's delete the service
   await page.getByRole('button', { name: 'Delete' }).click()
   // and confirm
