@@ -41,7 +41,7 @@ test('Heartbeat Monitors', async ({ page, isMobile }) => {
 
   // Cancel out of create
   if (isMobile) {
-    await page.getByRole('buton', { name: 'Create Heartbeat Monitors' }).click()
+    await page.getByRole('button', { name: 'Create Heartbeat Monitor' }).click()
   } else {
     await page.getByTestId('create-monitor').click()
   }
@@ -51,7 +51,7 @@ test('Heartbeat Monitors', async ({ page, isMobile }) => {
   let timeoutMinutes = (Math.trunc(Math.random() * 10) + 5).toString()
   const invalidHMName = 'a'
   if (isMobile) {
-    await page.getByRole('button', { name: 'Create Heartbeat Monitors' }).click()
+    await page.getByRole('button', { name: 'Create Heartbeat Monitor' }).click()
   } else {
     await page.getByTestId('create-monitor').click()
   }
@@ -77,11 +77,11 @@ test('Heartbeat Monitors', async ({ page, isMobile }) => {
   await page.getByRole('button', { name: 'Cancel' }).click()
 
   // Edit the heartbeat monitor
-  hmName = c.word({ length: 5})
+  hmName = c.word({ length: 5 })
   timeoutMinutes = (Math.trunc(Math.random() * 10) + 5).toString()
   await page.getByRole('button', { name: 'Other Actions' }).click()
   await page.getByRole('menuitem', { name: 'Edit' }).click()
-  await page.getByRole('Name').fill(hmName)
+  await page.getByLabel('Name').fill(hmName)
   await page.getByLabel('Timeout').fill(timeoutMinutes)
   await page.getByRole('button', { name: 'Submit' }).click()
 
@@ -97,7 +97,7 @@ test('Heartbeat Monitors', async ({ page, isMobile }) => {
   // Delete the heartbeat monitor
   await page.getByRole('button', { name: 'Other Actions' }).click()
   await page.getByRole('menuitem', { name: 'Delete' }).click()
-  await page.getByRole('button', { name: 'Cancel' }).click()
+  await page.getByRole('button', { name: 'Confirm' }).click()
   await page.getByText('No heartbeat monitors exist for this service.').click()
 })
 
