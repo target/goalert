@@ -19,7 +19,7 @@ test('Service Information', async ({ page }) => {
   await expect(page.getByRole('heading', { name, level: 1 })).toBeVisible()
 
   //and the breadcrumb link
-  await expect(page.getByRole('link', { name, exact: true }))toBeVisible()
+  await expect(page.getByRole('link', { name, exact: true })).toBeVisible()
 
   // Lastly ensure there is a link to a policy named "<name> Policy"
   await expect(page.getByRole('link', { name: name + ' Policy' })).toBeVisible()
