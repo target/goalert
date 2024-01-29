@@ -4,12 +4,21 @@ import Chance from 'chance'
 import { createService } from './lib/service'
 const c = new Chance()
 
+const description = c.sentence()
+const key = `${c.word({ length: 4 })}/${c.word({ length: 3 })}`
+const intKey = c.word({ length: 5 }) + ' Key'
+const diffName = 'pw-service ' + c.name()
+const diffDescription = c.sentence()
+
+let name = 'pw-service' + c.name()
+let value = c.word({ length: 8 })
+
 test.describe.configure({ mode: 'parallel' })
 test.use({ storageState: userSessionFile })
 
 test('Service Information', async ({ page }) => {
-  let name = 'pw-service ' + c.name()
-  const description = c.sentence()
+  //let name = 'pw-service ' + c.name()
+  //const description = c.sentence()
 
   await createService(page, name, description)
 
@@ -176,8 +185,8 @@ test('Metric', async ({ page, isMobile}) => {
 test('Label', async ({ page, isMobile}) => {
   // Create a label for the service
   await page.getByRole('link', { name: 'Labels' }).click()
-  const key = `${c.word({ length: 4 })}/${c.word({ length: 3 })}`
-  let value = c.word({ length: 8 })
+  //const key = `${c.word({ length: 4 })}/${c.word({ length: 3 })}`
+  //let value = c.word({ length: 8 })
   if (isMobile) {
     await page.getByRole('button', { name: 'Add' }).click()
   } else {
@@ -240,7 +249,7 @@ test('Integration Keys', async ({ page, isMobile }) => {
   }
 
   // Make an integration key
-  const intKey = c.word({ length: 5 }) + ' Key'
+  //const intKey = c.word({ length: 5 }) + ' Key'
   await page.getByRole('link', { name: 'Integration Keys' }).click()
   if (isMobile) {
     await page.getByRole('button', { name: 'Create Integration Key' }).click()
@@ -282,8 +291,8 @@ test('Integration Keys', async ({ page, isMobile }) => {
 
 test('Service Creation with Existing Label', async ({ page, isMobile }) => {
   // Make another service
-  const diffName = 'pw-service ' + c.name()
-  const diffDescription = c.sentence()
+  //const diffName = 'pw-service ' + c.name()
+  //const diffDescription = c.sentence()
 
   await createService(page, diffName, diffDescription)
 
