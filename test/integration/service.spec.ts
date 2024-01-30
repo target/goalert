@@ -17,17 +17,17 @@ test.describe.configure({ mode: 'parallel' })
 test.use({ storageState: userSessionFile })
 
 test('Service Information', async ({ page }) => {
-  //let name = 'pw-service ' + c.name()
-  //const description = c.sentence()
+  // let name = 'pw-service ' + c.name()
+  // const description = c.sentence()
 
   await createService(page, name, description)
 
-  //We should be on the details page, so let's try editing it after validating the data on the page.
+  // We should be on the details page, so let's try editing it after validating the data on the page.
 
-  //We should have a heading with the service name
+  // We should have a heading with the service name
   await expect(page.getByRole('heading', { name, level: 1 })).toBeVisible()
 
-  //and the breadcrumb link
+  // and the breadcrumb link
   await expect(page.getByRole('link', { name, exact: true })).toBeVisible()
 
   // Lastly ensure there is a link to a policy named "<name> Policy"
@@ -41,7 +41,7 @@ test('Service Editing', async ({ page }) => {
   await page.fill('input[name=name]', name)
   await page.click('[role=dialog] button[type=submit]')
 
-  await expect(page.getByRole('heading', { name, level: 1})).toBeVisible()
+  await expect(page.getByRole('heading', { name, level: 1 })).toBeVisible()
 })
 
 test('Heartbeat Monitors', async ({ page, isMobile }) => {
@@ -163,7 +163,7 @@ test('Alerts', async ({ page }) => {
   await expect(page.getByText('No results')).toBeVisible()
 })
 
-test('Metric', async ({ page, isMobile}) => {
+test('Metric', async ({ page, isMobile }) => {
   // Return to the service
   if (isMobile) {
     await page.getByRole('button', { name: 'Back' }).click()
@@ -182,11 +182,11 @@ test('Metric', async ({ page, isMobile}) => {
   }
 })
 
-test('Label', async ({ page, isMobile}) => {
+test('Label', async ({ page, isMobile }) => {
   // Create a label for the service
   await page.getByRole('link', { name: 'Labels' }).click()
-  //const key = `${c.word({ length: 4 })}/${c.word({ length: 3 })}`
-  //let value = c.word({ length: 8 })
+  // const key = `${c.word({ length: 4 })}/${c.word({ length: 3 })}`
+  // let value = c.word({ length: 8 })
   if (isMobile) {
     await page.getByRole('button', { name: 'Add' }).click()
   } else {
@@ -249,7 +249,7 @@ test('Integration Keys', async ({ page, isMobile }) => {
   }
 
   // Make an integration key
-  //const intKey = c.word({ length: 5 }) + ' Key'
+  // const intKey = c.word({ length: 5 }) + ' Key'
   await page.getByRole('link', { name: 'Integration Keys' }).click()
   if (isMobile) {
     await page.getByRole('button', { name: 'Create Integration Key' }).click()
@@ -291,8 +291,8 @@ test('Integration Keys', async ({ page, isMobile }) => {
 
 test('Service Creation with Existing Label', async ({ page, isMobile }) => {
   // Make another service
-  //const diffName = 'pw-service ' + c.name()
-  //const diffDescription = c.sentence()
+  // const diffName = 'pw-service ' + c.name()
+  // const diffDescription = c.sentence()
 
   await createService(page, diffName, diffDescription)
 
