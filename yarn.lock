@@ -3231,35 +3231,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/system@npm:5.15.5, @mui/system@npm:^5.15.5":
-  version: 5.15.5
-  resolution: "@mui/system@npm:5.15.5"
-  dependencies:
-    "@babel/runtime": ^7.23.8
-    "@mui/private-theming": ^5.15.5
-    "@mui/styled-engine": ^5.15.5
-    "@mui/types": ^7.2.13
-    "@mui/utils": ^5.15.5
-    clsx: ^2.1.0
-    csstype: ^3.1.2
-    prop-types: ^15.8.1
-  peerDependencies:
-    "@emotion/react": ^11.5.0
-    "@emotion/styled": ^11.3.0
-    "@types/react": ^17.0.0 || ^18.0.0
-    react: ^17.0.0 || ^18.0.0
-  peerDependenciesMeta:
-    "@emotion/react":
-      optional: true
-    "@emotion/styled":
-      optional: true
-    "@types/react":
-      optional: true
-  checksum: 3f736f120d65fa14588cd7554a9ef63c9d4480716807d7ee5543b9f25d936b5ac0396a51a565c53b2905114fed5f94880c896f091e8d269260bfc53e8a8e2fb5
-  languageName: node
-  linkType: hard
-
-"@mui/system@npm:^5.15.6":
+"@mui/system@npm:5.15.6, @mui/system@npm:^5.15.6":
   version: 5.15.6
   resolution: "@mui/system@npm:5.15.6"
   dependencies:
@@ -3284,6 +3256,34 @@ __metadata:
     "@types/react":
       optional: true
   checksum: c987a75ae3d2cf90895347bebeeff87fecc3c13d2bfde39cddd96cb41a0f4614b3b2c3e489857d75a327c35f5af9de49d6dd15b30c131b53e120c3c58df3b79b
+  languageName: node
+  linkType: hard
+
+"@mui/system@npm:^5.15.5":
+  version: 5.15.5
+  resolution: "@mui/system@npm:5.15.5"
+  dependencies:
+    "@babel/runtime": ^7.23.8
+    "@mui/private-theming": ^5.15.5
+    "@mui/styled-engine": ^5.15.5
+    "@mui/types": ^7.2.13
+    "@mui/utils": ^5.15.5
+    clsx: ^2.1.0
+    csstype: ^3.1.2
+    prop-types: ^15.8.1
+  peerDependencies:
+    "@emotion/react": ^11.5.0
+    "@emotion/styled": ^11.3.0
+    "@types/react": ^17.0.0 || ^18.0.0
+    react: ^17.0.0 || ^18.0.0
+  peerDependenciesMeta:
+    "@emotion/react":
+      optional: true
+    "@emotion/styled":
+      optional: true
+    "@types/react":
+      optional: true
+  checksum: 3f736f120d65fa14588cd7554a9ef63c9d4480716807d7ee5543b9f25d936b5ac0396a51a565c53b2905114fed5f94880c896f091e8d269260bfc53e8a8e2fb5
   languageName: node
   linkType: hard
 
@@ -17603,7 +17603,7 @@ __metadata:
     "@mui/lab": 5.0.0-alpha.162
     "@mui/material": 5.15.5
     "@mui/styles": 5.15.5
-    "@mui/system": 5.15.5
+    "@mui/system": 5.15.6
     "@mui/x-data-grid": 6.18.7
     "@playwright/test": 1.40.1
     "@storybook/addon-essentials": 7.6.7
