@@ -68,7 +68,7 @@
     "@types/luxon": "3.3.4",
     "@types/node": "20.10.5",
     "@types/prop-types": "15.7.9",
-    "@types/react": "18.2.46",
+    "@types/react": "18.2.48",
     "@types/react-big-calendar": "1.6.5",
     "@types/react-dom": "18.2.18",
     "@types/react-transition-group": "4.4.7",
