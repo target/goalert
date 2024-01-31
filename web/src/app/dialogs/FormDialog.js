@@ -227,7 +227,7 @@ FormDialog.propTypes = {
     }),
   ),
 
-  form: p.element,
+  form: p.node,
   loading: p.bool,
   alert: p.bool,
   confirm: p.bool,
