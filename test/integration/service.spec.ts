@@ -10,7 +10,7 @@ const intKey = c.word({ length: 5 }) + ' Key'
 const diffName = 'pw-service ' + c.name()
 const diffDescription = c.sentence()
 
-let name = 'pw-service' + c.name()
+let name = 'pw-service ' + c.name()
 let value = c.word({ length: 8 })
 
 test.describe.configure({ mode: 'parallel' })
@@ -32,6 +32,8 @@ test('Service Information', async ({ page }) => {
 })
 
 test('Service Editing', async ({ page }) => {
+  await createService(page, name, description)
+
   await page.getByRole('button', { name: 'Edit' }).click()
 
   name = 'pw-service ' + c.name()
@@ -42,6 +44,8 @@ test('Service Editing', async ({ page }) => {
 })
 
 test('Heartbeat Monitors', async ({ page, isMobile }) => {
+  await createService(page, name, description)
+
   // Navigate to the heartbeat monitors
   await page.getByRole('link', { name: 'Heartbeat Monitors' }).click()
 
@@ -105,17 +109,19 @@ test('Heartbeat Monitors', async ({ page, isMobile }) => {
   await page.getByRole('menuitem', { name: 'Delete' }).click()
   await page.getByRole('button', { name: 'Confirm' }).click()
   await page.getByText('No heartbeat monitors exist for this service.').click()
-})
-
-test('Alerts', async ({ page }) => {
+ 
   // Return to the service
   if (isMobile) {
     await page.getByRole('button', { name: 'Back' }).click()
   } else {
     await page.getByRole('link', { name, exact: true }).click()
   }
+})
 
-  // Go to the alerts page
+test('Alerts', async ({ page, isMobile }) => {
+  await createService(page, name, description)
+
+   // Go to the alerts page
   await page
     .getByRole('link', {
       name: 'Alerts Manage alerts specific to this service',
@@ -158,15 +164,17 @@ test('Alerts', async ({ page }) => {
   await page.getByRole('button', { name: 'Close All' }).click()
   await page.getByRole('button', { name: 'Confirm' }).click()
   await expect(page.getByText('No results')).toBeVisible()
-})
-
-test('Metric', async ({ page, isMobile }) => {
+  
   // Return to the service
   if (isMobile) {
     await page.getByRole('button', { name: 'Back' }).click()
   } else {
     await page.getByRole('link', { name, exact: true }).click()
   }
+})
+
+test('Metric', async ({ page, isMobile }) => {
+  await createService(page, name, description)
 
   // Navigate to the metrics
   await page.getByRole('link', { name: 'Metrics' }).click()
@@ -237,12 +245,7 @@ test('Label', async ({ page, isMobile }) => {
 })
 
 test('Integration Keys', async ({ page, isMobile }) => {
-  // Return to the service
-  if (isMobile) {
-    await page.getByRole('button', { name: 'Back' }).click()
-  } else {
-    await page.getByRole('link', { name, exact: true }).click()
-  }
+  await createService(page, name, description)
 
   // Make an integration key
   await page.getByRole('link', { name: 'Integration Keys' }).click()
@@ -304,11 +307,11 @@ test('Service Creation with Existing Label', async ({ page, isMobile }) => {
 
   await expect(page.getByText(key)).toBeVisible()
   await expect(page.getByText(diffValue)).toBeVisible()
-
-  await page.goto('./services')
 })
 
 test('Label Filtering', async ({ page, isMobile }) => {
+  await page.goto('./services')
+
   // Check that filter content doesn't exist yet
   await expect(
     page.getByRole('button', { name: 'filter-done' }),
@@ -363,15 +366,15 @@ test('Label Filtering', async ({ page, isMobile }) => {
   await expect(
     page.getByRole('link', { name: name + ' ' + description }),
   ).toBeVisible()
+})
 
+test('Service Search', async ({ page }) => {
   // Load in filters from URL, should find the service
   await page.goto('./services?search=' + key + '=*')
   await expect(
     page.getByRole('link', { name: name + ' ' + description }),
   ).toBeVisible()
-})
 
-test('Service Search', async ({ page }) => {
   // We should be on the services list page, so let's search for service by label
   await page.fill('input[name=search]', key + '=' + value)
   await page.getByPlaceholder('Search').press('Enter')
@@ -393,6 +396,8 @@ test('Service Search', async ({ page }) => {
 })
 
 test('Maintenance Mode', async ({ page }) => {
+  await createService(page, diffName, diffDescription)
+
   // Maintenance mode
   await page.getByRole('button', { name: 'Maintenance Mode' }).click()
 
