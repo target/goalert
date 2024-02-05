@@ -285,6 +285,8 @@ FormField.propTypes = {
 
   value: p.oneOfType([p.string, p.arrayOf(p.string)]),
 
+  destType: p.string,
+
   multiple: p.bool,
 
   options: p.arrayOf(
