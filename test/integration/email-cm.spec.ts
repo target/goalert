@@ -6,7 +6,7 @@ const c = new Chance()
 test.describe.configure({ mode: 'parallel' })
 test.use({ storageState: userSessionFile })
 
-// test create, verify, and delete of an EMAIL contact method
+// test create, edit, verify, and delete of an EMAIL contact method
 test('EMAIL contact method', async ({ page, browser, isMobile }) => {
   const name = 'pw-email ' + c.name()
   const email = 'pw-email-' + c.email()
@@ -61,6 +61,8 @@ test('EMAIL contact method', async ({ page, browser, isMobile }) => {
   await page.click('[role=dialog] button[type=submit]')
   await page.locator('[role=dialog]').isHidden()
 
+  // edit name and enable status updates
+  const updatedName = 'updated name'
   await page
     .locator('.MuiCard-root', {
       has: page.locator('div > div > h2', { hasText: 'Contact Methods' }),
@@ -68,7 +70,31 @@ test('EMAIL contact method', async ({ page, browser, isMobile }) => {
     .locator('li', { hasText: email })
     .locator('[aria-label="Other Actions"]')
     .click()
+  await page.getByRole('menuitem', { name: 'Edit' }).click()
+  await page.fill('input[name=name]', updatedName)
+  await page.click('input[name=enableStatusUpdates]')
+  await page.click('[role=dialog] button[type=submit]')
 
+  // open edit dialog to verify name change and status updates are enabled
+  await page
+    .locator('.MuiCard-root', {
+      has: page.locator('div > div > h2', { hasText: 'Contact Methods' }),
+    })
+    .locator('li', { hasText: email })
+    .locator('[aria-label="Other Actions"]')
+    .click()
+  await page.getByRole('menuitem', { name: 'Edit' }).click()
+  await expect(page.locator('input[name=name]')).toHaveValue(updatedName)
+  await expect(page.locator('input[name=enableStatusUpdates]')).toBeChecked()
+  await page.click('[role=dialog] button[type=submit]')
+
+  await page
+    .locator('.MuiCard-root', {
+      has: page.locator('div > div > h2', { hasText: 'Contact Methods' }),
+    })
+    .locator('li', { hasText: email })
+    .locator('[aria-label="Other Actions"]')
+    .click()
   await page.getByRole('menuitem', { name: 'Delete' }).click()
   await page.getByRole('button', { name: 'Confirm' }).click()
   await page

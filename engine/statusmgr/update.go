@@ -35,6 +35,11 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 			return fmt.Errorf("delete status subscriptions for disabled contact methods: %w", err)
 		}
 
+		err = q.StatusMgrCleanupStaleSubs(ctx)
+		if err != nil {
+			return fmt.Errorf("delete stale status subscriptions: %w", err)
+		}
+
 		return nil
 	})
 	if err != nil {

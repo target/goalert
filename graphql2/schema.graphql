@@ -972,12 +972,14 @@ input CreateHeartbeatMonitorInput {
   serviceID: ID
   name: String!
   timeoutMinutes: Int!
+  additionalDetails: String
 }
 
 input UpdateHeartbeatMonitorInput {
   id: ID!
   name: String
   timeoutMinutes: Int
+  additionalDetails: String
 }
 
 enum HeartbeatMonitorState {
@@ -994,6 +996,7 @@ type HeartbeatMonitor {
   lastState: HeartbeatMonitorState!
   lastHeartbeat: ISOTimestamp
   href: String!
+  additionalDetails: String!
 }
 
 type Label {

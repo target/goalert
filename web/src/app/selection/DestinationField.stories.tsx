@@ -84,12 +84,8 @@ export const MultiField: Story = {
     const canvas = within(canvasElement)
 
     // ensure information for phone number renders correctly
-    await expect(canvas.getByLabelText('Phone Number')).toBeVisible()
-    await expect(
-      canvas.getByText(
-        'Include country code e.g. +1 (USA), +91 (India), +44 (UK)',
-      ),
-    ).toBeVisible()
+    await expect(canvas.getByLabelText('First Item')).toBeVisible()
+    await expect(canvas.getByText('Some hint text')).toBeVisible()
     await expect(canvas.getByText('+')).toBeVisible()
     await expect(canvas.getByPlaceholderText('11235550123')).toBeVisible()
 
@@ -97,11 +93,11 @@ export const MultiField: Story = {
     await expect(
       canvas.getByPlaceholderText('foobar@example.com'),
     ).toBeVisible()
-    await expect(canvas.getByLabelText('Email Address')).toBeVisible()
+    await expect(canvas.getByLabelText('Second Item')).toBeVisible()
 
     // ensure information for slack renders correctly
     await expect(canvas.getByPlaceholderText('slack user ID')).toBeVisible()
-    await expect(canvas.getByLabelText('Slack User')).toBeVisible()
+    await expect(canvas.getByLabelText('Third Item')).toBeVisible()
   },
 }
 

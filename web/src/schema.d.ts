@@ -198,6 +198,7 @@ export interface CreateGQLAPIKeyInput {
 }
 
 export interface CreateHeartbeatMonitorInput {
+  additionalDetails?: null | string
   name: string
   serviceID?: null | string
   timeoutMinutes: number
@@ -478,6 +479,7 @@ export interface GQLAPIKeyUsage {
 }
 
 export interface HeartbeatMonitor {
+  additionalDetails: string
   href: string
   id: string
   lastHeartbeat?: null | ISOTimestamp
@@ -1125,6 +1127,7 @@ export interface UpdateGQLAPIKeyInput {
 }
 
 export interface UpdateHeartbeatMonitorInput {
+  additionalDetails?: null | string
   id: string
   name?: null | string
   timeoutMinutes?: null | number
@@ -1405,6 +1408,7 @@ type ConfigID =
   | 'Services.RequiredLabels'
   | 'Maintenance.AlertCleanupDays'
   | 'Maintenance.AlertAutoCloseDays'
+  | 'Maintenance.AutoCloseAckedAlerts'
   | 'Maintenance.APIKeyExpireDays'
   | 'Maintenance.ScheduleCleanupDays'
   | 'Auth.RefererURLs'

@@ -673,6 +673,11 @@ func getConfig(ctx context.Context) (Config, error) {
 		if err != nil {
 			return cfg, errors.Wrap(err, "parse public url")
 		}
+		if u.Scheme == "" {
+			return cfg, errors.New("public-url must be an absolute URL (missing scheme)")
+		}
+		u.Path = strings.TrimSuffix(u.Path, "/")
+		cfg.PublicURL = u.String()
 		if cfg.HTTPPrefix != "" {
 			return cfg, errors.New("public-url and http-prefix cannot be used together")
 		}

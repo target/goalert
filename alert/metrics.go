@@ -6,10 +6,10 @@ import (
 )
 
 var (
-	metricCreatedTotal = promauto.NewCounter(prometheus.CounterOpts{
+	metricCreatedTotal = promauto.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "goalert",
 		Subsystem: "alert",
 		Name:      "created_total",
 		Help:      "The total number of created alerts.",
-	})
+	}, []string{"service_id"})
 )

@@ -113,6 +113,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		notifMsg = notification.AlertStatus{
 			Dest:           msg.Dest,
 			AlertID:        e.AlertID(),
+			ServiceID:      a.ServiceID,
 			CallbackID:     msg.ID,
 			LogEntry:       e.String(ctx),
 			Summary:        a.Summary,

@@ -11,6 +11,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/validation/validate"
 )
 
 // UpdateAll will process all heartbeats opening and closing alerts as needed.
@@ -38,9 +39,13 @@ func (db *DB) processAll(ctx context.Context) error {
 		return errors.Wrap(err, "fetch unhealthy heartbeats")
 	}
 	for _, row := range bad {
+		details := "Last heartbeat: " + row.LastHeartbeat.Format(time.UnixDate)
+		if row.AddlDetails != "" {
+			details += "\n\n" + row.AddlDetails
+		}
 		a, isNew, err := db.alertStore.CreateOrUpdateTx(row.Context(ctx), tx, &alert.Alert{
 			Summary:   fmt.Sprintf("Heartbeat monitor '%s' expired.", row.Name),
-			Details:   "Last heartbeat: " + row.LastHeartbeat.Format(time.UnixDate),
+			Details:   validate.SanitizeText(details, alert.MaxDetailsLength),
 			Status:    alert.StatusTriggered,
 			ServiceID: row.ServiceID,
 			Dedup: &alert.DedupID{
@@ -97,6 +102,7 @@ type row struct {
 	Name          string
 	ServiceID     string
 	LastHeartbeat time.Time
+	AddlDetails   string
 }
 
 func (r row) Context(ctx context.Context) context.Context {
@@ -115,7 +121,7 @@ func (db *DB) unhealthy(ctx context.Context, tx *sql.Tx) ([]row, error) {
 	var result []row
 	for rows.Next() {
 		var r row
-		err = rows.Scan(&r.ID, &r.Name, &r.ServiceID, &r.LastHeartbeat)
+		err = rows.Scan(&r.ID, &r.Name, &r.ServiceID, &r.LastHeartbeat, &r.AddlDetails)
 		if err != nil {
 			return nil, err
 		}

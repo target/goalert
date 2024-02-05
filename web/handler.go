@@ -5,14 +5,18 @@ import (
 	"crypto/sha256"
 	"embed"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"io/fs"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/version"
 )
 
 //go:embed src/build
@@ -20,6 +24,50 @@ var bundleFS embed.FS
 
 //go:embed live.js
 var liveJS []byte
+
+// validateAppJS will return an error if the app.js file is not valid or missing.
+func validateAppJS(fs fs.FS) error {
+	if version.GitVersion() == "dev" {
+		// skip validation in dev mode
+		return nil
+	}
+
+	fd, err := fs.Open("static/app.js")
+	if err != nil {
+		return fmt.Errorf("unable to open bundled app.js and ui-dir is unset, was make invoked with BUNDLE=1? (%w)", err)
+	}
+	defer fd.Close()
+
+	// read first 512 bytes
+	data, err := io.ReadAll(io.LimitReader(fd, 512))
+	if err != nil {
+		return fmt.Errorf("unable to read bundled app.js (%w)", err)
+	}
+
+	s := string(data)
+	if !strings.HasPrefix(s, "var GOALERT_VERSION=") {
+		return fmt.Errorf("bundled app.js is invalid, expected prefix \"var GOALERT_VERSION=\", got %q", s)
+	}
+
+	s, _, _ = strings.Cut(s, "\n") // only check first line
+	if !strings.HasSuffix(s, ";") {
+		return fmt.Errorf("bundled app.js is invalid, expected suffix \";\", got %q", s)
+	}
+
+	s = strings.TrimPrefix(s, "var GOALERT_VERSION=")
+	s = strings.TrimSuffix(s, ";")
+	var vers string
+	err = json.Unmarshal([]byte(s), &vers)
+	if err != nil {
+		return fmt.Errorf("bundled app.js is invalid, expected quoted string, got %q (%w)", s, err)
+	}
+
+	if vers != version.GitVersion() {
+		return fmt.Errorf("bundled app.js is invalid, version mismatch, expected %q, got %q", version.GitVersion(), vers)
+	}
+
+	return nil
+}
 
 // NewHandler creates a new http.Handler that will serve UI files
 // using bundled assets or locally if uiDir if set.
@@ -38,6 +86,12 @@ func NewHandler(uiDir, prefix string) (http.Handler, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		err = validateAppJS(sub)
+		if err != nil {
+			return nil, err
+		}
+
 		mux.Handle("/static/", NewEtagFileServer(http.FS(sub), true))
 	}
 

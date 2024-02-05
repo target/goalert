@@ -8,6 +8,7 @@ import {
   DestinationTypeInfo,
   DestinationType,
 } from '../../schema'
+import { useExpFlag } from './useExpFlag'
 
 type Value = boolean | number | string | string[] | null
 export type ConfigData = Record<ConfigID, Value>
@@ -70,12 +71,62 @@ const query = gql`
   }
 `
 
+// expDestQuery will be used when "dest-types" experimental flag is enabled.
+// expDestQuery should replace "query" when new components have been fully integrated into master branch for https://github.com/target/goalert/issues/2639
+const expDestQuery = gql`
+  query RequireConfig {
+    user {
+      id
+      name
+      role
+    }
+    config {
+      id
+      type
+      value
+    }
+    integrationKeyTypes {
+      id
+      name
+      label
+      enabled
+    }
+    destinationTypes {
+      type
+      name
+      enabled
+      disabledMessage
+      userDisclaimer
+
+      isContactMethod
+      isEPTarget
+      isSchedOnCallNotify
+
+      requiredFields {
+        fieldID
+        labelSingular
+        labelPlural
+        hint
+        hintURL
+        placeholderText
+        prefix
+        inputType
+        isSearchSelectable
+        supportsValidation
+      }
+    }
+  }
+`
+
 type ConfigProviderProps = {
   children: ReactChild | ReactChild[]
 }
 
 export function ConfigProvider(props: ConfigProviderProps): React.ReactNode {
-  const [{ data }] = useQuery({ query })
+  const hasDestTypesFlag = useExpFlag('dest-types')
+  const [{ data }] = useQuery({
+    query: hasDestTypesFlag ? expDestQuery : query,
+  })
 
   return (
     <ConfigContext.Provider
