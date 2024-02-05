@@ -3478,14 +3478,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@playwright/test@npm:1.41.0":
-  version: 1.41.0
-  resolution: "@playwright/test@npm:1.41.0"
+"@playwright/test@npm:1.41.2":
+  version: 1.41.2
+  resolution: "@playwright/test@npm:1.41.2"
   dependencies:
-    playwright: 1.41.0
+    playwright: 1.41.2
   bin:
     playwright: cli.js
-  checksum: 3a7039f8cd14dd242154255417c100a99c3254a3c1fd26df2a11be24c10b06ef77d2736336d7743dedc5e1a6a52748e58ced730b6048f8bd75d8867ce81661e0
+  checksum: 87d9e725106111b2af1b2dec32454cd2a2d9665ff735669dc751caa30240e6db595ecfb9422719fa65dcff6ca19dea93ac2ae70d587efddde31def0754549d4c
   languageName: node
   linkType: hard
 
@@ -16773,15 +16773,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.41.0":
-  version: 1.41.0
-  resolution: "playwright-core@npm:1.41.0"
-  bin:
-    playwright-core: cli.js
-  checksum: 14671265916a1fd0c71d94640de19c48bcce3f7dec35530f10e349e97030ea44ffa8ee518cbf811501e3ab2b74874aecf917e46bf40fea0570db1d4bea1fe7ac
-  languageName: node
-  linkType: hard
-
 "playwright-core@npm:1.41.2, playwright-core@npm:>=1.2.0":
   version: 1.41.2
   resolution: "playwright-core@npm:1.41.2"
@@ -16791,22 +16782,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright@npm:1.41.0":
-  version: 1.41.0
-  resolution: "playwright@npm:1.41.0"
-  dependencies:
-    fsevents: 2.3.2
-    playwright-core: 1.41.0
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  bin:
-    playwright: cli.js
-  checksum: e7c32136911c58e06b964fe7d33f8b3d8f6a067ae5218662a0811dd6c90e007db1774eb7e161f4aa748d760f404f4c066b7b7303c2b617f7448b6ee4b86c9999
-  languageName: node
-  linkType: hard
-
-"playwright@npm:^1.14.0":
+"playwright@npm:1.41.2, playwright@npm:^1.14.0":
   version: 1.41.2
   resolution: "playwright@npm:1.41.2"
   dependencies:
@@ -18344,7 +18320,7 @@ __metadata:
     "@mui/styles": 5.15.5
     "@mui/system": 5.15.6
     "@mui/x-data-grid": 6.18.7
-    "@playwright/test": 1.41.0
+    "@playwright/test": 1.41.2
     "@storybook/addon-essentials": 7.6.7
     "@storybook/addon-interactions": 7.6.7
     "@storybook/addon-links": 7.6.7
