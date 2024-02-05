@@ -34,6 +34,13 @@ export interface FlatListItemProps extends MUIListItemProps {
   index: number
 }
 
+export function defaultRenderFlatListItem(
+  item: FlatListItem,
+  index: number,
+): JSX.Element {
+  return <FlatListItem key={`${index}-${item.id}`} index={index} item={item} />
+}
+
 export default function FlatListItem(props: FlatListItemProps): JSX.Element {
   const classes = useStyles()
 
