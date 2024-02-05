@@ -7,16 +7,14 @@ import OtherActions from '../../util/OtherActions'
 import { SlackBW, WebhookBW } from '../../icons/components/Icons'
 import { useOnCallRulesData } from './hooks'
 import { onCallRuleSummary } from './util'
-import ScheduleOnCallNotificationsCreateDialog from './ScheduleOnCallNotificationsCreateDialog'
+import ScheduleOnCallNotificationsCreateDialog from './ScheduleOnCallNotificationsCreateDialog2'
 import ScheduleOnCallNotificationsDeleteDialog from './ScheduleOnCallNotificationsDeleteDialog'
 import CreateFAB from '../../lists/CreateFAB'
-import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotificationsEditDialog'
+import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotificationsEditDialog2'
 import { useIsWidthDown } from '../../util/useWidth'
 import { Add } from '@mui/icons-material'
-import { useExpFlag } from '../../util/useExpFlag'
-import ScheduleOnCallNotificationsList2 from './ScheduleOnCallNotificationsList2'
 
-export type ScheduleOnCallNotificationsListProps = {
+export type ScheduleOnCallNotificationsList2Props = {
   scheduleID: string
 }
 
@@ -30,9 +28,9 @@ function getChannelIcon(targetType: string): JSX.Element {
   return <div />
 }
 
-function ScheduleOnCallNotificationsList({
+export default function ScheduleOnCallNotificationsList2({
   scheduleID,
-}: ScheduleOnCallNotificationsListProps): JSX.Element {
+}: ScheduleOnCallNotificationsList2Props): JSX.Element {
   const [createRule, setCreateRule] = useState(false)
   const [editRuleID, setEditRuleID] = useState('')
   const [deleteRuleID, setDeleteRuleID] = useState('')
@@ -116,16 +114,4 @@ function ScheduleOnCallNotificationsList({
       )}
     </React.Fragment>
   )
-}
-
-export default function ScheduleOnCallNotificationsListSwitcher(
-  props: ScheduleOnCallNotificationsListProps,
-): JSX.Element {
-  const hasDestTypesFlag = useExpFlag('dest-types')
-
-  if (hasDestTypesFlag) {
-    return <ScheduleOnCallNotificationsList2 {...props} />
-  }
-
-  return <ScheduleOnCallNotificationsList {...props} />
 }
