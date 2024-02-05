@@ -662,6 +662,7 @@ export interface NotificationState {
 export type NotificationStatus = 'ERROR' | 'OK' | 'WARN'
 
 export interface OnCallNotificationRule {
+  dest: Destination
   id: string
   target: Target
   time?: null | ClockTime

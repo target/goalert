@@ -1,11 +1,7 @@
-import React, { useState } from 'react'
+import React, { Suspense, useState } from 'react'
 import { Button, Grid, Card } from '@mui/material'
-import Avatar from '@mui/material/Avatar'
-
 import FlatList from '../../lists/FlatList'
 import OtherActions from '../../util/OtherActions'
-import { SlackBW, WebhookBW } from '../../icons/components/Icons'
-import { useOnCallRulesData } from './hooks'
 import { onCallRuleSummary } from './util'
 import ScheduleOnCallNotificationsCreateDialog from './ScheduleOnCallNotificationsCreateDialog2'
 import ScheduleOnCallNotificationsDeleteDialog from './ScheduleOnCallNotificationsDeleteDialog'
@@ -13,20 +9,34 @@ import CreateFAB from '../../lists/CreateFAB'
 import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotificationsEditDialog2'
 import { useIsWidthDown } from '../../util/useWidth'
 import { Add } from '@mui/icons-material'
+import { gql, useQuery } from 'urql'
+import { Schedule } from '../../../schema'
+import { DestinationAvatar } from '../../util/DestinationAvatar'
 
 export type ScheduleOnCallNotificationsList2Props = {
   scheduleID: string
 }
 
-function getChannelIcon(targetType: string): JSX.Element {
-  if (targetType === 'slackUserGroup' || targetType === 'slackChannel') {
-    return <SlackBW />
+const query = gql`
+  query ScheduleNotifications($scheduleID: ID!) {
+    schedule(id: $scheduleID) {
+      id
+      timeZone
+      onCallNotificationRules {
+        id
+        time
+        weekdayFilter
+        dest {
+          display {
+            text
+            iconURL
+            iconAltText
+          }
+        }
+      }
+    }
   }
-  if (targetType === 'chanWebhook') {
-    return <WebhookBW />
-  }
-  return <div />
-}
+`
 
 export default function ScheduleOnCallNotificationsList2({
   scheduleID,
@@ -36,7 +46,29 @@ export default function ScheduleOnCallNotificationsList2({
   const [deleteRuleID, setDeleteRuleID] = useState('')
   const isMobile = useIsWidthDown('md')
 
-  const { q, zone, rules } = useOnCallRulesData(scheduleID)
+  const [q] = useQuery<{ schedule: Schedule }>({
+    query,
+    variables: { scheduleID },
+  })
+
+  if (q.error || !q.data) {
+    return (
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <Card>
+            <FlatList
+              headerNote='Error loading notification rules'
+              emptyMessage={q.error?.message}
+              items={[]}
+            />
+          </Card>
+        </Grid>
+      </Grid>
+    )
+  }
+
+  const schedule = q.data.schedule
+  const timeZone = schedule.timeZone
 
   return (
     <React.Fragment>
@@ -44,12 +76,8 @@ export default function ScheduleOnCallNotificationsList2({
         <Grid item xs={12}>
           <Card>
             <FlatList
-              headerNote={zone ? `Showing times for schedule in ${zone}.` : ''}
-              emptyMessage={
-                q.fetching
-                  ? 'Loading notification rules...'
-                  : 'No notification rules.'
-              }
+              headerNote={`Showing times for schedule in ${timeZone}.`}
+              emptyMessage='No notification rules.'
               headerAction={
                 isMobile ? undefined : (
                   <Button
@@ -61,11 +89,17 @@ export default function ScheduleOnCallNotificationsList2({
                   </Button>
                 )
               }
-              items={rules.map((rule) => {
+              items={q.data.schedule.onCallNotificationRules.map((rule) => {
+                const display = rule.dest.display
                 return {
-                  icon: <Avatar>{getChannelIcon(rule.target.type)}</Avatar>,
-                  title: rule.target.name ?? undefined,
-                  subText: 'Notifies ' + onCallRuleSummary(zone, rule),
+                  icon: (
+                    <DestinationAvatar
+                      iconURL={display.iconURL}
+                      iconAltText={display.iconAltText}
+                    />
+                  ),
+                  title: display.text,
+                  subText: 'Notifies ' + onCallRuleSummary(timeZone, rule),
                   secondaryAction: (
                     <OtherActions
                       actions={[
@@ -92,26 +126,28 @@ export default function ScheduleOnCallNotificationsList2({
           title='Create Notification Rule'
         />
       )}
-      {createRule && (
-        <ScheduleOnCallNotificationsCreateDialog
-          scheduleID={scheduleID}
-          onClose={() => setCreateRule(false)}
-        />
-      )}
-      {editRuleID && (
-        <ScheduleOnCallNotificationsEditDialog
-          scheduleID={scheduleID}
-          ruleID={editRuleID}
-          onClose={() => setEditRuleID('')}
-        />
-      )}
-      {deleteRuleID && (
-        <ScheduleOnCallNotificationsDeleteDialog
-          scheduleID={scheduleID}
-          ruleID={deleteRuleID}
-          onClose={() => setDeleteRuleID('')}
-        />
-      )}
+      <Suspense>
+        {createRule && (
+          <ScheduleOnCallNotificationsCreateDialog
+            scheduleID={scheduleID}
+            onClose={() => setCreateRule(false)}
+          />
+        )}
+        {editRuleID && (
+          <ScheduleOnCallNotificationsEditDialog
+            scheduleID={scheduleID}
+            ruleID={editRuleID}
+            onClose={() => setEditRuleID('')}
+          />
+        )}
+        {deleteRuleID && (
+          <ScheduleOnCallNotificationsDeleteDialog
+            scheduleID={scheduleID}
+            ruleID={deleteRuleID}
+            onClose={() => setDeleteRuleID('')}
+          />
+        )}
+      </Suspense>
     </React.Fragment>
   )
 }

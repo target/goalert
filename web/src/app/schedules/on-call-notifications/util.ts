@@ -124,10 +124,12 @@ export function mapOnCallErrors(
   return [dialogErrs, fieldErrs]
 }
 
-export function onCallRuleSummary(
-  zone: string,
-  r?: OnCallNotificationRule,
-): string {
+export type SummaryInput = Pick<
+  OnCallNotificationRule,
+  'time' | 'weekdayFilter'
+>
+
+export function onCallRuleSummary(zone: string, r?: SummaryInput): string {
   if (!r) return ''
   if (!r.time) return 'when on-call changes.'
 
