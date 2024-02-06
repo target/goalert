@@ -1,5 +1,5 @@
 import React, { Suspense, useState } from 'react'
-import { Button, Grid, Card, Typography, Tooltip } from '@mui/material'
+import { Button, Grid, Card, Typography, Tooltip, Theme } from '@mui/material'
 import FlatList from '../../lists/FlatList'
 import OtherActions from '../../util/OtherActions'
 import { onCallRuleSummary } from './util'
@@ -41,7 +41,7 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   ...globalStyles(theme),
 }))
 
