@@ -26,11 +26,7 @@ export type DestinationAvatarProps = {
 /**
  * DestinationAvatar is used to display the icon for a selected destination value.
  *
- * If none is available, it will return null.
- *
- * You should almost never use this component directly. Instead, use
- * DestinationInputIcon, which will select the correct values based on the
- * provided DestinationInput value.
+ * It will return null if the iconURL is not provided, and there is no error or loading state.
  */
 export function DestinationAvatar(
   props: DestinationAvatarProps,
