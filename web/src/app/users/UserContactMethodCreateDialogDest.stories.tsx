@@ -8,7 +8,7 @@ import { useArgs } from '@storybook/preview-api'
 import { HttpResponse, graphql } from 'msw'
 
 const meta = {
-  title: 'util/UserContactMethodCreateDialogDest',
+  title: 'users/UserContactMethodCreateDialogDest',
   component: UserContactMethodCreateDialogDest,
   tags: ['autodocs'],
   parameters: {
