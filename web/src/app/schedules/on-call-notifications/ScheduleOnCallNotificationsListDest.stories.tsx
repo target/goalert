@@ -1,7 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import ScheduleOnCallNotificationsListDest from './ScheduleOnCallNotificationsListDest'
-import { expect } from '@storybook/jest'
-import { within } from '@storybook/testing-library'
 import { handleDefaultConfig } from '../../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 
