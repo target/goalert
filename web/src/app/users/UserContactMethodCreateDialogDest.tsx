@@ -16,7 +16,7 @@ type Value = {
 }
 
 const createMutation = gql`
-  mutation ($input: CreateUserContactMethodInput!) {
+  mutation CreateUserContactMethodInput($input: CreateUserContactMethodInput!) {
     createUserContactMethod(input: $input) {
       id
     }
