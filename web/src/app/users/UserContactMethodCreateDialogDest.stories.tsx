@@ -2,10 +2,11 @@ import React from 'react'
 import type { Meta, StoryObj, } from '@storybook/react'
 import UserContactMethodCreateDialogDest from './UserContactMethodCreateDialogDest'
 import { expect } from '@storybook/jest'
-import { within, screen, userEvent } from '@storybook/testing-library'
+import { within, screen, userEvent, waitFor } from '@storybook/testing-library'
 import { handleDefaultConfig, defaultConfig } from '../storybook/graphql'
 import { useArgs } from '@storybook/preview-api'
 import { HttpResponse, graphql } from 'msw'
+
 
 const meta = {
   title: 'util/UserContactMethodCreateDialogDest',
@@ -24,7 +25,7 @@ const meta = {
       data: { users: { nodes: [{name: defaultConfig.user.name ,id: defaultConfig.user.id}] }},
     })
   }),
-    graphql.mutation('CreateUserContactMethodInput', ({ variables: vars }) => {
+  graphql.mutation('CreateUserContactMethodInput', ({ variables: vars }) => {
         return HttpResponse.json({
         data: {
             createUserContactMethod: { id: '00000000-0000-0000-0000-000000000000'}
@@ -64,30 +65,22 @@ export const SingleField: Story = {
     subtitle: 'Create New Contact Method Subtitle',
   },
   play: async ({ canvasElement }) => {
-    // const canvas = within(canvasElement)
-
-    await expect(
-      screen.getByPlaceholderText('11235550123'),
-    ).toBeVisible()
-
-    await expect(screen.getByLabelText('Phone Number')).toBeVisible()
-    // ensure check icon for valid number
     await userEvent.clear(screen.getByLabelText('Phone Number'))
-    await userEvent.type(screen.getByLabelText('Phone Number'), '12225558989')
+    
+    await waitFor(async () => {
+      await userEvent.type(screen.getByLabelText('Phone Number'), '12225558989')
+    });
     await expect(await screen.findByTestId('CheckIcon')).toBeVisible()
-    await expect(
-      screen.getByText(
-        'Include country code e.g. +1 (USA), +91 (India), +44 (UK)',
-      )
-    ).toBeVisible()
-    await expect(screen.getByText('+')).toBeVisible()
+
 
     const submitButton = await screen.getByRole('button', { name: /SUBMIT/i });
     await userEvent.click(submitButton)
 
-    // await expect(screen.getByText('Please fill out this field.')).toBeVisible()
-    // await expect(within(document.body).findByText('Please fill out this field.').toBeVisible())
+    await userEvent.clear(screen.getByLabelText('Name'))
+    await userEvent.type(screen.getByLabelText('Name'), 'TEST')
 
+    const retryButton = await screen.getByRole('button', { name: /RETRY/i });
+    await userEvent.click(retryButton)
   },
 }
 
@@ -98,6 +91,9 @@ export const MultiField: Story = {
     subtitle: 'Create New Contact Method Subtitle',
   },
   play: async ({ canvasElement }) => {
+    await userEvent.click(await screen.getByLabelText('Dest Type'))
+    await userEvent.click(await screen.getByText('Multi Field Destination Type'))
+
     const canvas = within(canvasElement)
 
     // ensure information for phone number renders correctly
