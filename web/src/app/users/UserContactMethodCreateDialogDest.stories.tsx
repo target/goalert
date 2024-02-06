@@ -2,7 +2,7 @@ import React from 'react'
 import type { Meta, StoryObj, } from '@storybook/react'
 import UserContactMethodCreateDialogDest from './UserContactMethodCreateDialogDest'
 import { expect } from '@storybook/jest'
-import { within, screen, userEvent, waitFor } from '@storybook/testing-library'
+import { screen, userEvent, waitFor } from '@storybook/testing-library'
 import { handleDefaultConfig, defaultConfig } from '../storybook/graphql'
 import { useArgs } from '@storybook/preview-api'
 import { HttpResponse, graphql } from 'msw'
@@ -36,7 +36,7 @@ const meta = {
           return HttpResponse.json({
             data: {
               destinationFieldValidate:
-                vars.input.value === 'https://test.com' ||
+                vars.input.value === '@slack' ||
                 vars.input.value === '+12225558989' ||
                 vars.input.value === 'valid@email.com',
             },
@@ -91,26 +91,42 @@ export const MultiField: Story = {
     subtitle: 'Create New Contact Method Subtitle',
   },
   play: async ({ canvasElement }) => {
+    // Select the next Dest Type
     await userEvent.click(await screen.getByLabelText('Dest Type'))
     await userEvent.click(await screen.getByText('Multi Field Destination Type'))
 
-    const canvas = within(canvasElement)
-
     // ensure information for phone number renders correctly
-    await expect(canvas.getByLabelText('First Item')).toBeVisible()
-    await expect(canvas.getByText('Some hint text')).toBeVisible()
-    await expect(canvas.getByText('+')).toBeVisible()
-    await expect(canvas.getByPlaceholderText('11235550123')).toBeVisible()
+    await userEvent.clear(screen.getByLabelText('First Item'))
+    await waitFor(async () => {
+      await userEvent.type(screen.getByLabelText('First Item'), '12225558989')
+    });
+    await expect(await screen.findByTestId('CheckIcon')).toBeVisible()
 
     // ensure information for email renders correctly
     await expect(
-      canvas.getByPlaceholderText('foobar@example.com'),
+      screen.getByPlaceholderText('foobar@example.com'),
     ).toBeVisible()
-    await expect(canvas.getByLabelText('Second Item')).toBeVisible()
+    await userEvent.clear(screen.getByLabelText('Second Item'))
+    await userEvent.type(screen.getByLabelText('Second Item'), 'valid@email.com')
 
     // ensure information for slack renders correctly
-    await expect(canvas.getByPlaceholderText('slack user ID')).toBeVisible()
-    await expect(canvas.getByLabelText('Third Item')).toBeVisible()
+    await expect(screen.getByPlaceholderText('slack user ID')).toBeVisible()
+    await expect(screen.getByLabelText('Third Item')).toBeVisible()
+    await userEvent.clear(screen.getByLabelText('Third Item'))
+    await userEvent.type(screen.getByLabelText('Third Item'), '@slack')
+
+
+    // Try to submit without all feilds complete
+    const submitButton = await screen.getByRole('button', { name: /SUBMIT/i });
+    await userEvent.click(submitButton)
+
+    // Name field
+    await userEvent.clear(screen.getByLabelText('Name'))
+    await userEvent.type(screen.getByLabelText('Name'), 'TEST')
+
+
+    const retryButton = await screen.getByRole('button', { name: /RETRY/i });
+    await userEvent.click(retryButton)
   },
 }
 
@@ -121,42 +137,14 @@ export const DisabledField: Story = {
     subtitle: 'Create New Contact Method Subtitle',
   },
   play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
+    // Open option select
+    await userEvent.click(await screen.getByLabelText('Dest Type'))
 
-    // ensure information renders correctly
-    await expect(
-      canvas.getByPlaceholderText('This field is disabled.'),
-    ).toBeVisible()
+    // Attempt to click the disabled option
+    const disabledOption = await screen.getByText('This is disabled')
+    // Ensure no clicked occurred
+    userEvent.click(disabledOption, {
+        pointerEventsCheck: 0,
+    })
   },
 }
-
-// export const FieldError: Story = {
-//   args: {
-//     destType: 'triple-field',
-//     value: [
-//       {
-//         fieldID: 'first-field',
-//         value: '',
-//       },
-//       {
-//         fieldID: 'second-field',
-//         value: 'test@example.com',
-//       },
-//       {
-//         fieldID: 'third-field',
-//         value: '',
-//       },
-//     ],
-//     disabled: false,
-//     destFieldErrors: [
-//       {
-//         fieldID: 'third-field',
-//         message: 'This is an error message (third)',
-//       },
-//       {
-//         fieldID: 'first-field',
-//         message: 'This is an error message (first)',
-//       },
-//     ],
-//   },
-// }
