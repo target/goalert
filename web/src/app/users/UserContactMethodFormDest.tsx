@@ -9,7 +9,7 @@ import { FieldError } from '../util/errutil'
 import DestinationField from '../selection/DestinationField'
 import { useContactMethodTypes } from '../util/RequireConfig'
 
-type Value = {
+export type Value = {
   name: string
   dest: DestinationInput
   statusUpdates: boolean
