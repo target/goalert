@@ -6593,10 +6593,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/luxon@npm:3.3.4":
-  version: 3.3.4
-  resolution: "@types/luxon@npm:3.3.4"
-  checksum: aa4862bd62d748e7966f9a0ec76058e9d74397ee426c7d64f61c677d83de0303c303cc78515001833df3f4ad16c95f572b0e2ffaee6e55bc50b80857e8437f3a
+"@types/luxon@npm:3.4.2":
+  version: 3.4.2
+  resolution: "@types/luxon@npm:3.4.2"
+  checksum: 6f92d5bd02e89f310395753506bcd9cef3a56f5940f7a50db2a2b9822bce753553ac767d143cb5b4f9ed5ddd4a84e64f89ff538082ceb4d18739af7781b56925
   languageName: node
   linkType: hard
 
@@ -14719,14 +14719,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"luxon@npm:3.4.3":
-  version: 3.4.3
-  resolution: "luxon@npm:3.4.3"
-  checksum: 3eade81506224d038ed24035a0cd0dd4887848d7eba9361dce9ad8ef81380596a68153240be3988721f9690c624fb449fcf8fd8c3fc0681a6a8496faf48e92a3
-  languageName: node
-  linkType: hard
-
-"luxon@npm:^3.2.1":
+"luxon@npm:3.4.4, luxon@npm:^3.2.1":
   version: 3.4.4
   resolution: "luxon@npm:3.4.4"
   checksum: 36c1f99c4796ee4bfddf7dc94fa87815add43ebc44c8934c924946260a58512f0fd2743a629302885df7f35ccbd2d13f178c15df046d0e3b6eb71db178f1c60c
@@ -18338,7 +18331,7 @@ __metadata:
     "@types/glob": 8.1.0
     "@types/jest": 29.5.10
     "@types/lodash": 4.14.202
-    "@types/luxon": 3.3.4
+    "@types/luxon": 3.4.2
     "@types/node": 20.10.5
     "@types/prop-types": 15.7.11
     "@types/react": 18.2.48
@@ -18379,7 +18372,7 @@ __metadata:
     http-server: 14.1.1
     jest: 29.7.0
     lodash: 4.17.21
-    luxon: 3.4.3
+    luxon: 3.4.4
     mdast-util-find-and-replace: 3.0.1
     mdi-material-ui: 7.7.0
     msw: 2.0.11
