@@ -13,7 +13,7 @@ import { gql, useQuery } from 'urql'
 import { Schedule } from '../../../schema'
 import { DestinationAvatar } from '../../util/DestinationAvatar'
 
-export type ScheduleOnCallNotificationsList2Props = {
+export type ScheduleOnCallNotificationsListDestProps = {
   scheduleID: string
 }
 
@@ -38,9 +38,9 @@ const query = gql`
   }
 `
 
-export default function ScheduleOnCallNotificationsList2({
+export default function ScheduleOnCallNotificationsListDest({
   scheduleID,
-}: ScheduleOnCallNotificationsList2Props): JSX.Element {
+}: ScheduleOnCallNotificationsListDestProps): JSX.Element {
   const [createRule, setCreateRule] = useState(false)
   const [editRuleID, setEditRuleID] = useState('')
   const [deleteRuleID, setDeleteRuleID] = useState('')
@@ -90,7 +90,7 @@ export default function ScheduleOnCallNotificationsList2({
                 )
               }
               items={q.data.schedule.onCallNotificationRules.map((rule) => {
-                const display = rule.dest.display
+                const display = rule.dest.displayInfo
                 return {
                   icon: (
                     <DestinationAvatar

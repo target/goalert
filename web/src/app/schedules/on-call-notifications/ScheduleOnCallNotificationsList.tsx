@@ -14,7 +14,7 @@ import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotifications
 import { useIsWidthDown } from '../../util/useWidth'
 import { Add } from '@mui/icons-material'
 import { useExpFlag } from '../../util/useExpFlag'
-import ScheduleOnCallNotificationsList2 from './ScheduleOnCallNotificationsList2'
+import ScheduleOnCallNotificationsListDest from './ScheduleOnCallNotificationsListDest'
 
 export type ScheduleOnCallNotificationsListProps = {
   scheduleID: string
@@ -118,13 +118,15 @@ function ScheduleOnCallNotificationsList({
   )
 }
 
+// Since we are using a feature flag, and cannot conditionally update the router (which always renders the default export of this file),
+// we need to create a component that will conditionally render the destination version based on the feature flag.
 export default function ScheduleOnCallNotificationsListSwitcher(
   props: ScheduleOnCallNotificationsListProps,
 ): JSX.Element {
   const hasDestTypesFlag = useExpFlag('dest-types')
 
   if (hasDestTypesFlag) {
-    return <ScheduleOnCallNotificationsList2 {...props} />
+    return <ScheduleOnCallNotificationsListDest {...props} />
   }
 
   return <ScheduleOnCallNotificationsList {...props} />
