@@ -295,7 +295,6 @@ type DebugSendSMSInput struct {
 type Destination struct {
 	Type        string                  `json:"type"`
 	Values      []FieldValuePair        `json:"values"`
-	TypeInfo    *DestinationTypeInfo    `json:"typeInfo"`
 	DisplayInfo *DestinationDisplayInfo `json:"displayInfo"`
 }
 

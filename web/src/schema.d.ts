@@ -343,7 +343,6 @@ export interface DebugSendSMSInput {
 export interface Destination {
   displayInfo: DestinationDisplayInfo
   type: DestinationType
-  typeInfo: DestinationTypeInfo
   values: FieldValuePair[]
 }
 

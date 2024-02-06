@@ -43,7 +43,6 @@ input DestinationFieldSearchInput {
 type Destination {
   type: DestinationType!
   values: [FieldValuePair!]!
-  typeInfo: DestinationTypeInfo!  @goField(forceResolver: true)
   displayInfo: DestinationDisplayInfo!  @goField(forceResolver: true)
 }
 
