@@ -47,17 +47,17 @@ export function DestinationAvatar(
     )
   }
 
-  if (props.iconURL) {
-    const builtInIcon = builtInIcons[props.iconURL] || null
-    return (
-      <Avatar
-        src={builtInIcon ? undefined : props.iconURL}
-        alt={props.iconAltText}
-      >
-        {builtInIcon}
-      </Avatar>
-    )
+  if (!props.iconURL) {
+    return null
   }
 
-  return null
+  const builtInIcon = builtInIcons[props.iconURL] || null
+  return (
+    <Avatar
+      src={builtInIcon ? undefined : props.iconURL}
+      alt={props.iconAltText}
+    >
+      {builtInIcon}
+    </Avatar>
+  )
 }
