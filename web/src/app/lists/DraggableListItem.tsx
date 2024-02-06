@@ -1,6 +1,6 @@
 import React, { MutableRefObject } from 'react'
 import { FlatListItem as FlatListItemType } from './FlatList'
-import { defaultRenderFlatListItem } from './FlatListItem'
+import FlatListItem from './FlatListItem'
 import { Announcements, UniqueIdentifier } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
 import {
@@ -63,14 +63,12 @@ interface DraggableListItemProps {
   id: string
   index: number
   item: FlatListItemType
-  renderItem?: typeof defaultRenderFlatListItem
 }
 
 export function DraggableListItem({
   id,
   index,
   item,
-  renderItem = defaultRenderFlatListItem,
 }: DraggableListItemProps): JSX.Element {
   const theme = useTheme()
   const {
@@ -123,7 +121,7 @@ export function DraggableListItem({
       </div>
 
       <div style={{ width: '100%' }}>
-        {renderItem({ ...item, draggable: true }, index)}
+        <FlatListItem index={index} item={{ ...item, draggable: true }} />
       </div>
     </div>
   )

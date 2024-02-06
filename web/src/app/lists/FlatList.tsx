@@ -37,7 +37,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { Notice, toSeverity } from '../details/Notices'
-import FlatListItem, { defaultRenderFlatListItem } from './FlatListItem'
+import FlatListItem from './FlatListItem'
 import { DraggableListItem, getAnnouncements } from './DraggableListItem'
 import { ExpandLess, ExpandMore } from '@mui/icons-material'
 
@@ -152,8 +152,6 @@ export interface FlatListProps extends ListProps {
 
   // will render items in collaspable sections in list
   collapsable?: boolean
-
-  renderItem?: typeof defaultRenderFlatListItem
 }
 
 export default function FlatList({
@@ -166,7 +164,6 @@ export default function FlatList({
   sections,
   transition,
   collapsable,
-  renderItem = defaultRenderFlatListItem,
   ...listProps
 }: FlatListProps): JSX.Element {
   const classes = useStyles()
@@ -333,7 +330,7 @@ export default function FlatList({
             exitActive: classes.slideExitActive,
           }}
         >
-          {renderItem(item, idx)}
+          <FlatListItem index={idx} item={item} />
         </CSSTransition>
       )
     })
@@ -362,7 +359,7 @@ export default function FlatList({
         )
       }
 
-      return renderItem(item, idx)
+      return <FlatListItem key={`${idx}-${item.id}`} index={idx} item={item} />
     })
   }
 
@@ -390,7 +387,7 @@ export default function FlatList({
               {items
                 .filter((item: FlatListItem) => item.section === section.title)
                 .map((item, idx) => {
-                  return renderItem(item, idx)
+                  return <FlatListItem index={idx} key={idx} item={item} />
                 })}
             </List>
           </Collapse>
