@@ -6,7 +6,7 @@ import { gql, useMutation, useQuery } from 'urql'
 import { DestinationInput, UserContactMethod } from '../../schema'
 
 const query = gql`
-  query ($id: ID!) {
+  query UserContactMethod($id: ID!) {
     userContactMethod(id: $id) {
       id
       name
@@ -23,7 +23,7 @@ const query = gql`
 `
 
 const mutation = gql`
-  mutation ($input: UpdateUserContactMethodInput!) {
+  mutation UpdateUserContactMethod($input: UpdateUserContactMethodInput!) {
     updateUserContactMethod(input: $input)
   }
 `
@@ -60,6 +60,9 @@ export default function UserContactMethodEditDialogDest({
   if (!data) throw new Error('no data') // shouldn't happen since we're using suspense
 
   const fieldErrs = fieldErrors(error)
+
+  console.log(onClose)
+  console.log(contactMethodID)
 
   return (
     <FormDialog
