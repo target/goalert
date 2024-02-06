@@ -17,6 +17,7 @@ type (
 
 func (a *App) Destination() graphql2.DestinationResolver { return (*Destination)(a) }
 
+// DisplayInfo will return the display information for a destination by mapping to Query.DestinationDisplayInfo.
 func (a *Destination) DisplayInfo(ctx context.Context, obj *graphql2.Destination) (*graphql2.DestinationDisplayInfo, error) {
 	if obj.DisplayInfo != nil {
 		return obj.DisplayInfo, nil

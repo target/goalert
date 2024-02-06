@@ -11,6 +11,7 @@ import (
 	"github.com/target/goalert/notificationchannel"
 )
 
+// CompatNCToDest converts a notification channel to a destination.
 func (a *App) CompatNCToDest(ctx context.Context, ncID uuid.UUID) (*graphql2.Destination, error) {
 	nc, err := a.FindOneNC(ctx, ncID)
 	if err != nil {
