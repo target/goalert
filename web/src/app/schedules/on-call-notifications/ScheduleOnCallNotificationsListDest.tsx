@@ -1,5 +1,5 @@
 import React, { Suspense, useState } from 'react'
-import { Button, Grid, Card } from '@mui/material'
+import { Button, Grid, Card, Typography, Tooltip } from '@mui/material'
 import FlatList from '../../lists/FlatList'
 import OtherActions from '../../util/OtherActions'
 import { onCallRuleSummary } from './util'
@@ -9,9 +9,12 @@ import CreateFAB from '../../lists/CreateFAB'
 import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotificationsEditDialog'
 import { useIsWidthDown } from '../../util/useWidth'
 import { Add } from '@mui/icons-material'
+import Error from '@mui/icons-material/Error'
 import { gql, useQuery } from 'urql'
 import { Schedule } from '../../../schema'
 import { DestinationAvatar } from '../../util/DestinationAvatar'
+import { styles as globalStyles } from '../../styles/materialStyles'
+import makeStyles from '@mui/styles/makeStyles'
 
 export type ScheduleOnCallNotificationsListDestProps = {
   scheduleID: string
@@ -38,6 +41,10 @@ const query = gql`
   }
 `
 
+const useStyles = makeStyles((theme) => ({
+  ...globalStyles(theme),
+}))
+
 export default function ScheduleOnCallNotificationsListDest({
   scheduleID,
 }: ScheduleOnCallNotificationsListDestProps): JSX.Element {
@@ -45,6 +52,8 @@ export default function ScheduleOnCallNotificationsListDest({
   const [editRuleID, setEditRuleID] = useState('')
   const [deleteRuleID, setDeleteRuleID] = useState('')
   const isMobile = useIsWidthDown('md')
+
+  const classes = useStyles()
 
   const [q] = useQuery<{ schedule: Schedule }>({
     query,
@@ -57,8 +66,21 @@ export default function ScheduleOnCallNotificationsListDest({
         <Grid item xs={12}>
           <Card>
             <FlatList
-              headerNote='Error loading notification rules'
-              emptyMessage={q.error?.message}
+              headerNote={
+                <Typography
+                  component='p'
+                  variant='subtitle1'
+                  style={{ display: 'flex' }}
+                >
+                  <Tooltip title={q.error?.message}>
+                    <Error className={classes.error} />
+                  </Tooltip>
+                  &nbsp;
+                  <span className={classes.error}>
+                    Error loading notification rules.
+                  </span>
+                </Typography>
+              }
               items={[]}
             />
           </Card>
