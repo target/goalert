@@ -44,7 +44,7 @@ type Destination {
   type: DestinationType!
   values: [FieldValuePair!]!
   typeInfo: DestinationTypeInfo!  @goField(forceResolver: true)
-  display: DestinationDisplayInfo!  @goField(forceResolver: true)
+  displayInfo: DestinationDisplayInfo!  @goField(forceResolver: true)
 }
 
 # DestinationDisplayInfo provides information for displaying a destination.

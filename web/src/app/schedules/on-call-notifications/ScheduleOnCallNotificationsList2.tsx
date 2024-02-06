@@ -27,7 +27,7 @@ const query = gql`
         time
         weekdayFilter
         dest {
-          display {
+          displayInfo {
             text
             iconURL
             iconAltText

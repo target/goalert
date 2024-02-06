@@ -293,10 +293,10 @@ type DebugSendSMSInput struct {
 }
 
 type Destination struct {
-	Type     string                  `json:"type"`
-	Values   []FieldValuePair        `json:"values"`
-	TypeInfo *DestinationTypeInfo    `json:"typeInfo"`
-	Display  *DestinationDisplayInfo `json:"display"`
+	Type        string                  `json:"type"`
+	Values      []FieldValuePair        `json:"values"`
+	TypeInfo    *DestinationTypeInfo    `json:"typeInfo"`
+	DisplayInfo *DestinationDisplayInfo `json:"displayInfo"`
 }
 
 type DestinationDisplayInfo struct {

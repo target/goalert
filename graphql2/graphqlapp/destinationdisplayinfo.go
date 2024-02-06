@@ -17,9 +17,9 @@ type (
 
 func (a *App) Destination() graphql2.DestinationResolver { return (*Destination)(a) }
 
-func (a *Destination) Display(ctx context.Context, obj *graphql2.Destination) (*graphql2.DestinationDisplayInfo, error) {
-	if obj.Display != nil {
-		return obj.Display, nil
+func (a *Destination) DisplayInfo(ctx context.Context, obj *graphql2.Destination) (*graphql2.DestinationDisplayInfo, error) {
+	if obj.DisplayInfo != nil {
+		return obj.DisplayInfo, nil
 	}
 
 	values := make([]graphql2.FieldValueInput, len(obj.Values))
@@ -28,21 +28,6 @@ func (a *Destination) Display(ctx context.Context, obj *graphql2.Destination) (*
 	}
 
 	return (*Query)(a).DestinationDisplayInfo(ctx, graphql2.DestinationInput{Type: obj.Type, Values: values})
-}
-
-func (a *Destination) TypeInfo(ctx context.Context, obj *graphql2.Destination) (*graphql2.DestinationTypeInfo, error) {
-	types, err := (*Query)(a).DestinationTypes(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, t := range types {
-		if t.Type == obj.Type {
-			return &t, nil
-		}
-	}
-
-	return nil, validation.NewGenericError("unsupported data type")
 }
 
 func (a *Query) DestinationDisplayInfo(ctx context.Context, dest graphql2.DestinationInput) (*graphql2.DestinationDisplayInfo, error) {

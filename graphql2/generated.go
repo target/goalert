@@ -217,10 +217,10 @@ type ComplexityRoot struct {
 	}
 
 	Destination struct {
-		Display  func(childComplexity int) int
-		Type     func(childComplexity int) int
-		TypeInfo func(childComplexity int) int
-		Values   func(childComplexity int) int
+		DisplayInfo func(childComplexity int) int
+		Type        func(childComplexity int) int
+		TypeInfo    func(childComplexity int) int
+		Values      func(childComplexity int) int
 	}
 
 	DestinationDisplayInfo struct {
@@ -784,7 +784,7 @@ type AlertMetricResolver interface {
 }
 type DestinationResolver interface {
 	TypeInfo(ctx context.Context, obj *Destination) (*DestinationTypeInfo, error)
-	Display(ctx context.Context, obj *Destination) (*DestinationDisplayInfo, error)
+	DisplayInfo(ctx context.Context, obj *Destination) (*DestinationDisplayInfo, error)
 }
 type EscalationPolicyResolver interface {
 	IsFavorite(ctx context.Context, obj *escalation.Policy) (bool, error)
@@ -1511,12 +1511,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DebugSendSMSInfo.ProviderURL(childComplexity), true
 
-	case "Destination.display":
-		if e.complexity.Destination.Display == nil {
+	case "Destination.displayInfo":
+		if e.complexity.Destination.DisplayInfo == nil {
 			break
 		}
 
-		return e.complexity.Destination.Display(childComplexity), true
+		return e.complexity.Destination.DisplayInfo(childComplexity), true
 
 	case "Destination.type":
 		if e.complexity.Destination.Type == nil {
@@ -9623,8 +9623,8 @@ func (ec *executionContext) fieldContext_Destination_typeInfo(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _Destination_display(ctx context.Context, field graphql.CollectedField, obj *Destination) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Destination_display(ctx, field)
+func (ec *executionContext) _Destination_displayInfo(ctx context.Context, field graphql.CollectedField, obj *Destination) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Destination_displayInfo(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -9637,7 +9637,7 @@ func (ec *executionContext) _Destination_display(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Destination().Display(rctx, obj)
+		return ec.resolvers.Destination().DisplayInfo(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9654,7 +9654,7 @@ func (ec *executionContext) _Destination_display(ctx context.Context, field grap
 	return ec.marshalNDestinationDisplayInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationDisplayInfo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Destination_display(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Destination_displayInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Destination",
 		Field:      field,
@@ -17461,8 +17461,8 @@ func (ec *executionContext) fieldContext_OnCallNotificationRule_dest(ctx context
 				return ec.fieldContext_Destination_values(ctx, field)
 			case "typeInfo":
 				return ec.fieldContext_Destination_typeInfo(ctx, field)
-			case "display":
-				return ec.fieldContext_Destination_display(ctx, field)
+			case "displayInfo":
+				return ec.fieldContext_Destination_displayInfo(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Destination", field.Name)
 		},
@@ -35631,7 +35631,7 @@ func (ec *executionContext) _Destination(ctx context.Context, sel ast.SelectionS
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "display":
+		case "displayInfo":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -35640,7 +35640,7 @@ func (ec *executionContext) _Destination(ctx context.Context, sel ast.SelectionS
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Destination_display(ctx, field, obj)
+				res = ec._Destination_displayInfo(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
