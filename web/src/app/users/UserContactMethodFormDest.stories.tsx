@@ -173,3 +173,46 @@ export const ErrorMultiField: Story = {
     })
   },
 }
+
+export const Disabled: Story = {
+  args: {
+    value: {
+      name: 'disabled dest',
+      dest: {
+        type: 'triple-field',
+        values: [],
+      },
+      statusUpdates: false,
+    },
+    disabled: true,
+  },
+  play: async () => {
+    // ensure all fields are disabled
+    const destTypeOptions = await screen.getByText(
+      'Multi Field Destination Type',
+    )
+    const firstField = await screen.getByPlaceholderText('11235550123')
+    const secondField = await screen.getByPlaceholderText('foobar@example.com')
+    const thirdField = await screen.getByPlaceholderText('slack user ID')
+
+    userEvent.click(destTypeOptions, {
+      pointerEventsCheck: 0,
+    })
+    userEvent.click(firstField, {
+      pointerEventsCheck: 0,
+    })
+    userEvent.click(secondField, {
+      pointerEventsCheck: 0,
+    })
+    userEvent.click(thirdField, {
+      pointerEventsCheck: 0,
+    })
+
+    const status = await screen.getByLabelText(
+      'Send alert status updates (not supported for this type)',
+    )
+    userEvent.click(status, {
+      pointerEventsCheck: 0,
+    })
+  },
+}
