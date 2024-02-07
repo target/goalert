@@ -105,30 +105,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/core@npm:7.23.6":
-  version: 7.23.6
-  resolution: "@babel/core@npm:7.23.6"
-  dependencies:
-    "@ampproject/remapping": ^2.2.0
-    "@babel/code-frame": ^7.23.5
-    "@babel/generator": ^7.23.6
-    "@babel/helper-compilation-targets": ^7.23.6
-    "@babel/helper-module-transforms": ^7.23.3
-    "@babel/helpers": ^7.23.6
-    "@babel/parser": ^7.23.6
-    "@babel/template": ^7.22.15
-    "@babel/traverse": ^7.23.6
-    "@babel/types": ^7.23.6
-    convert-source-map: ^2.0.0
-    debug: ^4.1.0
-    gensync: ^1.0.0-beta.2
-    json5: ^2.2.3
-    semver: ^6.3.1
-  checksum: 4bddd1b80394a64b2ee33eeb216e8a2a49ad3d74f0ca9ba678c84a37f4502b2540662d72530d78228a2a349fda837fa852eea5cd3ae28465d1188acc6055868e
-  languageName: node
-  linkType: hard
-
-"@babel/core@npm:^7.1.0, @babel/core@npm:^7.11.6, @babel/core@npm:^7.12.17, @babel/core@npm:^7.12.3, @babel/core@npm:^7.18.9, @babel/core@npm:^7.20.12, @babel/core@npm:^7.22.5, @babel/core@npm:^7.23.0, @babel/core@npm:^7.23.2, @babel/core@npm:^7.7.5":
+"@babel/core@npm:7.23.9, @babel/core@npm:^7.1.0, @babel/core@npm:^7.11.6, @babel/core@npm:^7.12.17, @babel/core@npm:^7.12.3, @babel/core@npm:^7.18.9, @babel/core@npm:^7.20.12, @babel/core@npm:^7.22.5, @babel/core@npm:^7.23.0, @babel/core@npm:^7.23.2, @babel/core@npm:^7.7.5":
   version: 7.23.9
   resolution: "@babel/core@npm:7.23.9"
   dependencies:
@@ -401,7 +378,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/helpers@npm:^7.23.6, @babel/helpers@npm:^7.23.9":
+"@babel/helpers@npm:^7.23.9":
   version: 7.23.9
   resolution: "@babel/helpers@npm:7.23.9"
   dependencies:
@@ -423,7 +400,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/parser@npm:^7.1.0, @babel/parser@npm:^7.14.7, @babel/parser@npm:^7.20.7, @babel/parser@npm:^7.23.0, @babel/parser@npm:^7.23.6, @babel/parser@npm:^7.23.9":
+"@babel/parser@npm:^7.1.0, @babel/parser@npm:^7.14.7, @babel/parser@npm:^7.20.7, @babel/parser@npm:^7.23.0, @babel/parser@npm:^7.23.9":
   version: 7.23.9
   resolution: "@babel/parser@npm:7.23.9"
   bin:
@@ -1521,7 +1498,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/traverse@npm:^7.18.9, @babel/traverse@npm:^7.23.2, @babel/traverse@npm:^7.23.6, @babel/traverse@npm:^7.23.9":
+"@babel/traverse@npm:^7.18.9, @babel/traverse@npm:^7.23.2, @babel/traverse@npm:^7.23.9":
   version: 7.23.9
   resolution: "@babel/traverse@npm:7.23.9"
   dependencies:
@@ -6555,13 +6532,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jest@npm:29.5.10":
-  version: 29.5.10
-  resolution: "@types/jest@npm:29.5.10"
+"@types/jest@npm:29.5.12":
+  version: 29.5.12
+  resolution: "@types/jest@npm:29.5.12"
   dependencies:
     expect: ^29.0.0
     pretty-format: ^29.0.0
-  checksum: ef385905787db528de9b6beb2688865c0bb276e64256ed60b9a1a6ffc0b75737456cb5e27e952a3241c5845b6a1da487470010dd30f3ca59c8581624c564a823
+  checksum: 19b1efdeed9d9a60a81edc8226cdeae5af7479e493eaed273e01243891c9651f7b8b4c08fc633a7d0d1d379b091c4179bbaa0807af62542325fd72f2dd17ce1c
   languageName: node
   linkType: hard
 
@@ -18345,7 +18322,7 @@ __metadata:
   resolution: "root-workspace-0b6124@workspace:."
   dependencies:
     "@apollo/client": 3.8.5
-    "@babel/core": 7.23.6
+    "@babel/core": 7.23.9
     "@babel/plugin-transform-modules-commonjs": 7.23.3
     "@dnd-kit/core": 6.0.8
     "@dnd-kit/sortable": 7.0.2
@@ -18375,7 +18352,7 @@ __metadata:
     "@types/chance": 1.1.4
     "@types/diff": 5.0.8
     "@types/glob": 8.1.0
-    "@types/jest": 29.5.10
+    "@types/jest": 29.5.12
     "@types/lodash": 4.14.202
     "@types/luxon": 3.4.2
     "@types/node": 20.10.5
