@@ -1209,7 +1209,10 @@ input CreateUserContactMethodInput {
   dest: DestinationInput @experimental(flagName: "dest-types")
 
   name: String!
+
+  # Only value or dest should be used at a time, never both.
   value: String
+
   newUserNotificationRule: CreateUserNotificationRuleInput
 
   # If true, this contact method will receive status updates.
