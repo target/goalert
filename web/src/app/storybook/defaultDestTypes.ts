@@ -12,8 +12,6 @@ export const destTypes: DestinationTypeInfo[] = [
     isSchedOnCallNotify: false,
     iconURL: '',
     iconAltText: '',
-    statusUpdatesRequired: false,
-    supportsStatusUpdates: false,
     requiredFields: [
       {
         fieldID: 'phone-number',
@@ -40,8 +38,6 @@ export const destTypes: DestinationTypeInfo[] = [
     isSchedOnCallNotify: false,
     iconURL: '',
     iconAltText: '',
-    statusUpdatesRequired: false,
-    supportsStatusUpdates: false,
     requiredFields: [
       {
         fieldID: 'first-field',
@@ -92,8 +88,6 @@ export const destTypes: DestinationTypeInfo[] = [
     isSchedOnCallNotify: true,
     iconURL: '',
     iconAltText: '',
-    statusUpdatesRequired: false,
-    supportsStatusUpdates: false,
     requiredFields: [
       {
         fieldID: 'disabled',
@@ -120,8 +114,6 @@ export const destTypes: DestinationTypeInfo[] = [
     isSchedOnCallNotify: false,
     iconURL: '',
     iconAltText: '',
-    statusUpdatesRequired: false,
-    supportsStatusUpdates: true,
     requiredFields: [
       {
         fieldID: 'phone-number',
@@ -148,8 +140,6 @@ export const destTypes: DestinationTypeInfo[] = [
     isSchedOnCallNotify: false,
     iconURL: '',
     iconAltText: '',
-    statusUpdatesRequired: true,
-    supportsStatusUpdates: false,
     requiredFields: [
       {
         fieldID: 'phone-number',
