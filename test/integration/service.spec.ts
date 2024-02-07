@@ -32,6 +32,7 @@ test('Service Information', async ({ page }) => {
 })
 
 test('Service Editing', async ({ page }) => {
+  name = 'pw-service ' + c.name()
   await createService(page, name, description)
 
   await page.getByRole('button', { name: 'Edit' }).click()
@@ -44,6 +45,7 @@ test('Service Editing', async ({ page }) => {
 })
 
 test('Heartbeat Monitors', async ({ page, isMobile }) => {
+  name = 'pw-service ' + c.name()
   await createService(page, name, description)
 
   // Navigate to the heartbeat monitors
@@ -119,6 +121,7 @@ test('Heartbeat Monitors', async ({ page, isMobile }) => {
 })
 
 test('Alerts', async ({ page, isMobile }) => {
+  name = 'pw-service ' + c.name()
   await createService(page, name, description)
 
    // Go to the alerts page
@@ -174,6 +177,7 @@ test('Alerts', async ({ page, isMobile }) => {
 })
 
 test('Metric', async ({ page, isMobile }) => {
+  name = 'pw-service ' + c.name()
   await createService(page, name, description)
 
   // Navigate to the metrics
@@ -188,6 +192,9 @@ test('Metric', async ({ page, isMobile }) => {
 })
 
 test('Label', async ({ page, isMobile }) => {
+  name = 'pw-service ' + c.name()
+  await createService(page, name, description)
+
   // Create a label for the service
   await page.getByRole('link', { name: 'Labels' }).click()
 
@@ -245,6 +252,7 @@ test('Label', async ({ page, isMobile }) => {
 })
 
 test('Integration Keys', async ({ page, isMobile }) => {
+  name = 'pw-service ' + c.name()
   await createService(page, name, description)
 
   // Make an integration key
@@ -287,9 +295,10 @@ test('Integration Keys', async ({ page, isMobile }) => {
   await expect(page.getByText(grafanaKey, { exact: true })).toBeHidden()
 })
 
-test('Service Creation with Existing Label', async ({ page, isMobile }) => {
+test('Service Creation with Existing Label and Label Filtering', async ({ page, isMobile }) => {
+  name = 'pw-service ' + c.name()
   // Make another service
-  await createService(page, diffName, diffDescription)
+  await createService(page, name, description)
 
   // Set the label with the existing key and a new value
   const diffValue = c.word({ length: 8 })
@@ -307,9 +316,9 @@ test('Service Creation with Existing Label', async ({ page, isMobile }) => {
 
   await expect(page.getByText(key)).toBeVisible()
   await expect(page.getByText(diffValue)).toBeVisible()
-})
 
-test('Label Filtering', async ({ page, isMobile }) => {
+  // Create another service
+  await createService(page, diffName, diffDescription)
   await page.goto('./services')
 
   // Check that filter content doesn't exist yet
@@ -368,7 +377,27 @@ test('Label Filtering', async ({ page, isMobile }) => {
   ).toBeVisible()
 })
 
-test('Service Search', async ({ page }) => {
+test('Service Search', async ({ page, isMobile }) => {
+  name = 'pw-service ' + c.name()
+  await createService(page, name, description)
+
+  // Create a label for the service
+  await page.getByRole('link', { name: 'Labels' }).click()
+
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Add' }).click()
+  } else {
+    await page.getByTestId('create-label').click()
+  }
+
+  await page.getByLabel('Key', { exact: true }).fill(key)
+  await page.getByText('Create "' + key + '"').click()
+  await page.getByLabel('Value', { exact: true }).fill(value)
+  await page.click('[role=dialog] button[type=submit]')
+
+  await expect(page.getByText(key)).toBeVisible()
+  await expect(page.getByText(value)).toBeVisible()
+ 
   // Load in filters from URL, should find the service
   await page.goto('./services?search=' + key + '=*')
   await expect(
@@ -396,7 +425,8 @@ test('Service Search', async ({ page }) => {
 })
 
 test('Maintenance Mode', async ({ page }) => {
-  await createService(page, diffName, diffDescription)
+  name = 'pw-service ' + c.name()
+  await createService(page, name, description)
 
   // Maintenance mode
   await page.getByRole('button', { name: 'Maintenance Mode' }).click()
@@ -419,6 +449,9 @@ test('Maintenance Mode', async ({ page }) => {
 })
 
 test('Service Deletion', async ({ page, isMobile }) => {
+  name = 'pw-service ' + c.name()
+  await createService(page, name, description)
+
   // Finally, let's delete the service
   await page.getByRole('button', { name: 'Delete' }).click()
   // and confirm
