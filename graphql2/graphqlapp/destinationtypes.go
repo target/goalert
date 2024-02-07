@@ -253,6 +253,7 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			IsEPTarget:            true,
 			IsSchedOnCallNotify:   true,
 			SupportsStatusUpdates: true,
+			StatusUpdatesRequired: true,
 			DisabledMessage:       "Webhooks must be enabled by an administrator",
 			RequiredFields: []graphql2.DestinationFieldConfig{{
 				FieldID:            fieldWebhookURL,
