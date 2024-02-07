@@ -92,6 +92,9 @@ type DestinationTypeInfo {
   isContactMethod: Boolean! # this destination type can be used as a user contact method
   isEPTarget: Boolean! # this destination type can be used as an escalation policy step action
   isSchedOnCallNotify: Boolean! # this destination type can be used for schedule on-call notifications
+
+  supportsStatusUpdates: Boolean! # if true, the destination type supports status updates
+  statusUpdatesRequired: Boolean! # if true, the destination type requires status updates to be enabled
 }
 
 type DestinationFieldConfig {
