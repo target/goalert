@@ -343,9 +343,8 @@ export interface DebugSendSMSInput {
 }
 
 export interface Destination {
-  display: DestinationDisplayInfo
+  displayInfo: DestinationDisplayInfo
   type: DestinationType
-  typeInfo: DestinationTypeInfo
   values: FieldValuePair[]
 }
 
@@ -666,6 +665,7 @@ export interface NotificationState {
 export type NotificationStatus = 'ERROR' | 'OK' | 'WARN'
 
 export interface OnCallNotificationRule {
+  dest: Destination
   id: string
   target: Target
   time?: null | ClockTime
