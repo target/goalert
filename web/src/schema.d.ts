@@ -251,6 +251,7 @@ export interface CreateUserCalendarSubscriptionInput {
 
 export interface CreateUserContactMethodInput {
   dest?: null | DestinationInput
+  enableStatusUpdates?: null | boolean
   name: string
   newUserNotificationRule?: null | CreateUserNotificationRuleInput
   type?: null | ContactMethodType
