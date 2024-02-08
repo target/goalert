@@ -101,7 +101,7 @@ export interface FlatListNotice extends Notice {
   handleOnClick?: (event: MouseEvent) => void
   'data-cy'?: string
 }
-export interface FlatListItem extends ListItemProps {
+export interface FlatListItemOptions extends ListItemProps {
   title?: string
   primaryText?: React.ReactNode
   highlight?: boolean
@@ -124,7 +124,10 @@ export interface SectionTitle {
   subText?: JSX.Element | string
 }
 
-export type FlatListListItem = FlatListSub | FlatListItem | FlatListNotice
+export type FlatListListItem =
+  | FlatListSub
+  | FlatListItemOptions
+  | FlatListNotice
 
 export interface FlatListProps extends ListProps {
   items: FlatListListItem[]
@@ -385,7 +388,9 @@ export default function FlatList({
           <Collapse in={open} unmountOnExit>
             <List>
               {items
-                .filter((item: FlatListItem) => item.section === section.title)
+                .filter(
+                  (item: FlatListItemOptions) => item.section === section.title,
+                )
                 .map((item, idx) => {
                   return <FlatListItem index={idx} key={idx} item={item} />
                 })}

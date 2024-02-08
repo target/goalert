@@ -1,25 +1,13 @@
 import React from 'react'
-import { Avatar, Chip, CircularProgress } from '@mui/material'
-
-import {
-  BrokenImage,
-  RotateRight as RotationIcon,
-  Today as ScheduleIcon,
-  Webhook as WebhookIcon,
-} from '@mui/icons-material'
+import { Chip } from '@mui/material'
 import { DestinationDisplayInfo } from '../../schema'
+import { DestinationAvatar } from './DestinationAvatar'
 
 export type DestinationChipProps = DestinationDisplayInfo & {
   error?: string
 
   // If onDelete is provided, a delete icon will be shown.
   onDelete?: () => void
-}
-
-const builtInIcons: { [key: string]: React.ReactNode } = {
-  'builtin://rotation': <RotationIcon />,
-  'builtin://schedule': <ScheduleIcon />,
-  'builtin://webhook': <WebhookIcon />,
 }
 
 /**
@@ -35,11 +23,7 @@ export default function DestinationChip(
   if (props.error) {
     return (
       <Chip
-        avatar={
-          <Avatar>
-            <BrokenImage />
-          </Avatar>
-        }
+        avatar={<DestinationAvatar error />}
         label={'ERROR: ' + props.error}
         onDelete={
           props.onDelete
@@ -56,11 +40,7 @@ export default function DestinationChip(
   if (!props.text) {
     return (
       <Chip
-        avatar={
-          <Avatar>
-            <CircularProgress data-testid='spinner' size='1em' />
-          </Avatar>
-        }
+        avatar={<DestinationAvatar loading />}
         label='Loading...'
         onDelete={
           props.onDelete
@@ -74,8 +54,6 @@ export default function DestinationChip(
       />
     )
   }
-
-  const builtInIcon = builtInIcons[props.iconURL] || null
 
   const opts: { [key: string]: unknown } = {}
   if (props.linkURL) {
@@ -91,14 +69,10 @@ export default function DestinationChip(
       clickable={!!props.linkURL}
       {...opts}
       avatar={
-        props.iconURL ? (
-          <Avatar
-            src={builtInIcon ? undefined : props.iconURL}
-            alt={props.iconAltText}
-          >
-            {builtInIcon}
-          </Avatar>
-        ) : undefined
+        <DestinationAvatar
+          iconURL={props.iconURL}
+          iconAltText={props.iconAltText}
+        />
       }
       label={props.text}
       onDelete={
