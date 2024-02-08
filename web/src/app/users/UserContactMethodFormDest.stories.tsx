@@ -1,8 +1,7 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import UserContactMethodFormDest, { Value } from './UserContactMethodFormDest'
-import { expect } from '@storybook/jest'
-import { within, screen, userEvent, waitFor } from '@storybook/testing-library'
+import { expect, within, userEvent, waitFor } from '@storybook/test'
 import { handleDefaultConfig } from '../storybook/graphql'
 import { useArgs } from '@storybook/preview-api'
 import { HttpResponse, graphql } from 'msw'
@@ -55,12 +54,13 @@ export const SupportStatusUpdates: Story = {
     },
     disabled: false,
   },
-  play: async () => {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
     // ensure status updates checkbox is clickable
-    const status = await screen.getByLabelText('Send alert status updates')
-    userEvent.click(status, {
-      pointerEventsCheck: 1,
-    })
+
+    await expect(
+      await canvas.findByLabelText('Send alert status updates'),
+    ).not.toBeDisabled()
   },
 }
 
@@ -81,14 +81,15 @@ export const RequiredStatusUpdates: Story = {
     },
     disabled: false,
   },
-  play: async () => {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
     // ensure status updates checkbox is not clickable
-    const status = await screen.getByLabelText(
-      'Send alert status updates (cannot be disabled for this type)',
-    )
-    userEvent.click(status, {
-      pointerEventsCheck: 0,
-    })
+
+    await expect(
+      await canvas.findByLabelText(
+        'Send alert status updates (cannot be disabled for this type)',
+      ),
+    ).toBeDisabled()
   },
 }
 
@@ -120,11 +121,15 @@ export const ErrorSingleField: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    await userEvent.type(screen.getByLabelText('Phone Number'), '123')
+    await userEvent.type(await canvas.findByLabelText('Phone Number'), '123')
 
     // ensure errors are shown
-    await expect(canvas.getByText('Must begin with a letter')).toBeVisible()
-    await expect(await canvas.findByTestId('CloseIcon')).toBeVisible()
+    await expect(
+      await canvas.findByText('Must begin with a letter'),
+    ).toBeVisible()
+    await waitFor(async function CloseIcon() {
+      await expect(await canvas.findByTestId('CloseIcon')).toBeVisible()
+    })
   },
 }
 
@@ -164,12 +169,15 @@ export const ErrorMultiField: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    await userEvent.type(screen.getByLabelText('First Item'), '123')
+    await userEvent.type(await canvas.findByLabelText('First Item'), '123')
 
     // ensure errors are shown
-    await expect(canvas.getByText('Must begin with a letter')).toBeVisible()
-    await waitFor(async () => {
-      await expect((await canvas.findAllByTestId('CloseIcon')).length).toBe(3)
+    await expect(
+      await canvas.findByText('Must begin with a letter'),
+    ).toBeVisible()
+
+    await waitFor(async function ThreeCloseIcons() {
+      await expect(await canvas.findAllByTestId('CloseIcon')).toHaveLength(3)
     })
   },
 }
@@ -186,33 +194,26 @@ export const Disabled: Story = {
     },
     disabled: true,
   },
-  play: async () => {
-    // ensure all fields are disabled
-    const destTypeOptions = await screen.getByText(
-      'Multi Field Destination Type',
-    )
-    const firstField = await screen.getByPlaceholderText('11235550123')
-    const secondField = await screen.getByPlaceholderText('foobar@example.com')
-    const thirdField = await screen.getByPlaceholderText('slack user ID')
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
 
-    userEvent.click(destTypeOptions, {
-      pointerEventsCheck: 0,
-    })
-    userEvent.click(firstField, {
-      pointerEventsCheck: 0,
-    })
-    userEvent.click(secondField, {
-      pointerEventsCheck: 0,
-    })
-    userEvent.click(thirdField, {
-      pointerEventsCheck: 0,
-    })
+    const combo = await canvas.findByRole('combobox')
 
-    const status = await screen.getByLabelText(
-      'Send alert status updates (not supported for this type)',
-    )
-    userEvent.click(status, {
-      pointerEventsCheck: 0,
-    })
+    // get it's input field sibling (combo is a dom element)
+    const input = combo.parentElement?.querySelector('input')
+    await expect(input).toBeDisabled()
+
+    await expect(
+      await canvas.findByPlaceholderText('11235550123'),
+    ).toBeDisabled()
+    await expect(
+      await canvas.findByPlaceholderText('foobar@example.com'),
+    ).toBeDisabled()
+    await expect(
+      await canvas.findByPlaceholderText('slack user ID'),
+    ).toBeDisabled()
+    await expect(
+      await canvas.findByLabelText('Send alert status updates'),
+    ).toBeDisabled()
   },
 }
