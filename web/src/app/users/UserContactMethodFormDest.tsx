@@ -115,7 +115,8 @@ export default function UserContactMethodFormDest(
                 name='enableStatusUpdates'
                 disabled={
                   !currentType.supportsStatusUpdates ||
-                  currentType.statusUpdatesRequired
+                  currentType.statusUpdatesRequired ||
+                  props.disabled
                 }
                 checked={statusUpdateChecked}
                 onChange={(v) =>
