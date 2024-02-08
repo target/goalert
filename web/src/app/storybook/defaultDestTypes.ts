@@ -40,7 +40,7 @@ export const destTypes: DestinationTypeInfo[] = [
     isSchedOnCallNotify: false,
     iconURL: '',
     iconAltText: '',
-    supportsStatusUpdates: false,
+    supportsStatusUpdates: true,
     statusUpdatesRequired: false,
     requiredFields: [
       {
