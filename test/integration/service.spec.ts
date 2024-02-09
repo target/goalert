@@ -2,16 +2,12 @@ import { test, expect } from '@playwright/test'
 import { userSessionFile } from './lib'
 import Chance from 'chance'
 import { createService } from './lib/service'
+import { createLabel } from './lib/label'
+import { createIntegrationKey } from './lib/integration-key'
 const c = new Chance()
 
 const description = c.sentence()
-const key = `${c.word({ length: 4 })}/${c.word({ length: 3 })}`
-const intKey = c.word({ length: 5 }) + ' Key'
-const diffName = 'pw-service ' + c.name()
-const diffDescription = c.sentence()
-
 let name = 'pw-service ' + c.name()
-let value = c.word({ length: 8 })
 
 test.describe.configure({ mode: 'parallel' })
 test.use({ storageState: userSessionFile })
@@ -193,24 +189,14 @@ test('Metric', async ({ page, isMobile }) => {
 
 test('Label', async ({ page, isMobile }) => {
   name = 'pw-service ' + c.name()
+
+  const key = `${c.word({ length: 4 })}/${c.word({ length: 3 })}`
+  let value = c.word({ length: 8 })
+
   await createService(page, name, description)
 
   // Create a label for the service
-  await page.getByRole('link', { name: 'Labels' }).click()
-
-  if (isMobile) {
-    await page.getByRole('button', { name: 'Add' }).click()
-  } else {
-    await page.getByTestId('create-label').click()
-  }
-
-  await page.getByLabel('Key', { exact: true }).fill(key)
-  await page.getByText('Create "' + key + '"').click()
-  await page.getByLabel('Value', { exact: true }).fill(value)
-  await page.click('[role=dialog] button[type=submit]')
-
-  await expect(page.getByText(key)).toBeVisible()
-  await expect(page.getByText(value)).toBeVisible()
+   await createLabel(page, key, value, isMobile)
 
   // Edit the label, change the value, confirm new value is visible
   value = c.word({ length: 8 })
@@ -253,20 +239,13 @@ test('Label', async ({ page, isMobile }) => {
 
 test('Integration Keys', async ({ page, isMobile }) => {
   name = 'pw-service ' + c.name()
+
+  const intKey = c.word({ length: 5 }) + ' Key'
+
   await createService(page, name, description)
 
   // Make an integration key
-  await page.getByRole('link', { name: 'Integration Keys' }).click()
-  if (isMobile) {
-    await page.getByRole('button', { name: 'Create Integration Key' }).click()
-  } else {
-    await page.getByTestId('create-key').click()
-  }
-  await page.getByLabel('Name').fill(intKey)
-  await page.getByRole('button', { name: 'Submit' }).click()
-
-  await expect(page.getByText(intKey)).toBeVisible()
-  await expect(page.getByText('Generic Webhook URL')).toBeVisible()
+  await createIntegrationKey(page, intKey, isMobile)
 
   // Create a second integration key with a different type
   const grafanaKey = c.word({ length: 5 }) + ' Key'
@@ -297,8 +276,44 @@ test('Integration Keys', async ({ page, isMobile }) => {
 
 test('Service Creation with Existing Label and Label Filtering', async ({ page, isMobile }) => {
   name = 'pw-service ' + c.name()
-  // Make another service
+  
+  const key = `${c.word({ length: 4 })}/${c.word({ length: 3 })}`
+  let value = c.word({ length: 8 })
+  const intKey = c.word({ length: 5 }) + ' Key'
+  const diffName = 'pw-service ' + c.name()
+  const diffDescription = c.sentence()
+
+  // Create a service
   await createService(page, name, description)
+
+  // Make an integration key
+  await createIntegrationKey(page, intKey, isMobile)
+
+  // Return to the service
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Back' }).click()
+  } else {
+    await page.getByRole('link', { name, exact: true }).click()
+  }
+
+  // Create a label for the service
+  await page.getByRole('link', { name: 'Labels' }).click()
+
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Add' }).click()
+  } else {
+    await page.getByTestId('create-label').click()
+  }
+
+  await page.getByLabel('Key', { exact: true }).fill(key)
+  await page.getByText('Create "' + key + '"').click()
+  await page.getByLabel('Value', { exact: true }).fill(value)
+  await page.click('[role=dialog] button[type=submit]')
+
+  await expect(page.getByText(key)).toBeVisible()
+  await expect(page.getByText(value)).toBeVisible()
+  // Create another service
+  await createService(page, diffName, diffDescription)
 
   // Set the label with the existing key and a new value
   const diffValue = c.word({ length: 8 })
@@ -317,10 +332,8 @@ test('Service Creation with Existing Label and Label Filtering', async ({ page, 
   await expect(page.getByText(key)).toBeVisible()
   await expect(page.getByText(diffValue)).toBeVisible()
 
-  // Create another service
-  await createService(page, diffName, diffDescription)
   await page.goto('./services')
-
+ 
   // Check that filter content doesn't exist yet
   await expect(
     page.getByRole('button', { name: 'filter-done' }),
@@ -379,25 +392,15 @@ test('Service Creation with Existing Label and Label Filtering', async ({ page, 
 
 test('Service Search', async ({ page, isMobile }) => {
   name = 'pw-service ' + c.name()
+  
+  const key = `${c.word({ length: 4 })}/${c.word({ length: 3 })}`
+  let value = c.word({ length: 8 })
+
   await createService(page, name, description)
 
   // Create a label for the service
-  await page.getByRole('link', { name: 'Labels' }).click()
+  await createLabel(page, key, value, isMobile)
 
-  if (isMobile) {
-    await page.getByRole('button', { name: 'Add' }).click()
-  } else {
-    await page.getByTestId('create-label').click()
-  }
-
-  await page.getByLabel('Key', { exact: true }).fill(key)
-  await page.getByText('Create "' + key + '"').click()
-  await page.getByLabel('Value', { exact: true }).fill(value)
-  await page.click('[role=dialog] button[type=submit]')
-
-  await expect(page.getByText(key)).toBeVisible()
-  await expect(page.getByText(value)).toBeVisible()
- 
   // Load in filters from URL, should find the service
   await page.goto('./services?search=' + key + '=*')
   await expect(
