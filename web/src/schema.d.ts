@@ -432,6 +432,7 @@ export interface EscalationPolicySearchOptions {
 }
 
 export interface EscalationPolicyStep {
+  actions: Destination[]
   delayMinutes: number
   escalationPolicy?: null | EscalationPolicy
   id: string

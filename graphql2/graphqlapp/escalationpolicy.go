@@ -309,6 +309,23 @@ func (m *Mutation) UpdateEscalationPolicyStep(ctx context.Context, input graphql
 	return true, err
 }
 
+func (a *EscalationPolicyStep) Actions(ctx context.Context, raw *escalation.Step) ([]graphql2.Destination, error) {
+	tgts, err := a.Targets(ctx, raw)
+	if err != nil {
+		return nil, err
+	}
+
+	actions := make([]graphql2.Destination, len(tgts))
+	for i, tgt := range tgts {
+		actions[i], err = CompatTargetToDest(tgt)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return actions, nil
+}
+
 func (step *EscalationPolicyStep) Targets(ctx context.Context, raw *escalation.Step) ([]assignment.RawTarget, error) {
 	// TODO: use dataloader
 	var targets []assignment.Target
