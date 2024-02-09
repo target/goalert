@@ -312,6 +312,7 @@ test('Service Creation with Existing Label and Label Filtering', async ({ page, 
 
   await expect(page.getByText(key)).toBeVisible()
   await expect(page.getByText(value)).toBeVisible()
+
   // Create another service
   await createService(page, diffName, diffDescription)
 
