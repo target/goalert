@@ -225,7 +225,15 @@ func (a *App) Handler() http.Handler {
 
 		var multiFieldErr validation.MultiFieldError
 		var singleFieldErr validation.FieldError
-		if errors.As(err, &multiFieldErr) {
+		var destErr *DestinationValidationError
+		if errors.As(err, &destErr) {
+			gqlErr.Message = err.Error()
+			gqlErr.Extensions = map[string]interface{}{
+				"isFieldError": true,
+				"fieldName":    "dest",
+				"details":      destErr,
+			}
+		} else if errors.As(err, &multiFieldErr) {
 			errs := make([]fieldErr, len(multiFieldErr.FieldErrors()))
 			for i, err := range multiFieldErr.FieldErrors() {
 				errs[i].FieldName = err.Field()
