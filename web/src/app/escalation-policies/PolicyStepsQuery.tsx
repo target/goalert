@@ -42,6 +42,11 @@ export const policyStepsQueryDest = gql`
             linkURL
           }
         }
+        targets {
+          id
+          name
+          type
+        }
       }
     }
   }
