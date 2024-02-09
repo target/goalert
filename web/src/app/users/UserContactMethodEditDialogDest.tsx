@@ -37,9 +37,11 @@ type Value = {
 export default function UserContactMethodEditDialogDest({
   onClose,
   contactMethodID,
+  disablePortal,
 }: {
   onClose: () => void
   contactMethodID: string
+  disablePortal?: boolean
 }): React.ReactNode {
   const [{ data }] = useQuery<{
     userContactMethod: UserContactMethod
@@ -68,6 +70,7 @@ export default function UserContactMethodEditDialogDest({
     <FormDialog
       title='Edit Contact Method'
       loading={fetching}
+      disablePortal={disablePortal}
       errors={nonFieldErrors(error)}
       onClose={onClose}
       onSubmit={() => {

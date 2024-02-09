@@ -11,6 +11,12 @@ const meta = {
   component: UserContactMethodEditDialogDest,
   tags: ['autodocs'],
   parameters: {
+    docs: {
+      story: {
+        inline: false,
+        iframeHeight: 500,
+      },
+    },
     msw: {
       handlers: [
         handleDefaultConfig,
@@ -82,7 +88,13 @@ const meta = {
       if (args.onClose) args.onClose()
       setArgs({ value: '' })
     }
-    return <UserContactMethodEditDialogDest {...args} onClose={onClose} />
+    return (
+      <UserContactMethodEditDialogDest
+        {...args}
+        disablePortal
+        onClose={onClose}
+      />
+    )
   },
 } satisfies Meta<typeof UserContactMethodEditDialogDest>
 
