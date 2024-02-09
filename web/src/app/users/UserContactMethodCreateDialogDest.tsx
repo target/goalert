@@ -3,22 +3,20 @@ import { useMutation, useQuery, gql } from 'urql'
 
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
-import UserContactMethodForm from './UserContactMethodForm'
-import { useConfigValue } from '../util/RequireConfig'
+import UserContactMethodForm from './UserContactMethodFormDest'
+import { useContactMethodTypes } from '../util/RequireConfig'
 import { Dialog, DialogTitle, DialogActions, Button } from '@mui/material'
 import DialogContentError from '../dialogs/components/DialogContentError'
-import { ContactMethodType } from '../../schema'
-import { useExpFlag } from '../util/useExpFlag'
-import UserContactMethodCreateDialogDest from './UserContactMethodCreateDialogDest'
+import { DestinationInput } from '../../schema'
 
 type Value = {
   name: string
-  type: ContactMethodType
-  value: string
+  dest: DestinationInput
+  statusUpdates: boolean
 }
 
 const createMutation = gql`
-  mutation ($input: CreateUserContactMethodInput!) {
+  mutation CreateUserContactMethodInput($input: CreateUserContactMethodInput!) {
     createUserContactMethod(input: $input) {
       id
     }
@@ -26,7 +24,7 @@ const createMutation = gql`
 `
 
 const userConflictQuery = gql`
-  query ($input: UserSearchOptions) {
+  query UserConflictCheck($input: UserSearchOptions) {
     users(input: $input) {
       nodes {
         id
@@ -38,55 +36,42 @@ const userConflictQuery = gql`
 
 const noSuspense = { suspense: false }
 
-type UserContactMethodCreateDialogProps = {
+export default function UserContactMethodCreateDialogDest(props: {
   userID: string
   onClose: (contactMethodID?: string) => void
   title?: string
   subtitle?: string
-}
-
-function UserContactMethodCreateDialog(
-  props: UserContactMethodCreateDialogProps,
-): React.ReactNode {
-  const [allowSV, allowE, allowW, allowS] = useConfigValue(
-    'Twilio.Enable',
-    'SMTP.Enable',
-    'Webhook.Enable',
-    'Slack.Enable',
-  )
-
-  let typeVal: ContactMethodType = 'VOICE'
-  if (allowSV) {
-    typeVal = 'SMS'
-  } else if (allowE) {
-    typeVal = 'EMAIL'
-  } else if (allowW) {
-    typeVal = 'WEBHOOK'
-  } else if (allowS) {
-    typeVal = 'SLACK_DM'
-  }
+}): React.ReactNode {
+  const defaultType = useContactMethodTypes()[0] // will be sorted by priority, and enabled first
 
   // values for contact method form
   const [CMValue, setCMValue] = useState<Value>({
     name: '',
-    type: typeVal,
-    value: '',
+    dest: {
+      type: defaultType.type,
+      values: [],
+    },
+    statusUpdates: false,
   })
 
   const [{ data, fetching: queryLoading }] = useQuery({
     query: userConflictQuery,
     variables: {
       input: {
-        CMValue: CMValue.value,
-        CMType: CMValue.type,
+        dest: CMValue.dest,
       },
     },
+    pause:
+      !CMValue.dest ||
+      !CMValue.dest.values.length ||
+      !CMValue.dest.values[0].value,
     context: noSuspense,
   })
 
   const [createCMStatus, createCM] = useMutation(createMutation)
 
-  if (!typeVal) {
+  if (!defaultType.enabled) {
+    // default type will be the first enabled type, so if it's not enabled, none are enabled
     return (
       <Dialog open onClose={() => props.onClose()}>
         <DialogTitle>No Contact Types Available</DialogTitle>
@@ -141,7 +126,9 @@ function UserContactMethodCreateDialog(
         createCM(
           {
             input: {
-              ...CMValue,
+              name: CMValue.name,
+              dest: CMValue.dest,
+              enableStatusUpdates: CMValue.statusUpdates,
               userID: props.userID,
               newUserNotificationRule: {
                 delayMinutes: 0,
@@ -159,16 +146,4 @@ function UserContactMethodCreateDialog(
       form={form}
     />
   )
-}
-
-export default function UserContactMethodCreateDialogSwitch(
-  props: UserContactMethodCreateDialogProps,
-): React.ReactNode {
-  const isDestTypesSet = useExpFlag('dest-types')
-
-  if (isDestTypesSet) {
-    return <UserContactMethodCreateDialogDest {...props} />
-  }
-
-  return <UserContactMethodCreateDialog {...props} />
 }
