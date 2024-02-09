@@ -11,6 +11,12 @@ const meta = {
   component: UserContactMethodCreateDialogDest,
   tags: ['autodocs'],
   parameters: {
+    docs: {
+      story: {
+        inline: false,
+        iframeHeight: 500,
+      },
+    },
     msw: {
       handlers: [
         handleDefaultConfig,
@@ -64,7 +70,13 @@ const meta = {
       if (args.onClose) args.onClose(contactMethodID)
       setArgs({ value: contactMethodID })
     }
-    return <UserContactMethodCreateDialogDest {...args} onClose={onClose} />
+    return (
+      <UserContactMethodCreateDialogDest
+        {...args}
+        disablePortal
+        onClose={onClose}
+      />
+    )
   },
 } satisfies Meta<typeof UserContactMethodCreateDialogDest>
 

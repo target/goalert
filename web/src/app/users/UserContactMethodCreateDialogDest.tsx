@@ -41,6 +41,8 @@ export default function UserContactMethodCreateDialogDest(props: {
   onClose: (contactMethodID?: string) => void
   title?: string
   subtitle?: string
+
+  disablePortal?: boolean
 }): React.ReactNode {
   const defaultType = useContactMethodTypes()[0] // will be sorted by priority, and enabled first
 
@@ -73,7 +75,11 @@ export default function UserContactMethodCreateDialogDest(props: {
   if (!defaultType.enabled) {
     // default type will be the first enabled type, so if it's not enabled, none are enabled
     return (
-      <Dialog open onClose={() => props.onClose()}>
+      <Dialog
+        disablePortal={props.disablePortal}
+        open
+        onClose={() => props.onClose()}
+      >
         <DialogTitle>No Contact Types Available</DialogTitle>
         <DialogContentError error='There are no contact types currently enabled by the administrator.' />
         <DialogActions>
@@ -115,6 +121,7 @@ export default function UserContactMethodCreateDialogDest(props: {
 
   return (
     <FormDialog
+      disablePortal={props.disablePortal}
       data-cy='create-form'
       title={title}
       subTitle={subtitle}
