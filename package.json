@@ -135,7 +135,7 @@
     "semver": "7.5.4",
     "storybook": "7.6.13",
     "storybook-addon-mock": "4.3.0",
-    "stylelint": "15.11.0",
+    "stylelint": "16.2.1",
     "stylelint-config-standard": "34.0.0",
     "typescript": "5.2.2",
     "urql": "4.0.6",
