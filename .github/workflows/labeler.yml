@@ -10,7 +10,7 @@ jobs:
     if: github.event.pull_request.draft == false
     name: Label the PR size
     steps:
-      - uses: codelytv/pr-size-labeler@54c3c1d94030222b5d7c46fe61ce7c83e6a51941
+      - uses: mastercactapus/pr-size-labeler@ae42264 # https://github.com/CodelyTV/pr-size-labeler/pull/61, updated with latest from main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           xs_label: 'size/xs'
@@ -22,7 +22,7 @@ jobs:
           l_label: 'size/l'
           l_max_size: '500'
           xl_label: 'size/xl'
-          fail_if_xl: 'false'
+          fail_if_xl: 'true'
           message_if_xl: >
             This PR exceeds the recommended size of 500 lines.
             Please make sure you are NOT addressing multiple issues with one PR.
