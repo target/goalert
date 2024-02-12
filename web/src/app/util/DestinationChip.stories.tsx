@@ -26,11 +26,6 @@ const meta = {
       options: [() => null, undefined],
     },
   },
-  parameters: {
-    msw: {
-      handlers: [handleDefaultConfig],
-    },
-  },
 } satisfies Meta<typeof DestinationChip>
 
 export default meta

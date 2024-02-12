@@ -16,11 +16,7 @@ const meta = {
       options: ['single-field', 'triple-field', 'disabled-destination'],
     },
   },
-  parameters: {
-    msw: {
-      handlers: [handleDefaultConfig],
-    },
-  },
+
   render: function Component(args) {
     const [, setArgs] = useArgs()
     const onChange = (newValue: FieldValueInput[]): void => {
