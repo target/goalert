@@ -2,7 +2,6 @@ import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import DestinationChip from './DestinationChip'
 import { expect, within } from '@storybook/test'
-import { handleDefaultConfig } from '../storybook/graphql'
 
 const meta = {
   title: 'util/DestinationChip',
@@ -24,11 +23,6 @@ const meta = {
     onDelete: {
       control: 'select',
       options: [() => null, undefined],
-    },
-  },
-  parameters: {
-    msw: {
-      handlers: [handleDefaultConfig],
     },
   },
 } satisfies Meta<typeof DestinationChip>

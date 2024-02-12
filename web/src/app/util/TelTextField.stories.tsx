@@ -5,7 +5,7 @@ import { HttpResponse, graphql } from 'msw'
 import { expect, within } from '@storybook/test'
 import { useArgs } from '@storybook/preview-api'
 
-import { handleDefaultConfig } from '../storybook/graphql'
+import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
 
 const meta = {
   title: 'util/TelTextField',
@@ -32,7 +32,7 @@ const meta = {
     msw: {
       handlers: [
         handleDefaultConfig,
-
+        handleExpFlags('dest-types'),
         graphql.query('PhoneNumberValidate', ({ variables: vars }) => {
           return HttpResponse.json({
             data: {

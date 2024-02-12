@@ -10,7 +10,7 @@ const query = gql`
 // useExpFlag is a hook that returns a boolean indicating whether the
 // given experimental flag is enabled.
 export function useExpFlag(expFlag: ExpFlag): boolean {
-  const [{ data }] = useQuery({ query })
+  const [{ data }] = useQuery({ query, requestPolicy: 'cache-first' })
 
   const flags: Array<ExpFlag> = data?.experimentalFlags ?? []
 

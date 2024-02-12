@@ -2,7 +2,6 @@ import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import DestinationField from './DestinationField'
 import { expect, within } from '@storybook/test'
-import { handleDefaultConfig } from '../storybook/graphql'
 import { useArgs } from '@storybook/preview-api'
 import { FieldValueInput } from '../../schema'
 
@@ -16,11 +15,7 @@ const meta = {
       options: ['single-field', 'triple-field', 'disabled-destination'],
     },
   },
-  parameters: {
-    msw: {
-      handlers: [handleDefaultConfig],
-    },
-  },
+
   render: function Component(args) {
     const [, setArgs] = useArgs()
     const onChange = (newValue: FieldValueInput[]): void => {
