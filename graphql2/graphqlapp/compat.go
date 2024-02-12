@@ -7,10 +7,54 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/user/contactmethod"
 )
+
+// CompatTargetToDest converts an assignment.Target to a graphql2.Destination.
+func CompatTargetToDest(tgt assignment.Target) (graphql2.Destination, error) {
+	switch tgt.TargetType() {
+	case assignment.TargetTypeUser:
+		return graphql2.Destination{
+			Type: destUser,
+			Values: []graphql2.FieldValuePair{{
+				FieldID: fieldUserID,
+				Value:   tgt.TargetID(),
+			}}}, nil
+	case assignment.TargetTypeRotation:
+		return graphql2.Destination{
+			Type: destRotation,
+			Values: []graphql2.FieldValuePair{{
+				FieldID: fieldRotationID,
+				Value:   tgt.TargetID(),
+			}}}, nil
+	case assignment.TargetTypeSchedule:
+		return graphql2.Destination{
+			Type: destSchedule,
+			Values: []graphql2.FieldValuePair{{
+				FieldID: fieldScheduleID,
+				Value:   tgt.TargetID(),
+			}}}, nil
+	case assignment.TargetTypeChanWebhook:
+		return graphql2.Destination{
+			Type: destWebhook,
+			Values: []graphql2.FieldValuePair{{
+				FieldID: fieldWebhookURL,
+				Value:   tgt.TargetID(),
+			}}}, nil
+	case assignment.TargetTypeSlackChannel:
+		return graphql2.Destination{
+			Type: destSlackChan,
+			Values: []graphql2.FieldValuePair{{
+				FieldID: fieldSlackChanID,
+				Value:   tgt.TargetID(),
+			}}}, nil
+	}
+
+	return graphql2.Destination{}, fmt.Errorf("unknown target type: %s", tgt.TargetType())
+}
 
 // CompatNCToDest converts a notification channel to a destination.
 func (a *App) CompatNCToDest(ctx context.Context, ncID uuid.UUID) (*graphql2.Destination, error) {

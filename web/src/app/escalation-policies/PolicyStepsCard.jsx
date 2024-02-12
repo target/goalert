@@ -19,7 +19,12 @@ import { reorderList } from '../rotations/util'
 import PolicyStepEditDialog from './PolicyStepEditDialog'
 import PolicyStepDeleteDialog from './PolicyStepDeleteDialog'
 import OtherActions from '../util/OtherActions'
-import { getStepNumber, renderChips, renderDelayMessage } from './stepUtil'
+import {
+  getStepNumber,
+  renderChips,
+  renderChipsDest,
+  renderDelayMessage,
+} from './stepUtil'
 
 const mutation = gql`
   mutation UpdateEscalationPolicyMutation(
@@ -171,7 +176,7 @@ export default function PolicyStepsCard(props) {
             ),
             subText: (
               <React.Fragment>
-                {renderChips(step)}
+                {step.actions ? renderChipsDest(step) : renderChips(step)}
                 {renderDelayMessage(steps, step, repeat)}
               </React.Fragment>
             ),
