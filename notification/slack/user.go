@@ -9,7 +9,7 @@ import (
 	"github.com/target/goalert/validation"
 )
 
-func (s *ChannelSender) ValidateUser(ctx context.Context, fieldID, id string) error {
+func (s *ChannelSender) ValidateUser(ctx context.Context, id string) error {
 	err := permission.LimitCheckAny(ctx, permission.User, permission.System)
 	if err != nil {
 		return err
@@ -17,7 +17,7 @@ func (s *ChannelSender) ValidateUser(ctx context.Context, fieldID, id string) er
 
 	_, err = s.User(ctx, id)
 	if rootMsg(err) == "user_not_found" {
-		return validation.NewFieldError(fieldID, "user not found")
+		return validation.NewGenericError("user not found")
 	}
 	if err != nil {
 		return fmt.Errorf("validate user: %w", err)

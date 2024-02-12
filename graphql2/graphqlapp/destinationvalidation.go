@@ -6,152 +6,176 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
+	"github.com/vektah/gqlparser/v2/ast"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
-type FieldValueError struct {
-	FieldID string `json:"fieldID"`
-	Message string `json:"message"`
-}
+const (
+	ErrCodeInvalidDestType  = "INVALID_DESTINATION_TYPE"
+	ErrCodeInvalidDestValue = "INVALID_DESTINATION_FIELD_VALUE"
+)
 
-type DestinationValidationError struct {
-	Type        string            `json:"type"` // always "DestinationValidationError"
-	FieldErrors []FieldValueError `json:"fieldErrors"`
-}
-
-func (e *DestinationValidationError) Error() string {
-	return "DestinationValidationError"
-}
-func (e *DestinationValidationError) ClientError() bool { return true }
-
-func newDestErr(errs ...error) error {
-	var destErr DestinationValidationError
-	destErr.Type = "DestinationValidationError"
-	for _, err := range errs {
-		if f, ok := err.(validation.FieldError); ok {
-			destErr.FieldErrors = append(destErr.FieldErrors, FieldValueError{
-				FieldID: f.Field(),
-				Message: f.Reason(),
-			})
-			continue
-		}
-
-		// non-field error, just return the bunch
-		return errors.Join(errs...)
+// addDestFieldError will add a destination field error to the current request, and return
+// the original error if it is not a destination field validation error.
+func addDestFieldError(ctx context.Context, parentField, fieldID string, err error) error {
+	if permission.IsPermissionError(err) {
+		// request level, return as is
+		return err
+	}
+	if !validation.IsClientError(err) {
+		// internal error, return as is
+		return err
 	}
 
-	return &destErr
+	p := graphql.GetPath(ctx)
+	p = append(p,
+		ast.PathName(parentField),
+		ast.PathName("values"), // DestinationInput.Values
+		ast.PathName(fieldID),
+	)
+
+	graphql.AddError(ctx, &gqlerror.Error{
+		Message: err.Error(),
+		Path:    p,
+		Extensions: map[string]interface{}{
+			"code": ErrCodeInvalidDestValue,
+		},
+	})
+
+	return nil
 }
 
 // ValidateDestination will validate a destination input.
 //
 // In the future this will be a call to the plugin system.
-func (a *App) ValidateDestination(ctx context.Context, dest *graphql2.DestinationInput) error {
+func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *graphql2.DestinationInput) (ok bool, err error) {
 	cfg := config.FromContext(ctx)
 	switch dest.Type {
 	case destTwilioSMS:
 		phone := dest.FieldValue(fieldPhoneNumber)
 		err := validate.Phone(fieldPhoneNumber, phone)
 		if err != nil {
-			return newDestErr(err)
+			return false, addDestFieldError(ctx, fieldName, fieldPhoneNumber, err)
 		}
-		return nil
+		return true, nil
 	case destTwilioVoice:
 		phone := dest.FieldValue(fieldPhoneNumber)
 		err := validate.Phone(fieldPhoneNumber, phone)
 		if err != nil {
-			return newDestErr(err)
+			return false, addDestFieldError(ctx, fieldName, fieldPhoneNumber, err)
 		}
-		return nil
+		return true, nil
 	case destSlackChan:
 		chanID := dest.FieldValue(fieldSlackChanID)
-		err := a.SlackStore.ValidateChannel(ctx, fieldSlackChanID, chanID)
+		err := a.SlackStore.ValidateChannel(ctx, chanID)
 		if err != nil {
-			return newDestErr(err)
+			return false, addDestFieldError(ctx, fieldName, fieldSlackChanID, err)
 		}
 
-		return nil
+		return true, nil
 	case destSlackDM:
 		userID := dest.FieldValue(fieldSlackUserID)
-		err := a.SlackStore.ValidateUser(ctx, fieldSlackUserID, userID)
-		if err != nil {
-			return newDestErr(err)
+		if err := a.SlackStore.ValidateUser(ctx, userID); err != nil {
+			return false, addDestFieldError(ctx, fieldName, fieldSlackUserID, err)
 		}
-		return nil
+		return true, nil
 	case destSlackUG:
 		ugID := dest.FieldValue(fieldSlackUGID)
+		userErr := a.SlackStore.ValidateUserGroup(ctx, ugID)
+		if err != nil {
+			return false, addDestFieldError(ctx, fieldName, fieldSlackUGID, userErr)
+		}
+
 		chanID := dest.FieldValue(fieldSlackChanID)
-		err := a.SlackStore.ValidateUserGroup(ctx, fieldSlackUGID, ugID)
+		chanErr := a.SlackStore.ValidateChannel(ctx, chanID)
 		if err != nil {
-			return newDestErr(err)
+			return false, addDestFieldError(ctx, fieldName, fieldSlackChanID, chanErr)
 		}
 
-		err = a.SlackStore.ValidateChannel(ctx, fieldSlackChanID, chanID)
-		if err != nil {
-			return newDestErr(err)
-		}
-
-		return nil
+		return true, nil
 	case destSMTP:
 		email := dest.FieldValue(fieldEmailAddress)
 		err := validate.Email(fieldEmailAddress, email)
 		if err != nil {
-			return newDestErr(err)
+			return false, addDestFieldError(ctx, fieldName, fieldEmailAddress, err)
 		}
-		return nil
+		return true, nil
 	case destWebhook:
 		url := dest.FieldValue(fieldWebhookURL)
 		err := validate.AbsoluteURL(fieldWebhookURL, url)
 		if err != nil {
-			return newDestErr(err)
+			return false, addDestFieldError(ctx, fieldName, fieldWebhookURL, err)
 		}
 		if !cfg.ValidWebhookURL(url) {
-			return newDestErr(validation.NewFieldError(fieldWebhookURL, "url is not allowed by administator"))
+			return false, addDestFieldError(ctx, fieldName, fieldWebhookURL, validation.NewGenericError("url is not allowed by administator"))
 		}
-		return nil
+		return true, nil
 	case destSchedule: // must be valid UUID and exist
 		_, err := validate.ParseUUID(fieldScheduleID, dest.FieldValue(fieldScheduleID))
 		if err != nil {
-			return newDestErr(err)
+			return false, addDestFieldError(ctx, fieldName, fieldScheduleID, err)
 		}
 
 		_, err = a.ScheduleStore.FindOne(ctx, dest.FieldValue(fieldScheduleID))
 		if errors.Is(err, sql.ErrNoRows) {
-			return newDestErr(validation.NewFieldError(fieldScheduleID, "schedule does not exist"))
+			return false, addDestFieldError(ctx, fieldName, fieldScheduleID, validation.NewGenericError("schedule does not exist"))
+		}
+		if err != nil {
+			return false, addDestFieldError(ctx, fieldName, fieldScheduleID, err)
 		}
 
-		return err // return any other error
+		return true, nil
 	case destRotation: // must be valid UUID and exist
 		rotID := dest.FieldValue(fieldRotationID)
 		_, err := validate.ParseUUID(fieldRotationID, rotID)
 		if err != nil {
-			return newDestErr(err)
+			return false, addDestFieldError(ctx, fieldName, fieldRotationID, err)
 		}
 		_, err = a.RotationStore.FindRotation(ctx, rotID)
 		if errors.Is(err, sql.ErrNoRows) {
-			return newDestErr(validation.NewFieldError(fieldRotationID, "rotation does not exist"))
+			return false, addDestFieldError(ctx, fieldName, fieldRotationID, validation.NewGenericError("rotation does not exist"))
+		}
+		if err != nil {
+			return false, addDestFieldError(ctx, fieldName, fieldRotationID, err)
 		}
 
-		return err // return any other error
-
+		return true, nil
 	case destUser: // must be valid UUID and exist
 		userID := dest.FieldValue(fieldUserID)
 		uid, err := validate.ParseUUID(fieldUserID, userID)
 		if err != nil {
-			return newDestErr(err)
+			return false, addDestFieldError(ctx, fieldName, fieldUserID, err)
 		}
 		check, err := a.UserStore.UserExists(ctx)
 		if err != nil {
-			return fmt.Errorf("get user existance checker: %w", err)
+			return false, fmt.Errorf("get user existance checker: %w", err)
 		}
 		if !check.UserExistsUUID(uid) {
-			return newDestErr(validation.NewFieldError(fieldUserID, "user does not exist"))
+			return false, addDestFieldError(ctx, fieldName, fieldUserID, validation.NewGenericError("user does not exist"))
 		}
-		return nil
+		return true, nil
 	}
 
-	return fmt.Errorf("unsupported destination type: %s", dest.Type)
+	// unsupported destination type
+	p := graphql.GetPath(ctx)
+	p = append(p,
+		ast.PathName(fieldName),
+		ast.PathName("type"),
+	)
+
+	graphql.AddError(ctx, &gqlerror.Error{
+		Message: "unsupported destination type",
+		Path:    p,
+		Extensions: map[string]interface{}{
+			"code": ErrCodeInvalidDestType,
+		},
+	})
+
+	return false, nil
 }

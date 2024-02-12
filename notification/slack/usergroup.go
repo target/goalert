@@ -16,14 +16,14 @@ type UserGroup struct {
 	Handle string
 }
 
-func (s *ChannelSender) ValidateUserGroup(ctx context.Context, fieldID, id string) error {
+func (s *ChannelSender) ValidateUserGroup(ctx context.Context, id string) error {
 	ug, err := s._UserGroup(ctx, id)
 	if err != nil {
 		return err
 	}
 
 	if ug == nil {
-		return validation.NewFieldError(fieldID, "user group not found")
+		return validation.NewGenericError("user group not found")
 	}
 
 	return nil

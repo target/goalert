@@ -153,7 +153,16 @@ func isGQLValidation(gqlErr *gqlerror.Error) bool {
 		return false
 	}
 
-	return code == errcode.ValidationFailed || code == errcode.ParseFailed
+	switch code {
+	case errcode.ValidationFailed, errcode.ParseFailed:
+		// These are gqlgen validation errors.
+		return true
+	case ErrCodeInvalidDestType, ErrCodeInvalidDestValue:
+		// These are destination validation errors.
+		return true
+	}
+
+	return false
 }
 
 func (a *App) Handler() http.Handler {
@@ -225,15 +234,7 @@ func (a *App) Handler() http.Handler {
 
 		var multiFieldErr validation.MultiFieldError
 		var singleFieldErr validation.FieldError
-		var destErr *DestinationValidationError
-		if errors.As(err, &destErr) {
-			gqlErr.Message = err.Error()
-			gqlErr.Extensions = map[string]interface{}{
-				"isFieldError": true,
-				"fieldName":    "dest",
-				"details":      destErr,
-			}
-		} else if errors.As(err, &multiFieldErr) {
+		if errors.As(err, &multiFieldErr) {
 			errs := make([]fieldErr, len(multiFieldErr.FieldErrors()))
 			for i, err := range multiFieldErr.FieldErrors() {
 				errs[i].FieldName = err.Field()

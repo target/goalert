@@ -135,7 +135,7 @@ func mapError(ctx context.Context, err error) error {
 	return err
 }
 
-func (s *ChannelSender) ValidateChannel(ctx context.Context, fieldID, id string) error {
+func (s *ChannelSender) ValidateChannel(ctx context.Context, id string) error {
 	err := permission.LimitCheckAny(ctx, permission.User, permission.System)
 	if err != nil {
 		return err
@@ -148,7 +148,7 @@ func (s *ChannelSender) ValidateChannel(ctx context.Context, fieldID, id string)
 		res, err = s.loadChannel(ctx, id)
 		if err != nil {
 			if rootMsg(err) == "channel_not_found" {
-				return validation.NewFieldError(fieldID, "Channel does not exist, is private (need to invite goalert bot).")
+				return validation.NewGenericError("Channel does not exist, is private (need to invite goalert bot).")
 			}
 
 			return err
@@ -157,7 +157,7 @@ func (s *ChannelSender) ValidateChannel(ctx context.Context, fieldID, id string)
 	}
 
 	if res.IsArchived {
-		return validation.NewFieldError(fieldID, "Channel is archived.")
+		return validation.NewGenericError("Channel is archived.")
 	}
 
 	return nil
