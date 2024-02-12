@@ -2,7 +2,6 @@ import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import DestinationField from './DestinationField'
 import { expect, within } from '@storybook/test'
-import { handleDefaultConfig } from '../storybook/graphql'
 import { useArgs } from '@storybook/preview-api'
 import { FieldValueInput } from '../../schema'
 
