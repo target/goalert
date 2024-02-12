@@ -18,7 +18,7 @@ export type Value = {
 export type UserContactMethodFormProps = {
   value: Value
 
-  errors?: Array<{ fieldID: string; message: string }>
+  errors?: Array<FieldError>
 
   disabled?: boolean
   edit?: boolean
