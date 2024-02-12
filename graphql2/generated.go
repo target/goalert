@@ -275,6 +275,7 @@ type ComplexityRoot struct {
 	}
 
 	EscalationPolicyStep struct {
+		Actions          func(childComplexity int) int
 		DelayMinutes     func(childComplexity int) int
 		EscalationPolicy func(childComplexity int) int
 		ID               func(childComplexity int) int
@@ -796,6 +797,7 @@ type EscalationPolicyResolver interface {
 type EscalationPolicyStepResolver interface {
 	Targets(ctx context.Context, obj *escalation.Step) ([]assignment.RawTarget, error)
 	EscalationPolicy(ctx context.Context, obj *escalation.Step) (*escalation.Policy, error)
+	Actions(ctx context.Context, obj *escalation.Step) ([]Destination, error)
 }
 type FieldValuePairResolver interface {
 	Label(ctx context.Context, obj *FieldValuePair) (string, error)
@@ -1793,6 +1795,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EscalationPolicyConnection.PageInfo(childComplexity), true
+
+	case "EscalationPolicyStep.actions":
+		if e.complexity.EscalationPolicyStep.Actions == nil {
+			break
+		}
+
+		return e.complexity.EscalationPolicyStep.Actions(childComplexity), true
 
 	case "EscalationPolicyStep.delayMinutes":
 		if e.complexity.EscalationPolicyStep.DelayMinutes == nil {
@@ -4751,7 +4760,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema.graphql" "graph/_Mutation.graphqls" "graph/_Query.graphqls" "graph/_directives.graphqls" "graph/destinations.graphqls" "graph/gqlapikeys.graphqls"
+//go:embed "schema.graphql" "graph/_Mutation.graphqls" "graph/_Query.graphqls" "graph/_directives.graphqls" "graph/destinations.graphqls" "graph/escalationpolicy.graphqls" "graph/gqlapikeys.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -4768,6 +4777,7 @@ var sources = []*ast.Source{
 	{Name: "graph/_Query.graphqls", Input: sourceData("graph/_Query.graphqls"), BuiltIn: false},
 	{Name: "graph/_directives.graphqls", Input: sourceData("graph/_directives.graphqls"), BuiltIn: false},
 	{Name: "graph/destinations.graphqls", Input: sourceData("graph/destinations.graphqls"), BuiltIn: false},
+	{Name: "graph/escalationpolicy.graphqls", Input: sourceData("graph/escalationpolicy.graphqls"), BuiltIn: false},
 	{Name: "graph/gqlapikeys.graphqls", Input: sourceData("graph/gqlapikeys.graphqls"), BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -11157,6 +11167,8 @@ func (ec *executionContext) fieldContext_EscalationPolicy_steps(ctx context.Cont
 				return ec.fieldContext_EscalationPolicyStep_targets(ctx, field)
 			case "escalationPolicy":
 				return ec.fieldContext_EscalationPolicyStep_escalationPolicy(ctx, field)
+			case "actions":
+				return ec.fieldContext_EscalationPolicyStep_actions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type EscalationPolicyStep", field.Name)
 		},
@@ -11566,6 +11578,82 @@ func (ec *executionContext) fieldContext_EscalationPolicyStep_escalationPolicy(c
 				return ec.fieldContext_EscalationPolicy_notices(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type EscalationPolicy", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EscalationPolicyStep_actions(ctx context.Context, field graphql.CollectedField, obj *escalation.Step) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EscalationPolicyStep_actions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.EscalationPolicyStep().Actions(rctx, obj)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			flagName, err := ec.unmarshalNString2string(ctx, "dest-types")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Experimental == nil {
+				return nil, errors.New("directive experimental is not implemented")
+			}
+			return ec.directives.Experimental(ctx, obj, directive0, flagName)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]Destination); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []github.com/target/goalert/graphql2.Destination`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]Destination)
+	fc.Result = res
+	return ec.marshalNDestination2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EscalationPolicyStep_actions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EscalationPolicyStep",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "type":
+				return ec.fieldContext_Destination_type(ctx, field)
+			case "values":
+				return ec.fieldContext_Destination_values(ctx, field)
+			case "displayInfo":
+				return ec.fieldContext_Destination_displayInfo(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Destination", field.Name)
 		},
 	}
 	return fc, nil
@@ -15462,6 +15550,8 @@ func (ec *executionContext) fieldContext_Mutation_createEscalationPolicyStep(ctx
 				return ec.fieldContext_EscalationPolicyStep_targets(ctx, field)
 			case "escalationPolicy":
 				return ec.fieldContext_EscalationPolicyStep_escalationPolicy(ctx, field)
+			case "actions":
+				return ec.fieldContext_EscalationPolicyStep_actions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type EscalationPolicyStep", field.Name)
 		},
@@ -26634,6 +26724,8 @@ func (ec *executionContext) fieldContext_User_onCallSteps(ctx context.Context, f
 				return ec.fieldContext_EscalationPolicyStep_targets(ctx, field)
 			case "escalationPolicy":
 				return ec.fieldContext_EscalationPolicyStep_escalationPolicy(ctx, field)
+			case "actions":
+				return ec.fieldContext_EscalationPolicyStep_actions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type EscalationPolicyStep", field.Name)
 		},
@@ -36414,6 +36506,42 @@ func (ec *executionContext) _EscalationPolicyStep(ctx context.Context, sel ast.S
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "actions":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._EscalationPolicyStep_actions(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -43296,6 +43424,50 @@ func (ec *executionContext) unmarshalNDebugSendSMSInput2githubᚗcomᚋtargetᚋ
 
 func (ec *executionContext) marshalNDestination2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestination(ctx context.Context, sel ast.SelectionSet, v Destination) graphql.Marshaler {
 	return ec._Destination(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDestination2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationᚄ(ctx context.Context, sel ast.SelectionSet, v []Destination) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNDestination2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestination(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNDestination2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestination(ctx context.Context, sel ast.SelectionSet, v *Destination) graphql.Marshaler {

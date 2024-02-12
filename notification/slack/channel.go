@@ -75,6 +75,8 @@ type Channel struct {
 	ID     string
 	Name   string
 	TeamID string
+
+	IsArchived bool
 }
 
 // User contains information about a Slack user.
@@ -131,6 +133,34 @@ func mapError(ctx context.Context, err error) error {
 	}
 
 	return err
+}
+
+func (s *ChannelSender) ValidateChannel(ctx context.Context, id string) error {
+	err := permission.LimitCheckAny(ctx, permission.User, permission.System)
+	if err != nil {
+		return err
+	}
+
+	s.chanMx.Lock()
+	defer s.chanMx.Unlock()
+	res, ok := s.chanCache.Get(id)
+	if !ok {
+		res, err = s.loadChannel(ctx, id)
+		if err != nil {
+			if rootMsg(err) == "channel_not_found" {
+				return validation.NewGenericError("Channel does not exist, is private (need to invite goalert bot).")
+			}
+
+			return err
+		}
+		s.chanCache.Add(id, res)
+	}
+
+	if res.IsArchived {
+		return validation.NewGenericError("Channel is archived.")
+	}
+
+	return nil
 }
 
 // Channel will lookup a single Slack channel for the bot.
@@ -232,6 +262,7 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 
 		ch.ID = resp.ID
 		ch.Name = "#" + resp.Name
+		ch.IsArchived = resp.IsArchived
 
 		return nil
 	})
