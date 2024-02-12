@@ -19,8 +19,6 @@ export type DestinationAvatarProps = {
   loading?: boolean
   iconURL?: string
   iconAltText?: string
-
-  size?: string
 }
 
 /**
@@ -31,32 +29,31 @@ export type DestinationAvatarProps = {
 export function DestinationAvatar(
   props: DestinationAvatarProps,
 ): React.ReactNode {
+  const { error, loading, iconURL, iconAltText, ...rest } = props
+
   if (props.error) {
     return (
-      <Avatar>
+      <Avatar {...rest}>
         <BrokenImage />
       </Avatar>
     )
   }
 
-  if (props.loading) {
+  if (loading) {
     return (
-      <Avatar>
-        <CircularProgress data-testid='spinner' size={props.size || '1em'} />
+      <Avatar {...rest}>
+        <CircularProgress data-testid='spinner' size='1em' />
       </Avatar>
     )
   }
 
-  if (!props.iconURL) {
+  if (!iconURL) {
     return null
   }
 
-  const builtInIcon = builtInIcons[props.iconURL] || null
+  const builtInIcon = builtInIcons[iconURL] || null
   return (
-    <Avatar
-      src={builtInIcon ? undefined : props.iconURL}
-      alt={props.iconAltText}
-    >
+    <Avatar {...rest} src={builtInIcon ? undefined : iconURL} alt={iconAltText}>
       {builtInIcon}
     </Avatar>
   )
