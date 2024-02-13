@@ -56,7 +56,7 @@ func (a *ContactMethod) Dest(ctx context.Context, obj *contactmethod.ContactMeth
 		return &graphql2.Destination{
 			Type: destSlackDM,
 			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldSlackUserID, Value: obj.Value, Label: a.FormatDestFunc(ctx, notification.DestTypeSlackChannel, obj.Value)},
+				{FieldID: fieldSlackUserID, Value: obj.Value, Label: a.FormatDestFunc(ctx, notification.ScannableDestType{CM: obj.Type}.DestType(), obj.Value)},
 			},
 		}, nil
 	}
