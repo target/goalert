@@ -22,6 +22,15 @@ const (
 	ErrCodeInvalidDestValue = "INVALID_DESTINATION_FIELD_VALUE"
 )
 
+func errReason(err error) string {
+	var fErr validation.FieldError
+	if errors.As(err, &fErr) {
+		return fErr.Reason()
+	}
+
+	return err.Error()
+}
+
 // addDestFieldError will add a destination field error to the current request, and return
 // the original error if it is not a destination field validation error.
 func addDestFieldError(ctx context.Context, parentField, fieldID string, err error) error {
@@ -45,7 +54,7 @@ func addDestFieldError(ctx context.Context, parentField, fieldID string, err err
 	)
 
 	graphql.AddError(ctx, &gqlerror.Error{
-		Message: err.Error(),
+		Message: errReason(err),
 		Path:    p,
 		Extensions: map[string]interface{}{
 			"code": ErrCodeInvalidDestValue,

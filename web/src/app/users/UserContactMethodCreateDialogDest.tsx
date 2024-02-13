@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { useMutation, useQuery, gql } from 'urql'
+import React, { useEffect, useState } from 'react'
+import { useMutation, useQuery, gql, CombinedError } from 'urql'
 
 import { useErrorsForDest } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
@@ -47,7 +47,7 @@ export default function UserContactMethodCreateDialogDest(props: {
   const defaultType = useContactMethodTypes()[0] // will be sorted by priority, and enabled first
 
   // values for contact method form
-  const [CMValue, setCMValue] = useState<Value>({
+  const [CMValue, _setCMValue] = useState<Value>({
     name: '',
     dest: {
       type: defaultType.type,
@@ -55,6 +55,11 @@ export default function UserContactMethodCreateDialogDest(props: {
     },
     statusUpdates: false,
   })
+  const [createErr, setCreateErr] = useState<CombinedError | null>(null)
+  const setCMValue = (newValue: Value): void => {
+    _setCMValue(newValue)
+    setCreateErr(null)
+  }
 
   const [{ data, fetching: queryLoading }] = useQuery({
     query: userConflictQuery,
@@ -71,9 +76,12 @@ export default function UserContactMethodCreateDialogDest(props: {
   })
 
   const [createCMStatus, createCM] = useMutation(createMutation)
+  useEffect(() => {
+    setCreateErr(createCMStatus.error || null)
+  }, [createCMStatus.error])
 
   const [destTypeErr, destFieldErrs, otherErrs] = useErrorsForDest(
-    createCMStatus.error,
+    createErr,
     CMValue.dest.type,
     'createUserContactMethod.input.dest',
   )

@@ -96,7 +96,7 @@ export function getInputFieldErrors(
  * The third return value is a list of other errors, if any.
  */
 export function useErrorsForDest(
-  err: CombinedError | undefined,
+  err: CombinedError | undefined | null,
   destType: string,
   destFieldPath: string, // the path of the DestinationInput field
 ): [SimpleError | undefined, InputFieldError[], SimpleError[]] {

@@ -16,6 +16,11 @@ export type DestinationFieldProps = {
   destFieldErrors?: InputFieldError[]
 }
 
+function capFirstLetter(s: string): string {
+  if (s.length === 0) return s
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
 export default function DestinationField(
   props: DestinationFieldProps,
 ): React.ReactNode {
@@ -45,10 +50,11 @@ export default function DestinationField(
         const getFieldID = (err: InputFieldError): string =>
           err.path.split('.').pop() || ''
 
-        const fieldErrMsg =
+        const fieldErrMsg = capFirstLetter(
           props.destFieldErrors?.find(
             (err) => getFieldID(err) === field.fieldID,
-          )?.message || ''
+          )?.message || '',
+        )
 
         if (field.isSearchSelectable)
           return (
