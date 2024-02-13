@@ -1,7 +1,7 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import UserContactMethodCreateDialogDest from './UserContactMethodCreateDialogDest'
-import { expect, userEvent, waitFor, screen } from '@storybook/test'
+import { expect, userEvent, waitFor, within } from '@storybook/test'
 import {
   handleDefaultConfig,
   defaultConfig,
@@ -116,23 +116,24 @@ export const SingleField: Story = {
     title: 'Create New Contact Method',
     subtitle: 'Create New Contact Method Subtitle',
   },
-  play: async () => {
-    await userEvent.clear(await screen.findByPlaceholderText('11235550123'))
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.clear(await canvas.findByPlaceholderText('11235550123'))
 
     await waitFor(async () => {
       await userEvent.type(
-        await screen.findByPlaceholderText('11235550123'),
+        await canvas.findByPlaceholderText('11235550123'),
         '12225558989',
       )
     })
 
-    const submitButton = await screen.findByRole('button', { name: /SUBMIT/i })
+    const submitButton = await canvas.findByRole('button', { name: /SUBMIT/i })
     await userEvent.click(submitButton)
 
-    await userEvent.clear(await screen.findByLabelText('Name'))
-    await userEvent.type(await screen.findByLabelText('Name'), 'TEST')
+    await userEvent.clear(await canvas.findByLabelText('Name'))
+    await userEvent.type(await canvas.findByLabelText('Name'), 'TEST')
 
-    const retryButton = await screen.findByRole('button', { name: /RETRY/i })
+    const retryButton = await canvas.findByRole('button', { name: /RETRY/i })
     await userEvent.click(retryButton)
   },
 }
@@ -143,55 +144,56 @@ export const MultiField: Story = {
     title: 'Create New Contact Method',
     subtitle: 'Create New Contact Method Subtitle',
   },
-  play: async () => {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
     // Select the next Dest Type
-    await userEvent.click(await screen.findByLabelText('Dest Type'))
+    await userEvent.click(await canvas.findByLabelText('Dest Type'))
     await userEvent.click(
-      await screen.findByText('Multi Field Destination Type'),
+      await canvas.findByText('Multi Field Destination Type'),
     )
 
     // ensure information for phone number renders correctly
-    await userEvent.clear(await screen.findByLabelText('First Item'))
+    await userEvent.clear(await canvas.findByLabelText('First Item'))
     await waitFor(async () => {
       await userEvent.type(
-        await screen.findByLabelText('First Item'),
+        await canvas.findByLabelText('First Item'),
         '12225558989',
       )
     })
 
     await waitFor(async () => {
-      await expect(await screen.findByTestId('CheckIcon')).toBeVisible()
+      await expect(await canvas.findByTestId('CheckIcon')).toBeVisible()
     })
 
     // ensure information for email renders correctly
     await expect(
-      await screen.findByPlaceholderText('foobar@example.com'),
+      await canvas.findByPlaceholderText('foobar@example.com'),
     ).toBeVisible()
     await userEvent.clear(
-      await screen.findByPlaceholderText('foobar@example.com'),
+      await canvas.findByPlaceholderText('foobar@example.com'),
     )
     await userEvent.type(
-      await await screen.findByPlaceholderText('foobar@example.com'),
+      await await canvas.findByPlaceholderText('foobar@example.com'),
       'valid@email.com',
     )
 
     // ensure information for slack renders correctly
     await expect(
-      await screen.findByPlaceholderText('slack user ID'),
+      await canvas.findByPlaceholderText('slack user ID'),
     ).toBeVisible()
-    await expect(await screen.findByLabelText('Third Item')).toBeVisible()
-    await userEvent.clear(await screen.findByLabelText('Third Item'))
-    await userEvent.type(await screen.findByLabelText('Third Item'), '@slack')
+    await expect(await canvas.findByLabelText('Third Item')).toBeVisible()
+    await userEvent.clear(await canvas.findByLabelText('Third Item'))
+    await userEvent.type(await canvas.findByLabelText('Third Item'), '@slack')
 
     // Try to submit without all feilds complete
-    const submitButton = await screen.findByRole('button', { name: /SUBMIT/i })
+    const submitButton = await canvas.findByRole('button', { name: /SUBMIT/i })
     await userEvent.click(submitButton)
 
     // Name field
-    await userEvent.clear(await screen.findByLabelText('Name'))
-    await userEvent.type(await screen.findByLabelText('Name'), 'TEST')
+    await userEvent.clear(await canvas.findByLabelText('Name'))
+    await userEvent.type(await canvas.findByLabelText('Name'), 'TEST')
 
-    const retryButton = await screen.findByRole('button', { name: /RETRY/i })
+    const retryButton = await canvas.findByRole('button', { name: /RETRY/i })
     await userEvent.click(retryButton)
   },
 }
@@ -202,13 +204,14 @@ export const DisabledField: Story = {
     title: 'Create New Contact Method',
     subtitle: 'Create New Contact Method Subtitle',
   },
-  play: async () => {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
     // Open option select
-    await userEvent.click(await screen.findByLabelText('Dest Type'))
+    await userEvent.click(await canvas.findByLabelText('Dest Type'))
 
     // Ensure disabled
     await expect(
-      await screen.findByLabelText(
+      await canvas.findByLabelText(
         'Send alert status updates (not supported for this type)',
       ),
     ).toBeDisabled()
@@ -222,14 +225,28 @@ export const ErrorField: Story = {
     subtitle: 'Create New Contact Method Subtitle',
   },
 
-  play: async () => {
-    await userEvent.type(await screen.findByLabelText('Name'), 'error-test')
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await userEvent.type(await canvas.findByLabelText('Name'), 'error-test')
     await userEvent.type(
-      await screen.findByPlaceholderText('11235550123'),
+      await canvas.findByPlaceholderText('11235550123'),
       '123',
     )
 
-    const submitButton = await screen.findByText('Submit')
+    const submitButton = await canvas.findByText('Submit')
     await userEvent.click(submitButton)
+
+    await waitFor(async () => {
+      await expect(
+        await canvas.findByText('This is a field-error'),
+      ).toBeVisible()
+      await expect(
+        await canvas.findByText('This indicates an invalid destination type'),
+      ).toBeVisible()
+      await expect(
+        await canvas.findByText('This is a generic error'),
+      ).toBeVisible()
+    })
   },
 }
