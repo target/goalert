@@ -2,7 +2,7 @@ import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import UserContactMethodFormDest, { Value } from './UserContactMethodFormDest'
 import { expect, within, userEvent, waitFor } from '@storybook/test'
-import { handleDefaultConfig } from '../storybook/graphql'
+import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
 import { useArgs } from '@storybook/preview-api'
 import { HttpResponse, graphql } from 'msw'
 
@@ -14,6 +14,7 @@ const meta = {
     msw: {
       handlers: [
         handleDefaultConfig,
+        handleExpFlags('dest-types'),
         graphql.query('ValidateDestination', ({ variables: vars }) => {
           return HttpResponse.json({
             data: {

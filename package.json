@@ -32,7 +32,7 @@
     ]
   },
   "devDependencies": {
-    "@apollo/client": "3.8.5",
+    "@apollo/client": "3.9.4",
     "@babel/core": "7.23.9",
     "@babel/plugin-transform-modules-commonjs": "7.23.3",
     "@dnd-kit/core": "6.0.8",
@@ -109,7 +109,7 @@
     "mdast-util-find-and-replace": "3.0.1",
     "mdi-material-ui": "7.7.0",
     "msw": "2.0.11",
-    "msw-storybook-addon": "2.0.0--canary.122.b3ed3b1.0",
+    "msw-storybook-addon": "2.0.0--canary.122.06f0c92.0",
     "prettier": "3.2.4",
     "prettier-plugin-go-template": "0.0.15",
     "prop-types": "15.8.1",
