@@ -39,6 +39,9 @@ jobs:
         # Learn more about CodeQL language support at https://aka.ms/codeql-docs/language-support
 
     steps:
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
       - name: Checkout repository
         uses: actions/checkout@v4
 
