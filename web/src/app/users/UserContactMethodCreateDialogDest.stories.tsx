@@ -2,7 +2,11 @@ import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import UserContactMethodCreateDialogDest from './UserContactMethodCreateDialogDest'
 import { expect, userEvent, waitFor, screen } from '@storybook/test'
-import { handleDefaultConfig, defaultConfig } from '../storybook/graphql'
+import {
+  handleDefaultConfig,
+  defaultConfig,
+  handleExpFlags,
+} from '../storybook/graphql'
 import { useArgs } from '@storybook/preview-api'
 import { HttpResponse, graphql } from 'msw'
 
@@ -20,6 +24,7 @@ const meta = {
     msw: {
       handlers: [
         handleDefaultConfig,
+        handleExpFlags('dest-types'),
         graphql.query('UserConflictCheck', () => {
           return HttpResponse.json({
             data: {
