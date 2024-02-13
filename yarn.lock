@@ -10449,14 +10449,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-n@npm:16.5.0":
-  version: 16.5.0
-  resolution: "eslint-plugin-n@npm:16.5.0"
+"eslint-plugin-n@npm:16.6.2":
+  version: 16.6.2
+  resolution: "eslint-plugin-n@npm:16.6.2"
   dependencies:
     "@eslint-community/eslint-utils": ^4.4.0
     builtins: ^5.0.1
     eslint-plugin-es-x: ^7.5.0
     get-tsconfig: ^4.7.0
+    globals: ^13.24.0
     ignore: ^5.2.4
     is-builtin-module: ^3.2.1
     is-core-module: ^2.12.1
@@ -10465,7 +10466,7 @@ __metadata:
     semver: ^7.5.3
   peerDependencies:
     eslint: ">=7.0.0"
-  checksum: 5914ae71e10d8ac48aefc7090c79e10a7628f81c9dcdce72035f6c9f126b176141fc3d5951de0ff215056cdd588e843427a4ace4089ee31405fee6c48569bd98
+  checksum: 3b468da0038cf25af582608983491b33ac2d481b6a94a0ff2e715d3b85e1ff8cb93df4cd67b689d520bea1bfb8f2b717f01606bf6b2ea19fe8f9c0999ea7057d
   languageName: node
   linkType: hard
 
@@ -11893,7 +11894,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"globals@npm:^13.19.0, globals@npm:^13.20.0":
+"globals@npm:^13.19.0, globals@npm:^13.20.0, globals@npm:^13.24.0":
   version: 13.24.0
   resolution: "globals@npm:13.24.0"
   dependencies:
@@ -18083,7 +18084,7 @@ __metadata:
     eslint-plugin-cypress: 2.15.1
     eslint-plugin-import: 2.29.1
     eslint-plugin-jsx-a11y: 6.8.0
-    eslint-plugin-n: 16.5.0
+    eslint-plugin-n: 16.6.2
     eslint-plugin-node: 11.1.0
     eslint-plugin-prettier: 5.0.0
     eslint-plugin-promise: 6.1.1
