@@ -48,6 +48,10 @@ export type InputFieldError = {
   path: string
 }
 
+function isGraphQLError(e: SimpleError | GraphQLError): e is GraphQLError {
+  return !!(e as GraphQLError).extensions
+}
+
 /**
  * getInputFieldErrors returns a list of input field errors and other errors from a CombinedError.
  * Any errors that are not input field errors (or are not in the filterPaths list) will be returned as other errors.
@@ -57,13 +61,18 @@ export type InputFieldError = {
  */
 export function getInputFieldErrors(
   filterPaths: string[],
-  err: CombinedError,
+  errs: (GraphQLError | SimpleError)[] | undefined | null,
 ): [InputFieldError[], SimpleError[]] {
+  if (!errs) return [[], []]
   const inputFieldErrors = [] as InputFieldError[]
   const otherErrors = [] as SimpleError[]
-  err.graphQLErrors.forEach((err) => {
+  errs.forEach((err) => {
+    if (!isGraphQLError(err)) {
+      otherErrors.push(err)
+      return
+    }
     if (!err.path) {
-      otherErrors.push({ message: err.message })
+      otherErrors.push(err)
       return
     }
     const code = err.extensions?.code
@@ -72,14 +81,14 @@ export function getInputFieldErrors(
       code !== INVALID_DESTINATION_TYPE &&
       code !== INVALID_DESTINATION_FIELD_VALUE
     ) {
-      otherErrors.push({ message: err.message })
+      otherErrors.push(err)
       return
     }
 
     const fullPath = err.path.join('.')
 
     if (!filterPaths.includes(fullPath)) {
-      otherErrors.push({ message: err.message })
+      otherErrors.push(err)
       return
     }
 
@@ -103,13 +112,16 @@ export function useErrorsForDest(
   const cfg = useDestinationType(destType) // need to call hook before conditional return
   if (!err) return [undefined, [], []]
 
-  const [destTypeErrs] = getInputFieldErrors([destFieldPath + '.type'], err)
+  const [destTypeErrs, nonDestTypeErrs] = getInputFieldErrors(
+    [destFieldPath + '.type'],
+    err.graphQLErrors,
+  )
 
   const paths = cfg.requiredFields.map(
     (f) => `${destFieldPath}.values.${f.fieldID}`,
   )
 
-  const [destFieldErrs, otherErrs] = getInputFieldErrors(paths, err)
+  const [destFieldErrs, otherErrs] = getInputFieldErrors(paths, nonDestTypeErrs)
 
   return [destTypeErrs[0] || undefined, destFieldErrs, otherErrs]
 }

@@ -36,15 +36,48 @@ const meta = {
             },
           })
         }),
-        graphql.mutation('CreateUserContactMethodInput', () => {
-          return HttpResponse.json({
-            data: {
-              createUserContactMethod: {
-                id: '00000000-0000-0000-0000-000000000000',
+        graphql.mutation(
+          'CreateUserContactMethodInput',
+          ({ variables: vars }) => {
+            if (vars.input.name === 'error-test') {
+              return HttpResponse.json({
+                data: null,
+                errors: [
+                  {
+                    message: 'This is a field-error',
+                    path: [
+                      'createUserContactMethod',
+                      'input',
+                      'dest',
+                      'values',
+                      'phone-number',
+                    ],
+                    extensions: {
+                      code: 'INVALID_DESTINATION_FIELD_VALUE',
+                    },
+                  },
+                  {
+                    message: 'This indicates an invalid destination type',
+                    path: ['createUserContactMethod', 'input', 'dest', 'type'],
+                    extensions: {
+                      code: 'INVALID_DESTINATION_TYPE',
+                    },
+                  },
+                  {
+                    message: 'This is a generic error',
+                  },
+                ],
+              })
+            }
+            return HttpResponse.json({
+              data: {
+                createUserContactMethod: {
+                  id: '00000000-0000-0000-0000-000000000000',
+                },
               },
-            },
-          })
-        }),
+            })
+          },
+        ),
         graphql.query('ValidateDestination', ({ variables: vars }) => {
           return HttpResponse.json({
             data: {
@@ -179,5 +212,24 @@ export const DisabledField: Story = {
         'Send alert status updates (not supported for this type)',
       ),
     ).toBeDisabled()
+  },
+}
+
+export const ErrorField: Story = {
+  args: {
+    userID: defaultConfig.user.id,
+    title: 'Create New Contact Method',
+    subtitle: 'Create New Contact Method Subtitle',
+  },
+
+  play: async () => {
+    await userEvent.type(await screen.findByLabelText('Name'), 'error-test')
+    await userEvent.type(
+      await screen.findByPlaceholderText('11235550123'),
+      '123',
+    )
+
+    const submitButton = await screen.findByText('Submit')
+    await userEvent.click(submitButton)
   },
 }

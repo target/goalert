@@ -50,6 +50,17 @@ export default function UserContactMethodFormDest(
   return (
     <FormContainer
       {...other}
+      errors={
+        props.typeError
+          ? [
+              {
+                // the old form code requires this shape to map errors to the correct field
+                message: props.typeError.message,
+                field: 'dest.type',
+              },
+            ]
+          : []
+      }
       value={value}
       mapOnChangeValue={(newValue: Value): Value => {
         if (newValue.dest.type === value.dest.type) {
