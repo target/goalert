@@ -86,6 +86,7 @@ export default function UserContactMethodFormDest(
           <FormField
             fullWidth
             name='dest.type'
+            label='Destination Type'
             required
             select
             disabled={edit}
