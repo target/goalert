@@ -31,17 +31,6 @@ const meta = {
             },
           })
         }),
-        graphql.query('useExpFlag', () => {
-          return HttpResponse.json({
-            data: {
-              users: {
-                nodes: [
-                  { name: defaultConfig.user.name, id: defaultConfig.user.id },
-                ],
-              },
-            },
-          })
-        }),
         graphql.mutation('CreateUserContactMethodInput', () => {
           return HttpResponse.json({
             data: {
