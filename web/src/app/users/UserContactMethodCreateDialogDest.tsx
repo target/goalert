@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useMutation, useQuery, gql, CombinedError } from 'urql'
+import { useMutation, gql, CombinedError } from 'urql'
 
 import { useErrorsForDest } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
@@ -22,19 +22,6 @@ const createMutation = gql`
     }
   }
 `
-
-const userConflictQuery = gql`
-  query UserConflictCheck($input: UserSearchOptions) {
-    users(input: $input) {
-      nodes {
-        id
-        name
-      }
-    }
-  }
-`
-
-const noSuspense = { suspense: false }
 
 export default function UserContactMethodCreateDialogDest(props: {
   userID: string
@@ -61,19 +48,7 @@ export default function UserContactMethodCreateDialogDest(props: {
     setCreateErr(null)
   }
 
-  const [{ data, fetching: queryLoading }] = useQuery({
-    query: userConflictQuery,
-    variables: {
-      input: {
-        dest: CMValue.dest,
-      },
-    },
-    pause:
-      !CMValue.dest ||
-      !CMValue.dest.values.length ||
-      !CMValue.dest.values[0].value,
-    context: noSuspense,
-  })
+  // TODO: useQuery for userConflictQuery
 
   const [createCMStatus, createCM] = useMutation(createMutation)
   useEffect(() => {
