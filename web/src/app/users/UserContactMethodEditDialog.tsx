@@ -6,8 +6,6 @@ import UserContactMethodForm from './UserContactMethodForm'
 import { pick } from 'lodash'
 import { useQuery } from 'urql'
 import { ContactMethodType, StatusUpdateState } from '../../schema'
-import UserContactMethodEditDialogDest from './UserContactMethodEditDialogDest'
-import { useExpFlag } from '../util/useExpFlag'
 
 const query = gql`
   query ($id: ID!) {
@@ -34,15 +32,13 @@ type Value = {
   statusUpdates?: StatusUpdateState
 }
 
-type UserContactMethodEditDialogProps = {
-  onClose: () => void
-  contactMethodID: string
-}
-
-function UserContactMethodEditDialog({
+export default function UserContactMethodEditDialog({
   onClose,
   contactMethodID,
-}: UserContactMethodEditDialogProps): React.ReactNode {
+}: {
+  onClose: () => void
+  contactMethodID: string
+}): React.ReactNode {
   const [value, setValue] = useState<Value | null>(null)
   const [{ data, fetching }] = useQuery({
     query,
@@ -99,16 +95,4 @@ function UserContactMethodEditDialog({
       }
     />
   )
-}
-
-export default function UserContactMethodEditDialogSwitch(
-  props: UserContactMethodEditDialogProps,
-): React.ReactNode {
-  const isDestTypesSet = useExpFlag('dest-types')
-
-  if (isDestTypesSet) {
-    return <UserContactMethodEditDialogDest {...props} />
-  }
-
-  return <UserContactMethodEditDialog {...props} />
 }
