@@ -17,7 +17,7 @@ func (s *ChannelSender) ValidateUser(ctx context.Context, id string) error {
 
 	_, err = s.User(ctx, id)
 	if rootMsg(err) == "user_not_found" {
-		return validation.NewGenericError("user not found")
+		return validation.NewGenericError("User not found.")
 	}
 	if err != nil {
 		return fmt.Errorf("validate user: %w", err)
