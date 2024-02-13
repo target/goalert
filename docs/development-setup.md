@@ -63,7 +63,9 @@ Currently the dev user must be a superuser to enable `pgcrypto` with `CREATE EXT
 - To start GoAlert in development mode run `make start`.
 - To build the GoAlert binary run `make bin/goalert BUNDLE=1`.
 
-### Automated Browser Tests
+## Automated Browser Tests
+
+### Cypress Tests
 
 To run automated browser tests, you can start Cypress in one of the following modes:
 
@@ -75,6 +77,13 @@ To run automated browser tests, you can start Cypress in one of the following mo
 The Cypress UI should start automatically.
 
 More information about browser tests can be found [here](../web/src/cypress/README.md).
+
+### Playwright Tests
+
+To run automated browser tests, you can start Playwright in one of the following modes:
+
+- make playwright-ui Run all tests in UI mode.
+- make playwright-run Run all tests in headless mode.
 
 ### Running Smoke Tests
 
