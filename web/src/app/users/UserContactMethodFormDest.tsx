@@ -5,7 +5,7 @@ import React from 'react'
 import { DestinationInput } from '../../schema'
 import { FormContainer, FormField } from '../forms'
 import { renderMenuItem } from '../selection/DisableableMenuItem'
-import { FieldError } from '../util/errutil'
+import { InputFieldError, SimpleError } from '../util/errutil'
 import DestinationField from '../selection/DestinationField'
 import { useContactMethodTypes } from '../util/RequireConfig'
 
@@ -18,7 +18,8 @@ export type Value = {
 export type UserContactMethodFormProps = {
   value: Value
 
-  errors?: Array<FieldError>
+  typeError?: SimpleError
+  fieldErrors?: Array<InputFieldError>
 
   disabled?: boolean
   edit?: boolean
@@ -49,6 +50,17 @@ export default function UserContactMethodFormDest(
   return (
     <FormContainer
       {...other}
+      errors={
+        props.typeError
+          ? [
+              {
+                // the old form code requires this shape to map errors to the correct field
+                message: props.typeError.message,
+                field: 'dest.type',
+              },
+            ]
+          : []
+      }
       value={value}
       mapOnChangeValue={(newValue: Value): Value => {
         if (newValue.dest.type === value.dest.type) {
@@ -74,6 +86,7 @@ export default function UserContactMethodFormDest(
           <FormField
             fullWidth
             name='dest.type'
+            label='Destination Type'
             required
             select
             disabled={edit}
@@ -98,6 +111,7 @@ export default function UserContactMethodFormDest(
             destType={value.dest.type}
             component={DestinationField}
             disabled={edit}
+            destFieldErrors={props.fieldErrors}
           />
         </Grid>
         <Grid item xs={12}>
