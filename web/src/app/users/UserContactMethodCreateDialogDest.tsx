@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useMutation, useQuery, gql } from 'urql'
 
-import { fieldErrors, nonFieldErrors } from '../util/errutil'
+import { useErrorsForDest } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodFormDest'
 import { useContactMethodTypes } from '../util/RequireConfig'
@@ -72,6 +72,12 @@ export default function UserContactMethodCreateDialogDest(props: {
 
   const [createCMStatus, createCM] = useMutation(createMutation)
 
+  const [destTypeErr, destFieldErrs, otherErrs] = useErrorsForDest(
+    createCMStatus.error,
+    CMValue.dest.type,
+    'createUserContactMethod.input.dest',
+  )
+
   if (!defaultType.enabled) {
     // default type will be the first enabled type, so if it's not enabled, none are enabled
     return (
@@ -91,29 +97,13 @@ export default function UserContactMethodCreateDialogDest(props: {
     )
   }
 
-  const { fetching, error } = createCMStatus
   const { title = 'Create New Contact Method', subtitle } = props
-
-  let fieldErrs = fieldErrors(error)
-  if (!queryLoading && data?.users?.nodes?.length > 0) {
-    fieldErrs = fieldErrs.map((err) => {
-      if (
-        err.message === 'contact method already exists for that type and value'
-      ) {
-        return {
-          ...err,
-          message: `${err.message}: ${data.users.nodes[0].name}`,
-          helpLink: `/users/${data.users.nodes[0].id}`,
-        }
-      }
-      return err
-    })
-  }
 
   const form = (
     <UserContactMethodForm
-      disabled={fetching}
-      errors={fieldErrs}
+      disabled={createCMStatus.fetching}
+      fieldErrors={destFieldErrs}
+      typeError={destTypeErr}
       onChange={(CMValue: Value) => setCMValue(CMValue)}
       value={CMValue}
     />
@@ -125,8 +115,8 @@ export default function UserContactMethodCreateDialogDest(props: {
       data-cy='create-form'
       title={title}
       subTitle={subtitle}
-      loading={fetching}
-      errors={nonFieldErrors(error)}
+      loading={createCMStatus.fetching}
+      errors={otherErrs}
       onClose={props.onClose}
       // wrapped to prevent event from passing into createCM
       onSubmit={() =>

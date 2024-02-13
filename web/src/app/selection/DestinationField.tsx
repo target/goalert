@@ -4,6 +4,7 @@ import DestinationInputDirect from './DestinationInputDirect'
 import { useDestinationType } from '../util/RequireConfig'
 import DestinationSearchSelect from './DestinationSearchSelect'
 import { Grid } from '@mui/material'
+import { InputFieldError } from '../util/errutil'
 
 export type DestinationFieldProps = {
   value: FieldValueInput[]
@@ -12,12 +13,7 @@ export type DestinationFieldProps = {
 
   disabled?: boolean
 
-  destFieldErrors?: DestFieldError[]
-}
-
-export interface DestFieldError {
-  fieldID: string
-  message: string
+  destFieldErrors?: InputFieldError[]
 }
 
 export default function DestinationField(
@@ -45,9 +41,14 @@ export default function DestinationField(
           props.onChange(newValues)
         }
 
+        // getFieldID returns the last segment of the path.
+        const getFieldID = (err: InputFieldError): string =>
+          err.path.split('.').pop() || ''
+
         const fieldErrMsg =
-          props.destFieldErrors?.find((err) => err.fieldID === field.fieldID)
-            ?.message || ''
+          props.destFieldErrors?.find(
+            (err) => getFieldID(err) === field.fieldID,
+          )?.message || ''
 
         if (field.isSearchSelectable)
           return (

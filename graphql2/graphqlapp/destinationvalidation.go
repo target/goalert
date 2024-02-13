@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/target/goalert/config"
@@ -34,8 +35,11 @@ func addDestFieldError(ctx context.Context, parentField, fieldID string, err err
 	}
 
 	p := graphql.GetPath(ctx)
+	parentParts := strings.Split(parentField, ".")
+	for _, part := range parentParts {
+		p = append(p, ast.PathName(part))
+	}
 	p = append(p,
-		ast.PathName(parentField),
 		ast.PathName("values"), // DestinationInput.Values
 		ast.PathName(fieldID),
 	)

@@ -2,6 +2,11 @@ import _ from 'lodash'
 import { ApolloError } from '@apollo/client'
 import { GraphQLError } from 'graphql/error'
 import { CombinedError } from 'urql'
+import {
+  INVALID_DESTINATION_FIELD_VALUE,
+  INVALID_DESTINATION_TYPE,
+} from '../../errors.d'
+import { useDestinationType } from './RequireConfig'
 
 const mapName = (name: string): string => _.camelCase(name).replace(/Id$/, 'ID')
 
@@ -32,6 +37,81 @@ export function nonFieldErrors(err?: ApolloError | CombinedError): Error[] {
       !err.extensions ||
       !(err.extensions.isFieldError || err.extensions.isMultiFieldError),
   )
+}
+
+export type SimpleError = {
+  message: string
+}
+
+export type InputFieldError = {
+  message: string
+  path: string
+}
+
+/**
+ * getInputFieldErrors returns a list of input field errors and other errors from a CombinedError.
+ * Any errors that are not input field errors (or are not in the filterPaths list) will be returned as other errors.
+ *
+ * @param filterPaths - a list of paths to filter errors by
+ * @param err - the CombinedError to filter
+ */
+export function getInputFieldErrors(
+  filterPaths: string[],
+  err: CombinedError,
+): [InputFieldError[], SimpleError[]] {
+  const inputFieldErrors = [] as InputFieldError[]
+  const otherErrors = [] as SimpleError[]
+  err.graphQLErrors.forEach((err) => {
+    if (!err.path) {
+      otherErrors.push({ message: err.message })
+      return
+    }
+    const code = err.extensions?.code
+    if (
+      // only support known error codes
+      code !== INVALID_DESTINATION_TYPE &&
+      code !== INVALID_DESTINATION_FIELD_VALUE
+    ) {
+      otherErrors.push({ message: err.message })
+      return
+    }
+
+    const fullPath = err.path.join('.')
+
+    if (!filterPaths.includes(fullPath)) {
+      otherErrors.push({ message: err.message })
+      return
+    }
+
+    inputFieldErrors.push({ message: err.message, path: fullPath })
+  })
+
+  return [inputFieldErrors, otherErrors]
+}
+
+/**
+ * useErrorsForDest returns the errors for a destination type and field path from a CombinedError.
+ * The first return value is the error for the destination type, if any.
+ * The second return value is a list of errors for the destination fields, if any.
+ * The third return value is a list of other errors, if any.
+ */
+export function useErrorsForDest(
+  err: CombinedError | undefined,
+  destType: string,
+  destFieldPath: string, // the path of the DestinationInput field
+): [SimpleError | undefined, InputFieldError[], SimpleError[]] {
+  const cfg = useDestinationType(destType) // need to call hook before conditional return
+  if (!err) return [undefined, [], []]
+
+  const [destTypeErrs] = getInputFieldErrors([destFieldPath + '.type'], err)
+
+  const paths = cfg.requiredFields.map(
+    (f) => `${destFieldPath}.values.${f.fieldID}`,
+  )
+
+  const [destFieldErrs, otherErrs] = getInputFieldErrors(paths, err)
+
+  return [destTypeErrs[0] || undefined, destFieldErrs, otherErrs]
 }
 
 export interface FieldError extends Error {
