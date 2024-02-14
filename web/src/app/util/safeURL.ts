@@ -1,22 +1,21 @@
-// decodeHtmlEntites will decode common HTML entities in a string.
+// encodeHtmlEntities will encode common HTML entities in a string.
 //
-// This is useful for ensuring that any encoded characters in the text are converted
-// back to their original form for comparision.
-function decodeHtmlEntites(text: string): string {
+// This is useful for ensuring that comparisons between html encoded urls and
+// non-encoded labels are accurate
+function encodeHtmlEntities(text: string): string {
   return text
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 
 // safeURL will determine if a url is safe for linking.
 //
 // It tries to determine if the label is misleading.
 export function safeURL(url: string, label: string): boolean {
-  url = decodeHtmlEntites(url)
-  label = decodeHtmlEntites(label)
+  label = encodeHtmlEntities(label)
 
   if (url.startsWith('mailto:')) {
     const email = url.substr(7)
