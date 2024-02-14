@@ -23,7 +23,7 @@ import { GenericError, ObjectNotFound } from '../error-pages'
 import SendTestDialog from './SendTestDialog'
 import AppLink from '../util/AppLink'
 import { styles as globalStyles } from '../styles/materialStyles'
-import { FieldValuePair, UserContactMethod } from '../../schema'
+import { UserContactMethod } from '../../schema'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
 import { useSessionInfo } from '../util/RequireConfig'
 
