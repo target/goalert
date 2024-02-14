@@ -73,6 +73,8 @@ To run automated browser tests, you can start Cypress in one of the following mo
 - `make cy-mobile` Mobile format, in dev mode.
 - `make cy-wide-prod` Widescreen format, production build.
 - `make cy-mobile-prod` Mobile format, production build.
+- `make cy-wide-prod-run` Widescreen format, production build in headless mode.
+- `make cy-mobile-prod-run` Mobile format, production build in headless mode.
 
 The Cypress UI should start automatically.
 
@@ -82,8 +84,8 @@ More information about browser tests can be found [here](../web/src/cypress/READ
 
 To run automated browser tests, you can start Playwright in one of the following modes:
 
-- make playwright-ui Run all tests in UI mode.
-- make playwright-run Run all tests in headless mode.
+- `make playwright-ui` Run all tests in UI mode.
+- `make playwright-run` Run all tests in headless mode.
 
 ### Running Smoke Tests
 
