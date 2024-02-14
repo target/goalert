@@ -91,7 +91,6 @@ export default function UserContactMethodListDest(
   if (error) return <GenericError error={error.message} />
 
   const contactMethods = data.user.contactMethods
-  console.log(data)
 
   const getIcon = (cm: UserContactMethod): JSX.Element | null => {
     if (!cm.disabled) return null
