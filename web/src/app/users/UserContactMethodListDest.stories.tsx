@@ -1,9 +1,133 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import UserContactMethodListDest from './UserContactMethodListDest'
-import { expect, within } from '@storybook/test'
+import { expect, within, userEvent, screen } from '@storybook/test'
 import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
+
+interface UserCMResponse {
+  user: {
+    id: string
+    contactMethods: {
+      id: string
+      name: string
+      dest: {
+        type: string
+        values: {
+          fieldID: string
+          value: string
+          label: string
+        }[]
+      }
+      disabled: boolean
+      pending: boolean
+    }[]
+  }
+}
+
+function getUserCMData(userID: string): UserCMResponse | undefined {
+  if (userID === '00000000-0000-0000-0000-000000000000') {
+    return {
+      user: {
+        id: '00000000-0000-0000-0000-000000000000',
+        contactMethods: [
+          {
+            id: '12345',
+            name: 'Josiah',
+            dest: {
+              type: 'single-field',
+              values: [
+                {
+                  fieldID: 'phone-number',
+                  value: '+15555555555',
+                  label: '+1 555-555-5555',
+                },
+              ],
+            },
+            disabled: false,
+            pending: false,
+          },
+        ],
+      },
+    }
+  }
+  if (userID === '00000000-0000-0000-0000-000000000001') {
+    return {
+      user: {
+        id: '00000000-0000-0000-0000-000000000001',
+        contactMethods: [
+          {
+            id: '12345',
+            name: 'non_current_user',
+            dest: {
+              type: 'single-field',
+              values: [
+                {
+                  fieldID: 'phone-number',
+                  value: '+15555555555',
+                  label: '+1 555-555-5555',
+                },
+              ],
+            },
+            disabled: false,
+            pending: false,
+          },
+        ],
+      },
+    }
+  }
+  if (userID === '00000000-0000-0000-0000-000000000002') {
+    return {
+      user: {
+        id: '00000000-0000-0000-0000-000000000002',
+        contactMethods: [
+          {
+            id: '67890',
+            name: 'triple contact method',
+            dest: {
+              type: 'triple-field',
+              values: [
+                {
+                  fieldID: 'first-field',
+                  value: '+15555555555',
+                  label: '+1 555-555-5555',
+                },
+                {
+                  fieldID: 'second-field',
+                  value: 'test_user@target.com',
+                  label: 'test_user@target.com',
+                },
+                {
+                  fieldID: 'third-field',
+                  value: 'U03SM0U8TPE',
+                  label: '@TestUser',
+                },
+              ],
+            },
+            disabled: false,
+            pending: false,
+          },
+          {
+            id: '1111',
+            name: 'my_webhook',
+            dest: {
+              type: 'webhook-field',
+              values: [
+                {
+                  fieldID: 'webhook-url',
+                  value: 'https://target.com',
+                  label: 'https://target.com',
+                },
+              ],
+            },
+            disabled: false,
+            pending: false,
+          },
+        ],
+      },
+    }
+  }
+}
 
 const meta = {
   title: 'users/UserContactMethodListDest',
@@ -16,80 +140,7 @@ const meta = {
         handleExpFlags('dest-types'),
         graphql.query('cmList', ({ variables: vars }) => {
           return HttpResponse.json({
-            data:
-              vars.id === '00000000-0000-0000-0000-000000000001'
-                ? {
-                    user: {
-                      id: '00000000-0000-0000-0000-000000000001',
-                      contactMethods: [
-                        {
-                          id: '12345',
-                          name: 'Josiah',
-                          dest: {
-                            type: 'single-field',
-                            values: [
-                              {
-                                fieldID: 'phone-number',
-                                value: '+15555555555',
-                                label: '+1 555-555-5555',
-                              },
-                            ],
-                          },
-                          disabled: false,
-                          pending: false,
-                        },
-                      ],
-                    },
-                  }
-                : {
-                    user: {
-                      id: '00000000-0000-0000-0000-000000000002',
-                      contactMethods: [
-                        {
-                          id: '67890',
-                          name: 'triple contact method',
-                          dest: {
-                            type: 'triple-field',
-                            values: [
-                              {
-                                fieldID: 'first-field',
-                                value: '+15555555555',
-                                label: '+1 555-555-5555',
-                              },
-                              {
-                                fieldID: 'second-field',
-                                value: 'test_user@target.com',
-                                label: 'test_user@target.com',
-                              },
-                              {
-                                fieldID: 'third-field',
-                                value: 'U03SM0U8TPE',
-                                label: '@TestUser',
-                              },
-                            ],
-                          },
-                          disabled: false,
-                          pending: false,
-                        },
-                        {
-                          id: '1111',
-                          name: 'my_webhook',
-                          dest: {
-                            type: 'webhook-field',
-                            values: [
-                              {
-                                fieldID: 'webhook-url',
-                                value: 'https://target.com',
-                                label: 'https://target.com',
-                              },
-                            ],
-                          },
-                          disabled: false,
-                          pending: false,
-                        },
-                      ],
-                    },
-                  },
+            data: getUserCMData(vars.id),
           })
         }),
       ],
@@ -103,10 +154,44 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
+export const SingleContactMethod: Story = {
+  args: {
+    userID: '00000000-0000-0000-0000-000000000000',
+    readOnly: false,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // ensure correct info is displayed for single-field CM
+    await expect(await canvas.findByText('Josiah (single-field)')).toBeVisible()
+    await expect(await canvas.findByText('+1 555-555-5555')).toBeVisible()
+
+    // ensure CM is editable
+    await expect(
+      await canvas.queryByTestId('MoreHorizIcon'),
+    ).toBeInTheDocument()
+
+    // ensure all edit options are available
+    await userEvent.click(await canvas.findByTestId('MoreHorizIcon'))
+    await expect(await screen.findByText('Edit')).toHaveAttribute(
+      'role',
+      'menuitem',
+    )
+    await expect(await screen.findByText('Delete')).toHaveAttribute(
+      'role',
+      'menuitem',
+    )
+    await expect(await screen.findByText('Send Test')).toHaveAttribute(
+      'role',
+      'menuitem',
+    )
+  },
+}
+
 export const MultiContactMethods: Story = {
   args: {
     userID: '00000000-0000-0000-0000-000000000002',
-    readOnly: true,
+    readOnly: false,
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -127,5 +212,44 @@ export const MultiContactMethods: Story = {
     await expect(await canvas.findByText('+1 555-555-5555')).toBeVisible()
     await expect(await canvas.findByText('test_user@target.com')).toBeVisible()
     await expect(await canvas.findByText('@TestUser')).toBeVisible()
+
+    // ensure all edit icons exists
+    await expect(await canvas.findAllByTestId('MoreHorizIcon')).toHaveLength(2)
+  },
+}
+
+export const SingleReadOnlyContactMethods: Story = {
+  args: {
+    userID: '00000000-0000-0000-0000-000000000000',
+    readOnly: true,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // ensure correct info is displayed for single-field CM
+    await expect(await canvas.findByText('Josiah (single-field)')).toBeVisible()
+    await expect(await canvas.findByText('+1 555-555-5555')).toBeVisible()
+
+    // ensure no edit icons exist for read-only CM
+    await expect(
+      await canvas.queryByTestId('MoreHorizIcon'),
+    ).not.toBeInTheDocument()
+  },
+}
+
+export const NonCurrentUser: Story = {
+  args: {
+    userID: '00000000-0000-0000-0000-000000000001',
+    readOnly: false,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // ensure non-current user cannot send test to user CM
+    await userEvent.click(await canvas.findByTestId('MoreHorizIcon'))
+    await expect(await screen.findByText('Send Test')).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
   },
 }
