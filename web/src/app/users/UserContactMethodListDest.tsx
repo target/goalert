@@ -173,28 +173,24 @@ export default function UserContactMethodListDest(
     )
   }
 
-  function getSubText(v: FieldValuePair, cm: UserContactMethod): JSX.Element {
-    let cmText = v.label
-    if (cm.pending) {
-      cmText = `${cmText} - this contact method will be automatically deleted if not verified`
-    }
-    if (v.fieldID === 'webhook-url') {
-      return (
-        <Typography key={v.toString()}>
-          {`${cmText} (`}
-          <AppLink to='/docs#webhooks'>docs</AppLink>)
-        </Typography>
-      )
-    }
-
-    return <Typography key={v.toString()}>{cmText}</Typography>
-  }
-
-  function getSubTexts(cm: UserContactMethod): JSX.Element {
+  function getSubText(cm: UserContactMethod): JSX.Element {
     return (
       <React.Fragment>
         {cm.dest.values.map((v) => {
-          return getSubText(v, cm)
+          let cmText = v.label
+          if (cm.pending) {
+            cmText = `${cmText} - this contact method will be automatically deleted if not verified`
+          }
+          if (v.fieldID === 'webhook-url') {
+            return (
+              <Typography key={v.toString()}>
+                {`${cmText} (`}
+                <AppLink to='/docs#webhooks'>docs</AppLink>)
+              </Typography>
+            )
+          }
+
+          return <Typography key={v.toString()}>{cmText}</Typography>
         })}
       </React.Fragment>
     )
@@ -224,7 +220,7 @@ export default function UserContactMethodListDest(
           data-cy='contact-methods'
           items={sortContactMethods(contactMethods).map((cm) => ({
             title: `${cm.name} (${cm.dest.type})${cm.disabled ? ' - Disabled' : ''}`,
-            subText: getSubTexts(cm),
+            subText: getSubText(cm),
             secondaryAction: getSecondaryAction(cm),
             icon: getIcon(cm),
           }))}
