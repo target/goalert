@@ -114,12 +114,10 @@ export const SingleContactMethod: Story = {
     // ensure correct info is displayed for single-field CM
     await expect(await canvas.findByText('Josiah (Phone Number)')).toBeVisible()
     await expect(await canvas.findByText('+1 555-555-5555')).toBeVisible()
-
     // ensure CM is editable
     await expect(
       await canvas.queryByTestId('MoreHorizIcon'),
     ).toBeInTheDocument()
-
     // ensure all edit options are available
     await userEvent.click(await canvas.findByTestId('MoreHorizIcon'))
     await expect(await screen.findByText('Edit')).toHaveAttribute(
@@ -149,17 +147,14 @@ export const MultiContactMethods: Story = {
     await expect(
       await canvas.findByText('single field CM (Phone Number)'),
     ).toBeVisible()
-
     // ensure correct info is displayed for triple-field CM
     await expect(
       await canvas.findByText('triple contact method (First Item)'),
     ).toBeVisible()
     await expect(await canvas.findByText('+1 555-555-5556')).toBeVisible()
     await expect(await canvas.findByText('test_user@target.com')).toBeVisible()
-
     // ensure has link when hint url exists
     await expect(canvas.getByText('docs')).toHaveAttribute('href', '/docs')
-
     // ensure all edit icons exists
     await expect(await canvas.findAllByTestId('MoreHorizIcon')).toHaveLength(2)
   },
