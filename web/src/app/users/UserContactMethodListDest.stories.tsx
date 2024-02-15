@@ -149,7 +149,9 @@ export const MultiContactMethods: Story = {
     ).toBeVisible()
     // ensure correct info is displayed for triple-field CM
     await expect(
-      await canvas.findByText('triple contact method (First Item)'),
+      await canvas.findByText(
+        'triple contact method (Multi Field Destination Type)',
+      ),
     ).toBeVisible()
     await expect(await canvas.findByText('+1 555-555-5556')).toBeVisible()
     await expect(await canvas.findByText('test_user@target.com')).toBeVisible()

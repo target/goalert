@@ -23,11 +23,7 @@ import { GenericError, ObjectNotFound } from '../error-pages'
 import SendTestDialog from './SendTestDialog'
 import AppLink from '../util/AppLink'
 import { styles as globalStyles } from '../styles/materialStyles'
-import {
-  DestinationFieldConfig,
-  FieldValuePair,
-  UserContactMethod,
-} from '../../schema'
+import { FieldValuePair, UserContactMethod } from '../../schema'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
 import { useSessionInfo, useContactMethodTypes } from '../util/RequireConfig'
 
@@ -234,17 +230,21 @@ export default function UserContactMethodListDest(
         <FlatList
           data-cy='contact-methods'
           items={sortContactMethods(contactMethods).map((cm) => {
-            // get field info for first matched required field value for contact method (for CM title only)
-            const fieldInfo = destinationTypes
-              .find((d) => d.type === cm.dest.type)
-              ?.requiredFields.find((rf) =>
-                cm.dest.values.find(
-                  (f: FieldValuePair) => f.fieldID === rf.fieldID,
-                ),
-              )
+            const destType = destinationTypes.find(
+              (d) => d.type === cm.dest.type,
+            )
+
+            const labelTitle =
+              destType?.requiredFields.length === 1
+                ? destType?.requiredFields.find((rf) =>
+                    cm.dest.values.find(
+                      (f: FieldValuePair) => f.fieldID === rf.fieldID,
+                    ),
+                  )?.labelSingular
+                : destType?.name
 
             return {
-              title: `${cm.name} (${fieldInfo?.labelSingular})${cm.disabled ? ' - Disabled' : ''}`,
+              title: `${cm.name} (${labelTitle})${cm.disabled ? ' - Disabled' : ''}`,
               subText: getSubText(cm),
               secondaryAction: getSecondaryAction(cm),
               icon: getIcon(cm),
