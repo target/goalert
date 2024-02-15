@@ -23,9 +23,13 @@ import { GenericError, ObjectNotFound } from '../error-pages'
 import SendTestDialog from './SendTestDialog'
 import AppLink from '../util/AppLink'
 import { styles as globalStyles } from '../styles/materialStyles'
-import { UserContactMethod } from '../../schema'
+import {
+  DestinationFieldConfig,
+  FieldValuePair,
+  UserContactMethod,
+} from '../../schema'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
-import { useSessionInfo } from '../util/RequireConfig'
+import { useSessionInfo, useContactMethodTypes } from '../util/RequireConfig'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -40,6 +44,12 @@ const query = gql`
             fieldID
             value
             label
+          }
+          displayInfo {
+            text
+            iconURL
+            iconAltText
+            linkURL
           }
         }
         disabled
@@ -76,6 +86,7 @@ export default function UserContactMethodListDest(
   const [showEditDialogByID, setShowEditDialogByID] = useState('')
   const [showDeleteDialogByID, setShowDeleteDialogByID] = useState('')
   const [showSendTestByID, setShowSendTestByID] = useState('')
+  const destinationTypes = useContactMethodTypes()
 
   const [{ error, data }] = useQuery({
     query,
@@ -173,7 +184,10 @@ export default function UserContactMethodListDest(
     )
   }
 
-  function getSubText(cm: UserContactMethod): JSX.Element {
+  function getSubText(
+    cm: UserContactMethod,
+    fieldInfo: DestinationFieldConfig | undefined,
+  ): JSX.Element {
     return (
       <React.Fragment>
         {cm.dest.values.map((v) => {
@@ -181,11 +195,11 @@ export default function UserContactMethodListDest(
           if (cm.pending) {
             cmText = `${cmText} - this contact method will be automatically deleted if not verified`
           }
-          if (v.fieldID === 'webhook-url') {
+          if (fieldInfo?.hintURL) {
             return (
               <Typography key={v.toString()}>
                 {`${cmText} (`}
-                <AppLink to='/docs#webhooks'>docs</AppLink>)
+                <AppLink to={fieldInfo.hintURL}>{fieldInfo.hint}</AppLink>)
               </Typography>
             )
           }
@@ -218,12 +232,23 @@ export default function UserContactMethodListDest(
         />
         <FlatList
           data-cy='contact-methods'
-          items={sortContactMethods(contactMethods).map((cm) => ({
-            title: `${cm.name} (${cm.dest.type})${cm.disabled ? ' - Disabled' : ''}`,
-            subText: getSubText(cm),
-            secondaryAction: getSecondaryAction(cm),
-            icon: getIcon(cm),
-          }))}
+          items={sortContactMethods(contactMethods).map((cm) => {
+            const destType = destinationTypes.find(
+              (d) => d.type === cm.dest.type,
+            )
+            const fieldInfo = destType?.requiredFields.find((rf) =>
+              cm.dest.values.find(
+                (f: FieldValuePair) => f.fieldID === rf.fieldID,
+              ),
+            )
+
+            return {
+              title: `${cm.name} (${fieldInfo?.labelSingular})${cm.disabled ? ' - Disabled' : ''}`,
+              subText: getSubText(cm, fieldInfo),
+              secondaryAction: getSecondaryAction(cm),
+              icon: getIcon(cm),
+            }
+          })}
           emptyMessage='No contact methods'
         />
         {showAddDialog && (

@@ -112,7 +112,7 @@ export const SingleContactMethod: Story = {
     const canvas = within(canvasElement)
 
     // ensure correct info is displayed for single-field CM
-    await expect(await canvas.findByText('Josiah (single-field)')).toBeVisible()
+    await expect(await canvas.findByText('Josiah (Phone Number)')).toBeVisible()
     await expect(await canvas.findByText('+1 555-555-5555')).toBeVisible()
 
     // ensure CM is editable
@@ -147,16 +147,16 @@ export const MultiContactMethods: Story = {
 
     // ensure correct info is displayed for webhook CM
     await expect(
-      await canvas.findByText('my_webhook (webhook-field)'),
+      await canvas.findByText('my_webhook (Webhook Url)'),
     ).toBeVisible()
-    await expect(canvas.getByText('docs')).toHaveAttribute(
+    await expect(canvas.getByText('Webhook Documentation')).toHaveAttribute(
       'href',
       '/docs#webhooks',
     )
 
     // ensure correct info is displayed for triple-field CM
     await expect(
-      await canvas.findByText('triple contact method (triple-field)'),
+      await canvas.findByText('triple contact method (First Item)'),
     ).toBeVisible()
     await expect(await canvas.findByText('+1 555-555-5555')).toBeVisible()
     await expect(await canvas.findByText('test_user@target.com')).toBeVisible()
@@ -176,7 +176,7 @@ export const SingleReadOnlyContactMethods: Story = {
     const canvas = within(canvasElement)
 
     // ensure correct info is displayed for single-field CM
-    await expect(await canvas.findByText('Josiah (single-field)')).toBeVisible()
+    await expect(await canvas.findByText('Josiah (Phone Number)')).toBeVisible()
     await expect(await canvas.findByText('+1 555-555-5555')).toBeVisible()
 
     // ensure no edit icons exist for read-only CM
