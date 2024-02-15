@@ -184,13 +184,23 @@ export default function UserContactMethodListDest(
     )
   }
 
-  function getSubText(
-    cm: UserContactMethod,
-    fieldInfo: DestinationFieldConfig | undefined,
-  ): JSX.Element {
+  function getFieldInfo(
+    destType: string,
+    fieldID: string,
+  ): DestinationFieldConfig | undefined {
+    const destInfo = destinationTypes.find((d) => d.type === destType)
+    const fieldInfo = destInfo?.requiredFields.find(
+      (rf) => fieldID === rf.fieldID,
+    )
+    return fieldInfo
+  }
+
+  function getSubText(cm: UserContactMethod): JSX.Element {
     return (
       <React.Fragment>
         {cm.dest.values.map((v) => {
+          const fieldInfo = getFieldInfo(cm.dest.type, v.fieldID)
+
           let cmText = v.label
           if (cm.pending) {
             cmText = `${cmText} - this contact method will be automatically deleted if not verified`
@@ -233,18 +243,18 @@ export default function UserContactMethodListDest(
         <FlatList
           data-cy='contact-methods'
           items={sortContactMethods(contactMethods).map((cm) => {
-            const destType = destinationTypes.find(
-              (d) => d.type === cm.dest.type,
-            )
-            const fieldInfo = destType?.requiredFields.find((rf) =>
-              cm.dest.values.find(
-                (f: FieldValuePair) => f.fieldID === rf.fieldID,
-              ),
-            )
+            // get field info for first matched required field value for contact method (for CM title only)
+            const fieldInfo = destinationTypes
+              .find((d) => d.type === cm.dest.type)
+              ?.requiredFields.find((rf) =>
+                cm.dest.values.find(
+                  (f: FieldValuePair) => f.fieldID === rf.fieldID,
+                ),
+              )
 
             return {
               title: `${cm.name} (${fieldInfo?.labelSingular})${cm.disabled ? ' - Disabled' : ''}`,
-              subText: getSubText(cm, fieldInfo),
+              subText: getSubText(cm),
               secondaryAction: getSecondaryAction(cm),
               icon: getIcon(cm),
             }
