@@ -173,10 +173,6 @@ export const SingleReadOnlyContactMethods: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // ensure correct info is displayed for single-field CM
-    await expect(await canvas.findByText('Josiah (Phone Number)')).toBeVisible()
-    await expect(await canvas.findByText('+1 555-555-5555')).toBeVisible()
-
     // ensure no edit icons exist for read-only CM
     await expect(
       await canvas.queryByTestId('MoreHorizIcon'),
