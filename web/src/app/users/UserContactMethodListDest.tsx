@@ -234,7 +234,7 @@ export default function UserContactMethodListDest(
               (d) => d.type === cm.dest.type,
             )
 
-            const labelTitle =
+            const label =
               destType?.requiredFields.length === 1
                 ? destType?.requiredFields.find((rf) =>
                     cm.dest.values.find(
@@ -244,7 +244,7 @@ export default function UserContactMethodListDest(
                 : destType?.name
 
             return {
-              title: `${cm.name} (${labelTitle})${cm.disabled ? ' - Disabled' : ''}`,
+              title: `${cm.name} (${label})${cm.disabled ? ' - Disabled' : ''}`,
               subText: getSubText(cm),
               secondaryAction: getSecondaryAction(cm),
               icon: getIcon(cm),
