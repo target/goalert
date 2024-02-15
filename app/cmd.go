@@ -97,8 +97,12 @@ Available Flags:
 		if err != nil {
 			return err
 		}
-		ctx := cmd.Context()
+		err = initPprofServer()
+		if err != nil {
+			return err
+		}
 
+		ctx := cmd.Context()
 		cfg, err := getConfig(ctx)
 		if err != nil {
 			return err
@@ -370,6 +374,11 @@ Migration: %s (#%d)
 			}
 
 			err = initPromServer()
+			if err != nil {
+				return err
+			}
+
+			err = initPprofServer()
 			if err != nil {
 				return err
 			}
@@ -733,6 +742,7 @@ func init() {
 	RootCmd.Flags().String("public-url", "", "Externally routable URL to the application. Used for validating callback requests, links, auth, and prefix calculation.")
 
 	RootCmd.PersistentFlags().StringP("listen-prometheus", "p", "", "Bind address for Prometheus metrics.")
+	RootCmd.PersistentFlags().String("listen-pprof", "", "Bind address for pprof.")
 
 	RootCmd.Flags().String("tls-cert-file", "", "Specifies a path to a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")
 	RootCmd.Flags().String("tls-key-file", "", "Specifies a path to a PEM-encoded private key file.  Has no effect if --listen-tls is unset.")
