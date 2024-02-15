@@ -743,6 +743,8 @@ func init() {
 
 	RootCmd.PersistentFlags().StringP("listen-prometheus", "p", "", "Bind address for Prometheus metrics.")
 	RootCmd.PersistentFlags().String("listen-pprof", "", "Bind address for pprof.")
+	RootCmd.PersistentFlags().Int("pprof-block-profile-rate", 0, "Set the block profile rate in hz.")
+	RootCmd.PersistentFlags().Int("pprof-mutex-profile-fraction", 0, "Set the mutex profile fraction (rate is 1/this-value).")
 
 	RootCmd.Flags().String("tls-cert-file", "", "Specifies a path to a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")
 	RootCmd.Flags().String("tls-key-file", "", "Specifies a path to a PEM-encoded private key file.  Has no effect if --listen-tls is unset.")

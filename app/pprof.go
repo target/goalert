@@ -4,6 +4,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/pprof"
+	"runtime"
 
 	"github.com/spf13/viper"
 )
@@ -27,6 +28,9 @@ func initPprofServer() error {
 	mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
 	mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+
+	runtime.SetBlockProfileRate(viper.GetInt("pprof-block-profile-rate"))
+	runtime.SetMutexProfileFraction(viper.GetInt("pprof-mutex-profile-fraction"))
 
 	srv := http.Server{
 		Handler: mux,
