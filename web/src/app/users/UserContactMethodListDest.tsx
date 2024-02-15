@@ -184,22 +184,13 @@ export default function UserContactMethodListDest(
     )
   }
 
-  function getFieldInfo(
-    destType: string,
-    fieldID: string,
-  ): DestinationFieldConfig | undefined {
-    const destInfo = destinationTypes.find((d) => d.type === destType)
-    const fieldInfo = destInfo?.requiredFields.find(
-      (rf) => fieldID === rf.fieldID,
-    )
-    return fieldInfo
-  }
-
   function getSubText(cm: UserContactMethod): JSX.Element {
     return (
       <React.Fragment>
         {cm.dest.values.map((v) => {
-          const fieldInfo = getFieldInfo(cm.dest.type, v.fieldID)
+          const fieldInfo = destinationTypes
+            .find((d) => d.type === cm.dest.type)
+            ?.requiredFields.find((rf) => v.fieldID === rf.fieldID)
 
           let cmText = v.label
           if (cm.pending) {
