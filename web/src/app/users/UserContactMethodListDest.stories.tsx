@@ -145,7 +145,7 @@ export const MultiContactMethods: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // ensure correct info is displayed for first CM
+    // ensure correct info is displayed for single field CM
     await expect(
       await canvas.findByText('single field CM (Phone Number)'),
     ).toBeVisible()
