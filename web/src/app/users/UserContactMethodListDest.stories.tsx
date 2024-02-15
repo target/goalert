@@ -73,14 +73,14 @@ const meta = {
                         },
                         {
                           id: '1111',
-                          name: 'my_webhook',
+                          name: 'single field CM',
                           dest: {
-                            type: 'webhook-field',
+                            type: 'single-field',
                             values: [
                               {
-                                fieldID: 'webhook-url',
-                                value: 'https://target.com',
-                                label: 'https://target.com',
+                                fieldID: 'phone-number',
+                                value: '+15555555556',
+                                label: '+1 555-555-5556',
                               },
                             ],
                           },
@@ -145,22 +145,20 @@ export const MultiContactMethods: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // ensure correct info is displayed for webhook CM
+    // ensure correct info is displayed for first CM
     await expect(
-      await canvas.findByText('my_webhook (Webhook Url)'),
+      await canvas.findByText('single field CM (Phone Number)'),
     ).toBeVisible()
-    await expect(canvas.getByText('Webhook Documentation')).toHaveAttribute(
-      'href',
-      '/docs#webhooks',
-    )
 
     // ensure correct info is displayed for triple-field CM
     await expect(
       await canvas.findByText('triple contact method (First Item)'),
     ).toBeVisible()
-    await expect(await canvas.findByText('+1 555-555-5555')).toBeVisible()
+    await expect(await canvas.findByText('+1 555-555-5556')).toBeVisible()
     await expect(await canvas.findByText('test_user@target.com')).toBeVisible()
-    await expect(await canvas.findByText('@TestUser')).toBeVisible()
+
+    // ensure has link when hint url exists
+    await expect(canvas.getByText('docs')).toHaveAttribute('href', '/docs')
 
     // ensure all edit icons exists
     await expect(await canvas.findAllByTestId('MoreHorizIcon')).toHaveLength(2)
