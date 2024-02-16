@@ -25,14 +25,6 @@ export type RequireConfigDoc = {
   destinationTypes: DestinationTypeInfo[]
 }
 
-export function handleConfig(doc: RequireConfigDoc): GraphQLHandler {
-  return graphql.query('RequireConfig', () => {
-    return HttpResponse.json({
-      data: doc,
-    })
-  })
-}
-
 export const defaultConfig: RequireConfigDoc = {
   user: {
     id: '00000000-0000-0000-0000-000000000000',
@@ -61,6 +53,26 @@ export const defaultConfig: RequireConfigDoc = {
     },
   ],
   destinationTypes: destTypes,
+}
+
+export function handleExpFlags(...flags: string[]): GraphQLHandler {
+  return graphql.query('useExpFlag', () => {
+    return HttpResponse.json({
+      data: {
+        experimentalFlags: flags,
+      },
+    })
+  })
+}
+
+export function handleConfig(
+  doc: RequireConfigDoc = defaultConfig,
+): GraphQLHandler {
+  return graphql.query('RequireConfig', () => {
+    return HttpResponse.json({
+      data: doc,
+    })
+  })
 }
 
 export const handleDefaultConfig = handleConfig(defaultConfig)

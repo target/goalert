@@ -1,9 +1,8 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import DestinationSearchSelect from './DestinationSearchSelect'
-import { expect } from '@storybook/jest'
-import { userEvent, within } from '@storybook/testing-library'
-import { handleDefaultConfig } from '../storybook/graphql'
+import { expect, userEvent, within } from '@storybook/test'
+import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 import { useArgs } from '@storybook/preview-api'
 import { FieldValueConnection } from '../../schema'
@@ -31,6 +30,7 @@ const meta = {
     msw: {
       handlers: [
         handleDefaultConfig,
+        handleExpFlags('dest-types'),
         graphql.query('DestinationFieldSearch', ({ variables: vars }) => {
           if (vars.input.search === 'query-error') {
             return HttpResponse.json({

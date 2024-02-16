@@ -12,7 +12,7 @@ import _ from 'lodash'
 import { DateTime, Duration, Interval } from 'luxon'
 
 import FlatList, {
-  FlatListItem,
+  FlatListItemOptions,
   FlatListListItem,
   FlatListNotice,
 } from '../../lists/FlatList'
@@ -261,7 +261,7 @@ export default function TempSchedShiftsList({
             sx: {
               backgroundColor: diffColor,
             },
-          } as Sortable<FlatListItem>
+          } as Sortable<FlatListItemOptions>
         })
       })
     })()

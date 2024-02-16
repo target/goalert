@@ -36,6 +36,10 @@ func (a *App) OnCallNotificationRule() graphql2.OnCallNotificationRuleResolver {
 	return (*OnCallNotificationRule)(a)
 }
 
+func (a *OnCallNotificationRule) Dest(ctx context.Context, raw *schedule.OnCallNotificationRule) (*graphql2.Destination, error) {
+	return (*App)(a).CompatNCToDest(ctx, raw.ChannelID)
+}
+
 func (a *OnCallNotificationRule) Target(ctx context.Context, raw *schedule.OnCallNotificationRule) (*assignment.RawTarget, error) {
 	ch, err := (*App)(a).FindOneNC(ctx, raw.ChannelID)
 	if err != nil {

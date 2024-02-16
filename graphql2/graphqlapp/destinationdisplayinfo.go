@@ -11,6 +11,26 @@ import (
 	"github.com/target/goalert/validation"
 )
 
+type (
+	Destination App
+)
+
+func (a *App) Destination() graphql2.DestinationResolver { return (*Destination)(a) }
+
+// DisplayInfo will return the display information for a destination by mapping to Query.DestinationDisplayInfo.
+func (a *Destination) DisplayInfo(ctx context.Context, obj *graphql2.Destination) (*graphql2.DestinationDisplayInfo, error) {
+	if obj.DisplayInfo != nil {
+		return obj.DisplayInfo, nil
+	}
+
+	values := make([]graphql2.FieldValueInput, len(obj.Values))
+	for i, v := range obj.Values {
+		values[i] = graphql2.FieldValueInput{FieldID: v.FieldID, Value: v.Value}
+	}
+
+	return (*Query)(a).DestinationDisplayInfo(ctx, graphql2.DestinationInput{Type: obj.Type, Values: values})
+}
+
 func (a *Query) DestinationDisplayInfo(ctx context.Context, dest graphql2.DestinationInput) (*graphql2.DestinationDisplayInfo, error) {
 	app := (*App)(a)
 	cfg := config.FromContext(ctx)

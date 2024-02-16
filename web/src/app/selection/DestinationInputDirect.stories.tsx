@@ -1,9 +1,8 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import DestinationInputDirect from './DestinationInputDirect'
-import { expect } from '@storybook/jest'
-import { within, userEvent } from '@storybook/testing-library'
-import { handleDefaultConfig } from '../storybook/graphql'
+import { expect, within, userEvent } from '@storybook/test'
+import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 import { useArgs } from '@storybook/preview-api'
 
@@ -22,6 +21,7 @@ const meta = {
     msw: {
       handlers: [
         handleDefaultConfig,
+        handleExpFlags('dest-types'),
         graphql.query('ValidateDestination', ({ variables: vars }) => {
           return HttpResponse.json({
             data: {

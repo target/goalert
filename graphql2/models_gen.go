@@ -210,10 +210,12 @@ type CreateUserCalendarSubscriptionInput struct {
 
 type CreateUserContactMethodInput struct {
 	UserID                  string                           `json:"userID"`
-	Type                    contactmethod.Type               `json:"type"`
+	Type                    *contactmethod.Type              `json:"type,omitempty"`
+	Dest                    *DestinationInput                `json:"dest,omitempty"`
 	Name                    string                           `json:"name"`
-	Value                   string                           `json:"value"`
+	Value                   *string                          `json:"value,omitempty"`
 	NewUserNotificationRule *CreateUserNotificationRuleInput `json:"newUserNotificationRule,omitempty"`
+	EnableStatusUpdates     *bool                            `json:"enableStatusUpdates,omitempty"`
 }
 
 type CreateUserInput struct {
@@ -293,10 +295,9 @@ type DebugSendSMSInput struct {
 }
 
 type Destination struct {
-	Type     string                  `json:"type"`
-	Values   []FieldValuePair        `json:"values"`
-	TypeInfo *DestinationTypeInfo    `json:"typeInfo"`
-	Display  *DestinationDisplayInfo `json:"display"`
+	Type        string                  `json:"type"`
+	Values      []FieldValuePair        `json:"values"`
+	DisplayInfo *DestinationDisplayInfo `json:"displayInfo"`
 }
 
 type DestinationDisplayInfo struct {
@@ -340,17 +341,19 @@ type DestinationInput struct {
 }
 
 type DestinationTypeInfo struct {
-	Type                string                   `json:"type"`
-	Name                string                   `json:"name"`
-	IconURL             string                   `json:"iconURL"`
-	IconAltText         string                   `json:"iconAltText"`
-	DisabledMessage     string                   `json:"disabledMessage"`
-	Enabled             bool                     `json:"enabled"`
-	RequiredFields      []DestinationFieldConfig `json:"requiredFields"`
-	UserDisclaimer      string                   `json:"userDisclaimer"`
-	IsContactMethod     bool                     `json:"isContactMethod"`
-	IsEPTarget          bool                     `json:"isEPTarget"`
-	IsSchedOnCallNotify bool                     `json:"isSchedOnCallNotify"`
+	Type                  string                   `json:"type"`
+	Name                  string                   `json:"name"`
+	IconURL               string                   `json:"iconURL"`
+	IconAltText           string                   `json:"iconAltText"`
+	DisabledMessage       string                   `json:"disabledMessage"`
+	Enabled               bool                     `json:"enabled"`
+	RequiredFields        []DestinationFieldConfig `json:"requiredFields"`
+	UserDisclaimer        string                   `json:"userDisclaimer"`
+	IsContactMethod       bool                     `json:"isContactMethod"`
+	IsEPTarget            bool                     `json:"isEPTarget"`
+	IsSchedOnCallNotify   bool                     `json:"isSchedOnCallNotify"`
+	SupportsStatusUpdates bool                     `json:"supportsStatusUpdates"`
+	StatusUpdatesRequired bool                     `json:"statusUpdatesRequired"`
 }
 
 type EscalationPolicyConnection struct {
@@ -819,6 +822,7 @@ type UserSearchOptions struct {
 	Omit           []string            `json:"omit,omitempty"`
 	CMValue        *string             `json:"CMValue,omitempty"`
 	CMType         *contactmethod.Type `json:"CMType,omitempty"`
+	Dest           *DestinationInput   `json:"dest,omitempty"`
 	FavoritesOnly  *bool               `json:"favoritesOnly,omitempty"`
 	FavoritesFirst *bool               `json:"favoritesFirst,omitempty"`
 }

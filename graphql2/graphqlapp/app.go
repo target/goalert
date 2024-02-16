@@ -153,7 +153,16 @@ func isGQLValidation(gqlErr *gqlerror.Error) bool {
 		return false
 	}
 
-	return code == errcode.ValidationFailed || code == errcode.ParseFailed
+	switch code {
+	case errcode.ValidationFailed, errcode.ParseFailed:
+		// These are gqlgen validation errors.
+		return true
+	case ErrCodeInvalidDestType, ErrCodeInvalidDestValue:
+		// These are destination validation errors.
+		return true
+	}
+
+	return false
 }
 
 func (a *App) Handler() http.Handler {

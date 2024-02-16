@@ -25,7 +25,8 @@ GOPATH:=$(shell go env GOPATH)
 YARN_VERSION=3.6.3
 PG_VERSION=13
 
-NODE_DEPS=.pnp.cjs .yarnrc.yml
+# add all files except those under web/src/build and web/src/cypress
+NODE_DEPS=.pnp.cjs .yarnrc.yml .gitrev $(shell find web/src -path web/src/build -prune -o -path web/src/cypress -prune -o -type f -print)
 
 # Use sha256sum on linux and shasum -a 256 on mac
 SHA_CMD := $(shell if [ -x "$(shell command -v sha256sum 2>/dev/null)" ]; then echo "sha256sum"; else echo "shasum -a 256"; fi)
@@ -108,27 +109,27 @@ cypress: bin/goalert.cover bin/psql-lite bin/pgmocktime $(NODE_DEPS) web/src/sch
 	$(MAKE) ensure-yarn
 	yarn cypress install
 
-cy-wide: cypress
-	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 go run ./devtools/runproc -f Procfile.cypress
-cy-mobile: cypress
-	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 go run ./devtools/runproc -f Procfile.cypress
-cy-wide-prod: web/src/build/static/app.js cypress
-	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f $(PROD_CY_PROC)
-cy-mobile-prod: web/src/build/static/app.js cypress
-	CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f $(PROD_CY_PROC)
-cy-wide-prod-run: web/src/build/static/app.js cypress
+cy-wide: cypress ## Start cypress tests in desktop mode with dev build in UI mode
+	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 go run ./devtools/runproc -f Procfile.cypress
+cy-mobile: cypress ## Start cypress tests in mobile mode with dev build in UI mode
+	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 go run ./devtools/runproc -f Procfile.cypress
+cy-wide-prod: web/src/build/static/app.js cypress ## Start cypress tests in desktop mode with production build in UI mode
+	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f $(PROD_CY_PROC)
+cy-mobile-prod: web/src/build/static/app.js cypress ## Start cypress tests in mobile mode with production build in UI mode
+	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f $(PROD_CY_PROC)
+cy-wide-prod-run: web/src/build/static/app.js cypress ## Start cypress tests in desktop mode with production build in headless mode
 	rm -rf test/coverage/integration/cypress-wide
 	mkdir -p test/coverage/integration/cypress-wide
-	GOCOVERDIR=test/coverage/integration/cypress-wide $(MAKE) $(MFLAGS) cy-wide-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
-cy-mobile-prod-run: web/src/build/static/app.js cypress
+	GOCOVERDIR=test/coverage/integration/cypress-wide $(MAKE) $(MFLAGS) cy-wide-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1 GOALERT_VERSION=$(GIT_VERSION) 
+cy-mobile-prod-run: web/src/build/static/app.js cypress ## Start cypress tests in mobile mode with production build in headless mode
 	rm -rf test/coverage/integration/cypress-mobile
 	mkdir -p test/coverage/integration/cypress-mobile
-	GOCOVERDIR=test/coverage/integration/cypress-mobile $(MAKE) $(MFLAGS) cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1
+	GOCOVERDIR=test/coverage/integration/cypress-mobile $(MAKE) $(MFLAGS) cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1 GOALERT_VERSION=$(GIT_VERSION) 
 
 swo/swodb/queries.sql.go: $(BIN_DIR)/tools/sqlc sqlc.yaml swo/*/*.sql migrate/migrations/*.sql */queries.sql */*/queries.sql migrate/schema.sql
 	$(BIN_DIR)/tools/sqlc generate
 
-web/src/schema.d.ts: graphql2/schema.graphql graphql2/graph/*.graphqls $(NODE_DEPS) web/src/genschema.go
+web/src/schema.d.ts: graphql2/schema.graphql graphql2/graph/*.graphqls web/src/genschema.go
 	go generate ./web/src
 
 help: ## Show all valid options
@@ -189,6 +190,7 @@ check: check-go check-js ## Run all lint checks
 
 .yarnrc.yml: package.json
 	$(MAKE) yarn
+	touch "$@"
 
 .yarn/releases/yarn-$(YARN_VERSION).cjs:
 	yarn set version $(YARN_VERSION) || $(MAKE) yarn
@@ -240,6 +242,7 @@ test-unit: test
 
 test-components:  $(NODE_DEPS) bin/waitfor
 	yarn build-storybook --test --quiet 2>/dev/null
+	yarn playwright install chromium
 	yarn concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
 		"yarn http-server storybook-static -a 127.0.0.1 --port 6008 --silent" \
 		"./bin/waitfor tcp://localhost:6008 && yarn test-storybook --ci --url http://127.0.0.1:6008"
@@ -250,7 +253,7 @@ storybook: ensure-yarn $(NODE_DEPS) # Start the Storybook UI
 bin/MailHog: go.mod go.sum
 	go build -o bin/MailHog github.com/mailhog/MailHog
 
-playwright-run: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goalert.cover web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog
+playwright-run: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goalert.cover web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog ## Start playwright tests in headless mode
 	$(MAKE) ensure-yarn
 	rm -rf test/coverage/integration/playwright
 	mkdir -p test/coverage/integration/playwright
@@ -296,17 +299,14 @@ tools:
 	yarn install && touch "$@"
 
 
-web/src/build/static/explore.js: web/src/build/static
-
-web/src/build/static: web/src/esbuild.config.js $(NODE_DEPS) $(shell find ./web/src/app -type f ) $(shell find ./web/src/explore -type f ) web/src/schema.d.ts
+web/src/build/static/explore.js: web/src/build/static/app.js
+web/src/build/static/app.js: $(NODE_DEPS)
 	$(MAKE) ensure-yarn
 	rm -rf web/src/build/static
 	mkdir -p web/src/build/static
 	cp -f web/src/app/public/icons/favicon-* web/src/app/public/logos/lightmode_* web/src/app/public/logos/darkmode_* web/src/build/static/
-	GOALERT_VERSION=$(GIT_VERSION) yarn run esbuild
-
-web/src/build/static/app.js: web/src/build/static $(NODE_DEPS)
-	
+	GOALERT_VERSION=$(GIT_VERSION) yarn run esbuild --prod
+	touch "$@"
 
 notification/desttype_string.go: notification/desttype.go
 	go generate ./notification

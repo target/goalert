@@ -209,6 +209,12 @@ export function useConfigValue(...fields: ConfigID[]): Value[] {
   return fields.map((f) => config[f])
 }
 
+// useContactMethodTypes returns a list of contact method destination types.
+export function useContactMethodTypes(): DestinationTypeInfo[] {
+  const cfg = React.useContext(ConfigContext)
+  return cfg.destTypes.filter((t) => t.isContactMethod)
+}
+
 // useDestinationType returns information about the given destination type.
 export function useDestinationType(type: DestinationType): DestinationTypeInfo {
   const ctx = React.useContext(ConfigContext)
