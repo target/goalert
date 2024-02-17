@@ -107,7 +107,7 @@ test('Heartbeat Monitors', async ({ page, isMobile }) => {
   await page.getByRole('menuitem', { name: 'Delete' }).click()
   await page.getByRole('button', { name: 'Confirm' }).click()
   await page.getByText('No heartbeat monitors exist for this service.').click()
- 
+
   // Return to the service
   if (isMobile) {
     await page.getByRole('button', { name: 'Back' }).click()
@@ -120,7 +120,7 @@ test('Alerts', async ({ page, isMobile }) => {
   name = 'pw-service ' + c.name()
   await createService(page, name, description)
 
-   // Go to the alerts page
+  // Go to the alerts page
   await page
     .getByRole('link', {
       name: 'Alerts Manage alerts specific to this service',
@@ -163,7 +163,7 @@ test('Alerts', async ({ page, isMobile }) => {
   await page.getByRole('button', { name: 'Close All' }).click()
   await page.getByRole('button', { name: 'Confirm' }).click()
   await expect(page.getByText('No results')).toBeVisible()
-  
+
   // Return to the service
   if (isMobile) {
     await page.getByRole('button', { name: 'Back' }).click()
@@ -196,7 +196,7 @@ test('Label', async ({ page, isMobile }) => {
   await createService(page, name, description)
 
   // Create a label for the service
-   await createLabel(page, key, value, isMobile)
+  await createLabel(page, key, value, isMobile)
 
   // Edit the label, change the value, confirm new value is visible
   value = c.word({ length: 8 })
@@ -274,11 +274,14 @@ test('Integration Keys', async ({ page, isMobile }) => {
   await expect(page.getByText(grafanaKey, { exact: true })).toBeHidden()
 })
 
-test('Service Creation with Existing Label and Label Filtering', async ({ page, isMobile }) => {
+test('Service Creation with Existing Label and Label Filtering', async ({
+  page,
+  isMobile,
+}) => {
   name = 'pw-service ' + c.name()
-  
+
   const key = `${c.word({ length: 4 })}/${c.word({ length: 3 })}`
-  let value = c.word({ length: 8 })
+  const value = c.word({ length: 8 })
   const intKey = c.word({ length: 5 }) + ' Key'
   const diffName = 'pw-service ' + c.name()
   const diffDescription = c.sentence()
@@ -334,7 +337,7 @@ test('Service Creation with Existing Label and Label Filtering', async ({ page, 
   await expect(page.getByText(diffValue)).toBeVisible()
 
   await page.goto('./services')
- 
+
   // Check that filter content doesn't exist yet
   await expect(
     page.getByRole('button', { name: 'filter-done' }),
@@ -393,9 +396,9 @@ test('Service Creation with Existing Label and Label Filtering', async ({ page, 
 
 test('Service Search', async ({ page, isMobile }) => {
   name = 'pw-service ' + c.name()
-  
+
   const key = `${c.word({ length: 4 })}/${c.word({ length: 3 })}`
-  let value = c.word({ length: 8 })
+  const value = c.word({ length: 8 })
 
   await createService(page, name, description)
 

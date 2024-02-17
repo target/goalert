@@ -1,9 +1,9 @@
 import { Page, expect } from '@playwright/test'
 
 export async function createIntegrationKey(
-    page: Page,
-    intKey: number,
-    isMobile: boolean,
+  page: Page,
+  intKey: number,
+  isMobile: boolean,
 ): Promise<void> {
   await page.getByRole('link', { name: 'Integration Keys' }).click()
 
