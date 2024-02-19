@@ -23,7 +23,7 @@ import { GenericError, ObjectNotFound } from '../error-pages'
 import SendTestDialog from './SendTestDialog'
 import AppLink from '../util/AppLink'
 import { styles as globalStyles } from '../styles/materialStyles'
-import { FieldValuePair, UserContactMethod } from '../../schema'
+import { UserContactMethod } from '../../schema'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
 import { useSessionInfo, useContactMethodTypes } from '../util/RequireConfig'
 
@@ -234,14 +234,7 @@ export default function UserContactMethodListDest(
               (d) => d.type === cm.dest.type,
             )
 
-            const label =
-              destType?.requiredFields.length === 1
-                ? destType?.requiredFields.find((rf) =>
-                    cm.dest.values.find(
-                      (f: FieldValuePair) => f.fieldID === rf.fieldID,
-                    ),
-                  )?.labelSingular
-                : destType?.name
+            const label = destType?.name || 'Unknown Type'
 
             return {
               title: `${cm.name} (${label})${cm.disabled ? ' - Disabled' : ''}`,
