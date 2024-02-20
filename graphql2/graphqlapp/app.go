@@ -148,6 +148,11 @@ func isGQLValidation(gqlErr *gqlerror.Error) bool {
 		return false
 	}
 
+	_, ok := gqlErr.Extensions["code"].(graphql2.ErrorCode)
+	if ok {
+		return true
+	}
+
 	code, ok := gqlErr.Extensions["code"].(string)
 	if !ok {
 		return false
@@ -156,9 +161,6 @@ func isGQLValidation(gqlErr *gqlerror.Error) bool {
 	switch code {
 	case errcode.ValidationFailed, errcode.ParseFailed:
 		// These are gqlgen validation errors.
-		return true
-	case ErrCodeInvalidDestType, ErrCodeInvalidDestValue:
-		// These are destination validation errors.
 		return true
 	}
 

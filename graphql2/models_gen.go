@@ -971,6 +971,58 @@ func (e ConfigType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+// Known error codes that the server can return.
+//
+// These values will be returned in the `extensions.code` field of the error response.
+type ErrorCode string
+
+const (
+	// The input value is invalid, the `path` field will contain the exact path to the invalid input.
+	//
+	// A separate error will be returned for each invalid field.
+	ErrorCodeInvalidInputValue ErrorCode = "INVALID_INPUT_VALUE"
+	// The `path` field contains the exact path to the DestinationInput that is invalid.
+	//
+	// The `extensions.fieldID` field contains the ID of the input field that is invalid.
+	//
+	// A separate error will be returned for each invalid field.
+	ErrorCodeInvalidDestFieldValue ErrorCode = "INVALID_DEST_FIELD_VALUE"
+)
+
+var AllErrorCode = []ErrorCode{
+	ErrorCodeInvalidInputValue,
+	ErrorCodeInvalidDestFieldValue,
+}
+
+func (e ErrorCode) IsValid() bool {
+	switch e {
+	case ErrorCodeInvalidInputValue, ErrorCodeInvalidDestFieldValue:
+		return true
+	}
+	return false
+}
+
+func (e ErrorCode) String() string {
+	return string(e)
+}
+
+func (e *ErrorCode) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ErrorCode(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ErrorCode", str)
+	}
+	return nil
+}
+
+func (e ErrorCode) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type IntegrationKeyType string
 
 const (
