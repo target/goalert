@@ -102,6 +102,11 @@ export default function LocalDev(): JSX.Element {
             'OIDC.UserInfoNamePath': 'preferred_username',
           }}
         />
+        <DevTool
+          name='pprof'
+          desc='Debug and profile the running server.'
+          url='http://localhost:6060/debug/pprof/'
+        />
       </Grid>
 
       {updateConfig && (
