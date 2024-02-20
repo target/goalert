@@ -11,6 +11,7 @@ import {
   isInputFieldError,
   isDestFieldError,
   KnownError,
+  DestFieldValueError,
 } from '../util/errtypes'
 
 export type Value = {
@@ -22,7 +23,7 @@ export type Value = {
 export type UserContactMethodFormProps = {
   value: Value
 
-  errors?: Array<KnownError>
+  errors?: Array<KnownError | DestFieldValueError>
 
   disabled?: boolean
   edit?: boolean

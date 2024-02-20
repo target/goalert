@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql'
-import { getInputFieldErrors } from './errutil'
+import { splitErrorsByPath } from './errutil'
 
-describe('getInputFieldErrors', () => {
+describe('splitErrorsByPath', () => {
   it('should split errors by path', () => {
     const resp = [
       {
@@ -20,10 +20,10 @@ describe('getInputFieldErrors', () => {
       },
     ] as unknown as GraphQLError[]
 
-    const [inputFieldErrors, otherErrors] = getInputFieldErrors(
-      ['foo.bar.dest.type', 'foo.bar.dest.values.example-field'],
-      resp,
-    )
+    const [inputFieldErrors, otherErrors] = splitErrorsByPath(resp, [
+      'foo.bar.dest.type',
+      'foo.bar.dest.values.example-field',
+    ])
 
     expect(inputFieldErrors).toHaveLength(2)
     expect(inputFieldErrors[0].message).toEqual('test1')
