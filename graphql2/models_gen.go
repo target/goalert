@@ -143,10 +143,10 @@ type CreateEscalationPolicyInput struct {
 type CreateEscalationPolicyStepInput struct {
 	EscalationPolicyID *string                `json:"escalationPolicyID,omitempty"`
 	DelayMinutes       int                    `json:"delayMinutes"`
-	Actions            []*DestinationInput    `json:"actions"`
 	Targets            []assignment.RawTarget `json:"targets,omitempty"`
 	NewRotation        *CreateRotationInput   `json:"newRotation,omitempty"`
 	NewSchedule        *CreateScheduleInput   `json:"newSchedule,omitempty"`
+	Actions            []DestinationInput     `json:"actions,omitempty"`
 }
 
 type CreateGQLAPIKeyInput struct {

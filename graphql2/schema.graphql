@@ -548,7 +548,6 @@ input CreateEscalationPolicyStepInput {
 
   delayMinutes: Int!
 
-  actions: [DestinationInput]! @experimental(flagName: "dest-types") # HERE
   targets: [TargetInput!]
   newRotation: CreateRotationInput
   newSchedule: CreateScheduleInput

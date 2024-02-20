@@ -149,22 +149,40 @@ func CompatDestToCMTypeVal(d graphql2.DestinationInput) (contactmethod.Type, str
 	return "", ""
 }
 
-// CompatDestToEPTarget converts a graphql2.DestinationInput to a graphql2.TargetInput for escalation policy steps
-func CompatDestToEPTarget(d graphql2.DestinationInput) *assignment.RawTarget {
-	target := &assignment.RawTarget{
-		ID: d.Values[0].Value,
-	}
+// CompatDestToTarget converts a graphql2.DestinationInput to a graphql2.RawTarget
+func CompatDestToTarget(d graphql2.DestinationInput) (assignment.RawTarget, error) {
 	switch d.Type {
-	case destRotation:
-		target.Type = assignment.TargetTypeRotation
-	case destSchedule:
-		target.Type = assignment.TargetTypeSchedule
-	case destSlackChan:
-		target.Type = assignment.TargetTypeSlackChannel
 	case destUser:
-		target.Type = assignment.TargetTypeUser
+		return assignment.RawTarget{
+			Type: assignment.TargetTypeUser,
+			ID:   d.FieldValue(fieldUserID),
+		}, nil
+	case destRotation:
+		return assignment.RawTarget{
+			Type: assignment.TargetTypeRotation,
+			ID:   d.FieldValue(fieldRotationID),
+		}, nil
+	case destSchedule:
+		return assignment.RawTarget{
+			Type: assignment.TargetTypeSchedule,
+			ID:   d.FieldValue(fieldScheduleID),
+		}, nil
+	case destSlackChan:
+		return assignment.RawTarget{
+			Type: assignment.TargetTypeSlackChannel,
+			ID:   d.FieldValue(fieldSlackChanID),
+		}, nil
+	case destSlackUG:
+		return assignment.RawTarget{
+			Type: assignment.TargetTypeSlackUserGroup,
+			ID:   d.FieldValue(fieldSlackUGID) + ":" + d.FieldValue(fieldSlackChanID),
+		}, nil
 	case destWebhook:
-		target.Type = assignment.TargetTypeChanWebhook
+		return assignment.RawTarget{
+			Type: assignment.TargetTypeChanWebhook,
+			ID:   d.FieldValue(fieldWebhookURL),
+		}, nil
 	}
-	return target
+
+	return assignment.RawTarget{}, fmt.Errorf("unsupported destination type: %s", d.Type)
 }
