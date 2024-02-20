@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/target/goalert/config"
@@ -21,6 +22,15 @@ const (
 	ErrCodeInvalidDestValue = "INVALID_DESTINATION_FIELD_VALUE"
 )
 
+func errReason(err error) string {
+	var fErr validation.FieldError
+	if errors.As(err, &fErr) {
+		return fErr.Reason()
+	}
+
+	return err.Error()
+}
+
 // addDestFieldError will add a destination field error to the current request, and return
 // the original error if it is not a destination field validation error.
 func addDestFieldError(ctx context.Context, parentField, fieldID string, err error) error {
@@ -34,14 +44,17 @@ func addDestFieldError(ctx context.Context, parentField, fieldID string, err err
 	}
 
 	p := graphql.GetPath(ctx)
+	parentParts := strings.Split(parentField, ".")
+	for _, part := range parentParts {
+		p = append(p, ast.PathName(part))
+	}
 	p = append(p,
-		ast.PathName(parentField),
 		ast.PathName("values"), // DestinationInput.Values
 		ast.PathName(fieldID),
 	)
 
 	graphql.AddError(ctx, &gqlerror.Error{
-		Message: err.Error(),
+		Message: errReason(err),
 		Path:    p,
 		Extensions: map[string]interface{}{
 			"code": ErrCodeInvalidDestValue,
