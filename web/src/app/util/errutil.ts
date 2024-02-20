@@ -6,7 +6,7 @@ import { useDestinationType } from './RequireConfig'
 import {
   BaseError,
   InputFieldError,
-  InvalidDestFieldValueError,
+  DestFieldValueError,
   isDestFieldError,
   isInputFieldError,
 } from './errtypes'
@@ -46,7 +46,7 @@ export function nonFieldErrors(err?: ApolloError | CombinedError): Error[] {
  * getInputFieldErrors returns a list of input field errors and other errors from a CombinedError.
  * Any errors that are not input field errors (or are not in the filterPaths list) will be returned as other errors.
  *
- * @param filterPaths - a list of paths to filter errors by
+ * @param filterPaths - a list of paths to filter errors by, paths can be exact or begin with a wildcard (*)
  * @param err - the CombinedError to filter
  */
 export function getInputFieldErrors(
@@ -64,7 +64,14 @@ export function getInputFieldErrors(
 
     const fullPath = err.path.join('.')
 
-    if (!filterPaths.includes(fullPath)) {
+    const matches = filterPaths.some((p) => {
+      if (p.startsWith('*')) {
+        return fullPath.endsWith(p.slice(1))
+      }
+      return fullPath === p
+    })
+
+    if (!matches) {
       otherErrors.push(err)
       return
     }
@@ -85,7 +92,7 @@ export function useErrorsForDest(
   err: CombinedError | undefined | null,
   destType: string,
   destFieldPath: string, // the path of the DestinationInput field
-): [InputFieldError | undefined, InvalidDestFieldValueError[], BaseError[]] {
+): [InputFieldError | undefined, DestFieldValueError[], BaseError[]] {
   const cfg = useDestinationType(destType) // need to call hook before conditional return
   if (!err) return [undefined, [], []]
 
@@ -93,7 +100,7 @@ export function useErrorsForDest(
     [destFieldPath + '.type'],
     err.graphQLErrors,
   )
-  const destFieldErrs: InvalidDestFieldValueError[] = []
+  const destFieldErrs: DestFieldValueError[] = []
   const otherErrs: BaseError[] = []
 
   nonDestTypeErrs.forEach((err) => {

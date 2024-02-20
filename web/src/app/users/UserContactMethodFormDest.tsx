@@ -5,9 +5,10 @@ import React from 'react'
 import { DestinationInput } from '../../schema'
 import { FormContainer, FormField } from '../forms'
 import { renderMenuItem } from '../selection/DisableableMenuItem'
-import { InputFieldError, SimpleError } from '../util/errutil'
 import DestinationField from '../selection/DestinationField'
 import { useContactMethodTypes } from '../util/RequireConfig'
+import { InputFieldError, DestFieldValueError } from '../util/errtypes'
+import { getInputFieldErrors } from '../util/errutil'
 
 export type Value = {
   name: string
@@ -18,8 +19,7 @@ export type Value = {
 export type UserContactMethodFormProps = {
   value: Value
 
-  typeError?: SimpleError
-  fieldErrors?: Array<InputFieldError>
+  errors?: Array<InputFieldError | DestFieldValueError>
 
   disabled?: boolean
   edit?: boolean
@@ -47,28 +47,18 @@ export default function UserContactMethodFormDest(
     statusUpdateChecked = false
   }
 
-  const formErrors = []
-  if (props.typeError) {
-    formErrors.push({
-      // the old form code requires this shape to map errors to the correct field
-      message: props.typeError.message,
-      field: 'dest.type',
-    })
-  }
-  const nameErr = props.fieldErrors?.find(
-    (err) => err.path.split('.').pop() === 'name',
+  const [formErrors, destErrors] = getInputFieldErrors(
+    ['*.name', '*.dest.type'],
+    props.errors,
   )
-  if (nameErr) {
-    formErrors.push({
-      message: nameErr.message,
-      field: 'name',
-    })
-  }
 
   return (
     <FormContainer
       {...other}
-      errors={formErrors}
+      errors={formErrors.map((e) => ({
+        message: e.message,
+        field: e.path[e.path.length - 1].toString(),
+      }))}
       value={value}
       mapOnChangeValue={(newValue: Value): Value => {
         if (newValue.dest.type === value.dest.type) {
@@ -119,7 +109,7 @@ export default function UserContactMethodFormDest(
             destType={value.dest.type}
             component={DestinationField}
             disabled={edit}
-            destFieldErrors={props.fieldErrors}
+            destFieldErrors={destErrors}
           />
         </Grid>
         <Grid item xs={12}>

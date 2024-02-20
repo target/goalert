@@ -5,7 +5,7 @@ export interface BaseError {
   message: string
 }
 
-export interface KnownError extends GraphQLError, BaseError {
+export interface KnownError extends BaseError {
   readonly path: ReadonlyArray<string | number>
   extensions: {
     code: ErrorCode
@@ -18,7 +18,7 @@ export interface InputFieldError extends KnownError {
   }
 }
 
-export interface InvalidDestFieldValueError extends KnownError {
+export interface DestFieldValueError extends KnownError {
   extensions: {
     code: 'INVALID_DEST_FIELD_VALUE'
     fieldID: string
@@ -55,9 +55,7 @@ export function isKnownError(err: unknown): err is KnownError {
 
   return isKnownErrorCode(err.extensions.code as ErrorCode)
 }
-export function isDestFieldError(
-  err: unknown,
-): err is InvalidDestFieldValueError {
+export function isDestFieldError(err: unknown): err is DestFieldValueError {
   if (!isKnownError(err)) return false
   return err.extensions.code === 'INVALID_DEST_FIELD_VALUE'
 }

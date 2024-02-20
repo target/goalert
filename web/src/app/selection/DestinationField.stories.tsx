@@ -135,12 +135,20 @@ export const FieldError: Story = {
     disabled: false,
     destFieldErrors: [
       {
-        path: 'third-field',
+        path: ['input', 'dest'],
         message: 'This is an error message (third)',
+        extensions: {
+          code: 'INVALID_DEST_FIELD_VALUE',
+          fieldID: 'third-field',
+        },
       },
       {
-        path: 'first-field',
+        path: ['input', 'dest'],
         message: 'This is an error message (first)',
+        extensions: {
+          code: 'INVALID_DEST_FIELD_VALUE',
+          fieldID: 'first-field',
+        },
       },
     ],
   },
