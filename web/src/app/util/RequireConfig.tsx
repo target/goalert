@@ -215,6 +215,11 @@ export function useContactMethodTypes(): DestinationTypeInfo[] {
   return cfg.destTypes.filter((t) => t.isContactMethod)
 }
 
+export function useEPTargetTypes(): DestinationTypeInfo[] {
+  const cfg = React.useContext(ConfigContext)
+  return cfg.destTypes.filter((t) => t.isEPTarget)
+}
+
 // useDestinationType returns information about the given destination type.
 export function useDestinationType(type: DestinationType): DestinationTypeInfo {
   const ctx = React.useContext(ConfigContext)

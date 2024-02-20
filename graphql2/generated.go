@@ -31252,7 +31252,7 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyStepInput(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"escalationPolicyID", "delayMinutes", "targets", "newRotation", "newSchedule"}
+	fieldsInOrder := [...]string{"escalationPolicyID", "delayMinutes", "actions", "targets", "newRotation", "newSchedule"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -31273,6 +31273,34 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyStepInput(ctx co
 				return it, err
 			}
 			it.DelayMinutes = data
+		case "actions":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("actions"))
+			directive0 := func(ctx context.Context) (interface{}, error) {
+				return ec.unmarshalNDestinationInput2ᚕᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, v)
+			}
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				flagName, err := ec.unmarshalNString2string(ctx, "dest-types")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.Experimental == nil {
+					return nil, errors.New("directive experimental is not implemented")
+				}
+				return ec.directives.Experimental(ctx, obj, directive0, flagName)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.([]*DestinationInput); ok {
+				it.Actions = data
+			} else if tmp == nil {
+				it.Actions = nil
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be []*github.com/target/goalert/graphql2.DestinationInput`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
 		case "targets":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("targets"))
 			data, err := ec.unmarshalOTargetInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTargetᚄ(ctx, v)
@@ -43555,6 +43583,23 @@ func (ec *executionContext) unmarshalNDestinationFieldValidateInput2githubᚗcom
 func (ec *executionContext) unmarshalNDestinationInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx context.Context, v interface{}) (DestinationInput, error) {
 	res, err := ec.unmarshalInputDestinationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNDestinationInput2ᚕᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx context.Context, v interface{}) ([]*DestinationInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*DestinationInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalNDestinationType2string(ctx context.Context, v interface{}) (string, error) {

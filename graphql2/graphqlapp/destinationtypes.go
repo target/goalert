@@ -154,6 +154,30 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 			Nodes:    nodes,
 			PageInfo: res.PageInfo,
 		}, nil
+	case fieldRotationID:
+		res, err := q.Rotations(ctx, &graphql2.RotationSearchOptions{
+			Omit:   input.Omit,
+			First:  input.First,
+			Search: input.Search,
+			After:  input.After,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		var nodes []graphql2.FieldValuePair
+		for _, rot := range res.Nodes {
+			nodes = append(nodes, graphql2.FieldValuePair{
+				FieldID: input.FieldID,
+				Value:   rot.ID,
+				Label:   rot.Name,
+			})
+		}
+
+		return &graphql2.FieldValueConnection{
+			Nodes:    nodes,
+			PageInfo: res.PageInfo,
+		}, nil
 	}
 
 	return nil, validation.NewGenericError("unsupported fieldID")
@@ -321,6 +345,23 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 				InputType:          "text",
 				IsSearchSelectable: true,
 				Hint:               "If the user group update fails, an error will be posted to this channel.",
+			}},
+		},
+		{
+			Type:                  destRotation,
+			Name:                  "Rotation",
+			Enabled:               true,
+			IsContactMethod:       false,
+			IsEPTarget:            true,
+			IsSchedOnCallNotify:   true,
+			SupportsStatusUpdates: false,
+			StatusUpdatesRequired: false,
+			RequiredFields: []graphql2.DestinationFieldConfig{{
+				FieldID:            fieldRotationID,
+				LabelSingular:      "Select Rotation",
+				LabelPlural:        "Select Rotations",
+				InputType:          "text",
+				IsSearchSelectable: true,
 			}},
 		},
 	}

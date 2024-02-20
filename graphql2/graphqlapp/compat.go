@@ -148,3 +148,23 @@ func CompatDestToCMTypeVal(d graphql2.DestinationInput) (contactmethod.Type, str
 
 	return "", ""
 }
+
+// CompatDestToEPTarget converts a graphql2.DestinationInput to a graphql2.TargetInput for escalation policy steps
+func CompatDestToEPTarget(d graphql2.DestinationInput) *assignment.RawTarget {
+	target := &assignment.RawTarget{
+		ID: d.Values[0].Value,
+	}
+	switch d.Type {
+	case destRotation:
+		target.Type = assignment.TargetTypeRotation
+	case destSchedule:
+		target.Type = assignment.TargetTypeSchedule
+	case destSlackChan:
+		target.Type = assignment.TargetTypeSlackChannel
+	case destUser:
+		target.Type = assignment.TargetTypeUser
+	case destWebhook:
+		target.Type = assignment.TargetTypeChanWebhook
+	}
+	return target
+}
