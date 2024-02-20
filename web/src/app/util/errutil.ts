@@ -84,26 +84,21 @@ export function getInputFieldErrors(
 
 /**
  * useErrorsForDest returns the errors for a destination type and field path from a CombinedError.
- * The first return value is the error for the destination type, if any.
- * The second return value is a list of errors for the destination fields, if any.
- * The third return value is a list of other errors, if any.
+ * The first return value is a list of errors for the destination fields, if any.
+ * The second return value is a list of other errors, if any.
  */
 export function useErrorsForDest(
   err: CombinedError | undefined | null,
   destType: string,
   destFieldPath: string, // the path of the DestinationInput field
-): [InputFieldError | undefined, DestFieldValueError[], BaseError[]] {
+): [DestFieldValueError[], BaseError[]] {
   const cfg = useDestinationType(destType) // need to call hook before conditional return
-  if (!err) return [undefined, [], []]
+  if (!err) return [[], []]
 
-  const [destTypeErrs, nonDestTypeErrs] = getInputFieldErrors(
-    [destFieldPath + '.type'],
-    err.graphQLErrors,
-  )
   const destFieldErrs: DestFieldValueError[] = []
   const otherErrs: BaseError[] = []
 
-  nonDestTypeErrs.forEach((err) => {
+  err.graphQLErrors.forEach((err) => {
     if (!isDestFieldError(err)) {
       otherErrs.push(err)
       return
@@ -126,7 +121,7 @@ export function useErrorsForDest(
     destFieldErrs.push(err)
   })
 
-  return [destTypeErrs[0] || undefined, destFieldErrs, otherErrs]
+  return [destFieldErrs, otherErrs]
 }
 
 export interface FieldError extends Error {
