@@ -110,13 +110,10 @@ export const ErrorSingleField: Story = {
       statusUpdates: false,
     },
     disabled: false,
-    errors: [
+    fieldErrors: [
       {
-        field: 'name',
-        message: 'must begin with a letter',
-        name: 'FieldError',
-        path: [],
-        details: {},
+        message: 'number is too short', // note: the 'n' is lowercase
+        path: 'dest.values.phone-number',
       },
     ],
   },
@@ -125,9 +122,7 @@ export const ErrorSingleField: Story = {
     await userEvent.type(await canvas.findByLabelText('Phone Number'), '123')
 
     // ensure errors are shown
-    await expect(
-      await canvas.findByText('Must begin with a letter'),
-    ).toBeVisible()
+    await expect(await canvas.findByText('Number is too short')).toBeVisible() // note: the 'N' is capitalized
     await waitFor(async function CloseIcon() {
       await expect(await canvas.findByTestId('CloseIcon')).toBeVisible()
     })
@@ -158,13 +153,10 @@ export const ErrorMultiField: Story = {
       statusUpdates: false,
     },
     disabled: false,
-    errors: [
+    fieldErrors: [
       {
-        field: 'name',
+        path: 'name',
         message: 'must begin with a letter',
-        name: 'FieldError',
-        path: [],
-        details: {},
       },
     ],
   },

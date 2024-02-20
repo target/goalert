@@ -47,20 +47,28 @@ export default function UserContactMethodFormDest(
     statusUpdateChecked = false
   }
 
+  const formErrors = []
+  if (props.typeError) {
+    formErrors.push({
+      // the old form code requires this shape to map errors to the correct field
+      message: props.typeError.message,
+      field: 'dest.type',
+    })
+  }
+  const nameErr = props.fieldErrors?.find(
+    (err) => err.path.split('.').pop() === 'name',
+  )
+  if (nameErr) {
+    formErrors.push({
+      message: nameErr.message,
+      field: 'name',
+    })
+  }
+
   return (
     <FormContainer
       {...other}
-      errors={
-        props.typeError
-          ? [
-              {
-                // the old form code requires this shape to map errors to the correct field
-                message: props.typeError.message,
-                field: 'dest.type',
-              },
-            ]
-          : []
-      }
+      errors={formErrors}
       value={value}
       mapOnChangeValue={(newValue: Value): Value => {
         if (newValue.dest.type === value.dest.type) {
