@@ -3,7 +3,13 @@ import { ApolloError } from '@apollo/client'
 import { GraphQLError } from 'graphql/error'
 import { CombinedError } from 'urql'
 import { useDestinationType } from './RequireConfig'
-import { ErrorCode } from '../../schema'
+import {
+  BaseError,
+  InputFieldError,
+  InvalidDestFieldValueError,
+  isDestFieldError,
+  isInputFieldError,
+} from './errtypes'
 
 const mapName = (name: string): string => _.camelCase(name).replace(/Id$/, 'ID')
 
@@ -36,71 +42,6 @@ export function nonFieldErrors(err?: ApolloError | CombinedError): Error[] {
   )
 }
 
-export interface SimpleError {
-  message: string
-}
-
-export interface KnownError extends GraphQLError, SimpleError {
-  readonly path: ReadonlyArray<string | number>
-  extensions: {
-    code: ErrorCode
-  }
-}
-
-export interface InputFieldError extends KnownError {
-  extensions: {
-    code: 'INVALID_INPUT_VALUE'
-  }
-}
-
-export interface InvalidDestFieldValueError extends KnownError {
-  extensions: {
-    code: 'INVALID_DEST_FIELD_VALUE'
-    fieldID: string
-  }
-}
-
-function assertNever(x: never): void {
-  console.log('unhandled error code', x)
-}
-
-function isKnownErrorCode(code: ErrorCode): code is ErrorCode {
-  switch (code) {
-    case 'INVALID_INPUT_VALUE':
-      return true
-    case 'INVALID_DEST_FIELD_VALUE':
-      return true
-    default:
-      assertNever(code) // ensure we handle all error codes
-      return false
-  }
-}
-
-function isGraphQLError(err: unknown): err is GraphQLError {
-  if (!err) return false
-  if (!Object.prototype.hasOwnProperty.call(err, 'path')) return false
-  if (!Object.prototype.hasOwnProperty.call(err, 'extensions')) return false
-  return true
-}
-
-export function isKnownError(err: unknown): err is KnownError {
-  if (!isGraphQLError(err)) return false
-  if (!Object.prototype.hasOwnProperty.call(err.extensions, 'code'))
-    return false
-
-  return isKnownErrorCode(err.extensions.code as ErrorCode)
-}
-export function isDestFieldError(
-  err: unknown,
-): err is InvalidDestFieldValueError {
-  if (!isKnownError(err)) return false
-  return err.extensions.code === 'INVALID_DEST_FIELD_VALUE'
-}
-export function isInputFieldError(err: unknown): err is InputFieldError {
-  if (!isKnownError(err)) return false
-  return err.extensions.code === 'INVALID_INPUT_VALUE'
-}
-
 /**
  * getInputFieldErrors returns a list of input field errors and other errors from a CombinedError.
  * Any errors that are not input field errors (or are not in the filterPaths list) will be returned as other errors.
@@ -110,11 +51,11 @@ export function isInputFieldError(err: unknown): err is InputFieldError {
  */
 export function getInputFieldErrors(
   filterPaths: string[],
-  errs: SimpleError[] | undefined | null,
-): [InputFieldError[], SimpleError[]] {
+  errs: BaseError[] | undefined | null,
+): [InputFieldError[], BaseError[]] {
   if (!errs) return [[], []]
   const inputFieldErrors = [] as InputFieldError[]
-  const otherErrors = [] as SimpleError[]
+  const otherErrors = [] as BaseError[]
   errs.forEach((err) => {
     if (!isInputFieldError(err)) {
       otherErrors.push(err)
@@ -144,7 +85,7 @@ export function useErrorsForDest(
   err: CombinedError | undefined | null,
   destType: string,
   destFieldPath: string, // the path of the DestinationInput field
-): [InputFieldError | undefined, InvalidDestFieldValueError[], SimpleError[]] {
+): [InputFieldError | undefined, InvalidDestFieldValueError[], BaseError[]] {
   const cfg = useDestinationType(destType) // need to call hook before conditional return
   if (!err) return [undefined, [], []]
 
@@ -153,7 +94,7 @@ export function useErrorsForDest(
     err.graphQLErrors,
   )
   const destFieldErrs: InvalidDestFieldValueError[] = []
-  const otherErrs: SimpleError[] = []
+  const otherErrs: BaseError[] = []
 
   nonDestTypeErrs.forEach((err) => {
     if (!isDestFieldError(err)) {
