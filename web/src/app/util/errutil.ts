@@ -2,11 +2,14 @@ import _ from 'lodash'
 import { ApolloError } from '@apollo/client'
 import { GraphQLError } from 'graphql/error'
 import { CombinedError } from 'urql'
-import {
-  INVALID_DESTINATION_FIELD_VALUE,
-  INVALID_DESTINATION_TYPE,
-} from '../../errors.d'
 import { useDestinationType } from './RequireConfig'
+import {
+  BaseError,
+  InputFieldError,
+  DestFieldValueError,
+  isDestFieldError,
+  isInputFieldError,
+} from './errtypes'
 
 const mapName = (name: string): string => _.camelCase(name).replace(/Id$/, 'ID')
 
@@ -39,60 +42,41 @@ export function nonFieldErrors(err?: ApolloError | CombinedError): Error[] {
   )
 }
 
-export type SimpleError = {
-  message: string
-}
-
-export type InputFieldError = {
-  message: string
-  path: string
-}
-
-function isGraphQLError(e: SimpleError | GraphQLError): e is GraphQLError {
-  return !!(e as GraphQLError).extensions
-}
-
 /**
  * getInputFieldErrors returns a list of input field errors and other errors from a CombinedError.
  * Any errors that are not input field errors (or are not in the filterPaths list) will be returned as other errors.
  *
- * @param filterPaths - a list of paths to filter errors by
+ * @param filterPaths - a list of paths to filter errors by, paths can be exact or begin with a wildcard (*)
  * @param err - the CombinedError to filter
  */
 export function getInputFieldErrors(
   filterPaths: string[],
-  errs: (GraphQLError | SimpleError)[] | undefined | null,
-): [InputFieldError[], SimpleError[]] {
+  errs: BaseError[] | undefined | null,
+): [InputFieldError[], BaseError[]] {
   if (!errs) return [[], []]
   const inputFieldErrors = [] as InputFieldError[]
-  const otherErrors = [] as SimpleError[]
+  const otherErrors = [] as BaseError[]
   errs.forEach((err) => {
-    if (!isGraphQLError(err)) {
-      otherErrors.push(err)
-      return
-    }
-    if (!err.path) {
-      otherErrors.push(err)
-      return
-    }
-    const code = err.extensions?.code
-    if (
-      // only support known error codes
-      code !== INVALID_DESTINATION_TYPE &&
-      code !== INVALID_DESTINATION_FIELD_VALUE
-    ) {
+    if (!isInputFieldError(err)) {
       otherErrors.push(err)
       return
     }
 
     const fullPath = err.path.join('.')
 
-    if (!filterPaths.includes(fullPath)) {
+    const matches = filterPaths.some((p) => {
+      if (p.startsWith('*')) {
+        return fullPath.endsWith(p.slice(1))
+      }
+      return fullPath === p
+    })
+
+    if (!matches) {
       otherErrors.push(err)
       return
     }
 
-    inputFieldErrors.push({ message: err.message, path: fullPath })
+    inputFieldErrors.push(err)
   })
 
   return [inputFieldErrors, otherErrors]
@@ -100,30 +84,44 @@ export function getInputFieldErrors(
 
 /**
  * useErrorsForDest returns the errors for a destination type and field path from a CombinedError.
- * The first return value is the error for the destination type, if any.
- * The second return value is a list of errors for the destination fields, if any.
- * The third return value is a list of other errors, if any.
+ * The first return value is a list of errors for the destination fields, if any.
+ * The second return value is a list of other errors, if any.
  */
 export function useErrorsForDest(
   err: CombinedError | undefined | null,
   destType: string,
   destFieldPath: string, // the path of the DestinationInput field
-): [SimpleError | undefined, InputFieldError[], SimpleError[]] {
+): [DestFieldValueError[], BaseError[]] {
   const cfg = useDestinationType(destType) // need to call hook before conditional return
-  if (!err) return [undefined, [], []]
+  if (!err) return [[], []]
 
-  const [destTypeErrs, nonDestTypeErrs] = getInputFieldErrors(
-    [destFieldPath + '.type'],
-    err.graphQLErrors,
-  )
+  const destFieldErrs: DestFieldValueError[] = []
+  const otherErrs: BaseError[] = []
 
-  const paths = cfg.requiredFields.map(
-    (f) => `${destFieldPath}.values.${f.fieldID}`,
-  )
+  err.graphQLErrors.forEach((err) => {
+    if (!isDestFieldError(err)) {
+      otherErrs.push(err)
+      return
+    }
 
-  const [destFieldErrs, otherErrs] = getInputFieldErrors(paths, nonDestTypeErrs)
+    const fullPath = err.path.join('.')
+    if (fullPath !== destFieldPath) {
+      otherErrs.push(err)
+      return
+    }
 
-  return [destTypeErrs[0] || undefined, destFieldErrs, otherErrs]
+    const isReqField = cfg.requiredFields.some(
+      (f) => f.fieldID === err.extensions.fieldID,
+    )
+    if (!isReqField) {
+      otherErrs.push(err)
+      return
+    }
+
+    destFieldErrs.push(err)
+  })
+
+  return [destFieldErrs, otherErrs]
 }
 
 export interface FieldError extends Error {
