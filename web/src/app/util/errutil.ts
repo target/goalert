@@ -5,10 +5,8 @@ import { CombinedError } from 'urql'
 import { useDestinationType } from './RequireConfig'
 import {
   BaseError,
-  InputFieldError,
   DestFieldValueError,
   isDestFieldError,
-  isInputFieldError,
   KnownError,
   isKnownError,
 } from './errtypes'
