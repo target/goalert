@@ -7,8 +7,11 @@ import { FormContainer, FormField } from '../forms'
 import { renderMenuItem } from '../selection/DisableableMenuItem'
 import DestinationField from '../selection/DestinationField'
 import { useContactMethodTypes } from '../util/RequireConfig'
-import { InputFieldError, DestFieldValueError } from '../util/errtypes'
-import { getInputFieldErrors } from '../util/errutil'
+import {
+  isInputFieldError,
+  isDestFieldError,
+  KnownError,
+} from '../util/errtypes'
 
 export type Value = {
   name: string
@@ -19,7 +22,7 @@ export type Value = {
 export type UserContactMethodFormProps = {
   value: Value
 
-  errors?: Array<InputFieldError | DestFieldValueError>
+  errors?: Array<KnownError>
 
   disabled?: boolean
   edit?: boolean
@@ -27,10 +30,16 @@ export type UserContactMethodFormProps = {
   onChange?: (CMValue: Value) => void
 }
 
+export const errorPaths = (prefix = '*'): string[] => [
+  `${prefix}.name`,
+  `${prefix}.dest.type`,
+  `${prefix}.dest`,
+]
+
 export default function UserContactMethodFormDest(
   props: UserContactMethodFormProps,
 ): JSX.Element {
-  const { value, edit = false, ...other } = props
+  const { value, edit = false, errors = [], ...other } = props
 
   const destinationTypes = useContactMethodTypes()
   const currentType = destinationTypes.find((d) => d.type === value.dest.type)
@@ -47,15 +56,11 @@ export default function UserContactMethodFormDest(
     statusUpdateChecked = false
   }
 
-  const [formErrors, destErrors] = getInputFieldErrors(
-    ['*.name', '*.dest.type'],
-    props.errors,
-  )
-
   return (
     <FormContainer
       {...other}
-      errors={formErrors.map((e) => ({
+      errors={errors?.filter(isInputFieldError).map((e) => ({
+        // need to convert to FormContainer's error format
         message: e.message,
         field: e.path[e.path.length - 1].toString(),
       }))}
@@ -109,7 +114,7 @@ export default function UserContactMethodFormDest(
             destType={value.dest.type}
             component={DestinationField}
             disabled={edit}
-            destFieldErrors={destErrors}
+            destFieldErrors={errors.filter(isDestFieldError)}
           />
         </Grid>
         <Grid item xs={12}>

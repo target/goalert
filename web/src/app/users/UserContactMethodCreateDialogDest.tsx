@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { useMutation, gql, CombinedError } from 'urql'
 
-import { useErrorsForDest } from '../util/errutil'
+import { splitErrorsByPath } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
-import UserContactMethodForm from './UserContactMethodFormDest'
+import UserContactMethodForm, { errorPaths } from './UserContactMethodFormDest'
 import { useContactMethodTypes } from '../util/RequireConfig'
 import { Dialog, DialogTitle, DialogActions, Button } from '@mui/material'
 import DialogContentError from '../dialogs/components/DialogContentError'
@@ -55,10 +55,9 @@ export default function UserContactMethodCreateDialogDest(props: {
     setCreateErr(createCMStatus.error || null)
   }, [createCMStatus.error])
 
-  const [destTypeErr, destFieldErrs, otherErrs] = useErrorsForDest(
+  const [formErrors, otherErrs] = splitErrorsByPath(
     createErr,
-    CMValue.dest.type,
-    'createUserContactMethod.input.dest',
+    errorPaths('createUserContactMethod.input'),
   )
 
   if (!defaultType.enabled) {
@@ -85,8 +84,7 @@ export default function UserContactMethodCreateDialogDest(props: {
   const form = (
     <UserContactMethodForm
       disabled={createCMStatus.fetching}
-      fieldErrors={destFieldErrs}
-      typeError={destTypeErr}
+      errors={formErrors}
       onChange={(CMValue: Value) => setCMValue(CMValue)}
       value={CMValue}
     />

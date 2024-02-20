@@ -9,6 +9,8 @@ import {
   DestFieldValueError,
   isDestFieldError,
   isInputFieldError,
+  KnownError,
+  isKnownError,
 } from './errtypes'
 
 const mapName = (name: string): string => _.camelCase(name).replace(/Id$/, 'ID')
@@ -43,28 +45,33 @@ export function nonFieldErrors(err?: ApolloError | CombinedError): Error[] {
 }
 
 /**
- * getInputFieldErrors returns a list of input field errors and other errors from a CombinedError.
- * Any errors that are not input field errors (or are not in the filterPaths list) will be returned as other errors.
+ * splitErrorsByPath returns a list of known errors and other errors from a CombinedError or array of errors.
  *
- * @param filterPaths - a list of paths to filter errors by, paths can be exact or begin with a wildcard (*)
+ * Any errors that are not known errors (or are not in the filterPaths list) will be returned as other errors.
+ *
  * @param err - the CombinedError to filter
+ * @param paths - a list of paths to filter errors by, paths can be exact or begin with a wildcard (*)
+ * @param prefix - a prefix to add to the paths (replaces the wildcard * if used in the paths list)
+ * @returns a tuple of known errors and other errors
  */
-export function getInputFieldErrors(
-  filterPaths: string[],
-  errs: BaseError[] | undefined | null,
-): [InputFieldError[], BaseError[]] {
-  if (!errs) return [[], []]
-  const inputFieldErrors = [] as InputFieldError[]
-  const otherErrors = [] as BaseError[]
-  errs.forEach((err) => {
-    if (!isInputFieldError(err)) {
+export function splitErrorsByPath(
+  err: CombinedError | BaseError[] | undefined | null,
+  paths: string[],
+): [KnownError[], BaseError[]] {
+  if (!err) return [[], []]
+  const knownErrors: KnownError[] = []
+  const otherErrors: BaseError[] = []
+
+  const errors = Array.isArray(err) ? err : err.graphQLErrors
+
+  errors.forEach((err) => {
+    if (!isKnownError(err)) {
       otherErrors.push(err)
       return
     }
 
     const fullPath = err.path.join('.')
-
-    const matches = filterPaths.some((p) => {
+    const matches = paths.some((p) => {
       if (p.startsWith('*')) {
         return fullPath.endsWith(p.slice(1))
       }
@@ -76,10 +83,10 @@ export function getInputFieldErrors(
       return
     }
 
-    inputFieldErrors.push(err)
+    knownErrors.push(err)
   })
 
-  return [inputFieldErrors, otherErrors]
+  return [knownErrors, otherErrors]
 }
 
 /**
