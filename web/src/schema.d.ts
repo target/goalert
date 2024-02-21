@@ -406,6 +406,8 @@ export interface DestinationTypeInfo {
   userDisclaimer: string
 }
 
+export type ErrorCode = 'INVALID_DEST_FIELD_VALUE' | 'INVALID_INPUT_VALUE'
+
 export interface EscalationPolicy {
   assignedTo: Target[]
   description: string

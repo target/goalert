@@ -110,10 +110,14 @@ export const ErrorSingleField: Story = {
       statusUpdates: false,
     },
     disabled: false,
-    fieldErrors: [
+    errors: [
       {
         message: 'number is too short', // note: the 'n' is lowercase
-        path: 'dest.values.phone-number',
+        path: ['input', 'dest'],
+        extensions: {
+          code: 'INVALID_DEST_FIELD_VALUE',
+          fieldID: 'phone-number',
+        },
       },
     ],
   },
@@ -153,10 +157,13 @@ export const ErrorMultiField: Story = {
       statusUpdates: false,
     },
     disabled: false,
-    fieldErrors: [
+    errors: [
       {
-        path: 'name',
+        path: ['input', 'name'],
         message: 'must begin with a letter',
+        extensions: {
+          code: 'INVALID_INPUT_VALUE',
+        },
       },
     ],
   },

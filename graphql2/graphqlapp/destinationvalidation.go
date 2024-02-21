@@ -17,11 +17,6 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
-const (
-	ErrCodeInvalidDestType  = "INVALID_DESTINATION_TYPE"
-	ErrCodeInvalidDestValue = "INVALID_DESTINATION_FIELD_VALUE"
-)
-
 func errReason(err error) string {
 	var fErr validation.FieldError
 	if errors.As(err, &fErr) {
@@ -48,16 +43,13 @@ func addDestFieldError(ctx context.Context, parentField, fieldID string, err err
 	for _, part := range parentParts {
 		p = append(p, ast.PathName(part))
 	}
-	p = append(p,
-		ast.PathName("values"), // DestinationInput.Values
-		ast.PathName(fieldID),
-	)
 
 	graphql.AddError(ctx, &gqlerror.Error{
 		Message: errReason(err),
 		Path:    p,
 		Extensions: map[string]interface{}{
-			"code": ErrCodeInvalidDestValue,
+			"code":    graphql2.ErrorCodeInvalidDestFieldValue,
+			"fieldID": fieldID,
 		},
 	})
 
@@ -186,7 +178,7 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 		Message: "unsupported destination type",
 		Path:    p,
 		Extensions: map[string]interface{}{
-			"code": ErrCodeInvalidDestType,
+			"code": graphql2.ErrorCodeInvalidInputValue,
 		},
 	})
 
