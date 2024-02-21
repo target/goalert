@@ -89,8 +89,9 @@ export default function PolicyStepFormDest(
             onChange={(newValue: FieldValueInput[]) => setValues(newValue)}
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid container item xs={12} justifyContent='flex-end'>
           <Button
+            variant='contained'
             onClick={() => {
               setValues([])
               if (!props.onChange) return
