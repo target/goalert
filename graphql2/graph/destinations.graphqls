@@ -37,6 +37,7 @@ input DestinationFieldSearchInput {
   omit: [String!] # values/ids to omit from results
   after: String # cursor to start search from
   first: Int = 15 # number of results to return
+  favoritesFirst: Boolean = false # sort favorite rotations first
 }
 
 # Destination represents a destination that can be used for notifications.

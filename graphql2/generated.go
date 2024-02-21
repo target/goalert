@@ -32133,8 +32133,11 @@ func (ec *executionContext) unmarshalInputDestinationFieldSearchInput(ctx contex
 	if _, present := asMap["first"]; !present {
 		asMap["first"] = 15
 	}
+	if _, present := asMap["favoritesFirst"]; !present {
+		asMap["favoritesFirst"] = false
+	}
 
-	fieldsInOrder := [...]string{"destType", "fieldID", "search", "omit", "after", "first"}
+	fieldsInOrder := [...]string{"destType", "fieldID", "search", "omit", "after", "first", "favoritesFirst"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -32183,6 +32186,13 @@ func (ec *executionContext) unmarshalInputDestinationFieldSearchInput(ctx contex
 				return it, err
 			}
 			it.First = data
+		case "favoritesFirst":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favoritesFirst"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FavoritesFirst = data
 		}
 	}
 
