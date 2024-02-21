@@ -37,7 +37,7 @@ function PolicyStepCreateDialogDest(props: {
     <FormDialog
       title='Create Step'
       loading={fetching}
-      errors={nonFieldErrors(error)}
+      errors={nonFieldErrors(error) || fieldErrs}
       maxWidth='sm'
       onClose={props.onClose}
       onSubmit={() => {
@@ -56,7 +56,6 @@ function PolicyStepCreateDialogDest(props: {
       }}
       form={
         <PolicyStepFormDest
-          // errors={fieldErrs}
           disabled={fetching}
           value={value || defaultValue}
           onChange={(value: FormValue) => setValue(value)}
