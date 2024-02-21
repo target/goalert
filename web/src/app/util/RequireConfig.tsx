@@ -217,7 +217,9 @@ export function useContactMethodTypes(): DestinationTypeInfo[] {
 
 export function useEPTargetTypes(): DestinationTypeInfo[] {
   const cfg = React.useContext(ConfigContext)
-  return cfg.destTypes.filter((t) => t.isEPTarget)
+  return cfg.destTypes
+    .filter((t) => t.isEPTarget)
+    .sort((a, b) => a.name.localeCompare(b.name))
 }
 
 // useDestinationType returns information about the given destination type.
