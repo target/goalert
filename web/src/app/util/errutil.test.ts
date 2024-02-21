@@ -1,35 +1,35 @@
 import { GraphQLError } from 'graphql'
-import { getInputFieldErrors } from './errutil'
+import { splitErrorsByPath } from './errutil'
 
-describe('getInputFieldErrors', () => {
+describe('splitErrorsByPath', () => {
   it('should split errors by path', () => {
     const resp = [
       {
         message: 'test1',
         path: ['foo', 'bar', 'dest', 'type'],
         extensions: {
-          code: 'INVALID_DESTINATION_TYPE',
+          code: 'INVALID_INPUT_VALUE',
         },
       },
       {
         message: 'test2',
         path: ['foo', 'bar', 'dest', 'values', 'example-field'],
         extensions: {
-          code: 'INVALID_DESTINATION_FIELD_VALUE',
+          code: 'INVALID_INPUT_VALUE',
         },
       },
     ] as unknown as GraphQLError[]
 
-    const [inputFieldErrors, otherErrors] = getInputFieldErrors(
-      ['foo.bar.dest.type', 'foo.bar.dest.values.example-field'],
-      resp,
-    )
+    const [inputFieldErrors, otherErrors] = splitErrorsByPath(resp, [
+      'foo.bar.dest.type',
+      'foo.bar.dest.values.example-field',
+    ])
 
     expect(inputFieldErrors).toHaveLength(2)
     expect(inputFieldErrors[0].message).toEqual('test1')
-    expect(inputFieldErrors[0].path).toEqual('foo.bar.dest.type')
+    expect(inputFieldErrors[0].path.join('.')).toEqual('foo.bar.dest.type')
     expect(inputFieldErrors[1].message).toEqual('test2')
-    expect(inputFieldErrors[1].path).toEqual(
+    expect(inputFieldErrors[1].path.join('.')).toEqual(
       'foo.bar.dest.values.example-field',
     )
     expect(otherErrors).toHaveLength(0)

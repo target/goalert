@@ -4765,7 +4765,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema.graphql" "graph/_Mutation.graphqls" "graph/_Query.graphqls" "graph/_directives.graphqls" "graph/destinations.graphqls" "graph/escalationpolicy.graphqls" "graph/gqlapikeys.graphqls"
+//go:embed "schema.graphql" "graph/_Mutation.graphqls" "graph/_Query.graphqls" "graph/_directives.graphqls" "graph/destinations.graphqls" "graph/errorcodes.graphqls" "graph/escalationpolicy.graphqls" "graph/gqlapikeys.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -4782,6 +4782,7 @@ var sources = []*ast.Source{
 	{Name: "graph/_Query.graphqls", Input: sourceData("graph/_Query.graphqls"), BuiltIn: false},
 	{Name: "graph/_directives.graphqls", Input: sourceData("graph/_directives.graphqls"), BuiltIn: false},
 	{Name: "graph/destinations.graphqls", Input: sourceData("graph/destinations.graphqls"), BuiltIn: false},
+	{Name: "graph/errorcodes.graphqls", Input: sourceData("graph/errorcodes.graphqls"), BuiltIn: false},
 	{Name: "graph/escalationpolicy.graphqls", Input: sourceData("graph/escalationpolicy.graphqls"), BuiltIn: false},
 	{Name: "graph/gqlapikeys.graphqls", Input: sourceData("graph/gqlapikeys.graphqls"), BuiltIn: false},
 }

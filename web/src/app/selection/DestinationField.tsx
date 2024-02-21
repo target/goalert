@@ -4,7 +4,7 @@ import DestinationInputDirect from './DestinationInputDirect'
 import { useDestinationType } from '../util/RequireConfig'
 import DestinationSearchSelect from './DestinationSearchSelect'
 import { Grid } from '@mui/material'
-import { InputFieldError } from '../util/errutil'
+import { DestFieldValueError } from '../util/errtypes'
 
 export type DestinationFieldProps = {
   value: FieldValueInput[]
@@ -13,7 +13,7 @@ export type DestinationFieldProps = {
 
   disabled?: boolean
 
-  destFieldErrors?: InputFieldError[]
+  destFieldErrors?: DestFieldValueError[]
 }
 
 function capFirstLetter(s: string): string {
@@ -46,13 +46,9 @@ export default function DestinationField(
           props.onChange(newValues)
         }
 
-        // getFieldID returns the last segment of the path.
-        const getFieldID = (err: InputFieldError): string =>
-          err.path.split('.').pop() || ''
-
         const fieldErrMsg = capFirstLetter(
           props.destFieldErrors?.find(
-            (err) => getFieldID(err) === field.fieldID,
+            (err) => err.extensions.fieldID === field.fieldID,
           )?.message || '',
         )
 
