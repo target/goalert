@@ -146,6 +146,7 @@ type CreateEscalationPolicyStepInput struct {
 	Targets            []assignment.RawTarget `json:"targets,omitempty"`
 	NewRotation        *CreateRotationInput   `json:"newRotation,omitempty"`
 	NewSchedule        *CreateScheduleInput   `json:"newSchedule,omitempty"`
+	Actions            []DestinationInput     `json:"actions,omitempty"`
 }
 
 type CreateGQLAPIKeyInput struct {
@@ -321,12 +322,13 @@ type DestinationFieldConfig struct {
 }
 
 type DestinationFieldSearchInput struct {
-	DestType string   `json:"destType"`
-	FieldID  string   `json:"fieldID"`
-	Search   *string  `json:"search,omitempty"`
-	Omit     []string `json:"omit,omitempty"`
-	After    *string  `json:"after,omitempty"`
-	First    *int     `json:"first,omitempty"`
+	DestType       string   `json:"destType"`
+	FieldID        string   `json:"fieldID"`
+	Search         *string  `json:"search,omitempty"`
+	Omit           []string `json:"omit,omitempty"`
+	After          *string  `json:"after,omitempty"`
+	First          *int     `json:"first,omitempty"`
+	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
 }
 
 type DestinationFieldValidateInput struct {

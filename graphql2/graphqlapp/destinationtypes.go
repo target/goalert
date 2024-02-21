@@ -99,6 +99,26 @@ func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.De
 		}
 
 		return ug.Handle, nil
+	case fieldRotationID:
+		rot, err := q.Rotation(ctx, input.Value)
+		if err != nil {
+			return "", err
+		}
+
+		return rot.Name, nil
+	case fieldScheduleID:
+		sched, err := q.Schedule(ctx, input.Value)
+		if err != nil {
+			return "", err
+		}
+
+		return sched.Name, nil
+	case fieldUserID:
+		u, err := q.User(ctx, &input.Value)
+		if err != nil {
+			return "", err
+		}
+		return u.Name, nil
 	}
 
 	return "", validation.NewGenericError("unsupported fieldID")
@@ -147,6 +167,84 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 				FieldID: input.FieldID,
 				Value:   ug.ID,
 				Label:   ug.Handle,
+			})
+		}
+
+		return &graphql2.FieldValueConnection{
+			Nodes:    nodes,
+			PageInfo: res.PageInfo,
+		}, nil
+	case fieldRotationID:
+		res, err := q.Rotations(ctx, &graphql2.RotationSearchOptions{
+			Omit:           input.Omit,
+			First:          input.First,
+			Search:         input.Search,
+			After:          input.After,
+			FavoritesFirst: input.FavoritesFirst,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		var nodes []graphql2.FieldValuePair
+		for _, rot := range res.Nodes {
+			nodes = append(nodes, graphql2.FieldValuePair{
+				FieldID:    input.FieldID,
+				Value:      rot.ID,
+				Label:      rot.Name,
+				IsFavorite: rot.IsUserFavorite(),
+			})
+		}
+
+		return &graphql2.FieldValueConnection{
+			Nodes:    nodes,
+			PageInfo: res.PageInfo,
+		}, nil
+	case fieldScheduleID:
+		res, err := q.Schedules(ctx, &graphql2.ScheduleSearchOptions{
+			Omit:           input.Omit,
+			First:          input.First,
+			Search:         input.Search,
+			After:          input.After,
+			FavoritesFirst: input.FavoritesFirst,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		var nodes []graphql2.FieldValuePair
+		for _, sched := range res.Nodes {
+			nodes = append(nodes, graphql2.FieldValuePair{
+				FieldID:    input.FieldID,
+				Value:      sched.ID,
+				Label:      sched.Name,
+				IsFavorite: sched.IsUserFavorite(),
+			})
+		}
+
+		return &graphql2.FieldValueConnection{
+			Nodes:    nodes,
+			PageInfo: res.PageInfo,
+		}, nil
+	case fieldUserID:
+		res, err := q.Users(ctx, &graphql2.UserSearchOptions{
+			Omit:           input.Omit,
+			First:          input.First,
+			Search:         input.Search,
+			After:          input.After,
+			FavoritesFirst: input.FavoritesFirst,
+		}, input.First, input.After, input.Search)
+		if err != nil {
+			return nil, err
+		}
+
+		var nodes []graphql2.FieldValuePair
+		for _, u := range res.Nodes {
+			nodes = append(nodes, graphql2.FieldValuePair{
+				FieldID:    input.FieldID,
+				Value:      u.ID,
+				Label:      u.Name,
+				IsFavorite: u.IsUserFavorite(),
 			})
 		}
 
@@ -321,6 +419,57 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 				InputType:          "text",
 				IsSearchSelectable: true,
 				Hint:               "If the user group update fails, an error will be posted to this channel.",
+			}},
+		},
+		{
+			Type:                  destRotation,
+			Name:                  "Rotation",
+			Enabled:               true,
+			IsContactMethod:       false,
+			IsEPTarget:            true,
+			IsSchedOnCallNotify:   true,
+			SupportsStatusUpdates: false,
+			StatusUpdatesRequired: false,
+			RequiredFields: []graphql2.DestinationFieldConfig{{
+				FieldID:            fieldRotationID,
+				LabelSingular:      "Select Rotation",
+				LabelPlural:        "Select Rotations",
+				InputType:          "text",
+				IsSearchSelectable: true,
+			}},
+		},
+		{
+			Type:                  destSchedule,
+			Name:                  "Schedule",
+			Enabled:               true,
+			IsContactMethod:       false,
+			IsEPTarget:            true,
+			IsSchedOnCallNotify:   true,
+			SupportsStatusUpdates: false,
+			StatusUpdatesRequired: false,
+			RequiredFields: []graphql2.DestinationFieldConfig{{
+				FieldID:            fieldScheduleID,
+				LabelSingular:      "Select Schedule",
+				LabelPlural:        "Select Schedules",
+				InputType:          "text",
+				IsSearchSelectable: true,
+			}},
+		},
+		{
+			Type:                  destUser,
+			Name:                  "User",
+			Enabled:               true,
+			IsContactMethod:       false,
+			IsEPTarget:            true,
+			IsSchedOnCallNotify:   true,
+			SupportsStatusUpdates: false,
+			StatusUpdatesRequired: false,
+			RequiredFields: []graphql2.DestinationFieldConfig{{
+				FieldID:            fieldUserID,
+				LabelSingular:      "Select User",
+				LabelPlural:        "Select Users",
+				InputType:          "text",
+				IsSearchSelectable: true,
 			}},
 		},
 	}

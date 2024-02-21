@@ -19,10 +19,28 @@ import (
 
 type EscalationPolicy App
 type EscalationPolicyStep App
+type CreateEscalationPolicyStepInput App
 
 func (a *App) EscalationPolicy() graphql2.EscalationPolicyResolver { return (*EscalationPolicy)(a) }
 func (a *App) EscalationPolicyStep() graphql2.EscalationPolicyStepResolver {
 	return (*EscalationPolicyStep)(a)
+}
+
+func (a *App) CreateEscalationPolicyStepInput() graphql2.CreateEscalationPolicyStepInputResolver {
+	return (*CreateEscalationPolicyStepInput)(a)
+}
+
+func (a *CreateEscalationPolicyStepInput) Actions(ctx context.Context, input *graphql2.CreateEscalationPolicyStepInput, actions []graphql2.DestinationInput) error {
+	tgts := make([]assignment.RawTarget, len(actions))
+	var err error
+	for i, action := range actions {
+		tgts[i], err = CompatDestToTarget(action)
+		if err != nil {
+			return err
+		}
+	}
+	input.Targets = tgts
+	return nil
 }
 
 func contains(ids []string, id string) bool {
@@ -61,6 +79,14 @@ func (m *Mutation) CreateEscalationPolicyStep(ctx context.Context, input graphql
 		if tgt.Type == assignment.TargetTypeChanWebhook && !cfg.ValidWebhookURL(tgt.ID) {
 			// UI code expects targets to be un-indexed
 			return nil, validation.NewFieldError("targets", "URL not allowed by administrator")
+		}
+	}
+
+	if input.Actions != nil {
+		for _, action := range input.Actions {
+			if ok, err := (*App)(m).ValidateDestination(ctx, "input.actions", &action); !ok {
+				return nil, err
+			}
 		}
 	}
 
