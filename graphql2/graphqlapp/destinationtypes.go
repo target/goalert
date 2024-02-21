@@ -113,6 +113,12 @@ func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.De
 		}
 
 		return sched.Name, nil
+	case fieldUserID:
+		u, err := q.User(ctx, &input.Value)
+		if err != nil {
+			return "", err
+		}
+		return u.Name, nil
 	}
 
 	return "", validation.NewGenericError("unsupported fieldID")
@@ -213,6 +219,32 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 				Value:      sched.ID,
 				Label:      sched.Name,
 				IsFavorite: sched.IsUserFavorite(),
+			})
+		}
+
+		return &graphql2.FieldValueConnection{
+			Nodes:    nodes,
+			PageInfo: res.PageInfo,
+		}, nil
+	case fieldUserID:
+		res, err := q.Users(ctx, &graphql2.UserSearchOptions{
+			Omit:           input.Omit,
+			First:          input.First,
+			Search:         input.Search,
+			After:          input.After,
+			FavoritesFirst: input.FavoritesFirst,
+		}, input.First, input.After, input.Search)
+		if err != nil {
+			return nil, err
+		}
+
+		var nodes []graphql2.FieldValuePair
+		for _, u := range res.Nodes {
+			nodes = append(nodes, graphql2.FieldValuePair{
+				FieldID:    input.FieldID,
+				Value:      u.ID,
+				Label:      u.Name,
+				IsFavorite: u.IsUserFavorite(),
 			})
 		}
 
@@ -419,6 +451,23 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 				FieldID:            fieldScheduleID,
 				LabelSingular:      "Select Schedule",
 				LabelPlural:        "Select Schedules",
+				InputType:          "text",
+				IsSearchSelectable: true,
+			}},
+		},
+		{
+			Type:                  destUser,
+			Name:                  "User",
+			Enabled:               true,
+			IsContactMethod:       false,
+			IsEPTarget:            true,
+			IsSchedOnCallNotify:   true,
+			SupportsStatusUpdates: false,
+			StatusUpdatesRequired: false,
+			RequiredFields: []graphql2.DestinationFieldConfig{{
+				FieldID:            fieldUserID,
+				LabelSingular:      "Select User",
+				LabelPlural:        "Select Users",
 				InputType:          "text",
 				IsSearchSelectable: true,
 			}},
