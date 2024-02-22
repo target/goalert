@@ -421,7 +421,7 @@ type FieldValuePair struct {
 	FieldID string `json:"fieldID"`
 	// The value of the input field.
 	Value string `json:"value"`
-	// The user-friendly text for this value of the input field.
+	// The user-friendly text for this value of the input field (e.g., if the value is a user ID, label would be the user's name).
 	Label string `json:"label"`
 	// if true, this value is a favorite for the user, only set for search results
 	IsFavorite bool `json:"isFavorite"`

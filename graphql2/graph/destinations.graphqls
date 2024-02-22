@@ -136,7 +136,7 @@ type FieldValuePair {
   value: String!
 
   """
-  The user-friendly text for this value of the input field.
+  The user-friendly text for this value of the input field (e.g., if the value is a user ID, label would be the user's name).
   """
   label: String! @goField(forceResolver: true)
 
