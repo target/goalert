@@ -219,14 +219,9 @@ type DestinationFieldConfig {
   fieldID: ID!
 
   """
-  user-friendly label
+  user-friendly label (should be singular)
   """
-  labelSingular: String!
-
-  """
-  user-friendly plural label
-  """
-  labelPlural: String!
+  label: String!
 
   """
   user-friendly helper text for input fields (i.e., "Enter a phone number")
@@ -256,7 +251,7 @@ type DestinationFieldConfig {
   """
   if true, the destination can be selected via search
   """
-  isSearchSelectable: Boolean!
+  supportsSearch: Boolean!
 
   """
   if true, the destination type supports validation
