@@ -26,17 +26,6 @@ const meta = {
       handlers: [
         handleDefaultConfig,
         handleExpFlags('dest-types'),
-        graphql.query('UserConflictCheck', () => {
-          return HttpResponse.json({
-            data: {
-              users: {
-                nodes: [
-                  { name: defaultConfig.user.name, id: defaultConfig.user.id },
-                ],
-              },
-            },
-          })
-        }),
         graphql.mutation(
           'CreateUserContactMethodInput',
           ({ variables: vars }) => {
