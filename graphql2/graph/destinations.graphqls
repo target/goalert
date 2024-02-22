@@ -1,66 +1,149 @@
 extend type Query {
-  # destinationTypes returns a list of destination types that can be used for
-  # notifications.
-  destinationTypes: [DestinationTypeInfo!]! @experimental(flagName: "dest-types")
-  # destinationFieldValidate validates a destination field value as valid or invalid.
-  #
-  # It does not guarantee that the value is valid for the destination type, only
-  # that it is valid for the field (i.e., syntax/formatting).
-  destinationFieldValidate(input: DestinationFieldValidateInput!): Boolean! @experimental(flagName: "dest-types")
-  destinationFieldSearch(input: DestinationFieldSearchInput!): FieldValueConnection! @experimental(flagName: "dest-types")
-  destinationFieldValueName(input: DestinationFieldValidateInput!): String! @experimental(flagName: "dest-types")
+  """
+  destinationTypes returns a list of destination types that can be used for
+  notifications.
+  """
+  destinationTypes: [DestinationTypeInfo!]!
+    @experimental(flagName: "dest-types")
 
-  # destinationDisplayInfo returns the display information for a destination.
-  destinationDisplayInfo(input: DestinationInput!): DestinationDisplayInfo! @experimental(flagName: "dest-types")
+  """
+  destinationFieldValidate validates a destination field value as valid or invalid.
+
+  It does not guarantee that the value is valid for the destination type, only
+  that it is valid for the field (i.e., syntax/formatting).
+  """
+  destinationFieldValidate(input: DestinationFieldValidateInput!): Boolean!
+    @experimental(flagName: "dest-types")
+  destinationFieldSearch(
+    input: DestinationFieldSearchInput!
+  ): FieldValueConnection! @experimental(flagName: "dest-types")
+  destinationFieldValueName(input: DestinationFieldValidateInput!): String!
+    @experimental(flagName: "dest-types")
+
+  """
+  destinationDisplayInfo returns the display information for a destination.
+  """
+  destinationDisplayInfo(input: DestinationInput!): DestinationDisplayInfo!
+    @experimental(flagName: "dest-types")
 }
 
-# FieldValueConnection is a connection to a list of FieldValuePairs.
+"""
+FieldValueConnection is a connection to a list of FieldValuePairs.
+"""
 type FieldValueConnection {
   nodes: [FieldValuePair!]!
   pageInfo: PageInfo!
 }
 
 input DestinationFieldValidateInput {
-  destType: DestinationType! # the type of destination to validate
-  fieldID: ID! # the ID of the input field to validate
-  value: String! # the value to validate
+  """
+  the type of destination to validate
+  """
+  destType: DestinationType!
+
+  """
+  the ID of the input field to validate
+  """
+  fieldID: ID!
+
+  """
+  the value to validate
+  """
+  value: String!
 }
 
-# DestinationType represents a type of destination that can be used for
-# notifications.
+"""
+DestinationType represents a type of destination that can be used for
+notifications.
+"""
 scalar DestinationType
 
 input DestinationFieldSearchInput {
-  destType: DestinationType! # the type of destination to search for
-  fieldID: ID! # the ID of the input field to search for
-  search: String # search string to match against
-  omit: [String!] # values/ids to omit from results
-  after: String # cursor to start search from
-  first: Int = 15 # number of results to return
+  """
+  the type of destination to search for
+  """
+  destType: DestinationType!
+
+  """
+  the ID of the input field to search for
+  """
+  fieldID: ID!
+
+  """
+  search string to match against
+  """
+  search: String
+
+  """
+  values/ids to omit from results
+  """
+  omit: [String!]
+
+  """
+  cursor to start search from
+  """
+  after: String
+
+  """
+  number of results to return
+  """
+  first: Int = 15
 }
 
-# Destination represents a destination that can be used for notifications.
+"""
+Destination represents a destination that can be used for notifications.
+"""
 type Destination {
   type: DestinationType!
   values: [FieldValuePair!]!
-  displayInfo: DestinationDisplayInfo!  @goField(forceResolver: true)
+  displayInfo: DestinationDisplayInfo! @goField(forceResolver: true)
 }
 
-# DestinationDisplayInfo provides information for displaying a destination.
+"""
+DestinationDisplayInfo provides information for displaying a destination.
+"""
 type DestinationDisplayInfo {
-  text: String! # user-friendly text to display for this destination
-  iconURL: String! # URL to an icon to display for this destination
-  iconAltText: String! # alt text for the icon
-  linkURL: String! # URL to link to for more information about this destination
+  """
+  user-friendly text to display for this destination
+  """
+  text: String!
+
+  """
+  URL to an icon to display for this destination
+  """
+  iconURL: String!
+
+  """
+  alt text for the icon
+  """
+  iconAltText: String!
+
+  """
+  URL to link to for more information about this destination
+  """
+  linkURL: String!
 }
 
 type FieldValuePair {
-  fieldID: ID! # The ID of the input field that this value is for.
+  """
+  The ID of the input field that this value is for.
+  """
+  fieldID: ID!
 
-  value: String! # The value of the input field.
-  label: String! @goField(forceResolver: true) # The user-friendly text for this value of the input field (e.g., if the value is a user ID, label would be the user's name).
+  """
+  The value of the input field.
+  """
+  value: String!
 
-  isFavorite: Boolean! # if true, this value is a favorite for the user, only set for search results
+  """
+  The user-friendly text for this value of the input field.
+  """
+  label: String! @goField(forceResolver: true)
+
+  """
+  if true, this value is a favorite for the user, only set for search results
+  """
+  isFavorite: Boolean!
 }
 
 input DestinationInput {
@@ -69,7 +152,10 @@ input DestinationInput {
 }
 
 input FieldValueInput {
-  fieldID: ID! # The ID of the input field that this value is for.
+  """
+  The ID of the input field that this value is for.
+  """
+  fieldID: ID!
   value: String!
 }
 
@@ -78,38 +164,102 @@ type DestinationTypeInfo {
 
   name: String!
 
-  iconURL: String! # URL to an icon to display for the destination type
-  iconAltText: String! # alt text for the icon
+  """
+  URL to an icon to display for the destination type
+  """
+  iconURL: String!
 
+  """
+  alt text for the icon, should be usable in place of the icon
+  """
+  iconAltText: String!
   disabledMessage: String!
 
-  enabled: Boolean! # if false, the destination type is disabled and cannot be used
-
+  """
+  if false, the destination type is disabled and cannot be used
+  """
+  enabled: Boolean!
   requiredFields: [DestinationFieldConfig!]!
 
-  userDisclaimer: String! # disclaimer text to display when a user is selecting this destination type for a contact method
+  """
+  disclaimer text to display when a user is selecting this destination type for a contact method
+  """
+  userDisclaimer: String!
 
-  isContactMethod: Boolean! # this destination type can be used as a user contact method
-  isEPTarget: Boolean! # this destination type can be used as an escalation policy step action
-  isSchedOnCallNotify: Boolean! # this destination type can be used for schedule on-call notifications
+  """
+  this destination type can be used as a user contact method
+  """
+  isContactMethod: Boolean!
 
-  supportsStatusUpdates: Boolean! # if true, the destination type supports status updates
-  statusUpdatesRequired: Boolean! # if true, the destination type requires status updates to be enabled
+  """
+  this destination type can be used as an escalation policy step action
+  """
+  isEPTarget: Boolean!
+
+  """
+  this destination type can be used for schedule on-call notifications
+  """
+  isSchedOnCallNotify: Boolean!
+
+  """
+  if true, the destination type supports status updates
+  """
+  supportsStatusUpdates: Boolean!
+
+  """
+  if true, the destination type requires status updates to be enabled
+  """
+  statusUpdatesRequired: Boolean!
 }
 
 type DestinationFieldConfig {
-  fieldID: ID! # unique ID for the input field
+  """
+  unique ID for the input field
+  """
+  fieldID: ID!
 
-  labelSingular: String! # user-friendly label
-  labelPlural: String! # user-friendly plural label
+  """
+  user-friendly label
+  """
+  labelSingular: String!
 
-  hint: String! # user-friendly helper text for input fields (i.e., "Enter a phone number")
-  hintURL: String! # URL to link to for more information about the destination type
-  placeholderText: String! # placeholder text to display in input fields (e.g., "Phone Number")
+  """
+  user-friendly plural label
+  """
+  labelPlural: String!
 
-  prefix: String! # the prefix to use when displaying the destination (e.g., "+" for phone numbers)
-  inputType: String! # the type of input field (type attribute) to use (e.g., "text" or "tel")
+  """
+  user-friendly helper text for input fields (i.e., "Enter a phone number")
+  """
+  hint: String!
 
-  isSearchSelectable: Boolean! # if true, the destination can be selected via search
-  supportsValidation: Boolean! # if true, the destination type supports validation
+  """
+  URL to link to for more information about the destination type
+  """
+  hintURL: String!
+
+  """
+  placeholder text to display in input fields (e.g., "Phone Number")
+  """
+  placeholderText: String!
+
+  """
+  the prefix to use when displaying the destination (e.g., "+" for phone numbers)
+  """
+  prefix: String!
+
+  """
+  the type of input field (type attribute) to use (e.g., "text" or "tel")
+  """
+  inputType: String!
+
+  """
+  if true, the destination can be selected via search
+  """
+  isSearchSelectable: Boolean!
+
+  """
+  if true, the destination type supports validation
+  """
+  supportsValidation: Boolean!
 }
