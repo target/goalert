@@ -125,6 +125,8 @@ func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.De
 }
 
 func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.DestinationFieldSearchInput) (*graphql2.FieldValueConnection, error) {
+	favFirst := true
+	
 	switch input.FieldID {
 	case fieldSlackChanID:
 		res, err := q.SlackChannels(ctx, &graphql2.SlackChannelSearchOptions{
@@ -180,7 +182,7 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 			First:          input.First,
 			Search:         input.Search,
 			After:          input.After,
-			FavoritesFirst: input.FavoritesFirst,
+			FavoritesFirst: &favFirst,
 		})
 		if err != nil {
 			return nil, err
@@ -206,7 +208,7 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 			First:          input.First,
 			Search:         input.Search,
 			After:          input.After,
-			FavoritesFirst: input.FavoritesFirst,
+			FavoritesFirst: &favFirst,
 		})
 		if err != nil {
 			return nil, err
@@ -232,7 +234,7 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 			First:          input.First,
 			Search:         input.Search,
 			After:          input.After,
-			FavoritesFirst: input.FavoritesFirst,
+			FavoritesFirst: &favFirst,
 		}, input.First, input.After, input.Search)
 		if err != nil {
 			return nil, err

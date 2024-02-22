@@ -322,13 +322,12 @@ type DestinationFieldConfig struct {
 }
 
 type DestinationFieldSearchInput struct {
-	DestType       string   `json:"destType"`
-	FieldID        string   `json:"fieldID"`
-	Search         *string  `json:"search,omitempty"`
-	Omit           []string `json:"omit,omitempty"`
-	After          *string  `json:"after,omitempty"`
-	First          *int     `json:"first,omitempty"`
-	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
+	DestType string   `json:"destType"`
+	FieldID  string   `json:"fieldID"`
+	Search   *string  `json:"search,omitempty"`
+	Omit     []string `json:"omit,omitempty"`
+	After    *string  `json:"after,omitempty"`
+	First    *int     `json:"first,omitempty"`
 }
 
 type DestinationFieldValidateInput struct {
