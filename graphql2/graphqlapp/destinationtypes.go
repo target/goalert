@@ -425,11 +425,7 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			Type:                  destRotation,
 			Name:                  "Rotation",
 			Enabled:               true,
-			IsContactMethod:       false,
 			IsEPTarget:            true,
-			IsSchedOnCallNotify:   true,
-			SupportsStatusUpdates: false,
-			StatusUpdatesRequired: false,
 			RequiredFields: []graphql2.DestinationFieldConfig{{
 				FieldID:            fieldRotationID,
 				LabelSingular:      "Select Rotation",
