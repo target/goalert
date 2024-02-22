@@ -109,7 +109,6 @@ export default function UserNotificationRuleListDest(props: {
               const name = nr.contactMethod.name || 'Unknown User'
               const type =
                 nr.contactMethod.dest.displayInfo.iconAltText || 'Unknown Type'
-              console.log(nr)
               return {
                 title: formatNotificationRule(nr.delayMinutes, {
                   type,
