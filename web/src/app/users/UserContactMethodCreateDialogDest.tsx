@@ -87,6 +87,7 @@ export default function UserContactMethodCreateDialogDest(props: {
       errors={formErrors}
       onChange={(CMValue: Value) => setCMValue(CMValue)}
       value={CMValue}
+      disablePortal={props.disablePortal}
     />
   )
 

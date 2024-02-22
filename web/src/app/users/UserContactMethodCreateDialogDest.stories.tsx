@@ -9,6 +9,7 @@ import {
 } from '../storybook/graphql'
 import { useArgs } from '@storybook/preview-api'
 import { HttpResponse, graphql } from 'msw'
+import { DestFieldValueError, InputFieldError } from '../util/errtypes'
 
 const meta = {
   title: 'users/UserContactMethodCreateDialogDest',
@@ -44,25 +45,27 @@ const meta = {
                 data: null,
                 errors: [
                   {
-                    message: 'This is a field-error',
-                    path: [
-                      'createUserContactMethod',
-                      'input',
-                      'dest',
-                      'values',
-                      'phone-number',
-                    ],
+                    message: 'This is a dest field-error',
+                    path: ['createUserContactMethod', 'input', 'dest'],
                     extensions: {
-                      code: 'INVALID_DESTINATION_FIELD_VALUE',
+                      code: 'INVALID_DEST_FIELD_VALUE',
+                      fieldID: 'phone-number',
                     },
-                  },
+                  } satisfies DestFieldValueError,
                   {
                     message: 'This indicates an invalid destination type',
                     path: ['createUserContactMethod', 'input', 'dest', 'type'],
                     extensions: {
-                      code: 'INVALID_DESTINATION_TYPE',
+                      code: 'INVALID_INPUT_VALUE',
                     },
-                  },
+                  } satisfies InputFieldError,
+                  {
+                    message: 'Name error',
+                    path: ['createUserContactMethod', 'input', 'name'],
+                    extensions: {
+                      code: 'INVALID_INPUT_VALUE',
+                    },
+                  } satisfies InputFieldError,
                   {
                     message: 'This is a generic error',
                   },
@@ -118,23 +121,30 @@ export const SingleField: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    await userEvent.clear(await canvas.findByPlaceholderText('11235550123'))
+    await userEvent.click(await canvas.findByLabelText('Destination Type'))
 
-    await waitFor(async () => {
-      await userEvent.type(
-        await canvas.findByPlaceholderText('11235550123'),
-        '12225558989',
-      )
-    })
-
-    const submitButton = await canvas.findByRole('button', { name: /SUBMIT/i })
-    await userEvent.click(submitButton)
-
-    await userEvent.clear(await canvas.findByLabelText('Name'))
-    await userEvent.type(await canvas.findByLabelText('Name'), 'TEST')
-
-    const retryButton = await canvas.findByRole('button', { name: /RETRY/i })
-    await userEvent.click(retryButton)
+    // incorrectly believes that the following fields are not visible
+    expect(
+      await canvas.findByRole('option', { hidden: true, name: 'Single Field' }),
+    ).toBeInTheDocument()
+    expect(
+      await canvas.findByRole('option', { hidden: true, name: 'Multi Field' }),
+    ).toBeInTheDocument()
+    expect(
+      await canvas.findByText('This is disabled'), // does not register as an option
+    ).toBeInTheDocument()
+    expect(
+      await canvas.findByRole('option', {
+        hidden: true,
+        name: 'Single With Status',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      await canvas.findByRole('option', {
+        hidden: true,
+        name: 'Single With Required Status',
+      }),
+    ).toBeInTheDocument()
   },
 }
 
@@ -146,59 +156,21 @@ export const MultiField: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    // Select the next Dest Type
-    await userEvent.click(await canvas.findByLabelText('Dest Type'))
+    // Select the multi-field Dest Type
+    await userEvent.click(await canvas.findByLabelText('Destination Type'))
     await userEvent.click(
-      await canvas.findByText('Multi Field Destination Type'),
+      await canvas.findByRole('option', { hidden: true, name: 'Multi Field' }),
     )
 
-    // ensure information for phone number renders correctly
-    await userEvent.clear(await canvas.findByLabelText('First Item'))
-    await waitFor(async () => {
-      await userEvent.type(
-        await canvas.findByLabelText('First Item'),
-        '12225558989',
-      )
-    })
-
-    await waitFor(async () => {
-      await expect(await canvas.findByTestId('CheckIcon')).toBeVisible()
-    })
-
-    // ensure information for email renders correctly
-    await expect(
-      await canvas.findByPlaceholderText('foobar@example.com'),
-    ).toBeVisible()
-    await userEvent.clear(
-      await canvas.findByPlaceholderText('foobar@example.com'),
-    )
-    await userEvent.type(
-      await await canvas.findByPlaceholderText('foobar@example.com'),
-      'valid@email.com',
-    )
-
-    // ensure information for slack renders correctly
-    await expect(
-      await canvas.findByPlaceholderText('slack user ID'),
-    ).toBeVisible()
+    await expect(await canvas.findByLabelText('Name')).toBeVisible()
+    await expect(await canvas.findByLabelText('Destination Type')).toBeVisible()
+    await expect(await canvas.findByLabelText('First Item')).toBeVisible()
+    await expect(await canvas.findByLabelText('Second Item')).toBeVisible()
     await expect(await canvas.findByLabelText('Third Item')).toBeVisible()
-    await userEvent.clear(await canvas.findByLabelText('Third Item'))
-    await userEvent.type(await canvas.findByLabelText('Third Item'), '@slack')
-
-    // Try to submit without all feilds complete
-    const submitButton = await canvas.findByRole('button', { name: /SUBMIT/i })
-    await userEvent.click(submitButton)
-
-    // Name field
-    await userEvent.clear(await canvas.findByLabelText('Name'))
-    await userEvent.type(await canvas.findByLabelText('Name'), 'TEST')
-
-    const retryButton = await canvas.findByRole('button', { name: /RETRY/i })
-    await userEvent.click(retryButton)
   },
 }
 
-export const DisabledField: Story = {
+export const StatusUpdates: Story = {
   args: {
     userID: defaultConfig.user.id,
     title: 'Create New Contact Method',
@@ -207,12 +179,37 @@ export const DisabledField: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
     // Open option select
-    await userEvent.click(await canvas.findByLabelText('Dest Type'))
-
-    // Ensure disabled
+    await userEvent.click(await canvas.findByLabelText('Destination Type'))
+    await userEvent.click(
+      await canvas.findByRole('option', { hidden: true, name: 'Single Field' }),
+    )
     await expect(
       await canvas.findByLabelText(
         'Send alert status updates (not supported for this type)',
+      ),
+    ).toBeDisabled()
+
+    await userEvent.click(await canvas.findByLabelText('Destination Type'))
+    await userEvent.click(
+      await canvas.findByRole('option', {
+        hidden: true,
+        name: 'Single With Status',
+      }),
+    )
+    await expect(
+      await canvas.findByLabelText('Send alert status updates'),
+    ).not.toBeDisabled()
+
+    await userEvent.click(await canvas.findByLabelText('Destination Type'))
+    await userEvent.click(
+      await canvas.findByRole('option', {
+        hidden: true,
+        name: 'Single With Required Status',
+      }),
+    )
+    await expect(
+      await canvas.findByLabelText(
+        'Send alert status updates (cannot be disabled for this type)',
       ),
     ).toBeDisabled()
   },
@@ -237,13 +234,21 @@ export const ErrorField: Story = {
     const submitButton = await canvas.findByText('Submit')
     await userEvent.click(submitButton)
 
+    // response should set error on all fields plus the generic error
     await waitFor(async () => {
+      await expect(await canvas.findByLabelText('Name')).toBeInvalid()
+
+      await expect(await canvas.findByText('Name error')).toBeVisible()
+
       await expect(
-        await canvas.findByText('This is a field-error'),
-      ).toBeVisible()
+        // mui puts aria-invalid on the input, but not the combobox (which the label points to)
+        canvasElement.querySelector('input[name="dest.type"]'),
+      ).toBeInvalid()
+      await expect(await canvas.findByLabelText('Phone Number')).toBeInvalid()
       await expect(
-        await canvas.findByText('This indicates an invalid destination type'),
+        await canvas.findByText('This is a dest field-error'),
       ).toBeVisible()
+
       await expect(
         await canvas.findByText('This is a generic error'),
       ).toBeVisible()
