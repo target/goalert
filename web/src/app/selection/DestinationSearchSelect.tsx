@@ -76,7 +76,6 @@ export default function DestinationSearchSelect(
         destType: props.destType,
         search: inputValue,
         fieldID: props.fieldID,
-        favoritesFirst: true,
       },
     },
     requestPolicy: 'cache-first',
