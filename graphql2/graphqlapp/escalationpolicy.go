@@ -36,7 +36,7 @@ func (a *CreateEscalationPolicyStepInput) Actions(ctx context.Context, input *gr
 	for i, action := range actions {
 		tgts[i], err = CompatDestToTarget(action)
 		if err != nil {
-			validation.NewFieldError("actions", "invalid DestInput")
+			return validation.NewFieldError("actions", "invalid DestInput")
 		}
 	}
 	input.Targets = tgts
