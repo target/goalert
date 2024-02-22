@@ -82,14 +82,6 @@ func (m *Mutation) CreateEscalationPolicyStep(ctx context.Context, input graphql
 		}
 	}
 
-	if input.Actions != nil {
-		for _, action := range input.Actions {
-			if ok, err := (*App)(m).ValidateDestination(ctx, "input.actions", &action); !ok {
-				return nil, err
-			}
-		}
-	}
-
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		s := &escalation.Step{
 			DelayMinutes: input.DelayMinutes,
