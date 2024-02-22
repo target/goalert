@@ -5,9 +5,14 @@ import React from 'react'
 import { DestinationInput } from '../../schema'
 import { FormContainer, FormField } from '../forms'
 import { renderMenuItem } from '../selection/DisableableMenuItem'
-import { InputFieldError, SimpleError } from '../util/errutil'
 import DestinationField from '../selection/DestinationField'
 import { useContactMethodTypes } from '../util/RequireConfig'
+import {
+  isInputFieldError,
+  isDestFieldError,
+  KnownError,
+  DestFieldValueError,
+} from '../util/errtypes'
 
 export type Value = {
   name: string
@@ -18,8 +23,7 @@ export type Value = {
 export type UserContactMethodFormProps = {
   value: Value
 
-  typeError?: SimpleError
-  fieldErrors?: Array<InputFieldError>
+  errors?: Array<KnownError | DestFieldValueError>
 
   disabled?: boolean
   edit?: boolean
@@ -27,10 +31,16 @@ export type UserContactMethodFormProps = {
   onChange?: (CMValue: Value) => void
 }
 
+export const errorPaths = (prefix = '*'): string[] => [
+  `${prefix}.name`,
+  `${prefix}.dest.type`,
+  `${prefix}.dest`,
+]
+
 export default function UserContactMethodFormDest(
   props: UserContactMethodFormProps,
 ): JSX.Element {
-  const { value, edit = false, ...other } = props
+  const { value, edit = false, errors = [], ...other } = props
 
   const destinationTypes = useContactMethodTypes()
   const currentType = destinationTypes.find((d) => d.type === value.dest.type)
@@ -47,28 +57,14 @@ export default function UserContactMethodFormDest(
     statusUpdateChecked = false
   }
 
-  const formErrors = []
-  if (props.typeError) {
-    formErrors.push({
-      // the old form code requires this shape to map errors to the correct field
-      message: props.typeError.message,
-      field: 'dest.type',
-    })
-  }
-  const nameErr = props.fieldErrors?.find(
-    (err) => err.path.split('.').pop() === 'name',
-  )
-  if (nameErr) {
-    formErrors.push({
-      message: nameErr.message,
-      field: 'name',
-    })
-  }
-
   return (
     <FormContainer
       {...other}
-      errors={formErrors}
+      errors={errors?.filter(isInputFieldError).map((e) => ({
+        // need to convert to FormContainer's error format
+        message: e.message,
+        field: e.path[e.path.length - 1].toString(),
+      }))}
       value={value}
       mapOnChangeValue={(newValue: Value): Value => {
         if (newValue.dest.type === value.dest.type) {
@@ -119,7 +115,7 @@ export default function UserContactMethodFormDest(
             destType={value.dest.type}
             component={DestinationField}
             disabled={edit}
-            destFieldErrors={props.fieldErrors}
+            destFieldErrors={errors.filter(isDestFieldError)}
           />
         </Grid>
         <Grid item xs={12}>

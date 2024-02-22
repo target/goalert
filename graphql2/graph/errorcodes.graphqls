@@ -1,0 +1,25 @@
+
+
+"""
+Known error codes that the server can return.
+
+These values will be returned in the `extensions.code` field of the error response.
+"""
+enum ErrorCode {
+
+    """
+    The input value is invalid, the `path` field will contain the exact path to the invalid input.
+
+    A separate error will be returned for each invalid field.
+    """
+    INVALID_INPUT_VALUE
+
+    """
+    The `path` field contains the exact path to the DestinationInput that is invalid.
+
+    The `extensions.fieldID` field contains the ID of the input field that is invalid.
+
+    A separate error will be returned for each invalid field.
+    """
+    INVALID_DEST_FIELD_VALUE
+}
