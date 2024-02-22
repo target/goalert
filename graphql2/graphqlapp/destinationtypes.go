@@ -428,8 +428,8 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			IsEPTarget:            true,
 			RequiredFields: []graphql2.DestinationFieldConfig{{
 				FieldID:            fieldRotationID,
-				LabelSingular:      "Select Rotation",
-				LabelPlural:        "Select Rotations",
+				LabelSingular:      "Rotation",
+				LabelPlural:        "Rotations",
 				InputType:          "text",
 				IsSearchSelectable: true,
 			}},
