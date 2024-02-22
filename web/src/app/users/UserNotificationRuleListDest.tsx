@@ -34,16 +34,9 @@ const query = gql`
           name
           dest {
             type
-            values {
-              fieldID
-              value
-              label
-            }
             displayInfo {
               text
-              iconURL
               iconAltText
-              linkURL
             }
           }
         }
