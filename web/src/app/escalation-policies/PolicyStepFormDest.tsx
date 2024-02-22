@@ -9,6 +9,7 @@ import { Button, TextField, Typography } from '@mui/material'
 import { renderMenuItem } from '../selection/DisableableMenuItem'
 import DestinationField from '../selection/DestinationField'
 import { useEPTargetTypes } from '../util/RequireConfig'
+import { FieldError } from '../util/errutil'
 
 export type FormValue = {
   delayMinutes: number
@@ -17,7 +18,7 @@ export type FormValue = {
 
 export type PolicyStepFormDestProps = {
   value: FormValue
-  errors?: Array<{ field: 'targets' | 'delayMinutes'; message: string }>
+  errors?: FieldError[]
   disabled?: boolean
   onChange?: (value: FormValue) => void
 }
@@ -47,6 +48,7 @@ export default function PolicyStepFormDest(
 
         props.onChange(newValue)
       }}
+      errors={props.errors}
     >
       <Grid container spacing={2}>
         <Grid item xs={12}>
@@ -96,6 +98,7 @@ export default function PolicyStepFormDest(
               setValues([])
               if (!props.onChange) return
 
+              console.log(props)
               props.onChange({
                 ...props.value,
                 actions: props.value.actions.concat({
