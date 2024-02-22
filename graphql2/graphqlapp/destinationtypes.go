@@ -438,11 +438,8 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			Type:                  destSchedule,
 			Name:                  "Schedule",
 			Enabled:               true,
-			IsContactMethod:       false,
 			IsEPTarget:            true,
 			IsSchedOnCallNotify:   true,
-			SupportsStatusUpdates: false,
-			StatusUpdatesRequired: false,
 			RequiredFields: []graphql2.DestinationFieldConfig{{
 				FieldID:            fieldScheduleID,
 				LabelSingular:      "Select Schedule",
@@ -455,11 +452,8 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			Type:                  destUser,
 			Name:                  "User",
 			Enabled:               true,
-			IsContactMethod:       false,
 			IsEPTarget:            true,
 			IsSchedOnCallNotify:   true,
-			SupportsStatusUpdates: false,
-			StatusUpdatesRequired: false,
 			RequiredFields: []graphql2.DestinationFieldConfig{{
 				FieldID:            fieldUserID,
 				LabelSingular:      "Select User",
