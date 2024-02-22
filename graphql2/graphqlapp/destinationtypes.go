@@ -442,8 +442,8 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			IsSchedOnCallNotify:   true,
 			RequiredFields: []graphql2.DestinationFieldConfig{{
 				FieldID:            fieldScheduleID,
-				LabelSingular:      "Select Schedule",
-				LabelPlural:        "Select Schedules",
+				LabelSingular:      "Schedule",
+				LabelPlural:        "Schedules",
 				InputType:          "text",
 				IsSearchSelectable: true,
 			}},
@@ -456,8 +456,8 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			IsSchedOnCallNotify:   true,
 			RequiredFields: []graphql2.DestinationFieldConfig{{
 				FieldID:            fieldUserID,
-				LabelSingular:      "Select User",
-				LabelPlural:        "Select Users",
+				LabelSingular:      "User",
+				LabelPlural:        "Users",
 				InputType:          "text",
 				IsSearchSelectable: true,
 			}},
