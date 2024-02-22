@@ -35,21 +35,11 @@ const meta = {
                             name: 'Josiah',
                             dest: {
                               type: 'single-field',
-                              values: [
-                                {
-                                  fieldID: 'phone-number',
-                                  value: '+15555555555',
-                                  label: '+1 555-555-5555',
-                                },
-                              ],
                               displayInfo: {
                                 text: '+1 555-555-5555',
-                                iconURL: 'test',
                                 iconAltText: 'Voice Call',
                               },
                             },
-                            disabled: false,
-                            pending: false,
                           },
                         },
                       ],
@@ -75,18 +65,9 @@ const meta = {
                             name: 'Bridget',
                             dest: {
                               type: 'builtin-twilio-voice',
-                              values: [
-                                {
-                                  fieldID: 'phone-number',
-                                  value: '+17633511103',
-                                  label: '+1 763-351-1103',
-                                },
-                              ],
                               displayInfo: {
                                 text: '+1 763-351-1103',
-                                iconURL: 'builtin://phone-voice',
                                 iconAltText: 'Voice Call',
-                                linkURL: '',
                               },
                             },
                           },
@@ -99,18 +80,9 @@ const meta = {
                             name: 'Dewayne',
                             dest: {
                               type: 'builtin-twilio-sms',
-                              values: [
-                                {
-                                  fieldID: 'phone-number',
-                                  value: '+17633462643',
-                                  label: '+1 763-346-2643',
-                                },
-                              ],
                               displayInfo: {
                                 text: '+1 763-346-2643',
-                                iconURL: 'builtin://phone-text',
                                 iconAltText: 'Text Message',
-                                linkURL: '',
                               },
                             },
                           },
