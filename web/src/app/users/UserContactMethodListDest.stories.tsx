@@ -112,9 +112,7 @@ export const SingleContactMethod: Story = {
     const canvas = within(canvasElement)
 
     // ensure correct info is displayed for single-field CM
-    await expect(
-      await canvas.findByText('Josiah (Single Field Destination Type)'),
-    ).toBeVisible()
+    await expect(await canvas.findByText('Josiah (Single Field)')).toBeVisible()
     await expect(await canvas.findByText('+1 555-555-5555')).toBeVisible()
     // ensure CM is editable
     await expect(
@@ -147,15 +145,11 @@ export const MultiContactMethods: Story = {
 
     // ensure correct info is displayed for single field CM
     await expect(
-      await canvas.findByText(
-        'single field CM (Single Field Destination Type)',
-      ),
+      await canvas.findByText('single field CM (Single Field)'),
     ).toBeVisible()
     // ensure correct info is displayed for triple-field CM
     await expect(
-      await canvas.findByText(
-        'triple contact method (Multi Field Destination Type)',
-      ),
+      await canvas.findByText('triple contact method (Multi Field)'),
     ).toBeVisible()
     await expect(await canvas.findByText('+1 555-555-5556')).toBeVisible()
     await expect(await canvas.findByText('test_user@target.com')).toBeVisible()
