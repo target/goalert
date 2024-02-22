@@ -275,7 +275,7 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 				Label:           "Slack User",
 				PlaceholderText: "member ID",
 				InputType:       "text",
-				// IsSearchSelectable: true, // TODO: implement search select functionality for users
+				// supportsSearch: true, // TODO: implement search select functionality for users
 				Hint: `Go to your Slack profile, click the three dots, and select "Copy member ID".`,
 			}},
 		},

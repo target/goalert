@@ -77,14 +77,13 @@ const expDestQuery = gql`
 
       requiredFields {
         fieldID
-        labelSingular
-        labelPlural
+        label
         hint
         hintURL
         placeholderText
         prefix
         inputType
-        isSearchSelectable
+        supportsSearch
         supportsValidation
       }
     }
