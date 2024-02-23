@@ -27,14 +27,14 @@ mutation DeleteAPIKey($id: ID!) {
     deleteGQLAPIKey(id: $id)
 }
 
-query ServiceInfo($id: ID!) {
-  service(id: $id) {
+query ServiceInfo($firstID: ID!) {
+  service(id: $firstID) {
     id
   }
 }
 
-query ServiceInfo2($id: ID!) {
-  service(id: $id) {
+query ServiceInfo2($secondID: ID!) {
+  service(id: $secondID) {
     id
   }
 }
@@ -114,7 +114,7 @@ test('GQL API keys', async ({ page, request, isMobile }) => {
     },
     data: {
       variables: {
-        id: '00000000-0000-0000-0000-000000000000',
+        firstID: '00000000-0000-0000-0000-000000000000',
       },
       operationName: 'ServiceInfo',
     },
