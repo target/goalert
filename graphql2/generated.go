@@ -89,6 +89,7 @@ type ResolverRoot interface {
 	UserContactMethod() UserContactMethodResolver
 	UserNotificationRule() UserNotificationRuleResolver
 	UserOverride() UserOverrideResolver
+	CreateEscalationPolicyStepInput() CreateEscalationPolicyStepInputResolver
 	OnCallNotificationRuleInput() OnCallNotificationRuleInputResolver
 }
 
@@ -1010,6 +1011,9 @@ type UserOverrideResolver interface {
 	Target(ctx context.Context, obj *override.UserOverride) (*assignment.RawTarget, error)
 }
 
+type CreateEscalationPolicyStepInputResolver interface {
+	Actions(ctx context.Context, obj *CreateEscalationPolicyStepInput, data []DestinationInput) error
+}
 type OnCallNotificationRuleInputResolver interface {
 	Dest(ctx context.Context, obj *OnCallNotificationRuleInput, data *DestinationInput) error
 }
@@ -31258,7 +31262,7 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyStepInput(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"escalationPolicyID", "delayMinutes", "targets", "newRotation", "newSchedule"}
+	fieldsInOrder := [...]string{"escalationPolicyID", "delayMinutes", "targets", "newRotation", "newSchedule", "actions"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -31300,6 +31304,15 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyStepInput(ctx co
 				return it, err
 			}
 			it.NewSchedule = data
+		case "actions":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("actions"))
+			data, err := ec.unmarshalODestinationInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CreateEscalationPolicyStepInput().Actions(ctx, &it, data); err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -46659,6 +46672,26 @@ func (ec *executionContext) marshalODebugSendSMSInfo2ᚖgithubᚗcomᚋtargetᚋ
 		return graphql.Null
 	}
 	return ec._DebugSendSMSInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalODestinationInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInputᚄ(ctx context.Context, v interface{}) ([]DestinationInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]DestinationInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNDestinationInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx context.Context, v interface{}) (*DestinationInput, error) {

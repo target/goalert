@@ -215,7 +215,18 @@ func (a *App) Handler() http.Handler {
 		return res, err
 	})
 
+	h.Use(&errSkipHandler{})
+
 	h.SetErrorPresenter(func(ctx context.Context, err error) *gqlerror.Error {
+		if errors.Is(err, errAlreadySet) {
+			// This error just indicates that a field error has already been set on the context
+			// it should not be returned to the client.
+			return &gqlerror.Error{
+				Extensions: map[string]interface{}{
+					"skip": true,
+				},
+			}
+		}
 		err = errutil.MapDBError(err)
 		var gqlErr *gqlerror.Error
 

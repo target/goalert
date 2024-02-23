@@ -148,3 +148,41 @@ func CompatDestToCMTypeVal(d graphql2.DestinationInput) (contactmethod.Type, str
 
 	return "", ""
 }
+
+// CompatDestToTarget converts a graphql2.DestinationInput to a graphql2.RawTarget
+func CompatDestToTarget(d graphql2.DestinationInput) (assignment.RawTarget, error) {
+	switch d.Type {
+	case destUser:
+		return assignment.RawTarget{
+			Type: assignment.TargetTypeUser,
+			ID:   d.FieldValue(fieldUserID),
+		}, nil
+	case destRotation:
+		return assignment.RawTarget{
+			Type: assignment.TargetTypeRotation,
+			ID:   d.FieldValue(fieldRotationID),
+		}, nil
+	case destSchedule:
+		return assignment.RawTarget{
+			Type: assignment.TargetTypeSchedule,
+			ID:   d.FieldValue(fieldScheduleID),
+		}, nil
+	case destSlackChan:
+		return assignment.RawTarget{
+			Type: assignment.TargetTypeSlackChannel,
+			ID:   d.FieldValue(fieldSlackChanID),
+		}, nil
+	case destSlackUG:
+		return assignment.RawTarget{
+			Type: assignment.TargetTypeSlackUserGroup,
+			ID:   d.FieldValue(fieldSlackUGID) + ":" + d.FieldValue(fieldSlackChanID),
+		}, nil
+	case destWebhook:
+		return assignment.RawTarget{
+			Type: assignment.TargetTypeChanWebhook,
+			ID:   d.FieldValue(fieldWebhookURL),
+		}, nil
+	}
+
+	return assignment.RawTarget{}, fmt.Errorf("unsupported destination type: %s", d.Type)
+}

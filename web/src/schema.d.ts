@@ -182,6 +182,7 @@ export interface CreateEscalationPolicyInput {
 }
 
 export interface CreateEscalationPolicyStepInput {
+  actions?: null | DestinationInput[]
   delayMinutes: number
   escalationPolicyID?: null | string
   newRotation?: null | CreateRotationInput

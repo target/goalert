@@ -142,9 +142,9 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 		err := validate.IDName("input.name", input.Name)
 		if err != nil {
 			addInputError(ctx, err)
-			return nil, nil
+			return nil, errAlreadySet
 		}
-		if ok, err := (*App)(m).ValidateDestination(ctx, "input.dest", input.Dest); !ok {
+		if err := (*App)(m).ValidateDestination(ctx, "input.dest", input.Dest); err != nil {
 			return nil, err
 		}
 		t, v := CompatDestToCMTypeVal(*input.Dest)
