@@ -25,15 +25,23 @@ import (
 )
 
 type (
-	Schedule               App
-	TemporarySchedule      App
-	OnCallNotificationRule App
+	Schedule                    App
+	TemporarySchedule           App
+	OnCallNotificationRule      App
+	OnCallNotificationRuleInput App
 )
 
 func (a *App) Schedule() graphql2.ScheduleResolver                   { return (*Schedule)(a) }
 func (a *App) TemporarySchedule() graphql2.TemporaryScheduleResolver { return (*TemporarySchedule)(a) }
 func (a *App) OnCallNotificationRule() graphql2.OnCallNotificationRuleResolver {
 	return (*OnCallNotificationRule)(a)
+}
+func (a *App) OnCallNotificationRuleInput() graphql2.OnCallNotificationRuleInputResolver {
+	return (*OnCallNotificationRuleInput)(a)
+}
+
+func (a *OnCallNotificationRuleInput) Dest(ctx context.Context, input *graphql2.OnCallNotificationRuleInput, dest *graphql2.DestinationInput) error {
+	return nil
 }
 
 func (a *OnCallNotificationRule) Dest(ctx context.Context, raw *schedule.OnCallNotificationRule) (*graphql2.Destination, error) {

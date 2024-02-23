@@ -15,6 +15,7 @@ import { useIsWidthDown } from '../../util/useWidth'
 import { Add } from '@mui/icons-material'
 import { useExpFlag } from '../../util/useExpFlag'
 import ScheduleOnCallNotificationsListDest from './ScheduleOnCallNotificationsListDest'
+import ScheduleOnCallNotificationsCreateDialogDest from './ScheduleOnCallNotificationsCreateDialogDest'
 
 export type ScheduleOnCallNotificationsListProps = {
   scheduleID: string
@@ -37,6 +38,8 @@ function ScheduleOnCallNotificationsList({
   const [editRuleID, setEditRuleID] = useState('')
   const [deleteRuleID, setDeleteRuleID] = useState('')
   const isMobile = useIsWidthDown('md')
+
+  const hasDestTypesFlag = useExpFlag('dest-types')
 
   const { q, zone, rules } = useOnCallRulesData(scheduleID)
 
@@ -94,12 +97,18 @@ function ScheduleOnCallNotificationsList({
           title='Create Notification Rule'
         />
       )}
-      {createRule && (
-        <ScheduleOnCallNotificationsCreateDialog
-          scheduleID={scheduleID}
-          onClose={() => setCreateRule(false)}
-        />
-      )}
+      {createRule &&
+        (hasDestTypesFlag ? (
+          <ScheduleOnCallNotificationsCreateDialogDest
+            scheduleID={scheduleID}
+            onClose={() => setCreateRule(false)}
+          />
+        ) : (
+          <ScheduleOnCallNotificationsCreateDialog
+            scheduleID={scheduleID}
+            onClose={() => setCreateRule(false)}
+          />
+        ))}
       {editRuleID && (
         <ScheduleOnCallNotificationsEditDialog
           scheduleID={scheduleID}
