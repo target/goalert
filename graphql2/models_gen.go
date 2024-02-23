@@ -317,10 +317,8 @@ type DestinationDisplayInfo struct {
 type DestinationFieldConfig struct {
 	// unique ID for the input field
 	FieldID string `json:"fieldID"`
-	// user-friendly label
-	LabelSingular string `json:"labelSingular"`
-	// user-friendly plural label
-	LabelPlural string `json:"labelPlural"`
+	// user-friendly label (should be singular)
+	Label string `json:"label"`
 	// user-friendly helper text for input fields (i.e., "Enter a phone number")
 	Hint string `json:"hint"`
 	// URL to link to for more information about the destination type
@@ -332,7 +330,7 @@ type DestinationFieldConfig struct {
 	// the type of input field (type attribute) to use (e.g., "text" or "tel")
 	InputType string `json:"inputType"`
 	// if true, the destination can be selected via search
-	IsSearchSelectable bool `json:"isSearchSelectable"`
+	SupportsSearch bool `json:"supportsSearch"`
 	// if true, the destination type supports validation
 	SupportsValidation bool `json:"supportsValidation"`
 }

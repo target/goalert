@@ -52,7 +52,7 @@ export default function DestinationField(
           )?.message || '',
         )
 
-        if (field.isSearchSelectable)
+        if (field.supportsSearch)
           return (
             <Grid key={field.fieldID} item xs={12} sm={12} md={12}>
               <DestinationSearchSelect

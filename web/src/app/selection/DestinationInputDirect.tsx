@@ -121,7 +121,7 @@ export default function DestinationInputDirect(
       InputProps={iprops}
       type={props.inputType}
       placeholder={props.placeholderText}
-      label={props.labelSingular}
+      label={props.label}
       helperText={
         props.hintURL ? (
           <AppLink newTab to={props.hintURL}>
