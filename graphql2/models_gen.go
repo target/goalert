@@ -294,45 +294,70 @@ type DebugSendSMSInput struct {
 	Body string `json:"body"`
 }
 
+// Destination represents a destination that can be used for notifications.
 type Destination struct {
 	Type        string                  `json:"type"`
 	Values      []FieldValuePair        `json:"values"`
 	DisplayInfo *DestinationDisplayInfo `json:"displayInfo"`
 }
 
+// DestinationDisplayInfo provides information for displaying a destination.
 type DestinationDisplayInfo struct {
-	Text        string `json:"text"`
-	IconURL     string `json:"iconURL"`
+	// user-friendly text to display for this destination
+	Text string `json:"text"`
+	// URL to an icon to display for this destination
+	IconURL string `json:"iconURL"`
+	// alt text for the icon
 	IconAltText string `json:"iconAltText"`
-	LinkURL     string `json:"linkURL"`
+	// URL to link to for more information about this destination
+	LinkURL string `json:"linkURL"`
 }
 
 type DestinationFieldConfig struct {
-	FieldID            string `json:"fieldID"`
-	LabelSingular      string `json:"labelSingular"`
-	LabelPlural        string `json:"labelPlural"`
-	Hint               string `json:"hint"`
-	HintURL            string `json:"hintURL"`
-	PlaceholderText    string `json:"placeholderText"`
-	Prefix             string `json:"prefix"`
-	InputType          string `json:"inputType"`
-	IsSearchSelectable bool   `json:"isSearchSelectable"`
-	SupportsValidation bool   `json:"supportsValidation"`
+	// unique ID for the input field
+	FieldID string `json:"fieldID"`
+	// user-friendly label
+	LabelSingular string `json:"labelSingular"`
+	// user-friendly plural label
+	LabelPlural string `json:"labelPlural"`
+	// user-friendly helper text for input fields (i.e., "Enter a phone number")
+	Hint string `json:"hint"`
+	// URL to link to for more information about the destination type
+	HintURL string `json:"hintURL"`
+	// placeholder text to display in input fields (e.g., "Phone Number")
+	PlaceholderText string `json:"placeholderText"`
+	// the prefix to use when displaying the destination (e.g., "+" for phone numbers)
+	Prefix string `json:"prefix"`
+	// the type of input field (type attribute) to use (e.g., "text" or "tel")
+	InputType string `json:"inputType"`
+	// if true, the destination can be selected via search
+	IsSearchSelectable bool `json:"isSearchSelectable"`
+	// if true, the destination type supports validation
+	SupportsValidation bool `json:"supportsValidation"`
 }
 
 type DestinationFieldSearchInput struct {
-	DestType string   `json:"destType"`
-	FieldID  string   `json:"fieldID"`
-	Search   *string  `json:"search,omitempty"`
-	Omit     []string `json:"omit,omitempty"`
-	After    *string  `json:"after,omitempty"`
-	First    *int     `json:"first,omitempty"`
+	// the type of destination to search for
+	DestType string `json:"destType"`
+	// the ID of the input field to search for
+	FieldID string `json:"fieldID"`
+	// search string to match against
+	Search *string `json:"search,omitempty"`
+	// values/ids to omit from results
+	Omit []string `json:"omit,omitempty"`
+	// cursor to start search from
+	After *string `json:"after,omitempty"`
+	// number of results to return
+	First *int `json:"first,omitempty"`
 }
 
 type DestinationFieldValidateInput struct {
+	// the type of destination to validate
 	DestType string `json:"destType"`
-	FieldID  string `json:"fieldID"`
-	Value    string `json:"value"`
+	// the ID of the input field to validate
+	FieldID string `json:"fieldID"`
+	// the value to validate
+	Value string `json:"value"`
 }
 
 type DestinationInput struct {
@@ -341,19 +366,28 @@ type DestinationInput struct {
 }
 
 type DestinationTypeInfo struct {
-	Type                  string                   `json:"type"`
-	Name                  string                   `json:"name"`
-	IconURL               string                   `json:"iconURL"`
-	IconAltText           string                   `json:"iconAltText"`
-	DisabledMessage       string                   `json:"disabledMessage"`
-	Enabled               bool                     `json:"enabled"`
-	RequiredFields        []DestinationFieldConfig `json:"requiredFields"`
-	UserDisclaimer        string                   `json:"userDisclaimer"`
-	IsContactMethod       bool                     `json:"isContactMethod"`
-	IsEPTarget            bool                     `json:"isEPTarget"`
-	IsSchedOnCallNotify   bool                     `json:"isSchedOnCallNotify"`
-	SupportsStatusUpdates bool                     `json:"supportsStatusUpdates"`
-	StatusUpdatesRequired bool                     `json:"statusUpdatesRequired"`
+	Type string `json:"type"`
+	Name string `json:"name"`
+	// URL to an icon to display for the destination type
+	IconURL string `json:"iconURL"`
+	// alt text for the icon, should be usable in place of the icon
+	IconAltText     string `json:"iconAltText"`
+	DisabledMessage string `json:"disabledMessage"`
+	// if false, the destination type is disabled and cannot be used
+	Enabled        bool                     `json:"enabled"`
+	RequiredFields []DestinationFieldConfig `json:"requiredFields"`
+	// disclaimer text to display when a user is selecting this destination type for a contact method
+	UserDisclaimer string `json:"userDisclaimer"`
+	// this destination type can be used as a user contact method
+	IsContactMethod bool `json:"isContactMethod"`
+	// this destination type can be used as an escalation policy step action
+	IsEPTarget bool `json:"isEPTarget"`
+	// this destination type can be used for schedule on-call notifications
+	IsSchedOnCallNotify bool `json:"isSchedOnCallNotify"`
+	// if true, the destination type supports status updates
+	SupportsStatusUpdates bool `json:"supportsStatusUpdates"`
+	// if true, the destination type requires status updates to be enabled
+	StatusUpdatesRequired bool `json:"statusUpdatesRequired"`
 }
 
 type EscalationPolicyConnection struct {
@@ -370,21 +404,27 @@ type EscalationPolicySearchOptions struct {
 	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
 }
 
+// FieldValueConnection is a connection to a list of FieldValuePairs.
 type FieldValueConnection struct {
 	Nodes    []FieldValuePair `json:"nodes"`
 	PageInfo *PageInfo        `json:"pageInfo"`
 }
 
 type FieldValueInput struct {
+	// The ID of the input field that this value is for.
 	FieldID string `json:"fieldID"`
 	Value   string `json:"value"`
 }
 
 type FieldValuePair struct {
-	FieldID    string `json:"fieldID"`
-	Value      string `json:"value"`
-	Label      string `json:"label"`
-	IsFavorite bool   `json:"isFavorite"`
+	// The ID of the input field that this value is for.
+	FieldID string `json:"fieldID"`
+	// The value of the input field.
+	Value string `json:"value"`
+	// The user-friendly text for this value of the input field (e.g., if the value is a user ID, label would be the user's name).
+	Label string `json:"label"`
+	// if true, this value is a favorite for the user, only set for search results
+	IsFavorite bool `json:"isFavorite"`
 }
 
 type GQLAPIKey struct {
