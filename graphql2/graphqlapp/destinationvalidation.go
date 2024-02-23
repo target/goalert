@@ -56,6 +56,24 @@ func addDestFieldError(ctx context.Context, parentField, fieldID string, err err
 	return nil
 }
 
+func addInputError(ctx context.Context, err error) {
+	field := err.(validation.FieldError).Field()
+
+	p := graphql.GetPath(ctx)
+	parentParts := strings.Split(field, ".")
+	for _, part := range parentParts {
+		p = append(p, ast.PathName(part))
+	}
+
+	graphql.AddError(ctx, &gqlerror.Error{
+		Message: errReason(err),
+		Path:    p,
+		Extensions: map[string]interface{}{
+			"code": graphql2.ErrorCodeInvalidInputValue,
+		},
+	})
+}
+
 // ValidateDestination will validate a destination input.
 //
 // In the future this will be a call to the plugin system.

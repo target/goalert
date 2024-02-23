@@ -70,6 +70,8 @@ const expDestQuery = gql`
       enabled
       disabledMessage
       userDisclaimer
+      supportsStatusUpdates
+      statusUpdatesRequired
 
       isContactMethod
       isEPTarget

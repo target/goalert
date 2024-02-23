@@ -3,7 +3,7 @@ import { DestinationTypeInfo } from '../../schema'
 export const destTypes: DestinationTypeInfo[] = [
   {
     type: 'single-field',
-    name: 'Single Field Destination Type',
+    name: 'Single Field',
     enabled: true,
     disabledMessage: 'Single field destination type must be configured.',
     userDisclaimer: '',
@@ -31,7 +31,7 @@ export const destTypes: DestinationTypeInfo[] = [
   },
   {
     type: 'triple-field',
-    name: 'Multi Field Destination Type',
+    name: 'Multi Field',
     enabled: true,
     disabledMessage: 'Multi field destination type must be configured.',
     userDisclaimer: '',
@@ -111,7 +111,7 @@ export const destTypes: DestinationTypeInfo[] = [
   },
   {
     type: 'supports-status',
-    name: 'Single Field Destination Type',
+    name: 'Single With Status',
     enabled: true,
     disabledMessage: 'Single field destination type must be configured.',
     userDisclaimer: '',
@@ -139,7 +139,7 @@ export const destTypes: DestinationTypeInfo[] = [
   },
   {
     type: 'required-status',
-    name: 'Single Field Destination Type',
+    name: 'Single With Required Status',
     enabled: true,
     disabledMessage: 'Single field destination type must be configured.',
     userDisclaimer: '',
