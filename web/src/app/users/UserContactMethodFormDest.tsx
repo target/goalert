@@ -28,6 +28,8 @@ export type UserContactMethodFormProps = {
   disabled?: boolean
   edit?: boolean
 
+  disablePortal?: boolean // for testing, disable portal on select menu
+
   onChange?: (CMValue: Value) => void
 }
 
@@ -60,11 +62,15 @@ export default function UserContactMethodFormDest(
   return (
     <FormContainer
       {...other}
-      errors={errors?.filter(isInputFieldError).map((e) => ({
-        // need to convert to FormContainer's error format
-        message: e.message,
-        field: e.path[e.path.length - 1].toString(),
-      }))}
+      errors={errors?.filter(isInputFieldError).map((e) => {
+        let field = e.path[e.path.length - 1].toString()
+        if (field === 'type') field = 'dest.type'
+        return {
+          // need to convert to FormContainer's error format
+          message: e.message,
+          field,
+        }
+      })}
       value={value}
       mapOnChangeValue={(newValue: Value): Value => {
         if (newValue.dest.type === value.dest.type) {
@@ -93,6 +99,7 @@ export default function UserContactMethodFormDest(
             label='Destination Type'
             required
             select
+            disablePortal={props.disablePortal}
             disabled={edit}
             component={TextField}
           >
