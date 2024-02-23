@@ -133,7 +133,7 @@ export default function DestinationSearchSelect(
       error={props.error}
       onInputChange={(val) => setInputValue(val)}
       value={value as unknown as SelectOption}
-      label={props.labelSingular}
+      label={props.label}
       helperText={
         props.hintURL ? (
           <AppLink newTab to={props.hintURL}>
