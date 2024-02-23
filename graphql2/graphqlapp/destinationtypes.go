@@ -421,11 +421,10 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			Enabled:    true,
 			IsEPTarget: true,
 			RequiredFields: []graphql2.DestinationFieldConfig{{
-				FieldID:            fieldRotationID,
-				LabelSingular:      "Rotation",
-				LabelPlural:        "Rotations",
-				InputType:          "text",
-				IsSearchSelectable: true,
+				FieldID:        fieldRotationID,
+				Label:          "Rotation",
+				InputType:      "text",
+				SupportsSearch: true,
 			}},
 		},
 		{
@@ -435,11 +434,10 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			IsEPTarget:          true,
 			IsSchedOnCallNotify: true,
 			RequiredFields: []graphql2.DestinationFieldConfig{{
-				FieldID:            fieldScheduleID,
-				LabelSingular:      "Schedule",
-				LabelPlural:        "Schedules",
-				InputType:          "text",
-				IsSearchSelectable: true,
+				FieldID:        fieldScheduleID,
+				Label:          "Schedule",
+				InputType:      "text",
+				SupportsSearch: true,
 			}},
 		},
 		{
@@ -449,11 +447,10 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			IsEPTarget:          true,
 			IsSchedOnCallNotify: true,
 			RequiredFields: []graphql2.DestinationFieldConfig{{
-				FieldID:            fieldUserID,
-				LabelSingular:      "User",
-				LabelPlural:        "Users",
-				InputType:          "text",
-				IsSearchSelectable: true,
+				FieldID:        fieldUserID,
+				Label:          "User",
+				InputType:      "text",
+				SupportsSearch: true,
 			}},
 		},
 	}
