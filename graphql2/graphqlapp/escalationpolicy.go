@@ -43,6 +43,7 @@ func (a *CreateEscalationPolicyStepInput) Actions(ctx context.Context, input *gr
 		}
 	}
 	input.Targets = tgts
+	input.Actions = actions
 	return nil
 }
 
@@ -57,6 +58,14 @@ func contains(ids []string, id string) bool {
 
 func (m *Mutation) CreateEscalationPolicyStep(ctx context.Context, input graphql2.CreateEscalationPolicyStepInput) (step *escalation.Step, err error) {
 	cfg := config.FromContext(ctx)
+	if input.Actions != nil {
+		// validate delay so we return a new coded error (when using actions)
+		err := validate.Range("input.delayMinutes", input.DelayMinutes, 1, 9000)
+		if err != nil {
+			addInputError(ctx, err)
+			return nil, errAlreadySet
+		}
+	}
 	if len(input.Targets) != 0 && input.NewRotation != nil {
 		return nil, validate.Many(
 			validation.NewFieldError("targets", "cannot be used with `newRotation`"),
