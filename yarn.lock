@@ -12552,14 +12552,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ip@npm:^2.0.0":
-  version: 2.0.1
-  resolution: "ip@npm:2.0.1"
-  checksum: d765c9fd212b8a99023a4cde6a558a054c298d640fec1020567494d257afd78ca77e37126b1a3ef0e053646ced79a816bf50621d38d5e768cdde0431fa3b0d35
-  languageName: node
-  linkType: hard
-
-"ip@npm:^2.0.1":
+"ip@npm:^2.0.0, ip@npm:^2.0.1":
   version: 2.0.1
   resolution: "ip@npm:2.0.1"
   checksum: d765c9fd212b8a99023a4cde6a558a054c298d640fec1020567494d257afd78ca77e37126b1a3ef0e053646ced79a816bf50621d38d5e768cdde0431fa3b0d35

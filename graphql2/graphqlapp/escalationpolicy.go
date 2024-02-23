@@ -35,8 +35,8 @@ func (a *CreateEscalationPolicyStepInput) Actions(ctx context.Context, input *gr
 	var err error
 	for i, action := range actions {
 		tgts[i], err = CompatDestToTarget(action)
-		if ok, _ := (*App)(a).ValidateDestination(ctx, "input.actions", &action); !ok {
-			return validation.NewFieldError("actions["+strconv.Itoa(i)+"].", "invalid DestInput")
+		if ok, _ := (*App)(a).ValidateDestination(ctx, fmt.Sprintf("input.actions.%d.dest", i), &action); !ok {
+			return nil // ValidateDestination already sets error state
 		}
 		if err != nil {
 			return validation.NewFieldError("actions", "invalid DestInput")
