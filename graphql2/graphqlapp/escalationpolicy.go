@@ -19,10 +19,32 @@ import (
 
 type EscalationPolicy App
 type EscalationPolicyStep App
+type CreateEscalationPolicyStepInput App
 
 func (a *App) EscalationPolicy() graphql2.EscalationPolicyResolver { return (*EscalationPolicy)(a) }
 func (a *App) EscalationPolicyStep() graphql2.EscalationPolicyStepResolver {
 	return (*EscalationPolicyStep)(a)
+}
+
+func (a *App) CreateEscalationPolicyStepInput() graphql2.CreateEscalationPolicyStepInputResolver {
+	return (*CreateEscalationPolicyStepInput)(a)
+}
+
+func (a *CreateEscalationPolicyStepInput) Actions(ctx context.Context, input *graphql2.CreateEscalationPolicyStepInput, actions []graphql2.DestinationInput) error {
+	tgts := make([]assignment.RawTarget, len(actions))
+	var err error
+	for i, action := range actions {
+		if err := (*App)(a).ValidateDestination(ctx, fmt.Sprintf("%d.dest", i), &action); err != nil {
+			return err
+		}
+		tgts[i], err = CompatDestToTarget(action)
+		if err != nil {
+			return validation.NewFieldError("actions", "invalid DestInput")
+		}
+	}
+	input.Targets = tgts
+	input.Actions = actions
+	return nil
 }
 
 func contains(ids []string, id string) bool {
@@ -36,6 +58,14 @@ func contains(ids []string, id string) bool {
 
 func (m *Mutation) CreateEscalationPolicyStep(ctx context.Context, input graphql2.CreateEscalationPolicyStepInput) (step *escalation.Step, err error) {
 	cfg := config.FromContext(ctx)
+	if input.Actions != nil {
+		// validate delay so we return a new coded error (when using actions)
+		err := validate.Range("input.delayMinutes", input.DelayMinutes, 1, 9000)
+		if err != nil {
+			addInputError(ctx, err)
+			return nil, errAlreadySet
+		}
+	}
 	if len(input.Targets) != 0 && input.NewRotation != nil {
 		return nil, validate.Many(
 			validation.NewFieldError("targets", "cannot be used with `newRotation`"),
