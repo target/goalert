@@ -182,6 +182,7 @@ export interface CreateEscalationPolicyInput {
 }
 
 export interface CreateEscalationPolicyStepInput {
+  actions?: null | DestinationInput[]
   delayMinutes: number
   escalationPolicyID?: null | string
   newRotation?: null | CreateRotationInput
@@ -360,11 +361,10 @@ export interface DestinationFieldConfig {
   hint: string
   hintURL: string
   inputType: string
-  isSearchSelectable: boolean
-  labelPlural: string
-  labelSingular: string
+  label: string
   placeholderText: string
   prefix: string
+  supportsSearch: boolean
   supportsValidation: boolean
 }
 

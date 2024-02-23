@@ -9,6 +9,7 @@ import UserContactMethodListDest from './UserContactMethodListDest'
 import { AddAlarm, SettingsPhone } from '@mui/icons-material'
 import SpeedDial from '../util/SpeedDial'
 import UserNotificationRuleList from './UserNotificationRuleList'
+import UserNotificationRuleListDest from './UserNotificationRuleListDest'
 import { Grid } from '@mui/material'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
 import UserNotificationRuleCreateDialog from './UserNotificationRuleCreateDialog'
@@ -250,10 +251,17 @@ export default function UserDetails(props: {
                 readOnly={props.readOnly}
               />
             )}
-            <UserNotificationRuleList
-              userID={userID}
-              readOnly={props.readOnly}
-            />
+            {hasDestTypesFlag ? (
+              <UserNotificationRuleListDest
+                userID={userID}
+                readOnly={props.readOnly}
+              />
+            ) : (
+              <UserNotificationRuleList
+                userID={userID}
+                readOnly={props.readOnly}
+              />
+            )}
             {!mobile && (
               <Suspense>
                 <Grid item xs={12}>
