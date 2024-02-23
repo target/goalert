@@ -41,6 +41,16 @@ func (a *App) OnCallNotificationRuleInput() graphql2.OnCallNotificationRuleInput
 }
 
 func (a *OnCallNotificationRuleInput) Dest(ctx context.Context, input *graphql2.OnCallNotificationRuleInput, dest *graphql2.DestinationInput) error {
+	err := (*App)(a).ValidateDestination(ctx, "", dest)
+	if err != nil {
+		return err
+	}
+
+	input.Target, err = CompatDestToTarget(*dest)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
