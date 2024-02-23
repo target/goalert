@@ -204,10 +204,10 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 		}, nil
 	case fieldScheduleID:
 		res, err := q.Schedules(ctx, &graphql2.ScheduleSearchOptions{
-			Omit:   input.Omit,
-			First:  input.First,
-			Search: input.Search,
-			After:  input.After,
+			Omit:           input.Omit,
+			First:          input.First,
+			Search:         input.Search,
+			After:          input.After,
 			FavoritesFirst: &favFirst,
 		})
 		if err != nil {
@@ -230,10 +230,10 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 		}, nil
 	case fieldUserID:
 		res, err := q.Users(ctx, &graphql2.UserSearchOptions{
-			Omit:   input.Omit,
-			First:  input.First,
-			Search: input.Search,
-			After:  input.After,
+			Omit:           input.Omit,
+			First:          input.First,
+			Search:         input.Search,
+			After:          input.After,
 			FavoritesFirst: &favFirst,
 		}, input.First, input.After, input.Search)
 		if err != nil {
@@ -424,11 +424,10 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			}},
 		},
 		{
-			Type:                destRotation,
-			Name:                "Rotation",
-			Enabled:             true,
-			IsEPTarget:          true,
-			IsSchedOnCallNotify: true,
+			Type:       destRotation,
+			Name:       "Rotation",
+			Enabled:    true,
+			IsEPTarget: true,
 			RequiredFields: []graphql2.DestinationFieldConfig{{
 				FieldID:            fieldRotationID,
 				LabelSingular:      "Rotation",
