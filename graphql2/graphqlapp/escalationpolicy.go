@@ -34,8 +34,8 @@ func (a *CreateEscalationPolicyStepInput) Actions(ctx context.Context, input *gr
 	tgts := make([]assignment.RawTarget, len(actions))
 	var err error
 	for i, action := range actions {
-		if ok, _ := (*App)(a).ValidateDestination(ctx, fmt.Sprintf("input.actions.%d.dest", i), &action); !ok {
-			return nil // ValidateDestination already sets error state
+		if err := (*App)(a).ValidateDestination(ctx, fmt.Sprintf("%d.dest", i), &action); err != nil {
+			return err
 		}
 		tgts[i], err = CompatDestToTarget(action)
 		if err != nil {
