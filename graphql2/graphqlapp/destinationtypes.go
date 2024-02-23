@@ -437,11 +437,10 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			}},
 		},
 		{
-			Type:                destSchedule,
-			Name:                "Schedule",
-			Enabled:             true,
-			IsEPTarget:          true,
-			IsSchedOnCallNotify: true,
+			Type:       destSchedule,
+			Name:       "Schedule",
+			Enabled:    true,
+			IsEPTarget: true,
 			RequiredFields: []graphql2.DestinationFieldConfig{{
 				FieldID:            fieldScheduleID,
 				LabelSingular:      "Schedule",
@@ -451,11 +450,10 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			}},
 		},
 		{
-			Type:                destUser,
-			Name:                "User",
-			Enabled:             true,
-			IsEPTarget:          true,
-			IsSchedOnCallNotify: true,
+			Type:       destUser,
+			Name:       "User",
+			Enabled:    true,
+			IsEPTarget: true,
 			RequiredFields: []graphql2.DestinationFieldConfig{{
 				FieldID:            fieldUserID,
 				LabelSingular:      "User",
