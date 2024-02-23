@@ -92,6 +92,7 @@ export default function ScheduleOnCallNotificationsFormDest(
           field,
         }
       })}
+      optionalLabels
     >
       <Grid container spacing={2} direction='column'>
         <Grid item>
