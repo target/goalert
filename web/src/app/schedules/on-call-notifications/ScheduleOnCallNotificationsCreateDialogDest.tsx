@@ -12,6 +12,7 @@ import {
   Schedule,
   SetScheduleOnCallNotificationRulesInput,
 } from '../../../schema'
+import { DateTime } from 'luxon'
 
 const getRulesQuery = gql`
   query GetRules($scheduleID: ID!) {
@@ -78,12 +79,23 @@ export default function ScheduleOnCallNotificationsCreateDialog(
       loading={m.fetching}
       onClose={onClose}
       onSubmit={() =>
-        commit({
-          input: {
-            scheduleID,
-            rules: [...sched.onCallNotificationRules, value],
-          } satisfies SetScheduleOnCallNotificationRulesInput,
-        }).then(onClose)
+        commit(
+          {
+            input: {
+              scheduleID,
+              rules: [
+                ...sched.onCallNotificationRules,
+                value.time
+                  ? {
+                      ...value,
+                      time: DateTime.fromISO(value.time).toFormat('HH:mm'),
+                    }
+                  : { dest: value.dest },
+              ],
+            } satisfies SetScheduleOnCallNotificationRulesInput,
+          },
+          { additionalTypenames: ['Schedule'] },
+        ).then(onClose)
       }
       form={
         <ScheduleOnCallNotificationsForm
