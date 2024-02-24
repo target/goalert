@@ -14890,13 +14890,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mdi-material-ui@npm:7.7.0":
-  version: 7.7.0
-  resolution: "mdi-material-ui@npm:7.7.0"
+"mdi-material-ui@npm:7.8.0":
+  version: 7.8.0
+  resolution: "mdi-material-ui@npm:7.8.0"
   peerDependencies:
     "@mui/material": ^5.0.0 || ^5.0.0-rc.0
     react: ^16.8.0 || ^17.0.0 || ^18.0.0
-  checksum: 5dd565522dc4689e5e45b363134a71ac57145a5342e08cdac6725295a45545bb932cf8498dd71d76416793454304af9625b2436af85d553e91a54acb4234f637
+  checksum: 4973cdd2e4457951fcfe24f4bba62ab241df82b3484618e876b0d8a0962cd60afe897ee6e00428ed5773caca9bb874090794fd4e0167aaabc612b43065efa94d
   languageName: node
   linkType: hard
 
@@ -18100,7 +18100,7 @@ __metadata:
     lodash: 4.17.21
     luxon: 3.4.4
     mdast-util-find-and-replace: 3.0.1
-    mdi-material-ui: 7.7.0
+    mdi-material-ui: 7.8.0
     msw: 2.0.11
     msw-storybook-addon: 2.0.0--canary.122.06f0c92.0
     prettier: 3.2.4
