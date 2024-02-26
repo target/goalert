@@ -221,6 +221,11 @@ export function useEPTargetTypes(): DestinationTypeInfo[] {
   return cfg.destTypes
     .filter((t) => t.isEPTarget)
     .sort((a, b) => a.name.localeCompare(b.name))
+    
+/** useSchedOnCallNotifyTypes returns a list of schedule on-call notification destination types. */
+export function useSchedOnCallNotifyTypes(): DestinationTypeInfo[] {
+  const cfg = React.useContext(ConfigContext)
+  return cfg.destTypes.filter((t) => t.isSchedOnCallNotify)
 }
 
 // useDestinationType returns information about the given destination type.
