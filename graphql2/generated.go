@@ -236,11 +236,10 @@ type ComplexityRoot struct {
 		Hint               func(childComplexity int) int
 		HintURL            func(childComplexity int) int
 		InputType          func(childComplexity int) int
-		IsSearchSelectable func(childComplexity int) int
-		LabelPlural        func(childComplexity int) int
-		LabelSingular      func(childComplexity int) int
+		Label              func(childComplexity int) int
 		PlaceholderText    func(childComplexity int) int
 		Prefix             func(childComplexity int) int
+		SupportsSearch     func(childComplexity int) int
 		SupportsValidation func(childComplexity int) int
 	}
 
@@ -1602,26 +1601,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DestinationFieldConfig.InputType(childComplexity), true
 
-	case "DestinationFieldConfig.isSearchSelectable":
-		if e.complexity.DestinationFieldConfig.IsSearchSelectable == nil {
+	case "DestinationFieldConfig.label":
+		if e.complexity.DestinationFieldConfig.Label == nil {
 			break
 		}
 
-		return e.complexity.DestinationFieldConfig.IsSearchSelectable(childComplexity), true
-
-	case "DestinationFieldConfig.labelPlural":
-		if e.complexity.DestinationFieldConfig.LabelPlural == nil {
-			break
-		}
-
-		return e.complexity.DestinationFieldConfig.LabelPlural(childComplexity), true
-
-	case "DestinationFieldConfig.labelSingular":
-		if e.complexity.DestinationFieldConfig.LabelSingular == nil {
-			break
-		}
-
-		return e.complexity.DestinationFieldConfig.LabelSingular(childComplexity), true
+		return e.complexity.DestinationFieldConfig.Label(childComplexity), true
 
 	case "DestinationFieldConfig.placeholderText":
 		if e.complexity.DestinationFieldConfig.PlaceholderText == nil {
@@ -1636,6 +1621,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DestinationFieldConfig.Prefix(childComplexity), true
+
+	case "DestinationFieldConfig.supportsSearch":
+		if e.complexity.DestinationFieldConfig.SupportsSearch == nil {
+			break
+		}
+
+		return e.complexity.DestinationFieldConfig.SupportsSearch(childComplexity), true
 
 	case "DestinationFieldConfig.supportsValidation":
 		if e.complexity.DestinationFieldConfig.SupportsValidation == nil {
@@ -9866,8 +9858,8 @@ func (ec *executionContext) fieldContext_DestinationFieldConfig_fieldID(ctx cont
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationFieldConfig_labelSingular(ctx context.Context, field graphql.CollectedField, obj *DestinationFieldConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DestinationFieldConfig_labelSingular(ctx, field)
+func (ec *executionContext) _DestinationFieldConfig_label(ctx context.Context, field graphql.CollectedField, obj *DestinationFieldConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DestinationFieldConfig_label(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -9880,7 +9872,7 @@ func (ec *executionContext) _DestinationFieldConfig_labelSingular(ctx context.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.LabelSingular, nil
+		return obj.Label, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9897,51 +9889,7 @@ func (ec *executionContext) _DestinationFieldConfig_labelSingular(ctx context.Co
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_DestinationFieldConfig_labelSingular(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "DestinationFieldConfig",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _DestinationFieldConfig_labelPlural(ctx context.Context, field graphql.CollectedField, obj *DestinationFieldConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DestinationFieldConfig_labelPlural(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LabelPlural, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_DestinationFieldConfig_labelPlural(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_DestinationFieldConfig_label(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "DestinationFieldConfig",
 		Field:      field,
@@ -10174,8 +10122,8 @@ func (ec *executionContext) fieldContext_DestinationFieldConfig_inputType(ctx co
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationFieldConfig_isSearchSelectable(ctx context.Context, field graphql.CollectedField, obj *DestinationFieldConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DestinationFieldConfig_isSearchSelectable(ctx, field)
+func (ec *executionContext) _DestinationFieldConfig_supportsSearch(ctx context.Context, field graphql.CollectedField, obj *DestinationFieldConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DestinationFieldConfig_supportsSearch(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -10188,7 +10136,7 @@ func (ec *executionContext) _DestinationFieldConfig_isSearchSelectable(ctx conte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.IsSearchSelectable, nil
+		return obj.SupportsSearch, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10205,7 +10153,7 @@ func (ec *executionContext) _DestinationFieldConfig_isSearchSelectable(ctx conte
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_DestinationFieldConfig_isSearchSelectable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_DestinationFieldConfig_supportsSearch(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "DestinationFieldConfig",
 		Field:      field,
@@ -10567,10 +10515,8 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_requiredFields(ctx 
 			switch field.Name {
 			case "fieldID":
 				return ec.fieldContext_DestinationFieldConfig_fieldID(ctx, field)
-			case "labelSingular":
-				return ec.fieldContext_DestinationFieldConfig_labelSingular(ctx, field)
-			case "labelPlural":
-				return ec.fieldContext_DestinationFieldConfig_labelPlural(ctx, field)
+			case "label":
+				return ec.fieldContext_DestinationFieldConfig_label(ctx, field)
 			case "hint":
 				return ec.fieldContext_DestinationFieldConfig_hint(ctx, field)
 			case "hintURL":
@@ -10581,8 +10527,8 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_requiredFields(ctx 
 				return ec.fieldContext_DestinationFieldConfig_prefix(ctx, field)
 			case "inputType":
 				return ec.fieldContext_DestinationFieldConfig_inputType(ctx, field)
-			case "isSearchSelectable":
-				return ec.fieldContext_DestinationFieldConfig_isSearchSelectable(ctx, field)
+			case "supportsSearch":
+				return ec.fieldContext_DestinationFieldConfig_supportsSearch(ctx, field)
 			case "supportsValidation":
 				return ec.fieldContext_DestinationFieldConfig_supportsValidation(ctx, field)
 			}
@@ -36049,13 +35995,8 @@ func (ec *executionContext) _DestinationFieldConfig(ctx context.Context, sel ast
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "labelSingular":
-			out.Values[i] = ec._DestinationFieldConfig_labelSingular(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "labelPlural":
-			out.Values[i] = ec._DestinationFieldConfig_labelPlural(ctx, field, obj)
+		case "label":
+			out.Values[i] = ec._DestinationFieldConfig_label(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -36084,8 +36025,8 @@ func (ec *executionContext) _DestinationFieldConfig(ctx context.Context, sel ast
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "isSearchSelectable":
-			out.Values[i] = ec._DestinationFieldConfig_isSearchSelectable(ctx, field, obj)
+		case "supportsSearch":
+			out.Values[i] = ec._DestinationFieldConfig_supportsSearch(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

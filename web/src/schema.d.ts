@@ -361,11 +361,10 @@ export interface DestinationFieldConfig {
   hint: string
   hintURL: string
   inputType: string
-  isSearchSelectable: boolean
-  labelPlural: string
-  labelSingular: string
+  label: string
   placeholderText: string
   prefix: string
+  supportsSearch: boolean
   supportsValidation: boolean
 }
 

@@ -30,7 +30,7 @@ require (
 	github.com/mailhog/storage v1.0.1
 	github.com/matcornic/hermes/v2 v2.1.0
 	github.com/mnako/letters v0.2.2
-	github.com/nyaruka/phonenumbers v1.3.1
+	github.com/nyaruka/phonenumbers v1.3.2
 	github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282
 	github.com/pelletier/go-toml/v2 v2.1.1
 	github.com/pkg/errors v0.9.1
@@ -52,7 +52,7 @@ require (
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
 	google.golang.org/protobuf v1.32.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
-	honnef.co/go/tools v0.4.6
+	honnef.co/go/tools v0.4.7
 )
 
 require (
