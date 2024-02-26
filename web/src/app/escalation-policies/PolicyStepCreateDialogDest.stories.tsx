@@ -27,23 +27,78 @@ const meta = {
           return HttpResponse.json({
             data: {
               destinationFieldValidate:
-                vars.input.value === 'https://target.com/webhook' ||
+                vars.input.value === 'https://target.com' ||
+                vars.input.value === 'https://target.com2' ||
                 vars.input.value === '+12225558989',
             },
           })
         }),
+
         graphql.query('DestDisplayInfo', ({ variables: vars }) => {
           let body = {}
-          if (vars.input.type === 'single-field-ep-step') {
+          if (vars.input.values[0].value === '+111') {
+            body = {
+              data: null,
+              errors: [
+                {
+                  message: 'phone number is invalid',
+                  path: ['destinationDisplayInfo', 'input', 'action'],
+                  extensions: {
+                    code: 'INVALID_DEST_FIELD_VALUE',
+                    fieldID: 'phone-number',
+                  },
+                },
+              ],
+            }
+          } else if (
+            vars.input.values[0].value === '+12225558989' &&
+            vars.input.values[1].value === 'notvalid'
+          ) {
+            body = {
+              data: null,
+              errors: [
+                {
+                  message: 'webhook is invalid',
+                  path: ['destinationDisplayInfo', 'input', 'action'],
+                  extensions: {
+                    code: 'INVALID_DEST_FIELD_VALUE',
+                    fieldID: 'webhook-url',
+                  },
+                },
+              ],
+            }
+          } else if (vars.input.values[0].value === 'https://target2.com') {
             body = {
               data: {
                 destinationDisplayInfo: {
                   text: vars.input.values[0].value,
                   iconURL: 'builtin://webhook',
                   iconAltText: 'Webhook',
-                  linkURL: '',
                 },
               },
+            }
+          } else if (vars.input.values[0].value === '+12225558989') {
+            body = {
+              data: {
+                destinationDisplayInfo: {
+                  text: vars.input.values[0].value,
+                  iconURL: 'builtin://phone-voice',
+                  iconAltText: 'Voice Call',
+                },
+              },
+            }
+          } else {
+            body = {
+              errors: [
+                {
+                  message: 'invalid dest input',
+                  path: ['destinationDisplayInfo', 'input', 'action'],
+                  extensions: {
+                    code: 'INVALID_DEST_FIELD_VALUE',
+                    fieldID: vars.input.values[0].type || 'generic',
+                  },
+                },
+              ],
             }
           }
           return HttpResponse.json(body)
@@ -61,49 +116,85 @@ export const AddActions: Story = {
     escalationPolicyID: '00000000-0000-0000-0000-000000000000',
   },
   play: async () => {
-    // expect all fields to display correctly for single-field-ep-step
+    // add invalid phone number
+    await userEvent.clear(await screen.findByPlaceholderText('11235550123'))
     await waitFor(async () => {
-      await expect(await screen.findByLabelText('Webhook URL')).toBeVisible()
-      await expect(
-        await screen.findByPlaceholderText('https://example.com'),
-      ).toBeVisible()
-      await expect(screen.getByText('Webhook Documentation')).toHaveAttribute(
-        'href',
-        '/docs#webhooks',
+      await userEvent.type(
+        await screen.findByPlaceholderText('11235550123'),
+        '111',
       )
     })
+    await userEvent.click(await screen.findByText('Add Action'))
 
-    // add three actions
+    // expect to see error message for phone number
+    await expect(
+      await screen.findByText('phone number is invalid'),
+    ).toBeVisible()
+
     await userEvent.clear(await screen.findByPlaceholderText('11235550123'))
     await waitFor(async () => {
       await userEvent.type(
         await screen.findByPlaceholderText('11235550123'),
         '12225558989',
       )
-      await expect(await screen.findByTestId('CheckIcon')).toBeVisible()
+    })
+    await expect(await screen.findByTestId('CheckIcon')).toBeVisible()
+
+    // add invalid webhook
+    await waitFor(async () => {
+      await userEvent.type(
+        await screen.findByPlaceholderText('https://example.com'),
+        'notvalid',
+      )
     })
 
-    // await userEvent.clear(
-    //   await screen.findByPlaceholderText('https://example.com'),
-    // )
-    // await waitFor(async () => {
-    //   await userEvent.type(
-    //     await screen.findByPlaceholderText('https://example.com'),
-    //     'https://target.com/webhook',
-    //   )
-    //   await expect(await screen.findByTestId('CheckIcon')).toBeVisible()
-    // })
-    // await userEvent.click(await screen.findByText('Add Action'))
-    // await userEvent.clear(
-    //   await screen.findByPlaceholderText('https://example.com'),
-    // )
-    // await waitFor(async () => {
-    //   await userEvent.type(
-    //     await screen.findByPlaceholderText('https://example.com'),
-    //     'https://target.com/webhook2',
-    //   )
-    //   await expect(await screen.findByTestId('CheckIcon')).toBeVisible()
-    // })
-    // await userEvent.click(await screen.findByText('Add Action'))
+    await userEvent.click(await screen.findByText('Add Action'))
+
+    // expect to see error message for webhook
+    await expect(await screen.findByText('webhook is invalid')).toBeVisible()
+
+    // add valid phone number and webhook
+    await waitFor(async () => {
+      await userEvent.type(
+        await screen.findByPlaceholderText('11235550123'),
+        '12225558989',
+      )
+    })
+    await expect(await screen.findByTestId('CheckIcon')).toBeVisible()
+
+    await userEvent.clear(
+      await screen.findByPlaceholderText('https://example.com'),
+    )
+    await waitFor(async () => {
+      await userEvent.type(
+        await screen.findByPlaceholderText('https://example.com'),
+        'https://target.com',
+      )
+    })
+
+    await userEvent.click(await screen.findByText('Add Action'))
+
+    // expect to see action added
+    await expect(await screen.findByTestId('destination-chip')).toBeVisible()
+    await expect(await screen.findByText('+12225558989')).toBeVisible()
+
+    // add single destination action
+    await userEvent.click(await screen.findByText('Multi Field EP Step Dest'))
+    await userEvent.click(await screen.findByText('Single Field EP Step Dest'))
+    await userEvent.clear(
+      await screen.findByPlaceholderText('https://example.com'),
+    )
+    await waitFor(async () => {
+      await userEvent.type(
+        await screen.findByPlaceholderText('https://example.com'),
+        'https://target2.com',
+      )
+    })
+
+    await userEvent.click(await screen.findByText('Add Action'))
+
+    // expect to see action added
+    await expect(await screen.findByText('https://target2.com')).toBeVisible()
+    await expect(await screen.findByTestId('WebhookIcon')).toBeVisible()
   },
 }

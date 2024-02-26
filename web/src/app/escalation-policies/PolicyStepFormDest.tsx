@@ -121,7 +121,7 @@ export default function PolicyStepFormDest(
           <Button
             variant='contained'
             onClick={() => {
-              // setValues([])
+              setValues([])
               if (!props.onChange) return
 
               validationClient
