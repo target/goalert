@@ -6489,16 +6489,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-transition-group@npm:4.4.7":
-  version: 4.4.7
-  resolution: "@types/react-transition-group@npm:4.4.7"
-  dependencies:
-    "@types/react": "*"
-  checksum: 3b91486e7aa777a3787e773efce79a0fa9be4ec9e02d51ccda8c7532c5c5d84fbcefe248dacb4007293d85bf0794ac51603bb9cec360db81cf3657d2b7123fb9
-  languageName: node
-  linkType: hard
-
-"@types/react-transition-group@npm:^4.4.10":
+"@types/react-transition-group@npm:4.4.10, @types/react-transition-group@npm:^4.4.10":
   version: 4.4.10
   resolution: "@types/react-transition-group@npm:4.4.10"
   dependencies:
@@ -18062,7 +18053,7 @@ __metadata:
     "@types/react": 18.2.48
     "@types/react-big-calendar": 1.6.5
     "@types/react-dom": 18.2.18
-    "@types/react-transition-group": 4.4.7
+    "@types/react-transition-group": 4.4.10
     "@types/react-virtualized-auto-sizer": 1.0.4
     "@typescript-eslint/eslint-plugin": 7.0.1
     "@typescript-eslint/parser": 6.21.0
