@@ -14890,13 +14890,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mdi-material-ui@npm:7.7.0":
-  version: 7.7.0
-  resolution: "mdi-material-ui@npm:7.7.0"
+"mdi-material-ui@npm:7.8.0":
+  version: 7.8.0
+  resolution: "mdi-material-ui@npm:7.8.0"
   peerDependencies:
     "@mui/material": ^5.0.0 || ^5.0.0-rc.0
     react: ^16.8.0 || ^17.0.0 || ^18.0.0
-  checksum: 5dd565522dc4689e5e45b363134a71ac57145a5342e08cdac6725295a45545bb932cf8498dd71d76416793454304af9625b2436af85d553e91a54acb4234f637
+  checksum: 4973cdd2e4457951fcfe24f4bba62ab241df82b3484618e876b0d8a0962cd60afe897ee6e00428ed5773caca9bb874090794fd4e0167aaabc612b43065efa94d
   languageName: node
   linkType: hard
 
@@ -17123,16 +17123,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-markdown@npm:9.0.0":
-  version: 9.0.0
-  resolution: "react-markdown@npm:9.0.0"
+"react-markdown@npm:9.0.1":
+  version: 9.0.1
+  resolution: "react-markdown@npm:9.0.1"
   dependencies:
     "@types/hast": ^3.0.0
     devlop: ^1.0.0
     hast-util-to-jsx-runtime: ^2.0.0
     html-url-attributes: ^3.0.0
     mdast-util-to-hast: ^13.0.0
-    micromark-util-sanitize-uri: ^2.0.0
     remark-parse: ^11.0.0
     remark-rehype: ^11.0.0
     unified: ^11.0.0
@@ -17141,7 +17140,7 @@ __metadata:
   peerDependencies:
     "@types/react": ">=18"
     react: ">=18"
-  checksum: 7057f60f0657d5c6210f02a2c80d537176d0d29c141e4b52a8f8fa335ee454248c37c29caf27e8bd28a180bc8e14b5522f63e2a61e3ec3ea5201a58ad43f43c6
+  checksum: ca1daa650d48b84a5a9771683cdb3f3d2d418247ce0faf73ede3207c65f2a21cdebb9df37afda67f6fc8f0f0a7b9ce00eb239781954a4d6c7ad88ea4df068add
   languageName: node
   linkType: hard
 
@@ -18100,7 +18099,7 @@ __metadata:
     lodash: 4.17.21
     luxon: 3.4.4
     mdast-util-find-and-replace: 3.0.1
-    mdi-material-ui: 7.7.0
+    mdi-material-ui: 7.8.0
     msw: 2.0.11
     msw-storybook-addon: 2.0.0--canary.122.06f0c92.0
     prettier: 3.2.4
@@ -18115,7 +18114,7 @@ __metadata:
     react-error-boundary: 4.0.12
     react-ga4: 2.1.0
     react-infinite-scroll-component: 6.1.0
-    react-markdown: 9.0.0
+    react-markdown: 9.0.1
     react-redux: 8.1.3
     react-transition-group: 4.4.5
     react-virtualized-auto-sizer: 1.0.20
