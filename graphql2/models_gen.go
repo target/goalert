@@ -810,10 +810,12 @@ type UpdateUserCalendarSubscriptionInput struct {
 }
 
 type UpdateUserContactMethodInput struct {
-	ID                  string  `json:"id"`
-	Name                *string `json:"name,omitempty"`
-	Value               *string `json:"value,omitempty"`
-	EnableStatusUpdates *bool   `json:"enableStatusUpdates,omitempty"`
+	ID                  string              `json:"id"`
+	Type                *contactmethod.Type `json:"type,omitempty"`
+	Dest                *DestinationInput   `json:"dest,omitempty"`
+	Name                *string             `json:"name,omitempty"`
+	Value               *string             `json:"value,omitempty"`
+	EnableStatusUpdates *bool               `json:"enableStatusUpdates,omitempty"`
 }
 
 type UpdateUserInput struct {

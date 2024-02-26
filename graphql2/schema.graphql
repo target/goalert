@@ -1,4 +1,3 @@
-
 type IntegrationKeyTypeInfo {
   id: ID!
 
@@ -392,7 +391,6 @@ input CreateAlertInput {
 
 input CloseMatchingAlertInput {
   serviceID: ID! # service ID for the close operation.
-
   # summary (and details) will match an alert with the same values.
   #
   # They can be omitted if the dedup field is provided.
@@ -617,7 +615,11 @@ type Schedule {
   timeZone: String!
 
   assignedTo: [Target!]!
-  shifts(start: ISOTimestamp!, end: ISOTimestamp!, userIDs: [ID!]): [OnCallShift!]!
+  shifts(
+    start: ISOTimestamp!
+    end: ISOTimestamp!
+    userIDs: [ID!]
+  ): [OnCallShift!]!
 
   targets: [ScheduleTarget!]!
   target(input: TargetInput!): ScheduleTarget
@@ -1231,9 +1233,17 @@ input CreateUserNotificationRuleInput {
 
 input UpdateUserContactMethodInput {
   id: ID!
+  type: ContactMethodType
+
+  dest: DestinationInput @experimental(flagName: "dest-types")
 
   name: String
-  value: String @deprecated(reason: "Updating value is not supported, delete and create a new contact method instead.")
+
+  # Only value or dest should be used at a time, never both.
+  value: String
+    @deprecated(
+      reason: "Updating value is not supported, delete and create a new contact method instead."
+    )
 
   # If true, this contact method will receive status updates.
   #
