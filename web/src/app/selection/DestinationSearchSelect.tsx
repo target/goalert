@@ -40,7 +40,7 @@ export type DestinationSearchSelectProps = DestinationFieldConfig & {
 
 const cacheByJSON: Record<string, unknown> = {}
 
-function replacer(key, value): string | undefined {
+function replacer(key: string, value: string): string | undefined {
   if (key === 'icon') return undefined
   return value
 }

@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
-import { gql, useMutation } from 'urql'
-import { fieldErrors, nonFieldErrors } from '../util/errutil'
+import React, { useState, useEffect } from 'react'
+import { CombinedError, gql, useMutation } from 'urql'
+import { splitErrorsByPath } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import PolicyStepFormDest, { FormValue } from './PolicyStepFormDest'
+import { errorPaths } from '../users/UserContactMethodFormDest'
 
 const mutation = gql`
   mutation ($input: CreateEscalationPolicyStepInput!) {
@@ -29,15 +30,26 @@ function PolicyStepCreateDialogDest(props: {
   }
 
   const [createStepStatus, createStep] = useMutation(mutation)
+  const [err, setErr] = useState<CombinedError | null>(null)
 
-  const { fetching, error } = createStepStatus
-  const fieldErrs = fieldErrors(error)
+  useEffect(() => {
+    setErr(null)
+  }, [value])
+
+  useEffect(() => {
+    setErr(createStepStatus.error || null)
+  }, [createStepStatus.error])
+
+  const [formErrors, otherErrs] = splitErrorsByPath(
+    err,
+    errorPaths('destinationDisplayInfo.input'),
+  )
 
   return (
     <FormDialog
       title='Create Step'
-      loading={fetching}
-      errors={nonFieldErrors(error)}
+      loading={createStepStatus.fetching}
+      errors={otherErrs}
       maxWidth='sm'
       onClose={props.onClose}
       onSubmit={() => {
@@ -56,10 +68,11 @@ function PolicyStepCreateDialogDest(props: {
       }}
       form={
         <PolicyStepFormDest
-          errors={fieldErrs}
-          disabled={fetching}
+          errors={formErrors}
+          disabled={createStepStatus.fetching}
           value={value || defaultValue}
           onChange={(value: FormValue) => setValue(value)}
+          setErr={setErr}
         />
       }
     />

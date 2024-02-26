@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, ReactNode } from 'react'
 import { FormContainer, FormField } from '../forms'
 import Grid from '@mui/material/Grid'
 
@@ -9,7 +9,12 @@ import { Button, TextField, Typography } from '@mui/material'
 import { renderMenuItem } from '../selection/DisableableMenuItem'
 import DestinationField from '../selection/DestinationField'
 import { useEPTargetTypes } from '../util/RequireConfig'
-import { FieldError } from '../util/errutil'
+import { gql, useClient, CombinedError } from 'urql'
+import {
+  DestFieldValueError,
+  KnownError,
+  isInputFieldError,
+} from '../util/errtypes'
 
 export type FormValue = {
   delayMinutes: number
@@ -18,18 +23,31 @@ export type FormValue = {
 
 export type PolicyStepFormDestProps = {
   value: FormValue
-  errors?: FieldError[]
+  errors?: (KnownError | DestFieldValueError)[]
   disabled?: boolean
-  onChange?: (value: FormValue) => void
+  onChange: (value: FormValue) => void
+  setErr: (err: CombinedError | null) => void
 }
+
+const query = gql`
+  query DestDisplayInfo($input: DestinationInput!) {
+    destinationDisplayInfo(input: $input) {
+      text
+      iconURL
+      iconAltText
+      linkURL
+    }
+  }
+`
 
 export default function PolicyStepFormDest(
   props: PolicyStepFormDestProps,
-): React.ReactNode {
+): ReactNode {
   const types = useEPTargetTypes()
 
-  const [destType, setDestType] = React.useState(types[0].type)
-  const [values, setValues] = React.useState<FieldValueInput[]>([])
+  const [destType, setDestType] = useState(types[0].type)
+  const [values, setValues] = useState<FieldValueInput[]>([])
+  const validationClient = useClient()
 
   function handleDelete(a: DestinationInput): void {
     if (!props.onChange) return
@@ -48,7 +66,15 @@ export default function PolicyStepFormDest(
 
         props.onChange(newValue)
       }}
-      errors={props.errors}
+      errors={props.errors?.filter(isInputFieldError).map((e) => {
+        let field = e.path[e.path.length - 1].toString()
+        if (field === 'type') field = 'dest.type'
+        return {
+          // need to convert to FormContainer's error format
+          message: e.message,
+          field,
+        }
+      })}
     >
       <Grid container spacing={2}>
         <Grid item xs={12}>
@@ -95,17 +121,31 @@ export default function PolicyStepFormDest(
           <Button
             variant='contained'
             onClick={() => {
-              setValues([])
+              // setValues([])
               if (!props.onChange) return
 
-              console.log(props)
-              props.onChange({
-                ...props.value,
-                actions: props.value.actions.concat({
-                  type: destType,
-                  values,
-                }),
-              })
+              validationClient
+                .query(query, {
+                  input: {
+                    type: destType,
+                    values,
+                  },
+                })
+                .toPromise()
+                .then((res) => {
+                  if (res.error) {
+                    props.setErr(res.error)
+                    return
+                  }
+
+                  props.onChange({
+                    ...props.value,
+                    actions: props.value.actions.concat({
+                      type: destType,
+                      values,
+                    }),
+                  })
+                })
             }}
           >
             Add Action
