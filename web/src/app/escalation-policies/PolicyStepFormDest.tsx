@@ -1,4 +1,4 @@
-import React, { useState, ReactNode } from 'react'
+import React, { useState, ReactNode, useEffect } from 'react'
 import { FormContainer, FormField } from '../forms'
 import Grid from '@mui/material/Grid'
 
@@ -13,8 +13,9 @@ import { gql, useClient, CombinedError } from 'urql'
 import {
   DestFieldValueError,
   KnownError,
-  isInputFieldError,
+  isDestFieldError,
 } from '../util/errtypes'
+import { splitErrorsByPath } from '../util/errutil'
 
 export type FormValue = {
   delayMinutes: number
@@ -26,7 +27,6 @@ export type PolicyStepFormDestProps = {
   errors?: (KnownError | DestFieldValueError)[]
   disabled?: boolean
   onChange: (value: FormValue) => void
-  setErr: (err: CombinedError | null) => void
 }
 
 const query = gql`
@@ -48,6 +48,15 @@ export default function PolicyStepFormDest(
   const [destType, setDestType] = useState(types[0].type)
   const [values, setValues] = useState<FieldValueInput[]>([])
   const validationClient = useClient()
+  const [err, setErr] = useState<CombinedError | null>(null)
+  useEffect(() => {
+    setErr(null)
+  }, [props.value])
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [destErrors, _otherErrs] = splitErrorsByPath(err, [
+    'destinationDisplayInfo.input',
+  ])
 
   function handleDelete(a: DestinationInput): void {
     if (!props.onChange) return
@@ -66,15 +75,7 @@ export default function PolicyStepFormDest(
 
         props.onChange(newValue)
       }}
-      errors={props.errors?.filter(isInputFieldError).map((e) => {
-        let field = e.path[e.path.length - 1].toString()
-        if (field === 'type') field = 'dest.type'
-        return {
-          // need to convert to FormContainer's error format
-          message: e.message,
-          field,
-        }
-      })}
+      errors={props.errors}
     >
       <Grid container spacing={2}>
         <Grid item xs={12}>
@@ -115,6 +116,7 @@ export default function PolicyStepFormDest(
             value={values}
             disabled={props.disabled}
             onChange={(newValue: FieldValueInput[]) => setValues(newValue)}
+            destFieldErrors={destErrors.filter(isDestFieldError)}
           />
         </Grid>
         <Grid container item xs={12} justifyContent='flex-end'>
@@ -134,7 +136,7 @@ export default function PolicyStepFormDest(
                 .toPromise()
                 .then((res) => {
                   if (res.error) {
-                    props.setErr(res.error)
+                    setErr(res.error)
                     return
                   }
 

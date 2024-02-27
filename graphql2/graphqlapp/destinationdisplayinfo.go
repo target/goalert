@@ -35,7 +35,7 @@ func (a *Query) DestinationDisplayInfo(ctx context.Context, dest graphql2.Destin
 	app := (*App)(a)
 	cfg := config.FromContext(ctx)
 
-	if err := app.ValidateDestination(ctx, "input.action", &dest); err != nil {
+	if err := app.ValidateDestination(ctx, "input", &dest); err != nil {
 		return nil, err
 	}
 

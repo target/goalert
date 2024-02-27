@@ -72,7 +72,6 @@ function PolicyStepCreateDialogDest(props: {
           disabled={createStepStatus.fetching}
           value={value || defaultValue}
           onChange={(value: FormValue) => setValue(value)}
-          setErr={setErr}
         />
       }
     />
