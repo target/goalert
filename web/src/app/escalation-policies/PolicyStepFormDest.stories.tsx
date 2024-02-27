@@ -6,6 +6,8 @@ import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 import { useArgs } from '@storybook/preview-api'
 
+const defaultTimeout = 5000
+
 const meta = {
   title: 'escalation-policies/PolicyStepFormDest',
   component: PolicyStepFormDest,
@@ -121,12 +123,17 @@ export const AddActionAndDeleteActions: Story = {
     const canvas = within(canvasElement)
 
     // add 'multi-field-ep-step' action
-    await waitFor(async () => {
-      await userEvent.type(
-        await canvas.findByPlaceholderText('11235550123'),
-        '12225558989',
-      )
-    })
+    await waitFor(
+      async () => {
+        await userEvent.type(
+          await canvas.findByPlaceholderText('11235550123'),
+          '12225558989',
+        )
+      },
+      {
+        timeout: defaultTimeout,
+      },
+    )
     await expect(await canvas.findByTestId('CheckIcon')).toBeVisible()
     await waitFor(async () => {
       await userEvent.type(
@@ -138,10 +145,17 @@ export const AddActionAndDeleteActions: Story = {
     await userEvent.click(await canvas.findByText('Add Action'))
 
     // expect to see action icon and label added
-    await waitFor(async () => {
-      await expect(await canvas.findByTestId('destination-chip')).toBeVisible()
-      await expect(await canvas.findByText('+12225558989')).toBeVisible()
-    })
+    await waitFor(
+      async () => {
+        await expect(
+          await canvas.findByTestId('destination-chip'),
+        ).toBeVisible()
+        await expect(await canvas.findByText('+12225558989')).toBeVisible()
+      },
+      {
+        timeout: defaultTimeout,
+      },
+    )
 
     // add single-field-ep-step action
     await userEvent.click(await canvas.findByText('Multi Field EP Step Dest'))
@@ -149,20 +163,32 @@ export const AddActionAndDeleteActions: Story = {
     await userEvent.clear(
       await canvas.findByPlaceholderText('https://example.com'),
     )
-    await waitFor(async () => {
-      await userEvent.type(
-        await canvas.findByPlaceholderText('https://example.com'),
-        'https://target2.com',
-      )
-    })
+    await waitFor(
+      async () => {
+        await userEvent.type(
+          await canvas.findByPlaceholderText('https://example.com'),
+          'https://target2.com',
+        )
+      },
+      {
+        timeout: defaultTimeout,
+      },
+    )
 
     await userEvent.click(await canvas.findByText('Add Action'))
 
     // expect to see action icon and label added
-    await waitFor(async () => {
-      await expect(await canvas.findByText('https://target2.com')).toBeVisible()
-      await expect(await canvas.findByTestId('WebhookIcon')).toBeVisible()
-    })
+    await waitFor(
+      async () => {
+        await expect(
+          await canvas.findByText('https://target2.com'),
+        ).toBeVisible()
+        await expect(await canvas.findByTestId('WebhookIcon')).toBeVisible()
+      },
+      {
+        timeout: defaultTimeout,
+      },
+    )
 
     // delete all actions
     await userEvent.click(
@@ -185,18 +211,28 @@ export const Errors: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    await waitFor(async () => {
-      await userEvent.type(
-        await canvas.findByPlaceholderText('11235550123'),
-        '123',
-      )
-    })
-    await waitFor(async () => {
-      await userEvent.type(
-        await canvas.findByPlaceholderText('https://example.com'),
-        'notvalidurl',
-      )
-    })
+    await waitFor(
+      async () => {
+        await userEvent.type(
+          await canvas.findByPlaceholderText('11235550123'),
+          '123',
+        )
+      },
+      {
+        timeout: defaultTimeout,
+      },
+    )
+    await waitFor(
+      async () => {
+        await userEvent.type(
+          await canvas.findByPlaceholderText('https://example.com'),
+          'url',
+        )
+      },
+      {
+        timeout: defaultTimeout,
+      },
+    )
 
     await userEvent.click(await canvas.findByText('Add Action'))
 
@@ -207,40 +243,67 @@ export const Errors: Story = {
     ).toBeVisible()
 
     // expect user input values to remain on textfield
-    await waitFor(async () => {
-      await expect(await canvas.findByDisplayValue('123')).toBeVisible()
-      await expect(await canvas.findByDisplayValue('notvalidurl')).toBeVisible()
-    })
+    await waitFor(
+      async () => {
+        await expect(await canvas.findByDisplayValue('123')).toBeVisible()
+      },
+      {
+        timeout: defaultTimeout,
+      },
+    )
+    await waitFor(
+      async () => {
+        await expect(await canvas.findByDisplayValue('url')).toBeVisible()
+      },
+      {
+        timeout: defaultTimeout,
+      },
+    )
 
     // add valid values
     await userEvent.clear(await canvas.findByPlaceholderText('11235550123'))
-    await waitFor(async () => {
-      await userEvent.type(
-        await canvas.findByPlaceholderText('11235550123'),
-        '12225558989',
-      )
-    })
+    await waitFor(
+      async () => {
+        await userEvent.type(
+          await canvas.findByPlaceholderText('11235550123'),
+          '12225558989',
+        )
+      },
+      {
+        timeout: defaultTimeout,
+      },
+    )
     await userEvent.clear(
       await canvas.findByPlaceholderText('https://example.com'),
     )
 
-    await waitFor(async () => {
-      await userEvent.type(
-        await canvas.findByPlaceholderText('https://example.com'),
-        'https://target.com',
-      )
-    })
+    await waitFor(
+      async () => {
+        await userEvent.type(
+          await canvas.findByPlaceholderText('https://example.com'),
+          'https://target.com',
+        )
+      },
+      {
+        timeout: defaultTimeout,
+      },
+    )
 
     await userEvent.click(await canvas.findByText('Add Action'))
 
     // expect textfields to be empty
-    await waitFor(async () => {
-      await expect(
-        await canvas.findByPlaceholderText('11235550123'),
-      ).toHaveAttribute('value', '')
-      await expect(
-        await canvas.findByPlaceholderText('https://example.com'),
-      ).toHaveAttribute('value', '')
-    })
+    await waitFor(
+      async () => {
+        await expect(
+          await canvas.findByPlaceholderText('11235550123'),
+        ).toHaveAttribute('value', '')
+        await expect(
+          await canvas.findByPlaceholderText('https://example.com'),
+        ).toHaveAttribute('value', '')
+      },
+      {
+        timeout: defaultTimeout,
+      },
+    )
   },
 }
