@@ -43,6 +43,7 @@ const setRulesMut = gql`
 interface ScheduleOnCallNotificationsCreateDialogProps {
   onClose: () => void
   scheduleID: string
+  disablePortal?: boolean
 }
 
 export default function ScheduleOnCallNotificationsCreateDialog(
@@ -76,6 +77,7 @@ export default function ScheduleOnCallNotificationsCreateDialog(
     <FormDialog
       title='Create Notification Rule'
       errors={otherErrs}
+      disablePortal={props.disablePortal}
       loading={m.fetching}
       onClose={onClose}
       onSubmit={() =>
