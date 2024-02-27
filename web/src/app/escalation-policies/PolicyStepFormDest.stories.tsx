@@ -41,7 +41,6 @@ const meta = {
         }),
 
         graphql.query('DestDisplayInfo', ({ variables: vars }) => {
-          console.log(vars)
           switch (vars.input.type) {
             case 'single-field-ep-step':
               return HttpResponse.json({
@@ -86,6 +85,7 @@ const meta = {
                   },
                 },
               })
+
             default:
               return HttpResponse.json({
                 data: null,
@@ -138,8 +138,10 @@ export const AddActionAndDeleteActions: Story = {
     await userEvent.click(await canvas.findByText('Add Action'))
 
     // expect to see action icon and label added
-    await expect(await canvas.findByTestId('destination-chip')).toBeVisible()
-    await expect(await canvas.findByText('+12225558989')).toBeVisible()
+    await waitFor(async () => {
+      await expect(await canvas.findByTestId('destination-chip')).toBeVisible()
+      await expect(await canvas.findByText('+12225558989')).toBeVisible()
+    })
 
     // add single-field-ep-step action
     await userEvent.click(await canvas.findByText('Multi Field EP Step Dest'))
@@ -157,8 +159,10 @@ export const AddActionAndDeleteActions: Story = {
     await userEvent.click(await canvas.findByText('Add Action'))
 
     // expect to see action icon and label added
-    await expect(await canvas.findByText('https://target2.com')).toBeVisible()
-    await expect(await canvas.findByTestId('WebhookIcon')).toBeVisible()
+    await waitFor(async () => {
+      await expect(await canvas.findByText('https://target2.com')).toBeVisible()
+      await expect(await canvas.findByTestId('WebhookIcon')).toBeVisible()
+    })
 
     // delete all actions
     await userEvent.click(
@@ -203,8 +207,10 @@ export const Errors: Story = {
     ).toBeVisible()
 
     // expect user input values to remain on textfield
-    await expect(await canvas.findByDisplayValue('123')).toBeVisible()
-    await expect(await canvas.findByDisplayValue('notvalidurl')).toBeVisible()
+    await waitFor(async () => {
+      await expect(await canvas.findByDisplayValue('123')).toBeVisible()
+      await expect(await canvas.findByDisplayValue('notvalidurl')).toBeVisible()
+    })
 
     // add valid values
     await userEvent.clear(await canvas.findByPlaceholderText('11235550123'))
@@ -228,14 +234,10 @@ export const Errors: Story = {
     await userEvent.click(await canvas.findByText('Add Action'))
 
     // expect textfields to be empty
-
     await waitFor(async () => {
       await expect(
         await canvas.findByPlaceholderText('11235550123'),
       ).toHaveAttribute('value', '')
-    })
-
-    await waitFor(async () => {
       await expect(
         await canvas.findByPlaceholderText('https://example.com'),
       ).toHaveAttribute('value', '')
