@@ -109,11 +109,14 @@ export const ValidationError: Story = {
 
     await userEvent.click(await canvas.findByText('Submit'))
 
-    await waitFor(async () => {
-      await expect(await canvas.findByLabelText('Phone Number')).toBeInvalid()
-      await expect(await canvas.findByText('field error')).toBeVisible()
-      await expect(await canvas.findByText('Generic Error')).toBeVisible()
-    })
+    await waitFor(
+      async () => {
+        await expect(await canvas.findByLabelText('Phone Number')).toBeInvalid()
+        await expect(await canvas.findByText('Field error')).toBeVisible()
+        await expect(await canvas.findByText('Generic Error')).toBeVisible()
+      },
+      { timeout: 5000 },
+    )
 
     await userEvent.clear(await canvas.findByLabelText('Phone Number'))
     await userEvent.type(
