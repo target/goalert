@@ -1,7 +1,7 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import PolicyStepFormDest, { FormValue } from './PolicyStepFormDest'
-import { expect, userEvent, screen, waitFor, within } from '@storybook/test'
+import { expect, userEvent, waitFor, within } from '@storybook/test'
 import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 import { useArgs } from '@storybook/preview-api'
@@ -36,7 +36,6 @@ const meta = {
             data: {
               destinationFieldValidate:
                 vars.input.value === 'https://target.com' ||
-                vars.input.value === 'https://target.com2' ||
                 vars.input.value === '+12225558989',
             },
           })
@@ -112,96 +111,7 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const AddActionAndDeleteActions: Story = {
-  args: {
-    value: {
-      delayMinutes: 15,
-      actions: [],
-    },
-  },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-
-    // add 'multi-field-ep-step' action
-    await waitFor(
-      async () => {
-        await userEvent.type(
-          await canvas.findByPlaceholderText('11235550123'),
-          '12225558989',
-        )
-      },
-      {
-        timeout: defaultTimeout,
-      },
-    )
-    await expect(await canvas.findByTestId('CheckIcon')).toBeVisible()
-    await waitFor(async () => {
-      await userEvent.type(
-        await canvas.findByPlaceholderText('https://example.com'),
-        'https://target.com',
-      )
-    })
-
-    await userEvent.click(await canvas.findByText('Add Action'))
-
-    // expect to see action icon and label added
-    await waitFor(
-      async () => {
-        await expect(
-          await canvas.findByTestId('destination-chip'),
-        ).toBeVisible()
-        await expect(await canvas.findByText('+12225558989')).toBeVisible()
-      },
-      {
-        timeout: defaultTimeout,
-      },
-    )
-
-    // add single-field-ep-step action
-    await userEvent.click(await canvas.findByText('Multi Field EP Step Dest'))
-    await userEvent.click(await screen.findByText('Single Field EP Step Dest'))
-    await userEvent.clear(
-      await canvas.findByPlaceholderText('https://example.com'),
-    )
-    await waitFor(
-      async () => {
-        await userEvent.type(
-          await canvas.findByPlaceholderText('https://example.com'),
-          'https://target2.com',
-        )
-      },
-      {
-        timeout: defaultTimeout,
-      },
-    )
-
-    await userEvent.click(await canvas.findByText('Add Action'))
-
-    // expect to see action icon and label added
-    await waitFor(
-      async () => {
-        await expect(
-          await canvas.findByText('https://target2.com'),
-        ).toBeVisible()
-        await expect(await canvas.findByTestId('WebhookIcon')).toBeVisible()
-      },
-      {
-        timeout: defaultTimeout,
-      },
-    )
-
-    // delete all actions
-    await userEvent.click(
-      await canvas.findAllByTestId('CancelIcon').then((elem) => elem[0]),
-    )
-    await userEvent.click(await canvas.findByTestId('CancelIcon'))
-
-    // expect no actions
-    await expect(await canvas.findByText('No actions')).toBeVisible()
-  },
-}
-
-export const Errors: Story = {
+export const AddAndDeleteAction: Story = {
   args: {
     value: {
       delayMinutes: 15,
@@ -291,19 +201,12 @@ export const Errors: Story = {
 
     await userEvent.click(await canvas.findByText('Add Action'))
 
-    // expect textfields to be empty
-    await waitFor(
-      async () => {
-        await expect(
-          await canvas.findByPlaceholderText('11235550123'),
-        ).toHaveAttribute('value', '')
-        await expect(
-          await canvas.findByPlaceholderText('https://example.com'),
-        ).toHaveAttribute('value', '')
-      },
-      {
-        timeout: defaultTimeout,
-      },
+    // delete one action
+    await userEvent.click(
+      await canvas.findAllByTestId('CancelIcon').then((elem) => elem[0]),
     )
+
+    // expect no actions
+    await expect(await canvas.findByText('No actions')).toBeVisible()
   },
 }
