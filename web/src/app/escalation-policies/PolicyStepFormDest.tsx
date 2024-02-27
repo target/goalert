@@ -49,14 +49,15 @@ export default function PolicyStepFormDest(
   const [values, setValues] = useState<FieldValueInput[]>([])
   const validationClient = useClient()
   const [err, setErr] = useState<CombinedError | null>(null)
-  useEffect(() => {
-    setErr(null)
-  }, [props.value])
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [destErrors, _otherErrs] = splitErrorsByPath(err, [
     'destinationDisplayInfo.input',
   ])
+
+  useEffect(() => {
+    setErr(null)
+  }, [props.value])
 
   function handleDelete(a: DestinationInput): void {
     if (!props.onChange) return
@@ -115,8 +116,13 @@ export default function PolicyStepFormDest(
             destType={destType}
             value={values}
             disabled={props.disabled}
-            onChange={(newValue: FieldValueInput[]) => setValues(newValue)}
-            destFieldErrors={destErrors.filter(isDestFieldError)}
+            onChange={(newValue: FieldValueInput[]) => {
+              setErr(null)
+              setValues(newValue)
+            }}
+            destFieldErrors={
+              err ? destErrors.filter(isDestFieldError) : undefined
+            }
           />
         </Grid>
         <Grid container item xs={12} justifyContent='flex-end'>

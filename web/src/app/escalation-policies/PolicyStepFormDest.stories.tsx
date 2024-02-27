@@ -199,6 +199,13 @@ export const AddAndDeleteAction: Story = {
       },
     )
 
+    // expect the error messages to turn back to hint text
+    await userEvent.click(
+      await canvas.findByText(
+        'Include country code e.g. +1 (USA), +91 (India), +44 (UK)',
+      ),
+    )
+
     await userEvent.click(await canvas.findByText('Add Action'))
 
     // delete one action
