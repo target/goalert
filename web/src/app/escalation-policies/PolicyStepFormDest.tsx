@@ -123,7 +123,6 @@ export default function PolicyStepFormDest(
           <Button
             variant='contained'
             onClick={() => {
-              setValues([])
               if (!props.onChange) return
 
               validationClient
@@ -139,7 +138,7 @@ export default function PolicyStepFormDest(
                     setErr(res.error)
                     return
                   }
-
+                  setValues([])
                   props.onChange({
                     ...props.value,
                     actions: props.value.actions.concat({

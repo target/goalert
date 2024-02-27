@@ -41,29 +41,66 @@ const meta = {
         }),
 
         graphql.query('DestDisplayInfo', ({ variables: vars }) => {
-          let body = {}
-          if (vars.input.values[0].value === 'https://target2.com') {
-            body = {
-              data: {
-                destinationDisplayInfo: {
-                  text: vars.input.values[0].value,
-                  iconURL: 'builtin://webhook',
-                  iconAltText: 'Webhook',
+          console.log(vars)
+          switch (vars.input.type) {
+            case 'single-field-ep-step':
+              return HttpResponse.json({
+                data: {
+                  destinationDisplayInfo: {
+                    text: vars.input.values[0].value,
+                    iconURL: 'builtin://webhook',
+                    iconAltText: 'Webhook',
+                  },
                 },
-              },
-            }
-          } else {
-            body = {
-              data: {
-                destinationDisplayInfo: {
-                  text: vars.input.values[0].value,
-                  iconURL: 'builtin://phone-voice',
-                  iconAltText: 'Voice Call',
+              })
+            case 'multi-field-ep-step':
+              if (vars.input.values[0].value === '+123') {
+                return HttpResponse.json({
+                  data: null,
+                  errors: [
+                    {
+                      message: 'number is too short',
+                      path: ['destinationDisplayInfo', 'input'],
+                      extensions: {
+                        code: 'INVALID_DEST_FIELD_VALUE',
+                        fieldID: 'phone-number',
+                      },
+                    },
+                    {
+                      message: 'webhook url is invalid',
+                      path: ['destinationDisplayInfo', 'input'],
+                      extensions: {
+                        code: 'INVALID_DEST_FIELD_VALUE',
+                        fieldID: 'webhook-url',
+                      },
+                    },
+                  ],
+                })
+              }
+              return HttpResponse.json({
+                data: {
+                  destinationDisplayInfo: {
+                    text: vars.input.values[0].value,
+                    iconURL: 'builtin://phone-voice',
+                    iconAltText: 'Voice Call',
+                  },
                 },
-              },
-            }
+              })
+            default:
+              return HttpResponse.json({
+                data: null,
+                errors: [
+                  {
+                    message: 'destField is invalid',
+                    path: ['destinationDisplayInfo', 'input', 'action'],
+                    extensions: {
+                      code: 'INVALID_DEST_FIELD_VALUE',
+                      fieldID: 'phone-number',
+                    },
+                  },
+                ],
+              })
           }
-          return HttpResponse.json(body)
         }),
       ],
     },
@@ -73,7 +110,7 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const AddActions: Story = {
+export const AddActionAndDeleteActions: Story = {
   args: {
     value: {
       delayMinutes: 15,
@@ -83,7 +120,7 @@ export const AddActions: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // add valid phone number and webhook
+    // add 'multi-field-ep-step' action
     await waitFor(async () => {
       await userEvent.type(
         await canvas.findByPlaceholderText('11235550123'),
@@ -91,10 +128,6 @@ export const AddActions: Story = {
       )
     })
     await expect(await canvas.findByTestId('CheckIcon')).toBeVisible()
-
-    await userEvent.clear(
-      await canvas.findByPlaceholderText('https://example.com'),
-    )
     await waitFor(async () => {
       await userEvent.type(
         await canvas.findByPlaceholderText('https://example.com'),
@@ -104,11 +137,11 @@ export const AddActions: Story = {
 
     await userEvent.click(await canvas.findByText('Add Action'))
 
-    // expect to see action added
+    // expect to see action icon and label added
     await expect(await canvas.findByTestId('destination-chip')).toBeVisible()
     await expect(await canvas.findByText('+12225558989')).toBeVisible()
 
-    // add single destination action
+    // add single-field-ep-step action
     await userEvent.click(await canvas.findByText('Multi Field EP Step Dest'))
     await userEvent.click(await screen.findByText('Single Field EP Step Dest'))
     await userEvent.clear(
@@ -123,8 +156,89 @@ export const AddActions: Story = {
 
     await userEvent.click(await canvas.findByText('Add Action'))
 
-    // expect to see action added
+    // expect to see action icon and label added
     await expect(await canvas.findByText('https://target2.com')).toBeVisible()
     await expect(await canvas.findByTestId('WebhookIcon')).toBeVisible()
+
+    // delete all actions
+    await userEvent.click(
+      await canvas.findAllByTestId('CancelIcon').then((elem) => elem[0]),
+    )
+    await userEvent.click(await canvas.findByTestId('CancelIcon'))
+
+    // expect no actions
+    await expect(await canvas.findByText('No actions')).toBeVisible()
+  },
+}
+
+export const Errors: Story = {
+  args: {
+    value: {
+      delayMinutes: 15,
+      actions: [],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await waitFor(async () => {
+      await userEvent.type(
+        await canvas.findByPlaceholderText('11235550123'),
+        '123',
+      )
+    })
+    await waitFor(async () => {
+      await userEvent.type(
+        await canvas.findByPlaceholderText('https://example.com'),
+        'notvalidurl',
+      )
+    })
+
+    await userEvent.click(await canvas.findByText('Add Action'))
+
+    // expect to see error messages
+    await expect(await canvas.findByText('Number is too short')).toBeVisible()
+    await expect(
+      await canvas.findByText('Webhook url is invalid'),
+    ).toBeVisible()
+
+    // expect user input values to remain on textfield
+    await expect(await canvas.findByDisplayValue('123')).toBeVisible()
+    await expect(await canvas.findByDisplayValue('notvalidurl')).toBeVisible()
+
+    // add valid values
+    await userEvent.clear(await canvas.findByPlaceholderText('11235550123'))
+    await waitFor(async () => {
+      await userEvent.type(
+        await canvas.findByPlaceholderText('11235550123'),
+        '12225558989',
+      )
+    })
+    await userEvent.clear(
+      await canvas.findByPlaceholderText('https://example.com'),
+    )
+
+    await waitFor(async () => {
+      await userEvent.type(
+        await canvas.findByPlaceholderText('https://example.com'),
+        'https://target.com',
+      )
+    })
+
+    await userEvent.click(await canvas.findByText('Add Action'))
+
+    // expect textfields to be empty
+
+    await waitFor(async () => {
+      await expect(
+        await canvas.findByPlaceholderText('11235550123'),
+      ).toHaveAttribute('value', '')
+    })
+
+    await waitFor(async () => {
+      await expect(
+        await canvas.findByPlaceholderText('https://example.com'),
+      ).toHaveAttribute('value', '')
+    })
   },
 }
