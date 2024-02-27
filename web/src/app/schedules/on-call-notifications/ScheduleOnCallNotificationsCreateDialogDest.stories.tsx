@@ -111,6 +111,7 @@ export const ValidationError: Story = {
 
     await waitFor(async () => {
       await expect(await canvas.findByLabelText('Phone Number')).toBeInvalid()
+      await expect(await canvas.findByText('field error')).toBeVisible()
       await expect(await canvas.findByText('Generic Error')).toBeVisible()
     })
 
