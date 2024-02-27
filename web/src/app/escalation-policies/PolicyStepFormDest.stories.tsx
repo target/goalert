@@ -43,16 +43,6 @@ const meta = {
 
         graphql.query('DestDisplayInfo', ({ variables: vars }) => {
           switch (vars.input.type) {
-            case 'single-field-ep-step':
-              return HttpResponse.json({
-                data: {
-                  destinationDisplayInfo: {
-                    text: vars.input.values[0].value,
-                    iconURL: 'builtin://webhook',
-                    iconAltText: 'Webhook',
-                  },
-                },
-              })
             case 'multi-field-ep-step':
               if (vars.input.values[0].value === '+123') {
                 return HttpResponse.json({
