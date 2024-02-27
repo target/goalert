@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import FormDialog from '../../dialogs/FormDialog'
 import ScheduleOnCallNotificationsForm, {
   Value,
@@ -7,7 +7,7 @@ import ScheduleOnCallNotificationsForm, {
 import { NO_DAY } from './util'
 import { useSchedOnCallNotifyTypes } from '../../util/RequireConfig'
 import { splitErrorsByPath } from '../../util/errutil'
-import { gql, useMutation, useQuery } from 'urql'
+import { CombinedError, gql, useMutation, useQuery } from 'urql'
 import {
   Schedule,
   SetScheduleOnCallNotificationRulesInput,
@@ -51,6 +51,7 @@ export default function ScheduleOnCallNotificationsCreateDialog(
 ): JSX.Element {
   const { onClose, scheduleID } = props
   const types = useSchedOnCallNotifyTypes()
+  const [err, setErr] = useState<CombinedError | null>(null)
   const [value, setValue] = useState<Value>({
     time: null,
     weekdayFilter: NO_DAY,
@@ -59,6 +60,9 @@ export default function ScheduleOnCallNotificationsCreateDialog(
       values: [],
     },
   })
+  useEffect(() => {
+    setErr(null)
+  }, [value])
   const [q] = useQuery<{ schedule: Schedule }>({
     query: getRulesQuery,
     variables: { scheduleID },
@@ -67,10 +71,19 @@ export default function ScheduleOnCallNotificationsCreateDialog(
   const sched = q.data?.schedule
   if (!sched) throw new Error('no data for schedule ' + scheduleID)
   const [m, commit] = useMutation(setRulesMut)
+  useEffect(() => {
+    setErr(m.error || null)
+  }, [m.error])
 
+  const newRulePrefix = [
+    'setScheduleOnCallNotificationRules',
+    'input',
+    'rules',
+    sched.onCallNotificationRules.length,
+  ].join('.')
   const [formErrors, otherErrs] = splitErrorsByPath(
-    m.error,
-    errorPaths('createUserContactMethod.input'),
+    err,
+    errorPaths(newRulePrefix),
   )
 
   return (
@@ -97,7 +110,11 @@ export default function ScheduleOnCallNotificationsCreateDialog(
             } satisfies SetScheduleOnCallNotificationRulesInput,
           },
           { additionalTypenames: ['Schedule'] },
-        ).then(onClose)
+        )
+          .then(onClose)
+          .catch((err) => {
+            setErr(err)
+          })
       }
       form={
         <ScheduleOnCallNotificationsForm
