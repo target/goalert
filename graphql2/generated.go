@@ -32679,7 +32679,7 @@ func (ec *executionContext) unmarshalInputOnCallNotificationRuleInput(ctx contex
 		case "dest":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dest"))
 			directive0 := func(ctx context.Context) (interface{}, error) {
-				return ec.unmarshalNDestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, v)
+				return ec.unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, v)
 			}
 			directive1 := func(ctx context.Context) (interface{}, error) {
 				flagName, err := ec.unmarshalNString2string(ctx, "dest-types")
@@ -43543,11 +43543,6 @@ func (ec *executionContext) unmarshalNDestinationFieldValidateInput2githubᚗcom
 func (ec *executionContext) unmarshalNDestinationInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx context.Context, v interface{}) (DestinationInput, error) {
 	res, err := ec.unmarshalInputDestinationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNDestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx context.Context, v interface{}) (*DestinationInput, error) {
-	res, err := ec.unmarshalInputDestinationInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNDestinationType2string(ctx context.Context, v interface{}) (string, error) {
