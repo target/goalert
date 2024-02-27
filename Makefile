@@ -257,7 +257,7 @@ playwright-run: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goaler
 	$(MAKE) ensure-yarn
 	rm -rf test/coverage/integration/playwright
 	mkdir -p test/coverage/integration/playwright
-	yarn  
+	yarn playwright install chromium
 	GOCOVERDIR=test/coverage/integration/playwright yarn playwright test
 
 playwright-ui: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog ## Start the Playwright UI
