@@ -6,7 +6,9 @@ import PolicyStepFormDest, { FormValue } from './PolicyStepFormDest'
 import { errorPaths } from '../users/UserContactMethodFormDest'
 
 const mutation = gql`
-  mutation ($input: CreateEscalationPolicyStepInput!) {
+  mutation createEscalationPolicyStep(
+    $input: CreateEscalationPolicyStepInput!
+  ) {
     createEscalationPolicyStep(input: $input) {
       id
       delayMinutes
