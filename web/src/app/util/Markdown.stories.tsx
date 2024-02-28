@@ -57,6 +57,8 @@ Valid:
 - [non-domain-name](https://non-domain.example.com)
 - [queryparam.example.com](http://queryparam.example.com?test=1)
 - [http://exact.example.com/foo?test=1&bar=2](http://exact.example.com/foo?test=1&bar=2)
+- [http://exact2.example.com/foo?test=1&bar=2](http://exact2.example.com/foo?test=1&amp;bar=2)
+- [http://exact3.example.com/foo?test=1&amp;bar=2](http://exact3.example.com/foo?test=1&bar=2)
 `
 
 export const ValidLinks: Story = {
@@ -85,6 +87,12 @@ export const ValidLinks: Story = {
     await expect(
       await canvas.findByText('http://exact.example.com/foo?test=1&bar=2'),
     ).toHaveAttribute('href', 'http://exact.example.com/foo?test=1&bar=2')
+    await expect(
+      await canvas.findByText('http://exact2.example.com/foo?test=1&bar=2'),
+    ).toHaveAttribute('href', 'http://exact2.example.com/foo?test=1&bar=2')
+    await expect(
+      await canvas.findByText('http://exact3.example.com/foo?test=1&bar=2'),
+    ).toHaveAttribute('href', 'http://exact3.example.com/foo?test=1&bar=2')
   },
 }
 

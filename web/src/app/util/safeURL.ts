@@ -1,29 +1,19 @@
-// encodeHtmlEntities will encode common HTML entities in a string.
-//
-// This is useful for ensuring that comparisons between html encoded urls and
-// non-encoded labels are accurate
-function encodeHtmlEntities(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-}
+import _ from 'lodash'
 
 // safeURL will determine if a url is safe for linking.
 //
 // It tries to determine if the label is misleading.
-export function safeURL(url: string, label: string): boolean {
-  label = encodeHtmlEntities(label)
+export function safeURL(_url: string, _label: string): boolean {
+  const url = _.unescape(_url)
+  const label = _.unescape(_label)
 
   if (url.startsWith('mailto:')) {
-    const email = url.substr(7)
+    const email = url.slice(7)
     return email === label && email.includes('@')
   }
 
   if (url.startsWith('tel:')) {
-    const phone = url.substr(4)
+    const phone = url.slice(4)
     return phone === label && /^\+?[\d\- ]+$/.test(phone)
   }
 
