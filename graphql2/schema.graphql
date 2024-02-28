@@ -636,7 +636,12 @@ input SetScheduleOnCallNotificationRulesInput {
 
 input OnCallNotificationRuleInput {
   id: ID
-  target: TargetInput!
+
+  """
+  target is required if dest is unset
+  """
+  target: TargetInput
+  dest: DestinationInput @experimental(flagName: "dest-types")
 
   # time indicates a time-of-day (in the schedule's time zone)
   # to send a message of current on-call users.

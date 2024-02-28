@@ -73,6 +73,9 @@ func appendPath(ctx context.Context, field string) ast.Path {
 	p := graphql.GetPath(ctx)
 	parentParts := strings.Split(field, ".")
 	for _, part := range parentParts {
+		if part == "" {
+			continue
+		}
 		index, err := strconv.Atoi(part)
 		if err == nil {
 			p = append(p, ast.PathIndex(index))
