@@ -13,7 +13,7 @@ type Value = {
 }
 
 const query = gql`
-  query ($id: ID!) {
+  query userCm($id: ID!) {
     userContactMethod(id: $id) {
       id
       name
@@ -33,7 +33,7 @@ const query = gql`
 `
 
 const mutation = gql`
-  mutation ($input: UpdateUserContactMethodInput!) {
+  mutation updateUserContactMethod($input: UpdateUserContactMethodInput!) {
     updateUserContactMethod(input: $input)
   }
 `
@@ -50,22 +50,22 @@ export default function UserContactMethodCreateDialogDest(props: {
   // values for contact method form
   const [CMValue, _setCMValue] = useState<Value>(data?.userContactMethod)
 
-  const [createErr, setCreateErr] = useState<CombinedError | null>(null)
+  const [updateErr, setUpdateErr] = useState<CombinedError | null>(null)
   const setCMValue = (newValue: Value): void => {
     _setCMValue(newValue)
-    setCreateErr(null)
+    setUpdateErr(null)
   }
 
   // TODO: useQuery for userConflictQuery
 
   const [updateCMStatus, updateCM] = useMutation(mutation)
   useEffect(() => {
-    setCreateErr(updateCMStatus.error || null)
+    setUpdateErr(updateCMStatus.error || null)
   }, [updateCMStatus.error])
 
   const [formErrors, otherErrs] = splitErrorsByPath(
-    createErr,
-    errorPaths('createUserContactMethod.input'),
+    updateErr,
+    errorPaths('updateUserContactMethod.input'),
   )
 
   const form = (
