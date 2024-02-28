@@ -59,6 +59,9 @@ Valid:
 - [http://exact.example.com/foo?test=1&bar=2](http://exact.example.com/foo?test=1&bar=2)
 - [http://exact2.example.com/foo?test=1&bar=2](http://exact2.example.com/foo?test=1&amp;bar=2)
 - [http://exact3.example.com/foo?test=1&amp;bar=2](http://exact3.example.com/foo?test=1&bar=2)
+- https://plain.example.com
+- <http://bad-slack.example.com | sometext>
+- https://escapable.example.com/foo?test=a|b&bar=2
 `
 
 export const ValidLinks: Story = {
@@ -93,6 +96,22 @@ export const ValidLinks: Story = {
     await expect(
       await canvas.findByText('http://exact3.example.com/foo?test=1&bar=2'),
     ).toHaveAttribute('href', 'http://exact3.example.com/foo?test=1&bar=2')
+    await expect(
+      await canvas.findByText('https://plain.example.com'),
+    ).toHaveAttribute('href', 'https://plain.example.com')
+    await expect(
+      await canvas.findByText('http://bad-slack.example.com'),
+    ).toHaveAttribute('href', 'http://bad-slack.example.com')
+
+    // ensure the pipe character is escaped
+    await expect(
+      await canvas.findByText(
+        'https://escapable.example.com/foo?test=a|b&bar=2',
+      ),
+    ).toHaveAttribute(
+      'href',
+      'https://escapable.example.com/foo?test=a%7Cb&bar=2',
+    )
   },
 }
 
