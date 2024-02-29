@@ -70,7 +70,6 @@ export default function PolicyStepFormDest(
 
   function handleDelete(a: DestinationInput): void {
     if (!props.onChange) return
-
     props.onChange({
       ...props.value,
       actions: props.value.actions.filter((b) => a !== b),
