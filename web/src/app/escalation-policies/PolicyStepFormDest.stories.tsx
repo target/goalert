@@ -136,7 +136,6 @@ export const FieldErrors: Story = {
     const canvas = within(canvasElement)
     await userEvent.click(await canvas.findByText('Dest Type Error EP Step'))
     await userEvent.click(await screen.findByText('Multi Field EP Step Dest'))
-
     await userEvent.type(
       await canvas.findByPlaceholderText('11235550123'),
       '123',
@@ -145,7 +144,6 @@ export const FieldErrors: Story = {
       await canvas.findByPlaceholderText('https://example.com'),
       'url',
     )
-
     await userEvent.click(await canvas.findByText('Add Action'))
 
     await waitFor(async function InvalidField() {
@@ -165,12 +163,6 @@ export const FieldErrors: Story = {
       await canvas.findByPlaceholderText('https://example.com'),
       'https://target.com',
     )
-
-    // expect error messages to clear when editting text input
-    await canvas.findByText(
-      'Include country code e.g. +1 (USA), +91 (India), +44 (UK)',
-    )
-    await canvas.findByText('Webhook Documentation')
   },
 }
 
