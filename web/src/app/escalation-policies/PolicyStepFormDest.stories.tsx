@@ -32,7 +32,7 @@ const meta = {
           })
         }),
         graphql.query('DestDisplayInfo', ({ variables: vars }) => {
-          console.log(vars)
+
           switch (vars.input.type) {
             case 'multi-field-ep-step':
               if (vars.input.values[0].value !== '+12225558989') {
