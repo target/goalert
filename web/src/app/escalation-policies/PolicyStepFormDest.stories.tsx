@@ -20,12 +20,6 @@ const meta = {
   },
   tags: ['autodocs'],
   parameters: {
-    docs: {
-      story: {
-        inline: false,
-        iframeHeight: 400,
-      },
-    },
     msw: {
       handlers: [
         handleDefaultConfig,
@@ -33,20 +27,16 @@ const meta = {
         graphql.query('ValidateDestination', ({ variables: vars }) => {
           return HttpResponse.json({
             data: {
-              destinationFieldValidate:
-                vars.input.value === 'https://target.com' ||
-                vars.input.value === '+12225558989',
+              destinationFieldValidate: vars.input.value === '+12225558989',
             },
           })
         }),
-
         graphql.query('DestDisplayInfo', ({ variables: vars }) => {
           console.log(vars)
           switch (vars.input.type) {
             case 'multi-field-ep-step':
-              if (vars.input.values[0].value === '+123') {
+              if (vars.input.values[0].value !== '+12225558989') {
                 return HttpResponse.json({
-                  data: null,
                   errors: [
                     {
                       message: 'number is too short',
@@ -78,7 +68,6 @@ const meta = {
               })
             case 'dest-type-error-ep-step':
               return HttpResponse.json({
-                data: null,
                 errors: [
                   {
                     message: 'This indicates an invalid destination type',
@@ -91,7 +80,6 @@ const meta = {
               })
             default:
               return HttpResponse.json({
-                data: null,
                 errors: [
                   {
                     message: 'generic error',
@@ -107,7 +95,6 @@ const meta = {
 
 export default meta
 type Story = StoryObj<typeof meta>
-
 export const AddAndDeleteAction: Story = {
   args: {
     value: {
@@ -133,7 +120,6 @@ export const AddAndDeleteAction: Story = {
 
     await expect(await canvas.findByText('+12225558989')).toBeVisible()
     await expect(await canvas.findByTestId('destination-chip')).toBeVisible()
-
     await userEvent.click(await canvas.findByTestId('CancelIcon'))
     await expect(await canvas.findByText('No actions')).toBeVisible()
   },
