@@ -16,6 +16,17 @@ import {
   isDestFieldError,
 } from '../util/errtypes'
 import { splitErrorsByPath } from '../util/errutil'
+import DialogContentError from '../dialogs/components/DialogContentError'
+import makeStyles from '@mui/styles/makeStyles'
+
+const useStyles = makeStyles(() => {
+  return {
+    errorContainer: {
+      flexGrow: 0,
+      overflowY: 'visible',
+    },
+  }
+})
 
 export type FormValue = {
   delayMinutes: number
@@ -44,14 +55,14 @@ export default function PolicyStepFormDest(
   props: PolicyStepFormDestProps,
 ): ReactNode {
   const types = useEPTargetTypes()
+  const classes = useStyles()
 
   const [destType, setDestType] = useState(types[0].type)
   const [values, setValues] = useState<FieldValueInput[]>([])
   const validationClient = useClient()
   const [err, setErr] = useState<CombinedError | null>(null)
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [destErrors, _otherErrs] = splitErrorsByPath(err, [
+  const [destErrors, otherErrs] = splitErrorsByPath(err || props.errors, [
     'destinationDisplayInfo.input',
   ])
 
@@ -66,6 +77,17 @@ export default function PolicyStepFormDest(
       ...props.value,
       actions: props.value.actions.filter((b) => a !== b),
     })
+  }
+
+  function renderErrors(): React.JSX.Element[] {
+    return otherErrs.map((err, idx) => (
+      <DialogContentError
+        error={err.message || err}
+        key={idx}
+        noPadding
+        className={classes.errorContainer}
+      />
+    ))
   }
 
   return (
@@ -120,12 +142,11 @@ export default function PolicyStepFormDest(
               setErr(null)
               setValues(newValue)
             }}
-            destFieldErrors={
-              err ? destErrors.filter(isDestFieldError) : undefined
-            }
+            destFieldErrors={destErrors.filter(isDestFieldError)}
           />
         </Grid>
         <Grid container item xs={12} justifyContent='flex-end'>
+          {otherErrs && renderErrors()}
           <Button
             variant='contained'
             onClick={() => {
