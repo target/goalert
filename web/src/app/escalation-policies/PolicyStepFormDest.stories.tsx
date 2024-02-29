@@ -70,7 +70,7 @@ const meta = {
               return HttpResponse.json({
                 errors: [
                   {
-                    message: 'This indicates an invalid destination type',
+                    message: 'invalid dest type',
                     path: ['destinationDisplayInfo', 'input', 'type'],
                     extensions: {
                       code: 'INVALID_INPUT_VALUE',
@@ -117,7 +117,6 @@ export const AddAndDeleteAction: Story = {
     )
 
     await userEvent.click(await canvas.findByText('Add Action'))
-
     await expect(await canvas.findByText('+12225558989')).toBeVisible()
     await expect(await canvas.findByTestId('destination-chip')).toBeVisible()
     await userEvent.click(await canvas.findByTestId('CancelIcon'))
@@ -181,9 +180,7 @@ export const DestTypeAndGenericError: Story = {
     )
 
     await userEvent.click(await canvas.findByText('Add Action'))
-    await expect(
-      await canvas.findByText('This indicates an invalid destination type'),
-    ).toBeVisible()
+    await expect(await canvas.findByText('invalid dest type')).toBeVisible()
     await userEvent.click(await canvas.findByText('Dest Type Error EP Step'))
     await userEvent.click(await screen.findByText('Generic Error EP Step'))
 
