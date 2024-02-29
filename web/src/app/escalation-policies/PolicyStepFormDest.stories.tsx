@@ -106,7 +106,6 @@ export const AddAndDeleteAction: Story = {
     const canvas = within(canvasElement)
     await userEvent.click(await canvas.findByText('Dest Type Error EP Step'))
     await userEvent.click(await screen.findByText('Multi Field EP Step Dest'))
-
     await userEvent.type(
       await canvas.findByPlaceholderText('11235550123'),
       '12225558989',
@@ -115,7 +114,6 @@ export const AddAndDeleteAction: Story = {
       await canvas.findByPlaceholderText('https://example.com'),
       'https://target.com',
     )
-
     await userEvent.click(await canvas.findByText('Add Action'))
     await expect(await canvas.findByText('+12225558989')).toBeVisible()
     await expect(await canvas.findByTestId('destination-chip')).toBeVisible()
@@ -149,7 +147,6 @@ export const FieldErrors: Story = {
       await expect(await canvas.findByLabelText('Phone Number')).toBeInvalid()
       await expect(await canvas.findByLabelText('Webhook URL')).toBeInvalid()
     })
-
     await userEvent.clear(await canvas.findByPlaceholderText('11235550123'))
     await userEvent.type(
       await canvas.findByPlaceholderText('11235550123'),
@@ -178,7 +175,6 @@ export const DestTypeAndGenericError: Story = {
       await canvas.findByPlaceholderText('11235550123'),
       '456',
     )
-
     await userEvent.click(await canvas.findByText('Add Action'))
     await expect(await canvas.findByText('invalid dest type')).toBeVisible()
     await userEvent.click(await canvas.findByText('Dest Type Error EP Step'))
