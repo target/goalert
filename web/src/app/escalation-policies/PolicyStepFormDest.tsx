@@ -16,6 +16,17 @@ import {
   isDestFieldError,
 } from '../util/errtypes'
 import { splitErrorsByPath } from '../util/errutil'
+import DialogContentError from '../dialogs/components/DialogContentError'
+import makeStyles from '@mui/styles/makeStyles'
+
+const useStyles = makeStyles(() => {
+  return {
+    errorContainer: {
+      flexGrow: 0,
+      overflowY: 'visible',
+    },
+  }
+})
 
 export type FormValue = {
   delayMinutes: number
@@ -44,19 +55,20 @@ export default function PolicyStepFormDest(
   props: PolicyStepFormDestProps,
 ): ReactNode {
   const types = useEPTargetTypes()
+  const classes = useStyles()
 
   const [destType, setDestType] = useState(types[0].type)
   const [values, setValues] = useState<FieldValueInput[]>([])
   const validationClient = useClient()
   const [err, setErr] = useState<CombinedError | null>(null)
+
+  const [destErrors, otherErrs] = splitErrorsByPath(err || props.errors, [
+    'destinationDisplayInfo.input',
+  ])
+
   useEffect(() => {
     setErr(null)
   }, [props.value])
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [destErrors, _otherErrs] = splitErrorsByPath(err, [
-    'destinationDisplayInfo.input',
-  ])
 
   function handleDelete(a: DestinationInput): void {
     if (!props.onChange) return
@@ -65,6 +77,17 @@ export default function PolicyStepFormDest(
       ...props.value,
       actions: props.value.actions.filter((b) => a !== b),
     })
+  }
+
+  function renderErrors(): React.JSX.Element[] {
+    return otherErrs.map((err, idx) => (
+      <DialogContentError
+        error={err.message || err}
+        key={idx}
+        noPadding
+        className={classes.errorContainer}
+      />
+    ))
   }
 
   return (
@@ -115,11 +138,15 @@ export default function PolicyStepFormDest(
             destType={destType}
             value={values}
             disabled={props.disabled}
-            onChange={(newValue: FieldValueInput[]) => setValues(newValue)}
+            onChange={(newValue: FieldValueInput[]) => {
+              setErr(null)
+              setValues(newValue)
+            }}
             destFieldErrors={destErrors.filter(isDestFieldError)}
           />
         </Grid>
         <Grid container item xs={12} justifyContent='flex-end'>
+          {otherErrs && renderErrors()}
           <Button
             variant='contained'
             onClick={() => {
