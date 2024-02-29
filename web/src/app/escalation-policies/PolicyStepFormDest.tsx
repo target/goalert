@@ -56,12 +56,10 @@ export default function PolicyStepFormDest(
 ): ReactNode {
   const types = useEPTargetTypes()
   const classes = useStyles()
-
   const [destType, setDestType] = useState(types[0].type)
   const [values, setValues] = useState<FieldValueInput[]>([])
   const validationClient = useClient()
   const [err, setErr] = useState<CombinedError | null>(null)
-
   const [destErrors, otherErrs] = splitErrorsByPath(err || props.errors, [
     'destinationDisplayInfo.input',
   ])
@@ -95,7 +93,6 @@ export default function PolicyStepFormDest(
       value={props.value}
       onChange={(newValue: FormValue) => {
         if (!props.onChange) return
-
         props.onChange(newValue)
       }}
       errors={props.errors}
@@ -151,7 +148,6 @@ export default function PolicyStepFormDest(
             variant='contained'
             onClick={() => {
               if (!props.onChange) return
-
               validationClient
                 .query(query, {
                   input: {

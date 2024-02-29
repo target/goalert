@@ -37,7 +37,6 @@ func (a *Query) DestinationDisplayInfo(ctx context.Context, dest graphql2.Destin
 	if err := app.ValidateDestination(ctx, "input", &dest); err != nil {
 		return nil, err
 	}
-
 	switch dest.Type {
 	case destTwilioSMS:
 		n, err := phonenumbers.Parse(dest.FieldValue(fieldPhoneNumber), "")
