@@ -3,7 +3,6 @@ import { Button, Grid, Card, Typography, Tooltip, Theme } from '@mui/material'
 import FlatList from '../../lists/FlatList'
 import OtherActions from '../../util/OtherActions'
 import { onCallRuleSummary } from './util'
-import ScheduleOnCallNotificationsCreateDialog from './ScheduleOnCallNotificationsCreateDialog'
 import ScheduleOnCallNotificationsDeleteDialog from './ScheduleOnCallNotificationsDeleteDialog'
 import CreateFAB from '../../lists/CreateFAB'
 import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotificationsEditDialog'
@@ -15,6 +14,7 @@ import { Schedule } from '../../../schema'
 import { DestinationAvatar } from '../../util/DestinationAvatar'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import makeStyles from '@mui/styles/makeStyles'
+import ScheduleOnCallNotificationsCreateDialogDest from './ScheduleOnCallNotificationsCreateDialogDest'
 
 export type ScheduleOnCallNotificationsListDestProps = {
   scheduleID: string
@@ -150,7 +150,7 @@ export default function ScheduleOnCallNotificationsListDest({
       )}
       <Suspense>
         {createRule && (
-          <ScheduleOnCallNotificationsCreateDialog
+          <ScheduleOnCallNotificationsCreateDialogDest
             scheduleID={scheduleID}
             onClose={() => setCreateRule(false)}
           />
