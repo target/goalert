@@ -27,44 +27,44 @@ const meta = {
         graphql.query('ValidateDestination', ({ variables: vars }) => {
           return HttpResponse.json({
             data: {
-              destinationFieldValidate:
-                vars.input.value === 'https://generic-error.com',
+              destinationFieldValidate: vars.input.value === '+12225558989',
             },
           })
         }),
         graphql.query('DestDisplayInfo', ({ variables: vars }) => {
-          switch (vars.input.type) {
-            case 'single-field-ep-step':
-              return HttpResponse.json({
-                data: {
-                  destinationDisplayInfo: {
-                    text: vars.input.values[0].value,
-                    iconURL: 'builtin://webhook',
-                    iconAltText: 'Webhook',
-                  },
-                },
-              })
-            default:
-              return HttpResponse.json({
-                data: null,
-                errors: [
-                  {
-                    message: 'destField is invalid',
-                    path: ['destinationDisplayInfo', 'input', 'action'],
-                    extensions: {
-                      code: 'INVALID_DEST_FIELD_VALUE',
-                      fieldID: 'phone-number',
-                    },
-                  },
-                ],
-              })
-          }
+          return HttpResponse.json({
+            data: {
+              destinationDisplayInfo: {
+                text: vars.input.values[0].value,
+                iconURL: 'builtin://phone-voice',
+                iconAltText: 'Voice Call',
+              },
+            },
+          })
         }),
 
         graphql.mutation(
           'createEscalationPolicyStep',
           ({ variables: vars }) => {
             console.log(vars)
+            if (vars.input.escalationPolicyID === '1') {
+              return HttpResponse.json({
+                data: {
+                  createEscalationPolicyStep: {
+                    id: '1',
+                    delayMinutes: 15,
+                    targets: [
+                      {
+                        id: '11235550123',
+                        name: '11235550123',
+                        type: 'phone-number',
+                        __typename: 'Target',
+                      },
+                    ],
+                  },
+                },
+              })
+            }
             return HttpResponse.json({
               data: null,
               errors: [
@@ -87,27 +87,50 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
+export const CreatePolicyStep: Story = {
+  argTypes: {
+    onClose: { action: 'onClose' },
+  },
+  args: {
+    escalationPolicyID: '1',
+  },
+  play: async ({ args }) => {
+    await userEvent.click(await screen.findByText('Dest Type Error EP Step'))
+    await userEvent.click(await screen.findByText('Multi Field EP Step Dest'))
+    await userEvent.type(
+      await screen.findByPlaceholderText('11235550123'),
+      '12225558989',
+    )
+
+    await userEvent.click(await screen.findByText('Add Action'))
+
+    await waitFor(async function Icon() {
+      await userEvent.click(await screen.findByTestId('destination-chip'))
+    })
+    await userEvent.click(await screen.findByText('Submit'))
+
+    await waitFor(async function Close() {
+      expect(args.onClose).toHaveBeenCalled()
+    })
+  },
+}
+
 export const GenericError: Story = {
   args: {
-    escalationPolicyID: '00000000-0000-0000-0000-000000000000',
+    escalationPolicyID: '2',
   },
   play: async () => {
-    await userEvent.click(await screen.findByText('Multi Field EP Step Dest'))
-    await userEvent.click(await screen.findByText('Single Field EP Step Dest'))
-
-    await userEvent.clear(
-      await screen.findByPlaceholderText('https://example.com'),
+    await userEvent.click(await screen.findByText('Dest Type Error EP Step'))
+    await userEvent.click(await screen.findByText('Generic Error EP Step'))
+    await userEvent.type(
+      await screen.findByPlaceholderText('11235550123'),
+      '12225558989',
     )
-    await waitFor(async () => {
-      await userEvent.type(
-        await screen.findByPlaceholderText('https://example.com'),
-        'https://generic-error.com',
-      )
-    })
 
     await userEvent.click(await screen.findByText('Add Action'))
     await userEvent.click(await screen.findByText('Submit'))
 
+    // expect error message
     await expect(
       await screen.findByText('This is a generic input field error'),
     ).toBeVisible()
