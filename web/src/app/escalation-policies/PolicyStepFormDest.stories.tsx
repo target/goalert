@@ -94,7 +94,7 @@ const meta = {
                 data: null,
                 errors: [
                   {
-                    message: 'This is a generic error',
+                    message: 'generic error',
                   },
                 ],
               })
@@ -195,7 +195,7 @@ export const FieldErrors: Story = {
   },
 }
 
-export const TypeError: Story = {
+export const DestTypeAndGenericError: Story = {
   args: {
     value: {
       delayMinutes: 15,
@@ -216,28 +216,11 @@ export const TypeError: Story = {
     await expect(
       await canvas.findByText('This indicates an invalid destination type'),
     ).toBeVisible()
-    await userEvent.click(await canvas.findByTestId('ErrorIcon'))
-  },
-}
 
-export const GenericError: Story = {
-  args: {
-    value: {
-      delayMinutes: 15,
-      actions: [],
-    },
-  },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
     await userEvent.click(await canvas.findByText('Dest Type Error EP Step'))
     await userEvent.click(await screen.findByText('Generic Error EP Step'))
 
     await userEvent.click(await canvas.findByText('Add Action'))
-
-    // expect to see type error
-    await expect(
-      await canvas.findByText('This is a generic error'),
-    ).toBeVisible()
-    await userEvent.click(await canvas.findByTestId('ErrorIcon'))
+    await expect(await canvas.findByText('generic error')).toBeVisible()
   },
 }
