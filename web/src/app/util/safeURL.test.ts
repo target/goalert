@@ -79,10 +79,12 @@ describe('safeURL', () => {
 
   checkIt('should work with query params', {
     true: [
+      '[https://example.com/query?foo=1&bar=2](https://example.com/query?foo=1&bar=2)',
       '[https://example.com/query?foo=1&bar=2](https://example.com/query?foo=1&amp;bar=2)',
+      '[https://example.com/query?foo=1&amp;bar=2](https://example.com/query?foo=1&bar=2)',
     ],
     false: [
-      '[https://example.com/query?foo=1&bar=2](https://example.com/query?foo=1&bar=2]',
+      '[https://example.com/query?foo=1&bar=2](https://example.com/query?foo=1&bar=3)', // bar doesn't match
     ],
   })
 })

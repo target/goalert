@@ -1,7 +1,7 @@
 extend type EscalationPolicyStep {
-    actions: [Destination!]! @experimental(flagName: "dest-types")
+  actions: [Destination!]! @experimental(flagName: "dest-types")
 }
 
 extend input CreateEscalationPolicyStepInput {
-    actions: [DestinationInput!] @goField(forceResolver: true) # force resolver for initial compat
+  actions: [DestinationInput!] @goField(forceResolver: true) # force resolver for initial compat
 }

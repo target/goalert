@@ -676,8 +676,9 @@ export interface OnCallNotificationRule {
 }
 
 export interface OnCallNotificationRuleInput {
+  dest?: null | DestinationInput
   id?: null | string
-  target: TargetInput
+  target?: null | TargetInput
   time?: null | ClockTime
   weekdayFilter?: null | WeekdayFilter
 }

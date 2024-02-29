@@ -13,7 +13,7 @@
     "noUnusedLocals": true,
     "skipLibCheck": true,
     "strict": true,
-    "lib": ["ES2017"],
+    "lib": ["ES2017"]
   },
-  "exclude": ["*/node_modules/*"],
+  "exclude": ["*/node_modules/*"]
 }

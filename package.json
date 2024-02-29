@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "lint": "eslint --ext .js,.jsx,.ts,.tsx --fix . && stylelint --fix ./**/*.css",
-    "fmt": "prettier -l --write '**/*.{js,jsx,yml,yaml,json,css,ts,tsx,html}'",
+    "fmt": "prettier -l --write '**/*.{js,jsx,yml,yaml,json,css,ts,tsx,html,graphql,graphqls}'",
     "check": "tsc -p web/src/app/tsconfig.json && tsc -p web/src/cypress/tsconfig.json",
     "esbuild": "./web/src/esbuild.config.js",
     "esbuild-cy": "./web/src/esbuild.cypress.js",
@@ -110,7 +110,7 @@
     "mdi-material-ui": "7.8.0",
     "msw": "2.0.11",
     "msw-storybook-addon": "2.0.0--canary.122.06f0c92.0",
-    "prettier": "3.2.4",
+    "prettier": "3.2.5",
     "prettier-plugin-go-template": "0.0.15",
     "prop-types": "15.8.1",
     "punycode": "2.3.1",

@@ -90,6 +90,7 @@ type ResolverRoot interface {
 	UserNotificationRule() UserNotificationRuleResolver
 	UserOverride() UserOverrideResolver
 	CreateEscalationPolicyStepInput() CreateEscalationPolicyStepInputResolver
+	OnCallNotificationRuleInput() OnCallNotificationRuleInputResolver
 }
 
 type DirectiveRoot struct {
@@ -1011,6 +1012,9 @@ type UserOverrideResolver interface {
 
 type CreateEscalationPolicyStepInputResolver interface {
 	Actions(ctx context.Context, obj *CreateEscalationPolicyStepInput, data []DestinationInput) error
+}
+type OnCallNotificationRuleInputResolver interface {
+	Dest(ctx context.Context, obj *OnCallNotificationRuleInput, data *DestinationInput) error
 }
 
 type executableSchema struct {
@@ -32651,7 +32655,7 @@ func (ec *executionContext) unmarshalInputOnCallNotificationRuleInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "target", "time", "weekdayFilter"}
+	fieldsInOrder := [...]string{"id", "target", "dest", "time", "weekdayFilter"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -32667,11 +32671,39 @@ func (ec *executionContext) unmarshalInputOnCallNotificationRuleInput(ctx contex
 			it.ID = data
 		case "target":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("target"))
-			data, err := ec.unmarshalNTargetInput2githubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx, v)
+			data, err := ec.unmarshalOTargetInput2githubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Target = data
+		case "dest":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dest"))
+			directive0 := func(ctx context.Context) (interface{}, error) {
+				return ec.unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, v)
+			}
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				flagName, err := ec.unmarshalNString2string(ctx, "dest-types")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.Experimental == nil {
+					return nil, errors.New("directive experimental is not implemented")
+				}
+				return ec.directives.Experimental(ctx, obj, directive0, flagName)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(*DestinationInput); ok {
+				if err = ec.resolvers.OnCallNotificationRuleInput().Dest(ctx, &it, data); err != nil {
+					return it, err
+				}
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be *github.com/target/goalert/graphql2.DestinationInput`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
 		case "time":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("time"))
 			data, err := ec.unmarshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx, v)
@@ -47123,6 +47155,11 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOTargetInput2githubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx context.Context, v interface{}) (assignment.RawTarget, error) {
+	res, err := ec.unmarshalInputTargetInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOTargetInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTargetᚄ(ctx context.Context, v interface{}) ([]assignment.RawTarget, error) {
