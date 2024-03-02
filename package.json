@@ -139,7 +139,7 @@
     "stylelint-config-standard": "34.0.0",
     "typescript": "5.2.2",
     "urql": "4.0.6",
-    "vite": "5.0.12",
+    "vite": "5.1.4",
     "wonka": "6.3.4",
     "wouter": "2.12.1"
   },
