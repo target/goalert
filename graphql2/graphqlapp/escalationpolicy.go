@@ -20,6 +20,7 @@ import (
 type EscalationPolicy App
 type EscalationPolicyStep App
 type CreateEscalationPolicyStepInput App
+type UpdateEscalationPolicyStepInput App
 
 func (a *App) EscalationPolicy() graphql2.EscalationPolicyResolver { return (*EscalationPolicy)(a) }
 func (a *App) EscalationPolicyStep() graphql2.EscalationPolicyStepResolver {
@@ -31,6 +32,27 @@ func (a *App) CreateEscalationPolicyStepInput() graphql2.CreateEscalationPolicyS
 }
 
 func (a *CreateEscalationPolicyStepInput) Actions(ctx context.Context, input *graphql2.CreateEscalationPolicyStepInput, actions []graphql2.DestinationInput) error {
+	tgts := make([]assignment.RawTarget, len(actions))
+	var err error
+	for i, action := range actions {
+		if err := (*App)(a).ValidateDestination(ctx, fmt.Sprintf("%d.dest", i), &action); err != nil {
+			return err
+		}
+		tgts[i], err = CompatDestToTarget(action)
+		if err != nil {
+			return validation.NewFieldError("actions", "invalid DestInput")
+		}
+	}
+	input.Targets = tgts
+	input.Actions = actions
+	return nil
+}
+
+func (a *App) UpdateEscalationPolicyStepInput() graphql2.UpdateEscalationPolicyStepInputResolver {
+	return (*UpdateEscalationPolicyStepInput)(a)
+}
+
+func (a *UpdateEscalationPolicyStepInput) Actions(ctx context.Context, input *graphql2.UpdateEscalationPolicyStepInput, actions []graphql2.DestinationInput) error {
 	tgts := make([]assignment.RawTarget, len(actions))
 	var err error
 	for i, action := range actions {
@@ -328,6 +350,14 @@ func (m *Mutation) UpdateEscalationPolicyStep(ctx context.Context, input graphql
 				// delete unwanted step
 				err = m.PolicyStore.DeleteStepTargetTx(ctx, tx, step.ID, tgt)
 				if err != nil {
+					return err
+				}
+			}
+		}
+
+		if input.Actions != nil {
+			for _, action := range input.Actions {
+				if err := (*App)(m).ValidateDestination(ctx, "input.actions", &action); err != nil {
 					return err
 				}
 			}
