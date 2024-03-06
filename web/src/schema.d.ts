@@ -1173,7 +1173,6 @@ export interface UpdateUserCalendarSubscriptionInput {
 }
 
 export interface UpdateUserContactMethodInput {
-  dest?: null | DestinationInput
   enableStatusUpdates?: null | boolean
   id: string
   name?: null | string

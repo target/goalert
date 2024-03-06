@@ -1234,8 +1234,9 @@ input CreateUserNotificationRuleInput {
 input UpdateUserContactMethodInput {
   id: ID!
   type: ContactMethodType
-
-  dest: DestinationInput @experimental(flagName: "dest-types")
+    @deprecated(
+      reason: "Updating type is not supported, delete and create a new contact method instead."
+    )
 
   name: String
 
