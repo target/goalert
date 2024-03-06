@@ -46,9 +46,13 @@ export default function UserContactMethodCreateDialogDest(props: {
     query,
     variables: { id: props.contactMethodID },
   })
-
+  const statusUpdates =
+    data?.userContactMethod?.statusUpdates?.includes('ENABLED')
   // values for contact method form
-  const [CMValue, _setCMValue] = useState<Value>(data?.userContactMethod)
+  const [CMValue, _setCMValue] = useState<Value>({
+    ...data?.userContactMethod,
+    statusUpdates,
+  })
 
   const [updateErr, setUpdateErr] = useState<CombinedError | null>(null)
   const setCMValue = (newValue: Value): void => {
@@ -72,6 +76,7 @@ export default function UserContactMethodCreateDialogDest(props: {
     <UserContactMethodForm
       disabled={updateCMStatus.fetching}
       errors={formErrors}
+      edit
       onChange={(CMValue: Value) => setCMValue(CMValue)}
       value={CMValue}
     />

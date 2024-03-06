@@ -26,26 +26,56 @@ const meta = {
       handlers: [
         handleDefaultConfig,
         handleExpFlags('dest-types'),
-        graphql.query('userCm', () => {
+        graphql.query('userCm', ({ variables: vars }) => {
           return HttpResponse.json({
             data: {
-              userContactMethod: {
-                id: '00000000-0000-0000-0000-000000000000',
-                name: 'single-field contact method',
-                dest: {
-                  type: 'single-field',
-                  values: [
-                    {
-                      fieldID: 'phone-number',
-                      value: '+15555555555',
-                      label: '+1 555-555-5555',
+              userContactMethod:
+                vars.id === '00000000-0000-0000-0000-000000000000'
+                  ? {
+                      id: '00000000-0000-0000-0000-000000000000',
+                      name: 'single-field contact method',
+                      dest: {
+                        type: 'supports-status',
+                        values: [
+                          {
+                            fieldID: 'phone-number',
+                            value: '+15555555555',
+                            label: '+1 555-555-5555',
+                          },
+                        ],
+                      },
+                      value: 'http://localhost:8080',
+                      statusUpdates: 'DISABLED',
+                      disabled: false,
+                      pending: false,
+                    }
+                  : {
+                      id: '00000000-0000-0000-0000-000000000001',
+                      name: 'Multi Field',
+                      dest: {
+                        type: 'triple-field',
+                        values: [
+                          {
+                            fieldID: 'first-field',
+                            label: '+1 555-555-5555',
+                            value: '+11235550123',
+                          },
+                          {
+                            fieldID: 'second-field',
+                            label: 'email',
+                            value: 'foobar@example.com',
+                          },
+                          {
+                            fieldID: 'third-field',
+                            label: 'slack user ID',
+                            value: 'slack',
+                          },
+                        ],
+                      },
+                      statusUpdates: 'ENABLED',
+                      disabled: false,
+                      pending: false,
                     },
-                  ],
-                  value: 'http://localhost:8080',
-                },
-                disabled: false,
-                pending: false,
-              },
             },
           })
         }),
@@ -124,46 +154,41 @@ export const SingleField: Story = {
     await userEvent.click(await screen.findByLabelText('Destination Type'))
 
     // incorrectly believes that the following fields are not visible
+    const [single] = await screen.findAllByRole('combobox', {
+      hidden: true,
+    })
+    expect(single).toHaveTextContent('Single With Status')
+    // incorrectly believes that the following is not visible
     expect(
-      await screen.findByRole('option', { hidden: true, name: 'Single Field' }),
-    ).toBeInTheDocument()
-    expect(
-      await screen.findByRole('option', { hidden: true, name: 'Multi Field' }),
-    ).toBeInTheDocument()
-    expect(
-      await screen.findByText('This is disabled'), // does not register as an option
-    ).toBeInTheDocument()
-    expect(
-      await screen.findByRole('option', {
-        hidden: true,
-        name: 'Single With Status',
-      }),
-    ).toBeInTheDocument()
-    expect(
-      await screen.findByRole('option', {
-        hidden: true,
-        name: 'Single With Required Status',
-      }),
-    ).toBeInTheDocument()
+      await screen.findByTestId('CheckBoxOutlineBlankIcon'),
+    ).not.toBeVisible()
   },
 }
 
 export const MultiField: Story = {
   args: {
-    contactMethodID: '00000000-0000-0000-0000-000000000000',
+    contactMethodID: '00000000-0000-0000-0000-000000000001',
   },
   play: async () => {
-    // Select the multi-field Dest Type
-    await userEvent.click(await screen.findByLabelText('Destination Type'))
-    await userEvent.click(
-      await screen.findByRole('option', { hidden: true, name: 'Multi Field' }),
-    )
+    // incorrectly believes that the following fields are not visible
+    const [single] = await screen.findAllByRole('combobox', {
+      hidden: true,
+    })
+    expect(single).toHaveTextContent('Multi Field')
 
-    await expect(await screen.findByLabelText('Name')).toBeVisible()
-    await expect(await screen.findByLabelText('Destination Type')).toBeVisible()
-    await expect(await screen.findByLabelText('First Item')).toBeVisible()
-    await expect(await screen.findByLabelText('Second Item')).toBeVisible()
-    await expect(await screen.findByLabelText('Third Item')).toBeVisible()
+    screen.findByTestId('CheckBoxIcon')
+
+    // incorrectly believes that the following is not visible
+    expect(await screen.findByLabelText('Name')).not.toBeVisible()
+    await screen.findByLabelText('Destination Type')
+    await screen.findByLabelText('First Item')
+    expect(await screen.findByPlaceholderText('11235550123')).toBeDisabled()
+    await screen.findByLabelText('Second Item')
+    expect(
+      await screen.findByPlaceholderText('foobar@example.com'),
+    ).toBeDisabled()
+    await screen.findByLabelText('Third Item')
+    expect(await screen.findByPlaceholderText('slack user ID')).toBeDisabled()
   },
 }
 
@@ -172,40 +197,20 @@ export const StatusUpdates: Story = {
     contactMethodID: '00000000-0000-0000-0000-000000000000',
   },
   play: async () => {
-    // Open option select
-    await userEvent.click(await screen.findByLabelText('Destination Type'))
-    await userEvent.click(
-      await screen.findByRole('option', { hidden: true, name: 'Single Field' }),
-    )
-    await expect(
-      await screen.findByLabelText(
-        'Send alert status updates (not supported for this type)',
-      ),
-    ).toBeDisabled()
+    screen.findByTestId('CheckBoxOutlineBlankIcon')
 
-    await userEvent.click(await screen.findByLabelText('Destination Type'))
-    await userEvent.click(
-      await screen.findByRole('option', {
-        hidden: true,
-        name: 'Single With Status',
-      }),
+    await waitFor(
+      async () => {
+        await userEvent.click(
+          await screen.getByTitle(
+            'Alert status updates are sent when an alert is acknowledged, closed, or escalated.',
+          ),
+        )
+      },
+      { timeout: 5000 },
     )
-    await expect(
-      await screen.findByLabelText('Send alert status updates'),
-    ).not.toBeDisabled()
-
-    await userEvent.click(await screen.findByLabelText('Destination Type'))
-    await userEvent.click(
-      await screen.findByRole('option', {
-        hidden: true,
-        name: 'Single With Required Status',
-      }),
-    )
-    await expect(
-      await screen.findByLabelText(
-        'Send alert status updates (cannot be disabled for this type)',
-      ),
-    ).toBeDisabled()
+    // incorrectly believes that the following is not visible
+    expect(await screen.findByTestId('CheckBoxIcon')).not.toBeVisible()
   },
 }
 
