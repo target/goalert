@@ -3324,9 +3324,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/x-data-grid@npm:6.19.3":
-  version: 6.19.3
-  resolution: "@mui/x-data-grid@npm:6.19.3"
+"@mui/x-data-grid@npm:6.19.6":
+  version: 6.19.6
+  resolution: "@mui/x-data-grid@npm:6.19.6"
   dependencies:
     "@babel/runtime": ^7.23.2
     "@mui/utils": ^5.14.16
@@ -3338,7 +3338,7 @@ __metadata:
     "@mui/system": ^5.4.1
     react: ^17.0.0 || ^18.0.0
     react-dom: ^17.0.0 || ^18.0.0
-  checksum: 3cf6a9b8957a9f7df24ac9f83a312b0c05c5a1556c86916b6c1f6c4a189f3cbb75db73ac35b28d11bf61f26fa7cd3875f612e2b3bb6498ecea4b57efdcbbc5f2
+  checksum: 279b441ecff160871adea41a3fcdc8562887610103da0aad7f3185d697afd4f1013639a5eee1c032cb088f698e156f628db96b3d57a3565af97390657ab45f9e
   languageName: node
   linkType: hard
 
@@ -18029,7 +18029,7 @@ __metadata:
     "@mui/material": 5.15.5
     "@mui/styles": 5.15.5
     "@mui/system": 5.15.6
-    "@mui/x-data-grid": 6.19.3
+    "@mui/x-data-grid": 6.19.6
     "@playwright/test": 1.41.2
     "@storybook/addon-essentials": 7.6.17
     "@storybook/addon-interactions": 7.6.17
