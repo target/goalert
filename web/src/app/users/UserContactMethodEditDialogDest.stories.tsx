@@ -79,7 +79,7 @@ const meta = {
             },
           })
         }),
-        graphql.mutation('updateUserContactMethod', ({ variables: vars }) => {
+        graphql.mutation('UpdateUserContactMethod', ({ variables: vars }) => {
           if (vars.input.name === 'error-test') {
             return HttpResponse.json({
               data: null,

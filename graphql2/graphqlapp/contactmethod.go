@@ -214,6 +214,11 @@ func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.U
 			return err
 		}
 		if input.Name != nil {
+			err := validate.IDName("input.name", *input.Name)
+			if err != nil {
+				addInputError(ctx, err)
+				return errAlreadySet
+			}
 			cm.Name = *input.Name
 		}
 		if input.Value != nil {

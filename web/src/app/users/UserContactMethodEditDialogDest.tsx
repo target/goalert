@@ -33,7 +33,7 @@ const query = gql`
 `
 
 const mutation = gql`
-  mutation updateUserContactMethod($input: UpdateUserContactMethodInput!) {
+  mutation UpdateUserContactMethod($input: UpdateUserContactMethodInput!) {
     updateUserContactMethod(input: $input)
   }
 `
@@ -59,8 +59,6 @@ export default function UserContactMethodCreateDialogDest(props: {
     _setCMValue(newValue)
     setUpdateErr(null)
   }
-
-  // TODO: useQuery for userConflictQuery
 
   const [updateCMStatus, updateCM] = useMutation(mutation)
   useEffect(() => {
@@ -92,13 +90,16 @@ export default function UserContactMethodCreateDialogDest(props: {
       onClose={props.onClose}
       // wrapped to prevent event from passing into createCM
       onSubmit={() => {
-        updateCM({
-          input: {
-            id: props.contactMethodID,
-            name: CMValue.name,
-            enableStatusUpdates: Boolean(CMValue.statusUpdates),
+        updateCM(
+          {
+            input: {
+              id: props.contactMethodID,
+              name: CMValue.name,
+              enableStatusUpdates: Boolean(CMValue.statusUpdates),
+            },
           },
-        }).then((result) => {
+          { additionalTypenames: ['UserContactMethod'] },
+        ).then((result) => {
           if (result.error) {
             return
           }
