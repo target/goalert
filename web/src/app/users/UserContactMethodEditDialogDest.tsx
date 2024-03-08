@@ -96,13 +96,6 @@ export default function UserContactMethodCreateDialogDest(props: {
           input: {
             id: props.contactMethodID,
             name: CMValue.name,
-            dest: {
-              type: CMValue.dest.type,
-              values: CMValue.dest.values.map(({ fieldID, value }) => ({
-                fieldID,
-                value,
-              })),
-            },
             enableStatusUpdates: Boolean(CMValue.statusUpdates),
           },
         }).then((result) => {
