@@ -636,7 +636,12 @@ input SetScheduleOnCallNotificationRulesInput {
 
 input OnCallNotificationRuleInput {
   id: ID
-  target: TargetInput!
+
+  """
+  target is required if dest is unset
+  """
+  target: TargetInput
+  dest: DestinationInput @experimental(flagName: "dest-types")
 
   # time indicates a time-of-day (in the schedule's time zone)
   # to send a message of current on-call users.
@@ -1233,14 +1238,8 @@ input CreateUserNotificationRuleInput {
 
 input UpdateUserContactMethodInput {
   id: ID!
-  type: ContactMethodType
-    @deprecated(
-      reason: "Updating type is not supported, delete and create a new contact method instead."
-    )
 
   name: String
-
-  # Only value or dest should be used at a time, never both.
   value: String
     @deprecated(
       reason: "Updating value is not supported, delete and create a new contact method instead."

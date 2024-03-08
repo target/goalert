@@ -676,8 +676,9 @@ export interface OnCallNotificationRule {
 }
 
 export interface OnCallNotificationRuleInput {
+  dest?: null | DestinationInput
   id?: null | string
-  target: TargetInput
+  target?: null | TargetInput
   time?: null | ClockTime
   weekdayFilter?: null | WeekdayFilter
 }
@@ -1176,7 +1177,6 @@ export interface UpdateUserContactMethodInput {
   enableStatusUpdates?: null | boolean
   id: string
   name?: null | string
-  type?: null | ContactMethodType
   value?: null | string
 }
 

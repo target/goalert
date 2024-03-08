@@ -85,5 +85,4 @@ export default function DestinationField(
       })}
     </Grid>
   )
-  return
 }
