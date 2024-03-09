@@ -6480,12 +6480,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:18.2.18":
-  version: 18.2.18
-  resolution: "@types/react-dom@npm:18.2.18"
+"@types/react-dom@npm:18.2.21":
+  version: 18.2.21
+  resolution: "@types/react-dom@npm:18.2.21"
   dependencies:
     "@types/react": "*"
-  checksum: 8e3da404c980e2b2a76da3852f812ea6d8b9d0e7f5923fbaf3bfbbbfa1d59116ff91c129de8f68e9b7668a67ae34484fe9df74d5a7518cf8591ec07a0c4dad57
+  checksum: 0ff00aedf5ffad90ed226c0ab0acdca609804c81af5dbde0d13a4ae53dac6bd92f85f1adc032c42966ec2e9417d13d18a41767434afa4d8c1979cad57348191b
   languageName: node
   linkType: hard
 
@@ -18041,7 +18041,7 @@ __metadata:
     "@types/prop-types": 15.7.11
     "@types/react": 18.2.48
     "@types/react-big-calendar": 1.6.5
-    "@types/react-dom": 18.2.18
+    "@types/react-dom": 18.2.21
     "@types/react-transition-group": 4.4.10
     "@types/react-virtualized-auto-sizer": 1.0.4
     "@typescript-eslint/eslint-plugin": 7.1.0
