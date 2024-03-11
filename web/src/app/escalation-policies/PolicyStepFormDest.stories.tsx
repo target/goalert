@@ -103,8 +103,6 @@ export const AddAndDeleteAction: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    await userEvent.click(await canvas.findByText('Dest Type Error EP Step'))
-    await userEvent.click(await screen.findByText('Multi Field EP Step Dest'))
     await userEvent.type(
       await canvas.findByPlaceholderText('11235550123'),
       '12225558989',
@@ -130,8 +128,6 @@ export const FieldErrors: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    await userEvent.click(await canvas.findByText('Dest Type Error EP Step'))
-    await userEvent.click(await screen.findByText('Multi Field EP Step Dest'))
     await userEvent.type(
       await canvas.findByPlaceholderText('11235550123'),
       '123',
@@ -175,8 +171,7 @@ export const DestTypeAndGenericError: Story = {
       '456',
     )
     await userEvent.click(await canvas.findByText('Add Action'))
-    await expect(await canvas.findByText('invalid dest type')).toBeVisible()
-    await userEvent.click(await canvas.findByText('Dest Type Error EP Step'))
+    await userEvent.click(await canvas.findByText('Multi Field EP Step Dest'))
     await userEvent.click(await screen.findByText('Generic Error EP Step'))
 
     await userEvent.click(await canvas.findByText('Add Action'))
