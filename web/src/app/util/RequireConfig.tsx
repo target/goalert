@@ -218,9 +218,7 @@ export function useContactMethodTypes(): DestinationTypeInfo[] {
 
 export function useEPTargetTypes(): DestinationTypeInfo[] {
   const cfg = React.useContext(ConfigContext)
-  return cfg.destTypes
-    .filter((t) => t.isEPTarget)
-    .sort((a, b) => a.name.localeCompare(b.name))
+  return cfg.destTypes.filter((t) => t.isEPTarget)
 }
 
 /** useSchedOnCallNotifyTypes returns a list of schedule on-call notification destination types. */
