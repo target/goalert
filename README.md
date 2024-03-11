@@ -26,7 +26,7 @@ GoAlert will be running at [localhost:8081](http://localhost:8081). You can log 
 If you're using the demo container for integration testing:
 - A non-admin user is available as `user`/`user1234`.
 - You can specify the ENV variable `SKIP_SEED=1` to skip the initial seed data step.
-- You can get a session token via `curl -XPOST -H 'Referer: http://localhost:8081' -d 'username=admin&password=admin123' http://localhost:8081/api/v2/identity/providers/basic?noRedirect=1`.
+- You can get a session token via `curl -XPOST -H 'Referer: http://localhost:8081' -d 'username=admin&password=admin123' 'http://localhost:8081/api/v2/identity/providers/basic?noRedirect=1'`.
 
 ## Contributing
 
