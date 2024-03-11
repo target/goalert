@@ -479,6 +479,28 @@ func (q *Queries) AlertLogLookupCMType(ctx context.Context, id uuid.UUID) (EnumU
 	return cm_type, err
 }
 
+const alertMetadata = `-- name: AlertMetadata :one
+SELECT
+    alert_id,
+    metadata
+FROM
+    alerts_metadata
+WHERE
+    alert_id = ANY ($1::number)
+`
+
+type AlertMetadataRow struct {
+	AlertID  int32
+	Metadata pqtype.NullRawMessage
+}
+
+func (q *Queries) AlertMetadata(ctx context.Context, dollar_1 interface{}) (AlertMetadataRow, error) {
+	row := q.db.QueryRowContext(ctx, alertMetadata, dollar_1)
+	var i AlertMetadataRow
+	err := row.Scan(&i.AlertID, &i.Metadata)
+	return i, err
+}
+
 const allPendingMsgDests = `-- name: AllPendingMsgDests :many
 SELECT DISTINCT
     usr.name AS user_name,
@@ -1818,6 +1840,26 @@ type SetAlertFeedbackParams struct {
 
 func (q *Queries) SetAlertFeedback(ctx context.Context, arg SetAlertFeedbackParams) error {
 	_, err := q.db.ExecContext(ctx, setAlertFeedback, arg.AlertID, arg.NoiseReason)
+	return err
+}
+
+const setAlertMetadata = `-- name: SetAlertMetadata :exec
+INSERT INTO alerts_metadata(alert_id, metadata)
+    VALUES ($1, $2)
+ON CONFLICT (alert_id)
+    DO UPDATE SET
+        metadata = $2
+    WHERE
+        alerts_metadata.alert_id = $1
+`
+
+type SetAlertMetadataParams struct {
+	AlertID  int32
+	Metadata pqtype.NullRawMessage
+}
+
+func (q *Queries) SetAlertMetadata(ctx context.Context, arg SetAlertMetadataParams) error {
+	_, err := q.db.ExecContext(ctx, setAlertMetadata, arg.AlertID, arg.Metadata)
 	return err
 }
 

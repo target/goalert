@@ -881,3 +881,20 @@ func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
 
 	return nil
 }
+
+func (s Store) Metadata(ctx context.Context, alertID int) (*string, error) {
+	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
+	if err != nil {
+		return nil, err
+	}
+
+	// query metadata
+	_md, err := gadb.New(s.db).AlertMetadata(ctx, alertID)
+	var md string
+	err = _md.Metadata.Scan(&md)
+	if err != nil {
+		return nil, err
+	}
+
+	return &md, nil
+}

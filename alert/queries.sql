@@ -1,13 +1,18 @@
--- name: LockOneAlertService :one
-SELECT
-    maintenance_expires_at NOTNULL::bool AS is_maint_mode,
-    alerts.status
-FROM
-    services svc
-    JOIN alerts ON alerts.service_id = svc.id
-WHERE
-    alerts.id = $1
-FOR UPDATE;
+-- name: Insert :one
+INSERT INTO alerts(summary, details, service_id, source, status, dedup_key)
+    VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING
+    id, created_at
+    -- name: NoStepsByService :one
+    SELECT
+        coalesce((
+            SELECT
+                TRUE
+            FROM escalation_policies pol
+            JOIN services svc ON svc.id = $1
+            WHERE
+                pol.id = svc.escalation_policy_id
+                AND pol.step_count = 0), FALSE)
 
 -- name: RequestAlertEscalationByTime :one
 UPDATE
@@ -59,4 +64,22 @@ ON CONFLICT (alert_id)
         alert_feedback.alert_id = excluded.alert_id
     RETURNING
         alert_id;
+
+-- name: AlertMetadata :one
+SELECT
+    alert_id,
+    metadata
+FROM
+    alerts_metadata
+WHERE
+    alert_id = ANY ($1::number);
+
+-- name: SetAlertMetadata :exec
+INSERT INTO alerts_metadata(alert_id, metadata)
+    VALUES ($1, $2)
+ON CONFLICT (alert_id)
+    DO UPDATE SET
+        metadata = $2
+    WHERE
+        alerts_metadata.alert_id = $1;
 

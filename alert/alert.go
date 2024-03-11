@@ -17,14 +17,27 @@ const (
 
 // An Alert represents an ongoing situation.
 type Alert struct {
-	ID        int       `json:"_id"`
-	Status    Status    `json:"status"`
-	Summary   string    `json:"summary"`
-	Details   string    `json:"details"`
-	Source    Source    `json:"source"`
-	ServiceID string    `json:"service_id"`
-	CreatedAt time.Time `json:"created_at"`
-	Dedup     *DedupID  `json:"dedup"`
+	ID        int           `json:"_id"`
+	Status    Status        `json:"status"`
+	Summary   string        `json:"summary"`
+	Details   string        `json:"details"`
+	Source    Source        `json:"source"`
+	ServiceID string        `json:"service_id"`
+	CreatedAt time.Time     `json:"created_at"`
+	Dedup     *DedupID      `json:"dedup"`
+	Meta      AlertMetadata `json:"meta"`
+}
+
+type AlertMetadataValue struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+const TypeAlertMetadataV1 = "alert_metadata_v1"
+
+type AlertMetadata struct {
+	Type        string               `json:"type"`
+	AlertMetaV1 []AlertMetadataValue `json:"alert_metadata_v1"`
 }
 
 // DedupKey will return the de-duplication key for the alert.

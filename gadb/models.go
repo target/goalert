@@ -801,6 +801,12 @@ type AlertStatusSubscription struct {
 	UpdatedAt       time.Time
 }
 
+type AlertsMetadatum struct {
+	AlertID  int32
+	ID       uuid.UUID
+	Metadata pqtype.NullRawMessage
+}
+
 type AuthBasicUser struct {
 	ID           int64
 	PasswordHash string
