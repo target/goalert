@@ -12,7 +12,7 @@ const VALID_PHONE2 = '+13335558989'
 const INVALID_PHONE = '+15555'
 
 const meta = {
-  title: 'escalation-policies/PolicyStepFormDest',
+  title: 'Escalation Policies/Steps/Form',
   component: PolicyStepFormDest,
   render: function Component(args) {
     const [, setArgs] = useArgs()

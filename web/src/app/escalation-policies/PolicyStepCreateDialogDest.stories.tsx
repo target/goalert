@@ -4,10 +4,12 @@ import PolicyStepCreateDialogDest from './PolicyStepCreateDialogDest'
 import { expect, userEvent, screen, waitFor } from '@storybook/test'
 import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
-import { InputFieldError } from '../util/errtypes'
+import { DestFieldValueError, InputFieldError } from '../util/errtypes'
+
+const BAD_PHONE_NUMBER = '+12225558989'
 
 const meta = {
-  title: 'escalation-policies/PolicyStepCreateDialogDest',
+  title: 'Escalation Policies/Steps/Create Dialog',
   component: PolicyStepCreateDialogDest,
   render: function Component(args) {
     return <PolicyStepCreateDialogDest {...args} />
@@ -17,7 +19,7 @@ const meta = {
     docs: {
       story: {
         inline: false,
-        iframeHeight: 400,
+        iframeHeight: 600,
       },
     },
     msw: {
@@ -27,11 +29,29 @@ const meta = {
         graphql.query('ValidateDestination', ({ variables: vars }) => {
           return HttpResponse.json({
             data: {
-              destinationFieldValidate: vars.input.value === '+12225558989',
+              destinationFieldValidate: vars.input.value.length === 12,
             },
           })
         }),
         graphql.query('DestDisplayInfo', ({ variables: vars }) => {
+          if (vars.input.value.length !== 12) {
+            return HttpResponse.json({
+              errors: [
+                {
+                  message: 'generic error',
+                },
+                {
+                  message: 'Invalid number',
+                  path: ['destinationDisplayInfo', 'input', 'dest'],
+                  extensions: {
+                    code: 'INVALID_DEST_FIELD_VALUE',
+                    fieldID: 'phone-number',
+                  },
+                } satisfies DestFieldValueError,
+              ],
+            })
+          }
+
           return HttpResponse.json({
             data: {
               destinationDisplayInfo: {
