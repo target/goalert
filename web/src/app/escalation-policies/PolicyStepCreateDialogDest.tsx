@@ -11,12 +11,6 @@ const mutation = gql`
   ) {
     createEscalationPolicyStep(input: $input) {
       id
-      delayMinutes
-      targets {
-        id
-        name
-        type
-      }
     }
   }
 `
@@ -25,11 +19,10 @@ function PolicyStepCreateDialogDest(props: {
   escalationPolicyID: string
   onClose: () => void
 }): JSX.Element {
-  const [value, setValue] = useState<FormValue | null>(null)
-  const defaultValue = {
+  const [value, setValue] = useState<FormValue>({
     actions: [],
     delayMinutes: 15,
-  }
+  })
 
   const [createStepStatus, createStep] = useMutation(mutation)
   const [err, setErr] = useState<CombinedError | null>(null)
@@ -55,24 +48,26 @@ function PolicyStepCreateDialogDest(props: {
       maxWidth='sm'
       onClose={props.onClose}
       onSubmit={() => {
-        createStep({
-          input: {
-            escalationPolicyID: props.escalationPolicyID,
-            delayMinutes:
-              (value && value.delayMinutes) || defaultValue.delayMinutes,
-            actions: (value && value.actions) || defaultValue.actions,
+        createStep(
+          {
+            input: {
+              escalationPolicyID: props.escalationPolicyID,
+              delayMinutes: value.delayMinutes,
+              actions: value.actions,
+            },
           },
-        }).then((result) => {
-          if (!result.error) {
-            props.onClose()
-          }
+          { additionalTypenames: ['EscalationPolicy'] },
+        ).then((result) => {
+          if (result.error) return
+
+          props.onClose()
         })
       }}
       form={
         <PolicyStepFormDest
           errors={formErrors}
           disabled={createStepStatus.fetching}
-          value={value || defaultValue}
+          value={value}
           onChange={(value: FormValue) => setValue(value)}
         />
       }
