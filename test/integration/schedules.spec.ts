@@ -63,7 +63,7 @@ test('local time hover', async ({ page, isMobile }) => {
   await page.locator('button[type=submit]').click()
 
   // should display schedule tz on hover
-  await page.hover(`span:has-text("CST")`) // local TZ is configured to CST
+  await page.hover(`[data-testid="shift-details"]`)
   await expect(page.locator('[data-testid="shift-tooltip"]')).toContainText(
     'GMT',
   )

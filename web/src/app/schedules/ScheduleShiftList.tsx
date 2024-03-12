@@ -179,7 +179,9 @@ function ScheduleShiftList({
       const localTZDetails = `From ${localStartTime} to ${localEndTime} ${localTzAbbr}`
       return (
         <Tooltip title={scheduleTZDetails} placement='right'>
-          <span data-cy='shift-details'>{localTZDetails}</span>
+          <span data-cy='shift-details' data-testid='shift-details'>
+            {localTZDetails}
+          </span>
         </Tooltip>
       )
     }
