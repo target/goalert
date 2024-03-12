@@ -1,11 +1,15 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import PolicyStepFormDest, { FormValue } from './PolicyStepFormDest'
-import { expect, userEvent, waitFor, within, screen } from '@storybook/test'
+import { expect, userEvent, waitFor, within } from '@storybook/test'
 import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 import { useArgs } from '@storybook/preview-api'
-import { DestFieldValueError, InputFieldError } from '../util/errtypes'
+import { DestFieldValueError } from '../util/errtypes'
+
+const VALID_PHONE = '+12225558989'
+const VALID_PHONE2 = '+13335558989'
+const INVALID_PHONE = '+15555'
 
 const meta = {
   title: 'escalation-policies/PolicyStepFormDest',
@@ -27,56 +31,25 @@ const meta = {
         graphql.query('ValidateDestination', ({ variables: vars }) => {
           return HttpResponse.json({
             data: {
-              destinationFieldValidate: vars.input.value === '+12225558989',
+              destinationFieldValidate: vars.input.value === VALID_PHONE,
             },
           })
         }),
         graphql.query('DestDisplayInfo', ({ variables: vars }) => {
-          console.log(vars)
-          switch (vars.input.type) {
-            case 'multi-field-ep-step':
-              if (vars.input.values[0].value !== '+12225558989') {
-                return HttpResponse.json({
-                  errors: [
-                    {
-                      message: 'number is too short',
-                      path: ['destinationDisplayInfo', 'input'],
-                      extensions: {
-                        code: 'INVALID_DEST_FIELD_VALUE',
-                        fieldID: 'phone-number',
-                      },
-                    } satisfies DestFieldValueError,
-                    {
-                      message: 'webhook url is invalid',
-                      path: ['destinationDisplayInfo', 'input'],
-                      extensions: {
-                        code: 'INVALID_DEST_FIELD_VALUE',
-                        fieldID: 'webhook-url',
-                      },
-                    } satisfies DestFieldValueError,
-                  ],
-                })
-              }
+          switch (vars.input.values[0].value) {
+            case VALID_PHONE:
+            case VALID_PHONE2:
               return HttpResponse.json({
                 data: {
                   destinationDisplayInfo: {
-                    text: vars.input.values[0].value,
+                    text:
+                      vars.input.values[0].value === VALID_PHONE
+                        ? 'VALID_CHIP_1'
+                        : 'VALID_CHIP_2',
                     iconURL: 'builtin://phone-voice',
                     iconAltText: 'Voice Call',
                   },
                 },
-              })
-            case 'dest-type-error-ep-step':
-              return HttpResponse.json({
-                errors: [
-                  {
-                    message: 'invalid dest type',
-                    path: ['destinationDisplayInfo', 'input', 'type'],
-                    extensions: {
-                      code: 'INVALID_INPUT_VALUE',
-                    },
-                  } satisfies InputFieldError,
-                ],
               })
             default:
               return HttpResponse.json({
@@ -84,6 +57,14 @@ const meta = {
                   {
                     message: 'generic error',
                   },
+                  {
+                    path: ['destinationDisplayInfo', 'input'],
+                    message: 'invalid phone number',
+                    extensions: {
+                      code: 'INVALID_DEST_FIELD_VALUE',
+                      fieldID: 'phone-number',
+                    },
+                  } satisfies DestFieldValueError,
                 ],
               })
           }
@@ -95,34 +76,34 @@ const meta = {
 
 export default meta
 type Story = StoryObj<typeof meta>
-export const AddAndDeleteAction: Story = {
+export const Empty: Story = {
   args: {
     value: {
       delayMinutes: 15,
       actions: [],
     },
-  },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    await userEvent.click(await canvas.findByText('Dest Type Error EP Step'))
-    await userEvent.click(await screen.findByText('Multi Field EP Step Dest'))
-    await userEvent.type(
-      await canvas.findByPlaceholderText('11235550123'),
-      '12225558989',
-    )
-    await userEvent.type(
-      await canvas.findByPlaceholderText('https://example.com'),
-      'https://target.com',
-    )
-    await userEvent.click(await canvas.findByText('Add Action'))
-    await expect(await canvas.findByText('+12225558989')).toBeVisible()
-    await expect(await canvas.findByTestId('destination-chip')).toBeVisible()
-    await userEvent.click(await canvas.findByTestId('CancelIcon'))
-    await expect(await canvas.findByText('No actions')).toBeVisible()
   },
 }
 
-export const FieldErrors: Story = {
+export const WithExistingActions: Story = {
+  args: {
+    value: {
+      delayMinutes: 15,
+      actions: [
+        {
+          type: 'single-field',
+          values: [{ fieldID: 'phone-number', value: VALID_PHONE }],
+        },
+        {
+          type: 'single-field',
+          values: [{ fieldID: 'phone-number', value: VALID_PHONE2 }],
+        },
+      ],
+    },
+  },
+}
+
+export const ManageActions: Story = {
   args: {
     value: {
       delayMinutes: 15,
@@ -131,56 +112,35 @@ export const FieldErrors: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    await userEvent.click(await canvas.findByText('Dest Type Error EP Step'))
-    await userEvent.click(await screen.findByText('Multi Field EP Step Dest'))
-    await userEvent.type(
-      await canvas.findByPlaceholderText('11235550123'),
-      '123',
-    )
-    await userEvent.type(
-      await canvas.findByPlaceholderText('https://example.com'),
-      'url',
-    )
+    const phoneInput = await canvas.findByLabelText('Phone Number')
+
+    await userEvent.clear(phoneInput)
+    await userEvent.type(phoneInput, INVALID_PHONE)
     await userEvent.click(await canvas.findByText('Add Action'))
 
-    await waitFor(async function InvalidField() {
+    await waitFor(async () => {
       await expect(await canvas.findByLabelText('Phone Number')).toBeInvalid()
-      await expect(await canvas.findByLabelText('Webhook URL')).toBeInvalid()
+      await expect(await canvas.findByText('generic error')).toBeVisible()
+      await expect(
+        await canvas.findByText('Invalid phone number'),
+      ).toBeVisible()
     })
-    await userEvent.clear(await canvas.findByPlaceholderText('11235550123'))
-    await userEvent.type(
-      await canvas.findByPlaceholderText('11235550123'),
-      '12225558989',
-    )
-    await userEvent.clear(
-      await canvas.findByPlaceholderText('https://example.com'),
-    )
-    await userEvent.type(
-      await canvas.findByPlaceholderText('https://example.com'),
-      'https://target.com',
-    )
-  },
-}
 
-export const DestTypeAndGenericError: Story = {
-  args: {
-    value: {
-      delayMinutes: 15,
-      actions: [],
-    },
-  },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    await userEvent.type(
-      await canvas.findByPlaceholderText('11235550123'),
-      '456',
-    )
-    await userEvent.click(await canvas.findByText('Add Action'))
-    await expect(await canvas.findByText('invalid dest type')).toBeVisible()
-    await userEvent.click(await canvas.findByText('Dest Type Error EP Step'))
-    await userEvent.click(await screen.findByText('Generic Error EP Step'))
+    await userEvent.clear(phoneInput)
+
+    // Editing the input should clear the error
+    await expect(await canvas.findByLabelText('Phone Number')).not.toBeInvalid()
+
+    await userEvent.type(phoneInput, VALID_PHONE)
 
     await userEvent.click(await canvas.findByText('Add Action'))
-    await expect(await canvas.findByText('generic error')).toBeVisible()
+
+    // should result in chip
+    await expect(await canvas.findByText('VALID_CHIP_1')).toBeVisible()
+
+    // Delete the chip
+    await userEvent.click(await canvas.findByTestId('CancelIcon'))
+
+    await expect(await canvas.findByText('No actions')).toBeVisible()
   },
 }
