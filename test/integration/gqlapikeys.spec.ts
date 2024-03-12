@@ -26,6 +26,18 @@ query ListAPIKeys {
 mutation DeleteAPIKey($id: ID!) {
     deleteGQLAPIKey(id: $id)
 }
+
+query ServiceInfo($firstID: ID!) {
+  service(id: $firstID) {
+    id
+  }
+}
+
+query ServiceInfo2($secondID: ID!) {
+  service(id: $secondID) {
+    id
+  }
+}
 `
 
 test('GQL API keys', async ({ page, request, isMobile }) => {
@@ -91,9 +103,24 @@ test('GQL API keys', async ({ page, request, isMobile }) => {
 
   expect(resp.status()).toBe(200)
   const data = await resp.json()
-
   expect(data).toHaveProperty('data')
+  expect(data).not.toHaveProperty('errors')
   expect(data.data).toHaveProperty('gqlAPIKeys')
+
+  // Reproduce issue #3662
+  resp = await request.post(gqlURL, {
+    headers: {
+      Authorization: `Bearer ${duplicateToken}`,
+    },
+    data: {
+      variables: {
+        firstID: '00000000-0000-0000-0000-000000000000',
+      },
+      operationName: 'ServiceInfo',
+    },
+  })
+  expect(resp.status()).toBe(200)
+  expect(await resp.json()).not.toHaveProperty('errors')
 
   resp = await request.post(gqlURL, {
     headers: {
@@ -136,6 +163,7 @@ test('GQL API keys', async ({ page, request, isMobile }) => {
   })
 
   expect(resp.status()).toBe(200)
+  expect(await resp.json()).not.toHaveProperty('errors')
 
   await page.reload()
 
