@@ -216,6 +216,11 @@ export function useContactMethodTypes(): DestinationTypeInfo[] {
   return cfg.destTypes.filter((t) => t.isContactMethod)
 }
 
+export function useEPTargetTypes(): DestinationTypeInfo[] {
+  const cfg = React.useContext(ConfigContext)
+  return cfg.destTypes.filter((t) => t.isEPTarget)
+}
+
 /** useSchedOnCallNotifyTypes returns a list of schedule on-call notification destination types. */
 export function useSchedOnCallNotifyTypes(): DestinationTypeInfo[] {
   const cfg = React.useContext(ConfigContext)

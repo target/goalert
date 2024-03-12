@@ -20,7 +20,9 @@ const noSuspense = { suspense: false }
 function trimPrefix(value: string, prefix: string): string {
   if (!prefix) return value
   if (!value) return value
-  if (value.startsWith(prefix)) return value.slice(prefix.length)
+  while (value.startsWith(prefix)) {
+    value = value.slice(prefix.length)
+  }
   return value
 }
 

@@ -151,11 +151,15 @@ export const MultiField: Story = {
       await canvas.findByRole('option', { hidden: true, name: 'Multi Field' }),
     )
 
-    await expect(await canvas.findByLabelText('Name')).toBeVisible()
-    await expect(await canvas.findByLabelText('Destination Type')).toBeVisible()
-    await expect(await canvas.findByLabelText('First Item')).toBeVisible()
-    await expect(await canvas.findByLabelText('Second Item')).toBeVisible()
-    await expect(await canvas.findByLabelText('Third Item')).toBeVisible()
+    await waitFor(async function Labels() {
+      await expect(await canvas.findByLabelText('Name')).toBeVisible()
+      await expect(
+        await canvas.findByLabelText('Destination Type'),
+      ).toBeVisible()
+      await expect(await canvas.findByLabelText('First Item')).toBeVisible()
+      await expect(await canvas.findByLabelText('Second Item')).toBeVisible()
+      await expect(await canvas.findByLabelText('Third Item')).toBeVisible()
+    })
   },
 }
 
