@@ -537,7 +537,7 @@ func (s *Store) FindMany(ctx context.Context, ids []string) ([]User, error) {
 		return nil, err
 	}
 
-	rows, err := s.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids), permission.NullUserUUID(ctx))
+	rows, err := s.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids), permission.UserNullUUID(ctx))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -581,7 +581,7 @@ func (s *Store) FindOneTx(ctx context.Context, tx *sql.Tx, id string, forUpdate 
 	if forUpdate {
 		row = withTx(ctx, tx, s.findOneForUpdate).QueryRowContext(ctx, id)
 	} else {
-		row = withTx(ctx, tx, s.findOne).QueryRowContext(ctx, id, permission.NullUserUUID(ctx))
+		row = withTx(ctx, tx, s.findOne).QueryRowContext(ctx, id, permission.UserNullUUID(ctx))
 	}
 
 	var u User

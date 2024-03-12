@@ -166,8 +166,8 @@ func UserID(ctx context.Context) string {
 	return uid
 }
 
-// NullUserUUID will return the UserID associated with a context as a NullUUID.
-func NullUserUUID(ctx context.Context) uuid.NullUUID {
+// UserNullUUID will return the UserID associated with a context as a NullUUID.
+func UserNullUUID(ctx context.Context) uuid.NullUUID {
 	if id, err := uuid.Parse(UserID(ctx)); err == nil {
 		return uuid.NullUUID{UUID: id, Valid: true}
 	}

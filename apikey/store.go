@@ -167,7 +167,7 @@ func (s *Store) UpdateAdminGraphQLKey(ctx context.Context, id uuid.UUID, name, d
 		ID:          id,
 		Name:        key.Name,
 		Description: key.Description,
-		UpdatedBy:   permission.NullUserUUID(ctx),
+		UpdatedBy:   permission.UserNullUUID(ctx),
 	})
 	if err != nil {
 		return err
@@ -183,7 +183,7 @@ func (s *Store) DeleteAdminGraphQLKey(ctx context.Context, id uuid.UUID) error {
 	}
 
 	return gadb.New(s.db).APIKeyDelete(ctx, gadb.APIKeyDeleteParams{
-		DeletedBy: permission.NullUserUUID(ctx),
+		DeletedBy: permission.UserNullUUID(ctx),
 		ID:        id,
 	})
 }
@@ -279,8 +279,8 @@ func (s *Store) CreateAdminGraphQLKey(ctx context.Context, opt NewAdminGQLKeyOpt
 		Description: opt.Desc,
 		ExpiresAt:   opt.Expires,
 		Policy:      policyData,
-		CreatedBy:   permission.NullUserUUID(ctx),
-		UpdatedBy:   permission.NullUserUUID(ctx),
+		CreatedBy:   permission.UserNullUUID(ctx),
+		UpdatedBy:   permission.UserNullUUID(ctx),
 	})
 	if err != nil {
 		return uuid.Nil, "", err
