@@ -90,13 +90,12 @@ func (store *Store) FindManyTx(ctx context.Context, tx *sql.Tx, ids []string) ([
 	if err != nil {
 		return nil, err
 	}
-	userID := permission.UserID(ctx)
 
 	stmt := store.findMany
 	if tx != nil {
 		stmt = tx.Stmt(stmt)
 	}
-	rows, err := stmt.QueryContext(ctx, sqlutil.UUIDArray(ids), userID)
+	rows, err := stmt.QueryContext(ctx, sqlutil.UUIDArray(ids), permission.NullUserUUID(ctx))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -281,10 +280,8 @@ func (store *Store) FindOne(ctx context.Context, id string) (*Schedule, error) {
 	if err != nil {
 		return nil, err
 	}
-	var userID sql.NullString
-	userID.String = permission.UserID(ctx)
-	userID.Valid = userID.String != ""
-	row := store.findOne.QueryRowContext(ctx, id, userID)
+
+	row := store.findOne.QueryRowContext(ctx, id, permission.NullUserUUID(ctx))
 	var s Schedule
 	var tz string
 	err = row.Scan(&s.ID, &s.Name, &s.Description, &tz, &s.isUserFavorite)

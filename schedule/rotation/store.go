@@ -230,8 +230,7 @@ func (s *Store) FindMany(ctx context.Context, ids []string) ([]Rotation, error) 
 		return nil, err
 	}
 
-	userID := permission.UserID(ctx)
-	rows, err := s.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids), userID)
+	rows, err := s.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids), permission.NullUserUUID(ctx))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -269,8 +268,7 @@ func (s *Store) FindRotation(ctx context.Context, id string) (*Rotation, error) 
 		return nil, err
 	}
 
-	userID := permission.UserID(ctx)
-	row := s.findRotation.QueryRowContext(ctx, id, userID)
+	row := s.findRotation.QueryRowContext(ctx, id, permission.NullUserUUID(ctx))
 	var r Rotation
 	var tz string
 	err = row.Scan(&r.ID, &r.Name, &r.Description, &r.Type, &r.Start, &r.ShiftLength, &tz, &r.isUserFavorite)

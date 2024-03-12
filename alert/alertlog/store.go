@@ -307,17 +307,10 @@ func (s *Store) logEntry(ctx context.Context, tx *sql.Tx, _type Type, meta inter
 		case permission.SourceTypeAuthProvider:
 			r.subject.classifier = "Web"
 			r.subject._type = SubjectTypeUser
-
-			if permission.UserID(ctx) != "" {
-				r.subject.userID.UUID = uuid.MustParse(permission.UserID(ctx))
-				r.subject.userID.Valid = true
-			}
+			r.subject.userID = permission.NullUserUUID(ctx)
 		case permission.SourceTypeContactMethod:
 			r.subject._type = SubjectTypeUser
-			if permission.UserID(ctx) != "" {
-				r.subject.userID.UUID = uuid.MustParse(permission.UserID(ctx))
-				r.subject.userID.Valid = true
-			}
+			r.subject.userID = permission.NullUserUUID(ctx)
 			if _type == TypeNoNotificationSent {
 				// no CMID for no notification sent
 				r.subject.classifier = "no immediate rule"
@@ -361,10 +354,7 @@ func (s *Store) logEntry(ctx context.Context, tx *sql.Tx, _type Type, meta inter
 			case notification.DestTypeSlackChannel:
 				r.subject.classifier = "Slack"
 			}
-			if permission.UserID(ctx) != "" {
-				r.subject.userID.UUID = uuid.MustParse(permission.UserID(ctx))
-				r.subject.userID.Valid = true
-			}
+			r.subject.userID = permission.NullUserUUID(ctx)
 
 		case permission.SourceTypeHeartbeat:
 			r.subject._type = SubjectTypeHeartbeatMonitor

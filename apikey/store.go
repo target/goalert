@@ -163,16 +163,11 @@ func (s *Store) UpdateAdminGraphQLKey(ctx context.Context, id uuid.UUID, name, d
 		key.Description = *desc
 	}
 
-	var user uuid.NullUUID
-	if u, err := uuid.Parse(permission.UserID(ctx)); err == nil {
-		user = uuid.NullUUID{UUID: u, Valid: true}
-	}
-
 	err = gadb.New(tx).APIKeyUpdate(ctx, gadb.APIKeyUpdateParams{
 		ID:          id,
 		Name:        key.Name,
 		Description: key.Description,
-		UpdatedBy:   user,
+		UpdatedBy:   permission.NullUserUUID(ctx),
 	})
 	if err != nil {
 		return err
@@ -187,13 +182,8 @@ func (s *Store) DeleteAdminGraphQLKey(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
-	var byID uuid.NullUUID
-	if id, err := uuid.Parse(permission.UserID(ctx)); err == nil {
-		byID = uuid.NullUUID{UUID: id, Valid: true}
-	}
-
 	return gadb.New(s.db).APIKeyDelete(ctx, gadb.APIKeyDeleteParams{
-		DeletedBy: byID,
+		DeletedBy: permission.NullUserUUID(ctx),
 		ID:        id,
 	})
 }
@@ -282,12 +272,6 @@ func (s *Store) CreateAdminGraphQLKey(ctx context.Context, opt NewAdminGQLKeyOpt
 		return uuid.Nil, "", err
 	}
 
-	var user uuid.NullUUID
-	userID, err := uuid.Parse(permission.UserID(ctx))
-	if err == nil {
-		user = uuid.NullUUID{UUID: userID, Valid: true}
-	}
-
 	id := uuid.New()
 	err = gadb.New(s.db).APIKeyInsert(ctx, gadb.APIKeyInsertParams{
 		ID:          id,
@@ -295,8 +279,8 @@ func (s *Store) CreateAdminGraphQLKey(ctx context.Context, opt NewAdminGQLKeyOpt
 		Description: opt.Desc,
 		ExpiresAt:   opt.Expires,
 		Policy:      policyData,
-		CreatedBy:   user,
-		UpdatedBy:   user,
+		CreatedBy:   permission.NullUserUUID(ctx),
+		UpdatedBy:   permission.NullUserUUID(ctx),
 	})
 	if err != nil {
 		return uuid.Nil, "", err
