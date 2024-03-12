@@ -43,7 +43,7 @@ require (
 	github.com/sqlc-dev/pqtype v0.3.0
 	github.com/stretchr/testify v1.9.0
 	github.com/vektah/gqlparser/v2 v2.5.11
-	golang.org/x/crypto v0.19.0
+	golang.org/x/crypto v0.20.0
 	golang.org/x/oauth2 v0.17.0
 	golang.org/x/sys v0.17.0
 	golang.org/x/term v0.17.0
@@ -99,11 +99,10 @@ require (
 	github.com/ian-kent/linkio v0.0.0-20170807205755-97566b872887 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/jackc/pgconn v1.14.1 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
-	github.com/jackc/pgx/v4 v4.18.1 // indirect
+	github.com/jackc/pgx/v4 v4.18.2 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jaytaylor/html2text v0.0.0-20230321000545-74c2419ad056 // indirect
 	github.com/jhump/protoreflect v1.15.3 // indirect
