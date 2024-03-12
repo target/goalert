@@ -2,7 +2,7 @@ import { gql, useQuery } from 'urql'
 import { DateTime } from 'luxon'
 
 const schedTZQuery = gql`
-  query ($id: ID!) {
+  query SchedZone($id: ID!) {
     schedule(id: $id) {
       id
       timeZone

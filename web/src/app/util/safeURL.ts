@@ -1,14 +1,19 @@
+import _ from 'lodash'
+
 // safeURL will determine if a url is safe for linking.
 //
 // It tries to determine if the label is misleading.
-export function safeURL(url: string, label: string): boolean {
+export function safeURL(_url: string, _label: string): boolean {
+  const url = decodeURI(_.unescape(_url))
+  const label = _.unescape(_label)
+
   if (url.startsWith('mailto:')) {
-    const email = url.substr(7)
+    const email = url.slice(7)
     return email === label && email.includes('@')
   }
 
   if (url.startsWith('tel:')) {
-    const phone = url.substr(4)
+    const phone = url.slice(4)
     return phone === label && /^\+?[\d\- ]+$/.test(phone)
   }
 

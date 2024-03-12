@@ -1,7 +1,10 @@
 import type { Preview } from '@storybook/react'
 import DefaultDecorator from '../web/src/app/storybook/decorators'
 import { initialize, mswLoader } from 'msw-storybook-addon'
-import { handleDefaultConfig } from '../web/src/app/storybook/graphql'
+import {
+  handleDefaultConfig,
+  handleExpFlags,
+} from '../web/src/app/storybook/graphql'
 
 initialize({
   onUnhandledRequest: 'bypass',
@@ -17,7 +20,7 @@ const preview: Preview = {
       },
     },
     msw: {
-      handlers: [handleDefaultConfig],
+      handlers: [handleDefaultConfig, handleExpFlags()],
     },
   },
   decorators: [DefaultDecorator],

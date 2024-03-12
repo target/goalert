@@ -94,7 +94,7 @@ export default function DestinationInputDirect(
   }
 
   // add live validation icon to the right of the textfield as an endAdornment
-  if (adorn && props.value === debouncedValue) {
+  if (adorn && props.value === debouncedValue && !props.disabled) {
     iprops = {
       endAdornment: <InputAdornment position='end'>{adorn}</InputAdornment>,
       ...iprops,
@@ -121,7 +121,7 @@ export default function DestinationInputDirect(
       InputProps={iprops}
       type={props.inputType}
       placeholder={props.placeholderText}
-      label={props.labelSingular}
+      label={props.label}
       helperText={
         props.hintURL ? (
           <AppLink newTab to={props.hintURL}>

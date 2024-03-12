@@ -167,6 +167,15 @@ export function FormField(props) {
 
     return null
   }
+  if (props.select) {
+    fieldProps.SelectProps = {
+      ...fieldProps.SelectProps,
+      MenuProps: {
+        ...fieldProps.SelectProps?.MenuProps,
+        disablePortal: props.disablePortal,
+      },
+    }
+  }
 
   if (render) return render(fieldProps)
   return (
@@ -287,6 +296,9 @@ FormField.propTypes = {
 
   multiple: p.bool,
 
+  destFieldErrors: p.array,
+
+  destType: p.string,
   options: p.arrayOf(
     p.shape({
       label: p.string,
@@ -298,4 +310,5 @@ FormField.propTypes = {
   clientSideFilter: p.bool,
   disableCloseOnSelect: p.bool,
   optionsLimit: p.number,
+  disablePortal: p.bool,
 }

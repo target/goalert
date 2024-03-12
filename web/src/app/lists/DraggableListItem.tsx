@@ -1,5 +1,5 @@
 import React, { MutableRefObject } from 'react'
-import { FlatListItem as FlatListItemType } from './FlatList'
+import { FlatListItemOptions } from './FlatList'
 import FlatListItem from './FlatListItem'
 import { Announcements, UniqueIdentifier } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
@@ -62,7 +62,7 @@ const animateLayoutChanges: AnimateLayoutChanges = (args) =>
 interface DraggableListItemProps {
   id: string
   index: number
-  item: FlatListItemType
+  item: FlatListItemOptions
 }
 
 export function DraggableListItem({

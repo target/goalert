@@ -62,6 +62,7 @@ function FormDialog(props) {
     onBack,
     fullHeight,
     disableBackdropClose,
+    disablePortal,
     ...dialogProps
   } = props
 
@@ -178,6 +179,7 @@ function FormDialog(props) {
   const fs = fullScreen || (!isWideScreen && !confirm)
   return (
     <Dialog
+      disablePortal={disablePortal}
       classes={classesProp}
       fullScreen={fs}
       maxWidth={maxWidth}
@@ -232,6 +234,8 @@ FormDialog.propTypes = {
   alert: p.bool,
   confirm: p.bool,
   maxWidth: p.string,
+
+  disablePortal: p.bool, // disable the portal behavior of the dialog
 
   // overrides any of the main action button titles with this specific text
   primaryActionLabel: p.string,

@@ -70,6 +70,8 @@ const expDestQuery = gql`
       enabled
       disabledMessage
       userDisclaimer
+      supportsStatusUpdates
+      statusUpdatesRequired
 
       isContactMethod
       isEPTarget
@@ -77,14 +79,13 @@ const expDestQuery = gql`
 
       requiredFields {
         fieldID
-        labelSingular
-        labelPlural
+        label
         hint
         hintURL
         placeholderText
         prefix
         inputType
-        isSearchSelectable
+        supportsSearch
         supportsValidation
       }
     }
@@ -207,6 +208,18 @@ export function useConfig(): ConfigData {
 export function useConfigValue(...fields: ConfigID[]): Value[] {
   const config = useConfig()
   return fields.map((f) => config[f])
+}
+
+// useContactMethodTypes returns a list of contact method destination types.
+export function useContactMethodTypes(): DestinationTypeInfo[] {
+  const cfg = React.useContext(ConfigContext)
+  return cfg.destTypes.filter((t) => t.isContactMethod)
+}
+
+/** useSchedOnCallNotifyTypes returns a list of schedule on-call notification destination types. */
+export function useSchedOnCallNotifyTypes(): DestinationTypeInfo[] {
+  const cfg = React.useContext(ConfigContext)
+  return cfg.destTypes.filter((t) => t.isSchedOnCallNotify)
 }
 
 // useDestinationType returns information about the given destination type.

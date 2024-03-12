@@ -2,11 +2,10 @@ import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import TelTextField from './TelTextField'
 import { HttpResponse, graphql } from 'msw'
-import { expect } from '@storybook/jest'
-import { within } from '@storybook/testing-library'
+import { expect, within } from '@storybook/test'
 import { useArgs } from '@storybook/preview-api'
 
-import { handleDefaultConfig } from '../storybook/graphql'
+import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
 
 const meta = {
   title: 'util/TelTextField',
@@ -33,7 +32,7 @@ const meta = {
     msw: {
       handlers: [
         handleDefaultConfig,
-
+        handleExpFlags('dest-types'),
         graphql.query('PhoneNumberValidate', ({ variables: vars }) => {
           return HttpResponse.json({
             data: {

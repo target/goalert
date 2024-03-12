@@ -1,9 +1,8 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import DestinationSearchSelect from './DestinationSearchSelect'
-import { expect } from '@storybook/jest'
-import { userEvent, within } from '@storybook/testing-library'
-import { handleDefaultConfig } from '../storybook/graphql'
+import { expect, userEvent, within } from '@storybook/test'
+import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 import { useArgs } from '@storybook/preview-api'
 import { FieldValueConnection } from '../../schema'
@@ -14,7 +13,7 @@ const meta = {
   argTypes: {
     inputType: { table: { disable: true } },
     placeholderText: { table: { disable: true } },
-    isSearchSelectable: { table: { disable: true } },
+    supportsSearch: { table: { disable: true } },
     supportsValidation: { table: { disable: true } },
     prefix: { table: { disable: true } },
   },
@@ -31,6 +30,7 @@ const meta = {
     msw: {
       handlers: [
         handleDefaultConfig,
+        handleExpFlags('dest-types'),
         graphql.query('DestinationFieldSearch', ({ variables: vars }) => {
           if (vars.input.search === 'query-error') {
             return HttpResponse.json({
@@ -104,9 +104,8 @@ export const Default: Story = {
     hint: '',
     hintURL: '',
     inputType: 'text',
-    isSearchSelectable: true,
-    labelPlural: 'Select Values',
-    labelSingular: 'Select Value',
+    supportsSearch: true,
+    label: 'Select Value',
     placeholderText: 'asdf',
     prefix: '',
     supportsValidation: false,
@@ -123,9 +122,8 @@ export const OptionSelected: Story = {
     hint: '',
     hintURL: '',
     inputType: 'text',
-    isSearchSelectable: true,
-    labelPlural: 'Select Values',
-    labelSingular: 'Select Value',
+    supportsSearch: true,
+    label: 'Select Value',
     placeholderText: '',
     prefix: '',
     supportsValidation: false,
@@ -142,9 +140,8 @@ export const Disabled: Story = {
     hint: '',
     hintURL: '',
     inputType: 'text',
-    isSearchSelectable: true,
-    labelPlural: 'Select Values',
-    labelSingular: 'Select Value',
+    supportsSearch: true,
+    label: 'Select Value',
     placeholderText: '',
     prefix: '',
     supportsValidation: false,
@@ -162,9 +159,8 @@ export const InvalidOptionSelected: Story = {
     hint: '',
     hintURL: '',
     inputType: 'text',
-    isSearchSelectable: true,
-    labelPlural: 'Select Values',
-    labelSingular: 'Select Value',
+    supportsSearch: true,
+    label: 'Select Value',
     placeholderText: '',
     prefix: '',
     supportsValidation: false,
@@ -181,9 +177,8 @@ export const NoOptions: Story = {
     hint: '',
     hintURL: '',
     inputType: 'text',
-    isSearchSelectable: true,
-    labelPlural: 'Select Values',
-    labelSingular: 'Select Value',
+    supportsSearch: true,
+    label: 'Select Value',
     placeholderText: '',
     prefix: '',
     supportsValidation: false,
@@ -209,9 +204,8 @@ export const QueryError: Story = {
     hint: '',
     hintURL: '',
     inputType: 'text',
-    isSearchSelectable: true,
-    labelPlural: 'Select Values',
-    labelSingular: 'Select Value',
+    supportsSearch: true,
+    label: 'Select Value',
     placeholderText: '',
     prefix: '',
     supportsValidation: false,

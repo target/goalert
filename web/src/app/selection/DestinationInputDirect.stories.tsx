@@ -1,9 +1,8 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import DestinationInputDirect from './DestinationInputDirect'
-import { expect } from '@storybook/jest'
-import { within, userEvent } from '@storybook/testing-library'
-import { handleDefaultConfig } from '../storybook/graphql'
+import { expect, within, userEvent } from '@storybook/test'
+import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 import { useArgs } from '@storybook/preview-api'
 
@@ -22,6 +21,7 @@ const meta = {
     msw: {
       handlers: [
         handleDefaultConfig,
+        handleExpFlags('dest-types'),
         graphql.query('ValidateDestination', ({ variables: vars }) => {
           return HttpResponse.json({
             data: {
@@ -56,12 +56,11 @@ export const WebookWithDocLink: Story = {
     hint: 'Webhook Documentation',
     hintURL: '/docs#webhooks',
     inputType: 'url',
-    labelSingular: 'Webhook URL',
+    label: 'Webhook URL',
     placeholderText: 'https://example.com',
     prefix: '',
     supportsValidation: true,
-    isSearchSelectable: false,
-    labelPlural: 'Webhook URLs',
+    supportsSearch: false,
 
     destType: 'builtin-webhook',
   },
@@ -104,12 +103,11 @@ export const PhoneNumbers: Story = {
     hint: 'Include country code e.g. +1 (USA), +91 (India), +44 (UK)',
     hintURL: '',
     inputType: 'tel',
-    labelSingular: 'Phone Number',
+    label: 'Phone Number',
     placeholderText: '11235550123',
     prefix: '+',
     supportsValidation: true,
-    labelPlural: 'Phone Numbers',
-    isSearchSelectable: false,
+    supportsSearch: false,
 
     destType: 'builtin-twilio-sms',
   },
@@ -153,12 +151,11 @@ export const Email: Story = {
     hint: '',
     hintURL: '',
     inputType: 'email',
-    labelSingular: 'Email Address',
+    label: 'Email Address',
     placeholderText: 'foobar@example.com',
     prefix: '',
     supportsValidation: true,
-    isSearchSelectable: false,
-    labelPlural: 'Email Addresses',
+    supportsSearch: false,
 
     destType: 'builtin-smtp-email',
   },

@@ -16,8 +16,34 @@ type UserGroup struct {
 	Handle string
 }
 
+func (s *ChannelSender) ValidateUserGroup(ctx context.Context, id string) error {
+	ug, err := s._UserGroup(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if ug == nil {
+		return validation.NewGenericError("user group not found")
+	}
+
+	return nil
+}
+
 // User will lookup a single Slack user group.
 func (s *ChannelSender) UserGroup(ctx context.Context, id string) (*UserGroup, error) {
+	ug, err := s._UserGroup(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if ug == nil {
+		return nil, validation.NewGenericError("invalid user group id")
+	}
+
+	return ug, nil
+}
+
+// User will lookup a single Slack user group.
+func (s *ChannelSender) _UserGroup(ctx context.Context, id string) (*UserGroup, error) {
 	err := permission.LimitCheckAny(ctx, permission.User, permission.System)
 	if err != nil {
 		return nil, err

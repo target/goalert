@@ -1,9 +1,7 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import DestinationField from './DestinationField'
-import { expect } from '@storybook/jest'
-import { within } from '@storybook/testing-library'
-import { handleDefaultConfig } from '../storybook/graphql'
+import { expect, within } from '@storybook/test'
 import { useArgs } from '@storybook/preview-api'
 import { FieldValueInput } from '../../schema'
 
@@ -17,11 +15,7 @@ const meta = {
       options: ['single-field', 'triple-field', 'disabled-destination'],
     },
   },
-  parameters: {
-    msw: {
-      handlers: [handleDefaultConfig],
-    },
-  },
+
   render: function Component(args) {
     const [, setArgs] = useArgs()
     const onChange = (newValue: FieldValueInput[]): void => {
@@ -141,12 +135,20 @@ export const FieldError: Story = {
     disabled: false,
     destFieldErrors: [
       {
-        fieldID: 'third-field',
+        path: ['input', 'dest'],
         message: 'This is an error message (third)',
+        extensions: {
+          code: 'INVALID_DEST_FIELD_VALUE',
+          fieldID: 'third-field',
+        },
       },
       {
-        fieldID: 'first-field',
+        path: ['input', 'dest'],
         message: 'This is an error message (first)',
+        extensions: {
+          code: 'INVALID_DEST_FIELD_VALUE',
+          fieldID: 'first-field',
+        },
       },
     ],
   },

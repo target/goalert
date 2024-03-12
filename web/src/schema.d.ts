@@ -182,6 +182,7 @@ export interface CreateEscalationPolicyInput {
 }
 
 export interface CreateEscalationPolicyStepInput {
+  actions?: null | DestinationInput[]
   delayMinutes: number
   escalationPolicyID?: null | string
   newRotation?: null | CreateRotationInput
@@ -250,11 +251,13 @@ export interface CreateUserCalendarSubscriptionInput {
 }
 
 export interface CreateUserContactMethodInput {
+  dest?: null | DestinationInput
+  enableStatusUpdates?: null | boolean
   name: string
   newUserNotificationRule?: null | CreateUserNotificationRuleInput
-  type: ContactMethodType
+  type?: null | ContactMethodType
   userID: string
-  value: string
+  value?: null | string
 }
 
 export interface CreateUserInput {
@@ -341,9 +344,8 @@ export interface DebugSendSMSInput {
 }
 
 export interface Destination {
-  display: DestinationDisplayInfo
+  displayInfo: DestinationDisplayInfo
   type: DestinationType
-  typeInfo: DestinationTypeInfo
   values: FieldValuePair[]
 }
 
@@ -359,11 +361,10 @@ export interface DestinationFieldConfig {
   hint: string
   hintURL: string
   inputType: string
-  isSearchSelectable: boolean
-  labelPlural: string
-  labelSingular: string
+  label: string
   placeholderText: string
   prefix: string
+  supportsSearch: boolean
   supportsValidation: boolean
 }
 
@@ -399,9 +400,13 @@ export interface DestinationTypeInfo {
   isSchedOnCallNotify: boolean
   name: string
   requiredFields: DestinationFieldConfig[]
+  statusUpdatesRequired: boolean
+  supportsStatusUpdates: boolean
   type: DestinationType
   userDisclaimer: string
 }
+
+export type ErrorCode = 'INVALID_DEST_FIELD_VALUE' | 'INVALID_INPUT_VALUE'
 
 export interface EscalationPolicy {
   assignedTo: Target[]
@@ -429,6 +434,7 @@ export interface EscalationPolicySearchOptions {
 }
 
 export interface EscalationPolicyStep {
+  actions: Destination[]
   delayMinutes: number
   escalationPolicy?: null | EscalationPolicy
   id: string
@@ -662,6 +668,7 @@ export interface NotificationState {
 export type NotificationStatus = 'ERROR' | 'OK' | 'WARN'
 
 export interface OnCallNotificationRule {
+  dest: Destination
   id: string
   target: Target
   time?: null | ClockTime
@@ -669,8 +676,9 @@ export interface OnCallNotificationRule {
 }
 
 export interface OnCallNotificationRuleInput {
+  dest?: null | DestinationInput
   id?: null | string
-  target: TargetInput
+  target?: null | TargetInput
   time?: null | ClockTime
   weekdayFilter?: null | WeekdayFilter
 }
@@ -1222,6 +1230,7 @@ export interface UserConnection {
 }
 
 export interface UserContactMethod {
+  dest: Destination
   disabled: boolean
   formattedValue: string
   id: string
@@ -1276,6 +1285,7 @@ export interface UserSearchOptions {
   CMType?: null | ContactMethodType
   CMValue?: null | string
   after?: null | string
+  dest?: null | DestinationInput
   favoritesFirst?: null | boolean
   favoritesOnly?: null | boolean
   first?: null | number
