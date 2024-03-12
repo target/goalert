@@ -94,6 +94,7 @@ export default function PolicyStepFormDest(
         if (!props.onChange) return
         props.onChange(newValue)
       }}
+      optionalLabels
       errors={props.errors}
     >
       <Grid container spacing={2}>

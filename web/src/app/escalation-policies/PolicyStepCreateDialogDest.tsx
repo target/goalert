@@ -17,6 +17,7 @@ const mutation = gql`
 
 function PolicyStepCreateDialogDest(props: {
   escalationPolicyID: string
+  disablePortal?: boolean
   onClose: () => void
 }): JSX.Element {
   const [value, setValue] = useState<FormValue>({
@@ -42,6 +43,7 @@ function PolicyStepCreateDialogDest(props: {
 
   return (
     <FormDialog
+      disablePortal={props.disablePortal}
       title='Create Step'
       loading={createStepStatus.fetching}
       errors={otherErrs}
@@ -52,7 +54,7 @@ function PolicyStepCreateDialogDest(props: {
           {
             input: {
               escalationPolicyID: props.escalationPolicyID,
-              delayMinutes: value.delayMinutes,
+              delayMinutes: +value.delayMinutes,
               actions: value.actions,
             },
           },
