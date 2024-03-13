@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync/atomic"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/util/log"
 )
 
@@ -163,6 +164,15 @@ func SudoContext(ctx context.Context, f func(context.Context)) {
 func UserID(ctx context.Context) string {
 	uid, _ := ctx.Value(contextKeyUserID).(string)
 	return uid
+}
+
+// UserNullUUID will return the UserID associated with a context as a NullUUID.
+func UserNullUUID(ctx context.Context) uuid.NullUUID {
+	if id, err := uuid.Parse(UserID(ctx)); err == nil {
+		return uuid.NullUUID{UUID: id, Valid: true}
+	}
+
+	return uuid.NullUUID{}
 }
 
 // SystemComponentName will return the component name used to initiate a context.
