@@ -11,10 +11,20 @@ import { FormContainer, FormField } from '../forms'
 import { IntegrationKeyType } from '../../schema'
 import { FieldError } from '../util/errutil'
 import { useFeatures } from '../util/RequireConfig'
+import MaterialSelect from '../selection/MaterialSelect'
 
 export interface Value {
   name: string
   type: IntegrationKeyType
+  filters: Filter[]
+  summary: string
+  details: string
+  deduplication: string[]
+}
+
+export interface Filter {
+  key: string
+  value: string
 }
 
 interface IntegrationKeyFormProps {
@@ -102,6 +112,43 @@ export default function IntegrationKeyForm(
           >
             <Typography>Action</Typography>
           </StepButton>
+          <StepContent>
+            <Grid container spacing={2}>
+              <Grid item style={{ flexGrow: 1 }} xs={12}>
+                <FormField
+                  fullWidth
+                  component={TextField}
+                  label='Summary'
+                  name='summary'
+                  placeholder='{{ body.alert }}'
+                  required
+                />
+              </Grid>
+              <Grid item style={{ flexGrow: 1 }} xs={12}>
+                <FormField
+                  fullWidth
+                  component={TextField}
+                  label='Details'
+                  name='details'
+                  placeholder='{{ body.status.code }}'
+                  required
+                />
+              </Grid>
+              <Grid item style={{ flexGrow: 1 }} xs={12}>
+                <FormField
+                  fullWidth
+                  component={MaterialSelect}
+                  multiple
+                  options={formProps.value.filters.map((f) => ({
+                    label: f.key,
+                    value: f.key,
+                  }))}
+                  label='Deduplication'
+                  name='deduplication'
+                />
+              </Grid>
+            </Grid>
+          </StepContent>
         </Step>
       </Stepper>
     </FormContainer>

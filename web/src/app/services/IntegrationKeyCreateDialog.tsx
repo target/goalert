@@ -21,7 +21,14 @@ export default function IntegrationKeyCreateDialog(props: {
   serviceID: string
   onClose: () => void
 }): JSX.Element {
-  const [value, setValue] = useState<Value | null>(null)
+  const [value, setValue] = useState<Value | null>({
+    name: '',
+    type: 'generic',
+    summary: '',
+    details: '',
+    filters: [],
+    deduplication: [],
+  })
   const { serviceID, onClose } = props
 
   const [createKeyStatus, createKey] = useMutation(mutation)
@@ -43,12 +50,7 @@ export default function IntegrationKeyCreateDialog(props: {
         <IntegrationKeyForm
           errors={fieldErrors(createKeyStatus.error)}
           disabled={createKeyStatus.fetching}
-          value={
-            value || {
-              name: '',
-              type: 'generic',
-            }
-          }
+          value={value}
           onChange={(value): void => setValue(value)}
         />
       }
