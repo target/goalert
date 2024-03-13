@@ -115,30 +115,14 @@ export const CreatePolicyStep: Story = {
 
     await expect(await canvas.findByText('generic dialog error')).toBeVisible()
 
+    await expect(args.onClose).not.toHaveBeenCalled() // should not close on error
+
+    await userEvent.clear(delayField)
+    await userEvent.type(delayField, '15')
+    await userEvent.click(await screen.findByText('Retry'))
+
     await waitFor(async function Close() {
-      expect(args.onClose).toHaveBeenCalled()
+      await expect(args.onClose).toHaveBeenCalled()
     })
-  },
-}
-
-export const GenericError: Story = {
-  args: {
-    escalationPolicyID: '2',
-  },
-  play: async () => {
-    await userEvent.click(await screen.findByText('Dest Type Error EP Step'))
-    await userEvent.click(await screen.findByText('Generic Error EP Step'))
-    await userEvent.type(
-      await screen.findByPlaceholderText('11235550123'),
-      '12225558989',
-    )
-
-    await userEvent.click(await screen.findByText('Add Action'))
-    await userEvent.click(await screen.findByText('Submit'))
-
-    // expect error message
-    await expect(
-      await screen.findByText('This is a generic input field error'),
-    ).toBeVisible()
   },
 }
