@@ -11,7 +11,6 @@ import { FormContainer, FormField } from '../forms'
 import { IntegrationKeyType } from '../../schema'
 import { FieldError } from '../util/errutil'
 import { useFeatures } from '../util/RequireConfig'
-import DestinationField from '../selection/DestinationField'
 
 export interface Value {
   name: string
@@ -82,16 +81,6 @@ export default function IntegrationKeyForm(
                   ))}
                 </FormField>
               </Grid>
-              {/* <Grid item xs={12}>
-                <FormField
-                  fullWidth
-                  component={DestinationField}
-                  destType=''
-                  label='Field ID'
-                  name='fieldID'
-                  required
-                />
-              </Grid> */}
             </Grid>
           </StepContent>
         </Step>
