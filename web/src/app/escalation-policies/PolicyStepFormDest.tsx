@@ -118,6 +118,7 @@ export default function PolicyStepFormDest(
             fullWidth
             disabled={props.disabled}
             value={destType}
+            label='Destination Type'
             onChange={(e) => setDestType(e.target.value)}
           >
             {types.map((t) =>

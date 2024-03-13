@@ -72,47 +72,55 @@ test('create escalation policy step using destination actions', async ({
   await page.getByRole('button', { name: 'Create Step' }).click()
 
   // add rotation
-  await page.getByPlaceholder('Start typing...').click()
-  await page.keyboard.type(rotName)
-  await page.click(`li:has-text("${rotName}")`)
+  await page.getByLabel('Destination Type').click()
+  await page.locator('li', { hasText: 'Rotation' }).click()
+  await page.getByRole('combobox', { name: 'Rotation', exact: true }).click()
+  await page
+    .getByRole('combobox', { name: 'Rotation', exact: true })
+    .fill(rotName)
+  await page.locator('li', { hasText: rotName }).click()
   await page.getByRole('button', { name: 'Add Action' }).click()
-
-  // expect to see rotation added
-  await expect(page.getByText(rotName)).toBeVisible()
-  await expect(page.getByTestId('RotateRightIcon')).toHaveCount(2)
 
   // add schedule
-  await page.locator('text=Rotation >> nth=1').click()
-  await page.keyboard.press('ArrowDown')
-  await page.keyboard.press('Enter')
-  await page.getByPlaceholder('Start typing...').click()
-  await page.keyboard.type(schedName)
-  await page.click(`li:has-text("${schedName}")`)
+  await page.getByLabel('Destination Type').click()
+  await page.locator('li', { hasText: 'Schedule' }).click()
+  await page.getByRole('combobox', { name: 'Schedule', exact: true }).click()
+  await page
+    .getByRole('combobox', { name: 'Schedule', exact: true })
+    .fill(schedName)
+  await page.locator('li', { hasText: schedName }).click()
   await page.getByRole('button', { name: 'Add Action' }).click()
-
-  // expect to see schedule added
-  await expect(page.getByText(schedName)).toBeVisible()
-  await expect(page.getByTestId('TodayIcon')).toHaveCount(2)
 
   // add user
-  await page.locator('text=Schedule >> nth=1').click()
-  await page.keyboard.press('ArrowDown')
-  await page.keyboard.press('Enter')
-  await page.getByPlaceholder('Start typing...').click()
-  await page.keyboard.type('Admin')
-  await page.click('li:has-text("Admin McIntegrationFace")')
+  await page.getByLabel('Destination Type').click()
+  await page.locator('li', { hasText: 'User' }).click()
+  await page.getByRole('combobox', { name: 'User', exact: true }).click()
+  await page
+    .getByRole('combobox', { name: 'User', exact: true })
+    .fill('Admin McIntegrationFace')
+  await page.locator('li', { hasText: 'Admin McIntegrationFace' }).click()
   await page.getByRole('button', { name: 'Add Action' }).click()
-  await expect(page.getByTestId('spinner')).toBeHidden()
 
-  // expect to see user name added
-  await expect(page.getByText('Admin McIntegrationFace')).toBeVisible()
+  await page.locator('button[type=submit]', { hasText: 'Submit' }).click()
 
   // expect to see new step information on ep page
-  await page.locator('button[type=submit] >> nth=1').click()
   await expect(page.getByText('Step #1:')).toBeVisible()
-  await expect(page.getByText(rotName)).toBeVisible()
-  await expect(page.getByTestId('RotateRightIcon')).toHaveCount(2)
-  await expect(page.getByText(schedName)).toBeVisible()
-  await expect(page.getByTestId('TodayIcon')).toHaveCount(2)
-  await expect(page.getByText('Admin McIntegrationFace')).toBeVisible()
+
+  const rotLink = await page.locator('a', { hasText: rotName })
+  await expect(rotLink).toHaveAttribute(
+    'href',
+    `${baseURLFromFlags(['dest-types'])}/rotations/${rotID}`,
+  )
+
+  const schedLink = await page.locator('a', { hasText: schedName })
+  await expect(schedLink).toHaveAttribute(
+    'href',
+    `${baseURLFromFlags(['dest-types'])}/schedules/${schedID}`,
+  )
+
+  await expect(
+    await page.locator('a', {
+      hasText: 'Admin McIntegrationFace',
+    }),
+  ).toBeVisible()
 })
