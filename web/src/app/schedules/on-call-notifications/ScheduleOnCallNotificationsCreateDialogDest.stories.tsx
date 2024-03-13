@@ -1,6 +1,6 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import { expect, userEvent, waitFor, within } from '@storybook/test'
+import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
 import ScheduleOnCallNotificationsCreateDialogDest from './ScheduleOnCallNotificationsCreateDialogDest'
 import { HttpResponse, graphql } from 'msw'
 import { handleDefaultConfig, handleExpFlags } from '../../storybook/graphql'
@@ -12,6 +12,7 @@ const meta = {
   argTypes: {},
   args: {
     scheduleID: 'create-test',
+    onClose: fn(),
   },
   parameters: {
     docs: {

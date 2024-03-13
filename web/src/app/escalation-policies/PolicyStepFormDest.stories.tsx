@@ -1,7 +1,7 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import PolicyStepFormDest, { FormValue } from './PolicyStepFormDest'
-import { expect, userEvent, waitFor, within } from '@storybook/test'
+import { expect, userEvent, waitFor, within, fn } from '@storybook/test'
 import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 import { useArgs } from '@storybook/preview-api'
@@ -14,6 +14,9 @@ const INVALID_PHONE = '+15555'
 const meta = {
   title: 'escalation-policies/PolicyStepFormDest',
   component: PolicyStepFormDest,
+  args: {
+    onChange: fn(),
+  },
   render: function Component(args) {
     const [, setArgs] = useArgs()
     const onChange = (newValue: FormValue): void => {

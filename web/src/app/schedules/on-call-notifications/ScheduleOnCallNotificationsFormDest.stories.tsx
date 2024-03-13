@@ -4,7 +4,7 @@ import ScheduleOnCallNotificationsFormDest, {
   Value,
 } from './ScheduleOnCallNotificationsFormDest'
 import { useArgs } from '@storybook/preview-api'
-import { expect, userEvent, within } from '@storybook/test'
+import { expect, fn, userEvent, within } from '@storybook/test'
 
 const meta = {
   title: 'schedules/on-call-notifications/FormDest',
@@ -12,6 +12,7 @@ const meta = {
   argTypes: {},
   args: {
     scheduleID: '',
+    onChange: fn(),
     value: {
       time: null,
       weekdayFilter: [false, false, false, false, false, false, false],
