@@ -1,7 +1,7 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import PolicyStepCreateDialogDest from './PolicyStepCreateDialogDest'
-import { expect, userEvent, screen, waitFor, within } from '@storybook/test'
+import { expect, userEvent, waitFor, within } from '@storybook/test'
 import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 import { DestFieldValueError } from '../util/errtypes'
@@ -95,23 +95,23 @@ export const CreatePolicyStep: Story = {
     const phoneInput = await canvas.findByLabelText('Phone Number')
     await userEvent.clear(phoneInput)
     await userEvent.type(phoneInput, '1222')
-    await userEvent.click(await screen.findByText('Add Action'))
+    await userEvent.click(await canvas.findByText('Add Action'))
 
     await expect(await canvas.findByText('Invalid number')).toBeVisible()
     await expect(await canvas.findByText('generic error')).toBeVisible()
 
     await userEvent.clear(phoneInput)
     await userEvent.type(phoneInput, '12225550123')
-    await userEvent.click(await screen.findByText('Add Action'))
+    await userEvent.click(await canvas.findByText('Add Action'))
 
     await waitFor(async function Icon() {
-      await userEvent.click(await screen.findByTestId('destination-chip'))
+      await userEvent.click(await canvas.findByTestId('destination-chip'))
     })
 
     const delayField = await canvas.findByLabelText('Delay (minutes)')
     await userEvent.clear(delayField)
     await userEvent.type(delayField, '999')
-    await userEvent.click(await screen.findByText('Submit'))
+    await userEvent.click(await canvas.findByText('Submit'))
 
     await expect(await canvas.findByText('generic dialog error')).toBeVisible()
 
@@ -119,7 +119,7 @@ export const CreatePolicyStep: Story = {
 
     await userEvent.clear(delayField)
     await userEvent.type(delayField, '15')
-    await userEvent.click(await screen.findByText('Retry'))
+    await userEvent.click(await canvas.findByText('Retry'))
 
     await waitFor(async function Close() {
       await expect(args.onClose).toHaveBeenCalled()
