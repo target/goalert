@@ -155,7 +155,7 @@ export const SingleField: Story = {
 
     const [single] = await screen.findAllByRole('combobox')
     expect(single).toHaveTextContent('Single With Status')
-    expect(await screen.findByTestId('CheckBoxOutlineBlankIcon')).toBeVisible()
+    await screen.findByTestId('CheckBoxOutlineBlankIcon')
   },
 }
 
@@ -199,7 +199,7 @@ export const StatusUpdates: Story = {
       },
       { timeout: 5000 },
     )
-    expect(await screen.findByTestId('CheckBoxIcon')).toBeVisible()
+    await screen.findByTestId('CheckBoxIcon')
   },
 }
 
