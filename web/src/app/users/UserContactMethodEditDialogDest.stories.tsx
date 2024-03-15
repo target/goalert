@@ -153,15 +153,9 @@ export const SingleField: Story = {
   play: async () => {
     await userEvent.click(await screen.findByLabelText('Destination Type'))
 
-    // incorrectly believes that the following fields are not visible
-    const [single] = await screen.findAllByRole('combobox', {
-      hidden: true,
-    })
+    const [single] = await screen.findAllByRole('combobox')
     expect(single).toHaveTextContent('Single With Status')
-    // incorrectly believes that the following is not visible
-    expect(
-      await screen.findByTestId('CheckBoxOutlineBlankIcon'),
-    ).not.toBeVisible()
+    expect(await screen.findByTestId('CheckBoxOutlineBlankIcon')).toBeVisible()
   },
 }
 
@@ -170,16 +164,12 @@ export const MultiField: Story = {
     contactMethodID: '00000000-0000-0000-0000-000000000001',
   },
   play: async () => {
-    // incorrectly believes that the following fields are not visible
-    const [single] = await screen.findAllByRole('combobox', {
-      hidden: true,
-    })
+    const [single] = await screen.findAllByRole('combobox')
     expect(single).toHaveTextContent('Multi Field')
 
     screen.findByTestId('CheckBoxIcon')
 
-    // incorrectly believes that the following is not visible
-    expect(await screen.findByLabelText('Name')).not.toBeVisible()
+    await screen.findByLabelText('Name')
     await screen.findByLabelText('Destination Type')
     await screen.findByLabelText('First Item')
     expect(await screen.findByPlaceholderText('11235550123')).toBeDisabled()
@@ -209,8 +199,7 @@ export const StatusUpdates: Story = {
       },
       { timeout: 5000 },
     )
-    // incorrectly believes that the following is not visible
-    expect(await screen.findByTestId('CheckBoxIcon')).not.toBeVisible()
+    expect(await screen.findByTestId('CheckBoxIcon')).toBeVisible()
   },
 }
 
@@ -238,7 +227,6 @@ export const ErrorField: Story = {
         await expect(await screen.findByText('Name error')).toBeVisible()
 
         await expect(
-          // mui puts aria-invalid on the input, but not the combobox (which the label points to)
           await screen.findByText('This indicates an invalid destination type'),
         ).toBeVisible()
         await expect(await screen.findByLabelText('Phone Number')).toBeInvalid()
