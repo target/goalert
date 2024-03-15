@@ -38,7 +38,7 @@ const mutation = gql`
   }
 `
 
-export default function UserContactMethodCreateDialogDest(props: {
+export default function UserContactMethodEditDialogDest(props: {
   onClose: (contactMethodID?: string) => void
   contactMethodID: string
 }): React.ReactNode {
