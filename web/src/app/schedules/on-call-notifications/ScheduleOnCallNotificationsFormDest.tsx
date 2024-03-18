@@ -195,7 +195,7 @@ export default function ScheduleOnCallNotificationsFormDest(
                 label: t.name,
                 value: t.type,
                 disabled: !t.enabled,
-                disabledMessage: t.enabled ? '' : t.disabledMessage,
+                disabledMessage: t.enabled ? '' : 'Disabled by administrator.',
               }),
             )}
           </FormField>
