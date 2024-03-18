@@ -40,6 +40,7 @@ export function FormField(props) {
     checkbox,
     float,
     charCount,
+    disablePortal,
     ...otherFieldProps
   } = props
 

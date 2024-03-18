@@ -94,6 +94,7 @@ export default function PolicyStepFormDest(
         if (!props.onChange) return
         props.onChange(newValue)
       }}
+      optionalLabels
       errors={props.errors}
     >
       <Grid container spacing={2}>
@@ -117,6 +118,7 @@ export default function PolicyStepFormDest(
             fullWidth
             disabled={props.disabled}
             value={destType}
+            label='Destination Type'
             onChange={(e) => setDestType(e.target.value)}
           >
             {types.map((t) =>

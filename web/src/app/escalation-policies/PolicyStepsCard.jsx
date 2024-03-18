@@ -10,6 +10,7 @@ import { gql, useMutation } from '@apollo/client'
 import FlatList from '../lists/FlatList'
 import CreateFAB from '../lists/CreateFAB'
 import PolicyStepCreateDialog from './PolicyStepCreateDialog'
+import PolicyStepCreateDialogDest from './PolicyStepCreateDialogDest'
 import { useResetURLParams, useURLParam } from '../actions'
 import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
@@ -25,6 +26,7 @@ import {
   renderChipsDest,
   renderDelayMessage,
 } from './stepUtil'
+import { useExpFlag } from '../util/useExpFlag'
 
 const mutation = gql`
   mutation UpdateEscalationPolicyMutation(
@@ -35,6 +37,8 @@ const mutation = gql`
 `
 
 export default function PolicyStepsCard(props) {
+  const hasDestTypesFlag = useExpFlag('dest-types')
+
   const { escalationPolicyID, repeat, steps = [] } = props
 
   const isMobile = useIsWidthDown('md')
@@ -140,10 +144,19 @@ export default function PolicyStepsCard(props) {
         <CreateFAB onClick={() => setCreateStep(true)} title='Create Step' />
       )}
       {createStep && (
-        <PolicyStepCreateDialog
-          escalationPolicyID={escalationPolicyID}
-          onClose={resetCreateStep}
-        />
+        <React.Fragment>
+          {hasDestTypesFlag ? (
+            <PolicyStepCreateDialogDest
+              escalationPolicyID={escalationPolicyID}
+              onClose={resetCreateStep}
+            />
+          ) : (
+            <PolicyStepCreateDialog
+              escalationPolicyID={escalationPolicyID}
+              onClose={resetCreateStep}
+            />
+          )}
+        </React.Fragment>
       )}
       <Card>
         <CardHeader

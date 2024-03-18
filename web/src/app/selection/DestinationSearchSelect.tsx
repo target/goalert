@@ -40,8 +40,13 @@ export type DestinationSearchSelectProps = DestinationFieldConfig & {
 
 const cacheByJSON: Record<string, unknown> = {}
 
+function replacer(key: string, value: string): string | undefined {
+  if (key === 'icon') return undefined
+  return value
+}
+
 function cachify<T>(val: T): T {
-  const json = JSON.stringify(val)
+  const json = JSON.stringify(val, replacer) // needed to avoid circular refs when using rendered icons
   if (cacheByJSON[json]) return cacheByJSON[json] as T
   cacheByJSON[json] = val
 
