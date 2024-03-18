@@ -244,7 +244,6 @@ type ComplexityRoot struct {
 	}
 
 	DestinationTypeInfo struct {
-		DisabledMessage       func(childComplexity int) int
 		Enabled               func(childComplexity int) int
 		IconAltText           func(childComplexity int) int
 		IconURL               func(childComplexity int) int
@@ -1635,13 +1634,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DestinationFieldConfig.SupportsValidation(childComplexity), true
-
-	case "DestinationTypeInfo.disabledMessage":
-		if e.complexity.DestinationTypeInfo.DisabledMessage == nil {
-			break
-		}
-
-		return e.complexity.DestinationTypeInfo.DisabledMessage(childComplexity), true
 
 	case "DestinationTypeInfo.enabled":
 		if e.complexity.DestinationTypeInfo.Enabled == nil {
@@ -10374,50 +10366,6 @@ func (ec *executionContext) _DestinationTypeInfo_iconAltText(ctx context.Context
 }
 
 func (ec *executionContext) fieldContext_DestinationTypeInfo_iconAltText(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "DestinationTypeInfo",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _DestinationTypeInfo_disabledMessage(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DestinationTypeInfo_disabledMessage(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DisabledMessage, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_DestinationTypeInfo_disabledMessage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "DestinationTypeInfo",
 		Field:      field,
@@ -20912,8 +20860,6 @@ func (ec *executionContext) fieldContext_Query_destinationTypes(ctx context.Cont
 				return ec.fieldContext_DestinationTypeInfo_iconURL(ctx, field)
 			case "iconAltText":
 				return ec.fieldContext_DestinationTypeInfo_iconAltText(ctx, field)
-			case "disabledMessage":
-				return ec.fieldContext_DestinationTypeInfo_disabledMessage(ctx, field)
 			case "enabled":
 				return ec.fieldContext_DestinationTypeInfo_enabled(ctx, field)
 			case "requiredFields":
@@ -36086,11 +36032,6 @@ func (ec *executionContext) _DestinationTypeInfo(ctx context.Context, sel ast.Se
 			}
 		case "iconAltText":
 			out.Values[i] = ec._DestinationTypeInfo_iconAltText(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "disabledMessage":
-			out.Values[i] = ec._DestinationTypeInfo_disabledMessage(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

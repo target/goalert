@@ -308,7 +308,7 @@ type DestinationDisplayInfo struct {
 	Text string `json:"text"`
 	// URL to an icon to display for this destination
 	IconURL string `json:"iconURL"`
-	// alt text for the icon
+	// alt text for the icon, should be human-readable and usable in place of the icon
 	IconAltText string `json:"iconAltText"`
 	// URL to link to for more information about this destination
 	LinkURL string `json:"linkURL"`
@@ -370,8 +370,7 @@ type DestinationTypeInfo struct {
 	// URL to an icon to display for the destination type
 	IconURL string `json:"iconURL"`
 	// alt text for the icon, should be usable in place of the icon
-	IconAltText     string `json:"iconAltText"`
-	DisabledMessage string `json:"disabledMessage"`
+	IconAltText string `json:"iconAltText"`
 	// if false, the destination type is disabled and cannot be used
 	Enabled        bool                     `json:"enabled"`
 	RequiredFields []DestinationFieldConfig `json:"requiredFields"`

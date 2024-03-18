@@ -114,7 +114,7 @@ type DestinationDisplayInfo {
   iconURL: String!
 
   """
-  alt text for the icon
+  alt text for the icon, should be human-readable and usable in place of the icon
   """
   iconAltText: String!
 
@@ -173,7 +173,6 @@ type DestinationTypeInfo {
   alt text for the icon, should be usable in place of the icon
   """
   iconAltText: String!
-  disabledMessage: String!
 
   """
   if false, the destination type is disabled and cannot be used

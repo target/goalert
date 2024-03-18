@@ -126,7 +126,7 @@ export default function PolicyStepFormDest(
                 label: t.name,
                 value: t.type,
                 disabled: !t.enabled,
-                disabledMessage: t.enabled ? '' : t.disabledMessage,
+                disabledMessage: t.enabled ? '' : 'asdf',
               }),
             )}
           </TextField>
