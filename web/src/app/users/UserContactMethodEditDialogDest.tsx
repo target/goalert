@@ -41,6 +41,8 @@ const mutation = gql`
 export default function UserContactMethodEditDialogDest(props: {
   onClose: (contactMethodID?: string) => void
   contactMethodID: string
+
+  disablePortal?: boolean
 }): React.ReactNode {
   const [{ data, fetching }] = useQuery({
     query,
@@ -72,6 +74,7 @@ export default function UserContactMethodEditDialogDest(props: {
 
   const form = (
     <UserContactMethodForm
+      disablePortal={props.disablePortal}
       disabled={updateCMStatus.fetching}
       errors={formErrors}
       edit
@@ -83,7 +86,7 @@ export default function UserContactMethodEditDialogDest(props: {
   return (
     <FormDialog
       loading={fetching}
-      disablePortal={fetching}
+      disablePortal={props.disablePortal}
       data-cy='edit-form'
       title='Edit Contact Method'
       errors={otherErrs}

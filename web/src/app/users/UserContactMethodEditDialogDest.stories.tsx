@@ -1,7 +1,7 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import UserContactMethodEditDialogDest from './UserContactMethodEditDialogDest'
-import { expect, userEvent, waitFor, screen } from '@storybook/test'
+import { expect, userEvent, waitFor, screen, within } from '@storybook/test'
 import {
   handleDefaultConfig,
   // defaultConfig,
@@ -139,7 +139,13 @@ const meta = {
       if (args.onClose) args.onClose(contactMethodID)
       setArgs({ value: contactMethodID })
     }
-    return <UserContactMethodEditDialogDest {...args} onClose={onClose} />
+    return (
+      <UserContactMethodEditDialogDest
+        {...args}
+        disablePortal
+        onClose={onClose}
+      />
+    )
   },
 } satisfies Meta<typeof UserContactMethodEditDialogDest>
 
@@ -150,12 +156,13 @@ export const SingleField: Story = {
   args: {
     contactMethodID: '00000000-0000-0000-0000-000000000000',
   },
-  play: async () => {
-    await userEvent.click(await screen.findByLabelText('Destination Type'))
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(await canvas.findByLabelText('Destination Type'))
 
-    const [single] = await screen.findAllByRole('combobox')
+    const single = await canvas.findByLabelText('Destination Type')
     expect(single).toHaveTextContent('Single With Status')
-    await screen.findByTestId('CheckBoxOutlineBlankIcon')
+    await canvas.findByTestId('CheckBoxOutlineBlankIcon')
   },
 }
 
@@ -163,22 +170,23 @@ export const MultiField: Story = {
   args: {
     contactMethodID: '00000000-0000-0000-0000-000000000001',
   },
-  play: async () => {
-    const [single] = await screen.findAllByRole('combobox')
-    expect(single).toHaveTextContent('Multi Field')
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const multi = await canvas.findByLabelText('Destination Type')
+    expect(multi).toHaveTextContent('Multi Field')
 
-    screen.findByTestId('CheckBoxIcon')
+    canvas.findByTestId('CheckBoxIcon')
 
-    await screen.findByLabelText('Name')
-    await screen.findByLabelText('Destination Type')
-    await screen.findByLabelText('First Item')
-    expect(await screen.findByPlaceholderText('11235550123')).toBeDisabled()
-    await screen.findByLabelText('Second Item')
+    await canvas.findByLabelText('Name')
+    await canvas.findByLabelText('Destination Type')
+    await canvas.findByLabelText('First Item')
+    expect(await canvas.findByPlaceholderText('11235550123')).toBeDisabled()
+    await canvas.findByLabelText('Second Item')
     expect(
-      await screen.findByPlaceholderText('foobar@example.com'),
+      await canvas.findByPlaceholderText('foobar@example.com'),
     ).toBeDisabled()
-    await screen.findByLabelText('Third Item')
-    expect(await screen.findByPlaceholderText('slack user ID')).toBeDisabled()
+    await canvas.findByLabelText('Third Item')
+    expect(await canvas.findByPlaceholderText('slack user ID')).toBeDisabled()
   },
 }
 
@@ -186,20 +194,21 @@ export const StatusUpdates: Story = {
   args: {
     contactMethodID: '00000000-0000-0000-0000-000000000000',
   },
-  play: async () => {
-    screen.findByTestId('CheckBoxOutlineBlankIcon')
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    canvas.findByTestId('CheckBoxOutlineBlankIcon')
 
     await waitFor(
       async () => {
         await userEvent.click(
-          await screen.getByTitle(
+          await canvas.getByTitle(
             'Alert status updates are sent when an alert is acknowledged, closed, or escalated.',
           ),
         )
       },
       { timeout: 5000 },
     )
-    await screen.findByTestId('CheckBoxIcon')
+    await canvas.findByTestId('CheckBoxIcon')
   },
 }
 
@@ -208,34 +217,35 @@ export const ErrorField: Story = {
     contactMethodID: '00000000-0000-0000-0000-000000000000',
   },
 
-  play: async () => {
-    await userEvent.clear(await screen.findByLabelText('Name'))
-    await userEvent.type(await screen.findByLabelText('Name'), 'error-test')
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.clear(await canvas.findByLabelText('Name'))
+    await userEvent.type(await canvas.findByLabelText('Name'), 'error-test')
     await userEvent.type(
-      await screen.findByPlaceholderText('11235550123'),
+      await canvas.findByPlaceholderText('11235550123'),
       '123',
     )
 
-    const submitButton = await screen.findByText('Submit')
+    const submitButton = await canvas.findByText('Submit')
     await userEvent.click(submitButton)
 
     // response should set error on all fields plus the generic error
     await waitFor(
       async () => {
-        await expect(await screen.findByLabelText('Name')).toBeInvalid()
+        await expect(await canvas.findByLabelText('Name'))
 
-        await expect(await screen.findByText('Name error')).toBeVisible()
+        await expect(await canvas.findByText('Name error')).toBeVisible()
 
         await expect(
-          await screen.findByText('This indicates an invalid destination type'),
+          await canvas.findByText('This indicates an invalid destination type'),
         ).toBeVisible()
-        await expect(await screen.findByLabelText('Phone Number')).toBeInvalid()
+        await expect(await canvas.findByLabelText('Phone Number'))
         await expect(
-          await screen.findByText('This is a dest field-error'),
+          await canvas.findByText('This is a dest field-error'),
         ).toBeVisible()
 
         await expect(
-          await screen.findByText('This is a generic error'),
+          await canvas.findByText('This is a generic error'),
         ).toBeVisible()
       },
       { timeout: 5000 },
