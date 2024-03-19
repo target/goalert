@@ -126,7 +126,7 @@ func (s *Store) FindMany(ctx context.Context, ids []string) ([]Service, error) {
 		return nil, err
 	}
 
-	rows, err := s.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids), permission.UserID(ctx))
+	rows, err := s.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids), permission.UserNullUUID(ctx))
 	if err != nil {
 		return nil, err
 	}

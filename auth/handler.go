@@ -160,7 +160,7 @@ func (h *Handler) EndUserSessionTx(ctx context.Context, tx *sql.Tx, id ...string
 	if permission.Admin(ctx) {
 		_, err = tx.StmtContext(ctx, h.endSession).ExecContext(ctx, sqlutil.UUIDArray(id))
 	} else {
-		_, err = tx.StmtContext(ctx, h.endSessionUser).ExecContext(ctx, permission.UserID(ctx), sqlutil.UUIDArray(id))
+		_, err = tx.StmtContext(ctx, h.endSessionUser).ExecContext(ctx, permission.UserNullUUID(ctx), sqlutil.UUIDArray(id))
 	}
 	return err
 }
@@ -179,7 +179,7 @@ func (h *Handler) EndAllUserSessionsTx(ctx context.Context, tx *sql.Tx) error {
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
-	_, err = stmt.ExecContext(ctx, permission.UserID(ctx), src.ID)
+	_, err = stmt.ExecContext(ctx, permission.UserNullUUID(ctx), src.ID)
 
 	return err
 }

@@ -1,18 +1,18 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
-import ScheduleOnCallNotificationsCreateDialogDest from './ScheduleOnCallNotificationsCreateDialogDest'
+import { expect, userEvent, waitFor, within } from '@storybook/test'
+import ScheduleOnCallNotificationsEditDialogDest from './ScheduleOnCallNotificationsEditDialogDest'
 import { HttpResponse, graphql } from 'msw'
 import { handleDefaultConfig, handleExpFlags } from '../../storybook/graphql'
 import { BaseError, DestFieldValueError } from '../../util/errtypes'
 
 const meta = {
-  title: 'schedules/on-call-notifications/CreateDialogDest',
-  component: ScheduleOnCallNotificationsCreateDialogDest,
+  title: 'schedules/on-call-notifications/EditDialogDest',
+  component: ScheduleOnCallNotificationsEditDialogDest,
   argTypes: {},
   args: {
     scheduleID: 'create-test',
-    onClose: fn(),
+    ruleID: 'existing-id',
   },
   parameters: {
     docs: {
@@ -77,7 +77,20 @@ const meta = {
             data: {
               schedule: {
                 id: variables.scheduleID,
-                onCallNotificationRules: [],
+                onCallNotificationRules: [
+                  {
+                    id: 'existing-id',
+                    dest: {
+                      type: 'single-field',
+                      values: [
+                        {
+                          fieldID: 'phone-number',
+                          value: '+1234567890',
+                        },
+                      ],
+                    },
+                  },
+                ],
               },
             },
           })
@@ -87,17 +100,21 @@ const meta = {
   },
   tags: ['autodocs'],
   render: function Component(args) {
-    return (
-      <ScheduleOnCallNotificationsCreateDialogDest {...args} disablePortal />
-    )
+    return <ScheduleOnCallNotificationsEditDialogDest {...args} disablePortal />
   },
-} satisfies Meta<typeof ScheduleOnCallNotificationsCreateDialogDest>
+} satisfies Meta<typeof ScheduleOnCallNotificationsEditDialogDest>
 
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const Empty: Story = {
+export const ExistingRule: Story = {
   args: {},
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await expect(await canvas.findByLabelText('Phone Number')).toHaveValue(
+      '1234567890', // input field won't include the "+" prefix
+    )
+  },
 }
 
 export const ValidationError: Story = {
