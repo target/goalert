@@ -1,7 +1,7 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import UserContactMethodEditDialogDest from './UserContactMethodEditDialogDest'
-import { expect, userEvent, waitFor, within } from '@storybook/test'
+import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
 import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
 import { useArgs } from '@storybook/preview-api'
 import { HttpResponse, graphql } from 'msw'
@@ -11,6 +11,9 @@ const meta = {
   title: 'users/UserContactMethodEditDialogDest',
   component: UserContactMethodEditDialogDest,
   tags: ['autodocs'],
+  args: {
+    onClose: fn(),
+  },
   parameters: {
     docs: {
       story: {
