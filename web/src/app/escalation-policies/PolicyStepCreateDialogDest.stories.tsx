@@ -1,7 +1,7 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import PolicyStepCreateDialogDest from './PolicyStepCreateDialogDest'
-import { expect, userEvent, waitFor, within } from '@storybook/test'
+import { expect, userEvent, waitFor, within, fn } from '@storybook/test'
 import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 import { DestFieldValueError } from '../util/errtypes'
@@ -89,6 +89,7 @@ export const CreatePolicyStep: Story = {
   },
   args: {
     escalationPolicyID: '1',
+    onClose: fn(),
   },
   play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement)
