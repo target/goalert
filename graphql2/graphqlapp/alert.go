@@ -408,7 +408,10 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 		for _, v := range input.Meta {
 			alertMeta[v.Key] = v.Value
 		}
-		a.Meta = alert.AlertMeta{Type: "v1", AlertMetaV1: alertMeta}
+		a.Meta = alert.AlertMeta{
+			Type:        alert.TypeAlertMetaV1,
+			AlertMetaV1: alertMeta,
+		}
 	}
 
 	return m.AlertStore.Create(ctx, a)

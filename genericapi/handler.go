@@ -162,7 +162,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		Dedup:     alert.NewUserDedup(dedup),
 		Status:    status,
 		Meta: alert.AlertMeta{
-			Type:        "v1",
+			Type:        alert.TypeAlertMetaV1,
 			AlertMetaV1: meta,
 		},
 	}

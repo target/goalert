@@ -925,6 +925,9 @@ func (s Store) insertMetaData(tx *sql.Tx, ctx context.Context, alertID int, meta
 	if err != nil {
 		return err
 	}
-	err = gadb.New(tx).SetAlertMetadata(ctx, gadb.SetAlertMetadataParams{AlertID: int32(alertID), Metadata: pqtype.NullRawMessage{Valid: metaData != nil, RawMessage: json.RawMessage(meta)}})
+	err = gadb.New(tx).SetAlertMetadata(ctx, gadb.SetAlertMetadataParams{
+		AlertID:  int32(alertID),
+		Metadata: pqtype.NullRawMessage{Valid: metaData != nil, RawMessage: json.RawMessage(meta)},
+	})
 	return err
 }
