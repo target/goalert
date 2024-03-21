@@ -3,7 +3,6 @@ package genericapi
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"io"
 	"mime"
 	"net/http"
@@ -16,7 +15,6 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/errutil"
-	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -83,7 +81,6 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 
 	err := permission.LimitCheckAny(ctx, permission.Service)
 	if errutil.HTTPError(ctx, w, err) {
-		log.Log(log.WithField(ctx, "flag", err), fmt.Errorf("Here's the error"))
 		return
 	}
 	serviceID := permission.ServiceID(ctx)

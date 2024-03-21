@@ -957,7 +957,6 @@ func (s Store) MetadataMany(ctx context.Context, alertIDs []int) (map[int32]Aler
 	return amd, err
 }
 
-// createMetaData will inserts alert's metadata
 func (s Store) insertMetaData(tx *sql.Tx, ctx context.Context, alertID int, metaData AlertMetaData) error {
 	meta, err := json.Marshal(&metaData)
 	if err != nil {
