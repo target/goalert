@@ -1,23 +1,23 @@
 package smoke
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"database/sql"
 	"fmt"
 	"math/rand"
 	"os"
-	"os/exec"
 	"regexp"
-	"sort"
 	"strings"
 	"testing"
 	"text/template"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5/stdlib" // import db driver
+	"github.com/stretchr/testify/require"
+	"github.com/target/goalert/devtools/pgdump-lite"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/test/smoke/harness"
 	"github.com/target/goalert/util/sqlutil"
@@ -240,15 +240,17 @@ func processIgnoreRules(ignoreRules []ignoreRule, name, body string) string {
 		if r.MigrationName != "" && r.MigrationName != name {
 			continue
 		}
-		if !strings.HasPrefix(body, "COPY "+r.TableName+" ") && !strings.HasPrefix(body, "COPY public."+r.TableName+" ") {
+
+		if !strings.HasPrefix(body, "COPY "+(pgx.Identifier{r.TableName}).Sanitize()) {
 			continue
 		}
 		lines := strings.Split(body, "\n")
 		pref, cols, suf := getCols(lines[0])
 		index := -1
 		for i, v := range cols {
-			if v == r.ColumnName {
+			if v == (pgx.Identifier{r.ColumnName}).Sanitize() {
 				index = i
+				break
 			}
 		}
 		if index == -1 {
@@ -273,11 +275,11 @@ func processIgnoreRules(ignoreRules []ignoreRule, name, body string) string {
 
 func TestProcessIgnoreRules(t *testing.T) {
 	t.Parallel()
-	const input = `COPY public.my_table (foo, bar, baz) FROM stdin;
+	const input = `COPY "my_table" ("foo", "bar", "baz") FROM stdin;
 1	2	3
 a	b	c
 \.`
-	const expected = `COPY public.my_table (foo, baz) FROM stdin;
+	const expected = `COPY "my_table" ("foo", "baz") FROM stdin;
 1	3
 a	c
 \.`
@@ -302,134 +304,20 @@ func getCols(line string) (prefix string, cols []string, suffix string) {
 	return prefix, cols, suffix
 }
 
-func alphabetizeCopy(body string) string {
-	lines := strings.Split(body, "\n")
-	data := lines[1 : len(lines)-1]
-
-	pref, cols, suf := getCols(lines[0])
-
-	orig := make(map[string]int, len(cols))
-	for i, c := range cols {
-		orig[c] = i
-	}
-	sort.Strings(cols)
-	lines[0] = pref + strings.Join(cols, ", ") + suf
-
-	order := make(map[int]int, len(cols))
-	for i, c := range cols {
-		order[orig[c]] = i
-	}
-
-	for n, l := range data {
-		cols = strings.Split(l, "\t")
-		sorted := make([]string, len(cols))
-		for i, v := range cols {
-			sorted[order[i]] = v
-		}
-
-		data[n] = strings.Join(sorted, "\t")
-	}
-
-	sort.Strings(lines[1:])
-	return strings.Join(lines, "\n")
-}
-
-func TestAlphabetizeCopy(t *testing.T) {
-	t.Parallel()
-	const input = `COPY foobar (a, e, f, b, c) FROM stdin;
-first	second	third	fourth	fifth
-\.`
-	const expected = `COPY foobar (a, b, c, e, f) FROM stdin;
-\.
-first	fourth	fifth	second	third`
-	result := alphabetizeCopy(input)
-	if result != expected {
-		t.Errorf("got\n%s\n\nwant\n%s", result, expected)
-	}
-}
+var sqlCommentRx = regexp.MustCompile(`(?m)^--.*\n`)
 
 func parsePGDump(data []byte, name string) []pgDumpEntry {
-	rd := bufio.NewReader(bytes.NewReader(data))
+	// remove all comments to simplify parsing
+	data = sqlCommentRx.ReplaceAll(data, nil)
+	stmts := sqlutil.SplitQuery(string(data))
 
 	entries := make([]pgDumpEntry, 0, 10000)
-	var entry pgDumpEntry
-
-	addEntry := func() {
-		if strings.Contains(entry.Body, "COPY notifications (user_id, started_at) FROM stdin") {
-			// we ignore the (old) notifications table
-			// since it's trigger based and always re-calculated
-			//
-			// which makes it near impossible to test migrations
-			//
-			// it also doesn't work properly anyhow, which is why it has been
-			// replaced.
-			return
-		}
-
-		entry.Body = strings.TrimSpace(entry.Body)
-		entry.Name = strings.TrimSpace(entry.Name)
-
-		if strings.HasPrefix(entry.Body, "COPY ") && strings.Contains(entry.Name, "Type: TABLE DATA") {
-			// ignore column order, as long as the data matches
-			entry.Body = processIgnoreRules(ignoreRules, name, entry.Body)
-			entry.Body = alphabetizeCopy(entry.Body)
-		}
-		if strings.Contains(entry.Body, "REPLICA IDENTITY NOTHING") && strings.Contains(entry.Body, "ALTER TABLE ONLY") {
-			// skip 'view' tables
-			return
-		}
-
-		if strings.Contains(entry.Name, " _RETURN; Type: RULE") {
-			// view return rule -> convert to view
-			tname := strings.SplitN(entry.Name, " ", 2)[0]
-			entry.Name = strings.Replace(entry.Name, " _RETURN; Type: RULE", "; Type: VIEW", 1)
-			entry.Body = strings.Replace(entry.Body, "CREATE RULE \"_RETURN\" AS\n", "", 1)
-			entry.Body = strings.Replace(entry.Body,
-				"ON SELECT TO "+tname+" DO INSTEAD  ",
-				"CREATE VIEW "+tname+" AS\n",
-				1,
-			)
-		}
-
-		if strings.HasPrefix(entry.Body, "CREATE TABLE") {
-			// order args alphabetically
-			lines := strings.Split(entry.Body, "\n")
-			sort.Strings(lines[1 : len(lines)-1])
-			for i := 1; i < len(lines)-1; i++ {
-				if !strings.HasSuffix(lines[i], ",") {
-					lines[i] += ","
-				}
-			}
-			entry.Body = strings.Join(lines, "\n")
-		}
-
-		entries = append(entries, entry)
-	}
-
-	for {
-		line, err := rd.ReadString('\n')
-		if err != nil {
-			break
-		}
-		if strings.HasPrefix(line, "-- Name: ") {
-			entry.Name = strings.TrimSpace(strings.TrimPrefix(line, "-- Name: "))
-			entry.Body = ""
-			_, _ = rd.ReadString('\n') // skip next line
-			continue
-		} else if strings.HasPrefix(line, "-- Data for Name: ") {
-			entry.Name = strings.TrimSpace(strings.TrimPrefix(line, "-- Data for Name: "))
-			entry.Body = ""
-			_, _ = rd.ReadString('\n') // skip next line
-			continue
-		} else if strings.HasPrefix(line, "--") {
-			if entry.Name != "" {
-				addEntry()
-			}
-			entry.Body = ""
-			entry.Name = ""
-		} else if entry.Name != "" && line != "" {
-			entry.Body += strings.Trim(line, "\n ") + "\n"
-		}
+	for _, stmt := range stmts {
+		stmt = strings.TrimSpace(stmt)
+		entries = append(entries, pgDumpEntry{
+			Name: strings.SplitN(stmt, "\n", 2)[0],
+			Body: processIgnoreRules(ignoreRules, name, stmt),
+		})
 	}
 
 	return entries
@@ -594,14 +482,28 @@ func TestMigrations(t *testing.T) {
 	}
 
 	snapshot := func(t *testing.T, name string) []pgDumpEntry {
-		data, err := exec.Command("pg_dump",
-			"-d", harness.DBURL(dbName),
-			"-O",
-		).Output()
-		if err != nil {
-			t.Fatal("failed to dump db:", err)
-		}
-		return parsePGDump(data, name)
+		// need a new connection as migrations may have changed the schema
+		pgxConn, err := pgx.Connect(context.Background(), harness.DBURL(""))
+		require.NoError(t, err, "failed to open db")
+		defer pgxConn.Close(context.Background())
+
+		schema, err := pgdump.DumpSchema(context.Background(), pgxConn)
+		require.NoError(t, err, "failed to dump schema")
+
+		var buf bytes.Buffer
+		buf.WriteString(schema.String())
+
+		err = pgdump.DumpData(context.Background(), pgxConn, &buf,
+			// We ignore the (old) notifications table since it's trigger based
+			// and always re-calculated which makes it near impossible to test
+			// migrations.
+			//
+			// It also doesn't work properly anyhow, which is why it has been
+			// replaced.
+			[]string{"notifications"})
+		require.NoError(t, err, "failed to dump data")
+
+		return parsePGDump(buf.Bytes(), name)
 	}
 	mm := 0
 	checkDiff := func(t *testing.T, typ, migrationName string, a, b []pgDumpEntry) bool {
