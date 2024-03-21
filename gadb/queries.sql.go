@@ -486,7 +486,7 @@ SELECT
 FROM
     alerts_metadata
 WHERE
-    alert_id = ANY ($1::number)
+    alert_id = $1
 `
 
 type AlertMetadataRow struct {
@@ -494,8 +494,8 @@ type AlertMetadataRow struct {
 	Metadata pqtype.NullRawMessage
 }
 
-func (q *Queries) AlertMetadata(ctx context.Context, dollar_1 interface{}) (AlertMetadataRow, error) {
-	row := q.db.QueryRowContext(ctx, alertMetadata, dollar_1)
+func (q *Queries) AlertMetadata(ctx context.Context, alertID int32) (AlertMetadataRow, error) {
+	row := q.db.QueryRowContext(ctx, alertMetadata, alertID)
 	var i AlertMetadataRow
 	err := row.Scan(&i.AlertID, &i.Metadata)
 	return i, err
@@ -1331,6 +1331,41 @@ func (q *Queries) FindOneCalSubForUpdate(ctx context.Context, id uuid.UUID) (Fin
 	return i, err
 }
 
+const insert = `-- name: Insert :one
+INSERT INTO alerts(summary, details, service_id, source, status, dedup_key)
+    VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING
+    id, created_at
+`
+
+type InsertParams struct {
+	Summary   string
+	Details   string
+	ServiceID uuid.NullUUID
+	Source    EnumAlertSource
+	Status    EnumAlertStatus
+	DedupKey  sql.NullString
+}
+
+type InsertRow struct {
+	ID        int64
+	CreatedAt time.Time
+}
+
+func (q *Queries) Insert(ctx context.Context, arg InsertParams) (InsertRow, error) {
+	row := q.db.QueryRowContext(ctx, insert,
+		arg.Summary,
+		arg.Details,
+		arg.ServiceID,
+		arg.Source,
+		arg.Status,
+		arg.DedupKey,
+	)
+	var i InsertRow
+	err := row.Scan(&i.ID, &i.CreatedAt)
+	return i, err
+}
+
 const intKeyCreate = `-- name: IntKeyCreate :exec
 INSERT INTO integration_keys(id, name, type, service_id)
     VALUES ($1, $2, $3, $4)
@@ -1588,6 +1623,25 @@ func (q *Queries) LockOneAlertService(ctx context.Context, id int64) (LockOneAle
 	var i LockOneAlertServiceRow
 	err := row.Scan(&i.IsMaintMode, &i.Status)
 	return i, err
+}
+
+const noStepsByService = `-- name: NoStepsByService :one
+SELECT
+    COALESCE((
+        SELECT
+            TRUE
+        FROM escalation_policies pol
+        JOIN services svc ON svc.id = $1
+        WHERE
+            pol.id = svc.escalation_policy_id
+            AND pol.step_count = 0), FALSE) AS no_steps_by_service
+`
+
+func (q *Queries) NoStepsByService(ctx context.Context, id uuid.UUID) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, noStepsByService, id)
+	var no_steps_by_service interface{}
+	err := row.Scan(&no_steps_by_service)
+	return no_steps_by_service, err
 }
 
 const noticeUnackedAlertsByService = `-- name: NoticeUnackedAlertsByService :one

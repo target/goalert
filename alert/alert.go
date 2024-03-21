@@ -17,28 +17,25 @@ const (
 
 // An Alert represents an ongoing situation.
 type Alert struct {
-	ID        int           `json:"_id"`
-	Status    Status        `json:"status"`
-	Summary   string        `json:"summary"`
-	Details   string        `json:"details"`
-	Source    Source        `json:"source"`
-	ServiceID string        `json:"service_id"`
-	CreatedAt time.Time     `json:"created_at"`
-	Dedup     *DedupID      `json:"dedup"`
-	Meta      AlertMetadata `json:"meta"`
+	ID        int       `json:"_id"`
+	Status    Status    `json:"status"`
+	Summary   string    `json:"summary"`
+	Details   string    `json:"details"`
+	Source    Source    `json:"source"`
+	ServiceID string    `json:"service_id"`
+	CreatedAt time.Time `json:"created_at"`
+	Dedup     *DedupID  `json:"dedup"`
+	Meta      AlertMeta `json:"meta"`
 }
 
-type AlertMetadataValue struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+const TypeAlertMetaV1 = "alert_meta_v1"
+
+type AlertMeta struct {
+	Type        string        `json:"type"`
+	AlertMetaV1 AlertMetaData `json"alert_meta_v1"`
 }
 
-const TypeAlertMetadataV1 = "alert_metadata_v1"
-
-type AlertMetadata struct {
-	Type        string               `json:"type"`
-	AlertMetaV1 []AlertMetadataValue `json:"alert_metadata_v1"`
-}
+type AlertMetaData map[string]string
 
 // DedupKey will return the de-duplication key for the alert.
 // The Dedup prop is used if non-nil, otherwise one is generated

@@ -3,9 +3,11 @@ package alert
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"time"
 
+	"github.com/sqlc-dev/pqtype"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
@@ -527,6 +529,14 @@ func (s *Store) _create(ctx context.Context, tx *sql.Tx, a Alert) (*Alert, *aler
 		return nil, nil, err
 	}
 
+	// insert alert metadata
+	err = s.insertMetaData(tx, ctx, a.ID, a.Meta.AlertMetaV1)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	ctx = log.WithFields(ctx, log.Fields{"AlertID": a.ID, "Meta": a.Meta.AlertMetaV1})
+	log.Logf(ctx, "Alert created.")
 	err = tx.StmtContext(ctx, s.noStepsBySvc).QueryRowContext(ctx, a.ServiceID).Scan(&meta.EPNoSteps)
 	if err != nil {
 		return nil, nil, err
@@ -583,6 +593,11 @@ func (s *Store) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Al
 			logType = alertlog.TypeCreated
 			stepErr := tx.StmtContext(ctx, s.noStepsBySvc).QueryRowContext(ctx, n.ServiceID).Scan(&m.EPNoSteps)
 			if stepErr != nil {
+				return nil, false, err
+			}
+			// insert alert metadata
+			err = s.insertMetaData(tx, ctx, 1, a.Meta.AlertMetaV1)
+			if err != nil {
 				return nil, false, err
 			}
 		}
@@ -882,19 +897,34 @@ func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
 	return nil
 }
 
-func (s Store) Metadata(ctx context.Context, alertID int) (*string, error) {
+func (s Store) Metadata(ctx context.Context, alertID int) (AlertMetaData, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
 	}
-
-	// query metadata
-	_md, err := gadb.New(s.db).AlertMetadata(ctx, alertID)
-	var md string
-	err = _md.Metadata.Scan(&md)
+	var md gadb.AlertMetadataRow
+	data, err := gadb.New(s.db).AlertMetadata(ctx, int32(alertID))
+	md = gadb.AlertMetadataRow(data)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, validation.NewFieldError("ID", "not found")
+	}
+	var amd AlertMetaData
+	if !md.Metadata.Valid {
+		return nil, nil
+	}
+	err = json.Unmarshal(md.Metadata.RawMessage, &amd)
 	if err != nil {
 		return nil, err
 	}
+	return amd, nil
+}
 
-	return &md, nil
+// createMetaData will inserts alert's metadata
+func (s Store) insertMetaData(tx *sql.Tx, ctx context.Context, alertID int, metaData AlertMetaData) error {
+	meta, err := json.Marshal(&metaData)
+	if err != nil {
+		return err
+	}
+	err = gadb.New(tx).SetAlertMetadata(ctx, gadb.SetAlertMetadataParams{AlertID: int32(alertID), Metadata: pqtype.NullRawMessage{Valid: metaData != nil, RawMessage: json.RawMessage(meta)}})
+	return err
 }

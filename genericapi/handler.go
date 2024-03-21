@@ -3,6 +3,7 @@ package genericapi
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime"
 	"net/http"
@@ -15,6 +16,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -81,6 +83,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 
 	err := permission.LimitCheckAny(ctx, permission.Service)
 	if errutil.HTTPError(ctx, w, err) {
+		log.Log(log.WithField(ctx, "flag", err), fmt.Errorf("Here's the error"))
 		return
 	}
 	serviceID := permission.ServiceID(ctx)
@@ -89,7 +92,22 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	details := r.FormValue("details")
 	action := r.FormValue("action")
 	dedup := r.FormValue("dedup")
-	meta := r.FormValue("meta")
+	metaData := r.FormValue("meta")
+
+	type AlertMeta struct {
+		Key   string `json:"key"`
+		Value string `json:"value"`
+	}
+	var meta map[string]string
+	var md []AlertMeta
+	err = json.Unmarshal([]byte(metaData), &md)
+	if err != nil {
+		log.Log(log.WithField(ctx, "flag", err), fmt.Errorf("Here's the error"))
+		return
+	}
+	for _, md := range md {
+		meta[md.Key] = md.Value
+	}
 
 	ct, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if ct == "application/json" {
@@ -101,6 +119,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 
 		var b struct {
 			Summary, Details, Action, Dedup *string
+			Meta                            []AlertMeta
 		}
 		err = json.Unmarshal(data, &b)
 		if err != nil {
@@ -120,6 +139,11 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		if b.Action != nil {
 			action = *b.Action
 		}
+		if b.Meta != nil {
+			for _, md := range b.Meta {
+				meta[md.Key] = md.Value
+			}
+		}
 	}
 
 	status := alert.StatusTriggered
@@ -137,6 +161,10 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		ServiceID: serviceID,
 		Dedup:     alert.NewUserDedup(dedup),
 		Status:    status,
+		Meta: alert.AlertMeta{
+			Type:        "v1",
+			AlertMetaV1: meta,
+		},
 	}
 
 	var resp struct {

@@ -1369,7 +1369,8 @@ CREATE TABLE alerts_metadata (
 	id uuid DEFAULT gen_random_uuid() NOT NULL,
 	metadata jsonb,
 	CONSTRAINT alerts_metadata_alert_id_fkey FOREIGN KEY (alert_id) REFERENCES alerts(id) ON DELETE CASCADE,
-	CONSTRAINT alerts_metadata_pkey PRIMARY KEY (id)
+	CONSTRAINT alerts_metadata_pkey PRIMARY KEY (id, alert_id),
+	CONSTRAINT alerts_metadata_id UNIQUE (alert_id)
 );
 
 CREATE UNIQUE INDEX alerts_metadata_pkey ON public.alerts_metadata USING btree (id);

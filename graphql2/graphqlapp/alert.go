@@ -403,6 +403,14 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 		a.Dedup = alert.NewUserDedup(*input.Dedup)
 	}
 
+	if input.Meta != nil {
+		alertMeta := map[string]string{}
+		for _, v := range input.Meta {
+			alertMeta[v.Key] = v.Value
+		}
+		a.Meta = alert.AlertMeta{Type: "v1", AlertMetaV1: alertMeta}
+	}
+
 	return m.AlertStore.Create(ctx, a)
 }
 
@@ -579,13 +587,26 @@ func (m *Mutation) UpdateAlertsByService(ctx context.Context, args graphql2.Upda
 	return true, nil
 }
 
-func (a *Alert) Meta(ctx context.Context, raw *alert.Alert) ([]graphql2.AlertMetadata, error) {
-	_, err := a.AlertStore.Metadata(ctx, raw.ID)
+func (a *Alert) Meta(ctx context.Context, alert *alert.Alert) ([]graphql2.AlertMetadata, error) {
+	md, err := a.AlertStore.Metadata(ctx, alert.ID)
 	if err != nil {
 		return nil, err
 	}
+	var alertMeta []graphql2.AlertMetadata
+	for k, v := range md {
+		alertMeta = append(alertMeta, graphql2.AlertMetadata{Key: k, Value: v})
+	}
+	return alertMeta, nil
+}
 
-	// transform md into slice of keys/values to return
-
-	return nil, nil
+func (a *Alert) MetaValue(ctx context.Context, alert *alert.Alert, key string) (*string, error) {
+	md, err := a.AlertStore.Metadata(ctx, alert.ID)
+	val := ""
+	if err != nil {
+		return &val, err
+	}
+	if value, ok := md[key]; ok {
+		val = value
+	}
+	return &val, nil
 }

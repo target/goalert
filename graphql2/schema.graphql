@@ -913,6 +913,8 @@ type Alert {
   noiseReason: String
 
   meta: [AlertMetadata!]
+
+  metaValue(key: String!): String
 }
 
 type AlertMetric {
