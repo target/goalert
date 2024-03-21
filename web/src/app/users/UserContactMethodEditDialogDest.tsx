@@ -17,7 +17,6 @@ const query = gql`
     userContactMethod(id: $id) {
       id
       name
-      type
       dest {
         type
         values {
@@ -26,7 +25,6 @@ const query = gql`
           label
         }
       }
-      value
       statusUpdates
     }
   }
