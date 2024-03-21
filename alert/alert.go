@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -27,15 +28,6 @@ type Alert struct {
 	Dedup     *DedupID  `json:"dedup"`
 	Meta      AlertMeta `json:"meta"`
 }
-
-const TypeAlertMetaV1 = "alert_meta_v1"
-
-type AlertMeta struct {
-	Type        string        `json:"type"`
-	AlertMetaV1 AlertMetaData `json"alert_meta_v1"`
-}
-
-type AlertMetaData map[string]string
 
 // DedupKey will return the de-duplication key for the alert.
 // The Dedup prop is used if non-nil, otherwise one is generated
@@ -67,12 +59,21 @@ func (a Alert) Normalize() (*Alert, error) {
 	}
 	a.Summary = strings.Replace(a.Summary, "\n", " ", -1)
 	a.Summary = strings.Replace(a.Summary, "  ", " ", -1)
+
+	var validateMeta error
+	for k, _ := range a.Meta.AlertMetaV1 {
+		if k == "" {
+			validateMeta = validation.NewFieldError("Meta", "must be non empty string")
+		}
+	}
+
 	err := validate.Many(
 		validate.Text("Summary", a.Summary, 1, MaxSummaryLength),
 		validate.Text("Details", a.Details, 0, MaxDetailsLength),
 		validate.OneOf("Source", a.Source, SourceManual, SourceGrafana, SourceSite24x7, SourcePrometheusAlertmanager, SourceEmail, SourceGeneric),
 		validate.OneOf("Status", a.Status, StatusTriggered, StatusActive, StatusClosed),
 		validate.UUID("ServiceID", a.ServiceID),
+		validateMeta,
 	)
 	if err != nil {
 		return nil, err

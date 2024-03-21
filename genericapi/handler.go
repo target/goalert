@@ -93,21 +93,14 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	action := r.FormValue("action")
 	dedup := r.FormValue("dedup")
 	metaData := r.FormValue("meta")
-
-	type AlertMeta struct {
-		Key   string `json:"key"`
-		Value string `json:"value"`
-	}
-	var meta map[string]string
-	var md []AlertMeta
+	var md alert.AlertMetaInput
+	var meta alert.AlertMeta
 	err = json.Unmarshal([]byte(metaData), &md)
 	if err != nil {
-		log.Log(log.WithField(ctx, "flag", err), fmt.Errorf("Here's the error"))
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	for _, md := range md {
-		meta[md.Key] = md.Value
-	}
+	meta = alert.ToAlertMeta(md)
 
 	ct, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if ct == "application/json" {
@@ -119,7 +112,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 
 		var b struct {
 			Summary, Details, Action, Dedup *string
-			Meta                            []AlertMeta
+			Meta                            alert.AlertMetaInput
 		}
 		err = json.Unmarshal(data, &b)
 		if err != nil {
@@ -140,9 +133,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 			action = *b.Action
 		}
 		if b.Meta != nil {
-			for _, md := range b.Meta {
-				meta[md.Key] = md.Value
-			}
+			meta = alert.ToAlertMeta(b.Meta)
 		}
 	}
 
@@ -161,10 +152,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		ServiceID: serviceID,
 		Dedup:     alert.NewUserDedup(dedup),
 		Status:    status,
-		Meta: alert.AlertMeta{
-			Type:        alert.TypeAlertMetaV1,
-			AlertMetaV1: meta,
-		},
+		Meta:      meta,
 	}
 
 	var resp struct {

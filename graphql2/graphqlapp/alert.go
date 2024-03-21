@@ -404,7 +404,7 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 	}
 
 	if input.Meta != nil {
-		alertMeta := map[string]string{}
+		alertMeta := alert.AlertMetaData{}
 		for _, v := range input.Meta {
 			alertMeta[v.Key] = v.Value
 		}
