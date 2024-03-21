@@ -596,7 +596,7 @@ func (s *Store) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Al
 				return nil, false, err
 			}
 			// insert alert metadata
-			err = s.insertMetaData(tx, ctx, 1, a.Meta.AlertMetaV1)
+			err = s.insertMetaData(tx, ctx, n.ID, a.Meta.AlertMetaV1)
 			if err != nil {
 				return nil, false, err
 			}

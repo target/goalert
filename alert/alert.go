@@ -63,7 +63,7 @@ func (a Alert) Normalize() (*Alert, error) {
 	var validateMeta error
 	for k, _ := range a.Meta.AlertMetaV1 {
 		if k == "" {
-			validateMeta = validation.NewFieldError("Meta", "must be non empty string")
+			validateMeta = validation.NewFieldError("Meta", "key must be non empty string")
 		}
 	}
 

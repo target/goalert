@@ -95,12 +95,14 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	metaData := r.FormValue("meta")
 	var md alert.AlertMetaInput
 	var meta alert.AlertMeta
-	err = json.Unmarshal([]byte(metaData), &md)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+	if metaData != "" {
+		err = json.Unmarshal([]byte(metaData), &md)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		meta = alert.ToAlertMeta(md)
 	}
-	meta = alert.ToAlertMeta(md)
 
 	ct, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if ct == "application/json" {
