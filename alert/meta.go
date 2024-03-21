@@ -4,7 +4,7 @@ const TypeAlertMetaV1 = "alert_meta_v1"
 
 type AlertMeta struct {
 	Type        string        `json:"type"`
-	AlertMetaV1 AlertMetaData `json"alert_meta_v1"`
+	AlertMetaV1 AlertMetaData `json:"alert_meta_v1"`
 }
 
 type AlertMetaData map[string]string

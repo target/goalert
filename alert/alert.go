@@ -61,7 +61,7 @@ func (a Alert) Normalize() (*Alert, error) {
 	a.Summary = strings.Replace(a.Summary, "  ", " ", -1)
 
 	var validateMeta error
-	for k, _ := range a.Meta.AlertMetaV1 {
+	for k := range a.Meta.AlertMetaV1 {
 		if k == "" {
 			validateMeta = validation.NewFieldError("Meta", "key must be non empty string")
 		}
