@@ -479,26 +479,42 @@ func (q *Queries) AlertLogLookupCMType(ctx context.Context, id uuid.UUID) (EnumU
 	return cm_type, err
 }
 
-const alertMetadata = `-- name: AlertMetadata :one
+const alertMetadataMany = `-- name: AlertMetadataMany :many
 SELECT
     alert_id,
     metadata
 FROM
     alerts_metadata
 WHERE
-    alert_id = $1
+    alert_id = ANY ($1::int[])
 `
 
-type AlertMetadataRow struct {
+type AlertMetadataManyRow struct {
 	AlertID  int32
 	Metadata pqtype.NullRawMessage
 }
 
-func (q *Queries) AlertMetadata(ctx context.Context, alertID int32) (AlertMetadataRow, error) {
-	row := q.db.QueryRowContext(ctx, alertMetadata, alertID)
-	var i AlertMetadataRow
-	err := row.Scan(&i.AlertID, &i.Metadata)
-	return i, err
+func (q *Queries) AlertMetadataMany(ctx context.Context, dollar_1 []int32) ([]AlertMetadataManyRow, error) {
+	rows, err := q.db.QueryContext(ctx, alertMetadataMany, pq.Array(dollar_1))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AlertMetadataManyRow
+	for rows.Next() {
+		var i AlertMetadataManyRow
+		if err := rows.Scan(&i.AlertID, &i.Metadata); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const allPendingMsgDests = `-- name: AllPendingMsgDests :many

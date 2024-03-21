@@ -77,14 +77,14 @@ ON CONFLICT (alert_id)
     RETURNING
         alert_id;
 
--- name: AlertMetadata :one
+-- name: AlertMetadataMany :many
 SELECT
     alert_id,
     metadata
 FROM
     alerts_metadata
 WHERE
-    alert_id = $1;
+    alert_id = ANY ($1::int[]);
 
 -- name: SetAlertMetadata :exec
 INSERT INTO alerts_metadata(alert_id, metadata)

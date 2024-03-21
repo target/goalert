@@ -71,6 +71,12 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			// set to nil if it's the current message
 			stat = nil
 		}
+		var meta []notification.AlertMeta
+		if a.Meta.AlertMetaV1 != nil {
+			for k, v := range a.Meta.AlertMetaV1 {
+				meta = append(meta, notification.AlertMeta{Key: k, Value: v})
+			}
+		}
 		notifMsg = notification.Alert{
 			Dest:        msg.Dest,
 			AlertID:     msg.AlertID,
@@ -79,6 +85,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			CallbackID:  msg.ID,
 			ServiceID:   a.ServiceID,
 			ServiceName: name,
+			Meta:        meta,
 
 			OriginalStatus: stat,
 		}

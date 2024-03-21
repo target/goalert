@@ -756,6 +756,8 @@ func (s *Store) FindMany(ctx context.Context, alertIDs []int) ([]Alert, error) {
 	}
 	defer rows.Close()
 
+	amd, _ := s.MetadataMany(ctx, alertIDs)
+
 	alerts := make([]Alert, 0, len(alertIDs))
 
 	for rows.Next() {
@@ -763,6 +765,11 @@ func (s *Store) FindMany(ctx context.Context, alertIDs []int) ([]Alert, error) {
 		err = a.scanFrom(rows.Scan)
 		if err != nil {
 			return nil, err
+		}
+		if val, ok := amd[int32(a.ID)]; ok {
+			a.Meta = AlertMeta{
+				AlertMetaV1: val,
+			}
 		}
 		alerts = append(alerts, a)
 	}
@@ -902,21 +909,52 @@ func (s Store) Metadata(ctx context.Context, alertID int) (AlertMetaData, error)
 	if err != nil {
 		return nil, err
 	}
-	var md gadb.AlertMetadataRow
-	data, err := gadb.New(s.db).AlertMetadata(ctx, int32(alertID))
-	md = gadb.AlertMetadataRow(data)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, validation.NewFieldError("ID", "not found")
-	}
-	var amd AlertMetaData
-	if !md.Metadata.Valid {
-		return nil, nil
-	}
-	err = json.Unmarshal(md.Metadata.RawMessage, &amd)
+	md, err := s.MetadataMany(ctx, []int{alertID})
 	if err != nil {
 		return nil, err
 	}
-	return amd, nil
+	if amd, ok := md[int32(alertID)]; ok {
+		return amd, nil
+	}
+	return nil, validation.NewFieldError("ID", "not found")
+}
+
+func (s Store) MetadataMany(ctx context.Context, alertIDs []int) (map[int32]AlertMetaData, error) {
+	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validate.Range("AlertIDs", len(alertIDs), 1, maxBatch)
+	if err != nil {
+		return nil, err
+	}
+	ids := make([]int32, len(alertIDs))
+	for _, id := range alertIDs {
+		ids = append(ids, int32(id))
+	}
+
+	amd := map[int32]AlertMetaData{}
+	rows, err := gadb.New(s.db).AlertMetadataMany(ctx, ids)
+	if errors.Is(err, sql.ErrNoRows) {
+		return amd, err
+	}
+	if err != nil {
+		return amd, err
+	}
+
+	for _, r := range rows {
+		if r.Metadata.Valid {
+			var md AlertMetaData
+			err = json.Unmarshal(r.Metadata.RawMessage, &md)
+			if err == nil {
+				amd[r.AlertID] = md
+			} else {
+				amd[r.AlertID] = nil
+			}
+		}
+	}
+	return amd, err
 }
 
 // createMetaData will inserts alert's metadata
