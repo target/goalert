@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/target/goalert/devtools/pgdump-lite/pgd"
 )
 
@@ -182,7 +181,7 @@ func (c Column) String() string {
 	return fmt.Sprintf("%s %s%s", c.Name, c.Type, def)
 }
 
-func DumpSchema(ctx context.Context, conn *pgx.Conn) (*Schema, error) {
+func DumpSchema(ctx context.Context, conn pgd.DBTX) (*Schema, error) {
 	db := pgd.New(conn)
 
 	var s Schema
