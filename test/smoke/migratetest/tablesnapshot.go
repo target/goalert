@@ -13,6 +13,8 @@ type TableSnapshot struct {
 	Rows    [][]string
 }
 
+func (t TableSnapshot) EntityName() string { return t.Name }
+
 type columnSort TableSnapshot
 
 func (data *columnSort) Len() int { return len(data.Columns) }

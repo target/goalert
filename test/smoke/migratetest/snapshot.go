@@ -10,8 +10,8 @@ import (
 )
 
 type Snapshot struct {
-	Schema *pgdump.Schema
-	Tables []TableSnapshot
+	Schema    *pgdump.Schema
+	TableData []TableSnapshot
 }
 
 var snapshotBuf bytes.Buffer
@@ -57,7 +57,7 @@ func NewSnapshot(ctx context.Context, db *pgxpool.Pool) (*Snapshot, error) {
 	}
 
 	return &Snapshot{
-		Schema: schema,
-		Tables: tables,
+		Schema:    schema,
+		TableData: tables,
 	}, nil
 }

@@ -298,13 +298,17 @@ func TestMigrations(t *testing.T) {
 			require.NoError(t, err, "failed to apply DOWN migration")
 
 			afterDownSnap := snapshot(t, migrationName)
-			rules.RequireEqualDown(t, beforeUpSnap, afterDownSnap)
+			t.Run("Down", func(t *testing.T) {
+				rules.RequireEqualDown(t, beforeUpSnap, afterDownSnap)
+			})
 
 			_, err = migrate.Up(ctx, testURL, migrationName)
 			require.NoError(t, err, "failed to apply UP migration (2nd time)")
 
 			afterUpSnap2 := snapshot(t, migrationName)
-			rules.RequireEqualUp(t, afterUpSnap1, afterUpSnap2)
+			t.Run("Up", func(t *testing.T) {
+				rules.RequireEqualUp(t, afterUpSnap1, afterUpSnap2)
+			})
 
 			beforeUpSnap = afterUpSnap2 // save for next iteration
 		})
