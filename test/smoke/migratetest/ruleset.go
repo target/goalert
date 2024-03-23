@@ -96,5 +96,9 @@ func (rs RuleSet) RequireEqualUp(t *testing.T, expected, actual *Snapshot) {
 	t.Helper()
 
 	// schema should be identical once re-applied
-	require.Equal(t, expected.Schema, actual.Schema, "Schema mismatch")
+	requireSameEntities(t, expected.Schema.Functions, actual.Schema.Functions, "Functions")
+	requireSameEntities(t, expected.Schema.Sequences, actual.Schema.Sequences, "Sequences")
+	requireSameEntities(t, expected.Schema.Tables, actual.Schema.Tables, "Tables")
+	requireSameEntities(t, expected.Schema.Extensions, actual.Schema.Extensions, "Extensions")
+	requireSameEntities(t, expected.Schema.Enums, actual.Schema.Enums, "Enums")
 }

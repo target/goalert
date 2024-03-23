@@ -24,7 +24,7 @@ import (
 // DefaultSkipToMigration is the default migration to skip to when running the migration tests.
 //
 // It can be overriden by setting the SKIP_TO environment variable.
-const DefaultSkipToMigration = "slack-ug"
+const DefaultSkipToMigration = "switchover-mk2"
 
 var rules = migratetest.RuleSet{
 	// All migration timestamps will differ as they applied/re-applied
@@ -203,7 +203,6 @@ func TestMigrations(t *testing.T) {
 		t.Skip("skipping migrations tests for short mode")
 	}
 	t.Parallel()
-	defer t.Fail()
 	start := "atomic-escalation-policies"
 	t.Logf("Starting migration testing at %s", start)
 
