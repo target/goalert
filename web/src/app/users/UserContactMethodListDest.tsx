@@ -194,14 +194,18 @@ export default function UserContactMethodListDest(
           }
           if (fieldInfo?.hintURL) {
             return (
-              <Typography key={v.toString()}>
+              <Typography component='span' key={v.toString()}>
                 {`${cmText} (`}
                 <AppLink to={fieldInfo.hintURL}>{fieldInfo.hint}</AppLink>)
               </Typography>
             )
           }
 
-          return <Typography key={v.toString()}>{cmText}</Typography>
+          return (
+            <Typography component='span' key={v.toString()}>
+              {cmText}
+            </Typography>
+          )
         })}
       </React.Fragment>
     )
