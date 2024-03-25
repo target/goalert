@@ -159,8 +159,6 @@ func (rs RuleSet) makeRequireTableDataMatch(isDown bool) func(*testing.T, TableS
 			ignoreColIdx[i] = slices.Index(exp.Columns, col)
 		}
 
-		t.Log("Table", exp.Name, "Columns", exp.Columns, "Ignore Columns", rules.IgnoreColumns, "Ignore Column Index", ignoreColIdx)
-
 		var hasErr bool
 		if !rules.AllowMissing {
 			// find any missing expected rows

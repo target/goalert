@@ -265,10 +265,6 @@ func TestMigrations(t *testing.T) {
 	snapshot := func(t *testing.T, name string) *migratetest.Snapshot {
 		t.Helper()
 
-		s := time.Now()
-		defer func() {
-			t.Logf("Snapshot %s took %s", name, time.Since(s))
-		}()
 		snap, err := migratetest.NewSnapshotURL(context.Background(), testURL)
 		require.NoError(t, err, "failed to create snapshot")
 		return snap
@@ -298,17 +294,23 @@ func TestMigrations(t *testing.T) {
 			require.NoError(t, err, "failed to apply DOWN migration")
 
 			afterDownSnap := snapshot(t, migrationName)
-			t.Run("Down", func(t *testing.T) {
+			pass := t.Run("Down", func(t *testing.T) {
 				rules.RequireEqualDown(t, beforeUpSnap, afterDownSnap)
 			})
+			if !pass {
+				return
+			}
 
 			_, err = migrate.Up(ctx, testURL, migrationName)
 			require.NoError(t, err, "failed to apply UP migration (2nd time)")
 
 			afterUpSnap2 := snapshot(t, migrationName)
-			t.Run("Up", func(t *testing.T) {
+			pass = t.Run("Up", func(t *testing.T) {
 				rules.RequireEqualUp(t, afterUpSnap1, afterUpSnap2)
 			})
+			if !pass {
+				return
+			}
 
 			beforeUpSnap = afterUpSnap2 // save for next iteration
 		})
