@@ -32,7 +32,7 @@ require (
 	github.com/mnako/letters v0.2.2
 	github.com/nyaruka/phonenumbers v1.3.2
 	github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282
-	github.com/pelletier/go-toml/v2 v2.1.1
+	github.com/pelletier/go-toml/v2 v2.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.19.0
 	github.com/rubenv/sql-migrate v1.6.1
