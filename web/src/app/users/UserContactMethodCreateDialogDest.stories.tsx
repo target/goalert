@@ -1,7 +1,7 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import UserContactMethodCreateDialogDest from './UserContactMethodCreateDialogDest'
-import { expect, userEvent, waitFor, within } from '@storybook/test'
+import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
 import {
   handleDefaultConfig,
   defaultConfig,
@@ -15,6 +15,9 @@ const meta = {
   title: 'users/UserContactMethodCreateDialogDest',
   component: UserContactMethodCreateDialogDest,
   tags: ['autodocs'],
+  args: {
+    onClose: fn(),
+  },
   parameters: {
     docs: {
       story: {
