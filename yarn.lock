@@ -6607,12 +6607,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:20.10.5":
-  version: 20.10.5
-  resolution: "@types/node@npm:20.10.5"
+"@types/node@npm:20.11.30":
+  version: 20.11.30
+  resolution: "@types/node@npm:20.11.30"
   dependencies:
     undici-types: ~5.26.4
-  checksum: e216b679f545a8356960ce985a0e53c3a58fff0eacd855e180b9e223b8db2b5bd07b744a002b8c1f0c37f9194648ab4578533b5c12df2ec10cc02f61d20948d2
+  checksum: 7597767aa3e44b0f1bf62efa522dd17741135f283c11de6a20ead8bb7016fb4999cc30adcd8f2bb29ebb216906c92894346ccd187de170927dc1e212d2c07c81
   languageName: node
   linkType: hard
 
@@ -18339,7 +18339,7 @@ __metadata:
     "@types/jest": 29.5.12
     "@types/lodash": 4.14.202
     "@types/luxon": 3.4.2
-    "@types/node": 20.10.5
+    "@types/node": 20.11.30
     "@types/prop-types": 15.7.11
     "@types/react": 18.2.48
     "@types/react-big-calendar": 1.6.5
