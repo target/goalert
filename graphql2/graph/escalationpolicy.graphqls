@@ -7,5 +7,5 @@ extend input CreateEscalationPolicyStepInput {
 }
 
 extend input UpdateEscalationPolicyStepInput {
-    actions: [DestinationInput!] @goField(forceResolver: true) # force resolver for initial compat
+  actions: [DestinationInput!] @goField(forceResolver: true) # force resolver for initial compat
 }
