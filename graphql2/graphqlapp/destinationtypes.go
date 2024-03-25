@@ -295,7 +295,6 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			Type:                  destTwilioSMS,
 			Name:                  "Text Message (SMS)",
 			Enabled:               cfg.Twilio.Enable,
-			DisabledMessage:       "Twilio must be configured by an administrator",
 			UserDisclaimer:        cfg.General.NotificationDisclaimer,
 			SupportsStatusUpdates: true,
 			IsContactMethod:       true,
@@ -313,7 +312,6 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			Type:                  destTwilioVoice,
 			Name:                  "Voice Call",
 			Enabled:               cfg.Twilio.Enable,
-			DisabledMessage:       "Twilio must be configured by an administrator",
 			UserDisclaimer:        cfg.General.NotificationDisclaimer,
 			IsContactMethod:       true,
 			SupportsStatusUpdates: true,
@@ -333,7 +331,6 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			Enabled:               cfg.SMTP.Enable,
 			IsContactMethod:       true,
 			SupportsStatusUpdates: true,
-			DisabledMessage:       "SMTP must be configured by an administrator",
 			RequiredFields: []graphql2.DestinationFieldConfig{{
 				FieldID:            fieldEmailAddress,
 				Label:              "Email Address",
@@ -351,7 +348,6 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			IsSchedOnCallNotify:   true,
 			SupportsStatusUpdates: true,
 			StatusUpdatesRequired: true,
-			DisabledMessage:       "Webhooks must be enabled by an administrator",
 			RequiredFields: []graphql2.DestinationFieldConfig{{
 				FieldID:            fieldWebhookURL,
 				Label:              "Webhook URL",
@@ -369,7 +365,6 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			IsContactMethod:       true,
 			SupportsStatusUpdates: true,
 			StatusUpdatesRequired: true,
-			DisabledMessage:       "Slack must be enabled by an administrator",
 			RequiredFields: []graphql2.DestinationFieldConfig{{
 				FieldID:         fieldSlackUserID,
 				Label:           "Slack User",
@@ -387,7 +382,6 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			IsSchedOnCallNotify:   true,
 			SupportsStatusUpdates: true,
 			StatusUpdatesRequired: true,
-			DisabledMessage:       "Slack must be enabled by an administrator",
 			RequiredFields: []graphql2.DestinationFieldConfig{{
 				FieldID:        fieldSlackChanID,
 				Label:          "Slack Channel",
@@ -400,7 +394,6 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 			Name:                "Update Slack User Group",
 			Enabled:             cfg.Slack.Enable,
 			IsSchedOnCallNotify: true,
-			DisabledMessage:     "Slack must be enabled by an administrator",
 			RequiredFields: []graphql2.DestinationFieldConfig{{
 				FieldID:        fieldSlackUGID,
 				Label:          "User Group",
