@@ -216,21 +216,15 @@ export function useContactMethodTypes(): DestinationTypeInfo[] {
   return cfg.destTypes.filter((t) => t.isContactMethod)
 }
 
+export function useEPTargetTypes(): DestinationTypeInfo[] {
+  const cfg = React.useContext(ConfigContext)
+  return cfg.destTypes.filter((t) => t.isEPTarget)
+}
+
 /** useSchedOnCallNotifyTypes returns a list of schedule on-call notification destination types. */
 export function useSchedOnCallNotifyTypes(): DestinationTypeInfo[] {
   const cfg = React.useContext(ConfigContext)
   return cfg.destTypes.filter((t) => t.isSchedOnCallNotify)
-}
-
-// useEPTargetTypes returns a list of escalation policy target types, removing duplicate entries.
-export function useEPTargetTypes(): DestinationTypeInfo[] {
-  const cfg = React.useContext(ConfigContext)
-  return cfg.destTypes
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .filter(
-      (t, idx: number, array: DestinationTypeInfo[]) =>
-        t.isEPTarget && (idx === 0 || t.name !== array[idx - 1].name),
-    )
 }
 
 // useDestinationType returns information about the given destination type.
