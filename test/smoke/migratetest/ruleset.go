@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/devtools/pgdump-lite"
 )
 
+// IgnoreRule is a rule to ignore differences in a snapshot.
 type IgnoreRule struct {
 
 	// MigrationName is the name of the migration this rule applies to.
@@ -27,6 +28,7 @@ type IgnoreRule struct {
 	MissingRows bool
 }
 
+// RuleSet is a set of IgnoreRules.
 type RuleSet []IgnoreRule
 
 type tableRules struct {

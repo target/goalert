@@ -59,6 +59,7 @@ func (d *CopyScanner) csvData() string {
 	return ""
 }
 
+// Scan will scan the next COPY statement.
 func (d *CopyScanner) Scan() bool {
 	if d.err != nil {
 		return false
@@ -84,5 +85,9 @@ func (d *CopyScanner) Scan() bool {
 
 	return true
 }
-func (d *CopyScanner) Err() error           { return d.err }
+
+// Err will return the last error encountered.
+func (d *CopyScanner) Err() error { return d.err }
+
+// Table will return the last scanned TableSnapshot.
 func (d *CopyScanner) Table() TableSnapshot { return d.t }
