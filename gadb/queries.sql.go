@@ -489,8 +489,8 @@ WHERE
     alert_id = ANY ($1::bigint[])
 `
 
-func (q *Queries) AlertManyMetadata(ctx context.Context, alertids []int64) ([]AlertDatum, error) {
-	rows, err := q.db.QueryContext(ctx, alertManyMetadata, pq.Array(alertids))
+func (q *Queries) AlertManyMetadata(ctx context.Context, alertIds []int64) ([]AlertDatum, error) {
+	rows, err := q.db.QueryContext(ctx, alertManyMetadata, pq.Array(alertIds))
 	if err != nil {
 		return nil, err
 	}
