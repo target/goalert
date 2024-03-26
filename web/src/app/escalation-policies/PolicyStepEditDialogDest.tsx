@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react'
-import { CombinedError, gql, useMutation, useQuery } from 'urql'
+import React, { useState } from 'react'
+import { gql, useMutation, useQuery } from 'urql'
 import { splitErrorsByPath } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import PolicyStepFormDest, { FormValue } from './PolicyStepFormDest'
-import { errorPaths } from '../users/UserContactMethodFormDest'
 import {
   Destination,
   EscalationPolicy,
@@ -69,26 +68,19 @@ function PolicyStepEditDialogDest(
   })
 
   const [editStepStatus, editStep] = useMutation(mutation)
-  const [stepErr, setStepErr] = useState<CombinedError | null>(null)
 
-  const [formErrors, otherErrs] = splitErrorsByPath(
-    stepErr,
-    errorPaths('destinationDisplayInfo.input'),
-  )
-
-  useEffect(() => {
-    setStepErr(null)
-  }, [value])
-
-  useEffect(() => {
-    setStepErr(editStepStatus.error || null)
-  }, [editStepStatus.error])
+  // Edit dialog has no errors to be handled by the form:
+  // - actions field has it's own validation
+  // - errors on existing actions are not handled specially, and just display in the dialog (i.e., duplicates)
+  // - the delay field has no validation, and is automatically clamped to the min/max values by the backend
+  const [a, errs] = splitErrorsByPath(editStepStatus.error, [])
+  console.log(a, errs, editStepStatus.error)
 
   return (
     <FormDialog
       title='Edit Step'
       loading={editStepStatus.fetching}
-      errors={otherErrs}
+      errors={errs}
       disablePortal={props.disablePortal}
       maxWidth='sm'
       onClose={props.onClose}
@@ -97,7 +89,7 @@ function PolicyStepEditDialogDest(
           {
             input: {
               id: props.stepID,
-              delayMinutes: value.delayMinutes,
+              delayMinutes: +value.delayMinutes,
               actions: value.actions,
             } satisfies UpdateEscalationPolicyStepInput,
           },
@@ -108,7 +100,6 @@ function PolicyStepEditDialogDest(
       }
       form={
         <PolicyStepFormDest
-          errors={formErrors}
           disabled={editStepStatus.fetching}
           value={value}
           onChange={(value: FormValue) => setValue(value)}
