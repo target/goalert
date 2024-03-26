@@ -71,11 +71,9 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			// set to nil if it's the current message
 			stat = nil
 		}
-		var meta []notification.AlertMeta
-		if a.Meta.AlertMetaV1 != nil {
-			for k, v := range a.Meta.AlertMetaV1 {
-				meta = append(meta, notification.AlertMeta{Key: k, Value: v})
-			}
+		meta, err := p.a.Metadata(ctx, msg.AlertID)
+		if err != nil {
+			return nil, errors.Wrap(err, "lookup alertmeta")
 		}
 		notifMsg = notification.Alert{
 			Dest:        msg.Dest,

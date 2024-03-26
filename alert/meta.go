@@ -1,26 +1,32 @@
 package alert
 
+import (
+	"github.com/target/goalert/validation"
+	"github.com/target/goalert/validation/validate"
+)
+
 const TypeAlertMetaV1 = "alert_meta_v1"
 
-type AlertMeta struct {
-	Type        string        `json:"type"`
-	AlertMetaV1 AlertMetaData `json:"alert_meta_v1"`
+type MetaData map[string]string
+
+type Meta struct {
+	Type        string
+	AlertMetaV1 MetaData
 }
 
-type AlertMetaData map[string]string
+func (m MetaData) Normalize() error {
+	var totalSize int
+	for k, v := range m {
+		err := validate.ASCII("Meta[<key>]", k, 1, 255)
+		if err != nil {
+			return err
+		}
 
-type AlertMetaInput []struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
+		totalSize += len(k) + len(v)
+	}
 
-func ToAlertMeta(meta AlertMetaInput) AlertMeta {
-	alertMeta := AlertMetaData{}
-	for _, v := range meta {
-		alertMeta[v.Key] = v.Value
+	if totalSize > 32768 {
+		return validation.NewFieldError("Meta", "cannot exceed 32KiB in size")
 	}
-	return AlertMeta{
-		Type:        TypeAlertMetaV1,
-		AlertMetaV1: alertMeta,
-	}
+	return nil
 }

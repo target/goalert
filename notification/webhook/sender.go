@@ -24,7 +24,7 @@ type POSTDataAlert struct {
 	Details     string
 	ServiceID   string
 	ServiceName string
-	Meta        []notification.AlertMeta
+	Meta        map[string]string
 }
 
 // POSTDataAlertBundle represents fields in outgoing alert bundle notification.

@@ -15,6 +15,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -89,16 +90,15 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	details := r.FormValue("details")
 	action := r.FormValue("action")
 	dedup := r.FormValue("dedup")
-	metaData := r.FormValue("meta")
-	var md alert.AlertMetaInput
-	var meta alert.AlertMeta
-	if metaData != "" {
-		err = json.Unmarshal([]byte(metaData), &md)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
+
+	meta := make(map[string]string)
+	for _, v := range r.Form["meta"] {
+		log.Logf(ctx, "%s", v)
+		key, val, ok := strings.Cut(v, ":")
+		if !ok {
+			continue
 		}
-		meta = alert.ToAlertMeta(md)
+		meta[key] = val
 	}
 
 	ct, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
@@ -111,7 +111,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 
 		var b struct {
 			Summary, Details, Action, Dedup *string
-			Meta                            alert.AlertMetaInput
+			Meta                            map[string]string
 		}
 		err = json.Unmarshal(data, &b)
 		if err != nil {
@@ -132,7 +132,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 			action = *b.Action
 		}
 		if b.Meta != nil {
-			meta = alert.ToAlertMeta(b.Meta)
+			meta = b.Meta
 		}
 	}
 
@@ -151,7 +151,6 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		ServiceID: serviceID,
 		Dedup:     alert.NewUserDedup(dedup),
 		Status:    status,
-		Meta:      meta,
 	}
 
 	var resp struct {
@@ -167,7 +166,6 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 			resp.ServiceID = createdAlert.ServiceID
 			resp.IsNew = isNew
 		}
-
 		return err
 	},
 		retry.Log(ctx),

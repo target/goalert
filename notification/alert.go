@@ -9,15 +9,10 @@ type Alert struct {
 	Details     string
 	ServiceID   string
 	ServiceName string
-	Meta        []AlertMeta
+	Meta        map[string]string
 
 	// OriginalStatus is the status of the first Alert notification to this Dest for this AlertID.
 	OriginalStatus *SendResult
-}
-
-type AlertMeta struct {
-	Key   string
-	Value string
 }
 
 type AlertPendingNotification struct {

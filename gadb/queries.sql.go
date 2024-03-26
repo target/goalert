@@ -484,25 +484,20 @@ SELECT
     alert_id,
     metadata
 FROM
-    alerts_metadata
+    alert_data
 WHERE
     alert_id = ANY ($1::int[])
 `
 
-type AlertMetadataManyRow struct {
-	AlertID  int32
-	Metadata pqtype.NullRawMessage
-}
-
-func (q *Queries) AlertMetadataMany(ctx context.Context, dollar_1 []int32) ([]AlertMetadataManyRow, error) {
+func (q *Queries) AlertMetadataMany(ctx context.Context, dollar_1 []int32) ([]AlertDatum, error) {
 	rows, err := q.db.QueryContext(ctx, alertMetadataMany, pq.Array(dollar_1))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []AlertMetadataManyRow
+	var items []AlertDatum
 	for rows.Next() {
-		var i AlertMetadataManyRow
+		var i AlertDatum
 		if err := rows.Scan(&i.AlertID, &i.Metadata); err != nil {
 			return nil, err
 		}
@@ -1914,17 +1909,17 @@ func (q *Queries) SetAlertFeedback(ctx context.Context, arg SetAlertFeedbackPara
 }
 
 const setAlertMetadata = `-- name: SetAlertMetadata :exec
-INSERT INTO alerts_metadata(alert_id, metadata)
+INSERT INTO alert_data(alert_id, metadata)
     VALUES ($1, $2)
 ON CONFLICT (alert_id)
     DO UPDATE SET
         metadata = $2
     WHERE
-        alerts_metadata.alert_id = $1
+        alert_data.alert_id = $1
 `
 
 type SetAlertMetadataParams struct {
-	AlertID  int32
+	AlertID  int64
 	Metadata pqtype.NullRawMessage
 }
 

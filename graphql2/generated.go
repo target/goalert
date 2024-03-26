@@ -785,7 +785,7 @@ type AlertResolver interface {
 	Metrics(ctx context.Context, obj *alert.Alert) (*alertmetrics.Metric, error)
 	NoiseReason(ctx context.Context, obj *alert.Alert) (*string, error)
 	Meta(ctx context.Context, obj *alert.Alert) ([]AlertMetadata, error)
-	MetaValue(ctx context.Context, obj *alert.Alert, key string) (*string, error)
+	MetaValue(ctx context.Context, obj *alert.Alert, key string) (string, error)
 }
 type AlertLogEntryResolver interface {
 	Message(ctx context.Context, obj *alertlog.Entry) (string, error)
@@ -7095,11 +7095,14 @@ func (ec *executionContext) _Alert_metaValue(ctx context.Context, field graphql.
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Alert_metaValue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -35250,6 +35253,9 @@ func (ec *executionContext) _Alert(ctx context.Context, sel ast.SelectionSet, ob
 					}
 				}()
 				res = ec._Alert_metaValue(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 

@@ -761,6 +761,11 @@ type Alert struct {
 	Summary         string
 }
 
+type AlertDatum struct {
+	AlertID  int64
+	Metadata pqtype.NullRawMessage
+}
+
 type AlertFeedback struct {
 	AlertID     int64
 	ID          int64
@@ -799,12 +804,6 @@ type AlertStatusSubscription struct {
 	ID              int64
 	LastAlertStatus EnumAlertStatus
 	UpdatedAt       time.Time
-}
-
-type AlertsMetadatum struct {
-	AlertID  int32
-	ID       uuid.UUID
-	Metadata pqtype.NullRawMessage
 }
 
 type AuthBasicUser struct {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -404,14 +405,15 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 	}
 
 	if input.Meta != nil {
-		alertMeta := alert.AlertMetaData{}
+		alertMeta := alert.MetaData{}
 		for _, v := range input.Meta {
 			alertMeta[v.Key] = v.Value
 		}
-		a.Meta = alert.AlertMeta{
-			Type:        alert.TypeAlertMetaV1,
-			AlertMetaV1: alertMeta,
-		}
+		//Todo::
+		// meta := alert.Meta{
+		// 	Type:        alert.TypeAlertMetaV1,
+		// 	AlertMetaV1: alertMeta,
+		// }
 	}
 
 	return m.AlertStore.Create(ctx, a)
@@ -599,16 +601,16 @@ func (a *Alert) Meta(ctx context.Context, alert *alert.Alert) ([]graphql2.AlertM
 	for k, v := range md {
 		alertMeta = append(alertMeta, graphql2.AlertMetadata{Key: k, Value: v})
 	}
+	sort.Slice(alertMeta, func(i, j int) bool {
+		return strings.ToLower(alertMeta[i].Key) < strings.ToLower(alertMeta[j].Key)
+	})
 	return alertMeta, nil
 }
 
-func (a *Alert) MetaValue(ctx context.Context, alert *alert.Alert, key string) (*string, error) {
+func (a *Alert) MetaValue(ctx context.Context, alert *alert.Alert, key string) (string, error) {
 	md, err := a.AlertStore.Metadata(ctx, alert.ID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return new(string), nil // note: if we change the schema to `String!` we can clean this up
+	if errors.Is(err, sql.ErrNoRows) || err != nil {
+		return "", nil
 	}
-	if err != nil {
-		return nil, err
-	}
-	return &md[key], nil
+	return md[key], nil
 }

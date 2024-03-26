@@ -82,16 +82,16 @@ SELECT
     alert_id,
     metadata
 FROM
-    alerts_metadata
+    alert_data
 WHERE
     alert_id = ANY ($1::int[]);
 
 -- name: SetAlertMetadata :exec
-INSERT INTO alerts_metadata(alert_id, metadata)
+INSERT INTO alert_data(alert_id, metadata)
     VALUES ($1, $2)
 ON CONFLICT (alert_id)
     DO UPDATE SET
         metadata = $2
     WHERE
-        alerts_metadata.alert_id = $1;
+        alert_data.alert_id = $1;
 

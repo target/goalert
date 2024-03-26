@@ -530,12 +530,12 @@ func (s *Store) _create(ctx context.Context, tx *sql.Tx, a Alert) (*Alert, *aler
 	}
 
 	// insert alert metadata
-	err = s.insertMetaData(tx, ctx, a.ID, a.Meta.AlertMetaV1)
-	if err != nil {
-		return nil, nil, err
-	}
+	// err = s.insertMetaData(tx, ctx, a.ID, a.Meta.AlertMetaV1)
+	// if err != nil {
+	// 	return nil, nil, err
+	// }
 
-	ctx = log.WithFields(ctx, log.Fields{"AlertID": a.ID, "Meta": a.Meta.AlertMetaV1})
+	ctx = log.WithFields(ctx, log.Fields{"AlertID": a.ID})
 	log.Logf(ctx, "Alert created.")
 	err = tx.StmtContext(ctx, s.noStepsBySvc).QueryRowContext(ctx, a.ServiceID).Scan(&meta.EPNoSteps)
 	if err != nil {
@@ -596,10 +596,10 @@ func (s *Store) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Al
 				return nil, false, err
 			}
 			// insert alert metadata
-			err = s.insertMetaData(tx, ctx, n.ID, a.Meta.AlertMetaV1)
-			if err != nil {
-				return nil, false, err
-			}
+			// err = s.insertMetaData(tx, ctx, n.ID, a.Meta.AlertMetaV1)
+			// if err != nil {
+			// 	return nil, false, err
+			// }
 		}
 		meta = &m
 	case StatusActive:
@@ -756,8 +756,6 @@ func (s *Store) FindMany(ctx context.Context, alertIDs []int) ([]Alert, error) {
 	}
 	defer rows.Close()
 
-	amd, _ := s.MetadataMany(ctx, alertIDs)
-
 	alerts := make([]Alert, 0, len(alertIDs))
 
 	for rows.Next() {
@@ -765,11 +763,6 @@ func (s *Store) FindMany(ctx context.Context, alertIDs []int) ([]Alert, error) {
 		err = a.scanFrom(rows.Scan)
 		if err != nil {
 			return nil, err
-		}
-		if val, ok := amd[int32(a.ID)]; ok {
-			a.Meta = AlertMeta{
-				AlertMetaV1: val,
-			}
 		}
 		alerts = append(alerts, a)
 	}
@@ -904,7 +897,7 @@ func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
 	return nil
 }
 
-func (s Store) Metadata(ctx context.Context, alertID int) (AlertMetaData, error) {
+func (s Store) Metadata(ctx context.Context, alertID int) (MetaData, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
@@ -913,13 +906,13 @@ func (s Store) Metadata(ctx context.Context, alertID int) (AlertMetaData, error)
 	if err != nil {
 		return nil, err
 	}
-	if amd, ok := md[int32(alertID)]; ok {
+	if amd, ok := md[int64(alertID)]; ok {
 		return amd, nil
 	}
 	return nil, validation.NewFieldError("ID", "not found")
 }
 
-func (s Store) MetadataMany(ctx context.Context, alertIDs []int) (map[int32]AlertMetaData, error) {
+func (s Store) MetadataMany(ctx context.Context, alertIDs []int) (map[int64]MetaData, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
@@ -934,7 +927,7 @@ func (s Store) MetadataMany(ctx context.Context, alertIDs []int) (map[int32]Aler
 		ids = append(ids, int32(id))
 	}
 
-	amd := map[int32]AlertMetaData{}
+	amd := map[int64]MetaData{}
 	rows, err := gadb.New(s.db).AlertMetadataMany(ctx, ids)
 	if errors.Is(err, sql.ErrNoRows) {
 		return amd, err
@@ -945,7 +938,7 @@ func (s Store) MetadataMany(ctx context.Context, alertIDs []int) (map[int32]Aler
 
 	for _, r := range rows {
 		if r.Metadata.Valid {
-			var md AlertMetaData
+			var md MetaData
 			err = json.Unmarshal(r.Metadata.RawMessage, &md)
 			if err == nil {
 				amd[r.AlertID] = md
@@ -957,14 +950,14 @@ func (s Store) MetadataMany(ctx context.Context, alertIDs []int) (map[int32]Aler
 	return amd, err
 }
 
-func (s Store) insertMetaData(tx *sql.Tx, ctx context.Context, alertID int, metaData AlertMetaData) error {
-	meta, err := json.Marshal(&metaData)
+func (s Store) CreateMetaDataTx(tx *sql.Tx, ctx context.Context, alertID int, meta Meta) error {
+	md, err := json.Marshal(&meta.AlertMetaV1)
 	if err != nil {
 		return err
 	}
 	err = gadb.New(tx).SetAlertMetadata(ctx, gadb.SetAlertMetadataParams{
-		AlertID:  int32(alertID),
-		Metadata: pqtype.NullRawMessage{Valid: metaData != nil, RawMessage: json.RawMessage(meta)},
+		AlertID:  int64(alertID),
+		Metadata: pqtype.NullRawMessage{Valid: meta.AlertMetaV1 != nil, RawMessage: json.RawMessage(md)},
 	})
 	return err
 }
