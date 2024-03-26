@@ -65,7 +65,6 @@ func (a *UpdateEscalationPolicyStepInput) Actions(ctx context.Context, input *gr
 		}
 	}
 	input.Targets = tgts
-	input.Actions = actions
 	return nil
 }
 
@@ -350,14 +349,6 @@ func (m *Mutation) UpdateEscalationPolicyStep(ctx context.Context, input graphql
 				// delete unwanted step
 				err = m.PolicyStore.DeleteStepTargetTx(ctx, tx, step.ID, tgt)
 				if err != nil {
-					return err
-				}
-			}
-		}
-
-		if input.Actions != nil {
-			for _, action := range input.Actions {
-				if err := (*App)(m).ValidateDestination(ctx, "input.actions", &action); err != nil {
 					return err
 				}
 			}
