@@ -11500,32 +11500,8 @@ func (ec *executionContext) _EscalationPolicyStep_actions(ctx context.Context, f
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.EscalationPolicyStep().Actions(rctx, obj)
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			flagName, err := ec.unmarshalNString2string(ctx, "dest-types")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.Experimental == nil {
-				return nil, errors.New("directive experimental is not implemented")
-			}
-			return ec.directives.Experimental(ctx, obj, directive0, flagName)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.([]Destination); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be []github.com/target/goalert/graphql2.Destination`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.EscalationPolicyStep().Actions(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17438,32 +17414,8 @@ func (ec *executionContext) _OnCallNotificationRule_dest(ctx context.Context, fi
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.OnCallNotificationRule().Dest(rctx, obj)
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			flagName, err := ec.unmarshalNString2string(ctx, "dest-types")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.Experimental == nil {
-				return nil, errors.New("directive experimental is not implemented")
-			}
-			return ec.directives.Experimental(ctx, obj, directive0, flagName)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*Destination); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/target/goalert/graphql2.Destination`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.OnCallNotificationRule().Dest(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20802,32 +20754,8 @@ func (ec *executionContext) _Query_destinationTypes(ctx context.Context, field g
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().DestinationTypes(rctx)
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			flagName, err := ec.unmarshalNString2string(ctx, "dest-types")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.Experimental == nil {
-				return nil, errors.New("directive experimental is not implemented")
-			}
-			return ec.directives.Experimental(ctx, nil, directive0, flagName)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.([]DestinationTypeInfo); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be []github.com/target/goalert/graphql2.DestinationTypeInfo`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().DestinationTypes(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20896,32 +20824,8 @@ func (ec *executionContext) _Query_destinationFieldValidate(ctx context.Context,
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().DestinationFieldValidate(rctx, fc.Args["input"].(DestinationFieldValidateInput))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			flagName, err := ec.unmarshalNString2string(ctx, "dest-types")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.Experimental == nil {
-				return nil, errors.New("directive experimental is not implemented")
-			}
-			return ec.directives.Experimental(ctx, nil, directive0, flagName)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(bool); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().DestinationFieldValidate(rctx, fc.Args["input"].(DestinationFieldValidateInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20975,32 +20879,8 @@ func (ec *executionContext) _Query_destinationFieldSearch(ctx context.Context, f
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().DestinationFieldSearch(rctx, fc.Args["input"].(DestinationFieldSearchInput))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			flagName, err := ec.unmarshalNString2string(ctx, "dest-types")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.Experimental == nil {
-				return nil, errors.New("directive experimental is not implemented")
-			}
-			return ec.directives.Experimental(ctx, nil, directive0, flagName)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*FieldValueConnection); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/target/goalert/graphql2.FieldValueConnection`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().DestinationFieldSearch(rctx, fc.Args["input"].(DestinationFieldSearchInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21060,32 +20940,8 @@ func (ec *executionContext) _Query_destinationFieldValueName(ctx context.Context
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().DestinationFieldValueName(rctx, fc.Args["input"].(DestinationFieldValidateInput))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			flagName, err := ec.unmarshalNString2string(ctx, "dest-types")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.Experimental == nil {
-				return nil, errors.New("directive experimental is not implemented")
-			}
-			return ec.directives.Experimental(ctx, nil, directive0, flagName)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(string); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().DestinationFieldValueName(rctx, fc.Args["input"].(DestinationFieldValidateInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21139,32 +20995,8 @@ func (ec *executionContext) _Query_destinationDisplayInfo(ctx context.Context, f
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().DestinationDisplayInfo(rctx, fc.Args["input"].(DestinationInput))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			flagName, err := ec.unmarshalNString2string(ctx, "dest-types")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.Experimental == nil {
-				return nil, errors.New("directive experimental is not implemented")
-			}
-			return ec.directives.Experimental(ctx, nil, directive0, flagName)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*DestinationDisplayInfo); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/target/goalert/graphql2.DestinationDisplayInfo`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().DestinationDisplayInfo(rctx, fc.Args["input"].(DestinationInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27381,32 +27213,8 @@ func (ec *executionContext) _UserContactMethod_dest(ctx context.Context, field g
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.UserContactMethod().Dest(rctx, obj)
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			flagName, err := ec.unmarshalNString2string(ctx, "dest-types")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.Experimental == nil {
-				return nil, errors.New("directive experimental is not implemented")
-			}
-			return ec.directives.Experimental(ctx, obj, directive0, flagName)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*Destination); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/target/goalert/graphql2.Destination`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserContactMethod().Dest(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -32624,31 +32432,12 @@ func (ec *executionContext) unmarshalInputOnCallNotificationRuleInput(ctx contex
 			it.Target = data
 		case "dest":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dest"))
-			directive0 := func(ctx context.Context) (interface{}, error) {
-				return ec.unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, v)
-			}
-			directive1 := func(ctx context.Context) (interface{}, error) {
-				flagName, err := ec.unmarshalNString2string(ctx, "dest-types")
-				if err != nil {
-					return nil, err
-				}
-				if ec.directives.Experimental == nil {
-					return nil, errors.New("directive experimental is not implemented")
-				}
-				return ec.directives.Experimental(ctx, obj, directive0, flagName)
-			}
-
-			tmp, err := directive1(ctx)
+			data, err := ec.unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, v)
 			if err != nil {
-				return it, graphql.ErrorOnPath(ctx, err)
+				return it, err
 			}
-			if data, ok := tmp.(*DestinationInput); ok {
-				if err = ec.resolvers.OnCallNotificationRuleInput().Dest(ctx, &it, data); err != nil {
-					return it, err
-				}
-			} else {
-				err := fmt.Errorf(`unexpected type %T from directive, should be *github.com/target/goalert/graphql2.DestinationInput`, tmp)
-				return it, graphql.ErrorOnPath(ctx, err)
+			if err = ec.resolvers.OnCallNotificationRuleInput().Dest(ctx, &it, data); err != nil {
+				return it, err
 			}
 		case "time":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("time"))
@@ -34416,32 +34205,11 @@ func (ec *executionContext) unmarshalInputUserSearchOptions(ctx context.Context,
 			it.CMType = data
 		case "dest":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dest"))
-			directive0 := func(ctx context.Context) (interface{}, error) {
-				return ec.unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, v)
-			}
-			directive1 := func(ctx context.Context) (interface{}, error) {
-				flagName, err := ec.unmarshalNString2string(ctx, "dest-types")
-				if err != nil {
-					return nil, err
-				}
-				if ec.directives.Experimental == nil {
-					return nil, errors.New("directive experimental is not implemented")
-				}
-				return ec.directives.Experimental(ctx, obj, directive0, flagName)
-			}
-
-			tmp, err := directive1(ctx)
+			data, err := ec.unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, v)
 			if err != nil {
-				return it, graphql.ErrorOnPath(ctx, err)
+				return it, err
 			}
-			if data, ok := tmp.(*DestinationInput); ok {
-				it.Dest = data
-			} else if tmp == nil {
-				it.Dest = nil
-			} else {
-				err := fmt.Errorf(`unexpected type %T from directive, should be *github.com/target/goalert/graphql2.DestinationInput`, tmp)
-				return it, graphql.ErrorOnPath(ctx, err)
-			}
+			it.Dest = data
 		case "favoritesOnly":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favoritesOnly"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
