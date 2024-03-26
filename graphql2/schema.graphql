@@ -914,7 +914,7 @@ type Alert {
 
   meta: [AlertMetadata!]
 
-  metaValue(key: String!): String
+  metaValue(key: String!): String!
 }
 
 type AlertMetric {
