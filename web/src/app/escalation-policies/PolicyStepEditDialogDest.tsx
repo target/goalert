@@ -15,6 +15,7 @@ interface PolicyStepEditDialogDestProps {
   escalationPolicyID: string
   onClose: () => void
   stepID: string
+  disablePortal?: boolean
 }
 
 const mutation = gql`
@@ -88,6 +89,7 @@ function PolicyStepEditDialogDest(
       title='Edit Step'
       loading={editStepStatus.fetching}
       errors={otherErrs}
+      disablePortal={props.disablePortal}
       maxWidth='sm'
       onClose={props.onClose}
       onSubmit={() =>
