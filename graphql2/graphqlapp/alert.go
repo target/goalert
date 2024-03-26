@@ -379,7 +379,7 @@ func (m *Mutation) CloseMatchingAlert(ctx context.Context, input graphql2.CloseM
 		a.Dedup = alert.NewUserDedup(*input.Dedup)
 	}
 
-	a, _, err := m.AlertStore.CreateOrUpdate(ctx, a, nil)
+	a, _, err := m.AlertStore.CreateOrUpdate(ctx, a)
 	return a != nil, err
 }
 
