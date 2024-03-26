@@ -652,6 +652,9 @@ func (s *Store) CreateOrUpdate(ctx context.Context, a *Alert, meta map[string]st
 			AlertMetaV1: meta,
 		}
 		err = s.CreateMetaDataTx(tx, ctx, n.ID, am)
+		if err != nil {
+			return nil, false, err
+		}
 	}
 
 	err = tx.Commit()
