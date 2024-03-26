@@ -71,7 +71,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			// set to nil if it's the current message
 			stat = nil
 		}
-		meta, err := p.a.Metadata(ctx, msg.AlertID)
+		meta, err := p.a.Metadata(ctx, p.b.db, msg.AlertID)
 		if err != nil {
 			return nil, errors.Wrap(err, "lookup alertmeta")
 		}
