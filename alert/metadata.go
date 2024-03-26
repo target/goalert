@@ -134,3 +134,25 @@ func (s Store) SetMetadataTx(ctx context.Context, db gadb.DBTX, alertID int, met
 
 	return nil
 }
+
+func ValidateMetadata(m map[string]string) error {
+	if m == nil {
+		return validation.NewFieldError("Meta", "cannot be nil")
+	}
+
+	var totalSize int
+	for k, v := range m {
+		err := validate.ASCII("Meta[<key>]", k, 1, 255)
+		if err != nil {
+			return err
+		}
+
+		totalSize += len(k) + len(v)
+	}
+
+	if totalSize > 32768 {
+		return validation.NewFieldError("Meta", "cannot exceed 32KiB in size")
+	}
+
+	return nil
+}
