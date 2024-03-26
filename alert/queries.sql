@@ -86,9 +86,18 @@ FROM
 WHERE
     alert_id = ANY ($1::int[]);
 
--- name: SetAlertMetadata :exec
+-- name: AlertSetMetadata :execrows
 INSERT INTO alert_data(alert_id, metadata)
-    VALUES ($1, $2)
+SELECT
+    a.id,
+    $2
+FROM
+    alerts a
+WHERE
+    a.id = $1
+    AND a.status != 'closed'
+    AND (a.service_id = $3
+        OR $3 IS NULL) -- ensure the alert is associated with the service, if coming from an integration
 ON CONFLICT (alert_id)
     DO UPDATE SET
         metadata = $2
