@@ -518,14 +518,6 @@ func (s *Store) _create(ctx context.Context, tx *sql.Tx, a Alert) (*Alert, *aler
 		return nil, nil, err
 	}
 
-	// insert alert metadata
-	// err = s.insertMetaData(tx, ctx, a.ID, a.Meta.AlertMetaV1)
-	// if err != nil {
-	// 	return nil, nil, err
-	// }
-
-	ctx = log.WithFields(ctx, log.Fields{"AlertID": a.ID})
-	log.Logf(ctx, "Alert created.")
 	err = tx.StmtContext(ctx, s.noStepsBySvc).QueryRowContext(ctx, a.ServiceID).Scan(&meta.EPNoSteps)
 	if err != nil {
 		return nil, nil, err
@@ -584,11 +576,6 @@ func (s *Store) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Al
 			if stepErr != nil {
 				return nil, false, err
 			}
-			// insert alert metadata
-			// err = s.insertMetaData(tx, ctx, n.ID, a.Meta.AlertMetaV1)
-			// if err != nil {
-			// 	return nil, false, err
-			// }
 		}
 		meta = &m
 	case StatusActive:
