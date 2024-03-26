@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/target/goalert/devtools/pgdump-lite/pgd"
 )
 
@@ -57,14 +56,16 @@ type Index struct {
 	Def  string
 }
 
-func (idx Index) String() string { return idx.Def + ";" }
+func (idx Index) EntityName() string { return idx.Name }
+func (idx Index) String() string     { return idx.Def + ";" }
 
 type Trigger struct {
 	Name string
 	Def  string
 }
 
-func (t Trigger) String() string { return t.Def + ";" }
+func (t Trigger) EntityName() string { return t.Name }
+func (t Trigger) String() string     { return t.Def + ";" }
 
 type Sequence struct {
 	Name       string
@@ -77,6 +78,7 @@ type Sequence struct {
 	OwnedBy string
 }
 
+func (s Sequence) EntityName() string { return s.Name }
 func (s Sequence) String() string {
 	def := fmt.Sprintf("CREATE SEQUENCE %s\n\tSTART WITH %d\n\tINCREMENT BY %d\n\tMINVALUE %d\n\tMAXVALUE %d\n\tCACHE %d",
 		s.Name, s.StartValue, s.Increment, s.MinValue, s.MaxValue, s.Cache)
@@ -95,6 +97,7 @@ type Extension struct {
 	Name string
 }
 
+func (e Extension) EntityName() string { return e.Name }
 func (e Extension) String() string {
 	return fmt.Sprintf("CREATE EXTENSION IF NOT EXISTS %s;", e.Name)
 }
@@ -104,13 +107,15 @@ type Function struct {
 	Def  string
 }
 
-func (f Function) String() string { return f.Def + ";" }
+func (f Function) EntityName() string { return f.Name }
+func (f Function) String() string     { return f.Def + ";" }
 
 type Enum struct {
 	Name   string
 	Values []string
 }
 
+func (e Enum) EntityName() string { return e.Name }
 func (e Enum) String() string {
 	return fmt.Sprintf("CREATE TYPE %s AS ENUM (\n\t'%s'\n);", e.Name, strings.Join(e.Values, "',\n\t'"))
 }
@@ -125,6 +130,7 @@ type Table struct {
 	Sequences   []Sequence
 }
 
+func (t Table) EntityName() string { return t.Name }
 func (t Table) String() string {
 	var lines []string
 	for _, c := range t.Columns {
@@ -160,6 +166,7 @@ type Constraint struct {
 	Def  string
 }
 
+func (c Constraint) EntityName() string { return c.Name }
 func (c Constraint) String() string {
 	return fmt.Sprintf("CONSTRAINT %s %s", c.Name, c.Def)
 }
@@ -171,6 +178,7 @@ type Column struct {
 	DefaultValue string
 }
 
+func (c Column) EntityName() string { return c.Name }
 func (c Column) String() string {
 	var def string
 	if c.DefaultValue != "" {
@@ -182,7 +190,7 @@ func (c Column) String() string {
 	return fmt.Sprintf("%s %s%s", c.Name, c.Type, def)
 }
 
-func DumpSchema(ctx context.Context, conn *pgx.Conn) (*Schema, error) {
+func DumpSchema(ctx context.Context, conn pgd.DBTX) (*Schema, error) {
 	db := pgd.New(conn)
 
 	var s Schema
