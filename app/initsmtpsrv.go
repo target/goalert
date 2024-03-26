@@ -39,7 +39,7 @@ func (app *App) initSMTPServer(ctx context.Context) error {
 			return ctx, nil
 		},
 		CreateAlertFunc: func(ctx context.Context, a *alert.Alert) error {
-			_, _, err := app.AlertStore.CreateOrUpdate(ctx, a, nil)
+			_, _, err := app.AlertStore.CreateOrUpdate(ctx, a)
 			return err
 		},
 	}

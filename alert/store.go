@@ -611,7 +611,7 @@ func (s *Store) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Al
 //
 // In the case that Status is closed but a matching alert is not present, nil is returned.
 // Otherwise the current alert is returned.
-func (s *Store) CreateOrUpdate(ctx context.Context, a *Alert, meta map[string]string) (*Alert, bool, error) {
+func (s *Store) CreateOrUpdate(ctx context.Context, a *Alert) (*Alert, bool, error) {
 	err := permission.LimitCheckAny(ctx,
 		permission.System,
 		permission.Admin,
@@ -631,17 +631,6 @@ func (s *Store) CreateOrUpdate(ctx context.Context, a *Alert, meta map[string]st
 	n, isNew, err := s.CreateOrUpdateTx(ctx, tx, a)
 	if err != nil {
 		return nil, false, err
-	}
-
-	if meta != nil {
-		am := Meta{
-			Type:        TypeAlertMetaV1,
-			AlertMetaV1: meta,
-		}
-		err = s.CreateMetaDataTx(tx, ctx, n.ID, am)
-		if err != nil {
-			return nil, false, err
-		}
 	}
 
 	err = tx.Commit()

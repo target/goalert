@@ -158,7 +158,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = retry.DoTemporaryError(func(int) error {
-		createdAlert, isNew, err := h.c.AlertStore.CreateOrUpdate(ctx, a, meta)
+		createdAlert, isNew, err := h.c.AlertStore.CreateOrUpdate(ctx, a)
 		if createdAlert != nil {
 			resp.AlertID = createdAlert.ID
 			resp.ServiceID = createdAlert.ServiceID

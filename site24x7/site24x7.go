@@ -84,7 +84,7 @@ func Site24x7ToEventsAPI(aDB *alert.Store, intDB *integrationkey.Store) http.Han
 		}
 
 		err = retry.DoTemporaryError(func(int) error {
-			_, _, err = aDB.CreateOrUpdate(ctx, msg, nil)
+			_, _, err = aDB.CreateOrUpdate(ctx, msg)
 			return err
 		},
 			retry.Log(ctx),
