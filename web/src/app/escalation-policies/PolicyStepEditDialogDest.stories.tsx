@@ -1,24 +1,29 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import PolicyStepEditDialogDest from './PolicyStepEditDialogDest'
-import { expect, userEvent, screen, waitFor, fn } from '@storybook/test'
+import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
 import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
-import { InputFieldError } from '../util/errtypes'
-import { DestinationInput, UpdateEscalationPolicyStepInput } from '../../schema'
+import { DestFieldValueError } from '../util/errtypes'
+import { EscalationPolicyStep } from '../../schema'
 
 const meta = {
-  title: 'escalation-policies/PolicyStepEditDialogDest',
+  title: 'Escalation Policies/Steps/Edit Dialog',
   component: PolicyStepEditDialogDest,
   render: function Component(args) {
-    return <PolicyStepEditDialogDest {...args} />
+    return <PolicyStepEditDialogDest {...args} disablePortal />
   },
   tags: ['autodocs'],
+  args: {
+    onClose: fn(),
+    escalationPolicyID: 'policy1',
+    stepID: 'step1',
+  },
   parameters: {
     docs: {
       story: {
         inline: false,
-        iframeHeight: 400,
+        iframeHeight: 600,
       },
     },
     msw: {
@@ -28,11 +33,27 @@ const meta = {
         graphql.query('ValidateDestination', ({ variables: vars }) => {
           return HttpResponse.json({
             data: {
-              destinationFieldValidate: vars.input.value === '+12225558989',
+              destinationFieldValidate: vars.input.value.length === 12,
             },
           })
         }),
         graphql.query('DestDisplayInfo', ({ variables: vars }) => {
+          if (vars.input.values[0].value.length !== 12) {
+            return HttpResponse.json({
+              errors: [
+                { message: 'generic error' },
+                {
+                  message: 'Invalid number',
+                  path: ['destinationDisplayInfo', 'input'],
+                  extensions: {
+                    code: 'INVALID_DEST_FIELD_VALUE',
+                    fieldID: 'phone-number',
+                  },
+                } satisfies DestFieldValueError,
+              ],
+            })
+          }
+
           return HttpResponse.json({
             data: {
               destinationDisplayInfo: {
@@ -44,100 +65,103 @@ const meta = {
           })
         }),
 
-        graphql.mutation(
-          'updateEscalationPolicyStep',
-          ({ variables: vars }) => {
-            console.log(vars)
-            if (vars.input.escalationPolicyID === '1') {
-              return HttpResponse.json({
-                data: {
-                  updateEscalationPolicyStep: true,
-                },
-              })
-            }
+        graphql.query('GetEPStep', () => {
+          return HttpResponse.json({
+            data: {
+              escalationPolicy: {
+                id: 'policy1',
+                steps: [
+                  {
+                    id: 'step1',
+                    delayMinutes: 17,
+                    actions: [
+                      {
+                        type: 'single-field',
+                        values: [
+                          { fieldID: 'phone-number', value: '+19995550123' },
+                        ],
+                      },
+                    ],
+                  } as EscalationPolicyStep,
+                ],
+              },
+            },
+          })
+        }),
+
+        graphql.mutation('UpdateEPStep', ({ variables: vars }) => {
+          if (vars.input.delayMinutes === 999) {
             return HttpResponse.json({
-              data: null,
-              errors: [
-                {
-                  message: 'This is a generic input field error',
-                  path: ['editEscalationPolicyStep', 'input', 'name'],
-                  extensions: {
-                    code: 'INVALID_INPUT_VALUE',
-                  },
-                } satisfies InputFieldError,
-              ],
+              errors: [{ message: 'generic dialog error' }],
             })
-          },
-        ),
+          }
+
+          return HttpResponse.json({
+            data: {
+              updateEscalationPolicyStep: true,
+            },
+          })
+        }),
       ],
     },
   },
 } satisfies Meta<typeof PolicyStepEditDialogDest>
 
-const action: DestinationInput[] = [
-  {
-    type: 'builtin-twilio-sms',
-    values: [{ fieldID: 'phone-number', value: '11235550123' }],
-  },
-]
-
-const stepInput: UpdateEscalationPolicyStepInput = {
-  actions: action,
-  delayMinutes: 10,
-  id: '1',
-}
-
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const EditPolicyStep: Story = {
+export const UpdatePolicyStep: Story = {
   argTypes: {
     onClose: { action: 'onClose' },
   },
   args: {
     escalationPolicyID: '1',
-    step: stepInput,
-    onClose: fn(),
   },
-  play: async ({ args }) => {
-    await userEvent.type(
-      await screen.findByPlaceholderText('11235550123'),
-      '12225558989',
-    )
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement)
 
-    await userEvent.click(await screen.findByText('Add Action'))
+    // validate existing step data
+    // 1. delay should be 17
+    // 2. phone number should be +19995550123
+
+    await waitFor(async function ExistingChip() {
+      await expect(await canvas.findByLabelText('Delay (minutes)')).toHaveValue(
+        17,
+      )
+      await expect(await canvas.findByText('+19995550123')).toBeVisible()
+    })
+
+    const phoneInput = await canvas.findByLabelText('Phone Number')
+    await userEvent.clear(phoneInput)
+    await userEvent.type(phoneInput, '1222')
+    await userEvent.click(await canvas.findByText('Add Action'))
+
+    await expect(await canvas.findByText('Invalid number')).toBeVisible()
+    await expect(await canvas.findByText('generic error')).toBeVisible()
+
+    await userEvent.clear(phoneInput)
+    await userEvent.type(phoneInput, '12225550123')
+    await userEvent.click(await canvas.findByText('Add Action'))
 
     await waitFor(async function Icon() {
-      await userEvent.click(await screen.findByTestId('destination-chip'))
+      await userEvent.click(await canvas.findByTestId('destination-chip'))
     })
-    await userEvent.click(await screen.findByText('Submit'))
+
+    const delayField = await canvas.findByLabelText('Delay (minutes)')
+    await userEvent.clear(delayField)
+    await userEvent.type(delayField, '999')
+    await userEvent.click(await canvas.findByText('Submit'))
+
+    await expect(await canvas.findByText('generic dialog error')).toBeVisible()
+
+    await expect(args.onClose).not.toHaveBeenCalled() // should not close on error
+
+    await userEvent.clear(delayField)
+    await userEvent.type(delayField, '15')
+    await userEvent.click(await canvas.findByText('Retry'))
 
     await waitFor(async function Close() {
-      expect(args.onClose).toHaveBeenCalled()
+      await expect(args.onClose).toHaveBeenCalled()
     })
   },
 }
-
-// export const GenericError: Story = {
-//   args: {
-//     escalationPolicyID: '2',
-//     step: stepInput,
-//     onClose: fn(),
-//   },
-//   play: async () => {
-//     await userEvent.click(await screen.findByText('Dest Type Error EP Step'))
-//     await userEvent.click(await screen.findByText('Generic Error EP Step'))
-//     await userEvent.type(
-//       await screen.findByPlaceholderText('11235550123'),
-//       '12225558989',
-//     )
-
-//     await userEvent.click(await screen.findByText('Add Action'))
-//     await userEvent.click(await screen.findByText('Submit'))
-
-//     // expect error message
-//     await expect(
-//       await screen.findByText('This is a generic input field error'),
-//     ).toBeVisible()
-//   },
-// }

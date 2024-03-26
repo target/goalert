@@ -19,13 +19,13 @@ interface PolicyStepEditDialogDestProps {
 }
 
 const mutation = gql`
-  mutation ($input: UpdateEscalationPolicyStepInput!) {
+  mutation UpdateEPStep($input: UpdateEscalationPolicyStepInput!) {
     updateEscalationPolicyStep(input: $input)
   }
 `
 
 const query = gql`
-  query GetEscalationPolicyStep($id: ID!) {
+  query GetEPStep($id: ID!) {
     escalationPolicy(id: $id) {
       id
       steps {
