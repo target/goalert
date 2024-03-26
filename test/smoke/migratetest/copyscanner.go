@@ -21,10 +21,6 @@ func NewCopyScanner(r io.Reader) *CopyScanner {
 }
 
 func (d *CopyScanner) nextTableName() string {
-	if d.err != nil {
-		return ""
-	}
-
 	for d.s.Scan() {
 		if !strings.HasPrefix(d.s.Text(), "COPY ") {
 			continue
@@ -42,10 +38,6 @@ func (d *CopyScanner) nextTableName() string {
 }
 
 func (d *CopyScanner) csvData() string {
-	if d.err != nil {
-		return ""
-	}
-
 	var b strings.Builder
 	for d.s.Scan() {
 		if d.s.Text() == "\\." {
@@ -71,7 +63,11 @@ func (d *CopyScanner) Scan() bool {
 		return false
 	}
 
-	r := csv.NewReader(strings.NewReader(d.csvData()))
+	data := d.csvData()
+	if data == "" {
+		return false
+	}
+	r := csv.NewReader(strings.NewReader(data))
 	t.Columns, d.err = r.Read()
 	if d.err != nil {
 		return false
