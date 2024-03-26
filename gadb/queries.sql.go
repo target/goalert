@@ -479,18 +479,18 @@ func (q *Queries) AlertLogLookupCMType(ctx context.Context, id uuid.UUID) (EnumU
 	return cm_type, err
 }
 
-const alertMetadataMany = `-- name: AlertMetadataMany :many
+const alertManyMetadata = `-- name: AlertManyMetadata :many
 SELECT
     alert_id,
     metadata
 FROM
     alert_data
 WHERE
-    alert_id = ANY ($1::int[])
+    alert_id = ANY ($1::bigint[])
 `
 
-func (q *Queries) AlertMetadataMany(ctx context.Context, dollar_1 []int32) ([]AlertDatum, error) {
-	rows, err := q.db.QueryContext(ctx, alertMetadataMany, pq.Array(dollar_1))
+func (q *Queries) AlertManyMetadata(ctx context.Context, alertids []int64) ([]AlertDatum, error) {
+	rows, err := q.db.QueryContext(ctx, alertManyMetadata, pq.Array(alertids))
 	if err != nil {
 		return nil, err
 	}
@@ -510,6 +510,55 @@ func (q *Queries) AlertMetadataMany(ctx context.Context, dollar_1 []int32) ([]Al
 		return nil, err
 	}
 	return items, nil
+}
+
+const alertMetadata = `-- name: AlertMetadata :one
+SELECT
+    metadata
+FROM
+    alert_data
+WHERE
+    alert_id = $1
+`
+
+func (q *Queries) AlertMetadata(ctx context.Context, alertID int64) (pqtype.NullRawMessage, error) {
+	row := q.db.QueryRowContext(ctx, alertMetadata, alertID)
+	var metadata pqtype.NullRawMessage
+	err := row.Scan(&metadata)
+	return metadata, err
+}
+
+const alertSetMetadata = `-- name: AlertSetMetadata :execrows
+INSERT INTO alert_data(alert_id, metadata)
+SELECT
+    a.id,
+    $2
+FROM
+    alerts a
+WHERE
+    a.id = $1
+    AND a.status != 'closed'
+    AND (a.service_id = $3
+        OR $3 IS NULL) -- ensure the alert is associated with the service, if coming from an integration
+ON CONFLICT (alert_id)
+    DO UPDATE SET
+        metadata = $2
+    WHERE
+        alert_data.alert_id = $1
+`
+
+type AlertSetMetadataParams struct {
+	ID        int64
+	Metadata  pqtype.NullRawMessage
+	ServiceID uuid.NullUUID
+}
+
+func (q *Queries) AlertSetMetadata(ctx context.Context, arg AlertSetMetadataParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, alertSetMetadata, arg.ID, arg.Metadata, arg.ServiceID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const allPendingMsgDests = `-- name: AllPendingMsgDests :many
@@ -1905,26 +1954,6 @@ type SetAlertFeedbackParams struct {
 
 func (q *Queries) SetAlertFeedback(ctx context.Context, arg SetAlertFeedbackParams) error {
 	_, err := q.db.ExecContext(ctx, setAlertFeedback, arg.AlertID, arg.NoiseReason)
-	return err
-}
-
-const setAlertMetadata = `-- name: SetAlertMetadata :exec
-INSERT INTO alert_data(alert_id, metadata)
-    VALUES ($1, $2)
-ON CONFLICT (alert_id)
-    DO UPDATE SET
-        metadata = $2
-    WHERE
-        alert_data.alert_id = $1
-`
-
-type SetAlertMetadataParams struct {
-	AlertID  int64
-	Metadata pqtype.NullRawMessage
-}
-
-func (q *Queries) SetAlertMetadata(ctx context.Context, arg SetAlertMetadataParams) error {
-	_, err := q.db.ExecContext(ctx, setAlertMetadata, arg.AlertID, arg.Metadata)
 	return err
 }
 
