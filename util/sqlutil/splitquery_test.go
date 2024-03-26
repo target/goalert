@@ -35,6 +35,8 @@ BEGIN
 END;
 $function$
 ;
+
+SELECT 1;
 `
 
 func TestSplitQuery(t *testing.T) {
@@ -43,5 +45,6 @@ func TestSplitQuery(t *testing.T) {
 	assert.Equal(t, []string{"foo", "bar"}, SplitQuery("foo;bar;"))
 	assert.Equal(t, []string{"foo$$; $$bar", "baz"}, SplitQuery("foo$$; $$bar;baz"))
 
-	assert.Len(t, SplitQuery(adv), 1)
+	// Test that a query with a more complex delimiter is split correctly.
+	assert.Len(t, SplitQuery(adv), 2)
 }
