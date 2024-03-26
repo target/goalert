@@ -227,13 +227,13 @@ export default function PolicyStepsCard(props) {
               <PolicyStepEditDialogDest
                 escalationPolicyID={escalationPolicyID}
                 onClose={resetEditStep}
-                step={steps.filter((step) => step.id === editStepID)[0]}
+                stepID={editStepID}
               />
             ) : (
               <PolicyStepEditDialog
                 escalationPolicyID={escalationPolicyID}
                 onClose={resetEditStep}
-                step={steps.filter((step) => step.id === editStepID)[0]}
+                step={steps.find((step) => step.id === editStepID)}
               />
             )}
           </React.Fragment>

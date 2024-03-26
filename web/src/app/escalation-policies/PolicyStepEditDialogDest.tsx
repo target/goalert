@@ -1,15 +1,20 @@
 import React, { useEffect, useState } from 'react'
-import { CombinedError, gql, useClient, useMutation } from 'urql'
+import { CombinedError, gql, useMutation, useQuery } from 'urql'
 import { splitErrorsByPath } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
-import { UpdateEscalationPolicyStepInput } from '../../schema'
 import PolicyStepFormDest, { FormValue } from './PolicyStepFormDest'
 import { errorPaths } from '../users/UserContactMethodFormDest'
+import {
+  Destination,
+  EscalationPolicy,
+  FieldValuePair,
+  UpdateEscalationPolicyStepInput,
+} from '../../schema'
 
 interface PolicyStepEditDialogDestProps {
   escalationPolicyID: string
   onClose: () => void
-  step: UpdateEscalationPolicyStepInput
+  stepID: string
 }
 
 const mutation = gql`
@@ -19,8 +24,8 @@ const mutation = gql`
 `
 
 const query = gql`
-  query GetEscalationPolicyStep($input: ID!) {
-    escalationPolicy(id: $input) {
+  query GetEscalationPolicyStep($id: ID!) {
+    escalationPolicy(id: $id) {
       id
       steps {
         id
@@ -37,31 +42,30 @@ const query = gql`
   }
 `
 
-interface EscalationPolicyStep {
-  actions: Destination[]
-  id: string
-  delayMinutes: number
-}
-
-interface Destination {
-  type: string
-  values: FieldValuePair[]
-}
-
-interface FieldValuePair {
-  fieldID: string
-  value: string
-}
-
 function PolicyStepEditDialogDest(
   props: PolicyStepEditDialogDestProps,
-): JSX.Element {
-  const defaultValue: FormValue = {
-    actions: props.step.actions ?? [],
-    delayMinutes: props.step.delayMinutes ?? 0,
-  }
+): React.ReactNode {
+  const [stepQ] = useQuery<{ escalationPolicy: EscalationPolicy }>({
+    query,
+    variables: { id: props.escalationPolicyID },
+  })
+  const step = stepQ.data?.escalationPolicy.steps.find(
+    (s) => s.id === props.stepID,
+  )
 
-  const [value, setValue] = useState<FormValue | null>(null)
+  if (!step) throw new Error('Step not found')
+
+  const [value, setValue] = useState<FormValue>({
+    actions: (step.actions || []).map((a: Destination) => ({
+      // remove extraneous fields
+      type: a.type,
+      values: a.values.map((v: FieldValuePair) => ({
+        fieldID: v.fieldID,
+        value: v.value,
+      })),
+    })),
+    delayMinutes: step.delayMinutes,
+  })
 
   const [editStepStatus, editStep] = useMutation(mutation)
   const [stepErr, setStepErr] = useState<CombinedError | null>(null)
@@ -79,22 +83,6 @@ function PolicyStepEditDialogDest(
     setStepErr(editStepStatus.error || null)
   }, [editStepStatus.error])
 
-  const validationClient = useClient()
-
-  useEffect(() => {
-    validationClient
-      .query(query, {
-        input: props.escalationPolicyID,
-      })
-      .toPromise()
-      .then((res) => {
-        const matchedStep = res.data.escalationPolicy.steps.find(
-          (step: EscalationPolicyStep) => step.id === props.step.id,
-        )
-        setValue(matchedStep)
-      })
-  }, [editStepStatus.stale])
-
   return (
     <FormDialog
       title='Edit Step'
@@ -106,11 +94,10 @@ function PolicyStepEditDialogDest(
         editStep(
           {
             input: {
-              id: props.step.id,
-              delayMinutes:
-                (value && value.delayMinutes) || defaultValue.delayMinutes,
-              actions: (value && value.actions) || defaultValue.actions,
-            },
+              id: props.stepID,
+              delayMinutes: value.delayMinutes,
+              actions: value.actions,
+            } satisfies UpdateEscalationPolicyStepInput,
           },
           { additionalTypenames: ['EscalationPolicy'] },
         ).then((result) => {
@@ -121,7 +108,7 @@ function PolicyStepEditDialogDest(
         <PolicyStepFormDest
           errors={formErrors}
           disabled={editStepStatus.fetching}
-          value={value || defaultValue}
+          value={value}
           onChange={(value: FormValue) => setValue(value)}
         />
       }
