@@ -403,7 +403,17 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 		a.Dedup = alert.NewUserDedup(*input.Dedup)
 	}
 
-	return m.AlertStore.Create(ctx, a)
+	var newAlert *alert.Alert
+	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
+		var err error
+		newAlert, err = m.AlertStore.CreateTx(ctx, tx, a)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return newAlert, nil
 }
 
 func (a *Alert) NoiseReason(ctx context.Context, raw *alert.Alert) (*string, error) {
