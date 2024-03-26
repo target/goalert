@@ -3,11 +3,9 @@ package alert
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/sqlc-dev/pqtype"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
@@ -871,73 +869,4 @@ func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
 	}
 
 	return nil
-}
-
-func (s Store) Metadata(ctx context.Context, alertID int) (MetaData, error) {
-	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
-	if err != nil {
-		return nil, err
-	}
-	md, err := s.MetadataMany(ctx, []int{alertID})
-	if err != nil {
-		return nil, err
-	}
-	if amd, ok := md[int64(alertID)]; ok {
-		return amd, nil
-	}
-	return nil, validation.NewFieldError("ID", "not found")
-}
-
-func (s Store) MetadataMany(ctx context.Context, alertIDs []int) (map[int64]MetaData, error) {
-	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
-	if err != nil {
-		return nil, err
-	}
-
-	err = validate.Range("AlertIDs", len(alertIDs), 1, maxBatch)
-	if err != nil {
-		return nil, err
-	}
-	ids := make([]int32, len(alertIDs))
-	for _, id := range alertIDs {
-		ids = append(ids, int32(id))
-	}
-
-	amd := map[int64]MetaData{}
-	rows, err := gadb.New(s.db).AlertMetadataMany(ctx, ids)
-	if errors.Is(err, sql.ErrNoRows) {
-		return amd, err
-	}
-	if err != nil {
-		return amd, err
-	}
-
-	for _, r := range rows {
-		if r.Metadata.Valid {
-			var md MetaData
-			err = json.Unmarshal(r.Metadata.RawMessage, &md)
-			if err == nil {
-				amd[r.AlertID] = md
-			} else {
-				amd[r.AlertID] = nil
-			}
-		}
-	}
-	return amd, err
-}
-
-func (s Store) CreateMetaDataTx(tx *sql.Tx, ctx context.Context, alertID int, meta Meta) error {
-	err := meta.AlertMetaV1.Normalize()
-	if err != nil {
-		return err
-	}
-	md, err := json.Marshal(&meta.AlertMetaV1)
-	if err != nil {
-		return err
-	}
-	err = gadb.New(tx).SetAlertMetadata(ctx, gadb.SetAlertMetadataParams{
-		AlertID:  int64(alertID),
-		Metadata: pqtype.NullRawMessage{Valid: meta.AlertMetaV1 != nil, RawMessage: json.RawMessage(md)},
-	})
-	return err
 }
