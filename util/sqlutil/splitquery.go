@@ -32,6 +32,7 @@ func sqlSplitBlock(delim []byte, blockIdx int, data []byte, atEOF bool) (advance
 	return next + advance, data[:next+len(token)], nil
 }
 
+// https://www.postgresql.org/docs/16/sql-syntax-lexical.html#SQL-SYNTAX-DOLLAR-QUOTING
 var splitRx = regexp.MustCompile(`\$[^$]*\$`)
 
 func sqlSplitQuery(data []byte, atEOF bool) (advance int, token []byte, err error) {
