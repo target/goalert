@@ -472,7 +472,7 @@ func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertI
 	return updatedIDs, nil
 }
 
-func (s *Store) Create(ctx context.Context, a *Alert) (*Alert, error) {
+func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Alert, error) {
 	n, err := a.Normalize() // validation
 	if err != nil {
 		return nil, err
@@ -491,12 +491,6 @@ func (s *Store) Create(ctx context.Context, a *Alert) (*Alert, error) {
 		return nil, err
 	}
 
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer sqlutil.Rollback(ctx, "alert: create", tx)
-
 	_, err = tx.StmtContext(ctx, s.lockSvc).ExecContext(ctx, n.ServiceID)
 	if err != nil {
 		return nil, err
@@ -508,11 +502,6 @@ func (s *Store) Create(ctx context.Context, a *Alert) (*Alert, error) {
 	}
 
 	s.logDB.MustLogTx(ctx, tx, n.ID, alertlog.TypeCreated, meta)
-
-	err = tx.Commit()
-	if err != nil {
-		return nil, err
-	}
 
 	ctx = log.WithFields(ctx, log.Fields{"AlertID": n.ID, "ServiceID": n.ServiceID})
 	log.Logf(ctx, "Alert created.")
@@ -635,7 +624,7 @@ func (s *Store) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Al
 //
 // In the case that Status is closed but a matching alert is not present, nil is returned.
 // Otherwise the current alert is returned.
-func (s *Store) CreateOrUpdate(ctx context.Context, a *Alert) (*Alert, bool, error) {
+func (s *Store) CreateOrUpdate(ctx context.Context, a *Alert, meta map[string]string) (*Alert, bool, error) {
 	err := permission.LimitCheckAny(ctx,
 		permission.System,
 		permission.Admin,
@@ -655,6 +644,14 @@ func (s *Store) CreateOrUpdate(ctx context.Context, a *Alert) (*Alert, bool, err
 	n, isNew, err := s.CreateOrUpdateTx(ctx, tx, a)
 	if err != nil {
 		return nil, false, err
+	}
+
+	if meta != nil {
+		am := Meta{
+			Type:        TypeAlertMetaV1,
+			AlertMetaV1: meta,
+		}
+		err = s.CreateMetaDataTx(tx, ctx, n.ID, am)
 	}
 
 	err = tx.Commit()
@@ -951,6 +948,10 @@ func (s Store) MetadataMany(ctx context.Context, alertIDs []int) (map[int64]Meta
 }
 
 func (s Store) CreateMetaDataTx(tx *sql.Tx, ctx context.Context, alertID int, meta Meta) error {
+	err := meta.AlertMetaV1.Normalize()
+	if err != nil {
+		return err
+	}
 	md, err := json.Marshal(&meta.AlertMetaV1)
 	if err != nil {
 		return err

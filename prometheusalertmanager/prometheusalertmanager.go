@@ -231,7 +231,7 @@ func PrometheusAlertmanagerEventsAPI(aDB *alert.Store, intDB *integrationkey.Sto
 		}
 
 		err = retry.DoTemporaryError(func(int) error {
-			_, _, err = aDB.CreateOrUpdate(ctx, msg)
+			_, _, err = aDB.CreateOrUpdate(ctx, msg, nil)
 			return err
 		},
 			retry.Log(ctx),

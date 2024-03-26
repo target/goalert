@@ -379,7 +379,7 @@ func (m *Mutation) CloseMatchingAlert(ctx context.Context, input graphql2.CloseM
 		a.Dedup = alert.NewUserDedup(*input.Dedup)
 	}
 
-	a, _, err := m.AlertStore.CreateOrUpdate(ctx, a)
+	a, _, err := m.AlertStore.CreateOrUpdate(ctx, a, nil)
 	return a != nil, err
 }
 
@@ -404,19 +404,32 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 		a.Dedup = alert.NewUserDedup(*input.Dedup)
 	}
 
-	if input.Meta != nil {
-		alertMeta := alert.MetaData{}
-		for _, v := range input.Meta {
-			alertMeta[v.Key] = v.Value
+	var newAlert *alert.Alert
+	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
+		var err error
+		newAlert, err = m.AlertStore.CreateTx(ctx, tx, a)
+		if err != nil {
+			return err
 		}
-		//Todo::
-		// meta := alert.Meta{
-		// 	Type:        alert.TypeAlertMetaV1,
-		// 	AlertMetaV1: alertMeta,
-		// }
+		if input.Meta != nil {
+			alertMeta := alert.MetaData{}
+			for _, v := range input.Meta {
+				alertMeta[v.Key] = v.Value
+			}
+			meta := alert.Meta{
+				Type:        alert.TypeAlertMetaV1,
+				AlertMetaV1: alertMeta,
+			}
+			err = m.AlertStore.CreateMetaDataTx(tx, ctx, newAlert.ID, meta)
+		}
+		return err
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
-	return m.AlertStore.Create(ctx, a)
+	return newAlert, nil
 }
 
 func (a *Alert) NoiseReason(ctx context.Context, raw *alert.Alert) (*string, error) {

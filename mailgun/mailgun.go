@@ -185,7 +185,7 @@ func (h *ingressHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return err
 		}
-		_, _, err = h.alerts.CreateOrUpdate(ctx, newAlert)
+		_, _, err = h.alerts.CreateOrUpdate(ctx, newAlert, nil)
 		err = errors.Wrap(err, "create/update alert")
 		err = errutil.MapDBError(err)
 		return err
