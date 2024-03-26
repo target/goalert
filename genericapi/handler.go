@@ -15,7 +15,6 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/errutil"
-	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -93,8 +92,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 
 	meta := make(map[string]string)
 	for _, v := range r.Form["meta"] {
-		log.Logf(ctx, "%s", v)
-		key, val, ok := strings.Cut(v, ":")
+		key, val, ok := strings.Cut(v, "=")
 		if !ok {
 			continue
 		}
