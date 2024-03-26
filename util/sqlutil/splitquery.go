@@ -3,12 +3,11 @@ package sqlutil
 import (
 	"bufio"
 	"bytes"
-	"regexp"
 	"strings"
 )
 
-func sqlSplitBlock(delim []byte, blockIdx int, data []byte, atEOF bool) (advance int, token []byte, err error) {
-	nextBlockIdx := bytes.Index(data[blockIdx+2:], delim)
+func sqlSplitBlock(blockIdx int, data []byte, atEOF bool) (advance int, token []byte, err error) {
+	nextBlockIdx := bytes.Index(data[blockIdx+2:], []byte("$$"))
 	if nextBlockIdx == -1 {
 		if atEOF {
 			// return rest as the final query
@@ -32,18 +31,15 @@ func sqlSplitBlock(delim []byte, blockIdx int, data []byte, atEOF bool) (advance
 	return next + advance, data[:next+len(token)], nil
 }
 
-var splitRx = regexp.MustCompile(`\$[^$]*\$`)
-
 func sqlSplitQuery(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	if atEOF && len(data) == 0 {
 		return 0, nil, nil
 	}
 	semiIdx := bytes.IndexRune(data, ';')
-
-	idx := splitRx.FindIndex(data)
-	if idx != nil && (semiIdx == -1 || semiIdx > idx[0]) {
+	blockIdx := bytes.Index(data, []byte("$$"))
+	if blockIdx != -1 && (semiIdx == -1 || semiIdx > blockIdx) {
 		// have block start and it comes before semi (or no semi)
-		return sqlSplitBlock(data[idx[0]:idx[1]], idx[0], data, atEOF)
+		return sqlSplitBlock(blockIdx, data, atEOF)
 	}
 
 	// no block, or it comes later
