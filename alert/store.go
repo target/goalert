@@ -470,7 +470,7 @@ func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertI
 	return updatedIDs, nil
 }
 
-func (s *Store) Create(ctx context.Context, a *Alert) (*Alert, error) {
+func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Alert, error) {
 	n, err := a.Normalize() // validation
 	if err != nil {
 		return nil, err
@@ -489,12 +489,6 @@ func (s *Store) Create(ctx context.Context, a *Alert) (*Alert, error) {
 		return nil, err
 	}
 
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer sqlutil.Rollback(ctx, "alert: create", tx)
-
 	_, err = tx.StmtContext(ctx, s.lockSvc).ExecContext(ctx, n.ServiceID)
 	if err != nil {
 		return nil, err
@@ -506,11 +500,6 @@ func (s *Store) Create(ctx context.Context, a *Alert) (*Alert, error) {
 	}
 
 	s.logDB.MustLogTx(ctx, tx, n.ID, alertlog.TypeCreated, meta)
-
-	err = tx.Commit()
-	if err != nil {
-		return nil, err
-	}
 
 	ctx = log.WithFields(ctx, log.Fields{"AlertID": n.ID, "ServiceID": n.ServiceID})
 	log.Logf(ctx, "Alert created.")
