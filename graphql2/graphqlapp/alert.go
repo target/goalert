@@ -404,6 +404,20 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 		a.Dedup = alert.NewUserDedup(*input.Dedup)
 	}
 
+	var meta map[string]string
+	if input.Meta != nil {
+		meta = make(map[string]string, len(input.Meta))
+		for _, m := range input.Meta {
+			meta[m.Key] = m.Value
+		}
+
+		// early validation of metadata, not required, but prevents starting a transaction and holding the service lock if we know metadata is invalid
+		err := alert.ValidateMetadata(meta)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	var newAlert *alert.Alert
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
@@ -411,18 +425,15 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 		if err != nil {
 			return err
 		}
-		if input.Meta != nil {
-			alertMeta := alert.MetaData{}
-			for _, v := range input.Meta {
-				alertMeta[v.Key] = v.Value
+
+		if meta != nil {
+			err = m.AlertStore.SetMetadataTx(ctx, tx, newAlert.ID, meta)
+			if err != nil {
+				return err
 			}
-			meta := alert.Meta{
-				Type:        alert.TypeAlertMetaV1,
-				AlertMetaV1: alertMeta,
-			}
-			err = m.AlertStore.CreateMetaDataTx(tx, ctx, newAlert.ID, meta)
 		}
-		return err
+
+		return nil
 	})
 
 	if err != nil {
