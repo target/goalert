@@ -604,12 +604,11 @@ func (a *Alert) Meta(ctx context.Context, alert *alert.Alert) ([]graphql2.AlertM
 
 func (a *Alert) MetaValue(ctx context.Context, alert *alert.Alert, key string) (*string, error) {
 	md, err := a.AlertStore.Metadata(ctx, alert.ID)
-	val := ""
+	if errors.Is(err, sql.ErrNoRows) {
+		return new(string), nil // note: if we change the schema to `String!` we can clean this up
+	}
 	if err != nil {
-		return &val, err
+		return nil, err
 	}
-	if value, ok := md[key]; ok {
-		val = value
-	}
-	return &val, nil
+	return &md[key], nil
 }
