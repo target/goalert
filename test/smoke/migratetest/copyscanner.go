@@ -86,8 +86,5 @@ func (d *CopyScanner) Scan() bool {
 	return true
 }
 
-// Err will return the last error encountered.
-func (d *CopyScanner) Err() error { return d.err }
-
-// Table will return the last scanned TableSnapshot.
+func (d *CopyScanner) Err() error           { return d.err }
 func (d *CopyScanner) Table() TableSnapshot { return d.t }

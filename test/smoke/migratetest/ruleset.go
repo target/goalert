@@ -11,15 +11,10 @@ import (
 
 // IgnoreRule is a rule to ignore differences in a snapshot.
 type IgnoreRule struct {
-
 	// MigrationName is the name of the migration this rule applies to.
 	MigrationName string
-
-	// TableName is the name of the table this rule applies to.
-	TableName string
-
-	// ColumnName is the name of the column this rule applies to (if applicable).
-	ColumnName string
+	TableName     string
+	ColumnName    string
 
 	// ExtraRows will ignore extra/leftover rows in the table when migrating down.
 	ExtraRows bool
