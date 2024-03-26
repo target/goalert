@@ -606,7 +606,7 @@ func (m *Mutation) UpdateAlertsByService(ctx context.Context, args graphql2.Upda
 }
 
 func (a *Alert) Meta(ctx context.Context, alert *alert.Alert) ([]graphql2.AlertMetadata, error) {
-	md, err := a.AlertStore.Metadata(ctx, alert.ID)
+	md, err := a.AlertStore.Metadata(ctx, a.DB, alert.ID)
 	if err != nil {
 		return nil, err
 	}
