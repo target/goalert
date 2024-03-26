@@ -105,6 +105,13 @@ func (h *Harness) GraphQLToken(userID string) string {
 // handling authentication. Queries are performed with the provided UserID.
 func (h *Harness) GraphQLQueryUserT(t *testing.T, userID, query string) *QLResponse {
 	t.Helper()
+	return h.GraphQLQueryUserVarsT(t, userID, query, "", nil)
+}
+
+// GraphQLQueryUserT will perform a GraphQL query against the backend, internally
+// handling authentication. Queries are performed with the provided UserID.
+func (h *Harness) GraphQLQueryUserVarsT(t *testing.T, userID, query, opName string, vars any) *QLResponse {
+	t.Helper()
 	retry := 1
 	var err error
 	var resp *http.Response
@@ -113,7 +120,11 @@ func (h *Harness) GraphQLQueryUserT(t *testing.T, userID, query string) *QLRespo
 
 	for {
 		query = strings.Replace(query, "\t", "", -1)
-		q := struct{ Query string }{Query: query}
+		q := struct {
+			Query         string
+			Variables     any    `json:"variables,omitempty"`
+			OperationName string `json:"operationName,omitempty"`
+		}{Query: query, Variables: vars, OperationName: opName}
 
 		data, err := json.Marshal(q)
 		if err != nil {

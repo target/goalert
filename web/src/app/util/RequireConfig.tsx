@@ -68,7 +68,6 @@ const expDestQuery = gql`
       type
       name
       enabled
-      disabledMessage
       userDisclaimer
       supportsStatusUpdates
       statusUpdatesRequired
@@ -214,6 +213,11 @@ export function useConfigValue(...fields: ConfigID[]): Value[] {
 export function useContactMethodTypes(): DestinationTypeInfo[] {
   const cfg = React.useContext(ConfigContext)
   return cfg.destTypes.filter((t) => t.isContactMethod)
+}
+
+export function useEPTargetTypes(): DestinationTypeInfo[] {
+  const cfg = React.useContext(ConfigContext)
+  return cfg.destTypes.filter((t) => t.isEPTarget)
 }
 
 /** useSchedOnCallNotifyTypes returns a list of schedule on-call notification destination types. */

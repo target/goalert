@@ -9,7 +9,7 @@ import {
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
-import React from 'react'
+import React, { useEffect } from 'react'
 
 import { FormContainer, FormField } from '../../forms'
 import { renderMenuItem } from '../../selection/DisableableMenuItem'
@@ -66,17 +66,35 @@ export default function ScheduleOnCallNotificationsFormDest(
     (d) => d.type === props.value.dest.type,
   )
 
+  const [ruleType, setRuleType] = React.useState<'on-change' | 'time-of-day'>(
+    props.value.time ? 'time-of-day' : 'on-change',
+  )
+  const [lastTime, setLastTime] = React.useState<string | null>(
+    props.value.time,
+  )
+  const [lastFilter, setLastFilter] = React.useState<WeekdayFilter>(
+    props.value.weekdayFilter,
+  )
+  useEffect(() => {
+    if (!props.value.time) return
+    setLastTime(props.value.time)
+    setLastFilter(props.value.weekdayFilter)
+  }, [props.value.time, props.value.weekdayFilter])
+
   if (!currentType) throw new Error('invalid destination type')
 
   const handleRuleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     if (e.target.value === 'on-change') {
+      setRuleType('on-change')
       props.onChange({ ...formProps.value, time: null, weekdayFilter: NO_DAY })
       return
     }
+
+    setRuleType('time-of-day')
     props.onChange({
       ...props.value,
-      weekdayFilter: EVERY_DAY,
-      time: DateTime.fromObject({ hour: 9 }, { zone }).toISO(),
+      weekdayFilter: lastTime ? lastFilter : EVERY_DAY,
+      time: lastTime || DateTime.fromObject({ hour: 9 }, { zone }).toISO(),
     })
   }
 
@@ -98,7 +116,7 @@ export default function ScheduleOnCallNotificationsFormDest(
         <Grid item>
           <RadioGroup
             name='ruleType'
-            value={formProps.value.time ? 'time-of-day' : 'on-change'}
+            value={ruleType}
             onChange={handleRuleChange}
           >
             <FormControlLabel
@@ -177,7 +195,7 @@ export default function ScheduleOnCallNotificationsFormDest(
                 label: t.name,
                 value: t.type,
                 disabled: !t.enabled,
-                disabledMessage: t.enabled ? '' : t.disabledMessage,
+                disabledMessage: t.enabled ? '' : 'Disabled by administrator.',
               }),
             )}
           </FormField>

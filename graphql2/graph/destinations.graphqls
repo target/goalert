@@ -4,7 +4,6 @@ extend type Query {
   notifications.
   """
   destinationTypes: [DestinationTypeInfo!]!
-    @experimental(flagName: "dest-types")
 
   """
   destinationFieldValidate validates a destination field value as valid or invalid.
@@ -13,18 +12,15 @@ extend type Query {
   that it is valid for the field (i.e., syntax/formatting).
   """
   destinationFieldValidate(input: DestinationFieldValidateInput!): Boolean!
-    @experimental(flagName: "dest-types")
   destinationFieldSearch(
     input: DestinationFieldSearchInput!
-  ): FieldValueConnection! @experimental(flagName: "dest-types")
+  ): FieldValueConnection!
   destinationFieldValueName(input: DestinationFieldValidateInput!): String!
-    @experimental(flagName: "dest-types")
 
   """
   destinationDisplayInfo returns the display information for a destination.
   """
   destinationDisplayInfo(input: DestinationInput!): DestinationDisplayInfo!
-    @experimental(flagName: "dest-types")
 }
 
 """
@@ -114,7 +110,7 @@ type DestinationDisplayInfo {
   iconURL: String!
 
   """
-  alt text for the icon
+  alt text for the icon, should be human-readable and usable in place of the icon
   """
   iconAltText: String!
 
@@ -173,7 +169,6 @@ type DestinationTypeInfo {
   alt text for the icon, should be usable in place of the icon
   """
   iconAltText: String!
-  disabledMessage: String!
 
   """
   if false, the destination type is disabled and cannot be used

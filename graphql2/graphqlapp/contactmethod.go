@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/webhook"
@@ -214,6 +215,11 @@ func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.U
 			return err
 		}
 		if input.Name != nil {
+			err := validate.IDName("input.name", *input.Name)
+			if err != nil && expflag.ContextHas(ctx, expflag.DestTypes) {
+				addInputError(ctx, err)
+				return errAlreadySet
+			}
 			cm.Name = *input.Name
 		}
 		if input.Value != nil {

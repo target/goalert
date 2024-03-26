@@ -5,7 +5,6 @@ import OtherActions from '../../util/OtherActions'
 import { onCallRuleSummary } from './util'
 import ScheduleOnCallNotificationsDeleteDialog from './ScheduleOnCallNotificationsDeleteDialog'
 import CreateFAB from '../../lists/CreateFAB'
-import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotificationsEditDialog'
 import { useIsWidthDown } from '../../util/useWidth'
 import { Add } from '@mui/icons-material'
 import Error from '@mui/icons-material/Error'
@@ -15,6 +14,7 @@ import { DestinationAvatar } from '../../util/DestinationAvatar'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import makeStyles from '@mui/styles/makeStyles'
 import ScheduleOnCallNotificationsCreateDialogDest from './ScheduleOnCallNotificationsCreateDialogDest'
+import ScheduleOnCallNotificationsEditDialogDest from './ScheduleOnCallNotificationsEditDialogDest'
 
 export type ScheduleOnCallNotificationsListDestProps = {
   scheduleID: string
@@ -156,7 +156,7 @@ export default function ScheduleOnCallNotificationsListDest({
           />
         )}
         {editRuleID && (
-          <ScheduleOnCallNotificationsEditDialog
+          <ScheduleOnCallNotificationsEditDialogDest
             scheduleID={scheduleID}
             ruleID={editRuleID}
             onClose={() => setEditRuleID('')}

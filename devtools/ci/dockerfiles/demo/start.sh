@@ -19,8 +19,15 @@ su postgres -s /bin/sh -c "pg_ctl start -w -l /var/log/postgresql/server.log"
 if ! test -f /init-data
 then
   echo Seeding DB with demo data...
-  /bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001 -db-url "$DB_URL" -skip-drop
-  /bin/goalert add-user --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123 --db-url "$DB_URL"
+  if [ "$SKIP_SEED" = "1" ]; then
+    /bin/goalert migrate --db-url "$DB_URL" # run migrations, but don't seed
+    /bin/goalert add-user --admin --user admin --pass admin123 --db-url "$DB_URL"
+  else
+    /bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001 -db-url "$DB_URL" -skip-drop
+    /bin/goalert add-user --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123 --db-url "$DB_URL"
+  fi
+
+  /bin/goalert add-user --user user --pass user1234 --db-url "$DB_URL"
   touch /init-data
 fi
 

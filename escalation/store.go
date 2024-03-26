@@ -245,8 +245,8 @@ func (s *Store) FindManyPolicies(ctx context.Context, ids []string) ([]Policy, e
 	if err != nil {
 		return nil, err
 	}
-	userID := permission.UserID(ctx)
-	rows, err := s.findManyPolicies.QueryContext(ctx, sqlutil.UUIDArray(ids), userID)
+
+	rows, err := s.findManyPolicies.QueryContext(ctx, sqlutil.UUIDArray(ids), permission.UserNullUUID(ctx))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}

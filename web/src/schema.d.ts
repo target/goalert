@@ -404,7 +404,6 @@ export interface DestinationInput {
 export type DestinationType = string
 
 export interface DestinationTypeInfo {
-  disabledMessage: string
   enabled: boolean
   iconAltText: string
   iconURL: string

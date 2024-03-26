@@ -1,7 +1,7 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import UserContactMethodCreateDialogDest from './UserContactMethodCreateDialogDest'
-import { expect, userEvent, waitFor, within } from '@storybook/test'
+import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
 import {
   handleDefaultConfig,
   defaultConfig,
@@ -15,6 +15,9 @@ const meta = {
   title: 'users/UserContactMethodCreateDialogDest',
   component: UserContactMethodCreateDialogDest,
   tags: ['autodocs'],
+  args: {
+    onClose: fn(),
+  },
   parameters: {
     docs: {
       story: {
@@ -151,11 +154,15 @@ export const MultiField: Story = {
       await canvas.findByRole('option', { hidden: true, name: 'Multi Field' }),
     )
 
-    await expect(await canvas.findByLabelText('Name')).toBeVisible()
-    await expect(await canvas.findByLabelText('Destination Type')).toBeVisible()
-    await expect(await canvas.findByLabelText('First Item')).toBeVisible()
-    await expect(await canvas.findByLabelText('Second Item')).toBeVisible()
-    await expect(await canvas.findByLabelText('Third Item')).toBeVisible()
+    await waitFor(async function Labels() {
+      await expect(await canvas.findByLabelText('Name')).toBeVisible()
+      await expect(
+        await canvas.findByLabelText('Destination Type'),
+      ).toBeVisible()
+      await expect(await canvas.findByLabelText('First Item')).toBeVisible()
+      await expect(await canvas.findByLabelText('Second Item')).toBeVisible()
+      await expect(await canvas.findByLabelText('Third Item')).toBeVisible()
+    })
   },
 }
 
