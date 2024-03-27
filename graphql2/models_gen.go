@@ -86,6 +86,19 @@ type CalcRotationHandoffTimesInput struct {
 	Count            int                   `json:"count"`
 }
 
+type Clause struct {
+	Field    string `json:"field"`
+	Operator string `json:"operator"`
+	Value    string `json:"value"`
+}
+
+type ClauseInput struct {
+	Field    string `json:"field"`
+	Operator string `json:"operator"`
+	// Value is the JSON-encoded value of the clause.
+	Value string `json:"value"`
+}
+
 type ClearTemporarySchedulesInput struct {
 	ScheduleID string    `json:"scheduleID"`
 	Start      time.Time `json:"start"`
@@ -97,6 +110,18 @@ type CloseMatchingAlertInput struct {
 	Summary   *string `json:"summary,omitempty"`
 	Details   *string `json:"details,omitempty"`
 	Dedup     *string `json:"dedup,omitempty"`
+}
+
+type Condition struct {
+	Clauses []Clause `json:"clauses"`
+}
+
+type ConditionInput struct {
+	Clauses []ClauseInput `json:"clauses"`
+}
+
+type ConditionToExprInput struct {
+	Condition *ConditionInput `json:"condition"`
 }
 
 type ConfigHint struct {
@@ -400,6 +425,18 @@ type EscalationPolicySearchOptions struct {
 	Omit           []string `json:"omit,omitempty"`
 	FavoritesOnly  *bool    `json:"favoritesOnly,omitempty"`
 	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
+}
+
+// Expr contains helpers for working with Expr expressions.
+type Expr struct {
+	// exprToCondition converts an Expr expression to a Condition.
+	ExprToCondition *Condition `json:"exprToCondition"`
+	// conditionToExpr converts a Condition to an Expr expression.
+	ConditionToExpr string `json:"conditionToExpr"`
+}
+
+type ExprToConditionInput struct {
+	Expr string `json:"expr"`
 }
 
 // FieldValueConnection is a connection to a list of FieldValuePairs.
@@ -1025,16 +1062,19 @@ const (
 	//
 	// A separate error will be returned for each invalid field.
 	ErrorCodeInvalidDestFieldValue ErrorCode = "INVALID_DEST_FIELD_VALUE"
+	// The expr expression is too complex to be converted to a Condition.
+	ErrorCodeExprTooComplex ErrorCode = "EXPR_TOO_COMPLEX"
 )
 
 var AllErrorCode = []ErrorCode{
 	ErrorCodeInvalidInputValue,
 	ErrorCodeInvalidDestFieldValue,
+	ErrorCodeExprTooComplex,
 }
 
 func (e ErrorCode) IsValid() bool {
 	switch e {
-	case ErrorCodeInvalidInputValue, ErrorCodeInvalidDestFieldValue:
+	case ErrorCodeInvalidInputValue, ErrorCodeInvalidDestFieldValue, ErrorCodeExprTooComplex:
 		return true
 	}
 	return false

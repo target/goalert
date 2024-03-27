@@ -1,0 +1,52 @@
+extend type Query {
+  expr: Expr! @experimental(flagName: "univ-keys")
+}
+
+"""
+Expr contains helpers for working with Expr expressions.
+"""
+type Expr {
+  """
+  exprToCondition converts an Expr expression to a Condition.
+  """
+  exprToCondition(input: ExprToConditionInput!): Condition!
+    @goField(forceResolver: true)
+
+  """
+  conditionToExpr converts a Condition to an Expr expression.
+  """
+  conditionToExpr(input: ConditionToExprInput!): String!
+    @goField(forceResolver: true)
+}
+
+input ExprToConditionInput {
+  expr: String!
+}
+
+type Condition {
+  clauses: [Clause!]!
+}
+
+type Clause {
+  field: String!
+  operator: String!
+  value: String!
+}
+
+input ConditionToExprInput {
+  condition: ConditionInput!
+}
+
+input ConditionInput {
+  clauses: [ClauseInput!]!
+}
+
+input ClauseInput {
+  field: String!
+  operator: String!
+
+  """
+  Value is the JSON-encoded value of the clause.
+  """
+  value: String!
+}
