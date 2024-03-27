@@ -1119,6 +1119,7 @@ export interface UpdateEscalationPolicyInput {
 }
 
 export interface UpdateEscalationPolicyStepInput {
+  actions?: null | DestinationInput[]
   delayMinutes?: null | number
   id: string
   targets?: null | TargetInput[]
