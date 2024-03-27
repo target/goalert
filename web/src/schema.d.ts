@@ -116,6 +116,18 @@ export interface CalcRotationHandoffTimesInput {
   timeZone: string
 }
 
+export interface Clause {
+  field: string
+  operator: string
+  value: string
+}
+
+export interface ClauseInput {
+  field: string
+  operator: string
+  value: string
+}
+
 export interface ClearTemporarySchedulesInput {
   end: ISOTimestamp
   scheduleID: string
@@ -129,6 +141,18 @@ export interface CloseMatchingAlertInput {
   details?: null | string
   serviceID: string
   summary?: null | string
+}
+
+export interface Condition {
+  clauses: Clause[]
+}
+
+export interface ConditionInput {
+  clauses: ClauseInput[]
+}
+
+export interface ConditionToExprInput {
+  condition: ConditionInput
 }
 
 export interface ConfigHint {
@@ -405,7 +429,10 @@ export interface DestinationTypeInfo {
   userDisclaimer: string
 }
 
-export type ErrorCode = 'INVALID_DEST_FIELD_VALUE' | 'INVALID_INPUT_VALUE'
+export type ErrorCode =
+  | 'EXPR_TOO_COMPLEX'
+  | 'INVALID_DEST_FIELD_VALUE'
+  | 'INVALID_INPUT_VALUE'
 
 export interface EscalationPolicy {
   assignedTo: Target[]
@@ -439,6 +466,15 @@ export interface EscalationPolicyStep {
   id: string
   stepNumber: number
   targets: Target[]
+}
+
+export interface Expr {
+  conditionToExpr: string
+  exprToCondition: Condition
+}
+
+export interface ExprToConditionInput {
+  expr: string
 }
 
 export interface FieldValueConnection {
@@ -723,6 +759,7 @@ export interface Query {
   escalationPolicies: EscalationPolicyConnection
   escalationPolicy?: null | EscalationPolicy
   experimentalFlags: string[]
+  expr: Expr
   generateSlackAppManifest: string
   gqlAPIKeys: GQLAPIKey[]
   heartbeatMonitor?: null | HeartbeatMonitor
