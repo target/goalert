@@ -375,6 +375,11 @@ input UpdateAlertsByServiceInput {
   newStatus: AlertStatus!
 }
 
+input AlertMetadataInput {
+  key: String!
+  value: String!
+}
+
 input CreateAlertInput {
   summary: String!
   details: String
@@ -387,6 +392,8 @@ input CreateAlertInput {
   #
   # It can also be used to close an alert using closeMatchingAlert mutation.
   dedup: String
+
+  meta: [AlertMetadataInput!]
 }
 
 input CloseMatchingAlertInput {
@@ -904,6 +911,10 @@ type Alert {
   metrics: AlertMetric
 
   noiseReason: String
+
+  meta: [AlertMetadata!]
+
+  metaValue(key: String!): String!
 }
 
 type AlertMetric {
@@ -951,6 +962,11 @@ type AlertState {
   lastEscalation: ISOTimestamp!
   stepNumber: Int!
   repeatCount: Int!
+}
+
+type AlertMetadata {
+  key: String!
+  value: String!
 }
 
 type Service {

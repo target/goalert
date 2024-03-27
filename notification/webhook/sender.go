@@ -24,6 +24,7 @@ type POSTDataAlert struct {
 	Details     string
 	ServiceID   string
 	ServiceName string
+	Meta        map[string]string
 }
 
 // POSTDataAlertBundle represents fields in outgoing alert bundle notification.
@@ -111,6 +112,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 			Summary:     m.Summary,
 			ServiceID:   m.ServiceID,
 			ServiceName: m.ServiceName,
+			Meta:        m.Meta,
 		}
 	case notification.AlertBundle:
 		payload = POSTDataAlertBundle{

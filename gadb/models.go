@@ -761,6 +761,11 @@ type Alert struct {
 	Summary         string
 }
 
+type AlertDatum struct {
+	AlertID  int64
+	Metadata pqtype.NullRawMessage
+}
+
 type AlertFeedback struct {
 	AlertID     int64
 	ID          int64

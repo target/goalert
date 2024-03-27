@@ -479,6 +479,88 @@ func (q *Queries) AlertLogLookupCMType(ctx context.Context, id uuid.UUID) (EnumU
 	return cm_type, err
 }
 
+const alertManyMetadata = `-- name: AlertManyMetadata :many
+SELECT
+    alert_id,
+    metadata
+FROM
+    alert_data
+WHERE
+    alert_id = ANY ($1::bigint[])
+`
+
+func (q *Queries) AlertManyMetadata(ctx context.Context, alertIds []int64) ([]AlertDatum, error) {
+	rows, err := q.db.QueryContext(ctx, alertManyMetadata, pq.Array(alertIds))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AlertDatum
+	for rows.Next() {
+		var i AlertDatum
+		if err := rows.Scan(&i.AlertID, &i.Metadata); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const alertMetadata = `-- name: AlertMetadata :one
+SELECT
+    metadata
+FROM
+    alert_data
+WHERE
+    alert_id = $1
+`
+
+func (q *Queries) AlertMetadata(ctx context.Context, alertID int64) (pqtype.NullRawMessage, error) {
+	row := q.db.QueryRowContext(ctx, alertMetadata, alertID)
+	var metadata pqtype.NullRawMessage
+	err := row.Scan(&metadata)
+	return metadata, err
+}
+
+const alertSetMetadata = `-- name: AlertSetMetadata :execrows
+INSERT INTO alert_data(alert_id, metadata)
+SELECT
+    a.id,
+    $2
+FROM
+    alerts a
+WHERE
+    a.id = $1
+    AND a.status != 'closed'
+    AND (a.service_id = $3
+        OR $3 IS NULL) -- ensure the alert is associated with the service, if coming from an integration
+ON CONFLICT (alert_id)
+    DO UPDATE SET
+        metadata = $2
+    WHERE
+        alert_data.alert_id = $1
+`
+
+type AlertSetMetadataParams struct {
+	ID        int64
+	Metadata  pqtype.NullRawMessage
+	ServiceID uuid.NullUUID
+}
+
+func (q *Queries) AlertSetMetadata(ctx context.Context, arg AlertSetMetadataParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, alertSetMetadata, arg.ID, arg.Metadata, arg.ServiceID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const allPendingMsgDests = `-- name: AllPendingMsgDests :many
 SELECT DISTINCT
     usr.name AS user_name,
@@ -1309,6 +1391,41 @@ func (q *Queries) FindOneCalSubForUpdate(ctx context.Context, id uuid.UUID) (Fin
 	return i, err
 }
 
+const insert = `-- name: Insert :one
+INSERT INTO alerts(summary, details, service_id, source, status, dedup_key)
+    VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING
+    id, created_at
+`
+
+type InsertParams struct {
+	Summary   string
+	Details   string
+	ServiceID uuid.NullUUID
+	Source    EnumAlertSource
+	Status    EnumAlertStatus
+	DedupKey  sql.NullString
+}
+
+type InsertRow struct {
+	ID        int64
+	CreatedAt time.Time
+}
+
+func (q *Queries) Insert(ctx context.Context, arg InsertParams) (InsertRow, error) {
+	row := q.db.QueryRowContext(ctx, insert,
+		arg.Summary,
+		arg.Details,
+		arg.ServiceID,
+		arg.Source,
+		arg.Status,
+		arg.DedupKey,
+	)
+	var i InsertRow
+	err := row.Scan(&i.ID, &i.CreatedAt)
+	return i, err
+}
+
 const intKeyCreate = `-- name: IntKeyCreate :exec
 INSERT INTO integration_keys(id, name, type, service_id)
     VALUES ($1, $2, $3, $4)
@@ -1566,6 +1683,25 @@ func (q *Queries) LockOneAlertService(ctx context.Context, id int64) (LockOneAle
 	var i LockOneAlertServiceRow
 	err := row.Scan(&i.IsMaintMode, &i.Status)
 	return i, err
+}
+
+const noStepsByService = `-- name: NoStepsByService :one
+SELECT
+    COALESCE((
+        SELECT
+            TRUE
+        FROM escalation_policies pol
+        JOIN services svc ON svc.id = $1
+        WHERE
+            pol.id = svc.escalation_policy_id
+            AND pol.step_count = 0), FALSE) AS no_steps_by_service
+`
+
+func (q *Queries) NoStepsByService(ctx context.Context, id uuid.UUID) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, noStepsByService, id)
+	var no_steps_by_service interface{}
+	err := row.Scan(&no_steps_by_service)
+	return no_steps_by_service, err
 }
 
 const noticeUnackedAlertsByService = `-- name: NoticeUnackedAlertsByService :one

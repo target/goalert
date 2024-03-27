@@ -9,6 +9,23 @@ WHERE
     alerts.id = $1
 FOR UPDATE;
 
+-- name: Insert :one
+INSERT INTO alerts(summary, details, service_id, source, status, dedup_key)
+    VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING
+    id, created_at;
+
+-- name: NoStepsByService :one
+SELECT
+    COALESCE((
+        SELECT
+            TRUE
+        FROM escalation_policies pol
+        JOIN services svc ON svc.id = $1
+        WHERE
+            pol.id = svc.escalation_policy_id
+            AND pol.step_count = 0), FALSE) AS no_steps_by_service;
+
 -- name: RequestAlertEscalationByTime :one
 UPDATE
     escalation_policy_state
@@ -59,4 +76,39 @@ ON CONFLICT (alert_id)
         alert_feedback.alert_id = excluded.alert_id
     RETURNING
         alert_id;
+
+-- name: AlertMetadata :one
+SELECT
+    metadata
+FROM
+    alert_data
+WHERE
+    alert_id = $1;
+
+-- name: AlertManyMetadata :many
+SELECT
+    alert_id,
+    metadata
+FROM
+    alert_data
+WHERE
+    alert_id = ANY (@alert_ids::bigint[]);
+
+-- name: AlertSetMetadata :execrows
+INSERT INTO alert_data(alert_id, metadata)
+SELECT
+    a.id,
+    $2
+FROM
+    alerts a
+WHERE
+    a.id = $1
+    AND a.status != 'closed'
+    AND (a.service_id = $3
+        OR $3 IS NULL) -- ensure the alert is associated with the service, if coming from an integration
+ON CONFLICT (alert_id)
+    DO UPDATE SET
+        metadata = $2
+    WHERE
+        alert_data.alert_id = $1;
 

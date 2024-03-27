@@ -2,6 +2,7 @@ package graphqlapp
 
 import (
 	context "context"
+	"fmt"
 	"io"
 
 	"github.com/google/uuid"
@@ -174,6 +175,7 @@ func (app *App) FindOnePolicy(ctx context.Context, id string) (*escalation.Polic
 func (app *App) FindOneService(ctx context.Context, id string) (*service.Service, error) {
 	loader, ok := ctx.Value(dataLoaderKeyService).(*dataloader.Loader[string, service.Service])
 	if !ok {
+		fmt.Println("using service store")
 		return app.ServiceStore.FindOne(ctx, id)
 	}
 

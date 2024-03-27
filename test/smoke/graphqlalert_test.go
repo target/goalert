@@ -249,6 +249,7 @@ func TestGraphQLAlert(t *testing.T) {
 			createAlert(input:{
 				summary: "brok",
 				serviceID: "%s"
+				meta: [{key: "foo", value: "bar"}]
 			}){id}
 		}
 	`, svc.CreateService.ID), nil)
