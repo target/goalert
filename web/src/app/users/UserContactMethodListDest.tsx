@@ -39,13 +39,17 @@ const query = gql`
           values {
             fieldID
             value
-            label
           }
           displayInfo {
-            text
-            iconURL
-            iconAltText
-            linkURL
+            ... on DestinationDisplayInfo {
+              text
+              iconURL
+              iconAltText
+              linkURL
+            }
+            ... on DestinationDisplayInfoError {
+              error
+            }
           }
         }
         disabled

@@ -22,7 +22,6 @@ const query = gql`
         values {
           fieldID
           value
-          label
         }
       }
       statusUpdates

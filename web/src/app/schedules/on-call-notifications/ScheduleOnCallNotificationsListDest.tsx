@@ -9,7 +9,12 @@ import { useIsWidthDown } from '../../util/useWidth'
 import { Add } from '@mui/icons-material'
 import Error from '@mui/icons-material/Error'
 import { gql, useQuery } from 'urql'
-import { Schedule } from '../../../schema'
+import {
+  DestinationDisplayInfo,
+  DestinationDisplayInfoError,
+  InlineDisplayInfo,
+  Schedule,
+} from '../../../schema'
 import { DestinationAvatar } from '../../util/DestinationAvatar'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import makeStyles from '@mui/styles/makeStyles'
@@ -31,9 +36,14 @@ const query = gql`
         weekdayFilter
         dest {
           displayInfo {
-            text
-            iconURL
-            iconAltText
+            ... on DestinationDisplayInfo {
+              text
+              iconURL
+              iconAltText
+            }
+            ... on DestinationDisplayInfoError {
+              error
+            }
           }
         }
       }
@@ -44,6 +54,12 @@ const query = gql`
 const useStyles = makeStyles((theme: Theme) => ({
   ...globalStyles(theme),
 }))
+
+function isDisplayErr(
+  err: InlineDisplayInfo,
+): err is DestinationDisplayInfoError {
+  return (err as unknown as DestinationDisplayInfoError).error !== undefined
+}
 
 export default function ScheduleOnCallNotificationsListDest({
   scheduleID,
@@ -113,6 +129,28 @@ export default function ScheduleOnCallNotificationsListDest({
               }
               items={q.data.schedule.onCallNotificationRules.map((rule) => {
                 const display = rule.dest.displayInfo
+                if (isDisplayErr(display)) {
+                  return {
+                    icon: <DestinationAvatar error />,
+                    title: `ERROR: ${display.error}`,
+                    subText: 'Notifies ' + onCallRuleSummary(timeZone, rule),
+                    secondaryAction: (
+                      <OtherActions
+                        actions={[
+                          {
+                            label: 'Edit',
+                            onClick: () => setEditRuleID(rule.id),
+                          },
+                          {
+                            label: 'Delete',
+                            onClick: () => setDeleteRuleID(rule.id),
+                          },
+                        ]}
+                      />
+                    ),
+                  }
+                }
+
                 return {
                   icon: (
                     <DestinationAvatar

@@ -69,7 +69,6 @@ type ResolverRoot interface {
 	Destination() DestinationResolver
 	EscalationPolicy() EscalationPolicyResolver
 	EscalationPolicyStep() EscalationPolicyStepResolver
-	FieldValuePair() FieldValuePairResolver
 	GQLAPIKey() GQLAPIKeyResolver
 	HeartbeatMonitor() HeartbeatMonitorResolver
 	IntegrationKey() IntegrationKeyResolver
@@ -288,16 +287,21 @@ type ComplexityRoot struct {
 		Targets          func(childComplexity int) int
 	}
 
+	FieldSearchResult struct {
+		FieldID    func(childComplexity int) int
+		IsFavorite func(childComplexity int) int
+		Label      func(childComplexity int) int
+		Value      func(childComplexity int) int
+	}
+
 	FieldValueConnection struct {
 		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
 	}
 
 	FieldValuePair struct {
-		FieldID    func(childComplexity int) int
-		IsFavorite func(childComplexity int) int
-		Label      func(childComplexity int) int
-		Value      func(childComplexity int) int
+		FieldID func(childComplexity int) int
+		Value   func(childComplexity int) int
 	}
 
 	GQLAPIKey struct {
@@ -803,9 +807,6 @@ type EscalationPolicyStepResolver interface {
 	Targets(ctx context.Context, obj *escalation.Step) ([]assignment.RawTarget, error)
 	EscalationPolicy(ctx context.Context, obj *escalation.Step) (*escalation.Policy, error)
 	Actions(ctx context.Context, obj *escalation.Step) ([]Destination, error)
-}
-type FieldValuePairResolver interface {
-	Label(ctx context.Context, obj *FieldValuePair) (string, error)
 }
 type GQLAPIKeyResolver interface {
 	CreatedBy(ctx context.Context, obj *GQLAPIKey) (*user.User, error)
@@ -1846,6 +1847,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.EscalationPolicyStep.Targets(childComplexity), true
 
+	case "FieldSearchResult.fieldID":
+		if e.complexity.FieldSearchResult.FieldID == nil {
+			break
+		}
+
+		return e.complexity.FieldSearchResult.FieldID(childComplexity), true
+
+	case "FieldSearchResult.isFavorite":
+		if e.complexity.FieldSearchResult.IsFavorite == nil {
+			break
+		}
+
+		return e.complexity.FieldSearchResult.IsFavorite(childComplexity), true
+
+	case "FieldSearchResult.label":
+		if e.complexity.FieldSearchResult.Label == nil {
+			break
+		}
+
+		return e.complexity.FieldSearchResult.Label(childComplexity), true
+
+	case "FieldSearchResult.value":
+		if e.complexity.FieldSearchResult.Value == nil {
+			break
+		}
+
+		return e.complexity.FieldSearchResult.Value(childComplexity), true
+
 	case "FieldValueConnection.nodes":
 		if e.complexity.FieldValueConnection.Nodes == nil {
 			break
@@ -1866,20 +1895,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FieldValuePair.FieldID(childComplexity), true
-
-	case "FieldValuePair.isFavorite":
-		if e.complexity.FieldValuePair.IsFavorite == nil {
-			break
-		}
-
-		return e.complexity.FieldValuePair.IsFavorite(childComplexity), true
-
-	case "FieldValuePair.label":
-		if e.complexity.FieldValuePair.Label == nil {
-			break
-		}
-
-		return e.complexity.FieldValuePair.Label(childComplexity), true
 
 	case "FieldValuePair.value":
 		if e.complexity.FieldValuePair.Value == nil {
@@ -9580,10 +9595,6 @@ func (ec *executionContext) fieldContext_Destination_values(ctx context.Context,
 				return ec.fieldContext_FieldValuePair_fieldID(ctx, field)
 			case "value":
 				return ec.fieldContext_FieldValuePair_value(ctx, field)
-			case "label":
-				return ec.fieldContext_FieldValuePair_label(ctx, field)
-			case "isFavorite":
-				return ec.fieldContext_FieldValuePair_isFavorite(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FieldValuePair", field.Name)
 		},
@@ -11588,6 +11599,182 @@ func (ec *executionContext) fieldContext_EscalationPolicyStep_actions(ctx contex
 	return fc, nil
 }
 
+func (ec *executionContext) _FieldSearchResult_fieldID(ctx context.Context, field graphql.CollectedField, obj *FieldSearchResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FieldSearchResult_fieldID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FieldID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FieldSearchResult_fieldID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FieldSearchResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FieldSearchResult_value(ctx context.Context, field graphql.CollectedField, obj *FieldSearchResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FieldSearchResult_value(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FieldSearchResult_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FieldSearchResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FieldSearchResult_label(ctx context.Context, field graphql.CollectedField, obj *FieldSearchResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FieldSearchResult_label(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Label, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FieldSearchResult_label(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FieldSearchResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FieldSearchResult_isFavorite(ctx context.Context, field graphql.CollectedField, obj *FieldSearchResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FieldSearchResult_isFavorite(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsFavorite, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FieldSearchResult_isFavorite(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FieldSearchResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _FieldValueConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *FieldValueConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_FieldValueConnection_nodes(ctx, field)
 	if err != nil {
@@ -11614,9 +11801,9 @@ func (ec *executionContext) _FieldValueConnection_nodes(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]FieldValuePair)
+	res := resTmp.([]FieldSearchResult)
 	fc.Result = res
-	return ec.marshalNFieldValuePair2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldValuePairᚄ(ctx, field.Selections, res)
+	return ec.marshalNFieldSearchResult2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldSearchResultᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FieldValueConnection_nodes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -11628,15 +11815,15 @@ func (ec *executionContext) fieldContext_FieldValueConnection_nodes(ctx context.
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "fieldID":
-				return ec.fieldContext_FieldValuePair_fieldID(ctx, field)
+				return ec.fieldContext_FieldSearchResult_fieldID(ctx, field)
 			case "value":
-				return ec.fieldContext_FieldValuePair_value(ctx, field)
+				return ec.fieldContext_FieldSearchResult_value(ctx, field)
 			case "label":
-				return ec.fieldContext_FieldValuePair_label(ctx, field)
+				return ec.fieldContext_FieldSearchResult_label(ctx, field)
 			case "isFavorite":
-				return ec.fieldContext_FieldValuePair_isFavorite(ctx, field)
+				return ec.fieldContext_FieldSearchResult_isFavorite(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type FieldValuePair", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type FieldSearchResult", field.Name)
 		},
 	}
 	return fc, nil
@@ -11775,94 +11962,6 @@ func (ec *executionContext) fieldContext_FieldValuePair_value(ctx context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _FieldValuePair_label(ctx context.Context, field graphql.CollectedField, obj *FieldValuePair) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FieldValuePair_label(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.FieldValuePair().Label(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_FieldValuePair_label(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FieldValuePair",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _FieldValuePair_isFavorite(ctx context.Context, field graphql.CollectedField, obj *FieldValuePair) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FieldValuePair_isFavorite(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.IsFavorite, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_FieldValuePair_isFavorite(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FieldValuePair",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -36382,6 +36481,60 @@ func (ec *executionContext) _EscalationPolicyStep(ctx context.Context, sel ast.S
 	return out
 }
 
+var fieldSearchResultImplementors = []string{"FieldSearchResult"}
+
+func (ec *executionContext) _FieldSearchResult(ctx context.Context, sel ast.SelectionSet, obj *FieldSearchResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, fieldSearchResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FieldSearchResult")
+		case "fieldID":
+			out.Values[i] = ec._FieldSearchResult_fieldID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "value":
+			out.Values[i] = ec._FieldSearchResult_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "label":
+			out.Values[i] = ec._FieldSearchResult_label(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "isFavorite":
+			out.Values[i] = ec._FieldSearchResult_isFavorite(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var fieldValueConnectionImplementors = []string{"FieldValueConnection"}
 
 func (ec *executionContext) _FieldValueConnection(ctx context.Context, sel ast.SelectionSet, obj *FieldValueConnection) graphql.Marshaler {
@@ -36440,53 +36593,12 @@ func (ec *executionContext) _FieldValuePair(ctx context.Context, sel ast.Selecti
 		case "fieldID":
 			out.Values[i] = ec._FieldValuePair_fieldID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "value":
 			out.Values[i] = ec._FieldValuePair_value(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "label":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._FieldValuePair_label(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "isFavorite":
-			out.Values[i] = ec._FieldValuePair_isFavorite(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -43528,6 +43640,54 @@ func (ec *executionContext) marshalNEscalationPolicyStep2ᚕgithubᚗcomᚋtarge
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalNEscalationPolicyStep2githubᚗcomᚋtargetᚋgoalertᚋescalationᚐStep(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNFieldSearchResult2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldSearchResult(ctx context.Context, sel ast.SelectionSet, v FieldSearchResult) graphql.Marshaler {
+	return ec._FieldSearchResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNFieldSearchResult2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldSearchResultᚄ(ctx context.Context, sel ast.SelectionSet, v []FieldSearchResult) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFieldSearchResult2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldSearchResult(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

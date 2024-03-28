@@ -415,10 +415,21 @@ type EscalationPolicySearchOptions struct {
 	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
 }
 
+type FieldSearchResult struct {
+	// The ID of the input field that this value is for.
+	FieldID string `json:"fieldID"`
+	// The value of the input field.
+	Value string `json:"value"`
+	// The user-friendly text for this value of the input field (e.g., if the value is a user ID, label would be the user's name).
+	Label string `json:"label"`
+	// if true, this value is a favorite for the user, only set for search results
+	IsFavorite bool `json:"isFavorite"`
+}
+
 // FieldValueConnection is a connection to a list of FieldValuePairs.
 type FieldValueConnection struct {
-	Nodes    []FieldValuePair `json:"nodes"`
-	PageInfo *PageInfo        `json:"pageInfo"`
+	Nodes    []FieldSearchResult `json:"nodes"`
+	PageInfo *PageInfo           `json:"pageInfo"`
 }
 
 type FieldValueInput struct {
@@ -432,10 +443,6 @@ type FieldValuePair struct {
 	FieldID string `json:"fieldID"`
 	// The value of the input field.
 	Value string `json:"value"`
-	// The user-friendly text for this value of the input field (e.g., if the value is a user ID, label would be the user's name).
-	Label string `json:"label"`
-	// if true, this value is a favorite for the user, only set for search results
-	IsFavorite bool `json:"isFavorite"`
 }
 
 type GQLAPIKey struct {

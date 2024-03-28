@@ -27,8 +27,30 @@ extend type Query {
 FieldValueConnection is a connection to a list of FieldValuePairs.
 """
 type FieldValueConnection {
-  nodes: [FieldValuePair!]!
+  nodes: [FieldSearchResult!]!
   pageInfo: PageInfo!
+}
+
+type FieldSearchResult {
+  """
+  The ID of the input field that this value is for.
+  """
+  fieldID: ID!
+
+  """
+  The value of the input field.
+  """
+  value: String!
+
+  """
+  The user-friendly text for this value of the input field (e.g., if the value is a user ID, label would be the user's name).
+  """
+  label: String!
+
+  """
+  if true, this value is a favorite for the user, only set for search results
+  """
+  isFavorite: Boolean!
 }
 
 input DestinationFieldValidateInput {
@@ -139,16 +161,6 @@ type FieldValuePair {
   The value of the input field.
   """
   value: String!
-
-  """
-  The user-friendly text for this value of the input field (e.g., if the value is a user ID, label would be the user's name).
-  """
-  label: String! @goField(forceResolver: true)
-
-  """
-  if true, this value is a favorite for the user, only set for search results
-  """
-  isFavorite: Boolean!
 }
 
 input DestinationInput {
