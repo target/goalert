@@ -54,12 +54,6 @@ const useStyles = makeStyles((theme: Theme) => ({
   ...globalStyles(theme),
 }))
 
-function isDisplayErr(
-  err: InlineDisplayInfo,
-): err is DestinationDisplayInfoError {
-  return (err as unknown as DestinationDisplayInfoError).error !== undefined
-}
-
 export default function ScheduleOnCallNotificationsListDest({
   scheduleID,
 }: ScheduleOnCallNotificationsListDestProps): JSX.Element {
@@ -128,7 +122,7 @@ export default function ScheduleOnCallNotificationsListDest({
               }
               items={q.data.schedule.onCallNotificationRules.map((rule) => {
                 const display = rule.dest.displayInfo
-                if (isDisplayErr(display)) {
+                if ('error' in display) {
                   return {
                     icon: <DestinationAvatar error />,
                     title: `ERROR: ${display.error}`,
