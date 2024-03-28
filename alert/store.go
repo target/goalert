@@ -613,7 +613,7 @@ func (s *Store) CreateOrUpdate(ctx context.Context, a *Alert) (*Alert, bool, err
 	return s.createOrUpdate(ctx, a, nil)
 }
 
-// CreateOrUpdate will create an alert and sets alert's metadata
+// CreateOrUpdateWithMeta will create an alert and sets alert's metadata
 func (s *Store) CreateOrUpdateWithMeta(ctx context.Context, a *Alert, meta map[string]string) (*Alert, bool, error) {
 	return s.createOrUpdate(ctx, a, meta)
 }
