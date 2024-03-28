@@ -115,6 +115,9 @@ func (t Team) UserLink(id string) string {
 }
 
 func rootMsg(err error) string {
+	if err == nil {
+		return ""
+	}
 	unwrapped := errors.Unwrap(err)
 	if unwrapped == nil {
 		return err.Error()
@@ -126,7 +129,7 @@ func rootMsg(err error) string {
 func mapError(ctx context.Context, err error) error {
 	switch rootMsg(err) {
 	case "channel_not_found":
-		return validation.NewFieldError("ChannelID", "Invalid Slack channel ID.")
+		return validation.NewFieldError("ChannelID", "Channel does not exist, is archived, or is private (invite goalert bot).")
 	case "missing_scope", "invalid_auth", "account_inactive", "token_revoked", "not_authed":
 		log.Log(ctx, err)
 		return validation.NewFieldError("ChannelID", "Permission Denied.")
@@ -148,7 +151,7 @@ func (s *ChannelSender) ValidateChannel(ctx context.Context, id string) error {
 		res, err = s.loadChannel(ctx, id)
 		if err != nil {
 			if rootMsg(err) == "channel_not_found" {
-				return validation.NewGenericError("Channel does not exist, is private (need to invite goalert bot).")
+				return validation.NewGenericError("Channel does not exist, is archived, or is private (invite goalert bot).")
 			}
 
 			return err
