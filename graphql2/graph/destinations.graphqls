@@ -14,7 +14,7 @@ extend type Query {
   destinationFieldValidate(input: DestinationFieldValidateInput!): Boolean!
   destinationFieldSearch(
     input: DestinationFieldSearchInput!
-  ): FieldValueConnection!
+  ): FieldSearchConnection!
   destinationFieldValueName(input: DestinationFieldValidateInput!): String!
 
   """
@@ -24,9 +24,9 @@ extend type Query {
 }
 
 """
-FieldValueConnection is a connection to a list of FieldValuePairs.
+FieldSearchConnection is a connection to a list of FieldSearchResult.
 """
-type FieldValueConnection {
+type FieldSearchConnection {
   nodes: [FieldSearchResult!]!
   pageInfo: PageInfo!
 }

@@ -287,16 +287,16 @@ type ComplexityRoot struct {
 		Targets          func(childComplexity int) int
 	}
 
+	FieldSearchConnection struct {
+		Nodes    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+	}
+
 	FieldSearchResult struct {
 		FieldID    func(childComplexity int) int
 		IsFavorite func(childComplexity int) int
 		Label      func(childComplexity int) int
 		Value      func(childComplexity int) int
-	}
-
-	FieldValueConnection struct {
-		Nodes    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
 	}
 
 	FieldValuePair struct {
@@ -931,7 +931,7 @@ type QueryResolver interface {
 	SwoStatus(ctx context.Context) (*SWOStatus, error)
 	DestinationTypes(ctx context.Context) ([]DestinationTypeInfo, error)
 	DestinationFieldValidate(ctx context.Context, input DestinationFieldValidateInput) (bool, error)
-	DestinationFieldSearch(ctx context.Context, input DestinationFieldSearchInput) (*FieldValueConnection, error)
+	DestinationFieldSearch(ctx context.Context, input DestinationFieldSearchInput) (*FieldSearchConnection, error)
 	DestinationFieldValueName(ctx context.Context, input DestinationFieldValidateInput) (string, error)
 	DestinationDisplayInfo(ctx context.Context, input DestinationInput) (*DestinationDisplayInfo, error)
 	GqlAPIKeys(ctx context.Context) ([]GQLAPIKey, error)
@@ -1847,6 +1847,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.EscalationPolicyStep.Targets(childComplexity), true
 
+	case "FieldSearchConnection.nodes":
+		if e.complexity.FieldSearchConnection.Nodes == nil {
+			break
+		}
+
+		return e.complexity.FieldSearchConnection.Nodes(childComplexity), true
+
+	case "FieldSearchConnection.pageInfo":
+		if e.complexity.FieldSearchConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.FieldSearchConnection.PageInfo(childComplexity), true
+
 	case "FieldSearchResult.fieldID":
 		if e.complexity.FieldSearchResult.FieldID == nil {
 			break
@@ -1874,20 +1888,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FieldSearchResult.Value(childComplexity), true
-
-	case "FieldValueConnection.nodes":
-		if e.complexity.FieldValueConnection.Nodes == nil {
-			break
-		}
-
-		return e.complexity.FieldValueConnection.Nodes(childComplexity), true
-
-	case "FieldValueConnection.pageInfo":
-		if e.complexity.FieldValueConnection.PageInfo == nil {
-			break
-		}
-
-		return e.complexity.FieldValueConnection.PageInfo(childComplexity), true
 
 	case "FieldValuePair.fieldID":
 		if e.complexity.FieldValuePair.FieldID == nil {
@@ -11599,6 +11599,110 @@ func (ec *executionContext) fieldContext_EscalationPolicyStep_actions(ctx contex
 	return fc, nil
 }
 
+func (ec *executionContext) _FieldSearchConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *FieldSearchConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FieldSearchConnection_nodes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Nodes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]FieldSearchResult)
+	fc.Result = res
+	return ec.marshalNFieldSearchResult2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldSearchResultᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FieldSearchConnection_nodes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FieldSearchConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "fieldID":
+				return ec.fieldContext_FieldSearchResult_fieldID(ctx, field)
+			case "value":
+				return ec.fieldContext_FieldSearchResult_value(ctx, field)
+			case "label":
+				return ec.fieldContext_FieldSearchResult_label(ctx, field)
+			case "isFavorite":
+				return ec.fieldContext_FieldSearchResult_isFavorite(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FieldSearchResult", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FieldSearchConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *FieldSearchConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FieldSearchConnection_pageInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FieldSearchConnection_pageInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FieldSearchConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			case "hasNextPage":
+				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _FieldSearchResult_fieldID(ctx context.Context, field graphql.CollectedField, obj *FieldSearchResult) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_FieldSearchResult_fieldID(ctx, field)
 	if err != nil {
@@ -11770,110 +11874,6 @@ func (ec *executionContext) fieldContext_FieldSearchResult_isFavorite(ctx contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _FieldValueConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *FieldValueConnection) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FieldValueConnection_nodes(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Nodes, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]FieldSearchResult)
-	fc.Result = res
-	return ec.marshalNFieldSearchResult2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldSearchResultᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_FieldValueConnection_nodes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FieldValueConnection",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "fieldID":
-				return ec.fieldContext_FieldSearchResult_fieldID(ctx, field)
-			case "value":
-				return ec.fieldContext_FieldSearchResult_value(ctx, field)
-			case "label":
-				return ec.fieldContext_FieldSearchResult_label(ctx, field)
-			case "isFavorite":
-				return ec.fieldContext_FieldSearchResult_isFavorite(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type FieldSearchResult", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _FieldValueConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *FieldValueConnection) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FieldValueConnection_pageInfo(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PageInfo, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*PageInfo)
-	fc.Result = res
-	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_FieldValueConnection_pageInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FieldValueConnection",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "endCursor":
-				return ec.fieldContext_PageInfo_endCursor(ctx, field)
-			case "hasNextPage":
-				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
 		},
 	}
 	return fc, nil
@@ -21040,9 +21040,9 @@ func (ec *executionContext) _Query_destinationFieldSearch(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*FieldValueConnection)
+	res := resTmp.(*FieldSearchConnection)
 	fc.Result = res
-	return ec.marshalNFieldValueConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldValueConnection(ctx, field.Selections, res)
+	return ec.marshalNFieldSearchConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldSearchConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_destinationFieldSearch(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -21054,11 +21054,11 @@ func (ec *executionContext) fieldContext_Query_destinationFieldSearch(ctx contex
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "nodes":
-				return ec.fieldContext_FieldValueConnection_nodes(ctx, field)
+				return ec.fieldContext_FieldSearchConnection_nodes(ctx, field)
 			case "pageInfo":
-				return ec.fieldContext_FieldValueConnection_pageInfo(ctx, field)
+				return ec.fieldContext_FieldSearchConnection_pageInfo(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type FieldValueConnection", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type FieldSearchConnection", field.Name)
 		},
 	}
 	defer func() {
@@ -36481,6 +36481,50 @@ func (ec *executionContext) _EscalationPolicyStep(ctx context.Context, sel ast.S
 	return out
 }
 
+var fieldSearchConnectionImplementors = []string{"FieldSearchConnection"}
+
+func (ec *executionContext) _FieldSearchConnection(ctx context.Context, sel ast.SelectionSet, obj *FieldSearchConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, fieldSearchConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FieldSearchConnection")
+		case "nodes":
+			out.Values[i] = ec._FieldSearchConnection_nodes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pageInfo":
+			out.Values[i] = ec._FieldSearchConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var fieldSearchResultImplementors = []string{"FieldSearchResult"}
 
 func (ec *executionContext) _FieldSearchResult(ctx context.Context, sel ast.SelectionSet, obj *FieldSearchResult) graphql.Marshaler {
@@ -36509,50 +36553,6 @@ func (ec *executionContext) _FieldSearchResult(ctx context.Context, sel ast.Sele
 			}
 		case "isFavorite":
 			out.Values[i] = ec._FieldSearchResult_isFavorite(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var fieldValueConnectionImplementors = []string{"FieldValueConnection"}
-
-func (ec *executionContext) _FieldValueConnection(ctx context.Context, sel ast.SelectionSet, obj *FieldValueConnection) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, fieldValueConnectionImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("FieldValueConnection")
-		case "nodes":
-			out.Values[i] = ec._FieldValueConnection_nodes(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "pageInfo":
-			out.Values[i] = ec._FieldValueConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -43659,6 +43659,20 @@ func (ec *executionContext) marshalNEscalationPolicyStep2ᚕgithubᚗcomᚋtarge
 	return ret
 }
 
+func (ec *executionContext) marshalNFieldSearchConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldSearchConnection(ctx context.Context, sel ast.SelectionSet, v FieldSearchConnection) graphql.Marshaler {
+	return ec._FieldSearchConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNFieldSearchConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldSearchConnection(ctx context.Context, sel ast.SelectionSet, v *FieldSearchConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._FieldSearchConnection(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNFieldSearchResult2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldSearchResult(ctx context.Context, sel ast.SelectionSet, v FieldSearchResult) graphql.Marshaler {
 	return ec._FieldSearchResult(ctx, sel, &v)
 }
@@ -43705,20 +43719,6 @@ func (ec *executionContext) marshalNFieldSearchResult2ᚕgithubᚗcomᚋtarget�
 	}
 
 	return ret
-}
-
-func (ec *executionContext) marshalNFieldValueConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldValueConnection(ctx context.Context, sel ast.SelectionSet, v FieldValueConnection) graphql.Marshaler {
-	return ec._FieldValueConnection(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNFieldValueConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldValueConnection(ctx context.Context, sel ast.SelectionSet, v *FieldValueConnection) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._FieldValueConnection(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNFieldValueInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldValueInput(ctx context.Context, v interface{}) (FieldValueInput, error) {

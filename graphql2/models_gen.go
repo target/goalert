@@ -415,6 +415,12 @@ type EscalationPolicySearchOptions struct {
 	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
 }
 
+// FieldSearchConnection is a connection to a list of FieldSearchResult.
+type FieldSearchConnection struct {
+	Nodes    []FieldSearchResult `json:"nodes"`
+	PageInfo *PageInfo           `json:"pageInfo"`
+}
+
 type FieldSearchResult struct {
 	// The ID of the input field that this value is for.
 	FieldID string `json:"fieldID"`
@@ -424,12 +430,6 @@ type FieldSearchResult struct {
 	Label string `json:"label"`
 	// if true, this value is a favorite for the user, only set for search results
 	IsFavorite bool `json:"isFavorite"`
-}
-
-// FieldValueConnection is a connection to a list of FieldValuePairs.
-type FieldValueConnection struct {
-	Nodes    []FieldSearchResult `json:"nodes"`
-	PageInfo *PageInfo           `json:"pageInfo"`
 }
 
 type FieldValueInput struct {

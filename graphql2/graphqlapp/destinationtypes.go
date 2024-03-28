@@ -79,7 +79,7 @@ func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.De
 	return "", validation.NewGenericError("unsupported fieldID")
 }
 
-func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.DestinationFieldSearchInput) (*graphql2.FieldValueConnection, error) {
+func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.DestinationFieldSearchInput) (*graphql2.FieldSearchConnection, error) {
 	favFirst := true
 
 	switch input.FieldID {
@@ -103,7 +103,7 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 			})
 		}
 
-		return &graphql2.FieldValueConnection{
+		return &graphql2.FieldSearchConnection{
 			Nodes:    nodes,
 			PageInfo: res.PageInfo,
 		}, nil
@@ -127,7 +127,7 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 			})
 		}
 
-		return &graphql2.FieldValueConnection{
+		return &graphql2.FieldSearchConnection{
 			Nodes:    nodes,
 			PageInfo: res.PageInfo,
 		}, nil
@@ -153,7 +153,7 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 			})
 		}
 
-		return &graphql2.FieldValueConnection{
+		return &graphql2.FieldSearchConnection{
 			Nodes:    nodes,
 			PageInfo: res.PageInfo,
 		}, nil
@@ -179,7 +179,7 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 			})
 		}
 
-		return &graphql2.FieldValueConnection{
+		return &graphql2.FieldSearchConnection{
 			Nodes:    nodes,
 			PageInfo: res.PageInfo,
 		}, nil
@@ -205,7 +205,7 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 			})
 		}
 
-		return &graphql2.FieldValueConnection{
+		return &graphql2.FieldSearchConnection{
 			Nodes:    nodes,
 			PageInfo: res.PageInfo,
 		}, nil

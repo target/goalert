@@ -445,16 +445,16 @@ export interface EscalationPolicyStep {
   targets: Target[]
 }
 
+export interface FieldSearchConnection {
+  nodes: FieldSearchResult[]
+  pageInfo: PageInfo
+}
+
 export interface FieldSearchResult {
   fieldID: string
   isFavorite: boolean
   label: string
   value: string
-}
-
-export interface FieldValueConnection {
-  nodes: FieldSearchResult[]
-  pageInfo: PageInfo
 }
 
 export interface FieldValueInput {
@@ -729,7 +729,7 @@ export interface Query {
   debugMessageStatus: DebugMessageStatusInfo
   debugMessages: DebugMessage[]
   destinationDisplayInfo: DestinationDisplayInfo
-  destinationFieldSearch: FieldValueConnection
+  destinationFieldSearch: FieldSearchConnection
   destinationFieldValidate: boolean
   destinationFieldValueName: string
   destinationTypes: DestinationTypeInfo[]
