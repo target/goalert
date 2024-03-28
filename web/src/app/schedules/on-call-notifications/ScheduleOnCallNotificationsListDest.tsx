@@ -9,11 +9,7 @@ import { useIsWidthDown } from '../../util/useWidth'
 import { Add } from '@mui/icons-material'
 import Error from '@mui/icons-material/Error'
 import { gql, useQuery } from 'urql'
-import {
-  DestinationDisplayInfoError,
-  InlineDisplayInfo,
-  Schedule,
-} from '../../../schema'
+import { Schedule } from '../../../schema'
 import { DestinationAvatar } from '../../util/DestinationAvatar'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import makeStyles from '@mui/styles/makeStyles'
