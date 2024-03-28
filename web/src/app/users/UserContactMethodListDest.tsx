@@ -1,14 +1,7 @@
 import React, { useState, ReactNode } from 'react'
 import { gql, useQuery } from 'urql'
 import FlatList from '../lists/FlatList'
-import {
-  Button,
-  Card,
-  CardHeader,
-  Grid,
-  IconButton,
-  Typography,
-} from '@mui/material'
+import { Button, Card, CardHeader, Grid, IconButton } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
 import { Add } from '@mui/icons-material'
@@ -21,7 +14,6 @@ import UserContactMethodVerificationDialog from './UserContactMethodVerification
 import { useIsWidthDown } from '../util/useWidth'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import SendTestDialog from './SendTestDialog'
-import AppLink from '../util/AppLink'
 import { styles as globalStyles } from '../styles/materialStyles'
 import { UserContactMethod } from '../../schema'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
