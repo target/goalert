@@ -5,7 +5,7 @@ import { expect, userEvent, within } from '@storybook/test'
 import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 import { useArgs } from '@storybook/preview-api'
-import { FieldValueConnection } from '../../schema'
+import { FieldSearchConnection } from '../../schema'
 
 const meta = {
   title: 'util/DestinationSearchSelect',
@@ -42,7 +42,7 @@ const meta = {
               data: {
                 destinationFieldSearch: {
                   nodes: [],
-                  __typename: 'FieldValueConnection',
+                  __typename: 'FieldSearchConnection',
                 },
               },
             })
@@ -68,7 +68,7 @@ const meta = {
               },
             },
           } satisfies {
-            data: { destinationFieldSearch: Partial<FieldValueConnection> }
+            data: { destinationFieldSearch: Partial<FieldSearchConnection> }
           })
         }),
         graphql.query('DestinationFieldValueName', ({ variables: vars }) => {
