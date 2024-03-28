@@ -344,7 +344,7 @@ export interface DebugSendSMSInput {
 }
 
 export interface Destination {
-  displayInfo: DestinationDisplayInfo
+  displayInfo: InlineDisplayInfo
   type: DestinationType
   values: FieldValuePair[]
 }
@@ -354,6 +354,10 @@ export interface DestinationDisplayInfo {
   iconURL: string
   linkURL: string
   text: string
+}
+
+export interface DestinationDisplayInfoError {
+  error: string
 }
 
 export interface DestinationFieldConfig {
@@ -500,6 +504,10 @@ export type ISODuration = string
 export type ISORInterval = string
 
 export type ISOTimestamp = string
+
+export type InlineDisplayInfo =
+  | DestinationDisplayInfo
+  | DestinationDisplayInfoError
 
 export type Int = string
 

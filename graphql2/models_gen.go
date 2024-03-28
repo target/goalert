@@ -27,6 +27,10 @@ import (
 	"github.com/target/goalert/util/timeutil"
 )
 
+type InlineDisplayInfo interface {
+	IsInlineDisplayInfo()
+}
+
 type AlertConnection struct {
 	Nodes    []alert.Alert `json:"nodes"`
 	PageInfo *PageInfo     `json:"pageInfo"`
@@ -297,9 +301,9 @@ type DebugSendSMSInput struct {
 
 // Destination represents a destination that can be used for notifications.
 type Destination struct {
-	Type        string                  `json:"type"`
-	Values      []FieldValuePair        `json:"values"`
-	DisplayInfo *DestinationDisplayInfo `json:"displayInfo"`
+	Type        string            `json:"type"`
+	Values      []FieldValuePair  `json:"values"`
+	DisplayInfo InlineDisplayInfo `json:"displayInfo"`
 }
 
 // DestinationDisplayInfo provides information for displaying a destination.
@@ -313,6 +317,15 @@ type DestinationDisplayInfo struct {
 	// URL to link to for more information about this destination
 	LinkURL string `json:"linkURL"`
 }
+
+func (DestinationDisplayInfo) IsInlineDisplayInfo() {}
+
+type DestinationDisplayInfoError struct {
+	// error message to display when the display info cannot be retrieved
+	Error string `json:"error"`
+}
+
+func (DestinationDisplayInfoError) IsInlineDisplayInfo() {}
 
 type DestinationFieldConfig struct {
 	// unique ID for the input field

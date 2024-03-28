@@ -232,6 +232,10 @@ type ComplexityRoot struct {
 		Text        func(childComplexity int) int
 	}
 
+	DestinationDisplayInfoError struct {
+		Error func(childComplexity int) int
+	}
+
 	DestinationFieldConfig struct {
 		FieldID            func(childComplexity int) int
 		Hint               func(childComplexity int) int
@@ -787,7 +791,7 @@ type AlertMetricResolver interface {
 	TimeToClose(ctx context.Context, obj *alertmetrics.Metric) (*timeutil.ISODuration, error)
 }
 type DestinationResolver interface {
-	DisplayInfo(ctx context.Context, obj *Destination) (*DestinationDisplayInfo, error)
+	DisplayInfo(ctx context.Context, obj *Destination) (InlineDisplayInfo, error)
 }
 type EscalationPolicyResolver interface {
 	IsFavorite(ctx context.Context, obj *escalation.Policy) (bool, error)
@@ -1575,6 +1579,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DestinationDisplayInfo.Text(childComplexity), true
+
+	case "DestinationDisplayInfoError.error":
+		if e.complexity.DestinationDisplayInfoError.Error == nil {
+			break
+		}
+
+		return e.complexity.DestinationDisplayInfoError.Error(childComplexity), true
 
 	case "DestinationFieldConfig.fieldID":
 		if e.complexity.DestinationFieldConfig.FieldID == nil {
@@ -9606,9 +9617,9 @@ func (ec *executionContext) _Destination_displayInfo(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*DestinationDisplayInfo)
+	res := resTmp.(InlineDisplayInfo)
 	fc.Result = res
-	return ec.marshalNDestinationDisplayInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationDisplayInfo(ctx, field.Selections, res)
+	return ec.marshalNInlineDisplayInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐInlineDisplayInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Destination_displayInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9618,17 +9629,7 @@ func (ec *executionContext) fieldContext_Destination_displayInfo(ctx context.Con
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "text":
-				return ec.fieldContext_DestinationDisplayInfo_text(ctx, field)
-			case "iconURL":
-				return ec.fieldContext_DestinationDisplayInfo_iconURL(ctx, field)
-			case "iconAltText":
-				return ec.fieldContext_DestinationDisplayInfo_iconAltText(ctx, field)
-			case "linkURL":
-				return ec.fieldContext_DestinationDisplayInfo_linkURL(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type DestinationDisplayInfo", field.Name)
+			return nil, errors.New("field of type InlineDisplayInfo does not have child fields")
 		},
 	}
 	return fc, nil
@@ -9800,6 +9801,50 @@ func (ec *executionContext) _DestinationDisplayInfo_linkURL(ctx context.Context,
 func (ec *executionContext) fieldContext_DestinationDisplayInfo_linkURL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "DestinationDisplayInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DestinationDisplayInfoError_error(ctx context.Context, field graphql.CollectedField, obj *DestinationDisplayInfoError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DestinationDisplayInfoError_error(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Error, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DestinationDisplayInfoError_error(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DestinationDisplayInfoError",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -34281,6 +34326,29 @@ func (ec *executionContext) unmarshalInputVerifyContactMethodInput(ctx context.C
 
 // region    ************************** interface.gotpl ***************************
 
+func (ec *executionContext) _InlineDisplayInfo(ctx context.Context, sel ast.SelectionSet, obj InlineDisplayInfo) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	case DestinationDisplayInfo:
+		return ec._DestinationDisplayInfo(ctx, sel, &obj)
+	case *DestinationDisplayInfo:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._DestinationDisplayInfo(ctx, sel, obj)
+	case DestinationDisplayInfoError:
+		return ec._DestinationDisplayInfoError(ctx, sel, &obj)
+	case *DestinationDisplayInfoError:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._DestinationDisplayInfoError(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
@@ -35652,7 +35720,7 @@ func (ec *executionContext) _Destination(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
-var destinationDisplayInfoImplementors = []string{"DestinationDisplayInfo"}
+var destinationDisplayInfoImplementors = []string{"DestinationDisplayInfo", "InlineDisplayInfo"}
 
 func (ec *executionContext) _DestinationDisplayInfo(ctx context.Context, sel ast.SelectionSet, obj *DestinationDisplayInfo) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, destinationDisplayInfoImplementors)
@@ -35680,6 +35748,45 @@ func (ec *executionContext) _DestinationDisplayInfo(ctx context.Context, sel ast
 			}
 		case "linkURL":
 			out.Values[i] = ec._DestinationDisplayInfo_linkURL(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var destinationDisplayInfoErrorImplementors = []string{"DestinationDisplayInfoError", "InlineDisplayInfo"}
+
+func (ec *executionContext) _DestinationDisplayInfoError(ctx context.Context, sel ast.SelectionSet, obj *DestinationDisplayInfoError) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, destinationDisplayInfoErrorImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DestinationDisplayInfoError")
+		case "error":
+			out.Values[i] = ec._DestinationDisplayInfoError_error(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -43774,6 +43881,16 @@ func (ec *executionContext) marshalNISOTimestamp2ᚕtimeᚐTimeᚄ(ctx context.C
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalNInlineDisplayInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐInlineDisplayInfo(ctx context.Context, sel ast.SelectionSet, v InlineDisplayInfo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._InlineDisplayInfo(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
