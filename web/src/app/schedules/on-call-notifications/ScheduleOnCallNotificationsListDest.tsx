@@ -10,7 +10,6 @@ import { Add } from '@mui/icons-material'
 import Error from '@mui/icons-material/Error'
 import { gql, useQuery } from 'urql'
 import {
-  DestinationDisplayInfo,
   DestinationDisplayInfoError,
   InlineDisplayInfo,
   Schedule,
