@@ -3,7 +3,6 @@ package graphqlapp
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"strings"
 
 	"github.com/google/uuid"
@@ -94,18 +93,12 @@ func (a *App) CompatNCToDest(ctx context.Context, ncID uuid.UUID) (*graphql2.Des
 			},
 		}, nil
 	case notificationchannel.TypeWebhook:
-		u, err := url.Parse(nc.Value)
-		if err != nil {
-			return nil, err
-		}
-
 		return &graphql2.Destination{
 			Type: destWebhook,
 			Values: []graphql2.FieldValuePair{
 				{
 					FieldID: fieldWebhookURL,
 					Value:   nc.Value,
-					Label:   u.Hostname(),
 				},
 			},
 		}, nil

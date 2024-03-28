@@ -184,35 +184,19 @@ export default function UserContactMethodListDest(
     )
   }
 
-  function getSubText(cm: UserContactMethod): JSX.Element {
-    return (
-      <React.Fragment>
-        {cm.dest.values.map((v) => {
-          const fieldInfo = destinationTypes
-            .find((d) => d.type === cm.dest.type)
-            ?.requiredFields.find((rf) => v.fieldID === rf.fieldID)
+  function getSubText(cm: UserContactMethod): string {
+    let cmText
+    if ('error' in cm.dest.displayInfo) {
+      cmText = `ERROR: ${cm.dest.displayInfo.error}`
+    } else {
+      cmText = cm.dest.displayInfo.text
+    }
 
-          let cmText = v.label
-          if (cm.pending) {
-            cmText = `${cmText} - this contact method will be automatically deleted if not verified`
-          }
-          if (fieldInfo?.hintURL) {
-            return (
-              <Typography component='span' key={v.toString()}>
-                {`${cmText} (`}
-                <AppLink to={fieldInfo.hintURL}>{fieldInfo.hint}</AppLink>)
-              </Typography>
-            )
-          }
+    if (cm.pending) {
+      cmText += ` - this contact method will be automatically deleted if not verified`
+    }
 
-          return (
-            <Typography component='span' key={v.toString()}>
-              {cmText}
-            </Typography>
-          )
-        })}
-      </React.Fragment>
-    )
+    return cmText
   }
 
   return (

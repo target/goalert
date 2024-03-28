@@ -29,35 +29,35 @@ func (a *ContactMethod) Dest(ctx context.Context, obj *contactmethod.ContactMeth
 		return &graphql2.Destination{
 			Type: destTwilioSMS,
 			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldPhoneNumber, Value: obj.Value, Label: a.FormatDestFunc(ctx, notification.DestTypeSMS, obj.Value)},
+				{FieldID: fieldPhoneNumber, Value: obj.Value},
 			},
 		}, nil
 	case contactmethod.TypeVoice:
 		return &graphql2.Destination{
 			Type: destTwilioVoice,
 			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldPhoneNumber, Value: obj.Value, Label: a.FormatDestFunc(ctx, notification.DestTypeVoice, obj.Value)},
+				{FieldID: fieldPhoneNumber, Value: obj.Value},
 			},
 		}, nil
 	case contactmethod.TypeEmail:
 		return &graphql2.Destination{
 			Type: destSMTP,
 			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldEmailAddress, Value: obj.Value, Label: a.FormatDestFunc(ctx, notification.DestTypeUserEmail, obj.Value)},
+				{FieldID: fieldEmailAddress, Value: obj.Value},
 			},
 		}, nil
 	case contactmethod.TypeWebhook:
 		return &graphql2.Destination{
 			Type: destWebhook,
 			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldWebhookURL, Value: obj.Value, Label: a.FormatDestFunc(ctx, notification.DestTypeUserWebhook, obj.Value)},
+				{FieldID: fieldWebhookURL, Value: obj.Value},
 			},
 		}, nil
 	case contactmethod.TypeSlackDM:
 		return &graphql2.Destination{
 			Type: destSlackDM,
 			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldSlackUserID, Value: obj.Value, Label: a.FormatDestFunc(ctx, notification.ScannableDestType{CM: obj.Type}.DestType(), obj.Value)},
+				{FieldID: fieldSlackUserID, Value: obj.Value},
 			},
 		}, nil
 	}
