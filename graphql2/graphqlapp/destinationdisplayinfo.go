@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 )
 
@@ -26,13 +27,16 @@ func (a *Destination) DisplayInfo(ctx context.Context, obj *graphql2.Destination
 
 	values := make([]graphql2.FieldValueInput, len(obj.Values))
 	for i, v := range obj.Values {
-		values[i] = graphql2.FieldValueInput{FieldID: v.FieldID, Value: v.Value}
+		values[i] = graphql2.FieldValueInput(v)
 	}
 
 	info, err := (*Query)(a)._DestinationDisplayInfo(ctx, graphql2.DestinationInput{Type: obj.Type, Values: values}, true)
 	if err != nil {
-		_, err := errutil.ScrubError(err)
-		return &graphql2.DestinationDisplayInfoError{Error: err.Error()}, nil
+		isUnsafe, safeErr := errutil.ScrubError(err)
+		if isUnsafe {
+			log.Log(ctx, err)
+		}
+		return &graphql2.DestinationDisplayInfoError{Error: safeErr.Error()}, nil
 	}
 
 	return info, nil
