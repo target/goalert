@@ -56,7 +56,6 @@ func TestGenericAPI(t *testing.T) {
 	v := make(url.Values)
 	v.Set("summary", "hello")
 	v.Set("details", "woot")
-	v.Set("meta", "{\"foo\": \"bar\", \"key\": \"value\"}")
 
 	resp, err := http.Post(u, "application/x-www-form-urlencoded", bytes.NewBufferString(v.Encode()))
 	require.NoError(t, err)
