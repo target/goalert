@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/engine/message"
 	"github.com/target/goalert/notification"
@@ -84,10 +85,18 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 		isFirstAlertMessage = stat == nil
 	case notification.MessageTypeAlertStatus:
-		e, err := p.cfg.AlertLogStore.FindOne(ctx, msg.AlertLogID)
+		entry, err := p.cfg.AlertLogStore.FindOne(ctx, msg.AlertLogID)
+		if errors.Is(err, sql.ErrNoRows) {
+			err = nil
+		}
 		if err != nil {
 			return nil, errors.Wrap(err, "lookup alert log entry")
 		}
+		var entryText string
+		if entry != nil {
+			entryText = entry.String(ctx)
+		}
+
 		a, err := p.cfg.AlertStore.FindOne(ctx, msg.AlertID)
 		if err != nil {
 			return nil, fmt.Errorf("lookup original alert: %w", err)
@@ -101,21 +110,21 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 
 		var status notification.AlertState
-		switch e.Type() {
-		case alertlog.TypeAcknowledged:
+		switch a.Status {
+		case alert.StatusActive:
 			status = notification.AlertStateAcknowledged
-		case alertlog.TypeEscalated:
+		case alert.StatusTriggered:
 			status = notification.AlertStateUnacknowledged
-		case alertlog.TypeClosed:
+		case alert.StatusClosed:
 			status = notification.AlertStateClosed
 		}
 
 		notifMsg = notification.AlertStatus{
 			Dest:           msg.Dest,
-			AlertID:        e.AlertID(),
+			AlertID:        a.ID,
 			ServiceID:      a.ServiceID,
 			CallbackID:     msg.ID,
-			LogEntry:       e.String(ctx),
+			LogEntry:       entryText,
 			Summary:        a.Summary,
 			Details:        a.Details,
 			NewAlertState:  status,
