@@ -91,6 +91,7 @@ type ResolverRoot interface {
 	UserOverride() UserOverrideResolver
 	CreateEscalationPolicyStepInput() CreateEscalationPolicyStepInputResolver
 	OnCallNotificationRuleInput() OnCallNotificationRuleInputResolver
+	UpdateEscalationPolicyStepInput() UpdateEscalationPolicyStepInputResolver
 }
 
 type DirectiveRoot struct {
@@ -1023,6 +1024,9 @@ type CreateEscalationPolicyStepInputResolver interface {
 }
 type OnCallNotificationRuleInputResolver interface {
 	Dest(ctx context.Context, obj *OnCallNotificationRuleInput, data *DestinationInput) error
+}
+type UpdateEscalationPolicyStepInputResolver interface {
+	Actions(ctx context.Context, obj *UpdateEscalationPolicyStepInput, data []DestinationInput) error
 }
 
 type executableSchema struct {
@@ -33825,7 +33829,7 @@ func (ec *executionContext) unmarshalInputUpdateEscalationPolicyStepInput(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "delayMinutes", "targets"}
+	fieldsInOrder := [...]string{"id", "delayMinutes", "targets", "actions"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -33853,6 +33857,15 @@ func (ec *executionContext) unmarshalInputUpdateEscalationPolicyStepInput(ctx co
 				return it, err
 			}
 			it.Targets = data
+		case "actions":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("actions"))
+			data, err := ec.unmarshalODestinationInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UpdateEscalationPolicyStepInput().Actions(ctx, &it, data); err != nil {
+				return it, err
+			}
 		}
 	}
 
