@@ -617,7 +617,7 @@ func (m *Mutation) UpdateAlertsByService(ctx context.Context, args graphql2.Upda
 }
 
 func (a *Alert) Meta(ctx context.Context, alert *alert.Alert) ([]graphql2.AlertMetadata, error) {
-	md, err := a.AlertStore.Metadata(ctx, a.DB, alert.ID)
+	md, err := (*App)(a).FindOneAlertMetadata(ctx, alert.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -632,7 +632,7 @@ func (a *Alert) Meta(ctx context.Context, alert *alert.Alert) ([]graphql2.AlertM
 }
 
 func (a *Alert) MetaValue(ctx context.Context, alert *alert.Alert, key string) (string, error) {
-	md, err := a.AlertStore.Metadata(ctx, a.DB, alert.ID)
+	md, err := (*App)(a).FindOneAlertMetadata(ctx, alert.ID)
 	if err != nil {
 		return "", err
 	}

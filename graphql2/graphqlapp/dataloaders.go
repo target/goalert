@@ -84,6 +84,9 @@ func (app *App) FindOneAlertMetadata(ctx context.Context, id int) (map[string]st
 	if err != nil {
 		return nil, err
 	}
+	if md == nil {
+		return map[string]string{}, nil
+	}
 
 	return md.Meta, nil
 }
