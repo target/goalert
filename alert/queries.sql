@@ -9,23 +9,6 @@ WHERE
     alerts.id = $1
 FOR UPDATE;
 
--- name: Insert :one
-INSERT INTO alerts(summary, details, service_id, source, status, dedup_key)
-    VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING
-    id, created_at;
-
--- name: NoStepsByService :one
-SELECT
-    COALESCE((
-        SELECT
-            TRUE
-        FROM escalation_policies pol
-        JOIN services svc ON svc.id = $1
-        WHERE
-            pol.id = svc.escalation_policy_id
-            AND pol.step_count = 0), FALSE) AS no_steps_by_service;
-
 -- name: RequestAlertEscalationByTime :one
 UPDATE
     escalation_policy_state
