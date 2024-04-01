@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// TableSnapshot is a snapshot of a table's data.
 type TableSnapshot struct {
 	// Name is the name of the table.
 	Name    string
@@ -36,6 +37,7 @@ func (data *columnSort) Swap(i, j int) {
 	}
 }
 
+// Sort sorts the columns and rows of the snapshot.
 func (data *TableSnapshot) Sort() {
 	sort.Sort((*columnSort)(data))
 

@@ -32,31 +32,42 @@ func sqlSplitBlock(delim []byte, blockIdx int, data []byte, atEOF bool) (advance
 	return next + advance, data[:next+len(token)], nil
 }
 
+// https://www.postgresql.org/docs/16/sql-syntax-lexical.html#SQL-SYNTAX-DOLLAR-QUOTING
 var splitRx = regexp.MustCompile(`\$[^$]*\$`)
 
+// sqlSplitQuery is a bufio.SplitFunc that splits the input SQL query data into smaller queries or blocks based on semicolons and custom block patterns.
+//
+// More information on bufio.SplitFunc can be found here:
+// https://pkg.go.dev/bufio#SplitFunc
 func sqlSplitQuery(data []byte, atEOF bool) (advance int, token []byte, err error) {
+	// If there's no more data and we're at the end of the file, return no data.
 	if atEOF && len(data) == 0 {
 		return 0, nil, nil
 	}
+
+	// Find the index of the first semicolon, which typically delimits SQL statements.
 	semiIdx := bytes.IndexRune(data, ';')
 
-	idx := splitRx.FindIndex(data)
-	if idx != nil && (semiIdx == -1 || semiIdx > idx[0]) {
-		// have block start and it comes before semi (or no semi)
-		return sqlSplitBlock(data[idx[0]:idx[1]], idx[0], data, atEOF)
+	// Attempt to find the start and end indices of a predefined block pattern in the data.
+	blockIdx := splitRx.FindIndex(data)
+
+	// Handling for cases with a predefined block pattern and where a semicolon does NOT precede the block pattern.
+	if blockIdx != nil && (semiIdx == -1 || semiIdx > blockIdx[0]) {
+		blockDelim := data[blockIdx[0]:blockIdx[1]]
+		// Process the delimited block separately, considering its specific start position within 'data'.
+		return sqlSplitBlock(blockDelim, blockIdx[0], data, atEOF)
 	}
 
-	// no block, or it comes later
 	if semiIdx == -1 {
 		if atEOF {
-			// return rest as the final query
+			// Returning the rest of the data as the final query when no more delimiters are found and we're at EOF.
 			return len(data), data, nil
 		}
 
-		return 0, nil, nil
+		return 0, nil, nil // Waiting for more data or a delimiter.
 	}
 
-	// return up to semi
+	// Return data up to the first semicolon as a discrete SQL statement.
 	return semiIdx + 1, data[:semiIdx], nil
 }
 

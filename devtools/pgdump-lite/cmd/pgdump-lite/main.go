@@ -7,8 +7,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/target/goalert/devtools/pgdump-lite"
+	"github.com/target/goalert/devtools/pgdump-lite/pgd"
 )
 
 func main() {
@@ -44,9 +46,27 @@ func main() {
 	}
 	defer conn.Close()
 
+	dbtx := pgd.DBTX(conn)
+	if !*parallel {
+		tx, err := conn.BeginTx(ctx, pgx.TxOptions{
+			IsoLevel:       pgx.Serializable,
+			AccessMode:     pgx.ReadOnly,
+			DeferrableMode: pgx.Deferrable,
+		})
+		if err != nil {
+			log.Fatalln("ERROR: begin tx:", err)
+		}
+		defer func() {
+			err := tx.Commit(ctx)
+			if err != nil {
+				log.Fatalln("ERROR: commit tx:", err)
+			}
+		}()
+	}
+
 	var s *pgdump.Schema
 	if !*dataOnly {
-		s, err = pgdump.DumpSchema(ctx, conn)
+		s, err = pgdump.DumpSchema(ctx, dbtx)
 		if err != nil {
 			log.Fatalln("ERROR: dump data:", err)
 		}
@@ -64,7 +84,7 @@ func main() {
 		if *parallel {
 			err = pgdump.DumpDataWithSchemaParallel(ctx, conn, out, strings.Split(*skip, ","), s)
 		} else {
-			err = pgdump.DumpDataWithSchema(ctx, conn, out, strings.Split(*skip, ","), s)
+			err = pgdump.DumpDataWithSchema(ctx, dbtx, out, strings.Split(*skip, ","), s)
 		}
 		if err != nil {
 			log.Fatalln("ERROR: dump data:", err)

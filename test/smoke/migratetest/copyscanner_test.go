@@ -23,16 +23,6 @@ COPY "config_limits" FROM stdin WITH (FORMAT csv, HEADER MATCH, ENCODING utf8);
 id,max
 notification_rules_per_user,15
 contact_methods_per_user,10
-ep_steps_per_policy,10
-ep_actions_per_step,20
-participants_per_rotation,50
-rules_per_schedule,30
-integration_keys_per_service,30
-unacked_alerts_per_service,200
-targets_per_schedule,10
-heartbeat_monitors_per_service,30
-user_overrides_per_schedule,35
-calendar_subscriptions_per_user,15
 \.
 
 `
@@ -58,18 +48,8 @@ calendar_subscriptions_per_user,15
 	require.Equal(t, "config_limits", table.Name)
 	require.Equal(t, []string{"id", "max"}, table.Columns)
 	require.Equal(t, [][]string{ // sorted
-		{"calendar_subscriptions_per_user", "15"},
 		{"contact_methods_per_user", "10"},
-		{"ep_actions_per_step", "20"},
-		{"ep_steps_per_policy", "10"},
-		{"heartbeat_monitors_per_service", "30"},
-		{"integration_keys_per_service", "30"},
 		{"notification_rules_per_user", "15"},
-		{"participants_per_rotation", "50"},
-		{"rules_per_schedule", "30"},
-		{"targets_per_schedule", "10"},
-		{"unacked_alerts_per_service", "200"},
-		{"user_overrides_per_schedule", "35"},
 	}, table.Rows)
 
 	require.False(t, s.Scan())

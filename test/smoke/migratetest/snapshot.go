@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/devtools/pgdump-lite"
 )
 
+// Snapshot is a snapshot of a database's schema and data.
 type Snapshot struct {
 	Schema    *pgdump.Schema
 	TableData []TableSnapshot
@@ -17,6 +18,7 @@ type Snapshot struct {
 var snapshotBuf bytes.Buffer
 var mx sync.Mutex
 
+// NewSnapshotURL will create a new Snapshot from a database URL.
 func NewSnapshotURL(ctx context.Context, dbURL string) (*Snapshot, error) {
 	cfg, err := pgxpool.ParseConfig(dbURL)
 	if err != nil {
@@ -32,6 +34,7 @@ func NewSnapshotURL(ctx context.Context, dbURL string) (*Snapshot, error) {
 	return NewSnapshot(ctx, db)
 }
 
+// NewSnapshot will create a new Snapshot from a database connection.
 func NewSnapshot(ctx context.Context, db *pgxpool.Pool) (*Snapshot, error) {
 	mx.Lock()
 	defer mx.Unlock()

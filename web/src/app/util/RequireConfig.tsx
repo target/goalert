@@ -68,7 +68,6 @@ const expDestQuery = gql`
       type
       name
       enabled
-      disabledMessage
       userDisclaimer
       supportsStatusUpdates
       statusUpdatesRequired
