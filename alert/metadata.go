@@ -20,9 +20,9 @@ type metadataDBFormat struct {
 	AlertMetaV1 map[string]string
 }
 
-// Metadata returns the metadata for a single alert.
-func (s *Store) Metadata(ctx context.Context, db gadb.DBTX, alertID int) (map[string]string, error) {
-	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
+// Metadata returns the metadata for a single alert. If err == nil, meta is guaranteed to be non-nil. If the alert has no metadata, an empty map is returned.
+func (s *Store) Metadata(ctx context.Context, db gadb.DBTX, alertID int) (meta map[string]string, err error) {
+	err = permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
 	}

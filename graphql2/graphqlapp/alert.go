@@ -626,7 +626,7 @@ func (a *Alert) Meta(ctx context.Context, alert *alert.Alert) ([]graphql2.AlertM
 		alertMeta = append(alertMeta, graphql2.AlertMetadata{Key: k, Value: v})
 	}
 	sort.Slice(alertMeta, func(i, j int) bool {
-		return strings.ToLower(alertMeta[i].Key) < strings.ToLower(alertMeta[j].Key)
+		return alertMeta[i].Key < alertMeta[j].Key
 	})
 	return alertMeta, nil
 }
@@ -635,10 +635,6 @@ func (a *Alert) MetaValue(ctx context.Context, alert *alert.Alert, key string) (
 	md, err := a.AlertStore.Metadata(ctx, a.DB, alert.ID)
 	if err != nil {
 		return "", err
-	}
-
-	if md == nil {
-		return "", nil
 	}
 
 	return md[key], nil
