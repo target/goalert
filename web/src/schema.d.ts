@@ -6,7 +6,7 @@ export interface Alert {
   details: string
   id: string
   meta?: null | AlertMetadata[]
-  metaValue?: null | string
+  metaValue: string
   metrics?: null | AlertMetric
   noiseReason?: null | string
   pendingNotifications: AlertPendingNotification[]
