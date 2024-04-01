@@ -266,7 +266,7 @@ func TestMigrations(t *testing.T) {
 		t.Helper()
 
 		snap, err := migratetest.NewSnapshotURL(context.Background(), testURL)
-		require.NoError(t, err, "failed to create snapshot")
+		require.NoErrorf(t, err, "failed to create snapshot for %s", name)
 		return snap
 	}
 
