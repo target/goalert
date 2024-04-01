@@ -48,6 +48,7 @@ func isID(n ast.Node) bool {
 	return false
 }
 
+// isLiteral returns true if the node is a literal value (scalar or array of scalar values).
 func isLiteral(n ast.Node) bool {
 	switch t := n.(type) {
 	case *ast.StringNode:
@@ -69,32 +70,37 @@ func isLiteral(n ast.Node) bool {
 	return true
 }
 
+// containsClause returns a Clause if the binary node is a contains/not_contains clause.
+//
+// The clause must be in the form:
+//
+//	indexOf(<field>, <value>) == -1 // not_contains
+//
+// or
+//
+//	indexOf(<field>, <value>) != -1 // contains
 func containsClause(n *ast.BinaryNode) (clause *graphql2.Clause, ok bool) {
 	call, ok := n.Left.(*ast.BuiltinNode)
 	if !ok {
 		return nil, false
 	}
-	un, ok := n.Right.(*ast.UnaryNode)
-	if !ok || un.Operator != "-" {
-		return nil, false
-	}
-	val, ok := un.Node.(*ast.IntegerNode)
-	if !ok || val.Value != 1 {
+
+	if n.Right.String() != "-1" {
 		return nil, false
 	}
 
-	if call.Name != "indexOf" {
+	if call.Name != "indexOf" { // indexOf(<field>, <value>)
 		return nil, false
 	}
 	if len(call.Arguments) != 2 {
 		return nil, false
 	}
 
-	if !isID(call.Arguments[0]) {
+	if !isID(call.Arguments[0]) { // <field> must be an identifier
 		return nil, false
 	}
 
-	if !isLiteral(call.Arguments[1]) {
+	if !isLiteral(call.Arguments[1]) { // <value> must be a literal
 		return nil, false
 	}
 
