@@ -33,8 +33,9 @@ func gqlErrTooComplex(ctx context.Context) error {
 	}
 }
 
-var supportedOperators = []string{"==", "!=", "<", ">", "<=", ">=", "in"}
+var supportedOperators = []string{"==", "!=", "<", ">", "<=", ">=", "in", "contains", "matches"}
 
+// isID returns true if the node is a valid identifier.
 func isID(n ast.Node) bool {
 	switch t := n.(type) {
 	case *ast.IdentifierNode:
@@ -70,57 +71,7 @@ func isLiteral(n ast.Node) bool {
 	return true
 }
 
-// containsClause returns a Clause if the binary node is a contains/not_contains clause.
-//
-// The clause must be in the form:
-//
-//	indexOf(<field>, <value>) == -1 // not_contains
-//
-// or
-//
-//	indexOf(<field>, <value>) != -1 // contains
-func containsClause(n *ast.BinaryNode) (clause *graphql2.Clause, ok bool) {
-	call, ok := n.Left.(*ast.BuiltinNode)
-	if !ok {
-		return nil, false
-	}
-
-	if n.Right.String() != "-1" {
-		return nil, false
-	}
-
-	if call.Name != "indexOf" { // indexOf(<field>, <value>)
-		return nil, false
-	}
-	if len(call.Arguments) != 2 {
-		return nil, false
-	}
-
-	if !isID(call.Arguments[0]) { // <field> must be an identifier
-		return nil, false
-	}
-
-	if !isLiteral(call.Arguments[1]) { // <value> must be a literal
-		return nil, false
-	}
-
-	var op string
-	switch n.Operator {
-	case "==":
-		op = "not_contains"
-	case "!=":
-		op = "contains"
-	default:
-		return nil, false
-	}
-
-	return &graphql2.Clause{
-		Field:    call.Arguments[0].String(),
-		Operator: op,
-		Value:    litToJSON(call.Arguments[1]),
-	}, true
-}
-
+// litToJSON converts a literal node to a JSON string.
 func litToJSON(n ast.Node) string {
 	if !isLiteral(n) {
 		panic("not a literal")
@@ -146,38 +97,50 @@ func litToJSON(n ast.Node) string {
 	return fmt.Sprintf("[%s]", strings.Join(vals, ","))
 }
 
+// getBinaryNode returns the binary node and whether it should be negated.
+func getBinaryNode(n ast.Node) (node *ast.BinaryNode, negate bool) {
+	if un, ok := n.(*ast.UnaryNode); ok && un.Operator == "not" {
+		negate = true
+		node, _ = un.Node.(*ast.BinaryNode)
+	} else {
+		node, _ = n.(*ast.BinaryNode)
+	}
+
+	return node, negate
+}
+
+// exprToCondition converts an expression string to a Condition.
 func exprToCondition(expr string) (*graphql2.Condition, error) {
 	tree, err := parser.Parse(expr)
 	if err != nil {
 		return nil, err
 	}
 
-	top, ok := tree.Node.(*ast.BinaryNode)
-	if !ok {
+	top, topNegate := getBinaryNode(tree.Node)
+	if top == nil {
 		return nil, errTooComplex
 	}
 
 	var clauses []graphql2.Clause
-	var handleBinary func(n *ast.BinaryNode) error
-	handleBinary = func(n *ast.BinaryNode) error {
-		if clause, ok := containsClause(n); ok {
-			fmt.Println("CONTAINS CLAUSE:", clause)
-			clauses = append(clauses, *clause)
-			return nil
-		}
-		if n.Operator == "and" || n.Operator == "&&" {
-			l, ok := n.Left.(*ast.BinaryNode)
-			if !ok {
+	var handleBinary func(n *ast.BinaryNode, negate bool) error
+	handleBinary = func(n *ast.BinaryNode, negate bool) error {
+		if n.Operator == "and" || n.Operator == "&&" { // AND, process left hand side first, then right hand side
+			if negate {
+				// This would require inverting the remaining expression which
+				// would equal to an OR operation which is not supported.
 				return errTooComplex
 			}
-			r, ok := n.Right.(*ast.BinaryNode)
-			if !ok {
+
+			left, leftNegate := getBinaryNode(n.Left)
+			right, rightNegate := getBinaryNode(n.Right)
+			if left == nil || right == nil {
 				return errTooComplex
 			}
-			if err := handleBinary(l); err != nil {
+
+			if err := handleBinary(left, leftNegate); err != nil {
 				return err
 			}
-			if err := handleBinary(r); err != nil {
+			if err := handleBinary(right, rightNegate); err != nil {
 				return err
 			}
 			return nil
@@ -199,12 +162,13 @@ func exprToCondition(expr string) (*graphql2.Condition, error) {
 			Field:    n.Left.String(),
 			Operator: n.Operator,
 			Value:    litToJSON(n.Right),
+			Negate:   negate,
 		})
 
 		return nil
 	}
 
-	if err := handleBinary(top); err != nil {
+	if err := handleBinary(top, topNegate); err != nil {
 		return nil, err
 	}
 
@@ -265,47 +229,46 @@ func goToExpr(val any) (ast.Node, error) {
 	return nil, errors.New("invalid value")
 }
 
+func clauseToExpr(path string, c graphql2.ClauseInput) (string, error) {
+
+	left, err := parser.Parse(c.Field)
+	if err != nil {
+		return "", validation.NewFieldError(path+".field", "invalid field")
+	}
+	if !isID(left.Node) {
+		return "", validation.NewFieldError(path+".field", "invalid field")
+	}
+
+	rightNode, err := jsonToExprValue(c.Value)
+	if err != nil {
+		return "", validation.NewFieldError(path+".value", err.Error())
+	}
+
+	if !slices.Contains(supportedOperators, c.Operator) {
+		return "", validation.NewFieldError(path+".operator", "unsupported operator")
+	}
+
+	if _, ok := left.Node.(*ast.IdentifierNode); !ok {
+		return "", validation.NewFieldError(path+".field", "invalid field")
+	}
+
+	var negateStr string
+	if c.Negate {
+		negateStr = "not "
+	}
+	return fmt.Sprintf("%s %s%s %s", left.Node.String(), negateStr, c.Operator, rightNode.String()), nil
+}
+
 func (e *Expr) ConditionToExpr(ctx context.Context, _ *graphql2.Expr, input graphql2.ConditionToExprInput) (string, error) {
 	var exprs []string
 	for i, c := range input.Condition.Clauses {
-		path := fmt.Sprintf("input.condition[%d]", i)
-
-		left, err := parser.Parse(c.Field)
+		str, err := clauseToExpr(fmt.Sprintf("input.condition[%d]", i), c)
 		if err != nil {
-			addInputError(ctx, validation.NewFieldError(path+".field", "invalid field"))
-			return "", errAlreadySet
-		}
-		if !isID(left.Node) {
-			addInputError(ctx, validation.NewFieldError(path+".field", "invalid field"))
+			addInputError(ctx, err)
 			return "", errAlreadySet
 		}
 
-		rightNode, err := jsonToExprValue(c.Value)
-		if err != nil {
-			addInputError(ctx, validation.NewFieldError(path+".value", err.Error()))
-			return "", errAlreadySet
-		}
-
-		if c.Operator == "contains" || c.Operator == "not_contains" {
-			op := "!="
-			if c.Operator == "not_contains" {
-				op = "=="
-			}
-			exprs = append(exprs, fmt.Sprintf("indexOf(%s, %s) %s -1", left.Node.String(), rightNode.String(), op))
-			continue
-		}
-
-		if !slices.Contains(supportedOperators, c.Operator) {
-			addInputError(ctx, validation.NewFieldError(path+".operator", "unsupported operator"))
-			return "", errAlreadySet
-		}
-
-		if _, ok := left.Node.(*ast.IdentifierNode); !ok {
-			addInputError(ctx, validation.NewFieldError(path+".field", "invalid field"))
-			return "", errAlreadySet
-		}
-
-		exprs = append(exprs, fmt.Sprintf("%s %s %s", left.Node.String(), c.Operator, rightNode.String()))
+		exprs = append(exprs, str)
 	}
 
 	return strings.Join(exprs, " and "), nil

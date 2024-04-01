@@ -118,12 +118,14 @@ export interface CalcRotationHandoffTimesInput {
 
 export interface Clause {
   field: string
+  not: boolean
   operator: string
   value: string
 }
 
 export interface ClauseInput {
   field: string
+  negate: boolean
   operator: string
   value: string
 }

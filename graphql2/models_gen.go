@@ -89,7 +89,10 @@ type CalcRotationHandoffTimesInput struct {
 type Clause struct {
 	Field    string `json:"field"`
 	Operator string `json:"operator"`
-	Value    string `json:"value"`
+	// Value is the JSON-encoded value of the clause.
+	Value string `json:"value"`
+	// Negate indicates whether the clause should be negated (e.g., not contains vs. contains).
+	Negate bool `json:"negate"`
 }
 
 type ClauseInput struct {
@@ -97,6 +100,8 @@ type ClauseInput struct {
 	Operator string `json:"operator"`
 	// Value is the JSON-encoded value of the clause.
 	Value string `json:"value"`
+	// Negate indicates whether the clause should be negated (e.g., not contains vs. contains).
+	Negate bool `json:"negate"`
 }
 
 type ClearTemporarySchedulesInput struct {

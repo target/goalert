@@ -30,7 +30,16 @@ type Condition {
 type Clause {
   field: String!
   operator: String!
+
+  """
+  Value is the JSON-encoded value of the clause.
+  """
   value: String!
+
+  """
+  Negate indicates whether the clause should be negated (e.g., not contains vs. contains).
+  """
+  negate: Boolean!
 }
 
 input ConditionToExprInput {
@@ -49,4 +58,9 @@ input ClauseInput {
   Value is the JSON-encoded value of the clause.
   """
   value: String!
+
+  """
+  Negate indicates whether the clause should be negated (e.g., not contains vs. contains).
+  """
+  negate: Boolean!
 }
