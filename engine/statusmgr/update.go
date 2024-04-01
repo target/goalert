@@ -84,7 +84,6 @@ func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
 		eventType = gadb.EnumAlertLogEventClosed
 	}
 
-	var entryID sql.NullInt64
 	entry, err := q.StatusMgrLogEntry(ctx, gadb.StatusMgrLogEntryParams{
 		AlertID:   sub.AlertID,
 		EventType: eventType,
@@ -95,9 +94,6 @@ func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
 	}
 	if err != nil {
 		return fmt.Errorf("lookup latest log entry of '%s' for alert #%d: %w", eventType, sub.AlertID, err)
-	}
-	if entry.ID > 0 {
-		entryID = sql.NullInt64{Int64: int64(entry.ID), Valid: true}
 	}
 
 	switch {
@@ -121,7 +117,7 @@ func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
 			CmID:    sub.ContactMethodID.UUID,
 			AlertID: sub.AlertID,
 			UserID:  info.UserID,
-			LogID:   entryID,
+			LogID:   sql.NullInt64{Valid: true, Int64: entry.ID},
 		})
 		if err != nil {
 			return fmt.Errorf("send user status update message: %w", err)
@@ -131,7 +127,7 @@ func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
 			ID:        uuid.New(),
 			ChannelID: sub.ChannelID.UUID,
 			AlertID:   sub.AlertID,
-			LogID:     entryID,
+			LogID:     sql.NullInt64{Valid: true, Int64: entry.ID},
 		})
 		if err != nil {
 			return fmt.Errorf("send channel status update message: %w", err)
