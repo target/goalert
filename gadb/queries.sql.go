@@ -489,15 +489,20 @@ WHERE
     alert_id = ANY ($1::bigint[])
 `
 
-func (q *Queries) AlertManyMetadata(ctx context.Context, alertIds []int64) ([]AlertDatum, error) {
+type AlertManyMetadataRow struct {
+	AlertID  int64
+	Metadata pqtype.NullRawMessage
+}
+
+func (q *Queries) AlertManyMetadata(ctx context.Context, alertIds []int64) ([]AlertManyMetadataRow, error) {
 	rows, err := q.db.QueryContext(ctx, alertManyMetadata, pq.Array(alertIds))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []AlertDatum
+	var items []AlertManyMetadataRow
 	for rows.Next() {
-		var i AlertDatum
+		var i AlertManyMetadataRow
 		if err := rows.Scan(&i.AlertID, &i.Metadata); err != nil {
 			return nil, err
 		}

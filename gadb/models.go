@@ -763,6 +763,7 @@ type Alert struct {
 
 type AlertDatum struct {
 	AlertID  int64
+	ID       int64
 	Metadata pqtype.NullRawMessage
 }
 
