@@ -10,7 +10,7 @@ jobs:
     if: github.event.pull_request.draft == false
     name: Label the PR size
     steps:
-      - uses: mastercactapus/pr-size-labeler@ae422642f90ec42483651789f5501c149683f93d # https://github.com/CodelyTV/pr-size-labeler/pull/61, updated with latest from main
+      - uses: mastercactapus/pr-size-labeler@eb6a25f40d6a3327581aca35839b60d419e8019a # https://github.com/CodelyTV/pr-size-labeler/pull/61, updated with latest from main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           xs_label: 'size/xs'
