@@ -1,5 +1,5 @@
 import { Chance } from 'chance'
-import { testScreen, testScreenWithFlags } from '../support/e2e'
+import { testScreen } from '../support/e2e'
 import { Schedule } from '../../schema'
 import users from '../fixtures/users.json'
 
