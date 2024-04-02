@@ -1,13 +1,15 @@
 package smoke
 
 import (
+	"context"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/test/smoke/harness"
 )
 
-// TestStatusUpdatesChannel tests status updates to notification channels.
-func TestStatusUpdatesChannel(t *testing.T) {
+// TestStatusUpdatesNoLog tests status updates continue to work when no logs are present.
+func TestStatusUpdatesNoLog(t *testing.T) {
 	t.Parallel()
 
 	sql := `
@@ -37,26 +39,19 @@ func TestStatusUpdatesChannel(t *testing.T) {
 	msg := h.Slack().Channel("test").ExpectMessage("testing")
 	msg.AssertColor("#862421")
 	msg.AssertActions()
-	a.Ack()
 
-	updated := msg.ExpectUpdate()
-	updated.AssertText("Ack", "testing")
-	updated.AssertNotText("details")
-	updated.AssertColor("#867321")
-	updated.AssertActions()
-
-	a.Escalate()
-
-	updated = msg.ExpectUpdate()
-	updated.AssertText("Escalated", "testing")
-	updated.AssertNotText("details")
-	updated.AssertColor("#862421")
-	updated.AssertActions()
-	msg.ExpectBroadcastReply("testing")
-
+	// ensure no processing happens
+	err := h.App().Pause(context.Background())
+	require.NoError(t, err)
 	a.Close()
 
-	updated = msg.ExpectUpdate()
+	_, err = h.App().DB().Exec("delete from alert_logs;")
+	require.NoError(t, err)
+
+	err = h.App().Resume(context.Background())
+	require.NoError(t, err)
+
+	updated := msg.ExpectUpdate()
 	updated.AssertText("Closed", "testing")
 	updated.AssertNotText("details")
 	updated.AssertColor("#218626")
