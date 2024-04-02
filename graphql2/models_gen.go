@@ -42,6 +42,16 @@ type AlertLogEntryConnection struct {
 	PageInfo *PageInfo        `json:"pageInfo"`
 }
 
+type AlertMetadata struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type AlertMetadataInput struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
 type AlertMetricsOptions struct {
 	RInterval         timeutil.ISORInterval `json:"rInterval"`
 	FilterByServiceID []string              `json:"filterByServiceID,omitempty"`
@@ -119,11 +129,12 @@ type ConfigValueInput struct {
 }
 
 type CreateAlertInput struct {
-	Summary   string  `json:"summary"`
-	Details   *string `json:"details,omitempty"`
-	ServiceID string  `json:"serviceID"`
-	Sanitize  *bool   `json:"sanitize,omitempty"`
-	Dedup     *string `json:"dedup,omitempty"`
+	Summary   string               `json:"summary"`
+	Details   *string              `json:"details,omitempty"`
+	ServiceID string               `json:"serviceID"`
+	Sanitize  *bool                `json:"sanitize,omitempty"`
+	Dedup     *string              `json:"dedup,omitempty"`
+	Meta      []AlertMetadataInput `json:"meta,omitempty"`
 }
 
 type CreateBasicAuthInput struct {
@@ -308,7 +319,7 @@ type DestinationDisplayInfo struct {
 	Text string `json:"text"`
 	// URL to an icon to display for this destination
 	IconURL string `json:"iconURL"`
-	// alt text for the icon
+	// alt text for the icon, should be human-readable and usable in place of the icon
 	IconAltText string `json:"iconAltText"`
 	// URL to link to for more information about this destination
 	LinkURL string `json:"linkURL"`
@@ -370,8 +381,7 @@ type DestinationTypeInfo struct {
 	// URL to an icon to display for the destination type
 	IconURL string `json:"iconURL"`
 	// alt text for the icon, should be usable in place of the icon
-	IconAltText     string `json:"iconAltText"`
-	DisabledMessage string `json:"disabledMessage"`
+	IconAltText string `json:"iconAltText"`
 	// if false, the destination type is disabled and cannot be used
 	Enabled        bool                     `json:"enabled"`
 	RequiredFields []DestinationFieldConfig `json:"requiredFields"`
@@ -759,6 +769,7 @@ type UpdateEscalationPolicyStepInput struct {
 	ID           string                 `json:"id"`
 	DelayMinutes *int                   `json:"delayMinutes,omitempty"`
 	Targets      []assignment.RawTarget `json:"targets,omitempty"`
+	Actions      []DestinationInput     `json:"actions,omitempty"`
 }
 
 type UpdateGQLAPIKeyInput struct {

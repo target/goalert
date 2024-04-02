@@ -5,6 +5,8 @@ export interface Alert {
   createdAt: ISOTimestamp
   details: string
   id: string
+  meta?: null | AlertMetadata[]
+  metaValue: string
   metrics?: null | AlertMetric
   noiseReason?: null | string
   pendingNotifications: AlertPendingNotification[]
@@ -36,6 +38,16 @@ export interface AlertLogEntry {
 export interface AlertLogEntryConnection {
   nodes: AlertLogEntry[]
   pageInfo: PageInfo
+}
+
+export interface AlertMetadata {
+  key: string
+  value: string
+}
+
+export interface AlertMetadataInput {
+  key: string
+  value: string
 }
 
 export interface AlertMetric {
@@ -162,6 +174,7 @@ export type ContactMethodType =
 export interface CreateAlertInput {
   dedup?: null | string
   details?: null | string
+  meta?: null | AlertMetadataInput[]
   sanitize?: null | boolean
   serviceID: string
   summary: string
@@ -391,7 +404,6 @@ export interface DestinationInput {
 export type DestinationType = string
 
 export interface DestinationTypeInfo {
-  disabledMessage: string
   enabled: boolean
   iconAltText: string
   iconURL: string
@@ -1120,6 +1132,7 @@ export interface UpdateEscalationPolicyInput {
 }
 
 export interface UpdateEscalationPolicyStepInput {
+  actions?: null | DestinationInput[]
   delayMinutes?: null | number
   id: string
   targets?: null | TargetInput[]

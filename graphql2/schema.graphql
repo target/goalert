@@ -375,6 +375,11 @@ input UpdateAlertsByServiceInput {
   newStatus: AlertStatus!
 }
 
+input AlertMetadataInput {
+  key: String!
+  value: String!
+}
+
 input CreateAlertInput {
   summary: String!
   details: String
@@ -387,6 +392,8 @@ input CreateAlertInput {
   #
   # It can also be used to close an alert using closeMatchingAlert mutation.
   dedup: String
+
+  meta: [AlertMetadataInput!]
 }
 
 input CloseMatchingAlertInput {
@@ -641,7 +648,7 @@ input OnCallNotificationRuleInput {
   target is required if dest is unset
   """
   target: TargetInput
-  dest: DestinationInput @experimental(flagName: "dest-types")
+  dest: DestinationInput
 
   # time indicates a time-of-day (in the schedule's time zone)
   # to send a message of current on-call users.
@@ -659,7 +666,7 @@ input OnCallNotificationRuleInput {
 type OnCallNotificationRule {
   id: ID!
   target: Target!
-  dest: Destination! @experimental(flagName: "dest-types")
+  dest: Destination!
   time: ClockTime
   weekdayFilter: WeekdayFilter
 }
@@ -835,7 +842,7 @@ input UserSearchOptions {
   omit: [ID!]
   CMValue: String = ""
   CMType: ContactMethodType
-  dest: DestinationInput @experimental(flagName: "dest-types")
+  dest: DestinationInput
 
   # Include only favorited services in the results.
   favoritesOnly: Boolean = false
@@ -904,6 +911,10 @@ type Alert {
   metrics: AlertMetric
 
   noiseReason: String
+
+  meta: [AlertMetadata!]
+
+  metaValue(key: String!): String!
 }
 
 type AlertMetric {
@@ -951,6 +962,11 @@ type AlertState {
   lastEscalation: ISOTimestamp!
   stepNumber: Int!
   repeatCount: Int!
+}
+
+type AlertMetadata {
+  key: String!
+  value: String!
 }
 
 type Service {
@@ -1186,7 +1202,7 @@ type UserContactMethod {
   id: ID!
   type: ContactMethodType
 
-  dest: Destination! @experimental(flagName: "dest-types")
+  dest: Destination!
 
   # User-defined label for this contact method.
   name: String!

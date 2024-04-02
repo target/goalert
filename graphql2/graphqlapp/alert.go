@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -403,7 +404,43 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 		a.Dedup = alert.NewUserDedup(*input.Dedup)
 	}
 
-	return m.AlertStore.Create(ctx, a)
+	var meta map[string]string
+	if input.Meta != nil {
+		meta = make(map[string]string, len(input.Meta))
+		for _, m := range input.Meta {
+			meta[m.Key] = m.Value
+		}
+
+		// early validation of metadata, not required, but prevents starting a transaction and holding the service lock if we know metadata is invalid
+		err := alert.ValidateMetadata(meta)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var newAlert *alert.Alert
+	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
+		var err error
+		newAlert, err = m.AlertStore.CreateTx(ctx, tx, a)
+		if err != nil {
+			return err
+		}
+
+		if meta != nil {
+			err = m.AlertStore.SetMetadataTx(ctx, tx, newAlert.ID, meta)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return newAlert, nil
 }
 
 func (a *Alert) NoiseReason(ctx context.Context, raw *alert.Alert) (*string, error) {
@@ -577,4 +614,28 @@ func (m *Mutation) UpdateAlertsByService(ctx context.Context, args graphql2.Upda
 	}
 
 	return true, nil
+}
+
+func (a *Alert) Meta(ctx context.Context, alert *alert.Alert) ([]graphql2.AlertMetadata, error) {
+	md, err := (*App)(a).FindOneAlertMetadata(ctx, alert.ID)
+	if err != nil {
+		return nil, err
+	}
+	var alertMeta []graphql2.AlertMetadata
+	for k, v := range md {
+		alertMeta = append(alertMeta, graphql2.AlertMetadata{Key: k, Value: v})
+	}
+	sort.Slice(alertMeta, func(i, j int) bool {
+		return alertMeta[i].Key < alertMeta[j].Key
+	})
+	return alertMeta, nil
+}
+
+func (a *Alert) MetaValue(ctx context.Context, alert *alert.Alert, key string) (string, error) {
+	md, err := (*App)(a).FindOneAlertMetadata(ctx, alert.ID)
+	if err != nil {
+		return "", err
+	}
+
+	return md[key], nil
 }
