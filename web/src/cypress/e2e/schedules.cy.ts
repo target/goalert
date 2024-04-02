@@ -448,7 +448,7 @@ function testSchedules(screen: ScreenFormat): void {
     })
   })
 
-  describe.only('Schedule On-Call Notifications', () => {
+  describe('Schedule On-Call Notifications', () => {
     let sched: Schedule
 
     it('should show existing notification rules', () => {
