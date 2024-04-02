@@ -113,10 +113,23 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		switch a.Status {
 		case alert.StatusActive:
 			status = notification.AlertStateAcknowledged
+			if entryText == "" {
+				entryText = "Acknowledged (log entry missing)."
+			}
 		case alert.StatusTriggered:
 			status = notification.AlertStateUnacknowledged
+			if entryText == "" {
+				entryText = "Escalated (log entry missing)."
+			}
 		case alert.StatusClosed:
 			status = notification.AlertStateClosed
+			if entryText == "" {
+				entryText = "Closed (log entry missing)."
+			}
+		default:
+			// We want to guarantee we don't send a message for an unknown status
+			// and that entryText is not empty.
+			return nil, fmt.Errorf("unknown alert status: %s", a.Status)
 		}
 
 		notifMsg = notification.AlertStatus{

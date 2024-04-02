@@ -9,7 +9,7 @@ import (
 // dedupStatusMessages will remove old status updates if a newer one exists for the same alert/destination.
 func dedupStatusMessages(messages []Message) ([]Message, []string) {
 	toProcess, result := splitPendingByType(messages, notification.MessageTypeAlertStatus)
-	sort.Slice(toProcess, func(i, j int) bool { return toProcess[i].AlertLogID > toProcess[j].AlertLogID })
+	sort.Slice(toProcess, func(i, j int) bool { return toProcess[i].CreatedAt.After(toProcess[j].CreatedAt) })
 
 	type msgKey struct {
 		alertID int
