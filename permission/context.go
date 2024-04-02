@@ -175,6 +175,15 @@ func UserNullUUID(ctx context.Context) uuid.NullUUID {
 	return uuid.NullUUID{}
 }
 
+// ServiceNullUUID will return the ServiceID associated with a context as a NullUUID.
+func ServiceNullUUID(ctx context.Context) uuid.NullUUID {
+	if id, err := uuid.Parse(ServiceID(ctx)); err == nil {
+		return uuid.NullUUID{UUID: id, Valid: true}
+	}
+
+	return uuid.NullUUID{}
+}
+
 // SystemComponentName will return the component name used to initiate a context.
 func SystemComponentName(ctx context.Context) string {
 	name, _ := ctx.Value(contextKeySystem).(string)
