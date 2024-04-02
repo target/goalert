@@ -35,8 +35,13 @@ const query = gql`
           dest {
             type
             displayInfo {
-              text
-              iconAltText
+              ... on DestinationDisplayInfo {
+                text
+                iconAltText
+              }
+              ... on DestinationDisplayInfoError {
+                error
+              }
             }
           }
         }

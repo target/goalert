@@ -245,7 +245,7 @@ test-components:  $(NODE_DEPS) bin/waitfor
 	yarn playwright install chromium
 	yarn concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
 		"yarn http-server storybook-static -a 127.0.0.1 --port 6008 --silent" \
-		"./bin/waitfor tcp://localhost:6008 && yarn test-storybook --ci --url http://127.0.0.1:6008"
+		"./bin/waitfor tcp://localhost:6008 && yarn test-storybook --ci --url http://127.0.0.1:6008 --maxWorkers 2"
 
 storybook: ensure-yarn $(NODE_DEPS) # Start the Storybook UI
 	yarn storybook

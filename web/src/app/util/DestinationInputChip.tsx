@@ -40,13 +40,16 @@ export default function DestinationInputChip(
     context,
   })
 
+  if (error) {
+    return <DestinationChip error={error.message} onDelete={props.onDelete} />
+  }
+
   return (
     <DestinationChip
       iconAltText={data?.destinationDisplayInfo.iconAltText || ''}
       iconURL={data?.destinationDisplayInfo.iconURL || ''}
       linkURL={data?.destinationDisplayInfo.linkURL || ''}
       text={data?.destinationDisplayInfo.text || ''}
-      error={error?.message}
       onDelete={props.onDelete}
     />
   )

@@ -6,6 +6,7 @@ import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
 import { useArgs } from '@storybook/preview-api'
 import { HttpResponse, graphql } from 'msw'
 import { DestFieldValueError, InputFieldError } from '../util/errtypes'
+import { Destination } from '../../schema'
 
 const meta = {
   title: 'users/UserContactMethodEditDialogDest',
@@ -39,10 +40,15 @@ const meta = {
                           {
                             fieldID: 'phone-number',
                             value: '+15555555555',
-                            label: '+1 555-555-5555',
                           },
                         ],
-                      },
+                        displayInfo: {
+                          text: '+1 555-555-5555',
+                          iconAltText: 'Voice Call',
+                          iconURL: '',
+                          linkURL: '',
+                        },
+                      } satisfies Destination,
                       value: 'http://localhost:8080',
                       statusUpdates: 'DISABLED',
                       disabled: false,
@@ -56,21 +62,24 @@ const meta = {
                         values: [
                           {
                             fieldID: 'first-field',
-                            label: '+1 555-555-5555',
                             value: '+11235550123',
                           },
                           {
                             fieldID: 'second-field',
-                            label: 'email',
                             value: 'foobar@example.com',
                           },
                           {
                             fieldID: 'third-field',
-                            label: 'slack user ID',
                             value: 'slack',
                           },
                         ],
-                      },
+                        displayInfo: {
+                          text: '11235550123',
+                          iconAltText: 'Mulitple Fields Example',
+                          iconURL: '',
+                          linkURL: '',
+                        },
+                      } satisfies Destination,
                       statusUpdates: 'ENABLED',
                       disabled: false,
                       pending: false,
