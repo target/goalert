@@ -57,6 +57,7 @@ func (a Alert) Normalize() (*Alert, error) {
 	}
 	a.Summary = strings.Replace(a.Summary, "\n", " ", -1)
 	a.Summary = strings.Replace(a.Summary, "  ", " ", -1)
+
 	err := validate.Many(
 		validate.Text("Summary", a.Summary, 1, MaxSummaryLength),
 		validate.Text("Details", a.Details, 0, MaxDetailsLength),

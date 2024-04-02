@@ -38,6 +38,10 @@ Triggered for notification of a single alert.
     "AlertID": 79685,
     "Summary": "Example Summary",
     "Details": "Example Details..."
+    "Meta": {
+        "example_field": "example_value",
+        "example_field2": "example_value2"
+    }
 }
 ```
 
