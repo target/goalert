@@ -60,3 +60,38 @@ ON CONFLICT (alert_id)
     RETURNING
         alert_id;
 
+-- name: AlertMetadata :one
+SELECT
+    metadata
+FROM
+    alert_data
+WHERE
+    alert_id = $1;
+
+-- name: AlertManyMetadata :many
+SELECT
+    alert_id,
+    metadata
+FROM
+    alert_data
+WHERE
+    alert_id = ANY (@alert_ids::bigint[]);
+
+-- name: AlertSetMetadata :execrows
+INSERT INTO alert_data(alert_id, metadata)
+SELECT
+    a.id,
+    $2
+FROM
+    alerts a
+WHERE
+    a.id = $1
+    AND a.status != 'closed'
+    AND (a.service_id = $3
+        OR $3 IS NULL) -- ensure the alert is associated with the service, if coming from an integration
+ON CONFLICT (alert_id)
+    DO UPDATE SET
+        metadata = $2
+    WHERE
+        alert_data.alert_id = $1;
+
