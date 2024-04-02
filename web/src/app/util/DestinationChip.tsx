@@ -1,11 +1,9 @@
 import React from 'react'
 import { Chip } from '@mui/material'
-import { DestinationDisplayInfo } from '../../schema'
+import { InlineDisplayInfo } from '../../schema'
 import { DestinationAvatar } from './DestinationAvatar'
 
-export type DestinationChipProps = DestinationDisplayInfo & {
-  error?: string
-
+export type DestinationChipProps = InlineDisplayInfo & {
   // If onDelete is provided, a delete icon will be shown.
   onDelete?: () => void
 }
@@ -20,7 +18,7 @@ export type DestinationChipProps = DestinationDisplayInfo & {
 export default function DestinationChip(
   props: DestinationChipProps,
 ): React.ReactNode {
-  if (props.error) {
+  if ('error' in props) {
     return (
       <Chip
         avatar={<DestinationAvatar error />}

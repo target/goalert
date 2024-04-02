@@ -52,6 +52,9 @@ func (s *ChannelSender) User(ctx context.Context, id string) (*User, error) {
 		usr, err = c.GetUserInfoContext(ctx, id)
 		return err
 	})
+	if rootMsg(err) == "user_not_found" {
+		return nil, validation.NewGenericError("User not found.")
+	}
 	if err != nil {
 		return nil, fmt.Errorf("get user: %w", err)
 	}

@@ -38,51 +38,6 @@ const (
 type FieldValuePair App
 type DestinationDisplayInfo App
 
-func (a *App) FieldValuePair() graphql2.FieldValuePairResolver { return (*FieldValuePair)(a) }
-
-func (a *FieldValuePair) Label(ctx context.Context, fvp *graphql2.FieldValuePair) (string, error) {
-	if fvp.Label != "" {
-		return fvp.Label, nil
-	}
-
-	app := (*App)(a)
-	switch fvp.FieldID {
-	case fieldSlackChanID:
-		ch, err := app.SlackStore.Channel(ctx, fvp.Value)
-		if err != nil {
-			return "", err
-		}
-		return ch.Name, nil
-	case fieldSlackUGID:
-		ug, err := app.SlackStore.UserGroup(ctx, fvp.Value)
-		if err != nil {
-			return "", err
-		}
-
-		return ug.Handle, nil
-	case fieldUserID:
-		u, err := app.FindOneUser(ctx, fvp.Value)
-		if err != nil {
-			return "", err
-		}
-		return u.Name, nil
-	case fieldRotationID:
-		r, err := app.FindOneRotation(ctx, fvp.Value)
-		if err != nil {
-			return "", err
-		}
-		return r.Name, nil
-	case fieldScheduleID:
-		s, err := app.FindOneSchedule(ctx, fvp.Value)
-		if err != nil {
-			return "", err
-		}
-		return s.Name, nil
-	}
-
-	return "", validation.NewGenericError("unsupported fieldID")
-}
-
 func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.DestinationFieldValidateInput) (string, error) {
 	switch input.FieldID {
 	case fieldSlackChanID:
@@ -124,7 +79,7 @@ func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.De
 	return "", validation.NewGenericError("unsupported fieldID")
 }
 
-func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.DestinationFieldSearchInput) (*graphql2.FieldValueConnection, error) {
+func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.DestinationFieldSearchInput) (*graphql2.FieldSearchConnection, error) {
 	favFirst := true
 
 	switch input.FieldID {
@@ -139,16 +94,16 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 			return nil, err
 		}
 
-		var nodes []graphql2.FieldValuePair
+		var nodes []graphql2.FieldSearchResult
 		for _, c := range res.Nodes {
-			nodes = append(nodes, graphql2.FieldValuePair{
+			nodes = append(nodes, graphql2.FieldSearchResult{
 				FieldID: input.FieldID,
 				Value:   c.ID,
 				Label:   c.Name,
 			})
 		}
 
-		return &graphql2.FieldValueConnection{
+		return &graphql2.FieldSearchConnection{
 			Nodes:    nodes,
 			PageInfo: res.PageInfo,
 		}, nil
@@ -163,16 +118,16 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 			return nil, err
 		}
 
-		var nodes []graphql2.FieldValuePair
+		var nodes []graphql2.FieldSearchResult
 		for _, ug := range res.Nodes {
-			nodes = append(nodes, graphql2.FieldValuePair{
+			nodes = append(nodes, graphql2.FieldSearchResult{
 				FieldID: input.FieldID,
 				Value:   ug.ID,
 				Label:   ug.Handle,
 			})
 		}
 
-		return &graphql2.FieldValueConnection{
+		return &graphql2.FieldSearchConnection{
 			Nodes:    nodes,
 			PageInfo: res.PageInfo,
 		}, nil
@@ -188,9 +143,9 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 			return nil, err
 		}
 
-		var nodes []graphql2.FieldValuePair
+		var nodes []graphql2.FieldSearchResult
 		for _, rot := range res.Nodes {
-			nodes = append(nodes, graphql2.FieldValuePair{
+			nodes = append(nodes, graphql2.FieldSearchResult{
 				FieldID:    input.FieldID,
 				Value:      rot.ID,
 				Label:      rot.Name,
@@ -198,7 +153,7 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 			})
 		}
 
-		return &graphql2.FieldValueConnection{
+		return &graphql2.FieldSearchConnection{
 			Nodes:    nodes,
 			PageInfo: res.PageInfo,
 		}, nil
@@ -214,9 +169,9 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 			return nil, err
 		}
 
-		var nodes []graphql2.FieldValuePair
+		var nodes []graphql2.FieldSearchResult
 		for _, sched := range res.Nodes {
-			nodes = append(nodes, graphql2.FieldValuePair{
+			nodes = append(nodes, graphql2.FieldSearchResult{
 				FieldID:    input.FieldID,
 				Value:      sched.ID,
 				Label:      sched.Name,
@@ -224,7 +179,7 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 			})
 		}
 
-		return &graphql2.FieldValueConnection{
+		return &graphql2.FieldSearchConnection{
 			Nodes:    nodes,
 			PageInfo: res.PageInfo,
 		}, nil
@@ -240,9 +195,9 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 			return nil, err
 		}
 
-		var nodes []graphql2.FieldValuePair
+		var nodes []graphql2.FieldSearchResult
 		for _, u := range res.Nodes {
-			nodes = append(nodes, graphql2.FieldValuePair{
+			nodes = append(nodes, graphql2.FieldSearchResult{
 				FieldID:    input.FieldID,
 				Value:      u.ID,
 				Label:      u.Name,
@@ -250,7 +205,7 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 			})
 		}
 
-		return &graphql2.FieldValueConnection{
+		return &graphql2.FieldSearchConnection{
 			Nodes:    nodes,
 			PageInfo: res.PageInfo,
 		}, nil

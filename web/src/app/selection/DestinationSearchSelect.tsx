@@ -3,7 +3,7 @@ import { useQuery, gql } from 'urql'
 import {
   DestinationFieldConfig,
   DestinationType,
-  FieldValueConnection,
+  FieldSearchConnection,
 } from '../../schema'
 import MaterialSelect from './MaterialSelect'
 import { FavoriteIcon } from '../util/SetFavoriteButton'
@@ -68,7 +68,7 @@ export default function DestinationSearchSelect(
 
   // check validation of the input phoneNumber through graphql
   const [{ data, fetching, error }] = useQuery<{
-    destinationFieldSearch: FieldValueConnection
+    destinationFieldSearch: FieldSearchConnection
   }>({
     query: searchOptionsQuery,
     variables: {

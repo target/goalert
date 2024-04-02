@@ -357,7 +357,7 @@ export interface DebugSendSMSInput {
 }
 
 export interface Destination {
-  displayInfo: DestinationDisplayInfo
+  displayInfo: InlineDisplayInfo
   type: DestinationType
   values: FieldValuePair[]
 }
@@ -367,6 +367,10 @@ export interface DestinationDisplayInfo {
   iconURL: string
   linkURL: string
   text: string
+}
+
+export interface DestinationDisplayInfoError {
+  error: string
 }
 
 export interface DestinationFieldConfig {
@@ -454,9 +458,16 @@ export interface EscalationPolicyStep {
   targets: Target[]
 }
 
-export interface FieldValueConnection {
-  nodes: FieldValuePair[]
+export interface FieldSearchConnection {
+  nodes: FieldSearchResult[]
   pageInfo: PageInfo
+}
+
+export interface FieldSearchResult {
+  fieldID: string
+  isFavorite: boolean
+  label: string
+  value: string
 }
 
 export interface FieldValueInput {
@@ -466,8 +477,6 @@ export interface FieldValueInput {
 
 export interface FieldValuePair {
   fieldID: string
-  isFavorite: boolean
-  label: string
   value: string
 }
 
@@ -513,6 +522,10 @@ export type ISODuration = string
 export type ISORInterval = string
 
 export type ISOTimestamp = string
+
+export type InlineDisplayInfo =
+  | DestinationDisplayInfo
+  | DestinationDisplayInfoError
 
 export type Int = string
 
@@ -729,7 +742,7 @@ export interface Query {
   debugMessageStatus: DebugMessageStatusInfo
   debugMessages: DebugMessage[]
   destinationDisplayInfo: DestinationDisplayInfo
-  destinationFieldSearch: FieldValueConnection
+  destinationFieldSearch: FieldSearchConnection
   destinationFieldValidate: boolean
   destinationFieldValueName: string
   destinationTypes: DestinationTypeInfo[]

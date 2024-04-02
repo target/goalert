@@ -8,6 +8,8 @@ import (
 	"github.com/nyaruka/phonenumbers"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 )
 
@@ -18,24 +20,39 @@ type (
 func (a *App) Destination() graphql2.DestinationResolver { return (*Destination)(a) }
 
 // DisplayInfo will return the display information for a destination by mapping to Query.DestinationDisplayInfo.
-func (a *Destination) DisplayInfo(ctx context.Context, obj *graphql2.Destination) (*graphql2.DestinationDisplayInfo, error) {
+func (a *Destination) DisplayInfo(ctx context.Context, obj *graphql2.Destination) (graphql2.InlineDisplayInfo, error) {
 	if obj.DisplayInfo != nil {
 		return obj.DisplayInfo, nil
 	}
 
 	values := make([]graphql2.FieldValueInput, len(obj.Values))
 	for i, v := range obj.Values {
-		values[i] = graphql2.FieldValueInput{FieldID: v.FieldID, Value: v.Value}
+		values[i] = graphql2.FieldValueInput(v)
 	}
 
-	return (*Query)(a).DestinationDisplayInfo(ctx, graphql2.DestinationInput{Type: obj.Type, Values: values})
+	info, err := (*Query)(a)._DestinationDisplayInfo(ctx, graphql2.DestinationInput{Type: obj.Type, Values: values}, true)
+	if err != nil {
+		isUnsafe, safeErr := errutil.ScrubError(err)
+		if isUnsafe {
+			log.Log(ctx, err)
+		}
+		return &graphql2.DestinationDisplayInfoError{Error: safeErr.Error()}, nil
+	}
+
+	return info, nil
 }
 
 func (a *Query) DestinationDisplayInfo(ctx context.Context, dest graphql2.DestinationInput) (*graphql2.DestinationDisplayInfo, error) {
+	return a._DestinationDisplayInfo(ctx, dest, false)
+}
+
+func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest graphql2.DestinationInput, skipValidation bool) (*graphql2.DestinationDisplayInfo, error) {
 	app := (*App)(a)
 	cfg := config.FromContext(ctx)
-	if err := app.ValidateDestination(ctx, "input", &dest); err != nil {
-		return nil, err
+	if !skipValidation {
+		if err := app.ValidateDestination(ctx, "input", &dest); err != nil {
+			return nil, err
+		}
 	}
 	switch dest.Type {
 	case destTwilioSMS:
