@@ -23,6 +23,7 @@ jobs:
           l_max_size: '500'
           xl_label: 'size/xl'
           fail_if_xl: 'true'
+          ignore_deleted: 'true'
           message_if_xl: >
             This PR exceeds the recommended size of 500 lines.
             Please make sure you are NOT addressing multiple issues with one PR.
