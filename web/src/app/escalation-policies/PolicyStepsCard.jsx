@@ -19,6 +19,7 @@ import { useIsWidthDown } from '../util/useWidth'
 import { reorderList } from '../rotations/util'
 import PolicyStepEditDialog from './PolicyStepEditDialog'
 import PolicyStepDeleteDialog from './PolicyStepDeleteDialog'
+import PolicyStepEditDialogDest from './PolicyStepEditDialogDest'
 import OtherActions from '../util/OtherActions'
 import {
   getStepNumber,
@@ -221,11 +222,21 @@ export default function PolicyStepsCard(props) {
       </Dialog>
       <Suspense>
         {editStepID && (
-          <PolicyStepEditDialog
-            escalationPolicyID={escalationPolicyID}
-            onClose={resetEditStep}
-            step={steps.filter((step) => step.id === editStepID)[0]}
-          />
+          <React.Fragment>
+            {hasDestTypesFlag ? (
+              <PolicyStepEditDialogDest
+                escalationPolicyID={escalationPolicyID}
+                onClose={resetEditStep}
+                stepID={editStepID}
+              />
+            ) : (
+              <PolicyStepEditDialog
+                escalationPolicyID={escalationPolicyID}
+                onClose={resetEditStep}
+                step={steps.find((step) => step.id === editStepID)}
+              />
+            )}
+          </React.Fragment>
         )}
         {deleteStep && (
           <PolicyStepDeleteDialog

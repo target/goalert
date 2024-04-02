@@ -479,6 +479,93 @@ func (q *Queries) AlertLogLookupCMType(ctx context.Context, id uuid.UUID) (EnumU
 	return cm_type, err
 }
 
+const alertManyMetadata = `-- name: AlertManyMetadata :many
+SELECT
+    alert_id,
+    metadata
+FROM
+    alert_data
+WHERE
+    alert_id = ANY ($1::bigint[])
+`
+
+type AlertManyMetadataRow struct {
+	AlertID  int64
+	Metadata pqtype.NullRawMessage
+}
+
+func (q *Queries) AlertManyMetadata(ctx context.Context, alertIds []int64) ([]AlertManyMetadataRow, error) {
+	rows, err := q.db.QueryContext(ctx, alertManyMetadata, pq.Array(alertIds))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AlertManyMetadataRow
+	for rows.Next() {
+		var i AlertManyMetadataRow
+		if err := rows.Scan(&i.AlertID, &i.Metadata); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const alertMetadata = `-- name: AlertMetadata :one
+SELECT
+    metadata
+FROM
+    alert_data
+WHERE
+    alert_id = $1
+`
+
+func (q *Queries) AlertMetadata(ctx context.Context, alertID int64) (pqtype.NullRawMessage, error) {
+	row := q.db.QueryRowContext(ctx, alertMetadata, alertID)
+	var metadata pqtype.NullRawMessage
+	err := row.Scan(&metadata)
+	return metadata, err
+}
+
+const alertSetMetadata = `-- name: AlertSetMetadata :execrows
+INSERT INTO alert_data(alert_id, metadata)
+SELECT
+    a.id,
+    $2
+FROM
+    alerts a
+WHERE
+    a.id = $1
+    AND a.status != 'closed'
+    AND (a.service_id = $3
+        OR $3 IS NULL) -- ensure the alert is associated with the service, if coming from an integration
+ON CONFLICT (alert_id)
+    DO UPDATE SET
+        metadata = $2
+    WHERE
+        alert_data.alert_id = $1
+`
+
+type AlertSetMetadataParams struct {
+	ID        int64
+	Metadata  pqtype.NullRawMessage
+	ServiceID uuid.NullUUID
+}
+
+func (q *Queries) AlertSetMetadata(ctx context.Context, arg AlertSetMetadataParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, alertSetMetadata, arg.ID, arg.Metadata, arg.ServiceID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const allPendingMsgDests = `-- name: AllPendingMsgDests :many
 SELECT DISTINCT
     usr.name AS user_name,

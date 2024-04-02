@@ -42,6 +42,16 @@ type AlertLogEntryConnection struct {
 	PageInfo *PageInfo        `json:"pageInfo"`
 }
 
+type AlertMetadata struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type AlertMetadataInput struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
 type AlertMetricsOptions struct {
 	RInterval         timeutil.ISORInterval `json:"rInterval"`
 	FilterByServiceID []string              `json:"filterByServiceID,omitempty"`
@@ -149,11 +159,12 @@ type ConfigValueInput struct {
 }
 
 type CreateAlertInput struct {
-	Summary   string  `json:"summary"`
-	Details   *string `json:"details,omitempty"`
-	ServiceID string  `json:"serviceID"`
-	Sanitize  *bool   `json:"sanitize,omitempty"`
-	Dedup     *string `json:"dedup,omitempty"`
+	Summary   string               `json:"summary"`
+	Details   *string              `json:"details,omitempty"`
+	ServiceID string               `json:"serviceID"`
+	Sanitize  *bool                `json:"sanitize,omitempty"`
+	Dedup     *string              `json:"dedup,omitempty"`
+	Meta      []AlertMetadataInput `json:"meta,omitempty"`
 }
 
 type CreateBasicAuthInput struct {
@@ -800,6 +811,7 @@ type UpdateEscalationPolicyStepInput struct {
 	ID           string                 `json:"id"`
 	DelayMinutes *int                   `json:"delayMinutes,omitempty"`
 	Targets      []assignment.RawTarget `json:"targets,omitempty"`
+	Actions      []DestinationInput     `json:"actions,omitempty"`
 }
 
 type UpdateGQLAPIKeyInput struct {
