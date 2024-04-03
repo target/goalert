@@ -48,6 +48,9 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 
 	// Clear omit list, as we want to process all
 	// subscriptions in the next step.
+	//
+	// We don't want to assign nil to omit, as it
+	// will cause the query to fail.
 	db.omit = db.omit[:0]
 
 	// process up to 100
