@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { adminSessionFile, baseURLFromFlags } from './lib'
+import { adminSessionFile } from './lib'
 import Chance from 'chance'
 const c = new Chance()
 
