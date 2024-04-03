@@ -2052,7 +2052,8 @@ SELECT
 FROM
     alert_status_subscriptions sub
 WHERE
-    sub.last_alert_status !=(
+    sub.id != ANY ($1::bigint[])
+    AND sub.last_alert_status !=(
         SELECT
             status
         FROM
@@ -2072,8 +2073,8 @@ type StatusMgrNextUpdateRow struct {
 	Status          EnumAlertStatus
 }
 
-func (q *Queries) StatusMgrNextUpdate(ctx context.Context) (StatusMgrNextUpdateRow, error) {
-	row := q.db.QueryRowContext(ctx, statusMgrNextUpdate)
+func (q *Queries) StatusMgrNextUpdate(ctx context.Context, dollar_1 []int64) (StatusMgrNextUpdateRow, error) {
+	row := q.db.QueryRowContext(ctx, statusMgrNextUpdate, pq.Array(dollar_1))
 	var i StatusMgrNextUpdateRow
 	err := row.Scan(
 		&i.ID,

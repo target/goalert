@@ -10,6 +10,8 @@ import (
 // DB manages outgoing status updates.
 type DB struct {
 	lock *processinglock.Lock
+
+	omit []int64
 }
 
 // Name returns the name of the module.
