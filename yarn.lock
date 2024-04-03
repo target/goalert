@@ -18767,7 +18767,7 @@ __metadata:
     stylelint-config-standard: 34.0.0
     typescript: 5.2.2
     urql: 4.0.6
-    vite: 5.1.4
+    vite: 5.1.7
     wonka: 6.3.4
     wouter: 2.12.1
   dependenciesMeta:
@@ -21068,9 +21068,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:5.1.4":
-  version: 5.1.4
-  resolution: "vite@npm:5.1.4"
+"vite@npm:5.1.7":
+  version: 5.1.7
+  resolution: "vite@npm:5.1.7"
   dependencies:
     esbuild: ^0.19.3
     fsevents: ~2.3.3
@@ -21104,7 +21104,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: fb8b944c69fd738b412ad10471f01db01ed59b5d7fdf182b836b420b221a8bd5ada74d225a87aaa80cf8d2b693cc4a89ab7c291254a8b4e6faefd93843ebb9d3
+  checksum: d4b363b5f0aed5b34a859108120eac84cf6762527372de814ac037afca9e33dbadd4eb64be8517954093e06f8958e237d1ebf962751963cfc408220edf0cf917
   languageName: node
   linkType: hard
 
