@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/test/smoke/harness"
 )
 
@@ -39,7 +38,7 @@ func TestGQLAPIKeys(t *testing.T) {
 	}
 	`
 
-	h := harness.NewHarnessWithFlags(t, "", "", expflag.FlagSet{expflag.GQLAPIKey})
+	h := harness.NewHarness(t, "", "")
 	defer h.Close()
 
 	var createVars struct {
