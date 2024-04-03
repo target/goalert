@@ -31,9 +31,14 @@ const query = gql`
         weekdayFilter
         dest {
           displayInfo {
-            text
-            iconURL
-            iconAltText
+            ... on DestinationDisplayInfo {
+              text
+              iconURL
+              iconAltText
+            }
+            ... on DestinationDisplayInfoError {
+              error
+            }
           }
         }
       }
@@ -113,6 +118,28 @@ export default function ScheduleOnCallNotificationsListDest({
               }
               items={q.data.schedule.onCallNotificationRules.map((rule) => {
                 const display = rule.dest.displayInfo
+                if ('error' in display) {
+                  return {
+                    icon: <DestinationAvatar error />,
+                    title: `ERROR: ${display.error}`,
+                    subText: 'Notifies ' + onCallRuleSummary(timeZone, rule),
+                    secondaryAction: (
+                      <OtherActions
+                        actions={[
+                          {
+                            label: 'Edit',
+                            onClick: () => setEditRuleID(rule.id),
+                          },
+                          {
+                            label: 'Delete',
+                            onClick: () => setDeleteRuleID(rule.id),
+                          },
+                        ]}
+                      />
+                    ),
+                  }
+                }
+
                 return {
                   icon: (
                     <DestinationAvatar

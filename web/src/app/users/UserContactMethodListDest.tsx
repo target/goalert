@@ -1,14 +1,7 @@
 import React, { useState, ReactNode } from 'react'
 import { gql, useQuery } from 'urql'
 import FlatList from '../lists/FlatList'
-import {
-  Button,
-  Card,
-  CardHeader,
-  Grid,
-  IconButton,
-  Typography,
-} from '@mui/material'
+import { Button, Card, CardHeader, Grid, IconButton } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
 import { Add } from '@mui/icons-material'
@@ -21,7 +14,6 @@ import UserContactMethodVerificationDialog from './UserContactMethodVerification
 import { useIsWidthDown } from '../util/useWidth'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import SendTestDialog from './SendTestDialog'
-import AppLink from '../util/AppLink'
 import { styles as globalStyles } from '../styles/materialStyles'
 import { UserContactMethod } from '../../schema'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
@@ -39,13 +31,17 @@ const query = gql`
           values {
             fieldID
             value
-            label
           }
           displayInfo {
-            text
-            iconURL
-            iconAltText
-            linkURL
+            ... on DestinationDisplayInfo {
+              text
+              iconURL
+              iconAltText
+              linkURL
+            }
+            ... on DestinationDisplayInfoError {
+              error
+            }
           }
         }
         disabled
@@ -180,35 +176,19 @@ export default function UserContactMethodListDest(
     )
   }
 
-  function getSubText(cm: UserContactMethod): JSX.Element {
-    return (
-      <React.Fragment>
-        {cm.dest.values.map((v) => {
-          const fieldInfo = destinationTypes
-            .find((d) => d.type === cm.dest.type)
-            ?.requiredFields.find((rf) => v.fieldID === rf.fieldID)
+  function getSubText(cm: UserContactMethod): string {
+    let cmText
+    if ('error' in cm.dest.displayInfo) {
+      cmText = `ERROR: ${cm.dest.displayInfo.error}`
+    } else {
+      cmText = cm.dest.displayInfo.text
+    }
 
-          let cmText = v.label
-          if (cm.pending) {
-            cmText = `${cmText} - this contact method will be automatically deleted if not verified`
-          }
-          if (fieldInfo?.hintURL) {
-            return (
-              <Typography component='span' key={v.toString()}>
-                {`${cmText} (`}
-                <AppLink to={fieldInfo.hintURL}>{fieldInfo.hint}</AppLink>)
-              </Typography>
-            )
-          }
+    if (cm.pending) {
+      cmText += ` - this contact method will be automatically deleted if not verified`
+    }
 
-          return (
-            <Typography component='span' key={v.toString()}>
-              {cmText}
-            </Typography>
-          )
-        })}
-      </React.Fragment>
-    )
+    return cmText
   }
 
   return (

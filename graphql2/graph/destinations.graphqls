@@ -14,7 +14,7 @@ extend type Query {
   destinationFieldValidate(input: DestinationFieldValidateInput!): Boolean!
   destinationFieldSearch(
     input: DestinationFieldSearchInput!
-  ): FieldValueConnection!
+  ): FieldSearchConnection!
   destinationFieldValueName(input: DestinationFieldValidateInput!): String!
 
   """
@@ -24,11 +24,33 @@ extend type Query {
 }
 
 """
-FieldValueConnection is a connection to a list of FieldValuePairs.
+FieldSearchConnection is a connection to a list of FieldSearchResult.
 """
-type FieldValueConnection {
-  nodes: [FieldValuePair!]!
+type FieldSearchConnection {
+  nodes: [FieldSearchResult!]!
   pageInfo: PageInfo!
+}
+
+type FieldSearchResult {
+  """
+  The ID of the input field that this value is for.
+  """
+  fieldID: ID!
+
+  """
+  The value of the input field.
+  """
+  value: String!
+
+  """
+  The user-friendly text for this value of the input field (e.g., if the value is a user ID, label would be the user's name).
+  """
+  label: String!
+
+  """
+  if true, this value is a favorite for the user, only set for search results
+  """
+  isFavorite: Boolean!
 }
 
 input DestinationFieldValidateInput {
@@ -86,13 +108,22 @@ input DestinationFieldSearchInput {
   first: Int = 15
 }
 
+union InlineDisplayInfo = DestinationDisplayInfo | DestinationDisplayInfoError
+
 """
 Destination represents a destination that can be used for notifications.
 """
 type Destination {
   type: DestinationType!
   values: [FieldValuePair!]!
-  displayInfo: DestinationDisplayInfo! @goField(forceResolver: true)
+  displayInfo: InlineDisplayInfo! @goField(forceResolver: true)
+}
+
+type DestinationDisplayInfoError {
+  """
+  error message to display when the display info cannot be retrieved
+  """
+  error: String!
 }
 
 """
@@ -130,16 +161,6 @@ type FieldValuePair {
   The value of the input field.
   """
   value: String!
-
-  """
-  The user-friendly text for this value of the input field (e.g., if the value is a user ID, label would be the user's name).
-  """
-  label: String! @goField(forceResolver: true)
-
-  """
-  if true, this value is a favorite for the user, only set for search results
-  """
-  isFavorite: Boolean!
 }
 
 input DestinationInput {

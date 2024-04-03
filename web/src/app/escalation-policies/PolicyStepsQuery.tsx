@@ -36,10 +36,15 @@ export const policyStepsQueryDest = gql`
         actions {
           type
           displayInfo {
-            text
-            iconURL
-            iconAltText
-            linkURL
+            ... on DestinationDisplayInfo {
+              text
+              iconURL
+              iconAltText
+              linkURL
+            }
+            ... on DestinationDisplayInfoError {
+              error
+            }
           }
         }
         targets {

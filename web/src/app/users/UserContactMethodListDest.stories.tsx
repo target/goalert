@@ -4,6 +4,7 @@ import UserContactMethodListDest from './UserContactMethodListDest'
 import { expect, within, userEvent, screen } from '@storybook/test'
 import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
+import { Destination } from '../../schema'
 
 const meta = {
   title: 'users/UserContactMethodListDest',
@@ -31,10 +32,15 @@ const meta = {
                               {
                                 fieldID: 'phone-number',
                                 value: '+15555555555',
-                                label: '+1 555-555-5555',
                               },
                             ],
-                          },
+                            displayInfo: {
+                              text: '+1 555-555-5555',
+                              iconAltText: 'Voice Call',
+                              iconURL: '',
+                              linkURL: '',
+                            },
+                          } satisfies Destination,
                           disabled: false,
                           pending: false,
                         },
@@ -53,21 +59,24 @@ const meta = {
                             values: [
                               {
                                 fieldID: 'first-field',
-                                value: '+15555555555',
-                                label: '+1 555-555-5555',
+                                value: 'test_user@target.com',
                               },
                               {
                                 fieldID: 'second-field',
-                                value: 'test_user@target.com',
-                                label: 'test_user@target.com',
+                                value: 'parameter-1',
                               },
                               {
                                 fieldID: 'third-field',
-                                value: 'U03SM0U8TPE',
-                                label: '@TestUser',
+                                value: 'parameter-2',
                               },
                             ],
-                          },
+                            displayInfo: {
+                              text: 'test_user@target.com',
+                              iconAltText: 'Email',
+                              iconURL: '',
+                              linkURL: '',
+                            },
+                          } satisfies Destination,
                           disabled: false,
                           pending: false,
                         },
@@ -80,10 +89,15 @@ const meta = {
                               {
                                 fieldID: 'phone-number',
                                 value: '+15555555556',
-                                label: '+1 555-555-5556',
                               },
                             ],
-                          },
+                            displayInfo: {
+                              text: '+1 555-555-5556',
+                              iconAltText: 'Voice Call',
+                              iconURL: '',
+                              linkURL: '',
+                            },
+                          } satisfies Destination,
                           disabled: false,
                           pending: false,
                         },
@@ -153,8 +167,6 @@ export const MultiContactMethods: Story = {
     ).toBeVisible()
     await expect(await canvas.findByText('+1 555-555-5556')).toBeVisible()
     await expect(await canvas.findByText('test_user@target.com')).toBeVisible()
-    // ensure has link when hint url exists
-    await expect(canvas.getByText('docs')).toHaveAttribute('href', '/docs')
     // ensure all edit icons exists
     await expect(await canvas.findAllByTestId('MoreHorizIcon')).toHaveLength(2)
   },

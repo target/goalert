@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"sort"
+	"strings"
 
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -143,8 +145,11 @@ func main() {
 				typeName = "[boolean, boolean, boolean, boolean, boolean, boolean, boolean]"
 			}
 			fmt.Fprintf(w, "export type %s = %s\n\n", def.Name, typeName)
+		case ast.Union:
+			sort.Strings(def.Types)
+			fmt.Fprintf(w, "export type %s = %s\n\n", def.Name, strings.Join(def.Types, " | "))
 		default:
-			log.Fatal("Unsupported kind:", def.Name, def.Kind)
+			log.Fatalln("Unsupported kind:", def.Name, def.Kind)
 		}
 	}
 }

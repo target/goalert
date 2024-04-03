@@ -152,7 +152,11 @@ export const UpdatePolicyStep: Story = {
     await userEvent.type(delayField, '999')
     await userEvent.click(await canvas.findByText('Submit'))
 
-    await expect(await canvas.findByText('generic dialog error')).toBeVisible()
+    await waitFor(async function Error() {
+      await expect(
+        await canvas.findByText('generic dialog error'),
+      ).toBeVisible()
+    })
 
     await expect(args.onClose).not.toHaveBeenCalled() // should not close on error
 
