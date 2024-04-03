@@ -6,13 +6,11 @@ type Flag string
 
 const (
 	Example   Flag = "example"
-	GQLAPIKey Flag = "gql-api-keys"
 	DestTypes Flag = "dest-types"
 )
 
 var desc = map[Flag]string{
 	Example:   "An example experimental flag to demonstrate usage.",
-	GQLAPIKey: "Admin-only GraphQL API key support.",
 	DestTypes: "Generic destination type API.",
 }
 
