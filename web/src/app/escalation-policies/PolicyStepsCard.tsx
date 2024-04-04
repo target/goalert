@@ -71,7 +71,14 @@ export default function PolicyStepsCard(
   const [deleteStep, setDeleteStep] = useState('')
 
   const [updateError, setUpdateError] = useState<Error | null>(null)
-  const [, commit] = useMutation(mutation)
+  const [status, commit] = useMutation(mutation)
+
+  useEffect(() => {
+    if (status.error) {
+      setUpdateError(status.error)
+      setStepIDs(props.steps.map((s) => s.id))
+    }
+  }, [status.error])
 
   async function onReorder(
     oldIndex: number,
@@ -88,10 +95,7 @@ export default function PolicyStepsCard(
         },
       },
       { additionalTypenames: ['EscalationPolicy'] },
-    ).catch((err) => {
-      setUpdateError(err)
-      setStepIDs(props.steps.map((s) => s.id))
-    })
+    )
   }
 
   function renderRepeatText(): React.ReactNode {
