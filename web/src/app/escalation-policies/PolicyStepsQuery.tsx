@@ -1,7 +1,6 @@
 import React from 'react'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery } from 'urql'
 import PolicyStepsCard from './PolicyStepsCard'
-import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import { useExpFlag } from '../util/useExpFlag'
 
@@ -60,16 +59,11 @@ export const policyStepsQueryDest = gql`
 function PolicyStepsQuery(props: { escalationPolicyID: string }): JSX.Element {
   const hasDestTypesFlag = useExpFlag('dest-types')
 
-  const { data, loading, error } = useQuery(
-    hasDestTypesFlag ? policyStepsQueryDest : policyStepsQuery,
-    {
-      variables: { id: props.escalationPolicyID },
-    },
-  )
+  const [{ data, error }] = useQuery({
+    query: hasDestTypesFlag ? policyStepsQueryDest : policyStepsQuery,
+    variables: { id: props.escalationPolicyID },
+  })
 
-  if (!data && loading) {
-    return <Spinner />
-  }
   if (error) {
     return <GenericError error={error.message} />
   }
