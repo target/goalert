@@ -46,6 +46,13 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 		return err
 	}
 
+	// Clear omit list, as we want to process all
+	// subscriptions in the next step.
+	//
+	// We don't want to assign nil to omit, as it
+	// will cause the query to fail.
+	db.omit = db.omit[:0]
+
 	// process up to 100
 	for i := 0; i < 100; i++ {
 		err = db.lock.WithTx(ctx, db.update)
@@ -66,13 +73,17 @@ var errDone = errors.New("done")
 func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
 	q := gadb.New(tx)
 
-	sub, err := q.StatusMgrNextUpdate(ctx)
+	sub, err := q.StatusMgrNextUpdate(ctx, db.omit)
 	if errors.Is(err, sql.ErrNoRows) {
 		return errDone
 	}
 	if err != nil {
 		return fmt.Errorf("query out-of-date alert status: %w", err)
 	}
+
+	// Add to omit list to prevent re-processing
+	// the same subscription in the same run.
+	db.omit = append(db.omit, sub.ID)
 
 	var eventType gadb.EnumAlertLogEvent
 	switch sub.Status {
@@ -84,23 +95,22 @@ func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
 		eventType = gadb.EnumAlertLogEventClosed
 	}
 
-	var entryID sql.NullInt64
 	entry, err := q.StatusMgrLogEntry(ctx, gadb.StatusMgrLogEntryParams{
 		AlertID:   sub.AlertID,
 		EventType: eventType,
 	})
 	if errors.Is(err, sql.ErrNoRows) {
-		// log entry is best-effort, but not required
+		// no log entry, ignore
 		err = nil
 	}
 	if err != nil {
 		return fmt.Errorf("lookup latest log entry of '%s' for alert #%d: %w", eventType, sub.AlertID, err)
 	}
-	if entry.ID > 0 {
-		entryID = sql.NullInt64{Int64: int64(entry.ID), Valid: true}
-	}
 
 	switch {
+	case entry.ID == 0:
+		// no log entry, log error but continue
+		log.Log(ctx, fmt.Errorf("no log entry found for alert #%d status update (%s), skipping", sub.AlertID, eventType))
 	case sub.ContactMethodID.Valid:
 		info, err := q.StatusMgrCMInfo(ctx, sub.ContactMethodID.UUID)
 		if errors.Is(err, sql.ErrNoRows) {
@@ -121,7 +131,7 @@ func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
 			CmID:    sub.ContactMethodID.UUID,
 			AlertID: sub.AlertID,
 			UserID:  info.UserID,
-			LogID:   entryID,
+			LogID:   sql.NullInt64{Int64: int64(entry.ID), Valid: true},
 		})
 		if err != nil {
 			return fmt.Errorf("send user status update message: %w", err)
@@ -131,7 +141,7 @@ func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
 			ID:        uuid.New(),
 			ChannelID: sub.ChannelID.UUID,
 			AlertID:   sub.AlertID,
-			LogID:     entryID,
+			LogID:     sql.NullInt64{Int64: int64(entry.ID), Valid: true},
 		})
 		if err != nil {
 			return fmt.Errorf("send channel status update message: %w", err)

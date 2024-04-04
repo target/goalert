@@ -28,8 +28,8 @@ SELECT
             a.id = sub.alert_id)
 FROM
     alert_status_subscriptions sub
-WHERE
-    sub.last_alert_status !=(
+WHERE (NOT (sub.id = ANY ($1::bigint[])))
+    AND sub.last_alert_status !=(
         SELECT
             status
         FROM
