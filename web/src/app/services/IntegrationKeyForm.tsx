@@ -6,6 +6,7 @@ import { FormContainer, FormField } from '../forms'
 import { IntegrationKeyType } from '../../schema'
 import { FieldError } from '../util/errutil'
 import { useFeatures } from '../util/RequireConfig'
+import { Typography } from '@mui/material'
 
 export interface Value {
   name: string
@@ -26,7 +27,14 @@ interface IntegrationKeyFormProps {
 export default function IntegrationKeyForm(
   props: IntegrationKeyFormProps,
 ): JSX.Element {
-  const types = useFeatures().integrationKeyTypes
+  const types = useFeatures().integrationKeyTypes.slice()
+
+  types.push({
+    id: 'uik',
+    name: 'Universal',
+    label: '',
+    enabled: true,
+  })
 
   const { ...formProps } = props
   return (
@@ -56,6 +64,13 @@ export default function IntegrationKeyForm(
               </MenuItem>
             ))}
           </FormField>
+        </Grid>
+
+        <Grid item xs={12}>
+          <Typography>
+            {props.value.type === 'uik' &&
+              'You will be able to manage custom rules in the next step.'}
+          </Typography>
         </Grid>
       </Grid>
     </FormContainer>

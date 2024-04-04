@@ -42,6 +42,7 @@ import { useSessionInfo } from '../util/RequireConfig'
 import WizardRouter from '../wizard/WizardRouter'
 import LocalDev from '../localdev/LocalDev'
 import AdminSwitchoverGuide from '../admin/switchover/AdminSwitchoverGuide'
+import RuleEditor from '../services/RuleEditor'
 
 // ParamRoute will pass route parameters as props to the route's child.
 function ParamRoute(props: RouteProps): JSX.Element {
@@ -102,6 +103,8 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/services/:serviceID/integration-keys': IntegrationKeyList,
   '/services/:serviceID/labels': ServiceLabelList,
   '/services/:serviceID/alert-metrics': AlertMetrics,
+
+  '/rule-editor/:keyID': RuleEditor,
 
   '/users': UserList,
   '/users/:userID': UserDetails,

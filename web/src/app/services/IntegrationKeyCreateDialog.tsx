@@ -5,6 +5,7 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
 import FormDialog from '../dialogs/FormDialog'
 import IntegrationKeyForm, { Value } from './IntegrationKeyForm'
+import { Redirect } from 'wouter'
 
 const mutation = gql`
   mutation ($input: CreateIntegrationKeyInput!) {
@@ -21,10 +22,15 @@ export default function IntegrationKeyCreateDialog(props: {
   serviceID: string
   onClose: () => void
 }): JSX.Element {
+  const [goEdit, setGoEdit] = useState(false)
   const [value, setValue] = useState<Value | null>(null)
   const { serviceID, onClose } = props
 
   const [createKeyStatus, createKey] = useMutation(mutation)
+
+  if (goEdit) {
+    return <Redirect to='/rule-editor/11111111-1111-1111-111111111111' />
+  }
 
   return (
     <FormDialog
@@ -34,6 +40,11 @@ export default function IntegrationKeyCreateDialog(props: {
       errors={nonFieldErrors(createKeyStatus.error)}
       onClose={onClose}
       onSubmit={(): void => {
+        if (!value) return
+        if (value.type === 'uik') {
+          setGoEdit(true)
+          return
+        }
         createKey(
           { input: { serviceID, ...value } },
           { additionalTypenames: ['IntegrationKey', 'Service'] },
