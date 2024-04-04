@@ -31,16 +31,18 @@ const mutation = gql`
   }
 `
 
+type StepInfo = {
+  id: string
+  delayMinutes: number
+  stepNumber: number
+  actions?: Destination[]
+  targets: Target[]
+}
+
 export type PolicyStepsCardProps = {
   escalationPolicyID: string
   repeat: number
-  steps: Array<{
-    id: string
-    delayMinutes: number
-    stepNumber: number
-    actions?: Destination[]
-    targets: Target[]
-  }>
+  steps: Array<StepInfo>
 }
 
 export default function PolicyStepsCard(
@@ -59,11 +61,9 @@ export default function PolicyStepsCard(
     setStepIDs(props.steps.map((s) => s.id))
   }, [props.steps.map((s) => s.id).join(',')]) // update steps when order changes
 
-  const orderedSteps = stepIDs.map((id) => {
-    const step = props.steps.find((s) => s.id === id)
-    if (!step) throw new Error('Step not found') // should be impossible
-    return step
-  })
+  const orderedSteps = stepIDs
+    .map((id) => props.steps.find((s) => s.id === id))
+    .filter((s) => s) as StepInfo[]
 
   const [editStepID, setEditStepID] = useURLParam<string>('editStep', '')
   const editStep = props.steps.find((step) => step.id === editStepID)
