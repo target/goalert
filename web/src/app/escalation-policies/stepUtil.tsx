@@ -10,7 +10,7 @@ import {
   SlackChip,
   WebhookChip,
 } from '../util/Chips'
-import { EscalationPolicyStep, Target } from '../../schema'
+import { Destination, Target } from '../../schema'
 import DestinationChip from '../util/DestinationChip'
 
 interface Step {
@@ -19,14 +19,16 @@ interface Step {
   targets: Target[]
 }
 
-export function getStepNumber(stepID: string, steps: Step[]): number {
+interface HasID {
+  id: string
+}
+
+export function getStepNumber(stepID: string, steps: HasID[]): number {
   const sids = steps.map((s) => s.id)
   return sids.indexOf(stepID) + 1
 }
 
-export function renderChipsDest({
-  actions: _a,
-}: Pick<EscalationPolicyStep, 'actions'>): ReactElement {
+export function renderChipsDest(_a: Destination[]): ReactElement {
   const actions = sortBy(_a.slice(), ['type', 'displayInfo.text'])
   if (!actions || actions.length === 0) {
     return <Chip label='No actions' />

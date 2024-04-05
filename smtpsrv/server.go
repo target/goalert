@@ -54,7 +54,6 @@ func NewServer(cfg Config) *Server {
 	srv.Domain = cfg.Domain
 	srv.ReadTimeout = 10 * time.Second
 	srv.WriteTimeout = 10 * time.Second
-	srv.AuthDisabled = true
 	srv.TLSConfig = cfg.TLSConfig
 	s.srv = srv
 

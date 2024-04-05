@@ -1,5 +1,4 @@
 import React, { Suspense, useRef, useState } from 'react'
-import { PropTypes as p } from 'prop-types'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
@@ -28,6 +27,7 @@ import {
   renderDelayMessage,
 } from './stepUtil'
 import { useExpFlag } from '../util/useExpFlag'
+import { Destination, EscalationPolicy, Target } from '../../schema'
 
 const mutation = gql`
   mutation UpdateEscalationPolicyMutation(
@@ -37,25 +37,41 @@ const mutation = gql`
   }
 `
 
-export default function PolicyStepsCard(props) {
+export type PolicyStepsCardProps = {
+  escalationPolicyID: string
+  repeat: number
+  steps: Array<{
+    id: string
+    delayMinutes: number
+    stepNumber: number
+    actions?: Destination[]
+    targets: Target[]
+  }>
+}
+
+export default function PolicyStepsCard(
+  props: PolicyStepsCardProps,
+): React.ReactNode {
   const hasDestTypesFlag = useExpFlag('dest-types')
 
   const { escalationPolicyID, repeat, steps = [] } = props
 
   const isMobile = useIsWidthDown('md')
   const stepNumParam = 'createStep'
-  const [createStep, setCreateStep] = useURLParam(stepNumParam, false)
+  const [createStep, setCreateStep] = useURLParam<boolean>(stepNumParam, false)
   const resetCreateStep = useResetURLParams(stepNumParam)
 
   const oldID = useRef(null)
   const oldIdx = useRef(null)
   const newIdx = useRef(null)
 
-  const [lastSwap, setLastSwap] = useState([])
+  type Swap = { oldIndex: number; newIndex: number }
+  const [lastSwap, setLastSwap] = useState<Array<Swap>>([])
 
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<Error | null>(null)
 
-  const [editStepID, setEditStepID] = useURLParam('editStep', '')
+  const [editStepID, setEditStepID] = useURLParam<string>('editStep', '')
+  const editStep = steps.find((step) => step.id === editStepID)
   const resetEditStep = useResetURLParams('editStep')
   const [deleteStep, setDeleteStep] = useState('')
 
@@ -68,7 +84,10 @@ export default function PolicyStepsCard(props) {
     onError: (err) => setError(err),
   })
 
-  function onReorder(oldIndex, newIndex) {
+  async function onReorder(
+    oldIndex: number,
+    newIndex: number,
+  ): Promise<unknown> {
     setLastSwap(lastSwap.concat({ oldIndex, newIndex }))
 
     const updatedStepIDs = reorderList(
@@ -91,10 +110,14 @@ export default function PolicyStepsCard(props) {
         }
 
         // get the current state of the steps in the cache
-        const { escalationPolicy } = cache.readQuery({
+        const cacheData = cache.readQuery<{
+          escalationPolicy: EscalationPolicy
+        }>({
           query: policyStepsQuery,
           variables: { id: escalationPolicyID },
         })
+        if (!cacheData) throw new Error('Cache data not found')
+        const escalationPolicy = cacheData.escalationPolicy
         const steps = escalationPolicy.steps.slice()
 
         if (steps.length > 0) {
@@ -120,7 +143,7 @@ export default function PolicyStepsCard(props) {
     })
   }
 
-  function renderRepeatText() {
+  function renderRepeatText(): React.ReactNode {
     if (!steps.length) {
       return null
     }
@@ -187,10 +210,12 @@ export default function PolicyStepsCard(props) {
               <Typography component='h4' variant='subtitle1' sx={{ pb: 1 }}>
                 <b>Step #{getStepNumber(step.id, steps)}:</b>
               </Typography>
-            ),
+            ) as unknown as string, // needed to work around MUI incorrect types
             subText: (
               <React.Fragment>
-                {step.actions ? renderChipsDest(step) : renderChips(step)}
+                {step.actions
+                  ? renderChipsDest(step.actions)
+                  : renderChips(step)}
                 {renderDelayMessage(steps, step, repeat)}
               </React.Fragment>
             ),
@@ -221,19 +246,19 @@ export default function PolicyStepsCard(props) {
         <DialogContentError error={errMsg} />
       </Dialog>
       <Suspense>
-        {editStepID && (
+        {editStep && (
           <React.Fragment>
             {hasDestTypesFlag ? (
               <PolicyStepEditDialogDest
                 escalationPolicyID={escalationPolicyID}
                 onClose={resetEditStep}
-                stepID={editStepID}
+                stepID={editStep.id}
               />
             ) : (
               <PolicyStepEditDialog
                 escalationPolicyID={escalationPolicyID}
                 onClose={resetEditStep}
-                step={steps.find((step) => step.id === editStepID)}
+                step={editStep}
               />
             )}
           </React.Fragment>
@@ -241,29 +266,11 @@ export default function PolicyStepsCard(props) {
         {deleteStep && (
           <PolicyStepDeleteDialog
             escalationPolicyID={escalationPolicyID}
-            onClose={() => setDeleteStep(false)}
+            onClose={() => setDeleteStep('')}
             stepID={deleteStep}
           />
         )}
       </Suspense>
     </React.Fragment>
   )
-}
-
-PolicyStepsCard.propTypes = {
-  escalationPolicyID: p.string.isRequired,
-  repeat: p.number.isRequired, // # of times EP repeats escalation process
-  steps: p.arrayOf(
-    p.shape({
-      id: p.string.isRequired,
-      delayMinutes: p.number.isRequired,
-      targets: p.arrayOf(
-        p.shape({
-          id: p.string.isRequired,
-          name: p.string.isRequired,
-          type: p.string.isRequired,
-        }),
-      ).isRequired,
-    }),
-  ).isRequired,
 }
