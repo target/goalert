@@ -2,9 +2,14 @@ import React, { useEffect, useState } from 'react'
 
 import FormDialog from '../dialogs/FormDialog'
 import ConditionsEditor from './RuleEditorConditionEditor'
-import { CombinedError, gql, useClient, useQuery } from 'urql'
-import exp from 'constants'
-import { FormControlLabel, Grid, Switch } from '@mui/material'
+import { CombinedError, gql, useQuery } from 'urql'
+import {
+  DialogTitle,
+  FormControlLabel,
+  Grid,
+  Switch,
+  TextField,
+} from '@mui/material'
 
 const parseQuery = gql`
   query ParseCondition($expr: String!) {
@@ -86,42 +91,54 @@ export default function RuleEditorConditionDialog(props: {
 
   return (
     <FormDialog
-      maxWidth='sm'
+      maxWidth='md'
       errors={error ? [error] : undefined}
-      title='Edit Condition'
+      title=''
       onClose={() => props.onClose(null)}
       onSubmit={() => props.onClose(value)}
       form={
-        <Grid container>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={isTooComplex || useAdvanced}
-                onChange={(e) => setUseAdvanced(e.target.checked)}
-                name='use-advanced'
-                disabled={isTooComplex}
-              />
-            }
-            label='Advanced'
-          />
+        <Grid container direction='column' spacing={2}>
+          <Grid container direction='row' justifyContent='space-between'>
+            <DialogTitle fontSize='h2' style={{ padding: '8px 16px' }}>
+              Edit Condition
+            </DialogTitle>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={isTooComplex || useAdvanced}
+                  onChange={(e) => setUseAdvanced(e.target.checked)}
+                  name='use-advanced'
+                  disabled={isTooComplex}
+                />
+              }
+              label='Advanced'
+              style={{ marginRight: '0' }}
+            />
+          </Grid>
 
-          {useAdvanced || isTooComplex ? (
-            <textarea
-              value={value}
-              onChange={(e) => {
-                setValue(e.target.value)
-                setError(null)
-              }}
-            />
-          ) : (
-            <ConditionsEditor
-              value={cond}
-              onChange={(newCond) => {
-                setCond(newCond)
-                setError(null)
-              }}
-            />
-          )}
+          <Grid item xs>
+            {useAdvanced || isTooComplex ? (
+              <TextField
+                value={value}
+                onChange={(e) => {
+                  setValue(e.target.value)
+                  setError(null)
+                }}
+                multiline
+                fullWidth
+                rows={4}
+                variant='filled'
+              />
+            ) : (
+              <ConditionsEditor
+                value={cond}
+                onChange={(newCond) => {
+                  setCond(newCond)
+                  setError(null)
+                }}
+              />
+            )}
+          </Grid>
         </Grid>
       }
     />

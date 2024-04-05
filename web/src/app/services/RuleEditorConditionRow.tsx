@@ -22,7 +22,7 @@ interface OperatorSelectProps {
   onChange: (event: SelectChangeEvent<string>) => void
 }
 const OperatorSelect: React.FC<OperatorSelectProps> = ({ value, onChange }) => (
-  <Grid item xs={2}>
+  <Grid item xs>
     <FormControl variant='outlined' fullWidth>
       <InputLabel>Operator</InputLabel>
       <Select label='Operator' value={value} onChange={onChange}>
@@ -71,7 +71,7 @@ const ValueInput: React.FC<ValueInputProps> = ({
 
   return (
     <React.Fragment>
-      <Grid item xs>
+      <Grid item xs paddingLeft='16px' paddingTop='16px'>
         <TextField
           label='Value'
           variant='outlined'
@@ -80,11 +80,11 @@ const ValueInput: React.FC<ValueInputProps> = ({
           fullWidth
         />
       </Grid>
-      <Grid item xs={1} marginLeft={-10}>
+      <Grid item alignSelf='center' paddingTop='16px'>
         <FormControl
           variant='outlined'
           size='small'
-          sx={{ width: 120, marginLeft: -8 }}
+          sx={{ width: 120, marginLeft: -16 }}
         >
           <Select
             value={typeName}
@@ -144,8 +144,13 @@ const ConditionRow: React.FC<ConditionRowProps> = (props) => {
   }
 
   return (
-    <Grid container spacing={2} alignItems='center'>
-      <Grid item xs>
+    <Grid
+      container
+      spacing={2}
+      alignItems='center'
+      justifyContent='space-between'
+    >
+      <Grid item xs sm={4}>
         <TextField
           label='Key'
           variant='outlined'
@@ -157,30 +162,37 @@ const ConditionRow: React.FC<ConditionRowProps> = (props) => {
         />
       </Grid>
 
-      <OperatorSelect
-        value={props.value.operator}
-        onChange={(e) =>
-          props.onChange({
-            ...props.value,
-            operator: e.target.value,
-            negate: e.target.value.startsWith('not '),
-          })
-        }
-      />
+      <Grid item xs sm={2}>
+        <OperatorSelect
+          value={props.value.operator}
+          onChange={(e) =>
+            props.onChange({
+              ...props.value,
+              operator: e.target.value,
+              negate: e.target.value.startsWith('not '),
+            })
+          }
+        />
+      </Grid>
 
-      <ValueInput
-        value={value.toString()}
-        onChange={(e) => handleValueChange(e.target.value)}
-        onTypeChange={(newType) =>
-          props.onChange({
-            ...props.value,
-            value: JSON.stringify(stringToType(value.toString(), newType)),
-          })
-        }
-        typeName={typeName}
-        operator={props.value.operator}
-      />
-      <DeleteButton onClick={props.onDelete} />
+      <Grid container xs sm={5}>
+        <ValueInput
+          value={value.toString()}
+          onChange={(e) => handleValueChange(e.target.value)}
+          onTypeChange={(newType) =>
+            props.onChange({
+              ...props.value,
+              value: JSON.stringify(stringToType(value.toString(), newType)),
+            })
+          }
+          typeName={typeName}
+          operator={props.value.operator}
+        />
+      </Grid>
+
+      <Grid item xs sm={0.5}>
+        <DeleteButton onClick={props.onDelete} />
+      </Grid>
     </Grid>
   )
 }

@@ -98,7 +98,7 @@ export default function RuleEditor(): React.ReactNode {
             <CardHeader component='h3' title={`Rule #${idx + 1}`} />
             <CardContent>
               <h3>Condition</h3>
-              <Typography color={'textSecondary'}>
+              <Typography color='textSecondary'>
                 {r.condition}
                 <Button
                   onClick={() => setEditCondition({ idx, value: r.condition })}
@@ -108,7 +108,7 @@ export default function RuleEditor(): React.ReactNode {
               </Typography>
               <h3>Actions</h3>
               {r.actions.map((a, i) => (
-                <Typography key={i} color={'textSecondary'}>
+                <Typography key={i} color='textSecondary'>
                   {a.type}
                   <Button
                     onClick={() =>

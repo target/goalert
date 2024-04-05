@@ -2,14 +2,8 @@ import React, { useState } from 'react'
 
 import FormDialog from '../dialogs/FormDialog'
 import { DestinationInput, FieldValueInput } from '../../schema'
-import { FormContainer, FormField } from '../forms'
-import {
-  Grid,
-  Input,
-  InputAdornment,
-  TextField,
-  Typography,
-} from '@mui/material'
+import { FormContainer } from '../forms'
+import { Grid, InputAdornment, TextField, Typography } from '@mui/material'
 import { renderMenuItem } from '../selection/DisableableMenuItem'
 import DestinationField from '../selection/DestinationField'
 
@@ -17,14 +11,6 @@ export type Action = {
   dest: DestinationInput
 
   params: FieldValueInput[]
-}
-
-function ActionForm() {
-  return (
-    <div>
-      <h1>Action Form</h1>
-    </div>
-  )
 }
 
 export default function RuleEditorActionDialog(props: {
