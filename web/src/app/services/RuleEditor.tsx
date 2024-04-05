@@ -75,17 +75,18 @@ export default function RuleEditor(): React.ReactNode {
           <RuleEditorConditionDialog
             expr={rules[editCondition.idx].condition}
             onClose={(newCond) => {
+              setEditCondition(null)
               if (newCond === null) return
               rules[editCondition.idx].condition = newCond
-              setEditCondition(null)
             }}
           />
         )}
         {editAction && editAction.actionIdx !== -1 && (
           <RuleEditorActionDialog
             onClose={(newAction) => {
-              if (newAction === null) return
               setEditAction(null)
+              if (newAction === null) return
+              // TODO: update action
             }}
           />
         )}
