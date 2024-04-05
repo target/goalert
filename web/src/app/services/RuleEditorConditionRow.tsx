@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import {
   TextField,
   Select,
@@ -11,64 +11,21 @@ import {
   IconButton,
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
-import { Condition, Value } from './RuleEditorConditionEditor'
-
-interface ConditionRowProps {
-  initialCondition: Condition
-  onConditionUpdate: (updatedCondition: Condition) => void
-  onDelete: () => void
-}
-
-interface KeyInputProps {
-  value: string
-  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void
-  onBlur: () => void
-}
-
-interface OperatorSelectProps {
-  value: string
-  onChange: (event: SelectChangeEvent<string>) => void
-  onBlur: () => void
-}
-
-interface ValueInputProps {
-  value: string
-  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void
-  onBlur: () => void
-  onTypeChange: (type: 'boolean' | 'number' | 'string' | 'object') => void
-}
+import { ClauseInput } from '../../schema'
 
 interface DeleteButtonProps {
   onClick: () => void
 }
 
-const KeyInput: React.FC<KeyInputProps> = ({ value, onChange, onBlur }) => (
-  <Grid item xs>
-    <TextField
-      label='Key'
-      variant='outlined'
-      value={value}
-      onChange={onChange}
-      onBlur={onBlur}
-      fullWidth
-    />
-  </Grid>
-)
-
-const OperatorSelect: React.FC<OperatorSelectProps> = ({
-  value,
-  onChange,
-  onBlur,
-}) => (
+interface OperatorSelectProps {
+  value: string
+  onChange: (event: SelectChangeEvent<string>) => void
+}
+const OperatorSelect: React.FC<OperatorSelectProps> = ({ value, onChange }) => (
   <Grid item xs={2}>
     <FormControl variant='outlined' fullWidth>
       <InputLabel>Operator</InputLabel>
-      <Select
-        label='Operator'
-        value={value}
-        onChange={onChange}
-        onBlur={onBlur}
-      >
+      <Select label='Operator' value={value} onChange={onChange}>
         <MenuItem value='=='>==</MenuItem>
         <MenuItem value='!='>!=</MenuItem>
         <Divider sx={{ my: 0.5 }} />
@@ -84,27 +41,33 @@ const OperatorSelect: React.FC<OperatorSelectProps> = ({
   </Grid>
 )
 
+const opTypes: Record<string, string[]> = {
+  '==': ['string', 'number', 'boolean'],
+  '!=': ['string', 'number', 'boolean'],
+  '<': ['number'],
+  '<=': ['number'],
+  '>': ['number'],
+  '>=': ['number'],
+  contains: ['string'],
+  'not contains': ['string'],
+}
+
+interface ValueInputProps {
+  value: string
+  typeName: string
+  operator: string
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void
+  onTypeChange: (type: 'boolean' | 'number' | 'string') => void
+}
+
 const ValueInput: React.FC<ValueInputProps> = ({
   value,
+  typeName,
+  operator,
   onChange,
-  onBlur,
   onTypeChange,
 }) => {
-  const [typeOptions, setTypeOptions] = useState<string[]>(['string'])
-
-  useEffect(() => {
-    const determineTypes = (input: string): string[] => {
-      const types = ['string']
-      if (input === '') return types
-      if (!isNaN(Number(input))) types.unshift('number')
-      if (input.toLowerCase() === 'true' || input.toLowerCase() === 'false')
-        types.unshift('boolean')
-
-      return types
-    }
-
-    setTypeOptions(determineTypes(value))
-  }, [value])
+  const typeOptions = opTypes[operator] || []
 
   return (
     <React.Fragment>
@@ -114,7 +77,6 @@ const ValueInput: React.FC<ValueInputProps> = ({
           variant='outlined'
           value={value}
           onChange={onChange}
-          onBlur={onBlur}
           fullWidth
         />
       </Grid>
@@ -125,11 +87,9 @@ const ValueInput: React.FC<ValueInputProps> = ({
           sx={{ width: 120, marginLeft: -8 }}
         >
           <Select
-            value={typeOptions[0]}
+            value={typeName}
             onChange={(e) =>
-              onTypeChange(
-                e.target.value as 'boolean' | 'number' | 'string' | 'object',
-              )
+              onTypeChange(e.target.value as 'boolean' | 'number' | 'string')
             }
           >
             {typeOptions.map((type) => (
@@ -152,60 +112,75 @@ const DeleteButton: React.FC<DeleteButtonProps> = ({ onClick }) => (
   </Grid>
 )
 
-const ConditionRow: React.FC<ConditionRowProps> = ({
-  initialCondition,
-  onConditionUpdate,
-  onDelete,
-}) => {
-  const [localCondition, setLocalCondition] = useState(initialCondition)
-
-  const handleLocalChange = (field: keyof Condition, value: string | Value) => {
-    const updatedCondition = { ...localCondition, [field]: value }
-    setLocalCondition(updatedCondition)
+function stringToType(
+  value: string,
+  type: 'boolean' | 'number' | 'string',
+): boolean | number | string {
+  switch (type) {
+    case 'boolean':
+      return value === 'true'
+    case 'number':
+      return Number(value)
+    case 'string':
+      return value
   }
+}
 
-  const handleBlur = (): void => {
-    onConditionUpdate(localCondition)
-  }
+interface ConditionRowProps {
+  value: ClauseInput
+  onChange: (newValue: ClauseInput) => void
+  onDelete: () => void
+}
 
-  const handleTypeChange = (
-    type: 'boolean' | 'number' | 'string' | 'object',
-  ): void => {
-    const updatedCondition: Condition = {
-      ...localCondition,
-      value: { ...localCondition.value, type },
-    }
-    setLocalCondition(updatedCondition)
-    onConditionUpdate(updatedCondition)
+const ConditionRow: React.FC<ConditionRowProps> = (props) => {
+  const value = JSON.parse(props.value.value)
+  const typeName = typeof value as 'string' | 'number' | 'boolean'
+
+  function handleValueChange(newValueString: string): void {
+    props.onChange({
+      ...props.value,
+      value: JSON.stringify(stringToType(newValueString, typeName)),
+    })
   }
 
   return (
     <Grid container spacing={2} alignItems='center'>
-      <KeyInput
-        value={localCondition.key}
-        onChange={(e) => handleLocalChange('key', e.target.value)}
-        onBlur={handleBlur}
-      />
+      <Grid item xs>
+        <TextField
+          label='Key'
+          variant='outlined'
+          value={props.value.field}
+          onChange={(e) =>
+            props.onChange({ ...props.value, field: e.target.value })
+          }
+          fullWidth
+        />
+      </Grid>
+
       <OperatorSelect
-        value={localCondition.operator}
+        value={props.value.operator}
         onChange={(e) =>
-          handleLocalChange('operator', e.target.value as string)
-        }
-        onBlur={handleBlur}
-      />
-      <ValueInput
-        value={localCondition.value.data as string}
-        onChange={(e) =>
-          handleLocalChange('value', {
-            ...localCondition.value,
-            data: e.target.value,
+          props.onChange({
+            ...props.value,
+            operator: e.target.value,
+            negate: e.target.value.startsWith('not '),
           })
         }
-        onBlur={handleBlur}
-        onTypeChange={handleTypeChange}
-        valueType={localCondition.value.type}
       />
-      <DeleteButton onClick={onDelete} />
+
+      <ValueInput
+        value={value.toString()}
+        onChange={(e) => handleValueChange(e.target.value)}
+        onTypeChange={(newType) =>
+          props.onChange({
+            ...props.value,
+            value: JSON.stringify(stringToType(value.toString(), newType)),
+          })
+        }
+        typeName={typeName}
+        operator={props.value.operator}
+      />
+      <DeleteButton onClick={props.onDelete} />
     </Grid>
   )
 }

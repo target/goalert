@@ -33,7 +33,7 @@ export default function RuleEditor(): React.ReactNode {
   const classes = useStyles()
   const [rules, setRules] = useState([
     {
-      condition: 'foo == "bar"',
+      condition: 'foo == "bar" and baz < 3',
       actions: [{ type: 'createAlert' }, { type: 'slackMessage' }],
     },
   ])

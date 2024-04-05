@@ -1,80 +1,35 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Button, Box, Paper, Grid, Typography, Divider } from '@mui/material'
 import ConditionRow from './RuleEditorConditionRow'
+import { ConditionInput } from '../../schema'
+import { InputFieldError } from '../util/errtypes'
 
-export interface Value {
-  type: 'boolean' | 'number' | 'string' | 'object'
-  data: boolean | number | string | object
-}
-
-let n: number = 1
-
-const uniqueID = (): string => {
-  return 'id_' + n++
-}
-
-export interface Condition {
-  id: string
-  key: string
-  operator: string
-  value: Value
-}
-
-const ConditionsEditor: React.FC = () => {
-  const [conditions, setConditions] = useState<Condition[]>([
-    {
-      id: uniqueID(),
-      key: '',
-      operator: '',
-      value: { type: 'string', data: '' },
-    },
-  ])
-
-  const handleConditionUpdate = (
-    conditionID: string,
-    updatedCondition: Condition,
-  ): void => {
-    const newConditions = conditions.map((c) =>
-      c.id === conditionID ? updatedCondition : c,
-    )
-    setConditions(newConditions)
-  }
-
-  const handleAddCondition = (): void => {
-    setConditions([
-      ...conditions,
-      {
-        id: uniqueID(),
-        key: '',
-        operator: '',
-        value: { type: 'string', data: '' },
-      },
-    ])
-  }
-
-  const handleDeleteCondition = (conditionID: string): void => {
-    const newConditions = conditions.filter((c) => c.id !== conditionID)
-    setConditions(newConditions)
-  }
-
-  const ConditionDivider: React.FC = () => {
-    return (
-      <Grid container alignItems='center' style={{ margin: '10px 0' }}>
-        <Grid item xs>
-          <Divider />
-        </Grid>
-        <Grid item px={2}>
-          <Typography variant='subtitle1' color='primary'>
-            And
-          </Typography>
-        </Grid>
-        <Grid item xs>
-          <Divider />
-        </Grid>
+const ConditionDivider: React.FC = () => {
+  return (
+    <Grid container alignItems='center' style={{ margin: '10px 0' }}>
+      <Grid item xs>
+        <Divider />
       </Grid>
-    )
-  }
+      <Grid item px={2}>
+        <Typography variant='subtitle1' color='primary'>
+          And
+        </Typography>
+      </Grid>
+      <Grid item xs>
+        <Divider />
+      </Grid>
+    </Grid>
+  )
+}
 
+export type ConditionEditorProps = {
+  value: ConditionInput
+  onChange: (value: ConditionInput) => void
+
+  errors?: InputFieldError[]
+}
+
+function ConditionEditor(props: ConditionEditorProps): React.ReactNode {
   return (
     <Box
       display='flex'
@@ -94,16 +49,25 @@ const ConditionsEditor: React.FC = () => {
         >
           Create/Edit Conditions
         </Typography>
-        {conditions.map((condition, index) => (
+        {props.value.clauses.map((clause, index) => (
           <React.Fragment key={index}>
             {index > 0 && <ConditionDivider />}
             <ConditionRow
-              key={condition.id}
-              initialCondition={condition}
-              onConditionUpdate={(updatedCondition) =>
-                handleConditionUpdate(condition.id, updatedCondition)
-              }
-              onDelete={() => handleDeleteCondition(condition.id)}
+              value={clause}
+              onChange={(value) => {
+                props.onChange({
+                  ...props.value,
+                  clauses: props.value.clauses.map((c, i) =>
+                    i === index ? value : c,
+                  ),
+                })
+              }}
+              onDelete={() => {
+                props.onChange({
+                  ...props.value,
+                  clauses: props.value.clauses.filter((_, i) => i !== index),
+                })
+              }}
             />
           </React.Fragment>
         ))}
@@ -111,9 +75,19 @@ const ConditionsEditor: React.FC = () => {
           <Button
             variant='contained'
             color='primary'
-            onClick={handleAddCondition}
+            onClick={() => {
+              props.onChange({
+                ...props.value,
+                clauses: props.value.clauses.concat({
+                  field: '',
+                  operator: '==',
+                  value: '""',
+                  negate: false,
+                }),
+              })
+            }}
           >
-            Add Condition
+            Add Clause
           </Button>
         </Box>
       </Paper>
@@ -121,4 +95,4 @@ const ConditionsEditor: React.FC = () => {
   )
 }
 
-export default ConditionsEditor
+export default ConditionEditor
