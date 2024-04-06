@@ -57,7 +57,7 @@
     "@storybook/react-vite": "8.0.0",
     "@storybook/test": "8.0.0",
     "@storybook/test-runner": "0.17.0",
-    "@storybook/types": "8.0.0",
+    "@storybook/types": "8.0.6",
     "@types/chance": "1.1.4",
     "@types/diff": "5.0.8",
     "@types/glob": "8.1.0",
