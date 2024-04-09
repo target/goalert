@@ -57,7 +57,7 @@ function ConditionEditor(props: ConditionEditorProps): React.ReactNode {
       <Box mt={2}>
         <Button
           variant='contained'
-          color='primary'
+          color='secondary'
           onClick={() => {
             props.onChange({
               ...props.value,

@@ -31,6 +31,16 @@ type InlineDisplayInfo interface {
 	IsInlineDisplayInfo()
 }
 
+type ActionInput struct {
+	Dest   *DestinationInput  `json:"dest,omitempty"`
+	Params []ActionParamInput `json:"params"`
+}
+
+type ActionParamInput struct {
+	ParamID string `json:"paramID"`
+	Expr    string `json:"expr"`
+}
+
 type AlertConnection struct {
 	Nodes    []alert.Alert `json:"nodes"`
 	PageInfo *PageInfo     `json:"pageInfo"`

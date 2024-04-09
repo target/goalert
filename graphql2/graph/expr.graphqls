@@ -23,6 +23,22 @@ input ExprToConditionInput {
   expr: String!
 }
 
+"""
+ActionType represents a type of action that can be used for
+notifications.
+"""
+scalar ActionType
+
+input ActionInput {
+  dest: DestinationInput
+  params: [ActionParamInput!]!
+}
+
+input ActionParamInput {
+  paramID: ID!
+  expr: String!
+}
+
 type Condition {
   clauses: [Clause!]!
 }

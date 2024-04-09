@@ -4745,6 +4745,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputActionInput,
+		ec.unmarshalInputActionParamInput,
 		ec.unmarshalInputAlertMetadataInput,
 		ec.unmarshalInputAlertMetricsOptions,
 		ec.unmarshalInputAlertRecentEventsOptions,
@@ -31327,6 +31329,74 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputActionInput(ctx context.Context, obj interface{}) (ActionInput, error) {
+	var it ActionInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"dest", "params"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "dest":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dest"))
+			data, err := ec.unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Dest = data
+		case "params":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
+			data, err := ec.unmarshalNActionParamInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionParamInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Params = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputActionParamInput(ctx context.Context, obj interface{}) (ActionParamInput, error) {
+	var it ActionParamInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"paramID", "expr"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "paramID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("paramID"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ParamID = data
+		case "expr":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("expr"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Expr = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputAlertMetadataInput(ctx context.Context, obj interface{}) (AlertMetadataInput, error) {
 	var it AlertMetadataInput
 	asMap := map[string]interface{}{}
@@ -44089,6 +44159,28 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
+
+func (ec *executionContext) unmarshalNActionParamInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionParamInput(ctx context.Context, v interface{}) (ActionParamInput, error) {
+	res, err := ec.unmarshalInputActionParamInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNActionParamInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionParamInputᚄ(ctx context.Context, v interface{}) ([]ActionParamInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]ActionParamInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNActionParamInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionParamInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
 
 func (ec *executionContext) marshalNAlert2githubᚗcomᚋtargetᚋgoalertᚋalertᚐAlert(ctx context.Context, sel ast.SelectionSet, v alert.Alert) graphql.Marshaler {
 	return ec._Alert(ctx, sel, &v)
