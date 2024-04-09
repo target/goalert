@@ -119,6 +119,7 @@ export default function DestinationInputDirect(
   return (
     <TextField
       fullWidth
+      name={props.fieldID}
       disabled={props.disabled}
       InputProps={iprops}
       type={props.inputType}

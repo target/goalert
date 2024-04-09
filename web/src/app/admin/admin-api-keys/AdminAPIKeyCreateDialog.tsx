@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { gql, useMutation, useQuery } from 'urql'
 import CopyText from '../../util/CopyText'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
@@ -57,42 +57,46 @@ function nextName(name: string): string {
   return `${base} ${parseInt(num) + 1}`
 }
 
+function nextExpiration(expiresAt: string, createdAt: string): string {
+  const created = DateTime.fromISO(createdAt)
+  const expires = DateTime.fromISO(expiresAt)
+
+  const keyLifespan = expires.diff(created, 'days').days
+
+  return DateTime.utc().plus({ days: keyLifespan }).toISO()
+}
+
 export default function AdminAPIKeyCreateDialog(props: {
   onClose: () => void
   fromID?: string
 }): React.ReactNode {
-  const [value, setValue] = useState<CreateGQLAPIKeyInput>({
-    name: '',
-    description: '',
-    expiresAt: DateTime.utc().plus({ days: 7 }).toISO(),
-    query: '',
-    role: 'user',
-  })
   const [status, createKey] = useMutation(newGQLAPIKeyQuery)
   const token = status.data?.createGQLAPIKey?.token || null
   const [{ data }] = useQuery({
     query: fromExistingQuery,
     pause: !props.fromID,
   })
-
-  useEffect(() => {
-    if (!data?.gqlAPIKeys?.length) return
-    const from = data.gqlAPIKeys.find((k: GQLAPIKey) => k.id === props.fromID)
-    if (!from) return
-
-    const created = DateTime.fromISO(from.createdAt)
-    const expires = DateTime.fromISO(from.expiresAt)
-
-    const keyLifespan = expires.diff(created, 'days').days
-
-    setValue({
-      name: nextName(from.name),
-      description: from.description,
-      query: from.query,
-      expiresAt: DateTime.utc().plus({ days: keyLifespan }).toISO(),
-      role: from.role,
-    })
-  }, [data?.gqlAPIKeys])
+  const oldKey = (data?.gqlAPIKeys || []).find(
+    (k: GQLAPIKey) => k.id === props.fromID,
+  )
+  if (props.fromID && !oldKey) throw new Error('API key not found')
+  const [value, setValue] = useState<CreateGQLAPIKeyInput>(
+    oldKey
+      ? {
+          name: nextName(oldKey.name),
+          description: oldKey.description,
+          query: oldKey.query,
+          role: oldKey.role,
+          expiresAt: nextExpiration(oldKey.expiresAt, oldKey.createdAt),
+        }
+      : {
+          name: '',
+          description: '',
+          expiresAt: DateTime.utc().plus({ days: 7 }).toISO(),
+          query: '',
+          role: 'user',
+        },
+  )
 
   // handles form on submit event, based on the action type (edit, create) it will send the necessary type of parameter
   // token is also being set here when create action is used
