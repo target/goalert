@@ -248,6 +248,33 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 	cfg := config.FromContext(ctx)
 	types := []graphql2.DestinationTypeInfo{
 		{
+			Type:            destAlert,
+			Name:            "Alert",
+			Enabled:         true,
+			IsDynamicAction: true,
+			DynamicParams: []graphql2.DynamicParamConfig{{
+				ParamID:  "summary",
+				Label:    "Summary",
+				DataType: graphql2.DynamicParamTypeString,
+				Hint:     "Short summary of the alert (used for things like SMS).",
+			}, {
+				ParamID:  "details",
+				Label:    "Details",
+				DataType: graphql2.DynamicParamTypeString,
+				Hint:     "Full body (markdown) text of the alert.",
+			}, {
+				ParamID:  "dedup",
+				Label:    "Dedup",
+				DataType: graphql2.DynamicParamTypeString,
+				Hint:     "Stable identifier for de-duplication and closing existing alerts.",
+			}, {
+				ParamID:  "close",
+				Label:    "Close",
+				DataType: graphql2.DynamicParamTypeBoolean,
+				Hint:     "If true, close an existing alert.",
+			}},
+		},
+		{
 			Type:                  destTwilioSMS,
 			Name:                  "Text Message (SMS)",
 			Enabled:               cfg.Twilio.Enable,
@@ -417,33 +444,6 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 				Label:          "User",
 				InputType:      "text",
 				SupportsSearch: true,
-			}},
-		},
-		{
-			Type:            destAlert,
-			Name:            "Alert",
-			Enabled:         true,
-			IsDynamicAction: true,
-			DynamicParams: []graphql2.DynamicParamConfig{{
-				ParamID:  "summary",
-				Label:    "Summary",
-				DataType: graphql2.DynamicParamTypeString,
-				Hint:     "Short summary of the alert (used for things like SMS).",
-			}, {
-				ParamID:  "details",
-				Label:    "Details",
-				DataType: graphql2.DynamicParamTypeString,
-				Hint:     "Full body (markdown) text of the alert.",
-			}, {
-				ParamID:  "dedup",
-				Label:    "Dedup",
-				DataType: graphql2.DynamicParamTypeString,
-				Hint:     "Stable identifier for de-duplication and closing existing alerts.",
-			}, {
-				ParamID:  "close",
-				Label:    "Close",
-				DataType: graphql2.DynamicParamTypeBoolean,
-				Hint:     "If true, close an existing alert.",
 			}},
 		},
 	}

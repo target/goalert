@@ -15,6 +15,8 @@ import { styles as globalStyles } from '../styles/materialStyles'
 import makeStyles from '@mui/styles/makeStyles'
 import RuleEditorConditionDialog from './RuleEditorConditionDialog'
 import RuleEditorActionDialog from './RuleEditorActionDialog'
+import { ActionInput, DestinationTypeInfo } from '../../schema'
+import { useDynamicActionTypes } from '../util/RequireConfig'
 
 const useStyles = makeStyles((theme: Theme) => {
   const { cardHeader } = globalStyles(theme)
@@ -31,12 +33,21 @@ const useStyles = makeStyles((theme: Theme) => {
   }
 })
 
+const makeDefaultAction = (t: DestinationTypeInfo): ActionInput => ({
+  dest: { type: t.type, values: [] },
+  params: (t.dynamicParams || []).map((p) => ({
+    paramID: p.paramID,
+    expr: 'body.' + p.paramID,
+  })),
+})
+
 export default function RuleEditor(): React.ReactNode {
   const classes = useStyles()
+  const actTypes = useDynamicActionTypes()
   const [rules, setRules] = useState([
     {
       condition: 'foo == "bar" and baz < 3',
-      actions: [{ type: 'createAlert' }, { type: 'slackMessage' }],
+      actions: [makeDefaultAction(actTypes[0]), makeDefaultAction(actTypes[1])],
     },
   ])
   const [editCondition, setEditCondition] = useState<null | number>(null)
