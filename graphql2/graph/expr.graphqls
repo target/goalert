@@ -24,7 +24,7 @@ input ExprToConditionInput {
 }
 
 input ActionInput {
-  dest: DestinationInput
+  dest: DestinationInput!
   params: [DynamicParamInput!]!
 }
 

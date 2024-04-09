@@ -32,7 +32,7 @@ type InlineDisplayInfo interface {
 }
 
 type ActionInput struct {
-	Dest   *DestinationInput   `json:"dest,omitempty"`
+	Dest   *DestinationInput   `json:"dest"`
 	Params []DynamicParamInput `json:"params"`
 }
 

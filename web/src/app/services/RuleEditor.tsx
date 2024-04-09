@@ -56,6 +56,9 @@ export default function RuleEditor(): React.ReactNode {
     actionIdx: number
   }>(null)
 
+  const actionLabel = (a: ActionInput): string =>
+    actTypes.find((t) => t.type === a.dest.type)?.name || a.dest.type
+
   return (
     <Grid item xs={12}>
       <Card className={classes.padding}>
@@ -157,8 +160,42 @@ export default function RuleEditor(): React.ReactNode {
                 }}
               >
                 <Typography variant='h6' component='div'>
-                  Actions
+                  Actions{' '}
+                  <Button
+                    onClick={() => {
+                      const newActionIndex = r.actions.length
+                      setRules([
+                        ...rules.slice(0, idx),
+                        {
+                          ...r,
+                          actions: [
+                            ...r.actions,
+                            makeDefaultAction(actTypes[0]),
+                          ],
+                        },
+                        ...rules.slice(idx + 1),
+                      ])
+                      setEditAction({ ruleIdx: idx, actionIdx: newActionIndex })
+                    }}
+                  >
+                    Add Action
+                  </Button>
                 </Typography>
+                {r.actions.length === 0 && (
+                  <Typography color='textSecondary'>
+                    <Box
+                      sx={{
+                        borderRadius: 1,
+                        padding: '0px 8px',
+                        justifyContent: 'space-between',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Typography>No Action/Drop Request</Typography>
+                    </Box>
+                  </Typography>
+                )}
                 {r.actions.map((a, i) => (
                   <Typography key={i} color='textSecondary'>
                     <Box
@@ -170,7 +207,7 @@ export default function RuleEditor(): React.ReactNode {
                         alignItems: 'center',
                       }}
                     >
-                      <Typography>{a.type}</Typography>
+                      <Typography>{actionLabel(a)}</Typography>
                       <Button
                         onClick={() =>
                           setEditAction({ ruleIdx: idx, actionIdx: i })

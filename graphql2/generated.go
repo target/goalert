@@ -31728,7 +31728,7 @@ func (ec *executionContext) unmarshalInputActionInput(ctx context.Context, obj i
 		switch k {
 		case "dest":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dest"))
-			data, err := ec.unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, v)
+			data, err := ec.unmarshalNDestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -45423,6 +45423,11 @@ func (ec *executionContext) unmarshalNDestinationFieldValidateInput2githubᚗcom
 func (ec *executionContext) unmarshalNDestinationInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx context.Context, v interface{}) (DestinationInput, error) {
 	res, err := ec.unmarshalInputDestinationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNDestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx context.Context, v interface{}) (*DestinationInput, error) {
+	res, err := ec.unmarshalInputDestinationInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNDestinationType2string(ctx context.Context, v interface{}) (string, error) {
