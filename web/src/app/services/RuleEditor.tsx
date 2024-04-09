@@ -15,6 +15,7 @@ import { styles as globalStyles } from '../styles/materialStyles'
 import makeStyles from '@mui/styles/makeStyles'
 import RuleEditorConditionDialog from './RuleEditorConditionDialog'
 import RuleEditorActionDialog from './RuleEditorActionDialog'
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import { ActionInput, DestinationTypeInfo } from '../../schema'
 import { useDynamicActionTypes } from '../util/RequireConfig'
 
@@ -140,13 +141,25 @@ export default function RuleEditor(): React.ReactNode {
                 sx={{
                   borderRadius: 1,
                   bgcolor: 'primary.dark',
-                  padding: '8px',
+                  padding: '16px',
                   marginBottom: '8px',
                 }}
               >
-                <Typography variant='h6' component='div'>
-                  Condition
-                </Typography>
+                <Box display='flex' justifyContent='space-between'>
+                  <Typography variant='h6' component='div'>
+                    Condition
+                  </Typography>
+                  <Button
+                    onClick={() =>
+                      setEditCondition({ idx, value: r.condition })
+                    }
+                    variant='outlined'
+                    color='primary'
+                  >
+                    Edit Condition
+                  </Button>
+                </Box>
+
                 <Typography color='textSecondary'>
                   <Box
                     sx={{
@@ -158,14 +171,6 @@ export default function RuleEditor(): React.ReactNode {
                     }}
                   >
                     <Typography>{r.condition}</Typography>
-                    <Button
-                      onClick={() =>
-                        setEditCondition({ idx, value: r.condition })
-                      }
-                      // sx={{ float: 'right' }}
-                    >
-                      Edit Condition
-                    </Button>
                   </Box>
                 </Typography>
               </Box>
@@ -174,7 +179,7 @@ export default function RuleEditor(): React.ReactNode {
                 sx={{
                   borderRadius: 1,
                   bgcolor: 'secondary.dark',
-                  padding: '8px',
+                  padding: '16px',
                 }}
               >
                 <Typography variant='h6' component='div'>
@@ -230,9 +235,8 @@ export default function RuleEditor(): React.ReactNode {
                         onClick={() =>
                           setEditAction({ ruleIdx: idx, actionIdx: i })
                         }
-                      >
-                        Edit Action
-                      </Button>
+                        endIcon={<MoreHorizIcon />}
+                      />
                       <Button
                         onClick={() =>
                           setRules([
