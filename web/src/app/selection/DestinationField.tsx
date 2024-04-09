@@ -25,6 +25,7 @@ export default function DestinationField(
   props: DestinationFieldProps,
 ): React.ReactNode {
   const dest = useDestinationType(props.destType)
+  if (dest.requiredFields.length === 0) return null
 
   return (
     <Grid container spacing={2}>

@@ -1,25 +1,25 @@
 import React, { useState } from 'react'
-
+import _ from 'lodash'
 import FormDialog from '../dialogs/FormDialog'
-import { DestinationInput, FieldValueInput } from '../../schema'
+import { ActionInput, DynamicParamInput } from '../../schema'
 import { FormContainer } from '../forms'
 import { Grid, InputAdornment, TextField, Typography } from '@mui/material'
 import { renderMenuItem } from '../selection/DisableableMenuItem'
 import DestinationField from '../selection/DestinationField'
-
-export type Action = {
-  dest: DestinationInput
-
-  params: FieldValueInput[]
-}
+import { useDynamicActionTypes } from '../util/RequireConfig'
 
 export default function RuleEditorActionDialog(props: {
-  onClose: (expr: string | null) => void
+  action: ActionInput
+  onClose: (action: ActionInput | null) => void
 }): JSX.Element {
-  const [value, setValue] = useState<string>(props.expr)
-  const [actionType, setActionType] = useState('create-alert')
-  const [destValues, setDestValues] = useState<FieldValueInput[]>([])
-  const [slackParam, setSlackParam] = useState('body.message')
+  const [value, setValue] = useState(_.cloneDeep(props.action))
+  const types = useDynamicActionTypes()
+  const defaultParams = (typeName: string): DynamicParamInput[] =>
+    (types.find((t) => t.type === typeName)?.dynamicParams || []).map((p) => ({
+      paramID: p.paramID,
+      expr: 'body.' + p.paramID,
+    }))
+  const selType = types.find((t) => t.type === value.dest.type)
 
   return (
     <FormDialog
@@ -35,147 +35,64 @@ export default function RuleEditorActionDialog(props: {
                 fullWidth
                 select
                 label='Action Type'
-                value={actionType}
-                onChange={(e) => setActionType(e.target.value)}
+                value={value.dest.type}
+                onChange={(e) => {
+                  setValue({
+                    dest: { type: e.target.value as string, values: [] },
+                    params: defaultParams(e.target.value as string),
+                  })
+                }}
               >
-                {renderMenuItem({
-                  value: 'create-alert',
-                  label: 'Create/Update Alert',
-                  disabled: false,
-                  disabledMessage: '',
-                })}
-                {renderMenuItem({
-                  value: 'send-slack',
-                  label: 'Send Slack Message',
-                  disabled: false,
-                  disabledMessage: '',
-                })}
-                {renderMenuItem({
-                  value: 'drop',
-                  label: 'Drop/Ignore Request',
-                  disabled: false,
-                  disabledMessage: '',
-                })}
+                {types.map((t) =>
+                  renderMenuItem({
+                    value: t.type,
+                    label: t.name,
+                    disabled: t.enabled === false,
+                    disabledMessage: 'This action type is not enabled.',
+                  }),
+                )}
               </TextField>
             </Grid>
-
-            {actionType === 'drop' && (
-              <Grid item xs={12}>
-                <Typography>The request will be dropped.</Typography>
+            <Grid item xs={12}>
+              <DestinationField
+                value={value.dest.values}
+                destType={value.dest.type}
+                onChange={(v) =>
+                  setValue({ ...value, dest: { ...value.dest, values: v } })
+                }
+              />
+            </Grid>
+            {selType?.dynamicParams.map((p) => (
+              <Grid item key={p.paramID} xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position='start' sx={{ mb: '0.1em' }}>
+                        {p.label}:
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position='end' sx={{ mb: '0.1em' }}>
+                        {p.dataType}
+                      </InputAdornment>
+                    ),
+                  }}
+                  value={
+                    value.params.find((x) => x.paramID === p.paramID)?.expr
+                  }
+                  onChange={(e) => {
+                    const newParams = value.params.map((x) =>
+                      x.paramID === p.paramID
+                        ? { ...x, expr: e.target.value }
+                        : x,
+                    )
+                    setValue({ ...value, params: newParams })
+                  }}
+                />
               </Grid>
-            )}
-            {actionType === 'send-slack' && (
-              <React.Fragment>
-                <Grid item xs={12}>
-                  <DestinationField
-                    value={destValues}
-                    destType='builtin-slack-channel'
-                    onChange={(v) => setDestValues(v)}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position='start' sx={{ mb: '0.1em' }}>
-                          Message:
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <InputAdornment position='end' sx={{ mb: '0.1em' }}>
-                          string
-                        </InputAdornment>
-                      ),
-                    }}
-                    value={slackParam}
-                    onChange={(e) => setSlackParam(e.target.value)}
-                  />
-                </Grid>
-              </React.Fragment>
-            )}
-
-            {actionType === 'create-alert' && (
-              <React.Fragment>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position='start' sx={{ mb: '0.1em' }}>
-                          Summary:
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <InputAdornment position='end' sx={{ mb: '0.1em' }}>
-                          string
-                        </InputAdornment>
-                      ),
-                    }}
-                    value='body.title'
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position='start' sx={{ mb: '0.1em' }}>
-                          Details:
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <InputAdornment position='end' sx={{ mb: '0.1em' }}>
-                          string
-                        </InputAdornment>
-                      ),
-                    }}
-                    value='body.details'
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position='start' sx={{ mb: '0.1em' }}>
-                          Dedup:
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <InputAdornment position='end' sx={{ mb: '0.1em' }}>
-                          string
-                        </InputAdornment>
-                      ),
-                    }}
-                    value='body.title + body.details'
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position='start' sx={{ mb: '0.1em' }}>
-                          Close Alert?:
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <InputAdornment position='end' sx={{ mb: '0.1em' }}>
-                          bool
-                        </InputAdornment>
-                      ),
-                    }}
-                    value='body.state == "firing"'
-                  />
-                </Grid>
-              </React.Fragment>
-            )}
+            ))}
           </Grid>
         </FormContainer>
       }

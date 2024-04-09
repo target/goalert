@@ -99,10 +99,28 @@ export default function RuleEditor(): React.ReactNode {
         )}
         {editAction && editAction.actionIdx !== -1 && (
           <RuleEditorActionDialog
+            action={rules[editAction.ruleIdx].actions[editAction.actionIdx]}
             onClose={(newAction) => {
               setEditAction(null)
               if (newAction === null) return
-              // TODO: update action
+
+              setRules([
+                ...rules.slice(0, editAction.ruleIdx),
+                {
+                  ...rules[editAction.ruleIdx],
+                  actions: [
+                    ...rules[editAction.ruleIdx].actions.slice(
+                      0,
+                      editAction.actionIdx,
+                    ),
+                    newAction,
+                    ...rules[editAction.ruleIdx].actions.slice(
+                      editAction.actionIdx + 1,
+                    ),
+                  ],
+                },
+                ...rules.slice(editAction.ruleIdx + 1),
+              ])
             }}
           />
         )}
@@ -214,6 +232,20 @@ export default function RuleEditor(): React.ReactNode {
                         }
                       >
                         Edit Action
+                      </Button>
+                      <Button
+                        onClick={() =>
+                          setRules([
+                            ...rules.slice(0, idx),
+                            {
+                              ...r,
+                              actions: r.actions.filter((_, j) => j !== i),
+                            },
+                            ...rules.slice(idx + 1),
+                          ])
+                        }
+                      >
+                        Delete Action
                       </Button>
                     </Box>
                   </Typography>
