@@ -23,6 +23,7 @@ const (
 	destUser        = "builtin-user"
 	destRotation    = "builtin-rotation"
 	destSchedule    = "builtin-schedule"
+	destAlert       = "builtin-alert"
 
 	fieldPhoneNumber  = "phone-number"
 	fieldEmailAddress = "email-address"
@@ -293,6 +294,18 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 				InputType:          "email",
 				SupportsValidation: true,
 			}},
+			IsDynamicAction: true,
+			DynamicParams: []graphql2.DynamicParamConfig{{
+				ParamID:  "subject",
+				Label:    "Subject",
+				DataType: graphql2.DynamicParamTypeString,
+				Hint:     "Subject of the email message.",
+			}, {
+				ParamID:  "body",
+				Label:    "Body",
+				DataType: graphql2.DynamicParamTypeString,
+				Hint:     "Body of the email message.",
+			}},
 		},
 		{
 			Type:                  destWebhook,
@@ -342,6 +355,13 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 				Label:          "Slack Channel",
 				InputType:      "text",
 				SupportsSearch: true,
+			}},
+			IsDynamicAction: true,
+			DynamicParams: []graphql2.DynamicParamConfig{{
+				ParamID:  "message",
+				Label:    "Message",
+				DataType: graphql2.DynamicParamTypeString,
+				Hint:     "Message to send to the Slack channel.",
 			}},
 		},
 		{
@@ -397,6 +417,33 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 				Label:          "User",
 				InputType:      "text",
 				SupportsSearch: true,
+			}},
+		},
+		{
+			Type:            destAlert,
+			Name:            "Alert",
+			Enabled:         true,
+			IsDynamicAction: true,
+			DynamicParams: []graphql2.DynamicParamConfig{{
+				ParamID:  "summary",
+				Label:    "Summary",
+				DataType: graphql2.DynamicParamTypeString,
+				Hint:     "Short summary of the alert (used for things like SMS).",
+			}, {
+				ParamID:  "details",
+				Label:    "Details",
+				DataType: graphql2.DynamicParamTypeString,
+				Hint:     "Full body (markdown) text of the alert.",
+			}, {
+				ParamID:  "dedup",
+				Label:    "Dedup",
+				DataType: graphql2.DynamicParamTypeString,
+				Hint:     "Stable identifier for de-duplication and closing existing alerts.",
+			}, {
+				ParamID:  "close",
+				Label:    "Close",
+				DataType: graphql2.DynamicParamTypeBoolean,
+				Hint:     "If true, close an existing alert.",
 			}},
 		},
 	}

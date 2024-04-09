@@ -23,18 +23,12 @@ input ExprToConditionInput {
   expr: String!
 }
 
-"""
-ActionType represents a type of action that can be used for
-notifications.
-"""
-scalar ActionType
-
 input ActionInput {
   dest: DestinationInput
-  params: [ActionParamInput!]!
+  params: [DynamicParamInput!]!
 }
 
-input ActionParamInput {
+input DynamicParamInput {
   paramID: ID!
   expr: String!
 }

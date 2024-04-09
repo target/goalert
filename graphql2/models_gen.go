@@ -32,13 +32,8 @@ type InlineDisplayInfo interface {
 }
 
 type ActionInput struct {
-	Dest   *DestinationInput  `json:"dest,omitempty"`
-	Params []ActionParamInput `json:"params"`
-}
-
-type ActionParamInput struct {
-	ParamID string `json:"paramID"`
-	Expr    string `json:"expr"`
+	Dest   *DestinationInput   `json:"dest,omitempty"`
+	Params []DynamicParamInput `json:"params"`
 }
 
 type AlertConnection struct {
@@ -438,6 +433,8 @@ type DestinationTypeInfo struct {
 	// if false, the destination type is disabled and cannot be used
 	Enabled        bool                     `json:"enabled"`
 	RequiredFields []DestinationFieldConfig `json:"requiredFields"`
+	// expr parameters that can be used for this destination type
+	DynamicParams []DynamicParamConfig `json:"dynamicParams"`
 	// disclaimer text to display when a user is selecting this destination type for a contact method
 	UserDisclaimer string `json:"userDisclaimer"`
 	// this destination type can be used as a user contact method
@@ -446,10 +443,30 @@ type DestinationTypeInfo struct {
 	IsEPTarget bool `json:"isEPTarget"`
 	// this destination type can be used for schedule on-call notifications
 	IsSchedOnCallNotify bool `json:"isSchedOnCallNotify"`
+	// this destination type can be used for dynamic actions
+	IsDynamicAction bool `json:"isDynamicAction"`
 	// if true, the destination type supports status updates
 	SupportsStatusUpdates bool `json:"supportsStatusUpdates"`
 	// if true, the destination type requires status updates to be enabled
 	StatusUpdatesRequired bool `json:"statusUpdatesRequired"`
+}
+
+type DynamicParamConfig struct {
+	// unique ID for the input field
+	ParamID string `json:"paramID"`
+	// user-friendly label (should be singular)
+	Label string `json:"label"`
+	// user-friendly helper text for input fields (i.e., "Enter a phone number")
+	Hint string `json:"hint"`
+	// URL to link to for more information about the destination type
+	HintURL string `json:"hintURL"`
+	// the type of the parameter
+	DataType DynamicParamType `json:"dataType"`
+}
+
+type DynamicParamInput struct {
+	ParamID string `json:"paramID"`
+	Expr    string `json:"expr"`
 }
 
 type EscalationPolicyConnection struct {
@@ -1090,6 +1107,51 @@ func (e *ConfigType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ConfigType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type DynamicParamType string
+
+const (
+	DynamicParamTypeString   DynamicParamType = "string"
+	DynamicParamTypeMarkdown DynamicParamType = "markdown"
+	DynamicParamTypeNumber   DynamicParamType = "number"
+	DynamicParamTypeBoolean  DynamicParamType = "boolean"
+)
+
+var AllDynamicParamType = []DynamicParamType{
+	DynamicParamTypeString,
+	DynamicParamTypeMarkdown,
+	DynamicParamTypeNumber,
+	DynamicParamTypeBoolean,
+}
+
+func (e DynamicParamType) IsValid() bool {
+	switch e {
+	case DynamicParamTypeString, DynamicParamTypeMarkdown, DynamicParamTypeNumber, DynamicParamTypeBoolean:
+		return true
+	}
+	return false
+}
+
+func (e DynamicParamType) String() string {
+	return string(e)
+}
+
+func (e *DynamicParamType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DynamicParamType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DynamicParamType", str)
+	}
+	return nil
+}
+
+func (e DynamicParamType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
