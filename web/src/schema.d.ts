@@ -2,15 +2,8 @@
 
 export interface ActionInput {
   dest?: null | DestinationInput
-  params: ActionParamInput[]
+  params: DynamicParamInput[]
 }
-
-export interface ActionParamInput {
-  expr: string
-  paramID: string
-}
-
-export type ActionType = string
 
 export interface Alert {
   alertID: number
@@ -446,10 +439,12 @@ export interface DestinationInput {
 export type DestinationType = string
 
 export interface DestinationTypeInfo {
+  dynamicParams: DynamicParamConfig[]
   enabled: boolean
   iconAltText: string
   iconURL: string
   isContactMethod: boolean
+  isDynamicAction: boolean
   isEPTarget: boolean
   isSchedOnCallNotify: boolean
   name: string
@@ -459,6 +454,21 @@ export interface DestinationTypeInfo {
   type: DestinationType
   userDisclaimer: string
 }
+
+export interface DynamicParamConfig {
+  dataType: DynamicParamType
+  hint: string
+  hintURL: string
+  label: string
+  paramID: string
+}
+
+export interface DynamicParamInput {
+  expr: string
+  paramID: string
+}
+
+export type DynamicParamType = 'boolean' | 'markdown' | 'number' | 'string'
 
 export type ErrorCode =
   | 'EXPR_TOO_COMPLEX'

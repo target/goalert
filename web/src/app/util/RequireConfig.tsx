@@ -51,6 +51,7 @@ const query = gql`
       isContactMethod
       isEPTarget
       isSchedOnCallNotify
+      isDynamicAction
 
       requiredFields {
         fieldID
@@ -62,6 +63,14 @@ const query = gql`
         inputType
         supportsSearch
         supportsValidation
+      }
+
+      dynamicParams {
+        paramID
+        label
+        hint
+        hintURL
+        dataType
       }
     }
   }
@@ -199,6 +208,11 @@ export function useEPTargetTypes(): DestinationTypeInfo[] {
 export function useSchedOnCallNotifyTypes(): DestinationTypeInfo[] {
   const cfg = React.useContext(ConfigContext)
   return cfg.destTypes.filter((t) => t.isSchedOnCallNotify)
+}
+
+export function useDynamicActionTypes(): DestinationTypeInfo[] {
+  const cfg = React.useContext(ConfigContext)
+  return cfg.destTypes.filter((t) => t.isDynamicAction)
 }
 
 // useDestinationType returns information about the given destination type.
