@@ -8,6 +8,8 @@ import {
   Typography,
   CardContent,
   Button,
+  CardActions,
+  Box,
 } from '@mui/material'
 import { styles as globalStyles } from '../styles/materialStyles'
 import makeStyles from '@mui/styles/makeStyles'
@@ -94,32 +96,83 @@ export default function RuleEditor(): React.ReactNode {
 
       {rules.map((r, idx) => {
         return (
-          <Card key={idx} className={classes.margin}>
-            <CardHeader component='h3' title={`Rule #${idx + 1}`} />
-            <CardContent>
-              <h3>Condition</h3>
-              <Typography color='textSecondary'>
-                {r.condition}
-                <Button
-                  onClick={() => setEditCondition({ idx, value: r.condition })}
-                >
-                  Edit Condition
-                </Button>
-              </Typography>
-              <h3>Actions</h3>
-              {r.actions.map((a, i) => (
-                <Typography key={i} color='textSecondary'>
-                  {a.type}
-                  <Button
-                    onClick={() =>
-                      setEditAction({ ruleIdx: idx, actionIdx: i })
-                    }
-                  >
-                    Edit Action
-                  </Button>
-                </Typography>
-              ))}
+          <Card key={idx} className={classes.margin} raised>
+            <CardHeader
+              component='h4'
+              title={`Rule #${idx + 1}`}
+              sx={{ margin: 0, paddingBottom: 0 }}
+            />
 
+            <CardContent>
+              <Box
+                sx={{
+                  borderRadius: 1,
+                  bgcolor: 'primary.dark',
+                  padding: '8px',
+                  marginBottom: '8px',
+                }}
+              >
+                <Typography variant='h6' component='div'>
+                  Condition
+                </Typography>
+                <Typography color='textSecondary'>
+                  <Box
+                    sx={{
+                      borderRadius: 1,
+                      padding: '0px 8px',
+                      justifyContent: 'space-between',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Typography>{r.condition}</Typography>
+                    <Button
+                      onClick={() =>
+                        setEditCondition({ idx, value: r.condition })
+                      }
+                      // sx={{ float: 'right' }}
+                    >
+                      Edit Condition
+                    </Button>
+                  </Box>
+                </Typography>
+              </Box>
+
+              <Box
+                sx={{
+                  borderRadius: 1,
+                  bgcolor: 'secondary.dark',
+                  padding: '8px',
+                }}
+              >
+                <Typography variant='h6' component='div'>
+                  Actions
+                </Typography>
+                {r.actions.map((a, i) => (
+                  <Typography key={i} color='textSecondary'>
+                    <Box
+                      sx={{
+                        borderRadius: 1,
+                        padding: '0px 8px',
+                        justifyContent: 'space-between',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Typography>{a.type}</Typography>
+                      <Button
+                        onClick={() =>
+                          setEditAction({ ruleIdx: idx, actionIdx: i })
+                        }
+                      >
+                        Edit Action
+                      </Button>
+                    </Box>
+                  </Typography>
+                ))}
+              </Box>
+            </CardContent>
+            <CardActions sx={{ paddingTop: 0 }}>
               <Button
                 onClick={() => {
                   // insert new rule after current rule
@@ -139,7 +192,7 @@ export default function RuleEditor(): React.ReactNode {
               >
                 Delete Rule
               </Button>
-            </CardContent>
+            </CardActions>
           </Card>
         )
       })}
