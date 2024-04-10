@@ -14,13 +14,12 @@ import {
 import { styles as globalStyles } from '../styles/materialStyles'
 import makeStyles from '@mui/styles/makeStyles'
 import RuleEditorConditionDialog from './RuleEditorConditionDialog'
-import RuleEditorActionDialog from './RuleEditorActionDialog'
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
-import { ActionInput, DestinationTypeInfo } from '../../schema'
+
 import { useDynamicActionTypes } from '../util/RequireConfig'
 import RuleEditorActionsManager, {
   makeDefaultAction,
 } from './RuleEditorActionsManager'
+import { ActionInput } from '../../schema'
 
 const useStyles = makeStyles((theme: Theme) => {
   const { cardHeader } = globalStyles(theme)
@@ -47,6 +46,9 @@ export default function RuleEditor(): React.ReactNode {
     },
   ])
   const [editCondition, setEditCondition] = useState<null | number>(null)
+  const [defaultActions, setDefaultActions] = useState<ActionInput[]>([
+    makeDefaultAction(actTypes[0]),
+  ])
 
   return (
     <Grid item xs={12}>
@@ -174,6 +176,10 @@ export default function RuleEditor(): React.ReactNode {
 
       <Card className={classes.margin} style={{ marginLeft: 0 }}>
         <CardHeader component='h3' title='Default' />
+        <RuleEditorActionsManager
+          value={defaultActions}
+          onChange={setDefaultActions}
+        />
       </Card>
     </Grid>
   )
