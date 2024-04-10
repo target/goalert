@@ -18,6 +18,9 @@ import RuleEditorActionDialog from './RuleEditorActionDialog'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import { ActionInput, DestinationTypeInfo } from '../../schema'
 import { useDynamicActionTypes } from '../util/RequireConfig'
+import RuleEditorActionsManager, {
+  makeDefaultAction,
+} from './RuleEditorActionsManager'
 
 const useStyles = makeStyles((theme: Theme) => {
   const { cardHeader } = globalStyles(theme)
@@ -34,14 +37,6 @@ const useStyles = makeStyles((theme: Theme) => {
   }
 })
 
-const makeDefaultAction = (t: DestinationTypeInfo): ActionInput => ({
-  dest: { type: t.type, values: [] },
-  params: (t.dynamicParams || []).map((p) => ({
-    paramID: p.paramID,
-    expr: 'body.' + p.paramID,
-  })),
-})
-
 export default function RuleEditor(): React.ReactNode {
   const classes = useStyles()
   const actTypes = useDynamicActionTypes()
@@ -52,13 +47,6 @@ export default function RuleEditor(): React.ReactNode {
     },
   ])
   const [editCondition, setEditCondition] = useState<null | number>(null)
-  const [editAction, setEditAction] = useState<null | {
-    ruleIdx: number
-    actionIdx: number
-  }>(null)
-
-  const actionLabel = (a: ActionInput): string =>
-    actTypes.find((t) => t.type === a.dest.type)?.name || a.dest.type
 
   return (
     <Grid item xs={12}>
@@ -95,33 +83,6 @@ export default function RuleEditor(): React.ReactNode {
               setEditCondition(null)
               if (newCond === null) return
               rules[editCondition.idx].condition = newCond
-            }}
-          />
-        )}
-        {editAction && editAction.actionIdx !== -1 && (
-          <RuleEditorActionDialog
-            action={rules[editAction.ruleIdx].actions[editAction.actionIdx]}
-            onClose={(newAction) => {
-              setEditAction(null)
-              if (newAction === null) return
-
-              setRules([
-                ...rules.slice(0, editAction.ruleIdx),
-                {
-                  ...rules[editAction.ruleIdx],
-                  actions: [
-                    ...rules[editAction.ruleIdx].actions.slice(
-                      0,
-                      editAction.actionIdx,
-                    ),
-                    newAction,
-                    ...rules[editAction.ruleIdx].actions.slice(
-                      editAction.actionIdx + 1,
-                    ),
-                  ],
-                },
-                ...rules.slice(editAction.ruleIdx + 1),
-              ])
             }}
           />
         )}
@@ -175,86 +136,16 @@ export default function RuleEditor(): React.ReactNode {
                 </Typography>
               </Box>
 
-              <Box
-                sx={{
-                  borderRadius: 1,
-                  bgcolor: 'secondary.dark',
-                  padding: '16px',
+              <RuleEditorActionsManager
+                value={r.actions}
+                onChange={(newActions) => {
+                  setRules([
+                    ...rules.slice(0, idx),
+                    { ...r, actions: newActions },
+                    ...rules.slice(idx + 1),
+                  ])
                 }}
-              >
-                <Typography variant='h6' component='div'>
-                  Actions{' '}
-                  <Button
-                    onClick={() => {
-                      const newActionIndex = r.actions.length
-                      setRules([
-                        ...rules.slice(0, idx),
-                        {
-                          ...r,
-                          actions: [
-                            ...r.actions,
-                            makeDefaultAction(actTypes[0]),
-                          ],
-                        },
-                        ...rules.slice(idx + 1),
-                      ])
-                      setEditAction({ ruleIdx: idx, actionIdx: newActionIndex })
-                    }}
-                  >
-                    Add Action
-                  </Button>
-                </Typography>
-                {r.actions.length === 0 && (
-                  <Typography color='textSecondary'>
-                    <Box
-                      sx={{
-                        borderRadius: 1,
-                        padding: '0px 8px',
-                        justifyContent: 'space-between',
-                        display: 'flex',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Typography>No Action/Drop Request</Typography>
-                    </Box>
-                  </Typography>
-                )}
-                {r.actions.map((a, i) => (
-                  <Typography key={i} color='textSecondary'>
-                    <Box
-                      sx={{
-                        borderRadius: 1,
-                        padding: '0px 8px',
-                        justifyContent: 'space-between',
-                        display: 'flex',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Typography>{actionLabel(a)}</Typography>
-                      <Button
-                        onClick={() =>
-                          setEditAction({ ruleIdx: idx, actionIdx: i })
-                        }
-                        endIcon={<MoreHorizIcon />}
-                      />
-                      <Button
-                        onClick={() =>
-                          setRules([
-                            ...rules.slice(0, idx),
-                            {
-                              ...r,
-                              actions: r.actions.filter((_, j) => j !== i),
-                            },
-                            ...rules.slice(idx + 1),
-                          ])
-                        }
-                      >
-                        Delete Action
-                      </Button>
-                    </Box>
-                  </Typography>
-                ))}
-              </Box>
+              />
             </CardContent>
             <CardActions sx={{ paddingTop: 0 }}>
               <Button
