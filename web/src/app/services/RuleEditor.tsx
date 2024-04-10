@@ -109,14 +109,18 @@ export default function RuleEditor(): React.ReactNode {
               <Box
                 sx={{
                   borderRadius: 1,
-                  // bgcolor: 'primary.dark',
                   padding: '16px',
                   marginBottom: '16px',
                   outline: 'solid',
                   outlineWidth: '1px',
+                  outlineColor: 'divider',
                 }}
               >
-                <Box display='flex' justifyContent='space-between'>
+                <Box
+                  display='flex'
+                  justifyContent='space-between'
+                  marginBottom='8px'
+                >
                   <Typography variant='h6' component='div'>
                     Condition
                   </Typography>
@@ -156,6 +160,7 @@ export default function RuleEditor(): React.ReactNode {
                     ...rules.slice(idx + 1),
                   ])
                 }}
+                border
               />
             </CardContent>
             <CardActions sx={{ paddingTop: 0 }}>
@@ -183,11 +188,15 @@ export default function RuleEditor(): React.ReactNode {
         )
       })}
 
-      <Card className={classes.margin} style={{ marginLeft: 0 }}>
+      <Card
+        className={classes.margin}
+        style={{ marginLeft: 0, padding: '16px' }}
+      >
         <RuleEditorActionsManager
           default
           value={defaultActions}
           onChange={setDefaultActions}
+          border={false}
         />
       </Card>
     </Grid>

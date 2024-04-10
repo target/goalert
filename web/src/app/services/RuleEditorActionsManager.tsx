@@ -31,6 +31,7 @@ export type RuleEditorActionsManagerProps = {
   // default is true if this is the default action
   default?: boolean
   value: ActionInput[]
+  border?: boolean
   onChange: (value: ActionInput[]) => void
 }
 
@@ -62,13 +63,13 @@ export default function RuleEditorActionsManager(
       <Box
         sx={{
           borderRadius: 1,
-          // bgcolor: 'secondary.dark',
           padding: '16px',
           outline: 'solid',
-          outlineWidth: '1px',
+          outlineWidth: props.border ? '1px' : '0',
+          outlineColor: 'divider',
         }}
       >
-        <Box display='flex' justifyContent='space-between'>
+        <Box display='flex' justifyContent='space-between' marginBottom='8px'>
           <Typography variant={props.default ? 'h5' : 'h6'} component='div'>
             {props.default ? 'Default Actions ' : 'Actions '}
           </Typography>
