@@ -133,6 +133,9 @@ func addInputError(ctx context.Context, err error) {
 func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *graphql2.DestinationInput) (err error) {
 	cfg := config.FromContext(ctx)
 	switch dest.Type {
+	case destAlert:
+		// no fields to validate
+		return nil
 	case destTwilioSMS:
 		phone := dest.FieldValue(fieldPhoneNumber)
 		err := validate.Phone(fieldPhoneNumber, phone)

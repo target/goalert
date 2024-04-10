@@ -4,9 +4,13 @@ import { ActionInput, DestinationTypeInfo } from '../../schema'
 import { useDynamicActionTypes } from '../util/RequireConfig'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import RuleEditorActionDialog from './RuleEditorActionDialog'
+import DestinationInputChip from '../util/DestinationInputChip'
 
 export const makeDefaultAction = (t: DestinationTypeInfo): ActionInput => ({
-  dest: { type: t.type, values: [] },
+  dest: {
+    type: t.type,
+    values: [{ fieldID: 'email-address', value: 'foo@example.com' }],
+  },
   params: (t.dynamicParams || []).map((p) => ({
     paramID: p.paramID,
     expr: 'body.' + p.paramID,
@@ -75,7 +79,7 @@ export default function RuleEditorActionsManager(
                 alignItems: 'center',
               }}
             >
-              <Typography>No Action/Drop Request</Typography>
+              <Typography>-- No Action/Drop Request --</Typography>
             </Box>
           </Typography>
         )}
@@ -90,7 +94,7 @@ export default function RuleEditorActionsManager(
                 alignItems: 'center',
               }}
             >
-              <Typography>{actionLabel(a)}</Typography>
+              <DestinationInputChip value={a.dest} />
               <Button
                 onClick={() => setEditActionIndex(i)}
                 endIcon={<MoreHorizIcon />}

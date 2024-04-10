@@ -3,6 +3,7 @@ import { Avatar, CircularProgress } from '@mui/material'
 
 import {
   BrokenImage,
+  Notifications,
   RotateRight as RotationIcon,
   Today as ScheduleIcon,
   Webhook as WebhookIcon,
@@ -12,6 +13,7 @@ const builtInIcons: { [key: string]: React.ReactNode } = {
   'builtin://rotation': <RotationIcon />,
   'builtin://schedule': <ScheduleIcon />,
   'builtin://webhook': <WebhookIcon />,
+  'builtin://alert': <Notifications />,
 }
 
 export type DestinationAvatarProps = {

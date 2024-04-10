@@ -55,6 +55,12 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest graphql2.Desti
 		}
 	}
 	switch dest.Type {
+	case destAlert:
+		return &graphql2.DestinationDisplayInfo{
+			IconURL:     "builtin://alert",
+			IconAltText: "Alert",
+			Text:        "Create an Alert",
+		}, nil
 	case destTwilioSMS:
 		n, err := phonenumbers.Parse(dest.FieldValue(fieldPhoneNumber), "")
 		if err != nil {
