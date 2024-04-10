@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { adminSessionFile, baseURLFromFlags } from './lib'
+import { adminSessionFile } from './lib'
 import Chance from 'chance'
 const c = new Chance()
 
@@ -40,9 +40,11 @@ query ServiceInfo2($secondID: ID!) {
 }
 `
 
-test('GQL API keys', async ({ page, request, isMobile }) => {
+test('GQL API keys', async ({ page, request, isMobile, baseURL }) => {
   // skip this test if we're running on mobile
   if (isMobile) return
+
+  if (!baseURL) throw new Error('baseURL is required')
 
   const baseName =
     'apikeytest ' +
@@ -54,7 +56,7 @@ test('GQL API keys', async ({ page, request, isMobile }) => {
 
   const descrtiption = c.sentence({ words: 5 })
 
-  await page.goto(baseURLFromFlags(['gql-api-keys']))
+  await page.goto('./')
 
   // click on Admin, then API Keys
   await page.click('text=Admin')
@@ -92,8 +94,7 @@ test('GQL API keys', async ({ page, request, isMobile }) => {
 
   await expect(page.locator('li', { hasText: duplicateName })).toBeVisible()
 
-  const gqlURL =
-    baseURLFromFlags(['gql-api-keys']).replace(/\/$/, '') + '/api/graphql'
+  const gqlURL = baseURL.replace(/\/$/, '') + '/api/graphql'
   let resp = await request.post(gqlURL, {
     headers: {
       Authorization: `Bearer ${duplicateToken}`,

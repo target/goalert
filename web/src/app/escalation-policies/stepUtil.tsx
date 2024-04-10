@@ -106,13 +106,11 @@ export function renderChips({ targets: _t }: Step): ReactElement {
  * repeats, and if the message is rendering on the last step
  */
 export function renderDelayMessage(
-  steps: Step[],
   step: Step,
+  idx: number,
   repeat: number,
+  isLastStep: boolean,
 ): ReactNode {
-  const len = steps.length
-  const isLastStep = getStepNumber(step.id, steps) === len
-
   // if it's the last step and should not repeat, do not render end text
   if (isLastStep && repeat === 0) {
     return null
@@ -121,10 +119,10 @@ export function renderDelayMessage(
   const pluralizer = (x: number): string => (x === 1 ? '' : 's')
 
   let repeatText = `Move on to step #${
-    getStepNumber(step.id, steps) + 1
+    idx + 1
   } after ${step.delayMinutes} minute${pluralizer(step.delayMinutes)}`
 
-  if (isLastStep && getStepNumber(step.id, steps) === 1) {
+  if (isLastStep && idx === 0) {
     repeatText = `Repeat after ${step.delayMinutes} minutes`
   }
 
