@@ -5,6 +5,7 @@ import { useDynamicActionTypes } from '../util/RequireConfig'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import RuleEditorActionDialog from './RuleEditorActionDialog'
 import DestinationInputChip from '../util/DestinationInputChip'
+import { Warning } from '../icons'
 
 export const makeDefaultAction = (t: DestinationTypeInfo): ActionInput => ({
   dest: {
@@ -18,6 +19,8 @@ export const makeDefaultAction = (t: DestinationTypeInfo): ActionInput => ({
 })
 
 export type RuleEditorActionsManagerProps = {
+  // default is true if this is the default action
+  default?: boolean
   value: ActionInput[]
   onChange: (value: ActionInput[]) => void
 }
@@ -29,8 +32,6 @@ export default function RuleEditorActionsManager(
   const [editActionIndex, setEditActionIndex] = React.useState<number | null>(
     null,
   )
-  const actionLabel = (a: ActionInput): string =>
-    actTypes.find((t) => t.type === a.dest.type)?.name || a.dest.type
 
   return (
     <React.Fragment>
@@ -56,8 +57,8 @@ export default function RuleEditorActionsManager(
           padding: '16px',
         }}
       >
-        <Typography variant='h6' component='div'>
-          Actions{' '}
+        <Typography variant={props.default ? 'h5' : 'h6'} component='div'>
+          {props.default ? 'Default Actions ' : 'Actions '}
           <Button
             onClick={() => {
               const newActionIndex = props.value.length
@@ -68,6 +69,16 @@ export default function RuleEditorActionsManager(
             Add Action
           </Button>
         </Typography>
+
+        {props.default && (
+          <Typography
+            sx={{ paddingLeft: '1em', fontStyle: 'italic', pr: 2 }}
+            color='textSecondary'
+          >
+            Action(s) taken when no other rule matches.
+          </Typography>
+        )}
+
         {props.value.length === 0 && (
           <Typography color='textSecondary'>
             <Box
@@ -79,7 +90,10 @@ export default function RuleEditorActionsManager(
                 alignItems: 'center',
               }}
             >
-              <Typography>-- No Action/Drop Request --</Typography>
+              <Typography>
+                <Warning message='The request will be ignored/dropped.' /> No
+                Action
+              </Typography>
             </Box>
           </Typography>
         )}

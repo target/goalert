@@ -175,8 +175,8 @@ export default function RuleEditor(): React.ReactNode {
       })}
 
       <Card className={classes.margin} style={{ marginLeft: 0 }}>
-        <CardHeader component='h3' title='Default' />
         <RuleEditorActionsManager
+          default
           value={defaultActions}
           onChange={setDefaultActions}
         />
