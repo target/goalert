@@ -14,6 +14,7 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import RuleEditorActionDialog from './RuleEditorActionDialog'
 import DestinationInputChip from '../util/DestinationInputChip'
 import { Warning } from '../icons'
+import OtherActions from '../util/OtherActions'
 
 export const makeDefaultAction = (t: DestinationTypeInfo): ActionInput => ({
   dest: {
@@ -40,15 +41,6 @@ export default function RuleEditorActionsManager(
   const [editActionIndex, setEditActionIndex] = React.useState<number | null>(
     null,
   )
-
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
-  const open = Boolean(anchorEl)
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget)
-  }
-  const handleClose = () => {
-    setAnchorEl(null)
-  }
 
   return (
     <React.Fragment>
@@ -132,40 +124,21 @@ export default function RuleEditorActionsManager(
               }}
             >
               <DestinationInputChip value={a.dest} />
-              <IconButton onClick={handleClick}>
-                <MoreHorizIcon />
-              </IconButton>
-              <Menu
-                id='fade-menu'
-                MenuListProps={{
-                  'aria-labelledby': 'fade-button',
-                }}
-                anchorEl={anchorEl}
-                open={open}
-                onClose={handleClose}
-                TransitionComponent={Fade}
-              >
-                <MenuItem onClick={() => setEditActionIndex(i)}>Edit</MenuItem>
-                <MenuItem
-                  onClick={() =>
-                    props.onChange(props.value.filter((_, j) => j !== i))
-                  }
-                >
-                  Delete
-                </MenuItem>
-              </Menu>
-
-              {/* <Button
-                onClick={() => setEditActionIndex(i)}
-                endIcon={<MoreHorizIcon />}
+              <OtherActions
+                IconComponent={MoreHorizIcon}
+                actions={[
+                  {
+                    label: 'Edit',
+                    onClick: () => setEditActionIndex(i),
+                  },
+                  {
+                    label: 'Delete',
+                    onClick: () =>
+                      props.onChange(props.value.filter((_, j) => j !== i)),
+                  },
+                ]}
+                placement='right'
               />
-              <Button
-                onClick={() =>
-                  props.onChange(props.value.filter((_, j) => j !== i))
-                }
-              >
-                Delete Action
-              </Button> */}
             </Box>
           </Typography>
         ))}
