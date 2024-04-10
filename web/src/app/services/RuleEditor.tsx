@@ -10,6 +10,7 @@ import {
   Button,
   CardActions,
   Box,
+  IconButton,
 } from '@mui/material'
 import { styles as globalStyles } from '../styles/materialStyles'
 import makeStyles from '@mui/styles/makeStyles'
@@ -92,7 +93,12 @@ export default function RuleEditor(): React.ReactNode {
 
       {rules.map((r, idx) => {
         return (
-          <Card key={idx} className={classes.margin} raised>
+          <Card
+            key={idx}
+            className={classes.margin}
+            raised
+            sx={{ marginRight: '16px' }}
+          >
             <CardHeader
               component='h4'
               title={`Rule #${idx + 1}`}
@@ -103,9 +109,11 @@ export default function RuleEditor(): React.ReactNode {
               <Box
                 sx={{
                   borderRadius: 1,
-                  bgcolor: 'primary.dark',
+                  // bgcolor: 'primary.dark',
                   padding: '16px',
-                  marginBottom: '8px',
+                  marginBottom: '16px',
+                  outline: 'solid',
+                  outlineWidth: '1px',
                 }}
               >
                 <Box display='flex' justifyContent='space-between'>
@@ -116,8 +124,9 @@ export default function RuleEditor(): React.ReactNode {
                     onClick={() =>
                       setEditCondition({ idx, value: r.condition })
                     }
-                    variant='outlined'
+                    variant='contained'
                     color='primary'
+                    size='small'
                   >
                     Edit Condition
                   </Button>

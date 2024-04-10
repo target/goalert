@@ -1,4 +1,12 @@
-import { Box, Button, Typography } from '@mui/material'
+import {
+  Box,
+  Button,
+  Fade,
+  IconButton,
+  Menu,
+  MenuItem,
+  Typography,
+} from '@mui/material'
 import React from 'react'
 import { ActionInput, DestinationTypeInfo } from '../../schema'
 import { useDynamicActionTypes } from '../util/RequireConfig'
@@ -33,6 +41,15 @@ export default function RuleEditorActionsManager(
     null,
   )
 
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
+  const open = Boolean(anchorEl)
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget)
+  }
+  const handleClose = () => {
+    setAnchorEl(null)
+  }
+
   return (
     <React.Fragment>
       {editActionIndex !== null && (
@@ -53,22 +70,28 @@ export default function RuleEditorActionsManager(
       <Box
         sx={{
           borderRadius: 1,
-          bgcolor: 'secondary.dark',
+          // bgcolor: 'secondary.dark',
           padding: '16px',
+          outline: 'solid',
+          outlineWidth: '1px',
         }}
       >
-        <Typography variant={props.default ? 'h5' : 'h6'} component='div'>
-          {props.default ? 'Default Actions ' : 'Actions '}
+        <Box display='flex' justifyContent='space-between'>
+          <Typography variant={props.default ? 'h5' : 'h6'} component='div'>
+            {props.default ? 'Default Actions ' : 'Actions '}
+          </Typography>
           <Button
             onClick={() => {
               const newActionIndex = props.value.length
               props.onChange([...props.value, makeDefaultAction(actTypes[0])])
               setEditActionIndex(newActionIndex)
             }}
+            variant='contained'
+            size='small'
           >
             Add Action
           </Button>
-        </Typography>
+        </Box>
 
         {props.default && (
           <Typography
@@ -109,7 +132,30 @@ export default function RuleEditorActionsManager(
               }}
             >
               <DestinationInputChip value={a.dest} />
-              <Button
+              <IconButton onClick={handleClick}>
+                <MoreHorizIcon />
+              </IconButton>
+              <Menu
+                id='fade-menu'
+                MenuListProps={{
+                  'aria-labelledby': 'fade-button',
+                }}
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                TransitionComponent={Fade}
+              >
+                <MenuItem onClick={() => setEditActionIndex(i)}>Edit</MenuItem>
+                <MenuItem
+                  onClick={() =>
+                    props.onChange(props.value.filter((_, j) => j !== i))
+                  }
+                >
+                  Delete
+                </MenuItem>
+              </Menu>
+
+              {/* <Button
                 onClick={() => setEditActionIndex(i)}
                 endIcon={<MoreHorizIcon />}
               />
@@ -119,7 +165,7 @@ export default function RuleEditorActionsManager(
                 }
               >
                 Delete Action
-              </Button>
+              </Button> */}
             </Box>
           </Typography>
         ))}
