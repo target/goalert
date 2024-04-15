@@ -49,6 +49,7 @@ function ServiceMaintenanceForm(props: {
       </RadioGroup>
       <ISODateTimePicker
         label='Select a date'
+        helperText='Within 24 hours'
         value={props.value.toISO()}
         disabled={selectedOption !== -1}
         onChange={(iso) => props.onChange(DateTime.fromISO(iso))}
