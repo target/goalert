@@ -8,7 +8,7 @@ require (
 	github.com/coreos/go-oidc/v3 v3.10.0
 	github.com/creack/pty/v2 v2.0.1
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
-	github.com/emersion/go-smtp v0.21.0
+	github.com/emersion/go-smtp v0.21.1
 	github.com/fatih/color v1.16.0
 	github.com/felixge/httpsnoop v1.0.4
 	github.com/fullstorydev/grpcui v1.3.3
@@ -32,7 +32,7 @@ require (
 	github.com/mnako/letters v0.2.2
 	github.com/nyaruka/phonenumbers v1.3.4
 	github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282
-	github.com/pelletier/go-toml/v2 v2.2.0
+	github.com/pelletier/go-toml/v2 v2.2.1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.19.0
 	github.com/rubenv/sql-migrate v1.6.1
@@ -44,7 +44,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/vektah/gqlparser/v2 v2.5.11
 	golang.org/x/crypto v0.22.0
-	golang.org/x/oauth2 v0.18.0
+	golang.org/x/oauth2 v0.19.0
 	golang.org/x/sys v0.19.0
 	golang.org/x/term v0.19.0
 	golang.org/x/tools v0.20.0
@@ -150,7 +150,6 @@ require (
 	golang.org/x/net v0.24.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20240123012728-ef4313101c80 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240123012728-ef4313101c80 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240318140521-94a12d6c2237 // indirect
