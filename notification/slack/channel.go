@@ -3,6 +3,7 @@ package slack
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -74,6 +75,8 @@ type Channel struct {
 	ID     string
 	Name   string
 	TeamID string
+
+	IsArchived bool
 }
 
 // User contains information about a Slack user.
@@ -83,7 +86,38 @@ type User struct {
 	TeamID string
 }
 
+// Team contains information about a Slack team.
+type Team struct {
+	ID      string
+	Domain  string
+	Name    string
+	IconURL string
+}
+
+func (t Team) ChannelLink(id string) string {
+	var u url.URL
+
+	u.Host = t.Domain + ".slack.com"
+	u.Scheme = "https"
+	u.Path = "/archives/" + url.PathEscape(id)
+
+	return u.String()
+}
+
+func (t Team) UserLink(id string) string {
+	var u url.URL
+
+	u.Host = t.Domain + ".slack.com"
+	u.Scheme = "https"
+	u.Path = "/team/" + url.PathEscape(id)
+
+	return u.String()
+}
+
 func rootMsg(err error) string {
+	if err == nil {
+		return ""
+	}
 	unwrapped := errors.Unwrap(err)
 	if unwrapped == nil {
 		return err.Error()
@@ -95,13 +129,41 @@ func rootMsg(err error) string {
 func mapError(ctx context.Context, err error) error {
 	switch rootMsg(err) {
 	case "channel_not_found":
-		return validation.NewFieldError("ChannelID", "Invalid Slack channel ID.")
+		return validation.NewFieldError("ChannelID", "Channel does not exist, is archived, or is private (invite goalert bot).")
 	case "missing_scope", "invalid_auth", "account_inactive", "token_revoked", "not_authed":
 		log.Log(ctx, err)
 		return validation.NewFieldError("ChannelID", "Permission Denied.")
 	}
 
 	return err
+}
+
+func (s *ChannelSender) ValidateChannel(ctx context.Context, id string) error {
+	err := permission.LimitCheckAny(ctx, permission.User, permission.System)
+	if err != nil {
+		return err
+	}
+
+	s.chanMx.Lock()
+	defer s.chanMx.Unlock()
+	res, ok := s.chanCache.Get(id)
+	if !ok {
+		res, err = s.loadChannel(ctx, id)
+		if err != nil {
+			if rootMsg(err) == "channel_not_found" {
+				return validation.NewGenericError("Channel does not exist, is archived, or is private (invite goalert bot).")
+			}
+
+			return err
+		}
+		s.chanCache.Add(id, res)
+	}
+
+	if res.IsArchived {
+		return validation.NewGenericError("Channel is archived.")
+	}
+
+	return nil
 }
 
 // Channel will lookup a single Slack channel for the bot.
@@ -129,13 +191,19 @@ func (s *ChannelSender) Channel(ctx context.Context, channelID string) (*Channel
 	return res, nil
 }
 
-func (s *ChannelSender) TeamName(ctx context.Context, id string) (name string, err error) {
+func (s *ChannelSender) Team(ctx context.Context, id string) (t *Team, err error) {
 	s.teamInfoMx.Lock()
 	defer s.teamInfoMx.Unlock()
 
 	info, ok := s.teamInfoCache.Get(id)
 	if ok {
-		return info.Name, nil
+		url, _ := info.Icon["image_44"].(string)
+		return &Team{
+			ID:      info.ID,
+			Name:    info.Name,
+			IconURL: url,
+			Domain:  info.Domain,
+		}, nil
 	}
 
 	err = s.withClient(ctx, func(c *slack.Client) error {
@@ -144,12 +212,19 @@ func (s *ChannelSender) TeamName(ctx context.Context, id string) (name string, e
 			return err
 		}
 
-		name = info.Name
+		url, _ := info.Icon["image_44"].(string)
+		t = &Team{
+			ID:      info.ID,
+			Name:    info.Name,
+			IconURL: url,
+			Domain:  info.Domain,
+		}
+
 		s.teamInfoCache.Add(id, info)
 		return nil
 	})
 
-	return name, err
+	return t, err
 }
 
 func (s *ChannelSender) TeamID(ctx context.Context) (string, error) {
@@ -190,6 +265,7 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 
 		ch.ID = resp.ID
 		ch.Name = "#" + resp.Name
+		ch.IsArchived = resp.IsArchived
 
 		return nil
 	})

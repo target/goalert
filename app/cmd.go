@@ -11,6 +11,7 @@ import (
 	"os/signal"
 	"runtime"
 	"strings"
+	"testing"
 	"time"
 
 	"github.com/pelletier/go-toml/v2"
@@ -42,6 +43,11 @@ var shutdownSignalCh = make(chan os.Signal, 2)
 var ErrDBRequired = validation.NewFieldError("db-url", "is required")
 
 func init() {
+	if testing.Testing() {
+		// Skip signal handling in tests.
+		return
+	}
+
 	signal.Notify(shutdownSignalCh, shutdownSignals...)
 }
 
@@ -97,8 +103,12 @@ Available Flags:
 		if err != nil {
 			return err
 		}
-		ctx := cmd.Context()
+		err = initPprofServer()
+		if err != nil {
+			return err
+		}
 
+		ctx := cmd.Context()
 		cfg, err := getConfig(ctx)
 		if err != nil {
 			return err
@@ -370,6 +380,11 @@ Migration: %s (#%d)
 			}
 
 			err = initPromServer()
+			if err != nil {
+				return err
+			}
+
+			err = initPprofServer()
 			if err != nil {
 				return err
 			}
@@ -673,6 +688,11 @@ func getConfig(ctx context.Context) (Config, error) {
 		if err != nil {
 			return cfg, errors.Wrap(err, "parse public url")
 		}
+		if u.Scheme == "" {
+			return cfg, errors.New("public-url must be an absolute URL (missing scheme)")
+		}
+		u.Path = strings.TrimSuffix(u.Path, "/")
+		cfg.PublicURL = u.String()
 		if cfg.HTTPPrefix != "" {
 			return cfg, errors.New("public-url and http-prefix cannot be used together")
 		}
@@ -728,6 +748,9 @@ func init() {
 	RootCmd.Flags().String("public-url", "", "Externally routable URL to the application. Used for validating callback requests, links, auth, and prefix calculation.")
 
 	RootCmd.PersistentFlags().StringP("listen-prometheus", "p", "", "Bind address for Prometheus metrics.")
+	RootCmd.PersistentFlags().String("listen-pprof", "", "Bind address for pprof.")
+	RootCmd.PersistentFlags().Int("pprof-block-profile-rate", 0, "Set the block profile rate in hz.")
+	RootCmd.PersistentFlags().Int("pprof-mutex-profile-fraction", 0, "Set the mutex profile fraction (rate is 1/this-value).")
 
 	RootCmd.Flags().String("tls-cert-file", "", "Specifies a path to a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")
 	RootCmd.Flags().String("tls-key-file", "", "Specifies a path to a PEM-encoded private key file.  Has no effect if --listen-tls is unset.")

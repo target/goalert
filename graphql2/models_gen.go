@@ -27,6 +27,10 @@ import (
 	"github.com/target/goalert/util/timeutil"
 )
 
+type InlineDisplayInfo interface {
+	IsInlineDisplayInfo()
+}
+
 type AlertConnection struct {
 	Nodes    []alert.Alert `json:"nodes"`
 	PageInfo *PageInfo     `json:"pageInfo"`
@@ -40,6 +44,16 @@ type AlertDataPoint struct {
 type AlertLogEntryConnection struct {
 	Nodes    []alertlog.Entry `json:"nodes"`
 	PageInfo *PageInfo        `json:"pageInfo"`
+}
+
+type AlertMetadata struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type AlertMetadataInput struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 type AlertMetricsOptions struct {
@@ -119,11 +133,12 @@ type ConfigValueInput struct {
 }
 
 type CreateAlertInput struct {
-	Summary   string  `json:"summary"`
-	Details   *string `json:"details,omitempty"`
-	ServiceID string  `json:"serviceID"`
-	Sanitize  *bool   `json:"sanitize,omitempty"`
-	Dedup     *string `json:"dedup,omitempty"`
+	Summary   string               `json:"summary"`
+	Details   *string              `json:"details,omitempty"`
+	ServiceID string               `json:"serviceID"`
+	Sanitize  *bool                `json:"sanitize,omitempty"`
+	Dedup     *string              `json:"dedup,omitempty"`
+	Meta      []AlertMetadataInput `json:"meta,omitempty"`
 }
 
 type CreateBasicAuthInput struct {
@@ -147,6 +162,7 @@ type CreateEscalationPolicyStepInput struct {
 	Targets            []assignment.RawTarget `json:"targets,omitempty"`
 	NewRotation        *CreateRotationInput   `json:"newRotation,omitempty"`
 	NewSchedule        *CreateScheduleInput   `json:"newSchedule,omitempty"`
+	Actions            []DestinationInput     `json:"actions,omitempty"`
 }
 
 type CreateGQLAPIKeyInput struct {
@@ -158,9 +174,10 @@ type CreateGQLAPIKeyInput struct {
 }
 
 type CreateHeartbeatMonitorInput struct {
-	ServiceID      *string `json:"serviceID,omitempty"`
-	Name           string  `json:"name"`
-	TimeoutMinutes int     `json:"timeoutMinutes"`
+	ServiceID         *string `json:"serviceID,omitempty"`
+	Name              string  `json:"name"`
+	TimeoutMinutes    int     `json:"timeoutMinutes"`
+	AdditionalDetails *string `json:"additionalDetails,omitempty"`
 }
 
 type CreateIntegrationKeyInput struct {
@@ -212,10 +229,12 @@ type CreateUserCalendarSubscriptionInput struct {
 
 type CreateUserContactMethodInput struct {
 	UserID                  string                           `json:"userID"`
-	Type                    contactmethod.Type               `json:"type"`
+	Type                    *contactmethod.Type              `json:"type,omitempty"`
+	Dest                    *DestinationInput                `json:"dest,omitempty"`
 	Name                    string                           `json:"name"`
-	Value                   string                           `json:"value"`
+	Value                   *string                          `json:"value,omitempty"`
 	NewUserNotificationRule *CreateUserNotificationRuleInput `json:"newUserNotificationRule,omitempty"`
+	EnableStatusUpdates     *bool                            `json:"enableStatusUpdates,omitempty"`
 }
 
 type CreateUserInput struct {
@@ -294,29 +313,77 @@ type DebugSendSMSInput struct {
 	Body string `json:"body"`
 }
 
+// Destination represents a destination that can be used for notifications.
 type Destination struct {
-	Type     string               `json:"type"`
-	Values   []FieldValuePair     `json:"values"`
-	TypeInfo *DestinationTypeInfo `json:"typeInfo"`
+	Type        string            `json:"type"`
+	Values      []FieldValuePair  `json:"values"`
+	DisplayInfo InlineDisplayInfo `json:"displayInfo"`
 }
 
+// DestinationDisplayInfo provides information for displaying a destination.
+type DestinationDisplayInfo struct {
+	// user-friendly text to display for this destination
+	Text string `json:"text"`
+	// URL to an icon to display for this destination
+	IconURL string `json:"iconURL"`
+	// alt text for the icon, should be human-readable and usable in place of the icon
+	IconAltText string `json:"iconAltText"`
+	// URL to link to for more information about this destination
+	LinkURL string `json:"linkURL"`
+}
+
+func (DestinationDisplayInfo) IsInlineDisplayInfo() {}
+
+type DestinationDisplayInfoError struct {
+	// error message to display when the display info cannot be retrieved
+	Error string `json:"error"`
+}
+
+func (DestinationDisplayInfoError) IsInlineDisplayInfo() {}
+
 type DestinationFieldConfig struct {
-	FieldID            string `json:"fieldID"`
-	LabelSingular      string `json:"labelSingular"`
-	LabelPlural        string `json:"labelPlural"`
-	Hint               string `json:"hint"`
-	HintURL            string `json:"hintURL"`
-	PlaceholderText    string `json:"placeholderText"`
-	Prefix             string `json:"prefix"`
-	InputType          string `json:"inputType"`
-	IsSearchSelectable bool   `json:"isSearchSelectable"`
-	SupportsValidation bool   `json:"supportsValidation"`
+	// unique ID for the input field
+	FieldID string `json:"fieldID"`
+	// user-friendly label (should be singular)
+	Label string `json:"label"`
+	// user-friendly helper text for input fields (i.e., "Enter a phone number")
+	Hint string `json:"hint"`
+	// URL to link to for more information about the destination type
+	HintURL string `json:"hintURL"`
+	// placeholder text to display in input fields (e.g., "Phone Number")
+	PlaceholderText string `json:"placeholderText"`
+	// the prefix to use when displaying the destination (e.g., "+" for phone numbers)
+	Prefix string `json:"prefix"`
+	// the type of input field (type attribute) to use (e.g., "text" or "tel")
+	InputType string `json:"inputType"`
+	// if true, the destination can be selected via search
+	SupportsSearch bool `json:"supportsSearch"`
+	// if true, the destination type supports validation
+	SupportsValidation bool `json:"supportsValidation"`
+}
+
+type DestinationFieldSearchInput struct {
+	// the type of destination to search for
+	DestType string `json:"destType"`
+	// the ID of the input field to search for
+	FieldID string `json:"fieldID"`
+	// search string to match against
+	Search *string `json:"search,omitempty"`
+	// values/ids to omit from results
+	Omit []string `json:"omit,omitempty"`
+	// cursor to start search from
+	After *string `json:"after,omitempty"`
+	// number of results to return
+	First *int `json:"first,omitempty"`
 }
 
 type DestinationFieldValidateInput struct {
+	// the type of destination to validate
 	DestType string `json:"destType"`
-	FieldID  string `json:"fieldID"`
-	Value    string `json:"value"`
+	// the ID of the input field to validate
+	FieldID string `json:"fieldID"`
+	// the value to validate
+	Value string `json:"value"`
 }
 
 type DestinationInput struct {
@@ -325,17 +392,27 @@ type DestinationInput struct {
 }
 
 type DestinationTypeInfo struct {
-	Type                string                   `json:"type"`
-	Name                string                   `json:"name"`
-	IconURL             string                   `json:"iconURL"`
-	IconAltText         string                   `json:"iconAltText"`
-	DisabledMessage     string                   `json:"disabledMessage"`
-	Enabled             bool                     `json:"enabled"`
-	RequiredFields      []DestinationFieldConfig `json:"requiredFields"`
-	UserDisclaimer      string                   `json:"userDisclaimer"`
-	IsContactMethod     bool                     `json:"isContactMethod"`
-	IsEPTarget          bool                     `json:"isEPTarget"`
-	IsSchedOnCallNotify bool                     `json:"isSchedOnCallNotify"`
+	Type string `json:"type"`
+	Name string `json:"name"`
+	// URL to an icon to display for the destination type
+	IconURL string `json:"iconURL"`
+	// alt text for the icon, should be usable in place of the icon
+	IconAltText string `json:"iconAltText"`
+	// if false, the destination type is disabled and cannot be used
+	Enabled        bool                     `json:"enabled"`
+	RequiredFields []DestinationFieldConfig `json:"requiredFields"`
+	// disclaimer text to display when a user is selecting this destination type for a contact method
+	UserDisclaimer string `json:"userDisclaimer"`
+	// this destination type can be used as a user contact method
+	IsContactMethod bool `json:"isContactMethod"`
+	// this destination type can be used as an escalation policy step action
+	IsEPTarget bool `json:"isEPTarget"`
+	// this destination type can be used for schedule on-call notifications
+	IsSchedOnCallNotify bool `json:"isSchedOnCallNotify"`
+	// if true, the destination type supports status updates
+	SupportsStatusUpdates bool `json:"supportsStatusUpdates"`
+	// if true, the destination type requires status updates to be enabled
+	StatusUpdatesRequired bool `json:"statusUpdatesRequired"`
 }
 
 type EscalationPolicyConnection struct {
@@ -352,14 +429,34 @@ type EscalationPolicySearchOptions struct {
 	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
 }
 
+// FieldSearchConnection is a connection to a list of FieldSearchResult.
+type FieldSearchConnection struct {
+	Nodes    []FieldSearchResult `json:"nodes"`
+	PageInfo *PageInfo           `json:"pageInfo"`
+}
+
+type FieldSearchResult struct {
+	// The ID of the input field that this value is for.
+	FieldID string `json:"fieldID"`
+	// The value of the input field.
+	Value string `json:"value"`
+	// The user-friendly text for this value of the input field (e.g., if the value is a user ID, label would be the user's name).
+	Label string `json:"label"`
+	// if true, this value is a favorite for the user, only set for search results
+	IsFavorite bool `json:"isFavorite"`
+}
+
 type FieldValueInput struct {
+	// The ID of the input field that this value is for.
 	FieldID string `json:"fieldID"`
 	Value   string `json:"value"`
 }
 
 type FieldValuePair struct {
+	// The ID of the input field that this value is for.
 	FieldID string `json:"fieldID"`
-	Value   string `json:"value"`
+	// The value of the input field.
+	Value string `json:"value"`
 }
 
 type GQLAPIKey struct {
@@ -450,6 +547,9 @@ type MessageLogSearchOptions struct {
 	Omit          []string   `json:"omit,omitempty"`
 }
 
+type Mutation struct {
+}
+
 type NotificationState struct {
 	Details           string              `json:"details"`
 	Status            *NotificationStatus `json:"status,omitempty"`
@@ -468,6 +568,9 @@ type PhoneNumberInfo struct {
 	Formatted   string `json:"formatted"`
 	Valid       bool   `json:"valid"`
 	Error       string `json:"error"`
+}
+
+type Query struct {
 }
 
 type RotationConnection struct {
@@ -689,6 +792,7 @@ type UpdateEscalationPolicyStepInput struct {
 	ID           string                 `json:"id"`
 	DelayMinutes *int                   `json:"delayMinutes,omitempty"`
 	Targets      []assignment.RawTarget `json:"targets,omitempty"`
+	Actions      []DestinationInput     `json:"actions,omitempty"`
 }
 
 type UpdateGQLAPIKeyInput struct {
@@ -698,9 +802,10 @@ type UpdateGQLAPIKeyInput struct {
 }
 
 type UpdateHeartbeatMonitorInput struct {
-	ID             string  `json:"id"`
-	Name           *string `json:"name,omitempty"`
-	TimeoutMinutes *int    `json:"timeoutMinutes,omitempty"`
+	ID                string  `json:"id"`
+	Name              *string `json:"name,omitempty"`
+	TimeoutMinutes    *int    `json:"timeoutMinutes,omitempty"`
+	AdditionalDetails *string `json:"additionalDetails,omitempty"`
 }
 
 type UpdateRotationInput struct {
@@ -790,6 +895,7 @@ type UserSearchOptions struct {
 	Omit           []string            `json:"omit,omitempty"`
 	CMValue        *string             `json:"CMValue,omitempty"`
 	CMType         *contactmethod.Type `json:"CMType,omitempty"`
+	Dest           *DestinationInput   `json:"dest,omitempty"`
 	FavoritesOnly  *bool               `json:"favoritesOnly,omitempty"`
 	FavoritesFirst *bool               `json:"favoritesFirst,omitempty"`
 }
@@ -935,6 +1041,58 @@ func (e *ConfigType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ConfigType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// Known error codes that the server can return.
+//
+// These values will be returned in the `extensions.code` field of the error response.
+type ErrorCode string
+
+const (
+	// The input value is invalid, the `path` field will contain the exact path to the invalid input.
+	//
+	// A separate error will be returned for each invalid field.
+	ErrorCodeInvalidInputValue ErrorCode = "INVALID_INPUT_VALUE"
+	// The `path` field contains the exact path to the DestinationInput that is invalid.
+	//
+	// The `extensions.fieldID` field contains the ID of the input field that is invalid.
+	//
+	// A separate error will be returned for each invalid field.
+	ErrorCodeInvalidDestFieldValue ErrorCode = "INVALID_DEST_FIELD_VALUE"
+)
+
+var AllErrorCode = []ErrorCode{
+	ErrorCodeInvalidInputValue,
+	ErrorCodeInvalidDestFieldValue,
+}
+
+func (e ErrorCode) IsValid() bool {
+	switch e {
+	case ErrorCodeInvalidInputValue, ErrorCodeInvalidDestFieldValue:
+		return true
+	}
+	return false
+}
+
+func (e ErrorCode) String() string {
+	return string(e)
+}
+
+func (e *ErrorCode) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ErrorCode(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ErrorCode", str)
+	}
+	return nil
+}
+
+func (e ErrorCode) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

@@ -39,6 +39,7 @@ const (
 	dataLoaderKeyNC
 	dataLoaderAlertMetrics
 	dataLoaderAlertFeedback
+	dataLoaderAlertMetadata
 
 	dataLoaderKeyLast // always keep as last
 )
@@ -57,6 +58,9 @@ func (a *App) registerLoaders(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, dataLoaderKeyNC, dataloader.NewStoreLoader(ctx, a.NCStore.FindMany))
 	ctx = context.WithValue(ctx, dataLoaderAlertMetrics, dataloader.NewStoreLoaderInt(ctx, a.AlertMetricsStore.FindMetrics))
 	ctx = context.WithValue(ctx, dataLoaderAlertFeedback, dataloader.NewStoreLoaderInt(ctx, a.AlertStore.Feedback))
+	ctx = context.WithValue(ctx, dataLoaderAlertMetadata, dataloader.NewStoreLoaderInt(ctx, func(ctx context.Context, i []int) ([]alert.MetadataAlertID, error) {
+		return a.AlertStore.FindManyMetadata(ctx, a.DB, i)
+	}))
 	return ctx
 }
 
@@ -68,6 +72,23 @@ func (a *App) closeLoaders(ctx context.Context) {
 		}
 		loader.Close()
 	}
+}
+
+func (app *App) FindOneAlertMetadata(ctx context.Context, id int) (map[string]string, error) {
+	loader, ok := ctx.Value(dataLoaderAlertMetadata).(*dataloader.Loader[int, alert.MetadataAlertID])
+	if !ok {
+		return app.AlertStore.Metadata(ctx, app.DB, id)
+	}
+
+	md, err := loader.FetchOne(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if md == nil {
+		return map[string]string{}, nil
+	}
+
+	return md.Meta, nil
 }
 
 func (app *App) FindOneNotificationMessageStatus(ctx context.Context, id string) (*notification.SendResult, error) {

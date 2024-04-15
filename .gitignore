@@ -6,6 +6,7 @@
 *.zip
 /test-results
 /test/coverage/
+/storybook-static
 
 /cypress/
 
@@ -72,4 +73,9 @@ smoketest_db_dump
 
 /.yarn
 /.pnp.*
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
 
+/.gitrev

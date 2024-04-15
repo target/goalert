@@ -268,6 +268,9 @@ func (q *Query) Users(ctx context.Context, opts *graphql2.UserSearchOptions, fir
 	if opts.CMType != nil {
 		searchOpts.CMType = *opts.CMType
 	}
+	if opts.Dest != nil {
+		searchOpts.CMType, searchOpts.CMValue = CompatDestToCMTypeVal(*opts.Dest)
+	}
 	if opts.FavoritesOnly != nil {
 		searchOpts.FavoritesOnly = *opts.FavoritesOnly
 	}

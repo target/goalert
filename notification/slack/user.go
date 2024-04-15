@@ -6,7 +6,25 @@ import (
 
 	"github.com/slack-go/slack"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/validation"
 )
+
+func (s *ChannelSender) ValidateUser(ctx context.Context, id string) error {
+	err := permission.LimitCheckAny(ctx, permission.User, permission.System)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.User(ctx, id)
+	if rootMsg(err) == "user_not_found" {
+		return validation.NewGenericError("User not found.")
+	}
+	if err != nil {
+		return fmt.Errorf("validate user: %w", err)
+	}
+
+	return nil
+}
 
 // User will lookup a single Slack user.
 func (s *ChannelSender) User(ctx context.Context, id string) (*User, error) {
@@ -34,6 +52,9 @@ func (s *ChannelSender) User(ctx context.Context, id string) (*User, error) {
 		usr, err = c.GetUserInfoContext(ctx, id)
 		return err
 	})
+	if rootMsg(err) == "user_not_found" {
+		return nil, validation.NewGenericError("User not found.")
+	}
 	if err != nil {
 		return nil, fmt.Errorf("get user: %w", err)
 	}

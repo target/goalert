@@ -8,11 +8,14 @@ import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
 import ListItemText from '@mui/material/ListItemText'
 import makeStyles from '@mui/styles/makeStyles'
 import AppLink from '../util/AppLink'
-import { FlatListItem } from './FlatList'
+import { FlatListItemOptions } from './FlatList'
 
 const useStyles = makeStyles(() => ({
   listItem: {
     width: '100%',
+    marginTop: '8px',
+    marginBottom: '8px',
+    borderRadius: '4px',
   },
   listItemDisabled: {
     opacity: 0.6,
@@ -27,7 +30,7 @@ const useStyles = makeStyles(() => ({
 }))
 
 export interface FlatListItemProps extends MUIListItemProps {
-  item: FlatListItem
+  item: FlatListItemOptions
   index: number
 }
 

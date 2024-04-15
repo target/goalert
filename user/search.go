@@ -124,13 +124,13 @@ func (opts renderData) Normalize() (*renderData, error) {
 		err = validate.Many(err, validate.Name("After.Name", opts.After.Name))
 	}
 	if opts.CMValue != "" {
-		err = validate.Many(err, validate.Phone("CMValue", opts.CMValue))
+		err = validate.Many(err, validate.ASCII("CMValue", opts.CMValue, 1, 255))
 	}
 	if opts.CMType != "" {
 		if opts.CMValue == "" {
 			err = validate.Many(err, validation.NewFieldError("CMValue", "is required"))
 		}
-		err = validate.Many(err, validate.OneOf("CMType", opts.CMType, contactmethod.TypeSMS, contactmethod.TypeVoice))
+		err = validate.Many(err, validate.OneOf("CMType", opts.CMType, contactmethod.TypeSMS, contactmethod.TypeVoice, contactmethod.TypeEmail, contactmethod.TypeWebhook, contactmethod.TypeSlackDM))
 	}
 	if opts.FavoritesOnly || opts.FavoritesFirst || opts.FavoritesUserID != "" {
 		err = validate.Many(err, validate.UUID("FavoritesUserID", opts.FavoritesUserID))

@@ -74,7 +74,7 @@ export default async function globalTeardown(): Promise<void> {
         continue nextPID
       }
       console.log(`Waiting for process ${pid} to exit...`)
-      await sleep(1000)
+      await sleep(100)
     }
 
     console.log(`Process ${pid} exited.`)

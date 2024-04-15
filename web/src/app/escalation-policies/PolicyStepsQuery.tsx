@@ -1,8 +1,8 @@
 import React from 'react'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery } from 'urql'
 import PolicyStepsCard from './PolicyStepsCard'
-import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
+import { useExpFlag } from '../util/useExpFlag'
 
 export const policyStepsQuery = gql`
   query stepsQuery($id: ID!) {
@@ -23,14 +23,47 @@ export const policyStepsQuery = gql`
   }
 `
 
+export const policyStepsQueryDest = gql`
+  query stepsQueryDest($id: ID!) {
+    escalationPolicy(id: $id) {
+      id
+      repeat
+      steps {
+        id
+        delayMinutes
+        stepNumber
+        actions {
+          type
+          displayInfo {
+            ... on DestinationDisplayInfo {
+              text
+              iconURL
+              iconAltText
+              linkURL
+            }
+            ... on DestinationDisplayInfoError {
+              error
+            }
+          }
+        }
+        targets {
+          id
+          name
+          type
+        }
+      }
+    }
+  }
+`
+
 function PolicyStepsQuery(props: { escalationPolicyID: string }): JSX.Element {
-  const { data, loading, error } = useQuery(policyStepsQuery, {
+  const hasDestTypesFlag = useExpFlag('dest-types')
+
+  const [{ data, error }] = useQuery({
+    query: hasDestTypesFlag ? policyStepsQueryDest : policyStepsQuery,
     variables: { id: props.escalationPolicyID },
   })
 
-  if (!data && loading) {
-    return <Spinner />
-  }
   if (error) {
     return <GenericError error={error.message} />
   }

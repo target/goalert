@@ -1,4 +1,3 @@
-
 type IntegrationKeyTypeInfo {
   id: ID!
 
@@ -376,6 +375,11 @@ input UpdateAlertsByServiceInput {
   newStatus: AlertStatus!
 }
 
+input AlertMetadataInput {
+  key: String!
+  value: String!
+}
+
 input CreateAlertInput {
   summary: String!
   details: String
@@ -388,11 +392,12 @@ input CreateAlertInput {
   #
   # It can also be used to close an alert using closeMatchingAlert mutation.
   dedup: String
+
+  meta: [AlertMetadataInput!]
 }
 
 input CloseMatchingAlertInput {
   serviceID: ID! # service ID for the close operation.
-
   # summary (and details) will match an alert with the same values.
   #
   # They can be omitted if the dedup field is provided.
@@ -621,7 +626,11 @@ type Schedule {
   timeZone: String!
 
   assignedTo: [Target!]!
-  shifts(start: ISOTimestamp!, end: ISOTimestamp!, userIDs: [ID!]): [OnCallShift!]!
+  shifts(
+    start: ISOTimestamp!
+    end: ISOTimestamp!
+    userIDs: [ID!]
+  ): [OnCallShift!]!
 
   targets: [ScheduleTarget!]!
   target(input: TargetInput!): ScheduleTarget
@@ -640,7 +649,12 @@ input SetScheduleOnCallNotificationRulesInput {
 
 input OnCallNotificationRuleInput {
   id: ID
-  target: TargetInput!
+
+  """
+  target is required if dest is unset
+  """
+  target: TargetInput
+  dest: DestinationInput
 
   # time indicates a time-of-day (in the schedule's time zone)
   # to send a message of current on-call users.
@@ -658,6 +672,7 @@ input OnCallNotificationRuleInput {
 type OnCallNotificationRule {
   id: ID!
   target: Target!
+  dest: Destination!
   time: ClockTime
   weekdayFilter: WeekdayFilter
 }
@@ -837,6 +852,7 @@ input UserSearchOptions {
   omit: [ID!]
   CMValue: String = ""
   CMType: ContactMethodType
+  dest: DestinationInput
 
   # Include only favorited services in the results.
   favoritesOnly: Boolean = false
@@ -905,6 +921,10 @@ type Alert {
   metrics: AlertMetric
 
   noiseReason: String
+
+  meta: [AlertMetadata!]
+
+  metaValue(key: String!): String!
 }
 
 type AlertMetric {
@@ -954,6 +974,11 @@ type AlertState {
   repeatCount: Int!
 }
 
+type AlertMetadata {
+  key: String!
+  value: String!
+}
+
 type Service {
   id: ID!
   name: String!
@@ -981,12 +1006,14 @@ input CreateHeartbeatMonitorInput {
   serviceID: ID
   name: String!
   timeoutMinutes: Int!
+  additionalDetails: String
 }
 
 input UpdateHeartbeatMonitorInput {
   id: ID!
   name: String
   timeoutMinutes: Int
+  additionalDetails: String
 }
 
 enum HeartbeatMonitorState {
@@ -1003,6 +1030,7 @@ type HeartbeatMonitor {
   lastState: HeartbeatMonitorState!
   lastHeartbeat: ISOTimestamp
   href: String!
+  additionalDetails: String!
 }
 
 type Label {
@@ -1186,6 +1214,8 @@ type UserContactMethod {
   id: ID!
   type: ContactMethodType
 
+  dest: Destination!
+
   # User-defined label for this contact method.
   name: String!
   value: String!
@@ -1210,10 +1240,22 @@ enum StatusUpdateState {
 input CreateUserContactMethodInput {
   userID: ID!
 
-  type: ContactMethodType!
+  type: ContactMethodType
+
+  dest: DestinationInput @experimental(flagName: "dest-types")
+
   name: String!
-  value: String!
+
+  # Only value or dest should be used at a time, never both.
+  value: String
+
   newUserNotificationRule: CreateUserNotificationRuleInput
+
+  # If true, this contact method will receive status updates.
+  #
+  # Note: Some contact method types, like Slack, will always receive status
+  # updates and this value is ignored.
+  enableStatusUpdates: Boolean
 }
 
 input CreateUserNotificationRuleInput {
@@ -1227,10 +1269,13 @@ input UpdateUserContactMethodInput {
 
   name: String
   value: String
+    @deprecated(
+      reason: "Updating value is not supported, delete and create a new contact method instead."
+    )
 
   # If true, this contact method will receive status updates.
   #
-  # Note: Some contact method types, like webhooks, will always receive status
+  # Note: Some contact method types, like Slack, will always receive status
   # updates and this value is ignored.
   enableStatusUpdates: Boolean
 }

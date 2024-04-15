@@ -34,6 +34,9 @@ const dynamicPublicPathPlugin = {
 async function run() {
   const method = process.argv.includes('--watch') ? 'context' : 'build'
 
+  if (!process.env.GOALERT_VERSION)
+    throw new Error('GOALERT_VERSION ENV var not set')
+
   const ctx = await require('esbuild')[method]({
     entryPoints: {
       explore: 'web/src/explore/explore.tsx',

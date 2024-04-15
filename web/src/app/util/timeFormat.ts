@@ -7,10 +7,15 @@ import {
 } from 'luxon'
 import { ExplicitZone } from './luxon-helpers'
 
-export const getDT = (t: string | DateTime, z?: ExplicitZone): DateTime =>
-  DateTime.isDateTime(t)
-    ? t.setZone(z || 'local')
-    : DateTime.fromISO(t, { zone: z })
+export const getDT = (
+  t: string | DateTime | number,
+  z?: ExplicitZone,
+): DateTime => {
+  if (DateTime.isDateTime(t)) return t.setZone(z || 'local')
+  if (typeof t === 'number') return DateTime.fromMillis(t, { zone: z })
+
+  return DateTime.fromISO(t, { zone: z })
+}
 
 export const getDur = (d: string | DurationLikeObject | Duration): Duration => {
   if (typeof d === 'string') return Duration.fromISO(d)
@@ -193,6 +198,7 @@ export function fmtTime(
   time: DateTime | string,
   zone: ExplicitZone,
   withZoneAbbr: boolean | null = null,
+  withDay: boolean,
 ): string {
   if (!time) return ''
   if (typeof time === 'string') {
@@ -202,13 +208,17 @@ export function fmtTime(
   }
 
   const prefix = time.toLocaleString(DateTime.TIME_SIMPLE)
-  const suffix = time.toFormat('ZZZZ')
+  const zoneSuffix = time.toFormat('ZZZZ')
+  const daySuffix = time.toFormat('ccc')
 
-  if (withZoneAbbr === true) return prefix + ' ' + suffix
-  if (withZoneAbbr === false) return prefix
+  let timeString = prefix
 
-  if (zone === DateTime.local().zoneName) return prefix
-  return prefix + ' ' + suffix
+  if (withDay) timeString = timeString + ' ' + daySuffix
+  if (withZoneAbbr === true) return timeString + ' ' + zoneSuffix
+  if (withZoneAbbr === false) return timeString
+
+  if (zone === DateTime.local().zoneName) return timeString
+  return timeString + ' ' + zoneSuffix
 }
 
 // fmtLocal is like fmtTime but uses the system zone and displays zone info by default.
@@ -216,5 +226,5 @@ export function fmtLocal(
   time: DateTime | string,
   withZoneAbbr: boolean | null = true,
 ): string {
-  return fmtTime(time, 'local', withZoneAbbr)
+  return fmtTime(time, 'local', withZoneAbbr, false)
 }

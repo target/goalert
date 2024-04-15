@@ -5,7 +5,9 @@ import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodForm'
 import { pick } from 'lodash'
 import { useQuery } from 'urql'
+import { useExpFlag } from '../util/useExpFlag'
 import { ContactMethodType, StatusUpdateState } from '../../schema'
+import UserContactMethodEditDialogDest from './UserContactMethodEditDialogDest'
 
 const query = gql`
   query ($id: ID!) {
@@ -31,8 +33,12 @@ type Value = {
   value: string
   statusUpdates?: StatusUpdateState
 }
+type UserContactMethodEditDialogProps = {
+  onClose: () => void
+  contactMethodID: string
+}
 
-export default function UserContactMethodEditDialog({
+function UserContactMethodEditDialog({
   onClose,
   contactMethodID,
 }: {
@@ -95,4 +101,16 @@ export default function UserContactMethodEditDialog({
       }
     />
   )
+}
+
+export default function UserContactMethodEditDialogSwitch(
+  props: UserContactMethodEditDialogProps,
+): React.ReactNode {
+  const isDestTypesSet = useExpFlag('dest-types')
+
+  if (isDestTypesSet) {
+    return <UserContactMethodEditDialogDest {...props} />
+  }
+
+  return <UserContactMethodEditDialog {...props} />
 }

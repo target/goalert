@@ -8,6 +8,8 @@ import { useConfigValue } from '../util/RequireConfig'
 import { Dialog, DialogTitle, DialogActions, Button } from '@mui/material'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { ContactMethodType } from '../../schema'
+import { useExpFlag } from '../util/useExpFlag'
+import UserContactMethodCreateDialogDest from './UserContactMethodCreateDialogDest'
 
 type Value = {
   name: string
@@ -36,12 +38,16 @@ const userConflictQuery = gql`
 
 const noSuspense = { suspense: false }
 
-export default function UserContactMethodCreateDialog(props: {
+type UserContactMethodCreateDialogProps = {
   userID: string
   onClose: (contactMethodID?: string) => void
   title?: string
   subtitle?: string
-}): React.ReactNode {
+}
+
+function UserContactMethodCreateDialog(
+  props: UserContactMethodCreateDialogProps,
+): React.ReactNode {
   const [allowSV, allowE, allowW, allowS] = useConfigValue(
     'Twilio.Enable',
     'SMTP.Enable',
@@ -142,7 +148,7 @@ export default function UserContactMethodCreateDialog(props: {
               },
             },
           },
-          { additionalTypenames: ['UserContactMethod'] },
+          { additionalTypenames: ['UserContactMethod', 'User'] },
         ).then((result) => {
           if (result.error) {
             return
@@ -153,4 +159,16 @@ export default function UserContactMethodCreateDialog(props: {
       form={form}
     />
   )
+}
+
+export default function UserContactMethodCreateDialogSwitch(
+  props: UserContactMethodCreateDialogProps,
+): React.ReactNode {
+  const isDestTypesSet = useExpFlag('dest-types')
+
+  if (isDestTypesSet) {
+    return <UserContactMethodCreateDialogDest {...props} />
+  }
+
+  return <UserContactMethodCreateDialog {...props} />
 }

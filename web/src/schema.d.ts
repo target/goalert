@@ -5,6 +5,8 @@ export interface Alert {
   createdAt: ISOTimestamp
   details: string
   id: string
+  meta?: null | AlertMetadata[]
+  metaValue: string
   metrics?: null | AlertMetric
   noiseReason?: null | string
   pendingNotifications: AlertPendingNotification[]
@@ -36,6 +38,16 @@ export interface AlertLogEntry {
 export interface AlertLogEntryConnection {
   nodes: AlertLogEntry[]
   pageInfo: PageInfo
+}
+
+export interface AlertMetadata {
+  key: string
+  value: string
+}
+
+export interface AlertMetadataInput {
+  key: string
+  value: string
 }
 
 export interface AlertMetric {
@@ -162,6 +174,7 @@ export type ContactMethodType =
 export interface CreateAlertInput {
   dedup?: null | string
   details?: null | string
+  meta?: null | AlertMetadataInput[]
   sanitize?: null | boolean
   serviceID: string
   summary: string
@@ -183,6 +196,7 @@ export interface CreateEscalationPolicyInput {
 }
 
 export interface CreateEscalationPolicyStepInput {
+  actions?: null | DestinationInput[]
   delayMinutes: number
   escalationPolicyID?: null | string
   newRotation?: null | CreateRotationInput
@@ -199,6 +213,7 @@ export interface CreateGQLAPIKeyInput {
 }
 
 export interface CreateHeartbeatMonitorInput {
+  additionalDetails?: null | string
   name: string
   serviceID?: null | string
   timeoutMinutes: number
@@ -252,11 +267,13 @@ export interface CreateUserCalendarSubscriptionInput {
 }
 
 export interface CreateUserContactMethodInput {
+  dest?: null | DestinationInput
+  enableStatusUpdates?: null | boolean
   name: string
   newUserNotificationRule?: null | CreateUserNotificationRuleInput
-  type: ContactMethodType
+  type?: null | ContactMethodType
   userID: string
-  value: string
+  value?: null | string
 }
 
 export interface CreateUserInput {
@@ -343,9 +360,20 @@ export interface DebugSendSMSInput {
 }
 
 export interface Destination {
+  displayInfo: InlineDisplayInfo
   type: DestinationType
-  typeInfo: DestinationTypeInfo
   values: FieldValuePair[]
+}
+
+export interface DestinationDisplayInfo {
+  iconAltText: string
+  iconURL: string
+  linkURL: string
+  text: string
+}
+
+export interface DestinationDisplayInfoError {
+  error: string
 }
 
 export interface DestinationFieldConfig {
@@ -353,12 +381,20 @@ export interface DestinationFieldConfig {
   hint: string
   hintURL: string
   inputType: string
-  isSearchSelectable: boolean
-  labelPlural: string
-  labelSingular: string
+  label: string
   placeholderText: string
   prefix: string
+  supportsSearch: boolean
   supportsValidation: boolean
+}
+
+export interface DestinationFieldSearchInput {
+  after?: null | string
+  destType: DestinationType
+  fieldID: string
+  first?: null | number
+  omit?: null | string[]
+  search?: null | string
 }
 
 export interface DestinationFieldValidateInput {
@@ -375,7 +411,6 @@ export interface DestinationInput {
 export type DestinationType = string
 
 export interface DestinationTypeInfo {
-  disabledMessage: string
   enabled: boolean
   iconAltText: string
   iconURL: string
@@ -384,9 +419,13 @@ export interface DestinationTypeInfo {
   isSchedOnCallNotify: boolean
   name: string
   requiredFields: DestinationFieldConfig[]
+  statusUpdatesRequired: boolean
+  supportsStatusUpdates: boolean
   type: DestinationType
   userDisclaimer: string
 }
+
+export type ErrorCode = 'INVALID_DEST_FIELD_VALUE' | 'INVALID_INPUT_VALUE'
 
 export interface EscalationPolicy {
   assignedTo: Target[]
@@ -415,11 +454,24 @@ export interface EscalationPolicySearchOptions {
 }
 
 export interface EscalationPolicyStep {
+  actions: Destination[]
   delayMinutes: number
   escalationPolicy?: null | EscalationPolicy
   id: string
   stepNumber: number
   targets: Target[]
+}
+
+export interface FieldSearchConnection {
+  nodes: FieldSearchResult[]
+  pageInfo: PageInfo
+}
+
+export interface FieldSearchResult {
+  fieldID: string
+  isFavorite: boolean
+  label: string
+  value: string
 }
 
 export interface FieldValueInput {
@@ -455,6 +507,7 @@ export interface GQLAPIKeyUsage {
 }
 
 export interface HeartbeatMonitor {
+  additionalDetails: string
   href: string
   id: string
   lastHeartbeat?: null | ISOTimestamp
@@ -473,6 +526,10 @@ export type ISODuration = string
 export type ISORInterval = string
 
 export type ISOTimestamp = string
+
+export type InlineDisplayInfo =
+  | DestinationDisplayInfo
+  | DestinationDisplayInfoError
 
 export type Int = string
 
@@ -640,6 +697,7 @@ export interface NotificationState {
 export type NotificationStatus = 'ERROR' | 'OK' | 'WARN'
 
 export interface OnCallNotificationRule {
+  dest: Destination
   id: string
   target: Target
   time?: null | ClockTime
@@ -647,8 +705,9 @@ export interface OnCallNotificationRule {
 }
 
 export interface OnCallNotificationRuleInput {
+  dest?: null | DestinationInput
   id?: null | string
-  target: TargetInput
+  target?: null | TargetInput
   time?: null | ClockTime
   weekdayFilter?: null | WeekdayFilter
 }
@@ -686,7 +745,10 @@ export interface Query {
   configHints: ConfigHint[]
   debugMessageStatus: DebugMessageStatusInfo
   debugMessages: DebugMessage[]
+  destinationDisplayInfo: DestinationDisplayInfo
+  destinationFieldSearch: FieldSearchConnection
   destinationFieldValidate: boolean
+  destinationFieldValueName: string
   destinationTypes: DestinationTypeInfo[]
   escalationPolicies: EscalationPolicyConnection
   escalationPolicy?: null | EscalationPolicy
@@ -1089,6 +1151,7 @@ export interface UpdateEscalationPolicyInput {
 }
 
 export interface UpdateEscalationPolicyStepInput {
+  actions?: null | DestinationInput[]
   delayMinutes?: null | number
   id: string
   targets?: null | TargetInput[]
@@ -1101,6 +1164,7 @@ export interface UpdateGQLAPIKeyInput {
 }
 
 export interface UpdateHeartbeatMonitorInput {
+  additionalDetails?: null | string
   id: string
   name?: null | string
   timeoutMinutes?: null | number
@@ -1198,6 +1262,7 @@ export interface UserConnection {
 }
 
 export interface UserContactMethod {
+  dest: Destination
   disabled: boolean
   formattedValue: string
   id: string
@@ -1252,6 +1317,7 @@ export interface UserSearchOptions {
   CMType?: null | ContactMethodType
   CMValue?: null | string
   after?: null | string
+  dest?: null | DestinationInput
   favoritesFirst?: null | boolean
   favoritesOnly?: null | boolean
   first?: null | number
@@ -1376,8 +1442,10 @@ type ConfigID =
   | 'General.DisableSMSLinks'
   | 'General.DisableLabelCreation'
   | 'General.DisableCalendarSubscriptions'
+  | 'Services.RequiredLabels'
   | 'Maintenance.AlertCleanupDays'
   | 'Maintenance.AlertAutoCloseDays'
+  | 'Maintenance.AutoCloseAckedAlerts'
   | 'Maintenance.APIKeyExpireDays'
   | 'Maintenance.ScheduleCleanupDays'
   | 'Auth.RefererURLs'

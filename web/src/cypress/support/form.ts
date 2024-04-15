@@ -41,16 +41,15 @@ function fillFormField(
         return cy.get(selector).check()
       }
 
-      const isSelect =
-        el.parents('[data-cy=material-select]').data('cy') ===
-          'material-select' ||
-        el.siblings('[role=button]').attr('aria-haspopup') === 'listbox'
-
-      if (isSelect) {
+      // select dropdowns
+      if (
+        el.attr('role') === 'combobox' ||
+        el.siblings().attr('aria-haspopup') === 'listbox'
+      ) {
+        // action to clear multi-select
         if (value === '') {
           cy.get(selector).clear()
 
-          // clear chips on multi-select
           el.parent()
             .find('[data-cy="multi-value"]')
             .each(() => {
@@ -78,8 +77,11 @@ function fillFormField(
         throw new TypeError('arrays only supported for search-select inputs')
       }
 
-      if (value === '') return cy.get(selector).clear()
+      if (value === '') {
+        return cy.get(selector).clear()
+      }
 
+      // everything else
       return cy.get(selector).then((el) => {
         if (!DateTime.isDateTime(value)) {
           if (el.attr('type') === 'hidden') {
@@ -90,7 +92,6 @@ function fillFormField(
         }
 
         cy.wrap(el).clear()
-        // material Select
         switch (el.attr('type')) {
           case 'time':
             return cy.focused().type(value.toFormat('HH:mm'))

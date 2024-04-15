@@ -24,11 +24,11 @@ export function calcNewActiveIndex(
 
 // reorderList will move an item from the oldIndex to the newIndex, preserving order
 // returning the result as a new array.
-export function reorderList(
-  _items: unknown[],
+export function reorderList<T>(
+  _items: T[],
   oldIndex: number,
   newIndex: number,
-): unknown[] {
+): T[] {
   const items = _items.slice()
   items.splice(oldIndex, 1) // remove 1 element from oldIndex position
   items.splice(newIndex, 0, _items[oldIndex]) // add dest to newIndex position

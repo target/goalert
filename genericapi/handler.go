@@ -90,6 +90,15 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	action := r.FormValue("action")
 	dedup := r.FormValue("dedup")
 
+	meta := make(map[string]string)
+	for _, v := range r.Form["meta"] {
+		key, val, ok := strings.Cut(v, "=")
+		if !ok {
+			continue
+		}
+		meta[key] = val
+	}
+
 	ct, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if ct == "application/json" {
 		data, err := io.ReadAll(r.Body)
@@ -100,6 +109,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 
 		var b struct {
 			Summary, Details, Action, Dedup *string
+			Meta                            map[string]string
 		}
 		err = json.Unmarshal(data, &b)
 		if err != nil {
@@ -118,6 +128,9 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		}
 		if b.Action != nil {
 			action = *b.Action
+		}
+		if b.Meta != nil {
+			meta = b.Meta
 		}
 	}
 
@@ -145,13 +158,12 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = retry.DoTemporaryError(func(int) error {
-		createdAlert, isNew, err := h.c.AlertStore.CreateOrUpdate(ctx, a)
+		createdAlert, isNew, err := h.c.AlertStore.CreateOrUpdateWithMeta(ctx, a, meta)
 		if createdAlert != nil {
 			resp.AlertID = createdAlert.ID
 			resp.ServiceID = createdAlert.ServiceID
 			resp.IsNew = isNew
 		}
-
 		return err
 	},
 		retry.Log(ctx),

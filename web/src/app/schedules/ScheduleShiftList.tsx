@@ -179,7 +179,9 @@ function ScheduleShiftList({
       const localTZDetails = `From ${localStartTime} to ${localEndTime} ${localTzAbbr}`
       return (
         <Tooltip title={scheduleTZDetails} placement='right'>
-          <span data-cy='shift-details'>{localTZDetails}</span>
+          <span data-cy='shift-details' data-testid='shift-details'>
+            {localTZDetails}
+          </span>
         </Tooltip>
       )
     }
@@ -202,7 +204,14 @@ function ScheduleShiftList({
     const scheduleTZDetails = `Active after ${schedStartTime} ${tzAbbr}`
     const localTZDetails = `Active after ${localStartTime} ${localTzAbbr}`
     return (
-      <Tooltip title={scheduleTZDetails} placement='right'>
+      <Tooltip
+        title={scheduleTZDetails}
+        placement='right'
+        PopperProps={{
+          // @ts-expect-error test id
+          'data-testid': 'shift-tooltip',
+        }}
+      >
         <span>{localTZDetails}</span>
       </Tooltip>
     )

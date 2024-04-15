@@ -150,7 +150,7 @@ func (mgr *Manager) SendMessage(ctx context.Context, msg Message) (*SendResult, 
 		}
 		log.Logf(sendCtx, "notification sent")
 		metricSentTotal.
-			WithLabelValues(msg.Destination().Type.String(), msg.Type().String()).
+			WithLabelValues(msg.Destination().Type.String(), msg.Type().String(), msgSvcID(msg)).
 			Inc()
 		// status already wrapped via namedSender
 		return res, nil
@@ -160,4 +160,17 @@ func (mgr *Manager) SendMessage(ctx context.Context, msg Message) (*SendResult, 
 	}
 
 	return nil, errors.New("all notification senders failed")
+}
+
+func msgSvcID(msg Message) string {
+	switch msg := msg.(type) {
+	case Alert:
+		return msg.ServiceID
+	case AlertBundle:
+		return msg.ServiceID
+	case AlertStatus:
+		return msg.ServiceID
+	}
+
+	return ""
 }

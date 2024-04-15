@@ -148,12 +148,23 @@ func isGQLValidation(gqlErr *gqlerror.Error) bool {
 		return false
 	}
 
+	_, ok := gqlErr.Extensions["code"].(graphql2.ErrorCode)
+	if ok {
+		return true
+	}
+
 	code, ok := gqlErr.Extensions["code"].(string)
 	if !ok {
 		return false
 	}
 
-	return code == errcode.ValidationFailed || code == errcode.ParseFailed
+	switch code {
+	case errcode.ValidationFailed, errcode.ParseFailed:
+		// These are gqlgen validation errors.
+		return true
+	}
+
+	return false
 }
 
 func (a *App) Handler() http.Handler {
@@ -204,7 +215,18 @@ func (a *App) Handler() http.Handler {
 		return res, err
 	})
 
+	h.Use(&errSkipHandler{})
+
 	h.SetErrorPresenter(func(ctx context.Context, err error) *gqlerror.Error {
+		if errors.Is(err, errAlreadySet) {
+			// This error just indicates that a field error has already been set on the context
+			// it should not be returned to the client.
+			return &gqlerror.Error{
+				Extensions: map[string]interface{}{
+					"skip": true,
+				},
+			}
+		}
 		err = errutil.MapDBError(err)
 		var gqlErr *gqlerror.Error
 

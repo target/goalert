@@ -1,4 +1,3 @@
-import { ApolloError } from '@apollo/client'
 import { DateTime } from 'luxon'
 
 import {
@@ -9,6 +8,8 @@ import {
 } from '../../../schema'
 import { allErrors, fieldErrors, nonFieldErrors } from '../../util/errutil'
 import { weekdaySummary } from '../util'
+import { ApolloError } from '@apollo/client'
+import { CombinedError } from 'urql'
 
 export type Value = {
   time: string | null
@@ -89,8 +90,8 @@ export const onCallRuleToInput = (
 }
 
 export function mapOnCallErrors(
-  mErr?: ApolloError | null,
-  ...qErr: Array<ApolloError | undefined>
+  mErr?: ApolloError | CombinedError | null,
+  ...qErr: Array<ApolloError | CombinedError | undefined>
 ): [Error[], RuleFieldError[]] {
   let dialogErrs: Error[] = []
   qErr.forEach((e) => (dialogErrs = dialogErrs.concat(allErrors(e))))
@@ -123,10 +124,16 @@ export function mapOnCallErrors(
   return [dialogErrs, fieldErrs]
 }
 
-export function onCallRuleSummary(
-  zone: string,
-  r?: OnCallNotificationRule,
-): string {
+// SummaryInput will accept a partial OnCallNotificationRule, only depending on the fields
+// that are used to generate the summary. This prevents typescript from complaining about
+// missing fields when we only need a subset of the fields (like `target` which will be deprecated
+// in favor of `dest`).
+export type SummaryInput = Pick<
+  OnCallNotificationRule,
+  'time' | 'weekdayFilter'
+>
+
+export function onCallRuleSummary(zone: string, r?: SummaryInput): string {
   if (!r) return ''
   if (!r.time) return 'when on-call changes.'
 

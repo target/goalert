@@ -2,6 +2,7 @@ import _ from 'lodash'
 import { ApolloError } from '@apollo/client'
 import { GraphQLError } from 'graphql/error'
 import { CombinedError } from 'urql'
+import { BaseError, isKnownError, KnownError } from './errtypes'
 
 const mapName = (name: string): string => _.camelCase(name).replace(/Id$/, 'ID')
 
@@ -32,6 +33,50 @@ export function nonFieldErrors(err?: ApolloError | CombinedError): Error[] {
       !err.extensions ||
       !(err.extensions.isFieldError || err.extensions.isMultiFieldError),
   )
+}
+
+/**
+ * splitErrorsByPath returns a list of known errors and other errors from a CombinedError or array of errors.
+ *
+ * Any errors that are not known errors (or are not in the filterPaths list) will be returned as other errors.
+ *
+ * @param err - the CombinedError to filter
+ * @param paths - a list of paths to filter errors by, paths can be exact or begin with a wildcard (*)
+ * @returns a tuple of known errors and other errors
+ */
+export function splitErrorsByPath(
+  err: CombinedError | BaseError[] | undefined | null,
+  paths: string[],
+): [KnownError[], BaseError[]] {
+  if (!err) return [[], []]
+  const knownErrors: KnownError[] = []
+  const otherErrors: BaseError[] = []
+
+  const errors = Array.isArray(err) ? err : err.graphQLErrors
+
+  errors.forEach((err) => {
+    if (!isKnownError(err)) {
+      otherErrors.push(err)
+      return
+    }
+
+    const fullPath = err.path.join('.')
+    const matches = paths.some((p) => {
+      if (p.startsWith('*')) {
+        return fullPath.endsWith(p.slice(1))
+      }
+      return fullPath === p
+    })
+
+    if (!matches) {
+      otherErrors.push(err)
+      return
+    }
+
+    knownErrors.push(err)
+  })
+
+  return [knownErrors, otherErrors]
 }
 
 export interface FieldError extends Error {

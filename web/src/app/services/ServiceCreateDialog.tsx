@@ -1,17 +1,17 @@
 import React, { useState } from 'react'
-import { ApolloError, gql, useMutation } from '@apollo/client'
-
+import { gql, useMutation, CombinedError } from 'urql'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
-
 import FormDialog from '../dialogs/FormDialog'
 import ServiceForm, { Value } from './ServiceForm'
 import { Redirect } from 'wouter'
+import { Label } from '../../schema'
 
 interface InputVar {
   name: string
   description: string
   escalationPolicyID?: string
   favorite: boolean
+  labels: Label[]
   newEscalationPolicy?: {
     name: string
     description: string
@@ -32,7 +32,7 @@ const createMutation = gql`
 `
 
 function inputVars(
-  { name, description, escalationPolicyID }: Value,
+  { name, description, escalationPolicyID, labels }: Value,
   attempt = 0,
 ): InputVar {
   const vars: InputVar = {
@@ -40,6 +40,7 @@ function inputVars(
     description,
     escalationPolicyID,
     favorite: true,
+    labels,
   }
   if (!vars.escalationPolicyID) {
     vars.newEscalationPolicy = {
@@ -70,11 +71,12 @@ export default function ServiceCreateDialog(props: {
     name: '',
     description: '',
     escalationPolicyID: '',
+    labels: [],
   })
 
-  const [createKey, createKeyStatus] = useMutation(createMutation)
+  const [createKeyStatus, commit] = useMutation(createMutation)
 
-  const { loading, data, error } = createKeyStatus
+  const { data, error } = createKeyStatus
   if (data && data.createService) {
     return <Redirect to={`/services/${data.createService.id}`} />
   }
@@ -86,12 +88,11 @@ export default function ServiceCreateDialog(props: {
   return (
     <FormDialog
       title='Create New Service'
-      loading={loading}
       errors={nonFieldErrors(error)}
       onClose={props.onClose}
       onSubmit={() => {
         let n = 1
-        const onErr = (err: ApolloError): Awaited<Promise<unknown>> => {
+        const onErr = (err: CombinedError): Awaited<Promise<unknown>> => {
           // retry if it's a policy name conflict
           if (
             err.graphQLErrors &&
@@ -101,7 +102,7 @@ export default function ServiceCreateDialog(props: {
               'newEscalationPolicy.Name'
           ) {
             n++
-            return createKey({
+            return commit({
               variables: {
                 input: inputVars(value, n),
               },
@@ -109,16 +110,13 @@ export default function ServiceCreateDialog(props: {
           }
         }
 
-        return createKey({
-          variables: {
-            input: inputVars(value),
-          },
+        return commit({
+          input: inputVars(value),
         }).then(null, onErr)
       }}
       form={
         <ServiceForm
           errors={fieldErrs}
-          disabled={loading}
           value={value}
           onChange={(val: Value) => setValue(val)}
         />

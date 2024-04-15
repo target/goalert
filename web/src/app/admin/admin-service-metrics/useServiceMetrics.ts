@@ -45,8 +45,8 @@ export function useServiceMetrics(opts: ServiceMetricOpts): ServiceMetrics {
         if (!stepTargetMatch) return false
       }
       if (filters?.intKeyTgts?.length) {
-        const intKeyMatch = svc.integrationKeys.some(
-          (key) => filters.intKeyTgts?.includes(key.type),
+        const intKeyMatch = svc.integrationKeys.some((key) =>
+          filters.intKeyTgts?.includes(key.type),
         )
         if (!intKeyMatch) return false
       }

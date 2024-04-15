@@ -17,6 +17,7 @@ const query = gql`
       id
       name
       timeoutMinutes
+      additionalDetails
     }
   }
 `
@@ -62,6 +63,7 @@ export default function HeartbeatMonitorEditDialog(props: {
             value || {
               name: data.heartbeatMonitor.name,
               timeoutMinutes: data.heartbeatMonitor.timeoutMinutes,
+              additionalDetails: data.heartbeatMonitor.additionalDetails,
             }
           }
           onChange={(value) => setValue(value)}

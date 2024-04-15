@@ -1,17 +1,18 @@
 import React from 'react'
 import _ from 'lodash'
-import { DateTime, Interval } from 'luxon'
+import { DateTime, Duration, Interval } from 'luxon'
 
 import {
   FlatListListItem,
   FlatListNotice,
   FlatListSub,
 } from '../../lists/FlatList'
-import { ExplicitZone, splitAtMidnight } from '../../util/luxon-helpers'
+import { ExplicitZone, splitShift } from '../../util/luxon-helpers'
 import { parseInterval } from '../../util/shifts'
 import { Shift } from './sharedUtils'
 import { Tooltip } from '@mui/material'
 import { fmtLocal, fmtTime } from '../../util/timeFormat'
+import { InfoOutlined } from '@mui/icons-material'
 
 export type Sortable<T> = T & {
   // at is the earliest point in time for a list item
@@ -30,6 +31,7 @@ export type Sortable<T> = T & {
 export function getSubheaderItems(
   schedInterval: Interval,
   shifts: Shift[],
+  shiftDur: Duration,
   zone: ExplicitZone,
 ): Sortable<FlatListSub>[] {
   if (!schedInterval.isValid) {
@@ -47,8 +49,9 @@ export function getSubheaderItems(
     ...shifts.map((s) => DateTime.fromISO(s.end, { zone })),
   )
 
-  const dayInvs = splitAtMidnight(
+  const dayInvs = splitShift(
     Interval.fromDateTimes(lowerBound, upperBound),
+    shiftDur,
   )
 
   return dayInvs.map((day) => {
@@ -58,6 +61,7 @@ export function getSubheaderItems(
       subHeader: day.start.toFormat('cccc, LLLL d'),
       at,
       itemType: 'subheader',
+      disableGutter: true,
     }
   })
 }
@@ -92,8 +96,8 @@ export function getOutOfBoundsItems(
     upperBound,
   ).mapEndpoints((e) => e.plus({ day: 1 }).startOf('day')) // ensure sched end date is not included
 
-  const daysBeforeStart = splitAtMidnight(beforeStart)
-  const daysAfterEnd = splitAtMidnight(afterEnd)
+  const daysBeforeStart = splitShift(beforeStart)
+  const daysAfterEnd = splitShift(afterEnd)
   const intervals = daysBeforeStart.concat(daysAfterEnd)
 
   let details = ''
@@ -117,9 +121,10 @@ export function getOutOfBoundsItems(
 
 export function getCoverageGapItems(
   schedInterval: Interval,
+  shiftDuration: Duration,
   shifts: Shift[],
   zone: ExplicitZone,
-  handleCoverageClick: (coverageGap: Interval) => void,
+  handleCoverageClick?: (coverageGap: Interval) => void,
 ): Sortable<FlatListNotice>[] {
   if (!schedInterval.isValid) {
     return []
@@ -127,7 +132,7 @@ export function getCoverageGapItems(
   const shiftIntervals = shifts.map((s) => parseInterval(s, zone))
   const gapIntervals = _.flatMap(
     schedInterval.difference(...shiftIntervals),
-    (inv) => splitAtMidnight(inv),
+    (inv) => splitShift(inv, shiftDuration),
   )
   const isLocalZone = zone === DateTime.local().zoneName
   return gapIntervals.map((gap) => {
@@ -136,19 +141,23 @@ export function getCoverageGapItems(
     if (gap.length('hours') === 24) {
       // nothing to do
       title = ''
-    } else if (gap.start.equals(gap.start.startOf('day'))) {
-      details += ` until ${fmtTime(gap.end, zone, false)}`
-      title += ` until ${fmtLocal(gap.end)}`
-    } else if (gap.end.equals(gap.start.plus({ day: 1 }).startOf('day'))) {
-      details += ` after ${fmtTime(gap.start, zone, false)}`
-      title += ` after ${fmtLocal(gap.start)}`
     } else {
-      details += ` from ${fmtTime(gap.start, zone, false)} to ${fmtTime(
-        gap.end,
-        zone,
-        false,
-      )}`
-      title += ` from ${fmtLocal(gap.start)} to ${fmtLocal(gap.end)}`
+      if (!gap.start.hasSame(gap.end, 'day')) {
+        details += ` from ${fmtTime(gap.start, zone, false, true)} to ${fmtTime(
+          gap.end,
+          zone,
+          false,
+          true,
+        )}`
+      } else {
+        details += ` from ${fmtTime(
+          gap.start,
+          zone,
+          false,
+          false,
+        )} to ${fmtTime(gap.end, zone, false, false)}`
+      }
+      title += `from ${fmtLocal(gap.start)} to ${fmtLocal(gap.end)}`
     }
 
     return {
@@ -161,10 +170,17 @@ export function getCoverageGapItems(
           <span>{details}</span>
         </Tooltip>
       ),
+      action: (
+        <Tooltip title='Click me to use this time range for a new shift'>
+          <InfoOutlined />
+        </Tooltip>
+      ),
       at: gap.start,
       itemType: 'gap',
       handleOnClick: () => {
-        handleCoverageClick(gap)
+        if (handleCoverageClick) {
+          handleCoverageClick(gap)
+        }
       },
     }
   })

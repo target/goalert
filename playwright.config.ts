@@ -28,8 +28,10 @@ const config = {
     './test/integration/setup/global-teardown.ts',
   ),
   retries: process.env.CI ? 3 : 0,
+  forbidOnly: !!process.env.CI, // fail CI if .only() is used
+  workers: process.env.CI ? 2 : undefined,
   use: {
-    trace: 'on-first-retry',
+    trace: process.env.CI ? 'on-first-retry' : 'retain-on-failure',
     baseURL: 'http://localhost:6130',
     viewport: { width: 1440, height: 900 },
     timezoneId: 'America/Chicago',

@@ -16,7 +16,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/auth/authtoken"
 	"github.com/target/goalert/config"
-	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
@@ -160,7 +159,7 @@ func (h *Handler) EndUserSessionTx(ctx context.Context, tx *sql.Tx, id ...string
 	if permission.Admin(ctx) {
 		_, err = tx.StmtContext(ctx, h.endSession).ExecContext(ctx, sqlutil.UUIDArray(id))
 	} else {
-		_, err = tx.StmtContext(ctx, h.endSessionUser).ExecContext(ctx, permission.UserID(ctx), sqlutil.UUIDArray(id))
+		_, err = tx.StmtContext(ctx, h.endSessionUser).ExecContext(ctx, permission.UserNullUUID(ctx), sqlutil.UUIDArray(id))
 	}
 	return err
 }
@@ -179,7 +178,7 @@ func (h *Handler) EndAllUserSessionsTx(ctx context.Context, tx *sql.Tx) error {
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
-	_, err = stmt.ExecContext(ctx, permission.UserID(ctx), src.ID)
+	_, err = stmt.ExecContext(ctx, permission.UserNullUUID(ctx), src.ID)
 
 	return err
 }
@@ -556,7 +555,7 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 	}
 
 	ctx := req.Context()
-	if expflag.ContextHas(ctx, expflag.GQLAPIKey) && req.URL.Path == "/api/graphql" && strings.HasPrefix(tokStr, "ey") {
+	if req.URL.Path == "/api/graphql" && strings.HasPrefix(tokStr, "ey") {
 		ctx, err = h.cfg.APIKeyStore.AuthorizeGraphQL(ctx, tokStr, req.UserAgent(), req.RemoteAddr)
 		if errutil.HTTPError(req.Context(), w, err) {
 			return true

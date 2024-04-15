@@ -18,7 +18,6 @@ import { WizardHat as WizardIcon } from 'mdi-material-ui'
 import { Theme, useTheme } from '@mui/material/styles'
 import RequireConfig from '../util/RequireConfig'
 import NavBarLink, { NavBarSubLink } from './NavBarLink'
-import { ExpFlag } from '../util/useExpFlag'
 
 import logoImgSrc from '../public/logos/lightmode_logo.svg'
 import darkModeLogoImgSrc from '../public/logos/darkmode_logo.svg'
@@ -101,9 +100,7 @@ export default function NavBar(): JSX.Element {
                 title='Service Metrics'
               />
               <NavBarSubLink to='/admin/switchover' title='Switchover' />
-              <ExpFlag flag='gql-api-keys'>
-                <NavBarSubLink to='/admin/api-keys' title='API Keys' />
-              </ExpFlag>
+              <NavBarSubLink to='/admin/api-keys' title='API Keys' />
             </NavBarLink>
           </RequireConfig>
 

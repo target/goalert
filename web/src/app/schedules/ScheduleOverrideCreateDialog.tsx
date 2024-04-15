@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { gql, useMutation } from '@apollo/client'
+import { gql, useMutation } from 'urql'
 import FormDialog from '../dialogs/FormDialog'
 import { DateTime } from 'luxon'
 import ScheduleOverrideForm from './ScheduleOverrideForm'
@@ -55,6 +55,7 @@ const mutation = gql`
     }
   }
 `
+
 export default function ScheduleOverrideCreateDialog({
   scheduleID,
   variant,
@@ -70,15 +71,7 @@ export default function ScheduleOverrideCreateDialog({
 
   const notices = useOverrideNotices(scheduleID, value)
 
-  const [mutate, { loading, error }] = useMutation(mutation, {
-    variables: {
-      input: {
-        ...value,
-        scheduleID,
-      },
-    },
-    onCompleted: onClose,
-  })
+  const [{ fetching, error }, commit] = useMutation(mutation)
 
   return (
     <FormDialog
@@ -87,13 +80,25 @@ export default function ScheduleOverrideCreateDialog({
       subTitle={variantDetails[variant].desc}
       errors={nonFieldErrors(error)}
       notices={notices} // create and edit dialog
-      onSubmit={() => mutate()}
+      onSubmit={() =>
+        commit(
+          {
+            input: {
+              ...value,
+              scheduleID,
+            },
+          },
+          { additionalTypenames: ['UserOverrideConnection', 'Schedule'] },
+        ).then((result) => {
+          if (!result.error) onClose()
+        })
+      }
       form={
         <ScheduleOverrideForm
           add={variant !== 'remove'}
           remove={variant !== 'add'}
           scheduleID={scheduleID}
-          disabled={loading}
+          disabled={fetching}
           errors={fieldErrors(error)}
           value={value}
           onChange={(newValue) => setValue(newValue)}

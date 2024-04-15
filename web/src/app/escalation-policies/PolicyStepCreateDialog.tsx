@@ -50,15 +50,18 @@ function PolicyStepCreateDialog(props: {
       maxWidth='sm'
       onClose={props.onClose}
       onSubmit={() =>
-        createStep({
-          input: {
-            escalationPolicyID: props.escalationPolicyID,
-            delayMinutes: parseInt(
-              (value && value.delayMinutes) || defaultValue.delayMinutes,
-            ),
-            targets: (value && value.targets) || defaultValue.targets,
+        createStep(
+          {
+            input: {
+              escalationPolicyID: props.escalationPolicyID,
+              delayMinutes: parseInt(
+                (value && value.delayMinutes) || defaultValue.delayMinutes,
+              ),
+              targets: (value && value.targets) || defaultValue.targets,
+            },
           },
-        }).then((result) => {
+          { additionalTypenames: ['EscalationPolicy'] },
+        ).then((result) => {
           if (!result.error) {
             props.onClose()
           }
