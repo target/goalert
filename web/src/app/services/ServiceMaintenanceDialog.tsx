@@ -45,9 +45,10 @@ function ServiceMaintenanceForm(props: {
         <FormControlLabel value={1} control={<Radio />} label={label(1)} />
         <FormControlLabel value={2} control={<Radio />} label={label(2)} />
         <FormControlLabel value={4} control={<Radio />} label={label(4)} />
-        <FormControlLabel value={-1} control={<Radio />} label='Specify' />
+        <FormControlLabel value={-1} control={<Radio />} label='Until...' />
       </RadioGroup>
       <ISODateTimePicker
+        label='Select a date'
         value={props.value.toISO()}
         disabled={selectedOption !== -1}
         onChange={(iso) => props.onChange(DateTime.fromISO(iso))}
