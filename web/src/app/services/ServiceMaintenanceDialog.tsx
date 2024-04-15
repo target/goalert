@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { gql, useMutation } from 'urql'
-import { RadioGroup, Radio } from '@mui/material'
-
+import { RadioGroup, Radio, Typography } from '@mui/material'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import FormControl from '@mui/material/FormControl'
 import FormDialog from '../dialogs/FormDialog'
@@ -19,7 +18,7 @@ interface Props {
 function label(hours: number): JSX.Element {
   return (
     <span>
-      For <Time duration={{ hours }} /> (
+      <Time duration={{ hours }} /> (
       <Time prefix='ends ' time={DateTime.local().plus({ hours }).toISO()} />)
     </span>
   )
@@ -54,6 +53,10 @@ function ServiceMaintenanceForm(props: {
         onChange={(iso) => props.onChange(DateTime.fromISO(iso))}
         min={DateTime.local().plus({ hours: 1 }).toISO()}
         max={DateTime.local().plus({ hours: 24 }).toISO()}
+        sx={{
+          marginLeft: (theme) => theme.spacing(3.75),
+          marginTop: (theme) => theme.spacing(1),
+        }}
       />
     </FormControl>
   )
@@ -81,7 +84,7 @@ export default function ServiceMaintenanceModeDialog(
       maxWidth='sm'
       title='Set Maintenance Mode'
       subTitle={
-        <React.Fragment>
+        <Typography>
           Pause all outgoing notifications and escalations for{' '}
           <Time
             duration={{
@@ -90,7 +93,7 @@ export default function ServiceMaintenanceModeDialog(
           />
           . Incoming alerts will still be created and will continue as normal
           after maintenance mode ends.
-        </React.Fragment>
+        </Typography>
       }
       loading={updateServiceStatus.fetching}
       errors={nonFieldErrors(updateServiceStatus.error)}
