@@ -8,15 +8,16 @@ WHERE
     AND type = $2;
 
 -- name: IntKeyCreate :exec
-INSERT INTO integration_keys(id, name, type, service_id)
-    VALUES ($1, $2, $3, $4);
+INSERT INTO integration_keys(id, name, type, service_id, external_system_name)
+    VALUES ($1, $2, $3, $4, $5);
 
 -- name: IntKeyFindOne :one
 SELECT
     id,
     name,
     type,
-    service_id
+    service_id,
+    external_system_name
 FROM
     integration_keys
 WHERE
@@ -27,7 +28,8 @@ SELECT
     id,
     name,
     type,
-    service_id
+    service_id,
+    external_system_name
 FROM
     integration_keys
 WHERE

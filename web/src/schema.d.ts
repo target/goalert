@@ -219,6 +219,7 @@ export interface CreateHeartbeatMonitorInput {
 }
 
 export interface CreateIntegrationKeyInput {
+  externalSystemName?: null | string
   name: string
   serviceID?: null | string
   type: IntegrationKeyType
@@ -530,6 +531,7 @@ export type InlineDisplayInfo =
 export type Int = string
 
 export interface IntegrationKey {
+  externalSystemName?: null | string
   href: string
   id: string
   name: string
