@@ -1,16 +1,12 @@
 package smoke
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"database/sql"
 	"fmt"
 	"math/rand"
 	"os"
-	"os/exec"
-	"regexp"
-	"sort"
 	"strings"
 	"testing"
 	"text/template"
@@ -18,20 +14,19 @@ import (
 
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib" // import db driver
+	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/test/smoke/harness"
+	"github.com/target/goalert/test/smoke/migratetest"
 	"github.com/target/goalert/util/sqlutil"
 )
 
-type ignoreRule struct {
-	MigrationName string
-	TableName     string
-	ColumnName    string
-	ExtraRows     bool
-	MissingRows   bool
-}
+// DefaultSkipToMigration is the default migration to skip to when running the migration tests.
+//
+// It can be overriden by setting the SKIP_TO environment variable.
+const DefaultSkipToMigration = "switchover-mk2"
 
-var ignoreRules = []ignoreRule{
+var rules = migratetest.RuleSet{
 	// All migration timestamps will differ as they applied/re-applied
 	{TableName: "gorp_migrations", ColumnName: "applied_at"},
 
@@ -162,283 +157,6 @@ values
 	({{uuid "cb2"}}, {{uuid "ncy1"}}, 1, {{uuid "c2"}}, {{uuid "n2"}}, now());
 `
 
-type pgDumpEntry struct {
-	Name string
-	Body string
-}
-
-var enumRx = regexp.MustCompile(`(?s)CREATE TYPE ([\w_.]+) AS ENUM \(\s*(.*)\s*\);`)
-
-// enumOK handles checking for safe enum differences. This case is that migrate
-// up can add, but migrate down will not remove new enum values.
-//
-// migrate down can't safely remove enum values, but it's safe for new ones
-// to exist. So we simply check that all original items exist.
-func enumOK(got, want string) bool {
-	partsW := enumRx.FindStringSubmatch(want)
-	if len(partsW) != 3 {
-		return false
-	}
-	partsG := enumRx.FindStringSubmatch(got)
-	if len(partsG) != 3 {
-		return false
-	}
-	if partsW[1] != partsG[1] {
-		return false
-	}
-
-	gotItems := strings.Split(partsG[2], ",\n")
-	wantItems := strings.Split(partsW[2], ",\n")
-
-	g := make(map[string]bool, len(gotItems))
-	for _, v := range gotItems {
-		g[strings.TrimSpace(v)] = true
-	}
-
-	for _, v := range wantItems {
-		if !g[strings.TrimSpace(v)] {
-			return false
-		}
-	}
-
-	return true
-}
-
-func TestEnumOK(t *testing.T) {
-	const got = `CREATE TYPE enum_alert_log_event AS ENUM (
-'created',
-'reopened',
-'status_changed',
-'assignment_changed',
-'escalated',
-'closed',
-'notification_sent',
-'response_received',
-'acknowledged',
-'policy_updated',
-'duplicate_suppressed',
-'escalation_request'
-);`
-	const want = `CREATE TYPE enum_alert_log_event AS ENUM (
-'created',
-'reopened',
-'status_changed',
-'assignment_changed',
-'escalated',
-'closed',
-'notification_sent',
-'response_received'
-);`
-
-	if !enumOK(got, want) {
-		t.Errorf("got false; want true")
-	}
-}
-
-func processIgnoreRules(ignoreRules []ignoreRule, name, body string) string {
-	for _, r := range ignoreRules {
-		if r.MigrationName != "" && r.MigrationName != name {
-			continue
-		}
-		if !strings.HasPrefix(body, "COPY "+r.TableName+" ") && !strings.HasPrefix(body, "COPY public."+r.TableName+" ") {
-			continue
-		}
-		lines := strings.Split(body, "\n")
-		pref, cols, suf := getCols(lines[0])
-		index := -1
-		for i, v := range cols {
-			if v == r.ColumnName {
-				index = i
-			}
-		}
-		if index == -1 {
-			continue
-		}
-		newLen := len(cols) - 1
-		copy(cols[index:], cols[index+1:])
-		cols = cols[:newLen]
-		lines[0] = pref + strings.Join(cols, ", ") + suf
-
-		data := lines[1 : len(lines)-1]
-		for i, l := range data {
-			cols = strings.Split(l, "\t")
-			copy(cols[index:], cols[index+1:])
-			cols = cols[:newLen]
-			data[i] = strings.Join(cols, "\t")
-		}
-		body = strings.Join(lines, "\n")
-	}
-	return body
-}
-
-func TestProcessIgnoreRules(t *testing.T) {
-	t.Parallel()
-	const input = `COPY public.my_table (foo, bar, baz) FROM stdin;
-1	2	3
-a	b	c
-\.`
-	const expected = `COPY public.my_table (foo, baz) FROM stdin;
-1	3
-a	c
-\.`
-	rules := []ignoreRule{
-		{MigrationName: "foo", TableName: "my_table", ColumnName: "bar"},
-	}
-	result := processIgnoreRules(rules, "foo", input)
-	if result != expected {
-		t.Errorf("got\n%s\n\nwant\n%s", result, expected)
-	}
-}
-
-func getCols(line string) (prefix string, cols []string, suffix string) {
-	cols = strings.SplitN(line, "(", 2)
-
-	prefix = cols[0] + "("
-	suffix = cols[1]
-	cols = strings.SplitN(suffix, ")", 2)
-	suffix = ")" + cols[1]
-	cols = strings.Split(cols[0], ", ")
-
-	return prefix, cols, suffix
-}
-
-func alphabetizeCopy(body string) string {
-	lines := strings.Split(body, "\n")
-	data := lines[1 : len(lines)-1]
-
-	pref, cols, suf := getCols(lines[0])
-
-	orig := make(map[string]int, len(cols))
-	for i, c := range cols {
-		orig[c] = i
-	}
-	sort.Strings(cols)
-	lines[0] = pref + strings.Join(cols, ", ") + suf
-
-	order := make(map[int]int, len(cols))
-	for i, c := range cols {
-		order[orig[c]] = i
-	}
-
-	for n, l := range data {
-		cols = strings.Split(l, "\t")
-		sorted := make([]string, len(cols))
-		for i, v := range cols {
-			sorted[order[i]] = v
-		}
-
-		data[n] = strings.Join(sorted, "\t")
-	}
-
-	sort.Strings(lines[1:])
-	return strings.Join(lines, "\n")
-}
-
-func TestAlphabetizeCopy(t *testing.T) {
-	t.Parallel()
-	const input = `COPY foobar (a, e, f, b, c) FROM stdin;
-first	second	third	fourth	fifth
-\.`
-	const expected = `COPY foobar (a, b, c, e, f) FROM stdin;
-\.
-first	fourth	fifth	second	third`
-	result := alphabetizeCopy(input)
-	if result != expected {
-		t.Errorf("got\n%s\n\nwant\n%s", result, expected)
-	}
-}
-
-func parsePGDump(data []byte, name string) []pgDumpEntry {
-	rd := bufio.NewReader(bytes.NewReader(data))
-
-	entries := make([]pgDumpEntry, 0, 10000)
-	var entry pgDumpEntry
-
-	addEntry := func() {
-		if strings.Contains(entry.Body, "COPY notifications (user_id, started_at) FROM stdin") {
-			// we ignore the (old) notifications table
-			// since it's trigger based and always re-calculated
-			//
-			// which makes it near impossible to test migrations
-			//
-			// it also doesn't work properly anyhow, which is why it has been
-			// replaced.
-			return
-		}
-
-		entry.Body = strings.TrimSpace(entry.Body)
-		entry.Name = strings.TrimSpace(entry.Name)
-
-		if strings.HasPrefix(entry.Body, "COPY ") && strings.Contains(entry.Name, "Type: TABLE DATA") {
-			// ignore column order, as long as the data matches
-			entry.Body = processIgnoreRules(ignoreRules, name, entry.Body)
-			entry.Body = alphabetizeCopy(entry.Body)
-		}
-		if strings.Contains(entry.Body, "REPLICA IDENTITY NOTHING") && strings.Contains(entry.Body, "ALTER TABLE ONLY") {
-			// skip 'view' tables
-			return
-		}
-
-		if strings.Contains(entry.Name, " _RETURN; Type: RULE") {
-			// view return rule -> convert to view
-			tname := strings.SplitN(entry.Name, " ", 2)[0]
-			entry.Name = strings.Replace(entry.Name, " _RETURN; Type: RULE", "; Type: VIEW", 1)
-			entry.Body = strings.Replace(entry.Body, "CREATE RULE \"_RETURN\" AS\n", "", 1)
-			entry.Body = strings.Replace(entry.Body,
-				"ON SELECT TO "+tname+" DO INSTEAD  ",
-				"CREATE VIEW "+tname+" AS\n",
-				1,
-			)
-		}
-
-		if strings.HasPrefix(entry.Body, "CREATE TABLE") {
-			// order args alphabetically
-			lines := strings.Split(entry.Body, "\n")
-			sort.Strings(lines[1 : len(lines)-1])
-			for i := 1; i < len(lines)-1; i++ {
-				if !strings.HasSuffix(lines[i], ",") {
-					lines[i] += ","
-				}
-			}
-			entry.Body = strings.Join(lines, "\n")
-		}
-
-		entries = append(entries, entry)
-	}
-
-	for {
-		line, err := rd.ReadString('\n')
-		if err != nil {
-			break
-		}
-		if strings.HasPrefix(line, "-- Name: ") {
-			entry.Name = strings.TrimSpace(strings.TrimPrefix(line, "-- Name: "))
-			entry.Body = ""
-			_, _ = rd.ReadString('\n') // skip next line
-			continue
-		} else if strings.HasPrefix(line, "-- Data for Name: ") {
-			entry.Name = strings.TrimSpace(strings.TrimPrefix(line, "-- Data for Name: "))
-			entry.Body = ""
-			_, _ = rd.ReadString('\n') // skip next line
-			continue
-		} else if strings.HasPrefix(line, "--") {
-			if entry.Name != "" {
-				addEntry()
-			}
-			entry.Body = ""
-			entry.Name = ""
-		} else if entry.Name != "" && line != "" {
-			entry.Body += strings.Trim(line, "\n ") + "\n"
-		}
-	}
-
-	return entries
-}
-
-func indent(str string) string {
-	return "    " + strings.Replace(str, "\n", "\n    ", -1)
-}
-
 // https://stackoverflow.com/questions/22892120/how-to-generate-a-random-string-of-a-fixed-length-in-golang
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
@@ -480,57 +198,6 @@ func renderQuery(t *testing.T, sql string) string {
 	return b.String()
 }
 
-func (e pgDumpEntry) matchesBody(migrationName string, body string) bool {
-	if e.Body == body {
-		return true
-	}
-	if enumOK(body, e.Body) {
-		return true
-	}
-
-	if !strings.HasPrefix(e.Body, "COPY ") {
-		return false
-	}
-
-	// check for extra rows rule
-	var extraRows, missingRows bool
-	for _, r := range ignoreRules {
-		if r.MigrationName != migrationName {
-			continue
-		}
-		if !strings.HasPrefix(e.Name, r.TableName+";") {
-			continue
-		}
-		extraRows = extraRows || r.ExtraRows
-		missingRows = missingRows || r.MissingRows
-	}
-	if !extraRows && !missingRows {
-		return false
-	}
-
-	e.Body = strings.TrimSuffix(e.Body, "\n\\.")
-	body = strings.TrimSuffix(body, "\n\\.")
-	if extraRows {
-		rows := strings.Split(body, "\n")
-		for i := range rows {
-			if e.Body == strings.Join(rows[:len(rows)-i], "\n") {
-				return true
-			}
-		}
-	}
-
-	if missingRows {
-		rows := strings.Split(e.Body, "\n")
-		for i := range rows {
-			if body == strings.Join(rows[:len(rows)-i], "\n") {
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
 func TestMigrations(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping migrations tests for short mode")
@@ -546,20 +213,22 @@ func TestMigrations(t *testing.T) {
 	defer db.Close()
 	dbName := strings.Replace("migrations_smoketest_"+time.Now().Format("2006_01_02_03_04_05")+uuid.New().String(), "-", "", -1)
 
+	testURL := harness.DBURL(dbName)
+
 	_, err = db.Exec("create database " + sqlutil.QuoteID(dbName))
 	if err != nil {
 		t.Fatal("failed to create db:", err)
 	}
 	defer func() { _, _ = db.Exec("drop database " + sqlutil.QuoteID(dbName)) }()
 
-	n, err := migrate.Up(context.Background(), harness.DBURL(dbName), start)
+	n, err := migrate.Up(context.Background(), testURL, start)
 	if err != nil {
 		t.Fatal("failed to apply initial migrations:", err)
 	}
 
 	initSQL := renderQuery(t, migrateInitData)
 
-	err = harness.ExecSQLBatch(context.Background(), harness.DBURL(dbName), initSQL)
+	err = harness.ExecSQLBatch(context.Background(), testURL, initSQL)
 	if err != nil {
 		t.Fatalf("failed to init db %v", err)
 	}
@@ -571,7 +240,7 @@ func TestMigrations(t *testing.T) {
 		start = env
 		skipTo = true
 	} else {
-		start = "switchover-mk2" // default skip_to
+		start = DefaultSkipToMigration
 		skipTo = true
 	}
 	var idx int
@@ -583,7 +252,7 @@ func TestMigrations(t *testing.T) {
 
 	names = names[idx:]
 	if skipTo {
-		n, err := migrate.Up(context.Background(), harness.DBURL(dbName), start)
+		n, err := migrate.Up(context.Background(), testURL, start)
 		if err != nil {
 			t.Fatal("failed to apply skip migrations:", err)
 		}
@@ -593,92 +262,60 @@ func TestMigrations(t *testing.T) {
 		t.Logf("Skipping to %s", start)
 	}
 
-	snapshot := func(t *testing.T, name string) []pgDumpEntry {
-		data, err := exec.Command("pg_dump",
-			"-d", harness.DBURL(dbName),
-			"-O",
-		).Output()
-		if err != nil {
-			t.Fatal("failed to dump db:", err)
-		}
-		return parsePGDump(data, name)
-	}
-	mm := 0
-	checkDiff := func(t *testing.T, typ, migrationName string, a, b []pgDumpEntry) bool {
-		m1 := make(map[string]string)
-		m2 := make(map[string]string)
-		for _, e := range a {
-			m1[e.Name] = e.Body
-		}
-		for _, e := range b {
-			m2[e.Name] = e.Body
-		}
-		var mismatch bool
-		for _, e := range a {
-			body, ok := m2[e.Name]
-			if !ok {
-				mismatch = true
-				t.Errorf("%s missing\n%s\n%s", typ, e.Name, indent(e.Body))
-				continue
-			}
-			if !e.matchesBody(migrationName, body) {
-				mismatch = true
-				t.Errorf("%s mismatch\n%s\ngot\n%s\nwant\n%s", typ, e.Name, indent(body), indent(e.Body))
-				continue
-			}
-		}
-		for _, e := range b {
-			_, ok := m1[e.Name]
-			if !ok {
-				mismatch = true
-				t.Errorf("%s leftover\n%s\n%s", typ, e.Name, indent(e.Body))
-			}
-		}
+	snapshot := func(t *testing.T, name string) *migratetest.Snapshot {
+		t.Helper()
 
-		mm++
-		return mismatch
+		snap, err := migratetest.NewSnapshotURL(context.Background(), testURL)
+		require.NoErrorf(t, err, "failed to create snapshot for %s", name)
+		return snap
 	}
+
 	names = names[1:]
 	for i, migrationName := range names[1:] {
 		lastMigrationName := names[i]
-		var applied bool
+		var beforeUpSnap *migratetest.Snapshot
 		pass := t.Run(migrationName, func(t *testing.T) {
 			ctx := context.Background()
-			orig := snapshot(t, migrationName)
-			n, err = migrate.Up(ctx, harness.DBURL(dbName), migrationName)
-			if err != nil {
-				t.Fatalf("failed to apply UP migration: %v", err)
-			}
-			if n == 0 {
-				return
-			}
-			applied = true
-			upSnap := snapshot(t, migrationName)
-			_, err = migrate.Down(ctx, harness.DBURL(dbName), lastMigrationName)
-			if err != nil {
-				t.Fatalf("failed to apply DOWN migration: %v", err)
-			}
-			applied = false
-			s := snapshot(t, migrationName)
-			if checkDiff(t, "DOWN", migrationName, orig, s) {
-				t.Fatalf("DOWN migration did not restore previous schema")
+
+			if beforeUpSnap == nil {
+				beforeUpSnap = snapshot(t, migrationName)
 			}
 
-			_, err = migrate.Up(ctx, harness.DBURL(dbName), migrationName)
-			if err != nil {
-				t.Fatalf("failed to apply UP migration (2nd time): %v", err)
+			n, err = migrate.Up(ctx, testURL, migrationName)
+			require.NoError(t, err, "failed to apply UP migration")
+			if n == 0 {
+				// no more migrations are left, so end the test
+				return
 			}
-			applied = true
-			s = snapshot(t, migrationName)
-			if checkDiff(t, "UP", migrationName, upSnap, s) {
-				t.Fatalf("UP migration did not restore previous schema")
+
+			afterUpSnap1 := snapshot(t, migrationName)
+
+			_, err = migrate.Down(ctx, testURL, lastMigrationName)
+			require.NoError(t, err, "failed to apply DOWN migration")
+
+			afterDownSnap := snapshot(t, migrationName)
+			pass := t.Run("Down", func(t *testing.T) {
+				rules.RequireEqualDown(t, beforeUpSnap, afterDownSnap)
+			})
+			if !pass {
+				return
 			}
+
+			_, err = migrate.Up(ctx, testURL, migrationName)
+			require.NoError(t, err, "failed to apply UP migration (2nd time)")
+
+			afterUpSnap2 := snapshot(t, migrationName)
+			pass = t.Run("Up", func(t *testing.T) {
+				rules.RequireEqualUp(t, afterUpSnap1, afterUpSnap2)
+			})
+			if !pass {
+				return
+			}
+
+			beforeUpSnap = afterUpSnap2 // save for next iteration
 		})
-		if !pass && !applied {
-			n, err = migrate.Up(context.Background(), harness.DBURL(dbName), migrationName)
-			if err != nil || n == 0 {
-				t.Fatalf("failed to apply UP migration; abort")
-			}
+		if !pass {
+			return
 		}
 	}
 }
