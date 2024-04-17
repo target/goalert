@@ -59,6 +59,12 @@ const useStyles = makeStyles({
 })
 
 const sortItems = (a: IntegrationKey, b: IntegrationKey): number => {
+  const extA = a.externalSystemName || ''
+  const extB = b.externalSystemName || ''
+  if (extA.toLowerCase() < extB.toLowerCase()) return -1
+  if (extA.toLowerCase() > extB.toLowerCase()) return 1
+  if (extA < extB) return -1
+  if (extA > extB) return 1
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
   if (a.name.toLowerCase() > b.name.toLowerCase()) return 1
   if (a.name < b.name) return -1
