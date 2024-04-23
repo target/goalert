@@ -1,4 +1,4 @@
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery } from 'urql'
 import { GroupAdd } from '@mui/icons-material'
 import {
   Button,
@@ -124,7 +124,8 @@ function ScheduleShiftList({
     'duration',
   )
 
-  const { data } = useQuery(query, {
+  const [{ data }] = useQuery({
+    query,
     variables: {
       id: scheduleID,
       start,

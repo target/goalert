@@ -1,6 +1,6 @@
 import { Notice, TemporarySchedule } from '../../schema'
 import { parseInterval, SpanISO } from '../util/shifts'
-import { useQuery, gql } from '@apollo/client'
+import { useQuery, gql } from 'urql'
 
 const scheduleQuery = gql`
   query ($id: ID!) {
@@ -19,13 +19,13 @@ export default function useOverrideNotices(
   scheduleID: string,
   value: SpanISO,
 ): Notice[] {
-  const { data, loading } = useQuery(scheduleQuery, {
+  const [{ data, fetching }] = useQuery({
+    query: scheduleQuery,
     variables: {
       id: scheduleID,
     },
-    pollInterval: 0,
   })
-  if (loading) {
+  if (fetching) {
     return []
   }
   const tempSchedules = data?.schedule?.temporarySchedules
