@@ -945,10 +945,11 @@ type HeartbeatMonitor struct {
 }
 
 type IntegrationKey struct {
-	ID        uuid.UUID
-	Name      string
-	ServiceID uuid.UUID
-	Type      EnumIntegrationKeysType
+	ExternalSystemName sql.NullString
+	ID                 uuid.UUID
+	Name               string
+	ServiceID          uuid.UUID
+	Type               EnumIntegrationKeysType
 }
 
 type Keyring struct {

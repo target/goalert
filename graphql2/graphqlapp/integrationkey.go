@@ -29,6 +29,9 @@ func (m *Mutation) CreateIntegrationKey(ctx context.Context, input graphql2.Crea
 			Name:      input.Name,
 			Type:      integrationkey.Type(input.Type),
 		}
+		if input.ExternalSystemName != nil {
+			key.ExternalSystemName = *input.ExternalSystemName
+		}
 		key, err = m.IntKeyStore.Create(ctx, tx, key)
 		return err
 	})

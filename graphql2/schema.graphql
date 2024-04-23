@@ -1000,6 +1000,11 @@ input CreateIntegrationKeyInput {
   serviceID: ID
   type: IntegrationKeyType!
   name: String!
+
+  """
+  Name of the external system this key is managed by.
+  """
+  externalSystemName: String
 }
 
 input CreateHeartbeatMonitorInput {
@@ -1044,6 +1049,11 @@ type IntegrationKey {
   type: IntegrationKeyType!
   name: String!
   href: String!
+
+  """
+  Name of the external system this key is managed by.
+  """
+  externalSystemName: String
 }
 
 enum IntegrationKeyType {

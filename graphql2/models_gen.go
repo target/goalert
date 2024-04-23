@@ -184,6 +184,8 @@ type CreateIntegrationKeyInput struct {
 	ServiceID *string            `json:"serviceID,omitempty"`
 	Type      IntegrationKeyType `json:"type"`
 	Name      string             `json:"name"`
+	// Name of the external system this key is managed by.
+	ExternalSystemName *string `json:"externalSystemName,omitempty"`
 }
 
 type CreateRotationInput struct {

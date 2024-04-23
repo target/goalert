@@ -9,6 +9,8 @@ type IntegrationKey struct {
 	Name      string `json:"name"`
 	Type      Type   `json:"type"`
 	ServiceID string `json:"service_id"`
+
+	ExternalSystemName string
 }
 
 func (i IntegrationKey) Normalize() (*IntegrationKey, error) {
@@ -16,6 +18,7 @@ func (i IntegrationKey) Normalize() (*IntegrationKey, error) {
 		validate.IDName("Name", i.Name),
 		validate.UUID("ServiceID", i.ServiceID),
 		validate.OneOf("Type", i.Type, TypeGrafana, TypeSite24x7, TypePrometheusAlertmanager, TypeGeneric, TypeEmail),
+		validate.ASCII("ExternalSystemName", i.ExternalSystemName, 0, 255),
 	)
 	if err != nil {
 		return nil, err

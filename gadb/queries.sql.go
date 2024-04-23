@@ -1397,15 +1397,16 @@ func (q *Queries) FindOneCalSubForUpdate(ctx context.Context, id uuid.UUID) (Fin
 }
 
 const intKeyCreate = `-- name: IntKeyCreate :exec
-INSERT INTO integration_keys(id, name, type, service_id)
-    VALUES ($1, $2, $3, $4)
+INSERT INTO integration_keys(id, name, type, service_id, external_system_name)
+    VALUES ($1, $2, $3, $4, $5)
 `
 
 type IntKeyCreateParams struct {
-	ID        uuid.UUID
-	Name      string
-	Type      EnumIntegrationKeysType
-	ServiceID uuid.UUID
+	ID                 uuid.UUID
+	Name               string
+	Type               EnumIntegrationKeysType
+	ServiceID          uuid.UUID
+	ExternalSystemName sql.NullString
 }
 
 func (q *Queries) IntKeyCreate(ctx context.Context, arg IntKeyCreateParams) error {
@@ -1414,6 +1415,7 @@ func (q *Queries) IntKeyCreate(ctx context.Context, arg IntKeyCreateParams) erro
 		arg.Name,
 		arg.Type,
 		arg.ServiceID,
+		arg.ExternalSystemName,
 	)
 	return err
 }
@@ -1433,7 +1435,8 @@ SELECT
     id,
     name,
     type,
-    service_id
+    service_id,
+    external_system_name
 FROM
     integration_keys
 WHERE
@@ -1441,10 +1444,11 @@ WHERE
 `
 
 type IntKeyFindByServiceRow struct {
-	ID        uuid.UUID
-	Name      string
-	Type      EnumIntegrationKeysType
-	ServiceID uuid.UUID
+	ID                 uuid.UUID
+	Name               string
+	Type               EnumIntegrationKeysType
+	ServiceID          uuid.UUID
+	ExternalSystemName sql.NullString
 }
 
 func (q *Queries) IntKeyFindByService(ctx context.Context, serviceID uuid.UUID) ([]IntKeyFindByServiceRow, error) {
@@ -1461,6 +1465,7 @@ func (q *Queries) IntKeyFindByService(ctx context.Context, serviceID uuid.UUID) 
 			&i.Name,
 			&i.Type,
 			&i.ServiceID,
+			&i.ExternalSystemName,
 		); err != nil {
 			return nil, err
 		}
@@ -1480,7 +1485,8 @@ SELECT
     id,
     name,
     type,
-    service_id
+    service_id,
+    external_system_name
 FROM
     integration_keys
 WHERE
@@ -1488,10 +1494,11 @@ WHERE
 `
 
 type IntKeyFindOneRow struct {
-	ID        uuid.UUID
-	Name      string
-	Type      EnumIntegrationKeysType
-	ServiceID uuid.UUID
+	ID                 uuid.UUID
+	Name               string
+	Type               EnumIntegrationKeysType
+	ServiceID          uuid.UUID
+	ExternalSystemName sql.NullString
 }
 
 func (q *Queries) IntKeyFindOne(ctx context.Context, id uuid.UUID) (IntKeyFindOneRow, error) {
@@ -1502,6 +1509,7 @@ func (q *Queries) IntKeyFindOne(ctx context.Context, id uuid.UUID) (IntKeyFindOn
 		&i.Name,
 		&i.Type,
 		&i.ServiceID,
+		&i.ExternalSystemName,
 	)
 	return i, err
 }
