@@ -73,7 +73,7 @@ export default function ScheduleRuleDeleteDialog(
               rules: [],
             },
           },
-          { additionalTypenames: ['ScheduleTargetInput', 'Schedule'] },
+          { additionalTypenames: ['Schedule'] },
         ).then((result) => {
           if (!result.error) props.onClose()
         })

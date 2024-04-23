@@ -19,15 +19,13 @@ export default function useOverrideNotices(
   scheduleID: string,
   value: SpanISO,
 ): Notice[] {
-  const [{ data, fetching }] = useQuery({
+  const [{ data }] = useQuery({
     query: scheduleQuery,
     variables: {
       id: scheduleID,
     },
   })
-  if (fetching) {
-    return []
-  }
+
   const tempSchedules = data?.schedule?.temporarySchedules
   const zone = data?.schedule?.timeZone
   const valueInterval = parseInterval(value, zone)
