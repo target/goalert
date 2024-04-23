@@ -125,6 +125,7 @@ export default function DestinationSearchSelect(
 
   return (
     <MaterialSelect
+      name={props.fieldID}
       isLoading={fetching}
       multiple={false}
       noOptionsText='No options'

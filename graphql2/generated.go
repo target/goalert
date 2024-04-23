@@ -360,11 +360,12 @@ type ComplexityRoot struct {
 	}
 
 	IntegrationKey struct {
-		Href      func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Name      func(childComplexity int) int
-		ServiceID func(childComplexity int) int
-		Type      func(childComplexity int) int
+		ExternalSystemName func(childComplexity int) int
+		Href               func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		Name               func(childComplexity int) int
+		ServiceID          func(childComplexity int) int
+		Type               func(childComplexity int) int
 	}
 
 	IntegrationKeyConnection struct {
@@ -2180,6 +2181,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HeartbeatMonitor.TimeoutMinutes(childComplexity), true
+
+	case "IntegrationKey.externalSystemName":
+		if e.complexity.IntegrationKey.ExternalSystemName == nil {
+			break
+		}
+
+		return e.complexity.IntegrationKey.ExternalSystemName(childComplexity), true
 
 	case "IntegrationKey.href":
 		if e.complexity.IntegrationKey.Href == nil {
@@ -13927,6 +13935,47 @@ func (ec *executionContext) fieldContext_IntegrationKey_href(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _IntegrationKey_externalSystemName(ctx context.Context, field graphql.CollectedField, obj *integrationkey.IntegrationKey) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IntegrationKey_externalSystemName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExternalSystemName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IntegrationKey_externalSystemName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IntegrationKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _IntegrationKeyConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *IntegrationKeyConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_IntegrationKeyConnection_nodes(ctx, field)
 	if err != nil {
@@ -13976,6 +14025,8 @@ func (ec *executionContext) fieldContext_IntegrationKeyConnection_nodes(ctx cont
 				return ec.fieldContext_IntegrationKey_name(ctx, field)
 			case "href":
 				return ec.fieldContext_IntegrationKey_href(ctx, field)
+			case "externalSystemName":
+				return ec.fieldContext_IntegrationKey_externalSystemName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type IntegrationKey", field.Name)
 		},
@@ -16454,6 +16505,8 @@ func (ec *executionContext) fieldContext_Mutation_createIntegrationKey(ctx conte
 				return ec.fieldContext_IntegrationKey_name(ctx, field)
 			case "href":
 				return ec.fieldContext_IntegrationKey_href(ctx, field)
+			case "externalSystemName":
+				return ec.fieldContext_IntegrationKey_externalSystemName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type IntegrationKey", field.Name)
 		},
@@ -19679,6 +19732,8 @@ func (ec *executionContext) fieldContext_Query_integrationKey(ctx context.Contex
 				return ec.fieldContext_IntegrationKey_name(ctx, field)
 			case "href":
 				return ec.fieldContext_IntegrationKey_href(ctx, field)
+			case "externalSystemName":
+				return ec.fieldContext_IntegrationKey_externalSystemName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type IntegrationKey", field.Name)
 		},
@@ -25184,6 +25239,8 @@ func (ec *executionContext) fieldContext_Service_integrationKeys(ctx context.Con
 				return ec.fieldContext_IntegrationKey_name(ctx, field)
 			case "href":
 				return ec.fieldContext_IntegrationKey_href(ctx, field)
+			case "externalSystemName":
+				return ec.fieldContext_IntegrationKey_externalSystemName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type IntegrationKey", field.Name)
 		},
@@ -32230,7 +32287,7 @@ func (ec *executionContext) unmarshalInputCreateIntegrationKeyInput(ctx context.
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"serviceID", "type", "name"}
+	fieldsInOrder := [...]string{"serviceID", "type", "name", "externalSystemName"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -32258,6 +32315,13 @@ func (ec *executionContext) unmarshalInputCreateIntegrationKeyInput(ctx context.
 				return it, err
 			}
 			it.Name = data
+		case "externalSystemName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("externalSystemName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ExternalSystemName = data
 		}
 	}
 
@@ -38337,6 +38401,8 @@ func (ec *executionContext) _IntegrationKey(ctx context.Context, sel ast.Selecti
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "externalSystemName":
+			out.Values[i] = ec._IntegrationKey_externalSystemName(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -48603,6 +48669,16 @@ func (ec *executionContext) unmarshalOSlackUserGroupSearchOptions2ᚖgithubᚗco
 	}
 	res, err := ec.unmarshalInputSlackUserGroupSearchOptions(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
+	res, err := graphql.UnmarshalString(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalString(v)
+	return res
 }
 
 func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {

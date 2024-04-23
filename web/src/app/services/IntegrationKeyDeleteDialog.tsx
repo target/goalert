@@ -2,9 +2,14 @@ import React from 'react'
 import { gql, useQuery, useMutation } from 'urql'
 
 import { nonFieldErrors } from '../util/errutil'
-import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 import FormDialog from '../dialogs/FormDialog'
+import {
+  Checkbox,
+  FormControl,
+  FormControlLabel,
+  FormHelperText,
+} from '@mui/material'
 
 const query = gql`
   query ($id: ID!) {
@@ -12,6 +17,7 @@ const query = gql`
       id
       name
       serviceID
+      externalSystemName
     }
   }
 `
@@ -26,17 +32,19 @@ export default function IntegrationKeyDeleteDialog(props: {
   integrationKeyID: string
   onClose: () => void
 }): JSX.Element {
-  const [{ fetching, error, data }] = useQuery({
+  const [{ error, data }] = useQuery({
     query,
     variables: { id: props.integrationKeyID },
   })
+  const extSystemName = data?.integrationKey?.externalSystemName || ''
+  const [confirmed, setConfirmed] = React.useState(!extSystemName) // only require confirmation if external system name is present
+  const [confirmError, setConfirmError] = React.useState(false)
 
   const [deleteKeyStatus, deleteKey] = useMutation(mutation)
 
-  if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
-  if (!fetching && !deleteKeyStatus.fetching && data?.integrationKey === null) {
+  if (!data?.integrationKey) {
     return (
       <FormDialog
         alert
@@ -44,6 +52,36 @@ export default function IntegrationKeyDeleteDialog(props: {
         onClose={() => props.onClose()}
         subTitle='That integration key does not exist or is already deleted.'
       />
+    )
+  }
+
+  let form = null
+  if (data?.integrationKey?.externalSystemName) {
+    form = (
+      <FormControl style={{ width: '100%' }} error={confirmError}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={confirmed}
+              onChange={(e) => {
+                setConfirmed(e.target.checked)
+                setConfirmError(false)
+              }}
+            />
+          }
+          label='I understand the consequences of deleting this key'
+        />
+        <FormHelperText>
+          {confirmError ? (
+            'Please confirm'
+          ) : (
+            <React.Fragment>
+              Deleting this key may break integrations with&nbsp;
+              {extSystemName}
+            </React.Fragment>
+          )}
+        </FormHelperText>
+      </FormControl>
     )
   }
 
@@ -56,7 +94,14 @@ export default function IntegrationKeyDeleteDialog(props: {
       loading={deleteKeyStatus.fetching}
       errors={nonFieldErrors(deleteKeyStatus.error)}
       onClose={props.onClose}
+      form={form}
       onSubmit={() => {
+        if (!confirmed) {
+          setConfirmError(true)
+          return
+        }
+        setConfirmError(false)
+
         const input = [
           {
             type: 'integrationKey',
