@@ -43,6 +43,9 @@ func MapDBError(err error) error {
 			return validation.NewFieldError("UserID", "user does not exist")
 		}
 	case "23505": // unique constraint
+		if dbErr.ConstraintName == "idx_int_key_name_svc_ext" {
+			return validation.NewFieldError("Name", "already in use")
+		}
 		if dbErr.ConstraintName == "auth_basic_users_username_key" {
 			return validation.NewFieldError("Username", "already in use")
 		}

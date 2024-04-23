@@ -13,12 +13,20 @@ import IntegrationKeyDeleteDialog from './IntegrationKeyDeleteDialog'
 import CopyText from '../util/CopyText'
 import AppLink from '../util/AppLink'
 import { useIsWidthDown } from '../util/useWidth'
-import { Add } from '@mui/icons-material'
+import { Add, ArrowDownward } from '@mui/icons-material'
 import makeStyles from '@mui/styles/makeStyles'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 import { IntegrationKey } from '../../schema'
 import { useFeatures } from '../util/RequireConfig'
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Chip,
+  Divider,
+  Typography,
+} from '@mui/material'
 
 const query = gql`
   query ($serviceID: ID!) {
@@ -29,6 +37,7 @@ const query = gql`
         type
         name
         href
+        externalSystemName
       }
     }
   }
@@ -50,6 +59,12 @@ const useStyles = makeStyles({
 })
 
 const sortItems = (a: IntegrationKey, b: IntegrationKey): number => {
+  const extA = a.externalSystemName || ''
+  const extB = b.externalSystemName || ''
+  if (extA.toLowerCase() < extB.toLowerCase()) return -1
+  if (extA.toLowerCase() > extB.toLowerCase()) return 1
+  if (extA < extB) return -1
+  if (extA > extB) return 1
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
   if (a.name.toLowerCase() > b.name.toLowerCase()) return 1
   if (a.name < b.name) return -1
@@ -101,6 +116,7 @@ export default function IntegrationKeyList(props: {
   const items = (data.service.integrationKeys || [])
     .slice()
     .sort(sortItems)
+    .filter((key: IntegrationKey) => !key.externalSystemName)
     .map(
       (key: IntegrationKey): FlatListListItem => ({
         title: key.name,
@@ -112,6 +128,25 @@ export default function IntegrationKeyList(props: {
             type={key.type}
           />
         ),
+        secondaryAction: (
+          <IconButton
+            onClick={(): void => setDeleteDialog(key.id)}
+            size='large'
+          >
+            <Trash />
+          </IconButton>
+        ),
+      }),
+    )
+
+  const extItems = (data.service.integrationKeys || [])
+    .slice()
+    .sort(sortItems)
+    .filter((key: IntegrationKey) => !!key.externalSystemName)
+    .map(
+      (key: IntegrationKey): FlatListListItem => ({
+        title: key.name,
+        subText: <Chip label={key.externalSystemName} />,
         secondaryAction: (
           <IconButton
             onClick={(): void => setDeleteDialog(key.id)}
@@ -151,6 +186,22 @@ export default function IntegrationKeyList(props: {
                 )
               }
             />
+            {!!extItems.length && (
+              <React.Fragment>
+                <Divider />
+                <Accordion disableGutters elevation={0}>
+                  <AccordionSummary expandIcon={<ArrowDownward />}>
+                    <Typography>Externally Managed Keys</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <FlatList
+                      headerNote='These keys are managed by other applications.'
+                      items={extItems}
+                    />
+                  </AccordionDetails>
+                </Accordion>
+              </React.Fragment>
+            )}
           </CardContent>
         </Card>
       </Grid>

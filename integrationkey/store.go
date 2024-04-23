@@ -92,6 +92,8 @@ func (s *Store) Create(ctx context.Context, dbtx gadb.DBTX, i *IntegrationKey) (
 		Name:      n.Name,
 		Type:      gadb.EnumIntegrationKeysType(n.Type),
 		ServiceID: serviceUUID,
+
+		ExternalSystemName: sql.NullString{String: n.ExternalSystemName, Valid: n.ExternalSystemName != ""},
 	})
 	if err != nil {
 		return nil, err
@@ -142,6 +144,8 @@ func (s *Store) FindOne(ctx context.Context, id string) (*IntegrationKey, error)
 		Name:      row.Name,
 		Type:      Type(row.Type),
 		ServiceID: row.ServiceID.String(),
+
+		ExternalSystemName: row.ExternalSystemName.String,
 	}, nil
 }
 
@@ -167,6 +171,8 @@ func (s *Store) FindAllByService(ctx context.Context, serviceID string) ([]Integ
 			Name:      row.Name,
 			Type:      Type(row.Type),
 			ServiceID: row.ServiceID.String(),
+
+			ExternalSystemName: row.ExternalSystemName.String,
 		}
 	}
 	return keys, nil
