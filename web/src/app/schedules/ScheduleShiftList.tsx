@@ -71,6 +71,8 @@ interface ScheduleShiftListProps {
   scheduleID: string
 }
 
+const context = { suspense: false }
+
 function ScheduleShiftList({
   scheduleID,
 }: ScheduleShiftListProps): JSX.Element {
@@ -126,6 +128,7 @@ function ScheduleShiftList({
 
   const [{ data }] = useQuery({
     query,
+    context,
     variables: {
       id: scheduleID,
       start,
