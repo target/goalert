@@ -10,6 +10,7 @@ import FlatList from '../lists/FlatList'
 import { UserConnection } from '../../schema'
 import { useURLParam } from '../actions'
 import { FavoriteIcon } from '../util/SetFavoriteButton'
+import { usePages } from '../util/pagination'
 
 const query = gql`
   query usersQuery($input: UserSearchOptions) {
@@ -34,14 +35,13 @@ function UserList(): JSX.Element {
   const { isAdmin } = useSessionInfo()
   const [create, setCreate] = useState(false)
   const [search] = useURLParam<string>('search', '')
-  const [pageCursors, setPageCursors] = useState(['']) // array of cursor values for previous pages
-  const currentCursor = pageCursors[pageCursors.length - 1]
+  const [cursor, handleOnBack, withHandleOnNext] = usePages()
 
   const inputVars = {
     favoritesFirst: true,
     search,
     CMValue: '',
-    after: currentCursor,
+    after: cursor,
   }
   if (search.startsWith('phone=')) {
     inputVars.CMValue = search.replace(/^phone=/, '')
@@ -71,16 +71,8 @@ function UserList(): JSX.Element {
       </Suspense>
       <ListPageControls
         createLabel='User'
-        onBack={
-          pageCursors.length > 1
-            ? () => setPageCursors(pageCursors.slice(0, -1))
-            : undefined
-        }
-        onNext={
-          nextCursor
-            ? () => setPageCursors([...pageCursors, nextCursor])
-            : undefined
-        }
+        onBack={handleOnBack}
+        onNext={withHandleOnNext(nextCursor)}
         loading={q.fetching}
         onCreateClick={isAdmin ? () => setCreate(true) : undefined}
         slots={{
