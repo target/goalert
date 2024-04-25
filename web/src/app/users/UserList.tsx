@@ -10,7 +10,6 @@ import FlatList from '../lists/FlatList'
 import { UserConnection } from '../../schema'
 import { useURLParam } from '../actions'
 import { FavoriteIcon } from '../util/SetFavoriteButton'
-import { usePages } from '../util/pagination'
 
 const query = gql`
   query usersQuery($input: UserSearchOptions) {
@@ -35,7 +34,7 @@ function UserList(): JSX.Element {
   const { isAdmin } = useSessionInfo()
   const [create, setCreate] = useState(false)
   const [search] = useURLParam<string>('search', '')
-  const [cursor, handleOnBack, withHandleOnNext] = usePages()
+  const [cursor, setCursor] = useState('')
 
   const inputVars = {
     favoritesFirst: true,
@@ -71,8 +70,8 @@ function UserList(): JSX.Element {
       </Suspense>
       <ListPageControls
         createLabel='User'
-        onBack={handleOnBack}
-        onNext={withHandleOnNext(nextCursor)}
+        nextCursor={nextCursor}
+        onCursorChange={setCursor}
         loading={q.fetching}
         onCreateClick={isAdmin ? () => setCreate(true) : undefined}
         slots={{

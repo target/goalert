@@ -4,25 +4,28 @@ import { useState } from 'react'
  * usePages is a custom hook that manages pagination state by tracking the current page cursor
  * as well as previous page cursors.
  *
- * @returns {string} The current page cursor.
- * @returns {() => void | undefined}  A function to go back to the previous page, or undefined if there is no previous page.
- * @returns {(nextCursor: string | null | undefined) => (() => void) | undefined} A function to generate a callback to go to the next page, or undefined if there is no next page.
+ * @returns {(() => string) | undefined}  A function to go back to the previous page, or undefined if there is no previous page.
+ * @returns {(() => string) | undefined} A function to go to the next page, or undefined if there is no next page.
  */
-export function usePages(): [
-  string,
-  (() => void) | undefined,
-  (nextCursor: string | null | undefined) => (() => void) | undefined,
-] {
+export function usePages(
+  nextCursor: string | null | undefined,
+): [(() => string) | undefined, (() => string) | undefined] {
   const [pageCursors, setPageCursors] = useState([''])
 
+  function goBack(): string {
+    const newCursors = pageCursors.slice(0, -1)
+    setPageCursors(newCursors)
+    return newCursors[newCursors.length - 1]
+  }
+
+  function goNext(): string {
+    if (!nextCursor) return pageCursors[pageCursors.length - 1]
+    setPageCursors([...pageCursors, nextCursor])
+    return nextCursor
+  }
+
   return [
-    pageCursors[pageCursors.length - 1],
-    pageCursors.length > 1
-      ? () => setPageCursors(pageCursors.slice(0, -1))
-      : undefined,
-    (nextCursor) =>
-      nextCursor
-        ? () => setPageCursors([...pageCursors, nextCursor])
-        : undefined,
+    pageCursors.length > 1 ? goBack : undefined,
+    nextCursor ? goNext : undefined,
   ]
 }

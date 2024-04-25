@@ -11,6 +11,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import { Add, ChevronLeft, ChevronRight } from '@mui/icons-material'
 import CreateFAB from './CreateFAB'
 import { useIsWidthDown } from '../util/useWidth'
+import { usePages } from '../util/pagination'
 
 const useStyles = makeStyles((theme: Theme) => ({
   progress: {
@@ -27,8 +28,9 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 type ListPageControlsBaseProps = {
-  onBack?: () => void
-  onNext?: () => void
+  nextCursor: string | null | undefined
+  onCursorChange: (cursor: string) => void
+
   loading?: boolean
 
   slots: {
@@ -61,6 +63,8 @@ export default function ListPageControls(
   const classes = useStyles()
   const showCreate = canCreate(props)
   const isMobile = useIsWidthDown('md')
+
+  const [back, next] = usePages(props.nextCursor)
 
   return (
     <Grid container spacing={2}>
@@ -104,9 +108,9 @@ export default function ListPageControls(
           <IconButton
             title='back page'
             data-cy='back-button'
-            disabled={!props.onBack}
+            disabled={!back}
             onClick={() => {
-              if (props.onBack) props.onBack()
+              if (back) props.onCursorChange(back())
               window.scrollTo(0, 0)
             }}
           >
@@ -117,9 +121,9 @@ export default function ListPageControls(
           <IconButton
             title='next page'
             data-cy='next-button'
-            disabled={!props.onNext || props.loading}
+            disabled={!next || props.loading}
             onClick={() => {
-              if (props.onNext) props.onNext()
+              if (next) props.onCursorChange(next())
               window.scrollTo(0, 0)
             }}
           >
