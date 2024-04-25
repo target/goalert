@@ -1,4 +1,4 @@
-import React, { ReactNode, ReactElement, forwardRef } from 'react'
+import React, { ReactNode, ReactElement } from 'react'
 import Avatar from '@mui/material/Avatar'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
@@ -13,7 +13,7 @@ import { FavoriteIcon } from '../util/SetFavoriteButton'
 import { ITEMS_PER_PAGE } from '../config'
 import Spinner from '../loading/components/Spinner'
 import { CheckboxItemsProps } from './ControlledPaginatedList'
-import AppLink, { AppLinkProps } from '../util/AppLink'
+import { AppLinkListItem } from '../util/AppLink'
 import { debug } from '../util/debug'
 import useStatusColors from '../theme/useStatusColors'
 
@@ -127,15 +127,6 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
           return 'transparent'
       }
     }
-
-    const AppLinkListItem = forwardRef<HTMLAnchorElement, AppLinkProps>(
-      (props, ref) => (
-        <li>
-          <AppLink ref={ref} {...props} />
-        </li>
-      ),
-    )
-    AppLinkListItem.displayName = 'AppLinkListItem'
 
     // must be explicitly set when using, in accordance with TS definitions
     const urlProps = item.url && {
