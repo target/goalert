@@ -178,10 +178,11 @@ function ScheduleShiftList({
       const scheduleTZDetails = `From ${schedStartTime} to ${schedEndTime} ${tzAbbr}`
       const localTZDetails = `From ${localStartTime} to ${localEndTime} ${localTzAbbr}`
       return (
-        <Tooltip title={scheduleTZDetails} placement='right'>
-          <span data-cy='shift-details' data-testid='shift-details'>
-            {localTZDetails}
-          </span>
+        <Tooltip
+          title={<span data-testid='shift-tooltip'>{scheduleTZDetails}</span>}
+          placement='right'
+        >
+          <span data-testid='shift-details'>{localTZDetails}</span>
         </Tooltip>
       )
     }
@@ -194,8 +195,11 @@ function ScheduleShiftList({
         s.truncated ? ' at least' : ''
       } ${localEndTime} ${localTzAbbr}`
       return (
-        <Tooltip title={scheduleTZDetails} placement='right'>
-          <span>{localTZDetails}</span>
+        <Tooltip
+          title={<span data-testid='shift-tooltip'>{scheduleTZDetails}</span>}
+          placement='right'
+        >
+          <span data-testid='shift-details'>{localTZDetails}</span>
         </Tooltip>
       )
     }
@@ -205,14 +209,10 @@ function ScheduleShiftList({
     const localTZDetails = `Active after ${localStartTime} ${localTzAbbr}`
     return (
       <Tooltip
-        title={scheduleTZDetails}
+        title={<span data-testid='shift-tooltip'>{scheduleTZDetails}</span>}
         placement='right'
-        PopperProps={{
-          // @ts-expect-error test id
-          'data-testid': 'shift-tooltip',
-        }}
       >
-        <span>{localTZDetails}</span>
+        <span data-testid='shift-details'>{localTZDetails}</span>
       </Tooltip>
     )
   }

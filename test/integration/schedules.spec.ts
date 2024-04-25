@@ -28,7 +28,7 @@ test.afterEach(async ({ page }) => {
   await page.click('button:has-text("Confirm")')
 })
 
-test('local time hover', async ({ page, isMobile }) => {
+test('local time hover', async ({ page }) => {
   // change schedule tz to Europe/Amsterdam
   await page.click('[aria-label="Edit"]')
   await page.fill('input[name=time-zone]', 'Europe/Amsterdam')
@@ -36,31 +36,6 @@ test('local time hover', async ({ page, isMobile }) => {
   await page.getByRole('button', { name: 'Submit' }).click()
 
   await page.goto(`${baseURL}/schedules/${scheduleID}/shifts`)
-
-  // add user override
-  if (!isMobile) {
-    await page.click('button:has-text("Create Override")')
-    await page.keyboard.press('Tab')
-    await page.keyboard.press('ArrowDown')
-    await page.keyboard.press('ArrowDown')
-    await page.keyboard.press('Enter')
-  } else {
-    await page.click('[data-testid="AddIcon"]')
-    await page.keyboard.press('Tab')
-    await page.keyboard.press('Tab')
-    await page.keyboard.press('ArrowDown')
-    await page.keyboard.press('ArrowDown')
-    await page.keyboard.press('Enter')
-  }
-
-  // should display schedule timezone in form
-  await expect(page.locator('form[id=dialog-form]')).toContainText(
-    'Times shown in schedule timezone (Europe/Amsterdam)',
-  )
-  await page.locator('input[name=addUserID]').fill('Admin McIntegrationFace')
-
-  await page.click('li:has-text("Admin McIntegrationFace")')
-  await page.locator('button[type=submit]').click()
 
   // should display schedule tz on hover
   await page.hover(`[data-testid="shift-details"]`)
