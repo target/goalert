@@ -20,7 +20,7 @@ function testUsers(screen: ScreenFormat): void {
       // by name
       cy.pageSearch(prof.name)
       // cypress user and cypress admin
-      cy.get('main ul > li').should('have.lengthOf', 2)
+      cy.get('main ul > a').should('have.lengthOf', 2)
       cy.get('main ul').should('contain', prof.name)
     })
 
@@ -30,7 +30,7 @@ function testUsers(screen: ScreenFormat): void {
       }
       cy.get('button[data-cy="users-filter-button"]').click()
       cy.form({ 'user-phone-search': cm.value })
-      cy.get('main ul > li').should('have.lengthOf', 1)
+      cy.get('main ul > a').should('have.lengthOf', 1)
       cy.get('main ul').should('contain', prof.name)
     })
   })
