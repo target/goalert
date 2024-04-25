@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
   Button,
   Card,
@@ -12,6 +12,7 @@ import { Add, ChevronLeft, ChevronRight } from '@mui/icons-material'
 import CreateFAB from './CreateFAB'
 import { useIsWidthDown } from '../util/useWidth'
 import { usePages } from '../util/pagination'
+import { useURLKey } from '../actions'
 
 const useStyles = makeStyles((theme: Theme) => ({
   progress: {
@@ -64,7 +65,12 @@ export default function ListPageControls(
   const showCreate = canCreate(props)
   const isMobile = useIsWidthDown('md')
 
-  const [back, next] = usePages(props.nextCursor)
+  const [back, next, reset] = usePages(props.nextCursor)
+  const urlKey = useURLKey()
+  // reset pageNumber on page reload
+  useEffect(() => {
+    props.onCursorChange(reset())
+  }, [urlKey])
 
   return (
     <Grid container spacing={2}>
