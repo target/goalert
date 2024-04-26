@@ -1,4 +1,4 @@
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery } from 'urql'
 import { GroupAdd } from '@mui/icons-material'
 import {
   Button,
@@ -71,6 +71,8 @@ interface ScheduleShiftListProps {
   scheduleID: string
 }
 
+const context = { suspense: false }
+
 function ScheduleShiftList({
   scheduleID,
 }: ScheduleShiftListProps): JSX.Element {
@@ -124,7 +126,9 @@ function ScheduleShiftList({
     'duration',
   )
 
-  const { data } = useQuery(query, {
+  const [{ data }] = useQuery({
+    query,
+    context,
     variables: {
       id: scheduleID,
       start,
