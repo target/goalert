@@ -92,13 +92,13 @@ export default function ServiceList(): JSX.Element {
           ),
           list: (
             <FlatList
+              emptyMessage='No results'
               items={
                 q.data?.services.nodes.map((u) => ({
                   title: u.name,
                   subText: u.description,
                   url: u.id,
                   secondaryAction: u.isFavorite ? <FavoriteIcon /> : undefined,
-                  // icon: <UserAvatar userID={u.id} />,
                 })) || []
               }
             />
