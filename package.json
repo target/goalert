@@ -132,7 +132,7 @@
     "remark-breaks": "4.0.0",
     "remark-gfm": "4.0.0",
     "semver": "7.6.0",
-    "storybook": "8.0.0",
+    "storybook": "8.0.9",
     "storybook-addon-mock": "4.3.0",
     "stylelint": "16.2.1",
     "stylelint-config-standard": "34.0.0",
