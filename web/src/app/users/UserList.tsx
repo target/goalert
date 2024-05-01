@@ -78,6 +78,7 @@ function UserList(): JSX.Element {
           search: <Search endAdornment={<UserPhoneNumberFilterContainer />} />,
           list: (
             <FlatList
+              emptyMessage='No results'
               items={
                 q.data?.users.nodes.map((u) => ({
                   title: u.name,
