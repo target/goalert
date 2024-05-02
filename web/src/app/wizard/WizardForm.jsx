@@ -188,10 +188,6 @@ export default function WizardForm(props) {
                 label: 'Email',
                 value: 'email',
               },
-              {
-                label: 'Universal',
-                value: 'universal',
-              },
             ]}
           />
         </Grid>

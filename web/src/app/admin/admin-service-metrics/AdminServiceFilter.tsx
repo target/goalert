@@ -139,7 +139,6 @@ function AdminServiceFilter(): JSX.Element {
                     'site24x7',
                     'prometheusAlertmanager',
                     'email',
-                    'universal',
                   ]}
                   value={params.intKeyTgts}
                   onChange={(_, value) =>
