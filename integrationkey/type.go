@@ -15,6 +15,7 @@ const (
 	TypePrometheusAlertmanager Type = "prometheusAlertmanager"
 	TypeGeneric                Type = "generic"
 	TypeEmail                  Type = "email"
+	TypeUniversal              Type = "universal"
 )
 
 func (s Type) Value() (driver.Value, error) {

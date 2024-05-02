@@ -221,6 +221,7 @@ function createIntKey(
       'grafana',
       'site24x7',
       'prometheusAlertmanager',
+      'universal',
     ])
 
   const query = `

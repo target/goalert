@@ -23,6 +23,10 @@ const keys = [
     label: 'Email',
     value: 'email',
   },
+  {
+    label: 'Universal',
+    value: 'universal',
+  },
 ]
 
 const users = [
