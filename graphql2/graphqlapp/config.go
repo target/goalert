@@ -20,7 +20,7 @@ func (a *Query) IntegrationKeyTypes(ctx context.Context) ([]graphql2.Integration
 	}
 
 	if expflag.ContextHas(ctx, expflag.UnivKeys) {
-		typeInfo = append(typeInfo, graphql2.IntegrationKeyTypeInfo{ID: "universal", Label: "Universal Integration Key", Name: "Universal Integration Key", Enabled: true})
+		typeInfo = append(typeInfo, graphql2.IntegrationKeyTypeInfo{ID: "universal", Label: "Universal Integration Key URL", Name: "Universal Integration Key", Enabled: true})
 	}
 
 	return typeInfo, nil
