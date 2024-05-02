@@ -81,8 +81,8 @@ func (s *Store) Create(ctx context.Context, dbtx gadb.DBTX, i *IntegrationKey) (
 		return nil, err
 	}
 
-	if i.Type == TypeUniversal && expflag.ContextHas(ctx, expflag.UnivKeys) {
-		validate.OneOf("Type", i.Type, TypeUniversal)
+	if i.Type == TypeUniversal && !expflag.ContextHas(ctx, expflag.UnivKeys) {
+		return nil, validation.NewGenericError("experimental flag not enabled")
 	}
 
 	serviceUUID, err := uuid.Parse(n.ServiceID)
