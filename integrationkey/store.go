@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/target/goalert/auth/authtoken"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation/validate"
@@ -78,6 +79,10 @@ func (s *Store) Create(ctx context.Context, dbtx gadb.DBTX, i *IntegrationKey) (
 	n, err := i.Normalize()
 	if err != nil {
 		return nil, err
+	}
+
+	if i.Type == TypeUniversal && expflag.ContextHas(ctx, expflag.UnivKeys) {
+		validate.OneOf("Type", i.Type, TypeUniversal)
 	}
 
 	serviceUUID, err := uuid.Parse(n.ServiceID)
