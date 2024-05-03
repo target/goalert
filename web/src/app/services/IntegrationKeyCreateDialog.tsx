@@ -5,6 +5,7 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
 import FormDialog from '../dialogs/FormDialog'
 import IntegrationKeyForm, { Value } from './IntegrationKeyForm'
+import { useLocation } from 'wouter'
 
 const mutation = gql`
   mutation ($input: CreateIntegrationKeyInput!) {
@@ -23,7 +24,7 @@ export default function IntegrationKeyCreateDialog(props: {
 }): JSX.Element {
   const [value, setValue] = useState<Value | null>(null)
   const { serviceID, onClose } = props
-
+  const [, setLocation] = useLocation()
   const [createKeyStatus, createKey] = useMutation(mutation)
 
   return (
@@ -37,7 +38,15 @@ export default function IntegrationKeyCreateDialog(props: {
         createKey(
           { input: { serviceID, ...value } },
           { additionalTypenames: ['IntegrationKey', 'Service'] },
-        ).then(onClose)
+        ).then(() => {
+          if (value?.type === 'universal') {
+            return setLocation(
+              `/services/${serviceID}/integration-keys/${value.name}`,
+            )
+          }
+
+          onClose()
+        })
       }}
       form={
         <IntegrationKeyForm
