@@ -595,6 +595,7 @@ export type IntegrationKeyType =
   | 'grafana'
   | 'prometheusAlertmanager'
   | 'site24x7'
+  | 'universal'
 
 export interface IntegrationKeyTypeInfo {
   enabled: boolean

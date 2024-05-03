@@ -107,6 +107,8 @@ func createdSubject(msg string) *Subject {
 		return &Subject{Type: SubjectTypeUser, Classifier: "Web"}
 	case "Created via: generic":
 		return &Subject{Type: SubjectTypeIntegrationKey, Classifier: "Generic"}
+	case "Created via: universal":
+		return &Subject{Type: SubjectTypeIntegrationKey, Classifier: "Universal"}
 	}
 	return nil
 }
