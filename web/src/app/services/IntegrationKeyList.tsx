@@ -120,6 +120,7 @@ export default function IntegrationKeyList(props: {
     .map(
       (key: IntegrationKey): FlatListListItem => ({
         title: key.name,
+        url: key.type === 'universal' ? key.name : undefined,
         subText: (
           <IntegrationKeyDetails
             key={key.id}
