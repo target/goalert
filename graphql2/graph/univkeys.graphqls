@@ -1,0 +1,142 @@
+extend type IntegrationKey {
+  """
+  config returns the configuration for the key.
+  """
+  config: KeyConfig! @experimental(flagName: "univ-keys")
+}
+
+extend type Mutation {
+  updateKeyConfig(input: UpdateKeyConfigInput!): Boolean!
+    @experimental(flagName: "univ-keys")
+}
+
+type KeyConfig {
+  """
+  Stop evaluating rules after the first rule that matches.
+  """
+  stopAtFirstRule: Boolean!
+
+  suppressionWindows: [SuppressionWindow!]!
+
+  rules: [KeyRule!]!
+
+  """
+  defaultAction is the action to take if no rules match the request.
+  """
+  defaultActions: [Action!]!
+}
+
+type KeyRule {
+  id: ID!
+
+  name: String!
+
+  """
+  An expression that must evaluate to true for the rule to match.
+  """
+  conditionExpr: String!
+
+  """
+  The deduplication configuration for the rule.
+  """
+  dedup: DedupConfig!
+
+  action: [Action!]
+}
+
+input UpdateKeyConfigInput {
+  keyID: ID!
+
+  """
+  Stop evaluating rules after the first rule that matches.
+  """
+  stopAtFirstRule: Boolean
+
+  suppressionWindows: [SuppressionWindowInput!]
+
+  rules: [KeyRuleInput!]
+
+  """
+  defaultAction is the action to take if no rules match the request.
+  """
+  defaultActions: [ActionInput]
+}
+
+input KeyRuleInput {
+  """
+  The ID of an existing rule being updated.
+  """
+  id: ID
+
+  name: String
+
+  """
+  An expression that must evaluate to true for the rule to match.
+  """
+  conditionExpr: String
+
+  """
+  The deduplication configuration for the rule.
+  """
+  dedup: DedupConfigInput
+
+  action: [ActionInput]
+}
+
+input SuppressionWindowInput {
+  start: ISOTimestamp!
+  end: ISOTimestamp!
+
+  """
+  filterExpr is an optional boolean expression that can be used to limit which requests are suppressed. By default, all requests are suppressed within the window.
+  """
+  filterExpr: String
+}
+
+type SuppressionWindow {
+  start: ISOTimestamp!
+  end: ISOTimestamp!
+
+  active: Boolean!
+
+  """
+  filterExpr is an optional boolean expression that can be used to limit which requests are suppressed. By default, all requests are suppressed within the window.
+  """
+  filterExpr: String!
+}
+
+input DedupConfigInput {
+  """
+  dedupExpr is an expression that returns a string, used to determine if two requests are duplicates.
+  """
+  dedupExpr: String!
+  dedupWindow: ISODuration!
+}
+
+type DedupConfig {
+  """
+  dedupExpr is an expression that returns a string, used to determine if two requests are duplicates.
+  """
+  dedupExpr: String!
+  dedupWindow: ISODuration!
+}
+
+input ActionInput {
+  dest: DestinationInput!
+  params: [DynamicParamInput!]!
+}
+
+type Action {
+  dest: Destination!
+  params: [DynamicParam!]!
+}
+
+input DynamicParamInput {
+  paramID: ID!
+  expr: String!
+}
+
+type DynamicParam {
+  paramID: ID!
+  expr: String!
+}

@@ -31,6 +31,16 @@ type InlineDisplayInfo interface {
 	IsInlineDisplayInfo()
 }
 
+type Action struct {
+	Dest   *Destination   `json:"dest"`
+	Params []DynamicParam `json:"params"`
+}
+
+type ActionInput struct {
+	Dest   *DestinationInput   `json:"dest"`
+	Params []DynamicParamInput `json:"params"`
+}
+
 type AlertConnection struct {
 	Nodes    []alert.Alert `json:"nodes"`
 	PageInfo *PageInfo     `json:"pageInfo"`
@@ -342,6 +352,18 @@ type DebugSendSMSInput struct {
 	Body string `json:"body"`
 }
 
+type DedupConfig struct {
+	// dedupExpr is an expression that returns a string, used to determine if two requests are duplicates.
+	DedupExpr   string               `json:"dedupExpr"`
+	DedupWindow timeutil.ISODuration `json:"dedupWindow"`
+}
+
+type DedupConfigInput struct {
+	// dedupExpr is an expression that returns a string, used to determine if two requests are duplicates.
+	DedupExpr   string               `json:"dedupExpr"`
+	DedupWindow timeutil.ISODuration `json:"dedupWindow"`
+}
+
 // Destination represents a destination that can be used for notifications.
 type Destination struct {
 	Type        string            `json:"type"`
@@ -430,6 +452,8 @@ type DestinationTypeInfo struct {
 	// if false, the destination type is disabled and cannot be used
 	Enabled        bool                     `json:"enabled"`
 	RequiredFields []DestinationFieldConfig `json:"requiredFields"`
+	// expr parameters that can be used for this destination type
+	DynamicParams []DynamicParamConfig `json:"dynamicParams"`
 	// disclaimer text to display when a user is selecting this destination type for a contact method
 	UserDisclaimer string `json:"userDisclaimer"`
 	// this destination type can be used as a user contact method
@@ -438,10 +462,35 @@ type DestinationTypeInfo struct {
 	IsEPTarget bool `json:"isEPTarget"`
 	// this destination type can be used for schedule on-call notifications
 	IsSchedOnCallNotify bool `json:"isSchedOnCallNotify"`
+	// this destination type can be used for dynamic actions
+	IsDynamicAction bool `json:"isDynamicAction"`
 	// if true, the destination type supports status updates
 	SupportsStatusUpdates bool `json:"supportsStatusUpdates"`
 	// if true, the destination type requires status updates to be enabled
 	StatusUpdatesRequired bool `json:"statusUpdatesRequired"`
+}
+
+type DynamicParam struct {
+	ParamID string `json:"paramID"`
+	Expr    string `json:"expr"`
+}
+
+type DynamicParamConfig struct {
+	// unique ID for the input field
+	ParamID string `json:"paramID"`
+	// user-friendly label (should be singular)
+	Label string `json:"label"`
+	// user-friendly helper text for input fields (i.e., "Enter a phone number")
+	Hint string `json:"hint"`
+	// URL to link to for more information about the destination type
+	HintURL string `json:"hintURL"`
+	// the type of the parameter
+	DataType DynamicParamType `json:"dataType"`
+}
+
+type DynamicParamInput struct {
+	ParamID string `json:"paramID"`
+	Expr    string `json:"expr"`
 }
 
 type EscalationPolicyConnection struct {
@@ -537,6 +586,36 @@ type IntegrationKeyTypeInfo struct {
 	Name    string `json:"name"`
 	Label   string `json:"label"`
 	Enabled bool   `json:"enabled"`
+}
+
+type KeyConfig struct {
+	// Stop evaluating rules after the first rule that matches.
+	StopAtFirstRule    bool                `json:"stopAtFirstRule"`
+	SuppressionWindows []SuppressionWindow `json:"suppressionWindows"`
+	Rules              []KeyRule           `json:"rules"`
+	// defaultAction is the action to take if no rules match the request.
+	DefaultActions []Action `json:"defaultActions"`
+}
+
+type KeyRule struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// An expression that must evaluate to true for the rule to match.
+	ConditionExpr string `json:"conditionExpr"`
+	// The deduplication configuration for the rule.
+	Dedup  *DedupConfig `json:"dedup"`
+	Action []Action     `json:"action,omitempty"`
+}
+
+type KeyRuleInput struct {
+	// The ID of an existing rule being updated.
+	ID   *string `json:"id,omitempty"`
+	Name *string `json:"name,omitempty"`
+	// An expression that must evaluate to true for the rule to match.
+	ConditionExpr *string `json:"conditionExpr,omitempty"`
+	// The deduplication configuration for the rule.
+	Dedup  *DedupConfigInput `json:"dedup,omitempty"`
+	Action []*ActionInput    `json:"action,omitempty"`
 }
 
 type LabelConnection struct {
@@ -766,6 +845,21 @@ type StringConnection struct {
 	PageInfo *PageInfo `json:"pageInfo"`
 }
 
+type SuppressionWindow struct {
+	Start  time.Time `json:"start"`
+	End    time.Time `json:"end"`
+	Active bool      `json:"active"`
+	// filterExpr is an optional boolean expression that can be used to limit which requests are suppressed. By default, all requests are suppressed within the window.
+	FilterExpr string `json:"filterExpr"`
+}
+
+type SuppressionWindowInput struct {
+	Start time.Time `json:"start"`
+	End   time.Time `json:"end"`
+	// filterExpr is an optional boolean expression that can be used to limit which requests are suppressed. By default, all requests are suppressed within the window.
+	FilterExpr *string `json:"filterExpr,omitempty"`
+}
+
 type SystemLimit struct {
 	ID          limit.ID `json:"id"`
 	Description string   `json:"description"`
@@ -847,6 +941,16 @@ type UpdateHeartbeatMonitorInput struct {
 	Name              *string `json:"name,omitempty"`
 	TimeoutMinutes    *int    `json:"timeoutMinutes,omitempty"`
 	AdditionalDetails *string `json:"additionalDetails,omitempty"`
+}
+
+type UpdateKeyConfigInput struct {
+	KeyID string `json:"keyID"`
+	// Stop evaluating rules after the first rule that matches.
+	StopAtFirstRule    *bool                    `json:"stopAtFirstRule,omitempty"`
+	SuppressionWindows []SuppressionWindowInput `json:"suppressionWindows,omitempty"`
+	Rules              []KeyRuleInput           `json:"rules,omitempty"`
+	// defaultAction is the action to take if no rules match the request.
+	DefaultActions []*ActionInput `json:"defaultActions,omitempty"`
 }
 
 type UpdateRotationInput struct {
@@ -1082,6 +1186,51 @@ func (e *ConfigType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ConfigType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type DynamicParamType string
+
+const (
+	DynamicParamTypeString   DynamicParamType = "string"
+	DynamicParamTypeMarkdown DynamicParamType = "markdown"
+	DynamicParamTypeNumber   DynamicParamType = "number"
+	DynamicParamTypeBoolean  DynamicParamType = "boolean"
+)
+
+var AllDynamicParamType = []DynamicParamType{
+	DynamicParamTypeString,
+	DynamicParamTypeMarkdown,
+	DynamicParamTypeNumber,
+	DynamicParamTypeBoolean,
+}
+
+func (e DynamicParamType) IsValid() bool {
+	switch e {
+	case DynamicParamTypeString, DynamicParamTypeMarkdown, DynamicParamTypeNumber, DynamicParamTypeBoolean:
+		return true
+	}
+	return false
+}
+
+func (e DynamicParamType) String() string {
+	return string(e)
+}
+
+func (e *DynamicParamType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DynamicParamType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DynamicParamType", str)
+	}
+	return nil
+}
+
+func (e DynamicParamType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

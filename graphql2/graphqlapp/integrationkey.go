@@ -18,6 +18,11 @@ func (a *App) IntegrationKey() graphql2.IntegrationKeyResolver { return (*Integr
 func (q *Query) IntegrationKey(ctx context.Context, id string) (*integrationkey.IntegrationKey, error) {
 	return q.IntKeyStore.FindOne(ctx, id)
 }
+
+func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKeyConfigInput) (bool, error) {
+	return false, nil
+}
+
 func (m *Mutation) CreateIntegrationKey(ctx context.Context, input graphql2.CreateIntegrationKeyInput) (key *integrationkey.IntegrationKey, err error) {
 	var serviceID string
 	if input.ServiceID != nil {
@@ -37,9 +42,15 @@ func (m *Mutation) CreateIntegrationKey(ctx context.Context, input graphql2.Crea
 	})
 	return key, err
 }
+
+func (key *IntegrationKey) Config(ctx context.Context, raw *integrationkey.IntegrationKey) (*graphql2.KeyConfig, error) {
+	return &graphql2.KeyConfig{}, nil
+}
+
 func (key *IntegrationKey) Type(ctx context.Context, raw *integrationkey.IntegrationKey) (graphql2.IntegrationKeyType, error) {
 	return graphql2.IntegrationKeyType(raw.Type), nil
 }
+
 func (key *IntegrationKey) Href(ctx context.Context, raw *integrationkey.IntegrationKey) (string, error) {
 	cfg := config.FromContext(ctx)
 	q := make(url.Values)
