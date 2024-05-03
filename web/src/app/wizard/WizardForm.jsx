@@ -16,6 +16,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import * as _ from 'lodash'
 import { useIsWidthDown } from '../util/useWidth'
 import MaterialSelect from '../selection/MaterialSelect'
+import { useFeatures } from '../util/RequireConfig'
 
 const useStyles = makeStyles({
   fieldItem: {
@@ -31,6 +32,8 @@ export default function WizardForm(props) {
   const { onChange, value } = props
   const fullScreen = useIsWidthDown('md')
   const classes = useStyles()
+
+  const keyTypes = useFeatures().integrationKeyTypes
 
   const handleSecondaryScheduleToggle = (e) => {
     const newVal = _.cloneDeep(value)
@@ -167,28 +170,10 @@ export default function WizardForm(props) {
             formLabel
             fullWidth={fullScreen}
             required
-            options={[
-              {
-                label: 'Generic API',
-                value: 'generic',
-              },
-              {
-                label: 'Grafana Webhook URL',
-                value: 'grafana',
-              },
-              {
-                label: 'Site24x7 Webhook URL',
-                value: 'site24x7',
-              },
-              {
-                label: 'Prometheus Alertmanager Webhook URL',
-                value: 'prometheusAlertmanager',
-              },
-              {
-                label: 'Email',
-                value: 'email',
-              },
-            ]}
+            options={keyTypes.map((k) => ({
+              label: k.name,
+              value: k.id,
+            }))}
           />
         </Grid>
       </Grid>

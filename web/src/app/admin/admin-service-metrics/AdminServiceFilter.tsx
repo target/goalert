@@ -20,6 +20,7 @@ import {
 } from '@mui/material'
 import { LabelKeySelect } from '../../selection'
 import { LabelValueSelect } from '../../selection/LabelValueSelect'
+import { useFeatures } from '../../util/RequireConfig'
 
 function AdminServiceFilter(): JSX.Element {
   const [open, setOpen] = useState<boolean>(false)
@@ -37,6 +38,7 @@ function AdminServiceFilter(): JSX.Element {
     'labelKey',
     'labelValue',
   )
+  const intKeyTypes = useFeatures().integrationKeyTypes.map((t) => t.id)
 
   const removeFilter = (filterName: string): void => {
     if (filterName === 'labelKey') {
@@ -133,13 +135,7 @@ function AdminServiceFilter(): JSX.Element {
                   multiple
                   fullWidth
                   id='int-key-targets'
-                  options={[
-                    'generic',
-                    'grafana',
-                    'site24x7',
-                    'prometheusAlertmanager',
-                    'email',
-                  ]}
+                  options={intKeyTypes}
                   value={params.intKeyTgts}
                   onChange={(_, value) =>
                     setParams({ ...params, intKeyTgts: value })
