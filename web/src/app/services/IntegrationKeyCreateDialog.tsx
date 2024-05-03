@@ -29,8 +29,9 @@ export default function IntegrationKeyCreateDialog(props: {
   const [createKeyStatus, createKey] = useMutation(mutation)
   const hasUnivKeysFlag = useExpFlag('univ-keys')
   let caption
-  if (hasUnivKeysFlag && value?.type === 'universal')
+  if (hasUnivKeysFlag && value?.type === 'universal') {
     caption = 'Submit to configure universal key rules'
+  }
 
   return (
     <FormDialog
