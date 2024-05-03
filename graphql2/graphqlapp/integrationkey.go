@@ -99,7 +99,7 @@ func (key *IntegrationKey) Config(ctx context.Context, raw *integrationkey.Integ
 	}
 
 	return &graphql2.KeyConfig{
-		StopAtFirstRule:    cfg.StopOnFirstRule,
+		StopAtFirstRule:    cfg.StopAfterFirstMatchingRule,
 		Rules:              rules,
 		SuppressionWindows: supp,
 		DefaultActions:     actions,

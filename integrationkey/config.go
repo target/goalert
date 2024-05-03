@@ -19,7 +19,7 @@ type dbConfig struct {
 }
 
 type Config struct {
-	StopOnFirstRule bool
+	StopAfterFirstMatchingRule bool
 
 	// Rules is a list of rules to apply to the alert.
 	Rules []Rule
