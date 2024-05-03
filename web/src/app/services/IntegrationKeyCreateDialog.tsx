@@ -6,6 +6,7 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import IntegrationKeyForm, { Value } from './IntegrationKeyForm'
 import { useLocation } from 'wouter'
+import { useExpFlag } from '../util/useExpFlag'
 
 const mutation = gql`
   mutation ($input: CreateIntegrationKeyInput!) {
@@ -26,11 +27,16 @@ export default function IntegrationKeyCreateDialog(props: {
   const { serviceID, onClose } = props
   const [, setLocation] = useLocation()
   const [createKeyStatus, createKey] = useMutation(mutation)
+  const hasUnivKeysFlag = useExpFlag('univ-keys')
+  let caption
+  if (hasUnivKeysFlag && value?.type === 'universal')
+    caption = 'Submit to configure universal key rules'
 
   return (
     <FormDialog
       maxWidth='sm'
       title='Create New Integration Key'
+      subTitle={caption}
       loading={createKeyStatus.fetching}
       errors={nonFieldErrors(createKeyStatus.error)}
       onClose={onClose}
