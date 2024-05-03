@@ -1430,6 +1430,16 @@ func (q *Queries) IntKeyDelete(ctx context.Context, ids []uuid.UUID) error {
 	return err
 }
 
+const intKeyDeleteConfig = `-- name: IntKeyDeleteConfig :exec
+DELETE FROM uik_config
+WHERE id = $1
+`
+
+func (q *Queries) IntKeyDeleteConfig(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, intKeyDeleteConfig, id)
+	return err
+}
+
 const intKeyFindByService = `-- name: IntKeyFindByService :many
 SELECT
     id,
@@ -1514,6 +1524,22 @@ func (q *Queries) IntKeyFindOne(ctx context.Context, id uuid.UUID) (IntKeyFindOn
 	return i, err
 }
 
+const intKeyGetConfig = `-- name: IntKeyGetConfig :one
+SELECT
+    config
+FROM
+    uik_config
+WHERE
+    id = $1
+`
+
+func (q *Queries) IntKeyGetConfig(ctx context.Context, id uuid.UUID) (json.RawMessage, error) {
+	row := q.db.QueryRowContext(ctx, intKeyGetConfig, id)
+	var config json.RawMessage
+	err := row.Scan(&config)
+	return config, err
+}
+
 const intKeyGetServiceID = `-- name: IntKeyGetServiceID :one
 SELECT
     service_id
@@ -1534,6 +1560,24 @@ func (q *Queries) IntKeyGetServiceID(ctx context.Context, arg IntKeyGetServiceID
 	var service_id uuid.UUID
 	err := row.Scan(&service_id)
 	return service_id, err
+}
+
+const intKeySetConfig = `-- name: IntKeySetConfig :exec
+INSERT INTO uik_config(id, config)
+    VALUES ($1, $2)
+ON CONFLICT (id)
+    DO UPDATE SET
+        config = $2
+`
+
+type IntKeySetConfigParams struct {
+	ID     uuid.UUID
+	Config json.RawMessage
+}
+
+func (q *Queries) IntKeySetConfig(ctx context.Context, arg IntKeySetConfigParams) error {
+	_, err := q.db.ExecContext(ctx, intKeySetConfig, arg.ID, arg.Config)
+	return err
 }
 
 const labelDeleteKeyByTarget = `-- name: LabelDeleteKeyByTarget :exec

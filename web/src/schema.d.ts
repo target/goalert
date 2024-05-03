@@ -654,6 +654,11 @@ export interface KeyConfig {
   suppressionWindows: SuppressionWindow[]
 }
 
+export interface KeyHandlerRuleInput {
+  actions: ActionInput[]
+  condition: string
+}
+
 export interface KeyRule {
   action?: null | Action[]
   conditionExpr: string
@@ -1063,6 +1068,13 @@ export interface SetAlertNoiseReasonInput {
 export interface SetFavoriteInput {
   favorite: boolean
   target: TargetInput
+}
+
+export interface SetKeyHandlerInput {
+  dedupExprs: string[]
+  defaultActions: ActionInput[]
+  keyID: string
+  rules: KeyHandlerRuleInput[]
 }
 
 export interface SetLabelInput {

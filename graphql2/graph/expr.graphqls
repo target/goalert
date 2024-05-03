@@ -19,6 +19,20 @@ type Expr {
     @goField(forceResolver: true)
 }
 
+input SetKeyHandlerInput {
+  keyID: ID!
+
+  rules: [KeyHandlerRuleInput!]!
+  dedupExprs: [String!]!
+
+  defaultActions: [ActionInput!]!
+}
+
+input KeyHandlerRuleInput {
+  condition: String!
+  actions: [ActionInput!]!
+}
+
 input ExprToConditionInput {
   expr: String!
 }

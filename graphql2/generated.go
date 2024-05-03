@@ -5047,6 +5047,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputExprToConditionInput,
 		ec.unmarshalInputFieldValueInput,
 		ec.unmarshalInputIntegrationKeySearchOptions,
+		ec.unmarshalInputKeyHandlerRuleInput,
 		ec.unmarshalInputKeyRuleInput,
 		ec.unmarshalInputLabelKeySearchOptions,
 		ec.unmarshalInputLabelSearchOptions,
@@ -5061,6 +5062,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputServiceSearchOptions,
 		ec.unmarshalInputSetAlertNoiseReasonInput,
 		ec.unmarshalInputSetFavoriteInput,
+		ec.unmarshalInputSetKeyHandlerInput,
 		ec.unmarshalInputSetLabelInput,
 		ec.unmarshalInputSetScheduleOnCallNotificationRulesInput,
 		ec.unmarshalInputSetScheduleShiftInput,
@@ -35084,6 +35086,40 @@ func (ec *executionContext) unmarshalInputIntegrationKeySearchOptions(ctx contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputKeyHandlerRuleInput(ctx context.Context, obj interface{}) (KeyHandlerRuleInput, error) {
+	var it KeyHandlerRuleInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"condition", "actions"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "condition":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("condition"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Condition = data
+		case "actions":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("actions"))
+			data, err := ec.unmarshalNActionInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Actions = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputKeyRuleInput(ctx context.Context, obj interface{}) (KeyRuleInput, error) {
 	var it KeyRuleInput
 	asMap := map[string]interface{}{}
@@ -35878,6 +35914,54 @@ func (ec *executionContext) unmarshalInputSetFavoriteInput(ctx context.Context, 
 				return it, err
 			}
 			it.Favorite = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSetKeyHandlerInput(ctx context.Context, obj interface{}) (SetKeyHandlerInput, error) {
+	var it SetKeyHandlerInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"keyID", "rules", "dedupExprs", "defaultActions"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "keyID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("keyID"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.KeyID = data
+		case "rules":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rules"))
+			data, err := ec.unmarshalNKeyHandlerRuleInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyHandlerRuleInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Rules = data
+		case "dedupExprs":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dedupExprs"))
+			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DedupExprs = data
+		case "defaultActions":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("defaultActions"))
+			data, err := ec.unmarshalNActionInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DefaultActions = data
 		}
 	}
 
@@ -46516,6 +46600,28 @@ func (ec *executionContext) marshalNAction2ᚕgithubᚗcomᚋtargetᚋgoalertᚋ
 	return ret
 }
 
+func (ec *executionContext) unmarshalNActionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionInput(ctx context.Context, v interface{}) (ActionInput, error) {
+	res, err := ec.unmarshalInputActionInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNActionInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionInputᚄ(ctx context.Context, v interface{}) ([]ActionInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]ActionInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNActionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) marshalNAlert2githubᚗcomᚋtargetᚋgoalertᚋalertᚐAlert(ctx context.Context, sel ast.SelectionSet, v alert.Alert) graphql.Marshaler {
 	return ec._Alert(ctx, sel, &v)
 }
@@ -48237,6 +48343,28 @@ func (ec *executionContext) marshalNKeyConfig2ᚖgithubᚗcomᚋtargetᚋgoalert
 		return graphql.Null
 	}
 	return ec._KeyConfig(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNKeyHandlerRuleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyHandlerRuleInput(ctx context.Context, v interface{}) (KeyHandlerRuleInput, error) {
+	res, err := ec.unmarshalInputKeyHandlerRuleInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNKeyHandlerRuleInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyHandlerRuleInputᚄ(ctx context.Context, v interface{}) ([]KeyHandlerRuleInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]KeyHandlerRuleInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNKeyHandlerRuleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyHandlerRuleInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) marshalNKeyRule2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyRule(ctx context.Context, sel ast.SelectionSet, v KeyRule) graphql.Marshaler {
