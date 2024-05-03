@@ -2,14 +2,14 @@ import React from 'react'
 
 interface UniversalKeyPageProps {
   serviceID: string
-  keyID: string
+  keyName: string
 }
 
 export default function UniversalKeyPage({
   serviceID,
-  keyID,
+  keyName,
 }: UniversalKeyPageProps): JSX.Element {
-  if (serviceID && keyID) {
+  if (serviceID && keyName) {
     return <div />
   }
   return <div />
