@@ -4,11 +4,14 @@ import (
 	context "context"
 	"database/sql"
 	"net/url"
+	"time"
 
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/search"
+	"github.com/target/goalert/util/timeutil"
+	"github.com/target/goalert/validation/validate"
 )
 
 type IntegrationKey App
@@ -44,7 +47,85 @@ func (m *Mutation) CreateIntegrationKey(ctx context.Context, input graphql2.Crea
 }
 
 func (key *IntegrationKey) Config(ctx context.Context, raw *integrationkey.IntegrationKey) (*graphql2.KeyConfig, error) {
-	return &graphql2.KeyConfig{}, nil
+	id, err := validate.ParseUUID("IntegrationKey.ID", raw.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg, err := key.IntKeyStore.Config(ctx, key.DB, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var rules []graphql2.KeyRule
+	for _, r := range cfg.Rules {
+		var actions []graphql2.Action
+		for _, a := range r.Actions {
+			actions = append(actions, graphql2.Action{
+				Dest:   &graphql2.Destination{Type: a.Type, Values: mapToFieldValue(a.StaticParams)},
+				Params: mapToParams(a.DynamicParams),
+			})
+		}
+		rules = append(rules, graphql2.KeyRule{
+			ID:   r.ID.String(),
+			Name: r.Name,
+			// Description:   r.Description,
+			ConditionExpr: r.ConditionExpr,
+			Dedup: &graphql2.DedupConfig{
+				DedupExpr:   r.DedupConfig.IDExpr,
+				DedupWindow: timeutil.ISODuration{SecondPart: float64(r.DedupConfig.WindowSeconds)},
+			},
+			Action: actions,
+		})
+	}
+
+	var supp []graphql2.SuppressionWindow
+	n := time.Now()
+	for _, s := range cfg.Suppression {
+		supp = append(supp, graphql2.SuppressionWindow{
+			Start:      s.Start,
+			End:        s.End,
+			Active:     !s.Start.After(n) && s.End.Before(n),
+			FilterExpr: s.FilterExpr,
+		})
+	}
+
+	var actions []graphql2.Action
+	for _, a := range cfg.DefaultActions {
+		actions = append(actions, graphql2.Action{
+			Dest:   &graphql2.Destination{Type: a.Type, Values: mapToFieldValue(a.StaticParams)},
+			Params: mapToParams(a.DynamicParams),
+		})
+	}
+
+	return &graphql2.KeyConfig{
+		StopAtFirstRule:    cfg.StopOnFirstRule,
+		Rules:              rules,
+		SuppressionWindows: supp,
+		DefaultActions:     actions,
+	}, nil
+}
+
+func mapToFieldValue(m map[string]string) []graphql2.FieldValuePair {
+	res := make([]graphql2.FieldValuePair, 0, len(m))
+	for k, v := range m {
+		res = append(res, graphql2.FieldValuePair{
+			FieldID: k,
+			Value:   v,
+		})
+	}
+	return res
+}
+
+func mapToParams(m map[string]string) []graphql2.DynamicParam {
+	res := make([]graphql2.DynamicParam, 0, len(m))
+	for k, v := range m {
+		res = append(res, graphql2.DynamicParam{
+			ParamID: k,
+			Expr:    v,
+		})
+	}
+	return res
 }
 
 func (key *IntegrationKey) Type(ctx context.Context, raw *integrationkey.IntegrationKey) (graphql2.IntegrationKeyType, error) {
