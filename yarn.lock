@@ -18274,13 +18274,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-virtualized-auto-sizer@npm:1.0.20":
-  version: 1.0.20
-  resolution: "react-virtualized-auto-sizer@npm:1.0.20"
+"react-virtualized-auto-sizer@npm:1.0.24":
+  version: 1.0.24
+  resolution: "react-virtualized-auto-sizer@npm:1.0.24"
   peerDependencies:
-    react: ^15.3.0 || ^16.0.0-alpha || ^17.0.0 || ^18.0.0-rc
-    react-dom: ^15.3.0 || ^16.0.0-alpha || ^17.0.0 || ^18.0.0-rc
-  checksum: 2c616ec7587de64a46aa8c6c301e75fee87eb7a39013f25d940b0fe95eee5e8a8a3c109923e241b427752d71fba80f44cd2c8557750967df0777d99ebd16ba24
+    react: ^15.3.0 || ^16.0.0-alpha || ^17.0.0 || ^18.0.0
+    react-dom: ^15.3.0 || ^16.0.0-alpha || ^17.0.0 || ^18.0.0
+  checksum: e7d98563735dabbd1c58727c9d3e9f08f6a60a9964d25507cf4ef08f8964b6e421491c892ee0a99e47630118fdca42f1c60cef15ebda3659face58025dba3e98
   languageName: node
   linkType: hard
 
@@ -19084,7 +19084,7 @@ __metadata:
     react-markdown: 9.0.1
     react-redux: 8.1.3
     react-transition-group: 4.4.5
-    react-virtualized-auto-sizer: 1.0.20
+    react-virtualized-auto-sizer: 1.0.24
     recharts: 2.9.2
     redux: 4.2.1
     redux-devtools-extension: 2.13.9
