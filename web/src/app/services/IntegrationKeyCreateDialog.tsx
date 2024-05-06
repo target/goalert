@@ -48,7 +48,7 @@ export default function IntegrationKeyCreateDialog(props: {
         ).then(() => {
           if (value?.type === 'universal') {
             return setLocation(
-              `/services/${serviceID}/integration-keys/${value.name}`,
+              `/services/${serviceID}/integration-keys/${createKeyStatus.data.createIntegrationKey.id}`,
             )
           }
 

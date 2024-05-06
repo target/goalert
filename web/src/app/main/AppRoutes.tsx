@@ -72,7 +72,7 @@ const alertQuery = gql`
     }
   }
 `
-const EXP_ROUTE_UNIV_KEY = '/services/:serviceID/integration-keys/:keyName'
+const EXP_ROUTE_UNIV_KEY = '/services/:serviceID/integration-keys/:keyID'
 // Allow any component to be used as a route.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const routes: Record<string, JSXElementConstructor<any>> = {
