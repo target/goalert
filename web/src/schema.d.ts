@@ -393,16 +393,6 @@ export interface DebugSendSMSInput {
   to: string
 }
 
-export interface DedupConfig {
-  expr: string
-  windowSeconds: number
-}
-
-export interface DedupConfigInput {
-  expr: string
-  windowSeconds: number
-}
-
 export interface Destination {
   displayInfo: InlineDisplayInfo
   type: DestinationType
@@ -455,12 +445,10 @@ export interface DestinationInput {
 export type DestinationType = string
 
 export interface DestinationTypeInfo {
-  dynamicParams: DynamicParamConfig[]
   enabled: boolean
   iconAltText: string
   iconURL: string
   isContactMethod: boolean
-  isDynamicAction: boolean
   isEPTarget: boolean
   isSchedOnCallNotify: boolean
   name: string
@@ -476,20 +464,10 @@ export interface DynamicParam {
   paramID: string
 }
 
-export interface DynamicParamConfig {
-  dataType: DynamicParamType
-  hint: string
-  hintURL: string
-  label: string
-  paramID: string
-}
-
 export interface DynamicParamInput {
   expr: string
   paramID: string
 }
-
-export type DynamicParamType = 'boolean' | 'markdown' | 'number' | 'string'
 
 export type ErrorCode =
   | 'EXPR_TOO_COMPLEX'
@@ -651,18 +629,11 @@ export interface KeyConfig {
   defaultActions: Action[]
   rules: KeyRule[]
   stopAtFirstRule: boolean
-  suppressionWindows: SuppressionWindow[]
-}
-
-export interface KeyHandlerRuleInput {
-  actions: ActionInput[]
-  condition: string
 }
 
 export interface KeyRule {
   actions: Action[]
   conditionExpr: string
-  dedup: DedupConfig
   description: string
   id: string
   name: string
@@ -671,7 +642,6 @@ export interface KeyRule {
 export interface KeyRuleInput {
   actions: ActionInput[]
   conditionExpr: string
-  dedup: DedupConfigInput
   description: string
   id?: null | string
   name: string
@@ -1072,13 +1042,6 @@ export interface SetFavoriteInput {
   target: TargetInput
 }
 
-export interface SetKeyHandlerInput {
-  dedupExprs: string[]
-  defaultActions: ActionInput[]
-  keyID: string
-  rules: KeyHandlerRuleInput[]
-}
-
 export interface SetLabelInput {
   key: string
   target?: null | TargetInput
@@ -1152,19 +1115,6 @@ export type String = string
 export interface StringConnection {
   nodes: string[]
   pageInfo: PageInfo
-}
-
-export interface SuppressionWindow {
-  active: boolean
-  end: ISOTimestamp
-  filterExpr: string
-  start: ISOTimestamp
-}
-
-export interface SuppressionWindowInput {
-  end: ISOTimestamp
-  filterExpr: string
-  start: ISOTimestamp
 }
 
 export interface SystemLimit {
@@ -1305,7 +1255,6 @@ export interface UpdateKeyConfigInput {
   keyID: string
   rules?: null | KeyRuleInput[]
   stopAtFirstRule?: null | boolean
-  suppressionWindows?: null | SuppressionWindowInput[]
 }
 
 export interface UpdateRotationInput {
