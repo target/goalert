@@ -45,7 +45,8 @@ SELECT
 FROM
     uik_config
 WHERE
-    id = $1;
+    id = $1
+FOR UPDATE;
 
 -- name: IntKeySetConfig :exec
 INSERT INTO uik_config(id, config)

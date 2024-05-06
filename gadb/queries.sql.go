@@ -1531,6 +1531,7 @@ FROM
     uik_config
 WHERE
     id = $1
+FOR UPDATE
 `
 
 func (q *Queries) IntKeyGetConfig(ctx context.Context, id uuid.UUID) (json.RawMessage, error) {

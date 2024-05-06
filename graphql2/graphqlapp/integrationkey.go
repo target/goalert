@@ -6,11 +6,11 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/search"
-	"github.com/target/goalert/util/timeutil"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -23,7 +23,69 @@ func (q *Query) IntegrationKey(ctx context.Context, id string) (*integrationkey.
 }
 
 func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKeyConfigInput) (bool, error) {
-	return false, nil
+	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
+		id, err := validate.ParseUUID("IntegrationKey.ID", input.KeyID)
+		if err != nil {
+			return err
+		}
+
+		cfg, err := m.IntKeyStore.Config(ctx, tx, id)
+		if err != nil {
+			return err
+		}
+
+		if input.StopAtFirstRule != nil {
+			cfg.StopAfterFirstMatchingRule = *input.StopAtFirstRule
+		}
+
+		if input.Rules != nil {
+			cfg.Rules = make([]integrationkey.Rule, 0, len(input.Rules))
+			for _, r := range input.Rules {
+				var ruleID uuid.UUID
+				if r.ID != nil {
+					ruleID, err = validate.ParseUUID("Rule.ID", *r.ID)
+					if err != nil {
+						return err
+					}
+				}
+
+				cfg.Rules = append(cfg.Rules, integrationkey.Rule{
+					ID:            ruleID,
+					Name:          r.Name,
+					Description:   r.Description,
+					ConditionExpr: r.ConditionExpr,
+					Actions:       actionsGQLToGo(r.Actions),
+					DedupConfig: integrationkey.DedupConfig{
+						IDExpr:        r.Dedup.Expr,
+						WindowSeconds: r.Dedup.WindowSeconds,
+					},
+				})
+			}
+		}
+
+		if input.SuppressionWindows != nil {
+			cfg.Suppression = make([]integrationkey.SuppWindow, 0, len(input.SuppressionWindows))
+			for _, s := range input.SuppressionWindows {
+				cfg.Suppression = append(cfg.Suppression, integrationkey.SuppWindow{
+					Start:      s.Start,
+					End:        s.End,
+					FilterExpr: s.FilterExpr,
+				})
+			}
+		}
+
+		if input.DefaultActions != nil {
+			cfg.DefaultActions = actionsGQLToGo(input.DefaultActions)
+		}
+
+		err = m.IntKeyStore.SetConfig(ctx, tx, id, cfg)
+		return err
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (m *Mutation) CreateIntegrationKey(ctx context.Context, input graphql2.CreateIntegrationKeyInput) (key *integrationkey.IntegrationKey, err error) {
@@ -59,23 +121,16 @@ func (key *IntegrationKey) Config(ctx context.Context, raw *integrationkey.Integ
 
 	var rules []graphql2.KeyRule
 	for _, r := range cfg.Rules {
-		var actions []graphql2.Action
-		for _, a := range r.Actions {
-			actions = append(actions, graphql2.Action{
-				Dest:   &graphql2.Destination{Type: a.Type, Values: mapToFieldValue(a.StaticParams)},
-				Params: mapToParams(a.DynamicParams),
-			})
-		}
 		rules = append(rules, graphql2.KeyRule{
-			ID:   r.ID.String(),
-			Name: r.Name,
-			// Description:   r.Description,
+			ID:            r.ID.String(),
+			Name:          r.Name,
+			Description:   r.Description,
 			ConditionExpr: r.ConditionExpr,
 			Dedup: &graphql2.DedupConfig{
-				Expr:   r.DedupConfig.IDExpr,
-				Window: timeutil.ISODuration{SecondPart: float64(r.DedupConfig.WindowSeconds)},
+				Expr:          r.DedupConfig.IDExpr,
+				WindowSeconds: r.DedupConfig.WindowSeconds,
 			},
-			Action: actions,
+			Actions: actionsGoToGQL(r.Actions),
 		})
 	}
 
@@ -90,20 +145,51 @@ func (key *IntegrationKey) Config(ctx context.Context, raw *integrationkey.Integ
 		})
 	}
 
-	var actions []graphql2.Action
-	for _, a := range cfg.DefaultActions {
-		actions = append(actions, graphql2.Action{
-			Dest:   &graphql2.Destination{Type: a.Type, Values: mapToFieldValue(a.StaticParams)},
-			Params: mapToParams(a.DynamicParams),
-		})
-	}
-
 	return &graphql2.KeyConfig{
 		StopAtFirstRule:    cfg.StopAfterFirstMatchingRule,
 		Rules:              rules,
 		SuppressionWindows: supp,
-		DefaultActions:     actions,
+		DefaultActions:     actionsGoToGQL(cfg.DefaultActions),
 	}, nil
+}
+
+func actionsGQLToGo(a []graphql2.ActionInput) []integrationkey.Action {
+	res := make([]integrationkey.Action, 0, len(a))
+	for _, v := range a {
+		res = append(res, integrationkey.Action{
+			Type:          v.Dest.Type,
+			StaticParams:  fviToMap(v.Dest.Values),
+			DynamicParams: paramInputToMap(v.Params),
+		})
+	}
+	return res
+}
+
+func actionsGoToGQL(a []integrationkey.Action) []graphql2.Action {
+	res := make([]graphql2.Action, 0, len(a))
+	for _, v := range a {
+		res = append(res, graphql2.Action{
+			Dest:   &graphql2.Destination{Type: v.Type, Values: mapToFieldValue(v.StaticParams)},
+			Params: mapToParams(v.DynamicParams),
+		})
+	}
+	return res
+}
+
+func fviToMap(f []graphql2.FieldValueInput) map[string]string {
+	res := make(map[string]string, len(f))
+	for _, v := range f {
+		res[v.FieldID] = v.Value
+	}
+	return res
+}
+
+func paramInputToMap(p []graphql2.DynamicParamInput) map[string]string {
+	res := make(map[string]string, len(p))
+	for _, v := range p {
+		res[v.ParamID] = v.Expr
+	}
+	return res
 }
 
 func mapToFieldValue(m map[string]string) []graphql2.FieldValuePair {

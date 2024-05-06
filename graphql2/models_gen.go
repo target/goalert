@@ -354,14 +354,14 @@ type DebugSendSMSInput struct {
 
 type DedupConfig struct {
 	// expr is an expression that returns a string, used to determine if two requests are duplicates.
-	Expr   string               `json:"expr"`
-	Window timeutil.ISODuration `json:"window"`
+	Expr          string `json:"expr"`
+	WindowSeconds int    `json:"windowSeconds"`
 }
 
 type DedupConfigInput struct {
 	// expr is an expression that returns a string, used to determine if two requests are duplicates.
-	Expr   string               `json:"expr"`
-	Window timeutil.ISODuration `json:"window"`
+	Expr          string `json:"expr"`
+	WindowSeconds int    `json:"windowSeconds"`
 }
 
 // Destination represents a destination that can be used for notifications.
@@ -603,24 +603,26 @@ type KeyHandlerRuleInput struct {
 }
 
 type KeyRule struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 	// An expression that must evaluate to true for the rule to match.
 	ConditionExpr string `json:"conditionExpr"`
 	// The deduplication configuration for the rule.
-	Dedup  *DedupConfig `json:"dedup"`
-	Action []Action     `json:"action,omitempty"`
+	Dedup   *DedupConfig `json:"dedup"`
+	Actions []Action     `json:"actions"`
 }
 
 type KeyRuleInput struct {
 	// The ID of an existing rule being updated.
-	ID   *string `json:"id,omitempty"`
-	Name *string `json:"name,omitempty"`
+	ID          *string `json:"id,omitempty"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
 	// An expression that must evaluate to true for the rule to match.
-	ConditionExpr *string `json:"conditionExpr,omitempty"`
+	ConditionExpr string `json:"conditionExpr"`
 	// The deduplication configuration for the rule.
-	Dedup  *DedupConfigInput `json:"dedup,omitempty"`
-	Action []*ActionInput    `json:"action,omitempty"`
+	Dedup   *DedupConfigInput `json:"dedup"`
+	Actions []ActionInput     `json:"actions"`
 }
 
 type LabelConnection struct {
@@ -869,7 +871,7 @@ type SuppressionWindowInput struct {
 	Start time.Time `json:"start"`
 	End   time.Time `json:"end"`
 	// filterExpr is an optional boolean expression that can be used to limit which requests are suppressed. By default, all requests are suppressed within the window.
-	FilterExpr *string `json:"filterExpr,omitempty"`
+	FilterExpr string `json:"filterExpr"`
 }
 
 type SystemLimit struct {
@@ -962,7 +964,7 @@ type UpdateKeyConfigInput struct {
 	SuppressionWindows []SuppressionWindowInput `json:"suppressionWindows,omitempty"`
 	Rules              []KeyRuleInput           `json:"rules,omitempty"`
 	// defaultAction is the action to take if no rules match the request.
-	DefaultActions []*ActionInput `json:"defaultActions,omitempty"`
+	DefaultActions []ActionInput `json:"defaultActions,omitempty"`
 }
 
 type UpdateRotationInput struct {

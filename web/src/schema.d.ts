@@ -394,13 +394,13 @@ export interface DebugSendSMSInput {
 }
 
 export interface DedupConfig {
-  dedupExpr: string
-  dedupWindow: ISODuration
+  expr: string
+  windowSeconds: number
 }
 
 export interface DedupConfigInput {
-  dedupExpr: string
-  dedupWindow: ISODuration
+  expr: string
+  windowSeconds: number
 }
 
 export interface Destination {
@@ -660,19 +660,21 @@ export interface KeyHandlerRuleInput {
 }
 
 export interface KeyRule {
-  action?: null | Action[]
+  actions: Action[]
   conditionExpr: string
   dedup: DedupConfig
+  description: string
   id: string
   name: string
 }
 
 export interface KeyRuleInput {
-  action?: null | ActionInput[]
-  conditionExpr?: null | string
-  dedup?: null | DedupConfigInput
+  actions: ActionInput[]
+  conditionExpr: string
+  dedup: DedupConfigInput
+  description: string
   id?: null | string
-  name?: null | string
+  name: string
 }
 
 export interface Label {
@@ -1161,7 +1163,7 @@ export interface SuppressionWindow {
 
 export interface SuppressionWindowInput {
   end: ISOTimestamp
-  filterExpr?: null | string
+  filterExpr: string
   start: ISOTimestamp
 }
 

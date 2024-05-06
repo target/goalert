@@ -30,6 +30,7 @@ type KeyRule {
   id: ID!
 
   name: String!
+  description: String!
 
   """
   An expression that must evaluate to true for the rule to match.
@@ -41,7 +42,7 @@ type KeyRule {
   """
   dedup: DedupConfig!
 
-  action: [Action!]
+  actions: [Action!]!
 }
 
 input UpdateKeyConfigInput {
@@ -59,7 +60,7 @@ input UpdateKeyConfigInput {
   """
   defaultAction is the action to take if no rules match the request.
   """
-  defaultActions: [ActionInput]
+  defaultActions: [ActionInput!]
 }
 
 input KeyRuleInput {
@@ -68,19 +69,20 @@ input KeyRuleInput {
   """
   id: ID
 
-  name: String
+  name: String!
+  description: String!
 
   """
   An expression that must evaluate to true for the rule to match.
   """
-  conditionExpr: String
+  conditionExpr: String!
 
   """
   The deduplication configuration for the rule.
   """
-  dedup: DedupConfigInput
+  dedup: DedupConfigInput!
 
-  action: [ActionInput]
+  actions: [ActionInput!]!
 }
 
 input SuppressionWindowInput {
@@ -90,7 +92,7 @@ input SuppressionWindowInput {
   """
   filterExpr is an optional boolean expression that can be used to limit which requests are suppressed. By default, all requests are suppressed within the window.
   """
-  filterExpr: String
+  filterExpr: String!
 }
 
 type SuppressionWindow {
@@ -110,7 +112,7 @@ input DedupConfigInput {
   expr is an expression that returns a string, used to determine if two requests are duplicates.
   """
   expr: String!
-  window: ISODuration!
+  windowSeconds: Int!
 }
 
 type DedupConfig {
@@ -118,7 +120,7 @@ type DedupConfig {
   expr is an expression that returns a string, used to determine if two requests are duplicates.
   """
   expr: String!
-  window: ISODuration!
+  windowSeconds: Int!
 }
 
 input ActionInput {
