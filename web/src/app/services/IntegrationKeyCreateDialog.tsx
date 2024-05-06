@@ -1,12 +1,10 @@
 import React, { useState } from 'react'
 import { useMutation, gql } from 'urql'
-
-import { fieldErrors, nonFieldErrors } from '../util/errutil'
-
-import FormDialog from '../dialogs/FormDialog'
 import IntegrationKeyForm, { Value } from './IntegrationKeyForm'
-import { useLocation } from 'wouter'
+import { Redirect } from 'wouter'
+import FormDialog from '../dialogs/FormDialog'
 import { useExpFlag } from '../util/useExpFlag'
+import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
 const mutation = gql`
   mutation ($input: CreateIntegrationKeyInput!) {
@@ -25,12 +23,21 @@ export default function IntegrationKeyCreateDialog(props: {
 }): JSX.Element {
   const [value, setValue] = useState<Value | null>(null)
   const { serviceID, onClose } = props
-  const [, setLocation] = useLocation()
   const [createKeyStatus, createKey] = useMutation(mutation)
   const hasUnivKeysFlag = useExpFlag('univ-keys')
   let caption
   if (hasUnivKeysFlag && value?.type === 'universal') {
     caption = 'Submit to configure universal key rules'
+  }
+
+  console.log(createKeyStatus)
+
+  if (createKeyStatus?.data?.createIntegrationKey?.type === 'universal') {
+    return (
+      <Redirect
+        to={`/services/${serviceID}/integration-keys/${createKeyStatus.data.createIntegrationKey.id}`}
+      />
+    )
   }
 
   return (
@@ -45,15 +52,7 @@ export default function IntegrationKeyCreateDialog(props: {
         createKey(
           { input: { serviceID, ...value } },
           { additionalTypenames: ['IntegrationKey', 'Service'] },
-        ).then(() => {
-          if (value?.type === 'universal') {
-            return setLocation(
-              `/services/${serviceID}/integration-keys/${createKeyStatus.data.createIntegrationKey.id}`,
-            )
-          }
-
-          onClose()
-        })
+        ).then(onClose)
       }}
       form={
         <IntegrationKeyForm
