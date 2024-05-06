@@ -18,12 +18,17 @@ type dbConfig struct {
 	V1      Config
 }
 
+// Config stores the configuration for an integration key for how to handle incoming requests.
 type Config struct {
+	Rules []Rule
+
+	// DefaultActions are the actions to take if no rules match.
+	DefaultActions []Action
+
 	StopAfterFirstMatchingRule bool
-	Rules                      []Rule
-	DefaultActions             []Action
 }
 
+// A Rule is a set of conditions and actions to take if those conditions are met.
 type Rule struct {
 	ID            uuid.UUID
 	Name          string
@@ -32,6 +37,7 @@ type Rule struct {
 	Actions       []Action
 }
 
+// An Action is a single action to take if a rule matches.
 type Action struct {
 	// Type is the type of action to perform, like slack, email, or alert.
 	Type string
