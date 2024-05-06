@@ -1137,6 +1137,11 @@ type TwilioVoiceError struct {
 	PhoneNumber  string
 }
 
+type UikConfig struct {
+	Config json.RawMessage
+	ID     uuid.UUID
+}
+
 type User struct {
 	AlertStatusLogContactMethodID uuid.NullUUID
 	AvatarUrl                     string

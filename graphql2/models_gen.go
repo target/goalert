@@ -31,6 +31,16 @@ type InlineDisplayInfo interface {
 	IsInlineDisplayInfo()
 }
 
+type Action struct {
+	Dest   *Destination   `json:"dest"`
+	Params []DynamicParam `json:"params"`
+}
+
+type ActionInput struct {
+	Dest   *DestinationInput   `json:"dest"`
+	Params []DynamicParamInput `json:"params"`
+}
+
 type AlertConnection struct {
 	Nodes    []alert.Alert `json:"nodes"`
 	PageInfo *PageInfo     `json:"pageInfo"`
@@ -444,6 +454,16 @@ type DestinationTypeInfo struct {
 	StatusUpdatesRequired bool `json:"statusUpdatesRequired"`
 }
 
+type DynamicParam struct {
+	ParamID string `json:"paramID"`
+	Expr    string `json:"expr"`
+}
+
+type DynamicParamInput struct {
+	ParamID string `json:"paramID"`
+	Expr    string `json:"expr"`
+}
+
 type EscalationPolicyConnection struct {
 	Nodes    []escalation.Policy `json:"nodes"`
 	PageInfo *PageInfo           `json:"pageInfo"`
@@ -537,6 +557,33 @@ type IntegrationKeyTypeInfo struct {
 	Name    string `json:"name"`
 	Label   string `json:"label"`
 	Enabled bool   `json:"enabled"`
+}
+
+type KeyConfig struct {
+	// Stop evaluating rules after the first rule that matches.
+	StopAtFirstRule bool      `json:"stopAtFirstRule"`
+	Rules           []KeyRule `json:"rules"`
+	// defaultAction is the action to take if no rules match the request.
+	DefaultActions []Action `json:"defaultActions"`
+}
+
+type KeyRule struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	// An expression that must evaluate to true for the rule to match.
+	ConditionExpr string   `json:"conditionExpr"`
+	Actions       []Action `json:"actions"`
+}
+
+type KeyRuleInput struct {
+	// The ID of an existing rule being updated.
+	ID          *string `json:"id,omitempty"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	// An expression that must evaluate to true for the rule to match.
+	ConditionExpr string        `json:"conditionExpr"`
+	Actions       []ActionInput `json:"actions"`
 }
 
 type LabelConnection struct {
@@ -847,6 +894,15 @@ type UpdateHeartbeatMonitorInput struct {
 	Name              *string `json:"name,omitempty"`
 	TimeoutMinutes    *int    `json:"timeoutMinutes,omitempty"`
 	AdditionalDetails *string `json:"additionalDetails,omitempty"`
+}
+
+type UpdateKeyConfigInput struct {
+	KeyID string `json:"keyID"`
+	// Stop evaluating rules after the first rule that matches.
+	StopAtFirstRule *bool          `json:"stopAtFirstRule,omitempty"`
+	Rules           []KeyRuleInput `json:"rules,omitempty"`
+	// defaultAction is the action to take if no rules match the request.
+	DefaultActions []ActionInput `json:"defaultActions,omitempty"`
 }
 
 type UpdateRotationInput struct {
