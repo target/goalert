@@ -352,18 +352,6 @@ type DebugSendSMSInput struct {
 	Body string `json:"body"`
 }
 
-type DedupConfig struct {
-	// expr is an expression that returns a string, used to determine if two requests are duplicates.
-	Expr          string `json:"expr"`
-	WindowSeconds int    `json:"windowSeconds"`
-}
-
-type DedupConfigInput struct {
-	// expr is an expression that returns a string, used to determine if two requests are duplicates.
-	Expr          string `json:"expr"`
-	WindowSeconds int    `json:"windowSeconds"`
-}
-
 // Destination represents a destination that can be used for notifications.
 type Destination struct {
 	Type        string            `json:"type"`
@@ -590,9 +578,8 @@ type IntegrationKeyTypeInfo struct {
 
 type KeyConfig struct {
 	// Stop evaluating rules after the first rule that matches.
-	StopAtFirstRule    bool                `json:"stopAtFirstRule"`
-	SuppressionWindows []SuppressionWindow `json:"suppressionWindows"`
-	Rules              []KeyRule           `json:"rules"`
+	StopAtFirstRule bool      `json:"stopAtFirstRule"`
+	Rules           []KeyRule `json:"rules"`
 	// defaultAction is the action to take if no rules match the request.
 	DefaultActions []Action `json:"defaultActions"`
 }
@@ -607,10 +594,8 @@ type KeyRule struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	// An expression that must evaluate to true for the rule to match.
-	ConditionExpr string `json:"conditionExpr"`
-	// The deduplication configuration for the rule.
-	Dedup   *DedupConfig `json:"dedup"`
-	Actions []Action     `json:"actions"`
+	ConditionExpr string   `json:"conditionExpr"`
+	Actions       []Action `json:"actions"`
 }
 
 type KeyRuleInput struct {
@@ -619,10 +604,8 @@ type KeyRuleInput struct {
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
 	// An expression that must evaluate to true for the rule to match.
-	ConditionExpr string `json:"conditionExpr"`
-	// The deduplication configuration for the rule.
-	Dedup   *DedupConfigInput `json:"dedup"`
-	Actions []ActionInput     `json:"actions"`
+	ConditionExpr string        `json:"conditionExpr"`
+	Actions       []ActionInput `json:"actions"`
 }
 
 type LabelConnection struct {
@@ -859,21 +842,6 @@ type StringConnection struct {
 	PageInfo *PageInfo `json:"pageInfo"`
 }
 
-type SuppressionWindow struct {
-	Start  time.Time `json:"start"`
-	End    time.Time `json:"end"`
-	Active bool      `json:"active"`
-	// filterExpr is an optional boolean expression that can be used to limit which requests are suppressed. By default, all requests are suppressed within the window.
-	FilterExpr string `json:"filterExpr"`
-}
-
-type SuppressionWindowInput struct {
-	Start time.Time `json:"start"`
-	End   time.Time `json:"end"`
-	// filterExpr is an optional boolean expression that can be used to limit which requests are suppressed. By default, all requests are suppressed within the window.
-	FilterExpr string `json:"filterExpr"`
-}
-
 type SystemLimit struct {
 	ID          limit.ID `json:"id"`
 	Description string   `json:"description"`
@@ -960,9 +928,8 @@ type UpdateHeartbeatMonitorInput struct {
 type UpdateKeyConfigInput struct {
 	KeyID string `json:"keyID"`
 	// Stop evaluating rules after the first rule that matches.
-	StopAtFirstRule    *bool                    `json:"stopAtFirstRule,omitempty"`
-	SuppressionWindows []SuppressionWindowInput `json:"suppressionWindows,omitempty"`
-	Rules              []KeyRuleInput           `json:"rules,omitempty"`
+	StopAtFirstRule *bool          `json:"stopAtFirstRule,omitempty"`
+	Rules           []KeyRuleInput `json:"rules,omitempty"`
 	// defaultAction is the action to take if no rules match the request.
 	DefaultActions []ActionInput `json:"defaultActions,omitempty"`
 }

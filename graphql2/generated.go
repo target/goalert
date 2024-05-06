@@ -242,11 +242,6 @@ type ComplexityRoot struct {
 		ProviderURL func(childComplexity int) int
 	}
 
-	DedupConfig struct {
-		Expr          func(childComplexity int) int
-		WindowSeconds func(childComplexity int) int
-	}
-
 	Destination struct {
 		DisplayInfo func(childComplexity int) int
 		Type        func(childComplexity int) int
@@ -407,16 +402,14 @@ type ComplexityRoot struct {
 	}
 
 	KeyConfig struct {
-		DefaultActions     func(childComplexity int) int
-		Rules              func(childComplexity int) int
-		StopAtFirstRule    func(childComplexity int) int
-		SuppressionWindows func(childComplexity int) int
+		DefaultActions  func(childComplexity int) int
+		Rules           func(childComplexity int) int
+		StopAtFirstRule func(childComplexity int) int
 	}
 
 	KeyRule struct {
 		Actions       func(childComplexity int) int
 		ConditionExpr func(childComplexity int) int
-		Dedup         func(childComplexity int) int
 		Description   func(childComplexity int) int
 		ID            func(childComplexity int) int
 		Name          func(childComplexity int) int
@@ -728,13 +721,6 @@ type ComplexityRoot struct {
 	StringConnection struct {
 		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
-	}
-
-	SuppressionWindow struct {
-		Active     func(childComplexity int) int
-		End        func(childComplexity int) int
-		FilterExpr func(childComplexity int) int
-		Start      func(childComplexity int) int
 	}
 
 	SystemLimit struct {
@@ -1700,20 +1686,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DebugSendSMSInfo.ProviderURL(childComplexity), true
 
-	case "DedupConfig.expr":
-		if e.complexity.DedupConfig.Expr == nil {
-			break
-		}
-
-		return e.complexity.DedupConfig.Expr(childComplexity), true
-
-	case "DedupConfig.windowSeconds":
-		if e.complexity.DedupConfig.WindowSeconds == nil {
-			break
-		}
-
-		return e.complexity.DedupConfig.WindowSeconds(childComplexity), true
-
 	case "Destination.displayInfo":
 		if e.complexity.Destination.DisplayInfo == nil {
 			break
@@ -2438,13 +2410,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.KeyConfig.StopAtFirstRule(childComplexity), true
 
-	case "KeyConfig.suppressionWindows":
-		if e.complexity.KeyConfig.SuppressionWindows == nil {
-			break
-		}
-
-		return e.complexity.KeyConfig.SuppressionWindows(childComplexity), true
-
 	case "KeyRule.actions":
 		if e.complexity.KeyRule.Actions == nil {
 			break
@@ -2458,13 +2423,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.KeyRule.ConditionExpr(childComplexity), true
-
-	case "KeyRule.dedup":
-		if e.complexity.KeyRule.Dedup == nil {
-			break
-		}
-
-		return e.complexity.KeyRule.Dedup(childComplexity), true
 
 	case "KeyRule.description":
 		if e.complexity.KeyRule.Description == nil {
@@ -4488,34 +4446,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StringConnection.PageInfo(childComplexity), true
 
-	case "SuppressionWindow.active":
-		if e.complexity.SuppressionWindow.Active == nil {
-			break
-		}
-
-		return e.complexity.SuppressionWindow.Active(childComplexity), true
-
-	case "SuppressionWindow.end":
-		if e.complexity.SuppressionWindow.End == nil {
-			break
-		}
-
-		return e.complexity.SuppressionWindow.End(childComplexity), true
-
-	case "SuppressionWindow.filterExpr":
-		if e.complexity.SuppressionWindow.FilterExpr == nil {
-			break
-		}
-
-		return e.complexity.SuppressionWindow.FilterExpr(childComplexity), true
-
-	case "SuppressionWindow.start":
-		if e.complexity.SuppressionWindow.Start == nil {
-			break
-		}
-
-		return e.complexity.SuppressionWindow.Start(childComplexity), true
-
 	case "SystemLimit.description":
 		if e.complexity.SystemLimit.Description == nil {
 			break
@@ -5046,7 +4976,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputDebugMessageStatusInput,
 		ec.unmarshalInputDebugMessagesInput,
 		ec.unmarshalInputDebugSendSMSInput,
-		ec.unmarshalInputDedupConfigInput,
 		ec.unmarshalInputDestinationFieldSearchInput,
 		ec.unmarshalInputDestinationFieldValidateInput,
 		ec.unmarshalInputDestinationInput,
@@ -5077,7 +5006,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSetTemporaryScheduleInput,
 		ec.unmarshalInputSlackChannelSearchOptions,
 		ec.unmarshalInputSlackUserGroupSearchOptions,
-		ec.unmarshalInputSuppressionWindowInput,
 		ec.unmarshalInputSystemLimitInput,
 		ec.unmarshalInputTargetInput,
 		ec.unmarshalInputTimeSeriesOptions,
@@ -10509,94 +10437,6 @@ func (ec *executionContext) fieldContext_DebugSendSMSInfo_fromNumber(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _DedupConfig_expr(ctx context.Context, field graphql.CollectedField, obj *DedupConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DedupConfig_expr(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Expr, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_DedupConfig_expr(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "DedupConfig",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _DedupConfig_windowSeconds(ctx context.Context, field graphql.CollectedField, obj *DedupConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DedupConfig_windowSeconds(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.WindowSeconds, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_DedupConfig_windowSeconds(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "DedupConfig",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Destination_type(ctx context.Context, field graphql.CollectedField, obj *Destination) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Destination_type(ctx, field)
 	if err != nil {
@@ -14924,8 +14764,6 @@ func (ec *executionContext) fieldContext_IntegrationKey_config(ctx context.Conte
 			switch field.Name {
 			case "stopAtFirstRule":
 				return ec.fieldContext_KeyConfig_stopAtFirstRule(ctx, field)
-			case "suppressionWindows":
-				return ec.fieldContext_KeyConfig_suppressionWindows(ctx, field)
 			case "rules":
 				return ec.fieldContext_KeyConfig_rules(ctx, field)
 			case "defaultActions":
@@ -15267,60 +15105,6 @@ func (ec *executionContext) fieldContext_KeyConfig_stopAtFirstRule(ctx context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _KeyConfig_suppressionWindows(ctx context.Context, field graphql.CollectedField, obj *KeyConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_KeyConfig_suppressionWindows(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.SuppressionWindows, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]SuppressionWindow)
-	fc.Result = res
-	return ec.marshalNSuppressionWindow2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSuppressionWindowᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_KeyConfig_suppressionWindows(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "KeyConfig",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "start":
-				return ec.fieldContext_SuppressionWindow_start(ctx, field)
-			case "end":
-				return ec.fieldContext_SuppressionWindow_end(ctx, field)
-			case "active":
-				return ec.fieldContext_SuppressionWindow_active(ctx, field)
-			case "filterExpr":
-				return ec.fieldContext_SuppressionWindow_filterExpr(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type SuppressionWindow", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _KeyConfig_rules(ctx context.Context, field graphql.CollectedField, obj *KeyConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_KeyConfig_rules(ctx, field)
 	if err != nil {
@@ -15368,8 +15152,6 @@ func (ec *executionContext) fieldContext_KeyConfig_rules(ctx context.Context, fi
 				return ec.fieldContext_KeyRule_description(ctx, field)
 			case "conditionExpr":
 				return ec.fieldContext_KeyRule_conditionExpr(ctx, field)
-			case "dedup":
-				return ec.fieldContext_KeyRule_dedup(ctx, field)
 			case "actions":
 				return ec.fieldContext_KeyRule_actions(ctx, field)
 			}
@@ -15600,56 +15382,6 @@ func (ec *executionContext) fieldContext_KeyRule_conditionExpr(ctx context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _KeyRule_dedup(ctx context.Context, field graphql.CollectedField, obj *KeyRule) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_KeyRule_dedup(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Dedup, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*DedupConfig)
-	fc.Result = res
-	return ec.marshalNDedupConfig2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDedupConfig(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_KeyRule_dedup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "KeyRule",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "expr":
-				return ec.fieldContext_DedupConfig_expr(ctx, field)
-			case "windowSeconds":
-				return ec.fieldContext_DedupConfig_windowSeconds(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type DedupConfig", field.Name)
 		},
 	}
 	return fc, nil
@@ -27760,182 +27492,6 @@ func (ec *executionContext) fieldContext_StringConnection_pageInfo(ctx context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _SuppressionWindow_start(ctx context.Context, field graphql.CollectedField, obj *SuppressionWindow) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SuppressionWindow_start(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Start, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SuppressionWindow_start(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SuppressionWindow",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ISOTimestamp does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SuppressionWindow_end(ctx context.Context, field graphql.CollectedField, obj *SuppressionWindow) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SuppressionWindow_end(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.End, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SuppressionWindow_end(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SuppressionWindow",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ISOTimestamp does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SuppressionWindow_active(ctx context.Context, field graphql.CollectedField, obj *SuppressionWindow) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SuppressionWindow_active(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Active, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SuppressionWindow_active(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SuppressionWindow",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SuppressionWindow_filterExpr(ctx context.Context, field graphql.CollectedField, obj *SuppressionWindow) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SuppressionWindow_filterExpr(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FilterExpr, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SuppressionWindow_filterExpr(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SuppressionWindow",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _SystemLimit_id(ctx context.Context, field graphql.CollectedField, obj *SystemLimit) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SystemLimit_id(ctx, field)
 	if err != nil {
@@ -34737,40 +34293,6 @@ func (ec *executionContext) unmarshalInputDebugSendSMSInput(ctx context.Context,
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputDedupConfigInput(ctx context.Context, obj interface{}) (DedupConfigInput, error) {
-	var it DedupConfigInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"expr", "windowSeconds"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "expr":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("expr"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Expr = data
-		case "windowSeconds":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("windowSeconds"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.WindowSeconds = data
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputDestinationFieldSearchInput(ctx context.Context, obj interface{}) (DestinationFieldSearchInput, error) {
 	var it DestinationFieldSearchInput
 	asMap := map[string]interface{}{}
@@ -35184,7 +34706,7 @@ func (ec *executionContext) unmarshalInputKeyRuleInput(ctx context.Context, obj 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "description", "conditionExpr", "dedup", "actions"}
+	fieldsInOrder := [...]string{"id", "name", "description", "conditionExpr", "actions"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -35219,13 +34741,6 @@ func (ec *executionContext) unmarshalInputKeyRuleInput(ctx context.Context, obj 
 				return it, err
 			}
 			it.ConditionExpr = data
-		case "dedup":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dedup"))
-			data, err := ec.unmarshalNDedupConfigInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDedupConfigInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Dedup = data
 		case "actions":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("actions"))
 			data, err := ec.unmarshalNActionInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionInputᚄ(ctx, v)
@@ -36326,47 +35841,6 @@ func (ec *executionContext) unmarshalInputSlackUserGroupSearchOptions(ctx contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputSuppressionWindowInput(ctx context.Context, obj interface{}) (SuppressionWindowInput, error) {
-	var it SuppressionWindowInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"start", "end", "filterExpr"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "start":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
-			data, err := ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Start = data
-		case "end":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end"))
-			data, err := ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.End = data
-		case "filterExpr":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterExpr"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.FilterExpr = data
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputSystemLimitInput(ctx context.Context, obj interface{}) (SystemLimitInput, error) {
 	var it SystemLimitInput
 	asMap := map[string]interface{}{}
@@ -36844,7 +36318,7 @@ func (ec *executionContext) unmarshalInputUpdateKeyConfigInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"keyID", "stopAtFirstRule", "suppressionWindows", "rules", "defaultActions"}
+	fieldsInOrder := [...]string{"keyID", "stopAtFirstRule", "rules", "defaultActions"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -36865,13 +36339,6 @@ func (ec *executionContext) unmarshalInputUpdateKeyConfigInput(ctx context.Conte
 				return it, err
 			}
 			it.StopAtFirstRule = data
-		case "suppressionWindows":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("suppressionWindows"))
-			data, err := ec.unmarshalOSuppressionWindowInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSuppressionWindowInputᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.SuppressionWindows = data
 		case "rules":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rules"))
 			data, err := ec.unmarshalOKeyRuleInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyRuleInputᚄ(ctx, v)
@@ -39085,50 +38552,6 @@ func (ec *executionContext) _DebugSendSMSInfo(ctx context.Context, sel ast.Selec
 	return out
 }
 
-var dedupConfigImplementors = []string{"DedupConfig"}
-
-func (ec *executionContext) _DedupConfig(ctx context.Context, sel ast.SelectionSet, obj *DedupConfig) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, dedupConfigImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("DedupConfig")
-		case "expr":
-			out.Values[i] = ec._DedupConfig_expr(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "windowSeconds":
-			out.Values[i] = ec._DedupConfig_windowSeconds(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
 var destinationImplementors = []string{"Destination"}
 
 func (ec *executionContext) _Destination(ctx context.Context, sel ast.SelectionSet, obj *Destination) graphql.Marshaler {
@@ -40829,11 +40252,6 @@ func (ec *executionContext) _KeyConfig(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "suppressionWindows":
-			out.Values[i] = ec._KeyConfig_suppressionWindows(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "rules":
 			out.Values[i] = ec._KeyConfig_rules(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -40895,11 +40313,6 @@ func (ec *executionContext) _KeyRule(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "conditionExpr":
 			out.Values[i] = ec._KeyRule_conditionExpr(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "dedup":
-			out.Values[i] = ec._KeyRule_dedup(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -44670,60 +44083,6 @@ func (ec *executionContext) _StringConnection(ctx context.Context, sel ast.Selec
 	return out
 }
 
-var suppressionWindowImplementors = []string{"SuppressionWindow"}
-
-func (ec *executionContext) _SuppressionWindow(ctx context.Context, sel ast.SelectionSet, obj *SuppressionWindow) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, suppressionWindowImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("SuppressionWindow")
-		case "start":
-			out.Values[i] = ec._SuppressionWindow_start(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "end":
-			out.Values[i] = ec._SuppressionWindow_end(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "active":
-			out.Values[i] = ec._SuppressionWindow_active(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "filterExpr":
-			out.Values[i] = ec._SuppressionWindow_filterExpr(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
 var systemLimitImplementors = []string{"SystemLimit"}
 
 func (ec *executionContext) _SystemLimit(ctx context.Context, sel ast.SelectionSet, obj *SystemLimit) graphql.Marshaler {
@@ -47372,21 +46731,6 @@ func (ec *executionContext) unmarshalNDebugSendSMSInput2githubᚗcomᚋtargetᚋ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDedupConfig2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDedupConfig(ctx context.Context, sel ast.SelectionSet, v *DedupConfig) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._DedupConfig(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNDedupConfigInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDedupConfigInput(ctx context.Context, v interface{}) (*DedupConfigInput, error) {
-	res, err := ec.unmarshalInputDedupConfigInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalNDestination2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestination(ctx context.Context, sel ast.SelectionSet, v Destination) graphql.Marshaler {
 	return ec._Destination(ctx, sel, &v)
 }
@@ -49479,59 +48823,6 @@ func (ec *executionContext) marshalNStringConnection2ᚖgithubᚗcomᚋtargetᚋ
 	return ec._StringConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSuppressionWindow2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSuppressionWindow(ctx context.Context, sel ast.SelectionSet, v SuppressionWindow) graphql.Marshaler {
-	return ec._SuppressionWindow(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNSuppressionWindow2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSuppressionWindowᚄ(ctx context.Context, sel ast.SelectionSet, v []SuppressionWindow) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNSuppressionWindow2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSuppressionWindow(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) unmarshalNSuppressionWindowInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSuppressionWindowInput(ctx context.Context, v interface{}) (SuppressionWindowInput, error) {
-	res, err := ec.unmarshalInputSuppressionWindowInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalNSystemLimit2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimit(ctx context.Context, sel ast.SelectionSet, v SystemLimit) graphql.Marshaler {
 	return ec._SystemLimit(ctx, sel, &v)
 }
@@ -51606,26 +50897,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
-}
-
-func (ec *executionContext) unmarshalOSuppressionWindowInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSuppressionWindowInputᚄ(ctx context.Context, v interface{}) ([]SuppressionWindowInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]SuppressionWindowInput, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNSuppressionWindowInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSuppressionWindowInput(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
 }
 
 func (ec *executionContext) unmarshalOTargetInput2githubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx context.Context, v interface{}) (assignment.RawTarget, error) {

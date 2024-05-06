@@ -16,8 +16,6 @@ type KeyConfig {
   """
   stopAtFirstRule: Boolean!
 
-  suppressionWindows: [SuppressionWindow!]!
-
   rules: [KeyRule!]!
 
   """
@@ -37,11 +35,6 @@ type KeyRule {
   """
   conditionExpr: String!
 
-  """
-  The deduplication configuration for the rule.
-  """
-  dedup: DedupConfig!
-
   actions: [Action!]!
 }
 
@@ -52,8 +45,6 @@ input UpdateKeyConfigInput {
   Stop evaluating rules after the first rule that matches.
   """
   stopAtFirstRule: Boolean
-
-  suppressionWindows: [SuppressionWindowInput!]
 
   rules: [KeyRuleInput!]
 
@@ -77,50 +68,7 @@ input KeyRuleInput {
   """
   conditionExpr: String!
 
-  """
-  The deduplication configuration for the rule.
-  """
-  dedup: DedupConfigInput!
-
   actions: [ActionInput!]!
-}
-
-input SuppressionWindowInput {
-  start: ISOTimestamp!
-  end: ISOTimestamp!
-
-  """
-  filterExpr is an optional boolean expression that can be used to limit which requests are suppressed. By default, all requests are suppressed within the window.
-  """
-  filterExpr: String!
-}
-
-type SuppressionWindow {
-  start: ISOTimestamp!
-  end: ISOTimestamp!
-
-  active: Boolean!
-
-  """
-  filterExpr is an optional boolean expression that can be used to limit which requests are suppressed. By default, all requests are suppressed within the window.
-  """
-  filterExpr: String!
-}
-
-input DedupConfigInput {
-  """
-  expr is an expression that returns a string, used to determine if two requests are duplicates.
-  """
-  expr: String!
-  windowSeconds: Int!
-}
-
-type DedupConfig {
-  """
-  expr is an expression that returns a string, used to determine if two requests are duplicates.
-  """
-  expr: String!
-  windowSeconds: Int!
 }
 
 input ActionInput {

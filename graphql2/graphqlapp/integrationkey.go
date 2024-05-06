@@ -4,7 +4,6 @@ import (
 	context "context"
 	"database/sql"
 	"net/url"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/config"
@@ -55,21 +54,6 @@ func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKey
 					Description:   r.Description,
 					ConditionExpr: r.ConditionExpr,
 					Actions:       actionsGQLToGo(r.Actions),
-					DedupConfig: integrationkey.DedupConfig{
-						IDExpr:        r.Dedup.Expr,
-						WindowSeconds: r.Dedup.WindowSeconds,
-					},
-				})
-			}
-		}
-
-		if input.SuppressionWindows != nil {
-			cfg.Suppression = make([]integrationkey.SuppWindow, 0, len(input.SuppressionWindows))
-			for _, s := range input.SuppressionWindows {
-				cfg.Suppression = append(cfg.Suppression, integrationkey.SuppWindow{
-					Start:      s.Start,
-					End:        s.End,
-					FilterExpr: s.FilterExpr,
 				})
 			}
 		}
@@ -126,30 +110,14 @@ func (key *IntegrationKey) Config(ctx context.Context, raw *integrationkey.Integ
 			Name:          r.Name,
 			Description:   r.Description,
 			ConditionExpr: r.ConditionExpr,
-			Dedup: &graphql2.DedupConfig{
-				Expr:          r.DedupConfig.IDExpr,
-				WindowSeconds: r.DedupConfig.WindowSeconds,
-			},
-			Actions: actionsGoToGQL(r.Actions),
-		})
-	}
-
-	var supp []graphql2.SuppressionWindow
-	n := time.Now()
-	for _, s := range cfg.Suppression {
-		supp = append(supp, graphql2.SuppressionWindow{
-			Start:      s.Start,
-			End:        s.End,
-			Active:     !s.Start.After(n) && s.End.Before(n),
-			FilterExpr: s.FilterExpr,
+			Actions:       actionsGoToGQL(r.Actions),
 		})
 	}
 
 	return &graphql2.KeyConfig{
-		StopAtFirstRule:    cfg.StopAfterFirstMatchingRule,
-		Rules:              rules,
-		SuppressionWindows: supp,
-		DefaultActions:     actionsGoToGQL(cfg.DefaultActions),
+		StopAtFirstRule: cfg.StopAfterFirstMatchingRule,
+		Rules:           rules,
+		DefaultActions:  actionsGoToGQL(cfg.DefaultActions),
 	}, nil
 }
 

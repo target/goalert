@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/gadb"
@@ -22,7 +21,6 @@ type dbConfig struct {
 type Config struct {
 	StopAfterFirstMatchingRule bool
 	Rules                      []Rule
-	Suppression                []SuppWindow
 	DefaultActions             []Action
 }
 
@@ -31,20 +29,7 @@ type Rule struct {
 	Name          string
 	Description   string
 	ConditionExpr string
-	DedupConfig   DedupConfig
 	Actions       []Action
-}
-
-type DedupConfig struct {
-	IDExpr        string
-	WindowSeconds int
-}
-
-type SuppWindow struct {
-	Start time.Time
-	End   time.Time
-
-	FilterExpr string
 }
 
 type Action struct {
