@@ -114,6 +114,8 @@ models:
     model: github.com/target/goalert/graphql2.ExprExpression
   ExprBooleanExpression:
     model: github.com/target/goalert/graphql2.ExprBooleanExpression
+  ExprStringExpression:
+    model: github.com/target/goalert/graphql2.ExprStringExpression
   ExprValue:
     model: github.com/target/goalert/graphql2.ExprValue
   ExprIdentifier:

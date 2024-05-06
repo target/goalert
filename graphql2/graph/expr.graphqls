@@ -30,6 +30,11 @@ ExprBooleanExpression is a scalar type that represents an Expr expression that e
 scalar ExprBooleanExpression
 
 """
+ExprStringExpression is a scalar type that represents an Expr expression that evaluates to a string.
+"""
+scalar ExprStringExpression
+
+"""
 ExprValue is a scalar type that represents an Expr value.
 """
 scalar ExprValue

@@ -2,6 +2,7 @@ package graphql2
 
 import (
 	"encoding/json"
+	"reflect"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/expr-lang/expr"
@@ -106,6 +107,24 @@ func UnmarshalExprBooleanExpression(v interface{}) (string, error) {
 	}
 
 	_, err = expr.Compile(str, expr.AsBool())
+	if err != nil {
+		return "", validation.WrapError(err)
+	}
+
+	return str, nil
+}
+
+func MarshalExprStringExpression(s string) graphql.Marshaler {
+	return graphql.MarshalString(s)
+}
+
+func UnmarshalExprStringExpression(v interface{}) (string, error) {
+	str, err := graphql.UnmarshalString(v)
+	if err != nil {
+		return "", err
+	}
+
+	_, err = expr.Compile(str, expr.AsKind(reflect.String))
 	if err != nil {
 		return "", validation.WrapError(err)
 	}
