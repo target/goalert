@@ -42,6 +42,8 @@ import { useSessionInfo } from '../util/RequireConfig'
 import WizardRouter from '../wizard/WizardRouter'
 import LocalDev from '../localdev/LocalDev'
 import AdminSwitchoverGuide from '../admin/switchover/AdminSwitchoverGuide'
+import UniversalKeyPage from '../services/UniversalKey/UniversalKeyPage'
+import { useExpFlag } from '../util/useExpFlag'
 
 // ParamRoute will pass route parameters as props to the route's child.
 function ParamRoute(props: RouteProps): JSX.Element {
@@ -70,7 +72,7 @@ const alertQuery = gql`
     }
   }
 `
-
+const EXP_ROUTE_UNIV_KEY = '/services/:serviceID/integration-keys/:keyID'
 // Allow any component to be used as a route.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const routes: Record<string, JSXElementConstructor<any>> = {
@@ -100,6 +102,7 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/services/:serviceID/alerts/:alertID': AlertDetailPage,
   '/services/:serviceID/heartbeat-monitors': HeartbeatMonitorList,
   '/services/:serviceID/integration-keys': IntegrationKeyList,
+  [EXP_ROUTE_UNIV_KEY]: UniversalKeyPage,
   '/services/:serviceID/labels': ServiceLabelList,
   '/services/:serviceID/alert-metrics': AlertMetrics,
 
@@ -146,6 +149,8 @@ export default function AppRoutes(): JSX.Element {
   })
   const alertServiceID = urlAlertID && alertQ.data?.alert?.serviceID
 
+  const hasUnivKeysFlag = useExpFlag('univ-keys')
+
   useLayoutEffect(() => {
     if (path.endsWith('/') && path !== '/') {
       setPath(path.slice(0, -1) + location.search + location.hash, {
@@ -189,14 +194,16 @@ export default function AppRoutes(): JSX.Element {
 
   return (
     <Switch>
-      {
-        Object.entries(routes).map(([path, component]) => (
+      {Object.entries(routes)
+        .filter((value) => {
+          if (value[0] === EXP_ROUTE_UNIV_KEY && !hasUnivKeysFlag) {
+            return false
+          }
+          return true
+        })
+        .map(([path, component]) => (
           <ParamRoute key={path} path={path} component={component} />
-
-          // not worth the type headache, we just want our routes
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        )) as any
-      }
+        ))}
       <Route component={PageNotFound} />
     </Switch>
   )

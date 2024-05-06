@@ -23,6 +23,7 @@ const typeMap: { [key: string]: string } = {
   rotations: 'Rotation',
   users: 'User',
   services: 'Service',
+  'integration-keys': 'IntegrationKey',
 }
 const toTitleCase = (str: string): string =>
   startCase(str)
@@ -123,7 +124,8 @@ function useBreadcrumbs(): [string, JSX.Element[] | JSX.Element] {
   const crumbs: Array<JSX.Element> = []
   const parts = path.split('/')
   const name = useName(parts[1], parts[2])
-  parts.slice(1).forEach((part, i) => {
+  parts.slice(1).forEach((p, i) => {
+    const part = decodeURIComponent(p)
     title = i === 1 ? name : toTitleCase(part)
     if (parts[1] === 'admin') {
       // admin doesn't have IDs to lookup
