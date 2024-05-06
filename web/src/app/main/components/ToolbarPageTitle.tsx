@@ -123,7 +123,7 @@ function useBreadcrumbs(): [string, JSX.Element[] | JSX.Element] {
   let title = ''
   const crumbs: Array<JSX.Element> = []
   const parts = path.split('/')
-  const name = useName(parts[parts.length - 2], parts[parts.length - 1])
+  const name = useName(parts[1], parts[2])
   parts.slice(1).forEach((p, i) => {
     const part = decodeURIComponent(p)
     title = i === 1 ? name : toTitleCase(part)
