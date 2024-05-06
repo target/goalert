@@ -30,8 +30,6 @@ export default function IntegrationKeyCreateDialog(props: {
     caption = 'Submit to configure universal key rules'
   }
 
-  console.log(createKeyStatus)
-
   if (createKeyStatus?.data?.createIntegrationKey?.type === 'universal') {
     return (
       <Redirect
@@ -52,7 +50,13 @@ export default function IntegrationKeyCreateDialog(props: {
         createKey(
           { input: { serviceID, ...value } },
           { additionalTypenames: ['IntegrationKey', 'Service'] },
-        ).then(onClose)
+        ).then(() => {
+          if (value?.type === 'universal') {
+            return
+          }
+
+          onClose()
+        })
       }}
       form={
         <IntegrationKeyForm
