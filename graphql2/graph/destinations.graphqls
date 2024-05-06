@@ -198,11 +198,6 @@ type DestinationTypeInfo {
   requiredFields: [DestinationFieldConfig!]!
 
   """
-  expr parameters that can be used for this destination type
-  """
-  dynamicParams: [DynamicParamConfig!]!
-
-  """
   disclaimer text to display when a user is selecting this destination type for a contact method
   """
   userDisclaimer: String!
@@ -221,11 +216,6 @@ type DestinationTypeInfo {
   this destination type can be used for schedule on-call notifications
   """
   isSchedOnCallNotify: Boolean!
-
-  """
-  this destination type can be used for dynamic actions
-  """
-  isDynamicAction: Boolean!
 
   """
   if true, the destination type supports status updates
@@ -283,38 +273,4 @@ type DestinationFieldConfig {
   if true, the destination type supports validation
   """
   supportsValidation: Boolean!
-}
-
-type DynamicParamConfig {
-  """
-  unique ID for the input field
-  """
-  paramID: ID!
-
-  """
-  user-friendly label (should be singular)
-  """
-  label: String!
-
-  """
-  user-friendly helper text for input fields (i.e., "Enter a phone number")
-  """
-  hint: String!
-
-  """
-  URL to link to for more information about the destination type
-  """
-  hintURL: String!
-
-  """
-  the type of the parameter
-  """
-  dataType: DynamicParamType!
-}
-
-enum DynamicParamType {
-  string
-  markdown
-  number
-  boolean
 }
