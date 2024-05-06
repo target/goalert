@@ -21,29 +21,18 @@ type dbConfig struct {
 
 type Config struct {
 	StopAfterFirstMatchingRule bool
-
-	// Rules is a list of rules to apply to the alert.
-	Rules []Rule
-
-	Suppression []SuppWindow
-
-	DefaultActions []Action
+	Rules                      []Rule
+	Suppression                []SuppWindow
+	DefaultActions             []Action
 }
 
 type Rule struct {
-	ID uuid.UUID
-
-	// Name is the name of the rule.
-	Name string
-
-	// Description is a description of the rule.
-	Description string
-
+	ID            uuid.UUID
+	Name          string
+	Description   string
 	ConditionExpr string
-
-	DedupConfig DedupConfig
-
-	Actions []Action
+	DedupConfig   DedupConfig
+	Actions       []Action
 }
 
 type DedupConfig struct {
