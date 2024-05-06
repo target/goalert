@@ -1563,6 +1563,22 @@ func (q *Queries) IntKeyGetServiceID(ctx context.Context, arg IntKeyGetServiceID
 	return service_id, err
 }
 
+const intKeyGetType = `-- name: IntKeyGetType :one
+SELECT
+    type
+FROM
+    integration_keys
+WHERE
+    id = $1
+`
+
+func (q *Queries) IntKeyGetType(ctx context.Context, id uuid.UUID) (EnumIntegrationKeysType, error) {
+	row := q.db.QueryRowContext(ctx, intKeyGetType, id)
+	var type_ EnumIntegrationKeysType
+	err := row.Scan(&type_)
+	return type_, err
+}
+
 const intKeySetConfig = `-- name: IntKeySetConfig :exec
 INSERT INTO uik_config(id, config)
     VALUES ($1, $2)

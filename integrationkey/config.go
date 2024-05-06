@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/validation"
 )
 
 type dbConfig struct {
@@ -100,9 +101,18 @@ func (s *Store) SetConfig(ctx context.Context, db gadb.DBTX, keyID uuid.UUID, cf
 	if err != nil {
 		return err
 	}
+	gdb := gadb.New(db)
+
+	keyType, err := gdb.IntKeyGetType(ctx, keyID)
+	if err != nil {
+		return err
+	}
+	if keyType != gadb.EnumIntegrationKeysTypeUniversal {
+		return validation.NewGenericError("config only supported for universal keys")
+	}
 
 	if cfg == nil {
-		return gadb.New(db).IntKeyDeleteConfig(ctx, keyID)
+		return gdb.IntKeyDeleteConfig(ctx, keyID)
 	}
 
 	// ensure all rule IDs are set

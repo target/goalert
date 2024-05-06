@@ -59,3 +59,11 @@ ON CONFLICT (id)
 DELETE FROM uik_config
 WHERE id = $1;
 
+-- name: IntKeyGetType :one
+SELECT
+    type
+FROM
+    integration_keys
+WHERE
+    id = $1;
+
