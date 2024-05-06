@@ -90,8 +90,8 @@ func (s *Store) SetConfig(ctx context.Context, db gadb.DBTX, keyID uuid.UUID, cf
 	if err != nil {
 		return err
 	}
-	gdb := gadb.New(db)
 
+	gdb := gadb.New(db)
 	keyType, err := gdb.IntKeyGetType(ctx, keyID)
 	if err != nil {
 		return err
