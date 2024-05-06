@@ -9,7 +9,7 @@ require (
 	github.com/creack/pty/v2 v2.0.1
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/emersion/go-smtp v0.21.1
-	github.com/expr-lang/expr v1.16.3
+	github.com/expr-lang/expr v1.16.5
 	github.com/fatih/color v1.16.0
 	github.com/felixge/httpsnoop v1.0.4
 	github.com/fullstorydev/grpcui v1.3.3
@@ -33,7 +33,7 @@ require (
 	github.com/mnako/letters v0.2.2
 	github.com/nyaruka/phonenumbers v1.3.4
 	github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282
-	github.com/pelletier/go-toml/v2 v2.2.1
+	github.com/pelletier/go-toml/v2 v2.2.2
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.19.0
 	github.com/rubenv/sql-migrate v1.6.1
@@ -46,7 +46,7 @@ require (
 	github.com/vektah/gqlparser/v2 v2.5.11
 	golang.org/x/crypto v0.22.0
 	golang.org/x/oauth2 v0.19.0
-	golang.org/x/sys v0.19.0
+	golang.org/x/sys v0.20.0
 	golang.org/x/term v0.19.0
 	golang.org/x/tools v0.20.0
 	google.golang.org/grpc v1.63.2
