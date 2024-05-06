@@ -115,7 +115,7 @@ func exprToCondition(expr string) (*graphql2.Condition, error) {
 }
 
 func (e *Expr) ExprToCondition(ctx context.Context, _ *graphql2.Expr, input graphql2.ExprToConditionInput) (*graphql2.Condition, error) {
-	cond, err := exprToCondition(string(input.Expr))
+	cond, err := exprToCondition(input.Expr)
 	if errors.Is(err, errTooComplex) {
 		return nil, gqlErrTooComplex(ctx)
 	}

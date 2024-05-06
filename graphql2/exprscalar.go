@@ -1,7 +1,6 @@
 package graphql2
 
 import (
-	"encoding/json"
 	"reflect"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -57,38 +56,17 @@ func ExprIsLiteral(n ast.Node) bool {
 	return true
 }
 
-func MarshalJSONValue(v any) graphql.Marshaler {
-	data, err := json.Marshal(v)
-	if err != nil {
-		panic(err)
-	}
-	return graphql.MarshalString(string(data))
-}
+func MarshalExprExpression(s string) graphql.Marshaler        { return graphql.MarshalString(s) }
+func MarshalExprBooleanExpression(s string) graphql.Marshaler { return graphql.MarshalString(s) }
+func MarshalExprStringExpression(s string) graphql.Marshaler  { return graphql.MarshalString(s) }
 
-func UnmarshalJSONValue(v any) (any, error) {
-	str, err := graphql.UnmarshalString(v)
-	if err != nil {
-		return nil, err
-	}
-	var data any
-	err = json.Unmarshal([]byte(str), &data)
-	if err != nil {
-		return nil, validation.WrapError(err)
-	}
-	return data, nil
-}
-
-func MarshalExprExpression(s string) graphql.Marshaler {
-	return graphql.MarshalString(s)
-}
-
-func UnmarshalExprExpression(v interface{}) (string, error) {
+func exprExpressionWith(v interface{}, opts ...expr.Option) (string, error) {
 	str, err := graphql.UnmarshalString(v)
 	if err != nil {
 		return "", err
 	}
 
-	_, err = expr.Compile(str)
+	_, err = expr.Compile(str, opts...)
 	if err != nil {
 		return "", validation.WrapError(err)
 	}
@@ -96,99 +74,63 @@ func UnmarshalExprExpression(v interface{}) (string, error) {
 	return str, nil
 }
 
-func MarshalExprBooleanExpression(s string) graphql.Marshaler {
-	return graphql.MarshalString(s)
-}
-
+func UnmarshalExprExpression(v interface{}) (string, error) { return exprExpressionWith(v) }
 func UnmarshalExprBooleanExpression(v interface{}) (string, error) {
-	str, err := graphql.UnmarshalString(v)
-	if err != nil {
-		return "", err
-	}
-
-	_, err = expr.Compile(str, expr.AsBool())
-	if err != nil {
-		return "", validation.WrapError(err)
-	}
-
-	return str, nil
-}
-
-func MarshalExprStringExpression(s string) graphql.Marshaler {
-	return graphql.MarshalString(s)
+	return exprExpressionWith(v, expr.AsBool())
 }
 
 func UnmarshalExprStringExpression(v interface{}) (string, error) {
-	str, err := graphql.UnmarshalString(v)
-	if err != nil {
-		return "", err
-	}
-
-	_, err = expr.Compile(str, expr.AsKind(reflect.String))
-	if err != nil {
-		return "", validation.WrapError(err)
-	}
-
-	return str, nil
+	return exprExpressionWith(v, expr.AsKind(reflect.String))
 }
 
-func MarshalExprValue(n ast.Node) graphql.Marshaler {
-	return graphql.MarshalString(n.String())
+func MarshalExprValue(n ast.Node) graphql.Marshaler      { return graphql.MarshalString(n.String()) }
+func MarshalExprIdentifier(n ast.Node) graphql.Marshaler { return graphql.MarshalString(n.String()) }
+func MarshalExprOperator(op string) graphql.Marshaler    { return graphql.MarshalString(op) }
+
+func exprVal(v interface{}) (ast.Node, error) {
+	str, err := graphql.UnmarshalString(v)
+	if err != nil {
+		return nil, err
+	}
+
+	t, err := parser.Parse(str)
+	if err != nil {
+		return nil, validation.WrapError(err)
+	}
+
+	return t.Node, nil
 }
 
 func UnmarshalExprValue(v interface{}) (ast.Node, error) {
-	str, err := graphql.UnmarshalString(v)
-	if err != nil {
-		return nil, err
-	}
-
-	t, err := parser.Parse(str)
+	n, err := exprVal(v)
 	if err != nil {
 		return nil, validation.WrapError(err)
 	}
-	if !ExprIsLiteral(t.Node) {
+	if !ExprIsLiteral(n) {
 		return nil, validation.NewGenericError("must be a literal value")
 	}
 
-	return t.Node, nil
-}
-
-func MarshalExprIdentifier(n ast.Node) graphql.Marshaler {
-	return graphql.MarshalString(n.String())
+	return n, nil
 }
 
 func UnmarshalExprIdentifier(v interface{}) (ast.Node, error) {
-	str, err := graphql.UnmarshalString(v)
-	if err != nil {
-		return nil, err
-	}
-
-	t, err := parser.Parse(str)
+	n, err := exprVal(v)
 	if err != nil {
 		return nil, validation.WrapError(err)
 	}
-	if !ExprIsID(t.Node) {
+	if !ExprIsID(n) {
 		return nil, validation.NewGenericError("must be an identifier")
 	}
 
-	return t.Node, nil
-}
-
-func MarshalExprOperator(op string) graphql.Marshaler {
-	return graphql.MarshalString(op)
+	return n, nil
 }
 
 func UnmarshalExprOperator(v interface{}) (string, error) {
-	str, err := graphql.UnmarshalString(v)
+	n, err := exprVal(v)
 	if err != nil {
-		return "", err
+		return "", validation.WrapError(err)
 	}
-
-	t, err := parser.Parse("a " + str + " b")
-	if err != nil {
-		return "", validation.NewGenericError("invalid operator")
-	}
-	bin, ok := t.Node.(*ast.BinaryNode)
+	bin, ok := n.(*ast.BinaryNode)
 	if !ok {
 		return "", validation.NewGenericError("invalid operator")
 	}
