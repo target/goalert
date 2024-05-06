@@ -62,7 +62,7 @@
     "@types/diff": "5.0.8",
     "@types/glob": "8.1.0",
     "@types/jest": "29.5.12",
-    "@types/lodash": "4.14.202",
+    "@types/lodash": "4.17.1",
     "@types/luxon": "3.4.2",
     "@types/node": "20.11.30",
     "@types/prop-types": "15.7.11",
