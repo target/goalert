@@ -110,3 +110,11 @@ models:
       - github.com/target/goalert/schedule.RuleID
   MessageLogConnectionStats:
     model: github.com/target/goalert/notification.SearchOptions
+  ExprExpression:
+    model: github.com/target/goalert/graphql2.ExprExpression
+  ExprBooleanExpression:
+    model: github.com/target/goalert/graphql2.ExprBooleanExpression
+  ExprValue:
+    model: github.com/target/goalert/graphql2.ExprValue
+  ExprIdentifier:
+    model: github.com/target/goalert/graphql2.ExprIdentifier

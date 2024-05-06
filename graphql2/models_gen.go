@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	ast1 "github.com/expr-lang/expr/ast"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/assignment"
@@ -111,19 +112,19 @@ type CalcRotationHandoffTimesInput struct {
 }
 
 type Clause struct {
-	Field    string `json:"field"`
-	Operator string `json:"operator"`
-	// Value is the JSON-encoded value of the clause.
-	Value string `json:"value"`
+	Field    ast1.Node `json:"field"`
+	Operator string    `json:"operator"`
+	// Value is a constant value that the field should be compared against.
+	Value ast1.Node `json:"value"`
 	// Negate indicates whether the clause should be negated (e.g., not contains vs. contains).
 	Negate bool `json:"negate"`
 }
 
 type ClauseInput struct {
-	Field    string `json:"field"`
-	Operator string `json:"operator"`
-	// Value is the JSON-encoded value of the clause.
-	Value string `json:"value"`
+	Field    ast1.Node `json:"field"`
+	Operator string    `json:"operator"`
+	// Value is a constant value that the field should be compared against.
+	Value ast1.Node `json:"value"`
 	// Negate indicates whether the clause should be negated (e.g., not contains vs. contains).
 	Negate bool `json:"negate"`
 }

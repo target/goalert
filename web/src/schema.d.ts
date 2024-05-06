@@ -513,8 +513,12 @@ export interface Expr {
   exprToCondition: Condition
 }
 
+export type ExprBooleanExpression = string
+
+export type ExprExpression = string
+
 export interface ExprToConditionInput {
-  expr: string
+  expr: ExprExpression
 }
 
 export interface FieldSearchConnection {
@@ -624,6 +628,8 @@ export interface IntegrationKeyTypeInfo {
   label: string
   name: string
 }
+
+export type JSONValue = string
 
 export interface KeyConfig {
   defaultActions: Action[]

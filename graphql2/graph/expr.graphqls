@@ -19,8 +19,33 @@ type Expr {
     @goField(forceResolver: true)
 }
 
+"""
+ExprExpression is a scalar type that represents an Expr expression.
+"""
+scalar ExprExpression
+
+"""
+ExprBooleanExpression is a scalar type that represents an Expr expression that evaluates to a boolean.
+"""
+scalar ExprBooleanExpression
+
+"""
+ExprValue is a scalar type that represents an Expr value.
+"""
+scalar ExprValue
+
+"""
+ExprIdentifier is a scalar type that represents an Expr identifier.
+"""
+scalar ExprIdentifier
+
+"""
+ExprOperator is a scalar type that represents an Expr operator.
+"""
+scalar ExprOperator
+
 input ExprToConditionInput {
-  expr: String!
+  expr: ExprBooleanExpression!
 }
 
 type Condition {
@@ -28,13 +53,13 @@ type Condition {
 }
 
 type Clause {
-  field: String!
-  operator: String!
+  field: ExprIdentifier!
+  operator: ExprOperator!
 
   """
-  Value is the JSON-encoded value of the clause.
+  Value is a constant value that the field should be compared against.
   """
-  value: String!
+  value: ExprValue!
 
   """
   Negate indicates whether the clause should be negated (e.g., not contains vs. contains).
@@ -51,13 +76,13 @@ input ConditionInput {
 }
 
 input ClauseInput {
-  field: String!
-  operator: String!
+  field: ExprIdentifier!
+  operator: ExprOperator!
 
   """
-  Value is the JSON-encoded value of the clause.
+  Value is a constant value that the field should be compared against.
   """
-  value: String!
+  value: ExprValue!
 
   """
   Negate indicates whether the clause should be negated (e.g., not contains vs. contains).
