@@ -107,18 +107,18 @@ type SuppressionWindow {
 
 input DedupConfigInput {
   """
-  dedupExpr is an expression that returns a string, used to determine if two requests are duplicates.
+  expr is an expression that returns a string, used to determine if two requests are duplicates.
   """
-  dedupExpr: String!
-  dedupWindow: ISODuration!
+  expr: String!
+  window: ISODuration!
 }
 
 type DedupConfig {
   """
-  dedupExpr is an expression that returns a string, used to determine if two requests are duplicates.
+  expr is an expression that returns a string, used to determine if two requests are duplicates.
   """
-  dedupExpr: String!
-  dedupWindow: ISODuration!
+  expr: String!
+  window: ISODuration!
 }
 
 input ActionInput {

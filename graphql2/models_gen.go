@@ -353,15 +353,15 @@ type DebugSendSMSInput struct {
 }
 
 type DedupConfig struct {
-	// dedupExpr is an expression that returns a string, used to determine if two requests are duplicates.
-	DedupExpr   string               `json:"dedupExpr"`
-	DedupWindow timeutil.ISODuration `json:"dedupWindow"`
+	// expr is an expression that returns a string, used to determine if two requests are duplicates.
+	Expr   string               `json:"expr"`
+	Window timeutil.ISODuration `json:"window"`
 }
 
 type DedupConfigInput struct {
-	// dedupExpr is an expression that returns a string, used to determine if two requests are duplicates.
-	DedupExpr   string               `json:"dedupExpr"`
-	DedupWindow timeutil.ISODuration `json:"dedupWindow"`
+	// expr is an expression that returns a string, used to determine if two requests are duplicates.
+	Expr   string               `json:"expr"`
+	Window timeutil.ISODuration `json:"window"`
 }
 
 // Destination represents a destination that can be used for notifications.

@@ -72,8 +72,8 @@ func (key *IntegrationKey) Config(ctx context.Context, raw *integrationkey.Integ
 			// Description:   r.Description,
 			ConditionExpr: r.ConditionExpr,
 			Dedup: &graphql2.DedupConfig{
-				DedupExpr:   r.DedupConfig.IDExpr,
-				DedupWindow: timeutil.ISODuration{SecondPart: float64(r.DedupConfig.WindowSeconds)},
+				Expr:   r.DedupConfig.IDExpr,
+				Window: timeutil.ISODuration{SecondPart: float64(r.DedupConfig.WindowSeconds)},
 			},
 			Action: actions,
 		})

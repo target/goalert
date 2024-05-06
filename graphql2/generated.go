@@ -243,8 +243,8 @@ type ComplexityRoot struct {
 	}
 
 	DedupConfig struct {
-		DedupExpr   func(childComplexity int) int
-		DedupWindow func(childComplexity int) int
+		Expr   func(childComplexity int) int
+		Window func(childComplexity int) int
 	}
 
 	Destination struct {
@@ -1699,19 +1699,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DebugSendSMSInfo.ProviderURL(childComplexity), true
 
-	case "DedupConfig.dedupExpr":
-		if e.complexity.DedupConfig.DedupExpr == nil {
+	case "DedupConfig.expr":
+		if e.complexity.DedupConfig.Expr == nil {
 			break
 		}
 
-		return e.complexity.DedupConfig.DedupExpr(childComplexity), true
+		return e.complexity.DedupConfig.Expr(childComplexity), true
 
-	case "DedupConfig.dedupWindow":
-		if e.complexity.DedupConfig.DedupWindow == nil {
+	case "DedupConfig.window":
+		if e.complexity.DedupConfig.Window == nil {
 			break
 		}
 
-		return e.complexity.DedupConfig.DedupWindow(childComplexity), true
+		return e.complexity.DedupConfig.Window(childComplexity), true
 
 	case "Destination.displayInfo":
 		if e.complexity.Destination.DisplayInfo == nil {
@@ -10501,8 +10501,8 @@ func (ec *executionContext) fieldContext_DebugSendSMSInfo_fromNumber(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _DedupConfig_dedupExpr(ctx context.Context, field graphql.CollectedField, obj *DedupConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DedupConfig_dedupExpr(ctx, field)
+func (ec *executionContext) _DedupConfig_expr(ctx context.Context, field graphql.CollectedField, obj *DedupConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DedupConfig_expr(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -10515,7 +10515,7 @@ func (ec *executionContext) _DedupConfig_dedupExpr(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.DedupExpr, nil
+		return obj.Expr, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10532,7 +10532,7 @@ func (ec *executionContext) _DedupConfig_dedupExpr(ctx context.Context, field gr
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_DedupConfig_dedupExpr(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_DedupConfig_expr(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "DedupConfig",
 		Field:      field,
@@ -10545,8 +10545,8 @@ func (ec *executionContext) fieldContext_DedupConfig_dedupExpr(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _DedupConfig_dedupWindow(ctx context.Context, field graphql.CollectedField, obj *DedupConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DedupConfig_dedupWindow(ctx, field)
+func (ec *executionContext) _DedupConfig_window(ctx context.Context, field graphql.CollectedField, obj *DedupConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DedupConfig_window(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -10559,7 +10559,7 @@ func (ec *executionContext) _DedupConfig_dedupWindow(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.DedupWindow, nil
+		return obj.Window, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10576,7 +10576,7 @@ func (ec *executionContext) _DedupConfig_dedupWindow(ctx context.Context, field 
 	return ec.marshalNISODuration2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_DedupConfig_dedupWindow(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_DedupConfig_window(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "DedupConfig",
 		Field:      field,
@@ -15590,10 +15590,10 @@ func (ec *executionContext) fieldContext_KeyRule_dedup(ctx context.Context, fiel
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "dedupExpr":
-				return ec.fieldContext_DedupConfig_dedupExpr(ctx, field)
-			case "dedupWindow":
-				return ec.fieldContext_DedupConfig_dedupWindow(ctx, field)
+			case "expr":
+				return ec.fieldContext_DedupConfig_expr(ctx, field)
+			case "window":
+				return ec.fieldContext_DedupConfig_window(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DedupConfig", field.Name)
 		},
@@ -34687,27 +34687,27 @@ func (ec *executionContext) unmarshalInputDedupConfigInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"dedupExpr", "dedupWindow"}
+	fieldsInOrder := [...]string{"expr", "window"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "dedupExpr":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dedupExpr"))
+		case "expr":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("expr"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.DedupExpr = data
-		case "dedupWindow":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dedupWindow"))
+			it.Expr = data
+		case "window":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("window"))
 			data, err := ec.unmarshalNISODuration2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.DedupWindow = data
+			it.Window = data
 		}
 	}
 
@@ -39032,13 +39032,13 @@ func (ec *executionContext) _DedupConfig(ctx context.Context, sel ast.SelectionS
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("DedupConfig")
-		case "dedupExpr":
-			out.Values[i] = ec._DedupConfig_dedupExpr(ctx, field, obj)
+		case "expr":
+			out.Values[i] = ec._DedupConfig_expr(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "dedupWindow":
-			out.Values[i] = ec._DedupConfig_dedupWindow(ctx, field, obj)
+		case "window":
+			out.Values[i] = ec._DedupConfig_window(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
