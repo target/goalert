@@ -567,11 +567,6 @@ type KeyConfig struct {
 	DefaultActions []Action `json:"defaultActions"`
 }
 
-type KeyHandlerRuleInput struct {
-	Condition string        `json:"condition"`
-	Actions   []ActionInput `json:"actions"`
-}
-
 type KeyRule struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
@@ -767,13 +762,6 @@ type SetAlertNoiseReasonInput struct {
 type SetFavoriteInput struct {
 	Target   *assignment.RawTarget `json:"target"`
 	Favorite bool                  `json:"favorite"`
-}
-
-type SetKeyHandlerInput struct {
-	KeyID          string                `json:"keyID"`
-	Rules          []KeyHandlerRuleInput `json:"rules"`
-	DedupExprs     []string              `json:"dedupExprs"`
-	DefaultActions []ActionInput         `json:"defaultActions"`
 }
 
 type SetLabelInput struct {
