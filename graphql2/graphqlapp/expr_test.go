@@ -3,32 +3,11 @@ package graphqlapp
 import (
 	"testing"
 
+	"github.com/expr-lang/expr/ast"
 	"github.com/expr-lang/expr/parser"
 	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/graphql2"
 )
-
-func TestIsID(t *testing.T) {
-	check := func(desc, expr string, expected bool) {
-		t.Helper()
-
-		t.Run(desc, func(t *testing.T) {
-			t.Log("expr:", expr)
-			tree, err := parser.Parse(expr)
-			require.NoError(t, err)
-
-			require.Equal(t, expected, isID(tree.Node))
-		})
-	}
-
-	check("simple", "foo", true)
-	check("member", "foo.bar", true)
-	check("method", "foo.bar()", false)
-	check("array member", "foo[0].bar.baz", true)
-	check("map member", "foo['asdf'].bar.baz", true)
-	check("map member", "foo['asdf'].bar.baz", true)
-	check("maybe member", "foo['asdf']?.bar.baz", true)
-}
 
 func TestExprToCondition(t *testing.T) {
 	check := func(desc, expr string, expected []graphql2.Clause) {
@@ -39,31 +18,44 @@ func TestExprToCondition(t *testing.T) {
 			cond, err := exprToCondition(expr)
 			require.NoError(t, err)
 			require.NotNil(t, cond)
-			require.Equal(t, expected, cond.Clauses)
+			require.Len(t, cond.Clauses, len(expected))
+			for i := range expected {
+				require.Equal(t, expected[i].Field.String(), cond.Clauses[i].Field.String(), "clause[%d].Field", i)
+				require.Equal(t, expected[i].Operator, cond.Clauses[i].Operator, "clause[%d].Operator", i)
+				require.Equal(t, expected[i].Value.String(), cond.Clauses[i].Value.String(), "clause[%d].Value", i)
+				require.Equal(t, expected[i].Negate, cond.Clauses[i].Negate, "clause[%d].Negate", i)
+			}
 		})
+	}
+	expr := func(s string) ast.Node {
+		t.Helper()
+
+		tree, err := parser.Parse(s)
+		require.NoError(t, err)
+		return tree.Node
 	}
 
 	check("simple", "expr == true", []graphql2.Clause{
-		{Field: "expr", Operator: "==", Value: "true"},
+		{Field: expr("expr"), Operator: "==", Value: expr("true")},
 	})
 
 	check("member", "expr[0].bar == true", []graphql2.Clause{
-		{Field: "expr[0].bar", Operator: "==", Value: "true"},
+		{Field: expr("expr[0].bar"), Operator: "==", Value: expr("true")},
 	})
 
 	check("string", "expr == \"true\"", []graphql2.Clause{
-		{Field: "expr", Operator: "==", Value: "\"true\""},
+		{Field: expr("expr"), Operator: "==", Value: expr("\"true\"")},
 	})
 	check("multi", "expr == true && expr2 == 1 and expr contains \"yep\" and expr not contains 'asdf'", []graphql2.Clause{
-		{Field: "expr", Operator: "==", Value: "true"},
-		{Field: "expr2", Operator: "==", Value: "1"},
-		{Field: "expr", Operator: "contains", Value: "\"yep\""},
-		{Field: "expr", Operator: "contains", Value: "\"asdf\"", Negate: true},
+		{Field: expr("expr"), Operator: "==", Value: expr("true")},
+		{Field: expr("expr2"), Operator: "==", Value: expr("1")},
+		{Field: expr("expr"), Operator: "contains", Value: expr("\"yep\"")},
+		{Field: expr("expr"), Operator: "contains", Value: expr("\"asdf\""), Negate: true},
 	})
 
 	check("one of", "expr in ['a', 'b', 'c'] and expr not in ['d']", []graphql2.Clause{
-		{Field: "expr", Operator: "in", Value: `["a","b","c"]`},
-		{Field: "expr", Operator: "in", Value: `["d"]`, Negate: true},
+		{Field: expr("expr"), Operator: "in", Value: expr(`["a","b","c"]`)},
+		{Field: expr("expr"), Operator: "in", Value: expr(`["d"]`), Negate: true},
 	})
 
 	t.Run("too complex", func(t *testing.T) {
@@ -86,15 +78,17 @@ func TestClauseToExpr(t *testing.T) {
 			require.Equal(t, expected, expr)
 		})
 	}
+	expr := func(s string) ast.Node {
+		t.Helper()
 
-	check("simple", graphql2.ClauseInput{Field: "foo", Operator: "==", Value: "true"}, "foo == true")
-	check("string", graphql2.ClauseInput{Field: "foo", Operator: "==", Value: "\"true\""}, "foo == \"true\"")
-	check("array", graphql2.ClauseInput{Field: "foo", Operator: "in", Value: `["a","b","c"]`}, `foo in ["a", "b", "c"]`)
-	check("contains", graphql2.ClauseInput{Field: "foo", Operator: "contains", Value: "\"asdf\""}, `foo contains "asdf"`)
-	check("not contains", graphql2.ClauseInput{Field: "foo", Operator: "contains", Value: "\"asdf\"", Negate: true}, `foo not contains "asdf"`)
+		tree, err := parser.Parse(s)
+		require.NoError(t, err)
+		return tree.Node
+	}
 
-	t.Run("invalid", func(t *testing.T) {
-		_, err := clauseToExpr("", graphql2.ClauseInput{Field: "foo", Operator: "contains", Value: "asdf"})
-		require.Error(t, err)
-	})
+	check("simple", graphql2.ClauseInput{Field: expr("foo"), Operator: "==", Value: expr("true")}, "foo == true")
+	check("string", graphql2.ClauseInput{Field: expr("foo"), Operator: "==", Value: expr("\"true\"")}, "foo == \"true\"")
+	check("array", graphql2.ClauseInput{Field: expr("foo"), Operator: "in", Value: expr(`["a","b","c"]`)}, `foo in ["a", "b", "c"]`)
+	check("contains", graphql2.ClauseInput{Field: expr("foo"), Operator: "contains", Value: expr("\"asdf\"")}, `foo contains "asdf"`)
+	check("not contains", graphql2.ClauseInput{Field: expr("foo"), Operator: "contains", Value: expr("\"asdf\""), Negate: true}, `foo not contains "asdf"`)
 }
