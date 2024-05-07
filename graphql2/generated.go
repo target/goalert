@@ -15,6 +15,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	ast1 "github.com/expr-lang/expr/ast"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/alert/alertmetrics"
@@ -8736,9 +8737,9 @@ func (ec *executionContext) _Clause_field(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(ast1.Node)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNExprIdentifier2githubᚗcomᚋexprᚑlangᚋexprᚋastᚐNode(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Clause_field(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8748,7 +8749,7 @@ func (ec *executionContext) fieldContext_Clause_field(ctx context.Context, field
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type ExprIdentifier does not have child fields")
 		},
 	}
 	return fc, nil
@@ -8782,7 +8783,7 @@ func (ec *executionContext) _Clause_operator(ctx context.Context, field graphql.
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNExprOperator2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Clause_operator(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8792,7 +8793,7 @@ func (ec *executionContext) fieldContext_Clause_operator(ctx context.Context, fi
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type ExprOperator does not have child fields")
 		},
 	}
 	return fc, nil
@@ -8824,9 +8825,9 @@ func (ec *executionContext) _Clause_value(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(ast1.Node)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNExprValue2githubᚗcomᚋexprᚑlangᚋexprᚋastᚐNode(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Clause_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8836,7 +8837,7 @@ func (ec *executionContext) fieldContext_Clause_value(ctx context.Context, field
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type ExprValue does not have child fields")
 		},
 	}
 	return fc, nil
@@ -11750,7 +11751,7 @@ func (ec *executionContext) _DynamicParam_expr(ctx context.Context, field graphq
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNExprStringExpression2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DynamicParam_expr(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -11760,7 +11761,7 @@ func (ec *executionContext) fieldContext_DynamicParam_expr(ctx context.Context, 
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type ExprStringExpression does not have child fields")
 		},
 	}
 	return fc, nil
@@ -14990,7 +14991,7 @@ func (ec *executionContext) _KeyRule_conditionExpr(ctx context.Context, field gr
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNExprBooleanExpression2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_KeyRule_conditionExpr(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -15000,7 +15001,7 @@ func (ec *executionContext) fieldContext_KeyRule_conditionExpr(ctx context.Conte
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type ExprBooleanExpression does not have child fields")
 		},
 	}
 	return fc, nil
@@ -32654,21 +32655,21 @@ func (ec *executionContext) unmarshalInputClauseInput(ctx context.Context, obj i
 		switch k {
 		case "field":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNExprIdentifier2githubᚗcomᚋexprᚑlangᚋexprᚋastᚐNode(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Field = data
 		case "operator":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("operator"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNExprOperator2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Operator = data
 		case "value":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNExprValue2githubᚗcomᚋexprᚑlangᚋexprᚋastᚐNode(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34072,7 +34073,7 @@ func (ec *executionContext) unmarshalInputDynamicParamInput(ctx context.Context,
 			it.ParamID = data
 		case "expr":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("expr"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNExprStringExpression2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34177,7 +34178,7 @@ func (ec *executionContext) unmarshalInputExprToConditionInput(ctx context.Conte
 		switch k {
 		case "expr":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("expr"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNExprBooleanExpression2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34317,7 +34318,7 @@ func (ec *executionContext) unmarshalInputKeyRuleInput(ctx context.Context, obj 
 			it.Description = data
 		case "conditionExpr":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("conditionExpr"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNExprBooleanExpression2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -46592,9 +46593,96 @@ func (ec *executionContext) marshalNExpr2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgr
 	return ec._Expr(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNExprBooleanExpression2string(ctx context.Context, v interface{}) (string, error) {
+	res, err := UnmarshalExprBooleanExpression(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNExprBooleanExpression2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := MarshalExprBooleanExpression(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNExprIdentifier2githubᚗcomᚋexprᚑlangᚋexprᚋastᚐNode(ctx context.Context, v interface{}) (ast1.Node, error) {
+	res, err := UnmarshalExprIdentifier(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNExprIdentifier2githubᚗcomᚋexprᚑlangᚋexprᚋastᚐNode(ctx context.Context, sel ast.SelectionSet, v ast1.Node) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	res := MarshalExprIdentifier(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNExprOperator2string(ctx context.Context, v interface{}) (string, error) {
+	res, err := graphql.UnmarshalString(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNExprOperator2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalString(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNExprStringExpression2string(ctx context.Context, v interface{}) (string, error) {
+	res, err := UnmarshalExprStringExpression(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNExprStringExpression2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := MarshalExprStringExpression(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) unmarshalNExprToConditionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐExprToConditionInput(ctx context.Context, v interface{}) (ExprToConditionInput, error) {
 	res, err := ec.unmarshalInputExprToConditionInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNExprValue2githubᚗcomᚋexprᚑlangᚋexprᚋastᚐNode(ctx context.Context, v interface{}) (ast1.Node, error) {
+	res, err := UnmarshalExprValue(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNExprValue2githubᚗcomᚋexprᚑlangᚋexprᚋastᚐNode(ctx context.Context, sel ast.SelectionSet, v ast1.Node) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	res := MarshalExprValue(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) marshalNFieldSearchConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldSearchConnection(ctx context.Context, sel ast.SelectionSet, v FieldSearchConnection) graphql.Marshaler {

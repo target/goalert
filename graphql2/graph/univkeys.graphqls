@@ -33,7 +33,7 @@ type KeyRule {
   """
   An expression that must evaluate to true for the rule to match.
   """
-  conditionExpr: String!
+  conditionExpr: ExprBooleanExpression!
 
   actions: [Action!]!
 }
@@ -66,7 +66,7 @@ input KeyRuleInput {
   """
   An expression that must evaluate to true for the rule to match.
   """
-  conditionExpr: String!
+  conditionExpr: ExprBooleanExpression!
 
   actions: [ActionInput!]!
 }
@@ -83,10 +83,10 @@ type Action {
 
 input DynamicParamInput {
   paramID: ID!
-  expr: String!
+  expr: ExprStringExpression!
 }
 
 type DynamicParam {
   paramID: ID!
-  expr: String!
+  expr: ExprStringExpression!
 }

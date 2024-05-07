@@ -139,17 +139,17 @@ export interface CalcRotationHandoffTimesInput {
 }
 
 export interface Clause {
-  field: string
+  field: ExprIdentifier
   negate: boolean
-  operator: string
-  value: string
+  operator: ExprOperator
+  value: ExprValue
 }
 
 export interface ClauseInput {
-  field: string
+  field: ExprIdentifier
   negate: boolean
-  operator: string
-  value: string
+  operator: ExprOperator
+  value: ExprValue
 }
 
 export interface ClearTemporarySchedulesInput {
@@ -460,12 +460,12 @@ export interface DestinationTypeInfo {
 }
 
 export interface DynamicParam {
-  expr: string
+  expr: ExprStringExpression
   paramID: string
 }
 
 export interface DynamicParamInput {
-  expr: string
+  expr: ExprStringExpression
   paramID: string
 }
 
@@ -513,9 +513,21 @@ export interface Expr {
   exprToCondition: Condition
 }
 
+export type ExprBooleanExpression = string
+
+export type ExprExpression = string
+
+export type ExprIdentifier = string
+
+export type ExprOperator = string
+
+export type ExprStringExpression = string
+
 export interface ExprToConditionInput {
-  expr: string
+  expr: ExprBooleanExpression
 }
+
+export type ExprValue = string
 
 export interface FieldSearchConnection {
   nodes: FieldSearchResult[]
@@ -633,7 +645,7 @@ export interface KeyConfig {
 
 export interface KeyRule {
   actions: Action[]
-  conditionExpr: string
+  conditionExpr: ExprBooleanExpression
   description: string
   id: string
   name: string
@@ -641,7 +653,7 @@ export interface KeyRule {
 
 export interface KeyRuleInput {
   actions: ActionInput[]
-  conditionExpr: string
+  conditionExpr: ExprBooleanExpression
   description: string
   id?: null | string
   name: string
