@@ -11,6 +11,13 @@ import (
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation"
+	"github.com/target/goalert/validation/validate"
+)
+
+const (
+	MaxRules   = 100
+	MaxActions = 10
+	MaxParams  = 10
 )
 
 type dbConfig struct {
@@ -50,6 +57,62 @@ type Action struct {
 	DynamicParams map[string]string
 }
 
+func (cfg Config) Validate() error {
+	err := validate.Many(
+		validate.Len("Rules", cfg.Rules, 0, MaxRules),
+		validate.Len("DefaultActions", cfg.DefaultActions, 0, MaxActions),
+	)
+	if err != nil {
+		return err
+	}
+
+	for i, r := range cfg.Rules {
+		field := fmt.Sprintf("Rules[%d]", i)
+		err := validate.Many(
+			validate.Name(field+".Name", r.Name),
+			validate.Text(field+".Description", r.Description, 0, 255), // these are arbitrary and will likely change as the feature is developed
+			validate.Text(field+".ConditionExpr", r.ConditionExpr, 1, 1024),
+			validate.Len(field+".Actions", r.Actions, 0, MaxActions),
+		)
+		if err != nil {
+			return err
+		}
+
+		for j, a := range r.Actions {
+			field := fmt.Sprintf("Rules[%d].Actions[%d]", i, j)
+			err := validate.Many(
+				validate.MapLen(field+".StaticParams", a.StaticParams, 0, MaxParams),
+				validate.MapLen(field+".DynamicParams", a.DynamicParams, 0, MaxParams),
+			)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	for i, a := range cfg.DefaultActions {
+		field := fmt.Sprintf("DefaultActions[%d]", i)
+		err := validate.Many(
+			validate.MapLen(field+".StaticParams", a.StaticParams, 0, MaxParams),
+			validate.MapLen(field+".DynamicParams", a.DynamicParams, 0, MaxParams),
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	data, err := json.Marshal(cfg)
+	if err != nil {
+		return err
+	}
+
+	if len(data) > 64*1024 {
+		return validation.NewFieldError("Config", "must be less than 64KiB in total")
+	}
+
+	return nil
+}
+
 func (s *Store) Config(ctx context.Context, db gadb.DBTX, keyID uuid.UUID) (*Config, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
@@ -80,6 +143,13 @@ func (s *Store) SetConfig(ctx context.Context, db gadb.DBTX, keyID uuid.UUID, cf
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return err
+	}
+
+	if cfg != nil {
+		err := cfg.Validate()
+		if err != nil {
+			return err
+		}
 	}
 
 	gdb := gadb.New(db)
