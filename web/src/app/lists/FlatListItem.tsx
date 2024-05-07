@@ -63,7 +63,8 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
   let linkProps = {}
   if (url) {
     linkProps = {
-      component: AppLink,
+      // if you render a link with a secondary action, MUI will render the <a> tag without an <li> around it
+      component: secondaryAction ? AppLink : 'li',
       to: url,
       button: true,
     }

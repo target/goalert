@@ -13,7 +13,6 @@ import { FavoriteIcon } from '../util/SetFavoriteButton'
 import { ITEMS_PER_PAGE } from '../config'
 import Spinner from '../loading/components/Spinner'
 import { CheckboxItemsProps } from './ControlledPaginatedList'
-import { AppLinkListItem } from '../util/AppLink'
 import { debug } from '../util/debug'
 import useStatusColors from '../theme/useStatusColors'
 
@@ -130,7 +129,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
 
     // must be explicitly set when using, in accordance with TS definitions
     const urlProps = item.url && {
-      component: AppLinkListItem,
+      component: 'li',
 
       // NOTE: needed for error: button: false? not assignable to type 'true'
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

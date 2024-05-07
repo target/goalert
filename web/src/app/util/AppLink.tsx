@@ -61,12 +61,3 @@ const AppLink: ForwardRefRenderFunction<HTMLAnchorElement, AppLinkProps> =
   }
 
 export default forwardRef(AppLink)
-
-export const AppLinkListItem = forwardRef<HTMLAnchorElement, AppLinkProps>(
-  (props, ref) => (
-    <li>
-      <AppLink ref={ref} {...props} />
-    </li>
-  ),
-)
-AppLinkListItem.displayName = 'AppLinkListItem'
