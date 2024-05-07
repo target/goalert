@@ -61,3 +61,14 @@ const AppLink: ForwardRefRenderFunction<HTMLAnchorElement, AppLinkProps> =
   }
 
 export default forwardRef(AppLink)
+
+// forwardRef required to shut console up
+export const AppLinkListItem = forwardRef<HTMLAnchorElement, AppLinkProps>(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  (props, _) => (
+    <li>
+      <AppLink {...props} />
+    </li>
+  ),
+)
+AppLinkListItem.displayName = 'AppLinkListItem'
