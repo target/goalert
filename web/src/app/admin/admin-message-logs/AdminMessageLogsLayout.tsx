@@ -122,8 +122,8 @@ export default function AdminMessageLogsLayout(): JSX.Element {
           </Grid>
         </Grid>
       ),
-      action: (
-        <Typography variant='body2' color='textSecondary'>
+      secondaryAction: (
+        <Typography variant='body2' component='div' color='textSecondary'>
           {DateTime.fromISO(log.createdAt).toFormat('fff')}
         </Typography>
       ),
