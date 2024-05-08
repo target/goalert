@@ -4,11 +4,9 @@ import (
 	"context"
 
 	"github.com/target/goalert/apikey"
-	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
-	"github.com/target/goalert/validation"
 )
 
 type GQLAPIKey App
@@ -32,9 +30,6 @@ func (a *GQLAPIKey) UpdatedBy(ctx context.Context, obj *graphql2.GQLAPIKey) (*us
 }
 
 func (q *Query) GqlAPIKeys(ctx context.Context) ([]graphql2.GQLAPIKey, error) {
-	if !expflag.ContextHas(ctx, expflag.GQLAPIKey) {
-		return nil, validation.NewGenericError("experimental flag not enabled")
-	}
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
 		return nil, err
@@ -78,9 +73,6 @@ func (q *Query) GqlAPIKeys(ctx context.Context) ([]graphql2.GQLAPIKey, error) {
 }
 
 func (a *Mutation) UpdateGQLAPIKey(ctx context.Context, input graphql2.UpdateGQLAPIKeyInput) (bool, error) {
-	if !expflag.ContextHas(ctx, expflag.GQLAPIKey) {
-		return false, validation.NewGenericError("experimental flag not enabled")
-	}
 	id, err := parseUUID("ID", input.ID)
 	if err != nil {
 		return false, err
@@ -101,10 +93,6 @@ func (a *Mutation) DeleteGQLAPIKey(ctx context.Context, input string) (bool, err
 }
 
 func (a *Mutation) CreateGQLAPIKey(ctx context.Context, input graphql2.CreateGQLAPIKeyInput) (*graphql2.CreatedGQLAPIKey, error) {
-	if !expflag.ContextHas(ctx, expflag.GQLAPIKey) {
-		return nil, validation.NewGenericError("experimental flag not enabled")
-	}
-
 	id, tok, err := a.APIKeyStore.CreateAdminGraphQLKey(ctx, apikey.NewAdminGQLKeyOpts{
 		Name:    input.Name,
 		Desc:    input.Description,

@@ -153,8 +153,8 @@ function testSchedules(screen: ScreenFormat): void {
           },
         ],
       }).then(() => {
+        cy.engineTrigger()
         cy.get('[data-cy="route-links"] li').contains('Shifts').click()
-        cy.reload()
         cy.get('[data-cy=flat-list-item-subheader]').should('contain', 'Today')
         cy.get('[data-cy=flat-list-item-subheader]').should(
           'contain',

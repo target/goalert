@@ -5,10 +5,12 @@ import (
 	"database/sql"
 	"net/url"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/search"
+	"github.com/target/goalert/validation/validate"
 )
 
 type IntegrationKey App
@@ -18,6 +20,58 @@ func (a *App) IntegrationKey() graphql2.IntegrationKeyResolver { return (*Integr
 func (q *Query) IntegrationKey(ctx context.Context, id string) (*integrationkey.IntegrationKey, error) {
 	return q.IntKeyStore.FindOne(ctx, id)
 }
+
+func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKeyConfigInput) (bool, error) {
+	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
+		id, err := validate.ParseUUID("IntegrationKey.ID", input.KeyID)
+		if err != nil {
+			return err
+		}
+
+		cfg, err := m.IntKeyStore.Config(ctx, tx, id)
+		if err != nil {
+			return err
+		}
+
+		if input.StopAtFirstRule != nil {
+			cfg.StopAfterFirstMatchingRule = *input.StopAtFirstRule
+		}
+
+		if input.Rules != nil {
+			cfg.Rules = make([]integrationkey.Rule, 0, len(input.Rules))
+			for _, r := range input.Rules {
+				var ruleID uuid.UUID
+				if r.ID != nil {
+					ruleID, err = validate.ParseUUID("Rule.ID", *r.ID)
+					if err != nil {
+						return err
+					}
+				}
+
+				cfg.Rules = append(cfg.Rules, integrationkey.Rule{
+					ID:            ruleID,
+					Name:          r.Name,
+					Description:   r.Description,
+					ConditionExpr: r.ConditionExpr,
+					Actions:       actionsGQLToGo(r.Actions),
+				})
+			}
+		}
+
+		if input.DefaultActions != nil {
+			cfg.DefaultActions = actionsGQLToGo(input.DefaultActions)
+		}
+
+		err = m.IntKeyStore.SetConfig(ctx, tx, id, cfg)
+		return err
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (m *Mutation) CreateIntegrationKey(ctx context.Context, input graphql2.CreateIntegrationKeyInput) (key *integrationkey.IntegrationKey, err error) {
 	var serviceID string
 	if input.ServiceID != nil {
@@ -29,14 +83,109 @@ func (m *Mutation) CreateIntegrationKey(ctx context.Context, input graphql2.Crea
 			Name:      input.Name,
 			Type:      integrationkey.Type(input.Type),
 		}
+		if input.ExternalSystemName != nil {
+			key.ExternalSystemName = *input.ExternalSystemName
+		}
 		key, err = m.IntKeyStore.Create(ctx, tx, key)
 		return err
 	})
 	return key, err
 }
+
+func (key *IntegrationKey) Config(ctx context.Context, raw *integrationkey.IntegrationKey) (*graphql2.KeyConfig, error) {
+	id, err := validate.ParseUUID("IntegrationKey.ID", raw.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg, err := key.IntKeyStore.Config(ctx, key.DB, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var rules []graphql2.KeyRule
+	for _, r := range cfg.Rules {
+		rules = append(rules, graphql2.KeyRule{
+			ID:            r.ID.String(),
+			Name:          r.Name,
+			Description:   r.Description,
+			ConditionExpr: r.ConditionExpr,
+			Actions:       actionsGoToGQL(r.Actions),
+		})
+	}
+
+	return &graphql2.KeyConfig{
+		StopAtFirstRule: cfg.StopAfterFirstMatchingRule,
+		Rules:           rules,
+		DefaultActions:  actionsGoToGQL(cfg.DefaultActions),
+	}, nil
+}
+
+func actionsGQLToGo(a []graphql2.ActionInput) []integrationkey.Action {
+	res := make([]integrationkey.Action, 0, len(a))
+	for _, v := range a {
+		res = append(res, integrationkey.Action{
+			Type:          v.Dest.Type,
+			StaticParams:  fviToMap(v.Dest.Values),
+			DynamicParams: paramInputToMap(v.Params),
+		})
+	}
+	return res
+}
+
+func actionsGoToGQL(a []integrationkey.Action) []graphql2.Action {
+	res := make([]graphql2.Action, 0, len(a))
+	for _, v := range a {
+		res = append(res, graphql2.Action{
+			Dest:   &graphql2.Destination{Type: v.Type, Values: mapToFieldValue(v.StaticParams)},
+			Params: mapToParams(v.DynamicParams),
+		})
+	}
+	return res
+}
+
+func fviToMap(f []graphql2.FieldValueInput) map[string]string {
+	res := make(map[string]string, len(f))
+	for _, v := range f {
+		res[v.FieldID] = v.Value
+	}
+	return res
+}
+
+func paramInputToMap(p []graphql2.DynamicParamInput) map[string]string {
+	res := make(map[string]string, len(p))
+	for _, v := range p {
+		res[v.ParamID] = v.Expr
+	}
+	return res
+}
+
+func mapToFieldValue(m map[string]string) []graphql2.FieldValuePair {
+	res := make([]graphql2.FieldValuePair, 0, len(m))
+	for k, v := range m {
+		res = append(res, graphql2.FieldValuePair{
+			FieldID: k,
+			Value:   v,
+		})
+	}
+	return res
+}
+
+func mapToParams(m map[string]string) []graphql2.DynamicParam {
+	res := make([]graphql2.DynamicParam, 0, len(m))
+	for k, v := range m {
+		res = append(res, graphql2.DynamicParam{
+			ParamID: k,
+			Expr:    v,
+		})
+	}
+	return res
+}
+
 func (key *IntegrationKey) Type(ctx context.Context, raw *integrationkey.IntegrationKey) (graphql2.IntegrationKeyType, error) {
 	return graphql2.IntegrationKeyType(raw.Type), nil
 }
+
 func (key *IntegrationKey) Href(ctx context.Context, raw *integrationkey.IntegrationKey) (string, error) {
 	cfg := config.FromContext(ctx)
 	q := make(url.Values)

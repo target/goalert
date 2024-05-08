@@ -172,6 +172,7 @@ const (
 	EnumAlertSourceManual                 EnumAlertSource = "manual"
 	EnumAlertSourcePrometheusAlertmanager EnumAlertSource = "prometheusAlertmanager"
 	EnumAlertSourceSite24x7               EnumAlertSource = "site24x7"
+	EnumAlertSourceUniversal              EnumAlertSource = "universal"
 )
 
 func (e *EnumAlertSource) Scan(src interface{}) error {
@@ -303,6 +304,7 @@ const (
 	EnumIntegrationKeysTypeGrafana                EnumIntegrationKeysType = "grafana"
 	EnumIntegrationKeysTypePrometheusAlertmanager EnumIntegrationKeysType = "prometheusAlertmanager"
 	EnumIntegrationKeysTypeSite24x7               EnumIntegrationKeysType = "site24x7"
+	EnumIntegrationKeysTypeUniversal              EnumIntegrationKeysType = "universal"
 )
 
 func (e *EnumIntegrationKeysType) Scan(src interface{}) error {
@@ -945,10 +947,11 @@ type HeartbeatMonitor struct {
 }
 
 type IntegrationKey struct {
-	ID        uuid.UUID
-	Name      string
-	ServiceID uuid.UUID
-	Type      EnumIntegrationKeysType
+	ExternalSystemName sql.NullString
+	ID                 uuid.UUID
+	Name               string
+	ServiceID          uuid.UUID
+	Type               EnumIntegrationKeysType
 }
 
 type Keyring struct {
@@ -1132,6 +1135,11 @@ type TwilioVoiceError struct {
 	OccurredAt   time.Time
 	Outgoing     bool
 	PhoneNumber  string
+}
+
+type UikConfig struct {
+	Config json.RawMessage
+	ID     uuid.UUID
 }
 
 type User struct {

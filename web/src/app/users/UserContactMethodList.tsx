@@ -1,4 +1,4 @@
-import React, { useState, ReactNode } from 'react'
+import React, { useState, ReactNode, Suspense } from 'react'
 import { gql, useQuery } from 'urql'
 import FlatList from '../lists/FlatList'
 import { Button, Card, CardHeader, Grid, IconButton } from '@mui/material'
@@ -208,39 +208,41 @@ export default function UserContactMethodList(
           }))}
           emptyMessage='No contact methods'
         />
-        {showAddDialog && (
-          <UserContactMethodCreateDialog
-            userID={props.userID}
-            onClose={(contactMethodID = '') => {
-              setShowAddDialog(false)
-              setShowVerifyDialogByID(contactMethodID)
-            }}
-          />
-        )}
-        {showVerifyDialogByID && (
-          <UserContactMethodVerificationDialog
-            contactMethodID={showVerifyDialogByID}
-            onClose={() => setShowVerifyDialogByID('')}
-          />
-        )}
-        {showEditDialogByID && (
-          <UserContactMethodEditDialog
-            contactMethodID={showEditDialogByID}
-            onClose={() => setShowEditDialogByID('')}
-          />
-        )}
-        {showDeleteDialogByID && (
-          <UserContactMethodDeleteDialog
-            contactMethodID={showDeleteDialogByID}
-            onClose={() => setShowDeleteDialogByID('')}
-          />
-        )}
-        {showSendTestByID && (
-          <SendTestDialog
-            messageID={showSendTestByID}
-            onClose={() => setShowSendTestByID('')}
-          />
-        )}
+        <Suspense>
+          {showAddDialog && (
+            <UserContactMethodCreateDialog
+              userID={props.userID}
+              onClose={(contactMethodID = '') => {
+                setShowAddDialog(false)
+                setShowVerifyDialogByID(contactMethodID)
+              }}
+            />
+          )}
+          {showVerifyDialogByID && (
+            <UserContactMethodVerificationDialog
+              contactMethodID={showVerifyDialogByID}
+              onClose={() => setShowVerifyDialogByID('')}
+            />
+          )}
+          {showEditDialogByID && (
+            <UserContactMethodEditDialog
+              contactMethodID={showEditDialogByID}
+              onClose={() => setShowEditDialogByID('')}
+            />
+          )}
+          {showDeleteDialogByID && (
+            <UserContactMethodDeleteDialog
+              contactMethodID={showDeleteDialogByID}
+              onClose={() => setShowDeleteDialogByID('')}
+            />
+          )}
+          {showSendTestByID && (
+            <SendTestDialog
+              messageID={showSendTestByID}
+              onClose={() => setShowSendTestByID('')}
+            />
+          )}
+        </Suspense>
       </Card>
     </Grid>
   )

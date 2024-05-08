@@ -11,6 +11,7 @@ import (
 	"os/signal"
 	"runtime"
 	"strings"
+	"testing"
 	"time"
 
 	"github.com/pelletier/go-toml/v2"
@@ -42,6 +43,11 @@ var shutdownSignalCh = make(chan os.Signal, 2)
 var ErrDBRequired = validation.NewFieldError("db-url", "is required")
 
 func init() {
+	if testing.Testing() {
+		// Skip signal handling in tests.
+		return
+	}
+
 	signal.Notify(shutdownSignalCh, shutdownSignals...)
 }
 

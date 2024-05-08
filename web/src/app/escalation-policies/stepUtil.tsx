@@ -10,7 +10,7 @@ import {
   SlackChip,
   WebhookChip,
 } from '../util/Chips'
-import { EscalationPolicyStep, Target } from '../../schema'
+import { Destination, Target } from '../../schema'
 import DestinationChip from '../util/DestinationChip'
 
 interface Step {
@@ -19,14 +19,16 @@ interface Step {
   targets: Target[]
 }
 
-export function getStepNumber(stepID: string, steps: Step[]): number {
+interface HasID {
+  id: string
+}
+
+export function getStepNumber(stepID: string, steps: HasID[]): number {
   const sids = steps.map((s) => s.id)
   return sids.indexOf(stepID) + 1
 }
 
-export function renderChipsDest({
-  actions: _a,
-}: Pick<EscalationPolicyStep, 'actions'>): ReactElement {
+export function renderChipsDest(_a: Destination[]): ReactElement {
   const actions = sortBy(_a.slice(), ['type', 'displayInfo.text'])
   if (!actions || actions.length === 0) {
     return <Chip label='No actions' />
@@ -104,13 +106,11 @@ export function renderChips({ targets: _t }: Step): ReactElement {
  * repeats, and if the message is rendering on the last step
  */
 export function renderDelayMessage(
-  steps: Step[],
   step: Step,
+  idx: number,
   repeat: number,
+  isLastStep: boolean,
 ): ReactNode {
-  const len = steps.length
-  const isLastStep = getStepNumber(step.id, steps) === len
-
   // if it's the last step and should not repeat, do not render end text
   if (isLastStep && repeat === 0) {
     return null
@@ -119,10 +119,10 @@ export function renderDelayMessage(
   const pluralizer = (x: number): string => (x === 1 ? '' : 's')
 
   let repeatText = `Move on to step #${
-    getStepNumber(step.id, steps) + 1
+    idx + 1
   } after ${step.delayMinutes} minute${pluralizer(step.delayMinutes)}`
 
-  if (isLastStep && getStepNumber(step.id, steps) === 1) {
+  if (isLastStep && idx === 0) {
     repeatText = `Repeat after ${step.delayMinutes} minutes`
   }
 

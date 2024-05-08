@@ -1397,15 +1397,16 @@ func (q *Queries) FindOneCalSubForUpdate(ctx context.Context, id uuid.UUID) (Fin
 }
 
 const intKeyCreate = `-- name: IntKeyCreate :exec
-INSERT INTO integration_keys(id, name, type, service_id)
-    VALUES ($1, $2, $3, $4)
+INSERT INTO integration_keys(id, name, type, service_id, external_system_name)
+    VALUES ($1, $2, $3, $4, $5)
 `
 
 type IntKeyCreateParams struct {
-	ID        uuid.UUID
-	Name      string
-	Type      EnumIntegrationKeysType
-	ServiceID uuid.UUID
+	ID                 uuid.UUID
+	Name               string
+	Type               EnumIntegrationKeysType
+	ServiceID          uuid.UUID
+	ExternalSystemName sql.NullString
 }
 
 func (q *Queries) IntKeyCreate(ctx context.Context, arg IntKeyCreateParams) error {
@@ -1414,6 +1415,7 @@ func (q *Queries) IntKeyCreate(ctx context.Context, arg IntKeyCreateParams) erro
 		arg.Name,
 		arg.Type,
 		arg.ServiceID,
+		arg.ExternalSystemName,
 	)
 	return err
 }
@@ -1428,12 +1430,23 @@ func (q *Queries) IntKeyDelete(ctx context.Context, ids []uuid.UUID) error {
 	return err
 }
 
+const intKeyDeleteConfig = `-- name: IntKeyDeleteConfig :exec
+DELETE FROM uik_config
+WHERE id = $1
+`
+
+func (q *Queries) IntKeyDeleteConfig(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, intKeyDeleteConfig, id)
+	return err
+}
+
 const intKeyFindByService = `-- name: IntKeyFindByService :many
 SELECT
     id,
     name,
     type,
-    service_id
+    service_id,
+    external_system_name
 FROM
     integration_keys
 WHERE
@@ -1441,10 +1454,11 @@ WHERE
 `
 
 type IntKeyFindByServiceRow struct {
-	ID        uuid.UUID
-	Name      string
-	Type      EnumIntegrationKeysType
-	ServiceID uuid.UUID
+	ID                 uuid.UUID
+	Name               string
+	Type               EnumIntegrationKeysType
+	ServiceID          uuid.UUID
+	ExternalSystemName sql.NullString
 }
 
 func (q *Queries) IntKeyFindByService(ctx context.Context, serviceID uuid.UUID) ([]IntKeyFindByServiceRow, error) {
@@ -1461,6 +1475,7 @@ func (q *Queries) IntKeyFindByService(ctx context.Context, serviceID uuid.UUID) 
 			&i.Name,
 			&i.Type,
 			&i.ServiceID,
+			&i.ExternalSystemName,
 		); err != nil {
 			return nil, err
 		}
@@ -1480,7 +1495,8 @@ SELECT
     id,
     name,
     type,
-    service_id
+    service_id,
+    external_system_name
 FROM
     integration_keys
 WHERE
@@ -1488,10 +1504,11 @@ WHERE
 `
 
 type IntKeyFindOneRow struct {
-	ID        uuid.UUID
-	Name      string
-	Type      EnumIntegrationKeysType
-	ServiceID uuid.UUID
+	ID                 uuid.UUID
+	Name               string
+	Type               EnumIntegrationKeysType
+	ServiceID          uuid.UUID
+	ExternalSystemName sql.NullString
 }
 
 func (q *Queries) IntKeyFindOne(ctx context.Context, id uuid.UUID) (IntKeyFindOneRow, error) {
@@ -1502,8 +1519,26 @@ func (q *Queries) IntKeyFindOne(ctx context.Context, id uuid.UUID) (IntKeyFindOn
 		&i.Name,
 		&i.Type,
 		&i.ServiceID,
+		&i.ExternalSystemName,
 	)
 	return i, err
+}
+
+const intKeyGetConfig = `-- name: IntKeyGetConfig :one
+SELECT
+    config
+FROM
+    uik_config
+WHERE
+    id = $1
+FOR UPDATE
+`
+
+func (q *Queries) IntKeyGetConfig(ctx context.Context, id uuid.UUID) (json.RawMessage, error) {
+	row := q.db.QueryRowContext(ctx, intKeyGetConfig, id)
+	var config json.RawMessage
+	err := row.Scan(&config)
+	return config, err
 }
 
 const intKeyGetServiceID = `-- name: IntKeyGetServiceID :one
@@ -1526,6 +1561,40 @@ func (q *Queries) IntKeyGetServiceID(ctx context.Context, arg IntKeyGetServiceID
 	var service_id uuid.UUID
 	err := row.Scan(&service_id)
 	return service_id, err
+}
+
+const intKeyGetType = `-- name: IntKeyGetType :one
+SELECT
+    type
+FROM
+    integration_keys
+WHERE
+    id = $1
+`
+
+func (q *Queries) IntKeyGetType(ctx context.Context, id uuid.UUID) (EnumIntegrationKeysType, error) {
+	row := q.db.QueryRowContext(ctx, intKeyGetType, id)
+	var type_ EnumIntegrationKeysType
+	err := row.Scan(&type_)
+	return type_, err
+}
+
+const intKeySetConfig = `-- name: IntKeySetConfig :exec
+INSERT INTO uik_config(id, config)
+    VALUES ($1, $2)
+ON CONFLICT (id)
+    DO UPDATE SET
+        config = $2
+`
+
+type IntKeySetConfigParams struct {
+	ID     uuid.UUID
+	Config json.RawMessage
+}
+
+func (q *Queries) IntKeySetConfig(ctx context.Context, arg IntKeySetConfigParams) error {
+	_, err := q.db.ExecContext(ctx, intKeySetConfig, arg.ID, arg.Config)
+	return err
 }
 
 const labelDeleteKeyByTarget = `-- name: LabelDeleteKeyByTarget :exec
@@ -2051,8 +2120,8 @@ SELECT
             a.id = sub.alert_id)
 FROM
     alert_status_subscriptions sub
-WHERE
-    sub.last_alert_status !=(
+WHERE (NOT (sub.id = ANY ($1::bigint[])))
+    AND sub.last_alert_status !=(
         SELECT
             status
         FROM
@@ -2072,8 +2141,8 @@ type StatusMgrNextUpdateRow struct {
 	Status          EnumAlertStatus
 }
 
-func (q *Queries) StatusMgrNextUpdate(ctx context.Context) (StatusMgrNextUpdateRow, error) {
-	row := q.db.QueryRowContext(ctx, statusMgrNextUpdate)
+func (q *Queries) StatusMgrNextUpdate(ctx context.Context, dollar_1 []int64) (StatusMgrNextUpdateRow, error) {
+	row := q.db.QueryRowContext(ctx, statusMgrNextUpdate, pq.Array(dollar_1))
 	var i StatusMgrNextUpdateRow
 	err := row.Scan(
 		&i.ID,

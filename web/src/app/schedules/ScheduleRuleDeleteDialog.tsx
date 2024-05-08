@@ -1,6 +1,5 @@
 import React from 'react'
-import { useMutation } from '@apollo/client'
-import { gql, useQuery } from 'urql'
+import { gql, useQuery, useMutation } from 'urql'
 import FormDialog from '../dialogs/FormDialog'
 import { startCase } from 'lodash'
 import { GenericError } from '../error-pages'
@@ -46,9 +45,7 @@ export default function ScheduleRuleDeleteDialog(
     variables: { id: props.scheduleID, tgt: props.target },
   })
 
-  const [deleteRule] = useMutation(mutation, {
-    onCompleted: props.onClose,
-  })
+  const [deleteRuleStatus, deleteRule] = useMutation(mutation)
 
   if (error) {
     return <GenericError error={error.message} />
@@ -64,16 +61,21 @@ export default function ScheduleRuleDeleteDialog(
       title={`Remove ${startCase(props.target.type)} From Schedule?`}
       subTitle={`This will remove all rules, as well as end any active or future on-call shifts on this schedule for ${props.target.type}: ${data.schedule.target.target.name}.`}
       caption='Overrides will not be affected.'
+      loading={deleteRuleStatus.fetching}
+      errors={deleteRuleStatus.error ? [deleteRuleStatus.error] : []}
       confirm
       onSubmit={() => {
-        deleteRule({
-          variables: {
+        deleteRule(
+          {
             input: {
               target: props.target,
               scheduleID: props.scheduleID,
               rules: [],
             },
           },
+          { additionalTypenames: ['Schedule'] },
+        ).then((result) => {
+          if (!result.error) props.onClose()
         })
       }}
     />

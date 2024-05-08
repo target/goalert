@@ -35,6 +35,8 @@ function isKnownErrorCode(code: ErrorCode): code is ErrorCode {
       return true
     case 'INVALID_DEST_FIELD_VALUE':
       return true
+    case 'EXPR_TOO_COMPLEX':
+      return true
     default:
       assertNever(code) // ensure we handle all error codes
       return false

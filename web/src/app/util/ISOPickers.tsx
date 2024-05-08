@@ -29,6 +29,9 @@ interface ISOPickerProps extends ISOTextFieldProps {
 type ISOTextFieldProps = Partial<Omit<TextFieldProps, 'value' | 'onChange'>> & {
   value?: string
   onChange: (value: string) => void
+
+  min?: string
+  max?: string
 }
 
 function ISOPicker(props: ISOPickerProps): JSX.Element {

@@ -6,14 +6,14 @@ type Flag string
 
 const (
 	Example   Flag = "example"
-	GQLAPIKey Flag = "gql-api-keys"
 	DestTypes Flag = "dest-types"
+	UnivKeys  Flag = "univ-keys"
 )
 
 var desc = map[Flag]string{
 	Example:   "An example experimental flag to demonstrate usage.",
-	GQLAPIKey: "Admin-only GraphQL API key support.",
 	DestTypes: "Generic destination type API.",
+	UnivKeys:  "Universal integration key support.",
 }
 
 // AllFlags returns a slice of all experimental flags sorted by name.

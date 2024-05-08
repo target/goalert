@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	ast1 "github.com/expr-lang/expr/ast"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/assignment"
@@ -29,6 +30,16 @@ import (
 
 type InlineDisplayInfo interface {
 	IsInlineDisplayInfo()
+}
+
+type Action struct {
+	Dest   *Destination   `json:"dest"`
+	Params []DynamicParam `json:"params"`
+}
+
+type ActionInput struct {
+	Dest   *DestinationInput   `json:"dest"`
+	Params []DynamicParamInput `json:"params"`
 }
 
 type AlertConnection struct {
@@ -100,6 +111,24 @@ type CalcRotationHandoffTimesInput struct {
 	Count            int                   `json:"count"`
 }
 
+type Clause struct {
+	Field    ast1.Node `json:"field"`
+	Operator string    `json:"operator"`
+	// Value is a constant value that the field should be compared against.
+	Value ast1.Node `json:"value"`
+	// Negate indicates whether the clause should be negated (e.g., not contains vs. contains).
+	Negate bool `json:"negate"`
+}
+
+type ClauseInput struct {
+	Field    ast1.Node `json:"field"`
+	Operator string    `json:"operator"`
+	// Value is a constant value that the field should be compared against.
+	Value ast1.Node `json:"value"`
+	// Negate indicates whether the clause should be negated (e.g., not contains vs. contains).
+	Negate bool `json:"negate"`
+}
+
 type ClearTemporarySchedulesInput struct {
 	ScheduleID string    `json:"scheduleID"`
 	Start      time.Time `json:"start"`
@@ -111,6 +140,18 @@ type CloseMatchingAlertInput struct {
 	Summary   *string `json:"summary,omitempty"`
 	Details   *string `json:"details,omitempty"`
 	Dedup     *string `json:"dedup,omitempty"`
+}
+
+type Condition struct {
+	Clauses []Clause `json:"clauses"`
+}
+
+type ConditionInput struct {
+	Clauses []ClauseInput `json:"clauses"`
+}
+
+type ConditionToExprInput struct {
+	Condition *ConditionInput `json:"condition"`
 }
 
 type ConfigHint struct {
@@ -183,6 +224,8 @@ type CreateIntegrationKeyInput struct {
 	ServiceID *string            `json:"serviceID,omitempty"`
 	Type      IntegrationKeyType `json:"type"`
 	Name      string             `json:"name"`
+	// Name of the external system this key is managed by.
+	ExternalSystemName *string `json:"externalSystemName,omitempty"`
 }
 
 type CreateRotationInput struct {
@@ -412,6 +455,16 @@ type DestinationTypeInfo struct {
 	StatusUpdatesRequired bool `json:"statusUpdatesRequired"`
 }
 
+type DynamicParam struct {
+	ParamID string `json:"paramID"`
+	Expr    string `json:"expr"`
+}
+
+type DynamicParamInput struct {
+	ParamID string `json:"paramID"`
+	Expr    string `json:"expr"`
+}
+
 type EscalationPolicyConnection struct {
 	Nodes    []escalation.Policy `json:"nodes"`
 	PageInfo *PageInfo           `json:"pageInfo"`
@@ -424,6 +477,18 @@ type EscalationPolicySearchOptions struct {
 	Omit           []string `json:"omit,omitempty"`
 	FavoritesOnly  *bool    `json:"favoritesOnly,omitempty"`
 	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
+}
+
+// Expr contains helpers for working with Expr expressions.
+type Expr struct {
+	// exprToCondition converts an Expr expression to a Condition.
+	ExprToCondition *Condition `json:"exprToCondition"`
+	// conditionToExpr converts a Condition to an Expr expression.
+	ConditionToExpr string `json:"conditionToExpr"`
+}
+
+type ExprToConditionInput struct {
+	Expr string `json:"expr"`
 }
 
 // FieldSearchConnection is a connection to a list of FieldSearchResult.
@@ -493,6 +558,33 @@ type IntegrationKeyTypeInfo struct {
 	Name    string `json:"name"`
 	Label   string `json:"label"`
 	Enabled bool   `json:"enabled"`
+}
+
+type KeyConfig struct {
+	// Stop evaluating rules after the first rule that matches.
+	StopAtFirstRule bool      `json:"stopAtFirstRule"`
+	Rules           []KeyRule `json:"rules"`
+	// defaultAction is the action to take if no rules match the request.
+	DefaultActions []Action `json:"defaultActions"`
+}
+
+type KeyRule struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	// An expression that must evaluate to true for the rule to match.
+	ConditionExpr string   `json:"conditionExpr"`
+	Actions       []Action `json:"actions"`
+}
+
+type KeyRuleInput struct {
+	// The ID of an existing rule being updated.
+	ID          *string `json:"id,omitempty"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	// An expression that must evaluate to true for the rule to match.
+	ConditionExpr string        `json:"conditionExpr"`
+	Actions       []ActionInput `json:"actions"`
 }
 
 type LabelConnection struct {
@@ -805,6 +897,15 @@ type UpdateHeartbeatMonitorInput struct {
 	AdditionalDetails *string `json:"additionalDetails,omitempty"`
 }
 
+type UpdateKeyConfigInput struct {
+	KeyID string `json:"keyID"`
+	// Stop evaluating rules after the first rule that matches.
+	StopAtFirstRule *bool          `json:"stopAtFirstRule,omitempty"`
+	Rules           []KeyRuleInput `json:"rules,omitempty"`
+	// defaultAction is the action to take if no rules match the request.
+	DefaultActions []ActionInput `json:"defaultActions,omitempty"`
+}
+
 type UpdateRotationInput struct {
 	ID              string         `json:"id"`
 	Name            *string        `json:"name,omitempty"`
@@ -1057,16 +1158,19 @@ const (
 	//
 	// A separate error will be returned for each invalid field.
 	ErrorCodeInvalidDestFieldValue ErrorCode = "INVALID_DEST_FIELD_VALUE"
+	// The expr expression is too complex to be converted to a Condition.
+	ErrorCodeExprTooComplex ErrorCode = "EXPR_TOO_COMPLEX"
 )
 
 var AllErrorCode = []ErrorCode{
 	ErrorCodeInvalidInputValue,
 	ErrorCodeInvalidDestFieldValue,
+	ErrorCodeExprTooComplex,
 }
 
 func (e ErrorCode) IsValid() bool {
 	switch e {
-	case ErrorCodeInvalidInputValue, ErrorCodeInvalidDestFieldValue:
+	case ErrorCodeInvalidInputValue, ErrorCodeInvalidDestFieldValue, ErrorCodeExprTooComplex:
 		return true
 	}
 	return false
@@ -1101,6 +1205,7 @@ const (
 	IntegrationKeyTypeSite24x7               IntegrationKeyType = "site24x7"
 	IntegrationKeyTypePrometheusAlertmanager IntegrationKeyType = "prometheusAlertmanager"
 	IntegrationKeyTypeEmail                  IntegrationKeyType = "email"
+	IntegrationKeyTypeUniversal              IntegrationKeyType = "universal"
 )
 
 var AllIntegrationKeyType = []IntegrationKeyType{
@@ -1109,11 +1214,12 @@ var AllIntegrationKeyType = []IntegrationKeyType{
 	IntegrationKeyTypeSite24x7,
 	IntegrationKeyTypePrometheusAlertmanager,
 	IntegrationKeyTypeEmail,
+	IntegrationKeyTypeUniversal,
 }
 
 func (e IntegrationKeyType) IsValid() bool {
 	switch e {
-	case IntegrationKeyTypeGeneric, IntegrationKeyTypeGrafana, IntegrationKeyTypeSite24x7, IntegrationKeyTypePrometheusAlertmanager, IntegrationKeyTypeEmail:
+	case IntegrationKeyTypeGeneric, IntegrationKeyTypeGrafana, IntegrationKeyTypeSite24x7, IntegrationKeyTypePrometheusAlertmanager, IntegrationKeyTypeEmail, IntegrationKeyTypeUniversal:
 		return true
 	}
 	return false
