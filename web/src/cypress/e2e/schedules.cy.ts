@@ -635,13 +635,13 @@ testScreen('Slack User Group Support', (screen: ScreenFormat) => {
       cy.dialogTitle('Create Notification Rule')
       cy.dialogForm({
         ruleType: 'on-change',
-        notificationType: 'SLACK USER GROUP',
-        selectUserGroup: 'foobar',
-        errorChannel: 'foobar',
+        'dest.type': 'Update Slack User Group',
+        'slack-usergroup-id': 'foobar',
+        'slack-channel-id': 'foobar',
       })
 
       cy.dialogFinish('Submit')
-      cy.get('body').should('contain', '#foobar')
+      cy.get('body').should('contain', '@foobar')
       cy.get('body').should('contain', 'Notifies when on-call changes')
 
       // time of day
@@ -687,12 +687,12 @@ testScreen('Slack User Group Support', (screen: ScreenFormat) => {
       cy.dialogTitle('Create Notification Rule')
       cy.dialogForm({
         ruleType: 'on-change',
-        notificationType: 'WEBHOOK',
-        targetID: 'http://www.example.com',
+        'dest.type': 'Webhook',
+        'webhook-url': 'http://www.example.com',
       })
 
       cy.dialogFinish('Submit')
-      cy.get('body').should('contain', 'http://www.example.com')
+      cy.get('body').should('contain', 'www.example.com')
       cy.get('body').should('contain', 'Notifies when on-call changes')
 
       // time of day
@@ -704,8 +704,8 @@ testScreen('Slack User Group Support', (screen: ScreenFormat) => {
       cy.dialogTitle('Create Notification Rule')
       cy.dialogForm({
         ruleType: 'time-of-day',
-        notificationType: 'WEBHOOK',
-        targetID: 'http://www.example.com',
+        'dest.type': 'Webhook',
+        'webhook-url': 'http://www.example.com',
         time: '00:00',
         'weekdayFilter[0]': false,
         'weekdayFilter[1]': true,
