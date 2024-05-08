@@ -40,7 +40,6 @@ export default function CopyText(props: CopyTextProps): JSX.Element {
   if (props.asURL) {
     content = (
       <AppLink
-        component='div'
         className={classes.copyContainer}
         to={props.value}
         onClick={(e) => {
