@@ -21,8 +21,9 @@ test('EMAIL contact method', async ({ page, browser, isMobile }) => {
   }
 
   await page.fill('input[name=name]', name)
-  await page.fill('input[name=type]', 'EMAIL')
-  await page.fill('input[name=value]', email)
+  await page.fill('input[name="dest.type"]', 'Email')
+  // await page.selectOption('[name="dest.type"]', { label: 'Email' })
+  await page.fill('input[name=email-address]', email)
   await page.click('[role=dialog] button[type=submit]')
 
   const mail = await browser.newPage({

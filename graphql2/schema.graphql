@@ -1241,7 +1241,7 @@ input CreateUserContactMethodInput {
 
   type: ContactMethodType
 
-  dest: DestinationInput @experimental(flagName: "dest-types")
+  dest: DestinationInput
 
   name: String!
 
