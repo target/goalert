@@ -8,7 +8,6 @@ import { Add } from '@mui/icons-material'
 import { sortContactMethods } from './util'
 import OtherActions from '../util/OtherActions'
 import UserContactMethodDeleteDialog from './UserContactMethodDeleteDialog'
-import UserContactMethodEditDialog from './UserContactMethodEditDialog'
 import { Warning } from '../icons'
 import UserContactMethodVerificationDialog from './UserContactMethodVerificationDialog'
 import { useIsWidthDown } from '../util/useWidth'
@@ -16,8 +15,9 @@ import { GenericError, ObjectNotFound } from '../error-pages'
 import SendTestDialog from './SendTestDialog'
 import { styles as globalStyles } from '../styles/materialStyles'
 import { UserContactMethod } from '../../schema'
-import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
 import { useSessionInfo, useContactMethodTypes } from '../util/RequireConfig'
+import UserContactMethodEditDialogDest from './UserContactMethodEditDialogDest'
+import UserContactMethodCreateDialogDest from './UserContactMethodCreateDialogDest'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -231,7 +231,7 @@ export default function UserContactMethodListDest(
         />
         <Suspense>
           {showAddDialog && (
-            <UserContactMethodCreateDialog
+            <UserContactMethodCreateDialogDest
               userID={props.userID}
               onClose={(contactMethodID = '') => {
                 setShowAddDialog(false)
@@ -246,7 +246,7 @@ export default function UserContactMethodListDest(
             />
           )}
           {showEditDialogByID && (
-            <UserContactMethodEditDialog
+            <UserContactMethodEditDialogDest
               contactMethodID={showEditDialogByID}
               onClose={() => setShowEditDialogByID('')}
             />

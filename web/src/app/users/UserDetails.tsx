@@ -4,14 +4,11 @@ import Delete from '@mui/icons-material/Delete'
 import LockOpenIcon from '@mui/icons-material/LockOpen'
 import DetailsPage from '../details/DetailsPage'
 import { UserAvatar } from '../util/avatars'
-import UserContactMethodList from './UserContactMethodList'
 import UserContactMethodListDest from './UserContactMethodListDest'
 import { AddAlarm, SettingsPhone } from '@mui/icons-material'
 import SpeedDial from '../util/SpeedDial'
-import UserNotificationRuleList from './UserNotificationRuleList'
 import UserNotificationRuleListDest from './UserNotificationRuleListDest'
 import { Grid } from '@mui/material'
-import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
 import UserNotificationRuleCreateDialog from './UserNotificationRuleCreateDialog'
 import UserContactMethodVerificationDialog from './UserContactMethodVerificationDialog'
 import _ from 'lodash'
@@ -23,7 +20,7 @@ import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import { EscalationPolicyStep } from '../../schema'
 import { useIsWidthDown } from '../util/useWidth'
 import UserShiftsCalendar from './UserShiftsCalendar'
-import { useExpFlag } from '../util/useExpFlag'
+import UserContactMethodCreateDialogDest from './UserContactMethodCreateDialogDest'
 
 const userQuery = gql`
   query userInfo($id: ID!) {
@@ -91,7 +88,6 @@ export default function UserDetails(props: {
   userID: string
   readOnly: boolean
 }): JSX.Element {
-  const hasDestTypesFlag = useExpFlag('dest-types')
   const userID = props.userID
   const { userID: currentUserID, isAdmin } = useSessionInfo()
 
@@ -212,7 +208,7 @@ export default function UserDetails(props: {
           />
         )}
         {createCM && (
-          <UserContactMethodCreateDialog
+          <UserContactMethodCreateDialogDest
             userID={userID}
             onClose={(contactMethodID) => {
               setCreateCM(false)
@@ -240,28 +236,14 @@ export default function UserDetails(props: {
         subheader={user.email}
         pageContent={
           <Grid container spacing={2}>
-            {hasDestTypesFlag ? (
-              <UserContactMethodListDest
-                userID={userID}
-                readOnly={props.readOnly}
-              />
-            ) : (
-              <UserContactMethodList
-                userID={userID}
-                readOnly={props.readOnly}
-              />
-            )}
-            {hasDestTypesFlag ? (
-              <UserNotificationRuleListDest
-                userID={userID}
-                readOnly={props.readOnly}
-              />
-            ) : (
-              <UserNotificationRuleList
-                userID={userID}
-                readOnly={props.readOnly}
-              />
-            )}
+            <UserContactMethodListDest
+              userID={userID}
+              readOnly={props.readOnly}
+            />
+            <UserNotificationRuleListDest
+              userID={userID}
+              readOnly={props.readOnly}
+            />
             {!mobile && (
               <Suspense>
                 <Grid item xs={12}>
