@@ -107,7 +107,7 @@
     "luxon": "3.4.4",
     "mdast-util-find-and-replace": "3.0.1",
     "mdi-material-ui": "7.8.0",
-    "msw": "2.0.11",
+    "msw": "2.3.0",
     "msw-storybook-addon": "2.0.0--canary.122.06f0c92.0",
     "prettier": "3.2.5",
     "prettier-plugin-go-template": "0.0.15",
