@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { gql, useMutation } from '@apollo/client'
+import { gql, useMutation } from 'urql'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import PolicyForm, { PolicyFormValue } from './PolicyForm'
@@ -21,18 +21,9 @@ function PolicyCreateDialog(props: { onClose: () => void }): JSX.Element {
     favorite: true,
   }
   const [value, setValue] = useState<PolicyFormValue>(defaultValue)
-  const [createPolicy, createPolicyStatus] = useMutation(mutation, {
-    variables: {
-      input: {
-        name: value && value.name,
-        description: value && value.description,
-        repeat: value && value.repeat.value,
-        favorite: true,
-      },
-    },
-  })
+  const [createPolicyStatus, createPolicy] = useMutation(mutation)
 
-  const { loading, data, error } = createPolicyStatus
+  const { fetching, data, error } = createPolicyStatus
 
   if (data && data.createEscalationPolicy) {
     return (
@@ -45,14 +36,26 @@ function PolicyCreateDialog(props: { onClose: () => void }): JSX.Element {
   return (
     <FormDialog
       title='Create Escalation Policy'
-      loading={loading}
+      loading={fetching}
       errors={nonFieldErrors(error)}
       onClose={props.onClose}
-      onSubmit={() => createPolicy()}
+      onSubmit={() =>
+        createPolicy(
+          {
+            input: {
+              name: value && value.name,
+              description: value && value.description,
+              repeat: value && value.repeat.value,
+              favorite: true,
+            },
+          },
+          { additionalTypenames: ['EscalationPolicyConnection'] },
+        )
+      }
       form={
         <PolicyForm
           errors={fieldErrs}
-          disabled={loading}
+          disabled={fetching}
           value={value}
           onChange={(value: PolicyFormValue) => setValue(value)}
         />
