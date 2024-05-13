@@ -98,7 +98,7 @@
     "eslint-plugin-react-hooks": "4.6.2",
     "eslint-plugin-storybook": "0.8.0",
     "fuse.js": "7.0.0",
-    "glob": "10.3.10",
+    "glob": "10.3.14",
     "graphiql": "3.0.10",
     "graphql": "16.8.1",
     "http-server": "14.1.1",
