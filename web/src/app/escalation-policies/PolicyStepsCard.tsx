@@ -17,8 +17,8 @@ import { reorderList } from '../rotations/util'
 import PolicyStepDeleteDialog from './PolicyStepDeleteDialog'
 import PolicyStepEditDialogDest from './PolicyStepEditDialogDest'
 import OtherActions from '../util/OtherActions'
-import { renderChips, renderChipsDest, renderDelayMessage } from './stepUtil'
-import { Destination, Target } from '../../schema'
+import { renderChipsDest, renderDelayMessage } from './stepUtil'
+import { Destination } from '../../schema'
 
 const mutation = gql`
   mutation UpdateEscalationPolicyMutation(
@@ -32,8 +32,7 @@ type StepInfo = {
   id: string
   delayMinutes: number
   stepNumber: number
-  actions?: Destination[]
-  targets: Target[]
+  actions: Destination[]
 }
 
 export type PolicyStepsCardProps = {
@@ -154,9 +153,7 @@ export default function PolicyStepsCard(
             ) as unknown as string, // needed to work around MUI incorrect types
             subText: (
               <React.Fragment>
-                {step.actions
-                  ? renderChipsDest(step.actions)
-                  : renderChips(step)}
+                {renderChipsDest(step.actions)}
                 {renderDelayMessage(
                   step,
                   idx,
