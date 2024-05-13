@@ -44,13 +44,20 @@ function testSteps(screen: ScreenFormat): void {
         cy.get('button').contains('Create Step').click()
       }
       cy.dialogTitle('Create Step')
-      cy.dialogForm({ schedules: [s1.name, s2.name] })
+      cy.dialogForm({ 'dest.type': 'Schedule', 'schedule-id': s1.name })
+      cy.dialogClick('Add Action')
+      cy.dialogForm({ 'schedule-id': s2.name })
+      cy.dialogClick('Add Action')
 
-      cy.get('button[data-cy="users-step"]').click()
-      cy.dialogForm({ users: [u1.name, u2.name] })
+      cy.dialogForm({ 'dest.type': 'User', 'user-id': u1.name })
+      cy.dialogClick('Add Action')
+      cy.dialogForm({ 'user-id': u2.name })
+      cy.dialogClick('Add Action')
 
-      cy.get('button[data-cy="rotations-step"]').click()
-      cy.dialogForm({ rotations: [r1.name, r2.name] })
+      cy.dialogForm({ 'dest.type': 'Rotation', 'rotation-id': r1.name })
+      cy.dialogClick('Add Action')
+      cy.dialogForm({ 'rotation-id': r2.name })
+      cy.dialogClick('Add Action')
 
       cy.dialogForm({ delayMinutes: delay.toString() })
       cy.dialogFinish('Submit')
@@ -58,12 +65,12 @@ function testSteps(screen: ScreenFormat): void {
       // verify data integrity
       cy.get('body').should('contain', 'Notify the following:')
       cy.get('body').should('contain', 'Step #1:')
-      cy.get('div[data-cy=rotation-chip]').should('contain', r1.name)
-      cy.get('div[data-cy=rotation-chip]').should('contain', r2.name)
-      cy.get('div[data-cy=schedule-chip]').should('contain', s1.name)
-      cy.get('div[data-cy=schedule-chip]').should('contain', s2.name)
-      cy.get('div[data-cy=user-chip]').should('contain', u1.name)
-      cy.get('div[data-cy=user-chip]').should('contain', u2.name)
+      cy.get('[data-testid=destination-chip]').should('contain', r1.name)
+      cy.get('[data-testid=destination-chip]').should('contain', r2.name)
+      cy.get('[data-testid=destination-chip]').should('contain', s1.name)
+      cy.get('[data-testid=destination-chip]').should('contain', s2.name)
+      cy.get('[data-testid=destination-chip]').should('contain', u1.name)
+      cy.get('[data-testid=destination-chip]').should('contain', u2.name)
       cy.get('body').should(
         'contain',
         `Go back to step #1 after ${delay.toString()} minutes`,
