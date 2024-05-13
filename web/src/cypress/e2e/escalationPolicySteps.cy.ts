@@ -89,8 +89,11 @@ function testSteps(screen: ScreenFormat): void {
         cy.get('button').contains('Create Step').click()
       }
       cy.dialogTitle('Create Step')
-      cy.get('button[data-cy="users-step"]').click()
-      cy.dialogForm({ users: [u1.name, u2.name] })
+
+      cy.dialogForm({ 'dest.type': 'User', 'user-id': u1.name })
+      cy.dialogClick('Add Action')
+      cy.dialogForm({ 'user-id': u2.name })
+      cy.dialogClick('Add Action')
     })
 
     it('should edit a step', () => {
@@ -108,16 +111,18 @@ function testSteps(screen: ScreenFormat): void {
 
           cy.dialogTitle('Edit Step')
           cy.dialogForm({
-            schedules: s1.name,
+            'dest.type': 'Schedule',
+            'schedule-id': s1.name,
             delayMinutes: delay.toString(),
           })
+          cy.dialogClick('Add Action')
 
           cy.dialogFinish('Submit')
 
           // verify data integrity
           cy.get('body').should('contain', 'Notify the following:')
           cy.get('body').should('contain', 'Step #1:')
-          cy.get('div[data-cy=schedule-chip]').should('contain', s1.name)
+          cy.get('[data-testid=destination-chip]').should('contain', s1.name)
           cy.get('body').should(
             'contain',
             `Go back to step #1 after ${delay.toString()} minutes`,
@@ -136,25 +141,32 @@ function testSteps(screen: ScreenFormat): void {
       }
       cy.dialogTitle('Create Step')
 
-      // expand slack channels section
-      cy.get('button[data-cy="slack-channels-step"]').click()
-
       // add slack channels
-      cy.dialogForm({ slackChannels: ['general', 'foobar'] })
+      cy.dialogForm({
+        'dest.type': 'Slack Channel',
+        'slack-channel-id': 'general',
+      })
+      cy.dialogClick('Add Action')
+      cy.dialogForm({ 'slack-channel-id': 'foobar' })
+      cy.dialogClick('Add Action')
+
       cy.dialogFinish('Submit')
 
       // verify data integrity
       cy.get('body').should('contain', 'Notify the following:')
       cy.get('body').should('contain', 'Step #1:')
-      cy.get('div[data-cy=slack-chip]').should('contain', '#general')
-      cy.get('div[data-cy=slack-chip]').should('contain', '#foobar')
+      cy.get('[data-testid=destination-chip]').should('contain', '#general')
+      cy.get('[data-testid=destination-chip]').should('contain', '#foobar')
 
       // verify clickability
       cy.window().then((win) => {
         cy.stub(win, 'open').as('slackRedirect')
       })
-      cy.get('div[data-cy=slack-chip][data-clickable=true]').first().click()
-      cy.get('@slackRedirect').should('be.called')
+      cy.get('a[data-testid=destination-chip]').should(
+        'have.attr',
+        'target',
+        '_blank',
+      )
 
       // open edit step dialog
       cy.get('ul[data-cy=steps-list] :nth-child(2) li')
@@ -163,19 +175,19 @@ function testSteps(screen: ScreenFormat): void {
 
       cy.dialogTitle('Edit Step')
 
-      // expand slack channels section
-      cy.get('button[data-cy="slack-channels-step"]').click()
-
       // delete foobar channel
-      cy.get('input[name=slackChannels]').multiRemoveByLabel('#foobar')
+      cy.get('[role=dialog] a[data-testid=destination-chip]')
+        .contains('a', '#foobar')
+        .find('[data-testid=CancelIcon]')
+        .click()
 
       cy.dialogFinish('Submit')
 
       // verify data integrity
       cy.get('body').should('contain', 'Notify the following:')
       cy.get('body').should('contain', 'Step #1:')
-      cy.get('div[data-cy=slack-chip]').should('contain', '#general')
-      cy.get('div[data-cy=slack-chip]').should('not.contain', '#foobar')
+      cy.get('[data-testid=destination-chip]').should('contain', '#general')
+      cy.get('[data-testid=destination-chip]').should('not.contain', '#foobar')
     })
 
     it('should delete a step', () => {
@@ -275,25 +287,23 @@ testScreen('Webhook Support', (screen: ScreenFormat) => {
     }
     cy.dialogTitle('Create Step')
 
-    // expand webhook section
-    cy.get('button[data-cy="webhook-step"]').click()
-
     // add webhooks
     cy.dialogForm({
-      webhooks: 'https://webhook.site',
+      'dest.type': 'Webhook',
+      'webhook-url': 'https://webhook.site',
     })
-    cy.get('button[data-cy="add-webhook"]').click()
+    cy.dialogClick('Add Action')
     cy.dialogForm({
-      webhooks: 'https://example.com',
+      'webhook-url': 'https://example.com',
     })
-    cy.get('button[data-cy="add-webhook"]').click()
+    cy.dialogClick('Add Action')
     cy.dialogFinish('Submit')
 
     // verify data integrity
     cy.get('body').should('contain', 'Notify the following:')
     cy.get('body').should('contain', 'Step #1:')
-    cy.get('div[data-cy=webhook-chip]').should('contain', 'webhook.site')
-    cy.get('div[data-cy=webhook-chip]').should('contain', 'example.com')
+    cy.get('[data-testid=destination-chip]').should('contain', 'webhook.site')
+    cy.get('[data-testid=destination-chip]').should('contain', 'example.com')
 
     // open edit step dialog
     cy.get('ul[data-cy=steps-list] :nth-child(2) li')
@@ -302,18 +312,21 @@ testScreen('Webhook Support', (screen: ScreenFormat) => {
 
     cy.dialogTitle('Edit Step')
 
-    // expand webhook section
-    cy.get('button[data-cy="webhook-step"]').click()
-
     // delete webhook.site webhook
-    cy.get('[data-testid=CancelIcon]').first().click()
+    cy.get('[role=dialog] [data-testid=destination-chip]')
+      .contains('[data-testid=destination-chip]', 'webhook.site')
+      .find('[data-testid=CancelIcon]')
+      .click()
 
     cy.dialogFinish('Submit')
 
     // verify data integrity
     cy.get('body').should('contain', 'Notify the following:')
     cy.get('body').should('contain', 'Step #1:')
-    cy.get('div[data-cy=webhook-chip]').should('contain', 'example.com')
-    cy.get('div[data-cy=webhook-chip]').should('not.contain', 'webhook.site')
+    cy.get('[data-testid=destination-chip]').should('contain', 'example.com')
+    cy.get('[data-testid=destination-chip]').should(
+      'not.contain',
+      'webhook.site',
+    )
   })
 })
