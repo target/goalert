@@ -119,6 +119,7 @@ export default function PolicyStepFormDest(
             disabled={props.disabled}
             value={destType}
             label='Destination Type'
+            name='dest.type'
             onChange={(e) => setDestType(e.target.value)}
           >
             {types.map((t) =>
