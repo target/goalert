@@ -8,19 +8,16 @@ import { Add } from '@mui/icons-material'
 import { gql, useMutation } from 'urql'
 import FlatList from '../lists/FlatList'
 import CreateFAB from '../lists/CreateFAB'
-import PolicyStepCreateDialog from './PolicyStepCreateDialog'
 import PolicyStepCreateDialogDest from './PolicyStepCreateDialogDest'
 import { useResetURLParams, useURLParam } from '../actions'
 import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { useIsWidthDown } from '../util/useWidth'
 import { reorderList } from '../rotations/util'
-import PolicyStepEditDialog from './PolicyStepEditDialog'
 import PolicyStepDeleteDialog from './PolicyStepDeleteDialog'
 import PolicyStepEditDialogDest from './PolicyStepEditDialogDest'
 import OtherActions from '../util/OtherActions'
 import { renderChips, renderChipsDest, renderDelayMessage } from './stepUtil'
-import { useExpFlag } from '../util/useExpFlag'
 import { Destination, Target } from '../../schema'
 
 const mutation = gql`
@@ -48,8 +45,6 @@ export type PolicyStepsCardProps = {
 export default function PolicyStepsCard(
   props: PolicyStepsCardProps,
 ): React.ReactNode {
-  const hasDestTypesFlag = useExpFlag('dest-types')
-
   const isMobile = useIsWidthDown('md')
   const stepNumParam = 'createStep'
   const [createStep, setCreateStep] = useURLParam<boolean>(stepNumParam, false)
@@ -122,17 +117,10 @@ export default function PolicyStepsCard(
       )}
       {createStep && (
         <React.Fragment>
-          {hasDestTypesFlag ? (
-            <PolicyStepCreateDialogDest
-              escalationPolicyID={props.escalationPolicyID}
-              onClose={resetCreateStep}
-            />
-          ) : (
-            <PolicyStepCreateDialog
-              escalationPolicyID={props.escalationPolicyID}
-              onClose={resetCreateStep}
-            />
-          )}
+          <PolicyStepCreateDialogDest
+            escalationPolicyID={props.escalationPolicyID}
+            onClose={resetCreateStep}
+          />
         </React.Fragment>
       )}
       <Card>
@@ -206,19 +194,11 @@ export default function PolicyStepsCard(
       <Suspense>
         {editStep && (
           <React.Fragment>
-            {hasDestTypesFlag ? (
-              <PolicyStepEditDialogDest
-                escalationPolicyID={props.escalationPolicyID}
-                onClose={resetEditStep}
-                stepID={editStep.id}
-              />
-            ) : (
-              <PolicyStepEditDialog
-                escalationPolicyID={props.escalationPolicyID}
-                onClose={resetEditStep}
-                step={editStep}
-              />
-            )}
+            <PolicyStepEditDialogDest
+              escalationPolicyID={props.escalationPolicyID}
+              onClose={resetEditStep}
+              stepID={editStep.id}
+            />
           </React.Fragment>
         )}
         {deleteStep && (
