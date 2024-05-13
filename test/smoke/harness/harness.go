@@ -22,7 +22,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	pgx5 "github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -553,7 +552,7 @@ func (h *Harness) dumpDB() {
 		h.t.Fatalf("failed to create abs dump path: %v", err)
 	}
 
-	conn, err := pgx5.Connect(context.Background(), h.dbURL)
+	conn, err := pgx.Connect(context.Background(), h.dbURL)
 	if err != nil {
 		h.t.Fatalf("failed to get db connection: %v", err)
 	}
