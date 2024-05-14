@@ -243,6 +243,8 @@ func (key *IntegrationKey) Href(ctx context.Context, raw *integrationkey.Integra
 			return "", nil
 		}
 		return "mailto:" + raw.ID + "@" + cfg.EmailIngressDomain(), nil
+	case integrationkey.TypeUniversal:
+		return cfg.CallbackURL("/api/v2/uik"), nil
 	}
 
 	return "", nil

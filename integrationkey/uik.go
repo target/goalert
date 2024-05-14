@@ -4,12 +4,16 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
@@ -30,6 +34,62 @@ func newClaims(keyID, tokenID uuid.UUID) jwt.Claims {
 		Issuer:    Issuer,
 		Audience:  []string{Audience},
 	}
+}
+
+func (s *Store) HandleUIK(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	if !expflag.ContextHas(ctx, expflag.UnivKeys) {
+		errutil.HTTPError(ctx, w, validation.NewGenericError("universal keys are disabled"))
+		return
+	}
+
+	err := permission.LimitCheckAny(req.Context(), permission.Service)
+	if errutil.HTTPError(ctx, w, err) {
+		return
+	}
+
+	// TODO: fetch rules & config & process
+}
+
+func (s *Store) AuthorizeUIK(ctx context.Context, tokStr string) (context.Context, error) {
+	if !expflag.ContextHas(ctx, expflag.UnivKeys) {
+		return ctx, permission.Unauthorized()
+	}
+
+	var claims jwt.RegisteredClaims
+	_, err := s.keys.VerifyJWT(tokStr, &claims, Issuer, Audience)
+	if err != nil {
+		return ctx, permission.Unauthorized()
+	}
+
+	keyID, err := uuid.Parse(claims.Subject)
+	if err != nil {
+		log.Logf(ctx, "apikey: invalid subject: %v", err)
+		return ctx, permission.Unauthorized()
+	}
+	tokID, err := uuid.Parse(claims.ID)
+	if err != nil {
+		log.Logf(ctx, "apikey: invalid token ID: %v", err)
+		return ctx, permission.Unauthorized()
+	}
+
+	serviceID, err := gadb.New(s.db).IntKeyUIKValidateService(ctx, gadb.IntKeyUIKValidateServiceParams{
+		KeyID:   keyID,
+		TokenID: uuid.NullUUID{UUID: tokID, Valid: true},
+	})
+	if errors.Is(err, sql.ErrNoRows) {
+		return ctx, permission.Unauthorized()
+	}
+	if err != nil {
+		return ctx, err
+	}
+
+	ctx = permission.ServiceSourceContext(ctx, serviceID.String(), &permission.SourceInfo{
+		Type: permission.SourceTypeIntegrationKey,
+		ID:   keyID.String(),
+	})
+
+	return ctx, nil
 }
 
 func (s *Store) TokenHints(ctx context.Context, db gadb.DBTX, id uuid.UUID) (primary, secondary string, err error) {

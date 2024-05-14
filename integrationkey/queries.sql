@@ -114,3 +114,15 @@ WHERE
 RETURNING
     id;
 
+-- name: IntKeyUIKValidateService :one
+SELECT
+    k.service_id
+FROM
+    uik_config c
+    JOIN integration_keys k ON k.id = c.id
+WHERE
+    c.id = sqlc.arg(key_id)
+    AND k.type = 'universal'
+    AND (c.primary_token = sqlc.arg(token_id)
+        OR c.secondary_token = sqlc.arg(token_id));
+
