@@ -101,8 +101,8 @@ export interface FlatListNotice extends Notice {
   handleOnClick?: (event: MouseEvent) => void
   'data-cy'?: string
 }
-export interface FlatListItemOptions extends ListItemProps {
-  title?: string
+export interface FlatListItemOptions extends Omit<ListItemProps, 'title'> {
+  title?: React.ReactNode
   primaryText?: React.ReactNode
   highlight?: boolean
   subText?: JSX.Element | string
@@ -119,7 +119,7 @@ export interface FlatListItemOptions extends ListItemProps {
 }
 
 export interface SectionTitle {
-  title: string
+  title: React.ReactNode
   icon?: React.ReactNode | null
   subText?: JSX.Element | string
 }
@@ -172,7 +172,7 @@ export default function FlatList({
   const classes = useStyles()
 
   // collapsable sections state
-  const [openSections, setOpenSections] = useState<string[]>(
+  const [openSections, setOpenSections] = useState<React.ReactNode[]>(
     sections && sections.length ? [sections[0].title] : [],
   )
 
@@ -182,7 +182,9 @@ export default function FlatList({
     if (
       openSections.length &&
       sectionArr?.length &&
-      !sectionArr?.find((section: string) => section === openSections[0])
+      !sectionArr?.find(
+        (section: React.ReactNode) => section === openSections[0],
+      )
     ) {
       setOpenSections([sectionArr[0]])
     }
@@ -367,7 +369,7 @@ export default function FlatList({
   }
 
   function renderCollapsableItems(): JSX.Element[] | undefined {
-    const toggleSection = (section: string): void => {
+    const toggleSection = (section: React.ReactNode): void => {
       if (openSections?.includes(section)) {
         setOpenSections(
           openSections.filter((openSection) => openSection !== section),

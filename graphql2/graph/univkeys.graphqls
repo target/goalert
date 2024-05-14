@@ -1,0 +1,92 @@
+extend type IntegrationKey {
+  """
+  config returns the configuration for the key.
+  """
+  config: KeyConfig! @experimental(flagName: "univ-keys")
+}
+
+extend type Mutation {
+  updateKeyConfig(input: UpdateKeyConfigInput!): Boolean!
+    @experimental(flagName: "univ-keys")
+}
+
+type KeyConfig {
+  """
+  Stop evaluating rules after the first rule that matches.
+  """
+  stopAtFirstRule: Boolean!
+
+  rules: [KeyRule!]!
+
+  """
+  defaultAction is the action to take if no rules match the request.
+  """
+  defaultActions: [Action!]!
+}
+
+type KeyRule {
+  id: ID!
+
+  name: String!
+  description: String!
+
+  """
+  An expression that must evaluate to true for the rule to match.
+  """
+  conditionExpr: ExprBooleanExpression!
+
+  actions: [Action!]!
+}
+
+input UpdateKeyConfigInput {
+  keyID: ID!
+
+  """
+  Stop evaluating rules after the first rule that matches.
+  """
+  stopAtFirstRule: Boolean
+
+  rules: [KeyRuleInput!]
+
+  """
+  defaultAction is the action to take if no rules match the request.
+  """
+  defaultActions: [ActionInput!]
+}
+
+input KeyRuleInput {
+  """
+  The ID of an existing rule being updated.
+  """
+  id: ID
+
+  name: String!
+  description: String!
+
+  """
+  An expression that must evaluate to true for the rule to match.
+  """
+  conditionExpr: ExprBooleanExpression!
+
+  actions: [ActionInput!]!
+}
+
+input ActionInput {
+  dest: DestinationInput!
+  params: [DynamicParamInput!]!
+}
+
+type Action {
+  dest: Destination!
+  params: [DynamicParam!]!
+}
+
+input DynamicParamInput {
+  paramID: ID!
+  expr: ExprStringExpression!
+}
+
+type DynamicParam {
+  paramID: ID!
+  expr: ExprStringExpression!
+}

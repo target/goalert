@@ -7,7 +7,7 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
 import ListItemText from '@mui/material/ListItemText'
 import makeStyles from '@mui/styles/makeStyles'
-import AppLink from '../util/AppLink'
+import AppLink, { AppLinkListItem } from '../util/AppLink'
 import { FlatListItemOptions } from './FlatList'
 
 const useStyles = makeStyles(() => ({
@@ -63,7 +63,8 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
   let linkProps = {}
   if (url) {
     linkProps = {
-      component: AppLink,
+      // if you render a link with a secondary action, MUI will render the <a> tag without an <li> around it
+      component: secondaryAction ? AppLink : AppLinkListItem,
       to: url,
       button: true,
     }
@@ -101,6 +102,7 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
             [classes.listItemDisabled]: disabled,
           }),
           tabIndex: 0,
+          component: typeof subText === 'string' ? 'p' : 'div',
         }}
       />
       {secondaryAction && (

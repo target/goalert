@@ -37,14 +37,14 @@ function check(
       createFunc(name2, true)
       cy.visit(`/${urlPrefix}?search=${encodeURIComponent(prefix)}`)
 
-      cy.get('ul[data-cy=paginated-list] li')
+      cy.get('main ul > li')
         .should('have.length', 2)
         .first()
         .should('contain', name2)
         .find('[data-cy=fav-icon]')
         .should('exist')
 
-      cy.get('ul[data-cy=paginated-list] li').last().should('contain', name1)
+      cy.get('main ul > li').last().should('contain', name1)
     })
     if (getSearchSelectFunc) {
       it('should sort favorites-first in a search-select', () => {

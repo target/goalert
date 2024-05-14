@@ -39,3 +39,31 @@ WHERE
 DELETE FROM integration_keys
 WHERE id = ANY (@ids::uuid[]);
 
+-- name: IntKeyGetConfig :one
+SELECT
+    config
+FROM
+    uik_config
+WHERE
+    id = $1
+FOR UPDATE;
+
+-- name: IntKeySetConfig :exec
+INSERT INTO uik_config(id, config)
+    VALUES ($1, $2)
+ON CONFLICT (id)
+    DO UPDATE SET
+        config = $2;
+
+-- name: IntKeyDeleteConfig :exec
+DELETE FROM uik_config
+WHERE id = $1;
+
+-- name: IntKeyGetType :one
+SELECT
+    type
+FROM
+    integration_keys
+WHERE
+    id = $1;
+

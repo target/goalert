@@ -110,9 +110,14 @@ export default function ServiceCreateDialog(props: {
           }
         }
 
-        return commit({
-          input: inputVars(value),
-        }).then(null, onErr)
+        return commit(
+          {
+            input: inputVars(value),
+          },
+          {
+            additionalTypenames: ['ServiceConnection'],
+          },
+        ).then(null, onErr)
       }}
       form={
         <ServiceForm

@@ -1,4 +1,4 @@
-import React, { forwardRef, ForwardRefRenderFunction } from 'react'
+import React, { forwardRef } from 'react'
 import { LinkProps } from '@mui/material'
 import MUILink from '@mui/material/Link'
 
@@ -32,32 +32,43 @@ const WrapLink = forwardRef(function WrapLink(
   )
 })
 
-const AppLink: ForwardRefRenderFunction<HTMLAnchorElement, AppLinkProps> =
-  function AppLink(props, ref): JSX.Element {
-    let { to, newTab, ...other } = props
-    const [location] = useLocation()
+const AppLink = forwardRef<HTMLAnchorElement, AppLinkProps>((props, ref) => {
+  let { to, newTab, ...other } = props
+  const [location] = useLocation()
 
-    if (newTab) {
-      other.target = '_blank'
-      other.rel = 'noopener noreferrer'
-    }
-
-    const external = /^(tel:|mailto:|blob:|https?:\/\/)/.test(to)
-
-    // handle relative URLs
-    if (!external && !to.startsWith('/')) {
-      to = joinURL(location, to)
-    }
-
-    return (
-      <MUILink
-        ref={ref}
-        to={to}
-        href={to}
-        component={external || newTab ? 'a' : WrapLink}
-        {...other}
-      />
-    )
+  if (newTab) {
+    other.target = '_blank'
+    other.rel = 'noopener noreferrer'
   }
 
-export default forwardRef(AppLink)
+  const external = /^(tel:|mailto:|blob:|https?:\/\/)/.test(to)
+
+  // handle relative URLs
+  if (!external && !to.startsWith('/')) {
+    to = joinURL(location, to)
+  }
+
+  return (
+    <MUILink
+      ref={ref}
+      to={to}
+      href={to}
+      component={external || newTab ? 'a' : WrapLink}
+      {...other}
+    />
+  )
+})
+
+AppLink.displayName = 'AppLink'
+export default AppLink
+
+// forwardRef required to shut console up
+export const AppLinkListItem = forwardRef<HTMLAnchorElement, AppLinkProps>(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  (props, _) => (
+    <li>
+      <AppLink {...props} />
+    </li>
+  ),
+)
+AppLinkListItem.displayName = 'AppLinkListItem'

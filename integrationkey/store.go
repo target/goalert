@@ -5,8 +5,10 @@ import (
 	"database/sql"
 
 	"github.com/target/goalert/auth/authtoken"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/google/uuid"
@@ -44,7 +46,7 @@ func (s *Store) GetServiceID(ctx context.Context, id string, t Type) (string, er
 	keyUUID, err := validate.ParseUUID("IntegrationKeyID", id)
 	err = validate.Many(
 		err,
-		validate.OneOf("IntegrationType", t, TypeGrafana, TypeSite24x7, TypePrometheusAlertmanager, TypeGeneric, TypeEmail),
+		validate.OneOf("IntegrationType", t, TypeGrafana, TypeSite24x7, TypePrometheusAlertmanager, TypeGeneric, TypeEmail, TypeUniversal),
 	)
 	if err != nil {
 		return "", err
@@ -78,6 +80,10 @@ func (s *Store) Create(ctx context.Context, dbtx gadb.DBTX, i *IntegrationKey) (
 	n, err := i.Normalize()
 	if err != nil {
 		return nil, err
+	}
+
+	if i.Type == TypeUniversal && !expflag.ContextHas(ctx, expflag.UnivKeys) {
+		return nil, validation.NewGenericError("experimental flag not enabled")
 	}
 
 	serviceUUID, err := uuid.Parse(n.ServiceID)

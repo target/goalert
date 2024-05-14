@@ -13,7 +13,7 @@ import IntegrationKeyDeleteDialog from './IntegrationKeyDeleteDialog'
 import CopyText from '../util/CopyText'
 import AppLink from '../util/AppLink'
 import { useIsWidthDown } from '../util/useWidth'
-import { Add, ArrowDownward } from '@mui/icons-material'
+import { Add } from '@mui/icons-material'
 import makeStyles from '@mui/styles/makeStyles'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
@@ -24,9 +24,9 @@ import {
   AccordionDetails,
   AccordionSummary,
   Chip,
-  Divider,
   Typography,
 } from '@mui/material'
+import { ChevronDown } from 'mdi-material-ui'
 
 const query = gql`
   query ($serviceID: ID!) {
@@ -120,6 +120,7 @@ export default function IntegrationKeyList(props: {
     .map(
       (key: IntegrationKey): FlatListListItem => ({
         title: key.name,
+        url: key.type === 'universal' ? key.id : undefined,
         subText: (
           <IntegrationKeyDetails
             key={key.id}
@@ -146,11 +147,12 @@ export default function IntegrationKeyList(props: {
     .map(
       (key: IntegrationKey): FlatListListItem => ({
         title: key.name,
-        subText: <Chip label={key.externalSystemName} />,
+        subText: <Chip label={key.externalSystemName} sx={{ mt: 1 }} />,
         secondaryAction: (
           <IconButton
             onClick={(): void => setDeleteDialog(key.id)}
             size='large'
+            sx={{ right: '-16px' }}
           >
             <Trash />
           </IconButton>
@@ -187,20 +189,20 @@ export default function IntegrationKeyList(props: {
               }
             />
             {!!extItems.length && (
-              <React.Fragment>
-                <Divider />
-                <Accordion disableGutters elevation={0}>
-                  <AccordionSummary expandIcon={<ArrowDownward />}>
-                    <Typography>Externally Managed Keys</Typography>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <FlatList
-                      headerNote='These keys are managed by other applications.'
-                      items={extItems}
-                    />
-                  </AccordionDetails>
-                </Accordion>
-              </React.Fragment>
+              <Accordion disableGutters elevation={0}>
+                <AccordionSummary
+                  expandIcon={<ChevronDown />}
+                  sx={{ ml: '6px', mr: '12px' }}
+                >
+                  <Typography>Externally Managed Keys</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <FlatList
+                    headerNote='These keys are managed by other applications.'
+                    items={extItems}
+                  />
+                </AccordionDetails>
+              </Accordion>
             )}
           </CardContent>
         </Card>

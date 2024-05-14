@@ -1,10 +1,9 @@
 import React, { useState } from 'react'
-import { gql, useMutation } from '@apollo/client'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodForm'
 import { pick } from 'lodash'
-import { useQuery } from 'urql'
+import { gql, useMutation, useQuery } from 'urql'
 import { useExpFlag } from '../util/useExpFlag'
 import { ContactMethodType, StatusUpdateState } from '../../schema'
 import UserContactMethodEditDialogDest from './UserContactMethodEditDialogDest'
@@ -50,7 +49,7 @@ function UserContactMethodEditDialog({
     query,
     variables: { id: contactMethodID },
   })
-  const [commit, status] = useMutation(mutation)
+  const [status, commit] = useMutation(mutation)
   const { error } = status
 
   const defaultValue = {
@@ -78,15 +77,16 @@ function UserContactMethodEditDialog({
             enableStatusUpdates: updates.statusUpdates === 'ENABLED',
           }).statusUpdates
         }
-        commit({
-          variables: {
+        commit(
+          {
             input: {
               ...updates,
               id: contactMethodID,
             },
           },
-        }).then((result) => {
-          if (result.errors) return
+          { additionalTypenames: ['UserContactMethod'] },
+        ).then((result) => {
+          if (result.error) return
           onClose()
         })
       }}

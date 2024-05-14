@@ -1,0 +1,96 @@
+extend type Query {
+  expr: Expr! @experimental(flagName: "univ-keys")
+}
+
+"""
+Expr contains helpers for working with Expr expressions.
+"""
+type Expr {
+  """
+  exprToCondition converts an Expr expression to a Condition.
+  """
+  exprToCondition(input: ExprToConditionInput!): Condition!
+    @goField(forceResolver: true)
+
+  """
+  conditionToExpr converts a Condition to an Expr expression.
+  """
+  conditionToExpr(input: ConditionToExprInput!): String!
+    @goField(forceResolver: true)
+}
+
+"""
+ExprExpression is a scalar type that represents an Expr expression.
+"""
+scalar ExprExpression
+
+"""
+ExprBooleanExpression is a scalar type that represents an Expr expression that evaluates to a boolean.
+"""
+scalar ExprBooleanExpression
+
+"""
+ExprStringExpression is a scalar type that represents an Expr expression that evaluates to a string.
+"""
+scalar ExprStringExpression
+
+"""
+ExprValue is a scalar type that represents an Expr value.
+"""
+scalar ExprValue
+
+"""
+ExprIdentifier is a scalar type that represents an Expr identifier.
+"""
+scalar ExprIdentifier
+
+"""
+ExprOperator is a scalar type that represents an Expr operator.
+"""
+scalar ExprOperator
+
+input ExprToConditionInput {
+  expr: ExprBooleanExpression!
+}
+
+type Condition {
+  clauses: [Clause!]!
+}
+
+type Clause {
+  field: ExprIdentifier!
+  operator: ExprOperator!
+
+  """
+  Value is a constant value that the field should be compared against.
+  """
+  value: ExprValue!
+
+  """
+  Negate indicates whether the clause should be negated (e.g., not contains vs. contains).
+  """
+  negate: Boolean!
+}
+
+input ConditionToExprInput {
+  condition: ConditionInput!
+}
+
+input ConditionInput {
+  clauses: [ClauseInput!]!
+}
+
+input ClauseInput {
+  field: ExprIdentifier!
+  operator: ExprOperator!
+
+  """
+  Value is a constant value that the field should be compared against.
+  """
+  value: ExprValue!
+
+  """
+  Negate indicates whether the clause should be negated (e.g., not contains vs. contains).
+  """
+  negate: Boolean!
+}
