@@ -158,7 +158,7 @@ function testSteps(screen: ScreenFormat): void {
         })
     })
 
-    it.only('should add, click, and remove a slack channel', () => {
+    it('should add, click, and remove a slack channel', () => {
       cy.updateConfig({ Slack: { Enable: true } })
       cy.reload()
 
