@@ -3,11 +3,44 @@ extend type IntegrationKey {
   config returns the configuration for the key.
   """
   config: KeyConfig! @experimental(flagName: "univ-keys")
+
+  """
+  tokenInfo returns information about the access tokens for the key.
+  """
+  tokenInfo: TokenInfo! @experimental(flagName: "univ-keys")
+}
+
+type TokenInfo {
+  """
+  primaryHint is a hint for the primary token. It is empty if the primary token is not set.
+  """
+  primaryHint: String!
+
+  """
+  secondaryHint is a hint for the secondary token. It is empty if the secondary token is not set.
+  """
+  secondaryHint: String!
 }
 
 extend type Mutation {
   updateKeyConfig(input: UpdateKeyConfigInput!): Boolean!
     @experimental(flagName: "univ-keys")
+
+  """
+  promoteSecondaryToken promotes the secondary token to the primary token.
+  """
+  promoteSecondaryToken(id: ID!): Boolean! @experimental(flagName: "univ-keys")
+
+  """
+  generateKeyToken generates a new token for an integration key.
+
+  If the integration key already has a primary token, the new token will be the secondary token.
+
+  If the integration key does not have a primary token, the new token will be the primary token.
+
+  If the integration key already has a secondary token, an error will be returned.
+  """
+  generateKeyToken(id: ID!): String! @experimental(flagName: "univ-keys")
 }
 
 type KeyConfig {
