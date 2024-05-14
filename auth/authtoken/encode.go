@@ -34,6 +34,12 @@ func (t Token) Encode(signFn SignFunc) (string, error) {
 		b[2] = byte(t.Type)
 		copy(b[3:], t.ID[:])
 		binary.BigEndian.PutUint64(b[19:], uint64(t.CreatedAt.Unix()))
+	case 3:
+		b = make([]byte, 19)
+		b[0] = 'V' // versioned header format
+		b[1] = 3
+		b[2] = byte(t.Type)
+		copy(b[3:], t.ID[:])
 	default:
 		return "", validation.NewFieldError("Type", "unsupported version")
 	}
