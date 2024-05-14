@@ -4,14 +4,33 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/target/goalert/auth/authtoken"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
+
+// Issuer is the JWT issuer for UIK API keys.
+const Issuer = "goalert"
+
+// Audience is the JWT audience for UIK API keys.
+const Audience = "uik-key-v1"
+
+func newClaims(keyID, tokenID uuid.UUID) jwt.Claims {
+	n := time.Now()
+	return jwt.RegisteredClaims{
+		ID:        tokenID.String(),
+		Subject:   keyID.String(),
+		IssuedAt:  jwt.NewNumericDate(n),
+		NotBefore: jwt.NewNumericDate(n.Add(-time.Minute)),
+		Issuer:    Issuer,
+		Audience:  []string{Audience},
+	}
+}
 
 func (s *Store) TokenHints(ctx context.Context, db gadb.DBTX, id uuid.UUID) (primary, secondary string, err error) {
 	err = permission.LimitCheckAny(ctx, permission.User)
@@ -41,18 +60,15 @@ func (s *Store) GenerateToken(ctx context.Context, db gadb.DBTX, id uuid.UUID) (
 		return "", validation.NewFieldError("ID", "key is not a universal key")
 	}
 
-	tok := authtoken.Token{
-		Version: 3,
-		Type:    authtoken.TypeUIK,
-		ID:      uuid.New(),
-	}
-	tokStr, err := tok.Encode(s.keys.Sign)
+	tokID := uuid.New()
+	tokStr, err := s.keys.SignJWT(newClaims(id, tokID))
 	if err != nil {
 		return "", err
 	}
-	hint := tokStr[:3] + "..." + tokStr[len(tokStr)-4:]
 
-	err = s.setToken(ctx, db, id, tok.ID, hint)
+	hint := tokStr[:2] + "..." + tokStr[len(tokStr)-4:]
+
+	err = s.setToken(ctx, db, id, tokID, hint)
 	if err != nil {
 		return "", err
 	}
