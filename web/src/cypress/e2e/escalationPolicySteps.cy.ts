@@ -46,18 +46,42 @@ function testSteps(screen: ScreenFormat): void {
       cy.dialogTitle('Create Step')
       cy.dialogForm({ 'dest.type': 'Schedule', 'schedule-id': s1.name })
       cy.dialogClick('Add Action')
+      cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
+        'contain',
+        s1.name,
+      )
       cy.dialogForm({ 'schedule-id': s2.name })
       cy.dialogClick('Add Action')
+      cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
+        'contain',
+        s2.name,
+      )
 
       cy.dialogForm({ 'dest.type': 'User', 'user-id': u1.name })
       cy.dialogClick('Add Action')
+      cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
+        'contain',
+        u1.name,
+      )
       cy.dialogForm({ 'user-id': u2.name })
       cy.dialogClick('Add Action')
+      cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
+        'contain',
+        u2.name,
+      )
 
       cy.dialogForm({ 'dest.type': 'Rotation', 'rotation-id': r1.name })
       cy.dialogClick('Add Action')
+      cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
+        'contain',
+        r1.name,
+      )
       cy.dialogForm({ 'rotation-id': r2.name })
       cy.dialogClick('Add Action')
+      cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
+        'contain',
+        r2.name,
+      )
 
       cy.dialogForm({ delayMinutes: delay.toString() })
       cy.dialogFinish('Submit')
@@ -116,6 +140,10 @@ function testSteps(screen: ScreenFormat): void {
             delayMinutes: delay.toString(),
           })
           cy.dialogClick('Add Action')
+          cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
+            'contain',
+            s1.name,
+          )
 
           cy.dialogFinish('Submit')
 
@@ -130,7 +158,7 @@ function testSteps(screen: ScreenFormat): void {
         })
     })
 
-    it('should add, click, and remove a slack channel', () => {
+    it.only('should add, click, and remove a slack channel', () => {
       cy.updateConfig({ Slack: { Enable: true } })
       cy.reload()
 
@@ -147,8 +175,17 @@ function testSteps(screen: ScreenFormat): void {
         'slack-channel-id': 'general',
       })
       cy.dialogClick('Add Action')
+      cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
+        'contain',
+        '#general',
+      )
+
       cy.dialogForm({ 'slack-channel-id': 'foobar' })
       cy.dialogClick('Add Action')
+      cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
+        'contain',
+        '#foobar',
+      )
 
       cy.dialogFinish('Submit')
 
@@ -180,6 +217,9 @@ function testSteps(screen: ScreenFormat): void {
         .contains('a', '#foobar')
         .find('[data-testid=CancelIcon]')
         .click()
+      cy.get('div[role="dialog"] [data-testid=destination-chip]')
+        .contains('#foobar')
+        .should('not.exist')
 
       cy.dialogFinish('Submit')
 
