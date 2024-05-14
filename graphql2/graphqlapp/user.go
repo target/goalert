@@ -3,10 +3,12 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"sort"
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/calsub"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -28,6 +30,53 @@ type (
 
 func (a *App) User() graphql2.UserResolver { return (*User)(a) }
 
+func (a *User) OnCallOverview(ctx context.Context, obj *user.User) (*graphql2.OnCallOverview, error) {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return nil, err
+	}
+	id, err := validate.ParseUUID("UserID", obj.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := gadb.New(a.DB).GQLUserOnCallOverview(ctx, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return &graphql2.OnCallOverview{ServiceAssignments: []graphql2.OnCallServiceAssignment{}}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	svcCount := make(map[uuid.UUID]struct{})
+	var overview graphql2.OnCallOverview
+	for _, svc := range data {
+		svcCount[svc.ServiceID] = struct{}{}
+		overview.ServiceAssignments = append(overview.ServiceAssignments, graphql2.OnCallServiceAssignment{
+			StepNumber:           int(svc.StepNumber) + 1,
+			EscalationPolicyID:   svc.PolicyID.String(),
+			EscalationPolicyName: svc.PolicyName,
+			ServiceID:            svc.ServiceID.String(),
+			ServiceName:          svc.ServiceName,
+		})
+	}
+	overview.ServiceCount = len(svcCount)
+
+	// sort by service name, then step number
+	sort.Slice(overview.ServiceAssignments, func(i, j int) bool {
+		a := overview.ServiceAssignments[i]
+		b := overview.ServiceAssignments[j]
+
+		if a.ServiceName != b.ServiceName {
+			return a.ServiceName < b.ServiceName
+		}
+
+		return a.StepNumber < b.StepNumber
+	})
+
+	return &overview, nil
+}
+
 func (a *User) Sessions(ctx context.Context, obj *user.User) ([]graphql2.UserSession, error) {
 	sess, err := a.AuthHandler.FindAllUserSessions(ctx, obj.ID)
 	if err != nil {
@@ -36,7 +85,6 @@ func (a *User) Sessions(ctx context.Context, obj *user.User) ([]graphql2.UserSes
 
 	out := make([]graphql2.UserSession, len(sess))
 	for i, s := range sess {
-
 		out[i] = graphql2.UserSession{
 			ID:           s.ID,
 			UserAgent:    s.UserAgent,
@@ -48,6 +96,7 @@ func (a *User) Sessions(ctx context.Context, obj *user.User) ([]graphql2.UserSes
 
 	return out, nil
 }
+
 func isCurrentSession(ctx context.Context, sessID string) bool {
 	src := permission.Source(ctx)
 	if src == nil {
