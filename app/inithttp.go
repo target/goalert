@@ -142,6 +142,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	mux.HandleFunc("/api/v2/identity/providers/oidc", oidcAuth)
 	mux.HandleFunc("/api/v2/identity/providers/oidc/callback", oidcAuth)
 
+	mux.HandleFunc("POST /api/v2/uik", app.IntegrationKeyStore.HandleUIK)
 	mux.HandleFunc("/api/v2/mailgun/incoming", mailgun.IngressWebhooks(app.AlertStore, app.IntegrationKeyStore))
 	mux.HandleFunc("/api/v2/grafana/incoming", grafana.GrafanaToEventsAPI(app.AlertStore, app.IntegrationKeyStore))
 	mux.HandleFunc("/api/v2/site24x7/incoming", site24x7.Site24x7ToEventsAPI(app.AlertStore, app.IntegrationKeyStore))
