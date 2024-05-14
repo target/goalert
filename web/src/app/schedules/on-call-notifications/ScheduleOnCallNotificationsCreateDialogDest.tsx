@@ -18,6 +18,7 @@ const getRulesQuery = gql`
   query GetRules($scheduleID: ID!) {
     schedule(id: $scheduleID) {
       id
+      timeZone
       onCallNotificationRules {
         id
         weekdayFilter
@@ -103,7 +104,9 @@ export default function ScheduleOnCallNotificationsCreateDialog(
                 value.time
                   ? {
                       ...value,
-                      time: DateTime.fromISO(value.time).toFormat('HH:mm'),
+                      time: DateTime.fromISO(value.time)
+                        .setZone(sched.timeZone)
+                        .toFormat('HH:mm'),
                     }
                   : { dest: value.dest },
               ],

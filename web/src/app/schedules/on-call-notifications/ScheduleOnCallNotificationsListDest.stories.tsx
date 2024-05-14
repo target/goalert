@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import ScheduleOnCallNotificationsListDest from './ScheduleOnCallNotificationsListDest'
-import { handleDefaultConfig, handleExpFlags } from '../../storybook/graphql'
+import { handleDefaultConfig } from '../../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 
 const emptyScheduleID = '00000000-0000-0000-0000-000000000000'
@@ -15,7 +15,6 @@ const meta = {
     msw: {
       handlers: [
         handleDefaultConfig,
-        handleExpFlags('dest-types'),
         graphql.query('ScheduleNotifications', ({ variables }) => {
           switch (variables.scheduleID) {
             case emptyScheduleID:
