@@ -2,9 +2,13 @@ import { Page } from '@playwright/test'
 
 export async function dropdownSelect(
   page: Page,
-  selector: string,
-  label: string,
+  fieldLabel: string,
+  optionLabel: string,
 ): Promise<void> {
-  await page.click(selector, { force: true }) // force click so the wrapper element is clicked, as the input is hidden
-  await page.locator('[role=option]', { hasText: label }).click()
+  await page
+    .locator('div', { has: page.locator('label', { hasText: fieldLabel }) })
+    .locator('[role=combobox]')
+    .click()
+
+  await page.locator('[role=option]', { hasText: optionLabel }).click()
 }

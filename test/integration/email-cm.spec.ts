@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test'
-import { userSessionFile } from './lib'
+import { userSessionFile, dropdownSelect } from './lib'
 import Chance from 'chance'
 const c = new Chance()
 
-test.describe.configure({ mode: 'parallel' })
+test.describe.configure({ mode: 'serial' })
 test.use({ storageState: userSessionFile })
 
 // test create, edit, verify, and delete of an EMAIL contact method
@@ -21,8 +21,15 @@ test('EMAIL contact method', async ({ page, browser, isMobile }) => {
   }
 
   await page.fill('input[name=name]', name)
-  await page.fill('input[name="dest.type"]', 'Email')
-  // await page.selectOption('[name="dest.type"]', { label: 'Email' })
+
+  // ensure disclaimer is shown for voice call
+  await dropdownSelect(page, 'Destination Type', 'Voice Call')
+
+  await expect(
+    page.locator('span', { hasText: 'test-disclaimer-text' }),
+  ).toBeVisible()
+
+  await dropdownSelect(page, 'Destination Type', 'Email')
   await page.fill('input[name=email-address]', email)
   await page.click('[role=dialog] button[type=submit]')
 
@@ -63,7 +70,7 @@ test('EMAIL contact method', async ({ page, browser, isMobile }) => {
   await page.locator('[role=dialog]').isHidden()
 
   // edit name and enable status updates
-  const updatedName = 'updated name'
+  const updatedName = 'updated name ' + c.name()
   await page
     .locator('.MuiCard-root', {
       has: page.locator('div > div > h2', { hasText: 'Contact Methods' }),
@@ -98,6 +105,8 @@ test('EMAIL contact method', async ({ page, browser, isMobile }) => {
     .click()
   await page.getByRole('menuitem', { name: 'Delete' }).click()
   await page.getByRole('button', { name: 'Confirm' }).click()
+
+  await expect(page.locator('[role=dialog]')).not.toBeVisible()
   await page
     .locator('.MuiCard-root', {
       has: page.locator('div > div > h2', { hasText: 'Contact Methods' }),

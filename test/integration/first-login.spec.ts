@@ -3,7 +3,7 @@ import { dropdownSelect, userSessionFile } from './lib'
 import Chance from 'chance'
 const c = new Chance()
 
-test.describe.configure({ mode: 'parallel' })
+test.describe.configure({ mode: 'serial' })
 test.use({ storageState: userSessionFile })
 
 // test create, edit, verify, and delete of an EMAIL contact method
@@ -17,7 +17,7 @@ test('first time setup', async ({ page }) => {
   const name = 'first-setup-email ' + c.name()
   const email = 'first-setup-email-' + c.email()
   await page.fill('input[name=name]', name)
-  await dropdownSelect(page, 'input[name="dest.type"]', 'Email')
+  await dropdownSelect(page, 'Destination Type', 'Email')
   await page.fill('input[name=email-address]', email)
   await page.click('[role=dialog] button[type=submit]')
   await expect(
@@ -28,7 +28,7 @@ test('first time setup', async ({ page }) => {
   await page.locator('[role=dialog] button', { hasText: 'Cancel' }).click()
 
   // ensure dialog is  not shown
-  await expect(page.locator('[role=dialog]')).not.toBeVisible()
+  await expect(page.locator('[role=dialog]')).toHaveCount(0)
 
   await page.goto('./profile')
   await page
