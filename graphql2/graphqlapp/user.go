@@ -53,7 +53,7 @@ func (a *User) OnCallOverview(ctx context.Context, obj *user.User) (*graphql2.On
 	for _, svc := range data {
 		svcCount[svc.ServiceID] = struct{}{}
 		overview.ServiceAssignments = append(overview.ServiceAssignments, graphql2.OnCallServiceAssignment{
-			StepNumber:           int(svc.StepNumber) + 1,
+			StepNumber:           int(svc.StepNumber),
 			EscalationPolicyID:   svc.PolicyID.String(),
 			EscalationPolicyName: svc.PolicyName,
 			ServiceID:            svc.ServiceID.String(),
