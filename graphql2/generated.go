@@ -12207,7 +12207,7 @@ func (ec *executionContext) _EscalationPolicy_labels(ctx context.Context, field 
 	return ec.marshalNLabel2ᚕgithubᚗcomᚋtargetᚋgoalertᚋlabelᚐLabelᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_EscalationPolicy_labels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_EscalationPolicy_labels(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "EscalationPolicy",
 		Field:      field,
@@ -23828,7 +23828,7 @@ func (ec *executionContext) _Rotation_labels(ctx context.Context, field graphql.
 	return ec.marshalNLabel2ᚕgithubᚗcomᚋtargetᚋgoalertᚋlabelᚐLabelᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Rotation_labels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Rotation_labels(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Rotation",
 		Field:      field,
@@ -25330,7 +25330,7 @@ func (ec *executionContext) _Schedule_labels(ctx context.Context, field graphql.
 	return ec.marshalNLabel2ᚕgithubᚗcomᚋtargetᚋgoalertᚋlabelᚐLabelᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Schedule_labels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Schedule_labels(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Schedule",
 		Field:      field,
