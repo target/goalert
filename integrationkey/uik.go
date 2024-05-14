@@ -85,6 +85,9 @@ func (s *Store) setToken(ctx context.Context, db gadb.DBTX, keyID, tokenID uuid.
 			PrimaryToken:     uuid.NullUUID{UUID: tokenID, Valid: true},
 			PrimaryTokenHint: sql.NullString{String: tokenHint, Valid: true},
 		})
+		if errors.Is(err, sql.ErrNoRows) {
+			return validation.NewGenericError("key not found, or already has primary and secondary tokens")
+		}
 
 		// Note: A possible race condition here is if multiple requests are made to set the primary token at the same time. In that case, the first request will win and the others will fail with a unique constraint violation. This is acceptable because the primary token is only set once, and only rotated thereafter.
 	}
