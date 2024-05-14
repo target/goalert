@@ -1210,7 +1210,7 @@ type OnCallOverview {
 
 type OnCallServiceAssignment {
   """
-  stepNumber is the escalation step this assignment is from (begining with 0).
+  stepNumber is the escalation step this assignment is from (beginning with 0).
   """
   stepNumber: Int!
 
