@@ -607,6 +607,7 @@ export interface IntegrationKey {
   id: string
   name: string
   serviceID: string
+  tokenInfo: TokenInfo
   type: IntegrationKeyType
 }
 
@@ -743,7 +744,9 @@ export interface Mutation {
   deleteGQLAPIKey: boolean
   endAllAuthSessionsByCurrentUser: boolean
   escalateAlerts?: null | Alert[]
+  generateKeyToken: string
   linkAccount: boolean
+  promoteSecondaryToken: boolean
   sendContactMethodVerification: boolean
   setAlertNoiseReason: boolean
   setConfig: boolean
@@ -1215,6 +1218,11 @@ export interface TimeZoneSearchOptions {
   first?: null | number
   omit?: null | string[]
   search?: null | string
+}
+
+export interface TokenInfo {
+  primaryHint: string
+  secondaryHint: string
 }
 
 export interface UpdateAlertsByServiceInput {

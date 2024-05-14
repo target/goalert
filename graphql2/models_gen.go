@@ -852,6 +852,13 @@ type TimeZoneSearchOptions struct {
 	Omit   []string `json:"omit,omitempty"`
 }
 
+type TokenInfo struct {
+	// primaryHint is a hint for the primary token. It is empty if the primary token is not set.
+	PrimaryHint string `json:"primaryHint"`
+	// secondaryHint is a hint for the secondary token. It is empty if the secondary token is not set.
+	SecondaryHint string `json:"secondaryHint"`
+}
+
 type UpdateAlertsByServiceInput struct {
 	ServiceID string      `json:"serviceID"`
 	NewStatus AlertStatus `json:"newStatus"`

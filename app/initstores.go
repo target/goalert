@@ -217,7 +217,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.IntegrationKeyStore == nil {
-		app.IntegrationKeyStore = integrationkey.NewStore(ctx, app.db)
+		app.IntegrationKeyStore = integrationkey.NewStore(ctx, app.db, app.APIKeyring)
 	}
 
 	if app.ScheduleRuleStore == nil {
