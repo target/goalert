@@ -221,6 +221,7 @@ export default function UserContactMethodListDest(
             const label = destType?.name || 'Unknown Type'
 
             return {
+              id: cm.id,
               title: `${cm.name} (${label})${cm.disabled ? ' - Disabled' : ''}`,
               subText: getSubText(cm),
               secondaryAction: getSecondaryAction(cm),
