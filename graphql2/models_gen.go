@@ -651,7 +651,7 @@ type OnCallOverview struct {
 }
 
 type OnCallServiceAssignment struct {
-	// stepNumber is the escalation step this assignment is from (begining with 0).
+	// stepNumber is the escalation step this assignment is from (beginning with 0).
 	StepNumber           int    `json:"stepNumber"`
 	EscalationPolicyID   string `json:"escalationPolicyID"`
 	EscalationPolicyName string `json:"escalationPolicyName"`
