@@ -8,4 +8,5 @@ const (
 	TypeUnknown Type = iota // always make the zero-value Unknown
 	TypeSession
 	TypeCalSub
+	TypeUIK
 )
