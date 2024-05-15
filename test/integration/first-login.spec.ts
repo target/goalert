@@ -27,7 +27,7 @@ test('first time setup', async ({ page }) => {
   // cancel out
   await page.locator('[role=dialog] button', { hasText: 'Cancel' }).click()
 
-  // ensure dialog is  not shown
+  // ensure dialog is not shown
   await expect(page.locator('[role=dialog]')).toHaveCount(0)
 
   await page.goto('./profile')
