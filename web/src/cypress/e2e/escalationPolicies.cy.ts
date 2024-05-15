@@ -42,7 +42,7 @@ function testEP(screen: ScreenFormat): void {
         cy.dialogFinish('Cancel')
       })
 
-      it(`should create an EP when submitted`, () => {
+      it('should create an EP when submitted', () => {
         const name = 'SM EP ' + c.word({ length: 8 })
         const description = c.word({ length: 10 })
         const repeat = c.integer({ min: 0, max: 5 }).toString()
@@ -55,9 +55,23 @@ function testEP(screen: ScreenFormat): void {
 
         cy.dialogTitle('Create Escalation Policy')
         cy.dialogForm({ name, description, repeat })
-        cy.dialogFinish('Submit')
 
-        // should be on details page
+        // Clear repeat field
+        cy.dialogForm({ repeat: '' })
+        cy.get('[role=dialog] #dialog-form input[name="repeat"]').should(
+          'not.have.value',
+          repeat,
+        )
+
+        // Click out of repeat field - last known value is used
+        cy.get('[role=dialog] #dialog-form').click()
+        cy.get('[role=dialog] #dialog-form input[name="repeat"]').should(
+          'have.value',
+          repeat,
+        )
+
+        // Should be on details page
+        cy.dialogFinish('Submit')
         cy.get('body').should('contain', name).should('contain', description)
       })
     })
