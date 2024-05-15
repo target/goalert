@@ -1,24 +1,19 @@
 import { test, expect } from '@playwright/test'
-import { userSessionFile } from './lib'
+import { dropdownSelect, pageAction, userSessionFile } from './lib'
 import Chance from 'chance'
 const c = new Chance()
 
-test.describe.configure({ mode: 'parallel' })
+test.describe.configure({ mode: 'serial' })
 test.use({ storageState: userSessionFile })
 
 // test create, edit, verify, and delete of an EMAIL contact method
-test('EMAIL contact method', async ({ page, browser, isMobile }) => {
+test('EMAIL contact method', async ({ page, browser }) => {
   const name = 'pw-email ' + c.name()
   const email = 'pw-email-' + c.email()
 
   await page.goto('./profile')
 
-  if (isMobile) {
-    await page.click('[aria-label="Add Items"]')
-    await page.click('[aria-label="Create Contact Method"]')
-  } else {
-    await page.click('[title="Create Contact Method"]')
-  }
+  await pageAction(page, 'Create Contact Method', 'Create Method')
 
   await page.fill('input[name=name]', name)
   await page.fill('input[name=type]', 'EMAIL')
@@ -62,7 +57,7 @@ test('EMAIL contact method', async ({ page, browser, isMobile }) => {
   await page.locator('[role=dialog]').isHidden()
 
   // edit name and enable status updates
-  const updatedName = 'updated name'
+  const updatedName = 'updated name ' + c.name()
   await page
     .locator('.MuiCard-root', {
       has: page.locator('div > div > h2', { hasText: 'Contact Methods' }),
@@ -87,6 +82,33 @@ test('EMAIL contact method', async ({ page, browser, isMobile }) => {
   await expect(page.locator('input[name=name]')).toHaveValue(updatedName)
   await expect(page.locator('input[name=enableStatusUpdates]')).toBeChecked()
   await page.click('[role=dialog] button[type=submit]')
+
+  // verify deleting a notification rule (immediate by default)
+  await page
+    .locator('li', {
+      hasText: `Immediately notify me via Email at ${email}`,
+    })
+    .locator('button')
+    .click()
+  // click confirm
+  await page.getByRole('button', { name: 'Confirm' }).click()
+  await expect(
+    page.locator('li', {
+      hasText: `Immediately notify me via Email at ${email}`,
+    }),
+  ).not.toBeVisible()
+
+  // verify adding a notification rule (delayed)
+  await pageAction(page, 'Add Notification Rule', 'Add Rule')
+  await dropdownSelect(page, 'Contact Method', updatedName)
+  await page.fill('input[name=delayMinutes]', '5')
+  await page.click('[role=dialog] button[type=submit]')
+
+  await expect(
+    page.locator('li', {
+      hasText: `After 5 minutes notify me via Email at ${email}`,
+    }),
+  ).not.toBeVisible()
 
   await page
     .locator('.MuiCard-root', {
