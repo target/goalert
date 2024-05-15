@@ -55,7 +55,7 @@ export type ListPageControlsProps =
 function canCreate(
   props: ListPageControlsProps,
 ): props is ListPageControlsCreatableProps {
-  return 'createLabel' in props
+  return 'onCreateClick' in props && !!props.onCreateClick
 }
 
 export default function ListPageControls(
