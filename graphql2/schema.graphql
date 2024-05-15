@@ -1178,6 +1178,9 @@ type User {
   sessions: [UserSession!]!
 
   onCallSteps: [EscalationPolicyStep!]!
+    @deprecated(reason: "Use `onCallOverview` instead.")
+
+  onCallOverview: OnCallOverview!
 
   isFavorite: Boolean!
 
@@ -1198,6 +1201,24 @@ type UserNotificationRule {
 
   contactMethodID: ID!
   contactMethod: UserContactMethod
+}
+
+type OnCallOverview {
+  serviceCount: Int!
+  serviceAssignments: [OnCallServiceAssignment!]!
+}
+
+type OnCallServiceAssignment {
+  """
+  stepNumber is the escalation step this assignment is from (beginning with 0).
+  """
+  stepNumber: Int!
+
+  escalationPolicyID: ID!
+  escalationPolicyName: String!
+
+  serviceID: ID!
+  serviceName: String!
 }
 
 enum ContactMethodType {

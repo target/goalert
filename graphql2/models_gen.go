@@ -645,6 +645,20 @@ type NotificationState struct {
 	FormattedSrcValue string              `json:"formattedSrcValue"`
 }
 
+type OnCallOverview struct {
+	ServiceCount       int                       `json:"serviceCount"`
+	ServiceAssignments []OnCallServiceAssignment `json:"serviceAssignments"`
+}
+
+type OnCallServiceAssignment struct {
+	// stepNumber is the escalation step this assignment is from (beginning with 0).
+	StepNumber           int    `json:"stepNumber"`
+	EscalationPolicyID   string `json:"escalationPolicyID"`
+	EscalationPolicyName string `json:"escalationPolicyName"`
+	ServiceID            string `json:"serviceID"`
+	ServiceName          string `json:"serviceName"`
+}
+
 type PageInfo struct {
 	EndCursor   *string `json:"endCursor,omitempty"`
 	HasNextPage bool    `json:"hasNextPage"`
