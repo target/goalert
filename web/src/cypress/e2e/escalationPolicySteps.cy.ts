@@ -333,10 +333,20 @@ testScreen('Webhook Support', (screen: ScreenFormat) => {
       'webhook-url': 'https://webhook.site',
     })
     cy.dialogClick('Add Action')
+    cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
+      'contain',
+      'webhook.site',
+    )
+
     cy.dialogForm({
       'webhook-url': 'https://example.com',
     })
     cy.dialogClick('Add Action')
+    cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
+      'contain',
+      'example.com',
+    )
+
     cy.dialogFinish('Submit')
 
     // verify data integrity
