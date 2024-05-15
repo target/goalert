@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react'
 import { Typography, Grid, Divider } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
-import { ServiceChip } from '../../../util/Chips'
+import { ServiceChip } from '../../../util/ServiceChip'
 import { FormField } from '../../../forms'
 import Markdown from '../../../util/Markdown'
 

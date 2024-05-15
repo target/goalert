@@ -73,8 +73,7 @@ function PolicyStepEditDialogDest(
   // - actions field has it's own validation
   // - errors on existing actions are not handled specially, and just display in the dialog (i.e., duplicates)
   // - the delay field has no validation, and is automatically clamped to the min/max values by the backend
-  const [a, errs] = splitErrorsByPath(editStepStatus.error, [])
-  console.log(a, errs, editStepStatus.error)
+  const [, errs] = splitErrorsByPath(editStepStatus.error, [])
 
   return (
     <FormDialog
