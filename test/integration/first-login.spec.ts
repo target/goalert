@@ -42,4 +42,5 @@ test('first time setup', async ({ page }) => {
   await page.getByRole('button', { name: 'Confirm' }).click()
 
   await expect(page.locator('[role=dialog]')).not.toBeVisible()
+  await expect(page.locator('li', { hasText: email })).not.toBeVisible()
 })
