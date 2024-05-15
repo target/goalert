@@ -47,8 +47,6 @@ function testEP(screen: ScreenFormat): void {
         const description = c.word({ length: 10 })
         const repeat = c.integer({ min: 0, max: 5 }).toString()
 
-        cy.visit('escalation-policies')
-
         if (screen === 'mobile') {
           cy.pageFab()
         } else {
