@@ -27,27 +27,25 @@ const genMutation = gql`
   }
 `
 
-function GenerateToken({ generate }: { generate: () => void }): JSX.Element {
+function GenerateTokenText(): JSX.Element {
   return (
     <React.Fragment>
       <DialogContent>
-        <Typography>Generate a token for external use with GoAlert</Typography>
+        <Typography>
+          Create an token to externally authenticate with GoAlert when creating
+          new alerts
+        </Typography>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={generate}>Generate</Button>
-      </DialogActions>
     </React.Fragment>
   )
 }
 
-function CopyToken({ token }: { token: string }): JSX.Element {
+function CopyTokenText({ token }: { token: string }): JSX.Element {
   return (
     <DialogContent>
       <Grid container spacing={2}>
         <Grid item xs={12}>
-          <Typography sx={{ mb: 3 }}>
-            <CopyText title={token} value={token} placement='bottom' />
-          </Typography>
+          <CopyText title={token} value={token} placement='bottom' />
           <FormHelperText>
             Please copy and save the token as this is the only time you'll be
             able to view it.
@@ -71,23 +69,29 @@ export default function GenTokenDialog({
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitleWrapper title={title} onClose={onClose} fullScreen={false} />
-      {!token ? (
-        <GenerateToken
-          generate={() => {
-            commit(
-              {
-                id: keyID,
-              },
-              { additionalTypenames: ['IntegrationKey', 'Service'] },
-            )
-          }}
-        />
-      ) : (
-        <CopyToken token={token} />
-      )}
+      {!token ? <GenerateTokenText /> : <CopyTokenText token={token} />}
+
       {status.error?.message ? (
         <DialogContentError error={status.error.message} />
       ) : null}
+
+      {!token && (
+        <DialogActions>
+          <Button
+            variant='contained'
+            onClick={() =>
+              commit(
+                {
+                  id: keyID,
+                },
+                { additionalTypenames: ['IntegrationKey', 'Service'] },
+              )
+            }
+          >
+            Generate
+          </Button>
+        </DialogActions>
+      )}
     </Dialog>
   )
 }
