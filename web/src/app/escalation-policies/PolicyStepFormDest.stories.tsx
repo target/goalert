@@ -119,7 +119,7 @@ export const ManageActions: Story = {
 
     await userEvent.clear(phoneInput)
     await userEvent.type(phoneInput, INVALID_PHONE)
-    await userEvent.click(await canvas.findByText('Add Action'))
+    await userEvent.click(await canvas.findByText('Add Destination'))
 
     await waitFor(async () => {
       await expect(await canvas.findByLabelText('Phone Number')).toBeInvalid()
@@ -136,7 +136,7 @@ export const ManageActions: Story = {
 
     await userEvent.type(phoneInput, VALID_PHONE)
 
-    await userEvent.click(await canvas.findByText('Add Action'))
+    await userEvent.click(await canvas.findByText('Add Destination'))
 
     // should result in chip
     await expect(await canvas.findByText('VALID_CHIP_1')).toBeVisible()

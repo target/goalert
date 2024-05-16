@@ -134,14 +134,14 @@ export const UpdatePolicyStep: Story = {
     const phoneInput = await canvas.findByLabelText('Phone Number')
     await userEvent.clear(phoneInput)
     await userEvent.type(phoneInput, '1222')
-    await userEvent.click(await canvas.findByText('Add Action'))
+    await userEvent.click(await canvas.findByText('Add Destination'))
 
     await expect(await canvas.findByText('Invalid number')).toBeVisible()
     await expect(await canvas.findByText('generic error')).toBeVisible()
 
     await userEvent.clear(phoneInput)
     await userEvent.type(phoneInput, '12225550123')
-    await userEvent.click(await canvas.findByText('Add Action'))
+    await userEvent.click(await canvas.findByText('Add Destination'))
 
     await waitFor(async function Icon() {
       await userEvent.click(await canvas.findByTestId('destination-chip'))

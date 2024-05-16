@@ -5,7 +5,7 @@ import Grid from '@mui/material/Grid'
 import NumberField from '../util/NumberField'
 import { DestinationInput, FieldValueInput } from '../../schema'
 import DestinationInputChip from '../util/DestinationInputChip'
-import { Button, TextField, Typography } from '@mui/material'
+import { Button, Divider, TextField, Typography } from '@mui/material'
 import { renderMenuItem } from '../selection/DisableableMenuItem'
 import DestinationField from '../selection/DestinationField'
 import { useEPTargetTypes } from '../util/RequireConfig'
@@ -148,6 +148,7 @@ export default function PolicyStepFormDest(
           {otherErrs && renderErrors()}
           <Button
             variant='contained'
+            color='secondary'
             onClick={() => {
               if (!props.onChange) return
               validationClient
@@ -174,9 +175,11 @@ export default function PolicyStepFormDest(
                 })
             }}
           >
-            Add Action
+            Add Destination
           </Button>
         </Grid>
+        <Divider />
+
         <Grid item xs={12}>
           <FormField
             component={NumberField}
