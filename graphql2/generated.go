@@ -34424,32 +34424,11 @@ func (ec *executionContext) unmarshalInputCreateUserContactMethodInput(ctx conte
 			it.Type = data
 		case "dest":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dest"))
-			directive0 := func(ctx context.Context) (interface{}, error) {
-				return ec.unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, v)
-			}
-			directive1 := func(ctx context.Context) (interface{}, error) {
-				flagName, err := ec.unmarshalNString2string(ctx, "dest-types")
-				if err != nil {
-					return nil, err
-				}
-				if ec.directives.Experimental == nil {
-					return nil, errors.New("directive experimental is not implemented")
-				}
-				return ec.directives.Experimental(ctx, obj, directive0, flagName)
-			}
-
-			tmp, err := directive1(ctx)
+			data, err := ec.unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, v)
 			if err != nil {
-				return it, graphql.ErrorOnPath(ctx, err)
+				return it, err
 			}
-			if data, ok := tmp.(*DestinationInput); ok {
-				it.Dest = data
-			} else if tmp == nil {
-				it.Dest = nil
-			} else {
-				err := fmt.Errorf(`unexpected type %T from directive, should be *github.com/target/goalert/graphql2.DestinationInput`, tmp)
-				return it, graphql.ErrorOnPath(ctx, err)
-			}
+			it.Dest = data
 		case "name":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalNString2string(ctx, v)

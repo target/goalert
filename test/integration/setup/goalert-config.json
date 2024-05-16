@@ -1,4 +1,10 @@
 {
+  "General": {
+    "NotificationDisclaimer": "test-disclaimer-text"
+  },
+  "Twilio": {
+    "Enable": true
+  },
   "SMTP": {
     "Enable": true,
     "From": "goalert@localhost",
