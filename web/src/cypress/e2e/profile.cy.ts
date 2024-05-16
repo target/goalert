@@ -4,6 +4,8 @@ import profile from '../fixtures/profile.json'
 const c = new Chance()
 
 function testProfile(): void {
+  beforeEach(() => cy.resetProfile().visit('/profile'))
+
   it('should list and link on-call services', () => {
     const name = 'SVC ' + c.word({ length: 8 })
 
