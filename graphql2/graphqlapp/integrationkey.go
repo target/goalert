@@ -16,7 +16,20 @@ import (
 
 type IntegrationKey App
 
+type KeyConfig App
+
 func (a *App) IntegrationKey() graphql2.IntegrationKeyResolver { return (*IntegrationKey)(a) }
+func (a *App) KeyConfig() graphql2.KeyConfigResolver           { return (*KeyConfig)(a) }
+
+func (k *KeyConfig) OneRule(ctx context.Context, key *graphql2.KeyConfig, ruleID string) (*graphql2.KeyRule, error) {
+	for _, r := range key.Rules {
+		if r.ID == ruleID {
+			return &r, nil
+		}
+	}
+
+	return nil, validation.NewFieldError("RuleID", "not found")
+}
 
 func (q *Query) IntegrationKey(ctx context.Context, id string) (*integrationkey.IntegrationKey, error) {
 	return q.IntKeyStore.FindOne(ctx, id)

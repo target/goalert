@@ -54,7 +54,7 @@ type KeyConfig {
   """
   Get a single rule by ID.
   """
-  oneRule(id: ID!): KeyRule
+  oneRule(id: ID!): KeyRule @goField(forceResolver: true)
 
   """
   defaultAction is the action to take if no rules match the request.

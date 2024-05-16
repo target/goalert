@@ -74,6 +74,7 @@ type ResolverRoot interface {
 	GQLAPIKey() GQLAPIKeyResolver
 	HeartbeatMonitor() HeartbeatMonitorResolver
 	IntegrationKey() IntegrationKeyResolver
+	KeyConfig() KeyConfigResolver
 	MessageLogConnectionStats() MessageLogConnectionStatsResolver
 	Mutation() MutationResolver
 	OnCallNotificationRule() OnCallNotificationRuleResolver
@@ -907,6 +908,9 @@ type IntegrationKeyResolver interface {
 
 	Config(ctx context.Context, obj *integrationkey.IntegrationKey) (*KeyConfig, error)
 	TokenInfo(ctx context.Context, obj *integrationkey.IntegrationKey) (*TokenInfo, error)
+}
+type KeyConfigResolver interface {
+	OneRule(ctx context.Context, obj *KeyConfig, id string) (*KeyRule, error)
 }
 type MessageLogConnectionStatsResolver interface {
 	TimeSeries(ctx context.Context, obj *notification.SearchOptions, input TimeSeriesOptions) ([]TimeSeriesBucket, error)
@@ -15062,7 +15066,7 @@ func (ec *executionContext) _KeyConfig_oneRule(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.OneRule, nil
+		return ec.resolvers.KeyConfig().OneRule(rctx, obj, fc.Args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15080,8 +15084,8 @@ func (ec *executionContext) fieldContext_KeyConfig_oneRule(ctx context.Context, 
 	fc = &graphql.FieldContext{
 		Object:     "KeyConfig",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -40711,19 +40715,50 @@ func (ec *executionContext) _KeyConfig(ctx context.Context, sel ast.SelectionSet
 		case "stopAtFirstRule":
 			out.Values[i] = ec._KeyConfig_stopAtFirstRule(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "rules":
 			out.Values[i] = ec._KeyConfig_rules(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "oneRule":
-			out.Values[i] = ec._KeyConfig_oneRule(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._KeyConfig_oneRule(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "defaultActions":
 			out.Values[i] = ec._KeyConfig_defaultActions(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
