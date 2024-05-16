@@ -178,8 +178,6 @@ export default function PolicyStepFormDest(
             Add Destination
           </Button>
         </Grid>
-        <Divider />
-
         <Grid item xs={12}>
           <FormField
             component={NumberField}
