@@ -640,6 +640,7 @@ export interface IntegrationKeyTypeInfo {
 
 export interface KeyConfig {
   defaultActions: Action[]
+  oneRule?: null | KeyRule
   rules: KeyRule[]
   stopAtFirstRule: boolean
 }
@@ -1285,8 +1286,10 @@ export interface UpdateHeartbeatMonitorInput {
 
 export interface UpdateKeyConfigInput {
   defaultActions?: null | ActionInput[]
+  deleteRule?: null | string
   keyID: string
   rules?: null | KeyRuleInput[]
+  setRule?: null | KeyRuleInput
   stopAtFirstRule?: null | boolean
 }
 
