@@ -742,6 +742,7 @@ export interface Mutation {
   deleteAll: boolean
   deleteAuthSubject: boolean
   deleteGQLAPIKey: boolean
+  deleteSecondaryToken: boolean
   endAllAuthSessionsByCurrentUser: boolean
   escalateAlerts?: null | Alert[]
   generateKeyToken: string

@@ -1493,6 +1493,21 @@ func (q *Queries) IntKeyDeleteConfig(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const intKeyDeleteSecondaryToken = `-- name: IntKeyDeleteSecondaryToken :exec
+UPDATE
+    uik_config
+SET
+    secondary_token = NULL,
+    secondary_token_hint = NULL
+WHERE
+    id = $1
+`
+
+func (q *Queries) IntKeyDeleteSecondaryToken(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, intKeyDeleteSecondaryToken, id)
+	return err
+}
+
 const intKeyFindByService = `-- name: IntKeyFindByService :many
 SELECT
     id,

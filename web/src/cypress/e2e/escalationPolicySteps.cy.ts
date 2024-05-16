@@ -45,39 +45,39 @@ function testSteps(screen: ScreenFormat): void {
       }
       cy.dialogTitle('Create Step')
       cy.dialogForm({ 'dest.type': 'Schedule', 'schedule-id': s1.name })
-      cy.dialogClick('Add Action')
+      cy.dialogClick('Add Destination')
       cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
         'contain',
         s1.name,
       )
       cy.dialogForm({ 'schedule-id': s2.name })
-      cy.dialogClick('Add Action')
+      cy.dialogClick('Add Destination')
       cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
         'contain',
         s2.name,
       )
 
       cy.dialogForm({ 'dest.type': 'User', 'user-id': u1.name })
-      cy.dialogClick('Add Action')
+      cy.dialogClick('Add Destination')
       cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
         'contain',
         u1.name,
       )
       cy.dialogForm({ 'user-id': u2.name })
-      cy.dialogClick('Add Action')
+      cy.dialogClick('Add Destination')
       cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
         'contain',
         u2.name,
       )
 
       cy.dialogForm({ 'dest.type': 'Rotation', 'rotation-id': r1.name })
-      cy.dialogClick('Add Action')
+      cy.dialogClick('Add Destination')
       cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
         'contain',
         r1.name,
       )
       cy.dialogForm({ 'rotation-id': r2.name })
-      cy.dialogClick('Add Action')
+      cy.dialogClick('Add Destination')
       cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
         'contain',
         r2.name,
@@ -115,9 +115,9 @@ function testSteps(screen: ScreenFormat): void {
       cy.dialogTitle('Create Step')
 
       cy.dialogForm({ 'dest.type': 'User', 'user-id': u1.name })
-      cy.dialogClick('Add Action')
+      cy.dialogClick('Add Destination')
       cy.dialogForm({ 'user-id': u2.name })
-      cy.dialogClick('Add Action')
+      cy.dialogClick('Add Destination')
     })
 
     it('should edit a step', () => {
@@ -139,7 +139,7 @@ function testSteps(screen: ScreenFormat): void {
             'schedule-id': s1.name,
             delayMinutes: delay.toString(),
           })
-          cy.dialogClick('Add Action')
+          cy.dialogClick('Add Destination')
           cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
             'contain',
             s1.name,
@@ -174,14 +174,14 @@ function testSteps(screen: ScreenFormat): void {
         'dest.type': 'Slack Channel',
         'slack-channel-id': 'general',
       })
-      cy.dialogClick('Add Action')
+      cy.dialogClick('Add Destination')
       cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
         'contain',
         '#general',
       )
 
       cy.dialogForm({ 'slack-channel-id': 'foobar' })
-      cy.dialogClick('Add Action')
+      cy.dialogClick('Add Destination')
       cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
         'contain',
         '#foobar',
@@ -332,7 +332,7 @@ testScreen('Webhook Support', (screen: ScreenFormat) => {
       'dest.type': 'Webhook',
       'webhook-url': 'https://webhook.site',
     })
-    cy.dialogClick('Add Action')
+    cy.dialogClick('Add Destination')
     cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
       'contain',
       'webhook.site',
@@ -341,7 +341,7 @@ testScreen('Webhook Support', (screen: ScreenFormat) => {
     cy.dialogForm({
       'webhook-url': 'https://example.com',
     })
-    cy.dialogClick('Add Action')
+    cy.dialogClick('Add Destination')
     cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
       'contain',
       'example.com',

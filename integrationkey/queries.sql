@@ -126,3 +126,12 @@ WHERE
     AND (c.primary_token = sqlc.arg(token_id)
         OR c.secondary_token = sqlc.arg(token_id));
 
+-- name: IntKeyDeleteSecondaryToken :exec
+UPDATE
+    uik_config
+SET
+    secondary_token = NULL,
+    secondary_token_hint = NULL
+WHERE
+    id = $1;
+

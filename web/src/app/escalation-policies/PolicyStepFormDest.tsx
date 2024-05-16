@@ -148,6 +148,7 @@ export default function PolicyStepFormDest(
           {otherErrs && renderErrors()}
           <Button
             variant='contained'
+            color='secondary'
             onClick={() => {
               if (!props.onChange) return
               validationClient
@@ -174,7 +175,7 @@ export default function PolicyStepFormDest(
                 })
             }}
           >
-            Add Action
+            Add Destination
           </Button>
         </Grid>
         <Grid item xs={12}>
