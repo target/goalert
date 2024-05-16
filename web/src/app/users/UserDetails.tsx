@@ -14,13 +14,12 @@ import { Grid } from '@mui/material'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
 import UserNotificationRuleCreateDialog from './UserNotificationRuleCreateDialog'
 import UserContactMethodVerificationDialog from './UserContactMethodVerificationDialog'
-import _ from 'lodash'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import { useSessionInfo } from '../util/RequireConfig'
 import UserEditDialog from './UserEditDialog'
 import UserDeleteDialog from './UserDeleteDialog'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
-import { EscalationPolicyStep } from '../../schema'
+import { User } from '../../schema'
 import { useIsWidthDown } from '../util/useWidth'
 import UserShiftsCalendar from './UserShiftsCalendar'
 import { useExpFlag } from '../util/useExpFlag'
@@ -35,15 +34,8 @@ const userQuery = gql`
       contactMethods {
         id
       }
-      onCallSteps {
-        id
-        escalationPolicy {
-          id
-          assignedTo {
-            id
-            name
-          }
-        }
+      onCallOverview {
+        serviceCount
       }
     }
   }
@@ -59,15 +51,8 @@ const profileQuery = gql`
       contactMethods {
         id
       }
-      onCallSteps {
-        id
-        escalationPolicy {
-          id
-          assignedTo {
-            id
-            name
-          }
-        }
+      onCallOverview {
+        serviceCount
       }
       sessions {
         id
@@ -75,17 +60,6 @@ const profileQuery = gql`
     }
   }
 `
-
-function serviceCount(onCallSteps: EscalationPolicyStep[] = []): number {
-  const svcs: { [Key: string]: boolean } = {}
-  ;(onCallSteps || []).forEach((s) =>
-    (s?.escalationPolicy?.assignedTo || []).forEach(
-      (svc) => (svcs[svc.id] = true),
-    ),
-  )
-
-  return Object.keys(svcs).length
-}
 
 export default function UserDetails(props: {
   userID: string
@@ -104,16 +78,16 @@ export default function UserDetails(props: {
   const [showUserDeleteDialog, setShowUserDeleteDialog] = useState(false)
   const mobile = useIsWidthDown('md')
 
-  const [{ data, error }] = useQuery({
+  const [{ data, error }] = useQuery<{ user: User }>({
     query: isAdmin || userID === currentUserID ? profileQuery : userQuery,
     variables: { id: userID },
   })
 
+  const user = data?.user
   if (error) return <GenericError error={error.message} />
-  if (!_.get(data, 'user.id')) return <ObjectNotFound />
+  if (!user) return <ObjectNotFound />
 
-  const user = _.get(data, 'user')
-  const svcCount = serviceCount(user.onCallSteps)
+  const svcCount = user.onCallOverview.serviceCount
   const sessCount = user?.sessions?.length ?? 0
 
   const disableNR = user.contactMethods.length === 0

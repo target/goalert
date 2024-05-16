@@ -18,6 +18,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
+
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )

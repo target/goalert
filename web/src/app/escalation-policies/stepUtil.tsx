@@ -1,32 +1,10 @@
-import React, { ComponentType, ReactElement, ReactNode } from 'react'
+import React, { ReactElement, ReactNode } from 'react'
 import { sortBy } from 'lodash'
 import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import {
-  RotationChip,
-  ScheduleChip,
-  UserChip,
-  SlackChip,
-  WebhookChip,
-} from '../util/Chips'
-import { Destination, Target } from '../../schema'
+import { Destination } from '../../schema'
 import DestinationChip from '../util/DestinationChip'
-
-interface Step {
-  id: string
-  delayMinutes: number
-  targets: Target[]
-}
-
-interface HasID {
-  id: string
-}
-
-export function getStepNumber(stepID: string, steps: HasID[]): number {
-  const sids = steps.map((s) => s.id)
-  return sids.indexOf(stepID) + 1
-}
 
 export function renderChipsDest(_a: Destination[]): ReactElement {
   const actions = sortBy(_a.slice(), ['type', 'displayInfo.text'])
@@ -50,63 +28,11 @@ export function renderChipsDest(_a: Destination[]): ReactElement {
 }
 
 /*
- * Renders the mui chips for each target on the step
- */
-export function renderChips({ targets: _t }: Step): ReactElement {
-  // copy and sort by type then name
-  const targets = sortBy(_t.slice(), ['type', 'name'])
-
-  if (!targets || targets.length === 0) {
-    return <Chip label='No targets' />
-  }
-
-  const items = targets.map((tgt) => {
-    const tgtChip = (
-      Chip: ComponentType<{ id: string; label: string }>,
-    ): JSX.Element => <Chip id={tgt.id} label={tgt.name} />
-
-    let chip = null
-    switch (tgt.type) {
-      case 'user':
-        chip = tgtChip(UserChip)
-        break
-      case 'schedule':
-        chip = tgtChip(ScheduleChip)
-        break
-      case 'rotation':
-        chip = tgtChip(RotationChip)
-        break
-      case 'slackChannel':
-      case 'notificationChannel':
-        chip = tgtChip(SlackChip)
-        break
-      case 'chanWebhook':
-        chip = tgtChip(WebhookChip)
-        break
-    }
-
-    if (chip) {
-      return (
-        <Grid item key={tgt.id + ':' + tgt.type}>
-          {chip}
-        </Grid>
-      )
-    }
-  })
-
-  return (
-    <Grid container spacing={1}>
-      {items}
-    </Grid>
-  )
-}
-
-/*
  * Renders the delay message, dependent on if the escalation policy
  * repeats, and if the message is rendering on the last step
  */
 export function renderDelayMessage(
-  step: Step,
+  step: { delayMinutes: number },
   idx: number,
   repeat: number,
   isLastStep: boolean,

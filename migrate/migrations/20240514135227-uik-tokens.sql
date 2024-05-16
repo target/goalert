@@ -7,5 +7,8 @@ ALTER TABLE uik_config
 
 -- +migrate Down
 ALTER TABLE uik_config
-    DROP COLUMN primary_token, primary_token_hint, secondary_token, secondary_token_hint;
+    DROP COLUMN primary_token,
+    DROP COLUMN primary_token_hint,
+    DROP COLUMN secondary_token,
+    DROP COLUMN secondary_token_hint;
 

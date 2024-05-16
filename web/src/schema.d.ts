@@ -808,6 +808,19 @@ export interface OnCallNotificationRuleInput {
   weekdayFilter?: null | WeekdayFilter
 }
 
+export interface OnCallOverview {
+  serviceAssignments: OnCallServiceAssignment[]
+  serviceCount: number
+}
+
+export interface OnCallServiceAssignment {
+  escalationPolicyID: string
+  escalationPolicyName: string
+  serviceID: string
+  serviceName: string
+  stepNumber: number
+}
+
 export interface OnCallShift {
   end: ISOTimestamp
   start: ISOTimestamp
@@ -1345,6 +1358,7 @@ export interface User {
   isFavorite: boolean
   name: string
   notificationRules: UserNotificationRule[]
+  onCallOverview: OnCallOverview
   onCallSteps: EscalationPolicyStep[]
   role: UserRole
   sessions: UserSession[]

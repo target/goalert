@@ -1396,6 +1396,59 @@ func (q *Queries) FindOneCalSubForUpdate(ctx context.Context, id uuid.UUID) (Fin
 	return i, err
 }
 
+const gQLUserOnCallOverview = `-- name: GQLUserOnCallOverview :many
+SELECT
+    svc.id AS service_id,
+    svc.name AS service_name,
+    ep.id AS policy_id,
+    ep.name AS policy_name,
+    step.step_number
+FROM
+    ep_step_on_call_users oc
+    JOIN escalation_policy_steps step ON step.id = oc.ep_step_id
+    JOIN escalation_policies ep ON ep.id = step.escalation_policy_id
+    JOIN services svc ON svc.escalation_policy_id = ep.id
+WHERE
+    oc.user_id = $1
+`
+
+type GQLUserOnCallOverviewRow struct {
+	ServiceID   uuid.UUID
+	ServiceName string
+	PolicyID    uuid.UUID
+	PolicyName  string
+	StepNumber  int32
+}
+
+func (q *Queries) GQLUserOnCallOverview(ctx context.Context, userID uuid.UUID) ([]GQLUserOnCallOverviewRow, error) {
+	rows, err := q.db.QueryContext(ctx, gQLUserOnCallOverview, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GQLUserOnCallOverviewRow
+	for rows.Next() {
+		var i GQLUserOnCallOverviewRow
+		if err := rows.Scan(
+			&i.ServiceID,
+			&i.ServiceName,
+			&i.PolicyID,
+			&i.PolicyName,
+			&i.StepNumber,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const intKeyCreate = `-- name: IntKeyCreate :exec
 INSERT INTO integration_keys(id, name, type, service_id, external_system_name)
     VALUES ($1, $2, $3, $4, $5)

@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
 import ScheduleOnCallNotificationsCreateDialogDest from './ScheduleOnCallNotificationsCreateDialogDest'
 import { HttpResponse, graphql } from 'msw'
-import { handleDefaultConfig, handleExpFlags } from '../../storybook/graphql'
+import { handleDefaultConfig } from '../../storybook/graphql'
 import { BaseError, DestFieldValueError } from '../../util/errtypes'
 
 const meta = {
@@ -24,7 +24,6 @@ const meta = {
     msw: {
       handlers: [
         handleDefaultConfig,
-        handleExpFlags('dest-types'),
         graphql.query('SchedZone', ({ variables }) => {
           return HttpResponse.json({
             data: {
