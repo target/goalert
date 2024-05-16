@@ -1,11 +1,13 @@
-import React from 'react'
-import UniversalKeyRuleList from './UniversalKeyRuleList'
+import React, { useState } from 'react'
 import { gql, useQuery } from 'urql'
+import { Redirect } from 'wouter'
 import { GenericError, ObjectNotFound } from '../../error-pages'
 import { IntegrationKey, Service } from '../../../schema'
-import { Redirect } from 'wouter'
+import UniversalKeyRuleList from './UniversalKeyRuleList'
 import DetailsPage from '../../details/DetailsPage'
 import { Action } from '../../details/CardActions'
+import GenTokenDialog from './GenTokenDialog'
+import PromoteTokenDialog from './PromoteTokenDialog'
 
 interface UniversalKeyPageProps {
   serviceID: string
@@ -30,14 +32,12 @@ const query = gql`
   }
 `
 
-const desc = `
-Primary Token: N/A
-Secondary Token: N/A
-`
-
 export default function UniversalKeyPage(
   props: UniversalKeyPageProps,
 ): React.ReactNode {
+  const [genDialogOpen, setGenDialogOpen] = useState(false)
+  const [promoteDialogOpen, setPromoteDialogOpen] = useState(false)
+
   const [q] = useQuery<{
     integrationKey: IntegrationKey
     service: Service
@@ -70,12 +70,21 @@ export default function UniversalKeyPage(
   const primaryHint = q.data.integrationKey.tokenInfo.primaryHint
   const secondaryHint = q.data.integrationKey.tokenInfo.secondaryHint
 
+  const desc = `
+  Primary Token: ${primaryHint || 'N/A'}
+  ${secondaryHint ? `\nSecondary Token: ${secondaryHint}` : ''}
+  `
+
   function makeGenerateButtons(): Array<Action> {
+    const handleOnClick = (): void => {
+      setGenDialogOpen(true)
+    }
+
     if (primaryHint && !secondaryHint) {
       return [
         {
           label: 'Regenerate Token',
-          handleOnClick: () => {},
+          handleOnClick,
         },
       ]
     }
@@ -84,11 +93,11 @@ export default function UniversalKeyPage(
       return [
         {
           label: 'Regenerate Token',
-          handleOnClick: () => {},
+          handleOnClick,
         },
         {
           label: 'Promote Secondary',
-          handleOnClick: () => {},
+          handleOnClick: () => setPromoteDialogOpen(true),
         },
       ]
     }
@@ -96,18 +105,31 @@ export default function UniversalKeyPage(
     return [
       {
         label: 'Generate Token',
-        handleOnClick: () => {},
+        handleOnClick,
       },
     ]
   }
 
   return (
-    <DetailsPage
-      title={q.data.integrationKey.name}
-      subheader={`Service: ${q.data.service.name}`}
-      details={desc}
-      primaryActions={makeGenerateButtons()}
-      pageContent={UniversalKeyRuleList()}
-    />
+    <React.Fragment>
+      <DetailsPage
+        title={q.data.integrationKey.name}
+        subheader={`Service: ${q.data.service.name}`}
+        details={desc}
+        primaryActions={makeGenerateButtons()}
+        pageContent={<UniversalKeyRuleList />}
+      />
+      <GenTokenDialog
+        keyID={props.keyID}
+        open={genDialogOpen}
+        onClose={() => setGenDialogOpen(false)}
+        // isSecondary={}
+      />
+      <PromoteTokenDialog
+        keyID={props.keyID}
+        open={promoteDialogOpen}
+        onClose={() => setPromoteDialogOpen(false)}
+      />
+    </React.Fragment>
   )
 }

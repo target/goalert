@@ -1,5 +1,5 @@
 import React, { Suspense, useState } from 'react'
-import { Button, Card, CardContent } from '@mui/material'
+import { Button, Card } from '@mui/material'
 import { Add } from '@mui/icons-material'
 import FlatList, { FlatListListItem } from '../../lists/FlatList'
 import { useIsWidthDown } from '../../util/useWidth'
