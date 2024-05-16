@@ -1,6 +1,13 @@
 import React from 'react'
 import UniversalKeyRuleList from './UniversalKeyRuleList'
-import { CardContent, Grid, Card, CardHeader, Typography } from '@mui/material'
+import {
+  CardContent,
+  Grid,
+  Card,
+  CardHeader,
+  Typography,
+  Button,
+} from '@mui/material'
 import { gql, useQuery } from 'urql'
 import { GenericError, ObjectNotFound } from '../../error-pages'
 import { IntegrationKey, Service } from '../../../schema'
@@ -28,6 +35,11 @@ const query = gql`
       name
     }
   }
+`
+
+const desc = `
+Primary Token: N/A
+Secondary Token: N/A
 `
 
 export default function UniversalKeyPage(
@@ -90,8 +102,9 @@ export default function UniversalKeyPage(
                   color='textSecondary'
                   data-cy='details'
                 >
-                  <Markdown value='' />
+                  <Markdown value={desc} />
                 </Typography>
+                <Button>Manage Access Tokens</Button>
               </Grid>
             </Grid>
           </Card>
