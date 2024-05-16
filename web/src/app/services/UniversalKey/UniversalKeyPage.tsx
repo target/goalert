@@ -104,7 +104,8 @@ export default function UniversalKeyPage(
                 >
                   <Markdown value={desc} />
                 </Typography>
-                <Button>Manage Access Tokens</Button>
+                <Button>Generate New Auth Token</Button>
+                <Button>Promote Secondary Token</Button>
               </Grid>
             </Grid>
           </Card>
