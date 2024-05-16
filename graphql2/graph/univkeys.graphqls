@@ -52,6 +52,11 @@ type KeyConfig {
   rules: [KeyRule!]!
 
   """
+  Get a single rule by ID.
+  """
+  oneRule(id: ID!): KeyRule
+
+  """
   defaultAction is the action to take if no rules match the request.
   """
   defaultActions: [Action!]!
@@ -80,6 +85,16 @@ input UpdateKeyConfigInput {
   stopAtFirstRule: Boolean
 
   rules: [KeyRuleInput!]
+
+  """
+  setRule allows you to set a single rule. If ID is provided, the rule with that ID will be updated. If ID is not provided, a new rule will be created and appended to the list of rules.
+  """
+  setRule: KeyRuleInput
+
+  """
+  deleteRule allows you to delete a single rule by ID.
+  """
+  deleteRule: ID
 
   """
   defaultAction is the action to take if no rules match the request.
