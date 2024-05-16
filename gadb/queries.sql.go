@@ -1396,6 +1396,59 @@ func (q *Queries) FindOneCalSubForUpdate(ctx context.Context, id uuid.UUID) (Fin
 	return i, err
 }
 
+const gQLUserOnCallOverview = `-- name: GQLUserOnCallOverview :many
+SELECT
+    svc.id AS service_id,
+    svc.name AS service_name,
+    ep.id AS policy_id,
+    ep.name AS policy_name,
+    step.step_number
+FROM
+    ep_step_on_call_users oc
+    JOIN escalation_policy_steps step ON step.id = oc.ep_step_id
+    JOIN escalation_policies ep ON ep.id = step.escalation_policy_id
+    JOIN services svc ON svc.escalation_policy_id = ep.id
+WHERE
+    oc.user_id = $1
+`
+
+type GQLUserOnCallOverviewRow struct {
+	ServiceID   uuid.UUID
+	ServiceName string
+	PolicyID    uuid.UUID
+	PolicyName  string
+	StepNumber  int32
+}
+
+func (q *Queries) GQLUserOnCallOverview(ctx context.Context, userID uuid.UUID) ([]GQLUserOnCallOverviewRow, error) {
+	rows, err := q.db.QueryContext(ctx, gQLUserOnCallOverview, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GQLUserOnCallOverviewRow
+	for rows.Next() {
+		var i GQLUserOnCallOverviewRow
+		if err := rows.Scan(
+			&i.ServiceID,
+			&i.ServiceName,
+			&i.PolicyID,
+			&i.PolicyName,
+			&i.StepNumber,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const intKeyCreate = `-- name: IntKeyCreate :exec
 INSERT INTO integration_keys(id, name, type, service_id, external_system_name)
     VALUES ($1, $2, $3, $4, $5)
@@ -1579,6 +1632,27 @@ func (q *Queries) IntKeyGetType(ctx context.Context, id uuid.UUID) (EnumIntegrat
 	return type_, err
 }
 
+const intKeyPromoteSecondary = `-- name: IntKeyPromoteSecondary :one
+UPDATE
+    uik_config
+SET
+    primary_token = secondary_token,
+    primary_token_hint = secondary_token_hint,
+    secondary_token = NULL,
+    secondary_token_hint = NULL
+WHERE
+    id = $1
+RETURNING
+    primary_token_hint
+`
+
+func (q *Queries) IntKeyPromoteSecondary(ctx context.Context, id uuid.UUID) (sql.NullString, error) {
+	row := q.db.QueryRowContext(ctx, intKeyPromoteSecondary, id)
+	var primary_token_hint sql.NullString
+	err := row.Scan(&primary_token_hint)
+	return primary_token_hint, err
+}
+
 const intKeySetConfig = `-- name: IntKeySetConfig :exec
 INSERT INTO uik_config(id, config)
     VALUES ($1, $2)
@@ -1595,6 +1669,81 @@ type IntKeySetConfigParams struct {
 func (q *Queries) IntKeySetConfig(ctx context.Context, arg IntKeySetConfigParams) error {
 	_, err := q.db.ExecContext(ctx, intKeySetConfig, arg.ID, arg.Config)
 	return err
+}
+
+const intKeySetPrimaryToken = `-- name: IntKeySetPrimaryToken :one
+UPDATE
+    uik_config
+SET
+    primary_token = $2,
+    primary_token_hint = $3
+WHERE
+    id = $1
+    AND primary_token IS NULL
+RETURNING
+    id
+`
+
+type IntKeySetPrimaryTokenParams struct {
+	ID               uuid.UUID
+	PrimaryToken     uuid.NullUUID
+	PrimaryTokenHint sql.NullString
+}
+
+func (q *Queries) IntKeySetPrimaryToken(ctx context.Context, arg IntKeySetPrimaryTokenParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, intKeySetPrimaryToken, arg.ID, arg.PrimaryToken, arg.PrimaryTokenHint)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const intKeySetSecondaryToken = `-- name: IntKeySetSecondaryToken :one
+UPDATE
+    uik_config
+SET
+    secondary_token = $2,
+    secondary_token_hint = $3
+WHERE
+    id = $1
+    AND secondary_token IS NULL
+    AND primary_token IS NOT NULL
+RETURNING
+    id
+`
+
+type IntKeySetSecondaryTokenParams struct {
+	ID                 uuid.UUID
+	SecondaryToken     uuid.NullUUID
+	SecondaryTokenHint sql.NullString
+}
+
+func (q *Queries) IntKeySetSecondaryToken(ctx context.Context, arg IntKeySetSecondaryTokenParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, intKeySetSecondaryToken, arg.ID, arg.SecondaryToken, arg.SecondaryTokenHint)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const intKeyTokenHints = `-- name: IntKeyTokenHints :one
+SELECT
+    primary_token_hint,
+    secondary_token_hint
+FROM
+    uik_config
+WHERE
+    id = $1
+`
+
+type IntKeyTokenHintsRow struct {
+	PrimaryTokenHint   sql.NullString
+	SecondaryTokenHint sql.NullString
+}
+
+func (q *Queries) IntKeyTokenHints(ctx context.Context, id uuid.UUID) (IntKeyTokenHintsRow, error) {
+	row := q.db.QueryRowContext(ctx, intKeyTokenHints, id)
+	var i IntKeyTokenHintsRow
+	err := row.Scan(&i.PrimaryTokenHint, &i.SecondaryTokenHint)
+	return i, err
 }
 
 const labelDeleteKeyByTarget = `-- name: LabelDeleteKeyByTarget :exec

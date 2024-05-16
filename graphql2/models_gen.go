@@ -645,6 +645,20 @@ type NotificationState struct {
 	FormattedSrcValue string              `json:"formattedSrcValue"`
 }
 
+type OnCallOverview struct {
+	ServiceCount       int                       `json:"serviceCount"`
+	ServiceAssignments []OnCallServiceAssignment `json:"serviceAssignments"`
+}
+
+type OnCallServiceAssignment struct {
+	// stepNumber is the escalation step this assignment is from (beginning with 0).
+	StepNumber           int    `json:"stepNumber"`
+	EscalationPolicyID   string `json:"escalationPolicyID"`
+	EscalationPolicyName string `json:"escalationPolicyName"`
+	ServiceID            string `json:"serviceID"`
+	ServiceName          string `json:"serviceName"`
+}
+
 type PageInfo struct {
 	EndCursor   *string `json:"endCursor,omitempty"`
 	HasNextPage bool    `json:"hasNextPage"`
@@ -850,6 +864,13 @@ type TimeZoneSearchOptions struct {
 	After  *string  `json:"after,omitempty"`
 	Search *string  `json:"search,omitempty"`
 	Omit   []string `json:"omit,omitempty"`
+}
+
+type TokenInfo struct {
+	// primaryHint is a hint for the primary token. It is empty if the primary token is not set.
+	PrimaryHint string `json:"primaryHint"`
+	// secondaryHint is a hint for the secondary token. It is empty if the secondary token is not set.
+	SecondaryHint string `json:"secondaryHint"`
 }
 
 type UpdateAlertsByServiceInput struct {

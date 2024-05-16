@@ -607,6 +607,7 @@ export interface IntegrationKey {
   id: string
   name: string
   serviceID: string
+  tokenInfo: TokenInfo
   type: IntegrationKeyType
 }
 
@@ -743,7 +744,9 @@ export interface Mutation {
   deleteGQLAPIKey: boolean
   endAllAuthSessionsByCurrentUser: boolean
   escalateAlerts?: null | Alert[]
+  generateKeyToken: string
   linkAccount: boolean
+  promoteSecondaryToken: boolean
   sendContactMethodVerification: boolean
   setAlertNoiseReason: boolean
   setConfig: boolean
@@ -803,6 +806,19 @@ export interface OnCallNotificationRuleInput {
   target?: null | TargetInput
   time?: null | ClockTime
   weekdayFilter?: null | WeekdayFilter
+}
+
+export interface OnCallOverview {
+  serviceAssignments: OnCallServiceAssignment[]
+  serviceCount: number
+}
+
+export interface OnCallServiceAssignment {
+  escalationPolicyID: string
+  escalationPolicyName: string
+  serviceID: string
+  serviceName: string
+  stepNumber: number
 }
 
 export interface OnCallShift {
@@ -1217,6 +1233,11 @@ export interface TimeZoneSearchOptions {
   search?: null | string
 }
 
+export interface TokenInfo {
+  primaryHint: string
+  secondaryHint: string
+}
+
 export interface UpdateAlertsByServiceInput {
   newStatus: AlertStatus
   serviceID: string
@@ -1337,6 +1358,7 @@ export interface User {
   isFavorite: boolean
   name: string
   notificationRules: UserNotificationRule[]
+  onCallOverview: OnCallOverview
   onCallSteps: EscalationPolicyStep[]
   role: UserRole
   sessions: UserSession[]

@@ -377,6 +377,7 @@ type ComplexityRoot struct {
 		ID                 func(childComplexity int) int
 		Name               func(childComplexity int) int
 		ServiceID          func(childComplexity int) int
+		TokenInfo          func(childComplexity int) int
 		Type               func(childComplexity int) int
 	}
 
@@ -458,7 +459,9 @@ type ComplexityRoot struct {
 		DeleteGQLAPIKey                    func(childComplexity int, id string) int
 		EndAllAuthSessionsByCurrentUser    func(childComplexity int) int
 		EscalateAlerts                     func(childComplexity int, input []int) int
+		GenerateKeyToken                   func(childComplexity int, id string) int
 		LinkAccount                        func(childComplexity int, token string) int
+		PromoteSecondaryToken              func(childComplexity int, id string) int
 		SendContactMethodVerification      func(childComplexity int, input SendContactMethodVerificationInput) int
 		SetAlertNoiseReason                func(childComplexity int, input SetAlertNoiseReasonInput) int
 		SetConfig                          func(childComplexity int, input []ConfigValueInput) int
@@ -506,6 +509,19 @@ type ComplexityRoot struct {
 		Target        func(childComplexity int) int
 		Time          func(childComplexity int) int
 		WeekdayFilter func(childComplexity int) int
+	}
+
+	OnCallOverview struct {
+		ServiceAssignments func(childComplexity int) int
+		ServiceCount       func(childComplexity int) int
+	}
+
+	OnCallServiceAssignment struct {
+		EscalationPolicyID   func(childComplexity int) int
+		EscalationPolicyName func(childComplexity int) int
+		ServiceID            func(childComplexity int) int
+		ServiceName          func(childComplexity int) int
+		StepNumber           func(childComplexity int) int
 	}
 
 	OnCallShift struct {
@@ -747,6 +763,11 @@ type ComplexityRoot struct {
 		PageInfo func(childComplexity int) int
 	}
 
+	TokenInfo struct {
+		PrimaryHint   func(childComplexity int) int
+		SecondaryHint func(childComplexity int) int
+	}
+
 	User struct {
 		AlertStatusCMID       func(childComplexity int) int
 		AssignedSchedules     func(childComplexity int) int
@@ -758,6 +779,7 @@ type ComplexityRoot struct {
 		IsFavorite            func(childComplexity int) int
 		Name                  func(childComplexity int) int
 		NotificationRules     func(childComplexity int) int
+		OnCallOverview        func(childComplexity int) int
 		OnCallSteps           func(childComplexity int) int
 		Role                  func(childComplexity int) int
 		Sessions              func(childComplexity int) int
@@ -883,6 +905,7 @@ type IntegrationKeyResolver interface {
 	Href(ctx context.Context, obj *integrationkey.IntegrationKey) (string, error)
 
 	Config(ctx context.Context, obj *integrationkey.IntegrationKey) (*KeyConfig, error)
+	TokenInfo(ctx context.Context, obj *integrationkey.IntegrationKey) (*TokenInfo, error)
 }
 type MessageLogConnectionStatsResolver interface {
 	TimeSeries(ctx context.Context, obj *notification.SearchOptions, input TimeSeriesOptions) ([]TimeSeriesBucket, error)
@@ -941,6 +964,8 @@ type MutationResolver interface {
 	UpdateGQLAPIKey(ctx context.Context, input UpdateGQLAPIKeyInput) (bool, error)
 	DeleteGQLAPIKey(ctx context.Context, id string) (bool, error)
 	UpdateKeyConfig(ctx context.Context, input UpdateKeyConfigInput) (bool, error)
+	PromoteSecondaryToken(ctx context.Context, id string) (bool, error)
+	GenerateKeyToken(ctx context.Context, id string) (string, error)
 }
 type OnCallNotificationRuleResolver interface {
 	Target(ctx context.Context, obj *schedule.OnCallNotificationRule) (*assignment.RawTarget, error)
@@ -1048,6 +1073,7 @@ type UserResolver interface {
 	AuthSubjects(ctx context.Context, obj *user.User) ([]user.AuthSubject, error)
 	Sessions(ctx context.Context, obj *user.User) ([]UserSession, error)
 	OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.Step, error)
+	OnCallOverview(ctx context.Context, obj *user.User) (*OnCallOverview, error)
 	IsFavorite(ctx context.Context, obj *user.User) (bool, error)
 	AssignedSchedules(ctx context.Context, obj *user.User) ([]schedule.Schedule, error)
 }
@@ -2282,6 +2308,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.IntegrationKey.ServiceID(childComplexity), true
 
+	case "IntegrationKey.tokenInfo":
+		if e.complexity.IntegrationKey.TokenInfo == nil {
+			break
+		}
+
+		return e.complexity.IntegrationKey.TokenInfo(childComplexity), true
+
 	case "IntegrationKey.type":
 		if e.complexity.IntegrationKey.Type == nil {
 			break
@@ -2764,6 +2797,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.EscalateAlerts(childComplexity, args["input"].([]int)), true
 
+	case "Mutation.generateKeyToken":
+		if e.complexity.Mutation.GenerateKeyToken == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_generateKeyToken_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.GenerateKeyToken(childComplexity, args["id"].(string)), true
+
 	case "Mutation.linkAccount":
 		if e.complexity.Mutation.LinkAccount == nil {
 			break
@@ -2775,6 +2820,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.LinkAccount(childComplexity, args["token"].(string)), true
+
+	case "Mutation.promoteSecondaryToken":
+		if e.complexity.Mutation.PromoteSecondaryToken == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_promoteSecondaryToken_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.PromoteSecondaryToken(childComplexity, args["id"].(string)), true
 
 	case "Mutation.sendContactMethodVerification":
 		if e.complexity.Mutation.SendContactMethodVerification == nil {
@@ -3176,6 +3233,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.OnCallNotificationRule.WeekdayFilter(childComplexity), true
+
+	case "OnCallOverview.serviceAssignments":
+		if e.complexity.OnCallOverview.ServiceAssignments == nil {
+			break
+		}
+
+		return e.complexity.OnCallOverview.ServiceAssignments(childComplexity), true
+
+	case "OnCallOverview.serviceCount":
+		if e.complexity.OnCallOverview.ServiceCount == nil {
+			break
+		}
+
+		return e.complexity.OnCallOverview.ServiceCount(childComplexity), true
+
+	case "OnCallServiceAssignment.escalationPolicyID":
+		if e.complexity.OnCallServiceAssignment.EscalationPolicyID == nil {
+			break
+		}
+
+		return e.complexity.OnCallServiceAssignment.EscalationPolicyID(childComplexity), true
+
+	case "OnCallServiceAssignment.escalationPolicyName":
+		if e.complexity.OnCallServiceAssignment.EscalationPolicyName == nil {
+			break
+		}
+
+		return e.complexity.OnCallServiceAssignment.EscalationPolicyName(childComplexity), true
+
+	case "OnCallServiceAssignment.serviceID":
+		if e.complexity.OnCallServiceAssignment.ServiceID == nil {
+			break
+		}
+
+		return e.complexity.OnCallServiceAssignment.ServiceID(childComplexity), true
+
+	case "OnCallServiceAssignment.serviceName":
+		if e.complexity.OnCallServiceAssignment.ServiceName == nil {
+			break
+		}
+
+		return e.complexity.OnCallServiceAssignment.ServiceName(childComplexity), true
+
+	case "OnCallServiceAssignment.stepNumber":
+		if e.complexity.OnCallServiceAssignment.StepNumber == nil {
+			break
+		}
+
+		return e.complexity.OnCallServiceAssignment.StepNumber(childComplexity), true
 
 	case "OnCallShift.end":
 		if e.complexity.OnCallShift.End == nil {
@@ -4493,6 +4599,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TimeZoneConnection.PageInfo(childComplexity), true
 
+	case "TokenInfo.primaryHint":
+		if e.complexity.TokenInfo.PrimaryHint == nil {
+			break
+		}
+
+		return e.complexity.TokenInfo.PrimaryHint(childComplexity), true
+
+	case "TokenInfo.secondaryHint":
+		if e.complexity.TokenInfo.SecondaryHint == nil {
+			break
+		}
+
+		return e.complexity.TokenInfo.SecondaryHint(childComplexity), true
+
 	case "User.statusUpdateContactMethodID":
 		if e.complexity.User.AlertStatusCMID == nil {
 			break
@@ -4562,6 +4682,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.NotificationRules(childComplexity), true
+
+	case "User.onCallOverview":
+		if e.complexity.User.OnCallOverview == nil {
+			break
+		}
+
+		return e.complexity.User.OnCallOverview(childComplexity), true
 
 	case "User.onCallSteps":
 		if e.complexity.User.OnCallSteps == nil {
@@ -5543,6 +5670,21 @@ func (ec *executionContext) field_Mutation_escalateAlerts_args(ctx context.Conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_generateKeyToken_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_linkAccount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -5555,6 +5697,21 @@ func (ec *executionContext) field_Mutation_linkAccount_args(ctx context.Context,
 		}
 	}
 	args["token"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_promoteSecondaryToken_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -13272,6 +13429,8 @@ func (ec *executionContext) fieldContext_GQLAPIKey_createdBy(_ context.Context, 
 				return ec.fieldContext_User_sessions(ctx, field)
 			case "onCallSteps":
 				return ec.fieldContext_User_onCallSteps(ctx, field)
+			case "onCallOverview":
+				return ec.fieldContext_User_onCallOverview(ctx, field)
 			case "isFavorite":
 				return ec.fieldContext_User_isFavorite(ctx, field)
 			case "assignedSchedules":
@@ -13385,6 +13544,8 @@ func (ec *executionContext) fieldContext_GQLAPIKey_updatedBy(_ context.Context, 
 				return ec.fieldContext_User_sessions(ctx, field)
 			case "onCallSteps":
 				return ec.fieldContext_User_onCallSteps(ctx, field)
+			case "onCallOverview":
+				return ec.fieldContext_User_onCallOverview(ctx, field)
 			case "isFavorite":
 				return ec.fieldContext_User_isFavorite(ctx, field)
 			case "assignedSchedules":
@@ -14395,6 +14556,80 @@ func (ec *executionContext) fieldContext_IntegrationKey_config(_ context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _IntegrationKey_tokenInfo(ctx context.Context, field graphql.CollectedField, obj *integrationkey.IntegrationKey) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IntegrationKey_tokenInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.IntegrationKey().TokenInfo(rctx, obj)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			flagName, err := ec.unmarshalNString2string(ctx, "univ-keys")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Experimental == nil {
+				return nil, errors.New("directive experimental is not implemented")
+			}
+			return ec.directives.Experimental(ctx, obj, directive0, flagName)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*TokenInfo); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/target/goalert/graphql2.TokenInfo`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*TokenInfo)
+	fc.Result = res
+	return ec.marshalNTokenInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTokenInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IntegrationKey_tokenInfo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IntegrationKey",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "primaryHint":
+				return ec.fieldContext_TokenInfo_primaryHint(ctx, field)
+			case "secondaryHint":
+				return ec.fieldContext_TokenInfo_secondaryHint(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TokenInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _IntegrationKeyConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *IntegrationKeyConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_IntegrationKeyConnection_nodes(ctx, field)
 	if err != nil {
@@ -14448,6 +14683,8 @@ func (ec *executionContext) fieldContext_IntegrationKeyConnection_nodes(_ contex
 				return ec.fieldContext_IntegrationKey_externalSystemName(ctx, field)
 			case "config":
 				return ec.fieldContext_IntegrationKey_config(ctx, field)
+			case "tokenInfo":
+				return ec.fieldContext_IntegrationKey_tokenInfo(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type IntegrationKey", field.Name)
 		},
@@ -17306,6 +17543,8 @@ func (ec *executionContext) fieldContext_Mutation_createIntegrationKey(ctx conte
 				return ec.fieldContext_IntegrationKey_externalSystemName(ctx, field)
 			case "config":
 				return ec.fieldContext_IntegrationKey_config(ctx, field)
+			case "tokenInfo":
+				return ec.fieldContext_IntegrationKey_tokenInfo(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type IntegrationKey", field.Name)
 		},
@@ -17583,6 +17822,8 @@ func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context
 				return ec.fieldContext_User_sessions(ctx, field)
 			case "onCallSteps":
 				return ec.fieldContext_User_onCallSteps(ctx, field)
+			case "onCallOverview":
+				return ec.fieldContext_User_onCallOverview(ctx, field)
 			case "isFavorite":
 				return ec.fieldContext_User_isFavorite(ctx, field)
 			case "assignedSchedules":
@@ -18855,6 +19096,164 @@ func (ec *executionContext) fieldContext_Mutation_updateKeyConfig(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_promoteSecondaryToken(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_promoteSecondaryToken(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().PromoteSecondaryToken(rctx, fc.Args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			flagName, err := ec.unmarshalNString2string(ctx, "univ-keys")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Experimental == nil {
+				return nil, errors.New("directive experimental is not implemented")
+			}
+			return ec.directives.Experimental(ctx, nil, directive0, flagName)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_promoteSecondaryToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_promoteSecondaryToken_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_generateKeyToken(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_generateKeyToken(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().GenerateKeyToken(rctx, fc.Args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			flagName, err := ec.unmarshalNString2string(ctx, "univ-keys")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Experimental == nil {
+				return nil, errors.New("directive experimental is not implemented")
+			}
+			return ec.directives.Experimental(ctx, nil, directive0, flagName)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(string); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_generateKeyToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_generateKeyToken_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Notice_type(ctx context.Context, field graphql.CollectedField, obj *notice.Notice) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Notice_type(ctx, field)
 	if err != nil {
@@ -19346,6 +19745,326 @@ func (ec *executionContext) fieldContext_OnCallNotificationRule_weekdayFilter(_ 
 	return fc, nil
 }
 
+func (ec *executionContext) _OnCallOverview_serviceCount(ctx context.Context, field graphql.CollectedField, obj *OnCallOverview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OnCallOverview_serviceCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OnCallOverview_serviceCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OnCallOverview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OnCallOverview_serviceAssignments(ctx context.Context, field graphql.CollectedField, obj *OnCallOverview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OnCallOverview_serviceAssignments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceAssignments, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]OnCallServiceAssignment)
+	fc.Result = res
+	return ec.marshalNOnCallServiceAssignment2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐOnCallServiceAssignmentᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OnCallOverview_serviceAssignments(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OnCallOverview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "stepNumber":
+				return ec.fieldContext_OnCallServiceAssignment_stepNumber(ctx, field)
+			case "escalationPolicyID":
+				return ec.fieldContext_OnCallServiceAssignment_escalationPolicyID(ctx, field)
+			case "escalationPolicyName":
+				return ec.fieldContext_OnCallServiceAssignment_escalationPolicyName(ctx, field)
+			case "serviceID":
+				return ec.fieldContext_OnCallServiceAssignment_serviceID(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_OnCallServiceAssignment_serviceName(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type OnCallServiceAssignment", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OnCallServiceAssignment_stepNumber(ctx context.Context, field graphql.CollectedField, obj *OnCallServiceAssignment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OnCallServiceAssignment_stepNumber(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StepNumber, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OnCallServiceAssignment_stepNumber(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OnCallServiceAssignment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OnCallServiceAssignment_escalationPolicyID(ctx context.Context, field graphql.CollectedField, obj *OnCallServiceAssignment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OnCallServiceAssignment_escalationPolicyID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EscalationPolicyID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OnCallServiceAssignment_escalationPolicyID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OnCallServiceAssignment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OnCallServiceAssignment_escalationPolicyName(ctx context.Context, field graphql.CollectedField, obj *OnCallServiceAssignment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OnCallServiceAssignment_escalationPolicyName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EscalationPolicyName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OnCallServiceAssignment_escalationPolicyName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OnCallServiceAssignment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OnCallServiceAssignment_serviceID(ctx context.Context, field graphql.CollectedField, obj *OnCallServiceAssignment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OnCallServiceAssignment_serviceID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OnCallServiceAssignment_serviceID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OnCallServiceAssignment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OnCallServiceAssignment_serviceName(ctx context.Context, field graphql.CollectedField, obj *OnCallServiceAssignment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OnCallServiceAssignment_serviceName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OnCallServiceAssignment_serviceName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OnCallServiceAssignment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _OnCallShift_userID(ctx context.Context, field graphql.CollectedField, obj *oncall.Shift) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_OnCallShift_userID(ctx, field)
 	if err != nil {
@@ -19448,6 +20167,8 @@ func (ec *executionContext) fieldContext_OnCallShift_user(_ context.Context, fie
 				return ec.fieldContext_User_sessions(ctx, field)
 			case "onCallSteps":
 				return ec.fieldContext_User_onCallSteps(ctx, field)
+			case "onCallOverview":
+				return ec.fieldContext_User_onCallOverview(ctx, field)
 			case "isFavorite":
 				return ec.fieldContext_User_isFavorite(ctx, field)
 			case "assignedSchedules":
@@ -20258,6 +20979,8 @@ func (ec *executionContext) fieldContext_Query_user(ctx context.Context, field g
 				return ec.fieldContext_User_sessions(ctx, field)
 			case "onCallSteps":
 				return ec.fieldContext_User_onCallSteps(ctx, field)
+			case "onCallOverview":
+				return ec.fieldContext_User_onCallOverview(ctx, field)
 			case "isFavorite":
 				return ec.fieldContext_User_isFavorite(ctx, field)
 			case "assignedSchedules":
@@ -20614,6 +21337,8 @@ func (ec *executionContext) fieldContext_Query_integrationKey(ctx context.Contex
 				return ec.fieldContext_IntegrationKey_externalSystemName(ctx, field)
 			case "config":
 				return ec.fieldContext_IntegrationKey_config(ctx, field)
+			case "tokenInfo":
+				return ec.fieldContext_IntegrationKey_tokenInfo(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type IntegrationKey", field.Name)
 		},
@@ -23638,6 +24363,8 @@ func (ec *executionContext) fieldContext_Rotation_users(_ context.Context, field
 				return ec.fieldContext_User_sessions(ctx, field)
 			case "onCallSteps":
 				return ec.fieldContext_User_onCallSteps(ctx, field)
+			case "onCallOverview":
+				return ec.fieldContext_User_onCallOverview(ctx, field)
 			case "isFavorite":
 				return ec.fieldContext_User_isFavorite(ctx, field)
 			case "assignedSchedules":
@@ -26123,6 +26850,8 @@ func (ec *executionContext) fieldContext_Service_integrationKeys(_ context.Conte
 				return ec.fieldContext_IntegrationKey_externalSystemName(ctx, field)
 			case "config":
 				return ec.fieldContext_IntegrationKey_config(ctx, field)
+			case "tokenInfo":
+				return ec.fieldContext_IntegrationKey_tokenInfo(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type IntegrationKey", field.Name)
 		},
@@ -27790,6 +28519,94 @@ func (ec *executionContext) fieldContext_TimeZoneConnection_pageInfo(_ context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _TokenInfo_primaryHint(ctx context.Context, field graphql.CollectedField, obj *TokenInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TokenInfo_primaryHint(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PrimaryHint, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TokenInfo_primaryHint(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TokenInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TokenInfo_secondaryHint(ctx context.Context, field graphql.CollectedField, obj *TokenInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TokenInfo_secondaryHint(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SecondaryHint, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TokenInfo_secondaryHint(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TokenInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *user.User) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_User_id(ctx, field)
 	if err != nil {
@@ -28359,6 +29176,56 @@ func (ec *executionContext) fieldContext_User_onCallSteps(_ context.Context, fie
 				return ec.fieldContext_EscalationPolicyStep_actions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type EscalationPolicyStep", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_onCallOverview(ctx context.Context, field graphql.CollectedField, obj *user.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_onCallOverview(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().OnCallOverview(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*OnCallOverview)
+	fc.Result = res
+	return ec.marshalNOnCallOverview2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐOnCallOverview(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_onCallOverview(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "serviceCount":
+				return ec.fieldContext_OnCallOverview_serviceCount(ctx, field)
+			case "serviceAssignments":
+				return ec.fieldContext_OnCallOverview_serviceAssignments(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type OnCallOverview", field.Name)
 		},
 	}
 	return fc, nil
@@ -28951,6 +29818,8 @@ func (ec *executionContext) fieldContext_UserConnection_nodes(_ context.Context,
 				return ec.fieldContext_User_sessions(ctx, field)
 			case "onCallSteps":
 				return ec.fieldContext_User_onCallSteps(ctx, field)
+			case "onCallOverview":
+				return ec.fieldContext_User_onCallOverview(ctx, field)
 			case "isFavorite":
 				return ec.fieldContext_User_isFavorite(ctx, field)
 			case "assignedSchedules":
@@ -30029,6 +30898,8 @@ func (ec *executionContext) fieldContext_UserOverride_addUser(_ context.Context,
 				return ec.fieldContext_User_sessions(ctx, field)
 			case "onCallSteps":
 				return ec.fieldContext_User_onCallSteps(ctx, field)
+			case "onCallOverview":
+				return ec.fieldContext_User_onCallOverview(ctx, field)
 			case "isFavorite":
 				return ec.fieldContext_User_isFavorite(ctx, field)
 			case "assignedSchedules":
@@ -30098,6 +30969,8 @@ func (ec *executionContext) fieldContext_UserOverride_removeUser(_ context.Conte
 				return ec.fieldContext_User_sessions(ctx, field)
 			case "onCallSteps":
 				return ec.fieldContext_User_onCallSteps(ctx, field)
+			case "onCallOverview":
+				return ec.fieldContext_User_onCallOverview(ctx, field)
 			case "isFavorite":
 				return ec.fieldContext_User_isFavorite(ctx, field)
 			case "assignedSchedules":
@@ -39580,6 +40453,42 @@ func (ec *executionContext) _IntegrationKey(ctx context.Context, sel ast.Selecti
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "tokenInfo":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._IntegrationKey_tokenInfo(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -40404,6 +41313,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "promoteSecondaryToken":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_promoteSecondaryToken(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "generateKeyToken":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_generateKeyToken(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -40614,6 +41537,109 @@ func (ec *executionContext) _OnCallNotificationRule(ctx context.Context, sel ast
 			out.Values[i] = ec._OnCallNotificationRule_time(ctx, field, obj)
 		case "weekdayFilter":
 			out.Values[i] = ec._OnCallNotificationRule_weekdayFilter(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var onCallOverviewImplementors = []string{"OnCallOverview"}
+
+func (ec *executionContext) _OnCallOverview(ctx context.Context, sel ast.SelectionSet, obj *OnCallOverview) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, onCallOverviewImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OnCallOverview")
+		case "serviceCount":
+			out.Values[i] = ec._OnCallOverview_serviceCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "serviceAssignments":
+			out.Values[i] = ec._OnCallOverview_serviceAssignments(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var onCallServiceAssignmentImplementors = []string{"OnCallServiceAssignment"}
+
+func (ec *executionContext) _OnCallServiceAssignment(ctx context.Context, sel ast.SelectionSet, obj *OnCallServiceAssignment) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, onCallServiceAssignmentImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OnCallServiceAssignment")
+		case "stepNumber":
+			out.Values[i] = ec._OnCallServiceAssignment_stepNumber(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "escalationPolicyID":
+			out.Values[i] = ec._OnCallServiceAssignment_escalationPolicyID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "escalationPolicyName":
+			out.Values[i] = ec._OnCallServiceAssignment_escalationPolicyName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "serviceID":
+			out.Values[i] = ec._OnCallServiceAssignment_serviceID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "serviceName":
+			out.Values[i] = ec._OnCallServiceAssignment_serviceName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -43889,6 +44915,50 @@ func (ec *executionContext) _TimeZoneConnection(ctx context.Context, sel ast.Sel
 	return out
 }
 
+var tokenInfoImplementors = []string{"TokenInfo"}
+
+func (ec *executionContext) _TokenInfo(ctx context.Context, sel ast.SelectionSet, obj *TokenInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, tokenInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TokenInfo")
+		case "primaryHint":
+			out.Values[i] = ec._TokenInfo_primaryHint(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "secondaryHint":
+			out.Values[i] = ec._TokenInfo_secondaryHint(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var userImplementors = []string{"User"}
 
 func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *user.User) graphql.Marshaler {
@@ -44146,6 +45216,42 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._User_onCallSteps(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "onCallOverview":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_onCallOverview(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -47537,6 +48643,68 @@ func (ec *executionContext) unmarshalNOnCallNotificationRuleInput2ᚕgithubᚗco
 	return res, nil
 }
 
+func (ec *executionContext) marshalNOnCallOverview2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐOnCallOverview(ctx context.Context, sel ast.SelectionSet, v OnCallOverview) graphql.Marshaler {
+	return ec._OnCallOverview(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNOnCallOverview2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐOnCallOverview(ctx context.Context, sel ast.SelectionSet, v *OnCallOverview) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._OnCallOverview(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNOnCallServiceAssignment2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐOnCallServiceAssignment(ctx context.Context, sel ast.SelectionSet, v OnCallServiceAssignment) graphql.Marshaler {
+	return ec._OnCallServiceAssignment(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNOnCallServiceAssignment2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐOnCallServiceAssignmentᚄ(ctx context.Context, sel ast.SelectionSet, v []OnCallServiceAssignment) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNOnCallServiceAssignment2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐOnCallServiceAssignment(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) marshalNOnCallShift2githubᚗcomᚋtargetᚋgoalertᚋoncallᚐShift(ctx context.Context, sel ast.SelectionSet, v oncall.Shift) graphql.Marshaler {
 	return ec._OnCallShift(ctx, sel, &v)
 }
@@ -48620,6 +49788,20 @@ func (ec *executionContext) marshalNTimeZoneConnection2ᚖgithubᚗcomᚋtarget�
 		return graphql.Null
 	}
 	return ec._TimeZoneConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNTokenInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTokenInfo(ctx context.Context, sel ast.SelectionSet, v TokenInfo) graphql.Marshaler {
+	return ec._TokenInfo(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTokenInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTokenInfo(ctx context.Context, sel ast.SelectionSet, v *TokenInfo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._TokenInfo(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNUpdateAlertsByServiceInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateAlertsByServiceInput(ctx context.Context, v interface{}) (UpdateAlertsByServiceInput, error) {

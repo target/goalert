@@ -114,8 +114,9 @@ function testFavorites(screen: ScreenFormat): void {
         cy.get('button').contains('Create Step').click()
       }
 
-      cy.get('[data-cy="rotations-step"]').click()
-      return cy.get('input[name=rotations]')
+      cy.dialogForm({ 'dest.type': 'Rotation' })
+
+      return cy.get('input[name=rotation-id]')
     },
   )
 
@@ -135,7 +136,9 @@ function testFavorites(screen: ScreenFormat): void {
       } else {
         cy.get('button').contains('Create Step').click()
       }
-      return cy.get('input[name=schedules]')
+
+      cy.dialogForm({ 'dest.type': 'Schedule' })
+      return cy.get('input[name=schedule-id]')
     },
   )
 
@@ -166,8 +169,9 @@ function testFavorites(screen: ScreenFormat): void {
       } else {
         cy.get('button').contains('Create Step').click()
       }
-      cy.get('[data-cy="users-step"]').click()
-      return cy.get('input[name=users]')
+
+      cy.dialogForm({ 'dest.type': 'User' })
+      return cy.get('input[name=user-id]')
     },
   )
 }
