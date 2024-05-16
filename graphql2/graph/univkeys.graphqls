@@ -32,6 +32,11 @@ extend type Mutation {
   promoteSecondaryToken(id: ID!): Boolean! @experimental(flagName: "univ-keys")
 
   """
+  deleteSecondaryToken deletes the secondary token.
+  """
+  deleteSecondaryToken(id: ID!): Boolean! @experimental(flagName: "univ-keys")
+
+  """
   generateKeyToken generates a new token for an integration key.
 
   If the integration key already has a primary token, the new token will be the secondary token.

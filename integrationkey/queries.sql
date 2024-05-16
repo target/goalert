@@ -114,3 +114,12 @@ WHERE
 RETURNING
     id;
 
+-- name: IntKeyDeleteSecondaryToken :exec
+UPDATE
+    uik_config
+SET
+    secondary_token = NULL,
+    secondary_token_hint = NULL
+WHERE
+    id = $1;
+
