@@ -564,6 +564,8 @@ type KeyConfig struct {
 	// Stop evaluating rules after the first rule that matches.
 	StopAtFirstRule bool      `json:"stopAtFirstRule"`
 	Rules           []KeyRule `json:"rules"`
+	// Get a single rule by ID.
+	OneRule *KeyRule `json:"oneRule,omitempty"`
 	// defaultAction is the action to take if no rules match the request.
 	DefaultActions []Action `json:"defaultActions"`
 }
@@ -923,6 +925,10 @@ type UpdateKeyConfigInput struct {
 	// Stop evaluating rules after the first rule that matches.
 	StopAtFirstRule *bool          `json:"stopAtFirstRule,omitempty"`
 	Rules           []KeyRuleInput `json:"rules,omitempty"`
+	// setRule allows you to set a single rule. If ID is provided, the rule with that ID will be updated. If ID is not provided, a new rule will be created and appended to the list of rules.
+	SetRule *KeyRuleInput `json:"setRule,omitempty"`
+	// deleteRule allows you to delete a single rule by ID.
+	DeleteRule *string `json:"deleteRule,omitempty"`
 	// defaultAction is the action to take if no rules match the request.
 	DefaultActions []ActionInput `json:"defaultActions,omitempty"`
 }

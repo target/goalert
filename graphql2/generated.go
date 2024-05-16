@@ -74,6 +74,7 @@ type ResolverRoot interface {
 	GQLAPIKey() GQLAPIKeyResolver
 	HeartbeatMonitor() HeartbeatMonitorResolver
 	IntegrationKey() IntegrationKeyResolver
+	KeyConfig() KeyConfigResolver
 	MessageLogConnectionStats() MessageLogConnectionStatsResolver
 	Mutation() MutationResolver
 	OnCallNotificationRule() OnCallNotificationRuleResolver
@@ -395,6 +396,7 @@ type ComplexityRoot struct {
 
 	KeyConfig struct {
 		DefaultActions  func(childComplexity int) int
+		OneRule         func(childComplexity int, id string) int
 		Rules           func(childComplexity int) int
 		StopAtFirstRule func(childComplexity int) int
 	}
@@ -907,6 +909,9 @@ type IntegrationKeyResolver interface {
 
 	Config(ctx context.Context, obj *integrationkey.IntegrationKey) (*KeyConfig, error)
 	TokenInfo(ctx context.Context, obj *integrationkey.IntegrationKey) (*TokenInfo, error)
+}
+type KeyConfigResolver interface {
+	OneRule(ctx context.Context, obj *KeyConfig, id string) (*KeyRule, error)
 }
 type MessageLogConnectionStatsResolver interface {
 	TimeSeries(ctx context.Context, obj *notification.SearchOptions, input TimeSeriesOptions) ([]TimeSeriesBucket, error)
@@ -2372,6 +2377,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.KeyConfig.DefaultActions(childComplexity), true
+
+	case "KeyConfig.oneRule":
+		if e.complexity.KeyConfig.OneRule == nil {
+			break
+		}
+
+		args, err := ec.field_KeyConfig_oneRule_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.KeyConfig.OneRule(childComplexity, args["id"].(string)), true
 
 	case "KeyConfig.rules":
 		if e.complexity.KeyConfig.Rules == nil {
@@ -5306,6 +5323,21 @@ func (ec *executionContext) field_Expr_exprToCondition_args(ctx context.Context,
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_KeyConfig_oneRule_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -14576,6 +14608,8 @@ func (ec *executionContext) fieldContext_IntegrationKey_config(_ context.Context
 				return ec.fieldContext_KeyConfig_stopAtFirstRule(ctx, field)
 			case "rules":
 				return ec.fieldContext_KeyConfig_rules(ctx, field)
+			case "oneRule":
+				return ec.fieldContext_KeyConfig_oneRule(ctx, field)
 			case "defaultActions":
 				return ec.fieldContext_KeyConfig_defaultActions(ctx, field)
 			}
@@ -15043,6 +15077,70 @@ func (ec *executionContext) fieldContext_KeyConfig_rules(_ context.Context, fiel
 			}
 			return nil, fmt.Errorf("no field named %q was found under type KeyRule", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _KeyConfig_oneRule(ctx context.Context, field graphql.CollectedField, obj *KeyConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_KeyConfig_oneRule(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.KeyConfig().OneRule(rctx, obj, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*KeyRule)
+	fc.Result = res
+	return ec.marshalOKeyRule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyRule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_KeyConfig_oneRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "KeyConfig",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_KeyRule_id(ctx, field)
+			case "name":
+				return ec.fieldContext_KeyRule_name(ctx, field)
+			case "description":
+				return ec.fieldContext_KeyRule_description(ctx, field)
+			case "conditionExpr":
+				return ec.fieldContext_KeyRule_conditionExpr(ctx, field)
+			case "actions":
+				return ec.fieldContext_KeyRule_actions(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type KeyRule", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_KeyConfig_oneRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -36812,7 +36910,7 @@ func (ec *executionContext) unmarshalInputUpdateKeyConfigInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"keyID", "stopAtFirstRule", "rules", "defaultActions"}
+	fieldsInOrder := [...]string{"keyID", "stopAtFirstRule", "rules", "setRule", "deleteRule", "defaultActions"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -36840,6 +36938,20 @@ func (ec *executionContext) unmarshalInputUpdateKeyConfigInput(ctx context.Conte
 				return it, err
 			}
 			it.Rules = data
+		case "setRule":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("setRule"))
+			data, err := ec.unmarshalOKeyRuleInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyRuleInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SetRule = data
+		case "deleteRule":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deleteRule"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DeleteRule = data
 		case "defaultActions":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("defaultActions"))
 			data, err := ec.unmarshalOActionInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionInputᚄ(ctx, v)
@@ -40711,17 +40823,50 @@ func (ec *executionContext) _KeyConfig(ctx context.Context, sel ast.SelectionSet
 		case "stopAtFirstRule":
 			out.Values[i] = ec._KeyConfig_stopAtFirstRule(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "rules":
 			out.Values[i] = ec._KeyConfig_rules(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "oneRule":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._KeyConfig_oneRule(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "defaultActions":
 			out.Values[i] = ec._KeyConfig_defaultActions(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -51309,6 +51454,13 @@ func (ec *executionContext) unmarshalOIntegrationKeySearchOptions2ᚖgithubᚗco
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalOKeyRule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyRule(ctx context.Context, sel ast.SelectionSet, v *KeyRule) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._KeyRule(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOKeyRuleInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyRuleInputᚄ(ctx context.Context, v interface{}) ([]KeyRuleInput, error) {
 	if v == nil {
 		return nil, nil
@@ -51327,6 +51479,14 @@ func (ec *executionContext) unmarshalOKeyRuleInput2ᚕgithubᚗcomᚋtargetᚋgo
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) unmarshalOKeyRuleInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyRuleInput(ctx context.Context, v interface{}) (*KeyRuleInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputKeyRuleInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOLabelKeySearchOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐLabelKeySearchOptions(ctx context.Context, v interface{}) (*LabelKeySearchOptions, error) {
