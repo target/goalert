@@ -85,6 +85,7 @@ func (s *Store) HandleUIK(w http.ResponseWriter, req *http.Request) {
 		},
 	}
 
+	// We need to track if any rule matched, so we can apply default actions if none did.
 	var anyMatched bool
 	var results []ActionResult
 	for _, rule := range cfg.Rules {
@@ -125,6 +126,7 @@ func (s *Store) HandleUIK(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if !anyMatched {
+		// Default actions need to be applied if no rules matched (or if there are no rules at all).
 		for _, action := range cfg.DefaultActions {
 			res := ActionResult{
 				DestType: action.Type,
