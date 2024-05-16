@@ -67,3 +67,50 @@ FROM
 WHERE
     id = $1;
 
+-- name: IntKeyPromoteSecondary :one
+UPDATE
+    uik_config
+SET
+    primary_token = secondary_token,
+    primary_token_hint = secondary_token_hint,
+    secondary_token = NULL,
+    secondary_token_hint = NULL
+WHERE
+    id = $1
+RETURNING
+    primary_token_hint;
+
+-- name: IntKeyTokenHints :one
+SELECT
+    primary_token_hint,
+    secondary_token_hint
+FROM
+    uik_config
+WHERE
+    id = $1;
+
+-- name: IntKeySetPrimaryToken :one
+UPDATE
+    uik_config
+SET
+    primary_token = $2,
+    primary_token_hint = $3
+WHERE
+    id = $1
+    AND primary_token IS NULL
+RETURNING
+    id;
+
+-- name: IntKeySetSecondaryToken :one
+UPDATE
+    uik_config
+SET
+    secondary_token = $2,
+    secondary_token_hint = $3
+WHERE
+    id = $1
+    AND secondary_token IS NULL
+    AND primary_token IS NOT NULL
+RETURNING
+    id;
+

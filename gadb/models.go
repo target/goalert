@@ -1138,8 +1138,12 @@ type TwilioVoiceError struct {
 }
 
 type UikConfig struct {
-	Config json.RawMessage
-	ID     uuid.UUID
+	Config             json.RawMessage
+	ID                 uuid.UUID
+	PrimaryToken       uuid.NullUUID
+	PrimaryTokenHint   sql.NullString
+	SecondaryToken     uuid.NullUUID
+	SecondaryTokenHint sql.NullString
 }
 
 type User struct {

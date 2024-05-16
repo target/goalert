@@ -21,6 +21,45 @@ func (q *Query) IntegrationKey(ctx context.Context, id string) (*integrationkey.
 	return q.IntKeyStore.FindOne(ctx, id)
 }
 
+func (m *Mutation) GenerateKeyToken(ctx context.Context, keyID string) (string, error) {
+	id, err := validate.ParseUUID("ID", keyID)
+	if err != nil {
+		return "", err
+	}
+	return m.IntKeyStore.GenerateToken(ctx, m.DB, id)
+}
+
+func (m *Mutation) PromoteSecondaryToken(ctx context.Context, keyID string) (bool, error) {
+	id, err := validate.ParseUUID("ID", keyID)
+	if err != nil {
+		return false, err
+	}
+
+	err = m.IntKeyStore.PromoteSecondaryToken(ctx, m.DB, id)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (key *IntegrationKey) TokenInfo(ctx context.Context, raw *integrationkey.IntegrationKey) (*graphql2.TokenInfo, error) {
+	id, err := validate.ParseUUID("ID", raw.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	prim, sec, err := key.IntKeyStore.TokenHints(ctx, key.DB, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &graphql2.TokenInfo{
+		PrimaryHint:   prim,
+		SecondaryHint: sec,
+	}, nil
+}
+
 func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKeyConfigInput) (bool, error) {
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		id, err := validate.ParseUUID("IntegrationKey.ID", input.KeyID)
