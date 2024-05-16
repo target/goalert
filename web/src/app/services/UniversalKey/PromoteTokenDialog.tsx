@@ -1,9 +1,12 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
+  FormControlLabel,
+  Grid,
   Typography,
 } from '@mui/material'
 import { gql, useMutation } from 'urql'
@@ -28,6 +31,7 @@ export default function PromoteTokenDialog({
   onClose,
 }: PromoteTokenDialogProps): JSX.Element {
   const [status, commit] = useMutation(promoteMutation)
+  const [hasConfirmed, setHasConfirmed] = useState(false)
 
   return (
     <Dialog open={open} onClose={onClose}>
@@ -37,7 +41,26 @@ export default function PromoteTokenDialog({
         fullScreen={false}
       />
       <DialogContent>
-        <Typography>Generate a token for use</Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <Typography>
+              <b>Important note:</b> Promoting this token will delete the
+              existing primary token. Any future API requests using the existing
+              primary token will fail.
+            </Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={hasConfirmed}
+                  onChange={() => setHasConfirmed(!hasConfirmed)}
+                />
+              }
+              label='I acknowledge the impact of this action'
+            />
+          </Grid>
+        </Grid>
       </DialogContent>
 
       {status.error?.message ? (
@@ -47,6 +70,7 @@ export default function PromoteTokenDialog({
       <DialogActions>
         <Button
           variant='contained'
+          disabled={!hasConfirmed}
           onClick={() =>
             commit(
               {
