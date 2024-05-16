@@ -131,3 +131,17 @@ func (s *Store) PromoteSecondaryToken(ctx context.Context, db gadb.DBTX, id uuid
 
 	return nil
 }
+
+func (s *Store) DeleteSecondaryToken(ctx context.Context, db gadb.DBTX, id uuid.UUID) error {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return err
+	}
+
+	err = gadb.New(db).IntKeyDeleteSecondaryToken(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

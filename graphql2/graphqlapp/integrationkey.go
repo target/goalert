@@ -29,6 +29,20 @@ func (m *Mutation) GenerateKeyToken(ctx context.Context, keyID string) (string, 
 	return m.IntKeyStore.GenerateToken(ctx, m.DB, id)
 }
 
+func (m *Mutation) DeleteSecondaryToken(ctx context.Context, keyID string) (bool, error) {
+	id, err := validate.ParseUUID("ID", keyID)
+	if err != nil {
+		return false, err
+	}
+
+	err = m.IntKeyStore.DeleteSecondaryToken(ctx, m.DB, id)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (m *Mutation) PromoteSecondaryToken(ctx context.Context, keyID string) (bool, error) {
 	id, err := validate.ParseUUID("ID", keyID)
 	if err != nil {
