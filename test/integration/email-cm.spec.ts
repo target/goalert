@@ -16,8 +16,16 @@ test('EMAIL contact method', async ({ page, browser }) => {
   await pageAction(page, 'Create Contact Method', 'Create Method')
 
   await page.fill('input[name=name]', name)
-  await page.fill('input[name=type]', 'EMAIL')
-  await page.fill('input[name=value]', email)
+
+  // ensure disclaimer is shown for voice call
+  await dropdownSelect(page, 'Destination Type', 'Voice Call')
+
+  await expect(
+    page.locator('span', { hasText: 'test-disclaimer-text' }),
+  ).toBeVisible()
+
+  await dropdownSelect(page, 'Destination Type', 'Email')
+  await page.fill('input[name=email-address]', email)
   await page.click('[role=dialog] button[type=submit]')
 
   const mail = await browser.newPage({
@@ -119,6 +127,8 @@ test('EMAIL contact method', async ({ page, browser }) => {
     .click()
   await page.getByRole('menuitem', { name: 'Delete' }).click()
   await page.getByRole('button', { name: 'Confirm' }).click()
+
+  await expect(page.locator('[role=dialog]')).not.toBeVisible()
   await page
     .locator('.MuiCard-root', {
       has: page.locator('div > div > h2', { hasText: 'Contact Methods' }),

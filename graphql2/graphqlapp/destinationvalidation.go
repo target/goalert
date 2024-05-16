@@ -27,8 +27,10 @@ var errAlreadySet = errors.New("error already set")
 // and are only used for signaling to other parts of the system.
 type errSkipHandler struct{}
 
-var _ graphql.ResponseInterceptor = errSkipHandler{}
-var _ graphql.HandlerExtension = errSkipHandler{}
+var (
+	_ graphql.ResponseInterceptor = errSkipHandler{}
+	_ graphql.HandlerExtension    = errSkipHandler{}
+)
 
 func (errSkipHandler) ExtensionName() string { return "ErrorSkipHandler" }
 
@@ -164,13 +166,13 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 	case destSlackUG:
 		ugID := dest.FieldValue(fieldSlackUGID)
 		userErr := a.SlackStore.ValidateUserGroup(ctx, ugID)
-		if err != nil {
+		if userErr != nil {
 			return addDestFieldError(ctx, fieldName, fieldSlackUGID, userErr)
 		}
 
 		chanID := dest.FieldValue(fieldSlackChanID)
 		chanErr := a.SlackStore.ValidateChannel(ctx, chanID)
-		if err != nil {
+		if chanErr != nil {
 			return addDestFieldError(ctx, fieldName, fieldSlackChanID, chanErr)
 		}
 
