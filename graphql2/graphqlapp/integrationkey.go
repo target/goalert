@@ -10,6 +10,7 @@ import (
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/search"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -94,6 +95,46 @@ func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKey
 					ConditionExpr: r.ConditionExpr,
 					Actions:       actionsGQLToGo(r.Actions),
 				})
+			}
+		}
+
+		if input.SetRule != nil {
+			if input.SetRule.ID == nil {
+				// Since we don't have a rule ID, we're need to create a new rule.
+				cfg.Rules = append(cfg.Rules, integrationkey.Rule{
+					ID:            uuid.New(),
+					Name:          input.SetRule.Name,
+					Description:   input.SetRule.Description,
+					ConditionExpr: input.SetRule.ConditionExpr,
+					Actions:       actionsGQLToGo(input.SetRule.Actions),
+				})
+			} else {
+				var found bool
+				for i, r := range cfg.Rules {
+					if r.ID.String() == *input.SetRule.ID {
+						cfg.Rules[i] = integrationkey.Rule{
+							ID:            r.ID,
+							Name:          input.SetRule.Name,
+							Description:   input.SetRule.Description,
+							ConditionExpr: input.SetRule.ConditionExpr,
+							Actions:       actionsGQLToGo(input.SetRule.Actions),
+						}
+						found = true
+						break
+					}
+				}
+				if !found {
+					return validation.NewFieldError("SetRule.ID", "not found")
+				}
+			}
+		}
+
+		if input.DeleteRule != nil {
+			for i, r := range cfg.Rules {
+				if r.ID.String() == *input.DeleteRule {
+					cfg.Rules = append(cfg.Rules[:i], cfg.Rules[i+1:]...)
+					break
+				}
 			}
 		}
 
