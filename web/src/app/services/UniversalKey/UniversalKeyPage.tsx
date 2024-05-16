@@ -1,18 +1,11 @@
 import React from 'react'
 import UniversalKeyRuleList from './UniversalKeyRuleList'
-import {
-  CardContent,
-  Grid,
-  Card,
-  CardHeader,
-  Typography,
-  Button,
-} from '@mui/material'
 import { gql, useQuery } from 'urql'
 import { GenericError, ObjectNotFound } from '../../error-pages'
 import { IntegrationKey, Service } from '../../../schema'
-import Markdown from '../../util/Markdown'
 import { Redirect } from 'wouter'
+import DetailsPage from '../../details/DetailsPage'
+import { Action } from '../../details/CardActions'
 
 interface UniversalKeyPageProps {
   serviceID: string
@@ -25,10 +18,10 @@ const query = gql`
       id
       name
       serviceID
-      # tokenInfo {
-      #   primaryHint
-      #   secondaryHint
-      # }
+      tokenInfo {
+        primaryHint
+        secondaryHint
+      }
     }
     service(id: $serviceID) {
       id
@@ -74,47 +67,47 @@ export default function UniversalKeyPage(
   }
   if (!q.data) return <ObjectNotFound type='integration key' />
 
+  const primaryHint = q.data.integrationKey.tokenInfo.primaryHint
+  const secondaryHint = q.data.integrationKey.tokenInfo.secondaryHint
+
+  function makeGenerateButtons(): Array<Action> {
+    if (primaryHint && !secondaryHint) {
+      return [
+        {
+          label: 'Regenerate Token',
+          handleOnClick: () => {},
+        },
+      ]
+    }
+
+    if (primaryHint && secondaryHint) {
+      return [
+        {
+          label: 'Regenerate Token',
+          handleOnClick: () => {},
+        },
+        {
+          label: 'Promote Secondary',
+          handleOnClick: () => {},
+        },
+      ]
+    }
+
+    return [
+      {
+        label: 'Generate Token',
+        handleOnClick: () => {},
+      },
+    ]
+  }
+
   return (
-    <React.Fragment>
-      <Grid container>
-        <Grid item xs={12}>
-          <Card>
-            <Grid item xs container direction='column'>
-              <Grid item>
-                <CardHeader
-                  title={q.data.integrationKey.name}
-                  subheader={`Service: ${q.data.service.name}`}
-                  titleTypographyProps={{
-                    'data-cy': 'title',
-                    variant: 'h5',
-                    component: 'h1',
-                  }}
-                  subheaderTypographyProps={{
-                    'data-cy': 'subheader',
-                    variant: 'body1',
-                  }}
-                />
-              </Grid>
-              <Grid item sx={{ pl: '16px', pr: '16px' }}>
-                <Typography
-                  component='div'
-                  variant='subtitle1'
-                  color='textSecondary'
-                  data-cy='details'
-                >
-                  <Markdown value={desc} />
-                </Typography>
-                <Button>Generate New Auth Token</Button>
-                <Button>Promote Secondary Token</Button>
-              </Grid>
-            </Grid>
-          </Card>
-          <br />
-          <Card>
-            <CardContent>{UniversalKeyRuleList()}</CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-    </React.Fragment>
+    <DetailsPage
+      title={q.data.integrationKey.name}
+      subheader={`Service: ${q.data.service.name}`}
+      details={desc}
+      primaryActions={makeGenerateButtons()}
+      pageContent={UniversalKeyRuleList()}
+    />
   )
 }

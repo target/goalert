@@ -1,6 +1,6 @@
-import { Add } from '@mui/icons-material'
-import { Button } from '@mui/material'
 import React, { Suspense, useState } from 'react'
+import { Button, Card, CardContent } from '@mui/material'
+import { Add } from '@mui/icons-material'
 import FlatList, { FlatListListItem } from '../../lists/FlatList'
 import { useIsWidthDown } from '../../util/useWidth'
 import UniversalKeyRuleCreateDialog from './UniversalKeyRuleCreateDialog'
@@ -37,22 +37,24 @@ export default function UniversalKeyRuleList(): JSX.Element {
 
   return (
     <React.Fragment>
-      <FlatList
-        emptyMessage='No rules exist for this integration key.'
-        headerAction={
-          isMobile ? undefined : (
-            <Button
-              variant='contained'
-              startIcon={<Add />}
-              onClick={() => setCreate(true)}
-            >
-              Create Rule
-            </Button>
-          )
-        }
-        headerNote='Rules are a set of filters that allow notifications to be sent to a specific destination. '
-        items={items}
-      />
+      <Card>
+        <FlatList
+          emptyMessage='No rules exist for this integration key.'
+          headerAction={
+            isMobile ? undefined : (
+              <Button
+                variant='contained'
+                startIcon={<Add />}
+                onClick={() => setCreate(true)}
+              >
+                Create Rule
+              </Button>
+            )
+          }
+          headerNote='Rules are a set of filters that allow notifications to be sent to a specific destination. '
+          items={items}
+        />
+      </Card>
 
       <Suspense>
         {create && (

@@ -39,6 +39,9 @@ func (s *Store) TokenHints(ctx context.Context, db gadb.DBTX, id uuid.UUID) (pri
 	}
 
 	row, err := gadb.New(s.db).IntKeyTokenHints(ctx, id)
+	// if errors.Is(err, sql.ErrNoRows) {
+	// 	return "", "", err
+	// }
 	if err != nil {
 		return "", "", err
 	}
