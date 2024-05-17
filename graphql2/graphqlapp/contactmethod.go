@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/target/goalert/config"
-	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/webhook"
@@ -191,7 +190,6 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 			input.NewUserNotificationRule.ContactMethodID = &cm.ID
 
 			_, err = m.CreateUserNotificationRule(ctx, *input.NewUserNotificationRule)
-
 			if err != nil {
 				return validation.AddPrefix("newUserNotificationRule.", err)
 			}
@@ -216,7 +214,7 @@ func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.U
 		}
 		if input.Name != nil {
 			err := validate.IDName("input.name", *input.Name)
-			if err != nil && expflag.ContextHas(ctx, expflag.DestTypes) {
+			if err != nil {
 				addInputError(ctx, err)
 				return errAlreadySet
 			}

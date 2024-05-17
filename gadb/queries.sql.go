@@ -1493,6 +1493,21 @@ func (q *Queries) IntKeyDeleteConfig(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const intKeyDeleteSecondaryToken = `-- name: IntKeyDeleteSecondaryToken :exec
+UPDATE
+    uik_config
+SET
+    secondary_token = NULL,
+    secondary_token_hint = NULL
+WHERE
+    id = $1
+`
+
+func (q *Queries) IntKeyDeleteSecondaryToken(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, intKeyDeleteSecondaryToken, id)
+	return err
+}
+
 const intKeyFindByService = `-- name: IntKeyFindByService :many
 SELECT
     id,
@@ -1744,6 +1759,31 @@ func (q *Queries) IntKeyTokenHints(ctx context.Context, id uuid.UUID) (IntKeyTok
 	var i IntKeyTokenHintsRow
 	err := row.Scan(&i.PrimaryTokenHint, &i.SecondaryTokenHint)
 	return i, err
+}
+
+const intKeyUIKValidateService = `-- name: IntKeyUIKValidateService :one
+SELECT
+    k.service_id
+FROM
+    uik_config c
+    JOIN integration_keys k ON k.id = c.id
+WHERE
+    c.id = $1
+    AND k.type = 'universal'
+    AND (c.primary_token = $2
+        OR c.secondary_token = $2)
+`
+
+type IntKeyUIKValidateServiceParams struct {
+	KeyID   uuid.UUID
+	TokenID uuid.NullUUID
+}
+
+func (q *Queries) IntKeyUIKValidateService(ctx context.Context, arg IntKeyUIKValidateServiceParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, intKeyUIKValidateService, arg.KeyID, arg.TokenID)
+	var service_id uuid.UUID
+	err := row.Scan(&service_id)
+	return service_id, err
 }
 
 const labelDeleteKeyByTarget = `-- name: LabelDeleteKeyByTarget :exec

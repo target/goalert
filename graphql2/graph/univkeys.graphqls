@@ -32,6 +32,11 @@ extend type Mutation {
   promoteSecondaryToken(id: ID!): Boolean! @experimental(flagName: "univ-keys")
 
   """
+  deleteSecondaryToken deletes the secondary token.
+  """
+  deleteSecondaryToken(id: ID!): Boolean! @experimental(flagName: "univ-keys")
+
+  """
   generateKeyToken generates a new token for an integration key.
 
   If the integration key already has a primary token, the new token will be the secondary token.
@@ -50,6 +55,11 @@ type KeyConfig {
   stopAtFirstRule: Boolean!
 
   rules: [KeyRule!]!
+
+  """
+  Get a single rule by ID.
+  """
+  oneRule(id: ID!): KeyRule @goField(forceResolver: true)
 
   """
   defaultAction is the action to take if no rules match the request.
@@ -80,6 +90,16 @@ input UpdateKeyConfigInput {
   stopAtFirstRule: Boolean
 
   rules: [KeyRuleInput!]
+
+  """
+  setRule allows you to set a single rule. If ID is provided, the rule with that ID will be updated. If ID is not provided, a new rule will be created and appended to the list of rules.
+  """
+  setRule: KeyRuleInput
+
+  """
+  deleteRule allows you to delete a single rule by ID.
+  """
+  deleteRule: ID
 
   """
   defaultAction is the action to take if no rules match the request.

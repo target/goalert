@@ -640,6 +640,7 @@ export interface IntegrationKeyTypeInfo {
 
 export interface KeyConfig {
   defaultActions: Action[]
+  oneRule?: null | KeyRule
   rules: KeyRule[]
   stopAtFirstRule: boolean
 }
@@ -742,6 +743,7 @@ export interface Mutation {
   deleteAll: boolean
   deleteAuthSubject: boolean
   deleteGQLAPIKey: boolean
+  deleteSecondaryToken: boolean
   endAllAuthSessionsByCurrentUser: boolean
   escalateAlerts?: null | Alert[]
   generateKeyToken: string
@@ -1285,8 +1287,10 @@ export interface UpdateHeartbeatMonitorInput {
 
 export interface UpdateKeyConfigInput {
   defaultActions?: null | ActionInput[]
+  deleteRule?: null | string
   keyID: string
   rules?: null | KeyRuleInput[]
+  setRule?: null | KeyRuleInput
   stopAtFirstRule?: null | boolean
 }
 

@@ -10,12 +10,26 @@ import (
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/search"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
 type IntegrationKey App
 
+type KeyConfig App
+
 func (a *App) IntegrationKey() graphql2.IntegrationKeyResolver { return (*IntegrationKey)(a) }
+func (a *App) KeyConfig() graphql2.KeyConfigResolver           { return (*KeyConfig)(a) }
+
+func (k *KeyConfig) OneRule(ctx context.Context, key *graphql2.KeyConfig, ruleID string) (*graphql2.KeyRule, error) {
+	for _, r := range key.Rules {
+		if r.ID == ruleID {
+			return &r, nil
+		}
+	}
+
+	return nil, validation.NewFieldError("RuleID", "not found")
+}
 
 func (q *Query) IntegrationKey(ctx context.Context, id string) (*integrationkey.IntegrationKey, error) {
 	return q.IntKeyStore.FindOne(ctx, id)
@@ -27,6 +41,20 @@ func (m *Mutation) GenerateKeyToken(ctx context.Context, keyID string) (string, 
 		return "", err
 	}
 	return m.IntKeyStore.GenerateToken(ctx, m.DB, id)
+}
+
+func (m *Mutation) DeleteSecondaryToken(ctx context.Context, keyID string) (bool, error) {
+	id, err := validate.ParseUUID("ID", keyID)
+	if err != nil {
+		return false, err
+	}
+
+	err = m.IntKeyStore.DeleteSecondaryToken(ctx, m.DB, id)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (m *Mutation) PromoteSecondaryToken(ctx context.Context, keyID string) (bool, error) {
@@ -94,6 +122,46 @@ func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKey
 					ConditionExpr: r.ConditionExpr,
 					Actions:       actionsGQLToGo(r.Actions),
 				})
+			}
+		}
+
+		if input.SetRule != nil {
+			if input.SetRule.ID == nil {
+				// Since we don't have a rule ID, we're need to create a new rule.
+				cfg.Rules = append(cfg.Rules, integrationkey.Rule{
+					ID:            uuid.New(),
+					Name:          input.SetRule.Name,
+					Description:   input.SetRule.Description,
+					ConditionExpr: input.SetRule.ConditionExpr,
+					Actions:       actionsGQLToGo(input.SetRule.Actions),
+				})
+			} else {
+				var found bool
+				for i, r := range cfg.Rules {
+					if r.ID.String() == *input.SetRule.ID {
+						cfg.Rules[i] = integrationkey.Rule{
+							ID:            r.ID,
+							Name:          input.SetRule.Name,
+							Description:   input.SetRule.Description,
+							ConditionExpr: input.SetRule.ConditionExpr,
+							Actions:       actionsGQLToGo(input.SetRule.Actions),
+						}
+						found = true
+						break
+					}
+				}
+				if !found {
+					return validation.NewFieldError("SetRule.ID", "not found")
+				}
+			}
+		}
+
+		if input.DeleteRule != nil {
+			for i, r := range cfg.Rules {
+				if r.ID.String() == *input.DeleteRule {
+					cfg.Rules = append(cfg.Rules[:i], cfg.Rules[i+1:]...)
+					break
+				}
 			}
 		}
 
@@ -243,6 +311,8 @@ func (key *IntegrationKey) Href(ctx context.Context, raw *integrationkey.Integra
 			return "", nil
 		}
 		return "mailto:" + raw.ID + "@" + cfg.EmailIngressDomain(), nil
+	case integrationkey.TypeUniversal:
+		return cfg.CallbackURL("/api/v2/uik"), nil
 	}
 
 	return "", nil
