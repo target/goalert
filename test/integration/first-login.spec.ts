@@ -28,7 +28,7 @@ test('first time setup', async ({ page }) => {
   await page.locator('[role=dialog] button', { hasText: 'Cancel' }).click()
 
   // ensure dialog is not shown
-  await expect(page.locator('[role=dialog]')).toHaveCount(0)
+  await expect(page.locator('[role=dialog]')).toBeHidden()
 
   await page.goto('./profile')
   await page.click(`li:has-text("${email}") [aria-label="Other Actions"]`)
@@ -36,6 +36,8 @@ test('first time setup', async ({ page }) => {
   await page.getByRole('menuitem', { name: 'Delete' }).click()
   await page.getByRole('button', { name: 'Confirm' }).click()
 
-  await expect(page.locator('[role=dialog]')).not.toBeVisible()
-  await expect(page.locator('li', { hasText: email })).not.toBeVisible()
+  await expect(page.locator('[role=dialog]')).toBeHidden()
+  await expect(
+    page.locator(`li:has-text("${email}") [aria-label="Other Actions"]`),
+  ).toBeHidden()
 })

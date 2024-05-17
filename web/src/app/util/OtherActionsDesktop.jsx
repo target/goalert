@@ -40,7 +40,6 @@ export default function OtherActionsMenuDesktop({
         <Tooltip key={idx} title={o.tooltip}>
           <div>
             <MenuItem
-              key={idx}
               onClick={() => {
                 onClose()
                 o.onClick()

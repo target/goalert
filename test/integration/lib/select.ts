@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test'
+import { Page, expect } from '@playwright/test'
 
 export async function dropdownSelect(
   page: Page,
@@ -26,9 +26,18 @@ export async function pageAction(
       .getAttribute('aria-haspopup')
     if (hasPopup) {
       await page.hover('button[data-cy="page-fab"]')
+      await expect(
+        await page.locator('button[data-cy="page-fab"]'),
+      ).toHaveAttribute('aria-expanded', 'true')
     }
 
     await page.getByLabel(mobileAction).locator('button').click()
+
+    if (hasPopup) {
+      await expect(
+        await page.locator('button[data-cy="page-fab"]'),
+      ).toHaveAttribute('aria-expanded', 'false')
+    }
     return
   }
 
