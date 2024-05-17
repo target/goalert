@@ -8,6 +8,7 @@ import DetailsPage from '../../details/DetailsPage'
 import { Action } from '../../details/CardActions'
 import GenTokenDialog from './GenTokenDialog'
 import PromoteTokenDialog from './PromoteTokenDialog'
+import DeleteSecondaryTokenDialog from './DeleteSecondaryTokenDialog'
 
 interface UniversalKeyPageProps {
   serviceID: string
@@ -37,6 +38,7 @@ export default function UniversalKeyPage(
 ): React.ReactNode {
   const [genDialogOpen, setGenDialogOpen] = useState(false)
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   const [q] = useQuery<{
     integrationKey: IntegrationKey
@@ -76,15 +78,11 @@ export default function UniversalKeyPage(
   `
 
   function makeGenerateButtons(): Array<Action> {
-    const handleOnClick = (): void => {
-      setGenDialogOpen(true)
-    }
-
     if (primaryHint && !secondaryHint) {
       return [
         {
           label: 'Regenerate Token',
-          handleOnClick,
+          handleOnClick: () => setGenDialogOpen(true),
         },
       ]
     }
@@ -92,11 +90,11 @@ export default function UniversalKeyPage(
     if (primaryHint && secondaryHint) {
       return [
         {
-          label: 'Regenerate Token',
-          handleOnClick,
+          label: 'Delete Secondary Token',
+          handleOnClick: () => setDeleteDialogOpen(true),
         },
         {
-          label: 'Promote Secondary',
+          label: 'Promote Secondary Token',
           handleOnClick: () => setPromoteDialogOpen(true),
         },
       ]
@@ -105,7 +103,7 @@ export default function UniversalKeyPage(
     return [
       {
         label: 'Generate Token',
-        handleOnClick,
+        handleOnClick: () => setGenDialogOpen(true),
       },
     ]
   }
@@ -119,17 +117,24 @@ export default function UniversalKeyPage(
         primaryActions={makeGenerateButtons()}
         pageContent={<UniversalKeyRuleList />}
       />
-      <GenTokenDialog
-        keyID={props.keyID}
-        open={genDialogOpen}
-        onClose={() => setGenDialogOpen(false)}
-        // isSecondary={}
-      />
-      <PromoteTokenDialog
-        keyID={props.keyID}
-        open={promoteDialogOpen}
-        onClose={() => setPromoteDialogOpen(false)}
-      />
+      {genDialogOpen && (
+        <GenTokenDialog
+          keyID={props.keyID}
+          onClose={() => setGenDialogOpen(false)}
+        />
+      )}
+      {promoteDialogOpen && (
+        <PromoteTokenDialog
+          keyID={props.keyID}
+          onClose={() => setPromoteDialogOpen(false)}
+        />
+      )}
+      {deleteDialogOpen && (
+        <DeleteSecondaryTokenDialog
+          keyID={props.keyID}
+          onClose={() => setDeleteDialogOpen(false)}
+        />
+      )}
     </React.Fragment>
   )
 }

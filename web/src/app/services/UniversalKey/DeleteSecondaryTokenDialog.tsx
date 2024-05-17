@@ -4,37 +4,35 @@ import { gql, useMutation } from 'urql'
 import FormDialog from '../../dialogs/FormDialog'
 import { nonFieldErrors } from '../../util/errutil'
 
-interface PromoteTokenDialogProps {
+interface DeleteSecondaryTokenDialogProps {
   keyID: string
   onClose: () => void
 }
 
 const mutation = gql`
   mutation ($id: ID!) {
-    promoteSecondaryToken(id: $id)
+    deleteSecondaryToken(id: $id)
   }
 `
 
-export default function PromoteTokenDialog({
+export default function DeleteSecondaryTokenDialog({
   keyID,
   onClose,
-}: PromoteTokenDialogProps): JSX.Element {
+}: DeleteSecondaryTokenDialogProps): JSX.Element {
   const [status, commit] = useMutation(mutation)
   const [hasConfirmed, setHasConfirmed] = useState(false)
 
   return (
     <FormDialog
-      title='Promote Secondary Token'
+      title='Delete Secondary Token'
       onClose={onClose}
       errors={nonFieldErrors(status.error)}
       subTitle={
         <Typography>
-          <b>Important note:</b> Promoting this token will delete the existing
-          primary token. Any future API requests using the existing primary
-          token will fail.
+          <b>Important note:</b> Deleting the secondary authentication token
+          will cause any future API requests using this token to fail.
         </Typography>
       }
-      primaryActionLabel='Promote Key'
       form={
         <FormControlLabel
           control={
