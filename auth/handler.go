@@ -564,6 +564,15 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 		next.ServeHTTP(w, req.WithContext(ctx))
 		return true
 	}
+	if req.URL.Path == "/api/v2/uik" && strings.HasPrefix(tokStr, "ey") {
+		ctx, err = h.cfg.IntKeyStore.AuthorizeUIK(ctx, tokStr)
+		if errutil.HTTPError(req.Context(), w, err) {
+			return true
+		}
+
+		next.ServeHTTP(w, req.WithContext(ctx))
+		return true
+	}
 
 	tok, _, err := authtoken.Parse(tokStr, func(t authtoken.Type, p, sig []byte) (bool, bool) {
 		if t == authtoken.TypeSession {
