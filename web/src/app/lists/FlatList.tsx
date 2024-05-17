@@ -364,7 +364,7 @@ export default function FlatList({
         )
       }
 
-      return <FlatListItem key={`${idx}-${item.id}`} index={idx} item={item} />
+      return <FlatListItem key={item.id || idx} index={idx} item={item} />
     })
   }
 
