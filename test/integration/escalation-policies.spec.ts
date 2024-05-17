@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { baseURLFromFlags, userSessionFile } from './lib'
+import { userSessionFile } from './lib'
 import Chance from 'chance'
 const c = new Chance()
 
@@ -17,7 +17,7 @@ let epName: string
 test.beforeEach(async ({ page }) => {
   // create rotation
   rotName = 'rot-' + c.string({ length: 10, alpha: true })
-  await page.goto(`${baseURLFromFlags(['dest-types'])}/rotations`)
+  await page.goto(`/rotations`)
   await page.getByRole('button', { name: 'Create Rotation' }).click()
   await page.fill('input[name=name]', rotName)
   await page.fill('textarea[name=description]', 'test rotation')
@@ -27,7 +27,7 @@ test.beforeEach(async ({ page }) => {
 
   // create schedule
   schedName = 'sched-' + c.string({ length: 10, alpha: true })
-  await page.goto(`${baseURLFromFlags(['dest-types'])}/schedules`)
+  await page.goto(`/schedules`)
   await page.getByRole('button', { name: 'Create Schedule' }).click()
   await page.fill('input[name=name]', schedName)
   await page.locator('button[type=submit]').click()
@@ -36,7 +36,7 @@ test.beforeEach(async ({ page }) => {
 
   // create EP
   epName = 'ep-' + c.string({ length: 10, alpha: true })
-  await page.goto(`${baseURLFromFlags(['dest-types'])}/escalation-policies`)
+  await page.goto(`/escalation-policies`)
   await page.getByRole('button', { name: 'Create Escalation Policy' }).click()
   await page.fill('input[name=name]', epName)
   await page.locator('button[type=submit]').click()
@@ -46,19 +46,17 @@ test.beforeEach(async ({ page }) => {
 
 test.afterEach(async ({ page }) => {
   // delete rotation
-  await page.goto(`${baseURLFromFlags(['dest-types'])}/rotations/${rotID}`)
+  await page.goto(`/rotations/${rotID}`)
   await page.click('[data-testid="DeleteIcon"]')
   await page.click('button:has-text("Confirm")')
 
   // delete schedule
-  await page.goto(`${baseURLFromFlags(['dest-types'])}/schedules/${schedID}`)
+  await page.goto(`/schedules/${schedID}`)
   await page.click('[data-testid="DeleteIcon"]')
   await page.click('button:has-text("Confirm")')
 
   // delete EP
-  await page.goto(
-    `${baseURLFromFlags(['dest-types'])}/escalation-policies/${epID}`,
-  )
+  await page.goto(`/escalation-policies/${epID}`)
   await page.click('[data-testid="DeleteIcon"]')
   await page.click('button:has-text("Confirm")')
 })
@@ -66,9 +64,7 @@ test.afterEach(async ({ page }) => {
 test('create escalation policy step using destination actions', async ({
   page,
 }) => {
-  await page.goto(
-    `${baseURLFromFlags(['dest-types'])}/escalation-policies/${epID}`,
-  )
+  await page.goto(`/escalation-policies/${epID}`)
   await page.getByRole('button', { name: 'Create Step' }).click()
 
   // add rotation
@@ -107,16 +103,10 @@ test('create escalation policy step using destination actions', async ({
   await expect(page.getByText('Step #1:')).toBeVisible()
 
   const rotLink = await page.locator('a', { hasText: rotName })
-  await expect(rotLink).toHaveAttribute(
-    'href',
-    `${baseURLFromFlags(['dest-types'])}/rotations/${rotID}`,
-  )
+  await expect(rotLink).toHaveAttribute('href', `/rotations/${rotID}`)
 
   const schedLink = await page.locator('a', { hasText: schedName })
-  await expect(schedLink).toHaveAttribute(
-    'href',
-    `${baseURLFromFlags(['dest-types'])}/schedules/${schedID}`,
-  )
+  await expect(schedLink).toHaveAttribute('href', `/schedules/${schedID}`)
 
   await expect(
     await page.locator('a', {

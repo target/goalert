@@ -2,7 +2,7 @@ import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import UserContactMethodEditDialogDest from './UserContactMethodEditDialogDest'
 import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
-import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
+import { handleDefaultConfig } from '../storybook/graphql'
 import { useArgs } from '@storybook/preview-api'
 import { HttpResponse, graphql } from 'msw'
 import { DestFieldValueError, InputFieldError } from '../util/errtypes'
@@ -25,7 +25,6 @@ const meta = {
     msw: {
       handlers: [
         handleDefaultConfig,
-        handleExpFlags('dest-types'),
         graphql.query('userCm', ({ variables: vars }) => {
           return HttpResponse.json({
             data: {
