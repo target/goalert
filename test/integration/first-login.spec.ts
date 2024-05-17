@@ -3,7 +3,7 @@ import { dropdownSelect, userSessionFile } from './lib'
 import Chance from 'chance'
 const c = new Chance()
 
-test.describe.configure({ mode: 'serial' })
+test.describe.configure({ mode: 'parallel' })
 test.use({ storageState: userSessionFile })
 
 // test create, edit, verify, and delete of an EMAIL contact method
@@ -31,13 +31,8 @@ test('first time setup', async ({ page }) => {
   await expect(page.locator('[role=dialog]')).toHaveCount(0)
 
   await page.goto('./profile')
-  await page
-    .locator('.MuiCard-root', {
-      has: page.locator('div > div > h2', { hasText: 'Contact Methods' }),
-    })
-    .locator('li', { hasText: email })
-    .locator('[aria-label="Other Actions"]')
-    .click()
+  await page.click(`li:has-text("${email}") [aria-label="Other Actions"]`)
+
   await page.getByRole('menuitem', { name: 'Delete' }).click()
   await page.getByRole('button', { name: 'Confirm' }).click()
 

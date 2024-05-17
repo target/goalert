@@ -3,7 +3,7 @@ import { dropdownSelect, pageAction, userSessionFile } from './lib'
 import Chance from 'chance'
 const c = new Chance()
 
-test.describe.configure({ mode: 'serial' })
+test.describe.configure({ mode: 'parallel' })
 test.use({ storageState: userSessionFile })
 
 // test create, edit, verify, and delete of an EMAIL contact method
@@ -66,38 +66,24 @@ test('EMAIL contact method', async ({ page, browser }) => {
 
   // edit name and enable status updates
   const updatedName = 'updated name ' + c.name()
-  await page
-    .locator('.MuiCard-root', {
-      has: page.locator('div > div > h2', { hasText: 'Contact Methods' }),
-    })
-    .locator('li', { hasText: email })
-    .locator('[aria-label="Other Actions"]')
-    .click()
+  await page.click(`li:has-text("${email}") [aria-label="Other Actions"]`)
   await page.getByRole('menuitem', { name: 'Edit' }).click()
   await page.fill('input[name=name]', updatedName)
   await page.click('input[name=enableStatusUpdates]')
   await page.click('[role=dialog] button[type=submit]')
 
   // open edit dialog to verify name change and status updates are enabled
-  await page
-    .locator('.MuiCard-root', {
-      has: page.locator('div > div > h2', { hasText: 'Contact Methods' }),
-    })
-    .locator('li', { hasText: email })
-    .locator('[aria-label="Other Actions"]')
-    .click()
+  await page.click(`li:has-text("${email}") [aria-label="Other Actions"]`)
   await page.getByRole('menuitem', { name: 'Edit' }).click()
   await expect(page.locator('input[name=name]')).toHaveValue(updatedName)
   await expect(page.locator('input[name=enableStatusUpdates]')).toBeChecked()
   await page.click('[role=dialog] button[type=submit]')
 
   // verify deleting a notification rule (immediate by default)
-  await page
-    .locator('li', {
-      hasText: `Immediately notify me via Email at ${email}`,
-    })
-    .locator('button')
-    .click()
+  await page.click(
+    `li:has-text("Immediately notify me via Email at ${email}") button`,
+  )
+
   // click confirm
   await page.getByRole('button', { name: 'Confirm' }).click()
   await expect(
@@ -118,13 +104,7 @@ test('EMAIL contact method', async ({ page, browser }) => {
     }),
   ).not.toBeVisible()
 
-  await page
-    .locator('.MuiCard-root', {
-      has: page.locator('div > div > h2', { hasText: 'Contact Methods' }),
-    })
-    .locator('li', { hasText: email })
-    .locator('[aria-label="Other Actions"]')
-    .click()
+  await page.click(`li:has-text("${email}") [aria-label="Other Actions"]`)
   await page.getByRole('menuitem', { name: 'Delete' }).click()
   await page.getByRole('button', { name: 'Confirm' }).click()
 
