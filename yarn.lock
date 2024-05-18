@@ -16621,14 +16621,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"msw-storybook-addon@npm:2.0.0--canary.122.06f0c92.0":
-  version: 2.0.0--canary.122.06f0c92.0
-  resolution: "msw-storybook-addon@npm:2.0.0--canary.122.06f0c92.0"
+"msw-storybook-addon@npm:2.0.2":
+  version: 2.0.2
+  resolution: "msw-storybook-addon@npm:2.0.2"
   dependencies:
     is-node-process: ^1.0.1
   peerDependencies:
-    msw: ^2.0.9
-  checksum: de8a78b1b6f2fbc9122f5a02c1401d0e1254b6389f9ce931e93dcbe00c4a0257bb77f63642b399c881e03f0d6847876dc981d45ed4643ec975647b3a719b2ecc
+    msw: ^2.0.0
+  checksum: 9097cac0a47c56a5d85537622152fe0a25ede6f4320f62c0f8a63ffc5c38af0d218905645f60001f5f1e13da467a39392edeefd5ccd202797d226ff995f676f4
   languageName: node
   linkType: hard
 
@@ -19109,7 +19109,7 @@ __metadata:
     mdast-util-find-and-replace: 3.0.1
     mdi-material-ui: 7.8.0
     msw: 2.3.0
-    msw-storybook-addon: 2.0.0--canary.122.06f0c92.0
+    msw-storybook-addon: 2.0.2
     prettier: 3.2.5
     prettier-plugin-go-template: 0.0.15
     prop-types: 15.8.1
