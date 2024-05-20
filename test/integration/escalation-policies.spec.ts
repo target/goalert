@@ -76,11 +76,12 @@ test('create escalation policy step using destination actions', async ({
     .fill(rotName)
   await page.locator('li', { hasText: rotName }).click()
   await page.getByRole('button', { name: 'Add Destination' }).click()
-  await page
-    .getByRole('dialog')
-    .getByTestId('destination-chip')
-    .filter({ hasText: rotName })
-    .click()
+  await expect(
+    page
+      .getByRole('dialog')
+      .getByTestId('destination-chip')
+      .filter({ hasText: rotName }),
+  ).toBeVisible()
 
   // add schedule
   await page.getByLabel('Destination Type').click()
@@ -91,11 +92,12 @@ test('create escalation policy step using destination actions', async ({
     .fill(schedName)
   await page.locator('li', { hasText: schedName }).click()
   await page.getByRole('button', { name: 'Add Destination' }).click()
-  await page
-    .getByRole('dialog')
-    .getByTestId('destination-chip')
-    .filter({ hasText: schedName })
-    .click()
+  await expect(
+    page
+      .getByRole('dialog')
+      .getByTestId('destination-chip')
+      .filter({ hasText: schedName }),
+  ).toBeVisible()
 
   // add user
   await page.getByLabel('Destination Type').click()
@@ -106,11 +108,12 @@ test('create escalation policy step using destination actions', async ({
     .fill('Admin McIntegrationFace')
   await page.locator('li', { hasText: 'Admin McIntegrationFace' }).click()
   await page.getByRole('button', { name: 'Add Destination' }).click()
-  await page
-    .getByRole('dialog')
-    .getByTestId('destination-chip')
-    .filter({ hasText: 'Admin McIntegrationFace' })
-    .click()
+  await expect(
+    page
+      .getByRole('dialog')
+      .getByTestId('destination-chip')
+      .filter({ hasText: 'Admin McIntegrationFace' }),
+  ).toBeVisible()
 
   await page.locator('button[type=submit]', { hasText: 'Submit' }).click()
 
