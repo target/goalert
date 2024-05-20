@@ -13,7 +13,6 @@ import { ObjectNotFound, GenericError } from '../error-pages'
 import TempSchedDialog from './temp-sched/TempSchedDialog'
 import TempSchedDeleteConfirmation from './temp-sched/TempSchedDeleteConfirmation'
 import { ScheduleAvatar } from '../util/avatars'
-import { useConfigValue } from '../util/RequireConfig'
 import ScheduleOverrideDialog from './ScheduleOverrideDialog'
 import { useIsWidthDown } from '../util/useWidth'
 import { TempSchedValue, defaultTempSchedValue } from './temp-sched/sharedUtils'
@@ -73,9 +72,6 @@ export default function ScheduleDetails({
   const [showDelete, setShowDelete] = useState(false)
 
   const isMobile = useIsWidthDown('md')
-
-  const [slackEnabled] = useConfigValue('Slack.Enable')
-  const [webhookEnabled] = useConfigValue('Webhook.Enable')
 
   const [editTempSched, setEditTempSched] = useState(false)
 
@@ -214,18 +210,12 @@ export default function ScheduleDetails({
             url: 'shifts',
             subText: 'Review a list of past and future on-call shifts',
           },
-        ].concat(
-          // only slack/webhook supported atm, so hide the link if disabled
-          slackEnabled || webhookEnabled
-            ? [
-                {
-                  label: 'On-Call Notifications',
-                  url: 'on-call-notifications',
-                  subText: 'Set up notifications to know who is on-call',
-                },
-              ]
-            : [],
-        )}
+          {
+            label: 'On-Call Notifications',
+            url: 'on-call-notifications',
+            subText: 'Set up notifications to know who is on-call',
+          },
+        ]}
       />
     </React.Fragment>
   )
