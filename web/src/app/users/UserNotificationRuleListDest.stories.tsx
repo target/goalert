@@ -2,7 +2,7 @@ import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import UserNotificationRuleListDest from './UserNotificationRuleListDest'
 import { expect, within, userEvent, screen } from '@storybook/test'
-import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
+import { handleDefaultConfig } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 
 const meta = {
@@ -13,7 +13,6 @@ const meta = {
     msw: {
       handlers: [
         handleDefaultConfig,
-        handleExpFlags('dest-types'),
         graphql.query('nrList', ({ variables: vars }) => {
           return HttpResponse.json({
             data:
