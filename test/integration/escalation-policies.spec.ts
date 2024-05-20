@@ -76,6 +76,10 @@ test('create escalation policy step using destination actions', async ({
     .fill(rotName)
   await page.locator('li', { hasText: rotName }).click()
   await page.getByRole('button', { name: 'Add Destination' }).click()
+  await page
+    .getByTestId('destination-chip')
+    .locator('*', { hasText: rotName })
+    .click()
 
   // add schedule
   await page.getByLabel('Destination Type').click()
@@ -86,6 +90,10 @@ test('create escalation policy step using destination actions', async ({
     .fill(schedName)
   await page.locator('li', { hasText: schedName }).click()
   await page.getByRole('button', { name: 'Add Destination' }).click()
+  await page
+    .getByTestId('destination-chip')
+    .locator('*', { hasText: schedName })
+    .click()
 
   // add user
   await page.getByLabel('Destination Type').click()
@@ -96,6 +104,10 @@ test('create escalation policy step using destination actions', async ({
     .fill('Admin McIntegrationFace')
   await page.locator('li', { hasText: 'Admin McIntegrationFace' }).click()
   await page.getByRole('button', { name: 'Add Destination' }).click()
+  await page
+    .getByTestId('destination-chip')
+    .locator('*', { hasText: 'Admin McIntegrationFace' })
+    .click()
 
   await page.locator('button[type=submit]', { hasText: 'Submit' }).click()
 
