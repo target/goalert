@@ -1,23 +1,16 @@
 import React from 'react'
 import { FormContainer, FormField } from '../../forms'
 import { Grid, TextField } from '@mui/material'
-import { Rule } from '@mui/icons-material'
-
-type Rule = {
-  name: string
-  expr: string
-}
+import { KeyRule } from '../../../schema'
 
 interface UniversalKeyRuleFormProps {
-  value: Rule
-  onChange: (val: Rule) => void
+  value: KeyRule
+  onChange: (val: KeyRule) => void
 }
 
 export default function UniversalKeyRuleForm(
   props: UniversalKeyRuleFormProps,
 ): JSX.Element {
-  console.info(props.value.expr)
-
   return (
     <FormContainer value={props.value} onChange={props.onChange}>
       <Grid container spacing={2}>
@@ -26,7 +19,7 @@ export default function UniversalKeyRuleForm(
             fullWidth
             component={TextField}
             label='Name'
-            name='Name'
+            name='name'
             required
           />
         </Grid>
@@ -34,8 +27,16 @@ export default function UniversalKeyRuleForm(
           <FormField
             fullWidth
             component={TextField}
+            label='Description'
+            name='description'
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <FormField
+            fullWidth
+            component={TextField}
             label='Expr'
-            name='Expr'
+            name='conditionExpr'
             required
             multiline
             rows={3}

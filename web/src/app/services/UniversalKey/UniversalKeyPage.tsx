@@ -3,7 +3,7 @@ import { gql, useQuery } from 'urql'
 import { Redirect } from 'wouter'
 import { GenericError, ObjectNotFound } from '../../error-pages'
 import { IntegrationKey, Service } from '../../../schema'
-import UniversalKeyRuleList from './UniversalKeyRuleList'
+import UniversalKeyRuleList from './UniversalKeyRuleConfig'
 import DetailsPage from '../../details/DetailsPage'
 import { Action } from '../../details/CardActions'
 import GenTokenDialog from './GenTokenDialog'
@@ -115,7 +115,12 @@ export default function UniversalKeyPage(
         subheader={`Service: ${q.data.service.name}`}
         details={desc}
         primaryActions={makeGenerateButtons()}
-        pageContent={<UniversalKeyRuleList />}
+        pageContent={
+          <UniversalKeyRuleList
+            serviceID={props.serviceID}
+            keyID={props.keyID}
+          />
+        }
       />
       {genDialogOpen && (
         <GenTokenDialog
