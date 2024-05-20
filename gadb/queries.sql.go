@@ -1761,6 +1761,31 @@ func (q *Queries) IntKeyTokenHints(ctx context.Context, id uuid.UUID) (IntKeyTok
 	return i, err
 }
 
+const intKeyUIKValidateService = `-- name: IntKeyUIKValidateService :one
+SELECT
+    k.service_id
+FROM
+    uik_config c
+    JOIN integration_keys k ON k.id = c.id
+WHERE
+    c.id = $1
+    AND k.type = 'universal'
+    AND (c.primary_token = $2
+        OR c.secondary_token = $2)
+`
+
+type IntKeyUIKValidateServiceParams struct {
+	KeyID   uuid.UUID
+	TokenID uuid.NullUUID
+}
+
+func (q *Queries) IntKeyUIKValidateService(ctx context.Context, arg IntKeyUIKValidateServiceParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, intKeyUIKValidateService, arg.KeyID, arg.TokenID)
+	var service_id uuid.UUID
+	err := row.Scan(&service_id)
+	return service_id, err
+}
+
 const labelDeleteKeyByTarget = `-- name: LabelDeleteKeyByTarget :exec
 DELETE FROM labels
 WHERE key = $1

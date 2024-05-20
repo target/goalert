@@ -114,7 +114,7 @@ func (cfg Config) Validate() error {
 }
 
 func (s *Store) Config(ctx context.Context, db gadb.DBTX, keyID uuid.UUID) (*Config, error) {
-	err := permission.LimitCheckAny(ctx, permission.User)
+	err := permission.LimitCheckAny(ctx, permission.User, permission.Service)
 	if err != nil {
 		return nil, err
 	}

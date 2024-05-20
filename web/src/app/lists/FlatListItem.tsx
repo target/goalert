@@ -80,7 +80,6 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
 
   return (
     <MUIListItem
-      key={props.index}
       {...linkProps}
       {...onClickProps}
       {...muiListItemProps}
