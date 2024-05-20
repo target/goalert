@@ -12,7 +12,7 @@ require (
 	github.com/expr-lang/expr v1.16.5
 	github.com/fatih/color v1.16.0
 	github.com/felixge/httpsnoop v1.0.4
-	github.com/fullstorydev/grpcui v1.3.3
+	github.com/fullstorydev/grpcui v1.5.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/google/go-github/v56 v56.0.0
@@ -70,7 +70,7 @@ require (
 	github.com/andybalholm/cascadia v1.3.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
-	github.com/bufbuild/protocompile v0.6.0 // indirect
+	github.com/bufbuild/protocompile v0.10.0 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cncf/xds/go v0.0.0-20231128003011-0fa0005c9caa // indirect
@@ -79,7 +79,7 @@ require (
 	github.com/envoyproxy/go-control-plane v0.12.0 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
-	github.com/fullstorydev/grpcurl v1.8.8 // indirect
+	github.com/fullstorydev/grpcurl v1.9.1 // indirect
 	github.com/go-jose/go-jose/v4 v4.0.1 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
@@ -104,7 +104,7 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20231201235250-de7065d80cb9 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jaytaylor/html2text v0.0.0-20230321000545-74c2419ad056 // indirect
-	github.com/jhump/protoreflect v1.15.3 // indirect
+	github.com/jhump/protoreflect v1.16.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailhog/MailHog-UI v1.0.1 // indirect
 	github.com/mailhog/http v1.0.1 // indirect
