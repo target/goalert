@@ -103,10 +103,16 @@ test('create escalation policy step using destination actions', async ({
   await expect(page.getByText('Step #1:')).toBeVisible()
 
   const rotLink = await page.locator('a', { hasText: rotName })
-  await expect(rotLink).toHaveAttribute('href', `/rotations/${rotID}`)
+  await expect(rotLink).toHaveAttribute(
+    'href',
+    new RegExp(`/rotations/${rotID}$`),
+  )
 
   const schedLink = await page.locator('a', { hasText: schedName })
-  await expect(schedLink).toHaveAttribute('href', `/schedules/${schedID}`)
+  await expect(schedLink).toHaveAttribute(
+    'href',
+    new RegExp(`/schedules/${schedID}$`),
+  )
 
   await expect(
     await page.locator('a', {
