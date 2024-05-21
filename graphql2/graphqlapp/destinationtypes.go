@@ -23,6 +23,7 @@ const (
 	destUser        = "builtin-user"
 	destRotation    = "builtin-rotation"
 	destSchedule    = "builtin-schedule"
+	destAlert       = "builtin-alert"
 
 	fieldPhoneNumber  = "phone-number"
 	fieldEmailAddress = "email-address"
@@ -35,8 +36,10 @@ const (
 	fieldScheduleID   = "schedule-id"
 )
 
-type FieldValuePair App
-type DestinationDisplayInfo App
+type (
+	FieldValuePair         App
+	DestinationDisplayInfo App
+)
 
 func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.DestinationFieldValidateInput) (string, error) {
 	switch input.FieldID {
@@ -247,6 +250,29 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 	cfg := config.FromContext(ctx)
 	types := []graphql2.DestinationTypeInfo{
 		{
+			Type:            destAlert,
+			Name:            "Alert",
+			Enabled:         true,
+			IsDynamicAction: true,
+			DynamicParams: []graphql2.DynamicParamConfig{{
+				ParamID: "summary",
+				Label:   "Summary",
+				Hint:    "Short summary of the alert (used for things like SMS).",
+			}, {
+				ParamID: "details",
+				Label:   "Details",
+				Hint:    "Full body (markdown) text of the alert.",
+			}, {
+				ParamID: "dedup",
+				Label:   "Dedup",
+				Hint:    "Stable identifier for de-duplication and closing existing alerts.",
+			}, {
+				ParamID: "close",
+				Label:   "Close",
+				Hint:    "If true, close an existing alert.",
+			}},
+		},
+		{
 			Type:                  destTwilioSMS,
 			Name:                  "Text Message (SMS)",
 			Enabled:               cfg.Twilio.Enable,
@@ -292,6 +318,16 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 				PlaceholderText:    "foobar@example.com",
 				InputType:          "email",
 				SupportsValidation: true,
+			}},
+			IsDynamicAction: true,
+			DynamicParams: []graphql2.DynamicParamConfig{{
+				ParamID: "subject",
+				Label:   "Subject",
+				Hint:    "Subject of the email message.",
+			}, {
+				ParamID: "body",
+				Label:   "Body",
+				Hint:    "Body of the email message.",
 			}},
 		},
 		{
@@ -342,6 +378,12 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 				Label:          "Slack Channel",
 				InputType:      "text",
 				SupportsSearch: true,
+			}},
+			IsDynamicAction: true,
+			DynamicParams: []graphql2.DynamicParamConfig{{
+				ParamID: "message",
+				Label:   "Message",
+				Hint:    "Message to send to the Slack channel.",
 			}},
 		},
 		{
