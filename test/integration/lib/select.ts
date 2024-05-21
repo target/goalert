@@ -29,16 +29,12 @@ export async function pageAction(
       await expect(
         await page.locator('button[data-cy="page-fab"]'),
       ).toHaveAttribute('aria-expanded', 'true')
-    }
-
-    await page.getByLabel(mobileAction).locator('button').click()
-
-    if (hasPopup) {
+      await page.getByLabel(mobileAction).locator('button').click()
       await expect(
         await page.locator('button[data-cy="page-fab"]'),
       ).toHaveAttribute('aria-expanded', 'false')
+      return
     }
-    return
   }
 
   await page.getByRole('button', { name: wideAction }).click()
