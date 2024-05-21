@@ -2,10 +2,13 @@ import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import UserContactMethodCreateDialogDest from './UserContactMethodCreateDialogDest'
 import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
-import { handleDefaultConfig, defaultConfig } from '../storybook/graphql'
+import { defaultConfig, mockOp } from '../storybook/graphql'
 import { useArgs } from '@storybook/preview-api'
-import { HttpResponse, graphql } from 'msw'
 import { DestFieldValueError, InputFieldError } from '../util/errtypes'
+import {
+  CreateUserContactMethodInput,
+  DestinationFieldValidateInput,
+} from '../../schema'
 
 const meta = {
   title: 'users/UserContactMethodCreateDialogDest',
@@ -21,14 +24,13 @@ const meta = {
         iframeHeight: 500,
       },
     },
-    msw: {
-      handlers: [
-        handleDefaultConfig,
-        graphql.mutation(
+    fetchMock: {
+      mocks: [
+        mockOp<CreateUserContactMethodInput>(
           'CreateUserContactMethodInput',
-          ({ variables: vars }) => {
+          (vars) => {
             if (vars.input.name === 'error-test') {
-              return HttpResponse.json({
+              return {
                 data: null,
                 errors: [
                   {
@@ -57,26 +59,26 @@ const meta = {
                     message: 'This is a generic error',
                   },
                 ],
-              })
+              }
             }
-            return HttpResponse.json({
+            return {
               data: {
                 createUserContactMethod: {
                   id: '00000000-0000-0000-0000-000000000000',
                 },
               },
-            })
+            }
           },
         ),
-        graphql.query('ValidateDestination', ({ variables: vars }) => {
-          return HttpResponse.json({
+        mockOp<DestinationFieldValidateInput>('ValidateDestination', (vars) => {
+          return {
             data: {
               destinationFieldValidate:
                 vars.input.value === '@slack' ||
                 vars.input.value === '+12225558989' ||
                 vars.input.value === 'valid@email.com',
             },
-          })
+          }
         }),
       ],
     },

@@ -2,19 +2,17 @@ import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import UserNotificationRuleListDest from './UserNotificationRuleListDest'
 import { expect, within, userEvent, screen } from '@storybook/test'
-import { handleDefaultConfig } from '../storybook/graphql'
-import { HttpResponse, graphql } from 'msw'
+import { mockOp } from '../storybook/graphql'
 
 const meta = {
   title: 'users/UserNotificationRuleListDest',
   component: UserNotificationRuleListDest,
   tags: ['autodocs'],
   parameters: {
-    msw: {
-      handlers: [
-        handleDefaultConfig,
-        graphql.query('nrList', ({ variables: vars }) => {
-          return HttpResponse.json({
+    fetchMock: {
+      mocks: [
+        mockOp<unknown, { id: string }>('nrList', (vars) => {
+          return {
             data:
               vars.id === '00000000-0000-0000-0000-000000000000'
                 ? {
@@ -89,7 +87,7 @@ const meta = {
                       ],
                     },
                   },
-          })
+          }
         }),
       ],
     },

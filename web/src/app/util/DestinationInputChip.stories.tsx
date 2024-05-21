@@ -2,8 +2,8 @@ import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import DestinationInputChip from './DestinationInputChip'
 import { expect, userEvent, within } from '@storybook/test'
-import { handleDefaultConfig } from '../storybook/graphql'
-import { HttpResponse, graphql } from 'msw'
+import { mockOp } from '../storybook/graphql'
+import { DestinationInput } from '../../schema'
 
 const meta = {
   title: 'util/DestinationInputChip',
@@ -13,11 +13,10 @@ const meta = {
   },
   tags: ['autodocs'],
   parameters: {
-    msw: {
-      handlers: [
-        handleDefaultConfig,
-        graphql.query('DestDisplayInfo', () => {
-          return HttpResponse.json({
+    fetchMock: {
+      mocks: [
+        mockOp<DestinationInput>('DestDisplayInfo', () => {
+          return {
             data: {
               destinationDisplayInfo: {
                 text: 'Corporate array Communications Rotation',
@@ -26,7 +25,7 @@ const meta = {
                 linkURL: 'test.com',
               },
             },
-          })
+          }
         }),
       ],
     },

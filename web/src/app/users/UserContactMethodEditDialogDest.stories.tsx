@@ -2,11 +2,14 @@ import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import UserContactMethodEditDialogDest from './UserContactMethodEditDialogDest'
 import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
-import { handleDefaultConfig } from '../storybook/graphql'
 import { useArgs } from '@storybook/preview-api'
-import { HttpResponse, graphql } from 'msw'
 import { DestFieldValueError, InputFieldError } from '../util/errtypes'
-import { Destination } from '../../schema'
+import {
+  Destination,
+  DestinationFieldValidateInput,
+  UpdateUserContactMethodInput,
+} from '../../schema'
+import { mockOp } from '../storybook/graphql'
 
 const meta = {
   title: 'users/UserContactMethodEditDialogDest',
@@ -22,11 +25,10 @@ const meta = {
         iframeHeight: 500,
       },
     },
-    msw: {
-      handlers: [
-        handleDefaultConfig,
-        graphql.query('userCm', ({ variables: vars }) => {
-          return HttpResponse.json({
+    fetchMock: {
+      mocks: [
+        mockOp<unknown, { id: string }>('userCm', (vars) => {
+          return {
             data: {
               userContactMethod:
                 vars.id === '00000000-0000-0000-0000-000000000000'
@@ -84,58 +86,61 @@ const meta = {
                       pending: false,
                     },
             },
-          })
-        }),
-        graphql.mutation('UpdateUserContactMethod', ({ variables: vars }) => {
-          if (vars.input.name === 'error-test') {
-            return HttpResponse.json({
-              data: null,
-              errors: [
-                {
-                  message: 'This is a dest field-error',
-                  path: ['updateUserContactMethod', 'input', 'dest'],
-                  extensions: {
-                    code: 'INVALID_DEST_FIELD_VALUE',
-                    fieldID: 'phone-number',
-                  },
-                } satisfies DestFieldValueError,
-                {
-                  message: 'This indicates an invalid destination type',
-                  path: ['updateUserContactMethod', 'input', 'dest', 'type'],
-                  extensions: {
-                    code: 'INVALID_INPUT_VALUE',
-                  },
-                } satisfies InputFieldError,
-                {
-                  message: 'Name error',
-                  path: ['updateUserContactMethod', 'input', 'name'],
-                  extensions: {
-                    code: 'INVALID_INPUT_VALUE',
-                  },
-                } satisfies InputFieldError,
-                {
-                  message: 'This is a generic error',
-                },
-              ],
-            })
           }
-          return HttpResponse.json({
-            data: {
-              updateUserContactMethod: {
-                id: '00000000-0000-0000-0000-000000000000',
-              },
-            },
-          })
         }),
-        graphql.query('ValidateDestination', ({ variables: vars }) => {
-          return HttpResponse.json({
+        mockOp<UpdateUserContactMethodInput>(
+          'UpdateUserContactMethod',
+          (vars) => {
+            if (vars.input.name === 'error-test') {
+              return {
+                data: null,
+                errors: [
+                  {
+                    message: 'This is a dest field-error',
+                    path: ['updateUserContactMethod', 'input', 'dest'],
+                    extensions: {
+                      code: 'INVALID_DEST_FIELD_VALUE',
+                      fieldID: 'phone-number',
+                    },
+                  } satisfies DestFieldValueError,
+                  {
+                    message: 'This indicates an invalid destination type',
+                    path: ['updateUserContactMethod', 'input', 'dest', 'type'],
+                    extensions: {
+                      code: 'INVALID_INPUT_VALUE',
+                    },
+                  } satisfies InputFieldError,
+                  {
+                    message: 'Name error',
+                    path: ['updateUserContactMethod', 'input', 'name'],
+                    extensions: {
+                      code: 'INVALID_INPUT_VALUE',
+                    },
+                  } satisfies InputFieldError,
+                  {
+                    message: 'This is a generic error',
+                  },
+                ],
+              }
+            }
+            return {
+              data: {
+                updateUserContactMethod: {
+                  id: '00000000-0000-0000-0000-000000000000',
+                },
+              },
+            }
+          },
+        ),
+        mockOp<DestinationFieldValidateInput>('ValidateDestination', (vars) => {
+          return {
             data: {
               destinationFieldValidate:
                 vars.input.value === '@slack' ||
                 vars.input.value === '+12225558989' ||
                 vars.input.value === 'valid@email.com',
             },
-          })
+          }
         }),
       ],
     },

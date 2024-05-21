@@ -2,24 +2,23 @@ import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import UserContactMethodFormDest, { Value } from './UserContactMethodFormDest'
 import { expect, within, userEvent, waitFor } from '@storybook/test'
-import { handleDefaultConfig } from '../storybook/graphql'
+import { mockOp } from '../storybook/graphql'
 import { useArgs } from '@storybook/preview-api'
-import { HttpResponse, graphql } from 'msw'
+import { DestinationFieldValidateInput } from '../../schema'
 
 const meta = {
   title: 'users/UserContactMethodFormDest',
   component: UserContactMethodFormDest,
   tags: ['autodocs'],
   parameters: {
-    msw: {
-      handlers: [
-        handleDefaultConfig,
-        graphql.query('ValidateDestination', ({ variables: vars }) => {
-          return HttpResponse.json({
+    fetchMock: {
+      mocks: [
+        mockOp<DestinationFieldValidateInput>('ValidateDestination', (vars) => {
+          return {
             data: {
               destinationFieldValidate: vars.input.value === '+15555555555',
             },
-          })
+          }
         }),
       ],
     },
