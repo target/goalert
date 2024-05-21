@@ -1,12 +1,14 @@
-import React, { ReactElement, useState } from 'react'
+import React, { useState } from 'react'
 import { FormContainer, FormField } from '../../forms'
 import { Button, Grid, TextField, Typography } from '@mui/material'
-import { ActionInput, FieldValueInput, KeyRuleInput } from '../../../schema'
-import { renderMenuItem } from '../../selection/DisableableMenuItem'
-import { useEPTargetTypes } from '../../util/RequireConfig'
-import DestinationField from '../../selection/DestinationField'
+import { ActionInput, KeyRuleInput } from '../../../schema'
+import { useDynamicActionTypes } from '../../util/RequireConfig'
 import DestinationInputChip from '../../util/DestinationInputChip'
 import { gql, useClient } from 'urql'
+import DynamicActionField, {
+  Value as ActionValue,
+  valueToActionInput,
+} from '../../selection/DynamicActionField'
 
 interface UniversalKeyRuleFormProps {
   value: KeyRuleInput
@@ -27,9 +29,14 @@ const query = gql`
 export default function UniversalKeyRuleForm(
   props: UniversalKeyRuleFormProps,
 ): JSX.Element {
-  const types = useEPTargetTypes()
-  const [destType, setDestType] = useState(types[0].type)
-  const [values, setValues] = useState<FieldValueInput[]>([])
+  const types = useDynamicActionTypes()
+
+  const [currentAction, setCurrentAction] = useState<ActionValue>({
+    destType: types[0].type,
+    staticParams: new Map(),
+    dynamicParams: new Map(),
+  })
+
   const validationClient = useClient()
 
   function handleDelete(a: ActionInput): void {
@@ -38,97 +45,6 @@ export default function UniversalKeyRuleForm(
       ...props.value,
       actions: props.value.actions.filter((b) => a !== b),
     })
-  }
-
-  function renderAction(): ReactElement {
-    return (
-      <React.Fragment>
-        <Grid item xs={12}>
-          <Typography variant='h6' color='textPrimary'>
-            Actions
-          </Typography>
-        </Grid>
-        <Grid item xs={12}>
-          {props.value.actions.map((a, idx) => (
-            <DestinationInputChip
-              key={idx}
-              value={a.dest}
-              onDelete={() => handleDelete(a)}
-            />
-          ))}
-          {props.value.actions.length === 0 && (
-            <Typography variant='body2' color='textSecondary'>
-              No actions
-            </Typography>
-          )}
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            select
-            fullWidth
-            value={destType}
-            label='Destination Type'
-            name='dest.type'
-            onChange={(e) => setDestType(e.target.value)}
-          >
-            {types.map((t) =>
-              renderMenuItem({
-                label: t.name,
-                value: t.type,
-                disabled: !t.enabled,
-                disabledMessage: t.enabled ? '' : 'Disabled by administrator.',
-              }),
-            )}
-          </TextField>
-        </Grid>
-        <Grid item xs={12}>
-          <DestinationField
-            destType={destType}
-            value={values}
-            onChange={(newValue: FieldValueInput[]) => {
-              setValues(newValue)
-            }}
-          />
-        </Grid>
-
-        {/* TODO: add dynamic action params */}
-
-        <Grid container item xs={12} justifyContent='flex-end'>
-          <Button
-            variant='contained'
-            color='secondary'
-            onClick={() => {
-              validationClient
-                .query(query, {
-                  input: {
-                    type: destType,
-                    values,
-                  },
-                })
-                .toPromise()
-                .then((res) => {
-                  if (res.error) {
-                    return
-                  }
-                  setValues([])
-                  props.onChange({
-                    ...props.value,
-                    actions: props.value.actions.concat({
-                      dest: {
-                        type: destType,
-                        values,
-                      },
-                      params: [],
-                    }),
-                  })
-                })
-            }}
-          >
-            Add Destination
-          </Button>
-        </Grid>
-      </React.Fragment>
-    )
   }
 
   return (
@@ -162,7 +78,60 @@ export default function UniversalKeyRuleForm(
             rows={3}
           />
         </Grid>
-        {renderAction()}
+        <Grid item xs={12}>
+          <Typography variant='h6' color='textPrimary'>
+            Actions
+          </Typography>
+        </Grid>
+        <Grid item xs={12}>
+          {props.value.actions.map((a, idx) => (
+            <DestinationInputChip
+              key={idx}
+              value={a.dest}
+              onDelete={() => handleDelete(a)}
+            />
+          ))}
+          {props.value.actions.length === 0 && (
+            <Typography variant='body2' color='textSecondary'>
+              No actions
+            </Typography>
+          )}
+        </Grid>
+        <DynamicActionField value={currentAction} onChange={setCurrentAction} />
+
+        <Grid container item xs={12} justifyContent='flex-end'>
+          <Button
+            variant='contained'
+            color='secondary'
+            onClick={() => {
+              const act = valueToActionInput(currentAction)
+              validationClient
+                .query(query, {
+                  input: act.dest,
+                })
+                .toPromise()
+                .then((res) => {
+                  if (res.error) {
+                    return
+                  }
+
+                  // clear the current action
+                  setCurrentAction({
+                    destType: currentAction.destType,
+                    staticParams: new Map(),
+                    dynamicParams: new Map(),
+                  })
+
+                  props.onChange({
+                    ...props.value,
+                    actions: props.value.actions.concat(act),
+                  })
+                })
+            }}
+          >
+            Add Action
+          </Button>
+        </Grid>
       </Grid>
     </FormContainer>
   )
