@@ -12,4 +12,5 @@ export async function createService(
   await page.fill('textarea[name=description]', description)
 
   await page.click('[role=dialog] button[type=submit]')
+  await page.waitForURL(/services\/[0-9a-f]+/)
 }
