@@ -3,7 +3,7 @@ import FormDialog from '../../dialogs/FormDialog'
 import UniversalKeyRuleForm from './UniversalKeyRuleForm'
 import { gql, useMutation } from 'urql'
 import { nonFieldErrors } from '../../util/errutil'
-import { KeyRule } from '../../../schema'
+import { KeyRuleInput } from '../../../schema'
 
 interface UniversalKeyRuleCreateDialogProps {
   keyID: string
@@ -19,7 +19,7 @@ const mutation = gql`
 export default function UniversalKeyRuleCreateDialogProps(
   props: UniversalKeyRuleCreateDialogProps,
 ): JSX.Element {
-  const [value, setValue] = useState<KeyRule>({
+  const [value, setValue] = useState<KeyRuleInput>({
     id: '',
     name: '',
     description: '',

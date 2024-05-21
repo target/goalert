@@ -3,7 +3,7 @@ import { gql, useMutation, useQuery } from 'urql'
 import FormDialog from '../../dialogs/FormDialog'
 import UniversalKeyRuleForm from './UniversalKeyRuleForm'
 import { nonFieldErrors } from '../../util/errutil'
-import { IntegrationKey, KeyRule } from '../../../schema'
+import { IntegrationKey, KeyRule, KeyRuleInput } from '../../../schema'
 
 interface UniversalKeyRuleEditDialogProps {
   keyID: string
@@ -22,6 +22,17 @@ const query = gql`
           description
           conditionExpr
           actions {
+            dest {
+              displayInfo {
+                ... on DestinationDisplayInfo {
+                  text
+                  iconURL
+                  iconAltText
+                  linkURL
+                }
+              }
+              type
+            }
             params {
               paramID
             }
@@ -53,7 +64,7 @@ export default function UniversalKeyRuleCreateDialogProps(
   })
 
   // TODO: fetch single rule via query and set it here
-  const [value, setValue] = useState<KeyRule>(
+  const [value, setValue] = useState<KeyRuleInput>(
     q.data?.integrationKey.config.oneRule ?? {
       id: '',
       name: '',
