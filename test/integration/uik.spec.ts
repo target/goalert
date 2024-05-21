@@ -39,13 +39,10 @@ test('Integration Keys', async ({ page, playwright, isMobile }) => {
     ).toBeVisible()
   }
   await expect(bread.getByRole('link', { name: intKeyName })).toBeVisible()
-
-  // validate token functionality
   await expect(page.locator('[data-cy=details]')).toContainText(
     'Auth Token: N/A',
   )
 
-  // create first token
   await page.getByRole('button', { name: 'Generate Auth Token' }).click()
   await page.getByRole('button', { name: 'Generate' }).click()
 
@@ -65,18 +62,11 @@ test('Integration Keys', async ({ page, playwright, isMobile }) => {
 
   const req = await playwright.request.newContext({
     baseURL: baseURLFromFlags(['univ-keys']),
-    extraHTTPHeaders: {
-      'Content-Type': 'application/json',
-      Cookie: '', // ensure no cookies are sent
-    },
+    extraHTTPHeaders: { 'Content-Type': 'application/json', Cookie: '' },
   })
   async function testKey(key: string, status: number): Promise<void> {
-    const auth = { Authorization: '' }
-    if (key) auth.Authorization = 'Bearer ' + key
-    const resp = await req.post('/api/v2/uik', {
-      headers: auth,
-      data: {},
-    })
+    const auth = { Authorization: key ? 'Bearer ' + key : '' }
+    const resp = await req.post('/api/v2/uik', { headers: auth, data: {} })
     await expect(resp.status()).toBe(status)
   }
 
@@ -85,7 +75,6 @@ test('Integration Keys', async ({ page, playwright, isMobile }) => {
 
   await page.getByRole('button', { name: 'Generate Secondary Token' }).click()
   await page.getByRole('button', { name: 'Generate' }).click()
-
   const firstSecondaryToken = await page
     .getByRole('button', { name: 'Copy' })
     .textContent()
