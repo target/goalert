@@ -2,8 +2,8 @@ import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import PolicyStepFormDest, { FormValue } from './PolicyStepFormDest'
 import { expect, userEvent, waitFor, within, fn } from '@storybook/test'
-import { handleDefaultConfig } from '../storybook/graphql'
-import { HttpResponse, graphql } from 'msw'
+import { DestinationFieldValidateInput, DestinationInput } from '../../schema'
+import { mockOp } from '../storybook/graphql'
 import { useArgs } from '@storybook/preview-api'
 import { DestFieldValueError } from '../util/errtypes'
 
@@ -27,21 +27,20 @@ const meta = {
   },
   tags: ['autodocs'],
   parameters: {
-    msw: {
-      handlers: [
-        handleDefaultConfig,
-        graphql.query('ValidateDestination', ({ variables: vars }) => {
-          return HttpResponse.json({
+    fetchMock: {
+      mocks: [
+        mockOp<DestinationFieldValidateInput>('ValidateDestination', (vars) => {
+          return {
             data: {
               destinationFieldValidate: vars.input.value === VALID_PHONE,
             },
-          })
+          }
         }),
-        graphql.query('DestDisplayInfo', ({ variables: vars }) => {
+        mockOp<DestinationInput>('DestDisplayInfo', (vars) => {
           switch (vars.input.values[0].value) {
             case VALID_PHONE:
             case VALID_PHONE2:
-              return HttpResponse.json({
+              return {
                 data: {
                   destinationDisplayInfo: {
                     text:
@@ -52,9 +51,9 @@ const meta = {
                     iconAltText: 'Voice Call',
                   },
                 },
-              })
+              }
             default:
-              return HttpResponse.json({
+              return {
                 errors: [
                   {
                     message: 'generic error',
@@ -68,7 +67,7 @@ const meta = {
                     },
                   } satisfies DestFieldValueError,
                 ],
-              })
+              }
           }
         }),
       ],

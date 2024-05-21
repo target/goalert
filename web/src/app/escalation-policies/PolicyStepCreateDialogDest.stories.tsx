@@ -2,9 +2,13 @@ import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import PolicyStepCreateDialogDest from './PolicyStepCreateDialogDest'
 import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
-import { handleDefaultConfig } from '../storybook/graphql'
-import { HttpResponse, graphql } from 'msw'
+import { mockOp } from '../storybook/graphql'
 import { DestFieldValueError } from '../util/errtypes'
+import {
+  CreateEscalationPolicyStepInput,
+  DestinationFieldValidateInput,
+  DestinationInput,
+} from '../../schema'
 
 const meta = {
   title: 'Escalation Policies/Steps/Create Dialog',
@@ -23,19 +27,18 @@ const meta = {
         iframeHeight: 600,
       },
     },
-    msw: {
-      handlers: [
-        handleDefaultConfig,
-        graphql.query('ValidateDestination', ({ variables: vars }) => {
-          return HttpResponse.json({
+    fetchMock: {
+      mocks: [
+        mockOp<DestinationFieldValidateInput>('ValidateDestination', (vars) => {
+          return {
             data: {
               destinationFieldValidate: vars.input.value.length === 12,
             },
-          })
+          }
         }),
-        graphql.query('DestDisplayInfo', ({ variables: vars }) => {
+        mockOp<DestinationInput>('DestDisplayInfo', (vars) => {
           if (vars.input.values[0].value.length !== 12) {
-            return HttpResponse.json({
+            return {
               errors: [
                 { message: 'generic error' },
                 {
@@ -47,10 +50,10 @@ const meta = {
                   },
                 } satisfies DestFieldValueError,
               ],
-            })
+            }
           }
 
-          return HttpResponse.json({
+          return {
             data: {
               destinationDisplayInfo: {
                 text: vars.input.values[0].value,
@@ -58,23 +61,23 @@ const meta = {
                 iconAltText: 'Voice Call',
               },
             },
-          })
+          }
         }),
 
-        graphql.mutation(
+        mockOp<CreateEscalationPolicyStepInput>(
           'createEscalationPolicyStep',
-          ({ variables: vars }) => {
+          (vars) => {
             if (vars.input.delayMinutes === 999) {
-              return HttpResponse.json({
+              return {
                 errors: [{ message: 'generic dialog error' }],
-              })
+              }
             }
 
-            return HttpResponse.json({
+            return {
               data: {
                 createEscalationPolicyStep: { id: '1' },
               },
-            })
+            }
           },
         ),
       ],

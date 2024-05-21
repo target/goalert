@@ -63,9 +63,9 @@ type GQLError = { errors: Err[] }
 type OpHandler<T> = (vars: T) => GQLSuccess | GQLError
 
 /* mockOp is a helper function that creates a mock for a GraphQL operation that takes an `input` variable (or none) */
-export function mockOp<VarType = undefined>(
+export function mockOp<InputType = undefined, VarType = { input: InputType }>(
   operationName: string,
-  handler: object | OpHandler<{ input: VarType }>,
+  handler: object | OpHandler<VarType>,
 ): object {
   return {
     matcher: {

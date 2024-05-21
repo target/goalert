@@ -1,11 +1,10 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import TelTextField from './TelTextField'
-import { HttpResponse, graphql } from 'msw'
 import { expect, within } from '@storybook/test'
 import { useArgs } from '@storybook/preview-api'
 
-import { handleDefaultConfig } from '../storybook/graphql'
+import { mockOp } from '../storybook/graphql'
 
 const meta = {
   title: 'util/TelTextField',
@@ -29,18 +28,17 @@ const meta = {
   },
   tags: ['autodocs'],
   parameters: {
-    msw: {
-      handlers: [
-        handleDefaultConfig,
-        graphql.query('PhoneNumberValidate', ({ variables: vars }) => {
-          return HttpResponse.json({
+    fetchMock: {
+      mocks: [
+        mockOp<unknown, { number: string }>('PhoneNumberValidate', (vars) => {
+          return {
             data: {
               phoneNumberInfo: {
                 id: vars.number,
                 valid: vars.number.length === 12,
               },
             },
-          })
+          }
         }),
       ],
     },
