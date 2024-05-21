@@ -107,8 +107,6 @@
     "luxon": "3.4.4",
     "mdast-util-find-and-replace": "3.0.1",
     "mdi-material-ui": "7.8.0",
-    "msw": "2.3.0",
-    "msw-storybook-addon": "2.0.2",
     "prettier": "3.2.5",
     "prettier-plugin-go-template": "0.0.15",
     "prop-types": "15.8.1",
@@ -133,6 +131,7 @@
     "remark-gfm": "4.0.0",
     "semver": "7.6.0",
     "storybook": "8.0.9",
+    "storybook-addon-fetch-mock": "2.0.0",
     "storybook-addon-mock": "4.3.0",
     "stylelint": "16.2.1",
     "stylelint-config-standard": "36.0.0",
@@ -150,8 +149,5 @@
     "prettier-plugin-go-template@0.0.15": {
       "unplugged": true
     }
-  },
-  "msw": {
-    "workerDirectory": ".storybook/static"
   }
 }

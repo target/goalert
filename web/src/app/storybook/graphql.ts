@@ -1,4 +1,4 @@
-import { GraphQLHandler, HttpResponse, graphql } from 'msw'
+// import { GraphQLHandler, HttpResponse, graphql } from 'msw'
 import {
   ConfigID,
   ConfigType,
@@ -54,25 +54,54 @@ export const defaultConfig: RequireConfigDoc = {
   ],
   destinationTypes: destTypes,
 }
+interface Err {
+  message: string
+}
+type GQLSuccess = { data: object }
+type GQLError = { errors: Err[] }
 
-export function handleExpFlags(...flags: string[]): GraphQLHandler {
-  return graphql.query('useExpFlag', () => {
-    return HttpResponse.json({
-      data: {
-        experimentalFlags: flags,
+type OpHandler<T> = (vars: T) => GQLSuccess | GQLError
+
+/* mockOp is a helper function that creates a mock for a GraphQL operation that takes an `input` variable (or none) */
+export function mockOp<VarType = undefined>(
+  operationName: string,
+  handler: object | OpHandler<{ input: VarType }>,
+): object {
+  return {
+    matcher: {
+      url: 'path:/api/graphql',
+      name: `mockOp(${operationName})`,
+      body: {
+        operationName,
       },
-    })
+      matchPartialBody: true,
+    },
+    response: (matcherName: string, req: { body: string }) => {
+      const body = JSON.parse(req.body)
+      const variables = JSON.parse(req.body).variables || {}
+      const result =
+        typeof handler === 'function' ? handler(variables) : handler
+
+      console.log(`GraphQL ${operationName}`, {
+        body,
+        result,
+      })
+
+      return result
+    },
+  }
+}
+
+export function mockExpFlags(...flags: string[]): object {
+  return mockOp('useExpFlag', {
+    data: {
+      experimentalFlags: flags,
+    },
   })
 }
 
-export function handleConfig(
-  doc: RequireConfigDoc = defaultConfig,
-): GraphQLHandler {
-  return graphql.query('RequireConfig', () => {
-    return HttpResponse.json({
-      data: doc,
-    })
+export function mockConfig(config: object): object {
+  return mockOp('RequireConfig', {
+    data: config,
   })
 }
-
-export const handleDefaultConfig = handleConfig(defaultConfig)
