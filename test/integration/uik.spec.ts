@@ -15,12 +15,11 @@ test.use({
   baseURL: baseURLFromFlags(['univ-keys']),
 })
 
-test('Integration Keys', async ({ page, playwright }) => {
+test('Integration Keys', async ({ page, playwright, isMobile }) => {
   const intKeyName = 'uik-key ' + c.name()
   const serviceName = 'uik-service ' + c.name()
   const serviceDescription = c.sentence()
-
-  await createService(page, serviceName, serviceDescription)
+  const serviceURL = await createService(page, serviceName, serviceDescription)
 
   await page.getByRole('link', { name: 'Integration Keys' }).click()
 
@@ -32,10 +31,13 @@ test('Integration Keys', async ({ page, playwright }) => {
 
   const bread = page.locator('header nav')
   await expect(bread.getByRole('link', { name: 'Services' })).toBeVisible()
-  await expect(bread.getByRole('link', { name: serviceName })).toBeVisible()
-  await expect(
-    bread.getByRole('link', { name: 'Integration Keys' }),
-  ).toBeVisible()
+  if (!isMobile) {
+    // mobile collapses these
+    await expect(bread.getByRole('link', { name: serviceName })).toBeVisible()
+    await expect(
+      bread.getByRole('link', { name: 'Integration Keys' }),
+    ).toBeVisible()
+  }
   await expect(bread.getByRole('link', { name: intKeyName })).toBeVisible()
 
   // validate token functionality
@@ -131,4 +133,9 @@ test('Integration Keys', async ({ page, playwright }) => {
 
   await testKey(origPrimaryToken as string, 401)
   await testKey(secondSecondaryToken as string, 204)
+
+  await page.goto(serviceURL)
+  await page.getByRole('button', { name: 'Delete' }).click()
+  await page.getByRole('button', { name: 'Confirm' }).click()
+  await page.waitForURL(/services$/)
 })

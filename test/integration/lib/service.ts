@@ -4,7 +4,7 @@ export async function createService(
   page: Page,
   name: string,
   description: string,
-): Promise<void> {
+): Promise<string> {
   await page.goto('./services')
   await page.getByRole('button', { name: 'Create Service' }).click()
 
@@ -13,4 +13,6 @@ export async function createService(
 
   await page.click('[role=dialog] button[type=submit]')
   await page.waitForURL(/services\/[0-9a-f]+/)
+
+  return page.url()
 }
