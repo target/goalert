@@ -2,10 +2,13 @@ import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import DestinationSearchSelect from './DestinationSearchSelect'
 import { expect, userEvent, within } from '@storybook/test'
-import { handleDefaultConfig } from '../storybook/graphql'
-import { HttpResponse, graphql } from 'msw'
+import { mockOp } from '../storybook/graphql'
 import { useArgs } from '@storybook/preview-api'
-import { FieldSearchConnection } from '../../schema'
+import {
+  DestinationFieldSearchInput,
+  FieldSearchConnection,
+  FieldValueInput,
+} from '../../schema'
 
 const meta = {
   title: 'util/DestinationSearchSelect',
@@ -27,65 +30,67 @@ const meta = {
   },
   tags: ['autodocs'],
   parameters: {
-    msw: {
-      handlers: [
-        handleDefaultConfig,
-        graphql.query('DestinationFieldSearch', ({ variables: vars }) => {
-          if (vars.input.search === 'query-error') {
-            return HttpResponse.json({
-              errors: [{ message: 'some_backend_error_message' }],
-            })
-          }
-          if (vars.input.search === 'empty') {
-            return HttpResponse.json({
+    fetchMock: {
+      mocks: [
+        mockOp<DestinationFieldSearchInput>(
+          'DestinationFieldSearch',
+          (vars) => {
+            if (vars.input.search === 'query-error') {
+              return {
+                errors: [{ message: 'some_backend_error_message' }],
+              }
+            }
+            if (vars.input.search === 'empty') {
+              return {
+                data: {
+                  destinationFieldSearch: {
+                    nodes: [],
+                    __typename: 'FieldSearchConnection',
+                  },
+                },
+              }
+            }
+
+            return {
               data: {
                 destinationFieldSearch: {
-                  nodes: [],
-                  __typename: 'FieldSearchConnection',
+                  nodes: [
+                    {
+                      fieldID: 'field-id',
+                      value: 'value-id-1',
+                      label: '#value-one',
+                      isFavorite: false,
+                    },
+                    {
+                      fieldID: 'field-id',
+                      value: 'value-id-2',
+                      label: '#value-two',
+                      isFavorite: false,
+                    },
+                  ],
                 },
               },
-            })
-          }
-
-          return HttpResponse.json({
-            data: {
-              destinationFieldSearch: {
-                nodes: [
-                  {
-                    fieldID: 'field-id',
-                    value: 'value-id-1',
-                    label: '#value-one',
-                    isFavorite: false,
-                  },
-                  {
-                    fieldID: 'field-id',
-                    value: 'value-id-2',
-                    label: '#value-two',
-                    isFavorite: false,
-                  },
-                ],
-              },
-            },
-          } satisfies {
-            data: { destinationFieldSearch: Partial<FieldSearchConnection> }
-          })
-        }),
-        graphql.query('DestinationFieldValueName', ({ variables: vars }) => {
+            } satisfies {
+              data: { destinationFieldSearch: Partial<FieldSearchConnection> }
+            }
+          },
+        ),
+        mockOp<FieldValueInput>('DestinationFieldValueName', (vars) => {
           if (vars.input.value === 'invalid-value') {
-            return HttpResponse.json({
+            return {
               errors: [{ message: 'some_backend_error_message' }],
-            })
+            }
           }
 
           const names: Record<string, string> = {
             'value-id-1': '#value-one',
             'value-id-2': '#value-two',
           }
-          return HttpResponse.json({
+          return {
             data: {
               destinationFieldValueName: names[vars.input.value] || '',
             },
-          })
+          }
         }),
       ],
     },

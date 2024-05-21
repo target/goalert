@@ -1,24 +1,22 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import ScheduleOnCallNotificationsListDest from './ScheduleOnCallNotificationsListDest'
-import { handleDefaultConfig } from '../../storybook/graphql'
-import { HttpResponse, graphql } from 'msw'
+import { mockOp } from '../../storybook/graphql'
 
 const emptyScheduleID = '00000000-0000-0000-0000-000000000000'
 const errorScheduleID = '11111111-1111-1111-1111-111111111111'
 const manyNotificationsScheduleID = '22222222-2222-2222-2222-222222222222'
-
+type SchedVar = { scheduleID: string }
 const meta = {
   title: 'schedules/on-call-notifications/ListDest',
   component: ScheduleOnCallNotificationsListDest,
   argTypes: {},
   parameters: {
-    msw: {
-      handlers: [
-        handleDefaultConfig,
-        graphql.query('ScheduleNotifications', ({ variables }) => {
-          switch (variables.scheduleID) {
+    fetchMock: {
+      mocks: [
+        mockOp<unknown, SchedVar>('ScheduleNotifications', (vars) => {
+          switch (vars.scheduleID) {
             case emptyScheduleID:
-              return HttpResponse.json({
+              return {
                 data: {
                   schedule: {
                     id: emptyScheduleID,
@@ -26,15 +24,15 @@ const meta = {
                     onCallNotificationRules: [],
                   },
                 },
-              })
+              }
             case errorScheduleID:
-              return HttpResponse.json({
+              return {
                 errors: [
                   { message: 'This is an example of a returned GraphQL error' },
                 ],
-              })
+              }
             case manyNotificationsScheduleID:
-              return HttpResponse.json({
+              return {
                 data: {
                   schedule: {
                     id: manyNotificationsScheduleID,
@@ -83,7 +81,7 @@ const meta = {
                     ],
                   },
                 },
-              })
+              }
 
             default:
               throw new Error('Unknown scheduleID')

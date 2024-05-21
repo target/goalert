@@ -2,9 +2,9 @@ import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
 import ScheduleOnCallNotificationsCreateDialogDest from './ScheduleOnCallNotificationsCreateDialogDest'
-import { HttpResponse, graphql } from 'msw'
-import { handleDefaultConfig } from '../../storybook/graphql'
+import { mockOp } from '../../storybook/graphql'
 import { BaseError, DestFieldValueError } from '../../util/errtypes'
+import { SetScheduleOnCallNotificationRulesInput } from '../../../schema'
 
 const meta = {
   title: 'schedules/on-call-notifications/CreateDialogDest',
@@ -21,26 +21,25 @@ const meta = {
         iframeHeight: 500,
       },
     },
-    msw: {
-      handlers: [
-        handleDefaultConfig,
-        graphql.query('SchedZone', ({ variables }) => {
-          return HttpResponse.json({
+    fetchMock: {
+      mocks: [
+        mockOp<unknown, { id: string }>('SchedZone', (variables) => {
+          return {
             data: {
               schedule: {
                 id: variables.id,
                 timeZone: 'America/Chicago',
               },
             },
-          })
+          }
         }),
-        graphql.query('ValidateDestination', () =>
-          HttpResponse.json({ data: { destinationFieldValidate: true } }),
-        ),
-        graphql.mutation('SetRules', ({ variables }) => {
-          switch (variables.input.rules[0].dest.values[0].value) {
+        mockOp('ValidateDestination', () => ({
+          data: { destinationFieldValidate: true },
+        })),
+        mockOp<SetScheduleOnCallNotificationRulesInput>('SetRules', (vars) => {
+          switch (vars.input.rules[0].dest?.values[0].value) {
             case '+123':
-              return HttpResponse.json({
+              return {
                 errors: [
                   {
                     message: 'Generic Error',
@@ -60,26 +59,26 @@ const meta = {
                     },
                   } satisfies DestFieldValueError,
                 ],
-              })
+              }
             case '+1234567890':
-              return HttpResponse.json({
+              return {
                 data: {
                   setScheduleOnCallNotificationRules: true,
                 },
-              })
+              }
           }
 
           throw new Error('unexpected value')
         }),
-        graphql.query('GetRules', ({ variables }) => {
-          return HttpResponse.json({
+        mockOp<unknown, { scheduleID: string }>('GetRules', (variables) => {
+          return {
             data: {
               schedule: {
                 id: variables.scheduleID,
                 onCallNotificationRules: [],
               },
             },
-          })
+          }
         }),
       ],
     },

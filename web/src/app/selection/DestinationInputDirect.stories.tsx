@@ -2,9 +2,9 @@ import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import DestinationInputDirect from './DestinationInputDirect'
 import { expect, within, userEvent } from '@storybook/test'
-import { handleDefaultConfig } from '../storybook/graphql'
-import { HttpResponse, graphql } from 'msw'
+import { mockOp } from '../storybook/graphql'
 import { useArgs } from '@storybook/preview-api'
+import { DestinationFieldValidateInput } from '../../schema'
 
 const meta = {
   title: 'util/DestinationInputDirect',
@@ -18,18 +18,17 @@ const meta = {
     },
   },
   parameters: {
-    msw: {
-      handlers: [
-        handleDefaultConfig,
-        graphql.query('ValidateDestination', ({ variables: vars }) => {
-          return HttpResponse.json({
+    fetchMock: {
+      mocks: [
+        mockOp<DestinationFieldValidateInput>('ValidateDestination', (vars) => {
+          return {
             data: {
               destinationFieldValidate:
                 vars.input.value === 'https://test.com' ||
                 vars.input.value === '+12225558989' ||
                 vars.input.value === 'valid@email.com',
             },
-          })
+          }
         }),
       ],
     },
