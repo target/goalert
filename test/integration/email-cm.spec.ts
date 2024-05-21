@@ -3,7 +3,7 @@ import { dropdownSelect, pageAction, userSessionFile } from './lib'
 import Chance from 'chance'
 const c = new Chance()
 
-test.describe.configure({ mode: 'serial' })
+test.describe.configure({ mode: 'parallel' })
 test.use({ storageState: userSessionFile })
 
 // test create, edit, verify, and delete of an EMAIL contact method
@@ -62,49 +62,41 @@ test('EMAIL contact method', async ({ page, browser }) => {
 
   await page.fill('input[name=code]', code)
   await page.click('[role=dialog] button[type=submit]')
-  await page.locator('[role=dialog]').isHidden()
+  await expect(page.locator('[role=dialog]')).toBeHidden()
 
   // edit name and enable status updates
   const updatedName = 'updated name ' + c.name()
-  await page
-    .locator('.MuiCard-root', {
-      has: page.locator('div > div > h2', { hasText: 'Contact Methods' }),
-    })
-    .locator('li', { hasText: email })
-    .locator('[aria-label="Other Actions"]')
-    .click()
+  await page.click(`li:has-text("${email}") [aria-label="Other Actions"]`)
   await page.getByRole('menuitem', { name: 'Edit' }).click()
   await page.fill('input[name=name]', updatedName)
   await page.click('input[name=enableStatusUpdates]')
   await page.click('[role=dialog] button[type=submit]')
+  // We need to move the mouse, otherwise it will keep it's position over the submit button and activate the speed dial...
+  await page.mouse.move(0, 0)
+  await expect(page.locator('[role=dialog]')).toBeHidden()
 
   // open edit dialog to verify name change and status updates are enabled
-  await page
-    .locator('.MuiCard-root', {
-      has: page.locator('div > div > h2', { hasText: 'Contact Methods' }),
-    })
-    .locator('li', { hasText: email })
-    .locator('[aria-label="Other Actions"]')
-    .click()
+  await page.click(`li:has-text("${email}") [aria-label="Other Actions"]`)
   await page.getByRole('menuitem', { name: 'Edit' }).click()
   await expect(page.locator('input[name=name]')).toHaveValue(updatedName)
   await expect(page.locator('input[name=enableStatusUpdates]')).toBeChecked()
   await page.click('[role=dialog] button[type=submit]')
 
+  await page.mouse.move(0, 0)
+  await expect(page.locator('[role=dialog]')).toBeHidden()
+
   // verify deleting a notification rule (immediate by default)
-  await page
-    .locator('li', {
-      hasText: `Immediately notify me via Email at ${email}`,
-    })
-    .locator('button')
-    .click()
+  await page.click(
+    `li:has-text("Immediately notify me via Email at ${email}") button`,
+  )
+
   // click confirm
   await page.getByRole('button', { name: 'Confirm' }).click()
   await expect(
     page.locator('li', {
       hasText: `Immediately notify me via Email at ${email}`,
     }),
-  ).not.toBeVisible()
+  ).toBeHidden()
 
   // verify adding a notification rule (delayed)
   await pageAction(page, 'Add Notification Rule', 'Add Rule')
@@ -112,23 +104,21 @@ test('EMAIL contact method', async ({ page, browser }) => {
   await page.fill('input[name=delayMinutes]', '5')
   await page.click('[role=dialog] button[type=submit]')
 
+  await page.mouse.move(0, 0)
+  await expect(page.locator('[role=dialog]')).toBeHidden()
+
   await expect(
     page.locator('li', {
       hasText: `After 5 minutes notify me via Email at ${email}`,
     }),
-  ).not.toBeVisible()
+  ).toBeVisible()
 
-  await page
-    .locator('.MuiCard-root', {
-      has: page.locator('div > div > h2', { hasText: 'Contact Methods' }),
-    })
-    .locator('li', { hasText: email })
-    .locator('[aria-label="Other Actions"]')
-    .click()
+  await page.click(`li:has-text("${email}") [aria-label="Other Actions"]`)
   await page.getByRole('menuitem', { name: 'Delete' }).click()
   await page.getByRole('button', { name: 'Confirm' }).click()
 
-  await expect(page.locator('[role=dialog]')).not.toBeVisible()
+  await page.mouse.move(0, 0)
+  await expect(page.locator('[role=dialog]')).toBeHidden()
   await page
     .locator('.MuiCard-root', {
       has: page.locator('div > div > h2', { hasText: 'Contact Methods' }),

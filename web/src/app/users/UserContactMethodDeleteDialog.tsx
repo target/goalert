@@ -29,7 +29,7 @@ function UserContactMethodDeleteDialog(props: {
           {
             id: contactMethodID,
           },
-          { additionalTypenames: ['UserContactMethod'] },
+          { additionalTypenames: ['UserContactMethod', 'User'] },
         ).then((res) => {
           if (res.error) return
 

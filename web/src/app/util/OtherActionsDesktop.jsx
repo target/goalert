@@ -17,7 +17,7 @@ export default function OtherActionsMenuDesktop({
 
   return (
     <Menu
-      anchorEl={() => anchorEl}
+      anchorEl={anchorEl}
       open={isOpen}
       onClose={onClose}
       PaperProps={{
@@ -40,7 +40,6 @@ export default function OtherActionsMenuDesktop({
         <Tooltip key={idx} title={o.tooltip}>
           <div>
             <MenuItem
-              key={idx}
               onClick={() => {
                 onClose()
                 o.onClick()
