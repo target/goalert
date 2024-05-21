@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import ScheduleOnCallNotificationsListDest from './ScheduleOnCallNotificationsListDest'
+import ScheduleOnCallNotificationsList from './ScheduleOnCallNotificationsList'
 import { handleDefaultConfig } from '../../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 
@@ -9,7 +9,7 @@ const manyNotificationsScheduleID = '22222222-2222-2222-2222-222222222222'
 
 const meta = {
   title: 'schedules/on-call-notifications/ListDest',
-  component: ScheduleOnCallNotificationsListDest,
+  component: ScheduleOnCallNotificationsList,
   argTypes: {},
   parameters: {
     msw: {
@@ -93,7 +93,7 @@ const meta = {
     },
   },
   tags: ['autodocs'],
-} satisfies Meta<typeof ScheduleOnCallNotificationsListDest>
+} satisfies Meta<typeof ScheduleOnCallNotificationsList>
 
 export default meta
 type Story = StoryObj<typeof meta>

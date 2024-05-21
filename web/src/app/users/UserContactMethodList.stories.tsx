@@ -1,14 +1,14 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import UserContactMethodListDest from './UserContactMethodListDest'
+import UserContactMethodList from './UserContactMethodList'
 import { expect, within, userEvent, screen } from '@storybook/test'
 import { handleDefaultConfig } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 import { Destination } from '../../schema'
 
 const meta = {
-  title: 'users/UserContactMethodListDest',
-  component: UserContactMethodListDest,
+  title: 'users/UserContactMethodList',
+  component: UserContactMethodList,
   tags: ['autodocs'],
   parameters: {
     msw: {
@@ -109,9 +109,9 @@ const meta = {
     },
   },
   render: function Component(args) {
-    return <UserContactMethodListDest {...args} />
+    return <UserContactMethodList {...args} />
   },
-} satisfies Meta<typeof UserContactMethodListDest>
+} satisfies Meta<typeof UserContactMethodList>
 
 export default meta
 type Story = StoryObj<typeof meta>

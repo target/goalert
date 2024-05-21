@@ -3,7 +3,7 @@ import FormDialog from '../../dialogs/FormDialog'
 import ScheduleOnCallNotificationsForm, {
   Value,
   errorPaths,
-} from './ScheduleOnCallNotificationsFormDest'
+} from './ScheduleOnCallNotificationsForm'
 import { NO_DAY } from './util'
 import { splitErrorsByPath } from '../../util/errutil'
 import { CombinedError, gql, useMutation, useQuery } from 'urql'

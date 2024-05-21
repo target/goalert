@@ -4,10 +4,10 @@ import Delete from '@mui/icons-material/Delete'
 import LockOpenIcon from '@mui/icons-material/LockOpen'
 import DetailsPage from '../details/DetailsPage'
 import { UserAvatar } from '../util/avatars'
-import UserContactMethodListDest from './UserContactMethodListDest'
+import UserContactMethodList from './UserContactMethodList'
 import { AddAlarm, SettingsPhone } from '@mui/icons-material'
 import SpeedDial from '../util/SpeedDial'
-import UserNotificationRuleListDest from './UserNotificationRuleListDest'
+import UserNotificationRuleList from './UserNotificationRuleList'
 import { Grid } from '@mui/material'
 import UserNotificationRuleCreateDialog from './UserNotificationRuleCreateDialog'
 import UserContactMethodVerificationDialog from './UserContactMethodVerificationDialog'
@@ -19,7 +19,7 @@ import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import { User } from '../../schema'
 import { useIsWidthDown } from '../util/useWidth'
 import UserShiftsCalendar from './UserShiftsCalendar'
-import UserContactMethodCreateDialogDest from './UserContactMethodCreateDialogDest'
+import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
 
 const userQuery = gql`
   query userInfo($id: ID!) {
@@ -182,7 +182,7 @@ export default function UserDetails(props: {
           />
         )}
         {createCM && (
-          <UserContactMethodCreateDialogDest
+          <UserContactMethodCreateDialog
             userID={userID}
             onClose={(contactMethodID) => {
               setCreateCM(false)
@@ -210,11 +210,8 @@ export default function UserDetails(props: {
         subheader={user.email}
         pageContent={
           <Grid container spacing={2}>
-            <UserContactMethodListDest
-              userID={userID}
-              readOnly={props.readOnly}
-            />
-            <UserNotificationRuleListDest
+            <UserContactMethodList userID={userID} readOnly={props.readOnly} />
+            <UserNotificationRuleList
               userID={userID}
               readOnly={props.readOnly}
             />

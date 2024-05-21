@@ -1,13 +1,13 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import UserNotificationRuleListDest from './UserNotificationRuleListDest'
+import UserNotificationRuleList from './UserNotificationRuleList'
 import { expect, within, userEvent, screen } from '@storybook/test'
 import { handleDefaultConfig } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 
 const meta = {
-  title: 'users/UserNotificationRuleListDest',
-  component: UserNotificationRuleListDest,
+  title: 'users/UserNotificationRuleList',
+  component: UserNotificationRuleList,
   tags: ['autodocs'],
   parameters: {
     msw: {
@@ -95,9 +95,9 @@ const meta = {
     },
   },
   render: function Component(args) {
-    return <UserNotificationRuleListDest {...args} />
+    return <UserNotificationRuleList {...args} />
   },
-} satisfies Meta<typeof UserNotificationRuleListDest>
+} satisfies Meta<typeof UserNotificationRuleList>
 
 export default meta
 type Story = StoryObj<typeof meta>
