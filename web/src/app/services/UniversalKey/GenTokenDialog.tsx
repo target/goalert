@@ -19,8 +19,8 @@ const mutation = gql`
 function GenerateTokenText(): JSX.Element {
   return (
     <Typography>
-      Create a token to externally authenticate with GoAlert when creating new
-      alerts
+      Generates an auth bearer token that can immediately be used for this
+      integration.
     </Typography>
   )
 }
@@ -48,7 +48,8 @@ export default function GenTokenDialog({
 
   return (
     <FormDialog
-      title='Generate Token'
+      alert={!!token}
+      title={token ? 'Auth Token' : 'Generate Auth Token'}
       onClose={onClose}
       errors={nonFieldErrors(status.error)}
       disableBackdropClose

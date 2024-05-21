@@ -72,16 +72,15 @@ export default function UniversalKeyPage(
   const primaryHint = q.data.integrationKey.tokenInfo.primaryHint
   const secondaryHint = q.data.integrationKey.tokenInfo.secondaryHint
 
-  const desc = `
-  Primary Token: ${primaryHint || 'N/A'}
-  ${secondaryHint ? `\nSecondary Token: ${secondaryHint}` : ''}
-  `
+  const desc = secondaryHint
+    ? `Primary Auth Token: ${primaryHint}\nSecondary Auth Token: ${secondaryHint}`
+    : `Auth Token: ${primaryHint || 'N/A'}`
 
   function makeGenerateButtons(): Array<Action> {
     if (primaryHint && !secondaryHint) {
       return [
         {
-          label: 'Regenerate Token',
+          label: 'Generate Secondary Token',
           handleOnClick: () => setGenDialogOpen(true),
         },
       ]
@@ -102,7 +101,7 @@ export default function UniversalKeyPage(
 
     return [
       {
-        label: 'Generate Token',
+        label: 'Generate Auth Token',
         handleOnClick: () => setGenDialogOpen(true),
       },
     ]

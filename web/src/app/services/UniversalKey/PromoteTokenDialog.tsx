@@ -29,9 +29,9 @@ export default function PromoteTokenDialog({
       errors={nonFieldErrors(status.error)}
       subTitle={
         <Typography>
-          <b>Important note:</b> Promoting this token will delete the existing
-          primary token. Any future API requests using the existing primary
-          token will fail.
+          <b>Important note:</b> Promoting the secondary token will
+          delete/replace the existing primary token. Any future API requests
+          using the existing primary token will fail.
         </Typography>
       }
       primaryActionLabel='Promote Key'
