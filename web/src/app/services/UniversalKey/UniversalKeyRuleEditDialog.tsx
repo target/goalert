@@ -23,18 +23,15 @@ const query = gql`
           conditionExpr
           actions {
             dest {
-              displayInfo {
-                ... on DestinationDisplayInfo {
-                  text
-                  iconURL
-                  iconAltText
-                  linkURL
-                }
-              }
               type
+              values {
+                fieldID
+                value
+              }
             }
             params {
               paramID
+              expr
             }
           }
         }

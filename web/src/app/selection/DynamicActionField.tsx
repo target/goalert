@@ -2,10 +2,10 @@ import React from 'react'
 import {
   ActionInput,
   DestinationType,
+  DestinationTypeInfo,
   ExprStringExpression,
   FieldValueInput,
 } from '../../schema'
-import DestinationInputDirect from './DestinationInputDirect'
 import {
   useDestinationType,
   useDynamicActionTypes,
@@ -14,6 +14,7 @@ import { Grid, TextField } from '@mui/material'
 import { DestFieldValueError } from '../util/errtypes'
 import DestinationField from './DestinationField'
 import { renderMenuItem } from './DisableableMenuItem'
+import AppLink from '../util/AppLink'
 
 export type StaticParams = Map<string, string>
 export type DynamicParams = Map<string, ExprStringExpression>
@@ -69,6 +70,23 @@ export type DynamicActionFieldProps = {
   destFieldErrors?: DestFieldValueError[]
 }
 
+export function defaults(destTypeInfo: DestinationTypeInfo): Value {
+  const staticParams = new Map()
+  destTypeInfo.requiredFields.forEach((f) => {
+    staticParams.set(f.fieldID, '')
+  })
+  const dynamicParams = new Map()
+  destTypeInfo.dynamicParams.forEach((p) => {
+    dynamicParams.set(p.paramID, `req.body.${p.paramID}`)
+  })
+
+  return {
+    destType: destTypeInfo.type,
+    staticParams,
+    dynamicParams,
+  }
+}
+
 export default function DynamicActionField(
   props: DynamicActionFieldProps,
 ): React.ReactNode {
@@ -84,20 +102,9 @@ export default function DynamicActionField(
         label='Destination Type'
         name='dest.type'
         onChange={(e) => {
-          // set blank defaults on type change
-          const staticParams = new Map()
-          dest.requiredFields.forEach((f) => {
-            staticParams.set(f.fieldID, '')
-          })
-          const dynamicParams = new Map()
-          dest.dynamicParams.forEach((p) => {
-            dynamicParams.set(p.paramID, `req.body.${p.paramID}`)
-          })
-          props.onChange({
-            destType: e.target.value,
-            staticParams,
-            dynamicParams,
-          })
+          const newType = types.find((t) => t.type === e.target.value)
+          if (!newType) return
+          props.onChange(defaults(newType))
         }}
       >
         {types.map((t) =>
@@ -136,13 +143,23 @@ export default function DynamicActionField(
 
           return (
             <Grid key={p.paramID} item xs={12} sm={12} md={12}>
-              <DestinationInputDirect
-                value={fieldValue}
-                destType={props.value.destType}
+              <TextField
+                fullWidth
+                name={p.paramID}
                 disabled={props.disabled || !dest.enabled}
+                type='text'
+                label={p.label + ' (Expr syntax)'}
+                helperText={
+                  p.hintURL ? (
+                    <AppLink newTab to={p.hintURL}>
+                      {p.hint}
+                    </AppLink>
+                  ) : (
+                    p.hint
+                  )
+                }
                 onChange={(e) => handleChange(e.target.value)}
-                hint={p.hint}
-                hintURL={p.hintURL}
+                value={fieldValue}
               />
             </Grid>
           )

@@ -7,6 +7,7 @@ import DestinationInputChip from '../../util/DestinationInputChip'
 import { gql, useClient } from 'urql'
 import DynamicActionField, {
   Value as ActionValue,
+  defaults,
   valueToActionInput,
 } from '../../selection/DynamicActionField'
 
@@ -31,11 +32,9 @@ export default function UniversalKeyRuleForm(
 ): JSX.Element {
   const types = useDynamicActionTypes()
 
-  const [currentAction, setCurrentAction] = useState<ActionValue>({
-    destType: types[0].type,
-    staticParams: new Map(),
-    dynamicParams: new Map(),
-  })
+  const [currentAction, setCurrentAction] = useState<ActionValue>(
+    defaults(types[0]),
+  )
 
   const validationClient = useClient()
 
@@ -112,15 +111,17 @@ export default function UniversalKeyRuleForm(
                 .toPromise()
                 .then((res) => {
                   if (res.error) {
+                    console.error(res.error)
                     return
                   }
 
                   // clear the current action
-                  setCurrentAction({
-                    destType: currentAction.destType,
-                    staticParams: new Map(),
-                    dynamicParams: new Map(),
-                  })
+                  setCurrentAction(
+                    defaults(
+                      types.find((t) => t.type === currentAction.destType) ||
+                        types[0],
+                    ),
+                  )
 
                   props.onChange({
                     ...props.value,
