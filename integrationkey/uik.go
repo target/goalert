@@ -89,17 +89,17 @@ func (s *Store) HandleUIK(w http.ResponseWriter, req *http.Request) {
 	var anyMatched bool
 	var results []ActionResult
 	for _, rule := range cfg.Rules {
-		result, err := expr.Eval(rule.ConditionExpr, env)
+		result, err := expr.Eval("string("+rule.ConditionExpr+")", env)
 		if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
 			return
 		}
-		r, ok := result.(bool)
+		r, ok := result.(string)
 		if !ok {
 			errutil.HTTPError(ctx, w, validation.NewGenericError("condition expression must return a boolean"))
 			return
 		}
-		anyMatched = anyMatched || r
-		if !r {
+		anyMatched = anyMatched || r == "true"
+		if r != "true" {
 			continue
 		}
 
@@ -111,7 +111,7 @@ func (s *Store) HandleUIK(w http.ResponseWriter, req *http.Request) {
 			}
 
 			for name, exprStr := range action.DynamicParams {
-				val, err := expr.Eval(exprStr, env)
+				val, err := expr.Eval("string("+exprStr+")", env)
 				if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
 					return
 				}
@@ -135,7 +135,7 @@ func (s *Store) HandleUIK(w http.ResponseWriter, req *http.Request) {
 			}
 
 			for name, exprStr := range action.DynamicParams {
-				val, err := expr.Eval(exprStr, env)
+				val, err := expr.Eval("string("+exprStr+")", env)
 				if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
 					return
 				}
