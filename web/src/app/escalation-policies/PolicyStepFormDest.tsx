@@ -18,6 +18,7 @@ import {
 import { splitErrorsByPath } from '../util/errutil'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import makeStyles from '@mui/styles/makeStyles'
+import { Add } from '../icons'
 
 const useStyles = makeStyles(() => {
   return {
@@ -98,18 +99,21 @@ export default function PolicyStepFormDest(
       errors={props.errors}
     >
       <Grid container spacing={2}>
-        <Grid item xs={12}>
-          {props.value.actions.map((a, idx) => (
-            <DestinationInputChip
-              key={idx}
-              value={a}
-              onDelete={props.disabled ? undefined : () => handleDelete(a)}
-            />
+        <Grid container spacing={1} item xs={12} sx={{ p: 1 }}>
+          {props.value.actions.map((a) => (
+            <Grid item key={JSON.stringify(a.values)}>
+              <DestinationInputChip
+                value={a}
+                onDelete={props.disabled ? undefined : () => handleDelete(a)}
+              />
+            </Grid>
           ))}
           {props.value.actions.length === 0 && (
-            <Typography variant='body2' color='textSecondary'>
-              No actions
-            </Typography>
+            <Grid item xs={12}>
+              <Typography variant='body2' color='textSecondary'>
+                No destinations
+              </Typography>
+            </Grid>
           )}
         </Grid>
         <Grid item xs={12}>
@@ -149,6 +153,8 @@ export default function PolicyStepFormDest(
           <Button
             variant='contained'
             color='secondary'
+            fullWidth
+            startIcon={<Add />}
             onClick={() => {
               if (!props.onChange) return
               validationClient
