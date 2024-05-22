@@ -441,6 +441,8 @@ type DestinationTypeInfo struct {
 	// if false, the destination type is disabled and cannot be used
 	Enabled        bool                     `json:"enabled"`
 	RequiredFields []DestinationFieldConfig `json:"requiredFields"`
+	// expr parameters that can be used for this destination type
+	DynamicParams []DynamicParamConfig `json:"dynamicParams"`
 	// disclaimer text to display when a user is selecting this destination type for a contact method
 	UserDisclaimer string `json:"userDisclaimer"`
 	// this destination type can be used as a user contact method
@@ -449,6 +451,8 @@ type DestinationTypeInfo struct {
 	IsEPTarget bool `json:"isEPTarget"`
 	// this destination type can be used for schedule on-call notifications
 	IsSchedOnCallNotify bool `json:"isSchedOnCallNotify"`
+	// this destination type can be used for dynamic actions
+	IsDynamicAction bool `json:"isDynamicAction"`
 	// if true, the destination type supports status updates
 	SupportsStatusUpdates bool `json:"supportsStatusUpdates"`
 	// if true, the destination type requires status updates to be enabled
@@ -458,6 +462,17 @@ type DestinationTypeInfo struct {
 type DynamicParam struct {
 	ParamID string `json:"paramID"`
 	Expr    string `json:"expr"`
+}
+
+type DynamicParamConfig struct {
+	// unique ID for the input field
+	ParamID string `json:"paramID"`
+	// user-friendly label (should be singular)
+	Label string `json:"label"`
+	// user-friendly helper text for input fields (i.e., "Enter a phone number")
+	Hint string `json:"hint"`
+	// URL to link to for more information about the destination type
+	HintURL string `json:"hintURL"`
 }
 
 type DynamicParamInput struct {

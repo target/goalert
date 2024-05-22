@@ -23,6 +23,7 @@ const (
 	destUser        = "builtin-user"
 	destRotation    = "builtin-rotation"
 	destSchedule    = "builtin-schedule"
+	destAlert       = "builtin-alert"
 
 	fieldPhoneNumber  = "phone-number"
 	fieldEmailAddress = "email-address"
@@ -35,8 +36,10 @@ const (
 	fieldScheduleID   = "schedule-id"
 )
 
-type FieldValuePair App
-type DestinationDisplayInfo App
+type (
+	FieldValuePair         App
+	DestinationDisplayInfo App
+)
 
 func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.DestinationFieldValidateInput) (string, error) {
 	switch input.FieldID {
@@ -243,9 +246,32 @@ func (q *Query) DestinationFieldValidate(ctx context.Context, input graphql2.Des
 	return false, validation.NewGenericError("unsupported data type")
 }
 
-func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTypeInfo, error) {
+func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]graphql2.DestinationTypeInfo, error) {
 	cfg := config.FromContext(ctx)
 	types := []graphql2.DestinationTypeInfo{
+		{
+			Type:            destAlert,
+			Name:            "Alert",
+			Enabled:         true,
+			IsDynamicAction: true,
+			DynamicParams: []graphql2.DynamicParamConfig{{
+				ParamID: "summary",
+				Label:   "Summary",
+				Hint:    "Short summary of the alert (used for things like SMS).",
+			}, {
+				ParamID: "details",
+				Label:   "Details",
+				Hint:    "Full body (markdown) text of the alert.",
+			}, {
+				ParamID: "dedup",
+				Label:   "Dedup",
+				Hint:    "Stable identifier for de-duplication and closing existing alerts.",
+			}, {
+				ParamID: "close",
+				Label:   "Close",
+				Hint:    "If true, close an existing alert.",
+			}},
+		},
 		{
 			Type:                  destTwilioSMS,
 			Name:                  "Text Message (SMS)",
@@ -413,5 +439,14 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 		return 0
 	})
 
-	return types, nil
+	filtered := types[:0]
+	for _, t := range types {
+		if isDynamicAction != nil && *isDynamicAction != t.IsDynamicAction {
+			continue
+		}
+
+		filtered = append(filtered, t)
+	}
+
+	return filtered, nil
 }
