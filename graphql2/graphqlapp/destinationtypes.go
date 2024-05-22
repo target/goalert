@@ -348,6 +348,18 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 				HintURL:            "/docs#webhooks",
 				SupportsValidation: true,
 			}},
+			DynamicParams: []graphql2.DynamicParamConfig{
+				{
+					ParamID: "body",
+					Label:   "Body",
+					Hint:    "The body of the request.",
+				},
+				{
+					ParamID: "content-type",
+					Label:   "Content Type",
+					Hint:    "The content type (usually application/json).",
+				},
+			},
 		},
 		{
 			Type:                  destSlackDM,
