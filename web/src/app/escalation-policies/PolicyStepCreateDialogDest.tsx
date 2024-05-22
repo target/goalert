@@ -4,6 +4,7 @@ import { splitErrorsByPath } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import PolicyStepFormDest, { FormValue } from './PolicyStepFormDest'
 import { errorPaths } from '../users/UserContactMethodFormDest'
+import { getNotice } from './utils'
 
 const mutation = gql`
   mutation createEscalationPolicyStep(
@@ -15,7 +16,7 @@ const mutation = gql`
   }
 `
 
-function PolicyStepCreateDialogDest(props: {
+export default function PolicyStepCreateDialogDest(props: {
   escalationPolicyID: string
   disablePortal?: boolean
   onClose: () => void
@@ -27,6 +28,10 @@ function PolicyStepCreateDialogDest(props: {
 
   const [createStepStatus, createStep] = useMutation(mutation)
   const [err, setErr] = useState<CombinedError | null>(null)
+
+  const [hasSubmitted, setHasSubmitted] = useState(false)
+  const [hasConfirmed, setHasConfirmed] = useState(false)
+  const noActionsNoConf = value.actions.length === 0 && !hasConfirmed
 
   useEffect(() => {
     setErr(null)
@@ -50,6 +55,11 @@ function PolicyStepCreateDialogDest(props: {
       maxWidth='sm'
       onClose={props.onClose}
       onSubmit={() => {
+        if (noActionsNoConf) {
+          setHasSubmitted(true)
+          return
+        }
+
         createStep(
           {
             input: {
@@ -73,8 +83,7 @@ function PolicyStepCreateDialogDest(props: {
           onChange={(value: FormValue) => setValue(value)}
         />
       }
+      notices={getNotice(hasSubmitted, hasConfirmed, setHasConfirmed)}
     />
   )
 }
-
-export default PolicyStepCreateDialogDest

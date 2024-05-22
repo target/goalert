@@ -9,6 +9,7 @@ import {
   FieldValuePair,
   UpdateEscalationPolicyStepInput,
 } from '../../schema'
+import { getNotice } from './utils'
 
 interface PolicyStepEditDialogDestProps {
   escalationPolicyID: string
@@ -42,7 +43,7 @@ const query = gql`
   }
 `
 
-function PolicyStepEditDialogDest(
+export default function PolicyStepEditDialogDest(
   props: PolicyStepEditDialogDestProps,
 ): React.ReactNode {
   const [stepQ] = useQuery<{ escalationPolicy: EscalationPolicy }>({
@@ -69,6 +70,10 @@ function PolicyStepEditDialogDest(
 
   const [editStepStatus, editStep] = useMutation(mutation)
 
+  const [hasSubmitted, setHasSubmitted] = useState(false)
+  const [hasConfirmed, setHasConfirmed] = useState(false)
+  const noActionsNoConf = value.actions.length === 0 && !hasConfirmed
+
   // Edit dialog has no errors to be handled by the form:
   // - actions field has it's own validation
   // - errors on existing actions are not handled specially, and just display in the dialog (i.e., duplicates)
@@ -83,8 +88,13 @@ function PolicyStepEditDialogDest(
       disablePortal={props.disablePortal}
       maxWidth='sm'
       onClose={props.onClose}
-      onSubmit={() =>
-        editStep(
+      onSubmit={() => {
+        if (noActionsNoConf) {
+          setHasSubmitted(true)
+          return
+        }
+
+        return editStep(
           {
             input: {
               id: props.stepID,
@@ -96,7 +106,7 @@ function PolicyStepEditDialogDest(
         ).then((result) => {
           if (!result.error) props.onClose()
         })
-      }
+      }}
       form={
         <PolicyStepFormDest
           disabled={editStepStatus.fetching}
@@ -104,8 +114,7 @@ function PolicyStepEditDialogDest(
           onChange={(value: FormValue) => setValue(value)}
         />
       }
+      notices={getNotice(hasSubmitted, hasConfirmed, setHasConfirmed)}
     />
   )
 }
-
-export default PolicyStepEditDialogDest
