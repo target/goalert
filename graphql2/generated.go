@@ -571,7 +571,7 @@ type ComplexityRoot struct {
 		DestinationFieldSearch    func(childComplexity int, input DestinationFieldSearchInput) int
 		DestinationFieldValidate  func(childComplexity int, input DestinationFieldValidateInput) int
 		DestinationFieldValueName func(childComplexity int, input DestinationFieldValidateInput) int
-		DestinationTypes          func(childComplexity int) int
+		DestinationTypes          func(childComplexity int, isDynamicAction *bool) int
 		EscalationPolicies        func(childComplexity int, input *EscalationPolicySearchOptions) int
 		EscalationPolicy          func(childComplexity int, id string) int
 		ExperimentalFlags         func(childComplexity int) int
@@ -1032,7 +1032,7 @@ type QueryResolver interface {
 	GenerateSlackAppManifest(ctx context.Context) (string, error)
 	LinkAccountInfo(ctx context.Context, token string) (*LinkAccountInfo, error)
 	SwoStatus(ctx context.Context) (*SWOStatus, error)
-	DestinationTypes(ctx context.Context) ([]DestinationTypeInfo, error)
+	DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]DestinationTypeInfo, error)
 	DestinationFieldValidate(ctx context.Context, input DestinationFieldValidateInput) (bool, error)
 	DestinationFieldSearch(ctx context.Context, input DestinationFieldSearchInput) (*FieldSearchConnection, error)
 	DestinationFieldValueName(ctx context.Context, input DestinationFieldValidateInput) (string, error)
@@ -3600,7 +3600,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.DestinationTypes(childComplexity), true
+		args, err := ec.field_Query_destinationTypes_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.DestinationTypes(childComplexity, args["isDynamicAction"].(*bool)), true
 
 	case "Query.escalationPolicies":
 		if e.complexity.Query.EscalationPolicies == nil {
@@ -6427,6 +6432,21 @@ func (ec *executionContext) field_Query_destinationFieldValueName_args(ctx conte
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_destinationTypes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *bool
+	if tmp, ok := rawArgs["isDynamicAction"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isDynamicAction"))
+		arg0, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["isDynamicAction"] = arg0
 	return args, nil
 }
 
@@ -23830,7 +23850,7 @@ func (ec *executionContext) _Query_destinationTypes(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().DestinationTypes(rctx)
+		return ec.resolvers.Query().DestinationTypes(rctx, fc.Args["isDynamicAction"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23847,7 +23867,7 @@ func (ec *executionContext) _Query_destinationTypes(ctx context.Context, field g
 	return ec.marshalNDestinationTypeInfo2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationTypeInfoᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_destinationTypes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_destinationTypes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -23886,6 +23906,17 @@ func (ec *executionContext) fieldContext_Query_destinationTypes(_ context.Contex
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DestinationTypeInfo", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_destinationTypes_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }

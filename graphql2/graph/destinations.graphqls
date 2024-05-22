@@ -3,7 +3,7 @@ extend type Query {
   destinationTypes returns a list of destination types that can be used for
   notifications.
   """
-  destinationTypes: [DestinationTypeInfo!]!
+  destinationTypes(isDynamicAction: Boolean): [DestinationTypeInfo!]!
 
   """
   destinationFieldValidate validates a destination field value as valid or invalid.
