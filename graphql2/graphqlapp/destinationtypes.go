@@ -319,7 +319,6 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 				InputType:          "email",
 				SupportsValidation: true,
 			}},
-			IsDynamicAction: true,
 			DynamicParams: []graphql2.DynamicParamConfig{{
 				ParamID: "subject",
 				Label:   "Subject",
@@ -348,6 +347,7 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 				HintURL:            "/docs#webhooks",
 				SupportsValidation: true,
 			}},
+			IsDynamicAction: true,
 			DynamicParams: []graphql2.DynamicParamConfig{
 				{
 					ParamID: "body",
@@ -391,7 +391,6 @@ func (q *Query) DestinationTypes(ctx context.Context) ([]graphql2.DestinationTyp
 				InputType:      "text",
 				SupportsSearch: true,
 			}},
-			IsDynamicAction: true,
 			DynamicParams: []graphql2.DynamicParamConfig{{
 				ParamID: "message",
 				Label:   "Message",
