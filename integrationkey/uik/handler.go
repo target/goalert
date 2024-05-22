@@ -142,7 +142,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for _, res := range results {
 		switch res.DestType {
 		case "builtin-webhook":
-			req, err := http.NewRequest("POST", res.Values["url"], strings.NewReader(res.Params["body"]))
+			req, err := http.NewRequest("POST", res.Values["webhook-url"], strings.NewReader(res.Params["body"]))
 			if errutil.HTTPError(ctx, w, err) {
 				return
 			}
