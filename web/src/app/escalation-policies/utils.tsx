@@ -12,7 +12,7 @@ export function getNotice(
   return [
     {
       type: 'WARNING',
-      message: 'No actions',
+      message: 'No destinations',
       details:
         'If you submit with no destinations, nothing will happen on this step',
       action: (
