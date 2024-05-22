@@ -4,6 +4,7 @@ import FormDialog from '../../dialogs/FormDialog'
 import UniversalKeyRuleForm from './UniversalKeyRuleForm'
 import { nonFieldErrors } from '../../util/errutil'
 import { IntegrationKey, KeyRule, KeyRuleInput } from '../../../schema'
+import { getNotice } from './utils'
 
 interface UniversalKeyRuleEditDialogProps {
   keyID: string
@@ -72,12 +73,21 @@ export default function UniversalKeyRuleCreateDialogProps(
   )
   const [editStatus, commit] = useMutation(mutation)
 
+  const [hasConfirmed, setHasConfirmed] = useState(false)
+  const [hasSubmitted, setHasSubmitted] = useState(false)
+  const noActionsNoConf = value.actions.length === 0 && !hasConfirmed
+
   return (
     <FormDialog
       title='Edit Rule'
       onClose={props.onClose}
-      onSubmit={() =>
-        commit(
+      onSubmit={() => {
+        if (noActionsNoConf) {
+          setHasSubmitted(true)
+          return
+        }
+
+        return commit(
           {
             input: {
               keyID: props.keyID,
@@ -94,9 +104,10 @@ export default function UniversalKeyRuleCreateDialogProps(
         ).then(() => {
           props.onClose()
         })
-      }
+      }}
       form={<UniversalKeyRuleForm value={value} onChange={setValue} />}
       errors={nonFieldErrors(editStatus.error)}
+      notices={getNotice(hasSubmitted, hasConfirmed, setHasConfirmed)}
     />
   )
 }
