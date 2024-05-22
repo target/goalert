@@ -59,7 +59,7 @@ const preview: Preview = {
     },
     graphql: {
       // default GraphQL handlers
-      RequireConfig: defaultConfig,
+      RequireConfig: { data: defaultConfig },
       useExpFlag: { data: { experimentalFlags: [] } },
     },
     msw: { handlers: [mswHandler] },
