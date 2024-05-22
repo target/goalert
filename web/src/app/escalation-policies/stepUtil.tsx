@@ -15,7 +15,10 @@ export function renderChipsDest(_a: Destination[]): ReactElement {
         label='No destinations'
         icon={
           <div style={{ padding: '4px' }}>
-            <Warning />
+            <Warning
+              placement='bottom'
+              message='With no destinations configured, nothing will happen when an alert reaches this step'
+            />
           </div>
         }
       />
