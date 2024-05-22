@@ -26,7 +26,7 @@ function trimPrefix(value: string, prefix: string): string {
   return value
 }
 
-export type DestinationInputDirectProps = DestinationFieldConfig & {
+export type DestinationInputDirectProps = Partial<DestinationFieldConfig> & {
   value: string
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
   destType: DestinationType
@@ -135,7 +135,7 @@ export default function DestinationInputDirect(
         )
       }
       onChange={handleChange}
-      value={trimPrefix(props.value, props.prefix)}
+      value={trimPrefix(props.value, props.prefix || '')}
       error={props.error}
     />
   )
