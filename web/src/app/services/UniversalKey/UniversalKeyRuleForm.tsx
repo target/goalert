@@ -10,6 +10,7 @@ import DynamicActionField, {
   defaults,
   valueToActionInput,
 } from '../../selection/DynamicActionField'
+import { Add } from '@mui/icons-material'
 
 interface UniversalKeyRuleFormProps {
   value: KeyRuleInput
@@ -77,29 +78,35 @@ export default function UniversalKeyRuleForm(
             rows={3}
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid item xs={12} sx={{ mb: -1 }}>
           <Typography variant='h6' color='textPrimary'>
             Actions
           </Typography>
         </Grid>
-        <Grid item xs={12}>
-          {props.value.actions.map((a, idx) => (
-            <DestinationInputChip
-              key={idx}
-              value={a.dest}
-              onDelete={() => handleDelete(a)}
-            />
+        <Grid item xs={12} container spacing={1} sx={{ p: 1 }}>
+          {props.value.actions.map((a) => (
+            <Grid item key={JSON.stringify(a.dest)}>
+              <DestinationInputChip
+                value={a.dest}
+                onDelete={() => handleDelete(a)}
+              />
+            </Grid>
           ))}
           {props.value.actions.length === 0 && (
-            <Typography variant='body2' color='textSecondary'>
-              No actions
-            </Typography>
+            <Grid item xs={12}>
+              <Typography variant='body2' color='textSecondary'>
+                No actions
+              </Typography>
+            </Grid>
           )}
         </Grid>
+
         <DynamicActionField value={currentAction} onChange={setCurrentAction} />
 
-        <Grid container item xs={12} justifyContent='flex-end'>
+        <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Button
+            fullWidth
+            startIcon={<Add />}
             variant='contained'
             color='secondary'
             onClick={() => {
