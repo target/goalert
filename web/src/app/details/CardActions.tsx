@@ -4,6 +4,7 @@ import Button, { ButtonProps } from '@mui/material/Button'
 import MUICardActions from '@mui/material/CardActions'
 import IconButton from '@mui/material/IconButton'
 import Tooltip from '@mui/material/Tooltip'
+import { Theme } from '@mui/material'
 
 interface CardActionProps {
   primaryActions?: Array<Action | JSX.Element>
@@ -22,18 +23,21 @@ export type Action = {
   ButtonProps?: ButtonProps
 }
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme: Theme) => ({
   cardActions: {
     alignItems: 'flex-end', // aligns icon buttons to bottom of container
   },
   primaryActionsContainer: {
     padding: 8,
     width: '100%',
+    '& > button:not(:last-child)': {
+      marginRight: theme.spacing(2),
+    },
   },
   autoExpandWidth: {
     margin: '0 auto',
   },
-})
+}))
 
 export default function CardActions(p: CardActionProps): JSX.Element {
   const classes = useStyles()
