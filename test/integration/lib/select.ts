@@ -31,7 +31,13 @@ export async function pageAction(
       ).toHaveAttribute('aria-expanded', 'true')
     }
 
-    await page.getByLabel(mobileAction).locator('button').click()
+    const action = await page.getByLabel(mobileAction)
+    // click if it's already a button
+    if ((await action.locator('button').count()) > 0) {
+      await action.locator('button').click()
+    } else {
+      await action.click()
+    }
 
     if (hasPopup) {
       await expect(

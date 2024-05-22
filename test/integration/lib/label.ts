@@ -3,7 +3,7 @@ import { Page, expect } from '@playwright/test'
 export async function createLabel(
   page: Page,
   key: string,
-  value: number,
+  value: string,
   isMobile: boolean,
 ): Promise<void> {
   // Create a label for the service

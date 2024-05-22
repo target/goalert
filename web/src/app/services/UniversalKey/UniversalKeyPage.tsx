@@ -52,14 +52,10 @@ export default function UniversalKeyPage(
   })
 
   // Redirect to the correct service if the key is not in the service
-  if (
-    q.data &&
-    q.data.integrationKey &&
-    q.data.integrationKey.serviceID !== props.serviceID
-  ) {
+  if (q.data?.integrationKey.serviceID !== props.serviceID) {
     return (
       <Redirect
-        to={`/services/${q.data.integrationKey.serviceID}/integration-keys/${props.keyID}`}
+        to={`/services/${q.data?.integrationKey.serviceID}/integration-keys/${props.keyID}`}
       />
     )
   }

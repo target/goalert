@@ -13,6 +13,7 @@ import {
   SetScheduleOnCallNotificationRulesInput,
 } from '../../../schema'
 import { DateTime } from 'luxon'
+import { BaseError } from '../../util/errtypes'
 
 const getRulesQuery = gql`
   query GetRules($scheduleID: ID!) {
@@ -82,6 +83,17 @@ export default function ScheduleOnCallNotificationsCreateDialog(
     'rules',
     sched.onCallNotificationRules.length,
   ].join('.')
+
+  let noDaysSelected: BaseError | null = null
+  if (
+    value.dest.values.length > 0 &&
+    value.weekdayFilter.every((val) => !val)
+  ) {
+    noDaysSelected = {
+      message: 'Please select at least one day',
+    }
+  }
+
   const [formErrors, otherErrs] = splitErrorsByPath(
     err,
     errorPaths(newRulePrefix),
@@ -90,12 +102,18 @@ export default function ScheduleOnCallNotificationsCreateDialog(
   return (
     <FormDialog
       title='Create Notification Rule'
-      errors={otherErrs}
+      errors={
+        noDaysSelected && value.time !== null
+          ? [...otherErrs, noDaysSelected]
+          : otherErrs
+      }
       disablePortal={props.disablePortal}
       loading={m.fetching}
       onClose={onClose}
-      onSubmit={() =>
-        commit(
+      onSubmit={() => {
+        if (noDaysSelected && value.time !== null) return
+
+        return commit(
           {
             input: {
               scheduleID,
@@ -118,7 +136,7 @@ export default function ScheduleOnCallNotificationsCreateDialog(
           .catch((err) => {
             setErr(err)
           })
-      }
+      }}
       form={
         <ScheduleOnCallNotificationsForm
           scheduleID={scheduleID}
