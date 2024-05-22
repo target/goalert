@@ -94,77 +94,77 @@ export default function DynamicActionField(
   const dest = useDestinationType(props.value.destType)
 
   return (
-    <React.Fragment>
-      <TextField
-        select
-        fullWidth
-        value={props.value.destType}
-        label='Destination Type'
-        name='dest.type'
-        onChange={(e) => {
-          const newType = types.find((t) => t.type === e.target.value)
-          if (!newType) return
-          props.onChange(defaults(newType))
-        }}
-      >
-        {types.map((t) =>
-          renderMenuItem({
-            label: t.name,
-            value: t.type,
-            disabled: !t.enabled,
-            disabledMessage: t.enabled ? '' : 'Disabled by administrator.',
-          }),
-        )}
-      </TextField>
-
-      <DestinationField
-        value={staticToDestField(props.value.staticParams)}
-        onChange={(vals) =>
-          props.onChange({
-            ...props.value,
-            staticParams: destFieldToStatic(vals),
-          })
-        }
-        destType={props.value.destType}
-        disabled={props.disabled}
-        destFieldErrors={props.destFieldErrors}
-      />
-
-      <Grid container spacing={2}>
-        {(dest.dynamicParams || []).map((p) => {
-          const fieldValue = props.value.dynamicParams.get(p.paramID) || ''
-
-          function handleChange(newValue: string): void {
-            const newParams = new Map(props.value.dynamicParams)
-            newParams.set(p.paramID, newValue)
-
-            props.onChange({ ...props.value, dynamicParams: newParams })
-          }
-
-          return (
-            <Grid key={p.paramID} item xs={12} sm={12} md={12}>
-              <TextField
-                fullWidth
-                name={p.paramID}
-                disabled={props.disabled || !dest.enabled}
-                type='text'
-                label={p.label + ' (Expr syntax)'}
-                helperText={
-                  p.hintURL ? (
-                    <AppLink newTab to={p.hintURL}>
-                      {p.hint}
-                    </AppLink>
-                  ) : (
-                    p.hint
-                  )
-                }
-                onChange={(e) => handleChange(e.target.value)}
-                value={fieldValue}
-              />
-            </Grid>
-          )
-        })}
+    <Grid container spacing={2} item xs={12}>
+      <Grid item xs={12}>
+        <TextField
+          select
+          fullWidth
+          value={props.value.destType}
+          label='Destination Type'
+          name='dest.type'
+          onChange={(e) => {
+            const newType = types.find((t) => t.type === e.target.value)
+            if (!newType) return
+            props.onChange(defaults(newType))
+          }}
+        >
+          {types.map((t) =>
+            renderMenuItem({
+              label: t.name,
+              value: t.type,
+              disabled: !t.enabled,
+              disabledMessage: t.enabled ? '' : 'Disabled by administrator.',
+            }),
+          )}
+        </TextField>
       </Grid>
-    </React.Fragment>
+      <Grid item xs={12}>
+        <DestinationField
+          value={staticToDestField(props.value.staticParams)}
+          onChange={(vals) =>
+            props.onChange({
+              ...props.value,
+              staticParams: destFieldToStatic(vals),
+            })
+          }
+          destType={props.value.destType}
+          disabled={props.disabled}
+          destFieldErrors={props.destFieldErrors}
+        />
+      </Grid>
+      {(dest.dynamicParams || []).map((p) => {
+        const fieldValue = props.value.dynamicParams.get(p.paramID) || ''
+
+        function handleChange(newValue: string): void {
+          const newParams = new Map(props.value.dynamicParams)
+          newParams.set(p.paramID, newValue)
+
+          props.onChange({ ...props.value, dynamicParams: newParams })
+        }
+
+        return (
+          <Grid key={p.paramID} item xs={12}>
+            <TextField
+              fullWidth
+              name={p.paramID}
+              disabled={props.disabled || !dest.enabled}
+              type='text'
+              label={p.label + ' (Expr syntax)'}
+              helperText={
+                p.hintURL ? (
+                  <AppLink newTab to={p.hintURL}>
+                    {p.hint}
+                  </AppLink>
+                ) : (
+                  p.hint
+                )
+              }
+              onChange={(e) => handleChange(e.target.value)}
+              value={fieldValue}
+            />
+          </Grid>
+        )
+      })}
+    </Grid>
   )
 }
