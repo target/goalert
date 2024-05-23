@@ -5,6 +5,7 @@ import {
   fetchExchange,
   Exchange,
   Operation,
+  Client,
 } from 'urql'
 import { pipe, tap } from 'wonka'
 import { GraphQLClient, GraphQLClientWithErrors } from './apollo'
@@ -104,15 +105,19 @@ const apolloRefetchExchange: Exchange = ({ forward }) => {
   }
 }
 
-export const client = createClient({
-  url: pathPrefix + '/api/graphql',
-  suspense: true,
-  exchanges: [
-    refetchExchange(),
-    cacheExchange,
-    apolloRefetchExchange,
-    retryExchange({}) as Exchange,
-    fetchExchange,
-  ],
-  requestPolicy: 'cache-and-network',
-})
+export function newClient(url: string): Client {
+  return createClient({
+    url,
+    suspense: true,
+    exchanges: [
+      refetchExchange(),
+      cacheExchange,
+      apolloRefetchExchange,
+      retryExchange({}) as Exchange,
+      fetchExchange,
+    ],
+    requestPolicy: 'cache-and-network',
+  })
+}
+
+export const client = newClient(pathPrefix + '/api/graphql')
