@@ -1,14 +1,14 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import DestinationInputDirect from './DestinationInputDirect'
+import DestinationTextField from './DestinationTextField'
 import { expect, within, userEvent } from '@storybook/test'
 import { handleDefaultConfig } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 import { useArgs } from '@storybook/preview-api'
 
 const meta = {
-  title: 'util/DestinationInputDirect',
-  component: DestinationInputDirect,
+  title: 'util/Destination/TextField',
+  component: DestinationTextField,
   tags: ['autodocs'],
   argTypes: {
     inputType: {
@@ -40,9 +40,9 @@ const meta = {
       if (args.onChange) args.onChange(e)
       setArgs({ value: e.target.value })
     }
-    return <DestinationInputDirect {...args} onChange={onChange} />
+    return <DestinationTextField {...args} onChange={onChange} />
   },
-} satisfies Meta<typeof DestinationInputDirect>
+} satisfies Meta<typeof DestinationTextField>
 
 export default meta
 type Story = StoryObj<typeof meta>

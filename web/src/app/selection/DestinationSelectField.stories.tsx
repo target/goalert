@@ -1,6 +1,6 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import DestinationSearchSelect from './DestinationSearchSelect'
+import DestinationSelectField from './DestinationSelectField'
 import { expect, userEvent, within } from '@storybook/test'
 import { handleDefaultConfig } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
@@ -8,8 +8,8 @@ import { useArgs } from '@storybook/preview-api'
 import { FieldSearchConnection } from '../../schema'
 
 const meta = {
-  title: 'util/DestinationSearchSelect',
-  component: DestinationSearchSelect,
+  title: 'util/Destination/SelectField',
+  component: DestinationSelectField,
   argTypes: {
     inputType: { table: { disable: true } },
     placeholderText: { table: { disable: true } },
@@ -23,7 +23,7 @@ const meta = {
       if (args.onChange) args.onChange(value)
       setArgs({ value })
     }
-    return <DestinationSearchSelect {...args} onChange={onChange} />
+    return <DestinationSelectField {...args} onChange={onChange} />
   },
   tags: ['autodocs'],
   parameters: {
@@ -90,7 +90,7 @@ const meta = {
       ],
     },
   },
-} satisfies Meta<typeof DestinationSearchSelect>
+} satisfies Meta<typeof DestinationSelectField>
 
 export default meta
 type Story = StoryObj<typeof meta>

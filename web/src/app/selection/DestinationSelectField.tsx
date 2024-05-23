@@ -29,7 +29,7 @@ const selectedLabelQuery = gql`
 
 const noSuspense = { suspense: false }
 
-export type DestinationSearchSelectProps = DestinationFieldConfig & {
+export type DestinationSelectFieldProps = DestinationFieldConfig & {
   value: string
   onChange?: (newValue: string) => void
   destType: DestinationType
@@ -54,15 +54,15 @@ function cachify<T>(val: T): T {
 }
 
 /**
- * DestinationSearchSelect is a select field that allows the user to select a
- * destination from a list of options.
+ * DestinationSelectField is a select field that allows the user to select a
+ * destination value from a list of options.
  *
  * You should almost never use this component directly. Instead, use
  * DestinationField, which will select the correct component based on the
  * destination type.
  */
-export default function DestinationSearchSelect(
-  props: DestinationSearchSelectProps,
+export default function DestinationSelectField(
+  props: DestinationSelectFieldProps,
 ): JSX.Element {
   const [inputValue, setInputValue] = useState('')
 

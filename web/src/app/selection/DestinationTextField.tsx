@@ -36,14 +36,14 @@ export type DestinationInputDirectProps = DestinationFieldConfig & {
 }
 
 /**
- * DestinationInputDirect is a text field that allows the user to enter a
- * destination directly. It supports validation and live feedback.
+ * DestinationTextField is a text field that allows the user to enter a
+ * destination field value directly. It supports validation and live feedback.
  *
  * You should almost never use this component directly. Instead, use
- * DestinationField, which will select the correct component based on the
+ * DestinationForm, which will select the correct component based on the
  * destination type.
  */
-export default function DestinationInputDirect(
+export default function DestinationTextField(
   props: DestinationInputDirectProps,
 ): JSX.Element {
   const [debouncedValue, setDebouncedValue] = useState(props.value)
