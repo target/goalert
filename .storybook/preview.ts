@@ -39,11 +39,18 @@ interface LoaderArg {
   }
 }
 
-// graphqlLoader is a loader function that sets up the GraphQL mocks for the component. It stores them in a global object, componentConfig, which is used by the mswHandler to resolve the mocks.
-//
-// We need to do this because the browser will render all components at once, and so we need to handle all GraphQL mocks at once.
-//
-// The way this works is that each component get's a unique URL for GraphQL (see decorators.tsx). This URL is used to store the GraphQL mocks for that component in componentConfig.
+/**
+ * graphqlLoader is a loader function that sets up the GraphQL mocks for the
+ * component. It stores them in a global object, componentConfig, which is used
+ * by the mswHandler to resolve the mocks.
+ *
+ * We need to do this because the browser will render all components at once,
+ * and so we need to handle all GraphQL mocks at once.
+ *
+ * The way this works is that each component get's a unique URL for GraphQL
+ * (see decorators.tsx). This URL is used to store the GraphQL mocks for that
+ * component in componentConfig.
+ */
 export function graphQLLoader(arg: LoaderArg): void {
   const path = '/' + encodeURIComponent(arg.id) + '/api/graphql'
   componentConfig[path] = arg.parameters.graphql || {}
