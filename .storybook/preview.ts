@@ -8,7 +8,7 @@ initialize({
   onUnhandledRequest: 'bypass',
 })
 
-export type GraphQLRequestHandler = (variables: unknown) => object | object
+export type GraphQLRequestHandler = (variables: unknown) => object
 export type GraphQLParams = Record<string, GraphQLRequestHandler>
 
 const componentConfig: Record<string, GraphQLParams> = {}
