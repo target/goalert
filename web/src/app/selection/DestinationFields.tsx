@@ -1,12 +1,12 @@
 import React from 'react'
 import { DestinationType, FieldValueInput } from '../../schema'
-import DestinationInputDirect from './DestinationInputDirect'
+import DestinationTextField from './DestinationTextField'
 import { useDestinationType } from '../util/RequireConfig'
-import DestinationSearchSelect from './DestinationSearchSelect'
+import DestinationSelectField from './DestinationSelectField'
 import { Grid } from '@mui/material'
 import { DestFieldValueError } from '../util/errtypes'
 
-export type DestinationFieldProps = {
+export type DestinationFieldsProps = {
   value: FieldValueInput[]
   onChange?: (value: FieldValueInput[]) => void
   destType: DestinationType
@@ -21,8 +21,8 @@ function capFirstLetter(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
-export default function DestinationField(
-  props: DestinationFieldProps,
+export default function DestinationFields(
+  props: DestinationFieldsProps,
 ): React.ReactNode {
   const dest = useDestinationType(props.destType)
 
@@ -55,7 +55,7 @@ export default function DestinationField(
         if (field.supportsSearch)
           return (
             <Grid key={field.fieldID} item xs={12} sm={12} md={12}>
-              <DestinationSearchSelect
+              <DestinationSelectField
                 {...field}
                 value={fieldValue}
                 destType={props.destType}
@@ -70,7 +70,7 @@ export default function DestinationField(
 
         return (
           <Grid key={field.fieldID} item xs={12} sm={12} md={12}>
-            <DestinationInputDirect
+            <DestinationTextField
               {...field}
               value={fieldValue}
               destType={props.destType}

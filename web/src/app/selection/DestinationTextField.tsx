@@ -26,7 +26,7 @@ function trimPrefix(value: string, prefix: string): string {
   return value
 }
 
-export type DestinationInputDirectProps = DestinationFieldConfig & {
+export type DestinationTextFieldProps = DestinationFieldConfig & {
   value: string
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
   destType: DestinationType
@@ -44,7 +44,7 @@ export type DestinationInputDirectProps = DestinationFieldConfig & {
  * destination type.
  */
 export default function DestinationTextField(
-  props: DestinationInputDirectProps,
+  props: DestinationTextFieldProps,
 ): JSX.Element {
   const [debouncedValue, setDebouncedValue] = useState(props.value)
 

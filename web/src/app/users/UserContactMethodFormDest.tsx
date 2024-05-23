@@ -5,7 +5,7 @@ import React from 'react'
 import { DestinationInput } from '../../schema'
 import { FormContainer, FormField } from '../forms'
 import { renderMenuItem } from '../selection/DisableableMenuItem'
-import DestinationField from '../selection/DestinationField'
+import DestinationFields from '../selection/DestinationFields'
 import { useContactMethodTypes } from '../util/RequireConfig'
 import {
   isInputFieldError,
@@ -120,7 +120,7 @@ export default function UserContactMethodFormDest(
             fieldName='dest.values'
             required
             destType={value.dest.type}
-            component={DestinationField}
+            component={DestinationFields}
             disabled={edit}
             destFieldErrors={errors.filter(isDestFieldError)}
           />

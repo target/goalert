@@ -7,7 +7,7 @@ import { DestinationInput, FieldValueInput } from '../../schema'
 import DestinationInputChip from '../util/DestinationInputChip'
 import { Button, TextField, Typography } from '@mui/material'
 import { renderMenuItem } from '../selection/DisableableMenuItem'
-import DestinationField from '../selection/DestinationField'
+import DestinationFields from '../selection/DestinationFields'
 import { useEPTargetTypes } from '../util/RequireConfig'
 import { gql, useClient, CombinedError } from 'urql'
 import {
@@ -133,7 +133,7 @@ export default function PolicyStepFormDest(
           </TextField>
         </Grid>
         <Grid item xs={12}>
-          <DestinationField
+          <DestinationFields
             destType={destType}
             value={values}
             disabled={props.disabled}

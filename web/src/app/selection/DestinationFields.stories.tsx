@@ -1,13 +1,13 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import DestinationField from './DestinationField'
+import DestinationFields from './DestinationFields'
 import { expect, within } from '@storybook/test'
 import { useArgs } from '@storybook/preview-api'
 import { FieldValueInput } from '../../schema'
 
 const meta = {
-  title: 'util/DestinationField',
-  component: DestinationField,
+  title: 'util/Destination/Fields',
+  component: DestinationFields,
   tags: ['autodocs'],
   argTypes: {
     destType: {
@@ -22,9 +22,9 @@ const meta = {
       if (args.onChange) args.onChange(newValue)
       setArgs({ value: newValue })
     }
-    return <DestinationField {...args} onChange={onChange} />
+    return <DestinationFields {...args} onChange={onChange} />
   },
-} satisfies Meta<typeof DestinationField>
+} satisfies Meta<typeof DestinationFields>
 
 export default meta
 type Story = StoryObj<typeof meta>

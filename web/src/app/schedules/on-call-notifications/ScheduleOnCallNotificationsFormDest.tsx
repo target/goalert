@@ -19,7 +19,7 @@ import { useScheduleTZ } from '../useScheduleTZ'
 import { EVERY_DAY, NO_DAY } from './util'
 import { useSchedOnCallNotifyTypes } from '../../util/RequireConfig'
 import { DestinationInput, WeekdayFilter } from '../../../schema'
-import DestinationField from '../../selection/DestinationField'
+import DestinationFields from '../../selection/DestinationFields'
 import {
   DestFieldValueError,
   KnownError,
@@ -207,7 +207,7 @@ export default function ScheduleOnCallNotificationsFormDest(
             fieldName='dest.values'
             required
             destType={props.value.dest.type}
-            component={DestinationField}
+            component={DestinationFields}
             destFieldErrors={props.errors?.filter(isDestFieldError)}
           />
         </Grid>
