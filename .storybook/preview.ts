@@ -39,7 +39,7 @@ interface LoaderArg {
   }
 }
 
-// graphqlLoader is a loader function that sets up the GraphQL mocks for the component. It stores them in a global object, componentConfig, which is used by the masterHandler to resolve the mocks.
+// graphqlLoader is a loader function that sets up the GraphQL mocks for the component. It stores them in a global object, componentConfig, which is used by the mswHandler to resolve the mocks.
 //
 // We need to do this because the browser will render all components at once, and so we need to handle all GraphQL mocks at once.
 //
