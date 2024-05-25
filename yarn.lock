@@ -6042,9 +6042,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/test-runner@npm:0.17.0":
-  version: 0.17.0
-  resolution: "@storybook/test-runner@npm:0.17.0"
+"@storybook/test-runner@npm:0.18.1":
+  version: 0.18.1
+  resolution: "@storybook/test-runner@npm:0.18.1"
   dependencies:
     "@babel/core": ^7.22.5
     "@babel/generator": ^7.22.5
@@ -6066,10 +6066,11 @@ __metadata:
     jest-runner: ^29.6.4
     jest-serializer-html: ^7.1.0
     jest-watch-typeahead: ^2.0.0
+    nyc: ^15.1.0
     playwright: ^1.14.0
   bin:
     test-storybook: dist/test-storybook.js
-  checksum: 02efe380242b4c60d2e063ac30feb48369aa55d9d4bb5268fb3fcade84bb2e462713bc4829b538ee2e6bf7ffe499f341b9333a729e42de202085a5e8537d304b
+  checksum: 9a723054afe6571db0c8157fc201556f057ecb40461f8ec9f2cefbe572559a490563d905b4327f220d14ec36ebd8f579870e42ef429b0e14c4db3e47ccf96485
   languageName: node
   linkType: hard
 
@@ -18990,7 +18991,7 @@ __metadata:
     "@storybook/react": 8.0.0
     "@storybook/react-vite": 8.0.0
     "@storybook/test": 8.0.8
-    "@storybook/test-runner": 0.17.0
+    "@storybook/test-runner": 0.18.1
     "@storybook/types": 8.0.6
     "@types/chance": 1.1.6
     "@types/diff": 5.0.8
