@@ -143,7 +143,9 @@ export const UpdatePolicyStep: Story = {
     await userEvent.click(await canvas.findByText('Add Destination'))
 
     await waitFor(async function Icon() {
-      await userEvent.click(await canvas.findByTestId('destination-chip'))
+      await expect(
+        await canvas.findAllByTestId('destination-chip'),
+      ).toHaveLength(2)
     })
 
     const delayField = await canvas.findByLabelText('Delay (minutes)')
