@@ -83,7 +83,7 @@ interface DynamicParamError extends BaseError {
 
 export type FormError = InputError | StaticFieldError | DynamicParamError
 
-export type DynamicActionFieldProps = {
+export type DynamicActionFormProps = {
   value: Value | null
   onChange: (value: Value) => void
 
@@ -118,8 +118,8 @@ function isDynamic(err: BaseError): err is DynamicParamError {
   return (err as DynamicParamError).section === 'dynamic-params'
 }
 
-export default function DynamicActionField(
-  props: DynamicActionFieldProps,
+export default function DynamicActionForm(
+  props: DynamicActionFormProps,
 ): React.ReactNode {
   const types = useDynamicActionTypes()
   const selectedDest = types.find((t) => t.type === props.value?.destType)

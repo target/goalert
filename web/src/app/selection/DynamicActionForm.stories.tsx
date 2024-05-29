@@ -1,14 +1,14 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 
-import DynamicActionField, { Value } from './DynamicActionField'
+import DynamicActionForm, { Value } from './DynamicActionForm'
 import { DestinationTypeInfo } from '../../schema'
 import { fn } from '@storybook/test'
 import { useArgs } from '@storybook/preview-api'
 
 const meta = {
-  title: 'util/Destination/DynamicAction',
-  component: DynamicActionField,
+  title: 'util/Destination/DynamicActionForm',
+  component: DynamicActionForm,
   args: {
     onChange: fn(),
   },
@@ -93,7 +93,7 @@ const meta = {
     },
   },
   tags: ['autodocs'],
-} satisfies Meta<typeof DynamicActionField>
+} satisfies Meta<typeof DynamicActionForm>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -108,7 +108,7 @@ export const Interactive: Story = {
       if (args.onChange) args.onChange(value)
       setArgs({ value })
     }
-    return <DynamicActionField {...args} onChange={onChange} />
+    return <DynamicActionForm {...args} onChange={onChange} />
   },
 }
 
