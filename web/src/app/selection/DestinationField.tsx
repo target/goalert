@@ -13,7 +13,15 @@ export type DestinationFieldProps = {
 
   disabled?: boolean
 
+  /* deprecated */
   destFieldErrors?: DestFieldValueError[]
+
+  fieldErrors?: DestFieldError[]
+}
+
+export interface DestFieldError {
+  fieldID: string
+  message: string
 }
 
 function capFirstLetter(s: string): string {
@@ -25,6 +33,17 @@ export default function DestinationField(
   props: DestinationFieldProps,
 ): React.ReactNode {
   const dest = useDestinationType(props.destType)
+
+  const fieldErrors = new Map()
+  if (props.fieldErrors) {
+    for (const err of props.fieldErrors) {
+      fieldErrors.set(err.fieldID, err.message)
+    }
+  } else if (props.destFieldErrors) {
+    for (const err of props.destFieldErrors) {
+      fieldErrors.set(err.extensions.fieldID, err.message)
+    }
+  }
 
   return (
     <Grid container spacing={2}>
@@ -46,11 +65,7 @@ export default function DestinationField(
           props.onChange(newValues)
         }
 
-        const fieldErrMsg = capFirstLetter(
-          props.destFieldErrors?.find(
-            (err) => err.extensions.fieldID === field.fieldID,
-          )?.message || '',
-        )
+        const fieldErrMsg = capFirstLetter(fieldErrors.get(field.fieldID) || '')
 
         if (field.supportsSearch)
           return (
