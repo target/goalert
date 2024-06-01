@@ -71,7 +71,7 @@
     "@types/react-dom": "18.2.22",
     "@types/react-transition-group": "4.4.10",
     "@types/react-virtualized-auto-sizer": "1.0.4",
-    "@typescript-eslint/eslint-plugin": "7.7.0",
+    "@typescript-eslint/eslint-plugin": "7.11.0",
     "@typescript-eslint/parser": "6.21.0",
     "@urql/exchange-retry": "1.2.1",
     "bowser": "2.11.0",
