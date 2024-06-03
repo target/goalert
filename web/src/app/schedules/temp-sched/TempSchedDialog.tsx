@@ -106,15 +106,23 @@ export default function TempSchedDialog({
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
   const [showForm, setShowForm] = useState(false)
 
-  let defaultShiftDur = {} as DurationValues
-
   const getDurValues = (dur: Duration): DurationValues => {
-    if (dur.hours < 24 && dur.days < 1)
+    if (dur.days === 0) {
+      return { ivl: 'days', dur: 0 }
+    }
+
+    if (dur.hours < 24 && dur.days < 1) {
       return { ivl: 'hours', dur: Math.ceil(dur.hours) }
-    if (dur.days < 7) return { ivl: 'days', dur: Math.ceil(dur.days) }
+    }
+
+    if (dur.days < 7) {
+      return { ivl: 'days', dur: Math.ceil(dur.days) }
+    }
+
     return { ivl: 'weeks', dur: Math.ceil(dur.weeks) }
   }
 
+  let defaultShiftDur = {} as DurationValues
   if (edit) {
     // if editing infer shift duration
     defaultShiftDur = getDurValues(inferDuration(_value.shifts))
@@ -144,6 +152,7 @@ export default function TempSchedDialog({
       _value.shiftDur ||
       Duration.fromObject({ [durValues.ivl]: durValues.dur }),
   })
+
   const startDT = DateTime.fromISO(value.start, { zone })
   const [shift, setShift] = useState<Shift>({
     start: startDT.toISO(),
@@ -151,6 +160,7 @@ export default function TempSchedDialog({
     userID: '',
     truncated: false,
   })
+
   const [allowNoCoverage, setAllowNoCoverage] = useState(false)
   const [submitAttempt, setSubmitAttempt] = useState(false) // helps with error messaging on step 1
   const [submitSuccess, setSubmitSuccess] = useState(false)
@@ -164,7 +174,7 @@ export default function TempSchedDialog({
     return null
   }
 
-  const hasInvalidShift = (() => {
+  const hasInvalidShift = React.useMemo(() => {
     if (q.loading) return false
     const schedInterval = parseInterval(value, zone)
     return value.shifts.some(
@@ -172,16 +182,18 @@ export default function TempSchedDialog({
         DateTime.fromISO(s.end) > DateTime.fromISO(now) &&
         !schedInterval.engulfs(parseInterval(s, zone)),
     )
-  })()
+  }, [q.loading])
 
-  const shiftErrors = hasInvalidShift
-    ? [
-        {
-          message:
-            'One or more shifts extend beyond the start and/or end of this temporary schedule',
-        },
-      ]
-    : []
+  let shiftErrors: Error[] = []
+  if (hasInvalidShift) {
+    shiftErrors = [
+      {
+        name: 'invalid shift',
+        message:
+          'One or more shifts extend beyond the start and/or end of this temporary schedule',
+      },
+    ]
+  }
 
   function handleCoverageGapClick(coverageGap: Interval): void {
     if (!showForm) setShowForm(true)
@@ -197,7 +209,7 @@ export default function TempSchedDialog({
     })
   }
 
-  const hasCoverageGaps = (() => {
+  const hasCoverageGaps = React.useMemo(() => {
     if (q.loading) return false
     const schedInterval = parseInterval(value, zone)
     return (
@@ -209,7 +221,7 @@ export default function TempSchedDialog({
         handleCoverageGapClick,
       ).length > 0
     )
-  })()
+  }, [q.loading])
 
   const shiftListRef = useRef<HTMLDivElement | null>(null)
 
@@ -281,6 +293,8 @@ export default function TempSchedDialog({
     .concat(shiftErrors)
     .concat(noCoverageErrs)
 
+  const done = edit && submitSuccess
+
   return (
     <FormDialog
       fullHeight
@@ -303,8 +317,7 @@ export default function TempSchedDialog({
               setValue({ ...value, ...ensureInterval(value, newValue) })
             }}
           >
-            {(edit && submitSuccess && !hasCoverageGaps) ||
-            (edit && submitSuccess && hasCoverageGaps && allowNoCoverage) ? (
+            {done && (!hasCoverageGaps || allowNoCoverage) ? (
               <TempSchedConfirmation value={value} scheduleID={scheduleID} />
             ) : (
               <Grid

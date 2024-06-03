@@ -130,7 +130,6 @@ export default function TempSchedShiftsList({
       shiftDur as Duration,
       zone,
     )
-
     const outOfBoundsItems = getOutOfBoundsItems(schedInterval, shifts, zone)
 
     const shiftItems = (() => {
@@ -189,11 +188,7 @@ export default function TempSchedShiftsList({
 
           let diffColor = ''
           const compare = (compareWith: Shift[]): boolean => {
-            console.log()
             const res = compareWith.find((val) => {
-              // console.log('shiftStart: ', DateTime.fromISO(s.start))
-              // console.log('compareVal: ', DateTime.fromISO(val.start), '\n')
-
               return (
                 DateTime.fromISO(s.start).toISO() ===
                   DateTime.fromISO(val.start).toISO() &&

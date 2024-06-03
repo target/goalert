@@ -22,7 +22,11 @@ export type Shift = {
   }
 }
 
-export function inferDuration(shifts: Shift[]): Duration {
+export function inferDuration(shifts: Shift[] = []): Duration {
+  if (shifts.length === 0) {
+    return Duration.fromObject({ days: 0, hours: 0, weeks: 0 })
+  }
+
   const totalDurations = shifts.reduce((acc, shift) => {
     const startDateTime = DateTime.fromISO(shift.start)
     const endDateTime = DateTime.fromISO(shift.end)

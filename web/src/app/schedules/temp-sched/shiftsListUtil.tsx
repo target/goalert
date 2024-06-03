@@ -30,7 +30,7 @@ export type Sortable<T> = T & {
 
 export function getSubheaderItems(
   schedInterval: Interval,
-  shifts: Shift[],
+  shifts: Shift[] = [],
   shiftDur: Duration,
   zone: ExplicitZone,
 ): Sortable<FlatListSub>[] {
@@ -49,10 +49,13 @@ export function getSubheaderItems(
     ...shifts.map((s) => DateTime.fromISO(s.end, { zone })),
   )
 
-  const dayInvs = splitShift(
-    Interval.fromDateTimes(lowerBound, upperBound),
-    shiftDur,
-  )
+  let dayInvs: Array<Interval> = []
+  if (shiftDur.milliseconds !== 0) {
+    dayInvs = splitShift(
+      Interval.fromDateTimes(lowerBound, upperBound),
+      shiftDur,
+    )
+  }
 
   return dayInvs.map((day) => {
     const at = day.start.startOf('day')
@@ -122,22 +125,28 @@ export function getOutOfBoundsItems(
 export function getCoverageGapItems(
   schedInterval: Interval,
   shiftDuration: Duration,
-  shifts: Shift[],
+  shifts: Shift[] = [],
   zone: ExplicitZone,
   handleCoverageClick?: (coverageGap: Interval) => void,
 ): Sortable<FlatListNotice>[] {
   if (!schedInterval.isValid) {
     return []
   }
+
   const shiftIntervals = shifts.map((s) => parseInterval(s, zone))
-  const gapIntervals = _.flatMap(
-    schedInterval.difference(...shiftIntervals),
-    (inv) => splitShift(inv, shiftDuration),
-  )
+  let gapIntervals: Array<Interval> = []
+  if (shiftIntervals.length > 0) {
+    gapIntervals = _.flatMap(
+      schedInterval.difference(...shiftIntervals),
+      (inv) => splitShift(inv, shiftDuration),
+    )
+  }
+
   const isLocalZone = zone === DateTime.local().zoneName
   return gapIntervals.map((gap) => {
     let details = 'No coverage'
     let title = 'No coverage'
+
     if (gap.length('hours') === 24) {
       // nothing to do
       title = ''
@@ -157,6 +166,7 @@ export function getCoverageGapItems(
           false,
         )} to ${fmtTime(gap.end, zone, false, false)}`
       }
+
       title += `from ${fmtLocal(gap.start)} to ${fmtLocal(gap.end)}`
     }
 
