@@ -1,14 +1,14 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
-import ScheduleOnCallNotificationsCreateDialogDest from './ScheduleOnCallNotificationsCreateDialogDest'
+import ScheduleOnCallNotificationsCreateDialog from './ScheduleOnCallNotificationsCreateDialog'
 import { HttpResponse, graphql } from 'msw'
 import { handleDefaultConfig } from '../../storybook/graphql'
 import { BaseError, DestFieldValueError } from '../../util/errtypes'
 
 const meta = {
   title: 'schedules/on-call-notifications/CreateDialogDest',
-  component: ScheduleOnCallNotificationsCreateDialogDest,
+  component: ScheduleOnCallNotificationsCreateDialog,
   argTypes: {},
   args: {
     scheduleID: 'create-test',
@@ -86,11 +86,9 @@ const meta = {
   },
   tags: ['autodocs'],
   render: function Component(args) {
-    return (
-      <ScheduleOnCallNotificationsCreateDialogDest {...args} disablePortal />
-    )
+    return <ScheduleOnCallNotificationsCreateDialog {...args} disablePortal />
   },
-} satisfies Meta<typeof ScheduleOnCallNotificationsCreateDialogDest>
+} satisfies Meta<typeof ScheduleOnCallNotificationsCreateDialog>
 
 export default meta
 type Story = StoryObj<typeof meta>

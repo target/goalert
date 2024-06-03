@@ -445,10 +445,12 @@ export interface DestinationInput {
 export type DestinationType = string
 
 export interface DestinationTypeInfo {
+  dynamicParams: DynamicParamConfig[]
   enabled: boolean
   iconAltText: string
   iconURL: string
   isContactMethod: boolean
+  isDynamicAction: boolean
   isEPTarget: boolean
   isSchedOnCallNotify: boolean
   name: string
@@ -461,6 +463,13 @@ export interface DestinationTypeInfo {
 
 export interface DynamicParam {
   expr: ExprStringExpression
+  paramID: string
+}
+
+export interface DynamicParamConfig {
+  hint: string
+  hintURL: string
+  label: string
   paramID: string
 }
 

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { CombinedError, gql, useMutation } from 'urql'
 import { splitErrorsByPath } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
-import PolicyStepFormDest, { FormValue } from './PolicyStepFormDest'
-import { errorPaths } from '../users/UserContactMethodFormDest'
+import PolicyStepForm, { FormValue } from './PolicyStepForm'
+import { errorPaths } from '../users/UserContactMethodForm'
 import { getNotice } from './utils'
 
 const mutation = gql`
@@ -16,7 +16,7 @@ const mutation = gql`
   }
 `
 
-export default function PolicyStepCreateDialogDest(props: {
+export default function PolicyStepCreateDialog(props: {
   escalationPolicyID: string
   disablePortal?: boolean
   onClose: () => void
@@ -76,7 +76,7 @@ export default function PolicyStepCreateDialogDest(props: {
         })
       }}
       form={
-        <PolicyStepFormDest
+        <PolicyStepForm
           errors={formErrors}
           disabled={createStepStatus.fetching}
           value={value}

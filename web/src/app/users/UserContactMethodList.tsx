@@ -16,8 +16,8 @@ import SendTestDialog from './SendTestDialog'
 import { styles as globalStyles } from '../styles/materialStyles'
 import { UserContactMethod } from '../../schema'
 import { useSessionInfo, useContactMethodTypes } from '../util/RequireConfig'
-import UserContactMethodEditDialogDest from './UserContactMethodEditDialogDest'
-import UserContactMethodCreateDialogDest from './UserContactMethodCreateDialogDest'
+import UserContactMethodEditDialog from './UserContactMethodEditDialog'
+import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -67,7 +67,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   cardHeader: globalStyles(theme).cardHeader,
 }))
 
-export default function UserContactMethodListDest(
+export default function UserContactMethodList(
   props: UserContactMethodListProps,
 ): ReactNode {
   const classes = useStyles()
@@ -232,7 +232,7 @@ export default function UserContactMethodListDest(
         />
         <Suspense>
           {showAddDialog && (
-            <UserContactMethodCreateDialogDest
+            <UserContactMethodCreateDialog
               userID={props.userID}
               onClose={(contactMethodID = '') => {
                 setShowAddDialog(false)
@@ -247,7 +247,7 @@ export default function UserContactMethodListDest(
             />
           )}
           {showEditDialogByID && (
-            <UserContactMethodEditDialogDest
+            <UserContactMethodEditDialog
               contactMethodID={showEditDialogByID}
               onClose={() => setShowEditDialogByID('')}
             />

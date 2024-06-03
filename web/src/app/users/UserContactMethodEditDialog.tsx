@@ -3,7 +3,7 @@ import { useMutation, gql, CombinedError, useQuery } from 'urql'
 
 import { splitErrorsByPath } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
-import UserContactMethodForm, { errorPaths } from './UserContactMethodFormDest'
+import UserContactMethodForm, { errorPaths } from './UserContactMethodForm'
 import { DestinationInput } from '../../schema'
 
 type Value = {
@@ -35,7 +35,7 @@ const mutation = gql`
   }
 `
 
-export default function UserContactMethodEditDialogDest(props: {
+export default function UserContactMethodEditDialog(props: {
   onClose: (contactMethodID?: string) => void
   contactMethodID: string
 

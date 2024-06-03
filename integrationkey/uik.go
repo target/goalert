@@ -3,20 +3,14 @@ package integrationkey
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
-	"net/http"
 	"time"
 
-	"github.com/expr-lang/expr"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
-	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
 
 	"github.com/target/goalert/validation"
@@ -39,119 +33,6 @@ func newClaims(keyID, tokenID uuid.UUID) jwt.Claims {
 		Issuer:    Issuer,
 		Audience:  []string{Audience},
 	}
-}
-
-func (s *Store) HandleUIK(w http.ResponseWriter, req *http.Request) {
-	ctx := req.Context()
-	if !expflag.ContextHas(ctx, expflag.UnivKeys) {
-		errutil.HTTPError(ctx, w, validation.NewGenericError("universal keys are disabled"))
-		return
-	}
-
-	err := permission.LimitCheckAny(req.Context(), permission.Service)
-	if errutil.HTTPError(ctx, w, err) {
-		return
-	}
-	src := permission.Source(ctx)
-	if src.Type != permission.SourceTypeUIK {
-		// we don't want to allow regular API keys to be used here
-		errutil.HTTPError(ctx, w, permission.Unauthorized())
-		return
-	}
-
-	keyID, err := uuid.Parse(src.ID)
-	if errutil.HTTPError(ctx, w, err) {
-		return
-	}
-	data, err := io.ReadAll(req.Body)
-	if errutil.HTTPError(ctx, w, err) {
-		return
-	}
-	var body any
-	err = json.Unmarshal(data, &body)
-	if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
-		return
-	}
-
-	cfg, err := s.Config(ctx, s.db, keyID)
-	if errutil.HTTPError(ctx, w, err) {
-		return
-	}
-
-	env := map[string]any{
-		"sprintf": fmt.Sprintf,
-		"req": map[string]any{
-			"body": body,
-		},
-	}
-
-	// We need to track if any rule matched, so we can apply default actions if none did.
-	var anyMatched bool
-	var results []ActionResult
-	for _, rule := range cfg.Rules {
-		result, err := expr.Eval(rule.ConditionExpr, env)
-		if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
-			return
-		}
-		r, ok := result.(bool)
-		if !ok {
-			errutil.HTTPError(ctx, w, validation.NewGenericError("condition expression must return a boolean"))
-			return
-		}
-		anyMatched = anyMatched || r
-		if !r {
-			continue
-		}
-
-		for _, action := range rule.Actions {
-			res := ActionResult{
-				DestType: action.Type,
-				Values:   action.StaticParams,
-				Params:   make(map[string]string, len(action.DynamicParams)),
-			}
-
-			for name, exprStr := range action.DynamicParams {
-				val, err := expr.Eval(exprStr, env)
-				if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
-					return
-				}
-				if _, ok := val.(string); !ok {
-					errutil.HTTPError(ctx, w, validation.NewGenericError("dynamic param expressions must return a string"))
-					return
-				}
-				res.Params[name] = val.(string)
-			}
-			results = append(results, res)
-		}
-	}
-
-	if !anyMatched {
-		// Default actions need to be applied if no rules matched (or if there are no rules at all).
-		for _, action := range cfg.DefaultActions {
-			res := ActionResult{
-				DestType: action.Type,
-				Values:   action.StaticParams,
-				Params:   make(map[string]string, len(action.DynamicParams)),
-			}
-
-			for name, exprStr := range action.DynamicParams {
-				val, err := expr.Eval(exprStr, env)
-				if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
-					return
-				}
-				if _, ok := val.(string); !ok {
-					errutil.HTTPError(ctx, w, validation.NewGenericError("dynamic param expressions must return a string"))
-					return
-				}
-				res.Params[name] = val.(string)
-			}
-			results = append(results, res)
-		}
-	}
-
-	log.Logf(ctx, "uik: action result: %#v", results)
-
-	w.WriteHeader(http.StatusNoContent)
 }
 
 type ActionResult struct {
@@ -208,6 +89,9 @@ func (s *Store) TokenHints(ctx context.Context, db gadb.DBTX, id uuid.UUID) (pri
 	}
 
 	row, err := gadb.New(s.db).IntKeyTokenHints(ctx, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", "", nil
+	}
 	if err != nil {
 		return "", "", err
 	}

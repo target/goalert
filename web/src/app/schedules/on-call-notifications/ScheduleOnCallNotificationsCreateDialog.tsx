@@ -3,8 +3,9 @@ import FormDialog from '../../dialogs/FormDialog'
 import ScheduleOnCallNotificationsForm, {
   Value,
   errorPaths,
-} from './ScheduleOnCallNotificationsFormDest'
+} from './ScheduleOnCallNotificationsForm'
 import { NO_DAY } from './util'
+import { useSchedOnCallNotifyTypes } from '../../util/RequireConfig'
 import { splitErrorsByPath } from '../../util/errutil'
 import { CombinedError, gql, useMutation, useQuery } from 'urql'
 import {
@@ -12,6 +13,7 @@ import {
   SetScheduleOnCallNotificationRulesInput,
 } from '../../../schema'
 import { DateTime } from 'luxon'
+import { BaseError } from '../../util/errtypes'
 
 const getRulesQuery = gql`
   query GetRules($scheduleID: ID!) {
@@ -40,18 +42,29 @@ const setRulesMut = gql`
   }
 `
 
-interface ScheduleOnCallNotificationsEditDialogProps {
+interface ScheduleOnCallNotificationsCreateDialogProps {
   onClose: () => void
   scheduleID: string
-  ruleID: string
   disablePortal?: boolean
 }
 
-export default function ScheduleOnCallNotificationsEditDialog(
-  props: ScheduleOnCallNotificationsEditDialogProps,
+export default function ScheduleOnCallNotificationsCreateDialog(
+  props: ScheduleOnCallNotificationsCreateDialogProps,
 ): JSX.Element {
   const { onClose, scheduleID } = props
+  const types = useSchedOnCallNotifyTypes()
   const [err, setErr] = useState<CombinedError | null>(null)
+  const [value, setValue] = useState<Value>({
+    time: null,
+    weekdayFilter: NO_DAY,
+    dest: {
+      type: types[0].type,
+      values: [],
+    },
+  })
+  useEffect(() => {
+    setErr(null)
+  }, [value])
   const [q] = useQuery<{ schedule: Schedule }>({
     query: getRulesQuery,
     variables: { scheduleID },
@@ -59,21 +72,6 @@ export default function ScheduleOnCallNotificationsEditDialog(
   if (q.error) throw q.error
   const sched = q.data?.schedule
   if (!sched) throw new Error('no data for schedule ' + scheduleID)
-  const rule = sched.onCallNotificationRules.find((r) => r.id === props.ruleID)
-  if (!rule) throw new Error('no rule for id ' + props.ruleID)
-
-  const [value, setValue] = useState<Value>({
-    time: rule.time || null,
-    weekdayFilter: rule.weekdayFilter || NO_DAY,
-    dest: {
-      type: rule.dest.type,
-      values: rule.dest.values.map((v) => ({ ...v })),
-    },
-  })
-  useEffect(() => {
-    setErr(null)
-  }, [value])
-
   const [m, commit] = useMutation(setRulesMut)
   useEffect(() => {
     setErr(m.error || null)
@@ -83,8 +81,19 @@ export default function ScheduleOnCallNotificationsEditDialog(
     'setScheduleOnCallNotificationRules',
     'input',
     'rules',
-    sched.onCallNotificationRules.length - 1,
+    sched.onCallNotificationRules.length,
   ].join('.')
+
+  let noDaysSelected: BaseError | null = null
+  if (
+    value.dest.values.length > 0 &&
+    value.weekdayFilter.every((val) => !val)
+  ) {
+    noDaysSelected = {
+      message: 'Please select at least one day',
+    }
+  }
+
   const [formErrors, otherErrs] = splitErrorsByPath(
     err,
     errorPaths(newRulePrefix),
@@ -92,27 +101,32 @@ export default function ScheduleOnCallNotificationsEditDialog(
 
   return (
     <FormDialog
-      title='Edit Notification Rule'
-      errors={otherErrs}
+      title='Create Notification Rule'
+      errors={
+        noDaysSelected && value.time !== null
+          ? [...otherErrs, noDaysSelected]
+          : otherErrs
+      }
       disablePortal={props.disablePortal}
       loading={m.fetching}
       onClose={onClose}
-      onSubmit={() =>
-        commit(
+      onSubmit={() => {
+        if (noDaysSelected && value.time !== null) return
+
+        return commit(
           {
             input: {
               scheduleID,
               rules: [
-                ...sched.onCallNotificationRules.filter((r) => r !== rule),
+                ...sched.onCallNotificationRules,
                 value.time
                   ? {
-                      id: rule.id,
                       ...value,
                       time: DateTime.fromISO(value.time)
                         .setZone(sched.timeZone)
                         .toFormat('HH:mm'),
                     }
-                  : { id: rule.id, dest: value.dest },
+                  : { dest: value.dest },
               ],
             } satisfies SetScheduleOnCallNotificationRulesInput,
           },
@@ -122,7 +136,7 @@ export default function ScheduleOnCallNotificationsEditDialog(
           .catch((err) => {
             setErr(err)
           })
-      }
+      }}
       form={
         <ScheduleOnCallNotificationsForm
           scheduleID={scheduleID}

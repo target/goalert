@@ -19,7 +19,7 @@ import PolicyServicesQuery from '../escalation-policies/PolicyServicesQuery'
 import Spinner from '../loading/components/Spinner'
 import RotationDetails from '../rotations/RotationDetails'
 import RotationList from '../rotations/RotationList'
-import ScheduleOnCallNotificationsListDest from '../schedules/on-call-notifications/ScheduleOnCallNotificationsListDest'
+import ScheduleOnCallNotificationsList from '../schedules/on-call-notifications/ScheduleOnCallNotificationsList'
 import ScheduleAssignedToList from '../schedules/ScheduleAssignedToList'
 import ScheduleDetails from '../schedules/ScheduleDetails'
 import ScheduleList from '../schedules/ScheduleList'
@@ -90,7 +90,7 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/schedules/:scheduleID/overrides': ScheduleOverrideList,
   '/schedules/:scheduleID/shifts': ScheduleShiftList,
   '/schedules/:scheduleID/on-call-notifications':
-    ScheduleOnCallNotificationsListDest,
+    ScheduleOnCallNotificationsList,
 
   '/escalation-policies': PolicyList,
   '/escalation-policies/:policyID': PolicyDetails,

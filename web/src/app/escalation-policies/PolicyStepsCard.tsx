@@ -8,14 +8,14 @@ import { Add } from '@mui/icons-material'
 import { gql, useMutation } from 'urql'
 import FlatList from '../lists/FlatList'
 import CreateFAB from '../lists/CreateFAB'
-import PolicyStepCreateDialogDest from './PolicyStepCreateDialogDest'
+import PolicyStepCreateDialog from './PolicyStepCreateDialog'
 import { useResetURLParams, useURLParam } from '../actions'
 import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { useIsWidthDown } from '../util/useWidth'
 import { reorderList } from '../rotations/util'
 import PolicyStepDeleteDialog from './PolicyStepDeleteDialog'
-import PolicyStepEditDialogDest from './PolicyStepEditDialogDest'
+import PolicyStepEditDialog from './PolicyStepEditDialog'
 import OtherActions from '../util/OtherActions'
 import { renderChipsDest, renderDelayMessage } from './stepUtil'
 import { Destination } from '../../schema'
@@ -115,7 +115,7 @@ export default function PolicyStepsCard(
         <CreateFAB onClick={() => setCreateStep(true)} title='Create Step' />
       )}
       {createStep && (
-        <PolicyStepCreateDialogDest
+        <PolicyStepCreateDialog
           escalationPolicyID={props.escalationPolicyID}
           onClose={resetCreateStep}
         />
@@ -189,7 +189,7 @@ export default function PolicyStepsCard(
       <Suspense>
         {editStep && (
           <React.Fragment>
-            <PolicyStepEditDialogDest
+            <PolicyStepEditDialog
               escalationPolicyID={props.escalationPolicyID}
               onClose={resetEditStep}
               stepID={editStep.id}

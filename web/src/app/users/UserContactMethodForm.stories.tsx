@@ -1,14 +1,14 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import UserContactMethodFormDest, { Value } from './UserContactMethodFormDest'
+import UserContactMethodForm, { Value } from './UserContactMethodForm'
 import { expect, within, userEvent, waitFor } from '@storybook/test'
 import { handleDefaultConfig } from '../storybook/graphql'
 import { useArgs } from '@storybook/preview-api'
 import { HttpResponse, graphql } from 'msw'
 
 const meta = {
-  title: 'users/UserContactMethodFormDest',
-  component: UserContactMethodFormDest,
+  title: 'users/UserContactMethodForm',
+  component: UserContactMethodForm,
   tags: ['autodocs'],
   parameters: {
     msw: {
@@ -30,9 +30,9 @@ const meta = {
       if (args.onChange) args.onChange(newValue)
       setArgs({ value: newValue })
     }
-    return <UserContactMethodFormDest {...args} onChange={onChange} />
+    return <UserContactMethodForm {...args} onChange={onChange} />
   },
-} satisfies Meta<typeof UserContactMethodFormDest>
+} satisfies Meta<typeof UserContactMethodForm>
 
 export default meta
 type Story = StoryObj<typeof meta>

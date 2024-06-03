@@ -55,7 +55,7 @@ export const errorPaths = (prefix = '*'): string[] => [
   `${prefix}.dest`,
 ]
 
-export default function ScheduleOnCallNotificationsFormDest(
+export default function ScheduleOnCallNotificationsForm(
   props: ScheduleOnCallNotificationsFormProps,
 ): JSX.Element {
   const { scheduleID, ...formProps } = props

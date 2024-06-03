@@ -1,7 +1,7 @@
 import React from 'react'
 import { ConfigProvider } from '../util/RequireConfig'
-import { Provider as URQLProvider } from 'urql'
-import { client as urqlClient } from '../urql'
+import { Client, Provider as URQLProvider } from 'urql'
+import { newClient } from '../urql'
 import { StyledEngineProvider } from '@mui/material'
 import { ThemeProvider } from '../theme/themeConfig'
 import { ErrorBoundary } from 'react-error-boundary'
@@ -36,10 +36,16 @@ function fallbackRender({
 type Func = DecoratorFunction<ReactRenderer, object>
 type FuncParams = Parameters<Func>
 
+const clientCache: Record<string, Client> = {}
+
 export default function DefaultDecorator(
   Story: FuncParams[0],
   args: FuncParams[1],
 ): ReturnType<Func> {
+  const client =
+    clientCache[args.id] ||
+    newClient('/' + encodeURIComponent(args.id) + '/api/graphql')
+  clientCache[args.id] = client
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider
@@ -47,7 +53,7 @@ export default function DefaultDecorator(
           args?.globals?.backgrounds?.value === '#333333' ? 'dark' : 'light'
         }
       >
-        <URQLProvider value={urqlClient}>
+        <URQLProvider value={client}>
           <ConfigProvider>
             <ErrorBoundary fallbackRender={fallbackRender}>
               <Story />

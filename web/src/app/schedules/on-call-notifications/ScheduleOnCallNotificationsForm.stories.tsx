@@ -1,14 +1,14 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import ScheduleOnCallNotificationsFormDest, {
+import ScheduleOnCallNotificationsForm, {
   Value,
-} from './ScheduleOnCallNotificationsFormDest'
+} from './ScheduleOnCallNotificationsForm'
 import { useArgs } from '@storybook/preview-api'
 import { expect, fn, userEvent, within } from '@storybook/test'
 
 const meta = {
   title: 'schedules/on-call-notifications/FormDest',
-  component: ScheduleOnCallNotificationsFormDest,
+  component: ScheduleOnCallNotificationsForm,
   argTypes: {},
   args: {
     scheduleID: '',
@@ -29,9 +29,9 @@ const meta = {
       if (args.onChange) args.onChange(newValue)
       setArgs({ value: newValue })
     }
-    return <ScheduleOnCallNotificationsFormDest {...args} onChange={onChange} />
+    return <ScheduleOnCallNotificationsForm {...args} onChange={onChange} />
   },
-} satisfies Meta<typeof ScheduleOnCallNotificationsFormDest>
+} satisfies Meta<typeof ScheduleOnCallNotificationsForm>
 
 export default meta
 type Story = StoryObj<typeof meta>

@@ -63,6 +63,7 @@ function FormDialog(props) {
     fullHeight,
     disableBackdropClose,
     disablePortal,
+    disableSubmit,
     ...dialogProps
   } = props
 
@@ -169,6 +170,7 @@ function FormDialog(props) {
           }}
           attemptCount={attemptCount}
           buttonText={primaryActionLabel || (confirm ? 'Confirm' : submitText)}
+          disabled={disableSubmit}
           loading={loading}
           type='submit'
         />
@@ -236,6 +238,8 @@ FormDialog.propTypes = {
   maxWidth: p.string,
 
   disablePortal: p.bool, // disable the portal behavior of the dialog
+
+  disableSubmit: p.bool, // disables the submit button while true
 
   // overrides any of the main action button titles with this specific text
   primaryActionLabel: p.string,
