@@ -23,7 +23,7 @@ const mutation = gql`
   }
 `
 
-function PolicyStepDeleteDialog(props: {
+export default function PolicyStepDeleteDialog(props: {
   escalationPolicyID: string
   stepID: string
   onClose: () => void
@@ -76,5 +76,3 @@ function PolicyStepDeleteDialog(props: {
     />
   )
 }
-
-export default PolicyStepDeleteDialog

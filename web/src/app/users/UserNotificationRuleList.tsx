@@ -57,7 +57,7 @@ const useStyles = makeStyles((theme: Theme) => {
   }
 })
 
-export default function UserNotificationRuleListDest(props: {
+export default function UserNotificationRuleList(props: {
   userID: string
   readOnly: boolean
 }): ReactNode {
