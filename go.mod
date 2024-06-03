@@ -38,7 +38,7 @@ require (
 	github.com/prometheus/client_golang v1.19.1
 	github.com/rubenv/sql-migrate v1.6.1
 	github.com/sirupsen/logrus v1.9.3
-	github.com/slack-go/slack v0.12.5
+	github.com/slack-go/slack v0.13.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
 	github.com/sqlc-dev/pqtype v0.3.0
