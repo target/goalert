@@ -124,7 +124,8 @@ export default function UniversalKeyRuleForm(
                 .toPromise()
                 .then((res) => {
                   if (res.error) {
-                    setAddActionError(res.error)
+                    setAddActionError(res.error) // todo: not showing in dialog?
+                    console.log(res.error)
                     return
                   }
 
