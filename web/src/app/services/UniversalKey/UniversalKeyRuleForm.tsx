@@ -71,7 +71,7 @@ export default function UniversalKeyRuleForm(
           <FormField
             fullWidth
             component={TextField}
-            label='Expr'
+            label='Condition (Expr syntax)'
             name='conditionExpr'
             required
             multiline
