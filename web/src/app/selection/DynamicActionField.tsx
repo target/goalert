@@ -87,6 +87,11 @@ export function defaults(destTypeInfo: DestinationTypeInfo): Value {
   }
 }
 
+// DynamicActionField renders a select dropdown to choose what type of Destination
+//  to use, followed by all the fields that Destination requires.
+//
+// e.g. When Destination Type = Slack is selected, the form may render
+// a DestinationSearchSelect to allow the user to find which channel or user.
 export default function DynamicActionField(
   props: DynamicActionFieldProps,
 ): React.ReactNode {
@@ -95,6 +100,7 @@ export default function DynamicActionField(
 
   return (
     <Grid container spacing={2} item xs={12}>
+      {/* Choose your destination */}
       <Grid item xs={12}>
         <TextField
           select
@@ -118,6 +124,8 @@ export default function DynamicActionField(
           )}
         </TextField>
       </Grid>
+
+      {/* Static fields for things like the address of the message */}
       <Grid item xs={12}>
         <DestinationField
           value={staticToDestField(props.value.staticParams)}
@@ -132,6 +140,8 @@ export default function DynamicActionField(
           destFieldErrors={props.destFieldErrors}
         />
       </Grid>
+
+      {/* Dynamic fields are used for things like the body of the message */}
       {(dest.dynamicParams || []).map((p) => {
         const fieldValue = props.value.dynamicParams.get(p.paramID) || ''
 

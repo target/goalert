@@ -4,13 +4,14 @@ import { Button, Grid, TextField, Typography } from '@mui/material'
 import { ActionInput, KeyRuleInput } from '../../../schema'
 import { useDynamicActionTypes } from '../../util/RequireConfig'
 import DestinationInputChip from '../../util/DestinationInputChip'
-import { gql, useClient } from 'urql'
+import { CombinedError, gql, useClient } from 'urql'
 import DynamicActionField, {
   Value as ActionValue,
   defaults,
   valueToActionInput,
 } from '../../selection/DynamicActionField'
 import { Add } from '@mui/icons-material'
+import { nonFieldErrors } from '../../util/errutil'
 
 interface UniversalKeyRuleFormProps {
   value: KeyRuleInput
@@ -36,6 +37,7 @@ export default function UniversalKeyRuleForm(
   const [currentAction, setCurrentAction] = useState<ActionValue>(
     defaults(types[0]),
   )
+  const [addActionError, setAddActionError] = useState<CombinedError>()
 
   const validationClient = useClient()
 
@@ -48,7 +50,11 @@ export default function UniversalKeyRuleForm(
   }
 
   return (
-    <FormContainer value={props.value} onChange={props.onChange}>
+    <FormContainer
+      value={props.value}
+      onChange={props.onChange}
+      errors={nonFieldErrors(addActionError)}
+    >
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <FormField
@@ -118,7 +124,7 @@ export default function UniversalKeyRuleForm(
                 .toPromise()
                 .then((res) => {
                   if (res.error) {
-                    console.error(res.error)
+                    setAddActionError(res.error)
                     return
                   }
 
