@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	"context"
 	"slices"
+	"strconv"
 
 	"github.com/nyaruka/phonenumbers"
 	"github.com/target/goalert/config"
@@ -31,6 +32,7 @@ const (
 	fieldSlackUserID  = "slack-user-id"
 	fieldSlackChanID  = "slack-channel-id"
 	fieldSlackUGID    = "slack-usergroup-id"
+	fieldAlertID      = "alert-id"
 	fieldUserID       = "user-id"
 	fieldRotationID   = "rotation-id"
 	fieldScheduleID   = "schedule-id"
@@ -43,6 +45,17 @@ type (
 
 func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.DestinationFieldValidateInput) (string, error) {
 	switch input.FieldID {
+	case fieldAlertID:
+		id, err := strconv.Atoi(input.Value)
+		if err != nil {
+			return "", err
+		}
+
+		alert, err := q.Alert(ctx, id)
+		if err != nil {
+			return "", err
+		}
+		return strconv.Itoa(alert.ID), nil
 	case fieldSlackChanID:
 		ch, err := q.SlackChannel(ctx, input.Value)
 		if err != nil {
@@ -241,6 +254,12 @@ func (q *Query) DestinationFieldValidate(ctx context.Context, input graphql2.Des
 
 		err := validate.AbsoluteURL("URL", input.Value)
 		return err == nil, nil
+	case destAlert:
+		if input.FieldID != fieldAlertID {
+			return false, validation.NewGenericError("unsupported field")
+		}
+
+		return true, nil
 	}
 
 	return false, validation.NewGenericError("unsupported data type")
