@@ -1,6 +1,6 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import PolicyStepFormDest, { FormValue } from './PolicyStepFormDest'
+import PolicyStepForm, { FormValue } from './PolicyStepForm'
 import { expect, userEvent, waitFor, within, fn } from '@storybook/test'
 import { handleDefaultConfig } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
@@ -13,7 +13,7 @@ const INVALID_PHONE = '+15555'
 
 const meta = {
   title: 'Escalation Policies/Steps/Form',
-  component: PolicyStepFormDest,
+  component: PolicyStepForm,
   args: {
     onChange: fn(),
   },
@@ -23,7 +23,7 @@ const meta = {
       if (args.onChange) args.onChange(newValue)
       setArgs({ value: newValue })
     }
-    return <PolicyStepFormDest {...args} onChange={onChange} />
+    return <PolicyStepForm {...args} onChange={onChange} />
   },
   tags: ['autodocs'],
   parameters: {
@@ -74,7 +74,7 @@ const meta = {
       ],
     },
   },
-} satisfies Meta<typeof PolicyStepFormDest>
+} satisfies Meta<typeof PolicyStepForm>
 
 export default meta
 type Story = StoryObj<typeof meta>

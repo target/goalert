@@ -152,8 +152,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			if errutil.HTTPError(ctx, w, err) {
 				return
 			}
-		case "builtin-alert":
 
+		case "builtin-alert":
 			status := alert.StatusTriggered
 			if res.Params["close"] == "true" {
 				status = alert.StatusClosed

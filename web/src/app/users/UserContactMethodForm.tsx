@@ -39,7 +39,7 @@ export const errorPaths = (prefix = '*'): string[] => [
   `${prefix}.dest`,
 ]
 
-export default function UserContactMethodFormDest(
+export default function UserContactMethodForm(
   props: UserContactMethodFormProps,
 ): JSX.Element {
   const { value, edit = false, errors = [], ...other } = props

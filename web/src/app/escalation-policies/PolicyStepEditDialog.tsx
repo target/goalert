@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { gql, useMutation, useQuery } from 'urql'
 import { splitErrorsByPath } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
-import PolicyStepFormDest, { FormValue } from './PolicyStepFormDest'
+import PolicyStepForm, { FormValue } from './PolicyStepForm'
 import {
   Destination,
   EscalationPolicy,
@@ -10,7 +10,7 @@ import {
   UpdateEscalationPolicyStepInput,
 } from '../../schema'
 
-interface PolicyStepEditDialogDestProps {
+interface PolicyStepEditDialogProps {
   escalationPolicyID: string
   onClose: () => void
   stepID: string
@@ -42,8 +42,8 @@ const query = gql`
   }
 `
 
-function PolicyStepEditDialogDest(
-  props: PolicyStepEditDialogDestProps,
+export default function PolicyStepEditDialog(
+  props: PolicyStepEditDialogProps,
 ): React.ReactNode {
   const [stepQ] = useQuery<{ escalationPolicy: EscalationPolicy }>({
     query,
@@ -98,7 +98,7 @@ function PolicyStepEditDialogDest(
         })
       }
       form={
-        <PolicyStepFormDest
+        <PolicyStepForm
           disabled={editStepStatus.fetching}
           value={value}
           onChange={(value: FormValue) => setValue(value)}
@@ -107,5 +107,3 @@ function PolicyStepEditDialogDest(
     />
   )
 }
-
-export default PolicyStepEditDialogDest

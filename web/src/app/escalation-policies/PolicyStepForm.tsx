@@ -33,7 +33,7 @@ export type FormValue = {
   actions: DestinationInput[]
 }
 
-export type PolicyStepFormDestProps = {
+export type PolicyStepFormProps = {
   value: FormValue
   errors?: (KnownError | DestFieldValueError)[]
   disabled?: boolean
@@ -51,9 +51,7 @@ const query = gql`
   }
 `
 
-export default function PolicyStepFormDest(
-  props: PolicyStepFormDestProps,
-): ReactNode {
+export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
   const types = useEPTargetTypes()
   const classes = useStyles()
   const [destType, setDestType] = useState(types[0].type)

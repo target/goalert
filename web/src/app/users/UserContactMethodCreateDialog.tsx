@@ -3,7 +3,7 @@ import { useMutation, gql, CombinedError } from 'urql'
 
 import { splitErrorsByPath } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
-import UserContactMethodForm, { errorPaths } from './UserContactMethodFormDest'
+import UserContactMethodForm, { errorPaths } from './UserContactMethodForm'
 import { useContactMethodTypes } from '../util/RequireConfig'
 import { Dialog, DialogTitle, DialogActions, Button } from '@mui/material'
 import DialogContentError from '../dialogs/components/DialogContentError'
@@ -23,7 +23,7 @@ const createMutation = gql`
   }
 `
 
-export default function UserContactMethodCreateDialogDest(props: {
+export default function UserContactMethodCreateDialog(props: {
   userID: string
   onClose: (contactMethodID?: string) => void
   title?: string

@@ -13,10 +13,10 @@ import { Schedule } from '../../../schema'
 import { DestinationAvatar } from '../../util/DestinationAvatar'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import makeStyles from '@mui/styles/makeStyles'
-import ScheduleOnCallNotificationsCreateDialogDest from './ScheduleOnCallNotificationsCreateDialogDest'
-import ScheduleOnCallNotificationsEditDialogDest from './ScheduleOnCallNotificationsEditDialogDest'
+import ScheduleOnCallNotificationsCreateDialog from './ScheduleOnCallNotificationsCreateDialog'
+import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotificationsEditDialog'
 
-export type ScheduleOnCallNotificationsListDestProps = {
+export type ScheduleOnCallNotificationsListProps = {
   scheduleID: string
 }
 
@@ -50,9 +50,9 @@ const useStyles = makeStyles((theme: Theme) => ({
   ...globalStyles(theme),
 }))
 
-export default function ScheduleOnCallNotificationsListDest({
+export default function ScheduleOnCallNotificationsList({
   scheduleID,
-}: ScheduleOnCallNotificationsListDestProps): JSX.Element {
+}: ScheduleOnCallNotificationsListProps): JSX.Element {
   const [createRule, setCreateRule] = useState(false)
   const [editRuleID, setEditRuleID] = useState('')
   const [deleteRuleID, setDeleteRuleID] = useState('')
@@ -177,13 +177,13 @@ export default function ScheduleOnCallNotificationsListDest({
       )}
       <Suspense>
         {createRule && (
-          <ScheduleOnCallNotificationsCreateDialogDest
+          <ScheduleOnCallNotificationsCreateDialog
             scheduleID={scheduleID}
             onClose={() => setCreateRule(false)}
           />
         )}
         {editRuleID && (
-          <ScheduleOnCallNotificationsEditDialogDest
+          <ScheduleOnCallNotificationsEditDialog
             scheduleID={scheduleID}
             ruleID={editRuleID}
             onClose={() => setEditRuleID('')}

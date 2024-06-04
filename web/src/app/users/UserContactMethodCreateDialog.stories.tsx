@@ -1,6 +1,6 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import UserContactMethodCreateDialogDest from './UserContactMethodCreateDialogDest'
+import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
 import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
 import { handleDefaultConfig, defaultConfig } from '../storybook/graphql'
 import { useArgs } from '@storybook/preview-api'
@@ -8,8 +8,8 @@ import { HttpResponse, graphql } from 'msw'
 import { DestFieldValueError, InputFieldError } from '../util/errtypes'
 
 const meta = {
-  title: 'users/UserContactMethodCreateDialogDest',
-  component: UserContactMethodCreateDialogDest,
+  title: 'users/UserContactMethodCreateDialog',
+  component: UserContactMethodCreateDialog,
   tags: ['autodocs'],
   args: {
     onClose: fn(),
@@ -88,14 +88,14 @@ const meta = {
       setArgs({ value: contactMethodID })
     }
     return (
-      <UserContactMethodCreateDialogDest
+      <UserContactMethodCreateDialog
         {...args}
         disablePortal
         onClose={onClose}
       />
     )
   },
-} satisfies Meta<typeof UserContactMethodCreateDialogDest>
+} satisfies Meta<typeof UserContactMethodCreateDialog>
 
 export default meta
 type Story = StoryObj<typeof meta>
