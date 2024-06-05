@@ -36,12 +36,16 @@ export default function UniversalKeyRuleCreateDialogProps(
   return (
     <FormDialog
       title='Create Rule'
+      maxWidth='lg'
       onClose={props.onClose}
+      errors={nonFieldErrors(createStatus.error)}
       onSubmit={() => {
         if (noActionsNoConf) {
           setHasSubmitted(true)
           return
         }
+
+        console.log('submitting')
 
         return commit(
           {
@@ -56,12 +60,13 @@ export default function UniversalKeyRuleCreateDialogProps(
             },
           },
           { additionalTypenames: ['IntegrationKey', 'Service'] },
-        ).then(() => {
-          props.onClose()
+        ).then((res) => {
+          if (!res.error) {
+            props.onClose()
+          }
         })
       }}
       form={<UniversalKeyRuleForm value={value} onChange={setValue} />}
-      errors={nonFieldErrors(createStatus.error)}
       notices={getNotice(hasSubmitted, hasConfirmed, setHasConfirmed)}
     />
   )
