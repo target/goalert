@@ -29,12 +29,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 			})
 		},
 
-		func(next http.Handler) http.Handler {
-			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-				w.Header().Set("Referrer-Policy", "same-origin")
-				next.ServeHTTP(w, req)
-			})
-		},
+		withSecureHeaders(strings.HasPrefix(app.cfg.PublicURL, "https://")),
 
 		config.ShortURLMiddleware,
 

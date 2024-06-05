@@ -7,3 +7,4 @@ export const applicationName = global.applicationName || 'GoAlert'
 export const GOALERT_VERSION = global.GOALERT_VERSION || 'dev'
 
 export const isCypress = Boolean(global.Cypress)
+export const nonce = global.nonce || ''

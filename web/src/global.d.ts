@@ -12,3 +12,4 @@ var pathPrefix: string
 var applicationName: string
 var GOALERT_VERSION: string
 var Cypress: any
+var nonce: string

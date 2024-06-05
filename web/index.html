@@ -137,9 +137,10 @@
       </div>
     </div>
     <div id="graceful-unmount"></div>
-    <script>
+    <script nonce="{{.Nonce}}">
       pathPrefix = "{{.PathPrefix}}";
       applicationName = "{{.ApplicationName}}";
+      nonce = "{{.Nonce}}";
     </script>
     <script src="{{ .Prefix }}/static/app.js"></script>
     {{- if .ExtraJS }}

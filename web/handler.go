@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/target/goalert/app/csp"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/version"
@@ -102,6 +103,7 @@ func NewHandler(uiDir, prefix string) (http.Handler, error) {
 			ApplicationName: cfg.ApplicationName(),
 			Prefix:          prefix,
 			ExtraJS:         extraJS,
+			Nonce:           csp.NonceValue(req.Context()),
 		})
 	})
 
@@ -112,6 +114,7 @@ func NewHandler(uiDir, prefix string) (http.Handler, error) {
 			ApplicationName: cfg.ApplicationName(),
 			Prefix:          prefix,
 			ExtraJS:         extraJS,
+			Nonce:           csp.NonceValue(req.Context()),
 		})
 	})
 
