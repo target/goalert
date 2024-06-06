@@ -80,6 +80,7 @@ export default function UniversalKeyRuleCreateDialogProps(
   return (
     <FormDialog
       title='Edit Rule'
+      maxWidth='lg'
       onClose={props.onClose}
       onSubmit={() => {
         if (noActionsNoConf) {
