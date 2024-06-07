@@ -6991,14 +6991,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-big-calendar@npm:1.6.5":
-  version: 1.6.5
-  resolution: "@types/react-big-calendar@npm:1.6.5"
+"@types/react-big-calendar@npm:1.8.9":
+  version: 1.8.9
+  resolution: "@types/react-big-calendar@npm:1.8.9"
   dependencies:
     "@types/date-arithmetic": "*"
     "@types/prop-types": "*"
     "@types/react": "*"
-  checksum: 32347444abe56f9035d6a12cb684a3acfe07fc45e0111c6adf2218354fb62b9384965adaca36405072c2b02ea5fd8262d40c1c3f823364f0571a1ee27a80cb24
+  checksum: 18294e2e0e96997cedd433270695e7023df13eadc3c031381bccff0ba1ca58036bdfb01565264c062091486595d8a2a19d6d3e32dd3c9ba425500082e8a1d66d
   languageName: node
   linkType: hard
 
@@ -17890,9 +17890,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-big-calendar@npm:1.8.5":
-  version: 1.8.5
-  resolution: "react-big-calendar@npm:1.8.5"
+"react-big-calendar@npm:1.12.2":
+  version: 1.12.2
+  resolution: "react-big-calendar@npm:1.12.2"
   dependencies:
     "@babel/runtime": ^7.20.7
     clsx: ^1.2.1
@@ -17913,7 +17913,7 @@ __metadata:
   peerDependencies:
     react: ^16.14.0 || ^17 || ^18
     react-dom: ^16.14.0 || ^17 || ^18
-  checksum: 57ce758abec0dc949047df586d202ed1b2d9afded0add416d187fe09bfee72812c3652d9e49a6d4f15953301bb92d9d2db09c1dd7c7dfd7a0f8ab8612d844a1a
+  checksum: 265516ddf23a7fb25bbd332bd07d8622899c5744c66fc76c97f20ff9e66027bf4278e2dacdf1e7ab21a993679c24b034f38db745b25ab9eea57656507bbba37c
   languageName: node
   linkType: hard
 
@@ -18989,7 +18989,7 @@ __metadata:
     "@types/node": 20.11.30
     "@types/prop-types": 15.7.11
     "@types/react": 18.2.48
-    "@types/react-big-calendar": 1.6.5
+    "@types/react-big-calendar": 1.8.9
     "@types/react-dom": 18.2.22
     "@types/react-transition-group": 4.4.10
     "@types/react-virtualized-auto-sizer": 1.0.4
@@ -19036,7 +19036,7 @@ __metadata:
     prop-types: 15.8.1
     punycode: 2.3.1
     react: 18.2.0
-    react-big-calendar: 1.8.5
+    react-big-calendar: 1.12.2
     react-colorful: 5.6.1
     react-countdown: 2.3.5
     react-dom: 18.2.0
