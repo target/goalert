@@ -64,7 +64,7 @@ test.afterEach(async ({ page }) => {
 test('check caption delay text while creating steps', async ({ page }) => {
   await page.goto(`/escalation-policies/${epID}`)
 
-  async function createStep(delayMinutes: string) {
+  async function createStep(delayMinutes: string): Promise<void> {
     await page.getByRole('button', { name: 'Create Step' }).click()
     await page.getByLabel('Destination Type').click()
     await page.locator('li', { hasText: 'User' }).click()
