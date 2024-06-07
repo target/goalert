@@ -21,6 +21,20 @@ import (
 	"github.com/target/goalert/web"
 )
 
+func corsMiddleware() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8081")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			if r.Method == http.MethodOptions {
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 func (app *App) initHTTP(ctx context.Context) error {
 	middleware := []func(http.Handler) http.Handler{
 		func(next http.Handler) http.Handler {
@@ -125,7 +139,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 		UserStore:           app.UserStore,
 	})
 
-	mux.Handle("/api/graphql", app.graphql2.Handler())
+	mux.Handle("/api/graphql", corsMiddleware()(app.graphql2.Handler()))
 
 	mux.HandleFunc("/api/v2/config", app.ConfigStore.ServeConfig)
 
