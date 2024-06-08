@@ -6622,10 +6622,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/diff@npm:5.0.8":
-  version: 5.0.8
-  resolution: "@types/diff@npm:5.0.8"
-  checksum: 729c74c408905cb88ae7a8245e8c1d03359f2c01168beee4d90304af1cdf99462e4a1f2c49b3a64e27623baae3ea7a5a8f883b1db5a3ec075770700a14ad0904
+"@types/diff@npm:5.2.1":
+  version: 5.2.1
+  resolution: "@types/diff@npm:5.2.1"
+  checksum: 5983a323177bd691cb2194f5d55b960cd20a9c8fec653b4b038760c5809627cc9ea3578fdf10119ccbefefef193ea925f2817136eb97b17388f66b16c8480a8a
   languageName: node
   linkType: hard
 
@@ -10168,10 +10168,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"diff@npm:5.1.0":
-  version: 5.1.0
-  resolution: "diff@npm:5.1.0"
-  checksum: c7bf0df7c9bfbe1cf8a678fd1b2137c4fb11be117a67bc18a0e03ae75105e8533dbfb1cda6b46beb3586ef5aed22143ef9d70713977d5fb1f9114e21455fba90
+"diff@npm:5.2.0":
+  version: 5.2.0
+  resolution: "diff@npm:5.2.0"
+  checksum: 12b63ca9c36c72bafa3effa77121f0581b4015df18bc16bac1f8e263597735649f1a173c26f7eba17fb4162b073fee61788abe49610e6c70a2641fe1895443fd
   languageName: node
   linkType: hard
 
@@ -18981,7 +18981,7 @@ __metadata:
     "@storybook/test-runner": 0.17.0
     "@storybook/types": 8.0.6
     "@types/chance": 1.1.6
-    "@types/diff": 5.0.8
+    "@types/diff": 5.2.1
     "@types/glob": 8.1.0
     "@types/jest": 29.5.12
     "@types/lodash": 4.17.1
@@ -19002,7 +19002,7 @@ __metadata:
     concurrently: 8.2.2
     cypress: 13.3.0
     detect-package-manager: 3.0.1
-    diff: 5.1.0
+    diff: 5.2.0
     esbuild: 0.20.2
     esbuild-jest: 0.5.0
     eslint: 8.57.0
