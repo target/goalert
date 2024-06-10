@@ -84,15 +84,13 @@ export default function UniversalKeyRuleList(
       <FlatList
         emptyMessage='No rules exist for this integration key.'
         headerAction={
-          isMobile ? undefined : (
-            <Button
-              variant='contained'
-              startIcon={<Add />}
-              onClick={() => setCreate(true)}
-            >
-              Create Rule
-            </Button>
-          )
+          <Button
+            variant='contained'
+            startIcon={<Add />}
+            onClick={() => setCreate(true)}
+          >
+            Create Rule
+          </Button>
         }
         headerNote='Rules are a set of filters that allow notifications to be sent to a specific destination. '
         items={items}
