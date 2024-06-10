@@ -61,6 +61,45 @@ test.afterEach(async ({ page }) => {
   await page.click('button:has-text("Confirm")')
 })
 
+test('check caption delay text while creating steps', async ({ page }) => {
+  await page.goto(`/escalation-policies/${epID}`)
+
+  async function createStep(delayMinutes: string): Promise<void> {
+    await page.getByRole('button', { name: 'Create Step' }).click()
+    await page.getByLabel('Destination Type').click()
+    await page.locator('li', { hasText: 'User' }).click()
+    await page.getByRole('combobox', { name: 'User', exact: true }).click()
+    await page
+      .getByRole('combobox', { name: 'User', exact: true })
+      .fill('Admin McIntegrationFace')
+    await page
+      .locator('div[role=presentation]')
+      .locator('li', { hasText: 'Admin McIntegrationFace' })
+      .click()
+    await page.getByRole('button', { name: 'Add Destination' }).click()
+    await expect(
+      page
+        .getByRole('dialog')
+        .getByTestId('destination-chip')
+        .filter({ hasText: 'Admin McIntegrationFace' }),
+    ).toBeVisible()
+    await page.locator('input[name=delayMinutes]').fill(delayMinutes)
+    await page.locator('button[type=submit]', { hasText: 'Submit' }).click()
+  }
+
+  await createStep('5')
+  await expect(
+    page.getByText('Go back to step #1 after 5 minutes'),
+  ).toBeVisible()
+  await createStep('20')
+  await expect(
+    page.getByText('Move on to step #2 after 5 minutes'),
+  ).toBeVisible()
+  await expect(
+    page.getByText('Go back to step #1 after 20 minutes'),
+  ).toBeVisible()
+})
+
 test('create escalation policy step using destination actions', async ({
   page,
 }) => {

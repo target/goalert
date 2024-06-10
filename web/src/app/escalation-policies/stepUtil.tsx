@@ -45,7 +45,7 @@ export function renderDelayMessage(
   const pluralizer = (x: number): string => (x === 1 ? '' : 's')
 
   let repeatText = `Move on to step #${
-    idx + 1
+    idx + 2
   } after ${step.delayMinutes} minute${pluralizer(step.delayMinutes)}`
 
   if (isLastStep && idx === 0) {
