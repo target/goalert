@@ -1,6 +1,17 @@
 import React, { useState } from 'react'
 import { FormContainer, FormField } from '../../forms'
-import { Button, Divider, Grid, TextField, Typography } from '@mui/material'
+import {
+  Button,
+  Divider,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Grid,
+  Radio,
+  RadioGroup,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { ActionInput, KeyRuleInput } from '../../../schema'
 import { useDynamicActionTypes } from '../../util/RequireConfig'
 import DestinationInputChip from '../../util/DestinationInputChip'
@@ -38,6 +49,9 @@ export default function UniversalKeyRuleForm(
     defaults(types[0]),
   )
   const [addActionError, setAddActionError] = useState<CombinedError>()
+  const [stopOrContinue, setStopOrContinue] = useState<'stop' | 'continue'>(
+    'continue',
+  )
 
   const validationClient = useClient()
 
@@ -56,7 +70,14 @@ export default function UniversalKeyRuleForm(
       errors={fieldErrors(addActionError)}
     >
       <Grid container justifyContent='space-between' spacing={2}>
-        <Grid item xs={5.8} container spacing={2} alignContent='flex-start'>
+        <Grid
+          item
+          xs={12}
+          md={5.8}
+          container
+          spacing={2}
+          alignContent='flex-start'
+        >
           <Grid item xs={12}>
             <FormField
               fullWidth
@@ -107,13 +128,34 @@ export default function UniversalKeyRuleForm(
               </Grid>
             )}
           </Grid>
+          <Grid item xs={12}>
+            <FormControl>
+              <FormLabel id='demo-row-radio-buttons-group-label'>
+                After actions complete:
+              </FormLabel>
+              <RadioGroup row name='stop-or-continue' value={stopOrContinue}>
+                <FormControlLabel
+                  value={'continue'}
+                  onChange={() => setStopOrContinue('continue')}
+                  control={<Radio />}
+                  label='Continue processing rules'
+                />
+                <FormControlLabel
+                  value='stop'
+                  onChange={() => setStopOrContinue('stop')}
+                  control={<Radio />}
+                  label='Stop at this rule'
+                />
+              </RadioGroup>
+            </FormControl>
+          </Grid>
         </Grid>
 
         <Grid item sx={{ width: 'fit-content' }}>
           <Divider orientation='vertical' />
         </Grid>
 
-        <Grid item xs={5.8} container spacing={2}>
+        <Grid item xs={12} md={5.8} container spacing={2}>
           <DynamicActionField
             value={currentAction}
             onChange={setCurrentAction}
