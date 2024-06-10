@@ -42,6 +42,8 @@ type Rule struct {
 	Description   string
 	ConditionExpr string
 	Actions       []Action
+
+	ContinueAfterMatch bool
 }
 
 // An Action is a single action to take if a rule matches.
