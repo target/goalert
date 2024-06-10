@@ -10,6 +10,13 @@ export interface ActionInput {
   params: DynamicParamInput[]
 }
 
+export interface ActionInputValidationResult {
+  destFieldErrors: FieldError[]
+  destTypeError: string
+  paramErrors: FieldError[]
+  valid: boolean
+}
+
 export interface Alert {
   alertID: number
   createdAt: ISOTimestamp
@@ -538,6 +545,11 @@ export interface ExprToConditionInput {
 
 export type ExprValue = string
 
+export interface FieldError {
+  fieldID: string
+  message: string
+}
+
 export interface FieldSearchConnection {
   nodes: FieldSearchResult[]
   pageInfo: PageInfo
@@ -857,6 +869,7 @@ export interface PhoneNumberInfo {
 export interface Query {
   __schema: __Schema
   __type?: null | __Type
+  actionInputValidate: ActionInputValidationResult
   alert?: null | Alert
   alerts: AlertConnection
   authSubjectsForProvider: AuthSubjectConnection

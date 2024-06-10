@@ -48,6 +48,24 @@ extend type Mutation {
   generateKeyToken(id: ID!): String! @experimental(flagName: "univ-keys")
 }
 
+extend type Query {
+  actionInputValidate(input: ActionInput!): ActionInputValidationResult!
+    @experimental(flagName: "univ-keys")
+}
+
+type ActionInputValidationResult {
+  valid: Boolean!
+
+  destTypeError: String!
+  destFieldErrors: [FieldError!]!
+  paramErrors: [FieldError!]!
+}
+
+type FieldError {
+  fieldID: ID!
+  message: String!
+}
+
 type KeyConfig {
   """
   Stop evaluating rules after the first rule that matches.

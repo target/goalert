@@ -106,6 +106,13 @@ type ComplexityRoot struct {
 		Params func(childComplexity int) int
 	}
 
+	ActionInputValidationResult struct {
+		DestFieldErrors func(childComplexity int) int
+		DestTypeError   func(childComplexity int) int
+		ParamErrors     func(childComplexity int) int
+		Valid           func(childComplexity int) int
+	}
+
 	Alert struct {
 		AlertID              func(childComplexity int) int
 		CreatedAt            func(childComplexity int) int
@@ -330,6 +337,11 @@ type ComplexityRoot struct {
 	Expr struct {
 		ConditionToExpr func(childComplexity int, input ConditionToExprInput) int
 		ExprToCondition func(childComplexity int, input ExprToConditionInput) int
+	}
+
+	FieldError struct {
+		FieldID func(childComplexity int) int
+		Message func(childComplexity int) int
 	}
 
 	FieldSearchConnection struct {
@@ -559,6 +571,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		ActionInputValidate       func(childComplexity int, input ActionInput) int
 		Alert                     func(childComplexity int, id int) int
 		Alerts                    func(childComplexity int, input *AlertSearchOptions) int
 		AuthSubjectsForProvider   func(childComplexity int, first *int, after *string, providerID string) int
@@ -1039,6 +1052,7 @@ type QueryResolver interface {
 	DestinationDisplayInfo(ctx context.Context, input DestinationInput) (*DestinationDisplayInfo, error)
 	Expr(ctx context.Context) (*Expr, error)
 	GqlAPIKeys(ctx context.Context) ([]GQLAPIKey, error)
+	ActionInputValidate(ctx context.Context, input ActionInput) (*ActionInputValidationResult, error)
 }
 type RotationResolver interface {
 	IsFavorite(ctx context.Context, obj *rotation.Rotation) (bool, error)
@@ -1162,6 +1176,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Action.Params(childComplexity), true
+
+	case "ActionInputValidationResult.destFieldErrors":
+		if e.complexity.ActionInputValidationResult.DestFieldErrors == nil {
+			break
+		}
+
+		return e.complexity.ActionInputValidationResult.DestFieldErrors(childComplexity), true
+
+	case "ActionInputValidationResult.destTypeError":
+		if e.complexity.ActionInputValidationResult.DestTypeError == nil {
+			break
+		}
+
+		return e.complexity.ActionInputValidationResult.DestTypeError(childComplexity), true
+
+	case "ActionInputValidationResult.paramErrors":
+		if e.complexity.ActionInputValidationResult.ParamErrors == nil {
+			break
+		}
+
+		return e.complexity.ActionInputValidationResult.ParamErrors(childComplexity), true
+
+	case "ActionInputValidationResult.valid":
+		if e.complexity.ActionInputValidationResult.Valid == nil {
+			break
+		}
+
+		return e.complexity.ActionInputValidationResult.Valid(childComplexity), true
 
 	case "Alert.alertID":
 		if e.complexity.Alert.AlertID == nil {
@@ -2113,6 +2155,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Expr.ExprToCondition(childComplexity, args["input"].(ExprToConditionInput)), true
+
+	case "FieldError.fieldID":
+		if e.complexity.FieldError.FieldID == nil {
+			break
+		}
+
+		return e.complexity.FieldError.FieldID(childComplexity), true
+
+	case "FieldError.message":
+		if e.complexity.FieldError.Message == nil {
+			break
+		}
+
+		return e.complexity.FieldError.Message(childComplexity), true
 
 	case "FieldSearchConnection.nodes":
 		if e.complexity.FieldSearchConnection.Nodes == nil {
@@ -3455,6 +3511,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PhoneNumberInfo.Valid(childComplexity), true
+
+	case "Query.actionInputValidate":
+		if e.complexity.Query.ActionInputValidate == nil {
+			break
+		}
+
+		args, err := ec.field_Query_actionInputValidate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ActionInputValidate(childComplexity, args["input"].(ActionInput)), true
 
 	case "Query.alert":
 		if e.complexity.Query.Alert == nil {
@@ -6252,6 +6320,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_actionInputValidate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ActionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNActionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_alert_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -7095,6 +7178,194 @@ func (ec *executionContext) fieldContext_Action_params(_ context.Context, field 
 				return ec.fieldContext_DynamicParam_expr(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DynamicParam", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ActionInputValidationResult_valid(ctx context.Context, field graphql.CollectedField, obj *ActionInputValidationResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ActionInputValidationResult_valid(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Valid, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ActionInputValidationResult_valid(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ActionInputValidationResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ActionInputValidationResult_destTypeError(ctx context.Context, field graphql.CollectedField, obj *ActionInputValidationResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ActionInputValidationResult_destTypeError(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DestTypeError, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ActionInputValidationResult_destTypeError(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ActionInputValidationResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ActionInputValidationResult_destFieldErrors(ctx context.Context, field graphql.CollectedField, obj *ActionInputValidationResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ActionInputValidationResult_destFieldErrors(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DestFieldErrors, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]FieldError)
+	fc.Result = res
+	return ec.marshalNFieldError2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldErrorᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ActionInputValidationResult_destFieldErrors(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ActionInputValidationResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "fieldID":
+				return ec.fieldContext_FieldError_fieldID(ctx, field)
+			case "message":
+				return ec.fieldContext_FieldError_message(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FieldError", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ActionInputValidationResult_paramErrors(ctx context.Context, field graphql.CollectedField, obj *ActionInputValidationResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ActionInputValidationResult_paramErrors(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ParamErrors, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]FieldError)
+	fc.Result = res
+	return ec.marshalNFieldError2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldErrorᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ActionInputValidationResult_paramErrors(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ActionInputValidationResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "fieldID":
+				return ec.fieldContext_FieldError_fieldID(ctx, field)
+			case "message":
+				return ec.fieldContext_FieldError_message(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FieldError", field.Name)
 		},
 	}
 	return fc, nil
@@ -13229,6 +13500,94 @@ func (ec *executionContext) fieldContext_Expr_conditionToExpr(ctx context.Contex
 	if fc.Args, err = ec.field_Expr_conditionToExpr_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FieldError_fieldID(ctx context.Context, field graphql.CollectedField, obj *FieldError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FieldError_fieldID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FieldID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FieldError_fieldID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FieldError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FieldError_message(ctx context.Context, field graphql.CollectedField, obj *FieldError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FieldError_message(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Message, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FieldError_message(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FieldError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
 	}
 	return fc, nil
 }
@@ -24295,6 +24654,95 @@ func (ec *executionContext) fieldContext_Query_gqlAPIKeys(_ context.Context, fie
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GQLAPIKey", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_actionInputValidate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_actionInputValidate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().ActionInputValidate(rctx, fc.Args["input"].(ActionInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			flagName, err := ec.unmarshalNString2string(ctx, "univ-keys")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Experimental == nil {
+				return nil, errors.New("directive experimental is not implemented")
+			}
+			return ec.directives.Experimental(ctx, nil, directive0, flagName)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*ActionInputValidationResult); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/target/goalert/graphql2.ActionInputValidationResult`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ActionInputValidationResult)
+	fc.Result = res
+	return ec.marshalNActionInputValidationResult2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionInputValidationResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_actionInputValidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "valid":
+				return ec.fieldContext_ActionInputValidationResult_valid(ctx, field)
+			case "destTypeError":
+				return ec.fieldContext_ActionInputValidationResult_destTypeError(ctx, field)
+			case "destFieldErrors":
+				return ec.fieldContext_ActionInputValidationResult_destFieldErrors(ctx, field)
+			case "paramErrors":
+				return ec.fieldContext_ActionInputValidationResult_paramErrors(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ActionInputValidationResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_actionInputValidate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -38025,6 +38473,60 @@ func (ec *executionContext) _Action(ctx context.Context, sel ast.SelectionSet, o
 	return out
 }
 
+var actionInputValidationResultImplementors = []string{"ActionInputValidationResult"}
+
+func (ec *executionContext) _ActionInputValidationResult(ctx context.Context, sel ast.SelectionSet, obj *ActionInputValidationResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, actionInputValidationResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ActionInputValidationResult")
+		case "valid":
+			out.Values[i] = ec._ActionInputValidationResult_valid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "destTypeError":
+			out.Values[i] = ec._ActionInputValidationResult_destTypeError(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "destFieldErrors":
+			out.Values[i] = ec._ActionInputValidationResult_destFieldErrors(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "paramErrors":
+			out.Values[i] = ec._ActionInputValidationResult_paramErrors(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var alertImplementors = []string{"Alert"}
 
 func (ec *executionContext) _Alert(ctx context.Context, sel ast.SelectionSet, obj *alert.Alert) graphql.Marshaler {
@@ -40451,6 +40953,50 @@ func (ec *executionContext) _Expr(ctx context.Context, sel ast.SelectionSet, obj
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var fieldErrorImplementors = []string{"FieldError"}
+
+func (ec *executionContext) _FieldError(ctx context.Context, sel ast.SelectionSet, obj *FieldError) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, fieldErrorImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FieldError")
+		case "fieldID":
+			out.Values[i] = ec._FieldError_fieldID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "message":
+			out.Values[i] = ec._FieldError_message(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -43536,6 +44082,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_gqlAPIKeys(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "actionInputValidate":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_actionInputValidate(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -47287,6 +47855,20 @@ func (ec *executionContext) unmarshalNActionInput2ᚕgithubᚗcomᚋtargetᚋgoa
 	return res, nil
 }
 
+func (ec *executionContext) marshalNActionInputValidationResult2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionInputValidationResult(ctx context.Context, sel ast.SelectionSet, v ActionInputValidationResult) graphql.Marshaler {
+	return ec._ActionInputValidationResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNActionInputValidationResult2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionInputValidationResult(ctx context.Context, sel ast.SelectionSet, v *ActionInputValidationResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ActionInputValidationResult(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNAlert2githubᚗcomᚋtargetᚋgoalertᚋalertᚐAlert(ctx context.Context, sel ast.SelectionSet, v alert.Alert) graphql.Marshaler {
 	return ec._Alert(ctx, sel, &v)
 }
@@ -48500,6 +49082,54 @@ func (ec *executionContext) marshalNExprValue2githubᚗcomᚋexprᚑlangᚋexpr�
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNFieldError2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldError(ctx context.Context, sel ast.SelectionSet, v FieldError) graphql.Marshaler {
+	return ec._FieldError(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNFieldError2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldErrorᚄ(ctx context.Context, sel ast.SelectionSet, v []FieldError) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFieldError2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldError(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNFieldSearchConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldSearchConnection(ctx context.Context, sel ast.SelectionSet, v FieldSearchConnection) graphql.Marshaler {
