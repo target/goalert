@@ -8,7 +8,7 @@ const keys = [
     value: 'generic',
   },
   {
-    label: 'Grafana Webhook URL',
+    label: 'Grafana',
     value: 'grafana',
   },
   {
@@ -16,7 +16,7 @@ const keys = [
     value: 'site24x7',
   },
   {
-    label: 'Prometheus Alertmanager Webhook URL',
+    label: 'Prometheus Alertmanager',
     value: 'prometheusAlertmanager',
   },
   {

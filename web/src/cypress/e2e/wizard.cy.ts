@@ -9,7 +9,7 @@ const keys = [
     value: 'generic',
   },
   {
-    label: 'Grafana Webhook URL',
+    label: 'Grafana',
     value: 'grafana',
   },
   {
