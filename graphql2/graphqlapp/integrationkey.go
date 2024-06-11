@@ -100,10 +100,6 @@ func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKey
 			return err
 		}
 
-		if input.StopAtFirstRule != nil {
-			cfg.StopAfterFirstMatchingRule = *input.StopAtFirstRule
-		}
-
 		if input.Rules != nil {
 			cfg.Rules = make([]integrationkey.Rule, 0, len(input.Rules))
 			for _, r := range input.Rules {
@@ -121,6 +117,8 @@ func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKey
 					Description:   r.Description,
 					ConditionExpr: r.ConditionExpr,
 					Actions:       actionsGQLToGo(r.Actions),
+
+					ContinueAfterMatch: r.ContinueAfterMatch,
 				})
 			}
 		}
@@ -213,18 +211,18 @@ func (key *IntegrationKey) Config(ctx context.Context, raw *integrationkey.Integ
 	var rules []graphql2.KeyRule
 	for _, r := range cfg.Rules {
 		rules = append(rules, graphql2.KeyRule{
-			ID:            r.ID.String(),
-			Name:          r.Name,
-			Description:   r.Description,
-			ConditionExpr: r.ConditionExpr,
-			Actions:       actionsGoToGQL(r.Actions),
+			ID:                 r.ID.String(),
+			Name:               r.Name,
+			Description:        r.Description,
+			ConditionExpr:      r.ConditionExpr,
+			Actions:            actionsGoToGQL(r.Actions),
+			ContinueAfterMatch: r.ContinueAfterMatch,
 		})
 	}
 
 	return &graphql2.KeyConfig{
-		StopAtFirstRule: cfg.StopAfterFirstMatchingRule,
-		Rules:           rules,
-		DefaultActions:  actionsGoToGQL(cfg.DefaultActions),
+		Rules:          rules,
+		DefaultActions: actionsGoToGQL(cfg.DefaultActions),
 	}, nil
 }
 
