@@ -42,13 +42,6 @@ type ActionInput struct {
 	Params []DynamicParamInput `json:"params"`
 }
 
-type ActionInputValidationResult struct {
-	Valid           bool         `json:"valid"`
-	DestTypeError   string       `json:"destTypeError"`
-	DestFieldErrors []FieldError `json:"destFieldErrors"`
-	ParamErrors     []FieldError `json:"paramErrors"`
-}
-
 type AlertConnection struct {
 	Nodes    []alert.Alert `json:"nodes"`
 	PageInfo *PageInfo     `json:"pageInfo"`
@@ -511,11 +504,6 @@ type Expr struct {
 
 type ExprToConditionInput struct {
 	Expr string `json:"expr"`
-}
-
-type FieldError struct {
-	FieldID string `json:"fieldID"`
-	Message string `json:"message"`
 }
 
 // FieldSearchConnection is a connection to a list of FieldSearchResult.

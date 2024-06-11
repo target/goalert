@@ -49,21 +49,8 @@ extend type Mutation {
 }
 
 extend type Query {
-  actionInputValidate(input: ActionInput!): ActionInputValidationResult!
+  actionInputValidate(input: ActionInput!): Boolean!
     @experimental(flagName: "univ-keys")
-}
-
-type ActionInputValidationResult {
-  valid: Boolean!
-
-  destTypeError: String!
-  destFieldErrors: [FieldError!]!
-  paramErrors: [FieldError!]!
-}
-
-type FieldError {
-  fieldID: ID!
-  message: String!
 }
 
 type KeyConfig {

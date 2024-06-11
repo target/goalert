@@ -129,85 +129,51 @@ func addInputError(ctx context.Context, err error) {
 	})
 }
 
-type fieldError struct {
-	FieldID string
-	Err     error
-}
-
-func (f fieldError) Error() string {
-	return f.Err.Error()
-}
-
-var errInvalidDestType = errors.New("invalid destination type")
-
 // ValidateDestination will validate a destination input.
 //
 // In the future this will be a call to the plugin system.
-func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *graphql2.DestinationInput) error {
-	err := a._ValidateDestination(ctx, dest)
-	var e fieldError
-	if errors.Is(err, errInvalidDestType) {
-		graphql.AddError(ctx, &gqlerror.Error{
-			Message: "unsupported destination type",
-			Path:    appendPath(ctx, fieldName+".type"),
-			Extensions: map[string]interface{}{
-				"code": graphql2.ErrorCodeInvalidInputValue,
-			},
-		})
-		return errAlreadySet
-	}
-	if errors.As(err, &e) {
-		return addDestFieldError(ctx, fieldName, e.FieldID, e.Err)
-	}
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (a *App) _ValidateDestination(ctx context.Context, dest *graphql2.DestinationInput) (err error) {
+func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *graphql2.DestinationInput) (err error) {
 	cfg := config.FromContext(ctx)
 	switch dest.Type {
 	case destTwilioSMS:
 		phone := dest.FieldValue(fieldPhoneNumber)
 		err := validate.Phone(fieldPhoneNumber, phone)
 		if err != nil {
-			return fieldError{fieldPhoneNumber, err}
+			return addDestFieldError(ctx, fieldName, fieldPhoneNumber, err)
 		}
 		return nil
 	case destTwilioVoice:
 		phone := dest.FieldValue(fieldPhoneNumber)
 		err := validate.Phone(fieldPhoneNumber, phone)
 		if err != nil {
-			return fieldError{fieldPhoneNumber, err}
+			return addDestFieldError(ctx, fieldName, fieldPhoneNumber, err)
 		}
 		return nil
 	case destSlackChan:
 		chanID := dest.FieldValue(fieldSlackChanID)
 		err := a.SlackStore.ValidateChannel(ctx, chanID)
 		if err != nil {
-			return fieldError{fieldSlackChanID, err}
+			return addDestFieldError(ctx, fieldName, fieldSlackChanID, err)
 		}
 
 		return nil
 	case destSlackDM:
 		userID := dest.FieldValue(fieldSlackUserID)
 		if err := a.SlackStore.ValidateUser(ctx, userID); err != nil {
-			return fieldError{fieldSlackUserID, err}
+			return addDestFieldError(ctx, fieldName, fieldSlackUserID, err)
 		}
 		return nil
 	case destSlackUG:
 		ugID := dest.FieldValue(fieldSlackUGID)
 		userErr := a.SlackStore.ValidateUserGroup(ctx, ugID)
 		if userErr != nil {
-			return fieldError{fieldSlackUGID, userErr}
+			return addDestFieldError(ctx, fieldName, fieldSlackUGID, userErr)
 		}
 
 		chanID := dest.FieldValue(fieldSlackChanID)
 		chanErr := a.SlackStore.ValidateChannel(ctx, chanID)
 		if chanErr != nil {
-			return fieldError{fieldSlackChanID, chanErr}
+			return addDestFieldError(ctx, fieldName, fieldSlackChanID, chanErr)
 		}
 
 		return nil
@@ -215,31 +181,31 @@ func (a *App) _ValidateDestination(ctx context.Context, dest *graphql2.Destinati
 		email := dest.FieldValue(fieldEmailAddress)
 		err := validate.Email(fieldEmailAddress, email)
 		if err != nil {
-			return fieldError{fieldEmailAddress, err}
+			return addDestFieldError(ctx, fieldName, fieldEmailAddress, err)
 		}
 		return nil
 	case destWebhook:
 		url := dest.FieldValue(fieldWebhookURL)
 		err := validate.AbsoluteURL(fieldWebhookURL, url)
 		if err != nil {
-			return fieldError{fieldWebhookURL, err}
+			return addDestFieldError(ctx, fieldName, fieldWebhookURL, err)
 		}
 		if !cfg.ValidWebhookURL(url) {
-			return fieldError{fieldWebhookURL, validation.NewGenericError("url is not allowed by administator")}
+			return addDestFieldError(ctx, fieldName, fieldWebhookURL, validation.NewGenericError("url is not allowed by administator"))
 		}
 		return nil
 	case destSchedule: // must be valid UUID and exist
 		_, err := validate.ParseUUID(fieldScheduleID, dest.FieldValue(fieldScheduleID))
 		if err != nil {
-			return fieldError{fieldScheduleID, err}
+			return addDestFieldError(ctx, fieldName, fieldScheduleID, err)
 		}
 
 		_, err = a.ScheduleStore.FindOne(ctx, dest.FieldValue(fieldScheduleID))
 		if errors.Is(err, sql.ErrNoRows) {
-			return fieldError{fieldScheduleID, validation.NewGenericError("schedule does not exist")}
+			return addDestFieldError(ctx, fieldName, fieldScheduleID, validation.NewGenericError("schedule does not exist"))
 		}
 		if err != nil {
-			return fieldError{fieldScheduleID, err}
+			return addDestFieldError(ctx, fieldName, fieldScheduleID, err)
 		}
 
 		return nil
@@ -247,14 +213,14 @@ func (a *App) _ValidateDestination(ctx context.Context, dest *graphql2.Destinati
 		rotID := dest.FieldValue(fieldRotationID)
 		_, err := validate.ParseUUID(fieldRotationID, rotID)
 		if err != nil {
-			return fieldError{fieldRotationID, err}
+			return addDestFieldError(ctx, fieldName, fieldRotationID, err)
 		}
 		_, err = a.RotationStore.FindRotation(ctx, rotID)
 		if errors.Is(err, sql.ErrNoRows) {
-			return fieldError{fieldRotationID, validation.NewGenericError("rotation does not exist")}
+			return addDestFieldError(ctx, fieldName, fieldRotationID, validation.NewGenericError("rotation does not exist"))
 		}
 		if err != nil {
-			return fieldError{fieldRotationID, err}
+			return addDestFieldError(ctx, fieldName, fieldRotationID, err)
 		}
 
 		return nil
@@ -262,17 +228,26 @@ func (a *App) _ValidateDestination(ctx context.Context, dest *graphql2.Destinati
 		userID := dest.FieldValue(fieldUserID)
 		uid, err := validate.ParseUUID(fieldUserID, userID)
 		if err != nil {
-			return fieldError{fieldUserID, err}
+			return addDestFieldError(ctx, fieldName, fieldUserID, err)
 		}
 		check, err := a.UserStore.UserExists(ctx)
 		if err != nil {
 			return fmt.Errorf("get user existance checker: %w", err)
 		}
 		if !check.UserExistsUUID(uid) {
-			return fieldError{fieldUserID, validation.NewGenericError("user does not exist")}
+			return addDestFieldError(ctx, fieldName, fieldUserID, validation.NewGenericError("user does not exist"))
 		}
 		return nil
 	}
 
-	return errInvalidDestType
+	// unsupported destination type
+	graphql.AddError(ctx, &gqlerror.Error{
+		Message: "unsupported destination type",
+		Path:    appendPath(ctx, fieldName+".type"),
+		Extensions: map[string]interface{}{
+			"code": graphql2.ErrorCodeInvalidInputValue,
+		},
+	})
+
+	return errAlreadySet
 }
