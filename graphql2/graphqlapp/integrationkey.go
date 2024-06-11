@@ -3,10 +3,8 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
-	"errors"
 	"net/url"
 
-	"github.com/expr-lang/expr"
 	"github.com/google/uuid"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
@@ -37,28 +35,13 @@ func (q *Query) IntegrationKey(ctx context.Context, id string) (*integrationkey.
 	return q.IntKeyStore.FindOne(ctx, id)
 }
 
-func (q *Query) ActionInputValidate(ctx context.Context, input graphql2.ActionInput) (*graphql2.ActionInputValidationResult, error) {
-	err := (*App)(q)._ValidateDestination(ctx, input.Dest)
-	if errors.Is(err, errInvalidDestType) {
-		return &graphql2.ActionInputValidationResult{DestTypeError: "unknown destination type"}, nil
-	}
-	var f fieldError
-	if errors.As(err, &f) {
-		if !validation.IsClientError(f.Err) {
-			return nil, f.Err
-		}
-		return &graphql2.ActionInputValidationResult{DestFieldErrors: []graphql2.FieldError{{FieldID: f.FieldID, Message: f.Error()}}}, nil
+func (q *Query) ActionInputValidate(ctx context.Context, input graphql2.ActionInput) (bool, error) {
+	err := (*App)(q).ValidateDestination(ctx, "input.dest", input.Dest)
+	if err != nil {
+		return false, err
 	}
 
-	var errs []graphql2.FieldError
-	for _, p := range input.Params {
-		_, err := expr.Compile("string(" + p.Expr + ")")
-		if err != nil {
-			errs = append(errs, graphql2.FieldError{FieldID: p.ParamID, Message: err.Error()})
-		}
-	}
-
-	return &graphql2.ActionInputValidationResult{Valid: len(errs) == 0, ParamErrors: errs}, nil
+	return true, nil
 }
 
 func (m *Mutation) GenerateKeyToken(ctx context.Context, keyID string) (string, error) {
