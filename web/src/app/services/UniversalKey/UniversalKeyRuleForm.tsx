@@ -27,6 +27,7 @@ import { fieldErrors } from '../../util/errutil'
 interface UniversalKeyRuleFormProps {
   value: KeyRuleInput
   onChange: (val: KeyRuleInput) => void
+  default?: boolean
 }
 
 const query = gql`
@@ -43,6 +44,7 @@ const query = gql`
 export default function UniversalKeyRuleForm(
   props: UniversalKeyRuleFormProps,
 ): JSX.Element {
+  props.default = props.default !== undefined ? props.default : false
   const types = useDynamicActionTypes()
 
   const [currentAction, setCurrentAction] = useState<ActionValue>(
@@ -61,6 +63,99 @@ export default function UniversalKeyRuleForm(
       ...props.value,
       actions: props.value.actions.filter((b) => a !== b),
     })
+  }
+
+  // change to single column view for default actions
+  // (perhaps could be moved to a seperate component)
+  if (props.default) {
+    return (
+      <FormContainer
+        value={props.value}
+        onChange={props.onChange}
+        errors={fieldErrors(addActionError)}
+      >
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <Typography variant='h6' color='textPrimary'>
+              Actions
+            </Typography>
+          </Grid>
+          <Grid item xs={12} container spacing={1} sx={{ p: 1 }}>
+            {props.value.actions.map((a) => (
+              <Grid item key={JSON.stringify(a.dest)}>
+                <DestinationInputChip
+                  value={a.dest}
+                  onDelete={() => handleDelete(a)}
+                />
+              </Grid>
+            ))}
+            {props.value.actions.length === 0 && (
+              <Grid item xs={12}>
+                <Typography variant='body2' color='textSecondary'>
+                  No actions
+                </Typography>
+              </Grid>
+            )}
+          </Grid>
+
+          <Grid item xs={12} container spacing={2}>
+            <DynamicActionField
+              value={currentAction}
+              onChange={setCurrentAction}
+            />
+
+            <Grid
+              item
+              xs={12}
+              sx={{
+                display: 'flex',
+                // justifyContent: 'flex-end',
+                alignItems: 'flex-end',
+              }}
+            >
+              <Button
+                fullWidth
+                startIcon={<Add />}
+                variant='contained'
+                color='secondary'
+                sx={{ height: 'fit-content' }}
+                onClick={() => {
+                  const act = valueToActionInput(currentAction)
+                  validationClient
+                    .query(query, {
+                      input: act.dest,
+                    })
+                    .toPromise()
+                    .then((res) => {
+                      if (res.error) {
+                        setAddActionError(res.error) // todo: not showing in dialog?
+                        console.log(res)
+                        return
+                      }
+
+                      // clear the current action
+                      setCurrentAction(
+                        defaults(
+                          types.find(
+                            (t) => t.type === currentAction.destType,
+                          ) || types[0],
+                        ),
+                      )
+
+                      props.onChange({
+                        ...props.value,
+                        actions: props.value.actions.concat(act),
+                      })
+                    })
+                }}
+              >
+                Add Action
+              </Button>
+            </Grid>
+          </Grid>
+        </Grid>
+      </FormContainer>
+    )
   }
 
   return (
@@ -135,7 +230,7 @@ export default function UniversalKeyRuleForm(
               </FormLabel>
               <RadioGroup row name='stop-or-continue' value={stopOrContinue}>
                 <FormControlLabel
-                  value={'continue'}
+                  value='continue'
                   onChange={() => setStopOrContinue('continue')}
                   control={<Radio />}
                   label='Continue processing rules'

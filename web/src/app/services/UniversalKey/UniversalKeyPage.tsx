@@ -9,6 +9,8 @@ import { Action } from '../../details/CardActions'
 import GenTokenDialog from './GenTokenDialog'
 import PromoteTokenDialog from './PromoteTokenDialog'
 import DeleteSecondaryTokenDialog from './DeleteSecondaryTokenDialog'
+import UniversalKeyDefaultAction from './DefaultActionConfig'
+import { Grid } from '@mui/material'
 
 interface UniversalKeyPageProps {
   serviceID: string
@@ -111,10 +113,20 @@ export default function UniversalKeyPage(
         details={desc}
         primaryActions={makeGenerateButtons()}
         pageContent={
-          <UniversalKeyRuleList
-            serviceID={props.serviceID}
-            keyID={props.keyID}
-          />
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <UniversalKeyRuleList
+                serviceID={props.serviceID}
+                keyID={props.keyID}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <UniversalKeyDefaultAction
+                serviceID={props.serviceID}
+                keyID={props.keyID}
+              />
+            </Grid>
+          </Grid>
         }
       />
       {genDialogOpen && (

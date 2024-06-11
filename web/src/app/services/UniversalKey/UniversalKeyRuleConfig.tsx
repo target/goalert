@@ -2,7 +2,6 @@ import React, { ReactElement, Suspense, useState } from 'react'
 import { Button, Card } from '@mui/material'
 import { Add } from '@mui/icons-material'
 import FlatList, { FlatListListItem } from '../../lists/FlatList'
-import { useIsWidthDown } from '../../util/useWidth'
 import UniversalKeyRuleCreateDialog from './UniversalKeyRuleCreateDialog'
 import UniversalKeyRuleEditDialog from './UniversalKeyRuleEditDialog'
 import UniversalKeyRuleRemoveDialog from './UniversalKeyRuleRemoveDialog'
@@ -44,7 +43,6 @@ export default function UniversalKeyRuleList(
   const [create, setCreate] = useState(false)
   const [edit, setEdit] = useState('')
   const [remove, setRemove] = useState('')
-  const isMobile = useIsWidthDown('md')
 
   const [{ data, fetching, error }] = useQuery<{
     integrationKey: IntegrationKey

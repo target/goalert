@@ -10,6 +10,7 @@ interface UniversalKeyRuleEditDialogProps {
   keyID: string
   ruleID: string
   onClose: () => void
+  default?: boolean
 }
 
 const query = gql`
@@ -79,8 +80,8 @@ export default function UniversalKeyRuleCreateDialogProps(
 
   return (
     <FormDialog
-      title='Edit Rule'
-      maxWidth='lg'
+      title={props.default ? 'Edit Default Actions' : 'Edit Rule'}
+      maxWidth={props.default ? 'sm' : 'lg'}
       onClose={props.onClose}
       onSubmit={() => {
         if (noActionsNoConf) {
@@ -106,7 +107,13 @@ export default function UniversalKeyRuleCreateDialogProps(
           props.onClose()
         })
       }}
-      form={<UniversalKeyRuleForm value={value} onChange={setValue} />}
+      form={
+        <UniversalKeyRuleForm
+          value={value}
+          onChange={setValue}
+          default={props.default}
+        />
+      }
       errors={nonFieldErrors(editStatus.error)}
       notices={getNotice(hasSubmitted, hasConfirmed, setHasConfirmed)}
     />
