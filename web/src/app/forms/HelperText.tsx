@@ -12,7 +12,11 @@ export type HelperTextProps = {
   value?: string
 }
 
-export function HelperText(props: HelperTextProps) {
+/** HelperText is a component that displays a hint or error message.
+ *
+ * It is intended to be used as the `helperText` prop of a TextField (or other MUI form components).
+ */
+export function HelperText(props: HelperTextProps): React.ReactNode {
   let content
   if (props.error) {
     const msg = props.error.replace(/^./, (str) => str.toUpperCase())
