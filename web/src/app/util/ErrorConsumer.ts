@@ -10,6 +10,7 @@ type ErrorStore = {
   errors: Set<ErrorConsumerError>
 }
 
+/** ErrorConsumer is a utility class for consuming and handling errors from a CombinedError. */
 export class ErrorConsumer {
   constructor(e?: CombinedError | null | undefined) {
     if (!e) return
