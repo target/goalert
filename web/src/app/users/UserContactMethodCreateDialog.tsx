@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { useMutation, gql, CombinedError } from 'urql'
 
-import { splitErrorsByPath } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
-import UserContactMethodForm, { errorPaths } from './UserContactMethodForm'
+import UserContactMethodForm from './UserContactMethodForm'
 import { useContactMethodTypes } from '../util/RequireConfig'
 import { Dialog, DialogTitle, DialogActions, Button } from '@mui/material'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { DestinationInput } from '../../schema'
+import { useErrorConsumer } from '../util/ErrorConsumer'
 
 type Value = {
   name: string
@@ -55,10 +55,7 @@ export default function UserContactMethodCreateDialog(props: {
     setCreateErr(createCMStatus.error || null)
   }, [createCMStatus.error])
 
-  const [formErrors, otherErrs] = splitErrorsByPath(
-    createErr,
-    errorPaths('createUserContactMethod.input'),
-  )
+  const errs = useErrorConsumer(createErr)
 
   if (!defaultType.enabled) {
     // default type will be the first enabled type, so if it's not enabled, none are enabled
@@ -84,7 +81,11 @@ export default function UserContactMethodCreateDialog(props: {
   const form = (
     <UserContactMethodForm
       disabled={createCMStatus.fetching}
-      errors={formErrors}
+      nameError={errs.getInputError('createUserContactMethod.input.name')}
+      destTypeError={errs.getInputError(
+        'createUserContactMethod.input.dest.type',
+      )}
+      destFieldErrors={errs.getAllDestFieldErrors()}
       onChange={(CMValue: Value) => setCMValue(CMValue)}
       value={CMValue}
       disablePortal={props.disablePortal}
@@ -98,7 +99,7 @@ export default function UserContactMethodCreateDialog(props: {
       title={title}
       subTitle={subtitle}
       loading={createCMStatus.fetching}
-      errors={otherErrs}
+      errors={errs.remainingLegacy()}
       onClose={props.onClose}
       // wrapped to prevent event from passing into createCM
       onSubmit={() =>

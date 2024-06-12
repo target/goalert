@@ -109,16 +109,7 @@ export const ErrorSingleField: Story = {
       statusUpdates: false,
     },
     disabled: false,
-    errors: [
-      {
-        message: 'number is too short', // note: the 'n' is lowercase
-        path: ['input', 'dest'],
-        extensions: {
-          code: 'INVALID_DEST_FIELD_VALUE',
-          fieldID: 'phone-number',
-        },
-      },
-    ],
+    destFieldErrors: { 'phone-number': 'number is too short' },
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -156,15 +147,7 @@ export const ErrorMultiField: Story = {
       statusUpdates: false,
     },
     disabled: false,
-    errors: [
-      {
-        path: ['input', 'name'],
-        message: 'must begin with a letter',
-        extensions: {
-          code: 'INVALID_INPUT_VALUE',
-        },
-      },
-    ],
+    nameError: 'must begin with a letter',
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
