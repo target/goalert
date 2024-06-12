@@ -32,6 +32,35 @@ export class ErrorConsumer {
     }
 
     e.graphQLErrors?.forEach((e) => {
+      const path = e.path?.join('.') || ''
+
+      if (e.extensions['isFieldError']) {
+        this.store.errors.add({
+          message: e.message,
+          code: '_LEGACY_FIELD_ERROR',
+          fieldID: e.extensions['fieldName']?.toString() || '',
+          path,
+        })
+        return
+      }
+
+      if (e.extensions['isMultiFieldError']) {
+        type fieldError = {
+          fieldName: string
+          message: string
+        }
+        const errs = (e.extensions['fieldErrors'] || []) as Array<fieldError>
+        errs.forEach((fe: fieldError) => {
+          this.store.errors.add({
+            message: fe.message,
+            code: '_LEGACY_FIELD_ERROR',
+            fieldID: fe.fieldName,
+            path,
+          })
+        })
+        return
+      }
+
       this.store.errors.add({
         message: e.message,
         code: e.extensions?.code?.toString() || '',
@@ -69,6 +98,23 @@ export class ErrorConsumer {
     throw new Error(
       'ErrorConsumer is already done, ensure you are not calling this method after calling done() or remaining()',
     )
+  }
+
+  getFieldError(name: string): string | undefined {
+    this.doneCheck()
+
+    let result: string | undefined = undefined
+
+    this.store.errors.forEach((e) => {
+      if (e.code !== '_LEGACY_FIELD_ERROR') return
+      if (e.fieldID !== name) return
+      if (result !== undefined) return
+
+      result = e.message
+      this.store.errors.delete(e)
+    })
+
+    return result
   }
 
   /** Returns and consumes (if exists) a single INVALID_INPUT_VALUE error with the given path. */
@@ -131,6 +177,10 @@ export class ErrorConsumer {
     return errs
   }
 
+  /** Returns all remaining errors as an array of objects with a message key.
+   *
+   * Suitable for use with FormDialog.
+   */
   remainingLegacy(): Array<{ message: string }> {
     return this.remaining().map((e) => ({ message: e }))
   }
