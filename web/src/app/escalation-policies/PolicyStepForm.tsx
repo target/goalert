@@ -1,4 +1,5 @@
 import React, { useState, ReactNode, useEffect } from 'react'
+import { FormContainer, FormField } from '../forms'
 import Grid from '@mui/material/Grid'
 
 import NumberField from '../util/NumberField'
@@ -76,112 +77,114 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
     ))
   }
 
-  const hint =
-    props.value.delayMinutes === 0
-      ? 'This will cause the step to immediately escalate'
-      : `This will cause the step to escalate after ${props.value.delayMinutes}m`
-
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={12}>
-        {props.value.actions.map((a, idx) => (
-          <DestinationInputChip
-            key={idx}
-            value={a}
-            onDelete={props.disabled ? undefined : () => handleDelete(a)}
-          />
-        ))}
-        {props.value.actions.length === 0 && (
-          <Typography variant='body2' color='textSecondary'>
-            No actions
-          </Typography>
-        )}
-      </Grid>
-      <Grid item xs={12}>
-        <TextField
-          select
-          fullWidth
-          disabled={props.disabled}
-          value={destType}
-          label='Destination Type'
-          name='dest.type'
-          onChange={(e) => setDestType(e.target.value)}
-        >
-          {types.map((t) =>
-            renderMenuItem({
-              label: t.name,
-              value: t.type,
-              disabled: !t.enabled,
-              disabledMessage: t.enabled ? '' : 'Disabled by administrator.',
-            }),
+    <FormContainer
+      value={props.value}
+      onChange={(newValue: FormValue) => {
+        if (!props.onChange) return
+        props.onChange(newValue)
+      }}
+      optionalLabels
+    >
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          {props.value.actions.map((a, idx) => (
+            <DestinationInputChip
+              key={idx}
+              value={a}
+              onDelete={props.disabled ? undefined : () => handleDelete(a)}
+            />
+          ))}
+          {props.value.actions.length === 0 && (
+            <Typography variant='body2' color='textSecondary'>
+              No actions
+            </Typography>
           )}
-        </TextField>
-      </Grid>
-      <Grid item xs={12}>
-        <DestinationField
-          destType={destType}
-          value={values}
-          disabled={props.disabled}
-          onChange={(newValue: FieldValueInput[]) => {
-            setErr(null)
-            setValues(newValue)
-          }}
-          fieldErrors={errs.getAllDestFieldErrors()}
-        />
-      </Grid>
-      <Grid container item xs={12} justifyContent='flex-end'>
-        {errs.hasErrors() && renderErrors(errs.remaining())}
-        <Button
-          variant='contained'
-          color='secondary'
-          onClick={() => {
-            if (!props.onChange) return
-            validationClient
-              .query(query, {
-                input: {
-                  type: destType,
-                  values,
-                },
-              })
-              .toPromise()
-              .then((res) => {
-                if (res.error) {
-                  setErr(res.error)
-                  return
-                }
-                setValues([])
-                props.onChange({
-                  ...props.value,
-                  actions: props.value.actions.concat({
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            select
+            fullWidth
+            disabled={props.disabled}
+            value={destType}
+            label='Destination Type'
+            name='dest.type'
+            onChange={(e) => setDestType(e.target.value)}
+          >
+            {types.map((t) =>
+              renderMenuItem({
+                label: t.name,
+                value: t.type,
+                disabled: !t.enabled,
+                disabledMessage: t.enabled ? '' : 'Disabled by administrator.',
+              }),
+            )}
+          </TextField>
+        </Grid>
+        <Grid item xs={12}>
+          <DestinationField
+            destType={destType}
+            value={values}
+            disabled={props.disabled}
+            onChange={(newValue: FieldValueInput[]) => {
+              setErr(null)
+              setValues(newValue)
+            }}
+            fieldErrors={errs.getAllDestFieldErrors()}
+          />
+        </Grid>
+        <Grid container item xs={12} justifyContent='flex-end'>
+          {errs.hasErrors() && renderErrors(errs.remaining())}
+          <Button
+            variant='contained'
+            color='secondary'
+            onClick={() => {
+              if (!props.onChange) return
+              validationClient
+                .query(query, {
+                  input: {
                     type: destType,
                     values,
-                  }),
+                  },
                 })
-              })
-          }}
-        >
-          Add Destination
-        </Button>
+                .toPromise()
+                .then((res) => {
+                  if (res.error) {
+                    setErr(res.error)
+                    return
+                  }
+                  setValues([])
+                  props.onChange({
+                    ...props.value,
+                    actions: props.value.actions.concat({
+                      type: destType,
+                      values,
+                    }),
+                  })
+                })
+            }}
+          >
+            Add Destination
+          </Button>
+        </Grid>
+        <Grid item xs={12}>
+          <FormField
+            component={NumberField}
+            disabled={props.disabled}
+            fullWidth
+            label='Delay (minutes)'
+            name='delayMinutes'
+            required
+            min={1}
+            max={9000}
+            hint={
+              props.value.delayMinutes === 0
+                ? 'This will cause the step to immediately escalate'
+                : `This will cause the step to escalate after ${props.value.delayMinutes}m`
+            }
+          />
+        </Grid>
       </Grid>
-      <Grid item xs={12}>
-        <NumberField
-          disabled={props.disabled}
-          fullWidth
-          label='Delay (minutes)'
-          name='delayMinutes'
-          required
-          min={1}
-          max={9000}
-          helperText={hint}
-          value={props.value.delayMinutes.toString()}
-          onChange={(e) =>
-            props.onChange({
-              ...props.value,
-              delayMinutes: parseInt(e.target.value, 10),
-            })
-          }
-        />
-      </Grid>
-    </Grid>
+    </FormContainer>
   )
 }
