@@ -54,11 +54,6 @@ extend type Query {
 }
 
 type KeyConfig {
-  """
-  Stop evaluating rules after the first rule that matches.
-  """
-  stopAtFirstRule: Boolean!
-
   rules: [KeyRule!]!
 
   """
@@ -84,15 +79,15 @@ type KeyRule {
   conditionExpr: ExprBooleanExpression!
 
   actions: [Action!]!
+
+  """
+  Continue evaluating rules after this rule matches.
+  """
+  continueAfterMatch: Boolean!
 }
 
 input UpdateKeyConfigInput {
   keyID: ID!
-
-  """
-  Stop evaluating rules after the first rule that matches.
-  """
-  stopAtFirstRule: Boolean
 
   rules: [KeyRuleInput!]
 
@@ -127,6 +122,13 @@ input KeyRuleInput {
   conditionExpr: ExprBooleanExpression!
 
   actions: [ActionInput!]!
+
+  """
+  Continue evaluating rules after this rule matches.
+
+  If this is set to false (default), no further rules will be evaluated after this rule matches.
+  """
+  continueAfterMatch: Boolean!
 }
 
 input ActionInput {

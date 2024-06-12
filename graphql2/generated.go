@@ -404,18 +404,18 @@ type ComplexityRoot struct {
 	}
 
 	KeyConfig struct {
-		DefaultActions  func(childComplexity int) int
-		OneRule         func(childComplexity int, id string) int
-		Rules           func(childComplexity int) int
-		StopAtFirstRule func(childComplexity int) int
+		DefaultActions func(childComplexity int) int
+		OneRule        func(childComplexity int, id string) int
+		Rules          func(childComplexity int) int
 	}
 
 	KeyRule struct {
-		Actions       func(childComplexity int) int
-		ConditionExpr func(childComplexity int) int
-		Description   func(childComplexity int) int
-		ID            func(childComplexity int) int
-		Name          func(childComplexity int) int
+		Actions            func(childComplexity int) int
+		ConditionExpr      func(childComplexity int) int
+		ContinueAfterMatch func(childComplexity int) int
+		Description        func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		Name               func(childComplexity int) int
 	}
 
 	Label struct {
@@ -2450,13 +2450,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.KeyConfig.Rules(childComplexity), true
 
-	case "KeyConfig.stopAtFirstRule":
-		if e.complexity.KeyConfig.StopAtFirstRule == nil {
-			break
-		}
-
-		return e.complexity.KeyConfig.StopAtFirstRule(childComplexity), true
-
 	case "KeyRule.actions":
 		if e.complexity.KeyRule.Actions == nil {
 			break
@@ -2470,6 +2463,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.KeyRule.ConditionExpr(childComplexity), true
+
+	case "KeyRule.continueAfterMatch":
+		if e.complexity.KeyRule.ContinueAfterMatch == nil {
+			break
+		}
+
+		return e.complexity.KeyRule.ContinueAfterMatch(childComplexity), true
 
 	case "KeyRule.description":
 		if e.complexity.KeyRule.Description == nil {
@@ -14978,8 +14978,6 @@ func (ec *executionContext) fieldContext_IntegrationKey_config(_ context.Context
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "stopAtFirstRule":
-				return ec.fieldContext_KeyConfig_stopAtFirstRule(ctx, field)
 			case "rules":
 				return ec.fieldContext_KeyConfig_rules(ctx, field)
 			case "oneRule":
@@ -15355,50 +15353,6 @@ func (ec *executionContext) fieldContext_IntegrationKeyTypeInfo_enabled(_ contex
 	return fc, nil
 }
 
-func (ec *executionContext) _KeyConfig_stopAtFirstRule(ctx context.Context, field graphql.CollectedField, obj *KeyConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_KeyConfig_stopAtFirstRule(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.StopAtFirstRule, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_KeyConfig_stopAtFirstRule(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "KeyConfig",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _KeyConfig_rules(ctx context.Context, field graphql.CollectedField, obj *KeyConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_KeyConfig_rules(ctx, field)
 	if err != nil {
@@ -15448,6 +15402,8 @@ func (ec *executionContext) fieldContext_KeyConfig_rules(_ context.Context, fiel
 				return ec.fieldContext_KeyRule_conditionExpr(ctx, field)
 			case "actions":
 				return ec.fieldContext_KeyRule_actions(ctx, field)
+			case "continueAfterMatch":
+				return ec.fieldContext_KeyRule_continueAfterMatch(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type KeyRule", field.Name)
 		},
@@ -15501,6 +15457,8 @@ func (ec *executionContext) fieldContext_KeyConfig_oneRule(ctx context.Context, 
 				return ec.fieldContext_KeyRule_conditionExpr(ctx, field)
 			case "actions":
 				return ec.fieldContext_KeyRule_actions(ctx, field)
+			case "continueAfterMatch":
+				return ec.fieldContext_KeyRule_continueAfterMatch(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type KeyRule", field.Name)
 		},
@@ -15790,6 +15748,50 @@ func (ec *executionContext) fieldContext_KeyRule_actions(_ context.Context, fiel
 				return ec.fieldContext_Action_params(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Action", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _KeyRule_continueAfterMatch(ctx context.Context, field graphql.CollectedField, obj *KeyRule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_KeyRule_continueAfterMatch(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ContinueAfterMatch, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_KeyRule_continueAfterMatch(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "KeyRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -35814,7 +35816,7 @@ func (ec *executionContext) unmarshalInputKeyRuleInput(ctx context.Context, obj 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "description", "conditionExpr", "actions"}
+	fieldsInOrder := [...]string{"id", "name", "description", "conditionExpr", "actions", "continueAfterMatch"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -35856,6 +35858,13 @@ func (ec *executionContext) unmarshalInputKeyRuleInput(ctx context.Context, obj 
 				return it, err
 			}
 			it.Actions = data
+		case "continueAfterMatch":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("continueAfterMatch"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContinueAfterMatch = data
 		}
 	}
 
@@ -37378,7 +37387,7 @@ func (ec *executionContext) unmarshalInputUpdateKeyConfigInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"keyID", "stopAtFirstRule", "rules", "setRule", "deleteRule", "defaultActions"}
+	fieldsInOrder := [...]string{"keyID", "rules", "setRule", "deleteRule", "defaultActions"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -37392,13 +37401,6 @@ func (ec *executionContext) unmarshalInputUpdateKeyConfigInput(ctx context.Conte
 				return it, err
 			}
 			it.KeyID = data
-		case "stopAtFirstRule":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stopAtFirstRule"))
-			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.StopAtFirstRule = data
 		case "rules":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rules"))
 			data, err := ec.unmarshalOKeyRuleInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyRuleInputᚄ(ctx, v)
@@ -41352,11 +41354,6 @@ func (ec *executionContext) _KeyConfig(ctx context.Context, sel ast.SelectionSet
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("KeyConfig")
-		case "stopAtFirstRule":
-			out.Values[i] = ec._KeyConfig_stopAtFirstRule(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "rules":
 			out.Values[i] = ec._KeyConfig_rules(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -41456,6 +41453,11 @@ func (ec *executionContext) _KeyRule(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "actions":
 			out.Values[i] = ec._KeyRule_actions(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "continueAfterMatch":
+			out.Values[i] = ec._KeyRule_continueAfterMatch(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
