@@ -76,9 +76,7 @@ export default function DestinationField(
                 destType={props.destType}
                 disabled={props.disabled || !dest.enabled}
                 onChange={(val) => handleChange(val)}
-                error={!!fieldErrMsg}
-                hint={fieldErrMsg || field.hint}
-                hintURL={fieldErrMsg ? '' : field.hintURL}
+                error={fieldErrMsg}
               />
             </Grid>
           )
@@ -91,9 +89,7 @@ export default function DestinationField(
               destType={props.destType}
               disabled={props.disabled || !dest.enabled}
               onChange={(e) => handleChange(e.target.value)}
-              error={!!fieldErrMsg}
-              hint={fieldErrMsg || field.hint}
-              hintURL={fieldErrMsg ? '' : field.hintURL}
+              error={fieldErrMsg}
             />
           </Grid>
         )

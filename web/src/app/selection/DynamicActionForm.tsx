@@ -8,9 +8,9 @@ import {
 } from '../../schema'
 import { useDynamicActionTypes } from '../util/RequireConfig'
 import { Grid, TextField } from '@mui/material'
-import DestinationField from './DestinationField'
+import DestinationField, { DestFieldError } from './DestinationField'
 import { renderMenuItem } from './DisableableMenuItem'
-import AppLink from '../util/AppLink'
+import { HelperText } from '../forms'
 
 export type StaticParams = Readonly<Record<string, string>>
 export type DynamicParams = Readonly<Record<string, ExprStringExpression>>
@@ -63,34 +63,17 @@ export function destFieldToStatic(destFields: FieldValueInput[]): StaticParams {
   return Object.fromEntries(destFields.map((f) => [f.fieldID, f.value]))
 }
 
-interface BaseError {
-  message: string
+export type DynamicActionErrors = {
+  destTypeError?: string
+  staticParamErrors?: Readonly<Record<string, string>>
+  dynamicParamErrors?: Readonly<Record<string, string>>
 }
-
-interface InputError extends BaseError {
-  section: 'input'
-  inputID: 'dest-type'
-}
-interface StaticFieldError extends BaseError {
-  section: 'static-params'
-  fieldID: string
-}
-
-interface DynamicParamError extends BaseError {
-  section: 'dynamic-params'
-  paramID: string
-}
-
-export type FormError = InputError | StaticFieldError | DynamicParamError
-
 export type DynamicActionFormProps = {
   value: Value | null
   onChange: (value: Value) => void
 
   disabled?: boolean
-
-  errors?: Array<FormError>
-}
+} & DynamicActionErrors
 
 export function defaults(destTypeInfo: DestinationTypeInfo): Value {
   const staticParams = Object.fromEntries(
@@ -108,26 +91,21 @@ export function defaults(destTypeInfo: DestinationTypeInfo): Value {
   }
 }
 
-function isStatic(err: BaseError): err is StaticFieldError {
-  return (err as StaticFieldError).section === 'static-params'
-}
-function isInput(err: BaseError): err is InputError {
-  return (err as InputError).section === 'input'
-}
-function isDynamic(err: BaseError): err is DynamicParamError {
-  return (err as DynamicParamError).section === 'dynamic-params'
-}
-
 export default function DynamicActionForm(
   props: DynamicActionFormProps,
 ): React.ReactNode {
   const types = useDynamicActionTypes()
   const selectedDest = types.find((t) => t.type === props.value?.destType)
 
-  const typeError = props.errors?.find(isInput)
-  const dynamicErrorMap = new Map(
-    props.errors?.filter(isDynamic).map((e) => [e.paramID, e.message]),
-  )
+  // convert to format DestinationField currently expects
+  const staticParamErrors: DestFieldError[] = Object.entries(
+    props.staticParamErrors || {},
+  ).map(([fieldID, message]) => ({
+    fieldID,
+    message,
+  }))
+
+  const dynamicErrors = props.dynamicParamErrors || {}
 
   return (
     <Grid container spacing={2} item xs={12}>
@@ -138,8 +116,8 @@ export default function DynamicActionForm(
           value={selectedDest?.type || ''}
           label='Destination Type'
           name='dest.type'
-          error={!!typeError}
-          helperText={typeError?.message}
+          error={!!props.destTypeError}
+          helperText={props.destTypeError}
           onChange={(e) => {
             const newType = types.find((t) => t.type === e.target.value)
             if (!newType) return
@@ -169,7 +147,7 @@ export default function DynamicActionForm(
             }}
             destType={props.value.destType}
             disabled={props.disabled}
-            fieldErrors={props.errors?.filter(isStatic)}
+            fieldErrors={staticParamErrors}
           />
         </Grid>
       )}
@@ -196,16 +174,13 @@ export default function DynamicActionForm(
                 disabled={props.disabled || !selectedDest?.enabled}
                 type='text'
                 label={p.label + ' (Expr syntax)'}
-                error={!!dynamicErrorMap.get(p.paramID)}
+                error={!!dynamicErrors[p.paramID]}
                 helperText={
-                  dynamicErrorMap.get(p.paramID) ||
-                  (p.hintURL ? (
-                    <AppLink newTab to={p.hintURL}>
-                      {p.hint}
-                    </AppLink>
-                  ) : (
-                    p.hint
-                  ))
+                  <HelperText
+                    hint={p.hint}
+                    hintURL={p.hintURL}
+                    error={dynamicErrors[p.paramID]}
+                  />
                 }
                 onChange={(e) => handleChange(e.target.value)}
                 value={fieldValue}

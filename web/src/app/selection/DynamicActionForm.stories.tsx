@@ -135,22 +135,8 @@ export const Errors: Story = {
       staticParams: {},
       dynamicParams: {},
     },
-    errors: [
-      {
-        section: 'input',
-        inputID: 'dest-type',
-        message: 'Dest type validation error',
-      },
-      {
-        section: 'static-params',
-        fieldID: 'required-field',
-        message: 'Required field validation error',
-      },
-      {
-        section: 'dynamic-params',
-        paramID: 'dynamic-param',
-        message: 'Dynamic param validation error',
-      },
-    ],
+    destTypeError: 'Dest type validation error',
+    staticParamErrors: { 'required-field': 'Required field validation error' },
+    dynamicParamErrors: { 'dynamic-param': 'Dynamic param validation error' },
   },
 }
