@@ -69,7 +69,7 @@ export class ErrorConsumer {
       'FinalizationRegistry' in window &&
       typeof window.FinalizationRegistry === 'function'
     ) {
-      // @ts-ignore
+      // @ts-expect-error FinalizationRegistry is not in the lib
       const r = new window.FinalizationRegistry((e: { store: ErrorStore }) => {
         if (e.store.errors.size === 0) return
         e.store.errors.forEach((e) => console.error(e))
@@ -85,7 +85,7 @@ export class ErrorConsumer {
   /** Whether there were any errors in the original error. */
   public readonly hadErrors: boolean = false
 
-  private doneCheck() {
+  private doneCheck(): void {
     if (!this.isDone) return
 
     throw new Error(
