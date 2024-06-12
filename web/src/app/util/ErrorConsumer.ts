@@ -10,13 +10,6 @@ type ErrorStore = {
   errors: Set<ErrorConsumerError>
 }
 
-/** useErrorConsumer is a hook for creating an ErrorConsumer. */
-export function useErrorConsumer(
-  e?: CombinedError | null | undefined,
-): ErrorConsumer {
-  return new ErrorConsumer(e)
-}
-
 /** ErrorConsumer is a utility class for consuming and handling errors from a CombinedError. */
 export class ErrorConsumer {
   constructor(e?: CombinedError | null | undefined) {
@@ -34,22 +27,22 @@ export class ErrorConsumer {
     e.graphQLErrors?.forEach((e) => {
       const path = e.path?.join('.') || ''
 
-      if (e.extensions['isFieldError']) {
+      if (e.extensions.isFieldError) {
         this.store.errors.add({
           message: e.message,
           code: '_LEGACY_FIELD_ERROR',
-          fieldID: e.extensions['fieldName']?.toString() || '',
+          fieldID: e.extensions.fieldName?.toString() || '',
           path,
         })
         return
       }
 
-      if (e.extensions['isMultiFieldError']) {
+      if (e.extensions.isMultiFieldError) {
         type fieldError = {
           fieldName: string
           message: string
         }
-        const errs = (e.extensions['fieldErrors'] || []) as Array<fieldError>
+        const errs = (e.extensions.fieldErrors || []) as Array<fieldError>
         errs.forEach((fe: fieldError) => {
           this.store.errors.add({
             message: fe.message,
@@ -76,7 +69,7 @@ export class ErrorConsumer {
       'FinalizationRegistry' in window &&
       typeof window.FinalizationRegistry === 'function'
     ) {
-      //@ts-ignore
+      // @ts-ignore
       const r = new window.FinalizationRegistry((e: { store: ErrorStore }) => {
         if (e.store.errors.size === 0) return
         e.store.errors.forEach((e) => console.error(e))
@@ -107,7 +100,7 @@ export class ErrorConsumer {
   getFieldError(name: string): string | undefined {
     this.doneCheck()
 
-    let result: string | undefined = undefined
+    let result: string | undefined
 
     this.store.errors.forEach((e) => {
       if (e.code !== '_LEGACY_FIELD_ERROR') return
@@ -125,7 +118,7 @@ export class ErrorConsumer {
   getInputError(path: string): string | undefined {
     this.doneCheck()
 
-    let result: string | undefined = undefined
+    let result: string | undefined
 
     // find the first error with the given path
     this.store.errors.forEach((e) => {
@@ -194,4 +187,11 @@ export class ErrorConsumer {
     this.doneCheck()
     this.remaining().forEach((e) => console.error(e))
   }
+}
+
+/** useErrorConsumer is a hook for creating an ErrorConsumer. */
+export function useErrorConsumer(
+  e?: CombinedError | null | undefined,
+): ErrorConsumer {
+  return new ErrorConsumer(e)
 }
