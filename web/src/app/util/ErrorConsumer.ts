@@ -123,6 +123,10 @@ export class ErrorConsumer {
     return errs
   }
 
+  remainingLegacy(): Array<{ message: string }> {
+    return this.remaining().map((e) => ({ message: e }))
+  }
+
   /** Logs and consumes any remaining errors. */
   done(): void {
     this.doneCheck()

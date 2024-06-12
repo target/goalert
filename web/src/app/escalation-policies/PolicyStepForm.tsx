@@ -1,5 +1,4 @@
 import React, { useState, ReactNode, useEffect } from 'react'
-import { HelperText } from '../forms'
 import Grid from '@mui/material/Grid'
 
 import NumberField from '../util/NumberField'
@@ -32,8 +31,6 @@ export type PolicyStepFormProps = {
   value: FormValue
   disabled?: boolean
   onChange: (value: FormValue) => void
-
-  delayError?: string
 }
 
 const query = gql`
@@ -175,8 +172,7 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
           required
           min={1}
           max={9000}
-          error={!!props.delayError}
-          helperText={<HelperText hint={hint} error={props.delayError} />}
+          helperText={hint}
           value={props.value.delayMinutes.toString()}
           onChange={(e) =>
             props.onChange({
