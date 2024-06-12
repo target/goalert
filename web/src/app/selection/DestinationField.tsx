@@ -13,10 +13,10 @@ export type DestinationFieldProps = {
 
   disabled?: boolean
 
-  /* deprecated */
+  /** Deprecated, use fieldErrors instead. */
   destFieldErrors?: DestFieldValueError[]
 
-  fieldErrors?: DestFieldError[]
+  fieldErrors?: Readonly<Record<string, string>>
 }
 
 export interface DestFieldError {
@@ -34,15 +34,14 @@ export default function DestinationField(
 ): React.ReactNode {
   const dest = useDestinationType(props.destType)
 
-  const fieldErrors = new Map()
-  if (props.fieldErrors) {
-    for (const err of props.fieldErrors) {
-      fieldErrors.set(err.fieldID, err.message)
-    }
-  } else if (props.destFieldErrors) {
+  let fieldErrors = props.fieldErrors
+  // TODO: remove this block after removing destFieldErrors
+  if (!props.fieldErrors && props.destFieldErrors) {
+    const newErrs: Record<string, string> = {}
     for (const err of props.destFieldErrors) {
-      fieldErrors.set(err.extensions.fieldID, err.message)
+      newErrs[err.extensions.fieldID] = err.message
     }
+    fieldErrors = newErrs
   }
 
   return (
@@ -65,7 +64,7 @@ export default function DestinationField(
           props.onChange(newValues)
         }
 
-        const fieldErrMsg = capFirstLetter(fieldErrors.get(field.fieldID) || '')
+        const fieldErrMsg = capFirstLetter(fieldErrors?.[field.fieldID] || '')
 
         if (field.supportsSearch)
           return (

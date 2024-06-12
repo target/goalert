@@ -8,7 +8,7 @@ import {
 } from '../../schema'
 import { useDynamicActionTypes } from '../util/RequireConfig'
 import { Grid, TextField } from '@mui/material'
-import DestinationField, { DestFieldError } from './DestinationField'
+import DestinationField from './DestinationField'
 import { renderMenuItem } from './DisableableMenuItem'
 import { HelperText } from '../forms'
 
@@ -97,16 +97,6 @@ export default function DynamicActionForm(
   const types = useDynamicActionTypes()
   const selectedDest = types.find((t) => t.type === props.value?.destType)
 
-  // convert to format DestinationField currently expects
-  const staticParamErrors: DestFieldError[] = Object.entries(
-    props.staticParamErrors || {},
-  ).map(([fieldID, message]) => ({
-    fieldID,
-    message,
-  }))
-
-  const dynamicErrors = props.dynamicParamErrors || {}
-
   return (
     <Grid container spacing={2} item xs={12}>
       <Grid item xs={12}>
@@ -147,7 +137,7 @@ export default function DynamicActionForm(
             }}
             destType={props.value.destType}
             disabled={props.disabled}
-            fieldErrors={staticParamErrors}
+            fieldErrors={props.staticParamErrors}
           />
         </Grid>
       )}
@@ -174,12 +164,12 @@ export default function DynamicActionForm(
                 disabled={props.disabled || !selectedDest?.enabled}
                 type='text'
                 label={p.label + ' (Expr syntax)'}
-                error={!!dynamicErrors[p.paramID]}
+                error={!!props.dynamicParamErrors?.[p.paramID]}
                 helperText={
                   <HelperText
                     hint={p.hint}
                     hintURL={p.hintURL}
-                    error={dynamicErrors[p.paramID]}
+                    error={props.dynamicParamErrors?.[p.paramID]}
                   />
                 }
                 onChange={(e) => handleChange(e.target.value)}
