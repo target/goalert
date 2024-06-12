@@ -100,6 +100,10 @@ export class ErrorConsumer {
     )
   }
 
+  /** Returns and consumes (if exists) a single field error with the given name.
+   *
+   * Name maps to the `fname` when using the backend `validate.*` methods.
+   */
   getFieldError(name: string): string | undefined {
     this.doneCheck()
 
