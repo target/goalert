@@ -1,5 +1,5 @@
 import React, { useState, ReactNode, useEffect } from 'react'
-import { FormContainer, FormField } from '../forms'
+import { HelperText } from '../forms'
 import Grid from '@mui/material/Grid'
 
 import NumberField from '../util/NumberField'
@@ -10,14 +10,9 @@ import { renderMenuItem } from '../selection/DisableableMenuItem'
 import DestinationField from '../selection/DestinationField'
 import { useEPTargetTypes } from '../util/RequireConfig'
 import { gql, useClient, CombinedError } from 'urql'
-import {
-  DestFieldValueError,
-  KnownError,
-  isDestFieldError,
-} from '../util/errtypes'
-import { splitErrorsByPath } from '../util/errutil'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import makeStyles from '@mui/styles/makeStyles'
+import { ErrorConsumer } from '../util/ErrorConsumer'
 
 const useStyles = makeStyles(() => {
   return {
@@ -35,9 +30,10 @@ export type FormValue = {
 
 export type PolicyStepFormProps = {
   value: FormValue
-  errors?: (KnownError | DestFieldValueError)[]
   disabled?: boolean
   onChange: (value: FormValue) => void
+
+  delayError?: string
 }
 
 const query = gql`
@@ -58,9 +54,7 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
   const [values, setValues] = useState<FieldValueInput[]>([])
   const validationClient = useClient()
   const [err, setErr] = useState<CombinedError | null>(null)
-  const [destErrors, otherErrs] = splitErrorsByPath(err || props.errors, [
-    'destinationDisplayInfo.input',
-  ])
+  const errs = new ErrorConsumer(err)
 
   useEffect(() => {
     setErr(null)
@@ -74,10 +68,10 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
     })
   }
 
-  function renderErrors(): React.JSX.Element[] {
+  function renderErrors(otherErrs: readonly string[]): React.JSX.Element[] {
     return otherErrs.map((err, idx) => (
       <DialogContentError
-        error={err.message || err}
+        error={err}
         key={idx}
         noPadding
         className={classes.errorContainer}
@@ -85,115 +79,113 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
     ))
   }
 
+  const hint =
+    props.value.delayMinutes === 0
+      ? 'This will cause the step to immediately escalate'
+      : `This will cause the step to escalate after ${props.value.delayMinutes}m`
+
   return (
-    <FormContainer
-      value={props.value}
-      onChange={(newValue: FormValue) => {
-        if (!props.onChange) return
-        props.onChange(newValue)
-      }}
-      optionalLabels
-      errors={props.errors}
-    >
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          {props.value.actions.map((a, idx) => (
-            <DestinationInputChip
-              key={idx}
-              value={a}
-              onDelete={props.disabled ? undefined : () => handleDelete(a)}
-            />
-          ))}
-          {props.value.actions.length === 0 && (
-            <Typography variant='body2' color='textSecondary'>
-              No actions
-            </Typography>
-          )}
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            select
-            fullWidth
-            disabled={props.disabled}
-            value={destType}
-            label='Destination Type'
-            name='dest.type'
-            onChange={(e) => setDestType(e.target.value)}
-          >
-            {types.map((t) =>
-              renderMenuItem({
-                label: t.name,
-                value: t.type,
-                disabled: !t.enabled,
-                disabledMessage: t.enabled ? '' : 'Disabled by administrator.',
-              }),
-            )}
-          </TextField>
-        </Grid>
-        <Grid item xs={12}>
-          <DestinationField
-            destType={destType}
-            value={values}
-            disabled={props.disabled}
-            onChange={(newValue: FieldValueInput[]) => {
-              setErr(null)
-              setValues(newValue)
-            }}
-            destFieldErrors={destErrors.filter(isDestFieldError)}
+    <Grid container spacing={2}>
+      <Grid item xs={12}>
+        {props.value.actions.map((a, idx) => (
+          <DestinationInputChip
+            key={idx}
+            value={a}
+            onDelete={props.disabled ? undefined : () => handleDelete(a)}
           />
-        </Grid>
-        <Grid container item xs={12} justifyContent='flex-end'>
-          {otherErrs && renderErrors()}
-          <Button
-            variant='contained'
-            color='secondary'
-            onClick={() => {
-              if (!props.onChange) return
-              validationClient
-                .query(query, {
-                  input: {
+        ))}
+        {props.value.actions.length === 0 && (
+          <Typography variant='body2' color='textSecondary'>
+            No actions
+          </Typography>
+        )}
+      </Grid>
+      <Grid item xs={12}>
+        <TextField
+          select
+          fullWidth
+          disabled={props.disabled}
+          value={destType}
+          label='Destination Type'
+          name='dest.type'
+          onChange={(e) => setDestType(e.target.value)}
+        >
+          {types.map((t) =>
+            renderMenuItem({
+              label: t.name,
+              value: t.type,
+              disabled: !t.enabled,
+              disabledMessage: t.enabled ? '' : 'Disabled by administrator.',
+            }),
+          )}
+        </TextField>
+      </Grid>
+      <Grid item xs={12}>
+        <DestinationField
+          destType={destType}
+          value={values}
+          disabled={props.disabled}
+          onChange={(newValue: FieldValueInput[]) => {
+            setErr(null)
+            setValues(newValue)
+          }}
+          fieldErrors={errs.getAllDestFieldErrors()}
+        />
+      </Grid>
+      <Grid container item xs={12} justifyContent='flex-end'>
+        {errs.hasErrors() && renderErrors(errs.remaining())}
+        <Button
+          variant='contained'
+          color='secondary'
+          onClick={() => {
+            if (!props.onChange) return
+            validationClient
+              .query(query, {
+                input: {
+                  type: destType,
+                  values,
+                },
+              })
+              .toPromise()
+              .then((res) => {
+                if (res.error) {
+                  setErr(res.error)
+                  return
+                }
+                setValues([])
+                props.onChange({
+                  ...props.value,
+                  actions: props.value.actions.concat({
                     type: destType,
                     values,
-                  },
+                  }),
                 })
-                .toPromise()
-                .then((res) => {
-                  if (res.error) {
-                    setErr(res.error)
-                    return
-                  }
-                  setValues([])
-                  props.onChange({
-                    ...props.value,
-                    actions: props.value.actions.concat({
-                      type: destType,
-                      values,
-                    }),
-                  })
-                })
-            }}
-          >
-            Add Destination
-          </Button>
-        </Grid>
-        <Grid item xs={12}>
-          <FormField
-            component={NumberField}
-            disabled={props.disabled}
-            fullWidth
-            label='Delay (minutes)'
-            name='delayMinutes'
-            required
-            min={1}
-            max={9000}
-            hint={
-              props.value.delayMinutes === 0
-                ? 'This will cause the step to immediately escalate'
-                : `This will cause the step to escalate after ${props.value.delayMinutes}m`
-            }
-          />
-        </Grid>
+              })
+          }}
+        >
+          Add Destination
+        </Button>
       </Grid>
-    </FormContainer>
+      <Grid item xs={12}>
+        <NumberField
+          disabled={props.disabled}
+          fullWidth
+          label='Delay (minutes)'
+          name='delayMinutes'
+          required
+          min={1}
+          max={9000}
+          error={!!props.delayError}
+          helperText={<HelperText hint={hint} error={props.delayError} />}
+          value={props.value.delayMinutes.toString()}
+          onChange={(e) =>
+            props.onChange({
+              ...props.value,
+              delayMinutes: parseInt(e.target.value, 10),
+            })
+          }
+        />
+      </Grid>
+    </Grid>
   )
 }
