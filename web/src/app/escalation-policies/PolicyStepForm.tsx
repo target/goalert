@@ -12,7 +12,7 @@ import { useEPTargetTypes } from '../util/RequireConfig'
 import { gql, useClient, CombinedError } from 'urql'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import makeStyles from '@mui/styles/makeStyles'
-import { ErrorConsumer } from '../util/ErrorConsumer'
+import { useErrorConsumer } from '../util/ErrorConsumer'
 
 const useStyles = makeStyles(() => {
   return {
@@ -52,7 +52,7 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
   const [values, setValues] = useState<FieldValueInput[]>([])
   const validationClient = useClient()
   const [err, setErr] = useState<CombinedError | null>(null)
-  const errs = new ErrorConsumer(err)
+  const errs = useErrorConsumer(err)
 
   useEffect(() => {
     setErr(null)

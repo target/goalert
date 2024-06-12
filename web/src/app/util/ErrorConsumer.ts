@@ -10,6 +10,13 @@ type ErrorStore = {
   errors: Set<ErrorConsumerError>
 }
 
+/** useErrorConsumer is a hook for creating an ErrorConsumer. */
+export function useErrorConsumer(
+  e?: CombinedError | null | undefined,
+): ErrorConsumer {
+  return new ErrorConsumer(e)
+}
+
 /** ErrorConsumer is a utility class for consuming and handling errors from a CombinedError. */
 export class ErrorConsumer {
   constructor(e?: CombinedError | null | undefined) {
