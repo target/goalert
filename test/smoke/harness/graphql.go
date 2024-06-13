@@ -162,9 +162,16 @@ func (h *Harness) GraphQLQueryUserVarsT(t *testing.T, userID, query, opName stri
 		break
 	}
 	defer resp.Body.Close()
-	var r QLResponse
-	err = json.NewDecoder(resp.Body).Decode(&r)
+
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
+		t.Fatal("failed to read response body:", err)
+	}
+
+	var r QLResponse
+	err = json.Unmarshal(data, &r)
+	if err != nil {
+		t.Log("Response:", string(data))
 		t.Fatal("failed to parse GraphQL response:", err)
 	}
 	return &r
@@ -173,5 +180,37 @@ func (h *Harness) GraphQLQueryUserVarsT(t *testing.T, userID, query, opName stri
 // QLResponse is a generic GraphQL response.
 type QLResponse struct {
 	Data   json.RawMessage
-	Errors []struct{ Message string }
+	Errors []struct {
+		Message    string
+		Path       QLPath
+		Extensions struct {
+			Code    string
+			FieldID string
+		}
+	}
+}
+
+type QLPath string
+
+func (p *QLPath) UnmarshalJSON(data []byte) error {
+	var parts []any
+	err := json.Unmarshal(data, &parts)
+	if err != nil {
+		return err
+	}
+
+	var strParts []string
+	for _, p := range parts {
+		switch v := p.(type) {
+		case string:
+			strParts = append(strParts, v)
+		case float64:
+			strParts = append(strParts, strconv.Itoa(int(v)))
+		default:
+			return errors.Errorf("unexpected path part type: %T", p)
+		}
+	}
+
+	*p = QLPath(strings.Join(strParts, "."))
+	return nil
 }

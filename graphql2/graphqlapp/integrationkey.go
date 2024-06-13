@@ -35,6 +35,15 @@ func (q *Query) IntegrationKey(ctx context.Context, id string) (*integrationkey.
 	return q.IntKeyStore.FindOne(ctx, id)
 }
 
+func (q *Query) ActionInputValidate(ctx context.Context, input graphql2.ActionInput) (bool, error) {
+	err := (*App)(q).ValidateDestination(ctx, "input.dest", input.Dest)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (m *Mutation) GenerateKeyToken(ctx context.Context, keyID string) (string, error) {
 	id, err := validate.ParseUUID("ID", keyID)
 	if err != nil {

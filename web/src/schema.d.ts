@@ -858,6 +858,7 @@ export interface PhoneNumberInfo {
 export interface Query {
   __schema: __Schema
   __type?: null | __Type
+  actionInputValidate: boolean
   alert?: null | Alert
   alerts: AlertConnection
   authSubjectsForProvider: AuthSubjectConnection
