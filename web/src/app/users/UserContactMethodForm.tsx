@@ -75,6 +75,7 @@ export default function UserContactMethodForm(
             fullWidth
             name='name'
             label='Name'
+            disabled={props.disabled}
             error={!!props.nameError}
             helperText={props.nameError}
             value={value.name}
@@ -104,7 +105,7 @@ export default function UserContactMethodForm(
                 },
               })
             }
-            disabled={edit}
+            disabled={props.disabled || edit}
           >
             {destinationTypes.map((t) =>
               renderMenuItem({
@@ -119,7 +120,7 @@ export default function UserContactMethodForm(
         <Grid item xs={12}>
           <DestinationField
             destType={value.dest.type}
-            disabled={edit}
+            disabled={props.disabled || edit}
             fieldErrors={props.destFieldErrors}
             value={value.dest.values}
             onChange={(v) =>
