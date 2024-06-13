@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 import { gql, useMutation, useQuery } from 'urql'
 import FormDialog from '../../dialogs/FormDialog'
-import { nonFieldErrors } from '../../util/errutil'
 import { ActionInput, IntegrationKey } from '../../../schema'
 import { getNotice } from './utils'
-import DefaultActionForm from './DefaultActionForm'
+import UniversalKeyActionsForm from './UniversalKeyActionsForm'
+import { useErrorConsumer } from '../../util/ErrorConsumer'
 
 interface DefaultActionEditDialogProps {
   keyID: string
@@ -52,15 +52,16 @@ export default function DefaultActionEditDialog(
     },
   })
 
-  // TODO: fetch single rule via query and set it here
   const [value, setValue] = useState<ActionInput[]>(
     q.data?.integrationKey.config.defaultActions ?? [],
   )
-  const [editStatus, commit] = useMutation(mutation)
+  const [m, commit] = useMutation(mutation)
 
   const [hasConfirmed, setHasConfirmed] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const noActionsNoConf = value.length === 0 && !hasConfirmed
+  const errs = useErrorConsumer(m.error)
+  const form = <UniversalKeyActionsForm value={value} onChange={setValue} />
 
   return (
     <FormDialog
@@ -79,13 +80,13 @@ export default function DefaultActionEditDialog(
               defaultActions: value,
             },
           },
-          { additionalTypenames: ['IntegrationKey', 'Service'] },
+          { additionalTypenames: ['KeyConfig'] },
         ).then(() => {
           props.onClose()
         })
       }}
-      form={<DefaultActionForm value={value} onChange={setValue} />}
-      errors={nonFieldErrors(editStatus.error)}
+      form={form}
+      errors={errs.remainingLegacy()}
       notices={getNotice(hasSubmitted, hasConfirmed, setHasConfirmed)}
     />
   )

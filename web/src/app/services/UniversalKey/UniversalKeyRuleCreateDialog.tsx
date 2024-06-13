@@ -2,9 +2,9 @@ import React, { useState } from 'react'
 import FormDialog from '../../dialogs/FormDialog'
 import UniversalKeyRuleForm from './UniversalKeyRuleForm'
 import { gql, useMutation } from 'urql'
-import { nonFieldErrors } from '../../util/errutil'
 import { KeyRuleInput } from '../../../schema'
 import { getNotice } from './utils'
+import { useErrorConsumer } from '../../util/ErrorConsumer'
 
 interface UniversalKeyRuleCreateDialogProps {
   keyID: string
@@ -25,27 +25,40 @@ export default function UniversalKeyRuleCreateDialogProps(
     name: '',
     description: '',
     conditionExpr: '',
+    continueAfterMatch: false,
     actions: [],
   })
-  const [createStatus, commit] = useMutation(mutation)
-
+  const [m, commit] = useMutation(mutation)
   const [hasConfirmed, setHasConfirmed] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const noActionsNoConf = value.actions.length === 0 && !hasConfirmed
+
+  const errs = useErrorConsumer(m.error)
+  const form = (
+    <UniversalKeyRuleForm
+      value={value}
+      onChange={setValue}
+      nameError={errs.getInputError('updateKeyConfig.input.setRule.name')}
+      descriptionError={errs.getInputError(
+        'updateKeyConfig.input.setRule.description',
+      )}
+      conditionError={errs.getInputError(
+        'updateKeyConfig.input.setRule.conditionExpr',
+      )}
+    />
+  )
 
   return (
     <FormDialog
       title='Create Rule'
       maxWidth='lg'
       onClose={props.onClose}
-      errors={nonFieldErrors(createStatus.error)}
+      errors={errs.remainingLegacy()}
       onSubmit={() => {
         if (noActionsNoConf) {
           setHasSubmitted(true)
           return
         }
-
-        console.log('submitting')
 
         return commit(
           {
@@ -59,14 +72,14 @@ export default function UniversalKeyRuleCreateDialogProps(
               },
             },
           },
-          { additionalTypenames: ['IntegrationKey', 'Service'] },
+          { additionalTypenames: ['KeyConfig'] },
         ).then((res) => {
-          if (!res.error) {
-            props.onClose()
-          }
+          if (res.error) return
+
+          props.onClose()
         })
       }}
-      form={<UniversalKeyRuleForm value={value} onChange={setValue} />}
+      form={form}
       notices={getNotice(hasSubmitted, hasConfirmed, setHasConfirmed)}
     />
   )

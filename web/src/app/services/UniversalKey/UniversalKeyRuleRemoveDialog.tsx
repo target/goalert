@@ -33,7 +33,7 @@ export default function UniversalKeyRuleCreateDialogProps(
               deleteRule: props.ruleID,
             },
           },
-          { additionalTypenames: ['IntegrationKey', 'Service'] },
+          { additionalTypenames: ['KeyConfig'] },
         ).then(() => {
           props.onClose()
         })

@@ -1202,6 +1202,12 @@ const (
 	//
 	// A separate error will be returned for each invalid field.
 	ErrorCodeInvalidDestFieldValue ErrorCode = "INVALID_DEST_FIELD_VALUE"
+	// The `path` field contains the exact path to the ActionInput that is invalid.
+	//
+	// The `extensions.paramID` field contains the ID of the parameter that is invalid.
+	//
+	// A separate error will be returned for each invalid parameter.
+	ErrorCodeInvalidDynamicParamValue ErrorCode = "INVALID_DYNAMIC_PARAM_VALUE"
 	// The expr expression is too complex to be converted to a Condition.
 	ErrorCodeExprTooComplex ErrorCode = "EXPR_TOO_COMPLEX"
 )
@@ -1209,12 +1215,13 @@ const (
 var AllErrorCode = []ErrorCode{
 	ErrorCodeInvalidInputValue,
 	ErrorCodeInvalidDestFieldValue,
+	ErrorCodeInvalidDynamicParamValue,
 	ErrorCodeExprTooComplex,
 }
 
 func (e ErrorCode) IsValid() bool {
 	switch e {
-	case ErrorCodeInvalidInputValue, ErrorCodeInvalidDestFieldValue, ErrorCodeExprTooComplex:
+	case ErrorCodeInvalidInputValue, ErrorCodeInvalidDestFieldValue, ErrorCodeInvalidDynamicParamValue, ErrorCodeExprTooComplex:
 		return true
 	}
 	return false

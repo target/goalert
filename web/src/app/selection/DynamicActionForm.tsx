@@ -21,7 +21,11 @@ export type Value = {
   dynamicParams: DynamicParams
 }
 
-export function valueToActionInput(value: Value): ActionInput {
+export function valueToActionInput(value: Value | null): ActionInput {
+  if (!value) {
+    return { dest: { type: '', values: [] }, params: [] }
+  }
+
   return {
     dest: {
       type: value.destType,
@@ -63,17 +67,17 @@ export function destFieldToStatic(destFields: FieldValueInput[]): StaticParams {
   return Object.fromEntries(destFields.map((f) => [f.fieldID, f.value]))
 }
 
-export type DynamicActionErrors = {
-  destTypeError?: string
-  staticParamErrors?: Readonly<Record<string, string>>
-  dynamicParamErrors?: Readonly<Record<string, string>>
-}
+export type DynamicActionErrors = {}
 export type DynamicActionFormProps = {
   value: Value | null
   onChange: (value: Value) => void
 
   disabled?: boolean
-} & DynamicActionErrors
+
+  destTypeError?: string
+  staticParamErrors?: Readonly<Record<string, string>>
+  dynamicParamErrors?: Readonly<Record<string, string>>
+}
 
 export function defaults(destTypeInfo: DestinationTypeInfo): Value {
   const staticParams = Object.fromEntries(

@@ -5,6 +5,7 @@ import UniversalKeyRuleForm from './UniversalKeyRuleForm'
 import { nonFieldErrors } from '../../util/errutil'
 import { IntegrationKey, KeyRule, KeyRuleInput } from '../../../schema'
 import { getNotice } from './utils'
+import { useErrorConsumer } from '../../util/ErrorConsumer'
 
 interface UniversalKeyRuleEditDialogProps {
   keyID: string
@@ -53,7 +54,6 @@ export default function UniversalKeyRuleCreateDialogProps(
 ): JSX.Element {
   const [q] = useQuery<{
     integrationKey: IntegrationKey
-    ruleKey: KeyRule
   }>({
     query,
     variables: {
@@ -61,22 +61,34 @@ export default function UniversalKeyRuleCreateDialogProps(
       ruleID: props.ruleID,
     },
   })
+  if (q.error) throw q.error
 
-  // TODO: fetch single rule via query and set it here
-  const [value, setValue] = useState<KeyRuleInput>(
-    q.data?.integrationKey.config.oneRule ?? {
-      id: '',
-      name: '',
-      description: '',
-      conditionExpr: '',
-      actions: [],
-    },
-  )
-  const [editStatus, commit] = useMutation(mutation)
+  // shouldn't happen due to suspense
+  if (!q.data) throw new Error('failed to load data')
+
+  const rule = q.data.integrationKey.config.oneRule
+  if (!rule) throw new Error('rule not found')
+
+  const [value, setValue] = useState<KeyRuleInput>(rule)
+  const [m, commit] = useMutation(mutation)
 
   const [hasConfirmed, setHasConfirmed] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const noActionsNoConf = value.actions.length === 0 && !hasConfirmed
+  const errs = useErrorConsumer(m.error)
+  const form = (
+    <UniversalKeyRuleForm
+      value={value}
+      onChange={setValue}
+      nameError={errs.getInputError('updateKeyConfig.input.setRule.name')}
+      descriptionError={errs.getInputError(
+        'updateKeyConfig.input.setRule.description',
+      )}
+      conditionError={errs.getInputError(
+        'updateKeyConfig.input.setRule.conditionExpr',
+      )}
+    />
+  )
 
   return (
     <FormDialog
@@ -102,19 +114,15 @@ export default function UniversalKeyRuleCreateDialogProps(
               },
             },
           },
-          { additionalTypenames: ['IntegrationKey', 'Service'] },
-        ).then(() => {
+          { additionalTypenames: ['KeyConfig'] },
+        ).then((res) => {
+          if (res.error) return
+
           props.onClose()
         })
       }}
-      form={
-        <UniversalKeyRuleForm
-          value={value}
-          onChange={setValue}
-          default={props.default}
-        />
-      }
-      errors={nonFieldErrors(editStatus.error)}
+      form={form}
+      errors={errs.remainingLegacy()}
       notices={getNotice(hasSubmitted, hasConfirmed, setHasConfirmed)}
     />
   )

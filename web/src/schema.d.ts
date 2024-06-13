@@ -481,6 +481,7 @@ export interface DynamicParamInput {
 export type ErrorCode =
   | 'EXPR_TOO_COMPLEX'
   | 'INVALID_DEST_FIELD_VALUE'
+  | 'INVALID_DYNAMIC_PARAM_VALUE'
   | 'INVALID_INPUT_VALUE'
 
 export interface EscalationPolicy {

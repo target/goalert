@@ -1,7 +1,5 @@
-import React, { useState } from 'react'
-import { FormContainer, FormField } from '../../forms'
+import React from 'react'
 import {
-  Button,
   Divider,
   FormControl,
   FormControlLabel,
@@ -10,301 +8,125 @@ import {
   Radio,
   RadioGroup,
   TextField,
-  Typography,
 } from '@mui/material'
-import { ActionInput, KeyRuleInput } from '../../../schema'
-import { useDynamicActionTypes } from '../../util/RequireConfig'
-import DestinationInputChip from '../../util/DestinationInputChip'
-import { CombinedError, gql, useClient } from 'urql'
-import DynamicActionField, {
-  Value as ActionValue,
-  defaults,
-  valueToActionInput,
-} from '../../selection/DynamicActionField'
-import { Add } from '@mui/icons-material'
-import { fieldErrors } from '../../util/errutil'
+import { KeyRuleInput } from '../../../schema'
+import UniversalKeyActionsList from './UniversalKeyActionsList'
+import UniversalKeyActionsForm from './UniversalKeyActionsForm'
 
 interface UniversalKeyRuleFormProps {
   value: KeyRuleInput
-  onChange: (val: KeyRuleInput) => void
-  default?: boolean
-}
+  onChange: (val: Readonly<KeyRuleInput>) => void
 
-const query = gql`
-  query DestDisplayInfo($input: DestinationInput!) {
-    destinationDisplayInfo(input: $input) {
-      text
-      iconURL
-      iconAltText
-      linkURL
-    }
-  }
-`
+  nameError?: string
+  descriptionError?: string
+  conditionError?: string
+}
 
 export default function UniversalKeyRuleForm(
   props: UniversalKeyRuleFormProps,
 ): JSX.Element {
-  props.default = props.default !== undefined ? props.default : false
-  const types = useDynamicActionTypes()
-
-  const [currentAction, setCurrentAction] = useState<ActionValue>(
-    defaults(types[0]),
-  )
-  const [addActionError, setAddActionError] = useState<CombinedError>()
-  const [stopOrContinue, setStopOrContinue] = useState<'stop' | 'continue'>(
-    'continue',
-  )
-
-  const validationClient = useClient()
-
-  function handleDelete(a: ActionInput): void {
-    if (!props.onChange) return
-    props.onChange({
-      ...props.value,
-      actions: props.value.actions.filter((b) => a !== b),
-    })
-  }
-
-  // change to single column view for default actions
-  // (perhaps could be moved to a seperate component)
-  if (props.default) {
-    return (
-      <FormContainer
-        value={props.value}
-        onChange={props.onChange}
-        errors={fieldErrors(addActionError)}
-      >
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <Typography variant='h6' color='textPrimary'>
-              Actions
-            </Typography>
-          </Grid>
-          <Grid item xs={12} container spacing={1} sx={{ p: 1 }}>
-            {props.value.actions.map((a) => (
-              <Grid item key={JSON.stringify(a.dest)}>
-                <DestinationInputChip
-                  value={a.dest}
-                  onDelete={() => handleDelete(a)}
-                />
-              </Grid>
-            ))}
-            {props.value.actions.length === 0 && (
-              <Grid item xs={12}>
-                <Typography variant='body2' color='textSecondary'>
-                  No actions
-                </Typography>
-              </Grid>
-            )}
-          </Grid>
-
-          <Grid item xs={12} container spacing={2}>
-            <DynamicActionField
-              value={currentAction}
-              onChange={setCurrentAction}
-            />
-
-            <Grid
-              item
-              xs={12}
-              sx={{
-                display: 'flex',
-                // justifyContent: 'flex-end',
-                alignItems: 'flex-end',
-              }}
-            >
-              <Button
-                fullWidth
-                startIcon={<Add />}
-                variant='contained'
-                color='secondary'
-                sx={{ height: 'fit-content' }}
-                onClick={() => {
-                  const act = valueToActionInput(currentAction)
-                  validationClient
-                    .query(query, {
-                      input: act.dest,
-                    })
-                    .toPromise()
-                    .then((res) => {
-                      if (res.error) {
-                        setAddActionError(res.error) // todo: not showing in dialog?
-                        console.log(res)
-                        return
-                      }
-
-                      // clear the current action
-                      setCurrentAction(
-                        defaults(
-                          types.find(
-                            (t) => t.type === currentAction.destType,
-                          ) || types[0],
-                        ),
-                      )
-
-                      props.onChange({
-                        ...props.value,
-                        actions: props.value.actions.concat(act),
-                      })
-                    })
-                }}
-              >
-                Add Action
-              </Button>
-            </Grid>
-          </Grid>
-        </Grid>
-      </FormContainer>
-    )
-  }
-
   return (
-    <FormContainer
-      value={props.value}
-      onChange={props.onChange}
-      errors={fieldErrors(addActionError)}
-    >
-      <Grid container justifyContent='space-between' spacing={2}>
-        <Grid
-          item
-          xs={12}
-          md={5.8}
-          container
-          spacing={2}
-          alignContent='flex-start'
-        >
-          <Grid item xs={12}>
-            <FormField
-              fullWidth
-              component={TextField}
-              label='Name'
-              name='name'
-              required
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <FormField
-              fullWidth
-              component={TextField}
-              label='Description'
-              name='description'
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <FormField
-              fullWidth
-              component={TextField}
-              label='Condition (Expr syntax)'
-              name='conditionExpr'
-              required
-              multiline
-              rows={3}
-            />
-          </Grid>
-          <Grid item xs={12} sx={{ mb: -1 }}>
-            <Typography variant='h6' color='textPrimary'>
-              Actions
-            </Typography>
-          </Grid>
-          <Grid item xs={12} container spacing={1} sx={{ p: 1 }}>
-            {props.value.actions.map((a) => (
-              <Grid item key={JSON.stringify(a.dest)}>
-                <DestinationInputChip
-                  value={a.dest}
-                  onDelete={() => handleDelete(a)}
-                />
-              </Grid>
-            ))}
-            {props.value.actions.length === 0 && (
-              <Grid item xs={12}>
-                <Typography variant='body2' color='textSecondary'>
-                  No actions
-                </Typography>
-              </Grid>
-            )}
-          </Grid>
-          <Grid item xs={12}>
-            <FormControl>
-              <FormLabel id='demo-row-radio-buttons-group-label'>
-                After actions complete:
-              </FormLabel>
-              <RadioGroup row name='stop-or-continue' value={stopOrContinue}>
-                <FormControlLabel
-                  value='continue'
-                  onChange={() => setStopOrContinue('continue')}
-                  control={<Radio />}
-                  label='Continue processing rules'
-                />
-                <FormControlLabel
-                  value='stop'
-                  onChange={() => setStopOrContinue('stop')}
-                  control={<Radio />}
-                  label='Stop at this rule'
-                />
-              </RadioGroup>
-            </FormControl>
-          </Grid>
-        </Grid>
-
-        <Grid item sx={{ width: 'fit-content' }}>
-          <Divider orientation='vertical' />
-        </Grid>
-
-        <Grid item xs={12} md={5.8} container spacing={2}>
-          <DynamicActionField
-            value={currentAction}
-            onChange={setCurrentAction}
-          />
-
-          <Grid
-            item
-            xs={12}
-            sx={{
-              display: 'flex',
-              // justifyContent: 'flex-end',
-              alignItems: 'flex-end',
+    <Grid container justifyContent='space-between' spacing={2}>
+      <Grid
+        item
+        xs={12}
+        md={5.8}
+        container
+        spacing={2}
+        alignContent='flex-start'
+      >
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label='Name'
+            name='name'
+            value={props.value.name}
+            onChange={(e) => {
+              props.onChange({ ...props.value, name: e.target.value })
             }}
-          >
-            <Button
-              fullWidth
-              startIcon={<Add />}
-              variant='contained'
-              color='secondary'
-              sx={{ height: 'fit-content' }}
-              onClick={() => {
-                const act = valueToActionInput(currentAction)
-                validationClient
-                  .query(query, {
-                    input: act.dest,
-                  })
-                  .toPromise()
-                  .then((res) => {
-                    if (res.error) {
-                      setAddActionError(res.error) // todo: not showing in dialog?
-                      console.log(res)
-                      return
-                    }
-
-                    // clear the current action
-                    setCurrentAction(
-                      defaults(
-                        types.find((t) => t.type === currentAction.destType) ||
-                          types[0],
-                      ),
-                    )
-
-                    props.onChange({
-                      ...props.value,
-                      actions: props.value.actions.concat(act),
-                    })
-                  })
-              }}
+            error={!!props.nameError}
+            helperText={props.nameError}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            component={TextField}
+            label='Description'
+            name='description'
+            value={props.value.description}
+            onChange={(e) => {
+              props.onChange({ ...props.value, description: e.target.value })
+            }}
+            error={!!props.descriptionError}
+            helperText={props.descriptionError}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label='Condition (Expr syntax)'
+            name='conditionExpr'
+            multiline
+            rows={3}
+            value={props.value.conditionExpr}
+            onChange={(e) => {
+              props.onChange({ ...props.value, conditionExpr: e.target.value })
+            }}
+            error={!!props.conditionError}
+            helperText={props.conditionError}
+          />
+        </Grid>
+        <UniversalKeyActionsList
+          actions={props.value.actions}
+          onDelete={(a) =>
+            props.onChange({
+              ...props.value,
+              actions: props.value.actions.filter((v) => v !== a),
+            })
+          }
+        />
+        <Grid item xs={12}>
+          <FormControl>
+            <FormLabel id='demo-row-radio-buttons-group-label'>
+              After actions complete:
+            </FormLabel>
+            <RadioGroup
+              row
+              name='stop-or-continue'
+              value={props.value.continueAfterMatch ? 'continue' : 'stop'}
             >
-              Add Action
-            </Button>
-          </Grid>
+              <FormControlLabel
+                value='continue'
+                onChange={() =>
+                  props.onChange({ ...props.value, continueAfterMatch: true })
+                }
+                control={<Radio />}
+                label='Continue processing rules'
+              />
+              <FormControlLabel
+                value='stop'
+                onChange={() =>
+                  props.onChange({ ...props.value, continueAfterMatch: false })
+                }
+                control={<Radio />}
+                label='Stop at this rule'
+              />
+            </RadioGroup>
+          </FormControl>
         </Grid>
       </Grid>
-    </FormContainer>
+
+      <Grid item sx={{ width: 'fit-content' }}>
+        <Divider orientation='vertical' />
+      </Grid>
+
+      <Grid item xs={12} md={5.8} container spacing={2}>
+        <UniversalKeyActionsForm
+          value={props.value.actions}
+          onChange={(actions) => props.onChange({ ...props.value, actions })}
+        />
+      </Grid>
+    </Grid>
   )
 }
