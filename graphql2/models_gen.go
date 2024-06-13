@@ -576,9 +576,7 @@ type IntegrationKeyTypeInfo struct {
 }
 
 type KeyConfig struct {
-	// Stop evaluating rules after the first rule that matches.
-	StopAtFirstRule bool      `json:"stopAtFirstRule"`
-	Rules           []KeyRule `json:"rules"`
+	Rules []KeyRule `json:"rules"`
 	// Get a single rule by ID.
 	OneRule *KeyRule `json:"oneRule,omitempty"`
 	// defaultAction is the action to take if no rules match the request.
@@ -592,6 +590,8 @@ type KeyRule struct {
 	// An expression that must evaluate to true for the rule to match.
 	ConditionExpr string   `json:"conditionExpr"`
 	Actions       []Action `json:"actions"`
+	// Continue evaluating rules after this rule matches.
+	ContinueAfterMatch bool `json:"continueAfterMatch"`
 }
 
 type KeyRuleInput struct {
@@ -602,6 +602,10 @@ type KeyRuleInput struct {
 	// An expression that must evaluate to true for the rule to match.
 	ConditionExpr string        `json:"conditionExpr"`
 	Actions       []ActionInput `json:"actions"`
+	// Continue evaluating rules after this rule matches.
+	//
+	// If this is set to false (default), no further rules will be evaluated after this rule matches.
+	ContinueAfterMatch bool `json:"continueAfterMatch"`
 }
 
 type LabelConnection struct {
@@ -936,10 +940,8 @@ type UpdateHeartbeatMonitorInput struct {
 }
 
 type UpdateKeyConfigInput struct {
-	KeyID string `json:"keyID"`
-	// Stop evaluating rules after the first rule that matches.
-	StopAtFirstRule *bool          `json:"stopAtFirstRule,omitempty"`
-	Rules           []KeyRuleInput `json:"rules,omitempty"`
+	KeyID string         `json:"keyID"`
+	Rules []KeyRuleInput `json:"rules,omitempty"`
 	// setRule allows you to set a single rule. If ID is provided, the rule with that ID will be updated. If ID is not provided, a new rule will be created and appended to the list of rules.
 	SetRule *KeyRuleInput `json:"setRule,omitempty"`
 	// deleteRule allows you to delete a single rule by ID.

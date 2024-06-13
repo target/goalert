@@ -6,8 +6,8 @@ import { Check, Close } from '@mui/icons-material'
 import InputAdornment from '@mui/material/InputAdornment'
 import { DEBOUNCE_DELAY } from '../config'
 import { DestinationFieldConfig, DestinationType } from '../../schema'
-import AppLink from '../util/AppLink'
 import { green, red } from '@mui/material/colors'
+import { HelperText } from '../forms'
 
 const isValidValue = gql`
   query ValidateDestination($input: DestinationFieldValidateInput!) {
@@ -32,7 +32,7 @@ export type DestinationInputDirectProps = Partial<DestinationFieldConfig> & {
   destType: DestinationType
 
   disabled?: boolean
-  error?: boolean
+  error?: string
 }
 
 /**
@@ -126,17 +126,15 @@ export default function DestinationInputDirect(
       placeholder={props.placeholderText}
       label={props.label}
       helperText={
-        props.hintURL ? (
-          <AppLink newTab to={props.hintURL}>
-            {props.hint}
-          </AppLink>
-        ) : (
-          props.hint
-        )
+        <HelperText
+          error={props.error}
+          hint={props.hint}
+          hintURL={props.hintURL}
+        />
       }
       onChange={handleChange}
       value={trimPrefix(props.value, props.prefix || '')}
-      error={props.error}
+      error={!!props.error}
     />
   )
 }
