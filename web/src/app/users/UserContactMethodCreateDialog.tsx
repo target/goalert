@@ -81,10 +81,8 @@ export default function UserContactMethodCreateDialog(props: {
   const form = (
     <UserContactMethodForm
       disabled={createCMStatus.fetching}
-      nameError={errs.getInputError('createUserContactMethod.input.name')}
-      destTypeError={errs.getInputError(
-        'createUserContactMethod.input.dest.type',
-      )}
+      nameError={errs.getError('createUserContactMethod.input.name')}
+      destTypeError={errs.getError('createUserContactMethod.input.dest.type')}
       destFieldErrors={errs.getAllDestFieldErrors()}
       onChange={(CMValue: Value) => setCMValue(CMValue)}
       value={CMValue}

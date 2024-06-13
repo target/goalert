@@ -58,7 +58,10 @@ export class ErrorConsumer {
         message: e.message,
         code: e.extensions?.code?.toString() || '',
         path: e.path?.join('.') || '',
-        fieldID: e.extensions?.fieldID?.toString() || '',
+        fieldID:
+          e.extensions?.fieldID?.toString() ||
+          e.extensions?.key?.toString() ||
+          '',
       })
     })
 
@@ -123,15 +126,14 @@ export class ErrorConsumer {
     return result
   }
 
-  /** Returns and consumes (if exists) a single INVALID_INPUT_VALUE error with the given path. */
-  getInputError(path: string): string | undefined {
+  /** Returns and consumes (if exists) a single error with the given path. */
+  getError(path: string): string | undefined {
     this.doneCheck()
 
     let result: string | undefined
 
     // find the first error with the given path
     this.store.errors.forEach((e) => {
-      if (e.code !== 'INVALID_INPUT_VALUE') return
       if (e.path !== path) return
       if (result !== undefined) return
 
@@ -162,17 +164,17 @@ export class ErrorConsumer {
     return errs
   }
 
-  /** Returns and consumes (if exists) all INVALID_DYNAMIC_PARAM_VALUE errors.
+  /** Returns and consumes (if exists) all errors at the given path that have a field/key defined.
    *
-   * @param path - If provided, only errors with the given path will be consumed.
+   * @param path - Only errors with the given path will be consumed.
    */
-  getAllDynamicParamErrors(path?: string): Readonly<Record<string, string>> {
+  getErrorMap(path: string): Readonly<Record<string, string>> {
     this.doneCheck()
 
     const errs: Record<string, string> = {}
     this.store.errors.forEach((e) => {
-      if (e.code !== 'INVALID_DYNAMIC_PARAM_VALUE') return
-      if (pathPrefix !== undefined && !e.path.startsWith(pathPrefix)) return
+      if (e.path !== path) return
+      if (e.fieldID === '') return
       if (errs[e.fieldID] !== undefined) return
 
       errs[e.fieldID] = e.message

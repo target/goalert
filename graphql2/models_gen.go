@@ -33,13 +33,13 @@ type InlineDisplayInfo interface {
 }
 
 type Action struct {
-	Dest   *Destination   `json:"dest"`
-	Params []DynamicParam `json:"params"`
+	Dest   *Destination      `json:"dest"`
+	Params map[string]string `json:"params"`
 }
 
 type ActionInput struct {
-	Dest   *DestinationInput   `json:"dest"`
-	Params []DynamicParamInput `json:"params"`
+	Dest   *DestinationInput `json:"dest"`
+	Params map[string]string `json:"params"`
 }
 
 type AlertConnection struct {
@@ -459,11 +459,6 @@ type DestinationTypeInfo struct {
 	StatusUpdatesRequired bool `json:"statusUpdatesRequired"`
 }
 
-type DynamicParam struct {
-	ParamID string `json:"paramID"`
-	Expr    string `json:"expr"`
-}
-
 type DynamicParamConfig struct {
 	// unique ID for the input field
 	ParamID string `json:"paramID"`
@@ -473,11 +468,6 @@ type DynamicParamConfig struct {
 	Hint string `json:"hint"`
 	// URL to link to for more information about the destination type
 	HintURL string `json:"hintURL"`
-}
-
-type DynamicParamInput struct {
-	ParamID string `json:"paramID"`
-	Expr    string `json:"expr"`
 }
 
 type EscalationPolicyConnection struct {
@@ -1202,12 +1192,12 @@ const (
 	//
 	// A separate error will be returned for each invalid field.
 	ErrorCodeInvalidDestFieldValue ErrorCode = "INVALID_DEST_FIELD_VALUE"
-	// The `path` field contains the exact path to the ActionInput that is invalid.
+	// The `path` field contains the exact path to the map that is invalid.
 	//
-	// The `extensions.paramID` field contains the ID of the parameter that is invalid.
+	// The `extensions.key` field contains the key of the value that is invalid.
 	//
-	// A separate error will be returned for each invalid parameter.
-	ErrorCodeInvalidDynamicParamValue ErrorCode = "INVALID_DYNAMIC_PARAM_VALUE"
+	// A separate error will be returned for each invalid value.
+	ErrorCodeInvalidMapFieldValue ErrorCode = "INVALID_MAP_FIELD_VALUE"
 	// The expr expression is too complex to be converted to a Condition.
 	ErrorCodeExprTooComplex ErrorCode = "EXPR_TOO_COMPLEX"
 )
@@ -1215,13 +1205,13 @@ const (
 var AllErrorCode = []ErrorCode{
 	ErrorCodeInvalidInputValue,
 	ErrorCodeInvalidDestFieldValue,
-	ErrorCodeInvalidDynamicParamValue,
+	ErrorCodeInvalidMapFieldValue,
 	ErrorCodeExprTooComplex,
 }
 
 func (e ErrorCode) IsValid() bool {
 	switch e {
-	case ErrorCodeInvalidInputValue, ErrorCodeInvalidDestFieldValue, ErrorCodeInvalidDynamicParamValue, ErrorCodeExprTooComplex:
+	case ErrorCodeInvalidInputValue, ErrorCodeInvalidDestFieldValue, ErrorCodeInvalidMapFieldValue, ErrorCodeExprTooComplex:
 		return true
 	}
 	return false

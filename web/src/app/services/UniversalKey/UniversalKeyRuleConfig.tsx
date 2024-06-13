@@ -25,12 +25,6 @@ const query = gql`
           id
           name
           description
-          conditionExpr
-          actions {
-            params {
-              paramID
-            }
-          }
         }
       }
     }

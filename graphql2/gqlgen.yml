@@ -120,3 +120,5 @@ models:
     model: github.com/target/goalert/graphql2.ExprValue
   ExprIdentifier:
     model: github.com/target/goalert/graphql2.ExprIdentifier
+  ExprStringMap:
+    model: github.com/target/goalert/graphql2.ExprStringMap

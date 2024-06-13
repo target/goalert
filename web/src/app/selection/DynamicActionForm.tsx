@@ -23,7 +23,7 @@ export type Value = {
 
 export function valueToActionInput(value: Value | null): ActionInput {
   if (!value) {
-    return { dest: { type: '', values: [] }, params: [] }
+    return { dest: { type: '', values: [] }, params: {} }
   }
 
   return {
@@ -34,10 +34,7 @@ export function valueToActionInput(value: Value | null): ActionInput {
         value,
       })),
     },
-    params: Object.entries(value.dynamicParams).map(([paramID, expr]) => ({
-      paramID,
-      expr,
-    })),
+    params: value.dynamicParams,
   }
 }
 
@@ -47,9 +44,7 @@ export function actionInputToValue(action: ActionInput): Value {
     staticParams: Object.fromEntries(
       action.dest.values.map((v) => [v.fieldID, v.value]),
     ),
-    dynamicParams: Object.fromEntries(
-      action.params.map((p) => [p.paramID, p.expr]),
-    ),
+    dynamicParams: { ...action.params },
   }
 }
 

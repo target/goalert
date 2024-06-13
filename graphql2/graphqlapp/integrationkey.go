@@ -241,7 +241,7 @@ func actionsGQLToGo(a []graphql2.ActionInput) []integrationkey.Action {
 		res = append(res, integrationkey.Action{
 			Type:          v.Dest.Type,
 			StaticParams:  fviToMap(v.Dest.Values),
-			DynamicParams: paramInputToMap(v.Params),
+			DynamicParams: v.Params,
 		})
 	}
 	return res
@@ -252,7 +252,7 @@ func actionsGoToGQL(a []integrationkey.Action) []graphql2.Action {
 	for _, v := range a {
 		res = append(res, graphql2.Action{
 			Dest:   &graphql2.Destination{Type: v.Type, Values: mapToFieldValue(v.StaticParams)},
-			Params: mapToParams(v.DynamicParams),
+			Params: v.DynamicParams,
 		})
 	}
 	return res
@@ -266,31 +266,12 @@ func fviToMap(f []graphql2.FieldValueInput) map[string]string {
 	return res
 }
 
-func paramInputToMap(p []graphql2.DynamicParamInput) map[string]string {
-	res := make(map[string]string, len(p))
-	for _, v := range p {
-		res[v.ParamID] = v.Expr
-	}
-	return res
-}
-
 func mapToFieldValue(m map[string]string) []graphql2.FieldValuePair {
 	res := make([]graphql2.FieldValuePair, 0, len(m))
 	for k, v := range m {
 		res = append(res, graphql2.FieldValuePair{
 			FieldID: k,
 			Value:   v,
-		})
-	}
-	return res
-}
-
-func mapToParams(m map[string]string) []graphql2.DynamicParam {
-	res := make([]graphql2.DynamicParam, 0, len(m))
-	for k, v := range m {
-		res = append(res, graphql2.DynamicParam{
-			ParamID: k,
-			Expr:    v,
 		})
 	}
 	return res

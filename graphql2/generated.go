@@ -290,11 +290,6 @@ type ComplexityRoot struct {
 		UserDisclaimer        func(childComplexity int) int
 	}
 
-	DynamicParam struct {
-		Expr    func(childComplexity int) int
-		ParamID func(childComplexity int) int
-	}
-
 	DynamicParamConfig struct {
 		Hint    func(childComplexity int) int
 		HintURL func(childComplexity int) int
@@ -1937,20 +1932,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DestinationTypeInfo.UserDisclaimer(childComplexity), true
-
-	case "DynamicParam.expr":
-		if e.complexity.DynamicParam.Expr == nil {
-			break
-		}
-
-		return e.complexity.DynamicParam.Expr(childComplexity), true
-
-	case "DynamicParam.paramID":
-		if e.complexity.DynamicParam.ParamID == nil {
-			break
-		}
-
-		return e.complexity.DynamicParam.ParamID(childComplexity), true
 
 	case "DynamicParamConfig.hint":
 		if e.complexity.DynamicParamConfig.Hint == nil {
@@ -5149,7 +5130,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputDestinationFieldSearchInput,
 		ec.unmarshalInputDestinationFieldValidateInput,
 		ec.unmarshalInputDestinationInput,
-		ec.unmarshalInputDynamicParamInput,
 		ec.unmarshalInputEscalationPolicySearchOptions,
 		ec.unmarshalInputExprToConditionInput,
 		ec.unmarshalInputFieldValueInput,
@@ -7105,9 +7085,9 @@ func (ec *executionContext) _Action_params(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]DynamicParam)
+	res := resTmp.(map[string]string)
 	fc.Result = res
-	return ec.marshalNDynamicParam2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDynamicParamᚄ(ctx, field.Selections, res)
+	return ec.marshalNExprStringMap2map(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Action_params(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7117,13 +7097,7 @@ func (ec *executionContext) fieldContext_Action_params(_ context.Context, field 
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "paramID":
-				return ec.fieldContext_DynamicParam_paramID(ctx, field)
-			case "expr":
-				return ec.fieldContext_DynamicParam_expr(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type DynamicParam", field.Name)
+			return nil, errors.New("field of type ExprStringMap does not have child fields")
 		},
 	}
 	return fc, nil
@@ -12090,94 +12064,6 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_statusUpdatesRequir
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _DynamicParam_paramID(ctx context.Context, field graphql.CollectedField, obj *DynamicParam) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DynamicParam_paramID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ParamID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_DynamicParam_paramID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "DynamicParam",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _DynamicParam_expr(ctx context.Context, field graphql.CollectedField, obj *DynamicParam) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DynamicParam_expr(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Expr, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNExprStringExpression2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_DynamicParam_expr(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "DynamicParam",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ExprStringExpression does not have child fields")
 		},
 	}
 	return fc, nil
@@ -33838,7 +33724,7 @@ func (ec *executionContext) unmarshalInputActionInput(ctx context.Context, obj i
 			it.Dest = data
 		case "params":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-			data, err := ec.unmarshalNDynamicParamInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDynamicParamInputᚄ(ctx, v)
+			data, err := ec.unmarshalNExprStringMap2map(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35572,40 +35458,6 @@ func (ec *executionContext) unmarshalInputDestinationInput(ctx context.Context, 
 				return it, err
 			}
 			it.Values = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputDynamicParamInput(ctx context.Context, obj interface{}) (DynamicParamInput, error) {
-	var it DynamicParamInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"paramID", "expr"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "paramID":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("paramID"))
-			data, err := ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ParamID = data
-		case "expr":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("expr"))
-			data, err := ec.unmarshalNExprStringExpression2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Expr = data
 		}
 	}
 
@@ -39958,50 +39810,6 @@ func (ec *executionContext) _DestinationTypeInfo(ctx context.Context, sel ast.Se
 			}
 		case "statusUpdatesRequired":
 			out.Values[i] = ec._DestinationTypeInfo_statusUpdatesRequired(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var dynamicParamImplementors = []string{"DynamicParam"}
-
-func (ec *executionContext) _DynamicParam(ctx context.Context, sel ast.SelectionSet, obj *DynamicParam) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, dynamicParamImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("DynamicParam")
-		case "paramID":
-			out.Values[i] = ec._DynamicParam_paramID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "expr":
-			out.Values[i] = ec._DynamicParam_expr(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -48300,54 +48108,6 @@ func (ec *executionContext) marshalNDestinationTypeInfo2ᚕgithubᚗcomᚋtarget
 	return ret
 }
 
-func (ec *executionContext) marshalNDynamicParam2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDynamicParam(ctx context.Context, sel ast.SelectionSet, v DynamicParam) graphql.Marshaler {
-	return ec._DynamicParam(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNDynamicParam2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDynamicParamᚄ(ctx context.Context, sel ast.SelectionSet, v []DynamicParam) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNDynamicParam2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDynamicParam(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) marshalNDynamicParamConfig2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDynamicParamConfig(ctx context.Context, sel ast.SelectionSet, v DynamicParamConfig) graphql.Marshaler {
 	return ec._DynamicParamConfig(ctx, sel, &v)
 }
@@ -48394,28 +48154,6 @@ func (ec *executionContext) marshalNDynamicParamConfig2ᚕgithubᚗcomᚋtarget�
 	}
 
 	return ret
-}
-
-func (ec *executionContext) unmarshalNDynamicParamInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDynamicParamInput(ctx context.Context, v interface{}) (DynamicParamInput, error) {
-	res, err := ec.unmarshalInputDynamicParamInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNDynamicParamInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDynamicParamInputᚄ(ctx context.Context, v interface{}) ([]DynamicParamInput, error) {
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]DynamicParamInput, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNDynamicParamInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDynamicParamInput(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
 }
 
 func (ec *executionContext) marshalNEscalationPolicy2githubᚗcomᚋtargetᚋgoalertᚋescalationᚐPolicy(ctx context.Context, sel ast.SelectionSet, v escalation.Policy) graphql.Marshaler {
@@ -48593,13 +48331,19 @@ func (ec *executionContext) marshalNExprOperator2string(ctx context.Context, sel
 	return res
 }
 
-func (ec *executionContext) unmarshalNExprStringExpression2string(ctx context.Context, v interface{}) (string, error) {
-	res, err := UnmarshalExprStringExpression(v)
+func (ec *executionContext) unmarshalNExprStringMap2map(ctx context.Context, v interface{}) (map[string]string, error) {
+	res, err := UnmarshalExprStringMap(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNExprStringExpression2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := MarshalExprStringExpression(v)
+func (ec *executionContext) marshalNExprStringMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]string) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	res := MarshalExprStringMap(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

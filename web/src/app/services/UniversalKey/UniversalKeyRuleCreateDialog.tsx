@@ -37,11 +37,11 @@ export default function UniversalKeyRuleCreateDialogProps(
     <UniversalKeyRuleForm
       value={value}
       onChange={setValue}
-      nameError={errs.getInputError('updateKeyConfig.input.setRule.name')}
-      descriptionError={errs.getInputError(
+      nameError={errs.getError('updateKeyConfig.input.setRule.name')}
+      descriptionError={errs.getError(
         'updateKeyConfig.input.setRule.description',
       )}
-      conditionError={errs.getInputError(
+      conditionError={errs.getError(
         'updateKeyConfig.input.setRule.conditionExpr',
       )}
     />

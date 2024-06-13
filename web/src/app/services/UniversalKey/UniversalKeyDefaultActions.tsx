@@ -25,10 +25,7 @@ const query = gql`
               value
             }
           }
-          params {
-            paramID
-            expr
-          }
+          params
         }
       }
     }

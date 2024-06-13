@@ -68,7 +68,7 @@ export default function UserContactMethodEditDialog(props: {
   const form = (
     <UserContactMethodForm
       disablePortal={props.disablePortal}
-      nameError={errs.getInputError('createUserContactMethod.input.name')}
+      nameError={errs.getError('createUserContactMethod.input.name')}
       disabled={updateCMStatus.fetching}
       edit
       onChange={(CMValue: Value) => setCMValue(CMValue)}
