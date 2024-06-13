@@ -61,7 +61,9 @@ export default function DefaultActionEditDialog(
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const noActionsNoConf = value.length === 0 && !hasConfirmed
   const errs = useErrorConsumer(m.error)
-  const form = <UniversalKeyActionsForm value={value} onChange={setValue} />
+  const form = (
+    <UniversalKeyActionsForm value={value} onChange={setValue} showList />
+  )
 
   return (
     <FormDialog

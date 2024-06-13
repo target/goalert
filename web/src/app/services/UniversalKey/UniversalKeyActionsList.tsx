@@ -6,7 +6,8 @@ import { Grid, Typography } from '@mui/material'
 export type UniversalKeyActionsListProps = {
   actions: ReadonlyArray<ActionInput>
 
-  onDelete: (action: ActionInput) => void
+  noHeader?: boolean
+  onDelete?: (action: ActionInput) => void
 }
 
 export default function UniversalKeyActionsList(
@@ -14,17 +15,23 @@ export default function UniversalKeyActionsList(
 ): React.ReactNode {
   return (
     <React.Fragment>
-      <Grid item xs={12}>
-        <Typography variant='h6' color='textPrimary'>
-          Actions
-        </Typography>
-      </Grid>
+      {!props.noHeader && (
+        <Grid item xs={12}>
+          <Typography variant='h6' color='textPrimary'>
+            Actions
+          </Typography>
+        </Grid>
+      )}
       <Grid item xs={12} container spacing={1} sx={{ p: 1 }}>
         {props.actions.map((a) => (
           <Grid item key={JSON.stringify(a.dest)}>
             <DestinationInputChip
               value={a.dest}
-              onDelete={() => props.onDelete(a)}
+              onDelete={
+                props.onDelete
+                  ? () => props.onDelete && props.onDelete(a)
+                  : undefined
+              }
             />
           </Grid>
         ))}

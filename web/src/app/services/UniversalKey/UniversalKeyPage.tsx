@@ -9,7 +9,7 @@ import { Action } from '../../details/CardActions'
 import GenTokenDialog from './GenTokenDialog'
 import PromoteTokenDialog from './PromoteTokenDialog'
 import DeleteSecondaryTokenDialog from './DeleteSecondaryTokenDialog'
-import UniversalKeyDefaultAction from './DefaultActionConfig'
+import UniversalKeyDefaultActions from './UniversalKeyDefaultActions'
 import { Grid } from '@mui/material'
 
 interface UniversalKeyPageProps {
@@ -121,7 +121,7 @@ export default function UniversalKeyPage(
               />
             </Grid>
             <Grid item xs={12}>
-              <UniversalKeyDefaultAction
+              <UniversalKeyDefaultActions
                 serviceID={props.serviceID}
                 keyID={props.keyID}
               />
