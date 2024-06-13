@@ -62,6 +62,15 @@ export class ErrorConsumer {
       })
     })
 
+    if (!e.graphQLErrors && !e.networkError && e.message) {
+      this.store.errors.add({
+        message: e.message,
+        code: '',
+        path: '',
+        fieldID: '',
+      })
+    }
+
     this.hadErrors = this.hasErrors()
 
     // Use FinalizationRegistry if available, this will allow us to raise any errors that are forgotten.
