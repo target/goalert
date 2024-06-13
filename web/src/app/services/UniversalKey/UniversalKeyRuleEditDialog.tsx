@@ -24,6 +24,7 @@ const query = gql`
           name
           description
           conditionExpr
+          continueAfterMatch
           actions {
             dest {
               type
@@ -105,13 +106,7 @@ export default function UniversalKeyRuleCreateDialogProps(
           {
             input: {
               keyID: props.keyID,
-              setRule: {
-                id: value.id,
-                name: value.name,
-                description: value.description,
-                conditionExpr: value.conditionExpr,
-                actions: value.actions,
-              },
+              setRule: value,
             },
           },
           { additionalTypenames: ['KeyConfig'] },

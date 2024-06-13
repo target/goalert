@@ -242,9 +242,14 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 		return nil
 	}
 
+	message := fmt.Sprintf("unsupported destination type: %s", dest.Type)
+	if dest.Type == "" {
+		message = "destination type is required"
+	}
+
 	// unsupported destination type
 	graphql.AddError(ctx, &gqlerror.Error{
-		Message: "unsupported destination type",
+		Message: message,
 		Path:    appendPath(ctx, fieldName+".type"),
 		Extensions: map[string]interface{}{
 			"code": graphql2.ErrorCodeInvalidInputValue,

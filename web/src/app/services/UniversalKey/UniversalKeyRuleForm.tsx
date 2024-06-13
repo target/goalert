@@ -51,7 +51,6 @@ export default function UniversalKeyRuleForm(
         <Grid item xs={12}>
           <TextField
             fullWidth
-            component={TextField}
             label='Description'
             name='description'
             value={props.value.description}

@@ -21,7 +21,6 @@ export default function UniversalKeyRuleCreateDialogProps(
   props: UniversalKeyRuleCreateDialogProps,
 ): JSX.Element {
   const [value, setValue] = useState<KeyRuleInput>({
-    id: '',
     name: '',
     description: '',
     conditionExpr: '',
@@ -64,12 +63,7 @@ export default function UniversalKeyRuleCreateDialogProps(
           {
             input: {
               keyID: props.keyID,
-              setRule: {
-                name: value.name,
-                description: value.description,
-                conditionExpr: value.conditionExpr,
-                actions: value.actions,
-              },
+              setRule: value,
             },
           },
           { additionalTypenames: ['KeyConfig'] },

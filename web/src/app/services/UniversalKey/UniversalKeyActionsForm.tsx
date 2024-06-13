@@ -5,7 +5,6 @@ import { ActionInput } from '../../../schema'
 import DynamicActionForm, {
   valueToActionInput,
 } from '../../selection/DynamicActionForm'
-import DestinationInputChip from '../../util/DestinationInputChip'
 import { CombinedError, gql, useClient } from 'urql'
 import { useErrorConsumer } from '../../util/ErrorConsumer'
 import UniversalKeyActionsList from './UniversalKeyActionsList'
