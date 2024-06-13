@@ -3,16 +3,10 @@ import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import React from 'react'
 import { DestinationInput } from '../../schema'
-import { FormContainer, FormField } from '../forms'
+import { FormContainer } from '../forms'
 import { renderMenuItem } from '../selection/DisableableMenuItem'
 import DestinationField from '../selection/DestinationField'
 import { useContactMethodTypes } from '../util/RequireConfig'
-import {
-  isInputFieldError,
-  isDestFieldError,
-  KnownError,
-  DestFieldValueError,
-} from '../util/errtypes'
 
 export type Value = {
   name: string
@@ -23,7 +17,9 @@ export type Value = {
 export type UserContactMethodFormProps = {
   value: Value
 
-  errors?: Array<KnownError | DestFieldValueError>
+  nameError?: string
+  destTypeError?: string
+  destFieldErrors?: Readonly<Record<string, string>>
 
   disabled?: boolean
   edit?: boolean
@@ -33,16 +29,10 @@ export type UserContactMethodFormProps = {
   onChange?: (CMValue: Value) => void
 }
 
-export const errorPaths = (prefix = '*'): string[] => [
-  `${prefix}.name`,
-  `${prefix}.dest.type`,
-  `${prefix}.dest`,
-]
-
 export default function UserContactMethodForm(
   props: UserContactMethodFormProps,
 ): JSX.Element {
-  const { value, edit = false, errors = [], ...other } = props
+  const { value, edit = false, ...other } = props
 
   const destinationTypes = useContactMethodTypes()
   const currentType = destinationTypes.find((d) => d.type === value.dest.type)
@@ -62,15 +52,6 @@ export default function UserContactMethodForm(
   return (
     <FormContainer
       {...other}
-      errors={errors?.filter(isInputFieldError).map((e) => {
-        let field = e.path[e.path.length - 1].toString()
-        if (field === 'type') field = 'dest.type'
-        return {
-          // need to convert to FormContainer's error format
-          message: e.message,
-          field,
-        }
-      })}
       value={value}
       mapOnChangeValue={(newValue: Value): Value => {
         if (newValue.dest.type === value.dest.type) {
@@ -90,18 +71,41 @@ export default function UserContactMethodForm(
     >
       <Grid container spacing={2}>
         <Grid item xs={12} sm={12} md={6}>
-          <FormField fullWidth name='name' required component={TextField} />
+          <TextField
+            fullWidth
+            name='name'
+            label='Name'
+            disabled={props.disabled}
+            error={!!props.nameError}
+            helperText={props.nameError}
+            value={value.name}
+            onChange={(e) =>
+              props.onChange &&
+              props.onChange({ ...value, name: e.target.value })
+            }
+          />
         </Grid>
         <Grid item xs={12} sm={12} md={6}>
-          <FormField
+          <TextField
             fullWidth
             name='dest.type'
             label='Destination Type'
-            required
             select
-            disablePortal={props.disablePortal}
-            disabled={edit}
-            component={TextField}
+            error={!!props.destTypeError}
+            helperText={props.destTypeError}
+            SelectProps={{ MenuProps: { disablePortal: props.disablePortal } }}
+            value={value.dest.type}
+            onChange={(v) =>
+              props.onChange &&
+              props.onChange({
+                ...value,
+                dest: {
+                  type: v.target.value as string,
+                  values: [],
+                },
+              })
+            }
+            disabled={props.disabled || edit}
           >
             {destinationTypes.map((t) =>
               renderMenuItem({
@@ -111,18 +115,24 @@ export default function UserContactMethodForm(
                 disabledMessage: t.enabled ? '' : 'Disabled by administrator.',
               }),
             )}
-          </FormField>
+          </TextField>
         </Grid>
         <Grid item xs={12}>
-          <FormField
-            fullWidth
-            name='value'
-            fieldName='dest.values'
-            required
+          <DestinationField
             destType={value.dest.type}
-            component={DestinationField}
-            disabled={edit}
-            destFieldErrors={errors.filter(isDestFieldError)}
+            disabled={props.disabled || edit}
+            fieldErrors={props.destFieldErrors}
+            value={value.dest.values}
+            onChange={(v) =>
+              props.onChange &&
+              props.onChange({
+                ...value,
+                dest: {
+                  ...value.dest,
+                  values: v,
+                },
+              })
+            }
           />
         </Grid>
         <Grid item xs={12}>

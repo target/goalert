@@ -10,14 +10,9 @@ import { renderMenuItem } from '../selection/DisableableMenuItem'
 import DestinationField from '../selection/DestinationField'
 import { useEPTargetTypes } from '../util/RequireConfig'
 import { gql, useClient, CombinedError } from 'urql'
-import {
-  DestFieldValueError,
-  KnownError,
-  isDestFieldError,
-} from '../util/errtypes'
-import { splitErrorsByPath } from '../util/errutil'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import makeStyles from '@mui/styles/makeStyles'
+import { useErrorConsumer } from '../util/ErrorConsumer'
 
 const useStyles = makeStyles(() => {
   return {
@@ -35,7 +30,6 @@ export type FormValue = {
 
 export type PolicyStepFormProps = {
   value: FormValue
-  errors?: (KnownError | DestFieldValueError)[]
   disabled?: boolean
   onChange: (value: FormValue) => void
 }
@@ -58,9 +52,7 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
   const [values, setValues] = useState<FieldValueInput[]>([])
   const validationClient = useClient()
   const [err, setErr] = useState<CombinedError | null>(null)
-  const [destErrors, otherErrs] = splitErrorsByPath(err || props.errors, [
-    'destinationDisplayInfo.input',
-  ])
+  const errs = useErrorConsumer(err)
 
   useEffect(() => {
     setErr(null)
@@ -74,10 +66,10 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
     })
   }
 
-  function renderErrors(): React.JSX.Element[] {
+  function renderErrors(otherErrs: readonly string[]): React.JSX.Element[] {
     return otherErrs.map((err, idx) => (
       <DialogContentError
-        error={err.message || err}
+        error={err}
         key={idx}
         noPadding
         className={classes.errorContainer}
@@ -93,7 +85,6 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
         props.onChange(newValue)
       }}
       optionalLabels
-      errors={props.errors}
     >
       <Grid container spacing={2}>
         <Grid item xs={12}>
@@ -139,11 +130,11 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
               setErr(null)
               setValues(newValue)
             }}
-            destFieldErrors={destErrors.filter(isDestFieldError)}
+            fieldErrors={errs.getAllDestFieldErrors()}
           />
         </Grid>
         <Grid container item xs={12} justifyContent='flex-end'>
-          {otherErrs && renderErrors()}
+          {errs.hasErrors() && renderErrors(errs.remaining())}
           <Button
             variant='contained'
             color='secondary'
