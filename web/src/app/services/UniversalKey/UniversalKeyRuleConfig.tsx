@@ -1,4 +1,4 @@
-import React, { ReactElement, Suspense, useState } from 'react'
+import React, { Suspense, useState } from 'react'
 import { Button, Card } from '@mui/material'
 import { Add } from '@mui/icons-material'
 import FlatList, { FlatListListItem } from '../../lists/FlatList'
@@ -7,7 +7,7 @@ import UniversalKeyRuleEditDialog from './UniversalKeyRuleEditDialog'
 import UniversalKeyRuleRemoveDialog from './UniversalKeyRuleRemoveDialog'
 import OtherActions from '../../util/OtherActions'
 import { gql, useQuery } from 'urql'
-import { IntegrationKey, KeyRule, Service } from '../../../schema'
+import { IntegrationKey, Service } from '../../../schema'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
 
@@ -58,47 +58,45 @@ export default function UniversalKeyRuleList(
   if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
-  function renderList(rules: KeyRule[]): ReactElement {
-    const items: FlatListListItem[] = rules.map((rule) => ({
-      title: rule.name,
-      subText: rule.description,
-      secondaryAction: (
-        <OtherActions
-          actions={[
-            {
-              label: 'Edit',
-              onClick: () => setEdit(rule.id),
-            },
-            {
-              label: 'Delete',
-              onClick: () => setRemove(rule.id),
-            },
-          ]}
-        />
-      ),
-    }))
-
-    return (
-      <FlatList
-        emptyMessage='No rules exist for this integration key.'
-        headerAction={
-          <Button
-            variant='contained'
-            startIcon={<Add />}
-            onClick={() => setCreate(true)}
-          >
-            Create Rule
-          </Button>
-        }
-        headerNote='Rules are a set of filters that allow notifications to be sent to a specific destination. '
-        items={items}
+  const items: FlatListListItem[] = (
+    data?.integrationKey.config.rules ?? []
+  ).map((rule) => ({
+    title: rule.name,
+    subText: rule.description,
+    secondaryAction: (
+      <OtherActions
+        actions={[
+          {
+            label: 'Edit',
+            onClick: () => setEdit(rule.id),
+          },
+          {
+            label: 'Delete',
+            onClick: () => setRemove(rule.id),
+          },
+        ]}
       />
-    )
-  }
+    ),
+  }))
 
   return (
     <React.Fragment>
-      <Card>{renderList(data?.integrationKey.config.rules ?? [])}</Card>
+      <Card>
+        <FlatList
+          emptyMessage='No rules exist for this integration key.'
+          headerAction={
+            <Button
+              variant='contained'
+              startIcon={<Add />}
+              onClick={() => setCreate(true)}
+            >
+              Create Rule
+            </Button>
+          }
+          headerNote='Rules are a set of filters that allow notifications to be sent to a specific destination. '
+          items={items}
+        />
+      </Card>
 
       <Suspense>
         {create && (
