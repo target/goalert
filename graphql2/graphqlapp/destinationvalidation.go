@@ -138,21 +138,21 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 	case destAlert:
 		return nil
 	case destTwilioSMS:
-		phone := dest.FieldValue(fieldPhoneNumber)
+		phone := dest.Args[fieldPhoneNumber]
 		err := validate.Phone(fieldPhoneNumber, phone)
 		if err != nil {
 			return addDestFieldError(ctx, fieldName, fieldPhoneNumber, err)
 		}
 		return nil
 	case destTwilioVoice:
-		phone := dest.FieldValue(fieldPhoneNumber)
+		phone := dest.Args[fieldPhoneNumber]
 		err := validate.Phone(fieldPhoneNumber, phone)
 		if err != nil {
 			return addDestFieldError(ctx, fieldName, fieldPhoneNumber, err)
 		}
 		return nil
 	case destSlackChan:
-		chanID := dest.FieldValue(fieldSlackChanID)
+		chanID := dest.Args[fieldSlackChanID]
 		err := a.SlackStore.ValidateChannel(ctx, chanID)
 		if err != nil {
 			return addDestFieldError(ctx, fieldName, fieldSlackChanID, err)
@@ -160,19 +160,19 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 
 		return nil
 	case destSlackDM:
-		userID := dest.FieldValue(fieldSlackUserID)
+		userID := dest.Args[fieldSlackUserID]
 		if err := a.SlackStore.ValidateUser(ctx, userID); err != nil {
 			return addDestFieldError(ctx, fieldName, fieldSlackUserID, err)
 		}
 		return nil
 	case destSlackUG:
-		ugID := dest.FieldValue(fieldSlackUGID)
+		ugID := dest.Args[fieldSlackUGID]
 		userErr := a.SlackStore.ValidateUserGroup(ctx, ugID)
 		if userErr != nil {
 			return addDestFieldError(ctx, fieldName, fieldSlackUGID, userErr)
 		}
 
-		chanID := dest.FieldValue(fieldSlackChanID)
+		chanID := dest.Args[fieldSlackChanID]
 		chanErr := a.SlackStore.ValidateChannel(ctx, chanID)
 		if chanErr != nil {
 			return addDestFieldError(ctx, fieldName, fieldSlackChanID, chanErr)
@@ -180,14 +180,14 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 
 		return nil
 	case destSMTP:
-		email := dest.FieldValue(fieldEmailAddress)
+		email := dest.Args[fieldEmailAddress]
 		err := validate.Email(fieldEmailAddress, email)
 		if err != nil {
 			return addDestFieldError(ctx, fieldName, fieldEmailAddress, err)
 		}
 		return nil
 	case destWebhook:
-		url := dest.FieldValue(fieldWebhookURL)
+		url := dest.Args[fieldWebhookURL]
 		err := validate.AbsoluteURL(fieldWebhookURL, url)
 		if err != nil {
 			return addDestFieldError(ctx, fieldName, fieldWebhookURL, err)
@@ -197,12 +197,12 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 		}
 		return nil
 	case destSchedule: // must be valid UUID and exist
-		_, err := validate.ParseUUID(fieldScheduleID, dest.FieldValue(fieldScheduleID))
+		_, err := validate.ParseUUID(fieldScheduleID, dest.Args[fieldScheduleID])
 		if err != nil {
 			return addDestFieldError(ctx, fieldName, fieldScheduleID, err)
 		}
 
-		_, err = a.ScheduleStore.FindOne(ctx, dest.FieldValue(fieldScheduleID))
+		_, err = a.ScheduleStore.FindOne(ctx, dest.Args[fieldScheduleID])
 		if errors.Is(err, sql.ErrNoRows) {
 			return addDestFieldError(ctx, fieldName, fieldScheduleID, validation.NewGenericError("schedule does not exist"))
 		}
@@ -212,7 +212,7 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 
 		return nil
 	case destRotation: // must be valid UUID and exist
-		rotID := dest.FieldValue(fieldRotationID)
+		rotID := dest.Args[fieldRotationID]
 		_, err := validate.ParseUUID(fieldRotationID, rotID)
 		if err != nil {
 			return addDestFieldError(ctx, fieldName, fieldRotationID, err)
@@ -227,7 +227,7 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 
 		return nil
 	case destUser: // must be valid UUID and exist
-		userID := dest.FieldValue(fieldUserID)
+		userID := dest.Args[fieldUserID]
 		uid, err := validate.ParseUUID(fieldUserID, userID)
 		if err != nil {
 			return addDestFieldError(ctx, fieldName, fieldUserID, err)
