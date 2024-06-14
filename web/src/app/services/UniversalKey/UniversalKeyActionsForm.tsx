@@ -49,8 +49,8 @@ export default function UniversalKeyActionsForm(
           destTypeError={errs.getErrorByPath(
             'actionInputValidate.input.dest.type',
           )}
-          staticParamErrors={errs.getAllDestFieldErrors(
-            'actionInputValidate.input.dest',
+          staticParamErrors={errs.getErrorMap(
+            'actionInputValidate.input.dest.args',
           )}
           dynamicParamErrors={errs.getErrorMap(
             'actionInputValidate.input.params',

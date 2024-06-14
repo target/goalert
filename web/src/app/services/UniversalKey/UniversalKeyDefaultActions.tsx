@@ -6,6 +6,7 @@ import DefaultActionEditDialog from './DefaultActionEditDialog'
 import UniversalKeyActionsList from './UniversalKeyActionsList'
 import { gql, useQuery } from 'urql'
 import { IntegrationKey } from '../../../schema'
+import { GenericError } from '../../error-pages'
 
 interface UniversalKeyDefaultActionProps {
   serviceID: string

@@ -130,7 +130,7 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
               setErr(null)
               setArgs(newValue)
             }}
-            fieldErrors={errs.getAllDestFieldErrors()}
+            fieldErrors={errs.getErrorMap('destinationDisplayInfo.input.args')}
           />
         </Grid>
         <Grid container item xs={12} justifyContent='flex-end'>

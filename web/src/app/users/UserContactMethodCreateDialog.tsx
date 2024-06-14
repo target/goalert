@@ -85,7 +85,9 @@ export default function UserContactMethodCreateDialog(props: {
       destTypeError={errs.getErrorByPath(
         'createUserContactMethod.input.dest.type',
       )}
-      destFieldErrors={errs.getAllDestFieldErrors()}
+      destFieldErrors={errs.getErrorMap(
+        'createUserContactMethod.input.dest.args',
+      )}
       onChange={(CMValue: Value) => setCMValue(CMValue)}
       value={CMValue}
       disablePortal={props.disablePortal}
