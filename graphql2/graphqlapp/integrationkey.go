@@ -258,25 +258,6 @@ func actionsGoToGQL(a []integrationkey.Action) []graphql2.Action {
 	return res
 }
 
-func fviToMap(f []graphql2.FieldValueInput) map[string]string {
-	res := make(map[string]string, len(f))
-	for _, v := range f {
-		res[v.FieldID] = v.Value
-	}
-	return res
-}
-
-func mapToFieldValue(m map[string]string) []graphql2.FieldValuePair {
-	res := make([]graphql2.FieldValuePair, 0, len(m))
-	for k, v := range m {
-		res = append(res, graphql2.FieldValuePair{
-			FieldID: k,
-			Value:   v,
-		})
-	}
-	return res
-}
-
 func (key *IntegrationKey) Type(ctx context.Context, raw *integrationkey.IntegrationKey) (graphql2.IntegrationKeyType, error) {
 	return graphql2.IntegrationKeyType(raw.Type), nil
 }
