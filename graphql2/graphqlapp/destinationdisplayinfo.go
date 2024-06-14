@@ -72,12 +72,7 @@ func (a *Destination) DisplayInfo(ctx context.Context, obj *graphql2.Destination
 		return obj.DisplayInfo, nil
 	}
 
-	values := make([]graphql2.FieldValueInput, len(obj.Values))
-	for i, v := range obj.Values {
-		values[i] = graphql2.FieldValueInput(v)
-	}
-
-	info, err := (*Query)(a)._DestinationDisplayInfo(ctx, graphql2.DestinationInput{Type: obj.Type, Values: values}, true)
+	info, err := (*Query)(a)._DestinationDisplayInfo(ctx, graphql2.DestinationInput{Type: obj.Type, Args: obj.Args}, true)
 	if err != nil {
 		isUnsafe, safeErr := errutil.ScrubError(err)
 		if isUnsafe {
