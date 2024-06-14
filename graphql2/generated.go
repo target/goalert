@@ -92,6 +92,7 @@ type ResolverRoot interface {
 	UserNotificationRule() UserNotificationRuleResolver
 	UserOverride() UserOverrideResolver
 	CreateEscalationPolicyStepInput() CreateEscalationPolicyStepInputResolver
+	DestinationInput() DestinationInputResolver
 	OnCallNotificationRuleInput() OnCallNotificationRuleInputResolver
 	UpdateEscalationPolicyStepInput() UpdateEscalationPolicyStepInputResolver
 }
@@ -881,6 +882,8 @@ type AlertMetricResolver interface {
 	TimeToClose(ctx context.Context, obj *alertmetrics.Metric) (*timeutil.ISODuration, error)
 }
 type DestinationResolver interface {
+	Values(ctx context.Context, obj *Destination) ([]FieldValuePair, error)
+	Args(ctx context.Context, obj *Destination) (map[string]string, error)
 	DisplayInfo(ctx context.Context, obj *Destination) (InlineDisplayInfo, error)
 }
 type EscalationPolicyResolver interface {
@@ -1120,6 +1123,10 @@ type UserOverrideResolver interface {
 
 type CreateEscalationPolicyStepInputResolver interface {
 	Actions(ctx context.Context, obj *CreateEscalationPolicyStepInput, data []DestinationInput) error
+}
+type DestinationInputResolver interface {
+	Values(ctx context.Context, obj *DestinationInput, data []FieldValueInput) error
+	Args(ctx context.Context, obj *DestinationInput, data map[string]string) error
 }
 type OnCallNotificationRuleInputResolver interface {
 	Dest(ctx context.Context, obj *OnCallNotificationRuleInput, data *DestinationInput) error
@@ -10737,7 +10744,7 @@ func (ec *executionContext) _Destination_values(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Values, nil
+		return ec.resolvers.Destination().Values(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10758,8 +10765,8 @@ func (ec *executionContext) fieldContext_Destination_values(_ context.Context, f
 	fc = &graphql.FieldContext{
 		Object:     "Destination",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "fieldID":
@@ -10787,7 +10794,7 @@ func (ec *executionContext) _Destination_args(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Args, nil
+		return ec.resolvers.Destination().Args(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10808,8 +10815,8 @@ func (ec *executionContext) fieldContext_Destination_args(_ context.Context, fie
 	fc = &graphql.FieldContext{
 		Object:     "Destination",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type StringMap does not have child fields")
 		},
@@ -35517,14 +35524,18 @@ func (ec *executionContext) unmarshalInputDestinationInput(ctx context.Context, 
 			if err != nil {
 				return it, err
 			}
-			it.Values = data
+			if err = ec.resolvers.DestinationInput().Values(ctx, &it, data); err != nil {
+				return it, err
+			}
 		case "args":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("args"))
 			data, err := ec.unmarshalOStringMap2map(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Args = data
+			if err = ec.resolvers.DestinationInput().Args(ctx, &it, data); err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -39564,15 +39575,77 @@ func (ec *executionContext) _Destination(ctx context.Context, sel ast.SelectionS
 				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "values":
-			out.Values[i] = ec._Destination_values(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Destination_values(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "args":
-			out.Values[i] = ec._Destination_args(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Destination_args(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "displayInfo":
 			field := field
 

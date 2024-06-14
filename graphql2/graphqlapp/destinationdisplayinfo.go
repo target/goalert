@@ -14,10 +14,57 @@ import (
 )
 
 type (
-	Destination App
+	Destination      App
+	DestinationInput App
 )
 
-func (a *App) Destination() graphql2.DestinationResolver { return (*Destination)(a) }
+func (a *App) Destination() graphql2.DestinationResolver           { return (*Destination)(a) }
+func (a *App) DestinationInput() graphql2.DestinationInputResolver { return (*DestinationInput)(a) }
+
+func (a *DestinationInput) Args(ctx context.Context, obj *graphql2.DestinationInput, args map[string]string) error {
+	obj.Args = args
+
+	obj.Values = make([]graphql2.FieldValueInput, 0, len(args))
+	for k, v := range args {
+		obj.Values = append(obj.Values, graphql2.FieldValueInput{FieldID: k, Value: v})
+	}
+
+	return nil
+}
+
+func (a *DestinationInput) Values(ctx context.Context, obj *graphql2.DestinationInput, values []graphql2.FieldValueInput) error {
+	obj.Values = values
+	obj.Args = make(map[string]string, len(values))
+	for _, val := range values {
+		obj.Args[val.FieldID] = val.Value
+	}
+	return nil
+}
+
+func (a *Destination) Args(ctx context.Context, obj *graphql2.Destination) (map[string]string, error) {
+	if obj.Args != nil {
+		return obj.Args, nil
+	}
+
+	m := make(map[string]string, len(obj.Values))
+	for _, val := range obj.Values {
+		m[val.FieldID] = val.Value
+	}
+
+	return m, nil
+}
+
+func (a *Destination) Values(ctx context.Context, obj *graphql2.Destination) ([]graphql2.FieldValuePair, error) {
+	if obj.Args != nil {
+		pairs := make([]graphql2.FieldValuePair, 0, len(obj.Args))
+		for k, v := range obj.Args {
+			pairs = append(pairs, graphql2.FieldValuePair{FieldID: k, Value: v})
+		}
+		return pairs, nil
+	}
+
+	return obj.Values, nil
+}
 
 // DisplayInfo will return the display information for a destination by mapping to Query.DestinationDisplayInfo.
 func (a *Destination) DisplayInfo(ctx context.Context, obj *graphql2.Destination) (graphql2.InlineDisplayInfo, error) {

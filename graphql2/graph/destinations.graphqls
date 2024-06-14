@@ -120,8 +120,10 @@ Destination represents a destination that can be used for notifications.
 """
 type Destination {
   type: DestinationType!
-  values: [FieldValuePair!]! @deprecated(reason: "Use the args field instead")
-  args: StringMap!
+  values: [FieldValuePair!]!
+    @goField(forceResolver: true)
+    @deprecated(reason: "Use the args field instead")
+  args: StringMap! @goField(forceResolver: true)
   displayInfo: InlineDisplayInfo! @goField(forceResolver: true)
 }
 
@@ -171,8 +173,10 @@ type FieldValuePair {
 
 input DestinationInput {
   type: DestinationType!
-  values: [FieldValueInput!] @deprecated(reason: "Use the args field instead")
-  args: StringMap
+  values: [FieldValueInput!]
+    @goField(forceResolver: true)
+    @deprecated(reason: "Use the args field instead")
+  args: StringMap @goField(forceResolver: true)
 }
 
 input FieldValueInput {
