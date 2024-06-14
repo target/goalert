@@ -26,10 +26,7 @@ const getRulesQuery = gql`
         time
         dest {
           type
-          values {
-            fieldID
-            value
-          }
+          args
         }
       }
     }
@@ -59,7 +56,7 @@ export default function ScheduleOnCallNotificationsCreateDialog(
     weekdayFilter: NO_DAY,
     dest: {
       type: types[0].type,
-      values: [],
+      args: {},
     },
   })
   useEffect(() => {
@@ -85,10 +82,7 @@ export default function ScheduleOnCallNotificationsCreateDialog(
   ].join('.')
 
   let noDaysSelected: BaseError | null = null
-  if (
-    value.dest.values.length > 0 &&
-    value.weekdayFilter.every((val) => !val)
-  ) {
+  if (value.weekdayFilter.every((val) => !val)) {
     noDaysSelected = {
       message: 'Please select at least one day',
     }

@@ -27,19 +27,14 @@ const meta = {
                           name: 'Josiah',
                           dest: {
                             type: 'single-field',
-                            values: [
-                              {
-                                fieldID: 'phone-number',
-                                value: '+15555555555',
-                              },
-                            ],
+                            args: { 'phone-number': '+15555555555' },
                             displayInfo: {
                               text: '+1 555-555-5555',
                               iconAltText: 'Voice Call',
                               iconURL: '',
                               linkURL: '',
                             },
-                          } satisfies Destination,
+                          } satisfies Partial<Destination>,
                           disabled: false,
                           pending: false,
                         },
@@ -55,27 +50,18 @@ const meta = {
                           name: 'triple contact method',
                           dest: {
                             type: 'triple-field',
-                            values: [
-                              {
-                                fieldID: 'first-field',
-                                value: 'test_user@target.com',
-                              },
-                              {
-                                fieldID: 'second-field',
-                                value: 'parameter-1',
-                              },
-                              {
-                                fieldID: 'third-field',
-                                value: 'parameter-2',
-                              },
-                            ],
+                            args: {
+                              'first-field': 'test_user@target.com',
+                              'second-field': 'parameter-1',
+                              'third-field': 'parameter-2',
+                            },
                             displayInfo: {
                               text: 'test_user@target.com',
                               iconAltText: 'Email',
                               iconURL: '',
                               linkURL: '',
                             },
-                          } satisfies Destination,
+                          } satisfies Partial<Destination>,
                           disabled: false,
                           pending: false,
                         },
@@ -84,19 +70,16 @@ const meta = {
                           name: 'single field CM',
                           dest: {
                             type: 'single-field',
-                            values: [
-                              {
-                                fieldID: 'phone-number',
-                                value: '+15555555556',
-                              },
-                            ],
+                            args: {
+                              'phone-number': '+15555555556',
+                            },
                             displayInfo: {
                               text: '+1 555-555-5556',
                               iconAltText: 'Voice Call',
                               iconURL: '',
                               linkURL: '',
                             },
-                          } satisfies Destination,
+                          } satisfies Partial<Destination>,
                           disabled: false,
                           pending: false,
                         },

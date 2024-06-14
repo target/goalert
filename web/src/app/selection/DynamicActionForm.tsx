@@ -4,7 +4,6 @@ import {
   DestinationType,
   DestinationTypeInfo,
   ExprStringExpression,
-  FieldValueInput,
 } from '../../schema'
 import { useDynamicActionTypes } from '../util/RequireConfig'
 import { Grid, TextField } from '@mui/material'
@@ -23,16 +22,13 @@ export type Value = {
 
 export function valueToActionInput(value: Value | null): ActionInput {
   if (!value) {
-    return { dest: { type: '', values: [] }, params: {} }
+    return { dest: { type: '', args: {} }, params: {} }
   }
 
   return {
     dest: {
       type: value.destType,
-      values: Object.entries(value.staticParams).map(([fieldID, value]) => ({
-        fieldID,
-        value,
-      })),
+      args: value.staticParams,
     },
     params: value.dynamicParams,
   }
@@ -41,25 +37,9 @@ export function valueToActionInput(value: Value | null): ActionInput {
 export function actionInputToValue(action: ActionInput): Value {
   return {
     destType: action.dest.type,
-    staticParams: Object.fromEntries(
-      action.dest.values.map((v) => [v.fieldID, v.value]),
-    ),
+    staticParams: action.dest.args || {},
     dynamicParams: { ...action.params },
   }
-}
-
-export function staticToDestField(
-  staticParams?: StaticParams,
-): FieldValueInput[] {
-  if (!staticParams) return []
-  return Object.entries(staticParams).map(([fieldID, value]) => ({
-    fieldID,
-    value,
-  }))
-}
-
-export function destFieldToStatic(destFields: FieldValueInput[]): StaticParams {
-  return Object.fromEntries(destFields.map((f) => [f.fieldID, f.value]))
 }
 
 export type DynamicActionErrors = {}
@@ -129,12 +109,12 @@ export default function DynamicActionForm(
       {props.value && (
         <Grid item xs={12}>
           <DestinationField
-            value={staticToDestField(props.value?.staticParams)}
+            value={props.value?.staticParams}
             onChange={(vals) => {
               if (!props.value) return
               props.onChange({
                 ...props.value,
-                staticParams: destFieldToStatic(vals),
+                staticParams: vals,
               })
             }}
             destType={props.value.destType}

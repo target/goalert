@@ -20,10 +20,7 @@ const query = gql`
         defaultActions {
           dest {
             type
-            values {
-              fieldID
-              value
-            }
+            args
           }
           params
         }

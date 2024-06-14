@@ -5,7 +5,7 @@ import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
 import { handleDefaultConfig } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 import { DestFieldValueError } from '../util/errtypes'
-import { EscalationPolicyStep } from '../../schema'
+import { Destination, EscalationPolicyStep } from '../../schema'
 
 const meta = {
   title: 'Escalation Policies/Steps/Edit Dialog',
@@ -76,10 +76,8 @@ const meta = {
                     actions: [
                       {
                         type: 'single-field',
-                        values: [
-                          { fieldID: 'phone-number', value: '+19995550123' },
-                        ],
-                      },
+                        args: { 'phone-number': '+19995550123' },
+                      } as Partial<Destination> as Destination,
                     ],
                   } as EscalationPolicyStep,
                 ],

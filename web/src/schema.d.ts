@@ -394,6 +394,7 @@ export interface DebugSendSMSInput {
 }
 
 export interface Destination {
+  args: StringMap
   displayInfo: InlineDisplayInfo
   type: DestinationType
   values: FieldValuePair[]
@@ -438,8 +439,9 @@ export interface DestinationFieldValidateInput {
 }
 
 export interface DestinationInput {
+  args?: null | StringMap
   type: DestinationType
-  values: FieldValueInput[]
+  values?: null | FieldValueInput[]
 }
 
 export type DestinationType = string
@@ -1150,6 +1152,8 @@ export interface StringConnection {
   nodes: string[]
   pageInfo: PageInfo
 }
+
+export type StringMap = Record<string, string>
 
 export interface SystemLimit {
   description: string

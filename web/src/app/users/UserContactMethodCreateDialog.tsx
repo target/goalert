@@ -38,7 +38,7 @@ export default function UserContactMethodCreateDialog(props: {
     name: '',
     dest: {
       type: defaultType.type,
-      values: [],
+      args: {},
     },
     statusUpdates: false,
   })

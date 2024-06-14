@@ -3,7 +3,7 @@ import { FormContainer, FormField } from '../forms'
 import Grid from '@mui/material/Grid'
 
 import NumberField from '../util/NumberField'
-import { DestinationInput, FieldValueInput } from '../../schema'
+import { DestinationInput, StringMap } from '../../schema'
 import DestinationInputChip from '../util/DestinationInputChip'
 import { Button, Divider, TextField, Typography } from '@mui/material'
 import { renderMenuItem } from '../selection/DisableableMenuItem'
@@ -49,7 +49,7 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
   const types = useEPTargetTypes()
   const classes = useStyles()
   const [destType, setDestType] = useState(types[0].type)
-  const [values, setValues] = useState<FieldValueInput[]>([])
+  const [args, setArgs] = useState<StringMap>({})
   const validationClient = useClient()
   const [err, setErr] = useState<CombinedError | null>(null)
   const errs = useErrorConsumer(err)
@@ -124,11 +124,11 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
         <Grid item xs={12}>
           <DestinationField
             destType={destType}
-            value={values}
+            value={args}
             disabled={props.disabled}
-            onChange={(newValue: FieldValueInput[]) => {
+            onChange={(newValue: StringMap) => {
               setErr(null)
-              setValues(newValue)
+              setArgs(newValue)
             }}
             fieldErrors={errs.getAllDestFieldErrors()}
           />
@@ -144,7 +144,7 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
                 .query(query, {
                   input: {
                     type: destType,
-                    values,
+                    args,
                   },
                 })
                 .toPromise()
@@ -153,12 +153,12 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
                     setErr(res.error)
                     return
                   }
-                  setValues([])
+                  setArgs({})
                   props.onChange({
                     ...props.value,
                     actions: props.value.actions.concat({
                       type: destType,
-                      values,
+                      args,
                     }),
                   })
                 })

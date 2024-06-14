@@ -19,10 +19,7 @@ const query = gql`
       name
       dest {
         type
-        values {
-          fieldID
-          value
-        }
+        args
       }
       statusUpdates
     }

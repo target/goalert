@@ -357,6 +357,7 @@ type DebugSendSMSInput struct {
 type Destination struct {
 	Type        string            `json:"type"`
 	Values      []FieldValuePair  `json:"values"`
+	Args        map[string]string `json:"args"`
 	DisplayInfo InlineDisplayInfo `json:"displayInfo"`
 }
 
@@ -428,7 +429,8 @@ type DestinationFieldValidateInput struct {
 
 type DestinationInput struct {
 	Type   string            `json:"type"`
-	Values []FieldValueInput `json:"values"`
+	Values []FieldValueInput `json:"values,omitempty"`
+	Args   map[string]string `json:"args,omitempty"`
 }
 
 type DestinationTypeInfo struct {

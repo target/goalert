@@ -27,10 +27,7 @@ const query = gql`
           actions {
             dest {
               type
-              values {
-                fieldID
-                value
-              }
+              args
             }
             params
           }

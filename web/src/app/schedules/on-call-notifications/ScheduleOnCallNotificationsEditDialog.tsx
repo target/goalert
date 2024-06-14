@@ -24,10 +24,7 @@ const getRulesQuery = gql`
         time
         dest {
           type
-          values {
-            fieldID
-            value
-          }
+          args
         }
       }
     }
@@ -67,7 +64,7 @@ export default function ScheduleOnCallNotificationsEditDialog(
     weekdayFilter: rule.weekdayFilter || NO_DAY,
     dest: {
       type: rule.dest.type,
-      values: rule.dest.values.map((v) => ({ ...v })),
+      args: rule.dest.args,
     },
   })
   useEffect(() => {

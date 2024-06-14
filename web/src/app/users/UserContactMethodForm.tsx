@@ -63,7 +63,7 @@ export default function UserContactMethodForm(
           ...newValue,
           dest: {
             ...newValue.dest,
-            values: [],
+            args: {},
           },
         }
       }}
@@ -101,7 +101,7 @@ export default function UserContactMethodForm(
                 ...value,
                 dest: {
                   type: v.target.value as string,
-                  values: [],
+                  args: {},
                 },
               })
             }
@@ -122,14 +122,14 @@ export default function UserContactMethodForm(
             destType={value.dest.type}
             disabled={props.disabled || edit}
             fieldErrors={props.destFieldErrors}
-            value={value.dest.values}
+            value={value.dest.args || {}}
             onChange={(v) =>
               props.onChange &&
               props.onChange({
                 ...value,
                 dest: {
                   ...value.dest,
-                  values: v,
+                  args: v,
                 },
               })
             }

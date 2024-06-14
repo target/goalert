@@ -94,11 +94,11 @@ export const WithExistingActions: Story = {
       actions: [
         {
           type: 'single-field',
-          values: [{ fieldID: 'phone-number', value: VALID_PHONE }],
+          args: { 'phone-number': VALID_PHONE },
         },
         {
           type: 'single-field',
-          values: [{ fieldID: 'phone-number', value: VALID_PHONE2 }],
+          args: { 'phone-number': VALID_PHONE2 },
         },
       ],
     },

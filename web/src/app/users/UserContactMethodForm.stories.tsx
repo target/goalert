@@ -43,12 +43,7 @@ export const SupportStatusUpdates: Story = {
       name: 'supports status',
       dest: {
         type: 'supports-status',
-        values: [
-          {
-            fieldID: 'phone-number',
-            value: '+15555555555',
-          },
-        ],
+        args: { 'phone-number': '+15555555555' },
       },
       statusUpdates: false,
     },
@@ -70,12 +65,7 @@ export const RequiredStatusUpdates: Story = {
       name: 'required status',
       dest: {
         type: 'required-status',
-        values: [
-          {
-            fieldID: 'phone-number',
-            value: '+15555555555',
-          },
-        ],
+        args: { 'phone-number': '+15555555555' },
       },
       statusUpdates: false,
     },
@@ -99,12 +89,7 @@ export const ErrorSingleField: Story = {
       name: '-notvalid',
       dest: {
         type: 'single-field',
-        values: [
-          {
-            fieldID: 'phone-number',
-            value: '+',
-          },
-        ],
+        args: { 'phone-number': '+15555555555' },
       },
       statusUpdates: false,
     },
@@ -129,20 +114,11 @@ export const ErrorMultiField: Story = {
       name: '-notvalid',
       dest: {
         type: 'triple-field',
-        values: [
-          {
-            fieldID: 'first-field',
-            value: '+',
-          },
-          {
-            fieldID: 'second-field',
-            value: 'notAnEmail',
-          },
-          {
-            fieldID: 'third-field',
-            value: '-',
-          },
-        ],
+        args: {
+          'first-field': '+',
+          'second-field': 'notAnEmail',
+          'third-field': '-',
+        },
       },
       statusUpdates: false,
     },
@@ -170,7 +146,7 @@ export const Disabled: Story = {
       name: 'disabled dest',
       dest: {
         type: 'triple-field',
-        values: [],
+        args: {},
       },
       statusUpdates: false,
     },

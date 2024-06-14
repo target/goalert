@@ -82,12 +82,7 @@ const meta = {
                     id: 'existing-id',
                     dest: {
                       type: 'single-field',
-                      values: [
-                        {
-                          fieldID: 'phone-number',
-                          value: '+1234567890',
-                        },
-                      ],
+                      args: { 'phone-number': '+1234567890' },
                     },
                   },
                 ],
