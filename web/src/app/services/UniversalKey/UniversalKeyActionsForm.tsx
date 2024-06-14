@@ -34,7 +34,7 @@ export default function UniversalKeyActionsForm(
   const errs = useErrorConsumer(addError)
 
   return (
-    <Grid container spacing={2}>
+    <Grid item xs={12} container spacing={2}>
       {props.showList && (
         <UniversalKeyActionsList
           actions={props.value}

@@ -79,7 +79,7 @@ export default function DynamicActionForm(
   const selectedDest = types.find((t) => t.type === props.value?.destType)
 
   return (
-    <Grid container spacing={2} item xs={12}>
+    <Grid item xs={12} container spacing={2}>
       <Grid item xs={12}>
         <TextField
           select
