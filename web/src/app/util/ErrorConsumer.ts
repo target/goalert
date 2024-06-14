@@ -105,19 +105,19 @@ export class ErrorConsumer {
     )
   }
 
-  /** Returns and consumes (if exists) a single field error with the given name.
+  /** Returns and consumes (if exists) a single error with the given field ID/name.
    *
-   * Name maps to the `fname` when using the backend `validate.*` methods.
+   * Name maps to the `fieldName` when using the backend `validate.*` methods.
    */
-  getFieldError(name: string): string | undefined {
+  getErrorByField(field: string | RegExp): string | undefined {
     this.doneCheck()
 
     let result: string | undefined
 
     this.store.errors.forEach((e) => {
-      if (e.code !== '_LEGACY_FIELD_ERROR') return
-      if (e.fieldID !== name) return
       if (result !== undefined) return
+      if (typeof field === 'string' && e.fieldID !== field) return
+      if (field instanceof RegExp && !field.test(e.fieldID)) return
 
       result = e.message
       this.store.errors.delete(e)
@@ -127,15 +127,16 @@ export class ErrorConsumer {
   }
 
   /** Returns and consumes (if exists) a single error with the given path. */
-  getError(path: string): string | undefined {
+  getErrorByPath(path: string | RegExp): string | undefined {
     this.doneCheck()
 
     let result: string | undefined
 
     // find the first error with the given path
     this.store.errors.forEach((e) => {
-      if (e.path !== path) return
       if (result !== undefined) return
+      if (typeof path === 'string' && e.path !== path) return
+      if (path instanceof RegExp && !path.test(e.path)) return
 
       result = e.message
       this.store.errors.delete(e)

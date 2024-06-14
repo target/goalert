@@ -46,7 +46,9 @@ export default function UniversalKeyActionsForm(
         <DynamicActionForm
           value={currentAction}
           onChange={setCurrentAction}
-          destTypeError={errs.getError('actionInputValidate.input.dest.type')}
+          destTypeError={errs.getErrorByPath(
+            'actionInputValidate.input.dest.type',
+          )}
           staticParamErrors={errs.getAllDestFieldErrors(
             'actionInputValidate.input.dest',
           )}
