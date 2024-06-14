@@ -240,7 +240,7 @@ func actionsGQLToGo(a []graphql2.ActionInput) []integrationkey.Action {
 	for _, v := range a {
 		res = append(res, integrationkey.Action{
 			Type:          v.Dest.Type,
-			StaticParams:  fviToMap(v.Dest.Values),
+			StaticParams:  v.Dest.Args,
 			DynamicParams: v.Params,
 		})
 	}
@@ -251,7 +251,7 @@ func actionsGoToGQL(a []integrationkey.Action) []graphql2.Action {
 	res := make([]graphql2.Action, 0, len(a))
 	for _, v := range a {
 		res = append(res, graphql2.Action{
-			Dest:   &graphql2.Destination{Type: v.Type, Values: mapToFieldValue(v.StaticParams)},
+			Dest:   &graphql2.Destination{Type: v.Type, Args: v.StaticParams},
 			Params: v.DynamicParams,
 		})
 	}

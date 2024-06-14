@@ -185,6 +185,7 @@ type QLResponse struct {
 		Path       QLPath
 		Extensions struct {
 			Code    string
+			Key     string
 			FieldID string
 		}
 	}

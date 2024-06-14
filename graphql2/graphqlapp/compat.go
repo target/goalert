@@ -18,42 +18,27 @@ func CompatTargetToDest(tgt assignment.Target) (graphql2.Destination, error) {
 	case assignment.TargetTypeUser:
 		return graphql2.Destination{
 			Type: destUser,
-			Values: []graphql2.FieldValuePair{{
-				FieldID: fieldUserID,
-				Value:   tgt.TargetID(),
-			}},
+			Args: map[string]string{fieldUserID: tgt.TargetID()},
 		}, nil
 	case assignment.TargetTypeRotation:
 		return graphql2.Destination{
 			Type: destRotation,
-			Values: []graphql2.FieldValuePair{{
-				FieldID: fieldRotationID,
-				Value:   tgt.TargetID(),
-			}},
+			Args: map[string]string{fieldRotationID: tgt.TargetID()},
 		}, nil
 	case assignment.TargetTypeSchedule:
 		return graphql2.Destination{
 			Type: destSchedule,
-			Values: []graphql2.FieldValuePair{{
-				FieldID: fieldScheduleID,
-				Value:   tgt.TargetID(),
-			}},
+			Args: map[string]string{fieldScheduleID: tgt.TargetID()},
 		}, nil
 	case assignment.TargetTypeChanWebhook:
 		return graphql2.Destination{
 			Type: destWebhook,
-			Values: []graphql2.FieldValuePair{{
-				FieldID: fieldWebhookURL,
-				Value:   tgt.TargetID(),
-			}},
+			Args: map[string]string{fieldWebhookURL: tgt.TargetID()},
 		}, nil
 	case assignment.TargetTypeSlackChannel:
 		return graphql2.Destination{
 			Type: destSlackChan,
-			Values: []graphql2.FieldValuePair{{
-				FieldID: fieldSlackChanID,
-				Value:   tgt.TargetID(),
-			}},
+			Args: map[string]string{fieldSlackChanID: tgt.TargetID()},
 		}, nil
 	}
 
@@ -71,12 +56,7 @@ func (a *App) CompatNCToDest(ctx context.Context, ncID uuid.UUID) (*graphql2.Des
 	case notificationchannel.TypeSlackChan:
 		return &graphql2.Destination{
 			Type: destSlackChan,
-			Values: []graphql2.FieldValuePair{
-				{
-					FieldID: fieldSlackChanID,
-					Value:   nc.Value,
-				},
-			},
+			Args: map[string]string{fieldSlackChanID: nc.Value},
 		}, nil
 	case notificationchannel.TypeSlackUG:
 		ugID, chanID, ok := strings.Cut(nc.Value, ":")
@@ -86,26 +66,15 @@ func (a *App) CompatNCToDest(ctx context.Context, ncID uuid.UUID) (*graphql2.Des
 
 		return &graphql2.Destination{
 			Type: destSlackUG,
-			Values: []graphql2.FieldValuePair{
-				{
-					FieldID: fieldSlackUGID,
-					Value:   ugID,
-				},
-				{
-					FieldID: fieldSlackChanID,
-					Value:   chanID,
-				},
+			Args: map[string]string{
+				fieldSlackUGID:   ugID,
+				fieldSlackChanID: chanID,
 			},
 		}, nil
 	case notificationchannel.TypeWebhook:
 		return &graphql2.Destination{
 			Type: destWebhook,
-			Values: []graphql2.FieldValuePair{
-				{
-					FieldID: fieldWebhookURL,
-					Value:   nc.Value,
-				},
-			},
+			Args: map[string]string{fieldWebhookURL: nc.Value},
 		}, nil
 	default:
 		return nil, fmt.Errorf("unsupported notification channel type: %s", nc.Type)

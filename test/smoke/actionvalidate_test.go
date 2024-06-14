@@ -28,14 +28,8 @@ func TestActionValid(t *testing.T) {
 		var vars struct {
 			Input graphql2.ActionInput `json:"input"`
 		}
-		vars.Input.Params = []graphql2.DynamicParamInput{}
-		for k, v := range dyn {
-			vars.Input.Params = append(vars.Input.Params, graphql2.DynamicParamInput{ParamID: k, Expr: v})
-		}
-		vars.Input.Dest = &graphql2.DestinationInput{Type: destType, Values: []graphql2.FieldValueInput{}}
-		for k, v := range dest {
-			vars.Input.Dest.Values = append(vars.Input.Dest.Values, graphql2.FieldValueInput{FieldID: k, Value: v})
-		}
+		vars.Input.Params = dyn
+		vars.Input.Dest = &graphql2.DestinationInput{Type: destType, Args: dest}
 
 		return *h.GraphQLQueryUserVarsT(t, harness.DefaultGraphQLAdminUserID, actionValidQuery, "TestActionValid", vars)
 	}
@@ -43,14 +37,15 @@ func TestActionValid(t *testing.T) {
 	res := check("invalid", params{}, params{})
 	if assert.Len(t, res.Errors, 1) {
 		assert.EqualValues(t, "actionInputValidate.input.dest.type", res.Errors[0].Path)
-		assert.Equal(t, "unsupported destination type", res.Errors[0].Message)
+		assert.Equal(t, "unsupported destination type: invalid", res.Errors[0].Message)
 		assert.Equal(t, "INVALID_INPUT_VALUE", res.Errors[0].Extensions.Code)
 	}
 
 	res = check("builtin-alert", params{}, params{"invalid-expr": `foo+`})
 	if assert.Len(t, res.Errors, 1) {
-		assert.EqualValues(t, "actionInputValidate.input.params.0.expr", res.Errors[0].Path)
+		assert.EqualValues(t, "actionInputValidate.input.params", res.Errors[0].Path)
 		assert.Contains(t, res.Errors[0].Message, "unexpected token")
-		assert.Equal(t, "", res.Errors[0].Extensions.Code)
+		assert.Equal(t, "INVALID_MAP_FIELD_VALUE", res.Errors[0].Extensions.Code)
+		assert.Equal(t, "invalid-expr", res.Errors[0].Extensions.Key)
 	}
 }
