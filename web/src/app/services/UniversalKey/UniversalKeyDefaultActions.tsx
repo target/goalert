@@ -1,12 +1,11 @@
 import { Button, Card } from '@mui/material'
 import React, { Suspense, useState } from 'react'
-import FlatList, { FlatListListItem } from '../../lists/FlatList'
+import FlatList from '../../lists/FlatList'
 import { Edit } from '@mui/icons-material'
 import DefaultActionEditDialog from './DefaultActionEditDialog'
 import UniversalKeyActionsList from './UniversalKeyActionsList'
 import { gql, useQuery } from 'urql'
 import { IntegrationKey } from '../../../schema'
-import { GenericError } from '../../error-pages'
 
 interface UniversalKeyDefaultActionProps {
   serviceID: string

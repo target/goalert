@@ -42,7 +42,6 @@ export function actionInputToValue(action: ActionInput): Value {
   }
 }
 
-export type DynamicActionErrors = {}
 export type DynamicActionFormProps = {
   value: Value | null
   onChange: (value: Value) => void

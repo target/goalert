@@ -2,7 +2,6 @@ import React from 'react'
 import FormHelperText from '@mui/material/FormHelperText'
 import AppLink from '../util/AppLink'
 import { Grid } from '@mui/material'
-import { fontFamily } from '@mui/system'
 
 export type HelperTextProps = {
   hint?: string
