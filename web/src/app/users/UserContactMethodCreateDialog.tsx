@@ -86,7 +86,7 @@ export default function UserContactMethodCreateDialog(props: {
         'createUserContactMethod.input.dest.type',
       )}
       destFieldErrors={errs.getErrorMap(
-        'createUserContactMethod.input.dest.args',
+        /createUserContactMethod.input.dest(.args)?/,
       )}
       onChange={(CMValue: Value) => setCMValue(CMValue)}
       value={CMValue}

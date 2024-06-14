@@ -12,6 +12,7 @@ import {
   SetScheduleOnCallNotificationRulesInput,
 } from '../../../schema'
 import { DateTime } from 'luxon'
+import { useErrorConsumer } from '../../util/ErrorConsumer'
 
 const getRulesQuery = gql`
   query GetRules($scheduleID: ID!) {
@@ -76,21 +77,26 @@ export default function ScheduleOnCallNotificationsEditDialog(
     setErr(m.error || null)
   }, [m.error])
 
-  const newRulePrefix = [
-    'setScheduleOnCallNotificationRules',
-    'input',
-    'rules',
-    sched.onCallNotificationRules.length - 1,
-  ].join('.')
-  const [formErrors, otherErrs] = splitErrorsByPath(
-    err,
-    errorPaths(newRulePrefix),
+  const errs = useErrorConsumer(err)
+
+  const form = (
+    <ScheduleOnCallNotificationsForm
+      scheduleID={scheduleID}
+      value={value}
+      onChange={setValue}
+      destTypeError={errs.getErrorByPath(
+        /setScheduleOnCallNotificationRules.input.rules.+.dest.type/,
+      )}
+      destFieldErrors={errs.getErrorMap(
+        /setScheduleOnCallNotificationRules.input.rules.+.dest(.args)?/,
+      )}
+    />
   )
 
   return (
     <FormDialog
       title='Edit Notification Rule'
-      errors={otherErrs}
+      errors={errs.remainingLegacy()}
       disablePortal={props.disablePortal}
       loading={m.fetching}
       onClose={onClose}
@@ -120,14 +126,7 @@ export default function ScheduleOnCallNotificationsEditDialog(
             setErr(err)
           })
       }
-      form={
-        <ScheduleOnCallNotificationsForm
-          scheduleID={scheduleID}
-          errors={formErrors}
-          value={value}
-          onChange={setValue}
-        />
-      }
+      form={form}
     />
   )
 }
