@@ -38,14 +38,14 @@ const meta = {
           })
         }),
         graphql.query('DestDisplayInfo', ({ variables: vars }) => {
-          switch (vars.input.values[0].value) {
+          switch (vars.input.args['phone-number']) {
             case VALID_PHONE:
             case VALID_PHONE2:
               return HttpResponse.json({
                 data: {
                   destinationDisplayInfo: {
                     text:
-                      vars.input.values[0].value === VALID_PHONE
+                      vars.input.args['phone-number'] === VALID_PHONE
                         ? 'VALID_CHIP_1'
                         : 'VALID_CHIP_2',
                     iconURL: 'builtin://phone-voice',

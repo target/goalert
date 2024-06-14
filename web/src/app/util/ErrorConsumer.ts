@@ -169,14 +169,15 @@ export class ErrorConsumer {
    *
    * @param path - Only errors with the given path will be consumed.
    */
-  getErrorMap(path: string): Readonly<Record<string, string>> {
+  getErrorMap(path: string | RegExp): Readonly<Record<string, string>> {
     this.doneCheck()
 
     const errs: Record<string, string> = {}
     this.store.errors.forEach((e) => {
-      if (e.path !== path) return
-      if (e.fieldID === '') return
       if (errs[e.fieldID] !== undefined) return
+      if (e.fieldID === '') return
+      if (typeof path === 'string' && e.path !== path) return
+      if (path instanceof RegExp && !path.test(e.path)) return
 
       errs[e.fieldID] = e.message
       this.store.errors.delete(e)
