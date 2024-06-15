@@ -39,7 +39,7 @@
     "@dnd-kit/sortable": "8.0.0",
     "@dnd-kit/utilities": "3.2.2",
     "@emotion/react": "11.11.1",
-    "@emotion/styled": "11.11.0",
+    "@emotion/styled": "11.11.5",
     "@material/material-color-utilities": "0.2.7",
     "@mui/icons-material": "5.15.13",
     "@mui/lab": "5.0.0-alpha.170",
