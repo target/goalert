@@ -9035,14 +9035,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"classnames@npm:2.3.2":
-  version: 2.3.2
-  resolution: "classnames@npm:2.3.2"
-  checksum: 2c62199789618d95545c872787137262e741f9db13328e216b093eea91c85ef2bfb152c1f9e63027204e2559a006a92eb74147d46c800a9f96297ae1d9f96f4e
-  languageName: node
-  linkType: hard
-
-"classnames@npm:^2.2.5":
+"classnames@npm:2.5.1, classnames@npm:^2.2.5":
   version: 2.5.1
   resolution: "classnames@npm:2.5.1"
   checksum: da424a8a6f3a96a2e87d01a432ba19315503294ac7e025f9fece656db6b6a0f7b5003bb1fbb51cbb0d9624d964f1b9bb35a51c73af9b2434c7b292c42231c1e5
@@ -19001,7 +18994,7 @@ __metadata:
     "@urql/exchange-retry": 1.2.1
     bowser: 2.11.0
     chance: 1.1.11
-    classnames: 2.3.2
+    classnames: 2.5.1
     concurrently: 8.2.2
     cypress: 13.3.0
     detect-package-manager: 3.0.1
