@@ -110,6 +110,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			}
 			results = append(results, res)
 		}
+
+		if !rule.ContinueAfterMatch {
+			break
+		}
 	}
 
 	if !anyMatched {

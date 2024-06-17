@@ -651,12 +651,12 @@ export interface KeyConfig {
   defaultActions: Action[]
   oneRule?: null | KeyRule
   rules: KeyRule[]
-  stopAtFirstRule: boolean
 }
 
 export interface KeyRule {
   actions: Action[]
   conditionExpr: ExprBooleanExpression
+  continueAfterMatch: boolean
   description: string
   id: string
   name: string
@@ -665,6 +665,7 @@ export interface KeyRule {
 export interface KeyRuleInput {
   actions: ActionInput[]
   conditionExpr: ExprBooleanExpression
+  continueAfterMatch: boolean
   description: string
   id?: null | string
   name: string
@@ -1300,7 +1301,6 @@ export interface UpdateKeyConfigInput {
   keyID: string
   rules?: null | KeyRuleInput[]
   setRule?: null | KeyRuleInput
-  stopAtFirstRule?: null | boolean
 }
 
 export interface UpdateRotationInput {
