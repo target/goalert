@@ -402,6 +402,7 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			Enabled:               cfg.Slack.Enable,
 			IsEPTarget:            true,
 			IsSchedOnCallNotify:   true,
+			IsDynamicAction:       true,
 			SupportsStatusUpdates: true,
 			StatusUpdatesRequired: true,
 			RequiredFields: []graphql2.DestinationFieldConfig{{
