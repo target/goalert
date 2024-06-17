@@ -296,6 +296,15 @@ function testWizard(): void {
       cy.get('body').should('contain', 'cannot be more than 35 characters')
 
       cy.get('body').contains('button', 'Close').click()
+
+      // TODO: fix this
+      // Notes: scrollIntoView is needed to resolve a bug where the search-select input field dropdown button is
+      // not visible on mobile. This seems to come from an update to themeConfig.tsx (commit a4dbf570f786842fa0eb8db249fa9a7b80a6bd57)
+      // which makes the multi text field default margin to 'dense'. Somewhere down the line MUI changes the overflow
+      // property of the button's parent to be hidden resulting in cypress counting it as not visible...
+      cy.get(
+        `input[name="secondarySchedule.followTheSunRotation.timeZone"]`,
+      ).scrollIntoView()
       cy.get(
         `input[name="secondarySchedule.followTheSunRotation.timeZone"]`,
       ).selectByLabel('Asia/Kolkata')
@@ -306,6 +315,9 @@ function testWizard(): void {
       cy.get('body').should('contain', 'cannot be more than 42 characters')
 
       cy.get('body').contains('button', 'Close').click()
+      cy.get(
+        `input[name="secondarySchedule.followTheSunRotation.timeZone"]`,
+      ).scrollIntoView()
       cy.get(
         `input[name="secondarySchedule.followTheSunRotation.timeZone"]`,
       ).selectByLabel('America/Chicago')
