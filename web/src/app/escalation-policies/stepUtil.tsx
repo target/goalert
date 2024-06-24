@@ -5,11 +5,24 @@ import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import { Destination } from '../../schema'
 import DestinationChip from '../util/DestinationChip'
+import { Warning } from '../icons'
 
 export function renderChipsDest(_a: Destination[]): ReactElement {
   const actions = sortBy(_a.slice(), ['type', 'displayInfo.text'])
   if (!actions || actions.length === 0) {
-    return <Chip label='No actions' />
+    return (
+      <Chip
+        label='No destinations'
+        icon={
+          <div style={{ padding: '4px' }}>
+            <Warning
+              placement='bottom'
+              message='With no destinations configured, nothing will happen when an alert reaches this step'
+            />
+          </div>
+        }
+      />
+    )
   }
 
   const items = actions.map((a, idx) => {
