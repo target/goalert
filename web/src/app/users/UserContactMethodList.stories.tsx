@@ -33,6 +33,7 @@ const meta = {
                                 value: '+15555555555',
                               },
                             ],
+                            args: { 'phone-number': '+15555555555' },
                             displayInfo: {
                               text: '+1 555-555-5555',
                               iconAltText: 'Voice Call',
@@ -69,6 +70,11 @@ const meta = {
                                 value: 'parameter-2',
                               },
                             ],
+                            args: {
+                              'first-field': 'test_user@target.com',
+                              'second-field': 'parameter-1',
+                              'third-field': 'parameter-2',
+                            },
                             displayInfo: {
                               text: 'test_user@target.com',
                               iconAltText: 'Email',
@@ -90,6 +96,7 @@ const meta = {
                                 value: '+15555555556',
                               },
                             ],
+                            args: { 'phone-number': '+15555555556' },
                             displayInfo: {
                               text: '+1 555-555-5556',
                               iconAltText: 'Voice Call',

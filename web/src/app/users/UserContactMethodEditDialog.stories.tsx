@@ -41,6 +41,7 @@ const meta = {
                             value: '+15555555555',
                           },
                         ],
+                        args: { 'phone-number': '+15555555555' },
                         displayInfo: {
                           text: '+1 555-555-5555',
                           iconAltText: 'Voice Call',
@@ -72,6 +73,11 @@ const meta = {
                             value: 'slack',
                           },
                         ],
+                        args: {
+                          'first-field': '+11235550123',
+                          'second-field': 'foobar@example.com',
+                          'third-field': 'slack',
+                        },
                         displayInfo: {
                           text: '11235550123',
                           iconAltText: 'Mulitple Fields Example',
