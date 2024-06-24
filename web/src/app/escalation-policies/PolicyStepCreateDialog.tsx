@@ -3,6 +3,7 @@ import { CombinedError, gql, useMutation } from 'urql'
 import FormDialog from '../dialogs/FormDialog'
 import PolicyStepForm, { FormValue } from './PolicyStepForm'
 import { useErrorConsumer } from '../util/ErrorConsumer'
+import { getNotice } from './utils'
 
 const mutation = gql`
   mutation createEscalationPolicyStep(
@@ -27,6 +28,10 @@ export default function PolicyStepCreateDialog(props: {
   const [createStepStatus, createStep] = useMutation(mutation)
   const [err, setErr] = useState<CombinedError | null>(null)
 
+  const [hasSubmitted, setHasSubmitted] = useState(false)
+  const [hasConfirmed, setHasConfirmed] = useState(false)
+  const noActionsNoConf = value.actions.length === 0 && !hasConfirmed
+
   useEffect(() => {
     setErr(null)
   }, [value])
@@ -45,6 +50,11 @@ export default function PolicyStepCreateDialog(props: {
       maxWidth='sm'
       onClose={props.onClose}
       onSubmit={() => {
+        if (noActionsNoConf) {
+          setHasSubmitted(true)
+          return
+        }
+
         createStep(
           {
             input: {
@@ -67,6 +77,7 @@ export default function PolicyStepCreateDialog(props: {
           onChange={(value: FormValue) => setValue(value)}
         />
       }
+      notices={getNotice(hasSubmitted, hasConfirmed, setHasConfirmed)}
     />
   )
 }

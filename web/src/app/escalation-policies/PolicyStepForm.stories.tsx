@@ -143,6 +143,6 @@ export const ManageActions: Story = {
     // Delete the chip
     await userEvent.click(await canvas.findByTestId('CancelIcon'))
 
-    await expect(await canvas.findByText('No actions')).toBeVisible()
+    await expect(await canvas.findByText('No destinations')).toBeVisible()
   },
 }

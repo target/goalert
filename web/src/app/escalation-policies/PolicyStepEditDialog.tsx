@@ -8,6 +8,7 @@ import {
   EscalationPolicy,
   UpdateEscalationPolicyStepInput,
 } from '../../schema'
+import { getNotice } from './utils'
 
 interface PolicyStepEditDialogProps {
   escalationPolicyID: string
@@ -62,6 +63,10 @@ export default function PolicyStepEditDialog(
 
   const [editStepStatus, editStep] = useMutation(mutation)
 
+  const [hasSubmitted, setHasSubmitted] = useState(false)
+  const [hasConfirmed, setHasConfirmed] = useState(false)
+  const noActionsNoConf = value.actions.length === 0 && !hasConfirmed
+
   // Edit dialog has no errors to be handled by the form:
   // - actions field has it's own validation
   // - errors on existing actions are not handled specially, and just display in the dialog (i.e., duplicates)
@@ -76,8 +81,13 @@ export default function PolicyStepEditDialog(
       disablePortal={props.disablePortal}
       maxWidth='sm'
       onClose={props.onClose}
-      onSubmit={() =>
-        editStep(
+      onSubmit={() => {
+        if (noActionsNoConf) {
+          setHasSubmitted(true)
+          return
+        }
+
+        return editStep(
           {
             input: {
               id: props.stepID,
@@ -89,7 +99,7 @@ export default function PolicyStepEditDialog(
         ).then((result) => {
           if (!result.error) props.onClose()
         })
-      }
+      }}
       form={
         <PolicyStepForm
           disabled={editStepStatus.fetching}
@@ -97,6 +107,7 @@ export default function PolicyStepEditDialog(
           onChange={(value: FormValue) => setValue(value)}
         />
       }
+      notices={getNotice(hasSubmitted, hasConfirmed, setHasConfirmed)}
     />
   )
 }
