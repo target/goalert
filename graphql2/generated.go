@@ -92,6 +92,7 @@ type ResolverRoot interface {
 	UserNotificationRule() UserNotificationRuleResolver
 	UserOverride() UserOverrideResolver
 	CreateEscalationPolicyStepInput() CreateEscalationPolicyStepInputResolver
+	DestinationInput() DestinationInputResolver
 	OnCallNotificationRuleInput() OnCallNotificationRuleInputResolver
 	UpdateEscalationPolicyStepInput() UpdateEscalationPolicyStepInputResolver
 }
@@ -245,6 +246,7 @@ type ComplexityRoot struct {
 	}
 
 	Destination struct {
+		Args        func(childComplexity int) int
 		DisplayInfo func(childComplexity int) int
 		Type        func(childComplexity int) int
 		Values      func(childComplexity int) int
@@ -884,6 +886,8 @@ type AlertMetricResolver interface {
 	TimeToClose(ctx context.Context, obj *alertmetrics.Metric) (*timeutil.ISODuration, error)
 }
 type DestinationResolver interface {
+	Values(ctx context.Context, obj *Destination) ([]FieldValuePair, error)
+	Args(ctx context.Context, obj *Destination) (map[string]string, error)
 	DisplayInfo(ctx context.Context, obj *Destination) (InlineDisplayInfo, error)
 }
 type EscalationPolicyResolver interface {
@@ -1122,6 +1126,10 @@ type UserOverrideResolver interface {
 
 type CreateEscalationPolicyStepInputResolver interface {
 	Actions(ctx context.Context, obj *CreateEscalationPolicyStepInput, data []DestinationInput) error
+}
+type DestinationInputResolver interface {
+	Values(ctx context.Context, obj *DestinationInput, data []FieldValueInput) error
+	Args(ctx context.Context, obj *DestinationInput, data map[string]string) error
 }
 type OnCallNotificationRuleInputResolver interface {
 	Dest(ctx context.Context, obj *OnCallNotificationRuleInput, data *DestinationInput) error
@@ -1718,6 +1726,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DebugSendSMSInfo.ProviderURL(childComplexity), true
+
+	case "Destination.args":
+		if e.complexity.Destination.Args == nil {
+			break
+		}
+
+		return e.complexity.Destination.Args(childComplexity), true
 
 	case "Destination.displayInfo":
 		if e.complexity.Destination.DisplayInfo == nil {
@@ -7041,6 +7056,8 @@ func (ec *executionContext) fieldContext_Action_dest(_ context.Context, field gr
 				return ec.fieldContext_Destination_type(ctx, field)
 			case "values":
 				return ec.fieldContext_Destination_values(ctx, field)
+			case "args":
+				return ec.fieldContext_Destination_args(ctx, field)
 			case "displayInfo":
 				return ec.fieldContext_Destination_displayInfo(ctx, field)
 			}
@@ -10724,7 +10741,7 @@ func (ec *executionContext) _Destination_values(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Values, nil
+		return ec.resolvers.Destination().Values(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10745,8 +10762,8 @@ func (ec *executionContext) fieldContext_Destination_values(_ context.Context, f
 	fc = &graphql.FieldContext{
 		Object:     "Destination",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "fieldID":
@@ -10755,6 +10772,50 @@ func (ec *executionContext) fieldContext_Destination_values(_ context.Context, f
 				return ec.fieldContext_FieldValuePair_value(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FieldValuePair", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Destination_args(ctx context.Context, field graphql.CollectedField, obj *Destination) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Destination_args(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Destination().Args(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(map[string]string)
+	fc.Result = res
+	return ec.marshalNStringMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Destination_args(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Destination",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type StringMap does not have child fields")
 		},
 	}
 	return fc, nil
@@ -13110,6 +13171,8 @@ func (ec *executionContext) fieldContext_EscalationPolicyStep_actions(_ context.
 				return ec.fieldContext_Destination_type(ctx, field)
 			case "values":
 				return ec.fieldContext_Destination_values(ctx, field)
+			case "args":
+				return ec.fieldContext_Destination_args(ctx, field)
 			case "displayInfo":
 				return ec.fieldContext_Destination_displayInfo(ctx, field)
 			}
@@ -20207,6 +20270,8 @@ func (ec *executionContext) fieldContext_OnCallNotificationRule_dest(_ context.C
 				return ec.fieldContext_Destination_type(ctx, field)
 			case "values":
 				return ec.fieldContext_Destination_values(ctx, field)
+			case "args":
+				return ec.fieldContext_Destination_args(ctx, field)
 			case "displayInfo":
 				return ec.fieldContext_Destination_displayInfo(ctx, field)
 			}
@@ -30577,6 +30642,8 @@ func (ec *executionContext) fieldContext_UserContactMethod_dest(_ context.Contex
 				return ec.fieldContext_Destination_type(ctx, field)
 			case "values":
 				return ec.fieldContext_Destination_values(ctx, field)
+			case "args":
+				return ec.fieldContext_Destination_args(ctx, field)
 			case "displayInfo":
 				return ec.fieldContext_Destination_displayInfo(ctx, field)
 			}
@@ -35443,7 +35510,7 @@ func (ec *executionContext) unmarshalInputDestinationInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"type", "values"}
+	fieldsInOrder := [...]string{"type", "values", "args"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -35459,11 +35526,22 @@ func (ec *executionContext) unmarshalInputDestinationInput(ctx context.Context, 
 			it.Type = data
 		case "values":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("values"))
-			data, err := ec.unmarshalNFieldValueInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldValueInputᚄ(ctx, v)
+			data, err := ec.unmarshalOFieldValueInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldValueInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Values = data
+			if err = ec.resolvers.DestinationInput().Values(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "args":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("args"))
+			data, err := ec.unmarshalOStringMap2map(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.DestinationInput().Args(ctx, &it, data); err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -39537,10 +39615,77 @@ func (ec *executionContext) _Destination(ctx context.Context, sel ast.SelectionS
 				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "values":
-			out.Values[i] = ec._Destination_values(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Destination_values(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "args":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Destination_args(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "displayInfo":
 			field := field
 
@@ -48571,23 +48716,6 @@ func (ec *executionContext) unmarshalNFieldValueInput2githubᚗcomᚋtargetᚋgo
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNFieldValueInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldValueInputᚄ(ctx context.Context, v interface{}) ([]FieldValueInput, error) {
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]FieldValueInput, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNFieldValueInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldValueInput(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
 func (ec *executionContext) marshalNFieldValuePair2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldValuePair(ctx context.Context, sel ast.SelectionSet, v FieldValuePair) graphql.Marshaler {
 	return ec._FieldValuePair(ctx, sel, &v)
 }
@@ -50176,6 +50304,27 @@ func (ec *executionContext) marshalNStringConnection2ᚖgithubᚗcomᚋtargetᚋ
 	return ec._StringConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNStringMap2map(ctx context.Context, v interface{}) (map[string]string, error) {
+	res, err := UnmarshalStringMap(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNStringMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]string) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	res := MarshalStringMap(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) marshalNSystemLimit2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimit(ctx context.Context, sel ast.SelectionSet, v SystemLimit) graphql.Marshaler {
 	return ec._SystemLimit(ctx, sel, &v)
 }
@@ -51739,6 +51888,26 @@ func (ec *executionContext) marshalOEscalationPolicyStep2ᚖgithubᚗcomᚋtarge
 	return ec._EscalationPolicyStep(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOFieldValueInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldValueInputᚄ(ctx context.Context, v interface{}) ([]FieldValueInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]FieldValueInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNFieldValueInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐFieldValueInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) marshalOGQLAPIKeyUsage2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐGQLAPIKeyUsage(ctx context.Context, sel ast.SelectionSet, v *GQLAPIKeyUsage) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -52278,6 +52447,22 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	res := graphql.MarshalString(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOStringMap2map(ctx context.Context, v interface{}) (map[string]string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := UnmarshalStringMap(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOStringMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := MarshalStringMap(v)
 	return res
 }
 
