@@ -27,37 +27,27 @@ func (a *ContactMethod) Dest(ctx context.Context, obj *contactmethod.ContactMeth
 	case contactmethod.TypeSMS:
 		return &graphql2.Destination{
 			Type: destTwilioSMS,
-			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldPhoneNumber, Value: obj.Value},
-			},
+			Args: map[string]string{fieldPhoneNumber: obj.Value},
 		}, nil
 	case contactmethod.TypeVoice:
 		return &graphql2.Destination{
 			Type: destTwilioVoice,
-			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldPhoneNumber, Value: obj.Value},
-			},
+			Args: map[string]string{fieldPhoneNumber: obj.Value},
 		}, nil
 	case contactmethod.TypeEmail:
 		return &graphql2.Destination{
 			Type: destSMTP,
-			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldEmailAddress, Value: obj.Value},
-			},
+			Args: map[string]string{fieldEmailAddress: obj.Value},
 		}, nil
 	case contactmethod.TypeWebhook:
 		return &graphql2.Destination{
 			Type: destWebhook,
-			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldWebhookURL, Value: obj.Value},
-			},
+			Args: map[string]string{fieldWebhookURL: obj.Value},
 		}, nil
 	case contactmethod.TypeSlackDM:
 		return &graphql2.Destination{
 			Type: destSlackDM,
-			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldSlackUserID, Value: obj.Value},
-			},
+			Args: map[string]string{fieldSlackUserID: obj.Value},
 		}, nil
 	}
 

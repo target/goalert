@@ -144,6 +144,9 @@ func main() {
 			if def.Name == "WeekdayFilter" {
 				typeName = "[boolean, boolean, boolean, boolean, boolean, boolean, boolean]"
 			}
+			if strings.HasSuffix(def.Name, "Map") {
+				typeName = "Record<string, string>"
+			}
 			fmt.Fprintf(w, "export type %s = %s\n\n", def.Name, typeName)
 		case ast.Union:
 			sort.Strings(def.Types)

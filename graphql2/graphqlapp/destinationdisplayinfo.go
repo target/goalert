@@ -14,10 +14,57 @@ import (
 )
 
 type (
-	Destination App
+	Destination      App
+	DestinationInput App
 )
 
-func (a *App) Destination() graphql2.DestinationResolver { return (*Destination)(a) }
+func (a *App) Destination() graphql2.DestinationResolver           { return (*Destination)(a) }
+func (a *App) DestinationInput() graphql2.DestinationInputResolver { return (*DestinationInput)(a) }
+
+func (a *DestinationInput) Args(ctx context.Context, obj *graphql2.DestinationInput, args map[string]string) error {
+	obj.Args = args
+
+	obj.Values = make([]graphql2.FieldValueInput, 0, len(args))
+	for k, v := range args {
+		obj.Values = append(obj.Values, graphql2.FieldValueInput{FieldID: k, Value: v})
+	}
+
+	return nil
+}
+
+func (a *DestinationInput) Values(ctx context.Context, obj *graphql2.DestinationInput, values []graphql2.FieldValueInput) error {
+	obj.Values = values
+	obj.Args = make(map[string]string, len(values))
+	for _, val := range values {
+		obj.Args[val.FieldID] = val.Value
+	}
+	return nil
+}
+
+func (a *Destination) Args(ctx context.Context, obj *graphql2.Destination) (map[string]string, error) {
+	if obj.Args != nil {
+		return obj.Args, nil
+	}
+
+	m := make(map[string]string, len(obj.Values))
+	for _, val := range obj.Values {
+		m[val.FieldID] = val.Value
+	}
+
+	return m, nil
+}
+
+func (a *Destination) Values(ctx context.Context, obj *graphql2.Destination) ([]graphql2.FieldValuePair, error) {
+	if obj.Args != nil {
+		pairs := make([]graphql2.FieldValuePair, 0, len(obj.Args))
+		for k, v := range obj.Args {
+			pairs = append(pairs, graphql2.FieldValuePair{FieldID: k, Value: v})
+		}
+		return pairs, nil
+	}
+
+	return obj.Values, nil
+}
 
 // DisplayInfo will return the display information for a destination by mapping to Query.DestinationDisplayInfo.
 func (a *Destination) DisplayInfo(ctx context.Context, obj *graphql2.Destination) (graphql2.InlineDisplayInfo, error) {
@@ -25,12 +72,7 @@ func (a *Destination) DisplayInfo(ctx context.Context, obj *graphql2.Destination
 		return obj.DisplayInfo, nil
 	}
 
-	values := make([]graphql2.FieldValueInput, len(obj.Values))
-	for i, v := range obj.Values {
-		values[i] = graphql2.FieldValueInput(v)
-	}
-
-	info, err := (*Query)(a)._DestinationDisplayInfo(ctx, graphql2.DestinationInput{Type: obj.Type, Values: values}, true)
+	info, err := (*Query)(a)._DestinationDisplayInfo(ctx, graphql2.DestinationInput{Type: obj.Type, Args: obj.Args}, true)
 	if err != nil {
 		isUnsafe, safeErr := errutil.ScrubError(err)
 		if isUnsafe {
@@ -55,8 +97,14 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest graphql2.Desti
 		}
 	}
 	switch dest.Type {
+	case destAlert:
+		return &graphql2.DestinationDisplayInfo{
+			IconURL:     "builtin://alert",
+			IconAltText: "Alert",
+			Text:        "Create new alert",
+		}, nil
 	case destTwilioSMS:
-		n, err := phonenumbers.Parse(dest.FieldValue(fieldPhoneNumber), "")
+		n, err := phonenumbers.Parse(dest.Args[fieldPhoneNumber], "")
 		if err != nil {
 			return nil, validation.WrapError(err)
 		}
@@ -67,7 +115,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest graphql2.Desti
 			Text:        phonenumbers.Format(n, phonenumbers.INTERNATIONAL),
 		}, nil
 	case destTwilioVoice:
-		n, err := phonenumbers.Parse(dest.FieldValue(fieldPhoneNumber), "")
+		n, err := phonenumbers.Parse(dest.Args[fieldPhoneNumber], "")
 		if err != nil {
 			return nil, validation.WrapError(err)
 		}
@@ -77,7 +125,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest graphql2.Desti
 			Text:        phonenumbers.Format(n, phonenumbers.INTERNATIONAL),
 		}, nil
 	case destSMTP:
-		e, err := mail.ParseAddress(dest.FieldValue(fieldEmailAddress))
+		e, err := mail.ParseAddress(dest.Args[fieldEmailAddress])
 		if err != nil {
 			return nil, validation.WrapError(err)
 		}
@@ -87,7 +135,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest graphql2.Desti
 			Text:        e.Address,
 		}, nil
 	case destRotation:
-		r, err := app.FindOneRotation(ctx, dest.FieldValue(fieldRotationID))
+		r, err := app.FindOneRotation(ctx, dest.Args[fieldRotationID])
 		if err != nil {
 			return nil, err
 		}
@@ -98,7 +146,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest graphql2.Desti
 			Text:        r.Name,
 		}, nil
 	case destSchedule:
-		s, err := app.FindOneSchedule(ctx, dest.FieldValue(fieldScheduleID))
+		s, err := app.FindOneSchedule(ctx, dest.Args[fieldScheduleID])
 		if err != nil {
 			return nil, err
 		}
@@ -109,7 +157,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest graphql2.Desti
 			Text:        s.Name,
 		}, nil
 	case destUser:
-		u, err := app.FindOneUser(ctx, dest.FieldValue(fieldUserID))
+		u, err := app.FindOneUser(ctx, dest.Args[fieldUserID])
 		if err != nil {
 			return nil, err
 		}
@@ -121,7 +169,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest graphql2.Desti
 		}, nil
 
 	case destWebhook:
-		u, err := url.Parse(dest.FieldValue(fieldWebhookURL))
+		u, err := url.Parse(dest.Args[fieldWebhookURL])
 		if err != nil {
 			return nil, validation.WrapError(err)
 		}
@@ -131,7 +179,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest graphql2.Desti
 			Text:        u.Hostname(),
 		}, nil
 	case destSlackDM:
-		u, err := app.SlackStore.User(ctx, dest.FieldValue(fieldSlackUserID))
+		u, err := app.SlackStore.User(ctx, dest.Args[fieldSlackUserID])
 		if err != nil {
 			return nil, err
 		}
@@ -152,7 +200,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest graphql2.Desti
 			Text:        u.Name,
 		}, nil
 	case destSlackChan:
-		ch, err := app.SlackStore.Channel(ctx, dest.FieldValue(fieldSlackChanID))
+		ch, err := app.SlackStore.Channel(ctx, dest.Args[fieldSlackChanID])
 		if err != nil {
 			return nil, err
 		}
@@ -173,7 +221,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest graphql2.Desti
 		}, nil
 
 	case destSlackUG:
-		ug, err := app.SlackStore.UserGroup(ctx, dest.FieldValue(fieldSlackUGID))
+		ug, err := app.SlackStore.UserGroup(ctx, dest.Args[fieldSlackUGID])
 		if err != nil {
 			return nil, err
 		}

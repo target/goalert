@@ -111,11 +111,19 @@ input DestinationFieldSearchInput {
 union InlineDisplayInfo = DestinationDisplayInfo | DestinationDisplayInfoError
 
 """
+A map of string keys to string values
+"""
+scalar StringMap
+
+"""
 Destination represents a destination that can be used for notifications.
 """
 type Destination {
   type: DestinationType!
   values: [FieldValuePair!]!
+    @goField(forceResolver: true)
+    @deprecated(reason: "Use the args field instead")
+  args: StringMap! @goField(forceResolver: true)
   displayInfo: InlineDisplayInfo! @goField(forceResolver: true)
 }
 
@@ -165,7 +173,10 @@ type FieldValuePair {
 
 input DestinationInput {
   type: DestinationType!
-  values: [FieldValueInput!]!
+  values: [FieldValueInput!]
+    @goField(forceResolver: true)
+    @deprecated(reason: "Use the args field instead")
+  args: StringMap @goField(forceResolver: true)
 }
 
 input FieldValueInput {
