@@ -84,6 +84,23 @@ export default function UniversalKeyActionsForm(
             sx={{ height: 'fit-content' }}
             onClick={() => {
               const input = valueToActionInput(currentAction)
+
+              let cancel = ''
+              props.value.forEach((_a) => {
+                const a = JSON.stringify(_a.dest.args)
+                const cur = JSON.stringify(input.dest.args)
+                if (a === cur) {
+                  cancel = 'Cannot add same destination twice'
+                }
+              })
+
+              if (cancel != '') {
+                setAddError({
+                  message: cancel,
+                } as CombinedError)
+                return
+              }
+
               setAddError(null)
               valClient
                 .query(query, { input })
