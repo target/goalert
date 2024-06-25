@@ -28,7 +28,10 @@ const query = gql`
         name
         dest {
           type
-          args
+          values {
+            fieldID
+            value
+          }
           displayInfo {
             ... on DestinationDisplayInfo {
               text

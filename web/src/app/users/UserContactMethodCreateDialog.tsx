@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { useMutation, gql, CombinedError } from 'urql'
 
+import { splitErrorsByPath } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
-import UserContactMethodForm from './UserContactMethodForm'
+import UserContactMethodForm, { errorPaths } from './UserContactMethodForm'
 import { useContactMethodTypes } from '../util/RequireConfig'
 import { Dialog, DialogTitle, DialogActions, Button } from '@mui/material'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { DestinationInput } from '../../schema'
-import { useErrorConsumer } from '../util/ErrorConsumer'
 
 type Value = {
   name: string
@@ -38,7 +38,7 @@ export default function UserContactMethodCreateDialog(props: {
     name: '',
     dest: {
       type: defaultType.type,
-      args: {},
+      values: [],
     },
     statusUpdates: false,
   })
@@ -55,7 +55,10 @@ export default function UserContactMethodCreateDialog(props: {
     setCreateErr(createCMStatus.error || null)
   }, [createCMStatus.error])
 
-  const errs = useErrorConsumer(createErr)
+  const [formErrors, otherErrs] = splitErrorsByPath(
+    createErr,
+    errorPaths('createUserContactMethod.input'),
+  )
 
   if (!defaultType.enabled) {
     // default type will be the first enabled type, so if it's not enabled, none are enabled
@@ -81,13 +84,7 @@ export default function UserContactMethodCreateDialog(props: {
   const form = (
     <UserContactMethodForm
       disabled={createCMStatus.fetching}
-      nameError={errs.getErrorByPath('createUserContactMethod.input.name')}
-      destTypeError={errs.getErrorByPath(
-        'createUserContactMethod.input.dest.type',
-      )}
-      destFieldErrors={errs.getErrorMap(
-        /createUserContactMethod.input.dest(.args)?/,
-      )}
+      errors={formErrors}
       onChange={(CMValue: Value) => setCMValue(CMValue)}
       value={CMValue}
       disablePortal={props.disablePortal}
@@ -101,7 +98,7 @@ export default function UserContactMethodCreateDialog(props: {
       title={title}
       subTitle={subtitle}
       loading={createCMStatus.fetching}
-      errors={errs.remainingLegacy()}
+      errors={otherErrs}
       onClose={props.onClose}
       // wrapped to prevent event from passing into createCM
       onSubmit={() =>

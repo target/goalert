@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { useMutation, gql, CombinedError, useQuery } from 'urql'
 
+import { splitErrorsByPath } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
-import UserContactMethodForm from './UserContactMethodForm'
+import UserContactMethodForm, { errorPaths } from './UserContactMethodForm'
 import { DestinationInput } from '../../schema'
-import { useErrorConsumer } from '../util/ErrorConsumer'
 
 type Value = {
   name: string
@@ -19,7 +19,10 @@ const query = gql`
       name
       dest {
         type
-        args
+        values {
+          fieldID
+          value
+        }
       }
       statusUpdates
     }
@@ -60,13 +63,17 @@ export default function UserContactMethodEditDialog(props: {
   useEffect(() => {
     setUpdateErr(updateCMStatus.error || null)
   }, [updateCMStatus.error])
-  const errs = useErrorConsumer(updateErr)
+
+  const [formErrors, otherErrs] = splitErrorsByPath(
+    updateErr,
+    errorPaths('updateUserContactMethod.input'),
+  )
 
   const form = (
     <UserContactMethodForm
       disablePortal={props.disablePortal}
-      nameError={errs.getErrorByPath('createUserContactMethod.input.name')}
       disabled={updateCMStatus.fetching}
+      errors={formErrors}
       edit
       onChange={(CMValue: Value) => setCMValue(CMValue)}
       value={CMValue}
@@ -79,7 +86,7 @@ export default function UserContactMethodEditDialog(props: {
       disablePortal={props.disablePortal}
       data-cy='edit-form'
       title='Edit Contact Method'
-      errors={errs.remainingLegacy()}
+      errors={otherErrs}
       onClose={props.onClose}
       // wrapped to prevent event from passing into createCM
       onSubmit={() => {
