@@ -151,6 +151,7 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
             loading={validating}
             disabled={props.disabled}
             startIcon={<Add />}
+            noSubmit
             onClick={() => {
               if (!props.onChange) return
               setValidating(true)
