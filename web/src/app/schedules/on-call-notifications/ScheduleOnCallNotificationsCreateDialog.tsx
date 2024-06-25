@@ -85,6 +85,7 @@ export default function ScheduleOnCallNotificationsCreateDialog(
     <ScheduleOnCallNotificationsForm
       scheduleID={scheduleID}
       value={value}
+      disabled={m.fetching}
       onChange={setValue}
       destTypeError={errs.getErrorByPath(
         /setScheduleOnCallNotificationRules.input.rules.+.dest.type/,
