@@ -44,13 +44,6 @@ const useStyles = makeStyles({
   tzNote: { fontStyle: 'italic' },
 })
 
-export const errorPaths = (prefix = '*'): string[] => [
-  `${prefix}.time`,
-  `${prefix}.weedkayFilter`,
-  `${prefix}.dest.type`,
-  `${prefix}.dest`,
-]
-
 export default function ScheduleOnCallNotificationsForm(
   props: ScheduleOnCallNotificationsFormProps,
 ): JSX.Element {
