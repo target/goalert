@@ -2,11 +2,9 @@ import React, { useEffect, useState } from 'react'
 import FormDialog from '../../dialogs/FormDialog'
 import ScheduleOnCallNotificationsForm, {
   Value,
-  errorPaths,
 } from './ScheduleOnCallNotificationsForm'
 import { NO_DAY } from './util'
 import { useSchedOnCallNotifyTypes } from '../../util/RequireConfig'
-import { splitErrorsByPath } from '../../util/errutil'
 import { CombinedError, gql, useMutation, useQuery } from 'urql'
 import {
   Schedule,

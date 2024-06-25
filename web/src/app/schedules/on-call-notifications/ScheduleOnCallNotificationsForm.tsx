@@ -20,12 +20,6 @@ import { EVERY_DAY, NO_DAY } from './util'
 import { useSchedOnCallNotifyTypes } from '../../util/RequireConfig'
 import { DestinationInput, WeekdayFilter } from '../../../schema'
 import DestinationField from '../../selection/DestinationField'
-import {
-  DestFieldValueError,
-  KnownError,
-  isDestFieldError,
-  isInputFieldError,
-} from '../../util/errtypes'
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
