@@ -5,7 +5,7 @@ import Grid from '@mui/material/Grid'
 import NumberField from '../util/NumberField'
 import { DestinationInput, StringMap } from '../../schema'
 import DestinationInputChip from '../util/DestinationInputChip'
-import { Button, Divider, TextField, Typography } from '@mui/material'
+import { TextField, Typography } from '@mui/material'
 import { renderMenuItem } from '../selection/DisableableMenuItem'
 import DestinationField from '../selection/DestinationField'
 import { useEPTargetTypes } from '../util/RequireConfig'
@@ -14,6 +14,7 @@ import DialogContentError from '../dialogs/components/DialogContentError'
 import makeStyles from '@mui/styles/makeStyles'
 import { useErrorConsumer } from '../util/ErrorConsumer'
 import { Add } from '../icons'
+import LoadingButton from '../loading/components/LoadingButton'
 
 const useStyles = makeStyles(() => {
   return {
@@ -54,6 +55,7 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
   const validationClient = useClient()
   const [err, setErr] = useState<CombinedError | null>(null)
   const errs = useErrorConsumer(err)
+  const [validating, setValidating] = useState(false)
 
   useEffect(() => {
     setErr(null)
@@ -109,7 +111,7 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
           <TextField
             select
             fullWidth
-            disabled={props.disabled}
+            disabled={props.disabled || validating}
             value={destType}
             label='Destination Type'
             name='dest.type'
@@ -129,7 +131,7 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
           <DestinationField
             destType={destType}
             value={args}
-            disabled={props.disabled}
+            disabled={props.disabled || validating}
             onChange={(newValue: StringMap) => {
               setErr(null)
               setArgs(newValue)
@@ -141,13 +143,17 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
         </Grid>
         <Grid container item xs={12} justifyContent='flex-end'>
           {errs.hasErrors() && renderErrors(errs.remaining())}
-          <Button
+          <LoadingButton
             variant='contained'
             color='secondary'
             fullWidth
+            style={{ width: '100%' }}
+            loading={validating}
+            disabled={props.disabled}
             startIcon={<Add />}
             onClick={() => {
               if (!props.onChange) return
+              setValidating(true)
               validationClient
                 .query(query, {
                   input: {
@@ -157,6 +163,7 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
                 })
                 .toPromise()
                 .then((res) => {
+                  setValidating(false)
                   if (res.error) {
                     setErr(res.error)
                     return
@@ -173,9 +180,8 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
             }}
           >
             Add Destination
-          </Button>
+          </LoadingButton>
         </Grid>
-        <Divider />
 
         <Grid item xs={12}>
           <FormField
