@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { CombinedError, gql, useMutation } from 'urql'
-import { splitErrorsByPath } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import PolicyStepForm, { FormValue } from './PolicyStepForm'
-import { errorPaths } from '../users/UserContactMethodForm'
+import { useErrorConsumer } from '../util/ErrorConsumer'
 import { getNotice } from './utils'
 
 const mutation = gql`
@@ -40,18 +39,14 @@ export default function PolicyStepCreateDialog(props: {
   useEffect(() => {
     setErr(createStepStatus.error || null)
   }, [createStepStatus.error])
-
-  const [formErrors, otherErrs] = splitErrorsByPath(
-    err,
-    errorPaths('destinationDisplayInfo.input'),
-  )
+  const errs = useErrorConsumer(err)
 
   return (
     <FormDialog
       disablePortal={props.disablePortal}
       title='Create Step'
       loading={createStepStatus.fetching}
-      errors={otherErrs}
+      errors={errs.remainingLegacy()}
       maxWidth='sm'
       onClose={props.onClose}
       onSubmit={() => {
@@ -77,7 +72,6 @@ export default function PolicyStepCreateDialog(props: {
       }}
       form={
         <PolicyStepForm
-          errors={formErrors}
           disabled={createStepStatus.fetching}
           value={value}
           onChange={(value: FormValue) => setValue(value)}

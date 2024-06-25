@@ -17,6 +17,8 @@ func (m MapValueError) Error() string {
 	return fmt.Sprintf("field %s: %s", m.Key, m.Err)
 }
 
+func (MapValueError) ClientError() bool { return true }
+
 func UnmarshalStringMap(v interface{}) (map[string]string, error) {
 	m, ok := v.(map[string]any)
 	if !ok {
