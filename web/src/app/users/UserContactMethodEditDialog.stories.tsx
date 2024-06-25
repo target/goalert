@@ -35,6 +35,12 @@ const meta = {
                       name: 'single-field contact method',
                       dest: {
                         type: 'supports-status',
+                        values: [
+                          {
+                            fieldID: 'phone-number',
+                            value: '+15555555555',
+                          },
+                        ],
                         args: { 'phone-number': '+15555555555' },
                         displayInfo: {
                           text: '+1 555-555-5555',
@@ -53,8 +59,22 @@ const meta = {
                       name: 'Multi Field',
                       dest: {
                         type: 'triple-field',
+                        values: [
+                          {
+                            fieldID: 'first-field',
+                            value: '+11235550123',
+                          },
+                          {
+                            fieldID: 'second-field',
+                            value: 'foobar@example.com',
+                          },
+                          {
+                            fieldID: 'third-field',
+                            value: 'slack',
+                          },
+                        ],
                         args: {
-                          'first-field': '11235550123',
+                          'first-field': '+11235550123',
                           'second-field': 'foobar@example.com',
                           'third-field': 'slack',
                         },

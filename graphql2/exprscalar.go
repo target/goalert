@@ -1,7 +1,6 @@
 package graphql2
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -144,17 +143,6 @@ func UnmarshalExprOperator(v interface{}) (string, error) {
 
 	return bin.Operator, nil
 }
-
-// MapValueError is an error type for map values.
-type MapValueError struct {
-	Key string
-	Err error
-}
-
-func (m MapValueError) Error() string {
-	return fmt.Sprintf("field %s: %s", m.Key, m.Err)
-}
-func (MapValueError) ClientError() bool { return true }
 
 func UnmarshalExprStringMap(v interface{}) (map[string]string, error) {
 	m, ok := v.(map[string]any)
