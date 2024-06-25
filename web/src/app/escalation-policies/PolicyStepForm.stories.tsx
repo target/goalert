@@ -38,14 +38,14 @@ const meta = {
           })
         }),
         graphql.query('DestDisplayInfo', ({ variables: vars }) => {
-          switch (vars.input.args['phone-number']) {
+          switch (vars.input.values[0].value) {
             case VALID_PHONE:
             case VALID_PHONE2:
               return HttpResponse.json({
                 data: {
                   destinationDisplayInfo: {
                     text:
-                      vars.input.args['phone-number'] === VALID_PHONE
+                      vars.input.values[0].value === VALID_PHONE
                         ? 'VALID_CHIP_1'
                         : 'VALID_CHIP_2',
                     iconURL: 'builtin://phone-voice',
@@ -94,11 +94,11 @@ export const WithExistingActions: Story = {
       actions: [
         {
           type: 'single-field',
-          args: { 'phone-number': VALID_PHONE },
+          values: [{ fieldID: 'phone-number', value: VALID_PHONE }],
         },
         {
           type: 'single-field',
-          args: { 'phone-number': VALID_PHONE2 },
+          values: [{ fieldID: 'phone-number', value: VALID_PHONE2 }],
         },
       ],
     },

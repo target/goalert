@@ -6,6 +6,7 @@ import PolicyStepForm, { FormValue } from './PolicyStepForm'
 import {
   Destination,
   EscalationPolicy,
+  FieldValuePair,
   UpdateEscalationPolicyStepInput,
 } from '../../schema'
 import { getNotice } from './utils'
@@ -32,7 +33,10 @@ const query = gql`
         delayMinutes
         actions {
           type
-          args
+          values {
+            fieldID
+            value
+          }
         }
       }
     }
@@ -56,7 +60,10 @@ export default function PolicyStepEditDialog(
     actions: (step.actions || []).map((a: Destination) => ({
       // remove extraneous fields
       type: a.type,
-      args: a.args,
+      values: a.values.map((v: FieldValuePair) => ({
+        fieldID: v.fieldID,
+        value: v.value,
+      })),
     })),
     delayMinutes: step.delayMinutes,
   })

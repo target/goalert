@@ -5,7 +5,7 @@ import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
 import { handleDefaultConfig } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 import { DestFieldValueError } from '../util/errtypes'
-import { Destination, EscalationPolicyStep } from '../../schema'
+import { EscalationPolicyStep } from '../../schema'
 
 const meta = {
   title: 'Escalation Policies/Steps/Edit Dialog',
@@ -37,7 +37,7 @@ const meta = {
           })
         }),
         graphql.query('DestDisplayInfo', ({ variables: vars }) => {
-          if (vars.input.args['phone-number'].length !== 12) {
+          if (vars.input.values[0].value.length !== 12) {
             return HttpResponse.json({
               errors: [
                 { message: 'generic error' },
@@ -56,7 +56,7 @@ const meta = {
           return HttpResponse.json({
             data: {
               destinationDisplayInfo: {
-                text: vars.input.args['phone-number'],
+                text: vars.input.values[0].value,
                 iconURL: 'builtin://phone-voice',
                 iconAltText: 'Voice Call',
               },
@@ -76,8 +76,10 @@ const meta = {
                     actions: [
                       {
                         type: 'single-field',
-                        args: { 'phone-number': '+19995550123' },
-                      } as Partial<Destination> as Destination,
+                        values: [
+                          { fieldID: 'phone-number', value: '+19995550123' },
+                        ],
+                      },
                     ],
                   } as EscalationPolicyStep,
                 ],
@@ -161,7 +163,7 @@ export const UpdatePolicyStep: Story = {
 
     await userEvent.clear(delayField)
     await userEvent.type(delayField, '15')
-    await userEvent.click(await canvas.findByText('Submit'))
+    await userEvent.click(await canvas.findByText('Retry'))
 
     await waitFor(async function Close() {
       await expect(args.onClose).toHaveBeenCalled()

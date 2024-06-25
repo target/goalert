@@ -34,7 +34,7 @@ const meta = {
           })
         }),
         graphql.query('DestDisplayInfo', ({ variables: vars }) => {
-          if (vars.input.args['phone-number'].length !== 12) {
+          if (vars.input.values[0].value.length !== 12) {
             return HttpResponse.json({
               errors: [
                 { message: 'generic error' },
@@ -53,7 +53,7 @@ const meta = {
           return HttpResponse.json({
             data: {
               destinationDisplayInfo: {
-                text: vars.input.args['phone-number'],
+                text: vars.input.values[0].value,
                 iconURL: 'builtin://phone-voice',
                 iconAltText: 'Voice Call',
               },
@@ -121,7 +121,7 @@ export const CreatePolicyStep: Story = {
 
     await userEvent.clear(delayField)
     await userEvent.type(delayField, '15')
-    await userEvent.click(await canvas.findByText('Submit'))
+    await userEvent.click(await canvas.findByText('Retry'))
 
     await waitFor(async function Close() {
       await expect(args.onClose).toHaveBeenCalled()
