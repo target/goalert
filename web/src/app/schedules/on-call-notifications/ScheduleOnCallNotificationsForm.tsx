@@ -20,6 +20,12 @@ import { EVERY_DAY, NO_DAY } from './util'
 import { useSchedOnCallNotifyTypes } from '../../util/RequireConfig'
 import { DestinationInput, WeekdayFilter } from '../../../schema'
 import DestinationField from '../../selection/DestinationField'
+import {
+  DestFieldValueError,
+  KnownError,
+  isDestFieldError,
+  isInputFieldError,
+} from '../../util/errtypes'
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -32,11 +38,9 @@ export type Value = {
 interface ScheduleOnCallNotificationsFormProps {
   scheduleID: string
   value: Value
+  errors?: Array<KnownError | DestFieldValueError>
   onChange: (val: Value) => void
   disablePortal?: boolean
-
-  destTypeError?: string
-  destFieldErrors?: Readonly<Record<string, string>>
 }
 
 const useStyles = makeStyles({
@@ -95,7 +99,19 @@ export default function ScheduleOnCallNotificationsForm(
   }
 
   return (
-    <FormContainer {...formProps} optionalLabels>
+    <FormContainer
+      {...formProps}
+      errors={props.errors?.filter(isInputFieldError).map((e) => {
+        let field = e.path[e.path.length - 1].toString()
+        if (field === 'type') field = 'dest.type'
+        return {
+          // need to convert to FormContainer's error format
+          message: e.message,
+          field,
+        }
+      })}
+      optionalLabels
+    >
       <Grid container spacing={2} direction='column'>
         <Grid item>
           <RadioGroup
@@ -165,21 +181,14 @@ export default function ScheduleOnCallNotificationsForm(
           </Grid>
         </Grid>
         <Grid item xs={12} sm={12} md={6}>
-          <TextField
+          <FormField
             fullWidth
             name='dest.type'
             label='Destination Type'
+            required
             select
-            SelectProps={{ MenuProps: { disablePortal: props.disablePortal } }}
-            value={props.value.dest.type}
-            onChange={(e) =>
-              props.onChange({
-                ...props.value,
-                dest: { type: e.target.value, args: {} },
-              })
-            }
-            error={!!props.destTypeError}
-            helperText={props.destTypeError}
+            disablePortal={props.disablePortal}
+            component={TextField}
           >
             {destinationTypes.map((t) =>
               renderMenuItem({
@@ -189,19 +198,17 @@ export default function ScheduleOnCallNotificationsForm(
                 disabledMessage: t.enabled ? '' : 'Disabled by administrator.',
               }),
             )}
-          </TextField>
+          </FormField>
         </Grid>
         <Grid item xs={12}>
-          <DestinationField
+          <FormField
+            fullWidth
+            name='value'
+            fieldName='dest.values'
+            required
             destType={props.value.dest.type}
-            fieldErrors={props.destFieldErrors}
-            value={props.value.dest.args || {}}
-            onChange={(newValue) =>
-              props.onChange({
-                ...props.value,
-                dest: { ...props.value.dest, args: newValue },
-              })
-            }
+            component={DestinationField}
+            destFieldErrors={props.errors?.filter(isDestFieldError)}
           />
         </Grid>
         <Grid item xs={12}>

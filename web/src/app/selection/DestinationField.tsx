@@ -1,5 +1,5 @@
 import React from 'react'
-import { DestinationType, StringMap } from '../../schema'
+import { DestinationType, FieldValueInput } from '../../schema'
 import DestinationInputDirect from './DestinationInputDirect'
 import { useDestinationType } from '../util/RequireConfig'
 import DestinationSearchSelect from './DestinationSearchSelect'
@@ -7,8 +7,8 @@ import { Grid } from '@mui/material'
 import { DestFieldValueError } from '../util/errtypes'
 
 export type DestinationFieldProps = {
-  value: StringMap
-  onChange?: (value: StringMap) => void
+  value: FieldValueInput[]
+  onChange?: (value: FieldValueInput[]) => void
   destType: DestinationType
 
   disabled?: boolean
@@ -47,12 +47,21 @@ export default function DestinationField(
   return (
     <Grid container spacing={2}>
       {dest.requiredFields.map((field) => {
-        const fieldValue = props.value[field.fieldID] || ''
+        const fieldValue =
+          (props.value || []).find((v) => v.fieldID === field.fieldID)?.value ||
+          ''
 
         function handleChange(newValue: string): void {
           if (!props.onChange) return
 
-          props.onChange({ ...props.value, [field.fieldID]: newValue })
+          const newValues = (props.value || [])
+            .filter((v) => v.fieldID !== field.fieldID)
+            .concat({
+              fieldID: field.fieldID,
+              value: newValue,
+            })
+
+          props.onChange(newValues)
         }
 
         const fieldErrMsg = capFirstLetter(fieldErrors?.[field.fieldID] || '')

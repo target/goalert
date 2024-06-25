@@ -14,7 +14,6 @@ import {
 } from '../../../schema'
 import { DateTime } from 'luxon'
 import { BaseError } from '../../util/errtypes'
-import { useErrorConsumer } from '../../util/ErrorConsumer'
 
 const getRulesQuery = gql`
   query GetRules($scheduleID: ID!) {
@@ -27,7 +26,10 @@ const getRulesQuery = gql`
         time
         dest {
           type
-          args
+          values {
+            fieldID
+            value
+          }
         }
       }
     }
@@ -57,7 +59,7 @@ export default function ScheduleOnCallNotificationsCreateDialog(
     weekdayFilter: NO_DAY,
     dest: {
       type: types[0].type,
-      args: {},
+      values: [],
     },
   })
   useEffect(() => {
@@ -75,32 +77,36 @@ export default function ScheduleOnCallNotificationsCreateDialog(
     setErr(m.error || null)
   }, [m.error])
 
+  const newRulePrefix = [
+    'setScheduleOnCallNotificationRules',
+    'input',
+    'rules',
+    sched.onCallNotificationRules.length,
+  ].join('.')
+
   let noDaysSelected: BaseError | null = null
-  if (value.weekdayFilter.every((val) => !val)) {
+  if (
+    value.dest.values!.length > 0 &&
+    value.weekdayFilter.every((val) => !val)
+  ) {
     noDaysSelected = {
       message: 'Please select at least one day',
     }
   }
-  const errs = useErrorConsumer(err)
 
-  const form = (
-    <ScheduleOnCallNotificationsForm
-      scheduleID={scheduleID}
-      value={value}
-      onChange={setValue}
-      destTypeError={errs.getErrorByPath(
-        /setScheduleOnCallNotificationRules.input.rules.+.dest.type/,
-      )}
-      destFieldErrors={errs.getErrorMap(
-        /setScheduleOnCallNotificationRules.input.rules.+.dest(.args)?/,
-      )}
-    />
+  const [formErrors, otherErrs] = splitErrorsByPath(
+    err,
+    errorPaths(newRulePrefix),
   )
 
   return (
     <FormDialog
       title='Create Notification Rule'
-      errors={errs.remainingLegacy()}
+      errors={
+        noDaysSelected && value.time !== null
+          ? [...otherErrs, noDaysSelected]
+          : otherErrs
+      }
       disablePortal={props.disablePortal}
       loading={m.fetching}
       onClose={onClose}
@@ -131,7 +137,14 @@ export default function ScheduleOnCallNotificationsCreateDialog(
             setErr(err)
           })
       }}
-      form={form}
+      form={
+        <ScheduleOnCallNotificationsForm
+          scheduleID={scheduleID}
+          errors={formErrors}
+          value={value}
+          onChange={setValue}
+        />
+      }
     />
   )
 }

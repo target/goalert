@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import DestinationField from './DestinationField'
 import { expect, within } from '@storybook/test'
 import { useArgs } from '@storybook/preview-api'
-import { StringMap } from '../../schema'
+import { FieldValueInput } from '../../schema'
 
 const meta = {
   title: 'util/DestinationField',
@@ -18,7 +18,7 @@ const meta = {
 
   render: function Component(args) {
     const [, setArgs] = useArgs()
-    const onChange = (newValue: StringMap): void => {
+    const onChange = (newValue: FieldValueInput[]): void => {
       if (args.onChange) args.onChange(newValue)
       setArgs({ value: newValue })
     }
@@ -32,7 +32,12 @@ type Story = StoryObj<typeof meta>
 export const SingleField: Story = {
   args: {
     destType: 'single-field',
-    value: { 'phone-number': '' },
+    value: [
+      {
+        fieldID: 'phone-number',
+        value: '',
+      },
+    ],
     disabled: false,
   },
   play: async ({ canvasElement }) => {
@@ -53,11 +58,20 @@ export const SingleField: Story = {
 export const MultiField: Story = {
   args: {
     destType: 'triple-field',
-    value: {
-      'first-field': '',
-      'second-field': 'test@example.com',
-      'third-field': '',
-    },
+    value: [
+      {
+        fieldID: 'first-field',
+        value: '',
+      },
+      {
+        fieldID: 'second-field',
+        value: 'test@example.com',
+      },
+      {
+        fieldID: 'third-field',
+        value: '',
+      },
+    ],
     disabled: false,
   },
   play: async ({ canvasElement }) => {
@@ -84,7 +98,12 @@ export const MultiField: Story = {
 export const DisabledField: Story = {
   args: {
     destType: 'disabled-destination',
-    value: { disabled: '' },
+    value: [
+      {
+        fieldID: 'disabled',
+        value: '',
+      },
+    ],
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -99,11 +118,20 @@ export const DisabledField: Story = {
 export const FieldError: Story = {
   args: {
     destType: 'triple-field',
-    value: {
-      'first-field': '',
-      'second-field': 'test@example.com',
-      'third-field': '',
-    },
+    value: [
+      {
+        fieldID: 'first-field',
+        value: '',
+      },
+      {
+        fieldID: 'second-field',
+        value: 'test@example.com',
+      },
+      {
+        fieldID: 'third-field',
+        value: '',
+      },
+    ],
     disabled: false,
     destFieldErrors: [
       {

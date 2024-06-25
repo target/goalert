@@ -43,9 +43,12 @@ export const Render: Story = {
   args: {
     value: {
       type: 'builtin-rotation',
-      args: {
-        'rotation-id': 'bf227047-18b8-4de3-881c-24b9dd345670',
-      },
+      values: [
+        {
+          fieldID: 'rotation-id',
+          value: 'bf227047-18b8-4de3-881c-24b9dd345670',
+        },
+      ],
     },
   },
   play: async ({ canvasElement, args }) => {

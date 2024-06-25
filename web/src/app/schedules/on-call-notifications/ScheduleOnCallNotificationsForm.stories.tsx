@@ -18,7 +18,7 @@ const meta = {
       weekdayFilter: [false, false, false, false, false, false, false],
       dest: {
         type: 'single-field',
-        args: {},
+        values: [],
       },
     },
   },
