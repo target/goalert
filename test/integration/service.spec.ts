@@ -73,7 +73,7 @@ test('Heartbeat Monitors', async ({ page, isMobile }) => {
   // Use valid name instead
   let hmName = c.word({ length: 5 }) + ' Monitor'
   await page.getByLabel('Name').fill(hmName)
-  await page.getByRole('button', { name: 'Submit' }).click()
+  await page.getByRole('button', { name: 'Retry' }).click()
 
   // Should see the heartbeat monitor created
   await expect(page.getByText(hmName)).toBeVisible()
