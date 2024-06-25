@@ -273,6 +273,15 @@ func (a *App) Handler() http.Handler {
 			}
 		}
 
+		var mapErr graphql2.MapValueError
+		if errors.As(err, &mapErr) {
+			gqlErr.Message = mapErr.Err.Error()
+			gqlErr.Extensions = map[string]interface{}{
+				"code": "INVALID_MAP_FIELD_VALUE",
+				"key":  mapErr.Key,
+			}
+		}
+
 		return gqlErr
 	})
 

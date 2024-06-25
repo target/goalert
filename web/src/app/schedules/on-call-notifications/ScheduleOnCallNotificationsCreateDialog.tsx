@@ -86,7 +86,7 @@ export default function ScheduleOnCallNotificationsCreateDialog(
 
   let noDaysSelected: BaseError | null = null
   if (
-    value.dest.values.length > 0 &&
+    value.dest.values!.length > 0 &&
     value.weekdayFilter.every((val) => !val)
   ) {
     noDaysSelected = {

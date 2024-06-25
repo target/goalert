@@ -41,7 +41,7 @@ export function actionInputToValue(action: ActionInput): Value {
   return {
     destType: action.dest.type,
     staticParams: Object.fromEntries(
-      action.dest.values.map((v) => [v.fieldID, v.value]),
+      action.dest.values!.map((v) => [v.fieldID, v.value]),
     ),
     dynamicParams: Object.fromEntries(
       action.params.map((p) => [p.paramID, p.expr]),
