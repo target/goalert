@@ -121,7 +121,7 @@ export const CreatePolicyStep: Story = {
 
     await userEvent.clear(delayField)
     await userEvent.type(delayField, '15')
-    await userEvent.click(await canvas.findByText('Submit'))
+    await userEvent.click(await canvas.findByText('Retry'))
 
     await waitFor(async function Close() {
       await expect(args.onClose).toHaveBeenCalled()
