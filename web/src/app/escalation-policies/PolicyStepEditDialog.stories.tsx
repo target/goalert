@@ -136,6 +136,10 @@ export const UpdatePolicyStep: Story = {
     await expect(await canvas.findByText('Invalid number')).toBeVisible()
     await expect(await canvas.findByText('generic error')).toBeVisible()
 
+    await waitFor(async function AddDestFinish() {
+      await expect(phoneInput).not.toBeDisabled()
+    })
+
     await userEvent.clear(phoneInput)
     await userEvent.type(phoneInput, '12225550123')
     await userEvent.click(await canvas.findByText('Add Destination'))
@@ -147,6 +151,9 @@ export const UpdatePolicyStep: Story = {
     })
 
     const delayField = await canvas.findByLabelText('Delay (minutes)')
+    await waitFor(async function AddDestFinish() {
+      await expect(delayField).not.toBeDisabled()
+    })
     await userEvent.clear(delayField)
     await userEvent.type(delayField, '999')
     await userEvent.click(await canvas.findByText('Submit'))
