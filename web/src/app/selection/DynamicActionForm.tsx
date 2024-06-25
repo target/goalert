@@ -4,7 +4,6 @@ import {
   DestinationType,
   DestinationTypeInfo,
   ExprStringExpression,
-  FieldValueInput,
 } from '../../schema'
 import { useDynamicActionTypes } from '../util/RequireConfig'
 import { Grid, TextField } from '@mui/material'
