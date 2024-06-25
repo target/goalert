@@ -130,11 +130,11 @@ export default function UserContactMethodForm(
               }))
             }}
             mapValue={(v: FieldValueInput[]): StringMap => {
-              const map: StringMap = {}
+              const newVal: StringMap = {}
               v.forEach((fv) => {
-                map[fv.fieldID] = fv.value
+                newVal[fv.fieldID] = fv.value
               })
-              return map
+              return newVal
             }}
           />
         </Grid>
