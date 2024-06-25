@@ -145,26 +145,6 @@ export class ErrorConsumer {
     return result
   }
 
-  /** Returns and consumes (if exists) all INVALID_DEST_FIELD_VALUE errors.
-   *
-   * @param path - If provided, only errors with the given path will be consumed.
-   */
-  getAllDestFieldErrors(path?: string): Readonly<Record<string, string>> {
-    this.doneCheck()
-
-    const errs: Record<string, string> = {}
-    this.store.errors.forEach((e) => {
-      if (e.code !== 'INVALID_DEST_FIELD_VALUE') return
-      if (path !== undefined && e.path !== path) return
-      if (errs[e.fieldID] !== undefined) return
-
-      errs[e.fieldID] = e.message
-      this.store.errors.delete(e)
-    })
-
-    return errs
-  }
-
   /** Returns and consumes (if exists) all errors at the given path that have a field/key defined.
    *
    * @param path - Only errors with the given path will be consumed.
