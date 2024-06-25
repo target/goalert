@@ -49,20 +49,6 @@ export function actionInputToValue(action: ActionInput): Value {
   }
 }
 
-export function staticToDestField(
-  staticParams?: StaticParams,
-): FieldValueInput[] {
-  if (!staticParams) return []
-  return Object.entries(staticParams).map(([fieldID, value]) => ({
-    fieldID,
-    value,
-  }))
-}
-
-export function destFieldToStatic(destFields: FieldValueInput[]): StaticParams {
-  return Object.fromEntries(destFields.map((f) => [f.fieldID, f.value]))
-}
-
 export type DynamicActionErrors = {
   destTypeError?: string
   staticParamErrors?: Readonly<Record<string, string>>
@@ -127,12 +113,12 @@ export default function DynamicActionForm(
       {props.value && (
         <Grid item xs={12}>
           <DestinationField
-            value={staticToDestField(props.value?.staticParams)}
+            value={props.value?.staticParams}
             onChange={(vals) => {
               if (!props.value) return
               props.onChange({
                 ...props.value,
-                staticParams: destFieldToStatic(vals),
+                staticParams: vals,
               })
             }}
             destType={props.value.destType}
