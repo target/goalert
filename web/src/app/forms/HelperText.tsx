@@ -39,7 +39,7 @@ export function HelperText(props: HelperTextProps): React.ReactNode {
 
   if (props.maxLength) {
     return (
-      <Grid container spacing={2}>
+      <Grid container spacing={2} sx={{ ml: 0 }}>
         <Grid item xs={10}>
           <FormHelperText component='span'>{content}</FormHelperText>
         </Grid>
@@ -52,5 +52,9 @@ export function HelperText(props: HelperTextProps): React.ReactNode {
     )
   }
 
-  return <FormHelperText component='span'>{content}</FormHelperText>
+  return (
+    <FormHelperText component='span' sx={{ ml: 0 }}>
+      {content}
+    </FormHelperText>
+  )
 }
