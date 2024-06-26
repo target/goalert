@@ -32,6 +32,12 @@ func (s *Store) _fetchPolicyInfo(ctx context.Context, id uuid.UUID) (*policyInfo
 		return nil, false, err
 	}
 
+	// re-encode policy to get a consistent hash
+	polData, err = json.Marshal(info.Policy)
+	if err != nil {
+		return nil, false, err
+	}
+
 	h := sha256.Sum256(polData)
 	info.Hash = h[:]
 
