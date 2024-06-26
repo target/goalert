@@ -42,6 +42,11 @@ export function actionInputToValue(action: ActionInput): Value {
   }
 }
 
+export type DynamicActionErrors = {
+  destTypeError?: string
+  staticParamErrors?: Readonly<Record<string, string>>
+  dynamicParamErrors?: Readonly<Record<string, string>>
+}
 export type DynamicActionFormProps = {
   value: Value | null
   onChange: (value: Value) => void

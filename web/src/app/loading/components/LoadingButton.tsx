@@ -34,7 +34,7 @@ const LoadingButton = (props: LoadingButtonProps): JSX.Element => {
         disabled={loading || disabled}
         type={noSubmit ? 'button' : 'submit'}
       >
-        {buttonText || (!attemptCount ? 'Confirm' : 'Retry')}
+        {!attemptCount ? props.children || buttonText || 'Confirm' : 'Retry'}
       </Button>
       {loading && (
         <CircularProgress

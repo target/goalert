@@ -20,12 +20,6 @@ import { EVERY_DAY, NO_DAY } from './util'
 import { useSchedOnCallNotifyTypes } from '../../util/RequireConfig'
 import { DestinationInput, WeekdayFilter } from '../../../schema'
 import DestinationField from '../../selection/DestinationField'
-import {
-  DestFieldValueError,
-  KnownError,
-  isDestFieldError,
-  isInputFieldError,
-} from '../../util/errtypes'
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -40,6 +34,7 @@ interface ScheduleOnCallNotificationsFormProps {
   value: Value
   onChange: (val: Value) => void
   disablePortal?: boolean
+  disabled?: boolean
 
   destTypeError?: string
   destFieldErrors?: Readonly<Record<string, string>>
@@ -49,13 +44,6 @@ const useStyles = makeStyles({
   margin0: { margin: 0 },
   tzNote: { fontStyle: 'italic' },
 })
-
-export const errorPaths = (prefix = '*'): string[] => [
-  `${prefix}.time`,
-  `${prefix}.weedkayFilter`,
-  `${prefix}.dest.type`,
-  `${prefix}.dest`,
-]
 
 export default function ScheduleOnCallNotificationsForm(
   props: ScheduleOnCallNotificationsFormProps,
@@ -111,12 +99,14 @@ export default function ScheduleOnCallNotificationsForm(
           >
             <FormControlLabel
               data-cy='notify-on-change'
+              disabled={props.disabled}
               label='Notify when on-call changes'
               value='on-change'
               control={<Radio />}
             />
             <FormControlLabel
               data-cy='notify-at-time'
+              disabled={props.disabled}
               label='Notify at a specific day and time every week'
               value='time-of-day'
               control={<Radio />}
@@ -175,6 +165,7 @@ export default function ScheduleOnCallNotificationsForm(
             fullWidth
             name='dest.type'
             label='Destination Type'
+            disabled={props.disabled}
             select
             SelectProps={{ MenuProps: { disablePortal: props.disablePortal } }}
             value={props.value.dest.type}
@@ -199,6 +190,7 @@ export default function ScheduleOnCallNotificationsForm(
         </Grid>
         <Grid item xs={12}>
           <DestinationField
+            disabled={props.disabled}
             destType={props.value.dest.type}
             fieldErrors={props.destFieldErrors}
             value={props.value.dest.args || {}}

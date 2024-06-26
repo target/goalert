@@ -16,6 +16,25 @@ type policyInfo struct {
 	Policy GQLPolicy
 }
 
+func parsePolicyInfo(data []byte) (*policyInfo, error) {
+	var info policyInfo
+	err := json.Unmarshal(data, &info.Policy)
+	if err != nil {
+		return nil, err
+	}
+
+	// re-encode policy to get a consistent hash
+	data, err = json.Marshal(info.Policy)
+	if err != nil {
+		return nil, err
+	}
+
+	h := sha256.Sum256(data)
+	info.Hash = h[:]
+
+	return &info, nil
+}
+
 // _fetchPolicyInfo will fetch the policyInfo for the given key.
 func (s *Store) _fetchPolicyInfo(ctx context.Context, id uuid.UUID) (*policyInfo, bool, error) {
 	polData, err := gadb.New(s.db).APIKeyAuthPolicy(ctx, id)
@@ -26,14 +45,10 @@ func (s *Store) _fetchPolicyInfo(ctx context.Context, id uuid.UUID) (*policyInfo
 		return nil, false, err
 	}
 
-	var info policyInfo
-	err = json.Unmarshal(polData, &info.Policy)
+	info, err := parsePolicyInfo(polData)
 	if err != nil {
 		return nil, false, err
 	}
 
-	h := sha256.Sum256(polData)
-	info.Hash = h[:]
-
-	return &info, true, nil
+	return info, true, nil
 }
