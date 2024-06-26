@@ -34,5 +34,5 @@ func TestParsePolicyInfo(t *testing.T) {
 	// changed query
 	info, err = parsePolicyInfo([]byte(`{"Version":1,"Query":"query2","Role":"admin"}`))
 	assert.NoError(t, err)
-	assert.NotEqual(t, expected.Hash, info.Hash)
+	assert.NotEqual(t, expected.Hash, info.Hash) // NOT equal
 }
