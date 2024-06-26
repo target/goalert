@@ -35,6 +35,15 @@ func (q *Query) IntegrationKey(ctx context.Context, id string) (*integrationkey.
 	return q.IntKeyStore.FindOne(ctx, id)
 }
 
+func (q *Query) ActionInputValidate(ctx context.Context, input graphql2.ActionInput) (bool, error) {
+	err := (*App)(q).ValidateDestination(ctx, "input.dest", input.Dest)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (m *Mutation) GenerateKeyToken(ctx context.Context, keyID string) (string, error) {
 	id, err := validate.ParseUUID("ID", keyID)
 	if err != nil {
@@ -231,8 +240,8 @@ func actionsGQLToGo(a []graphql2.ActionInput) []integrationkey.Action {
 	for _, v := range a {
 		res = append(res, integrationkey.Action{
 			Type:          v.Dest.Type,
-			StaticParams:  fviToMap(v.Dest.Values),
-			DynamicParams: paramInputToMap(v.Params),
+			StaticParams:  v.Dest.Args,
+			DynamicParams: v.Params,
 		})
 	}
 	return res
@@ -242,8 +251,8 @@ func actionsGoToGQL(a []integrationkey.Action) []graphql2.Action {
 	res := make([]graphql2.Action, 0, len(a))
 	for _, v := range a {
 		res = append(res, graphql2.Action{
-			Dest:   &graphql2.Destination{Type: v.Type, Values: mapToFieldValue(v.StaticParams)},
-			Params: mapToParams(v.DynamicParams),
+			Dest:   &graphql2.Destination{Type: v.Type, Args: v.StaticParams},
+			Params: v.DynamicParams,
 		})
 	}
 	return res

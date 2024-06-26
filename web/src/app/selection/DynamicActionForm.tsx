@@ -20,31 +20,25 @@ export type Value = {
   dynamicParams: DynamicParams
 }
 
-export function valueToActionInput(value: Value): ActionInput {
+export function valueToActionInput(value: Value | null): ActionInput {
+  if (!value) {
+    return { dest: { type: '', args: {} }, params: {} }
+  }
+
   return {
     dest: {
       type: value.destType,
-      values: Object.entries(value.staticParams).map(([fieldID, value]) => ({
-        fieldID,
-        value,
-      })),
+      args: value.staticParams,
     },
-    params: Object.entries(value.dynamicParams).map(([paramID, expr]) => ({
-      paramID,
-      expr,
-    })),
+    params: value.dynamicParams,
   }
 }
 
 export function actionInputToValue(action: ActionInput): Value {
   return {
     destType: action.dest.type,
-    staticParams: Object.fromEntries(
-      action.dest.values!.map((v) => [v.fieldID, v.value]),
-    ),
-    dynamicParams: Object.fromEntries(
-      action.params.map((p) => [p.paramID, p.expr]),
-    ),
+    staticParams: action.dest.args || {},
+    dynamicParams: { ...action.params },
   }
 }
 
@@ -58,7 +52,11 @@ export type DynamicActionFormProps = {
   onChange: (value: Value) => void
 
   disabled?: boolean
-} & DynamicActionErrors
+
+  destTypeError?: string
+  staticParamErrors?: Readonly<Record<string, string>>
+  dynamicParamErrors?: Readonly<Record<string, string>>
+}
 
 export function defaults(destTypeInfo: DestinationTypeInfo): Value {
   const staticParams = Object.fromEntries(
@@ -66,7 +64,10 @@ export function defaults(destTypeInfo: DestinationTypeInfo): Value {
   )
 
   const dynamicParams = Object.fromEntries(
-    destTypeInfo.dynamicParams.map((p) => [p.paramID, `req.body.${p.paramID}`]),
+    destTypeInfo.dynamicParams.map((p) => [
+      p.paramID,
+      `req.body['${p.paramID}']`,
+    ]),
   )
 
   return {
@@ -83,7 +84,7 @@ export default function DynamicActionForm(
   const selectedDest = types.find((t) => t.type === props.value?.destType)
 
   return (
-    <Grid container spacing={2} item xs={12}>
+    <Grid item xs={12} container spacing={2}>
       <Grid item xs={12}>
         <TextField
           select

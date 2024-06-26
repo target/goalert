@@ -19,7 +19,17 @@ export type HelperTextProps = {
 export function HelperText(props: HelperTextProps): React.ReactNode {
   let content
   if (props.error) {
-    const msg = props.error.replace(/^./, (str) => str.toUpperCase())
+    const isMultiLine = props.error.includes('\n')
+    let msg: React.ReactNode = props.error.replace(/^./, (str) =>
+      str.toUpperCase(),
+    )
+    if (isMultiLine) {
+      msg = (
+        <span style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
+          {msg}
+        </span>
+      )
+    }
     content = props.errorURL ? (
       <AppLink to={props.errorURL} newTab data-cy='error-help-link'>
         {msg}
