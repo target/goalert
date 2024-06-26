@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   Divider,
   FormControl,
@@ -9,7 +9,7 @@ import {
   RadioGroup,
   TextField,
 } from '@mui/material'
-import { KeyRuleInput } from '../../../schema'
+import { ActionInput, KeyRuleInput } from '../../../schema'
 import UniversalKeyActionsList from './UniversalKeyActionsList'
 import UniversalKeyActionsForm from './UniversalKeyActionsForm'
 
@@ -25,6 +25,12 @@ interface UniversalKeyRuleFormProps {
 export default function UniversalKeyRuleForm(
   props: UniversalKeyRuleFormProps,
 ): JSX.Element {
+  const [editAction, setEditAction] = useState('')
+
+  const handleChipClick = (action: ActionInput): void => {
+    setEditAction(action.dest.type)
+  }
+
   return (
     <Grid container justifyContent='space-between' spacing={2}>
       <Grid
@@ -84,6 +90,7 @@ export default function UniversalKeyRuleForm(
               actions: props.value.actions.filter((v) => v !== a),
             })
           }
+          onChipClick={handleChipClick}
         />
         <Grid item xs={12}>
           <FormControl>
@@ -124,6 +131,8 @@ export default function UniversalKeyRuleForm(
         <UniversalKeyActionsForm
           value={props.value.actions}
           onChange={(actions) => props.onChange({ ...props.value, actions })}
+          editActionId={editAction}
+          onChipClick={handleChipClick}
         />
       </Grid>
     </Grid>

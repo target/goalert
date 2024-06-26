@@ -43,7 +43,7 @@ const mutation = gql`
   }
 `
 
-export default function UniversalKeyRuleCreateDialogProps(
+export default function UniversalKeyRuleEditDialog(
   props: UniversalKeyRuleEditDialogProps,
 ): JSX.Element {
   const [q] = useQuery<{

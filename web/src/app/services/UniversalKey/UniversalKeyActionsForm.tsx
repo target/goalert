@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Add } from '@mui/icons-material'
 import { Button, Grid, Typography } from '@mui/material'
 import { ActionInput } from '../../../schema'
 import DynamicActionForm, {
+  actionInputToValue,
   valueToActionInput,
 } from '../../selection/DynamicActionForm'
 import { CombinedError, gql, useClient } from 'urql'
@@ -16,6 +17,8 @@ export type UniversalKeyActionsFormProps = {
   onChange: (value: Array<ActionInput>) => void
 
   showList?: boolean
+  editActionId?: string
+  onChipClick?: (action: ActionInput) => void
 }
 
 const query = gql`
@@ -24,14 +27,31 @@ const query = gql`
   }
 `
 
+const getAction = (actions: ActionInput[], id: string): FormValue => {
+  let input
+  if ((input = actions.find((v) => v.dest.type === id))) {
+    return actionInputToValue(input)
+  }
+  return null
+}
+
 /** Manages a set of actions. */
 export default function UniversalKeyActionsForm(
   props: UniversalKeyActionsFormProps,
 ): React.ReactNode {
-  const [currentAction, setCurrentAction] = useState<FormValue>(null)
+  const [currentAction, setCurrentAction] = useState<FormValue>(
+    props.editActionId ? getAction(props.value, props.editActionId) : null,
+  )
   const [addError, setAddError] = useState<CombinedError | null>(null)
   const valClient = useClient()
   const errs = useErrorConsumer(addError)
+  let actions = props.value
+
+  useEffect(() => {
+    if (props.editActionId) {
+      setCurrentAction(getAction(props.value, props.editActionId))
+    }
+  }, [props.editActionId])
 
   return (
     <Grid item xs={12} container spacing={2}>
@@ -39,6 +59,12 @@ export default function UniversalKeyActionsForm(
         <UniversalKeyActionsList
           actions={props.value}
           onDelete={(a) => props.onChange(props.value.filter((v) => v !== a))}
+          onChipClick={(a) => {
+            if (props.onChipClick) {
+              props.onChipClick(a)
+            }
+            setCurrentAction(getAction(props.value, a.dest.type))
+          }}
         />
       )}
 
@@ -85,8 +111,14 @@ export default function UniversalKeyActionsForm(
             onClick={() => {
               const input = valueToActionInput(currentAction)
 
+              if (props.editActionId !== '') {
+                actions = props.value.filter(
+                  (v) => v.dest.type !== props.editActionId,
+                )
+              }
+
               let cancel = ''
-              props.value.forEach((_a) => {
+              actions.forEach((_a) => {
                 const a = JSON.stringify(_a.dest.args)
                 const cur = JSON.stringify(input.dest.args)
                 if (a === cur) {
@@ -94,7 +126,7 @@ export default function UniversalKeyActionsForm(
                 }
               })
 
-              if (cancel != '') {
+              if (cancel !== '') {
                 setAddError({
                   message: cancel,
                 } as CombinedError)
@@ -113,11 +145,18 @@ export default function UniversalKeyActionsForm(
 
                   // clear the current action
                   setCurrentAction(null)
-                  props.onChange(props.value.concat(input))
+                  props.onChange(actions.concat(input))
+
+                  if (props.onChipClick) {
+                    props.onChipClick({
+                      dest: { type: '', args: {} },
+                      params: {},
+                    })
+                  }
                 })
             }}
           >
-            Add Action
+            {props.editActionId ? 'Save Action' : 'Add Action'}
           </Button>
         </Grid>
       </Grid>

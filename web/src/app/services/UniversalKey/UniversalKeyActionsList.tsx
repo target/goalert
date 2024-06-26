@@ -8,6 +8,7 @@ export type UniversalKeyActionsListProps = {
 
   noHeader?: boolean
   onDelete?: (action: ActionInput) => void
+  onChipClick?: (action: ActionInput) => void
 }
 
 export default function UniversalKeyActionsList(
@@ -30,6 +31,11 @@ export default function UniversalKeyActionsList(
               onDelete={
                 props.onDelete
                   ? () => props.onDelete && props.onDelete(a)
+                  : undefined
+              }
+              onChipClick={
+                props.onChipClick
+                  ? () => props.onChipClick && props.onChipClick(a)
                   : undefined
               }
             />

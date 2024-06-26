@@ -55,8 +55,18 @@ export default function DefaultActionEditDialog(
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const noActionsNoConf = value.length === 0 && !hasConfirmed
   const errs = useErrorConsumer(m.error)
+  const [editAction, setEditAction] = useState('')
+  const handleChipClick = (action: ActionInput): void => {
+    setEditAction(action.dest.type)
+  }
   const form = (
-    <UniversalKeyActionsForm value={value} onChange={setValue} showList />
+    <UniversalKeyActionsForm
+      value={value}
+      onChange={setValue}
+      editActionId={editAction}
+      onChipClick={handleChipClick}
+      showList
+    />
   )
 
   return (
