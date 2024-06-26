@@ -2,7 +2,7 @@ import { Checkbox, FormControlLabel, Typography } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import React from 'react'
-import { DestinationInput } from '../../schema'
+import { DestinationInput, FieldValueInput, StringMap } from '../../schema'
 import { FormContainer, FormField } from '../forms'
 import { renderMenuItem } from '../selection/DisableableMenuItem'
 import DestinationField from '../selection/DestinationField'
@@ -123,6 +123,19 @@ export default function UserContactMethodForm(
             component={DestinationField}
             disabled={edit}
             destFieldErrors={errors.filter(isDestFieldError)}
+            mapOnChangeValue={(v: StringMap): FieldValueInput[] => {
+              return Object.entries(v).map(([k, v]) => ({
+                fieldID: k,
+                value: v,
+              }))
+            }}
+            mapValue={(v: FieldValueInput[]): StringMap => {
+              const newVal: StringMap = {}
+              v.forEach((fv) => {
+                newVal[fv.fieldID] = fv.value
+              })
+              return newVal
+            }}
           />
         </Grid>
         <Grid item xs={12}>
