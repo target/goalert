@@ -12,6 +12,7 @@ import (
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/engine/processinglock"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/lock"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
@@ -34,7 +35,6 @@ type DB struct {
 	setSending *sql.Stmt
 
 	lockStmt    *sql.Stmt
-	messages    *sql.Stmt
 	currentTime *sql.Stmt
 	retryReset  *sql.Stmt
 	retryClear  *sql.Stmt
@@ -299,32 +299,6 @@ func NewDB(ctx context.Context, db *sql.DB, a *alertlog.Store, pausable lifecycl
 			where id = any($2::uuid[])
 		`),
 
-		messages: p.P(`
-			select
-				msg.id,
-				msg.message_type,
-				cm.type,
-				chan.type,
-				coalesce(msg.contact_method_id, msg.channel_id),
-				coalesce(cm.value, chan.value),
-				msg.alert_id,
-				msg.alert_log_id,
-				msg.user_verification_code_id,
-				cm.user_id,
-				msg.service_id,
-				msg.created_at,
-				msg.sent_at,
-				msg.status_alert_ids,
-				msg.schedule_id
-			from outgoing_messages msg
-			left join user_contact_methods cm on cm.id = msg.contact_method_id
-			left join notification_channels chan on chan.id = msg.channel_id
-			where
-				sent_at >= $1 or
-				last_status = 'pending' and
-				(msg.contact_method_id isnull or msg.message_type = 'verification_message' or not cm.disabled)
-		`),
-
 		deleteAny: p.P(`delete from outgoing_messages where id = any($1)`),
 	}, p.Err
 }
@@ -336,53 +310,39 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		sentSince = cutoff
 	}
 
-	rows, err := tx.StmtContext(ctx, db.messages).QueryContext(ctx, sentSince)
+	rows, err := gadb.New(tx).MessageMgrGetPending(ctx, sql.NullTime{Time: sentSince, Valid: true})
 	if err != nil {
 		return nil, errors.Wrap(err, "fetch outgoing messages")
 	}
-	defer rows.Close()
 
-	result := make([]Message, 0, len(db.sentMessages))
-	for rows.Next() {
+	result := make([]Message, 0, len(rows))
+	for _, row := range rows {
 		var msg Message
-		var destID, destValue, verifyID, userID, serviceID, scheduleID sql.NullString
-		var dstType notification.ScannableDestType
-		var alertID, logID sql.NullInt64
-		var statusAlertIDs sqlutil.IntArray
-		var createdAt, sentAt sql.NullTime
-		err = rows.Scan(
-			&msg.ID,
-			&msg.Type,
-			&dstType.CM,
-			&dstType.NC,
-			&destID,
-			&destValue,
-			&alertID,
-			&logID,
-			&verifyID,
-			&userID,
-			&serviceID,
-			&createdAt,
-			&sentAt,
-			&statusAlertIDs,
-			&scheduleID,
-		)
-		if err != nil {
-			return nil, errors.Wrap(err, "scan row")
+		msg.AlertID = int(row.AlertID.Int64)
+		msg.AlertLogID = int(row.AlertLogID.Int64)
+		if row.UserVerificationCodeID.Valid {
+			msg.VerifyID = row.UserVerificationCodeID.UUID.String()
 		}
-		msg.AlertID = int(alertID.Int64)
-		msg.AlertLogID = int(logID.Int64)
-		msg.VerifyID = verifyID.String
-		msg.UserID = userID.String
-		msg.ServiceID = serviceID.String
-		msg.CreatedAt = createdAt.Time
-		msg.SentAt = sentAt.Time
-		msg.Dest.ID = destID.String
-		msg.Dest.Value = destValue.String
-		msg.StatusAlertIDs = statusAlertIDs
-		msg.ScheduleID = scheduleID.String
-
-		msg.Dest.Type = dstType.DestType()
+		if row.UserID.Valid {
+			msg.UserID = row.UserID.UUID.String()
+		}
+		if row.ServiceID.Valid {
+			msg.ServiceID = row.ServiceID.UUID.String()
+		}
+		msg.CreatedAt = row.CreatedAt
+		msg.SentAt = row.SentAt.Time
+		msg.Dest = notification.SQLDest{
+			CMID:    row.CmID,
+			CMType:  row.CmType,
+			CMValue: row.CmValue,
+			NCID:    row.ChanID,
+			NCType:  row.ChanType,
+			NCValue: row.ChanValue,
+		}.Dest()
+		msg.StatusAlertIDs = row.StatusAlertIds
+		if row.ScheduleID.Valid {
+			msg.ScheduleID = row.ScheduleID.UUID.String()
+		}
 		if msg.Dest.Type == notification.DestTypeUnknown {
 			log.Debugf(ctx, "unknown message type for message %s", msg.ID)
 			continue

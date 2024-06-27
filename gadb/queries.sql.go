@@ -1917,10 +1917,12 @@ const messageMgrGetPending = `-- name: MessageMgrGetPending :many
 SELECT
     msg.id,
     msg.message_type,
-    cm.type,
-    chan.type,
-    coalesce(msg.contact_method_id, msg.channel_id),
-    coalesce(cm.value, chan.value),
+    cm.id AS cm_id,
+    cm.type AS cm_type,
+    cm.value AS cm_value,
+    chan.id AS chan_id,
+    chan.type AS chan_type,
+    chan.value AS chan_value,
     msg.alert_id,
     msg.alert_log_id,
     msg.user_verification_code_id,
@@ -1945,10 +1947,12 @@ WHERE
 type MessageMgrGetPendingRow struct {
 	ID                     uuid.UUID
 	MessageType            EnumOutgoingMessagesType
-	Type                   NullEnumUserContactMethodType
-	Type_2                 NullEnumNotifChannelType
-	ContactMethodID        uuid.NullUUID
-	Value                  string
+	CmID                   uuid.NullUUID
+	CmType                 NullEnumUserContactMethodType
+	CmValue                sql.NullString
+	ChanID                 uuid.NullUUID
+	ChanType               NullEnumNotifChannelType
+	ChanValue              sql.NullString
 	AlertID                sql.NullInt64
 	AlertLogID             sql.NullInt64
 	UserVerificationCodeID uuid.NullUUID
@@ -1972,10 +1976,12 @@ func (q *Queries) MessageMgrGetPending(ctx context.Context, sentAt sql.NullTime)
 		if err := rows.Scan(
 			&i.ID,
 			&i.MessageType,
-			&i.Type,
-			&i.Type_2,
-			&i.ContactMethodID,
-			&i.Value,
+			&i.CmID,
+			&i.CmType,
+			&i.CmValue,
+			&i.ChanID,
+			&i.ChanType,
+			&i.ChanValue,
 			&i.AlertID,
 			&i.AlertLogID,
 			&i.UserVerificationCodeID,

@@ -1,8 +1,11 @@
 package notification
 
 import (
+	"database/sql"
 	"fmt"
 
+	"github.com/google/uuid"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/user/contactmethod"
 )
@@ -13,6 +16,35 @@ type Dest struct {
 	ID    string
 	Type  DestType
 	Value string
+}
+type SQLDest struct {
+	CMID    uuid.NullUUID
+	CMType  gadb.NullEnumUserContactMethodType
+	CMValue sql.NullString
+
+	NCID    uuid.NullUUID
+	NCType  gadb.NullEnumNotifChannelType
+	NCValue sql.NullString
+}
+
+func (s SQLDest) Dest() Dest {
+	if s.CMID.Valid {
+		return Dest{
+			ID:    s.CMID.UUID.String(),
+			Value: s.CMValue.String,
+			Type:  ScannableDestType{CM: contactmethod.Type(s.CMType.EnumUserContactMethodType)}.DestType(),
+		}
+	}
+
+	if s.NCID.Valid {
+		return Dest{
+			ID:    s.NCID.UUID.String(),
+			Value: s.NCValue.String,
+			Type:  ScannableDestType{NC: notificationchannel.Type(s.NCType.EnumNotifChannelType)}.DestType(),
+		}
+	}
+
+	return Dest{}
 }
 
 // DestFromPair will return a Dest for a notification channel/contact method pair.
