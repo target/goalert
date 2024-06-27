@@ -2,12 +2,12 @@
 
 export interface Action {
   dest: Destination
-  params: DynamicParam[]
+  params: ExprStringMap
 }
 
 export interface ActionInput {
   dest: DestinationInput
-  params: DynamicParamInput[]
+  params: ExprStringMap
 }
 
 export interface Alert {
@@ -463,20 +463,10 @@ export interface DestinationTypeInfo {
   userDisclaimer: string
 }
 
-export interface DynamicParam {
-  expr: ExprStringExpression
-  paramID: string
-}
-
 export interface DynamicParamConfig {
   hint: string
   hintURL: string
   label: string
-  paramID: string
-}
-
-export interface DynamicParamInput {
-  expr: ExprStringExpression
   paramID: string
 }
 
@@ -534,6 +524,8 @@ export type ExprIdentifier = string
 export type ExprOperator = string
 
 export type ExprStringExpression = string
+
+export type ExprStringMap = Record<string, string>
 
 export interface ExprToConditionInput {
   expr: ExprBooleanExpression
@@ -861,6 +853,7 @@ export interface PhoneNumberInfo {
 export interface Query {
   __schema: __Schema
   __type?: null | __Type
+  actionInputValidate: boolean
   alert?: null | Alert
   alerts: AlertConnection
   authSubjectsForProvider: AuthSubjectConnection

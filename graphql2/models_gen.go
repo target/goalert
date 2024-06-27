@@ -33,13 +33,13 @@ type InlineDisplayInfo interface {
 }
 
 type Action struct {
-	Dest   *Destination   `json:"dest"`
-	Params []DynamicParam `json:"params"`
+	Dest   *Destination      `json:"dest"`
+	Params map[string]string `json:"params"`
 }
 
 type ActionInput struct {
-	Dest   *DestinationInput   `json:"dest"`
-	Params []DynamicParamInput `json:"params"`
+	Dest   *DestinationInput `json:"dest"`
+	Params map[string]string `json:"params"`
 }
 
 type AlertConnection struct {
@@ -461,11 +461,6 @@ type DestinationTypeInfo struct {
 	StatusUpdatesRequired bool `json:"statusUpdatesRequired"`
 }
 
-type DynamicParam struct {
-	ParamID string `json:"paramID"`
-	Expr    string `json:"expr"`
-}
-
 type DynamicParamConfig struct {
 	// unique ID for the input field
 	ParamID string `json:"paramID"`
@@ -475,11 +470,6 @@ type DynamicParamConfig struct {
 	Hint string `json:"hint"`
 	// URL to link to for more information about the destination type
 	HintURL string `json:"hintURL"`
-}
-
-type DynamicParamInput struct {
-	ParamID string `json:"paramID"`
-	Expr    string `json:"expr"`
 }
 
 type EscalationPolicyConnection struct {
