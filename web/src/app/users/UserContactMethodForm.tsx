@@ -135,11 +135,14 @@ export default function UserContactMethodForm(
             }
           />
         </Grid>
-        <Grid item xs={12}>
-          <Typography variant='caption'>
-            {currentType?.userDisclaimer}
-          </Typography>
-        </Grid>
+
+        {currentType?.userDisclaimer !== '' && (
+          <Grid item xs={12}>
+            <Typography variant='caption'>
+              {currentType?.userDisclaimer}
+            </Typography>
+          </Grid>
+        )}
 
         <Grid item xs={12}>
           <FormControlLabel

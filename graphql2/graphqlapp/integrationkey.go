@@ -300,7 +300,7 @@ func duplicateActionValidation(r []graphql2.KeyRuleInput) error {
 	return nil
 }
 
-// setRuleActionValidation validates that the newly set rules don't have overlapping actions with the same 
+// setRuleActionValidation validates that the newly set rules don't have overlapping actions with the same
 // static params as any other actions within the key.
 func setRuleActionValidation(r []integrationkey.Rule, setrule *graphql2.KeyRuleInput) error {
 	seen := make(map[string]map[string]bool)
@@ -324,8 +324,8 @@ func setRuleActionValidation(r []integrationkey.Rule, setrule *graphql2.KeyRuleI
 
 	for _, action := range actions {
 		if len(action.StaticParams) == 0 {
-				continue
-			}
+			continue
+		}
 		params := mapToString(action.StaticParams)
 		if seen[action.Type] == nil {
 			seen[action.Type] = make(map[string]bool)
