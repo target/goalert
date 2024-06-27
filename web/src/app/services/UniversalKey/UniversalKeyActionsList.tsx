@@ -23,7 +23,14 @@ export default function UniversalKeyActionsList(
           </Typography>
         </Grid>
       )}
-      <Grid item xs={12} container spacing={1} sx={{ p: 1 }}>
+      <Grid
+        item
+        xs={12}
+        container
+        spacing={1}
+        sx={{ p: 1 }}
+        data-testid='actions-list'
+      >
         {props.actions.map((a) => (
           <Grid item key={JSON.stringify(a.dest)}>
             <DestinationInputChip
@@ -43,7 +50,11 @@ export default function UniversalKeyActionsList(
         ))}
         {props.actions.length === 0 && (
           <Grid item xs={12}>
-            <Typography variant='body2' color='textSecondary'>
+            <Typography
+              variant='body2'
+              color='textSecondary'
+              data-testid='no-actions'
+            >
               No actions
             </Typography>
           </Grid>
