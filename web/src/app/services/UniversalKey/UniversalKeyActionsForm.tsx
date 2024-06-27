@@ -19,6 +19,8 @@ export type UniversalKeyActionsFormProps = {
   showList?: boolean
   editActionId?: string
   onChipClick?: (action: ActionInput) => void
+
+  disablePortal?: boolean
 }
 
 const query = gql`
@@ -70,6 +72,7 @@ export default function UniversalKeyActionsForm(
 
       <Grid item xs={12} container spacing={2}>
         <DynamicActionForm
+          disablePortal={props.disablePortal}
           value={currentAction}
           onChange={setCurrentAction}
           destTypeError={errs.getErrorByPath(
