@@ -87,8 +87,8 @@ export default function DefaultActionEditDialog(
             },
           },
           { additionalTypenames: ['KeyConfig'] },
-        ).then(() => {
-          props.onClose()
+        ).then((res) => {
+          if (!res.error) props.onClose()
         })
       }}
       form={form}
