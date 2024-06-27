@@ -3,9 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
-	"fmt"
 	"net/url"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/config"
@@ -268,14 +266,6 @@ func actionsGoToGQL(a []integrationkey.Action) []graphql2.Action {
 		})
 	}
 	return res
-}
-
-func mapToString(m map[string]string) string {
-	var b strings.Builder
-	for k, v := range m {
-		b.WriteString(fmt.Sprintf("%q: %q ", k, v))
-	}
-	return b.String()
 }
 
 // validateRuleActions validates that each rule within a set of rules has a unique set of action destinations.
