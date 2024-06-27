@@ -56,6 +56,8 @@ export type DynamicActionFormProps = {
   destTypeError?: string
   staticParamErrors?: Readonly<Record<string, string>>
   dynamicParamErrors?: Readonly<Record<string, string>>
+
+  disablePortal?: boolean
 }
 
 export function defaults(destTypeInfo: DestinationTypeInfo): Value {
@@ -89,6 +91,7 @@ export default function DynamicActionForm(
         <TextField
           select
           fullWidth
+          SelectProps={{ MenuProps: { disablePortal: props.disablePortal } }}
           value={selectedDest?.type || ''}
           label='Destination Type'
           name='dest.type'
