@@ -34,8 +34,8 @@ export default function UniversalKeyRuleCreateDialogProps(
             },
           },
           { additionalTypenames: ['KeyConfig'] },
-        ).then(() => {
-          props.onClose()
+        ).then((res) => {
+          if (!res.error) props.onClose()
         })
       }
       errors={nonFieldErrors(removeStatus.error)}
