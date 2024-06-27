@@ -9,12 +9,19 @@ export const destTypes: DestinationTypeInfo[] = [
     isContactMethod: true,
     isEPTarget: true,
     isSchedOnCallNotify: true,
-    isDynamicAction: false,
+    isDynamicAction: true,
     iconURL: '',
     iconAltText: '',
     supportsStatusUpdates: false,
     statusUpdatesRequired: false,
-    dynamicParams: [],
+    dynamicParams: [
+      {
+        paramID: 'example-param',
+        label: 'Example Param',
+        hint: 'Some hint text',
+        hintURL: '',
+      },
+    ],
     requiredFields: [
       {
         fieldID: 'phone-number',
@@ -143,7 +150,7 @@ export const destTypes: DestinationTypeInfo[] = [
     isContactMethod: true,
     isEPTarget: true,
     isSchedOnCallNotify: true,
-    isDynamicAction: false,
+    isDynamicAction: true,
     iconURL: '',
     iconAltText: '',
     supportsStatusUpdates: false,
