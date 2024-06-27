@@ -114,7 +114,7 @@ func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKey
 		if input.Rules != nil {
 			cfg.Rules = make([]integrationkey.Rule, 0, len(input.Rules))
 
-			err = duplicateActionValidation(input.Rules)
+			err = validateRuleActions(input.Rules)
 			if err != nil {
 				return err
 			}
@@ -140,7 +140,7 @@ func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKey
 		}
 
 		if input.SetRule != nil {
-			err = setRuleActionValidation(cfg.Rules, input.SetRule)
+			err = validateDuplicateActions(input.SetRule)
 			if err != nil {
 				return err
 			}
@@ -278,62 +278,27 @@ func mapToString(m map[string]string) string {
 	return b.String()
 }
 
-// duplicateActionValidation validates that the set of actions has no two actions with the same static params.
-func duplicateActionValidation(r []graphql2.KeyRuleInput) error {
-	seen := make(map[string]map[string]bool)
+// validateRuleActions validates that each rule within a set of rules has a unique set of action destinations.
+func validateRuleActions(r []graphql2.KeyRuleInput) (err error) {
 	for _, rule := range r {
-		actions := actionsGQLToGo(rule.Actions)
-		for _, action := range actions {
-			if len(action.StaticParams) == 0 {
-				continue
-			}
-			params := mapToString(action.StaticParams)
-			if seen[action.Type] == nil {
-				seen[action.Type] = make(map[string]bool)
-			}
-			if seen[action.Type][params] {
-				return validation.NewFieldError("actions", "multiple actions reach the same destination")
-			}
-			seen[action.Type][params] = true
+		err = validateDuplicateActions(&rule)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
-// setRuleActionValidation validates that the newly set rules don't have overlapping actions with the same
-// static params as any other actions within the key.
-func setRuleActionValidation(r []integrationkey.Rule, setrule *graphql2.KeyRuleInput) error {
-	seen := make(map[string]map[string]bool)
-	actions := actionsGQLToGo(setrule.Actions)
-
-	for _, rule := range r {
-		for _, action := range rule.Actions {
-			if len(action.StaticParams) == 0 {
-				continue
-			}
-			params := mapToString(action.StaticParams)
-			if seen[action.Type] == nil {
-				seen[action.Type] = make(map[string]bool)
-			}
-			if seen[action.Type][params] {
-				return validation.NewFieldError("actions", "multiple actions reach the same destination")
-			}
-			seen[action.Type][params] = true
-		}
-	}
-
+// validateDuplicateActions validates that a rule has a unique set of action destinations.
+func validateDuplicateActions(r *graphql2.KeyRuleInput) error {
+	seen := make(map[string]bool)
+	actions := actionsGQLToGo(r.Actions)
 	for _, action := range actions {
-		if len(action.StaticParams) == 0 {
-			continue
+		if seen[action.Type] {
+			return validation.NewFieldError("dest.type", "multiple actions reach the same destination")
+		} else {
+			seen[action.Type] = true
 		}
-		params := mapToString(action.StaticParams)
-		if seen[action.Type] == nil {
-			seen[action.Type] = make(map[string]bool)
-		}
-		if seen[action.Type][params] {
-			return validation.NewFieldError("actions", "multiple actions reach the same destination")
-		}
-		seen[action.Type][params] = true
 	}
 	return nil
 }
