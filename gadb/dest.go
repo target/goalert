@@ -32,11 +32,18 @@ func (ns *DestV1) Scan(value interface{}) error {
 		return fmt.Errorf("unsupported scan for DestV1 type: %T", value)
 	}
 
+	if ns.Args == nil {
+		ns.Args = map[string]string{}
+	}
+
 	return nil
 }
 
 // Value implements the driver Valuer interface.
 func (ns DestV1) Value() (interface{}, error) {
+	if ns.Args == nil {
+		ns.Args = map[string]string{}
+	}
 	data, err := json.Marshal(ns)
 	if err != nil {
 		return nil, err
