@@ -35,4 +35,15 @@ sql:
     gen:
       go:
         out: gadb
-        sql_package: stdlib
+        sql_package: database/sql
+        overrides:
+          - column: public.user_contact_methods.dest
+            go_type:
+              # Note: We can't use the nullable/non-nullable types here because
+              # sqlc doesn't support it for column overrides yet.
+              #
+              # Since it's common to have NULL (i.e., when scanning contact methods and notificaiton channels at once) we use the nullable type.
+              type: NullDestV1
+          - column: public.notification_channels.dest
+            go_type:
+              type: NullDestV1
