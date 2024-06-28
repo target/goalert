@@ -18,7 +18,7 @@ const mutation = gql`
 export default function UniversalKeyRuleCreateDialogProps(
   props: UniversalKeyRuleCreateDialogProps,
 ): JSX.Element {
-  const [removeStatus, commit] = useMutation(mutation)
+  const [deleteRuleResult, commit] = useMutation(mutation)
 
   return (
     <FormDialog
@@ -34,11 +34,11 @@ export default function UniversalKeyRuleCreateDialogProps(
             },
           },
           { additionalTypenames: ['KeyConfig'] },
-        ).then(() => {
-          props.onClose()
+        ).then((res) => {
+          if (!res.error) props.onClose()
         })
       }
-      errors={nonFieldErrors(removeStatus.error)}
+      errors={nonFieldErrors(deleteRuleResult.error)}
     />
   )
 }
