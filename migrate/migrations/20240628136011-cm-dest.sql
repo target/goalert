@@ -11,7 +11,7 @@ BEGIN
     ELSIF typeName = 'SMS' THEN
         RETURN jsonb_build_object('Type', 'builtin-twilio-sms', 'Args', jsonb_build_object('phone-number', value));
     ELSIF typeName = 'WEBHOOK' THEN
-        RETURN jsonb_build_object('Type', 'builtin-webhook', 'Args', jsonb_build_object('url', value));
+        RETURN jsonb_build_object('Type', 'builtin-webhook', 'Args', jsonb_build_object('webhook-url', value));
     ELSIF typeName = 'SLACK_DM' THEN
         RETURN jsonb_build_object('Type', 'builtin-slack-dm', 'Args', jsonb_build_object('slack-user-id', value));
     ELSE
@@ -68,7 +68,7 @@ BEGIN
         NEW.value = NEW.dest -> 'Args' ->> 'phone-number';
     ELSIF NEW.dest ->> 'Type' = 'builtin-webhook' THEN
         NEW.type = 'WEBHOOK';
-        NEW.value = NEW.dest -> 'Args' ->> 'url';
+        NEW.value = NEW.dest -> 'Args' ->> 'webhook-url';
     ELSIF NEW.dest ->> 'Type' = 'builtin-slack-dm' THEN
         NEW.type = 'SLACK_DM';
         NEW.value = NEW.dest -> 'Args' ->> 'slack-user-id';
