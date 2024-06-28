@@ -42,7 +42,7 @@ export default function UniversalKeyDefaultActions(
     <React.Fragment>
       <Card>
         <FlatList
-          emptyMessage=''
+          emptyMessage='No default action'
           headerAction={
             <Button
               variant='contained'
