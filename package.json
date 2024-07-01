@@ -41,7 +41,7 @@
     "@emotion/react": "11.11.1",
     "@emotion/styled": "11.11.5",
     "@material/material-color-utilities": "0.2.7",
-    "@mui/icons-material": "5.15.13",
+    "@mui/icons-material": "5.15.21",
     "@mui/lab": "5.0.0-alpha.170",
     "@mui/material": "5.15.19",
     "@mui/styles": "5.15.15",
