@@ -19,7 +19,7 @@ func ExampleSysAPIClient_AuthSubjects() {
 	target := flag.String("target", "localhost:1234", "Server address.")
 	flag.Parse()
 
-	conn, err := grpc.Dial(*target, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(*target, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,7 +59,7 @@ func ExampleSysAPIClient_DeleteUser() {
 		log.Fatal(err)
 	}
 
-	conn, err := grpc.Dial(*target, grpc.WithTransportCredentials(credentials.NewTLS(cfg)))
+	conn, err := grpc.NewClient(*target, grpc.WithTransportCredentials(credentials.NewTLS(cfg)))
 	if err != nil {
 		log.Fatal(err)
 	}
