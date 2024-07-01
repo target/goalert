@@ -22,6 +22,7 @@ sql:
       - notice/queries.sql
       - graphql2/graphqlapp/queries.sql
       - engine/statusmgr/queries.sql
+      - engine/message/queries.sql
       - auth/authlink/queries.sql
       - alert/alertlog/queries.sql
       - user/favorite/queries.sql
