@@ -44,7 +44,7 @@ func (s SQLDest) Dest() Dest {
 		}
 	}
 
-	return Dest{}
+	panic("no valid ID")
 }
 
 // DestFromPair will return a Dest for a notification channel/contact method pair.

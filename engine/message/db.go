@@ -318,6 +318,11 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 	result := make([]Message, 0, len(rows))
 	for _, row := range rows {
 		var msg Message
+		msg.ID = row.ID.String()
+		err = msg.Type.FromDB(row.MessageType)
+		if err != nil {
+			return nil, fmt.Errorf("message type: %w", err)
+		}
 		msg.AlertID = int(row.AlertID.Int64)
 		msg.AlertLogID = int(row.AlertLogID.Int64)
 		if row.UserVerificationCodeID.Valid {
