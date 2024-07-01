@@ -61,7 +61,10 @@ test('create universal key, add rule with action', async ({
   // add an action to the rule and submit
   await dropdownSelect(page, 'Destination Type', 'Alert')
   await expect(
-    page.getByLabel('Create Rule').getByTestId('no-actions'),
+    page
+      .locator('#dialog-form')
+      .getByTestId('actions-list')
+      .getByTestId('no-actions'),
   ).toBeVisible()
   await page.getByRole('button', { name: 'Add Action' }).click()
   await expect(
@@ -88,7 +91,10 @@ test('create universal key, add rule with action', async ({
     .locator('[data-testid=CancelIcon]')
     .click()
   await expect(
-    page.getByLabel('Edit Rule').getByTestId('no-actions'),
+    page
+      .locator('#dialog-form')
+      .getByTestId('actions-list')
+      .getByTestId('no-actions'),
   ).toBeVisible()
   await page.getByRole('button', { name: 'Submit' }).click()
 
