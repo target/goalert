@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -12,6 +13,13 @@ type Channel struct {
 	Name  string
 	Type  Type
 	Value string
+}
+
+func (c *Channel) fromRow(row gadb.NotificationChannel) {
+	c.ID = row.ID.String()
+	c.Name = row.Name
+	c.Type = Type(row.Type)
+	c.Value = row.Value
 }
 
 func (c Channel) Normalize() (*Channel, error) {
