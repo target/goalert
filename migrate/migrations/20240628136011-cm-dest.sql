@@ -52,6 +52,12 @@ CREATE TRIGGER trg_10_cm_set_dest_on_insert
     WHEN(NEW.dest IS NULL)
     EXECUTE FUNCTION fn_cm_set_dest_on_insert();
 
+CREATE TRIGGER trg_10_cm_set_dest_on_update
+    BEFORE UPDATE ON user_contact_methods
+    FOR EACH ROW
+    WHEN(NEW.dest = OLD.dest)
+    EXECUTE FUNCTION fn_cm_set_dest_on_insert();
+
 -- +migrate StatementBegin
 CREATE OR REPLACE FUNCTION fn_cm_compat_set_type_val_on_insert()
     RETURNS TRIGGER
@@ -88,15 +94,25 @@ CREATE TRIGGER trg_10_compat_set_type_val_on_insert
     WHEN(NEW.dest IS NOT NULL)
     EXECUTE FUNCTION fn_cm_compat_set_type_val_on_insert();
 
+CREATE TRIGGER trg_10_compat_set_type_val_on_update
+    BEFORE UPDATE ON user_contact_methods
+    FOR EACH ROW
+    WHEN(NEW.dest != OLD.dest)
+    EXECUTE FUNCTION fn_cm_compat_set_type_val_on_insert();
+
 -- +migrate Down
 DELETE FROM user_contact_methods
 WHERE type = 'DEST';
 
 DROP TRIGGER trg_10_compat_set_type_val_on_insert ON user_contact_methods;
 
-DROP FUNCTION fn_cm_compat_set_type_val_on_insert();
+DROP TRIGGER trg_10_compat_set_type_val_on_update ON user_contact_methods;
 
 DROP TRIGGER trg_10_cm_set_dest_on_insert ON user_contact_methods;
+
+DROP TRIGGER trg_10_cm_set_dest_on_update ON user_contact_methods;
+
+DROP FUNCTION fn_cm_compat_set_type_val_on_insert();
 
 DROP FUNCTION fn_cm_set_dest_on_insert();
 

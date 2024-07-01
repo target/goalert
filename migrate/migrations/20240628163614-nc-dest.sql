@@ -48,6 +48,12 @@ CREATE TRIGGER trg_10_nc_set_dest_on_insert
     WHEN(NEW.dest IS NULL)
     EXECUTE FUNCTION fn_nc_set_dest_on_insert();
 
+CREATE TRIGGER trg_10_nc_set_dest_on_update
+    BEFORE UPDATE ON notification_channels
+    FOR EACH ROW
+    WHEN(NEW.dest = OLD.dest)
+    EXECUTE FUNCTION fn_nc_set_dest_on_insert();
+
 -- +migrate StatementBegin
 CREATE OR REPLACE FUNCTION fn_nc_compat_set_type_val_on_insert()
     RETURNS TRIGGER
@@ -78,15 +84,25 @@ CREATE TRIGGER trg_10_nc_compat_set_type_val_on_insert
     WHEN(NEW.dest IS NOT NULL)
     EXECUTE FUNCTION fn_nc_compat_set_type_val_on_insert();
 
+CREATE TRIGGER trg_10_nc_compat_set_type_val_on_update
+    BEFORE UPDATE ON notification_channels
+    FOR EACH ROW
+    WHEN(NEW.dest != OLD.dest)
+    EXECUTE FUNCTION fn_nc_compat_set_type_val_on_insert();
+
 -- +migrate Down
 DELETE FROM notification_channels
 WHERE type = 'DEST';
 
 DROP TRIGGER trg_10_nc_compat_set_type_val_on_insert ON notification_channels;
 
-DROP FUNCTION fn_nc_compat_set_type_val_on_insert();
+DROP TRIGGER trg_10_nc_compat_set_type_val_on_update ON notification_channels;
 
 DROP TRIGGER trg_10_nc_set_dest_on_insert ON notification_channels;
+
+DROP TRIGGER trg_10_nc_set_dest_on_update ON notification_channels;
+
+DROP FUNCTION fn_nc_compat_set_type_val_on_insert();
 
 DROP FUNCTION fn_nc_set_dest_on_insert();
 
