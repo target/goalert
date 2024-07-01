@@ -89,9 +89,6 @@ CREATE TRIGGER trg_10_compat_set_type_val_on_insert
     EXECUTE FUNCTION fn_cm_compat_set_type_val_on_insert();
 
 -- +migrate Down
-ALTER TABLE user_contact_methods
-    DROP COLUMN dest;
-
 DELETE FROM user_contact_methods
 WHERE type = 'DEST';
 
@@ -103,5 +100,8 @@ DROP TRIGGER trg_10_cm_set_dest_on_insert ON user_contact_methods;
 
 DROP FUNCTION fn_cm_set_dest_on_insert();
 
-DROP FUNCTION cm_type_val_to_dest(enum_user_contact_methods_type, text);
+DROP FUNCTION cm_type_val_to_dest(enum_user_contact_method_type, text);
+
+ALTER TABLE user_contact_methods
+    DROP COLUMN dest;
 

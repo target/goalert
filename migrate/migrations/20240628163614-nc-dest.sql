@@ -79,9 +79,6 @@ CREATE TRIGGER trg_10_nc_compat_set_type_val_on_insert
     EXECUTE FUNCTION fn_nc_compat_set_type_val_on_insert();
 
 -- +migrate Down
-ALTER TABLE notification_channels
-    DROP COLUMN dest;
-
 DELETE FROM notification_channels
 WHERE type = 'DEST';
 
@@ -94,4 +91,7 @@ DROP TRIGGER trg_10_nc_set_dest_on_insert ON notification_channels;
 DROP FUNCTION fn_nc_set_dest_on_insert();
 
 DROP FUNCTION nc_type_val_to_dest(typeName enum_notif_channel_type, value text);
+
+ALTER TABLE notification_channels
+    DROP COLUMN dest;
 
