@@ -1534,6 +1534,7 @@ type IntKeyEnsureChannelParams struct {
 	Dest NullDestV1
 }
 
+// IntKeyEnsureChannel will return the ID of a channel for a given dest, creating it if it doesn't exist.
 func (q *Queries) IntKeyEnsureChannel(ctx context.Context, arg IntKeyEnsureChannelParams) (uuid.UUID, error) {
 	row := q.db.QueryRowContext(ctx, intKeyEnsureChannel, arg.ID, arg.Dest)
 	var id uuid.UUID
