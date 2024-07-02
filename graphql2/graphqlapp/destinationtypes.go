@@ -312,12 +312,22 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			Enabled:               cfg.SMTP.Enable,
 			IsContactMethod:       true,
 			SupportsStatusUpdates: true,
+			IsDynamicAction:       true,
 			RequiredFields: []graphql2.DestinationFieldConfig{{
 				FieldID:            fieldEmailAddress,
 				Label:              "Email Address",
 				PlaceholderText:    "foobar@example.com",
 				InputType:          "email",
 				SupportsValidation: true,
+			}},
+			DynamicParams: []graphql2.DynamicParamConfig{{
+				ParamID: "subject",
+				Label:   "Subject",
+				Hint:    "Subject of the email message.",
+			}, {
+				ParamID: "body",
+				Label:   "Body",
+				Hint:    "Body of the email message.",
 			}},
 		},
 		{
@@ -338,6 +348,19 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 				HintURL:            "/docs#webhooks",
 				SupportsValidation: true,
 			}},
+			IsDynamicAction: true,
+			DynamicParams: []graphql2.DynamicParamConfig{
+				{
+					ParamID: "body",
+					Label:   "Body",
+					Hint:    "The body of the request.",
+				},
+				{
+					ParamID: "content-type",
+					Label:   "Content Type",
+					Hint:    "The content type (usually application/json).",
+				},
+			},
 		},
 		{
 			Type:                  destSlackDM,

@@ -345,18 +345,20 @@ func (ns NullEnumIntegrationKeysType) Value() (driver.Value, error) {
 type EnumLimitType string
 
 const (
-	EnumLimitTypeCalendarSubscriptionsPerUser EnumLimitType = "calendar_subscriptions_per_user"
-	EnumLimitTypeContactMethodsPerUser        EnumLimitType = "contact_methods_per_user"
-	EnumLimitTypeEpActionsPerStep             EnumLimitType = "ep_actions_per_step"
-	EnumLimitTypeEpStepsPerPolicy             EnumLimitType = "ep_steps_per_policy"
-	EnumLimitTypeHeartbeatMonitorsPerService  EnumLimitType = "heartbeat_monitors_per_service"
-	EnumLimitTypeIntegrationKeysPerService    EnumLimitType = "integration_keys_per_service"
-	EnumLimitTypeNotificationRulesPerUser     EnumLimitType = "notification_rules_per_user"
-	EnumLimitTypeParticipantsPerRotation      EnumLimitType = "participants_per_rotation"
-	EnumLimitTypeRulesPerSchedule             EnumLimitType = "rules_per_schedule"
-	EnumLimitTypeTargetsPerSchedule           EnumLimitType = "targets_per_schedule"
-	EnumLimitTypeUnackedAlertsPerService      EnumLimitType = "unacked_alerts_per_service"
-	EnumLimitTypeUserOverridesPerSchedule     EnumLimitType = "user_overrides_per_schedule"
+	EnumLimitTypeCalendarSubscriptionsPerUser    EnumLimitType = "calendar_subscriptions_per_user"
+	EnumLimitTypeContactMethodsPerUser           EnumLimitType = "contact_methods_per_user"
+	EnumLimitTypeEpActionsPerStep                EnumLimitType = "ep_actions_per_step"
+	EnumLimitTypeEpStepsPerPolicy                EnumLimitType = "ep_steps_per_policy"
+	EnumLimitTypeHeartbeatMonitorsPerService     EnumLimitType = "heartbeat_monitors_per_service"
+	EnumLimitTypeIntegrationKeysPerService       EnumLimitType = "integration_keys_per_service"
+	EnumLimitTypeNotificationRulesPerUser        EnumLimitType = "notification_rules_per_user"
+	EnumLimitTypeParticipantsPerRotation         EnumLimitType = "participants_per_rotation"
+	EnumLimitTypePendingSignalsPerDestPerService EnumLimitType = "pending_signals_per_dest_per_service"
+	EnumLimitTypePendingSignalsPerService        EnumLimitType = "pending_signals_per_service"
+	EnumLimitTypeRulesPerSchedule                EnumLimitType = "rules_per_schedule"
+	EnumLimitTypeTargetsPerSchedule              EnumLimitType = "targets_per_schedule"
+	EnumLimitTypeUnackedAlertsPerService         EnumLimitType = "unacked_alerts_per_service"
+	EnumLimitTypeUserOverridesPerSchedule        EnumLimitType = "user_overrides_per_schedule"
 )
 
 func (e *EnumLimitType) Scan(src interface{}) error {
@@ -1018,6 +1020,15 @@ type OutgoingMessage struct {
 	StatusDetails          string
 	UserID                 uuid.NullUUID
 	UserVerificationCodeID uuid.NullUUID
+}
+
+type PendingSignal struct {
+	CreatedAt time.Time
+	DestID    uuid.UUID
+	ID        int32
+	MessageID uuid.NullUUID
+	Params    json.RawMessage
+	ServiceID uuid.UUID
 }
 
 type RegionID struct {
