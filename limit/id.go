@@ -31,6 +31,10 @@ const (
 	UserOverridesPerSchedule ID = "user_overrides_per_schedule"
 	// Maximum number of calendar subscriptions per user.
 	CalendarSubscriptionsPerUser ID = "calendar_subscriptions_per_user"
+	// Maximum number of pending signals per service.
+	PendingSignalsPerService ID = "pending_signals_per_service"
+	// Maximum number of pending signals per destination per service.
+	PendingSignalsPerDestPerService ID = "pending_signals_per_dest_per_service"
 )
 
 // Valid returns nil if a given ID is valid, a validation error is returned otherwise.
@@ -48,5 +52,7 @@ func (id ID) Valid() error {
 		HeartbeatMonitorsPerService,
 		UserOverridesPerSchedule,
 		CalendarSubscriptionsPerUser,
+		PendingSignalsPerService,
+		PendingSignalsPerDestPerService,
 	)
 }
