@@ -46,23 +46,29 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 interface CustomDotProps extends DotProps {
   payload: {
-    date: string
-    dayTotal: number
+    timestamp: string
+    [key: string]: number | string
   }
 }
 
-const CustomDot = (props: CustomDotProps): JSX.Element => {
+function CustomDot(props: CustomDotProps): JSX.Element {
   const { cy, cx, fill, r, stroke, strokeWidth, name, payload } = props
+  const dayCount = parseInt(
+    Object.keys(payload).reduce((prev, cur) => {
+      if (cur === 'timestamp') return prev
+      return (payload[prev] as number) + (payload[cur] as number).toString()
+    }),
+  )
   return (
     <circle
       cy={cy}
       cx={cx}
       fill={fill}
-      r={payload.dayTotal ? r : 0}
+      r={dayCount === 0 ? 0 : r}
       stroke={stroke}
       strokeWidth={strokeWidth}
-      key={name + '-' + payload.date}
-      data-cy={name + '-' + payload.date}
+      key={name + '-' + payload.timestamp}
+      data-cy={name + '-' + payload.timestamp}
     />
   )
 }
@@ -74,7 +80,7 @@ export default function AlertCountLineGraph(
   const classes = useStyles()
   const theme = useTheme()
 
-  const chooseColor = (idx: number): string => {
+  function chooseColor(idx: number): string {
     const shade = theme.palette.mode === 'light' ? 'A700' : 'A400'
 
     switch (idx) {
@@ -95,7 +101,8 @@ export default function AlertCountLineGraph(
     }
   }
 
-  const formatTick = (date: string): string => {
+  function formatTick(date: string): string {
+    if (date == '') return date
     const dt = DateTime.fromISO(date)
     // check for default bounds
 
@@ -109,6 +116,31 @@ export default function AlertCountLineGraph(
     return date
   }
 
+  function flattenData(
+    data: (typeof LineChart.defaultProps)['data'],
+  ): Array<{ [key: string]: number | string }> {
+    const dateMap: { [key: string]: { [key: string]: number | string } } = {}
+
+    if (!data) return []
+
+    // Populate the map with data and flatten the structure in a single pass
+    data.forEach((service) => {
+      service.dailyCounts.forEach(
+        (dailyCount: { date: string; dayTotal: number }) => {
+          if (!dateMap[dailyCount.date]) {
+            dateMap[dailyCount.date] = { timestamp: dailyCount.date }
+          }
+          dateMap[dailyCount.date][service.serviceName] = dailyCount.dayTotal
+        },
+      )
+    })
+
+    // Convert the map into the desired array structure
+    return Object.values(dateMap)
+  }
+
+  const d = React.useMemo(() => flattenData(props.data), [props.data])
+
   return (
     <Grid container className={classes.graphContent}>
       <Grid item xs={12} data-cy='alert-count-graph'>
@@ -118,6 +150,7 @@ export default function AlertCountLineGraph(
             <LineChart
               width={width}
               height={height}
+              data={d}
               margin={{
                 top: 50,
                 right: 30,
@@ -130,7 +163,7 @@ export default function AlertCountLineGraph(
                 stroke={theme.palette.text.secondary}
               />
               <XAxis
-                dataKey='date'
+                dataKey='timestamp'
                 allowDuplicatedCategory={false}
                 minTickGap={15}
                 stroke={theme.palette.text.secondary}
@@ -146,7 +179,7 @@ export default function AlertCountLineGraph(
                 data-cy='alert-count-tooltip'
                 cursor={{ fill: theme.palette.background.default }}
                 content={({ active, payload = [], label }) => {
-                  // if (!active || !payload?.length) return null
+                  if (!active || !payload?.length) return null
                   return (
                     <Paper variant='outlined' sx={{ p: 1 }}>
                       <Typography variant='body2'>
@@ -176,14 +209,13 @@ export default function AlertCountLineGraph(
               />
               {props.data?.map((series, idx) => (
                 <Line
-                  dataKey='dayTotal'
-                  data={series.dailyCounts}
+                  key={series.serviceName + idx}
+                  dataKey={series.serviceName}
                   strokeOpacity={props.loading ? 0.5 : 1}
                   strokeWidth={active === series.serviceName ? 4 : 1}
                   name={series.serviceName}
                   stroke={chooseColor(idx)}
                   dot={CustomDot}
-                  key={idx}
                 />
               ))}
             </LineChart>
