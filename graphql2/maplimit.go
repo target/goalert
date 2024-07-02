@@ -20,6 +20,8 @@ func MapLimitValues(l limit.Limits) []SystemLimit {
 		{ID: "IntegrationKeysPerService", Description: "Maximum number of integration keys per service.", Value: l[limit.IntegrationKeysPerService]},
 		{ID: "NotificationRulesPerUser", Description: "Maximum number of notification rules per user.", Value: l[limit.NotificationRulesPerUser]},
 		{ID: "ParticipantsPerRotation", Description: "Maximum number of participants per rotation.", Value: l[limit.ParticipantsPerRotation]},
+		{ID: "PendingSignalsPerDestPerService", Description: "Maximum number of pending signals per destination per service.", Value: l[limit.PendingSignalsPerDestPerService]},
+		{ID: "PendingSignalsPerService", Description: "Maximum number of pending signals per service.", Value: l[limit.PendingSignalsPerService]},
 		{ID: "RulesPerSchedule", Description: "Pertains to all rules for all assignments/targets.", Value: l[limit.RulesPerSchedule]},
 		{ID: "TargetsPerSchedule", Description: "Maximum number of targets per schedule.", Value: l[limit.TargetsPerSchedule]},
 		{ID: "UnackedAlertsPerService", Description: "Only affects newly created alerts but not re-escalated ones.", Value: l[limit.UnackedAlertsPerService]},
@@ -47,6 +49,10 @@ func ApplyLimitValues(l limit.Limits, vals []SystemLimitInput) (limit.Limits, er
 			l[limit.NotificationRulesPerUser] = v.Value
 		case "ParticipantsPerRotation":
 			l[limit.ParticipantsPerRotation] = v.Value
+		case "PendingSignalsPerDestPerService":
+			l[limit.PendingSignalsPerDestPerService] = v.Value
+		case "PendingSignalsPerService":
+			l[limit.PendingSignalsPerService] = v.Value
 		case "RulesPerSchedule":
 			l[limit.RulesPerSchedule] = v.Value
 		case "TargetsPerSchedule":
