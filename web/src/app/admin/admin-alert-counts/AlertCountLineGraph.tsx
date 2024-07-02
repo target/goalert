@@ -118,7 +118,6 @@ export default function AlertCountLineGraph(
             <LineChart
               width={width}
               height={height}
-              data={props.data}
               margin={{
                 top: 50,
                 right: 30,
@@ -146,8 +145,8 @@ export default function AlertCountLineGraph(
               <Tooltip
                 data-cy='alert-count-tooltip'
                 cursor={{ fill: theme.palette.background.default }}
-                content={({ active, payload, label }) => {
-                  if (!active || !payload?.length) return null
+                content={({ active, payload = [], label }) => {
+                  // if (!active || !payload?.length) return null
                   return (
                     <Paper variant='outlined' sx={{ p: 1 }}>
                       <Typography variant='body2'>
