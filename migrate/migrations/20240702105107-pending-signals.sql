@@ -105,3 +105,7 @@ CREATE CONSTRAINT TRIGGER trg_enforce_signals_per_dest_per_service_limit
 -- +migrate Down
 DROP TABLE pending_signals;
 
+DROP FUNCTION fn_enforce_signals_per_dest_per_service_limit();
+
+DROP FUNCTION fn_enforce_signals_per_service_limit();
+
