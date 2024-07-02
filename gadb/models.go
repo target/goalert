@@ -667,6 +667,7 @@ func (ns NullEnumThrottleType) Value() (driver.Value, error) {
 type EnumUserContactMethodType string
 
 const (
+	EnumUserContactMethodTypeDEST    EnumUserContactMethodType = "DEST"
 	EnumUserContactMethodTypeEMAIL   EnumUserContactMethodType = "EMAIL"
 	EnumUserContactMethodTypePUSH    EnumUserContactMethodType = "PUSH"
 	EnumUserContactMethodTypeSLACKDM EnumUserContactMethodType = "SLACK_DM"
@@ -976,7 +977,7 @@ type Label struct {
 
 type NotificationChannel struct {
 	CreatedAt time.Time
-	Dest      pqtype.NullRawMessage
+	Dest      NullDestV1
 	ID        uuid.UUID
 	Meta      json.RawMessage
 	Name      string
@@ -1183,6 +1184,7 @@ type UserCalendarSubscription struct {
 }
 
 type UserContactMethod struct {
+	Dest                NullDestV1
 	Disabled            bool
 	EnableStatusUpdates bool
 	ID                  uuid.UUID

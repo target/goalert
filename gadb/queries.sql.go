@@ -1532,7 +1532,7 @@ INSERT INTO notification_channels(id, type, name, value, dest)
 
 type IntKeyEnsureChannelParams struct {
 	ID   uuid.UUID
-	Dest pqtype.NullRawMessage
+	Dest NullDestV1
 }
 
 func (q *Queries) IntKeyEnsureChannel(ctx context.Context, arg IntKeyEnsureChannelParams) (uuid.UUID, error) {
@@ -2119,7 +2119,7 @@ func (q *Queries) NotifChanDeleteMany(ctx context.Context, dollar_1 []uuid.UUID)
 
 const notifChanFindByValue = `-- name: NotifChanFindByValue :one
 SELECT
-    created_at, id, meta, name, type, value
+    created_at, dest, id, meta, name, type, value
 FROM
     notification_channels
 WHERE
@@ -2137,6 +2137,7 @@ func (q *Queries) NotifChanFindByValue(ctx context.Context, arg NotifChanFindByV
 	var i NotificationChannel
 	err := row.Scan(
 		&i.CreatedAt,
+		&i.Dest,
 		&i.ID,
 		&i.Meta,
 		&i.Name,
@@ -2148,7 +2149,7 @@ func (q *Queries) NotifChanFindByValue(ctx context.Context, arg NotifChanFindByV
 
 const notifChanFindMany = `-- name: NotifChanFindMany :many
 SELECT
-    created_at, id, meta, name, type, value
+    created_at, dest, id, meta, name, type, value
 FROM
     notification_channels
 WHERE
@@ -2166,6 +2167,7 @@ func (q *Queries) NotifChanFindMany(ctx context.Context, dollar_1 []uuid.UUID) (
 		var i NotificationChannel
 		if err := rows.Scan(
 			&i.CreatedAt,
+			&i.Dest,
 			&i.ID,
 			&i.Meta,
 			&i.Name,
@@ -2187,7 +2189,7 @@ func (q *Queries) NotifChanFindMany(ctx context.Context, dollar_1 []uuid.UUID) (
 
 const notifChanFindOne = `-- name: NotifChanFindOne :one
 SELECT
-    created_at, id, meta, name, type, value
+    created_at, dest, id, meta, name, type, value
 FROM
     notification_channels
 WHERE
@@ -2199,6 +2201,7 @@ func (q *Queries) NotifChanFindOne(ctx context.Context, id uuid.UUID) (Notificat
 	var i NotificationChannel
 	err := row.Scan(
 		&i.CreatedAt,
+		&i.Dest,
 		&i.ID,
 		&i.Meta,
 		&i.Name,
