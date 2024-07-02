@@ -155,7 +155,7 @@ export default function ScheduleOverrideList({ scheduleID }) {
                       userID={n.addUser ? n.addUser.id : n.removeUser.id}
                     />
                   ),
-                  action: (
+                  secondaryAction: (
                     <OtherActions
                       actions={[
                         {
