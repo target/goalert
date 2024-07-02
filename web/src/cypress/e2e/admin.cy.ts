@@ -297,7 +297,10 @@ function testAdmin(): void {
     })
 
     it('should select and view a logs details', () => {
-      cy.get('[data-cy="paginated-list"]').eq(0).click()
+      cy.get('[data-cy="paginated-list"]')
+        .as('list')
+        .should('have.length', 1, { timeout: 30000 })
+      cy.get('@list').eq(0).should('be.visible', { timeout: 30000 }).click()
       cy.get('[data-cy="debug-message-details"').as('details').should('exist')
 
       // todo: not asserting updatedAt, destination, or providerID
@@ -327,7 +330,10 @@ function testAdmin(): void {
     })
 
     it('should verify user link from a logs details', () => {
-      cy.get('[data-cy="paginated-list"]').eq(0).click()
+      cy.get('[data-cy="paginated-list"]')
+        .eq(0)
+        .should('be.visible', { timeout: 30000 })
+        .click()
       cy.get('[data-cy="debug-message-details"')
         .find('a')
         .contains(debugMessage?.userName ?? '')
@@ -341,7 +347,10 @@ function testAdmin(): void {
     })
 
     it('should verify service link from a logs details', () => {
-      cy.get('[data-cy="paginated-list"]').eq(0).click()
+      cy.get('[data-cy="paginated-list"]')
+        .eq(0)
+        .should('be.visible', { timeout: 30000 })
+        .click()
       cy.get('[data-cy="debug-message-details"')
         .find('a')
         .contains(debugMessage?.serviceName ?? '')
