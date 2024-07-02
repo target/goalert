@@ -111,6 +111,12 @@ func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKey
 
 		if input.Rules != nil {
 			cfg.Rules = make([]integrationkey.Rule, 0, len(input.Rules))
+
+			err = validateRuleActions(input.Rules)
+			if err != nil {
+				return err
+			}
+
 			for _, r := range input.Rules {
 				var ruleID uuid.UUID
 				if r.ID != nil {
@@ -119,7 +125,6 @@ func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKey
 						return err
 					}
 				}
-
 				cfg.Rules = append(cfg.Rules, integrationkey.Rule{
 					ID:            ruleID,
 					Name:          r.Name,
@@ -133,6 +138,11 @@ func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKey
 		}
 
 		if input.SetRule != nil {
+			err = validateDuplicateActions(input.SetRule)
+			if err != nil {
+				return err
+			}
+
 			if input.SetRule.ID == nil {
 				// Since we don't have a rule ID, we're need to create a new rule.
 				cfg.Rules = append(cfg.Rules, integrationkey.Rule{
@@ -256,6 +266,31 @@ func actionsGoToGQL(a []integrationkey.Action) []graphql2.Action {
 		})
 	}
 	return res
+}
+
+// validateRuleActions validates that each rule within a set of rules has a unique set of action destinations.
+func validateRuleActions(r []graphql2.KeyRuleInput) (err error) {
+	for _, rule := range r {
+		err = validateDuplicateActions(&rule)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// validateDuplicateActions validates that a rule has a unique set of action destinations.
+func validateDuplicateActions(r *graphql2.KeyRuleInput) error {
+	seen := make(map[string]bool)
+	actions := actionsGQLToGo(r.Actions)
+	for _, action := range actions {
+		if seen[action.Type] {
+			return validation.NewFieldError("dest.type", "multiple actions reach the same destination")
+		} else {
+			seen[action.Type] = true
+		}
+	}
+	return nil
 }
 
 func (key *IntegrationKey) Type(ctx context.Context, raw *integrationkey.IntegrationKey) (graphql2.IntegrationKeyType, error) {

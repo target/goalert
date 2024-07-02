@@ -35,12 +35,6 @@ func newClaims(keyID, tokenID uuid.UUID) jwt.Claims {
 	}
 }
 
-type ActionResult struct {
-	DestType string
-	Values   map[string]string
-	Params   map[string]string
-}
-
 func (s *Store) AuthorizeUIK(ctx context.Context, tokStr string) (context.Context, error) {
 	if !expflag.ContextHas(ctx, expflag.UnivKeys) {
 		return ctx, permission.Unauthorized()

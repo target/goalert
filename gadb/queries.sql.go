@@ -1508,6 +1508,40 @@ func (q *Queries) IntKeyDeleteSecondaryToken(ctx context.Context, id uuid.UUID) 
 	return err
 }
 
+const intKeyEnsureChannel = `-- name: IntKeyEnsureChannel :one
+WITH insert_q AS (
+INSERT INTO notification_channels(id, type, name, value, dest)
+        VALUES ($1, 'DEST', '', '', $2)
+    ON CONFLICT (dest)
+        DO NOTHING
+    RETURNING
+        id)
+    SELECT
+        id
+    FROM
+        insert_q
+    UNION
+    SELECT
+        id
+    FROM
+        notification_channels
+    WHERE
+        type = 'DEST'
+            AND dest = $2
+`
+
+type IntKeyEnsureChannelParams struct {
+	ID   uuid.UUID
+	Dest NullDestV1
+}
+
+func (q *Queries) IntKeyEnsureChannel(ctx context.Context, arg IntKeyEnsureChannelParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, intKeyEnsureChannel, arg.ID, arg.Dest)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const intKeyFindByService = `-- name: IntKeyFindByService :many
 SELECT
     id,
@@ -1645,6 +1679,22 @@ func (q *Queries) IntKeyGetType(ctx context.Context, id uuid.UUID) (EnumIntegrat
 	var type_ EnumIntegrationKeysType
 	err := row.Scan(&type_)
 	return type_, err
+}
+
+const intKeyInsertSignalMessage = `-- name: IntKeyInsertSignalMessage :exec
+INSERT INTO pending_signals(dest_id, service_id, params)
+    VALUES ($1, $2, $3)
+`
+
+type IntKeyInsertSignalMessageParams struct {
+	DestID    uuid.UUID
+	ServiceID uuid.UUID
+	Params    json.RawMessage
+}
+
+func (q *Queries) IntKeyInsertSignalMessage(ctx context.Context, arg IntKeyInsertSignalMessageParams) error {
+	_, err := q.db.ExecContext(ctx, intKeyInsertSignalMessage, arg.DestID, arg.ServiceID, arg.Params)
+	return err
 }
 
 const intKeyPromoteSecondary = `-- name: IntKeyPromoteSecondary :one

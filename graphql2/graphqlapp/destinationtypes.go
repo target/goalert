@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	"context"
 	"slices"
+	"strconv"
 
 	"github.com/nyaruka/phonenumbers"
 	"github.com/target/goalert/config"
@@ -31,6 +32,7 @@ const (
 	fieldSlackUserID  = "slack-user-id"
 	fieldSlackChanID  = "slack-channel-id"
 	fieldSlackUGID    = "slack-usergroup-id"
+	fieldAlertID      = "alert-id"
 	fieldUserID       = "user-id"
 	fieldRotationID   = "rotation-id"
 	fieldScheduleID   = "schedule-id"
@@ -43,6 +45,17 @@ type (
 
 func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.DestinationFieldValidateInput) (string, error) {
 	switch input.FieldID {
+	case fieldAlertID:
+		id, err := strconv.Atoi(input.Value)
+		if err != nil {
+			return "", err
+		}
+
+		alert, err := q.Alert(ctx, id)
+		if err != nil {
+			return "", err
+		}
+		return strconv.Itoa(alert.ID), nil
 	case fieldSlackChanID:
 		ch, err := q.SlackChannel(ctx, input.Value)
 		if err != nil {
@@ -241,6 +254,12 @@ func (q *Query) DestinationFieldValidate(ctx context.Context, input graphql2.Des
 
 		err := validate.AbsoluteURL("URL", input.Value)
 		return err == nil, nil
+	case destAlert:
+		if input.FieldID != fieldAlertID {
+			return false, validation.NewGenericError("unsupported field")
+		}
+
+		return true, nil
 	}
 
 	return false, validation.NewGenericError("unsupported data type")
@@ -319,6 +338,15 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 				InputType:          "email",
 				SupportsValidation: true,
 			}},
+			DynamicParams: []graphql2.DynamicParamConfig{{
+				ParamID: "subject",
+				Label:   "Subject",
+				Hint:    "Subject of the email message.",
+			}, {
+				ParamID: "body",
+				Label:   "Body",
+				Hint:    "Body of the email message.",
+			}},
 		},
 		{
 			Type:                  destWebhook,
@@ -338,6 +366,19 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 				HintURL:            "/docs#webhooks",
 				SupportsValidation: true,
 			}},
+			IsDynamicAction: true,
+			DynamicParams: []graphql2.DynamicParamConfig{
+				{
+					ParamID: "body",
+					Label:   "Body",
+					Hint:    "The body of the request.",
+				},
+				{
+					ParamID: "content-type",
+					Label:   "Content Type",
+					Hint:    "The content type (usually application/json).",
+				},
+			},
 		},
 		{
 			Type:                  destSlackDM,
@@ -361,6 +402,7 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			Enabled:               cfg.Slack.Enable,
 			IsEPTarget:            true,
 			IsSchedOnCallNotify:   true,
+			IsDynamicAction:       true,
 			SupportsStatusUpdates: true,
 			StatusUpdatesRequired: true,
 			RequiredFields: []graphql2.DestinationFieldConfig{{
@@ -368,6 +410,11 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 				Label:          "Slack Channel",
 				InputType:      "text",
 				SupportsSearch: true,
+			}},
+			DynamicParams: []graphql2.DynamicParamConfig{{
+				ParamID: "message",
+				Label:   "Message",
+				Hint:    "Message to send to the Slack channel.",
 			}},
 		},
 		{

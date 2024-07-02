@@ -267,7 +267,7 @@ function testRotations(screen: ScreenFormat): void {
             type: 'Weekly',
             shiftLength: '5',
           })
-          cy.dialogFinish('Retry')
+          cy.dialogFinish('Submit')
 
           cy.get('body')
             .should('contain', newName)

@@ -135,3 +135,28 @@ SET
 WHERE
     id = $1;
 
+-- name: IntKeyEnsureChannel :one
+WITH insert_q AS (
+INSERT INTO notification_channels(id, type, name, value, dest)
+        VALUES ($1, 'DEST', '', '', $2)
+    ON CONFLICT (dest)
+        DO NOTHING
+    RETURNING
+        id)
+    SELECT
+        id
+    FROM
+        insert_q
+    UNION
+    SELECT
+        id
+    FROM
+        notification_channels
+    WHERE
+        type = 'DEST'
+            AND dest = $2;
+
+-- name: IntKeyInsertSignalMessage :exec
+INSERT INTO pending_signals(dest_id, service_id, params)
+    VALUES ($1, $2, $3);
+
