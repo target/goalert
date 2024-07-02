@@ -3,15 +3,15 @@ import { Chip, Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
 import { DateTime } from 'luxon'
-import { gql } from 'urql'
+import { gql, useQuery } from 'urql'
 import AdminMessageLogsControls from './AdminMessageLogsControls'
 import AdminMessageLogDrawer from './AdminMessageLogDrawer'
-import { DebugMessage } from '../../../schema'
+import { DebugMessage, MessageLogConnection } from '../../../schema'
 import AdminMessageLogsGraph from './AdminMessageLogsGraph'
 import toTitleCase from '../../util/toTitleCase'
-import QueryList from '../../lists/QueryList'
-import { PaginatedListItemProps } from '../../lists/PaginatedList'
 import { useMessageLogsParams } from './util'
+import ListPageControls from '../../lists/ListPageControls'
+import FlatList, { FlatListListItem } from '../../lists/FlatList'
 
 const query = gql`
   query messageLogsQuery($input: MessageLogSearchOptions) {
@@ -54,19 +54,32 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
+const context = { suspense: false }
+
 export default function AdminMessageLogsLayout(): JSX.Element {
   const classes = useStyles()
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
 
   const [{ search, start, end }] = useMessageLogsParams()
+  const [cursor, setCursor] = useState('')
 
   const logsInput = {
     search,
     createdAfter: start,
     createdBefore: end,
+    after: cursor,
   }
 
-  function mapLogToListItem(log: DebugMessage): PaginatedListItemProps {
+  const [q] = useQuery<{ messageLogs: MessageLogConnection }>({
+    query,
+    variables: { input: logsInput },
+    context,
+  })
+  const nextCursor = q.data?.messageLogs.pageInfo.hasNextPage
+    ? q.data?.messageLogs.pageInfo.endCursor
+    : ''
+
+  function mapLogToListItem(log: DebugMessage): FlatListListItem {
     const status = toTitleCase(log.status)
     const statusDict = {
       success: {
@@ -96,8 +109,8 @@ export default function AdminMessageLogsLayout(): JSX.Element {
     if (s.includes('pend')) statusStyles = statusDict.info
 
     return {
-      onClick: () => setSelectedLog(log as DebugMessage),
-      selected: (log as DebugMessage).id === selectedLog?.id,
+      onClick: () => setSelectedLog(log),
+      selected: log.id === selectedLog?.id,
       title: `${log.type} Notification`,
       subText: (
         <Grid container spacing={2} direction='column'>
@@ -109,8 +122,8 @@ export default function AdminMessageLogsLayout(): JSX.Element {
           </Grid>
         </Grid>
       ),
-      action: (
-        <Typography variant='body2' color='textSecondary'>
+      secondaryAction: (
+        <Typography variant='body2' component='div' color='textSecondary'>
           {DateTime.fromISO(log.createdAt).toFormat('fff')}
         </Typography>
       ),
@@ -137,11 +150,18 @@ export default function AdminMessageLogsLayout(): JSX.Element {
         <AdminMessageLogsGraph />
 
         <Grid item xs={12}>
-          <QueryList
-            query={query}
-            variables={{ input: { ...logsInput } }}
-            noSearch
-            mapDataNode={(n) => mapLogToListItem(n as DebugMessage)}
+          <ListPageControls
+            nextCursor={nextCursor}
+            onCursorChange={setCursor}
+            loading={q.fetching}
+            slots={{
+              list: (
+                <FlatList
+                  emptyMessage='No results'
+                  items={q.data?.messageLogs.nodes.map(mapLogToListItem) || []}
+                />
+              ),
+            }}
           />
         </Grid>
       </Grid>
