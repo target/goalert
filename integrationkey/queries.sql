@@ -137,8 +137,8 @@ WHERE
 
 -- name: IntKeyEnsureChannel :one
 WITH insert_q AS (
-INSERT INTO notification_channels(id, type, name, value, dest)
-        VALUES ($1, 'DEST', '', '', $2)
+INSERT INTO notification_channels(id, dest, name)
+        VALUES ($1, $2, 'unknown')
     ON CONFLICT (dest)
         DO NOTHING
     RETURNING
@@ -153,8 +153,7 @@ INSERT INTO notification_channels(id, type, name, value, dest)
     FROM
         notification_channels
     WHERE
-        type = 'DEST'
-            AND dest = $2;
+        dest = $2;
 
 -- name: IntKeyInsertSignalMessage :exec
 INSERT INTO pending_signals(dest_id, service_id, params)
