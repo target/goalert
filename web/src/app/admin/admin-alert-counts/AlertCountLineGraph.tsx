@@ -52,19 +52,20 @@ interface CustomDotProps extends DotProps {
 }
 
 function CustomDot(props: CustomDotProps): JSX.Element {
-  const { cy, cx, fill, r, stroke, strokeWidth, name, payload } = props
-  const dayCount = parseInt(
-    Object.keys(payload).reduce((prev, cur) => {
-      if (cur === 'timestamp') return prev
-      return (payload[prev] as number) + (payload[cur] as number).toString()
-    }),
-  )
+  const { cy, cx, fill, r, stroke, strokeWidth, name = '', payload } = props
+  let totalCount = 0
+  for (let key in payload) {
+    if (key !== 'timestamp') {
+      totalCount += payload[key] as number
+    }
+  }
+
   return (
     <circle
       cy={cy}
       cx={cx}
       fill={fill}
-      r={dayCount === 0 ? 0 : r}
+      r={payload[name] === 0 ? 0 : r}
       stroke={stroke}
       strokeWidth={strokeWidth}
       key={name + '-' + payload.timestamp}
