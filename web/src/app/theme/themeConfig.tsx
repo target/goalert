@@ -116,6 +116,11 @@ function makeTheme(mode: MUIThemeMode, sourceColor: string): Theme {
           color: 'primary',
         },
       },
+      MuiTextField: {
+        defaultProps: {
+          margin: 'dense',
+        },
+      },
       MuiBreadcrumbs: {
         styleOverrides: {
           separator: {

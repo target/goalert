@@ -3,6 +3,8 @@ package notification
 import (
 	"database/sql/driver"
 	"fmt"
+
+	"github.com/target/goalert/gadb"
 )
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type MessageType
@@ -45,6 +47,16 @@ func (s MessageType) Value() (driver.Value, error) {
 		return "schedule_on_call_notification", nil
 	}
 	return nil, fmt.Errorf("could not process unknown type for MessageType %s", s)
+}
+
+func (s *MessageType) FromDB(value gadb.EnumOutgoingMessagesType) error { return s.Scan(string(value)) }
+
+func (s MessageType) ToDB() (gadb.EnumOutgoingMessagesType, error) {
+	val, err := s.Value()
+	if err != nil {
+		return "", err
+	}
+	return gadb.EnumOutgoingMessagesType(val.(string)), nil
 }
 
 func (s *MessageType) Scan(value interface{}) error {

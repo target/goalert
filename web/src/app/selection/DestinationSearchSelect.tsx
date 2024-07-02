@@ -7,7 +7,7 @@ import {
 } from '../../schema'
 import MaterialSelect from './MaterialSelect'
 import { FavoriteIcon } from '../util/SetFavoriteButton'
-import AppLink from '../util/AppLink'
+import { HelperText } from '../forms'
 
 const searchOptionsQuery = gql`
   query DestinationFieldSearch($input: DestinationFieldSearchInput!) {
@@ -35,7 +35,7 @@ export type DestinationSearchSelectProps = DestinationFieldConfig & {
   destType: DestinationType
 
   disabled?: boolean
-  error?: boolean
+  error?: string
 }
 
 const cacheByJSON: Record<string, unknown> = {}
@@ -131,18 +131,16 @@ export default function DestinationSearchSelect(
       noOptionsText='No options'
       disabled={props.disabled}
       noOptionsError={error}
-      error={props.error}
+      error={!!props.error}
       onInputChange={(val) => setInputValue(val)}
       value={value as unknown as SelectOption}
       label={props.label}
       helperText={
-        props.hintURL ? (
-          <AppLink newTab to={props.hintURL}>
-            {props.hint}
-          </AppLink>
-        ) : (
-          props.hint
-        )
+        <HelperText
+          hint={props.hint}
+          hintURL={props.hintURL}
+          error={props.error}
+        />
       }
       options={options
         .map((opt) => ({

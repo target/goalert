@@ -9,10 +9,19 @@ export const destTypes: DestinationTypeInfo[] = [
     isContactMethod: true,
     isEPTarget: true,
     isSchedOnCallNotify: true,
+    isDynamicAction: true,
     iconURL: '',
     iconAltText: '',
     supportsStatusUpdates: false,
     statusUpdatesRequired: false,
+    dynamicParams: [
+      {
+        paramID: 'example-param',
+        label: 'Example Param',
+        hint: 'Some hint text',
+        hintURL: '',
+      },
+    ],
     requiredFields: [
       {
         fieldID: 'phone-number',
@@ -35,10 +44,12 @@ export const destTypes: DestinationTypeInfo[] = [
     isContactMethod: true,
     isEPTarget: true,
     isSchedOnCallNotify: true,
+    isDynamicAction: false,
     iconURL: '',
     iconAltText: '',
     supportsStatusUpdates: true,
     statusUpdatesRequired: false,
+    dynamicParams: [],
     requiredFields: [
       {
         fieldID: 'first-field',
@@ -83,10 +94,12 @@ export const destTypes: DestinationTypeInfo[] = [
     isContactMethod: true,
     isEPTarget: false,
     isSchedOnCallNotify: false,
+    isDynamicAction: false,
     iconURL: '',
     iconAltText: '',
     supportsStatusUpdates: true,
     statusUpdatesRequired: false,
+    dynamicParams: [],
     requiredFields: [
       {
         fieldID: 'phone-number',
@@ -109,10 +122,12 @@ export const destTypes: DestinationTypeInfo[] = [
     isContactMethod: true,
     isEPTarget: false,
     isSchedOnCallNotify: false,
+    isDynamicAction: false,
     iconURL: '',
     iconAltText: '',
     supportsStatusUpdates: false,
     statusUpdatesRequired: true,
+    dynamicParams: [],
     requiredFields: [
       {
         fieldID: 'phone-number',
@@ -135,10 +150,12 @@ export const destTypes: DestinationTypeInfo[] = [
     isContactMethod: true,
     isEPTarget: true,
     isSchedOnCallNotify: true,
+    isDynamicAction: true,
     iconURL: '',
     iconAltText: '',
     supportsStatusUpdates: false,
     statusUpdatesRequired: false,
+    dynamicParams: [],
     requiredFields: [
       {
         fieldID: 'disabled',

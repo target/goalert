@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import UserContactMethodVerificationDialog from '../../users/UserContactMethodVerificationDialog'
 import { useSessionInfo } from '../../util/RequireConfig'
 import { useResetURLParams, useURLParam } from '../../actions'
-import UserContactMethodCreateDialogDest from '../../users/UserContactMethodCreateDialogDest'
+import UserContactMethodCreateDialog from '../../users/UserContactMethodCreateDialog'
 
 export default function NewUserSetup(): JSX.Element {
   const [isFirstLogin] = useURLParam('isFirstLogin', '')
@@ -23,7 +23,7 @@ export default function NewUserSetup(): JSX.Element {
   }
 
   return (
-    <UserContactMethodCreateDialogDest
+    <UserContactMethodCreateDialog
       title='Welcome to GoAlert!'
       subtitle='To get started, please enter a contact method.'
       userID={userID}

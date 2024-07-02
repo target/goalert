@@ -144,7 +144,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	mux.HandleFunc("/api/v2/identity/providers/oidc/callback", oidcAuth)
 
 	if expflag.ContextHas(ctx, expflag.UnivKeys) {
-		mux.HandleFunc("POST /api/v2/uik", app.IntegrationKeyStore.HandleUIK)
+		mux.HandleFunc("POST /api/v2/uik", app.UIKHandler.ServeHTTP)
 	}
 	mux.HandleFunc("/api/v2/mailgun/incoming", mailgun.IngressWebhooks(app.AlertStore, app.IntegrationKeyStore))
 	mux.HandleFunc("/api/v2/grafana/incoming", grafana.GrafanaToEventsAPI(app.AlertStore, app.IntegrationKeyStore))
