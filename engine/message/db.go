@@ -70,7 +70,7 @@ type DB struct {
 func NewDB(ctx context.Context, db *sql.DB, a *alertlog.Store, pausable lifecycle.Pausable) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeMessage,
-		Version: 10,
+		Version: 9,
 	})
 	if err != nil {
 		return nil, err
