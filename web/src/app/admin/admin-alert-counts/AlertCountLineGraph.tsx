@@ -138,7 +138,7 @@ export default function AlertCountLineGraph(
     return Object.values(dateMap)
   }
 
-  const d = React.useMemo(() => flattenData(props.data), [props.data])
+  const data = React.useMemo(() => flattenData(props.data), [props.data])
 
   return (
     <Grid container className={classes.graphContent}>
@@ -149,7 +149,7 @@ export default function AlertCountLineGraph(
             <LineChart
               width={width}
               height={height}
-              data={d}
+              data={data}
               margin={{
                 top: 50,
                 right: 30,
