@@ -102,7 +102,6 @@ export default function AlertCountLineGraph(
   }
 
   function formatTick(date: string): string {
-    if (date == '') return date
     const dt = DateTime.fromISO(date)
     // check for default bounds
 
