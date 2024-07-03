@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/target/goalert/notification"
-	"github.com/target/goalert/notification/nfy"
 )
 
 // ThrottleConfigBuilder can be used to build advanced throttle configurations.
@@ -12,7 +11,7 @@ type ThrottleConfigBuilder struct {
 	parent *ThrottleConfigBuilder
 
 	msgTypes []notification.MessageType
-	dstTypes []nfy.DestType
+	dstTypes []notification.DestType
 
 	rules []builderRules
 	max   time.Duration
@@ -36,7 +35,7 @@ func (b *ThrottleConfigBuilder) WithMsgTypes(msgTypes ...notification.MessageTyp
 }
 
 // WithDestTypes allows adding rules for messages matching at least one DestType.
-func (b *ThrottleConfigBuilder) WithDestTypes(destTypes ...nfy.DestType) *ThrottleConfigBuilder {
+func (b *ThrottleConfigBuilder) WithDestTypes(destTypes ...notification.DestType) *ThrottleConfigBuilder {
 	return &ThrottleConfigBuilder{
 		parent: b.top(),
 
@@ -44,7 +43,6 @@ func (b *ThrottleConfigBuilder) WithDestTypes(destTypes ...nfy.DestType) *Thrott
 		dstTypes: destTypes,
 	}
 }
-
 func (b *ThrottleConfigBuilder) setMax(rules []ThrottleRule) {
 	for _, r := range rules {
 		if r.Per > b.max {
@@ -75,7 +73,7 @@ func (b *ThrottleConfigBuilder) Config() ThrottleConfig {
 
 type builderRules struct {
 	msgTypes []notification.MessageType
-	dstTypes []nfy.DestType
+	dstTypes []notification.DestType
 	rules    []ThrottleRule
 }
 
@@ -95,7 +93,7 @@ func (r builderRules) match(msg Message) bool {
 
 	destMatch := len(r.dstTypes) == 0
 	for _, dst := range r.dstTypes {
-		if dst != msg.DestType() {
+		if dst != msg.Dest.Type {
 			continue
 		}
 

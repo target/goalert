@@ -22,10 +22,10 @@ type Receiver interface {
 	AuthLinkURL(ctx context.Context, providerID, subjectID string, meta authlink.Metadata) (string, error)
 
 	// Start indicates a user has opted-in for notifications to this contact method.
-	Start(context.Context, nfy.Dest) error
+	Start(context.Context, Dest) error
 
 	// Stop indicates a user has opted-out of notifications from a contact method.
-	Stop(context.Context, nfy.Dest) error
+	Stop(context.Context, Dest) error
 
 	// IsKnownDest checks if the given destination is known/not disabled.
 	IsKnownDest(ctx context.Context, value nfy.DestArgs) (bool, error)

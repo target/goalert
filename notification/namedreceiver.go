@@ -16,7 +16,7 @@ var _ Receiver = &namedReceiver{}
 
 // IsKnownDest calls the underlying ResultReceiver.IsKnownDest method for the current type.
 func (nr *namedReceiver) IsKnownDest(ctx context.Context, value nfy.DestArgs) (bool, error) {
-	return nr.r.IsKnownDest(ctx, nfy.Dest{Type: nr.ns.destType, Args: value})
+	return nr.r.IsKnownDest(ctx, nr.ns.destType, value)
 }
 
 // SetMessageStatus calls the underlying ResultReceiver's SetSendResult method after wrapping the status for the
@@ -47,12 +47,12 @@ func (nr *namedReceiver) Stop(ctx context.Context, d Dest) error {
 
 // Receive implements the Receiver interface by calling the underlying Receiver.Receive method.
 func (nr *namedReceiver) Receive(ctx context.Context, callbackID string, result Result) error {
-	metricRecvTotal.WithLabelValues(string(nr.ns.destType), result.String())
+	metricRecvTotal.WithLabelValues(nr.ns.destType.String(), result.String())
 	return nr.r.Receive(ctx, callbackID, result)
 }
 
 // Receive implements the Receiver interface by calling the underlying Receiver.ReceiveSubject method.
 func (nr *namedReceiver) ReceiveSubject(ctx context.Context, providerID, subjectID, callbackID string, result Result) error {
-	metricRecvTotal.WithLabelValues(string(nr.ns.destType), result.String())
+	metricRecvTotal.WithLabelValues(nr.ns.destType.String(), result.String())
 	return nr.r.ReceiveSubject(ctx, providerID, subjectID, callbackID, result)
 }

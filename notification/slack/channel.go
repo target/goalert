@@ -434,9 +434,7 @@ func chanTS(origChannelID, externalID string) (channelID, ts string) {
 	return channelID, ts
 }
 
-const (
-	FieldSlackChannelID = "slack-channel-id"
-)
+const FieldSlackChannelID = "slack-channel-id"
 
 func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)

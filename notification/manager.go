@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
-	"github.com/target/goalert/notification/nfy"
 	"github.com/target/goalert/util/log"
 )
 
@@ -42,7 +41,7 @@ func (mgr *Manager) SetStubNotifiers() {
 
 // FormatDestValue will format the destination value if an available FriendlyValuer exists
 // for the destType or return the original.
-func (mgr *Manager) FormatDestValue(ctx context.Context, destType nfy.DestType, value string) string {
+func (mgr *Manager) FormatDestValue(ctx context.Context, destType DestType, value string) string {
 	if value == "" {
 		return ""
 	}
@@ -71,15 +70,15 @@ func (mgr *Manager) FormatDestValue(ctx context.Context, destType nfy.DestType, 
 }
 
 // MessageStatus will return the current status of a message.
-func (mgr *Manager) MessageStatus(ctx context.Context, providerMsgID ProviderMessageID) (*Status, nfy.DestType, error) {
+func (mgr *Manager) MessageStatus(ctx context.Context, providerMsgID ProviderMessageID) (*Status, DestType, error) {
 	provider := mgr.providers[providerMsgID.ProviderName]
 	if provider == nil {
-		return nil, "", errors.Errorf("unknown provider ID '%s'", providerMsgID.ProviderName)
+		return nil, DestTypeUnknown, errors.Errorf("unknown provider ID '%s'", providerMsgID.ProviderName)
 	}
 
 	checker, ok := provider.Sender.(StatusChecker)
 	if !ok {
-		return nil, "", ErrStatusUnsupported
+		return nil, DestTypeUnknown, ErrStatusUnsupported
 	}
 
 	status, err := checker.Status(ctx, providerMsgID.ExternalID)
@@ -88,7 +87,7 @@ func (mgr *Manager) MessageStatus(ctx context.Context, providerMsgID ProviderMes
 
 // RegisterSender will register a sender under a given DestType and name.
 // A sender for the same name and type will replace an existing one, if any.
-func (mgr *Manager) RegisterSender(t nfy.DestType, name string, s Sender) {
+func (mgr *Manager) RegisterSender(t DestType, name string, s Sender) {
 	mgr.mx.Lock()
 	defer mgr.mx.Unlock()
 
@@ -126,7 +125,7 @@ func (mgr *Manager) SendMessage(ctx context.Context, msg Message) (*SendResult, 
 	mgr.mx.RLock()
 	defer mgr.mx.RUnlock()
 
-	destType := msg.DestType()
+	destType := msg.Destination().Type
 
 	ctx = log.WithFields(ctx, log.Fields{
 		"ProviderType": destType,
@@ -151,7 +150,7 @@ func (mgr *Manager) SendMessage(ctx context.Context, msg Message) (*SendResult, 
 		}
 		log.Logf(sendCtx, "notification sent")
 		metricSentTotal.
-			WithLabelValues(string(msg.DestType()), msg.Type().String(), msgSvcID(msg)).
+			WithLabelValues(msg.Destination().Type.String(), msg.Type().String(), msgSvcID(msg)).
 			Inc()
 		// status already wrapped via namedSender
 		return res, nil

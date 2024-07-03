@@ -14,8 +14,8 @@ type ResultReceiver interface {
 	Receive(ctx context.Context, callbackID string, result Result) error
 	ReceiveSubject(ctx context.Context, providerID, subjectID, callbackID string, result Result) error
 	AuthLinkURL(ctx context.Context, providerID, subjectID string, meta authlink.Metadata) (string, error)
-	Start(context.Context, nfy.Dest) error
-	Stop(context.Context, nfy.Dest) error
+	Start(context.Context, Dest) error
+	Stop(context.Context, Dest) error
 
-	IsKnownDest(ctx context.Context, dest nfy.Dest) (bool, error)
+	IsKnownDest(ctx context.Context, destType DestType, destValue nfy.DestArgs) (bool, error)
 }
