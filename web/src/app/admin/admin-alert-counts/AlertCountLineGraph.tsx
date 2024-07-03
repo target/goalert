@@ -46,7 +46,10 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 interface CustomDotProps extends DotProps {
   payload: {
-    timestamp: string
+    // s: service name
+    // Using 1 character as anything else may collide with a service with the same name
+    // A service name cannot be 1 character
+    s: string
     [key: string]: number | string
   }
 }
@@ -62,8 +65,8 @@ function CustomDot(props: CustomDotProps): JSX.Element {
       r={payload[name] === 0 ? 0 : r}
       stroke={stroke}
       strokeWidth={strokeWidth}
-      key={name + '-' + payload.timestamp}
-      data-cy={name + '-' + payload.timestamp}
+      key={name + '-' + payload.s}
+      data-cy={name + '-' + payload.s}
     />
   )
 }
@@ -122,7 +125,7 @@ export default function AlertCountLineGraph(
       service.dailyCounts.forEach(
         (dailyCount: { date: string; dayTotal: number }) => {
           if (!dateMap[dailyCount.date]) {
-            dateMap[dailyCount.date] = { timestamp: dailyCount.date }
+            dateMap[dailyCount.date] = { s: dailyCount.date }
           }
           dateMap[dailyCount.date][service.serviceName] = dailyCount.dayTotal
         },
@@ -157,7 +160,7 @@ export default function AlertCountLineGraph(
                 stroke={theme.palette.text.secondary}
               />
               <XAxis
-                dataKey='timestamp'
+                dataKey='s'
                 allowDuplicatedCategory={false}
                 minTickGap={15}
                 stroke={theme.palette.text.secondary}
