@@ -42,8 +42,8 @@ func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*
 		return nil, errors.Errorf("unsupported message type: %T", msg)
 	}
 
-	if t.Destination().Type != notification.DestTypeSlackUG {
-		return nil, errors.Errorf("unsupported destination type: %s", t.Destination().Type)
+	if t.Dest.Type != notification.DestTypeSlackUG {
+		return nil, errors.Errorf("unsupported destination type: %s", t.Dest.Type.String())
 	}
 
 	teamID, err := s.TeamID(ctx)

@@ -13,10 +13,7 @@ import (
 	"github.com/target/goalert/notification"
 )
 
-const (
-	DestType        = "builtin-webhook"
-	FieldWebhookURL = "webhook-url"
-)
+const FieldWebhookURL = "webhook-url"
 
 type Sender struct{}
 

@@ -6,10 +6,7 @@ import (
 	"github.com/target/goalert/notification"
 )
 
-const (
-	DestTypeDM       = "builtin-slack-dm"
-	FieldSlackUserID = "slack-user-id"
-)
+const FieldSlackUserID = "slack-user-id"
 
 // DMSender wraps a ChannelSender with DM-specific functionality.
 type DMSender struct {

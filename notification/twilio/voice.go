@@ -57,8 +57,6 @@ const (
 	digitOldClose = "9"
 	digitEscalate = "5"
 	sayRepeat     = "star"
-
-	DestTypeVoice = "builtin-twilio-voice"
 )
 
 var (
@@ -177,7 +175,7 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 	if !cfg.Twilio.Enable {
 		return nil, errors.New("Twilio provider is disabled")
 	}
-	toNumber := msg.DestArg(FieldPhoneNumber)
+	toNumber := msg.Destination().Arg(FieldPhoneNumber)
 
 	if toNumber == cfg.Twilio.FromNumber {
 		return nil, errors.New("refusing to make outgoing call to FromNumber")
@@ -328,7 +326,7 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 		return
 	case digitConfirm:
 		err := doDeadline(ctx, func() error {
-			return v.r.Stop(ctx, nfy.NewDest(DestTypeVoice, FieldPhoneNumber, call.Number))
+			return v.r.Stop(ctx, nfy.NewDest(notification.DestTypeVoice, FieldPhoneNumber, call.Number))
 		})
 		if errResp(false, errors.Wrap(err, "process STOP response"), "") {
 			return
