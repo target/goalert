@@ -435,7 +435,6 @@ func chanTS(origChannelID, externalID string) (channelID, ts string) {
 }
 
 const (
-	DestTypeChannel     = "builtin-slack-channel"
 	FieldSlackChannelID = "slack-channel-id"
 )
 
@@ -446,10 +445,10 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 
 	var opts []slack.MsgOption
 	var isUpdate bool
-	destID := msg.DestArg(FieldSlackChannelID)
-	if msg.DestType() == DestTypeDM {
+	channelID := msg.Destination().Arg(FieldSlackChannelID)
+	if msg.Destination().Type == notification.DestTypeSlackDM {
 		// DMs are sent to the user, not the channel.
-		destID = msg.DestArg(FieldSlackUserID)
+		channelID = msg.Destination().Arg(FieldSlackUserID)
 	}
 	switch t := msg.(type) {
 	case notification.Test:
@@ -459,7 +458,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	case notification.Alert:
 		if t.OriginalStatus != nil {
 			var ts string
-			destID, ts = chanTS(destID, t.OriginalStatus.ProviderMessageID.ExternalID)
+			channelID, ts = chanTS(channelID, t.OriginalStatus.ProviderMessageID.ExternalID)
 
 			// Reply in thread if we already sent a message for this alert.
 			opts = append(opts,
@@ -474,7 +473,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	case notification.AlertStatus:
 		isUpdate = true
 		var ts string
-		destID, ts = chanTS(destID, t.OriginalStatus.ProviderMessageID.ExternalID)
+		channelID, ts = chanTS(channelID, t.OriginalStatus.ProviderMessageID.ExternalID)
 		opts = append(opts,
 			slack.MsgOptionUpdate(ts),
 			alertMsgOption(ctx, t.OriginalStatus.ID, t.AlertID, t.Summary, t.LogEntry, t.NewAlertState),
@@ -491,11 +490,11 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 
 	var externalID string
 	err := s.withClient(ctx, func(c *slack.Client) error {
-		msgChan, msgTS, err := c.PostMessageContext(ctx, destID, opts...)
+		msgChan, msgTS, err := c.PostMessageContext(ctx, channelID, opts...)
 		if err != nil {
 			return err
 		}
-		if msgChan != destID {
+		if msgChan != channelID {
 			// DMs have a generated channel ID that we need to store
 			// along with the timestamp that does not match the original
 			// in order to update the message.

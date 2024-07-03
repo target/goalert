@@ -1,7 +1,5 @@
 package notification
 
-import "github.com/target/goalert/notification/nfy"
-
 // AlertState is the current state of an Alert.
 type AlertState int
 
@@ -14,7 +12,7 @@ const (
 )
 
 type AlertStatus struct {
-	nfy.Dest
+	Dest       Dest
 	CallbackID string
 	AlertID    int
 	LogEntry   string
@@ -36,3 +34,4 @@ var _ Message = &AlertStatus{}
 
 func (s AlertStatus) Type() MessageType { return MessageTypeAlertStatus }
 func (s AlertStatus) ID() string        { return s.CallbackID }
+func (s AlertStatus) Destination() Dest { return s.Dest }

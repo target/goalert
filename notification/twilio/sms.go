@@ -34,7 +34,6 @@ var (
 )
 
 const (
-	DestTypeSMS      = "builtin-twilio-sms"
 	FieldPhoneNumber = "phone-number"
 )
 
@@ -91,10 +90,10 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 	if !cfg.Twilio.Enable {
 		return nil, errors.New("Twilio provider is disabled")
 	}
-	if msg.DestType() != DestTypeSMS {
-		return nil, errors.Errorf("unsupported destination type %s; expected SMS", msg.DestType())
+	if msg.Destination().Type != notification.DestTypeSMS {
+		return nil, errors.Errorf("unsupported destination type %s; expected SMS", msg.Destination().Type)
 	}
-	destNumber := msg.DestArg(FieldPhoneNumber)
+	destNumber := msg.Destination().Arg(FieldPhoneNumber)
 	if destNumber == cfg.Twilio.FromNumber {
 		return nil, errors.New("refusing to send outgoing SMS to FromNumber")
 	}
@@ -283,7 +282,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	// handle start and stop codes from user
 	body := req.FormValue("Body")
 
-	dest := nfy.NewDest(DestTypeSMS, FieldPhoneNumber, from)
+	dest := nfy.NewDest(notification.DestTypeSMS, FieldPhoneNumber, from)
 	if isStartMessage(body) {
 		err := retry.DoTemporaryError(func(int) error { return s.r.Start(ctx, dest) }, retryOpts...)
 		if err != nil {

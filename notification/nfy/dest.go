@@ -44,12 +44,8 @@ func (t DestType) String() string { return string(t) }
 // DestHash is a comparable-type for distinguishing unique destination values.
 type DestHash [32]byte
 
-func (d Dest) DestType() DestType {
-	return d.Type
-}
-
 // Arg will return the value of the named argument for the destination.
-func (d Dest) DestArg(name string) string {
+func (d Dest) Arg(name string) string {
 	if d.Args == nil {
 		return ""
 	}
@@ -58,7 +54,7 @@ func (d Dest) DestArg(name string) string {
 }
 
 // Hash will return a unique & stable hash for the destination.
-func (d Dest) DestHash() DestHash {
+func (d Dest) Hash() DestHash {
 	keys := make([]string, 0, len(d.Args))
 	for k := range d.Args {
 		keys = append(keys, k)

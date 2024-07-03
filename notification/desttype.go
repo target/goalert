@@ -1,51 +1,14 @@
 package notification
 
 import (
-	"database/sql"
-	"fmt"
-
-	"github.com/google/uuid"
-	"github.com/target/goalert/gadb"
+	"github.com/target/goalert/notification/nfy"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/user/contactmethod"
 )
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type DestType
 
-type Dest struct {
-	ID    string
-	Type  DestType
-	Value string
-}
-type SQLDest struct {
-	CMID    uuid.NullUUID
-	CMType  gadb.NullEnumUserContactMethodType
-	CMValue sql.NullString
-
-	NCID    uuid.NullUUID
-	NCType  gadb.NullEnumNotifChannelType
-	NCValue sql.NullString
-}
-
-func (s SQLDest) Dest() Dest {
-	if s.CMID.Valid {
-		return Dest{
-			ID:    s.CMID.UUID.String(),
-			Value: s.CMValue.String,
-			Type:  ScannableDestType{CM: contactmethod.Type(s.CMType.EnumUserContactMethodType)}.DestType(),
-		}
-	}
-
-	if s.NCID.Valid {
-		return Dest{
-			ID:    s.NCID.UUID.String(),
-			Value: s.NCValue.String,
-			Type:  ScannableDestType{NC: notificationchannel.Type(s.NCType.EnumNotifChannelType)}.DestType(),
-		}
-	}
-
-	panic("no valid ID")
-}
+type Dest = nfy.Dest
 
 // DestFromPair will return a Dest for a notification channel/contact method pair.
 func DestFromPair(cm *contactmethod.ContactMethod, nc *notificationchannel.Channel) Dest {
@@ -65,24 +28,19 @@ func DestFromPair(cm *contactmethod.ContactMethod, nc *notificationchannel.Chann
 }
 
 // DestType represents the type of destination, it is a combination of available contact methods and notification channels.
-type DestType int
+type DestType = nfy.DestType
 
 const (
-	DestTypeUnknown DestType = iota
-	DestTypeVoice
-	DestTypeSMS
-	DestTypeSlackChannel
-	DestTypeSlackDM
-	DestTypeUserEmail
-	DestTypeUserWebhook
-	DestTypeChanWebhook
-	DestTypeSlackUG
+	DestTypeUnknown      = ""
+	DestTypeVoice        = nfy.CompatDestTypeTwilioVoice
+	DestTypeSMS          = nfy.CompatDestTypeTwilioSMS
+	DestTypeSlackChannel = nfy.CompatDestTypeSlackChan
+	DestTypeSlackDM      = nfy.CompatDestTypeSlackDM
+	DestTypeUserEmail    = nfy.CompatDestTypeSMTP
+	DestTypeUserWebhook  = nfy.CompatDestTypeWebhook
+	DestTypeChanWebhook  = nfy.CompatDestTypeWebhook
+	DestTypeSlackUG      = nfy.CompatDestTypeSlackUG
 )
-
-func (d Dest) String() string { return fmt.Sprintf("%s(%s)", d.Type.String(), d.ID) }
-
-// IsUserCM returns true if the DestType represents a user contact method.
-func (t DestType) IsUserCM() bool { return t.CMType() != contactmethod.TypeUnknown }
 
 // ScannableDestType allows scanning a DestType from separate columns for user contact methods and notification channels.
 type ScannableDestType struct {
