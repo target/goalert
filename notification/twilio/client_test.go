@@ -13,10 +13,9 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.Test{
-				Dest: notification.Dest{
-					ID:    "1",
-					Type:  notification.DestTypeVoice,
-					Value: "+16125551234",
+				DestV2: notification.DestV2{
+					Type: DestTypeVoice,
+					Args: notification.DestArgs{FieldPhoneNumber: "+16125551234"},
 				},
 				CallbackID: "2",
 			},
@@ -34,10 +33,9 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.AlertBundle{
-				Dest: notification.Dest{
-					ID:    "1",
-					Type:  notification.DestTypeVoice,
-					Value: "+16125551234",
+				DestV2: notification.DestV2{
+					Type: DestTypeVoice,
+					Args: notification.DestArgs{FieldPhoneNumber: "+16125551234"},
 				},
 				CallbackID:  "2",
 				ServiceID:   "3",
@@ -61,10 +59,9 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.Alert{
-				Dest: notification.Dest{
-					ID:    "1",
-					Type:  notification.DestTypeVoice,
-					Value: "+16125551234",
+				DestV2: notification.DestV2{
+					Type: DestTypeVoice,
+					Args: notification.DestArgs{FieldPhoneNumber: "+16125551234"},
 				},
 				CallbackID: "2",
 				AlertID:    3,
@@ -85,10 +82,9 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.AlertStatus{
-				Dest: notification.Dest{
-					ID:    "1",
-					Type:  notification.DestTypeVoice,
-					Value: "+16125551234",
+				DestV2: notification.DestV2{
+					Type: DestTypeVoice,
+					Args: notification.DestArgs{FieldPhoneNumber: "+16125551234"},
 				},
 				CallbackID: "2",
 				AlertID:    3,
@@ -110,10 +106,9 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.Verification{
-				Dest: notification.Dest{
-					ID:    "1",
-					Type:  notification.DestTypeVoice,
-					Value: "+16125551234",
+				DestV2: notification.DestV2{
+					Type: DestTypeVoice,
+					Args: notification.DestArgs{FieldPhoneNumber: "+16125551234"},
 				},
 				CallbackID: "2",
 				Code:       1234,
@@ -132,10 +127,9 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.ScheduleOnCallUsers{
-				Dest: notification.Dest{
-					ID:    "1",
-					Type:  notification.DestTypeVoice,
-					Value: "+16125551234",
+				DestV2: notification.DestV2{
+					Type: DestTypeVoice,
+					Args: notification.DestArgs{FieldPhoneNumber: "+16125551234"},
 				},
 				CallbackID:   "2",
 				ScheduleID:   "3",

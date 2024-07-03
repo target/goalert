@@ -32,6 +32,11 @@ var (
 	svcReplyRx = regexp.MustCompile(`^'?\s*([0-9]+)\s*(cc|aa)\s*'?$`)
 )
 
+const (
+	DestTypeSMS      = "builtin-twilio-sms"
+	FieldPhoneNumber = "phone-number"
+)
+
 // SMS implements a notification.Sender for Twilio SMS.
 type SMS struct {
 	b *dbSMS
@@ -85,10 +90,10 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 	if !cfg.Twilio.Enable {
 		return nil, errors.New("Twilio provider is disabled")
 	}
-	if msg.Destination().Type != notification.DestTypeSMS {
-		return nil, errors.Errorf("unsupported destination type %s; expected SMS", msg.Destination().Type)
+	if msg.DestType() != DestTypeSMS {
+		return nil, errors.Errorf("unsupported destination type %s; expected SMS", msg.DestType())
 	}
-	destNumber := msg.Destination().Value
+	destNumber := msg.DestArg(FieldPhoneNumber)
 	if destNumber == cfg.Twilio.FromNumber {
 		return nil, errors.New("refusing to send outgoing SMS to FromNumber")
 	}

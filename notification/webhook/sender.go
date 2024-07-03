@@ -13,6 +13,11 @@ import (
 	"github.com/target/goalert/notification"
 )
 
+const (
+	DestType        = "builtin-webhook"
+	FieldWebhookURL = "webhook-url"
+)
+
 type Sender struct{}
 
 // POSTDataAlert represents fields in outgoing alert notification.
@@ -156,7 +161,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
 
-	if !cfg.ValidWebhookURL(msg.Destination().Value) {
+	if !cfg.ValidWebhookURL(msg.DestArg(FieldWebhookURL)) {
 		// fail permanently if the URL is not currently valid/allowed
 		return &notification.SentMessage{
 			State:        notification.StateFailedPerm,
@@ -164,7 +169,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		}, nil
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", msg.Destination().Value, bytes.NewReader(data))
+	req, err := http.NewRequestWithContext(ctx, "POST", msg.DestArg(FieldWebhookURL), bytes.NewReader(data))
 	if err != nil {
 		return nil, err
 	}

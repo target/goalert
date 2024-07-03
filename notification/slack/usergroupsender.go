@@ -16,6 +16,11 @@ import (
 	"github.com/target/goalert/util/log"
 )
 
+const (
+	DestTypeUsergroup     = "builtin-slack-usergroup"
+	FieldSlackUsergroupID = "slack-usergroup-id"
+)
+
 // UserGroupSender processes on-call notifications by updating the members of a Slack user group.
 type UserGroupSender struct {
 	*ChannelSender
@@ -40,8 +45,8 @@ func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*
 		return nil, errors.Errorf("unsupported message type: %T", msg)
 	}
 
-	if t.Dest.Type != notification.DestTypeSlackUG {
-		return nil, errors.Errorf("unsupported destination type: %s", t.Dest.Type.String())
+	if t.DestType() != DestTypeUsergroup {
+		return nil, errors.Errorf("unsupported destination type: %s", t.DestType())
 	}
 
 	teamID, err := s.TeamID(ctx)
@@ -75,7 +80,8 @@ func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*
 		slackUsers = append(slackUsers, slackID)
 	}
 
-	ugID, chanID, _ := strings.Cut(t.Dest.Value, ":")
+	ugID := t.DestArg(FieldSlackUsergroupID)
+	chanID := t.DestArg(FieldSlackChannelID)
 	cfg := config.FromContext(ctx)
 
 	var errorMsg, stateDetails string

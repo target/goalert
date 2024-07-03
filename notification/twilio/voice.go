@@ -56,6 +56,8 @@ const (
 	digitOldClose = "9"
 	digitEscalate = "5"
 	sayRepeat     = "star"
+
+	DestTypeVoice = "builtin-twilio-voice"
 )
 
 var (
@@ -174,7 +176,7 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 	if !cfg.Twilio.Enable {
 		return nil, errors.New("Twilio provider is disabled")
 	}
-	toNumber := msg.Destination().Value
+	toNumber := msg.DestArg(FieldPhoneNumber)
 
 	if toNumber == cfg.Twilio.FromNumber {
 		return nil, errors.New("refusing to make outgoing call to FromNumber")
