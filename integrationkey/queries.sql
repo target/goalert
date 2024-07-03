@@ -136,6 +136,7 @@ WHERE
     id = $1;
 
 -- name: IntKeyEnsureChannel :one
+-- IntKeyEnsureChannel will return the ID of a channel for a given dest, creating it if it doesn't exist.
 WITH insert_q AS (
 INSERT INTO notification_channels(id, dest, name)
         VALUES ($1, $2, 'unknown')
