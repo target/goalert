@@ -2,12 +2,12 @@
 
 export interface Action {
   dest: Destination
-  params: DynamicParam[]
+  params: ExprStringMap
 }
 
 export interface ActionInput {
   dest: DestinationInput
-  params: DynamicParamInput[]
+  params: ExprStringMap
 }
 
 export interface Alert {
@@ -394,6 +394,7 @@ export interface DebugSendSMSInput {
 }
 
 export interface Destination {
+  args: StringMap
   displayInfo: InlineDisplayInfo
   type: DestinationType
   values: FieldValuePair[]
@@ -438,8 +439,9 @@ export interface DestinationFieldValidateInput {
 }
 
 export interface DestinationInput {
+  args?: null | StringMap
   type: DestinationType
-  values: FieldValueInput[]
+  values?: null | FieldValueInput[]
 }
 
 export type DestinationType = string
@@ -461,11 +463,6 @@ export interface DestinationTypeInfo {
   userDisclaimer: string
 }
 
-export interface DynamicParam {
-  expr: ExprStringExpression
-  paramID: string
-}
-
 export interface DynamicParamConfig {
   hint: string
   hintURL: string
@@ -473,15 +470,11 @@ export interface DynamicParamConfig {
   paramID: string
 }
 
-export interface DynamicParamInput {
-  expr: ExprStringExpression
-  paramID: string
-}
-
 export type ErrorCode =
   | 'EXPR_TOO_COMPLEX'
   | 'INVALID_DEST_FIELD_VALUE'
   | 'INVALID_INPUT_VALUE'
+  | 'INVALID_MAP_FIELD_VALUE'
 
 export interface EscalationPolicy {
   assignedTo: Target[]
@@ -531,6 +524,8 @@ export type ExprIdentifier = string
 export type ExprOperator = string
 
 export type ExprStringExpression = string
+
+export type ExprStringMap = Record<string, string>
 
 export interface ExprToConditionInput {
   expr: ExprBooleanExpression
@@ -858,6 +853,7 @@ export interface PhoneNumberInfo {
 export interface Query {
   __schema: __Schema
   __type?: null | __Type
+  actionInputValidate: boolean
   alert?: null | Alert
   alerts: AlertConnection
   authSubjectsForProvider: AuthSubjectConnection
@@ -1156,6 +1152,8 @@ export interface StringConnection {
   nodes: string[]
   pageInfo: PageInfo
 }
+
+export type StringMap = Record<string, string>
 
 export interface SystemLimit {
   description: string

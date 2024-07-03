@@ -21,6 +21,15 @@ enum ErrorCode {
   INVALID_DEST_FIELD_VALUE
 
   """
+  The `path` field contains the exact path to the map that is invalid.
+
+  The `extensions.key` field contains the key of the value that is invalid.
+
+  A separate error will be returned for each invalid value.
+  """
+  INVALID_MAP_FIELD_VALUE
+
+  """
   The expr expression is too complex to be converted to a Condition.
   """
   EXPR_TOO_COMPLEX

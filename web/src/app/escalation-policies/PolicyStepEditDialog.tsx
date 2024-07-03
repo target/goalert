@@ -6,9 +6,9 @@ import PolicyStepForm, { FormValue } from './PolicyStepForm'
 import {
   Destination,
   EscalationPolicy,
-  FieldValuePair,
   UpdateEscalationPolicyStepInput,
 } from '../../schema'
+import { getNotice } from './utils'
 
 interface PolicyStepEditDialogProps {
   escalationPolicyID: string
@@ -32,10 +32,7 @@ const query = gql`
         delayMinutes
         actions {
           type
-          values {
-            fieldID
-            value
-          }
+          args
         }
       }
     }
@@ -59,15 +56,16 @@ export default function PolicyStepEditDialog(
     actions: (step.actions || []).map((a: Destination) => ({
       // remove extraneous fields
       type: a.type,
-      values: a.values.map((v: FieldValuePair) => ({
-        fieldID: v.fieldID,
-        value: v.value,
-      })),
+      args: a.args,
     })),
     delayMinutes: step.delayMinutes,
   })
 
   const [editStepStatus, editStep] = useMutation(mutation)
+
+  const [hasSubmitted, setHasSubmitted] = useState(false)
+  const [hasConfirmed, setHasConfirmed] = useState(false)
+  const noActionsNoConf = value.actions.length === 0 && !hasConfirmed
 
   // Edit dialog has no errors to be handled by the form:
   // - actions field has it's own validation
@@ -83,8 +81,13 @@ export default function PolicyStepEditDialog(
       disablePortal={props.disablePortal}
       maxWidth='sm'
       onClose={props.onClose}
-      onSubmit={() =>
-        editStep(
+      onSubmit={() => {
+        if (noActionsNoConf) {
+          setHasSubmitted(true)
+          return
+        }
+
+        return editStep(
           {
             input: {
               id: props.stepID,
@@ -96,7 +99,7 @@ export default function PolicyStepEditDialog(
         ).then((result) => {
           if (!result.error) props.onClose()
         })
-      }
+      }}
       form={
         <PolicyStepForm
           disabled={editStepStatus.fetching}
@@ -104,6 +107,7 @@ export default function PolicyStepEditDialog(
           onChange={(value: FormValue) => setValue(value)}
         />
       }
+      notices={getNotice(hasSubmitted, hasConfirmed, setHasConfirmed)}
     />
   )
 }

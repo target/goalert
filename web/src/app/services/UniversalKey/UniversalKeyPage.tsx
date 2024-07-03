@@ -3,11 +3,14 @@ import { gql, useQuery } from 'urql'
 import { Redirect } from 'wouter'
 import { GenericError, ObjectNotFound } from '../../error-pages'
 import { IntegrationKey, Service } from '../../../schema'
+import UniversalKeyRuleList from './UniversalKeyRuleConfig'
 import DetailsPage from '../../details/DetailsPage'
 import { Action } from '../../details/CardActions'
 import GenTokenDialog from './GenTokenDialog'
 import PromoteTokenDialog from './PromoteTokenDialog'
 import DeleteSecondaryTokenDialog from './DeleteSecondaryTokenDialog'
+import UniversalKeyDefaultActions from './UniversalKeyDefaultActions'
+import { Grid } from '@mui/material'
 
 interface UniversalKeyPageProps {
   serviceID: string
@@ -109,7 +112,22 @@ export default function UniversalKeyPage(
         subheader={`Service: ${q.data.service.name}`}
         details={desc}
         primaryActions={makeGenerateButtons()}
-        pageContent={<div />}
+        pageContent={
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <UniversalKeyRuleList
+                serviceID={props.serviceID}
+                keyID={props.keyID}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <UniversalKeyDefaultActions
+                serviceID={props.serviceID}
+                keyID={props.keyID}
+              />
+            </Grid>
+          </Grid>
+        }
       />
       {genDialogOpen && (
         <GenTokenDialog

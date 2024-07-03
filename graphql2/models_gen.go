@@ -33,13 +33,13 @@ type InlineDisplayInfo interface {
 }
 
 type Action struct {
-	Dest   *Destination   `json:"dest"`
-	Params []DynamicParam `json:"params"`
+	Dest   *Destination      `json:"dest"`
+	Params map[string]string `json:"params"`
 }
 
 type ActionInput struct {
-	Dest   *DestinationInput   `json:"dest"`
-	Params []DynamicParamInput `json:"params"`
+	Dest   *DestinationInput `json:"dest"`
+	Params map[string]string `json:"params"`
 }
 
 type AlertConnection struct {
@@ -357,6 +357,7 @@ type DebugSendSMSInput struct {
 type Destination struct {
 	Type        string            `json:"type"`
 	Values      []FieldValuePair  `json:"values"`
+	Args        map[string]string `json:"args"`
 	DisplayInfo InlineDisplayInfo `json:"displayInfo"`
 }
 
@@ -428,7 +429,8 @@ type DestinationFieldValidateInput struct {
 
 type DestinationInput struct {
 	Type   string            `json:"type"`
-	Values []FieldValueInput `json:"values"`
+	Values []FieldValueInput `json:"values,omitempty"`
+	Args   map[string]string `json:"args,omitempty"`
 }
 
 type DestinationTypeInfo struct {
@@ -459,11 +461,6 @@ type DestinationTypeInfo struct {
 	StatusUpdatesRequired bool `json:"statusUpdatesRequired"`
 }
 
-type DynamicParam struct {
-	ParamID string `json:"paramID"`
-	Expr    string `json:"expr"`
-}
-
 type DynamicParamConfig struct {
 	// unique ID for the input field
 	ParamID string `json:"paramID"`
@@ -473,11 +470,6 @@ type DynamicParamConfig struct {
 	Hint string `json:"hint"`
 	// URL to link to for more information about the destination type
 	HintURL string `json:"hintURL"`
-}
-
-type DynamicParamInput struct {
-	ParamID string `json:"paramID"`
-	Expr    string `json:"expr"`
 }
 
 type EscalationPolicyConnection struct {
@@ -1202,6 +1194,12 @@ const (
 	//
 	// A separate error will be returned for each invalid field.
 	ErrorCodeInvalidDestFieldValue ErrorCode = "INVALID_DEST_FIELD_VALUE"
+	// The `path` field contains the exact path to the map that is invalid.
+	//
+	// The `extensions.key` field contains the key of the value that is invalid.
+	//
+	// A separate error will be returned for each invalid value.
+	ErrorCodeInvalidMapFieldValue ErrorCode = "INVALID_MAP_FIELD_VALUE"
 	// The expr expression is too complex to be converted to a Condition.
 	ErrorCodeExprTooComplex ErrorCode = "EXPR_TOO_COMPLEX"
 )
@@ -1209,12 +1207,13 @@ const (
 var AllErrorCode = []ErrorCode{
 	ErrorCodeInvalidInputValue,
 	ErrorCodeInvalidDestFieldValue,
+	ErrorCodeInvalidMapFieldValue,
 	ErrorCodeExprTooComplex,
 }
 
 func (e ErrorCode) IsValid() bool {
 	switch e {
-	case ErrorCodeInvalidInputValue, ErrorCodeInvalidDestFieldValue, ErrorCodeExprTooComplex:
+	case ErrorCodeInvalidInputValue, ErrorCodeInvalidDestFieldValue, ErrorCodeInvalidMapFieldValue, ErrorCodeExprTooComplex:
 		return true
 	}
 	return false

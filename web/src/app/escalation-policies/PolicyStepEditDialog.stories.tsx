@@ -5,7 +5,7 @@ import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
 import { handleDefaultConfig } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 import { DestFieldValueError } from '../util/errtypes'
-import { EscalationPolicyStep } from '../../schema'
+import { Destination, EscalationPolicyStep } from '../../schema'
 
 const meta = {
   title: 'Escalation Policies/Steps/Edit Dialog',
@@ -37,7 +37,7 @@ const meta = {
           })
         }),
         graphql.query('DestDisplayInfo', ({ variables: vars }) => {
-          if (vars.input.values[0].value.length !== 12) {
+          if (vars.input.args['phone-number'].length !== 12) {
             return HttpResponse.json({
               errors: [
                 { message: 'generic error' },
@@ -56,7 +56,7 @@ const meta = {
           return HttpResponse.json({
             data: {
               destinationDisplayInfo: {
-                text: vars.input.values[0].value,
+                text: vars.input.args['phone-number'],
                 iconURL: 'builtin://phone-voice',
                 iconAltText: 'Voice Call',
               },
@@ -76,10 +76,8 @@ const meta = {
                     actions: [
                       {
                         type: 'single-field',
-                        values: [
-                          { fieldID: 'phone-number', value: '+19995550123' },
-                        ],
-                      },
+                        args: { 'phone-number': '+19995550123' },
+                      } as Partial<Destination> as Destination,
                     ],
                   } as EscalationPolicyStep,
                 ],
@@ -138,6 +136,10 @@ export const UpdatePolicyStep: Story = {
     await expect(await canvas.findByText('Invalid number')).toBeVisible()
     await expect(await canvas.findByText('generic error')).toBeVisible()
 
+    await waitFor(async function AddDestFinish() {
+      await expect(phoneInput).not.toBeDisabled()
+    })
+
     await userEvent.clear(phoneInput)
     await userEvent.type(phoneInput, '12225550123')
     await userEvent.click(await canvas.findByText('Add Destination'))
@@ -149,6 +151,9 @@ export const UpdatePolicyStep: Story = {
     })
 
     const delayField = await canvas.findByLabelText('Delay (minutes)')
+    await waitFor(async function AddDestFinish() {
+      await expect(delayField).not.toBeDisabled()
+    })
     await userEvent.clear(delayField)
     await userEvent.type(delayField, '999')
     await userEvent.click(await canvas.findByText('Submit'))
