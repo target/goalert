@@ -1,8 +1,10 @@
 package notification
 
+import "github.com/target/goalert/notification/nfy"
+
 // Alert represents outgoing notifications for alerts.
 type Alert struct {
-	DestV2
+	nfy.Dest
 	CallbackID  string // CallbackID is the identifier used to communicate a response to the notification
 	AlertID     int    // The global alert number
 	Summary     string

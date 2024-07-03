@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfy"
 )
 
 func TestSetMsgParams(t *testing.T) {
@@ -13,10 +14,8 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.Test{
-				DestV2: notification.DestV2{
-					Type: DestTypeVoice,
-					Args: notification.DestArgs{FieldPhoneNumber: "+16125551234"},
-				},
+				Dest: nfy.NewDest(DestTypeVoice,
+					FieldPhoneNumber, "+16125551234"),
 				CallbackID: "2",
 			},
 		)
@@ -33,10 +32,8 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.AlertBundle{
-				DestV2: notification.DestV2{
-					Type: DestTypeVoice,
-					Args: notification.DestArgs{FieldPhoneNumber: "+16125551234"},
-				},
+				Dest: nfy.NewDest(DestTypeVoice,
+					FieldPhoneNumber, "+16125551234"),
 				CallbackID:  "2",
 				ServiceID:   "3",
 				ServiceName: "Widget",
@@ -59,10 +56,8 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.Alert{
-				DestV2: notification.DestV2{
-					Type: DestTypeVoice,
-					Args: notification.DestArgs{FieldPhoneNumber: "+16125551234"},
-				},
+				Dest: nfy.NewDest(DestTypeVoice,
+					FieldPhoneNumber, "+16125551234"),
 				CallbackID: "2",
 				AlertID:    3,
 				Summary:    "Widget is Broken",
@@ -82,10 +77,8 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.AlertStatus{
-				DestV2: notification.DestV2{
-					Type: DestTypeVoice,
-					Args: notification.DestArgs{FieldPhoneNumber: "+16125551234"},
-				},
+				Dest: nfy.NewDest(DestTypeVoice,
+					FieldPhoneNumber, "+16125551234"),
 				CallbackID: "2",
 				AlertID:    3,
 				Summary:    "Widget is Broken",
@@ -106,10 +99,8 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.Verification{
-				DestV2: notification.DestV2{
-					Type: DestTypeVoice,
-					Args: notification.DestArgs{FieldPhoneNumber: "+16125551234"},
-				},
+				Dest: nfy.NewDest(DestTypeVoice,
+					FieldPhoneNumber, "+16125551234"),
 				CallbackID: "2",
 				Code:       1234,
 			},
@@ -127,10 +118,8 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.ScheduleOnCallUsers{
-				DestV2: notification.DestV2{
-					Type: DestTypeVoice,
-					Args: notification.DestArgs{FieldPhoneNumber: "+16125551234"},
-				},
+				Dest: nfy.NewDest(DestTypeVoice,
+					FieldPhoneNumber, "+16125551234"),
 				CallbackID:   "2",
 				ScheduleID:   "3",
 				ScheduleName: "4",

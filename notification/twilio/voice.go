@@ -19,6 +19,7 @@ import (
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfy"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
@@ -327,9 +328,8 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 		return
 	case digitConfirm:
 		err := doDeadline(ctx, func() error {
-			return v.r.Stop(ctx, notification.Dest{Type: notification.DestTypeVoice, Value: call.Number})
+			return v.r.Stop(ctx, nfy.NewDest(DestTypeVoice, FieldPhoneNumber, call.Number))
 		})
-
 		if errResp(false, errors.Wrap(err, "process STOP response"), "") {
 			return
 		}

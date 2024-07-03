@@ -1,8 +1,10 @@
 package notification
 
+import "github.com/target/goalert/notification/nfy"
+
 // Test represents outgoing test notification.
 type Test struct {
-	DestV2
+	nfy.Dest
 	CallbackID string // CallbackID is the identifier used to communicate a response to the notification
 }
 

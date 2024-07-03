@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfy"
 )
 
 func TestSpellNumber(t *testing.T) {
@@ -110,12 +111,8 @@ func BenchmarkBuildMessage(b *testing.B) {
 		_, _ = buildMessage(
 			fmt.Sprintf("%d", i),
 			notification.Test{
-				DestV2: notification.DestV2{
-					Type: DestTypeVoice,
-					Args: notification.DestArgs{
-						FieldPhoneNumber: fmt.Sprintf("+1612555123%d", i),
-					},
-				},
+				Dest: nfy.NewDest(DestTypeVoice,
+					FieldPhoneNumber, fmt.Sprintf("+1612555123%d", i)),
 				CallbackID: "2",
 			},
 		)

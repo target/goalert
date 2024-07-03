@@ -16,6 +16,7 @@ import (
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfy"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
@@ -254,7 +255,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 		}
 
 		if isPassive {
-			valid, err := s.r.IsKnownDest(ctx, from)
+			valid, err := s.r.IsKnownDest(ctx, nfy.DestArgs{FieldPhoneNumber: from})
 			if err != nil {
 				log.Log(ctx, fmt.Errorf("check if known SMS number: %w", err))
 			} else if !valid {
@@ -281,7 +282,8 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 
 	// handle start and stop codes from user
 	body := req.FormValue("Body")
-	dest := notification.Dest{Type: notification.DestTypeSMS, Value: from}
+
+	dest := nfy.NewDest(DestTypeSMS, FieldPhoneNumber, from)
 	if isStartMessage(body) {
 		err := retry.DoTemporaryError(func(int) error { return s.r.Start(ctx, dest) }, retryOpts...)
 		if err != nil {

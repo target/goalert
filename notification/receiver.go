@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/target/goalert/auth/authlink"
+	"github.com/target/goalert/notification/nfy"
 )
 
 // A Receiver processes incoming messages and responses.
@@ -21,13 +22,13 @@ type Receiver interface {
 	AuthLinkURL(ctx context.Context, providerID, subjectID string, meta authlink.Metadata) (string, error)
 
 	// Start indicates a user has opted-in for notifications to this contact method.
-	Start(context.Context, Dest) error
+	Start(context.Context, nfy.Dest) error
 
 	// Stop indicates a user has opted-out of notifications from a contact method.
-	Stop(context.Context, Dest) error
+	Stop(context.Context, nfy.Dest) error
 
 	// IsKnownDest checks if the given destination is known/not disabled.
-	IsKnownDest(ctx context.Context, value string) (bool, error)
+	IsKnownDest(ctx context.Context, value nfy.DestArgs) (bool, error)
 }
 
 // UnknownSubjectError is returned from ReceiveSubject when the subject is unknown.

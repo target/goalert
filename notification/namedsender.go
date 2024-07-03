@@ -2,12 +2,14 @@ package notification
 
 import (
 	"context"
+
+	"github.com/target/goalert/notification/nfy"
 )
 
 type namedSender struct {
 	Sender
 	name     string
-	destType DestType
+	destType nfy.DestType
 }
 
 func (s *namedSender) Send(ctx context.Context, msg Message) (*SendResult, error) {

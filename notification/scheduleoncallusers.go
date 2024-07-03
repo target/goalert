@@ -1,5 +1,7 @@
 package notification
 
+import "github.com/target/goalert/notification/nfy"
+
 // User provides information about a user for notifications.
 type User struct {
 	ID   string
@@ -10,7 +12,7 @@ type User struct {
 // ScheduleOnCallUsers is a Message that indicates which users are
 // currently on-call for a Schedule
 type ScheduleOnCallUsers struct {
-	DestV2
+	nfy.Dest
 	CallbackID string
 
 	ScheduleID   string

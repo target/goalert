@@ -177,22 +177,10 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 }
 
 // OriginalMessageStatus will return the status of the first alert notification sent to `dest` for the given `alertID`.
-func (s *Store) OriginalMessageStatus(ctx context.Context, alertID int, dst Dest) (*SendResult, error) {
+func (s *Store) OriginalMessageStatus(ctx context.Context, alertID int, cmID, chanID uuid.NullUUID) (*SendResult, error) {
 	err := permission.LimitCheckAny(ctx, permission.System)
 	if err != nil {
 		return nil, err
-	}
-
-	err = validate.UUID("Dest.ID", dst.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	var cmID, chanID sql.NullString
-	if dst.Type.IsUserCM() {
-		cmID.String, cmID.Valid = dst.ID, true
-	} else {
-		chanID.String, chanID.Valid = dst.ID, true
 	}
 
 	row := s.origAlertMessage.QueryRowContext(ctx, alertID, cmID, chanID)
