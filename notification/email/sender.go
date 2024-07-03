@@ -18,10 +18,7 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-const (
-	DestType          = "builtin-smtp-email"
-	FieldEmailAddress = "email-address"
-)
+const FieldEmailAddress = "email-address"
 
 type Sender struct{}
 
@@ -39,7 +36,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 	if err != nil {
 		return nil, err
 	}
-	toAddr, err := mail.ParseAddress(msg.DestArg(FieldEmailAddress))
+	toAddr, err := mail.ParseAddress(msg.Destination().Arg(FieldEmailAddress))
 	if err != nil {
 		return nil, err
 	}
