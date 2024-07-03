@@ -71,8 +71,8 @@
     "@types/react-dom": "18.2.22",
     "@types/react-transition-group": "4.4.10",
     "@types/react-virtualized-auto-sizer": "1.0.4",
-    "@typescript-eslint/eslint-plugin": "7.11.0",
-    "@typescript-eslint/parser": "6.21.0",
+    "@typescript-eslint/eslint-plugin": "7.15.0",
+    "@typescript-eslint/parser": "7.15.0",
     "@urql/exchange-retry": "1.2.1",
     "bowser": "2.11.0",
     "chance": "1.1.11",
@@ -136,13 +136,13 @@
     "storybook-addon-mock": "4.3.0",
     "stylelint": "16.2.1",
     "stylelint-config-standard": "36.0.0",
-    "typescript": "5.2.2",
+    "typescript": "5.5.2",
     "urql": "4.0.6",
     "vite": "5.1.7",
     "wonka": "6.3.4",
     "wouter": "2.12.1"
   },
-  "packageManager": "yarn@3.6.3",
+  "packageManager": "yarn@4.3.1",
   "dependenciesMeta": {
     "prettier@3.0.3": {
       "unplugged": true
