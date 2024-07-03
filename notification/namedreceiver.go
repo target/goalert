@@ -34,14 +34,14 @@ func (nr *namedReceiver) AuthLinkURL(ctx context.Context, providerID, subjectID 
 }
 
 // Start implements the Receiver interface by calling the underlying Receiver.Start method.
-func (nr *namedReceiver) Start(ctx context.Context, d nfy.Dest) error {
-	metricRecvTotal.WithLabelValues(string(d.Type), "START")
+func (nr *namedReceiver) Start(ctx context.Context, d Dest) error {
+	metricRecvTotal.WithLabelValues(d.Type.String(), "START")
 	return nr.r.Start(ctx, d)
 }
 
 // Stop implements the Receiver interface by calling the underlying Receiver.Stop method.
-func (nr *namedReceiver) Stop(ctx context.Context, d nfy.Dest) error {
-	metricRecvTotal.WithLabelValues(string(d.Type), "STOP")
+func (nr *namedReceiver) Stop(ctx context.Context, d Dest) error {
+	metricRecvTotal.WithLabelValues(d.Type.String(), "STOP")
 	return nr.r.Stop(ctx, d)
 }
 

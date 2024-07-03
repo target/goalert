@@ -3,11 +3,20 @@ package nfy
 import (
 	"crypto/sha256"
 	"sort"
+
+	"github.com/target/goalert/gadb"
 )
 
 type Dest struct {
 	Type DestType
 	Args DestArgs
+}
+
+func FromSQL(d gadb.DestV1) Dest {
+	return Dest{
+		Type: DestType(d.Type),
+		Args: DestArgs(d.Args),
+	}
 }
 
 // NewDest creates a new destination with the given type and arguments.
@@ -28,6 +37,9 @@ type (
 	DestType string
 	DestArgs map[string]string
 )
+
+// String will return the string representation of the destination type.
+func (t DestType) String() string { return string(t) }
 
 // DestHash is a comparable-type for distinguishing unique destination values.
 type DestHash [32]byte

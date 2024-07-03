@@ -26,7 +26,7 @@ var typePriority = map[notification.MessageType]int{
 
 type queue struct {
 	sent    []Message
-	pending map[nfy.DestType][]Message
+	pending map[notification.DestType][]Message
 	now     time.Time
 
 	firstAlert  map[destID]struct{}
@@ -42,13 +42,13 @@ type queue struct {
 
 type destID struct {
 	ID       string
-	DestType nfy.DestType
+	DestType notification.DestType
 }
 
 func newQueue(msgs []Message, now time.Time) *queue {
 	q := &queue{
 		sent:    make([]Message, 0, len(msgs)),
-		pending: make(map[nfy.DestType][]Message),
+		pending: make(map[notification.DestType][]Message),
 		now:     now,
 
 		firstAlert:  make(map[destID]struct{}),
@@ -78,15 +78,15 @@ func (q *queue) addSent(m Message) {
 
 	q.cmThrottle.Record(m)
 	q.globalThrottle.Record(m)
-	q.firstAlert[destID{ID: m.ServiceID, DestType: m.DestType()}] = struct{}{}
+	q.firstAlert[destID{ID: m.ServiceID, DestType: m.Dest.Type}] = struct{}{}
 	if t := q.serviceSent[m.ServiceID]; m.SentAt.After(t) {
 		q.serviceSent[m.ServiceID] = m.SentAt
 	}
 	if t := q.userSent[m.UserID]; m.SentAt.After(t) {
 		q.userSent[m.UserID] = m.SentAt
 	}
-	if t := q.destSent[m.DestHash()]; m.SentAt.After(t) {
-		q.destSent[m.DestHash()] = m.SentAt
+	if t := q.destSent[m.Dest.DestHash()]; m.SentAt.After(t) {
+		q.destSent[m.Dest.DestHash()] = m.SentAt
 	}
 
 	q.sent = append(q.sent, m)
@@ -116,7 +116,7 @@ func (q *queue) servicePriority(serviceA, serviceB string) (isLess, ok bool) {
 }
 
 // filterPending will delete messages from pending that are not eligible to be sent.
-func (q *queue) filterPending(destType nfy.DestType) {
+func (q *queue) filterPending(destType notification.DestType) {
 	pending := q.pending[destType]
 	if len(pending) == 0 {
 		return
@@ -137,7 +137,7 @@ func (q *queue) filterPending(destType nfy.DestType) {
 }
 
 // sortPending will re-sort the list of pending messages.
-func (q *queue) sortPending(destType nfy.DestType) {
+func (q *queue) sortPending(destType notification.DestType) {
 	pending := q.pending[destType]
 	if len(pending) == 0 {
 		return
@@ -193,7 +193,7 @@ func (q *queue) sortPending(destType nfy.DestType) {
 // for the given type.
 //
 // It returns nil if there are no more messages.
-func (q *queue) NextByType(destType nfy.DestType) *Message {
+func (q *queue) NextByType(destType notification.DestType) *Message {
 	q.mx.Lock()
 	defer q.mx.Unlock()
 
@@ -213,7 +213,7 @@ func (q *queue) NextByType(destType nfy.DestType) *Message {
 
 // SentByType returns the number of messages sent for the given type
 // over the past Duration.
-func (q *queue) SentByType(destType nfy.DestType, dur time.Duration) int {
+func (q *queue) SentByType(destType notification.DestType, dur time.Duration) int {
 	q.mx.Lock()
 	defer q.mx.Unlock()
 
@@ -229,11 +229,11 @@ func (q *queue) SentByType(destType nfy.DestType, dur time.Duration) int {
 }
 
 // Types returns a slice of all DestTypes currently waiting to be sent.
-func (q *queue) Types() []nfy.DestType {
+func (q *queue) Types() []notification.DestType {
 	q.mx.Lock()
 	defer q.mx.Unlock()
 
-	result := make([]nfy.DestType, 0, len(q.pending))
+	result := make([]notification.DestType, 0, len(q.pending))
 	for typ, msgs := range q.pending {
 		if len(msgs) == 0 {
 			continue
