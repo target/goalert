@@ -490,7 +490,7 @@ type SendFunc func(context.Context, *Message) (*notification.SendResult, error)
 var ErrAbort = errors.New("aborted due to pause")
 
 // StatusFunc is used to fetch the latest status of a message.
-type StatusFunc func(ctx context.Context, providerID notification.ProviderMessageID) (*notification.Status, nfy.DestType, error)
+type StatusFunc func(ctx context.Context, providerID notification.ProviderMessageID) (*notification.Status, notification.DestType, error)
 
 // SendMessages will send notifications using SendFunc.
 func (db *DB) SendMessages(ctx context.Context, send SendFunc, status StatusFunc) error {
@@ -653,7 +653,7 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 	var wg sync.WaitGroup
 	for _, t := range q.Types() {
 		wg.Add(1)
-		go func(typ nfy.DestType) {
+		go func(typ notification.DestType) {
 			defer wg.Done()
 			err := db.sendMessagesByType(ctx, cLock, send, q, typ)
 			if err != nil && !errors.Is(err, processinglock.ErrNoLock) {
@@ -738,7 +738,7 @@ func (db *DB) updateStuckMessages(ctx context.Context, statusFn StatusFunc) erro
 	return nil
 }
 
-func (db *DB) sendMessagesByType(ctx context.Context, cLock *processinglock.Conn, send SendFunc, q *queue, typ nfy.DestType) error {
+func (db *DB) sendMessagesByType(ctx context.Context, cLock *processinglock.Conn, send SendFunc, q *queue, typ notification.DestType) error {
 	ch := make(chan error)
 	var count int
 	for {
@@ -776,7 +776,7 @@ func (db *DB) sendMessagesByType(ctx context.Context, cLock *processinglock.Conn
 
 func (db *DB) sendMessage(ctx context.Context, cLock *processinglock.Conn, send SendFunc, m *Message) (bool, error) {
 	ctx = log.WithFields(ctx, log.Fields{
-		"DestType":   m.DestType(),
+		"DestType":   m.Dest.Type.String(),
 		"CallbackID": m.ID,
 	})
 
