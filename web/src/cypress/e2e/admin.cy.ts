@@ -299,7 +299,9 @@ function testAdmin(): void {
     it('should select and view a logs details', () => {
       cy.get('[data-cy="paginated-list"] > ul > li').as('list').scrollIntoView()
       cy.get('[data-cy="list-empty-message"]').should('not.exist')
-      cy.get('@list').first().click()
+
+      // { force: true } needed for mobile view as the button is hidden under another div
+      cy.get('@list').children().first().click({ force: true })
       cy.get('[data-cy="debug-message-details"').as('details')
 
       // todo: not asserting updatedAt, destination, or providerID
@@ -331,7 +333,7 @@ function testAdmin(): void {
     it('should verify user link from a logs details', () => {
       cy.get('[data-cy="paginated-list"] > ul > li').as('list').scrollIntoView()
       cy.get('[data-cy="list-empty-message"]').should('not.exist')
-      cy.get('@list').first().click()
+      cy.get('@list').children().first().click({ force: true })
       cy.get('[data-cy="debug-message-details"')
         .find('a')
         .contains(debugMessage?.userName ?? '')
@@ -347,7 +349,7 @@ function testAdmin(): void {
     it('should verify service link from a logs details', () => {
       cy.get('[data-cy="paginated-list"] > ul > li').as('list').scrollIntoView()
       cy.get('[data-cy="list-empty-message"]').should('not.exist')
-      cy.get('@list').first().click()
+      cy.get('@list').children().first().click({ force: true })
       cy.get('[data-cy="debug-message-details"')
         .find('a')
         .contains(debugMessage?.serviceName ?? '')
