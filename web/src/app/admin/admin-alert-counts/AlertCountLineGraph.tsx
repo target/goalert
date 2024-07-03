@@ -44,9 +44,13 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
+// Symbol used to store the timestamp in the payload without
+// interfering with the data keys.
+const TIMESTAMP_SYM = Symbol('timestamp')
+
 interface CustomDotProps extends DotProps {
   payload: {
-    timestamp: string
+    [TIMESTAMP_SYM]: string
     [key: string]: number | string
   }
 }
@@ -62,8 +66,8 @@ function CustomDot(props: CustomDotProps): JSX.Element {
       r={payload[name] === 0 ? 0 : r}
       stroke={stroke}
       strokeWidth={strokeWidth}
-      key={name + '-' + payload.timestamp}
-      data-cy={name + '-' + payload.timestamp}
+      key={name + '-' + payload[TIMESTAMP_SYM]}
+      data-cy={name + '-' + payload[TIMESTAMP_SYM]}
     />
   )
 }
@@ -122,7 +126,7 @@ export default function AlertCountLineGraph(
       service.dailyCounts.forEach(
         (dailyCount: { date: string; dayTotal: number }) => {
           if (!dateMap[dailyCount.date]) {
-            dateMap[dailyCount.date] = { timestamp: dailyCount.date }
+            dateMap[dailyCount.date] = { [TIMESTAMP_SYM]: dailyCount.date }
           }
           dateMap[dailyCount.date][service.serviceName] = dailyCount.dayTotal
         },
@@ -157,7 +161,7 @@ export default function AlertCountLineGraph(
                 stroke={theme.palette.text.secondary}
               />
               <XAxis
-                dataKey='timestamp'
+                dataKey={(p: CustomDotProps['payload']) => p[TIMESTAMP_SYM]}
                 allowDuplicatedCategory={false}
                 minTickGap={15}
                 stroke={theme.palette.text.secondary}
