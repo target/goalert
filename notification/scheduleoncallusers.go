@@ -10,7 +10,7 @@ type User struct {
 // ScheduleOnCallUsers is a Message that indicates which users are
 // currently on-call for a Schedule
 type ScheduleOnCallUsers struct {
-	Dest       Dest
+	DestV2
 	CallbackID string
 
 	ScheduleID   string
@@ -23,5 +23,4 @@ type ScheduleOnCallUsers struct {
 var _ Message = &ScheduleOnCallUsers{}
 
 func (s ScheduleOnCallUsers) ID() string        { return s.CallbackID }
-func (s ScheduleOnCallUsers) Destination() Dest { return s.Dest }
 func (s ScheduleOnCallUsers) Type() MessageType { return MessageTypeScheduleOnCallUsers }

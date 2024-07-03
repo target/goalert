@@ -5,5 +5,8 @@ package notification
 type Message interface {
 	ID() string
 	Type() MessageType
-	Destination() Dest
+
+	DestType() DestTypeV2
+	DestArg(string) string
+	DestHash() DestHash
 }

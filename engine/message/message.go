@@ -10,7 +10,7 @@ import (
 type Message struct {
 	ID         string
 	Type       notification.MessageType
-	Dest       notification.Dest
+	Dest       notification.DestV2
 	AlertID    int
 	AlertLogID int
 	VerifyID   string
