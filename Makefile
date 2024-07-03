@@ -351,10 +351,7 @@ new-migration:
 vscode: $(NODE_DEPS) 
 	yarn dlx @yarnpkg/sdks vscode
 
-.yarn/plugins/@yarnpkg/plugin-interactive-tools.cjs: $(NODE_DEPS)
-	yarn plugin import interactive-tools
-
-upgrade-js: .yarn/plugins/@yarnpkg/plugin-interactive-tools.cjs ## Interactively upgrade javascript packages
+upgrade-js: ## Interactively upgrade javascript packages
 	yarn upgrade-interactive
 
 test/coverage/total.out: test/coverage/integration/*/* test/coverage/*/* Makefile
