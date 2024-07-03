@@ -21,7 +21,7 @@ declare global {
 
 function getLimits(): Cypress.Chainable<Limits> {
   const limits = new Map()
-  const query = `query getLimits() {
+  const query = `query getLimits {
     systemLimits {
       id
       description

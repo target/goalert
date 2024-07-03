@@ -16,6 +16,7 @@ import (
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
+	"github.com/target/goalert/integrationkey/uik"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
@@ -217,7 +218,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.IntegrationKeyStore == nil {
-		app.IntegrationKeyStore = integrationkey.NewStore(ctx, app.db)
+		app.IntegrationKeyStore = integrationkey.NewStore(ctx, app.db, app.APIKeyring)
 	}
 
 	if app.ScheduleRuleStore == nil {
@@ -298,6 +299,8 @@ func (app *App) initStores(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "init API key store")
 	}
+
+	app.UIKHandler = uik.NewHandler(app.db, app.IntegrationKeyStore, app.AlertStore)
 
 	return nil
 }

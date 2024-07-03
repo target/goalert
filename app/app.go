@@ -25,6 +25,7 @@ import (
 	"github.com/target/goalert/graphql2/graphqlapp"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
+	"github.com/target/goalert/integrationkey/uik"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
@@ -99,6 +100,7 @@ type App struct {
 	ServiceStore        *service.Store
 	EscalationStore     *escalation.Store
 	IntegrationKeyStore *integrationkey.Store
+	UIKHandler          *uik.Handler
 	ScheduleRuleStore   *rule.Store
 	NotificationStore   *notification.Store
 	ScheduleStore       *schedule.Store

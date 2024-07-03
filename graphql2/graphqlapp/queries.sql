@@ -16,3 +16,18 @@ WHERE
         OR (om.message_type = 'alert_notification_bundle'
             AND om.service_id = @service_id::uuid));
 
+-- name: GQLUserOnCallOverview :many
+SELECT
+    svc.id AS service_id,
+    svc.name AS service_name,
+    ep.id AS policy_id,
+    ep.name AS policy_name,
+    step.step_number
+FROM
+    ep_step_on_call_users oc
+    JOIN escalation_policy_steps step ON step.id = oc.ep_step_id
+    JOIN escalation_policies ep ON ep.id = step.escalation_policy_id
+    JOIN services svc ON svc.escalation_policy_id = ep.id
+WHERE
+    oc.user_id = $1;
+

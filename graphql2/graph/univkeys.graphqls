@@ -3,20 +3,63 @@ extend type IntegrationKey {
   config returns the configuration for the key.
   """
   config: KeyConfig! @experimental(flagName: "univ-keys")
+
+  """
+  tokenInfo returns information about the access tokens for the key.
+  """
+  tokenInfo: TokenInfo! @experimental(flagName: "univ-keys")
+}
+
+type TokenInfo {
+  """
+  primaryHint is a hint for the primary token. It is empty if the primary token is not set.
+  """
+  primaryHint: String!
+
+  """
+  secondaryHint is a hint for the secondary token. It is empty if the secondary token is not set.
+  """
+  secondaryHint: String!
 }
 
 extend type Mutation {
   updateKeyConfig(input: UpdateKeyConfigInput!): Boolean!
     @experimental(flagName: "univ-keys")
+
+  """
+  promoteSecondaryToken promotes the secondary token to the primary token.
+  """
+  promoteSecondaryToken(id: ID!): Boolean! @experimental(flagName: "univ-keys")
+
+  """
+  deleteSecondaryToken deletes the secondary token.
+  """
+  deleteSecondaryToken(id: ID!): Boolean! @experimental(flagName: "univ-keys")
+
+  """
+  generateKeyToken generates a new token for an integration key.
+
+  If the integration key already has a primary token, the new token will be the secondary token.
+
+  If the integration key does not have a primary token, the new token will be the primary token.
+
+  If the integration key already has a secondary token, an error will be returned.
+  """
+  generateKeyToken(id: ID!): String! @experimental(flagName: "univ-keys")
+}
+
+extend type Query {
+  actionInputValidate(input: ActionInput!): Boolean!
+    @experimental(flagName: "univ-keys")
 }
 
 type KeyConfig {
-  """
-  Stop evaluating rules after the first rule that matches.
-  """
-  stopAtFirstRule: Boolean!
-
   rules: [KeyRule!]!
+
+  """
+  Get a single rule by ID.
+  """
+  oneRule(id: ID!): KeyRule @goField(forceResolver: true)
 
   """
   defaultAction is the action to take if no rules match the request.
@@ -36,17 +79,27 @@ type KeyRule {
   conditionExpr: ExprBooleanExpression!
 
   actions: [Action!]!
+
+  """
+  Continue evaluating rules after this rule matches.
+  """
+  continueAfterMatch: Boolean!
 }
 
 input UpdateKeyConfigInput {
   keyID: ID!
 
-  """
-  Stop evaluating rules after the first rule that matches.
-  """
-  stopAtFirstRule: Boolean
-
   rules: [KeyRuleInput!]
+
+  """
+  setRule allows you to set a single rule. If ID is provided, the rule with that ID will be updated. If ID is not provided, a new rule will be created and appended to the list of rules.
+  """
+  setRule: KeyRuleInput
+
+  """
+  deleteRule allows you to delete a single rule by ID.
+  """
+  deleteRule: ID
 
   """
   defaultAction is the action to take if no rules match the request.
@@ -69,24 +122,29 @@ input KeyRuleInput {
   conditionExpr: ExprBooleanExpression!
 
   actions: [ActionInput!]!
+
+  """
+  Continue evaluating rules after this rule matches.
+
+  If this is set to false (default), no further rules will be evaluated after this rule matches.
+  """
+  continueAfterMatch: Boolean!
 }
+
+"""
+ExprStringMap is a map of string expressions.
+
+Example:
+{ "paramID": "expr expression" }
+"""
+scalar ExprStringMap
 
 input ActionInput {
   dest: DestinationInput!
-  params: [DynamicParamInput!]!
+  params: ExprStringMap!
 }
 
 type Action {
   dest: Destination!
-  params: [DynamicParam!]!
-}
-
-input DynamicParamInput {
-  paramID: ID!
-  expr: ExprStringExpression!
-}
-
-type DynamicParam {
-  paramID: ID!
-  expr: ExprStringExpression!
+  params: ExprStringMap!
 }

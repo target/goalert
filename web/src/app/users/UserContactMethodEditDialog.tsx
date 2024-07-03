@@ -1,116 +1,105 @@
-import React, { useState } from 'react'
-import { fieldErrors, nonFieldErrors } from '../util/errutil'
+import React, { useEffect, useState } from 'react'
+import { useMutation, gql, CombinedError, useQuery } from 'urql'
+
 import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodForm'
-import { pick } from 'lodash'
-import { gql, useMutation, useQuery } from 'urql'
-import { useExpFlag } from '../util/useExpFlag'
-import { ContactMethodType, StatusUpdateState } from '../../schema'
-import UserContactMethodEditDialogDest from './UserContactMethodEditDialogDest'
+import { DestinationInput } from '../../schema'
+import { useErrorConsumer } from '../util/ErrorConsumer'
+
+type Value = {
+  name: string
+  dest: DestinationInput
+  statusUpdates: boolean
+}
 
 const query = gql`
-  query ($id: ID!) {
+  query userCm($id: ID!) {
     userContactMethod(id: $id) {
       id
       name
-      type
-      value
+      dest {
+        type
+        args
+      }
       statusUpdates
     }
   }
 `
 
 const mutation = gql`
-  mutation ($input: UpdateUserContactMethodInput!) {
+  mutation UpdateUserContactMethod($input: UpdateUserContactMethodInput!) {
     updateUserContactMethod(input: $input)
   }
 `
 
-type Value = {
-  name: string
-  type: ContactMethodType
-  value: string
-  statusUpdates?: StatusUpdateState
-}
-type UserContactMethodEditDialogProps = {
-  onClose: () => void
+export default function UserContactMethodEditDialog(props: {
+  onClose: (contactMethodID?: string) => void
   contactMethodID: string
-}
 
-function UserContactMethodEditDialog({
-  onClose,
-  contactMethodID,
-}: {
-  onClose: () => void
-  contactMethodID: string
+  disablePortal?: boolean
 }): React.ReactNode {
-  const [value, setValue] = useState<Value | null>(null)
   const [{ data, fetching }] = useQuery({
     query,
-    variables: { id: contactMethodID },
+    variables: { id: props.contactMethodID },
   })
-  const [status, commit] = useMutation(mutation)
-  const { error } = status
+  const statusUpdates =
+    data?.userContactMethod?.statusUpdates?.includes('ENABLED')
+  // values for contact method form
+  const [CMValue, _setCMValue] = useState<Value>({
+    ...data?.userContactMethod,
+    statusUpdates,
+  })
 
-  const defaultValue = {
-    name: data.userContactMethod.name,
-    type: data.userContactMethod.type,
-    value: data.userContactMethod.value,
-    statusUpdates: data.userContactMethod.statusUpdates,
+  const [updateErr, setUpdateErr] = useState<CombinedError | null>(null)
+  const setCMValue = (newValue: Value): void => {
+    _setCMValue(newValue)
+    setUpdateErr(null)
   }
 
-  const fieldErrs = fieldErrors(error)
+  const [updateCMStatus, updateCM] = useMutation(mutation)
+  useEffect(() => {
+    setUpdateErr(updateCMStatus.error || null)
+  }, [updateCMStatus.error])
+  const errs = useErrorConsumer(updateErr)
+
+  const form = (
+    <UserContactMethodForm
+      disablePortal={props.disablePortal}
+      nameError={errs.getErrorByPath('createUserContactMethod.input.name')}
+      disabled={updateCMStatus.fetching}
+      edit
+      onChange={(CMValue: Value) => setCMValue(CMValue)}
+      value={CMValue}
+    />
+  )
 
   return (
     <FormDialog
-      title='Edit Contact Method'
       loading={fetching}
-      errors={nonFieldErrors(error)}
-      onClose={onClose}
+      disablePortal={props.disablePortal}
+      data-cy='edit-form'
+      title='Edit Contact Method'
+      errors={errs.remainingLegacy()}
+      onClose={props.onClose}
+      // wrapped to prevent event from passing into createCM
       onSubmit={() => {
-        const updates = pick(value, 'name', 'statusUpdates')
-        // the form uses the 'statusUpdates' enum but the mutation simply
-        // needs to know if the status updates should be enabled or not via
-        // the 'enableStatusUpdates' boolean
-        if ('statusUpdates' in updates) {
-          delete Object.assign(updates, {
-            enableStatusUpdates: updates.statusUpdates === 'ENABLED',
-          }).statusUpdates
-        }
-        commit(
+        updateCM(
           {
             input: {
-              ...updates,
-              id: contactMethodID,
+              id: props.contactMethodID,
+              name: CMValue.name,
+              enableStatusUpdates: Boolean(CMValue.statusUpdates),
             },
           },
           { additionalTypenames: ['UserContactMethod'] },
         ).then((result) => {
-          if (result.error) return
-          onClose()
+          if (result.error) {
+            return
+          }
+          props.onClose()
         })
       }}
-      form={
-        <UserContactMethodForm
-          errors={fieldErrs}
-          disabled={fetching}
-          edit
-          value={value || defaultValue}
-          onChange={(value) => setValue(value)}
-        />
-      }
+      form={form}
     />
   )
-}
-
-export default function UserContactMethodEditDialogSwitch(
-  props: UserContactMethodEditDialogProps,
-): React.ReactNode {
-  const isDestTypesSet = useExpFlag('dest-types')
-
-  if (isDestTypesSet) {
-    return <UserContactMethodEditDialogDest {...props} />
-  }
-
-  return <UserContactMethodEditDialog {...props} />
 }

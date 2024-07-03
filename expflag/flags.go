@@ -5,15 +5,13 @@ import "sort"
 type Flag string
 
 const (
-	Example   Flag = "example"
-	DestTypes Flag = "dest-types"
-	UnivKeys  Flag = "univ-keys"
+	Example  Flag = "example"
+	UnivKeys Flag = "univ-keys"
 )
 
 var desc = map[Flag]string{
-	Example:   "An example experimental flag to demonstrate usage.",
-	DestTypes: "Generic destination type API.",
-	UnivKeys:  "Universal integration key support.",
+	Example:  "An example experimental flag to demonstrate usage.",
+	UnivKeys: "Universal integration key support.",
 }
 
 // AllFlags returns a slice of all experimental flags sorted by name.

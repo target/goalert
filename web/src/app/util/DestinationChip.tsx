@@ -6,6 +6,7 @@ import { DestinationAvatar } from './DestinationAvatar'
 export type DestinationChipProps = InlineDisplayInfo & {
   // If onDelete is provided, a delete icon will be shown.
   onDelete?: () => void
+  onChipClick?: () => void
 }
 
 /**
@@ -54,7 +55,7 @@ export default function DestinationChip(
   }
 
   const opts: { [key: string]: unknown } = {}
-  if (props.linkURL) {
+  if (props.linkURL && !props.onChipClick) {
     opts.href = props.linkURL
     opts.target = '_blank'
     opts.component = 'a'
@@ -64,7 +65,8 @@ export default function DestinationChip(
   return (
     <Chip
       data-testid='destination-chip'
-      clickable={!!props.linkURL}
+      clickable={!!props.linkURL || !!props.onChipClick}
+      onClick={props.onChipClick}
       {...opts}
       avatar={
         <DestinationAvatar

@@ -9,6 +9,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/genericapi"
 	"github.com/target/goalert/grafana"
 	"github.com/target/goalert/mailgun"
@@ -142,6 +143,9 @@ func (app *App) initHTTP(ctx context.Context) error {
 	mux.HandleFunc("/api/v2/identity/providers/oidc", oidcAuth)
 	mux.HandleFunc("/api/v2/identity/providers/oidc/callback", oidcAuth)
 
+	if expflag.ContextHas(ctx, expflag.UnivKeys) {
+		mux.HandleFunc("POST /api/v2/uik", app.UIKHandler.ServeHTTP)
+	}
 	mux.HandleFunc("/api/v2/mailgun/incoming", mailgun.IngressWebhooks(app.AlertStore, app.IntegrationKeyStore))
 	mux.HandleFunc("/api/v2/grafana/incoming", grafana.GrafanaToEventsAPI(app.AlertStore, app.IntegrationKeyStore))
 	mux.HandleFunc("/api/v2/site24x7/incoming", site24x7.Site24x7ToEventsAPI(app.AlertStore, app.IntegrationKeyStore))

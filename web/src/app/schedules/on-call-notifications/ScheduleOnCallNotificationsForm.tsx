@@ -9,28 +9,35 @@ import {
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
-import React, { useMemo } from 'react'
+import React, { useEffect } from 'react'
 
-import { TargetType } from '../../../schema'
 import { FormContainer, FormField } from '../../forms'
-import { SlackChannelSelect, SlackUserGroupSelect } from '../../selection'
-import {
-  renderMenuItem,
-  sortDisableableMenuItems,
-} from '../../selection/DisableableMenuItem'
+import { renderMenuItem } from '../../selection/DisableableMenuItem'
 import { ISOTimePicker } from '../../util/ISOPickers'
-import { useConfigValue } from '../../util/RequireConfig'
 import { Time } from '../../util/Time'
 import { useScheduleTZ } from '../useScheduleTZ'
-import { EVERY_DAY, NO_DAY, RuleFieldError, Value } from './util'
+import { EVERY_DAY, NO_DAY } from './util'
+import { useSchedOnCallNotifyTypes } from '../../util/RequireConfig'
+import { DestinationInput, WeekdayFilter } from '../../../schema'
+import DestinationField from '../../selection/DestinationField'
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+export type Value = {
+  time: string | null
+  weekdayFilter: WeekdayFilter
+  dest: DestinationInput
+}
 
 interface ScheduleOnCallNotificationsFormProps {
   scheduleID: string
   value: Value
-  errors: RuleFieldError[]
   onChange: (val: Value) => void
+  disablePortal?: boolean
+  disabled?: boolean
+
+  destTypeError?: string
+  destFieldErrors?: Readonly<Record<string, string>>
 }
 
 const useStyles = makeStyles({
@@ -43,120 +50,63 @@ export default function ScheduleOnCallNotificationsForm(
 ): JSX.Element {
   const { scheduleID, ...formProps } = props
   const classes = useStyles()
-  const [slackEnabled] = useConfigValue('Slack.Enable')
-  const [webhookEnabled] = useConfigValue('Webhook.Enable')
   const { zone } = useScheduleTZ(scheduleID)
+  const destinationTypes = useSchedOnCallNotifyTypes()
+  const currentType = destinationTypes.find(
+    (d) => d.type === props.value.dest.type,
+  )
+
+  const [ruleType, setRuleType] = React.useState<'on-change' | 'time-of-day'>(
+    props.value.time ? 'time-of-day' : 'on-change',
+  )
+  const [lastTime, setLastTime] = React.useState<string | null>(
+    props.value.time,
+  )
+  const [lastFilter, setLastFilter] = React.useState<WeekdayFilter>(
+    props.value.weekdayFilter,
+  )
+  useEffect(() => {
+    if (!props.value.time) return
+    setLastTime(props.value.time)
+    setLastFilter(props.value.weekdayFilter)
+  }, [props.value.time, props.value.weekdayFilter])
+
+  if (!currentType) throw new Error('invalid destination type')
 
   const handleRuleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     if (e.target.value === 'on-change') {
+      setRuleType('on-change')
       props.onChange({ ...formProps.value, time: null, weekdayFilter: NO_DAY })
       return
     }
+
+    setRuleType('time-of-day')
     props.onChange({
       ...props.value,
-      weekdayFilter: EVERY_DAY,
-      time: DateTime.fromObject({ hour: 9 }, { zone }).toISO(),
+      weekdayFilter: lastTime ? lastFilter : EVERY_DAY,
+      time: lastTime || DateTime.fromObject({ hour: 9 }, { zone }).toISO(),
     })
   }
 
-  const handleTypeChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const newType = e.target.value as TargetType
-    if (props.value.type !== newType) {
-      props.onChange({
-        ...props.value,
-        type: newType,
-        targetID: null,
-      })
-    }
-  }
-
-  const notificationChannels = useMemo(
-    () =>
-      [
-        {
-          value: 'slackChannel',
-          label: 'SLACK CHANNEL',
-          disabledMessage: 'Slack must be configured by an administrator',
-          disabled: !slackEnabled,
-        },
-
-        {
-          value: 'slackUserGroup',
-          label: 'SLACK USER GROUP',
-          disabledMessage: 'Slack must be configured by an administrator',
-          disabled: !slackEnabled,
-        },
-
-        {
-          value: 'chanWebhook',
-          label: 'WEBHOOK',
-          disabledMessage: 'Webhooks must be enabled by an administrator',
-          disabled: !webhookEnabled,
-        },
-      ].sort(sortDisableableMenuItems),
-    [slackEnabled, webhookEnabled],
-  )
-
-  function renderTypeFields(type: TargetType): JSX.Element {
-    switch (type) {
-      case 'slackUserGroup':
-        return (
-          <Grid item>
-            <FormField
-              component={SlackUserGroupSelect}
-              fullWidth
-              name='targetID'
-              label='Slack User Group'
-            />
-          </Grid>
-        )
-      case 'slackChannel':
-        return (
-          <Grid item>
-            <FormField
-              component={SlackChannelSelect}
-              fullWidth
-              required
-              label='Slack Channel'
-              name='targetID'
-            />
-          </Grid>
-        )
-      case 'chanWebhook':
-        return (
-          <Grid item>
-            <FormField
-              component={TextField}
-              fullWidth
-              required
-              label='Webhook'
-              name='targetID'
-            />
-          </Grid>
-        )
-      default:
-        // unsupported type
-        return <Grid item />
-    }
-  }
-
   return (
-    <FormContainer {...formProps}>
+    <FormContainer {...formProps} optionalLabels>
       <Grid container spacing={2} direction='column'>
         <Grid item>
           <RadioGroup
             name='ruleType'
-            value={formProps.value.time ? 'time-of-day' : 'on-change'}
+            value={ruleType}
             onChange={handleRuleChange}
           >
             <FormControlLabel
               data-cy='notify-on-change'
+              disabled={props.disabled}
               label='Notify when on-call changes'
               value='on-change'
               control={<Radio />}
             />
             <FormControlLabel
               data-cy='notify-at-time'
+              disabled={props.disabled}
               label='Notify at a specific day and time every week'
               value='time-of-day'
               control={<Radio />}
@@ -210,21 +160,53 @@ export default function ScheduleOnCallNotificationsForm(
             </Grid>
           </Grid>
         </Grid>
-        <Grid item>
+        <Grid item xs={12} sm={12} md={6}>
           <TextField
             fullWidth
-            value={props.value.type}
-            required
-            name='notificationType'
-            label='Type'
+            name='dest.type'
+            label='Destination Type'
+            disabled={props.disabled}
             select
-            onChange={handleTypeChange}
-            disabled={notificationChannels.length <= 1}
+            SelectProps={{ MenuProps: { disablePortal: props.disablePortal } }}
+            value={props.value.dest.type}
+            onChange={(e) =>
+              props.onChange({
+                ...props.value,
+                dest: { type: e.target.value, args: {} },
+              })
+            }
+            error={!!props.destTypeError}
+            helperText={props.destTypeError}
           >
-            {notificationChannels.map(renderMenuItem)}
+            {destinationTypes.map((t) =>
+              renderMenuItem({
+                label: t.name,
+                value: t.type,
+                disabled: !t.enabled,
+                disabledMessage: t.enabled ? '' : 'Disabled by administrator.',
+              }),
+            )}
           </TextField>
         </Grid>
-        {renderTypeFields(formProps.value.type)}
+        <Grid item xs={12}>
+          <DestinationField
+            disabled={props.disabled}
+            destType={props.value.dest.type}
+            fieldErrors={props.destFieldErrors}
+            value={props.value.dest.args || {}}
+            onChange={(newValue) =>
+              props.onChange({
+                ...props.value,
+                dest: { ...props.value.dest, args: newValue },
+              })
+            }
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <Typography variant='caption'>
+            {currentType?.userDisclaimer}
+          </Typography>
+        </Grid>
       </Grid>
     </FormContainer>
   )

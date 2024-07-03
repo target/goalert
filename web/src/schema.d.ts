@@ -2,12 +2,12 @@
 
 export interface Action {
   dest: Destination
-  params: DynamicParam[]
+  params: ExprStringMap
 }
 
 export interface ActionInput {
   dest: DestinationInput
-  params: DynamicParamInput[]
+  params: ExprStringMap
 }
 
 export interface Alert {
@@ -397,6 +397,7 @@ export interface DebugSendSMSInput {
 }
 
 export interface Destination {
+  args: StringMap
   displayInfo: InlineDisplayInfo
   type: DestinationType
   values: FieldValuePair[]
@@ -441,17 +442,20 @@ export interface DestinationFieldValidateInput {
 }
 
 export interface DestinationInput {
+  args?: null | StringMap
   type: DestinationType
-  values: FieldValueInput[]
+  values?: null | FieldValueInput[]
 }
 
 export type DestinationType = string
 
 export interface DestinationTypeInfo {
+  dynamicParams: DynamicParamConfig[]
   enabled: boolean
   iconAltText: string
   iconURL: string
   isContactMethod: boolean
+  isDynamicAction: boolean
   isEPTarget: boolean
   isSchedOnCallNotify: boolean
   name: string
@@ -462,13 +466,10 @@ export interface DestinationTypeInfo {
   userDisclaimer: string
 }
 
-export interface DynamicParam {
-  expr: ExprStringExpression
-  paramID: string
-}
-
-export interface DynamicParamInput {
-  expr: ExprStringExpression
+export interface DynamicParamConfig {
+  hint: string
+  hintURL: string
+  label: string
   paramID: string
 }
 
@@ -476,6 +477,7 @@ export type ErrorCode =
   | 'EXPR_TOO_COMPLEX'
   | 'INVALID_DEST_FIELD_VALUE'
   | 'INVALID_INPUT_VALUE'
+  | 'INVALID_MAP_FIELD_VALUE'
 
 export interface EscalationPolicy {
   assignedTo: Target[]
@@ -526,6 +528,8 @@ export type ExprIdentifier = string
 export type ExprOperator = string
 
 export type ExprStringExpression = string
+
+export type ExprStringMap = Record<string, string>
 
 export interface ExprToConditionInput {
   expr: ExprBooleanExpression
@@ -611,6 +615,7 @@ export interface IntegrationKey {
   id: string
   name: string
   serviceID: string
+  tokenInfo: TokenInfo
   type: IntegrationKeyType
 }
 
@@ -643,13 +648,14 @@ export interface IntegrationKeyTypeInfo {
 
 export interface KeyConfig {
   defaultActions: Action[]
+  oneRule?: null | KeyRule
   rules: KeyRule[]
-  stopAtFirstRule: boolean
 }
 
 export interface KeyRule {
   actions: Action[]
   conditionExpr: ExprBooleanExpression
+  continueAfterMatch: boolean
   description: string
   id: string
   name: string
@@ -658,6 +664,7 @@ export interface KeyRule {
 export interface KeyRuleInput {
   actions: ActionInput[]
   conditionExpr: ExprBooleanExpression
+  continueAfterMatch: boolean
   description: string
   id?: null | string
   name: string
@@ -745,9 +752,12 @@ export interface Mutation {
   deleteAll: boolean
   deleteAuthSubject: boolean
   deleteGQLAPIKey: boolean
+  deleteSecondaryToken: boolean
   endAllAuthSessionsByCurrentUser: boolean
   escalateAlerts?: null | Alert[]
+  generateKeyToken: string
   linkAccount: boolean
+  promoteSecondaryToken: boolean
   sendContactMethodVerification: boolean
   setAlertNoiseReason: boolean
   setConfig: boolean
@@ -809,6 +819,19 @@ export interface OnCallNotificationRuleInput {
   weekdayFilter?: null | WeekdayFilter
 }
 
+export interface OnCallOverview {
+  serviceAssignments: OnCallServiceAssignment[]
+  serviceCount: number
+}
+
+export interface OnCallServiceAssignment {
+  escalationPolicyID: string
+  escalationPolicyName: string
+  serviceID: string
+  serviceName: string
+  stepNumber: number
+}
+
 export interface OnCallShift {
   end: ISOTimestamp
   start: ISOTimestamp
@@ -834,6 +857,7 @@ export interface PhoneNumberInfo {
 export interface Query {
   __schema: __Schema
   __type?: null | __Type
+  actionInputValidate: boolean
   alert?: null | Alert
   alerts: AlertConnection
   authSubjectsForProvider: AuthSubjectConnection
@@ -1135,6 +1159,8 @@ export interface StringConnection {
   pageInfo: PageInfo
 }
 
+export type StringMap = Record<string, string>
+
 export interface SystemLimit {
   description: string
   id: SystemLimitID
@@ -1223,6 +1249,11 @@ export interface TimeZoneSearchOptions {
   search?: null | string
 }
 
+export interface TokenInfo {
+  primaryHint: string
+  secondaryHint: string
+}
+
 export interface UpdateAlertsByServiceInput {
   newStatus: AlertStatus
   serviceID: string
@@ -1270,9 +1301,10 @@ export interface UpdateHeartbeatMonitorInput {
 
 export interface UpdateKeyConfigInput {
   defaultActions?: null | ActionInput[]
+  deleteRule?: null | string
   keyID: string
   rules?: null | KeyRuleInput[]
-  stopAtFirstRule?: null | boolean
+  setRule?: null | KeyRuleInput
 }
 
 export interface UpdateRotationInput {
@@ -1343,6 +1375,7 @@ export interface User {
   isFavorite: boolean
   name: string
   notificationRules: UserNotificationRule[]
+  onCallOverview: OnCallOverview
   onCallSteps: EscalationPolicyStep[]
   role: UserRole
   sessions: UserSession[]

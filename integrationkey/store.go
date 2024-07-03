@@ -7,6 +7,7 @@ import (
 	"github.com/target/goalert/auth/authtoken"
 	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/gadb"
+	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -17,10 +18,12 @@ import (
 
 type Store struct {
 	db *sql.DB
+
+	keys keyring.Keyring
 }
 
-func NewStore(ctx context.Context, db *sql.DB) *Store {
-	return &Store{db: db}
+func NewStore(ctx context.Context, db *sql.DB, keys keyring.Keyring) *Store {
+	return &Store{db: db, keys: keys}
 }
 
 func (s *Store) Authorize(ctx context.Context, tok authtoken.Token, t Type) (context.Context, error) {
@@ -104,6 +107,15 @@ func (s *Store) Create(ctx context.Context, dbtx gadb.DBTX, i *IntegrationKey) (
 	if err != nil {
 		return nil, err
 	}
+
+	if n.Type == TypeUniversal {
+		// ensure a config exists
+		err = s.SetConfig(ctx, dbtx, keyUUID, &Config{})
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return n, nil
 }
 

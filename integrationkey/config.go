@@ -11,6 +11,13 @@ import (
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation"
+	"github.com/target/goalert/validation/validate"
+)
+
+const (
+	MaxRules   = 100
+	MaxActions = 10
+	MaxParams  = 10
 )
 
 type dbConfig struct {
@@ -35,10 +42,14 @@ type Rule struct {
 	Description   string
 	ConditionExpr string
 	Actions       []Action
+
+	ContinueAfterMatch bool
 }
 
 // An Action is a single action to take if a rule matches.
 type Action struct {
+	ChannelID uuid.UUID
+
 	// Type is the type of action to perform, like slack, email, or alert.
 	Type string
 
@@ -50,8 +61,64 @@ type Action struct {
 	DynamicParams map[string]string
 }
 
+func (cfg Config) Validate() error {
+	err := validate.Many(
+		validate.Len("Rules", cfg.Rules, 0, MaxRules),
+		validate.Len("DefaultActions", cfg.DefaultActions, 0, MaxActions),
+	)
+	if err != nil {
+		return err
+	}
+
+	for i, r := range cfg.Rules {
+		field := fmt.Sprintf("Rules[%d]", i)
+		err := validate.Many(
+			validate.Name(field+".Name", r.Name),
+			validate.Text(field+".Description", r.Description, 0, 255), // these are arbitrary and will likely change as the feature is developed
+			validate.Text(field+".ConditionExpr", r.ConditionExpr, 1, 1024),
+			validate.Len(field+".Actions", r.Actions, 0, MaxActions),
+		)
+		if err != nil {
+			return err
+		}
+
+		for j, a := range r.Actions {
+			field := fmt.Sprintf("Rules[%d].Actions[%d]", i, j)
+			err := validate.Many(
+				validate.MapLen(field+".StaticParams", a.StaticParams, 0, MaxParams),
+				validate.MapLen(field+".DynamicParams", a.DynamicParams, 0, MaxParams),
+			)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	for i, a := range cfg.DefaultActions {
+		field := fmt.Sprintf("DefaultActions[%d]", i)
+		err := validate.Many(
+			validate.MapLen(field+".StaticParams", a.StaticParams, 0, MaxParams),
+			validate.MapLen(field+".DynamicParams", a.DynamicParams, 0, MaxParams),
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	data, err := json.Marshal(cfg)
+	if err != nil {
+		return err
+	}
+
+	if len(data) > 64*1024 {
+		return validation.NewFieldError("Config", "must be less than 64KiB in total")
+	}
+
+	return nil
+}
+
 func (s *Store) Config(ctx context.Context, db gadb.DBTX, keyID uuid.UUID) (*Config, error) {
-	err := permission.LimitCheckAny(ctx, permission.User)
+	err := permission.LimitCheckAny(ctx, permission.User, permission.Service)
 	if err != nil {
 		return nil, err
 	}
@@ -82,6 +149,13 @@ func (s *Store) SetConfig(ctx context.Context, db gadb.DBTX, keyID uuid.UUID, cf
 		return err
 	}
 
+	if cfg != nil {
+		err := cfg.Validate()
+		if err != nil {
+			return err
+		}
+	}
+
 	gdb := gadb.New(db)
 	keyType, err := gdb.IntKeyGetType(ctx, keyID)
 	if err != nil {
@@ -95,11 +169,19 @@ func (s *Store) SetConfig(ctx context.Context, db gadb.DBTX, keyID uuid.UUID, cf
 		return gdb.IntKeyDeleteConfig(ctx, keyID)
 	}
 
-	// ensure all rule IDs are set
+	// ensure all rule IDs are set, and all actions have a channel
 	for i := range cfg.Rules {
 		if cfg.Rules[i].ID == uuid.Nil {
 			cfg.Rules[i].ID = uuid.New()
 		}
+		err := setActionChannels(ctx, gdb, cfg.Rules[i].Actions)
+		if err != nil {
+			return err
+		}
+	}
+	err = setActionChannels(ctx, gdb, cfg.DefaultActions)
+	if err != nil {
+		return err
 	}
 
 	data, err := json.Marshal(dbConfig{Version: 1, V1: *cfg})
@@ -113,6 +195,25 @@ func (s *Store) SetConfig(ctx context.Context, db gadb.DBTX, keyID uuid.UUID, cf
 	})
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func setActionChannels(ctx context.Context, gdb *gadb.Queries, actions []Action) error {
+	for j, act := range actions {
+		// We need to ensure the channel exists in the notification_channels table before we can use it.
+		id, err := gdb.IntKeyEnsureChannel(ctx, gadb.IntKeyEnsureChannelParams{
+			ID: uuid.New(),
+			Dest: gadb.NullDestV1{Valid: true, DestV1: gadb.DestV1{
+				Type: act.Type,
+				Args: act.StaticParams,
+			}},
+		})
+		if err != nil {
+			return err
+		}
+		actions[j].ChannelID = id
 	}
 
 	return nil

@@ -85,6 +85,10 @@ func (l *limitErr) Error() string {
 		return "too many user overrides on this schedule"
 	case limit.CalendarSubscriptionsPerUser:
 		return "too many calendar subscriptions for this user"
+	case limit.PendingSignalsPerService:
+		return "too many pending signals for this service"
+	case limit.PendingSignalsPerDestPerService:
+		return "too many pending signals for this destination on this service"
 	}
 
 	return "exceeded limit"

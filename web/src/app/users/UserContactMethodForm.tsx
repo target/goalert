@@ -1,257 +1,173 @@
 import { Checkbox, FormControlLabel, Typography } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
-import React, { useMemo } from 'react'
-import { ContactMethodType, StatusUpdateState } from '../../schema'
-import { FormContainer, FormField } from '../forms'
-import {
-  renderMenuItem,
-  sortDisableableMenuItems,
-} from '../selection/DisableableMenuItem'
-import { useConfigValue } from '../util/RequireConfig'
-import TelTextField from '../util/TelTextField'
-import { FieldError } from '../util/errutil'
-import AppLink from '../util/AppLink'
+import React from 'react'
+import { DestinationInput } from '../../schema'
+import { FormContainer } from '../forms'
+import { renderMenuItem } from '../selection/DisableableMenuItem'
+import DestinationField from '../selection/DestinationField'
+import { useContactMethodTypes } from '../util/RequireConfig'
 
-type Value = {
+export type Value = {
   name: string
-  type: ContactMethodType
-  value: string
-  statusUpdates?: StatusUpdateState
+  dest: DestinationInput
+  statusUpdates: boolean
 }
 
 export type UserContactMethodFormProps = {
   value: Value
 
-  errors?: Array<FieldError>
+  nameError?: string
+  destTypeError?: string
+  destFieldErrors?: Readonly<Record<string, string>>
 
   disabled?: boolean
   edit?: boolean
 
+  disablePortal?: boolean // for testing, disable portal on select menu
+
   onChange?: (CMValue: Value) => void
 }
-
-function renderEmailField(edit: boolean): JSX.Element {
-  return (
-    <FormField
-      placeholder='foobar@example.com'
-      fullWidth
-      name='value'
-      required
-      label='Email Address'
-      type='email'
-      component={TextField}
-      disabled={edit}
-    />
-  )
-}
-
-function renderPhoneField(edit: boolean): JSX.Element {
-  return (
-    <React.Fragment>
-      <FormField
-        placeholder='11235550123'
-        aria-labelledby='countryCodeIndicator'
-        fullWidth
-        name='value'
-        required
-        label='Phone Number'
-        component={TelTextField}
-        disabled={edit}
-      />
-    </React.Fragment>
-  )
-}
-
-function renderURLField(edit: boolean): JSX.Element {
-  return (
-    <FormField
-      placeholder='https://example.com'
-      fullWidth
-      name='value'
-      required
-      label='Webhook URL'
-      type='url'
-      component={TextField}
-      disabled={edit}
-      hint={
-        <AppLink newTab to='/docs#webhooks'>
-          Webhook Documentation
-        </AppLink>
-      }
-    />
-  )
-}
-
-function renderSlackField(edit: boolean): JSX.Element {
-  return (
-    <FormField
-      fullWidth
-      name='value'
-      required
-      label='Slack Member ID'
-      placeholder='member ID'
-      component={TextField}
-      disabled={edit}
-      // @ts-expect-error TS2322 -- FormField has not been converted to ts, and inferred type is incorrect.
-      helperText='Go to your Slack profile, click the three dots, and select "Copy member ID".'
-    />
-  )
-}
-
-function renderTypeField(type: ContactMethodType, edit: boolean): JSX.Element {
-  switch (type) {
-    case 'SMS':
-    case 'VOICE':
-      return renderPhoneField(edit)
-    case 'EMAIL':
-      return renderEmailField(edit)
-    case 'WEBHOOK':
-      return renderURLField(edit)
-    case 'SLACK_DM':
-      return renderSlackField(edit)
-    default:
-  }
-
-  // fallback to generic
-  return (
-    <FormField
-      fullWidth
-      name='value'
-      required
-      label='Value'
-      component={TextField}
-      disabled={edit}
-    />
-  )
-}
-
-const isPhoneType = (val: Value): boolean =>
-  val.type === 'SMS' || val.type === 'VOICE'
 
 export default function UserContactMethodForm(
   props: UserContactMethodFormProps,
 ): JSX.Element {
   const { value, edit = false, ...other } = props
 
-  const [
-    smsVoiceEnabled,
-    emailEnabled,
-    webhookEnabled,
-    slackEnabled,
-    disclaimer,
-  ] = useConfigValue(
-    'Twilio.Enable',
-    'SMTP.Enable',
-    'Webhook.Enable',
-    'Slack.Enable',
-    'General.NotificationDisclaimer',
-  )
+  const destinationTypes = useContactMethodTypes()
+  const currentType = destinationTypes.find((d) => d.type === value.dest.type)
 
-  const statusUpdateChecked =
-    value.statusUpdates === 'ENABLED' ||
-    value.statusUpdates === 'ENABLED_FORCED' ||
-    false
+  if (!currentType) throw new Error('invalid destination type')
 
-  const contactMethods = useMemo(
-    () =>
-      [
-        {
-          value: 'SMS',
-          disabledMessage: 'Twilio must be configured by an administrator',
-          disabled: !smsVoiceEnabled,
-        },
-        {
-          value: 'VOICE',
-          disabledMessage: 'Twilio must be configured by an administrator',
-          disabled: !smsVoiceEnabled,
-        },
-        {
-          value: 'EMAIL',
-          disabledMessage: 'SMTP must be configured by an administrator',
-          disabled: !emailEnabled,
-        },
-        {
-          value: 'WEBHOOK',
-          disabledMessage: 'Webhooks must be enabled by an administrator',
-          disabled: !webhookEnabled,
-        },
-        {
-          value: 'SLACK_DM',
-          label: 'SLACK DM',
-          disabledMessage: 'Slack must be configured by an administrator',
-          disabled: !slackEnabled,
-        },
-      ].sort(sortDisableableMenuItems),
-    [smsVoiceEnabled, emailEnabled, webhookEnabled, slackEnabled],
-  )
+  let statusLabel = 'Send alert status updates'
+  let statusUpdateChecked = value.statusUpdates
+  if (currentType.statusUpdatesRequired) {
+    statusLabel = 'Send alert status updates (cannot be disabled for this type)'
+    statusUpdateChecked = true
+  } else if (!currentType.supportsStatusUpdates) {
+    statusLabel = 'Send alert status updates (not supported for this type)'
+    statusUpdateChecked = false
+  }
 
   return (
     <FormContainer
       {...other}
       value={value}
       mapOnChangeValue={(newValue: Value): Value => {
-        // if switching between phone types (or same type), keep the value
-        if (
-          (isPhoneType(value) && isPhoneType(newValue)) ||
-          value.type === newValue.type
-        ) {
+        if (newValue.dest.type === value.dest.type) {
           return newValue
         }
 
+        // reset otherwise
         return {
           ...newValue,
-          value: '',
+          dest: {
+            ...newValue.dest,
+            args: {},
+          },
         }
       }}
       optionalLabels
     >
       <Grid container spacing={2}>
         <Grid item xs={12} sm={12} md={6}>
-          <FormField fullWidth name='name' required component={TextField} />
+          <TextField
+            fullWidth
+            name='name'
+            label='Name'
+            disabled={props.disabled}
+            error={!!props.nameError}
+            helperText={props.nameError}
+            value={value.name}
+            onChange={(e) =>
+              props.onChange &&
+              props.onChange({ ...value, name: e.target.value })
+            }
+          />
         </Grid>
         <Grid item xs={12} sm={12} md={6}>
-          <FormField
+          <TextField
             fullWidth
-            name='type'
-            required
+            name='dest.type'
+            label='Destination Type'
             select
-            disabled={edit}
-            component={TextField}
+            error={!!props.destTypeError}
+            helperText={props.destTypeError}
+            SelectProps={{ MenuProps: { disablePortal: props.disablePortal } }}
+            value={value.dest.type}
+            onChange={(v) =>
+              props.onChange &&
+              props.onChange({
+                ...value,
+                dest: {
+                  type: v.target.value as string,
+                  args: {},
+                },
+              })
+            }
+            disabled={props.disabled || edit}
           >
-            {contactMethods.map(renderMenuItem)}
-          </FormField>
+            {destinationTypes.map((t) =>
+              renderMenuItem({
+                label: t.name,
+                value: t.type,
+                disabled: !t.enabled,
+                disabledMessage: t.enabled ? '' : 'Disabled by administrator.',
+              }),
+            )}
+          </TextField>
         </Grid>
         <Grid item xs={12}>
-          {renderTypeField(value.type, edit)}
+          <DestinationField
+            destType={value.dest.type}
+            disabled={props.disabled || edit}
+            fieldErrors={props.destFieldErrors}
+            value={value.dest.args || {}}
+            onChange={(v) =>
+              props.onChange &&
+              props.onChange({
+                ...value,
+                dest: {
+                  ...value.dest,
+                  args: v,
+                },
+              })
+            }
+          />
         </Grid>
-        <Grid item xs={12}>
-          <Typography variant='caption'>{disclaimer}</Typography>
-        </Grid>
-        {edit && (
+
+        {currentType?.userDisclaimer !== '' && (
           <Grid item xs={12}>
-            <FormControlLabel
-              label='Enable status updates'
-              control={
-                <Checkbox
-                  name='enableStatusUpdates'
-                  disabled={
-                    value.statusUpdates === 'DISABLED_FORCED' ||
-                    value.statusUpdates === 'ENABLED_FORCED'
-                  }
-                  checked={statusUpdateChecked}
-                  onChange={(v) =>
-                    props.onChange &&
-                    props.onChange({
-                      ...value,
-                      statusUpdates: v.target.checked ? 'ENABLED' : 'DISABLED',
-                    })
-                  }
-                />
-              }
-            />
+            <Typography variant='caption'>
+              {currentType?.userDisclaimer}
+            </Typography>
           </Grid>
         )}
+
+        <Grid item xs={12}>
+          <FormControlLabel
+            label={statusLabel}
+            title='Alert status updates are sent when an alert is acknowledged, closed, or escalated.'
+            control={
+              <Checkbox
+                name='enableStatusUpdates'
+                disabled={
+                  !currentType.supportsStatusUpdates ||
+                  currentType.statusUpdatesRequired ||
+                  props.disabled
+                }
+                checked={statusUpdateChecked}
+                onChange={(v) =>
+                  props.onChange &&
+                  props.onChange({
+                    ...value,
+                    statusUpdates: v.target.checked,
+                  })
+                }
+              />
+            }
+          />
+        </Grid>
       </Grid>
     </FormContainer>
   )

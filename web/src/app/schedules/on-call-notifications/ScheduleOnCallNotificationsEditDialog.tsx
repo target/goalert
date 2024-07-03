@@ -1,58 +1,131 @@
-import React, { useState } from 'react'
-
-import { DateTime } from 'luxon'
+import React, { useEffect, useState } from 'react'
 import FormDialog from '../../dialogs/FormDialog'
-import { useOnCallRulesData, useSetOnCallRulesSubmit } from './hooks'
-import ScheduleOnCallNotificationsForm from './ScheduleOnCallNotificationsForm'
-import { EVERY_DAY, mapOnCallErrors, NO_DAY, Value } from './util'
+import ScheduleOnCallNotificationsForm, {
+  Value,
+} from './ScheduleOnCallNotificationsForm'
+import { NO_DAY } from './util'
+import { CombinedError, gql, useMutation, useQuery } from 'urql'
+import {
+  Schedule,
+  SetScheduleOnCallNotificationRulesInput,
+} from '../../../schema'
+import { DateTime } from 'luxon'
+import { useErrorConsumer } from '../../util/ErrorConsumer'
+
+const getRulesQuery = gql`
+  query GetRules($scheduleID: ID!) {
+    schedule(id: $scheduleID) {
+      id
+      timeZone
+      onCallNotificationRules {
+        id
+        weekdayFilter
+        time
+        dest {
+          type
+          args
+        }
+      }
+    }
+  }
+`
+
+const setRulesMut = gql`
+  mutation SetRules($input: SetScheduleOnCallNotificationRulesInput!) {
+    setScheduleOnCallNotificationRules(input: $input)
+  }
+`
 
 interface ScheduleOnCallNotificationsEditDialogProps {
   onClose: () => void
-
   scheduleID: string
   ruleID: string
+  disablePortal?: boolean
 }
 
 export default function ScheduleOnCallNotificationsEditDialog(
-  p: ScheduleOnCallNotificationsEditDialogProps,
+  props: ScheduleOnCallNotificationsEditDialogProps,
 ): JSX.Element {
-  const [value, setValue] = useState<Value | null>(null)
+  const { onClose, scheduleID } = props
+  const [err, setErr] = useState<CombinedError | null>(null)
+  const [q] = useQuery<{ schedule: Schedule }>({
+    query: getRulesQuery,
+    variables: { scheduleID },
+  })
+  if (q.error) throw q.error
+  const sched = q.data?.schedule
+  if (!sched) throw new Error('no data for schedule ' + scheduleID)
+  const rule = sched.onCallNotificationRules.find((r) => r.id === props.ruleID)
+  if (!rule) throw new Error('no rule for id ' + props.ruleID)
 
-  const { q, zone, rules } = useOnCallRulesData(p.scheduleID)
+  const [value, setValue] = useState<Value>({
+    time: rule.time || null,
+    weekdayFilter: rule.weekdayFilter || NO_DAY,
+    dest: {
+      type: rule.dest.type,
+      args: rule.dest.args,
+    },
+  })
+  useEffect(() => {
+    setErr(null)
+  }, [value])
 
-  const rule = rules.find((r) => r.id === p.ruleID)
-  const newValue: Value = value || {
-    time: rule?.time
-      ? DateTime.fromFormat(rule.time, 'HH:mm', { zone }).toISO()
-      : null,
-    weekdayFilter: rule?.time ? rule.weekdayFilter || EVERY_DAY : NO_DAY,
-    type: rule?.target?.type ?? 'slackChannel',
-    targetID: rule?.target?.id ?? null,
-  }
-  const { m, submit } = useSetOnCallRulesSubmit(
-    p.scheduleID,
-    zone,
-    newValue,
-    ...rules.filter((r) => r.id !== p.ruleID),
+  const [m, commit] = useMutation(setRulesMut)
+  useEffect(() => {
+    setErr(m.error || null)
+  }, [m.error])
+
+  const errs = useErrorConsumer(err)
+
+  const form = (
+    <ScheduleOnCallNotificationsForm
+      scheduleID={scheduleID}
+      value={value}
+      onChange={setValue}
+      disabled={m.fetching}
+      destTypeError={errs.getErrorByPath(
+        /setScheduleOnCallNotificationRules.input.rules.+.dest.type/,
+      )}
+      destFieldErrors={errs.getErrorMap(
+        /setScheduleOnCallNotificationRules.input.rules.+.dest(.args)?/,
+      )}
+    />
   )
-
-  const [dialogErrors, fieldErrors] = mapOnCallErrors(m.error, q.error)
 
   return (
     <FormDialog
       title='Edit Notification Rule'
-      errors={dialogErrors}
-      loading={(q.fetching && !zone) || m.fetching}
-      onClose={() => p.onClose()}
-      onSubmit={() => submit().then(p.onClose)}
-      form={
-        <ScheduleOnCallNotificationsForm
-          scheduleID={p.scheduleID}
-          errors={fieldErrors}
-          value={newValue}
-          onChange={setValue}
-        />
+      errors={errs.remainingLegacy()}
+      disablePortal={props.disablePortal}
+      loading={m.fetching}
+      onClose={onClose}
+      onSubmit={() =>
+        commit(
+          {
+            input: {
+              scheduleID,
+              rules: [
+                ...sched.onCallNotificationRules.filter((r) => r !== rule),
+                value.time
+                  ? {
+                      id: rule.id,
+                      ...value,
+                      time: DateTime.fromISO(value.time)
+                        .setZone(sched.timeZone)
+                        .toFormat('HH:mm'),
+                    }
+                  : { id: rule.id, dest: value.dest },
+              ],
+            } satisfies SetScheduleOnCallNotificationRulesInput,
+          },
+          { additionalTypenames: ['Schedule'] },
+        )
+          .then(onClose)
+          .catch((err) => {
+            setErr(err)
+          })
       }
+      form={form}
     />
   )
 }

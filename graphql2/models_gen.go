@@ -33,13 +33,13 @@ type InlineDisplayInfo interface {
 }
 
 type Action struct {
-	Dest   *Destination   `json:"dest"`
-	Params []DynamicParam `json:"params"`
+	Dest   *Destination      `json:"dest"`
+	Params map[string]string `json:"params"`
 }
 
 type ActionInput struct {
-	Dest   *DestinationInput   `json:"dest"`
-	Params []DynamicParamInput `json:"params"`
+	Dest   *DestinationInput `json:"dest"`
+	Params map[string]string `json:"params"`
 }
 
 type AlertConnection struct {
@@ -360,6 +360,7 @@ type DebugSendSMSInput struct {
 type Destination struct {
 	Type        string            `json:"type"`
 	Values      []FieldValuePair  `json:"values"`
+	Args        map[string]string `json:"args"`
 	DisplayInfo InlineDisplayInfo `json:"displayInfo"`
 }
 
@@ -431,7 +432,8 @@ type DestinationFieldValidateInput struct {
 
 type DestinationInput struct {
 	Type   string            `json:"type"`
-	Values []FieldValueInput `json:"values"`
+	Values []FieldValueInput `json:"values,omitempty"`
+	Args   map[string]string `json:"args,omitempty"`
 }
 
 type DestinationTypeInfo struct {
@@ -444,6 +446,8 @@ type DestinationTypeInfo struct {
 	// if false, the destination type is disabled and cannot be used
 	Enabled        bool                     `json:"enabled"`
 	RequiredFields []DestinationFieldConfig `json:"requiredFields"`
+	// expr parameters that can be used for this destination type
+	DynamicParams []DynamicParamConfig `json:"dynamicParams"`
 	// disclaimer text to display when a user is selecting this destination type for a contact method
 	UserDisclaimer string `json:"userDisclaimer"`
 	// this destination type can be used as a user contact method
@@ -452,20 +456,23 @@ type DestinationTypeInfo struct {
 	IsEPTarget bool `json:"isEPTarget"`
 	// this destination type can be used for schedule on-call notifications
 	IsSchedOnCallNotify bool `json:"isSchedOnCallNotify"`
+	// this destination type can be used for dynamic actions
+	IsDynamicAction bool `json:"isDynamicAction"`
 	// if true, the destination type supports status updates
 	SupportsStatusUpdates bool `json:"supportsStatusUpdates"`
 	// if true, the destination type requires status updates to be enabled
 	StatusUpdatesRequired bool `json:"statusUpdatesRequired"`
 }
 
-type DynamicParam struct {
+type DynamicParamConfig struct {
+	// unique ID for the input field
 	ParamID string `json:"paramID"`
-	Expr    string `json:"expr"`
-}
-
-type DynamicParamInput struct {
-	ParamID string `json:"paramID"`
-	Expr    string `json:"expr"`
+	// user-friendly label (should be singular)
+	Label string `json:"label"`
+	// user-friendly helper text for input fields (i.e., "Enter a phone number")
+	Hint string `json:"hint"`
+	// URL to link to for more information about the destination type
+	HintURL string `json:"hintURL"`
 }
 
 type EscalationPolicyConnection struct {
@@ -564,9 +571,9 @@ type IntegrationKeyTypeInfo struct {
 }
 
 type KeyConfig struct {
-	// Stop evaluating rules after the first rule that matches.
-	StopAtFirstRule bool      `json:"stopAtFirstRule"`
-	Rules           []KeyRule `json:"rules"`
+	Rules []KeyRule `json:"rules"`
+	// Get a single rule by ID.
+	OneRule *KeyRule `json:"oneRule,omitempty"`
 	// defaultAction is the action to take if no rules match the request.
 	DefaultActions []Action `json:"defaultActions"`
 }
@@ -578,6 +585,8 @@ type KeyRule struct {
 	// An expression that must evaluate to true for the rule to match.
 	ConditionExpr string   `json:"conditionExpr"`
 	Actions       []Action `json:"actions"`
+	// Continue evaluating rules after this rule matches.
+	ContinueAfterMatch bool `json:"continueAfterMatch"`
 }
 
 type KeyRuleInput struct {
@@ -588,6 +597,10 @@ type KeyRuleInput struct {
 	// An expression that must evaluate to true for the rule to match.
 	ConditionExpr string        `json:"conditionExpr"`
 	Actions       []ActionInput `json:"actions"`
+	// Continue evaluating rules after this rule matches.
+	//
+	// If this is set to false (default), no further rules will be evaluated after this rule matches.
+	ContinueAfterMatch bool `json:"continueAfterMatch"`
 }
 
 type LabelConnection struct {
@@ -646,6 +659,20 @@ type NotificationState struct {
 	Details           string              `json:"details"`
 	Status            *NotificationStatus `json:"status,omitempty"`
 	FormattedSrcValue string              `json:"formattedSrcValue"`
+}
+
+type OnCallOverview struct {
+	ServiceCount       int                       `json:"serviceCount"`
+	ServiceAssignments []OnCallServiceAssignment `json:"serviceAssignments"`
+}
+
+type OnCallServiceAssignment struct {
+	// stepNumber is the escalation step this assignment is from (beginning with 0).
+	StepNumber           int    `json:"stepNumber"`
+	EscalationPolicyID   string `json:"escalationPolicyID"`
+	EscalationPolicyName string `json:"escalationPolicyName"`
+	ServiceID            string `json:"serviceID"`
+	ServiceName          string `json:"serviceName"`
 }
 
 type PageInfo struct {
@@ -855,6 +882,13 @@ type TimeZoneSearchOptions struct {
 	Omit   []string `json:"omit,omitempty"`
 }
 
+type TokenInfo struct {
+	// primaryHint is a hint for the primary token. It is empty if the primary token is not set.
+	PrimaryHint string `json:"primaryHint"`
+	// secondaryHint is a hint for the secondary token. It is empty if the secondary token is not set.
+	SecondaryHint string `json:"secondaryHint"`
+}
+
 type UpdateAlertsByServiceInput struct {
 	ServiceID string      `json:"serviceID"`
 	NewStatus AlertStatus `json:"newStatus"`
@@ -901,10 +935,12 @@ type UpdateHeartbeatMonitorInput struct {
 }
 
 type UpdateKeyConfigInput struct {
-	KeyID string `json:"keyID"`
-	// Stop evaluating rules after the first rule that matches.
-	StopAtFirstRule *bool          `json:"stopAtFirstRule,omitempty"`
-	Rules           []KeyRuleInput `json:"rules,omitempty"`
+	KeyID string         `json:"keyID"`
+	Rules []KeyRuleInput `json:"rules,omitempty"`
+	// setRule allows you to set a single rule. If ID is provided, the rule with that ID will be updated. If ID is not provided, a new rule will be created and appended to the list of rules.
+	SetRule *KeyRuleInput `json:"setRule,omitempty"`
+	// deleteRule allows you to delete a single rule by ID.
+	DeleteRule *string `json:"deleteRule,omitempty"`
 	// defaultAction is the action to take if no rules match the request.
 	DefaultActions []ActionInput `json:"defaultActions,omitempty"`
 }
@@ -1161,6 +1197,12 @@ const (
 	//
 	// A separate error will be returned for each invalid field.
 	ErrorCodeInvalidDestFieldValue ErrorCode = "INVALID_DEST_FIELD_VALUE"
+	// The `path` field contains the exact path to the map that is invalid.
+	//
+	// The `extensions.key` field contains the key of the value that is invalid.
+	//
+	// A separate error will be returned for each invalid value.
+	ErrorCodeInvalidMapFieldValue ErrorCode = "INVALID_MAP_FIELD_VALUE"
 	// The expr expression is too complex to be converted to a Condition.
 	ErrorCodeExprTooComplex ErrorCode = "EXPR_TOO_COMPLEX"
 )
@@ -1168,12 +1210,13 @@ const (
 var AllErrorCode = []ErrorCode{
 	ErrorCodeInvalidInputValue,
 	ErrorCodeInvalidDestFieldValue,
+	ErrorCodeInvalidMapFieldValue,
 	ErrorCodeExprTooComplex,
 }
 
 func (e ErrorCode) IsValid() bool {
 	switch e {
-	case ErrorCodeInvalidInputValue, ErrorCodeInvalidDestFieldValue, ErrorCodeExprTooComplex:
+	case ErrorCodeInvalidInputValue, ErrorCodeInvalidDestFieldValue, ErrorCodeInvalidMapFieldValue, ErrorCodeExprTooComplex:
 		return true
 	}
 	return false

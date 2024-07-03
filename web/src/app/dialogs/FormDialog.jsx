@@ -26,7 +26,7 @@ const useStyles = makeStyles((theme) => {
     },
     dialogContent: {
       height: '100%', // parents of form need height set to properly function in Safari
-      paddingTop: '8px !important', // workaround for https://github.com/mui/material-ui/issues/31185
+      paddingTop: '8px',
     },
     formContainer: {
       width: '100%',
@@ -63,6 +63,7 @@ function FormDialog(props) {
     fullHeight,
     disableBackdropClose,
     disablePortal,
+    disableSubmit,
     ...dialogProps
   } = props
 
@@ -169,6 +170,7 @@ function FormDialog(props) {
           }}
           attemptCount={attemptCount}
           buttonText={primaryActionLabel || (confirm ? 'Confirm' : submitText)}
+          disabled={disableSubmit}
           loading={loading}
           type='submit'
         />
@@ -236,6 +238,8 @@ FormDialog.propTypes = {
   maxWidth: p.string,
 
   disablePortal: p.bool, // disable the portal behavior of the dialog
+
+  disableSubmit: p.bool, // disables the submit button while true
 
   // overrides any of the main action button titles with this specific text
   primaryActionLabel: p.string,

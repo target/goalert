@@ -9,19 +9,16 @@ import { gql, useMutation } from 'urql'
 import FlatList from '../lists/FlatList'
 import CreateFAB from '../lists/CreateFAB'
 import PolicyStepCreateDialog from './PolicyStepCreateDialog'
-import PolicyStepCreateDialogDest from './PolicyStepCreateDialogDest'
 import { useResetURLParams, useURLParam } from '../actions'
 import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { useIsWidthDown } from '../util/useWidth'
 import { reorderList } from '../rotations/util'
-import PolicyStepEditDialog from './PolicyStepEditDialog'
 import PolicyStepDeleteDialog from './PolicyStepDeleteDialog'
-import PolicyStepEditDialogDest from './PolicyStepEditDialogDest'
+import PolicyStepEditDialog from './PolicyStepEditDialog'
 import OtherActions from '../util/OtherActions'
-import { renderChips, renderChipsDest, renderDelayMessage } from './stepUtil'
-import { useExpFlag } from '../util/useExpFlag'
-import { Destination, Target } from '../../schema'
+import { renderChipsDest, renderDelayMessage } from './stepUtil'
+import { Destination } from '../../schema'
 
 const mutation = gql`
   mutation UpdateEscalationPolicyMutation(
@@ -35,8 +32,7 @@ type StepInfo = {
   id: string
   delayMinutes: number
   stepNumber: number
-  actions?: Destination[]
-  targets: Target[]
+  actions: Destination[]
 }
 
 export type PolicyStepsCardProps = {
@@ -48,8 +44,6 @@ export type PolicyStepsCardProps = {
 export default function PolicyStepsCard(
   props: PolicyStepsCardProps,
 ): React.ReactNode {
-  const hasDestTypesFlag = useExpFlag('dest-types')
-
   const isMobile = useIsWidthDown('md')
   const stepNumParam = 'createStep'
   const [createStep, setCreateStep] = useURLParam<boolean>(stepNumParam, false)
@@ -121,19 +115,10 @@ export default function PolicyStepsCard(
         <CreateFAB onClick={() => setCreateStep(true)} title='Create Step' />
       )}
       {createStep && (
-        <React.Fragment>
-          {hasDestTypesFlag ? (
-            <PolicyStepCreateDialogDest
-              escalationPolicyID={props.escalationPolicyID}
-              onClose={resetCreateStep}
-            />
-          ) : (
-            <PolicyStepCreateDialog
-              escalationPolicyID={props.escalationPolicyID}
-              onClose={resetCreateStep}
-            />
-          )}
-        </React.Fragment>
+        <PolicyStepCreateDialog
+          escalationPolicyID={props.escalationPolicyID}
+          onClose={resetCreateStep}
+        />
       )}
       <Card>
         <CardHeader
@@ -166,9 +151,7 @@ export default function PolicyStepsCard(
             ) as unknown as string, // needed to work around MUI incorrect types
             subText: (
               <React.Fragment>
-                {step.actions
-                  ? renderChipsDest(step.actions)
-                  : renderChips(step)}
+                {renderChipsDest(step.actions)}
                 {renderDelayMessage(
                   step,
                   idx,
@@ -206,19 +189,11 @@ export default function PolicyStepsCard(
       <Suspense>
         {editStep && (
           <React.Fragment>
-            {hasDestTypesFlag ? (
-              <PolicyStepEditDialogDest
-                escalationPolicyID={props.escalationPolicyID}
-                onClose={resetEditStep}
-                stepID={editStep.id}
-              />
-            ) : (
-              <PolicyStepEditDialog
-                escalationPolicyID={props.escalationPolicyID}
-                onClose={resetEditStep}
-                step={editStep}
-              />
-            )}
+            <PolicyStepEditDialog
+              escalationPolicyID={props.escalationPolicyID}
+              onClose={resetEditStep}
+              stepID={editStep.id}
+            />
           </React.Fragment>
         )}
         {deleteStep && (

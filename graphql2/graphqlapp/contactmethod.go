@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/target/goalert/config"
-	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/webhook"
@@ -28,37 +27,27 @@ func (a *ContactMethod) Dest(ctx context.Context, obj *contactmethod.ContactMeth
 	case contactmethod.TypeSMS:
 		return &graphql2.Destination{
 			Type: destTwilioSMS,
-			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldPhoneNumber, Value: obj.Value},
-			},
+			Args: map[string]string{fieldPhoneNumber: obj.Value},
 		}, nil
 	case contactmethod.TypeVoice:
 		return &graphql2.Destination{
 			Type: destTwilioVoice,
-			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldPhoneNumber, Value: obj.Value},
-			},
+			Args: map[string]string{fieldPhoneNumber: obj.Value},
 		}, nil
 	case contactmethod.TypeEmail:
 		return &graphql2.Destination{
 			Type: destSMTP,
-			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldEmailAddress, Value: obj.Value},
-			},
+			Args: map[string]string{fieldEmailAddress: obj.Value},
 		}, nil
 	case contactmethod.TypeWebhook:
 		return &graphql2.Destination{
 			Type: destWebhook,
-			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldWebhookURL, Value: obj.Value},
-			},
+			Args: map[string]string{fieldWebhookURL: obj.Value},
 		}, nil
 	case contactmethod.TypeSlackDM:
 		return &graphql2.Destination{
 			Type: destSlackDM,
-			Values: []graphql2.FieldValuePair{
-				{FieldID: fieldSlackUserID, Value: obj.Value},
-			},
+			Args: map[string]string{fieldSlackUserID: obj.Value},
 		}, nil
 	}
 
@@ -191,7 +180,6 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 			input.NewUserNotificationRule.ContactMethodID = &cm.ID
 
 			_, err = m.CreateUserNotificationRule(ctx, *input.NewUserNotificationRule)
-
 			if err != nil {
 				return validation.AddPrefix("newUserNotificationRule.", err)
 			}
@@ -216,7 +204,7 @@ func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.U
 		}
 		if input.Name != nil {
 			err := validate.IDName("input.name", *input.Name)
-			if err != nil && expflag.ContextHas(ctx, expflag.DestTypes) {
+			if err != nil {
 				addInputError(ctx, err)
 				return errAlreadySet
 			}

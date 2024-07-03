@@ -8,17 +8,16 @@ import { Add } from '@mui/icons-material'
 import { sortContactMethods } from './util'
 import OtherActions from '../util/OtherActions'
 import UserContactMethodDeleteDialog from './UserContactMethodDeleteDialog'
-import UserContactMethodEditDialog from './UserContactMethodEditDialog'
 import { Warning } from '../icons'
 import UserContactMethodVerificationDialog from './UserContactMethodVerificationDialog'
 import { useIsWidthDown } from '../util/useWidth'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import SendTestDialog from './SendTestDialog'
-import AppLink from '../util/AppLink'
 import { styles as globalStyles } from '../styles/materialStyles'
 import { UserContactMethod } from '../../schema'
+import { useSessionInfo, useContactMethodTypes } from '../util/RequireConfig'
+import UserContactMethodEditDialog from './UserContactMethodEditDialog'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
-import { useSessionInfo } from '../util/RequireConfig'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -27,9 +26,21 @@ const query = gql`
       contactMethods {
         id
         name
-        type
-        value
-        formattedValue
+        dest {
+          type
+          args
+          displayInfo {
+            ... on DestinationDisplayInfo {
+              text
+              iconURL
+              iconAltText
+              linkURL
+            }
+            ... on DestinationDisplayInfoError {
+              error
+            }
+          }
+        }
         disabled
         pending
       }
@@ -64,6 +75,7 @@ export default function UserContactMethodList(
   const [showEditDialogByID, setShowEditDialogByID] = useState('')
   const [showDeleteDialogByID, setShowDeleteDialogByID] = useState('')
   const [showSendTestByID, setShowSendTestByID] = useState('')
+  const destinationTypes = useContactMethodTypes()
 
   const [{ error, data }] = useQuery({
     query,
@@ -161,18 +173,16 @@ export default function UserContactMethodList(
     )
   }
 
-  function getSubText(cm: UserContactMethod): JSX.Element | string {
-    let cmText = cm.formattedValue
-    if (cm.pending) {
-      cmText = `${cm.formattedValue} - this contact method will be automatically deleted if not verified`
+  function getSubText(cm: UserContactMethod): string {
+    let cmText
+    if ('error' in cm.dest.displayInfo) {
+      cmText = `ERROR: ${cm.dest.displayInfo.error}`
+    } else {
+      cmText = cm.dest.displayInfo.text
     }
-    if (cm.type === 'WEBHOOK') {
-      return (
-        <React.Fragment>
-          {`${cmText} (`}
-          <AppLink to='/docs'>docs</AppLink>)
-        </React.Fragment>
-      )
+
+    if (cm.pending) {
+      cmText += ` - this contact method will be automatically deleted if not verified`
     }
 
     return cmText
@@ -200,12 +210,21 @@ export default function UserContactMethodList(
         />
         <FlatList
           data-cy='contact-methods'
-          items={sortContactMethods(contactMethods).map((cm) => ({
-            title: `${cm.name} (${cm.type})${cm.disabled ? ' - Disabled' : ''}`,
-            subText: getSubText(cm),
-            secondaryAction: getSecondaryAction(cm),
-            icon: getIcon(cm),
-          }))}
+          items={sortContactMethods(contactMethods).map((cm) => {
+            const destType = destinationTypes.find(
+              (d) => d.type === cm.dest.type,
+            )
+
+            const label = destType?.name || 'Unknown Type'
+
+            return {
+              id: cm.id,
+              title: `${cm.name} (${label})${cm.disabled ? ' - Disabled' : ''}`,
+              subText: getSubText(cm),
+              secondaryAction: getSecondaryAction(cm),
+              icon: getIcon(cm),
+            }
+          })}
           emptyMessage='No contact methods'
         />
         <Suspense>

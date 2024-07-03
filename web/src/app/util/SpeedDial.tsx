@@ -83,6 +83,7 @@ export default function CustomSpeedDial(
                 return
               }
               action.onClick(e)
+              setOpen(false)
             }}
           />
         ))}

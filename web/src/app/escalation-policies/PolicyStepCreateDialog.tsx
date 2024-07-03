@@ -1,82 +1,83 @@
-import React, { useState } from 'react'
-import { gql, useMutation } from 'urql'
-import { fieldErrors, nonFieldErrors } from '../util/errutil'
-import PolicyStepForm from './PolicyStepForm'
+import React, { useState, useEffect } from 'react'
+import { CombinedError, gql, useMutation } from 'urql'
 import FormDialog from '../dialogs/FormDialog'
-
-interface Value {
-  targets?: {
-    id: string
-    type: string
-    name?: null | string
-  }
-  delayMinutes: string
-}
+import PolicyStepForm, { FormValue } from './PolicyStepForm'
+import { useErrorConsumer } from '../util/ErrorConsumer'
+import { getNotice } from './utils'
 
 const mutation = gql`
-  mutation ($input: CreateEscalationPolicyStepInput!) {
+  mutation createEscalationPolicyStep(
+    $input: CreateEscalationPolicyStepInput!
+  ) {
     createEscalationPolicyStep(input: $input) {
       id
-      delayMinutes
-      targets {
-        id
-        name
-        type
-      }
     }
   }
 `
 
-function PolicyStepCreateDialog(props: {
+export default function PolicyStepCreateDialog(props: {
   escalationPolicyID: string
+  disablePortal?: boolean
   onClose: () => void
 }): JSX.Element {
-  const [value, setValue] = useState<Value | null>(null)
-  const defaultValue = {
-    targets: [],
-    delayMinutes: '15',
-  }
+  const [value, setValue] = useState<FormValue>({
+    actions: [],
+    delayMinutes: 15,
+  })
 
   const [createStepStatus, createStep] = useMutation(mutation)
+  const [err, setErr] = useState<CombinedError | null>(null)
 
-  const { fetching, error } = createStepStatus
-  const fieldErrs = fieldErrors(error)
+  const [hasSubmitted, setHasSubmitted] = useState(false)
+  const [hasConfirmed, setHasConfirmed] = useState(false)
+  const noActionsNoConf = value.actions.length === 0 && !hasConfirmed
+
+  useEffect(() => {
+    setErr(null)
+  }, [value])
+
+  useEffect(() => {
+    setErr(createStepStatus.error || null)
+  }, [createStepStatus.error])
+  const errs = useErrorConsumer(err)
 
   return (
     <FormDialog
+      disablePortal={props.disablePortal}
       title='Create Step'
-      loading={fetching}
-      errors={nonFieldErrors(error)}
+      loading={createStepStatus.fetching}
+      errors={errs.remainingLegacy()}
       maxWidth='sm'
       onClose={props.onClose}
-      onSubmit={() =>
+      onSubmit={() => {
+        if (noActionsNoConf) {
+          setHasSubmitted(true)
+          return
+        }
+
         createStep(
           {
             input: {
               escalationPolicyID: props.escalationPolicyID,
-              delayMinutes: parseInt(
-                (value && value.delayMinutes) || defaultValue.delayMinutes,
-              ),
-              targets: (value && value.targets) || defaultValue.targets,
+              delayMinutes: +value.delayMinutes,
+              actions: value.actions,
             },
           },
           { additionalTypenames: ['EscalationPolicy'] },
         ).then((result) => {
-          if (!result.error) {
-            props.onClose()
-          }
+          if (result.error) return
+
+          props.onClose()
         })
-      }
+      }}
       form={
         <PolicyStepForm
-          errors={fieldErrs}
-          disabled={fetching}
-          value={value || defaultValue}
-          onChange={(value: Value) => setValue(value)}
+          disabled={createStepStatus.fetching}
+          value={value}
+          onChange={(value: FormValue) => setValue(value)}
         />
       }
+      notices={getNotice(hasSubmitted, hasConfirmed, setHasConfirmed)}
     />
   )
 }
-
-export default PolicyStepCreateDialog

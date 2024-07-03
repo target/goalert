@@ -21,5 +21,5 @@ type Message struct {
 	CreatedAt  time.Time
 	SentAt     time.Time
 
-	StatusAlertIDs []int
+	StatusAlertIDs []int64
 }

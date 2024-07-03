@@ -2,7 +2,7 @@ import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
 import DestinationInputChip from './DestinationInputChip'
 import { expect, userEvent, within } from '@storybook/test'
-import { handleDefaultConfig, handleExpFlags } from '../storybook/graphql'
+import { handleDefaultConfig } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 
 const meta = {
@@ -16,7 +16,6 @@ const meta = {
     msw: {
       handlers: [
         handleDefaultConfig,
-        handleExpFlags('dest-types'),
         graphql.query('DestDisplayInfo', () => {
           return HttpResponse.json({
             data: {
@@ -44,12 +43,9 @@ export const Render: Story = {
   args: {
     value: {
       type: 'builtin-rotation',
-      values: [
-        {
-          fieldID: 'rotation-id',
-          value: 'bf227047-18b8-4de3-881c-24b9dd345670',
-        },
-      ],
+      args: {
+        'rotation-id': 'bf227047-18b8-4de3-881c-24b9dd345670',
+      },
     },
   },
   play: async ({ canvasElement, args }) => {

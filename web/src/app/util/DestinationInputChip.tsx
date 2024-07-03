@@ -6,6 +6,7 @@ import DestinationChip from './DestinationChip'
 export type DestinationInputChipProps = {
   value: DestinationInput
   onDelete?: () => void
+  onChipClick?: () => void
 }
 
 const query = gql`
@@ -51,6 +52,7 @@ export default function DestinationInputChip(
       linkURL={data?.destinationDisplayInfo.linkURL || ''}
       text={data?.destinationDisplayInfo.text || ''}
       onDelete={props.onDelete}
+      onChipClick={props.onChipClick}
     />
   )
 }

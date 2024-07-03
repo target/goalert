@@ -31,10 +31,19 @@ const query = gql`
         delayMinutes
         contactMethod {
           id
-          type
           name
-          value
-          formattedValue
+          dest {
+            type
+            displayInfo {
+              ... on DestinationDisplayInfo {
+                text
+                iconAltText
+              }
+              ... on DestinationDisplayInfoError {
+                error
+              }
+            }
+          }
         }
       }
     }
@@ -92,18 +101,29 @@ export default function UserNotificationRuleList(props: {
         <FlatList
           data-cy='notification-rules'
           items={sortNotificationRules(user?.notificationRules ?? []).map(
-            (nr) => ({
-              title: formatNotificationRule(nr.delayMinutes, nr.contactMethod),
-              secondaryAction: props.readOnly ? null : (
-                <IconButton
-                  aria-label='Delete notification rule'
-                  onClick={() => setDeleteID(nr.id)}
-                  color='secondary'
-                >
-                  <Delete />
-                </IconButton>
-              ),
-            }),
+            (nr) => {
+              const formattedValue =
+                nr.contactMethod.dest.displayInfo.text || 'Unknown Label'
+              const name = nr.contactMethod.name || 'Unknown User'
+              const type =
+                nr.contactMethod.dest.displayInfo.iconAltText || 'Unknown Type'
+              return {
+                title: formatNotificationRule(nr.delayMinutes, {
+                  type,
+                  name,
+                  formattedValue,
+                }),
+                secondaryAction: props.readOnly ? null : (
+                  <IconButton
+                    aria-label='Delete notification rule'
+                    onClick={() => setDeleteID(nr.id)}
+                    color='secondary'
+                  >
+                    <Delete />
+                  </IconButton>
+                ),
+              }
+            },
           )}
           emptyMessage='No notification rules'
         />

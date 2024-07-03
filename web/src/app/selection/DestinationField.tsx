@@ -1,5 +1,5 @@
 import React from 'react'
-import { DestinationType, FieldValueInput } from '../../schema'
+import { DestinationType, StringMap } from '../../schema'
 import DestinationInputDirect from './DestinationInputDirect'
 import { useDestinationType } from '../util/RequireConfig'
 import DestinationSearchSelect from './DestinationSearchSelect'
@@ -7,13 +7,21 @@ import { Grid } from '@mui/material'
 import { DestFieldValueError } from '../util/errtypes'
 
 export type DestinationFieldProps = {
-  value: FieldValueInput[]
-  onChange?: (value: FieldValueInput[]) => void
+  value: StringMap
+  onChange?: (value: StringMap) => void
   destType: DestinationType
 
   disabled?: boolean
 
+  /** Deprecated, use fieldErrors instead. */
   destFieldErrors?: DestFieldValueError[]
+
+  fieldErrors?: Readonly<Record<string, string>>
+}
+
+export interface DestFieldError {
+  fieldID: string
+  message: string
 }
 
 function capFirstLetter(s: string): string {
@@ -26,31 +34,28 @@ export default function DestinationField(
 ): React.ReactNode {
   const dest = useDestinationType(props.destType)
 
+  let fieldErrors = props.fieldErrors
+  // TODO: remove this block after removing destFieldErrors
+  if (!props.fieldErrors && props.destFieldErrors) {
+    const newErrs: Record<string, string> = {}
+    for (const err of props.destFieldErrors) {
+      newErrs[err.extensions.fieldID] = err.message
+    }
+    fieldErrors = newErrs
+  }
+
   return (
     <Grid container spacing={2}>
       {dest.requiredFields.map((field) => {
-        const fieldValue =
-          (props.value || []).find((v) => v.fieldID === field.fieldID)?.value ||
-          ''
+        const fieldValue = props.value[field.fieldID] || ''
 
         function handleChange(newValue: string): void {
           if (!props.onChange) return
 
-          const newValues = (props.value || [])
-            .filter((v) => v.fieldID !== field.fieldID)
-            .concat({
-              fieldID: field.fieldID,
-              value: newValue,
-            })
-
-          props.onChange(newValues)
+          props.onChange({ ...props.value, [field.fieldID]: newValue })
         }
 
-        const fieldErrMsg = capFirstLetter(
-          props.destFieldErrors?.find(
-            (err) => err.extensions.fieldID === field.fieldID,
-          )?.message || '',
-        )
+        const fieldErrMsg = capFirstLetter(fieldErrors?.[field.fieldID] || '')
 
         if (field.supportsSearch)
           return (
@@ -61,9 +66,7 @@ export default function DestinationField(
                 destType={props.destType}
                 disabled={props.disabled || !dest.enabled}
                 onChange={(val) => handleChange(val)}
-                error={!!fieldErrMsg}
-                hint={fieldErrMsg || field.hint}
-                hintURL={fieldErrMsg ? '' : field.hintURL}
+                error={fieldErrMsg}
               />
             </Grid>
           )
@@ -76,9 +79,7 @@ export default function DestinationField(
               destType={props.destType}
               disabled={props.disabled || !dest.enabled}
               onChange={(e) => handleChange(e.target.value)}
-              error={!!fieldErrMsg}
-              hint={fieldErrMsg || field.hint}
-              hintURL={fieldErrMsg ? '' : field.hintURL}
+              error={fieldErrMsg}
             />
           </Grid>
         )
