@@ -47,7 +47,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 // Symbol used to store the timestamp in the payload without
 // interfering with the data keys.
 const TIMESTAMP_SYM = Symbol('timestamp')
-const getTimestamp = (p: CustomDotProps['payload']) => p[TIMESTAMP_SYM]
+const getTimestamp = (p: CustomDotProps['payload']): string => p[TIMESTAMP_SYM]
 
 interface CustomDotProps extends DotProps {
   payload: {
