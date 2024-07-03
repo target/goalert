@@ -7,34 +7,30 @@ import (
 	"github.com/nyaruka/phonenumbers"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
-	"github.com/target/goalert/notification/email"
-	"github.com/target/goalert/notification/slack"
-	"github.com/target/goalert/notification/twilio"
-	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
 // builtin-types
 const (
-	destTwilioSMS   = twilio.DestTypeSMS
-	destTwilioVoice = twilio.DestTypeVoice
-	destSMTP        = email.DestType
-	destWebhook     = webhook.DestType
-	destSlackDM     = slack.DestTypeDM
-	destSlackChan   = slack.DestTypeChannel
-	destSlackUG     = slack.DestTypeUsergroup
+	destTwilioSMS   = "builtin-twilio-sms"
+	destTwilioVoice = "builtin-twilio-voice"
+	destSMTP        = "builtin-smtp-email"
+	destWebhook     = "builtin-webhook"
+	destSlackDM     = "builtin-slack-dm"
+	destSlackChan   = "builtin-slack-channel"
+	destSlackUG     = "builtin-slack-usergroup"
 	destUser        = "builtin-user"
 	destRotation    = "builtin-rotation"
 	destSchedule    = "builtin-schedule"
 	destAlert       = "builtin-alert"
 
-	fieldPhoneNumber  = twilio.FieldPhoneNumber
-	fieldEmailAddress = email.FieldEmailAddress
-	fieldWebhookURL   = webhook.FieldWebhookURL
-	fieldSlackUserID  = slack.FieldSlackUserID
-	fieldSlackChanID  = slack.FieldSlackChannelID
-	fieldSlackUGID    = slack.FieldSlackUsergroupID
+	fieldPhoneNumber  = "phone-number"
+	fieldEmailAddress = "email-address"
+	fieldWebhookURL   = "webhook-url"
+	fieldSlackUserID  = "slack-user-id"
+	fieldSlackChanID  = "slack-channel-id"
+	fieldSlackUGID    = "slack-usergroup-id"
 	fieldUserID       = "user-id"
 	fieldRotationID   = "rotation-id"
 	fieldScheduleID   = "schedule-id"
