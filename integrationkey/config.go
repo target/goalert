@@ -48,6 +48,8 @@ type Rule struct {
 
 // An Action is a single action to take if a rule matches.
 type Action struct {
+	ChannelID uuid.UUID
+
 	// Type is the type of action to perform, like slack, email, or alert.
 	Type string
 
@@ -167,11 +169,19 @@ func (s *Store) SetConfig(ctx context.Context, db gadb.DBTX, keyID uuid.UUID, cf
 		return gdb.IntKeyDeleteConfig(ctx, keyID)
 	}
 
-	// ensure all rule IDs are set
+	// ensure all rule IDs are set, and all actions have a channel
 	for i := range cfg.Rules {
 		if cfg.Rules[i].ID == uuid.Nil {
 			cfg.Rules[i].ID = uuid.New()
 		}
+		err := setActionChannels(ctx, gdb, cfg.Rules[i].Actions)
+		if err != nil {
+			return err
+		}
+	}
+	err = setActionChannels(ctx, gdb, cfg.DefaultActions)
+	if err != nil {
+		return err
 	}
 
 	data, err := json.Marshal(dbConfig{Version: 1, V1: *cfg})
@@ -185,6 +195,25 @@ func (s *Store) SetConfig(ctx context.Context, db gadb.DBTX, keyID uuid.UUID, cf
 	})
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func setActionChannels(ctx context.Context, gdb *gadb.Queries, actions []Action) error {
+	for j, act := range actions {
+		// We need to ensure the channel exists in the notification_channels table before we can use it.
+		id, err := gdb.IntKeyEnsureChannel(ctx, gadb.IntKeyEnsureChannelParams{
+			ID: uuid.New(),
+			Dest: gadb.NullDestV1{Valid: true, DestV1: gadb.DestV1{
+				Type: act.Type,
+				Args: act.StaticParams,
+			}},
+		})
+		if err != nil {
+			return err
+		}
+		actions[j].ChannelID = id
 	}
 
 	return nil

@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
 )
@@ -96,6 +97,10 @@ func fillDB(ctx context.Context, dataCfg *datagenConfig, url string) error {
 	defer pool.Close()
 
 	must := func(err error) {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			log.Printf("ERROR: %s\n%s\n%s\n", pgErr.Detail, pgErr.InternalQuery, pgErr.Where)
+		}
 		if err != nil {
 			log.Fatal(err)
 		}
