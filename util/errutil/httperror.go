@@ -50,7 +50,7 @@ func HTTPError(ctx context.Context, w http.ResponseWriter, err error) bool {
 
 	err = MapDBError(err)
 	switch {
-	case errors.Is(err, ctxlock.ErrQueueFull), errors.Is(err, ctxlock.ErrTimeout):
+	case errors.Is(err, ctxlock.ErrQueueFull), errors.Is(err, ctxlock.ErrTimeout), IsLimitError(err):
 		// Either the queue is full or the lock timed out. Either way
 		// we are waiting on concurrent requests for this source, so
 		// send them back with a 429 because we are rate limiting them

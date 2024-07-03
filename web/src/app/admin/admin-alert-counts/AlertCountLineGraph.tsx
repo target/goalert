@@ -47,6 +47,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 // Symbol used to store the timestamp in the payload without
 // interfering with the data keys.
 const TIMESTAMP_SYM = Symbol('timestamp')
+const getTimestamp = (p: CustomDotProps['payload']) => p[TIMESTAMP_SYM]
 
 interface CustomDotProps extends DotProps {
   payload: {
@@ -161,7 +162,7 @@ export default function AlertCountLineGraph(
                 stroke={theme.palette.text.secondary}
               />
               <XAxis
-                dataKey={(p: CustomDotProps['payload']) => p[TIMESTAMP_SYM]}
+                dataKey={getTimestamp}
                 allowDuplicatedCategory={false}
                 minTickGap={15}
                 stroke={theme.palette.text.secondary}

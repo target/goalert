@@ -1508,6 +1508,40 @@ func (q *Queries) IntKeyDeleteSecondaryToken(ctx context.Context, id uuid.UUID) 
 	return err
 }
 
+const intKeyEnsureChannel = `-- name: IntKeyEnsureChannel :one
+WITH insert_q AS (
+INSERT INTO notification_channels(id, dest, name)
+        VALUES ($1, $2, 'unknown')
+    ON CONFLICT (dest)
+        DO NOTHING
+    RETURNING
+        id)
+    SELECT
+        id
+    FROM
+        insert_q
+    UNION
+    SELECT
+        id
+    FROM
+        notification_channels
+    WHERE
+        dest = $2
+`
+
+type IntKeyEnsureChannelParams struct {
+	ID   uuid.UUID
+	Dest NullDestV1
+}
+
+// IntKeyEnsureChannel will return the ID of a channel for a given dest, creating it if it doesn't exist.
+func (q *Queries) IntKeyEnsureChannel(ctx context.Context, arg IntKeyEnsureChannelParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, intKeyEnsureChannel, arg.ID, arg.Dest)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const intKeyFindByService = `-- name: IntKeyFindByService :many
 SELECT
     id,
@@ -1645,6 +1679,22 @@ func (q *Queries) IntKeyGetType(ctx context.Context, id uuid.UUID) (EnumIntegrat
 	var type_ EnumIntegrationKeysType
 	err := row.Scan(&type_)
 	return type_, err
+}
+
+const intKeyInsertSignalMessage = `-- name: IntKeyInsertSignalMessage :exec
+INSERT INTO pending_signals(dest_id, service_id, params)
+    VALUES ($1, $2, $3)
+`
+
+type IntKeyInsertSignalMessageParams struct {
+	DestID    uuid.UUID
+	ServiceID uuid.UUID
+	Params    json.RawMessage
+}
+
+func (q *Queries) IntKeyInsertSignalMessage(ctx context.Context, arg IntKeyInsertSignalMessageParams) error {
+	_, err := q.db.ExecContext(ctx, intKeyInsertSignalMessage, arg.DestID, arg.ServiceID, arg.Params)
+	return err
 }
 
 const intKeyPromoteSecondary = `-- name: IntKeyPromoteSecondary :one
@@ -2069,7 +2119,7 @@ func (q *Queries) NotifChanDeleteMany(ctx context.Context, dollar_1 []uuid.UUID)
 
 const notifChanFindByValue = `-- name: NotifChanFindByValue :one
 SELECT
-    created_at, id, meta, name, type, value
+    created_at, dest, id, meta, name, type, value
 FROM
     notification_channels
 WHERE
@@ -2087,6 +2137,7 @@ func (q *Queries) NotifChanFindByValue(ctx context.Context, arg NotifChanFindByV
 	var i NotificationChannel
 	err := row.Scan(
 		&i.CreatedAt,
+		&i.Dest,
 		&i.ID,
 		&i.Meta,
 		&i.Name,
@@ -2098,7 +2149,7 @@ func (q *Queries) NotifChanFindByValue(ctx context.Context, arg NotifChanFindByV
 
 const notifChanFindMany = `-- name: NotifChanFindMany :many
 SELECT
-    created_at, id, meta, name, type, value
+    created_at, dest, id, meta, name, type, value
 FROM
     notification_channels
 WHERE
@@ -2116,6 +2167,7 @@ func (q *Queries) NotifChanFindMany(ctx context.Context, dollar_1 []uuid.UUID) (
 		var i NotificationChannel
 		if err := rows.Scan(
 			&i.CreatedAt,
+			&i.Dest,
 			&i.ID,
 			&i.Meta,
 			&i.Name,
@@ -2137,7 +2189,7 @@ func (q *Queries) NotifChanFindMany(ctx context.Context, dollar_1 []uuid.UUID) (
 
 const notifChanFindOne = `-- name: NotifChanFindOne :one
 SELECT
-    created_at, id, meta, name, type, value
+    created_at, dest, id, meta, name, type, value
 FROM
     notification_channels
 WHERE
@@ -2149,6 +2201,7 @@ func (q *Queries) NotifChanFindOne(ctx context.Context, id uuid.UUID) (Notificat
 	var i NotificationChannel
 	err := row.Scan(
 		&i.CreatedAt,
+		&i.Dest,
 		&i.ID,
 		&i.Meta,
 		&i.Name,
