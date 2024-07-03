@@ -4,6 +4,7 @@ import (
 	"sort"
 
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfy"
 )
 
 // dedupAlerts will "bundle" identical alert notifications and point them at the oldest pending notification.
@@ -18,7 +19,7 @@ func dedupAlerts(msgs []Message, bundleFunc func(parentID string, duplicateIDs [
 	sort.Slice(toProcess, func(i, j int) bool { return toProcess[i].CreatedAt.Before(toProcess[j].CreatedAt) })
 
 	type msgKey struct {
-		notification.Dest
+		nfy.DestHash
 		AlertID int
 	}
 	alerts := make(map[msgKey]string, len(msgs))
@@ -26,7 +27,7 @@ func dedupAlerts(msgs []Message, bundleFunc func(parentID string, duplicateIDs [
 
 	for _, msg := range toProcess {
 		// check if we have seen this alert before
-		key := msgKey{msg.Dest, msg.AlertID}
+		key := msgKey{msg.DestHash(), msg.AlertID}
 
 		if parentID, ok := alerts[key]; ok {
 			duplicates[parentID] = append(duplicates[parentID], msg.ID)

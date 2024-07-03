@@ -15,6 +15,7 @@ import (
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/lock"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfy"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util"
@@ -336,19 +337,17 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		}
 		msg.CreatedAt = row.CreatedAt
 		msg.SentAt = row.SentAt.Time
-		msg.Dest = notification.SQLDest{
-			CMID:    row.CmID,
-			CMType:  row.CmType,
-			CMValue: row.CmValue,
-			NCID:    row.ChanID,
-			NCType:  row.ChanType,
-			NCValue: row.ChanValue,
-		}.Dest()
+		if row.CmDest.Valid {
+			msg.Dest = nfy.FromSQL(row.CmDest.DestV1)
+		}
+		if row.ChanDest.Valid {
+			msg.Dest = nfy.FromSQL(row.ChanDest.DestV1)
+		}
 		msg.StatusAlertIDs = row.StatusAlertIds
 		if row.ScheduleID.Valid {
 			msg.ScheduleID = row.ScheduleID.UUID.String()
 		}
-		if msg.Dest.Type == notification.DestTypeUnknown {
+		if msg.DestType() == "" {
 			log.Debugf(ctx, "unknown message type for message %s", msg.ID)
 			continue
 		}
@@ -405,21 +404,14 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 	}
 
 	result, err = bundleAlertMessages(result, func(msg Message) (string, error) {
-		var cmID, chanID, userID sql.NullString
+		var userID sql.NullString
 		if msg.UserID != "" {
 			userID.Valid = true
 			userID.String = msg.UserID
 		}
-		if msg.Dest.Type.IsUserCM() {
-			cmID.Valid = true
-			cmID.String = msg.Dest.ID
-		} else {
-			chanID.Valid = true
-			chanID.String = msg.Dest.ID
-		}
 
 		newID := uuid.NewString()
-		_, err := tx.StmtContext(ctx, db.createAlertBundle).ExecContext(ctx, newID, msg.CreatedAt, cmID, chanID, userID, msg.ServiceID)
+		_, err := tx.StmtContext(ctx, db.createAlertBundle).ExecContext(ctx, newID, msg.CreatedAt, msg.CMID, msg.NCID, userID, msg.ServiceID)
 		if err != nil {
 			return "", err
 		}
@@ -498,7 +490,7 @@ type SendFunc func(context.Context, *Message) (*notification.SendResult, error)
 var ErrAbort = errors.New("aborted due to pause")
 
 // StatusFunc is used to fetch the latest status of a message.
-type StatusFunc func(ctx context.Context, providerID notification.ProviderMessageID) (*notification.Status, notification.DestType, error)
+type StatusFunc func(ctx context.Context, providerID notification.ProviderMessageID) (*notification.Status, nfy.DestType, error)
 
 // SendMessages will send notifications using SendFunc.
 func (db *DB) SendMessages(ctx context.Context, send SendFunc, status StatusFunc) error {
@@ -661,7 +653,7 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 	var wg sync.WaitGroup
 	for _, t := range q.Types() {
 		wg.Add(1)
-		go func(typ notification.DestType) {
+		go func(typ nfy.DestType) {
 			defer wg.Done()
 			err := db.sendMessagesByType(ctx, cLock, send, q, typ)
 			if err != nil && !errors.Is(err, processinglock.ErrNoLock) {
@@ -746,7 +738,7 @@ func (db *DB) updateStuckMessages(ctx context.Context, statusFn StatusFunc) erro
 	return nil
 }
 
-func (db *DB) sendMessagesByType(ctx context.Context, cLock *processinglock.Conn, send SendFunc, q *queue, typ notification.DestType) error {
+func (db *DB) sendMessagesByType(ctx context.Context, cLock *processinglock.Conn, send SendFunc, q *queue, typ nfy.DestType) error {
 	ch := make(chan error)
 	var count int
 	for {
@@ -784,8 +776,7 @@ func (db *DB) sendMessagesByType(ctx context.Context, cLock *processinglock.Conn
 
 func (db *DB) sendMessage(ctx context.Context, cLock *processinglock.Conn, send SendFunc, m *Message) (bool, error) {
 	ctx = log.WithFields(ctx, log.Fields{
-		"DestTypeID": m.Dest.ID,
-		"DestType":   m.Dest.Type.String(),
+		"DestType":   m.DestType(),
 		"CallbackID": m.ID,
 	})
 

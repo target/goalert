@@ -4,6 +4,7 @@ import (
 	"sort"
 
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfy"
 )
 
 // dedupStatusMessages will remove old status updates if a newer one exists for the same alert/destination.
@@ -13,13 +14,13 @@ func dedupStatusMessages(messages []Message) ([]Message, []string) {
 
 	type msgKey struct {
 		alertID int
-		dest    notification.Dest
+		dest    nfy.DestHash
 	}
 
 	m := make(map[msgKey]struct{})
 	var toDelete []string
 	for _, msg := range toProcess {
-		key := msgKey{alertID: msg.AlertID, dest: msg.Dest}
+		key := msgKey{alertID: msg.AlertID, dest: msg.DestHash()}
 		if _, ok := m[key]; ok {
 			toDelete = append(toDelete, msg.ID)
 			continue

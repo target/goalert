@@ -3,24 +3,29 @@ package message
 import (
 	"time"
 
-	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfy"
 )
 
 // Throttle represents the throttled messages for a queue.
 type Throttle struct {
-	cfg      ThrottleConfig
-	ignoreID bool
-	now      time.Time
+	cfg        ThrottleConfig
+	byTypeOnly bool
+	now        time.Time
 
 	first    map[ThrottleItem]time.Time
 	count    map[ThrottleItem]int
-	cooldown map[notification.Dest]bool
+	cooldown map[throttleKey]bool
 }
 
 // ThrottleItem represents the messages being throttled.
 type ThrottleItem struct {
-	Dest      notification.Dest
+	Key       throttleKey
 	BucketDur time.Duration
+}
+
+type throttleKey struct {
+	DestType nfy.DestType
+	DestHash nfy.DestHash
 }
 
 // ThrottleConfig provides ThrottleRules for a given message.
@@ -41,24 +46,31 @@ func maxThrottleDuration(cfgs ...ThrottleConfig) time.Duration {
 }
 
 // NewThrottle creates a new Throttle used to manage outgoing messages in a queue.
-func NewThrottle(cfg ThrottleConfig, now time.Time, ignoreID bool) *Throttle {
+func NewThrottle(cfg ThrottleConfig, now time.Time, byTypeOnly bool) *Throttle {
 	return &Throttle{
-		cfg:      cfg,
-		now:      now,
-		ignoreID: ignoreID,
+		cfg:        cfg,
+		now:        now,
+		byTypeOnly: byTypeOnly,
 
 		first:    make(map[ThrottleItem]time.Time),
 		count:    make(map[ThrottleItem]int),
-		cooldown: make(map[notification.Dest]bool),
+		cooldown: make(map[throttleKey]bool),
 	}
+}
+
+func (tr *Throttle) msgKey(msg Message) throttleKey {
+	msgKey := throttleKey{
+		DestType: msg.DestType(),
+	}
+	if !tr.byTypeOnly {
+		msgKey.DestHash = msg.DestHash()
+	}
+	return msgKey
 }
 
 // Record keeps track of the outgoing messages being throttled in a queue.
 func (tr *Throttle) Record(msg Message) {
-	if tr.ignoreID {
-		msg.Dest.ID = ""
-	}
-	msg.Dest.Value = ""
+	msgKey := tr.msgKey(msg)
 
 	since := tr.now.Sub(msg.SentAt)
 	rules := tr.cfg.Rules(msg)
@@ -66,7 +78,7 @@ func (tr *Throttle) Record(msg Message) {
 		if since >= rule.Per {
 			continue
 		}
-		key := ThrottleItem{Dest: msg.Dest, BucketDur: rule.Per}
+		key := ThrottleItem{Key: msgKey, BucketDur: rule.Per}
 		tr.count[key]++
 		count := tr.count[key]
 		if tr.first[key].IsZero() || msg.SentAt.Before(tr.first[key]) {
@@ -74,7 +86,7 @@ func (tr *Throttle) Record(msg Message) {
 		}
 
 		if count >= rule.Count {
-			tr.cooldown[msg.Dest] = true
+			tr.cooldown[msgKey] = true
 			continue
 		}
 
@@ -99,17 +111,12 @@ func (tr *Throttle) Record(msg Message) {
 		per := rule.Per - prevRule.Per
 
 		if count > int(elapsed*time.Duration(rule.Count-prevRule.Count)/per) {
-			tr.cooldown[msg.Dest] = true
+			tr.cooldown[msgKey] = true
 		}
 	}
 }
 
 // InCooldown returns true or false depending on the cooldown state of a throttled message.
 func (tr *Throttle) InCooldown(msg Message) bool {
-	if tr.ignoreID {
-		msg.Dest.ID = ""
-	}
-	msg.Dest.Value = ""
-
-	return tr.cooldown[msg.Dest]
+	return tr.cooldown[tr.msgKey(msg)]
 }

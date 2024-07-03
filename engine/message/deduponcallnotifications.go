@@ -4,6 +4,7 @@ import (
 	"sort"
 
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfy"
 )
 
 // dedupOnCallNotifications will remove old on-call notifications if a newer one exists for the same schedule & destination.
@@ -13,13 +14,13 @@ func dedupOnCallNotifications(messages []Message) ([]Message, []string) {
 
 	type msgKey struct {
 		scheduleID string
-		dest       notification.Dest
+		dest       nfy.DestHash
 	}
 
 	m := make(map[msgKey]struct{})
 	var toDelete []string
 	for _, msg := range toProcess {
-		key := msgKey{scheduleID: msg.ScheduleID, dest: msg.Dest}
+		key := msgKey{scheduleID: msg.ScheduleID, dest: msg.DestHash()}
 		if _, ok := m[key]; ok {
 			toDelete = append(toDelete, msg.ID)
 			continue

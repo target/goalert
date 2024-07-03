@@ -4,6 +4,7 @@ import (
 	"sort"
 
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfy"
 )
 
 func typeOrder(msg Message) int {
@@ -30,14 +31,14 @@ func bundleAlertMessages(messages []Message, newBundleFunc func(Message) (string
 	})
 
 	type key struct {
-		notification.Dest
+		nfy.DestHash
 		ServiceID string
 	}
 
 	groups := make(map[key][]Message)
 	for _, msg := range toProcess {
 		key := key{
-			Dest:      msg.Dest,
+			DestHash:  msg.DestHash(),
 			ServiceID: msg.ServiceID,
 		}
 		groups[key] = append(groups[key], msg)

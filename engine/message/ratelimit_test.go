@@ -7,11 +7,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/engine/message"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfy"
+	"github.com/target/goalert/notification/twilio"
 )
 
 // TestRateLimit checks known good message sequences are allowed by the rate limit config.
 func TestRateLimit(t *testing.T) {
-	validate := func(desc string, msgType notification.MessageType, destType notification.DestType, _times ...time.Time) {
+	validate := func(desc string, msgType notification.MessageType, destType nfy.DestType, _times ...time.Time) {
 		t.Helper()
 		t.Run(desc, func(t *testing.T) {
 			for i := 2; i <= len(_times); i++ {
@@ -19,15 +21,15 @@ func TestRateLimit(t *testing.T) {
 				last := times[len(times)-1]
 				th := message.NewThrottle(message.PerCMThrottle, last, false)
 				for _, tm := range times[:len(times)-1] {
-					th.Record(message.Message{Type: msgType, SentAt: tm, Dest: notification.Dest{Type: destType}})
+					th.Record(message.Message{Type: msgType, SentAt: tm, Dest: nfy.Dest{Type: destType}})
 				}
-				assert.Falsef(t, th.InCooldown(message.Message{Type: msgType, Dest: notification.Dest{Type: destType}}), "message #%d should not be in cooldown", i)
+				assert.Falsef(t, th.InCooldown(message.Message{Type: msgType, Dest: nfy.Dest{Type: destType}}), "message #%d should not be in cooldown", i)
 			}
 		})
 	}
 
 	validate("alert-voice",
-		notification.MessageTypeAlert, notification.DestTypeVoice,
+		notification.MessageTypeAlert, twilio.DestTypeVoice,
 
 		// {Count: 3, Per: 15 * time.Minute},
 		// {Count: 7, Per: time.Hour, Smooth: true},
@@ -56,7 +58,7 @@ func TestRateLimit(t *testing.T) {
 	)
 
 	validate("alert-voice-staggered",
-		notification.MessageTypeAlert, notification.DestTypeVoice,
+		notification.MessageTypeAlert, twilio.DestTypeVoice,
 
 		// {Count: 3, Per: 15 * time.Minute},
 		// {Count: 7, Per: time.Hour, Smooth: true},
