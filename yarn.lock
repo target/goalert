@@ -1718,7 +1718,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dnd-kit/accessibility@npm:^3.0.0":
+"@dnd-kit/accessibility@npm:^3.1.0":
   version: 3.1.0
   resolution: "@dnd-kit/accessibility@npm:3.1.0"
   dependencies:
@@ -1729,17 +1729,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dnd-kit/core@npm:6.0.8":
-  version: 6.0.8
-  resolution: "@dnd-kit/core@npm:6.0.8"
+"@dnd-kit/core@npm:6.1.0":
+  version: 6.1.0
+  resolution: "@dnd-kit/core@npm:6.1.0"
   dependencies:
-    "@dnd-kit/accessibility": "npm:^3.0.0"
-    "@dnd-kit/utilities": "npm:^3.2.1"
+    "@dnd-kit/accessibility": "npm:^3.1.0"
+    "@dnd-kit/utilities": "npm:^3.2.2"
     tslib: "npm:^2.0.0"
   peerDependencies:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 10/bacb41fb7b22b3796b83e01dadf94b4b80e9d324611cb862de2725ab58c007bd1d605ecb4593766f2edc360fdd49b76f2144389bb2f43ed9d622cfcf367b6d83
+  checksum: 10/cf9e99763fbd9220cb6fdde2950c19fdf6248391234f5ee835601814124445fd8a6e4b3f5bc35543c802d359db8cc47f07d87046577adc41952ae981a03fbda0
   languageName: node
   linkType: hard
 
@@ -1756,7 +1756,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dnd-kit/utilities@npm:3.2.2, @dnd-kit/utilities@npm:^3.2.1, @dnd-kit/utilities@npm:^3.2.2":
+"@dnd-kit/utilities@npm:3.2.2, @dnd-kit/utilities@npm:^3.2.2":
   version: 3.2.2
   resolution: "@dnd-kit/utilities@npm:3.2.2"
   dependencies:
@@ -18873,7 +18873,7 @@ __metadata:
     "@apollo/client": "npm:3.10.1"
     "@babel/core": "npm:7.24.0"
     "@babel/plugin-transform-modules-commonjs": "npm:7.23.3"
-    "@dnd-kit/core": "npm:6.0.8"
+    "@dnd-kit/core": "npm:6.1.0"
     "@dnd-kit/sortable": "npm:8.0.0"
     "@dnd-kit/utilities": "npm:3.2.2"
     "@emotion/react": "npm:11.11.1"
