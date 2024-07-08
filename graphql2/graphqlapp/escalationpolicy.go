@@ -10,6 +10,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/label"
 	"github.com/target/goalert/notice"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
@@ -205,6 +206,15 @@ func (m *Mutation) CreateEscalationPolicy(ctx context.Context, input graphql2.Cr
 				return validation.AddPrefix("Steps["+strconv.Itoa(i)+"].", err)
 			}
 		}
+
+		for i, lbl := range input.Labels {
+			lbl.Target = &assignment.RawTarget{Type: assignment.TargetTypeEscalationPolicy, ID: pol.ID}
+			_, err = m.SetLabel(ctx, lbl)
+			if err != nil {
+				return validation.AddPrefix("labels["+strconv.Itoa(i)+"].", err)
+			}
+		}
+
 		return err
 	})
 
@@ -410,6 +420,10 @@ func (step *EscalationPolicyStep) EscalationPolicy(ctx context.Context, raw *esc
 
 func (step *EscalationPolicy) IsFavorite(ctx context.Context, raw *escalation.Policy) (bool, error) {
 	return raw.IsUserFavorite(), nil
+}
+
+func (ep *EscalationPolicy) Labels(ctx context.Context, raw *escalation.Policy) ([]label.Label, error) {
+	return ep.LabelStore.FindAllByTarget(ctx, ep.DB, assignment.EscalationPolicyTarget(raw.ID))
 }
 
 func (ep *EscalationPolicy) Steps(ctx context.Context, raw *escalation.Policy) ([]escalation.Step, error) {
