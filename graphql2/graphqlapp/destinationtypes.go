@@ -331,6 +331,7 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			Enabled:               cfg.SMTP.Enable,
 			IsContactMethod:       true,
 			SupportsStatusUpdates: true,
+			IsDynamicAction:       true,
 			RequiredFields: []graphql2.DestinationFieldConfig{{
 				FieldID:            fieldEmailAddress,
 				Label:              "Email Address",

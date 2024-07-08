@@ -2,8 +2,7 @@ import React, { Suspense, useCallback, useState } from 'react'
 import { Button, Grid, FormControlLabel, Switch, Tooltip } from '@mui/material'
 import { GroupAdd } from '@mui/icons-material'
 import { DateTime } from 'luxon'
-import { gql } from 'urql'
-import QueryList from '../lists/QueryList'
+import { gql, useQuery } from 'urql'
 import { UserAvatar } from '../util/avatars'
 import OtherActions from '../util/OtherActions'
 import FilterContainer from '../util/FilterContainer'
@@ -19,6 +18,8 @@ import TempSchedDialog from './temp-sched/TempSchedDialog'
 import { defaultTempSchedValue } from './temp-sched/sharedUtils'
 import ScheduleOverrideDialog from './ScheduleOverrideDialog'
 import CreateFAB from '../lists/CreateFAB'
+import ListPageControls from '../lists/ListPageControls'
+import FlatList from '../lists/FlatList'
 
 const query = gql`
   query scheduleOverrides($input: UserOverrideSearchOptions) {
@@ -44,6 +45,7 @@ const query = gql`
     }
   }
 `
+const context = { suspense: false }
 
 export default function ScheduleOverrideList({ scheduleID }) {
   const isMobile = useIsWidthDown('md')
@@ -64,6 +66,23 @@ export default function ScheduleOverrideList({ scheduleID }) {
     () => setConfigTempSchedule(defaultTempSchedValue(zone)),
     [],
   )
+  const [cursor, setCursor] = useState('')
+
+  const inputVars = {
+    scheduleID,
+    start: showPast ? null : now,
+    filterAnyUserID: userFilter,
+    after: cursor,
+  }
+
+  const [q] = useQuery({
+    query,
+    variables: { input: inputVars },
+    context,
+  })
+  const nextCursor = q.data?.userOverrides.pageInfo.hasNextPage
+    ? q.data?.userOverrides.pageInfo.endCursor
+    : ''
 
   const subText = (n) => {
     const tzTimeStr = formatOverrideTime(n.start, n.end, zone)
@@ -118,81 +137,86 @@ export default function ScheduleOverrideList({ scheduleID }) {
         setOverrideDialog,
       }}
     >
-      <QueryList
-        headerNote={note}
-        noSearch
-        noPlaceholder
-        query={query}
-        mapDataNode={(n) => ({
-          title: n.addUser ? n.addUser.name : n.removeUser.name,
-          subText: subText(n),
-          icon: (
-            <UserAvatar userID={n.addUser ? n.addUser.id : n.removeUser.id} />
-          ),
-          action: (
-            <OtherActions
-              actions={[
-                {
-                  label: 'Edit',
-                  onClick: () => setEditID(n.id),
-                },
-                {
-                  label: 'Delete',
-                  onClick: () => setDeleteID(n.id),
-                },
-              ]}
+      <ListPageControls
+        nextCursor={nextCursor}
+        onCursorChange={setCursor}
+        loading={q.fetching}
+        slots={{
+          list: (
+            <FlatList
+              emptyMessage='No results'
+              headerNote={note}
+              items={
+                q.data?.userOverrides.nodes.map((n) => ({
+                  title: n.addUser ? n.addUser.name : n.removeUser.name,
+                  subText: subText(n),
+                  icon: (
+                    <UserAvatar
+                      userID={n.addUser ? n.addUser.id : n.removeUser.id}
+                    />
+                  ),
+                  secondaryAction: (
+                    <OtherActions
+                      actions={[
+                        {
+                          label: 'Edit',
+                          onClick: () => setEditID(n.id),
+                        },
+                        {
+                          label: 'Delete',
+                          onClick: () => setDeleteID(n.id),
+                        },
+                      ]}
+                    />
+                  ),
+                })) || []
+              }
+              headerAction={
+                <React.Fragment>
+                  <FilterContainer onReset={() => resetFilter()}>
+                    <Grid item xs={12}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={showPast}
+                            onChange={(e) => setShowPast(e.target.checked)}
+                            value='showPast'
+                          />
+                        }
+                        label='Show past overrides'
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <UserSelect
+                        label='Filter users...'
+                        multiple
+                        value={userFilter}
+                        onChange={(value) => setUserFilter(value)}
+                      />
+                    </Grid>
+                  </FilterContainer>
+                  {!isMobile && (
+                    <Button
+                      variant='contained'
+                      startIcon={<GroupAdd />}
+                      onClick={() =>
+                        setOverrideDialog({
+                          variantOptions: ['replace', 'remove', 'add', 'temp'],
+                          removeUserReadOnly: false,
+                        })
+                      }
+                      sx={{ ml: 1 }}
+                    >
+                      Create Override
+                    </Button>
+                  )}
+                </React.Fragment>
+              }
             />
           ),
-        })}
-        variables={{
-          input: {
-            scheduleID,
-            start: showPast ? null : now,
-            filterAnyUserID: userFilter,
-          },
         }}
-        headerAction={
-          <React.Fragment>
-            <FilterContainer onReset={() => resetFilter()}>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={showPast}
-                      onChange={(e) => setShowPast(e.target.checked)}
-                      value='showPast'
-                    />
-                  }
-                  label='Show past overrides'
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <UserSelect
-                  label='Filter users...'
-                  multiple
-                  value={userFilter}
-                  onChange={(value) => setUserFilter(value)}
-                />
-              </Grid>
-            </FilterContainer>
-            {!isMobile && (
-              <Button
-                variant='contained'
-                startIcon={<GroupAdd />}
-                onClick={() =>
-                  setOverrideDialog({
-                    variantOptions: ['replace', 'remove', 'add', 'temp'],
-                    removeUserReadOnly: false,
-                  })
-                }
-                sx={{ ml: 1 }}
-              >
-                Create Override
-              </Button>
-            )}
-          </React.Fragment>
-        }
       />
+
       {isMobile && (
         <CreateFAB
           title='Create Override'

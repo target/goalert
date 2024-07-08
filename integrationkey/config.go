@@ -203,20 +203,13 @@ func (s *Store) SetConfig(ctx context.Context, db gadb.DBTX, keyID uuid.UUID, cf
 
 func setActionChannels(ctx context.Context, gdb *gadb.Queries, actions []Action) error {
 	for j, act := range actions {
-		var dest struct {
-			Type string
-			Args map[string]string
-		}
-		dest.Type = act.Type
-		dest.Args = act.StaticParams
-		data, err := json.Marshal(dest)
-		if err != nil {
-			return fmt.Errorf("marshal dest: %w", err)
-		}
-
+		// We need to ensure the channel exists in the notification_channels table before we can use it.
 		id, err := gdb.IntKeyEnsureChannel(ctx, gadb.IntKeyEnsureChannelParams{
-			ID:   uuid.New(),
-			Dest: pqtype.NullRawMessage{Valid: true, RawMessage: data},
+			ID: uuid.New(),
+			Dest: gadb.NullDestV1{Valid: true, DestV1: gadb.DestV1{
+				Type: act.Type,
+				Args: act.StaticParams,
+			}},
 		})
 		if err != nil {
 			return err

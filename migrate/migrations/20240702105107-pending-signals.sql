@@ -1,11 +1,4 @@
 -- +migrate Up
-UPDATE
-    engine_processing_versions
-SET
-    version = 10
-WHERE
-    type_id = 'message';
-
 CREATE TABLE pending_signals(
     id serial PRIMARY KEY,
     message_id uuid UNIQUE REFERENCES outgoing_messages(id) ON DELETE CASCADE,
@@ -110,12 +103,11 @@ CREATE CONSTRAINT TRIGGER trg_enforce_signals_per_dest_per_service_limit
 
 -- +migrate StatementEnd
 -- +migrate Down
-UPDATE
-    engine_processing_versions
-SET
-    version = 9
-WHERE
-    type_id = 'message';
-
 DROP TABLE pending_signals;
 
+DROP FUNCTION fn_enforce_signals_per_dest_per_service_limit();
+
+DROP FUNCTION fn_enforce_signals_per_service_limit();
+
+DELETE FROM config_limits
+WHERE id IN ('pending_signals_per_service', 'pending_signals_per_dest_per_service');

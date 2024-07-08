@@ -57,6 +57,24 @@ type NullDestV1 struct {
 	DestV1 DestV1
 }
 
+func (ns NullDestV1) MarshalJSON() ([]byte, error) {
+	if !ns.Valid {
+		return []byte("null"), nil
+	}
+
+	return json.Marshal(ns.DestV1)
+}
+
+func (ns *NullDestV1) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		ns.Valid = false
+		return nil
+	}
+
+	ns.Valid = true
+	return json.Unmarshal(data, &ns.DestV1)
+}
+
 // Scan implements the Scanner interface.
 func (ns *NullDestV1) Scan(value interface{}) error {
 	if value == nil {

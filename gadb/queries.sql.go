@@ -1510,8 +1510,8 @@ func (q *Queries) IntKeyDeleteSecondaryToken(ctx context.Context, id uuid.UUID) 
 
 const intKeyEnsureChannel = `-- name: IntKeyEnsureChannel :one
 WITH insert_q AS (
-INSERT INTO notification_channels(id, type, name, value, dest)
-        VALUES ($1, 'DEST', '', '', $2)
+INSERT INTO notification_channels(id, dest, name)
+        VALUES ($1, $2, 'unknown')
     ON CONFLICT (dest)
         DO NOTHING
     RETURNING
@@ -1526,8 +1526,7 @@ INSERT INTO notification_channels(id, type, name, value, dest)
     FROM
         notification_channels
     WHERE
-        type = 'DEST'
-            AND dest = $2
+        dest = $2
 `
 
 type IntKeyEnsureChannelParams struct {
@@ -1535,6 +1534,7 @@ type IntKeyEnsureChannelParams struct {
 	Dest NullDestV1
 }
 
+// IntKeyEnsureChannel will return the ID of a channel for a given dest, creating it if it doesn't exist.
 func (q *Queries) IntKeyEnsureChannel(ctx context.Context, arg IntKeyEnsureChannelParams) (uuid.UUID, error) {
 	row := q.db.QueryRowContext(ctx, intKeyEnsureChannel, arg.ID, arg.Dest)
 	var id uuid.UUID
