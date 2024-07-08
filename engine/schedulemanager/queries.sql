@@ -1,10 +1,3 @@
--- name: SchedMgrGetNCIDs :many
--- Returns all notification channel IDs.
-SELECT
-    id
-FROM
-    notification_channels;
-
 -- name: SchedMgrNCDedupMapping :many
 -- Returns the mapping of old notification channel IDs to new notification channel IDs.
 SELECT

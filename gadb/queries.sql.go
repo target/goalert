@@ -2439,37 +2439,6 @@ func (q *Queries) SchedMgrGetData(ctx context.Context, scheduleID uuid.UUID) (js
 	return data, err
 }
 
-const schedMgrGetNCIDs = `-- name: SchedMgrGetNCIDs :many
-SELECT
-    id
-FROM
-    notification_channels
-`
-
-// Returns all notification channel IDs.
-func (q *Queries) SchedMgrGetNCIDs(ctx context.Context) ([]uuid.UUID, error) {
-	rows, err := q.db.QueryContext(ctx, schedMgrGetNCIDs)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []uuid.UUID
-	for rows.Next() {
-		var id uuid.UUID
-		if err := rows.Scan(&id); err != nil {
-			return nil, err
-		}
-		items = append(items, id)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const schedMgrNCDedupMapping = `-- name: SchedMgrNCDedupMapping :many
 SELECT
     old_id,
