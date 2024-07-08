@@ -168,6 +168,16 @@ var initDatas = []initData{
 			({{uuid "nc1"}}, 'SLACK', 'chan 1', {{uuid "chan1"}}),
 			({{uuid "nc2"}}, 'SLACK', 'chan 1', {{uuid "chan1"}}), -- intentionally duplicate
 			({{uuid "nc3"}}, 'SLACK', 'chan 3', {{uuid "chan3"}});
+		
+		insert into schedules (id, name, time_zone) values
+			({{uuid "sched1"}}, 'schedule 1', 'UTC'),
+			({{uuid "sched2"}}, 'schedule 2', 'UTC'),
+			({{uuid "sched3"}}, 'schedule 3', 'UTC');
+		
+		insert into schedule_data (schedule_id, data) values
+			({{uuid "sched1"}}, '{"V1": {"OnCallNotificationRules": [{  "ChannelID": {{uuidJSON "nc1"}} }] } }'),
+			({{uuid "sched2"}}, '{"V1": {"OnCallNotificationRules": [{  "ChannelID": {{uuidJSON "nc2"}} }] } }'),
+			({{uuid "sched3"}}, '{"V1": {"OnCallNotificationRules": [{  "ChannelID": {{uuidJSON "nc-invalid"}} }] } }');
 	`},
 }
 
@@ -188,9 +198,10 @@ func renderQuery(t *testing.T, sql string) string {
 	phoneCCG := harness.NewDataGen(t, "Phone", harness.DataGenArgFunc(harness.GenPhoneCC))
 	strs := make(map[string]bool)
 	tmpl.Funcs(template.FuncMap{
-		"uuid":    func(id string) string { return fmt.Sprintf("'%s'", uuidG.Get(id)) },
-		"phone":   func(id string) string { return fmt.Sprintf("'%s'", phoneCCG.Get(id)) },
-		"phoneCC": func(cc, id string) string { return fmt.Sprintf("'%s'", phoneCCG.GetWithArg(cc, id)) },
+		"uuid":     func(id string) string { return fmt.Sprintf("'%s'", uuidG.Get(id)) },
+		"uuidJSON": func(id string) string { return fmt.Sprintf(`"%s"`, uuidG.Get(id)) },
+		"phone":    func(id string) string { return fmt.Sprintf("'%s'", phoneCCG.Get(id)) },
+		"phoneCC":  func(cc, id string) string { return fmt.Sprintf("'%s'", phoneCCG.GetWithArg(cc, id)) },
 		"text": func(n int) string {
 			val := randStringRunes(n)
 			for strs[val] {
