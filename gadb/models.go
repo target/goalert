@@ -984,6 +984,12 @@ type NotificationChannel struct {
 	Value     string
 }
 
+type NotificationChannelDuplicate struct {
+	NewID        uuid.UUID
+	OldCreatedAt time.Time
+	OldID        uuid.UUID
+}
+
 type NotificationPolicyCycle struct {
 	AlertID     int32
 	Checked     bool
