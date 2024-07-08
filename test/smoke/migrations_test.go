@@ -157,6 +157,20 @@ values
 	({{uuid "cb2"}}, {{uuid "ncy1"}}, 1, {{uuid "c2"}}, {{uuid "n2"}}, now());
 `
 
+type initData struct {
+	Before, After string
+	SQL           string
+}
+
+var initDatas = []initData{
+	{Before: "dedup-notif-channels", SQL: `
+		insert into notification_channels (id, type, name, value) values
+			({{uuid "nc1"}}, 'SLACK', 'chan 1', {{uuid "chan1"}}),
+			({{uuid "nc2"}}, 'SLACK', 'chan 1', {{uuid "chan1"}}), -- intentionally duplicate
+			({{uuid "nc3"}}, 'SLACK', 'chan 3', {{uuid "chan3"}});
+	`},
+}
+
 // https://stackoverflow.com/questions/22892120/how-to-generate-a-random-string-of-a-fixed-length-in-golang
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
@@ -243,8 +257,28 @@ func TestMigrations(t *testing.T) {
 		start = DefaultSkipToMigration
 		skipTo = true
 	}
+
+	applyInit := func(t *testing.T, lastMigrationName, nextMigrationName string) {
+		t.Helper()
+
+		for _, data := range initDatas {
+			if data.After != lastMigrationName && data.Before != nextMigrationName {
+				continue
+			}
+
+			initSQL := renderQuery(t, data.SQL)
+			err = harness.ExecSQLBatch(context.Background(), testURL, initSQL)
+			require.NoError(t, err, "failed to init db %v", err)
+		}
+	}
+
 	var idx int
 	for idx = range names {
+		_, err := migrate.Up(context.Background(), testURL, names[idx])
+		if err != nil {
+			t.Fatal("failed to skip migration:", err)
+		}
+		applyInit(t, names[idx], names[idx+1])
 		if names[idx+1] == start {
 			break
 		}
@@ -273,6 +307,8 @@ func TestMigrations(t *testing.T) {
 	names = names[1:]
 	for i, migrationName := range names[1:] {
 		lastMigrationName := names[i]
+		applyInit(t, lastMigrationName, migrationName)
+
 		var beforeUpSnap *migratetest.Snapshot
 		pass := t.Run(migrationName, func(t *testing.T) {
 			ctx := context.Background()
