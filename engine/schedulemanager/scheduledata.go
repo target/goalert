@@ -73,7 +73,9 @@ func (db *DB) migrateScheduleDataNotifDedup(ctx context.Context, tx *sql.Tx) (bo
 			continue
 		}
 
-		newData, err := json.Marshal(data.V1.OnCallNotificationRules) // important that we are only updating the V1.OnCallNotifications field.
+		// Note: We are passing the notification rules array directly instead of the entire data object because in the query, we're updating only that field.
+		// This is done to ensure we don't overwrite/erase any other fields that may be present in the data object.
+		newData, err := json.Marshal(data.V1.OnCallNotificationRules)
 		if err != nil {
 			return false, fmt.Errorf("marshal schedule data: %w", err)
 		}

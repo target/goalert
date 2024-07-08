@@ -2398,6 +2398,7 @@ FROM
     schedule_data
 `
 
+// Returns all schedule IDs that have an entry in the schedule_data table.
 func (q *Queries) SchedMgrDataIDs(ctx context.Context) ([]uuid.UUID, error) {
 	rows, err := q.db.QueryContext(ctx, schedMgrDataIDs)
 	if err != nil {
@@ -2430,6 +2431,7 @@ WHERE
     schedule_id = $1
 `
 
+// Returns the data for a single schedule.
 func (q *Queries) SchedMgrGetData(ctx context.Context, scheduleID uuid.UUID) (json.RawMessage, error) {
 	row := q.db.QueryRowContext(ctx, schedMgrGetData, scheduleID)
 	var data json.RawMessage
@@ -2444,6 +2446,7 @@ FROM
     notification_channels
 `
 
+// Returns all notification channel IDs.
 func (q *Queries) SchedMgrGetNCIDs(ctx context.Context) ([]uuid.UUID, error) {
 	rows, err := q.db.QueryContext(ctx, schedMgrGetNCIDs)
 	if err != nil {
@@ -2480,6 +2483,7 @@ type SchedMgrNCDedupMappingRow struct {
 	NewID uuid.UUID
 }
 
+// Returns the mapping of old notification channel IDs to new notification channel IDs.
 func (q *Queries) SchedMgrNCDedupMapping(ctx context.Context) ([]SchedMgrNCDedupMappingRow, error) {
 	rows, err := q.db.QueryContext(ctx, schedMgrNCDedupMapping)
 	if err != nil {
@@ -2517,6 +2521,7 @@ type SchedMgrSetDataV1RulesParams struct {
 	Replacement json.RawMessage
 }
 
+// Sets the .V1.OnCallNotificationRules for a schedule.
 func (q *Queries) SchedMgrSetDataV1Rules(ctx context.Context, arg SchedMgrSetDataV1RulesParams) error {
 	_, err := q.db.ExecContext(ctx, schedMgrSetDataV1Rules, arg.ScheduleID, arg.Replacement)
 	return err
