@@ -985,6 +985,7 @@ type NotificationChannel struct {
 }
 
 type NotificationChannelDuplicate struct {
+	ID           int64
 	NewID        uuid.UUID
 	OldCreatedAt time.Time
 	OldID        uuid.UUID
