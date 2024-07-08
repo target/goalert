@@ -2391,6 +2391,111 @@ func (q *Queries) RequestAlertEscalationByTime(ctx context.Context, arg RequestA
 	return column_1, err
 }
 
+const schedMgrDataIDs = `-- name: SchedMgrDataIDs :many
+SELECT
+    schedule_id
+FROM
+    schedule_data
+`
+
+// Returns all schedule IDs that have an entry in the schedule_data table.
+func (q *Queries) SchedMgrDataIDs(ctx context.Context) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, schedMgrDataIDs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var schedule_id uuid.UUID
+		if err := rows.Scan(&schedule_id); err != nil {
+			return nil, err
+		}
+		items = append(items, schedule_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const schedMgrGetData = `-- name: SchedMgrGetData :one
+SELECT
+    data
+FROM
+    schedule_data
+WHERE
+    schedule_id = $1
+`
+
+// Returns the data for a single schedule.
+func (q *Queries) SchedMgrGetData(ctx context.Context, scheduleID uuid.UUID) (json.RawMessage, error) {
+	row := q.db.QueryRowContext(ctx, schedMgrGetData, scheduleID)
+	var data json.RawMessage
+	err := row.Scan(&data)
+	return data, err
+}
+
+const schedMgrNCDedupMapping = `-- name: SchedMgrNCDedupMapping :many
+SELECT
+    old_id,
+    new_id
+FROM
+    notification_channel_duplicates
+`
+
+type SchedMgrNCDedupMappingRow struct {
+	OldID uuid.UUID
+	NewID uuid.UUID
+}
+
+// Returns the mapping of old notification channel IDs to new notification channel IDs.
+func (q *Queries) SchedMgrNCDedupMapping(ctx context.Context) ([]SchedMgrNCDedupMappingRow, error) {
+	rows, err := q.db.QueryContext(ctx, schedMgrNCDedupMapping)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SchedMgrNCDedupMappingRow
+	for rows.Next() {
+		var i SchedMgrNCDedupMappingRow
+		if err := rows.Scan(&i.OldID, &i.NewID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const schedMgrSetDataV1Rules = `-- name: SchedMgrSetDataV1Rules :exec
+UPDATE
+    schedule_data
+SET
+    data = jsonb_set(data, '{V1,OnCallNotificationRules}', $2)
+WHERE
+    schedule_id = $1
+`
+
+type SchedMgrSetDataV1RulesParams struct {
+	ScheduleID  uuid.UUID
+	Replacement json.RawMessage
+}
+
+// Sets the .V1.OnCallNotificationRules for a schedule.
+func (q *Queries) SchedMgrSetDataV1Rules(ctx context.Context, arg SchedMgrSetDataV1RulesParams) error {
+	_, err := q.db.ExecContext(ctx, schedMgrSetDataV1Rules, arg.ScheduleID, arg.Replacement)
+	return err
+}
+
 const scheduleFindManyByUser = `-- name: ScheduleFindManyByUser :many
 SELECT
     description, id, last_processed, name, time_zone

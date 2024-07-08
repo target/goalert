@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/util"
 )
@@ -24,6 +25,9 @@ type DB struct {
 	schedTZ *sql.Stmt
 
 	scheduleOnCallNotification *sql.Stmt
+
+	migrateSchedIDs []uuid.UUID
+	migrateMap      map[uuid.UUID]uuid.UUID
 }
 
 // Name returns the name of the module.
