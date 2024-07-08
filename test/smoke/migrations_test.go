@@ -175,9 +175,9 @@ var initDatas = []initData{
 			({{uuid "sched3"}}, 'schedule 3', 'UTC');
 		
 		insert into schedule_data (schedule_id, data) values
-			({{uuid "sched1"}}, '{"V1": {"OnCallNotificationRules": [{  "ChannelID": {{uuidJSON "nc1"}} }] } }'),
-			({{uuid "sched2"}}, '{"V1": {"OnCallNotificationRules": [{  "ChannelID": {{uuidJSON "nc2"}} }] } }'),
-			({{uuid "sched3"}}, '{"V1": {"OnCallNotificationRules": [{  "ChannelID": {{uuidJSON "nc-invalid"}} }] } }');
+			({{uuid "sched1"}}, '{"V1": {"Foo": "Bar", "OnCallNotificationRules": [{ "Extra": "Field", "ChannelID": {{uuidJSON "nc1"}} }] } }'),
+			({{uuid "sched2"}}, '{"V1": {"OnCallNotificationRules": [{ "Extra2": "Field2", "ChannelID": {{uuidJSON "nc2"}} }] } }'),
+			({{uuid "sched3"}}, '{"V1": {"OnCallNotificationRules": [{  "Extra3": "Field3", "ChannelID": {{uuidJSON "nc-invalid"}} }] } }');
 	`},
 }
 

@@ -1,14 +1,16 @@
 -- +migrate Up
-CREATE TEMPORARY TABLE notification_channel_duplicates(
+CREATE TABLE notification_channel_duplicates(
     old_id uuid PRIMARY KEY,
-    new_id uuid NOT NULL
+    new_id uuid NOT NULL,
+    old_created_at timestamp with time zone NOT NULL
 );
 
 LOCK notification_channels;
 
-INSERT INTO notification_channel_duplicates(old_id, new_id)
+INSERT INTO notification_channel_duplicates(old_id, old_created_at, new_id)
 SELECT
     nc.id,
+    nc.created_at,
 (
         SELECT
             id
@@ -87,9 +89,20 @@ WHERE id = old_id;
 ALTER TABLE notification_channels
     ADD CONSTRAINT nc_unique_type_value UNIQUE (type, value);
 
-DROP TABLE notification_channel_duplicates;
-
 -- +migrate Down
 ALTER TABLE notification_channels
     DROP CONSTRAINT nc_unique_type_value;
+
+INSERT INTO notification_channels(id, type, value, name, created_at)
+SELECT
+    old_id,
+    type,
+    value,
+    name,
+    old_created_at
+FROM
+    notification_channel_duplicates
+    JOIN notification_channels ON notification_channels.id = new_id;
+
+DROP TABLE notification_channel_duplicates;
 
