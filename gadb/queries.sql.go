@@ -2607,6 +2607,95 @@ func (q *Queries) SetManyAlertFeedback(ctx context.Context, arg SetManyAlertFeed
 	return items, nil
 }
 
+const signalMgrDeleteStale = `-- name: SignalMgrDeleteStale :exec
+DELETE FROM pending_signals
+WHERE message_id IS NULL
+    AND created_at < NOW() - INTERVAL '1 hour'
+`
+
+func (q *Queries) SignalMgrDeleteStale(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, signalMgrDeleteStale)
+	return err
+}
+
+const signalMgrGetPending = `-- name: SignalMgrGetPending :many
+SELECT
+    id,
+    dest_id,
+    service_id
+FROM
+    pending_signals
+WHERE
+    message_id IS NULL
+FOR UPDATE
+    SKIP LOCKED
+LIMIT 100
+`
+
+type SignalMgrGetPendingRow struct {
+	ID        int32
+	DestID    uuid.UUID
+	ServiceID uuid.UUID
+}
+
+func (q *Queries) SignalMgrGetPending(ctx context.Context) ([]SignalMgrGetPendingRow, error) {
+	rows, err := q.db.QueryContext(ctx, signalMgrGetPending)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SignalMgrGetPendingRow
+	for rows.Next() {
+		var i SignalMgrGetPendingRow
+		if err := rows.Scan(&i.ID, &i.DestID, &i.ServiceID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const signalMgrInsertMessage = `-- name: SignalMgrInsertMessage :exec
+INSERT INTO outgoing_messages(id, message_type, service_id, channel_id)
+    VALUES ($1, 'signal_message', $2, $3)
+`
+
+type SignalMgrInsertMessageParams struct {
+	ID        uuid.UUID
+	ServiceID uuid.NullUUID
+	ChannelID uuid.NullUUID
+}
+
+func (q *Queries) SignalMgrInsertMessage(ctx context.Context, arg SignalMgrInsertMessageParams) error {
+	_, err := q.db.ExecContext(ctx, signalMgrInsertMessage, arg.ID, arg.ServiceID, arg.ChannelID)
+	return err
+}
+
+const signalMgrUpdateSignal = `-- name: SignalMgrUpdateSignal :exec
+UPDATE
+    pending_signals
+SET
+    message_id = $2
+WHERE
+    id = $1
+`
+
+type SignalMgrUpdateSignalParams struct {
+	ID        int32
+	MessageID uuid.NullUUID
+}
+
+func (q *Queries) SignalMgrUpdateSignal(ctx context.Context, arg SignalMgrUpdateSignalParams) error {
+	_, err := q.db.ExecContext(ctx, signalMgrUpdateSignal, arg.ID, arg.MessageID)
+	return err
+}
+
 const statusMgrCMInfo = `-- name: StatusMgrCMInfo :one
 SELECT
     user_id,

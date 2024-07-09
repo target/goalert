@@ -24,6 +24,7 @@ sql:
       - engine/statusmgr/queries.sql
       - engine/message/queries.sql
       - engine/schedulemanager/queries.sql
+      - engine/signalmgr/queries.sql
       - auth/authlink/queries.sql
       - alert/alertlog/queries.sql
       - user/favorite/queries.sql
