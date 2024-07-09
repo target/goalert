@@ -44,39 +44,39 @@ function testSteps(screen: ScreenFormat): void {
         cy.get('button').contains('Create Step').click()
       }
       cy.dialogTitle('Create Step')
-      cy.dialogForm({ 'dest.type': 'Schedule', 'schedule-id': s1.name })
+      cy.dialogForm({ 'dest.type': 'Schedule', schedule_id: s1.name })
       cy.dialogClick('Add Destination')
       cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
         'contain',
         s1.name,
       )
-      cy.dialogForm({ 'schedule-id': s2.name })
+      cy.dialogForm({ schedule_id: s2.name })
       cy.dialogClick('Add Destination')
       cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
         'contain',
         s2.name,
       )
 
-      cy.dialogForm({ 'dest.type': 'User', 'user-id': u1.name })
+      cy.dialogForm({ 'dest.type': 'User', user_id: u1.name })
       cy.dialogClick('Add Destination')
       cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
         'contain',
         u1.name,
       )
-      cy.dialogForm({ 'user-id': u2.name })
+      cy.dialogForm({ user_id: u2.name })
       cy.dialogClick('Add Destination')
       cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
         'contain',
         u2.name,
       )
 
-      cy.dialogForm({ 'dest.type': 'Rotation', 'rotation-id': r1.name })
+      cy.dialogForm({ 'dest.type': 'Rotation', rotation_id: r1.name })
       cy.dialogClick('Add Destination')
       cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
         'contain',
         r1.name,
       )
-      cy.dialogForm({ 'rotation-id': r2.name })
+      cy.dialogForm({ rotation_id: r2.name })
       cy.dialogClick('Add Destination')
       cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
         'contain',
@@ -114,9 +114,9 @@ function testSteps(screen: ScreenFormat): void {
       }
       cy.dialogTitle('Create Step')
 
-      cy.dialogForm({ 'dest.type': 'User', 'user-id': u1.name })
+      cy.dialogForm({ 'dest.type': 'User', user_id: u1.name })
       cy.dialogClick('Add Destination')
-      cy.dialogForm({ 'user-id': u2.name })
+      cy.dialogForm({ user_id: u2.name })
       cy.dialogClick('Add Destination')
     })
 
@@ -136,7 +136,7 @@ function testSteps(screen: ScreenFormat): void {
           cy.dialogTitle('Edit Step')
           cy.dialogForm({
             'dest.type': 'Schedule',
-            'schedule-id': s1.name,
+            schedule_id: s1.name,
             delayMinutes: delay.toString(),
           })
           cy.dialogClick('Add Destination')
@@ -172,7 +172,7 @@ function testSteps(screen: ScreenFormat): void {
       // add slack channels
       cy.dialogForm({
         'dest.type': 'Slack Channel',
-        'slack-channel-id': 'general',
+        slack_channel_id: 'general',
       })
       cy.dialogClick('Add Destination')
       cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
@@ -180,7 +180,7 @@ function testSteps(screen: ScreenFormat): void {
         '#general',
       )
 
-      cy.dialogForm({ 'slack-channel-id': 'foobar' })
+      cy.dialogForm({ slack_channel_id: 'foobar' })
       cy.dialogClick('Add Destination')
       cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
         'contain',
