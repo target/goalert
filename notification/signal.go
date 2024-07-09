@@ -1,6 +1,6 @@
 package notification
 
-// Test represents outgoing test notification.
+// SignalMessage is a dynamic message that is sent to a notification destination.
 type SignalMessage struct {
 	Dest       Dest
 	CallbackID string // CallbackID is the identifier used to communicate a response to the notification
