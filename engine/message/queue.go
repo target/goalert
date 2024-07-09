@@ -21,6 +21,8 @@ var typePriority = map[notification.MessageType]int{
 	notification.MessageTypeAlertBundle: 4,
 
 	notification.MessageTypeAlertStatus: 5,
+
+	notification.MessageTypeSignalMessage: 99, // lowest priority
 }
 
 type queue struct {
@@ -69,6 +71,7 @@ func newQueue(msgs []Message, now time.Time) *queue {
 
 	return q
 }
+
 func (q *queue) addSent(m Message) {
 	if m.SentAt.IsZero() {
 		m.SentAt = q.now
