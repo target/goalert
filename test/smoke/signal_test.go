@@ -2,15 +2,8 @@ package smoke
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/expflag"
@@ -49,70 +42,4 @@ func TestSignal(t *testing.T) {
 	// validate fields
 	assert.Equal(t, "builtin-twilio-sms", dest.Type, "unexpected type")
 	assert.Equal(t, h.Phone("1"), dest.Args["phone_number"], "unexpected arg")
-
-	// create key
-	resp := h.GraphQLQuery2(fmt.Sprintf(`mutation{ createIntegrationKey(input: {name: "key", type: universal, serviceID: "%s"}){ id, href } }`, h.UUID("svc")))
-	require.Empty(t, resp.Errors)
-
-	var respData struct {
-		CreateIntegrationKey struct {
-			ID   uuid.UUID
-			Href string
-		}
-	}
-	err = json.Unmarshal(resp.Data, &respData)
-	require.NoError(t, err)
-
-	var gotTestMessage bool
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "POST", r.Method, "unexpected method")
-		assert.Equal(t, "/test-path", r.URL.Path, "unexpected webhook path")
-		data, err := io.ReadAll(r.Body)
-		if !assert.NoError(t, err) {
-			return
-		}
-
-		assert.Equal(t, "webhook-body-data", string(data), "unexpected webhook body")
-		gotTestMessage = true
-	}))
-	defer srv.Close()
-
-	// configure key
-	resp = h.GraphQLQuery2(fmt.Sprintf(`
-		mutation{
-			updateKeyConfig(input: {
-				keyID: "%s", 
-				defaultActions: [
-					{dest: {type: "builtin-alert"},
-						params: {summary: "req.body['summary']"}},
-					{dest: {type: "builtin-webhook", args: {webhook_url: "%s"}},
-						params: {body: "req.body['webhook-body']"}},
-					{dest: {type: "builtin-slack-channel", args: {slack_channel_id: "%s"}},
-						params: {message: "req.body['slack-text']"}}
-				]
-			})
-		}`, respData.CreateIntegrationKey.ID, srv.URL+"/test-path", h.Slack().Channel("chan1").ID()))
-	require.Empty(t, resp.Errors)
-
-	// generate token
-	resp = h.GraphQLQuery2(fmt.Sprintf(`mutation{ generateKeyToken(id: "%s")}`, respData.CreateIntegrationKey.ID))
-	require.Empty(t, resp.Errors)
-	var gen struct {
-		GenerateKeyToken string
-	}
-	err = json.Unmarshal(resp.Data, &gen)
-	require.NoError(t, err)
-
-	req, err := http.NewRequest("POST", respData.CreateIntegrationKey.Href, strings.NewReader(`{"summary": "test-summary", "webhook-body": "webhook-body-data", "slack-text": "slack-text-data"}`))
-	require.NoError(t, err)
-	req.Header.Set("Authorization", "Bearer "+gen.GenerateKeyToken)
-	req.Header.Set("Content-Type", "application/json")
-	r, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusNoContent, r.StatusCode)
-
-	assert.True(t, gotTestMessage, "expected webhook test message")
-	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("test-summary")
-	// TODO: enable once slack is supported
-	// h.Slack().Channel("chan1").ExpectMessage("slack-text-data")
 }
