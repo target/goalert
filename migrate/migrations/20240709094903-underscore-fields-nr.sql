@@ -31,7 +31,7 @@ BEGIN
         NEW.value = NEW.dest -> 'Args' ->> 'slack_channel_id';
     ELSIF NEW.dest ->> 'Type' = 'builtin-slack-usergroup' THEN
         NEW.type = 'SLACK_USER_GROUP';
-        NEW.value = NEW.dest -> 'Args' ->> 'slack_usergroup_id' || ':' || NEW.dest -> 'Args' ->> 'slack_channel_id';
+        NEW.value =(NEW.dest -> 'Args' ->> 'slack_usergroup_id') || ':' ||(NEW.dest -> 'Args' ->> 'slack_channel_id');
     ELSIF NEW.dest ->> 'Type' = 'builtin-webhook' THEN
         NEW.type = 'WEBHOOK';
         NEW.value = NEW.dest -> 'Args' ->> 'webhook_url';
