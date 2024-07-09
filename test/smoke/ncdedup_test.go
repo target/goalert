@@ -8,6 +8,8 @@ import (
 
 // TestNCDedup tests that deduplicated notification_channels continue to function in schedule_data.
 func TestNCDedup(t *testing.T) {
+	t.Parallel()
+
 	const sql = `
 	insert into users (id, name, email) values
 		({{uuid "uid"}}, 'bob', '');
