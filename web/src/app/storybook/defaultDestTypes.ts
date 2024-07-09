@@ -24,7 +24,7 @@ export const destTypes: DestinationTypeInfo[] = [
     ],
     requiredFields: [
       {
-        fieldID: 'phone-number',
+        fieldID: 'phone_number',
         label: 'Phone Number',
         hint: 'Include country code e.g. +1 (USA), +91 (India), +44 (UK)',
         hintURL: '',
@@ -102,7 +102,7 @@ export const destTypes: DestinationTypeInfo[] = [
     dynamicParams: [],
     requiredFields: [
       {
-        fieldID: 'phone-number',
+        fieldID: 'phone_number',
         label: 'Phone Number',
         hint: 'Include country code e.g. +1 (USA), +91 (India), +44 (UK)',
         hintURL: '',
@@ -130,7 +130,7 @@ export const destTypes: DestinationTypeInfo[] = [
     dynamicParams: [],
     requiredFields: [
       {
-        fieldID: 'phone-number',
+        fieldID: 'phone_number',
         label: 'Phone Number',
         hint: 'Include country code e.g. +1 (USA), +91 (India), +44 (UK)',
         hintURL: '',

@@ -51,7 +51,7 @@ export const WebookWithDocLink: Story = {
   args: {
     value: '',
 
-    fieldID: 'webhook-url',
+    fieldID: 'webhook_url',
     hint: 'Webhook Documentation',
     hintURL: '/docs#webhooks',
     inputType: 'url',
@@ -98,7 +98,7 @@ export const PhoneNumbers: Story = {
   args: {
     value: '',
 
-    fieldID: 'phone-number',
+    fieldID: 'phone_number',
     hint: 'Include country code e.g. +1 (USA), +91 (India), +44 (UK)',
     hintURL: '',
     inputType: 'tel',
@@ -146,7 +146,7 @@ export const Email: Story = {
   args: {
     value: '',
 
-    fieldID: 'email-address',
+    fieldID: 'email_address',
     hint: '',
     hintURL: '',
     inputType: 'email',

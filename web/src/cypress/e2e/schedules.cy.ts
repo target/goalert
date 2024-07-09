@@ -688,7 +688,7 @@ testScreen('Slack User Group Support', (screen: ScreenFormat) => {
       cy.dialogForm({
         ruleType: 'on-change',
         'dest.type': 'Webhook',
-        'webhook-url': 'http://www.example.com',
+        webhook_url: 'http://www.example.com',
       })
 
       cy.dialogFinish('Submit')
@@ -705,7 +705,7 @@ testScreen('Slack User Group Support', (screen: ScreenFormat) => {
       cy.dialogForm({
         ruleType: 'time-of-day',
         'dest.type': 'Webhook',
-        'webhook-url': 'http://www.example.com',
+        webhook_url: 'http://www.example.com',
         time: '00:00',
         'weekdayFilter[0]': false,
         'weekdayFilter[1]': true,

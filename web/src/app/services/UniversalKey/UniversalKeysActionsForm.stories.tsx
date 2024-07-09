@@ -70,7 +70,7 @@ export const ValidationError: Story = {
           {
             path: ['actionInputValidate', 'input', 'dest', 'args'],
             extensions: {
-              key: 'phone-number',
+              key: 'phone_number',
             },
             message: 'invalid number',
           },
