@@ -46,7 +46,7 @@ export default function PolicyStepCreateDialog(props: {
       disablePortal={props.disablePortal}
       title='Create Step'
       loading={createStepStatus.fetching}
-      errors={errs.remainingLegacy()}
+      errors={errs.remainingLegacyCallback()}
       maxWidth='sm'
       onClose={props.onClose}
       onSubmit={() => {

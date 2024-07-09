@@ -50,7 +50,7 @@ export default function UniversalKeyRuleCreateDialogProps(
       title='Create Rule'
       maxWidth='lg'
       onClose={props.onClose}
-      errors={errs.remainingLegacy()}
+      errors={errs.remainingLegacyCallback()}
       onSubmit={() => {
         if (noActionsNoConf) {
           setHasSubmitted(true)

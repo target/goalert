@@ -88,9 +88,9 @@ export default function UniversalKeyActionsForm(
 
         {errs.hasErrors() && (
           <Grid item xs={12}>
-            {errs.remainingLegacy().map((e) => (
-              <Typography key={e.message} color='error'>
-                {e.message}
+            {errs.remaining().map((message) => (
+              <Typography key={message} color='error'>
+                {message}
               </Typography>
             ))}
           </Grid>

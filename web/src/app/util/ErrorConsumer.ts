@@ -195,6 +195,21 @@ export class ErrorConsumer {
     return this.remaining().map((e) => ({ message: e }))
   }
 
+  /** Returns a function that returns all remaining errors as an array of objects with a message key.
+   *
+   * Suitable for use with FormDialog
+   */
+  remainingLegacyCallback(): () => Array<{ message: string }> {
+    let once: Array<{ message: string }> | null = null
+    return () => {
+      if (once === null) {
+        once = this.remainingLegacy()
+      }
+
+      return once
+    }
+  }
+
   /** Logs and consumes any remaining errors. */
   done(): void {
     this.doneCheck()

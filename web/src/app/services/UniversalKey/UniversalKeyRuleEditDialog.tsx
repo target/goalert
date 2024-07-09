@@ -108,7 +108,7 @@ export default function UniversalKeyRuleEditDialog(
         })
       }}
       form={form}
-      errors={errs.remainingLegacy()}
+      errors={errs.remainingLegacyCallback()}
       notices={getNotice(hasSubmitted, hasConfirmed, setHasConfirmed)}
     />
   )
