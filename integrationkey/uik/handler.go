@@ -37,14 +37,20 @@ func NewHandler(db TxAble, intStore *integrationkey.Store, aStore *alert.Store) 
 
 func (h *Handler) handleAction(ctx context.Context, act integrationkey.Action, _params any) error {
 	params := _params.(map[string]any)
+	param := func(name string) string {
+		if v, ok := params[name]; ok {
+			return v.(string)
+		}
+		return ""
+	}
 
 	switch act.Type {
 	case "builtin-webhook":
-		req, err := http.NewRequest("POST", act.StaticParams["webhook-url"], strings.NewReader(params["body"].(string)))
+		req, err := http.NewRequest("POST", act.StaticParams["webhook_url"], strings.NewReader(param("body")))
 		if err != nil {
 			return err
 		}
-		req.Header.Set("Content-Type", params["content-type"].(string))
+		req.Header.Set("Content-Type", param("content-type"))
 
 		_, err = http.DefaultClient.Do(req.WithContext(ctx))
 		if err != nil {
@@ -53,14 +59,14 @@ func (h *Handler) handleAction(ctx context.Context, act integrationkey.Action, _
 
 	case "builtin-alert":
 		status := alert.StatusTriggered
-		if params["close"] == "true" {
+		if param("close") == "true" {
 			status = alert.StatusClosed
 		}
 
 		_, _, err := h.alertStore.CreateOrUpdate(ctx, &alert.Alert{
 			ServiceID: permission.ServiceID(ctx),
-			Summary:   params["summary"].(string),
-			Details:   params["details"].(string),
+			Summary:   param("summary"),
+			Details:   param("details"),
 			Source:    alert.SourceUniversal,
 			Status:    status,
 		})

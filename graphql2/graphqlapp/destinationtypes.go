@@ -25,15 +25,15 @@ const (
 	destSchedule    = "builtin-schedule"
 	destAlert       = "builtin-alert"
 
-	fieldPhoneNumber  = "phone-number"
-	fieldEmailAddress = "email-address"
-	fieldWebhookURL   = "webhook-url"
-	fieldSlackUserID  = "slack-user-id"
-	fieldSlackChanID  = "slack-channel-id"
-	fieldSlackUGID    = "slack-usergroup-id"
-	fieldUserID       = "user-id"
-	fieldRotationID   = "rotation-id"
-	fieldScheduleID   = "schedule-id"
+	fieldPhoneNumber  = "phone_number"
+	fieldEmailAddress = "email_address"
+	fieldWebhookURL   = "webhook_url"
+	fieldSlackUserID  = "slack_user_id"
+	fieldSlackChanID  = "slack_channel_id"
+	fieldSlackUGID    = "slack_usergroup_id"
+	fieldUserID       = "user_id"
+	fieldRotationID   = "rotation_id"
+	fieldScheduleID   = "schedule_id"
 )
 
 type (
@@ -384,6 +384,7 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			Enabled:               cfg.Slack.Enable,
 			IsEPTarget:            true,
 			IsSchedOnCallNotify:   true,
+			IsDynamicAction:       true,
 			SupportsStatusUpdates: true,
 			StatusUpdatesRequired: true,
 			RequiredFields: []graphql2.DestinationFieldConfig{{

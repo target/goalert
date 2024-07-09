@@ -1259,6 +1259,23 @@ func (q *Queries) DeleteManyCalSub(ctx context.Context, arg DeleteManyCalSubPara
 	return err
 }
 
+const engineGetSignalParams = `-- name: EngineGetSignalParams :one
+SELECT
+    params
+FROM
+    pending_signals
+WHERE
+    message_id = $1
+`
+
+// Get a pending signal's rendered params.
+func (q *Queries) EngineGetSignalParams(ctx context.Context, messageID uuid.NullUUID) (json.RawMessage, error) {
+	row := q.db.QueryRowContext(ctx, engineGetSignalParams, messageID)
+	var params json.RawMessage
+	err := row.Scan(&params)
+	return params, err
+}
+
 const findManyCalSubByUser = `-- name: FindManyCalSubByUser :many
 SELECT
     id,

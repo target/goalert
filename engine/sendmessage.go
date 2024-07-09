@@ -3,11 +3,14 @@ package engine
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/engine/message"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
@@ -168,8 +171,29 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			ScheduleID:   msg.ScheduleID,
 			Users:        onCallUsers,
 		}
+	case notification.MessageTypeSignalMessage:
+		id, err := uuid.Parse(msg.ID)
+		if err != nil {
+			return nil, errors.Wrap(err, "parse signal message id")
+		}
+		rawParams, err := gadb.New(p.b.db).EngineGetSignalParams(ctx, uuid.NullUUID{Valid: true, UUID: id})
+		if err != nil {
+			return nil, errors.Wrap(err, "get signal message params")
+		}
+
+		var params map[string]string
+		err = json.Unmarshal(rawParams, &params)
+		if err != nil {
+			return nil, errors.Wrap(err, "parse signal message params")
+		}
+
+		notifMsg = notification.SignalMessage{
+			Dest:       msg.Dest,
+			CallbackID: msg.ID,
+			Params:     params,
+		}
 	default:
-		log.Log(ctx, errors.New("SEND NOT IMPLEMENTED FOR MESSAGE TYPE"))
+		log.Log(ctx, errors.New("SEND NOT IMPLEMENTED FOR MESSAGE TYPE "+msg.Type.String()))
 		return &notification.SendResult{ID: msg.ID, Status: notification.Status{State: notification.StateFailedPerm}}, nil
 	}
 
