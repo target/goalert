@@ -136,22 +136,24 @@ func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKey
 			if input.SetRule.ID == nil {
 				// Since we don't have a rule ID, we're need to create a new rule.
 				cfg.Rules = append(cfg.Rules, integrationkey.Rule{
-					ID:            uuid.New(),
-					Name:          input.SetRule.Name,
-					Description:   input.SetRule.Description,
-					ConditionExpr: input.SetRule.ConditionExpr,
-					Actions:       actionsGQLToGo(input.SetRule.Actions),
+					ID:                 uuid.New(),
+					Name:               input.SetRule.Name,
+					Description:        input.SetRule.Description,
+					ConditionExpr:      input.SetRule.ConditionExpr,
+					Actions:            actionsGQLToGo(input.SetRule.Actions),
+					ContinueAfterMatch: input.SetRule.ContinueAfterMatch,
 				})
 			} else {
 				var found bool
 				for i, r := range cfg.Rules {
 					if r.ID.String() == *input.SetRule.ID {
 						cfg.Rules[i] = integrationkey.Rule{
-							ID:            r.ID,
-							Name:          input.SetRule.Name,
-							Description:   input.SetRule.Description,
-							ConditionExpr: input.SetRule.ConditionExpr,
-							Actions:       actionsGQLToGo(input.SetRule.Actions),
+							ID:                 r.ID,
+							Name:               input.SetRule.Name,
+							Description:        input.SetRule.Description,
+							ConditionExpr:      input.SetRule.ConditionExpr,
+							Actions:            actionsGQLToGo(input.SetRule.Actions),
+							ContinueAfterMatch: input.SetRule.ContinueAfterMatch,
 						}
 						found = true
 						break
