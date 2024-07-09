@@ -393,6 +393,11 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 				InputType:      "text",
 				SupportsSearch: true,
 			}},
+			DynamicParams: []graphql2.DynamicParamConfig{{
+				ParamID: "message",
+				Label:   "Message",
+				Hint:    "The text of the message to send.",
+			}},
 		},
 		{
 			Type:                destSlackUG,
