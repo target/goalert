@@ -312,7 +312,7 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			Enabled:               cfg.SMTP.Enable,
 			IsContactMethod:       true,
 			SupportsStatusUpdates: true,
-			IsDynamicAction:       true,
+			IsDynamicAction:       false,
 			RequiredFields: []graphql2.DestinationFieldConfig{{
 				FieldID:            fieldEmailAddress,
 				Label:              "Email Address",
@@ -384,6 +384,7 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			Enabled:               cfg.Slack.Enable,
 			IsEPTarget:            true,
 			IsSchedOnCallNotify:   true,
+			IsDynamicAction:       true,
 			SupportsStatusUpdates: true,
 			StatusUpdatesRequired: true,
 			RequiredFields: []graphql2.DestinationFieldConfig{{
@@ -391,6 +392,11 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 				Label:          "Slack Channel",
 				InputType:      "text",
 				SupportsSearch: true,
+			}},
+			DynamicParams: []graphql2.DynamicParamConfig{{
+				ParamID: "message",
+				Label:   "Message",
+				Hint:    "The text of the message to send.",
 			}},
 		},
 		{
