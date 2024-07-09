@@ -44,7 +44,7 @@ export const ValidationErrors: Story = {
   args: {
     destTypeError: 'error with dest type',
     destFieldErrors: {
-      'phone-number': 'error with dest field',
+      phone_number: 'error with dest field',
     },
   },
   play: async ({ canvasElement }) => {

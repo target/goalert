@@ -22,6 +22,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -273,6 +274,10 @@ func (h *Harness) Start() {
 
 	_, err := migrate.ApplyAll(context.Background(), h.dbURL)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			h.t.Fatalf("failed to migrate backend: %#v\n", pgErr)
+		}
 		h.t.Fatalf("failed to migrate backend: %v\n", err)
 	}
 

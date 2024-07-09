@@ -32,7 +32,7 @@ type Story = StoryObj<typeof meta>
 export const SingleField: Story = {
   args: {
     destType: 'single-field',
-    value: { 'phone-number': '' },
+    value: { phone_number: '' },
     disabled: false,
   },
   play: async ({ canvasElement }) => {

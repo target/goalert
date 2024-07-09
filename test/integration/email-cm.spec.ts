@@ -25,7 +25,7 @@ test('EMAIL contact method', async ({ page, browser }) => {
   ).toBeVisible()
 
   await dropdownSelect(page, 'Destination Type', 'Email')
-  await page.fill('input[name=email-address]', email)
+  await page.fill('input[name=email_address]', email)
   await page.click('[role=dialog] button[type=submit]')
 
   const mail = await browser.newPage({
