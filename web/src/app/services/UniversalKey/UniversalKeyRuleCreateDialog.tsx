@@ -27,6 +27,7 @@ export default function UniversalKeyRuleCreateDialogProps(
     continueAfterMatch: false,
     actions: [],
   })
+  const [step, setStep] = useState(0)
   const [m, commit] = useMutation(mutation)
   const [hasConfirmed, setHasConfirmed] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(false)
@@ -37,7 +38,6 @@ export default function UniversalKeyRuleCreateDialogProps(
   return (
     <FormDialog
       title='Create Rule'
-      maxWidth='lg'
       onClose={props.onClose}
       onSubmit={() => {
         if (noActionsNoConf) {
@@ -59,6 +59,8 @@ export default function UniversalKeyRuleCreateDialogProps(
           props.onClose()
         })
       }}
+      onNext={step >= 0 && step < 2 ? () => setStep(step + 1) : null}
+      onBack={step > 0 && step <= 2 ? () => setStep(step - 1) : null}
       form={
         <UniversalKeyRuleForm
           value={value}
@@ -68,6 +70,8 @@ export default function UniversalKeyRuleCreateDialogProps(
           conditionError={errs.getErrorByPath(
             'updateKeyConfig.input.setRule.conditionExpr',
           )}
+          step={step}
+          setStep={setStep}
         />
       }
       errors={errs.remainingLegacy()}
