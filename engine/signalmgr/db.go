@@ -7,7 +7,7 @@ import (
 	"github.com/target/goalert/engine/processinglock"
 )
 
-// DB manages outgoing status updates.
+// DB schedules outgoing signal messages.
 type DB struct {
 	lock *processinglock.Lock
 }
