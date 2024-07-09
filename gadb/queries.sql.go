@@ -2630,6 +2630,7 @@ WHERE message_id IS NULL
     AND created_at < NOW() - INTERVAL '1 hour'
 `
 
+// Delete stale pending signals.
 func (q *Queries) SignalMgrDeleteStale(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, signalMgrDeleteStale)
 	return err
@@ -2655,6 +2656,7 @@ type SignalMgrGetPendingRow struct {
 	ServiceID uuid.UUID
 }
 
+// Get a batch of pending signals to process.
 func (q *Queries) SignalMgrGetPending(ctx context.Context) ([]SignalMgrGetPendingRow, error) {
 	rows, err := q.db.QueryContext(ctx, signalMgrGetPending)
 	if err != nil {
@@ -2689,6 +2691,7 @@ type SignalMgrInsertMessageParams struct {
 	ChannelID uuid.NullUUID
 }
 
+// Insert a new message into the outgoing_messages table.
 func (q *Queries) SignalMgrInsertMessage(ctx context.Context, arg SignalMgrInsertMessageParams) error {
 	_, err := q.db.ExecContext(ctx, signalMgrInsertMessage, arg.ID, arg.ServiceID, arg.ChannelID)
 	return err
@@ -2708,6 +2711,7 @@ type SignalMgrUpdateSignalParams struct {
 	MessageID uuid.NullUUID
 }
 
+// Update a pending signal with the message_id.
 func (q *Queries) SignalMgrUpdateSignal(ctx context.Context, arg SignalMgrUpdateSignalParams) error {
 	_, err := q.db.ExecContext(ctx, signalMgrUpdateSignal, arg.ID, arg.MessageID)
 	return err

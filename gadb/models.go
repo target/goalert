@@ -496,6 +496,7 @@ const (
 	EnumOutgoingMessagesTypeAlertStatusUpdate          EnumOutgoingMessagesType = "alert_status_update"
 	EnumOutgoingMessagesTypeAlertStatusUpdateBundle    EnumOutgoingMessagesType = "alert_status_update_bundle"
 	EnumOutgoingMessagesTypeScheduleOnCallNotification EnumOutgoingMessagesType = "schedule_on_call_notification"
+	EnumOutgoingMessagesTypeSignalMessage              EnumOutgoingMessagesType = "signal_message"
 	EnumOutgoingMessagesTypeTestNotification           EnumOutgoingMessagesType = "test_notification"
 	EnumOutgoingMessagesTypeVerificationMessage        EnumOutgoingMessagesType = "verification_message"
 )
