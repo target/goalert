@@ -330,7 +330,7 @@ testScreen('Webhook Support', (screen: ScreenFormat) => {
     // add webhooks
     cy.dialogForm({
       'dest.type': 'Webhook',
-      'webhook-url': 'https://webhook.site',
+      webhook_url: 'https://webhook.site',
     })
     cy.dialogClick('Add Destination')
     cy.get('div[role="dialog"] [data-testid=destination-chip]').should(
@@ -339,7 +339,7 @@ testScreen('Webhook Support', (screen: ScreenFormat) => {
     )
 
     cy.dialogForm({
-      'webhook-url': 'https://example.com',
+      webhook_url: 'https://example.com',
     })
     cy.dialogClick('Add Destination')
     cy.get('div[role="dialog"] [data-testid=destination-chip]').should(

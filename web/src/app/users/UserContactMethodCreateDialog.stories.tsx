@@ -36,7 +36,7 @@ const meta = {
                     path: ['createUserContactMethod', 'input', 'dest'],
                     extensions: {
                       code: 'INVALID_DEST_FIELD_VALUE',
-                      fieldID: 'phone-number',
+                      fieldID: 'phone_number',
                     },
                   } satisfies DestFieldValueError,
                   {

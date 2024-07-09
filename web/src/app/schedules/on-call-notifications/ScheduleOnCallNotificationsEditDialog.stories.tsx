@@ -39,7 +39,7 @@ const meta = {
           HttpResponse.json({ data: { destinationFieldValidate: true } }),
         ),
         graphql.mutation('SetRules', ({ variables }) => {
-          switch (variables.input.rules[0].dest.args['phone-number']) {
+          switch (variables.input.rules[0].dest.args['phone_number']) {
             case '+123':
               return HttpResponse.json({
                 errors: [
@@ -57,7 +57,7 @@ const meta = {
                     ],
                     extensions: {
                       code: 'INVALID_DEST_FIELD_VALUE',
-                      fieldID: 'phone-number',
+                      fieldID: 'phone_number',
                     },
                   } satisfies DestFieldValueError,
                 ],
@@ -82,7 +82,7 @@ const meta = {
                     id: 'existing-id',
                     dest: {
                       type: 'single-field',
-                      args: { 'phone-number': '+1234567890' },
+                      args: { phone_number: '+1234567890' },
                     },
                   },
                 ],

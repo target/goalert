@@ -43,7 +43,7 @@ export const SupportStatusUpdates: Story = {
       name: 'supports status',
       dest: {
         type: 'supports-status',
-        args: { 'phone-number': '+15555555555' },
+        args: { phone_number: '+15555555555' },
       },
       statusUpdates: false,
     },
@@ -65,7 +65,7 @@ export const RequiredStatusUpdates: Story = {
       name: 'required status',
       dest: {
         type: 'required-status',
-        args: { 'phone-number': '+15555555555' },
+        args: { phone_number: '+15555555555' },
       },
       statusUpdates: false,
     },
@@ -89,12 +89,12 @@ export const ErrorSingleField: Story = {
       name: '-notvalid',
       dest: {
         type: 'single-field',
-        args: { 'phone-number': '+15555555555' },
+        args: { phone_number: '+15555555555' },
       },
       statusUpdates: false,
     },
     disabled: false,
-    destFieldErrors: { 'phone-number': 'number is too short' },
+    destFieldErrors: { phone_number: 'number is too short' },
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
