@@ -39,7 +39,7 @@ func TestSignal(t *testing.T) {
 			({{uuid "svc"}}, 'service', {{uuid "ep"}});
 	`
 
-	h := harness.NewHarnessWithFlags(t, sql, "signal-module", expflag.FlagSet{expflag.UnivKeys})
+	h := harness.NewHarnessWithFlags(t, sql, "nc-duplicate-table", expflag.FlagSet{expflag.UnivKeys})
 	defer h.Close()
 
 	var dest gadb.DestV1

@@ -44,7 +44,7 @@ export const Render: Story = {
     value: {
       type: 'builtin-rotation',
       args: {
-        'rotation-id': 'bf227047-18b8-4de3-881c-24b9dd345670',
+        rotation_id: 'bf227047-18b8-4de3-881c-24b9dd345670',
       },
     },
   },
