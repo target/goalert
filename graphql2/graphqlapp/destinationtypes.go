@@ -356,9 +356,10 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 					Hint:    "The body of the request.",
 				},
 				{
-					ParamID: "content-type",
-					Label:   "Content Type",
-					Hint:    "The content type (usually application/json).",
+					ParamID:      "content-type",
+					Label:        "Content Type",
+					Hint:         "The content type (e.g., application/json).",
+					DefaultValue: `"application/json"`, // Because this is an expression, it needs the double quotes.
 				},
 			},
 		},

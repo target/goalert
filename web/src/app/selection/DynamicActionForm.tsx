@@ -68,7 +68,7 @@ export function defaults(destTypeInfo: DestinationTypeInfo): Value {
   const dynamicParams = Object.fromEntries(
     destTypeInfo.dynamicParams.map((p) => [
       p.paramID,
-      `req.body['${p.paramID}']`,
+      p.defaultValue || `req.body['${p.paramID}']`,
     ]),
   )
 
