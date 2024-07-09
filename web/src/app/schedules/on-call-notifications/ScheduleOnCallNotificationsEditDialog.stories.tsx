@@ -39,7 +39,7 @@ const meta = {
           HttpResponse.json({ data: { destinationFieldValidate: true } }),
         ),
         graphql.mutation('SetRules', ({ variables }) => {
-          switch (variables.input.rules[0].dest.args['phone_number']) {
+          switch (variables.input.rules[0].dest.args.phone_number) {
             case '+123':
               return HttpResponse.json({
                 errors: [
