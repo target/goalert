@@ -125,7 +125,9 @@ function FormDialog(props) {
   }
 
   function renderErrors() {
-    return props.errors.map((err, idx) => (
+    const errors =
+      typeof props.errors === 'function' ? props.errors() : props.errors
+    return errors.map((err, idx) => (
       <DialogContentError
         className={classes.errorContainer}
         error={err.message || err}
@@ -224,12 +226,15 @@ FormDialog.propTypes = {
   subTitle: p.node,
   caption: p.node,
 
-  errors: p.arrayOf(
-    // this is an Error interface
-    p.shape({
-      message: p.string.isRequired,
-    }),
-  ),
+  errors: p.oneOfType([
+    p.arrayOf(
+      // this is an Error interface
+      p.shape({
+        message: p.string.isRequired,
+      }),
+    ),
+    p.func,
+  ]),
 
   form: p.node,
   loading: p.bool,
