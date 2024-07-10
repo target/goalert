@@ -20,6 +20,7 @@ export const destTypes: DestinationTypeInfo[] = [
         label: 'Example Param',
         hint: 'Some hint text',
         hintURL: '',
+        defaultValue: '',
       },
     ],
     requiredFields: [

@@ -70,6 +70,7 @@ const query = gql`
         label
         hint
         hintURL
+        defaultValue
       }
     }
   }

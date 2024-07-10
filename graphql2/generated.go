@@ -293,10 +293,11 @@ type ComplexityRoot struct {
 	}
 
 	DynamicParamConfig struct {
-		Hint    func(childComplexity int) int
-		HintURL func(childComplexity int) int
-		Label   func(childComplexity int) int
-		ParamID func(childComplexity int) int
+		DefaultValue func(childComplexity int) int
+		Hint         func(childComplexity int) int
+		HintURL      func(childComplexity int) int
+		Label        func(childComplexity int) int
+		ParamID      func(childComplexity int) int
 	}
 
 	EscalationPolicy struct {
@@ -1947,6 +1948,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DestinationTypeInfo.UserDisclaimer(childComplexity), true
+
+	case "DynamicParamConfig.defaultValue":
+		if e.complexity.DynamicParamConfig.DefaultValue == nil {
+			break
+		}
+
+		return e.complexity.DynamicParamConfig.DefaultValue(childComplexity), true
 
 	case "DynamicParamConfig.hint":
 		if e.complexity.DynamicParamConfig.Hint == nil {
@@ -11815,6 +11823,8 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_dynamicParams(_ con
 				return ec.fieldContext_DynamicParamConfig_hint(ctx, field)
 			case "hintURL":
 				return ec.fieldContext_DynamicParamConfig_hintURL(ctx, field)
+			case "defaultValue":
+				return ec.fieldContext_DynamicParamConfig_defaultValue(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DynamicParamConfig", field.Name)
 		},
@@ -12301,6 +12311,50 @@ func (ec *executionContext) fieldContext_DynamicParamConfig_hintURL(_ context.Co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DynamicParamConfig_defaultValue(ctx context.Context, field graphql.CollectedField, obj *DynamicParamConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DynamicParamConfig_defaultValue(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DefaultValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNExprStringExpression2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DynamicParamConfig_defaultValue(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DynamicParamConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ExprStringExpression does not have child fields")
 		},
 	}
 	return fc, nil
@@ -40012,6 +40066,11 @@ func (ec *executionContext) _DynamicParamConfig(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "defaultValue":
+			out.Values[i] = ec._DynamicParamConfig_defaultValue(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -48468,6 +48527,21 @@ func (ec *executionContext) unmarshalNExprOperator2string(ctx context.Context, v
 
 func (ec *executionContext) marshalNExprOperator2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	res := graphql.MarshalString(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNExprStringExpression2string(ctx context.Context, v interface{}) (string, error) {
+	res, err := UnmarshalExprStringExpression(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNExprStringExpression2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := MarshalExprStringExpression(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

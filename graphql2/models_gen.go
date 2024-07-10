@@ -470,6 +470,8 @@ type DynamicParamConfig struct {
 	Hint string `json:"hint"`
 	// URL to link to for more information about the destination type
 	HintURL string `json:"hintURL"`
+	// default value for the input field
+	DefaultValue string `json:"defaultValue"`
 }
 
 type EscalationPolicyConnection struct {

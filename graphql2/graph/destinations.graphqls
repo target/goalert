@@ -316,4 +316,9 @@ type DynamicParamConfig {
   URL to link to for more information about the destination type
   """
   hintURL: String!
+
+  """
+  default value for the input field
+  """
+  defaultValue: ExprStringExpression!
 }

@@ -464,6 +464,7 @@ export interface DestinationTypeInfo {
 }
 
 export interface DynamicParamConfig {
+  defaultValue: ExprStringExpression
   hint: string
   hintURL: string
   label: string
