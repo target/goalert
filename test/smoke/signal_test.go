@@ -48,7 +48,7 @@ func TestSignal(t *testing.T) {
 
 	// validate fields
 	assert.Equal(t, "builtin-twilio-sms", dest.Type, "unexpected type")
-	assert.Equal(t, h.Phone("1"), dest.Args["phone_number"], "unexpected arg")
+	assert.Equal(t, h.Phone("1"), dest.Arg("phone_number"), "unexpected arg")
 
 	// create key
 	resp := h.GraphQLQuery2(fmt.Sprintf(`mutation{ createIntegrationKey(input: {name: "key", type: universal, serviceID: "%s"}){ id, href } }`, h.UUID("svc")))

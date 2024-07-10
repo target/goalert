@@ -16,3 +16,10 @@ func (t SignalMessage) Destination() Dest  { return t.Dest }
 func (SignalMessage) Body() string         { return "" }
 func (SignalMessage) ExtendedBody() string { return "" }
 func (SignalMessage) SubjectID() int       { return -1 }
+
+func (t SignalMessage) Param(name string) string {
+	if t.Params == nil {
+		return ""
+	}
+	return t.Params[name]
+}

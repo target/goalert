@@ -35,7 +35,7 @@ func NewHandler(db TxAble, intStore *integrationkey.Store, aStore *alert.Store) 
 	return &Handler{intStore: intStore, db: db, alertStore: aStore}
 }
 
-func (h *Handler) handleAction(ctx context.Context, act integrationkey.Action, _params any) error {
+func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1, _params any) error {
 	params := _params.(map[string]any)
 	param := func(name string) string {
 		if v, ok := params[name]; ok {
@@ -44,9 +44,9 @@ func (h *Handler) handleAction(ctx context.Context, act integrationkey.Action, _
 		return ""
 	}
 
-	switch act.Type {
+	switch act.Dest.Type {
 	case "builtin-webhook":
-		req, err := http.NewRequest("POST", act.StaticParams["webhook_url"], strings.NewReader(param("body")))
+		req, err := http.NewRequest("POST", act.Dest.Arg("webhook_url"), strings.NewReader(param("body")))
 		if err != nil {
 			return err
 		}

@@ -8,7 +8,7 @@ import (
 
 	"github.com/expr-lang/expr"
 	"github.com/expr-lang/expr/vm"
-	"github.com/target/goalert/integrationkey"
+	"github.com/target/goalert/gadb"
 )
 
 // BuildRuleExpr will build an expression string for a rule.
@@ -23,11 +23,11 @@ import (
 //
 // The expected format is: `string(<condition>) == "true" ? [{ <action-1-param-1>: string(<action-1-param-1-expr>), ... }] : nil`
 // See ExampleBuildRuleExpr for an example.
-func BuildRuleExpr(cond string, actions []integrationkey.Action) string {
+func BuildRuleExpr(cond string, actions []gadb.UIKActionV1) string {
 	var actionExpr []string
 	for _, a := range actions {
 		var params []string
-		for k, v := range a.DynamicParams {
+		for k, v := range a.Params {
 			params = append(params, fmt.Sprintf(`%s: string(%s)`, strconv.Quote(k), v))
 		}
 
@@ -43,6 +43,6 @@ func BuildRuleExpr(cond string, actions []integrationkey.Action) string {
 }
 
 // CompileRule returns an Expr-compiled rule.
-func CompileRule(cond string, actions []integrationkey.Action) (*vm.Program, error) {
+func CompileRule(cond string, actions []gadb.UIKActionV1) (*vm.Program, error) {
 	return expr.Compile(BuildRuleExpr(cond, actions), expr.AsKind(reflect.Slice), expr.AllowUndefinedVariables(), expr.Optimize(true))
 }

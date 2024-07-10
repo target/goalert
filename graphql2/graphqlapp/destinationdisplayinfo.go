@@ -76,7 +76,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 			Text:        "Create new alert",
 		}, nil
 	case destTwilioSMS:
-		n, err := phonenumbers.Parse(dest.Args[fieldPhoneNumber], "")
+		n, err := phonenumbers.Parse(dest.Arg(fieldPhoneNumber), "")
 		if err != nil {
 			return nil, validation.WrapError(err)
 		}
@@ -87,7 +87,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 			Text:        phonenumbers.Format(n, phonenumbers.INTERNATIONAL),
 		}, nil
 	case destTwilioVoice:
-		n, err := phonenumbers.Parse(dest.Args[fieldPhoneNumber], "")
+		n, err := phonenumbers.Parse(dest.Arg(fieldPhoneNumber), "")
 		if err != nil {
 			return nil, validation.WrapError(err)
 		}
@@ -97,7 +97,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 			Text:        phonenumbers.Format(n, phonenumbers.INTERNATIONAL),
 		}, nil
 	case destSMTP:
-		e, err := mail.ParseAddress(dest.Args[fieldEmailAddress])
+		e, err := mail.ParseAddress(dest.Arg(fieldEmailAddress))
 		if err != nil {
 			return nil, validation.WrapError(err)
 		}
@@ -107,7 +107,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 			Text:        e.Address,
 		}, nil
 	case destRotation:
-		r, err := app.FindOneRotation(ctx, dest.Args[fieldRotationID])
+		r, err := app.FindOneRotation(ctx, dest.Arg(fieldRotationID))
 		if err != nil {
 			return nil, err
 		}
@@ -118,7 +118,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 			Text:        r.Name,
 		}, nil
 	case destSchedule:
-		s, err := app.FindOneSchedule(ctx, dest.Args[fieldScheduleID])
+		s, err := app.FindOneSchedule(ctx, dest.Arg(fieldScheduleID))
 		if err != nil {
 			return nil, err
 		}
@@ -129,7 +129,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 			Text:        s.Name,
 		}, nil
 	case destUser:
-		u, err := app.FindOneUser(ctx, dest.Args[fieldUserID])
+		u, err := app.FindOneUser(ctx, dest.Arg(fieldUserID))
 		if err != nil {
 			return nil, err
 		}
@@ -141,7 +141,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 		}, nil
 
 	case destWebhook:
-		u, err := url.Parse(dest.Args[fieldWebhookURL])
+		u, err := url.Parse(dest.Arg(fieldWebhookURL))
 		if err != nil {
 			return nil, validation.WrapError(err)
 		}
@@ -151,7 +151,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 			Text:        u.Hostname(),
 		}, nil
 	case destSlackDM:
-		u, err := app.SlackStore.User(ctx, dest.Args[fieldSlackUserID])
+		u, err := app.SlackStore.User(ctx, dest.Arg(fieldSlackUserID))
 		if err != nil {
 			return nil, err
 		}
@@ -172,7 +172,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 			Text:        u.Name,
 		}, nil
 	case destSlackChan:
-		ch, err := app.SlackStore.Channel(ctx, dest.Args[fieldSlackChanID])
+		ch, err := app.SlackStore.Channel(ctx, dest.Arg(fieldSlackChanID))
 		if err != nil {
 			return nil, err
 		}
@@ -193,7 +193,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 		}, nil
 
 	case destSlackUG:
-		ug, err := app.SlackStore.UserGroup(ctx, dest.Args[fieldSlackUGID])
+		ug, err := app.SlackStore.UserGroup(ctx, dest.Arg(fieldSlackUGID))
 		if err != nil {
 			return nil, err
 		}

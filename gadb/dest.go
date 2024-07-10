@@ -10,6 +10,20 @@ type DestV1 struct {
 	Type string
 }
 
+func (ns DestV1) Arg(name string) string {
+	if ns.Args == nil {
+		return ""
+	}
+	return ns.Args[name]
+}
+
+func (ns *DestV1) SetArg(name, value string) {
+	if ns.Args == nil {
+		ns.Args = make(map[string]string)
+	}
+	ns.Args[name] = value
+}
+
 // Scan implements the Scanner interface.
 func (ns *DestV1) Scan(value interface{}) error {
 	switch v := value.(type) {
@@ -30,10 +44,6 @@ func (ns *DestV1) Scan(value interface{}) error {
 		}
 	default:
 		return fmt.Errorf("unsupported scan for DestV1 type: %T", value)
-	}
-
-	if ns.Args == nil {
-		ns.Args = map[string]string{}
 	}
 
 	return nil

@@ -475,7 +475,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 			fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", slackutilsx.EscapeMessage(t.ServiceName), t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")),
 			false))
 	case notification.SignalMessage:
-		opts = append(opts, slack.MsgOptionText(t.Params["message"], false))
+		opts = append(opts, slack.MsgOptionText(t.Param("message"), false))
 	case notification.ScheduleOnCallUsers:
 		opts = append(opts, slack.MsgOptionText(s.onCallNotificationText(ctx, t), false))
 	default:

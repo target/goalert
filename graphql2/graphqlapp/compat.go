@@ -86,15 +86,15 @@ func (a *App) CompatNCToDest(ctx context.Context, ncID uuid.UUID) (*gadb.DestV1,
 func CompatDestToCMTypeVal(d gadb.DestV1) (contactmethod.Type, string) {
 	switch d.Type {
 	case destTwilioSMS:
-		return contactmethod.TypeSMS, d.Args[fieldPhoneNumber]
+		return contactmethod.TypeSMS, d.Arg(fieldPhoneNumber)
 	case destTwilioVoice:
-		return contactmethod.TypeVoice, d.Args[fieldPhoneNumber]
+		return contactmethod.TypeVoice, d.Arg(fieldPhoneNumber)
 	case destSMTP:
-		return contactmethod.TypeEmail, d.Args[fieldEmailAddress]
+		return contactmethod.TypeEmail, d.Arg(fieldEmailAddress)
 	case destWebhook:
-		return contactmethod.TypeWebhook, d.Args[fieldWebhookURL]
+		return contactmethod.TypeWebhook, d.Arg(fieldWebhookURL)
 	case destSlackDM:
-		return contactmethod.TypeSlackDM, d.Args[fieldSlackUserID]
+		return contactmethod.TypeSlackDM, d.Arg(fieldSlackUserID)
 	}
 
 	return "", ""
@@ -106,32 +106,32 @@ func CompatDestToTarget(d gadb.DestV1) (assignment.RawTarget, error) {
 	case destUser:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeUser,
-			ID:   d.Args[fieldUserID],
+			ID:   d.Arg(fieldUserID),
 		}, nil
 	case destRotation:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeRotation,
-			ID:   d.Args[fieldRotationID],
+			ID:   d.Arg(fieldRotationID),
 		}, nil
 	case destSchedule:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeSchedule,
-			ID:   d.Args[fieldScheduleID],
+			ID:   d.Arg(fieldScheduleID),
 		}, nil
 	case destSlackChan:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeSlackChannel,
-			ID:   d.Args[fieldSlackChanID],
+			ID:   d.Arg(fieldSlackChanID),
 		}, nil
 	case destSlackUG:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeSlackUserGroup,
-			ID:   d.Args[fieldSlackUGID] + ":" + d.Args[fieldSlackChanID],
+			ID:   d.Arg(fieldSlackUGID) + ":" + d.Arg(fieldSlackChanID),
 		}, nil
 	case destWebhook:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeChanWebhook,
-			ID:   d.Args[fieldWebhookURL],
+			ID:   d.Arg(fieldWebhookURL),
 		}, nil
 	}
 

@@ -33,16 +33,6 @@ type InlineDisplayInfo interface {
 	IsInlineDisplayInfo()
 }
 
-type Action struct {
-	Dest   *gadb.DestV1      `json:"dest"`
-	Params map[string]string `json:"params"`
-}
-
-type ActionInput struct {
-	Dest   *gadb.DestV1      `json:"dest"`
-	Params map[string]string `json:"params"`
-}
-
 type AlertConnection struct {
 	Nodes    []alert.Alert `json:"nodes"`
 	PageInfo *PageInfo     `json:"pageInfo"`
@@ -556,39 +546,6 @@ type IntegrationKeyTypeInfo struct {
 	Enabled bool   `json:"enabled"`
 }
 
-type KeyConfig struct {
-	Rules []KeyRule `json:"rules"`
-	// Get a single rule by ID.
-	OneRule *KeyRule `json:"oneRule,omitempty"`
-	// defaultAction is the action to take if no rules match the request.
-	DefaultActions []Action `json:"defaultActions"`
-}
-
-type KeyRule struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	// An expression that must evaluate to true for the rule to match.
-	ConditionExpr string   `json:"conditionExpr"`
-	Actions       []Action `json:"actions"`
-	// Continue evaluating rules after this rule matches.
-	ContinueAfterMatch bool `json:"continueAfterMatch"`
-}
-
-type KeyRuleInput struct {
-	// The ID of an existing rule being updated.
-	ID          *string `json:"id,omitempty"`
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	// An expression that must evaluate to true for the rule to match.
-	ConditionExpr string        `json:"conditionExpr"`
-	Actions       []ActionInput `json:"actions"`
-	// Continue evaluating rules after this rule matches.
-	//
-	// If this is set to false (default), no further rules will be evaluated after this rule matches.
-	ContinueAfterMatch bool `json:"continueAfterMatch"`
-}
-
 type LabelConnection struct {
 	Nodes    []label.Label `json:"nodes"`
 	PageInfo *PageInfo     `json:"pageInfo"`
@@ -921,14 +878,14 @@ type UpdateHeartbeatMonitorInput struct {
 }
 
 type UpdateKeyConfigInput struct {
-	KeyID string         `json:"keyID"`
-	Rules []KeyRuleInput `json:"rules,omitempty"`
+	KeyID string           `json:"keyID"`
+	Rules []gadb.UIKRuleV1 `json:"rules,omitempty"`
 	// setRule allows you to set a single rule. If ID is provided, the rule with that ID will be updated. If ID is not provided, a new rule will be created and appended to the list of rules.
-	SetRule *KeyRuleInput `json:"setRule,omitempty"`
+	SetRule *gadb.UIKRuleV1 `json:"setRule,omitempty"`
 	// deleteRule allows you to delete a single rule by ID.
 	DeleteRule *string `json:"deleteRule,omitempty"`
 	// defaultAction is the action to take if no rules match the request.
-	DefaultActions []ActionInput `json:"defaultActions,omitempty"`
+	DefaultActions []gadb.UIKActionV1 `json:"defaultActions,omitempty"`
 }
 
 type UpdateRotationInput struct {
