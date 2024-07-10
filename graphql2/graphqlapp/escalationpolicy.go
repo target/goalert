@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notice"
 	"github.com/target/goalert/permission"
@@ -17,10 +18,12 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
-type EscalationPolicy App
-type EscalationPolicyStep App
-type CreateEscalationPolicyStepInput App
-type UpdateEscalationPolicyStepInput App
+type (
+	EscalationPolicy                App
+	EscalationPolicyStep            App
+	CreateEscalationPolicyStepInput App
+	UpdateEscalationPolicyStepInput App
+)
 
 func (a *App) EscalationPolicy() graphql2.EscalationPolicyResolver { return (*EscalationPolicy)(a) }
 func (a *App) EscalationPolicyStep() graphql2.EscalationPolicyStepResolver {
@@ -31,7 +34,7 @@ func (a *App) CreateEscalationPolicyStepInput() graphql2.CreateEscalationPolicyS
 	return (*CreateEscalationPolicyStepInput)(a)
 }
 
-func (a *CreateEscalationPolicyStepInput) Actions(ctx context.Context, input *graphql2.CreateEscalationPolicyStepInput, actions []graphql2.DestinationInput) error {
+func (a *CreateEscalationPolicyStepInput) Actions(ctx context.Context, input *graphql2.CreateEscalationPolicyStepInput, actions []gadb.DestV1) error {
 	tgts := make([]assignment.RawTarget, len(actions))
 	var err error
 	for i, action := range actions {
@@ -52,7 +55,7 @@ func (a *App) UpdateEscalationPolicyStepInput() graphql2.UpdateEscalationPolicyS
 	return (*UpdateEscalationPolicyStepInput)(a)
 }
 
-func (a *UpdateEscalationPolicyStepInput) Actions(ctx context.Context, input *graphql2.UpdateEscalationPolicyStepInput, actions []graphql2.DestinationInput) error {
+func (a *UpdateEscalationPolicyStepInput) Actions(ctx context.Context, input *graphql2.UpdateEscalationPolicyStepInput, actions []gadb.DestV1) error {
 	tgts := make([]assignment.RawTarget, len(actions))
 	var err error
 	for i, action := range actions {
@@ -360,13 +363,13 @@ func (m *Mutation) UpdateEscalationPolicyStep(ctx context.Context, input graphql
 	return true, err
 }
 
-func (a *EscalationPolicyStep) Actions(ctx context.Context, raw *escalation.Step) ([]graphql2.Destination, error) {
+func (a *EscalationPolicyStep) Actions(ctx context.Context, raw *escalation.Step) ([]gadb.DestV1, error) {
 	tgts, err := a.Targets(ctx, raw)
 	if err != nil {
 		return nil, err
 	}
 
-	actions := make([]graphql2.Destination, len(tgts))
+	actions := make([]gadb.DestV1, len(tgts))
 	for i, tgt := range tgts {
 		actions[i], err = CompatTargetToDest(tgt)
 		if err != nil {
@@ -404,6 +407,7 @@ func (step *EscalationPolicyStep) Targets(ctx context.Context, raw *escalation.S
 
 	return result, nil
 }
+
 func (step *EscalationPolicyStep) EscalationPolicy(ctx context.Context, raw *escalation.Step) (*escalation.Policy, error) {
 	return (*App)(step).FindOnePolicy(ctx, raw.PolicyID)
 }

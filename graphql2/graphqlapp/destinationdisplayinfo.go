@@ -7,6 +7,7 @@ import (
 
 	"github.com/nyaruka/phonenumbers"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
@@ -21,19 +22,7 @@ type (
 func (a *App) Destination() graphql2.DestinationResolver           { return (*Destination)(a) }
 func (a *App) DestinationInput() graphql2.DestinationInputResolver { return (*DestinationInput)(a) }
 
-func (a *DestinationInput) Args(ctx context.Context, obj *graphql2.DestinationInput, args map[string]string) error {
-	obj.Args = args
-
-	obj.Values = make([]graphql2.FieldValueInput, 0, len(args))
-	for k, v := range args {
-		obj.Values = append(obj.Values, graphql2.FieldValueInput{FieldID: k, Value: v})
-	}
-
-	return nil
-}
-
-func (a *DestinationInput) Values(ctx context.Context, obj *graphql2.DestinationInput, values []graphql2.FieldValueInput) error {
-	obj.Values = values
+func (a *DestinationInput) Values(ctx context.Context, obj *gadb.DestV1, values []graphql2.FieldValueInput) error {
 	obj.Args = make(map[string]string, len(values))
 	for _, val := range values {
 		obj.Args[val.FieldID] = val.Value
@@ -41,20 +30,7 @@ func (a *DestinationInput) Values(ctx context.Context, obj *graphql2.Destination
 	return nil
 }
 
-func (a *Destination) Args(ctx context.Context, obj *graphql2.Destination) (map[string]string, error) {
-	if obj.Args != nil {
-		return obj.Args, nil
-	}
-
-	m := make(map[string]string, len(obj.Values))
-	for _, val := range obj.Values {
-		m[val.FieldID] = val.Value
-	}
-
-	return m, nil
-}
-
-func (a *Destination) Values(ctx context.Context, obj *graphql2.Destination) ([]graphql2.FieldValuePair, error) {
+func (a *Destination) Values(ctx context.Context, obj *gadb.DestV1) ([]graphql2.FieldValuePair, error) {
 	if obj.Args != nil {
 		pairs := make([]graphql2.FieldValuePair, 0, len(obj.Args))
 		for k, v := range obj.Args {
@@ -63,16 +39,12 @@ func (a *Destination) Values(ctx context.Context, obj *graphql2.Destination) ([]
 		return pairs, nil
 	}
 
-	return obj.Values, nil
+	return nil, nil
 }
 
 // DisplayInfo will return the display information for a destination by mapping to Query.DestinationDisplayInfo.
-func (a *Destination) DisplayInfo(ctx context.Context, obj *graphql2.Destination) (graphql2.InlineDisplayInfo, error) {
-	if obj.DisplayInfo != nil {
-		return obj.DisplayInfo, nil
-	}
-
-	info, err := (*Query)(a)._DestinationDisplayInfo(ctx, graphql2.DestinationInput{Type: obj.Type, Args: obj.Args}, true)
+func (a *Destination) DisplayInfo(ctx context.Context, obj *gadb.DestV1) (graphql2.InlineDisplayInfo, error) {
+	info, err := (*Query)(a)._DestinationDisplayInfo(ctx, gadb.DestV1{Type: obj.Type, Args: obj.Args}, true)
 	if err != nil {
 		isUnsafe, safeErr := errutil.ScrubError(err)
 		if isUnsafe {
@@ -84,11 +56,11 @@ func (a *Destination) DisplayInfo(ctx context.Context, obj *graphql2.Destination
 	return info, nil
 }
 
-func (a *Query) DestinationDisplayInfo(ctx context.Context, dest graphql2.DestinationInput) (*graphql2.DestinationDisplayInfo, error) {
+func (a *Query) DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1) (*graphql2.DestinationDisplayInfo, error) {
 	return a._DestinationDisplayInfo(ctx, dest, false)
 }
 
-func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest graphql2.DestinationInput, skipValidation bool) (*graphql2.DestinationDisplayInfo, error) {
+func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, skipValidation bool) (*graphql2.DestinationDisplayInfo, error) {
 	app := (*App)(a)
 	cfg := config.FromContext(ctx)
 	if !skipValidation {

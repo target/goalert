@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/expflag"
-	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/test/smoke/harness"
 )
 
@@ -26,10 +25,17 @@ func TestActionValid(t *testing.T) {
 	check := func(destType string, dest, dyn params) harness.QLResponse {
 		t.Helper()
 		var vars struct {
-			Input graphql2.ActionInput `json:"input"`
+			Input struct {
+				Dest struct {
+					Type string `json:"type"`
+					Args params `json:"args"`
+				} `json:"dest"`
+				Params params `json:"params"`
+			} `json:"input"`
 		}
 		vars.Input.Params = dyn
-		vars.Input.Dest = &graphql2.DestinationInput{Type: destType, Args: dest}
+		vars.Input.Dest.Type = destType
+		vars.Input.Dest.Args = dest
 
 		return *h.GraphQLQueryUserVarsT(t, harness.DefaultGraphQLAdminUserID, actionValidQuery, "TestActionValid", vars)
 	}

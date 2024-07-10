@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/webhook"
@@ -22,30 +23,30 @@ func (a *App) UserContactMethod() graphql2.UserContactMethodResolver {
 	return (*ContactMethod)(a)
 }
 
-func (a *ContactMethod) Dest(ctx context.Context, obj *contactmethod.ContactMethod) (*graphql2.Destination, error) {
+func (a *ContactMethod) Dest(ctx context.Context, obj *contactmethod.ContactMethod) (*gadb.DestV1, error) {
 	switch obj.Type {
 	case contactmethod.TypeSMS:
-		return &graphql2.Destination{
+		return &gadb.DestV1{
 			Type: destTwilioSMS,
 			Args: map[string]string{fieldPhoneNumber: obj.Value},
 		}, nil
 	case contactmethod.TypeVoice:
-		return &graphql2.Destination{
+		return &gadb.DestV1{
 			Type: destTwilioVoice,
 			Args: map[string]string{fieldPhoneNumber: obj.Value},
 		}, nil
 	case contactmethod.TypeEmail:
-		return &graphql2.Destination{
+		return &gadb.DestV1{
 			Type: destSMTP,
 			Args: map[string]string{fieldEmailAddress: obj.Value},
 		}, nil
 	case contactmethod.TypeWebhook:
-		return &graphql2.Destination{
+		return &gadb.DestV1{
 			Type: destWebhook,
 			Args: map[string]string{fieldWebhookURL: obj.Value},
 		}, nil
 	case contactmethod.TypeSlackDM:
-		return &graphql2.Destination{
+		return &gadb.DestV1{
 			Type: destSlackDM,
 			Args: map[string]string{fieldSlackUserID: obj.Value},
 		}, nil
