@@ -10,15 +10,16 @@ type SignalMessage struct {
 
 var _ Message = &Test{}
 
-func (t SignalMessage) Type() MessageType { return MessageTypeSignalMessage }
-func (t SignalMessage) ID() string        { return t.CallbackID }
-func (t SignalMessage) Destination() Dest { return t.Dest }
+func (t SignalMessage) Type() MessageType  { return MessageTypeSignalMessage }
+func (t SignalMessage) ID() string         { return t.CallbackID }
+func (t SignalMessage) Destination() Dest  { return t.Dest }
+func (SignalMessage) Body() string         { return "" }
+func (SignalMessage) ExtendedBody() string { return "" }
+func (SignalMessage) SubjectID() int       { return -1 }
+
 func (t SignalMessage) Param(name string) string {
 	if t.Params == nil {
 		return ""
 	}
 	return t.Params[name]
 }
-func (SignalMessage) Body() string         { return "" }
-func (SignalMessage) ExtendedBody() string { return "" }
-func (SignalMessage) SubjectID() int       { return -1 }
