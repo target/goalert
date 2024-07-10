@@ -1,25 +1,27 @@
 package graphql2
 
 import (
-	"io"
-
 	graphql "github.com/99designs/gqlgen/graphql"
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 )
 
 func MarshalUUID(t uuid.UUID) graphql.Marshaler {
 	if t == uuid.Nil {
 		return graphql.Null
 	}
-	return graphql.WriterFunc(func(w io.Writer) {
-		_, _ = io.WriteString(w, t.String())
-	})
+
+	return graphql.MarshalString(t.String())
 }
 
 func UnmarshalUUID(v interface{}) (uuid.UUID, error) {
-	if str, ok := v.(string); ok {
-		return uuid.Parse(str)
+	str, err := graphql.UnmarshalString(v)
+	if err != nil {
+		return uuid.Nil, err
 	}
-	return uuid.Nil, errors.New("input must be an RFC-4122 formatted string")
+	id, err := uuid.Parse(str)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	return id, nil
 }
