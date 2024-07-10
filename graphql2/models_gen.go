@@ -34,7 +34,7 @@ type InlineDisplayInfo interface {
 }
 
 type Action struct {
-	Dest   *Destination      `json:"dest"`
+	Dest   *gadb.DestV1      `json:"dest"`
 	Params map[string]string `json:"params"`
 }
 
@@ -352,14 +352,6 @@ type DebugSendSMSInput struct {
 	From string `json:"from"`
 	To   string `json:"to"`
 	Body string `json:"body"`
-}
-
-// Destination represents a destination that can be used for notifications.
-type Destination struct {
-	Type        string            `json:"type"`
-	Values      []FieldValuePair  `json:"values"`
-	Args        map[string]string `json:"args"`
-	DisplayInfo InlineDisplayInfo `json:"displayInfo"`
 }
 
 // DestinationDisplayInfo provides information for displaying a destination.

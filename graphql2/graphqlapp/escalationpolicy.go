@@ -363,13 +363,13 @@ func (m *Mutation) UpdateEscalationPolicyStep(ctx context.Context, input graphql
 	return true, err
 }
 
-func (a *EscalationPolicyStep) Actions(ctx context.Context, raw *escalation.Step) ([]graphql2.Destination, error) {
+func (a *EscalationPolicyStep) Actions(ctx context.Context, raw *escalation.Step) ([]gadb.DestV1, error) {
 	tgts, err := a.Targets(ctx, raw)
 	if err != nil {
 		return nil, err
 	}
 
-	actions := make([]graphql2.Destination, len(tgts))
+	actions := make([]gadb.DestV1, len(tgts))
 	for i, tgt := range tgts {
 		actions[i], err = CompatTargetToDest(tgt)
 		if err != nil {

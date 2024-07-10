@@ -883,9 +883,9 @@ type AlertMetricResolver interface {
 	TimeToClose(ctx context.Context, obj *alertmetrics.Metric) (*timeutil.ISODuration, error)
 }
 type DestinationResolver interface {
-	Values(ctx context.Context, obj *Destination) ([]FieldValuePair, error)
+	Values(ctx context.Context, obj *gadb.DestV1) ([]FieldValuePair, error)
 
-	DisplayInfo(ctx context.Context, obj *Destination) (InlineDisplayInfo, error)
+	DisplayInfo(ctx context.Context, obj *gadb.DestV1) (InlineDisplayInfo, error)
 }
 type EscalationPolicyResolver interface {
 	IsFavorite(ctx context.Context, obj *escalation.Policy) (bool, error)
@@ -896,7 +896,7 @@ type EscalationPolicyResolver interface {
 type EscalationPolicyStepResolver interface {
 	Targets(ctx context.Context, obj *escalation.Step) ([]assignment.RawTarget, error)
 	EscalationPolicy(ctx context.Context, obj *escalation.Step) (*escalation.Policy, error)
-	Actions(ctx context.Context, obj *escalation.Step) ([]Destination, error)
+	Actions(ctx context.Context, obj *escalation.Step) ([]gadb.DestV1, error)
 }
 type ExprResolver interface {
 	ExprToCondition(ctx context.Context, obj *Expr, input ExprToConditionInput) (*Condition, error)
@@ -986,7 +986,7 @@ type MutationResolver interface {
 }
 type OnCallNotificationRuleResolver interface {
 	Target(ctx context.Context, obj *schedule.OnCallNotificationRule) (*assignment.RawTarget, error)
-	Dest(ctx context.Context, obj *schedule.OnCallNotificationRule) (*Destination, error)
+	Dest(ctx context.Context, obj *schedule.OnCallNotificationRule) (*gadb.DestV1, error)
 }
 type OnCallShiftResolver interface {
 	User(ctx context.Context, obj *oncall.Shift) (*user.User, error)
@@ -1104,7 +1104,7 @@ type UserCalendarSubscriptionResolver interface {
 	URL(ctx context.Context, obj *calsub.Subscription) (*string, error)
 }
 type UserContactMethodResolver interface {
-	Dest(ctx context.Context, obj *contactmethod.ContactMethod) (*Destination, error)
+	Dest(ctx context.Context, obj *contactmethod.ContactMethod) (*gadb.DestV1, error)
 
 	Value(ctx context.Context, obj *contactmethod.ContactMethod) (string, error)
 	FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error)
@@ -7048,9 +7048,9 @@ func (ec *executionContext) _Action_dest(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*Destination)
+	res := resTmp.(*gadb.DestV1)
 	fc.Result = res
-	return ec.marshalNDestination2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestination(ctx, field.Selections, res)
+	return ec.marshalNDestination2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Action_dest(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -10686,7 +10686,7 @@ func (ec *executionContext) fieldContext_DebugSendSMSInfo_fromNumber(_ context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _Destination_type(ctx context.Context, field graphql.CollectedField, obj *Destination) (ret graphql.Marshaler) {
+func (ec *executionContext) _Destination_type(ctx context.Context, field graphql.CollectedField, obj *gadb.DestV1) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Destination_type(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -10730,7 +10730,7 @@ func (ec *executionContext) fieldContext_Destination_type(_ context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Destination_values(ctx context.Context, field graphql.CollectedField, obj *Destination) (ret graphql.Marshaler) {
+func (ec *executionContext) _Destination_values(ctx context.Context, field graphql.CollectedField, obj *gadb.DestV1) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Destination_values(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -10780,7 +10780,7 @@ func (ec *executionContext) fieldContext_Destination_values(_ context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _Destination_args(ctx context.Context, field graphql.CollectedField, obj *Destination) (ret graphql.Marshaler) {
+func (ec *executionContext) _Destination_args(ctx context.Context, field graphql.CollectedField, obj *gadb.DestV1) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Destination_args(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -10824,7 +10824,7 @@ func (ec *executionContext) fieldContext_Destination_args(_ context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Destination_displayInfo(ctx context.Context, field graphql.CollectedField, obj *Destination) (ret graphql.Marshaler) {
+func (ec *executionContext) _Destination_displayInfo(ctx context.Context, field graphql.CollectedField, obj *gadb.DestV1) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Destination_displayInfo(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -13069,9 +13069,9 @@ func (ec *executionContext) _EscalationPolicyStep_actions(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]Destination)
+	res := resTmp.([]gadb.DestV1)
 	fc.Result = res
-	return ec.marshalNDestination2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationᚄ(ctx, field.Selections, res)
+	return ec.marshalNDestination2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1ᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_EscalationPolicyStep_actions(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -20168,9 +20168,9 @@ func (ec *executionContext) _OnCallNotificationRule_dest(ctx context.Context, fi
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*Destination)
+	res := resTmp.(*gadb.DestV1)
 	fc.Result = res
-	return ec.marshalNDestination2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestination(ctx, field.Selections, res)
+	return ec.marshalNDestination2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_OnCallNotificationRule_dest(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -30619,9 +30619,9 @@ func (ec *executionContext) _UserContactMethod_dest(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*Destination)
+	res := resTmp.(*gadb.DestV1)
 	fc.Result = res
-	return ec.marshalNDestination2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestination(ctx, field.Selections, res)
+	return ec.marshalNDestination2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_UserContactMethod_dest(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -39558,7 +39558,7 @@ func (ec *executionContext) _DebugSendSMSInfo(ctx context.Context, sel ast.Selec
 
 var destinationImplementors = []string{"Destination"}
 
-func (ec *executionContext) _Destination(ctx context.Context, sel ast.SelectionSet, obj *Destination) graphql.Marshaler {
+func (ec *executionContext) _Destination(ctx context.Context, sel ast.SelectionSet, obj *gadb.DestV1) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, destinationImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -48017,11 +48017,11 @@ func (ec *executionContext) unmarshalNDebugSendSMSInput2githubᚗcomᚋtargetᚋ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDestination2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestination(ctx context.Context, sel ast.SelectionSet, v Destination) graphql.Marshaler {
+func (ec *executionContext) marshalNDestination2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx context.Context, sel ast.SelectionSet, v gadb.DestV1) graphql.Marshaler {
 	return ec._Destination(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDestination2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationᚄ(ctx context.Context, sel ast.SelectionSet, v []Destination) graphql.Marshaler {
+func (ec *executionContext) marshalNDestination2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1ᚄ(ctx context.Context, sel ast.SelectionSet, v []gadb.DestV1) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -48045,7 +48045,7 @@ func (ec *executionContext) marshalNDestination2ᚕgithubᚗcomᚋtargetᚋgoale
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNDestination2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestination(ctx, sel, v[i])
+			ret[i] = ec.marshalNDestination2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -48065,7 +48065,7 @@ func (ec *executionContext) marshalNDestination2ᚕgithubᚗcomᚋtargetᚋgoale
 	return ret
 }
 
-func (ec *executionContext) marshalNDestination2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestination(ctx context.Context, sel ast.SelectionSet, v *Destination) graphql.Marshaler {
+func (ec *executionContext) marshalNDestination2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx context.Context, sel ast.SelectionSet, v *gadb.DestV1) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

@@ -56,7 +56,7 @@ func (a *OnCallNotificationRuleInput) Dest(ctx context.Context, input *graphql2.
 	return nil
 }
 
-func (a *OnCallNotificationRule) Dest(ctx context.Context, raw *schedule.OnCallNotificationRule) (*graphql2.Destination, error) {
+func (a *OnCallNotificationRule) Dest(ctx context.Context, raw *schedule.OnCallNotificationRule) (*gadb.DestV1, error) {
 	return (*App)(a).CompatNCToDest(ctx, raw.ChannelID)
 }
 

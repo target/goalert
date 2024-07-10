@@ -8,46 +8,45 @@ import (
 	"github.com/google/uuid"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/gadb"
-	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/user/contactmethod"
 )
 
-// CompatTargetToDest converts an assignment.Target to a graphql2.Destination.
-func CompatTargetToDest(tgt assignment.Target) (graphql2.Destination, error) {
+// CompatTargetToDest converts an assignment.Target to a gadb.DestV1.
+func CompatTargetToDest(tgt assignment.Target) (gadb.DestV1, error) {
 	switch tgt.TargetType() {
 	case assignment.TargetTypeUser:
-		return graphql2.Destination{
+		return gadb.DestV1{
 			Type: destUser,
 			Args: map[string]string{fieldUserID: tgt.TargetID()},
 		}, nil
 	case assignment.TargetTypeRotation:
-		return graphql2.Destination{
+		return gadb.DestV1{
 			Type: destRotation,
 			Args: map[string]string{fieldRotationID: tgt.TargetID()},
 		}, nil
 	case assignment.TargetTypeSchedule:
-		return graphql2.Destination{
+		return gadb.DestV1{
 			Type: destSchedule,
 			Args: map[string]string{fieldScheduleID: tgt.TargetID()},
 		}, nil
 	case assignment.TargetTypeChanWebhook:
-		return graphql2.Destination{
+		return gadb.DestV1{
 			Type: destWebhook,
 			Args: map[string]string{fieldWebhookURL: tgt.TargetID()},
 		}, nil
 	case assignment.TargetTypeSlackChannel:
-		return graphql2.Destination{
+		return gadb.DestV1{
 			Type: destSlackChan,
 			Args: map[string]string{fieldSlackChanID: tgt.TargetID()},
 		}, nil
 	}
 
-	return graphql2.Destination{}, fmt.Errorf("unknown target type: %s", tgt.TargetType())
+	return gadb.DestV1{}, fmt.Errorf("unknown target type: %s", tgt.TargetType())
 }
 
 // CompatNCToDest converts a notification channel to a destination.
-func (a *App) CompatNCToDest(ctx context.Context, ncID uuid.UUID) (*graphql2.Destination, error) {
+func (a *App) CompatNCToDest(ctx context.Context, ncID uuid.UUID) (*gadb.DestV1, error) {
 	nc, err := a.FindOneNC(ctx, ncID)
 	if err != nil {
 		return nil, err
@@ -55,7 +54,7 @@ func (a *App) CompatNCToDest(ctx context.Context, ncID uuid.UUID) (*graphql2.Des
 
 	switch nc.Type {
 	case notificationchannel.TypeSlackChan:
-		return &graphql2.Destination{
+		return &gadb.DestV1{
 			Type: destSlackChan,
 			Args: map[string]string{fieldSlackChanID: nc.Value},
 		}, nil
@@ -65,7 +64,7 @@ func (a *App) CompatNCToDest(ctx context.Context, ncID uuid.UUID) (*graphql2.Des
 			return nil, fmt.Errorf("invalid slack usergroup pair: %s", nc.Value)
 		}
 
-		return &graphql2.Destination{
+		return &gadb.DestV1{
 			Type: destSlackUG,
 			Args: map[string]string{
 				fieldSlackUGID:   ugID,
@@ -73,7 +72,7 @@ func (a *App) CompatNCToDest(ctx context.Context, ncID uuid.UUID) (*graphql2.Des
 			},
 		}, nil
 	case notificationchannel.TypeWebhook:
-		return &graphql2.Destination{
+		return &gadb.DestV1{
 			Type: destWebhook,
 			Args: map[string]string{fieldWebhookURL: nc.Value},
 		}, nil

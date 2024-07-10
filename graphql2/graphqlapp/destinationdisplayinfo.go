@@ -30,7 +30,7 @@ func (a *DestinationInput) Values(ctx context.Context, obj *gadb.DestV1, values 
 	return nil
 }
 
-func (a *Destination) Values(ctx context.Context, obj *graphql2.Destination) ([]graphql2.FieldValuePair, error) {
+func (a *Destination) Values(ctx context.Context, obj *gadb.DestV1) ([]graphql2.FieldValuePair, error) {
 	if obj.Args != nil {
 		pairs := make([]graphql2.FieldValuePair, 0, len(obj.Args))
 		for k, v := range obj.Args {
@@ -43,11 +43,7 @@ func (a *Destination) Values(ctx context.Context, obj *graphql2.Destination) ([]
 }
 
 // DisplayInfo will return the display information for a destination by mapping to Query.DestinationDisplayInfo.
-func (a *Destination) DisplayInfo(ctx context.Context, obj *graphql2.Destination) (graphql2.InlineDisplayInfo, error) {
-	if obj.DisplayInfo != nil {
-		return obj.DisplayInfo, nil
-	}
-
+func (a *Destination) DisplayInfo(ctx context.Context, obj *gadb.DestV1) (graphql2.InlineDisplayInfo, error) {
 	info, err := (*Query)(a)._DestinationDisplayInfo(ctx, gadb.DestV1{Type: obj.Type, Args: obj.Args}, true)
 	if err != nil {
 		isUnsafe, safeErr := errutil.ScrubError(err)
