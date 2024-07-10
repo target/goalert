@@ -88,7 +88,7 @@ export default function DefaultActionEditDialog(
           showList
         />
       }
-      errors={errs.remainingLegacy()}
+      errors={errs.remainingLegacyCallback()}
       notices={getNotice(hasSubmitted, hasConfirmed, setHasConfirmed)}
     />
   )

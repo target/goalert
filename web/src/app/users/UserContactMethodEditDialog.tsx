@@ -79,7 +79,7 @@ export default function UserContactMethodEditDialog(props: {
       disablePortal={props.disablePortal}
       data-cy='edit-form'
       title='Edit Contact Method'
-      errors={errs.remainingLegacy()}
+      errors={errs.remainingLegacyCallback()}
       onClose={props.onClose}
       // wrapped to prevent event from passing into createCM
       onSubmit={() => {

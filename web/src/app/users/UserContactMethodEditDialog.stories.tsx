@@ -37,11 +37,11 @@ const meta = {
                         type: 'supports-status',
                         values: [
                           {
-                            fieldID: 'phone-number',
+                            fieldID: 'phone_number',
                             value: '+15555555555',
                           },
                         ],
-                        args: { 'phone-number': '+15555555555' },
+                        args: { phone_number: '+15555555555' },
                         displayInfo: {
                           text: '+1 555-555-5555',
                           iconAltText: 'Voice Call',
@@ -102,7 +102,7 @@ const meta = {
                   path: ['updateUserContactMethod', 'input', 'dest'],
                   extensions: {
                     code: 'INVALID_DEST_FIELD_VALUE',
-                    fieldID: 'phone-number',
+                    fieldID: 'phone_number',
                   },
                 } satisfies DestFieldValueError,
                 {

@@ -31,8 +31,6 @@ type Config struct {
 
 	// DefaultActions are the actions to take if no rules match.
 	DefaultActions []Action
-
-	StopAfterFirstMatchingRule bool
 }
 
 // A Rule is a set of conditions and actions to take if those conditions are met.

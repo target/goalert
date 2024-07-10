@@ -39,6 +39,7 @@ export default function UniversalKeyRuleCreateDialogProps(
     <FormDialog
       title='Create Rule'
       onClose={props.onClose}
+      errors={errs.remainingLegacyCallback()}
       onSubmit={() => {
         if (noActionsNoConf) {
           setHasSubmitted(true)
@@ -74,7 +75,6 @@ export default function UniversalKeyRuleCreateDialogProps(
           setStep={setStep}
         />
       }
-      errors={errs.remainingLegacy()}
       notices={getNotice(hasSubmitted, hasConfirmed, setHasConfirmed)}
     />
   )

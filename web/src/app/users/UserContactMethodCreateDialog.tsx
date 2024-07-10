@@ -101,7 +101,7 @@ export default function UserContactMethodCreateDialog(props: {
       title={title}
       subTitle={subtitle}
       loading={createCMStatus.fetching}
-      errors={errs.remainingLegacy()}
+      errors={errs.remainingLegacyCallback()}
       onClose={props.onClose}
       // wrapped to prevent event from passing into createCM
       onSubmit={() =>

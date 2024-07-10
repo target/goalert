@@ -21,8 +21,10 @@ import (
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/engine/rotationmanager"
 	"github.com/target/goalert/engine/schedulemanager"
+	"github.com/target/goalert/engine/signalmgr"
 	"github.com/target/goalert/engine/statusmgr"
 	"github.com/target/goalert/engine/verifymanager"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
@@ -145,6 +147,14 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 		hbMgr,
 		cleanMgr,
 		metricsMgr,
+	}
+
+	if expflag.ContextHas(ctx, expflag.UnivKeys) {
+		signalMgr, err := signalmgr.NewDB(ctx, db)
+		if err != nil {
+			return nil, errors.Wrap(err, "signal manager backend")
+		}
+		p.modules = append(p.modules, signalMgr)
 	}
 
 	p.msg, err = message.NewDB(ctx, db, c.AlertLogStore, p.mgr)

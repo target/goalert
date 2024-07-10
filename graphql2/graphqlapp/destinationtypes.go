@@ -3,7 +3,6 @@ package graphqlapp
 import (
 	"context"
 	"slices"
-	"strconv"
 
 	"github.com/nyaruka/phonenumbers"
 	"github.com/target/goalert/config"
@@ -26,16 +25,15 @@ const (
 	destSchedule    = "builtin-schedule"
 	destAlert       = "builtin-alert"
 
-	fieldPhoneNumber  = "phone-number"
-	fieldEmailAddress = "email-address"
-	fieldWebhookURL   = "webhook-url"
-	fieldSlackUserID  = "slack-user-id"
-	fieldSlackChanID  = "slack-channel-id"
-	fieldSlackUGID    = "slack-usergroup-id"
-	fieldAlertID      = "alert-id"
-	fieldUserID       = "user-id"
-	fieldRotationID   = "rotation-id"
-	fieldScheduleID   = "schedule-id"
+	fieldPhoneNumber  = "phone_number"
+	fieldEmailAddress = "email_address"
+	fieldWebhookURL   = "webhook_url"
+	fieldSlackUserID  = "slack_user_id"
+	fieldSlackChanID  = "slack_channel_id"
+	fieldSlackUGID    = "slack_usergroup_id"
+	fieldUserID       = "user_id"
+	fieldRotationID   = "rotation_id"
+	fieldScheduleID   = "schedule_id"
 )
 
 type (
@@ -45,17 +43,6 @@ type (
 
 func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.DestinationFieldValidateInput) (string, error) {
 	switch input.FieldID {
-	case fieldAlertID:
-		id, err := strconv.Atoi(input.Value)
-		if err != nil {
-			return "", err
-		}
-
-		alert, err := q.Alert(ctx, id)
-		if err != nil {
-			return "", err
-		}
-		return strconv.Itoa(alert.ID), nil
 	case fieldSlackChanID:
 		ch, err := q.SlackChannel(ctx, input.Value)
 		if err != nil {
@@ -254,12 +241,6 @@ func (q *Query) DestinationFieldValidate(ctx context.Context, input graphql2.Des
 
 		err := validate.AbsoluteURL("URL", input.Value)
 		return err == nil, nil
-	case destAlert:
-		if input.FieldID != fieldAlertID {
-			return false, validation.NewGenericError("unsupported field")
-		}
-
-		return true, nil
 	}
 
 	return false, validation.NewGenericError("unsupported data type")
@@ -331,7 +312,7 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			Enabled:               cfg.SMTP.Enable,
 			IsContactMethod:       true,
 			SupportsStatusUpdates: true,
-			IsDynamicAction:       true,
+			IsDynamicAction:       false,
 			RequiredFields: []graphql2.DestinationFieldConfig{{
 				FieldID:            fieldEmailAddress,
 				Label:              "Email Address",
@@ -415,7 +396,7 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			DynamicParams: []graphql2.DynamicParamConfig{{
 				ParamID: "message",
 				Label:   "Message",
-				Hint:    "Message to send to the Slack channel.",
+				Hint:    "The text of the message to send.",
 			}},
 		},
 		{

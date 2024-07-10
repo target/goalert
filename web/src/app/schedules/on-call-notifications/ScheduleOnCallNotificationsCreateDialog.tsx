@@ -99,7 +99,7 @@ export default function ScheduleOnCallNotificationsCreateDialog(
   return (
     <FormDialog
       title='Create Notification Rule'
-      errors={errs.remainingLegacy()}
+      errors={errs.remainingLegacyCallback()}
       disablePortal={props.disablePortal}
       loading={m.fetching}
       onClose={onClose}
