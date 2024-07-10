@@ -621,6 +621,9 @@ func getConfig(ctx context.Context) (Config, error) {
 		Verbose:     viper.GetBool("verbose"),
 		APIOnly:     viper.GetBool("api-only"),
 
+		GQLCORSOrigin: viper.GetStringSlice("graphql-cors-origins"),
+		GQLCORSCookie: viper.GetBool("graphql-cors-enable-cookie"),
+
 		DBMaxOpen: viper.GetInt("db-max-open"),
 		DBMaxIdle: viper.GetInt("db-max-idle"),
 
@@ -738,6 +741,9 @@ func init() {
 	RootCmd.Flags().StringSlice("experimental", nil, "Enable experimental features.")
 	RootCmd.Flags().Bool("list-experimental", false, "List experimental features.")
 	RootCmd.Flags().Bool("strict-experimental", false, "Fail to start if unknown experimental features are specified.")
+
+	RootCmd.Flags().StringSlice("graphql-cors-origins", nil, "Allow CORS requests from the specified origin(s) for GraphQL requests (/api/graphql).")
+	RootCmd.Flags().Bool("graphql-cors-enable-cookie", false, "Allow CORS requests to include cookies for GraphQL requests (disables SameSite flag on cookies).")
 
 	RootCmd.Flags().String("listen-sysapi", "", "(Experimental) Listen address:port for the system API (gRPC).")
 

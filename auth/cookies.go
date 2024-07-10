@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"strings"
@@ -8,6 +9,17 @@ import (
 
 	"github.com/target/goalert/config"
 )
+
+type disableSameSiteKey struct{}
+
+// WithDisableSameSite will return a new context with the disableSameSiteKey set.
+func WithDisableSameSite(ctx context.Context) context.Context {
+	return context.WithValue(ctx, disableSameSiteKey{}, true)
+}
+
+func isSameSiteDisabled(ctx context.Context) bool {
+	return ctx.Value(disableSameSiteKey{}) != nil
+}
 
 // SetCookie will set a cookie value for all API prefixes, respecting the current config parameters.
 func SetCookie(w http.ResponseWriter, req *http.Request, name, value string, isSession bool) {
@@ -33,7 +45,11 @@ func SetCookieAge(w http.ResponseWriter, req *http.Request, name, value string, 
 	// navigating to the login page from a different domain (e.g., OAuth redirect).
 	sameSite := http.SameSiteLaxMode
 	if isSession {
-		sameSite = http.SameSiteStrictMode
+		if isSameSiteDisabled(req.Context()) {
+			sameSite = http.SameSiteNoneMode
+		} else {
+			sameSite = http.SameSiteStrictMode
+		}
 	}
 
 	http.SetCookie(w, &http.Cookie{

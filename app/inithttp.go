@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/rs/cors"
+	"github.com/target/goalert/auth"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/genericapi"
@@ -97,6 +99,17 @@ func (app *App) initHTTP(ctx context.Context) error {
 		// limit max request size
 		maxBodySizeMiddleware(app.cfg.MaxReqBodyBytes),
 
+		// Conditionally disable SameSite=Strict for session cookies based on config.
+		func(next http.Handler) http.Handler {
+			if !app.cfg.GQLCORSCookie {
+				return next
+			}
+			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				req = req.WithContext(auth.WithDisableSameSite(req.Context()))
+				next.ServeHTTP(w, req)
+			})
+		},
+
 		// authenticate requests
 		app.AuthHandler.WrapHandler,
 
@@ -125,7 +138,21 @@ func (app *App) initHTTP(ctx context.Context) error {
 		UserStore:           app.UserStore,
 	})
 
-	mux.Handle("/api/graphql", app.graphql2.Handler())
+	gqlHandler := app.graphql2.Handler()
+	if len(app.cfg.GQLCORSOrigin) > 0 {
+		opts := cors.Options{
+			AllowedOrigins:   app.cfg.GQLCORSOrigin,
+			AllowCredentials: true,
+			AllowedHeaders:   []string{"Content-Type", "Authorization", "Cookie"},
+		}
+		if app.cfg.GQLCORSCookie {
+			opts.AllowedHeaders = append(opts.AllowedHeaders, "Cookie")
+		}
+		c := cors.New(opts)
+		gqlHandler = c.Handler(gqlHandler)
+	}
+
+	mux.Handle("/api/graphql", gqlHandler)
 
 	mux.HandleFunc("/api/v2/config", app.ConfigStore.ServeConfig)
 

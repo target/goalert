@@ -16,6 +16,9 @@ type Config struct {
 
 	ExpFlags expflag.FlagSet
 
+	GQLCORSOrigin []string
+	GQLCORSCookie bool
+
 	ListenAddr  string
 	Verbose     bool
 	JSON        bool
