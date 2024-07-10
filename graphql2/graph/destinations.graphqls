@@ -123,7 +123,7 @@ type Destination {
   values: [FieldValuePair!]!
     @goField(forceResolver: true)
     @deprecated(reason: "Use the args field instead")
-  args: StringMap! @goField(forceResolver: true)
+  args: StringMap!
   displayInfo: InlineDisplayInfo! @goField(forceResolver: true)
 }
 
