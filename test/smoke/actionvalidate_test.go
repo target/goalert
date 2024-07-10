@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/expflag"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/test/smoke/harness"
 )
@@ -29,7 +30,7 @@ func TestActionValid(t *testing.T) {
 			Input graphql2.ActionInput `json:"input"`
 		}
 		vars.Input.Params = dyn
-		vars.Input.Dest = &graphql2.DestinationInput{Type: destType, Args: dest}
+		vars.Input.Dest = &gadb.DestV1{Type: destType, Args: dest}
 
 		return *h.GraphQLQueryUserVarsT(t, harness.DefaultGraphQLAdminUserID, actionValidQuery, "TestActionValid", vars)
 	}

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/oncall"
@@ -36,11 +37,12 @@ func (a *App) TemporarySchedule() graphql2.TemporaryScheduleResolver { return (*
 func (a *App) OnCallNotificationRule() graphql2.OnCallNotificationRuleResolver {
 	return (*OnCallNotificationRule)(a)
 }
+
 func (a *App) OnCallNotificationRuleInput() graphql2.OnCallNotificationRuleInputResolver {
 	return (*OnCallNotificationRuleInput)(a)
 }
 
-func (a *OnCallNotificationRuleInput) Dest(ctx context.Context, input *graphql2.OnCallNotificationRuleInput, dest *graphql2.DestinationInput) error {
+func (a *OnCallNotificationRuleInput) Dest(ctx context.Context, input *graphql2.OnCallNotificationRuleInput, dest *gadb.DestV1) error {
 	err := (*App)(a).ValidateDestination(ctx, "", dest)
 	if err != nil {
 		return err

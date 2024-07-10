@@ -22,6 +22,7 @@ import (
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/escalation"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
@@ -565,7 +566,7 @@ type ComplexityRoot struct {
 		ConfigHints               func(childComplexity int) int
 		DebugMessageStatus        func(childComplexity int, input DebugMessageStatusInput) int
 		DebugMessages             func(childComplexity int, input *DebugMessagesInput) int
-		DestinationDisplayInfo    func(childComplexity int, input DestinationInput) int
+		DestinationDisplayInfo    func(childComplexity int, input gadb.DestV1) int
 		DestinationFieldSearch    func(childComplexity int, input DestinationFieldSearchInput) int
 		DestinationFieldValidate  func(childComplexity int, input DestinationFieldValidateInput) int
 		DestinationFieldValueName func(childComplexity int, input DestinationFieldValidateInput) int
@@ -1036,7 +1037,7 @@ type QueryResolver interface {
 	DestinationFieldValidate(ctx context.Context, input DestinationFieldValidateInput) (bool, error)
 	DestinationFieldSearch(ctx context.Context, input DestinationFieldSearchInput) (*FieldSearchConnection, error)
 	DestinationFieldValueName(ctx context.Context, input DestinationFieldValidateInput) (string, error)
-	DestinationDisplayInfo(ctx context.Context, input DestinationInput) (*DestinationDisplayInfo, error)
+	DestinationDisplayInfo(ctx context.Context, input gadb.DestV1) (*DestinationDisplayInfo, error)
 	Expr(ctx context.Context) (*Expr, error)
 	GqlAPIKeys(ctx context.Context) ([]GQLAPIKey, error)
 	ActionInputValidate(ctx context.Context, input ActionInput) (bool, error)
@@ -1122,17 +1123,16 @@ type UserOverrideResolver interface {
 }
 
 type CreateEscalationPolicyStepInputResolver interface {
-	Actions(ctx context.Context, obj *CreateEscalationPolicyStepInput, data []DestinationInput) error
+	Actions(ctx context.Context, obj *CreateEscalationPolicyStepInput, data []gadb.DestV1) error
 }
 type DestinationInputResolver interface {
-	Values(ctx context.Context, obj *DestinationInput, data []FieldValueInput) error
-	Args(ctx context.Context, obj *DestinationInput, data map[string]string) error
+	Values(ctx context.Context, obj *gadb.DestV1, data []FieldValueInput) error
 }
 type OnCallNotificationRuleInputResolver interface {
-	Dest(ctx context.Context, obj *OnCallNotificationRuleInput, data *DestinationInput) error
+	Dest(ctx context.Context, obj *OnCallNotificationRuleInput, data *gadb.DestV1) error
 }
 type UpdateEscalationPolicyStepInputResolver interface {
-	Actions(ctx context.Context, obj *UpdateEscalationPolicyStepInput, data []DestinationInput) error
+	Actions(ctx context.Context, obj *UpdateEscalationPolicyStepInput, data []gadb.DestV1) error
 }
 
 type executableSchema struct {
@@ -3567,7 +3567,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.DestinationDisplayInfo(childComplexity, args["input"].(DestinationInput)), true
+		return e.complexity.Query.DestinationDisplayInfo(childComplexity, args["input"].(gadb.DestV1)), true
 
 	case "Query.destinationFieldSearch":
 		if e.complexity.Query.DestinationFieldSearch == nil {
@@ -6402,10 +6402,10 @@ func (ec *executionContext) field_Query_debugMessages_args(ctx context.Context, 
 func (ec *executionContext) field_Query_destinationDisplayInfo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 DestinationInput
+	var arg0 gadb.DestV1
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNDestinationInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, tmp)
+		arg0, err = ec.unmarshalNDestinationInput2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -24088,7 +24088,7 @@ func (ec *executionContext) _Query_destinationDisplayInfo(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().DestinationDisplayInfo(rctx, fc.Args["input"].(DestinationInput))
+		return ec.resolvers.Query().DestinationDisplayInfo(rctx, fc.Args["input"].(gadb.DestV1))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -33784,7 +33784,7 @@ func (ec *executionContext) unmarshalInputActionInput(ctx context.Context, obj i
 		switch k {
 		case "dest":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dest"))
-			data, err := ec.unmarshalNDestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, v)
+			data, err := ec.unmarshalNDestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34582,7 +34582,7 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyStepInput(ctx co
 			it.NewSchedule = data
 		case "actions":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("actions"))
-			data, err := ec.unmarshalODestinationInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInputᚄ(ctx, v)
+			data, err := ec.unmarshalODestinationInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1ᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35053,7 +35053,7 @@ func (ec *executionContext) unmarshalInputCreateUserContactMethodInput(ctx conte
 			it.Type = data
 		case "dest":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dest"))
-			data, err := ec.unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, v)
+			data, err := ec.unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35497,8 +35497,8 @@ func (ec *executionContext) unmarshalInputDestinationFieldValidateInput(ctx cont
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputDestinationInput(ctx context.Context, obj interface{}) (DestinationInput, error) {
-	var it DestinationInput
+func (ec *executionContext) unmarshalInputDestinationInput(ctx context.Context, obj interface{}) (gadb.DestV1, error) {
+	var it gadb.DestV1
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -35533,9 +35533,7 @@ func (ec *executionContext) unmarshalInputDestinationInput(ctx context.Context, 
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.DestinationInput().Args(ctx, &it, data); err != nil {
-				return it, err
-			}
+			it.Args = data
 		}
 	}
 
@@ -36094,7 +36092,7 @@ func (ec *executionContext) unmarshalInputOnCallNotificationRuleInput(ctx contex
 			it.Target = data
 		case "dest":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dest"))
-			data, err := ec.unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, v)
+			data, err := ec.unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -37208,7 +37206,7 @@ func (ec *executionContext) unmarshalInputUpdateEscalationPolicyStepInput(ctx co
 			it.Targets = data
 		case "actions":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("actions"))
-			data, err := ec.unmarshalODestinationInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInputᚄ(ctx, v)
+			data, err := ec.unmarshalODestinationInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1ᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -37931,7 +37929,7 @@ func (ec *executionContext) unmarshalInputUserSearchOptions(ctx context.Context,
 			it.CMType = data
 		case "dest":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dest"))
-			data, err := ec.unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, v)
+			data, err := ec.unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -48180,12 +48178,12 @@ func (ec *executionContext) unmarshalNDestinationFieldValidateInput2githubᚗcom
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNDestinationInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx context.Context, v interface{}) (DestinationInput, error) {
+func (ec *executionContext) unmarshalNDestinationInput2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx context.Context, v interface{}) (gadb.DestV1, error) {
 	res, err := ec.unmarshalInputDestinationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNDestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx context.Context, v interface{}) (*DestinationInput, error) {
+func (ec *executionContext) unmarshalNDestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx context.Context, v interface{}) (*gadb.DestV1, error) {
 	res, err := ec.unmarshalInputDestinationInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -51712,7 +51710,7 @@ func (ec *executionContext) marshalODebugSendSMSInfo2ᚖgithubᚗcomᚋtargetᚋ
 	return ec._DebugSendSMSInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalODestinationInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInputᚄ(ctx context.Context, v interface{}) ([]DestinationInput, error) {
+func (ec *executionContext) unmarshalODestinationInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1ᚄ(ctx context.Context, v interface{}) ([]gadb.DestV1, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51721,10 +51719,10 @@ func (ec *executionContext) unmarshalODestinationInput2ᚕgithubᚗcomᚋtarget�
 		vSlice = graphql.CoerceList(v)
 	}
 	var err error
-	res := make([]DestinationInput, len(vSlice))
+	res := make([]gadb.DestV1, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNDestinationInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNDestinationInput2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -51732,7 +51730,7 @@ func (ec *executionContext) unmarshalODestinationInput2ᚕgithubᚗcomᚋtarget�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationInput(ctx context.Context, v interface{}) (*DestinationInput, error) {
+func (ec *executionContext) unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx context.Context, v interface{}) (*gadb.DestV1, error) {
 	if v == nil {
 		return nil, nil
 	}

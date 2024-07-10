@@ -7,6 +7,7 @@ import (
 
 	"github.com/nyaruka/phonenumbers"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
@@ -21,19 +22,7 @@ type (
 func (a *App) Destination() graphql2.DestinationResolver           { return (*Destination)(a) }
 func (a *App) DestinationInput() graphql2.DestinationInputResolver { return (*DestinationInput)(a) }
 
-func (a *DestinationInput) Args(ctx context.Context, obj *graphql2.DestinationInput, args map[string]string) error {
-	obj.Args = args
-
-	obj.Values = make([]graphql2.FieldValueInput, 0, len(args))
-	for k, v := range args {
-		obj.Values = append(obj.Values, graphql2.FieldValueInput{FieldID: k, Value: v})
-	}
-
-	return nil
-}
-
-func (a *DestinationInput) Values(ctx context.Context, obj *graphql2.DestinationInput, values []graphql2.FieldValueInput) error {
-	obj.Values = values
+func (a *DestinationInput) Values(ctx context.Context, obj *gadb.DestV1, values []graphql2.FieldValueInput) error {
 	obj.Args = make(map[string]string, len(values))
 	for _, val := range values {
 		obj.Args[val.FieldID] = val.Value
@@ -72,7 +61,7 @@ func (a *Destination) DisplayInfo(ctx context.Context, obj *graphql2.Destination
 		return obj.DisplayInfo, nil
 	}
 
-	info, err := (*Query)(a)._DestinationDisplayInfo(ctx, graphql2.DestinationInput{Type: obj.Type, Args: obj.Args}, true)
+	info, err := (*Query)(a)._DestinationDisplayInfo(ctx, gadb.DestV1{Type: obj.Type, Args: obj.Args}, true)
 	if err != nil {
 		isUnsafe, safeErr := errutil.ScrubError(err)
 		if isUnsafe {
@@ -84,11 +73,11 @@ func (a *Destination) DisplayInfo(ctx context.Context, obj *graphql2.Destination
 	return info, nil
 }
 
-func (a *Query) DestinationDisplayInfo(ctx context.Context, dest graphql2.DestinationInput) (*graphql2.DestinationDisplayInfo, error) {
+func (a *Query) DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1) (*graphql2.DestinationDisplayInfo, error) {
 	return a._DestinationDisplayInfo(ctx, dest, false)
 }
 
-func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest graphql2.DestinationInput, skipValidation bool) (*graphql2.DestinationDisplayInfo, error) {
+func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, skipValidation bool) (*graphql2.DestinationDisplayInfo, error) {
 	app := (*App)(a)
 	cfg := config.FromContext(ctx)
 	if !skipValidation {

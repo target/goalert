@@ -13,6 +13,7 @@ import (
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
@@ -38,7 +39,7 @@ type Action struct {
 }
 
 type ActionInput struct {
-	Dest   *DestinationInput `json:"dest"`
+	Dest   *gadb.DestV1      `json:"dest"`
 	Params map[string]string `json:"params"`
 }
 
@@ -202,7 +203,7 @@ type CreateEscalationPolicyStepInput struct {
 	Targets            []assignment.RawTarget `json:"targets,omitempty"`
 	NewRotation        *CreateRotationInput   `json:"newRotation,omitempty"`
 	NewSchedule        *CreateScheduleInput   `json:"newSchedule,omitempty"`
-	Actions            []DestinationInput     `json:"actions,omitempty"`
+	Actions            []gadb.DestV1          `json:"actions,omitempty"`
 }
 
 type CreateGQLAPIKeyInput struct {
@@ -270,7 +271,7 @@ type CreateUserCalendarSubscriptionInput struct {
 type CreateUserContactMethodInput struct {
 	UserID                  string                           `json:"userID"`
 	Type                    *contactmethod.Type              `json:"type,omitempty"`
-	Dest                    *DestinationInput                `json:"dest,omitempty"`
+	Dest                    *gadb.DestV1                     `json:"dest,omitempty"`
 	Name                    string                           `json:"name"`
 	Value                   *string                          `json:"value,omitempty"`
 	NewUserNotificationRule *CreateUserNotificationRuleInput `json:"newUserNotificationRule,omitempty"`
@@ -425,12 +426,6 @@ type DestinationFieldValidateInput struct {
 	FieldID string `json:"fieldID"`
 	// the value to validate
 	Value string `json:"value"`
-}
-
-type DestinationInput struct {
-	Type   string            `json:"type"`
-	Values []FieldValueInput `json:"values,omitempty"`
-	Args   map[string]string `json:"args,omitempty"`
 }
 
 type DestinationTypeInfo struct {
@@ -915,7 +910,7 @@ type UpdateEscalationPolicyStepInput struct {
 	ID           string                 `json:"id"`
 	DelayMinutes *int                   `json:"delayMinutes,omitempty"`
 	Targets      []assignment.RawTarget `json:"targets,omitempty"`
-	Actions      []DestinationInput     `json:"actions,omitempty"`
+	Actions      []gadb.DestV1          `json:"actions,omitempty"`
 }
 
 type UpdateGQLAPIKeyInput struct {
@@ -1029,7 +1024,7 @@ type UserSearchOptions struct {
 	Omit           []string            `json:"omit,omitempty"`
 	CMValue        *string             `json:"CMValue,omitempty"`
 	CMType         *contactmethod.Type `json:"CMType,omitempty"`
-	Dest           *DestinationInput   `json:"dest,omitempty"`
+	Dest           *gadb.DestV1        `json:"dest,omitempty"`
 	FavoritesOnly  *bool               `json:"favoritesOnly,omitempty"`
 	FavoritesFirst *bool               `json:"favoritesFirst,omitempty"`
 }

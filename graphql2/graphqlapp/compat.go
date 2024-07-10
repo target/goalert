@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/user/contactmethod"
@@ -81,9 +82,9 @@ func (a *App) CompatNCToDest(ctx context.Context, ncID uuid.UUID) (*graphql2.Des
 	}
 }
 
-// CompatDestToCMTypeVal converts a graphql2.DestinationInput to a contactmethod.Type and string value
+// CompatDestToCMTypeVal converts a gadb.DestV1 to a contactmethod.Type and string value
 // for the built-in destination types.
-func CompatDestToCMTypeVal(d graphql2.DestinationInput) (contactmethod.Type, string) {
+func CompatDestToCMTypeVal(d gadb.DestV1) (contactmethod.Type, string) {
 	switch d.Type {
 	case destTwilioSMS:
 		return contactmethod.TypeSMS, d.Args[fieldPhoneNumber]
@@ -100,8 +101,8 @@ func CompatDestToCMTypeVal(d graphql2.DestinationInput) (contactmethod.Type, str
 	return "", ""
 }
 
-// CompatDestToTarget converts a graphql2.DestinationInput to a graphql2.RawTarget
-func CompatDestToTarget(d graphql2.DestinationInput) (assignment.RawTarget, error) {
+// CompatDestToTarget converts a gadb.DestV1 to a graphql2.RawTarget
+func CompatDestToTarget(d gadb.DestV1) (assignment.RawTarget, error) {
 	switch d.Type {
 	case destUser:
 		return assignment.RawTarget{
