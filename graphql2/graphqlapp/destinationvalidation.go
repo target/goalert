@@ -10,6 +10,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation"
@@ -132,7 +133,7 @@ func addInputError(ctx context.Context, err error) {
 // ValidateDestination will validate a destination input.
 //
 // In the future this will be a call to the plugin system.
-func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *graphql2.DestinationInput) (err error) {
+func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *gadb.DestV1) (err error) {
 	cfg := config.FromContext(ctx)
 	switch dest.Type {
 	case destAlert:

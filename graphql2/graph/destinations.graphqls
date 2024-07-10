@@ -123,7 +123,7 @@ type Destination {
   values: [FieldValuePair!]!
     @goField(forceResolver: true)
     @deprecated(reason: "Use the args field instead")
-  args: StringMap! @goField(forceResolver: true)
+  args: StringMap!
   displayInfo: InlineDisplayInfo! @goField(forceResolver: true)
 }
 
@@ -176,7 +176,7 @@ input DestinationInput {
   values: [FieldValueInput!]
     @goField(forceResolver: true)
     @deprecated(reason: "Use the args field instead")
-  args: StringMap @goField(forceResolver: true)
+  args: StringMap
 }
 
 input FieldValueInput {
@@ -316,4 +316,9 @@ type DynamicParamConfig {
   URL to link to for more information about the destination type
   """
   hintURL: String!
+
+  """
+  default value for the input field
+  """
+  defaultValue: ExprStringExpression!
 }

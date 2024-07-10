@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/search"
@@ -263,7 +264,7 @@ func actionsGoToGQL(a []integrationkey.Action) []graphql2.Action {
 	res := make([]graphql2.Action, 0, len(a))
 	for _, v := range a {
 		res = append(res, graphql2.Action{
-			Dest:   &graphql2.Destination{Type: v.Type, Args: v.StaticParams},
+			Dest:   &gadb.DestV1{Type: v.Type, Args: v.StaticParams},
 			Params: v.DynamicParams,
 		})
 	}

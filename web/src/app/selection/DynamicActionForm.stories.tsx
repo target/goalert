@@ -36,6 +36,7 @@ const meta = {
                   label: 'Dynamic Param',
                   hint: 'Param Hint',
                   hintURL: 'http://example.com/hint',
+                  defaultValue: '',
                 },
               ],
               requiredFields: [
@@ -71,6 +72,7 @@ const meta = {
                   label: 'Dynamic Param 2',
                   hint: 'Param Hint 2',
                   hintURL: 'http://example.com/hint2',
+                  defaultValue: '',
                 },
               ],
               requiredFields: [

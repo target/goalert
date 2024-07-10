@@ -13,6 +13,7 @@ import (
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
@@ -33,12 +34,12 @@ type InlineDisplayInfo interface {
 }
 
 type Action struct {
-	Dest   *Destination      `json:"dest"`
+	Dest   *gadb.DestV1      `json:"dest"`
 	Params map[string]string `json:"params"`
 }
 
 type ActionInput struct {
-	Dest   *DestinationInput `json:"dest"`
+	Dest   *gadb.DestV1      `json:"dest"`
 	Params map[string]string `json:"params"`
 }
 
@@ -202,7 +203,7 @@ type CreateEscalationPolicyStepInput struct {
 	Targets            []assignment.RawTarget `json:"targets,omitempty"`
 	NewRotation        *CreateRotationInput   `json:"newRotation,omitempty"`
 	NewSchedule        *CreateScheduleInput   `json:"newSchedule,omitempty"`
-	Actions            []DestinationInput     `json:"actions,omitempty"`
+	Actions            []gadb.DestV1          `json:"actions,omitempty"`
 }
 
 type CreateGQLAPIKeyInput struct {
@@ -270,7 +271,7 @@ type CreateUserCalendarSubscriptionInput struct {
 type CreateUserContactMethodInput struct {
 	UserID                  string                           `json:"userID"`
 	Type                    *contactmethod.Type              `json:"type,omitempty"`
-	Dest                    *DestinationInput                `json:"dest,omitempty"`
+	Dest                    *gadb.DestV1                     `json:"dest,omitempty"`
 	Name                    string                           `json:"name"`
 	Value                   *string                          `json:"value,omitempty"`
 	NewUserNotificationRule *CreateUserNotificationRuleInput `json:"newUserNotificationRule,omitempty"`
@@ -353,14 +354,6 @@ type DebugSendSMSInput struct {
 	Body string `json:"body"`
 }
 
-// Destination represents a destination that can be used for notifications.
-type Destination struct {
-	Type        string            `json:"type"`
-	Values      []FieldValuePair  `json:"values"`
-	Args        map[string]string `json:"args"`
-	DisplayInfo InlineDisplayInfo `json:"displayInfo"`
-}
-
 // DestinationDisplayInfo provides information for displaying a destination.
 type DestinationDisplayInfo struct {
 	// user-friendly text to display for this destination
@@ -427,12 +420,6 @@ type DestinationFieldValidateInput struct {
 	Value string `json:"value"`
 }
 
-type DestinationInput struct {
-	Type   string            `json:"type"`
-	Values []FieldValueInput `json:"values,omitempty"`
-	Args   map[string]string `json:"args,omitempty"`
-}
-
 type DestinationTypeInfo struct {
 	Type string `json:"type"`
 	Name string `json:"name"`
@@ -470,6 +457,8 @@ type DynamicParamConfig struct {
 	Hint string `json:"hint"`
 	// URL to link to for more information about the destination type
 	HintURL string `json:"hintURL"`
+	// default value for the input field
+	DefaultValue string `json:"defaultValue"`
 }
 
 type EscalationPolicyConnection struct {
@@ -915,7 +904,7 @@ type UpdateEscalationPolicyStepInput struct {
 	ID           string                 `json:"id"`
 	DelayMinutes *int                   `json:"delayMinutes,omitempty"`
 	Targets      []assignment.RawTarget `json:"targets,omitempty"`
-	Actions      []DestinationInput     `json:"actions,omitempty"`
+	Actions      []gadb.DestV1          `json:"actions,omitempty"`
 }
 
 type UpdateGQLAPIKeyInput struct {
@@ -1029,7 +1018,7 @@ type UserSearchOptions struct {
 	Omit           []string            `json:"omit,omitempty"`
 	CMValue        *string             `json:"CMValue,omitempty"`
 	CMType         *contactmethod.Type `json:"CMType,omitempty"`
-	Dest           *DestinationInput   `json:"dest,omitempty"`
+	Dest           *gadb.DestV1        `json:"dest,omitempty"`
 	FavoritesOnly  *bool               `json:"favoritesOnly,omitempty"`
 	FavoritesFirst *bool               `json:"favoritesFirst,omitempty"`
 }
