@@ -1653,9 +1653,9 @@ WHERE
 FOR UPDATE
 `
 
-func (q *Queries) IntKeyGetConfig(ctx context.Context, id uuid.UUID) (json.RawMessage, error) {
+func (q *Queries) IntKeyGetConfig(ctx context.Context, id uuid.UUID) (UIKConfig, error) {
 	row := q.db.QueryRowContext(ctx, intKeyGetConfig, id)
-	var config json.RawMessage
+	var config UIKConfig
 	err := row.Scan(&config)
 	return config, err
 }
@@ -1745,7 +1745,7 @@ ON CONFLICT (id)
 
 type IntKeySetConfigParams struct {
 	ID     uuid.UUID
-	Config json.RawMessage
+	Config UIKConfig
 }
 
 func (q *Queries) IntKeySetConfig(ctx context.Context, arg IntKeySetConfigParams) error {
