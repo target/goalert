@@ -46,7 +46,7 @@ func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1, _param
 
 	switch act.Dest.Type {
 	case "builtin-webhook":
-		req, err := http.NewRequest("POST", act.Dest.Args["webhook_url"], strings.NewReader(param("body")))
+		req, err := http.NewRequest("POST", act.Dest.Arg("webhook_url"), strings.NewReader(param("body")))
 		if err != nil {
 			return err
 		}
