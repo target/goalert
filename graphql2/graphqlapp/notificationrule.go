@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"fmt"
 
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/user/contactmethod"
@@ -46,5 +47,6 @@ func (m *Mutation) CreateUserNotificationRule(ctx context.Context, input graphql
 }
 
 func (nr *UserNotificationRule) ContactMethod(ctx context.Context, raw *notificationrule.NotificationRule) (*contactmethod.ContactMethod, error) {
+	fmt.Println("raw.ContactMethodID", raw.ContactMethodID)
 	return (*App)(nr).FindOneCM(ctx, raw.ContactMethodID)
 }
