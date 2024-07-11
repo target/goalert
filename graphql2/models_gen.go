@@ -365,27 +365,6 @@ type DestinationDisplayInfoError struct {
 
 func (DestinationDisplayInfoError) IsInlineDisplayInfo() {}
 
-type DestinationFieldConfig struct {
-	// unique ID for the input field
-	FieldID string `json:"fieldID"`
-	// user-friendly label (should be singular)
-	Label string `json:"label"`
-	// user-friendly helper text for input fields (i.e., "Enter a phone number")
-	Hint string `json:"hint"`
-	// URL to link to for more information about the destination type
-	HintURL string `json:"hintURL"`
-	// placeholder text to display in input fields (e.g., "Phone Number")
-	PlaceholderText string `json:"placeholderText"`
-	// the prefix to use when displaying the destination (e.g., "+" for phone numbers)
-	Prefix string `json:"prefix"`
-	// the type of input field (type attribute) to use (e.g., "text" or "tel")
-	InputType string `json:"inputType"`
-	// if true, the destination can be selected via search
-	SupportsSearch bool `json:"supportsSearch"`
-	// if true, the destination type supports validation
-	SupportsValidation bool `json:"supportsValidation"`
-}
-
 type DestinationFieldSearchInput struct {
 	// the type of destination to search for
 	DestType string `json:"destType"`
@@ -408,47 +387,6 @@ type DestinationFieldValidateInput struct {
 	FieldID string `json:"fieldID"`
 	// the value to validate
 	Value string `json:"value"`
-}
-
-type DestinationTypeInfo struct {
-	Type string `json:"type"`
-	Name string `json:"name"`
-	// URL to an icon to display for the destination type
-	IconURL string `json:"iconURL"`
-	// alt text for the icon, should be usable in place of the icon
-	IconAltText string `json:"iconAltText"`
-	// if false, the destination type is disabled and cannot be used
-	Enabled        bool                     `json:"enabled"`
-	RequiredFields []DestinationFieldConfig `json:"requiredFields"`
-	// expr parameters that can be used for this destination type
-	DynamicParams []DynamicParamConfig `json:"dynamicParams"`
-	// disclaimer text to display when a user is selecting this destination type for a contact method
-	UserDisclaimer string `json:"userDisclaimer"`
-	// this destination type can be used as a user contact method
-	IsContactMethod bool `json:"isContactMethod"`
-	// this destination type can be used as an escalation policy step action
-	IsEPTarget bool `json:"isEPTarget"`
-	// this destination type can be used for schedule on-call notifications
-	IsSchedOnCallNotify bool `json:"isSchedOnCallNotify"`
-	// this destination type can be used for dynamic actions
-	IsDynamicAction bool `json:"isDynamicAction"`
-	// if true, the destination type supports status updates
-	SupportsStatusUpdates bool `json:"supportsStatusUpdates"`
-	// if true, the destination type requires status updates to be enabled
-	StatusUpdatesRequired bool `json:"statusUpdatesRequired"`
-}
-
-type DynamicParamConfig struct {
-	// unique ID for the input field
-	ParamID string `json:"paramID"`
-	// user-friendly label (should be singular)
-	Label string `json:"label"`
-	// user-friendly helper text for input fields (i.e., "Enter a phone number")
-	Hint string `json:"hint"`
-	// URL to link to for more information about the destination type
-	HintURL string `json:"hintURL"`
-	// default value for the input field
-	DefaultValue string `json:"defaultValue"`
 }
 
 type EscalationPolicyConnection struct {

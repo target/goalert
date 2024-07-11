@@ -138,3 +138,9 @@ models:
     model: github.com/target/goalert/gadb.UIKRuleV1
   KeyConfig:
     model: github.com/target/goalert/gadb.UIKConfigV1
+  DestinationFieldConfig:
+    model: github.com/target/goalert/notification/nfydest.FieldConfig
+  DestinationTypeInfo:
+    model: github.com/target/goalert/notification/nfydest.TypeInfo
+  DynamicParamConfig:
+    model: github.com/target/goalert/notification/nfydest.DynamicParamConfig
