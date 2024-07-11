@@ -15,7 +15,8 @@ SELECT
         FROM
             user_contact_methods uc
         WHERE
-            uc.dest = $1)
+            uc.dest = $1
+            AND uc.disabled = FALSE)
     OR EXISTS (
         SELECT
         FROM
