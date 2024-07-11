@@ -10,7 +10,7 @@ import (
 
 // ContactMethod stores the information for contacting a user.
 type ContactMethod struct {
-	ID       string
+	ID       uuid.UUID
 	Name     string
 	Type     Type
 	Value    string
@@ -29,11 +29,10 @@ func (c ContactMethod) LastTestVerifyAt() time.Time { return c.lastTestVerifyAt.
 // Normalize will validate and 'normalize' the ContactMethod -- such as making email lower-case
 // and setting carrier to "" (for non-phone types).
 func (c ContactMethod) Normalize() (*ContactMethod, error) {
-	if c.ID == "" {
-		c.ID = uuid.New().String()
+	if c.ID == uuid.Nil {
+		c.ID = uuid.New()
 	}
 	err := validate.Many(
-		validate.UUID("ID", c.ID),
 		validate.IDName("Name", c.Name),
 		validate.OneOf("Type", c.Type, TypeSMS, TypeVoice, TypeEmail, TypePush, TypeWebhook, TypeSlackDM),
 	)

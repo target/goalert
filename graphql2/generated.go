@@ -30589,9 +30589,9 @@ func (ec *executionContext) _UserContactMethod_id(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_UserContactMethod_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {

@@ -164,13 +164,13 @@ func (app *App) FindOneAlertMetric(ctx context.Context, id int) (*alertmetrics.M
 }
 
 // FindOneCM will return a single contact method for the given id, using the contexts dataloader if enabled.
-func (app *App) FindOneCM(ctx context.Context, id string) (*contactmethod.ContactMethod, error) {
+func (app *App) FindOneCM(ctx context.Context, id uuid.UUID) (*contactmethod.ContactMethod, error) {
 	loader, ok := ctx.Value(dataLoaderKeyCM).(*dataloader.Loader[string, contactmethod.ContactMethod])
 	if !ok {
 		return app.CMStore.FindOne(ctx, app.DB, id)
 	}
 
-	return loader.FetchOne(ctx, id)
+	return loader.FetchOne(ctx, id.String())
 }
 
 // FindOneNC will return a single notification channel for the given id, using the contexts dataloader if enabled.

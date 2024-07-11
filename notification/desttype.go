@@ -12,8 +12,26 @@ import (
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type DestType
 
+type DestID interface {
+	IsUserCM() bool
+	String() string
+	UUID() uuid.UUID
+}
+
+type UserContactMethodID uuid.UUID
+
+func (UserContactMethodID) IsUserCM() bool     { return true }
+func (id UserContactMethodID) String() string  { return uuid.UUID(id).String() }
+func (id UserContactMethodID) UUID() uuid.UUID { return uuid.UUID(id) }
+
+type NotificationChannelID uuid.UUID
+
+func (NotificationChannelID) IsUserCM() bool     { return false }
+func (id NotificationChannelID) String() string  { return uuid.UUID(id).String() }
+func (id NotificationChannelID) UUID() uuid.UUID { return uuid.UUID(id) }
+
 type Dest struct {
-	ID    string
+	ID    DestID
 	Type  DestType
 	Value string
 }
@@ -30,7 +48,7 @@ type SQLDest struct {
 func (s SQLDest) Dest() Dest {
 	if s.CMID.Valid {
 		return Dest{
-			ID:    s.CMID.UUID.String(),
+			ID:    UserContactMethodID(s.CMID.UUID),
 			Value: s.CMValue.String,
 			Type:  ScannableDestType{CM: contactmethod.Type(s.CMType.EnumUserContactMethodType)}.DestType(),
 		}
@@ -38,7 +56,7 @@ func (s SQLDest) Dest() Dest {
 
 	if s.NCID.Valid {
 		return Dest{
-			ID:    s.NCID.UUID.String(),
+			ID:    NotificationChannelID(s.NCID.UUID),
 			Value: s.NCValue.String,
 			Type:  ScannableDestType{NC: notificationchannel.Type(s.NCType.EnumNotifChannelType)}.DestType(),
 		}
@@ -52,12 +70,12 @@ func DestFromPair(cm *contactmethod.ContactMethod, nc *notificationchannel.Chann
 	switch {
 	case cm != nil:
 		return Dest{
-			ID: cm.ID, Value: cm.Value,
+			ID: UserContactMethodID(cm.ID), Value: cm.Value,
 			Type: ScannableDestType{CM: cm.Type}.DestType(),
 		}
 	case nc != nil:
 		return Dest{
-			ID: nc.ID, Value: nc.Value,
+			ID: NotificationChannelID(nc.ID), Value: nc.Value,
 			Type: ScannableDestType{NC: nc.Type}.DestType(),
 		}
 	}
