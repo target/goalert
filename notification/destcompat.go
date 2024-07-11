@@ -6,7 +6,12 @@ import (
 	"github.com/target/goalert/gadb"
 )
 
+// ToDestV1 converts a Dest to a DestV1.
 func (d Dest) ToDestV1() gadb.DestV1 {
+	// The values here are copied from the graphql package until we have a centralized location for these values.
+	//
+	// This method is also subject to deletion once Type/Value are no longer in use.
+
 	switch d.Type {
 	case DestTypeVoice:
 		return gadb.DestV1{
