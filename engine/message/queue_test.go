@@ -44,19 +44,19 @@ func TestQueue_Sort(t *testing.T) {
 			// as the user has been notified *somehow*. That way if we need
 			// to make a choice, a user who has gotten no message of any kind
 			// would take priority (all other criteria being equal).
-			Dest:   notification.Dest{Type: notification.DestTypeVoice, ID: "Voice C"},
+			Dest:   notification.Dest{Type: notification.DestTypeVoice, Value: "Voice C"},
 			SentAt: n.Add(-2 * time.Minute),
 		},
 		{
 			Type:   notification.MessageTypeTest,
 			UserID: "User H",
-			Dest:   notification.Dest{Type: notification.DestTypeSMS, ID: "SMS H"},
+			Dest:   notification.Dest{Type: notification.DestTypeSMS, Value: "SMS H"},
 			SentAt: n.Add(-30 * time.Second),
 		},
 		{
 			Type:      notification.MessageTypeAlert,
 			ServiceID: "Service B",
-			Dest:      notification.Dest{Type: notification.DestTypeSlackChannel, ID: "Slack B"},
+			Dest:      notification.Dest{Type: notification.DestTypeSlackChannel, Value: "Slack B"},
 			SentAt:    n.Add(-30 * time.Second),
 		},
 
@@ -66,43 +66,49 @@ func TestQueue_Sort(t *testing.T) {
 			Type:      notification.MessageTypeAlert,
 			UserID:    "User A",
 			ServiceID: "Service A",
-			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS A"},
+			Dest:      notification.Dest{Type: notification.DestTypeSMS, Value: "SMS A"},
 			CreatedAt: n,
-		}, {
+		},
+		{
 			ID:        "1",
 			Type:      notification.MessageTypeAlert,
 			UserID:    "User E",
 			ServiceID: "Service B",
-			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS E"},
+			Dest:      notification.Dest{Type: notification.DestTypeSMS, Value: "SMS E"},
 			CreatedAt: n.Add(1),
-		}, {
+		},
+		{
 			// no ID, this message should not be sent this cycle
 			Type:      notification.MessageTypeAlert,
 			UserID:    "User H",
 			ServiceID: "Service C",
-			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS H"},
+			Dest:      notification.Dest{Type: notification.DestTypeSMS, Value: "SMS H"},
 			CreatedAt: n.Add(2),
-		}, {
+		},
+		{
 			ID:     "2",
 			Type:   notification.MessageTypeVerification,
 			UserID: "User F",
-			Dest:   notification.Dest{Type: notification.DestTypeSMS, ID: "SMS F"},
-		}, {
+			Dest:   notification.Dest{Type: notification.DestTypeSMS, Value: "SMS F"},
+		},
+		{
 			// no ID, this message should not be sent this cycle
 			Type:   notification.MessageTypeVerification,
 			UserID: "User A",
-			Dest:   notification.Dest{Type: notification.DestTypeSMS, ID: "SMS A"},
-		}, {
+			Dest:   notification.Dest{Type: notification.DestTypeSMS, Value: "SMS A"},
+		},
+		{
 			ID:     "3",
 			Type:   notification.MessageTypeTest,
 			UserID: "User B",
-			Dest:   notification.Dest{Type: notification.DestTypeSMS, ID: "SMS B"},
-		}, {
+			Dest:   notification.Dest{Type: notification.DestTypeSMS, Value: "SMS B"},
+		},
+		{
 			ID:        "4",
 			Type:      notification.MessageTypeAlert,
 			UserID:    "User C",
 			ServiceID: "Service A",
-			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS C"},
+			Dest:      notification.Dest{Type: notification.DestTypeSMS, Value: "SMS C"},
 		},
 
 		// ThrottleConfig limits 5 messages to be sent in 15 min for DestTypeSMS
@@ -110,15 +116,17 @@ func TestQueue_Sort(t *testing.T) {
 			ID:        "5",
 			Type:      notification.MessageTypeAlertStatus,
 			UserID:    "User D",
-			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS D"},
+			Dest:      notification.Dest{Type: notification.DestTypeSMS, Value: "SMS D"},
 			CreatedAt: n,
-		}, {
+		},
+		{
 			ID:        "6",
 			Type:      notification.MessageTypeAlertStatus,
 			UserID:    "User G",
-			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS G"},
+			Dest:      notification.Dest{Type: notification.DestTypeSMS, Value: "SMS G"},
 			CreatedAt: n.Add(1),
-		}}
+		},
+	}
 
 	var expected []Message
 	for _, m := range messages {
@@ -149,5 +157,4 @@ func TestQueue_Sort(t *testing.T) {
 	// no more expected messages
 	msg := q.NextByType(notification.DestTypeSMS)
 	assert.Nil(t, msg)
-
 }

@@ -142,11 +142,11 @@ func fillDB(ctx context.Context, dataCfg *datagenConfig, url string) error {
 	})
 	copyFrom("user_contact_methods", []string{"id", "user_id", "name", "type", "value", "disabled", "pending"}, len(data.ContactMethods), func(n int) []interface{} {
 		cm := data.ContactMethods[n]
-		return []interface{}{asUUID(cm.ID), asUUID(cm.UserID), cm.Name, cm.Type, cm.Value, cm.Disabled, cm.Pending}
+		return []interface{}{cm.ID, asUUID(cm.UserID), cm.Name, cm.Type, cm.Value, cm.Disabled, cm.Pending}
 	}, "users")
 	copyFrom("user_notification_rules", []string{"id", "user_id", "contact_method_id", "delay_minutes"}, len(data.NotificationRules), func(n int) []interface{} {
 		nr := data.NotificationRules[n]
-		return []interface{}{asUUID(nr.ID), asUUID(nr.UserID), asUUID(nr.ContactMethodID), nr.DelayMinutes}
+		return []interface{}{asUUID(nr.ID), asUUID(nr.UserID), nr.ContactMethodID, nr.DelayMinutes}
 	}, "user_contact_methods")
 	copyFrom("rotations", []string{"id", "name", "description", "type", "shift_length", "start_time", "time_zone"}, len(data.Rotations), func(n int) []interface{} {
 		r := data.Rotations[n]
