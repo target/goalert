@@ -10,9 +10,13 @@ import (
 	"github.com/target/goalert/notification"
 )
 
+func destIDFrom(s string) notification.DestID {
+	return notification.DestID{CMID: uuid.NullUUID{Valid: true, UUID: uuid.Must(uuid.FromBytes([]byte(s)))}}
+}
+
 func TestDedupAlerts(t *testing.T) {
-	foo := notification.UserContactMethodID(uuid.Must(uuid.FromBytes([]byte("foofoofoofoofoof"))))
-	bar := notification.UserContactMethodID(uuid.Must(uuid.FromBytes([]byte("barbarbarbarbarb"))))
+	foo := destIDFrom("foofoofoofoofoof")
+	bar := destIDFrom("barbarbarbarbarb")
 	messages := []Message{
 		{ID: "1", Type: notification.MessageTypeTest},
 		{ID: "2", Type: notification.MessageTypeAlertBundle},

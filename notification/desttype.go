@@ -13,23 +13,33 @@ import (
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type DestType
 
-type DestID interface {
-	IsUserCM() bool
-	String() string
-	UUID() uuid.UUID
+type DestID struct {
+	// CMID is the ID of the user contact method.
+	CMID uuid.NullUUID
+	// NCID is the ID of the notification channel.
+	NCID uuid.NullUUID
 }
 
-type UserContactMethodID uuid.UUID
+func (d DestID) IsUserCM() bool { return d.CMID.Valid }
+func (d DestID) String() string {
+	switch {
+	case d.CMID.Valid:
+		return d.CMID.UUID.String()
+	case d.NCID.Valid:
+		return d.NCID.UUID.String()
+	}
+	return ""
+}
 
-func (UserContactMethodID) IsUserCM() bool     { return true }
-func (id UserContactMethodID) String() string  { return uuid.UUID(id).String() }
-func (id UserContactMethodID) UUID() uuid.UUID { return uuid.UUID(id) }
-
-type NotificationChannelID uuid.UUID
-
-func (NotificationChannelID) IsUserCM() bool     { return false }
-func (id NotificationChannelID) String() string  { return uuid.UUID(id).String() }
-func (id NotificationChannelID) UUID() uuid.UUID { return uuid.UUID(id) }
+func (d DestID) UUID() uuid.UUID {
+	switch {
+	case d.CMID.Valid:
+		return d.CMID.UUID
+	case d.NCID.Valid:
+		return d.NCID.UUID
+	}
+	return uuid.Nil
+}
 
 type Dest struct {
 	ID    DestID
@@ -55,9 +65,13 @@ type SQLDest struct {
 }
 
 func (s SQLDest) Dest() Dest {
+	id := DestID{
+		CMID: s.CMID,
+		NCID: s.NCID,
+	}
 	if s.CMID.Valid {
 		return Dest{
-			ID:    UserContactMethodID(s.CMID.UUID),
+			ID:    id,
 			Value: s.CMValue.String,
 			Type:  ScannableDestType{CM: contactmethod.Type(s.CMType.EnumUserContactMethodType)}.DestType(),
 		}
@@ -65,7 +79,7 @@ func (s SQLDest) Dest() Dest {
 
 	if s.NCID.Valid {
 		return Dest{
-			ID:    NotificationChannelID(s.NCID.UUID),
+			ID:    id,
 			Value: s.NCValue.String,
 			Type:  ScannableDestType{NC: notificationchannel.Type(s.NCType.EnumNotifChannelType)}.DestType(),
 		}
@@ -79,12 +93,12 @@ func DestFromPair(cm *contactmethod.ContactMethod, nc *notificationchannel.Chann
 	switch {
 	case cm != nil:
 		return Dest{
-			ID: UserContactMethodID(cm.ID), Value: cm.Value,
+			ID: DestID{CMID: uuid.NullUUID{Valid: true, UUID: cm.ID}}, Value: cm.Value,
 			Type: ScannableDestType{CM: cm.Type}.DestType(),
 		}
 	case nc != nil:
 		return Dest{
-			ID: NotificationChannelID(nc.ID), Value: nc.Value,
+			ID: DestID{NCID: uuid.NullUUID{Valid: true, UUID: nc.ID}}, Value: nc.Value,
 			Type: ScannableDestType{NC: nc.Type}.DestType(),
 		}
 	}

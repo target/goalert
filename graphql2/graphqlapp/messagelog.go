@@ -217,7 +217,7 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 			RetryCount: log.RetryCount,
 			SentAt:     log.SentAt,
 		}
-		if dest.ID.UUID() != uuid.Nil {
+		if dest.ID.String() != "" {
 			dm.Destination, err = q.formatDest(ctx, dest)
 			if err != nil {
 				return nil, fmt.Errorf("format dest: %w", err)
