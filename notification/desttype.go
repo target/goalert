@@ -1,6 +1,7 @@
 package notification
 
 import (
+	"crypto/sha256"
 	"database/sql"
 	"fmt"
 
@@ -35,6 +36,14 @@ type Dest struct {
 	Type  DestType
 	Value string
 }
+
+type DestHash [32]byte
+
+// DestHash returns a comparable hash of the destination.
+func (d Dest) DestHash() DestHash {
+	return DestHash(sha256.Sum256([]byte(fmt.Sprintf("%s\n%s\n", d.Type.String(), d.Value))))
+}
+
 type SQLDest struct {
 	CMID    uuid.NullUUID
 	CMType  gadb.NullEnumUserContactMethodType
@@ -98,9 +107,6 @@ const (
 )
 
 func (d Dest) String() string { return fmt.Sprintf("%s(%s)", d.Type.String(), d.ID) }
-
-// IsUserCM returns true if the DestType represents a user contact method.
-func (t DestType) IsUserCM() bool { return t.CMType() != contactmethod.TypeUnknown }
 
 // ScannableDestType allows scanning a DestType from separate columns for user contact methods and notification channels.
 type ScannableDestType struct {

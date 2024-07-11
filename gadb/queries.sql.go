@@ -1276,6 +1276,30 @@ func (q *Queries) EngineGetSignalParams(ctx context.Context, messageID uuid.Null
 	return params, err
 }
 
+const engineIsKnownDest = `-- name: EngineIsKnownDest :one
+SELECT
+    EXISTS (
+        SELECT
+        FROM
+            user_contact_methods uc
+        WHERE
+            uc.dest = $1)
+    OR EXISTS (
+        SELECT
+        FROM
+            notification_channels nc
+        WHERE
+            nc.dest = $1)
+`
+
+// Check if a destination is known in user_contact_methods or notification_channels table.
+func (q *Queries) EngineIsKnownDest(ctx context.Context, dest NullDestV1) (sql.NullBool, error) {
+	row := q.db.QueryRowContext(ctx, engineIsKnownDest, dest)
+	var column_1 sql.NullBool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const findManyCalSubByUser = `-- name: FindManyCalSubByUser :many
 SELECT
     id,

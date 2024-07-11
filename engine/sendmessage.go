@@ -218,7 +218,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 
 	if isFirstAlertMessage && res.State.IsOK() {
 		var chanID, cmID sql.NullString
-		if msg.Dest.Type.IsUserCM() {
+		if msg.Dest.ID.IsUserCM() {
 			cmID.Valid = true
 			cmID.String = msg.Dest.ID.String()
 		} else {
