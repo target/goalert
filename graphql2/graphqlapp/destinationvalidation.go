@@ -154,20 +154,6 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 			return addDestFieldError(ctx, fieldName, fieldPhoneNumber, err)
 		}
 		return nil
-	case slack.DestTypeSlackChannel:
-		chanID := dest.Arg(slack.FieldSlackChannelID)
-		err := a.SlackStore.ValidateChannel(ctx, chanID)
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, slack.FieldSlackChannelID, err)
-		}
-
-		return nil
-	case slack.DestTypeSlackDirectMessage:
-		userID := dest.Arg(slack.FieldSlackUserID)
-		if err := a.SlackStore.ValidateUser(ctx, userID); err != nil {
-			return addDestFieldError(ctx, fieldName, slack.FieldSlackUserID, err)
-		}
-		return nil
 	case destSlackUG:
 		ugID := dest.Arg(fieldSlackUGID)
 		userErr := a.SlackStore.ValidateUserGroup(ctx, ugID)
