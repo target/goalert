@@ -119,11 +119,14 @@ export default function ScheduleOnCallNotificationsEditDialog(
             } satisfies SetScheduleOnCallNotificationRulesInput,
           },
           { additionalTypenames: ['Schedule'] },
-        )
-          .then(onClose)
-          .catch((err) => {
-            setErr(err)
-          })
+        ).then((res) => {
+          if (res.error) {
+            setErr(res.error)
+            return
+          }
+
+          onClose()
+        })
       }
       form={form}
     />
