@@ -60,13 +60,13 @@ func (b *backend) FindOne(ctx context.Context, id string) (*callback, error) {
 	var c callback
 	var alertID sql.NullInt64
 	var serviceID sql.NullString
-	var cmID sql.NullString
+	var cmID uuid.NullUUID
 	err = b.findOne.QueryRowContext(ctx, id).Scan(&c.ID, &alertID, &serviceID, &cmID, &c.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
 	c.AlertID = int(alertID.Int64)
 	c.ServiceID = serviceID.String
-	c.ContactMethodID = cmID.String
+	c.ContactMethodID = cmID.UUID
 	return &c, nil
 }

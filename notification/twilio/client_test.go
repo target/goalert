@@ -14,7 +14,6 @@ func TestSetMsgParams(t *testing.T) {
 		err := result.setMsgParams(
 			notification.Test{
 				Dest: notification.Dest{
-					ID:    "1",
 					Type:  notification.DestTypeVoice,
 					Value: "+16125551234",
 				},
@@ -35,7 +34,6 @@ func TestSetMsgParams(t *testing.T) {
 		err := result.setMsgParams(
 			notification.AlertBundle{
 				Dest: notification.Dest{
-					ID:    "1",
 					Type:  notification.DestTypeVoice,
 					Value: "+16125551234",
 				},
@@ -62,7 +60,6 @@ func TestSetMsgParams(t *testing.T) {
 		err := result.setMsgParams(
 			notification.Alert{
 				Dest: notification.Dest{
-					ID:    "1",
 					Type:  notification.DestTypeVoice,
 					Value: "+16125551234",
 				},
@@ -86,7 +83,6 @@ func TestSetMsgParams(t *testing.T) {
 		err := result.setMsgParams(
 			notification.AlertStatus{
 				Dest: notification.Dest{
-					ID:    "1",
 					Type:  notification.DestTypeVoice,
 					Value: "+16125551234",
 				},
@@ -111,7 +107,6 @@ func TestSetMsgParams(t *testing.T) {
 		err := result.setMsgParams(
 			notification.Verification{
 				Dest: notification.Dest{
-					ID:    "1",
 					Type:  notification.DestTypeVoice,
 					Value: "+16125551234",
 				},
@@ -133,7 +128,6 @@ func TestSetMsgParams(t *testing.T) {
 		err := result.setMsgParams(
 			notification.ScheduleOnCallUsers{
 				Dest: notification.Dest{
-					ID:    "1",
 					Type:  notification.DestTypeVoice,
 					Value: "+16125551234",
 				},

@@ -31,7 +31,7 @@ type MessageLog struct {
 	UserID   string
 	UserName string
 
-	ContactMethodID string
+	ContactMethodID uuid.UUID
 
 	ChannelID uuid.UUID
 
@@ -287,7 +287,7 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 		var serviceID, svcName sql.NullString
 		var srcValue sql.NullString
 		var userID, userName sql.NullString
-		var cmID sql.NullString
+		var cmID uuid.NullUUID
 		var providerID sql.NullString
 		var lastStatusAt, sentAt sql.NullTime
 		err = rows.Scan(
@@ -328,7 +328,7 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 		l.SrcValue = srcValue.String
 		l.UserID = userID.String
 		l.UserName = userName.String
-		l.ContactMethodID = cmID.String
+		l.ContactMethodID = cmID.UUID
 		l.LastStatusAt = lastStatusAt.Time
 		if sentAt.Valid {
 			l.SentAt = &sentAt.Time

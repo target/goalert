@@ -16,16 +16,12 @@ import (
 
 type MessageLog App
 
-func (a *App) formatNC(ctx context.Context, id string) (string, error) {
-	if id == "" {
+func (a *App) formatNC(ctx context.Context, id uuid.UUID) (string, error) {
+	if id == uuid.Nil {
 		return "", nil
 	}
-	uid, err := uuid.Parse(id)
-	if err != nil {
-		return "", err
-	}
 
-	n, err := a.FindOneNC(ctx, uid)
+	n, err := a.FindOneNC(ctx, id)
 	if err != nil {
 		return "", err
 	}
@@ -41,8 +37,8 @@ func (a *App) formatNC(ctx context.Context, id string) (string, error) {
 }
 
 func (q *Query) formatDest(ctx context.Context, dst notification.Dest) (string, error) {
-	if !dst.Type.IsUserCM() {
-		return (*App)(q).formatNC(ctx, dst.ID)
+	if !dst.ID.IsUserCM() {
+		return (*App)(q).formatNC(ctx, dst.ID.UUID())
 	}
 
 	var str strings.Builder
@@ -196,7 +192,7 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 		log := _log
 		var dest notification.Dest
 		switch {
-		case log.ContactMethodID != "":
+		case log.ContactMethodID != uuid.Nil:
 			cm, err := (*App)(q).FindOneCM(ctx, log.ContactMethodID)
 			if err != nil {
 				return nil, fmt.Errorf("lookup contact method %s: %w", log.ContactMethodID, err)
@@ -221,7 +217,7 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 			RetryCount: log.RetryCount,
 			SentAt:     log.SentAt,
 		}
-		if dest.ID != "" {
+		if dest.ID.String() != "" {
 			dm.Destination, err = q.formatDest(ctx, dest)
 			if err != nil {
 				return nil, fmt.Errorf("format dest: %w", err)

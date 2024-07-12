@@ -495,7 +495,7 @@ func (h *Harness) AddNotificationRule(userID, cmID string, delayMinutes int) {
 	nr := &notificationrule.NotificationRule{
 		DelayMinutes:    delayMinutes,
 		UserID:          userID,
-		ContactMethodID: cmID,
+		ContactMethodID: uuid.MustParse(cmID),
 	}
 	h.t.Logf("insert notification rule: %v", nr)
 	permission.SudoContext(context.Background(), func(ctx context.Context) {

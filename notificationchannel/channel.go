@@ -9,26 +9,25 @@ import (
 )
 
 type Channel struct {
-	ID    string
+	ID    uuid.UUID
 	Name  string
 	Type  Type
 	Value string
 }
 
 func (c *Channel) fromRow(row gadb.NotificationChannel) {
-	c.ID = row.ID.String()
+	c.ID = row.ID
 	c.Name = row.Name
 	c.Type = Type(row.Type)
 	c.Value = row.Value
 }
 
 func (c Channel) Normalize() (*Channel, error) {
-	if c.ID == "" {
-		c.ID = uuid.New().String()
+	if c.ID == uuid.Nil {
+		c.ID = uuid.New()
 	}
 
 	err := validate.Many(
-		validate.UUID("ID", c.ID),
 		validate.Text("Name", c.Name, 1, 255),
 		validate.OneOf("Type", c.Type, TypeSlackChan, TypeWebhook, TypeSlackUG),
 	)

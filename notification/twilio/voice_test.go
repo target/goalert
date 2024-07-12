@@ -111,7 +111,6 @@ func BenchmarkBuildMessage(b *testing.B) {
 			fmt.Sprintf("%d", i),
 			notification.Test{
 				Dest: notification.Dest{
-					ID:    "1",
 					Type:  notification.DestTypeVoice,
 					Value: fmt.Sprintf("+1612555123%d", i),
 				},

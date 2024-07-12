@@ -183,16 +183,11 @@ func (s *Store) OriginalMessageStatus(ctx context.Context, alertID int, dst Dest
 		return nil, err
 	}
 
-	err = validate.UUID("Dest.ID", dst.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	var cmID, chanID sql.NullString
-	if dst.Type.IsUserCM() {
-		cmID.String, cmID.Valid = dst.ID, true
+	var cmID, chanID uuid.NullUUID
+	if dst.ID.IsUserCM() {
+		cmID.UUID, cmID.Valid = dst.ID.UUID(), true
 	} else {
-		chanID.String, chanID.Valid = dst.ID, true
+		chanID.UUID, chanID.Valid = dst.ID.UUID(), true
 	}
 
 	row := s.origAlertMessage.QueryRowContext(ctx, alertID, cmID, chanID)
