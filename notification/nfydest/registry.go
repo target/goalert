@@ -62,6 +62,7 @@ func (r *Registry) Types(ctx context.Context) ([]TypeInfo, error) {
 		if err != nil {
 			return nil, fmt.Errorf("get type info for %s: %w", id, err)
 		}
+		ti.Type = id // ensure ID is set
 
 		out = append(out, *ti)
 	}

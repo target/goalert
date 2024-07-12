@@ -94,8 +94,8 @@ func CompatDestToCMTypeVal(d gadb.DestV1) (contactmethod.Type, string) {
 		return contactmethod.TypeEmail, d.Arg(fieldEmailAddress)
 	case destWebhook:
 		return contactmethod.TypeWebhook, d.Arg(fieldWebhookURL)
-	case destSlackDM:
-		return contactmethod.TypeSlackDM, d.Arg(fieldSlackUserID)
+	case slack.DestTypeSlackDirectMessage:
+		return contactmethod.TypeSlackDM, d.Arg(slack.FieldSlackUserID)
 	}
 
 	return "", ""

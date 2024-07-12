@@ -19,7 +19,6 @@ const (
 	destTwilioVoice = "builtin-twilio-voice"
 	destSMTP        = "builtin-smtp-email"
 	destWebhook     = "builtin-webhook"
-	destSlackDM     = "builtin-slack-dm"
 	destSlackUG     = "builtin-slack-usergroup"
 	destUser        = "builtin-user"
 	destRotation    = "builtin-rotation"
@@ -29,7 +28,6 @@ const (
 	fieldPhoneNumber  = "phone_number"
 	fieldEmailAddress = "email_address"
 	fieldWebhookURL   = "webhook_url"
-	fieldSlackUserID  = "slack_user_id"
 	fieldSlackUGID    = "slack_usergroup_id"
 	fieldUserID       = "user_id"
 	fieldRotationID   = "rotation_id"
@@ -368,24 +366,6 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 					DefaultValue: `"application/json"`, // Because this is an expression, it needs the double quotes.
 				},
 			},
-		},
-		{
-			Type:                       destSlackDM,
-			Name:                       "Slack Message (DM)",
-			Enabled:                    cfg.Slack.Enable,
-			SupportsAlertNotifications: true,
-			SupportsUserVerification:   true,
-			SupportsStatusUpdates:      true,
-			UserVerificationRequired:   true,
-			StatusUpdatesRequired:      true,
-			RequiredFields: []nfydest.FieldConfig{{
-				FieldID:         fieldSlackUserID,
-				Label:           "Slack User",
-				PlaceholderText: "member ID",
-				InputType:       "text",
-				// supportsSearch: true, // TODO: implement search select functionality for users
-				Hint: `Go to your Slack profile, click the three dots, and select "Copy member ID".`,
-			}},
 		},
 		{
 			Type:                 destSlackUG,

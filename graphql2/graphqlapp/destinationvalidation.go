@@ -161,10 +161,10 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 		}
 
 		return nil
-	case destSlackDM:
-		userID := dest.Arg(fieldSlackUserID)
+	case slack.DestTypeSlackDirectMessage:
+		userID := dest.Arg(slack.FieldSlackUserID)
 		if err := a.SlackStore.ValidateUser(ctx, userID); err != nil {
-			return addDestFieldError(ctx, fieldName, fieldSlackUserID, err)
+			return addDestFieldError(ctx, fieldName, slack.FieldSlackUserID, err)
 		}
 		return nil
 	case destSlackUG:
