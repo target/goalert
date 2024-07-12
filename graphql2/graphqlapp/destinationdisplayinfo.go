@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
@@ -56,11 +57,11 @@ func (a *Destination) DisplayInfo(ctx context.Context, obj *gadb.DestV1) (graphq
 	return info, nil
 }
 
-func (a *Query) DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1) (*graphql2.DestinationDisplayInfo, error) {
+func (a *Query) DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1) (*nfydest.DisplayInfo, error) {
 	return a._DestinationDisplayInfo(ctx, dest, false)
 }
 
-func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, skipValidation bool) (*graphql2.DestinationDisplayInfo, error) {
+func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, skipValidation bool) (*nfydest.DisplayInfo, error) {
 	app := (*App)(a)
 	cfg := config.FromContext(ctx)
 	if !skipValidation {
@@ -70,7 +71,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 	}
 	switch dest.Type {
 	case destAlert:
-		return &graphql2.DestinationDisplayInfo{
+		return &nfydest.DisplayInfo{
 			IconURL:     "builtin://alert",
 			IconAltText: "Alert",
 			Text:        "Create new alert",
@@ -81,7 +82,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 			return nil, validation.WrapError(err)
 		}
 
-		return &graphql2.DestinationDisplayInfo{
+		return &nfydest.DisplayInfo{
 			IconURL:     "builtin://phone-text",
 			IconAltText: "Text Message",
 			Text:        phonenumbers.Format(n, phonenumbers.INTERNATIONAL),
@@ -91,7 +92,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 		if err != nil {
 			return nil, validation.WrapError(err)
 		}
-		return &graphql2.DestinationDisplayInfo{
+		return &nfydest.DisplayInfo{
 			IconURL:     "builtin://phone-voice",
 			IconAltText: "Voice Call",
 			Text:        phonenumbers.Format(n, phonenumbers.INTERNATIONAL),
@@ -101,7 +102,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 		if err != nil {
 			return nil, validation.WrapError(err)
 		}
-		return &graphql2.DestinationDisplayInfo{
+		return &nfydest.DisplayInfo{
 			IconURL:     "builtin://email",
 			IconAltText: "Email",
 			Text:        e.Address,
@@ -111,7 +112,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 		if err != nil {
 			return nil, err
 		}
-		return &graphql2.DestinationDisplayInfo{
+		return &nfydest.DisplayInfo{
 			IconURL:     "builtin://rotation",
 			IconAltText: "Rotation",
 			LinkURL:     cfg.CallbackURL("/rotations/" + r.ID),
@@ -122,7 +123,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 		if err != nil {
 			return nil, err
 		}
-		return &graphql2.DestinationDisplayInfo{
+		return &nfydest.DisplayInfo{
 			IconURL:     "builtin://schedule",
 			IconAltText: "Schedule",
 			LinkURL:     cfg.CallbackURL("/schedules/" + s.ID),
@@ -133,7 +134,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 		if err != nil {
 			return nil, err
 		}
-		return &graphql2.DestinationDisplayInfo{
+		return &nfydest.DisplayInfo{
 			IconURL:     cfg.CallbackURL("/api/v2/user-avatar/" + u.ID),
 			IconAltText: "User",
 			LinkURL:     cfg.CallbackURL("/users/" + u.ID),
@@ -145,7 +146,7 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 		if err != nil {
 			return nil, validation.WrapError(err)
 		}
-		return &graphql2.DestinationDisplayInfo{
+		return &nfydest.DisplayInfo{
 			IconURL:     "builtin://webhook",
 			IconAltText: "Webhook",
 			Text:        u.Hostname(),
@@ -165,31 +166,11 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 			team.IconURL = "builtin://slack"
 		}
 
-		return &graphql2.DestinationDisplayInfo{
+		return &nfydest.DisplayInfo{
 			IconURL:     team.IconURL,
 			IconAltText: team.Name,
 			LinkURL:     team.UserLink(u.ID),
 			Text:        u.Name,
-		}, nil
-	case destSlackChan:
-		ch, err := app.SlackStore.Channel(ctx, dest.Arg(fieldSlackChanID))
-		if err != nil {
-			return nil, err
-		}
-
-		team, err := app.SlackStore.Team(ctx, ch.TeamID)
-		if err != nil {
-			return nil, err
-		}
-
-		if team.IconURL == "" {
-			team.IconURL = "builtin://slack"
-		}
-		return &graphql2.DestinationDisplayInfo{
-			IconURL:     team.IconURL,
-			IconAltText: team.Name,
-			LinkURL:     team.ChannelLink(ch.ID),
-			Text:        ch.Name,
 		}, nil
 
 	case destSlackUG:
@@ -206,12 +187,12 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 		if team.IconURL == "" {
 			team.IconURL = "builtin://slack"
 		}
-		return &graphql2.DestinationDisplayInfo{
+		return &nfydest.DisplayInfo{
 			IconURL:     team.IconURL,
 			IconAltText: team.Name,
 			Text:        ug.Handle,
 		}, nil
 	}
 
-	return nil, validation.NewGenericError("unsupported data type")
+	return app.DestReg.DisplayInfo(ctx, dest)
 }

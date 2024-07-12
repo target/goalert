@@ -144,3 +144,5 @@ models:
     model: github.com/target/goalert/notification/nfydest.TypeInfo
   DynamicParamConfig:
     model: github.com/target/goalert/notification/nfydest.DynamicParamConfig
+  DestinationDisplayInfo:
+    model: github.com/target/goalert/notification/nfydest.DisplayInfo

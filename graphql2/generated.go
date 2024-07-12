@@ -1040,7 +1040,7 @@ type QueryResolver interface {
 	DestinationFieldValidate(ctx context.Context, input DestinationFieldValidateInput) (bool, error)
 	DestinationFieldSearch(ctx context.Context, input DestinationFieldSearchInput) (*FieldSearchConnection, error)
 	DestinationFieldValueName(ctx context.Context, input DestinationFieldValidateInput) (string, error)
-	DestinationDisplayInfo(ctx context.Context, input gadb.DestV1) (*DestinationDisplayInfo, error)
+	DestinationDisplayInfo(ctx context.Context, input gadb.DestV1) (*nfydest.DisplayInfo, error)
 	Expr(ctx context.Context) (*Expr, error)
 	GqlAPIKeys(ctx context.Context) ([]GQLAPIKey, error)
 	ActionInputValidate(ctx context.Context, input gadb.UIKActionV1) (bool, error)
@@ -10878,7 +10878,7 @@ func (ec *executionContext) fieldContext_Destination_displayInfo(_ context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationDisplayInfo_text(ctx context.Context, field graphql.CollectedField, obj *DestinationDisplayInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationDisplayInfo_text(ctx context.Context, field graphql.CollectedField, obj *nfydest.DisplayInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationDisplayInfo_text(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -10922,7 +10922,7 @@ func (ec *executionContext) fieldContext_DestinationDisplayInfo_text(_ context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationDisplayInfo_iconURL(ctx context.Context, field graphql.CollectedField, obj *DestinationDisplayInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationDisplayInfo_iconURL(ctx context.Context, field graphql.CollectedField, obj *nfydest.DisplayInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationDisplayInfo_iconURL(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -10966,7 +10966,7 @@ func (ec *executionContext) fieldContext_DestinationDisplayInfo_iconURL(_ contex
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationDisplayInfo_iconAltText(ctx context.Context, field graphql.CollectedField, obj *DestinationDisplayInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationDisplayInfo_iconAltText(ctx context.Context, field graphql.CollectedField, obj *nfydest.DisplayInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationDisplayInfo_iconAltText(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11010,7 +11010,7 @@ func (ec *executionContext) fieldContext_DestinationDisplayInfo_iconAltText(_ co
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationDisplayInfo_linkURL(ctx context.Context, field graphql.CollectedField, obj *DestinationDisplayInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationDisplayInfo_linkURL(ctx context.Context, field graphql.CollectedField, obj *nfydest.DisplayInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationDisplayInfo_linkURL(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -24156,9 +24156,9 @@ func (ec *executionContext) _Query_destinationDisplayInfo(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*DestinationDisplayInfo)
+	res := resTmp.(*nfydest.DisplayInfo)
 	fc.Result = res
-	return ec.marshalNDestinationDisplayInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationDisplayInfo(ctx, field.Selections, res)
+	return ec.marshalNDestinationDisplayInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋnfydestᚐDisplayInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_destinationDisplayInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -38052,9 +38052,9 @@ func (ec *executionContext) _InlineDisplayInfo(ctx context.Context, sel ast.Sele
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
-	case DestinationDisplayInfo:
+	case nfydest.DisplayInfo:
 		return ec._DestinationDisplayInfo(ctx, sel, &obj)
-	case *DestinationDisplayInfo:
+	case *nfydest.DisplayInfo:
 		if obj == nil {
 			return graphql.Null
 		}
@@ -39730,7 +39730,7 @@ func (ec *executionContext) _Destination(ctx context.Context, sel ast.SelectionS
 
 var destinationDisplayInfoImplementors = []string{"DestinationDisplayInfo", "InlineDisplayInfo"}
 
-func (ec *executionContext) _DestinationDisplayInfo(ctx context.Context, sel ast.SelectionSet, obj *DestinationDisplayInfo) graphql.Marshaler {
+func (ec *executionContext) _DestinationDisplayInfo(ctx context.Context, sel ast.SelectionSet, obj *nfydest.DisplayInfo) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, destinationDisplayInfoImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -48136,11 +48136,11 @@ func (ec *executionContext) marshalNDestination2ᚖgithubᚗcomᚋtargetᚋgoale
 	return ec._Destination(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNDestinationDisplayInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationDisplayInfo(ctx context.Context, sel ast.SelectionSet, v DestinationDisplayInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNDestinationDisplayInfo2githubᚗcomᚋtargetᚋgoalertᚋnotificationᚋnfydestᚐDisplayInfo(ctx context.Context, sel ast.SelectionSet, v nfydest.DisplayInfo) graphql.Marshaler {
 	return ec._DestinationDisplayInfo(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDestinationDisplayInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationDisplayInfo(ctx context.Context, sel ast.SelectionSet, v *DestinationDisplayInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNDestinationDisplayInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋnfydestᚐDisplayInfo(ctx context.Context, sel ast.SelectionSet, v *nfydest.DisplayInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

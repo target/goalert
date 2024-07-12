@@ -344,20 +344,6 @@ type DebugSendSMSInput struct {
 	Body string `json:"body"`
 }
 
-// DestinationDisplayInfo provides information for displaying a destination.
-type DestinationDisplayInfo struct {
-	// user-friendly text to display for this destination
-	Text string `json:"text"`
-	// URL to an icon to display for this destination
-	IconURL string `json:"iconURL"`
-	// alt text for the icon, should be human-readable and usable in place of the icon
-	IconAltText string `json:"iconAltText"`
-	// URL to link to for more information about this destination
-	LinkURL string `json:"linkURL"`
-}
-
-func (DestinationDisplayInfo) IsInlineDisplayInfo() {}
-
 type DestinationDisplayInfoError struct {
 	// error message to display when the display info cannot be retrieved
 	Error string `json:"error"`

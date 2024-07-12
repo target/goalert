@@ -86,6 +86,8 @@ func (app *App) startup(ctx context.Context) error {
 		return app.startupErr
 	}
 
+	app.DestRegistry.RegisterProvider(ctx, app.slackChan)
+
 	err := app.mgr.SetPauseResumer(lifecycle.MultiPauseResume(
 		app.Engine,
 		lifecycle.PauseResumerFunc(app._pause, app._resume),

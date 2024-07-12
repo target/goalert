@@ -8,6 +8,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification/nfydest"
+	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
@@ -19,7 +20,6 @@ const (
 	destSMTP        = "builtin-smtp-email"
 	destWebhook     = "builtin-webhook"
 	destSlackDM     = "builtin-slack-dm"
-	destSlackChan   = "builtin-slack-channel"
 	destSlackUG     = "builtin-slack-usergroup"
 	destUser        = "builtin-user"
 	destRotation    = "builtin-rotation"
@@ -30,7 +30,6 @@ const (
 	fieldEmailAddress = "email_address"
 	fieldWebhookURL   = "webhook_url"
 	fieldSlackUserID  = "slack_user_id"
-	fieldSlackChanID  = "slack_channel_id"
 	fieldSlackUGID    = "slack_usergroup_id"
 	fieldUserID       = "user_id"
 	fieldRotationID   = "rotation_id"
@@ -44,13 +43,6 @@ type (
 
 func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.DestinationFieldValidateInput) (string, error) {
 	switch input.FieldID {
-	case fieldSlackChanID:
-		ch, err := q.SlackChannel(ctx, input.Value)
-		if err != nil {
-			return "", err
-		}
-
-		return ch.Name, nil
 	case fieldSlackUGID:
 		ug, err := q.SlackUserGroup(ctx, input.Value)
 		if err != nil {
@@ -80,37 +72,21 @@ func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.De
 		return u.Name, nil
 	}
 
-	return "", validation.NewGenericError("unsupported fieldID")
+	if input.DestType == destSlackUG && input.FieldID == slack.FieldSlackChannelID {
+		// Hack: Slack User Group channel search is a special case, until
+		// it is migrated to the new search system.
+		//
+		// TODO: remove this when slack user group is moved to the nfydest.Registry.
+		input.DestType = slack.DestTypeSlackChannel
+	}
+
+	return q.DestReg.FieldLabel(ctx, input.DestType, input.FieldID, input.Value)
 }
 
 func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.DestinationFieldSearchInput) (*graphql2.FieldSearchConnection, error) {
 	favFirst := true
 
 	switch input.FieldID {
-	case fieldSlackChanID:
-		res, err := q.SlackChannels(ctx, &graphql2.SlackChannelSearchOptions{
-			Omit:   input.Omit,
-			First:  input.First,
-			Search: input.Search,
-			After:  input.After,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		var nodes []graphql2.FieldSearchResult
-		for _, c := range res.Nodes {
-			nodes = append(nodes, graphql2.FieldSearchResult{
-				FieldID: input.FieldID,
-				Value:   c.ID,
-				Label:   c.Name,
-			})
-		}
-
-		return &graphql2.FieldSearchConnection{
-			Nodes:    nodes,
-			PageInfo: res.PageInfo,
-		}, nil
 	case fieldSlackUGID:
 		res, err := q.SlackUserGroups(ctx, &graphql2.SlackUserGroupSearchOptions{
 			Omit:   input.Omit,
@@ -215,7 +191,47 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 		}, nil
 	}
 
-	return nil, validation.NewGenericError("unsupported fieldID")
+	var opts nfydest.SearchOptions
+	opts.Omit = input.Omit
+	if input.First != nil {
+		opts.Limit = *input.First
+	}
+	if input.After != nil {
+		opts.Cursor = *input.After
+	}
+	if input.Search != nil {
+		opts.Search = *input.Search
+	}
+
+	if input.DestType == destSlackUG && input.FieldID == slack.FieldSlackChannelID {
+		// Hack: Slack User Group channel search is a special case, until
+		// it is migrated to the new search system.
+		//
+		// TODO: remove this when slack user group is moved to the nfydest.Registry.
+		input.DestType = slack.DestTypeSlackChannel
+	}
+
+	res, err := q.DestReg.SearchField(ctx, input.DestType, input.FieldID, opts)
+	if err != nil {
+		return nil, err
+	}
+	var nodes []graphql2.FieldSearchResult
+	for _, v := range res.Values {
+		nodes = append(nodes, graphql2.FieldSearchResult{
+			FieldID:    input.FieldID,
+			Value:      v.Value,
+			Label:      v.Label,
+			IsFavorite: v.IsFavorite,
+		})
+	}
+
+	return &graphql2.FieldSearchConnection{
+		Nodes: nodes,
+		PageInfo: &graphql2.PageInfo{
+			HasNextPage: res.HasNextPage,
+			EndCursor:   &res.Cursor,
+		},
+	}, nil
 }
 
 func (q *Query) DestinationFieldValidate(ctx context.Context, input graphql2.DestinationFieldValidateInput) (bool, error) {
@@ -244,7 +260,7 @@ func (q *Query) DestinationFieldValidate(ctx context.Context, input graphql2.Des
 		return err == nil, nil
 	}
 
-	return false, validation.NewGenericError("unsupported data type")
+	return q.DestReg.ValidateField(ctx, input.DestType, input.FieldID, input.Value)
 }
 
 func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]nfydest.TypeInfo, error) {
@@ -388,26 +404,6 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			}},
 		},
 		{
-			Type:                       destSlackChan,
-			Name:                       "Slack Channel",
-			Enabled:                    cfg.Slack.Enable,
-			SupportsAlertNotifications: true,
-			SupportsStatusUpdates:      true,
-			SupportsOnCallNotify:       true,
-			StatusUpdatesRequired:      true,
-			RequiredFields: []nfydest.FieldConfig{{
-				FieldID:        fieldSlackChanID,
-				Label:          "Slack Channel",
-				InputType:      "text",
-				SupportsSearch: true,
-			}},
-			DynamicParams: []nfydest.DynamicParamConfig{{
-				ParamID: "message",
-				Label:   "Message",
-				Hint:    "The text of the message to send.",
-			}},
-		},
-		{
 			Type:                 destSlackUG,
 			Name:                 "Update Slack User Group",
 			Enabled:              cfg.Slack.Enable,
@@ -419,7 +415,7 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 				SupportsSearch: true,
 				Hint:           "The selected group's membership will be replaced/set to the schedule's on-call user(s).",
 			}, {
-				FieldID:        fieldSlackChanID,
+				FieldID:        slack.FieldSlackChannelID,
 				Label:          "Slack Channel (for errors)",
 				InputType:      "text",
 				SupportsSearch: true,
@@ -463,6 +459,12 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			}},
 		},
 	}
+
+	fromReg, err := q.DestReg.Types(ctx)
+	if err != nil {
+		return nil, err
+	}
+	types = append(types, fromReg...)
 
 	slices.SortStableFunc(types, func(a, b nfydest.TypeInfo) int {
 		if a.Enabled && !b.Enabled {
