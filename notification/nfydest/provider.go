@@ -17,6 +17,8 @@ type DisplayInfo struct {
 	LinkURL     string
 }
 
+func (DisplayInfo) IsInlineDisplayInfo() {}
+
 type SearchOptions struct {
 	Search string
 	Omit   []string
