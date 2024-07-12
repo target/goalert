@@ -405,17 +405,18 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 	}
 
 	result, err = bundleAlertMessages(result, func(msg Message) (string, error) {
-		var cmID, chanID, userID sql.NullString
+		var cmID, chanID uuid.NullUUID
+		var userID sql.NullString
 		if msg.UserID != "" {
 			userID.Valid = true
 			userID.String = msg.UserID
 		}
-		if msg.Dest.Type.IsUserCM() {
+		if msg.Dest.ID.IsUserCM() {
 			cmID.Valid = true
-			cmID.String = msg.Dest.ID
+			cmID.UUID = msg.Dest.ID.UUID()
 		} else {
 			chanID.Valid = true
-			chanID.String = msg.Dest.ID
+			chanID.UUID = msg.Dest.ID.UUID()
 		}
 
 		newID := uuid.NewString()

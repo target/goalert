@@ -164,8 +164,8 @@ func (app *App) FindOneAlertMetric(ctx context.Context, id int) (*alertmetrics.M
 }
 
 // FindOneCM will return a single contact method for the given id, using the contexts dataloader if enabled.
-func (app *App) FindOneCM(ctx context.Context, id string) (*contactmethod.ContactMethod, error) {
-	loader, ok := ctx.Value(dataLoaderKeyCM).(*dataloader.Loader[string, contactmethod.ContactMethod])
+func (app *App) FindOneCM(ctx context.Context, id uuid.UUID) (*contactmethod.ContactMethod, error) {
+	loader, ok := ctx.Value(dataLoaderKeyCM).(*dataloader.Loader[uuid.UUID, contactmethod.ContactMethod])
 	if !ok {
 		return app.CMStore.FindOne(ctx, app.DB, id)
 	}
@@ -175,12 +175,12 @@ func (app *App) FindOneCM(ctx context.Context, id string) (*contactmethod.Contac
 
 // FindOneNC will return a single notification channel for the given id, using the contexts dataloader if enabled.
 func (app *App) FindOneNC(ctx context.Context, id uuid.UUID) (*notificationchannel.Channel, error) {
-	loader, ok := ctx.Value(dataLoaderKeyNC).(*dataloader.Loader[string, notificationchannel.Channel])
+	loader, ok := ctx.Value(dataLoaderKeyNC).(*dataloader.Loader[uuid.UUID, notificationchannel.Channel])
 	if !ok {
 		return app.NCStore.FindOne(ctx, id)
 	}
 
-	return loader.FetchOne(ctx, id.String())
+	return loader.FetchOne(ctx, id)
 }
 
 func (app *App) FindOnePolicy(ctx context.Context, id string) (*escalation.Policy, error) {

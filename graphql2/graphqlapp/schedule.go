@@ -87,7 +87,7 @@ func (a *OnCallNotificationRule) Target(ctx context.Context, raw *schedule.OnCal
 		}, nil
 	}
 
-	return &assignment.RawTarget{Type: assignment.TargetTypeNotificationChannel, ID: ch.ID, Name: ch.Name}, nil
+	return &assignment.RawTarget{Type: assignment.TargetTypeNotificationChannel, ID: ch.ID.String(), Name: ch.Name}, nil
 }
 
 func (a *TemporarySchedule) Shifts(ctx context.Context, temp *schedule.TemporarySchedule) ([]oncall.Shift, error) {

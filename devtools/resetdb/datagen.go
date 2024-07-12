@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit/v6"
+	"github.com/google/uuid"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
@@ -147,7 +148,7 @@ func (d *datagen) NewUser() {
 // NewCM will generate a contact method for the given UserID.
 func (d *datagen) NewCM(userID string) {
 	cm := contactmethod.ContactMethod{
-		ID:       d.UUID(),
+		ID:       uuid.MustParse(d.UUID()),
 		Type:     contactmethod.TypeSMS,
 		Name:     d.ids.Gen(d.FirstName, userID),
 		Disabled: true,
@@ -167,7 +168,7 @@ func (d *datagen) NewNR(userID, cmID string) {
 	nr := notificationrule.NotificationRule{
 		ID:              d.UUID(),
 		UserID:          userID,
-		ContactMethodID: cmID,
+		ContactMethodID: uuid.MustParse(cmID),
 		DelayMinutes:    d.ints.Gen(600, cmID),
 	}
 	d.NotificationRules = append(d.NotificationRules, nr)
@@ -404,7 +405,7 @@ func (d *datagen) NewAlertMessages(a alert.Alert, max int) {
 			Status:    "delivered",
 			UserID:    cm.UserID,
 			EPID:      getEPID(a.ServiceID),
-			CMID:      cm.ID,
+			CMID:      cm.ID.String(),
 			SentAt:    ts,
 			CreatedAt: d.DateRange(ts.Add(-time.Minute), ts),
 		})
@@ -595,7 +596,7 @@ func (cfg datagenConfig) Generate() datagen {
 		if len(cmMethods) == 0 {
 			continue
 		}
-		run(d.Intn(cfg.NRMax), func() { d.NewNR(u.ID, cmMethods[d.Intn(len(cmMethods))].ID) })
+		run(d.Intn(cfg.NRMax), func() { d.NewNR(u.ID, cmMethods[d.Intn(len(cmMethods))].ID.String()) })
 	}
 
 	run(cfg.RotationCount, d.NewRotation)
