@@ -8,6 +8,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification/nfydest"
+	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
@@ -19,7 +20,6 @@ const (
 	destSMTP        = "builtin-smtp-email"
 	destWebhook     = "builtin-webhook"
 	destSlackDM     = "builtin-slack-dm"
-	destSlackChan   = "builtin-slack-channel"
 	destSlackUG     = "builtin-slack-usergroup"
 	destUser        = "builtin-user"
 	destRotation    = "builtin-rotation"
@@ -30,7 +30,6 @@ const (
 	fieldEmailAddress = "email_address"
 	fieldWebhookURL   = "webhook_url"
 	fieldSlackUserID  = "slack_user_id"
-	fieldSlackChanID  = "slack_channel_id"
 	fieldSlackUGID    = "slack_usergroup_id"
 	fieldUserID       = "user_id"
 	fieldRotationID   = "rotation_id"
@@ -44,13 +43,6 @@ type (
 
 func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.DestinationFieldValidateInput) (string, error) {
 	switch input.FieldID {
-	case fieldSlackChanID:
-		ch, err := q.SlackChannel(ctx, input.Value)
-		if err != nil {
-			return "", err
-		}
-
-		return ch.Name, nil
 	case fieldSlackUGID:
 		ug, err := q.SlackUserGroup(ctx, input.Value)
 		if err != nil {
@@ -87,30 +79,6 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 	favFirst := true
 
 	switch input.FieldID {
-	case fieldSlackChanID:
-		res, err := q.SlackChannels(ctx, &graphql2.SlackChannelSearchOptions{
-			Omit:   input.Omit,
-			First:  input.First,
-			Search: input.Search,
-			After:  input.After,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		var nodes []graphql2.FieldSearchResult
-		for _, c := range res.Nodes {
-			nodes = append(nodes, graphql2.FieldSearchResult{
-				FieldID: input.FieldID,
-				Value:   c.ID,
-				Label:   c.Name,
-			})
-		}
-
-		return &graphql2.FieldSearchConnection{
-			Nodes:    nodes,
-			PageInfo: res.PageInfo,
-		}, nil
 	case fieldSlackUGID:
 		res, err := q.SlackUserGroups(ctx, &graphql2.SlackUserGroupSearchOptions{
 			Omit:   input.Omit,
@@ -420,26 +388,6 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			}},
 		},
 		{
-			Type:                       destSlackChan,
-			Name:                       "Slack Channel",
-			Enabled:                    cfg.Slack.Enable,
-			SupportsAlertNotifications: true,
-			SupportsStatusUpdates:      true,
-			SupportsOnCallNotify:       true,
-			StatusUpdatesRequired:      true,
-			RequiredFields: []nfydest.FieldConfig{{
-				FieldID:        fieldSlackChanID,
-				Label:          "Slack Channel",
-				InputType:      "text",
-				SupportsSearch: true,
-			}},
-			DynamicParams: []nfydest.DynamicParamConfig{{
-				ParamID: "message",
-				Label:   "Message",
-				Hint:    "The text of the message to send.",
-			}},
-		},
-		{
 			Type:                 destSlackUG,
 			Name:                 "Update Slack User Group",
 			Enabled:              cfg.Slack.Enable,
@@ -451,7 +399,7 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 				SupportsSearch: true,
 				Hint:           "The selected group's membership will be replaced/set to the schedule's on-call user(s).",
 			}, {
-				FieldID:        fieldSlackChanID,
+				FieldID:        slack.FieldSlackChannelID,
 				Label:          "Slack Channel (for errors)",
 				InputType:      "text",
 				SupportsSearch: true,

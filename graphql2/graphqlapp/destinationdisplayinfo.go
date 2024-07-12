@@ -172,26 +172,6 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 			LinkURL:     team.UserLink(u.ID),
 			Text:        u.Name,
 		}, nil
-	case destSlackChan:
-		ch, err := app.SlackStore.Channel(ctx, dest.Arg(fieldSlackChanID))
-		if err != nil {
-			return nil, err
-		}
-
-		team, err := app.SlackStore.Team(ctx, ch.TeamID)
-		if err != nil {
-			return nil, err
-		}
-
-		if team.IconURL == "" {
-			team.IconURL = "builtin://slack"
-		}
-		return &nfydest.DisplayInfo{
-			IconURL:     team.IconURL,
-			IconAltText: team.Name,
-			LinkURL:     team.ChannelLink(ch.ID),
-			Text:        ch.Name,
-		}, nil
 
 	case destSlackUG:
 		ug, err := app.SlackStore.UserGroup(ctx, dest.Arg(fieldSlackUGID))
@@ -214,5 +194,5 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 		}, nil
 	}
 
-	return nil, validation.NewGenericError("unsupported data type")
+	return app.DestReg.DisplayInfo(ctx, dest)
 }

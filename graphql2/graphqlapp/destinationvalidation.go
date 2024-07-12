@@ -12,6 +12,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -152,11 +153,11 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 			return addDestFieldError(ctx, fieldName, fieldPhoneNumber, err)
 		}
 		return nil
-	case destSlackChan:
-		chanID := dest.Arg(fieldSlackChanID)
+	case slack.DestTypeSlackChannel:
+		chanID := dest.Arg(slack.FieldSlackChannelID)
 		err := a.SlackStore.ValidateChannel(ctx, chanID)
 		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldSlackChanID, err)
+			return addDestFieldError(ctx, fieldName, slack.FieldSlackChannelID, err)
 		}
 
 		return nil
@@ -173,10 +174,10 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 			return addDestFieldError(ctx, fieldName, fieldSlackUGID, userErr)
 		}
 
-		chanID := dest.Arg(fieldSlackChanID)
+		chanID := dest.Arg(slack.FieldSlackChannelID)
 		chanErr := a.SlackStore.ValidateChannel(ctx, chanID)
 		if chanErr != nil {
-			return addDestFieldError(ctx, fieldName, fieldSlackChanID, chanErr)
+			return addDestFieldError(ctx, fieldName, slack.FieldSlackChannelID, chanErr)
 		}
 
 		return nil
