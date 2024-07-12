@@ -20,14 +20,21 @@ type Registry struct {
 }
 
 func NewRegistry() *Registry {
-	return &Registry{
-		providers: make(map[string]Provider),
-	}
+	return &Registry{}
 }
 
-func (r *Registry) Provider(id string) Provider { return r.providers[id] }
+func (r *Registry) Provider(id string) Provider {
+	if r.providers == nil {
+		return nil
+	}
+
+	return r.providers[id]
+}
 
 func (r *Registry) RegisterProvider(ctx context.Context, p Provider) {
+	if r.providers == nil {
+		r.providers = make(map[string]Provider)
+	}
 	if r.Provider(p.ID()) != nil {
 		panic(fmt.Sprintf("provider with ID %s already registered", p.ID()))
 	}
