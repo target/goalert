@@ -35,7 +35,7 @@ func (dm *DMSender) TypeInfo(ctx context.Context) (*nfydest.TypeInfo, error) {
 
 func (dm *DMSender) ValidateField(ctx context.Context, fieldID, value string) error {
 	switch fieldID {
-	case FieldSlackChannelID:
+	case FieldSlackUserID:
 		return dm.ValidateUser(ctx, value)
 	}
 

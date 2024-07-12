@@ -74,6 +74,7 @@ func (app *App) startup(ctx context.Context) error {
 	app.notificationManager.RegisterSender(notification.DestTypeChanWebhook, "webhook-channel", webhook.NewSender(ctx))
 
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan)
+	app.DestRegistry.RegisterProvider(ctx, app.slackChan.DMSender())
 
 	app.initStartup(ctx, "Startup.Engine", app.initEngine)
 	app.initStartup(ctx, "Startup.Auth", app.initAuth)
