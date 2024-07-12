@@ -18,27 +18,3 @@ type DisplayInfo struct {
 }
 
 func (DisplayInfo) IsInlineDisplayInfo() {}
-
-type SearchOptions struct {
-	Search string
-	Omit   []string
-	Cursor string
-	Limit  int
-}
-
-type SearchResult struct {
-	HasNextPage bool
-	Cursor      string
-	Values      []FieldValue
-}
-
-type FieldValue struct {
-	Value      string
-	Label      string
-	IsFavorite bool
-}
-
-type FieldSearcher interface {
-	SearchField(ctx context.Context, fieldID string, options SearchOptions) (*SearchResult, error)
-	FieldLabel(ctx context.Context, fieldID, value string) (string, error)
-}

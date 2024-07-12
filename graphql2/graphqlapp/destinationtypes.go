@@ -80,7 +80,7 @@ func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.De
 		return u.Name, nil
 	}
 
-	return "", validation.NewGenericError("unsupported fieldID")
+	return q.DestReg.FieldLabel(ctx, input.DestType, input.FieldID, input.Value)
 }
 
 func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.DestinationFieldSearchInput) (*graphql2.FieldSearchConnection, error) {
@@ -215,7 +215,39 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 		}, nil
 	}
 
-	return nil, validation.NewGenericError("unsupported fieldID")
+	var opts nfydest.SearchOptions
+	opts.Omit = input.Omit
+	if input.First != nil {
+		opts.Limit = *input.First
+	}
+	if input.After != nil {
+		opts.Cursor = *input.After
+	}
+	if input.Search != nil {
+		opts.Search = *input.Search
+	}
+
+	res, err := q.DestReg.SearchField(ctx, input.DestType, input.FieldID, opts)
+	if err != nil {
+		return nil, err
+	}
+	var nodes []graphql2.FieldSearchResult
+	for _, v := range res.Values {
+		nodes = append(nodes, graphql2.FieldSearchResult{
+			FieldID:    input.FieldID,
+			Value:      v.Value,
+			Label:      v.Label,
+			IsFavorite: v.IsFavorite,
+		})
+	}
+
+	return &graphql2.FieldSearchConnection{
+		Nodes: nodes,
+		PageInfo: &graphql2.PageInfo{
+			HasNextPage: res.HasNextPage,
+			EndCursor:   &res.Cursor,
+		},
+	}, nil
 }
 
 func (q *Query) DestinationFieldValidate(ctx context.Context, input graphql2.DestinationFieldValidateInput) (bool, error) {
@@ -244,7 +276,7 @@ func (q *Query) DestinationFieldValidate(ctx context.Context, input graphql2.Des
 		return err == nil, nil
 	}
 
-	return false, validation.NewGenericError("unsupported data type")
+	return q.DestReg.ValidateField(ctx, input.DestType, input.FieldID, input.Value)
 }
 
 func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]nfydest.TypeInfo, error) {
@@ -463,6 +495,12 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			}},
 		},
 	}
+
+	fromReg, err := q.DestReg.Types(ctx)
+	if err != nil {
+		return nil, err
+	}
+	types = append(types, fromReg...)
 
 	slices.SortStableFunc(types, func(a, b nfydest.TypeInfo) int {
 		if a.Enabled && !b.Enabled {
