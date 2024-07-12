@@ -73,6 +73,8 @@ func (app *App) startup(ctx context.Context) error {
 	app.notificationManager.RegisterSender(notification.DestTypeUserWebhook, "webhook-user", webhook.NewSender(ctx))
 	app.notificationManager.RegisterSender(notification.DestTypeChanWebhook, "webhook-channel", webhook.NewSender(ctx))
 
+	app.DestRegistry.RegisterProvider(ctx, app.slackChan)
+
 	app.initStartup(ctx, "Startup.Engine", app.initEngine)
 	app.initStartup(ctx, "Startup.Auth", app.initAuth)
 	app.initStartup(ctx, "Startup.GraphQL", app.initGraphQL)

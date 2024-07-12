@@ -22,6 +22,7 @@ import (
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/oncall"
@@ -301,6 +302,8 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	app.UIKHandler = uik.NewHandler(app.db, app.IntegrationKeyStore, app.AlertStore)
+
+	app.DestRegistry = nfydest.NewRegistry()
 
 	return nil
 }

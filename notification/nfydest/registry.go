@@ -27,15 +27,14 @@ func NewRegistry() *Registry {
 
 func (r *Registry) Provider(id string) Provider { return r.providers[id] }
 
-func (r *Registry) RegisterProvider(ctx context.Context, p Provider) error {
+func (r *Registry) RegisterProvider(ctx context.Context, p Provider) {
 	if r.Provider(p.ID()) != nil {
-		return fmt.Errorf("provider with ID %s already registered", p.ID())
+		panic(fmt.Sprintf("provider with ID %s already registered", p.ID()))
 	}
 
 	id := p.ID()
 	r.providers[id] = p
 	r.ids = append(r.ids, id)
-	return nil
 }
 
 func (r *Registry) DisplayInfo(ctx context.Context, d gadb.DestV1) (*DisplayInfo, error) {
