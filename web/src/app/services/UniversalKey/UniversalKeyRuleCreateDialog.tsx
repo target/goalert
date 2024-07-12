@@ -17,7 +17,7 @@ const mutation = gql`
   }
 `
 
-export default function UniversalKeyRuleCreateDialogProps(
+export default function UniversalKeyRuleCreateDialog(
   props: UniversalKeyRuleCreateDialogProps,
 ): JSX.Element {
   const [value, setValue] = useState<KeyRuleInput>({
@@ -29,13 +29,13 @@ export default function UniversalKeyRuleCreateDialogProps(
   })
   const [step, setStep] = useState(0)
   const [m, commit] = useMutation(mutation)
-  const [hasConfirmed, setHasConfirmed] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(0)
-  const showNotice = hasSubmitted > 0 && value.actions.length === 0
+  const [hasConfirmed, setHasConfirmed] = useState(false)
+  const [hasErrorAfterSubmit, setHasErrorAfterSubmit] = useState(false)
 
   const errs = useErrorConsumer(m.error)
   const errors = errs.remainingLegacyCallback()
-  const [hasErrorAfterSubmit, setHasErrorAfterSubmit] = useState(false)
+  const showNotice = hasSubmitted > 0 && value.actions.length === 0
 
   const nameError = errs.getErrorByField(/Rules.+\.Name/)
   const descError = errs.getErrorByField(/Rules.+\.Description/)
@@ -43,15 +43,8 @@ export default function UniversalKeyRuleCreateDialogProps(
     'updateKeyConfig.input.setRule.conditionExpr',
   )
 
-  useEffect(() => {
-    if (hasErrorAfterSubmit && (nameError || descError || conditionError)) {
-      setStep(0)
-      setHasErrorAfterSubmit(false)
-    }
-  }, [errors, hasErrorAfterSubmit])
-
-  const handleCommit = () => {
-    commit(
+  const handleCommit = async () => {
+    const res = await commit(
       {
         input: {
           keyID: props.keyID,
@@ -59,26 +52,39 @@ export default function UniversalKeyRuleCreateDialogProps(
         },
       },
       { additionalTypenames: ['KeyConfig'] },
-    ).then((res) => {
-      if (!res.error) {
-        setHasErrorAfterSubmit(false)
-        return props.onClose()
-      }
+    )
 
-      if (nameError || descError || conditionError) {
-        setHasErrorAfterSubmit(true)
-      }
-    })
+    if (!res.error) {
+      console.log('no error, closing')
+      setHasSubmitted(0)
+      setHasErrorAfterSubmit(false)
+      return props.onClose()
+    }
+
+    if (nameError || descError || conditionError) {
+      console.log('errors, setting step to 0')
+      setHasErrorAfterSubmit(true)
+    }
   }
 
   useEffect(() => {
-    if (hasSubmitted) {
-      if (showNotice && !hasConfirmed) {
-        return
-      }
-      handleCommit()
+    if (!hasSubmitted) return
+    if (showNotice && !hasConfirmed) {
+      console.log('submit failed: showing notice & hasnt confirmed')
+      return
     }
-  }, [hasSubmitted])
+
+    // todo: fix having to click retry twice on failure
+    console.log('comitting')
+    handleCommit()
+  }, [hasSubmitted, showNotice])
+
+  useEffect(() => {
+    if (hasErrorAfterSubmit && (nameError || descError || conditionError)) {
+      setStep(0)
+      setHasErrorAfterSubmit(false)
+    }
+  }, [nameError, descError, conditionError, hasErrorAfterSubmit])
 
   return (
     <FormDialog
