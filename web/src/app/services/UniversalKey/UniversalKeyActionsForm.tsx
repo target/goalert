@@ -55,6 +55,10 @@ export default function UniversalKeyActionsForm(
     }
   }, [props.editActionId])
 
+  const destError = errs.getErrorByPath('actionInputValidate.input.dest.type')
+  const staticErrors = errs.getErrorMap('actionInputValidate.input.dest.args')
+  const dynamicErrors = errs.getErrorMap('actionInputValidate.input.params')
+
   return (
     <Grid item xs={12} container spacing={2}>
       {props.showList && (
@@ -70,97 +74,93 @@ export default function UniversalKeyActionsForm(
         />
       )}
 
+      <Grid
+        item
+        xs={12}
+        sx={{
+          display: 'flex',
+          alignItems: 'flex-end',
+        }}
+      >
+        <Button
+          fullWidth
+          type='button'
+          startIcon={<Add />}
+          variant='contained'
+          color='secondary'
+          sx={{ height: 'fit-content' }}
+          disabled={!currentAction?.destType}
+          onClick={() => {
+            const input = valueToActionInput(currentAction)
+
+            if (props.editActionId !== '') {
+              actions = props.value.filter(
+                (v) => v.dest.type !== props.editActionId,
+              )
+            }
+
+            let cancel = ''
+            actions.forEach((_a) => {
+              const a = JSON.stringify(_a.dest.args)
+              const cur = JSON.stringify(input.dest.args)
+              if (a === cur) {
+                cancel = 'Cannot add same destination twice'
+              }
+            })
+
+            if (cancel !== '') {
+              setAddError({
+                message: cancel,
+              } as CombinedError)
+              return
+            }
+
+            setAddError(null)
+            valClient
+              .query(query, { input })
+              .toPromise()
+              .then((res) => {
+                if (res.error) {
+                  setAddError(res.error)
+                  return
+                }
+
+                // clear the current action
+                setCurrentAction(null)
+                props.onChange(actions.concat(input))
+
+                if (props.onChipClick) {
+                  props.onChipClick({
+                    dest: { type: '', args: {} },
+                    params: {},
+                  })
+                }
+              })
+          }}
+        >
+          {props.editActionId ? 'Save Action' : 'Add Action'}
+        </Button>
+      </Grid>
+
+      {errs.hasErrors() && (
+        <Grid item xs={12}>
+          {errs.remainingLegacy().map((err) => (
+            <Typography key={err.message} color='error'>
+              {err.message}
+            </Typography>
+          ))}
+        </Grid>
+      )}
+
       <Grid item xs={12} container spacing={2}>
         <DynamicActionForm
           disablePortal={props.disablePortal}
           value={currentAction}
           onChange={setCurrentAction}
-          destTypeError={errs.getErrorByPath(
-            'actionInputValidate.input.dest.type',
-          )}
-          staticParamErrors={errs.getErrorMap(
-            'actionInputValidate.input.dest.args',
-          )}
-          dynamicParamErrors={errs.getErrorMap(
-            'actionInputValidate.input.params',
-          )}
+          destTypeError={destError}
+          staticParamErrors={staticErrors}
+          dynamicParamErrors={dynamicErrors}
         />
-
-        {errs.hasErrors() && (
-          <Grid item xs={12}>
-            {errs.remaining().map((message) => (
-              <Typography key={message} color='error'>
-                {message}
-              </Typography>
-            ))}
-          </Grid>
-        )}
-
-        <Grid
-          item
-          xs={12}
-          sx={{
-            display: 'flex',
-            alignItems: 'flex-end',
-          }}
-        >
-          <Button
-            fullWidth
-            startIcon={<Add />}
-            variant='contained'
-            color='secondary'
-            sx={{ height: 'fit-content' }}
-            onClick={() => {
-              const input = valueToActionInput(currentAction)
-
-              if (props.editActionId !== '') {
-                actions = props.value.filter(
-                  (v) => v.dest.type !== props.editActionId,
-                )
-              }
-
-              let cancel = ''
-              actions.forEach((_a) => {
-                const a = JSON.stringify(_a.dest.args)
-                const cur = JSON.stringify(input.dest.args)
-                if (a === cur) {
-                  cancel = 'Cannot add same destination twice'
-                }
-              })
-
-              if (cancel !== '') {
-                setAddError({
-                  message: cancel,
-                } as CombinedError)
-                return
-              }
-
-              setAddError(null)
-              valClient
-                .query(query, { input })
-                .toPromise()
-                .then((res) => {
-                  if (res.error) {
-                    setAddError(res.error)
-                    return
-                  }
-
-                  // clear the current action
-                  setCurrentAction(null)
-                  props.onChange(actions.concat(input))
-
-                  if (props.onChipClick) {
-                    props.onChipClick({
-                      dest: { type: '', args: {} },
-                      params: {},
-                    })
-                  }
-                })
-            }}
-          >
-            {props.editActionId ? 'Save Action' : 'Add Action'}
-          </Button>
-        </Grid>
       </Grid>
     </Grid>
   )

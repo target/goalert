@@ -15,7 +15,6 @@ import {
 import { ActionInput, KeyRuleInput } from '../../../schema'
 import UniversalKeyActionsList from './UniversalKeyActionsList'
 import UniversalKeyActionsForm from './UniversalKeyActionsForm'
-import DestinationInputChip from '../../util/DestinationInputChip'
 
 interface UniversalKeyRuleFormProps {
   value: KeyRuleInput
@@ -44,10 +43,10 @@ export default function UniversalKeyRuleForm(
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
-        <Stepper activeStep={step} alternativeLabel>
+        <Stepper activeStep={step} alternativeLabel nonLinear>
           {STEPS.map((label, index) => (
             <Step key={label + index}>
-              <StepButton color='inherit' onClick={() => setStep(0)}>
+              <StepButton color='inherit' onClick={() => setStep(index)}>
                 {label}
               </StepButton>
             </Step>
