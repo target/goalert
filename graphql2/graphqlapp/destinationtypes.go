@@ -72,6 +72,14 @@ func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.De
 		return u.Name, nil
 	}
 
+	if input.DestType == destSlackUG && input.FieldID == slack.FieldSlackChannelID {
+		// Hack: Slack User Group channel search is a special case, until
+		// it is migrated to the new search system.
+		//
+		// TODO: remove this when slack user group is moved to the nfydest.Registry.
+		input.DestType = slack.DestTypeSlackChannel
+	}
+
 	return q.DestReg.FieldLabel(ctx, input.DestType, input.FieldID, input.Value)
 }
 
