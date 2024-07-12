@@ -242,7 +242,11 @@ func (q *Query) DestinationFieldValidate(ctx context.Context, input graphql2.Des
 		return err == nil, nil
 	}
 
-	return q.DestReg.ValidateField(ctx, input.DestType, input.FieldID, input.Value)
+	err := q.DestReg.ValidateField(ctx, input.DestType, input.FieldID, input.Value)
+	if validation.IsClientError(err) {
+		return false, nil
+	}
+	return err == nil, err
 }
 
 func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]nfydest.TypeInfo, error) {
