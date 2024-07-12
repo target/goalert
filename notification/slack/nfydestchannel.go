@@ -39,18 +39,13 @@ func (s *ChannelSender) TypeInfo(ctx context.Context) (*nfydest.TypeInfo, error)
 	}, nil
 }
 
-func (s *ChannelSender) ValidateField(ctx context.Context, fieldID, value string) (bool, error) {
+func (s *ChannelSender) ValidateField(ctx context.Context, fieldID, value string) error {
 	switch fieldID {
 	case FieldSlackChannelID:
-		err := s.ValidateChannel(ctx, value)
-		if validation.IsValidationError(err) {
-			return false, nil
-		}
-
-		return err == nil, err
+		return s.ValidateChannel(ctx, value)
 	}
 
-	return false, validation.NewGenericError("unknown field ID")
+	return validation.NewGenericError("unknown field ID")
 }
 
 func (s *ChannelSender) DisplayInfo(ctx context.Context, args map[string]string) (*nfydest.DisplayInfo, error) {
