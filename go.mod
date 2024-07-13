@@ -5,7 +5,7 @@ go 1.22
 require (
 	github.com/99designs/gqlgen v0.17.49
 	github.com/brianvoe/gofakeit/v6 v6.28.0
-	github.com/coreos/go-oidc/v3 v3.10.0
+	github.com/coreos/go-oidc/v3 v3.11.0
 	github.com/creack/pty/v2 v2.0.1
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/emersion/go-smtp v0.21.2
@@ -81,7 +81,7 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/fullstorydev/grpcurl v1.9.1 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.1 // indirect
-	github.com/go-jose/go-jose/v4 v4.0.1 // indirect
+	github.com/go-jose/go-jose/v4 v4.0.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/gorilla/context v1.1.2 // indirect
