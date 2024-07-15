@@ -31,7 +31,6 @@ export default function UniversalKeyRuleCreateDialog(
   const [m, commit] = useMutation(mutation)
   const [hasSubmitted, setHasSubmitted] = useState(0)
   const [hasConfirmed, setHasConfirmed] = useState(false)
-  const [hasErrorAfterSubmit, setHasErrorAfterSubmit] = useState(false)
 
   const errs = useErrorConsumer(m.error)
   const errors = errs.remainingLegacyCallback()
@@ -43,55 +42,47 @@ export default function UniversalKeyRuleCreateDialog(
     'updateKeyConfig.input.setRule.conditionExpr',
   )
 
-  const handleCommit = async () => {
-    const res = await commit(
-      {
-        input: {
-          keyID: props.keyID,
-          setRule: value,
-        },
-      },
-      { additionalTypenames: ['KeyConfig'] },
-    )
-
-    if (!res.error) {
-      console.log('no error, closing')
-      setHasSubmitted(0)
-      setHasErrorAfterSubmit(false)
-      return props.onClose()
-    }
-
-    if (nameError || descError || conditionError) {
-      console.log('errors, setting step to 0')
-      setHasErrorAfterSubmit(true)
-    }
-  }
-
   useEffect(() => {
-    if (!hasSubmitted) return
+    console.log('in setStep(0) useeffect')
+
+    // showing notice takes precedence
+    // don't change steps when this flips to true
     if (showNotice && !hasConfirmed) {
-      console.log('submit failed: showing notice & hasnt confirmed')
       return
     }
 
-    // todo: fix having to click retry twice on failure
-    console.log('comitting')
-    handleCommit()
-  }, [hasSubmitted, showNotice])
-
-  useEffect(() => {
-    if (hasErrorAfterSubmit && (nameError || descError || conditionError)) {
+    if (nameError || descError || conditionError) {
       setStep(0)
-      setHasErrorAfterSubmit(false)
     }
-  }, [nameError, descError, conditionError, hasErrorAfterSubmit])
+  }, [nameError, descError, conditionError, showNotice])
 
   return (
     <FormDialog
       title='Create Rule'
       onClose={props.onClose}
       errors={errors}
-      onSubmit={() => setHasSubmitted(hasSubmitted + 1)}
+      onSubmit={() => {
+        setHasSubmitted(hasSubmitted + 1)
+
+        // if no actions notice, user must confirm they want this before submitting
+        if (showNotice && !hasConfirmed) {
+          return
+        }
+
+        return commit(
+          {
+            input: {
+              keyID: props.keyID,
+              setRule: value,
+            },
+          },
+          { additionalTypenames: ['KeyConfig'] },
+        ).then((res) => {
+          if (res.error) return
+
+          props.onClose()
+        })
+      }}
       disableSubmit={step < 2 && !hasSubmitted}
       disableNext={step === 2}
       onNext={() => setStep(step + 1)}
