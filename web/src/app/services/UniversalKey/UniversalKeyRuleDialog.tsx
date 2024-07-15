@@ -10,7 +10,7 @@ interface UniversalKeyRuleDialogProps {
   keyID: string
   onClose: () => void
 
-  ruleID: string // if present, we are editing
+  ruleID?: string // if present, we are editing
   default?: boolean // used when creating default action
 }
 
@@ -79,7 +79,7 @@ export default function UniversalKeyRuleDialogProps(
   const noActionsNoConf = value.actions.length === 0 && !hasConfirmed
 
   const errs = useErrorConsumer(m.error)
-  const errors = errs.remainingLegacyCallback()
+  const unknownErrors = errs.remainingLegacyCallback()
   const nameError = errs.getErrorByField(/Rules.+\.Name/)
   const descError = errs.getErrorByField(/Rules.+\.Description/)
   const conditionError = errs.getErrorByPath(
@@ -97,7 +97,7 @@ export default function UniversalKeyRuleDialogProps(
       }
       maxWidth='lg'
       onClose={props.onClose}
-      errors={errors}
+      errors={unknownErrors}
       onSubmit={() => {
         if (noActionsNoConf) {
           setHasSubmitted(true)
