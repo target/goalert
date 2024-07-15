@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification/slack"
+	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/user/contactmethod"
 )
@@ -33,8 +34,8 @@ func CompatTargetToDest(tgt assignment.Target) (gadb.DestV1, error) {
 		}, nil
 	case assignment.TargetTypeChanWebhook:
 		return gadb.DestV1{
-			Type: destWebhook,
-			Args: map[string]string{fieldWebhookURL: tgt.TargetID()},
+			Type: webhook.DestTypeWebhook,
+			Args: map[string]string{webhook.FieldWebhookURL: tgt.TargetID()},
 		}, nil
 	case assignment.TargetTypeSlackChannel:
 		return gadb.DestV1{
@@ -74,8 +75,8 @@ func (a *App) CompatNCToDest(ctx context.Context, ncID uuid.UUID) (*gadb.DestV1,
 		}, nil
 	case notificationchannel.TypeWebhook:
 		return &gadb.DestV1{
-			Type: destWebhook,
-			Args: map[string]string{fieldWebhookURL: nc.Value},
+			Type: webhook.DestTypeWebhook,
+			Args: map[string]string{webhook.FieldWebhookURL: nc.Value},
 		}, nil
 	default:
 		return nil, fmt.Errorf("unsupported notification channel type: %s", nc.Type)
@@ -92,8 +93,8 @@ func CompatDestToCMTypeVal(d gadb.DestV1) (contactmethod.Type, string) {
 		return contactmethod.TypeVoice, d.Arg(fieldPhoneNumber)
 	case destSMTP:
 		return contactmethod.TypeEmail, d.Arg(fieldEmailAddress)
-	case destWebhook:
-		return contactmethod.TypeWebhook, d.Arg(fieldWebhookURL)
+	case webhook.DestTypeWebhook:
+		return contactmethod.TypeWebhook, d.Arg(webhook.FieldWebhookURL)
 	case slack.DestTypeSlackDirectMessage:
 		return contactmethod.TypeSlackDM, d.Arg(slack.FieldSlackUserID)
 	}
@@ -129,10 +130,10 @@ func CompatDestToTarget(d gadb.DestV1) (assignment.RawTarget, error) {
 			Type: assignment.TargetTypeSlackUserGroup,
 			ID:   d.Arg(fieldSlackUGID) + ":" + d.Arg(slack.FieldSlackChannelID),
 		}, nil
-	case destWebhook:
+	case webhook.DestTypeWebhook:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeChanWebhook,
-			ID:   d.Arg(fieldWebhookURL),
+			ID:   d.Arg(webhook.FieldWebhookURL),
 		}, nil
 	}
 

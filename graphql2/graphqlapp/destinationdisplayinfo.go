@@ -3,7 +3,6 @@ package graphqlapp
 import (
 	"context"
 	"net/mail"
-	"net/url"
 
 	"github.com/nyaruka/phonenumbers"
 	"github.com/target/goalert/config"
@@ -140,18 +139,6 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 			LinkURL:     cfg.CallbackURL("/users/" + u.ID),
 			Text:        u.Name,
 		}, nil
-
-	case destWebhook:
-		u, err := url.Parse(dest.Arg(fieldWebhookURL))
-		if err != nil {
-			return nil, validation.WrapError(err)
-		}
-		return &nfydest.DisplayInfo{
-			IconURL:     "builtin://webhook",
-			IconAltText: "Webhook",
-			Text:        u.Hostname(),
-		}, nil
-
 	case destSlackUG:
 		ug, err := app.SlackStore.UserGroup(ctx, dest.Arg(fieldSlackUGID))
 		if err != nil {

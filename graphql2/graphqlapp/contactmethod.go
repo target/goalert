@@ -43,8 +43,8 @@ func (a *ContactMethod) Dest(ctx context.Context, obj *contactmethod.ContactMeth
 		}, nil
 	case contactmethod.TypeWebhook:
 		return &gadb.DestV1{
-			Type: destWebhook,
-			Args: map[string]string{fieldWebhookURL: obj.Value},
+			Type: webhook.DestTypeWebhook,
+			Args: map[string]string{webhook.FieldWebhookURL: obj.Value},
 		}, nil
 	case contactmethod.TypeSlackDM:
 		return &gadb.DestV1{
