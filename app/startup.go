@@ -88,6 +88,7 @@ func (app *App) startup(ctx context.Context) error {
 
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan)
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan.DMSender())
+	app.DestRegistry.RegisterProvider(ctx, app.slackChan.UserGroupSender())
 
 	err := app.mgr.SetPauseResumer(lifecycle.MultiPauseResume(
 		app.Engine,

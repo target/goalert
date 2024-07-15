@@ -139,25 +139,6 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 			LinkURL:     cfg.CallbackURL("/users/" + u.ID),
 			Text:        u.Name,
 		}, nil
-	case destSlackUG:
-		ug, err := app.SlackStore.UserGroup(ctx, dest.Arg(fieldSlackUGID))
-		if err != nil {
-			return nil, err
-		}
-
-		team, err := app.SlackStore.Team(ctx, ug.TeamID)
-		if err != nil {
-			return nil, err
-		}
-
-		if team.IconURL == "" {
-			team.IconURL = "builtin://slack"
-		}
-		return &nfydest.DisplayInfo{
-			IconURL:     team.IconURL,
-			IconAltText: team.Name,
-			Text:        ug.Handle,
-		}, nil
 	}
 
 	return app.DestReg.DisplayInfo(ctx, dest)
