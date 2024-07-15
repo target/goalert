@@ -10,8 +10,8 @@ import (
 	"github.com/target/goalert/validation"
 )
 
-type ArgsValidator interface {
-	ValidateArgs(ctx context.Context, args map[string]string) error
+type DestValidator interface {
+	ValidateDest(ctx context.Context, dest gadb.DestV1) error
 }
 
 // DestArgError is returned when a destination argument is invalid.
@@ -41,11 +41,12 @@ func (r *Registry) ValidateDest(ctx context.Context, dest gadb.DestV1) error {
 		dest.Args = make(map[string]string)
 	}
 
-	if v, ok := p.(ArgsValidator); ok {
+	if v, ok := p.(DestValidator); ok {
 		// Some providers may need/want to validate all args at once.
-		err := v.ValidateArgs(ctx, dest.Args)
+		err := v.ValidateDest(ctx, dest)
 		// If we get `ErrUnsupported`, we'll fall back to the field-by-field validation, this can happen if the provider implements the interface, but the backing implementation (e.g., external plugin) doesn't support it.
 		if !errors.Is(err, ErrUnsupported) {
+			// If the provider implements the DestValidator interface, we'll use that for validation. We return err, even if it's nil UNLESS it's ErrUnsupported.
 			return err
 		}
 	}
