@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification/nfydest"
@@ -135,7 +134,6 @@ func addInputError(ctx context.Context, err error) {
 //
 // In the future this will be a call to the plugin system.
 func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *gadb.DestV1) (err error) {
-	cfg := config.FromContext(ctx)
 	switch dest.Type {
 	case destAlert:
 		return nil
@@ -158,16 +156,6 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 		err := validate.Email(fieldEmailAddress, email)
 		if err != nil {
 			return addDestFieldError(ctx, fieldName, fieldEmailAddress, err)
-		}
-		return nil
-	case destWebhook:
-		url := dest.Arg(fieldWebhookURL)
-		err := validate.AbsoluteURL(fieldWebhookURL, url)
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldWebhookURL, err)
-		}
-		if !cfg.ValidWebhookURL(url) {
-			return addDestFieldError(ctx, fieldName, fieldWebhookURL, validation.NewGenericError("url is not allowed by administator"))
 		}
 		return nil
 	case destSchedule: // must be valid UUID and exist

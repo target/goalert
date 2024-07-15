@@ -17,7 +17,6 @@ const (
 	destTwilioSMS   = "builtin-twilio-sms"
 	destTwilioVoice = "builtin-twilio-voice"
 	destSMTP        = "builtin-smtp-email"
-	destWebhook     = "builtin-webhook"
 	destUser        = "builtin-user"
 	destRotation    = "builtin-rotation"
 	destSchedule    = "builtin-schedule"
@@ -25,7 +24,6 @@ const (
 
 	fieldPhoneNumber  = "phone_number"
 	fieldEmailAddress = "email_address"
-	fieldWebhookURL   = "webhook_url"
 	fieldUserID       = "user_id"
 	fieldRotationID   = "rotation_id"
 	fieldScheduleID   = "schedule_id"
@@ -200,13 +198,6 @@ func (q *Query) DestinationFieldValidate(ctx context.Context, input graphql2.Des
 		}
 
 		return validate.Email("Email", input.Value) == nil, nil
-	case destWebhook:
-		if input.FieldID != fieldWebhookURL {
-			return false, validation.NewGenericError("unsupported field")
-		}
-
-		err := validate.AbsoluteURL("URL", input.Value)
-		return err == nil, nil
 	}
 
 	err := q.DestReg.ValidateField(ctx, input.DestType, input.FieldID, input.Value)
@@ -304,39 +295,6 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 				Label:   "Body",
 				Hint:    "Body of the email message.",
 			}},
-		},
-		{
-			Type:                       destWebhook,
-			Name:                       "Webhook",
-			Enabled:                    cfg.Webhook.Enable,
-			SupportsUserVerification:   true,
-			SupportsOnCallNotify:       true,
-			SupportsSignals:            true,
-			SupportsStatusUpdates:      true,
-			SupportsAlertNotifications: true,
-			StatusUpdatesRequired:      true,
-			RequiredFields: []nfydest.FieldConfig{{
-				FieldID:            fieldWebhookURL,
-				Label:              "Webhook URL",
-				PlaceholderText:    "https://example.com",
-				InputType:          "url",
-				Hint:               "Webhook Documentation",
-				HintURL:            "/docs#webhooks",
-				SupportsValidation: true,
-			}},
-			DynamicParams: []nfydest.DynamicParamConfig{
-				{
-					ParamID: "body",
-					Label:   "Body",
-					Hint:    "The body of the request.",
-				},
-				{
-					ParamID:      "content-type",
-					Label:        "Content Type",
-					Hint:         "The content type (e.g., application/json).",
-					DefaultValue: `"application/json"`, // Because this is an expression, it needs the double quotes.
-				},
-			},
 		},
 		{
 			Type:                       destRotation,
