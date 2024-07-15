@@ -1,19 +1,20 @@
 import React, { useState } from 'react'
-import { gql, useMutation, useQuery } from 'urql'
 import FormDialog from '../../dialogs/FormDialog'
 import UniversalKeyRuleForm from './UniversalKeyRuleForm'
+import { gql, useMutation, useQuery } from 'urql'
 import { IntegrationKey, KeyRuleInput } from '../../../schema'
 import { getNotice } from './utils'
 import { useErrorConsumer } from '../../util/ErrorConsumer'
 
-interface UniversalKeyRuleEditDialogProps {
+interface UniversalKeyRuleDialogProps {
   keyID: string
-  ruleID: string
   onClose: () => void
-  default?: boolean
+
+  ruleID: string // if present, we are editing
+  default?: boolean // used when creating default action
 }
 
-const query = gql`
+const editQuery = gql`
   query UniversalKeyPage($keyID: ID!, $ruleID: ID!) {
     integrationKey(id: $keyID) {
       id
@@ -43,50 +44,60 @@ const mutation = gql`
   }
 `
 
-export default function UniversalKeyRuleEditDialog(
-  props: UniversalKeyRuleEditDialogProps,
+export default function UniversalKeyRuleDialogProps(
+  props: UniversalKeyRuleDialogProps,
 ): JSX.Element {
   const [q] = useQuery<{
     integrationKey: IntegrationKey
   }>({
-    query,
+    query: editQuery,
     variables: {
       keyID: props.keyID,
       ruleID: props.ruleID,
     },
+    pause: !props.ruleID,
   })
   if (q.error) throw q.error
 
   // shouldn't happen due to suspense
-  if (!q.data) throw new Error('failed to load data')
+  if (props.ruleID && !q.data) throw new Error('failed to load data')
 
-  const rule = q.data.integrationKey.config.oneRule
-  if (!rule) throw new Error('rule not found')
+  const rule = q.data?.integrationKey.config.oneRule
+  if (props.ruleID && !rule) throw new Error('rule not found')
 
-  const [value, setValue] = useState<KeyRuleInput>(rule)
+  const [value, setValue] = useState<KeyRuleInput>({
+    id: rule?.id ?? undefined,
+    name: rule?.name ?? '',
+    description: rule?.description ?? '',
+    conditionExpr: rule?.conditionExpr ?? '',
+    continueAfterMatch: rule?.continueAfterMatch ?? false,
+    actions: rule?.actions ?? [],
+  })
   const [m, commit] = useMutation(mutation)
-
   const [hasConfirmed, setHasConfirmed] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const noActionsNoConf = value.actions.length === 0 && !hasConfirmed
+
   const errs = useErrorConsumer(m.error)
-  const form = (
-    <UniversalKeyRuleForm
-      value={value}
-      onChange={setValue}
-      nameError={errs.getErrorByField(/Rules.+\.Name/)}
-      descriptionError={errs.getErrorByField(/Rules.+\.Description/)}
-      conditionError={errs.getErrorByPath(
-        'updateKeyConfig.input.setRule.conditionExpr',
-      )}
-    />
+  const errors = errs.remainingLegacyCallback()
+  const nameError = errs.getErrorByField(/Rules.+\.Name/)
+  const descError = errs.getErrorByField(/Rules.+\.Description/)
+  const conditionError = errs.getErrorByPath(
+    'updateKeyConfig.input.setRule.conditionExpr',
   )
 
   return (
     <FormDialog
-      title={props.default ? 'Edit Default Actions' : 'Edit Rule'}
-      maxWidth={props.default ? 'sm' : 'lg'}
+      title={
+        props.ruleID
+          ? props.default
+            ? 'Edit Default Actions'
+            : 'Edit Rule'
+          : 'Create Rule'
+      }
+      maxWidth='lg'
       onClose={props.onClose}
+      errors={errors}
       onSubmit={() => {
         if (noActionsNoConf) {
           setHasSubmitted(true)
@@ -107,8 +118,15 @@ export default function UniversalKeyRuleEditDialog(
           props.onClose()
         })
       }}
-      form={form}
-      errors={errs.remainingLegacyCallback()}
+      form={
+        <UniversalKeyRuleForm
+          value={value}
+          onChange={setValue}
+          nameError={nameError}
+          descriptionError={descError}
+          conditionError={conditionError}
+        />
+      }
       notices={getNotice(hasSubmitted, hasConfirmed, setHasConfirmed)}
     />
   )
