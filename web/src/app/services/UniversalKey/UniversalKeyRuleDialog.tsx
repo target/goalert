@@ -1,15 +1,42 @@
 import React, { useEffect, useState } from 'react'
 import FormDialog from '../../dialogs/FormDialog'
 import UniversalKeyRuleForm from './UniversalKeyRuleForm'
-import { gql, useMutation } from 'urql'
-import { KeyRuleInput } from '../../../schema'
+import { gql, useMutation, useQuery } from 'urql'
+import { IntegrationKey, KeyRuleInput } from '../../../schema'
 import { getNotice } from './utils'
 import { useErrorConsumer } from '../../util/ErrorConsumer'
 
-interface UniversalKeyRuleCreateDialogProps {
+interface UniversalKeyRuleDialogProps {
   keyID: string
   onClose: () => void
+
+  ruleID: string // if present, we are editing
+  default?: boolean // used when creating default action
 }
+
+const editQuery = gql`
+  query UniversalKeyPage($keyID: ID!, $ruleID: ID!) {
+    integrationKey(id: $keyID) {
+      id
+      config {
+        oneRule(id: $ruleID) {
+          id
+          name
+          description
+          conditionExpr
+          continueAfterMatch
+          actions {
+            dest {
+              type
+              args
+            }
+            params
+          }
+        }
+      }
+    }
+  }
+`
 
 const mutation = gql`
   mutation ($input: UpdateKeyConfigInput!) {
@@ -17,15 +44,34 @@ const mutation = gql`
   }
 `
 
-export default function UniversalKeyRuleCreateDialog(
-  props: UniversalKeyRuleCreateDialogProps,
+export default function UniversalKeyRuleDialog(
+  props: UniversalKeyRuleDialogProps,
 ): JSX.Element {
+  const [q] = useQuery<{
+    integrationKey: IntegrationKey
+  }>({
+    query: editQuery,
+    variables: {
+      keyID: props.keyID,
+      ruleID: props.ruleID,
+    },
+    pause: !props.ruleID,
+  })
+  if (q.error) throw q.error
+
+  // shouldn't happen due to suspense
+  if (props.ruleID && !q.data) throw new Error('failed to load data')
+
+  const rule = q.data?.integrationKey.config.oneRule
+  if (props.ruleID && !rule) throw new Error('rule not found')
+
   const [value, setValue] = useState<KeyRuleInput>({
-    name: '',
-    description: '',
-    conditionExpr: '',
-    continueAfterMatch: false,
-    actions: [],
+    id: rule?.id ?? undefined,
+    name: rule?.name ?? '',
+    description: rule?.description ?? '',
+    conditionExpr: rule?.conditionExpr ?? '',
+    continueAfterMatch: rule?.continueAfterMatch ?? false,
+    actions: rule?.actions ?? [],
   })
   const [step, setStep] = useState(0)
   const [m, commit] = useMutation(mutation)
@@ -77,7 +123,13 @@ export default function UniversalKeyRuleCreateDialog(
 
   return (
     <FormDialog
-      title='Create Rule'
+      title={
+        props.ruleID
+          ? props.default
+            ? 'Edit Default Actions'
+            : 'Edit Rule'
+          : 'Create Rule'
+      }
       onClose={props.onClose}
       errors={errors}
       onSubmit={() => setHasSubmitted(hasSubmitted + 1)}

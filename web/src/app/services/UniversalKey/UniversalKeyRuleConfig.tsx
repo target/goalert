@@ -2,14 +2,13 @@ import React, { Suspense, useState } from 'react'
 import { Button, Card } from '@mui/material'
 import { Add } from '@mui/icons-material'
 import FlatList, { FlatListListItem } from '../../lists/FlatList'
-import UniversalKeyRuleCreateDialog from './UniversalKeyRuleCreateDialog'
-import UniversalKeyRuleEditDialog from './UniversalKeyRuleEditDialog'
 import UniversalKeyRuleRemoveDialog from './UniversalKeyRuleRemoveDialog'
 import OtherActions from '../../util/OtherActions'
 import { gql, useQuery } from 'urql'
 import { IntegrationKey, Service } from '../../../schema'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
+import UniversalKeyRuleDialog from './UniversalKeyRuleDialog'
 
 interface UniversalKeyRuleListProps {
   serviceID: string
@@ -93,15 +92,12 @@ export default function UniversalKeyRuleList(
       </Card>
 
       <Suspense>
-        {create && (
-          <UniversalKeyRuleCreateDialog
-            onClose={() => setCreate(false)}
-            keyID={props.keyID}
-          />
-        )}
-        {edit && (
-          <UniversalKeyRuleEditDialog
-            onClose={() => setEdit('')}
+        {(create || edit) && (
+          <UniversalKeyRuleDialog
+            onClose={() => {
+              setCreate(false)
+              setEdit('')
+            }}
             keyID={props.keyID}
             ruleID={edit}
           />
