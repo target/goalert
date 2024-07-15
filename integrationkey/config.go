@@ -29,7 +29,7 @@ func destHash(dest gadb.DestV1) (hash [32]byte) {
 		panic(err)
 	}
 	h := sha256.New()
-	io.WriteString(h, string(data))
+	_, _ = io.WriteString(h, string(data))
 	copy(hash[:], h.Sum(nil))
 	return hash
 }
