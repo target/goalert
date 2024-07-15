@@ -86,6 +86,7 @@ func (app *App) startup(ctx context.Context) error {
 		return app.startupErr
 	}
 
+	app.DestRegistry.RegisterProvider(ctx, app.AlertStore)
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan)
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan.DMSender())
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan.UserGroupSender())
