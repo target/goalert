@@ -122,17 +122,6 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 			LinkURL:     cfg.CallbackURL("/schedules/" + s.ID),
 			Text:        s.Name,
 		}, nil
-	case destUser:
-		u, err := app.FindOneUser(ctx, dest.Arg(fieldUserID))
-		if err != nil {
-			return nil, err
-		}
-		return &nfydest.DisplayInfo{
-			IconURL:     cfg.CallbackURL("/api/v2/user-avatar/" + u.ID),
-			IconAltText: "User",
-			LinkURL:     cfg.CallbackURL("/users/" + u.ID),
-			Text:        u.Name,
-		}, nil
 	}
 
 	return app.DestReg.DisplayInfo(ctx, dest)

@@ -186,20 +186,6 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 		}
 
 		return nil
-	case destUser: // must be valid UUID and exist
-		userID := dest.Arg(fieldUserID)
-		uid, err := validate.ParseUUID(fieldUserID, userID)
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldUserID, err)
-		}
-		check, err := a.UserStore.UserExists(ctx)
-		if err != nil {
-			return fmt.Errorf("get user existance checker: %w", err)
-		}
-		if !check.UserExistsUUID(uid) {
-			return addDestFieldError(ctx, fieldName, fieldUserID, validation.NewGenericError("user does not exist"))
-		}
-		return nil
 	}
 
 	err = a.DestReg.ValidateDest(ctx, *dest)

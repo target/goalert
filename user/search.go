@@ -7,6 +7,7 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/user/contactmethod"
@@ -39,6 +40,19 @@ type SearchOptions struct {
 
 	// FavoritesFirst indicates the user marked as favorite (by FavoritesUserID) should be returned first (before any non-favorites).
 	FavoritesFirst bool `json:"f,omitempty"`
+}
+
+func (so *SearchOptions) FromNotifyOptions(opts nfydest.SearchOptions) error {
+	so.Search = opts.Search
+	so.Omit = opts.Omit
+	so.Limit = opts.Limit
+	if opts.Cursor != "" {
+		err := search.ParseCursor(opts.Cursor, &so.After)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // SearchCursor is used to indicate a position in a paginated list.
@@ -151,6 +165,21 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("CMType", opts.CMType),
 		sql.Named("favUserID", opts.FavoritesUserID),
 		sql.Named("Email", opts.Email()),
+	}
+}
+
+func (u User) Cursor() (string, error) {
+	return search.Cursor(SearchCursor{
+		Name:       u.Name,
+		IsFavorite: u.isUserFavorite,
+	})
+}
+
+func (u User) AsField() nfydest.FieldValue {
+	return nfydest.FieldValue{
+		Value:      u.ID,
+		Label:      u.Name,
+		IsFavorite: u.isUserFavorite,
 	}
 }
 

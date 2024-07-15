@@ -11,6 +11,7 @@ import (
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/notificationchannel"
+	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
 )
 
@@ -19,8 +20,8 @@ func CompatTargetToDest(tgt assignment.Target) (gadb.DestV1, error) {
 	switch tgt.TargetType() {
 	case assignment.TargetTypeUser:
 		return gadb.DestV1{
-			Type: destUser,
-			Args: map[string]string{fieldUserID: tgt.TargetID()},
+			Type: user.DestTypeUser,
+			Args: map[string]string{user.FieldUserID: tgt.TargetID()},
 		}, nil
 	case assignment.TargetTypeRotation:
 		return gadb.DestV1{
@@ -105,10 +106,10 @@ func CompatDestToCMTypeVal(d gadb.DestV1) (contactmethod.Type, string) {
 // CompatDestToTarget converts a gadb.DestV1 to a graphql2.RawTarget
 func CompatDestToTarget(d gadb.DestV1) (assignment.RawTarget, error) {
 	switch d.Type {
-	case destUser:
+	case user.DestTypeUser:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeUser,
-			ID:   d.Arg(fieldUserID),
+			ID:   d.Arg(user.FieldUserID),
 		}, nil
 	case destRotation:
 		return assignment.RawTarget{
