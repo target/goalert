@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
@@ -47,8 +48,11 @@ func (s *Store) validateActions(ctx context.Context, fname string, actions []gad
 		}
 		hash := destHash(a.Dest)
 		if _, ok := uniqDest[hash]; ok {
-			name, _ := s.reg.LookupTypeName(ctx, a.Dest.Type)
-			if name == "" {
+			name, err := s.reg.LookupTypeName(ctx, a.Dest.Type)
+			if err != nil {
+				// Handle error by logging it and using the type ID as the name.
+				// This is unlikely since the destination type should have been validated earlier.
+				log.Log(ctx, err)
 				name = a.Dest.Type
 			}
 			return validation.NewFieldErrorf(fmt.Sprintf("%s[%d]", fname, i), "duplicate destination '%s' not allowed", name)
