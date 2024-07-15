@@ -78,12 +78,14 @@ func (r *Registry) ValidateAction(ctx context.Context, act gadb.UIKActionV1) err
 	}
 
 	for _, param := range info.DynamicParams {
-		val := "string(" + act.Params[param.ParamID] + ")"
-		_, err = expr.Compile(val, expr.AsKind(reflect.String))
-		if err != nil {
-			return &ActionParamError{
-				ParamID: param.ParamID,
-				Err:     validation.WrapError(err),
+		if act.Params[param.ParamID] != "" {
+			val := "string(" + act.Params[param.ParamID] + ")"
+			_, err = expr.Compile(val, expr.AsKind(reflect.String))
+			if err != nil {
+				return &ActionParamError{
+					ParamID: param.ParamID,
+					Err:     validation.WrapError(err),
+				}
 			}
 		}
 
