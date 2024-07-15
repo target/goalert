@@ -12,6 +12,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation"
@@ -153,20 +154,6 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 			return addDestFieldError(ctx, fieldName, fieldPhoneNumber, err)
 		}
 		return nil
-	case slack.DestTypeSlackChannel:
-		chanID := dest.Arg(slack.FieldSlackChannelID)
-		err := a.SlackStore.ValidateChannel(ctx, chanID)
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, slack.FieldSlackChannelID, err)
-		}
-
-		return nil
-	case destSlackDM:
-		userID := dest.Arg(fieldSlackUserID)
-		if err := a.SlackStore.ValidateUser(ctx, userID); err != nil {
-			return addDestFieldError(ctx, fieldName, fieldSlackUserID, err)
-		}
-		return nil
 	case destSlackUG:
 		ugID := dest.Arg(fieldSlackUGID)
 		userErr := a.SlackStore.ValidateUserGroup(ctx, ugID)
@@ -244,19 +231,34 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 		return nil
 	}
 
-	message := fmt.Sprintf("unsupported destination type: %s", dest.Type)
-	if dest.Type == "" {
-		message = "destination type is required"
+	err = a.DestReg.ValidateDest(ctx, *dest)
+	if errors.Is(err, nfydest.ErrUnknownType) {
+		message := fmt.Sprintf("unsupported destination type: %s", dest.Type)
+		if dest.Type == "" {
+			message = "destination type is required"
+		}
+
+		// unsupported destination type
+		graphql.AddError(ctx, &gqlerror.Error{
+			Message: message,
+			Path:    appendPath(ctx, fieldName+".type"),
+			Extensions: map[string]interface{}{
+				"code": graphql2.ErrorCodeInvalidInputValue,
+			},
+		})
+
+		return errAlreadySet
 	}
 
-	// unsupported destination type
-	graphql.AddError(ctx, &gqlerror.Error{
-		Message: message,
-		Path:    appendPath(ctx, fieldName+".type"),
-		Extensions: map[string]interface{}{
-			"code": graphql2.ErrorCodeInvalidInputValue,
-		},
-	})
+	var argErr *nfydest.DestArgError
+	if errors.As(err, &argErr) {
+		return addDestFieldError(ctx, fieldName, argErr.FieldID, argErr.Err)
+	}
 
-	return errAlreadySet
+	if err != nil {
+		// internal error
+		return err
+	}
+
+	return nil
 }

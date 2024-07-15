@@ -11,6 +11,7 @@ import (
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/validation"
@@ -47,8 +48,8 @@ func (a *ContactMethod) Dest(ctx context.Context, obj *contactmethod.ContactMeth
 		}, nil
 	case contactmethod.TypeSlackDM:
 		return &gadb.DestV1{
-			Type: destSlackDM,
-			Args: map[string]string{fieldSlackUserID: obj.Value},
+			Type: slack.DestTypeSlackDirectMessage,
+			Args: map[string]string{slack.FieldSlackUserID: obj.Value},
 		}, nil
 	}
 

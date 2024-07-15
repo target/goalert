@@ -151,27 +151,6 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 			IconAltText: "Webhook",
 			Text:        u.Hostname(),
 		}, nil
-	case destSlackDM:
-		u, err := app.SlackStore.User(ctx, dest.Arg(fieldSlackUserID))
-		if err != nil {
-			return nil, err
-		}
-
-		team, err := app.SlackStore.Team(ctx, u.TeamID)
-		if err != nil {
-			return nil, err
-		}
-
-		if team.IconURL == "" {
-			team.IconURL = "builtin://slack"
-		}
-
-		return &nfydest.DisplayInfo{
-			IconURL:     team.IconURL,
-			IconAltText: team.Name,
-			LinkURL:     team.UserLink(u.ID),
-			Text:        u.Name,
-		}, nil
 
 	case destSlackUG:
 		ug, err := app.SlackStore.UserGroup(ctx, dest.Arg(fieldSlackUGID))

@@ -6,7 +6,7 @@ type Provider interface {
 	ID() string
 	TypeInfo(ctx context.Context) (*TypeInfo, error)
 
-	ValidateField(ctx context.Context, fieldID, value string) (ok bool, err error)
+	ValidateField(ctx context.Context, fieldID, value string) error
 	DisplayInfo(ctx context.Context, args map[string]string) (*DisplayInfo, error)
 }
 
