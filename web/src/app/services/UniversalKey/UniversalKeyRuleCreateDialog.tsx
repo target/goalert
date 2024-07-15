@@ -34,13 +34,13 @@ export default function UniversalKeyRuleCreateDialog(
 
   const errs = useErrorConsumer(m.error)
   const errors = errs.remainingLegacyCallback()
-  const showNotice = hasSubmitted > 0 && value.actions.length === 0
-
   const nameError = errs.getErrorByField(/Rules.+\.Name/)
   const descError = errs.getErrorByField(/Rules.+\.Description/)
   const conditionError = errs.getErrorByPath(
     'updateKeyConfig.input.setRule.conditionExpr',
   )
+
+  const showNotice = hasSubmitted > 0 && value.actions.length === 0
 
   useEffect(() => {
     // if no actions notice, user must confirm they want this before submitting

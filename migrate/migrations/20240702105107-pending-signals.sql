@@ -111,3 +111,4 @@ DROP FUNCTION fn_enforce_signals_per_service_limit();
 
 DELETE FROM config_limits
 WHERE id IN ('pending_signals_per_service', 'pending_signals_per_dest_per_service');
+

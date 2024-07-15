@@ -66,6 +66,8 @@ export default function UniversalKeyRuleEditDialog(
   const [value, setValue] = useState<KeyRuleInput>(rule)
   const [step, setStep] = useState(0)
   const [m, commit] = useMutation(mutation)
+  const [hasConfirmed, setHasConfirmed] = useState(false)
+  const [hasSubmitted, setHasSubmitted] = useState(0)
 
   const errs = useErrorConsumer(m.error)
   const errors = errs.remainingLegacyCallback()
@@ -75,8 +77,6 @@ export default function UniversalKeyRuleEditDialog(
     'updateKeyConfig.input.setRule.conditionExpr',
   )
 
-  const [hasConfirmed, setHasConfirmed] = useState(false)
-  const [hasSubmitted, setHasSubmitted] = useState(0)
   const showNotice = hasSubmitted > 0 && value.actions.length === 0
 
   useEffect(() => {
@@ -116,12 +116,12 @@ export default function UniversalKeyRuleEditDialog(
     <FormDialog
       title={props.default ? 'Edit Default Actions' : 'Edit Rule'}
       onClose={props.onClose}
+      errors={errors}
       onSubmit={() => setHasSubmitted(hasSubmitted + 1)}
       disableSubmit={step < 2 && !hasSubmitted}
       disableNext={step === 2}
       onNext={() => setStep(step + 1)}
       onBack={step > 0 && step <= 2 ? () => setStep(step - 1) : null}
-      errors={errors}
       form={
         <UniversalKeyRuleForm
           value={value}

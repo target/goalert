@@ -185,31 +185,6 @@ func (key *IntegrationKey) Config(ctx context.Context, raw *integrationkey.Integ
 	return key.IntKeyStore.Config(ctx, key.DB, id)
 }
 
-// validateRuleActions validates that each rule within a set of rules has a unique set of action destinations.
-func validateRuleActions(r []graphql2.KeyRuleInput) (err error) {
-	for _, rule := range r {
-		err = validateDuplicateActions(&rule)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// validateDuplicateActions validates that a rule has a unique set of action destinations.
-func validateDuplicateActions(r *graphql2.KeyRuleInput) error {
-	seen := make(map[string]bool)
-	actions := actionsGQLToGo(r.Actions)
-	for _, action := range actions {
-		if seen[action.Type] {
-			return validation.NewFieldError("dest.type", "multiple actions reach the same destination")
-		} else {
-			seen[action.Type] = true
-		}
-	}
-	return nil
-}
-
 func (key *IntegrationKey) Type(ctx context.Context, raw *integrationkey.IntegrationKey) (graphql2.IntegrationKeyType, error) {
 	return graphql2.IntegrationKeyType(raw.Type), nil
 }
