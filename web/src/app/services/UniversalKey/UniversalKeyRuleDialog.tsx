@@ -149,6 +149,11 @@ export default function UniversalKeyRuleDialog(
         />
       }
       notices={getNotice(showNotice, hasConfirmed, setHasConfirmed)}
+      PaperProps={{
+        sx: {
+          minHeight: '500px',
+        },
+      }}
     />
   )
 }
