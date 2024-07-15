@@ -84,7 +84,7 @@ function testTemporarySchedule(screen: string): void {
 
     cy.dialogClick('Submit')
     cy.get('input[name="allowCoverageGaps"]').check()
-    cy.dialogFinish('Submit')
+    cy.dialogFinish('Retry')
 
     cy.visit('/schedules/' + schedule.id + '?start=' + start.toISO())
     cy.get('div').contains('Temporary Schedule').click()
