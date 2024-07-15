@@ -8,7 +8,6 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification/nfydest"
-	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
@@ -19,7 +18,6 @@ const (
 	destTwilioVoice = "builtin-twilio-voice"
 	destSMTP        = "builtin-smtp-email"
 	destWebhook     = "builtin-webhook"
-	destSlackUG     = "builtin-slack-usergroup"
 	destUser        = "builtin-user"
 	destRotation    = "builtin-rotation"
 	destSchedule    = "builtin-schedule"
@@ -28,7 +26,6 @@ const (
 	fieldPhoneNumber  = "phone_number"
 	fieldEmailAddress = "email_address"
 	fieldWebhookURL   = "webhook_url"
-	fieldSlackUGID    = "slack_usergroup_id"
 	fieldUserID       = "user_id"
 	fieldRotationID   = "rotation_id"
 	fieldScheduleID   = "schedule_id"
@@ -41,13 +38,7 @@ type (
 
 func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.DestinationFieldValidateInput) (string, error) {
 	switch input.FieldID {
-	case fieldSlackUGID:
-		ug, err := q.SlackUserGroup(ctx, input.Value)
-		if err != nil {
-			return "", err
-		}
 
-		return ug.Handle, nil
 	case fieldRotationID:
 		rot, err := q.Rotation(ctx, input.Value)
 		if err != nil {
@@ -70,14 +61,6 @@ func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.De
 		return u.Name, nil
 	}
 
-	if input.DestType == destSlackUG && input.FieldID == slack.FieldSlackChannelID {
-		// Hack: Slack User Group channel search is a special case, until
-		// it is migrated to the new search system.
-		//
-		// TODO: remove this when slack user group is moved to the nfydest.Registry.
-		input.DestType = slack.DestTypeSlackChannel
-	}
-
 	return q.DestReg.FieldLabel(ctx, input.DestType, input.FieldID, input.Value)
 }
 
@@ -85,30 +68,6 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 	favFirst := true
 
 	switch input.FieldID {
-	case fieldSlackUGID:
-		res, err := q.SlackUserGroups(ctx, &graphql2.SlackUserGroupSearchOptions{
-			Omit:   input.Omit,
-			First:  input.First,
-			Search: input.Search,
-			After:  input.After,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		var nodes []graphql2.FieldSearchResult
-		for _, ug := range res.Nodes {
-			nodes = append(nodes, graphql2.FieldSearchResult{
-				FieldID: input.FieldID,
-				Value:   ug.ID,
-				Label:   ug.Handle,
-			})
-		}
-
-		return &graphql2.FieldSearchConnection{
-			Nodes:    nodes,
-			PageInfo: res.PageInfo,
-		}, nil
 	case fieldRotationID:
 		res, err := q.Rotations(ctx, &graphql2.RotationSearchOptions{
 			Omit:           input.Omit,
@@ -199,14 +158,6 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 	}
 	if input.Search != nil {
 		opts.Search = *input.Search
-	}
-
-	if input.DestType == destSlackUG && input.FieldID == slack.FieldSlackChannelID {
-		// Hack: Slack User Group channel search is a special case, until
-		// it is migrated to the new search system.
-		//
-		// TODO: remove this when slack user group is moved to the nfydest.Registry.
-		input.DestType = slack.DestTypeSlackChannel
 	}
 
 	res, err := q.DestReg.SearchField(ctx, input.DestType, input.FieldID, opts)
@@ -386,25 +337,6 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 					DefaultValue: `"application/json"`, // Because this is an expression, it needs the double quotes.
 				},
 			},
-		},
-		{
-			Type:                 destSlackUG,
-			Name:                 "Update Slack User Group",
-			Enabled:              cfg.Slack.Enable,
-			SupportsOnCallNotify: true,
-			RequiredFields: []nfydest.FieldConfig{{
-				FieldID:        fieldSlackUGID,
-				Label:          "User Group",
-				InputType:      "text",
-				SupportsSearch: true,
-				Hint:           "The selected group's membership will be replaced/set to the schedule's on-call user(s).",
-			}, {
-				FieldID:        slack.FieldSlackChannelID,
-				Label:          "Slack Channel (for errors)",
-				InputType:      "text",
-				SupportsSearch: true,
-				Hint:           "If the user group update fails, an error will be posted to this channel.",
-			}},
 		},
 		{
 			Type:                       destRotation,

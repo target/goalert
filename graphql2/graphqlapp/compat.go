@@ -66,10 +66,10 @@ func (a *App) CompatNCToDest(ctx context.Context, ncID uuid.UUID) (*gadb.DestV1,
 		}
 
 		return &gadb.DestV1{
-			Type: destSlackUG,
+			Type: slack.DestTypeSlackUsergroup,
 			Args: map[string]string{
-				fieldSlackUGID:            ugID,
-				slack.FieldSlackChannelID: chanID,
+				slack.FieldSlackUsergroupID: ugID,
+				slack.FieldSlackChannelID:   chanID,
 			},
 		}, nil
 	case notificationchannel.TypeWebhook:
@@ -124,10 +124,10 @@ func CompatDestToTarget(d gadb.DestV1) (assignment.RawTarget, error) {
 			Type: assignment.TargetTypeSlackChannel,
 			ID:   d.Arg(slack.FieldSlackChannelID),
 		}, nil
-	case destSlackUG:
+	case slack.DestTypeSlackUsergroup:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeSlackUserGroup,
-			ID:   d.Arg(fieldSlackUGID) + ":" + d.Arg(slack.FieldSlackChannelID),
+			ID:   d.Arg(slack.FieldSlackUsergroupID) + ":" + d.Arg(slack.FieldSlackChannelID),
 		}, nil
 	case destWebhook:
 		return assignment.RawTarget{
