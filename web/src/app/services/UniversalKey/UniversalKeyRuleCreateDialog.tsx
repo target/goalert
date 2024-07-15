@@ -43,8 +43,6 @@ export default function UniversalKeyRuleCreateDialog(
   )
 
   useEffect(() => {
-    console.log('in setStep(0) useeffect')
-
     // showing notice takes precedence
     // don't change steps when this flips to true
     if (showNotice && !hasConfirmed) {

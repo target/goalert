@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import {
-  Divider,
   FormControl,
   FormControlLabel,
   FormLabel,

@@ -43,7 +43,7 @@ export default function UniversalKeyActionsList(
         ))}
       </Grid>
       {props.actions.length === 0 && (
-        <Grid item xs={12}>
+        <Grid item xs={12} data-testid='actions-list'>
           <Typography
             variant='body2'
             color='textSecondary'

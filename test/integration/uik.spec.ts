@@ -57,14 +57,12 @@ test('create universal key, add rule with action', async ({
   await page.fill('input[name=name]', ruleName)
   await page.fill('input[name=description]', ruleDesc)
   await page.fill('textarea[name=conditionExpr]', 'true')
+  await page.getByRole('button', { name: 'Next' }).click()
 
   // add an action to the rule and submit
   await dropdownSelect(page, 'Destination Type', 'Alert')
   await expect(
-    page
-      .locator('#dialog-form')
-      .getByTestId('actions-list')
-      .getByTestId('no-actions'),
+    page.locator('#dialog-form').getByTestId('no-actions'),
   ).toBeVisible()
   await page.getByRole('button', { name: 'Add Action' }).click()
   await expect(
@@ -73,6 +71,8 @@ test('create universal key, add rule with action', async ({
   await expect(
     page.locator('span', { hasText: 'Create new alert' }),
   ).toBeVisible()
+
+  await page.getByRole('button', { name: 'Next' }).click()
   await page.getByRole('button', { name: 'Submit' }).click()
   await expect(page.locator('[role=dialog]')).toBeHidden()
 
@@ -86,16 +86,15 @@ test('create universal key, add rule with action', async ({
 
   // update description, delete the action, submit
   await page.fill('input[name=description]', ruleNewDesc)
+  await page.getByRole('button', { name: 'Next' }).click()
   await page
     .locator('div', { hasText: 'Create new alert' })
     .locator('[data-testid=CancelIcon]')
     .click()
   await expect(
-    page
-      .locator('#dialog-form')
-      .getByTestId('actions-list')
-      .getByTestId('no-actions'),
+    page.locator('#dialog-form').getByTestId('no-actions'),
   ).toBeVisible()
+  await page.getByRole('button', { name: 'Next' }).click()
   await page.getByRole('button', { name: 'Submit' }).click()
 
   // see warning for no actions- check and submit
