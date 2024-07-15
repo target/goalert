@@ -131,6 +131,7 @@ export default function UniversalKeyRuleDialog(
           : 'Create Rule'
       }
       onClose={props.onClose}
+      loading={m.fetching}
       errors={errors}
       onSubmit={() => setHasSubmitted(hasSubmitted + 1)}
       disableSubmit={step < 2 && !hasSubmitted}

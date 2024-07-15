@@ -181,7 +181,7 @@ function FormDialog(props) {
           }}
           attemptCount={attemptCount}
           buttonText={primaryActionLabel || (confirm ? 'Confirm' : 'Submit')}
-          disabled={disableSubmit}
+          disabled={loading || disableSubmit}
           loading={loading}
           type='submit'
         />
