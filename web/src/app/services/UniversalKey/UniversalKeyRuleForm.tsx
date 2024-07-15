@@ -10,6 +10,7 @@ import {
   Step,
   StepButton,
   TextField,
+  Divider,
 } from '@mui/material'
 import { ActionInput, KeyRuleInput } from '../../../schema'
 import UniversalKeyActionsList from './UniversalKeyActionsList'
@@ -117,6 +118,9 @@ export default function UniversalKeyRuleForm(
               }
               onChipClick={handleChipClick}
             />
+          </Grid>
+          <Grid item xs={12}>
+            <Divider sx={{ color: 'white' }} />
           </Grid>
           <Grid item xs={12}>
             <UniversalKeyActionsForm

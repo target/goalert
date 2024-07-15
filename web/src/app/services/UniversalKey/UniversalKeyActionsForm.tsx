@@ -74,73 +74,74 @@ export default function UniversalKeyActionsForm(
         />
       )}
 
-      <Grid
-        item
-        xs={12}
-        sx={{
-          display: 'flex',
-          alignItems: 'flex-end',
-        }}
-      >
-        <Button
-          fullWidth
-          type='button'
-          startIcon={<Add />}
-          variant='contained'
-          color='secondary'
-          sx={{ height: 'fit-content' }}
-          disabled={!currentAction?.destType}
-          onClick={() => {
-            const input = valueToActionInput(currentAction)
-
-            if (props.editActionId !== '') {
-              actions = props.value.filter(
-                (v) => v.dest.type !== props.editActionId,
-              )
-            }
-
-            let cancel = ''
-            actions.forEach((_a) => {
-              const a = JSON.stringify(_a.dest.args)
-              const cur = JSON.stringify(input.dest.args)
-              if (a === cur) {
-                cancel = 'Cannot add same destination twice'
-              }
-            })
-
-            if (cancel !== '') {
-              setAddError({
-                message: cancel,
-              } as CombinedError)
-              return
-            }
-
-            setAddError(null)
-            valClient
-              .query(query, { input })
-              .toPromise()
-              .then((res) => {
-                if (res.error) {
-                  setAddError(res.error)
-                  return
-                }
-
-                // clear the current action
-                setCurrentAction(null)
-                props.onChange(actions.concat(input))
-
-                if (props.onChipClick) {
-                  props.onChipClick({
-                    dest: { type: '', args: {} },
-                    params: {},
-                  })
-                }
-              })
+      {currentAction?.destType && (
+        <Grid
+          item
+          xs={12}
+          sx={{
+            display: 'flex',
+            alignItems: 'flex-end',
           }}
         >
-          {props.editActionId ? 'Save Action' : 'Add Action'}
-        </Button>
-      </Grid>
+          <Button
+            fullWidth
+            type='button'
+            startIcon={<Add />}
+            variant='contained'
+            color='secondary'
+            sx={{ height: 'fit-content' }}
+            onClick={() => {
+              const input = valueToActionInput(currentAction)
+
+              if (props.editActionId !== '') {
+                actions = props.value.filter(
+                  (v) => v.dest.type !== props.editActionId,
+                )
+              }
+
+              let cancel = ''
+              actions.forEach((_a) => {
+                const a = JSON.stringify(_a.dest.args)
+                const cur = JSON.stringify(input.dest.args)
+                if (a === cur) {
+                  cancel = 'Cannot add same destination twice'
+                }
+              })
+
+              if (cancel !== '') {
+                setAddError({
+                  message: cancel,
+                } as CombinedError)
+                return
+              }
+
+              setAddError(null)
+              valClient
+                .query(query, { input })
+                .toPromise()
+                .then((res) => {
+                  if (res.error) {
+                    setAddError(res.error)
+                    return
+                  }
+
+                  // clear the current action
+                  setCurrentAction(null)
+                  props.onChange(actions.concat(input))
+
+                  if (props.onChipClick) {
+                    props.onChipClick({
+                      dest: { type: '', args: {} },
+                      params: {},
+                    })
+                  }
+                })
+            }}
+          >
+            {props.editActionId ? 'Save Action' : 'Add Action'}
+          </Button>
+        </Grid>
+      )}
 
       {errs.hasErrors() && (
         <Grid item xs={12}>
