@@ -291,7 +291,7 @@ type DestinationFieldConfig {
   supportsSearch: Boolean!
 
   """
-  if true, the destination type supports validation
+  if true, the destination type supports real-time validation
   """
   supportsValidation: Boolean!
 }

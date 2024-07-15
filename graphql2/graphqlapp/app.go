@@ -31,6 +31,7 @@ import (
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/notificationchannel"
@@ -93,6 +94,8 @@ type App struct {
 	TimeZoneStore *timezone.Store
 
 	SWO *swo.Manager
+
+	DestReg *nfydest.Registry
 
 	FormatDestFunc func(context.Context, notification.DestType, string) string
 }

@@ -20,46 +20,7 @@ const (
 	MaxParams  = 10
 )
 
-type dbConfig struct {
-	Version int // should be 1
-	V1      Config
-}
-
-// Config stores the configuration for an integration key for how to handle incoming requests.
-type Config struct {
-	Rules []Rule
-
-	// DefaultActions are the actions to take if no rules match.
-	DefaultActions []Action
-}
-
-// A Rule is a set of conditions and actions to take if those conditions are met.
-type Rule struct {
-	ID            uuid.UUID
-	Name          string
-	Description   string
-	ConditionExpr string
-	Actions       []Action
-
-	ContinueAfterMatch bool
-}
-
-// An Action is a single action to take if a rule matches.
-type Action struct {
-	ChannelID uuid.UUID
-
-	// Type is the type of action to perform, like slack, email, or alert.
-	Type string
-
-	// StaticParams are parameters that are always the same for this action (e.g., the channel ID).
-	StaticParams map[string]string
-
-	// DynamicParams are parameters that are determined at runtime (e.g., the message to send).
-	// The keys are the parameter names, and the values are the Expr expression strings.
-	DynamicParams map[string]string
-}
-
-func (cfg Config) Validate() error {
+func ValidateUIKConfigV1(cfg gadb.UIKConfigV1) error {
 	err := validate.Many(
 		validate.Len("Rules", cfg.Rules, 0, MaxRules),
 		validate.Len("DefaultActions", cfg.DefaultActions, 0, MaxActions),
@@ -83,8 +44,8 @@ func (cfg Config) Validate() error {
 		for j, a := range r.Actions {
 			field := fmt.Sprintf("Rules[%d].Actions[%d]", i, j)
 			err := validate.Many(
-				validate.MapLen(field+".StaticParams", a.StaticParams, 0, MaxParams),
-				validate.MapLen(field+".DynamicParams", a.DynamicParams, 0, MaxParams),
+				validate.MapLen(field+".Dest.Args", a.Dest.Args, 0, MaxParams),
+				validate.MapLen(field+".Params", a.Params, 0, MaxParams),
 			)
 			if err != nil {
 				return err
@@ -95,8 +56,8 @@ func (cfg Config) Validate() error {
 	for i, a := range cfg.DefaultActions {
 		field := fmt.Sprintf("DefaultActions[%d]", i)
 		err := validate.Many(
-			validate.MapLen(field+".StaticParams", a.StaticParams, 0, MaxParams),
-			validate.MapLen(field+".DynamicParams", a.DynamicParams, 0, MaxParams),
+			validate.MapLen(field+".Dest.Args", a.Dest.Args, 0, MaxParams),
+			validate.MapLen(field+".Params", a.Params, 0, MaxParams),
 		)
 		if err != nil {
 			return err
@@ -115,25 +76,20 @@ func (cfg Config) Validate() error {
 	return nil
 }
 
-func (s *Store) Config(ctx context.Context, db gadb.DBTX, keyID uuid.UUID) (*Config, error) {
+func (s *Store) Config(ctx context.Context, db gadb.DBTX, keyID uuid.UUID) (*gadb.UIKConfigV1, error) {
 	err := permission.LimitCheckAny(ctx, permission.User, permission.Service)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := gadb.New(db).IntKeyGetConfig(ctx, keyID)
+	cfg, err := gadb.New(db).IntKeyGetConfig(ctx, keyID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return &Config{}, nil
+		return &gadb.UIKConfigV1{}, nil
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	var cfg dbConfig
-	err = json.Unmarshal(data, &cfg)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshal config: %w", err)
-	}
 	if cfg.Version != 1 {
 		return nil, fmt.Errorf("unsupported config version: %d", cfg.Version)
 	}
@@ -141,14 +97,14 @@ func (s *Store) Config(ctx context.Context, db gadb.DBTX, keyID uuid.UUID) (*Con
 	return &cfg.V1, nil
 }
 
-func (s *Store) SetConfig(ctx context.Context, db gadb.DBTX, keyID uuid.UUID, cfg *Config) error {
+func (s *Store) SetConfig(ctx context.Context, db gadb.DBTX, keyID uuid.UUID, cfg *gadb.UIKConfigV1) error {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return err
 	}
 
 	if cfg != nil {
-		err := cfg.Validate()
+		err := ValidateUIKConfigV1(*cfg)
 		if err != nil {
 			return err
 		}
@@ -182,14 +138,9 @@ func (s *Store) SetConfig(ctx context.Context, db gadb.DBTX, keyID uuid.UUID, cf
 		return err
 	}
 
-	data, err := json.Marshal(dbConfig{Version: 1, V1: *cfg})
-	if err != nil {
-		return fmt.Errorf("marshal config: %w", err)
-	}
-
 	err = gadb.New(db).IntKeySetConfig(ctx, gadb.IntKeySetConfigParams{
 		ID:     keyID,
-		Config: data,
+		Config: gadb.UIKConfig{Version: 1, V1: *cfg},
 	})
 	if err != nil {
 		return err
@@ -198,15 +149,12 @@ func (s *Store) SetConfig(ctx context.Context, db gadb.DBTX, keyID uuid.UUID, cf
 	return nil
 }
 
-func setActionChannels(ctx context.Context, gdb *gadb.Queries, actions []Action) error {
+func setActionChannels(ctx context.Context, gdb *gadb.Queries, actions []gadb.UIKActionV1) error {
 	for j, act := range actions {
 		// We need to ensure the channel exists in the notification_channels table before we can use it.
 		id, err := gdb.IntKeyEnsureChannel(ctx, gadb.IntKeyEnsureChannelParams{
-			ID: uuid.New(),
-			Dest: gadb.NullDestV1{Valid: true, DestV1: gadb.DestV1{
-				Type: act.Type,
-				Args: act.StaticParams,
-			}},
+			ID:   uuid.New(),
+			Dest: gadb.NullDestV1{Valid: true, DestV1: act.Dest},
 		})
 		if err != nil {
 			return err

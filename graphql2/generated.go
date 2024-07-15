@@ -16,6 +16,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	ast1 "github.com/expr-lang/expr/ast"
+	"github.com/google/uuid"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/alert/alertmetrics"
@@ -29,6 +30,7 @@ import (
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/oncall"
@@ -558,7 +560,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		ActionInputValidate       func(childComplexity int, input ActionInput) int
+		ActionInputValidate       func(childComplexity int, input gadb.UIKActionV1) int
 		Alert                     func(childComplexity int, id int) int
 		Alerts                    func(childComplexity int, input *AlertSearchOptions) int
 		AuthSubjectsForProvider   func(childComplexity int, first *int, after *string, providerID string) int
@@ -918,11 +920,11 @@ type IntegrationKeyResolver interface {
 
 	Href(ctx context.Context, obj *integrationkey.IntegrationKey) (string, error)
 
-	Config(ctx context.Context, obj *integrationkey.IntegrationKey) (*KeyConfig, error)
+	Config(ctx context.Context, obj *integrationkey.IntegrationKey) (*gadb.UIKConfigV1, error)
 	TokenInfo(ctx context.Context, obj *integrationkey.IntegrationKey) (*TokenInfo, error)
 }
 type KeyConfigResolver interface {
-	OneRule(ctx context.Context, obj *KeyConfig, id string) (*KeyRule, error)
+	OneRule(ctx context.Context, obj *gadb.UIKConfigV1, id string) (*gadb.UIKRuleV1, error)
 }
 type MessageLogConnectionStatsResolver interface {
 	TimeSeries(ctx context.Context, obj *notification.SearchOptions, input TimeSeriesOptions) ([]TimeSeriesBucket, error)
@@ -1034,14 +1036,14 @@ type QueryResolver interface {
 	GenerateSlackAppManifest(ctx context.Context) (string, error)
 	LinkAccountInfo(ctx context.Context, token string) (*LinkAccountInfo, error)
 	SwoStatus(ctx context.Context) (*SWOStatus, error)
-	DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]DestinationTypeInfo, error)
+	DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]nfydest.TypeInfo, error)
 	DestinationFieldValidate(ctx context.Context, input DestinationFieldValidateInput) (bool, error)
 	DestinationFieldSearch(ctx context.Context, input DestinationFieldSearchInput) (*FieldSearchConnection, error)
 	DestinationFieldValueName(ctx context.Context, input DestinationFieldValidateInput) (string, error)
-	DestinationDisplayInfo(ctx context.Context, input gadb.DestV1) (*DestinationDisplayInfo, error)
+	DestinationDisplayInfo(ctx context.Context, input gadb.DestV1) (*nfydest.DisplayInfo, error)
 	Expr(ctx context.Context) (*Expr, error)
 	GqlAPIKeys(ctx context.Context) ([]GQLAPIKey, error)
-	ActionInputValidate(ctx context.Context, input ActionInput) (bool, error)
+	ActionInputValidate(ctx context.Context, input gadb.UIKActionV1) (bool, error)
 }
 type RotationResolver interface {
 	IsFavorite(ctx context.Context, obj *rotation.Rotation) (bool, error)
@@ -3472,7 +3474,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ActionInputValidate(childComplexity, args["input"].(ActionInput)), true
+		return e.complexity.Query.ActionInputValidate(childComplexity, args["input"].(gadb.UIKActionV1)), true
 
 	case "Query.alert":
 		if e.complexity.Query.Alert == nil {
@@ -6272,10 +6274,10 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 func (ec *executionContext) field_Query_actionInputValidate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 ActionInput
+	var arg0 gadb.UIKActionV1
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNActionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionInput(ctx, tmp)
+		arg0, err = ec.unmarshalNActionInput2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKActionV1(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -7030,7 +7032,7 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _Action_dest(ctx context.Context, field graphql.CollectedField, obj *Action) (ret graphql.Marshaler) {
+func (ec *executionContext) _Action_dest(ctx context.Context, field graphql.CollectedField, obj *gadb.UIKActionV1) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Action_dest(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -7056,9 +7058,9 @@ func (ec *executionContext) _Action_dest(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*gadb.DestV1)
+	res := resTmp.(gadb.DestV1)
 	fc.Result = res
-	return ec.marshalNDestination2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx, field.Selections, res)
+	return ec.marshalNDestination2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Action_dest(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7084,7 +7086,7 @@ func (ec *executionContext) fieldContext_Action_dest(_ context.Context, field gr
 	return fc, nil
 }
 
-func (ec *executionContext) _Action_params(ctx context.Context, field graphql.CollectedField, obj *Action) (ret graphql.Marshaler) {
+func (ec *executionContext) _Action_params(ctx context.Context, field graphql.CollectedField, obj *gadb.UIKActionV1) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Action_params(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -10876,7 +10878,7 @@ func (ec *executionContext) fieldContext_Destination_displayInfo(_ context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationDisplayInfo_text(ctx context.Context, field graphql.CollectedField, obj *DestinationDisplayInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationDisplayInfo_text(ctx context.Context, field graphql.CollectedField, obj *nfydest.DisplayInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationDisplayInfo_text(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -10920,7 +10922,7 @@ func (ec *executionContext) fieldContext_DestinationDisplayInfo_text(_ context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationDisplayInfo_iconURL(ctx context.Context, field graphql.CollectedField, obj *DestinationDisplayInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationDisplayInfo_iconURL(ctx context.Context, field graphql.CollectedField, obj *nfydest.DisplayInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationDisplayInfo_iconURL(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -10964,7 +10966,7 @@ func (ec *executionContext) fieldContext_DestinationDisplayInfo_iconURL(_ contex
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationDisplayInfo_iconAltText(ctx context.Context, field graphql.CollectedField, obj *DestinationDisplayInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationDisplayInfo_iconAltText(ctx context.Context, field graphql.CollectedField, obj *nfydest.DisplayInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationDisplayInfo_iconAltText(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11008,7 +11010,7 @@ func (ec *executionContext) fieldContext_DestinationDisplayInfo_iconAltText(_ co
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationDisplayInfo_linkURL(ctx context.Context, field graphql.CollectedField, obj *DestinationDisplayInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationDisplayInfo_linkURL(ctx context.Context, field graphql.CollectedField, obj *nfydest.DisplayInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationDisplayInfo_linkURL(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11096,7 +11098,7 @@ func (ec *executionContext) fieldContext_DestinationDisplayInfoError_error(_ con
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationFieldConfig_fieldID(ctx context.Context, field graphql.CollectedField, obj *DestinationFieldConfig) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationFieldConfig_fieldID(ctx context.Context, field graphql.CollectedField, obj *nfydest.FieldConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationFieldConfig_fieldID(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11140,7 +11142,7 @@ func (ec *executionContext) fieldContext_DestinationFieldConfig_fieldID(_ contex
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationFieldConfig_label(ctx context.Context, field graphql.CollectedField, obj *DestinationFieldConfig) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationFieldConfig_label(ctx context.Context, field graphql.CollectedField, obj *nfydest.FieldConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationFieldConfig_label(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11184,7 +11186,7 @@ func (ec *executionContext) fieldContext_DestinationFieldConfig_label(_ context.
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationFieldConfig_hint(ctx context.Context, field graphql.CollectedField, obj *DestinationFieldConfig) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationFieldConfig_hint(ctx context.Context, field graphql.CollectedField, obj *nfydest.FieldConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationFieldConfig_hint(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11228,7 +11230,7 @@ func (ec *executionContext) fieldContext_DestinationFieldConfig_hint(_ context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationFieldConfig_hintURL(ctx context.Context, field graphql.CollectedField, obj *DestinationFieldConfig) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationFieldConfig_hintURL(ctx context.Context, field graphql.CollectedField, obj *nfydest.FieldConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationFieldConfig_hintURL(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11272,7 +11274,7 @@ func (ec *executionContext) fieldContext_DestinationFieldConfig_hintURL(_ contex
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationFieldConfig_placeholderText(ctx context.Context, field graphql.CollectedField, obj *DestinationFieldConfig) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationFieldConfig_placeholderText(ctx context.Context, field graphql.CollectedField, obj *nfydest.FieldConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationFieldConfig_placeholderText(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11316,7 +11318,7 @@ func (ec *executionContext) fieldContext_DestinationFieldConfig_placeholderText(
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationFieldConfig_prefix(ctx context.Context, field graphql.CollectedField, obj *DestinationFieldConfig) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationFieldConfig_prefix(ctx context.Context, field graphql.CollectedField, obj *nfydest.FieldConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationFieldConfig_prefix(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11360,7 +11362,7 @@ func (ec *executionContext) fieldContext_DestinationFieldConfig_prefix(_ context
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationFieldConfig_inputType(ctx context.Context, field graphql.CollectedField, obj *DestinationFieldConfig) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationFieldConfig_inputType(ctx context.Context, field graphql.CollectedField, obj *nfydest.FieldConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationFieldConfig_inputType(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11404,7 +11406,7 @@ func (ec *executionContext) fieldContext_DestinationFieldConfig_inputType(_ cont
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationFieldConfig_supportsSearch(ctx context.Context, field graphql.CollectedField, obj *DestinationFieldConfig) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationFieldConfig_supportsSearch(ctx context.Context, field graphql.CollectedField, obj *nfydest.FieldConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationFieldConfig_supportsSearch(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11448,7 +11450,7 @@ func (ec *executionContext) fieldContext_DestinationFieldConfig_supportsSearch(_
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationFieldConfig_supportsValidation(ctx context.Context, field graphql.CollectedField, obj *DestinationFieldConfig) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationFieldConfig_supportsValidation(ctx context.Context, field graphql.CollectedField, obj *nfydest.FieldConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationFieldConfig_supportsValidation(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11492,7 +11494,7 @@ func (ec *executionContext) fieldContext_DestinationFieldConfig_supportsValidati
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationTypeInfo_type(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationTypeInfo_type(ctx context.Context, field graphql.CollectedField, obj *nfydest.TypeInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationTypeInfo_type(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11536,7 +11538,7 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_type(_ context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationTypeInfo_name(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationTypeInfo_name(ctx context.Context, field graphql.CollectedField, obj *nfydest.TypeInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationTypeInfo_name(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11580,7 +11582,7 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_name(_ context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationTypeInfo_iconURL(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationTypeInfo_iconURL(ctx context.Context, field graphql.CollectedField, obj *nfydest.TypeInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationTypeInfo_iconURL(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11624,7 +11626,7 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_iconURL(_ context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationTypeInfo_iconAltText(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationTypeInfo_iconAltText(ctx context.Context, field graphql.CollectedField, obj *nfydest.TypeInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationTypeInfo_iconAltText(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11668,7 +11670,7 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_iconAltText(_ conte
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationTypeInfo_enabled(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationTypeInfo_enabled(ctx context.Context, field graphql.CollectedField, obj *nfydest.TypeInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationTypeInfo_enabled(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11712,7 +11714,7 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_enabled(_ context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationTypeInfo_requiredFields(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationTypeInfo_requiredFields(ctx context.Context, field graphql.CollectedField, obj *nfydest.TypeInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationTypeInfo_requiredFields(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11738,9 +11740,9 @@ func (ec *executionContext) _DestinationTypeInfo_requiredFields(ctx context.Cont
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]DestinationFieldConfig)
+	res := resTmp.([]nfydest.FieldConfig)
 	fc.Result = res
-	return ec.marshalNDestinationFieldConfig2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationFieldConfigᚄ(ctx, field.Selections, res)
+	return ec.marshalNDestinationFieldConfig2ᚕgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋnfydestᚐFieldConfigᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DestinationTypeInfo_requiredFields(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -11776,7 +11778,7 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_requiredFields(_ co
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationTypeInfo_dynamicParams(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationTypeInfo_dynamicParams(ctx context.Context, field graphql.CollectedField, obj *nfydest.TypeInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationTypeInfo_dynamicParams(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11802,9 +11804,9 @@ func (ec *executionContext) _DestinationTypeInfo_dynamicParams(ctx context.Conte
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]DynamicParamConfig)
+	res := resTmp.([]nfydest.DynamicParamConfig)
 	fc.Result = res
-	return ec.marshalNDynamicParamConfig2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDynamicParamConfigᚄ(ctx, field.Selections, res)
+	return ec.marshalNDynamicParamConfig2ᚕgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋnfydestᚐDynamicParamConfigᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DestinationTypeInfo_dynamicParams(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -11832,7 +11834,7 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_dynamicParams(_ con
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationTypeInfo_userDisclaimer(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationTypeInfo_userDisclaimer(ctx context.Context, field graphql.CollectedField, obj *nfydest.TypeInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationTypeInfo_userDisclaimer(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11876,7 +11878,7 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_userDisclaimer(_ co
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationTypeInfo_isContactMethod(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationTypeInfo_isContactMethod(ctx context.Context, field graphql.CollectedField, obj *nfydest.TypeInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationTypeInfo_isContactMethod(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11890,7 +11892,7 @@ func (ec *executionContext) _DestinationTypeInfo_isContactMethod(ctx context.Con
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.IsContactMethod, nil
+		return obj.IsContactMethod(), nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11911,7 +11913,7 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_isContactMethod(_ c
 	fc = &graphql.FieldContext{
 		Object:     "DestinationTypeInfo",
 		Field:      field,
-		IsMethod:   false,
+		IsMethod:   true,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
@@ -11920,7 +11922,7 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_isContactMethod(_ c
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationTypeInfo_isEPTarget(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationTypeInfo_isEPTarget(ctx context.Context, field graphql.CollectedField, obj *nfydest.TypeInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationTypeInfo_isEPTarget(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11934,7 +11936,7 @@ func (ec *executionContext) _DestinationTypeInfo_isEPTarget(ctx context.Context,
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.IsEPTarget, nil
+		return obj.IsEPTarget(), nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11955,7 +11957,7 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_isEPTarget(_ contex
 	fc = &graphql.FieldContext{
 		Object:     "DestinationTypeInfo",
 		Field:      field,
-		IsMethod:   false,
+		IsMethod:   true,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
@@ -11964,7 +11966,7 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_isEPTarget(_ contex
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationTypeInfo_isSchedOnCallNotify(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationTypeInfo_isSchedOnCallNotify(ctx context.Context, field graphql.CollectedField, obj *nfydest.TypeInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationTypeInfo_isSchedOnCallNotify(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -11978,7 +11980,7 @@ func (ec *executionContext) _DestinationTypeInfo_isSchedOnCallNotify(ctx context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.IsSchedOnCallNotify, nil
+		return obj.IsSchedOnCallNotify(), nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11999,7 +12001,7 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_isSchedOnCallNotify
 	fc = &graphql.FieldContext{
 		Object:     "DestinationTypeInfo",
 		Field:      field,
-		IsMethod:   false,
+		IsMethod:   true,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
@@ -12008,7 +12010,7 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_isSchedOnCallNotify
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationTypeInfo_isDynamicAction(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationTypeInfo_isDynamicAction(ctx context.Context, field graphql.CollectedField, obj *nfydest.TypeInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationTypeInfo_isDynamicAction(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -12022,7 +12024,7 @@ func (ec *executionContext) _DestinationTypeInfo_isDynamicAction(ctx context.Con
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.IsDynamicAction, nil
+		return obj.IsDynamicAction(), nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12043,7 +12045,7 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_isDynamicAction(_ c
 	fc = &graphql.FieldContext{
 		Object:     "DestinationTypeInfo",
 		Field:      field,
-		IsMethod:   false,
+		IsMethod:   true,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
@@ -12052,7 +12054,7 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_isDynamicAction(_ c
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationTypeInfo_supportsStatusUpdates(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationTypeInfo_supportsStatusUpdates(ctx context.Context, field graphql.CollectedField, obj *nfydest.TypeInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationTypeInfo_supportsStatusUpdates(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -12096,7 +12098,7 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_supportsStatusUpdat
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationTypeInfo_statusUpdatesRequired(ctx context.Context, field graphql.CollectedField, obj *DestinationTypeInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DestinationTypeInfo_statusUpdatesRequired(ctx context.Context, field graphql.CollectedField, obj *nfydest.TypeInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DestinationTypeInfo_statusUpdatesRequired(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -12140,7 +12142,7 @@ func (ec *executionContext) fieldContext_DestinationTypeInfo_statusUpdatesRequir
 	return fc, nil
 }
 
-func (ec *executionContext) _DynamicParamConfig_paramID(ctx context.Context, field graphql.CollectedField, obj *DynamicParamConfig) (ret graphql.Marshaler) {
+func (ec *executionContext) _DynamicParamConfig_paramID(ctx context.Context, field graphql.CollectedField, obj *nfydest.DynamicParamConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DynamicParamConfig_paramID(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -12184,7 +12186,7 @@ func (ec *executionContext) fieldContext_DynamicParamConfig_paramID(_ context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _DynamicParamConfig_label(ctx context.Context, field graphql.CollectedField, obj *DynamicParamConfig) (ret graphql.Marshaler) {
+func (ec *executionContext) _DynamicParamConfig_label(ctx context.Context, field graphql.CollectedField, obj *nfydest.DynamicParamConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DynamicParamConfig_label(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -12228,7 +12230,7 @@ func (ec *executionContext) fieldContext_DynamicParamConfig_label(_ context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _DynamicParamConfig_hint(ctx context.Context, field graphql.CollectedField, obj *DynamicParamConfig) (ret graphql.Marshaler) {
+func (ec *executionContext) _DynamicParamConfig_hint(ctx context.Context, field graphql.CollectedField, obj *nfydest.DynamicParamConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DynamicParamConfig_hint(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -12272,7 +12274,7 @@ func (ec *executionContext) fieldContext_DynamicParamConfig_hint(_ context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _DynamicParamConfig_hintURL(ctx context.Context, field graphql.CollectedField, obj *DynamicParamConfig) (ret graphql.Marshaler) {
+func (ec *executionContext) _DynamicParamConfig_hintURL(ctx context.Context, field graphql.CollectedField, obj *nfydest.DynamicParamConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DynamicParamConfig_hintURL(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -12316,7 +12318,7 @@ func (ec *executionContext) fieldContext_DynamicParamConfig_hintURL(_ context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _DynamicParamConfig_defaultValue(ctx context.Context, field graphql.CollectedField, obj *DynamicParamConfig) (ret graphql.Marshaler) {
+func (ec *executionContext) _DynamicParamConfig_defaultValue(ctx context.Context, field graphql.CollectedField, obj *nfydest.DynamicParamConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DynamicParamConfig_defaultValue(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -14953,10 +14955,10 @@ func (ec *executionContext) _IntegrationKey_config(ctx context.Context, field gr
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.(*KeyConfig); ok {
+		if data, ok := tmp.(*gadb.UIKConfigV1); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/target/goalert/graphql2.KeyConfig`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/target/goalert/gadb.UIKConfigV1`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14968,9 +14970,9 @@ func (ec *executionContext) _IntegrationKey_config(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*KeyConfig)
+	res := resTmp.(*gadb.UIKConfigV1)
 	fc.Result = res
-	return ec.marshalNKeyConfig2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyConfig(ctx, field.Selections, res)
+	return ec.marshalNKeyConfig2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKConfigV1(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_IntegrationKey_config(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -15356,7 +15358,7 @@ func (ec *executionContext) fieldContext_IntegrationKeyTypeInfo_enabled(_ contex
 	return fc, nil
 }
 
-func (ec *executionContext) _KeyConfig_rules(ctx context.Context, field graphql.CollectedField, obj *KeyConfig) (ret graphql.Marshaler) {
+func (ec *executionContext) _KeyConfig_rules(ctx context.Context, field graphql.CollectedField, obj *gadb.UIKConfigV1) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_KeyConfig_rules(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -15382,9 +15384,9 @@ func (ec *executionContext) _KeyConfig_rules(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]KeyRule)
+	res := resTmp.([]gadb.UIKRuleV1)
 	fc.Result = res
-	return ec.marshalNKeyRule2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyRuleᚄ(ctx, field.Selections, res)
+	return ec.marshalNKeyRule2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKRuleV1ᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_KeyConfig_rules(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -15414,7 +15416,7 @@ func (ec *executionContext) fieldContext_KeyConfig_rules(_ context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _KeyConfig_oneRule(ctx context.Context, field graphql.CollectedField, obj *KeyConfig) (ret graphql.Marshaler) {
+func (ec *executionContext) _KeyConfig_oneRule(ctx context.Context, field graphql.CollectedField, obj *gadb.UIKConfigV1) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_KeyConfig_oneRule(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -15437,9 +15439,9 @@ func (ec *executionContext) _KeyConfig_oneRule(ctx context.Context, field graphq
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*KeyRule)
+	res := resTmp.(*gadb.UIKRuleV1)
 	fc.Result = res
-	return ec.marshalOKeyRule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyRule(ctx, field.Selections, res)
+	return ec.marshalOKeyRule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKRuleV1(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_KeyConfig_oneRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -15480,7 +15482,7 @@ func (ec *executionContext) fieldContext_KeyConfig_oneRule(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _KeyConfig_defaultActions(ctx context.Context, field graphql.CollectedField, obj *KeyConfig) (ret graphql.Marshaler) {
+func (ec *executionContext) _KeyConfig_defaultActions(ctx context.Context, field graphql.CollectedField, obj *gadb.UIKConfigV1) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_KeyConfig_defaultActions(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -15506,9 +15508,9 @@ func (ec *executionContext) _KeyConfig_defaultActions(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]Action)
+	res := resTmp.([]gadb.UIKActionV1)
 	fc.Result = res
-	return ec.marshalNAction2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionᚄ(ctx, field.Selections, res)
+	return ec.marshalNAction2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKActionV1ᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_KeyConfig_defaultActions(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -15530,7 +15532,7 @@ func (ec *executionContext) fieldContext_KeyConfig_defaultActions(_ context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _KeyRule_id(ctx context.Context, field graphql.CollectedField, obj *KeyRule) (ret graphql.Marshaler) {
+func (ec *executionContext) _KeyRule_id(ctx context.Context, field graphql.CollectedField, obj *gadb.UIKRuleV1) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_KeyRule_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -15556,9 +15558,9 @@ func (ec *executionContext) _KeyRule_id(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_KeyRule_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -15574,7 +15576,7 @@ func (ec *executionContext) fieldContext_KeyRule_id(_ context.Context, field gra
 	return fc, nil
 }
 
-func (ec *executionContext) _KeyRule_name(ctx context.Context, field graphql.CollectedField, obj *KeyRule) (ret graphql.Marshaler) {
+func (ec *executionContext) _KeyRule_name(ctx context.Context, field graphql.CollectedField, obj *gadb.UIKRuleV1) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_KeyRule_name(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -15618,7 +15620,7 @@ func (ec *executionContext) fieldContext_KeyRule_name(_ context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _KeyRule_description(ctx context.Context, field graphql.CollectedField, obj *KeyRule) (ret graphql.Marshaler) {
+func (ec *executionContext) _KeyRule_description(ctx context.Context, field graphql.CollectedField, obj *gadb.UIKRuleV1) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_KeyRule_description(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -15662,7 +15664,7 @@ func (ec *executionContext) fieldContext_KeyRule_description(_ context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _KeyRule_conditionExpr(ctx context.Context, field graphql.CollectedField, obj *KeyRule) (ret graphql.Marshaler) {
+func (ec *executionContext) _KeyRule_conditionExpr(ctx context.Context, field graphql.CollectedField, obj *gadb.UIKRuleV1) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_KeyRule_conditionExpr(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -15706,7 +15708,7 @@ func (ec *executionContext) fieldContext_KeyRule_conditionExpr(_ context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _KeyRule_actions(ctx context.Context, field graphql.CollectedField, obj *KeyRule) (ret graphql.Marshaler) {
+func (ec *executionContext) _KeyRule_actions(ctx context.Context, field graphql.CollectedField, obj *gadb.UIKRuleV1) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_KeyRule_actions(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -15732,9 +15734,9 @@ func (ec *executionContext) _KeyRule_actions(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]Action)
+	res := resTmp.([]gadb.UIKActionV1)
 	fc.Result = res
-	return ec.marshalNAction2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionᚄ(ctx, field.Selections, res)
+	return ec.marshalNAction2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKActionV1ᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_KeyRule_actions(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -15756,7 +15758,7 @@ func (ec *executionContext) fieldContext_KeyRule_actions(_ context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _KeyRule_continueAfterMatch(ctx context.Context, field graphql.CollectedField, obj *KeyRule) (ret graphql.Marshaler) {
+func (ec *executionContext) _KeyRule_continueAfterMatch(ctx context.Context, field graphql.CollectedField, obj *gadb.UIKRuleV1) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_KeyRule_continueAfterMatch(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -23898,9 +23900,9 @@ func (ec *executionContext) _Query_destinationTypes(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]DestinationTypeInfo)
+	res := resTmp.([]nfydest.TypeInfo)
 	fc.Result = res
-	return ec.marshalNDestinationTypeInfo2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationTypeInfoᚄ(ctx, field.Selections, res)
+	return ec.marshalNDestinationTypeInfo2ᚕgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋnfydestᚐTypeInfoᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_destinationTypes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -24154,9 +24156,9 @@ func (ec *executionContext) _Query_destinationDisplayInfo(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*DestinationDisplayInfo)
+	res := resTmp.(*nfydest.DisplayInfo)
 	fc.Result = res
-	return ec.marshalNDestinationDisplayInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationDisplayInfo(ctx, field.Selections, res)
+	return ec.marshalNDestinationDisplayInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋnfydestᚐDisplayInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_destinationDisplayInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -24350,7 +24352,7 @@ func (ec *executionContext) _Query_actionInputValidate(ctx context.Context, fiel
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().ActionInputValidate(rctx, fc.Args["input"].(ActionInput))
+			return ec.resolvers.Query().ActionInputValidate(rctx, fc.Args["input"].(gadb.UIKActionV1))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			flagName, err := ec.unmarshalNString2string(ctx, "univ-keys")
@@ -30588,9 +30590,9 @@ func (ec *executionContext) _UserContactMethod_id(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_UserContactMethod_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -31218,9 +31220,9 @@ func (ec *executionContext) _UserNotificationRule_contactMethodID(ctx context.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_UserNotificationRule_contactMethodID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -33822,8 +33824,8 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(_ context.Context
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputActionInput(ctx context.Context, obj interface{}) (ActionInput, error) {
-	var it ActionInput
+func (ec *executionContext) unmarshalInputActionInput(ctx context.Context, obj interface{}) (gadb.UIKActionV1, error) {
+	var it gadb.UIKActionV1
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -33838,7 +33840,7 @@ func (ec *executionContext) unmarshalInputActionInput(ctx context.Context, obj i
 		switch k {
 		case "dest":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dest"))
-			data, err := ec.unmarshalNDestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx, v)
+			data, err := ec.unmarshalNDestinationInput2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35791,8 +35793,8 @@ func (ec *executionContext) unmarshalInputIntegrationKeySearchOptions(ctx contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputKeyRuleInput(ctx context.Context, obj interface{}) (KeyRuleInput, error) {
-	var it KeyRuleInput
+func (ec *executionContext) unmarshalInputKeyRuleInput(ctx context.Context, obj interface{}) (gadb.UIKRuleV1, error) {
+	var it gadb.UIKRuleV1
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -35807,7 +35809,7 @@ func (ec *executionContext) unmarshalInputKeyRuleInput(ctx context.Context, obj 
 		switch k {
 		case "id":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35835,7 +35837,7 @@ func (ec *executionContext) unmarshalInputKeyRuleInput(ctx context.Context, obj 
 			it.ConditionExpr = data
 		case "actions":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("actions"))
-			data, err := ec.unmarshalNActionInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionInputᚄ(ctx, v)
+			data, err := ec.unmarshalNActionInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKActionV1ᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -37385,14 +37387,14 @@ func (ec *executionContext) unmarshalInputUpdateKeyConfigInput(ctx context.Conte
 			it.KeyID = data
 		case "rules":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rules"))
-			data, err := ec.unmarshalOKeyRuleInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyRuleInputᚄ(ctx, v)
+			data, err := ec.unmarshalOKeyRuleInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKRuleV1ᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Rules = data
 		case "setRule":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("setRule"))
-			data, err := ec.unmarshalOKeyRuleInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyRuleInput(ctx, v)
+			data, err := ec.unmarshalOKeyRuleInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKRuleV1(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -37406,7 +37408,7 @@ func (ec *executionContext) unmarshalInputUpdateKeyConfigInput(ctx context.Conte
 			it.DeleteRule = data
 		case "defaultActions":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("defaultActions"))
-			data, err := ec.unmarshalOActionInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionInputᚄ(ctx, v)
+			data, err := ec.unmarshalOActionInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKActionV1ᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -38050,9 +38052,9 @@ func (ec *executionContext) _InlineDisplayInfo(ctx context.Context, sel ast.Sele
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
-	case DestinationDisplayInfo:
+	case nfydest.DisplayInfo:
 		return ec._DestinationDisplayInfo(ctx, sel, &obj)
-	case *DestinationDisplayInfo:
+	case *nfydest.DisplayInfo:
 		if obj == nil {
 			return graphql.Null
 		}
@@ -38075,7 +38077,7 @@ func (ec *executionContext) _InlineDisplayInfo(ctx context.Context, sel ast.Sele
 
 var actionImplementors = []string{"Action"}
 
-func (ec *executionContext) _Action(ctx context.Context, sel ast.SelectionSet, obj *Action) graphql.Marshaler {
+func (ec *executionContext) _Action(ctx context.Context, sel ast.SelectionSet, obj *gadb.UIKActionV1) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, actionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -39728,7 +39730,7 @@ func (ec *executionContext) _Destination(ctx context.Context, sel ast.SelectionS
 
 var destinationDisplayInfoImplementors = []string{"DestinationDisplayInfo", "InlineDisplayInfo"}
 
-func (ec *executionContext) _DestinationDisplayInfo(ctx context.Context, sel ast.SelectionSet, obj *DestinationDisplayInfo) graphql.Marshaler {
+func (ec *executionContext) _DestinationDisplayInfo(ctx context.Context, sel ast.SelectionSet, obj *nfydest.DisplayInfo) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, destinationDisplayInfoImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -39821,7 +39823,7 @@ func (ec *executionContext) _DestinationDisplayInfoError(ctx context.Context, se
 
 var destinationFieldConfigImplementors = []string{"DestinationFieldConfig"}
 
-func (ec *executionContext) _DestinationFieldConfig(ctx context.Context, sel ast.SelectionSet, obj *DestinationFieldConfig) graphql.Marshaler {
+func (ec *executionContext) _DestinationFieldConfig(ctx context.Context, sel ast.SelectionSet, obj *nfydest.FieldConfig) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, destinationFieldConfigImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -39900,7 +39902,7 @@ func (ec *executionContext) _DestinationFieldConfig(ctx context.Context, sel ast
 
 var destinationTypeInfoImplementors = []string{"DestinationTypeInfo"}
 
-func (ec *executionContext) _DestinationTypeInfo(ctx context.Context, sel ast.SelectionSet, obj *DestinationTypeInfo) graphql.Marshaler {
+func (ec *executionContext) _DestinationTypeInfo(ctx context.Context, sel ast.SelectionSet, obj *nfydest.TypeInfo) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, destinationTypeInfoImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -40004,7 +40006,7 @@ func (ec *executionContext) _DestinationTypeInfo(ctx context.Context, sel ast.Se
 
 var dynamicParamConfigImplementors = []string{"DynamicParamConfig"}
 
-func (ec *executionContext) _DynamicParamConfig(ctx context.Context, sel ast.SelectionSet, obj *DynamicParamConfig) graphql.Marshaler {
+func (ec *executionContext) _DynamicParamConfig(ctx context.Context, sel ast.SelectionSet, obj *nfydest.DynamicParamConfig) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, dynamicParamConfigImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -41324,7 +41326,7 @@ func (ec *executionContext) _IntegrationKeyTypeInfo(ctx context.Context, sel ast
 
 var keyConfigImplementors = []string{"KeyConfig"}
 
-func (ec *executionContext) _KeyConfig(ctx context.Context, sel ast.SelectionSet, obj *KeyConfig) graphql.Marshaler {
+func (ec *executionContext) _KeyConfig(ctx context.Context, sel ast.SelectionSet, obj *gadb.UIKConfigV1) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, keyConfigImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -41401,7 +41403,7 @@ func (ec *executionContext) _KeyConfig(ctx context.Context, sel ast.SelectionSet
 
 var keyRuleImplementors = []string{"KeyRule"}
 
-func (ec *executionContext) _KeyRule(ctx context.Context, sel ast.SelectionSet, obj *KeyRule) graphql.Marshaler {
+func (ec *executionContext) _KeyRule(ctx context.Context, sel ast.SelectionSet, obj *gadb.UIKRuleV1) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, keyRuleImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -47328,11 +47330,11 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAction2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAction(ctx context.Context, sel ast.SelectionSet, v Action) graphql.Marshaler {
+func (ec *executionContext) marshalNAction2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKActionV1(ctx context.Context, sel ast.SelectionSet, v gadb.UIKActionV1) graphql.Marshaler {
 	return ec._Action(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAction2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionᚄ(ctx context.Context, sel ast.SelectionSet, v []Action) graphql.Marshaler {
+func (ec *executionContext) marshalNAction2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKActionV1ᚄ(ctx context.Context, sel ast.SelectionSet, v []gadb.UIKActionV1) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -47356,7 +47358,7 @@ func (ec *executionContext) marshalNAction2ᚕgithubᚗcomᚋtargetᚋgoalertᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNAction2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAction(ctx, sel, v[i])
+			ret[i] = ec.marshalNAction2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKActionV1(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -47376,21 +47378,21 @@ func (ec *executionContext) marshalNAction2ᚕgithubᚗcomᚋtargetᚋgoalertᚋ
 	return ret
 }
 
-func (ec *executionContext) unmarshalNActionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionInput(ctx context.Context, v interface{}) (ActionInput, error) {
+func (ec *executionContext) unmarshalNActionInput2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKActionV1(ctx context.Context, v interface{}) (gadb.UIKActionV1, error) {
 	res, err := ec.unmarshalInputActionInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNActionInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionInputᚄ(ctx context.Context, v interface{}) ([]ActionInput, error) {
+func (ec *executionContext) unmarshalNActionInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKActionV1ᚄ(ctx context.Context, v interface{}) ([]gadb.UIKActionV1, error) {
 	var vSlice []interface{}
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
 	var err error
-	res := make([]ActionInput, len(vSlice))
+	res := make([]gadb.UIKActionV1, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNActionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNActionInput2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKActionV1(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -48134,11 +48136,11 @@ func (ec *executionContext) marshalNDestination2ᚖgithubᚗcomᚋtargetᚋgoale
 	return ec._Destination(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNDestinationDisplayInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationDisplayInfo(ctx context.Context, sel ast.SelectionSet, v DestinationDisplayInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNDestinationDisplayInfo2githubᚗcomᚋtargetᚋgoalertᚋnotificationᚋnfydestᚐDisplayInfo(ctx context.Context, sel ast.SelectionSet, v nfydest.DisplayInfo) graphql.Marshaler {
 	return ec._DestinationDisplayInfo(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDestinationDisplayInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationDisplayInfo(ctx context.Context, sel ast.SelectionSet, v *DestinationDisplayInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNDestinationDisplayInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋnfydestᚐDisplayInfo(ctx context.Context, sel ast.SelectionSet, v *nfydest.DisplayInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -48148,11 +48150,11 @@ func (ec *executionContext) marshalNDestinationDisplayInfo2ᚖgithubᚗcomᚋtar
 	return ec._DestinationDisplayInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNDestinationFieldConfig2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationFieldConfig(ctx context.Context, sel ast.SelectionSet, v DestinationFieldConfig) graphql.Marshaler {
+func (ec *executionContext) marshalNDestinationFieldConfig2githubᚗcomᚋtargetᚋgoalertᚋnotificationᚋnfydestᚐFieldConfig(ctx context.Context, sel ast.SelectionSet, v nfydest.FieldConfig) graphql.Marshaler {
 	return ec._DestinationFieldConfig(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDestinationFieldConfig2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationFieldConfigᚄ(ctx context.Context, sel ast.SelectionSet, v []DestinationFieldConfig) graphql.Marshaler {
+func (ec *executionContext) marshalNDestinationFieldConfig2ᚕgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋnfydestᚐFieldConfigᚄ(ctx context.Context, sel ast.SelectionSet, v []nfydest.FieldConfig) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -48176,7 +48178,7 @@ func (ec *executionContext) marshalNDestinationFieldConfig2ᚕgithubᚗcomᚋtar
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNDestinationFieldConfig2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationFieldConfig(ctx, sel, v[i])
+			ret[i] = ec.marshalNDestinationFieldConfig2githubᚗcomᚋtargetᚋgoalertᚋnotificationᚋnfydestᚐFieldConfig(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -48211,11 +48213,6 @@ func (ec *executionContext) unmarshalNDestinationInput2githubᚗcomᚋtargetᚋg
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNDestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx context.Context, v interface{}) (*gadb.DestV1, error) {
-	res, err := ec.unmarshalInputDestinationInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNDestinationType2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -48231,11 +48228,11 @@ func (ec *executionContext) marshalNDestinationType2string(ctx context.Context, 
 	return res
 }
 
-func (ec *executionContext) marshalNDestinationTypeInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationTypeInfo(ctx context.Context, sel ast.SelectionSet, v DestinationTypeInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNDestinationTypeInfo2githubᚗcomᚋtargetᚋgoalertᚋnotificationᚋnfydestᚐTypeInfo(ctx context.Context, sel ast.SelectionSet, v nfydest.TypeInfo) graphql.Marshaler {
 	return ec._DestinationTypeInfo(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDestinationTypeInfo2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationTypeInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []DestinationTypeInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNDestinationTypeInfo2ᚕgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋnfydestᚐTypeInfoᚄ(ctx context.Context, sel ast.SelectionSet, v []nfydest.TypeInfo) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -48259,7 +48256,7 @@ func (ec *executionContext) marshalNDestinationTypeInfo2ᚕgithubᚗcomᚋtarget
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNDestinationTypeInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDestinationTypeInfo(ctx, sel, v[i])
+			ret[i] = ec.marshalNDestinationTypeInfo2githubᚗcomᚋtargetᚋgoalertᚋnotificationᚋnfydestᚐTypeInfo(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -48279,11 +48276,11 @@ func (ec *executionContext) marshalNDestinationTypeInfo2ᚕgithubᚗcomᚋtarget
 	return ret
 }
 
-func (ec *executionContext) marshalNDynamicParamConfig2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDynamicParamConfig(ctx context.Context, sel ast.SelectionSet, v DynamicParamConfig) graphql.Marshaler {
+func (ec *executionContext) marshalNDynamicParamConfig2githubᚗcomᚋtargetᚋgoalertᚋnotificationᚋnfydestᚐDynamicParamConfig(ctx context.Context, sel ast.SelectionSet, v nfydest.DynamicParamConfig) graphql.Marshaler {
 	return ec._DynamicParamConfig(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDynamicParamConfig2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDynamicParamConfigᚄ(ctx context.Context, sel ast.SelectionSet, v []DynamicParamConfig) graphql.Marshaler {
+func (ec *executionContext) marshalNDynamicParamConfig2ᚕgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋnfydestᚐDynamicParamConfigᚄ(ctx context.Context, sel ast.SelectionSet, v []nfydest.DynamicParamConfig) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -48307,7 +48304,7 @@ func (ec *executionContext) marshalNDynamicParamConfig2ᚕgithubᚗcomᚋtarget�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNDynamicParamConfig2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDynamicParamConfig(ctx, sel, v[i])
+			ret[i] = ec.marshalNDynamicParamConfig2githubᚗcomᚋtargetᚋgoalertᚋnotificationᚋnfydestᚐDynamicParamConfig(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -48791,6 +48788,21 @@ func (ec *executionContext) marshalNHeartbeatMonitorState2githubᚗcomᚋtarget�
 	return res
 }
 
+func (ec *executionContext) unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v interface{}) (uuid.UUID, error) {
+	res, err := UnmarshalUUID(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v uuid.UUID) graphql.Marshaler {
+	res := MarshalUUID(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) unmarshalNID2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐRuleID(ctx context.Context, v interface{}) (schedule.RuleID, error) {
 	var res schedule.RuleID
 	err := res.UnmarshalGQL(v)
@@ -49108,11 +49120,11 @@ func (ec *executionContext) marshalNIntegrationKeyTypeInfo2ᚕgithubᚗcomᚋtar
 	return ret
 }
 
-func (ec *executionContext) marshalNKeyConfig2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyConfig(ctx context.Context, sel ast.SelectionSet, v KeyConfig) graphql.Marshaler {
+func (ec *executionContext) marshalNKeyConfig2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKConfigV1(ctx context.Context, sel ast.SelectionSet, v gadb.UIKConfigV1) graphql.Marshaler {
 	return ec._KeyConfig(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNKeyConfig2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyConfig(ctx context.Context, sel ast.SelectionSet, v *KeyConfig) graphql.Marshaler {
+func (ec *executionContext) marshalNKeyConfig2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKConfigV1(ctx context.Context, sel ast.SelectionSet, v *gadb.UIKConfigV1) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -49122,11 +49134,11 @@ func (ec *executionContext) marshalNKeyConfig2ᚖgithubᚗcomᚋtargetᚋgoalert
 	return ec._KeyConfig(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNKeyRule2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyRule(ctx context.Context, sel ast.SelectionSet, v KeyRule) graphql.Marshaler {
+func (ec *executionContext) marshalNKeyRule2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKRuleV1(ctx context.Context, sel ast.SelectionSet, v gadb.UIKRuleV1) graphql.Marshaler {
 	return ec._KeyRule(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNKeyRule2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyRuleᚄ(ctx context.Context, sel ast.SelectionSet, v []KeyRule) graphql.Marshaler {
+func (ec *executionContext) marshalNKeyRule2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKRuleV1ᚄ(ctx context.Context, sel ast.SelectionSet, v []gadb.UIKRuleV1) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -49150,7 +49162,7 @@ func (ec *executionContext) marshalNKeyRule2ᚕgithubᚗcomᚋtargetᚋgoalert�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNKeyRule2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyRule(ctx, sel, v[i])
+			ret[i] = ec.marshalNKeyRule2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKRuleV1(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -49170,7 +49182,7 @@ func (ec *executionContext) marshalNKeyRule2ᚕgithubᚗcomᚋtargetᚋgoalert�
 	return ret
 }
 
-func (ec *executionContext) unmarshalNKeyRuleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyRuleInput(ctx context.Context, v interface{}) (KeyRuleInput, error) {
+func (ec *executionContext) unmarshalNKeyRuleInput2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKRuleV1(ctx context.Context, v interface{}) (gadb.UIKRuleV1, error) {
 	res, err := ec.unmarshalInputKeyRuleInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -51260,7 +51272,7 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) unmarshalOActionInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionInputᚄ(ctx context.Context, v interface{}) ([]ActionInput, error) {
+func (ec *executionContext) unmarshalOActionInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKActionV1ᚄ(ctx context.Context, v interface{}) ([]gadb.UIKActionV1, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51269,10 +51281,10 @@ func (ec *executionContext) unmarshalOActionInput2ᚕgithubᚗcomᚋtargetᚋgoa
 		vSlice = graphql.CoerceList(v)
 	}
 	var err error
-	res := make([]ActionInput, len(vSlice))
+	res := make([]gadb.UIKActionV1, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNActionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐActionInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNActionInput2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKActionV1(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -51837,6 +51849,16 @@ func (ec *executionContext) marshalOHeartbeatMonitor2ᚖgithubᚗcomᚋtargetᚋ
 	return ec._HeartbeatMonitor(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v interface{}) (uuid.UUID, error) {
+	res, err := UnmarshalUUID(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v uuid.UUID) graphql.Marshaler {
+	res := MarshalUUID(v)
+	return res
+}
+
 func (ec *executionContext) unmarshalOID2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚐRuleID(ctx context.Context, v interface{}) (schedule.RuleID, error) {
 	var res schedule.RuleID
 	err := res.UnmarshalGQL(v)
@@ -52012,14 +52034,14 @@ func (ec *executionContext) unmarshalOIntegrationKeySearchOptions2ᚖgithubᚗco
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOKeyRule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyRule(ctx context.Context, sel ast.SelectionSet, v *KeyRule) graphql.Marshaler {
+func (ec *executionContext) marshalOKeyRule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKRuleV1(ctx context.Context, sel ast.SelectionSet, v *gadb.UIKRuleV1) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._KeyRule(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOKeyRuleInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyRuleInputᚄ(ctx context.Context, v interface{}) ([]KeyRuleInput, error) {
+func (ec *executionContext) unmarshalOKeyRuleInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKRuleV1ᚄ(ctx context.Context, v interface{}) ([]gadb.UIKRuleV1, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52028,10 +52050,10 @@ func (ec *executionContext) unmarshalOKeyRuleInput2ᚕgithubᚗcomᚋtargetᚋgo
 		vSlice = graphql.CoerceList(v)
 	}
 	var err error
-	res := make([]KeyRuleInput, len(vSlice))
+	res := make([]gadb.UIKRuleV1, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNKeyRuleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyRuleInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNKeyRuleInput2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKRuleV1(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -52039,7 +52061,7 @@ func (ec *executionContext) unmarshalOKeyRuleInput2ᚕgithubᚗcomᚋtargetᚋgo
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOKeyRuleInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐKeyRuleInput(ctx context.Context, v interface{}) (*KeyRuleInput, error) {
+func (ec *executionContext) unmarshalOKeyRuleInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKRuleV1(ctx context.Context, v interface{}) (*gadb.UIKRuleV1, error) {
 	if v == nil {
 		return nil, nil
 	}

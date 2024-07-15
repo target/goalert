@@ -110,7 +110,7 @@ func (s *Store) Create(ctx context.Context, dbtx gadb.DBTX, i *IntegrationKey) (
 
 	if n.Type == TypeUniversal {
 		// ensure a config exists
-		err = s.SetConfig(ctx, dbtx, keyUUID, &Config{})
+		err = s.SetConfig(ctx, dbtx, keyUUID, &gadb.UIKConfigV1{})
 		if err != nil {
 			return nil, err
 		}

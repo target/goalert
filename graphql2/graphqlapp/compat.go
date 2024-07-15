@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/gadb"
+	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/user/contactmethod"
 )
@@ -37,8 +38,8 @@ func CompatTargetToDest(tgt assignment.Target) (gadb.DestV1, error) {
 		}, nil
 	case assignment.TargetTypeSlackChannel:
 		return gadb.DestV1{
-			Type: destSlackChan,
-			Args: map[string]string{fieldSlackChanID: tgt.TargetID()},
+			Type: slack.DestTypeSlackChannel,
+			Args: map[string]string{slack.FieldSlackChannelID: tgt.TargetID()},
 		}, nil
 	}
 
@@ -55,8 +56,8 @@ func (a *App) CompatNCToDest(ctx context.Context, ncID uuid.UUID) (*gadb.DestV1,
 	switch nc.Type {
 	case notificationchannel.TypeSlackChan:
 		return &gadb.DestV1{
-			Type: destSlackChan,
-			Args: map[string]string{fieldSlackChanID: nc.Value},
+			Type: slack.DestTypeSlackChannel,
+			Args: map[string]string{slack.FieldSlackChannelID: nc.Value},
 		}, nil
 	case notificationchannel.TypeSlackUG:
 		ugID, chanID, ok := strings.Cut(nc.Value, ":")
@@ -67,8 +68,8 @@ func (a *App) CompatNCToDest(ctx context.Context, ncID uuid.UUID) (*gadb.DestV1,
 		return &gadb.DestV1{
 			Type: destSlackUG,
 			Args: map[string]string{
-				fieldSlackUGID:   ugID,
-				fieldSlackChanID: chanID,
+				fieldSlackUGID:            ugID,
+				slack.FieldSlackChannelID: chanID,
 			},
 		}, nil
 	case notificationchannel.TypeWebhook:
@@ -86,15 +87,15 @@ func (a *App) CompatNCToDest(ctx context.Context, ncID uuid.UUID) (*gadb.DestV1,
 func CompatDestToCMTypeVal(d gadb.DestV1) (contactmethod.Type, string) {
 	switch d.Type {
 	case destTwilioSMS:
-		return contactmethod.TypeSMS, d.Args[fieldPhoneNumber]
+		return contactmethod.TypeSMS, d.Arg(fieldPhoneNumber)
 	case destTwilioVoice:
-		return contactmethod.TypeVoice, d.Args[fieldPhoneNumber]
+		return contactmethod.TypeVoice, d.Arg(fieldPhoneNumber)
 	case destSMTP:
-		return contactmethod.TypeEmail, d.Args[fieldEmailAddress]
+		return contactmethod.TypeEmail, d.Arg(fieldEmailAddress)
 	case destWebhook:
-		return contactmethod.TypeWebhook, d.Args[fieldWebhookURL]
-	case destSlackDM:
-		return contactmethod.TypeSlackDM, d.Args[fieldSlackUserID]
+		return contactmethod.TypeWebhook, d.Arg(fieldWebhookURL)
+	case slack.DestTypeSlackDirectMessage:
+		return contactmethod.TypeSlackDM, d.Arg(slack.FieldSlackUserID)
 	}
 
 	return "", ""
@@ -106,32 +107,32 @@ func CompatDestToTarget(d gadb.DestV1) (assignment.RawTarget, error) {
 	case destUser:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeUser,
-			ID:   d.Args[fieldUserID],
+			ID:   d.Arg(fieldUserID),
 		}, nil
 	case destRotation:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeRotation,
-			ID:   d.Args[fieldRotationID],
+			ID:   d.Arg(fieldRotationID),
 		}, nil
 	case destSchedule:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeSchedule,
-			ID:   d.Args[fieldScheduleID],
+			ID:   d.Arg(fieldScheduleID),
 		}, nil
-	case destSlackChan:
+	case slack.DestTypeSlackChannel:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeSlackChannel,
-			ID:   d.Args[fieldSlackChanID],
+			ID:   d.Arg(slack.FieldSlackChannelID),
 		}, nil
 	case destSlackUG:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeSlackUserGroup,
-			ID:   d.Args[fieldSlackUGID] + ":" + d.Args[fieldSlackChanID],
+			ID:   d.Arg(fieldSlackUGID) + ":" + d.Arg(slack.FieldSlackChannelID),
 		}, nil
 	case destWebhook:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeChanWebhook,
-			ID:   d.Args[fieldWebhookURL],
+			ID:   d.Arg(fieldWebhookURL),
 		}, nil
 	}
 

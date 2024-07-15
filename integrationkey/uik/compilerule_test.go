@@ -3,13 +3,13 @@ package uik
 import (
 	"fmt"
 
-	"github.com/target/goalert/integrationkey"
+	"github.com/target/goalert/gadb"
 )
 
 func ExampleBuildRuleExpr() {
-	actions := []integrationkey.Action{
+	actions := []gadb.UIKActionV1{
 		{
-			DynamicParams: map[string]string{
+			Params: map[string]string{
 				"param-1": "req.body.param1",
 			},
 		},

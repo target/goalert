@@ -12,6 +12,8 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/notification/nfydest"
+	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -139,56 +141,42 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 	case destAlert:
 		return nil
 	case destTwilioSMS:
-		phone := dest.Args[fieldPhoneNumber]
+		phone := dest.Arg(fieldPhoneNumber)
 		err := validate.Phone(fieldPhoneNumber, phone)
 		if err != nil {
 			return addDestFieldError(ctx, fieldName, fieldPhoneNumber, err)
 		}
 		return nil
 	case destTwilioVoice:
-		phone := dest.Args[fieldPhoneNumber]
+		phone := dest.Arg(fieldPhoneNumber)
 		err := validate.Phone(fieldPhoneNumber, phone)
 		if err != nil {
 			return addDestFieldError(ctx, fieldName, fieldPhoneNumber, err)
 		}
 		return nil
-	case destSlackChan:
-		chanID := dest.Args[fieldSlackChanID]
-		err := a.SlackStore.ValidateChannel(ctx, chanID)
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldSlackChanID, err)
-		}
-
-		return nil
-	case destSlackDM:
-		userID := dest.Args[fieldSlackUserID]
-		if err := a.SlackStore.ValidateUser(ctx, userID); err != nil {
-			return addDestFieldError(ctx, fieldName, fieldSlackUserID, err)
-		}
-		return nil
 	case destSlackUG:
-		ugID := dest.Args[fieldSlackUGID]
+		ugID := dest.Arg(fieldSlackUGID)
 		userErr := a.SlackStore.ValidateUserGroup(ctx, ugID)
 		if userErr != nil {
 			return addDestFieldError(ctx, fieldName, fieldSlackUGID, userErr)
 		}
 
-		chanID := dest.Args[fieldSlackChanID]
+		chanID := dest.Arg(slack.FieldSlackChannelID)
 		chanErr := a.SlackStore.ValidateChannel(ctx, chanID)
 		if chanErr != nil {
-			return addDestFieldError(ctx, fieldName, fieldSlackChanID, chanErr)
+			return addDestFieldError(ctx, fieldName, slack.FieldSlackChannelID, chanErr)
 		}
 
 		return nil
 	case destSMTP:
-		email := dest.Args[fieldEmailAddress]
+		email := dest.Arg(fieldEmailAddress)
 		err := validate.Email(fieldEmailAddress, email)
 		if err != nil {
 			return addDestFieldError(ctx, fieldName, fieldEmailAddress, err)
 		}
 		return nil
 	case destWebhook:
-		url := dest.Args[fieldWebhookURL]
+		url := dest.Arg(fieldWebhookURL)
 		err := validate.AbsoluteURL(fieldWebhookURL, url)
 		if err != nil {
 			return addDestFieldError(ctx, fieldName, fieldWebhookURL, err)
@@ -198,12 +186,12 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 		}
 		return nil
 	case destSchedule: // must be valid UUID and exist
-		_, err := validate.ParseUUID(fieldScheduleID, dest.Args[fieldScheduleID])
+		_, err := validate.ParseUUID(fieldScheduleID, dest.Arg(fieldScheduleID))
 		if err != nil {
 			return addDestFieldError(ctx, fieldName, fieldScheduleID, err)
 		}
 
-		_, err = a.ScheduleStore.FindOne(ctx, dest.Args[fieldScheduleID])
+		_, err = a.ScheduleStore.FindOne(ctx, dest.Arg(fieldScheduleID))
 		if errors.Is(err, sql.ErrNoRows) {
 			return addDestFieldError(ctx, fieldName, fieldScheduleID, validation.NewGenericError("schedule does not exist"))
 		}
@@ -213,7 +201,7 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 
 		return nil
 	case destRotation: // must be valid UUID and exist
-		rotID := dest.Args[fieldRotationID]
+		rotID := dest.Arg(fieldRotationID)
 		_, err := validate.ParseUUID(fieldRotationID, rotID)
 		if err != nil {
 			return addDestFieldError(ctx, fieldName, fieldRotationID, err)
@@ -228,7 +216,7 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 
 		return nil
 	case destUser: // must be valid UUID and exist
-		userID := dest.Args[fieldUserID]
+		userID := dest.Arg(fieldUserID)
 		uid, err := validate.ParseUUID(fieldUserID, userID)
 		if err != nil {
 			return addDestFieldError(ctx, fieldName, fieldUserID, err)
@@ -243,19 +231,34 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 		return nil
 	}
 
-	message := fmt.Sprintf("unsupported destination type: %s", dest.Type)
-	if dest.Type == "" {
-		message = "destination type is required"
+	err = a.DestReg.ValidateDest(ctx, *dest)
+	if errors.Is(err, nfydest.ErrUnknownType) {
+		message := fmt.Sprintf("unsupported destination type: %s", dest.Type)
+		if dest.Type == "" {
+			message = "destination type is required"
+		}
+
+		// unsupported destination type
+		graphql.AddError(ctx, &gqlerror.Error{
+			Message: message,
+			Path:    appendPath(ctx, fieldName+".type"),
+			Extensions: map[string]interface{}{
+				"code": graphql2.ErrorCodeInvalidInputValue,
+			},
+		})
+
+		return errAlreadySet
 	}
 
-	// unsupported destination type
-	graphql.AddError(ctx, &gqlerror.Error{
-		Message: message,
-		Path:    appendPath(ctx, fieldName+".type"),
-		Extensions: map[string]interface{}{
-			"code": graphql2.ErrorCodeInvalidInputValue,
-		},
-	})
+	var argErr *nfydest.DestArgError
+	if errors.As(err, &argErr) {
+		return addDestFieldError(ctx, fieldName, argErr.FieldID, argErr.Err)
+	}
 
-	return errAlreadySet
+	if err != nil {
+		// internal error
+		return err
+	}
+
+	return nil
 }

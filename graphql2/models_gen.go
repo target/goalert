@@ -33,16 +33,6 @@ type InlineDisplayInfo interface {
 	IsInlineDisplayInfo()
 }
 
-type Action struct {
-	Dest   *gadb.DestV1      `json:"dest"`
-	Params map[string]string `json:"params"`
-}
-
-type ActionInput struct {
-	Dest   *gadb.DestV1      `json:"dest"`
-	Params map[string]string `json:"params"`
-}
-
 type AlertConnection struct {
 	Nodes    []alert.Alert `json:"nodes"`
 	PageInfo *PageInfo     `json:"pageInfo"`
@@ -354,47 +344,12 @@ type DebugSendSMSInput struct {
 	Body string `json:"body"`
 }
 
-// DestinationDisplayInfo provides information for displaying a destination.
-type DestinationDisplayInfo struct {
-	// user-friendly text to display for this destination
-	Text string `json:"text"`
-	// URL to an icon to display for this destination
-	IconURL string `json:"iconURL"`
-	// alt text for the icon, should be human-readable and usable in place of the icon
-	IconAltText string `json:"iconAltText"`
-	// URL to link to for more information about this destination
-	LinkURL string `json:"linkURL"`
-}
-
-func (DestinationDisplayInfo) IsInlineDisplayInfo() {}
-
 type DestinationDisplayInfoError struct {
 	// error message to display when the display info cannot be retrieved
 	Error string `json:"error"`
 }
 
 func (DestinationDisplayInfoError) IsInlineDisplayInfo() {}
-
-type DestinationFieldConfig struct {
-	// unique ID for the input field
-	FieldID string `json:"fieldID"`
-	// user-friendly label (should be singular)
-	Label string `json:"label"`
-	// user-friendly helper text for input fields (i.e., "Enter a phone number")
-	Hint string `json:"hint"`
-	// URL to link to for more information about the destination type
-	HintURL string `json:"hintURL"`
-	// placeholder text to display in input fields (e.g., "Phone Number")
-	PlaceholderText string `json:"placeholderText"`
-	// the prefix to use when displaying the destination (e.g., "+" for phone numbers)
-	Prefix string `json:"prefix"`
-	// the type of input field (type attribute) to use (e.g., "text" or "tel")
-	InputType string `json:"inputType"`
-	// if true, the destination can be selected via search
-	SupportsSearch bool `json:"supportsSearch"`
-	// if true, the destination type supports validation
-	SupportsValidation bool `json:"supportsValidation"`
-}
 
 type DestinationFieldSearchInput struct {
 	// the type of destination to search for
@@ -418,47 +373,6 @@ type DestinationFieldValidateInput struct {
 	FieldID string `json:"fieldID"`
 	// the value to validate
 	Value string `json:"value"`
-}
-
-type DestinationTypeInfo struct {
-	Type string `json:"type"`
-	Name string `json:"name"`
-	// URL to an icon to display for the destination type
-	IconURL string `json:"iconURL"`
-	// alt text for the icon, should be usable in place of the icon
-	IconAltText string `json:"iconAltText"`
-	// if false, the destination type is disabled and cannot be used
-	Enabled        bool                     `json:"enabled"`
-	RequiredFields []DestinationFieldConfig `json:"requiredFields"`
-	// expr parameters that can be used for this destination type
-	DynamicParams []DynamicParamConfig `json:"dynamicParams"`
-	// disclaimer text to display when a user is selecting this destination type for a contact method
-	UserDisclaimer string `json:"userDisclaimer"`
-	// this destination type can be used as a user contact method
-	IsContactMethod bool `json:"isContactMethod"`
-	// this destination type can be used as an escalation policy step action
-	IsEPTarget bool `json:"isEPTarget"`
-	// this destination type can be used for schedule on-call notifications
-	IsSchedOnCallNotify bool `json:"isSchedOnCallNotify"`
-	// this destination type can be used for dynamic actions
-	IsDynamicAction bool `json:"isDynamicAction"`
-	// if true, the destination type supports status updates
-	SupportsStatusUpdates bool `json:"supportsStatusUpdates"`
-	// if true, the destination type requires status updates to be enabled
-	StatusUpdatesRequired bool `json:"statusUpdatesRequired"`
-}
-
-type DynamicParamConfig struct {
-	// unique ID for the input field
-	ParamID string `json:"paramID"`
-	// user-friendly label (should be singular)
-	Label string `json:"label"`
-	// user-friendly helper text for input fields (i.e., "Enter a phone number")
-	Hint string `json:"hint"`
-	// URL to link to for more information about the destination type
-	HintURL string `json:"hintURL"`
-	// default value for the input field
-	DefaultValue string `json:"defaultValue"`
 }
 
 type EscalationPolicyConnection struct {
@@ -554,39 +468,6 @@ type IntegrationKeyTypeInfo struct {
 	Name    string `json:"name"`
 	Label   string `json:"label"`
 	Enabled bool   `json:"enabled"`
-}
-
-type KeyConfig struct {
-	Rules []KeyRule `json:"rules"`
-	// Get a single rule by ID.
-	OneRule *KeyRule `json:"oneRule,omitempty"`
-	// defaultAction is the action to take if no rules match the request.
-	DefaultActions []Action `json:"defaultActions"`
-}
-
-type KeyRule struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	// An expression that must evaluate to true for the rule to match.
-	ConditionExpr string   `json:"conditionExpr"`
-	Actions       []Action `json:"actions"`
-	// Continue evaluating rules after this rule matches.
-	ContinueAfterMatch bool `json:"continueAfterMatch"`
-}
-
-type KeyRuleInput struct {
-	// The ID of an existing rule being updated.
-	ID          *string `json:"id,omitempty"`
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	// An expression that must evaluate to true for the rule to match.
-	ConditionExpr string        `json:"conditionExpr"`
-	Actions       []ActionInput `json:"actions"`
-	// Continue evaluating rules after this rule matches.
-	//
-	// If this is set to false (default), no further rules will be evaluated after this rule matches.
-	ContinueAfterMatch bool `json:"continueAfterMatch"`
 }
 
 type LabelConnection struct {
@@ -921,14 +802,14 @@ type UpdateHeartbeatMonitorInput struct {
 }
 
 type UpdateKeyConfigInput struct {
-	KeyID string         `json:"keyID"`
-	Rules []KeyRuleInput `json:"rules,omitempty"`
+	KeyID string           `json:"keyID"`
+	Rules []gadb.UIKRuleV1 `json:"rules,omitempty"`
 	// setRule allows you to set a single rule. If ID is provided, the rule with that ID will be updated. If ID is not provided, a new rule will be created and appended to the list of rules.
-	SetRule *KeyRuleInput `json:"setRule,omitempty"`
+	SetRule *gadb.UIKRuleV1 `json:"setRule,omitempty"`
 	// deleteRule allows you to delete a single rule by ID.
 	DeleteRule *string `json:"deleteRule,omitempty"`
 	// defaultAction is the action to take if no rules match the request.
-	DefaultActions []ActionInput `json:"defaultActions,omitempty"`
+	DefaultActions []gadb.UIKActionV1 `json:"defaultActions,omitempty"`
 }
 
 type UpdateRotationInput struct {

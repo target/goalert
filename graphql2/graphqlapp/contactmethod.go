@@ -11,6 +11,7 @@ import (
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/validation"
@@ -47,8 +48,8 @@ func (a *ContactMethod) Dest(ctx context.Context, obj *contactmethod.ContactMeth
 		}, nil
 	case contactmethod.TypeSlackDM:
 		return &gadb.DestV1{
-			Type: destSlackDM,
-			Args: map[string]string{fieldSlackUserID: obj.Value},
+			Type: slack.DestTypeSlackDirectMessage,
+			Args: map[string]string{slack.FieldSlackUserID: obj.Value},
 		}, nil
 	}
 
@@ -93,7 +94,7 @@ func (a *ContactMethod) LastTestMessageState(ctx context.Context, obj *contactme
 		return nil, nil
 	}
 
-	status, _, err := a.NotificationStore.LastMessageStatus(ctx, notification.MessageTypeTest, obj.ID, t)
+	status, _, err := a.NotificationStore.LastMessageStatus(ctx, notification.MessageTypeTest, obj.ID.String(), t)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +111,7 @@ func (a *ContactMethod) LastVerifyMessageState(ctx context.Context, obj *contact
 		return nil, nil
 	}
 
-	status, _, err := a.NotificationStore.LastMessageStatus(ctx, notification.MessageTypeVerification, obj.ID, t)
+	status, _, err := a.NotificationStore.LastMessageStatus(ctx, notification.MessageTypeVerification, obj.ID.String(), t)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +122,11 @@ func (a *ContactMethod) LastVerifyMessageState(ctx context.Context, obj *contact
 	return notificationStateFromSendResult(status.Status, a.FormatDestFunc(ctx, status.DestType, status.SrcValue)), nil
 }
 
-func (q *Query) UserContactMethod(ctx context.Context, id string) (*contactmethod.ContactMethod, error) {
+func (q *Query) UserContactMethod(ctx context.Context, idStr string) (*contactmethod.ContactMethod, error) {
+	id, err := validate.ParseUUID("ID", idStr)
+	if err != nil {
+		return nil, err
+	}
 	return (*App)(q).FindOneCM(ctx, id)
 }
 
@@ -178,7 +183,8 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 
 		if input.NewUserNotificationRule != nil {
 			input.NewUserNotificationRule.UserID = &input.UserID
-			input.NewUserNotificationRule.ContactMethodID = &cm.ID
+			str := cm.ID.String()
+			input.NewUserNotificationRule.ContactMethodID = &str
 
 			_, err = m.CreateUserNotificationRule(ctx, *input.NewUserNotificationRule)
 			if err != nil {
@@ -196,7 +202,11 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 
 func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.UpdateUserContactMethodInput) (bool, error) {
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
-		cm, err := m.CMStore.FindOne(ctx, tx, input.ID)
+		id, err := validate.ParseUUID("ID", input.ID)
+		if err != nil {
+			return err
+		}
+		cm, err := m.CMStore.FindOne(ctx, tx, id)
 		if errors.Is(err, sql.ErrNoRows) {
 			return validation.NewFieldError("id", "contact method not found")
 		}

@@ -415,14 +415,15 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 // Start will enable all associated contact methods of `value` with type `t`. This should
 // be invoked if a user, for example, responds with `START` via sms.
 func (p *Engine) Start(ctx context.Context, d notification.Dest) error {
-	if !d.Type.IsUserCM() {
-		return errors.New("START only supported on user contact methods")
-	}
-
 	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
 		err = p.cfg.ContactMethodStore.EnableByValue(ctx, p.b.db, d.Type.CMType(), d.Value)
 	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		// no contact methods found, nothing to do
+		return nil
+	}
 
 	return err
 }
@@ -430,14 +431,15 @@ func (p *Engine) Start(ctx context.Context, d notification.Dest) error {
 // Stop will disable all associated contact methods of `value` with type `t`. This should
 // be invoked if a user, for example, responds with `STOP` via SMS.
 func (p *Engine) Stop(ctx context.Context, d notification.Dest) error {
-	if !d.Type.IsUserCM() {
-		return errors.New("STOP only supported on user contact methods")
-	}
-
 	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
 		err = p.cfg.ContactMethodStore.DisableByValue(ctx, p.b.db, d.Type.CMType(), d.Value)
 	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		// no contact methods found, nothing to do
+		return nil
+	}
 
 	return err
 }

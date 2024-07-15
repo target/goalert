@@ -1276,6 +1276,31 @@ func (q *Queries) EngineGetSignalParams(ctx context.Context, messageID uuid.Null
 	return params, err
 }
 
+const engineIsKnownDest = `-- name: EngineIsKnownDest :one
+SELECT
+    EXISTS (
+        SELECT
+        FROM
+            user_contact_methods uc
+        WHERE
+            uc.dest = $1
+            AND uc.disabled = FALSE)
+    OR EXISTS (
+        SELECT
+        FROM
+            notification_channels nc
+        WHERE
+            nc.dest = $1)
+`
+
+// Check if a destination is known in user_contact_methods or notification_channels table.
+func (q *Queries) EngineIsKnownDest(ctx context.Context, dest NullDestV1) (sql.NullBool, error) {
+	row := q.db.QueryRowContext(ctx, engineIsKnownDest, dest)
+	var column_1 sql.NullBool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const findManyCalSubByUser = `-- name: FindManyCalSubByUser :many
 SELECT
     id,
@@ -1653,9 +1678,9 @@ WHERE
 FOR UPDATE
 `
 
-func (q *Queries) IntKeyGetConfig(ctx context.Context, id uuid.UUID) (json.RawMessage, error) {
+func (q *Queries) IntKeyGetConfig(ctx context.Context, id uuid.UUID) (UIKConfig, error) {
 	row := q.db.QueryRowContext(ctx, intKeyGetConfig, id)
-	var config json.RawMessage
+	var config UIKConfig
 	err := row.Scan(&config)
 	return config, err
 }
@@ -1745,7 +1770,7 @@ ON CONFLICT (id)
 
 type IntKeySetConfigParams struct {
 	ID     uuid.UUID
-	Config json.RawMessage
+	Config UIKConfig
 }
 
 func (q *Queries) IntKeySetConfig(ctx context.Context, arg IntKeySetConfigParams) error {

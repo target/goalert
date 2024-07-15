@@ -1,6 +1,7 @@
 package notification
 
 import (
+	"crypto/sha256"
 	"database/sql"
 	"fmt"
 
@@ -12,11 +13,47 @@ import (
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type DestType
 
+type DestID struct {
+	// CMID is the ID of the user contact method.
+	CMID uuid.NullUUID
+	// NCID is the ID of the notification channel.
+	NCID uuid.NullUUID
+}
+
+func (d DestID) IsUserCM() bool { return d.CMID.Valid }
+func (d DestID) String() string {
+	switch {
+	case d.CMID.Valid:
+		return d.CMID.UUID.String()
+	case d.NCID.Valid:
+		return d.NCID.UUID.String()
+	}
+	return ""
+}
+
+func (d DestID) UUID() uuid.UUID {
+	switch {
+	case d.CMID.Valid:
+		return d.CMID.UUID
+	case d.NCID.Valid:
+		return d.NCID.UUID
+	}
+	return uuid.Nil
+}
+
 type Dest struct {
-	ID    string
+	ID    DestID
 	Type  DestType
 	Value string
 }
+
+type DestHash [32]byte
+
+// DestHash returns a comparable hash of the destination.
+func (d Dest) DestHash() DestHash {
+	return DestHash(sha256.Sum256([]byte(fmt.Sprintf("%s\n%s\n", d.Type.String(), d.Value))))
+}
+
 type SQLDest struct {
 	CMID    uuid.NullUUID
 	CMType  gadb.NullEnumUserContactMethodType
@@ -28,9 +65,13 @@ type SQLDest struct {
 }
 
 func (s SQLDest) Dest() Dest {
+	id := DestID{
+		CMID: s.CMID,
+		NCID: s.NCID,
+	}
 	if s.CMID.Valid {
 		return Dest{
-			ID:    s.CMID.UUID.String(),
+			ID:    id,
 			Value: s.CMValue.String,
 			Type:  ScannableDestType{CM: contactmethod.Type(s.CMType.EnumUserContactMethodType)}.DestType(),
 		}
@@ -38,7 +79,7 @@ func (s SQLDest) Dest() Dest {
 
 	if s.NCID.Valid {
 		return Dest{
-			ID:    s.NCID.UUID.String(),
+			ID:    id,
 			Value: s.NCValue.String,
 			Type:  ScannableDestType{NC: notificationchannel.Type(s.NCType.EnumNotifChannelType)}.DestType(),
 		}
@@ -52,12 +93,12 @@ func DestFromPair(cm *contactmethod.ContactMethod, nc *notificationchannel.Chann
 	switch {
 	case cm != nil:
 		return Dest{
-			ID: cm.ID, Value: cm.Value,
+			ID: DestID{CMID: uuid.NullUUID{Valid: true, UUID: cm.ID}}, Value: cm.Value,
 			Type: ScannableDestType{CM: cm.Type}.DestType(),
 		}
 	case nc != nil:
 		return Dest{
-			ID: nc.ID, Value: nc.Value,
+			ID: DestID{NCID: uuid.NullUUID{Valid: true, UUID: nc.ID}}, Value: nc.Value,
 			Type: ScannableDestType{NC: nc.Type}.DestType(),
 		}
 	}
@@ -80,9 +121,6 @@ const (
 )
 
 func (d Dest) String() string { return fmt.Sprintf("%s(%s)", d.Type.String(), d.ID) }
-
-// IsUserCM returns true if the DestType represents a user contact method.
-func (t DestType) IsUserCM() bool { return t.CMType() != contactmethod.TypeUnknown }
 
 // ScannableDestType allows scanning a DestType from separate columns for user contact methods and notification channels.
 type ScannableDestType struct {

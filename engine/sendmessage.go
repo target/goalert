@@ -19,16 +19,16 @@ import (
 func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notification.SendResult, error) {
 	ctx = log.WithField(ctx, "CallbackID", msg.ID)
 
-	if msg.Dest.Type.IsUserCM() {
+	if msg.Dest.ID.IsUserCM() {
 		ctx = permission.UserSourceContext(ctx, msg.UserID, permission.RoleUser, &permission.SourceInfo{
 			Type: permission.SourceTypeContactMethod,
-			ID:   msg.Dest.ID,
+			ID:   msg.Dest.ID.UUID().String(),
 		})
 	} else {
 		ctx = permission.SystemContext(ctx, "SendMessage")
 		ctx = permission.SourceContext(ctx, &permission.SourceInfo{
 			Type: permission.SourceTypeNotificationChannel,
-			ID:   msg.Dest.ID,
+			ID:   msg.Dest.ID.UUID().String(),
 		})
 	}
 
@@ -218,12 +218,12 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 
 	if isFirstAlertMessage && res.State.IsOK() {
 		var chanID, cmID sql.NullString
-		if msg.Dest.Type.IsUserCM() {
+		if msg.Dest.ID.IsUserCM() {
 			cmID.Valid = true
-			cmID.String = msg.Dest.ID
+			cmID.String = msg.Dest.ID.String()
 		} else {
 			chanID.Valid = true
-			chanID.String = msg.Dest.ID
+			chanID.String = msg.Dest.ID.String()
 		}
 		_, err = p.b.trackStatus.ExecContext(ctx, chanID, cmID, msg.AlertID)
 		if err != nil {

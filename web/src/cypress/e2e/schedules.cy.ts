@@ -486,6 +486,7 @@ function testSchedules(screen: ScreenFormat): void {
       cy.dialogTitle('Create Notification Rule')
       cy.dialogForm({
         ruleType: 'on-change',
+        'dest.type': 'Slack Channel',
         slack_channel_id: 'general',
       })
       cy.dialogFinish('Submit')
@@ -501,6 +502,7 @@ function testSchedules(screen: ScreenFormat): void {
       cy.dialogTitle('Create Notification Rule')
       cy.dialogForm({
         ruleType: 'time-of-day',
+        'dest.type': 'Slack Channel',
         time: '00:00',
         'weekdayFilter[0]': false,
         'weekdayFilter[1]': true,

@@ -52,3 +52,6 @@ sql:
           - column: public.notification_channels.dest
             go_type:
               type: NullDestV1
+          - column: public.uik_config.config
+            go_type:
+              type: UIKConfig

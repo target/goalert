@@ -22,9 +22,9 @@ type KeyConfig App
 func (a *App) IntegrationKey() graphql2.IntegrationKeyResolver { return (*IntegrationKey)(a) }
 func (a *App) KeyConfig() graphql2.KeyConfigResolver           { return (*KeyConfig)(a) }
 
-func (k *KeyConfig) OneRule(ctx context.Context, key *graphql2.KeyConfig, ruleID string) (*graphql2.KeyRule, error) {
+func (k *KeyConfig) OneRule(ctx context.Context, key *gadb.UIKConfigV1, ruleID string) (*gadb.UIKRuleV1, error) {
 	for _, r := range key.Rules {
-		if r.ID == ruleID {
+		if r.ID.String() == ruleID {
 			return &r, nil
 		}
 	}
@@ -36,8 +36,8 @@ func (q *Query) IntegrationKey(ctx context.Context, id string) (*integrationkey.
 	return q.IntKeyStore.FindOne(ctx, id)
 }
 
-func (q *Query) ActionInputValidate(ctx context.Context, input graphql2.ActionInput) (bool, error) {
-	err := (*App)(q).ValidateDestination(ctx, "input.dest", input.Dest)
+func (q *Query) ActionInputValidate(ctx context.Context, input gadb.UIKActionV1) (bool, error) {
+	err := (*App)(q).ValidateDestination(ctx, "input.dest", &input.Dest)
 	if err != nil {
 		return false, err
 	}
@@ -111,61 +111,18 @@ func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKey
 		}
 
 		if input.Rules != nil {
-			cfg.Rules = make([]integrationkey.Rule, 0, len(input.Rules))
-
-			err = validateRuleActions(input.Rules)
-			if err != nil {
-				return err
-			}
-
-			for _, r := range input.Rules {
-				var ruleID uuid.UUID
-				if r.ID != nil {
-					ruleID, err = validate.ParseUUID("Rule.ID", *r.ID)
-					if err != nil {
-						return err
-					}
-				}
-				cfg.Rules = append(cfg.Rules, integrationkey.Rule{
-					ID:            ruleID,
-					Name:          r.Name,
-					Description:   r.Description,
-					ConditionExpr: r.ConditionExpr,
-					Actions:       actionsGQLToGo(r.Actions),
-
-					ContinueAfterMatch: r.ContinueAfterMatch,
-				})
-			}
+			cfg.Rules = input.Rules
 		}
 
 		if input.SetRule != nil {
-			err = validateDuplicateActions(input.SetRule)
-			if err != nil {
-				return err
-			}
-
-			if input.SetRule.ID == nil {
+			if input.SetRule.ID == uuid.Nil {
 				// Since we don't have a rule ID, we're need to create a new rule.
-				cfg.Rules = append(cfg.Rules, integrationkey.Rule{
-					ID:                 uuid.New(),
-					Name:               input.SetRule.Name,
-					Description:        input.SetRule.Description,
-					ConditionExpr:      input.SetRule.ConditionExpr,
-					Actions:            actionsGQLToGo(input.SetRule.Actions),
-					ContinueAfterMatch: input.SetRule.ContinueAfterMatch,
-				})
+				cfg.Rules = append(cfg.Rules, *input.SetRule)
 			} else {
 				var found bool
 				for i, r := range cfg.Rules {
-					if r.ID.String() == *input.SetRule.ID {
-						cfg.Rules[i] = integrationkey.Rule{
-							ID:                 r.ID,
-							Name:               input.SetRule.Name,
-							Description:        input.SetRule.Description,
-							ConditionExpr:      input.SetRule.ConditionExpr,
-							Actions:            actionsGQLToGo(input.SetRule.Actions),
-							ContinueAfterMatch: input.SetRule.ContinueAfterMatch,
-						}
+					if r.ID == input.SetRule.ID {
+						cfg.Rules[i] = *input.SetRule
 						found = true
 						break
 					}
@@ -186,7 +143,7 @@ func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKey
 		}
 
 		if input.DefaultActions != nil {
-			cfg.DefaultActions = actionsGQLToGo(input.DefaultActions)
+			cfg.DefaultActions = input.DefaultActions
 		}
 
 		err = m.IntKeyStore.SetConfig(ctx, tx, id, cfg)
@@ -219,56 +176,13 @@ func (m *Mutation) CreateIntegrationKey(ctx context.Context, input graphql2.Crea
 	return key, err
 }
 
-func (key *IntegrationKey) Config(ctx context.Context, raw *integrationkey.IntegrationKey) (*graphql2.KeyConfig, error) {
+func (key *IntegrationKey) Config(ctx context.Context, raw *integrationkey.IntegrationKey) (*gadb.UIKConfigV1, error) {
 	id, err := validate.ParseUUID("IntegrationKey.ID", raw.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	cfg, err := key.IntKeyStore.Config(ctx, key.DB, id)
-	if err != nil {
-		return nil, err
-	}
-
-	var rules []graphql2.KeyRule
-	for _, r := range cfg.Rules {
-		rules = append(rules, graphql2.KeyRule{
-			ID:                 r.ID.String(),
-			Name:               r.Name,
-			Description:        r.Description,
-			ConditionExpr:      r.ConditionExpr,
-			Actions:            actionsGoToGQL(r.Actions),
-			ContinueAfterMatch: r.ContinueAfterMatch,
-		})
-	}
-
-	return &graphql2.KeyConfig{
-		Rules:          rules,
-		DefaultActions: actionsGoToGQL(cfg.DefaultActions),
-	}, nil
-}
-
-func actionsGQLToGo(a []graphql2.ActionInput) []integrationkey.Action {
-	res := make([]integrationkey.Action, 0, len(a))
-	for _, v := range a {
-		res = append(res, integrationkey.Action{
-			Type:          v.Dest.Type,
-			StaticParams:  v.Dest.Args,
-			DynamicParams: v.Params,
-		})
-	}
-	return res
-}
-
-func actionsGoToGQL(a []integrationkey.Action) []graphql2.Action {
-	res := make([]graphql2.Action, 0, len(a))
-	for _, v := range a {
-		res = append(res, graphql2.Action{
-			Dest:   &gadb.DestV1{Type: v.Type, Args: v.StaticParams},
-			Params: v.DynamicParams,
-		})
-	}
-	return res
+	return key.IntKeyStore.Config(ctx, key.DB, id)
 }
 
 // validateRuleActions validates that each rule within a set of rules has a unique set of action destinations.

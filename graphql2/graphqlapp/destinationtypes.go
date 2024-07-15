@@ -7,6 +7,8 @@ import (
 	"github.com/nyaruka/phonenumbers"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/notification/nfydest"
+	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
@@ -17,8 +19,6 @@ const (
 	destTwilioVoice = "builtin-twilio-voice"
 	destSMTP        = "builtin-smtp-email"
 	destWebhook     = "builtin-webhook"
-	destSlackDM     = "builtin-slack-dm"
-	destSlackChan   = "builtin-slack-channel"
 	destSlackUG     = "builtin-slack-usergroup"
 	destUser        = "builtin-user"
 	destRotation    = "builtin-rotation"
@@ -28,8 +28,6 @@ const (
 	fieldPhoneNumber  = "phone_number"
 	fieldEmailAddress = "email_address"
 	fieldWebhookURL   = "webhook_url"
-	fieldSlackUserID  = "slack_user_id"
-	fieldSlackChanID  = "slack_channel_id"
 	fieldSlackUGID    = "slack_usergroup_id"
 	fieldUserID       = "user_id"
 	fieldRotationID   = "rotation_id"
@@ -43,13 +41,6 @@ type (
 
 func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.DestinationFieldValidateInput) (string, error) {
 	switch input.FieldID {
-	case fieldSlackChanID:
-		ch, err := q.SlackChannel(ctx, input.Value)
-		if err != nil {
-			return "", err
-		}
-
-		return ch.Name, nil
 	case fieldSlackUGID:
 		ug, err := q.SlackUserGroup(ctx, input.Value)
 		if err != nil {
@@ -79,37 +70,21 @@ func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.De
 		return u.Name, nil
 	}
 
-	return "", validation.NewGenericError("unsupported fieldID")
+	if input.DestType == destSlackUG && input.FieldID == slack.FieldSlackChannelID {
+		// Hack: Slack User Group channel search is a special case, until
+		// it is migrated to the new search system.
+		//
+		// TODO: remove this when slack user group is moved to the nfydest.Registry.
+		input.DestType = slack.DestTypeSlackChannel
+	}
+
+	return q.DestReg.FieldLabel(ctx, input.DestType, input.FieldID, input.Value)
 }
 
 func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.DestinationFieldSearchInput) (*graphql2.FieldSearchConnection, error) {
 	favFirst := true
 
 	switch input.FieldID {
-	case fieldSlackChanID:
-		res, err := q.SlackChannels(ctx, &graphql2.SlackChannelSearchOptions{
-			Omit:   input.Omit,
-			First:  input.First,
-			Search: input.Search,
-			After:  input.After,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		var nodes []graphql2.FieldSearchResult
-		for _, c := range res.Nodes {
-			nodes = append(nodes, graphql2.FieldSearchResult{
-				FieldID: input.FieldID,
-				Value:   c.ID,
-				Label:   c.Name,
-			})
-		}
-
-		return &graphql2.FieldSearchConnection{
-			Nodes:    nodes,
-			PageInfo: res.PageInfo,
-		}, nil
 	case fieldSlackUGID:
 		res, err := q.SlackUserGroups(ctx, &graphql2.SlackUserGroupSearchOptions{
 			Omit:   input.Omit,
@@ -214,7 +189,47 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 		}, nil
 	}
 
-	return nil, validation.NewGenericError("unsupported fieldID")
+	var opts nfydest.SearchOptions
+	opts.Omit = input.Omit
+	if input.First != nil {
+		opts.Limit = *input.First
+	}
+	if input.After != nil {
+		opts.Cursor = *input.After
+	}
+	if input.Search != nil {
+		opts.Search = *input.Search
+	}
+
+	if input.DestType == destSlackUG && input.FieldID == slack.FieldSlackChannelID {
+		// Hack: Slack User Group channel search is a special case, until
+		// it is migrated to the new search system.
+		//
+		// TODO: remove this when slack user group is moved to the nfydest.Registry.
+		input.DestType = slack.DestTypeSlackChannel
+	}
+
+	res, err := q.DestReg.SearchField(ctx, input.DestType, input.FieldID, opts)
+	if err != nil {
+		return nil, err
+	}
+	var nodes []graphql2.FieldSearchResult
+	for _, v := range res.Values {
+		nodes = append(nodes, graphql2.FieldSearchResult{
+			FieldID:    input.FieldID,
+			Value:      v.Value,
+			Label:      v.Label,
+			IsFavorite: v.IsFavorite,
+		})
+	}
+
+	return &graphql2.FieldSearchConnection{
+		Nodes: nodes,
+		PageInfo: &graphql2.PageInfo{
+			HasNextPage: res.HasNextPage,
+			EndCursor:   &res.Cursor,
+		},
+	}, nil
 }
 
 func (q *Query) DestinationFieldValidate(ctx context.Context, input graphql2.DestinationFieldValidateInput) (bool, error) {
@@ -243,18 +258,22 @@ func (q *Query) DestinationFieldValidate(ctx context.Context, input graphql2.Des
 		return err == nil, nil
 	}
 
-	return false, validation.NewGenericError("unsupported data type")
+	err := q.DestReg.ValidateField(ctx, input.DestType, input.FieldID, input.Value)
+	if validation.IsClientError(err) {
+		return false, nil
+	}
+	return err == nil, err
 }
 
-func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]graphql2.DestinationTypeInfo, error) {
+func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]nfydest.TypeInfo, error) {
 	cfg := config.FromContext(ctx)
-	types := []graphql2.DestinationTypeInfo{
+	types := []nfydest.TypeInfo{
 		{
 			Type:            destAlert,
 			Name:            "Alert",
 			Enabled:         true,
-			IsDynamicAction: true,
-			DynamicParams: []graphql2.DynamicParamConfig{{
+			SupportsSignals: true,
+			DynamicParams: []nfydest.DynamicParamConfig{{
 				ParamID: "summary",
 				Label:   "Summary",
 				Hint:    "Short summary of the alert (used for things like SMS).",
@@ -273,13 +292,15 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			}},
 		},
 		{
-			Type:                  destTwilioSMS,
-			Name:                  "Text Message (SMS)",
-			Enabled:               cfg.Twilio.Enable,
-			UserDisclaimer:        cfg.General.NotificationDisclaimer,
-			SupportsStatusUpdates: true,
-			IsContactMethod:       true,
-			RequiredFields: []graphql2.DestinationFieldConfig{{
+			Type:                       destTwilioSMS,
+			Name:                       "Text Message (SMS)",
+			Enabled:                    cfg.Twilio.Enable,
+			UserDisclaimer:             cfg.General.NotificationDisclaimer,
+			SupportsAlertNotifications: true,
+			SupportsUserVerification:   true,
+			SupportsStatusUpdates:      true,
+			UserVerificationRequired:   true,
+			RequiredFields: []nfydest.FieldConfig{{
 				FieldID:            fieldPhoneNumber,
 				Label:              "Phone Number",
 				Hint:               "Include country code e.g. +1 (USA), +91 (India), +44 (UK)",
@@ -290,13 +311,15 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			}},
 		},
 		{
-			Type:                  destTwilioVoice,
-			Name:                  "Voice Call",
-			Enabled:               cfg.Twilio.Enable,
-			UserDisclaimer:        cfg.General.NotificationDisclaimer,
-			IsContactMethod:       true,
-			SupportsStatusUpdates: true,
-			RequiredFields: []graphql2.DestinationFieldConfig{{
+			Type:                       destTwilioVoice,
+			Name:                       "Voice Call",
+			Enabled:                    cfg.Twilio.Enable,
+			UserDisclaimer:             cfg.General.NotificationDisclaimer,
+			SupportsAlertNotifications: true,
+			SupportsUserVerification:   true,
+			SupportsStatusUpdates:      true,
+			UserVerificationRequired:   true,
+			RequiredFields: []nfydest.FieldConfig{{
 				FieldID:            fieldPhoneNumber,
 				Label:              "Phone Number",
 				Hint:               "Include country code e.g. +1 (USA), +91 (India), +44 (UK)",
@@ -307,20 +330,21 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			}},
 		},
 		{
-			Type:                  destSMTP,
-			Name:                  "Email",
-			Enabled:               cfg.SMTP.Enable,
-			IsContactMethod:       true,
-			SupportsStatusUpdates: true,
-			IsDynamicAction:       false,
-			RequiredFields: []graphql2.DestinationFieldConfig{{
+			Type:                       destSMTP,
+			Name:                       "Email",
+			Enabled:                    cfg.SMTP.Enable,
+			SupportsAlertNotifications: true,
+			SupportsUserVerification:   true,
+			SupportsStatusUpdates:      true,
+			UserVerificationRequired:   true,
+			RequiredFields: []nfydest.FieldConfig{{
 				FieldID:            fieldEmailAddress,
 				Label:              "Email Address",
 				PlaceholderText:    "foobar@example.com",
 				InputType:          "email",
 				SupportsValidation: true,
 			}},
-			DynamicParams: []graphql2.DynamicParamConfig{{
+			DynamicParams: []nfydest.DynamicParamConfig{{
 				ParamID: "subject",
 				Label:   "Subject",
 				Hint:    "Subject of the email message.",
@@ -331,15 +355,16 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			}},
 		},
 		{
-			Type:                  destWebhook,
-			Name:                  "Webhook",
-			Enabled:               cfg.Webhook.Enable,
-			IsContactMethod:       true,
-			IsEPTarget:            true,
-			IsSchedOnCallNotify:   true,
-			SupportsStatusUpdates: true,
-			StatusUpdatesRequired: true,
-			RequiredFields: []graphql2.DestinationFieldConfig{{
+			Type:                       destWebhook,
+			Name:                       "Webhook",
+			Enabled:                    cfg.Webhook.Enable,
+			SupportsUserVerification:   true,
+			SupportsOnCallNotify:       true,
+			SupportsSignals:            true,
+			SupportsStatusUpdates:      true,
+			SupportsAlertNotifications: true,
+			StatusUpdatesRequired:      true,
+			RequiredFields: []nfydest.FieldConfig{{
 				FieldID:            fieldWebhookURL,
 				Label:              "Webhook URL",
 				PlaceholderText:    "https://example.com",
@@ -348,8 +373,7 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 				HintURL:            "/docs#webhooks",
 				SupportsValidation: true,
 			}},
-			IsDynamicAction: true,
-			DynamicParams: []graphql2.DynamicParamConfig{
+			DynamicParams: []nfydest.DynamicParamConfig{
 				{
 					ParamID: "body",
 					Label:   "Body",
@@ -364,55 +388,18 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			},
 		},
 		{
-			Type:                  destSlackDM,
-			Name:                  "Slack Message (DM)",
-			Enabled:               cfg.Slack.Enable,
-			IsContactMethod:       true,
-			SupportsStatusUpdates: true,
-			StatusUpdatesRequired: true,
-			RequiredFields: []graphql2.DestinationFieldConfig{{
-				FieldID:         fieldSlackUserID,
-				Label:           "Slack User",
-				PlaceholderText: "member ID",
-				InputType:       "text",
-				// supportsSearch: true, // TODO: implement search select functionality for users
-				Hint: `Go to your Slack profile, click the three dots, and select "Copy member ID".`,
-			}},
-		},
-		{
-			Type:                  destSlackChan,
-			Name:                  "Slack Channel",
-			Enabled:               cfg.Slack.Enable,
-			IsEPTarget:            true,
-			IsSchedOnCallNotify:   true,
-			IsDynamicAction:       true,
-			SupportsStatusUpdates: true,
-			StatusUpdatesRequired: true,
-			RequiredFields: []graphql2.DestinationFieldConfig{{
-				FieldID:        fieldSlackChanID,
-				Label:          "Slack Channel",
-				InputType:      "text",
-				SupportsSearch: true,
-			}},
-			DynamicParams: []graphql2.DynamicParamConfig{{
-				ParamID: "message",
-				Label:   "Message",
-				Hint:    "The text of the message to send.",
-			}},
-		},
-		{
-			Type:                destSlackUG,
-			Name:                "Update Slack User Group",
-			Enabled:             cfg.Slack.Enable,
-			IsSchedOnCallNotify: true,
-			RequiredFields: []graphql2.DestinationFieldConfig{{
+			Type:                 destSlackUG,
+			Name:                 "Update Slack User Group",
+			Enabled:              cfg.Slack.Enable,
+			SupportsOnCallNotify: true,
+			RequiredFields: []nfydest.FieldConfig{{
 				FieldID:        fieldSlackUGID,
 				Label:          "User Group",
 				InputType:      "text",
 				SupportsSearch: true,
 				Hint:           "The selected group's membership will be replaced/set to the schedule's on-call user(s).",
 			}, {
-				FieldID:        fieldSlackChanID,
+				FieldID:        slack.FieldSlackChannelID,
 				Label:          "Slack Channel (for errors)",
 				InputType:      "text",
 				SupportsSearch: true,
@@ -420,11 +407,11 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			}},
 		},
 		{
-			Type:       destRotation,
-			Name:       "Rotation",
-			Enabled:    true,
-			IsEPTarget: true,
-			RequiredFields: []graphql2.DestinationFieldConfig{{
+			Type:                       destRotation,
+			Name:                       "Rotation",
+			Enabled:                    true,
+			SupportsAlertNotifications: true,
+			RequiredFields: []nfydest.FieldConfig{{
 				FieldID:        fieldRotationID,
 				Label:          "Rotation",
 				InputType:      "text",
@@ -432,11 +419,11 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			}},
 		},
 		{
-			Type:       destSchedule,
-			Name:       "Schedule",
-			Enabled:    true,
-			IsEPTarget: true,
-			RequiredFields: []graphql2.DestinationFieldConfig{{
+			Type:                       destSchedule,
+			Name:                       "Schedule",
+			Enabled:                    true,
+			SupportsAlertNotifications: true,
+			RequiredFields: []nfydest.FieldConfig{{
 				FieldID:        fieldScheduleID,
 				Label:          "Schedule",
 				InputType:      "text",
@@ -444,11 +431,11 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			}},
 		},
 		{
-			Type:       destUser,
-			Name:       "User",
-			Enabled:    true,
-			IsEPTarget: true,
-			RequiredFields: []graphql2.DestinationFieldConfig{{
+			Type:                       destUser,
+			Name:                       "User",
+			Enabled:                    true,
+			SupportsAlertNotifications: true,
+			RequiredFields: []nfydest.FieldConfig{{
 				FieldID:        fieldUserID,
 				Label:          "User",
 				InputType:      "text",
@@ -457,7 +444,13 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 		},
 	}
 
-	slices.SortStableFunc(types, func(a, b graphql2.DestinationTypeInfo) int {
+	fromReg, err := q.DestReg.Types(ctx)
+	if err != nil {
+		return nil, err
+	}
+	types = append(types, fromReg...)
+
+	slices.SortStableFunc(types, func(a, b nfydest.TypeInfo) int {
 		if a.Enabled && !b.Enabled {
 			return -1
 		}
@@ -471,7 +464,7 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 
 	filtered := types[:0]
 	for _, t := range types {
-		if isDynamicAction != nil && *isDynamicAction != t.IsDynamicAction {
+		if isDynamicAction != nil && *isDynamicAction != t.IsDynamicAction() {
 			continue
 		}
 
