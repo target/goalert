@@ -79,14 +79,12 @@ export default function UniversalKeyRuleEditDialog(
   const [hasSubmitted, setHasSubmitted] = useState(0)
   const showNotice = hasSubmitted > 0 && value.actions.length === 0
 
-  const firstStepErrors = nameError || descError || conditionError
   useEffect(() => {
-    if (firstStepErrors) {
-      setStep(0)
+    // if no actions notice, user must confirm they want this before submitting
+    if ((showNotice && !hasConfirmed) || !hasSubmitted) {
+      return
     }
-  }, [errors])
 
-  const handleCommit = () => {
     commit(
       {
         input: {
@@ -96,18 +94,23 @@ export default function UniversalKeyRuleEditDialog(
       },
       { additionalTypenames: ['KeyConfig'] },
     ).then((res) => {
-      if (!res.error) props.onClose()
+      if (res.error) return
+
+      props.onClose()
     })
-  }
+  }, [hasSubmitted])
 
   useEffect(() => {
-    if (hasSubmitted) {
-      if (showNotice && !hasConfirmed) {
-        return
-      }
-      handleCommit()
+    // showing notice takes precedence
+    // don't change steps when this flips to true
+    if (showNotice && !hasConfirmed) {
+      return
     }
-  }, [hasSubmitted])
+
+    if (nameError || descError || conditionError) {
+      setStep(0)
+    }
+  }, [nameError, descError, conditionError, showNotice])
 
   return (
     <FormDialog
@@ -115,7 +118,7 @@ export default function UniversalKeyRuleEditDialog(
       onClose={props.onClose}
       onSubmit={() => setHasSubmitted(hasSubmitted + 1)}
       disableSubmit={step < 2 && !hasSubmitted}
-      disableNext={step === 2 || (step === 0 && firstStepErrors)}
+      disableNext={step === 2}
       onNext={() => setStep(step + 1)}
       onBack={step > 0 && step <= 2 ? () => setStep(step - 1) : null}
       errors={errors}
@@ -123,11 +126,9 @@ export default function UniversalKeyRuleEditDialog(
         <UniversalKeyRuleForm
           value={value}
           onChange={setValue}
-          nameError={errs.getErrorByField(/Rules.+\.Name/)}
-          descriptionError={errs.getErrorByField(/Rules.+\.Description/)}
-          conditionError={errs.getErrorByPath(
-            'updateKeyConfig.input.setRule.conditionExpr',
-          )}
+          nameError={nameError}
+          descriptionError={descError}
+          conditionError={conditionError}
           step={step}
           setStep={setStep}
         />

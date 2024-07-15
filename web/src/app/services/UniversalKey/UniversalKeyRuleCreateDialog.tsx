@@ -43,6 +43,27 @@ export default function UniversalKeyRuleCreateDialog(
   )
 
   useEffect(() => {
+    // if no actions notice, user must confirm they want this before submitting
+    if ((showNotice && !hasConfirmed) || !hasSubmitted) {
+      return
+    }
+
+    commit(
+      {
+        input: {
+          keyID: props.keyID,
+          setRule: value,
+        },
+      },
+      { additionalTypenames: ['KeyConfig'] },
+    ).then((res) => {
+      if (res.error) return
+
+      props.onClose()
+    })
+  }, [hasSubmitted])
+
+  useEffect(() => {
     // showing notice takes precedence
     // don't change steps when this flips to true
     if (showNotice && !hasConfirmed) {
@@ -59,28 +80,7 @@ export default function UniversalKeyRuleCreateDialog(
       title='Create Rule'
       onClose={props.onClose}
       errors={errors}
-      onSubmit={() => {
-        setHasSubmitted(hasSubmitted + 1)
-
-        // if no actions notice, user must confirm they want this before submitting
-        if (showNotice && !hasConfirmed) {
-          return
-        }
-
-        return commit(
-          {
-            input: {
-              keyID: props.keyID,
-              setRule: value,
-            },
-          },
-          { additionalTypenames: ['KeyConfig'] },
-        ).then((res) => {
-          if (res.error) return
-
-          props.onClose()
-        })
-      }}
+      onSubmit={() => setHasSubmitted(hasSubmitted + 1)}
       disableSubmit={step < 2 && !hasSubmitted}
       disableNext={step === 2}
       onNext={() => setStep(step + 1)}
