@@ -33,18 +33,13 @@ func (dm *DMSender) TypeInfo(ctx context.Context) (*nfydest.TypeInfo, error) {
 	}, nil
 }
 
-func (dm *DMSender) ValidateField(ctx context.Context, fieldID, value string) (bool, error) {
+func (dm *DMSender) ValidateField(ctx context.Context, fieldID, value string) error {
 	switch fieldID {
-	case FieldSlackChannelID:
-		err := dm.ValidateUser(ctx, value)
-		if validation.IsValidationError(err) {
-			return false, nil
-		}
-
-		return err == nil, err
+	case FieldSlackUserID:
+		return dm.ValidateUser(ctx, value)
 	}
 
-	return false, validation.NewGenericError("unknown field ID")
+	return validation.NewGenericError("unknown field ID")
 }
 
 func (dm *DMSender) DisplayInfo(ctx context.Context, args map[string]string) (*nfydest.DisplayInfo, error) {

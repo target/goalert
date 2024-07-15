@@ -12,6 +12,7 @@ import (
 var (
 	ErrUnknownType = validation.NewGenericError("unknown destination type")
 	ErrUnsupported = errors.New("unsupported operation")
+	ErrNotEnabled  = validation.NewGenericError("destination type is not enabled")
 )
 
 type Registry struct {
@@ -46,10 +47,10 @@ func (r *Registry) DisplayInfo(ctx context.Context, d gadb.DestV1) (*DisplayInfo
 	return p.DisplayInfo(ctx, d.Args)
 }
 
-func (r *Registry) ValidateField(ctx context.Context, typeID, fieldID, value string) (bool, error) {
+func (r *Registry) ValidateField(ctx context.Context, typeID, fieldID, value string) error {
 	p := r.Provider(typeID)
 	if p == nil {
-		return false, ErrUnknownType
+		return ErrUnknownType
 	}
 
 	return p.ValidateField(ctx, fieldID, value)
