@@ -77,16 +77,7 @@ func (s *ChannelSender) DisplayInfo(ctx context.Context, args map[string]string)
 func (s *ChannelSender) SearchField(ctx context.Context, fieldID string, options nfydest.SearchOptions) (*nfydest.SearchResult, error) {
 	switch fieldID {
 	case FieldSlackChannelID:
-		ch, err := s.ListChannels(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return nfydest.SearchByList(ch, options, func(ch Channel) nfydest.FieldValue {
-			return nfydest.FieldValue{
-				Label: ch.Name,
-				Value: ch.ID,
-			}
-		})
+		return nfydest.SearchByListFunc(ctx, options, s.ListChannels)
 	}
 
 	return nil, validation.NewGenericError("unsupported field ID")

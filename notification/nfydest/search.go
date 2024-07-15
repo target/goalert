@@ -31,16 +31,67 @@ type SearchOptions struct {
 	Limit  int
 }
 
-// SearchByList allows returning a SearchResult from a list of items, handling pagination and filtering.
-func SearchByList[t any](_items []t, searchOpts SearchOptions, fn func(t) FieldValue) (*SearchResult, error) {
+type OptionFrommer interface {
+	FromNotifyOptions(SearchOptions) error
+}
+
+type Fieldable interface {
+	AsField() FieldValue
+}
+type Cursorable interface {
+	Cursor() (string, error)
+	Fieldable
+}
+
+func SearchByCursorFunc[OptionType OptionFrommer, Result Cursorable](ctx context.Context, opts SearchOptions, searchFn func(context.Context, OptionType) ([]Result, error)) (*SearchResult, error) {
+	if opts.Limit <= 0 {
+		opts.Limit = 15
+	}
+	origLimit := opts.Limit
+	opts.Limit++ // Fetch one more to determine if there is a next page.
+
+	var searchOpts OptionType
+	err := searchOpts.FromNotifyOptions(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	results, err := searchFn(ctx, searchOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	var res SearchResult
+	if len(results) > origLimit {
+		res.HasNextPage = true
+		results = results[:origLimit]
+		res.Cursor, err = results[origLimit].Cursor()
+		if err != nil {
+			return nil, err
+		}
+	}
+	for _, r := range results {
+		res.Values = append(res.Values, r.AsField())
+	}
+
+	return &res, nil
+}
+
+// SearchByListFunc allows returning a SearchResult from a function that returns a list of Fieldable items.
+func SearchByListFunc[T Fieldable](ctx context.Context, searchOpts SearchOptions, listFn func(context.Context) ([]T, error)) (*SearchResult, error) {
 	if searchOpts.Limit <= 0 {
 		searchOpts.Limit = 15 // Default limit.
 	}
 
-	items := make([]FieldValue, len(_items))
-	for i, item := range _items {
-		items[i] = fn(item)
+	_items, err := listFn(ctx)
+	if err != nil {
+		return nil, err
 	}
+	items := make([]FieldValue, 0, len(_items))
+	for _, item := range _items {
+		items = append(items, item.AsField())
+	}
+
 	// Sort by name, case-insensitive, then sensitive.
 	sort.Slice(items, func(i, j int) bool {
 		iLabel, jLabel := strings.ToLower(items[i].Label), strings.ToLower(items[j].Label)

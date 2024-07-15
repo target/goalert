@@ -79,16 +79,7 @@ func (ug *UserGroupSender) SearchField(ctx context.Context, fieldID string, opti
 	case FieldSlackChannelID:
 		return ug.ChannelSender.SearchField(ctx, fieldID, options)
 	case FieldSlackUsergroupID:
-		groups, err := ug.ListUserGroups(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return nfydest.SearchByList(groups, options, func(ch UserGroup) nfydest.FieldValue {
-			return nfydest.FieldValue{
-				Label: ch.Handle,
-				Value: ch.ID,
-			}
-		})
+		return nfydest.SearchByListFunc(ctx, options, ug.ListUserGroups)
 	}
 
 	return nil, validation.NewGenericError("unsupported field ID")
