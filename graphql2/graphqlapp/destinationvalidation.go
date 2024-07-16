@@ -9,11 +9,9 @@ import (
 	"strings"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification/nfydest"
-	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -136,10 +134,7 @@ func addInputError(ctx context.Context, err error) {
 //
 // In the future this will be a call to the plugin system.
 func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *gadb.DestV1) (err error) {
-	cfg := config.FromContext(ctx)
 	switch dest.Type {
-	case destAlert:
-		return nil
 	case destTwilioSMS:
 		phone := dest.Arg(fieldPhoneNumber)
 		err := validate.Phone(fieldPhoneNumber, phone)
@@ -154,35 +149,11 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 			return addDestFieldError(ctx, fieldName, fieldPhoneNumber, err)
 		}
 		return nil
-	case destSlackUG:
-		ugID := dest.Arg(fieldSlackUGID)
-		userErr := a.SlackStore.ValidateUserGroup(ctx, ugID)
-		if userErr != nil {
-			return addDestFieldError(ctx, fieldName, fieldSlackUGID, userErr)
-		}
-
-		chanID := dest.Arg(slack.FieldSlackChannelID)
-		chanErr := a.SlackStore.ValidateChannel(ctx, chanID)
-		if chanErr != nil {
-			return addDestFieldError(ctx, fieldName, slack.FieldSlackChannelID, chanErr)
-		}
-
-		return nil
 	case destSMTP:
 		email := dest.Arg(fieldEmailAddress)
 		err := validate.Email(fieldEmailAddress, email)
 		if err != nil {
 			return addDestFieldError(ctx, fieldName, fieldEmailAddress, err)
-		}
-		return nil
-	case destWebhook:
-		url := dest.Arg(fieldWebhookURL)
-		err := validate.AbsoluteURL(fieldWebhookURL, url)
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldWebhookURL, err)
-		}
-		if !cfg.ValidWebhookURL(url) {
-			return addDestFieldError(ctx, fieldName, fieldWebhookURL, validation.NewGenericError("url is not allowed by administator"))
 		}
 		return nil
 	case destSchedule: // must be valid UUID and exist

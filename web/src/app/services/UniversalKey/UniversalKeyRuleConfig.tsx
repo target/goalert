@@ -2,13 +2,13 @@ import React, { Suspense, useState } from 'react'
 import { Button, Card } from '@mui/material'
 import { Add } from '@mui/icons-material'
 import FlatList, { FlatListListItem } from '../../lists/FlatList'
+import UniversalKeyRuleDialog from './UniversalKeyRuleDialog'
 import UniversalKeyRuleRemoveDialog from './UniversalKeyRuleRemoveDialog'
 import OtherActions from '../../util/OtherActions'
 import { gql, useQuery } from 'urql'
 import { IntegrationKey, Service } from '../../../schema'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
-import UniversalKeyRuleDialog from './UniversalKeyRuleDialog'
 
 interface UniversalKeyRuleListProps {
   serviceID: string

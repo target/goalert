@@ -10,7 +10,7 @@ interface UniversalKeyRuleDialogProps {
   keyID: string
   onClose: () => void
 
-  ruleID: string // if present, we are editing
+  ruleID?: string // if present, we are editing
   default?: boolean // used when creating default action
 }
 
@@ -73,13 +73,14 @@ export default function UniversalKeyRuleDialog(
     continueAfterMatch: rule?.continueAfterMatch ?? false,
     actions: rule?.actions ?? [],
   })
+
   const [step, setStep] = useState(0)
   const [m, commit] = useMutation(mutation)
   const [hasSubmitted, setHasSubmitted] = useState(0)
   const [hasConfirmed, setHasConfirmed] = useState(false)
 
   const errs = useErrorConsumer(m.error)
-  const errors = errs.remainingLegacyCallback()
+  const unknownErrors = errs.remainingLegacyCallback()
   const nameError = errs.getErrorByField(/Rules.+\.Name/)
   const descError = errs.getErrorByField(/Rules.+\.Description/)
   const conditionError = errs.getErrorByPath(
@@ -132,7 +133,7 @@ export default function UniversalKeyRuleDialog(
       }
       onClose={props.onClose}
       loading={m.fetching}
-      errors={errors}
+      errors={unknownErrors}
       onSubmit={() => setHasSubmitted(hasSubmitted + 1)}
       disableSubmit={step < 2 && !hasSubmitted}
       disableNext={step === 2}
