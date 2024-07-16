@@ -21,11 +21,6 @@ func (s *Store) AddStepActionTx(ctx context.Context, tx *sql.Tx, stepID uuid.UUI
 		return err
 	}
 
-	err = s.reg.ValidateDest(ctx, dest)
-	if err != nil {
-		return err
-	}
-
 	typeInfo, err := s.reg.TypeInfo(ctx, dest.Type)
 	if err != nil {
 		return err
