@@ -2,7 +2,6 @@ package graphqlapp
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"strconv"
@@ -155,21 +154,6 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 		if err != nil {
 			return addDestFieldError(ctx, fieldName, fieldEmailAddress, err)
 		}
-		return nil
-	case destSchedule: // must be valid UUID and exist
-		_, err := validate.ParseUUID(fieldScheduleID, dest.Arg(fieldScheduleID))
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldScheduleID, err)
-		}
-
-		_, err = a.ScheduleStore.FindOne(ctx, dest.Arg(fieldScheduleID))
-		if errors.Is(err, sql.ErrNoRows) {
-			return addDestFieldError(ctx, fieldName, fieldScheduleID, validation.NewGenericError("schedule does not exist"))
-		}
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldScheduleID, err)
-		}
-
 		return nil
 	}
 

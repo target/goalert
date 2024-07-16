@@ -5,7 +5,6 @@ import (
 	"net/mail"
 
 	"github.com/nyaruka/phonenumbers"
-	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification/nfydest"
@@ -62,7 +61,6 @@ func (a *Query) DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1) (*
 
 func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, skipValidation bool) (*nfydest.DisplayInfo, error) {
 	app := (*App)(a)
-	cfg := config.FromContext(ctx)
 	if !skipValidation {
 		if err := app.ValidateDestination(ctx, "input", &dest); err != nil {
 			return nil, err
@@ -99,17 +97,6 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 			IconURL:     "builtin://email",
 			IconAltText: "Email",
 			Text:        e.Address,
-		}, nil
-	case destSchedule:
-		s, err := app.FindOneSchedule(ctx, dest.Arg(fieldScheduleID))
-		if err != nil {
-			return nil, err
-		}
-		return &nfydest.DisplayInfo{
-			IconURL:     "builtin://schedule",
-			IconAltText: "Schedule",
-			LinkURL:     cfg.CallbackURL("/schedules/" + s.ID),
-			Text:        s.Name,
 		}, nil
 	}
 

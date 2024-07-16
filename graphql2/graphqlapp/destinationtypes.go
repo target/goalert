@@ -17,11 +17,9 @@ const (
 	destTwilioSMS   = "builtin-twilio-sms"
 	destTwilioVoice = "builtin-twilio-voice"
 	destSMTP        = "builtin-smtp-email"
-	destSchedule    = "builtin-schedule"
 
 	fieldPhoneNumber  = "phone_number"
 	fieldEmailAddress = "email_address"
-	fieldScheduleID   = "schedule_id"
 )
 
 type (
@@ -30,51 +28,10 @@ type (
 )
 
 func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.DestinationFieldValidateInput) (string, error) {
-	switch input.FieldID {
-	case fieldScheduleID:
-		sched, err := q.Schedule(ctx, input.Value)
-		if err != nil {
-			return "", err
-		}
-
-		return sched.Name, nil
-	}
-
 	return q.DestReg.FieldLabel(ctx, input.DestType, input.FieldID, input.Value)
 }
 
 func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.DestinationFieldSearchInput) (*graphql2.FieldSearchConnection, error) {
-	favFirst := true
-
-	switch input.FieldID {
-	case fieldScheduleID:
-		res, err := q.Schedules(ctx, &graphql2.ScheduleSearchOptions{
-			Omit:           input.Omit,
-			First:          input.First,
-			Search:         input.Search,
-			After:          input.After,
-			FavoritesFirst: &favFirst,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		var nodes []graphql2.FieldSearchResult
-		for _, sched := range res.Nodes {
-			nodes = append(nodes, graphql2.FieldSearchResult{
-				FieldID:    input.FieldID,
-				Value:      sched.ID,
-				Label:      sched.Name,
-				IsFavorite: sched.IsUserFavorite(),
-			})
-		}
-
-		return &graphql2.FieldSearchConnection{
-			Nodes:    nodes,
-			PageInfo: res.PageInfo,
-		}, nil
-	}
-
 	var opts nfydest.SearchOptions
 	opts.Omit = input.Omit
 	if input.First != nil {
@@ -200,18 +157,6 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 				ParamID: "body",
 				Label:   "Body",
 				Hint:    "Body of the email message.",
-			}},
-		},
-		{
-			Type:                       destSchedule,
-			Name:                       "Schedule",
-			Enabled:                    true,
-			SupportsAlertNotifications: true,
-			RequiredFields: []nfydest.FieldConfig{{
-				FieldID:        fieldScheduleID,
-				Label:          "Schedule",
-				InputType:      "text",
-				SupportsSearch: true,
 			}},
 		},
 	}
