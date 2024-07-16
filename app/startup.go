@@ -87,6 +87,8 @@ func (app *App) startup(ctx context.Context) error {
 	}
 
 	app.DestRegistry.RegisterProvider(ctx, app.UserStore)
+	app.DestRegistry.RegisterProvider(ctx, app.ScheduleStore)
+	app.DestRegistry.RegisterProvider(ctx, app.RotationStore)
 	app.DestRegistry.RegisterProvider(ctx, app.AlertStore)
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan)
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan.DMSender())
