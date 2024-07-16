@@ -2,14 +2,17 @@ package integrationkey
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
@@ -20,10 +23,50 @@ const (
 	MaxParams  = 10
 )
 
-func ValidateUIKConfigV1(cfg gadb.UIKConfigV1) error {
+func destHash(dest gadb.DestV1) (hash [32]byte) {
+	data, err := json.Marshal(dest)
+	if err != nil {
+		panic(err)
+	}
+	h := sha256.New()
+	_, _ = io.WriteString(h, string(data))
+	copy(hash[:], h.Sum(nil))
+	return hash
+}
+
+func (s *Store) validateActions(ctx context.Context, fname string, actions []gadb.UIKActionV1) error {
+	err := validate.Len(fname, actions, 0, MaxActions)
+	if err != nil {
+		return err
+	}
+
+	uniqDest := make(map[[32]byte]struct{}, len(actions))
+	for i, a := range actions {
+		err := s.reg.ValidateAction(ctx, a)
+		if err != nil {
+			return err
+		}
+		hash := destHash(a.Dest)
+		if _, ok := uniqDest[hash]; ok {
+			name, err := s.reg.LookupTypeName(ctx, a.Dest.Type)
+			if err != nil {
+				// Handle error by logging it and using the type ID as the name.
+				// This is unlikely since the destination type should have been validated earlier.
+				log.Log(ctx, err)
+				name = a.Dest.Type
+			}
+			return validation.NewFieldErrorf(fmt.Sprintf("%s[%d]", fname, i), "duplicate destination '%s' not allowed", name)
+		}
+		uniqDest[hash] = struct{}{}
+	}
+
+	return nil
+}
+
+func (s *Store) ValidateUIKConfigV1(ctx context.Context, cfg gadb.UIKConfigV1) error {
 	err := validate.Many(
 		validate.Len("Rules", cfg.Rules, 0, MaxRules),
-		validate.Len("DefaultActions", cfg.DefaultActions, 0, MaxActions),
+		s.validateActions(ctx, "DefaultActions", cfg.DefaultActions),
 	)
 	if err != nil {
 		return err
@@ -35,29 +78,7 @@ func ValidateUIKConfigV1(cfg gadb.UIKConfigV1) error {
 			validate.Name(field+".Name", r.Name),
 			validate.Text(field+".Description", r.Description, 0, 255), // these are arbitrary and will likely change as the feature is developed
 			validate.Text(field+".ConditionExpr", r.ConditionExpr, 1, 1024),
-			validate.Len(field+".Actions", r.Actions, 0, MaxActions),
-		)
-		if err != nil {
-			return err
-		}
-
-		for j, a := range r.Actions {
-			field := fmt.Sprintf("Rules[%d].Actions[%d]", i, j)
-			err := validate.Many(
-				validate.MapLen(field+".Dest.Args", a.Dest.Args, 0, MaxParams),
-				validate.MapLen(field+".Params", a.Params, 0, MaxParams),
-			)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	for i, a := range cfg.DefaultActions {
-		field := fmt.Sprintf("DefaultActions[%d]", i)
-		err := validate.Many(
-			validate.MapLen(field+".Dest.Args", a.Dest.Args, 0, MaxParams),
-			validate.MapLen(field+".Params", a.Params, 0, MaxParams),
+			s.validateActions(ctx, field+".Actions", r.Actions),
 		)
 		if err != nil {
 			return err
@@ -104,7 +125,7 @@ func (s *Store) SetConfig(ctx context.Context, db gadb.DBTX, keyID uuid.UUID, cf
 	}
 
 	if cfg != nil {
-		err := ValidateUIKConfigV1(*cfg)
+		err := s.ValidateUIKConfigV1(ctx, *cfg)
 		if err != nil {
 			return err
 		}

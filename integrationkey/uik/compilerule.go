@@ -28,6 +28,10 @@ func BuildRuleExpr(cond string, actions []gadb.UIKActionV1) string {
 	for _, a := range actions {
 		var params []string
 		for k, v := range a.Params {
+			if v == "" {
+				params = append(params, fmt.Sprintf(`%s: ""`, strconv.Quote(k)))
+				continue
+			}
 			params = append(params, fmt.Sprintf(`%s: string(%s)`, strconv.Quote(k), v))
 		}
 

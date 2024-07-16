@@ -69,12 +69,6 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 		}
 	}
 	switch dest.Type {
-	case destAlert:
-		return &nfydest.DisplayInfo{
-			IconURL:     "builtin://alert",
-			IconAltText: "Alert",
-			Text:        "Create new alert",
-		}, nil
 	case destTwilioSMS:
 		n, err := phonenumbers.Parse(dest.Arg(fieldPhoneNumber), "")
 		if err != nil {

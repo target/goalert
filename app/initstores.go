@@ -44,6 +44,8 @@ import (
 func (app *App) initStores(ctx context.Context) error {
 	var err error
 
+	app.DestRegistry = nfydest.NewRegistry()
+
 	if app.ConfigStore == nil {
 		var fallback url.URL
 		fallback.Scheme = "http"
@@ -219,7 +221,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.IntegrationKeyStore == nil {
-		app.IntegrationKeyStore = integrationkey.NewStore(ctx, app.db, app.APIKeyring)
+		app.IntegrationKeyStore = integrationkey.NewStore(ctx, app.db, app.APIKeyring, app.DestRegistry)
 	}
 
 	if app.ScheduleRuleStore == nil {
@@ -302,8 +304,6 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	app.UIKHandler = uik.NewHandler(app.db, app.IntegrationKeyStore, app.AlertStore)
-
-	app.DestRegistry = nfydest.NewRegistry()
 
 	return nil
 }

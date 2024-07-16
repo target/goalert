@@ -28,6 +28,20 @@ func NewRegistry() *Registry {
 
 func (r *Registry) Provider(id string) Provider { return r.providers[id] }
 
+func (r *Registry) LookupTypeName(ctx context.Context, typeID string) (string, error) {
+	p := r.Provider(typeID)
+	if p == nil {
+		return "", ErrUnknownType
+	}
+
+	info, err := p.TypeInfo(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	return info.Name, nil
+}
+
 func (r *Registry) RegisterProvider(ctx context.Context, p Provider) {
 	if r.Provider(p.ID()) != nil {
 		panic(fmt.Sprintf("provider with ID %s already registered", p.ID()))

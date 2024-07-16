@@ -20,7 +20,6 @@ const (
 	destUser        = "builtin-user"
 	destRotation    = "builtin-rotation"
 	destSchedule    = "builtin-schedule"
-	destAlert       = "builtin-alert"
 
 	fieldPhoneNumber  = "phone_number"
 	fieldEmailAddress = "email_address"
@@ -210,29 +209,6 @@ func (q *Query) DestinationFieldValidate(ctx context.Context, input graphql2.Des
 func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]nfydest.TypeInfo, error) {
 	cfg := config.FromContext(ctx)
 	types := []nfydest.TypeInfo{
-		{
-			Type:            destAlert,
-			Name:            "Alert",
-			Enabled:         true,
-			SupportsSignals: true,
-			DynamicParams: []nfydest.DynamicParamConfig{{
-				ParamID: "summary",
-				Label:   "Summary",
-				Hint:    "Short summary of the alert (used for things like SMS).",
-			}, {
-				ParamID: "details",
-				Label:   "Details",
-				Hint:    "Full body (markdown) text of the alert.",
-			}, {
-				ParamID: "dedup",
-				Label:   "Dedup",
-				Hint:    "Stable identifier for de-duplication and closing existing alerts.",
-			}, {
-				ParamID: "close",
-				Label:   "Close",
-				Hint:    "If true, close an existing alert.",
-			}},
-		},
 		{
 			Type:                       destTwilioSMS,
 			Name:                       "Text Message (SMS)",
