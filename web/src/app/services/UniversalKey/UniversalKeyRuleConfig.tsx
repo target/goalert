@@ -2,8 +2,7 @@ import React, { Suspense, useState } from 'react'
 import { Button, Card } from '@mui/material'
 import { Add } from '@mui/icons-material'
 import FlatList, { FlatListListItem } from '../../lists/FlatList'
-import UniversalKeyRuleCreateDialog from './UniversalKeyRuleCreateDialog'
-import UniversalKeyRuleEditDialog from './UniversalKeyRuleEditDialog'
+import UniversalKeyRuleDialog from './UniversalKeyRuleDialog'
 import UniversalKeyRuleRemoveDialog from './UniversalKeyRuleRemoveDialog'
 import OtherActions from '../../util/OtherActions'
 import { gql, useQuery } from 'urql'
@@ -93,15 +92,12 @@ export default function UniversalKeyRuleList(
       </Card>
 
       <Suspense>
-        {create && (
-          <UniversalKeyRuleCreateDialog
-            onClose={() => setCreate(false)}
-            keyID={props.keyID}
-          />
-        )}
-        {edit && (
-          <UniversalKeyRuleEditDialog
-            onClose={() => setEdit('')}
+        {(create || edit) && (
+          <UniversalKeyRuleDialog
+            onClose={() => {
+              setCreate(false)
+              setEdit('')
+            }}
             keyID={props.keyID}
             ruleID={edit}
           />
