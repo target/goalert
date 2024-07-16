@@ -13,6 +13,7 @@ import (
 	"github.com/slack-go/slack/slackutilsx"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
@@ -77,6 +78,13 @@ type Channel struct {
 	TeamID string
 
 	IsArchived bool
+}
+
+func (c Channel) AsField() nfydest.FieldValue {
+	return nfydest.FieldValue{
+		Value: c.ID,
+		Label: c.Name,
+	}
 }
 
 // User contains information about a Slack user.

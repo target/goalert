@@ -17,13 +17,11 @@ const (
 	destTwilioSMS   = "builtin-twilio-sms"
 	destTwilioVoice = "builtin-twilio-voice"
 	destSMTP        = "builtin-smtp-email"
-	destUser        = "builtin-user"
 	destRotation    = "builtin-rotation"
 	destSchedule    = "builtin-schedule"
 
 	fieldPhoneNumber  = "phone_number"
 	fieldEmailAddress = "email_address"
-	fieldUserID       = "user_id"
 	fieldRotationID   = "rotation_id"
 	fieldScheduleID   = "schedule_id"
 )
@@ -50,12 +48,6 @@ func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.De
 		}
 
 		return sched.Name, nil
-	case fieldUserID:
-		u, err := q.User(ctx, &input.Value)
-		if err != nil {
-			return "", err
-		}
-		return u.Name, nil
 	}
 
 	return q.DestReg.FieldLabel(ctx, input.DestType, input.FieldID, input.Value)
@@ -110,32 +102,6 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 				Value:      sched.ID,
 				Label:      sched.Name,
 				IsFavorite: sched.IsUserFavorite(),
-			})
-		}
-
-		return &graphql2.FieldSearchConnection{
-			Nodes:    nodes,
-			PageInfo: res.PageInfo,
-		}, nil
-	case fieldUserID:
-		res, err := q.Users(ctx, &graphql2.UserSearchOptions{
-			Omit:           input.Omit,
-			First:          input.First,
-			Search:         input.Search,
-			After:          input.After,
-			FavoritesFirst: &favFirst,
-		}, input.First, input.After, input.Search)
-		if err != nil {
-			return nil, err
-		}
-
-		var nodes []graphql2.FieldSearchResult
-		for _, u := range res.Nodes {
-			nodes = append(nodes, graphql2.FieldSearchResult{
-				FieldID:    input.FieldID,
-				Value:      u.ID,
-				Label:      u.Name,
-				IsFavorite: u.IsUserFavorite(),
 			})
 		}
 
@@ -292,18 +258,6 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 			RequiredFields: []nfydest.FieldConfig{{
 				FieldID:        fieldScheduleID,
 				Label:          "Schedule",
-				InputType:      "text",
-				SupportsSearch: true,
-			}},
-		},
-		{
-			Type:                       destUser,
-			Name:                       "User",
-			Enabled:                    true,
-			SupportsAlertNotifications: true,
-			RequiredFields: []nfydest.FieldConfig{{
-				FieldID:        fieldUserID,
-				Label:          "User",
 				InputType:      "text",
 				SupportsSearch: true,
 			}},
