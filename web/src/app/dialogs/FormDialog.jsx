@@ -64,6 +64,7 @@ function FormDialog(props) {
     disableBackdropClose,
     disablePortal,
     disableSubmit,
+    disableNext,
     ...dialogProps
   } = props
 
@@ -102,7 +103,7 @@ function FormDialog(props) {
           onSubmit={(e, valid) => {
             e.preventDefault()
             if (valid) {
-              onNext ? onNext() : onSubmit()
+              onSubmit()
             }
           }}
         >
@@ -148,31 +149,39 @@ function FormDialog(props) {
       )
     }
 
-    const submitText = onNext ? 'Next' : 'Submit'
-
     return (
       <DialogActions>
         <Button
           disabled={loading}
+          color='secondary'
           onClick={onBack || handleOnClose}
           sx={{ mr: 1 }}
         >
           {onBack ? 'Back' : 'Cancel'}
         </Button>
+        {onNext && (
+          <Button
+            variant='contained'
+            color='secondary'
+            disabled={loading || disableNext}
+            onClick={onNext}
+            sx={{ mr: 1 }}
+          >
+            Next
+          </Button>
+        )}
         <LoadingButton
           form='dialog-form'
           onClick={() => {
-            if (!onNext) {
-              setAttemptCount(attemptCount + 1)
-            }
+            setAttemptCount(attemptCount + 1)
 
             if (!props.form) {
               onSubmit()
             }
           }}
           attemptCount={attemptCount}
-          buttonText={primaryActionLabel || (confirm ? 'Confirm' : submitText)}
-          disabled={disableSubmit}
+          buttonText={primaryActionLabel || (confirm ? 'Confirm' : 'Submit')}
+          disabled={loading || disableSubmit}
           loading={loading}
           type='submit'
         />
@@ -244,6 +253,7 @@ FormDialog.propTypes = {
 
   disablePortal: p.bool, // disable the portal behavior of the dialog
 
+  disableNext: p.bool, // disables the next button while true
   disableSubmit: p.bool, // disables the submit button while true
 
   // overrides any of the main action button titles with this specific text

@@ -83,7 +83,7 @@ export default function DefaultActionEditDialog(
         <UniversalKeyActionsForm
           value={value}
           onChange={setValue}
-          editActionId={editAction}
+          actionType={editAction}
           onChipClick={(action: ActionInput) => setEditAction(action.dest.type)}
           showList
         />

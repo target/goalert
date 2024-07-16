@@ -57,7 +57,6 @@ export default function UniversalKeyDefaultActions(
             {
               title: (
                 <UniversalKeyActionsList
-                  noHeader
                   actions={q.data?.integrationKey.config.defaultActions ?? []}
                 />
               ),

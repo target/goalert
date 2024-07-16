@@ -17,7 +17,7 @@ export type UniversalKeyActionsFormProps = {
   onChange: (value: Array<ActionInput>) => void
 
   showList?: boolean
-  editActionId?: string
+  actionType?: string
   onChipClick?: (action: ActionInput) => void
 
   disablePortal?: boolean
@@ -42,7 +42,7 @@ export default function UniversalKeyActionsForm(
   props: UniversalKeyActionsFormProps,
 ): React.ReactNode {
   const [currentAction, setCurrentAction] = useState<FormValue>(
-    props.editActionId ? getAction(props.value, props.editActionId) : null,
+    props.actionType ? getAction(props.value, props.actionType) : null,
   )
   const [addError, setAddError] = useState<CombinedError | null>(null)
   const valClient = useClient()
@@ -50,10 +50,14 @@ export default function UniversalKeyActionsForm(
   let actions = props.value
 
   useEffect(() => {
-    if (props.editActionId) {
-      setCurrentAction(getAction(props.value, props.editActionId))
+    if (props.actionType) {
+      setCurrentAction(getAction(props.value, props.actionType))
     }
-  }, [props.editActionId])
+  }, [props.actionType])
+
+  const destError = errs.getErrorByPath('actionInputValidate.input.dest.type')
+  const staticErrors = errs.getErrorMap('actionInputValidate.input.dest.args')
+  const dynamicErrors = errs.getErrorMap('actionInputValidate.input.params')
 
   return (
     <Grid item xs={12} container spacing={2}>
@@ -75,27 +79,13 @@ export default function UniversalKeyActionsForm(
           disablePortal={props.disablePortal}
           value={currentAction}
           onChange={setCurrentAction}
-          destTypeError={errs.getErrorByPath(
-            'actionInputValidate.input.dest.type',
-          )}
-          staticParamErrors={errs.getErrorMap(
-            'actionInputValidate.input.dest.args',
-          )}
-          dynamicParamErrors={errs.getErrorMap(
-            'actionInputValidate.input.params',
-          )}
+          destTypeError={destError}
+          staticParamErrors={staticErrors}
+          dynamicParamErrors={dynamicErrors}
         />
+      </Grid>
 
-        {errs.hasErrors() && (
-          <Grid item xs={12}>
-            {errs.remaining().map((message) => (
-              <Typography key={message} color='error'>
-                {message}
-              </Typography>
-            ))}
-          </Grid>
-        )}
-
+      {currentAction?.destType && (
         <Grid
           item
           xs={12}
@@ -106,6 +96,7 @@ export default function UniversalKeyActionsForm(
         >
           <Button
             fullWidth
+            type='button'
             startIcon={<Add />}
             variant='contained'
             color='secondary'
@@ -113,9 +104,9 @@ export default function UniversalKeyActionsForm(
             onClick={() => {
               const input = valueToActionInput(currentAction)
 
-              if (props.editActionId !== '') {
+              if (props.actionType !== '') {
                 actions = props.value.filter(
-                  (v) => v.dest.type !== props.editActionId,
+                  (v) => v.dest.type !== props.actionType,
                 )
               }
 
@@ -135,6 +126,7 @@ export default function UniversalKeyActionsForm(
                 return
               }
 
+              // validating input of action
               setAddError(null)
               valClient
                 .query(query, { input })
@@ -147,6 +139,7 @@ export default function UniversalKeyActionsForm(
 
                   // clear the current action
                   setCurrentAction(null)
+
                   props.onChange(actions.concat(input))
 
                   if (props.onChipClick) {
@@ -158,10 +151,20 @@ export default function UniversalKeyActionsForm(
                 })
             }}
           >
-            {props.editActionId ? 'Save Action' : 'Add Action'}
+            {props.actionType ? 'Save Action' : 'Add Action'}
           </Button>
         </Grid>
-      </Grid>
+      )}
+
+      {errs.hasErrors() && (
+        <Grid item xs={12}>
+          {errs.remainingLegacy().map((err) => (
+            <Typography key={err.message} color='error'>
+              {err.message}
+            </Typography>
+          ))}
+        </Grid>
+      )}
     </Grid>
   )
 }
