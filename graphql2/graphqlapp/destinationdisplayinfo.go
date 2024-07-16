@@ -100,17 +100,6 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 			IconAltText: "Email",
 			Text:        e.Address,
 		}, nil
-	case destRotation:
-		r, err := app.FindOneRotation(ctx, dest.Arg(fieldRotationID))
-		if err != nil {
-			return nil, err
-		}
-		return &nfydest.DisplayInfo{
-			IconURL:     "builtin://rotation",
-			IconAltText: "Rotation",
-			LinkURL:     cfg.CallbackURL("/rotations/" + r.ID),
-			Text:        r.Name,
-		}, nil
 	case destSchedule:
 		s, err := app.FindOneSchedule(ctx, dest.Arg(fieldScheduleID))
 		if err != nil {

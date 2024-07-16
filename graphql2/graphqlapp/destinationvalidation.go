@@ -171,21 +171,6 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 		}
 
 		return nil
-	case destRotation: // must be valid UUID and exist
-		rotID := dest.Arg(fieldRotationID)
-		_, err := validate.ParseUUID(fieldRotationID, rotID)
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldRotationID, err)
-		}
-		_, err = a.RotationStore.FindRotation(ctx, rotID)
-		if errors.Is(err, sql.ErrNoRows) {
-			return addDestFieldError(ctx, fieldName, fieldRotationID, validation.NewGenericError("rotation does not exist"))
-		}
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldRotationID, err)
-		}
-
-		return nil
 	}
 
 	err = a.DestReg.ValidateDest(ctx, *dest)

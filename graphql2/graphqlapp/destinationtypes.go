@@ -17,12 +17,10 @@ const (
 	destTwilioSMS   = "builtin-twilio-sms"
 	destTwilioVoice = "builtin-twilio-voice"
 	destSMTP        = "builtin-smtp-email"
-	destRotation    = "builtin-rotation"
 	destSchedule    = "builtin-schedule"
 
 	fieldPhoneNumber  = "phone_number"
 	fieldEmailAddress = "email_address"
-	fieldRotationID   = "rotation_id"
 	fieldScheduleID   = "schedule_id"
 )
 
@@ -33,14 +31,6 @@ type (
 
 func (q *Query) DestinationFieldValueName(ctx context.Context, input graphql2.DestinationFieldValidateInput) (string, error) {
 	switch input.FieldID {
-
-	case fieldRotationID:
-		rot, err := q.Rotation(ctx, input.Value)
-		if err != nil {
-			return "", err
-		}
-
-		return rot.Name, nil
 	case fieldScheduleID:
 		sched, err := q.Schedule(ctx, input.Value)
 		if err != nil {
@@ -57,32 +47,6 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 	favFirst := true
 
 	switch input.FieldID {
-	case fieldRotationID:
-		res, err := q.Rotations(ctx, &graphql2.RotationSearchOptions{
-			Omit:           input.Omit,
-			First:          input.First,
-			Search:         input.Search,
-			After:          input.After,
-			FavoritesFirst: &favFirst,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		var nodes []graphql2.FieldSearchResult
-		for _, rot := range res.Nodes {
-			nodes = append(nodes, graphql2.FieldSearchResult{
-				FieldID:    input.FieldID,
-				Value:      rot.ID,
-				Label:      rot.Name,
-				IsFavorite: rot.IsUserFavorite(),
-			})
-		}
-
-		return &graphql2.FieldSearchConnection{
-			Nodes:    nodes,
-			PageInfo: res.PageInfo,
-		}, nil
 	case fieldScheduleID:
 		res, err := q.Schedules(ctx, &graphql2.ScheduleSearchOptions{
 			Omit:           input.Omit,
@@ -236,18 +200,6 @@ func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]
 				ParamID: "body",
 				Label:   "Body",
 				Hint:    "Body of the email message.",
-			}},
-		},
-		{
-			Type:                       destRotation,
-			Name:                       "Rotation",
-			Enabled:                    true,
-			SupportsAlertNotifications: true,
-			RequiredFields: []nfydest.FieldConfig{{
-				FieldID:        fieldRotationID,
-				Label:          "Rotation",
-				InputType:      "text",
-				SupportsSearch: true,
 			}},
 		},
 		{
