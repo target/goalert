@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import FormDialog from '../../dialogs/FormDialog'
 import UniversalKeyRuleForm from './UniversalKeyRuleForm'
 import { gql, useMutation, useQuery } from 'urql'
@@ -44,7 +44,7 @@ const mutation = gql`
   }
 `
 
-export default function UniversalKeyRuleDialogProps(
+export default function UniversalKeyRuleDialog(
   props: UniversalKeyRuleDialogProps,
 ): JSX.Element {
   const [q] = useQuery<{
@@ -73,10 +73,11 @@ export default function UniversalKeyRuleDialogProps(
     continueAfterMatch: rule?.continueAfterMatch ?? false,
     actions: rule?.actions ?? [],
   })
+
+  const [step, setStep] = useState(0)
   const [m, commit] = useMutation(mutation)
+  const [hasSubmitted, setHasSubmitted] = useState(0)
   const [hasConfirmed, setHasConfirmed] = useState(false)
-  const [hasSubmitted, setHasSubmitted] = useState(false)
-  const noActionsNoConf = value.actions.length === 0 && !hasConfirmed
 
   const errs = useErrorConsumer(m.error)
   const unknownErrors = errs.remainingLegacyCallback()
@@ -85,6 +86,41 @@ export default function UniversalKeyRuleDialogProps(
   const conditionError = errs.getErrorByPath(
     'updateKeyConfig.input.setRule.conditionExpr',
   )
+
+  const showNotice = hasSubmitted > 0 && value.actions.length === 0
+
+  useEffect(() => {
+    // if no actions notice, user must confirm they want this before submitting
+    if ((showNotice && !hasConfirmed) || !hasSubmitted) {
+      return
+    }
+
+    commit(
+      {
+        input: {
+          keyID: props.keyID,
+          setRule: value,
+        },
+      },
+      { additionalTypenames: ['KeyConfig'] },
+    ).then((res) => {
+      if (res.error) return
+
+      props.onClose()
+    })
+  }, [hasSubmitted])
+
+  useEffect(() => {
+    // showing notice takes precedence
+    // don't change steps when this flips to true
+    if (showNotice && !hasConfirmed) {
+      return
+    }
+
+    if (nameError || descError || conditionError) {
+      setStep(0)
+    }
+  }, [nameError, descError, conditionError, showNotice])
 
   return (
     <FormDialog
@@ -95,29 +131,14 @@ export default function UniversalKeyRuleDialogProps(
             : 'Edit Rule'
           : 'Create Rule'
       }
-      maxWidth='lg'
       onClose={props.onClose}
+      loading={m.fetching}
       errors={unknownErrors}
-      onSubmit={() => {
-        if (noActionsNoConf) {
-          setHasSubmitted(true)
-          return
-        }
-
-        return commit(
-          {
-            input: {
-              keyID: props.keyID,
-              setRule: value,
-            },
-          },
-          { additionalTypenames: ['KeyConfig'] },
-        ).then((res) => {
-          if (res.error) return
-
-          props.onClose()
-        })
-      }}
+      onSubmit={() => setHasSubmitted(hasSubmitted + 1)}
+      disableSubmit={step < 2 && !hasSubmitted}
+      disableNext={step === 2}
+      onNext={() => setStep(step + 1)}
+      onBack={step > 0 && step <= 2 ? () => setStep(step - 1) : null}
       form={
         <UniversalKeyRuleForm
           value={value}
@@ -125,9 +146,16 @@ export default function UniversalKeyRuleDialogProps(
           nameError={nameError}
           descriptionError={descError}
           conditionError={conditionError}
+          step={step}
+          setStep={setStep}
         />
       }
-      notices={getNotice(hasSubmitted, hasConfirmed, setHasConfirmed)}
+      notices={getNotice(showNotice, hasConfirmed, setHasConfirmed)}
+      PaperProps={{
+        sx: {
+          minHeight: '500px',
+        },
+      }}
     />
   )
 }
