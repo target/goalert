@@ -31,10 +31,6 @@ type SearchOptions struct {
 	Limit  int
 }
 
-type OptionFrommer interface {
-	FromNotifyOptions(SearchOptions) error
-}
-
 type Fieldable interface {
 	AsField() FieldValue
 }
@@ -43,7 +39,14 @@ type Cursorable interface {
 	Fieldable
 }
 
-func SearchByCursorFunc[OptionType OptionFrommer, Result Cursorable](ctx context.Context, opts SearchOptions, searchFn func(context.Context, OptionType) ([]Result, error)) (*SearchResult, error) {
+type OptionFrommer interface {
+	FromNotifyOptions(context.Context, SearchOptions) error
+}
+
+func SearchByCursorFunc[OptionType any, POptionType interface {
+	*OptionType
+	OptionFrommer
+}, Result Cursorable](ctx context.Context, opts SearchOptions, searchFn func(context.Context, *OptionType) ([]Result, error)) (*SearchResult, error) {
 	if opts.Limit <= 0 {
 		opts.Limit = 15
 	}
@@ -51,12 +54,13 @@ func SearchByCursorFunc[OptionType OptionFrommer, Result Cursorable](ctx context
 	opts.Limit++ // Fetch one more to determine if there is a next page.
 
 	var searchOpts OptionType
-	err := searchOpts.FromNotifyOptions(opts)
+	p := POptionType(&searchOpts)
+	err := p.FromNotifyOptions(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	results, err := searchFn(ctx, searchOpts)
+	results, err := searchFn(ctx, &searchOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -64,11 +68,11 @@ func SearchByCursorFunc[OptionType OptionFrommer, Result Cursorable](ctx context
 	var res SearchResult
 	if len(results) > origLimit {
 		res.HasNextPage = true
-		results = results[:origLimit]
 		res.Cursor, err = results[origLimit].Cursor()
 		if err != nil {
 			return nil, err
 		}
+		results = results[:origLimit]
 	}
 	for _, r := range results {
 		res.Values = append(res.Values, r.AsField())

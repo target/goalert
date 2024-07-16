@@ -42,7 +42,7 @@ type SearchOptions struct {
 	FavoritesFirst bool `json:"f,omitempty"`
 }
 
-func (so *SearchOptions) FromNotifyOptions(opts nfydest.SearchOptions) error {
+func (so *SearchOptions) FromNotifyOptions(ctx context.Context, opts nfydest.SearchOptions) error {
 	so.Search = opts.Search
 	so.Omit = opts.Omit
 	so.Limit = opts.Limit
@@ -52,6 +52,8 @@ func (so *SearchOptions) FromNotifyOptions(opts nfydest.SearchOptions) error {
 			return err
 		}
 	}
+	so.FavoritesFirst = true
+	so.FavoritesUserID = permission.UserID(ctx)
 	return nil
 }
 

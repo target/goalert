@@ -15,7 +15,10 @@ const (
 	FallbackIconURL = "builtin://user"
 )
 
-var _ nfydest.Provider = (*Store)(nil)
+var (
+	_ nfydest.Provider      = (*Store)(nil)
+	_ nfydest.FieldSearcher = (*Store)(nil)
+)
 
 func (s *Store) ID() string { return DestTypeUser }
 func (s *Store) TypeInfo(ctx context.Context) (*nfydest.TypeInfo, error) {
@@ -57,6 +60,19 @@ func (s *Store) ValidateField(ctx context.Context, fieldID, value string) error 
 	}
 
 	return validation.NewGenericError("unknown field ID")
+}
+
+func (s *Store) FieldLabel(ctx context.Context, fieldID, value string) (string, error) {
+	switch fieldID {
+	case FieldUserID:
+		u, err := s.FindOne(ctx, value)
+		if err != nil {
+			return "", err
+		}
+		return u.Name, nil
+	}
+
+	return "", validation.NewGenericError("unknown field ID")
 }
 
 func (s *Store) SearchField(ctx context.Context, fieldID string, options nfydest.SearchOptions) (*nfydest.SearchResult, error) {
