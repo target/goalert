@@ -15,6 +15,7 @@ import {
 import { ActionInput, KeyRuleInput } from '../../../schema'
 import UniversalKeyActionsList from './UniversalKeyActionsList'
 import UniversalKeyActionsForm from './UniversalKeyActionsForm'
+import { HelperText } from '../../forms'
 
 interface UniversalKeyRuleFormProps {
   value: KeyRuleInput
@@ -100,7 +101,7 @@ export default function UniversalKeyRuleForm(
                 })
               }}
               error={!!props.conditionError}
-              helperText={props.conditionError}
+              helperText={<HelperText error={props.conditionError} />}
             />
           </Grid>
         </React.Fragment>
