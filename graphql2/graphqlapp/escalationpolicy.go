@@ -38,20 +38,16 @@ func (a *App) CreateEscalationPolicyStepInput() graphql2.CreateEscalationPolicyS
 	return (*CreateEscalationPolicyStepInput)(a)
 }
 
-func (a *CreateEscalationPolicyStepInput) Actions(ctx context.Context, input *graphql2.CreateEscalationPolicyStepInput, actions []gadb.DestV1) error {
-	tgts := make([]assignment.RawTarget, len(actions))
-	var err error
-	for i, action := range actions {
-		if err := (*App)(a).ValidateDestination(ctx, fmt.Sprintf("%d.dest", i), &action); err != nil {
-			return err
-		}
-		tgts[i], err = CompatDestToTarget(action)
+func (a *CreateEscalationPolicyStepInput) Targets(ctx context.Context, input *graphql2.CreateEscalationPolicyStepInput, targets []assignment.RawTarget) error {
+	input.Actions = make([]gadb.DestV1, len(targets))
+	for i, tgt := range targets {
+		var err error
+		input.Actions[i], err = CompatTargetToDest(tgt)
 		if err != nil {
-			return validation.NewFieldError("actions", "invalid DestInput")
+			return validation.NewFieldError(fmt.Sprintf("Targets[%d]", i), err.Error())
 		}
 	}
-	input.Targets = tgts
-	input.Actions = actions
+
 	return nil
 }
 

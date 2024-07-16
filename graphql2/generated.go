@@ -1126,7 +1126,7 @@ type UserOverrideResolver interface {
 }
 
 type CreateEscalationPolicyStepInputResolver interface {
-	Actions(ctx context.Context, obj *CreateEscalationPolicyStepInput, data []gadb.DestV1) error
+	Targets(ctx context.Context, obj *CreateEscalationPolicyStepInput, data []assignment.RawTarget) error
 }
 type DestinationInputResolver interface {
 	Values(ctx context.Context, obj *gadb.DestV1, data []FieldValueInput) error
@@ -34621,7 +34621,9 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyStepInput(ctx co
 			if err != nil {
 				return it, err
 			}
-			it.Targets = data
+			if err = ec.resolvers.CreateEscalationPolicyStepInput().Targets(ctx, &it, data); err != nil {
+				return it, err
+			}
 		case "newRotation":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("newRotation"))
 			data, err := ec.unmarshalOCreateRotationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateRotationInput(ctx, v)
@@ -34642,9 +34644,7 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyStepInput(ctx co
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.CreateEscalationPolicyStepInput().Actions(ctx, &it, data); err != nil {
-				return it, err
-			}
+			it.Actions = data
 		}
 	}
 
