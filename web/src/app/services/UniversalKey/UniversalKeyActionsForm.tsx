@@ -17,7 +17,7 @@ export type UniversalKeyActionsFormProps = {
   onChange: (value: Array<ActionInput>) => void
 
   showList?: boolean
-  editActionId?: string
+  actionType?: string
   onChipClick?: (action: ActionInput) => void
 
   disablePortal?: boolean
@@ -42,7 +42,7 @@ export default function UniversalKeyActionsForm(
   props: UniversalKeyActionsFormProps,
 ): React.ReactNode {
   const [currentAction, setCurrentAction] = useState<FormValue>(
-    props.editActionId ? getAction(props.value, props.editActionId) : null,
+    props.actionType ? getAction(props.value, props.actionType) : null,
   )
   const [addError, setAddError] = useState<CombinedError | null>(null)
   const valClient = useClient()
@@ -50,10 +50,10 @@ export default function UniversalKeyActionsForm(
   let actions = props.value
 
   useEffect(() => {
-    if (props.editActionId) {
-      setCurrentAction(getAction(props.value, props.editActionId))
+    if (props.actionType) {
+      setCurrentAction(getAction(props.value, props.actionType))
     }
-  }, [props.editActionId])
+  }, [props.actionType])
 
   const destError = errs.getErrorByPath('actionInputValidate.input.dest.type')
   const staticErrors = errs.getErrorMap('actionInputValidate.input.dest.args')
@@ -93,9 +93,9 @@ export default function UniversalKeyActionsForm(
             onClick={() => {
               const input = valueToActionInput(currentAction)
 
-              if (props.editActionId !== '') {
+              if (props.actionType !== '') {
                 actions = props.value.filter(
-                  (v) => v.dest.type !== props.editActionId,
+                  (v) => v.dest.type !== props.actionType,
                 )
               }
 
@@ -115,6 +115,7 @@ export default function UniversalKeyActionsForm(
                 return
               }
 
+              // validating input of action
               setAddError(null)
               valClient
                 .query(query, { input })
@@ -127,6 +128,7 @@ export default function UniversalKeyActionsForm(
 
                   // clear the current action
                   setCurrentAction(null)
+
                   props.onChange(actions.concat(input))
 
                   if (props.onChipClick) {
@@ -138,7 +140,7 @@ export default function UniversalKeyActionsForm(
                 })
             }}
           >
-            {props.editActionId ? 'Save Action' : 'Add Action'}
+            {props.actionType ? 'Save Action' : 'Add Action'}
           </Button>
         </Grid>
       )}

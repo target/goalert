@@ -34,10 +34,11 @@ export default function UniversalKeyRuleForm(
   props: UniversalKeyRuleFormProps,
 ): JSX.Element {
   const { step, setStep } = props
-  const [editAction, setEditAction] = useState('')
+  const [actionType, setActionType] = useState('')
 
   const handleChipClick = (action: ActionInput): void => {
-    setEditAction(action.dest.type)
+    console.log('setting edit action type to: ', action.dest.type)
+    setActionType(action.dest.type)
   }
 
   return (
@@ -128,7 +129,7 @@ export default function UniversalKeyRuleForm(
               onChange={(actions) =>
                 props.onChange({ ...props.value, actions })
               }
-              editActionId={editAction}
+              actionType={actionType}
               onChipClick={handleChipClick}
             />
           </Grid>
