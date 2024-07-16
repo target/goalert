@@ -11,6 +11,8 @@ import (
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/notificationchannel"
+	"github.com/target/goalert/schedule"
+	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
 )
@@ -25,13 +27,13 @@ func CompatTargetToDest(tgt assignment.Target) (gadb.DestV1, error) {
 		}, nil
 	case assignment.TargetTypeRotation:
 		return gadb.DestV1{
-			Type: destRotation,
-			Args: map[string]string{fieldRotationID: tgt.TargetID()},
+			Type: rotation.DestTypeRotation,
+			Args: map[string]string{rotation.FieldRotationID: tgt.TargetID()},
 		}, nil
 	case assignment.TargetTypeSchedule:
 		return gadb.DestV1{
-			Type: destSchedule,
-			Args: map[string]string{fieldScheduleID: tgt.TargetID()},
+			Type: schedule.DestTypeSchedule,
+			Args: map[string]string{schedule.FieldScheduleID: tgt.TargetID()},
 		}, nil
 	case assignment.TargetTypeChanWebhook:
 		return gadb.DestV1{
@@ -111,15 +113,15 @@ func CompatDestToTarget(d gadb.DestV1) (assignment.RawTarget, error) {
 			Type: assignment.TargetTypeUser,
 			ID:   d.Arg(user.FieldUserID),
 		}, nil
-	case destRotation:
+	case rotation.DestTypeRotation:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeRotation,
-			ID:   d.Arg(fieldRotationID),
+			ID:   d.Arg(rotation.FieldRotationID),
 		}, nil
-	case destSchedule:
+	case schedule.DestTypeSchedule:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeSchedule,
-			ID:   d.Arg(fieldScheduleID),
+			ID:   d.Arg(schedule.FieldScheduleID),
 		}, nil
 	case slack.DestTypeSlackChannel:
 		return assignment.RawTarget{
