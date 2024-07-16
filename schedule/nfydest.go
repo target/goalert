@@ -3,7 +3,9 @@ package schedule
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
@@ -21,6 +23,13 @@ var (
 	_ nfydest.Provider      = (*Store)(nil)
 	_ nfydest.FieldSearcher = (*Store)(nil)
 )
+
+func DestFromID(scheduleID uuid.UUID) gadb.DestV1 {
+	return gadb.DestV1{
+		Type: DestTypeSchedule,
+		Args: map[string]string{FieldScheduleID: scheduleID.String()},
+	}
+}
 
 func (s *Store) ID() string { return DestTypeSchedule }
 func (s *Store) TypeInfo(ctx context.Context) (*nfydest.TypeInfo, error) {

@@ -28,13 +28,17 @@ func NewRegistry() *Registry {
 
 func (r *Registry) Provider(id string) Provider { return r.providers[id] }
 
-func (r *Registry) LookupTypeName(ctx context.Context, typeID string) (string, error) {
+func (r *Registry) TypeInfo(ctx context.Context, typeID string) (*TypeInfo, error) {
 	p := r.Provider(typeID)
 	if p == nil {
-		return "", ErrUnknownType
+		return nil, ErrUnknownType
 	}
 
-	info, err := p.TypeInfo(ctx)
+	return p.TypeInfo(ctx)
+}
+
+func (r *Registry) LookupTypeName(ctx context.Context, typeID string) (string, error) {
+	info, err := r.TypeInfo(ctx, typeID)
 	if err != nil {
 		return "", err
 	}

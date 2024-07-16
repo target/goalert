@@ -7,6 +7,7 @@ import (
 
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
@@ -21,6 +22,7 @@ import (
 
 type Config struct {
 	NCStore         *notificationchannel.Store
+	Registry        *nfydest.Registry
 	LogStore        *alertlog.Store
 	SlackLookupFunc func(ctx context.Context, channelID string) (*slack.Channel, error)
 }
@@ -30,6 +32,7 @@ type Store struct {
 
 	log     *alertlog.Store
 	ncStore *notificationchannel.Store
+	reg     *nfydest.Registry
 	slackFn func(ctx context.Context, channelID string) (*slack.Channel, error)
 
 	findNotifChan *sql.Stmt
@@ -64,6 +67,7 @@ func NewStore(ctx context.Context, db *sql.DB, cfg Config) (*Store, error) {
 		log:     cfg.LogStore,
 		slackFn: cfg.SlackLookupFunc,
 		ncStore: cfg.NCStore,
+		reg:     cfg.Registry,
 
 		findNotifChan: p.P(`
 			SELECT chan.id

@@ -211,6 +211,7 @@ func (app *App) initStores(ctx context.Context) error {
 		app.EscalationStore, err = escalation.NewStore(ctx, app.db, escalation.Config{
 			LogStore: app.AlertLogStore,
 			NCStore:  app.NCStore,
+			Registry: app.DestRegistry,
 			SlackLookupFunc: func(ctx context.Context, channelID string) (*slack.Channel, error) {
 				return app.slackChan.Channel(ctx, channelID)
 			},
