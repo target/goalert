@@ -47,7 +47,7 @@ func (s *Store) DisplayInfo(ctx context.Context, args map[string]string) (*nfyde
 	}
 
 	return &nfydest.DisplayInfo{
-		IconURL:     "builtin://rotation",
+		IconURL:     FallbackIconURL,
 		IconAltText: "Rotation",
 		LinkURL:     cfg.CallbackURL("/rotations/" + r.ID),
 		Text:        r.Name,
