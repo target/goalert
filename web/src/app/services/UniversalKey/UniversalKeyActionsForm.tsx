@@ -74,6 +74,17 @@ export default function UniversalKeyActionsForm(
         />
       )}
 
+      <Grid item xs={12} container spacing={2}>
+        <DynamicActionForm
+          disablePortal={props.disablePortal}
+          value={currentAction}
+          onChange={setCurrentAction}
+          destTypeError={destError}
+          staticParamErrors={staticErrors}
+          dynamicParamErrors={dynamicErrors}
+        />
+      </Grid>
+
       {currentAction?.destType && (
         <Grid
           item
@@ -154,17 +165,6 @@ export default function UniversalKeyActionsForm(
           ))}
         </Grid>
       )}
-
-      <Grid item xs={12} container spacing={2}>
-        <DynamicActionForm
-          disablePortal={props.disablePortal}
-          value={currentAction}
-          onChange={setCurrentAction}
-          destTypeError={destError}
-          staticParamErrors={staticErrors}
-          dynamicParamErrors={dynamicErrors}
-        />
-      </Grid>
     </Grid>
   )
 }
