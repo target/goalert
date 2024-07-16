@@ -3,7 +3,6 @@ package rotation
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification/nfydest"
@@ -19,10 +18,10 @@ const (
 	FallbackIconURL = "builtin://rotation"
 )
 
-func DestFromID(rotationID uuid.UUID) gadb.DestV1 {
+func DestFromID(rotationID string) gadb.DestV1 {
 	return gadb.DestV1{
 		Type: DestTypeRotation,
-		Args: map[string]string{FieldRotationID: rotationID.String()},
+		Args: map[string]string{FieldRotationID: rotationID},
 	}
 }
 

@@ -132,11 +132,11 @@ func (s *Store) FindAllStepActionsTx(ctx context.Context, tx *sql.Tx, stepID uui
 	for _, a := range actions {
 		switch {
 		case a.UserID.Valid:
-			result = append(result, user.DestFromID(a.UserID.UUID))
+			result = append(result, user.DestFromID(a.UserID.UUID.String()))
 		case a.ScheduleID.Valid:
-			result = append(result, schedule.DestFromID(a.ScheduleID.UUID))
+			result = append(result, schedule.DestFromID(a.ScheduleID.UUID.String()))
 		case a.RotationID.Valid:
-			result = append(result, rotation.DestFromID(a.RotationID.UUID))
+			result = append(result, rotation.DestFromID(a.RotationID.UUID.String()))
 		case a.Dest.Valid:
 			result = append(result, a.Dest.DestV1)
 		}

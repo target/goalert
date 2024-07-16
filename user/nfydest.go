@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification/nfydest"
@@ -22,10 +21,10 @@ var (
 	_ nfydest.FieldSearcher = (*Store)(nil)
 )
 
-func DestFromID(userID uuid.UUID) gadb.DestV1 {
+func DestFromID(userID string) gadb.DestV1 {
 	return gadb.DestV1{
 		Type: DestTypeUser,
-		Args: map[string]string{FieldUserID: userID.String()},
+		Args: map[string]string{FieldUserID: userID},
 	}
 }
 
