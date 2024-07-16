@@ -28,7 +28,7 @@ func CompatTargetToDest(tgt assignment.Target) (gadb.DestV1, error) {
 	case assignment.TargetTypeRotation:
 		return gadb.DestV1{
 			Type: rotation.DestTypeRotation,
-			Args: map[string]string{rotation.DestTypeRotation: tgt.TargetID()},
+			Args: map[string]string{rotation.FieldRotationID: tgt.TargetID()},
 		}, nil
 	case assignment.TargetTypeSchedule:
 		return gadb.DestV1{
