@@ -137,7 +137,7 @@ export default function UniversalKeyRuleDialog(
       errors={unknownErrors}
       onSubmit={() => setHasSubmitted(hasSubmitted + 1)}
       disableSubmit={step < 2 && !hasSubmitted}
-      disableNext={showNextTooltip}
+      disableNext={step === 2 || showNextTooltip}
       onNext={() => setStep(step + 1)}
       nextTooltip={
         showNextTooltip
