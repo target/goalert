@@ -178,7 +178,7 @@ func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *g
 
 	var argErr *nfydest.DestArgError
 	if errors.As(err, &argErr) {
-		return addDestFieldError(ctx, fieldName, argErr.FieldID, argErr.Err)
+		return addDestFieldError(ctx, fieldName+".args", argErr.FieldID, argErr.Err)
 	}
 
 	if err != nil {

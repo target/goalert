@@ -152,6 +152,10 @@ func (s *ChannelSender) ValidateChannel(ctx context.Context, id string) error {
 		return err
 	}
 
+	if id == "" {
+		return validation.NewGenericError("Channel is required.")
+	}
+
 	s.chanMx.Lock()
 	defer s.chanMx.Unlock()
 	res, ok := s.chanCache.Get(id)
