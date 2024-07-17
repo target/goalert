@@ -49,7 +49,6 @@ export default function FormDialog(props) {
   const {
     alert,
     confirm = false,
-    errors = [],
     fullScreen,
     loading = false,
     primaryActionLabel, // remove from dialogProps spread
@@ -129,7 +128,7 @@ export default function FormDialog(props) {
 
   function renderErrors() {
     const errors =
-      typeof props.errors === 'function' ? props.errors() : props.errors
+      typeof props.errors === 'function' ? props.errors() : props?.errors ?? []
     return errors.map((err, idx) => (
       <DialogContentError
         className={classes.errorContainer}

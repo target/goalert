@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Add, Restore } from '@mui/icons-material'
-import { Button, ButtonGroup, Grid, Typography } from '@mui/material'
+import { Button, Grid, Typography } from '@mui/material'
 import { ActionInput } from '../../../schema'
 import DynamicActionForm, {
   actionInputToValue,
