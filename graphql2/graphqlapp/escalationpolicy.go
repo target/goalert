@@ -81,7 +81,6 @@ func contains(ids []string, id string) bool {
 }
 
 func (m *Mutation) CreateEscalationPolicyStep(ctx context.Context, input graphql2.CreateEscalationPolicyStepInput) (step *escalation.Step, err error) {
-	cfg := config.FromContext(ctx)
 	if input.Actions != nil {
 		// validate delay so we return a new coded error (when using actions)
 		err := validate.Range("input.delayMinutes", input.DelayMinutes, 1, 9000)
@@ -90,16 +89,16 @@ func (m *Mutation) CreateEscalationPolicyStep(ctx context.Context, input graphql
 			return nil, errAlreadySet
 		}
 	}
-	if len(input.Targets) != 0 && input.NewRotation != nil {
+	if len(input.Actions) != 0 && input.NewRotation != nil {
 		return nil, validate.Many(
-			validation.NewFieldError("targets", "cannot be used with `newRotation`"),
+			validation.NewFieldError("actions", "cannot be used with `newRotation`"),
 			validation.NewFieldError("newRotation", "cannot be used with `targets`"),
 		)
 	}
 
-	if len(input.Targets) != 0 && input.NewSchedule != nil {
+	if len(input.Actions) != 0 && input.NewSchedule != nil {
 		return nil, validate.Many(
-			validation.NewFieldError("targets", "cannot be used with `newSchedule`"),
+			validation.NewFieldError("actions", "cannot be used with `newSchedule`"),
 			validation.NewFieldError("newSchedule", "cannot be used with `targets`"),
 		)
 	}
@@ -109,13 +108,6 @@ func (m *Mutation) CreateEscalationPolicyStep(ctx context.Context, input graphql
 			validation.NewFieldError("newSchedule", "cannot be used with `newRotation`"),
 			validation.NewFieldError("newRotation", "cannot be used with `newSchedule`"),
 		)
-	}
-
-	for _, tgt := range input.Targets {
-		if tgt.Type == assignment.TargetTypeChanWebhook && !cfg.ValidWebhookURL(tgt.ID) {
-			// UI code expects targets to be un-indexed
-			return nil, validation.NewFieldError("targets", "URL not allowed by administrator")
-		}
 	}
 
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
