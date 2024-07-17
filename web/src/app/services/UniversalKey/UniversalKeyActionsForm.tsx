@@ -107,6 +107,12 @@ export default function UniversalKeyActionsForm(
             color='secondary'
             onClick={() => {
               setCurrentAction(null)
+              if (props.onChipClick) {
+                props.onChipClick({
+                  dest: { type: '', args: {} },
+                  params: {},
+                })
+              }
               if (props.setShowNextTooltip) {
                 props.setShowNextTooltip(false)
               }
