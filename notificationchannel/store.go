@@ -57,6 +57,24 @@ func (s *Store) FindMany(ctx context.Context, ids []string) ([]Channel, error) {
 	return channels, nil
 }
 
+func (s *Store) FindDestByID(ctx context.Context, tx gadb.DBTX, id uuid.UUID) (gadb.DestV1, error) {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return gadb.DestV1{}, err
+	}
+
+	if tx == nil {
+		tx = s.db
+	}
+
+	row, err := gadb.New(tx).NotifChanFindOne(ctx, id)
+	if err != nil {
+		return gadb.DestV1{}, err
+	}
+
+	return row.Dest.DestV1, nil
+}
+
 func (s *Store) LookupDestID(ctx context.Context, tx *sql.Tx, d gadb.DestV1) (uuid.UUID, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {

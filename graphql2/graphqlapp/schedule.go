@@ -14,7 +14,6 @@ import (
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
-	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
@@ -53,34 +52,18 @@ func (a *OnCallNotificationRuleInput) Target(ctx context.Context, input *graphql
 }
 
 func (a *OnCallNotificationRule) Dest(ctx context.Context, raw *schedule.OnCallNotificationRule) (*gadb.DestV1, error) {
-	return (*App)(a).CompatNCToDest(ctx, raw.ChannelID)
+	dest, err := a.NCStore.FindDestByID(ctx, nil, raw.ChannelID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dest, nil
 }
 
 func (a *OnCallNotificationRule) Target(ctx context.Context, raw *schedule.OnCallNotificationRule) (*assignment.RawTarget, error) {
 	ch, err := (*App)(a).FindOneNC(ctx, raw.ChannelID)
 	if err != nil {
 		return nil, err
-	}
-
-	switch ch.Type {
-	case notificationchannel.TypeSlackChan:
-		return &assignment.RawTarget{
-			Type: assignment.TargetTypeSlackChannel,
-			ID:   ch.Value,
-			Name: ch.Name,
-		}, nil
-	case notificationchannel.TypeSlackUG:
-		return &assignment.RawTarget{
-			Type: assignment.TargetTypeSlackUserGroup,
-			ID:   ch.Value,
-			Name: ch.Name,
-		}, nil
-	case notificationchannel.TypeWebhook:
-		return &assignment.RawTarget{
-			Type: assignment.TargetTypeChanWebhook,
-			ID:   ch.Value,
-			Name: ch.Name,
-		}, nil
 	}
 
 	return &assignment.RawTarget{Type: assignment.TargetTypeNotificationChannel, ID: ch.ID.String(), Name: ch.Name}, nil

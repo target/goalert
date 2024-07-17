@@ -31,3 +31,11 @@ FROM
 WHERE
     oc.user_id = $1;
 
+-- name: GQLLookupNCDest :one
+SELECT
+    dest
+FROM
+    notification_channels
+WHERE
+    id = $1;
+

@@ -1,16 +1,12 @@
 package graphqlapp
 
 import (
-	"context"
 	"fmt"
-	"strings"
 
-	"github.com/google/uuid"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/webhook"
-	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/user"
@@ -48,42 +44,6 @@ func CompatTargetToDest(tgt assignment.Target) (gadb.DestV1, error) {
 	}
 
 	return gadb.DestV1{}, fmt.Errorf("unknown target type: %s", tgt.TargetType())
-}
-
-// CompatNCToDest converts a notification channel to a destination.
-func (a *App) CompatNCToDest(ctx context.Context, ncID uuid.UUID) (*gadb.DestV1, error) {
-	nc, err := a.FindOneNC(ctx, ncID)
-	if err != nil {
-		return nil, err
-	}
-
-	switch nc.Type {
-	case notificationchannel.TypeSlackChan:
-		return &gadb.DestV1{
-			Type: slack.DestTypeSlackChannel,
-			Args: map[string]string{slack.FieldSlackChannelID: nc.Value},
-		}, nil
-	case notificationchannel.TypeSlackUG:
-		ugID, chanID, ok := strings.Cut(nc.Value, ":")
-		if !ok {
-			return nil, fmt.Errorf("invalid slack usergroup pair: %s", nc.Value)
-		}
-
-		return &gadb.DestV1{
-			Type: slack.DestTypeSlackUsergroup,
-			Args: map[string]string{
-				slack.FieldSlackUsergroupID: ugID,
-				slack.FieldSlackChannelID:   chanID,
-			},
-		}, nil
-	case notificationchannel.TypeWebhook:
-		return &gadb.DestV1{
-			Type: webhook.DestTypeWebhook,
-			Args: map[string]string{webhook.FieldWebhookURL: nc.Value},
-		}, nil
-	default:
-		return nil, fmt.Errorf("unsupported notification channel type: %s", nc.Type)
-	}
 }
 
 // CompatDestToCMTypeVal converts a gadb.DestV1 to a contactmethod.Type and string value
