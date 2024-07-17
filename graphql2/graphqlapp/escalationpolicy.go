@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
@@ -13,7 +14,10 @@ import (
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notice"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/schedule"
+	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/search"
+	"github.com/target/goalert/user"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
@@ -34,20 +38,16 @@ func (a *App) CreateEscalationPolicyStepInput() graphql2.CreateEscalationPolicyS
 	return (*CreateEscalationPolicyStepInput)(a)
 }
 
-func (a *CreateEscalationPolicyStepInput) Actions(ctx context.Context, input *graphql2.CreateEscalationPolicyStepInput, actions []gadb.DestV1) error {
-	tgts := make([]assignment.RawTarget, len(actions))
-	var err error
-	for i, action := range actions {
-		if err := (*App)(a).ValidateDestination(ctx, fmt.Sprintf("%d.dest", i), &action); err != nil {
-			return err
-		}
-		tgts[i], err = CompatDestToTarget(action)
+func (a *CreateEscalationPolicyStepInput) Targets(ctx context.Context, input *graphql2.CreateEscalationPolicyStepInput, targets []assignment.RawTarget) error {
+	input.Actions = make([]gadb.DestV1, len(targets))
+	for i, tgt := range targets {
+		var err error
+		input.Actions[i], err = CompatTargetToDest(tgt)
 		if err != nil {
-			return validation.NewFieldError("actions", "invalid DestInput")
+			return validation.NewFieldError(fmt.Sprintf("Targets[%d]", i), err.Error())
 		}
 	}
-	input.Targets = tgts
-	input.Actions = actions
+
 	return nil
 }
 
@@ -130,45 +130,42 @@ func (m *Mutation) CreateEscalationPolicyStep(ctx context.Context, input graphql
 		if err != nil {
 			return err
 		}
+		stepID := uuid.MustParse(step.ID)
 
 		if input.NewRotation != nil {
 			rot, err := m.CreateRotation(ctx, *input.NewRotation)
 			if err != nil {
 				return validation.AddPrefix("newRotation.", err)
 			}
-			tgt := assignment.RotationTarget(rot.ID)
-			step.Targets = append(step.Targets, tgt)
 
 			// Should add to escalation_policy_actions
-			err = m.PolicyStore.AddStepTargetTx(ctx, tx, step.ID, tgt)
+			err = m.PolicyStore.AddStepActionTx(ctx, tx, stepID, rotation.DestFromID(rot.ID))
 			if err != nil {
 				return validation.AddPrefix("newRotation.", err)
 			}
 		}
 
 		if input.NewSchedule != nil {
-			s, err := m.CreateSchedule(ctx, *input.NewSchedule)
+			sched, err := m.CreateSchedule(ctx, *input.NewSchedule)
 			if err != nil {
 				return validation.AddPrefix("newSchedule.", err)
 			}
-			tgt := assignment.ScheduleTarget(s.ID)
-			step.Targets = append(step.Targets, tgt)
 
 			// Should add to escalation_policy_actions
-			err = m.PolicyStore.AddStepTargetTx(ctx, tx, step.ID, tgt)
+			err = m.PolicyStore.AddStepActionTx(ctx, tx, stepID, schedule.DestFromID(sched.ID))
 			if err != nil {
 				return validation.AddPrefix("newSchedule.", err)
 			}
 		}
 
 		userID := permission.UserID(ctx)
-		for i, tgt := range input.Targets {
-			if tgt.Type == assignment.TargetTypeUser && tgt.ID == "__current_user" {
-				tgt.ID = userID
+		for i, action := range input.Actions {
+			if action.Type == user.DestTypeUser && action.Arg(user.FieldUserID) == "__current_user" {
+				action.SetArg(user.FieldUserID, userID)
 			}
-			err = m.PolicyStore.AddStepTargetTx(ctx, tx, step.ID, tgt)
+			err = m.PolicyStore.AddStepActionTx(ctx, tx, stepID, action)
 			if err != nil {
-				return validation.AddPrefix("targets["+strconv.Itoa(i)+"].", err)
+				return validation.AddPrefix("Actions["+strconv.Itoa(i)+"].", err)
 			}
 		}
 

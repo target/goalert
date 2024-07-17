@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/validation"
 )
@@ -19,6 +20,13 @@ var (
 	_ nfydest.Provider      = (*Store)(nil)
 	_ nfydest.FieldSearcher = (*Store)(nil)
 )
+
+func DestFromID(userID string) gadb.DestV1 {
+	return gadb.DestV1{
+		Type: DestTypeUser,
+		Args: map[string]string{FieldUserID: userID},
+	}
+}
 
 func (s *Store) ID() string { return DestTypeUser }
 func (s *Store) TypeInfo(ctx context.Context) (*nfydest.TypeInfo, error) {

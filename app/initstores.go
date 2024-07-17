@@ -201,7 +201,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.NCStore == nil {
-		app.NCStore, err = notificationchannel.NewStore(ctx, app.db)
+		app.NCStore, err = notificationchannel.NewStore(ctx, app.db, app.DestRegistry)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init notification channel store")
@@ -211,6 +211,7 @@ func (app *App) initStores(ctx context.Context) error {
 		app.EscalationStore, err = escalation.NewStore(ctx, app.db, escalation.Config{
 			LogStore: app.AlertLogStore,
 			NCStore:  app.NCStore,
+			Registry: app.DestRegistry,
 			SlackLookupFunc: func(ctx context.Context, channelID string) (*slack.Channel, error) {
 				return app.slackChan.Channel(ctx, channelID)
 			},

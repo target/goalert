@@ -1259,6 +1259,106 @@ func (q *Queries) DeleteManyCalSub(ctx context.Context, arg DeleteManyCalSubPara
 	return err
 }
 
+const ePStepActionsAddAction = `-- name: EPStepActionsAddAction :exec
+INSERT INTO escalation_policy_actions(escalation_policy_step_id, user_id, schedule_id, rotation_id, channel_id)
+    VALUES ($1, $2, $3, $4, $5)
+`
+
+type EPStepActionsAddActionParams struct {
+	EscalationPolicyStepID uuid.UUID
+	UserID                 uuid.NullUUID
+	ScheduleID             uuid.NullUUID
+	RotationID             uuid.NullUUID
+	ChannelID              uuid.NullUUID
+}
+
+func (q *Queries) EPStepActionsAddAction(ctx context.Context, arg EPStepActionsAddActionParams) error {
+	_, err := q.db.ExecContext(ctx, ePStepActionsAddAction,
+		arg.EscalationPolicyStepID,
+		arg.UserID,
+		arg.ScheduleID,
+		arg.RotationID,
+		arg.ChannelID,
+	)
+	return err
+}
+
+const ePStepActionsByStepId = `-- name: EPStepActionsByStepId :many
+SELECT
+    a.user_id,
+    a.schedule_id,
+    a.rotation_id,
+    ch.dest
+FROM
+    escalation_policy_actions a
+    LEFT JOIN notification_channels ch ON a.channel_id = ch.id
+WHERE
+    a.escalation_policy_step_id = $1
+`
+
+type EPStepActionsByStepIdRow struct {
+	UserID     uuid.NullUUID
+	ScheduleID uuid.NullUUID
+	RotationID uuid.NullUUID
+	Dest       NullDestV1
+}
+
+func (q *Queries) EPStepActionsByStepId(ctx context.Context, escalationPolicyStepID uuid.UUID) ([]EPStepActionsByStepIdRow, error) {
+	rows, err := q.db.QueryContext(ctx, ePStepActionsByStepId, escalationPolicyStepID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []EPStepActionsByStepIdRow
+	for rows.Next() {
+		var i EPStepActionsByStepIdRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.ScheduleID,
+			&i.RotationID,
+			&i.Dest,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const ePStepActionsDeleteAction = `-- name: EPStepActionsDeleteAction :exec
+DELETE FROM escalation_policy_actions
+WHERE escalation_policy_step_id = $1
+    AND (user_id = $2
+        OR schedule_id = $3
+        OR rotation_id = $4
+        OR channel_id = $5)
+`
+
+type EPStepActionsDeleteActionParams struct {
+	EscalationPolicyStepID uuid.UUID
+	UserID                 uuid.NullUUID
+	ScheduleID             uuid.NullUUID
+	RotationID             uuid.NullUUID
+	ChannelID              uuid.NullUUID
+}
+
+func (q *Queries) EPStepActionsDeleteAction(ctx context.Context, arg EPStepActionsDeleteActionParams) error {
+	_, err := q.db.ExecContext(ctx, ePStepActionsDeleteAction,
+		arg.EscalationPolicyStepID,
+		arg.UserID,
+		arg.ScheduleID,
+		arg.RotationID,
+		arg.ChannelID,
+	)
+	return err
+}
+
 const engineGetSignalParams = `-- name: EngineGetSignalParams :one
 SELECT
     params
@@ -2189,6 +2289,22 @@ func (q *Queries) NotifChanFindByValue(ctx context.Context, arg NotifChanFindByV
 	return i, err
 }
 
+const notifChanFindDestID = `-- name: NotifChanFindDestID :one
+SELECT
+    id
+FROM
+    notification_channels
+WHERE
+    dest = $1
+`
+
+func (q *Queries) NotifChanFindDestID(ctx context.Context, dest NullDestV1) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, notifChanFindDestID, dest)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const notifChanFindMany = `-- name: NotifChanFindMany :many
 SELECT
     created_at, dest, id, meta, name, type, value
@@ -2279,6 +2395,30 @@ type NotifChanUpdateNameParams struct {
 func (q *Queries) NotifChanUpdateName(ctx context.Context, arg NotifChanUpdateNameParams) error {
 	_, err := q.db.ExecContext(ctx, notifChanUpdateName, arg.ID, arg.Name)
 	return err
+}
+
+const notifChanUpsertDest = `-- name: NotifChanUpsertDest :one
+INSERT INTO notification_channels(id, dest, name)
+    VALUES ($1, $2, $3)
+ON CONFLICT (dest)
+    DO UPDATE SET
+        name = $3
+    RETURNING
+        id
+`
+
+type NotifChanUpsertDestParams struct {
+	ID   uuid.UUID
+	Dest NullDestV1
+	Name string
+}
+
+// NotifChanUpsertDest will insert a new destination if it does not exist, or updating it's name if it does.
+func (q *Queries) NotifChanUpsertDest(ctx context.Context, arg NotifChanUpsertDestParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, notifChanUpsertDest, arg.ID, arg.Dest, arg.Name)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const now = `-- name: Now :one

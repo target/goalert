@@ -36,6 +36,7 @@ sql:
       - override/queries.sql
       - schedule/queries.sql
       - label/queries.sql
+      - escalation/queries.sql
     engine: postgresql
     gen:
       go:

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
@@ -16,6 +17,13 @@ const (
 
 	FallbackIconURL = "builtin://rotation"
 )
+
+func DestFromID(rotationID string) gadb.DestV1 {
+	return gadb.DestV1{
+		Type: DestTypeRotation,
+		Args: map[string]string{FieldRotationID: rotationID},
+	}
+}
 
 var (
 	_ nfydest.Provider      = (*Store)(nil)
