@@ -204,7 +204,7 @@ func fillDB(ctx context.Context, dataCfg *datagenConfig, url string) error {
 	})
 	copyFrom("escalation_policy_steps", []string{"id", "escalation_policy_id", "step_number", "delay"}, len(data.EscalationSteps), func(n int) []interface{} {
 		step := data.EscalationSteps[n]
-		return []interface{}{asUUID(step.ID), asUUID(step.PolicyID), step.StepNumber, step.DelayMinutes}
+		return []interface{}{step.ID, asUUID(step.PolicyID), step.StepNumber, step.DelayMinutes}
 	}, "escalation_policies")
 
 	copyFrom("escalation_policy_actions", []string{"id", "escalation_policy_step_id", "user_id", "rotation_id", "schedule_id", "channel_id"}, len(data.EscalationActions), func(n int) []interface{} {
