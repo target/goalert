@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Add } from '@mui/icons-material'
+import { Add, Restore } from '@mui/icons-material'
 import { Button, Grid, Typography } from '@mui/material'
 import { ActionInput } from '../../../schema'
 import DynamicActionForm, {
@@ -21,6 +21,7 @@ export type UniversalKeyActionsFormProps = {
   onChipClick?: (action: ActionInput) => void
 
   disablePortal?: boolean
+  setShowNextTooltip?: (bool: boolean) => void
 }
 
 const query = gql`
@@ -54,6 +55,12 @@ export default function UniversalKeyActionsForm(
       setCurrentAction(getAction(props.value, props.actionType))
     }
   }, [props.actionType])
+
+  useEffect(() => {
+    if (currentAction && props.setShowNextTooltip) {
+      props.setShowNextTooltip(true)
+    }
+  }, [currentAction])
 
   const destError = errs.getErrorByPath('actionInputValidate.input.dest.type')
   const staticErrors = errs.getErrorMap('actionInputValidate.input.dest.args')
@@ -95,12 +102,31 @@ export default function UniversalKeyActionsForm(
           }}
         >
           <Button
-            fullWidth
-            type='button'
-            startIcon={<Add />}
+            startIcon={<Restore />}
             variant='contained'
             color='secondary'
-            sx={{ height: 'fit-content' }}
+            onClick={() => {
+              setCurrentAction(null)
+              if (props.onChipClick) {
+                props.onChipClick({
+                  dest: { type: '', args: {} },
+                  params: {},
+                })
+              }
+              if (props.setShowNextTooltip) {
+                props.setShowNextTooltip(false)
+              }
+            }}
+            sx={{ width: '30%', mr: 2 }}
+          >
+            Reset
+          </Button>
+          <Button
+            type='button'
+            variant='contained'
+            color='secondary'
+            fullWidth
+            startIcon={<Add />}
             onClick={() => {
               const input = valueToActionInput(currentAction)
 
@@ -139,6 +165,9 @@ export default function UniversalKeyActionsForm(
 
                   // clear the current action
                   setCurrentAction(null)
+                  if (props.setShowNextTooltip) {
+                    props.setShowNextTooltip(false)
+                  }
 
                   props.onChange(actions.concat(input))
 

@@ -27,6 +27,7 @@ interface UniversalKeyRuleFormProps {
 
   step: number
   setStep: (step: number) => void
+  setShowNextTooltip: (bool: boolean) => void
 }
 
 const STEPS = ['Configure Rule', 'Configure Action(s)', 'Wrap Up']
@@ -34,11 +35,10 @@ const STEPS = ['Configure Rule', 'Configure Action(s)', 'Wrap Up']
 export default function UniversalKeyRuleForm(
   props: UniversalKeyRuleFormProps,
 ): JSX.Element {
-  const { step, setStep } = props
+  const { step, setStep, setShowNextTooltip } = props
   const [actionType, setActionType] = useState('')
 
   const handleChipClick = (action: ActionInput): void => {
-    console.log('setting edit action type to: ', action.dest.type)
     setActionType(action.dest.type)
   }
 
@@ -132,6 +132,7 @@ export default function UniversalKeyRuleForm(
               }
               actionType={actionType}
               onChipClick={handleChipClick}
+              setShowNextTooltip={setShowNextTooltip}
             />
           </Grid>
         </React.Fragment>
