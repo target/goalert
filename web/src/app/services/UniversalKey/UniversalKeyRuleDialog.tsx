@@ -144,7 +144,14 @@ export default function UniversalKeyRuleDialog(
           ? 'Reset or finish adding the current action to continue'
           : null
       }
-      onBack={step > 0 && step <= 2 ? () => setStep(step - 1) : null}
+      onBack={
+        step > 0 && step <= 2
+          ? () => {
+              setShowNextTooltip(false)
+              setStep(step - 1)
+            }
+          : null
+      }
       form={
         <UniversalKeyRuleForm
           value={value}
