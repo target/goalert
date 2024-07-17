@@ -1,6 +1,5 @@
 import React from 'react'
 import Button, { ButtonProps } from '@mui/material/Button'
-import Tooltip from '@mui/material/Tooltip'
 import CircularProgress from '@mui/material/CircularProgress'
 
 interface LoadingButtonProps extends ButtonProps {
