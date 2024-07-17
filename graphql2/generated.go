@@ -1132,7 +1132,7 @@ type DestinationInputResolver interface {
 	Values(ctx context.Context, obj *gadb.DestV1, data []FieldValueInput) error
 }
 type OnCallNotificationRuleInputResolver interface {
-	Dest(ctx context.Context, obj *OnCallNotificationRuleInput, data *gadb.DestV1) error
+	Target(ctx context.Context, obj *OnCallNotificationRuleInput, data *assignment.RawTarget) error
 }
 type UpdateEscalationPolicyStepInputResolver interface {
 	Targets(ctx context.Context, obj *UpdateEscalationPolicyStepInput, data []assignment.RawTarget) error
@@ -36141,20 +36141,20 @@ func (ec *executionContext) unmarshalInputOnCallNotificationRuleInput(ctx contex
 			it.ID = data
 		case "target":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("target"))
-			data, err := ec.unmarshalOTargetInput2githubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx, v)
+			data, err := ec.unmarshalOTargetInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Target = data
+			if err = ec.resolvers.OnCallNotificationRuleInput().Target(ctx, &it, data); err != nil {
+				return it, err
+			}
 		case "dest":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dest"))
-			data, err := ec.unmarshalODestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx, v)
+			data, err := ec.unmarshalODestinationInput2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.OnCallNotificationRuleInput().Dest(ctx, &it, data); err != nil {
-				return it, err
-			}
+			it.Dest = data
 		case "time":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("time"))
 			data, err := ec.unmarshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx, v)
@@ -51765,6 +51765,11 @@ func (ec *executionContext) marshalODebugSendSMSInfo2ᚖgithubᚗcomᚋtargetᚋ
 	return ec._DebugSendSMSInfo(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalODestinationInput2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx context.Context, v interface{}) (gadb.DestV1, error) {
+	res, err := ec.unmarshalInputDestinationInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalODestinationInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1ᚄ(ctx context.Context, v interface{}) ([]gadb.DestV1, error) {
 	if v == nil {
 		return nil, nil
@@ -52401,11 +52406,6 @@ func (ec *executionContext) marshalOStringMap2map(ctx context.Context, sel ast.S
 	}
 	res := MarshalStringMap(v)
 	return res
-}
-
-func (ec *executionContext) unmarshalOTargetInput2githubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx context.Context, v interface{}) (assignment.RawTarget, error) {
-	res, err := ec.unmarshalInputTargetInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOTargetInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTargetᚄ(ctx context.Context, v interface{}) ([]assignment.RawTarget, error) {

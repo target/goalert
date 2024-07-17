@@ -3,23 +3,16 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
-	"fmt"
-	"net/url"
-	"strings"
 	"time"
 
 	"github.com/target/goalert/assignment"
-	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
-	"github.com/target/goalert/notification/webhook"
-	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
-	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
 )
@@ -55,67 +48,21 @@ func (a *Mutation) SetScheduleOnCallNotificationRules(ctx context.Context, input
 
 	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
 		rules := make([]schedule.OnCallNotificationRule, 0, len(input.Rules))
-		for i, r := range input.Rules {
-			err := validate.OneOf(fmt.Sprintf("Rules[%d].Target.Type", i), r.Target.Type, assignment.TargetTypeSlackChannel, assignment.TargetTypeSlackUserGroup, assignment.TargetTypeChanWebhook)
+		for _, r := range input.Rules {
+			info, err := a.DestReg.TypeInfo(ctx, r.Dest.Type)
+			if err != nil {
+				return err
+			}
+			if !info.IsSchedOnCallNotify() {
+				return validation.NewFieldError("Rules[%d].Dest.Type", "unsupported destination type")
+			}
+
+			chID, err := a.NCStore.MapDestToID(ctx, tx, r.Dest)
 			if err != nil {
 				return err
 			}
 
-			var nfyChan *notificationchannel.Channel
-			switch r.Target.Type {
-			case assignment.TargetTypeSlackUserGroup:
-				grpID, chanID, _ := strings.Cut(r.Target.ID, ":")
-				grp, err := a.SlackStore.UserGroup(ctx, grpID)
-				if err != nil {
-					return validation.WrapError(err)
-				}
-				ch, err := a.SlackStore.Channel(ctx, chanID)
-				if err != nil {
-					return validation.WrapError(err)
-				}
-
-				nfyChan = &notificationchannel.Channel{
-					Type:  notificationchannel.TypeSlackUG,
-					Name:  fmt.Sprintf("%s (%s)", grp.Handle, ch.Name),
-					Value: r.Target.ID,
-				}
-			case assignment.TargetTypeSlackChannel:
-				ch, err := a.SlackStore.Channel(ctx, r.Target.ID)
-				if err != nil {
-					return err
-				}
-
-				nfyChan = &notificationchannel.Channel{
-					Type:  notificationchannel.TypeSlackChan,
-					Name:  ch.Name,
-					Value: ch.ID,
-				}
-			case assignment.TargetTypeChanWebhook:
-				url, err := url.Parse(r.Target.ID)
-				if err != nil {
-					return validation.NewFieldError("Rules[%d].Target.ID", "Invalid URL format")
-				}
-				url.RawQuery = ""
-				if len(url.Path) > 15 {
-					url.Path = url.Path[:12] + "..."
-				}
-
-				cfg := config.FromContext(ctx)
-				if !cfg.ValidWebhookURL(r.Target.ID) {
-					return validation.NewFieldError("Rules[%d].Target.ID", "URL not allowed by administrator")
-				}
-
-				nfyChan = &notificationchannel.Channel{
-					Type:  notificationchannel.TypeWebhook,
-					Name:  webhook.MaskURLPass(url),
-					Value: r.Target.ID,
-				}
-			}
-
-			r.ChannelID, err = a.NCStore.MapToID(ctx, tx, nfyChan)
-			if err != nil {
-				return err
-			}
+			r.OnCallNotificationRule.ChannelID = chID
 			rules = append(rules, r.OnCallNotificationRule)
 		}
 
