@@ -234,6 +234,9 @@ func (m *Mutation) UpdateEscalationPolicy(ctx context.Context, input graphql2.Up
 			}
 
 			inputStepIDs, err := validate.ParseManyUUID("stepIDs", input.StepIDs, len(steps))
+			if err != nil {
+				return err
+			}
 
 			// get list of step ids
 			var stepIDs []uuid.UUID
