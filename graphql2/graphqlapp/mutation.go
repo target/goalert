@@ -57,6 +57,7 @@ func (a *Mutation) SetScheduleOnCallNotificationRules(ctx context.Context, input
 				return validation.NewFieldError("Rules[%d].Dest.Type", "unsupported destination type")
 			}
 
+			// MapDestToID handles the appropriate validation checks, outside of the IsSchedOnCallNotify check done above.
 			chID, err := a.NCStore.MapDestToID(ctx, tx, r.Dest)
 			if err != nil {
 				return err
