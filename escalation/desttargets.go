@@ -109,10 +109,14 @@ func (s *Store) DeleteStepActionTx(ctx context.Context, tx *sql.Tx, stepID uuid.
 	})
 }
 
-func (s *Store) FindAllStepActionsTx(ctx context.Context, tx *sql.Tx, stepID uuid.UUID) ([]gadb.DestV1, error) {
+func (s *Store) FindAllStepActionsTx(ctx context.Context, tx gadb.DBTX, stepID uuid.UUID) ([]gadb.DestV1, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
+	}
+
+	if tx == nil {
+		tx = s.db
 	}
 
 	actions, err := gadb.New(tx).EPStepActionsByStepId(ctx, stepID)

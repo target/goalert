@@ -4,11 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"slices"
 	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/assignment"
-	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
@@ -122,7 +122,6 @@ func (m *Mutation) CreateEscalationPolicyStep(ctx context.Context, input graphql
 		if err != nil {
 			return err
 		}
-		stepID := uuid.MustParse(step.ID)
 
 		if input.NewRotation != nil {
 			rot, err := m.CreateRotation(ctx, *input.NewRotation)
@@ -131,7 +130,7 @@ func (m *Mutation) CreateEscalationPolicyStep(ctx context.Context, input graphql
 			}
 
 			// Should add to escalation_policy_actions
-			err = m.PolicyStore.AddStepActionTx(ctx, tx, stepID, rotation.DestFromID(rot.ID))
+			err = m.PolicyStore.AddStepActionTx(ctx, tx, step.ID, rotation.DestFromID(rot.ID))
 			if err != nil {
 				return validation.AddPrefix("newRotation.", err)
 			}
@@ -144,7 +143,7 @@ func (m *Mutation) CreateEscalationPolicyStep(ctx context.Context, input graphql
 			}
 
 			// Should add to escalation_policy_actions
-			err = m.PolicyStore.AddStepActionTx(ctx, tx, stepID, schedule.DestFromID(sched.ID))
+			err = m.PolicyStore.AddStepActionTx(ctx, tx, step.ID, schedule.DestFromID(sched.ID))
 			if err != nil {
 				return validation.AddPrefix("newSchedule.", err)
 			}
@@ -155,7 +154,7 @@ func (m *Mutation) CreateEscalationPolicyStep(ctx context.Context, input graphql
 			if action.Type == user.DestTypeUser && action.Arg(user.FieldUserID) == "__current_user" {
 				action.SetArg(user.FieldUserID, userID)
 			}
-			err = m.PolicyStore.AddStepActionTx(ctx, tx, stepID, action)
+			err = m.PolicyStore.AddStepActionTx(ctx, tx, step.ID, action)
 			if err != nil {
 				return validation.AddPrefix("Actions["+strconv.Itoa(i)+"].", err)
 			}
@@ -234,15 +233,17 @@ func (m *Mutation) UpdateEscalationPolicy(ctx context.Context, input graphql2.Up
 				return err
 			}
 
+			inputStepIDs, err := validate.ParseManyUUID("stepIDs", input.StepIDs, len(steps))
+
 			// get list of step ids
-			var stepIDs []string
+			var stepIDs []uuid.UUID
 			for _, step := range steps {
 				stepIDs = append(stepIDs, step.ID)
 			}
 
 			// delete existing id if not found in input steps slice
 			for _, stepID := range stepIDs {
-				if !contains(input.StepIDs, stepID) {
+				if !slices.Contains(inputStepIDs, stepID) {
 					_, err = m.PolicyStore.DeleteStepTx(ctx, tx, stepID)
 					if err != nil {
 						return err
@@ -251,8 +252,8 @@ func (m *Mutation) UpdateEscalationPolicy(ctx context.Context, input graphql2.Up
 			}
 
 			// loop through input steps to update order
-			for i, stepID := range input.StepIDs {
-				if !contains(stepIDs, stepID) {
+			for i, stepID := range inputStepIDs {
+				if !slices.Contains(stepIDs, stepID) {
 					return validation.NewFieldError("steps["+strconv.Itoa(i)+"]", "uuid does not exist on policy")
 				}
 
@@ -271,7 +272,6 @@ func (m *Mutation) UpdateEscalationPolicy(ctx context.Context, input graphql2.Up
 
 func (m *Mutation) UpdateEscalationPolicyStep(ctx context.Context, input graphql2.UpdateEscalationPolicyStepInput) (bool, error) {
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
-		cfg := config.FromContext(ctx)
 		step, err := m.PolicyStore.FindOneStepForUpdateTx(ctx, tx, input.ID) // get delay
 		if err != nil {
 			return err
@@ -288,58 +288,45 @@ func (m *Mutation) UpdateEscalationPolicyStep(ctx context.Context, input graphql
 		}
 
 		// update targets if provided
-		if input.Targets != nil {
-			step.Targets = make([]assignment.Target, len(input.Targets))
-			for i, tgt := range input.Targets {
-				if tgt.Type == assignment.TargetTypeChanWebhook && !cfg.ValidWebhookURL(tgt.ID) {
-					// UI code expects targets to be un-indexed
-					return validation.NewFieldError("targets", "URL not allowed by administrator")
-				}
-				step.Targets[i] = tgt
-			}
-
-			// get current targets on step
-			curr, err := m.PolicyStore.FindAllStepTargetsTx(ctx, tx, step.ID)
+		if input.Actions != nil {
+			// get current actions
+			existing, err := m.PolicyStore.FindAllStepActionsTx(ctx, tx, step.ID)
 			if err != nil {
 				return err
 			}
 
-			wantedTargets := make(map[assignment.RawTarget]int, len(step.Targets))
-			currentTargets := make(map[assignment.RawTarget]bool, len(curr))
-
-			// construct maps
-			for i, tgt := range step.Targets {
-				rt := assignment.NewRawTarget(tgt)
-				if oldIdx, ok := wantedTargets[rt]; ok {
-					return validation.NewFieldError(fmt.Sprintf("Targets[%d]", i), fmt.Sprintf("Duplicates existing target at index %d.", oldIdx))
+			for i, action := range input.Actions {
+				isDuplicate := slices.ContainsFunc(input.Actions[:i], func(a gadb.DestV1) bool {
+					return a.Equals(action)
+				})
+				if isDuplicate {
+					return validation.NewFieldError(fmt.Sprintf("Actions[%d]", i), "Duplicate action.")
 				}
-				wantedTargets[rt] = i
-			}
-			for _, tgt := range curr {
-				currentTargets[assignment.NewRawTarget(tgt)] = true
-			}
 
-			// add targets in wanted that are not in curr
-			for tgt, idx := range wantedTargets {
-				if currentTargets[tgt] {
+				isNew := slices.ContainsFunc(existing, func(e gadb.DestV1) bool {
+					return e.Equals(action)
+				})
+				if !isNew {
+					// already exists, skip
 					continue
 				}
 
-				// add new step
-				err = m.PolicyStore.AddStepTargetTx(ctx, tx, step.ID, tgt)
+				err = m.PolicyStore.AddStepActionTx(ctx, tx, step.ID, action)
 				if err != nil {
-					return validation.AddPrefix(fmt.Sprintf("Targets[%d].", idx), err)
+					return err
 				}
 			}
 
-			// remove targets in curr that are not in wanted
-			for tgt := range currentTargets {
-				if _, ok := wantedTargets[tgt]; ok {
+			for _, action := range existing {
+				wasRemoved := !slices.ContainsFunc(input.Actions, func(a gadb.DestV1) bool {
+					return a.Equals(action)
+				})
+				if !wasRemoved {
+					// leave it alone
 					continue
 				}
 
-				// delete unwanted step
-				err = m.PolicyStore.DeleteStepTargetTx(ctx, tx, step.ID, tgt)
+				err = m.PolicyStore.DeleteStepActionTx(ctx, tx, step.ID, action)
 				if err != nil {
 					return err
 				}
@@ -353,48 +340,26 @@ func (m *Mutation) UpdateEscalationPolicyStep(ctx context.Context, input graphql
 }
 
 func (a *EscalationPolicyStep) Actions(ctx context.Context, raw *escalation.Step) ([]gadb.DestV1, error) {
-	tgts, err := a.Targets(ctx, raw)
+	return a.PolicyStore.FindAllStepActionsTx(ctx, nil, raw.ID)
+}
+
+func (step *EscalationPolicyStep) Targets(ctx context.Context, raw *escalation.Step) ([]assignment.RawTarget, error) {
+	act, err := step.PolicyStore.FindAllStepActionsTx(ctx, nil, raw.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	actions := make([]gadb.DestV1, len(tgts))
-	for i, tgt := range tgts {
-		actions[i], err = CompatTargetToDest(tgt)
+	var targets []assignment.RawTarget
+	for _, action := range act {
+		tgt, err := CompatDestToTarget(action)
 		if err != nil {
 			return nil, err
 		}
+
+		targets = append(targets, tgt)
 	}
 
-	return actions, nil
-}
-
-func (step *EscalationPolicyStep) Targets(ctx context.Context, raw *escalation.Step) ([]assignment.RawTarget, error) {
-	// TODO: use dataloader
-	var targets []assignment.Target
-	var err error
-	if len(raw.Targets) > 0 {
-		targets = raw.Targets
-	} else {
-		targets, err = step.PolicyStore.FindAllStepTargetsTx(ctx, nil, raw.ID)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	result := make([]assignment.RawTarget, len(targets))
-	for i, tgt := range targets {
-		switch t := tgt.(type) {
-		case *assignment.RawTarget:
-			result[i] = *t
-		case assignment.RawTarget:
-			result[i] = t
-		default:
-			result[i] = assignment.NewRawTarget(t)
-		}
-	}
-
-	return result, nil
+	return targets, nil
 }
 
 func (step *EscalationPolicyStep) EscalationPolicy(ctx context.Context, raw *escalation.Step) (*escalation.Policy, error) {

@@ -565,6 +565,8 @@ type EscalationPolicyStep {
   stepNumber: Int!
   delayMinutes: Int!
   targets: [Target!]!
+    @goField(forceResolver: true)
+    @deprecated(reason: "use actions instead")
   escalationPolicy: EscalationPolicy
 }
 

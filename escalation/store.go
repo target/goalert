@@ -708,7 +708,7 @@ func (s *Store) CreateStepTx(ctx context.Context, tx *sql.Tx, st *Step) (*Step, 
 		stmt = tx.StmtContext(ctx, stmt)
 	}
 
-	n.ID = uuid.New().String()
+	n.ID = uuid.New()
 
 	err = stmt.QueryRowContext(ctx, n.ID, n.PolicyID, n.DelayMinutes).Scan(&n.StepNumber)
 	if err != nil {
@@ -720,13 +720,8 @@ func (s *Store) CreateStepTx(ctx context.Context, tx *sql.Tx, st *Step) (*Step, 
 }
 
 // UpdateStepNumberTx updates the step number for a step.
-func (s *Store) UpdateStepNumberTx(ctx context.Context, tx *sql.Tx, stepID string, stepNumber int) error {
+func (s *Store) UpdateStepNumberTx(ctx context.Context, tx *sql.Tx, stepID uuid.UUID, stepNumber int) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
-	if err != nil {
-		return err
-	}
-
-	err = validate.UUID("EscalationPolicyStepID", stepID)
 	if err != nil {
 		return err
 	}
@@ -745,13 +740,8 @@ func (s *Store) UpdateStepNumberTx(ctx context.Context, tx *sql.Tx, stepID strin
 }
 
 // UpdateStepDelayTx updates the delay for a step.
-func (s *Store) UpdateStepDelayTx(ctx context.Context, tx *sql.Tx, stepID string, stepDelay int) error {
+func (s *Store) UpdateStepDelayTx(ctx context.Context, tx *sql.Tx, stepID uuid.UUID, stepDelay int) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
-	if err != nil {
-		return err
-	}
-
-	err = validate.UUID("EscalationPolicyStepID", stepID)
 	if err != nil {
 		return err
 	}
@@ -775,13 +765,8 @@ func (s *Store) UpdateStepDelayTx(ctx context.Context, tx *sql.Tx, stepID string
 }
 
 // DeleteStepTx deletes a step from an escalation policy.
-func (s *Store) DeleteStepTx(ctx context.Context, tx *sql.Tx, id string) (string, error) {
-	err := validate.UUID("EscalationPolicyStepID", id)
-	if err != nil {
-		return "", err
-	}
-
-	err = permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+func (s *Store) DeleteStepTx(ctx context.Context, tx *sql.Tx, id uuid.UUID) (string, error) {
+	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return "", err
 	}
