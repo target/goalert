@@ -58,7 +58,6 @@ export default function UniversalKeyActionsForm(
 
   useEffect(() => {
     if (currentAction) {
-      console.log('setting tooltip: true')
       props.setShowNextTooltip(true)
     }
   }, [currentAction])
