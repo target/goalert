@@ -161,7 +161,8 @@ export default function CreateAlertDialog(props: {
       }
       PaperProps={{ className: classes.dialog }}
       onSubmit={() => (hasCompleted ? props.onClose() : mutate())}
-      onNext={currentStep < 2 ? onNext : null}
+      disableNext={currentStep === 2}
+      onNext={onNext}
       onBack={currentStep > 0 ? () => setStep(currentStep - 1) : null}
     />
   )
