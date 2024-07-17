@@ -21,7 +21,7 @@ export type UniversalKeyActionsFormProps = {
   onChipClick?: (action: ActionInput) => void
 
   disablePortal?: boolean
-  setShowNextTooltip: (bool: boolean) => void
+  setShowNextTooltip?: (bool: boolean) => void
 }
 
 const query = gql`
@@ -57,7 +57,7 @@ export default function UniversalKeyActionsForm(
   }, [props.actionType])
 
   useEffect(() => {
-    if (currentAction) {
+    if (currentAction && props.setShowNextTooltip) {
       props.setShowNextTooltip(true)
     }
   }, [currentAction])
@@ -107,7 +107,9 @@ export default function UniversalKeyActionsForm(
             color='secondary'
             onClick={() => {
               setCurrentAction(null)
-              props.setShowNextTooltip(false)
+              if (props.setShowNextTooltip) {
+                props.setShowNextTooltip(false)
+              }
             }}
             sx={{ width: '30%', mr: 2 }}
           >
@@ -157,7 +159,9 @@ export default function UniversalKeyActionsForm(
 
                   // clear the current action
                   setCurrentAction(null)
-                  props.setShowNextTooltip(false)
+                  if (props.setShowNextTooltip) {
+                    props.setShowNextTooltip(false)
+                  }
 
                   props.onChange(actions.concat(input))
 
