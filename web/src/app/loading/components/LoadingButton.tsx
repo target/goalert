@@ -8,7 +8,6 @@ interface LoadingButtonProps extends ButtonProps {
   buttonText?: string
   loading?: boolean
   noSubmit?: boolean
-  tooltip?: string
   style?: React.CSSProperties
 }
 
@@ -21,28 +20,23 @@ const LoadingButton = (props: LoadingButtonProps): JSX.Element => {
     loading,
     noSubmit,
     onClick,
-    tooltip,
     style,
     ...rest
   } = props
 
-  const button = (
-    <Button
-      data-cy='loading-button'
-      variant='contained'
-      {...rest}
-      color={color || 'primary'}
-      onClick={onClick}
-      disabled={loading || disabled}
-      type={noSubmit ? 'button' : 'submit'}
-    >
-      {!attemptCount ? props.children || buttonText || 'Confirm' : 'Retry'}
-    </Button>
-  )
-
   return (
     <div style={{ position: 'relative', ...style }}>
-      {tooltip ? <Tooltip title={tooltip}>{button}</Tooltip> : button}
+      <Button
+        data-cy='loading-button'
+        variant='contained'
+        {...rest}
+        color={color || 'primary'}
+        onClick={onClick}
+        disabled={loading || disabled}
+        type={noSubmit ? 'button' : 'submit'}
+      >
+        {!attemptCount ? props.children || buttonText || 'Confirm' : 'Retry'}
+      </Button>
       {loading && (
         <CircularProgress
           color={color || 'primary'}

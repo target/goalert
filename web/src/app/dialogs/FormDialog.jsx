@@ -63,7 +63,6 @@ export default function FormDialog(props) {
     onBack,
     fullHeight,
     nextTooltip,
-    submitTooltip,
     disableBackdropClose,
     disablePortal,
     disableSubmit,
@@ -195,7 +194,6 @@ export default function FormDialog(props) {
           }}
           attemptCount={attemptCount}
           buttonText={primaryActionLabel || (confirm ? 'Confirm' : 'Submit')}
-          tooltip={submitTooltip}
           disabled={loading || disableSubmit}
           loading={loading}
           type='submit'
@@ -278,7 +276,6 @@ FormDialog.propTypes = {
   onClose: p.func,
 
   onSubmit: p.func,
-  submitTooltip: p.string,
 
   // if onNext is specified the submit button will be replaced with a 'Next' button
   onNext: p.func,
