@@ -597,6 +597,8 @@ input UpdateEscalationPolicyStepInput {
   id: ID!
   delayMinutes: Int
   targets: [TargetInput!]
+    @goField(forceResolver: true)
+    @deprecated(reason: "use actions instead")
 }
 
 input SetFavoriteInput {

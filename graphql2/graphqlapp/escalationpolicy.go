@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"reflect"
 	"slices"
 	"strconv"
 
@@ -55,19 +56,16 @@ func (a *App) UpdateEscalationPolicyStepInput() graphql2.UpdateEscalationPolicyS
 	return (*UpdateEscalationPolicyStepInput)(a)
 }
 
-func (a *UpdateEscalationPolicyStepInput) Actions(ctx context.Context, input *graphql2.UpdateEscalationPolicyStepInput, actions []gadb.DestV1) error {
-	tgts := make([]assignment.RawTarget, len(actions))
-	var err error
-	for i, action := range actions {
-		if err := (*App)(a).ValidateDestination(ctx, fmt.Sprintf("%d.dest", i), &action); err != nil {
-			return err
-		}
-		tgts[i], err = CompatDestToTarget(action)
+func (a *UpdateEscalationPolicyStepInput) Targets(ctx context.Context, input *graphql2.UpdateEscalationPolicyStepInput, targets []assignment.RawTarget) error {
+	input.Actions = make([]gadb.DestV1, len(targets))
+	for i, tgt := range targets {
+		var err error
+		input.Actions[i], err = CompatTargetToDest(tgt)
 		if err != nil {
-			return validation.NewFieldError("actions", "invalid DestInput")
+			return validation.NewFieldError(fmt.Sprintf("Targets[%d]", i), err.Error())
 		}
 	}
-	input.Targets = tgts
+
 	return nil
 }
 
@@ -298,18 +296,27 @@ func (m *Mutation) UpdateEscalationPolicyStep(ctx context.Context, input graphql
 				return err
 			}
 
-			for i, action := range input.Actions {
-				isDuplicate := slices.ContainsFunc(input.Actions[:i], func(a gadb.DestV1) bool {
-					return a.Equals(action)
+			// We need to delete first, in case we're at the current system limit, that way the total number never exceeds the limit (unless the user is trying to add more than the limit).
+			for _, action := range existing {
+				stillWanted := slices.ContainsFunc(input.Actions, func(a gadb.DestV1) bool {
+					return reflect.DeepEqual(a, action)
 				})
-				if isDuplicate {
-					return validation.NewFieldError(fmt.Sprintf("Actions[%d]", i), "Duplicate action.")
+				if stillWanted {
+					// leave it alone
+					continue
 				}
 
-				isNew := slices.ContainsFunc(existing, func(e gadb.DestV1) bool {
-					return e.Equals(action)
+				err = m.PolicyStore.DeleteStepActionTx(ctx, tx, step.ID, action)
+				if err != nil {
+					return err
+				}
+			}
+
+			for _, action := range input.Actions {
+				alreadyExists := slices.ContainsFunc(existing, func(e gadb.DestV1) bool {
+					return reflect.DeepEqual(e, action)
 				})
-				if !isNew {
+				if alreadyExists {
 					// already exists, skip
 					continue
 				}
@@ -320,20 +327,6 @@ func (m *Mutation) UpdateEscalationPolicyStep(ctx context.Context, input graphql
 				}
 			}
 
-			for _, action := range existing {
-				wasRemoved := !slices.ContainsFunc(input.Actions, func(a gadb.DestV1) bool {
-					return a.Equals(action)
-				})
-				if !wasRemoved {
-					// leave it alone
-					continue
-				}
-
-				err = m.PolicyStore.DeleteStepActionTx(ctx, tx, step.ID, action)
-				if err != nil {
-					return err
-				}
-			}
 		}
 
 		return err
