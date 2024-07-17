@@ -102,71 +102,74 @@ export default function UniversalKeyActionsForm(
             alignItems: 'flex-end',
           }}
         >
-          <ButtonGroup variant='contained' color='secondary' fullWidth>
-            <Button
-              startIcon={<Restore />}
-              onClick={() => setCurrentAction(null)}
-              sx={{ width: '30%' }}
-            >
-              Reset
-            </Button>
-            <Button
-              type='button'
-              startIcon={<Add />}
-              onClick={() => {
-                const input = valueToActionInput(currentAction)
+          <Button
+            startIcon={<Restore />}
+            variant='contained'
+            color='secondary'
+            onClick={() => setCurrentAction(null)}
+            sx={{ width: '30%', mr: 2 }}
+          >
+            Reset
+          </Button>
+          <Button
+            type='button'
+            variant='contained'
+            color='secondary'
+            fullWidth
+            startIcon={<Add />}
+            onClick={() => {
+              const input = valueToActionInput(currentAction)
 
-                if (props.actionType !== '') {
-                  actions = props.value.filter(
-                    (v) => v.dest.type !== props.actionType,
-                  )
+              if (props.actionType !== '') {
+                actions = props.value.filter(
+                  (v) => v.dest.type !== props.actionType,
+                )
+              }
+
+              let cancel = ''
+              actions.forEach((_a) => {
+                const a = JSON.stringify(_a.dest.args)
+                const cur = JSON.stringify(input.dest.args)
+                if (a === cur) {
+                  cancel = 'Cannot add same destination twice'
                 }
+              })
 
-                let cancel = ''
-                actions.forEach((_a) => {
-                  const a = JSON.stringify(_a.dest.args)
-                  const cur = JSON.stringify(input.dest.args)
-                  if (a === cur) {
-                    cancel = 'Cannot add same destination twice'
+              if (cancel !== '') {
+                setAddError({
+                  message: cancel,
+                } as CombinedError)
+                return
+              }
+
+              // validating input of action
+              setAddError(null)
+              valClient
+                .query(query, { input })
+                .toPromise()
+                .then((res) => {
+                  if (res.error) {
+                    setAddError(res.error)
+                    return
+                  }
+
+                  // clear the current action
+                  setCurrentAction(null)
+                  props.setShowNextTooltip(false)
+
+                  props.onChange(actions.concat(input))
+
+                  if (props.onChipClick) {
+                    props.onChipClick({
+                      dest: { type: '', args: {} },
+                      params: {},
+                    })
                   }
                 })
-
-                if (cancel !== '') {
-                  setAddError({
-                    message: cancel,
-                  } as CombinedError)
-                  return
-                }
-
-                // validating input of action
-                setAddError(null)
-                valClient
-                  .query(query, { input })
-                  .toPromise()
-                  .then((res) => {
-                    if (res.error) {
-                      setAddError(res.error)
-                      return
-                    }
-
-                    // clear the current action
-                    setCurrentAction(null)
-                    props.setShowNextTooltip(false)
-
-                    props.onChange(actions.concat(input))
-
-                    if (props.onChipClick) {
-                      props.onChipClick({
-                        dest: { type: '', args: {} },
-                        params: {},
-                      })
-                    }
-                  })
-              }}
-            >
-              {props.actionType ? 'Save Action' : 'Add Action'}
-            </Button>
-          </ButtonGroup>
+            }}
+          >
+            {props.actionType ? 'Save Action' : 'Add Action'}
+          </Button>
         </Grid>
       )}
 
