@@ -267,7 +267,7 @@ func (d *datagen) NewEP() {
 // NewEPStep will generate a random escalation policy step for the provided policy.
 func (d *datagen) NewEPStep(epID string, n int) {
 	d.EscalationSteps = append(d.EscalationSteps, escalation.Step{
-		ID:           d.UUID(),
+		ID:           uuid.MustParse(d.UUID()),
 		PolicyID:     epID,
 		DelayMinutes: d.Intn(25) + 5,
 		StepNumber:   n,
@@ -620,7 +620,7 @@ func (cfg datagenConfig) Generate() datagen {
 		})
 	}
 	for _, step := range d.EscalationSteps {
-		run(d.Intn(cfg.EPMaxAssigned), func() { d.NewEPStepAction(step.ID) })
+		run(d.Intn(cfg.EPMaxAssigned), func() { d.NewEPStepAction(step.ID.String()) })
 	}
 
 	d.labelKeys = make([]string, cfg.UniqueLabelKeys)

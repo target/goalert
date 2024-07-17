@@ -1135,7 +1135,7 @@ type OnCallNotificationRuleInputResolver interface {
 	Dest(ctx context.Context, obj *OnCallNotificationRuleInput, data *gadb.DestV1) error
 }
 type UpdateEscalationPolicyStepInputResolver interface {
-	Actions(ctx context.Context, obj *UpdateEscalationPolicyStepInput, data []gadb.DestV1) error
+	Targets(ctx context.Context, obj *UpdateEscalationPolicyStepInput, data []assignment.RawTarget) error
 }
 
 type executableSchema struct {
@@ -12882,9 +12882,9 @@ func (ec *executionContext) _EscalationPolicyStep_id(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_EscalationPolicyStep_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -37259,16 +37259,16 @@ func (ec *executionContext) unmarshalInputUpdateEscalationPolicyStepInput(ctx co
 			if err != nil {
 				return it, err
 			}
-			it.Targets = data
+			if err = ec.resolvers.UpdateEscalationPolicyStepInput().Targets(ctx, &it, data); err != nil {
+				return it, err
+			}
 		case "actions":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("actions"))
 			data, err := ec.unmarshalODestinationInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1ᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.UpdateEscalationPolicyStepInput().Actions(ctx, &it, data); err != nil {
-				return it, err
-			}
+			it.Actions = data
 		}
 	}
 
