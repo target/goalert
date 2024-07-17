@@ -105,7 +105,10 @@ export default function UniversalKeyActionsForm(
             startIcon={<Restore />}
             variant='contained'
             color='secondary'
-            onClick={() => setCurrentAction(null)}
+            onClick={() => {
+              setCurrentAction(null)
+              props.setShowNextTooltip(false)
+            }}
             sx={{ width: '30%', mr: 2 }}
           >
             Reset
