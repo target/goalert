@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { Add } from '@mui/icons-material'
-import { Button, Grid, Typography } from '@mui/material'
+import { Add, Restore } from '@mui/icons-material'
+import { Button, ButtonGroup, Grid, Typography } from '@mui/material'
 import { ActionInput } from '../../../schema'
 import DynamicActionForm, {
   actionInputToValue,
@@ -21,6 +21,7 @@ export type UniversalKeyActionsFormProps = {
   onChipClick?: (action: ActionInput) => void
 
   disablePortal?: boolean
+  setShowNextTooltip: (bool: boolean) => void
 }
 
 const query = gql`
@@ -54,6 +55,13 @@ export default function UniversalKeyActionsForm(
       setCurrentAction(getAction(props.value, props.actionType))
     }
   }, [props.actionType])
+
+  useEffect(() => {
+    if (currentAction) {
+      console.log('setting tooltip: true')
+      props.setShowNextTooltip(true)
+    }
+  }, [currentAction])
 
   const destError = errs.getErrorByPath('actionInputValidate.input.dest.type')
   const staticErrors = errs.getErrorMap('actionInputValidate.input.dest.args')
@@ -94,65 +102,71 @@ export default function UniversalKeyActionsForm(
             alignItems: 'flex-end',
           }}
         >
-          <Button
-            fullWidth
-            type='button'
-            startIcon={<Add />}
-            variant='contained'
-            color='secondary'
-            sx={{ height: 'fit-content' }}
-            onClick={() => {
-              const input = valueToActionInput(currentAction)
+          <ButtonGroup variant='contained' color='secondary' fullWidth>
+            <Button
+              startIcon={<Restore />}
+              onClick={() => setCurrentAction(null)}
+              sx={{ width: '30%' }}
+            >
+              Reset
+            </Button>
+            <Button
+              type='button'
+              startIcon={<Add />}
+              onClick={() => {
+                const input = valueToActionInput(currentAction)
 
-              if (props.actionType !== '') {
-                actions = props.value.filter(
-                  (v) => v.dest.type !== props.actionType,
-                )
-              }
-
-              let cancel = ''
-              actions.forEach((_a) => {
-                const a = JSON.stringify(_a.dest.args)
-                const cur = JSON.stringify(input.dest.args)
-                if (a === cur) {
-                  cancel = 'Cannot add same destination twice'
+                if (props.actionType !== '') {
+                  actions = props.value.filter(
+                    (v) => v.dest.type !== props.actionType,
+                  )
                 }
-              })
 
-              if (cancel !== '') {
-                setAddError({
-                  message: cancel,
-                } as CombinedError)
-                return
-              }
-
-              // validating input of action
-              setAddError(null)
-              valClient
-                .query(query, { input })
-                .toPromise()
-                .then((res) => {
-                  if (res.error) {
-                    setAddError(res.error)
-                    return
-                  }
-
-                  // clear the current action
-                  setCurrentAction(null)
-
-                  props.onChange(actions.concat(input))
-
-                  if (props.onChipClick) {
-                    props.onChipClick({
-                      dest: { type: '', args: {} },
-                      params: {},
-                    })
+                let cancel = ''
+                actions.forEach((_a) => {
+                  const a = JSON.stringify(_a.dest.args)
+                  const cur = JSON.stringify(input.dest.args)
+                  if (a === cur) {
+                    cancel = 'Cannot add same destination twice'
                   }
                 })
-            }}
-          >
-            {props.actionType ? 'Save Action' : 'Add Action'}
-          </Button>
+
+                if (cancel !== '') {
+                  setAddError({
+                    message: cancel,
+                  } as CombinedError)
+                  return
+                }
+
+                // validating input of action
+                setAddError(null)
+                valClient
+                  .query(query, { input })
+                  .toPromise()
+                  .then((res) => {
+                    if (res.error) {
+                      setAddError(res.error)
+                      return
+                    }
+
+                    // clear the current action
+                    setCurrentAction(null)
+                    props.setShowNextTooltip(false)
+
+                    props.onChange(actions.concat(input))
+
+                    if (props.onChipClick) {
+                      props.onChipClick({
+                        dest: { type: '', args: {} },
+                        params: {},
+                      })
+                    }
+                  })
+              }}
+            >
+              {props.actionType ? 'Save Action' : 'Add Action'}
+            </Button>
+          </ButtonGroup>
         </Grid>
       )}
 

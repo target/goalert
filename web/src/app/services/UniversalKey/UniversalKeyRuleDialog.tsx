@@ -78,6 +78,7 @@ export default function UniversalKeyRuleDialog(
   const [m, commit] = useMutation(mutation)
   const [hasSubmitted, setHasSubmitted] = useState(0)
   const [hasConfirmed, setHasConfirmed] = useState(false)
+  const [showNextTooltip, setShowNextTooltip] = useState(false)
 
   const errs = useErrorConsumer(m.error)
   const unknownErrors = errs.remainingLegacyCallback()
@@ -136,8 +137,13 @@ export default function UniversalKeyRuleDialog(
       errors={unknownErrors}
       onSubmit={() => setHasSubmitted(hasSubmitted + 1)}
       disableSubmit={step < 2 && !hasSubmitted}
-      disableNext={step === 2}
+      disableNext={showNextTooltip}
       onNext={() => setStep(step + 1)}
+      nextTooltip={
+        showNextTooltip
+          ? 'Reset or finish adding the current action to continue'
+          : null
+      }
       onBack={step > 0 && step <= 2 ? () => setStep(step - 1) : null}
       form={
         <UniversalKeyRuleForm
@@ -148,6 +154,7 @@ export default function UniversalKeyRuleDialog(
           conditionError={conditionError}
           step={step}
           setStep={setStep}
+          setShowNextTooltip={(bool: boolean) => setShowNextTooltip(bool)}
         />
       }
       notices={getNotice(showNotice, hasConfirmed, setHasConfirmed)}

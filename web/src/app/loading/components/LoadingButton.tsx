@@ -1,5 +1,6 @@
 import React from 'react'
 import Button, { ButtonProps } from '@mui/material/Button'
+import Tooltip from '@mui/material/Tooltip'
 import CircularProgress from '@mui/material/CircularProgress'
 
 interface LoadingButtonProps extends ButtonProps {
@@ -7,6 +8,7 @@ interface LoadingButtonProps extends ButtonProps {
   buttonText?: string
   loading?: boolean
   noSubmit?: boolean
+  tooltip?: string
   style?: React.CSSProperties
 }
 
@@ -19,23 +21,28 @@ const LoadingButton = (props: LoadingButtonProps): JSX.Element => {
     loading,
     noSubmit,
     onClick,
+    tooltip,
     style,
     ...rest
   } = props
 
+  const button = (
+    <Button
+      data-cy='loading-button'
+      variant='contained'
+      {...rest}
+      color={color || 'primary'}
+      onClick={onClick}
+      disabled={loading || disabled}
+      type={noSubmit ? 'button' : 'submit'}
+    >
+      {!attemptCount ? props.children || buttonText || 'Confirm' : 'Retry'}
+    </Button>
+  )
+
   return (
     <div style={{ position: 'relative', ...style }}>
-      <Button
-        data-cy='loading-button'
-        variant='contained'
-        {...rest}
-        color={color || 'primary'}
-        onClick={onClick}
-        disabled={loading || disabled}
-        type={noSubmit ? 'button' : 'submit'}
-      >
-        {!attemptCount ? props.children || buttonText || 'Confirm' : 'Retry'}
-      </Button>
+      {tooltip ? <Tooltip title={tooltip}>{button}</Tooltip> : button}
       {loading && (
         <CircularProgress
           color={color || 'primary'}
