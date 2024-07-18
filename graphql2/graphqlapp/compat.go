@@ -1,6 +1,7 @@
 package graphqlapp
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/target/goalert/assignment"
@@ -11,10 +12,11 @@ import (
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
+	"github.com/target/goalert/validation/validate"
 )
 
 // CompatTargetToDest converts an assignment.Target to a gadb.DestV1.
-func CompatTargetToDest(tgt assignment.Target) (gadb.DestV1, error) {
+func (a *App) CompatTargetToDest(ctx context.Context, tgt assignment.Target) (gadb.DestV1, error) {
 	switch tgt.TargetType() {
 	case assignment.TargetTypeUser:
 		return gadb.DestV1{
@@ -41,6 +43,17 @@ func CompatTargetToDest(tgt assignment.Target) (gadb.DestV1, error) {
 			Type: slack.DestTypeSlackChannel,
 			Args: map[string]string{slack.FieldSlackChannelID: tgt.TargetID()},
 		}, nil
+	case assignment.TargetTypeNotificationChannel:
+		id, err := validate.ParseUUID("TargetID", tgt.TargetID())
+		if err != nil {
+			return gadb.DestV1{}, err
+		}
+		dest, err := a.NCStore.FindDestByID(ctx, nil, id)
+		if err != nil {
+			return gadb.DestV1{}, err
+		}
+
+		return dest, nil
 	}
 
 	return gadb.DestV1{}, fmt.Errorf("unknown target type: %s", tgt.TargetType())

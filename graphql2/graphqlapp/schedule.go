@@ -43,7 +43,7 @@ func (a *App) OnCallNotificationRuleInput() graphql2.OnCallNotificationRuleInput
 
 func (a *OnCallNotificationRuleInput) Target(ctx context.Context, input *graphql2.OnCallNotificationRuleInput, tgt *assignment.RawTarget) error {
 	var err error
-	input.Dest, err = CompatTargetToDest(tgt)
+	input.Dest, err = (*App)(a).CompatTargetToDest(ctx, tgt)
 	if err != nil {
 		return err
 	}

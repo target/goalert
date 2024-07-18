@@ -43,7 +43,7 @@ func (a *CreateEscalationPolicyStepInput) Targets(ctx context.Context, input *gr
 	input.Actions = make([]gadb.DestV1, len(targets))
 	for i, tgt := range targets {
 		var err error
-		input.Actions[i], err = CompatTargetToDest(tgt)
+		input.Actions[i], err = (*App)(a).CompatTargetToDest(ctx, tgt)
 		if err != nil {
 			return validation.NewFieldError(fmt.Sprintf("Targets[%d]", i), err.Error())
 		}
@@ -60,7 +60,7 @@ func (a *UpdateEscalationPolicyStepInput) Targets(ctx context.Context, input *gr
 	input.Actions = make([]gadb.DestV1, len(targets))
 	for i, tgt := range targets {
 		var err error
-		input.Actions[i], err = CompatTargetToDest(tgt)
+		input.Actions[i], err = (*App)(a).CompatTargetToDest(ctx, tgt)
 		if err != nil {
 			return validation.NewFieldError(fmt.Sprintf("Targets[%d]", i), err.Error())
 		}
