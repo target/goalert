@@ -2227,28 +2227,6 @@ func (q *Queries) NoticeUnackedAlertsByService(ctx context.Context, dollar_1 uui
 	return i, err
 }
 
-const notifChanCreate = `-- name: NotifChanCreate :exec
-INSERT INTO notification_channels(id, name, type, value)
-    VALUES ($1, $2, $3, $4)
-`
-
-type NotifChanCreateParams struct {
-	ID    uuid.UUID
-	Name  string
-	Type  EnumNotifChannelType
-	Value string
-}
-
-func (q *Queries) NotifChanCreate(ctx context.Context, arg NotifChanCreateParams) error {
-	_, err := q.db.ExecContext(ctx, notifChanCreate,
-		arg.ID,
-		arg.Name,
-		arg.Type,
-		arg.Value,
-	)
-	return err
-}
-
 const notifChanDeleteMany = `-- name: NotifChanDeleteMany :exec
 DELETE FROM notification_channels
 WHERE id = ANY ($1::uuid[])
@@ -2257,36 +2235,6 @@ WHERE id = ANY ($1::uuid[])
 func (q *Queries) NotifChanDeleteMany(ctx context.Context, dollar_1 []uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, notifChanDeleteMany, pq.Array(dollar_1))
 	return err
-}
-
-const notifChanFindByValue = `-- name: NotifChanFindByValue :one
-SELECT
-    created_at, dest, id, meta, name, type, value
-FROM
-    notification_channels
-WHERE
-    type = $1
-    AND value = $2
-`
-
-type NotifChanFindByValueParams struct {
-	Type  EnumNotifChannelType
-	Value string
-}
-
-func (q *Queries) NotifChanFindByValue(ctx context.Context, arg NotifChanFindByValueParams) (NotificationChannel, error) {
-	row := q.db.QueryRowContext(ctx, notifChanFindByValue, arg.Type, arg.Value)
-	var i NotificationChannel
-	err := row.Scan(
-		&i.CreatedAt,
-		&i.Dest,
-		&i.ID,
-		&i.Meta,
-		&i.Name,
-		&i.Type,
-		&i.Value,
-	)
-	return i, err
 }
 
 const notifChanFindDestID = `-- name: NotifChanFindDestID :one
@@ -2375,25 +2323,6 @@ LOCK notification_channels IN SHARE ROW EXCLUSIVE MODE
 
 func (q *Queries) NotifChanLock(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, notifChanLock)
-	return err
-}
-
-const notifChanUpdateName = `-- name: NotifChanUpdateName :exec
-UPDATE
-    notification_channels
-SET
-    name = $2
-WHERE
-    id = $1
-`
-
-type NotifChanUpdateNameParams struct {
-	ID   uuid.UUID
-	Name string
-}
-
-func (q *Queries) NotifChanUpdateName(ctx context.Context, arg NotifChanUpdateNameParams) error {
-	_, err := q.db.ExecContext(ctx, notifChanUpdateName, arg.ID, arg.Name)
 	return err
 }
 

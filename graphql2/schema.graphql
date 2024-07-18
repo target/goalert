@@ -654,6 +654,9 @@ input OnCallNotificationRuleInput {
   target is required if dest is unset
   """
   target: TargetInput
+    @goField(forceResolver: true)
+    @deprecated(reason: "use dest instead")
+
   dest: DestinationInput
 
   # time indicates a time-of-day (in the schedule's time zone)
@@ -672,6 +675,8 @@ input OnCallNotificationRuleInput {
 type OnCallNotificationRule {
   id: ID!
   target: Target!
+    @goField(forceResolver: true)
+    @deprecated(reason: "use dest instead")
   dest: Destination!
   time: ClockTime
   weekdayFilter: WeekdayFilter

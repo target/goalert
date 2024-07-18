@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
-	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/validation/validate"
 )
@@ -21,19 +20,22 @@ func (a *App) formatNC(ctx context.Context, id uuid.UUID) (string, error) {
 		return "", nil
 	}
 
-	n, err := a.FindOneNC(ctx, id)
+	dest, err := a.NCStore.FindDestByID(ctx, nil, id)
 	if err != nil {
 		return "", err
 	}
-	var typeName string
-	switch n.Type {
-	case notificationchannel.TypeSlackChan:
-		typeName = "Slack"
-	default:
-		typeName = string(n.Type)
+
+	typeInfo, err := a.DestReg.TypeInfo(ctx, dest.Type)
+	if err != nil {
+		return "", err
 	}
 
-	return fmt.Sprintf("%s (%s)", n.Name, typeName), nil
+	dispInfo, err := a.DestReg.DisplayInfo(ctx, dest)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s (%s)", dispInfo.Text, typeInfo.Name), nil
 }
 
 func (q *Query) formatDest(ctx context.Context, dst notification.Dest) (string, error) {

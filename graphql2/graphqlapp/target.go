@@ -30,7 +30,7 @@ func (t *Target) Name(ctx context.Context, raw *assignment.RawTarget) (string, e
 		return svc.Name, nil
 	}
 
-	dest, err := CompatTargetToDest(raw)
+	dest, err := (*App)(t).CompatTargetToDest(ctx, raw)
 	if err != nil {
 		return "", err
 	}
