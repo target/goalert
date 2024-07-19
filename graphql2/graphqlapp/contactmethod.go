@@ -12,6 +12,7 @@ import (
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/slack"
+	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/validation"
@@ -28,13 +29,13 @@ func (a *ContactMethod) Dest(ctx context.Context, obj *contactmethod.ContactMeth
 	switch obj.Type {
 	case contactmethod.TypeSMS:
 		return &gadb.DestV1{
-			Type: destTwilioSMS,
-			Args: map[string]string{fieldPhoneNumber: obj.Value},
+			Type: twilio.DestTypeTwilioSMS,
+			Args: map[string]string{twilio.FieldPhoneNumber: obj.Value},
 		}, nil
 	case contactmethod.TypeVoice:
 		return &gadb.DestV1{
-			Type: destTwilioVoice,
-			Args: map[string]string{fieldPhoneNumber: obj.Value},
+			Type: twilio.DestTypeTwilioVoice,
+			Args: map[string]string{twilio.FieldPhoneNumber: obj.Value},
 		}, nil
 	case contactmethod.TypeEmail:
 		return &gadb.DestV1{

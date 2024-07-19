@@ -4,7 +4,6 @@ import (
 	"context"
 	"slices"
 
-	"github.com/nyaruka/phonenumbers"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification/nfydest"
@@ -14,11 +13,8 @@ import (
 
 // builtin-types
 const (
-	destTwilioSMS   = "builtin-twilio-sms"
-	destTwilioVoice = "builtin-twilio-voice"
-	destSMTP        = "builtin-smtp-email"
+	destSMTP = "builtin-smtp-email"
 
-	fieldPhoneNumber  = "phone_number"
 	fieldEmailAddress = "email_address"
 )
 
@@ -69,15 +65,6 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 
 func (q *Query) DestinationFieldValidate(ctx context.Context, input graphql2.DestinationFieldValidateInput) (bool, error) {
 	switch input.DestType {
-	case destTwilioSMS, destTwilioVoice:
-		if input.FieldID != fieldPhoneNumber {
-			return false, validation.NewGenericError("unsupported field")
-		}
-		n, err := phonenumbers.Parse(input.Value, "")
-		if err != nil {
-			return false, nil
-		}
-		return phonenumbers.IsValidNumber(n), nil
 	case destSMTP:
 		if input.FieldID != fieldEmailAddress {
 			return false, validation.NewGenericError("unsupported field")
@@ -96,44 +83,6 @@ func (q *Query) DestinationFieldValidate(ctx context.Context, input graphql2.Des
 func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]nfydest.TypeInfo, error) {
 	cfg := config.FromContext(ctx)
 	types := []nfydest.TypeInfo{
-		{
-			Type:                       destTwilioSMS,
-			Name:                       "Text Message (SMS)",
-			Enabled:                    cfg.Twilio.Enable,
-			UserDisclaimer:             cfg.General.NotificationDisclaimer,
-			SupportsAlertNotifications: true,
-			SupportsUserVerification:   true,
-			SupportsStatusUpdates:      true,
-			UserVerificationRequired:   true,
-			RequiredFields: []nfydest.FieldConfig{{
-				FieldID:            fieldPhoneNumber,
-				Label:              "Phone Number",
-				Hint:               "Include country code e.g. +1 (USA), +91 (India), +44 (UK)",
-				PlaceholderText:    "11235550123",
-				Prefix:             "+",
-				InputType:          "tel",
-				SupportsValidation: true,
-			}},
-		},
-		{
-			Type:                       destTwilioVoice,
-			Name:                       "Voice Call",
-			Enabled:                    cfg.Twilio.Enable,
-			UserDisclaimer:             cfg.General.NotificationDisclaimer,
-			SupportsAlertNotifications: true,
-			SupportsUserVerification:   true,
-			SupportsStatusUpdates:      true,
-			UserVerificationRequired:   true,
-			RequiredFields: []nfydest.FieldConfig{{
-				FieldID:            fieldPhoneNumber,
-				Label:              "Phone Number",
-				Hint:               "Include country code e.g. +1 (USA), +91 (India), +44 (UK)",
-				PlaceholderText:    "11235550123",
-				Prefix:             "+",
-				InputType:          "tel",
-				SupportsValidation: true,
-			}},
-		},
 		{
 			Type:                       destSMTP,
 			Name:                       "Email",

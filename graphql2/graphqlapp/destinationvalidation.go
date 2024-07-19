@@ -134,20 +134,6 @@ func addInputError(ctx context.Context, err error) {
 // In the future this will be a call to the plugin system.
 func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *gadb.DestV1) (err error) {
 	switch dest.Type {
-	case destTwilioSMS:
-		phone := dest.Arg(fieldPhoneNumber)
-		err := validate.Phone(fieldPhoneNumber, phone)
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldPhoneNumber, err)
-		}
-		return nil
-	case destTwilioVoice:
-		phone := dest.Arg(fieldPhoneNumber)
-		err := validate.Phone(fieldPhoneNumber, phone)
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldPhoneNumber, err)
-		}
-		return nil
 	case destSMTP:
 		email := dest.Arg(fieldEmailAddress)
 		err := validate.Email(fieldEmailAddress, email)
