@@ -310,22 +310,15 @@ func (s *Store) logEntry(ctx context.Context, tx *sql.Tx, _type Type, meta inter
 				r.subject.classifier = "no immediate rule"
 				break
 			}
-			cmType, err := s.queries(tx).AlertLogLookupCMType(ctx, uuid.MustParse(src.ID))
+			dest, err := s.queries(tx).AlertLogLookupCMDest(ctx, uuid.MustParse(src.ID))
 			if err != nil {
 				return nil, errors.Wrap(err, "lookup contact method type for callback ID")
 			}
-			switch cmType {
-			case gadb.EnumUserContactMethodTypeVOICE:
-				r.subject.classifier = "Voice"
-			case gadb.EnumUserContactMethodTypeSMS:
-				r.subject.classifier = "SMS"
-			case gadb.EnumUserContactMethodTypeEMAIL:
-				r.subject.classifier = "Email"
-			case gadb.EnumUserContactMethodTypeWEBHOOK:
-				r.subject.classifier = "Webhook"
-			case gadb.EnumUserContactMethodTypeSLACKDM:
-				r.subject.classifier = "Slack"
+			info, err := s.reg.TypeInfo(ctx, dest.DestV1.Type)
+			if err != nil {
+				return nil, errors.Wrap(err, "lookup contact method type")
 			}
+			r.subject.classifier = info.Name
 
 		case permission.SourceTypeNotificationCallback:
 			r.subject._type = SubjectTypeUser
@@ -335,32 +328,16 @@ func (s *Store) logEntry(ctx context.Context, tx *sql.Tx, _type Type, meta inter
 			if err != nil {
 				return nil, errors.Wrap(err, "parse channel ID")
 			}
-			row, err := gdb.AlertLogLookupCallbackType(ctx, id)
+			dest, err := gdb.AlertLogLookupCallbackDest(ctx, id)
 			if err != nil {
 				return nil, errors.Wrap(err, "lookup notification callback type")
 			}
-			if row.NcDest.Valid {
-				info, err := s.reg.TypeInfo(ctx, row.NcDest.DestV1.Type)
-				if err != nil {
-					return nil, errors.Wrap(err, "lookup notification channel destination type")
-				}
-				r.subject.classifier = info.Name
-				break
-			}
 
-			// fallback to old method until contact methods are in registry
-			// TODO: remove this fallback once all contact methods are in the registry
-			switch row.CmDest.DestV1.Type {
-			case "builtin-twilio-voice":
-				r.subject.classifier = "Voice"
-			case "builtin-twilio-sms":
-				r.subject.classifier = "SMS"
-			case "builtin-email":
-				r.subject.classifier = "Email"
-			case "builtin-webhook":
-				r.subject.classifier = "Webhook"
+			info, err := s.reg.TypeInfo(ctx, dest.DestV1.Type)
+			if err != nil {
+				return nil, errors.Wrap(err, "lookup notification channel destination type")
 			}
-
+			r.subject.classifier = info.Name
 		case permission.SourceTypeHeartbeat:
 			r.subject._type = SubjectTypeHeartbeatMonitor
 			minutes, err := s.queries(tx).AlertLogHBIntervalMinutes(ctx, uuid.MustParse(src.ID))

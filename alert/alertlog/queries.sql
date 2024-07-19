@@ -56,9 +56,9 @@ SELECT
 FROM
     unnest($1::bigint[]);
 
--- name: AlertLogLookupCMType :one
+-- name: AlertLogLookupCMDest :one
 SELECT
-    "type" AS cm_type
+    dest
 FROM
     user_contact_methods
 WHERE
@@ -72,10 +72,9 @@ FROM
 WHERE
     id = $1;
 
--- name: AlertLogLookupCallbackType :one
+-- name: AlertLogLookupCallbackDest :one
 SELECT
-    cm.dest AS cm_dest,
-    ch.dest AS nc_dest
+    coalesce(cm.dest, ch.dest) AS dest
 FROM
     outgoing_messages log
     LEFT JOIN user_contact_methods cm ON cm.id = log.contact_method_id

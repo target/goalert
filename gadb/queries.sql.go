@@ -463,26 +463,25 @@ func (q *Queries) AlertLogInsertSvc(ctx context.Context, arg AlertLogInsertSvcPa
 	return err
 }
 
-const alertLogLookupCMType = `-- name: AlertLogLookupCMType :one
+const alertLogLookupCMDest = `-- name: AlertLogLookupCMDest :one
 SELECT
-    "type" AS cm_type
+    dest
 FROM
     user_contact_methods
 WHERE
     id = $1
 `
 
-func (q *Queries) AlertLogLookupCMType(ctx context.Context, id uuid.UUID) (EnumUserContactMethodType, error) {
-	row := q.db.QueryRowContext(ctx, alertLogLookupCMType, id)
-	var cm_type EnumUserContactMethodType
-	err := row.Scan(&cm_type)
-	return cm_type, err
+func (q *Queries) AlertLogLookupCMDest(ctx context.Context, id uuid.UUID) (NullDestV1, error) {
+	row := q.db.QueryRowContext(ctx, alertLogLookupCMDest, id)
+	var dest NullDestV1
+	err := row.Scan(&dest)
+	return dest, err
 }
 
-const alertLogLookupCallbackType = `-- name: AlertLogLookupCallbackType :one
+const alertLogLookupCallbackDest = `-- name: AlertLogLookupCallbackDest :one
 SELECT
-    cm.dest AS cm_dest,
-    ch.dest AS nc_dest
+    coalesce(cm.dest, ch.dest) AS dest
 FROM
     outgoing_messages log
     LEFT JOIN user_contact_methods cm ON cm.id = log.contact_method_id
@@ -491,16 +490,11 @@ WHERE
     log.id = $1
 `
 
-type AlertLogLookupCallbackTypeRow struct {
-	CmDest NullDestV1
-	NcDest NullDestV1
-}
-
-func (q *Queries) AlertLogLookupCallbackType(ctx context.Context, id uuid.UUID) (AlertLogLookupCallbackTypeRow, error) {
-	row := q.db.QueryRowContext(ctx, alertLogLookupCallbackType, id)
-	var i AlertLogLookupCallbackTypeRow
-	err := row.Scan(&i.CmDest, &i.NcDest)
-	return i, err
+func (q *Queries) AlertLogLookupCallbackDest(ctx context.Context, id uuid.UUID) (NullDestV1, error) {
+	row := q.db.QueryRowContext(ctx, alertLogLookupCallbackDest, id)
+	var dest NullDestV1
+	err := row.Scan(&dest)
+	return dest, err
 }
 
 const alertLogLookupNCDest = `-- name: AlertLogLookupNCDest :one
