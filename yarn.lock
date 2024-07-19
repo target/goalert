@@ -8409,14 +8409,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:18.2.48":
-  version: 18.2.48
-  resolution: "@types/react@npm:18.2.48"
+"@types/react@npm:18.3.3":
+  version: 18.3.3
+  resolution: "@types/react@npm:18.3.3"
   dependencies:
     "@types/prop-types": "npm:*"
-    "@types/scheduler": "npm:*"
     csstype: "npm:^3.0.2"
-  checksum: 10/2e56ea6bd821ae96bd943f727a59d85384eaf5f8a3e6fce4fa1d34453e32d8eedda742432b3857fa0de7a4214bf84ce4239757eb52918e76452c00384731e585
+  checksum: 10/68e203b7f1f91d6cf21f33fc7af9d6d228035a26c83f514981e54aa3da695d0ec6af10c277c6336de1dd76c4adbe9563f3a21f80c4462000f41e5f370b46e96c
   languageName: node
   linkType: hard
 
@@ -19683,7 +19682,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:18.2.0, react@npm:^16.8.0 || ^17.0.0 || ^18.0.0":
+"react@npm:18.3.1":
+  version: 18.3.1
+  resolution: "react@npm:18.3.1"
+  dependencies:
+    loose-envify: "npm:^1.1.0"
+  checksum: 10/261137d3f3993eaa2368a83110466fc0e558bc2c7f7ae7ca52d94f03aac945f45146bd85e5f481044db1758a1dbb57879e2fcdd33924e2dde1bdc550ce73f7bf
+  languageName: node
+  linkType: hard
+
+"react@npm:^16.8.0 || ^17.0.0 || ^18.0.0":
   version: 18.2.0
   resolution: "react@npm:18.2.0"
   dependencies:
@@ -20412,7 +20420,7 @@ __metadata:
     "@types/luxon": "npm:3.4.2"
     "@types/node": "npm:20.11.30"
     "@types/prop-types": "npm:15.7.12"
-    "@types/react": "npm:18.2.48"
+    "@types/react": "npm:18.3.3"
     "@types/react-big-calendar": "npm:1.8.9"
     "@types/react-dom": "npm:18.3.0"
     "@types/react-transition-group": "npm:4.4.10"
@@ -20459,7 +20467,7 @@ __metadata:
     prettier-plugin-go-template: "npm:0.0.15"
     prop-types: "npm:15.8.1"
     punycode: "npm:2.3.1"
-    react: "npm:18.2.0"
+    react: "npm:18.3.1"
     react-big-calendar: "npm:1.12.2"
     react-colorful: "npm:5.6.1"
     react-countdown: "npm:2.3.5"
