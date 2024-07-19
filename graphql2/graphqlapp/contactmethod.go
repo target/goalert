@@ -11,6 +11,7 @@ import (
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/email"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/notification/webhook"
@@ -39,8 +40,8 @@ func (a *ContactMethod) Dest(ctx context.Context, obj *contactmethod.ContactMeth
 		}, nil
 	case contactmethod.TypeEmail:
 		return &gadb.DestV1{
-			Type: destSMTP,
-			Args: map[string]string{fieldEmailAddress: obj.Value},
+			Type: email.DestTypeEmail,
+			Args: map[string]string{email.FieldEmailAddress: obj.Value},
 		}, nil
 	case contactmethod.TypeWebhook:
 		return &gadb.DestV1{

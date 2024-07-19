@@ -4,19 +4,12 @@ import (
 	"context"
 	"slices"
 
-	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/validation"
-	"github.com/target/goalert/validation/validate"
 )
 
 // builtin-types
-const (
-	destSMTP = "builtin-smtp-email"
-
-	fieldEmailAddress = "email_address"
-)
 
 type (
 	FieldValuePair         App
@@ -64,15 +57,6 @@ func (q *Query) DestinationFieldSearch(ctx context.Context, input graphql2.Desti
 }
 
 func (q *Query) DestinationFieldValidate(ctx context.Context, input graphql2.DestinationFieldValidateInput) (bool, error) {
-	switch input.DestType {
-	case destSMTP:
-		if input.FieldID != fieldEmailAddress {
-			return false, validation.NewGenericError("unsupported field")
-		}
-
-		return validate.Email("Email", input.Value) == nil, nil
-	}
-
 	err := q.DestReg.ValidateField(ctx, input.DestType, input.FieldID, input.Value)
 	if validation.IsClientError(err) {
 		return false, nil
@@ -81,40 +65,10 @@ func (q *Query) DestinationFieldValidate(ctx context.Context, input graphql2.Des
 }
 
 func (q *Query) DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]nfydest.TypeInfo, error) {
-	cfg := config.FromContext(ctx)
-	types := []nfydest.TypeInfo{
-		{
-			Type:                       destSMTP,
-			Name:                       "Email",
-			Enabled:                    cfg.SMTP.Enable,
-			SupportsAlertNotifications: true,
-			SupportsUserVerification:   true,
-			SupportsStatusUpdates:      true,
-			UserVerificationRequired:   true,
-			RequiredFields: []nfydest.FieldConfig{{
-				FieldID:            fieldEmailAddress,
-				Label:              "Email Address",
-				PlaceholderText:    "foobar@example.com",
-				InputType:          "email",
-				SupportsValidation: true,
-			}},
-			DynamicParams: []nfydest.DynamicParamConfig{{
-				ParamID: "subject",
-				Label:   "Subject",
-				Hint:    "Subject of the email message.",
-			}, {
-				ParamID: "body",
-				Label:   "Body",
-				Hint:    "Body of the email message.",
-			}},
-		},
-	}
-
-	fromReg, err := q.DestReg.Types(ctx)
+	types, err := q.DestReg.Types(ctx)
 	if err != nil {
 		return nil, err
 	}
-	types = append(types, fromReg...)
 
 	slices.SortStableFunc(types, func(a, b nfydest.TypeInfo) int {
 		if a.Enabled && !b.Enabled {

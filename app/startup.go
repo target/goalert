@@ -88,6 +88,7 @@ func (app *App) startup(ctx context.Context) error {
 
 	app.DestRegistry.RegisterProvider(ctx, app.twilioSMS)
 	app.DestRegistry.RegisterProvider(ctx, app.twilioVoice)
+	app.DestRegistry.RegisterProvider(ctx, email.NewSender(ctx))
 	app.DestRegistry.RegisterProvider(ctx, app.ScheduleStore)
 	app.DestRegistry.RegisterProvider(ctx, app.UserStore)
 	app.DestRegistry.RegisterProvider(ctx, app.RotationStore)

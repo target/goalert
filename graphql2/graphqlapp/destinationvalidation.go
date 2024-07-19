@@ -13,7 +13,6 @@ import (
 	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation"
-	"github.com/target/goalert/validation/validate"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
@@ -133,16 +132,6 @@ func addInputError(ctx context.Context, err error) {
 //
 // In the future this will be a call to the plugin system.
 func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *gadb.DestV1) (err error) {
-	switch dest.Type {
-	case destSMTP:
-		email := dest.Arg(fieldEmailAddress)
-		err := validate.Email(fieldEmailAddress, email)
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldEmailAddress, err)
-		}
-		return nil
-	}
-
 	err = a.DestReg.ValidateDest(ctx, *dest)
 	if errors.Is(err, nfydest.ErrUnknownType) {
 		message := fmt.Sprintf("unsupported destination type: %s", dest.Type)
