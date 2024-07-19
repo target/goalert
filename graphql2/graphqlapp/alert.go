@@ -435,7 +435,6 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -536,13 +535,39 @@ func (a *Alert) PendingNotifications(ctx context.Context, obj *alert.Alert) ([]g
 	var result []graphql2.AlertPendingNotification
 	for _, r := range rows {
 		switch {
-		case r.CmType.Valid && r.UserName.Valid:
+		case r.CmDest.Valid && r.UserName.Valid:
+			typeInfo, err := a.DestReg.TypeInfo(ctx, r.CmDest.DestV1.Type)
+			if err != nil {
+				log.Log(ctx, errors.Wrap(err, "lookup type info"))
+				result = append(result, graphql2.AlertPendingNotification{
+					Destination: fmt.Sprintf("%s (unknown)", r.UserName.String),
+				})
+				break
+			}
+
 			result = append(result, graphql2.AlertPendingNotification{
-				Destination: fmt.Sprintf("%s (%s)", r.UserName.String, r.CmType.EnumUserContactMethodType),
+				Destination: fmt.Sprintf("%s (%s)", r.UserName.String, typeInfo.Name),
 			})
-		case r.NcName.Valid && r.NcType.Valid:
+		case r.NcName.Valid && r.NcDest.Valid:
+			typeInfo, err := a.DestReg.TypeInfo(ctx, r.NcDest.DestV1.Type)
+			if err != nil {
+				log.Log(ctx, errors.Wrap(err, "lookup type info"))
+				result = append(result, graphql2.AlertPendingNotification{
+					Destination: fmt.Sprintf("%s (unknown)", r.NcName.String),
+				})
+				break
+			}
+			dispInfo, err := a.DestReg.DisplayInfo(ctx, r.NcDest.DestV1)
+			if err != nil {
+				log.Log(ctx, errors.Wrap(err, "lookup display info"))
+				result = append(result, graphql2.AlertPendingNotification{
+					Destination: fmt.Sprintf("unknown (%s)", typeInfo.Name),
+				})
+				break
+			}
+
 			result = append(result, graphql2.AlertPendingNotification{
-				Destination: fmt.Sprintf("%s (%s)", r.NcName.String, r.NcType.EnumNotifChannelType),
+				Destination: fmt.Sprintf("%s (%s)", dispInfo.Text, typeInfo.Name),
 			})
 		default:
 			log.Debugf(ctx, "unknown destination type for pending notification for alert %d", obj.ID)
