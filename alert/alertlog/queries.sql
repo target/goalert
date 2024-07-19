@@ -72,3 +72,22 @@ FROM
 WHERE
     id = $1;
 
+-- name: AlertLogLookupCallbackType :one
+SELECT
+    cm.dest AS cm_dest,
+    ch.dest AS nc_dest
+FROM
+    outgoing_messages log
+    LEFT JOIN user_contact_methods cm ON cm.id = log.contact_method_id
+    LEFT JOIN notification_channels ch ON ch.id = log.channel_id
+WHERE
+    log.id = $1;
+
+-- name: AlertLogLookupNCDest :one
+SELECT
+    dest
+FROM
+    notification_channels
+WHERE
+    id = $1;
+

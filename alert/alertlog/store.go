@@ -11,8 +11,7 @@ import (
 	"github.com/sqlc-dev/pqtype"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/integrationkey"
-	"github.com/target/goalert/notification"
-	"github.com/target/goalert/notificationchannel"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
@@ -28,28 +27,17 @@ type Store struct {
 	findAllByType *sql.Stmt
 	findOne       *sql.Stmt
 
-	lookupCallbackType *sql.Stmt
-	lookupIKeyType     *sql.Stmt
+	lookupIKeyType *sql.Stmt
 
-	lookupNCTypeName *sql.Stmt
+	reg *nfydest.Registry
 }
 
-func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
+func NewStore(ctx context.Context, db *sql.DB, reg *nfydest.Registry) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
 	return &Store{
-		db: db,
-		lookupCallbackType: p.P(`
-			select cm."type", ch."type"
-			from outgoing_messages log
-			left join user_contact_methods cm on cm.id = log.contact_method_id
-			left join notification_channels ch on ch.id = log.channel_id
-			where log.id = $1
-		`),
-
-		lookupNCTypeName: p.P(`
-			select "type", name from notification_channels where id = $1
-		`),
+		db:  db,
+		reg: reg,
 
 		lookupIKeyType: p.P(`select "type" from integration_keys where id = $1`),
 		findOne: p.P(`
@@ -285,24 +273,30 @@ func (s *Store) logEntry(ctx context.Context, tx *sql.Tx, _type Type, meta inter
 	}
 
 	src := permission.Source(ctx)
+	gdb := gadb.New(s.db)
+	if tx != nil {
+		gdb = gdb.WithTx(tx)
+	}
+
 	if src != nil {
 		switch src.Type {
 		case permission.SourceTypeNotificationChannel:
 			r.subject._type = SubjectTypeChannel
-			var ncType notificationchannel.Type
-			var name string
-			err = txWrap(ctx, tx, s.lookupNCTypeName).QueryRowContext(ctx, src.ID).Scan(&ncType, &name)
+			id, err := uuid.Parse(src.ID)
 			if err != nil {
-				return nil, errors.Wrap(err, "lookup contact method type for callback ID")
+				return nil, errors.Wrap(err, "parse channel ID")
 			}
+			dest, err := gdb.AlertLogLookupNCDest(ctx, id)
+			if err != nil {
+				return nil, errors.Wrap(err, "lookup notification channel destination")
+			}
+			info, err := s.reg.TypeInfo(ctx, dest.DestV1.Type)
+			if err != nil {
+				return nil, errors.Wrap(err, "lookup notification channel destination type")
+			}
+			r.subject.classifier = info.Name
 
-			switch ncType {
-			case notificationchannel.TypeSlackChan:
-				r.subject.classifier = "Slack"
-			case notificationchannel.TypeWebhook:
-				r.subject.classifier = "Webhook"
-			}
-			r.subject.channelID.UUID = uuid.MustParse(src.ID)
+			r.subject.channelID.UUID = id
 			r.subject.channelID.Valid = true
 		case permission.SourceTypeAuthProvider:
 			r.subject.classifier = "Web"
@@ -335,26 +329,37 @@ func (s *Store) logEntry(ctx context.Context, tx *sql.Tx, _type Type, meta inter
 
 		case permission.SourceTypeNotificationCallback:
 			r.subject._type = SubjectTypeUser
-			var dt notification.ScannableDestType
-			err = txWrap(ctx, tx, s.lookupCallbackType).QueryRowContext(ctx, src.ID).Scan(&dt.CM, &dt.NC)
-			if err != nil {
-				return nil, errors.Wrap(err, "lookup notification type for callback ID")
-			}
-			switch dt.DestType() {
-			case notification.DestTypeVoice:
-				r.subject.classifier = "Voice"
-			case notification.DestTypeSMS:
-				r.subject.classifier = "SMS"
-			case notification.DestTypeUserEmail:
-				r.subject.classifier = "Email"
-			case notification.DestTypeChanWebhook:
-				fallthrough
-			case notification.DestTypeUserWebhook:
-				r.subject.classifier = "Webhook"
-			case notification.DestTypeSlackChannel:
-				r.subject.classifier = "Slack"
-			}
 			r.subject.userID = permission.UserNullUUID(ctx)
+
+			id, err := uuid.Parse(src.ID)
+			if err != nil {
+				return nil, errors.Wrap(err, "parse channel ID")
+			}
+			row, err := gdb.AlertLogLookupCallbackType(ctx, id)
+			if err != nil {
+				return nil, errors.Wrap(err, "lookup notification callback type")
+			}
+			if row.NcDest.Valid {
+				info, err := s.reg.TypeInfo(ctx, row.NcDest.DestV1.Type)
+				if err != nil {
+					return nil, errors.Wrap(err, "lookup notification channel destination type")
+				}
+				r.subject.classifier = info.Name
+				break
+			}
+
+			// fallback to old method until contact methods are in registry
+			// TODO: remove this fallback once all contact methods are in the registry
+			switch row.CmDest.DestV1.Type {
+			case "builtin-twilio-voice":
+				r.subject.classifier = "Voice"
+			case "builtin-twilio-sms":
+				r.subject.classifier = "SMS"
+			case "builtin-email":
+				r.subject.classifier = "Email"
+			case "builtin-webhook":
+				r.subject.classifier = "Webhook"
+			}
 
 		case permission.SourceTypeHeartbeat:
 			r.subject._type = SubjectTypeHeartbeatMonitor
