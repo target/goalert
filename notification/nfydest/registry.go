@@ -37,6 +37,15 @@ func (r *Registry) TypeInfo(ctx context.Context, typeID string) (*TypeInfo, erro
 	return p.TypeInfo(ctx)
 }
 
+func (r *Registry) IsDynamicAction(ctx context.Context, typeID string) (bool, error) {
+	info, err := r.TypeInfo(ctx, typeID)
+	if err != nil {
+		return false, err
+	}
+
+	return info.IsDynamicAction(), nil
+}
+
 func (r *Registry) LookupTypeName(ctx context.Context, typeID string) (string, error) {
 	info, err := r.TypeInfo(ctx, typeID)
 	if err != nil {

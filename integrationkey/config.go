@@ -149,12 +149,12 @@ func (s *Store) SetConfig(ctx context.Context, db gadb.DBTX, keyID uuid.UUID, cf
 		if cfg.Rules[i].ID == uuid.Nil {
 			cfg.Rules[i].ID = uuid.New()
 		}
-		err := setActionChannels(ctx, gdb, cfg.Rules[i].Actions)
+		err := s.setActionChannels(ctx, db, cfg.Rules[i].Actions)
 		if err != nil {
 			return err
 		}
 	}
-	err = setActionChannels(ctx, gdb, cfg.DefaultActions)
+	err = s.setActionChannels(ctx, db, cfg.DefaultActions)
 	if err != nil {
 		return err
 	}
@@ -170,17 +170,21 @@ func (s *Store) SetConfig(ctx context.Context, db gadb.DBTX, keyID uuid.UUID, cf
 	return nil
 }
 
-func setActionChannels(ctx context.Context, gdb *gadb.Queries, actions []gadb.UIKActionV1) error {
-	for j, act := range actions {
-		// We need to ensure the channel exists in the notification_channels table before we can use it.
-		id, err := gdb.IntKeyEnsureChannel(ctx, gadb.IntKeyEnsureChannelParams{
-			ID:   uuid.New(),
-			Dest: gadb.NullDestV1{Valid: true, DestV1: act.Dest},
-		})
+func (s *Store) setActionChannels(ctx context.Context, tx gadb.DBTX, actions []gadb.UIKActionV1) error {
+	for i, act := range actions {
+		ok, err := s.reg.IsDynamicAction(ctx, act.Dest.Type)
 		if err != nil {
 			return err
 		}
-		actions[j].ChannelID = id
+
+		if !ok {
+			return validation.NewFieldError(fmt.Sprintf("Actions[%d]", i), "invalid destination type")
+		}
+
+		actions[i].ChannelID, err = s.ncStore.MapDestToID(ctx, tx, act.Dest)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

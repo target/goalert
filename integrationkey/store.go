@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/notification/nfydest"
+	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -20,11 +21,12 @@ import (
 type Store struct {
 	db *sql.DB
 
-	keys keyring.Keyring
-	reg  *nfydest.Registry
+	keys    keyring.Keyring
+	reg     *nfydest.Registry
+	ncStore *notificationchannel.Store
 }
 
-func NewStore(ctx context.Context, db *sql.DB, keys keyring.Keyring, reg *nfydest.Registry) *Store {
+func NewStore(ctx context.Context, db *sql.DB, keys keyring.Keyring, reg *nfydest.Registry, ncStore *notificationchannel.Store) *Store {
 	return &Store{db: db, keys: keys, reg: reg}
 }
 

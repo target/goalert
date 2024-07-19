@@ -82,7 +82,7 @@ func (s *Store) LookupDestID(ctx context.Context, tx *sql.Tx, d gadb.DestV1) (uu
 	return gadb.New(tx).NotifChanFindDestID(ctx, gadb.NullDestV1{Valid: true, DestV1: d})
 }
 
-func (s *Store) MapDestToID(ctx context.Context, tx *sql.Tx, d gadb.DestV1) (uuid.UUID, error) {
+func (s *Store) MapDestToID(ctx context.Context, tx gadb.DBTX, d gadb.DestV1) (uuid.UUID, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return uuid.UUID{}, err
