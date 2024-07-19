@@ -20,7 +20,6 @@ type backend struct {
 	clientID string
 
 	validCM *sql.Stmt
-	validNC *sql.Stmt
 }
 
 func newBackend(db *sql.DB) (*backend, error) {
@@ -47,7 +46,6 @@ func newBackend(db *sql.DB) (*backend, error) {
 		`),
 
 		validCM: p.P(`select true from user_contact_methods where disabled = false and type = $1 and value = $2`),
-		validNC: p.P(`select true from notification_channels where type = $1 and value = $2`),
 	}, p.Err
 }
 
