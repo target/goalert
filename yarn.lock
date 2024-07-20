@@ -17929,9 +17929,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"msw@npm:2.3.0":
-  version: 2.3.0
-  resolution: "msw@npm:2.3.0"
+"msw@npm:2.3.2":
+  version: 2.3.2
+  resolution: "msw@npm:2.3.2"
   dependencies:
     "@bundled-es-modules/cookie": "npm:^2.0.0"
     "@bundled-es-modules/statuses": "npm:^1.0.1"
@@ -17957,7 +17957,7 @@ __metadata:
       optional: true
   bin:
     msw: cli/index.js
-  checksum: 10/85ae48f099bfe2e57ac70dd1749102f9825d78de8ee9cacdd9142c6f6153a601d94119abd1db068b4dcb59063e944563dd22595eb089a5a063ea1f1288acc832
+  checksum: 10/d51fc761dfc9b60506aa526e98b687b951f68e9d4d87b964bae24973d2e88b22d5449c43be68971733d260e4686a07cb637a826d96b4e1da67535f21fa1618ee
   languageName: node
   linkType: hard
 
@@ -20453,7 +20453,7 @@ __metadata:
     luxon: "npm:3.4.4"
     mdast-util-find-and-replace: "npm:3.0.1"
     mdi-material-ui: "npm:7.8.0"
-    msw: "npm:2.3.0"
+    msw: "npm:2.3.2"
     msw-storybook-addon: "npm:2.0.2"
     prettier: "npm:3.2.5"
     prettier-plugin-go-template: "npm:0.0.15"
