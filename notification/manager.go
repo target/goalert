@@ -150,7 +150,7 @@ func (mgr *Manager) SendMessage(ctx context.Context, msg Message) (*SendResult, 
 		}
 		log.Logf(sendCtx, "notification sent")
 		metricSentTotal.
-			WithLabelValues(msg.Destination().Type.String(), msg.Type().String(), msgSvcID(msg)).
+			WithLabelValues(msg.Destination().Type.String(), string(msg.Type()), msgSvcID(msg)).
 			Inc()
 		// status already wrapped via namedSender
 		return res, nil

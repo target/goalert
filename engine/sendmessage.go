@@ -193,7 +193,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			Params:     params,
 		}
 	default:
-		log.Log(ctx, errors.New("SEND NOT IMPLEMENTED FOR MESSAGE TYPE "+msg.Type.String()))
+		log.Log(ctx, errors.New("SEND NOT IMPLEMENTED FOR MESSAGE TYPE "+string(msg.Type)))
 		return &notification.SendResult{ID: msg.ID, Status: notification.Status{State: notification.StateFailedPerm}}, nil
 	}
 

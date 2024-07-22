@@ -9,7 +9,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/jackc/pgtype"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util"
@@ -34,10 +34,6 @@ type Store struct {
 	getCode                      *sql.Stmt
 	isDisabled                   *sql.Stmt
 	sendTestLock                 *sql.Stmt
-	findManyMessageStatuses      *sql.Stmt
-	lastMessageStatus            *sql.Stmt
-
-	origAlertMessage *sql.Stmt
 
 	rand *rand.Rand
 }
@@ -55,28 +51,6 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 		db: db,
 
 		rand: rand.New(rand.NewSource(seed)),
-
-		origAlertMessage: p.P(`
-			select
-				id,
-				last_status,
-				status_details,
-				provider_msg_id,
-				provider_seq,
-				next_retry_at notnull,
-				created_at,
-				src_value,
-				(select type from user_contact_methods cm where cm.id = om.contact_method_id),
-				(select type from notification_channels ch where ch.id = om.channel_id),
-				last_status_at - created_at
-			from outgoing_messages om
-			where
-				message_type = 'alert_notification' and
-				alert_id = $1 and
-				(contact_method_id = $2 or channel_id = $3)
-			order by sent_at
-			limit 1
-		`),
 
 		getCMUserID: p.P(`select user_id from user_contact_methods where id = $1`),
 
@@ -140,39 +114,6 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			from user_contact_methods cm
 			where cm.id = $2
 		`),
-
-		findManyMessageStatuses: p.P(`
-				select
-					id,
-					last_status,
-					status_details,
-					provider_msg_id,
-					provider_seq,
-					next_retry_at notnull,
-					created_at,
-					src_value,
-					(select type from user_contact_methods cm where cm.id = om.contact_method_id),
-					(select type from notification_channels ch where ch.id = om.channel_id),
-					last_status_at - created_at
-				from outgoing_messages om
-				where id = any($1)
-		`),
-		lastMessageStatus: p.P(`
-			select
-				id,
-				last_status,
-				status_details,
-				provider_msg_id,
-				provider_seq,
-				next_retry_at notnull,
-				created_at,
-				src_value,
-				(select type from user_contact_methods cm where cm.id = om.contact_method_id),
-				(select type from notification_channels ch where ch.id = om.channel_id),
-				last_status_at - created_at
-			from outgoing_messages om
-			where message_type = $1 and contact_method_id = $2 and created_at >= $3
-		`),
 	}, p.Err
 }
 
@@ -190,8 +131,11 @@ func (s *Store) OriginalMessageStatus(ctx context.Context, alertID int, dst Dest
 		chanID.UUID, chanID.Valid = dst.ID.UUID(), true
 	}
 
-	row := s.origAlertMessage.QueryRowContext(ctx, alertID, cmID, chanID)
-	stat, _, err := scanStatus(row)
+	row, err := gadb.New(s.db).NfyOriginalMessageStatus(ctx, gadb.NfyOriginalMessageStatusParams{
+		AlertID:         sql.NullInt64{Valid: true, Int64: int64(alertID)},
+		ContactMethodID: cmID,
+		ChannelID:       chanID,
+	})
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -199,7 +143,38 @@ func (s *Store) OriginalMessageStatus(ctx context.Context, alertID int, dst Dest
 		return nil, err
 	}
 
-	return stat, nil
+	return outgoingMessageToSendResult(row.OutgoingMessage, row.CmDest, row.ChDest)
+}
+
+func outgoingMessageToSendResult(msg gadb.OutgoingMessage, cm, ch gadb.NullDestV1) (*SendResult, error) {
+	res := SendResult{
+		ID:                msg.ID.String(),
+		ProviderMessageID: msg.ProviderMsgID,
+	}
+
+	switch {
+	case cm.Valid:
+		res.DestType = DestV1TypeToDestType(cm.DestV1.Type)
+	case ch.Valid:
+		res.DestType = DestV1TypeToDestType(ch.DestV1.Type)
+	}
+
+	state, err := messageStateFromStatus(string(msg.LastStatus), msg.NextRetryAt.Valid)
+	if err != nil {
+		return nil, err
+	}
+
+	res.Status = Status{
+		State:    state,
+		Details:  msg.StatusDetails,
+		Sequence: int(msg.ProviderSeq),
+		SrcValue: msg.SrcValue.String,
+	}
+	if msg.LastStatusAt.Valid {
+		res.Status.age = msg.LastStatusAt.Time.Sub(msg.CreatedAt)
+	}
+
+	return &res, nil
 }
 
 func (s *Store) cmUserID(ctx context.Context, id string) (string, error) {
@@ -390,29 +365,28 @@ func messageStateFromStatus(lastStatus string, hasNextRetry bool) (State, error)
 	}
 }
 
-func (s *Store) FindManyMessageStatuses(ctx context.Context, ids []string) ([]SendResult, error) {
+func (s *Store) FindManyMessageStatuses(ctx context.Context, strIDs []string) ([]SendResult, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
 	}
-	if len(ids) == 0 {
+	if len(strIDs) == 0 {
 		return nil, nil
 	}
 
-	err = validate.ManyUUID("IDs", ids, search.MaxResults)
+	ids, err := validate.ParseManyUUID("IDs", strIDs, search.MaxResults)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := s.findManyMessageStatuses.QueryContext(ctx, sqlutil.UUIDArray(ids))
+	rows, err := gadb.New(s.db).NfyManyMessageStatus(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
 	var result []SendResult
-	for rows.Next() {
-		res, _, err := scanStatus(rows)
+	for _, r := range rows {
+		res, err := outgoingMessageToSendResult(r.OutgoingMessage, r.CmDest, r.ChDest)
 		if err != nil {
 			return nil, err
 		}
@@ -424,54 +398,30 @@ func (s *Store) FindManyMessageStatuses(ctx context.Context, ids []string) ([]Se
 
 // LastMessageStatus will return the MessageStatus and creation time of the most recent message of the requested type
 // for the provided contact method ID, if one was created from the provided from time.
-func (s *Store) LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*SendResult, time.Time, error) {
+func (s *Store) LastMessageStatus(ctx context.Context, typ MessageType, cmIDStr string, from time.Time) (*SendResult, time.Time, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, time.Time{}, err
 	}
 
-	err = validate.UUID("Contact Method ID", cmID)
+	cmID, err := validate.ParseUUID("Contact Method ID", cmIDStr)
 	if err != nil {
 		return nil, time.Time{}, err
 	}
 
-	stat, createdAt, err := scanStatus(s.lastMessageStatus.QueryRowContext(ctx, typ, cmID, from))
+	row, err := gadb.New(s.db).NfyLastMessageStatus(ctx, gadb.NfyLastMessageStatusParams{
+		MessageType:     gadb.EnumOutgoingMessagesType(typ),
+		ContactMethodID: uuid.NullUUID{UUID: cmID, Valid: true},
+		CreatedAt:       from,
+	})
 	if err != nil {
 		return nil, time.Time{}, err
 	}
 
-	return stat, createdAt, nil
-}
-
-type scannable interface {
-	Scan(...interface{}) error
-}
-
-func scanStatus(row scannable) (*SendResult, time.Time, error) {
-	var s SendResult
-	var lastStatus string
-	var hasNextRetry bool
-	var createdAt sql.NullTime
-	var srcValue sql.NullString
-	var dt ScannableDestType
-	var age pgtype.Interval
-	err := row.Scan(&s.ID, &lastStatus, &s.Details, &s.ProviderMessageID, &s.Sequence, &hasNextRetry, &createdAt, &srcValue, &dt.CM, &dt.NC, &age)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, time.Time{}, nil
-	}
-	if err != nil {
-		return nil, time.Time{}, err
-	}
-	s.State, err = messageStateFromStatus(lastStatus, hasNextRetry)
-	if err != nil {
-		return nil, time.Time{}, err
-	}
-	s.SrcValue = srcValue.String
-	s.DestType = dt.DestType()
-	err = age.AssignTo(&s.age)
+	sendRes, err := outgoingMessageToSendResult(row.OutgoingMessage, row.CmDest, row.ChDest)
 	if err != nil {
 		return nil, time.Time{}, err
 	}
 
-	return &s, createdAt.Time, nil
+	return sendRes, row.OutgoingMessage.CreatedAt, nil
 }

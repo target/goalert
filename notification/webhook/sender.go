@@ -145,7 +145,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 			ScheduleURL:  m.ScheduleURL,
 		}
 	default:
-		return nil, fmt.Errorf("message type '%s' not supported", m.Type().String())
+		return nil, fmt.Errorf("message type '%s' not supported", m.Type())
 	}
 
 	data, err := json.Marshal(payload)

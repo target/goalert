@@ -6,23 +6,24 @@ import (
 	"sync"
 	"time"
 
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification"
 )
 
-var typePriority = map[notification.MessageType]int{
-	notification.MessageTypeVerification: 1,
-	notification.MessageTypeTest:         2,
+var typePriority = map[gadb.EnumOutgoingMessagesType]int{
+	gadb.EnumOutgoingMessagesTypeVerificationMessage: 1,
+	gadb.EnumOutgoingMessagesTypeTestNotification:    2,
 
-	notification.MessageTypeScheduleOnCallUsers: 3,
+	gadb.EnumOutgoingMessagesTypeScheduleOnCallNotification: 3,
 
 	// First alert will jump the list with priority 0, so this only
 	// represents additional alerts to the service after the first.
-	notification.MessageTypeAlert:       4,
-	notification.MessageTypeAlertBundle: 4,
+	gadb.EnumOutgoingMessagesTypeAlertNotification:       4,
+	gadb.EnumOutgoingMessagesTypeAlertNotificationBundle: 4,
 
-	notification.MessageTypeAlertStatus: 5,
+	gadb.EnumOutgoingMessagesTypeAlertStatusUpdate: 5,
 
-	notification.MessageTypeSignalMessage: 99, // lowest priority
+	gadb.EnumOutgoingMessagesTypeSignalMessage: 99, // lowest priority
 }
 
 type queue struct {

@@ -37,12 +37,16 @@ sql:
       - schedule/queries.sql
       - label/queries.sql
       - escalation/queries.sql
+      - notification/queries.sql
     engine: postgresql
     gen:
       go:
         out: gadb
         sql_package: database/sql
         overrides:
+          - column: public.outgoing_messages.provider_msg_id
+            go_type:
+              type: ProviderMessageID
           - column: public.user_contact_methods.dest
             go_type:
               # Note: We can't use the nullable/non-nullable types here because
