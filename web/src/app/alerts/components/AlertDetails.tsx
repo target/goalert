@@ -50,7 +50,8 @@ import LoadingButton from '../../loading/components/LoadingButton'
 import { Notice } from '../../details/Notices'
 import { useIsWidthDown } from '../../util/useWidth'
 import ReactGA from 'react-ga4'
-import { useConfigValue } from '../../util/RequireConfig'
+import { useConfigValue, useEPTargetTypes } from '../../util/RequireConfig'
+import { renderChipsDest } from '../../escalation-policies/stepUtil'
 interface AlertDetailsProps {
   data: Alert
 }
@@ -90,6 +91,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
   const [analyticsID] = useConfigValue('General.GoogleAnalyticsID') as [string]
   const classes = useStyles()
   const isMobile = useIsWidthDown('sm')
+  const destTypes = useEPTargetTypes()
 
   const alertAction = (action: string, mutation: () => void): void => {
     if (analyticsID) ReactGA.event({ category: 'Alert Action', action })
@@ -247,13 +249,8 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
     }
 
     return steps.map((step, index) => {
-      const { id, targets } = step
+      const { id, actions } = step
 
-      const rotations = targets.filter((t) => t.type === 'rotation')
-      const schedules = targets.filter((t) => t.type === 'schedule')
-      const slackChannels = targets.filter((t) => t.type === 'slackChannel')
-      const users = targets.filter((t) => t.type === 'user')
-      const webhooks = targets.filter((t) => t.type === 'chanWebhook')
       const selected =
         status !== 'StatusClosed' &&
         (currentLevel ?? 0) % steps.length === index
@@ -261,22 +258,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
       return (
         <TableRow key={index} selected={selected}>
           <TableCell>Step #{index + 1}</TableCell>
-          <TableCell>
-            {!targets.length && <Typography>&mdash;</Typography>}
-            {rotations.length > 0 && (
-              <div>Rotations: {renderTargets(rotations, id)}</div>
-            )}
-            {schedules.length > 0 && (
-              <div>Schedules: {renderTargets(schedules, id)}</div>
-            )}
-            {slackChannels.length > 0 && (
-              <div>Slack Channels: {renderTargets(slackChannels, id)}</div>
-            )}
-            {users.length > 0 && <div>Users: {renderTargets(users, id)}</div>}
-            {webhooks.length > 0 && (
-              <div>Webhooks: {renderTargets(webhooks, id)}</div>
-            )}
-          </TableCell>
+          <TableCell>{renderChipsDest(actions)}</TableCell>
         </TableRow>
       )
     })
