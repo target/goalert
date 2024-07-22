@@ -1,4 +1,4 @@
-import React, { ReactElement, useState, ReactNode } from 'react'
+import React, { useState, ReactNode } from 'react'
 import p from 'prop-types'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import Button from '@mui/material/Button'
@@ -22,25 +22,13 @@ import {
 } from '@mui/icons-material'
 import { gql, useMutation } from '@apollo/client'
 import { DateTime } from 'luxon'
-import _ from 'lodash'
-import {
-  RotationLink,
-  ScheduleLink,
-  ServiceLink,
-  SlackChannelLink,
-  UserLink,
-} from '../../links'
+import { ServiceLink } from '../../links'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import Markdown from '../../util/Markdown'
 import AlertDetailLogs from '../AlertDetailLogs'
 import AppLink from '../../util/AppLink'
 import CardActions from '../../details/CardActions'
-import {
-  Alert,
-  Target,
-  EscalationPolicyStep,
-  AlertStatus,
-} from '../../../schema'
+import { Alert, EscalationPolicyStep, AlertStatus } from '../../../schema'
 import ServiceNotices from '../../services/ServiceNotices'
 import { Time } from '../../util/Time'
 import AlertFeedback, {
@@ -50,7 +38,7 @@ import LoadingButton from '../../loading/components/LoadingButton'
 import { Notice } from '../../details/Notices'
 import { useIsWidthDown } from '../../util/useWidth'
 import ReactGA from 'react-ga4'
-import { useConfigValue, useEPTargetTypes } from '../../util/RequireConfig'
+import { useConfigValue } from '../../util/RequireConfig'
 import { renderChipsDest } from '../../escalation-policies/stepUtil'
 interface AlertDetailsProps {
   data: Alert
@@ -91,7 +79,6 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
   const [analyticsID] = useConfigValue('General.GoogleAnalyticsID') as [string]
   const classes = useStyles()
   const isMobile = useIsWidthDown('sm')
-  const destTypes = useEPTargetTypes()
 
   const alertAction = (action: string, mutation: () => void): void => {
     if (analyticsID) ReactGA.event({ category: 'Alert Action', action })
@@ -156,27 +143,6 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
     const newVal = !showExactTimes
     setShowExactTimes(newVal)
     localStorage.setItem(exactTimesKey, newVal.toString())
-  }
-
-  function renderTargets(targets: Target[], stepID: string): ReactElement[] {
-    return _.sortBy(targets, 'name').map((target, i) => {
-      const separator = i === 0 ? '' : ', '
-
-      let link
-      const t = target.type
-      if (t === 'rotation') link = RotationLink(target)
-      else if (t === 'schedule') link = ScheduleLink(target)
-      else if (t === 'slackChannel') link = SlackChannelLink(target)
-      else if (t === 'user') link = UserLink(target)
-      else link = target.name
-
-      return (
-        <span key={stepID + target.id}>
-          {separator}
-          {link}
-        </span>
-      )
-    })
   }
 
   /*
@@ -249,8 +215,6 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
     }
 
     return steps.map((step, index) => {
-      const { id, actions } = step
-
       const selected =
         status !== 'StatusClosed' &&
         (currentLevel ?? 0) % steps.length === index
@@ -258,7 +222,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
       return (
         <TableRow key={index} selected={selected}>
           <TableCell>Step #{index + 1}</TableCell>
-          <TableCell>{renderChipsDest(actions)}</TableCell>
+          <TableCell>{renderChipsDest(step.actions)}</TableCell>
         </TableRow>
       )
     })
