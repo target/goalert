@@ -6,6 +6,8 @@ import (
 	"github.com/target/goalert/gadb"
 )
 
+type ProviderMessageID = gadb.ProviderMessageID
+
 func DestV1TypeToDestType(t string) DestType {
 	switch t {
 	case "builtin-twilio-voice":

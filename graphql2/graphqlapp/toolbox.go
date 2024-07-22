@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"github.com/nyaruka/phonenumbers"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/validation"
 
@@ -25,7 +26,7 @@ func (q *Query) DebugMessageStatus(ctx context.Context, input graphql2.DebugMess
 		return nil, err
 	}
 
-	id, err := notification.ParseProviderMessageID(input.ProviderMessageID)
+	id, err := gadb.ParseProviderMessageID(input.ProviderMessageID)
 	if err != nil {
 		return nil, validation.NewFieldError("ProviderMessageID", err.Error())
 	}
