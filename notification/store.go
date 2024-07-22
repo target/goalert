@@ -159,7 +159,7 @@ func outgoingMessageToSendResult(msg gadb.OutgoingMessage, cm, ch gadb.NullDestV
 		res.DestType = DestV1TypeToDestType(ch.DestV1.Type)
 	}
 
-	state, err := messageStateFromStatus(string(msg.LastStatus), msg.NextRetryAt.Valid)
+	state, err := messageStateFromStatus(msg.LastStatus, msg.NextRetryAt.Valid)
 	if err != nil {
 		return nil, err
 	}
@@ -343,17 +343,17 @@ func (s *Store) VerifyContactMethod(ctx context.Context, cmID string, code int) 
 	return nil
 }
 
-func messageStateFromStatus(lastStatus string, hasNextRetry bool) (State, error) {
+func messageStateFromStatus(lastStatus gadb.EnumOutgoingMessagesStatus, hasNextRetry bool) (State, error) {
 	switch lastStatus {
-	case "queued_remotely", "sending":
+	case gadb.EnumOutgoingMessagesStatusQueuedRemotely, gadb.EnumOutgoingMessagesStatusSending:
 		return StateSending, nil
-	case "pending":
+	case gadb.EnumOutgoingMessagesStatusPending:
 		return StatePending, nil
-	case "sent":
+	case gadb.EnumOutgoingMessagesStatusSent:
 		return StateSent, nil
-	case "delivered":
+	case gadb.EnumOutgoingMessagesStatusDelivered:
 		return StateDelivered, nil
-	case "failed", "bundled": // bundled message was not sent (replaced) and should never be re-sent
+	case gadb.EnumOutgoingMessagesStatusFailed, gadb.EnumOutgoingMessagesStatusBundled: // bundled message was not sent (replaced) and should never be re-sent
 		// temporary if retry
 		if hasNextRetry {
 			return StateFailedTemp, nil
