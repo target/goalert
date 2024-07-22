@@ -3492,14 +3492,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@playwright/test@npm:1.41.2":
-  version: 1.41.2
-  resolution: "@playwright/test@npm:1.41.2"
+"@playwright/test@npm:1.45.2":
+  version: 1.45.2
+  resolution: "@playwright/test@npm:1.45.2"
   dependencies:
-    playwright: "npm:1.41.2"
+    playwright: "npm:1.45.2"
   bin:
     playwright: cli.js
-  checksum: 10/e87405987fa024f75acc223c47fcb2da0a66b2fa0cd9a583ca5b02aac12be353d0c262bf6a22b9bc40550c86c8b7629e70cd27f508ec370d9c92bb72f74581e7
+  checksum: 10/858ab8c44b430977bf21aa9b089aa5b844899bdb80ededc59dcb5f8a284d483a8b4f56f724fbedf24fa424a6727a23d89f3614af82d82c4813a69f0aa58d945b
   languageName: node
   linkType: hard
 
@@ -16873,15 +16873,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.41.2":
-  version: 1.41.2
-  resolution: "playwright-core@npm:1.41.2"
-  bin:
-    playwright-core: cli.js
-  checksum: 10/77ff881ebb9cc0654edd00c5ff202f5f61aee7a5318e1f12a82e30a3636de21e8b5982fae6138e5bb90115ae509c15a640cf85b10b3e2daebb2bb286da54fd4c
-  languageName: node
-  linkType: hard
-
 "playwright-core@npm:1.45.2, playwright-core@npm:>=1.2.0":
   version: 1.45.2
   resolution: "playwright-core@npm:1.45.2"
@@ -16891,22 +16882,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright@npm:1.41.2":
-  version: 1.41.2
-  resolution: "playwright@npm:1.41.2"
-  dependencies:
-    fsevents: "npm:2.3.2"
-    playwright-core: "npm:1.41.2"
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  bin:
-    playwright: cli.js
-  checksum: 10/272399f622dc2df90fbef147b9b1cfab5d7a78cc364bdfa98d2bf08faa9894346f58629fe4fef41b108ca2cb203b3970d7886b7f392cb0399c75b521478e2920
-  languageName: node
-  linkType: hard
-
-"playwright@npm:^1.14.0":
+"playwright@npm:1.45.2, playwright@npm:^1.14.0":
   version: 1.45.2
   resolution: "playwright@npm:1.45.2"
   dependencies:
@@ -18388,7 +18364,7 @@ __metadata:
     "@mui/styles": "npm:5.16.4"
     "@mui/system": "npm:5.16.1"
     "@mui/x-data-grid": "npm:6.19.6"
-    "@playwright/test": "npm:1.41.2"
+    "@playwright/test": "npm:1.45.2"
     "@storybook/addon-essentials": "npm:8.1.11"
     "@storybook/addon-interactions": "npm:8.1.11"
     "@storybook/addon-links": "npm:8.1.11"
