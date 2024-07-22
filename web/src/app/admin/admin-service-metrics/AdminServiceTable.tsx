@@ -9,6 +9,8 @@ import {
 } from '@mui/x-data-grid'
 import AppLink from '../../util/AppLink'
 import {
+  Destination,
+  DestinationType,
   EscalationPolicyStep,
   IntegrationKey,
   IntegrationKeyType,
@@ -54,11 +56,11 @@ export default function AdminServiceTable(
     inMaintenance: boolean
     hasStaleAlerts: boolean
   } => {
-    const targets: TargetType[] = []
+    const targets: DestinationType[] = []
     if (service.escalationPolicy?.steps?.length) {
       service.escalationPolicy?.steps?.map((step: EscalationPolicyStep) => {
-        step.targets.map((tgt: Target) => {
-          if (!targets.includes(tgt.type)) targets.push(tgt.type)
+        step.actions.map((dest: Destination) => {
+          if (!targets.includes(dest.type)) targets.push(dest.type)
         })
       })
     }
@@ -203,12 +205,12 @@ export default function AdminServiceTable(
       headerName: 'EP Step Target Type(s)',
       width: 215,
       valueGetter: (params: GridValueGetterParams) => {
-        const targets: TargetType[] = []
+        const targets: DestinationType[] = []
         if (params.row.escalationPolicy.steps?.length) {
           params.row.escalationPolicy.steps?.map(
             (step: EscalationPolicyStep) => {
-              step.targets.map((tgt: Target) => {
-                if (!targets.includes(tgt.type)) targets.push(tgt.type)
+              step.actions.map((dest: Destination) => {
+                if (!targets.includes(dest.type)) targets.push(dest.type)
               })
             },
           )

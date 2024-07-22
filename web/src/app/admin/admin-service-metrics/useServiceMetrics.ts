@@ -1,7 +1,12 @@
-import { Alert, IntegrationKeyType, Service, TargetType } from '../../../schema'
+import {
+  Alert,
+  DestinationType,
+  IntegrationKeyType,
+  Service,
+} from '../../../schema'
 
 export type TargetMetrics = {
-  [type in IntegrationKeyType | TargetType]: number
+  [type in IntegrationKeyType | DestinationType]: number
 }
 export type ServiceMetrics = {
   keyTgtTotals: TargetMetrics
@@ -40,7 +45,7 @@ export function useServiceMetrics(opts: ServiceMetricOpts): ServiceMetrics {
       }
       if (filters?.epStepTgts?.length) {
         const stepTargetMatch = svc.escalationPolicy?.steps.some((step) =>
-          step.targets.some((tgt) => filters.epStepTgts?.includes(tgt.type)),
+          step.actions.some((dest) => filters.epStepTgts?.includes(dest.type)),
         )
         if (!stepTargetMatch) return false
       }
@@ -70,9 +75,9 @@ export function useServiceMetrics(opts: ServiceMetricOpts): ServiceMetrics {
     })
     filteredServices.forEach((svc) => {
       svc.escalationPolicy?.steps.forEach((step) => {
-        step.targets.forEach((tgt) => {
-          metrics.stepTgtTotals[tgt.type] =
-            (metrics.stepTgtTotals[tgt.type] || 0) + 1
+        step.actions.forEach((dest) => {
+          metrics.stepTgtTotals[dest.type] =
+            (metrics.stepTgtTotals[dest.type] || 0) + 1
         })
       })
       svc.integrationKeys.forEach((key) => {

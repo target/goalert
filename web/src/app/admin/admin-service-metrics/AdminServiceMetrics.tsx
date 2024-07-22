@@ -70,7 +70,7 @@ export default function AdminServiceMetrics(): JSX.Element {
         }
         if (!svc.escalationPolicy?.steps.length) counts.totalNoEP++
         else if (
-          svc.escalationPolicy.steps?.every((step) => !step.targets.length)
+          svc.escalationPolicy.steps?.every((step) => !step.actions.length)
         )
           counts.totalNoEP++
         if (svc.notices.length) counts.totalAlertLimit++
