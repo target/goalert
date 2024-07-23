@@ -6,7 +6,9 @@ import (
 
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/gadb"
+	"github.com/target/goalert/notification/email"
 	"github.com/target/goalert/notification/slack"
+	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
@@ -63,12 +65,12 @@ func (a *App) CompatTargetToDest(ctx context.Context, tgt assignment.Target) (ga
 // for the built-in destination types.
 func CompatDestToCMTypeVal(d gadb.DestV1) (contactmethod.Type, string) {
 	switch d.Type {
-	case destTwilioSMS:
-		return contactmethod.TypeSMS, d.Arg(fieldPhoneNumber)
-	case destTwilioVoice:
-		return contactmethod.TypeVoice, d.Arg(fieldPhoneNumber)
-	case destSMTP:
-		return contactmethod.TypeEmail, d.Arg(fieldEmailAddress)
+	case twilio.DestTypeTwilioSMS:
+		return contactmethod.TypeSMS, d.Arg(twilio.FieldPhoneNumber)
+	case twilio.DestTypeTwilioVoice:
+		return contactmethod.TypeVoice, d.Arg(twilio.FieldPhoneNumber)
+	case email.DestTypeEmail:
+		return contactmethod.TypeEmail, d.Arg(email.FieldEmailAddress)
 	case webhook.DestTypeWebhook:
 		return contactmethod.TypeWebhook, d.Arg(webhook.FieldWebhookURL)
 	case slack.DestTypeSlackDirectMessage:

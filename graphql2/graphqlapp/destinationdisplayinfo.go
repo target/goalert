@@ -2,15 +2,12 @@ package graphqlapp
 
 import (
 	"context"
-	"net/mail"
 
-	"github.com/nyaruka/phonenumbers"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/validation"
 )
 
 type (
@@ -65,39 +62,6 @@ func (a *Query) _DestinationDisplayInfo(ctx context.Context, dest gadb.DestV1, s
 		if err := app.ValidateDestination(ctx, "input", &dest); err != nil {
 			return nil, err
 		}
-	}
-	switch dest.Type {
-	case destTwilioSMS:
-		n, err := phonenumbers.Parse(dest.Arg(fieldPhoneNumber), "")
-		if err != nil {
-			return nil, validation.WrapError(err)
-		}
-
-		return &nfydest.DisplayInfo{
-			IconURL:     "builtin://phone-text",
-			IconAltText: "Text Message",
-			Text:        phonenumbers.Format(n, phonenumbers.INTERNATIONAL),
-		}, nil
-	case destTwilioVoice:
-		n, err := phonenumbers.Parse(dest.Arg(fieldPhoneNumber), "")
-		if err != nil {
-			return nil, validation.WrapError(err)
-		}
-		return &nfydest.DisplayInfo{
-			IconURL:     "builtin://phone-voice",
-			IconAltText: "Voice Call",
-			Text:        phonenumbers.Format(n, phonenumbers.INTERNATIONAL),
-		}, nil
-	case destSMTP:
-		e, err := mail.ParseAddress(dest.Arg(fieldEmailAddress))
-		if err != nil {
-			return nil, validation.WrapError(err)
-		}
-		return &nfydest.DisplayInfo{
-			IconURL:     "builtin://email",
-			IconAltText: "Email",
-			Text:        e.Address,
-		}, nil
 	}
 
 	return app.DestReg.DisplayInfo(ctx, dest)
