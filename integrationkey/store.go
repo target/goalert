@@ -27,7 +27,7 @@ type Store struct {
 }
 
 func NewStore(ctx context.Context, db *sql.DB, keys keyring.Keyring, reg *nfydest.Registry, ncStore *notificationchannel.Store) *Store {
-	return &Store{db: db, keys: keys, reg: reg}
+	return &Store{db: db, keys: keys, reg: reg, ncStore: ncStore}
 }
 
 func (s *Store) Authorize(ctx context.Context, tok authtoken.Token, t Type) (context.Context, error) {
