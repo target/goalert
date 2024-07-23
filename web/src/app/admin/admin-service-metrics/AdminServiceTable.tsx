@@ -16,8 +16,6 @@ import {
   IntegrationKeyType,
   Notice,
   Service,
-  Target,
-  TargetType,
 } from '../../../schema'
 import { Grid, Stack, Tooltip } from '@mui/material'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
