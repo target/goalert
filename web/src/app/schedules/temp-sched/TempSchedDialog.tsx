@@ -109,7 +109,7 @@ export default function TempSchedDialog({
   let defaultShiftDur = {} as DurationValues
 
   const getDurValues = (dur: Duration): DurationValues => {
-    if (!dur) return { ivl: 'days', dur: 7 }
+    if (!dur) return { ivl: 'days', dur: 1 }
     if (dur.hours < 24 && dur.days < 1)
       return { ivl: 'hours', dur: Math.ceil(dur.hours) }
     if (dur.days < 7) return { ivl: 'days', dur: Math.ceil(dur.days) }
