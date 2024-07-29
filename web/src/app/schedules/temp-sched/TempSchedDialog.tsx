@@ -292,7 +292,9 @@ export default function TempSchedDialog({
       title={edit ? 'Edit a Temporary Schedule' : 'Define a Temporary Schedule'}
       onClose={onClose}
       onSubmit={handleSubmit}
-      onNext={edit && !submitSuccess ? handleNext : null}
+      disableSubmit={edit && !submitSuccess}
+      onNext={handleNext}
+      disableNext={edit && submitSuccess}
       onBack={edit && submitSuccess ? handleBack : null}
       loading={fetching}
       errors={errs}
