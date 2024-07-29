@@ -33,8 +33,6 @@ type Store struct {
 	reg     *nfydest.Registry
 	slackFn func(ctx context.Context, channelID string) (*slack.Channel, error)
 
-	findNotifChan *sql.Stmt
-
 	findOnePolicy          *sql.Stmt
 	findOnePolicyForUpdate *sql.Stmt
 	findManyPolicies       *sql.Stmt
@@ -62,15 +60,6 @@ func NewStore(ctx context.Context, db *sql.DB, cfg Config) (*Store, error) {
 		slackFn: cfg.SlackLookupFunc,
 		ncStore: cfg.NCStore,
 		reg:     cfg.Registry,
-
-		findNotifChan: p.P(`
-			SELECT chan.id
-			FROM notification_channels chan
-			JOIN escalation_policy_actions act ON
-				act.escalation_policy_step_id = $1 AND
-				act.channel_id = chan.id
-			WHERE chan.value = $2 and chan.type = $3
-		`),
 
 		findOnePolicy: p.P(`
 			SELECT

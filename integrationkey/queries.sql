@@ -135,27 +135,6 @@ SET
 WHERE
     id = $1;
 
--- name: IntKeyEnsureChannel :one
--- IntKeyEnsureChannel will return the ID of a channel for a given dest, creating it if it doesn't exist.
-WITH insert_q AS (
-INSERT INTO notification_channels(id, dest, name)
-        VALUES ($1, $2, 'unknown')
-    ON CONFLICT (dest)
-        DO NOTHING
-    RETURNING
-        id)
-    SELECT
-        id
-    FROM
-        insert_q
-    UNION
-    SELECT
-        id
-    FROM
-        notification_channels
-    WHERE
-        dest = $2;
-
 -- name: IntKeyInsertSignalMessage :exec
 INSERT INTO pending_signals(dest_id, service_id, params)
     VALUES ($1, $2, $3);

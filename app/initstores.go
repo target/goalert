@@ -141,7 +141,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.AlertLogStore == nil {
-		app.AlertLogStore, err = alertlog.NewStore(ctx, app.db)
+		app.AlertLogStore, err = alertlog.NewStore(ctx, app.db, app.DestRegistry)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init alertlog store")
@@ -222,7 +222,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.IntegrationKeyStore == nil {
-		app.IntegrationKeyStore = integrationkey.NewStore(ctx, app.db, app.APIKeyring, app.DestRegistry)
+		app.IntegrationKeyStore = integrationkey.NewStore(ctx, app.db, app.APIKeyring, app.DestRegistry, app.NCStore)
 	}
 
 	if app.ScheduleRuleStore == nil {

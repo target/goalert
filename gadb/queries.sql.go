@@ -463,20 +463,54 @@ func (q *Queries) AlertLogInsertSvc(ctx context.Context, arg AlertLogInsertSvcPa
 	return err
 }
 
-const alertLogLookupCMType = `-- name: AlertLogLookupCMType :one
+const alertLogLookupCMDest = `-- name: AlertLogLookupCMDest :one
 SELECT
-    "type" AS cm_type
+    dest
 FROM
     user_contact_methods
 WHERE
     id = $1
 `
 
-func (q *Queries) AlertLogLookupCMType(ctx context.Context, id uuid.UUID) (EnumUserContactMethodType, error) {
-	row := q.db.QueryRowContext(ctx, alertLogLookupCMType, id)
-	var cm_type EnumUserContactMethodType
-	err := row.Scan(&cm_type)
-	return cm_type, err
+func (q *Queries) AlertLogLookupCMDest(ctx context.Context, id uuid.UUID) (NullDestV1, error) {
+	row := q.db.QueryRowContext(ctx, alertLogLookupCMDest, id)
+	var dest NullDestV1
+	err := row.Scan(&dest)
+	return dest, err
+}
+
+const alertLogLookupCallbackDest = `-- name: AlertLogLookupCallbackDest :one
+SELECT
+    coalesce(cm.dest, ch.dest) AS dest
+FROM
+    outgoing_messages log
+    LEFT JOIN user_contact_methods cm ON cm.id = log.contact_method_id
+    LEFT JOIN notification_channels ch ON ch.id = log.channel_id
+WHERE
+    log.id = $1
+`
+
+func (q *Queries) AlertLogLookupCallbackDest(ctx context.Context, id uuid.UUID) (NullDestV1, error) {
+	row := q.db.QueryRowContext(ctx, alertLogLookupCallbackDest, id)
+	var dest NullDestV1
+	err := row.Scan(&dest)
+	return dest, err
+}
+
+const alertLogLookupNCDest = `-- name: AlertLogLookupNCDest :one
+SELECT
+    dest
+FROM
+    notification_channels
+WHERE
+    id = $1
+`
+
+func (q *Queries) AlertLogLookupNCDest(ctx context.Context, id uuid.UUID) (NullDestV1, error) {
+	row := q.db.QueryRowContext(ctx, alertLogLookupNCDest, id)
+	var dest NullDestV1
+	err := row.Scan(&dest)
+	return dest, err
 }
 
 const alertManyMetadata = `-- name: AlertManyMetadata :many
@@ -569,9 +603,9 @@ func (q *Queries) AlertSetMetadata(ctx context.Context, arg AlertSetMetadataPara
 const allPendingMsgDests = `-- name: AllPendingMsgDests :many
 SELECT DISTINCT
     usr.name AS user_name,
-    cm.type AS cm_type,
+    cm.dest AS cm_dest,
     nc.name AS nc_name,
-    nc.type AS nc_type
+    nc.dest AS nc_dest
 FROM
     outgoing_messages om
     LEFT JOIN users usr ON usr.id = om.user_id
@@ -592,9 +626,9 @@ type AllPendingMsgDestsParams struct {
 
 type AllPendingMsgDestsRow struct {
 	UserName sql.NullString
-	CmType   NullEnumUserContactMethodType
+	CmDest   NullDestV1
 	NcName   sql.NullString
-	NcType   NullEnumNotifChannelType
+	NcDest   NullDestV1
 }
 
 func (q *Queries) AllPendingMsgDests(ctx context.Context, arg AllPendingMsgDestsParams) ([]AllPendingMsgDestsRow, error) {
@@ -608,9 +642,9 @@ func (q *Queries) AllPendingMsgDests(ctx context.Context, arg AllPendingMsgDests
 		var i AllPendingMsgDestsRow
 		if err := rows.Scan(
 			&i.UserName,
-			&i.CmType,
+			&i.CmDest,
 			&i.NcName,
-			&i.NcType,
+			&i.NcDest,
 		); err != nil {
 			return nil, err
 		}
@@ -1648,40 +1682,6 @@ WHERE
 func (q *Queries) IntKeyDeleteSecondaryToken(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, intKeyDeleteSecondaryToken, id)
 	return err
-}
-
-const intKeyEnsureChannel = `-- name: IntKeyEnsureChannel :one
-WITH insert_q AS (
-INSERT INTO notification_channels(id, dest, name)
-        VALUES ($1, $2, 'unknown')
-    ON CONFLICT (dest)
-        DO NOTHING
-    RETURNING
-        id)
-    SELECT
-        id
-    FROM
-        insert_q
-    UNION
-    SELECT
-        id
-    FROM
-        notification_channels
-    WHERE
-        dest = $2
-`
-
-type IntKeyEnsureChannelParams struct {
-	ID   uuid.UUID
-	Dest NullDestV1
-}
-
-// IntKeyEnsureChannel will return the ID of a channel for a given dest, creating it if it doesn't exist.
-func (q *Queries) IntKeyEnsureChannel(ctx context.Context, arg IntKeyEnsureChannelParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, intKeyEnsureChannel, arg.ID, arg.Dest)
-	var id uuid.UUID
-	err := row.Scan(&id)
-	return id, err
 }
 
 const intKeyFindByService = `-- name: IntKeyFindByService :many

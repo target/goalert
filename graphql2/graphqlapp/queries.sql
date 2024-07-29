@@ -1,9 +1,9 @@
 -- name: AllPendingMsgDests :many
 SELECT DISTINCT
     usr.name AS user_name,
-    cm.type AS cm_type,
+    cm.dest AS cm_dest,
     nc.name AS nc_name,
-    nc.type AS nc_type
+    nc.dest AS nc_dest
 FROM
     outgoing_messages om
     LEFT JOIN users usr ON usr.id = om.user_id

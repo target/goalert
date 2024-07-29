@@ -1,4 +1,4 @@
-import React, { ReactElement, useState, ReactNode } from 'react'
+import React, { useState, ReactNode } from 'react'
 import p from 'prop-types'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import Button from '@mui/material/Button'
@@ -22,25 +22,13 @@ import {
 } from '@mui/icons-material'
 import { gql, useMutation } from '@apollo/client'
 import { DateTime } from 'luxon'
-import _ from 'lodash'
-import {
-  RotationLink,
-  ScheduleLink,
-  ServiceLink,
-  SlackChannelLink,
-  UserLink,
-} from '../../links'
+import { ServiceLink } from '../../links'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import Markdown from '../../util/Markdown'
 import AlertDetailLogs from '../AlertDetailLogs'
 import AppLink from '../../util/AppLink'
 import CardActions from '../../details/CardActions'
-import {
-  Alert,
-  Target,
-  EscalationPolicyStep,
-  AlertStatus,
-} from '../../../schema'
+import { Alert, EscalationPolicyStep, AlertStatus } from '../../../schema'
 import ServiceNotices from '../../services/ServiceNotices'
 import { Time } from '../../util/Time'
 import AlertFeedback, {
@@ -51,6 +39,7 @@ import { Notice } from '../../details/Notices'
 import { useIsWidthDown } from '../../util/useWidth'
 import ReactGA from 'react-ga4'
 import { useConfigValue } from '../../util/RequireConfig'
+import { renderChipsDest } from '../../escalation-policies/stepUtil'
 interface AlertDetailsProps {
   data: Alert
 }
@@ -156,27 +145,6 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
     localStorage.setItem(exactTimesKey, newVal.toString())
   }
 
-  function renderTargets(targets: Target[], stepID: string): ReactElement[] {
-    return _.sortBy(targets, 'name').map((target, i) => {
-      const separator = i === 0 ? '' : ', '
-
-      let link
-      const t = target.type
-      if (t === 'rotation') link = RotationLink(target)
-      else if (t === 'schedule') link = ScheduleLink(target)
-      else if (t === 'slackChannel') link = SlackChannelLink(target)
-      else if (t === 'user') link = UserLink(target)
-      else link = target.name
-
-      return (
-        <span key={stepID + target.id}>
-          {separator}
-          {link}
-        </span>
-      )
-    })
-  }
-
   /*
    * Returns properties from the escalation policy
    * for easier use in functions.
@@ -247,13 +215,6 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
     }
 
     return steps.map((step, index) => {
-      const { id, targets } = step
-
-      const rotations = targets.filter((t) => t.type === 'rotation')
-      const schedules = targets.filter((t) => t.type === 'schedule')
-      const slackChannels = targets.filter((t) => t.type === 'slackChannel')
-      const users = targets.filter((t) => t.type === 'user')
-      const webhooks = targets.filter((t) => t.type === 'chanWebhook')
       const selected =
         status !== 'StatusClosed' &&
         (currentLevel ?? 0) % steps.length === index
@@ -261,22 +222,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
       return (
         <TableRow key={index} selected={selected}>
           <TableCell>Step #{index + 1}</TableCell>
-          <TableCell>
-            {!targets.length && <Typography>&mdash;</Typography>}
-            {rotations.length > 0 && (
-              <div>Rotations: {renderTargets(rotations, id)}</div>
-            )}
-            {schedules.length > 0 && (
-              <div>Schedules: {renderTargets(schedules, id)}</div>
-            )}
-            {slackChannels.length > 0 && (
-              <div>Slack Channels: {renderTargets(slackChannels, id)}</div>
-            )}
-            {users.length > 0 && <div>Users: {renderTargets(users, id)}</div>}
-            {webhooks.length > 0 && (
-              <div>Webhooks: {renderTargets(webhooks, id)}</div>
-            )}
-          </TableCell>
+          <TableCell>{renderChipsDest(step.actions)}</TableCell>
         </TableRow>
       )
     })

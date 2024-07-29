@@ -28,9 +28,6 @@ const query = gql`
         name
         steps {
           stepNumber
-          targets {
-            type
-          }
         }
       }
       onCallUsers {
