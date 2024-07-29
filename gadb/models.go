@@ -1017,7 +1017,7 @@ type OutgoingMessage struct {
 	LastStatusAt           sql.NullTime
 	MessageType            EnumOutgoingMessagesType
 	NextRetryAt            sql.NullTime
-	ProviderMsgID          sql.NullString
+	ProviderMsgID          ProviderMessageID
 	ProviderSeq            int32
 	RetryCount             int32
 	ScheduleID             uuid.NullUUID

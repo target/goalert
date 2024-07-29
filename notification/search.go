@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util/sqlutil"
@@ -315,7 +316,7 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 
 		// set all the nullable fields
 		if providerID.String != "" {
-			pm, err := ParseProviderMessageID(providerID.String)
+			pm, err := gadb.ParseProviderMessageID(providerID.String)
 			if err != nil {
 				return nil, err
 			}

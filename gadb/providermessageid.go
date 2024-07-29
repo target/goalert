@@ -1,4 +1,4 @@
-package notification
+package gadb
 
 import (
 	"database/sql"
@@ -14,8 +14,10 @@ type ProviderMessageID struct {
 	ProviderName string
 }
 
-var _ driver.Valuer = ProviderMessageID{}
-var _ sql.Scanner = &ProviderMessageID{}
+var (
+	_ driver.Valuer = ProviderMessageID{}
+	_ sql.Scanner   = &ProviderMessageID{}
+)
 
 // ParseProviderMessageID parses a provider-specific identifier for a message.
 func ParseProviderMessageID(id string) (ProviderMessageID, error) {

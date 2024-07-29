@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/search"
@@ -128,6 +129,29 @@ func (q *MessageLogConnectionStats) TimeSeries(ctx context.Context, opts *notifi
 	return out, nil
 }
 
+func msgTypeFriendlyName(msgType gadb.EnumOutgoingMessagesType) string {
+	switch msgType {
+	case gadb.EnumOutgoingMessagesTypeAlertNotification:
+		return "Alert"
+	case gadb.EnumOutgoingMessagesTypeAlertNotificationBundle:
+		return "Alert Bundle"
+	case gadb.EnumOutgoingMessagesTypeAlertStatusUpdate:
+		return "Status Update"
+	case gadb.EnumOutgoingMessagesTypeScheduleOnCallNotification:
+		return "On-Call Notification"
+	case gadb.EnumOutgoingMessagesTypeSignalMessage:
+		return "Signal Message"
+	case gadb.EnumOutgoingMessagesTypeAlertStatusUpdateBundle:
+		return "Status Bundle" // deprecated
+	case gadb.EnumOutgoingMessagesTypeTestNotification:
+		return "Test Message"
+	case gadb.EnumOutgoingMessagesTypeVerificationMessage:
+		return "Verification Code"
+	}
+
+	return fmt.Sprintf("Unknown: %s", msgType)
+}
+
 func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearchOptions) (conn *graphql2.MessageLogConnection, err error) {
 	if opts == nil {
 		opts = &graphql2.MessageLogSearchOptions{}
@@ -213,7 +237,7 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 			ID:         log.ID,
 			CreatedAt:  log.CreatedAt,
 			UpdatedAt:  log.LastStatusAt,
-			Type:       strings.TrimPrefix(log.MessageType.String(), "MessageType"),
+			Type:       msgTypeFriendlyName(log.MessageType),
 			Status:     msgStatus(notification.Status{State: log.LastStatus, Details: log.StatusDetails}),
 			AlertID:    &log.AlertID,
 			RetryCount: log.RetryCount,

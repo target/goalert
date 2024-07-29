@@ -2197,6 +2197,204 @@ func (q *Queries) MessageMgrGetPending(ctx context.Context, sentAt sql.NullTime)
 	return items, nil
 }
 
+const nfyLastMessageStatus = `-- name: NfyLastMessageStatus :one
+SELECT
+    om.alert_id, om.alert_log_id, om.channel_id, om.contact_method_id, om.created_at, om.cycle_id, om.escalation_policy_id, om.fired_at, om.id, om.last_status, om.last_status_at, om.message_type, om.next_retry_at, om.provider_msg_id, om.provider_seq, om.retry_count, om.schedule_id, om.sending_deadline, om.sent_at, om.service_id, om.src_value, om.status_alert_ids, om.status_details, om.user_id, om.user_verification_code_id,
+    cm.dest AS cm_dest,
+    ch.dest AS ch_dest
+FROM
+    outgoing_messages om
+    LEFT JOIN notification_channels ch ON om.channel_id = ch.id
+    LEFT JOIN user_contact_methods cm ON om.contact_method_id = cm.id
+WHERE
+    message_type = $1
+    AND contact_method_id = $2
+    AND om.created_at >= $3
+`
+
+type NfyLastMessageStatusParams struct {
+	MessageType     EnumOutgoingMessagesType
+	ContactMethodID uuid.NullUUID
+	CreatedAt       time.Time
+}
+
+type NfyLastMessageStatusRow struct {
+	OutgoingMessage OutgoingMessage
+	CmDest          NullDestV1
+	ChDest          NullDestV1
+}
+
+func (q *Queries) NfyLastMessageStatus(ctx context.Context, arg NfyLastMessageStatusParams) (NfyLastMessageStatusRow, error) {
+	row := q.db.QueryRowContext(ctx, nfyLastMessageStatus, arg.MessageType, arg.ContactMethodID, arg.CreatedAt)
+	var i NfyLastMessageStatusRow
+	err := row.Scan(
+		&i.OutgoingMessage.AlertID,
+		&i.OutgoingMessage.AlertLogID,
+		&i.OutgoingMessage.ChannelID,
+		&i.OutgoingMessage.ContactMethodID,
+		&i.OutgoingMessage.CreatedAt,
+		&i.OutgoingMessage.CycleID,
+		&i.OutgoingMessage.EscalationPolicyID,
+		&i.OutgoingMessage.FiredAt,
+		&i.OutgoingMessage.ID,
+		&i.OutgoingMessage.LastStatus,
+		&i.OutgoingMessage.LastStatusAt,
+		&i.OutgoingMessage.MessageType,
+		&i.OutgoingMessage.NextRetryAt,
+		&i.OutgoingMessage.ProviderMsgID,
+		&i.OutgoingMessage.ProviderSeq,
+		&i.OutgoingMessage.RetryCount,
+		&i.OutgoingMessage.ScheduleID,
+		&i.OutgoingMessage.SendingDeadline,
+		&i.OutgoingMessage.SentAt,
+		&i.OutgoingMessage.ServiceID,
+		&i.OutgoingMessage.SrcValue,
+		pq.Array(&i.OutgoingMessage.StatusAlertIds),
+		&i.OutgoingMessage.StatusDetails,
+		&i.OutgoingMessage.UserID,
+		&i.OutgoingMessage.UserVerificationCodeID,
+		&i.CmDest,
+		&i.ChDest,
+	)
+	return i, err
+}
+
+const nfyManyMessageStatus = `-- name: NfyManyMessageStatus :many
+SELECT
+    om.alert_id, om.alert_log_id, om.channel_id, om.contact_method_id, om.created_at, om.cycle_id, om.escalation_policy_id, om.fired_at, om.id, om.last_status, om.last_status_at, om.message_type, om.next_retry_at, om.provider_msg_id, om.provider_seq, om.retry_count, om.schedule_id, om.sending_deadline, om.sent_at, om.service_id, om.src_value, om.status_alert_ids, om.status_details, om.user_id, om.user_verification_code_id,
+    cm.dest AS cm_dest,
+    ch.dest AS ch_dest
+FROM
+    outgoing_messages om
+    LEFT JOIN notification_channels ch ON om.channel_id = ch.id
+    LEFT JOIN user_contact_methods cm ON om.contact_method_id = cm.id
+WHERE
+    om.id = ANY ($1::uuid[])
+`
+
+type NfyManyMessageStatusRow struct {
+	OutgoingMessage OutgoingMessage
+	CmDest          NullDestV1
+	ChDest          NullDestV1
+}
+
+func (q *Queries) NfyManyMessageStatus(ctx context.Context, dollar_1 []uuid.UUID) ([]NfyManyMessageStatusRow, error) {
+	rows, err := q.db.QueryContext(ctx, nfyManyMessageStatus, pq.Array(dollar_1))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []NfyManyMessageStatusRow
+	for rows.Next() {
+		var i NfyManyMessageStatusRow
+		if err := rows.Scan(
+			&i.OutgoingMessage.AlertID,
+			&i.OutgoingMessage.AlertLogID,
+			&i.OutgoingMessage.ChannelID,
+			&i.OutgoingMessage.ContactMethodID,
+			&i.OutgoingMessage.CreatedAt,
+			&i.OutgoingMessage.CycleID,
+			&i.OutgoingMessage.EscalationPolicyID,
+			&i.OutgoingMessage.FiredAt,
+			&i.OutgoingMessage.ID,
+			&i.OutgoingMessage.LastStatus,
+			&i.OutgoingMessage.LastStatusAt,
+			&i.OutgoingMessage.MessageType,
+			&i.OutgoingMessage.NextRetryAt,
+			&i.OutgoingMessage.ProviderMsgID,
+			&i.OutgoingMessage.ProviderSeq,
+			&i.OutgoingMessage.RetryCount,
+			&i.OutgoingMessage.ScheduleID,
+			&i.OutgoingMessage.SendingDeadline,
+			&i.OutgoingMessage.SentAt,
+			&i.OutgoingMessage.ServiceID,
+			&i.OutgoingMessage.SrcValue,
+			pq.Array(&i.OutgoingMessage.StatusAlertIds),
+			&i.OutgoingMessage.StatusDetails,
+			&i.OutgoingMessage.UserID,
+			&i.OutgoingMessage.UserVerificationCodeID,
+			&i.CmDest,
+			&i.ChDest,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const nfyOriginalMessageStatus = `-- name: NfyOriginalMessageStatus :one
+SELECT
+    om.alert_id, om.alert_log_id, om.channel_id, om.contact_method_id, om.created_at, om.cycle_id, om.escalation_policy_id, om.fired_at, om.id, om.last_status, om.last_status_at, om.message_type, om.next_retry_at, om.provider_msg_id, om.provider_seq, om.retry_count, om.schedule_id, om.sending_deadline, om.sent_at, om.service_id, om.src_value, om.status_alert_ids, om.status_details, om.user_id, om.user_verification_code_id,
+    cm.dest AS cm_dest,
+    ch.dest AS ch_dest
+FROM
+    outgoing_messages om
+    LEFT JOIN notification_channels ch ON om.channel_id = ch.id
+    LEFT JOIN user_contact_methods cm ON om.contact_method_id = cm.id
+WHERE
+    message_type = 'alert_notification'
+    AND alert_id = $1
+    AND (contact_method_id = $2
+        OR channel_id = $3)
+ORDER BY
+    sent_at
+LIMIT 1
+`
+
+type NfyOriginalMessageStatusParams struct {
+	AlertID         sql.NullInt64
+	ContactMethodID uuid.NullUUID
+	ChannelID       uuid.NullUUID
+}
+
+type NfyOriginalMessageStatusRow struct {
+	OutgoingMessage OutgoingMessage
+	CmDest          NullDestV1
+	ChDest          NullDestV1
+}
+
+func (q *Queries) NfyOriginalMessageStatus(ctx context.Context, arg NfyOriginalMessageStatusParams) (NfyOriginalMessageStatusRow, error) {
+	row := q.db.QueryRowContext(ctx, nfyOriginalMessageStatus, arg.AlertID, arg.ContactMethodID, arg.ChannelID)
+	var i NfyOriginalMessageStatusRow
+	err := row.Scan(
+		&i.OutgoingMessage.AlertID,
+		&i.OutgoingMessage.AlertLogID,
+		&i.OutgoingMessage.ChannelID,
+		&i.OutgoingMessage.ContactMethodID,
+		&i.OutgoingMessage.CreatedAt,
+		&i.OutgoingMessage.CycleID,
+		&i.OutgoingMessage.EscalationPolicyID,
+		&i.OutgoingMessage.FiredAt,
+		&i.OutgoingMessage.ID,
+		&i.OutgoingMessage.LastStatus,
+		&i.OutgoingMessage.LastStatusAt,
+		&i.OutgoingMessage.MessageType,
+		&i.OutgoingMessage.NextRetryAt,
+		&i.OutgoingMessage.ProviderMsgID,
+		&i.OutgoingMessage.ProviderSeq,
+		&i.OutgoingMessage.RetryCount,
+		&i.OutgoingMessage.ScheduleID,
+		&i.OutgoingMessage.SendingDeadline,
+		&i.OutgoingMessage.SentAt,
+		&i.OutgoingMessage.ServiceID,
+		&i.OutgoingMessage.SrcValue,
+		pq.Array(&i.OutgoingMessage.StatusAlertIds),
+		&i.OutgoingMessage.StatusDetails,
+		&i.OutgoingMessage.UserID,
+		&i.OutgoingMessage.UserVerificationCodeID,
+		&i.CmDest,
+		&i.ChDest,
+	)
+	return i, err
+}
+
 const noticeUnackedAlertsByService = `-- name: NoticeUnackedAlertsByService :one
 SELECT
     count(*),

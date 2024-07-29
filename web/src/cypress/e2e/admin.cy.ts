@@ -253,11 +253,12 @@ function testAdmin(): void {
     before(() => {
       login() // required for before hooks
 
-      cy.createOutgoingMessage({ createdAt: DateTime.local().toISO() }).then(
-        (msg: DebugMessage) => {
-          debugMessage = msg
-        },
-      )
+      cy.createOutgoingMessage({
+        messageType: 'test_notification',
+        createdAt: DateTime.local().toISO(),
+      }).then((msg: DebugMessage) => {
+        debugMessage = msg
+      })
     })
     beforeEach(() => {
       cy.visit('/admin/message-logs')
@@ -283,9 +284,7 @@ function testAdmin(): void {
           DateTime.fromISO(debugMessage.createdAt).toFormat('fff'),
         )
 
-      cy.get('@list')
-        .eq(0)
-        .should('contain.text', debugMessage.type + ' Notification')
+      cy.get('@list').eq(0).should('contain.text', 'Test Message')
 
       // todo: destination not supported: phone number value is pre-formatted
       // likely need to create a support function cy.getPhoneNumberInfo thru

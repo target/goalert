@@ -7,7 +7,6 @@ import (
 
 // Status describes the current state of an outgoing message.
 type Status struct {
-
 	// State is the current state.
 	State State
 
