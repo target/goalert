@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/target/goalert/assignment"
@@ -280,6 +281,7 @@ func (m *Mutation) updateRotationParticipants(ctx context.Context, tx *sql.Tx, r
 			return err
 		}
 	} else if updateActive {
+		fmt.Println("UPDATING ACTIVE")
 		// get current active participant
 		s, err := m.RotationStore.StateTx(ctx, tx, rotationID)
 		if errors.Is(err, rotation.ErrNoState) {
@@ -354,7 +356,8 @@ func (m *Mutation) UpdateRotation(ctx context.Context, input graphql2.UpdateRota
 		}
 
 		if input.UserIDs != nil {
-			err = m.updateRotationParticipants(ctx, tx, input.ID, input.UserIDs, input.ActiveUserIndex == nil)
+			fmt.Printf("\ninput.ActiveUserIndex: %v\n", input.ActiveUserIndex != nil)
+			err = m.updateRotationParticipants(ctx, tx, input.ID, input.UserIDs, input.ActiveUserIndex != nil)
 			if err != nil {
 				return err
 			}

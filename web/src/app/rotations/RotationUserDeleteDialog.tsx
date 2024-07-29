@@ -22,6 +22,7 @@ const mutation = gql`
     updateRotation(input: $input)
   }
 `
+
 const RotationUserDeleteDialog = (props: {
   rotationID: string
   userIndex: number

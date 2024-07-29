@@ -60,7 +60,9 @@ type SwapType = {
   newIndex: number
 }
 
-function RotationUserList(props: RotationUserListProps): JSX.Element {
+export default function RotationUserList(
+  props: RotationUserListProps,
+): JSX.Element {
   const classes = useStyles()
   const { rotationID } = props
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null)
@@ -274,4 +276,3 @@ function RotationUserList(props: RotationUserListProps): JSX.Element {
     </React.Fragment>
   )
 }
-export default RotationUserList
