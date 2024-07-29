@@ -109,13 +109,15 @@ export default function TempSchedDialog({
   let defaultShiftDur = {} as DurationValues
 
   const getDurValues = (dur: Duration): DurationValues => {
+    if (!dur) return { ivl: 'days', dur: 7 }
     if (dur.hours < 24 && dur.days < 1)
       return { ivl: 'hours', dur: Math.ceil(dur.hours) }
     if (dur.days < 7) return { ivl: 'days', dur: Math.ceil(dur.days) }
+
     return { ivl: 'weeks', dur: Math.ceil(dur.weeks) }
   }
 
-  if (edit) {
+  if (edit && _value.shifts.length > 0) {
     // if editing infer shift duration
     defaultShiftDur = getDurValues(inferDuration(_value.shifts))
   } else {
@@ -198,7 +200,7 @@ export default function TempSchedDialog({
   }
 
   const hasCoverageGaps = (() => {
-    if (q.loading) return false
+    if (q.loading || !value.shifts || value.shifts.length === 0) return false
     const schedInterval = parseInterval(value, zone)
     return (
       getCoverageGapItems(

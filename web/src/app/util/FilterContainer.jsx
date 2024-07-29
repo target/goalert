@@ -34,6 +34,12 @@ const useStyles = makeStyles((theme) => {
 export default function FilterContainer(props) {
   const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState(null)
+  const {
+    icon = <FilterIcon />,
+    title = 'Filter',
+    iconButtonProps,
+    anchorRef,
+  } = props
 
   function renderContent() {
     return (
@@ -61,12 +67,11 @@ export default function FilterContainer(props) {
     )
   }
 
-  const { icon, iconButtonProps, anchorRef } = props
   return (
     <React.Fragment>
       <IconButton
         onClick={(e) => setAnchorEl(anchorRef ? anchorRef.current : e.target)}
-        title={props.title}
+        title={title}
         aria-expanded={Boolean(anchorEl)}
         {...iconButtonProps}
         size='large'
@@ -119,9 +124,4 @@ FilterContainer.propTypes = {
 
   anchorRef: p.object,
   children: p.node,
-}
-
-FilterContainer.defaultProps = {
-  icon: <FilterIcon />,
-  title: 'Filter',
 }
