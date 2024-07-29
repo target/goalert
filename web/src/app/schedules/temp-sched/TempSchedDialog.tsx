@@ -200,7 +200,9 @@ export default function TempSchedDialog({
   }
 
   const hasCoverageGaps = (() => {
-    if (q.loading || !value.shifts || value.shifts.length === 0) return false
+    if (q.loading) return false
+    if (!value.shifts || value.shifts.length === 0) return true
+
     const schedInterval = parseInterval(value, zone)
     return (
       getCoverageGapItems(
