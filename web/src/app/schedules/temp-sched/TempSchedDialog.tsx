@@ -293,7 +293,7 @@ export default function TempSchedDialog({
       onClose={onClose}
       onSubmit={handleSubmit}
       disableSubmit={edit && !submitSuccess}
-      onNext={handleNext}
+      onNext={edit ? handleNext : null}
       disableNext={edit && submitSuccess}
       onBack={edit && submitSuccess ? handleBack : null}
       loading={fetching}
