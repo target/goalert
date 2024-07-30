@@ -3,6 +3,7 @@ package message
 import (
 	"sort"
 
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification"
 )
 
@@ -13,7 +14,7 @@ func dedupStatusMessages(messages []Message) ([]Message, []string) {
 
 	type msgKey struct {
 		alertID int
-		dest    notification.DestHash
+		dest    gadb.DestHash
 	}
 
 	m := make(map[msgKey]struct{})

@@ -3,6 +3,7 @@ package message
 import (
 	"sort"
 
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification"
 )
 
@@ -18,7 +19,7 @@ func dedupAlerts(msgs []Message, bundleFunc func(parentID string, duplicateIDs [
 	sort.Slice(toProcess, func(i, j int) bool { return toProcess[i].CreatedAt.Before(toProcess[j].CreatedAt) })
 
 	type msgKey struct {
-		notification.DestHash
+		gadb.DestHash
 		AlertID int
 	}
 	alerts := make(map[msgKey]string, len(msgs))

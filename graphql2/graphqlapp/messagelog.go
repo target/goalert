@@ -30,28 +30,6 @@ func (a *App) formatDestV1(ctx context.Context, dest gadb.DestV1) (string, error
 	return fmt.Sprintf("%s (%s)", dispInfo.Text, typeInfo.Name), nil
 }
 
-func (q *Query) formatDest(ctx context.Context, dst notification.Dest) (string, error) {
-	switch {
-	case dst.Value != "":
-		return (*App)(q).formatDestV1(ctx, dst.ToDestV1())
-	case dst.ID.NCID.Valid:
-		dest, err := (*App)(q).NCStore.FindDestByID(ctx, nil, dst.ID.NCID.UUID)
-		if err != nil {
-			return "", err
-		}
-
-		return (*App)(q).formatDestV1(ctx, dest)
-	case dst.ID.CMID.Valid:
-		dest, err := (*App)(q).CMStore.FindDestByID(ctx, nil, dst.ID.CMID.UUID)
-		if err != nil {
-			return "", err
-		}
-		return (*App)(q).formatDestV1(ctx, dest)
-	}
-
-	return "unknown", nil
-}
-
 func msgStatus(stat notification.Status) string {
 	var str strings.Builder
 	switch stat.State {
@@ -204,21 +182,19 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 
 	for _, _log := range logs {
 		log := _log
-		var dest notification.Dest
+		var dest gadb.DestV1
 		switch {
 		case log.ContactMethodID != uuid.Nil:
-			cm, err := (*App)(q).FindOneCM(ctx, log.ContactMethodID)
+			dest, err = (*App)(q).CMStore.FindDestByID(ctx, q.DB, log.ContactMethodID)
 			if err != nil {
 				return nil, fmt.Errorf("lookup contact method %s: %w", log.ContactMethodID, err)
 			}
-			dest = notification.DestFromPair(cm, nil)
 
 		case log.ChannelID != uuid.Nil:
-			nc, err := (*App)(q).FindOneNC(ctx, log.ChannelID)
+			dest, err = (*App)(q).NCStore.FindDestByID(ctx, q.DB, log.ChannelID)
 			if err != nil {
 				return nil, fmt.Errorf("lookup notification channel %s: %w", log.ChannelID, err)
 			}
-			dest = notification.DestFromPair(nil, nc)
 		}
 
 		dm := graphql2.DebugMessage{
@@ -231,8 +207,8 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 			RetryCount: log.RetryCount,
 			SentAt:     log.SentAt,
 		}
-		if dest.ID.String() != "" {
-			dm.Destination, err = q.formatDest(ctx, dest)
+		if dest.Type != "" {
+			dm.Destination, err = (*App)(q).formatDestV1(ctx, dest)
 			if err != nil {
 				return nil, fmt.Errorf("format dest: %w", err)
 			}
@@ -244,11 +220,7 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 			dm.UserName = &log.UserName
 		}
 		if log.SrcValue != "" {
-			src, err := q.formatDest(ctx, notification.Dest{Type: dest.Type, Value: log.SrcValue})
-			if err != nil {
-				return nil, fmt.Errorf("format src: %w", err)
-			}
-			dm.Source = &src
+			dm.Source = &log.SrcValue
 		}
 		if log.ServiceID != "" {
 			dm.ServiceID = &log.ServiceID

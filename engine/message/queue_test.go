@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/slack"
+	"github.com/target/goalert/notification/twilio"
 )
 
 func TestQueue_Sort(t *testing.T) {
@@ -44,19 +46,19 @@ func TestQueue_Sort(t *testing.T) {
 			// as the user has been notified *somehow*. That way if we need
 			// to make a choice, a user who has gotten no message of any kind
 			// would take priority (all other criteria being equal).
-			Dest:   notification.Dest{Type: notification.DestTypeVoice, Value: "Voice C"},
+			Dest:   twilio.NewVoiceDest("Voice C"),
 			SentAt: n.Add(-2 * time.Minute),
 		},
 		{
 			Type:   notification.MessageTypeTest,
 			UserID: "User H",
-			Dest:   notification.Dest{Type: notification.DestTypeSMS, Value: "SMS H"},
+			Dest:   twilio.NewSMSDest("SMS H"),
 			SentAt: n.Add(-30 * time.Second),
 		},
 		{
 			Type:      notification.MessageTypeAlert,
 			ServiceID: "Service B",
-			Dest:      notification.Dest{Type: notification.DestTypeSlackChannel, Value: "Slack B"},
+			Dest:      slack.NewChannelDest("Slack B"),
 			SentAt:    n.Add(-30 * time.Second),
 		},
 
@@ -66,7 +68,7 @@ func TestQueue_Sort(t *testing.T) {
 			Type:      notification.MessageTypeAlert,
 			UserID:    "User A",
 			ServiceID: "Service A",
-			Dest:      notification.Dest{Type: notification.DestTypeSMS, Value: "SMS A"},
+			Dest:      twilio.NewSMSDest("SMS A"),
 			CreatedAt: n,
 		},
 		{
@@ -74,7 +76,7 @@ func TestQueue_Sort(t *testing.T) {
 			Type:      notification.MessageTypeAlert,
 			UserID:    "User E",
 			ServiceID: "Service B",
-			Dest:      notification.Dest{Type: notification.DestTypeSMS, Value: "SMS E"},
+			Dest:      twilio.NewSMSDest("SMS E"),
 			CreatedAt: n.Add(1),
 		},
 		{
@@ -82,33 +84,33 @@ func TestQueue_Sort(t *testing.T) {
 			Type:      notification.MessageTypeAlert,
 			UserID:    "User H",
 			ServiceID: "Service C",
-			Dest:      notification.Dest{Type: notification.DestTypeSMS, Value: "SMS H"},
+			Dest:      twilio.NewSMSDest("SMS H"),
 			CreatedAt: n.Add(2),
 		},
 		{
 			ID:     "2",
 			Type:   notification.MessageTypeVerification,
 			UserID: "User F",
-			Dest:   notification.Dest{Type: notification.DestTypeSMS, Value: "SMS F"},
+			Dest:   twilio.NewSMSDest("SMS F"),
 		},
 		{
 			// no ID, this message should not be sent this cycle
 			Type:   notification.MessageTypeVerification,
 			UserID: "User A",
-			Dest:   notification.Dest{Type: notification.DestTypeSMS, Value: "SMS A"},
+			Dest:   twilio.NewSMSDest("SMS A"),
 		},
 		{
 			ID:     "3",
 			Type:   notification.MessageTypeTest,
 			UserID: "User B",
-			Dest:   notification.Dest{Type: notification.DestTypeSMS, Value: "SMS B"},
+			Dest:   twilio.NewSMSDest("SMS B"),
 		},
 		{
 			ID:        "4",
 			Type:      notification.MessageTypeAlert,
 			UserID:    "User C",
 			ServiceID: "Service A",
-			Dest:      notification.Dest{Type: notification.DestTypeSMS, Value: "SMS C"},
+			Dest:      twilio.NewSMSDest("SMS C"),
 		},
 
 		// ThrottleConfig limits 5 messages to be sent in 15 min for DestTypeSMS
@@ -116,14 +118,14 @@ func TestQueue_Sort(t *testing.T) {
 			ID:        "5",
 			Type:      notification.MessageTypeAlertStatus,
 			UserID:    "User D",
-			Dest:      notification.Dest{Type: notification.DestTypeSMS, Value: "SMS D"},
+			Dest:      twilio.NewSMSDest("SMS D"),
 			CreatedAt: n,
 		},
 		{
 			ID:        "6",
 			Type:      notification.MessageTypeAlertStatus,
 			UserID:    "User G",
-			Dest:      notification.Dest{Type: notification.DestTypeSMS, Value: "SMS G"},
+			Dest:      twilio.NewSMSDest("SMS G"),
 			CreatedAt: n.Add(1),
 		},
 	}
@@ -145,7 +147,7 @@ func TestQueue_Sort(t *testing.T) {
 	q := newQueue(messages, n)
 
 	// limit the number expected messages to the number allowed to be sent in 15 min
-	rules := q.cmThrottle.cfg.Rules(Message{Type: notification.MessageTypeAlert, Dest: notification.Dest{Type: notification.DestTypeSMS}})
+	rules := q.cmThrottle.cfg.Rules(Message{Type: notification.MessageTypeAlert, Dest: twilio.NewSMSDest("")})
 	expected = expected[:rules[1].Count]
 
 	for i, exp := range expected {

@@ -73,7 +73,7 @@ var (
 	rmParen                                     = regexp.MustCompile(`\s*\(.*?\)`)
 )
 
-func newVoiceDest(number string) gadb.DestV1 {
+func NewVoiceDest(number string) gadb.DestV1 {
 	return gadb.NewDestV1(DestTypeTwilioVoice, FieldPhoneNumber, number)
 }
 
@@ -330,7 +330,7 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 		return
 	case digitConfirm:
 		err := doDeadline(ctx, func() error {
-			return v.r.Stop(ctx, newVoiceDest(call.Number))
+			return v.r.Stop(ctx, NewVoiceDest(call.Number))
 		})
 
 		if errResp(false, errors.Wrap(err, "process STOP response"), "") {

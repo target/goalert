@@ -3,6 +3,7 @@ package message
 import (
 	"sort"
 
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification"
 )
 
@@ -30,7 +31,7 @@ func bundleAlertMessages(messages []Message, newBundleFunc func(Message) (string
 	})
 
 	type key struct {
-		notification.DestHash
+		gadb.DestHash
 		ServiceID string
 	}
 

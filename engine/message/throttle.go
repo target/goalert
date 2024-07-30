@@ -4,7 +4,7 @@ import (
 	"crypto/sha256"
 	"time"
 
-	"github.com/target/goalert/notification"
+	"github.com/target/goalert/gadb"
 )
 
 // Throttle represents the throttled messages for a queue.
@@ -15,12 +15,12 @@ type Throttle struct {
 
 	first    map[ThrottleItem]time.Time
 	count    map[ThrottleItem]int
-	cooldown map[notification.DestHash]bool
+	cooldown map[gadb.DestHash]bool
 }
 
 // ThrottleItem represents the messages being throttled.
 type ThrottleItem struct {
-	DestHash  notification.DestHash
+	DestHash  gadb.DestHash
 	BucketDur time.Duration
 }
 
@@ -50,13 +50,13 @@ func NewThrottle(cfg ThrottleConfig, now time.Time, byTypeOnly bool) *Throttle {
 
 		first:    make(map[ThrottleItem]time.Time),
 		count:    make(map[ThrottleItem]int),
-		cooldown: make(map[notification.DestHash]bool),
+		cooldown: make(map[gadb.DestHash]bool),
 	}
 }
 
-func (tr *Throttle) destKey(d notification.Dest) notification.DestHash {
+func (tr *Throttle) destKey(d gadb.DestV1) gadb.DestHash {
 	if tr.typeOnly {
-		return sha256.Sum256([]byte(d.Type.String()))
+		return sha256.Sum256([]byte(d.Type))
 	}
 
 	return d.DestHash()
