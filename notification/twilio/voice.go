@@ -179,7 +179,7 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 	if !cfg.Twilio.Enable {
 		return nil, errors.New("Twilio provider is disabled")
 	}
-	toNumber := msg.Destination().Value
+	toNumber := msg.Destination().Arg(FieldPhoneNumber)
 
 	if toNumber == cfg.Twilio.FromNumber {
 		return nil, errors.New("refusing to make outgoing call to FromNumber")
