@@ -14,7 +14,7 @@ func (h *Harness) watchBackendLogs(r io.Reader) {
 		Source       string
 		Level        string
 		SQL          string
-		ProviderType json.Number
+		ProviderType string
 		URL          string
 	}
 
