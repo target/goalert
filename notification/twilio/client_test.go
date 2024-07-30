@@ -13,10 +13,7 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.Test{
-				Dest: notification.Dest{
-					Type:  notification.DestTypeVoice,
-					Value: "+16125551234",
-				},
+				Dest:       newVoiceDest("+16125551234"),
 				CallbackID: "2",
 			},
 		)
@@ -33,10 +30,7 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.AlertBundle{
-				Dest: notification.Dest{
-					Type:  notification.DestTypeVoice,
-					Value: "+16125551234",
-				},
+				Dest:        newVoiceDest("+16125551234"),
 				CallbackID:  "2",
 				ServiceID:   "3",
 				ServiceName: "Widget",
@@ -82,10 +76,7 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.AlertStatus{
-				Dest: notification.Dest{
-					Type:  notification.DestTypeVoice,
-					Value: "+16125551234",
-				},
+				Dest:       newVoiceDest("+16125551234"),
 				CallbackID: "2",
 				AlertID:    3,
 				Summary:    "Widget is Broken",
@@ -106,10 +97,7 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.Verification{
-				Dest: notification.Dest{
-					Type:  notification.DestTypeVoice,
-					Value: "+16125551234",
-				},
+				Dest:       newVoiceDest("+16125551234"),
 				CallbackID: "2",
 				Code:       1234,
 			},
@@ -127,10 +115,7 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.ScheduleOnCallUsers{
-				Dest: notification.Dest{
-					Type:  notification.DestTypeVoice,
-					Value: "+16125551234",
-				},
+				Dest:         newVoiceDest("+16125551234"),
 				CallbackID:   "2",
 				ScheduleID:   "3",
 				ScheduleName: "4",

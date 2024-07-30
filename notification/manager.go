@@ -39,46 +39,16 @@ func (mgr *Manager) SetStubNotifiers() {
 	mgr.stubNotifiers = true
 }
 
-// FormatDestValue will format the destination value if an available FriendlyValuer exists
-// for the destType or return the original.
-func (mgr *Manager) FormatDestValue(ctx context.Context, destType DestType, value string) string {
-	if value == "" {
-		return ""
-	}
-	mgr.mx.RLock()
-	defer mgr.mx.RUnlock()
-
-	for _, s := range mgr.searchOrder {
-		if s.destType != destType {
-			continue
-		}
-
-		f, ok := s.Sender.(FriendlyValuer)
-		if !ok {
-			continue
-		}
-
-		newValue, err := f.FriendlyValue(ctx, value)
-		if err != nil {
-			log.Log(ctx, fmt.Errorf("format dest value with '%s': %w", s.name, err))
-			continue
-		}
-
-		return newValue
-	}
-	return value
-}
-
 // MessageStatus will return the current status of a message.
-func (mgr *Manager) MessageStatus(ctx context.Context, providerMsgID ProviderMessageID) (*Status, DestType, error) {
+func (mgr *Manager) MessageStatus(ctx context.Context, providerMsgID ProviderMessageID) (*Status, string, error) {
 	provider := mgr.providers[providerMsgID.ProviderName]
 	if provider == nil {
-		return nil, DestTypeUnknown, errors.Errorf("unknown provider ID '%s'", providerMsgID.ProviderName)
+		return nil, "", errors.Errorf("unknown provider ID '%s'", providerMsgID.ProviderName)
 	}
 
 	checker, ok := provider.Sender.(StatusChecker)
 	if !ok {
-		return nil, DestTypeUnknown, ErrStatusUnsupported
+		return nil, "", ErrStatusUnsupported
 	}
 
 	status, err := checker.Status(ctx, providerMsgID.ExternalID)
@@ -87,7 +57,7 @@ func (mgr *Manager) MessageStatus(ctx context.Context, providerMsgID ProviderMes
 
 // RegisterSender will register a sender under a given DestType and name.
 // A sender for the same name and type will replace an existing one, if any.
-func (mgr *Manager) RegisterSender(t DestType, name string, s Sender) {
+func (mgr *Manager) RegisterSender(t, name string, s Sender) {
 	mgr.mx.Lock()
 	defer mgr.mx.Unlock()
 
@@ -150,7 +120,7 @@ func (mgr *Manager) SendMessage(ctx context.Context, msg Message) (*SendResult, 
 		}
 		log.Logf(sendCtx, "notification sent")
 		metricSentTotal.
-			WithLabelValues(msg.Destination().Type.String(), string(msg.Type()), msgSvcID(msg)).
+			WithLabelValues(msg.Destination().Type, string(msg.Type()), msgSvcID(msg)).
 			Inc()
 		// status already wrapped via namedSender
 		return res, nil

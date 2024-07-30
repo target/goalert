@@ -38,7 +38,7 @@ type SendResult struct {
 
 	Status
 
-	DestType DestType
+	DestType string
 }
 
 // State represents the current state of an outgoing message.
