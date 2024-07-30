@@ -54,8 +54,7 @@ func TestSetMsgParams(t *testing.T) {
 		err := result.setMsgParams(
 			notification.Alert{
 				Dest: notification.Dest{
-					Type:  notification.DestTypeVoice,
-					Value: "+16125551234",
+					DestV1: newVoiceDest("+16125551234"),
 				},
 				CallbackID: "2",
 				AlertID:    3,

@@ -26,7 +26,7 @@ var _ Message = &Alert{}
 
 func (a Alert) Type() MessageType        { return MessageTypeAlert }
 func (a Alert) ID() string               { return a.CallbackID }
-func (a Alert) Destination() gadb.DestV1 { return a.Dest.ToDestV1() }
+func (a Alert) Destination() gadb.DestV1 { return a.Dest.DestV1 }
 func (a Alert) Body() string             { return a.Summary }
 func (a Alert) ExtendedBody() string     { return a.Details }
 func (a Alert) SubjectID() int           { return a.AlertID }

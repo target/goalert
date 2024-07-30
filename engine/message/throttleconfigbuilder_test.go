@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/engine/message"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/twilio"
 )
@@ -25,13 +26,13 @@ func TestThrottleConfigBuilder(t *testing.T) {
 
 	assert.Equal(t, 7*time.Minute, cfg.MaxDuration())
 
-	check := func(dest notification.DestType, msg notification.MessageType, expRules []message.ThrottleRule) {
+	check := func(dest string, msg notification.MessageType, expRules []message.ThrottleRule) {
 		t.Helper()
-		assert.EqualValues(t, expRules, cfg.Rules(message.Message{Type: msg, Dest: notification.Dest{Type: dest}}))
+		assert.EqualValues(t, expRules, cfg.Rules(message.Message{Type: msg, Dest: notification.Dest{DestV1: gadb.DestV1{Type: dest}}}))
 	}
 
 	check(
-		notification.DestTypeUnknown,
+		"",
 		notification.MessageTypeUnknown,
 		[]message.ThrottleRule{
 			{Count: 1, Per: 2 * time.Minute},
@@ -39,7 +40,7 @@ func TestThrottleConfigBuilder(t *testing.T) {
 	)
 
 	check(
-		notification.DestTypeSMS,
+		twilio.DestTypeTwilioSMS,
 		notification.MessageTypeUnknown,
 		[]message.ThrottleRule{
 			{Count: 1, Per: 2 * time.Minute},
@@ -48,7 +49,7 @@ func TestThrottleConfigBuilder(t *testing.T) {
 	)
 
 	check(
-		notification.DestTypeVoice,
+		twilio.DestTypeTwilioVoice,
 		notification.MessageTypeAlert,
 		[]message.ThrottleRule{
 			{Count: 1, Per: 2 * time.Minute},
@@ -57,7 +58,7 @@ func TestThrottleConfigBuilder(t *testing.T) {
 	)
 
 	check(
-		notification.DestTypeVoice,
+		twilio.DestTypeTwilioVoice,
 		notification.MessageTypeTest,
 		[]message.ThrottleRule{
 			{Count: 1, Per: 2 * time.Minute},
@@ -66,7 +67,7 @@ func TestThrottleConfigBuilder(t *testing.T) {
 	)
 
 	check(
-		notification.DestTypeSMS,
+		twilio.DestTypeTwilioSMS,
 		notification.MessageTypeAlert,
 		[]message.ThrottleRule{
 			{Count: 1, Per: 2 * time.Minute},

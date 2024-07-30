@@ -244,11 +244,7 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 			dm.UserName = &log.UserName
 		}
 		if log.SrcValue != "" {
-			src, err := q.formatDest(ctx, notification.Dest{Type: dest.Type, Value: log.SrcValue})
-			if err != nil {
-				return nil, fmt.Errorf("format src: %w", err)
-			}
-			dm.Source = &src
+			dm.Source = &log.SrcValue
 		}
 		if log.ServiceID != "" {
 			dm.ServiceID = &log.ServiceID

@@ -94,7 +94,7 @@ func (r builderRules) match(msg Message) bool {
 
 	destMatch := len(r.dstTypes) == 0
 	for _, dst := range r.dstTypes {
-		if dst != msg.Dest.ToDestV1().Type {
+		if dst != msg.Dest.Type {
 			continue
 		}
 

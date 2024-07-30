@@ -51,7 +51,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			}, nil
 		}
 		notifMsg = notification.AlertBundle{
-			Dest:        msg.Dest.ToDestV1(),
+			Dest:        msg.Dest.DestV1,
 			CallbackID:  msg.ID,
 			ServiceID:   msg.ServiceID,
 			ServiceName: name,
@@ -119,7 +119,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 
 		notifMsg = notification.AlertStatus{
-			Dest:           msg.Dest.ToDestV1(),
+			Dest:           msg.Dest.DestV1,
 			AlertID:        e.AlertID(),
 			ServiceID:      a.ServiceID,
 			CallbackID:     msg.ID,
@@ -131,7 +131,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 	case notification.MessageTypeTest:
 		notifMsg = notification.Test{
-			Dest:       msg.Dest.ToDestV1(),
+			Dest:       msg.Dest.DestV1,
 			CallbackID: msg.ID,
 		}
 	case notification.MessageTypeVerification:
@@ -140,7 +140,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			return nil, errors.Wrap(err, "lookup verification code")
 		}
 		notifMsg = notification.Verification{
-			Dest:       msg.Dest.ToDestV1(),
+			Dest:       msg.Dest.DestV1,
 			CallbackID: msg.ID,
 			Code:       code,
 		}
@@ -164,7 +164,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 
 		notifMsg = notification.ScheduleOnCallUsers{
-			Dest:         msg.Dest.ToDestV1(),
+			Dest:         msg.Dest.DestV1,
 			CallbackID:   msg.ID,
 			ScheduleName: sched.Name,
 			ScheduleURL:  p.cfg.ConfigSource.Config().CallbackURL("/schedules/" + msg.ScheduleID),
@@ -188,7 +188,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 
 		notifMsg = notification.SignalMessage{
-			Dest:       msg.Dest.ToDestV1(),
+			Dest:       msg.Dest.DestV1,
 			CallbackID: msg.ID,
 			Params:     params,
 		}
