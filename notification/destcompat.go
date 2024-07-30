@@ -76,5 +76,5 @@ func (d Dest) ToDestV1() gadb.DestV1 {
 		}
 	}
 
-	panic("unsupported destination type " + d.Type.String())
+	return gadb.DestV1{}
 }
