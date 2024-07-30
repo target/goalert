@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/engine/message"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/twilio"
 )
 
 func TestThrottleConfigBuilder(t *testing.T) {
@@ -14,11 +15,11 @@ func TestThrottleConfigBuilder(t *testing.T) {
 
 	b.AddRules([]message.ThrottleRule{{Count: 1, Per: 2 * time.Minute}})
 
-	b.WithDestTypes(notification.DestTypeSMS).AddRules([]message.ThrottleRule{{Count: 2, Per: 3 * time.Minute}})
+	b.WithDestTypes(twilio.DestTypeTwilioSMS).AddRules([]message.ThrottleRule{{Count: 2, Per: 3 * time.Minute}})
 
 	b.WithMsgTypes(notification.MessageTypeAlert).AddRules([]message.ThrottleRule{{Count: 3, Per: 5 * time.Minute}})
 
-	b.WithDestTypes(notification.DestTypeVoice).WithMsgTypes(notification.MessageTypeTest).AddRules([]message.ThrottleRule{{Count: 5, Per: 7 * time.Minute}})
+	b.WithDestTypes(twilio.DestTypeTwilioVoice).WithMsgTypes(notification.MessageTypeTest).AddRules([]message.ThrottleRule{{Count: 5, Per: 7 * time.Minute}})
 
 	cfg := b.Config()
 
@@ -73,5 +74,4 @@ func TestThrottleConfigBuilder(t *testing.T) {
 			{Count: 3, Per: 5 * time.Minute},
 		},
 	)
-
 }
