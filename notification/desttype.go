@@ -54,6 +54,10 @@ func (d Dest) DestHash() DestHash {
 	return DestHash(sha256.Sum256([]byte(fmt.Sprintf("%s\n%s\n", d.Type.String(), d.Value))))
 }
 
+func (d Dest) DestType() string {
+	return d.Type.String()
+}
+
 type SQLDest struct {
 	CMID    uuid.NullUUID
 	CMType  gadb.NullEnumUserContactMethodType

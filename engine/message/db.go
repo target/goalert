@@ -660,7 +660,7 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 	var wg sync.WaitGroup
 	for _, t := range q.Types() {
 		wg.Add(1)
-		go func(typ notification.DestType) {
+		go func(typ string) {
 			defer wg.Done()
 			err := db.sendMessagesByType(ctx, cLock, send, q, typ)
 			if err != nil && !errors.Is(err, processinglock.ErrNoLock) {
@@ -745,7 +745,7 @@ func (db *DB) updateStuckMessages(ctx context.Context, statusFn StatusFunc) erro
 	return nil
 }
 
-func (db *DB) sendMessagesByType(ctx context.Context, cLock *processinglock.Conn, send SendFunc, q *queue, typ notification.DestType) error {
+func (db *DB) sendMessagesByType(ctx context.Context, cLock *processinglock.Conn, send SendFunc, q *queue, typ string) error {
 	ch := make(chan error)
 	var count int
 	for {
