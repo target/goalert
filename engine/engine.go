@@ -417,7 +417,7 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 func (p *Engine) Start(ctx context.Context, d notification.Dest) error {
 	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		err = p.cfg.ContactMethodStore.EnableByValue(ctx, p.b.db, d.Type.CMType(), d.Value)
+		err = p.cfg.ContactMethodStore.EnableByDest(ctx, p.b.db, d.ToDestV1())
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -433,7 +433,7 @@ func (p *Engine) Start(ctx context.Context, d notification.Dest) error {
 func (p *Engine) Stop(ctx context.Context, d notification.Dest) error {
 	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		err = p.cfg.ContactMethodStore.DisableByValue(ctx, p.b.db, d.Type.CMType(), d.Value)
+		err = p.cfg.ContactMethodStore.DisableByDest(ctx, p.b.db, d.ToDestV1())
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {

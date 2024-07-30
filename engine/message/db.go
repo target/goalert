@@ -784,7 +784,7 @@ func (db *DB) sendMessagesByType(ctx context.Context, cLock *processinglock.Conn
 func (db *DB) sendMessage(ctx context.Context, cLock *processinglock.Conn, send SendFunc, m *Message) (bool, error) {
 	ctx = log.WithFields(ctx, log.Fields{
 		"DestTypeID": m.Dest.ID,
-		"DestType":   m.Dest.Type.String(),
+		"DestType":   m.Dest.DestType(),
 		"CallbackID": m.ID,
 	})
 

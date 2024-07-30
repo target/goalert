@@ -89,14 +89,13 @@ FROM
 WHERE
     id = ANY ($1::uuid[]);
 
--- name: ContactMethodEnable :one
+-- name: ContactMethodEnableDisable :one
 UPDATE
     user_contact_methods
 SET
-    disabled = FALSE
+    disabled = $2
 WHERE
-    type = $1
-    AND value = $2
+    dest = $1
 RETURNING
     id;
 
@@ -114,19 +113,8 @@ WHERE
 UPDATE
     user_contact_methods
 SET
-    metadata = jsonb_set(jsonb_set(metadata, '{CarrierV1}', @carrier_v1::jsonb), '{CarrierV1,UpdatedAt}',('"' || NOW()::timestamptz AT TIME ZONE 'UTC' || '"')::jsonb) 
+    metadata = jsonb_set(jsonb_set(metadata, '{CarrierV1}', @carrier_v1::jsonb), '{CarrierV1,UpdatedAt}',('"' || NOW()::timestamptz AT TIME ZONE 'UTC' || '"')::jsonb)
 WHERE
     type = $1
     AND value = $2;
-
--- name: ContactMethodDisable :one
-UPDATE
-    user_contact_methods
-SET
-    disabled = TRUE
-WHERE
-    type = $1
-    AND value = $2
-RETURNING
-    id;
 

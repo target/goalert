@@ -55,19 +55,16 @@ func (s *Store) SetCarrierV1MetadataByTypeValue(ctx context.Context, dbtx gadb.D
 	return nil
 }
 
-func (s *Store) EnableByValue(ctx context.Context, dbtx gadb.DBTX, t Type, v string) error {
+func (s *Store) EnableByDest(ctx context.Context, dbtx gadb.DBTX, dest gadb.DestV1) error {
 	err := permission.LimitCheckAny(ctx, permission.System)
 	if err != nil {
 		return err
 	}
 
-	c := ContactMethod{Name: "Enable", Type: t, Value: v}
-	n, err := c.Normalize()
-	if err != nil {
-		return err
-	}
-
-	id, err := gadb.New(dbtx).ContactMethodEnable(ctx, gadb.ContactMethodEnableParams{Type: gadb.EnumUserContactMethodType(n.Type), Value: n.Value})
+	id, err := gadb.New(dbtx).ContactMethodEnableDisable(ctx, gadb.ContactMethodEnableDisableParams{
+		Dest:     gadb.NullDestV1{Valid: true, DestV1: dest},
+		Disabled: false,
+	})
 
 	if err == nil {
 		// NOTE: maintain a record of consent/dissent
@@ -81,19 +78,16 @@ func (s *Store) EnableByValue(ctx context.Context, dbtx gadb.DBTX, t Type, v str
 	return err
 }
 
-func (s *Store) DisableByValue(ctx context.Context, dbtx gadb.DBTX, t Type, v string) error {
+func (s *Store) DisableByDest(ctx context.Context, dbtx gadb.DBTX, dest gadb.DestV1) error {
 	err := permission.LimitCheckAny(ctx, permission.System)
 	if err != nil {
 		return err
 	}
 
-	c := ContactMethod{Name: "Disable", Type: t, Value: v}
-	n, err := c.Normalize()
-	if err != nil {
-		return err
-	}
-
-	id, err := gadb.New(dbtx).ContactMethodDisable(ctx, gadb.ContactMethodDisableParams{Type: gadb.EnumUserContactMethodType(n.Type), Value: v})
+	id, err := gadb.New(dbtx).ContactMethodEnableDisable(ctx, gadb.ContactMethodEnableDisableParams{
+		Dest:     gadb.NullDestV1{Valid: true, DestV1: dest},
+		Disabled: true,
+	})
 
 	if err == nil {
 		// NOTE: maintain a record of consent/dissent

@@ -863,49 +863,24 @@ func (q *Queries) ContactMethodAdd(ctx context.Context, arg ContactMethodAddPara
 	return err
 }
 
-const contactMethodDisable = `-- name: ContactMethodDisable :one
+const contactMethodEnableDisable = `-- name: ContactMethodEnableDisable :one
 UPDATE
     user_contact_methods
 SET
-    disabled = TRUE
+    disabled = $2
 WHERE
-    type = $1
-    AND value = $2
+    dest = $1
 RETURNING
     id
 `
 
-type ContactMethodDisableParams struct {
-	Type  EnumUserContactMethodType
-	Value string
+type ContactMethodEnableDisableParams struct {
+	Dest     NullDestV1
+	Disabled bool
 }
 
-func (q *Queries) ContactMethodDisable(ctx context.Context, arg ContactMethodDisableParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, contactMethodDisable, arg.Type, arg.Value)
-	var id uuid.UUID
-	err := row.Scan(&id)
-	return id, err
-}
-
-const contactMethodEnable = `-- name: ContactMethodEnable :one
-UPDATE
-    user_contact_methods
-SET
-    disabled = FALSE
-WHERE
-    type = $1
-    AND value = $2
-RETURNING
-    id
-`
-
-type ContactMethodEnableParams struct {
-	Type  EnumUserContactMethodType
-	Value string
-}
-
-func (q *Queries) ContactMethodEnable(ctx context.Context, arg ContactMethodEnableParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, contactMethodEnable, arg.Type, arg.Value)
+func (q *Queries) ContactMethodEnableDisable(ctx context.Context, arg ContactMethodEnableDisableParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, contactMethodEnableDisable, arg.Dest, arg.Disabled)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
@@ -1220,7 +1195,7 @@ const contactMethodUpdateMetaTV = `-- name: ContactMethodUpdateMetaTV :exec
 UPDATE
     user_contact_methods
 SET
-    metadata = jsonb_set(jsonb_set(metadata, '{CarrierV1}', $3::jsonb), '{CarrierV1,UpdatedAt}',('"' || NOW()::timestamptz AT TIME ZONE 'UTC' || '"')::jsonb) 
+    metadata = jsonb_set(jsonb_set(metadata, '{CarrierV1}', $3::jsonb), '{CarrierV1,UpdatedAt}',('"' || NOW()::timestamptz AT TIME ZONE 'UTC' || '"')::jsonb)
 WHERE
     type = $1
     AND value = $2
