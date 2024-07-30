@@ -2013,11 +2013,8 @@ SELECT
     msg.id,
     msg.message_type,
     cm.id AS cm_id,
-    cm.type AS cm_type,
-    cm.value AS cm_value,
     chan.id AS chan_id,
-    chan.type AS chan_type,
-    chan.value AS chan_value,
+    coalesce(cm.dest, chan.dest) AS dest,
     msg.alert_id,
     msg.alert_log_id,
     msg.user_verification_code_id,
@@ -2043,11 +2040,8 @@ type MessageMgrGetPendingRow struct {
 	ID                     uuid.UUID
 	MessageType            EnumOutgoingMessagesType
 	CmID                   uuid.NullUUID
-	CmType                 NullEnumUserContactMethodType
-	CmValue                sql.NullString
 	ChanID                 uuid.NullUUID
-	ChanType               NullEnumNotifChannelType
-	ChanValue              sql.NullString
+	Dest                   NullDestV1
 	AlertID                sql.NullInt64
 	AlertLogID             sql.NullInt64
 	UserVerificationCodeID uuid.NullUUID
@@ -2072,11 +2066,8 @@ func (q *Queries) MessageMgrGetPending(ctx context.Context, sentAt sql.NullTime)
 			&i.ID,
 			&i.MessageType,
 			&i.CmID,
-			&i.CmType,
-			&i.CmValue,
 			&i.ChanID,
-			&i.ChanType,
-			&i.ChanValue,
+			&i.Dest,
 			&i.AlertID,
 			&i.AlertLogID,
 			&i.UserVerificationCodeID,

@@ -16,42 +16,6 @@ import (
 
 type MessageLog App
 
-func (a *App) formatDestV1(ctx context.Context, dest gadb.DestV1) (string, error) {
-	typeInfo, err := a.DestReg.TypeInfo(ctx, dest.Type)
-	if err != nil {
-		return "", err
-	}
-
-	dispInfo, err := a.DestReg.DisplayInfo(ctx, dest)
-	if err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf("%s (%s)", dispInfo.Text, typeInfo.Name), nil
-}
-
-func (q *Query) formatDest(ctx context.Context, dst notification.Dest) (string, error) {
-	switch {
-	case dst.Value != "":
-		return (*App)(q).formatDestV1(ctx, dst.ToDestV1())
-	case dst.ID.NCID.Valid:
-		dest, err := (*App)(q).NCStore.FindDestByID(ctx, nil, dst.ID.NCID.UUID)
-		if err != nil {
-			return "", err
-		}
-
-		return (*App)(q).formatDestV1(ctx, dest)
-	case dst.ID.CMID.Valid:
-		dest, err := (*App)(q).CMStore.FindDestByID(ctx, nil, dst.ID.CMID.UUID)
-		if err != nil {
-			return "", err
-		}
-		return (*App)(q).formatDestV1(ctx, dest)
-	}
-
-	return "unknown", nil
-}
-
 func msgStatus(stat notification.Status) string {
 	var str strings.Builder
 	switch stat.State {
@@ -204,21 +168,19 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 
 	for _, _log := range logs {
 		log := _log
-		var dest notification.Dest
+		var dest gadb.DestV1
 		switch {
 		case log.ContactMethodID != uuid.Nil:
-			cm, err := (*App)(q).FindOneCM(ctx, log.ContactMethodID)
+			dest, err = q.CMStore.FindDestByID(ctx, q.DB, log.ContactMethodID)
 			if err != nil {
 				return nil, fmt.Errorf("lookup contact method %s: %w", log.ContactMethodID, err)
 			}
-			dest = notification.DestFromPair(cm, nil)
 
 		case log.ChannelID != uuid.Nil:
-			nc, err := (*App)(q).FindOneNC(ctx, log.ChannelID)
+			dest, err = q.NCStore.FindDestByID(ctx, q.DB, log.ChannelID)
 			if err != nil {
 				return nil, fmt.Errorf("lookup notification channel %s: %w", log.ChannelID, err)
 			}
-			dest = notification.DestFromPair(nil, nc)
 		}
 
 		dm := graphql2.DebugMessage{
@@ -231,11 +193,12 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 			RetryCount: log.RetryCount,
 			SentAt:     log.SentAt,
 		}
-		if dest.ID.String() != "" {
-			dm.Destination, err = q.formatDest(ctx, dest)
+		if dest.Type != "" {
+			info, err := q.DestReg.DisplayInfo(ctx, dest)
 			if err != nil {
-				return nil, fmt.Errorf("format dest: %w", err)
+				return nil, fmt.Errorf("lookup dest %s: %w", dest, err)
 			}
+			dm.Destination = info.Text
 		}
 		if log.UserID != "" {
 			dm.UserID = &log.UserID
