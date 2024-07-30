@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/target/goalert/auth/authlink"
+	"github.com/target/goalert/gadb"
 )
 
 type namedReceiver struct {
@@ -14,8 +15,8 @@ type namedReceiver struct {
 var _ Receiver = &namedReceiver{}
 
 // IsKnownDest calls the underlying ResultReceiver.IsKnownDest method for the current type.
-func (nr *namedReceiver) IsKnownDest(ctx context.Context, value string) (bool, error) {
-	return nr.r.IsKnownDest(ctx, nr.ns.destType, value)
+func (nr *namedReceiver) IsKnownDest(ctx context.Context, dest gadb.DestV1) (bool, error) {
+	return nr.r.IsKnownDest(ctx, dest)
 }
 
 // SetMessageStatus calls the underlying ResultReceiver's SetSendResult method after wrapping the status for the

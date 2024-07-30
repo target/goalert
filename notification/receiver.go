@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/target/goalert/auth/authlink"
+	"github.com/target/goalert/gadb"
 )
 
 // A Receiver processes incoming messages and responses.
@@ -27,7 +28,7 @@ type Receiver interface {
 	Stop(context.Context, Dest) error
 
 	// IsKnownDest checks if the given destination is known/not disabled.
-	IsKnownDest(ctx context.Context, value string) (bool, error)
+	IsKnownDest(ctx context.Context, dest gadb.DestV1) (bool, error)
 }
 
 // UnknownSubjectError is returned from ReceiveSubject when the subject is unknown.

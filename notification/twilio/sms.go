@@ -15,6 +15,7 @@ import (
 	"github.com/nyaruka/phonenumbers"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
@@ -249,7 +250,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 		}
 
 		if isPassive {
-			valid, err := s.r.IsKnownDest(ctx, from)
+			valid, err := s.r.IsKnownDest(ctx, gadb.NewDestV1(DestTypeTwilioSMS, FieldPhoneNumber, from))
 			if err != nil {
 				log.Log(ctx, fmt.Errorf("check if known SMS number: %w", err))
 			} else if !valid {
