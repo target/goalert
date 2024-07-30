@@ -34,6 +34,7 @@ type AlertStatus struct {
 
 var _ Message = &AlertStatus{}
 
-func (s AlertStatus) Type() MessageType        { return MessageTypeAlertStatus }
-func (s AlertStatus) ID() string               { return s.CallbackID }
+func (s AlertStatus) Type() MessageType { return MessageTypeAlertStatus }
+func (s AlertStatus) ID() string        { return s.CallbackID }
+
 func (s AlertStatus) Destination() gadb.DestV1 { return s.Dest }

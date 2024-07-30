@@ -13,6 +13,7 @@ type AlertBundle struct {
 
 var _ Message = &AlertBundle{}
 
-func (b AlertBundle) Type() MessageType        { return MessageTypeAlertBundle }
-func (b AlertBundle) ID() string               { return b.CallbackID }
+func (b AlertBundle) Type() MessageType { return MessageTypeAlertBundle }
+func (b AlertBundle) ID() string        { return b.CallbackID }
+
 func (b AlertBundle) Destination() gadb.DestV1 { return b.Dest }

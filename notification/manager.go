@@ -39,6 +39,36 @@ func (mgr *Manager) SetStubNotifiers() {
 	mgr.stubNotifiers = true
 }
 
+// FormatDestValue will format the destination value if an available FriendlyValuer exists
+// for the destType or return the original.
+func (mgr *Manager) FormatDestValue(ctx context.Context, destType string, value string) string {
+	if value == "" {
+		return ""
+	}
+	mgr.mx.RLock()
+	defer mgr.mx.RUnlock()
+
+	for _, s := range mgr.searchOrder {
+		if s.destType != destType {
+			continue
+		}
+
+		f, ok := s.Sender.(FriendlyValuer)
+		if !ok {
+			continue
+		}
+
+		newValue, err := f.FriendlyValue(ctx, value)
+		if err != nil {
+			log.Log(ctx, fmt.Errorf("format dest value with '%s': %w", s.name, err))
+			continue
+		}
+
+		return newValue
+	}
+	return value
+}
+
 // MessageStatus will return the current status of a message.
 func (mgr *Manager) MessageStatus(ctx context.Context, providerMsgID ProviderMessageID) (*Status, string, error) {
 	provider := mgr.providers[providerMsgID.ProviderName]
