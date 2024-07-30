@@ -11,9 +11,10 @@ type Verification struct {
 
 var _ Message = &Verification{}
 
-func (v Verification) Type() MessageType        { return MessageTypeVerification }
-func (v Verification) ID() string               { return v.CallbackID }
+func (v Verification) Type() MessageType    { return MessageTypeVerification }
+func (v Verification) ID() string           { return v.CallbackID }
+func (v Verification) Body() string         { return "" }
+func (v Verification) ExtendedBody() string { return "" }
+func (v Verification) SubjectID() int       { return v.Code }
+
 func (v Verification) Destination() gadb.DestV1 { return v.Dest }
-func (v Verification) Body() string             { return "" }
-func (v Verification) ExtendedBody() string     { return "" }
-func (v Verification) SubjectID() int           { return v.Code }
