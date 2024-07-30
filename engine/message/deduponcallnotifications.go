@@ -13,13 +13,13 @@ func dedupOnCallNotifications(messages []Message) ([]Message, []string) {
 
 	type msgKey struct {
 		scheduleID string
-		dest       notification.Dest
+		dest       notification.DestHash
 	}
 
 	m := make(map[msgKey]struct{})
 	var toDelete []string
 	for _, msg := range toProcess {
-		key := msgKey{scheduleID: msg.ScheduleID, dest: msg.Dest}
+		key := msgKey{scheduleID: msg.ScheduleID, dest: msg.Dest.DestHash()}
 		if _, ok := m[key]; ok {
 			toDelete = append(toDelete, msg.ID)
 			continue

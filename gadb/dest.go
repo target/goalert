@@ -5,6 +5,22 @@ import (
 	"fmt"
 )
 
+func NewDestV1(typeID string, args ...string) DestV1 {
+	d := DestV1{
+		Type: typeID,
+	}
+
+	if len(args)%2 != 0 {
+		panic("args must be key-value pairs")
+	}
+
+	for i := 0; i < len(args); i += 2 {
+		d.SetArg(args[i], args[i+1])
+	}
+
+	return d
+}
+
 type DestV1 struct {
 	Args map[string]string
 	Type string

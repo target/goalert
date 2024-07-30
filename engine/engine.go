@@ -25,6 +25,7 @@ import (
 	"github.com/target/goalert/engine/statusmgr"
 	"github.com/target/goalert/engine/verifymanager"
 	"github.com/target/goalert/expflag"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
@@ -414,10 +415,10 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 
 // Start will enable all associated contact methods of `value` with type `t`. This should
 // be invoked if a user, for example, responds with `START` via sms.
-func (p *Engine) Start(ctx context.Context, d notification.Dest) error {
+func (p *Engine) Start(ctx context.Context, d gadb.DestV1) error {
 	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		err = p.cfg.ContactMethodStore.EnableByValue(ctx, p.b.db, d.Type.CMType(), d.Value)
+		err = p.cfg.ContactMethodStore.EnableByDest(ctx, p.b.db, d)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -430,10 +431,10 @@ func (p *Engine) Start(ctx context.Context, d notification.Dest) error {
 
 // Stop will disable all associated contact methods of `value` with type `t`. This should
 // be invoked if a user, for example, responds with `STOP` via SMS.
-func (p *Engine) Stop(ctx context.Context, d notification.Dest) error {
+func (p *Engine) Stop(ctx context.Context, d gadb.DestV1) error {
 	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		err = p.cfg.ContactMethodStore.DisableByValue(ctx, p.b.db, d.Type.CMType(), d.Value)
+		err = p.cfg.ContactMethodStore.DisableByDest(ctx, p.b.db, d)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {

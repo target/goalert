@@ -16,16 +16,7 @@ import (
 
 type MessageLog App
 
-func (a *App) formatNC(ctx context.Context, id uuid.UUID) (string, error) {
-	if id == uuid.Nil {
-		return "", nil
-	}
-
-	dest, err := a.NCStore.FindDestByID(ctx, nil, id)
-	if err != nil {
-		return "", err
-	}
-
+func (a *App) formatDestV1(ctx context.Context, dest gadb.DestV1) (string, error) {
 	typeInfo, err := a.DestReg.TypeInfo(ctx, dest.Type)
 	if err != nil {
 		return "", err
@@ -40,28 +31,25 @@ func (a *App) formatNC(ctx context.Context, id uuid.UUID) (string, error) {
 }
 
 func (q *Query) formatDest(ctx context.Context, dst notification.Dest) (string, error) {
-	if !dst.ID.IsUserCM() {
-		return (*App)(q).formatNC(ctx, dst.ID.UUID())
+	switch {
+	case dst.Value != "":
+		return (*App)(q).formatDestV1(ctx, dst.ToDestV1())
+	case dst.ID.NCID.Valid:
+		dest, err := (*App)(q).NCStore.FindDestByID(ctx, nil, dst.ID.NCID.UUID)
+		if err != nil {
+			return "", err
+		}
+
+		return (*App)(q).formatDestV1(ctx, dest)
+	case dst.ID.CMID.Valid:
+		dest, err := (*App)(q).CMStore.FindDestByID(ctx, nil, dst.ID.CMID.UUID)
+		if err != nil {
+			return "", err
+		}
+		return (*App)(q).formatDestV1(ctx, dest)
 	}
 
-	var str strings.Builder
-	str.WriteString((*App)(q).FormatDestFunc(ctx, dst.Type, dst.Value))
-	switch dst.Type {
-	case notification.DestTypeSMS:
-		str.WriteString(" (SMS)")
-	case notification.DestTypeUserEmail:
-		str.WriteString(" (Email)")
-	case notification.DestTypeVoice:
-		str.WriteString(" (Voice)")
-	case notification.DestTypeUserWebhook:
-		str.Reset()
-		str.WriteString("Webhook")
-	default:
-		str.Reset()
-		str.WriteString(dst.Type.String())
-	}
-
-	return str.String(), nil
+	return "unknown", nil
 }
 
 func msgStatus(stat notification.Status) string {

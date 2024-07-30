@@ -66,7 +66,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		if err != nil {
 			return nil, errors.Wrap(err, "lookup alert")
 		}
-		stat, err := p.cfg.NotificationStore.OriginalMessageStatus(ctx, msg.AlertID, msg.Dest)
+		stat, err := p.cfg.NotificationStore.OriginalMessageStatus(ctx, msg.AlertID, msg.Dest.ID)
 		if err != nil {
 			return nil, fmt.Errorf("lookup original message: %w", err)
 		}
@@ -100,7 +100,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		if err != nil {
 			return nil, fmt.Errorf("lookup original alert: %w", err)
 		}
-		stat, err := p.cfg.NotificationStore.OriginalMessageStatus(ctx, msg.AlertID, msg.Dest)
+		stat, err := p.cfg.NotificationStore.OriginalMessageStatus(ctx, msg.AlertID, msg.Dest.ID)
 		if err != nil {
 			return nil, fmt.Errorf("lookup original message: %w", err)
 		}

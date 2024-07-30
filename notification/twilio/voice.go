@@ -18,6 +18,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
@@ -71,6 +72,10 @@ var (
 	_               notification.FriendlyValuer = &Voice{}
 	rmParen                                     = regexp.MustCompile(`\s*\(.*?\)`)
 )
+
+func newVoiceDest(number string) gadb.DestV1 {
+	return gadb.NewDestV1(DestTypeTwilioVoice, FieldPhoneNumber, number)
+}
 
 func voiceErrorMessage(ctx context.Context, err error) (string, error) {
 	var e alert.LogEntryFetcher
@@ -325,7 +330,7 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 		return
 	case digitConfirm:
 		err := doDeadline(ctx, func() error {
-			return v.r.Stop(ctx, notification.Dest{Type: notification.DestTypeVoice, Value: call.Number})
+			return v.r.Stop(ctx, newVoiceDest(call.Number))
 		})
 
 		if errResp(false, errors.Wrap(err, "process STOP response"), "") {

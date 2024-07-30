@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/target/goalert/auth/authlink"
+	"github.com/target/goalert/gadb"
 )
 
 type namedReceiver struct {
@@ -14,8 +15,8 @@ type namedReceiver struct {
 var _ Receiver = &namedReceiver{}
 
 // IsKnownDest calls the underlying ResultReceiver.IsKnownDest method for the current type.
-func (nr *namedReceiver) IsKnownDest(ctx context.Context, value string) (bool, error) {
-	return nr.r.IsKnownDest(ctx, nr.ns.destType, value)
+func (nr *namedReceiver) IsKnownDest(ctx context.Context, dest gadb.DestV1) (bool, error) {
+	return nr.r.IsKnownDest(ctx, dest)
 }
 
 // SetMessageStatus calls the underlying ResultReceiver's SetSendResult method after wrapping the status for the
@@ -33,14 +34,14 @@ func (nr *namedReceiver) AuthLinkURL(ctx context.Context, providerID, subjectID 
 }
 
 // Start implements the Receiver interface by calling the underlying Receiver.Start method.
-func (nr *namedReceiver) Start(ctx context.Context, d Dest) error {
-	metricRecvTotal.WithLabelValues(d.Type.String(), "START")
+func (nr *namedReceiver) Start(ctx context.Context, d gadb.DestV1) error {
+	metricRecvTotal.WithLabelValues(d.Type, "START")
 	return nr.r.Start(ctx, d)
 }
 
 // Stop implements the Receiver interface by calling the underlying Receiver.Stop method.
-func (nr *namedReceiver) Stop(ctx context.Context, d Dest) error {
-	metricRecvTotal.WithLabelValues(d.Type.String(), "STOP")
+func (nr *namedReceiver) Stop(ctx context.Context, d gadb.DestV1) error {
+	metricRecvTotal.WithLabelValues(d.Type, "STOP")
 	return nr.r.Stop(ctx, d)
 }
 

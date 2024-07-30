@@ -51,7 +51,20 @@ type DestHash [32]byte
 
 // DestHash returns a comparable hash of the destination.
 func (d Dest) DestHash() DestHash {
+	if d.ID.CMID.Valid || d.ID.NCID.Valid {
+		// If we have a CMID or NCID, we can use that as the unique identifier.
+		var h [32]byte
+		copy(h[:], d.ID.CMID.UUID[:])
+		copy(h[16:], d.ID.NCID.UUID[:])
+		return DestHash(h)
+	}
+
+	// Otherwise, we hash the type and value as a fallback until we move to DestV1 everywhere.
 	return DestHash(sha256.Sum256([]byte(fmt.Sprintf("%s\n%s\n", d.Type.String(), d.Value))))
+}
+
+func (d Dest) DestType() string {
+	return d.Type.String()
 }
 
 type SQLDest struct {
