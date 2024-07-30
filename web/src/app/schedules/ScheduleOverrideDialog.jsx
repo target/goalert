@@ -42,7 +42,7 @@ export default function ScheduleOverrideDialog(props) {
     removeUserID: '',
     start: DateTime.local().startOf('hour').toISO(),
     end: DateTime.local().startOf('hour').plus({ hours: 8 }).toISO(),
-    ...props.defaultValue,
+    ...(props?.defaultValue ?? {}),
   }
 
   const [step, setStep] = useState(0)
@@ -146,13 +146,10 @@ export default function ScheduleOverrideDialog(props) {
           if (!result.error) props.onClose()
         })
       }
-      onNext={step < 1 ? onNext : null}
+      disableSubmit={step === 0}
+      onNext={onNext}
     />
   )
-}
-
-ScheduleOverrideDialog.defaultProps = {
-  defaultValue: {},
 }
 
 ScheduleOverrideDialog.propTypes = {
