@@ -12,12 +12,11 @@ type SignalMessage struct {
 
 var _ Message = &SignalMessage{}
 
-func (t SignalMessage) Type() MessageType        { return MessageTypeSignalMessage }
-func (t SignalMessage) ID() string               { return t.CallbackID }
-func (t SignalMessage) Destination() gadb.DestV1 { return t.Dest }
-func (SignalMessage) Body() string               { return "" }
-func (SignalMessage) ExtendedBody() string       { return "" }
-func (SignalMessage) SubjectID() int             { return -1 }
+func (t SignalMessage) Type() MessageType  { return MessageTypeSignalMessage }
+func (t SignalMessage) ID() string         { return t.CallbackID }
+func (SignalMessage) Body() string         { return "" }
+func (SignalMessage) ExtendedBody() string { return "" }
+func (SignalMessage) SubjectID() int       { return -1 }
 
 func (t SignalMessage) Param(name string) string {
 	if t.Params == nil {
@@ -25,3 +24,5 @@ func (t SignalMessage) Param(name string) string {
 	}
 	return t.Params[name]
 }
+
+func (t SignalMessage) Destination() gadb.DestV1 { return t.Dest }

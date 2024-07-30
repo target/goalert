@@ -24,6 +24,7 @@ type ScheduleOnCallUsers struct {
 
 var _ Message = &ScheduleOnCallUsers{}
 
-func (s ScheduleOnCallUsers) ID() string               { return s.CallbackID }
+func (s ScheduleOnCallUsers) ID() string        { return s.CallbackID }
+func (s ScheduleOnCallUsers) Type() MessageType { return MessageTypeScheduleOnCallUsers }
+
 func (s ScheduleOnCallUsers) Destination() gadb.DestV1 { return s.Dest }
-func (s ScheduleOnCallUsers) Type() MessageType        { return MessageTypeScheduleOnCallUsers }
