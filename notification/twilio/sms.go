@@ -33,6 +33,10 @@ var (
 	svcReplyRx = regexp.MustCompile(`^'?\s*([0-9]+)\s*(cc|aa)\s*'?$`)
 )
 
+func newSMSDest(number string) gadb.DestV1 {
+	return gadb.NewDestV1(DestTypeTwilioSMS, FieldPhoneNumber, number)
+}
+
 // SMS implements a notification.Sender for Twilio SMS.
 type SMS struct {
 	b *dbSMS
@@ -277,16 +281,15 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 
 	// handle start and stop codes from user
 	body := req.FormValue("Body")
-	dest := notification.Dest{Type: notification.DestTypeSMS, Value: from}
 	if isStartMessage(body) {
-		err := retry.DoTemporaryError(func(int) error { return s.r.Start(ctx, dest) }, retryOpts...)
+		err := retry.DoTemporaryError(func(int) error { return s.r.Start(ctx, newSMSDest(from)) }, retryOpts...)
 		if err != nil {
 			log.Log(ctx, fmt.Errorf("process START message: %w", err))
 		}
 		return
 	}
 	if isStopMessage(body) {
-		err := retry.DoTemporaryError(func(int) error { return s.r.Stop(ctx, dest) }, retryOpts...)
+		err := retry.DoTemporaryError(func(int) error { return s.r.Stop(ctx, newSMSDest(from)) }, retryOpts...)
 		if err != nil {
 			log.Log(ctx, fmt.Errorf("process STOP message: %w", err))
 		}

@@ -55,6 +55,20 @@ func (s *Store) SetCarrierV1MetadataByTypeValue(ctx context.Context, dbtx gadb.D
 	return nil
 }
 
+func (s *Store) FindDestByID(ctx context.Context, tx gadb.DBTX, id uuid.UUID) (gadb.DestV1, error) {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return gadb.DestV1{}, err
+	}
+
+	row, err := gadb.New(tx).ContactMethodFineOne(ctx, id)
+	if err != nil {
+		return gadb.DestV1{}, err
+	}
+
+	return row.Dest.DestV1, nil
+}
+
 func (s *Store) EnableByDest(ctx context.Context, dbtx gadb.DBTX, dest gadb.DestV1) error {
 	err := permission.LimitCheckAny(ctx, permission.System)
 	if err != nil {

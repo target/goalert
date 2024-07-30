@@ -118,23 +118,16 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 }
 
 // OriginalMessageStatus will return the status of the first alert notification sent to `dest` for the given `alertID`.
-func (s *Store) OriginalMessageStatus(ctx context.Context, alertID int, dst Dest) (*SendResult, error) {
+func (s *Store) OriginalMessageStatus(ctx context.Context, alertID int, dstID DestID) (*SendResult, error) {
 	err := permission.LimitCheckAny(ctx, permission.System)
 	if err != nil {
 		return nil, err
 	}
 
-	var cmID, chanID uuid.NullUUID
-	if dst.ID.IsUserCM() {
-		cmID.UUID, cmID.Valid = dst.ID.UUID(), true
-	} else {
-		chanID.UUID, chanID.Valid = dst.ID.UUID(), true
-	}
-
 	row, err := gadb.New(s.db).NfyOriginalMessageStatus(ctx, gadb.NfyOriginalMessageStatusParams{
 		AlertID:         sql.NullInt64{Valid: true, Int64: int64(alertID)},
-		ContactMethodID: cmID,
-		ChannelID:       chanID,
+		ContactMethodID: dstID.CMID,
+		ChannelID:       dstID.NCID,
 	})
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil

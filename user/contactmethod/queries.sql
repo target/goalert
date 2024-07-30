@@ -18,15 +18,7 @@ WHERE id = ANY ($1::uuid[]);
 
 -- name: ContactMethodFineOne :one
 SELECT
-    id,
-    name,
-    type,
-    value,
-    disabled,
-    user_id,
-    last_test_verify_at,
-    enable_status_updates,
-    pending
+    *
 FROM
     user_contact_methods
 WHERE
@@ -34,15 +26,7 @@ WHERE
 
 -- name: ContactMethodFindOneUpdate :one
 SELECT
-    id,
-    name,
-    type,
-    value,
-    disabled,
-    user_id,
-    last_test_verify_at,
-    enable_status_updates,
-    pending
+    *
 FROM
     user_contact_methods
 WHERE
@@ -51,15 +35,7 @@ FOR UPDATE;
 
 -- name: ContactMethodFindMany :many
 SELECT
-    id,
-    name,
-    type,
-    value,
-    disabled,
-    user_id,
-    last_test_verify_at,
-    enable_status_updates,
-    pending
+    *
 FROM
     user_contact_methods
 WHERE
@@ -67,15 +43,7 @@ WHERE
 
 -- name: ContactMethodFindAll :many
 SELECT
-    id,
-    name,
-    type,
-    value,
-    disabled,
-    user_id,
-    last_test_verify_at,
-    enable_status_updates,
-    pending
+    *
 FROM
     user_contact_methods
 WHERE
