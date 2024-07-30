@@ -13,6 +13,8 @@ import (
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type DestType
 
+type ProviderMessageID = gadb.ProviderMessageID
+
 type DestID struct {
 	// CMID is the ID of the user contact method.
 	CMID uuid.NullUUID
