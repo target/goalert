@@ -453,7 +453,12 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 
 	var opts []slack.MsgOption
 	var isUpdate bool
-	channelID := msg.Destination().Value
+	channelID := msg.Destination().Arg(FieldSlackChannelID)
+	if msg.Destination().Type == DestTypeSlackDirectMessage {
+		// DMs are sent to the user ID, not the channel ID.
+		channelID = msg.Destination().Arg(FieldSlackUserID)
+	}
+
 	switch t := msg.(type) {
 	case notification.Test:
 		opts = append(opts, slack.MsgOptionText("This is a test message.", false))

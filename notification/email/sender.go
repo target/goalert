@@ -34,7 +34,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 	if err != nil {
 		return nil, err
 	}
-	toAddr, err := mail.ParseAddress(msg.Destination().Value)
+	toAddr, err := mail.ParseAddress(msg.Destination().Arg(FieldEmailAddress))
 	if err != nil {
 		return nil, err
 	}

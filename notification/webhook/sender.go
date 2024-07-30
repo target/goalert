@@ -156,7 +156,8 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
 
-	if !cfg.ValidWebhookURL(msg.Destination().Value) {
+	webURL := msg.Destination().Arg(FieldWebhookURL)
+	if !cfg.ValidWebhookURL(webURL) {
 		// fail permanently if the URL is not currently valid/allowed
 		return &notification.SentMessage{
 			State:        notification.StateFailedPerm,
@@ -164,7 +165,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		}, nil
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", msg.Destination().Value, bytes.NewReader(data))
+	req, err := http.NewRequestWithContext(ctx, "POST", webURL, bytes.NewReader(data))
 	if err != nil {
 		return nil, err
 	}
