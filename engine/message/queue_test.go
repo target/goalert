@@ -151,12 +151,12 @@ func TestQueue_Sort(t *testing.T) {
 	expected = expected[:rules[1].Count]
 
 	for i, exp := range expected {
-		msg := q.NextByType(notification.DestTypeSMS.String())
+		msg := q.NextByType(twilio.DestTypeTwilioSMS)
 		require.NotNilf(t, msg, "message #%d", i)
 		assert.Equalf(t, exp, *msg, "message #%d", i)
 	}
 
 	// no more expected messages
-	msg := q.NextByType(notification.DestTypeSMS.String())
+	msg := q.NextByType(twilio.DestTypeTwilioSMS)
 	assert.Nil(t, msg)
 }
