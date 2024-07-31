@@ -110,6 +110,9 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 	}
 
 	if input.Dest != nil {
+		if err := (*App)(m).ValidateDestination(ctx, "input.dest", input.Dest); err != nil {
+			return nil, err
+		}
 		cm.Dest = *input.Dest
 	}
 	if input.Type != nil {
