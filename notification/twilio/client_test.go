@@ -53,9 +53,7 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.Alert{
-				Dest: notification.Dest{
-					DestV1: newVoiceDest("+16125551234"),
-				},
+				Dest:       newVoiceDest("+16125551234"),
 				CallbackID: "2",
 				AlertID:    3,
 				Summary:    "Widget is Broken",

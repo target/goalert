@@ -28,7 +28,7 @@ func TestThrottleConfigBuilder(t *testing.T) {
 
 	check := func(dest string, msg notification.MessageType, expRules []message.ThrottleRule) {
 		t.Helper()
-		assert.EqualValues(t, expRules, cfg.Rules(message.Message{Type: msg, Dest: notification.Dest{DestV1: gadb.DestV1{Type: dest}}}))
+		assert.EqualValues(t, expRules, cfg.Rules(message.Message{Type: msg, Dest: gadb.DestV1{Type: dest}}))
 	}
 
 	check(

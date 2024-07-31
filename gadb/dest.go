@@ -1,6 +1,7 @@
 package gadb
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 )
@@ -19,6 +20,21 @@ func NewDestV1(typeID string, args ...string) DestV1 {
 	}
 
 	return d
+}
+
+type DestHashV1 [32]byte
+
+func (ns DestV1) DestHash() DestHashV1 {
+	data, err := json.Marshal(ns)
+	if err != nil {
+		panic(err)
+	}
+
+	return sha256.Sum256(data)
+}
+
+func (ns DestV1) String() string {
+	return fmt.Sprintf("DestV1{Type: %s, Args: %v}", ns.Type, ns.Args)
 }
 
 type DestV1 struct {

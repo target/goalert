@@ -3,6 +3,7 @@ package message
 import (
 	"time"
 
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification"
 )
 
@@ -10,7 +11,8 @@ import (
 type Message struct {
 	ID         string
 	Type       notification.MessageType
-	Dest       notification.Dest
+	DestID     notification.DestID
+	Dest       gadb.DestV1
 	AlertID    int
 	AlertLogID int
 	VerifyID   string

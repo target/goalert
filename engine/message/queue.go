@@ -86,8 +86,8 @@ func (q *queue) addSent(m Message) {
 	if t := q.userSent[m.UserID]; m.SentAt.After(t) {
 		q.userSent[m.UserID] = m.SentAt
 	}
-	if t := q.destSent[m.Dest.ID]; m.SentAt.After(t) {
-		q.destSent[m.Dest.ID] = m.SentAt
+	if t := q.destSent[m.DestID]; m.SentAt.After(t) {
+		q.destSent[m.DestID] = m.SentAt
 	}
 
 	q.sent = append(q.sent, m)

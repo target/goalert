@@ -4,7 +4,7 @@ import "github.com/target/goalert/gadb"
 
 // Alert represents outgoing notifications for alerts.
 type Alert struct {
-	Dest        Dest
+	Dest        gadb.DestV1
 	CallbackID  string // CallbackID is the identifier used to communicate a response to the notification
 	AlertID     int    // The global alert number
 	Summary     string
@@ -30,4 +30,4 @@ func (a Alert) Body() string         { return a.Summary }
 func (a Alert) ExtendedBody() string { return a.Details }
 func (a Alert) SubjectID() int       { return a.AlertID }
 
-func (a Alert) Destination() gadb.DestV1 { return a.Dest.DestV1 }
+func (a Alert) Destination() gadb.DestV1 { return a.Dest }
