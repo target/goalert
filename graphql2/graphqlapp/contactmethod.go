@@ -31,12 +31,17 @@ func (a *ContactMethod) Value(ctx context.Context, obj *contactmethod.ContactMet
 }
 
 func (a *ContactMethod) StatusUpdates(ctx context.Context, obj *contactmethod.ContactMethod) (graphql2.StatusUpdateState, error) {
-	if obj.Type.StatusUpdatesAlways() {
-		return graphql2.StatusUpdateStateEnabledForced, nil
+	info, err := a.DestReg.TypeInfo(ctx, obj.Dest.Type)
+	if err != nil {
+		return "", err
 	}
 
-	if obj.Type.StatusUpdatesNever() {
+	if !info.SupportsStatusUpdates {
 		return graphql2.StatusUpdateStateDisabledForced, nil
+	}
+
+	if info.StatusUpdatesRequired {
+		return graphql2.StatusUpdateStateEnabledForced, nil
 	}
 
 	if obj.StatusUpdates {
