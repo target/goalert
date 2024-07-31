@@ -1,10 +1,14 @@
 package contactmethod
 
 import (
+	"context"
 	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/target/goalert/gadb"
+	"github.com/target/goalert/notification/nfydest"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -14,6 +18,7 @@ type ContactMethod struct {
 	Name     string
 	Type     Type
 	Value    string
+	Dest     gadb.DestV1
 	Disabled bool
 	UserID   string
 	Pending  bool
@@ -28,38 +33,49 @@ func (c ContactMethod) LastTestVerifyAt() time.Time { return c.lastTestVerifyAt.
 
 // Normalize will validate and 'normalize' the ContactMethod -- such as making email lower-case
 // and setting carrier to "" (for non-phone types).
-func (c ContactMethod) Normalize() (*ContactMethod, error) {
+func (c ContactMethod) Normalize(ctx context.Context, reg *nfydest.Registry) (*ContactMethod, error) {
 	if c.ID == uuid.Nil {
 		c.ID = uuid.New()
 	}
-	err := validate.Many(
-		validate.IDName("Name", c.Name),
-		validate.OneOf("Type", c.Type, TypeSMS, TypeVoice, TypeEmail, TypePush, TypeWebhook, TypeSlackDM),
-	)
 
-	switch c.Type {
-	case TypeSMS, TypeVoice:
-		err = validate.Many(err, validate.Phone("Value", c.Value))
-	case TypeEmail:
-		err = validate.Many(err, validate.Email("Value", c.Value))
-	case TypeWebhook:
-		err = validate.Many(err, validate.AbsoluteURL("Value", c.Value))
-	case TypePush:
-		c.Value = ""
-	case TypeSlackDM:
-		// We want to do some basic validation here, but we don't want to
-		// require the full Slack ID format (which is a bit more complex)
-		// as it may change in the future.
-		err = validate.Many(err, validate.ASCII("Value", c.Value, 3, 128))
+	if c.Dest.Type == "" {
+		// Set the destination type based on the contact method type.
+		//
+		// These are hard-coded for compatibility until refactor is complete, since otherwise we'd have import cycles.
+		switch c.Type {
+		case TypeSMS: // twilio.DestTypeSMS & twilio.FieldPhoneNumber
+			c.Dest = gadb.NewDestV1("builtin-twilio-sms", "phone_number", c.Value)
+		case TypeVoice: // twilio.DestTypeVoice & twilio.FieldPhoneNumber
+			c.Dest = gadb.NewDestV1("builtin-twilio-voice", "phone_number", c.Value)
+		case TypeEmail: // email.DestTypeEmail & email.FieldEmailAddress
+			c.Dest = gadb.NewDestV1("builtin-email", "email_address", c.Value)
+		case TypeWebhook: // webhook.DestTypeWebhook & webhook.FieldWebhookURL
+			c.Dest = gadb.NewDestV1("builtin-webhook", "webhook_url", c.Value)
+		case TypeSlackDM: // slack.DestTypeSlackDirectMessage & slack.FieldSlackUserID
+			c.Dest = gadb.NewDestV1("builtin-slack-dm", "slack_user_id", c.Value)
+		}
 	}
 
-	if c.Type.StatusUpdatesAlways() {
+	err := validate.IDName("Name", c.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := reg.TypeInfo(ctx, c.Dest.Type)
+	if err != nil {
+		return nil, err
+	}
+	if !info.IsContactMethod() {
+		return nil, validation.NewFieldError("Dest.Type", "invalid destination type")
+	}
+
+	if !info.SupportsStatusUpdates {
+		c.StatusUpdates = false
+	} else if info.StatusUpdatesRequired {
 		c.StatusUpdates = true
 	}
-	if c.Type.StatusUpdatesNever() {
-		c.StatusUpdates = false
-	}
 
+	err = reg.ValidateDest(ctx, c.Dest)
 	if err != nil {
 		return nil, err
 	}

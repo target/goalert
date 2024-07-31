@@ -836,15 +836,14 @@ func (q *Queries) CalSubUserNames(ctx context.Context, dollar_1 []uuid.UUID) ([]
 }
 
 const contactMethodAdd = `-- name: ContactMethodAdd :exec
-INSERT INTO user_contact_methods(id, name, type, value, disabled, user_id, enable_status_updates)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO user_contact_methods(id, name, dest, disabled, user_id, enable_status_updates)
+    VALUES ($1, $2, $3, $4, $5, $6)
 `
 
 type ContactMethodAddParams struct {
 	ID                  uuid.UUID
 	Name                string
-	Type                EnumUserContactMethodType
-	Value               string
+	Dest                NullDestV1
 	Disabled            bool
 	UserID              uuid.UUID
 	EnableStatusUpdates bool
@@ -854,8 +853,7 @@ func (q *Queries) ContactMethodAdd(ctx context.Context, arg ContactMethodAddPara
 	_, err := q.db.ExecContext(ctx, contactMethodAdd,
 		arg.ID,
 		arg.Name,
-		arg.Type,
-		arg.Value,
+		arg.Dest,
 		arg.Disabled,
 		arg.UserID,
 		arg.EnableStatusUpdates,
@@ -1063,30 +1061,24 @@ func (q *Queries) ContactMethodLookupUserID(ctx context.Context, dollar_1 []uuid
 	return items, nil
 }
 
-const contactMethodMetaTV = `-- name: ContactMethodMetaTV :one
+const contactMethodMetaDest = `-- name: ContactMethodMetaDest :one
 SELECT
     coalesce(metadata, '{}'),
     now()::timestamptz AS now
 FROM
     user_contact_methods
 WHERE
-    type = $1
-    AND value = $2
+    dest = $1
 `
 
-type ContactMethodMetaTVParams struct {
-	Type  EnumUserContactMethodType
-	Value string
-}
-
-type ContactMethodMetaTVRow struct {
+type ContactMethodMetaDestRow struct {
 	Metadata json.RawMessage
 	Now      time.Time
 }
 
-func (q *Queries) ContactMethodMetaTV(ctx context.Context, arg ContactMethodMetaTVParams) (ContactMethodMetaTVRow, error) {
-	row := q.db.QueryRowContext(ctx, contactMethodMetaTV, arg.Type, arg.Value)
-	var i ContactMethodMetaTVRow
+func (q *Queries) ContactMethodMetaDest(ctx context.Context, dest NullDestV1) (ContactMethodMetaDestRow, error) {
+	row := q.db.QueryRowContext(ctx, contactMethodMetaDest, dest)
+	var i ContactMethodMetaDestRow
 	err := row.Scan(&i.Metadata, &i.Now)
 	return i, err
 }
@@ -1119,24 +1111,22 @@ func (q *Queries) ContactMethodUpdate(ctx context.Context, arg ContactMethodUpda
 	return err
 }
 
-const contactMethodUpdateMetaTV = `-- name: ContactMethodUpdateMetaTV :exec
+const contactMethodUpdateMetaDest = `-- name: ContactMethodUpdateMetaDest :exec
 UPDATE
     user_contact_methods
 SET
-    metadata = jsonb_set(jsonb_set(metadata, '{CarrierV1}', $3::jsonb), '{CarrierV1,UpdatedAt}',('"' || NOW()::timestamptz AT TIME ZONE 'UTC' || '"')::jsonb)
+    metadata = jsonb_set(jsonb_set(metadata, '{CarrierV1}', $2::jsonb), '{CarrierV1,UpdatedAt}',('"' || NOW()::timestamptz AT TIME ZONE 'UTC' || '"')::jsonb)
 WHERE
-    type = $1
-    AND value = $2
+    dest = $1
 `
 
-type ContactMethodUpdateMetaTVParams struct {
-	Type      EnumUserContactMethodType
-	Value     string
+type ContactMethodUpdateMetaDestParams struct {
+	Dest      NullDestV1
 	CarrierV1 json.RawMessage
 }
 
-func (q *Queries) ContactMethodUpdateMetaTV(ctx context.Context, arg ContactMethodUpdateMetaTVParams) error {
-	_, err := q.db.ExecContext(ctx, contactMethodUpdateMetaTV, arg.Type, arg.Value, arg.CarrierV1)
+func (q *Queries) ContactMethodUpdateMetaDest(ctx context.Context, arg ContactMethodUpdateMetaDestParams) error {
+	_, err := q.db.ExecContext(ctx, contactMethodUpdateMetaDest, arg.Dest, arg.CarrierV1)
 	return err
 }
 

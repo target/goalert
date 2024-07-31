@@ -42,6 +42,24 @@ type DestV1 struct {
 	Type string
 }
 
+func (ns DestV1) Equal(other DestV1) bool {
+	if ns.Type != other.Type {
+		return false
+	}
+
+	if len(ns.Args) != len(other.Args) {
+		return false
+	}
+
+	for k, v := range ns.Args {
+		if other.Args[k] != v {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (ns DestV1) Arg(name string) string {
 	if ns.Args == nil {
 		return ""

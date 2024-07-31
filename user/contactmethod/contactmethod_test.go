@@ -1,6 +1,7 @@
 package contactmethod
 
 import (
+	"context"
 	"testing"
 )
 
@@ -12,7 +13,7 @@ func TestContactMethod_Normalize(t *testing.T) {
 		}
 		t.Run(name, func(t *testing.T) {
 			t.Logf("%+v", cm)
-			_, err := cm.Normalize()
+			_, err := cm.Normalize(context.Background(), nil)
 			if valid && err != nil {
 				t.Errorf("got %v; want nil", err)
 			} else if !valid && err == nil {
