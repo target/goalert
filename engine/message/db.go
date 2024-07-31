@@ -334,9 +334,9 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		}
 		msg.CreatedAt = row.CreatedAt
 		msg.SentAt = row.SentAt.Time
-		msg.Dest.ID.CMID = row.CmID
-		msg.Dest.ID.NCID = row.ChanID
-		msg.Dest.DestV1 = row.Dest.DestV1
+		msg.DestID.CMID = row.CmID
+		msg.DestID.NCID = row.ChanID
+		msg.Dest = row.Dest.DestV1
 		msg.StatusAlertIDs = row.StatusAlertIds
 		if row.ScheduleID.Valid {
 			msg.ScheduleID = row.ScheduleID.UUID.String()
@@ -398,22 +398,14 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 	}
 
 	result, err = bundleAlertMessages(result, func(msg Message) (string, error) {
-		var cmID, chanID uuid.NullUUID
 		var userID sql.NullString
 		if msg.UserID != "" {
 			userID.Valid = true
 			userID.String = msg.UserID
 		}
-		if msg.Dest.ID.IsUserCM() {
-			cmID.Valid = true
-			cmID.UUID = msg.Dest.ID.UUID()
-		} else {
-			chanID.Valid = true
-			chanID.UUID = msg.Dest.ID.UUID()
-		}
 
 		newID := uuid.NewString()
-		_, err := tx.StmtContext(ctx, db.createAlertBundle).ExecContext(ctx, newID, msg.CreatedAt, cmID, chanID, userID, msg.ServiceID)
+		_, err := tx.StmtContext(ctx, db.createAlertBundle).ExecContext(ctx, newID, msg.CreatedAt, msg.DestID.CMID, msg.DestID.NCID, userID, msg.ServiceID)
 		if err != nil {
 			return "", err
 		}
@@ -778,7 +770,7 @@ func (db *DB) sendMessagesByType(ctx context.Context, cLock *processinglock.Conn
 
 func (db *DB) sendMessage(ctx context.Context, cLock *processinglock.Conn, send SendFunc, m *Message) (bool, error) {
 	ctx = log.WithFields(ctx, log.Fields{
-		"DestTypeID": m.Dest.ID,
+		"DestID":     m.DestID,
 		"DestType":   m.Dest.Type,
 		"CallbackID": m.ID,
 	})

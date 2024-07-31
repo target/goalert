@@ -2,7 +2,6 @@ package engine
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 
@@ -19,16 +18,16 @@ import (
 func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notification.SendResult, error) {
 	ctx = log.WithField(ctx, "CallbackID", msg.ID)
 
-	if msg.Dest.ID.IsUserCM() {
+	if msg.DestID.IsUserCM() {
 		ctx = permission.UserSourceContext(ctx, msg.UserID, permission.RoleUser, &permission.SourceInfo{
 			Type: permission.SourceTypeContactMethod,
-			ID:   msg.Dest.ID.UUID().String(),
+			ID:   msg.DestID.String(),
 		})
 	} else {
 		ctx = permission.SystemContext(ctx, "SendMessage")
 		ctx = permission.SourceContext(ctx, &permission.SourceInfo{
 			Type: permission.SourceTypeNotificationChannel,
-			ID:   msg.Dest.ID.UUID().String(),
+			ID:   msg.DestID.String(),
 		})
 	}
 
@@ -51,7 +50,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			}, nil
 		}
 		notifMsg = notification.AlertBundle{
-			Dest:        msg.Dest.DestV1,
+			Dest:        msg.Dest,
 			CallbackID:  msg.ID,
 			ServiceID:   msg.ServiceID,
 			ServiceName: name,
@@ -66,7 +65,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		if err != nil {
 			return nil, errors.Wrap(err, "lookup alert")
 		}
-		stat, err := p.cfg.NotificationStore.OriginalMessageStatus(ctx, msg.AlertID, msg.Dest.ID)
+		stat, err := p.cfg.NotificationStore.OriginalMessageStatus(ctx, msg.AlertID, msg.DestID)
 		if err != nil {
 			return nil, fmt.Errorf("lookup original message: %w", err)
 		}
@@ -100,7 +99,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		if err != nil {
 			return nil, fmt.Errorf("lookup original alert: %w", err)
 		}
-		stat, err := p.cfg.NotificationStore.OriginalMessageStatus(ctx, msg.AlertID, msg.Dest.ID)
+		stat, err := p.cfg.NotificationStore.OriginalMessageStatus(ctx, msg.AlertID, msg.DestID)
 		if err != nil {
 			return nil, fmt.Errorf("lookup original message: %w", err)
 		}
@@ -119,7 +118,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 
 		notifMsg = notification.AlertStatus{
-			Dest:           msg.Dest.DestV1,
+			Dest:           msg.Dest,
 			AlertID:        e.AlertID(),
 			ServiceID:      a.ServiceID,
 			CallbackID:     msg.ID,
@@ -131,7 +130,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 	case notification.MessageTypeTest:
 		notifMsg = notification.Test{
-			Dest:       msg.Dest.DestV1,
+			Dest:       msg.Dest,
 			CallbackID: msg.ID,
 		}
 	case notification.MessageTypeVerification:
@@ -140,7 +139,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			return nil, errors.Wrap(err, "lookup verification code")
 		}
 		notifMsg = notification.Verification{
-			Dest:       msg.Dest.DestV1,
+			Dest:       msg.Dest,
 			CallbackID: msg.ID,
 			Code:       code,
 		}
@@ -164,7 +163,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 
 		notifMsg = notification.ScheduleOnCallUsers{
-			Dest:         msg.Dest.DestV1,
+			Dest:         msg.Dest,
 			CallbackID:   msg.ID,
 			ScheduleName: sched.Name,
 			ScheduleURL:  p.cfg.ConfigSource.Config().CallbackURL("/schedules/" + msg.ScheduleID),
@@ -188,7 +187,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 
 		notifMsg = notification.SignalMessage{
-			Dest:       msg.Dest.DestV1,
+			Dest:       msg.Dest,
 			CallbackID: msg.ID,
 			Params:     params,
 		}
@@ -217,15 +216,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 	}
 
 	if isFirstAlertMessage && res.State.IsOK() {
-		var chanID, cmID sql.NullString
-		if msg.Dest.ID.IsUserCM() {
-			cmID.Valid = true
-			cmID.String = msg.Dest.ID.String()
-		} else {
-			chanID.Valid = true
-			chanID.String = msg.Dest.ID.String()
-		}
-		_, err = p.b.trackStatus.ExecContext(ctx, chanID, cmID, msg.AlertID)
+		_, err = p.b.trackStatus.ExecContext(ctx, msg.DestID.NCID, msg.DestID.CMID, msg.AlertID)
 		if err != nil {
 			// non-fatal, but log because it means status updates will not work for that alert/dest.
 			log.Log(ctx, fmt.Errorf("track status updates for alert #%d for %s: %w", msg.AlertID, msg.Dest.String(), err))

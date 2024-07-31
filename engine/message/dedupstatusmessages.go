@@ -13,13 +13,13 @@ func dedupStatusMessages(messages []Message) ([]Message, []string) {
 
 	type msgKey struct {
 		alertID int
-		dest    notification.DestHash
+		dest    notification.DestID
 	}
 
 	m := make(map[msgKey]struct{})
 	var toDelete []string
 	for _, msg := range toProcess {
-		key := msgKey{alertID: msg.AlertID, dest: msg.Dest.DestHash()}
+		key := msgKey{alertID: msg.AlertID, dest: msg.DestID}
 		if _, ok := m[key]; ok {
 			toDelete = append(toDelete, msg.ID)
 			continue

@@ -21,9 +21,9 @@ func TestRateLimit(t *testing.T) {
 				last := times[len(times)-1]
 				th := message.NewThrottle(message.PerCMThrottle, last, false)
 				for _, tm := range times[:len(times)-1] {
-					th.Record(message.Message{Type: msgType, SentAt: tm, Dest: notification.Dest{DestV1: gadb.DestV1{Type: destType}}})
+					th.Record(message.Message{Type: msgType, SentAt: tm, Dest: gadb.DestV1{Type: destType}})
 				}
-				assert.Falsef(t, th.InCooldown(message.Message{Type: msgType, Dest: notification.Dest{DestV1: gadb.DestV1{Type: destType}}}), "message #%d should not be in cooldown", i)
+				assert.Falsef(t, th.InCooldown(message.Message{Type: msgType, Dest: gadb.DestV1{Type: destType}}), "message #%d should not be in cooldown", i)
 			}
 		})
 	}

@@ -14,16 +14,16 @@ import (
 	"github.com/target/goalert/notification/twilio"
 )
 
-func voice(value string) notification.Dest {
-	return notification.Dest{DestV1: gadb.NewDestV1(twilio.DestTypeTwilioVoice, twilio.FieldPhoneNumber, value)}
+func voice(value string) gadb.DestV1 {
+	return gadb.NewDestV1(twilio.DestTypeTwilioVoice, twilio.FieldPhoneNumber, value)
 }
 
-func sms(value string) notification.Dest {
-	return notification.Dest{DestV1: gadb.NewDestV1(twilio.DestTypeTwilioSMS, twilio.FieldPhoneNumber, value)}
+func sms(value string) gadb.DestV1 {
+	return gadb.NewDestV1(twilio.DestTypeTwilioSMS, twilio.FieldPhoneNumber, value)
 }
 
-func slackCh(value string) notification.Dest {
-	return notification.Dest{DestV1: gadb.NewDestV1(slack.DestTypeSlackChannel, slack.FieldSlackChannelID, value)}
+func slackCh(value string) gadb.DestV1 {
+	return gadb.NewDestV1(slack.DestTypeSlackChannel, slack.FieldSlackChannelID, value)
 }
 
 func TestQueue_Sort(t *testing.T) {

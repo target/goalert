@@ -15,7 +15,6 @@ import (
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
-	"github.com/target/goalert/notification"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
@@ -159,7 +158,7 @@ func (d *datagen) NewCM(userID string) {
 		cm.Type = contactmethod.TypeVoice
 	}
 
-	cm.Value = d.ids.Gen(d.genPhone, notification.ScannableDestType{CM: cm.Type}.DestType().String())
+	cm.Value = d.ids.Gen(d.genPhone, string(cm.Type))
 	d.ContactMethods = append(d.ContactMethods, cm)
 }
 
