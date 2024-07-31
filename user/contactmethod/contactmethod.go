@@ -55,8 +55,9 @@ func (c ContactMethod) Normalize(ctx context.Context, reg *nfydest.Registry) (*C
 			c.Dest = gadb.NewDestV1(webhook.DestTypeWebhook, webhook.FieldWebhookURL, c.Value)
 		case TypeSlackDM: // slack.DestTypeSlackDirectMessage & slack.FieldSlackUserID
 			c.Dest = gadb.NewDestV1("builtin-slack-dm", "slack_user_id", c.Value)
+		default:
+			return nil, validation.NewFieldError("Type", "unknown destination type "+string(c.Type))
 		}
-		return nil, validation.NewFieldError("Type", "unknown destination type")
 	}
 
 	err := validate.IDName("Name", c.Name)
