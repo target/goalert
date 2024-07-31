@@ -51,8 +51,7 @@ func (a *ContactMethod) StatusUpdates(ctx context.Context, obj *contactmethod.Co
 }
 
 func (a *ContactMethod) FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error) {
-	dest := CompatCMToDest(obj)
-	info, err := a.DestReg.DisplayInfo(ctx, dest)
+	info, err := a.DestReg.DisplayInfo(ctx, obj.Dest)
 	if err != nil {
 		return "", err
 	}
