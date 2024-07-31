@@ -334,19 +334,14 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		}
 		msg.CreatedAt = row.CreatedAt
 		msg.SentAt = row.SentAt.Time
-		msg.Dest = notification.SQLDest{
-			CMID:    row.CmID,
-			CMType:  row.CmType,
-			CMValue: row.CmValue,
-			NCID:    row.ChanID,
-			NCType:  row.ChanType,
-			NCValue: row.ChanValue,
-		}.Dest()
+		msg.Dest.ID.CMID = row.CmID
+		msg.Dest.ID.NCID = row.ChanID
+		msg.Dest.DestV1 = row.Dest.DestV1
 		msg.StatusAlertIDs = row.StatusAlertIds
 		if row.ScheduleID.Valid {
 			msg.ScheduleID = row.ScheduleID.UUID.String()
 		}
-		if msg.Dest.Type == notification.DestTypeUnknown {
+		if msg.Dest.Type == "" {
 			log.Debugf(ctx, "unknown message type for message %s", msg.ID)
 			continue
 		}
@@ -497,7 +492,7 @@ type SendFunc func(context.Context, *Message) (*notification.SendResult, error)
 var ErrAbort = errors.New("aborted due to pause")
 
 // StatusFunc is used to fetch the latest status of a message.
-type StatusFunc func(ctx context.Context, providerID notification.ProviderMessageID) (*notification.Status, notification.DestType, error)
+type StatusFunc func(ctx context.Context, providerID notification.ProviderMessageID) (*notification.Status, string, error)
 
 // SendMessages will send notifications using SendFunc.
 func (db *DB) SendMessages(ctx context.Context, send SendFunc, status StatusFunc) error {
@@ -784,7 +779,7 @@ func (db *DB) sendMessagesByType(ctx context.Context, cLock *processinglock.Conn
 func (db *DB) sendMessage(ctx context.Context, cLock *processinglock.Conn, send SendFunc, m *Message) (bool, error) {
 	ctx = log.WithFields(ctx, log.Fields{
 		"DestTypeID": m.Dest.ID,
-		"DestType":   m.Dest.DestType(),
+		"DestType":   m.Dest.Type,
 		"CallbackID": m.ID,
 	})
 

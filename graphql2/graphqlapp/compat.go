@@ -80,6 +80,23 @@ func CompatDestToCMTypeVal(d gadb.DestV1) (contactmethod.Type, string) {
 	return "", ""
 }
 
+func CompatCMToDest(cm *contactmethod.ContactMethod) gadb.DestV1 {
+	switch cm.Type {
+	case contactmethod.TypeSMS:
+		return gadb.NewDestV1(twilio.DestTypeTwilioSMS, twilio.FieldPhoneNumber, cm.Value)
+	case contactmethod.TypeVoice:
+		return gadb.NewDestV1(twilio.DestTypeTwilioVoice, twilio.FieldPhoneNumber, cm.Value)
+	case contactmethod.TypeEmail:
+		return gadb.NewDestV1(email.DestTypeEmail, email.FieldEmailAddress, cm.Value)
+	case contactmethod.TypeWebhook:
+		return gadb.NewDestV1(webhook.DestTypeWebhook, webhook.FieldWebhookURL, cm.Value)
+	case contactmethod.TypeSlackDM:
+		return gadb.NewDestV1(slack.DestTypeSlackDirectMessage, slack.FieldSlackUserID, cm.Value)
+	}
+
+	return gadb.DestV1{}
+}
+
 // CompatDestToTarget converts a gadb.DestV1 to a graphql2.RawTarget
 func CompatDestToTarget(d gadb.DestV1) (assignment.RawTarget, error) {
 	switch d.Type {

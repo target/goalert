@@ -96,8 +96,6 @@ type App struct {
 	SWO *swo.Manager
 
 	DestReg *nfydest.Registry
-
-	FormatDestFunc func(context.Context, notification.DestType, string) string
 }
 
 type fieldErr struct {

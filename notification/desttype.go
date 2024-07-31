@@ -2,7 +2,7 @@ package notification
 
 import (
 	"crypto/sha256"
-	"database/sql"
+	"encoding/json"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -12,6 +12,8 @@ import (
 )
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type DestType
+
+type ProviderMessageID = gadb.ProviderMessageID
 
 type DestID struct {
 	// CMID is the ID of the user contact method.
@@ -42,9 +44,8 @@ func (d DestID) UUID() uuid.UUID {
 }
 
 type Dest struct {
-	ID    DestID
-	Type  DestType
-	Value string
+	ID DestID
+	gadb.DestV1
 }
 
 type DestHash [32]byte
@@ -59,63 +60,13 @@ func (d Dest) DestHash() DestHash {
 		return DestHash(h)
 	}
 
+	data, err := json.Marshal(d.DestV1)
+	if err != nil {
+		panic(err)
+	}
+
 	// Otherwise, we hash the type and value as a fallback until we move to DestV1 everywhere.
-	return DestHash(sha256.Sum256([]byte(fmt.Sprintf("%s\n%s\n", d.Type.String(), d.Value))))
-}
-
-func (d Dest) DestType() string {
-	return d.Type.String()
-}
-
-type SQLDest struct {
-	CMID    uuid.NullUUID
-	CMType  gadb.NullEnumUserContactMethodType
-	CMValue sql.NullString
-
-	NCID    uuid.NullUUID
-	NCType  gadb.NullEnumNotifChannelType
-	NCValue sql.NullString
-}
-
-func (s SQLDest) Dest() Dest {
-	id := DestID{
-		CMID: s.CMID,
-		NCID: s.NCID,
-	}
-	if s.CMID.Valid {
-		return Dest{
-			ID:    id,
-			Value: s.CMValue.String,
-			Type:  ScannableDestType{CM: contactmethod.Type(s.CMType.EnumUserContactMethodType)}.DestType(),
-		}
-	}
-
-	if s.NCID.Valid {
-		return Dest{
-			ID:    id,
-			Value: s.NCValue.String,
-			Type:  ScannableDestType{NC: notificationchannel.Type(s.NCType.EnumNotifChannelType)}.DestType(),
-		}
-	}
-
-	panic("no valid ID")
-}
-
-// DestFromPair will return a Dest for a notification channel/contact method pair.
-func DestFromPair(cm *contactmethod.ContactMethod, nc *notificationchannel.Channel) Dest {
-	switch {
-	case cm != nil:
-		return Dest{
-			ID: DestID{CMID: uuid.NullUUID{Valid: true, UUID: cm.ID}}, Value: cm.Value,
-			Type: ScannableDestType{CM: cm.Type}.DestType(),
-		}
-	case nc != nil:
-		return Dest{
-			ID: DestID{NCID: uuid.NullUUID{Valid: true, UUID: nc.ID}}, Value: nc.Value,
-			Type: ScannableDestType{NC: nc.Type}.DestType(),
-		}
-	}
-	return Dest{}
+	return DestHash(sha256.Sum256(data))
 }
 
 // DestType represents the type of destination, it is a combination of available contact methods and notification channels.
@@ -133,7 +84,7 @@ const (
 	DestTypeSlackUG
 )
 
-func (d Dest) String() string { return fmt.Sprintf("%s(%s)", d.Type.String(), d.ID) }
+func (d Dest) String() string { return fmt.Sprintf("%s(%s)", d.Type, d.ID) }
 
 // ScannableDestType allows scanning a DestType from separate columns for user contact methods and notification channels.
 type ScannableDestType struct {

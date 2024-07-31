@@ -47,12 +47,12 @@ func (nr *namedReceiver) Stop(ctx context.Context, d gadb.DestV1) error {
 
 // Receive implements the Receiver interface by calling the underlying Receiver.Receive method.
 func (nr *namedReceiver) Receive(ctx context.Context, callbackID string, result Result) error {
-	metricRecvTotal.WithLabelValues(nr.ns.destType.String(), result.String())
+	metricRecvTotal.WithLabelValues(nr.ns.destType, result.String())
 	return nr.r.Receive(ctx, callbackID, result)
 }
 
 // Receive implements the Receiver interface by calling the underlying Receiver.ReceiveSubject method.
 func (nr *namedReceiver) ReceiveSubject(ctx context.Context, providerID, subjectID, callbackID string, result Result) error {
-	metricRecvTotal.WithLabelValues(nr.ns.destType.String(), result.String())
+	metricRecvTotal.WithLabelValues(nr.ns.destType, result.String())
 	return nr.r.ReceiveSubject(ctx, providerID, subjectID, callbackID, result)
 }

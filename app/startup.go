@@ -69,9 +69,8 @@ func (app *App) startup(ctx context.Context) error {
 		ctx, "Startup.Twilio", app.initTwilio)
 
 	app.initStartup(ctx, "Startup.Slack", app.initSlack)
-	app.notificationManager.RegisterSender(notification.DestTypeUserEmail, "smtp", email.NewSender(ctx))
-	app.notificationManager.RegisterSender(notification.DestTypeUserWebhook, "webhook-user", webhook.NewSender(ctx))
-	app.notificationManager.RegisterSender(notification.DestTypeChanWebhook, "webhook-channel", webhook.NewSender(ctx))
+	app.notificationManager.RegisterSender(email.DestTypeEmail, "smtp", email.NewSender(ctx))
+	app.notificationManager.RegisterSender(webhook.DestTypeWebhook, "webhook", webhook.NewSender(ctx))
 
 	app.initStartup(ctx, "Startup.Engine", app.initEngine)
 	app.initStartup(ctx, "Startup.Auth", app.initAuth)

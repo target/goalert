@@ -147,9 +147,9 @@ func outgoingMessageToSendResult(msg gadb.OutgoingMessage, cm, ch gadb.NullDestV
 
 	switch {
 	case cm.Valid:
-		res.DestType = DestV1TypeToDestType(cm.DestV1.Type)
+		res.DestType = cm.DestV1.Type
 	case ch.Valid:
-		res.DestType = DestV1TypeToDestType(ch.DestV1.Type)
+		res.DestType = ch.DestV1.Type
 	}
 
 	state, err := messageStateFromStatus(msg.LastStatus, msg.NextRetryAt.Valid)

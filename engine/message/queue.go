@@ -63,7 +63,7 @@ func newQueue(msgs []Message, now time.Time) *queue {
 
 	for _, m := range msgs {
 		if m.SentAt.IsZero() {
-			q.pending[m.Dest.DestType()] = append(q.pending[m.Dest.DestType()], m)
+			q.pending[m.Dest.Type] = append(q.pending[m.Dest.Type], m)
 			continue
 		}
 		q.addSent(m)
@@ -79,7 +79,7 @@ func (q *queue) addSent(m Message) {
 
 	q.cmThrottle.Record(m)
 	q.globalThrottle.Record(m)
-	q.firstAlert[destID{ID: m.ServiceID, DestType: m.Dest.DestType()}] = struct{}{}
+	q.firstAlert[destID{ID: m.ServiceID, DestType: m.Dest.Type}] = struct{}{}
 	if t := q.serviceSent[m.ServiceID]; m.SentAt.After(t) {
 		q.serviceSent[m.ServiceID] = m.SentAt
 	}
@@ -159,13 +159,13 @@ func (q *queue) sortPending(destType string) {
 
 		// First Alert to a service takes highest priority
 		piTypePriority := typePriority[pi.Type]
-		_, firstAlertI := q.firstAlert[destID{ID: pi.ServiceID, DestType: pi.Dest.DestType()}]
+		_, firstAlertI := q.firstAlert[destID{ID: pi.ServiceID, DestType: pi.Dest.Type}]
 		if (pi.Type == notification.MessageTypeAlert || pi.Type == notification.MessageTypeAlertBundle) && !firstAlertI {
 			piTypePriority = 0
 		}
 
 		pjTypePriority := typePriority[pj.Type]
-		_, firstAlertJ := q.firstAlert[destID{ID: pj.ServiceID, DestType: pj.Dest.DestType()}]
+		_, firstAlertJ := q.firstAlert[destID{ID: pj.ServiceID, DestType: pj.Dest.Type}]
 		if (pj.Type == notification.MessageTypeAlert || pj.Type == notification.MessageTypeAlertBundle) && !firstAlertJ {
 			pjTypePriority = 0
 		}
@@ -222,7 +222,7 @@ func (q *queue) SentByType(destType string, dur time.Duration) int {
 
 	var count int
 	for _, msg := range q.sent {
-		if msg.SentAt.After(cutoff) && msg.Dest.DestType() == destType {
+		if msg.SentAt.After(cutoff) && msg.Dest.Type == destType {
 			count++
 		}
 	}

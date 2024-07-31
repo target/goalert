@@ -87,7 +87,12 @@ func (a *ContactMethod) StatusUpdates(ctx context.Context, obj *contactmethod.Co
 }
 
 func (a *ContactMethod) FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error) {
-	return a.FormatDestFunc(ctx, notification.ScannableDestType{CM: obj.Type}.DestType(), obj.Value), nil
+	dest := CompatCMToDest(obj)
+	info, err := a.DestReg.DisplayInfo(ctx, dest)
+	if err != nil {
+		return "", err
+	}
+	return info.Text, nil
 }
 
 func (a *ContactMethod) LastTestMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*graphql2.NotificationState, error) {
@@ -104,7 +109,7 @@ func (a *ContactMethod) LastTestMessageState(ctx context.Context, obj *contactme
 		return nil, nil
 	}
 
-	return notificationStateFromSendResult(status.Status, a.FormatDestFunc(ctx, status.DestType, status.SrcValue)), nil
+	return notificationStateFromSendResult(status.Status, status.SrcValue), nil
 }
 
 func (a *ContactMethod) LastVerifyMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*graphql2.NotificationState, error) {
@@ -121,7 +126,7 @@ func (a *ContactMethod) LastVerifyMessageState(ctx context.Context, obj *contact
 		return nil, nil
 	}
 
-	return notificationStateFromSendResult(status.Status, a.FormatDestFunc(ctx, status.DestType, status.SrcValue)), nil
+	return notificationStateFromSendResult(status.Status, status.SrcValue), nil
 }
 
 func (q *Query) UserContactMethod(ctx context.Context, idStr string) (*contactmethod.ContactMethod, error) {
@@ -162,7 +167,12 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 		if strings.HasPrefix(*input.Value, "@") {
 			return nil, validation.NewFieldError("value", "Use 'Copy member ID' from your Slack profile to get your user ID.")
 		}
-		formatted := m.FormatDestFunc(ctx, notification.DestTypeSlackDM, *input.Value)
+		// TODO: remove this once this method uses dest instead of type/value.
+		info, err := m.DestReg.DisplayInfo(ctx, gadb.DestV1{Type: slack.DestTypeSlackDirectMessage, Args: map[string]string{slack.FieldSlackUserID: *input.Value}})
+		if err != nil {
+			return nil, err
+		}
+		formatted := info.Text
 		if !strings.HasPrefix(formatted, "@") {
 			return nil, validation.NewFieldError("value", "Not a valid Slack user ID")
 		}

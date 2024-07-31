@@ -1,5 +1,7 @@
 package notification
 
+import "github.com/target/goalert/gadb"
+
 // AlertState is the current state of an Alert.
 type AlertState int
 
@@ -12,7 +14,7 @@ const (
 )
 
 type AlertStatus struct {
-	Dest       Dest
+	Dest       gadb.DestV1
 	CallbackID string
 	AlertID    int
 	LogEntry   string
@@ -34,4 +36,5 @@ var _ Message = &AlertStatus{}
 
 func (s AlertStatus) Type() MessageType { return MessageTypeAlertStatus }
 func (s AlertStatus) ID() string        { return s.CallbackID }
-func (s AlertStatus) Destination() Dest { return s.Dest }
+
+func (s AlertStatus) Destination() gadb.DestV1 { return s.Dest }

@@ -7,7 +7,7 @@ import (
 type namedSender struct {
 	Sender
 	name     string
-	destType DestType
+	destType string
 }
 
 func (s *namedSender) Send(ctx context.Context, msg Message) (*SendResult, error) {

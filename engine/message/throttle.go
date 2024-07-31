@@ -56,7 +56,7 @@ func NewThrottle(cfg ThrottleConfig, now time.Time, byTypeOnly bool) *Throttle {
 
 func (tr *Throttle) destKey(d notification.Dest) notification.DestHash {
 	if tr.typeOnly {
-		return sha256.Sum256([]byte(d.Type.String()))
+		return sha256.Sum256([]byte(d.Type))
 	}
 
 	return d.DestHash()
