@@ -4,70 +4,34 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"net/url"
 	"strings"
 
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
-	"github.com/target/goalert/notification/email"
 	"github.com/target/goalert/notification/slack"
-	"github.com/target/goalert/notification/twilio"
-	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
-type ContactMethod App
+type (
+	ContactMethod App
+)
 
 func (a *App) UserContactMethod() graphql2.UserContactMethodResolver {
 	return (*ContactMethod)(a)
 }
 
-func (a *ContactMethod) Dest(ctx context.Context, obj *contactmethod.ContactMethod) (*gadb.DestV1, error) {
-	switch obj.Type {
-	case contactmethod.TypeSMS:
-		return &gadb.DestV1{
-			Type: twilio.DestTypeTwilioSMS,
-			Args: map[string]string{twilio.FieldPhoneNumber: obj.Value},
-		}, nil
-	case contactmethod.TypeVoice:
-		return &gadb.DestV1{
-			Type: twilio.DestTypeTwilioVoice,
-			Args: map[string]string{twilio.FieldPhoneNumber: obj.Value},
-		}, nil
-	case contactmethod.TypeEmail:
-		return &gadb.DestV1{
-			Type: email.DestTypeEmail,
-			Args: map[string]string{email.FieldEmailAddress: obj.Value},
-		}, nil
-	case contactmethod.TypeWebhook:
-		return &gadb.DestV1{
-			Type: webhook.DestTypeWebhook,
-			Args: map[string]string{webhook.FieldWebhookURL: obj.Value},
-		}, nil
-	case contactmethod.TypeSlackDM:
-		return &gadb.DestV1{
-			Type: slack.DestTypeSlackDirectMessage,
-			Args: map[string]string{slack.FieldSlackUserID: obj.Value},
-		}, nil
-	}
-
-	return nil, validation.NewGenericError("unsupported data type")
+func (a *ContactMethod) Type(ctx context.Context, obj *contactmethod.ContactMethod) (*contactmethod.Type, error) {
+	cmType, _ := CompatDestToCMTypeVal(obj.Dest)
+	return &cmType, nil
 }
 
 func (a *ContactMethod) Value(ctx context.Context, obj *contactmethod.ContactMethod) (string, error) {
-	if obj.Type != contactmethod.TypeWebhook {
-		return obj.Value, nil
-	}
-
-	u, err := url.Parse(obj.Value)
-	if err != nil {
-		return "", err
-	}
-	return webhook.MaskURLPass(u), nil
+	_, cmVal := CompatDestToCMTypeVal(obj.Dest)
+	return cmVal, nil
 }
 
 func (a *ContactMethod) StatusUpdates(ctx context.Context, obj *contactmethod.ContactMethod) (graphql2.StatusUpdateState, error) {
