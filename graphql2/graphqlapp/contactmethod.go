@@ -4,13 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"strings"
 
-	"github.com/target/goalert/config"
-	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
-	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -101,57 +97,26 @@ func (q *Query) UserContactMethod(ctx context.Context, idStr string) (*contactme
 }
 
 func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.CreateUserContactMethodInput) (*contactmethod.ContactMethod, error) {
-	var cm *contactmethod.ContactMethod
-	cfg := config.FromContext(ctx)
+	cm := &contactmethod.ContactMethod{
+		Name:          input.Name,
+		UserID:        input.UserID,
+		Disabled:      true,
+		StatusUpdates: input.EnableStatusUpdates != nil && *input.EnableStatusUpdates,
+	}
 
 	if input.Dest != nil {
-		err := validate.IDName("input.name", input.Name)
-		if err != nil {
-			addInputError(ctx, err)
-			return nil, errAlreadySet
-		}
-		if err := (*App)(m).ValidateDestination(ctx, "input.dest", input.Dest); err != nil {
-			return nil, err
-		}
-		t, v := CompatDestToCMTypeVal(*input.Dest)
-		input.Type = &t
-		input.Value = &v
+		cm.Dest = *input.Dest
 	}
-
-	if input.Type == nil || input.Value == nil {
-		return nil, validation.NewFieldError("dest", "must be provided (or type and value)")
+	if input.Type != nil {
+		cm.Type = *input.Type
 	}
-
-	if *input.Type == contactmethod.TypeWebhook && !cfg.ValidWebhookURL(*input.Value) {
-		return nil, validation.NewFieldError("value", "URL not allowed by administrator")
-	}
-
-	if *input.Type == contactmethod.TypeSlackDM {
-		if strings.HasPrefix(*input.Value, "@") {
-			return nil, validation.NewFieldError("value", "Use 'Copy member ID' from your Slack profile to get your user ID.")
-		}
-		// TODO: remove this once this method uses dest instead of type/value.
-		info, err := m.DestReg.DisplayInfo(ctx, gadb.DestV1{Type: slack.DestTypeSlackDirectMessage, Args: map[string]string{slack.FieldSlackUserID: *input.Value}})
-		if err != nil {
-			return nil, err
-		}
-		formatted := info.Text
-		if !strings.HasPrefix(formatted, "@") {
-			return nil, validation.NewFieldError("value", "Not a valid Slack user ID")
-		}
+	if input.Value != nil {
+		cm.Value = *input.Value
 	}
 
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
-		cm, err = m.CMStore.Create(ctx, tx, &contactmethod.ContactMethod{
-			Name:     input.Name,
-			Type:     *input.Type,
-			UserID:   input.UserID,
-			Value:    *input.Value,
-			Disabled: true,
-
-			StatusUpdates: input.EnableStatusUpdates != nil && *input.EnableStatusUpdates,
-		})
+		cm, err = m.CMStore.Create(ctx, tx, cm)
 		if err != nil {
 			return err
 		}
