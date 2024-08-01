@@ -337,21 +337,9 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 		}
 		l.RetryCount = int(retryCount.Int32)
 
-		switch lastStatus.EnumOutgoingMessagesStatus {
-		case gadb.EnumOutgoingMessagesStatusPending:
-			l.LastStatus = StatePending
-		case gadb.EnumOutgoingMessagesStatusSent:
-			l.LastStatus = StateSent
-		case gadb.EnumOutgoingMessagesStatusSending, gadb.EnumOutgoingMessagesStatusQueuedRemotely:
-			l.LastStatus = StateSending
-		case gadb.EnumOutgoingMessagesStatusDelivered:
-			l.LastStatus = StateDelivered
-		case gadb.EnumOutgoingMessagesStatusBundled:
-			l.LastStatus = StateBundled
-		case gadb.EnumOutgoingMessagesStatusFailed:
-			l.LastStatus = StateFailedPerm
-		default:
-			l.LastStatus = StateUnknown
+		l.LastStatus, err = messageStateFromStatus(lastStatus.EnumOutgoingMessagesStatus, false)
+		if err != nil {
+			return nil, err
 		}
 
 		result = append(result, l)
