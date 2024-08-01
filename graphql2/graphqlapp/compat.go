@@ -14,6 +14,7 @@ import (
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/user"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -78,6 +79,23 @@ func CompatDestToCMTypeVal(d gadb.DestV1) (graphql2.ContactMethodType, string) {
 	}
 
 	return "", ""
+}
+
+func CompatCMTypeValToDest(cmType graphql2.ContactMethodType, value string) (gadb.DestV1, error) {
+	switch cmType {
+	case graphql2.ContactMethodTypeEmail:
+		return email.NewEmailDest(value), nil
+	case graphql2.ContactMethodTypeSms:
+		return twilio.NewSMSDest(value), nil
+	case graphql2.ContactMethodTypeVoice:
+		return twilio.NewVoiceDest(value), nil
+	case graphql2.ContactMethodTypeSLACkDm:
+		return slack.NewDirectMessageDest(value), nil
+	case graphql2.ContactMethodTypeWebhook:
+		return webhook.NewWebhookDest(value), nil
+	}
+
+	return gadb.DestV1{}, validation.NewFieldError("input.Type", "unsupported type")
 }
 
 // CompatDestToTarget converts a gadb.DestV1 to a graphql2.RawTarget

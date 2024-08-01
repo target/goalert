@@ -7,10 +7,6 @@ import (
 
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
-	"github.com/target/goalert/notification/email"
-	"github.com/target/goalert/notification/slack"
-	"github.com/target/goalert/notification/twilio"
-	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -119,20 +115,11 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 		}
 		cm.Dest = *input.Dest
 	} else if input.Type != nil && input.Value != nil {
-		switch *input.Type {
-		case graphql2.ContactMethodTypeEmail:
-			cm.Dest = email.NewEmailDest(*input.Value)
-		case graphql2.ContactMethodTypeSms:
-			cm.Dest = twilio.NewSMSDest(*input.Value)
-		case graphql2.ContactMethodTypeVoice:
-			cm.Dest = twilio.NewVoiceDest(*input.Value)
-		case graphql2.ContactMethodTypeSLACkDm:
-			cm.Dest = slack.NewDirectMessageDest(*input.Value)
-		case graphql2.ContactMethodTypeWebhook:
-			cm.Dest = webhook.NewWebhookDest(*input.Value)
+		var err error
+		cm.Dest, err = CompatCMTypeValToDest(*input.Type, *input.Value)
+		if err != nil {
+			return nil, err
 		}
-
-		return nil, validation.NewFieldError("input.Type", "unsupported type")
 	} else {
 		return nil, validation.NewFieldError("input", "must provide either dest or type/value")
 	}
