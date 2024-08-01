@@ -20,7 +20,7 @@ func (a *App) UserContactMethod() graphql2.UserContactMethodResolver {
 	return (*ContactMethod)(a)
 }
 
-func (a *ContactMethod) Type(ctx context.Context, obj *contactmethod.ContactMethod) (*contactmethod.Type, error) {
+func (a *ContactMethod) Type(ctx context.Context, obj *contactmethod.ContactMethod) (*graphql2.ContactMethodType, error) {
 	cmType, _ := CompatDestToCMTypeVal(obj.Dest)
 	return &cmType, nil
 }
@@ -114,12 +114,14 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 			return nil, err
 		}
 		cm.Dest = *input.Dest
-	}
-	if input.Type != nil {
-		cm.Type = *input.Type
-	}
-	if input.Value != nil {
-		cm.Value = *input.Value
+	} else if input.Type != nil && input.Value != nil {
+		var err error
+		cm.Dest, err = CompatCMTypeValToDest(*input.Type, *input.Value)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, validation.NewFieldError("input", "must provide either dest or type/value")
 	}
 
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
@@ -149,6 +151,10 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 }
 
 func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.UpdateUserContactMethodInput) (bool, error) {
+	if input.Value != nil {
+		return false, validation.NewFieldError("input.value", "cannot update value")
+	}
+
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		id, err := validate.ParseUUID("ID", input.ID)
 		if err != nil {
@@ -169,9 +175,7 @@ func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.U
 			}
 			cm.Name = *input.Name
 		}
-		if input.Value != nil {
-			cm.Value = *input.Value
-		}
+
 		if input.EnableStatusUpdates != nil {
 			cm.StatusUpdates = *input.EnableStatusUpdates
 		}

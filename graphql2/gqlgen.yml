@@ -73,8 +73,6 @@ models:
     model: github.com/target/goalert/override.UserOverride
   OnCallShift:
     model: github.com/target/goalert/oncall.Shift
-  ContactMethodType:
-    model: github.com/target/goalert/graphql2.ContactMethodType
   SlackChannel:
     model: github.com/target/goalert/notification/slack.Channel
   SlackUserGroup:

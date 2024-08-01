@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/gadb"
+	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -311,14 +312,27 @@ func (q *Query) Users(ctx context.Context, opts *graphql2.UserSearchOptions, fir
 	if searchOpts.Limit == 0 {
 		searchOpts.Limit = 15
 	}
-	if opts.CMValue != nil {
-		searchOpts.CMValue = *opts.CMValue
-	}
-	if opts.CMType != nil {
-		searchOpts.CMType = *opts.CMType
+	if opts.CMType != nil && opts.CMValue != nil {
+		d, err := CompatCMTypeValToDest(*opts.CMType, *opts.CMValue)
+		if err != nil {
+			return nil, err
+		}
+
+		searchOpts.DestType = d.Type
+		searchOpts.DestArgs = d.Args
+	} else if opts.CMType != nil { // type only
+		d, err := CompatCMTypeValToDest(*opts.CMType, "")
+		if err != nil {
+			return nil, err
+		}
+
+		searchOpts.DestType = d.Type
+	} else if opts.CMValue != nil && *opts.CMValue != "" { // value only (assume phone number for compatibility)
+		searchOpts.DestArgs = map[string]string{twilio.FieldPhoneNumber: *opts.CMValue}
 	}
 	if opts.Dest != nil {
-		searchOpts.CMType, searchOpts.CMValue = CompatDestToCMTypeVal(*opts.Dest)
+		searchOpts.DestType = opts.Dest.Type
+		searchOpts.DestArgs = opts.Dest.Args
 	}
 	if opts.FavoritesOnly != nil {
 		searchOpts.FavoritesOnly = *opts.FavoritesOnly

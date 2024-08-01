@@ -5,6 +5,7 @@ import (
 	"net/mail"
 
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/validation"
 )
@@ -16,6 +17,10 @@ const (
 )
 
 var _ nfydest.Provider = (*Sender)(nil)
+
+func NewEmailDest(address string) gadb.DestV1 {
+	return gadb.NewDestV1(DestTypeEmail, FieldEmailAddress, address)
+}
 
 func (s *Sender) ID() string { return DestTypeEmail }
 func (s *Sender) TypeInfo(ctx context.Context) (*nfydest.TypeInfo, error) {

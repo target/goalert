@@ -39,6 +39,7 @@ func (app *App) initEngine(ctx context.Context) error {
 		ScheduleStore:       app.ScheduleStore,
 		AuthLinkStore:       app.AuthLinkStore,
 		SlackStore:          app.slackChan,
+		DestRegistry:        app.DestRegistry,
 
 		ConfigSource: app.ConfigStore,
 

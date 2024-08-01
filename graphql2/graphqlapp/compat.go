@@ -6,6 +6,7 @@ import (
 
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/gadb"
+	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification/email"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
@@ -13,7 +14,7 @@ import (
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/user"
-	"github.com/target/goalert/user/contactmethod"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -63,21 +64,38 @@ func (a *App) CompatTargetToDest(ctx context.Context, tgt assignment.Target) (ga
 
 // CompatDestToCMTypeVal converts a gadb.DestV1 to a contactmethod.Type and string value
 // for the built-in destination types.
-func CompatDestToCMTypeVal(d gadb.DestV1) (contactmethod.Type, string) {
+func CompatDestToCMTypeVal(d gadb.DestV1) (graphql2.ContactMethodType, string) {
 	switch d.Type {
 	case twilio.DestTypeTwilioSMS:
-		return contactmethod.TypeSMS, d.Arg(twilio.FieldPhoneNumber)
+		return graphql2.ContactMethodTypeSms, d.Arg(twilio.FieldPhoneNumber)
 	case twilio.DestTypeTwilioVoice:
-		return contactmethod.TypeVoice, d.Arg(twilio.FieldPhoneNumber)
+		return graphql2.ContactMethodTypeVoice, d.Arg(twilio.FieldPhoneNumber)
 	case email.DestTypeEmail:
-		return contactmethod.TypeEmail, d.Arg(email.FieldEmailAddress)
+		return graphql2.ContactMethodTypeEmail, d.Arg(email.FieldEmailAddress)
 	case webhook.DestTypeWebhook:
-		return contactmethod.TypeWebhook, d.Arg(webhook.FieldWebhookURL)
+		return graphql2.ContactMethodTypeWebhook, d.Arg(webhook.FieldWebhookURL)
 	case slack.DestTypeSlackDirectMessage:
-		return contactmethod.TypeSlackDM, d.Arg(slack.FieldSlackUserID)
+		return graphql2.ContactMethodTypeSLACkDm, d.Arg(slack.FieldSlackUserID)
 	}
 
 	return "", ""
+}
+
+func CompatCMTypeValToDest(cmType graphql2.ContactMethodType, value string) (gadb.DestV1, error) {
+	switch cmType {
+	case graphql2.ContactMethodTypeEmail:
+		return email.NewEmailDest(value), nil
+	case graphql2.ContactMethodTypeSms:
+		return twilio.NewSMSDest(value), nil
+	case graphql2.ContactMethodTypeVoice:
+		return twilio.NewVoiceDest(value), nil
+	case graphql2.ContactMethodTypeSLACkDm:
+		return slack.NewDirectMessageDest(value), nil
+	case graphql2.ContactMethodTypeWebhook:
+		return webhook.NewWebhookDest(value), nil
+	}
+
+	return gadb.DestV1{}, validation.NewFieldError("input.Type", "unsupported type")
 }
 
 // CompatDestToTarget converts a gadb.DestV1 to a graphql2.RawTarget

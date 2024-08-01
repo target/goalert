@@ -204,8 +204,6 @@ func (s *Store) FindOne(ctx context.Context, dbtx gadb.DBTX, id uuid.UUID) (*Con
 	c := ContactMethod{
 		ID:               row.ID,
 		Name:             row.Name,
-		Type:             Type(row.Type),
-		Value:            row.Value,
 		Dest:             row.Dest.DestV1,
 		Disabled:         row.Disabled,
 		UserID:           row.UserID.String(),
@@ -278,8 +276,6 @@ func (s *Store) FindMany(ctx context.Context, dbtx gadb.DBTX, ids []string) ([]C
 			ID:               row.ID,
 			Name:             row.Name,
 			Dest:             row.Dest.DestV1,
-			Type:             Type(row.Type),
-			Value:            row.Value,
 			Disabled:         row.Disabled,
 			UserID:           row.UserID.String(),
 			Pending:          row.Pending,
@@ -313,8 +309,6 @@ func (s *Store) FindAll(ctx context.Context, dbtx gadb.DBTX, userID string) ([]C
 		cms[i] = ContactMethod{
 			ID:               row.ID,
 			Name:             row.Name,
-			Type:             Type(row.Type),
-			Value:            row.Value,
 			Dest:             row.Dest.DestV1,
 			Disabled:         row.Disabled,
 			UserID:           row.UserID.String(),

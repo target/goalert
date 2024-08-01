@@ -196,9 +196,6 @@ func (s *ChannelSender) Channel(ctx context.Context, channelID string) (*Channel
 		s.chanCache.Add(channelID, ch)
 		return ch, nil
 	}
-	if err != nil {
-		return nil, err
-	}
 
 	return res, nil
 }
@@ -308,9 +305,6 @@ func (s *ChannelSender) ListChannels(ctx context.Context) ([]Channel, error) {
 		copy(ch2, chs)
 		s.listCache.Add(cfg.Slack.AccessToken, ch2)
 		return chs, nil
-	}
-	if err != nil {
-		return nil, err
 	}
 
 	cpy := make([]Channel, len(res))
