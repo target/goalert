@@ -140,9 +140,9 @@ func fillDB(ctx context.Context, dataCfg *datagenConfig, url string) error {
 		u := data.Users[n]
 		return []interface{}{asUUID(u.ID), u.Name, u.Role, u.Email}
 	})
-	copyFrom("user_contact_methods", []string{"id", "user_id", "name", "type", "value", "disabled", "pending"}, len(data.ContactMethods), func(n int) []interface{} {
+	copyFrom("user_contact_methods", []string{"id", "user_id", "name", "dest", "disabled", "pending"}, len(data.ContactMethods), func(n int) []interface{} {
 		cm := data.ContactMethods[n]
-		return []interface{}{cm.ID, asUUID(cm.UserID), cm.Name, cm.Type, cm.Value, cm.Disabled, cm.Pending}
+		return []interface{}{cm.ID, asUUID(cm.UserID), cm.Name, cm.Dest, cm.Disabled, cm.Pending}
 	}, "users")
 	copyFrom("user_notification_rules", []string{"id", "user_id", "contact_method_id", "delay_minutes"}, len(data.NotificationRules), func(n int) []interface{} {
 		nr := data.NotificationRules[n]

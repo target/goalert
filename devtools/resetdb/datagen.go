@@ -15,6 +15,7 @@ import (
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
+	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
@@ -148,17 +149,17 @@ func (d *datagen) NewUser() {
 func (d *datagen) NewCM(userID string) {
 	cm := contactmethod.ContactMethod{
 		ID:       uuid.MustParse(d.UUID()),
-		Type:     contactmethod.TypeSMS,
 		Name:     d.ids.Gen(d.FirstName, userID),
 		Disabled: true,
 		UserID:   userID,
 		Pending:  false,
 	}
+	cm.Dest.Type = twilio.DestTypeTwilioSMS
 	if d.Bool() {
-		cm.Type = contactmethod.TypeVoice
+		cm.Dest.Type = twilio.DestTypeTwilioVoice
 	}
 
-	cm.Value = d.ids.Gen(d.genPhone, string(cm.Type))
+	cm.Dest.SetArg(twilio.FieldPhoneNumber, d.ids.Gen(d.genPhone, cm.Dest.Type))
 	d.ContactMethods = append(d.ContactMethods, cm)
 }
 
@@ -422,7 +423,7 @@ func (d *datagen) NewAlertMessages(a alert.Alert, max int) {
 			Event:     "notification_sent",
 			UserID:    cm.UserID,
 			Meta:      data,
-			Class:     string(cm.Type),
+			Class:     string(cm.Dest.Type),
 		})
 	}
 }
