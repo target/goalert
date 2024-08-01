@@ -131,7 +131,7 @@
     "redux-thunk": "2.4.2",
     "remark-breaks": "4.0.0",
     "remark-gfm": "4.0.0",
-    "semver": "7.6.0",
+    "semver": "7.6.3",
     "storybook": "8.2.5",
     "storybook-addon-mock": "4.3.0",
     "stylelint": "16.7.0",
