@@ -1107,7 +1107,7 @@ type UserCalendarSubscriptionResolver interface {
 	URL(ctx context.Context, obj *calsub.Subscription) (*string, error)
 }
 type UserContactMethodResolver interface {
-	Type(ctx context.Context, obj *contactmethod.ContactMethod) (*contactmethod.Type, error)
+	Type(ctx context.Context, obj *contactmethod.ContactMethod) (*ContactMethodType, error)
 
 	Value(ctx context.Context, obj *contactmethod.ContactMethod) (string, error)
 	FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error)
@@ -30631,9 +30631,9 @@ func (ec *executionContext) _UserContactMethod_type(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*contactmethod.Type)
+	res := resTmp.(*ContactMethodType)
 	fc.Result = res
-	return ec.marshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx, field.Selections, res)
+	return ec.marshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐContactMethodType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_UserContactMethod_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -35102,7 +35102,7 @@ func (ec *executionContext) unmarshalInputCreateUserContactMethodInput(ctx conte
 			it.UserID = data
 		case "type":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			data, err := ec.unmarshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx, v)
+			data, err := ec.unmarshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐContactMethodType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -37978,7 +37978,7 @@ func (ec *executionContext) unmarshalInputUserSearchOptions(ctx context.Context,
 			it.CMValue = data
 		case "CMType":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("CMType"))
-			data, err := ec.unmarshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx, v)
+			data, err := ec.unmarshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐContactMethodType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -51612,20 +51612,20 @@ func (ec *executionContext) unmarshalOConfigValueInput2ᚕgithubᚗcomᚋtarget�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx context.Context, v interface{}) (*contactmethod.Type, error) {
+func (ec *executionContext) unmarshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐContactMethodType(ctx context.Context, v interface{}) (*ContactMethodType, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := UnmarshalContactMethodType(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
+	var res = new(ContactMethodType)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx context.Context, sel ast.SelectionSet, v *contactmethod.Type) graphql.Marshaler {
+func (ec *executionContext) marshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐContactMethodType(ctx context.Context, sel ast.SelectionSet, v *ContactMethodType) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	res := MarshalContactMethodType(*v)
-	return res
+	return v
 }
 
 func (ec *executionContext) unmarshalOCreateEscalationPolicyInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateEscalationPolicyInput(ctx context.Context, v interface{}) (*CreateEscalationPolicyInput, error) {

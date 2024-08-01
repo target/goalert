@@ -110,7 +110,7 @@ func BenchmarkBuildMessage(b *testing.B) {
 		_, _ = buildMessage(
 			fmt.Sprintf("%d", i),
 			notification.Test{
-				Dest:       newVoiceDest(fmt.Sprintf("+1612555123%d", i)),
+				Dest:       NewVoiceDest(fmt.Sprintf("+1612555123%d", i)),
 				CallbackID: "2",
 			},
 		)

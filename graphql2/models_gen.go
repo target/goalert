@@ -25,7 +25,6 @@ import (
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/service"
 	"github.com/target/goalert/user"
-	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util/timeutil"
 )
 
@@ -260,7 +259,7 @@ type CreateUserCalendarSubscriptionInput struct {
 
 type CreateUserContactMethodInput struct {
 	UserID                  string                           `json:"userID"`
-	Type                    *contactmethod.Type              `json:"type,omitempty"`
+	Type                    *ContactMethodType               `json:"type,omitempty"`
 	Dest                    *gadb.DestV1                     `json:"dest,omitempty"`
 	Name                    string                           `json:"name"`
 	Value                   *string                          `json:"value,omitempty"`
@@ -893,15 +892,15 @@ type UserOverrideSearchOptions struct {
 }
 
 type UserSearchOptions struct {
-	First          *int                `json:"first,omitempty"`
-	After          *string             `json:"after,omitempty"`
-	Search         *string             `json:"search,omitempty"`
-	Omit           []string            `json:"omit,omitempty"`
-	CMValue        *string             `json:"CMValue,omitempty"`
-	CMType         *contactmethod.Type `json:"CMType,omitempty"`
-	Dest           *gadb.DestV1        `json:"dest,omitempty"`
-	FavoritesOnly  *bool               `json:"favoritesOnly,omitempty"`
-	FavoritesFirst *bool               `json:"favoritesFirst,omitempty"`
+	First          *int               `json:"first,omitempty"`
+	After          *string            `json:"after,omitempty"`
+	Search         *string            `json:"search,omitempty"`
+	Omit           []string           `json:"omit,omitempty"`
+	CMValue        *string            `json:"CMValue,omitempty"`
+	CMType         *ContactMethodType `json:"CMType,omitempty"`
+	Dest           *gadb.DestV1       `json:"dest,omitempty"`
+	FavoritesOnly  *bool              `json:"favoritesOnly,omitempty"`
+	FavoritesFirst *bool              `json:"favoritesFirst,omitempty"`
 }
 
 type UserSession struct {
@@ -1045,6 +1044,53 @@ func (e *ConfigType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ConfigType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ContactMethodType string
+
+const (
+	ContactMethodTypeSms     ContactMethodType = "SMS"
+	ContactMethodTypeVoice   ContactMethodType = "VOICE"
+	ContactMethodTypeEmail   ContactMethodType = "EMAIL"
+	ContactMethodTypeWebhook ContactMethodType = "WEBHOOK"
+	ContactMethodTypeSLACkDm ContactMethodType = "SLACK_DM"
+)
+
+var AllContactMethodType = []ContactMethodType{
+	ContactMethodTypeSms,
+	ContactMethodTypeVoice,
+	ContactMethodTypeEmail,
+	ContactMethodTypeWebhook,
+	ContactMethodTypeSLACkDm,
+}
+
+func (e ContactMethodType) IsValid() bool {
+	switch e {
+	case ContactMethodTypeSms, ContactMethodTypeVoice, ContactMethodTypeEmail, ContactMethodTypeWebhook, ContactMethodTypeSLACkDm:
+		return true
+	}
+	return false
+}
+
+func (e ContactMethodType) String() string {
+	return string(e)
+}
+
+func (e *ContactMethodType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ContactMethodType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ContactMethodType", str)
+	}
+	return nil
+}
+
+func (e ContactMethodType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

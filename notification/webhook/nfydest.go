@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -17,6 +18,10 @@ const (
 	ParamContentType = "content_type"
 	FallbackIconURL  = "builtin://webhook"
 )
+
+func NewWebhookDest(url string) gadb.DestV1 {
+	return gadb.NewDestV1(DestTypeWebhook, FieldWebhookURL, url)
+}
 
 var _ (nfydest.Provider) = (*Sender)(nil)
 

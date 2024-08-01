@@ -7,6 +7,10 @@ import (
 
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/email"
+	"github.com/target/goalert/notification/slack"
+	"github.com/target/goalert/notification/twilio"
+	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -20,7 +24,7 @@ func (a *App) UserContactMethod() graphql2.UserContactMethodResolver {
 	return (*ContactMethod)(a)
 }
 
-func (a *ContactMethod) Type(ctx context.Context, obj *contactmethod.ContactMethod) (*contactmethod.Type, error) {
+func (a *ContactMethod) Type(ctx context.Context, obj *contactmethod.ContactMethod) (*graphql2.ContactMethodType, error) {
 	cmType, _ := CompatDestToCMTypeVal(obj.Dest)
 	return &cmType, nil
 }
@@ -114,12 +118,23 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 			return nil, err
 		}
 		cm.Dest = *input.Dest
-	}
-	if input.Type != nil {
-		cm.Type = *input.Type
-	}
-	if input.Value != nil {
-		cm.Value = *input.Value
+	} else if input.Type != nil && input.Value != nil {
+		switch *input.Type {
+		case graphql2.ContactMethodTypeEmail:
+			cm.Dest = email.NewEmailDest(*input.Value)
+		case graphql2.ContactMethodTypeSms:
+			cm.Dest = twilio.NewSMSDest(*input.Value)
+		case graphql2.ContactMethodTypeVoice:
+			cm.Dest = twilio.NewVoiceDest(*input.Value)
+		case graphql2.ContactMethodTypeSLACkDm:
+			cm.Dest = slack.NewDirectMessageDest(*input.Value)
+		case graphql2.ContactMethodTypeWebhook:
+			cm.Dest = webhook.NewWebhookDest(*input.Value)
+		}
+
+		return nil, validation.NewFieldError("input.Type", "unsupported type")
+	} else {
+		return nil, validation.NewFieldError("input", "must provide either dest or type/value")
 	}
 
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
@@ -149,6 +164,10 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 }
 
 func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.UpdateUserContactMethodInput) (bool, error) {
+	if input.Value != nil {
+		return false, validation.NewFieldError("input.value", "cannot update value")
+	}
+
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		id, err := validate.ParseUUID("ID", input.ID)
 		if err != nil {
@@ -169,9 +188,7 @@ func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.U
 			}
 			cm.Name = *input.Name
 		}
-		if input.Value != nil {
-			cm.Value = *input.Value
-		}
+
 		if input.EnableStatusUpdates != nil {
 			cm.StatusUpdates = *input.EnableStatusUpdates
 		}
