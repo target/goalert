@@ -11,6 +11,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -62,7 +63,7 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 	SELECT DISTINCT ON ({{ .OrderBy }})
 		usr.id, usr.name, usr.email, usr.role, fav IS DISTINCT FROM NULL
 	FROM users usr
-	{{ if .CMValue }}
+	{{ if .DestArgs }}
 		JOIN user_contact_methods ucm ON ucm.user_id = usr.id
 	{{ end }}
 	{{if not .FavoritesOnly}}
@@ -124,6 +125,10 @@ func (opts renderData) Email() string {
 func (opts renderData) Normalize() (*renderData, error) {
 	if opts.Limit == 0 {
 		opts.Limit = search.DefaultMaxResults
+	}
+
+	if opts.DestType != "" && opts.DestArgs == nil {
+		return nil, validation.NewGenericError("DestArgs must be set when DestType is set")
 	}
 
 	err := validate.Many(
