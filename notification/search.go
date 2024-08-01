@@ -291,12 +291,13 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 		var cmID uuid.NullUUID
 		var providerID sql.NullString
 		var lastStatusAt, sentAt sql.NullTime
+		var lastStatus gadb.NullEnumOutgoingMessagesStatus
 		err = rows.Scan(
 			&l.ID,
 			&l.CreatedAt,
 			&lastStatusAt,
 			&l.MessageType,
-			&l.LastStatus,
+			&lastStatus,
 			&l.StatusDetails,
 			&srcValue,
 			&alertID,
@@ -335,6 +336,23 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 			l.SentAt = &sentAt.Time
 		}
 		l.RetryCount = int(retryCount.Int32)
+
+		switch lastStatus.EnumOutgoingMessagesStatus {
+		case gadb.EnumOutgoingMessagesStatusPending:
+			l.LastStatus = StatePending
+		case gadb.EnumOutgoingMessagesStatusSent:
+			l.LastStatus = StateSent
+		case gadb.EnumOutgoingMessagesStatusSending, gadb.EnumOutgoingMessagesStatusQueuedRemotely:
+			l.LastStatus = StateSending
+		case gadb.EnumOutgoingMessagesStatusDelivered:
+			l.LastStatus = StateDelivered
+		case gadb.EnumOutgoingMessagesStatusBundled:
+			l.LastStatus = StateBundled
+		case gadb.EnumOutgoingMessagesStatusFailed:
+			l.LastStatus = StateFailedPerm
+		default:
+			l.LastStatus = StateUnknown
+		}
 
 		result = append(result, l)
 	}
