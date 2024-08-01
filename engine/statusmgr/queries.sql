@@ -4,7 +4,7 @@ UPDATE
 SET
     enable_status_updates = TRUE
 WHERE
-    TYPE = 'SLACK_DM'
+    dest ->> 'Type' = ANY (@forced_dest_types::text[])
     AND NOT enable_status_updates;
 
 -- name: StatusMgrCleanupDisabledSubs :exec
@@ -57,7 +57,7 @@ LIMIT 1;
 -- name: StatusMgrCMInfo :one
 SELECT
     user_id,
-    type
+    dest
 FROM
     user_contact_methods
 WHERE

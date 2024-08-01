@@ -2896,7 +2896,7 @@ func (q *Queries) SignalMgrUpdateSignal(ctx context.Context, arg SignalMgrUpdate
 const statusMgrCMInfo = `-- name: StatusMgrCMInfo :one
 SELECT
     user_id,
-    type
+    dest
 FROM
     user_contact_methods
 WHERE
@@ -2907,13 +2907,13 @@ WHERE
 
 type StatusMgrCMInfoRow struct {
 	UserID uuid.UUID
-	Type   EnumUserContactMethodType
+	Dest   NullDestV1
 }
 
 func (q *Queries) StatusMgrCMInfo(ctx context.Context, id uuid.UUID) (StatusMgrCMInfoRow, error) {
 	row := q.db.QueryRowContext(ctx, statusMgrCMInfo, id)
 	var i StatusMgrCMInfoRow
-	err := row.Scan(&i.UserID, &i.Type)
+	err := row.Scan(&i.UserID, &i.Dest)
 	return i, err
 }
 
@@ -3082,12 +3082,12 @@ UPDATE
 SET
     enable_status_updates = TRUE
 WHERE
-    TYPE = 'SLACK_DM'
+    dest ->> 'Type' = ANY ($1::text[])
     AND NOT enable_status_updates
 `
 
-func (q *Queries) StatusMgrUpdateCMForced(ctx context.Context) error {
-	_, err := q.db.ExecContext(ctx, statusMgrUpdateCMForced)
+func (q *Queries) StatusMgrUpdateCMForced(ctx context.Context, forcedDestTypes []string) error {
+	_, err := q.db.ExecContext(ctx, statusMgrUpdateCMForced, pq.Array(forcedDestTypes))
 	return err
 }
 
