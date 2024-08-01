@@ -7,9 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/gadb"
-	"github.com/target/goalert/notification/email"
 	"github.com/target/goalert/notification/nfydest"
-	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
@@ -36,26 +34,6 @@ func (c ContactMethod) LastTestVerifyAt() time.Time { return c.lastTestVerifyAt.
 func (c ContactMethod) Normalize(ctx context.Context, reg *nfydest.Registry) (*ContactMethod, error) {
 	if c.ID == uuid.Nil {
 		c.ID = uuid.New()
-	}
-
-	if c.Dest.Type == "" {
-		// Set the destination type based on the contact method type.
-		//
-		// Some are hard-coded for compatibility until refactor is complete, since otherwise we'd have import cycles.
-		switch c.Type {
-		case TypeSMS: // twilio.DestTypeSMS & twilio.FieldPhoneNumber
-			c.Dest = gadb.NewDestV1("builtin-twilio-sms", "phone_number", c.Value)
-		case TypeVoice: // twilio.DestTypeVoice & twilio.FieldPhoneNumber
-			c.Dest = gadb.NewDestV1("builtin-twilio-voice", "phone_number", c.Value)
-		case TypeEmail:
-			c.Dest = gadb.NewDestV1(email.DestTypeEmail, email.FieldEmailAddress, c.Value)
-		case TypeWebhook:
-			c.Dest = gadb.NewDestV1(webhook.DestTypeWebhook, webhook.FieldWebhookURL, c.Value)
-		case TypeSlackDM: // slack.DestTypeSlackDirectMessage & slack.FieldSlackUserID
-			c.Dest = gadb.NewDestV1("builtin-slack-dm", "slack_user_id", c.Value)
-		default:
-			return nil, validation.NewFieldError("Type", "unknown destination type "+string(c.Type))
-		}
 	}
 
 	err := validate.IDName("Name", c.Name)
