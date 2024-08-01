@@ -4,9 +4,6 @@ import (
 	"github.com/target/goalert/gadb"
 )
 
-// MessageType indicates the type of notification message.
-type MessageType = gadb.EnumOutgoingMessagesType
-
 // Allowed types
 const (
 	MessageTypeUnknown      MessageType = ""

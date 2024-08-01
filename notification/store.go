@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/gadb"
+	"github.com/target/goalert/notification/nfymsg"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util"
@@ -164,7 +165,7 @@ func outgoingMessageToSendResult(msg gadb.OutgoingMessage, cm, ch gadb.NullDestV
 		SrcValue: msg.SrcValue.String,
 	}
 	if msg.LastStatusAt.Valid {
-		res.Status.age = msg.LastStatusAt.Time.Sub(msg.CreatedAt)
+		res.Status.Age = msg.LastStatusAt.Time.Sub(msg.CreatedAt)
 	}
 
 	return &res, nil
@@ -339,19 +340,19 @@ func (s *Store) VerifyContactMethod(ctx context.Context, cmID string, code int) 
 func messageStateFromStatus(lastStatus gadb.EnumOutgoingMessagesStatus, hasNextRetry bool) (State, error) {
 	switch lastStatus {
 	case gadb.EnumOutgoingMessagesStatusQueuedRemotely, gadb.EnumOutgoingMessagesStatusSending:
-		return StateSending, nil
+		return nfymsg.StateSending, nil
 	case gadb.EnumOutgoingMessagesStatusPending:
-		return StatePending, nil
+		return nfymsg.StatePending, nil
 	case gadb.EnumOutgoingMessagesStatusSent:
-		return StateSent, nil
+		return nfymsg.StateSent, nil
 	case gadb.EnumOutgoingMessagesStatusDelivered:
-		return StateDelivered, nil
+		return nfymsg.StateDelivered, nil
 	case gadb.EnumOutgoingMessagesStatusFailed, gadb.EnumOutgoingMessagesStatusBundled: // bundled message was not sent (replaced) and should never be re-sent
 		// temporary if retry
 		if hasNextRetry {
-			return StateFailedTemp, nil
+			return nfymsg.StateFailedTemp, nil
 		} else {
-			return StateFailedPerm, nil
+			return nfymsg.StateFailedPerm, nil
 		}
 	default:
 		return -1, fmt.Errorf("unknown last_status %s", lastStatus)

@@ -19,6 +19,8 @@ type (
 	Status      = nfymsg.Status
 	SendResult  = nfymsg.SendResult
 	SentMessage = nfymsg.SentMessage
+
+	AlertState = nfymsg.AlertState
 )
 
 const (
@@ -27,4 +29,12 @@ const (
 	StateFailedTemp = nfymsg.StateFailedTemp
 	StateDelivered  = nfymsg.StateDelivered
 	StateSent       = nfymsg.StateSent
+	StateBundled    = nfymsg.StateBundled
+	StateUnknown    = nfymsg.StateUnknown
+	StatePending    = nfymsg.StatePending
+
+	AlertStateUnknown        = nfymsg.AlertStateUnknown
+	AlertStateUnacknowledged = nfymsg.AlertStateUnacknowledged
+	AlertStateAcknowledged   = nfymsg.AlertStateAcknowledged
+	AlertStateClosed         = nfymsg.AlertStateClosed
 )

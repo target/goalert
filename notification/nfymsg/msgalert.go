@@ -17,11 +17,6 @@ type Alert struct {
 	OriginalStatus *SendResult
 }
 
-type AlertPendingNotification struct {
-	DestName string
-	DestType string
-}
-
 var _ Message = &Alert{}
 
 func (a Alert) Type() MessageType    { return MessageTypeAlert }
