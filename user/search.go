@@ -63,7 +63,7 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 	SELECT DISTINCT ON ({{ .OrderBy }})
 		usr.id, usr.name, usr.email, usr.role, fav IS DISTINCT FROM NULL
 	FROM users usr
-	{{ if eq (len .DestArgs) 0 }}
+	{{ if gt (len .DestArgs) 0 }}
 		JOIN user_contact_methods ucm ON ucm.user_id = usr.id
 	{{ end }}
 	{{if not .FavoritesOnly}}
@@ -88,7 +88,7 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 	{{ if .Email }}
 		AND lower(usr.email) = lower(:Email)
 	{{ end }}
-	{{ if eq (len .DestArgs) 0 }}
+	{{ if gt (len .DestArgs) 0 }}
 		AND ucm.dest->'Args' = :DestArgs
 	{{ end }}
 	{{ if .DestType }}

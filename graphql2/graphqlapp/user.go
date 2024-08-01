@@ -313,7 +313,7 @@ func (q *Query) Users(ctx context.Context, opts *graphql2.UserSearchOptions, fir
 		searchOpts.Limit = 15
 	}
 	if opts.CMType != nil && opts.CMValue != nil {
-		d, err := CompatCMTypeValToDest(*opts.CMType, "")
+		d, err := CompatCMTypeValToDest(*opts.CMType, *opts.CMValue)
 		if err != nil {
 			return nil, err
 		}
@@ -327,7 +327,7 @@ func (q *Query) Users(ctx context.Context, opts *graphql2.UserSearchOptions, fir
 		}
 
 		searchOpts.DestType = d.Type
-	} else if opts.CMValue != nil { // value only (assume phone number for compatibility)
+	} else if opts.CMValue != nil && *opts.CMValue != "" { // value only (assume phone number for compatibility)
 		searchOpts.DestArgs = map[string]string{twilio.FieldPhoneNumber: *opts.CMValue}
 	}
 	if opts.Dest != nil {
