@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/target/goalert/gadb"
-	"github.com/target/goalert/notification/nfymsg"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util"
@@ -340,19 +339,19 @@ func (s *Store) VerifyContactMethod(ctx context.Context, cmID string, code int) 
 func messageStateFromStatus(lastStatus gadb.EnumOutgoingMessagesStatus, hasNextRetry bool) (State, error) {
 	switch lastStatus {
 	case gadb.EnumOutgoingMessagesStatusQueuedRemotely, gadb.EnumOutgoingMessagesStatusSending:
-		return nfymsg.StateSending, nil
+		return StateSending, nil
 	case gadb.EnumOutgoingMessagesStatusPending:
-		return nfymsg.StatePending, nil
+		return StatePending, nil
 	case gadb.EnumOutgoingMessagesStatusSent:
-		return nfymsg.StateSent, nil
+		return StateSent, nil
 	case gadb.EnumOutgoingMessagesStatusDelivered:
-		return nfymsg.StateDelivered, nil
+		return StateDelivered, nil
 	case gadb.EnumOutgoingMessagesStatusFailed, gadb.EnumOutgoingMessagesStatusBundled: // bundled message was not sent (replaced) and should never be re-sent
 		// temporary if retry
 		if hasNextRetry {
-			return nfymsg.StateFailedTemp, nil
+			return StateFailedTemp, nil
 		} else {
-			return nfymsg.StateFailedPerm, nil
+			return StateFailedPerm, nil
 		}
 	default:
 		return -1, fmt.Errorf("unknown last_status %s", lastStatus)
