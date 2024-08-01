@@ -18,8 +18,6 @@ import (
 type ContactMethod struct {
 	ID       uuid.UUID
 	Name     string
-	Type     Type
-	Value    string
 	Dest     gadb.DestV1
 	Disabled bool
 	UserID   string
