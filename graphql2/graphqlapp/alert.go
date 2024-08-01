@@ -96,8 +96,8 @@ func notificationStateFromSendResult(s notification.Status, formattedSrc string)
 		details = prefix + ": " + details
 	}
 
-	if s.Age() >= 2*time.Minute {
-		details += fmt.Sprintf(" (after %s)", friendlyDuration(s.Age().Truncate(time.Minute)))
+	if s.Age >= 2*time.Minute {
+		details += fmt.Sprintf(" (after %s)", friendlyDuration(s.Age.Truncate(time.Minute)))
 	}
 
 	return &graphql2.NotificationState{
