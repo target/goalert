@@ -1244,12 +1244,16 @@ enum ContactMethodType {
 type UserContactMethod {
   id: ID!
   type: ContactMethodType
+    @deprecated(reason: "Use dest instead.")
+    @goField(forceResolver: true)
 
   dest: Destination!
 
   # User-defined label for this contact method.
   name: String!
   value: String!
+    @deprecated(reason: "Use dest instead.")
+    @goField(forceResolver: true)
   formattedValue: String!
   disabled: Boolean!
   pending: Boolean!
@@ -1271,14 +1275,14 @@ enum StatusUpdateState {
 input CreateUserContactMethodInput {
   userID: ID!
 
-  type: ContactMethodType
+  type: ContactMethodType @deprecated(reason: "Use dest instead.")
 
   dest: DestinationInput
 
   name: String!
 
   # Only value or dest should be used at a time, never both.
-  value: String
+  value: String @deprecated(reason: "Use dest instead.")
 
   newUserNotificationRule: CreateUserNotificationRuleInput
 

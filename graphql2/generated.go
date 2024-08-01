@@ -1107,7 +1107,7 @@ type UserCalendarSubscriptionResolver interface {
 	URL(ctx context.Context, obj *calsub.Subscription) (*string, error)
 }
 type UserContactMethodResolver interface {
-	Dest(ctx context.Context, obj *contactmethod.ContactMethod) (*gadb.DestV1, error)
+	Type(ctx context.Context, obj *contactmethod.ContactMethod) (*contactmethod.Type, error)
 
 	Value(ctx context.Context, obj *contactmethod.ContactMethod) (string, error)
 	FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error)
@@ -30622,7 +30622,7 @@ func (ec *executionContext) _UserContactMethod_type(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
+		return ec.resolvers.UserContactMethod().Type(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -30631,17 +30631,17 @@ func (ec *executionContext) _UserContactMethod_type(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(contactmethod.Type)
+	res := resTmp.(*contactmethod.Type)
 	fc.Result = res
-	return ec.marshalOContactMethodType2githubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx, field.Selections, res)
+	return ec.marshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_UserContactMethod_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "UserContactMethod",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ContactMethodType does not have child fields")
 		},
@@ -30663,7 +30663,7 @@ func (ec *executionContext) _UserContactMethod_dest(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.UserContactMethod().Dest(rctx, obj)
+		return obj.Dest, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -30675,17 +30675,17 @@ func (ec *executionContext) _UserContactMethod_dest(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*gadb.DestV1)
+	res := resTmp.(gadb.DestV1)
 	fc.Result = res
-	return ec.marshalNDestination2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx, field.Selections, res)
+	return ec.marshalNDestination2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_UserContactMethod_dest(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "UserContactMethod",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "type":
@@ -46407,20 +46407,15 @@ func (ec *executionContext) _UserContactMethod(ctx context.Context, sel ast.Sele
 				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "type":
-			out.Values[i] = ec._UserContactMethod_type(ctx, field, obj)
-		case "dest":
 			field := field
 
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._UserContactMethod_dest(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
+				res = ec._UserContactMethod_type(ctx, field, obj)
 				return res
 			}
 
@@ -46444,6 +46439,11 @@ func (ec *executionContext) _UserContactMethod(ctx context.Context, sel ast.Sele
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "dest":
+			out.Values[i] = ec._UserContactMethod_dest(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "name":
 			out.Values[i] = ec._UserContactMethod_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -51610,16 +51610,6 @@ func (ec *executionContext) unmarshalOConfigValueInput2ᚕgithubᚗcomᚋtarget�
 		}
 	}
 	return res, nil
-}
-
-func (ec *executionContext) unmarshalOContactMethodType2githubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx context.Context, v interface{}) (contactmethod.Type, error) {
-	res, err := UnmarshalContactMethodType(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOContactMethodType2githubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx context.Context, sel ast.SelectionSet, v contactmethod.Type) graphql.Marshaler {
-	res := MarshalContactMethodType(v)
-	return res
 }
 
 func (ec *executionContext) unmarshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx context.Context, v interface{}) (*contactmethod.Type, error) {

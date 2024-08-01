@@ -51,6 +51,7 @@ func (s *SMS) ValidateField(ctx context.Context, fieldID, value string) error {
 		if !phonenumbers.IsValidNumber(n) {
 			return validation.NewGenericError("invalid phone number")
 		}
+		return nil
 	}
 
 	return validation.NewGenericError("unknown field ID")

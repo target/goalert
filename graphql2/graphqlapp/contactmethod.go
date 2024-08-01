@@ -4,79 +4,44 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"net/url"
-	"strings"
 
-	"github.com/target/goalert/config"
-	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
-	"github.com/target/goalert/notification/email"
-	"github.com/target/goalert/notification/slack"
-	"github.com/target/goalert/notification/twilio"
-	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
-type ContactMethod App
+type (
+	ContactMethod App
+)
 
 func (a *App) UserContactMethod() graphql2.UserContactMethodResolver {
 	return (*ContactMethod)(a)
 }
 
-func (a *ContactMethod) Dest(ctx context.Context, obj *contactmethod.ContactMethod) (*gadb.DestV1, error) {
-	switch obj.Type {
-	case contactmethod.TypeSMS:
-		return &gadb.DestV1{
-			Type: twilio.DestTypeTwilioSMS,
-			Args: map[string]string{twilio.FieldPhoneNumber: obj.Value},
-		}, nil
-	case contactmethod.TypeVoice:
-		return &gadb.DestV1{
-			Type: twilio.DestTypeTwilioVoice,
-			Args: map[string]string{twilio.FieldPhoneNumber: obj.Value},
-		}, nil
-	case contactmethod.TypeEmail:
-		return &gadb.DestV1{
-			Type: email.DestTypeEmail,
-			Args: map[string]string{email.FieldEmailAddress: obj.Value},
-		}, nil
-	case contactmethod.TypeWebhook:
-		return &gadb.DestV1{
-			Type: webhook.DestTypeWebhook,
-			Args: map[string]string{webhook.FieldWebhookURL: obj.Value},
-		}, nil
-	case contactmethod.TypeSlackDM:
-		return &gadb.DestV1{
-			Type: slack.DestTypeSlackDirectMessage,
-			Args: map[string]string{slack.FieldSlackUserID: obj.Value},
-		}, nil
-	}
-
-	return nil, validation.NewGenericError("unsupported data type")
+func (a *ContactMethod) Type(ctx context.Context, obj *contactmethod.ContactMethod) (*contactmethod.Type, error) {
+	cmType, _ := CompatDestToCMTypeVal(obj.Dest)
+	return &cmType, nil
 }
 
 func (a *ContactMethod) Value(ctx context.Context, obj *contactmethod.ContactMethod) (string, error) {
-	if obj.Type != contactmethod.TypeWebhook {
-		return obj.Value, nil
-	}
-
-	u, err := url.Parse(obj.Value)
-	if err != nil {
-		return "", err
-	}
-	return webhook.MaskURLPass(u), nil
+	_, cmVal := CompatDestToCMTypeVal(obj.Dest)
+	return cmVal, nil
 }
 
 func (a *ContactMethod) StatusUpdates(ctx context.Context, obj *contactmethod.ContactMethod) (graphql2.StatusUpdateState, error) {
-	if obj.Type.StatusUpdatesAlways() {
-		return graphql2.StatusUpdateStateEnabledForced, nil
+	info, err := a.DestReg.TypeInfo(ctx, obj.Dest.Type)
+	if err != nil {
+		return "", err
 	}
 
-	if obj.Type.StatusUpdatesNever() {
+	if !info.SupportsStatusUpdates {
 		return graphql2.StatusUpdateStateDisabledForced, nil
+	}
+
+	if info.StatusUpdatesRequired {
+		return graphql2.StatusUpdateStateEnabledForced, nil
 	}
 
 	if obj.StatusUpdates {
@@ -87,8 +52,7 @@ func (a *ContactMethod) StatusUpdates(ctx context.Context, obj *contactmethod.Co
 }
 
 func (a *ContactMethod) FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error) {
-	dest := CompatCMToDest(obj)
-	info, err := a.DestReg.DisplayInfo(ctx, dest)
+	info, err := a.DestReg.DisplayInfo(ctx, obj.Dest)
 	if err != nil {
 		return "", err
 	}
@@ -138,57 +102,29 @@ func (q *Query) UserContactMethod(ctx context.Context, idStr string) (*contactme
 }
 
 func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.CreateUserContactMethodInput) (*contactmethod.ContactMethod, error) {
-	var cm *contactmethod.ContactMethod
-	cfg := config.FromContext(ctx)
+	cm := &contactmethod.ContactMethod{
+		Name:          input.Name,
+		UserID:        input.UserID,
+		Disabled:      true,
+		StatusUpdates: input.EnableStatusUpdates != nil && *input.EnableStatusUpdates,
+	}
 
 	if input.Dest != nil {
-		err := validate.IDName("input.name", input.Name)
-		if err != nil {
-			addInputError(ctx, err)
-			return nil, errAlreadySet
-		}
 		if err := (*App)(m).ValidateDestination(ctx, "input.dest", input.Dest); err != nil {
 			return nil, err
 		}
-		t, v := CompatDestToCMTypeVal(*input.Dest)
-		input.Type = &t
-		input.Value = &v
+		cm.Dest = *input.Dest
 	}
-
-	if input.Type == nil || input.Value == nil {
-		return nil, validation.NewFieldError("dest", "must be provided (or type and value)")
+	if input.Type != nil {
+		cm.Type = *input.Type
 	}
-
-	if *input.Type == contactmethod.TypeWebhook && !cfg.ValidWebhookURL(*input.Value) {
-		return nil, validation.NewFieldError("value", "URL not allowed by administrator")
-	}
-
-	if *input.Type == contactmethod.TypeSlackDM {
-		if strings.HasPrefix(*input.Value, "@") {
-			return nil, validation.NewFieldError("value", "Use 'Copy member ID' from your Slack profile to get your user ID.")
-		}
-		// TODO: remove this once this method uses dest instead of type/value.
-		info, err := m.DestReg.DisplayInfo(ctx, gadb.DestV1{Type: slack.DestTypeSlackDirectMessage, Args: map[string]string{slack.FieldSlackUserID: *input.Value}})
-		if err != nil {
-			return nil, err
-		}
-		formatted := info.Text
-		if !strings.HasPrefix(formatted, "@") {
-			return nil, validation.NewFieldError("value", "Not a valid Slack user ID")
-		}
+	if input.Value != nil {
+		cm.Value = *input.Value
 	}
 
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
-		cm, err = m.CMStore.Create(ctx, tx, &contactmethod.ContactMethod{
-			Name:     input.Name,
-			Type:     *input.Type,
-			UserID:   input.UserID,
-			Value:    *input.Value,
-			Disabled: true,
-
-			StatusUpdates: input.EnableStatusUpdates != nil && *input.EnableStatusUpdates,
-		})
+		cm, err = m.CMStore.Create(ctx, tx, cm)
 		if err != nil {
 			return err
 		}
