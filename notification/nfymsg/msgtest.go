@@ -1,4 +1,4 @@
-package notification
+package nfymsg
 
 import "github.com/target/goalert/gadb"
 
