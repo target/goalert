@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	stderrors "errors"
 	"fmt"
-	"math"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -167,10 +166,8 @@ func (v *Voice) callbackURL(ctx context.Context, params url.Values, typ CallType
 	return cfg.CallbackURL("/api/v2/twilio/call", params, p)
 }
 
-func spellNumber(n int) string {
-	s := strconv.Itoa(n)
-
-	return strings.Join(strings.Split(s, ""), ". ")
+func spellCode(code string) string {
+	return strings.Join(strings.Split(code, ""), ". ")
 }
 
 // Send implements the notification.Sender interface.
@@ -179,7 +176,7 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 	if !cfg.Twilio.Enable {
 		return nil, errors.New("Twilio provider is disabled")
 	}
-	toNumber := msg.Destination().Arg(FieldPhoneNumber)
+	toNumber := msg.DestArg(FieldPhoneNumber)
 
 	if toNumber == cfg.Twilio.FromNumber {
 		return nil, errors.New("refusing to make outgoing call to FromNumber")
@@ -637,10 +634,9 @@ func buildMessage(prefix string, msg notification.Message) (message string, err 
 	case notification.Test:
 		message = fmt.Sprintf("%s with a test message.", prefix)
 	case notification.Verification:
-		count := int(math.Log10(float64(t.Code)) + 1)
 		message = fmt.Sprintf(
 			"%s with your %d-digit verification code. The code is: %s. Again, your %d-digit verification code is: %s.",
-			prefix, count, spellNumber(t.Code), count, spellNumber(t.Code),
+			prefix, len(t.Code), spellCode(t.Code), len(t.Code), spellCode(t.Code),
 		)
 	default:
 		return "", errors.Errorf("unhandled message type: %T", t)

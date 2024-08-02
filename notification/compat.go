@@ -7,7 +7,6 @@ type (
 	AlertStatus         = nfymsg.AlertStatus
 	AlertBundle         = nfymsg.AlertBundle
 	Message             = nfymsg.Message
-	MessageType         = nfymsg.MessageType
 	Test                = nfymsg.Test
 	Verification        = nfymsg.Verification
 	SignalMessage       = nfymsg.SignalMessage

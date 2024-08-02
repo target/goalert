@@ -6,11 +6,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfymsg"
 )
 
 func TestSpellNumber(t *testing.T) {
 	// Test the spell number function
-	assert.Equal(t, "1. 2. 3. 4. 5. 6", spellNumber(123456))
+	assert.Equal(t, "1. 2. 3. 4. 5. 6", spellCode("123456"))
 }
 
 func TestBuildMessage(t *testing.T) {
@@ -28,7 +29,7 @@ func TestBuildMessage(t *testing.T) {
 	result, err = buildMessage(
 		prefix,
 		notification.AlertBundle{
-			CallbackID:  "2",
+			Base:        nfymsg.Base{MsgID: "2"},
 			ServiceID:   "3",
 			ServiceName: "Widget",
 			Count:       5,
@@ -41,10 +42,10 @@ func TestBuildMessage(t *testing.T) {
 	result, err = buildMessage(
 		prefix,
 		notification.Alert{
-			CallbackID: "2",
-			AlertID:    3,
-			Summary:    "Widget is Broken",
-			Details:    "Oh No!",
+			Base:    nfymsg.Base{MsgID: "2"},
+			AlertID: 3,
+			Summary: "Widget is Broken",
+			Details: "Oh No!",
 		},
 	)
 	assert.Equal(t, fmt.Sprintf("%s with an alert notification. Widget is Broken.", prefix), result)
@@ -54,11 +55,11 @@ func TestBuildMessage(t *testing.T) {
 	result, err = buildMessage(
 		prefix,
 		notification.AlertStatus{
-			CallbackID: "2",
-			AlertID:    3,
-			Summary:    "Widget is Broken",
-			Details:    "Oh No!",
-			LogEntry:   "Something is Wrong",
+			Base:     nfymsg.Base{MsgID: "2"},
+			AlertID:  3,
+			Summary:  "Widget is Broken",
+			Details:  "Oh No!",
+			LogEntry: "Something is Wrong",
 		},
 	)
 	assert.Equal(t, fmt.Sprintf("%s with a status update for alert 'Widget is Broken'. Something is Wrong", prefix), result)
@@ -68,18 +69,18 @@ func TestBuildMessage(t *testing.T) {
 	result, err = buildMessage(
 		prefix,
 		notification.Verification{
-			CallbackID: "2",
-			Code:       1234,
+			Base: nfymsg.Base{MsgID: "2"},
+			Code: "1234",
 		},
 	)
-	assert.Equal(t, fmt.Sprintf("%s with your 4-digit verification code. The code is: %s. Again, your 4-digit verification code is: %s.", prefix, spellNumber(1234), spellNumber(1234)), result)
+	assert.Equal(t, fmt.Sprintf("%s with your 4-digit verification code. The code is: %s. Again, your 4-digit verification code is: %s.", prefix, spellCode("1234"), spellCode("1234")), result)
 	assert.NoError(t, err)
 
 	// Bad Type
 	result, err = buildMessage(
 		prefix,
 		notification.ScheduleOnCallUsers{
-			CallbackID:   "2",
+			Base:         nfymsg.Base{MsgID: "2"},
 			ScheduleID:   "3",
 			ScheduleName: "4",
 			ScheduleURL:  "5",
@@ -110,15 +111,11 @@ func BenchmarkBuildMessage(b *testing.B) {
 		_, _ = buildMessage(
 			fmt.Sprintf("%d", i),
 			notification.Test{
-				Dest:       NewVoiceDest(fmt.Sprintf("+1612555123%d", i)),
-				CallbackID: "2",
+				Base: nfymsg.Base{
+					MsgDest: NewVoiceDest(fmt.Sprintf("+1612555123%d", i)),
+					MsgID:   "2",
+				},
 			},
 		)
-	}
-}
-
-func BenchmarkSpellNumber(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		_ = spellNumber(i)
 	}
 }

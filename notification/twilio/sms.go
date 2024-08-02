@@ -90,10 +90,10 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 	if !cfg.Twilio.Enable {
 		return nil, errors.New("Twilio provider is disabled")
 	}
-	if msg.Destination().Type != DestTypeTwilioSMS {
-		return nil, errors.Errorf("unsupported destination type %s; expected SMS", msg.Destination().Type)
+	if msg.Dest().Type != DestTypeTwilioSMS {
+		return nil, errors.Errorf("unsupported destination type %s; expected SMS", msg.Dest().Type)
 	}
-	destNumber := msg.Destination().Arg(FieldPhoneNumber)
+	destNumber := msg.DestArg(FieldPhoneNumber)
 	if destNumber == cfg.Twilio.FromNumber {
 		return nil, errors.New("refusing to send outgoing SMS to FromNumber")
 	}

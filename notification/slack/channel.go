@@ -447,10 +447,10 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 
 	var opts []slack.MsgOption
 	var isUpdate bool
-	channelID := msg.Destination().Arg(FieldSlackChannelID)
-	if msg.Destination().Type == DestTypeSlackDirectMessage {
+	channelID := msg.DestArg(FieldSlackChannelID)
+	if msg.Dest().Type == DestTypeSlackDirectMessage {
 		// DMs are sent to the user ID, not the channel ID.
-		channelID = msg.Destination().Arg(FieldSlackUserID)
+		channelID = msg.DestArg(FieldSlackUserID)
 	}
 
 	switch t := msg.(type) {
@@ -472,7 +472,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 			break
 		}
 
-		opts = append(opts, alertMsgOption(ctx, t.CallbackID, t.AlertID, t.Summary, "Unacknowledged", notification.AlertStateUnacknowledged))
+		opts = append(opts, alertMsgOption(ctx, t.ID(), t.AlertID, t.Summary, "Unacknowledged", notification.AlertStateUnacknowledged))
 	case notification.AlertStatus:
 		isUpdate = true
 		var ts string

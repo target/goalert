@@ -3,14 +3,14 @@ package message
 import (
 	"time"
 
-	"github.com/target/goalert/notification"
+	"github.com/target/goalert/gadb"
 )
 
 // ThrottleConfigBuilder can be used to build advanced throttle configurations.
 type ThrottleConfigBuilder struct {
 	parent *ThrottleConfigBuilder
 
-	msgTypes []notification.MessageType
+	msgTypes []gadb.EnumOutgoingMessagesType
 	dstTypes []string
 
 	rules []builderRules
@@ -25,7 +25,7 @@ func (b *ThrottleConfigBuilder) top() *ThrottleConfigBuilder {
 }
 
 // WithMsgTypes allows adding rules for messages matching at least one MessageType.
-func (b *ThrottleConfigBuilder) WithMsgTypes(msgTypes ...notification.MessageType) *ThrottleConfigBuilder {
+func (b *ThrottleConfigBuilder) WithMsgTypes(msgTypes ...gadb.EnumOutgoingMessagesType) *ThrottleConfigBuilder {
 	return &ThrottleConfigBuilder{
 		parent: b.top(),
 
@@ -73,7 +73,7 @@ func (b *ThrottleConfigBuilder) Config() ThrottleConfig {
 }
 
 type builderRules struct {
-	msgTypes []notification.MessageType
+	msgTypes []gadb.EnumOutgoingMessagesType
 	dstTypes []string
 	rules    []ThrottleRule
 }

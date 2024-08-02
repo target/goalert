@@ -35,13 +35,13 @@ func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*
 		return nil, err
 	}
 
+	if msg.Dest().Type != DestTypeSlackUsergroup {
+		return nil, errors.Errorf("unsupported destination type: %s", msg.Dest().Type)
+	}
+
 	t, ok := msg.(notification.ScheduleOnCallUsers)
 	if !ok {
 		return nil, errors.Errorf("unsupported message type: %T", msg)
-	}
-
-	if t.Dest.Type != DestTypeSlackUsergroup {
-		return nil, errors.Errorf("unsupported destination type: %s", t.Dest.Type)
 	}
 
 	teamID, err := s.TeamID(ctx)
@@ -75,8 +75,8 @@ func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*
 		slackUsers = append(slackUsers, slackID)
 	}
 
-	ugID := t.Dest.Arg(FieldSlackUsergroupID)
-	chanID := t.Dest.Arg(FieldSlackChannelID)
+	ugID := t.DestArg(FieldSlackUsergroupID)
+	chanID := t.DestArg(FieldSlackChannelID)
 	cfg := config.FromContext(ctx)
 
 	var errorMsg, stateDetails string
