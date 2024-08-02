@@ -29,7 +29,7 @@ func TestBuildMessage(t *testing.T) {
 	result, err = buildMessage(
 		prefix,
 		notification.AlertBundle{
-			Base:        nfymsg.Base{MsgID: "2"},
+			Base:        nfymsg.Base{ID: "2"},
 			ServiceID:   "3",
 			ServiceName: "Widget",
 			Count:       5,
@@ -42,7 +42,7 @@ func TestBuildMessage(t *testing.T) {
 	result, err = buildMessage(
 		prefix,
 		notification.Alert{
-			Base:    nfymsg.Base{MsgID: "2"},
+			Base:    nfymsg.Base{ID: "2"},
 			AlertID: 3,
 			Summary: "Widget is Broken",
 			Details: "Oh No!",
@@ -55,7 +55,7 @@ func TestBuildMessage(t *testing.T) {
 	result, err = buildMessage(
 		prefix,
 		notification.AlertStatus{
-			Base:     nfymsg.Base{MsgID: "2"},
+			Base:     nfymsg.Base{ID: "2"},
 			AlertID:  3,
 			Summary:  "Widget is Broken",
 			Details:  "Oh No!",
@@ -69,7 +69,7 @@ func TestBuildMessage(t *testing.T) {
 	result, err = buildMessage(
 		prefix,
 		notification.Verification{
-			Base: nfymsg.Base{MsgID: "2"},
+			Base: nfymsg.Base{ID: "2"},
 			Code: "1234",
 		},
 	)
@@ -80,7 +80,7 @@ func TestBuildMessage(t *testing.T) {
 	result, err = buildMessage(
 		prefix,
 		notification.ScheduleOnCallUsers{
-			Base:         nfymsg.Base{MsgID: "2"},
+			Base:         nfymsg.Base{ID: "2"},
 			ScheduleID:   "3",
 			ScheduleName: "4",
 			ScheduleURL:  "5",
@@ -112,8 +112,8 @@ func BenchmarkBuildMessage(b *testing.B) {
 			fmt.Sprintf("%d", i),
 			notification.Test{
 				Base: nfymsg.Base{
-					MsgDest: NewVoiceDest(fmt.Sprintf("+1612555123%d", i)),
-					MsgID:   "2",
+					Dest: NewVoiceDest(fmt.Sprintf("+1612555123%d", i)),
+					ID:   "2",
 				},
 			},
 		)

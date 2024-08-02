@@ -125,11 +125,11 @@ func (mgr *Manager) SendMessage(ctx context.Context, msg Message) (*SendResult, 
 	mgr.mx.RLock()
 	defer mgr.mx.RUnlock()
 
-	destType := msg.Destination().Type
+	destType := msg.DestType()
 
 	ctx = log.WithFields(ctx, log.Fields{
 		"ProviderType": destType,
-		"CallbackID":   msg.ID(),
+		"CallbackID":   msg.MsgID(),
 	})
 	if a, ok := msg.(Alert); ok {
 		ctx = log.WithField(ctx, "AlertID", a.AlertID)
@@ -150,7 +150,7 @@ func (mgr *Manager) SendMessage(ctx context.Context, msg Message) (*SendResult, 
 		}
 		log.Logf(sendCtx, "notification sent")
 		metricSentTotal.
-			WithLabelValues(msg.Destination().Type, string(msg.Type()), msgSvcID(msg)).
+			WithLabelValues(msg.DestType(), fmt.Sprintf("%T", msg), msgSvcID(msg)).
 			Inc()
 		// status already wrapped via namedSender
 		return res, nil

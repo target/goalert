@@ -15,8 +15,8 @@ func TestSetMsgParams(t *testing.T) {
 		err := result.setMsgParams(
 			notification.Test{
 				Base: nfymsg.Base{
-					MsgDest: NewVoiceDest("+16125551234"),
-					MsgID:   "2",
+					Dest: NewVoiceDest("+16125551234"),
+					ID:   "2",
 				},
 			},
 		)
@@ -34,8 +34,8 @@ func TestSetMsgParams(t *testing.T) {
 		err := result.setMsgParams(
 			notification.AlertBundle{
 				Base: nfymsg.Base{
-					MsgDest: NewVoiceDest("+16125551234"),
-					MsgID:   "2",
+					Dest: NewVoiceDest("+16125551234"),
+					ID:   "2",
 				},
 				ServiceID:   "3",
 				ServiceName: "Widget",
@@ -59,8 +59,8 @@ func TestSetMsgParams(t *testing.T) {
 		err := result.setMsgParams(
 			notification.Alert{
 				Base: nfymsg.Base{
-					MsgDest: NewVoiceDest("+16125551234"),
-					MsgID:   "2",
+					Dest: NewVoiceDest("+16125551234"),
+					ID:   "2",
 				},
 				AlertID: 3,
 				Summary: "Widget is Broken",
@@ -81,8 +81,8 @@ func TestSetMsgParams(t *testing.T) {
 		err := result.setMsgParams(
 			notification.AlertStatus{
 				Base: nfymsg.Base{
-					MsgDest: NewVoiceDest("+16125551234"),
-					MsgID:   "2",
+					Dest: NewVoiceDest("+16125551234"),
+					ID:   "2",
 				},
 				AlertID:  3,
 				Summary:  "Widget is Broken",
@@ -104,8 +104,8 @@ func TestSetMsgParams(t *testing.T) {
 		err := result.setMsgParams(
 			notification.Verification{
 				Base: nfymsg.Base{
-					MsgDest: NewVoiceDest("+16125551234"),
-					MsgID:   "2",
+					Dest: NewVoiceDest("+16125551234"),
+					ID:   "2",
 				},
 				Code: "1234",
 			},
@@ -124,8 +124,8 @@ func TestSetMsgParams(t *testing.T) {
 		err := result.setMsgParams(
 			notification.ScheduleOnCallUsers{
 				Base: nfymsg.Base{
-					MsgDest: NewVoiceDest("+16125551234"),
-					MsgID:   "2",
+					Dest: NewVoiceDest("+16125551234"),
+					ID:   "2",
 				},
 				ScheduleID:   "3",
 				ScheduleName: "4",

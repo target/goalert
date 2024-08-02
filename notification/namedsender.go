@@ -17,7 +17,7 @@ func (s *namedSender) Send(ctx context.Context, msg Message) (*SendResult, error
 	}
 
 	return &SendResult{
-		ID: msg.ID(),
+		ID: msg.MsgID(),
 		Status: Status{
 			State:    sent.State,
 			Details:  sent.StateDetails,

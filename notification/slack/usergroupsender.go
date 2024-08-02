@@ -35,8 +35,8 @@ func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*
 		return nil, err
 	}
 
-	if msg.Dest().Type != DestTypeSlackUsergroup {
-		return nil, errors.Errorf("unsupported destination type: %s", msg.Dest().Type)
+	if msg.DestType() != DestTypeSlackUsergroup {
+		return nil, errors.Errorf("unsupported destination type: %s", msg.DestType())
 	}
 
 	t, ok := msg.(notification.ScheduleOnCallUsers)

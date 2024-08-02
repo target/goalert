@@ -29,7 +29,7 @@ type Message struct {
 
 func (m Message) Base() nfymsg.Base {
 	return nfymsg.Base{
-		MsgID:   m.ID,
-		MsgDest: m.Dest,
+		ID:   m.ID,
+		Dest: m.Dest,
 	}
 }

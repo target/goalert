@@ -5,21 +5,22 @@ import "github.com/target/goalert/gadb"
 // A Message contains information that can be provided
 // to a user for notification.
 type Message interface {
-	ID() string
-	Dest() gadb.DestV1
+	MsgID() string
+	DestType() string
 	DestArg(name string) string
 }
 
 type Base struct {
-	MsgID   string
-	MsgDest gadb.DestV1
+	ID   string
+	Dest gadb.DestV1
 }
 
-func (b Base) ID() string        { return b.MsgID }
-func (b Base) Dest() gadb.DestV1 { return b.MsgDest }
+func (b Base) Base() Base       { return b }
+func (b Base) MsgID() string    { return b.ID }
+func (b Base) DestType() string { return b.Dest.Type }
 func (b Base) DestArg(name string) string {
-	if b.MsgDest.Args == nil {
+	if b.Dest.Args == nil {
 		return ""
 	}
-	return b.MsgDest.Args[name]
+	return b.Dest.Args[name]
 }
