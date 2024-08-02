@@ -15,7 +15,6 @@ type Base struct {
 	Dest gadb.DestV1
 }
 
-func (b Base) Base() Base       { return b }
 func (b Base) MsgID() string    { return b.ID }
 func (b Base) DestType() string { return b.Dest.Type }
 func (b Base) DestArg(name string) string {
