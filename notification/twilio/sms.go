@@ -12,11 +12,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nyaruka/phonenumbers"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
@@ -48,9 +48,8 @@ type SMS struct {
 
 var (
 	_ notification.ReceiverSetter = &SMS{}
-	_ notification.Sender         = &SMS{}
-	_ notification.StatusChecker  = &SMS{}
-	_ notification.FriendlyValuer = &SMS{}
+	_ nfydest.MessageSender       = &SMS{}
+	_ nfydest.MessageStatuser     = &SMS{}
 )
 
 // NewSMS performs operations like validating essential parameters, registering the Twilio client and db
@@ -75,7 +74,7 @@ func NewSMS(ctx context.Context, db *sql.DB, c *Config) (*SMS, error) {
 func (s *SMS) SetReceiver(r notification.Receiver) { s.r = r }
 
 // Status provides the current status of a message.
-func (s *SMS) Status(ctx context.Context, externalID string) (*notification.Status, error) {
+func (s *SMS) MessageStatus(ctx context.Context, externalID string) (*notification.Status, error) {
 	msg, err := s.c.GetSMS(ctx, externalID)
 	if err != nil {
 		return nil, err
@@ -85,7 +84,7 @@ func (s *SMS) Status(ctx context.Context, externalID string) (*notification.Stat
 }
 
 // Send implements the notification.Sender interface.
-func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
+func (s *SMS) SendMessage(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 	if !cfg.Twilio.Enable {
 		return nil, errors.New("Twilio provider is disabled")
@@ -214,15 +213,6 @@ func isStartMessage(body string) bool {
 	}
 
 	return false
-}
-
-// FriendlyValue will return the international formatting of the phone number.
-func (s *SMS) FriendlyValue(ctx context.Context, value string) (string, error) {
-	num, err := phonenumbers.Parse(value, "")
-	if err != nil {
-		return "", fmt.Errorf("parse number for formatting: %w", err)
-	}
-	return phonenumbers.Format(num, phonenumbers.INTERNATIONAL), nil
 }
 
 func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {

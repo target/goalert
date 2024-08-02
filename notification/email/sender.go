@@ -14,6 +14,7 @@ import (
 	"github.com/matcornic/hermes/v2"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfydest"
 	"gopkg.in/gomail.v2"
 )
 
@@ -23,10 +24,10 @@ func NewSender(ctx context.Context) *Sender {
 	return &Sender{}
 }
 
-var _ notification.Sender = &Sender{}
+var _ nfydest.MessageSender = &Sender{}
 
 // Send will send an for the provided message type.
-func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
+func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 
 	fromAddr, err := mail.ParseAddress(cfg.SMTP.From)
