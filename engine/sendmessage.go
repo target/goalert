@@ -50,8 +50,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			}, nil
 		}
 		notifMsg = notification.AlertBundle{
-			Dest:        msg.Dest,
-			CallbackID:  msg.ID,
+			Base:        msg.Base(),
 			ServiceID:   msg.ServiceID,
 			ServiceName: name,
 			Count:       count,
@@ -78,11 +77,10 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			return nil, errors.Wrap(err, "lookup alert metadata")
 		}
 		notifMsg = notification.Alert{
-			Dest:        msg.Dest,
+			Base:        msg.Base(),
 			AlertID:     msg.AlertID,
 			Summary:     a.Summary,
 			Details:     a.Details,
-			CallbackID:  msg.ID,
 			ServiceID:   a.ServiceID,
 			ServiceName: name,
 			Meta:        meta,
@@ -118,10 +116,9 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 
 		notifMsg = notification.AlertStatus{
-			Dest:           msg.Dest,
+			Base:           msg.Base(),
 			AlertID:        e.AlertID(),
 			ServiceID:      a.ServiceID,
-			CallbackID:     msg.ID,
 			LogEntry:       e.String(ctx),
 			Summary:        a.Summary,
 			Details:        a.Details,
@@ -130,8 +127,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 	case notification.MessageTypeTest:
 		notifMsg = notification.Test{
-			Dest:       msg.Dest,
-			CallbackID: msg.ID,
+			Base: msg.Base(),
 		}
 	case notification.MessageTypeVerification:
 		code, err := p.cfg.NotificationStore.Code(ctx, msg.VerifyID)
@@ -139,9 +135,8 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			return nil, errors.Wrap(err, "lookup verification code")
 		}
 		notifMsg = notification.Verification{
-			Dest:       msg.Dest,
-			CallbackID: msg.ID,
-			Code:       code,
+			Base: msg.Base(),
+			Code: fmt.Sprintf("%06d", code),
 		}
 	case notification.MessageTypeScheduleOnCallUsers:
 		users, err := p.cfg.OnCallStore.OnCallUsersBySchedule(ctx, msg.ScheduleID)
@@ -163,8 +158,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 
 		notifMsg = notification.ScheduleOnCallUsers{
-			Dest:         msg.Dest,
-			CallbackID:   msg.ID,
+			Base:         msg.Base(),
 			ScheduleName: sched.Name,
 			ScheduleURL:  p.cfg.ConfigSource.Config().CallbackURL("/schedules/" + msg.ScheduleID),
 			ScheduleID:   msg.ScheduleID,
@@ -187,9 +181,8 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 
 		notifMsg = notification.SignalMessage{
-			Dest:       msg.Dest,
-			CallbackID: msg.ID,
-			Params:     params,
+			Base:   msg.Base(),
+			Params: params,
 		}
 	default:
 		log.Log(ctx, errors.New("SEND NOT IMPLEMENTED FOR MESSAGE TYPE "+string(msg.Type)))

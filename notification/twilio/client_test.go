@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfymsg"
 )
 
 func TestSetMsgParams(t *testing.T) {
@@ -13,8 +14,10 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.Test{
-				Dest:       NewVoiceDest("+16125551234"),
-				CallbackID: "2",
+				Base: nfymsg.Base{
+					Dest: NewVoiceDest("+16125551234"),
+					ID:   "2",
+				},
 			},
 		)
 		expected := VoiceOptions{
@@ -30,8 +33,10 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.AlertBundle{
-				Dest:        NewVoiceDest("+16125551234"),
-				CallbackID:  "2",
+				Base: nfymsg.Base{
+					Dest: NewVoiceDest("+16125551234"),
+					ID:   "2",
+				},
 				ServiceID:   "3",
 				ServiceName: "Widget",
 				Count:       5,
@@ -53,11 +58,13 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.Alert{
-				Dest:       NewVoiceDest("+16125551234"),
-				CallbackID: "2",
-				AlertID:    3,
-				Summary:    "Widget is Broken",
-				Details:    "Oh No!",
+				Base: nfymsg.Base{
+					Dest: NewVoiceDest("+16125551234"),
+					ID:   "2",
+				},
+				AlertID: 3,
+				Summary: "Widget is Broken",
+				Details: "Oh No!",
 			},
 		)
 		expected := VoiceOptions{
@@ -73,12 +80,14 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.AlertStatus{
-				Dest:       NewVoiceDest("+16125551234"),
-				CallbackID: "2",
-				AlertID:    3,
-				Summary:    "Widget is Broken",
-				Details:    "Oh No!",
-				LogEntry:   "Something is Wrong",
+				Base: nfymsg.Base{
+					Dest: NewVoiceDest("+16125551234"),
+					ID:   "2",
+				},
+				AlertID:  3,
+				Summary:  "Widget is Broken",
+				Details:  "Oh No!",
+				LogEntry: "Something is Wrong",
 			},
 		)
 		expected := VoiceOptions{
@@ -94,9 +103,11 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.Verification{
-				Dest:       NewVoiceDest("+16125551234"),
-				CallbackID: "2",
-				Code:       1234,
+				Base: nfymsg.Base{
+					Dest: NewVoiceDest("+16125551234"),
+					ID:   "2",
+				},
+				Code: "1234",
 			},
 		)
 		expected := VoiceOptions{
@@ -112,8 +123,10 @@ func TestSetMsgParams(t *testing.T) {
 		result := &VoiceOptions{}
 		err := result.setMsgParams(
 			notification.ScheduleOnCallUsers{
-				Dest:         NewVoiceDest("+16125551234"),
-				CallbackID:   "2",
+				Base: nfymsg.Base{
+					Dest: NewVoiceDest("+16125551234"),
+					ID:   "2",
+				},
 				ScheduleID:   "3",
 				ScheduleName: "4",
 				ScheduleURL:  "5",

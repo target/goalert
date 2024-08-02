@@ -20,7 +20,7 @@ type MessageLog struct {
 	ID           string
 	CreatedAt    time.Time
 	LastStatusAt time.Time
-	MessageType  MessageType
+	MessageType  gadb.EnumOutgoingMessagesType
 
 	LastStatus    State
 	StatusDetails string

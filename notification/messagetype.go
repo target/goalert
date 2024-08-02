@@ -6,12 +6,12 @@ import (
 
 // Allowed types
 const (
-	MessageTypeUnknown      MessageType = ""
-	MessageTypeAlert                    = gadb.EnumOutgoingMessagesTypeAlertNotification
-	MessageTypeAlertStatus              = gadb.EnumOutgoingMessagesTypeAlertStatusUpdate
-	MessageTypeTest                     = gadb.EnumOutgoingMessagesTypeTestNotification
-	MessageTypeVerification             = gadb.EnumOutgoingMessagesTypeVerificationMessage
-	MessageTypeAlertBundle              = gadb.EnumOutgoingMessagesTypeAlertNotificationBundle
+	MessageTypeUnknown      = ""
+	MessageTypeAlert        = gadb.EnumOutgoingMessagesTypeAlertNotification
+	MessageTypeAlertStatus  = gadb.EnumOutgoingMessagesTypeAlertStatusUpdate
+	MessageTypeTest         = gadb.EnumOutgoingMessagesTypeTestNotification
+	MessageTypeVerification = gadb.EnumOutgoingMessagesTypeVerificationMessage
+	MessageTypeAlertBundle  = gadb.EnumOutgoingMessagesTypeAlertNotificationBundle
 
 	// MessageTypeAlertStatusBundle is used for bundled status messages.
 	//

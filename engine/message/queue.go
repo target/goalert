@@ -6,10 +6,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification"
 )
 
-var typePriority = map[notification.MessageType]int{
+var typePriority = map[gadb.EnumOutgoingMessagesType]int{
 	notification.MessageTypeVerification: 1,
 	notification.MessageTypeTest:         2,
 

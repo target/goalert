@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/target/goalert/config"
@@ -101,7 +100,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		payload = POSTDataVerification{
 			AppName: cfg.ApplicationName(),
 			Type:    "Verification",
-			Code:    strconv.Itoa(m.Code),
+			Code:    m.Code,
 		}
 	case notification.Alert:
 		payload = POSTDataAlert{
@@ -145,7 +144,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 			ScheduleURL:  m.ScheduleURL,
 		}
 	default:
-		return nil, fmt.Errorf("message type '%s' not supported", m.Type())
+		return nil, fmt.Errorf("message type '%T' not supported", m)
 	}
 
 	data, err := json.Marshal(payload)
@@ -156,7 +155,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
 
-	webURL := msg.Destination().Arg(FieldWebhookURL)
+	webURL := msg.DestArg(FieldWebhookURL)
 	if !cfg.ValidWebhookURL(webURL) {
 		// fail permanently if the URL is not currently valid/allowed
 		return &notification.SentMessage{

@@ -13,7 +13,7 @@ import (
 
 // TestRateLimit checks known good message sequences are allowed by the rate limit config.
 func TestRateLimit(t *testing.T) {
-	validate := func(desc string, msgType notification.MessageType, destType string, _times ...time.Time) {
+	validate := func(desc string, msgType gadb.EnumOutgoingMessagesType, destType string, _times ...time.Time) {
 		t.Helper()
 		t.Run(desc, func(t *testing.T) {
 			for i := 2; i <= len(_times); i++ {

@@ -90,10 +90,10 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 	if !cfg.Twilio.Enable {
 		return nil, errors.New("Twilio provider is disabled")
 	}
-	if msg.Destination().Type != DestTypeTwilioSMS {
-		return nil, errors.Errorf("unsupported destination type %s; expected SMS", msg.Destination().Type)
+	if msg.DestType() != DestTypeTwilioSMS {
+		return nil, errors.Errorf("unsupported destination type %s; expected SMS", msg.DestType())
 	}
-	destNumber := msg.Destination().Arg(FieldPhoneNumber)
+	destNumber := msg.DestArg(FieldPhoneNumber)
 	if destNumber == cfg.Twilio.FromNumber {
 		return nil, errors.New("refusing to send outgoing SMS to FromNumber")
 	}
@@ -108,7 +108,7 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 			return 0
 		}
 
-		code, err := s.b.insertDB(ctx, destNumber, msg.ID(), alertID, serviceID)
+		code, err := s.b.insertDB(ctx, destNumber, msg.MsgID(), alertID, serviceID)
 		if err != nil {
 			log.Log(ctx, errors.Wrap(err, "insert alert id for SMS callback -- sending 1-way SMS as fallback"))
 			return 0
@@ -139,7 +139,7 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 	case notification.Test:
 		message = fmt.Sprintf("%s: Test message.", cfg.ApplicationName())
 	case notification.Verification:
-		message = fmt.Sprintf("%s: Verification code: %d", cfg.ApplicationName(), t.Code)
+		message = fmt.Sprintf("%s: Verification code: %s", cfg.ApplicationName(), t.Code)
 	default:
 		return nil, errors.Errorf("unhandled message type %T", t)
 	}
@@ -151,7 +151,7 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 		ValidityPeriod: time.Second * 10,
 		CallbackParams: make(url.Values),
 	}
-	opts.CallbackParams.Set(msgParamID, msg.ID())
+	opts.CallbackParams.Set(msgParamID, msg.MsgID())
 	// Actually send notification to end user & receive Message Status
 	resp, err := s.c.SendSMS(ctx, destNumber, message, opts)
 	if err != nil {

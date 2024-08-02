@@ -447,17 +447,17 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 
 	var opts []slack.MsgOption
 	var isUpdate bool
-	channelID := msg.Destination().Arg(FieldSlackChannelID)
-	if msg.Destination().Type == DestTypeSlackDirectMessage {
+	channelID := msg.DestArg(FieldSlackChannelID)
+	if msg.DestType() == DestTypeSlackDirectMessage {
 		// DMs are sent to the user ID, not the channel ID.
-		channelID = msg.Destination().Arg(FieldSlackUserID)
+		channelID = msg.DestArg(FieldSlackUserID)
 	}
 
 	switch t := msg.(type) {
 	case notification.Test:
 		opts = append(opts, slack.MsgOptionText("This is a test message.", false))
 	case notification.Verification:
-		opts = append(opts, slack.MsgOptionText(fmt.Sprintf("Your verification code is: %06d", t.Code), false))
+		opts = append(opts, slack.MsgOptionText(fmt.Sprintf("Your verification code is: %s", t.Code), false))
 	case notification.Alert:
 		if t.OriginalStatus != nil {
 			var ts string
@@ -472,7 +472,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 			break
 		}
 
-		opts = append(opts, alertMsgOption(ctx, t.CallbackID, t.AlertID, t.Summary, "Unacknowledged", notification.AlertStateUnacknowledged))
+		opts = append(opts, alertMsgOption(ctx, t.MsgID(), t.AlertID, t.Summary, "Unacknowledged", notification.AlertStateUnacknowledged))
 	case notification.AlertStatus:
 		isUpdate = true
 		var ts string

@@ -391,7 +391,7 @@ func (s *Store) FindManyMessageStatuses(ctx context.Context, strIDs []string) ([
 
 // LastMessageStatus will return the MessageStatus and creation time of the most recent message of the requested type
 // for the provided contact method ID, if one was created from the provided from time.
-func (s *Store) LastMessageStatus(ctx context.Context, typ MessageType, cmIDStr string, from time.Time) (*SendResult, time.Time, error) {
+func (s *Store) LastMessageStatus(ctx context.Context, typ gadb.EnumOutgoingMessagesType, cmIDStr string, from time.Time) (*SendResult, time.Time, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, time.Time{}, err
@@ -403,7 +403,7 @@ func (s *Store) LastMessageStatus(ctx context.Context, typ MessageType, cmIDStr 
 	}
 
 	row, err := gadb.New(s.db).NfyLastMessageStatus(ctx, gadb.NfyLastMessageStatusParams{
-		MessageType:     gadb.EnumOutgoingMessagesType(typ),
+		MessageType:     typ,
 		ContactMethodID: uuid.NullUUID{UUID: cmID, Valid: true},
 		CreatedAt:       from,
 	})
