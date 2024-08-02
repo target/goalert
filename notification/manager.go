@@ -13,13 +13,12 @@ import (
 // It should be constructed first (with NewManager()) and passed to
 // Senders and Receivers that require it.
 type Manager struct {
-	ResultReceiver
 	mx *sync.RWMutex
 
 	reg *nfydest.Registry
 }
 
-var _ ResultReceiver = Manager{}
+// var _ ResultReceiver = Manager{}
 
 // NewManager initializes a new Manager.
 func NewManager(reg *nfydest.Registry) *Manager {
@@ -37,11 +36,6 @@ func (mgr *Manager) MessageStatus(ctx context.Context, providerMsgID ProviderMes
 // SetResultReceiver will set the ResultReceiver as the target for all Receiver calls.
 // It will panic if called multiple times.
 func (mgr *Manager) SetResultReceiver(ctx context.Context, recv ResultReceiver) error {
-	if mgr.ResultReceiver != nil {
-		panic("tried to register a second Processor instance")
-	}
-	mgr.ResultReceiver = recv
-
 	types, err := mgr.reg.Types(ctx)
 	if err != nil {
 		return fmt.Errorf("error getting types: %w", err)
