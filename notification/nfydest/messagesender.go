@@ -26,5 +26,47 @@ func (r *Registry) SendMessage(ctx context.Context, msg nfymsg.Message) (*nfymsg
 		return nil, ErrUnsupported
 	}
 
+	info, err := p.TypeInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if !info.Enabled {
+		return nil, ErrNotEnabled
+	}
+
+	switch msg.(type) {
+	case nfymsg.Alert, nfymsg.AlertBundle:
+		if !info.SupportsAlertNotifications {
+			return nil, ErrUnsupported
+		}
+	case nfymsg.AlertStatus:
+		if !info.SupportsStatusUpdates {
+			return nil, ErrUnsupported
+		}
+	case nfymsg.Verification:
+		if !info.SupportsUserVerification {
+			return nil, ErrUnsupported
+		}
+	case nfymsg.Test:
+	case nfymsg.SignalMessage:
+		if !info.SupportsSignals {
+			return nil, ErrUnsupported
+		}
+	case nfymsg.ScheduleOnCallUsers:
+		if !info.SupportsOnCallNotify {
+			return nil, ErrUnsupported
+		}
+	default:
+		return nil, ErrUnsupported
+	}
+
+	if r.stubSender {
+		return &nfymsg.SentMessage{
+			ExternalID: "stub",
+			State:      nfymsg.StateDelivered,
+		}, nil
+	}
+
 	return s.SendMessage(ctx, msg)
 }

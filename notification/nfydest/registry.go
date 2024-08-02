@@ -18,12 +18,21 @@ var (
 type Registry struct {
 	providers map[string]Provider
 	ids       []string
+
+	stubSender bool
 }
 
 func NewRegistry() *Registry {
 	return &Registry{
 		providers: make(map[string]Provider),
 	}
+}
+
+// StubNotifiers will cause all notifications senders to be stubbed out.
+//
+// This causes all notifications to be marked as delivered, but not actually sent.
+func (r *Registry) StubNotifiers() {
+	r.stubSender = true
 }
 
 func (r *Registry) Provider(id string) Provider { return r.providers[id] }
