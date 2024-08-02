@@ -57,11 +57,6 @@ func (app *App) startup(ctx context.Context) error {
 		return err
 	})
 
-	app.notificationManager = notification.NewManager()
-	if app.cfg.StubNotifiers {
-		app.notificationManager.SetStubNotifiers()
-	}
-
 	app.initStartup(ctx, "Startup.DBStores", app.initStores)
 
 	// init twilio before engine
@@ -69,8 +64,6 @@ func (app *App) startup(ctx context.Context) error {
 		ctx, "Startup.Twilio", app.initTwilio)
 
 	app.initStartup(ctx, "Startup.Slack", app.initSlack)
-	app.notificationManager.RegisterSender(email.DestTypeEmail, "smtp", email.NewSender(ctx))
-	app.notificationManager.RegisterSender(webhook.DestTypeWebhook, "webhook", webhook.NewSender(ctx))
 
 	app.initStartup(ctx, "Startup.Engine", app.initEngine)
 	app.initStartup(ctx, "Startup.Auth", app.initAuth)
@@ -97,7 +90,17 @@ func (app *App) startup(ctx context.Context) error {
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan.UserGroupSender())
 	app.DestRegistry.RegisterProvider(ctx, webhook.NewSender(ctx))
 
-	err := app.mgr.SetPauseResumer(lifecycle.MultiPauseResume(
+	app.notificationManager = notification.NewManager(app.DestRegistry)
+	if app.cfg.StubNotifiers {
+		app.DestRegistry.StubNotifiers()
+	}
+
+	err := app.notificationManager.SetResultReceiver(ctx, app.Engine)
+	if err != nil {
+		return err
+	}
+
+	err = app.mgr.SetPauseResumer(lifecycle.MultiPauseResume(
 		app.Engine,
 		lifecycle.PauseResumerFunc(app._pause, app._resume),
 	))

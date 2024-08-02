@@ -20,13 +20,11 @@ func (app *App) initTwilio(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "init TwilioSMS")
 	}
-	app.notificationManager.RegisterSender(twilio.DestTypeTwilioSMS, "Twilio-SMS", app.twilioSMS)
 
 	app.twilioVoice, err = twilio.NewVoice(ctx, app.db, app.twilioConfig)
 	if err != nil {
 		return errors.Wrap(err, "init TwilioVoice")
 	}
-	app.notificationManager.RegisterSender(twilio.DestTypeTwilioVoice, "Twilio-Voice", app.twilioVoice)
 
 	return nil
 }
