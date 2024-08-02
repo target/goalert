@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -137,7 +136,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 		notifMsg = notification.Verification{
 			Base: msg.Base(),
-			Code: strconv.Itoa(code),
+			Code: fmt.Sprintf("%06d", code),
 		}
 	case notification.MessageTypeScheduleOnCallUsers:
 		users, err := p.cfg.OnCallStore.OnCallUsersBySchedule(ctx, msg.ScheduleID)

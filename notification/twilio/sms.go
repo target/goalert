@@ -139,7 +139,7 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 	case notification.Test:
 		message = fmt.Sprintf("%s: Test message.", cfg.ApplicationName())
 	case notification.Verification:
-		message = fmt.Sprintf("%s: Verification code: %d", cfg.ApplicationName(), t.Code)
+		message = fmt.Sprintf("%s: Verification code: %s", cfg.ApplicationName(), t.Code)
 	default:
 		return nil, errors.Errorf("unhandled message type %T", t)
 	}
