@@ -58,6 +58,7 @@ func (app *App) startup(ctx context.Context) error {
 	})
 
 	app.initStartup(ctx, "Startup.DBStores", app.initStores)
+	ctx = app.ConfigStore.Config().Context(ctx)
 
 	// init twilio before engine
 	app.initStartup(
