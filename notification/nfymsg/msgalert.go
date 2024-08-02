@@ -1,4 +1,4 @@
-package notification
+package nfymsg
 
 import "github.com/target/goalert/gadb"
 
@@ -15,11 +15,6 @@ type Alert struct {
 
 	// OriginalStatus is the status of the first Alert notification to this Dest for this AlertID.
 	OriginalStatus *SendResult
-}
-
-type AlertPendingNotification struct {
-	DestName string
-	DestType string
 }
 
 var _ Message = &Alert{}

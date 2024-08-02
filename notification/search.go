@@ -291,12 +291,13 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 		var cmID uuid.NullUUID
 		var providerID sql.NullString
 		var lastStatusAt, sentAt sql.NullTime
+		var lastStatus gadb.NullEnumOutgoingMessagesStatus
 		err = rows.Scan(
 			&l.ID,
 			&l.CreatedAt,
 			&lastStatusAt,
 			&l.MessageType,
-			&l.LastStatus,
+			&lastStatus,
 			&l.StatusDetails,
 			&srcValue,
 			&alertID,
@@ -335,6 +336,11 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 			l.SentAt = &sentAt.Time
 		}
 		l.RetryCount = int(retryCount.Int32)
+
+		l.LastStatus, err = messageStateFromStatus(lastStatus.EnumOutgoingMessagesStatus, false)
+		if err != nil {
+			return nil, err
+		}
 
 		result = append(result, l)
 	}

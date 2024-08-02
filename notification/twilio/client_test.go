@@ -125,7 +125,7 @@ func TestSetMsgParams(t *testing.T) {
 		}
 
 		assert.Equal(t, expected, *result)
-		assert.Equal(t, err.Error(), "unhandled message type: notification.ScheduleOnCallUsers")
+		assert.Equal(t, err.Error(), "unhandled message type: nfymsg.ScheduleOnCallUsers")
 	})
 	t.Run("no input", func(t *testing.T) {
 		result := &VoiceOptions{}
