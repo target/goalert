@@ -24,15 +24,22 @@ docker run -it --rm -p 8081:8081 goalert/demo
 GoAlert will be running at [localhost:8081](http://localhost:8081). You can log in with `admin`/`admin123`.
 
 If you're using the demo container for integration testing:
+
 - A non-admin user is available as `user`/`user1234`.
 - You can specify the ENV variable `SKIP_SEED=1` to skip the initial seed data step.
 - You can get a session token via `curl -XPOST -H 'Referer: http://localhost:8081' -d 'username=admin&password=admin123' 'http://localhost:8081/api/v2/identity/providers/basic?noRedirect=1'`.
 
-## Contributing
+## Contributing (Local Development)
 
 If you'd like to contribute to GoAlert, please see our [Contributing Guidelines](./CONTRIBUTING.md) and the [Development Setup Guide](./docs/development-setup.md).
 
 Please also see our [Code of Conduct](./CODE_OF_CONDUCT.md).
+
+For most purposes, you can use `make start` from the root of this repo to start a development server.
+
+- It will be running at `http://localhost:3030`
+- Default login is `admin`/`admin123`
+- Changes you make locally, UI and backend, should be reflected in the running server within a few seconds (no need to restart the server).
 
 ## Contact Us
 
