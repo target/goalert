@@ -10,6 +10,7 @@ import (
 
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfydest"
 )
 
 type Sender struct{}
@@ -86,8 +87,10 @@ func NewSender(ctx context.Context) *Sender {
 	return &Sender{}
 }
 
+var _ nfydest.MessageSender = &Sender{}
+
 // Send will send an alert for the provided message type
-func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
+func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 	var payload interface{}
 	switch m := msg.(type) {

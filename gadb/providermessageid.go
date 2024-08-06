@@ -36,6 +36,15 @@ func (p ProviderMessageID) String() string {
 }
 
 func (p ProviderMessageID) Value() (driver.Value, error) {
+	// Older versions of GoAlert had a separate name for each provider from the destination type, so we need to map them for compatibility.
+	//
+	// Since the SMS and voice message types are the only ones that rely on async status updates, they are the only ones that require this mapping.
+	switch p.ProviderName {
+	case "builtin-twilio-sms":
+		p.ProviderName = "Twilio-SMS"
+	case "builtin-twilio-voice":
+		p.ProviderName = "Twilio-Voice"
+	}
 	val := p.String()
 	if val == "" {
 		return nil, nil
@@ -47,12 +56,21 @@ func (p ProviderMessageID) Value() (driver.Value, error) {
 func (p *ProviderMessageID) Scan(value interface{}) error {
 	switch v := value.(type) {
 	case string:
-		if !strings.Contains(v, ":") {
+		var ok bool
+		p.ProviderName, p.ExternalID, ok = strings.Cut(v, ":")
+		if !ok {
 			return fmt.Errorf("invalid provider id format: '%s'; expected 'providername:providerid'", v)
 		}
-		parts := strings.SplitN(v, ":", 2)
-		p.ProviderName = parts[0]
-		p.ExternalID = parts[1]
+
+		// Older versions of GoAlert had a separate name for each provider from the destination type, so we need to map them for compatibility.
+		//
+		// Since the SMS and voice message types are the only ones that rely on async status updates, they are the only ones that require this mapping.
+		switch p.ProviderName {
+		case "Twilio-SMS":
+			p.ProviderName = "builtin-twilio-sms"
+		case "Twilio-Voice":
+			p.ProviderName = "builtin-twilio-voice"
+		}
 	case nil:
 		p.ExternalID = ""
 		p.ProviderName = ""

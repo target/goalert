@@ -7,7 +7,6 @@ import (
 
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/expflag"
-	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/email"
 	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/retry"
@@ -57,20 +56,14 @@ func (app *App) startup(ctx context.Context) error {
 		return err
 	})
 
-	app.notificationManager = notification.NewManager()
-	if app.cfg.StubNotifiers {
-		app.notificationManager.SetStubNotifiers()
-	}
-
 	app.initStartup(ctx, "Startup.DBStores", app.initStores)
+	ctx = app.ConfigStore.Config().Context(ctx)
 
 	// init twilio before engine
 	app.initStartup(
 		ctx, "Startup.Twilio", app.initTwilio)
 
 	app.initStartup(ctx, "Startup.Slack", app.initSlack)
-	app.notificationManager.RegisterSender(email.DestTypeEmail, "smtp", email.NewSender(ctx))
-	app.notificationManager.RegisterSender(webhook.DestTypeWebhook, "webhook", webhook.NewSender(ctx))
 
 	app.initStartup(ctx, "Startup.Engine", app.initEngine)
 	app.initStartup(ctx, "Startup.Auth", app.initAuth)
@@ -96,8 +89,16 @@ func (app *App) startup(ctx context.Context) error {
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan.DMSender())
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan.UserGroupSender())
 	app.DestRegistry.RegisterProvider(ctx, webhook.NewSender(ctx))
+	if app.cfg.StubNotifiers {
+		app.DestRegistry.StubNotifiers()
+	}
 
-	err := app.mgr.SetPauseResumer(lifecycle.MultiPauseResume(
+	err := app.notificationManager.SetResultReceiver(ctx, app.Engine)
+	if err != nil {
+		return err
+	}
+
+	err = app.mgr.SetPauseResumer(lifecycle.MultiPauseResume(
 		app.Engine,
 		lifecycle.PauseResumerFunc(app._pause, app._resume),
 	))

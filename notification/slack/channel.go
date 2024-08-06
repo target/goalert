@@ -49,7 +49,7 @@ const (
 )
 
 var (
-	_ notification.Sender         = &ChannelSender{}
+	_ nfydest.MessageSender       = &ChannelSender{}
 	_ notification.ReceiverSetter = &ChannelSender{}
 )
 
@@ -440,7 +440,7 @@ func chanTS(origChannelID, externalID string) (channelID, ts string) {
 	return channelID, ts
 }
 
-func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
+func (s *ChannelSender) SendMessage(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 
 	// Note: We don't use cfg.ApplicationName() here since that is configured in the Slack app as the bot name.

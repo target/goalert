@@ -8,8 +8,8 @@ import (
 )
 
 type namedReceiver struct {
-	r  ResultReceiver
-	ns *namedSender
+	r        ResultReceiver
+	destType string
 }
 
 var _ Receiver = &namedReceiver{}
@@ -23,7 +23,7 @@ func (nr *namedReceiver) IsKnownDest(ctx context.Context, dest gadb.DestV1) (boo
 // namedSender.
 func (nr *namedReceiver) SetMessageStatus(ctx context.Context, externalID string, status *Status) error {
 	res := &SendResult{Status: *status}
-	res.ProviderMessageID.ProviderName = nr.ns.name
+	res.ProviderMessageID.ProviderName = nr.destType
 	res.ProviderMessageID.ExternalID = externalID
 	return nr.r.SetSendResult(ctx, res)
 }
@@ -47,12 +47,12 @@ func (nr *namedReceiver) Stop(ctx context.Context, d gadb.DestV1) error {
 
 // Receive implements the Receiver interface by calling the underlying Receiver.Receive method.
 func (nr *namedReceiver) Receive(ctx context.Context, callbackID string, result Result) error {
-	metricRecvTotal.WithLabelValues(nr.ns.destType, result.String())
+	metricRecvTotal.WithLabelValues(nr.destType, result.String())
 	return nr.r.Receive(ctx, callbackID, result)
 }
 
 // Receive implements the Receiver interface by calling the underlying Receiver.ReceiveSubject method.
 func (nr *namedReceiver) ReceiveSubject(ctx context.Context, providerID, subjectID, callbackID string, result Result) error {
-	metricRecvTotal.WithLabelValues(nr.ns.destType, result.String())
+	metricRecvTotal.WithLabelValues(nr.destType, result.String())
 	return nr.r.ReceiveSubject(ctx, providerID, subjectID, callbackID, result)
 }

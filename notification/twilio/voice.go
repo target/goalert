@@ -13,12 +13,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nyaruka/phonenumbers"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
@@ -66,9 +66,8 @@ var (
 	errVoiceTimeout                             = errors.New("process voice action: timeout")
 	pRx                                         = regexp.MustCompile(`\((.*?)\)`)
 	_               notification.ReceiverSetter = &Voice{}
-	_               notification.Sender         = &Voice{}
-	_               notification.StatusChecker  = &Voice{}
-	_               notification.FriendlyValuer = &Voice{}
+	_               nfydest.MessageSender       = &Voice{}
+	_               nfydest.MessageStatuser     = &Voice{}
 	rmParen                                     = regexp.MustCompile(`\s*\(.*?\)`)
 )
 
@@ -149,7 +148,7 @@ func (v *Voice) ServeCall(w http.ResponseWriter, req *http.Request) {
 }
 
 // Status provides the current status of a message.
-func (v *Voice) Status(ctx context.Context, externalID string) (*notification.Status, error) {
+func (v *Voice) MessageStatus(ctx context.Context, externalID string) (*notification.Status, error) {
 	call, err := v.c.GetVoice(ctx, externalID)
 	if err != nil {
 		return nil, err
@@ -171,7 +170,7 @@ func spellCode(code string) string {
 }
 
 // Send implements the notification.Sender interface.
-func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
+func (v *Voice) SendMessage(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 	if !cfg.Twilio.Enable {
 		return nil, errors.New("Twilio provider is disabled")
@@ -603,15 +602,6 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 		resp.Say(msg).Hangup()
 		return
 	}
-}
-
-// FriendlyValue will return the international formatting of the phone number.
-func (v *Voice) FriendlyValue(ctx context.Context, value string) (string, error) {
-	num, err := phonenumbers.Parse(value, "")
-	if err != nil {
-		return "", fmt.Errorf("parse number for formatting: %w", err)
-	}
-	return phonenumbers.Format(num, phonenumbers.INTERNATIONAL), nil
 }
 
 // buildMessage is a function that will build the VoiceOptions object with the proper message contents

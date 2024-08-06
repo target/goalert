@@ -31,7 +31,7 @@ func (q *Query) DebugMessageStatus(ctx context.Context, input graphql2.DebugMess
 		return nil, validation.NewFieldError("ProviderMessageID", err.Error())
 	}
 
-	status, _, err := q.NotificationManager.MessageStatus(ctx, id)
+	status, err := q.NotificationManager.MessageStatus(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (a *Mutation) DebugSendSms(ctx context.Context, input graphql2.DebugSendSMS
 	return &graphql2.DebugSendSMSInfo{
 		ID: notification.ProviderMessageID{
 			ExternalID:   msg.SID,
-			ProviderName: "Twilio-SMS",
+			ProviderName: twilio.DestTypeTwilioSMS,
 		}.String(),
 		ProviderURL: "https://www.twilio.com/console/sms/logs/" + url.PathEscape(msg.SID),
 		FromNumber:  msg.From,
