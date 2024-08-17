@@ -6088,12 +6088,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/preview-api@npm:8.2.5, @storybook/preview-api@npm:^8.2.5":
-  version: 8.2.5
-  resolution: "@storybook/preview-api@npm:8.2.5"
+"@storybook/preview-api@npm:8.2.9":
+  version: 8.2.9
+  resolution: "@storybook/preview-api@npm:8.2.9"
   peerDependencies:
-    storybook: ^8.2.5
-  checksum: 10/913bd916660c17b6d741c37da0a070d54140540d55b5e389b9baab1fd179d10b6be5c03710deb4ff48fbbdfabffbc1a42a492549a2aa34063a65e399c662747b
+    storybook: ^8.2.9
+  checksum: 10/4973ca3ede45e363a54071a200ee1aeeea9c735ee1e6ba93d46c756bae905057a0e6c30882964aee14fb1631029c5f86b2a4cb8deaee4a80aa5770bf63a00eb3
   languageName: node
   linkType: hard
 
@@ -6103,6 +6103,15 @@ __metadata:
   peerDependencies:
     storybook: ^8.2.4
   checksum: 10/11ff34acc87d4724582e9e12603b8ad25e0db600dd208ed372d14d69ddd0abbd4c124652378e6885af978a6e89227fc1f4d45e8b922c7ce899d46429a6d2a0bf
+  languageName: node
+  linkType: hard
+
+"@storybook/preview-api@npm:^8.2.5":
+  version: 8.2.5
+  resolution: "@storybook/preview-api@npm:8.2.5"
+  peerDependencies:
+    storybook: ^8.2.5
+  checksum: 10/913bd916660c17b6d741c37da0a070d54140540d55b5e389b9baab1fd179d10b6be5c03710deb4ff48fbbdfabffbc1a42a492549a2aa34063a65e399c662747b
   languageName: node
   linkType: hard
 
@@ -18816,7 +18825,7 @@ __metadata:
     "@storybook/addon-interactions": "npm:8.2.5"
     "@storybook/addon-links": "npm:8.2.5"
     "@storybook/blocks": "npm:8.2.5"
-    "@storybook/preview-api": "npm:8.2.5"
+    "@storybook/preview-api": "npm:8.2.9"
     "@storybook/react": "npm:8.2.5"
     "@storybook/react-vite": "npm:8.2.5"
     "@storybook/test": "npm:8.2.5"
