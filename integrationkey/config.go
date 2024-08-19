@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/gadb"
@@ -29,7 +28,7 @@ func destHash(dest gadb.DestV1) (hash [32]byte) {
 		panic(err)
 	}
 	h := sha256.New()
-	_, _ = io.WriteString(h, string(data))
+	_, _ = h.Write(data)
 	copy(hash[:], h.Sum(nil))
 	return hash
 }

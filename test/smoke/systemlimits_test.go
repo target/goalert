@@ -94,7 +94,7 @@ func TestSystemLimits(t *testing.T) {
 		g := h.GraphQLQuery2(query)
 		if len(g.Errors) > 1 {
 			for _, err := range g.Errors {
-				t.Logf(err.Message)
+				t.Log(err.Message)
 			}
 			t.Fatalf("got %d errors; want 0 or 1", len(g.Errors))
 		}
