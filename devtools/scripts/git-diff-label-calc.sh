@@ -110,6 +110,4 @@ if [ $FAIL_IF_XL -eq 1 ] && [ "$LABEL" = "$XL_LABEL" ]; then
     exit 1
 fi
 
-exit 1 # test failure
-
 echo "$LABEL"
