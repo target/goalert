@@ -17,3 +17,7 @@ jobs:
           fetch-depth: 0
       - name: Run validation script
         run: ./devtools/scripts/validate-migrations.sh
+      - name: Add migration label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr edit ${{ github.event.number }} --add-label "DB Migration"
