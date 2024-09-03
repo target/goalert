@@ -1,0 +1,19 @@
+name: migrations
+
+on:
+  pull_request:
+    types: ['opened', 'ready_for_review', 'reopened', 'synchronize']
+    paths:
+      - 'migrate/migrations/**'
+
+jobs:
+  migrations:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    name: Validate Migration Order
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run validation script
+        run: ./devtools/scripts/validate-migrations.sh
