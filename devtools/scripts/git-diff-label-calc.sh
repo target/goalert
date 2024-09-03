@@ -64,7 +64,7 @@ done < <(cat "$IGNORE_PATTERN_FILE" 2>/dev/null)
 
 # Perform diff for merging to the main branch:
 # --ignore-blank-lines: ignore changes that only involve blank lines
-# --shortstat: output only the summary of the changes
+# --numstat: output only the number of changes (per file)
 # -w: ignore whitespace
 # --diff-filter=d: exclude deleted files
 # --minimal: produce the smallest diff possible
