@@ -69,8 +69,7 @@ done < <(cat "$IGNORE_PATTERN_FILE" 2>/dev/null)
 # --diff-filter=d: exclude deleted files
 # --minimal: produce the smallest diff possible
 # --merge-base: find the common ancestor of the current branch and the main branch
-# $EXCLUDE_GENERATED_FILES_ARGS[@]: exclude generated files
-# $EXCLUDE_IGNORED_FILES_ARGS[@]: exclude files that match the patterns in the .labelignore file
+# $IGNORE_ARGS[@]: list of `:(exclude)file` patterns to ignore
 OUTPUT=$(
     if [ "$DEBUG" = "1" ]; then set -x; fi
     git diff --ignore-blank-lines --numstat -w --diff-filter=d --minimal --merge-base "origin/$MAIN_BRANCH" -- "${IGNORE_ARGS[@]}"
