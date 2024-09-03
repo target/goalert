@@ -11,6 +11,8 @@ jobs:
     name: Label the PR size
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Run labeler script
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
