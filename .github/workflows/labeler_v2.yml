@@ -1,0 +1,17 @@
+name: labeler v2
+
+on:
+  pull_request:
+    types: ['opened', 'ready_for_review', 'reopened', 'synchronize']
+
+jobs:
+  labeler:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    name: Label the PR size
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install jq
+        run: sudo apt-get install -y jq
+      - name: Run labeler script
+        run: ./devtools/scripts/github-set-pr-label.sh
