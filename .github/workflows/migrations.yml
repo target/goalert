@@ -3,6 +3,8 @@ name: migrations
 on:
   pull_request:
     types: ['opened', 'ready_for_review', 'reopened', 'synchronize']
+    paths:
+      - 'migrate/migrations/**'
 
 jobs:
   migrations:
