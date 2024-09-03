@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 # Outputs a label based on the size of the diff between the current branch and the main branch.
