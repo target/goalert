@@ -17,4 +17,5 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.number }}
+          FAIL_IF_XL: '1'
         run: ./devtools/scripts/github-set-pr-label.sh
