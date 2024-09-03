@@ -11,7 +11,10 @@ jobs:
     name: Label the PR size
     steps:
       - uses: actions/checkout@v3
-      - name: Install jq
-        run: sudo apt-get install -y jq
       - name: Run labeler script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+          PR_NUMBER: ${{ github.event.number }}
         run: ./devtools/scripts/github-set-pr-label.sh
