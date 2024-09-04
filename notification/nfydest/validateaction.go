@@ -27,6 +27,8 @@ type ActionParamError struct {
 
 func (e *ActionParamError) Error() string { return fmt.Sprintf("parameter %s: %s", e.ParamID, e.Err) }
 
+func (e *ActionParamError) ClientError() bool { return true }
+
 func (r *Registry) ValidateAction(ctx context.Context, act gadb.UIKActionV1) error {
 	p := r.Provider(act.Dest.Type)
 	if p == nil {
