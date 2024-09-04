@@ -22,6 +22,8 @@ type DestArgError struct {
 
 func (e *DestArgError) Error() string { return fmt.Sprintf("field %s: %s", e.FieldID, e.Err) }
 
+func (e *DestArgError) ClientError() bool { return true }
+
 func (r *Registry) ValidateDest(ctx context.Context, dest gadb.DestV1) error {
 	p := r.Provider(dest.Type)
 	if p == nil {

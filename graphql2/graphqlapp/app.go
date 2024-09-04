@@ -228,6 +228,31 @@ func (a *App) Handler() http.Handler {
 				},
 			}
 		}
+
+		var argErr *nfydest.DestArgError
+		if errors.As(err, &argErr) {
+			return &gqlerror.Error{
+				Message: argErr.Err.Error(),
+				Path:    graphql.GetPath(ctx),
+				Extensions: map[string]interface{}{
+					"code":    graphql2.ErrorCodeInvalidDestFieldValue,
+					"fieldID": argErr.FieldID,
+				},
+			}
+		}
+
+		var paramErr *nfydest.ActionParamError
+		if errors.As(err, &paramErr) {
+			return &gqlerror.Error{
+				Message: paramErr.Err.Error(),
+				Path:    graphql.GetPath(ctx),
+				Extensions: map[string]interface{}{
+					"code": graphql2.ErrorCodeInvalidMapFieldValue,
+					"key":  paramErr.ParamID,
+				},
+			}
+		}
+
 		err = errutil.MapDBError(err)
 		var gqlErr *gqlerror.Error
 
