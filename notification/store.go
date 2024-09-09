@@ -407,6 +407,9 @@ func (s *Store) LastMessageStatus(ctx context.Context, typ gadb.EnumOutgoingMess
 		ContactMethodID: uuid.NullUUID{UUID: cmID, Valid: true},
 		CreatedAt:       from,
 	})
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, time.Time{}, nil
+	}
 	if err != nil {
 		return nil, time.Time{}, err
 	}
