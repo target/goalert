@@ -1254,7 +1254,7 @@ type UserContactMethod {
   value: String!
     @deprecated(reason: "Use dest instead.")
     @goField(forceResolver: true)
-  formattedValue: String!
+  formattedValue: String! @deprecated(reason: "Use dest.displayInfo instead.")
   disabled: Boolean!
   pending: Boolean!
 
