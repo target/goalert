@@ -257,7 +257,7 @@ export default function UserContactMethodList(
           )}
           {showSendTestByID && (
             <SendTestDialog
-              messageID={showSendTestByID}
+              contactMethodID={showSendTestByID}
               onClose={() => setShowSendTestByID('')}
             />
           )}
