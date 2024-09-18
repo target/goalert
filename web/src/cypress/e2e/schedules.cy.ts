@@ -486,7 +486,8 @@ function testSchedules(screen: ScreenFormat): void {
       cy.dialogTitle('Create Notification Rule')
       cy.dialogForm({
         ruleType: 'on-change',
-        'slack-channel-id': 'general',
+        'dest.type': 'Slack Channel',
+        slack_channel_id: 'general',
       })
       cy.dialogFinish('Submit')
       cy.get('body').should('contain', '#general')
@@ -501,6 +502,7 @@ function testSchedules(screen: ScreenFormat): void {
       cy.dialogTitle('Create Notification Rule')
       cy.dialogForm({
         ruleType: 'time-of-day',
+        'dest.type': 'Slack Channel',
         time: '00:00',
         'weekdayFilter[0]': false,
         'weekdayFilter[1]': true,
@@ -509,7 +511,7 @@ function testSchedules(screen: ScreenFormat): void {
         'weekdayFilter[4]': false,
         'weekdayFilter[5]': false,
         'weekdayFilter[6]': false,
-        'slack-channel-id': 'foobar',
+        slack_channel_id: 'foobar',
       })
       cy.dialogFinish('Submit')
       cy.get('#content').should('contain', 'Notifies Mon at 12:00 AM')
@@ -606,7 +608,7 @@ function testSchedules(screen: ScreenFormat): void {
         'weekdayFilter[4]': false,
         'weekdayFilter[5]': false,
         'weekdayFilter[6]': false,
-        'slack-channel-id': 'foobar',
+        slack_channel_id: 'foobar',
       })
       cy.dialogFinish('Submit')
       cy.get('body').should('contain', 'Notifies Mon at 7:00 AM')
@@ -636,8 +638,8 @@ testScreen('Slack User Group Support', (screen: ScreenFormat) => {
       cy.dialogForm({
         ruleType: 'on-change',
         'dest.type': 'Update Slack User Group',
-        'slack-usergroup-id': 'foobar',
-        'slack-channel-id': 'foobar',
+        slack_usergroup_id: 'foobar',
+        slack_channel_id: 'foobar',
       })
 
       cy.dialogFinish('Submit')
@@ -662,8 +664,8 @@ testScreen('Slack User Group Support', (screen: ScreenFormat) => {
         'weekdayFilter[5]': false,
         'weekdayFilter[6]': false,
         'dest.type': 'Update Slack User Group',
-        'slack-usergroup-id': 'foobar',
-        'slack-channel-id': 'foobar',
+        slack_usergroup_id: 'foobar',
+        slack_channel_id: 'foobar',
       })
       cy.dialogFinish('Submit')
       cy.get('#content').should('contain', 'Notifies Mon at 12:00 AM')
@@ -688,7 +690,7 @@ testScreen('Slack User Group Support', (screen: ScreenFormat) => {
       cy.dialogForm({
         ruleType: 'on-change',
         'dest.type': 'Webhook',
-        'webhook-url': 'http://www.example.com',
+        webhook_url: 'http://www.example.com',
       })
 
       cy.dialogFinish('Submit')
@@ -705,7 +707,7 @@ testScreen('Slack User Group Support', (screen: ScreenFormat) => {
       cy.dialogForm({
         ruleType: 'time-of-day',
         'dest.type': 'Webhook',
-        'webhook-url': 'http://www.example.com',
+        webhook_url: 'http://www.example.com',
         time: '00:00',
         'weekdayFilter[0]': false,
         'weekdayFilter[1]': true,

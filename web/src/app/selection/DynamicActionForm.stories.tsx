@@ -36,6 +36,7 @@ const meta = {
                   label: 'Dynamic Param',
                   hint: 'Param Hint',
                   hintURL: 'http://example.com/hint',
+                  defaultValue: '',
                 },
               ],
               requiredFields: [
@@ -71,6 +72,7 @@ const meta = {
                   label: 'Dynamic Param 2',
                   hint: 'Param Hint 2',
                   hintURL: 'http://example.com/hint2',
+                  defaultValue: '',
                 },
               ],
               requiredFields: [
@@ -135,22 +137,8 @@ export const Errors: Story = {
       staticParams: {},
       dynamicParams: {},
     },
-    errors: [
-      {
-        section: 'input',
-        inputID: 'dest-type',
-        message: 'Dest type validation error',
-      },
-      {
-        section: 'static-params',
-        fieldID: 'required-field',
-        message: 'Required field validation error',
-      },
-      {
-        section: 'dynamic-params',
-        paramID: 'dynamic-param',
-        message: 'Dynamic param validation error',
-      },
-    ],
+    destTypeError: 'Dest type validation error',
+    staticParamErrors: { 'required-field': 'Required field validation error' },
+    dynamicParamErrors: { 'dynamic-param': 'Dynamic param validation error' },
   },
 }

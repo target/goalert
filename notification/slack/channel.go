@@ -13,6 +13,7 @@ import (
 	"github.com/slack-go/slack/slackutilsx"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
@@ -48,7 +49,7 @@ const (
 )
 
 var (
-	_ notification.Sender         = &ChannelSender{}
+	_ nfydest.MessageSender       = &ChannelSender{}
 	_ notification.ReceiverSetter = &ChannelSender{}
 )
 
@@ -77,6 +78,13 @@ type Channel struct {
 	TeamID string
 
 	IsArchived bool
+}
+
+func (c Channel) AsField() nfydest.FieldValue {
+	return nfydest.FieldValue{
+		Value: c.ID,
+		Label: c.Name,
+	}
 }
 
 // User contains information about a Slack user.
@@ -144,6 +152,10 @@ func (s *ChannelSender) ValidateChannel(ctx context.Context, id string) error {
 		return err
 	}
 
+	if id == "" {
+		return validation.NewGenericError("Channel is required.")
+	}
+
 	s.chanMx.Lock()
 	defer s.chanMx.Unlock()
 	res, ok := s.chanCache.Get(id)
@@ -183,9 +195,6 @@ func (s *ChannelSender) Channel(ctx context.Context, channelID string) (*Channel
 		}
 		s.chanCache.Add(channelID, ch)
 		return ch, nil
-	}
-	if err != nil {
-		return nil, err
 	}
 
 	return res, nil
@@ -296,9 +305,6 @@ func (s *ChannelSender) ListChannels(ctx context.Context) ([]Channel, error) {
 		copy(ch2, chs)
 		s.listCache.Add(cfg.Slack.AccessToken, ch2)
 		return chs, nil
-	}
-	if err != nil {
-		return nil, err
 	}
 
 	cpy := make([]Channel, len(res))
@@ -434,19 +440,24 @@ func chanTS(origChannelID, externalID string) (channelID, ts string) {
 	return channelID, ts
 }
 
-func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
+func (s *ChannelSender) SendMessage(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 
 	// Note: We don't use cfg.ApplicationName() here since that is configured in the Slack app as the bot name.
 
 	var opts []slack.MsgOption
 	var isUpdate bool
-	channelID := msg.Destination().Value
+	channelID := msg.DestArg(FieldSlackChannelID)
+	if msg.DestType() == DestTypeSlackDirectMessage {
+		// DMs are sent to the user ID, not the channel ID.
+		channelID = msg.DestArg(FieldSlackUserID)
+	}
+
 	switch t := msg.(type) {
 	case notification.Test:
 		opts = append(opts, slack.MsgOptionText("This is a test message.", false))
 	case notification.Verification:
-		opts = append(opts, slack.MsgOptionText(fmt.Sprintf("Your verification code is: %06d", t.Code), false))
+		opts = append(opts, slack.MsgOptionText(fmt.Sprintf("Your verification code is: %s", t.Code), false))
 	case notification.Alert:
 		if t.OriginalStatus != nil {
 			var ts string
@@ -461,7 +472,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 			break
 		}
 
-		opts = append(opts, alertMsgOption(ctx, t.CallbackID, t.AlertID, t.Summary, "Unacknowledged", notification.AlertStateUnacknowledged))
+		opts = append(opts, alertMsgOption(ctx, t.MsgID(), t.AlertID, t.Summary, "Unacknowledged", notification.AlertStateUnacknowledged))
 	case notification.AlertStatus:
 		isUpdate = true
 		var ts string
@@ -474,6 +485,8 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		opts = append(opts, slack.MsgOptionText(
 			fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", slackutilsx.EscapeMessage(t.ServiceName), t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")),
 			false))
+	case notification.SignalMessage:
+		opts = append(opts, slack.MsgOptionText(t.Param("message"), false))
 	case notification.ScheduleOnCallUsers:
 		opts = append(opts, slack.MsgOptionText(s.onCallNotificationText(ctx, t), false))
 	default:

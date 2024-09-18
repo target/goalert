@@ -22,7 +22,7 @@ const servicesQuery = gql`
           id
           name
           steps {
-            targets {
+            actions {
               type
             }
           }

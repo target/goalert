@@ -34,7 +34,7 @@ const meta = {
           })
         }),
         graphql.query('DestDisplayInfo', ({ variables: vars }) => {
-          if (vars.input.values[0].value.length !== 12) {
+          if (vars.input.args.phone_number.length !== 12) {
             return HttpResponse.json({
               errors: [
                 { message: 'generic error' },
@@ -43,7 +43,7 @@ const meta = {
                   path: ['destinationDisplayInfo', 'input'],
                   extensions: {
                     code: 'INVALID_DEST_FIELD_VALUE',
-                    fieldID: 'phone-number',
+                    fieldID: 'phone_number',
                   },
                 } satisfies DestFieldValueError,
               ],
@@ -53,7 +53,7 @@ const meta = {
           return HttpResponse.json({
             data: {
               destinationDisplayInfo: {
-                text: vars.input.values[0].value,
+                text: vars.input.args.phone_number,
                 iconURL: 'builtin://phone-voice',
                 iconAltText: 'Voice Call',
               },

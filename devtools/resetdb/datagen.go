@@ -8,13 +8,14 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit/v6"
+	"github.com/google/uuid"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
-	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
@@ -147,18 +148,18 @@ func (d *datagen) NewUser() {
 // NewCM will generate a contact method for the given UserID.
 func (d *datagen) NewCM(userID string) {
 	cm := contactmethod.ContactMethod{
-		ID:       d.UUID(),
-		Type:     contactmethod.TypeSMS,
+		ID:       uuid.MustParse(d.UUID()),
 		Name:     d.ids.Gen(d.FirstName, userID),
 		Disabled: true,
 		UserID:   userID,
 		Pending:  false,
 	}
+	cm.Dest.Type = twilio.DestTypeTwilioSMS
 	if d.Bool() {
-		cm.Type = contactmethod.TypeVoice
+		cm.Dest.Type = twilio.DestTypeTwilioVoice
 	}
 
-	cm.Value = d.ids.Gen(d.genPhone, notification.ScannableDestType{CM: cm.Type}.DestType().String())
+	cm.Dest.SetArg(twilio.FieldPhoneNumber, d.ids.Gen(d.genPhone, cm.Dest.Type))
 	d.ContactMethods = append(d.ContactMethods, cm)
 }
 
@@ -167,7 +168,7 @@ func (d *datagen) NewNR(userID, cmID string) {
 	nr := notificationrule.NotificationRule{
 		ID:              d.UUID(),
 		UserID:          userID,
-		ContactMethodID: cmID,
+		ContactMethodID: uuid.MustParse(cmID),
 		DelayMinutes:    d.ints.Gen(600, cmID),
 	}
 	d.NotificationRules = append(d.NotificationRules, nr)
@@ -266,7 +267,7 @@ func (d *datagen) NewEP() {
 // NewEPStep will generate a random escalation policy step for the provided policy.
 func (d *datagen) NewEPStep(epID string, n int) {
 	d.EscalationSteps = append(d.EscalationSteps, escalation.Step{
-		ID:           d.UUID(),
+		ID:           uuid.MustParse(d.UUID()),
 		PolicyID:     epID,
 		DelayMinutes: d.Intn(25) + 5,
 		StepNumber:   n,
@@ -404,7 +405,7 @@ func (d *datagen) NewAlertMessages(a alert.Alert, max int) {
 			Status:    "delivered",
 			UserID:    cm.UserID,
 			EPID:      getEPID(a.ServiceID),
-			CMID:      cm.ID,
+			CMID:      cm.ID.String(),
 			SentAt:    ts,
 			CreatedAt: d.DateRange(ts.Add(-time.Minute), ts),
 		})
@@ -422,7 +423,7 @@ func (d *datagen) NewAlertMessages(a alert.Alert, max int) {
 			Event:     "notification_sent",
 			UserID:    cm.UserID,
 			Meta:      data,
-			Class:     string(cm.Type),
+			Class:     string(cm.Dest.Type),
 		})
 	}
 }
@@ -595,7 +596,7 @@ func (cfg datagenConfig) Generate() datagen {
 		if len(cmMethods) == 0 {
 			continue
 		}
-		run(d.Intn(cfg.NRMax), func() { d.NewNR(u.ID, cmMethods[d.Intn(len(cmMethods))].ID) })
+		run(d.Intn(cfg.NRMax), func() { d.NewNR(u.ID, cmMethods[d.Intn(len(cmMethods))].ID.String()) })
 	}
 
 	run(cfg.RotationCount, d.NewRotation)
@@ -619,7 +620,7 @@ func (cfg datagenConfig) Generate() datagen {
 		})
 	}
 	for _, step := range d.EscalationSteps {
-		run(d.Intn(cfg.EPMaxAssigned), func() { d.NewEPStepAction(step.ID) })
+		run(d.Intn(cfg.EPMaxAssigned), func() { d.NewEPStepAction(step.ID.String()) })
 	}
 
 	d.labelKeys = make([]string, cfg.UniqueLabelKeys)

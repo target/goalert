@@ -18,7 +18,7 @@ const meta = {
       weekdayFilter: [false, false, false, false, false, false, false],
       dest: {
         type: 'single-field',
-        values: [],
+        args: {},
       },
     },
   },
@@ -42,30 +42,10 @@ export const Empty: Story = {
 
 export const ValidationErrors: Story = {
   args: {
-    errors: [
-      {
-        path: ['mutation', 'input', 'time'],
-        message: 'error with time',
-        extensions: {
-          code: 'INVALID_INPUT_VALUE',
-        },
-      },
-      {
-        path: ['mutation', 'input', 'dest'],
-        message: 'error with dest field',
-        extensions: {
-          code: 'INVALID_DEST_FIELD_VALUE',
-          fieldID: 'phone-number',
-        },
-      },
-      {
-        path: ['mutation', 'input', 'dest', 'type'],
-        message: 'error with dest type',
-        extensions: {
-          code: 'INVALID_INPUT_VALUE',
-        },
-      },
-    ],
+    destTypeError: 'error with dest type',
+    destFieldErrors: {
+      phone_number: 'error with dest field',
+    },
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -83,7 +63,6 @@ export const ValidationErrors: Story = {
     ).toBeInvalid()
     await expect(await canvas.findByLabelText('Phone Number')).toBeInvalid()
 
-    await expect(await canvas.findByText('Error with time')).toBeVisible()
     await expect(await canvas.findByText('Error with dest field')).toBeVisible()
     await expect(await canvas.findByText('Error with dest type')).toBeVisible()
   },

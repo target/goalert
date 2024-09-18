@@ -3,9 +3,9 @@ extend type EscalationPolicyStep {
 }
 
 extend input CreateEscalationPolicyStepInput {
-  actions: [DestinationInput!] @goField(forceResolver: true) # force resolver for initial compat
+  actions: [DestinationInput!]
 }
 
 extend input UpdateEscalationPolicyStepInput {
-  actions: [DestinationInput!] @goField(forceResolver: true) # force resolver for initial compat
+  actions: [DestinationInput!]
 }

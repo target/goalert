@@ -22,17 +22,41 @@ sql:
       - notice/queries.sql
       - graphql2/graphqlapp/queries.sql
       - engine/statusmgr/queries.sql
+      - engine/message/queries.sql
+      - engine/schedulemanager/queries.sql
+      - engine/signalmgr/queries.sql
+      - engine/queries.sql
       - auth/authlink/queries.sql
       - alert/alertlog/queries.sql
       - user/favorite/queries.sql
       - user/contactmethod/queries.sql
+      - notificationchannel/queries.sql
       - integrationkey/queries.sql
       - apikey/queries.sql
       - override/queries.sql
       - schedule/queries.sql
       - label/queries.sql
+      - escalation/queries.sql
+      - notification/queries.sql
     engine: postgresql
     gen:
       go:
         out: gadb
-        sql_package: stdlib
+        sql_package: database/sql
+        overrides:
+          - column: public.outgoing_messages.provider_msg_id
+            go_type:
+              type: ProviderMessageID
+          - column: public.user_contact_methods.dest
+            go_type:
+              # Note: We can't use the nullable/non-nullable types here because
+              # sqlc doesn't support it for column overrides yet.
+              #
+              # Since it's common to have NULL (i.e., when scanning contact methods and notificaiton channels at once) we use the nullable type.
+              type: NullDestV1
+          - column: public.notification_channels.dest
+            go_type:
+              type: NullDestV1
+          - column: public.uik_config.config
+            go_type:
+              type: UIKConfig

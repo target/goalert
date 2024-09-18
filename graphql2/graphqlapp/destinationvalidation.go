@@ -2,18 +2,17 @@ package graphqlapp
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/target/goalert/config"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation"
-	"github.com/target/goalert/validation/validate"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
@@ -132,122 +131,35 @@ func addInputError(ctx context.Context, err error) {
 // ValidateDestination will validate a destination input.
 //
 // In the future this will be a call to the plugin system.
-func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *graphql2.DestinationInput) (err error) {
-	cfg := config.FromContext(ctx)
-	switch dest.Type {
-	case destTwilioSMS:
-		phone := dest.FieldValue(fieldPhoneNumber)
-		err := validate.Phone(fieldPhoneNumber, phone)
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldPhoneNumber, err)
-		}
-		return nil
-	case destTwilioVoice:
-		phone := dest.FieldValue(fieldPhoneNumber)
-		err := validate.Phone(fieldPhoneNumber, phone)
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldPhoneNumber, err)
-		}
-		return nil
-	case destSlackChan:
-		chanID := dest.FieldValue(fieldSlackChanID)
-		err := a.SlackStore.ValidateChannel(ctx, chanID)
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldSlackChanID, err)
+func (a *App) ValidateDestination(ctx context.Context, fieldName string, dest *gadb.DestV1) (err error) {
+	err = a.DestReg.ValidateDest(ctx, *dest)
+	if errors.Is(err, nfydest.ErrUnknownType) {
+		message := fmt.Sprintf("unsupported destination type: %s", dest.Type)
+		if dest.Type == "" {
+			message = "destination type is required"
 		}
 
-		return nil
-	case destSlackDM:
-		userID := dest.FieldValue(fieldSlackUserID)
-		if err := a.SlackStore.ValidateUser(ctx, userID); err != nil {
-			return addDestFieldError(ctx, fieldName, fieldSlackUserID, err)
-		}
-		return nil
-	case destSlackUG:
-		ugID := dest.FieldValue(fieldSlackUGID)
-		userErr := a.SlackStore.ValidateUserGroup(ctx, ugID)
-		if userErr != nil {
-			return addDestFieldError(ctx, fieldName, fieldSlackUGID, userErr)
-		}
+		// unsupported destination type
+		graphql.AddError(ctx, &gqlerror.Error{
+			Message: message,
+			Path:    appendPath(ctx, fieldName+".type"),
+			Extensions: map[string]interface{}{
+				"code": graphql2.ErrorCodeInvalidInputValue,
+			},
+		})
 
-		chanID := dest.FieldValue(fieldSlackChanID)
-		chanErr := a.SlackStore.ValidateChannel(ctx, chanID)
-		if chanErr != nil {
-			return addDestFieldError(ctx, fieldName, fieldSlackChanID, chanErr)
-		}
-
-		return nil
-	case destSMTP:
-		email := dest.FieldValue(fieldEmailAddress)
-		err := validate.Email(fieldEmailAddress, email)
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldEmailAddress, err)
-		}
-		return nil
-	case destWebhook:
-		url := dest.FieldValue(fieldWebhookURL)
-		err := validate.AbsoluteURL(fieldWebhookURL, url)
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldWebhookURL, err)
-		}
-		if !cfg.ValidWebhookURL(url) {
-			return addDestFieldError(ctx, fieldName, fieldWebhookURL, validation.NewGenericError("url is not allowed by administator"))
-		}
-		return nil
-	case destSchedule: // must be valid UUID and exist
-		_, err := validate.ParseUUID(fieldScheduleID, dest.FieldValue(fieldScheduleID))
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldScheduleID, err)
-		}
-
-		_, err = a.ScheduleStore.FindOne(ctx, dest.FieldValue(fieldScheduleID))
-		if errors.Is(err, sql.ErrNoRows) {
-			return addDestFieldError(ctx, fieldName, fieldScheduleID, validation.NewGenericError("schedule does not exist"))
-		}
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldScheduleID, err)
-		}
-
-		return nil
-	case destRotation: // must be valid UUID and exist
-		rotID := dest.FieldValue(fieldRotationID)
-		_, err := validate.ParseUUID(fieldRotationID, rotID)
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldRotationID, err)
-		}
-		_, err = a.RotationStore.FindRotation(ctx, rotID)
-		if errors.Is(err, sql.ErrNoRows) {
-			return addDestFieldError(ctx, fieldName, fieldRotationID, validation.NewGenericError("rotation does not exist"))
-		}
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldRotationID, err)
-		}
-
-		return nil
-	case destUser: // must be valid UUID and exist
-		userID := dest.FieldValue(fieldUserID)
-		uid, err := validate.ParseUUID(fieldUserID, userID)
-		if err != nil {
-			return addDestFieldError(ctx, fieldName, fieldUserID, err)
-		}
-		check, err := a.UserStore.UserExists(ctx)
-		if err != nil {
-			return fmt.Errorf("get user existance checker: %w", err)
-		}
-		if !check.UserExistsUUID(uid) {
-			return addDestFieldError(ctx, fieldName, fieldUserID, validation.NewGenericError("user does not exist"))
-		}
-		return nil
+		return errAlreadySet
 	}
 
-	// unsupported destination type
-	graphql.AddError(ctx, &gqlerror.Error{
-		Message: "unsupported destination type",
-		Path:    appendPath(ctx, fieldName+".type"),
-		Extensions: map[string]interface{}{
-			"code": graphql2.ErrorCodeInvalidInputValue,
-		},
-	})
+	var argErr *nfydest.DestArgError
+	if errors.As(err, &argErr) {
+		return addDestFieldError(ctx, fieldName+".args", argErr.FieldID, argErr.Err)
+	}
 
-	return errAlreadySet
+	if err != nil {
+		// internal error
+		return err
+	}
+
+	return nil
 }

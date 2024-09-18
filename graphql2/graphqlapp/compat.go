@@ -3,161 +3,133 @@ package graphqlapp
 import (
 	"context"
 	"fmt"
-	"strings"
 
-	"github.com/google/uuid"
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
-	"github.com/target/goalert/notificationchannel"
-	"github.com/target/goalert/user/contactmethod"
+	"github.com/target/goalert/notification/email"
+	"github.com/target/goalert/notification/slack"
+	"github.com/target/goalert/notification/twilio"
+	"github.com/target/goalert/notification/webhook"
+	"github.com/target/goalert/schedule"
+	"github.com/target/goalert/schedule/rotation"
+	"github.com/target/goalert/user"
+	"github.com/target/goalert/validation"
+	"github.com/target/goalert/validation/validate"
 )
 
-// CompatTargetToDest converts an assignment.Target to a graphql2.Destination.
-func CompatTargetToDest(tgt assignment.Target) (graphql2.Destination, error) {
+// CompatTargetToDest converts an assignment.Target to a gadb.DestV1.
+func (a *App) CompatTargetToDest(ctx context.Context, tgt assignment.Target) (gadb.DestV1, error) {
 	switch tgt.TargetType() {
 	case assignment.TargetTypeUser:
-		return graphql2.Destination{
-			Type: destUser,
-			Values: []graphql2.FieldValuePair{{
-				FieldID: fieldUserID,
-				Value:   tgt.TargetID(),
-			}}}, nil
-	case assignment.TargetTypeRotation:
-		return graphql2.Destination{
-			Type: destRotation,
-			Values: []graphql2.FieldValuePair{{
-				FieldID: fieldRotationID,
-				Value:   tgt.TargetID(),
-			}}}, nil
-	case assignment.TargetTypeSchedule:
-		return graphql2.Destination{
-			Type: destSchedule,
-			Values: []graphql2.FieldValuePair{{
-				FieldID: fieldScheduleID,
-				Value:   tgt.TargetID(),
-			}}}, nil
-	case assignment.TargetTypeChanWebhook:
-		return graphql2.Destination{
-			Type: destWebhook,
-			Values: []graphql2.FieldValuePair{{
-				FieldID: fieldWebhookURL,
-				Value:   tgt.TargetID(),
-			}}}, nil
-	case assignment.TargetTypeSlackChannel:
-		return graphql2.Destination{
-			Type: destSlackChan,
-			Values: []graphql2.FieldValuePair{{
-				FieldID: fieldSlackChanID,
-				Value:   tgt.TargetID(),
-			}}}, nil
-	}
-
-	return graphql2.Destination{}, fmt.Errorf("unknown target type: %s", tgt.TargetType())
-}
-
-// CompatNCToDest converts a notification channel to a destination.
-func (a *App) CompatNCToDest(ctx context.Context, ncID uuid.UUID) (*graphql2.Destination, error) {
-	nc, err := a.FindOneNC(ctx, ncID)
-	if err != nil {
-		return nil, err
-	}
-
-	switch nc.Type {
-	case notificationchannel.TypeSlackChan:
-		return &graphql2.Destination{
-			Type: destSlackChan,
-			Values: []graphql2.FieldValuePair{
-				{
-					FieldID: fieldSlackChanID,
-					Value:   nc.Value,
-				},
-			},
+		return gadb.DestV1{
+			Type: user.DestTypeUser,
+			Args: map[string]string{user.FieldUserID: tgt.TargetID()},
 		}, nil
-	case notificationchannel.TypeSlackUG:
-		ugID, chanID, ok := strings.Cut(nc.Value, ":")
-		if !ok {
-			return nil, fmt.Errorf("invalid slack usergroup pair: %s", nc.Value)
+	case assignment.TargetTypeRotation:
+		return gadb.DestV1{
+			Type: rotation.DestTypeRotation,
+			Args: map[string]string{rotation.FieldRotationID: tgt.TargetID()},
+		}, nil
+	case assignment.TargetTypeSchedule:
+		return gadb.DestV1{
+			Type: schedule.DestTypeSchedule,
+			Args: map[string]string{schedule.FieldScheduleID: tgt.TargetID()},
+		}, nil
+	case assignment.TargetTypeChanWebhook:
+		return gadb.DestV1{
+			Type: webhook.DestTypeWebhook,
+			Args: map[string]string{webhook.FieldWebhookURL: tgt.TargetID()},
+		}, nil
+	case assignment.TargetTypeSlackChannel:
+		return gadb.DestV1{
+			Type: slack.DestTypeSlackChannel,
+			Args: map[string]string{slack.FieldSlackChannelID: tgt.TargetID()},
+		}, nil
+	case assignment.TargetTypeNotificationChannel:
+		id, err := validate.ParseUUID("TargetID", tgt.TargetID())
+		if err != nil {
+			return gadb.DestV1{}, err
+		}
+		dest, err := a.NCStore.FindDestByID(ctx, nil, id)
+		if err != nil {
+			return gadb.DestV1{}, err
 		}
 
-		return &graphql2.Destination{
-			Type: destSlackUG,
-			Values: []graphql2.FieldValuePair{
-				{
-					FieldID: fieldSlackUGID,
-					Value:   ugID,
-				},
-				{
-					FieldID: fieldSlackChanID,
-					Value:   chanID,
-				},
-			},
-		}, nil
-	case notificationchannel.TypeWebhook:
-		return &graphql2.Destination{
-			Type: destWebhook,
-			Values: []graphql2.FieldValuePair{
-				{
-					FieldID: fieldWebhookURL,
-					Value:   nc.Value,
-				},
-			},
-		}, nil
-	default:
-		return nil, fmt.Errorf("unsupported notification channel type: %s", nc.Type)
+		return dest, nil
 	}
+
+	return gadb.DestV1{}, fmt.Errorf("unknown target type: %s", tgt.TargetType())
 }
 
-// CompatDestToCMTypeVal converts a graphql2.DestinationInput to a contactmethod.Type and string value
+// CompatDestToCMTypeVal converts a gadb.DestV1 to a contactmethod.Type and string value
 // for the built-in destination types.
-func CompatDestToCMTypeVal(d graphql2.DestinationInput) (contactmethod.Type, string) {
+func CompatDestToCMTypeVal(d gadb.DestV1) (graphql2.ContactMethodType, string) {
 	switch d.Type {
-	case destTwilioSMS:
-		return contactmethod.TypeSMS, d.FieldValue(fieldPhoneNumber)
-	case destTwilioVoice:
-		return contactmethod.TypeVoice, d.FieldValue(fieldPhoneNumber)
-	case destSMTP:
-		return contactmethod.TypeEmail, d.FieldValue(fieldEmailAddress)
-	case destWebhook:
-		return contactmethod.TypeWebhook, d.FieldValue(fieldWebhookURL)
-	case destSlackDM:
-		return contactmethod.TypeSlackDM, d.FieldValue(fieldSlackUserID)
+	case twilio.DestTypeTwilioSMS:
+		return graphql2.ContactMethodTypeSms, d.Arg(twilio.FieldPhoneNumber)
+	case twilio.DestTypeTwilioVoice:
+		return graphql2.ContactMethodTypeVoice, d.Arg(twilio.FieldPhoneNumber)
+	case email.DestTypeEmail:
+		return graphql2.ContactMethodTypeEmail, d.Arg(email.FieldEmailAddress)
+	case webhook.DestTypeWebhook:
+		return graphql2.ContactMethodTypeWebhook, d.Arg(webhook.FieldWebhookURL)
+	case slack.DestTypeSlackDirectMessage:
+		return graphql2.ContactMethodTypeSLACkDm, d.Arg(slack.FieldSlackUserID)
 	}
 
 	return "", ""
 }
 
-// CompatDestToTarget converts a graphql2.DestinationInput to a graphql2.RawTarget
-func CompatDestToTarget(d graphql2.DestinationInput) (assignment.RawTarget, error) {
+func CompatCMTypeValToDest(cmType graphql2.ContactMethodType, value string) (gadb.DestV1, error) {
+	switch cmType {
+	case graphql2.ContactMethodTypeEmail:
+		return email.NewEmailDest(value), nil
+	case graphql2.ContactMethodTypeSms:
+		return twilio.NewSMSDest(value), nil
+	case graphql2.ContactMethodTypeVoice:
+		return twilio.NewVoiceDest(value), nil
+	case graphql2.ContactMethodTypeSLACkDm:
+		return slack.NewDirectMessageDest(value), nil
+	case graphql2.ContactMethodTypeWebhook:
+		return webhook.NewWebhookDest(value), nil
+	}
+
+	return gadb.DestV1{}, validation.NewFieldError("input.Type", "unsupported type")
+}
+
+// CompatDestToTarget converts a gadb.DestV1 to a graphql2.RawTarget
+func CompatDestToTarget(d gadb.DestV1) (assignment.RawTarget, error) {
 	switch d.Type {
-	case destUser:
+	case user.DestTypeUser:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeUser,
-			ID:   d.FieldValue(fieldUserID),
+			ID:   d.Arg(user.FieldUserID),
 		}, nil
-	case destRotation:
+	case rotation.DestTypeRotation:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeRotation,
-			ID:   d.FieldValue(fieldRotationID),
+			ID:   d.Arg(rotation.FieldRotationID),
 		}, nil
-	case destSchedule:
+	case schedule.DestTypeSchedule:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeSchedule,
-			ID:   d.FieldValue(fieldScheduleID),
+			ID:   d.Arg(schedule.FieldScheduleID),
 		}, nil
-	case destSlackChan:
+	case slack.DestTypeSlackChannel:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeSlackChannel,
-			ID:   d.FieldValue(fieldSlackChanID),
+			ID:   d.Arg(slack.FieldSlackChannelID),
 		}, nil
-	case destSlackUG:
+	case slack.DestTypeSlackUsergroup:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeSlackUserGroup,
-			ID:   d.FieldValue(fieldSlackUGID) + ":" + d.FieldValue(fieldSlackChanID),
+			ID:   d.Arg(slack.FieldSlackUsergroupID) + ":" + d.Arg(slack.FieldSlackChannelID),
 		}, nil
-	case destWebhook:
+	case webhook.DestTypeWebhook:
 		return assignment.RawTarget{
 			Type: assignment.TargetTypeChanWebhook,
-			ID:   d.FieldValue(fieldWebhookURL),
+			ID:   d.Arg(webhook.FieldWebhookURL),
 		}, nil
 	}
 

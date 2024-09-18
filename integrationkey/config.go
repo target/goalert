@@ -2,6 +2,7 @@ package integrationkey
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -10,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
@@ -20,47 +22,50 @@ const (
 	MaxParams  = 10
 )
 
-type dbConfig struct {
-	Version int // should be 1
-	V1      Config
+func destHash(dest gadb.DestV1) (hash [32]byte) {
+	data, err := json.Marshal(dest)
+	if err != nil {
+		panic(err)
+	}
+	h := sha256.New()
+	_, _ = h.Write(data)
+	copy(hash[:], h.Sum(nil))
+	return hash
 }
 
-// Config stores the configuration for an integration key for how to handle incoming requests.
-type Config struct {
-	Rules []Rule
+func (s *Store) validateActions(ctx context.Context, fname string, actions []gadb.UIKActionV1) error {
+	err := validate.Len(fname, actions, 0, MaxActions)
+	if err != nil {
+		return err
+	}
 
-	// DefaultActions are the actions to take if no rules match.
-	DefaultActions []Action
+	uniqDest := make(map[[32]byte]struct{}, len(actions))
+	for i, a := range actions {
+		err := s.reg.ValidateAction(ctx, a)
+		if err != nil {
+			return err
+		}
+		hash := destHash(a.Dest)
+		if _, ok := uniqDest[hash]; ok {
+			name, err := s.reg.LookupTypeName(ctx, a.Dest.Type)
+			if err != nil {
+				// Handle error by logging it and using the type ID as the name.
+				// This is unlikely since the destination type should have been validated earlier.
+				log.Log(ctx, err)
+				name = a.Dest.Type
+			}
+			return validation.NewFieldErrorf(fmt.Sprintf("%s[%d]", fname, i), "duplicate destination '%s' not allowed", name)
+		}
+		uniqDest[hash] = struct{}{}
+	}
 
-	StopAfterFirstMatchingRule bool
+	return nil
 }
 
-// A Rule is a set of conditions and actions to take if those conditions are met.
-type Rule struct {
-	ID            uuid.UUID
-	Name          string
-	Description   string
-	ConditionExpr string
-	Actions       []Action
-}
-
-// An Action is a single action to take if a rule matches.
-type Action struct {
-	// Type is the type of action to perform, like slack, email, or alert.
-	Type string
-
-	// StaticParams are parameters that are always the same for this action (e.g., the channel ID).
-	StaticParams map[string]string
-
-	// DynamicParams are parameters that are determined at runtime (e.g., the message to send).
-	// The keys are the parameter names, and the values are the Expr expression strings.
-	DynamicParams map[string]string
-}
-
-func (cfg Config) Validate() error {
+func (s *Store) ValidateUIKConfigV1(ctx context.Context, cfg gadb.UIKConfigV1) error {
 	err := validate.Many(
 		validate.Len("Rules", cfg.Rules, 0, MaxRules),
-		validate.Len("DefaultActions", cfg.DefaultActions, 0, MaxActions),
+		s.validateActions(ctx, "DefaultActions", cfg.DefaultActions),
 	)
 	if err != nil {
 		return err
@@ -72,29 +77,7 @@ func (cfg Config) Validate() error {
 			validate.Name(field+".Name", r.Name),
 			validate.Text(field+".Description", r.Description, 0, 255), // these are arbitrary and will likely change as the feature is developed
 			validate.Text(field+".ConditionExpr", r.ConditionExpr, 1, 1024),
-			validate.Len(field+".Actions", r.Actions, 0, MaxActions),
-		)
-		if err != nil {
-			return err
-		}
-
-		for j, a := range r.Actions {
-			field := fmt.Sprintf("Rules[%d].Actions[%d]", i, j)
-			err := validate.Many(
-				validate.MapLen(field+".StaticParams", a.StaticParams, 0, MaxParams),
-				validate.MapLen(field+".DynamicParams", a.DynamicParams, 0, MaxParams),
-			)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	for i, a := range cfg.DefaultActions {
-		field := fmt.Sprintf("DefaultActions[%d]", i)
-		err := validate.Many(
-			validate.MapLen(field+".StaticParams", a.StaticParams, 0, MaxParams),
-			validate.MapLen(field+".DynamicParams", a.DynamicParams, 0, MaxParams),
+			s.validateActions(ctx, field+".Actions", r.Actions),
 		)
 		if err != nil {
 			return err
@@ -113,25 +96,20 @@ func (cfg Config) Validate() error {
 	return nil
 }
 
-func (s *Store) Config(ctx context.Context, db gadb.DBTX, keyID uuid.UUID) (*Config, error) {
+func (s *Store) Config(ctx context.Context, db gadb.DBTX, keyID uuid.UUID) (*gadb.UIKConfigV1, error) {
 	err := permission.LimitCheckAny(ctx, permission.User, permission.Service)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := gadb.New(db).IntKeyGetConfig(ctx, keyID)
+	cfg, err := gadb.New(db).IntKeyGetConfig(ctx, keyID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return &Config{}, nil
+		return &gadb.UIKConfigV1{}, nil
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	var cfg dbConfig
-	err = json.Unmarshal(data, &cfg)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshal config: %w", err)
-	}
 	if cfg.Version != 1 {
 		return nil, fmt.Errorf("unsupported config version: %d", cfg.Version)
 	}
@@ -139,14 +117,14 @@ func (s *Store) Config(ctx context.Context, db gadb.DBTX, keyID uuid.UUID) (*Con
 	return &cfg.V1, nil
 }
 
-func (s *Store) SetConfig(ctx context.Context, db gadb.DBTX, keyID uuid.UUID, cfg *Config) error {
+func (s *Store) SetConfig(ctx context.Context, db gadb.DBTX, keyID uuid.UUID, cfg *gadb.UIKConfigV1) error {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return err
 	}
 
 	if cfg != nil {
-		err := cfg.Validate()
+		err := s.ValidateUIKConfigV1(ctx, *cfg)
 		if err != nil {
 			return err
 		}
@@ -165,24 +143,47 @@ func (s *Store) SetConfig(ctx context.Context, db gadb.DBTX, keyID uuid.UUID, cf
 		return gdb.IntKeyDeleteConfig(ctx, keyID)
 	}
 
-	// ensure all rule IDs are set
+	// ensure all rule IDs are set, and all actions have a channel
 	for i := range cfg.Rules {
 		if cfg.Rules[i].ID == uuid.Nil {
 			cfg.Rules[i].ID = uuid.New()
 		}
+		err := s.setActionChannels(ctx, db, cfg.Rules[i].Actions)
+		if err != nil {
+			return err
+		}
 	}
-
-	data, err := json.Marshal(dbConfig{Version: 1, V1: *cfg})
+	err = s.setActionChannels(ctx, db, cfg.DefaultActions)
 	if err != nil {
-		return fmt.Errorf("marshal config: %w", err)
+		return err
 	}
 
 	err = gadb.New(db).IntKeySetConfig(ctx, gadb.IntKeySetConfigParams{
 		ID:     keyID,
-		Config: data,
+		Config: gadb.UIKConfig{Version: 1, V1: *cfg},
 	})
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (s *Store) setActionChannels(ctx context.Context, tx gadb.DBTX, actions []gadb.UIKActionV1) error {
+	for i, act := range actions {
+		ok, err := s.reg.IsDynamicAction(ctx, act.Dest.Type)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			return validation.NewFieldError(fmt.Sprintf("Actions[%d]", i), "invalid destination type")
+		}
+
+		actions[i].ChannelID, err = s.ncStore.MapDestToID(ctx, tx, act.Dest)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

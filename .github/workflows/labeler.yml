@@ -10,38 +10,12 @@ jobs:
     if: github.event.pull_request.draft == false
     name: Label the PR size
     steps:
-      - uses: mastercactapus/pr-size-labeler@eb6a25f40d6a3327581aca35839b60d419e8019a # https://github.com/CodelyTV/pr-size-labeler/pull/61, updated with latest from main
+      - uses: actions/checkout@v4
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          xs_label: 'size/xs'
-          xs_max_size: '15'
-          s_label: 'size/s'
-          s_max_size: '100'
-          m_label: 'size/m'
-          m_max_size: '250'
-          l_label: 'size/l'
-          l_max_size: '500'
-          xl_label: 'size/xl'
-          fail_if_xl: 'true'
-          ignore_deleted: 'true'
-          message_if_xl: >
-            This PR exceeds the recommended size of 500 lines.
-            Please make sure you are NOT addressing multiple issues with one PR.
-            Note this PR might be rejected due to its size.
-          files_to_ignore: |
-            "*.lock"
-            "graphql2/generated.go"
-            "graphql2/maplimit.go"
-            "graphql2/mapconfig.go"
-            "graphql2/models_gen.go"
-            "pkg/sysapi/*.pb.go"
-            "swo/swodb/*.go"
-            "web/src/*.d.ts"
-            "Makefile.binaries.mk"
-            "gadb/*.go"
-            "migrate/schema.sql"
-            "go.mod"
-            "go.sum"
-            ".yarn/releases/*"
-            "devtools/pgdump-lite/pgd/*"
-            "timezone/*.txt"
+          fetch-depth: 0
+      - name: Run labeler script
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
+          FAIL_IF_XL: '1'
+        run: ./devtools/scripts/github-set-pr-label.sh

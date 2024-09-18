@@ -1,12 +1,15 @@
 package uik
 
 import (
+	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
-	"github.com/expr-lang/expr"
+	"github.com/expr-lang/expr/vm"
 	"github.com/google/uuid"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/expflag"
@@ -14,18 +17,79 @@ import (
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/errutil"
-	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 )
 
 type Handler struct {
 	intStore   *integrationkey.Store
 	alertStore *alert.Store
-	db         gadb.DBTX
+	db         TxAble
 }
 
-func NewHandler(db gadb.DBTX, intStore *integrationkey.Store, aStore *alert.Store) *Handler {
+type TxAble interface {
+	gadb.DBTX
+	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
+}
+
+func NewHandler(db TxAble, intStore *integrationkey.Store, aStore *alert.Store) *Handler {
 	return &Handler{intStore: intStore, db: db, alertStore: aStore}
+}
+
+func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1, _params any) error {
+	params := _params.(map[string]any)
+	param := func(name string) string {
+		if v, ok := params[name]; ok {
+			return v.(string)
+		}
+		return ""
+	}
+
+	switch act.Dest.Type {
+	case "builtin-webhook":
+		req, err := http.NewRequest("POST", act.Dest.Arg("webhook_url"), strings.NewReader(param("body")))
+		if err != nil {
+			return err
+		}
+		req.Header.Set("Content-Type", param("content-type"))
+
+		_, err = http.DefaultClient.Do(req.WithContext(ctx))
+		if err != nil {
+			return err
+		}
+
+	case "builtin-alert":
+		status := alert.StatusTriggered
+		if param("close") == "true" {
+			status = alert.StatusClosed
+		}
+
+		_, _, err := h.alertStore.CreateOrUpdate(ctx, &alert.Alert{
+			ServiceID: permission.ServiceID(ctx),
+			Summary:   param("summary"),
+			Details:   param("details"),
+			Source:    alert.SourceUniversal,
+			Status:    status,
+		})
+		if err != nil {
+			return err
+		}
+	default:
+		data, err := json.Marshal(params)
+		if err != nil {
+			return err
+		}
+
+		err = gadb.New(h.db).IntKeyInsertSignalMessage(ctx, gadb.IntKeyInsertSignalMessageParams{
+			DestID:    act.ChannelID,
+			ServiceID: permission.ServiceNullUUID(ctx).UUID,
+			Params:    data,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -72,93 +136,60 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		},
 	}
 
-	// We need to track if any rule matched, so we can apply default actions if none did.
-	var anyMatched bool
-	var results []integrationkey.ActionResult
+	var vm vm.VM
+	var matched bool
 	for _, rule := range cfg.Rules {
-		result, err := expr.Eval("string("+rule.ConditionExpr+")", env)
-		if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
+		p, err := CompileRule(rule.ConditionExpr, rule.Actions)
+		if errutil.HTTPError(ctx, w, err) {
 			return
 		}
-		r, ok := result.(string)
+
+		res, err := vm.Run(p, env)
+		if errutil.HTTPError(ctx, w, err) {
+			return
+		}
+
+		actions, ok := res.([]any)
 		if !ok {
-			errutil.HTTPError(ctx, w, validation.NewGenericError("condition expression must return a boolean"))
-			return
-		}
-		anyMatched = anyMatched || r == "true"
-		if r != "true" {
+			// didn't match
 			continue
 		}
-
-		for _, action := range rule.Actions {
-			res := integrationkey.ActionResult{
-				DestType: action.Type,
-				Values:   action.StaticParams,
-				Params:   make(map[string]string, len(action.DynamicParams)),
-			}
-
-			for name, exprStr := range action.DynamicParams {
-				val, err := expr.Eval("string("+exprStr+")", env)
-				if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
-					return
-				}
-				if _, ok := val.(string); !ok {
-					errutil.HTTPError(ctx, w, validation.NewGenericError("dynamic param expressions must return a string"))
-					return
-				}
-				res.Params[name] = val.(string)
-			}
-			results = append(results, res)
+		matched = true
+		if len(actions) != len(rule.Actions) {
+			// This should never happen, but better than a panic.
+			errutil.HTTPError(ctx, w, fmt.Errorf("rule %s: expected %d actions, got %d", rule.ID, len(rule.Actions), len(actions)))
+			return
 		}
-	}
 
-	if !anyMatched {
-		// Default actions need to be applied if no rules matched (or if there are no rules at all).
-		for _, action := range cfg.DefaultActions {
-			res := integrationkey.ActionResult{
-				DestType: action.Type,
-				Values:   action.StaticParams,
-				Params:   make(map[string]string, len(action.DynamicParams)),
-			}
-
-			for name, exprStr := range action.DynamicParams {
-				val, err := expr.Eval("string("+exprStr+")", env)
-				if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
-					return
-				}
-				if _, ok := val.(string); !ok {
-					errutil.HTTPError(ctx, w, validation.NewGenericError("dynamic param expressions must return a string"))
-					return
-				}
-				res.Params[name] = val.(string)
-			}
-			results = append(results, res)
-		}
-	}
-
-	log.Logf(ctx, "uik: action result: %#v", results)
-
-	for _, res := range results {
-		switch res.DestType {
-		case "builtin-alert":
-			status := alert.StatusTriggered
-			if res.Params["close"] == "true" {
-				status = alert.StatusClosed
-			}
-
-			_, _, err = h.alertStore.CreateOrUpdate(ctx, &alert.Alert{
-				ServiceID: permission.ServiceID(ctx),
-				Summary:   res.Params["summary"],
-				Details:   res.Params["details"],
-				Source:    alert.SourceUniversal,
-				Status:    status,
-			})
+		for i, act := range actions {
+			err = h.handleAction(ctx, rule.Actions[i], act)
 			if errutil.HTTPError(ctx, w, err) {
 				return
 			}
-		default:
-			errutil.HTTPError(ctx, w, validation.NewFieldError("action", "unknown action type"))
+		}
+
+		if rule.ContinueAfterMatch {
+			continue
+		}
+
+		break
+	}
+
+	if !matched {
+		p, err := CompileRule("", cfg.DefaultActions)
+		if errutil.HTTPError(ctx, w, err) {
 			return
+		}
+
+		res, err := vm.Run(p, env)
+		if errutil.HTTPError(ctx, w, err) {
+			return
+		}
+		for i, act := range res.([]any) {
+			err = h.handleAction(ctx, cfg.DefaultActions[i], act)
+			if errutil.HTTPError(ctx, w, err) {
+				return
+			}
 		}
 	}
 

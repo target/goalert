@@ -554,6 +554,8 @@ input CreateEscalationPolicyStepInput {
   delayMinutes: Int!
 
   targets: [TargetInput!]
+    @goField(forceResolver: true)
+    @deprecated(reason: "use actions instead")
   newRotation: CreateRotationInput
   newSchedule: CreateScheduleInput
 }
@@ -563,6 +565,8 @@ type EscalationPolicyStep {
   stepNumber: Int!
   delayMinutes: Int!
   targets: [Target!]!
+    @goField(forceResolver: true)
+    @deprecated(reason: "use actions instead")
   escalationPolicy: EscalationPolicy
 }
 
@@ -593,6 +597,8 @@ input UpdateEscalationPolicyStepInput {
   id: ID!
   delayMinutes: Int
   targets: [TargetInput!]
+    @goField(forceResolver: true)
+    @deprecated(reason: "use actions instead")
 }
 
 input SetFavoriteInput {
@@ -648,6 +654,9 @@ input OnCallNotificationRuleInput {
   target is required if dest is unset
   """
   target: TargetInput
+    @goField(forceResolver: true)
+    @deprecated(reason: "use dest instead")
+
   dest: DestinationInput
 
   # time indicates a time-of-day (in the schedule's time zone)
@@ -666,6 +675,8 @@ input OnCallNotificationRuleInput {
 type OnCallNotificationRule {
   id: ID!
   target: Target!
+    @goField(forceResolver: true)
+    @deprecated(reason: "use dest instead")
   dest: Destination!
   time: ClockTime
   weekdayFilter: WeekdayFilter
@@ -1233,13 +1244,17 @@ enum ContactMethodType {
 type UserContactMethod {
   id: ID!
   type: ContactMethodType
+    @deprecated(reason: "Use dest instead.")
+    @goField(forceResolver: true)
 
   dest: Destination!
 
   # User-defined label for this contact method.
   name: String!
   value: String!
-  formattedValue: String!
+    @deprecated(reason: "Use dest instead.")
+    @goField(forceResolver: true)
+  formattedValue: String! @deprecated(reason: "Use dest.displayInfo instead.")
   disabled: Boolean!
   pending: Boolean!
 
@@ -1260,14 +1275,14 @@ enum StatusUpdateState {
 input CreateUserContactMethodInput {
   userID: ID!
 
-  type: ContactMethodType
+  type: ContactMethodType @deprecated(reason: "Use dest instead.")
 
   dest: DestinationInput
 
   name: String!
 
   # Only value or dest should be used at a time, never both.
-  value: String
+  value: String @deprecated(reason: "Use dest instead.")
 
   newUserNotificationRule: CreateUserNotificationRuleInput
 

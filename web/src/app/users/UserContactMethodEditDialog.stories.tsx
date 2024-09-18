@@ -37,17 +37,18 @@ const meta = {
                         type: 'supports-status',
                         values: [
                           {
-                            fieldID: 'phone-number',
+                            fieldID: 'phone_number',
                             value: '+15555555555',
                           },
                         ],
+                        args: { phone_number: '+15555555555' },
                         displayInfo: {
                           text: '+1 555-555-5555',
                           iconAltText: 'Voice Call',
                           iconURL: '',
                           linkURL: '',
                         },
-                      } satisfies Destination,
+                      } satisfies Partial<Destination>,
                       value: 'http://localhost:8080',
                       statusUpdates: 'DISABLED',
                       disabled: false,
@@ -72,13 +73,18 @@ const meta = {
                             value: 'slack',
                           },
                         ],
+                        args: {
+                          'first-field': '+11235550123',
+                          'second-field': 'foobar@example.com',
+                          'third-field': 'slack',
+                        },
                         displayInfo: {
                           text: '11235550123',
                           iconAltText: 'Mulitple Fields Example',
                           iconURL: '',
                           linkURL: '',
                         },
-                      } satisfies Destination,
+                      } satisfies Partial<Destination>,
                       statusUpdates: 'ENABLED',
                       disabled: false,
                       pending: false,
@@ -96,7 +102,7 @@ const meta = {
                   path: ['updateUserContactMethod', 'input', 'dest'],
                   extensions: {
                     code: 'INVALID_DEST_FIELD_VALUE',
-                    fieldID: 'phone-number',
+                    fieldID: 'phone_number',
                   },
                 } satisfies DestFieldValueError,
                 {

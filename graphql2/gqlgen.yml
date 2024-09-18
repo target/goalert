@@ -73,8 +73,6 @@ models:
     model: github.com/target/goalert/override.UserOverride
   OnCallShift:
     model: github.com/target/goalert/oncall.Shift
-  ContactMethodType:
-    model: github.com/target/goalert/graphql2.ContactMethodType
   SlackChannel:
     model: github.com/target/goalert/notification/slack.Channel
   SlackUserGroup:
@@ -106,7 +104,7 @@ models:
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.ID
-      - github.com/google/uuid.UUID
+      - github.com/target/goalert/graphql2.UUID
       - github.com/target/goalert/schedule.RuleID
   MessageLogConnectionStats:
     model: github.com/target/goalert/notification.SearchOptions
@@ -120,3 +118,29 @@ models:
     model: github.com/target/goalert/graphql2.ExprValue
   ExprIdentifier:
     model: github.com/target/goalert/graphql2.ExprIdentifier
+  ExprStringMap:
+    model: github.com/target/goalert/graphql2.ExprStringMap
+  StringMap:
+    model: github.com/target/goalert/graphql2.StringMap
+  DestinationInput:
+    model: github.com/target/goalert/gadb.DestV1
+  Destination:
+    model: github.com/target/goalert/gadb.DestV1
+  Action:
+    model: github.com/target/goalert/gadb.UIKActionV1
+  ActionInput:
+    model: github.com/target/goalert/gadb.UIKActionV1
+  KeyRule:
+    model: github.com/target/goalert/gadb.UIKRuleV1
+  KeyRuleInput:
+    model: github.com/target/goalert/gadb.UIKRuleV1
+  KeyConfig:
+    model: github.com/target/goalert/gadb.UIKConfigV1
+  DestinationFieldConfig:
+    model: github.com/target/goalert/notification/nfydest.FieldConfig
+  DestinationTypeInfo:
+    model: github.com/target/goalert/notification/nfydest.TypeInfo
+  DynamicParamConfig:
+    model: github.com/target/goalert/notification/nfydest.DynamicParamConfig
+  DestinationDisplayInfo:
+    model: github.com/target/goalert/notification/nfydest.DisplayInfo

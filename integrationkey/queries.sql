@@ -135,3 +135,7 @@ SET
 WHERE
     id = $1;
 
+-- name: IntKeyInsertSignalMessage :exec
+INSERT INTO pending_signals(dest_id, service_id, params)
+    VALUES ($1, $2, $3);
+

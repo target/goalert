@@ -115,12 +115,10 @@ export default function PolicyStepsCard(
         <CreateFAB onClick={() => setCreateStep(true)} title='Create Step' />
       )}
       {createStep && (
-        <React.Fragment>
-          <PolicyStepCreateDialog
-            escalationPolicyID={props.escalationPolicyID}
-            onClose={resetCreateStep}
-          />
-        </React.Fragment>
+        <PolicyStepCreateDialog
+          escalationPolicyID={props.escalationPolicyID}
+          onClose={resetCreateStep}
+        />
       )}
       <Card>
         <CardHeader

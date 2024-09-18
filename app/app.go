@@ -31,6 +31,7 @@ import (
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/notificationchannel"
@@ -105,6 +106,7 @@ type App struct {
 	NotificationStore   *notification.Store
 	ScheduleStore       *schedule.Store
 	RotationStore       *rotation.Store
+	DestRegistry        *nfydest.Registry
 
 	CalSubStore    *calsub.Store
 	OverrideStore  *override.Store

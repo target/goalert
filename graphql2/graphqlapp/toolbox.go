@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"github.com/nyaruka/phonenumbers"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/validation"
 
@@ -25,18 +26,18 @@ func (q *Query) DebugMessageStatus(ctx context.Context, input graphql2.DebugMess
 		return nil, err
 	}
 
-	id, err := notification.ParseProviderMessageID(input.ProviderMessageID)
+	id, err := gadb.ParseProviderMessageID(input.ProviderMessageID)
 	if err != nil {
 		return nil, validation.NewFieldError("ProviderMessageID", err.Error())
 	}
 
-	status, destType, err := q.NotificationManager.MessageStatus(ctx, id)
+	status, err := q.NotificationManager.MessageStatus(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
 	return &graphql2.DebugMessageStatusInfo{
-		State: notificationStateFromSendResult(*status, q.FormatDestFunc(ctx, destType, status.SrcValue)),
+		State: notificationStateFromSendResult(*status, status.SrcValue),
 	}, nil
 }
 
@@ -65,7 +66,7 @@ func (a *Mutation) DebugSendSms(ctx context.Context, input graphql2.DebugSendSMS
 	return &graphql2.DebugSendSMSInfo{
 		ID: notification.ProviderMessageID{
 			ExternalID:   msg.SID,
-			ProviderName: "Twilio-SMS",
+			ProviderName: twilio.DestTypeTwilioSMS,
 		}.String(),
 		ProviderURL: "https://www.twilio.com/console/sms/logs/" + url.PathEscape(msg.SID),
 		FromNumber:  msg.From,

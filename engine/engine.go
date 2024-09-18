@@ -21,8 +21,11 @@ import (
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/engine/rotationmanager"
 	"github.com/target/goalert/engine/schedulemanager"
+	"github.com/target/goalert/engine/signalmgr"
 	"github.com/target/goalert/engine/statusmgr"
 	"github.com/target/goalert/engine/verifymanager"
+	"github.com/target/goalert/expflag"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
@@ -109,7 +112,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "notification cycle backend")
 	}
-	statMgr, err := statusmgr.NewDB(ctx, db)
+	statMgr, err := statusmgr.NewDB(ctx, db, c.DestRegistry)
 	if err != nil {
 		return nil, errors.Wrap(err, "status update backend")
 	}
@@ -145,6 +148,14 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 		hbMgr,
 		cleanMgr,
 		metricsMgr,
+	}
+
+	if expflag.ContextHas(ctx, expflag.UnivKeys) {
+		signalMgr, err := signalmgr.NewDB(ctx, db)
+		if err != nil {
+			return nil, errors.Wrap(err, "signal manager backend")
+		}
+		p.modules = append(p.modules, signalMgr)
 	}
 
 	p.msg, err = message.NewDB(ctx, db, c.AlertLogStore, p.mgr)
@@ -404,30 +415,32 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 
 // Start will enable all associated contact methods of `value` with type `t`. This should
 // be invoked if a user, for example, responds with `START` via sms.
-func (p *Engine) Start(ctx context.Context, d notification.Dest) error {
-	if !d.Type.IsUserCM() {
-		return errors.New("START only supported on user contact methods")
-	}
-
+func (p *Engine) Start(ctx context.Context, d gadb.DestV1) error {
 	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		err = p.cfg.ContactMethodStore.EnableByValue(ctx, p.b.db, d.Type.CMType(), d.Value)
+		err = p.cfg.ContactMethodStore.EnableByDest(ctx, p.b.db, d)
 	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		// no contact methods found, nothing to do
+		return nil
+	}
 
 	return err
 }
 
 // Stop will disable all associated contact methods of `value` with type `t`. This should
 // be invoked if a user, for example, responds with `STOP` via SMS.
-func (p *Engine) Stop(ctx context.Context, d notification.Dest) error {
-	if !d.Type.IsUserCM() {
-		return errors.New("STOP only supported on user contact methods")
-	}
-
+func (p *Engine) Stop(ctx context.Context, d gadb.DestV1) error {
 	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		err = p.cfg.ContactMethodStore.DisableByValue(ctx, p.b.db, d.Type.CMType(), d.Value)
+		err = p.cfg.ContactMethodStore.DisableByDest(ctx, p.b.db, d)
 	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		// no contact methods found, nothing to do
+		return nil
+	}
 
 	return err
 }

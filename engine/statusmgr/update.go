@@ -9,7 +9,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
-	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util/log"
 )
 
@@ -22,10 +21,22 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 
 	log.Debugf(ctx, "Processing status updates.")
 
+	types, err := db.reg.Types(ctx)
+	if err != nil {
+		return fmt.Errorf("get notification destination types: %w", err)
+	}
+
+	var forcedTypes []string
+	for _, t := range types {
+		if t.SupportsStatusUpdates && t.StatusUpdatesRequired {
+			forcedTypes = append(forcedTypes, t.Type)
+		}
+	}
+
 	err = db.lock.WithTx(ctx, func(ctx context.Context, tx *sql.Tx) error {
 		q := gadb.New(tx)
 
-		err := q.StatusMgrUpdateCMForced(ctx)
+		err := q.StatusMgrUpdateCMForced(ctx, forcedTypes)
 		if err != nil {
 			return fmt.Errorf("update contact methods for forced status updates: %w", err)
 		}
@@ -120,7 +131,11 @@ func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
 		if err != nil {
 			return fmt.Errorf("lookup contact method info: %w", err)
 		}
-		forceUpdate := contactmethod.Type(info.Type).StatusUpdatesAlways()
+		typeInfo, err := db.reg.TypeInfo(ctx, info.Dest.DestV1.Type)
+		if err != nil {
+			return fmt.Errorf("lookup contact method type info: %w", err)
+		}
+		forceUpdate := typeInfo.SupportsStatusUpdates && typeInfo.StatusUpdatesRequired
 		if !forceUpdate && entry.UserID.UUID == info.UserID {
 			// We don't want to update a user for their own actions, unless
 			// the contact method is forced to always send updates.

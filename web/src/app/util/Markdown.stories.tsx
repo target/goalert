@@ -8,7 +8,7 @@ const meta = {
   component: Markdown,
   argTypes: {
     value: {
-      control: 'textarea',
+      control: 'text',
     },
   },
   decorators: [],

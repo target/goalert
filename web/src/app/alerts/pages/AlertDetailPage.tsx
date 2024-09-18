@@ -23,10 +23,19 @@ const query = gql`
           repeat
           steps {
             delayMinutes
-            targets {
-              id
+            actions {
               type
-              name
+              displayInfo {
+                ... on DestinationDisplayInfo {
+                  text
+                  iconURL
+                  iconAltText
+                  linkURL
+                }
+                ... on DestinationDisplayInfoError {
+                  error
+                }
+              }
             }
           }
         }

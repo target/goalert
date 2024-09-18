@@ -28,10 +28,7 @@ const query = gql`
         name
         dest {
           type
-          values {
-            fieldID
-            value
-          }
+          args
           displayInfo {
             ... on DestinationDisplayInfo {
               text
@@ -260,7 +257,7 @@ export default function UserContactMethodList(
           )}
           {showSendTestByID && (
             <SendTestDialog
-              messageID={showSendTestByID}
+              contactMethodID={showSendTestByID}
               onClose={() => setShowSendTestByID('')}
             />
           )}

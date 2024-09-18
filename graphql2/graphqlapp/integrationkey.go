@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/search"
@@ -21,9 +22,9 @@ type KeyConfig App
 func (a *App) IntegrationKey() graphql2.IntegrationKeyResolver { return (*IntegrationKey)(a) }
 func (a *App) KeyConfig() graphql2.KeyConfigResolver           { return (*KeyConfig)(a) }
 
-func (k *KeyConfig) OneRule(ctx context.Context, key *graphql2.KeyConfig, ruleID string) (*graphql2.KeyRule, error) {
+func (k *KeyConfig) OneRule(ctx context.Context, key *gadb.UIKConfigV1, ruleID string) (*gadb.UIKRuleV1, error) {
 	for _, r := range key.Rules {
-		if r.ID == ruleID {
+		if r.ID.String() == ruleID {
 			return &r, nil
 		}
 	}
@@ -33,6 +34,15 @@ func (k *KeyConfig) OneRule(ctx context.Context, key *graphql2.KeyConfig, ruleID
 
 func (q *Query) IntegrationKey(ctx context.Context, id string) (*integrationkey.IntegrationKey, error) {
 	return q.IntKeyStore.FindOne(ctx, id)
+}
+
+func (q *Query) ActionInputValidate(ctx context.Context, input gadb.UIKActionV1) (bool, error) {
+	err := (*App)(q).ValidateDestination(ctx, "input.dest", &input.Dest)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (m *Mutation) GenerateKeyToken(ctx context.Context, keyID string) (string, error) {
@@ -100,52 +110,19 @@ func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKey
 			return err
 		}
 
-		if input.StopAtFirstRule != nil {
-			cfg.StopAfterFirstMatchingRule = *input.StopAtFirstRule
-		}
-
 		if input.Rules != nil {
-			cfg.Rules = make([]integrationkey.Rule, 0, len(input.Rules))
-			for _, r := range input.Rules {
-				var ruleID uuid.UUID
-				if r.ID != nil {
-					ruleID, err = validate.ParseUUID("Rule.ID", *r.ID)
-					if err != nil {
-						return err
-					}
-				}
-
-				cfg.Rules = append(cfg.Rules, integrationkey.Rule{
-					ID:            ruleID,
-					Name:          r.Name,
-					Description:   r.Description,
-					ConditionExpr: r.ConditionExpr,
-					Actions:       actionsGQLToGo(r.Actions),
-				})
-			}
+			cfg.Rules = input.Rules
 		}
 
 		if input.SetRule != nil {
-			if input.SetRule.ID == nil {
+			if input.SetRule.ID == uuid.Nil {
 				// Since we don't have a rule ID, we're need to create a new rule.
-				cfg.Rules = append(cfg.Rules, integrationkey.Rule{
-					ID:            uuid.New(),
-					Name:          input.SetRule.Name,
-					Description:   input.SetRule.Description,
-					ConditionExpr: input.SetRule.ConditionExpr,
-					Actions:       actionsGQLToGo(input.SetRule.Actions),
-				})
+				cfg.Rules = append(cfg.Rules, *input.SetRule)
 			} else {
 				var found bool
 				for i, r := range cfg.Rules {
-					if r.ID.String() == *input.SetRule.ID {
-						cfg.Rules[i] = integrationkey.Rule{
-							ID:            r.ID,
-							Name:          input.SetRule.Name,
-							Description:   input.SetRule.Description,
-							ConditionExpr: input.SetRule.ConditionExpr,
-							Actions:       actionsGQLToGo(input.SetRule.Actions),
-						}
+					if r.ID == input.SetRule.ID {
+						cfg.Rules[i] = *input.SetRule
 						found = true
 						break
 					}
@@ -166,7 +143,7 @@ func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKey
 		}
 
 		if input.DefaultActions != nil {
-			cfg.DefaultActions = actionsGQLToGo(input.DefaultActions)
+			cfg.DefaultActions = input.DefaultActions
 		}
 
 		err = m.IntKeyStore.SetConfig(ctx, tx, id, cfg)
@@ -199,94 +176,13 @@ func (m *Mutation) CreateIntegrationKey(ctx context.Context, input graphql2.Crea
 	return key, err
 }
 
-func (key *IntegrationKey) Config(ctx context.Context, raw *integrationkey.IntegrationKey) (*graphql2.KeyConfig, error) {
+func (key *IntegrationKey) Config(ctx context.Context, raw *integrationkey.IntegrationKey) (*gadb.UIKConfigV1, error) {
 	id, err := validate.ParseUUID("IntegrationKey.ID", raw.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	cfg, err := key.IntKeyStore.Config(ctx, key.DB, id)
-	if err != nil {
-		return nil, err
-	}
-
-	var rules []graphql2.KeyRule
-	for _, r := range cfg.Rules {
-		rules = append(rules, graphql2.KeyRule{
-			ID:            r.ID.String(),
-			Name:          r.Name,
-			Description:   r.Description,
-			ConditionExpr: r.ConditionExpr,
-			Actions:       actionsGoToGQL(r.Actions),
-		})
-	}
-
-	return &graphql2.KeyConfig{
-		StopAtFirstRule: cfg.StopAfterFirstMatchingRule,
-		Rules:           rules,
-		DefaultActions:  actionsGoToGQL(cfg.DefaultActions),
-	}, nil
-}
-
-func actionsGQLToGo(a []graphql2.ActionInput) []integrationkey.Action {
-	res := make([]integrationkey.Action, 0, len(a))
-	for _, v := range a {
-		res = append(res, integrationkey.Action{
-			Type:          v.Dest.Type,
-			StaticParams:  fviToMap(v.Dest.Values),
-			DynamicParams: paramInputToMap(v.Params),
-		})
-	}
-	return res
-}
-
-func actionsGoToGQL(a []integrationkey.Action) []graphql2.Action {
-	res := make([]graphql2.Action, 0, len(a))
-	for _, v := range a {
-		res = append(res, graphql2.Action{
-			Dest:   &graphql2.Destination{Type: v.Type, Values: mapToFieldValue(v.StaticParams)},
-			Params: mapToParams(v.DynamicParams),
-		})
-	}
-	return res
-}
-
-func fviToMap(f []graphql2.FieldValueInput) map[string]string {
-	res := make(map[string]string, len(f))
-	for _, v := range f {
-		res[v.FieldID] = v.Value
-	}
-	return res
-}
-
-func paramInputToMap(p []graphql2.DynamicParamInput) map[string]string {
-	res := make(map[string]string, len(p))
-	for _, v := range p {
-		res[v.ParamID] = v.Expr
-	}
-	return res
-}
-
-func mapToFieldValue(m map[string]string) []graphql2.FieldValuePair {
-	res := make([]graphql2.FieldValuePair, 0, len(m))
-	for k, v := range m {
-		res = append(res, graphql2.FieldValuePair{
-			FieldID: k,
-			Value:   v,
-		})
-	}
-	return res
-}
-
-func mapToParams(m map[string]string) []graphql2.DynamicParam {
-	res := make([]graphql2.DynamicParam, 0, len(m))
-	for k, v := range m {
-		res = append(res, graphql2.DynamicParam{
-			ParamID: k,
-			Expr:    v,
-		})
-	}
-	return res
+	return key.IntKeyStore.Config(ctx, key.DB, id)
 }
 
 func (key *IntegrationKey) Type(ctx context.Context, raw *integrationkey.IntegrationKey) (graphql2.IntegrationKeyType, error) {

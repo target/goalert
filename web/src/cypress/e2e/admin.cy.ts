@@ -253,11 +253,12 @@ function testAdmin(): void {
     before(() => {
       login() // required for before hooks
 
-      cy.createOutgoingMessage({ createdAt: DateTime.local().toISO() }).then(
-        (msg: DebugMessage) => {
-          debugMessage = msg
-        },
-      )
+      cy.createOutgoingMessage({
+        messageType: 'test_notification',
+        createdAt: DateTime.local().toISO(),
+      }).then((msg: DebugMessage) => {
+        debugMessage = msg
+      })
     })
     beforeEach(() => {
       cy.visit('/admin/message-logs')
@@ -283,9 +284,7 @@ function testAdmin(): void {
           DateTime.fromISO(debugMessage.createdAt).toFormat('fff'),
         )
 
-      cy.get('@list')
-        .eq(0)
-        .should('contain.text', debugMessage.type + ' Notification')
+      cy.get('@list').eq(0).should('contain.text', 'Test Message')
 
       // todo: destination not supported: phone number value is pre-formatted
       // likely need to create a support function cy.getPhoneNumberInfo thru
@@ -297,8 +296,12 @@ function testAdmin(): void {
     })
 
     it('should select and view a logs details', () => {
-      cy.get('[data-cy="paginated-list"]').eq(0).click()
-      cy.get('[data-cy="debug-message-details"').as('details').should('exist')
+      cy.get('[data-cy="paginated-list"] > ul > li').as('list').scrollIntoView()
+      cy.get('[data-cy="list-empty-message"]').should('not.exist')
+
+      // { force: true } needed for mobile view as the button is hidden under another div
+      cy.get('@list').children().first().click({ force: true })
+      cy.get('[data-cy="debug-message-details"').as('details')
 
       // todo: not asserting updatedAt, destination, or providerID
       cy.get('@details').should('contain.text', 'ID')
@@ -327,7 +330,9 @@ function testAdmin(): void {
     })
 
     it('should verify user link from a logs details', () => {
-      cy.get('[data-cy="paginated-list"]').eq(0).click()
+      cy.get('[data-cy="paginated-list"] > ul > li').as('list').scrollIntoView()
+      cy.get('[data-cy="list-empty-message"]').should('not.exist')
+      cy.get('@list').children().first().click({ force: true })
       cy.get('[data-cy="debug-message-details"')
         .find('a')
         .contains(debugMessage?.userName ?? '')
@@ -341,7 +346,9 @@ function testAdmin(): void {
     })
 
     it('should verify service link from a logs details', () => {
-      cy.get('[data-cy="paginated-list"]').eq(0).click()
+      cy.get('[data-cy="paginated-list"] > ul > li').as('list').scrollIntoView()
+      cy.get('[data-cy="list-empty-message"]').should('not.exist')
+      cy.get('@list').children().first().click({ force: true })
       cy.get('[data-cy="debug-message-details"')
         .find('a')
         .contains(debugMessage?.serviceName ?? '')

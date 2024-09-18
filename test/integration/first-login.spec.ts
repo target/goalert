@@ -18,7 +18,7 @@ test('first time setup', async ({ page }) => {
   const email = 'first-setup-email-' + c.email()
   await page.fill('input[name=name]', name)
   await dropdownSelect(page, 'Destination Type', 'Email')
-  await page.fill('input[name=email-address]', email)
+  await page.fill('input[name=email_address]', email)
   await page.click('[role=dialog] button[type=submit]')
   await expect(
     page.locator('[role=dialog]', { hasText: 'Verify Contact Method' }),

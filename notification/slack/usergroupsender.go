@@ -11,6 +11,7 @@ import (
 	"github.com/slack-go/slack"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/util/log"
@@ -21,7 +22,7 @@ type UserGroupSender struct {
 	*ChannelSender
 }
 
-var _ notification.Sender = (*UserGroupSender)(nil)
+var _ nfydest.MessageSender = (*UserGroupSender)(nil)
 
 // UserGroupSender returns a new UserGroupSender wrapping the given ChannelSender.
 func (s *ChannelSender) UserGroupSender() *UserGroupSender {
@@ -29,19 +30,19 @@ func (s *ChannelSender) UserGroupSender() *UserGroupSender {
 }
 
 // Send implements notification.Sender.
-func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
+func (s *UserGroupSender) SendMessage(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	err := permission.LimitCheckAny(ctx, permission.User, permission.System)
 	if err != nil {
 		return nil, err
 	}
 
+	if msg.DestType() != DestTypeSlackUsergroup {
+		return nil, errors.Errorf("unsupported destination type: %s", msg.DestType())
+	}
+
 	t, ok := msg.(notification.ScheduleOnCallUsers)
 	if !ok {
 		return nil, errors.Errorf("unsupported message type: %T", msg)
-	}
-
-	if t.Dest.Type != notification.DestTypeSlackUG {
-		return nil, errors.Errorf("unsupported destination type: %s", t.Dest.Type.String())
 	}
 
 	teamID, err := s.TeamID(ctx)
@@ -75,7 +76,8 @@ func (s *UserGroupSender) Send(ctx context.Context, msg notification.Message) (*
 		slackUsers = append(slackUsers, slackID)
 	}
 
-	ugID, chanID, _ := strings.Cut(t.Dest.Value, ":")
+	ugID := t.DestArg(FieldSlackUsergroupID)
+	chanID := t.DestArg(FieldSlackChannelID)
 	cfg := config.FromContext(ctx)
 
 	var errorMsg, stateDetails string

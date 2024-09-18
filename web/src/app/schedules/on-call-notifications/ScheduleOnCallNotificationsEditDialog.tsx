@@ -2,16 +2,15 @@ import React, { useEffect, useState } from 'react'
 import FormDialog from '../../dialogs/FormDialog'
 import ScheduleOnCallNotificationsForm, {
   Value,
-  errorPaths,
 } from './ScheduleOnCallNotificationsForm'
 import { NO_DAY } from './util'
-import { splitErrorsByPath } from '../../util/errutil'
 import { CombinedError, gql, useMutation, useQuery } from 'urql'
 import {
   Schedule,
   SetScheduleOnCallNotificationRulesInput,
 } from '../../../schema'
 import { DateTime } from 'luxon'
+import { useErrorConsumer } from '../../util/ErrorConsumer'
 
 const getRulesQuery = gql`
   query GetRules($scheduleID: ID!) {
@@ -24,10 +23,7 @@ const getRulesQuery = gql`
         time
         dest {
           type
-          values {
-            fieldID
-            value
-          }
+          args
         }
       }
     }
@@ -67,7 +63,7 @@ export default function ScheduleOnCallNotificationsEditDialog(
     weekdayFilter: rule.weekdayFilter || NO_DAY,
     dest: {
       type: rule.dest.type,
-      values: rule.dest.values.map((v) => ({ ...v })),
+      args: rule.dest.args,
     },
   })
   useEffect(() => {
@@ -79,21 +75,27 @@ export default function ScheduleOnCallNotificationsEditDialog(
     setErr(m.error || null)
   }, [m.error])
 
-  const newRulePrefix = [
-    'setScheduleOnCallNotificationRules',
-    'input',
-    'rules',
-    sched.onCallNotificationRules.length - 1,
-  ].join('.')
-  const [formErrors, otherErrs] = splitErrorsByPath(
-    err,
-    errorPaths(newRulePrefix),
+  const errs = useErrorConsumer(err)
+
+  const form = (
+    <ScheduleOnCallNotificationsForm
+      scheduleID={scheduleID}
+      value={value}
+      onChange={setValue}
+      disabled={m.fetching}
+      destTypeError={errs.getErrorByPath(
+        /setScheduleOnCallNotificationRules.input.rules.+.dest.type/,
+      )}
+      destFieldErrors={errs.getErrorMap(
+        /setScheduleOnCallNotificationRules.input.rules.+.dest(.args)?/,
+      )}
+    />
   )
 
   return (
     <FormDialog
       title='Edit Notification Rule'
-      errors={otherErrs}
+      errors={errs.remainingLegacyCallback()}
       disablePortal={props.disablePortal}
       loading={m.fetching}
       onClose={onClose}
@@ -117,20 +119,16 @@ export default function ScheduleOnCallNotificationsEditDialog(
             } satisfies SetScheduleOnCallNotificationRulesInput,
           },
           { additionalTypenames: ['Schedule'] },
-        )
-          .then(onClose)
-          .catch((err) => {
-            setErr(err)
-          })
+        ).then((res) => {
+          if (res.error) {
+            setErr(res.error)
+            return
+          }
+
+          onClose()
+        })
       }
-      form={
-        <ScheduleOnCallNotificationsForm
-          scheduleID={scheduleID}
-          errors={formErrors}
-          value={value}
-          onChange={setValue}
-        />
-      }
+      form={form}
     />
   )
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/gadb"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
@@ -14,15 +15,20 @@ import (
 
 // Store implements the lookup and management of ContactMethods against a *sql.Store backend.
 type Store struct {
+	reg *nfydest.Registry
 }
 
-func (s *Store) MetadataByTypeValue(ctx context.Context, dbtx gadb.DBTX, typ Type, value string) (*Metadata, error) {
+func NewStore(reg *nfydest.Registry) *Store {
+	return &Store{reg: reg}
+}
+
+func (s *Store) MetadataByDest(ctx context.Context, dbtx gadb.DBTX, dest gadb.DestV1) (*Metadata, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := gadb.New(dbtx).ContactMethodMetaTV(ctx, gadb.ContactMethodMetaTVParams{Type: gadb.EnumUserContactMethodType(typ), Value: value})
+	data, err := gadb.New(dbtx).ContactMethodMetaDest(ctx, gadb.NullDestV1{Valid: true, DestV1: dest})
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +43,7 @@ func (s *Store) MetadataByTypeValue(ctx context.Context, dbtx gadb.DBTX, typ Typ
 	return &m, nil
 }
 
-func (s *Store) SetCarrierV1MetadataByTypeValue(ctx context.Context, dbtx gadb.DBTX, typ Type, value string, newM *Metadata) error {
+func (s *Store) SetCarrierV1MetadataByDest(ctx context.Context, dbtx gadb.DBTX, dest gadb.DestV1, newM *Metadata) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
 		return err
@@ -48,7 +54,7 @@ func (s *Store) SetCarrierV1MetadataByTypeValue(ctx context.Context, dbtx gadb.D
 		return err
 	}
 
-	err = gadb.New(dbtx).ContactMethodUpdateMetaTV(ctx, gadb.ContactMethodUpdateMetaTVParams{Type: gadb.EnumUserContactMethodType(typ), Value: value, CarrierV1: data})
+	err = gadb.New(dbtx).ContactMethodUpdateMetaDest(ctx, gadb.ContactMethodUpdateMetaDestParams{Dest: gadb.NullDestV1{Valid: true, DestV1: dest}, CarrierV1: data})
 	if err != nil {
 		return err
 	}
@@ -56,19 +62,30 @@ func (s *Store) SetCarrierV1MetadataByTypeValue(ctx context.Context, dbtx gadb.D
 	return nil
 }
 
-func (s *Store) EnableByValue(ctx context.Context, dbtx gadb.DBTX, t Type, v string) error {
+func (s *Store) FindDestByID(ctx context.Context, tx gadb.DBTX, id uuid.UUID) (gadb.DestV1, error) {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return gadb.DestV1{}, err
+	}
+
+	row, err := gadb.New(tx).ContactMethodFineOne(ctx, id)
+	if err != nil {
+		return gadb.DestV1{}, err
+	}
+
+	return row.Dest.DestV1, nil
+}
+
+func (s *Store) EnableByDest(ctx context.Context, dbtx gadb.DBTX, dest gadb.DestV1) error {
 	err := permission.LimitCheckAny(ctx, permission.System)
 	if err != nil {
 		return err
 	}
 
-	c := ContactMethod{Name: "Enable", Type: t, Value: v}
-	n, err := c.Normalize()
-	if err != nil {
-		return err
-	}
-
-	id, err := gadb.New(dbtx).ContactMethodEnable(ctx, gadb.ContactMethodEnableParams{Type: gadb.EnumUserContactMethodType(n.Type), Value: n.Value})
+	id, err := gadb.New(dbtx).ContactMethodEnableDisable(ctx, gadb.ContactMethodEnableDisableParams{
+		Dest:     gadb.NullDestV1{Valid: true, DestV1: dest},
+		Disabled: false,
+	})
 
 	if err == nil {
 		// NOTE: maintain a record of consent/dissent
@@ -82,19 +99,16 @@ func (s *Store) EnableByValue(ctx context.Context, dbtx gadb.DBTX, t Type, v str
 	return err
 }
 
-func (s *Store) DisableByValue(ctx context.Context, dbtx gadb.DBTX, t Type, v string) error {
+func (s *Store) DisableByDest(ctx context.Context, dbtx gadb.DBTX, dest gadb.DestV1) error {
 	err := permission.LimitCheckAny(ctx, permission.System)
 	if err != nil {
 		return err
 	}
 
-	c := ContactMethod{Name: "Disable", Type: t, Value: v}
-	n, err := c.Normalize()
-	if err != nil {
-		return err
-	}
-
-	id, err := gadb.New(dbtx).ContactMethodDisable(ctx, gadb.ContactMethodDisableParams{Type: gadb.EnumUserContactMethodType(n.Type), Value: v})
+	id, err := gadb.New(dbtx).ContactMethodEnableDisable(ctx, gadb.ContactMethodEnableDisableParams{
+		Dest:     gadb.NullDestV1{Valid: true, DestV1: dest},
+		Disabled: true,
+	})
 
 	if err == nil {
 		// NOTE: maintain a record of consent/dissent
@@ -115,16 +129,15 @@ func (s *Store) Create(ctx context.Context, dbtx gadb.DBTX, c *ContactMethod) (*
 		return nil, err
 	}
 
-	n, err := c.Normalize()
+	n, err := c.Normalize(ctx, s.reg)
 	if err != nil {
 		return nil, err
 	}
 
 	err = gadb.New(dbtx).ContactMethodAdd(ctx, gadb.ContactMethodAddParams{
-		ID:                  uuid.MustParse(n.ID),
+		ID:                  n.ID,
 		Name:                n.Name,
-		Type:                gadb.EnumUserContactMethodType(n.Type),
-		Value:               n.Value,
+		Dest:                gadb.NullDestV1{Valid: true, DestV1: n.Dest},
 		Disabled:            n.Disabled,
 		UserID:              uuid.MustParse(n.UserID),
 		EnableStatusUpdates: n.StatusUpdates,
@@ -177,27 +190,21 @@ func (s *Store) Delete(ctx context.Context, dbtx gadb.DBTX, ids ...string) error
 }
 
 // FindOneTx finds the contact method from the database using the provided ID within a transaction.
-func (s *Store) FindOne(ctx context.Context, dbtx gadb.DBTX, id string) (*ContactMethod, error) {
+func (s *Store) FindOne(ctx context.Context, dbtx gadb.DBTX, id uuid.UUID) (*ContactMethod, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
 	}
 
-	methodUUID, err := validate.ParseUUID("ContactMethodID", id)
-	if err != nil {
-		return nil, err
-	}
-
-	row, err := gadb.New(dbtx).ContactMethodFindOneUpdate(ctx, methodUUID)
+	row, err := gadb.New(dbtx).ContactMethodFindOneUpdate(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
 	c := ContactMethod{
-		ID:               row.ID.String(),
+		ID:               row.ID,
 		Name:             row.Name,
-		Type:             Type(row.Type),
-		Value:            row.Value,
+		Dest:             row.Dest.DestV1,
 		Disabled:         row.Disabled,
 		UserID:           row.UserID.String(),
 		Pending:          row.Pending,
@@ -215,7 +222,7 @@ func (s *Store) Update(ctx context.Context, dbtx gadb.DBTX, c *ContactMethod) er
 		return err
 	}
 
-	n, err := c.Normalize()
+	n, err := c.Normalize(ctx, s.reg)
 	if err != nil {
 		return err
 	}
@@ -224,18 +231,15 @@ func (s *Store) Update(ctx context.Context, dbtx gadb.DBTX, c *ContactMethod) er
 	if err != nil {
 		return err
 	}
-	if n.Type != cm.Type {
-		return validation.NewFieldError("Type", "cannot update type of contact method")
-	}
-	if n.Value != cm.Value {
-		return validation.NewFieldError("Value", "cannot update value of contact method")
+	if !n.Dest.Equal(cm.Dest) {
+		return validation.NewFieldError("Dest", "cannot update destination of contact method")
 	}
 	if n.UserID != cm.UserID {
 		return validation.NewFieldError("UserID", "cannot update owner of contact method")
 	}
 
 	if permission.Admin(ctx) {
-		err = gadb.New(dbtx).ContactMethodUpdate(ctx, gadb.ContactMethodUpdateParams{ID: uuid.MustParse(n.ID), Name: n.Name, Disabled: n.Disabled, EnableStatusUpdates: n.StatusUpdates})
+		err = gadb.New(dbtx).ContactMethodUpdate(ctx, gadb.ContactMethodUpdateParams{ID: n.ID, Name: n.Name, Disabled: n.Disabled, EnableStatusUpdates: n.StatusUpdates})
 		return err
 	}
 
@@ -244,7 +248,7 @@ func (s *Store) Update(ctx context.Context, dbtx gadb.DBTX, c *ContactMethod) er
 		return err
 	}
 
-	err = gadb.New(dbtx).ContactMethodUpdate(ctx, gadb.ContactMethodUpdateParams{ID: uuid.MustParse(n.ID), Name: n.Name, Disabled: n.Disabled, EnableStatusUpdates: n.StatusUpdates})
+	err = gadb.New(dbtx).ContactMethodUpdate(ctx, gadb.ContactMethodUpdateParams{ID: n.ID, Name: n.Name, Disabled: n.Disabled, EnableStatusUpdates: n.StatusUpdates})
 
 	return err
 }
@@ -269,10 +273,9 @@ func (s *Store) FindMany(ctx context.Context, dbtx gadb.DBTX, ids []string) ([]C
 	cms := make([]ContactMethod, len(rows))
 	for i, row := range rows {
 		cms[i] = ContactMethod{
-			ID:               row.ID.String(),
+			ID:               row.ID,
 			Name:             row.Name,
-			Type:             Type(row.Type),
-			Value:            row.Value,
+			Dest:             row.Dest.DestV1,
 			Disabled:         row.Disabled,
 			UserID:           row.UserID.String(),
 			Pending:          row.Pending,
@@ -304,10 +307,9 @@ func (s *Store) FindAll(ctx context.Context, dbtx gadb.DBTX, userID string) ([]C
 	cms := make([]ContactMethod, len(rows))
 	for i, row := range rows {
 		cms[i] = ContactMethod{
-			ID:               row.ID.String(),
+			ID:               row.ID,
 			Name:             row.Name,
-			Type:             Type(row.Type),
-			Value:            row.Value,
+			Dest:             row.Dest.DestV1,
 			Disabled:         row.Disabled,
 			UserID:           row.UserID.String(),
 			Pending:          row.Pending,

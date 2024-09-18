@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/target/goalert/engine"
+	"github.com/target/goalert/notification"
 
 	"github.com/pkg/errors"
 )
@@ -26,7 +27,7 @@ func (app *App) initEngine(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "get region index")
 	}
-
+	app.notificationManager = notification.NewManager(app.DestRegistry)
 	app.Engine, err = engine.NewEngine(ctx, app.db, &engine.Config{
 		AlertStore:          app.AlertStore,
 		AlertLogStore:       app.AlertLogStore,
@@ -39,6 +40,7 @@ func (app *App) initEngine(ctx context.Context) error {
 		ScheduleStore:       app.ScheduleStore,
 		AuthLinkStore:       app.AuthLinkStore,
 		SlackStore:          app.slackChan,
+		DestRegistry:        app.DestRegistry,
 
 		ConfigSource: app.ConfigStore,
 
@@ -54,8 +56,6 @@ func (app *App) initEngine(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "init engine")
 	}
-
-	app.notificationManager.SetResultReceiver(app.Engine)
 
 	return nil
 }

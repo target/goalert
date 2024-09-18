@@ -37,6 +37,8 @@ function isKnownErrorCode(code: ErrorCode): code is ErrorCode {
       return true
     case 'EXPR_TOO_COMPLEX':
       return true
+    case 'INVALID_MAP_FIELD_VALUE':
+      return true
     default:
       assertNever(code) // ensure we handle all error codes
       return false

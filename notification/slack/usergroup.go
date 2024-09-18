@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/slack-go/slack"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation"
 )
@@ -14,6 +15,13 @@ type UserGroup struct {
 	TeamID string
 	Name   string
 	Handle string
+}
+
+func (ug UserGroup) AsField() nfydest.FieldValue {
+	return nfydest.FieldValue{
+		Label: ug.Handle,
+		Value: ug.ID,
+	}
 }
 
 func (s *ChannelSender) ValidateUserGroup(ctx context.Context, id string) error {

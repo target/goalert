@@ -7,9 +7,9 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
-	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -25,11 +25,8 @@ type SearchOptions struct {
 
 	Limit int `json:"-"`
 
-	// CMValue is matched against the user's contact method phone number.
-	CMValue string `json:"v,omitempty"`
-
-	// CMType is matched against the user's contact method type.
-	CMType contactmethod.Type `json:"t,omitempty"`
+	DestArgs map[string]string `json:"da,omitempty"`
+	DestType string            `json:"dt,omitempty"`
 
 	// FavoritesUserID specifies the UserID whose favorite users want to be displayed.
 	FavoritesUserID string `json:"u,omitempty"`
@@ -39,6 +36,21 @@ type SearchOptions struct {
 
 	// FavoritesFirst indicates the user marked as favorite (by FavoritesUserID) should be returned first (before any non-favorites).
 	FavoritesFirst bool `json:"f,omitempty"`
+}
+
+func (so *SearchOptions) FromNotifyOptions(ctx context.Context, opts nfydest.SearchOptions) error {
+	so.Search = opts.Search
+	so.Omit = opts.Omit
+	so.Limit = opts.Limit
+	if opts.Cursor != "" {
+		err := search.ParseCursor(opts.Cursor, &so.After)
+		if err != nil {
+			return err
+		}
+	}
+	so.FavoritesFirst = true
+	so.FavoritesUserID = permission.UserID(ctx)
+	return nil
 }
 
 // SearchCursor is used to indicate a position in a paginated list.
@@ -51,7 +63,7 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 	SELECT DISTINCT ON ({{ .OrderBy }})
 		usr.id, usr.name, usr.email, usr.role, fav IS DISTINCT FROM NULL
 	FROM users usr
-	{{ if .CMValue }}
+	{{ if gt (len .DestArgs) 0 }}
 		JOIN user_contact_methods ucm ON ucm.user_id = usr.id
 	{{ end }}
 	{{if not .FavoritesOnly}}
@@ -76,11 +88,11 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 	{{ if .Email }}
 		AND lower(usr.email) = lower(:Email)
 	{{ end }}
-	{{ if .CMValue }}
-		AND ucm.value = :CMValue
+	{{ if gt (len .DestArgs) 0 }}
+		AND ucm.dest->'Args' = :DestArgs
 	{{ end }}
-	{{ if .CMType }}
-		AND ucm.type = :CMType
+	{{ if .DestType }}
+		AND ucm.dest->>'Type' = :DestType
 	{{ end }}
 	ORDER BY {{ .OrderBy }}
 	LIMIT {{.Limit}}
@@ -115,6 +127,10 @@ func (opts renderData) Normalize() (*renderData, error) {
 		opts.Limit = search.DefaultMaxResults
 	}
 
+	if opts.DestType != "" && opts.DestArgs == nil {
+		return nil, validation.NewGenericError("DestArgs must be set when DestType is set")
+	}
+
 	err := validate.Many(
 		validate.Search("Search", opts.Search),
 		validate.Range("Limit", opts.Limit, 0, search.MaxResults),
@@ -122,15 +138,6 @@ func (opts renderData) Normalize() (*renderData, error) {
 	)
 	if opts.After.Name != "" {
 		err = validate.Many(err, validate.Name("After.Name", opts.After.Name))
-	}
-	if opts.CMValue != "" {
-		err = validate.Many(err, validate.ASCII("CMValue", opts.CMValue, 1, 255))
-	}
-	if opts.CMType != "" {
-		if opts.CMValue == "" {
-			err = validate.Many(err, validation.NewFieldError("CMValue", "is required"))
-		}
-		err = validate.Many(err, validate.OneOf("CMType", opts.CMType, contactmethod.TypeSMS, contactmethod.TypeVoice, contactmethod.TypeEmail, contactmethod.TypeWebhook, contactmethod.TypeSlackDM))
 	}
 	if opts.FavoritesOnly || opts.FavoritesFirst || opts.FavoritesUserID != "" {
 		err = validate.Many(err, validate.UUID("FavoritesUserID", opts.FavoritesUserID))
@@ -147,10 +154,25 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("search", opts.SearchString()),
 		sql.Named("afterName", opts.After.Name),
 		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
-		sql.Named("CMValue", opts.CMValue),
-		sql.Named("CMType", opts.CMType),
+		sql.Named("DestArgs", opts.DestArgs),
+		sql.Named("DestType", opts.DestType),
 		sql.Named("favUserID", opts.FavoritesUserID),
 		sql.Named("Email", opts.Email()),
+	}
+}
+
+func (u User) Cursor() (string, error) {
+	return search.Cursor(SearchCursor{
+		Name:       u.Name,
+		IsFavorite: u.isUserFavorite,
+	})
+}
+
+func (u User) AsField() nfydest.FieldValue {
+	return nfydest.FieldValue{
+		Value:      u.ID,
+		Label:      u.Name,
+		IsFavorite: u.isUserFavorite,
 	}
 }
 

@@ -39,7 +39,7 @@ func main() {
 		creds = credentials.NewTLS(cfg)
 	}
 
-	conn, err := grpc.Dial(*api, grpc.WithTransportCredentials(creds))
+	conn, err := grpc.NewClient(*api, grpc.WithTransportCredentials(creds))
 	if err != nil {
 		log.Fatal("connect to GoAlert:", err)
 	}

@@ -22,6 +22,7 @@ import (
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/oncall"
@@ -42,6 +43,8 @@ import (
 
 func (app *App) initStores(ctx context.Context) error {
 	var err error
+
+	app.DestRegistry = nfydest.NewRegistry()
 
 	if app.ConfigStore == nil {
 		var fallback url.URL
@@ -138,7 +141,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.AlertLogStore == nil {
-		app.AlertLogStore, err = alertlog.NewStore(ctx, app.db)
+		app.AlertLogStore, err = alertlog.NewStore(ctx, app.db, app.DestRegistry)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init alertlog store")
@@ -152,7 +155,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.ContactMethodStore == nil {
-		app.ContactMethodStore = &contactmethod.Store{}
+		app.ContactMethodStore = contactmethod.NewStore(app.DestRegistry)
 	}
 
 	if app.NotificationRuleStore == nil {
@@ -198,7 +201,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.NCStore == nil {
-		app.NCStore, err = notificationchannel.NewStore(ctx, app.db)
+		app.NCStore, err = notificationchannel.NewStore(ctx, app.db, app.DestRegistry)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init notification channel store")
@@ -208,6 +211,7 @@ func (app *App) initStores(ctx context.Context) error {
 		app.EscalationStore, err = escalation.NewStore(ctx, app.db, escalation.Config{
 			LogStore: app.AlertLogStore,
 			NCStore:  app.NCStore,
+			Registry: app.DestRegistry,
 			SlackLookupFunc: func(ctx context.Context, channelID string) (*slack.Channel, error) {
 				return app.slackChan.Channel(ctx, channelID)
 			},
@@ -218,7 +222,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.IntegrationKeyStore == nil {
-		app.IntegrationKeyStore = integrationkey.NewStore(ctx, app.db, app.APIKeyring)
+		app.IntegrationKeyStore = integrationkey.NewStore(ctx, app.db, app.APIKeyring, app.DestRegistry, app.NCStore)
 	}
 
 	if app.ScheduleRuleStore == nil {

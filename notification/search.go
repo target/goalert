@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util/sqlutil"
@@ -19,7 +20,7 @@ type MessageLog struct {
 	ID           string
 	CreatedAt    time.Time
 	LastStatusAt time.Time
-	MessageType  MessageType
+	MessageType  gadb.EnumOutgoingMessagesType
 
 	LastStatus    State
 	StatusDetails string
@@ -31,7 +32,7 @@ type MessageLog struct {
 	UserID   string
 	UserName string
 
-	ContactMethodID string
+	ContactMethodID uuid.UUID
 
 	ChannelID uuid.UUID
 
@@ -287,15 +288,16 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 		var serviceID, svcName sql.NullString
 		var srcValue sql.NullString
 		var userID, userName sql.NullString
-		var cmID sql.NullString
+		var cmID uuid.NullUUID
 		var providerID sql.NullString
 		var lastStatusAt, sentAt sql.NullTime
+		var lastStatus gadb.NullEnumOutgoingMessagesStatus
 		err = rows.Scan(
 			&l.ID,
 			&l.CreatedAt,
 			&lastStatusAt,
 			&l.MessageType,
-			&l.LastStatus,
+			&lastStatus,
 			&l.StatusDetails,
 			&srcValue,
 			&alertID,
@@ -315,7 +317,7 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 
 		// set all the nullable fields
 		if providerID.String != "" {
-			pm, err := ParseProviderMessageID(providerID.String)
+			pm, err := gadb.ParseProviderMessageID(providerID.String)
 			if err != nil {
 				return nil, err
 			}
@@ -328,12 +330,17 @@ func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]MessageLog, 
 		l.SrcValue = srcValue.String
 		l.UserID = userID.String
 		l.UserName = userName.String
-		l.ContactMethodID = cmID.String
+		l.ContactMethodID = cmID.UUID
 		l.LastStatusAt = lastStatusAt.Time
 		if sentAt.Valid {
 			l.SentAt = &sentAt.Time
 		}
 		l.RetryCount = int(retryCount.Int32)
+
+		l.LastStatus, err = messageStateFromStatus(lastStatus.EnumOutgoingMessagesStatus, false)
+		if err != nil {
+			return nil, err
+		}
 
 		result = append(result, l)
 	}

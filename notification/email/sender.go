@@ -9,12 +9,12 @@ import (
 	"net"
 	"net/mail"
 	"net/smtp"
-	"strconv"
 	"strings"
 
 	"github.com/matcornic/hermes/v2"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfydest"
 	"gopkg.in/gomail.v2"
 )
 
@@ -24,17 +24,17 @@ func NewSender(ctx context.Context) *Sender {
 	return &Sender{}
 }
 
-var _ notification.Sender = &Sender{}
+var _ nfydest.MessageSender = &Sender{}
 
 // Send will send an for the provided message type.
-func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
+func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 
 	fromAddr, err := mail.ParseAddress(cfg.SMTP.From)
 	if err != nil {
 		return nil, err
 	}
-	toAddr, err := mail.ParseAddress(msg.Destination().Value)
+	toAddr, err := mail.ParseAddress(msg.DestArg(FieldEmailAddress))
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		e.Body.Intros = []string{"This is your contact method verification code."}
 		e.Body.Actions = []hermes.Action{{
 			Instructions: "Click the REACTIVATE link on your profile page and enter the verification code.",
-			InviteCode:   strconv.Itoa(m.Code),
+			InviteCode:   m.Code,
 		}}
 	case notification.Alert:
 		subject = fmt.Sprintf("Alert #%d: %s", m.AlertID, m.Summary)

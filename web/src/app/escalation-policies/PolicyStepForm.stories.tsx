@@ -38,14 +38,14 @@ const meta = {
           })
         }),
         graphql.query('DestDisplayInfo', ({ variables: vars }) => {
-          switch (vars.input.values[0].value) {
+          switch (vars.input.args.phone_number) {
             case VALID_PHONE:
             case VALID_PHONE2:
               return HttpResponse.json({
                 data: {
                   destinationDisplayInfo: {
                     text:
-                      vars.input.values[0].value === VALID_PHONE
+                      vars.input.args.phone_number === VALID_PHONE
                         ? 'VALID_CHIP_1'
                         : 'VALID_CHIP_2',
                     iconURL: 'builtin://phone-voice',
@@ -64,7 +64,7 @@ const meta = {
                     message: 'invalid phone number',
                     extensions: {
                       code: 'INVALID_DEST_FIELD_VALUE',
-                      fieldID: 'phone-number',
+                      fieldID: 'phone_number',
                     },
                   } satisfies DestFieldValueError,
                 ],
@@ -94,11 +94,11 @@ export const WithExistingActions: Story = {
       actions: [
         {
           type: 'single-field',
-          values: [{ fieldID: 'phone-number', value: VALID_PHONE }],
+          args: { phone_number: VALID_PHONE },
         },
         {
           type: 'single-field',
-          values: [{ fieldID: 'phone-number', value: VALID_PHONE2 }],
+          args: { phone_number: VALID_PHONE2 },
         },
       ],
     },
@@ -143,6 +143,6 @@ export const ManageActions: Story = {
     // Delete the chip
     await userEvent.click(await canvas.findByTestId('CancelIcon'))
 
-    await expect(await canvas.findByText('No actions')).toBeVisible()
+    await expect(await canvas.findByText('No destinations')).toBeVisible()
   },
 }

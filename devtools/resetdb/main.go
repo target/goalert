@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
 )
@@ -96,6 +97,10 @@ func fillDB(ctx context.Context, dataCfg *datagenConfig, url string) error {
 	defer pool.Close()
 
 	must := func(err error) {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			log.Printf("ERROR: %s\n%s\n%s\n", pgErr.Detail, pgErr.InternalQuery, pgErr.Where)
+		}
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -135,13 +140,13 @@ func fillDB(ctx context.Context, dataCfg *datagenConfig, url string) error {
 		u := data.Users[n]
 		return []interface{}{asUUID(u.ID), u.Name, u.Role, u.Email}
 	})
-	copyFrom("user_contact_methods", []string{"id", "user_id", "name", "type", "value", "disabled", "pending"}, len(data.ContactMethods), func(n int) []interface{} {
+	copyFrom("user_contact_methods", []string{"id", "user_id", "name", "dest", "disabled", "pending"}, len(data.ContactMethods), func(n int) []interface{} {
 		cm := data.ContactMethods[n]
-		return []interface{}{asUUID(cm.ID), asUUID(cm.UserID), cm.Name, cm.Type, cm.Value, cm.Disabled, cm.Pending}
+		return []interface{}{cm.ID, asUUID(cm.UserID), cm.Name, cm.Dest, cm.Disabled, cm.Pending}
 	}, "users")
 	copyFrom("user_notification_rules", []string{"id", "user_id", "contact_method_id", "delay_minutes"}, len(data.NotificationRules), func(n int) []interface{} {
 		nr := data.NotificationRules[n]
-		return []interface{}{asUUID(nr.ID), asUUID(nr.UserID), asUUID(nr.ContactMethodID), nr.DelayMinutes}
+		return []interface{}{asUUID(nr.ID), asUUID(nr.UserID), nr.ContactMethodID, nr.DelayMinutes}
 	}, "user_contact_methods")
 	copyFrom("rotations", []string{"id", "name", "description", "type", "shift_length", "start_time", "time_zone"}, len(data.Rotations), func(n int) []interface{} {
 		r := data.Rotations[n]
@@ -199,7 +204,7 @@ func fillDB(ctx context.Context, dataCfg *datagenConfig, url string) error {
 	})
 	copyFrom("escalation_policy_steps", []string{"id", "escalation_policy_id", "step_number", "delay"}, len(data.EscalationSteps), func(n int) []interface{} {
 		step := data.EscalationSteps[n]
-		return []interface{}{asUUID(step.ID), asUUID(step.PolicyID), step.StepNumber, step.DelayMinutes}
+		return []interface{}{step.ID, asUUID(step.PolicyID), step.StepNumber, step.DelayMinutes}
 	}, "escalation_policies")
 
 	copyFrom("escalation_policy_actions", []string{"id", "escalation_policy_step_id", "user_id", "rotation_id", "schedule_id", "channel_id"}, len(data.EscalationActions), func(n int) []interface{} {

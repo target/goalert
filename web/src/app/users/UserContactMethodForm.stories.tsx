@@ -43,12 +43,7 @@ export const SupportStatusUpdates: Story = {
       name: 'supports status',
       dest: {
         type: 'supports-status',
-        values: [
-          {
-            fieldID: 'phone-number',
-            value: '+15555555555',
-          },
-        ],
+        args: { phone_number: '+15555555555' },
       },
       statusUpdates: false,
     },
@@ -70,12 +65,7 @@ export const RequiredStatusUpdates: Story = {
       name: 'required status',
       dest: {
         type: 'required-status',
-        values: [
-          {
-            fieldID: 'phone-number',
-            value: '+15555555555',
-          },
-        ],
+        args: { phone_number: '+15555555555' },
       },
       statusUpdates: false,
     },
@@ -99,26 +89,12 @@ export const ErrorSingleField: Story = {
       name: '-notvalid',
       dest: {
         type: 'single-field',
-        values: [
-          {
-            fieldID: 'phone-number',
-            value: '+',
-          },
-        ],
+        args: { phone_number: '+15555555555' },
       },
       statusUpdates: false,
     },
     disabled: false,
-    errors: [
-      {
-        message: 'number is too short', // note: the 'n' is lowercase
-        path: ['input', 'dest'],
-        extensions: {
-          code: 'INVALID_DEST_FIELD_VALUE',
-          fieldID: 'phone-number',
-        },
-      },
-    ],
+    destFieldErrors: { phone_number: 'number is too short' },
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -138,33 +114,16 @@ export const ErrorMultiField: Story = {
       name: '-notvalid',
       dest: {
         type: 'triple-field',
-        values: [
-          {
-            fieldID: 'first-field',
-            value: '+',
-          },
-          {
-            fieldID: 'second-field',
-            value: 'notAnEmail',
-          },
-          {
-            fieldID: 'third-field',
-            value: '-',
-          },
-        ],
+        args: {
+          'first-field': '+',
+          'second-field': 'notAnEmail',
+          'third-field': '-',
+        },
       },
       statusUpdates: false,
     },
     disabled: false,
-    errors: [
-      {
-        path: ['input', 'name'],
-        message: 'must begin with a letter',
-        extensions: {
-          code: 'INVALID_INPUT_VALUE',
-        },
-      },
-    ],
+    nameError: 'must begin with a letter',
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -187,7 +146,7 @@ export const Disabled: Story = {
       name: 'disabled dest',
       dest: {
         type: 'triple-field',
-        values: [],
+        args: {},
       },
       statusUpdates: false,
     },

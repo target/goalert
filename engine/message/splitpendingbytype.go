@@ -1,12 +1,12 @@
 package message
 
 import (
-	"github.com/target/goalert/notification"
+	"github.com/target/goalert/gadb"
 )
 
 // splitPendingByType will split a list of messages returning only unsent and matching at least one of the provided
 // types. Any sent or non-type-matching messages will be returned in the remainder.
-func splitPendingByType(messages []Message, types ...notification.MessageType) (matching, remainder []Message) {
+func splitPendingByType(messages []Message, types ...gadb.EnumOutgoingMessagesType) (matching, remainder []Message) {
 mainLoop:
 	for _, msg := range messages {
 		if !msg.SentAt.IsZero() {

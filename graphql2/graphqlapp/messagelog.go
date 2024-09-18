@@ -7,63 +7,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
-	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/validation/validate"
 )
 
 type MessageLog App
-
-func (a *App) formatNC(ctx context.Context, id string) (string, error) {
-	if id == "" {
-		return "", nil
-	}
-	uid, err := uuid.Parse(id)
-	if err != nil {
-		return "", err
-	}
-
-	n, err := a.FindOneNC(ctx, uid)
-	if err != nil {
-		return "", err
-	}
-	var typeName string
-	switch n.Type {
-	case notificationchannel.TypeSlackChan:
-		typeName = "Slack"
-	default:
-		typeName = string(n.Type)
-	}
-
-	return fmt.Sprintf("%s (%s)", n.Name, typeName), nil
-}
-
-func (q *Query) formatDest(ctx context.Context, dst notification.Dest) (string, error) {
-	if !dst.Type.IsUserCM() {
-		return (*App)(q).formatNC(ctx, dst.ID)
-	}
-
-	var str strings.Builder
-	str.WriteString((*App)(q).FormatDestFunc(ctx, dst.Type, dst.Value))
-	switch dst.Type {
-	case notification.DestTypeSMS:
-		str.WriteString(" (SMS)")
-	case notification.DestTypeUserEmail:
-		str.WriteString(" (Email)")
-	case notification.DestTypeVoice:
-		str.WriteString(" (Voice)")
-	case notification.DestTypeUserWebhook:
-		str.Reset()
-		str.WriteString("Webhook")
-	default:
-		str.Reset()
-		str.WriteString(dst.Type.String())
-	}
-
-	return str.String(), nil
-}
 
 func msgStatus(stat notification.Status) string {
 	var str strings.Builder
@@ -130,6 +81,29 @@ func (q *MessageLogConnectionStats) TimeSeries(ctx context.Context, opts *notifi
 	return out, nil
 }
 
+func msgTypeFriendlyName(msgType gadb.EnumOutgoingMessagesType) string {
+	switch msgType {
+	case gadb.EnumOutgoingMessagesTypeAlertNotification:
+		return "Alert"
+	case gadb.EnumOutgoingMessagesTypeAlertNotificationBundle:
+		return "Alert Bundle"
+	case gadb.EnumOutgoingMessagesTypeAlertStatusUpdate:
+		return "Status Update"
+	case gadb.EnumOutgoingMessagesTypeScheduleOnCallNotification:
+		return "On-Call Notification"
+	case gadb.EnumOutgoingMessagesTypeSignalMessage:
+		return "Signal Message"
+	case gadb.EnumOutgoingMessagesTypeAlertStatusUpdateBundle:
+		return "Status Bundle" // deprecated
+	case gadb.EnumOutgoingMessagesTypeTestNotification:
+		return "Test Message"
+	case gadb.EnumOutgoingMessagesTypeVerificationMessage:
+		return "Verification Code"
+	}
+
+	return fmt.Sprintf("Unknown: %s", msgType)
+}
+
 func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearchOptions) (conn *graphql2.MessageLogConnection, err error) {
 	if opts == nil {
 		opts = &graphql2.MessageLogSearchOptions{}
@@ -194,38 +168,37 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 
 	for _, _log := range logs {
 		log := _log
-		var dest notification.Dest
+		var dest gadb.DestV1
 		switch {
-		case log.ContactMethodID != "":
-			cm, err := (*App)(q).FindOneCM(ctx, log.ContactMethodID)
+		case log.ContactMethodID != uuid.Nil:
+			dest, err = q.CMStore.FindDestByID(ctx, q.DB, log.ContactMethodID)
 			if err != nil {
 				return nil, fmt.Errorf("lookup contact method %s: %w", log.ContactMethodID, err)
 			}
-			dest = notification.DestFromPair(cm, nil)
 
 		case log.ChannelID != uuid.Nil:
-			nc, err := (*App)(q).FindOneNC(ctx, log.ChannelID)
+			dest, err = q.NCStore.FindDestByID(ctx, q.DB, log.ChannelID)
 			if err != nil {
 				return nil, fmt.Errorf("lookup notification channel %s: %w", log.ChannelID, err)
 			}
-			dest = notification.DestFromPair(nil, nc)
 		}
 
 		dm := graphql2.DebugMessage{
 			ID:         log.ID,
 			CreatedAt:  log.CreatedAt,
 			UpdatedAt:  log.LastStatusAt,
-			Type:       strings.TrimPrefix(log.MessageType.String(), "MessageType"),
+			Type:       msgTypeFriendlyName(log.MessageType),
 			Status:     msgStatus(notification.Status{State: log.LastStatus, Details: log.StatusDetails}),
 			AlertID:    &log.AlertID,
 			RetryCount: log.RetryCount,
 			SentAt:     log.SentAt,
 		}
-		if dest.ID != "" {
-			dm.Destination, err = q.formatDest(ctx, dest)
+		if dest.Type != "" {
+			info, err := q.DestReg.DisplayInfo(ctx, dest)
 			if err != nil {
-				return nil, fmt.Errorf("format dest: %w", err)
+				return nil, fmt.Errorf("lookup dest %s: %w", dest, err)
 			}
+			dm.Destination = info.Text
 		}
 		if log.UserID != "" {
 			dm.UserID = &log.UserID
@@ -234,11 +207,7 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 			dm.UserName = &log.UserName
 		}
 		if log.SrcValue != "" {
-			src, err := q.formatDest(ctx, notification.Dest{Type: dest.Type, Value: log.SrcValue})
-			if err != nil {
-				return nil, fmt.Errorf("format src: %w", err)
-			}
-			dm.Source = &src
+			dm.Source = &log.SrcValue
 		}
 		if log.ServiceID != "" {
 			dm.ServiceID = &log.ServiceID

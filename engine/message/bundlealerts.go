@@ -30,14 +30,14 @@ func bundleAlertMessages(messages []Message, newBundleFunc func(Message) (string
 	})
 
 	type key struct {
-		notification.Dest
+		notification.DestID
 		ServiceID string
 	}
 
 	groups := make(map[key][]Message)
 	for _, msg := range toProcess {
 		key := key{
-			Dest:      msg.Dest,
+			DestID:    msg.DestID,
 			ServiceID: msg.ServiceID,
 		}
 		groups[key] = append(groups[key], msg)

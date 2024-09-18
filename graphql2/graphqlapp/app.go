@@ -31,6 +31,7 @@ import (
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/notificationchannel"
@@ -94,7 +95,7 @@ type App struct {
 
 	SWO *swo.Manager
 
-	FormatDestFunc func(context.Context, notification.DestType, string) string
+	DestReg *nfydest.Registry
 }
 
 type fieldErr struct {
@@ -227,6 +228,31 @@ func (a *App) Handler() http.Handler {
 				},
 			}
 		}
+
+		var argErr *nfydest.DestArgError
+		if errors.As(err, &argErr) {
+			return &gqlerror.Error{
+				Message: argErr.Err.Error(),
+				Path:    graphql.GetPath(ctx),
+				Extensions: map[string]interface{}{
+					"code":    graphql2.ErrorCodeInvalidDestFieldValue,
+					"fieldID": argErr.FieldID,
+				},
+			}
+		}
+
+		var paramErr *nfydest.ActionParamError
+		if errors.As(err, &paramErr) {
+			return &gqlerror.Error{
+				Message: paramErr.Err.Error(),
+				Path:    graphql.GetPath(ctx),
+				Extensions: map[string]interface{}{
+					"code": graphql2.ErrorCodeInvalidMapFieldValue,
+					"key":  paramErr.ParamID,
+				},
+			}
+		}
+
 		err = errutil.MapDBError(err)
 		var gqlErr *gqlerror.Error
 
@@ -270,6 +296,15 @@ func (a *App) Handler() http.Handler {
 			gqlErr.Extensions = map[string]interface{}{
 				"fieldName":    singleFieldErr.Field(),
 				"isFieldError": true,
+			}
+		}
+
+		var mapErr graphql2.MapValueError
+		if errors.As(err, &mapErr) {
+			gqlErr.Message = mapErr.Err.Error()
+			gqlErr.Extensions = map[string]interface{}{
+				"code": "INVALID_MAP_FIELD_VALUE",
+				"key":  mapErr.Key,
 			}
 		}
 

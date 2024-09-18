@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	stderrors "errors"
 	"fmt"
-	"math"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -14,11 +13,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nyaruka/phonenumbers"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
@@ -66,11 +66,14 @@ var (
 	errVoiceTimeout                             = errors.New("process voice action: timeout")
 	pRx                                         = regexp.MustCompile(`\((.*?)\)`)
 	_               notification.ReceiverSetter = &Voice{}
-	_               notification.Sender         = &Voice{}
-	_               notification.StatusChecker  = &Voice{}
-	_               notification.FriendlyValuer = &Voice{}
+	_               nfydest.MessageSender       = &Voice{}
+	_               nfydest.MessageStatuser     = &Voice{}
 	rmParen                                     = regexp.MustCompile(`\s*\(.*?\)`)
 )
+
+func NewVoiceDest(number string) gadb.DestV1 {
+	return gadb.NewDestV1(DestTypeTwilioVoice, FieldPhoneNumber, number)
+}
 
 func voiceErrorMessage(ctx context.Context, err error) (string, error) {
 	var e alert.LogEntryFetcher
@@ -145,7 +148,7 @@ func (v *Voice) ServeCall(w http.ResponseWriter, req *http.Request) {
 }
 
 // Status provides the current status of a message.
-func (v *Voice) Status(ctx context.Context, externalID string) (*notification.Status, error) {
+func (v *Voice) MessageStatus(ctx context.Context, externalID string) (*notification.Status, error) {
 	call, err := v.c.GetVoice(ctx, externalID)
 	if err != nil {
 		return nil, err
@@ -162,19 +165,17 @@ func (v *Voice) callbackURL(ctx context.Context, params url.Values, typ CallType
 	return cfg.CallbackURL("/api/v2/twilio/call", params, p)
 }
 
-func spellNumber(n int) string {
-	s := strconv.Itoa(n)
-
-	return strings.Join(strings.Split(s, ""), ". ")
+func spellCode(code string) string {
+	return strings.Join(strings.Split(code, ""), ". ")
 }
 
 // Send implements the notification.Sender interface.
-func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
+func (v *Voice) SendMessage(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 	if !cfg.Twilio.Enable {
 		return nil, errors.New("Twilio provider is disabled")
 	}
-	toNumber := msg.Destination().Value
+	toNumber := msg.DestArg(FieldPhoneNumber)
 
 	if toNumber == cfg.Twilio.FromNumber {
 		return nil, errors.New("refusing to make outgoing call to FromNumber")
@@ -325,7 +326,7 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 		return
 	case digitConfirm:
 		err := doDeadline(ctx, func() error {
-			return v.r.Stop(ctx, notification.Dest{Type: notification.DestTypeVoice, Value: call.Number})
+			return v.r.Stop(ctx, NewVoiceDest(call.Number))
 		})
 
 		if errResp(false, errors.Wrap(err, "process STOP response"), "") {
@@ -603,15 +604,6 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// FriendlyValue will return the international formatting of the phone number.
-func (v *Voice) FriendlyValue(ctx context.Context, value string) (string, error) {
-	num, err := phonenumbers.Parse(value, "")
-	if err != nil {
-		return "", fmt.Errorf("parse number for formatting: %w", err)
-	}
-	return phonenumbers.Format(num, phonenumbers.INTERNATIONAL), nil
-}
-
 // buildMessage is a function that will build the VoiceOptions object with the proper message contents
 func buildMessage(prefix string, msg notification.Message) (message string, err error) {
 	if prefix == "" {
@@ -632,10 +624,9 @@ func buildMessage(prefix string, msg notification.Message) (message string, err 
 	case notification.Test:
 		message = fmt.Sprintf("%s with a test message.", prefix)
 	case notification.Verification:
-		count := int(math.Log10(float64(t.Code)) + 1)
 		message = fmt.Sprintf(
 			"%s with your %d-digit verification code. The code is: %s. Again, your %d-digit verification code is: %s.",
-			prefix, count, spellNumber(t.Code), count, spellNumber(t.Code),
+			prefix, len(t.Code), spellCode(t.Code), len(t.Code), spellCode(t.Code),
 		)
 	default:
 		return "", errors.Errorf("unhandled message type: %T", t)
