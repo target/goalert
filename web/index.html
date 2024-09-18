@@ -7,6 +7,7 @@
     <meta http-equiv="x-goalert-build-date" content="{{ .BuildStamp }}" />
     <meta http-equiv="x-goalert-git-commit" content="{{ .GitCommit }}" />
     <meta http-equiv="x-goalert-git-tree-state" content="{{ .GitTreeState }}" />
+    <meta property="csp-nonce" content="{{ .Nonce }}" />
     <link rel="stylesheet" html="{{ .Prefix }}/static/loading.css" />
 
     <title>{{ .ApplicationName }}</title>
@@ -140,7 +141,6 @@
     <script nonce="{{.Nonce}}">
       pathPrefix = "{{.PathPrefix}}";
       applicationName = "{{.ApplicationName}}";
-      nonce = "{{.Nonce}}";
     </script>
     <script src="{{ .Prefix }}/static/app.js"></script>
     {{- if .ExtraJS }}

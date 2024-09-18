@@ -54,13 +54,14 @@ const cache = createCache({
   key: 'mui',
   prepend: true,
   nonce,
+  speedy: true,
 })
 
 root.render(
   <StrictMode>
-    <CacheProvider value={cache}>
-      <StyledEngineProvider injectFirst>
-        <ThemeProvider>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider>
+        <CacheProvider value={cache}>
           <ApolloProvider client={GraphQLClient}>
             <ReduxProvider store={store}>
               <Router base={pathPrefix}>
@@ -75,8 +76,8 @@ root.render(
               </Router>
             </ReduxProvider>
           </ApolloProvider>
-        </ThemeProvider>
-      </StyledEngineProvider>
-    </CacheProvider>
+        </CacheProvider>
+      </ThemeProvider>
+    </StyledEngineProvider>
   </StrictMode>,
 )
