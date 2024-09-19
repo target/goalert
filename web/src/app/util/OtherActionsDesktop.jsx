@@ -6,11 +6,11 @@ import MenuItem from '@mui/material/MenuItem'
 import { Tooltip } from '@mui/material'
 
 export default function OtherActionsMenuDesktop({
-  placement,
+  placement = 'left',
   anchorEl,
   isOpen,
-  actions,
-  onClose,
+  actions = [],
+  onClose = () => {},
 }) {
   // anchorDir is the opposite of the wanted menu placement
   const anchorDir = placement === 'left' ? 'right' : 'left'
@@ -70,10 +70,4 @@ OtherActionsMenuDesktop.propTypes = {
   ),
 
   placement: p.oneOf(['left', 'right']),
-}
-
-OtherActionsMenuDesktop.defaultProps = {
-  onClose: () => {},
-  actions: [],
-  placement: 'left',
 }
