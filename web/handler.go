@@ -128,8 +128,11 @@ func serveTemplate(uiDir string, w http.ResponseWriter, req *http.Request, tmpl 
 		return
 	}
 
+	nonceFree := make([]byte, buf.Len())
+	copy(nonceFree, buf.Bytes())
+	nonceFree = bytes.ReplaceAll(nonceFree, []byte(data.Nonce), nil)
 	h := sha256.New()
-	h.Write(buf.Bytes())
+	h.Write(nonceFree)
 	etagValue := fmt.Sprintf(`W/"sha256-%s"`, hex.EncodeToString(h.Sum(nil)))
 	w.Header().Set("ETag", etagValue)
 
