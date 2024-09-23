@@ -73,6 +73,9 @@ $(BIN_DIR)/tools/sqlc: sqlc.version
 $(BIN_DIR)/tools/bun: bun.version
 	go run ./devtools/gettool -t bun -v $(shell cat bun.version) -o $@
 
+bun.lockb: $(BIN_DIR)/tools/bun
+	$(BIN_DIR)/tools/bun install
+
 node_modules: $(BIN_DIR)/tools/bun package.json bun.lockb
 	$(BIN_DIR)/tools/bun install
 	touch "$@"
