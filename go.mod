@@ -1,6 +1,7 @@
 module github.com/target/goalert
 
 go 1.22
+toolchain go1.22.5
 
 require (
 	github.com/99designs/gqlgen v0.17.49
@@ -53,13 +54,13 @@ require (
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.4.0
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
-	honnef.co/go/tools v0.4.7
+	honnef.co/go/tools v0.5.1
 )
 
 require (
 	cel.dev/expr v0.16.0 // indirect
 	cloud.google.com/go/compute/metadata v0.5.0 // indirect
-	github.com/BurntSushi/toml v1.3.2 // indirect
+	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
