@@ -8,13 +8,13 @@ slack: go run ./devtools/mockslack/cmd/mockslack -client-id=000000000000.0000000
 proxy: go run ./devtools/simpleproxy -addr=127.0.0.1:3040 /slack/=http://127.0.0.1:3046 http://127.0.0.1:3042
 
 @oneshot
-cypress: go run ./devtools/waitfor http://127.0.0.1:3042 && CYPRESS_DB_URL=postgres://postgres@127.0.0.1:5433 yarn cypress $CY_ACTION --config baseUrl=http://127.0.0.1:3040$HTTP_PREFIX
+cypress: go run ./devtools/waitfor http://127.0.0.1:3042 && CYPRESS_DB_URL=postgres://postgres@127.0.0.1:5433 ./bin/tools/bun run cypress $CY_ACTION --config baseUrl=http://127.0.0.1:3040$HTTP_PREFIX
 
 db: $CONTAINER_TOOL rm -f smoketest-postgres || true; $CONTAINER_TOOL run -it --rm --name smoketest-postgres -p5433:5432 -e=POSTGRES_HOST_AUTH_METHOD=trust postgres:13-alpine
 
 
 @watch-file=./web/src/esbuild.config.js
-ui: yarn run esbuild --watch --prod
+ui: ./bin/tools/bun run esbuild --watch --prod
 
 @watch-file=./web/src/esbuild.cypress.js
-build-cy: yarn run esbuild-cy --watch
+build-cy: ./bin/tools/bun run esbuild-cy --watch

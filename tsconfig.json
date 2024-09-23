@@ -15,5 +15,5 @@
     "strict": true,
     "lib": ["ES2017"]
   },
-  "exclude": ["*/node_modules/*"]
+  "exclude": ["node_modules", "web/src/build", "bin"]
 }

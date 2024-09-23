@@ -62,9 +62,9 @@ ifeq ($(PUSH),1)
 	podman manifest push --all $(IMAGE_REPO)/goalert:$(IMAGE_TAG) docker://$(IMAGE_REPO)/goalert:$(IMAGE_TAG)
 endif
 
-$(BIN_DIR)/build/integration/cypress/plugins/index.js: package.json yarn.lock web/src/esbuild.cypress.js $(shell find ./web/src/cypress)
+$(BIN_DIR)/build/integration/cypress/plugins/index.js: package.json bun.lockb web/src/esbuild.cypress.js $(shell find ./web/src/cypress)
 	rm -rf $@
-	yarn run esbuild-cy
+	$(BIN_DIR)/tools/bun run esbuild-cy
 	mkdir -p $@/plugins
 	cp web/src/cypress/plugins/index.js $@/plugins/index.js
 	touch $@
