@@ -1,4 +1,4 @@
-FROM docker.io/cypress/included:13.3.0
+FROM docker.io/cypress/included:13.14.2
 ENTRYPOINT []
 RUN apt-get update && apt-get install -y --no-install-recommends postgresql postgresql-contrib && rm -rf /var/lib/apt/lists/*
 ENV PGDATA=/var/lib/postgresql/data PGUSER=postgres DB_URL=postgresql://postgres@
