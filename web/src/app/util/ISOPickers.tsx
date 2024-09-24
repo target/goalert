@@ -73,7 +73,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
     let dt: DateTime
     try {
       dt = DateTime.fromISO(value, { zone })
-    } catch (e) {
+    } catch {
       return `Invalid date/time`
     }
 
@@ -128,7 +128,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
         )
       }
       return dtToISO(inputAsDT)
-    } catch (e) {
+    } catch {
       // ignore if input doesn't match format
     }
 
@@ -136,7 +136,7 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
     try {
       const iso = DateTime.fromISO(input, { zone })
       return dtToISO(iso)
-    } catch (e) {
+    } catch {
       // ignore if input doesn't match iso format
     }
 

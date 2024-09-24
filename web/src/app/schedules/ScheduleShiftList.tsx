@@ -286,9 +286,8 @@ function ScheduleShiftList({
           disabled={activeOnly}
           value={duration}
           onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-            e.target.value === 'SPECIFY'
-              ? setSpecifyDuration(true)
-              : setDuration(e.target.value)
+            if (e.target.value === 'SPECIFY') setSpecifyDuration(true)
+            else setDuration(e.target.value)
           }}
         >
           {quickOptions.map((opt) => (
