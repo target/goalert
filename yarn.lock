@@ -10626,12 +10626,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-promise@npm:6.1.1":
-  version: 6.1.1
-  resolution: "eslint-plugin-promise@npm:6.1.1"
+"eslint-plugin-promise@npm:7.1.0":
+  version: 7.1.0
+  resolution: "eslint-plugin-promise@npm:7.1.0"
   peerDependencies:
-    eslint: ^7.0.0 || ^8.0.0
-  checksum: 10/216c4348f796c5e90984224532d42a8f8d0455b8cbb1955bcb328b3aa10a52e9718f6fb044b6fe19825eda3a2d62a32b1042d9cbb10731353cf61b7a6cab2d71
+    eslint: ^7.0.0 || ^8.0.0 || ^9.0.0
+  checksum: 10/ae2c6245d45beac99d55a7ca0b517c04d995238af1bce6c4bb4bfc9be03d8dd7f3ceb9d383822e78a043817664e3c1341486e89ac82955f3cd9c88fa3e17951b
   languageName: node
   linkType: hard
 
@@ -18180,7 +18180,7 @@ __metadata:
     eslint-plugin-n: "npm:17.10.3"
     eslint-plugin-node: "npm:11.1.0"
     eslint-plugin-prettier: "npm:5.2.1"
-    eslint-plugin-promise: "npm:6.1.1"
+    eslint-plugin-promise: "npm:7.1.0"
     eslint-plugin-react: "npm:7.34.1"
     eslint-plugin-react-hooks: "npm:4.6.2"
     eslint-plugin-storybook: "npm:0.8.0"
