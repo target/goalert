@@ -1,4 +1,5 @@
 /* eslint @typescript-eslint/no-var-requires: 0 */
+/* eslint @typescript-eslint/no-require-imports: 0 */
 const http = require('http')
 const { exec } = require('child_process')
 

@@ -74,7 +74,7 @@ export function PageControls(props: {
           data-cy='back-button'
           disabled={!onBack}
           onClick={() => {
-            onBack && onBack()
+            if (onBack) onBack()
             window.scrollTo(0, 0)
           }}
         >
@@ -87,7 +87,7 @@ export function PageControls(props: {
           data-cy='next-button'
           disabled={!onNext}
           onClick={() => {
-            onNext && onNext()
+            if (onNext) onNext()
             window.scrollTo(0, 0)
           }}
         >
