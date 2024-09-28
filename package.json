@@ -80,7 +80,7 @@
     "concurrently": "9.0.1",
     "cypress": "13.14.2",
     "detect-package-manager": "3.0.2",
-    "diff": "5.2.0",
+    "diff": "7.0.0",
     "esbuild": "0.24.0",
     "esbuild-jest": "0.5.0",
     "eslint": "8.57.1",
