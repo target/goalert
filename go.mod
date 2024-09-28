@@ -45,7 +45,7 @@ require (
 	github.com/spf13/viper v1.19.0
 	github.com/sqlc-dev/pqtype v0.3.0
 	github.com/stretchr/testify v1.9.0
-	github.com/vektah/gqlparser/v2 v2.5.16
+	github.com/vektah/gqlparser/v2 v2.5.17
 	golang.org/x/crypto v0.27.0
 	golang.org/x/oauth2 v0.23.0
 	golang.org/x/sys v0.25.0
