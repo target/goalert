@@ -145,7 +145,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 
 		res, err := vm.Run(p, env)
-		if errutil.HTTPError(ctx, w, err) {
+		if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
 			return
 		}
 
