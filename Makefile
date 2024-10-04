@@ -68,6 +68,10 @@ Makefile.binaries.mk: devtools/genmake/*
 $(BIN_DIR)/tools/protoc: protoc.version
 	go run ./devtools/gettool -t protoc -v $(shell cat protoc.version) -o $@
 
+
+$(BIN_DIR)/tools/mailpit: mailpit.version
+	go run ./devtools/gettool -t mailpit -v $(shell cat mailpit.version) -o $@
+
 $(BIN_DIR)/tools/sqlc: sqlc.version
 	go run ./devtools/gettool -t sqlc -v $(shell cat sqlc.version) -o $@
 
@@ -135,7 +139,7 @@ web/src/schema.d.ts: graphql2/schema.graphql graphql2/graph/*.graphqls web/src/g
 help: ## Show all valid options
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m\033[0m\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-start: bin/goalert bin/mockoidc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application
+start: bin/goalert bin/mockoidc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit ## Start the developer version of the application
 	@if [ -d ".vscode" ]; then \
 		echo "Detected .vscode directory, running 'vscode' target"; \
 		$(MAKE) vscode; \
@@ -143,14 +147,14 @@ start: bin/goalert bin/mockoidc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tool
 	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	GOALERT_VERSION=$(GIT_VERSION) GOALERT_STRICT_EXPERIMENTAL=1 go run ./devtools/runproc -f Procfile -l Procfile.local
 
-start-prod: web/src/build/static/app.js bin/mockoidc $(BIN_DIR)/tools/prometheus ## Start the production version of the application
+start-prod: web/src/build/static/app.js bin/mockoidc $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit ## Start the production version of the application
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	$(MAKE) $(MFLAGS) bin/goalert BUNDLE=1
 	go run ./devtools/runproc -f Procfile.prod -l Procfile.local
 
 
-start-swo: bin/psql-lite bin/goalert bin/waitfor bin/mockoidc bin/runproc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus ## Start the developer version of the application in switchover mode (SWO)
+start-swo: bin/psql-lite bin/goalert bin/waitfor bin/mockoidc bin/runproc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit ## Start the developer version of the application in switchover mode (SWO)
 	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert
 	./bin/psql-lite -d postgres://goalert@localhost -c "update switchover_state set current_state = 'idle'; truncate table switchover_log; drop database if exists goalert2; create database goalert2;"
@@ -173,7 +177,7 @@ reset-integration: bin/waitfor bin/goalert.cover bin/psql-lite bin/resetdb
 	cat test/integration/setup/goalert-config.json | GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover set-config --allow-empty-data-encryption-key --db-url "$(INT_DB_URL)"
 	rm -f *.session.json
 
-start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/waitfor bin/runproc bin/procwrap $(BIN_DIR)/tools/prometheus reset-integration
+start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/waitfor bin/runproc bin/procwrap $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit reset-integration
 	GOALERT_DB_URL="$(INT_DB_URL)" ./bin/runproc -f Procfile.integration
 
 jest: $(NODE_DEPS)
@@ -250,17 +254,14 @@ test-components:  $(NODE_DEPS) bin/waitfor
 storybook: ensure-yarn $(NODE_DEPS) # Start the Storybook UI
 	yarn storybook
 
-bin/MailHog: go.mod go.sum
-	go build -o bin/MailHog github.com/mailhog/MailHog
-
-playwright-run: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goalert.cover web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog ## Start playwright tests in headless mode
+playwright-run: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goalert.cover web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit reset-integration ## Start playwright tests in headless mode
 	$(MAKE) ensure-yarn
 	rm -rf test/coverage/integration/playwright
 	mkdir -p test/coverage/integration/playwright
 	yarn playwright install chromium
 	GOCOVERDIR=test/coverage/integration/playwright yarn playwright test
 
-playwright-ui: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration bin/MailHog ## Start the Playwright UI
+playwright-ui: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit reset-integration ## Start the Playwright UI
 	$(MAKE) ensure-yarn
 	yarn playwright install chromium
 	yarn playwright test --ui
