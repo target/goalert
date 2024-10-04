@@ -33,23 +33,7 @@ test('EMAIL contact method', async ({ page, browser }) => {
     viewport: { width: 800, height: 600 },
   })
   await mail.goto('./')
-  await mail.fill('#search', email)
-  await mail.press('#search', 'Enter')
-
-  const message = mail.locator('.messages .msglist-message', {
-    hasText: 'Verification Message',
-  })
-  await expect
-    .poll(
-      async () => {
-        await mail.click('button[title=Refresh]')
-        return await message.isVisible()
-      },
-      { message: 'wait for verification code email', timeout: 10000 },
-    )
-    .toBe(true)
-
-  await message.click()
+  await mail.locator(`a:has-text("To: ${email}")`).click()
 
   const code = await mail
     .frameLocator('#preview-html')
@@ -58,6 +42,7 @@ test('EMAIL contact method', async ({ page, browser }) => {
   if (!code) {
     throw new Error('No code found')
   }
+  await mail.getByTitle('Delete message').click()
   await mail.close()
 
   await page.fill('input[name=code]', code)
