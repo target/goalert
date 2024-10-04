@@ -291,8 +291,6 @@ tools:
 	go get -u golang.org/x/tools/cmd/bundle
 	go get -u golang.org/x/tools/cmd/gomvpkg
 	go get -u golang.org/x/tools/cmd/goimports
-	go get -u github.com/gordonklaus/ineffassign
-	go get -u honnef.co/go/tools/cmd/staticcheck
 	go get -u golang.org/x/tools/cmd/stringer
 
 .pnp.cjs: yarn.lock Makefile package.json .yarnrc.yml
