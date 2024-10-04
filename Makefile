@@ -305,6 +305,8 @@ web/src/build/static/app.js: $(NODE_DEPS)
 	rm -rf web/src/build/static
 	mkdir -p web/src/build/static
 	cp -f web/src/app/public/icons/favicon-* web/src/app/public/logos/lightmode_* web/src/app/public/logos/darkmode_* web/src/build/static/
+	# used for email templates
+	cp web/src/app/public/logos/goalert-alt-logo.png web/src/build/static/
 	GOALERT_VERSION=$(GIT_VERSION) yarn run esbuild --prod
 	touch "$@"
 
