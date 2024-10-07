@@ -7,7 +7,7 @@ test.describe.configure({ mode: 'parallel' })
 test.use({ storageState: userSessionFile })
 
 // test create, edit, verify, and delete of an EMAIL contact method
-test('EMAIL contact method', async ({ page, browser }) => {
+test('EMAIL contact method', async ({ page, browser, request }) => {
   const name = 'pw-email ' + c.name()
   const email = 'pw-email-' + c.email()
 
@@ -42,6 +42,24 @@ test('EMAIL contact method', async ({ page, browser }) => {
   if (!code) {
     throw new Error('No code found')
   }
+
+  // validate links, grab message ID from url
+  const url = mail.url()
+  const id = url.match(/view\/(.+)/)?.[1]
+
+  // make GET request to validate link
+  const res = await request.get(
+    `http://localhost:6125/api/v1/message/${id}/link-check`,
+  )
+  await expect(res.ok()).toBeTruthy()
+  const body = await res.json()
+  body.Links.forEach(
+    (l: { URL: string; StatusCode: number; Status: string }) => {
+      expect(l, 'Link-Check: ' + l.URL).toHaveProperty('StatusCode', 200)
+    },
+  )
+  expect(body).toHaveProperty('Errors', 0)
+
   await mail.getByTitle('Delete message').click()
   await mail.close()
 
