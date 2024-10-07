@@ -266,7 +266,7 @@ playwright-ui: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goalert
 	yarn playwright install chromium
 	yarn playwright test --ui
 
-smoketest:
+smoketest: $(BIN_DIR)/tools/mailpit
 	rm -rf test/coverage/smoke
 	mkdir -p test/coverage/smoke
 	(cd test/smoke && go test -coverpkg=../../... -parallel 10 -timeout 20m -args -test.gocoverdir=$(PWD)/test/coverage/smoke)
