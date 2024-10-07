@@ -17,7 +17,7 @@ jobs:
           path: base
       - uses: actions/checkout@v4
         with: # checkout the merge commit, where the PR changes are
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          ref: refs/pull/${{ github.event.number }}/merge
           path: merge
           # we need full history
           fetch-depth: 0
