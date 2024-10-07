@@ -3,7 +3,6 @@ package harness
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"math/rand"
@@ -14,86 +13,88 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 type mailpit struct {
+	t        *testing.T
 	smtpAddr string
 	apiAddr  string
 	cleanup  func() error
 }
 
-func newMailpit(retry int) (*mailpit, error) {
+func newMailpit(t *testing.T, retry int) (mp *mailpit) {
+	t.Helper()
+
 	addrs, err := findOpenPorts(2)
-	if err != nil {
-		return nil, err
-	}
+	require.NoError(t, err, "expected to find open ports for mailpit")
 
 	var output bytes.Buffer
 	// detect if ../../../bin/tools/mailpit exists or ../../bin/tools/mailpit exists
 	cmdpath := "../../bin/tools/mailpit"
 	if _, err := os.Stat(cmdpath); err != nil {
-		if _, err := os.Stat("../" + cmdpath); err == nil {
-			cmdpath = "../" + cmdpath
-		} else {
-			return nil, fmt.Errorf("mailpit: %w", err)
-		}
+		_, err = os.Stat("../" + cmdpath)
+		require.NoError(t, err, "expected to find mailpit binary")
+		cmdpath = "../" + cmdpath
 	}
 
 	cmd := exec.Command(cmdpath, "-s", addrs[0], "-l", addrs[1])
-	cmd.Stdout = &output
-	cmd.Stderr = &output
-	if err := cmd.Start(); err != nil {
-		return nil, err
-	}
+	cmd.Stdout, cmd.Stderr = &output, &output
+	require.NoError(t, cmd.Start(), "expected to start mailpit")
 
-	t := time.NewTicker(100 * time.Millisecond)
-	defer t.Stop()
-	to := time.NewTimer(5 * time.Second)
-	defer to.Stop()
-	for {
+	require.Eventually(t, func() bool {
 		// check if the process is still running
 		if cmd.ProcessState != nil && cmd.ProcessState.Exited() {
 			if retry > 0 && strings.Contains(output.String(), "address already in use") {
 				// small random delay, in case of conflict
 				time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
-				return newMailpit(retry - 1)
+				mp = newMailpit(t, retry-1)
+				return true
 			}
-			return nil, errors.New(output.String())
+			t.Error(output.String())
+			return false
 		}
+		return isListening(addrs[0]) && isListening(addrs[1])
+	}, 5*time.Second, 100*time.Millisecond, "expected to find mailpit listening on ports")
 
-		select {
-		case <-to.C:
-			return nil, fmt.Errorf("mailpit: timeout: %s", output.String())
-		case <-t.C:
-			if isListening(addrs[0]) && isListening(addrs[1]) {
-				return &mailpit{
-					smtpAddr: addrs[0],
-					apiAddr:  addrs[1],
-					cleanup:  cmd.Process.Kill,
-				}, nil
-			}
-		}
+	t.Cleanup(func() { _ = cmd.Process.Kill() })
+	return &mailpit{
+		t:        t,
+		smtpAddr: addrs[0],
+		apiAddr:  addrs[1],
+		cleanup:  cmd.Process.Kill,
 	}
 }
 
-func (m *mailpit) Close() error { return m.cleanup() }
+func doJSON(t *testing.T, method, url string, reqBody, respBody any) {
+	t.Helper()
 
-func (m *mailpit) UnreadMessages() ([]emailMessage, error) {
-	resp, err := http.Get("http://" + m.apiAddr + "/api/v1/search?query=is:unread")
-	if err != nil {
-		return nil, fmt.Errorf("mailpit: search messages: %w", err)
-	}
-	defer resp.Body.Close()
-
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("mailpit: read response: %w", err)
+	var data []byte
+	if reqBody != nil {
+		var err error
+		data, err = json.Marshal(reqBody)
+		require.NoError(t, err, "expected to marshal request")
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("mailpit: search messages (bad response: %s): %s", resp.Status, string(data))
+	req, err := http.NewRequest(method, url, bytes.NewReader(data))
+	require.NoError(t, err, "expected to create request")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err, "expected to send request")
+	data, err = io.ReadAll(resp.Body)
+	require.NoError(t, err, "expected to read response")
+	require.Equalf(t, http.StatusOK, resp.StatusCode, "expected status OK; data=\n%s", string(data))
+	if respBody == nil {
+		return
 	}
+	require.NoErrorf(t, json.Unmarshal(data, respBody), "expected to unmarshal response from:\n%s", string(data))
+}
+
+func (m *mailpit) UnreadMessages() []emailMessage {
+	m.t.Helper()
 
 	var body struct {
 		Messages []struct {
@@ -101,9 +102,7 @@ func (m *mailpit) UnreadMessages() ([]emailMessage, error) {
 			Snippet string
 		}
 	}
-	if err = json.Unmarshal(data, &body); err != nil {
-		return nil, fmt.Errorf("mailpit: unmarshal response: %w\n%s", err, string(data))
-	}
+	doJSON(m.t, "GET", "http://"+m.apiAddr+"/api/v1/search?query=is:unread", nil, &body)
 
 	var result []emailMessage
 	for _, msg := range body.Messages {
@@ -114,41 +113,24 @@ func (m *mailpit) UnreadMessages() ([]emailMessage, error) {
 		result = append(result, emailMessage{address: addrs, body: msg.Snippet})
 	}
 
-	return result, nil
+	return result
 }
 
 // ReadMessage will return true if an unread message was found and matched the keywords, marking it as read in the process.
-func (m *mailpit) ReadMessage(to string, keywords ...string) (bool, error) {
+func (m *mailpit) ReadMessage(to string, keywords ...string) bool {
 	quotedKeywords := make([]string, len(keywords))
 	for i, k := range keywords {
 		quotedKeywords[i] = strconv.Quote(k)
 	}
 	query := fmt.Sprintf("is:unread to:%s %s", strconv.Quote(to), strings.Join(quotedKeywords, " "))
 
-	resp, err := http.Get("http://" + m.apiAddr + "/api/v1/search?query=" + url.QueryEscape(query))
-	if err != nil {
-		return false, fmt.Errorf("mailpit: search messages: %w", err)
-	}
-	defer resp.Body.Close()
-
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return false, fmt.Errorf("mailpit: read response: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return false, fmt.Errorf("mailpit: search messages (bad response: %s): %s", resp.Status, string(data))
-	}
-
 	var body struct {
 		Messages []struct{ ID string }
 	}
-	if err = json.Unmarshal(data, &body); err != nil {
-		return false, fmt.Errorf("mailpit: unmarshal response: %w\n%s", err, string(data))
-	}
+	doJSON(m.t, "GET", "http://"+m.apiAddr+"/api/v1/search?query="+url.QueryEscape(query), nil, &body)
 
 	if len(body.Messages) == 0 {
-		return false, nil
+		return false
 	}
 
 	var reqBody struct {
@@ -158,25 +140,7 @@ func (m *mailpit) ReadMessage(to string, keywords ...string) (bool, error) {
 	reqBody.IDs = append(reqBody.IDs, body.Messages[0].ID) // only read the first message
 	reqBody.Read = true
 
-	reqData, err := json.Marshal(reqBody)
-	if err != nil {
-		return false, fmt.Errorf("mailpit: marshal request: %w", err)
-	}
+	doJSON(m.t, http.MethodPut, "http://"+m.apiAddr+"/api/v1/messages", reqBody, nil)
 
-	req, err := http.NewRequest(http.MethodPut, "http://"+m.apiAddr+"/api/v1/messages", bytes.NewReader(reqData))
-	if err != nil {
-		return false, fmt.Errorf("mailpit: create request: %w", err)
-	}
-
-	resp, err = http.DefaultClient.Do(req)
-	if err != nil {
-		return false, fmt.Errorf("mailpit: mark message as read: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return false, fmt.Errorf("mailpit: mark message as read (bad response: %s)", resp.Status)
-	}
-
-	return true, nil
+	return true
 }

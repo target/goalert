@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 type EmailServer interface {
@@ -53,8 +52,7 @@ func isListening(addr string) bool {
 }
 
 func newEmailServer(h *Harness) *emailServer {
-	mp, err := newMailpit(5)
-	require.NoError(h.t, err)
+	mp := newMailpit(h.t, 5)
 
 	h.t.Logf("mailpit: smtp: %s", mp.smtpAddr)
 	h.t.Logf("mailpit: api: %s", mp.apiAddr)
@@ -64,7 +62,6 @@ func newEmailServer(h *Harness) *emailServer {
 		mp: mp,
 	}
 }
-func (e *emailServer) Close() error { return e.mp.Close() }
 func (e *emailServer) Addr() string { return e.mp.smtpAddr }
 
 func (h *Harness) Email(id string) string { return h.emailG.Get(id) }
@@ -75,16 +72,14 @@ func (e *emailServer) ExpectMessage(address string, keywords ...string) {
 	e.h.t.Helper()
 
 	gotMessage := assert.Eventuallyf(e.h.t, func() bool {
-		found, err := e.mp.ReadMessage(address, keywords...)
-		require.NoError(e.h.t, err)
+		found := e.mp.ReadMessage(address, keywords...)
 		return found
 	}, 15*time.Second, 10*time.Millisecond, "expected to find email: address=%s; keywords=%v", address, keywords)
 	if gotMessage {
 		return
 	}
 
-	msgs, err := e.mp.UnreadMessages()
-	assert.NoError(e.h.t, err)
+	msgs := e.mp.UnreadMessages()
 	e.h.t.Fatalf("timeout waiting for email; Got:\n%v", msgs)
 }
 
@@ -96,10 +91,7 @@ type emailMessage struct {
 func (e *emailServer) WaitAndAssert() {
 	e.h.t.Helper()
 
-	msgs, err := e.mp.UnreadMessages()
-	require.NoError(e.h.t, err)
-
-	for _, msg := range msgs {
+	for _, msg := range e.mp.UnreadMessages() {
 		e.h.t.Errorf("unexpected message: to=%s; body=%s", strings.Join(msg.address, ","), msg.body)
 	}
 }
