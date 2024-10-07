@@ -7,7 +7,8 @@ if [ -z "PR_NUMBER" ]; then
 fi
 
 # test change
-# 3 lines total
+# 4 lines
+# total
 
 MY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LABEL=$("$MY_DIR/git-diff-label-calc.sh" --debug)
