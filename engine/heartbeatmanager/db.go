@@ -53,7 +53,7 @@ func NewDB(ctx context.Context, db *sql.DB, a *alert.Store) (*DB, error) {
 			set last_state = 'unhealthy'
 			from rows
 			where mon.id = rows.id
-			returning mon.id, name, service_id, last_heartbeat, coalesce(additional_details, ''), coalesce(disable_reason, '')
+			returning mon.id, name, service_id, last_heartbeat, coalesce(additional_details, ''), coalesce(muted, '')
 		`),
 		fetchHealthy: p.P(`
 			with rows as (
