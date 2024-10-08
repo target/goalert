@@ -46,17 +46,18 @@ func TestHeartbeat(t *testing.T) {
 	values
 		({{uuid "int_key"}}, 'generic', 'my key', {{uuid "sid"}});
 
-	insert into heartbeat_monitors (id, name, service_id, heartbeat_interval)
+	insert into heartbeat_monitors (id, name, service_id, heartbeat_interval, disable_reason)
 	values
-		({{uuid "hb_key"}}, 'test', {{uuid "sid"}}, '60 minutes');
+		({{uuid "hb_key"}}, 'testone', {{uuid "sid"}}, '60 minutes', null),
+		({{uuid "hb_key2"}}, 'testtwo', {{uuid "sid"}}, '75 minutes', 'disabled');
 `
-	h := harness.NewHarness(t, sql, "heartbeat-auth-log-data")
+	h := harness.NewHarness(t, sql, "hb-monitor-disable")
 	defer h.Close()
 
-	heartbeat := func() {
+	heartbeat := func(id string) {
 		v := make(url.Values)
 		v.Set("integrationKey", h.UUID("int_key"))
-		resp, err := http.PostForm(h.URL()+"/v1/api/heartbeat/"+h.UUID("hb_key"), v)
+		resp, err := http.PostForm(h.URL()+"/v1/api/heartbeat/"+id, v)
 		if err != nil {
 			t.Fatal("post to generic endpoint failed:", err)
 		} else if resp.StatusCode/100 != 2 {
@@ -65,13 +66,17 @@ func TestHeartbeat(t *testing.T) {
 		resp.Body.Close()
 	}
 
-	heartbeat()
+	// start both monitors
+	heartbeat(h.UUID("hb_key"))
+	heartbeat(h.UUID("hb_key2"))
 	h.FastForward(60 * time.Minute) // expire heartbeat
-	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("heartbeat")
+	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("heartbeat", "testone")
 
-	heartbeat()
-	h.Trigger() // cycle engine (to close/process heartbeat) before fast-forwarding
+	heartbeat(h.UUID("hb_key")) // reset first
+	h.Trigger()                 // cycle engine (to close/process heartbeat) before fast-forwarding
 
 	h.FastForward(15 * time.Minute) // next notification rule
+	h.Trigger()
 	// no SMS, healthy
+	// Note: the second heartbeat monitor is disabled, so it should not trigger an alert.
 }

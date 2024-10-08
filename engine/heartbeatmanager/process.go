@@ -39,6 +39,9 @@ func (db *DB) processAll(ctx context.Context) error {
 		return errors.Wrap(err, "fetch unhealthy heartbeats")
 	}
 	for _, row := range bad {
+		if row.DisableReason != "" {
+			continue
+		}
 		details := "Last heartbeat: " + row.LastHeartbeat.Format(time.UnixDate)
 		if row.AddlDetails != "" {
 			details += "\n\n" + row.AddlDetails
@@ -125,10 +128,6 @@ func (db *DB) unhealthy(ctx context.Context, tx *sql.Tx) ([]row, error) {
 		err = rows.Scan(&r.ID, &r.Name, &r.ServiceID, &r.LastHeartbeat, &r.AddlDetails, &r.DisableReason)
 		if err != nil {
 			return nil, err
-		}
-		if r.DisableReason != "" {
-			log.Debugf(ctx, "Skipping disabled heartbeat monitor '%s': %s", r.Name, r.DisableReason)
-			continue
 		}
 		result = append(result, r)
 	}
