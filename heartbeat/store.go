@@ -173,6 +173,8 @@ func fromDB(m gadb.HeartbeatMonitor) Monitor {
 		Timeout:           time.Duration(m.HeartbeatInterval.Microseconds) * time.Microsecond,
 		AdditionalDetails: m.AdditionalDetails.String,
 		Muted:             m.Muted.String,
+		lastState:         State(m.LastState),
+		lastHeartbeat:     m.LastHeartbeat.Time,
 	}
 }
 
