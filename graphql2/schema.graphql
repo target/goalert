@@ -1020,7 +1020,7 @@ input CreateHeartbeatMonitorInput {
   Muting a monitor will prevent it from triggering new alerts, but existing
   alerts will remain active until closed or the monitor is healthy again.
   """
-  mutedReason: String
+  muted: String
 }
 
 input UpdateHeartbeatMonitorInput {
@@ -1035,7 +1035,7 @@ input UpdateHeartbeatMonitorInput {
   Muting a monitor will prevent it from triggering new alerts, but existing
   alerts will remain active until closed or the monitor is healthy again.
   """
-  mutedReason: String
+  muted: String
 }
 
 enum HeartbeatMonitorState {
@@ -1059,7 +1059,7 @@ type HeartbeatMonitor {
 
   Muted monitors will not trigger new alerts, but will operate normally otherwise.
   """
-  mutedReason: String
+  muted: String!
 }
 
 type Label {

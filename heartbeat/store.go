@@ -109,7 +109,7 @@ func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, m *Monitor) error {
 		Name:              n.Name,
 		HeartbeatInterval: sqlutil.IntervalMicro(n.Timeout),
 		AdditionalDetails: sql.NullString{String: n.AdditionalDetails, Valid: n.AdditionalDetails != ""},
-		MutedReason:       sql.NullString{String: n.MutedReason, Valid: n.MutedReason != ""},
+		Muted:             sql.NullString{String: n.Muted, Valid: n.Muted != ""},
 	})
 }
 
@@ -172,7 +172,7 @@ func fromDB(m gadb.HeartbeatMonitor) Monitor {
 		ServiceID:         m.ServiceID.String(),
 		Timeout:           time.Duration(m.HeartbeatInterval.Microseconds) * time.Microsecond,
 		AdditionalDetails: m.AdditionalDetails.String,
-		MutedReason:       m.MutedReason.String,
+		Muted:             m.Muted.String,
 	}
 }
 

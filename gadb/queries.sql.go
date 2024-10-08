@@ -1521,7 +1521,7 @@ func (q *Queries) GQLUserOnCallOverview(ctx context.Context, userID uuid.UUID) (
 
 const hBByIDForUpdate = `-- name: HBByIDForUpdate :one
 SELECT
-    additional_details, heartbeat_interval, id, last_heartbeat, last_state, muted_reason, name, service_id
+    additional_details, heartbeat_interval, id, last_heartbeat, last_state, muted, name, service_id
 FROM
     heartbeat_monitors
 WHERE
@@ -1538,7 +1538,7 @@ func (q *Queries) HBByIDForUpdate(ctx context.Context, id uuid.UUID) (HeartbeatM
 		&i.ID,
 		&i.LastHeartbeat,
 		&i.LastState,
-		&i.MutedReason,
+		&i.Muted,
 		&i.Name,
 		&i.ServiceID,
 	)
@@ -1547,7 +1547,7 @@ func (q *Queries) HBByIDForUpdate(ctx context.Context, id uuid.UUID) (HeartbeatM
 
 const hBByService = `-- name: HBByService :many
 SELECT
-    additional_details, heartbeat_interval, id, last_heartbeat, last_state, muted_reason, name, service_id
+    additional_details, heartbeat_interval, id, last_heartbeat, last_state, muted, name, service_id
 FROM
     heartbeat_monitors
 WHERE
@@ -1570,7 +1570,7 @@ func (q *Queries) HBByService(ctx context.Context, serviceID uuid.UUID) ([]Heart
 			&i.ID,
 			&i.LastHeartbeat,
 			&i.LastState,
-			&i.MutedReason,
+			&i.Muted,
 			&i.Name,
 			&i.ServiceID,
 		); err != nil {
@@ -1598,7 +1598,7 @@ func (q *Queries) HBDelete(ctx context.Context, id []uuid.UUID) error {
 }
 
 const hBInsert = `-- name: HBInsert :exec
-INSERT INTO heartbeat_monitors(id, name, service_id, heartbeat_interval, additional_details, muted_reason)
+INSERT INTO heartbeat_monitors(id, name, service_id, heartbeat_interval, additional_details, muted)
     VALUES ($1, $2, $3, $4, $5, $6)
 `
 
@@ -1608,7 +1608,7 @@ type HBInsertParams struct {
 	ServiceID         uuid.UUID
 	HeartbeatInterval sqlutil.Interval
 	AdditionalDetails sql.NullString
-	MutedReason       sql.NullString
+	Muted             sql.NullString
 }
 
 // Inserts a new heartbeat record
@@ -1619,14 +1619,14 @@ func (q *Queries) HBInsert(ctx context.Context, arg HBInsertParams) error {
 		arg.ServiceID,
 		arg.HeartbeatInterval,
 		arg.AdditionalDetails,
-		arg.MutedReason,
+		arg.Muted,
 	)
 	return err
 }
 
 const hBManyByID = `-- name: HBManyByID :many
 SELECT
-    additional_details, heartbeat_interval, id, last_heartbeat, last_state, muted_reason, name, service_id
+    additional_details, heartbeat_interval, id, last_heartbeat, last_state, muted, name, service_id
 FROM
     heartbeat_monitors
 WHERE
@@ -1648,7 +1648,7 @@ func (q *Queries) HBManyByID(ctx context.Context, ids []uuid.UUID) ([]HeartbeatM
 			&i.ID,
 			&i.LastHeartbeat,
 			&i.LastState,
-			&i.MutedReason,
+			&i.Muted,
 			&i.Name,
 			&i.ServiceID,
 		); err != nil {
@@ -1686,7 +1686,7 @@ SET
     name = $1,
     heartbeat_interval = $2,
     additional_details = $3,
-    muted_reason = $4
+    muted = $4
 WHERE
     id = $5
 `
@@ -1695,7 +1695,7 @@ type HBUpdateParams struct {
 	Name              string
 	HeartbeatInterval sqlutil.Interval
 	AdditionalDetails sql.NullString
-	MutedReason       sql.NullString
+	Muted             sql.NullString
 	ID                uuid.UUID
 }
 
@@ -1704,7 +1704,7 @@ func (q *Queries) HBUpdate(ctx context.Context, arg HBUpdateParams) error {
 		arg.Name,
 		arg.HeartbeatInterval,
 		arg.AdditionalDetails,
-		arg.MutedReason,
+		arg.Muted,
 		arg.ID,
 	)
 	return err

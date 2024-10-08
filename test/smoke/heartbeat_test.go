@@ -46,10 +46,10 @@ func TestHeartbeat(t *testing.T) {
 	values
 		({{uuid "int_key"}}, 'generic', 'my key', {{uuid "sid"}});
 
-	insert into heartbeat_monitors (id, name, service_id, heartbeat_interval, disable_reason)
+	insert into heartbeat_monitors (id, name, service_id, heartbeat_interval, muted)
 	values
 		({{uuid "hb_key"}}, 'testone', {{uuid "sid"}}, '60 minutes', null),
-		({{uuid "hb_key2"}}, 'testtwo', {{uuid "sid"}}, '75 minutes', 'disabled');
+		({{uuid "hb_key2"}}, 'testtwo', {{uuid "sid"}}, '75 minutes', 'silence');
 `
 	h := harness.NewHarness(t, sql, "hb-monitor-disable")
 	defer h.Close()

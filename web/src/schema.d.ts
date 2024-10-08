@@ -249,7 +249,7 @@ export interface CreateGQLAPIKeyInput {
 
 export interface CreateHeartbeatMonitorInput {
   additionalDetails?: null | string
-  disableReason?: null | string
+  muted?: null | string
   name: string
   serviceID?: null | string
   timeoutMinutes: number
@@ -581,11 +581,11 @@ export interface GQLAPIKeyUsage {
 
 export interface HeartbeatMonitor {
   additionalDetails: string
-  disableReason?: null | string
   href: string
   id: string
   lastHeartbeat?: null | ISOTimestamp
   lastState: HeartbeatMonitorState
+  muted: string
   name: string
   serviceID: string
   timeoutMinutes: number
@@ -1291,8 +1291,8 @@ export interface UpdateGQLAPIKeyInput {
 
 export interface UpdateHeartbeatMonitorInput {
   additionalDetails?: null | string
-  disableReason?: null | string
   id: string
+  muted?: null | string
   name?: null | string
   timeoutMinutes?: null | number
 }

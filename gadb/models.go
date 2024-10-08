@@ -949,7 +949,7 @@ type HeartbeatMonitor struct {
 	ID                uuid.UUID
 	LastHeartbeat     sql.NullTime
 	LastState         EnumHeartbeatState
-	MutedReason       sql.NullString
+	Muted             sql.NullString
 	Name              string
 	ServiceID         uuid.UUID
 }

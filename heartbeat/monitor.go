@@ -18,7 +18,10 @@ type Monitor struct {
 
 	AdditionalDetails string
 
-	MutedReason string
+	// Muted indicates the reason the monitor is muted.
+	//
+	// If non-empty, the monitor will not generate alerts.
+	Muted string
 
 	lastState     State
 	lastHeartbeat time.Time
@@ -37,7 +40,7 @@ func (m Monitor) Normalize() (*Monitor, error) {
 		validate.IDName("Name", m.Name),
 		validate.Duration("Timeout", m.Timeout, 5*time.Minute, 9000*time.Hour),
 		validate.Text("AdditionalDetails", m.AdditionalDetails, 0, alert.MaxDetailsLength),
-		validate.Text("MutedReason", m.MutedReason, 0, 255),
+		validate.Text("Muted", m.Muted, 0, 255),
 	)
 	if err != nil {
 		return nil, err
