@@ -372,6 +372,7 @@ type ComplexityRoot struct {
 
 	HeartbeatMonitor struct {
 		AdditionalDetails func(childComplexity int) int
+		DisableReason     func(childComplexity int) int
 		Href              func(childComplexity int) int
 		ID                func(childComplexity int) int
 		LastHeartbeat     func(childComplexity int) int
@@ -2282,6 +2283,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HeartbeatMonitor.AdditionalDetails(childComplexity), true
+
+	case "HeartbeatMonitor.disableReason":
+		if e.complexity.HeartbeatMonitor.DisableReason == nil {
+			break
+		}
+
+		return e.complexity.HeartbeatMonitor.DisableReason(childComplexity), true
 
 	case "HeartbeatMonitor.href":
 		if e.complexity.HeartbeatMonitor.Href == nil {
@@ -16638,6 +16646,47 @@ func (ec *executionContext) fieldContext_HeartbeatMonitor_additionalDetails(_ co
 	return fc, nil
 }
 
+func (ec *executionContext) _HeartbeatMonitor_disableReason(ctx context.Context, field graphql.CollectedField, obj *heartbeat.Monitor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HeartbeatMonitor_disableReason(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DisableReason, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HeartbeatMonitor_disableReason(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HeartbeatMonitor",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _IntegrationKey_id(ctx context.Context, field graphql.CollectedField, obj *integrationkey.IntegrationKey) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_IntegrationKey_id(ctx, field)
 	if err != nil {
@@ -20108,6 +20157,8 @@ func (ec *executionContext) fieldContext_Mutation_createHeartbeatMonitor(ctx con
 				return ec.fieldContext_HeartbeatMonitor_href(ctx, field)
 			case "additionalDetails":
 				return ec.fieldContext_HeartbeatMonitor_additionalDetails(ctx, field)
+			case "disableReason":
+				return ec.fieldContext_HeartbeatMonitor_disableReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HeartbeatMonitor", field.Name)
 		},
@@ -23995,6 +24046,8 @@ func (ec *executionContext) fieldContext_Query_heartbeatMonitor(ctx context.Cont
 				return ec.fieldContext_HeartbeatMonitor_href(ctx, field)
 			case "additionalDetails":
 				return ec.fieldContext_HeartbeatMonitor_additionalDetails(ctx, field)
+			case "disableReason":
+				return ec.fieldContext_HeartbeatMonitor_disableReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HeartbeatMonitor", field.Name)
 		},
@@ -29650,6 +29703,8 @@ func (ec *executionContext) fieldContext_Service_heartbeatMonitors(_ context.Con
 				return ec.fieldContext_HeartbeatMonitor_href(ctx, field)
 			case "additionalDetails":
 				return ec.fieldContext_HeartbeatMonitor_additionalDetails(ctx, field)
+			case "disableReason":
+				return ec.fieldContext_HeartbeatMonitor_disableReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HeartbeatMonitor", field.Name)
 		},
@@ -36716,7 +36771,7 @@ func (ec *executionContext) unmarshalInputCreateHeartbeatMonitorInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"serviceID", "name", "timeoutMinutes", "additionalDetails"}
+	fieldsInOrder := [...]string{"serviceID", "name", "timeoutMinutes", "additionalDetails", "disableReason"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -36751,6 +36806,13 @@ func (ec *executionContext) unmarshalInputCreateHeartbeatMonitorInput(ctx contex
 				return it, err
 			}
 			it.AdditionalDetails = data
+		case "disableReason":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disableReason"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DisableReason = data
 		}
 	}
 
@@ -39326,7 +39388,7 @@ func (ec *executionContext) unmarshalInputUpdateHeartbeatMonitorInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "timeoutMinutes", "additionalDetails"}
+	fieldsInOrder := [...]string{"id", "name", "timeoutMinutes", "additionalDetails", "disableReason"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -39361,6 +39423,13 @@ func (ec *executionContext) unmarshalInputUpdateHeartbeatMonitorInput(ctx contex
 				return it, err
 			}
 			it.AdditionalDetails = data
+		case "disableReason":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disableReason"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DisableReason = data
 		}
 	}
 
@@ -43011,6 +43080,8 @@ func (ec *executionContext) _HeartbeatMonitor(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "disableReason":
+			out.Values[i] = ec._HeartbeatMonitor_disableReason(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

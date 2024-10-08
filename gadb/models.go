@@ -13,6 +13,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/sqlc-dev/pqtype"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 type EngineProcessingType string
@@ -944,7 +945,8 @@ type GqlApiKeyUsage struct {
 
 type HeartbeatMonitor struct {
 	AdditionalDetails sql.NullString
-	HeartbeatInterval int64
+	DisableReason     sql.NullString
+	HeartbeatInterval sqlutil.Interval
 	ID                uuid.UUID
 	LastHeartbeat     sql.NullTime
 	LastState         EnumHeartbeatState

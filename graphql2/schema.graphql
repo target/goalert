@@ -1013,6 +1013,14 @@ input CreateHeartbeatMonitorInput {
   name: String!
   timeoutMinutes: Int!
   additionalDetails: String
+
+  """
+  If non-empty, the monitor will be disabled with this reason.
+
+  Disabling a monitor will prevent it from triggering new alerts, but existing
+  alerts will remain active until closed or the monitor is healthy again.
+  """
+  disableReason: String
 }
 
 input UpdateHeartbeatMonitorInput {
@@ -1020,6 +1028,14 @@ input UpdateHeartbeatMonitorInput {
   name: String
   timeoutMinutes: Int
   additionalDetails: String
+
+  """
+  If non-empty, the monitor will be disabled with this reason.
+
+  Disabling a monitor will prevent it from triggering new alerts, but existing
+  alerts will remain active until closed or the monitor is healthy again.
+  """
+  disableReason: String
 }
 
 enum HeartbeatMonitorState {
@@ -1037,6 +1053,13 @@ type HeartbeatMonitor {
   lastHeartbeat: ISOTimestamp
   href: String!
   additionalDetails: String!
+
+  """
+  If non-empty, the monitor is disabled with this reason.
+
+  Disabled monitors will not trigger new alerts, but will operate normally otherwise.
+  """
+  disableReason: String
 }
 
 type Label {
