@@ -1,7 +1,7 @@
 -- name: HBInsert :exec
 -- Inserts a new heartbeat record
-INSERT INTO heartbeat_monitors(id, name, service_id, heartbeat_interval, additional_details, disable_reason)
-    VALUES (@id, @name, @service_id, @heartbeat_interval, @additional_details, @disable_reason);
+INSERT INTO heartbeat_monitors(id, name, service_id, heartbeat_interval, additional_details, muted_reason)
+    VALUES (@id, @name, @service_id, @heartbeat_interval, @additional_details, @muted_reason);
 
 -- name: HBByService :many
 -- Returns all heartbeat records for a service
@@ -31,7 +31,7 @@ SET
     name = @name,
     heartbeat_interval = @heartbeat_interval,
     additional_details = @additional_details,
-    disable_reason = @disable_reason
+    muted_reason = @muted_reason
 WHERE
     id = @id;
 

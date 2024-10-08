@@ -945,11 +945,11 @@ type GqlApiKeyUsage struct {
 
 type HeartbeatMonitor struct {
 	AdditionalDetails sql.NullString
-	DisableReason     sql.NullString
 	HeartbeatInterval sqlutil.Interval
 	ID                uuid.UUID
 	LastHeartbeat     sql.NullTime
 	LastState         EnumHeartbeatState
+	MutedReason       sql.NullString
 	Name              string
 	ServiceID         uuid.UUID
 }

@@ -1,6 +1,6 @@
 -- +migrate Up
 ALTER TABLE heartbeat_monitors
-    ADD COLUMN disable_reason text;
+    ADD COLUMN muted_reason text;
 
 UPDATE
     engine_processing_versions
@@ -11,7 +11,7 @@ WHERE
 
 -- +migrate Down
 ALTER TABLE heartbeat_monitors
-    DROP COLUMN disable_reason;
+    DROP COLUMN muted_reason;
 
 UPDATE
     engine_processing_versions

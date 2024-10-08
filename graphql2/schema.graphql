@@ -1015,12 +1015,12 @@ input CreateHeartbeatMonitorInput {
   additionalDetails: String
 
   """
-  If non-empty, the monitor will be disabled with this reason.
+  If non-empty, the monitor will be muted with this reason.
 
-  Disabling a monitor will prevent it from triggering new alerts, but existing
+  Muting a monitor will prevent it from triggering new alerts, but existing
   alerts will remain active until closed or the monitor is healthy again.
   """
-  disableReason: String
+  mutedReason: String
 }
 
 input UpdateHeartbeatMonitorInput {
@@ -1030,12 +1030,12 @@ input UpdateHeartbeatMonitorInput {
   additionalDetails: String
 
   """
-  If non-empty, the monitor will be disabled with this reason.
+  If non-empty, the monitor will be muted with this reason.
 
-  Disabling a monitor will prevent it from triggering new alerts, but existing
+  Muting a monitor will prevent it from triggering new alerts, but existing
   alerts will remain active until closed or the monitor is healthy again.
   """
-  disableReason: String
+  mutedReason: String
 }
 
 enum HeartbeatMonitorState {
@@ -1055,11 +1055,11 @@ type HeartbeatMonitor {
   additionalDetails: String!
 
   """
-  If non-empty, the monitor is disabled with this reason.
+  If non-empty, the monitor is muted with this reason.
 
-  Disabled monitors will not trigger new alerts, but will operate normally otherwise.
+  Muted monitors will not trigger new alerts, but will operate normally otherwise.
   """
-  disableReason: String
+  mutedReason: String
 }
 
 type Label {
