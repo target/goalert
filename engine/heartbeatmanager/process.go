@@ -103,6 +103,7 @@ type row struct {
 	ServiceID     string
 	LastHeartbeat time.Time
 	AddlDetails   string
+	DisableReason string
 }
 
 func (r row) Context(ctx context.Context) context.Context {
@@ -121,9 +122,13 @@ func (db *DB) unhealthy(ctx context.Context, tx *sql.Tx) ([]row, error) {
 	var result []row
 	for rows.Next() {
 		var r row
-		err = rows.Scan(&r.ID, &r.Name, &r.ServiceID, &r.LastHeartbeat, &r.AddlDetails)
+		err = rows.Scan(&r.ID, &r.Name, &r.ServiceID, &r.LastHeartbeat, &r.AddlDetails, &r.DisableReason)
 		if err != nil {
 			return nil, err
+		}
+		if r.DisableReason != "" {
+			log.Debugf(ctx, "Skipping disabled heartbeat monitor '%s': %s", r.Name, r.DisableReason)
+			continue
 		}
 		result = append(result, r)
 	}
