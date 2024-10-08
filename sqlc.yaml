@@ -38,12 +38,21 @@ sql:
       - label/queries.sql
       - escalation/queries.sql
       - notification/queries.sql
+      - heartbeat/queries.sql
     engine: postgresql
     gen:
       go:
         out: gadb
         sql_package: database/sql
         overrides:
+          - db_type: pg_catalog.interval
+            go_type:
+              import: github.com/target/goalert/util/sqlutil
+              type: Interval
+          - db_type: interval
+            go_type:
+              import: github.com/target/goalert/util/sqlutil
+              type: Interval
           - column: public.outgoing_messages.provider_msg_id
             go_type:
               type: ProviderMessageID

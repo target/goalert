@@ -39,6 +39,9 @@ func (db *DB) processAll(ctx context.Context) error {
 		return errors.Wrap(err, "fetch unhealthy heartbeats")
 	}
 	for _, row := range bad {
+		if row.DisableReason != "" {
+			continue
+		}
 		details := "Last heartbeat: " + row.LastHeartbeat.Format(time.UnixDate)
 		if row.AddlDetails != "" {
 			details += "\n\n" + row.AddlDetails
@@ -103,6 +106,7 @@ type row struct {
 	ServiceID     string
 	LastHeartbeat time.Time
 	AddlDetails   string
+	DisableReason string
 }
 
 func (r row) Context(ctx context.Context) context.Context {
@@ -121,7 +125,7 @@ func (db *DB) unhealthy(ctx context.Context, tx *sql.Tx) ([]row, error) {
 	var result []row
 	for rows.Next() {
 		var r row
-		err = rows.Scan(&r.ID, &r.Name, &r.ServiceID, &r.LastHeartbeat, &r.AddlDetails)
+		err = rows.Scan(&r.ID, &r.Name, &r.ServiceID, &r.LastHeartbeat, &r.AddlDetails, &r.DisableReason)
 		if err != nil {
 			return nil, err
 		}
