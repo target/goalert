@@ -20,29 +20,30 @@ SET
         SELECT
             id
         FROM
-            user_contact_methods cm
+            user_contact_methods
         WHERE
-            dest = $2
-            AND cm.user_id = auth_subjects.user_id
-        LIMIT 1)
+            type = 'SLACK_DM'
+            AND value = $2)
 WHERE
     auth_subjects.id = $1;
 
 -- name: CompatInsertUserCM :exec
 -- Inserts a new contact method for a user.
-INSERT INTO user_contact_methods(id, name, dest, user_id, pending)
-    VALUES ($1, $2, $3, $4, FALSE)
-ON CONFLICT (dest)
+INSERT INTO user_contact_methods(id, name, type, value, user_id, pending)
+    VALUES ($1, $2, $3, $4, $5, FALSE)
+ON CONFLICT (type, value)
     DO NOTHING;
 
 -- name: CompatCMMissingSub :many
 -- Get up to 10 contact methods missing an auth_subjects link.
 SELECT
-    *
+    id,
+    user_id,
+    value
 FROM
     user_contact_methods
 WHERE
-    dest ->> 'type' = @dest_type::text
+    type = 'SLACK_DM'
     AND NOT disabled
     AND NOT EXISTS (
         SELECT

@@ -7,7 +7,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/gadb"
-	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
@@ -42,14 +41,14 @@ func (db *DB) updateAuthSubjects(ctx context.Context) error {
 	defer sqlutil.Rollback(ctx, "engine: update auth subjects", tx)
 
 	q := gadb.New(tx)
-	rows, err := q.CompatCMMissingSub(ctx, slack.DestTypeSlackDirectMessage)
+	rows, err := q.CompatCMMissingSub(ctx)
 	if err != nil {
 		return fmt.Errorf("query: %w", err)
 	}
 	for _, row := range rows {
-		u, err := db.cs.User(ctx, row.Dest.DestV1.Arg(slack.FieldSlackUserID))
+		u, err := db.cs.User(ctx, row.Value)
 		if err != nil {
-			log.Log(ctx, fmt.Errorf("update auth subjects: lookup Slack user (%s): %w", row.Dest.DestV1.Arg(slack.FieldSlackUserID), err))
+			log.Log(ctx, fmt.Errorf("update auth subjects: lookup Slack user (%s): %w", row.Value, err))
 			continue
 		}
 
@@ -101,19 +100,11 @@ func (db *DB) updateContactMethods(ctx context.Context) error {
 			continue
 		}
 
-		dest := gadb.NullDestV1{
-			DestV1: gadb.DestV1{
-				Type: slack.DestTypeSlackDirectMessage,
-				Args: map[string]string{
-					slack.FieldSlackUserID: value,
-				},
-			},
-			Valid: true,
-		}
 		err = q.CompatInsertUserCM(ctx, gadb.CompatInsertUserCMParams{
 			ID:     uuid.New(),
 			Name:   team.Name,
-			Dest:   dest,
+			Type:   gadb.EnumUserContactMethodTypeSLACKDM,
+			Value:  value,
 			UserID: s.UserID,
 		})
 		if err != nil {
@@ -121,8 +112,8 @@ func (db *DB) updateContactMethods(ctx context.Context) error {
 		}
 
 		err = q.CompatAuthSubSetCMID(ctx, gadb.CompatAuthSubSetCMIDParams{
-			ID:   s.ID,
-			Dest: dest,
+			ID:    s.ID,
+			Value: value,
 		})
 		if err != nil {
 			return fmt.Errorf("update sub cm_id: %w", err)

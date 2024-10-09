@@ -843,23 +843,22 @@ SET
         SELECT
             id
         FROM
-            user_contact_methods cm
+            user_contact_methods
         WHERE
-            dest = $2
-            AND cm.user_id = auth_subjects.user_id
-        LIMIT 1)
+            type = 'SLACK_DM'
+            AND value = $2)
 WHERE
     auth_subjects.id = $1
 `
 
 type CompatAuthSubSetCMIDParams struct {
-	ID   int64
-	Dest NullDestV1
+	ID    int64
+	Value string
 }
 
 // Updates the contact method id for an auth_subject with the given destination.
 func (q *Queries) CompatAuthSubSetCMID(ctx context.Context, arg CompatAuthSubSetCMIDParams) error {
-	_, err := q.db.ExecContext(ctx, compatAuthSubSetCMID, arg.ID, arg.Dest)
+	_, err := q.db.ExecContext(ctx, compatAuthSubSetCMID, arg.ID, arg.Value)
 	return err
 }
 
@@ -908,11 +907,13 @@ func (q *Queries) CompatAuthSubSlackMissingCM(ctx context.Context) ([]AuthSubjec
 
 const compatCMMissingSub = `-- name: CompatCMMissingSub :many
 SELECT
-    dest, disabled, enable_status_updates, id, last_test_verify_at, metadata, name, pending, type, user_id, value
+    id,
+    user_id,
+    value
 FROM
     user_contact_methods
 WHERE
-    dest ->> 'type' = $1::text
+    type = 'SLACK_DM'
     AND NOT disabled
     AND NOT EXISTS (
         SELECT
@@ -926,29 +927,23 @@ FOR UPDATE
 LIMIT 10
 `
 
+type CompatCMMissingSubRow struct {
+	ID     uuid.UUID
+	UserID uuid.UUID
+	Value  string
+}
+
 // Get up to 10 contact methods missing an auth_subjects link.
-func (q *Queries) CompatCMMissingSub(ctx context.Context, destType string) ([]UserContactMethod, error) {
-	rows, err := q.db.QueryContext(ctx, compatCMMissingSub, destType)
+func (q *Queries) CompatCMMissingSub(ctx context.Context) ([]CompatCMMissingSubRow, error) {
+	rows, err := q.db.QueryContext(ctx, compatCMMissingSub)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []UserContactMethod
+	var items []CompatCMMissingSubRow
 	for rows.Next() {
-		var i UserContactMethod
-		if err := rows.Scan(
-			&i.Dest,
-			&i.Disabled,
-			&i.EnableStatusUpdates,
-			&i.ID,
-			&i.LastTestVerifyAt,
-			&i.Metadata,
-			&i.Name,
-			&i.Pending,
-			&i.Type,
-			&i.UserID,
-			&i.Value,
-		); err != nil {
+		var i CompatCMMissingSubRow
+		if err := rows.Scan(&i.ID, &i.UserID, &i.Value); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -963,16 +958,17 @@ func (q *Queries) CompatCMMissingSub(ctx context.Context, destType string) ([]Us
 }
 
 const compatInsertUserCM = `-- name: CompatInsertUserCM :exec
-INSERT INTO user_contact_methods(id, name, dest, user_id, pending)
-    VALUES ($1, $2, $3, $4, FALSE)
-ON CONFLICT (dest)
+INSERT INTO user_contact_methods(id, name, type, value, user_id, pending)
+    VALUES ($1, $2, $3, $4, $5, FALSE)
+ON CONFLICT (type, value)
     DO NOTHING
 `
 
 type CompatInsertUserCMParams struct {
 	ID     uuid.UUID
 	Name   string
-	Dest   NullDestV1
+	Type   EnumUserContactMethodType
+	Value  string
 	UserID uuid.UUID
 }
 
@@ -981,7 +977,8 @@ func (q *Queries) CompatInsertUserCM(ctx context.Context, arg CompatInsertUserCM
 	_, err := q.db.ExecContext(ctx, compatInsertUserCM,
 		arg.ID,
 		arg.Name,
-		arg.Dest,
+		arg.Type,
+		arg.Value,
 		arg.UserID,
 	)
 	return err
