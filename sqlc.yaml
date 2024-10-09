@@ -21,6 +21,7 @@ sql:
       - alert/queries.sql
       - notice/queries.sql
       - graphql2/graphqlapp/queries.sql
+      - engine/compatmanager/queries.sql
       - engine/statusmgr/queries.sql
       - engine/message/queries.sql
       - engine/schedulemanager/queries.sql

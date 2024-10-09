@@ -835,6 +835,176 @@ func (q *Queries) CalSubUserNames(ctx context.Context, dollar_1 []uuid.UUID) ([]
 	return items, nil
 }
 
+const compatCMMissingSub = `-- name: CompatCMMissingSub :many
+SELECT
+    dest, disabled, enable_status_updates, id, last_test_verify_at, metadata, name, pending, type, user_id, value
+FROM
+    user_contact_methods
+WHERE
+    dest -> type = $1::text
+    AND NOT disabled
+    AND NOT EXISTS (
+        SELECT
+            1
+        FROM
+            auth_subjects
+        WHERE
+            cm_id = user_contact_methods.id)
+FOR UPDATE
+    SKIP LOCKED
+LIMIT 10
+`
+
+// Get up to 10 contact methods missing a auth_subjects link.
+func (q *Queries) CompatCMMissingSub(ctx context.Context, destType string) ([]UserContactMethod, error) {
+	rows, err := q.db.QueryContext(ctx, compatCMMissingSub, destType)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserContactMethod
+	for rows.Next() {
+		var i UserContactMethod
+		if err := rows.Scan(
+			&i.Dest,
+			&i.Disabled,
+			&i.EnableStatusUpdates,
+			&i.ID,
+			&i.LastTestVerifyAt,
+			&i.Metadata,
+			&i.Name,
+			&i.Pending,
+			&i.Type,
+			&i.UserID,
+			&i.Value,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const compatInsertUserCM = `-- name: CompatInsertUserCM :exec
+INSERT INTO user_contact_methods(id, name, dest, user_id, pending)
+    VALUES ($1, $2, $3, $4, FALSE)
+ON CONFLICT (dest)
+    DO NOTHING
+`
+
+type CompatInsertUserCMParams struct {
+	ID     uuid.UUID
+	Name   string
+	Dest   NullDestV1
+	UserID uuid.UUID
+}
+
+// Inserts a new contact method for a user.
+func (q *Queries) CompatInsertUserCM(ctx context.Context, arg CompatInsertUserCMParams) error {
+	_, err := q.db.ExecContext(ctx, compatInsertUserCM,
+		arg.ID,
+		arg.Name,
+		arg.Dest,
+		arg.UserID,
+	)
+	return err
+}
+
+const compatLinkAuthSubjectCM = `-- name: CompatLinkAuthSubjectCM :exec
+UPDATE
+    auth_subjects
+SET
+    cm_id = $2
+WHERE
+    auth_subjects.id = $1
+`
+
+type CompatLinkAuthSubjectCMParams struct {
+	ID   int64
+	CmID uuid.NullUUID
+}
+
+// Updates the contact method id for an auth_subject with the given destination.
+func (q *Queries) CompatLinkAuthSubjectCM(ctx context.Context, arg CompatLinkAuthSubjectCMParams) error {
+	_, err := q.db.ExecContext(ctx, compatLinkAuthSubjectCM, arg.ID, arg.CmID)
+	return err
+}
+
+const compatSlackSubMissingCM = `-- name: CompatSlackSubMissingCM :many
+SELECT
+    cm_id, id, provider_id, subject_id, user_id
+FROM
+    auth_subjects
+WHERE
+    provider_id LIKE 'slack:%'
+    AND cm_id IS NULL
+FOR UPDATE
+    SKIP LOCKED
+LIMIT 10
+`
+
+// Get up to 10 auth_subjects (slack only) missing a contact method.
+func (q *Queries) CompatSlackSubMissingCM(ctx context.Context) ([]AuthSubject, error) {
+	rows, err := q.db.QueryContext(ctx, compatSlackSubMissingCM)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AuthSubject
+	for rows.Next() {
+		var i AuthSubject
+		if err := rows.Scan(
+			&i.CmID,
+			&i.ID,
+			&i.ProviderID,
+			&i.SubjectID,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const compatUpsertAuthSubject = `-- name: CompatUpsertAuthSubject :exec
+INSERT INTO auth_subjects(user_id, subject_id, provider_id, cm_id)
+    VALUES ($1, $2, $3, $4)
+ON CONFLICT (subject_id, provider_id)
+    DO UPDATE SET
+        user_id = $1, cm_id = $4
+`
+
+type CompatUpsertAuthSubjectParams struct {
+	UserID     uuid.UUID
+	SubjectID  string
+	ProviderID string
+	CmID       uuid.NullUUID
+}
+
+// Inserts a new auth_subject for a user.
+func (q *Queries) CompatUpsertAuthSubject(ctx context.Context, arg CompatUpsertAuthSubjectParams) error {
+	_, err := q.db.ExecContext(ctx, compatUpsertAuthSubject,
+		arg.UserID,
+		arg.SubjectID,
+		arg.ProviderID,
+		arg.CmID,
+	)
+	return err
+}
+
 const contactMethodAdd = `-- name: ContactMethodAdd :exec
 INSERT INTO user_contact_methods(id, name, dest, disabled, user_id, enable_status_updates)
     VALUES ($1, $2, $3, $4, $5, $6)

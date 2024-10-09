@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/target/goalert/gadb"
+	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
@@ -39,39 +41,26 @@ func (db *DB) updateAuthSubjects(ctx context.Context) error {
 	}
 	defer sqlutil.Rollback(ctx, "engine: update auth subjects", tx)
 
-	type cm struct {
-		ID          uuid.UUID
-		UserID      uuid.UUID
-		SlackUserID string
-		SlackTeamID string
-	}
-
-	var cms []cm
-	rows, err := tx.StmtContext(ctx, db.cmMissingSub).QueryContext(ctx)
+	q := gadb.New(tx)
+	rows, err := q.CompatCMMissingSub(ctx, slack.DestTypeSlackDirectMessage)
 	if err != nil {
 		return fmt.Errorf("query: %w", err)
 	}
-	for rows.Next() {
-		var c cm
-		err = rows.Scan(&c.ID, &c.UserID, &c.SlackUserID)
+	for _, row := range rows {
+		u, err := db.cs.User(ctx, row.Dest.DestV1.Arg(slack.FieldSlackUserID))
 		if err != nil {
-			return fmt.Errorf("scan: %w", err)
-		}
-
-		u, err := db.cs.User(ctx, c.SlackUserID)
-		if err != nil {
-			log.Log(ctx, fmt.Errorf("update auth subjects: lookup Slack user (%s): %w", c.SlackUserID, err))
+			log.Log(ctx, fmt.Errorf("update auth subjects: lookup Slack user (%s): %w", row.Dest.DestV1.Arg(slack.FieldSlackUserID), err))
 			continue
 		}
 
-		c.SlackTeamID = u.TeamID
-		cms = append(cms, c)
-	}
-
-	for _, c := range cms {
-		_, err = tx.StmtContext(ctx, db.insertSub).ExecContext(ctx, c.UserID, c.SlackUserID, "slack:"+c.SlackTeamID, c.ID)
+		err = q.CompatUpsertAuthSubject(ctx, gadb.CompatUpsertAuthSubjectParams{
+			UserID:     row.UserID,
+			ProviderID: "slack:" + u.TeamID,
+			SubjectID:  u.ID,
+			CmID:       uuid.NullUUID{UUID: row.ID, Valid: true},
+		})
 		if err != nil {
-			return fmt.Errorf("insert: %w", err)
+			return fmt.Errorf("upsert auth subject: %w", err)
 		}
 	}
 
@@ -90,29 +79,13 @@ func (db *DB) updateContactMethods(ctx context.Context) error {
 	}
 	defer sqlutil.Rollback(ctx, "engine: update contact methods", tx)
 
-	type sub struct {
-		ID         int
-		UserID     string
-		SubjectID  string
-		ProviderID string
-	}
-
-	var subs []sub
-	rows, err := tx.StmtContext(ctx, db.slackSubMissingCM).QueryContext(ctx)
+	q := gadb.New(tx)
+	rows, err := q.CompatSlackSubMissingCM(ctx)
 	if err != nil {
 		return fmt.Errorf("query: %w", err)
 	}
 
-	for rows.Next() {
-		var s sub
-		err = rows.Scan(&s.ID, &s.UserID, &s.SubjectID, &s.ProviderID)
-		if err != nil {
-			return fmt.Errorf("scan: %w", err)
-		}
-		subs = append(subs, s)
-	}
-
-	for _, s := range subs {
+	for _, s := range rows {
 		// provider id contains the team id in the format "slack:team_id"
 		// but we need to store the contact method id in the format "team_id:subject_id"
 		teamID := strings.TrimPrefix(s.ProviderID, "slack:")
@@ -123,12 +96,29 @@ func (db *DB) updateContactMethods(ctx context.Context) error {
 			continue
 		}
 
-		_, err = tx.StmtContext(ctx, db.insertCM).ExecContext(ctx, uuid.New(), team.Name, "SLACK_DM", value, s.UserID)
+		id := uuid.New()
+		err = q.CompatInsertUserCM(ctx, gadb.CompatInsertUserCMParams{
+			ID:   id,
+			Name: team.Name,
+			Dest: gadb.NullDestV1{
+				DestV1: gadb.DestV1{
+					Type: slack.DestTypeSlackDirectMessage,
+					Args: map[string]string{
+						slack.FieldSlackUserID: value,
+					},
+				},
+				Valid: true,
+			},
+			UserID: s.UserID,
+		})
 		if err != nil {
 			return fmt.Errorf("insert cm: %w", err)
 		}
 
-		_, err = tx.StmtContext(ctx, db.updateSubCMID).ExecContext(ctx, s.ID, value)
+		err = q.CompatLinkAuthSubjectCM(ctx, gadb.CompatLinkAuthSubjectCMParams{
+			ID:   s.ID,
+			CmID: uuid.NullUUID{UUID: id, Valid: true},
+		})
 		if err != nil {
 			return fmt.Errorf("update sub cm_id: %w", err)
 		}
