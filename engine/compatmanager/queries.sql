@@ -1,4 +1,4 @@
--- name: CompatSlackSubMissingCM :many
+-- name: CompatAuthSubSlackMissingCM :many
 -- Get up to 10 auth_subjects (slack only) missing a contact method.
 SELECT
     *
@@ -11,12 +11,20 @@ FOR UPDATE
     SKIP LOCKED
 LIMIT 10;
 
--- name: CompatLinkAuthSubjectCM :exec
+-- name: CompatAuthSubSetCMID :exec
 -- Updates the contact method id for an auth_subject with the given destination.
 UPDATE
     auth_subjects
 SET
-    cm_id = $2
+    cm_id =(
+        SELECT
+            id
+        FROM
+            user_contact_methods cm
+        WHERE
+            dest = $2
+            AND cm.user_id = auth_subjects.user_id
+        LIMIT 1)
 WHERE
     auth_subjects.id = $1;
 

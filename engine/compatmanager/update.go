@@ -72,6 +72,11 @@ func (db *DB) updateAuthSubjects(ctx context.Context) error {
 	return nil
 }
 
+// updateContactMethods will create contact methods for associated auth_subjects (e.g. Slack direct message).
+//
+// To do this, we look for auth_subjects that are missing the contact method ID
+// field (`cm_id`) for slack, and create a Slack DM contact method for the user
+// associated with the record.
 func (db *DB) updateContactMethods(ctx context.Context) error {
 	tx, err := db.lock.BeginTx(ctx, nil)
 	if err != nil {
@@ -80,7 +85,7 @@ func (db *DB) updateContactMethods(ctx context.Context) error {
 	defer sqlutil.Rollback(ctx, "engine: update contact methods", tx)
 
 	q := gadb.New(tx)
-	rows, err := q.CompatSlackSubMissingCM(ctx)
+	rows, err := q.CompatAuthSubSlackMissingCM(ctx)
 	if err != nil {
 		return fmt.Errorf("query: %w", err)
 	}
@@ -96,28 +101,28 @@ func (db *DB) updateContactMethods(ctx context.Context) error {
 			continue
 		}
 
-		id := uuid.New()
-		err = q.CompatInsertUserCM(ctx, gadb.CompatInsertUserCMParams{
-			ID:   id,
-			Name: team.Name,
-			Dest: gadb.NullDestV1{
-				DestV1: gadb.DestV1{
-					Type: slack.DestTypeSlackDirectMessage,
-					Args: map[string]string{
-						slack.FieldSlackUserID: value,
-					},
+		dest := gadb.NullDestV1{
+			DestV1: gadb.DestV1{
+				Type: slack.DestTypeSlackDirectMessage,
+				Args: map[string]string{
+					slack.FieldSlackUserID: value,
 				},
-				Valid: true,
 			},
+			Valid: true,
+		}
+		err = q.CompatInsertUserCM(ctx, gadb.CompatInsertUserCMParams{
+			ID:     uuid.New(),
+			Name:   team.Name,
+			Dest:   dest,
 			UserID: s.UserID,
 		})
 		if err != nil {
 			return fmt.Errorf("insert cm: %w", err)
 		}
 
-		err = q.CompatLinkAuthSubjectCM(ctx, gadb.CompatLinkAuthSubjectCMParams{
+		err = q.CompatAuthSubSetCMID(ctx, gadb.CompatAuthSubSetCMIDParams{
 			ID:   s.ID,
-			CmID: uuid.NullUUID{UUID: id, Valid: true},
+			Dest: dest,
 		})
 		if err != nil {
 			return fmt.Errorf("update sub cm_id: %w", err)
