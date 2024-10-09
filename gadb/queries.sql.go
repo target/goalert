@@ -841,7 +841,7 @@ SELECT
 FROM
     user_contact_methods
 WHERE
-    dest -> type = $1::text
+    dest ->> 'type' = $1::text
     AND NOT disabled
     AND NOT EXISTS (
         SELECT
@@ -855,7 +855,7 @@ FOR UPDATE
 LIMIT 10
 `
 
-// Get up to 10 contact methods missing a auth_subjects link.
+// Get up to 10 contact methods missing an auth_subjects link.
 func (q *Queries) CompatCMMissingSub(ctx context.Context, destType string) ([]UserContactMethod, error) {
 	rows, err := q.db.QueryContext(ctx, compatCMMissingSub, destType)
 	if err != nil {

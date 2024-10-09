@@ -28,13 +28,13 @@ ON CONFLICT (dest)
     DO NOTHING;
 
 -- name: CompatCMMissingSub :many
--- Get up to 10 contact methods missing a auth_subjects link.
+-- Get up to 10 contact methods missing an auth_subjects link.
 SELECT
     *
 FROM
     user_contact_methods
 WHERE
-    dest -> type = @dest_type::text
+    dest ->> 'type' = @dest_type::text
     AND NOT disabled
     AND NOT EXISTS (
         SELECT
