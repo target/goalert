@@ -143,6 +143,13 @@ THE SOFTWARE
         '}',
       ].join('')
       style.setAttribute('type', 'text/css')
+
+      // Add nonce to style tag
+      const nonce = document.querySelector(
+        'meta[property="csp-nonce"]',
+      )?.content
+      style.setAttribute('nonce', nonce)
+
       head.appendChild(style)
       style.styleSheet
         ? (style.styleSheet.cssText = css)

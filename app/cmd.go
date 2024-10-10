@@ -630,6 +630,7 @@ func getConfig(ctx context.Context) (Config, error) {
 		MaxReqHeaderBytes: viper.GetInt("max-request-header-bytes"),
 
 		DisableHTTPSRedirect: viper.GetBool("disable-https-redirect"),
+		DisableSecureHeaders: viper.GetBool("disable-secure-headers"),
 
 		ListenAddr: viper.GetString("listen"),
 
@@ -831,6 +832,7 @@ func init() {
 	RootCmd.Flags().String("ui-dir", "", "Serve UI assets from a local directory instead of from memory.")
 
 	RootCmd.Flags().Bool("disable-https-redirect", def.DisableHTTPSRedirect, "Disable automatic HTTPS redirects.")
+	RootCmd.Flags().Bool("disable-secure-headers", false, "Disable secure headers (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, Content-Security-Policy).")
 
 	migrateCmd.Flags().String("up", "", "Target UP migration to apply.")
 	migrateCmd.Flags().String("down", "", "Target DOWN migration to roll back to.")
