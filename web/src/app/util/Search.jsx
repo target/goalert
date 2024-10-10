@@ -97,7 +97,7 @@ export default function Search(props) {
         value={search}
         size='small'
         fullWidth={props.fullWidth}
-        className={props.transition ?? true ? classes.transition : null}
+        className={(props.transition ?? true) ? classes.transition : null}
         sx={(theme) => ({
           minWidth: 250,
           backgroundColor: theme.palette.mode === 'dark' ? 'inherit' : 'white',
