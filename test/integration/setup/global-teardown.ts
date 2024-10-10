@@ -33,6 +33,7 @@ export const getProcessBinary = (pid: number): string => {
     const binary = execSync(`ps -p ${pid} -o command=`).toString().trim()
     return binary
   } catch (e) {
+    console.error('Failed to get process binary', e)
     return 'unknown'
   }
 }
@@ -47,7 +48,7 @@ const tryKill = (pid: number, signal: NodeJS.Signals): boolean => {
   try {
     process.kill(pid, signal)
     return true
-  } catch (e) {
+  } catch {
     return false
   }
 }

@@ -809,7 +809,7 @@ func (s *Store) Feedback(ctx context.Context, alertIDs []int) ([]Feedback, error
 		return nil, err
 	}
 
-	ids := make([]int32, len(alertIDs))
+	ids := make([]int32, 0, len(alertIDs))
 	for _, id := range alertIDs {
 		ids = append(ids, int32(id))
 	}
