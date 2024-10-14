@@ -2559,6 +2559,87 @@ func (q *Queries) OverrideSearch(ctx context.Context, arg OverrideSearchParams) 
 	return items, nil
 }
 
+const procAcquireModuleLock = `-- name: ProcAcquireModuleLock :one
+SELECT
+    version
+FROM
+    engine_processing_versions
+WHERE
+    type_id = $1
+FOR UPDATE
+    NOWAIT
+`
+
+func (q *Queries) ProcAcquireModuleLock(ctx context.Context, typeID EngineProcessingType) (int32, error) {
+	row := q.db.QueryRowContext(ctx, procAcquireModuleLock, typeID)
+	var version int32
+	err := row.Scan(&version)
+	return version, err
+}
+
+const procLoadState = `-- name: ProcLoadState :one
+SELECT
+    state
+FROM
+    engine_processing_versions
+WHERE
+    type_id = $1
+`
+
+func (q *Queries) ProcLoadState(ctx context.Context, typeID EngineProcessingType) (json.RawMessage, error) {
+	row := q.db.QueryRowContext(ctx, procLoadState, typeID)
+	var state json.RawMessage
+	err := row.Scan(&state)
+	return state, err
+}
+
+const procReadModuleVersion = `-- name: ProcReadModuleVersion :one
+SELECT
+    version
+FROM
+    engine_processing_versions
+WHERE
+    type_id = $1
+`
+
+func (q *Queries) ProcReadModuleVersion(ctx context.Context, typeID EngineProcessingType) (int32, error) {
+	row := q.db.QueryRowContext(ctx, procReadModuleVersion, typeID)
+	var version int32
+	err := row.Scan(&version)
+	return version, err
+}
+
+const procSaveState = `-- name: ProcSaveState :exec
+UPDATE
+    engine_processing_versions
+SET
+    state = $2
+WHERE
+    type_id = $1
+`
+
+type ProcSaveStateParams struct {
+	TypeID EngineProcessingType
+	State  json.RawMessage
+}
+
+func (q *Queries) ProcSaveState(ctx context.Context, arg ProcSaveStateParams) error {
+	_, err := q.db.ExecContext(ctx, procSaveState, arg.TypeID, arg.State)
+	return err
+}
+
+const procSharedAdvisoryLock = `-- name: ProcSharedAdvisoryLock :one
+SELECT
+    pg_try_advisory_xact_lock_shared($1) AS lock_acquired
+`
+
+func (q *Queries) ProcSharedAdvisoryLock(ctx context.Context, pgTryAdvisoryXactLockShared int64) (bool, error) {
+	row := q.db.QueryRowContext(ctx, procSharedAdvisoryLock, pgTryAdvisoryXactLockShared)
+	var lock_acquired bool
+	err := row.Scan(&lock_acquired)
+	return lock_acquired, err
+}
+
 const requestAlertEscalationByTime = `-- name: RequestAlertEscalationByTime :one
 UPDATE
     escalation_policy_state
