@@ -99,7 +99,7 @@ func NewHandler(uiDir, prefix string) (http.Handler, error) {
 	mux.HandleFunc("/api/graphql/explore", func(w http.ResponseWriter, req *http.Request) {
 		cfg := config.FromContext(req.Context())
 
-		serveTemplate(uiDir, w, req, exploreTmpl, renderData{
+		serveTemplate(w, req, exploreTmpl, renderData{
 			ApplicationName: cfg.ApplicationName(),
 			Prefix:          prefix,
 			ExtraJS:         extraJS,
@@ -110,7 +110,7 @@ func NewHandler(uiDir, prefix string) (http.Handler, error) {
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		cfg := config.FromContext(req.Context())
 
-		serveTemplate(uiDir, w, req, indexTmpl, renderData{
+		serveTemplate(w, req, indexTmpl, renderData{
 			ApplicationName: cfg.ApplicationName(),
 			Prefix:          prefix,
 			ExtraJS:         extraJS,
@@ -121,7 +121,7 @@ func NewHandler(uiDir, prefix string) (http.Handler, error) {
 	return mux, nil
 }
 
-func serveTemplate(uiDir string, w http.ResponseWriter, req *http.Request, tmpl *template.Template, data renderData) {
+func serveTemplate(w http.ResponseWriter, req *http.Request, tmpl *template.Template, data renderData) {
 	var buf bytes.Buffer
 	err := tmpl.Execute(&buf, data)
 	if errutil.HTTPError(req.Context(), w, err) {
@@ -136,11 +136,7 @@ func serveTemplate(uiDir string, w http.ResponseWriter, req *http.Request, tmpl 
 	etagValue := fmt.Sprintf(`W/"sha256-%s"`, hex.EncodeToString(h.Sum(nil)))
 	w.Header().Set("ETag", etagValue)
 
-	if uiDir == "" {
-		w.Header().Set("Cache-Control", "private, max-age=60, stale-while-revalidate=600, stale-if-error=259200")
-	} else {
-		w.Header().Set("Cache-Control", "no-store")
-	}
+	w.Header().Set("Cache-Control", "no-store")
 
 	http.ServeContent(w, req, "/", time.Time{}, bytes.NewReader(buf.Bytes()))
 }
