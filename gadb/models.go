@@ -852,6 +852,12 @@ type AuthUserSession struct {
 	UserID       uuid.NullUUID
 }
 
+type ChangeLog struct {
+	ID        int64
+	TableName string
+	RowID     string
+}
+
 type Config struct {
 	CreatedAt time.Time
 	Data      []byte
@@ -1038,6 +1044,12 @@ type PendingSignal struct {
 	MessageID uuid.NullUUID
 	Params    json.RawMessage
 	ServiceID uuid.UUID
+}
+
+type PgStatActivity struct {
+	State           sql.NullString
+	XactStart       time.Time
+	ApplicationName sql.NullString
 }
 
 type RegionID struct {
