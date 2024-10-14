@@ -15,8 +15,6 @@ import (
 type Lock struct {
 	cfg Config
 	db  *sql.DB
-
-	badVersion bool
 }
 type txBeginner interface {
 	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
@@ -63,9 +61,6 @@ func NewLock(ctx context.Context, db *sql.DB, cfg Config) (*Lock, error) {
 }
 
 func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions) (*sql.Tx, error) {
-	if l.badVersion {
-		return nil, ErrNoLock
-	}
 	tx, err := b.BeginTx(ctx, opts)
 	if err != nil {
 		return nil, err
