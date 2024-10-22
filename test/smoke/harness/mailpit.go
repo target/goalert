@@ -9,8 +9,9 @@ import (
 	"net/http"
 	"net/mail"
 	"net/url"
-	"os"
 	"os/exec"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -31,15 +32,12 @@ func newMailpit(t *testing.T, retry int) (mp *mailpit) {
 
 	addrs, err := findOpenPorts(2)
 	require.NoError(t, err, "expected to find open ports for mailpit")
+	_, file, _, ok := runtime.Caller(0)
+	require.True(t, ok, "expected to find caller")
 
 	var output bytes.Buffer
 	// detect if ../../../bin/tools/mailpit exists or ../../bin/tools/mailpit exists
-	cmdpath := "../../bin/tools/mailpit"
-	if _, err := os.Stat(cmdpath); err != nil {
-		_, err = os.Stat("../" + cmdpath)
-		require.NoError(t, err, "expected to find mailpit binary")
-		cmdpath = "../" + cmdpath
-	}
+	cmdpath := filepath.Join(filepath.Dir(file), "../../../bin/tools/mailpit")
 
 	cmd := exec.Command(cmdpath, "-s", addrs[0], "-l", addrs[1])
 	cmd.Stdout, cmd.Stderr = &output, &output
