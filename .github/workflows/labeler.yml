@@ -1,7 +1,6 @@
 name: labeler
-
 on:
-  pull_request:
+  pull_request_target:
     types: ['opened', 'ready_for_review', 'reopened', 'synchronize']
 
 jobs:
@@ -14,11 +13,18 @@ jobs:
     name: Label the PR size
     steps:
       - uses: actions/checkout@v4
-        with:
+        with: # checkout the base branch, where we run the script from
+          path: base
+      - uses: actions/checkout@v4
+        with: # checkout the merge commit, where the PR changes are
+          ref: refs/pull/${{ github.event.number }}/merge
+          path: merge
+          # we need full history
           fetch-depth: 0
-      - name: Run labeler script
+      - name: Run labeler script from base
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.number }}
           FAIL_IF_XL: '1'
-        run: ./devtools/scripts/github-set-pr-label.sh
+          MAIN_BRANCH: ${{ github.event.pull_request.base.ref }}
+        run: cd merge && ../base/devtools/scripts/github-set-pr-label.sh
