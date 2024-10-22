@@ -36,7 +36,6 @@ func newMailpit(t *testing.T, retry int) (mp *mailpit) {
 	require.True(t, ok, "expected to find caller")
 
 	var output bytes.Buffer
-	// detect if ../../../bin/tools/mailpit exists or ../../bin/tools/mailpit exists
 	cmdpath := filepath.Join(filepath.Dir(file), "../../../bin/tools/mailpit")
 
 	cmd := exec.Command(cmdpath, "-s", addrs[0], "-l", addrs[1])
