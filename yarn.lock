@@ -5044,37 +5044,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/blocks@npm:8.3.3":
-  version: 8.3.3
-  resolution: "@storybook/blocks@npm:8.3.3"
-  dependencies:
-    "@storybook/csf": "npm:^0.1.11"
-    "@storybook/global": "npm:^5.0.0"
-    "@storybook/icons": "npm:^1.2.10"
-    "@types/lodash": "npm:^4.14.167"
-    color-convert: "npm:^2.0.1"
-    dequal: "npm:^2.0.2"
-    lodash: "npm:^4.17.21"
-    markdown-to-jsx: "npm:^7.4.5"
-    memoizerific: "npm:^1.11.3"
-    polished: "npm:^4.2.2"
-    react-colorful: "npm:^5.1.2"
-    telejson: "npm:^7.2.0"
-    ts-dedent: "npm:^2.0.0"
-    util-deprecate: "npm:^1.0.2"
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0-beta
-    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0-beta
-    storybook: ^8.3.3
-  peerDependenciesMeta:
-    react:
-      optional: true
-    react-dom:
-      optional: true
-  checksum: 10/fea00d9f369a365bcb9724ed4d0d163621724f1d6424a436190c4865bb4da0a19ae015d3b0b26fe913fdd527a6599a276ce1106cbaddd9534dbacca1ef72ef9f
-  languageName: node
-  linkType: hard
-
 "@storybook/blocks@npm:8.3.6":
   version: 8.3.6
   resolution: "@storybook/blocks@npm:8.3.6"
@@ -18166,7 +18135,7 @@ __metadata:
     "@storybook/addon-essentials": "npm:8.3.6"
     "@storybook/addon-interactions": "npm:8.3.3"
     "@storybook/addon-links": "npm:8.3.6"
-    "@storybook/blocks": "npm:8.3.3"
+    "@storybook/blocks": "npm:8.3.6"
     "@storybook/preview-api": "npm:8.3.3"
     "@storybook/react": "npm:8.3.3"
     "@storybook/react-vite": "npm:8.3.3"
