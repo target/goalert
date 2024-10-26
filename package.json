@@ -45,7 +45,7 @@
     "@mui/lab": "5.0.0-alpha.170",
     "@mui/material": "5.16.7",
     "@mui/styles": "5.16.7",
-    "@mui/system": "5.16.7",
+    "@mui/system": "6.1.5",
     "@mui/x-data-grid": "6.20.4",
     "@playwright/test": "1.47.2",
     "@storybook/addon-essentials": "8.3.6",
