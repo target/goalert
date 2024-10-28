@@ -187,9 +187,18 @@ func (m *Monitor) createEmailAlert(i Instance, dedup, summary, details string) e
 		auth = smtp.PlainAuth("", m.cfg.SMTP.User, m.cfg.SMTP.Pass, host)
 	}
 
-	err = smtp.SendMail(m.cfg.SMTP.ServerAddr, auth, m.cfg.SMTP.From, []string{addr.Address}, []byte(msg))
-	if err != nil {
-		return fmt.Errorf("send email: %w", err)
+	var retryInterval = 10 * time.Second
+	for attempt := 0; attempt <= m.cfg.SMTP.Retries; attempt++ {
+		err = smtp.SendMail(m.cfg.SMTP.ServerAddr, auth, m.cfg.SMTP.From, []string{addr.Address}, []byte(msg))
+		if err == nil {
+			return nil
+		}
+		if attempt < m.cfg.SMTP.Retries {
+			log.Printf("WARN: send email failed: %s - retrying in %fs", err.Error(), retryInterval.Seconds())
+			time.Sleep(retryInterval)
+		} else {
+			return fmt.Errorf("send email: %w", err)
+		}
 	}
 
 	return nil
