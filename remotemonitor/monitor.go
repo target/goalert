@@ -2,7 +2,7 @@ package remotemonitor
 
 import (
 	"context"
-	"errors"
+	// "errors"
 	"fmt"
 	"io"
 	"log"
@@ -14,8 +14,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification/twilio"
+	"github.com/target/goalert/retry"
 )
 
 // Monitor will check for functionality and communication between itself and one or more instances.
@@ -187,21 +189,17 @@ func (m *Monitor) createEmailAlert(i Instance, dedup, summary, details string) e
 		auth = smtp.PlainAuth("", m.cfg.SMTP.User, m.cfg.SMTP.Pass, host)
 	}
 
-	var retryInterval = 10 * time.Second
-	for attempt := 0; attempt <= m.cfg.SMTP.Retries; attempt++ {
+	err = retry.DoTemporaryError(func(_ int) error {
 		err = smtp.SendMail(m.cfg.SMTP.ServerAddr, auth, m.cfg.SMTP.From, []string{addr.Address}, []byte(msg))
-		if err == nil {
-			return nil
-		}
-		if attempt < m.cfg.SMTP.Retries {
-			log.Printf("WARN: send email failed: %s - retrying in %fs", err.Error(), retryInterval.Seconds())
-			time.Sleep(retryInterval)
-		} else {
-			return fmt.Errorf("send email: %w", err)
-		}
-	}
+		err = errors.Wrap(err, "send email")
+		return err
+	},
+		retry.Log(m.context()),
+		retry.Limit(m.cfg.SMTP.Retries),
+		retry.FibBackoff(time.Second),
+	)
 
-	return nil
+	return err
 }
 
 func (m *Monitor) loop() {
