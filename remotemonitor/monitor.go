@@ -2,7 +2,6 @@ package remotemonitor
 
 import (
 	"context"
-	// "errors"
 	"fmt"
 	"io"
 	"log"
