@@ -191,7 +191,7 @@ func (m *Monitor) createEmailAlert(i Instance, dedup, summary, details string) e
 	err = retry.DoTemporaryError(func(_ int) error {
 		err = smtp.SendMail(m.cfg.SMTP.ServerAddr, auth, m.cfg.SMTP.From, []string{addr.Address}, []byte(msg))
 		err = errors.Wrap(err, "send email")
-		return err
+		return retry.TemporaryError(err)
 	},
 		retry.Log(m.context()),
 		retry.Limit(m.cfg.SMTP.Retries),
