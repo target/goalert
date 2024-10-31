@@ -190,11 +190,13 @@ func (m *Monitor) createEmailAlert(i Instance, dedup, summary, details string) e
 
 	err = retry.DoTemporaryError(func(_ int) error {
 		err = smtp.SendMail(m.cfg.SMTP.ServerAddr, auth, m.cfg.SMTP.From, []string{addr.Address}, []byte(msg))
-		if strings.HasPrefix(err.Error(), "4") { // SMTP server return codes beginning with 4 are considered transient
-			return retry.TemporaryError(errors.Wrap(err, "send email"))
-		} else {
-			return errors.Wrap(err, "send email")
+		if err == nil {
+			return nil
 		}
+		if strings.HasPrefix(err.Error(), "4") { // SMTP server return codes beginning with 4 are considered transient
+			err = retry.TemporaryError(err)
+		}
+		return errors.Wrap(err, "send email")
 	},
 		retry.Log(m.context()),
 		retry.Limit(m.cfg.SMTP.Retries),
