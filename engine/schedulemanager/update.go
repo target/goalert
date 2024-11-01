@@ -55,8 +55,8 @@ func ruleRowIsActive(row gadb.SchedMgrRulesRow, t time.Time) bool {
 		wf[6] = 1
 	}
 	return rule.Rule{
-		Start:         timeutil.NewClockFromTime(row.StartTime),
-		End:           timeutil.NewClockFromTime(row.EndTime),
+		Start:         row.StartTime,
+		End:           row.EndTime,
 		WeekdayFilter: wf,
 	}.IsActive(t)
 }

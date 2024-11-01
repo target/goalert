@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"github.com/sqlc-dev/pqtype"
+	"github.com/target/goalert/util/timeutil"
 )
 
 const aPIKeyAuthCheck = `-- name: APIKeyAuthCheck :one
@@ -2838,14 +2839,14 @@ WHERE
 
 type SchedMgrRulesRow struct {
 	CreatedAt      time.Time
-	EndTime        time.Time
+	EndTime        timeutil.Clock
 	Friday         bool
 	ID             uuid.UUID
 	IsActive       bool
 	Monday         bool
 	Saturday       bool
 	ScheduleID     uuid.UUID
-	StartTime      time.Time
+	StartTime      timeutil.Clock
 	Sunday         bool
 	TgtRotationID  uuid.NullUUID
 	TgtUserID      uuid.NullUUID

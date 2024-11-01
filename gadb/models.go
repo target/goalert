@@ -13,6 +13,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/sqlc-dev/pqtype"
+	"github.com/target/goalert/util/timeutil"
 )
 
 type EngineProcessingType string
@@ -1098,14 +1099,14 @@ type ScheduleOnCallUser struct {
 
 type ScheduleRule struct {
 	CreatedAt     time.Time
-	EndTime       time.Time
+	EndTime       timeutil.Clock
 	Friday        bool
 	ID            uuid.UUID
 	IsActive      bool
 	Monday        bool
 	Saturday      bool
 	ScheduleID    uuid.UUID
-	StartTime     time.Time
+	StartTime     timeutil.Clock
 	Sunday        bool
 	TgtRotationID uuid.NullUUID
 	TgtUserID     uuid.NullUUID
