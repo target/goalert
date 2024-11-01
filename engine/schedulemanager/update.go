@@ -10,8 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	"github.com/target/goalert/assignment"
-	"github.com/target/goalert/override"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rule"
@@ -19,6 +18,7 @@ import (
 	"github.com/target/goalert/util/jsonutil"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/util/timeutil"
 )
 
 // UpdateAll will update all schedule rules.
@@ -29,6 +29,36 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	}
 	err = db.update(ctx)
 	return err
+}
+
+func ruleRowIsActive(row gadb.SchedMgrRulesRow, t time.Time) bool {
+	var wf timeutil.WeekdayFilter
+	if row.Sunday {
+		wf[0] = 1
+	}
+	if row.Monday {
+		wf[1] = 1
+	}
+	if row.Tuesday {
+		wf[2] = 1
+	}
+	if row.Wednesday {
+		wf[3] = 1
+	}
+	if row.Thursday {
+		wf[4] = 1
+	}
+	if row.Friday {
+		wf[5] = 1
+	}
+	if row.Saturday {
+		wf[6] = 1
+	}
+	return rule.Rule{
+		Start:         timeutil.NewClockFromTime(row.StartTime),
+		End:           timeutil.NewClockFromTime(row.EndTime),
+		WeekdayFilter: wf,
+	}.IsActive(t)
 }
 
 func (db *DB) update(ctx context.Context) error {
@@ -63,131 +93,67 @@ func (db *DB) update(ctx context.Context) error {
 
 	log.Debugf(ctx, "Updating schedule rules.")
 
-	var now time.Time
-	err = tx.Stmt(db.currentTime).QueryRowContext(ctx).Scan(&now)
+	q := gadb.New(tx)
+	now, err := q.Now(ctx)
 	if err != nil {
 		return errors.Wrap(err, "get DB time")
 	}
 
-	scheduleData := make(map[string]*schedule.Data)
-	rawScheduleData := make(map[string]json.RawMessage)
-	rows, err := tx.StmtContext(ctx, db.data).QueryContext(ctx)
+	scheduleData := make(map[uuid.UUID]*schedule.Data)
+	rawScheduleData := make(map[uuid.UUID]json.RawMessage)
+	dataRows, err := q.SchedMgrDataForUpdate(ctx)
 	if err != nil {
 		return errors.Wrap(err, "get schedule data")
 	}
-	defer rows.Close()
-	for rows.Next() {
-		var id string
-		var data json.RawMessage
-		err = rows.Scan(&id, &data)
-		if err != nil {
-			return errors.Wrap(err, "scan schedule data")
-		}
-		rawScheduleData[id] = data
+
+	for _, row := range dataRows {
+		rawScheduleData[row.ScheduleID] = row.Data
 
 		var sData schedule.Data
-		err = json.Unmarshal(data, &sData)
+		err = json.Unmarshal(row.Data, &sData)
 		if err != nil {
-			log.Log(log.WithField(ctx, "ScheduleID", id), errors.Wrap(err, "unmarshal schedule data "+string(data)))
+			log.Log(log.WithField(ctx, "ScheduleID", row.ScheduleID), errors.Wrap(err, "unmarshal schedule data "+string(row.Data)))
 			continue
 		}
-		scheduleData[id] = &sData
+		scheduleData[row.ScheduleID] = &sData
 	}
 
-	rows, err = tx.Stmt(db.overrides).QueryContext(ctx)
+	overrides, err := q.SchedMgrOverrides(ctx)
 	if err != nil {
 		return errors.Wrap(err, "get active overrides")
 	}
-	defer rows.Close()
 
-	var overrides []override.UserOverride
-	for rows.Next() {
-		var o override.UserOverride
-		var schedTgt sql.NullString
-		var add, rem sql.NullString
-		err = rows.Scan(&add, &rem, &schedTgt)
-		if err != nil {
-			return errors.Wrap(err, "scan override")
-		}
-		o.AddUserID = add.String
-		o.RemoveUserID = rem.String
-		if !schedTgt.Valid {
-			continue
-		}
-		o.Target = assignment.ScheduleTarget(schedTgt.String)
-		overrides = append(overrides, o)
-	}
-
-	rows, err = tx.Stmt(db.rules).QueryContext(ctx)
+	rules, err := q.SchedMgrRules(ctx)
 	if err != nil {
 		return errors.Wrap(err, "get rules")
 	}
-	defer rows.Close()
 
-	type userRule struct {
-		rule.Rule
-		UserID string
-	}
-
-	var rules []userRule
-	for rows.Next() {
-		var r userRule
-		err = rows.Scan(
-			&r.ScheduleID,
-			&r.WeekdayFilter,
-			&r.Start,
-			&r.End,
-			&r.UserID,
-		)
-		if err != nil {
-			return errors.Wrap(err, "scan rule")
-		}
-
-		rules = append(rules, r)
-	}
-
-	rows, err = tx.StmtContext(ctx, db.schedTZ).QueryContext(ctx)
+	tzRows, err := q.SchedMgrTimezones(ctx)
 	if err != nil {
-		return fmt.Errorf("fetch schedule TZ info: %w", err)
+		return fmt.Errorf("get timezones: %w", err)
 	}
-	defer rows.Close()
-	tz := make(map[string]*time.Location)
-	for rows.Next() {
-		var id, tzName string
-		err = rows.Scan(&id, &tzName)
+	tz := make(map[uuid.UUID]*time.Location)
+	for _, row := range tzRows {
+		tz[row.ID], err = util.LoadLocation(row.TimeZone)
 		if err != nil {
-			return fmt.Errorf("scan schedule TZ info: %w", err)
-		}
-		tz[id], err = util.LoadLocation(tzName)
-		if err != nil {
-			return fmt.Errorf("load TZ info '%s' for schedule '%s': %w", tzName, id, err)
+			return fmt.Errorf("load TZ info '%s' for schedule '%s': %w", row.TimeZone, row.ID, err)
 		}
 	}
 
-	rows, err = tx.Stmt(db.getOnCall).QueryContext(ctx)
+	onCallRows, err := q.SchedMgrOnCall(ctx)
 	if err != nil {
 		return errors.Wrap(err, "get on call")
 	}
-	defer rows.Close()
 
-	type onCall struct {
-		UserID     string
-		ScheduleID string
-	}
-	oldOnCall := make(map[onCall]bool)
-	var oc onCall
-	for rows.Next() {
-		err = rows.Scan(&oc.ScheduleID, &oc.UserID)
-		if err != nil {
-			return errors.Wrap(err, "scan on call user")
-		}
-		oldOnCall[oc] = true
+	oldOnCall := make(map[gadb.SchedMgrOnCallRow]bool)
+	for _, row := range onCallRows {
+		oldOnCall[row] = true
 	}
 
 	// Calculate new state
-	newOnCall := make(map[onCall]bool, len(rules))
+	newOnCall := make(map[gadb.SchedMgrOnCallRow]bool, len(rules))
 
-	tempSched := make(map[string]struct{})
+	tempSched := make(map[uuid.UUID]struct{})
 	for id, data := range scheduleData {
 		ok, users := data.TempOnCall(now)
 		if !ok {
@@ -195,7 +161,7 @@ func (db *DB) update(ctx context.Context) error {
 		}
 
 		for _, uid := range users {
-			newOnCall[onCall{ScheduleID: id, UserID: uid}] = true
+			newOnCall[gadb.SchedMgrOnCallRow{ScheduleID: id, UserID: uid}] = true
 		}
 		tempSched[id] = struct{}{}
 	}
@@ -205,53 +171,41 @@ func (db *DB) update(ctx context.Context) error {
 			// temp schedule active for this ID, skip
 			continue
 		}
-		if r.IsActive(now.In(tz[r.ScheduleID])) {
-			newOnCall[onCall{ScheduleID: r.ScheduleID, UserID: r.UserID}] = true
+		if ruleRowIsActive(r, now.In(tz[r.ScheduleID])) {
+			newOnCall[gadb.SchedMgrOnCallRow{ScheduleID: r.ScheduleID, UserID: r.ResolvedUserID}] = true
 		}
 	}
 
 	for _, o := range overrides {
-		if _, ok := tempSched[o.Target.TargetID()]; ok {
+		if _, ok := tempSched[o.TgtScheduleID]; ok {
 			// temp schedule active for this ID, skip
 			continue
 		}
-		if o.AddUserID != "" && o.RemoveUserID == "" {
-			// ADD override
-			newOnCall[onCall{ScheduleID: o.Target.TargetID(), UserID: o.AddUserID}] = true
-			continue
+		if o.RemoveUserID.Valid {
+			delete(newOnCall, gadb.SchedMgrOnCallRow{ScheduleID: o.TgtScheduleID, UserID: o.RemoveUserID.UUID})
 		}
-		if o.AddUserID == "" && o.RemoveUserID != "" {
-			// REMOVE override
-			delete(newOnCall, onCall{ScheduleID: o.Target.TargetID(), UserID: o.RemoveUserID})
-			continue
-		}
-
-		if newOnCall[onCall{ScheduleID: o.Target.TargetID(), UserID: o.RemoveUserID}] {
-			// REPLACE override
-			delete(newOnCall, onCall{ScheduleID: o.Target.TargetID(), UserID: o.RemoveUserID})
-			newOnCall[onCall{ScheduleID: o.Target.TargetID(), UserID: o.AddUserID}] = true
+		if o.AddUserID.Valid {
+			newOnCall[gadb.SchedMgrOnCallRow{ScheduleID: o.TgtScheduleID, UserID: o.AddUserID.UUID}] = true
 		}
 	}
 
-	start := tx.Stmt(db.startOnCall)
-
-	changedSchedules := make(map[string]struct{})
+	changedSchedules := make(map[uuid.UUID]struct{})
 	for oc := range newOnCall {
 		// not on call in DB, but are now
 		if !oldOnCall[oc] {
 			changedSchedules[oc.ScheduleID] = struct{}{}
-			_, err = start.ExecContext(ctx, oc.ScheduleID, oc.UserID)
+			err = q.SchedMgrStartOnCall(ctx, gadb.SchedMgrStartOnCallParams(oc))
 			if err != nil && !isScheduleDeleted(err) {
 				return errors.Wrap(err, "record shift start")
 			}
 		}
 	}
-	end := tx.Stmt(db.endOnCall)
+
 	for oc := range oldOnCall {
 		// on call in DB, but no longer
 		if !newOnCall[oc] {
 			changedSchedules[oc.ScheduleID] = struct{}{}
-			_, err = end.ExecContext(ctx, oc.ScheduleID, oc.UserID)
+			err = q.SchedMgrEndOnCall(ctx, gadb.SchedMgrEndOnCallParams(oc))
 			if err != nil {
 				return errors.Wrap(err, "record shift end")
 			}
@@ -259,7 +213,7 @@ func (db *DB) update(ctx context.Context) error {
 	}
 
 	// Notify changed schedules
-	needsOnCallNotification := make(map[string][]uuid.UUID)
+	needsOnCallNotification := make(map[uuid.UUID][]uuid.UUID)
 	for schedID := range changedSchedules {
 		data := scheduleData[schedID]
 		if data == nil {
@@ -296,7 +250,10 @@ func (db *DB) update(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		_, err = tx.StmtContext(ctx, db.updateData).ExecContext(ctx, schedID, jsonData)
+		err = q.SchedMgrSetData(ctx, gadb.SchedMgrSetDataParams{
+			ScheduleID: schedID,
+			Data:       jsonData,
+		})
 		if err != nil {
 			return err
 		}
@@ -310,7 +267,11 @@ func (db *DB) update(ctx context.Context) error {
 				continue
 			}
 			lastID = chanID
-			_, err = tx.StmtContext(ctx, db.scheduleOnCallNotification).ExecContext(ctx, uuid.New(), chanID, schedID)
+			err = q.SchedMgrInsertMessage(ctx, gadb.SchedMgrInsertMessageParams{
+				ID:         uuid.New(),
+				ChannelID:  uuid.NullUUID{UUID: chanID, Valid: true},
+				ScheduleID: uuid.NullUUID{UUID: schedID, Valid: true},
+			})
 			if err != nil {
 				return err
 			}
