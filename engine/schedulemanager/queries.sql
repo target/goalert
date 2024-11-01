@@ -40,7 +40,8 @@ FROM
     LEFT JOIN rotation_state rState ON rState.rotation_id = rule.tgt_rotation_id
     LEFT JOIN rotation_participants part ON part.id = rState.rotation_participant_id
 WHERE
-    resolved_user_id NOTNULL;
+    coalesce(rule.tgt_user_id, part.user_id)
+    NOTNULL;
 
 -- name: SchedMgrOverrides :many
 SELECT
