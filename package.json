@@ -50,7 +50,7 @@
     "@playwright/test": "1.47.2",
     "@storybook/addon-essentials": "8.3.6",
     "@storybook/addon-interactions": "8.3.3",
-    "@storybook/addon-links": "8.3.6",
+    "@storybook/addon-links": "8.4.1",
     "@storybook/blocks": "8.3.6",
     "@storybook/preview-api": "8.3.3",
     "@storybook/react": "8.3.3",
