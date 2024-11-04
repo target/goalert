@@ -4972,20 +4972,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/addon-links@npm:8.3.6":
-  version: 8.3.6
-  resolution: "@storybook/addon-links@npm:8.3.6"
+"@storybook/addon-links@npm:8.4.1":
+  version: 8.4.1
+  resolution: "@storybook/addon-links@npm:8.4.1"
   dependencies:
     "@storybook/csf": "npm:^0.1.11"
     "@storybook/global": "npm:^5.0.0"
     ts-dedent: "npm:^2.0.0"
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0-beta
-    storybook: ^8.3.6
+    storybook: ^8.4.1
   peerDependenciesMeta:
     react:
       optional: true
-  checksum: 10/1c6a1483098e5f1292824cb038d7a0efae78a8aee86e940092200b646501a6e4713a24e422fd3dd25781f17e08276dc5156cf3f4838b92a029fff2b4f3eb4e84
+  checksum: 10/a57c029dacbdf105e42297ff814efd942b2e9c1189efac70940f933c0f82bd8ccc09b1248083bd8b66f93fb4b7599147f2e75a801963e97f3da5a6e947b70184
   languageName: node
   linkType: hard
 
@@ -18134,7 +18134,7 @@ __metadata:
     "@playwright/test": "npm:1.47.2"
     "@storybook/addon-essentials": "npm:8.3.6"
     "@storybook/addon-interactions": "npm:8.3.3"
-    "@storybook/addon-links": "npm:8.3.6"
+    "@storybook/addon-links": "npm:8.4.1"
     "@storybook/blocks": "npm:8.3.6"
     "@storybook/preview-api": "npm:8.3.3"
     "@storybook/react": "npm:8.3.3"
