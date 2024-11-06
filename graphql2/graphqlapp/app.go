@@ -229,6 +229,12 @@ func (a *App) Handler() http.Handler {
 			}
 		}
 
+		if errors.Is(err, context.Canceled) {
+			return &gqlerror.Error{
+				Message: "Request canceled.",
+			}
+		}
+
 		var argErr *nfydest.DestArgError
 		if errors.As(err, &argErr) {
 			return &gqlerror.Error{
