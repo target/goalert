@@ -1,6 +1,10 @@
 package schedule
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // Data contains configuration for a single schedule.
 type Data struct {
@@ -12,7 +16,7 @@ type Data struct {
 
 // TempOnCall will calculate any on-call users for the given time. isActive will
 // be true if a temporary schedule is active.
-func (data *Data) TempOnCall(t time.Time) (isActive bool, users []string) {
+func (data *Data) TempOnCall(t time.Time) (isActive bool, users []uuid.UUID) {
 	if data == nil {
 		return false, nil
 	}
@@ -26,7 +30,11 @@ func (data *Data) TempOnCall(t time.Time) (isActive bool, users []string) {
 			if t.Before(shift.Start) || !t.Before(shift.End) {
 				continue
 			}
-			users = append(users, shift.UserID)
+			id, err := uuid.Parse(shift.UserID)
+			if err != nil {
+				continue
+			}
+			users = append(users, id)
 		}
 
 		// only one TemporarySchedule will ever be active (should be merged & sorted)

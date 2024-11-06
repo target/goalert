@@ -44,6 +44,14 @@ sql:
         out: gadb
         sql_package: database/sql
         overrides:
+          - column: public.schedule_rules.start_time
+            go_type:
+              import: github.com/target/goalert/util/timeutil
+              type: Clock
+          - column: public.schedule_rules.end_time
+            go_type:
+              import: github.com/target/goalert/util/timeutil
+              type: Clock
           - column: public.outgoing_messages.provider_msg_id
             go_type:
               type: ProviderMessageID
