@@ -134,7 +134,7 @@ func isGQLValidation(gqlErr *gqlerror.Error) bool {
 		return true
 	}
 
-	if strings.HasPrefix(gqlErr.Message, "json request body") {
+	if strings.HasPrefix(gqlErr.Message, "json request body") || strings.HasPrefix(gqlErr.Message, "could not get json request body:") {
 		var body string
 		gqlErr.Message, body, _ = strings.Cut(gqlErr.Message, " body:") // remove body
 		if !strings.HasPrefix(strings.TrimSpace(body), "{") {
