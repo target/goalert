@@ -5,11 +5,12 @@ import (
 	"fmt"
 
 	"github.com/riverqueue/river"
-	"github.com/riverqueue/river/riverdriver/riverdatabasesql"
+	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 	"github.com/riverqueue/river/rivertype"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/engine/cleanupmanager"
 	"github.com/target/goalert/util/log"
+	"riverqueue.com/riverui"
 )
 
 type riverErrs struct{}
@@ -41,7 +42,7 @@ func (app *App) initRiver(ctx context.Context) error {
 		return err
 	}
 
-	app.River, err = river.NewClient(riverdatabasesql.New(app.db), &river.Config{
+	app.River, err = river.NewClient(riverpgxv5.New(app.pgx), &river.Config{
 		Logger:  log.NewSlog(app.cfg.Logger),
 		Workers: w,
 		Queues: map[string]river.QueueConfig{
@@ -55,6 +56,17 @@ func (app *App) initRiver(ctx context.Context) error {
 
 	cfg := config.FromContext(ctx)
 	err = cleanupmanager.InitRiverClient(cfg, app.db, app.River)
+	if err != nil {
+		return err
+	}
+
+	opts := &riverui.ServerOpts{
+		Prefix: "/admin/riverui",
+		DB:     app.pgx,
+		Client: app.River,
+		Logger: log.NewSlog(app.cfg.Logger),
+	}
+	app.RiverUI, err = riverui.NewServer(opts)
 	if err != nil {
 		return err
 	}

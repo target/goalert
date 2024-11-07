@@ -188,6 +188,24 @@ func (q *Queries) Now(ctx context.Context) (pgtype.Timestamptz, error) {
 	return column_1, err
 }
 
+const sWOConnLock = `-- name: SWOConnLock :one
+WITH LOCK AS (
+    SELECT
+        pg_advisory_lock_shared(4369))
+SELECT
+    current_state = 'use_next_db'
+FROM
+    LOCK,
+    switchover_state
+`
+
+func (q *Queries) SWOConnLock(ctx context.Context) (bool, error) {
+	row := q.db.QueryRow(ctx, sWOConnLock)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const sequenceNames = `-- name: SequenceNames :many
 SELECT sequence_name::text
 FROM information_schema.sequences

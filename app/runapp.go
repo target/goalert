@@ -25,6 +25,13 @@ func (app *App) _Run(ctx context.Context) error {
 		}
 	}()
 
+	go func() {
+		err := app.RiverUI.Start(ctx)
+		if err != nil {
+			log.Log(ctx, err)
+		}
+	}()
+
 	eventCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	eventDoneCh, err := app.listenEvents(eventCtx)

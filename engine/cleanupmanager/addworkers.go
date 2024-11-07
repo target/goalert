@@ -80,7 +80,7 @@ func AddWorkers(ctx context.Context, db gadb.DBTX, w *river.Workers) error {
 	return river.AddWorkerSafely(w, &ScheduleCleanupWorker{db: gadb.New(db), Logger: log.NewSlog(log.FromContext(ctx))})
 }
 
-func InitRiverClient(cfg config.Config, db gadb.DBTX, c *river.Client[*sql.Tx]) error {
+func InitRiverClient[T any](cfg config.Config, db gadb.DBTX, c *river.Client[T]) error {
 	err := c.Queues().Add(QueueName, river.QueueConfig{MaxWorkers: 1})
 	if err != nil {
 		return err

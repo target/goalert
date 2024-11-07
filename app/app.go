@@ -8,6 +8,8 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
 	"github.com/riverqueue/river"
 	"github.com/target/goalert/alert"
@@ -53,6 +55,7 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
+	"riverqueue.com/riverui"
 )
 
 // App represents an instance of the GoAlert application.
@@ -62,6 +65,7 @@ type App struct {
 	mgr *lifecycle.Manager
 
 	db     *sql.DB
+	pgx    *pgxpool.Pool
 	l      net.Listener
 	events *sqlutil.Listener
 
@@ -128,11 +132,12 @@ type App struct {
 	AuthLinkStore *authlink.Store
 	APIKeyStore   *apikey.Store
 
-	River *river.Client[*sql.Tx]
+	River   *river.Client[pgx.Tx]
+	RiverUI *riverui.Server
 }
 
 // NewApp constructs a new App and binds the listening socket.
-func NewApp(c Config, db *sql.DB) (*App, error) {
+func NewApp(c Config, db *sql.DB, pgx *pgxpool.Pool) (*App, error) {
 	var err error
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
 		// Should not be possible for the app to ever see `use_next_db` unless misconfigured.
@@ -181,6 +186,7 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 	app := &App{
 		l:      l,
 		db:     db,
+		pgx:    pgx,
 		cfg:    c,
 		doneCh: make(chan struct{}),
 	}
