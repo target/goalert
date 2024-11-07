@@ -13,6 +13,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/sqlc-dev/pqtype"
+	"github.com/target/goalert/util/timeutil"
 )
 
 type EngineProcessingType string
@@ -852,6 +853,12 @@ type AuthUserSession struct {
 	UserID       uuid.NullUUID
 }
 
+type ChangeLog struct {
+	ID        int64
+	TableName string
+	RowID     string
+}
+
 type Config struct {
 	CreatedAt time.Time
 	Data      []byte
@@ -1040,6 +1047,12 @@ type PendingSignal struct {
 	ServiceID uuid.UUID
 }
 
+type PgStatActivity struct {
+	State           sql.NullString
+	XactStart       time.Time
+	ApplicationName sql.NullString
+}
+
 type RegionID struct {
 	ID   int32
 	Name string
@@ -1098,14 +1111,14 @@ type ScheduleOnCallUser struct {
 
 type ScheduleRule struct {
 	CreatedAt     time.Time
-	EndTime       time.Time
+	EndTime       timeutil.Clock
 	Friday        bool
 	ID            uuid.UUID
 	IsActive      bool
 	Monday        bool
 	Saturday      bool
 	ScheduleID    uuid.UUID
-	StartTime     time.Time
+	StartTime     timeutil.Clock
 	Sunday        bool
 	TgtRotationID uuid.NullUUID
 	TgtUserID     uuid.NullUUID
