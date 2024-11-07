@@ -32,10 +32,10 @@ require (
 	github.com/oauth2-proxy/mockoidc v0.0.0-20240214162133-caebfff84d25
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/pkg/errors v0.9.1
+	github.com/prometheus/client_golang v1.20.5
 	github.com/riverqueue/river v0.14.1
 	github.com/riverqueue/river/riverdriver/riverdatabasesql v0.14.1
-	github.com/prometheus/client_golang v1.20.5
-	github.com/rubenv/sql-migrate v1.7.0
+	github.com/riverqueue/river/rivertype v0.14.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/slack-go/slack v0.15.0
 	github.com/spf13/cobra v1.8.1
@@ -113,7 +113,6 @@ require (
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/riverqueue/river/riverdriver v0.14.1 // indirect
 	github.com/riverqueue/river/rivershared v0.14.1 // indirect
-	github.com/riverqueue/river/rivertype v0.14.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.6.0 // indirect
@@ -125,12 +124,10 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
-	github.com/t-k/fluent-logger-golang v1.0.0 // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
-	github.com/tinylib/msgp v1.2.1 // indirect
 	github.com/urfave/cli/v2 v2.27.5 // indirect
 	github.com/vanng822/css v1.0.1 // indirect
 	github.com/vanng822/go-premailer v1.22.0 // indirect
