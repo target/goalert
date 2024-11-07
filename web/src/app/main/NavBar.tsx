@@ -101,6 +101,7 @@ export default function NavBar(): JSX.Element {
               />
               <NavBarSubLink to='/admin/switchover' title='Switchover' />
               <NavBarSubLink to='/admin/api-keys' title='API Keys' />
+              <NavBarSubLink newTab to='/admin/riverui' title='Job Queues' />
             </NavBarLink>
           </RequireConfig>
 
