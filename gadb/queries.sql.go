@@ -244,6 +244,20 @@ func (q *Queries) APIKeyUpdate(ctx context.Context, arg APIKeyUpdateParams) erro
 	return err
 }
 
+const activeTxCount = `-- name: ActiveTxCount :one
+SELECT COUNT(*)
+FROM pg_stat_activity
+WHERE "state" <> 'idle'
+    AND "xact_start" <= $1
+`
+
+func (q *Queries) ActiveTxCount(ctx context.Context, xactStart time.Time) (int64, error) {
+	row := q.db.QueryRowContext(ctx, activeTxCount, xactStart)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const alertFeedback = `-- name: AlertFeedback :many
 SELECT
     alert_id,
@@ -836,6 +850,42 @@ func (q *Queries) CalSubUserNames(ctx context.Context, dollar_1 []uuid.UUID) ([]
 	return items, nil
 }
 
+const connectionInfo = `-- name: ConnectionInfo :many
+SELECT application_name AS NAME,
+    COUNT(*)
+FROM pg_stat_activity
+WHERE datname = current_database()
+GROUP BY NAME
+`
+
+type ConnectionInfoRow struct {
+	Name  sql.NullString
+	Count int64
+}
+
+func (q *Queries) ConnectionInfo(ctx context.Context) ([]ConnectionInfoRow, error) {
+	rows, err := q.db.QueryContext(ctx, connectionInfo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ConnectionInfoRow
+	for rows.Next() {
+		var i ConnectionInfoRow
+		if err := rows.Scan(&i.Name, &i.Count); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const contactMethodAdd = `-- name: ContactMethodAdd :exec
 INSERT INTO user_contact_methods(id, name, dest, disabled, user_id, enable_status_updates)
     VALUES ($1, $2, $3, $4, $5, $6)
@@ -1161,6 +1211,24 @@ func (q *Queries) CreateCalSub(ctx context.Context, arg CreateCalSubParams) (tim
 	return created_at, err
 }
 
+const databaseInfo = `-- name: DatabaseInfo :one
+SELECT db_id AS id,
+    version()
+FROM switchover_state
+`
+
+type DatabaseInfoRow struct {
+	ID      uuid.UUID
+	Version string
+}
+
+func (q *Queries) DatabaseInfo(ctx context.Context) (DatabaseInfoRow, error) {
+	row := q.db.QueryRowContext(ctx, databaseInfo)
+	var i DatabaseInfoRow
+	err := row.Scan(&i.ID, &i.Version)
+	return i, err
+}
+
 const deleteContactMethod = `-- name: DeleteContactMethod :exec
 DELETE FROM user_contact_methods
 WHERE id = ANY ($1::uuid[])
@@ -1184,6 +1252,17 @@ type DeleteManyCalSubParams struct {
 
 func (q *Queries) DeleteManyCalSub(ctx context.Context, arg DeleteManyCalSubParams) error {
 	_, err := q.db.ExecContext(ctx, deleteManyCalSub, pq.Array(arg.Column1), arg.UserID)
+	return err
+}
+
+const disableChangeLogTriggers = `-- name: DisableChangeLogTriggers :exec
+UPDATE switchover_state
+SET current_state = 'idle'
+WHERE current_state = 'in_progress'
+`
+
+func (q *Queries) DisableChangeLogTriggers(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, disableChangeLogTriggers)
 	return err
 }
 
@@ -1284,6 +1363,17 @@ func (q *Queries) EPStepActionsDeleteAction(ctx context.Context, arg EPStepActio
 		arg.RotationID,
 		arg.ChannelID,
 	)
+	return err
+}
+
+const enableChangeLogTriggers = `-- name: EnableChangeLogTriggers :exec
+UPDATE switchover_state
+SET current_state = 'in_progress'
+WHERE current_state = 'idle'
+`
+
+func (q *Queries) EnableChangeLogTriggers(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, enableChangeLogTriggers)
 	return err
 }
 
@@ -1464,6 +1554,46 @@ func (q *Queries) FindOneCalSubForUpdate(ctx context.Context, id uuid.UUID) (Fin
 		&i.LastAccess,
 	)
 	return i, err
+}
+
+const foreignKeyRefs = `-- name: ForeignKeyRefs :many
+SELECT src.relname::text,
+    dst.relname::text
+FROM pg_catalog.pg_constraint con
+    JOIN pg_catalog.pg_namespace ns ON ns.nspname = 'public'
+    AND ns.oid = con.connamespace
+    JOIN pg_catalog.pg_class src ON src.oid = con.conrelid
+    JOIN pg_catalog.pg_class dst ON dst.oid = con.confrelid
+WHERE con.contype = 'f'
+    AND NOT con.condeferrable
+`
+
+type ForeignKeyRefsRow struct {
+	SrcRelname string
+	DstRelname string
+}
+
+func (q *Queries) ForeignKeyRefs(ctx context.Context) ([]ForeignKeyRefsRow, error) {
+	rows, err := q.db.QueryContext(ctx, foreignKeyRefs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ForeignKeyRefsRow
+	for rows.Next() {
+		var i ForeignKeyRefsRow
+		if err := rows.Scan(&i.SrcRelname, &i.DstRelname); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const gQLUserOnCallOverview = `-- name: GQLUserOnCallOverview :many
@@ -1975,6 +2105,534 @@ func (q *Queries) LabelUniqueKeys(ctx context.Context) ([]string, error) {
 	return items, nil
 }
 
+const lastLogID = `-- name: LastLogID :one
+SELECT COALESCE(MAX(id), 0)::bigint
+FROM switchover_log
+`
+
+func (q *Queries) LastLogID(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, lastLogID)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const listCheckConstraints = `-- name: ListCheckConstraints :many
+SELECT
+    n.nspname::text AS schema_name,
+    c.relname::text AS table_name,
+    cc.conname::text AS constraint_name,
+    pg_get_constraintdef(cc.oid) AS check_clause
+FROM
+    pg_catalog.pg_constraint cc
+    JOIN pg_catalog.pg_class c ON cc.conrelid = c.oid
+    JOIN pg_catalog.pg_namespace n ON c.relnamespace = n.oid
+WHERE
+    cc.contype = 'c'
+ORDER BY
+    n.nspname,
+    c.relname,
+    cc.conname
+`
+
+type ListCheckConstraintsRow struct {
+	SchemaName     string
+	TableName      string
+	ConstraintName string
+	CheckClause    string
+}
+
+func (q *Queries) ListCheckConstraints(ctx context.Context) ([]ListCheckConstraintsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listCheckConstraints)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListCheckConstraintsRow
+	for rows.Next() {
+		var i ListCheckConstraintsRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.ConstraintName,
+			&i.CheckClause,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listColumns = `-- name: ListColumns :many
+SELECT
+    n.nspname::text AS schema_name,
+    c.relname::text AS table_name,
+    a.attnum AS column_number,
+    a.attname::text AS column_name,
+    pg_catalog.format_type(a.atttypid, a.atttypmod) AS column_type,
+    coalesce(pg_get_expr(d.adbin, d.adrelid), '')::text AS column_default,
+    a.attnotnull AS not_null
+FROM
+    pg_catalog.pg_attribute a
+    JOIN pg_catalog.pg_class c ON a.attnum > 0
+        AND a.attrelid = c.oid
+    JOIN pg_catalog.pg_namespace n ON c.relnamespace = n.oid
+    LEFT JOIN pg_catalog.pg_attrdef d ON a.attrelid = d.adrelid
+        AND a.attnum = d.adnum
+WHERE
+    n.nspname NOT IN ('pg_catalog', 'information_schema')
+    AND c.relkind = 'r'
+    AND NOT a.attisdropped
+ORDER BY
+    n.nspname,
+    c.relname,
+    a.attname
+`
+
+type ListColumnsRow struct {
+	SchemaName    string
+	TableName     string
+	ColumnNumber  int16
+	ColumnName    string
+	ColumnType    string
+	ColumnDefault string
+	NotNull       bool
+}
+
+func (q *Queries) ListColumns(ctx context.Context) ([]ListColumnsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listColumns)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListColumnsRow
+	for rows.Next() {
+		var i ListColumnsRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.ColumnNumber,
+			&i.ColumnName,
+			&i.ColumnType,
+			&i.ColumnDefault,
+			&i.NotNull,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listConstraints = `-- name: ListConstraints :many
+SELECT
+    n.nspname::text AS schema_name,
+    t.relname::text AS table_name,
+    c.conname::text AS constraint_name,
+    pg_catalog.pg_get_constraintdef(c.oid, TRUE) AS constraint_definition
+FROM
+    pg_catalog.pg_constraint c
+    JOIN pg_catalog.pg_class t ON c.conrelid = t.oid
+    JOIN pg_catalog.pg_namespace n ON n.oid = t.relnamespace
+WHERE
+    t.relkind = 'r'
+    AND n.nspname NOT IN ('pg_catalog', 'information_schema')
+ORDER BY
+    n.nspname,
+    t.relname,
+    c.conname
+`
+
+type ListConstraintsRow struct {
+	SchemaName           string
+	TableName            string
+	ConstraintName       string
+	ConstraintDefinition string
+}
+
+func (q *Queries) ListConstraints(ctx context.Context) ([]ListConstraintsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listConstraints)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListConstraintsRow
+	for rows.Next() {
+		var i ListConstraintsRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.ConstraintName,
+			&i.ConstraintDefinition,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listEnums = `-- name: ListEnums :many
+SELECT
+    n.nspname::text AS schema_name,
+    t.typname::text AS enum_name,
+    string_agg(e.enumlabel, ',' ORDER BY e.enumlabel) AS enum_values
+FROM
+    pg_catalog.pg_type t
+    JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+    JOIN pg_catalog.pg_enum e ON e.enumtypid = t.oid
+WHERE (t.typrelid = 0
+    OR (
+        SELECT
+            c.relkind = 'c'
+        FROM
+            pg_catalog.pg_class c
+        WHERE
+            c.oid = t.typrelid))
+AND NOT EXISTS (
+    SELECT
+        1
+    FROM
+        pg_catalog.pg_type el
+    WHERE
+        el.oid = t.typelem
+        AND el.typarray = t.oid)
+AND n.nspname NOT IN ('pg_catalog', 'information_schema')
+GROUP BY
+    n.nspname,
+    t.typname
+ORDER BY
+    n.nspname,
+    t.typname
+`
+
+type ListEnumsRow struct {
+	SchemaName string
+	EnumName   string
+	EnumValues []byte
+}
+
+func (q *Queries) ListEnums(ctx context.Context) ([]ListEnumsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listEnums)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListEnumsRow
+	for rows.Next() {
+		var i ListEnumsRow
+		if err := rows.Scan(&i.SchemaName, &i.EnumName, &i.EnumValues); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listExtensions = `-- name: ListExtensions :many
+SELECT
+    extname::text AS ext_name,
+    n.nspname::text AS schema_name
+FROM
+    pg_catalog.pg_extension e
+    JOIN pg_catalog.pg_namespace n ON n.oid = e.extnamespace
+        AND n.nspname != 'pg_catalog'
+    ORDER BY
+        n.nspname,
+        extname
+`
+
+type ListExtensionsRow struct {
+	ExtName    string
+	SchemaName string
+}
+
+func (q *Queries) ListExtensions(ctx context.Context) ([]ListExtensionsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listExtensions)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListExtensionsRow
+	for rows.Next() {
+		var i ListExtensionsRow
+		if err := rows.Scan(&i.ExtName, &i.SchemaName); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listFunctions = `-- name: ListFunctions :many
+SELECT
+    n.nspname::text AS schema_name,
+    p.proname::text AS function_name,
+    pg_get_functiondef(p.oid) AS func_def
+FROM
+    pg_catalog.pg_proc p
+    JOIN pg_catalog.pg_namespace n ON p.pronamespace = n.oid
+    LEFT JOIN pg_catalog.pg_depend d ON p.oid = d.objid
+        AND d.deptype = 'e'
+    LEFT JOIN pg_catalog.pg_extension e ON d.refobjid = e.oid
+WHERE
+    n.nspname NOT IN ('pg_catalog', 'information_schema')
+    AND p.prokind = 'f'
+    AND d.objid IS NULL
+ORDER BY
+    n.nspname,
+    p.proname
+`
+
+type ListFunctionsRow struct {
+	SchemaName   string
+	FunctionName string
+	FuncDef      string
+}
+
+func (q *Queries) ListFunctions(ctx context.Context) ([]ListFunctionsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listFunctions)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListFunctionsRow
+	for rows.Next() {
+		var i ListFunctionsRow
+		if err := rows.Scan(&i.SchemaName, &i.FunctionName, &i.FuncDef); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listIndexes = `-- name: ListIndexes :many
+SELECT
+    n.nspname::text AS schema_name,
+    t.relname::text AS table_name,
+    i.indexname::text AS index_name,
+    i.indexdef::text AS index_definition
+FROM
+    pg_catalog.pg_indexes i
+    JOIN pg_catalog.pg_class t ON t.relname = i.tablename
+    JOIN pg_catalog.pg_namespace n ON n.oid = t.relnamespace
+WHERE
+    n.nspname NOT IN ('pg_catalog', 'information_schema')
+ORDER BY
+    n.nspname,
+    t.relname,
+    i.indexname
+`
+
+type ListIndexesRow struct {
+	SchemaName      string
+	TableName       string
+	IndexName       string
+	IndexDefinition string
+}
+
+func (q *Queries) ListIndexes(ctx context.Context) ([]ListIndexesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listIndexes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListIndexesRow
+	for rows.Next() {
+		var i ListIndexesRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.IndexName,
+			&i.IndexDefinition,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSequences = `-- name: ListSequences :many
+SELECT
+    n.nspname::text AS schema_name,
+    s.relname::text AS sequence_name,
+    seq.start_value,
+    seq.increment_by AS increment,
+    seq.min_value AS min_value,
+    seq.max_value AS max_value,
+    seq.cache_size AS
+    CACHE,
+    coalesce((
+        SELECT
+            tn.nspname::text
+        FROM pg_catalog.pg_namespace tn
+        WHERE
+            tn.oid = tc.relnamespace), '')::text AS table_schema,
+    coalesce(tc.relname, '')::text AS table_name,
+    coalesce(a.attname, '')::text AS column_name
+FROM
+    pg_catalog.pg_class s
+    JOIN pg_catalog.pg_namespace n ON s.relnamespace = n.oid
+    JOIN pg_catalog.pg_sequences seq ON n.nspname = seq.schemaname
+        AND s.relname = seq.sequencename
+    LEFT JOIN pg_catalog.pg_depend d ON s.oid = d.objid
+        AND d.deptype = 'a'
+    LEFT JOIN pg_catalog.pg_attribute a ON a.attnum = d.refobjsubid
+        AND a.attrelid = d.refobjid
+    LEFT JOIN pg_catalog.pg_class tc ON tc.oid = d.refobjid
+WHERE
+    s.relkind = 'S'
+ORDER BY
+    n.nspname,
+    s.relname
+`
+
+type ListSequencesRow struct {
+	SchemaName   string
+	SequenceName string
+	StartValue   sql.NullInt64
+	Increment    sql.NullInt64
+	MinValue     sql.NullInt64
+	MaxValue     sql.NullInt64
+	Cache        sql.NullInt64
+	TableSchema  string
+	TableName    string
+	ColumnName   string
+}
+
+func (q *Queries) ListSequences(ctx context.Context) ([]ListSequencesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listSequences)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListSequencesRow
+	for rows.Next() {
+		var i ListSequencesRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.SequenceName,
+			&i.StartValue,
+			&i.Increment,
+			&i.MinValue,
+			&i.MaxValue,
+			&i.Cache,
+			&i.TableSchema,
+			&i.TableName,
+			&i.ColumnName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTriggers = `-- name: ListTriggers :many
+SELECT
+    n.nspname::text AS schema_name,
+    t.relname::text AS table_name,
+    trg.tgname::text AS trigger_name,
+    pg_catalog.pg_get_triggerdef(trg.oid) AS trigger_definition
+FROM
+    pg_catalog.pg_trigger trg
+    JOIN pg_catalog.pg_class t ON t.oid = trg.tgrelid
+    JOIN pg_catalog.pg_namespace n ON n.oid = t.relnamespace
+WHERE
+    NOT trg.tgisinternal
+    AND n.nspname NOT IN ('pg_catalog', 'information_schema')
+ORDER BY
+    n.nspname,
+    t.relname,
+    trg.tgname
+`
+
+type ListTriggersRow struct {
+	SchemaName        string
+	TableName         string
+	TriggerName       string
+	TriggerDefinition string
+}
+
+func (q *Queries) ListTriggers(ctx context.Context) ([]ListTriggersRow, error) {
+	rows, err := q.db.QueryContext(ctx, listTriggers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListTriggersRow
+	for rows.Next() {
+		var i ListTriggersRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.TriggerName,
+			&i.TriggerDefinition,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const lockOneAlertService = `-- name: LockOneAlertService :one
 SELECT
     maintenance_expires_at NOTNULL::bool AS is_maint_mode,
@@ -1997,6 +2655,45 @@ func (q *Queries) LockOneAlertService(ctx context.Context, id int64) (LockOneAle
 	var i LockOneAlertServiceRow
 	err := row.Scan(&i.IsMaintMode, &i.Status)
 	return i, err
+}
+
+const logEvents = `-- name: LogEvents :many
+SELECT id,
+    TIMESTAMP,
+    DATA
+FROM switchover_log
+WHERE id > $1
+ORDER BY id ASC
+LIMIT 100
+`
+
+type LogEventsRow struct {
+	ID        int64
+	Timestamp time.Time
+	Data      json.RawMessage
+}
+
+func (q *Queries) LogEvents(ctx context.Context, id int64) ([]LogEventsRow, error) {
+	rows, err := q.db.QueryContext(ctx, logEvents, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []LogEventsRow
+	for rows.Next() {
+		var i LogEventsRow
+		if err := rows.Scan(&i.ID, &i.Timestamp, &i.Data); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const messageMgrGetPending = `-- name: MessageMgrGetPending :many
@@ -2434,8 +3131,7 @@ func (q *Queries) NotifChanUpsertDest(ctx context.Context, arg NotifChanUpsertDe
 }
 
 const now = `-- name: Now :one
-SELECT
-    now()::timestamptz
+SELECT now()::timestamptz
 `
 
 func (q *Queries) Now(ctx context.Context) (time.Time, error) {
@@ -2558,6 +3254,87 @@ func (q *Queries) OverrideSearch(ctx context.Context, arg OverrideSearchParams) 
 		return nil, err
 	}
 	return items, nil
+}
+
+const procAcquireModuleLock = `-- name: ProcAcquireModuleLock :one
+SELECT
+    version
+FROM
+    engine_processing_versions
+WHERE
+    type_id = $1
+FOR UPDATE
+    NOWAIT
+`
+
+func (q *Queries) ProcAcquireModuleLock(ctx context.Context, typeID EngineProcessingType) (int32, error) {
+	row := q.db.QueryRowContext(ctx, procAcquireModuleLock, typeID)
+	var version int32
+	err := row.Scan(&version)
+	return version, err
+}
+
+const procLoadState = `-- name: ProcLoadState :one
+SELECT
+    state
+FROM
+    engine_processing_versions
+WHERE
+    type_id = $1
+`
+
+func (q *Queries) ProcLoadState(ctx context.Context, typeID EngineProcessingType) (json.RawMessage, error) {
+	row := q.db.QueryRowContext(ctx, procLoadState, typeID)
+	var state json.RawMessage
+	err := row.Scan(&state)
+	return state, err
+}
+
+const procReadModuleVersion = `-- name: ProcReadModuleVersion :one
+SELECT
+    version
+FROM
+    engine_processing_versions
+WHERE
+    type_id = $1
+`
+
+func (q *Queries) ProcReadModuleVersion(ctx context.Context, typeID EngineProcessingType) (int32, error) {
+	row := q.db.QueryRowContext(ctx, procReadModuleVersion, typeID)
+	var version int32
+	err := row.Scan(&version)
+	return version, err
+}
+
+const procSaveState = `-- name: ProcSaveState :exec
+UPDATE
+    engine_processing_versions
+SET
+    state = $2
+WHERE
+    type_id = $1
+`
+
+type ProcSaveStateParams struct {
+	TypeID EngineProcessingType
+	State  json.RawMessage
+}
+
+func (q *Queries) ProcSaveState(ctx context.Context, arg ProcSaveStateParams) error {
+	_, err := q.db.ExecContext(ctx, procSaveState, arg.TypeID, arg.State)
+	return err
+}
+
+const procSharedAdvisoryLock = `-- name: ProcSharedAdvisoryLock :one
+SELECT
+    pg_try_advisory_xact_lock_shared($1) AS lock_acquired
+`
+
+func (q *Queries) ProcSharedAdvisoryLock(ctx context.Context, pgTryAdvisoryXactLockShared int64) (bool, error) {
+	row := q.db.QueryRowContext(ctx, procSharedAdvisoryLock, pgTryAdvisoryXactLockShared)
+	var lock_acquired bool
+	err := row.Scan(&lock_acquired)
+	return lock_acquired, err
 }
 
 const requestAlertEscalationByTime = `-- name: RequestAlertEscalationByTime :one
@@ -3044,6 +3821,37 @@ func (q *Queries) ScheduleFindManyByUser(ctx context.Context, tgtUserID uuid.Nul
 	return items, nil
 }
 
+const sequenceNames = `-- name: SequenceNames :many
+SELECT sequence_name::text
+FROM information_schema.sequences
+WHERE sequence_catalog = current_database()
+    AND sequence_schema = 'public'
+    AND sequence_name != 'change_log_id_seq'
+`
+
+func (q *Queries) SequenceNames(ctx context.Context) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, sequenceNames)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var sequence_name string
+		if err := rows.Scan(&sequence_name); err != nil {
+			return nil, err
+		}
+		items = append(items, sequence_name)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const setAlertFeedback = `-- name: SetAlertFeedback :exec
 INSERT INTO alert_feedback(alert_id, noise_reason)
     VALUES ($1, $2)
@@ -3413,6 +4221,55 @@ type StatusMgrUpdateSubParams struct {
 func (q *Queries) StatusMgrUpdateSub(ctx context.Context, arg StatusMgrUpdateSubParams) error {
 	_, err := q.db.ExecContext(ctx, statusMgrUpdateSub, arg.ID, arg.LastAlertStatus)
 	return err
+}
+
+const tableColumns = `-- name: TableColumns :many
+SELECT col.table_name::text,
+    col.column_name::text,
+    col.data_type::text,
+    col.ordinal_position::INT
+FROM information_schema.columns col
+    JOIN information_schema.tables t ON t.table_catalog = col.table_catalog
+    AND t.table_schema = col.table_schema
+    AND t.table_name = col.table_name
+    AND t.table_type = 'BASE TABLE'
+WHERE col.table_catalog = current_database()
+    AND col.table_schema = 'public'
+`
+
+type TableColumnsRow struct {
+	ColTableName       string
+	ColColumnName      string
+	ColDataType        string
+	ColOrdinalPosition int32
+}
+
+func (q *Queries) TableColumns(ctx context.Context) ([]TableColumnsRow, error) {
+	rows, err := q.db.QueryContext(ctx, tableColumns)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TableColumnsRow
+	for rows.Next() {
+		var i TableColumnsRow
+		if err := rows.Scan(
+			&i.ColTableName,
+			&i.ColColumnName,
+			&i.ColDataType,
+			&i.ColOrdinalPosition,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateCalSub = `-- name: UpdateCalSub :exec
