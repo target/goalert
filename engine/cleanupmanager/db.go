@@ -91,9 +91,6 @@ func NewDB(ctx context.Context, db *sql.DB, alertstore *alert.Store) (*DB, error
 			select id from scope offset 99
 		`),
 
-		cleanupOverrides:   p.P(`DELETE FROM user_overrides WHERE id = ANY(SELECT id FROM user_overrides WHERE end_time < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)`),
-		cleanupSchedOnCall: p.P(`DELETE FROM schedule_on_call_users WHERE id = ANY(SELECT id FROM schedule_on_call_users WHERE end_time < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)`),
-		cleanupEPOnCall:    p.P(`DELETE FROM ep_step_on_call_users WHERE id = ANY(SELECT id FROM ep_step_on_call_users WHERE end_time < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)`),
 		staleAlerts: p.P(`
 			select id from alerts a
 	     		where

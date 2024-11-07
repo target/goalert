@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/pkg/errors"
+	"github.com/riverqueue/river"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/alert/alertmetrics"
@@ -126,6 +127,8 @@ type App struct {
 	NoticeStore   *notice.Store
 	AuthLinkStore *authlink.Store
 	APIKeyStore   *apikey.Store
+
+	River *river.Client[*sql.Tx]
 }
 
 // NewApp constructs a new App and binds the listening socket.

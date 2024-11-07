@@ -411,7 +411,7 @@ func (step migrationStep) applyNoTx(ctx context.Context, c *pgx.Conn) error {
 	for i, stmt := range step.statements {
 		_, err := c.Exec(ctx, stmt)
 		if err != nil {
-			return errors.Wrapf(err, "statement #%d", i+1)
+			return errors.Wrapf(err, "statement #%d\n%s", i+1, stmt)
 		}
 	}
 

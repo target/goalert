@@ -282,10 +282,13 @@ func (p *Engine) Shutdown(ctx context.Context) error {
 	return p.mgr.Shutdown(ctx)
 }
 
-func (p *Engine) _shutdown(ctx context.Context) error {
+func (p *Engine) _shutdown(ctx context.Context) (err error) {
 	close(p.shutdownCh)
+	if !p.cfg.DisableCycle {
+		err = p.cfg.River.Stop(ctx)
+	}
 	<-p.runLoopExit
-	return nil
+	return err
 }
 
 // SetSendResult will update the status of a message.
@@ -545,6 +548,8 @@ func (p *Engine) _run(ctx context.Context) error {
 			}
 		}
 	}
+
+	go p.cfg.River.Start(ctx)
 
 	dur := p.cfg.CycleTime
 	if dur == 0 {

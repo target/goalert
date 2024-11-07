@@ -1,8 +1,10 @@
 package engine
 
 import (
+	"database/sql"
 	"time"
 
+	"github.com/riverqueue/river"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/auth/authlink"
@@ -32,6 +34,7 @@ type Config struct {
 	AuthLinkStore       *authlink.Store
 	SlackStore          *slack.ChannelSender
 	DestRegistry        *nfydest.Registry
+	River               *river.Client[*sql.Tx]
 
 	ConfigSource config.Source
 
