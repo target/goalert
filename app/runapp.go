@@ -24,13 +24,6 @@ func (app *App) _Run(ctx context.Context) error {
 		}
 	}()
 
-	go func() {
-		err := app.RiverUI.Start(ctx)
-		if err != nil {
-			app.Logger.ErrorContext(ctx, "Failed to start River UI.", slog.Any("error", err))
-		}
-	}()
-
 	eventCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	eventDoneCh, err := app.listenEvents(eventCtx)

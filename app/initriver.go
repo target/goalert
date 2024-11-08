@@ -7,7 +7,6 @@ import (
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 	"github.com/riverqueue/river/rivertype"
-	"riverqueue.com/riverui"
 )
 
 type riverErrs struct {
@@ -52,20 +51,5 @@ func (app *App) initRiver(ctx context.Context) error {
 			Logger: app.Logger,
 		},
 	})
-	if err != nil {
-		return err
-	}
-
-	opts := &riverui.ServerOpts{
-		Prefix: "/admin/riverui",
-		DB:     app.pgx,
-		Client: app.River,
-		Logger: app.Logger,
-	}
-	app.RiverUI, err = riverui.NewServer(opts)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }

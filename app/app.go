@@ -57,7 +57,6 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
-	"riverqueue.com/riverui"
 )
 
 // App represents an instance of the GoAlert application.
@@ -136,7 +135,6 @@ type App struct {
 	AuthLinkStore *authlink.Store
 	APIKeyStore   *apikey.Store
 	River         *river.Client[pgx.Tx]
-	RiverUI       *riverui.Server
 }
 
 // NewApp constructs a new App and binds the listening socket.
