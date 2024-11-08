@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	stdlog "log"
+	"log/slog"
 	"net/http/httptest"
 	"net/smtp"
 	"net/url"
@@ -25,6 +26,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pkg/errors"
+	sloglogrus "github.com/samber/slog-logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/alert"
@@ -292,6 +294,9 @@ func (h *Harness) Start() {
 	appCfg := app.Defaults()
 	appCfg.ExpFlags = h.expFlags
 	appCfg.LegacyLogger = log.NewLogger()
+	appCfg.Logger = slog.New(sloglogrus.Option{
+		Logger: appCfg.LegacyLogger.Logrus(),
+	}.NewLogrusHandler())
 	appCfg.ListenAddr = "localhost:0"
 	appCfg.Verbose = true
 	appCfg.JSON = true

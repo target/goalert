@@ -133,6 +133,10 @@ type App struct {
 
 // NewApp constructs a new App and binds the listening socket.
 func NewApp(c Config, db *sql.DB) (*App, error) {
+	if c.Logger == nil {
+		return nil, errors.New("Logger is required")
+	}
+
 	var err error
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
 		// Should not be possible for the app to ever see `use_next_db` unless misconfigured.
