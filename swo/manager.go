@@ -2,7 +2,6 @@ package swo
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -21,11 +20,10 @@ import (
 
 // A Manager is responsible for managing the switchover process.
 type Manager struct {
-	// sql.DB instance safe for the application to use (instrumented for safe SWO operation)
-	dbApp  *sql.DB
 	dbMain *pgxpool.Pool
 	dbNext *pgxpool.Pool
 
+	// sql.DB instance safe for the application to use (instrumented for safe SWO operation)
 	dbPgxApp *pgxpool.Pool
 
 	pauseResume lifecycle.PauseResumer
@@ -90,19 +88,11 @@ func NewManager(cfg Config) (*Manager, error) {
 	if err != nil {
 		return nil, fmt.Errorf("connect to old db: %w", err)
 	}
-	mainAppDBC, err := sqldrv.NewConnector(appMainURL)
-	if err != nil {
-		return nil, fmt.Errorf("connect to old db: %w", err)
-	}
 	nextURL, err := sqldrv.AppURL(cfg.NewDBURL, appStr(ConnTypeNextMgr))
 	if err != nil {
 		return nil, fmt.Errorf("connect to new db: %w", err)
 	}
 	nextPool, err := pgxpool.New(context.Background(), nextURL)
-	if err != nil {
-		return nil, fmt.Errorf("connect to new db: %w", err)
-	}
-	nextAppDBC, err := sqldrv.NewConnector(appNextURL)
 	if err != nil {
 		return nil, fmt.Errorf("connect to new db: %w", err)
 	}
@@ -114,7 +104,6 @@ func NewManager(cfg Config) (*Manager, error) {
 
 	m := &Manager{
 		Config:   cfg,
-		dbApp:    sql.OpenDB(NewConnector(mainAppDBC, nextAppDBC)),
 		dbMain:   mainPool,
 		dbNext:   nextPool,
 		dbPgxApp: appPgx,
@@ -257,10 +246,7 @@ func (m *Manager) Reset(ctx context.Context) error {
 // StartExecute will trigger the switchover to begin.
 func (m *Manager) StartExecute(ctx context.Context) error { return m.taskMgr.Execute(ctx) }
 
-// DB returns a sql.DB that will always return safe connections to be used during the switchover.
+// Pool returns a pgxpool.Pool that will always return safe connections to be used during the switchover.
 //
-// All application code/queries should use this DB.
-func (m *Manager) DB() *sql.DB { return m.dbApp }
-
-// DBPgx returns a pgxpool.Pool that will always return safe connections to be used during the switchover.
-func (m *Manager) DBPgx() *pgxpool.Pool { return m.dbPgxApp }
+// All application code/queries should use this.
+func (m *Manager) Pool() *pgxpool.Pool { return m.dbPgxApp }

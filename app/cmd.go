@@ -141,8 +141,7 @@ Available Flags:
 			return err
 		}
 
-		var db *sql.DB
-		var pgx *pgxpool.Pool
+		var pool *pgxpool.Pool
 		if cfg.DBURLNext != "" {
 			err = doMigrations(cfg.DBURLNext)
 			if err != nil {
@@ -153,25 +152,20 @@ Available Flags:
 			if err != nil {
 				return errors.Wrap(err, "init switchover handler")
 			}
-			db = mgr.DB()
-			pgx = mgr.DBPgx()
+			pool = mgr.Pool()
 			cfg.SWO = mgr
 		} else {
 			appURL, err := sqldrv.AppURL(cfg.DBURL, fmt.Sprintf("GoAlert %s", version.GitVersion()))
 			if err != nil {
 				return errors.Wrap(err, "connect to postgres")
 			}
-			db, err = sqldrv.NewDB(appURL)
-			if err != nil {
-				return errors.Wrap(err, "connect to postgres")
-			}
-			pgx, err = pgxpool.New(context.Background(), appURL)
+			pool, err = pgxpool.New(context.Background(), appURL)
 			if err != nil {
 				return errors.Wrap(err, "connect to postgres")
 			}
 		}
 
-		app, err := NewApp(cfg, db, pgx)
+		app, err := NewApp(cfg, pool)
 		if err != nil {
 			return errors.Wrap(err, "init app")
 		}
