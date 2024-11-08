@@ -317,6 +317,7 @@ func (h *Harness) Start() {
 	if err != nil {
 		h.t.Fatalf("failed to parse db url: %v", err)
 	}
+	poolCfg.MaxConns = 5
 
 	h.appPool, err = pgxpool.NewWithConfig(ctx, poolCfg)
 	require.NoError(h.t, err, "create pgx pool")
