@@ -10,8 +10,8 @@ import (
 )
 
 // NewDB is a convenience function for creating a *sql.DB from a DB URL and application_name.
-func NewDB(urlStr, appName string) (*sql.DB, error) {
-	c, err := NewConnector(urlStr, appName)
+func NewDB(urlStr string) (*sql.DB, error) {
+	c, err := NewConnector(urlStr)
 	if err != nil {
 		return nil, err
 	}
@@ -32,11 +32,6 @@ func AppURL(urlStr, appName string) (string, error) {
 }
 
 // NewConnector will create a new driver.Connector with retry enabled and the provided application_name.
-func NewConnector(urlStr, appName string) (driver.Connector, error) {
-	urlStr, err := AppURL(urlStr, appName)
-	if err != nil {
-		return nil, err
-	}
-
+func NewConnector(urlStr string) (driver.Connector, error) {
 	return NewRetryDriver(&stdlib.Driver{}, 10).OpenConnector(urlStr)
 }

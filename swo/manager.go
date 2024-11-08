@@ -26,6 +26,8 @@ type Manager struct {
 	dbMain *pgxpool.Pool
 	dbNext *pgxpool.Pool
 
+	dbPgxApp *pgxpool.Pool
+
 	pauseResume lifecycle.PauseResumer
 
 	Config
@@ -71,6 +73,15 @@ func NewManager(cfg Config) (*Manager, error) {
 		}.String()
 	}
 
+	appMainURL, err := sqldrv.AppURL(cfg.OldDBURL, appStr(ConnTypeMainApp))
+	if err != nil {
+		return nil, fmt.Errorf("connect to old db: %w", err)
+	}
+	appNextURL, err := sqldrv.AppURL(cfg.NewDBURL, appStr(ConnTypeNextApp))
+	if err != nil {
+		return nil, fmt.Errorf("connect to new db: %w", err)
+	}
+
 	mainURL, err := sqldrv.AppURL(cfg.OldDBURL, appStr(ConnTypeMainMgr))
 	if err != nil {
 		return nil, fmt.Errorf("connect to old db: %w", err)
@@ -79,7 +90,7 @@ func NewManager(cfg Config) (*Manager, error) {
 	if err != nil {
 		return nil, fmt.Errorf("connect to old db: %w", err)
 	}
-	mainAppDBC, err := sqldrv.NewConnector(cfg.OldDBURL, appStr(ConnTypeMainApp))
+	mainAppDBC, err := sqldrv.NewConnector(appMainURL)
 	if err != nil {
 		return nil, fmt.Errorf("connect to old db: %w", err)
 	}
@@ -91,16 +102,22 @@ func NewManager(cfg Config) (*Manager, error) {
 	if err != nil {
 		return nil, fmt.Errorf("connect to new db: %w", err)
 	}
-	nextAppDBC, err := sqldrv.NewConnector(cfg.NewDBURL, appStr(ConnTypeNextApp))
+	nextAppDBC, err := sqldrv.NewConnector(appNextURL)
 	if err != nil {
 		return nil, fmt.Errorf("connect to new db: %w", err)
 	}
 
+	appPgx, err := NewAppPGXPool(appMainURL, appNextURL)
+	if err != nil {
+		return nil, fmt.Errorf("create pool: %w", err)
+	}
+
 	m := &Manager{
-		Config: cfg,
-		dbApp:  sql.OpenDB(NewConnector(mainAppDBC, nextAppDBC)),
-		dbMain: mainPool,
-		dbNext: nextPool,
+		Config:   cfg,
+		dbApp:    sql.OpenDB(NewConnector(mainAppDBC, nextAppDBC)),
+		dbMain:   mainPool,
+		dbNext:   nextPool,
+		dbPgxApp: appPgx,
 	}
 
 	ctx := cfg.Logger.BackgroundContext()
@@ -244,3 +261,6 @@ func (m *Manager) StartExecute(ctx context.Context) error { return m.taskMgr.Exe
 //
 // All application code/queries should use this DB.
 func (m *Manager) DB() *sql.DB { return m.dbApp }
+
+// DBPgx returns a pgxpool.Pool that will always return safe connections to be used during the switchover.
+func (m *Manager) DBPgx() *pgxpool.Pool { return m.dbPgxApp }

@@ -7,6 +7,7 @@ sql:
       - migrate/migrations/20220808103727-switchover-mk2.sql
     queries:
       - swo/*/queries.sql
+      - swo/queries.sql
     engine: postgresql
     gen:
       go:
