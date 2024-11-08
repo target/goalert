@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -28,10 +27,6 @@ func NewAppPGXPool(oldURL, nextURL string) (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("parse next URL: %w", err)
 	}
 	sqldrv.SetConfigRetries(nextCfg)
-
-	// speed up cleanup
-	cfg.HealthCheckPeriod = 100 * time.Millisecond
-	cfg.MaxConnIdleTime = time.Second
 
 	var mx sync.Mutex
 	var isDone bool
