@@ -34,6 +34,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.20.5
 	github.com/riverqueue/river v0.14.1
+	github.com/riverqueue/river/cmd/river v0.14.1
 	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.14.1
 	github.com/riverqueue/river/rivertype v0.14.1
 	github.com/samber/slog-logrus v1.0.0
@@ -103,6 +104,7 @@ require (
 	github.com/jhump/protoreflect v1.17.0 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
+	github.com/lmittmann/tint v1.0.4 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

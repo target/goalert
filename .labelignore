@@ -2,4 +2,3 @@
 go.mod
 go.sum
 .yarn/releases/*
-migrate/migrations/*-import-*.sql

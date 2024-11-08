@@ -241,6 +241,8 @@ github.com/lib/pq v1.2.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
 github.com/lib/pq v1.10.2/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
 github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=
 github.com/lib/pq v1.10.9/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
+github.com/lmittmann/tint v1.0.4 h1:LeYihpJ9hyGvE0w+K2okPTGUdVLfng1+nDNVR4vWISc=
+github.com/lmittmann/tint v1.0.4/go.mod h1:HIS3gSy7qNwGCj+5oRjAutErFBl4BzdQP6cJZ0NfMwE=
 github.com/magiconair/properties v1.8.7 h1:IeQXZAiQcpL9mgcAe1Nu6cX9LLw6ExEHKjN0VQdvPDY=
 github.com/magiconair/properties v1.8.7/go.mod h1:Dhd985XPs7jluiymwWYZ0G4Z61jb3vdS329zhj2hYo0=
 github.com/matcornic/hermes/v2 v2.1.0 h1:9TDYFBPFv6mcXanaDmRDEp/RTWj0dTTi+LpFnnnfNWc=
@@ -301,6 +303,8 @@ github.com/prometheus/procfs v0.15.1 h1:YagwOFzUgYfKKHX6Dr+sHT7km/hxC76UB0leargg
 github.com/prometheus/procfs v0.15.1/go.mod h1:fB45yRUv8NstnjriLhBQLuOUt+WW4BsoGhij/e3PBqk=
 github.com/riverqueue/river v0.14.1 h1:t9DIYRcjyRH5hMJx/ecB7TTOySIg+CKWAinB1wOXPFU=
 github.com/riverqueue/river v0.14.1/go.mod h1:3cQREff7+iGZC+u2lire03SOxUmT41bjzpqZWAWPXtk=
+github.com/riverqueue/river/cmd/river v0.14.1 h1:zDVMYEfkhYE7PgWSzuOdH21VmWQGawSR51DBdblgOWc=
+github.com/riverqueue/river/cmd/river v0.14.1/go.mod h1:iNvBeW3rtGUxv1Fs9sF/cnJZZdVRvbHMXtRwamcrzg8=
 github.com/riverqueue/river/riverdriver v0.14.1 h1:gf8s2v97DKY12i7nvXqBM/ljHOGbkW2dLVmHvxyyegA=
 github.com/riverqueue/river/riverdriver v0.14.1/go.mod h1:bJDNRwDNiCyXv3ZEfOGUvGBEo6C3fNnPc4VQRF1P+Ys=
 github.com/riverqueue/river/riverdriver/riverdatabasesql v0.14.1 h1:HE8NK0JQ+GpFsZaJZKSxmWeb15WsfUaAzpNx/eDXbvc=
