@@ -8,3 +8,7 @@ FROM
     LOCK,
     switchover_state;
 
+-- name: SWOConnUnlockAll :exec
+SELECT
+    pg_advisory_unlock_all();
+

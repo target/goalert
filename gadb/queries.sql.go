@@ -3380,6 +3380,16 @@ func (q *Queries) SWOConnLock(ctx context.Context) (bool, error) {
 	return column_1, err
 }
 
+const sWOConnUnlockAll = `-- name: SWOConnUnlockAll :exec
+SELECT
+    pg_advisory_unlock_all()
+`
+
+func (q *Queries) SWOConnUnlockAll(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, sWOConnUnlockAll)
+	return err
+}
+
 const schedMgrDataForUpdate = `-- name: SchedMgrDataForUpdate :many
 SELECT
     schedule_id,

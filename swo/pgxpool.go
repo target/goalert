@@ -65,5 +65,10 @@ func NewAppPGXPool(oldURL, nextURL string) (*pgxpool.Pool, error) {
 		return false
 	}
 
+	cfg.AfterRelease = func(conn *pgx.Conn) bool {
+		err := swodb.New(conn).SWOConnUnlockAll(context.Background())
+		return err == nil
+	}
+
 	return pgxpool.NewWithConfig(context.Background(), cfg)
 }

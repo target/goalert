@@ -206,6 +206,16 @@ func (q *Queries) SWOConnLock(ctx context.Context) (bool, error) {
 	return column_1, err
 }
 
+const sWOConnUnlockAll = `-- name: SWOConnUnlockAll :exec
+SELECT
+    pg_advisory_unlock_all()
+`
+
+func (q *Queries) SWOConnUnlockAll(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, sWOConnUnlockAll)
+	return err
+}
+
 const sequenceNames = `-- name: SequenceNames :many
 SELECT sequence_name::text
 FROM information_schema.sequences
