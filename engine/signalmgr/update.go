@@ -6,9 +6,12 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 )
+
+var _ processinglock.Updatable = &DB{}
 
 func (db *DB) UpdateAll(ctx context.Context) error {
 	err := permission.LimitCheckAny(ctx, permission.System)

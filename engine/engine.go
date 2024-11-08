@@ -33,11 +33,6 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 )
 
-type updater interface {
-	Name() string
-	UpdateAll(context.Context) error
-}
-
 // Engine handles automatic escalation of unacknowledged(triggered) alerts, as well as
 // passing to-be-sent notifications to the notification.Sender.
 //
@@ -53,7 +48,7 @@ type Engine struct {
 	triggerCh   chan struct{}
 	runLoopExit chan struct{}
 
-	modules []updater
+	modules []processinglock.Module
 	msg     *message.DB
 
 	a   *alert.Store
@@ -137,7 +132,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 		return nil, errors.Wrap(err, "compatibility backend")
 	}
 
-	p.modules = []updater{
+	p.modules = []processinglock.Module{
 		compatMgr,
 		rotMgr,
 		schedMgr,
@@ -168,6 +163,21 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 		return nil, errors.Wrap(err, "init backend")
 	}
 
+	args := processinglock.SetupArgs{
+		DB:           db,
+		River:        c.River,
+		Workers:      c.RiverWorkers,
+		ConfigSource: c.ConfigSource,
+	}
+	for _, m := range p.modules {
+		if s, ok := m.(processinglock.Setupable); ok {
+			err = s.Setup(ctx, args)
+			if err != nil {
+				return nil, errors.Wrap(err, "setup module")
+			}
+		}
+	}
+
 	return p, nil
 }
 
@@ -178,7 +188,7 @@ func (p *Engine) AuthLinkURL(ctx context.Context, providerID, subjectID string, 
 	return url, err
 }
 
-func (p *Engine) processModule(ctx context.Context, m updater) {
+func (p *Engine) processModule(ctx context.Context, m processinglock.Updatable) {
 	defer recoverPanic(ctx, m.Name())
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
@@ -454,8 +464,13 @@ func (p *Engine) processAll(ctx context.Context) bool {
 			return true
 		}
 
+		up, ok := m.(processinglock.Updatable)
+		if !ok {
+			continue
+		}
+
 		start := time.Now()
-		p.processModule(ctx, m)
+		p.processModule(ctx, up)
 		metricModuleDuration.WithLabelValues(m.Name()).Observe(time.Since(start).Seconds())
 	}
 	return false

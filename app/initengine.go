@@ -53,6 +53,7 @@ func (app *App) initEngine(ctx context.Context) error {
 		DisableCycle: app.cfg.APIOnly,
 		LogCycles:    app.cfg.LogEngine,
 		River:        app.River,
+		RiverWorkers: app.RiverWorkers,
 	})
 	if err != nil {
 		return errors.Wrap(err, "init engine")

@@ -39,12 +39,12 @@ func (r *riverErrs) HandlePanic(ctx context.Context, job *rivertype.JobRow, pani
 }
 
 func (app *App) initRiver(ctx context.Context) error {
-	w := river.NewWorkers()
+	app.RiverWorkers = river.NewWorkers()
 
 	var err error
 	app.River, err = river.NewClient(riverpgxv5.New(app.pgx), &river.Config{
 		Logger:  app.Logger,
-		Workers: w,
+		Workers: app.RiverWorkers,
 		Queues: map[string]river.QueueConfig{
 			river.QueueDefault: {MaxWorkers: 100},
 		},

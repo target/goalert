@@ -137,6 +137,7 @@ type App struct {
 	APIKeyStore   *apikey.Store
 	River         *river.Client[pgx.Tx]
 	RiverUI       *riverui.Server
+	RiverWorkers  *river.Workers
 }
 
 // NewApp constructs a new App and binds the listening socket.
