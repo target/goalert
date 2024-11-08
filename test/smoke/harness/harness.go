@@ -23,6 +23,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -316,7 +317,14 @@ func (h *Harness) Start() {
 		h.t.Fatalf("failed to parse db url: %v", err)
 	}
 
-	h.backend, err = app.NewApp(appCfg, stdlib.OpenDB(*dbCfg))
+	pool, err := pgxpool.NewWithConfig(ctx, &pgxpool.Config{
+		ConnConfig: dbCfg,
+	})
+	if err != nil {
+		h.t.Fatalf("failed to create pgx pool: %v", err)
+	}
+
+	h.backend, err = app.NewApp(appCfg, stdlib.OpenDB(*dbCfg), pool)
 	if err != nil {
 		h.t.Fatalf("failed to start backend: %v", err)
 	}
