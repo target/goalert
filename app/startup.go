@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/target/goalert/app/lifecycle"
@@ -10,7 +10,6 @@ import (
 	"github.com/target/goalert/notification/email"
 	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/retry"
-	"github.com/target/goalert/util/log"
 
 	"github.com/pkg/errors"
 )
@@ -29,22 +28,25 @@ func (app *App) initStartup(ctx context.Context, label string, fn func(context.C
 func (app *App) startup(ctx context.Context) error {
 	for _, f := range app.cfg.ExpFlags {
 		if expflag.Description(f) == "" {
-			log.Log(log.WithField(ctx, "flag", f), fmt.Errorf("unknown experimental flag"))
+			app.Logger.WarnContext(ctx, "Unknown experimental flag.", slog.String("flag", string(f)))
 		} else {
-			log.Logf(log.WithField(ctx, "flag", f), "Experimental flag enabled: %s", expflag.Description(f))
+			app.Logger.InfoContext(ctx, "Experimental flag enabled.",
+				slog.String("flag", string(f)),
+				slog.String("description", expflag.Description(f)),
+			)
 		}
 	}
 
 	app.initStartup(ctx, "Startup.TestDBConn", func(ctx context.Context) error {
 		err := app.db.PingContext(ctx)
-		if err == nil {
+		if err == nil { // success
 			return nil
 		}
 
 		t := time.NewTicker(time.Second)
 		defer t.Stop()
 		for retry.IsTemporaryError(err) {
-			log.Log(ctx, err)
+			app.Logger.WarnContext(ctx, "Failed to connect to database, will retry.", slog.Any("error", err))
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
@@ -108,7 +110,7 @@ func (app *App) startup(ctx context.Context) error {
 
 	if app.cfg.SWO != nil {
 		app.cfg.SWO.SetPauseResumer(app)
-		log.Logf(app.LogBackgroundContext(), "SWO Enabled.")
+		app.Logger.InfoContext(ctx, "SWO Enabled.")
 	}
 
 	return nil

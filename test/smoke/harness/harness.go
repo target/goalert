@@ -291,7 +291,7 @@ func (h *Harness) Start() {
 
 	appCfg := app.Defaults()
 	appCfg.ExpFlags = h.expFlags
-	appCfg.Logger = log.NewLogger()
+	appCfg.LegacyLogger = log.NewLogger()
 	appCfg.ListenAddr = "localhost:0"
 	appCfg.Verbose = true
 	appCfg.JSON = true
@@ -306,8 +306,8 @@ func (h *Harness) Start() {
 	r, w := io.Pipe()
 	h.backendLogs = w
 
-	appCfg.Logger.EnableJSON()
-	appCfg.Logger.SetOutput(w)
+	appCfg.LegacyLogger.EnableJSON()
+	appCfg.LegacyLogger.SetOutput(w)
 
 	go h.watchBackendLogs(r)
 

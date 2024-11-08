@@ -34,6 +34,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.20.5
 	github.com/rubenv/sql-migrate v1.7.0
+	github.com/samber/slog-logrus v1.0.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/slack-go/slack v0.15.0
 	github.com/spf13/cobra v1.8.1
@@ -112,6 +113,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.6.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
+	github.com/samber/lo v1.38.1 // indirect
 	github.com/sosodev/duration v1.3.1 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect

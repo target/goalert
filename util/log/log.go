@@ -27,6 +27,8 @@ type Logger struct {
 	errHooks []func(context.Context, error) context.Context
 }
 
+func (l *Logger) Logrus() *logrus.Logger { return l.l }
+
 func NewLogger() *Logger {
 	l := logrus.New()
 

@@ -2,19 +2,18 @@ package smtpsrv
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"log/slog"
 	"net"
 	"strings"
 	"time"
 
 	"github.com/emersion/go-smtp"
-	"github.com/target/goalert/util/log"
 )
 
 // SMTPLogger implements the smtp.Logger interface using the main app Logger.
 type SMTPLogger struct {
-	logger *log.Logger
+	logger *slog.Logger
 }
 
 // Printf adheres to smtp.Server's Logger interface.
@@ -25,7 +24,7 @@ func (l *SMTPLogger) Printf(format string, v ...interface{}) {
 	if strings.Contains(s, "read: connection reset by peer") {
 		return
 	}
-	l.logger.Error(context.Background(), errors.New(s))
+	l.logger.Error("SMTP error.", slog.String("error", s))
 }
 
 // Print adheres to smtp.Server's Logger interface.
@@ -36,7 +35,7 @@ func (l *SMTPLogger) Println(v ...interface{}) {
 	if strings.Contains(s, "read: connection reset by peer") {
 		return
 	}
-	l.logger.Error(context.Background(), errors.New(s))
+	l.logger.Error("SMTP error.", slog.String("error", s))
 }
 
 // Server implements an SMTP server that creates alerts.

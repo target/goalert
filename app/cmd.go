@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/pelletier/go-toml/v2"
 	"github.com/pkg/errors"
+	sloglogrus "github.com/samber/slog-logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/target/goalert/auth/basic"
@@ -147,7 +149,7 @@ Available Flags:
 				return errors.Wrap(err, "nextdb")
 			}
 
-			mgr, err := swo.NewManager(swo.Config{OldDBURL: cfg.DBURL, NewDBURL: cfg.DBURLNext, CanExec: !cfg.APIOnly, Logger: cfg.Logger})
+			mgr, err := swo.NewManager(swo.Config{OldDBURL: cfg.DBURL, NewDBURL: cfg.DBURLNext, CanExec: !cfg.APIOnly, Logger: cfg.LegacyLogger})
 			if err != nil {
 				return errors.Wrap(err, "init switchover handler")
 			}
@@ -613,7 +615,7 @@ Migration: %s (#%d)
 // getConfig will load the current configuration from viper
 func getConfig(ctx context.Context) (Config, error) {
 	cfg := Config{
-		Logger: log.FromContext(ctx),
+		LegacyLogger: log.FromContext(ctx),
 
 		JSON:        viper.GetBool("json"),
 		LogRequests: viper.GetBool("log-requests"),
@@ -667,6 +669,17 @@ func getConfig(ctx context.Context) (Config, error) {
 
 		UIDir: viper.GetString("ui-dir"),
 	}
+
+	opts := sloglogrus.Option{
+		Level:  slog.LevelInfo,
+		Logger: cfg.LegacyLogger.Logrus(),
+	}
+	if viper.GetBool("log-errors-only") {
+		opts.Level = slog.LevelError
+	} else if cfg.Verbose {
+		opts.Level = slog.LevelDebug
+	}
+	cfg.Logger = slog.New(opts.NewLogrusHandler())
 
 	var fs expflag.FlagSet
 	strict := viper.GetBool("strict-experimental")
