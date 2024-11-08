@@ -7,7 +7,6 @@ import (
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 	"github.com/riverqueue/river/rivertype"
-	"github.com/target/goalert/util/log"
 	"riverqueue.com/riverui"
 )
 
@@ -44,7 +43,7 @@ func (app *App) initRiver(ctx context.Context) error {
 
 	var err error
 	app.River, err = river.NewClient(riverpgxv5.New(app.pgx), &river.Config{
-		Logger:  log.NewSlog(app.cfg.Logger),
+		Logger:  app.Logger,
 		Workers: w,
 		Queues: map[string]river.QueueConfig{
 			river.QueueDefault: {MaxWorkers: 100},
@@ -61,7 +60,7 @@ func (app *App) initRiver(ctx context.Context) error {
 		Prefix: "/admin/riverui",
 		DB:     app.pgx,
 		Client: app.River,
-		Logger: log.NewSlog(app.cfg.Logger),
+		Logger: app.Logger,
 	}
 	app.RiverUI, err = riverui.NewServer(opts)
 	if err != nil {
