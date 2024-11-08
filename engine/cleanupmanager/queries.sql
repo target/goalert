@@ -37,3 +37,19 @@ WHERE id = ANY (
         FOR UPDATE
             SKIP LOCKED);
 
+-- name: CleanMgrTrimClosedAlerts :execrows
+DELETE FROM alerts
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            alerts
+        WHERE
+            status = 'closed'
+            AND created_at < $1::timestamptz
+        ORDER BY
+            id
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED);
+

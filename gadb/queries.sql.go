@@ -850,6 +850,31 @@ func (q *Queries) CalSubUserNames(ctx context.Context, dollar_1 []uuid.UUID) ([]
 	return items, nil
 }
 
+const cleanMgrTrimClosedAlerts = `-- name: CleanMgrTrimClosedAlerts :execrows
+DELETE FROM alerts
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            alerts
+        WHERE
+            status = 'closed'
+            AND created_at < $1::timestamptz
+        ORDER BY
+            id
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+func (q *Queries) CleanMgrTrimClosedAlerts(ctx context.Context, dollar_1 time.Time) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanMgrTrimClosedAlerts, dollar_1)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const cleanMgrTrimEPOnCall = `-- name: CleanMgrTrimEPOnCall :execrows
 DELETE FROM ep_step_on_call_users
 WHERE id = ANY (
