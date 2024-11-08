@@ -49,13 +49,13 @@ func Do(fn func(attempt int) (shouldRetry bool, err error), opts ...Option) erro
 	}
 }
 
-// Log will log all errors between retries returned from the DoFunc. The final error, if any, is not logged.
+// Log will log all errors between retries returned from the DoFunc at Debug level. The final error, if any, is not logged.
 func Log(ctx context.Context) Option {
 	return func(a int, err error) bool {
 		if a == 0 || err == nil {
 			return true
 		}
-		log.Log(log.WithField(ctx, "RetryAttempt", a-1), errors.Wrap(err, "will retry"))
+		log.Debug(log.WithField(ctx, "RetryAttempt", a-1), errors.Wrap(err, "will retry"))
 		return true
 	}
 }
