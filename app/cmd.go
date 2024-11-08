@@ -159,7 +159,14 @@ Available Flags:
 			if err != nil {
 				return errors.Wrap(err, "connect to postgres")
 			}
-			pool, err = pgxpool.New(context.Background(), appURL)
+
+			cfg, err := pgxpool.ParseConfig(appURL)
+			if err != nil {
+				return errors.Wrap(err, "parse db URL")
+			}
+			sqldrv.SetConfigRetries(cfg)
+
+			pool, err = pgxpool.NewWithConfig(context.Background(), cfg)
 			if err != nil {
 				return errors.Wrap(err, "connect to postgres")
 			}

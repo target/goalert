@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/target/goalert/swo/swodb"
+	"github.com/target/goalert/util/sqldrv"
 )
 
 // NewAppPGXPool returns a pgxpool.Pool that will use the old database until the
@@ -21,10 +22,12 @@ func NewAppPGXPool(oldURL, nextURL string) (*pgxpool.Pool, error) {
 	if err != nil {
 		return nil, fmt.Errorf("parse old URL: %w", err)
 	}
+	sqldrv.SetConfigRetries(cfg)
 	nextCfg, err := pgxpool.ParseConfig(nextURL)
 	if err != nil {
 		return nil, fmt.Errorf("parse next URL: %w", err)
 	}
+	sqldrv.SetConfigRetries(nextCfg)
 
 	// speed up cleanup
 	cfg.HealthCheckPeriod = 100 * time.Millisecond
