@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/pkg/errors"
 	sloglogrus "github.com/samber/slog-logrus"
@@ -142,7 +143,7 @@ Available Flags:
 			return err
 		}
 
-		var db *sql.DB
+		var pool *pgxpool.Pool
 		if cfg.DBURLNext != "" {
 			err = doMigrations(cfg.DBURLNext)
 			if err != nil {
@@ -153,16 +154,27 @@ Available Flags:
 			if err != nil {
 				return errors.Wrap(err, "init switchover handler")
 			}
-			db = mgr.DB()
+			pool = mgr.Pool()
 			cfg.SWO = mgr
 		} else {
-			db, err = sqldrv.NewDB(cfg.DBURL, fmt.Sprintf("GoAlert %s", version.GitVersion()))
+			appURL, err := sqldrv.AppURL(cfg.DBURL, fmt.Sprintf("GoAlert %s", version.GitVersion()))
+			if err != nil {
+				return errors.Wrap(err, "connect to postgres")
+			}
+
+			cfg, err := pgxpool.ParseConfig(appURL)
+			if err != nil {
+				return errors.Wrap(err, "parse db URL")
+			}
+			sqldrv.SetConfigRetries(cfg)
+
+			pool, err = pgxpool.NewWithConfig(context.Background(), cfg)
 			if err != nil {
 				return errors.Wrap(err, "connect to postgres")
 			}
 		}
 
-		app, err := NewApp(cfg, db)
+		app, err := NewApp(cfg, pool)
 		if err != nil {
 			return errors.Wrap(err, "init app")
 		}

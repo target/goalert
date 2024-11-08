@@ -24,7 +24,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
 	sloglogrus "github.com/samber/slog-logrus"
 	"github.com/stretchr/testify/assert"
@@ -77,6 +77,8 @@ type Harness struct {
 	phoneCCG, uuidG, emailG *DataGen
 	t                       *testing.T
 	closing                 bool
+
+	appPool *pgxpool.Pool
 
 	msgSvcID string
 	expFlags expflag.FlagSet
@@ -316,12 +318,16 @@ func (h *Harness) Start() {
 
 	go h.watchBackendLogs(r)
 
-	dbCfg, err := pgx.ParseConfig(h.dbURL)
+	poolCfg, err := pgxpool.ParseConfig(h.dbURL)
 	if err != nil {
 		h.t.Fatalf("failed to parse db url: %v", err)
 	}
+	poolCfg.MaxConns = 5
 
-	h.backend, err = app.NewApp(appCfg, stdlib.OpenDB(*dbCfg))
+	h.appPool, err = pgxpool.NewWithConfig(ctx, poolCfg)
+	require.NoError(h.t, err, "create pgx pool")
+
+	h.backend, err = app.NewApp(appCfg, h.appPool)
 	if err != nil {
 		h.t.Fatalf("failed to start backend: %v", err)
 	}
@@ -622,6 +628,8 @@ func (h *Harness) Close() error {
 	h.tw.Close()
 
 	h.pgTime.Close()
+
+	h.appPool.Close()
 
 	conn, err := pgx.Connect(ctx, DBURL(""))
 	if err != nil {

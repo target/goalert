@@ -9,6 +9,8 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
@@ -64,6 +66,7 @@ type App struct {
 	mgr *lifecycle.Manager
 
 	db     *sql.DB
+	pgx    *pgxpool.Pool
 	l      net.Listener
 	events *sqlutil.Listener
 
@@ -132,12 +135,13 @@ type App struct {
 }
 
 // NewApp constructs a new App and binds the listening socket.
-func NewApp(c Config, db *sql.DB) (*App, error) {
+func NewApp(c Config, pool *pgxpool.Pool) (*App, error) {
 	if c.Logger == nil {
 		return nil, errors.New("Logger is required")
 	}
 
 	var err error
+	db := stdlib.OpenDBFromPool(pool)
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
 		// Should not be possible for the app to ever see `use_next_db` unless misconfigured.
 		//
@@ -185,6 +189,7 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 	app := &App{
 		l:      l,
 		db:     db,
+		pgx:    pool,
 		cfg:    c,
 		doneCh: make(chan struct{}),
 		Logger: c.Logger,
