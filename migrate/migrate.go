@@ -1,6 +1,7 @@
 package migrate
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"embed"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/pkg/errors"
-	"github.com/rubenv/sql-migrate/sqlparse"
 	"github.com/target/goalert/lock"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
@@ -64,6 +64,7 @@ func migrationName(file string) string {
 	file = strings.TrimSuffix(file, ".sql")
 	return file
 }
+
 func migrationID(name string) (int, string) {
 	for i, id := range migrationIDs() {
 		if migrationName(id) == name {
@@ -124,8 +125,8 @@ func getConn(ctx context.Context, url string) (*pgx.Conn, error) {
 	}
 
 	return conn, nil
-
 }
+
 func aquireLock(ctx context.Context, conn *pgx.Conn) error {
 	for {
 		_, err := conn.Exec(ctx, `select pg_advisory_lock($1)`, lock.GlobalMigrate)
@@ -313,14 +314,14 @@ func readMigration(id string) ([]byte, error) {
 func DumpMigrations(dest string) error {
 	for _, id := range migrationIDs() {
 		fullPath := filepath.Join(dest, "migrations", id)
-		if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(fullPath), 0o755); err != nil {
 			return err
 		}
 		data, err := readMigration(id)
 		if err != nil {
 			return err
 		}
-		err = os.WriteFile(fullPath, data, 0644)
+		err = os.WriteFile(fullPath, data, 0o644)
 		if err != nil {
 			return errors.Wrapf(err, "write to %s", fullPath)
 		}
@@ -352,17 +353,41 @@ func parseMigrations() ([]migration, error) {
 		if err != nil {
 			return nil, err
 		}
-		p, err := sqlparse.ParseMigration(bytes.NewReader(data))
-		if err != nil {
-			return nil, errors.Wrapf(err, "parse %s", m.ID)
+
+		var up, down strings.Builder
+		var isUp, isDown bool
+
+		r := bufio.NewScanner(bytes.NewReader(data))
+		for r.Scan() {
+			line := r.Text()
+			if strings.HasPrefix(line, "-- +migrate Up") {
+				isUp = true
+				isDown = false
+				m.Up.disableTx = strings.Contains(line, "notransaction")
+				continue
+			}
+			if strings.HasPrefix(line, "-- +migrate Down") {
+				isUp = false
+				isDown = true
+				m.Down.disableTx = strings.Contains(line, "notransaction")
+				continue
+			}
+			switch {
+			case isUp:
+				up.WriteString(line)
+				up.WriteString("\n")
+			case isDown:
+				down.WriteString(line)
+				down.WriteString("\n")
+			}
+			// ignore other lines
 		}
-		m.Up.statements = p.UpStatements
-		m.Up.disableTx = p.DisableTransactionUp
+
+		m.Up.statements = sqlutil.SplitQuery(up.String())
 		m.Up.isUp = true
 		m.Up.migration = &m
 
-		m.Down.statements = p.DownStatements
-		m.Down.disableTx = p.DisableTransactionDown
+		m.Down.statements = sqlutil.SplitQuery(down.String())
 		m.Down.migration = &m
 
 		migrations = append(migrations, m)
@@ -381,11 +406,12 @@ func (step migrationStep) doneStmt() string {
 	}
 	return deleteMigrationRecord
 }
+
 func (step migrationStep) applyNoTx(ctx context.Context, c *pgx.Conn) error {
 	for i, stmt := range step.statements {
 		_, err := c.Exec(ctx, stmt)
 		if err != nil {
-			return errors.Wrapf(err, "statement #%d", i+1)
+			return errors.Wrapf(err, "statement #%d\n%s", i+1, stmt)
 		}
 	}
 
