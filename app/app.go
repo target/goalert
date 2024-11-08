@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 
@@ -57,6 +58,8 @@ import (
 // App represents an instance of the GoAlert application.
 type App struct {
 	cfg Config
+
+	Logger *slog.Logger
 
 	mgr *lifecycle.Manager
 
@@ -130,6 +133,10 @@ type App struct {
 
 // NewApp constructs a new App and binds the listening socket.
 func NewApp(c Config, db *sql.DB) (*App, error) {
+	if c.Logger == nil {
+		return nil, errors.New("Logger is required")
+	}
+
 	var err error
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
 		// Should not be possible for the app to ever see `use_next_db` unless misconfigured.
@@ -164,10 +171,10 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 		if err != nil {
 			return nil, errors.Wrapf(err, "listen %s", c.TLSListenAddr)
 		}
-		l = newMultiListener(c.Logger, l, l2)
+		l = newMultiListener(l, l2)
 	}
 
-	c.Logger.AddErrorMapper(func(ctx context.Context, err error) context.Context {
+	c.LegacyLogger.AddErrorMapper(func(ctx context.Context, err error) context.Context {
 		if e := sqlutil.MapError(err); e != nil && e.Detail != "" {
 			ctx = log.WithField(ctx, "SQLErrDetails", e.Detail)
 		}
@@ -180,6 +187,7 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 		db:     db,
 		cfg:    c,
 		doneCh: make(chan struct{}),
+		Logger: c.Logger,
 	}
 
 	if c.StatusAddr != "" {
