@@ -5798,12 +5798,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/types@npm:8.3.6":
-  version: 8.3.6
-  resolution: "@storybook/types@npm:8.3.6"
+"@storybook/types@npm:8.4.2":
+  version: 8.4.2
+  resolution: "@storybook/types@npm:8.4.2"
   peerDependencies:
-    storybook: ^8.3.6
-  checksum: 10/7122388d848cf1d8b7d95c81b8a601d82a455d764f7a625372f344dc0402bbd398db22e1c6cedd66ca3987d61b0f8204ff757e0ff5fc2a77745094dc7b882a2a
+    storybook: ^8.2.0 || ^8.3.0-0 || ^8.4.0-0 || ^8.5.0-0 || ^8.6.0-0
+  checksum: 10/2fb61f73bafb55e19c65f903dd87ac01281d0214c7938a90fc925a9ace327e4e566784b641a3dcf6f2975c904f9cd97d1d70403d421396b1398346e29a0624dd
   languageName: node
   linkType: hard
 
@@ -18141,7 +18141,7 @@ __metadata:
     "@storybook/react-vite": "npm:8.3.3"
     "@storybook/test": "npm:8.3.3"
     "@storybook/test-runner": "npm:0.19.1"
-    "@storybook/types": "npm:8.3.6"
+    "@storybook/types": "npm:8.4.2"
     "@types/chance": "npm:1.1.6"
     "@types/diff": "npm:5.2.2"
     "@types/glob": "npm:8.1.0"
