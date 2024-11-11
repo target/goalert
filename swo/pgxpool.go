@@ -16,17 +16,22 @@ import (
 //
 // Until the switchover is complete, the old database will be protected with a
 // shared advisory lock (4369).
-func NewAppPGXPool(oldURL, nextURL string) (*pgxpool.Pool, error) {
+func NewAppPGXPool(oldURL, nextURL string, maxOpen, maxIdle int) (*pgxpool.Pool, error) {
 	cfg, err := pgxpool.ParseConfig(oldURL)
 	if err != nil {
 		return nil, fmt.Errorf("parse old URL: %w", err)
 	}
 	sqldrv.SetConfigRetries(cfg)
+	cfg.MaxConns = int32(maxOpen)
+	cfg.MinConns = int32(maxIdle)
+
 	nextCfg, err := pgxpool.ParseConfig(nextURL)
 	if err != nil {
 		return nil, fmt.Errorf("parse next URL: %w", err)
 	}
 	sqldrv.SetConfigRetries(nextCfg)
+	nextCfg.MaxConns = int32(maxOpen)
+	nextCfg.MinConns = int32(maxIdle)
 
 	var mx sync.Mutex
 	var isDone bool
