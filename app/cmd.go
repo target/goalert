@@ -145,6 +145,11 @@ Available Flags:
 
 		var pool *pgxpool.Pool
 		if cfg.DBURLNext != "" {
+			err = migrate.VerifyIsLatest(ctx, cfg.DBURL)
+			if err != nil {
+				return errors.Wrap(err, "verify db")
+			}
+
 			err = doMigrations(cfg.DBURLNext)
 			if err != nil {
 				return errors.Wrap(err, "nextdb")
