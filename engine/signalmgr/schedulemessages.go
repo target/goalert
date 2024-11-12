@@ -30,16 +30,17 @@ func (db *DB) scheduleMessages(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("get scheduled signals: %w", err)
 		}
-		counts := make(map[dest]struct{}, len(res))
+		alreadyScheduled := make(map[dest]struct{}, len(res))
 		for _, r := range res {
-			counts[dest{ServiceID: r.ServiceID.UUID, ChannelID: r.ChannelID.UUID}] = struct{}{}
+			alreadyScheduled[dest{ServiceID: r.ServiceID.UUID, ChannelID: r.ChannelID.UUID}] = struct{}{}
 		}
 
 		for _, m := range messages {
-			if _, ok := counts[dest{ServiceID: m.ServiceID, ChannelID: m.DestID}]; ok {
+			if _, ok := alreadyScheduled[dest{ServiceID: m.ServiceID, ChannelID: m.DestID}]; ok {
 				// Only allow one message per destination, per service, to be scheduled at a time.
 				continue
 			}
+			alreadyScheduled[dest{ServiceID: m.ServiceID, ChannelID: m.DestID}] = struct{}{}
 			id := uuid.New()
 			err = q.SignalMgrInsertMessage(ctx, gadb.SignalMgrInsertMessageParams{
 				ID:        id,
