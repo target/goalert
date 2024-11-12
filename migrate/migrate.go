@@ -39,6 +39,15 @@ func migrationIDs() []string {
 	return ids
 }
 
+// LatestID will return the ID of the latest migration.
+func LatestID() string {
+	ids := migrationIDs()
+	if len(ids) == 0 {
+		return ""
+	}
+	return ids[len(ids)-1]
+}
+
 // Names will return all AssetNames without the timestamps and extensions
 func Names() []string {
 	uniq := make(map[string]struct{})
@@ -72,6 +81,29 @@ func migrationID(name string) (int, string) {
 		}
 	}
 	return -1, ""
+}
+
+// VerifyIsLatest will verify the latest migration is the same as the latest available migration.
+//
+// This ensures the DB isn't newer than the currently running code.
+func VerifyIsLatest(ctx context.Context, url string) error {
+	conn, err := getConn(ctx, url)
+	if err != nil {
+		return err
+	}
+	defer conn.Close(ctx)
+
+	var dbLatest string
+	err = conn.QueryRow(ctx, `select id from gorp_migrations order by id desc limit 1`).Scan(&dbLatest)
+	if err != nil {
+		return fmt.Errorf("read latest migration from DB: %w", err)
+	}
+
+	if dbLatest != LatestID() {
+		return errors.Errorf("latest migration in DB is '%s' but expected '%s'; local GoAlert version is likely older than the DB's latest migration (not allowed in SWO-mode)", dbLatest, LatestID())
+	}
+
+	return nil
 }
 
 // VerifyAll will verify all migrations have already been applied.

@@ -207,9 +207,6 @@ func NewApp(c Config, pool *pgxpool.Pool) (*App, error) {
 		}
 	}
 
-	app.db.SetMaxIdleConns(c.DBMaxIdle)
-	app.db.SetMaxOpenConns(c.DBMaxOpen)
-
 	app.mgr = lifecycle.NewManager(app._Run, app._Shutdown)
 	err = app.mgr.SetStartupFunc(app.startup)
 	if err != nil {

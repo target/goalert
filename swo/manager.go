@@ -57,6 +57,9 @@ type Config struct {
 	OldDBURL, NewDBURL string
 	CanExec            bool
 	Logger             *log.Logger
+
+	MaxOpen int
+	MaxIdle int
 }
 
 // NewManager will create a new Manager with the given configuration.
@@ -97,7 +100,7 @@ func NewManager(cfg Config) (*Manager, error) {
 		return nil, fmt.Errorf("connect to new db: %w", err)
 	}
 
-	appPgx, err := NewAppPGXPool(appMainURL, appNextURL)
+	appPgx, err := NewAppPGXPool(appMainURL, appNextURL, cfg.MaxOpen, cfg.MaxIdle)
 	if err != nil {
 		return nil, fmt.Errorf("create pool: %w", err)
 	}
