@@ -28,13 +28,14 @@ export class Entity {
   private setStringField(fieldName: string, value: string): void {
     this.gql.query(
       `mutation SetField($id: ID!, $value: String!){${updateMutName(this.typeName)}(input: {id: $id, ${fieldName}: $value})}`,
-      { id: this.id, value: value },
+      { id: this.id, value },
     )
   }
 
   public get name(): string {
     return this.base.name
   }
+
   public set name(value: string) {
     this.setStringField('name', value)
   }
@@ -42,6 +43,7 @@ export class Entity {
   public get description(): string {
     return this.base.description
   }
+
   public set description(value: string) {
     this.setStringField('description', value)
   }
@@ -49,10 +51,11 @@ export class Entity {
   public get isFavorite(): boolean {
     return this.base.isFavorite
   }
+
   public set isFavorite(value: boolean) {
     this.gql.query(
       `mutation SetIsFavorite($tgt: TargetInput!, $value: Boolean!){setFavorite(input: {target: $tgt, isFavorite: $value})}`,
-      { tgt: { id: this.id, type: this.typeName }, value: value },
+      { tgt: { id: this.id, type: this.typeName }, value },
     )
   }
 }

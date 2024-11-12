@@ -1,4 +1,3 @@
-import { check } from 'k6'
 import http from 'k6/http'
 
 const TEST_USER = 'admin'
@@ -10,7 +9,7 @@ export function login(
   user = TEST_USER,
   pass = TEST_PASS,
 ): string {
-  let res = http.post(
+  const res = http.post(
     host + '/api/v2/identity/providers/basic?noRedirect=1',
     {
       username: user,

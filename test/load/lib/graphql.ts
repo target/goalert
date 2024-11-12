@@ -7,8 +7,10 @@ export class GraphQL {
     public host: string = 'http://localhost:3030',
   ) {}
 
+  // We use any here since we don't have an automated way to type GraphQL queries yet. Types are introduced on the method level.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   query(query: string, variables: Record<string, unknown> = {}): any {
-    let res = http.post(
+    const res = http.post(
       this.host + '/api/graphql',
       JSON.stringify({ query, variables }),
       {

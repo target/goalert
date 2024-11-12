@@ -11,7 +11,7 @@ function pickOne<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)]
 }
 
-export default function () {
+export default function (): void {
   const token = login()
   const gql = new GraphQL(token)
 
