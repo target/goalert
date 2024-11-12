@@ -564,7 +564,12 @@ func (p *Engine) _run(ctx context.Context) error {
 		}
 	}
 
-	go p.cfg.River.Start(ctx)
+	go func() {
+		err := p.cfg.River.Start(ctx)
+		if err != nil {
+			log.Log(ctx, errors.Wrap(err, "start river"))
+		}
+	}()
 
 	dur := p.cfg.CycleTime
 	if dur == 0 {

@@ -74,7 +74,7 @@ export type NavBarLinkProps = {
   icon: JSX.Element
   title: string
   to: string
-  children?: JSX.Element[] | JSX.Element
+  children?: React.ReactNode[] | React.ReactNode
 }
 
 export default function NavBarLink({
