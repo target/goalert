@@ -12,7 +12,7 @@ import (
 )
 
 func (db *DB) scheduleMessages(ctx context.Context, serviceID uuid.NullUUID) error {
-	var hadWork, didWork bool
+	var didWork bool
 	err := db.lock.WithTx(ctx, func(ctx context.Context, tx *sql.Tx) error {
 		q := gadb.New(tx)
 
@@ -61,22 +61,18 @@ func (db *DB) scheduleMessages(ctx context.Context, serviceID uuid.NullUUID) err
 			}
 		}
 
-		// We want to keep checking for work until we've processed everything,
-		// even if we're waiting because there are already messages scheduled.
-		hadWork = len(messages) > 0
-
 		return nil
 	})
 	if err != nil {
 		return err
 	}
 
-	if serviceID.Valid && hadWork {
-		// for per-service/on-demand updates, we can wait a bit longer before trying again
-		return river.JobSnooze(5 * time.Second)
+	if serviceID.Valid {
+		// only try once for per-service/on-demand updates
+		return nil
 	}
 
-	if !serviceID.Valid && didWork {
+	if didWork {
 		// for global update, we want to keep checking for work until nothing is left.
 		return river.JobSnooze(time.Second)
 	}

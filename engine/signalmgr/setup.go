@@ -11,19 +11,24 @@ import (
 	"github.com/target/goalert/gadb"
 )
 
-const QueueName string = "engine-signal-mgr"
+const (
+	QueueName               = "engine-signal-mgr"
+	PriorityScheduleAll     = 2
+	PriorityMaintCleanup    = 3
+	PriorityScheduleService = 4
+)
 
 var _ processinglock.Setupable = &DB{}
 
 type MaintArgs struct{}
 
-func (MaintArgs) Kind() string { return "signal-mgr-maint" }
+func (MaintArgs) Kind() string { return "signal-manager-cleanup" }
 
 type SchedMsgsArgs struct {
 	ServiceID uuid.NullUUID
 }
 
-func (SchedMsgsArgs) Kind() string { return "signal-mgr-sched-msgs" }
+func (SchedMsgsArgs) Kind() string { return "signal-manager-schedule-outgoing-messages" }
 
 func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 	river.AddWorker(args.Workers, river.WorkFunc(func(ctx context.Context, j *river.Job[MaintArgs]) error {
@@ -46,7 +51,8 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 		river.PeriodicInterval(time.Hour),
 		func() (river.JobArgs, *river.InsertOpts) {
 			return MaintArgs{}, &river.InsertOpts{
-				Queue: QueueName,
+				Queue:    QueueName,
+				Priority: PriorityMaintCleanup,
 			}
 		},
 		&river.PeriodicJobOpts{RunOnStart: true},
@@ -55,7 +61,8 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 		river.PeriodicInterval(time.Minute),
 		func() (river.JobArgs, *river.InsertOpts) {
 			return SchedMsgsArgs{}, &river.InsertOpts{
-				Queue: QueueName,
+				Queue:    QueueName,
+				Priority: PriorityScheduleAll,
 			}
 		},
 		&river.PeriodicJobOpts{RunOnStart: true},

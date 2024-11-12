@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/expr-lang/expr/vm"
 	"github.com/google/uuid"
@@ -99,24 +98,9 @@ func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1, _param
 
 	if didInsertSignals {
 		// schedule job
-
-		res, err := h.r.Insert(ctx, signalmgr.SchedMsgsArgs{
-			ServiceID: permission.ServiceNullUUID(ctx),
-		}, &river.InsertOpts{
-			Queue:       signalmgr.QueueName,
-			ScheduledAt: time.Now().Add(time.Second),
-			UniqueOpts: river.UniqueOpts{
-				ByArgs: true,
-			},
-		})
+		err := signalmgr.TriggerService(ctx, h.r, permission.ServiceNullUUID(ctx).UUID)
 		if err != nil {
 			return fmt.Errorf("schedule signal message: %w", err)
-		}
-		if res.UniqueSkippedAsDuplicate {
-			_, err = h.r.JobRetry(ctx, res.Job.ID)
-			if err != nil {
-				return fmt.Errorf("retry job: %w", err)
-			}
 		}
 	}
 
