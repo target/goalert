@@ -65,6 +65,9 @@ release: container-demo container-goalert bin/goalert-linux-amd64.tgz bin/goaler
 Makefile.binaries.mk: devtools/genmake/*
 	go run ./devtools/genmake >$@
 
+$(BIN_DIR)/tools/k6: k6.version
+	go run ./devtools/gettool -t k6 -v $(shell cat k6.version) -o $@
+
 $(BIN_DIR)/tools/protoc: protoc.version
 	go run ./devtools/gettool -t protoc -v $(shell cat protoc.version) -o $@
 

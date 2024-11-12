@@ -1,0 +1,9 @@
+#!/bin/sh
+set -e
+
+SCRIPT_DIR=$(dirname $0)
+
+(cd "$SCRIPT_DIR/../.." && make bin/tools/k6)
+
+# experimental_enhanced is required so we can write our tests in TypeScript
+exec "$SCRIPT_DIR/../../bin/tools/k6" run --compatibility-mode=experimental_enhanced $@
