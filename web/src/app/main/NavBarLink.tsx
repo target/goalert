@@ -10,6 +10,7 @@ import { styles } from '../styles/materialStyles'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Collapse, Theme } from '@mui/material'
 import AppLink from '../util/AppLink'
+import { OpenInNew } from '@mui/icons-material'
 
 const useStyles = makeStyles((theme: Theme) => {
   const { nav, navSelected } = styles(theme)
@@ -42,14 +43,28 @@ const useStyles = makeStyles((theme: Theme) => {
 export type NavBarSubLinkProps = {
   to: string
   title: string
+  newTab?: boolean
 }
-export function NavBarSubLink({ to, title }: NavBarSubLinkProps): JSX.Element {
+export function NavBarSubLink({
+  to,
+  title,
+  newTab,
+}: NavBarSubLinkProps): JSX.Element {
   const { navSelected, nav, subMenuLinkText } = useStyles()
   const [path] = useLocation()
   return (
-    <AppLink className={path.startsWith(to) ? navSelected : nav} to={to}>
+    <AppLink
+      className={path.startsWith(to) ? navSelected : nav}
+      to={to}
+      newTab={newTab}
+    >
       <ListItem button tabIndex={-1}>
-        <ListItemText className={subMenuLinkText}>{title}</ListItemText>
+        <ListItemText className={subMenuLinkText}>
+          {title}
+          {newTab && (
+            <OpenInNew fontSize='small' style={{ paddingLeft: '1em' }} />
+          )}
+        </ListItemText>
       </ListItem>
     </AppLink>
   )
@@ -59,7 +74,7 @@ export type NavBarLinkProps = {
   icon: JSX.Element
   title: string
   to: string
-  children?: JSX.Element[] | JSX.Element
+  children?: React.ReactNode[] | React.ReactNode
 }
 
 export default function NavBarLink({

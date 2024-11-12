@@ -3,6 +3,8 @@ package engine
 import (
 	"time"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/riverqueue/river"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/auth/authlink"
@@ -32,6 +34,7 @@ type Config struct {
 	AuthLinkStore       *authlink.Store
 	SlackStore          *slack.ChannelSender
 	DestRegistry        *nfydest.Registry
+	River               *river.Client[pgx.Tx]
 
 	ConfigSource config.Source
 
