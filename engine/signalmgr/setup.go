@@ -21,23 +21,17 @@ type SchedMsgsArgs struct{}
 func (SchedMsgsArgs) Kind() string { return "signal-mgr-sched-msgs" }
 
 func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
-	err := river.AddWorkerSafely(args.Workers, river.WorkFunc(func(ctx context.Context, j *river.Job[MaintArgs]) error {
+	river.AddWorker(args.Workers, river.WorkFunc(func(ctx context.Context, j *river.Job[MaintArgs]) error {
 		return db.lock.WithTx(ctx, func(ctx context.Context, tx *sql.Tx) error {
 			return gadb.New(tx).SignalMgrDeleteStale(ctx)
 		})
 	}))
-	if err != nil {
-		return err
-	}
 
-	err = river.AddWorkerSafely(args.Workers, river.WorkFunc(func(ctx context.Context, j *river.Job[SchedMsgsArgs]) error {
+	river.AddWorker(args.Workers, river.WorkFunc(func(ctx context.Context, j *river.Job[SchedMsgsArgs]) error {
 		return db.scheduleMessages(ctx)
 	}))
-	if err != nil {
-		return err
-	}
 
-	err = args.River.Queues().Add("engine-signal-mgr", river.QueueConfig{MaxWorkers: 1})
+	err := args.River.Queues().Add("engine-signal-mgr", river.QueueConfig{MaxWorkers: 1})
 	if err != nil {
 		return err
 	}

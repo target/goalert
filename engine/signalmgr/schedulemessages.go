@@ -16,31 +16,52 @@ func (db *DB) scheduleMessages(ctx context.Context) error {
 	err := db.lock.WithTx(ctx, func(ctx context.Context, tx *sql.Tx) error {
 		q := gadb.New(tx)
 
-		work, err := q.SignalMgrGetPending(ctx)
+		messages, err := q.SignalMgrGetPending(ctx)
 		if err != nil {
 			return fmt.Errorf("get pending signals: %w", err)
 		}
 
-		for _, w := range work {
+		type dest struct {
+			ServiceID uuid.UUID
+			ChannelID uuid.UUID
+		}
+
+		res, err := q.SignalMgrGetScheduled(ctx)
+		if err != nil {
+			return fmt.Errorf("get scheduled signals: %w", err)
+		}
+		counts := make(map[dest]struct{}, len(res))
+		for _, r := range res {
+			counts[dest{ServiceID: r.ServiceID.UUID, ChannelID: r.ChannelID.UUID}] = struct{}{}
+		}
+
+		for _, m := range messages {
+			if _, ok := counts[dest{ServiceID: m.ServiceID, ChannelID: m.DestID}]; ok {
+				// Only allow one message per destination, per service, to be scheduled at a time.
+				continue
+			}
 			id := uuid.New()
 			err = q.SignalMgrInsertMessage(ctx, gadb.SignalMgrInsertMessageParams{
 				ID:        id,
-				ServiceID: uuid.NullUUID{Valid: true, UUID: w.ServiceID},
-				ChannelID: uuid.NullUUID{Valid: true, UUID: w.DestID},
+				ServiceID: uuid.NullUUID{Valid: true, UUID: m.ServiceID},
+				ChannelID: uuid.NullUUID{Valid: true, UUID: m.DestID},
 			})
 			if err != nil {
 				return fmt.Errorf("insert message: %w", err)
 			}
 
 			err = q.SignalMgrUpdateSignal(ctx, gadb.SignalMgrUpdateSignalParams{
-				ID:        w.ID,
+				ID:        m.ID,
 				MessageID: uuid.NullUUID{Valid: true, UUID: id},
 			})
 			if err != nil {
 				return fmt.Errorf("update signal: %w", err)
 			}
 		}
-		hadWork = len(work) > 0
+
+		// We want to keep checking for work until we've processed everything,
+		// even if we're waiting because there are already messages scheduled.
+		hadWork = len(messages) > 0
 
 		return nil
 	})

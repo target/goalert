@@ -3996,6 +3996,50 @@ func (q *Queries) SignalMgrGetPending(ctx context.Context) ([]SignalMgrGetPendin
 	return items, nil
 }
 
+const signalMgrGetScheduled = `-- name: SignalMgrGetScheduled :many
+SELECT
+    count(*),
+    service_id,
+    channel_id
+FROM
+    outgoing_messages
+WHERE
+    message_type = 'signal_message'
+    AND last_status = 'pending'
+GROUP BY
+    service_id,
+    channel_id
+`
+
+type SignalMgrGetScheduledRow struct {
+	Count     int64
+	ServiceID uuid.NullUUID
+	ChannelID uuid.NullUUID
+}
+
+func (q *Queries) SignalMgrGetScheduled(ctx context.Context) ([]SignalMgrGetScheduledRow, error) {
+	rows, err := q.db.QueryContext(ctx, signalMgrGetScheduled)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SignalMgrGetScheduledRow
+	for rows.Next() {
+		var i SignalMgrGetScheduledRow
+		if err := rows.Scan(&i.Count, &i.ServiceID, &i.ChannelID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const signalMgrInsertMessage = `-- name: SignalMgrInsertMessage :exec
 INSERT INTO outgoing_messages(id, message_type, service_id, channel_id)
     VALUES ($1, 'signal_message', $2, $3)
