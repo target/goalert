@@ -3961,6 +3961,8 @@ FROM
     pending_signals
 WHERE
     message_id IS NULL
+    AND ($1::uuid IS NULL
+        OR service_id = $1)
 FOR UPDATE
     SKIP LOCKED
 LIMIT 100
@@ -3973,8 +3975,8 @@ type SignalMgrGetPendingRow struct {
 }
 
 // Get a batch of pending signals to process.
-func (q *Queries) SignalMgrGetPending(ctx context.Context) ([]SignalMgrGetPendingRow, error) {
-	rows, err := q.db.QueryContext(ctx, signalMgrGetPending)
+func (q *Queries) SignalMgrGetPending(ctx context.Context, serviceID uuid.NullUUID) ([]SignalMgrGetPendingRow, error) {
+	rows, err := q.db.QueryContext(ctx, signalMgrGetPending, serviceID)
 	if err != nil {
 		return nil, err
 	}
@@ -4006,6 +4008,8 @@ FROM
 WHERE
     message_type = 'signal_message'
     AND last_status = 'pending'
+    AND ($1::uuid IS NULL
+        OR service_id = $1)
 GROUP BY
     service_id,
     channel_id
@@ -4017,8 +4021,8 @@ type SignalMgrGetScheduledRow struct {
 	ChannelID uuid.NullUUID
 }
 
-func (q *Queries) SignalMgrGetScheduled(ctx context.Context) ([]SignalMgrGetScheduledRow, error) {
-	rows, err := q.db.QueryContext(ctx, signalMgrGetScheduled)
+func (q *Queries) SignalMgrGetScheduled(ctx context.Context, serviceID uuid.NullUUID) ([]SignalMgrGetScheduledRow, error) {
+	rows, err := q.db.QueryContext(ctx, signalMgrGetScheduled, serviceID)
 	if err != nil {
 		return nil, err
 	}

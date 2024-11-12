@@ -99,15 +99,24 @@ func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1, _param
 
 	if didInsertSignals {
 		// schedule job
-		_, err := h.r.Insert(ctx, signalmgr.SchedMsgsArgs{}, &river.InsertOpts{
+
+		res, err := h.r.Insert(ctx, signalmgr.SchedMsgsArgs{
+			ServiceID: permission.ServiceNullUUID(ctx),
+		}, &river.InsertOpts{
 			Queue:       signalmgr.QueueName,
 			ScheduledAt: time.Now().Add(time.Second),
 			UniqueOpts: river.UniqueOpts{
-				ByPeriod: time.Second,
+				ByArgs: true,
 			},
 		})
 		if err != nil {
 			return fmt.Errorf("schedule signal message: %w", err)
+		}
+		if res.UniqueSkippedAsDuplicate {
+			_, err = h.r.JobRetry(ctx, res.Job.ID)
+			if err != nil {
+				return fmt.Errorf("retry job: %w", err)
+			}
 		}
 	}
 

@@ -11,12 +11,12 @@ import (
 	"github.com/target/goalert/gadb"
 )
 
-func (db *DB) scheduleMessages(ctx context.Context) error {
-	var hadWork bool
+func (db *DB) scheduleMessages(ctx context.Context, serviceID uuid.NullUUID) error {
+	var hadWork, didWork bool
 	err := db.lock.WithTx(ctx, func(ctx context.Context, tx *sql.Tx) error {
 		q := gadb.New(tx)
 
-		messages, err := q.SignalMgrGetPending(ctx)
+		messages, err := q.SignalMgrGetPending(ctx, serviceID)
 		if err != nil {
 			return fmt.Errorf("get pending signals: %w", err)
 		}
@@ -26,7 +26,7 @@ func (db *DB) scheduleMessages(ctx context.Context) error {
 			ChannelID uuid.UUID
 		}
 
-		res, err := q.SignalMgrGetScheduled(ctx)
+		res, err := q.SignalMgrGetScheduled(ctx, serviceID)
 		if err != nil {
 			return fmt.Errorf("get scheduled signals: %w", err)
 		}
@@ -40,6 +40,7 @@ func (db *DB) scheduleMessages(ctx context.Context) error {
 				// Only allow one message per destination, per service, to be scheduled at a time.
 				continue
 			}
+			didWork = true
 			alreadyScheduled[dest{ServiceID: m.ServiceID, ChannelID: m.DestID}] = struct{}{}
 			id := uuid.New()
 			err = q.SignalMgrInsertMessage(ctx, gadb.SignalMgrInsertMessageParams{
@@ -70,8 +71,13 @@ func (db *DB) scheduleMessages(ctx context.Context) error {
 		return err
 	}
 
-	if hadWork {
-		// reschedule to finish processing
+	if serviceID.Valid && hadWork {
+		// for per-service/on-demand updates, we can wait a bit longer before trying again
+		return river.JobSnooze(5 * time.Second)
+	}
+
+	if !serviceID.Valid && didWork {
+		// for global update, we want to keep checking for work until nothing is left.
 		return river.JobSnooze(time.Second)
 	}
 

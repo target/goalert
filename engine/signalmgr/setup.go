@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/riverqueue/river"
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/gadb"
@@ -18,7 +19,9 @@ type MaintArgs struct{}
 
 func (MaintArgs) Kind() string { return "signal-mgr-maint" }
 
-type SchedMsgsArgs struct{}
+type SchedMsgsArgs struct {
+	ServiceID uuid.NullUUID
+}
 
 func (SchedMsgsArgs) Kind() string { return "signal-mgr-sched-msgs" }
 
@@ -30,7 +33,7 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 	}))
 
 	river.AddWorker(args.Workers, river.WorkFunc(func(ctx context.Context, j *river.Job[SchedMsgsArgs]) error {
-		return db.scheduleMessages(ctx)
+		return db.scheduleMessages(ctx, j.Args.ServiceID)
 	}))
 
 	err := args.River.Queues().Add(QueueName, river.QueueConfig{MaxWorkers: 1})

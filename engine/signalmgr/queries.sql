@@ -8,6 +8,8 @@ FROM
     pending_signals
 WHERE
     message_id IS NULL
+    AND (sqlc.narg(service_id)::uuid IS NULL
+        OR service_id = @service_id)
 FOR UPDATE
     SKIP LOCKED
 LIMIT 100;
@@ -42,6 +44,8 @@ FROM
 WHERE
     message_type = 'signal_message'
     AND last_status = 'pending'
+    AND (sqlc.narg(service_id)::uuid IS NULL
+        OR service_id = @service_id)
 GROUP BY
     service_id,
     channel_id;
