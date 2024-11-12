@@ -10,6 +10,8 @@ import (
 	"github.com/target/goalert/gadb"
 )
 
+const QueueName string = "engine-signal-mgr"
+
 var _ processinglock.Setupable = &DB{}
 
 type MaintArgs struct{}
@@ -31,7 +33,7 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 		return db.scheduleMessages(ctx)
 	}))
 
-	err := args.River.Queues().Add("engine-signal-mgr", river.QueueConfig{MaxWorkers: 1})
+	err := args.River.Queues().Add(QueueName, river.QueueConfig{MaxWorkers: 1})
 	if err != nil {
 		return err
 	}
@@ -41,7 +43,7 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 		river.PeriodicInterval(time.Hour),
 		func() (river.JobArgs, *river.InsertOpts) {
 			return MaintArgs{}, &river.InsertOpts{
-				Queue: "engine-signal-mgr",
+				Queue: QueueName,
 			}
 		},
 		&river.PeriodicJobOpts{RunOnStart: true},
@@ -50,7 +52,7 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 		river.PeriodicInterval(time.Minute),
 		func() (river.JobArgs, *river.InsertOpts) {
 			return SchedMsgsArgs{}, &river.InsertOpts{
-				Queue: "engine-signal-mgr",
+				Queue: QueueName,
 			}
 		},
 		&river.PeriodicJobOpts{RunOnStart: true},

@@ -100,7 +100,7 @@ func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1, _param
 	if didInsertSignals {
 		// schedule job
 		_, err := h.r.Insert(ctx, signalmgr.SchedMsgsArgs{}, &river.InsertOpts{
-			Queue:       "engine-signal-mgr",
+			Queue:       signalmgr.QueueName,
 			ScheduledAt: time.Now().Add(time.Second),
 			UniqueOpts: river.UniqueOpts{
 				ByPeriod: time.Second,
