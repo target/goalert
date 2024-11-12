@@ -294,9 +294,9 @@ func (p *Engine) Shutdown(ctx context.Context) error {
 
 func (p *Engine) _shutdown(ctx context.Context) (err error) {
 	close(p.shutdownCh)
-	// if !p.cfg.DisableCycle {
-	// 	err = p.cfg.River.Stop(ctx)
-	// }
+	if !p.cfg.DisableCycle {
+		err = p.cfg.River.Stop(ctx)
+	}
 	<-p.runLoopExit
 	return err
 }
@@ -564,13 +564,12 @@ func (p *Engine) _run(ctx context.Context) error {
 		}
 	}
 
-	// Disabled until we have our first worker (next PR)
-	// go func() {
-	// 	err := p.cfg.River.Start(ctx)
-	// 	if err != nil {
-	// 		log.Log(ctx, errors.Wrap(err, "start river"))
-	// 	}
-	// }()
+	go func() {
+		err := p.cfg.River.Start(ctx)
+		if err != nil {
+			log.Log(ctx, errors.Wrap(err, "start river"))
+		}
+	}()
 
 	dur := p.cfg.CycleTime
 	if dur == 0 {
