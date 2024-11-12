@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"path"
 	"runtime"
+	"strings"
 )
 
 func getK6(version, output string) error {
@@ -18,6 +19,7 @@ func getK6(version, output string) error {
 	osName := runtime.GOOS
 	if osName == "darwin" {
 		osName = "macos"
+		ext = "zip"
 	}
 
 	url := fmt.Sprintf("https://github.com/grafana/k6/releases/download/v%s/k6-v%s-%s-%s.%s",
@@ -34,7 +36,11 @@ func getK6(version, output string) error {
 		if err != nil {
 			return fmt.Errorf("open zip: %w", err)
 		}
-		err = extractFromZip(z, fmt.Sprintf("%s/k6.exe", path.Base(url)), output, true)
+		name := strings.TrimSuffix(path.Base(url), ".zip") + "/k6"
+		if runtime.GOOS == "windows" {
+			name += ".exe"
+		}
+		err = extractFromZip(z, name, output, true)
 		if err != nil {
 			return fmt.Errorf("extract: %w", err)
 		}
