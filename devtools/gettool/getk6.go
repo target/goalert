@@ -15,8 +15,13 @@ func getK6(version, output string) error {
 		ext = "zip"
 	}
 
+	osName := runtime.GOOS
+	if osName == "darwin" {
+		osName = "macos"
+	}
+
 	url := fmt.Sprintf("https://github.com/grafana/k6/releases/download/v%s/k6-v%s-%s-%s.%s",
-		version, version, runtime.GOOS, runtime.GOARCH, ext,
+		version, version, osName, runtime.GOARCH, ext,
 	)
 	fd, n, err := fetchFile(url)
 	if err != nil {
