@@ -44,9 +44,6 @@ ALTER TABLE river_leader
 -- River migration 004 [down]
 ALTER TABLE river_job ALTER COLUMN args DROP NOT NULL;
 
-ALTER TABLE river_job ALTER COLUMN metadata DROP NOT NULL;
-ALTER TABLE river_job ALTER COLUMN metadata DROP DEFAULT;
-
 -- It is not possible to safely remove 'pending' from the river_job_state enum,
 -- so leave it in place.
 

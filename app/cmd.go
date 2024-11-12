@@ -145,12 +145,24 @@ Available Flags:
 
 		var pool *pgxpool.Pool
 		if cfg.DBURLNext != "" {
+			err = migrate.VerifyIsLatest(ctx, cfg.DBURL)
+			if err != nil {
+				return errors.Wrap(err, "verify db")
+			}
+
 			err = doMigrations(cfg.DBURLNext)
 			if err != nil {
 				return errors.Wrap(err, "nextdb")
 			}
 
-			mgr, err := swo.NewManager(swo.Config{OldDBURL: cfg.DBURL, NewDBURL: cfg.DBURLNext, CanExec: !cfg.APIOnly, Logger: cfg.LegacyLogger})
+			mgr, err := swo.NewManager(swo.Config{
+				OldDBURL: cfg.DBURL,
+				NewDBURL: cfg.DBURLNext,
+				CanExec:  !cfg.APIOnly,
+				Logger:   cfg.LegacyLogger,
+				MaxOpen:  cfg.DBMaxOpen,
+				MaxIdle:  cfg.DBMaxIdle,
+			})
 			if err != nil {
 				return errors.Wrap(err, "init switchover handler")
 			}
@@ -162,13 +174,15 @@ Available Flags:
 				return errors.Wrap(err, "connect to postgres")
 			}
 
-			cfg, err := pgxpool.ParseConfig(appURL)
+			poolCfg, err := pgxpool.ParseConfig(appURL)
 			if err != nil {
 				return errors.Wrap(err, "parse db URL")
 			}
-			sqldrv.SetConfigRetries(cfg)
+			poolCfg.MaxConns = int32(cfg.DBMaxOpen)
+			poolCfg.MinConns = int32(cfg.DBMaxIdle)
+			sqldrv.SetConfigRetries(poolCfg)
 
-			pool, err = pgxpool.NewWithConfig(context.Background(), cfg)
+			pool, err = pgxpool.NewWithConfig(context.Background(), poolCfg)
 			if err != nil {
 				return errors.Wrap(err, "connect to postgres")
 			}
