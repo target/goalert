@@ -54,6 +54,9 @@ type Engine struct {
 	a   *alert.Store
 	cfg *Config
 
+	// needed to re-start river during switchover
+	runCtx context.Context
+
 	triggerPauseCh chan *pauseReq
 }
 
@@ -251,6 +254,11 @@ func (p *Engine) Pause(ctx context.Context) error {
 func (p *Engine) _pause(ctx context.Context) error {
 	ch := make(chan error, 1)
 
+	err := p.cfg.River.Stop(ctx)
+	if err != nil {
+		return errors.Wrap(err, "pause river")
+	}
+
 	select {
 	case <-p.shutdownCh:
 		return errors.New("shutting down")
@@ -273,8 +281,17 @@ func (p *Engine) Resume(ctx context.Context) error {
 }
 
 func (p *Engine) _resume(ctx context.Context) error {
-	// nothing to be done `p.mgr.IsPaused` will already
-	// return false
+	if p.cfg.DisableCycle {
+		return nil
+	}
+
+	err := p.cfg.River.QueueResume(ctx, "*", nil)
+	if err != nil {
+		return errors.Wrap(err, "resume river")
+	}
+
+	go p.startRiver()
+
 	return nil
 }
 
@@ -543,6 +560,14 @@ func (p *Engine) handlePause(ctx context.Context, respCh chan error) {
 	respCh <- nil
 }
 
+func (p *Engine) startRiver() {
+	ctx := p.runCtx
+	err := p.cfg.River.Start(ctx)
+	if err != nil {
+		log.Log(ctx, errors.Wrap(err, "start river"))
+	}
+}
+
 func (p *Engine) _run(ctx context.Context) error {
 	defer close(p.runLoopExit)
 	ctx = permission.SystemContext(ctx, "Engine")
@@ -564,12 +589,8 @@ func (p *Engine) _run(ctx context.Context) error {
 		}
 	}
 
-	go func() {
-		err := p.cfg.River.Start(ctx)
-		if err != nil {
-			log.Log(ctx, errors.Wrap(err, "start river"))
-		}
-	}()
+	p.runCtx = ctx
+	go p.startRiver()
 
 	dur := p.cfg.CycleTime
 	if dur == 0 {
