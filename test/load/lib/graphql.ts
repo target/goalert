@@ -1,6 +1,8 @@
 import http from 'k6/http'
 import { Rotation } from './rotation.ts'
 
+// GraphQL is a helper class to interact
+// with the GraphQL API.
 export class GraphQL {
   constructor(
     public token: string,
@@ -38,6 +40,7 @@ export class GraphQL {
     return body.data
   }
 
+  // userID returns the ID of the currently logged in user.
   get userID(): string {
     return this.query(
       `{

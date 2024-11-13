@@ -11,6 +11,7 @@ function updateMutName(typeName: string): string {
   return 'update' + typeName.charAt(0).toUpperCase() + typeName.slice(1)
 }
 
+// Entity is a base class for all entities in the system (e.g., schedules, rotations, etc.)
 export class Entity {
   constructor(
     private gql: GraphQL,
@@ -25,6 +26,9 @@ export class Entity {
     ).base
   }
 
+  // This method is used to set a string field on the entity.
+  //
+  // Example: to set the name of a rotation, you would call `setStringField('name', 'new name')`.
   private setStringField(fieldName: string, value: string): void {
     this.gql.query(
       `mutation SetField($id: ID!, $value: String!){${updateMutName(this.typeName)}(input: {id: $id, ${fieldName}: $value})}`,
