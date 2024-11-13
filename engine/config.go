@@ -35,6 +35,7 @@ type Config struct {
 	SlackStore          *slack.ChannelSender
 	DestRegistry        *nfydest.Registry
 	River               *river.Client[pgx.Tx]
+	RiverWorkers        *river.Workers
 
 	ConfigSource config.Source
 

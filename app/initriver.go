@@ -38,13 +38,25 @@ func (r *riverErrs) HandlePanic(ctx context.Context, job *rivertype.JobRow, pani
 	return nil
 }
 
+type noopWorker struct{}
+
+func (noopWorker) Kind() string { return "noop" }
+
 func (app *App) initRiver(ctx context.Context) error {
-	w := river.NewWorkers()
+	app.RiverWorkers = river.NewWorkers()
+
+	// TODO: remove once a worker is added that's not behind a feature flag
+	//
+	// Without this, it will complain about no workers being registered.
+	river.AddWorker(app.RiverWorkers, river.WorkFunc(func(ctx context.Context, j *river.Job[noopWorker]) error {
+		// Do something with the job
+		return nil
+	}))
 
 	var err error
 	app.River, err = river.NewClient(riverpgxv5.New(app.pgx), &river.Config{
 		Logger:  app.Logger,
-		Workers: w,
+		Workers: app.RiverWorkers,
 		Queues: map[string]river.QueueConfig{
 			river.QueueDefault: {MaxWorkers: 100},
 		},

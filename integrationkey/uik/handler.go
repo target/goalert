@@ -11,7 +11,10 @@ import (
 
 	"github.com/expr-lang/expr/vm"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/riverqueue/river"
 	"github.com/target/goalert/alert"
+	"github.com/target/goalert/engine/signalmgr"
 	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/integrationkey"
@@ -24,6 +27,8 @@ type Handler struct {
 	intStore   *integrationkey.Store
 	alertStore *alert.Store
 	db         TxAble
+
+	r *river.Client[pgx.Tx]
 }
 
 type TxAble interface {
@@ -31,8 +36,8 @@ type TxAble interface {
 	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
 }
 
-func NewHandler(db TxAble, intStore *integrationkey.Store, aStore *alert.Store) *Handler {
-	return &Handler{intStore: intStore, db: db, alertStore: aStore}
+func NewHandler(db TxAble, intStore *integrationkey.Store, aStore *alert.Store, r *river.Client[pgx.Tx]) *Handler {
+	return &Handler{intStore: intStore, db: db, alertStore: aStore, r: r}
 }
 
 func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1, _params any) error {
@@ -44,6 +49,7 @@ func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1, _param
 		return ""
 	}
 
+	var didInsertSignals bool
 	switch act.Dest.Type {
 	case "builtin-webhook":
 		req, err := http.NewRequest("POST", act.Dest.Arg("webhook_url"), strings.NewReader(param("body")))
@@ -86,6 +92,15 @@ func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1, _param
 		})
 		if err != nil {
 			return err
+		}
+		didInsertSignals = true
+	}
+
+	if didInsertSignals {
+		// schedule job
+		err := signalmgr.TriggerService(ctx, h.r, permission.ServiceNullUUID(ctx).UUID)
+		if err != nil {
+			return fmt.Errorf("schedule signal message: %w", err)
 		}
 	}
 
