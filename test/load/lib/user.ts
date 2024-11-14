@@ -17,7 +17,7 @@ export class User extends BaseEntity {
     super(gql, 'user', id)
   }
 
-  static randParams(gql: GraphQL): UserParams {
+  static randParams(): UserParams {
     return {
       name: 'user-' + randString(20),
       email: randEmail(),
