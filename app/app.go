@@ -9,9 +9,11 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pkg/errors"
+	"github.com/riverqueue/river"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/alert/alertmetrics"
@@ -55,6 +57,7 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
+	"riverqueue.com/riverui"
 )
 
 // App represents an instance of the GoAlert application.
@@ -132,6 +135,9 @@ type App struct {
 	NoticeStore   *notice.Store
 	AuthLinkStore *authlink.Store
 	APIKeyStore   *apikey.Store
+	River         *river.Client[pgx.Tx]
+	RiverUI       *riverui.Server
+	RiverWorkers  *river.Workers
 }
 
 // NewApp constructs a new App and binds the listening socket.

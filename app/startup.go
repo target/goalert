@@ -58,6 +58,7 @@ func (app *App) startup(ctx context.Context) error {
 		return err
 	})
 
+	app.initStartup(ctx, "Startup.River", app.initRiver)
 	app.initStartup(ctx, "Startup.DBStores", app.initStores)
 	ctx = app.ConfigStore.Config().Context(ctx)
 
