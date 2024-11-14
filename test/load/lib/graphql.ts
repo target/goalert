@@ -90,6 +90,7 @@ export class GraphQL {
   rotation(id: string): Rotation {
     return new Rotation(this, id)
   }
+
   genRotation(): Rotation {
     return this.create(Rotation)
   }
