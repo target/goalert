@@ -41,23 +41,15 @@ func NewHandler(db TxAble, intStore *integrationkey.Store, aStore *alert.Store, 
 	return &Handler{intStore: intStore, db: db, alertStore: aStore, r: r}
 }
 
-func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1, _params any) (inserted bool, err error) {
-	params := _params.(map[string]any)
-	param := func(name string) string {
-		if v, ok := params[name]; ok {
-			return v.(string)
-		}
-		return ""
-	}
-
+func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1) (inserted bool, err error) {
 	var didInsertSignals bool
 	switch act.Dest.Type {
 	case "builtin-webhook":
-		req, err := http.NewRequest("POST", act.Dest.Arg("webhook_url"), strings.NewReader(param("body")))
+		req, err := http.NewRequest("POST", act.Dest.Arg("webhook_url"), strings.NewReader(act.Param("body")))
 		if err != nil {
 			return false, err
 		}
-		req.Header.Set("Content-Type", param("content-type"))
+		req.Header.Set("Content-Type", act.Param("content-type"))
 
 		_, err = http.DefaultClient.Do(req.WithContext(ctx))
 		if err != nil {
@@ -66,14 +58,14 @@ func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1, _param
 
 	case "builtin-alert":
 		status := alert.StatusTriggered
-		if param("close") == "true" {
+		if act.Param("close") == "true" {
 			status = alert.StatusClosed
 		}
 
 		_, _, err := h.alertStore.CreateOrUpdate(ctx, &alert.Alert{
 			ServiceID: permission.ServiceID(ctx),
-			Summary:   param("summary"),
-			Details:   param("details"),
+			Summary:   act.Param("summary"),
+			Details:   act.Param("details"),
 			Source:    alert.SourceUniversal,
 			Status:    status,
 		})
@@ -81,7 +73,7 @@ func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1, _param
 			return false, err
 		}
 	default:
-		data, err := json.Marshal(params)
+		data, err := json.Marshal(act.Params)
 		if err != nil {
 			return false, err
 		}
@@ -137,71 +129,42 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// TODO: cache
+	compiled, err := NewCompiledConfig(*cfg)
+	if errutil.HTTPError(ctx, w, err) {
+		return
+	}
+
+	q := req.URL.Query()
+	query := make(map[string]string)
+	for key := range q {
+		query[key] = q.Get(key)
+	}
+	querya := map[string][]string(q)
 	env := map[string]any{
 		"sprintf": fmt.Sprintf,
 		"req": map[string]any{
-			"body": body,
+			"body":   body,
+			"query":  query,
+			"querya": querya,
+			"ua":     req.UserAgent(),
+			"ip":     req.RemoteAddr,
 		},
 	}
 
 	var vm vm.VM
-	var matched bool
-	var insertedAny bool
-	for _, rule := range cfg.Rules {
-		p, err := CompileRule(rule.ConditionExpr, rule.Actions)
-		if errutil.HTTPError(ctx, w, err) {
-			return
-		}
-
-		res, err := vm.Run(p, env)
-		if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
-			return
-		}
-
-		actions, ok := res.([]any)
-		if !ok {
-			// didn't match
-			continue
-		}
-		matched = true
-		if len(actions) != len(rule.Actions) {
-			// This should never happen, but better than a panic.
-			errutil.HTTPError(ctx, w, fmt.Errorf("rule %s: expected %d actions, got %d", rule.ID, len(rule.Actions), len(actions)))
-			return
-		}
-
-		for i, act := range actions {
-			ins, err := h.handleAction(ctx, rule.Actions[i], act)
-			if errutil.HTTPError(ctx, w, err) {
-				return
-			}
-			insertedAny = insertedAny || ins
-		}
-
-		if rule.ContinueAfterMatch {
-			continue
-		}
-
-		break
+	actions, err := compiled.Run(&vm, env)
+	if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
+		return
 	}
 
-	if !matched {
-		p, err := CompileRule("", cfg.DefaultActions)
+	var insertedAny bool
+	for _, act := range actions {
+		inserted, err := h.handleAction(ctx, act)
 		if errutil.HTTPError(ctx, w, err) {
 			return
 		}
-
-		res, err := vm.Run(p, env)
-		if errutil.HTTPError(ctx, w, err) {
-			return
-		}
-		for i, act := range res.([]any) {
-			ins, err := h.handleAction(ctx, cfg.DefaultActions[i], act)
-			if errutil.HTTPError(ctx, w, err) {
-				return
-			}
-			insertedAny = insertedAny || ins
-		}
+		insertedAny = insertedAny || inserted
 	}
 
 	if insertedAny {
