@@ -20,6 +20,7 @@ import (
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 )
 
@@ -40,7 +41,7 @@ func NewHandler(db TxAble, intStore *integrationkey.Store, aStore *alert.Store, 
 	return &Handler{intStore: intStore, db: db, alertStore: aStore, r: r}
 }
 
-func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1, _params any) error {
+func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1, _params any) (inserted bool, err error) {
 	params := _params.(map[string]any)
 	param := func(name string) string {
 		if v, ok := params[name]; ok {
@@ -54,13 +55,13 @@ func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1, _param
 	case "builtin-webhook":
 		req, err := http.NewRequest("POST", act.Dest.Arg("webhook_url"), strings.NewReader(param("body")))
 		if err != nil {
-			return err
+			return false, err
 		}
 		req.Header.Set("Content-Type", param("content-type"))
 
 		_, err = http.DefaultClient.Do(req.WithContext(ctx))
 		if err != nil {
-			return err
+			return false, err
 		}
 
 	case "builtin-alert":
@@ -77,12 +78,12 @@ func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1, _param
 			Status:    status,
 		})
 		if err != nil {
-			return err
+			return false, err
 		}
 	default:
 		data, err := json.Marshal(params)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		err = gadb.New(h.db).IntKeyInsertSignalMessage(ctx, gadb.IntKeyInsertSignalMessageParams{
@@ -91,20 +92,12 @@ func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1, _param
 			Params:    data,
 		})
 		if err != nil {
-			return err
+			return false, err
 		}
 		didInsertSignals = true
 	}
 
-	if didInsertSignals {
-		// schedule job
-		err := signalmgr.TriggerService(ctx, h.r, permission.ServiceNullUUID(ctx).UUID)
-		if err != nil {
-			return fmt.Errorf("schedule signal message: %w", err)
-		}
-	}
-
-	return nil
+	return didInsertSignals, nil
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -153,6 +146,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	var vm vm.VM
 	var matched bool
+	var insertedAny bool
 	for _, rule := range cfg.Rules {
 		p, err := CompileRule(rule.ConditionExpr, rule.Actions)
 		if errutil.HTTPError(ctx, w, err) {
@@ -177,10 +171,11 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 
 		for i, act := range actions {
-			err = h.handleAction(ctx, rule.Actions[i], act)
+			ins, err := h.handleAction(ctx, rule.Actions[i], act)
 			if errutil.HTTPError(ctx, w, err) {
 				return
 			}
+			insertedAny = insertedAny || ins
 		}
 
 		if rule.ContinueAfterMatch {
@@ -201,10 +196,19 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		for i, act := range res.([]any) {
-			err = h.handleAction(ctx, cfg.DefaultActions[i], act)
+			ins, err := h.handleAction(ctx, cfg.DefaultActions[i], act)
 			if errutil.HTTPError(ctx, w, err) {
 				return
 			}
+			insertedAny = insertedAny || ins
+		}
+	}
+
+	if insertedAny {
+		// schedule job
+		err := signalmgr.TriggerService(ctx, h.r, permission.ServiceNullUUID(ctx).UUID)
+		if err != nil {
+			log.Log(ctx, fmt.Errorf("schedule signal message: %w", err))
 		}
 	}
 
