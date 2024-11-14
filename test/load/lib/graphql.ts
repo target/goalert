@@ -104,6 +104,7 @@ export class GraphQL {
   user(id: string): User {
     return new User(this, id)
   }
+
   genUser(): User {
     return this.create(User)
   }
