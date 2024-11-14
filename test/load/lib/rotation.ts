@@ -41,6 +41,7 @@ export class Rotation extends Entity {
   public get timeZone(): string {
     return this.getField('timeZone') as string
   }
+
   public set timeZone(value: string) {
     this.setField('timeZone', value)
   }
