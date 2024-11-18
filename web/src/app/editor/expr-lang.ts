@@ -48,6 +48,6 @@ export const ExprLanguage = LRLanguage.define({
   },
 })
 
-export function Expr() {
+export function Expr(): LanguageSupport {
   return new LanguageSupport(ExprLanguage)
 }

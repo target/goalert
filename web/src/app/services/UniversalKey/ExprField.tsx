@@ -30,7 +30,7 @@ export function ExprField(props: ExprFieldProps): React.ReactNode {
           input: ExprEditor,
         }}
         inputProps={{
-          maxHeight: props.dense && !isFocused ? '2em' : '10em',
+          maxHeight: props.dense && !isFocused ? '2em' : '20em',
           minHeight: props.dense && !isFocused ? '2em' : '5em',
           value: props.value,
           onFocus: () => setIsFocused(true),
