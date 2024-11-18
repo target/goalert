@@ -17,6 +17,7 @@ RangeExpression {
 
 VariableDeclaration { "let" Identifier "=" Expression ";" }
 @precedence {
+  coalesce @left
   times @left
   plus @left
   in @left
@@ -27,7 +28,7 @@ VariableDeclaration { "let" Identifier "=" Expression ";" }
 Expression {
   StringLiteral | True | False | Nil | Number<DecimalInteger | HexInteger | OctalInteger | BinaryInteger | Float> | Identifier | Env | RangeExpression | Hash |
   ParenExpression | BinaryNode | ArrayNode | FunctionCall | PredicateFunctionCall | PipeExpression | MemberNode | UnaryNode |
-  PointerAccessor | MapNode | TernaryNode
+  MapNode | TernaryNode | PointerAccessor
 }
 
 ParenExpression { "(" Expression ")" }
@@ -35,7 +36,7 @@ ParenExpression { "(" Expression ")" }
 Operator<op> { @specialize<OperatorToken, op> | @specialize<Identifier, op> }
 
 MemberNode {
-  (FunctionCall|PredicateFunctionCall|MemberNode|Identifier|ParenExpression)
+  (FunctionCall|PredicateFunctionCall|MemberNode|Identifier|ParenExpression|Hash|PointerAccessor)
   (
     (("?." | ".") Identifier) |
     ("?."? "[" (StringLiteral | Number<DecimalInteger> | (Number<DecimalInteger>? ":" Number<DecimalInteger>?)) "]")
@@ -43,9 +44,7 @@ MemberNode {
 }
 
 PointerAccessor {
-  (
-    ("?"? "." Identifier)
-  )
+  "." Identifier
 }
 
 UnaryNode {
@@ -63,11 +62,12 @@ TernaryNode {
 }
 
 BinaryNode {
-  Expression !in Operator<"in"> Expression |
+  (Expression !in Operator<"in"> Expression) |
   (Expression !times Operator<"*"|"/"> Expression) |
   (Expression !plus Operator<"+"|"-"> Expression) |
   (Expression !compare OperatorToken Expression) |
-  (Expression !compare Operator<"or"|"and"|"contains"|"startsWith"|"endsWith"|"matches"|"??"> Expression)
+  (Expression !compare Operator<"or"|"and"|"contains"|"startsWith"|"endsWith"|"matches"> Expression) |
+  (Expression !coalesce Operator<"??"> Expression)
 }
 Property {
   (StringLiteral | Identifier | ParenExpression) ":" Expression
@@ -119,7 +119,6 @@ PipeExpression {
     "let"
     Identifier
   }
-  
   LineComment { "//" ![\n]* }
   
   blockCommentContent { ![*/] blockCommentContent? | "*" blockCommentStar | "/" blockCommentSlash }
@@ -132,6 +131,7 @@ PipeExpression {
 
   @precedence { blockCommentEnd, blockCommentContent }
   space { @whitespace+ }
+
 
   @precedence {
     RangeOperator
@@ -166,6 +166,6 @@ PipeExpression {
   Identifier { $[a-zA-Z_] $[a-zA-Z0-9_]* }
 
   SingleRuneOperator { $[%+\-^] }
-  DoubleRuneOperator { $[&!=*<>] $[&=*]? }
-  OperatorToken { SingleRuneOperator | DoubleRuneOperator }
+  DoubleRuneOperator { $[&!*<>] $[&=*]? }
+  OperatorToken { SingleRuneOperator | DoubleRuneOperator | "??" | "==" }
 }
