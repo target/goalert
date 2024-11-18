@@ -26,7 +26,7 @@ YARN_VERSION=4.3.1
 PG_VERSION=13
 
 # add all files except those under web/src/build and web/src/cypress
-NODE_DEPS=.pnp.cjs .yarnrc.yml .gitrev $(shell find web/src -path web/src/build -prune -o -path web/src/cypress -prune -o -type f -print)
+NODE_DEPS=.pnp.cjs .yarnrc.yml .gitrev $(shell find web/src -path web/src/build -prune -o -path web/src/cypress -prune -o -type f -print) web/src/app/editor/expr-parser.ts
 
 # Use sha256sum on linux and shasum -a 256 on mac
 SHA_CMD := $(shell if [ -x "$(shell command -v sha256sum 2>/dev/null)" ]; then echo "sha256sum"; else echo "shasum -a 256"; fi)
@@ -300,6 +300,12 @@ tools:
 	$(MAKE) ensure-yarn
 	yarn install && touch "$@"
 
+
+web/src/app/editor/expr-parser.ts: web/src/app/editor/expr.grammar .pnp.cjs
+	# we need to use .tmp.ts as the extension because lezer-generator will append .ts to the output file
+	yarn run lezer-generator $< --noTerms --typeScript -o $@.tmp.ts
+	cat $@.tmp.ts | sed "s/You probably shouldn't edit it./DO NOT EDIT/" >$@
+	rm $@.tmp.ts
 
 web/src/build/static/explore.js: web/src/build/static/app.js
 web/src/build/static/app.js: $(NODE_DEPS)

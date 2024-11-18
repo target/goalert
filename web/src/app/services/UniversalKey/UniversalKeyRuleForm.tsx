@@ -11,11 +11,13 @@ import {
   StepButton,
   TextField,
   Divider,
+  InputLabel,
 } from '@mui/material'
 import { ActionInput, KeyRuleInput } from '../../../schema'
 import UniversalKeyActionsList from './UniversalKeyActionsList'
 import UniversalKeyActionsForm from './UniversalKeyActionsForm'
 import { HelperText } from '../../forms'
+import ExprEditor from '../../editor/ExprEditor'
 
 interface UniversalKeyRuleFormProps {
   value: KeyRuleInput
@@ -87,22 +89,18 @@ export default function UniversalKeyRuleForm(
             />
           </Grid>
           <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label='Condition (Expr syntax)'
-              name='conditionExpr'
-              multiline
-              rows={3}
-              value={props.value.conditionExpr}
-              onChange={(e) => {
-                props.onChange({
-                  ...props.value,
-                  conditionExpr: e.target.value,
-                })
-              }}
-              error={!!props.conditionError}
-              helperText={<HelperText error={props.conditionError} />}
-            />
+            <FormControl fullWidth error={!!props.conditionError}>
+              <InputLabel shrink>Condition (Expr syntax)</InputLabel>
+              <ExprEditor
+                onChange={(val) => {
+                  props.onChange({ ...props.value, conditionExpr: val })
+                }}
+                value={props.value.conditionExpr}
+                minHeight='8em'
+                maxHeight='10em'
+              />
+              <HelperText error={props.conditionError} />
+            </FormControl>
           </Grid>
         </React.Fragment>
       )}

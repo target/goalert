@@ -45,6 +45,7 @@
     "@dnd-kit/utilities": "3.2.2",
     "@emotion/react": "11.13.3",
     "@emotion/styled": "11.13.0",
+    "@lezer/generator": "1.7.1",
     "@lezer/highlight": "1.2.1",
     "@lezer/lr": "1.4.2",
     "@material/material-color-utilities": "0.2.7",

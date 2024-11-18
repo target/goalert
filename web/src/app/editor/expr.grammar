@@ -1,0 +1,171 @@
+@top Program { VariableDeclaration* Expression }
+
+@skip { space | LineComment | BlockComment }
+@skip {} {
+  BlockComment { "/*" (BlockComment | blockCommentContent)* blockCommentEnd }
+}
+
+Number<type> {
+  Operator<"+"|"-">? type
+}
+
+RangeExpression {
+  Number<DecimalInteger | HexInteger | OctalInteger | BinaryInteger>
+  RangeOperator
+  Number<DecimalInteger | HexInteger | OctalInteger | BinaryInteger>
+}
+
+VariableDeclaration { "let" Identifier "=" Expression ";" }
+@precedence {
+  times @left
+  plus @left
+  in @left
+  compare @left
+  pipe @right
+}
+
+Expression {
+  StringLiteral | True | False | Nil | Number<DecimalInteger | HexInteger | OctalInteger | BinaryInteger | Float> | Identifier | Env | RangeExpression | Hash |
+  ParenExpression | BinaryNode | ArrayNode | FunctionCall | PredicateFunctionCall | PipeExpression | MemberNode | UnaryNode |
+  PointerAccessor | MapNode | TernaryNode
+}
+
+ParenExpression { "(" Expression ")" }
+
+Operator<op> { @specialize<OperatorToken, op> | @specialize<Identifier, op> }
+
+MemberNode {
+  (FunctionCall|PredicateFunctionCall|MemberNode|Identifier|ParenExpression)
+  (
+    (("?." | ".") Identifier) |
+    ("?."? "[" (StringLiteral | Number<DecimalInteger> | (Number<DecimalInteger>? ":" Number<DecimalInteger>?)) "]")
+  )
+}
+
+PointerAccessor {
+  (
+    ("?"? "." Identifier)
+  )
+}
+
+UnaryNode {
+  Operator<"!"|"not"> !compare
+  Expression
+}
+
+TernaryNode {
+  Expression
+  !pipe
+  "?"
+  Expression
+  ":"
+  Expression
+}
+
+BinaryNode {
+  Expression !in Operator<"in"> Expression |
+  (Expression !times Operator<"*"|"/"> Expression) |
+  (Expression !plus Operator<"+"|"-"> Expression) |
+  (Expression !compare OperatorToken Expression) |
+  (Expression !compare Operator<"or"|"and"|"contains"|"startsWith"|"endsWith"|"matches"|"??"> Expression)
+}
+Property {
+  (StringLiteral | Identifier | ParenExpression) ":" Expression
+}
+MapNode {
+  "{"
+    (Property ("," Property)* )?
+  "}"
+}
+ArrayNode {
+  "[" Expression ("," Expression)* "]"
+}
+
+FunctionCall {
+  Identifier "(" (Expression ("," Expression)*)? ")"
+}
+
+PredicateFunction {
+  @specialize<Identifier, "all"|"any"|"one"|"none"|"map"|"filter"|"find"|"findIndex"|"findLast"|"findLastIndex"|"groupBy"|"count"|"sum">
+}
+
+
+Predicate {
+  ("{" VariableDeclaration* Expression "}") |
+ VariableDeclaration* Expression
+}
+
+PredicateFunctionCall {
+  PredicateFunction "(" Expression "," Predicate ")"
+}
+PredicatePipeFunctionCall {
+  PredicateFunction "(" Predicate ")"
+}
+
+PipeExpression {
+  Expression !pipe "|" (FunctionCall | PredicatePipeFunctionCall)
+}
+
+@tokens {
+  Hash { "#" }
+  Env { "$env" }
+  True { "true" }
+  False { "false" }
+  Nil { "nil" }
+  @precedence {
+    True
+    False
+    Nil
+    "let"
+    Identifier
+  }
+  
+  LineComment { "//" ![\n]* }
+  
+  blockCommentContent { ![*/] blockCommentContent? | "*" blockCommentStar | "/" blockCommentSlash }
+  blockCommentStar { ![/*] blockCommentContent | "*" blockCommentStar }
+  blockCommentSlash { ![/*] blockCommentContent | "/" blockCommentSlash }
+
+  blockCommentEnd { ![*/] blockCommentEnd | "*" blockCommentEndStar | "/" blockCommentEndSlash }
+  blockCommentEndStar { "/" | ![/*] blockCommentEnd | "*" blockCommentEndStar }
+  blockCommentEndSlash { ![/*] blockCommentEnd | "/" blockCommentSlash }
+
+  @precedence { blockCommentEnd, blockCommentContent }
+  space { @whitespace+ }
+
+  @precedence {
+    RangeOperator
+    Float
+    BinaryInteger
+    OctalInteger
+    HexInteger
+    DecimalInteger
+  }
+  Float { DecimalInteger "." $[0-9_]+ ($[eE] DecimalInteger)? }
+  RangeOperator { ".." }
+  DecimalInteger { $[0-9] $[0-9_]* }
+  hex { $[0-9a-fA-F] }
+  HexInteger { "0" $[xX] (hex | "_")+ }
+  OctalInteger { "0" $[oO] $[0-7_]+ }
+  BinaryInteger { "0" $[bB] $[01]+ }
+
+  
+  CtrlEscape { "\\" $[abfnrtv\\"] }
+  OctalEscape { "\\" $[0-7] $[0-7] $[0-7] }
+  HexEscape { "\\x" hex hex }
+  UTF16Escape { "\\u" hex hex hex hex }
+  UTF32Escape { "\\U" hex hex hex hex hex hex hex hex }
+  
+  StringEscape { CtrlEscape | OctalEscape | HexEscape | UTF16Escape | UTF32Escape }
+
+  DoubleQuotedString { "\"" ( StringEscape | !["\n] )* "\"" }
+  SingleQuotedString { "\'" ( StringEscape | !['\n] )* "\'" }
+  BacktickString { "`" ![`]* "`" }
+  StringLiteral { DoubleQuotedString | SingleQuotedString | BacktickString }
+
+  Identifier { $[a-zA-Z_] $[a-zA-Z0-9_]* }
+
+  SingleRuneOperator { $[%+\-^] }
+  DoubleRuneOperator { $[&!=*<>] $[&=*]? }
+  OperatorToken { SingleRuneOperator | DoubleRuneOperator }
+}
