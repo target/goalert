@@ -11,7 +11,6 @@ export type ExprEditorProps = {
   onChange: (value: string) => void
   minHeight?: string
   maxHeight?: string
-  disableToolbar?: boolean
 }
 
 export default function ExprEditor(props: ExprEditorProps): React.ReactNode {
@@ -29,13 +28,6 @@ export default function ExprEditor(props: ExprEditorProps): React.ReactNode {
           maxHeight={props.maxHeight}
         />
       </Grid>
-      {!props.disableToolbar && (
-        <Grid item>
-          <IconButton onClick={() => {}} title='Format code'>
-            <AutoFixHigh />
-          </IconButton>
-        </Grid>
-      )}
     </Grid>
   )
 }
