@@ -530,7 +530,7 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 
 	var gotLock bool
 	err = cLock.WithTx(execCtx, func(tx *sql.Tx) error {
-		return tx.StmtContext(execCtx, db.advLock).QueryRowContext(execCtx).Scan(&gotLock)
+		return tx.StmtContext(execCtx, db.advLock).QueryRowContext(execCtx, lock.GlobalMessageSending).Scan(&gotLock)
 	})
 	if err != nil {
 		return errors.Wrap(err, "acquire global sending advisory lock")
