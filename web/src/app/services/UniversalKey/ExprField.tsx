@@ -15,7 +15,12 @@ export type ExprFieldProps = {
 export function ExprField(props: ExprFieldProps): React.ReactNode {
   const [isFocused, setIsFocused] = React.useState(false)
   return (
-    <FormControl fullWidth error={!!props.error} variant='outlined'>
+    <FormControl
+      fullWidth
+      error={!!props.error}
+      variant='outlined'
+      data-testid={'code-' + props.name}
+    >
       <InputLabel htmlFor={props.name} shrink>
         {props.label} (Expr syntax)
       </InputLabel>
