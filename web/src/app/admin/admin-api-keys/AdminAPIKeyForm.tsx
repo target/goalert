@@ -1,10 +1,10 @@
 import React from 'react'
 import Grid from '@mui/material/Grid'
-import { FormContainer, FormField } from '../../forms'
+import { FormContainer, FormField, HelperText } from '../../forms'
 import { FieldError } from '../../util/errutil'
 import { CreateGQLAPIKeyInput } from '../../../schema'
 import AdminAPIKeyExpirationField from './AdminAPIKeyExpirationField'
-import { TextField, MenuItem } from '@mui/material'
+import { TextField, MenuItem, FormControl } from '@mui/material'
 import GraphQLEditor from '../../editor/GraphQLEditor'
 
 type AdminAPIKeyFormProps = {
@@ -20,6 +20,7 @@ type AdminAPIKeyFormProps = {
 export default function AdminAPIKeyForm(
   props: AdminAPIKeyFormProps,
 ): JSX.Element {
+  const queryError = props.errors.find((e) => e.field === 'query')?.message
   return (
     <FormContainer optionalLabels {...props}>
       <Grid container spacing={2}>
@@ -66,12 +67,19 @@ export default function AdminAPIKeyForm(
           />
         </Grid>
         <Grid item xs={12}>
-          <GraphQLEditor
-            value={props.value.query}
-            onChange={(query) => props.onChange({ ...props.value, query })}
-            minHeight='20em'
-            maxHeight='20em'
-          />
+          <FormControl error={!!queryError} fullWidth>
+            <GraphQLEditor
+              value={props.value.query}
+              readOnly={!props.create}
+              onChange={(query) => props.onChange({ ...props.value, query })}
+              minHeight='20em'
+              maxHeight='20em'
+            />
+            <HelperText
+              hint={props.create ? '' : '(read-only)'}
+              error={props.errors.find((e) => e.field === 'query')?.message}
+            />
+          </FormControl>
         </Grid>
       </Grid>
     </FormContainer>

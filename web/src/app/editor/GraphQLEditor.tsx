@@ -15,6 +15,7 @@ export type GraphQLEditorProps = {
   onChange: (value: string) => void
   minHeight?: string
   maxHeight?: string
+  readOnly?: boolean
 }
 
 export default function GraphQLEditor(
@@ -31,27 +32,25 @@ export default function GraphQLEditor(
         <CodeMirror
           value={props.value}
           theme={theme}
+          readOnly={props.readOnly}
           onChange={props.onChange}
           extensions={[bracketMatching(), graphqlLang(schema)]}
           minHeight={props.minHeight}
           maxHeight={props.maxHeight}
         />
       </Grid>
-      <Grid item>
-        <IconButton
-          onClick={() => {
-            props.onChange(print(parse(props.value)))
-          }}
-          title='Format query'
-          style={{
-            float: 'right',
-            position: 'static',
-            zIndex: 1,
-          }}
-        >
-          <AutoFixHigh />
-        </IconButton>
-      </Grid>
+      {!props.readOnly && (
+        <Grid item>
+          <IconButton
+            onClick={() => {
+              props.onChange(print(parse(props.value)) + '\n')
+            }}
+            title='Format query'
+          >
+            <AutoFixHigh />
+          </IconButton>
+        </Grid>
+      )}
     </Grid>
   )
 }
