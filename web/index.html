@@ -141,7 +141,7 @@
       pathPrefix = "{{.PathPrefix}}";
       applicationName = "{{.ApplicationName}}";
     </script>
-    <script src="{{ .Prefix }}/static/app.js" type="module"></script>
+    <script src="{{ .Prefix }}/static/app.js"></script>
     {{- if .ExtraJS }}
       <script src="{{ .Prefix }}{{ .ExtraJS }}"></script>
     {{- end }}

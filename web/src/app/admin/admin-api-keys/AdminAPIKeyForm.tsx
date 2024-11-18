@@ -1,12 +1,11 @@
-import React, { lazy } from 'react'
+import React from 'react'
 import Grid from '@mui/material/Grid'
 import { FormContainer, FormField } from '../../forms'
 import { FieldError } from '../../util/errutil'
 import { CreateGQLAPIKeyInput } from '../../../schema'
 import AdminAPIKeyExpirationField from './AdminAPIKeyExpirationField'
 import { TextField, MenuItem } from '@mui/material'
-
-const GraphQLEditor = lazy(() => import('../../editor/GraphQLEditor'))
+import GraphQLEditor from '../../editor/GraphQLEditor'
 
 type AdminAPIKeyFormProps = {
   errors: FieldError[]
@@ -71,6 +70,7 @@ export default function AdminAPIKeyForm(
             value={props.value.query}
             onChange={(query) => props.onChange({ ...props.value, query })}
             minHeight='20em'
+            maxHeight='20em'
           />
         </Grid>
       </Grid>
