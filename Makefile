@@ -304,6 +304,7 @@ tools:
 web/src/app/editor/expr-parser.ts: web/src/app/editor/expr.grammar .pnp.cjs
 	# we need to use .tmp.ts as the extension because lezer-generator will append .ts to the output file
 	yarn run lezer-generator $< --noTerms --typeScript -o $@.tmp.ts
+	yarn run prettier -l --write $@.tmp.ts
 	cat $@.tmp.ts | sed "s/You probably shouldn't edit it./DO NOT EDIT/" >$@
 	rm $@.tmp.ts
 
