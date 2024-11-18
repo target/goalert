@@ -131,7 +131,7 @@ func NewDB(ctx context.Context, db *sql.DB, a *alertlog.Store, pausable lifecycl
 
 		sentMessages: make(map[string]Message),
 
-		advLock: p.P(`select pg_advisory_lock($1)`),
+		advLock: p.P(`select pg_try_advisory_lock($1)`),
 		advLockCleanup: p.P(`
 			select pg_terminate_backend(lock.pid)
 			from pg_locks lock
@@ -528,9 +528,15 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 	}
 	defer cLock.Close()
 
-	_, err = cLock.Exec(execCtx, db.advLock, lock.GlobalMessageSending)
+	var gotLock bool
+	err = cLock.WithTx(execCtx, func(tx *sql.Tx) error {
+		return tx.StmtContext(execCtx, db.advLock).QueryRowContext(execCtx).Scan(&gotLock)
+	})
 	if err != nil {
 		return errors.Wrap(err, "acquire global sending advisory lock")
+	}
+	if !gotLock {
+		return processinglock.ErrNoLock
 	}
 	defer func() {
 		_, _ = cLock.ExecWithoutLock(log.FromContext(execCtx).BackgroundContext(), `select pg_advisory_unlock(4912)`)
