@@ -3,14 +3,15 @@ import CodeMirror from '@uiw/react-codemirror'
 import { Expr } from './expr-lang'
 import { useTheme } from '../theme/useTheme'
 import { bracketMatching } from '@codemirror/language'
-import { Grid, IconButton } from '@mui/material'
-import { AutoFixHigh } from '@mui/icons-material'
+import { Grid } from '@mui/material'
 
 export type ExprEditorProps = {
   value: string
   onChange: (value: string) => void
   minHeight?: string
   maxHeight?: string
+  onFocus?: () => void
+  onBlur?: () => void
 }
 
 export default function ExprEditor(props: ExprEditorProps): React.ReactNode {
@@ -22,6 +23,8 @@ export default function ExprEditor(props: ExprEditorProps): React.ReactNode {
         <CodeMirror
           value={props.value}
           theme={theme}
+          onFocus={props.onFocus}
+          onBlur={props.onBlur}
           onChange={props.onChange}
           extensions={[bracketMatching(), Expr()]}
           minHeight={props.minHeight}

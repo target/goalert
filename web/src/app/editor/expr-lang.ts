@@ -27,6 +27,8 @@ export const exprHighlighting = styleTags({
   'Hash Env': t.keyword,
   PredicateFunction: t.function(t.keyword),
   'FunctionCall/Identifier': t.function(t.variableName),
+  'VariableDeclaration/Identifier': t.definition(t.variableName),
+  VariableDeclaration: t.definitionKeyword,
 })
 
 export const ExprLanguage = LRLanguage.define({

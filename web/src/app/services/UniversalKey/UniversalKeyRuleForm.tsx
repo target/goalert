@@ -100,8 +100,9 @@ export default function UniversalKeyRuleForm(
               onChange={(v) =>
                 props.onChange({ ...props.value, conditionExpr: v })
               }
-              error={props.conditionError}
+              error={!!props.conditionError}
             />
+            <HelperText error={props.conditionError} />
           </Grid>
         </React.Fragment>
       )}
