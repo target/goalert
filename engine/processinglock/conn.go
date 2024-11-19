@@ -38,7 +38,7 @@ func (l *Lock) Conn(ctx context.Context) (*Conn, error) {
 
 // BeginTx will start a new transaction.
 func (c *Conn) BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error) {
-	return c.l._BeginTx(ctx, c.conn, opts)
+	return c.l._BeginTx(ctx, c.conn, opts, false)
 }
 
 // Exec will call ExecContext on the statement wrapped in a locked transaction.

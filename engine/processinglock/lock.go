@@ -60,7 +60,7 @@ func NewLock(ctx context.Context, db *sql.DB, cfg Config) (*Lock, error) {
 	}, nil
 }
 
-func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions) (*sql.Tx, error) {
+func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions, shared bool) (*sql.Tx, error) {
 	tx, err := b.BeginTx(ctx, opts)
 	if err != nil {
 		return nil, err
@@ -78,7 +78,12 @@ func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions) 
 		return nil, ErrNoLock
 	}
 
-	dbVersion, err := q.ProcAcquireModuleLock(ctx, gadb.EngineProcessingType(l.cfg.Type))
+	var dbVersion int32
+	if shared {
+		dbVersion, err = q.ProcAcquireModuleSharedLock(ctx, gadb.EngineProcessingType(l.cfg.Type))
+	} else {
+		dbVersion, err = q.ProcAcquireModuleLock(ctx, gadb.EngineProcessingType(l.cfg.Type))
+	}
 	if err != nil {
 		sqlutil.Rollback(ctx, "processing lock: begin", tx)
 		// 55P03 is lock_not_available (due to the `nowait` in the query)
@@ -99,7 +104,7 @@ func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions) 
 
 // WithTx will run the given function in a locked transaction.
 func (l *Lock) WithTx(ctx context.Context, fn func(context.Context, *sql.Tx) error) error {
-	tx, err := l._BeginTx(ctx, l.db, nil)
+	tx, err := l._BeginTx(ctx, l.db, nil, false)
 	if err != nil {
 		return err
 	}
@@ -118,8 +123,29 @@ func (l *Lock) WithTx(ctx context.Context, fn func(context.Context, *sql.Tx) err
 	return nil
 }
 
+// WithTxShared will run the given function in a locked transaction that is compatible with other shared locks.
+func (l *Lock) WithTxShared(ctx context.Context, fn func(context.Context, *sql.Tx) error) error {
+	tx, err := l._BeginTx(ctx, l.db, nil, true)
+	if err != nil {
+		return err
+	}
+	defer sqlutil.Rollback(ctx, "processing lock: with tx (shared)", tx)
+
+	err = fn(ctx, tx)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (l *Lock) _Exec(ctx context.Context, b txBeginner, stmt *sql.Stmt, args ...interface{}) (sql.Result, error) {
-	tx, err := l._BeginTx(ctx, b, nil)
+	tx, err := l._BeginTx(ctx, b, nil, false)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +166,7 @@ func (l *Lock) _Exec(ctx context.Context, b txBeginner, stmt *sql.Stmt, args ...
 
 // BeginTx will start a transaction with the appropriate lock in place (based on Config).
 func (l *Lock) BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error) {
-	return l._BeginTx(ctx, l.db, opts)
+	return l._BeginTx(ctx, l.db, opts, false)
 }
 
 // Exec will run ExecContext on the statement, wrapped in a locked transaction.

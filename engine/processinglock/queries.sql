@@ -12,6 +12,14 @@ WHERE
 FOR UPDATE
     NOWAIT;
 
+-- name: ProcAcquireModuleSharedLock :one
+SELECT
+    version
+FROM
+    engine_processing_versions
+WHERE
+    type_id = $1 FOR SHARE NOWAIT;
+
 -- name: ProcReadModuleVersion :one
 SELECT
     version

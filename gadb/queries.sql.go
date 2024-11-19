@@ -3274,6 +3274,22 @@ func (q *Queries) ProcAcquireModuleLock(ctx context.Context, typeID EngineProces
 	return version, err
 }
 
+const procAcquireModuleSharedLock = `-- name: ProcAcquireModuleSharedLock :one
+SELECT
+    version
+FROM
+    engine_processing_versions
+WHERE
+    type_id = $1 FOR SHARE NOWAIT
+`
+
+func (q *Queries) ProcAcquireModuleSharedLock(ctx context.Context, typeID EngineProcessingType) (int32, error) {
+	row := q.db.QueryRowContext(ctx, procAcquireModuleSharedLock, typeID)
+	var version int32
+	err := row.Scan(&version)
+	return version, err
+}
+
 const procLoadState = `-- name: ProcLoadState :one
 SELECT
     state
