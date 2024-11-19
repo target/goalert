@@ -3,6 +3,7 @@ package processinglock
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/target/goalert/gadb"
@@ -78,11 +79,21 @@ func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions, 
 		return nil, ErrNoLock
 	}
 
-	var dbVersion int32
 	if shared {
-		dbVersion, err = q.ProcAcquireModuleSharedLock(ctx, gadb.EngineProcessingType(l.cfg.Type))
+		_, err = q.ProcAcquireModuleSharedLock(ctx, gadb.ProcAcquireModuleSharedLockParams{
+			TypeID:  gadb.EngineProcessingType(l.cfg.Type),
+			Version: l.cfg.Version,
+		})
 	} else {
-		dbVersion, err = q.ProcAcquireModuleLock(ctx, gadb.EngineProcessingType(l.cfg.Type))
+		_, err = q.ProcAcquireModuleLockNoWait(ctx, gadb.ProcAcquireModuleLockNoWaitParams{
+			TypeID:  gadb.EngineProcessingType(l.cfg.Type),
+			Version: l.cfg.Version,
+		})
+	}
+	if errors.Is(err, sql.ErrNoRows) {
+		// wrong module version
+		sqlutil.Rollback(ctx, "processing lock: begin", tx)
+		return nil, ErrNoLock
 	}
 	if err != nil {
 		sqlutil.Rollback(ctx, "processing lock: begin", tx)
@@ -94,15 +105,11 @@ func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions, 
 		}
 		return nil, err
 	}
-	if dbVersion != l.cfg.Version {
-		sqlutil.Rollback(ctx, "processing lock: begin", tx)
-		return nil, ErrNoLock
-	}
 
 	return tx, nil
 }
 
-// WithTx will run the given function in a locked transaction.
+// WithTx will run the given function in a locked transaction, returning ErrNoLock immediately if the lock cannot be acquired.
 func (l *Lock) WithTx(ctx context.Context, fn func(context.Context, *sql.Tx) error) error {
 	tx, err := l._BeginTx(ctx, l.db, nil, false)
 	if err != nil {
@@ -124,6 +131,8 @@ func (l *Lock) WithTx(ctx context.Context, fn func(context.Context, *sql.Tx) err
 }
 
 // WithTxShared will run the given function in a locked transaction that is compatible with other shared locks.
+//
+// Note: This will block until it acquires the lock.
 func (l *Lock) WithTxShared(ctx context.Context, fn func(context.Context, *sql.Tx) error) error {
 	tx, err := l._BeginTx(ctx, l.db, nil, true)
 	if err != nil {

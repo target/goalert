@@ -3256,38 +3256,50 @@ func (q *Queries) OverrideSearch(ctx context.Context, arg OverrideSearchParams) 
 	return items, nil
 }
 
-const procAcquireModuleLock = `-- name: ProcAcquireModuleLock :one
+const procAcquireModuleLockNoWait = `-- name: ProcAcquireModuleLockNoWait :one
 SELECT
-    version
+    1
 FROM
     engine_processing_versions
 WHERE
     type_id = $1
+    AND version = $2
 FOR UPDATE
     NOWAIT
 `
 
-func (q *Queries) ProcAcquireModuleLock(ctx context.Context, typeID EngineProcessingType) (int32, error) {
-	row := q.db.QueryRowContext(ctx, procAcquireModuleLock, typeID)
-	var version int32
-	err := row.Scan(&version)
-	return version, err
+type ProcAcquireModuleLockNoWaitParams struct {
+	TypeID  EngineProcessingType
+	Version int32
+}
+
+func (q *Queries) ProcAcquireModuleLockNoWait(ctx context.Context, arg ProcAcquireModuleLockNoWaitParams) (int32, error) {
+	row := q.db.QueryRowContext(ctx, procAcquireModuleLockNoWait, arg.TypeID, arg.Version)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const procAcquireModuleSharedLock = `-- name: ProcAcquireModuleSharedLock :one
 SELECT
-    version
+    1
 FROM
     engine_processing_versions
 WHERE
-    type_id = $1 FOR SHARE NOWAIT
+    type_id = $1
+    AND version = $2 FOR SHARE
 `
 
-func (q *Queries) ProcAcquireModuleSharedLock(ctx context.Context, typeID EngineProcessingType) (int32, error) {
-	row := q.db.QueryRowContext(ctx, procAcquireModuleSharedLock, typeID)
-	var version int32
-	err := row.Scan(&version)
-	return version, err
+type ProcAcquireModuleSharedLockParams struct {
+	TypeID  EngineProcessingType
+	Version int32
+}
+
+func (q *Queries) ProcAcquireModuleSharedLock(ctx context.Context, arg ProcAcquireModuleSharedLockParams) (int32, error) {
+	row := q.db.QueryRowContext(ctx, procAcquireModuleSharedLock, arg.TypeID, arg.Version)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const procLoadState = `-- name: ProcLoadState :one
