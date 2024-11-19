@@ -1,6 +1,7 @@
 package migrate
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"embed"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/pkg/errors"
-	"github.com/rubenv/sql-migrate/sqlparse"
 	"github.com/target/goalert/lock"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
@@ -37,6 +37,15 @@ func migrationIDs() []string {
 	}
 
 	return ids
+}
+
+// LatestID will return the ID of the latest migration.
+func LatestID() string {
+	ids := migrationIDs()
+	if len(ids) == 0 {
+		return ""
+	}
+	return ids[len(ids)-1]
 }
 
 // Names will return all AssetNames without the timestamps and extensions
@@ -64,6 +73,7 @@ func migrationName(file string) string {
 	file = strings.TrimSuffix(file, ".sql")
 	return file
 }
+
 func migrationID(name string) (int, string) {
 	for i, id := range migrationIDs() {
 		if migrationName(id) == name {
@@ -71,6 +81,29 @@ func migrationID(name string) (int, string) {
 		}
 	}
 	return -1, ""
+}
+
+// VerifyIsLatest will verify the latest migration is the same as the latest available migration.
+//
+// This ensures the DB isn't newer than the currently running code.
+func VerifyIsLatest(ctx context.Context, url string) error {
+	conn, err := getConn(ctx, url)
+	if err != nil {
+		return err
+	}
+	defer conn.Close(ctx)
+
+	var dbLatest string
+	err = conn.QueryRow(ctx, `select id from gorp_migrations order by id desc limit 1`).Scan(&dbLatest)
+	if err != nil {
+		return fmt.Errorf("read latest migration from DB: %w", err)
+	}
+
+	if dbLatest != LatestID() {
+		return errors.Errorf("latest migration in DB is '%s' but expected '%s'; local GoAlert version is likely older than the DB's latest migration (not allowed in SWO-mode)", dbLatest, LatestID())
+	}
+
+	return nil
 }
 
 // VerifyAll will verify all migrations have already been applied.
@@ -124,8 +157,8 @@ func getConn(ctx context.Context, url string) (*pgx.Conn, error) {
 	}
 
 	return conn, nil
-
 }
+
 func aquireLock(ctx context.Context, conn *pgx.Conn) error {
 	for {
 		_, err := conn.Exec(ctx, `select pg_advisory_lock($1)`, lock.GlobalMigrate)
@@ -313,14 +346,14 @@ func readMigration(id string) ([]byte, error) {
 func DumpMigrations(dest string) error {
 	for _, id := range migrationIDs() {
 		fullPath := filepath.Join(dest, "migrations", id)
-		if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(fullPath), 0o755); err != nil {
 			return err
 		}
 		data, err := readMigration(id)
 		if err != nil {
 			return err
 		}
-		err = os.WriteFile(fullPath, data, 0644)
+		err = os.WriteFile(fullPath, data, 0o644)
 		if err != nil {
 			return errors.Wrapf(err, "write to %s", fullPath)
 		}
@@ -352,17 +385,41 @@ func parseMigrations() ([]migration, error) {
 		if err != nil {
 			return nil, err
 		}
-		p, err := sqlparse.ParseMigration(bytes.NewReader(data))
-		if err != nil {
-			return nil, errors.Wrapf(err, "parse %s", m.ID)
+
+		var up, down strings.Builder
+		var isUp, isDown bool
+
+		r := bufio.NewScanner(bytes.NewReader(data))
+		for r.Scan() {
+			line := r.Text()
+			if strings.HasPrefix(line, "-- +migrate Up") {
+				isUp = true
+				isDown = false
+				m.Up.disableTx = strings.Contains(line, "notransaction")
+				continue
+			}
+			if strings.HasPrefix(line, "-- +migrate Down") {
+				isUp = false
+				isDown = true
+				m.Down.disableTx = strings.Contains(line, "notransaction")
+				continue
+			}
+			switch {
+			case isUp:
+				up.WriteString(line)
+				up.WriteString("\n")
+			case isDown:
+				down.WriteString(line)
+				down.WriteString("\n")
+			}
+			// ignore other lines
 		}
-		m.Up.statements = p.UpStatements
-		m.Up.disableTx = p.DisableTransactionUp
+
+		m.Up.statements = sqlutil.SplitQuery(up.String())
 		m.Up.isUp = true
 		m.Up.migration = &m
 
-		m.Down.statements = p.DownStatements
-		m.Down.disableTx = p.DisableTransactionDown
+		m.Down.statements = sqlutil.SplitQuery(down.String())
 		m.Down.migration = &m
 
 		migrations = append(migrations, m)
@@ -381,11 +438,12 @@ func (step migrationStep) doneStmt() string {
 	}
 	return deleteMigrationRecord
 }
+
 func (step migrationStep) applyNoTx(ctx context.Context, c *pgx.Conn) error {
 	for i, stmt := range step.statements {
 		_, err := c.Exec(ctx, stmt)
 		if err != nil {
-			return errors.Wrapf(err, "statement #%d", i+1)
+			return errors.Wrapf(err, "statement #%d\n%s", i+1, stmt)
 		}
 	}
 

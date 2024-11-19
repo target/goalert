@@ -23,6 +23,8 @@ func TestISODuration_String(t *testing.T) {
 	check("P1D", ISODuration{DayPart: 1})
 	check("PT1H", ISODuration{HourPart: 1})
 	check("P1YT0.1S", ISODuration{YearPart: 1, SecondPart: 0.1})
+	check("P1YT0.123457S", ISODuration{YearPart: 1, SecondPart: 0.1234567})           // Note: rounded to 6 decimal places, so the 6th digit is 7 instead of 6.
+	check("P1YT0.000076S", ISODuration{YearPart: 1, SecondPart: 7.5809468881749e-05}) // Ensure we don't print an exponent.
 
 	check("P1Y2M3W4DT5H6M7S", ISODuration{
 		YearPart:  1,
@@ -39,7 +41,6 @@ func TestISODuration_String(t *testing.T) {
 }
 
 func TestParseISODuration(t *testing.T) {
-
 	check := func(desc string, iso string, exp ISODuration) {
 		t.Helper()
 

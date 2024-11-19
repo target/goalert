@@ -68,6 +68,7 @@ export default function AdminAPIKeyEditDialog(props: {
 
   return (
     <FormDialog
+      maxWidth='md'
       title='Update API Key'
       loading={apiKeyActionStatus.fetching}
       errors={nonFieldErrors(apiKeyActionStatus.error)}

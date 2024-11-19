@@ -42,9 +42,15 @@ export default function NavBar(): JSX.Element {
   const classes = useStyles()
   const theme = useTheme()
 
-  let localDev = null
+  let localDevFooter = null
+  let localDevRiver = null
   if (process.env.NODE_ENV !== 'production') {
-    localDev = <NavBarLink to='/dev' title='Dev' icon={<DeveloperBoard />} />
+    localDevFooter = (
+      <NavBarLink to='/dev' title='Dev' icon={<DeveloperBoard />} />
+    )
+    localDevRiver = (
+      <NavBarSubLink newTab to='/admin/riverui' title='Job Queues' />
+    )
   }
 
   const logo =
@@ -101,12 +107,13 @@ export default function NavBar(): JSX.Element {
               />
               <NavBarSubLink to='/admin/switchover' title='Switchover' />
               <NavBarSubLink to='/admin/api-keys' title='API Keys' />
+              {localDevRiver}
             </NavBarLink>
           </RequireConfig>
 
           <NavBarLink to='/wizard' title='Wizard' icon={<WizardIcon />} />
 
-          {localDev}
+          {localDevFooter}
         </List>
       </nav>
     </React.Fragment>

@@ -11,7 +11,7 @@ import (
 )
 
 func (app *App) listenEvents(ctx context.Context) (<-chan struct{}, error) {
-	l, err := sqlutil.NewListener(ctx, app.cfg.Logger, app.db, "/goalert/config-refresh")
+	l, err := sqlutil.NewListener(ctx, app.cfg.LegacyLogger, app.db, "/goalert/config-refresh")
 	if err != nil {
 		return nil, err
 	}

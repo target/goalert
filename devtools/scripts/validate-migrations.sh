@@ -33,7 +33,7 @@ if [ -n "$MODIFIED_FILES" ]; then
 fi
 
 # Any new file(s) must be the last file(s) in the directory.
-LAST_MIGRATION_ON_MAIN=$(git ls-files "$MAIN_BRANCH" -- "$MIGRATIONS_DIR" | sort | tail -n 1)
+LAST_MIGRATION_ON_MAIN=$(git ls-tree -r --name-only "origin/$MAIN_BRANCH" -- "$MIGRATIONS_DIR" | sort | tail -n 1)
 
 BAD_MIGRATIONS=()
 # Check if any new file is less than the last migration on the main branch.

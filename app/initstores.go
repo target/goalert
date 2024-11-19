@@ -73,14 +73,14 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.NonceStore == nil {
-		app.NonceStore, err = nonce.NewStore(ctx, app.cfg.Logger, app.db)
+		app.NonceStore, err = nonce.NewStore(ctx, app.cfg.LegacyLogger, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init nonce store")
 	}
 
 	if app.OAuthKeyring == nil {
-		app.OAuthKeyring, err = keyring.NewDB(ctx, app.cfg.Logger, app.db, &keyring.Config{
+		app.OAuthKeyring, err = keyring.NewDB(ctx, app.cfg.LegacyLogger, app.db, &keyring.Config{
 			Name:         "oauth-state",
 			RotationDays: 1,
 			MaxOldKeys:   1,
@@ -92,7 +92,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.AuthLinkKeyring == nil {
-		app.AuthLinkKeyring, err = keyring.NewDB(ctx, app.cfg.Logger, app.db, &keyring.Config{
+		app.AuthLinkKeyring, err = keyring.NewDB(ctx, app.cfg.LegacyLogger, app.db, &keyring.Config{
 			Name:         "auth-link",
 			RotationDays: 1,
 			MaxOldKeys:   1,
@@ -104,7 +104,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.SessionKeyring == nil {
-		app.SessionKeyring, err = keyring.NewDB(ctx, app.cfg.Logger, app.db, &keyring.Config{
+		app.SessionKeyring, err = keyring.NewDB(ctx, app.cfg.LegacyLogger, app.db, &keyring.Config{
 			Name:         "browser-sessions",
 			RotationDays: 1,
 			MaxOldKeys:   30,
@@ -116,7 +116,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.APIKeyring == nil {
-		app.APIKeyring, err = keyring.NewDB(ctx, app.cfg.Logger, app.db, &keyring.Config{
+		app.APIKeyring, err = keyring.NewDB(ctx, app.cfg.LegacyLogger, app.db, &keyring.Config{
 			Name:       "api-keys",
 			MaxOldKeys: 100,
 			Keys:       app.cfg.EncryptionKeys,
@@ -304,7 +304,7 @@ func (app *App) initStores(ctx context.Context) error {
 		return errors.Wrap(err, "init API key store")
 	}
 
-	app.UIKHandler = uik.NewHandler(app.db, app.IntegrationKeyStore, app.AlertStore)
+	app.UIKHandler = uik.NewHandler(app.db, app.IntegrationKeyStore, app.AlertStore, app.River)
 
 	return nil
 }

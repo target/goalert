@@ -32,6 +32,10 @@ func main() {
 		err = getGolangCiLint(*version, *output)
 	case "sqlc":
 		err = getSqlc(*version, *output)
+	case "mailpit":
+		err = getMailpit(*version, *output)
+	case "k6":
+		err = getK6(*version, *output)
 	default:
 		log.Fatalf("unknown tool '%s'", *tool)
 	}

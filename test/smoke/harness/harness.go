@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	stdlog "log"
+	"log/slog"
 	"net/http/httptest"
 	"net/smtp"
 	"net/url"
@@ -23,8 +24,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
+	sloglogrus "github.com/samber/slog-logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/alert"
@@ -75,6 +77,8 @@ type Harness struct {
 	phoneCCG, uuidG, emailG *DataGen
 	t                       *testing.T
 	closing                 bool
+
+	appPool *pgxpool.Pool
 
 	msgSvcID string
 	expFlags expflag.FlagSet
@@ -291,7 +295,10 @@ func (h *Harness) Start() {
 
 	appCfg := app.Defaults()
 	appCfg.ExpFlags = h.expFlags
-	appCfg.Logger = log.NewLogger()
+	appCfg.LegacyLogger = log.NewLogger()
+	appCfg.Logger = slog.New(sloglogrus.Option{
+		Logger: appCfg.LegacyLogger.Logrus(),
+	}.NewLogrusHandler())
 	appCfg.ListenAddr = "localhost:0"
 	appCfg.Verbose = true
 	appCfg.JSON = true
@@ -306,17 +313,21 @@ func (h *Harness) Start() {
 	r, w := io.Pipe()
 	h.backendLogs = w
 
-	appCfg.Logger.EnableJSON()
-	appCfg.Logger.SetOutput(w)
+	appCfg.LegacyLogger.EnableJSON()
+	appCfg.LegacyLogger.SetOutput(w)
 
 	go h.watchBackendLogs(r)
 
-	dbCfg, err := pgx.ParseConfig(h.dbURL)
+	poolCfg, err := pgxpool.ParseConfig(h.dbURL)
 	if err != nil {
 		h.t.Fatalf("failed to parse db url: %v", err)
 	}
+	poolCfg.MaxConns = 5
 
-	h.backend, err = app.NewApp(appCfg, stdlib.OpenDB(*dbCfg))
+	h.appPool, err = pgxpool.NewWithConfig(ctx, poolCfg)
+	require.NoError(h.t, err, "create pgx pool")
+
+	h.backend, err = app.NewApp(appCfg, h.appPool)
 	if err != nil {
 		h.t.Fatalf("failed to start backend: %v", err)
 	}
@@ -617,6 +628,8 @@ func (h *Harness) Close() error {
 	h.tw.Close()
 
 	h.pgTime.Close()
+
+	h.appPool.Close()
 
 	conn, err := pgx.Connect(ctx, DBURL(""))
 	if err != nil {

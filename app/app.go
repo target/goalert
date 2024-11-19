@@ -5,10 +5,15 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pkg/errors"
+	"github.com/riverqueue/river"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/alert/alertmetrics"
@@ -52,15 +57,19 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
+	"riverqueue.com/riverui"
 )
 
 // App represents an instance of the GoAlert application.
 type App struct {
 	cfg Config
 
+	Logger *slog.Logger
+
 	mgr *lifecycle.Manager
 
 	db     *sql.DB
+	pgx    *pgxpool.Pool
 	l      net.Listener
 	events *sqlutil.Listener
 
@@ -126,11 +135,19 @@ type App struct {
 	NoticeStore   *notice.Store
 	AuthLinkStore *authlink.Store
 	APIKeyStore   *apikey.Store
+	River         *river.Client[pgx.Tx]
+	RiverUI       *riverui.Server
+	RiverWorkers  *river.Workers
 }
 
 // NewApp constructs a new App and binds the listening socket.
-func NewApp(c Config, db *sql.DB) (*App, error) {
+func NewApp(c Config, pool *pgxpool.Pool) (*App, error) {
+	if c.Logger == nil {
+		return nil, errors.New("Logger is required")
+	}
+
 	var err error
+	db := stdlib.OpenDBFromPool(pool)
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
 		// Should not be possible for the app to ever see `use_next_db` unless misconfigured.
 		//
@@ -164,10 +181,10 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 		if err != nil {
 			return nil, errors.Wrapf(err, "listen %s", c.TLSListenAddr)
 		}
-		l = newMultiListener(c.Logger, l, l2)
+		l = newMultiListener(l, l2)
 	}
 
-	c.Logger.AddErrorMapper(func(ctx context.Context, err error) context.Context {
+	c.LegacyLogger.AddErrorMapper(func(ctx context.Context, err error) context.Context {
 		if e := sqlutil.MapError(err); e != nil && e.Detail != "" {
 			ctx = log.WithField(ctx, "SQLErrDetails", e.Detail)
 		}
@@ -178,8 +195,10 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 	app := &App{
 		l:      l,
 		db:     db,
+		pgx:    pool,
 		cfg:    c,
 		doneCh: make(chan struct{}),
+		Logger: c.Logger,
 	}
 
 	if c.StatusAddr != "" {
@@ -188,9 +207,6 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 			return nil, errors.Wrap(err, "start status listener")
 		}
 	}
-
-	app.db.SetMaxIdleConns(c.DBMaxIdle)
-	app.db.SetMaxOpenConns(c.DBMaxOpen)
 
 	app.mgr = lifecycle.NewManager(app._Run, app._Shutdown)
 	err = app.mgr.SetStartupFunc(app.startup)

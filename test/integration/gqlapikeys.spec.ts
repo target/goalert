@@ -70,7 +70,9 @@ test('GQL API keys', async ({ page, request, isMobile, baseURL }) => {
   // click the li with the text "Admin"
   await page.click('li:text("Admin")')
 
-  await page.fill('[name="query"]', query)
+  const editor = page.locator('.cm-editor')
+  await editor.click()
+  await page.keyboard.insertText(query)
 
   await page.click('text=Submit')
 

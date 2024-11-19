@@ -11,12 +11,16 @@ import (
 
 	"github.com/expr-lang/expr/vm"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/riverqueue/river"
 	"github.com/target/goalert/alert"
+	"github.com/target/goalert/engine/signalmgr"
 	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 )
 
@@ -24,6 +28,8 @@ type Handler struct {
 	intStore   *integrationkey.Store
 	alertStore *alert.Store
 	db         TxAble
+
+	r *river.Client[pgx.Tx]
 }
 
 type TxAble interface {
@@ -31,52 +37,45 @@ type TxAble interface {
 	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
 }
 
-func NewHandler(db TxAble, intStore *integrationkey.Store, aStore *alert.Store) *Handler {
-	return &Handler{intStore: intStore, db: db, alertStore: aStore}
+func NewHandler(db TxAble, intStore *integrationkey.Store, aStore *alert.Store, r *river.Client[pgx.Tx]) *Handler {
+	return &Handler{intStore: intStore, db: db, alertStore: aStore, r: r}
 }
 
-func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1, _params any) error {
-	params := _params.(map[string]any)
-	param := func(name string) string {
-		if v, ok := params[name]; ok {
-			return v.(string)
-		}
-		return ""
-	}
-
+func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1) (inserted bool, err error) {
+	var didInsertSignals bool
 	switch act.Dest.Type {
 	case "builtin-webhook":
-		req, err := http.NewRequest("POST", act.Dest.Arg("webhook_url"), strings.NewReader(param("body")))
+		req, err := http.NewRequest("POST", act.Dest.Arg("webhook_url"), strings.NewReader(act.Param("body")))
 		if err != nil {
-			return err
+			return false, err
 		}
-		req.Header.Set("Content-Type", param("content-type"))
+		req.Header.Set("Content-Type", act.Param("content-type"))
 
 		_, err = http.DefaultClient.Do(req.WithContext(ctx))
 		if err != nil {
-			return err
+			return false, err
 		}
 
 	case "builtin-alert":
 		status := alert.StatusTriggered
-		if param("close") == "true" {
+		if act.Param("close") == "true" {
 			status = alert.StatusClosed
 		}
 
 		_, _, err := h.alertStore.CreateOrUpdate(ctx, &alert.Alert{
 			ServiceID: permission.ServiceID(ctx),
-			Summary:   param("summary"),
-			Details:   param("details"),
+			Summary:   act.Param("summary"),
+			Details:   act.Param("details"),
 			Source:    alert.SourceUniversal,
 			Status:    status,
 		})
 		if err != nil {
-			return err
+			return false, err
 		}
 	default:
-		data, err := json.Marshal(params)
+		data, err := json.Marshal(act.Params)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		err = gadb.New(h.db).IntKeyInsertSignalMessage(ctx, gadb.IntKeyInsertSignalMessageParams{
@@ -85,11 +84,12 @@ func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1, _param
 			Params:    data,
 		})
 		if err != nil {
-			return err
+			return false, err
 		}
+		didInsertSignals = true
 	}
 
-	return nil
+	return didInsertSignals, nil
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -129,67 +129,49 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// TODO: cache
+	compiled, err := NewCompiledConfig(*cfg)
+	if errutil.HTTPError(ctx, w, err) {
+		return
+	}
+
+	q := req.URL.Query()
+	query := make(map[string]string)
+	for key := range q {
+		query[key] = q.Get(key)
+	}
+	querya := map[string][]string(q)
 	env := map[string]any{
 		"sprintf": fmt.Sprintf,
 		"req": map[string]any{
-			"body": body,
+			"body":   body,
+			"query":  query,
+			"querya": querya,
+			"ua":     req.UserAgent(),
+			"ip":     req.RemoteAddr,
 		},
 	}
 
 	var vm vm.VM
-	var matched bool
-	for _, rule := range cfg.Rules {
-		p, err := CompileRule(rule.ConditionExpr, rule.Actions)
-		if errutil.HTTPError(ctx, w, err) {
-			return
-		}
-
-		res, err := vm.Run(p, env)
-		if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
-			return
-		}
-
-		actions, ok := res.([]any)
-		if !ok {
-			// didn't match
-			continue
-		}
-		matched = true
-		if len(actions) != len(rule.Actions) {
-			// This should never happen, but better than a panic.
-			errutil.HTTPError(ctx, w, fmt.Errorf("rule %s: expected %d actions, got %d", rule.ID, len(rule.Actions), len(actions)))
-			return
-		}
-
-		for i, act := range actions {
-			err = h.handleAction(ctx, rule.Actions[i], act)
-			if errutil.HTTPError(ctx, w, err) {
-				return
-			}
-		}
-
-		if rule.ContinueAfterMatch {
-			continue
-		}
-
-		break
+	actions, err := compiled.Run(&vm, env)
+	if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
+		return
 	}
 
-	if !matched {
-		p, err := CompileRule("", cfg.DefaultActions)
+	var insertedAny bool
+	for _, act := range actions {
+		inserted, err := h.handleAction(ctx, act)
 		if errutil.HTTPError(ctx, w, err) {
 			return
 		}
+		insertedAny = insertedAny || inserted
+	}
 
-		res, err := vm.Run(p, env)
-		if errutil.HTTPError(ctx, w, err) {
-			return
-		}
-		for i, act := range res.([]any) {
-			err = h.handleAction(ctx, cfg.DefaultActions[i], act)
-			if errutil.HTTPError(ctx, w, err) {
-				return
-			}
+	if insertedAny {
+		// schedule job
+		err := signalmgr.TriggerService(ctx, h.r, permission.ServiceNullUUID(ctx).UUID)
+		if err != nil {
+			log.Log(ctx, fmt.Errorf("schedule signal message: %w", err))
 		}
 	}
 
