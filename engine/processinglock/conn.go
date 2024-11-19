@@ -47,7 +47,7 @@ func (c *Conn) BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error
 func (c *Conn) WithTx(ctx context.Context, txFn func(tx *sql.Tx) error) error {
 	c.mx.Lock()
 	defer c.mx.Unlock()
-	tx, err := c.l._BeginTx(ctx, c.conn, nil)
+	tx, err := c.l._BeginTx(ctx, c.conn, nil, false)
 	if err != nil {
 		return err
 	}
