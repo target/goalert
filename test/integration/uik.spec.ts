@@ -56,7 +56,11 @@ test('create universal key, add rule with action', async ({
   await page.getByRole('button', { name: 'Create Rule' }).click()
   await page.fill('input[name=name]', ruleName)
   await page.fill('input[name=description]', ruleDesc)
-  await page.fill('textarea[name=conditionExpr]', 'true')
+  const editor = await page
+    .getByTestId('code-conditionExpr')
+    .locator('.cm-editor')
+  await editor.click()
+  await page.keyboard.insertText('true')
   await page.getByRole('button', { name: 'Next' }).click()
 
   // add an action to the rule and submit

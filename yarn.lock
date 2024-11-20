@@ -3245,6 +3245,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@lezer/generator@npm:1.7.1":
+  version: 1.7.1
+  resolution: "@lezer/generator@npm:1.7.1"
+  dependencies:
+    "@lezer/common": "npm:^1.1.0"
+    "@lezer/lr": "npm:^1.3.0"
+  bin:
+    lezer-generator: src/lezer-generator.cjs
+  checksum: 10/78d496e5e49e55deb4092f13e1c1a363471a4810e4ceece3a5544c0911173a078cf77f62b1257e2033612e5602c48655985f48ffe3ff43174238982cbb691154
+  languageName: node
+  linkType: hard
+
 "@lezer/highlight@npm:1.2.1, @lezer/highlight@npm:^1.0.0":
   version: 1.2.1
   resolution: "@lezer/highlight@npm:1.2.1"
@@ -3254,7 +3266,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lezer/lr@npm:1.4.2, @lezer/lr@npm:^1.0.0":
+"@lezer/lr@npm:1.4.2, @lezer/lr@npm:^1.0.0, @lezer/lr@npm:^1.3.0":
   version: 1.4.2
   resolution: "@lezer/lr@npm:1.4.2"
   dependencies:
@@ -18373,6 +18385,7 @@ __metadata:
     "@dnd-kit/utilities": "npm:3.2.2"
     "@emotion/react": "npm:11.13.3"
     "@emotion/styled": "npm:11.13.0"
+    "@lezer/generator": "npm:1.7.1"
     "@lezer/highlight": "npm:1.2.1"
     "@lezer/lr": "npm:1.4.2"
     "@material/material-color-utilities": "npm:0.2.7"
