@@ -16,6 +16,7 @@ import { ActionInput, KeyRuleInput } from '../../../schema'
 import UniversalKeyActionsList from './UniversalKeyActionsList'
 import UniversalKeyActionsForm from './UniversalKeyActionsForm'
 import { HelperText } from '../../forms'
+import { ExprField } from './ExprField'
 
 interface UniversalKeyRuleFormProps {
   value: KeyRuleInput
@@ -87,22 +88,16 @@ export default function UniversalKeyRuleForm(
             />
           </Grid>
           <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label='Condition (Expr syntax)'
+            <ExprField
               name='conditionExpr'
-              multiline
-              rows={3}
+              label='Condition'
               value={props.value.conditionExpr}
-              onChange={(e) => {
-                props.onChange({
-                  ...props.value,
-                  conditionExpr: e.target.value,
-                })
-              }}
+              onChange={(v) =>
+                props.onChange({ ...props.value, conditionExpr: v })
+              }
               error={!!props.conditionError}
-              helperText={<HelperText error={props.conditionError} />}
             />
+            <HelperText error={props.conditionError} />
           </Grid>
         </React.Fragment>
       )}
