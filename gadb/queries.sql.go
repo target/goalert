@@ -4348,6 +4348,128 @@ func (q *Queries) TableColumns(ctx context.Context) ([]TableColumnsRow, error) {
 	return items, nil
 }
 
+const uIKDeleteOldestSamples = `-- name: UIKDeleteOldestSamples :exec
+DELETE FROM uik_samples
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            uik_samples s
+        WHERE
+            s.key_id = $1
+            AND s.user_note IS NULL
+            AND s.failed = $2
+        ORDER BY
+            created_at DESC OFFSET $3)
+`
+
+type UIKDeleteOldestSamplesParams struct {
+	KeyID  uuid.UUID
+	Failed bool
+	Offset int32
+}
+
+func (q *Queries) UIKDeleteOldestSamples(ctx context.Context, arg UIKDeleteOldestSamplesParams) error {
+	_, err := q.db.ExecContext(ctx, uIKDeleteOldestSamples, arg.KeyID, arg.Failed, arg.Offset)
+	return err
+}
+
+const uIKDeleteSample = `-- name: UIKDeleteSample :exec
+DELETE FROM uik_samples
+WHERE id = $1
+`
+
+func (q *Queries) UIKDeleteSample(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, uIKDeleteSample, id)
+	return err
+}
+
+const uIKGetSamples = `-- name: UIKGetSamples :many
+SELECT
+    created_at, failed, id, key_id, request_data, user_note
+FROM
+    uik_samples
+WHERE
+    key_id = $1
+ORDER BY
+    created_at DESC
+`
+
+func (q *Queries) UIKGetSamples(ctx context.Context, keyID uuid.UUID) ([]UikSample, error) {
+	rows, err := q.db.QueryContext(ctx, uIKGetSamples, keyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UikSample
+	for rows.Next() {
+		var i UikSample
+		if err := rows.Scan(
+			&i.CreatedAt,
+			&i.Failed,
+			&i.ID,
+			&i.KeyID,
+			&i.RequestData,
+			&i.UserNote,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const uIKInsertSample = `-- name: UIKInsertSample :exec
+INSERT INTO uik_samples(id, key_id, request_data, user_note, failed)
+    VALUES ($1, $2, $3, $4, $5)
+`
+
+type UIKInsertSampleParams struct {
+	ID          uuid.UUID
+	KeyID       uuid.UUID
+	RequestData UIKRequestData
+	UserNote    sql.NullString
+	Failed      bool
+}
+
+func (q *Queries) UIKInsertSample(ctx context.Context, arg UIKInsertSampleParams) error {
+	_, err := q.db.ExecContext(ctx, uIKInsertSample,
+		arg.ID,
+		arg.KeyID,
+		arg.RequestData,
+		arg.UserNote,
+		arg.Failed,
+	)
+	return err
+}
+
+const uIKUpdateSample = `-- name: UIKUpdateSample :exec
+UPDATE
+    uik_samples
+SET
+    user_note = $2,
+    request_data = $3
+WHERE
+    id = $1
+`
+
+type UIKUpdateSampleParams struct {
+	ID          uuid.UUID
+	UserNote    sql.NullString
+	RequestData UIKRequestData
+}
+
+func (q *Queries) UIKUpdateSample(ctx context.Context, arg UIKUpdateSampleParams) error {
+	_, err := q.db.ExecContext(ctx, uIKUpdateSample, arg.ID, arg.UserNote, arg.RequestData)
+	return err
+}
+
 const updateCalSub = `-- name: UpdateCalSub :exec
 UPDATE
     user_calendar_subscriptions

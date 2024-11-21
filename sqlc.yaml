@@ -26,6 +26,9 @@ sql:
         out: gadb
         sql_package: database/sql
         overrides:
+          - column: public.uik_samples.request_data
+            go_type:
+              type: UIKRequestData
           - column: public.schedule_rules.start_time
             go_type:
               import: github.com/target/goalert/util/timeutil

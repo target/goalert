@@ -1288,6 +1288,15 @@ type UikConfig struct {
 	SecondaryTokenHint sql.NullString
 }
 
+type UikSample struct {
+	CreatedAt   time.Time
+	Failed      bool
+	ID          uuid.UUID
+	KeyID       uuid.UUID
+	RequestData UIKRequestData
+	UserNote    sql.NullString
+}
+
 type User struct {
 	AlertStatusLogContactMethodID uuid.NullUUID
 	AvatarUrl                     string

@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 
@@ -30,6 +29,8 @@ type Handler struct {
 	db         TxAble
 
 	r *river.Client[pgx.Tx]
+
+	sampleLimit limiter
 }
 
 type TxAble interface {
@@ -114,12 +115,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if errutil.HTTPError(ctx, w, err) {
 		return
 	}
-	data, err := io.ReadAll(req.Body)
-	if errutil.HTTPError(ctx, w, err) {
-		return
-	}
-	var body any
-	err = json.Unmarshal(data, &body)
+
+	sample, err := SampleFromRequest(req)
 	if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
 		return
 	}
@@ -135,28 +132,13 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	q := req.URL.Query()
-	query := make(map[string]string)
-	for key := range q {
-		query[key] = q.Get(key)
-	}
-	querya := map[string][]string(q)
-	env := map[string]any{
-		"sprintf": fmt.Sprintf,
-		"req": map[string]any{
-			"body":   body,
-			"query":  query,
-			"querya": querya,
-			"ua":     req.UserAgent(),
-			"ip":     req.RemoteAddr,
-		},
-	}
-
 	var vm vm.VM
-	actions, err := compiled.Run(&vm, env)
+	actions, err := compiled.Run(&vm, EnvFromSample(*sample))
 	if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
+		h.Sample(ctx, keyID, *sample, true)
 		return
 	}
+	defer h.Sample(ctx, keyID, *sample, false)
 
 	var insertedAny bool
 	for _, act := range actions {

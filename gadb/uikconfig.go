@@ -3,9 +3,28 @@ package gadb
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 
 	"github.com/google/uuid"
 )
+
+// UIKRequestData is the data stored in the database for an incoming request.
+type UIKRequestData struct {
+	Version int
+	V1      UIKRequestDataV1
+}
+
+// UIKRequestData is the data that is sent to the integration key handler.
+type UIKRequestDataV1 struct {
+	// Body is the body of the request.
+	Body any
+
+	// Query is the query parameters of the request.
+	Query url.Values
+
+	UserAgent  string
+	RemoteAddr string
+}
 
 // UIKConfig stores the configuration for an integration key for how to handle incoming requests.
 type UIKConfig struct {
