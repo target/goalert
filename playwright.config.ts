@@ -58,8 +58,7 @@ const config = {
   ],
   webServer: [
     {
-      command:
-        './bin/MailHog -ui-bind-addr=localhost:6125 -api-bind-addr=localhost:6125 -smtp-bind-addr=localhost:6105 >/dev/null 2>&1',
+      command: './bin/tools/mailpit -l=localhost:6125 -s=localhost:6105',
       port: 6125,
     },
     {

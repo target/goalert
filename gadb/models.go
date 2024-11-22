@@ -13,6 +13,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/sqlc-dev/pqtype"
+	"github.com/target/goalert/util/timeutil"
 )
 
 type EngineProcessingType string
@@ -755,6 +756,54 @@ func (ns NullEnumUserRole) Value() (driver.Value, error) {
 	return string(ns.EnumUserRole), nil
 }
 
+type RiverJobState string
+
+const (
+	RiverJobStateAvailable RiverJobState = "available"
+	RiverJobStateCancelled RiverJobState = "cancelled"
+	RiverJobStateCompleted RiverJobState = "completed"
+	RiverJobStateDiscarded RiverJobState = "discarded"
+	RiverJobStatePending   RiverJobState = "pending"
+	RiverJobStateRetryable RiverJobState = "retryable"
+	RiverJobStateRunning   RiverJobState = "running"
+	RiverJobStateScheduled RiverJobState = "scheduled"
+)
+
+func (e *RiverJobState) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = RiverJobState(s)
+	case string:
+		*e = RiverJobState(s)
+	default:
+		return fmt.Errorf("unsupported scan type for RiverJobState: %T", src)
+	}
+	return nil
+}
+
+type NullRiverJobState struct {
+	RiverJobState RiverJobState
+	Valid         bool // Valid is true if RiverJobState is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullRiverJobState) Scan(value interface{}) error {
+	if value == nil {
+		ns.RiverJobState, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.RiverJobState.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullRiverJobState) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.RiverJobState), nil
+}
+
 type Alert struct {
 	CreatedAt       time.Time
 	DedupKey        sql.NullString
@@ -850,6 +899,12 @@ type AuthUserSession struct {
 	LastAccessAt time.Time
 	UserAgent    string
 	UserID       uuid.NullUUID
+}
+
+type ChangeLog struct {
+	ID        int64
+	TableName string
+	RowID     string
 }
 
 type Config struct {
@@ -1040,9 +1095,73 @@ type PendingSignal struct {
 	ServiceID uuid.UUID
 }
 
+type PgStatActivity struct {
+	State           sql.NullString
+	XactStart       time.Time
+	ApplicationName sql.NullString
+}
+
 type RegionID struct {
 	ID   int32
 	Name string
+}
+
+type RiverClient struct {
+	CreatedAt time.Time
+	ID        string
+	Metadata  json.RawMessage
+	PausedAt  sql.NullTime
+	UpdatedAt time.Time
+}
+
+type RiverClientQueue struct {
+	CreatedAt        time.Time
+	ID               int64
+	MaxWorkers       int64
+	Metadata         json.RawMessage
+	Name             string
+	NumJobsCompleted int64
+	NumJobsRunning   int64
+	RiverClientID    string
+	UpdatedAt        time.Time
+}
+
+type RiverJob struct {
+	Args         json.RawMessage
+	Attempt      int16
+	AttemptedAt  sql.NullTime
+	AttemptedBy  []string
+	CreatedAt    time.Time
+	Errors       []json.RawMessage
+	FinalizedAt  sql.NullTime
+	ID           int64
+	Kind         string
+	MaxAttempts  int16
+	Metadata     json.RawMessage
+	Priority     int16
+	Queue        string
+	ScheduledAt  time.Time
+	State        RiverJobState
+	Tags         []string
+	UniqueKey    []byte
+	UniqueStates interface{}
+}
+
+type RiverLeader struct {
+	ElectedAt time.Time
+	ExpiresAt time.Time
+	ID        int64
+	LeaderID  string
+	Name      string
+}
+
+type RiverQueue struct {
+	CreatedAt time.Time
+	ID        int64
+	Metadata  json.RawMessage
+	Name      string
+	PausedAt  sql.NullTime
+	UpdatedAt time.Time
 }
 
 type Rotation struct {
@@ -1098,14 +1217,14 @@ type ScheduleOnCallUser struct {
 
 type ScheduleRule struct {
 	CreatedAt     time.Time
-	EndTime       time.Time
+	EndTime       timeutil.Clock
 	Friday        bool
 	ID            uuid.UUID
 	IsActive      bool
 	Monday        bool
 	Saturday      bool
 	ScheduleID    uuid.UUID
-	StartTime     time.Time
+	StartTime     timeutil.Clock
 	Sunday        bool
 	TgtRotationID uuid.NullUUID
 	TgtUserID     uuid.NullUUID

@@ -5,12 +5,13 @@ import (
 	"database/sql"
 	"encoding/json"
 
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/util/jsonutil"
 )
 
 // State manages the state value for a processing lock.
 type State struct {
-	data []byte
+	data json.RawMessage
 	tx   *sql.Tx
 	l    *Lock
 }
@@ -26,8 +27,8 @@ func (l *Lock) BeginTxWithState(ctx context.Context, opts *sql.TxOptions) (*sql.
 }
 
 // Load will load the JSON state from the database.
-func (s *State) Load(ctx context.Context, v interface{}) error {
-	err := s.tx.StmtContext(ctx, s.l.loadState).QueryRowContext(ctx, s.l.cfg.Type).Scan(&s.data)
+func (s *State) Load(ctx context.Context, v interface{}) (err error) {
+	s.data, err = gadb.New(s.tx).ProcLoadState(ctx, gadb.EngineProcessingType(s.l.cfg.Type))
 	if err != nil {
 		return err
 	}
@@ -44,7 +45,10 @@ func (s *State) Save(ctx context.Context, v interface{}) error {
 	}
 	s.data = data
 
-	_, err = s.tx.StmtContext(ctx, s.l.saveState).ExecContext(ctx, s.l.cfg.Type, s.data)
+	err = gadb.New(s.tx).ProcSaveState(ctx, gadb.ProcSaveStateParams{
+		TypeID: gadb.EngineProcessingType(s.l.cfg.Type),
+		State:  s.data,
+	})
 	if err != nil {
 		return err
 	}

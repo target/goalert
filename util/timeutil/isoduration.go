@@ -112,7 +112,7 @@ func (dur ISODuration) String() string {
 		sec := dur.SecondPart
 		// round to microseconds
 		sec = math.Round(sec*1e6) / 1e6
-		fmt.Fprintf(&b, "%gS", sec)
+		fmt.Fprintf(&b, "%sS", strconv.FormatFloat(sec, 'f', -1, 64))
 	}
 
 	return b.String()

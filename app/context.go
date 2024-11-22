@@ -14,7 +14,7 @@ import (
 // the correct configuration is used.
 func (app *App) Context(ctx context.Context) context.Context {
 	ctx = expflag.Context(ctx, app.cfg.ExpFlags)
-	ctx = log.WithLogger(ctx, app.cfg.Logger)
+	ctx = log.WithLogger(ctx, app.cfg.LegacyLogger)
 
 	if app.ConfigStore != nil {
 		ctx = app.ConfigStore.Config().Context(ctx)

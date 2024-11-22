@@ -35,6 +35,9 @@ type Config struct {
 		// ServerAddr is the address of the SMTP server, including port.
 		ServerAddr string
 		User, Pass string
+
+		// Retries is the number of times to retry sending with an email integration key.
+		Retries int
 	}
 
 	// Instances determine what remote GoAlert instances will be monitored and send potential errors.
@@ -93,6 +96,9 @@ func (cfg Config) Validate() error {
 	}
 	if cfg.SMTP.From == "" {
 		return errors.New("SMTP from address is required")
+	}
+	if cfg.SMTP.Retries > 5 || cfg.SMTP.Retries < 0 {
+		return errors.New("SMTP retries must be between 0 and 5")
 	}
 
 	return nil

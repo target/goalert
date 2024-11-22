@@ -3,8 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { Provider as ReduxProvider } from 'react-redux'
 import { ApolloProvider } from '@apollo/client'
 import { StyledEngineProvider } from '@mui/material/styles'
-
-import { GOALERT_VERSION, nonce, pathPrefix } from './env'
+import { GOALERT_VERSION as version, nonce, pathPrefix } from './env'
 import { ThemeProvider } from './theme/themeConfig'
 import { GraphQLClient } from './apollo'
 import './styles'
@@ -35,7 +34,7 @@ declare module 'luxon' {
 if (
   document
     .querySelector('meta[http-equiv=x-goalert-version]')
-    ?.getAttribute('content') !== GOALERT_VERSION
+    ?.getAttribute('content') !== version
 ) {
   warn(
     'app.js version does not match HTML version',
@@ -43,7 +42,7 @@ if (
       document
         .querySelector('meta[http-equiv=x-goalert-version]')
         ?.getAttribute('content'),
-    'app.js=' + GOALERT_VERSION,
+    'app.js=' + version,
   )
 }
 

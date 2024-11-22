@@ -14,6 +14,7 @@ import (
 	"github.com/target/goalert/grafana"
 	"github.com/target/goalert/mailgun"
 	"github.com/target/goalert/notification/twilio"
+	"github.com/target/goalert/permission"
 	prometheus "github.com/target/goalert/prometheusalertmanager"
 	"github.com/target/goalert/site24x7"
 	"github.com/target/goalert/util/errutil"
@@ -213,6 +214,20 @@ func (app *App) initHTTP(ctx context.Context) error {
 	}
 	// non-API/404s go to UI handler
 	mux.Handle("/", webH)
+
+	mux.HandleFunc("/admin/riverui/", func(w http.ResponseWriter, r *http.Request) {
+		err := permission.LimitCheckAny(r.Context(), permission.Admin)
+		if permission.IsUnauthorized(err) && !strings.HasPrefix(r.URL.Path, "/admin/riverui/api") {
+			// render login since we're on a UI route
+			webH.ServeHTTP(w, r)
+			return
+		}
+		if errutil.HTTPError(r.Context(), w, err) {
+			return
+		}
+
+		app.RiverUI.ServeHTTP(w, r)
+	})
 
 	app.srv = &http.Server{
 		Handler: applyMiddleware(mux, middleware...),
