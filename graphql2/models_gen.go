@@ -839,18 +839,16 @@ type UpdateKeyConfigInput struct {
 }
 
 type UpdateRotationInput struct {
-	ID              string         `json:"id"`
-	Name            *string        `json:"name,omitempty"`
-	Description     *string        `json:"description,omitempty"`
-	TimeZone        *string        `json:"timeZone,omitempty"`
-	Start           *time.Time     `json:"start,omitempty"`
-	Type            *rotation.Type `json:"type,omitempty"`
-	ShiftLength     *int           `json:"shiftLength,omitempty"`
-	ActiveUserIndex *int           `json:"activeUserIndex,omitempty"`
-	// Active user index will not be changed, as the index will remain the same.
-	//
-	// On call user may change since whatever index is put into activeUserIndex will be on call.
-	UserIDs []string `json:"userIDs,omitempty"`
+	ID          string         `json:"id"`
+	Name        *string        `json:"name,omitempty"`
+	Description *string        `json:"description,omitempty"`
+	TimeZone    *string        `json:"timeZone,omitempty"`
+	Start       *time.Time     `json:"start,omitempty"`
+	Type        *rotation.Type `json:"type,omitempty"`
+	ShiftLength *int           `json:"shiftLength,omitempty"`
+	UserIDs     []string       `json:"userIDs,omitempty"`
+	// The index of the user in `userIDs` to set as the active user. If not provided, the existing active user index will be used.
+	ActiveUserIndex *int `json:"activeUserIndex,omitempty"`
 }
 
 type UpdateScheduleInput struct {
