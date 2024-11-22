@@ -1,44 +1,11 @@
--- name: StatusMgrUpdateCMForced :exec
-UPDATE
-    user_contact_methods
-SET
-    enable_status_updates = TRUE
-WHERE
-    dest ->> 'Type' = ANY (@forced_dest_types::text[])
-    AND NOT enable_status_updates;
-
--- name: StatusMgrCleanupDisabledSubs :exec
-DELETE FROM alert_status_subscriptions sub USING user_contact_methods cm
-WHERE sub.contact_method_id = cm.id
-    AND (cm.disabled
-        OR NOT cm.enable_status_updates);
-
--- name: StatusMgrNextUpdate :one
+-- name: StatusMgrOutdated :many
 SELECT
-    sub.id,
-    channel_id,
-    contact_method_id,
-    alert_id,
-(
-        SELECT
-            status
-        FROM
-            alerts a
-        WHERE
-            a.id = sub.alert_id)
+    sub.id
 FROM
     alert_status_subscriptions sub
-WHERE (NOT (sub.id = ANY ($1::bigint[])))
-    AND sub.last_alert_status !=(
-        SELECT
-            status
-        FROM
-            alerts a
-        WHERE
-            a.id = sub.alert_id)
-LIMIT 1
-FOR UPDATE
-    SKIP LOCKED;
+    JOIN alerts a ON a.id = sub.alert_id
+WHERE
+    sub.last_alert_status != a.status;
 
 -- name: StatusMgrLogEntry :one
 SELECT
@@ -53,17 +20,6 @@ WHERE
 ORDER BY
     id DESC
 LIMIT 1;
-
--- name: StatusMgrCMInfo :one
-SELECT
-    user_id,
-    dest
-FROM
-    user_contact_methods
-WHERE
-    id = $1
-    AND NOT disabled
-    AND enable_status_updates;
 
 -- name: StatusMgrDeleteSub :exec
 DELETE FROM alert_status_subscriptions
@@ -89,4 +45,16 @@ WHERE
 -- name: StatusMgrCleanupStaleSubs :exec
 DELETE FROM alert_status_subscriptions sub
 WHERE sub.updated_at < now() - '7 days'::interval;
+
+-- name: StatusMgrFindOne :one
+SELECT
+    sub.*,
+    a.status
+FROM
+    alert_status_subscriptions sub
+    JOIN alerts a ON a.id = sub.alert_id
+WHERE
+    sub.id = $1
+FOR UPDATE
+    SKIP LOCKED;
 
