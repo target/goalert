@@ -1,22 +1,22 @@
 import { GraphQL } from './lib/graphql.ts'
 import { login } from './lib/login.ts'
-
-function randomCharacters(length: number): string {
-  return Array.from({ length }, () =>
-    String.fromCharCode(Math.floor(Math.random() * 26) + 97),
-  ).join('')
-}
-
-function pickOne<T>(array: T[]): T {
-  return array[Math.floor(Math.random() * array.length)]
-}
+import { randString } from './lib/rand.ts'
 
 export default function (): void {
-  const token = login()
-  const gql = new GraphQL(token)
+  const adminGQL = new GraphQL(login())
+  const [gql, testUser] = adminGQL.newAdmin()
 
-  for (let i = 0; i < 100; i++) {
-    pickOne(gql.rotations).description =
-      'k6-random-description-' + randomCharacters(50)
+  for (let i = 0; i < 10; i++) {
+    const rot = gql.genRotation()
+    rot.type = 'daily' // update type
+    for (let j = 0; j < 10; j++) {
+      rot.description = 'update-desc-' + randString(128) // update description
+      rot.name = 'update-name-' + randString(40)
+      rot.shiftLength++ // update shiftLength
+      rot.description = randString(128) // update description
+    }
+    rot.delete()
   }
+
+  testUser.delete()
 }

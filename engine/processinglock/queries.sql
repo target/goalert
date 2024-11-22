@@ -2,15 +2,25 @@
 SELECT
     pg_try_advisory_xact_lock_shared($1) AS lock_acquired;
 
--- name: ProcAcquireModuleLock :one
+-- name: ProcAcquireModuleLockNoWait :one
 SELECT
-    version
+    1
 FROM
     engine_processing_versions
 WHERE
     type_id = $1
+    AND version = $2
 FOR UPDATE
     NOWAIT;
+
+-- name: ProcAcquireModuleSharedLock :one
+SELECT
+    1
+FROM
+    engine_processing_versions
+WHERE
+    type_id = $1
+    AND version = $2 FOR SHARE;
 
 -- name: ProcReadModuleVersion :one
 SELECT
