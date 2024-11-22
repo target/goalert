@@ -156,12 +156,12 @@ start-prod: web/src/build/static/app.js bin/mockoidc $(BIN_DIR)/tools/prometheus
 	$(MAKE) $(MFLAGS) bin/goalert BUNDLE=1
 	go run ./devtools/runproc -f Procfile.prod -l Procfile.local
 
-
-start-swo: bin/psql-lite bin/goalert bin/waitfor bin/mockoidc bin/runproc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit ## Start the developer version of the application in switchover mode (SWO)
+reset-swo: bin/psql-lite bin/goalert bin/waitfor
 	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert
 	./bin/psql-lite -d postgres://goalert@localhost -c "update switchover_state set current_state = 'idle'; truncate table switchover_log; drop database if exists goalert2; create database goalert2;"
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert2
+start-swo: reset-swo bin/goalert bin/mockoidc bin/runproc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit ## Start the developer version of the application in switchover mode (SWO)
 	GOALERT_VERSION=$(GIT_VERSION) ./bin/runproc -f Procfile.swo -l Procfile.local
 
 reset-integration: bin/waitfor bin/goalert.cover bin/psql-lite bin/resetdb

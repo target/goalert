@@ -5,9 +5,9 @@ const TEST_PASS = 'admin123'
 
 // login will return the session token
 export function login(
-  host = 'http://localhost:3030',
   user = TEST_USER,
   pass = TEST_PASS,
+  host = 'http://localhost:3030',
 ): string {
   const res = http.post(
     host + '/api/v2/identity/providers/basic?noRedirect=1',

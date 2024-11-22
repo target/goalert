@@ -70,7 +70,7 @@
     "@types/diff": "5.2.2",
     "@types/glob": "8.1.0",
     "@types/jest": "29.5.13",
-    "@types/k6": "0.54.1",
+    "@types/k6": "0.54.2",
     "@types/lodash": "4.17.9",
     "@types/luxon": "3.4.2",
     "@types/node": "20.16.6",
