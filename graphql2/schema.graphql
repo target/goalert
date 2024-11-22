@@ -832,14 +832,12 @@ input UpdateRotationInput {
   type: RotationType
   shiftLength: Int
 
-  activeUserIndex: Int
-
-  """
-  Active user index will not be changed, as the index will remain the same.
-
-  On call user may change since whatever index is put into activeUserIndex will be on call.
-  """
   userIDs: [ID!]
+
+  """
+  The index of the user in `userIDs` to set as the active user. If not provided, the existing active user index will be used.
+  """
+  activeUserIndex: Int
 }
 
 input RotationSearchOptions {
@@ -966,14 +964,30 @@ enum AlertSearchSort {
   dateIDReverse
 }
 
+"""
+An ISODuration is an RFC3339-formatted duration string.
+"""
 scalar ISODuration
 
+"""
+An ISORInterval is an RFC3339-formatted repeating interval string.
+"""
 scalar ISORInterval
 
+"""
+An ISOTimestamp is an RFC3339-formatted timestamp string.
+"""
 scalar ISOTimestamp
 
+"""
+ClockTime is a 24-hour time in the format 00:00.
+"""
 scalar ClockTime
 
+"""
+WeekdayFilter is an array of 7 true/false values representing days of the week.
+The first index (0) represents Sunday.
+"""
 scalar WeekdayFilter
 
 type Alert {
