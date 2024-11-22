@@ -30,7 +30,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 			})
 		},
 
-		withSecureHeaders(app.cfg.DisableSecureHeaders, strings.HasPrefix(app.cfg.PublicURL, "https://")),
+		withSecureHeaders(app.cfg.EnableSecureHeaders, strings.HasPrefix(app.cfg.PublicURL, "https://")),
 
 		config.ShortURLMiddleware,
 

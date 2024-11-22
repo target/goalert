@@ -7,9 +7,9 @@ import (
 	"github.com/target/goalert/app/csp"
 )
 
-func withSecureHeaders(disable, https bool) func(http.Handler) http.Handler {
+func withSecureHeaders(enabled, https bool) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		if disable {
+		if !enabled {
 			return next
 		}
 

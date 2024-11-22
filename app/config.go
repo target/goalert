@@ -53,7 +53,8 @@ type Config struct {
 	MaxReqHeaderBytes int
 
 	DisableHTTPSRedirect bool
-	DisableSecureHeaders bool
+
+	EnableSecureHeaders bool
 
 	TwilioBaseURL string
 	SlackBaseURL  string
