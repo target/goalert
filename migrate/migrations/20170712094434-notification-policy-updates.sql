@@ -105,7 +105,7 @@ BEGIN
 	RAISE EXCEPTION 'found active contact method locks';
 	END IF;
 END
-$do$
+$do$;
 -- +migrate StatementEnd
 WITH sent_times AS
 	(

@@ -58,7 +58,7 @@ func (app *App) initSMTPServer(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		app.smtpsrvL = newMultiListener(app.cfg.Logger, app.smtpsrvL, l)
+		app.smtpsrvL = newMultiListener(app.smtpsrvL, l)
 	}
 
 	return nil

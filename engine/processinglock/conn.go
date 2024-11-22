@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"sync"
+
+	"github.com/target/goalert/util/sqlutil"
 )
 
 // Conn allows using locked transactions over a single connection.
@@ -39,6 +41,24 @@ func (l *Lock) Conn(ctx context.Context) (*Conn, error) {
 // BeginTx will start a new transaction.
 func (c *Conn) BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error) {
 	return c.l._BeginTx(ctx, c.conn, opts)
+}
+
+// WithTx will run the given function in a locked transaction.
+func (c *Conn) WithTx(ctx context.Context, txFn func(tx *sql.Tx) error) error {
+	c.mx.Lock()
+	defer c.mx.Unlock()
+	tx, err := c.l._BeginTx(ctx, c.conn, nil)
+	if err != nil {
+		return err
+	}
+	defer sqlutil.Rollback(ctx, "rollback tx", tx)
+
+	err = txFn(tx)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 // Exec will call ExecContext on the statement wrapped in a locked transaction.

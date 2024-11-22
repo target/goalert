@@ -68,6 +68,11 @@ func (app *App) _Shutdown(ctx context.Context) error {
 	shut(app.NonceStore, "nonce store")
 	shut(app.ConfigStore, "config store")
 
+	err := app.db.Close()
+	if err != nil {
+		errs = append(errs, errors.Wrap(err, "close database"))
+	}
+
 	if len(errs) == 1 {
 		return errs[0]
 	}

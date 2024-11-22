@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -14,8 +15,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/pkg/errors"
+	sloglogrus "github.com/samber/slog-logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/target/goalert/auth/basic"
@@ -140,27 +143,52 @@ Available Flags:
 			return err
 		}
 
-		var db *sql.DB
+		var pool *pgxpool.Pool
 		if cfg.DBURLNext != "" {
+			err = migrate.VerifyIsLatest(ctx, cfg.DBURL)
+			if err != nil {
+				return errors.Wrap(err, "verify db")
+			}
+
 			err = doMigrations(cfg.DBURLNext)
 			if err != nil {
 				return errors.Wrap(err, "nextdb")
 			}
 
-			mgr, err := swo.NewManager(swo.Config{OldDBURL: cfg.DBURL, NewDBURL: cfg.DBURLNext, CanExec: !cfg.APIOnly, Logger: cfg.Logger})
+			mgr, err := swo.NewManager(swo.Config{
+				OldDBURL: cfg.DBURL,
+				NewDBURL: cfg.DBURLNext,
+				CanExec:  !cfg.APIOnly,
+				Logger:   cfg.LegacyLogger,
+				MaxOpen:  cfg.DBMaxOpen,
+				MaxIdle:  cfg.DBMaxIdle,
+			})
 			if err != nil {
 				return errors.Wrap(err, "init switchover handler")
 			}
-			db = mgr.DB()
+			pool = mgr.Pool()
 			cfg.SWO = mgr
 		} else {
-			db, err = sqldrv.NewDB(cfg.DBURL, fmt.Sprintf("GoAlert %s", version.GitVersion()))
+			appURL, err := sqldrv.AppURL(cfg.DBURL, fmt.Sprintf("GoAlert %s", version.GitVersion()))
+			if err != nil {
+				return errors.Wrap(err, "connect to postgres")
+			}
+
+			poolCfg, err := pgxpool.ParseConfig(appURL)
+			if err != nil {
+				return errors.Wrap(err, "parse db URL")
+			}
+			poolCfg.MaxConns = int32(cfg.DBMaxOpen)
+			poolCfg.MinConns = int32(cfg.DBMaxIdle)
+			sqldrv.SetConfigRetries(poolCfg)
+
+			pool, err = pgxpool.NewWithConfig(context.Background(), poolCfg)
 			if err != nil {
 				return errors.Wrap(err, "connect to postgres")
 			}
 		}
 
-		app, err := NewApp(cfg, db)
+		app, err := NewApp(cfg, pool)
 		if err != nil {
 			return errors.Wrap(err, "init app")
 		}
@@ -613,7 +641,7 @@ Migration: %s (#%d)
 // getConfig will load the current configuration from viper
 func getConfig(ctx context.Context) (Config, error) {
 	cfg := Config{
-		Logger: log.FromContext(ctx),
+		LegacyLogger: log.FromContext(ctx),
 
 		JSON:        viper.GetBool("json"),
 		LogRequests: viper.GetBool("log-requests"),
@@ -667,6 +695,17 @@ func getConfig(ctx context.Context) (Config, error) {
 
 		UIDir: viper.GetString("ui-dir"),
 	}
+
+	opts := sloglogrus.Option{
+		Level:  slog.LevelInfo,
+		Logger: cfg.LegacyLogger.Logrus(),
+	}
+	if viper.GetBool("log-errors-only") {
+		opts.Level = slog.LevelError
+	} else if cfg.Verbose {
+		opts.Level = slog.LevelDebug
+	}
+	cfg.Logger = slog.New(opts.NewLogrusHandler())
 
 	var fs expflag.FlagSet
 	strict := viper.GetBool("strict-experimental")

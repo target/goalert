@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/target/goalert/util/log"
 )
 
 func withTimeout(t *testing.T, name string, fn func() error) error {
@@ -29,12 +28,11 @@ func withTimeout(t *testing.T, name string, fn func() error) error {
 }
 
 func TestMultiListener_Close(t *testing.T) {
-
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	assert.NoError(t, err)
 	defer l.Close()
 
-	m := newMultiListener(log.NewLogger(), l)
+	m := newMultiListener(l)
 
 	c, err := net.Dial("tcp", l.Addr().String())
 	assert.NoError(t, err)
@@ -46,7 +44,6 @@ func TestMultiListener_Close(t *testing.T) {
 
 func TestMultiListener_Accept(t *testing.T) {
 	t.Run("multiple listeners", func(t *testing.T) {
-
 		l1, err := net.Listen("tcp", "127.0.0.1:0")
 		assert.NoError(t, err)
 		defer l1.Close()
@@ -55,7 +52,7 @@ func TestMultiListener_Accept(t *testing.T) {
 		assert.NoError(t, err)
 		defer l2.Close()
 
-		m := newMultiListener(log.NewLogger(), l1, l2)
+		m := newMultiListener(l1, l2)
 
 		c1, err := net.Dial("tcp", l1.Addr().String())
 		assert.NoError(t, err)
@@ -86,12 +83,11 @@ func TestMultiListener_Accept(t *testing.T) {
 		assert.Error(t, err)
 	})
 	t.Run("return on accept pending", func(t *testing.T) {
-
 		l, err := net.Listen("tcp", "127.0.0.1:0")
 		assert.NoError(t, err)
 		defer l.Close()
 
-		m := newMultiListener(log.NewLogger(), l)
+		m := newMultiListener(l)
 
 		go func() {
 			time.Sleep(10 * time.Millisecond) // wait until Accept is called
