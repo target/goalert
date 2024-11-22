@@ -134,6 +134,7 @@ export default function UniversalKeyRuleDialog(
       }
       onClose={props.onClose}
       loading={m.fetching}
+      maxWidth='md'
       errors={unknownErrors}
       onSubmit={() => setHasSubmitted(hasSubmitted + 1)}
       disableSubmit={step < 2 && !hasSubmitted}

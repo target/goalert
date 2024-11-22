@@ -32,7 +32,7 @@ interface ThemeContextParams {
   setSourceColor: (newColor: string) => void
 }
 
-type MUIThemeMode = 'dark' | 'light'
+export type MUIThemeMode = 'dark' | 'light'
 type ThemeModeOption = 'dark' | 'light' | 'system'
 
 export const ThemeContext = React.createContext<ThemeContextParams>({
