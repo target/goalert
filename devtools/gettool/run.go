@@ -32,6 +32,8 @@ func main() {
 		err = getGolangCiLint(*version, *output)
 	case "sqlc":
 		err = getSqlc(*version, *output)
+	case "bun":
+		err = getBun(*version, *output)
 	case "mailpit":
 		err = getMailpit(*version, *output)
 	case "k6":
