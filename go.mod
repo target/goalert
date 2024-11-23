@@ -33,10 +33,10 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.20.5
-	github.com/riverqueue/river v0.14.1
-	github.com/riverqueue/river/cmd/river v0.14.1
-	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.14.1
-	github.com/riverqueue/river/rivertype v0.14.1
+	github.com/riverqueue/river v0.14.2
+	github.com/riverqueue/river/cmd/river v0.14.2
+	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.14.2
+	github.com/riverqueue/river/rivertype v0.14.2
 	github.com/samber/slog-logrus v1.0.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/slack-go/slack v0.15.0
@@ -121,8 +121,8 @@ require (
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.60.1 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
-	github.com/riverqueue/river/riverdriver v0.14.1 // indirect
-	github.com/riverqueue/river/rivershared v0.14.1 // indirect
+	github.com/riverqueue/river/riverdriver v0.14.2 // indirect
+	github.com/riverqueue/river/rivershared v0.14.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.6.0 // indirect
