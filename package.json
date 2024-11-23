@@ -71,7 +71,7 @@
     "@types/glob": "8.1.0",
     "@types/jest": "29.5.13",
     "@types/k6": "0.54.2",
-    "@types/lodash": "4.17.9",
+    "@types/lodash": "4.17.13",
     "@types/luxon": "3.4.2",
     "@types/node": "20.16.6",
     "@types/prop-types": "15.7.13",
