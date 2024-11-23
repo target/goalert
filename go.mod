@@ -36,7 +36,7 @@ require (
 	github.com/riverqueue/river v0.14.1
 	github.com/riverqueue/river/cmd/river v0.14.1
 	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.14.1
-	github.com/riverqueue/river/rivertype v0.14.1
+	github.com/riverqueue/river/rivertype v0.14.2
 	github.com/samber/slog-logrus v1.0.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/slack-go/slack v0.15.0
