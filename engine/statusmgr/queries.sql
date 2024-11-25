@@ -16,7 +16,6 @@ FROM
 WHERE
     alert_id = @alert_id::bigint
     AND event = @event_type::enum_alert_log_event
-    AND timestamp > now() - '1 hour'::interval
 ORDER BY
     id DESC
 LIMIT 1;
