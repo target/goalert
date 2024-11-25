@@ -3,8 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { Provider as ReduxProvider } from 'react-redux'
 import { ApolloProvider } from '@apollo/client'
 import { StyledEngineProvider } from '@mui/material/styles'
-
-import { GOALERT_VERSION as version, pathPrefix } from './env'
+import { GOALERT_VERSION as version, nonce, pathPrefix } from './env'
 import { ThemeProvider } from './theme/themeConfig'
 import { GraphQLClient } from './apollo'
 import './styles'
@@ -20,6 +19,8 @@ import { Router } from 'wouter'
 import { Settings } from 'luxon'
 import RequireAuth from './main/RequireAuth'
 import Login from './main/components/Login'
+import createCache from '@emotion/cache'
+import { CacheProvider } from '@emotion/react'
 
 Settings.throwOnInvalid = true
 
@@ -48,24 +49,33 @@ if (
 const rootElement = document.getElementById('app')
 const root = createRoot(rootElement as HTMLElement)
 
+const cache = createCache({
+  key: 'mui',
+  prepend: true,
+  nonce,
+  speedy: true,
+})
+
 root.render(
   <StrictMode>
     <StyledEngineProvider injectFirst>
       <ThemeProvider>
-        <ApolloProvider client={GraphQLClient}>
-          <ReduxProvider store={store}>
-            <Router base={pathPrefix}>
-              <URQLProvider value={urqlClient}>
-                <NewVersionCheck />
-                <RequireAuth fallback={<Login />}>
-                  <ConfigProvider>
-                    <App />
-                  </ConfigProvider>
-                </RequireAuth>
-              </URQLProvider>
-            </Router>
-          </ReduxProvider>
-        </ApolloProvider>
+        <CacheProvider value={cache}>
+          <ApolloProvider client={GraphQLClient}>
+            <ReduxProvider store={store}>
+              <Router base={pathPrefix}>
+                <URQLProvider value={urqlClient}>
+                  <NewVersionCheck />
+                  <RequireAuth fallback={<Login />}>
+                    <ConfigProvider>
+                      <App />
+                    </ConfigProvider>
+                  </RequireAuth>
+                </URQLProvider>
+              </Router>
+            </ReduxProvider>
+          </ApolloProvider>
+        </CacheProvider>
       </ThemeProvider>
     </StyledEngineProvider>
   </StrictMode>,
