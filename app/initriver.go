@@ -42,6 +42,40 @@ type noopWorker struct{}
 
 func (noopWorker) Kind() string { return "noop" }
 
+type ignoreCancel struct {
+	h slog.Handler
+}
+
+func (i *ignoreCancel) Enabled(ctx context.Context, level slog.Level) bool {
+	return i.h.Enabled(ctx, level)
+}
+
+func (i *ignoreCancel) Handle(ctx context.Context, rec slog.Record) error {
+	var shouldIgnore bool
+	rec.Attrs(func(a slog.Attr) bool {
+		if a.Key != "error" {
+			return true
+		}
+		if a.Value.String() == "context canceled" {
+			shouldIgnore = true
+		}
+		return false
+	})
+	if shouldIgnore {
+		return nil
+	}
+
+	return i.h.Handle(ctx, rec)
+}
+
+func (i *ignoreCancel) WithGroup(name string) slog.Handler {
+	return &ignoreCancel{h: i.h.WithGroup(name)}
+}
+
+func (i *ignoreCancel) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return &ignoreCancel{h: i.h.WithAttrs(attrs)}
+}
+
 func (app *App) initRiver(ctx context.Context) error {
 	app.RiverWorkers = river.NewWorkers()
 
@@ -55,13 +89,15 @@ func (app *App) initRiver(ctx context.Context) error {
 
 	var err error
 	app.River, err = river.NewClient(riverpgxv5.New(app.pgx), &river.Config{
-		Logger:  app.Logger,
+		// River tends to log "context canceled" errors while shutting down
+		Logger:  slog.New(&ignoreCancel{h: app.Logger.With("module", "river").Handler()}),
 		Workers: app.RiverWorkers,
 		Queues: map[string]river.QueueConfig{
 			river.QueueDefault: {MaxWorkers: 100},
 		},
 		ErrorHandler: &riverErrs{
-			Logger: app.Logger,
+			// The error handler logger is used differently than the main logger, so it should be separate, and doesn't need the wrapper.
+			Logger: app.Logger.With("module", "river"),
 		},
 	})
 	if err != nil {
@@ -72,7 +108,7 @@ func (app *App) initRiver(ctx context.Context) error {
 		Prefix: "/admin/riverui",
 		DB:     app.pgx,
 		Client: app.River,
-		Logger: app.Logger,
+		Logger: app.Logger.With("module", "riverui"),
 	}
 	app.RiverUI, err = riverui.NewServer(opts)
 	if err != nil {
