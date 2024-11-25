@@ -22,33 +22,15 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 	river.AddWorker(args.Workers, river.WorkFunc(db.processSubscription))
 	river.AddWorker(args.Workers, river.WorkFunc(db.lookForWork))
 
-	err := args.River.Queues().Add(QueueName, river.QueueConfig{MaxWorkers: 5})
-	if err != nil {
-		return err
-	}
-
-	jobs := args.River.PeriodicJobs()
-	jobs.Add(river.NewPeriodicJob(
-		river.PeriodicInterval(time.Hour),
-		func() (river.JobArgs, *river.InsertOpts) {
-			return CleanupArgs{}, &river.InsertOpts{
-				Queue:    QueueName,
-				Priority: PriorityCleanup,
-			}
-		},
-		&river.PeriodicJobOpts{RunOnStart: true},
-	))
-
-	jobs.Add(river.NewPeriodicJob(
-		river.PeriodicInterval(time.Second*5),
-		func() (river.JobArgs, *river.InsertOpts) {
-			return LookForWorkArgs{}, &river.InsertOpts{
-				Queue:    QueueName,
-				Priority: PriorityLookForWork,
-			}
-		},
-		&river.PeriodicJobOpts{RunOnStart: true},
-	))
+	args.AddQueue(QueueName, 5)
+	args.AddPeriodicJob(time.Second*5, LookForWorkArgs{}, &river.InsertOpts{
+		Queue:    QueueName,
+		Priority: PriorityCleanup,
+	})
+	args.AddPeriodicJob(time.Hour, CleanupArgs{}, &river.InsertOpts{
+		Queue:    QueueName,
+		Priority: PriorityCleanup,
+	})
 
 	return nil
 }
