@@ -4138,6 +4138,8 @@ FROM
     JOIN alerts a ON a.id = sub.alert_id
 WHERE
     sub.id = $1
+FOR UPDATE
+    SKIP LOCKED
 `
 
 type StatusMgrFindOneRow struct {
@@ -4174,7 +4176,6 @@ FROM
 WHERE
     alert_id = $1::bigint
     AND event = $2::enum_alert_log_event
-    AND timestamp > now() - '1 hour'::interval
 ORDER BY
     id DESC
 LIMIT 1
