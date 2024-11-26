@@ -399,7 +399,7 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 
 	var usr *user.User
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		cm, serr := p.cfg.ContactMethodStore.FindOne(ctx, p.b.db, cb.ContactMethodID)
+		cm, serr := p.cfg.ContactMethodStore.FindOne(ctx, gadb.Compat(p.b.db), cb.ContactMethodID)
 		if serr != nil {
 			err = errors.Wrap(serr, "lookup contact method")
 			return
@@ -448,7 +448,7 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 func (p *Engine) Start(ctx context.Context, d gadb.DestV1) error {
 	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		err = p.cfg.ContactMethodStore.EnableByDest(ctx, p.b.db, d)
+		err = p.cfg.ContactMethodStore.EnableByDest(ctx, gadb.Compat(p.b.db), d)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -464,7 +464,7 @@ func (p *Engine) Start(ctx context.Context, d gadb.DestV1) error {
 func (p *Engine) Stop(ctx context.Context, d gadb.DestV1) error {
 	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		err = p.cfg.ContactMethodStore.DisableByDest(ctx, p.b.db, d)
+		err = p.cfg.ContactMethodStore.DisableByDest(ctx, gadb.Compat(p.b.db), d)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {

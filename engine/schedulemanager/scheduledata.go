@@ -15,7 +15,7 @@ import (
 )
 
 func (db *DB) migrateScheduleDataNotifDedup(ctx context.Context, tx *sql.Tx) (bool, error) {
-	gdb := gadb.New(tx)
+	gdb := gadb.NewCompat(tx)
 	if db.migrateMap == nil {
 		rows, err := gdb.SchedMgrNCDedupMapping(ctx)
 		if err != nil {

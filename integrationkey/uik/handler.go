@@ -2,7 +2,6 @@ package uik
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -27,17 +26,12 @@ import (
 type Handler struct {
 	intStore   *integrationkey.Store
 	alertStore *alert.Store
-	db         TxAble
+	db         gadb.DBTX
 
 	r *river.Client[pgx.Tx]
 }
 
-type TxAble interface {
-	gadb.DBTX
-	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
-}
-
-func NewHandler(db TxAble, intStore *integrationkey.Store, aStore *alert.Store, r *river.Client[pgx.Tx]) *Handler {
+func NewHandler(db gadb.DBTX, intStore *integrationkey.Store, aStore *alert.Store, r *river.Client[pgx.Tx]) *Handler {
 	return &Handler{intStore: intStore, db: db, alertStore: aStore, r: r}
 }
 

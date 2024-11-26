@@ -5,14 +5,13 @@
 package gadb
 
 import (
-	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
 	"fmt"
+	"net/netip"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/sqlc-dev/pqtype"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/target/goalert/util/timeutil"
 )
 
@@ -805,13 +804,13 @@ func (ns NullRiverJobState) Value() (driver.Value, error) {
 }
 
 type Alert struct {
-	CreatedAt       time.Time
-	DedupKey        sql.NullString
+	CreatedAt       pgtype.Timestamptz
+	DedupKey        pgtype.Text
 	Details         string
 	EscalationLevel int32
 	ID              int64
-	LastEscalation  sql.NullTime
-	LastProcessed   sql.NullTime
+	LastEscalation  pgtype.Timestamptz
+	LastProcessed   pgtype.Timestamptz
 	ServiceID       uuid.NullUUID
 	Source          EnumAlertSource
 	Status          EnumAlertStatus
@@ -821,7 +820,7 @@ type Alert struct {
 type AlertDatum struct {
 	AlertID  int64
 	ID       int64
-	Metadata pqtype.NullRawMessage
+	Metadata []byte
 }
 
 type AlertFeedback struct {
@@ -831,28 +830,28 @@ type AlertFeedback struct {
 }
 
 type AlertLog struct {
-	AlertID             sql.NullInt64
+	AlertID             pgtype.Int8
 	Event               EnumAlertLogEvent
 	ID                  int64
 	Message             string
-	Meta                pqtype.NullRawMessage
+	Meta                []byte
 	SubChannelID        uuid.NullUUID
 	SubClassifier       string
 	SubHbMonitorID      uuid.NullUUID
 	SubIntegrationKeyID uuid.NullUUID
 	SubType             NullEnumAlertLogSubjectType
 	SubUserID           uuid.NullUUID
-	Timestamp           sql.NullTime
+	Timestamp           pgtype.Timestamptz
 }
 
 type AlertMetric struct {
 	AlertID     int64
-	ClosedAt    time.Time
+	ClosedAt    pgtype.Timestamptz
 	Escalated   bool
 	ID          int64
 	ServiceID   uuid.UUID
-	TimeToAck   sql.NullInt64
-	TimeToClose sql.NullInt64
+	TimeToAck   pgtype.Interval
+	TimeToClose pgtype.Interval
 }
 
 type AlertStatusSubscription struct {
@@ -861,7 +860,7 @@ type AlertStatusSubscription struct {
 	ContactMethodID uuid.NullUUID
 	ID              int64
 	LastAlertStatus EnumAlertStatus
-	UpdatedAt       time.Time
+	UpdatedAt       pgtype.Timestamptz
 }
 
 type AuthBasicUser struct {
@@ -872,16 +871,16 @@ type AuthBasicUser struct {
 }
 
 type AuthLinkRequest struct {
-	CreatedAt  time.Time
-	ExpiresAt  time.Time
+	CreatedAt  pgtype.Timestamptz
+	ExpiresAt  pgtype.Timestamptz
 	ID         uuid.UUID
-	Metadata   json.RawMessage
+	Metadata   []byte
 	ProviderID string
 	SubjectID  string
 }
 
 type AuthNonce struct {
-	CreatedAt time.Time
+	CreatedAt pgtype.Timestamptz
 	ID        uuid.UUID
 }
 
@@ -894,9 +893,9 @@ type AuthSubject struct {
 }
 
 type AuthUserSession struct {
-	CreatedAt    time.Time
+	CreatedAt    pgtype.Timestamptz
 	ID           uuid.UUID
-	LastAccessAt time.Time
+	LastAccessAt pgtype.Timestamptz
 	UserAgent    string
 	UserID       uuid.NullUUID
 }
@@ -908,7 +907,7 @@ type ChangeLog struct {
 }
 
 type Config struct {
-	CreatedAt time.Time
+	CreatedAt pgtype.Timestamptz
 	Data      []byte
 	ID        int32
 	Schema    int32
@@ -920,16 +919,16 @@ type ConfigLimit struct {
 }
 
 type EngineProcessingVersion struct {
-	State   json.RawMessage
+	State   []byte
 	TypeID  EngineProcessingType
 	Version int32
 }
 
 type EpStepOnCallUser struct {
-	EndTime   sql.NullTime
+	EndTime   pgtype.Timestamptz
 	EpStepID  uuid.UUID
 	ID        int64
-	StartTime time.Time
+	StartTime pgtype.Timestamptz
 	UserID    uuid.UUID
 }
 
@@ -957,9 +956,9 @@ type EscalationPolicyState struct {
 	EscalationPolicyStepNumber int32
 	ForceEscalation            bool
 	ID                         int64
-	LastEscalation             sql.NullTime
+	LastEscalation             pgtype.Timestamptz
 	LoopCount                  int32
-	NextEscalation             sql.NullTime
+	NextEscalation             pgtype.Timestamptz
 	ServiceID                  uuid.UUID
 }
 
@@ -971,44 +970,44 @@ type EscalationPolicyStep struct {
 }
 
 type GorpMigration struct {
-	AppliedAt sql.NullTime
+	AppliedAt pgtype.Timestamptz
 	ID        string
 }
 
 type GqlApiKey struct {
-	CreatedAt   time.Time
+	CreatedAt   pgtype.Timestamptz
 	CreatedBy   uuid.NullUUID
-	DeletedAt   sql.NullTime
+	DeletedAt   pgtype.Timestamptz
 	DeletedBy   uuid.NullUUID
 	Description string
-	ExpiresAt   time.Time
+	ExpiresAt   pgtype.Timestamptz
 	ID          uuid.UUID
 	Name        string
-	Policy      json.RawMessage
-	UpdatedAt   time.Time
+	Policy      []byte
+	UpdatedAt   pgtype.Timestamptz
 	UpdatedBy   uuid.NullUUID
 }
 
 type GqlApiKeyUsage struct {
 	ApiKeyID  uuid.NullUUID
 	ID        int64
-	IpAddress pqtype.Inet
-	UsedAt    time.Time
-	UserAgent sql.NullString
+	IpAddress *netip.Addr
+	UsedAt    pgtype.Timestamptz
+	UserAgent pgtype.Text
 }
 
 type HeartbeatMonitor struct {
-	AdditionalDetails sql.NullString
-	HeartbeatInterval int64
+	AdditionalDetails pgtype.Text
+	HeartbeatInterval pgtype.Interval
 	ID                uuid.UUID
-	LastHeartbeat     sql.NullTime
+	LastHeartbeat     pgtype.Timestamptz
 	LastState         EnumHeartbeatState
 	Name              string
 	ServiceID         uuid.UUID
 }
 
 type IntegrationKey struct {
-	ExternalSystemName sql.NullString
+	ExternalSystemName pgtype.Text
 	ID                 uuid.UUID
 	Name               string
 	ServiceID          uuid.UUID
@@ -1018,7 +1017,7 @@ type IntegrationKey struct {
 type Keyring struct {
 	ID               string
 	NextKey          []byte
-	NextRotation     sql.NullTime
+	NextRotation     pgtype.Timestamptz
 	RotationCount    int64
 	SigningKey       []byte
 	VerificationKeys []byte
@@ -1032,10 +1031,10 @@ type Label struct {
 }
 
 type NotificationChannel struct {
-	CreatedAt time.Time
+	CreatedAt pgtype.Timestamptz
 	Dest      NullDestV1
 	ID        uuid.UUID
-	Meta      json.RawMessage
+	Meta      []byte
 	Name      string
 	Type      EnumNotifChannelType
 	Value     string
@@ -1044,7 +1043,7 @@ type NotificationChannel struct {
 type NotificationChannelDuplicate struct {
 	ID           int64
 	NewID        uuid.UUID
-	OldCreatedAt time.Time
+	OldCreatedAt pgtype.Timestamptz
 	OldID        uuid.UUID
 }
 
@@ -1052,34 +1051,34 @@ type NotificationPolicyCycle struct {
 	AlertID     int32
 	Checked     bool
 	ID          uuid.UUID
-	LastTick    sql.NullTime
+	LastTick    pgtype.Timestamptz
 	RepeatCount int32
-	StartedAt   time.Time
+	StartedAt   pgtype.Timestamptz
 	UserID      uuid.UUID
 }
 
 type OutgoingMessage struct {
-	AlertID                sql.NullInt64
-	AlertLogID             sql.NullInt64
+	AlertID                pgtype.Int8
+	AlertLogID             pgtype.Int8
 	ChannelID              uuid.NullUUID
 	ContactMethodID        uuid.NullUUID
-	CreatedAt              time.Time
+	CreatedAt              pgtype.Timestamptz
 	CycleID                uuid.NullUUID
 	EscalationPolicyID     uuid.NullUUID
-	FiredAt                sql.NullTime
+	FiredAt                pgtype.Timestamptz
 	ID                     uuid.UUID
 	LastStatus             EnumOutgoingMessagesStatus
-	LastStatusAt           sql.NullTime
+	LastStatusAt           pgtype.Timestamptz
 	MessageType            EnumOutgoingMessagesType
-	NextRetryAt            sql.NullTime
+	NextRetryAt            pgtype.Timestamptz
 	ProviderMsgID          ProviderMessageID
 	ProviderSeq            int32
 	RetryCount             int32
 	ScheduleID             uuid.NullUUID
-	SendingDeadline        sql.NullTime
-	SentAt                 sql.NullTime
+	SendingDeadline        pgtype.Timestamptz
+	SentAt                 pgtype.Timestamptz
 	ServiceID              uuid.NullUUID
-	SrcValue               sql.NullString
+	SrcValue               pgtype.Text
 	StatusAlertIds         []int64
 	StatusDetails          string
 	UserID                 uuid.NullUUID
@@ -1087,18 +1086,18 @@ type OutgoingMessage struct {
 }
 
 type PendingSignal struct {
-	CreatedAt time.Time
+	CreatedAt pgtype.Timestamptz
 	DestID    uuid.UUID
 	ID        int32
 	MessageID uuid.NullUUID
-	Params    json.RawMessage
+	Params    []byte
 	ServiceID uuid.UUID
 }
 
 type PgStatActivity struct {
-	State           sql.NullString
+	State           pgtype.Text
 	XactStart       time.Time
-	ApplicationName sql.NullString
+	ApplicationName pgtype.Text
 }
 
 type RegionID struct {
@@ -1107,71 +1106,71 @@ type RegionID struct {
 }
 
 type RiverClient struct {
-	CreatedAt time.Time
+	CreatedAt pgtype.Timestamptz
 	ID        string
-	Metadata  json.RawMessage
-	PausedAt  sql.NullTime
-	UpdatedAt time.Time
+	Metadata  []byte
+	PausedAt  pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
 }
 
 type RiverClientQueue struct {
-	CreatedAt        time.Time
+	CreatedAt        pgtype.Timestamptz
 	ID               int64
 	MaxWorkers       int64
-	Metadata         json.RawMessage
+	Metadata         []byte
 	Name             string
 	NumJobsCompleted int64
 	NumJobsRunning   int64
 	RiverClientID    string
-	UpdatedAt        time.Time
+	UpdatedAt        pgtype.Timestamptz
 }
 
 type RiverJob struct {
-	Args         json.RawMessage
+	Args         []byte
 	Attempt      int16
-	AttemptedAt  sql.NullTime
+	AttemptedAt  pgtype.Timestamptz
 	AttemptedBy  []string
-	CreatedAt    time.Time
-	Errors       []json.RawMessage
-	FinalizedAt  sql.NullTime
+	CreatedAt    pgtype.Timestamptz
+	Errors       [][]byte
+	FinalizedAt  pgtype.Timestamptz
 	ID           int64
 	Kind         string
 	MaxAttempts  int16
-	Metadata     json.RawMessage
+	Metadata     []byte
 	Priority     int16
 	Queue        string
-	ScheduledAt  time.Time
+	ScheduledAt  pgtype.Timestamptz
 	State        RiverJobState
 	Tags         []string
 	UniqueKey    []byte
-	UniqueStates interface{}
+	UniqueStates pgtype.Bits
 }
 
 type RiverLeader struct {
-	ElectedAt time.Time
-	ExpiresAt time.Time
+	ElectedAt pgtype.Timestamptz
+	ExpiresAt pgtype.Timestamptz
 	ID        int64
 	LeaderID  string
 	Name      string
 }
 
 type RiverQueue struct {
-	CreatedAt time.Time
+	CreatedAt pgtype.Timestamptz
 	ID        int64
-	Metadata  json.RawMessage
+	Metadata  []byte
 	Name      string
-	PausedAt  sql.NullTime
-	UpdatedAt time.Time
+	PausedAt  pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
 }
 
 type Rotation struct {
 	Description      string
 	ID               uuid.UUID
-	LastProcessed    sql.NullTime
+	LastProcessed    pgtype.Timestamptz
 	Name             string
 	ParticipantCount int32
 	ShiftLength      int64
-	StartTime        time.Time
+	StartTime        pgtype.Timestamptz
 	TimeZone         string
 	Type             EnumRotationType
 }
@@ -1188,35 +1187,35 @@ type RotationState struct {
 	Position              int32
 	RotationID            uuid.UUID
 	RotationParticipantID uuid.UUID
-	ShiftStart            time.Time
+	ShiftStart            pgtype.Timestamptz
 	Version               int32
 }
 
 type Schedule struct {
 	Description   string
 	ID            uuid.UUID
-	LastProcessed sql.NullTime
+	LastProcessed pgtype.Timestamptz
 	Name          string
 	TimeZone      string
 }
 
 type ScheduleDatum struct {
-	Data          json.RawMessage
+	Data          []byte
 	ID            int64
-	LastCleanupAt sql.NullTime
+	LastCleanupAt pgtype.Timestamptz
 	ScheduleID    uuid.UUID
 }
 
 type ScheduleOnCallUser struct {
-	EndTime    sql.NullTime
+	EndTime    pgtype.Timestamptz
 	ID         int64
 	ScheduleID uuid.UUID
-	StartTime  time.Time
+	StartTime  pgtype.Timestamptz
 	UserID     uuid.UUID
 }
 
 type ScheduleRule struct {
-	CreatedAt     time.Time
+	CreatedAt     pgtype.Timestamptz
 	EndTime       timeutil.Clock
 	Friday        bool
 	ID            uuid.UUID
@@ -1237,14 +1236,14 @@ type Service struct {
 	Description          string
 	EscalationPolicyID   uuid.UUID
 	ID                   uuid.UUID
-	MaintenanceExpiresAt sql.NullTime
+	MaintenanceExpiresAt pgtype.Timestamptz
 	Name                 string
 }
 
 type SwitchoverLog struct {
-	Data      json.RawMessage
+	Data      []byte
 	ID        int64
-	Timestamp time.Time
+	Timestamp pgtype.Timestamptz
 }
 
 type SwitchoverState struct {
@@ -1254,19 +1253,19 @@ type SwitchoverState struct {
 }
 
 type TwilioSmsCallback struct {
-	AlertID     sql.NullInt64
+	AlertID     pgtype.Int8
 	CallbackID  uuid.UUID
 	Code        int32
 	ID          int64
 	PhoneNumber string
-	SentAt      time.Time
+	SentAt      pgtype.Timestamptz
 	ServiceID   uuid.NullUUID
 }
 
 type TwilioSmsError struct {
 	ErrorMessage string
 	ID           int64
-	OccurredAt   time.Time
+	OccurredAt   pgtype.Timestamptz
 	Outgoing     bool
 	PhoneNumber  string
 }
@@ -1274,7 +1273,7 @@ type TwilioSmsError struct {
 type TwilioVoiceError struct {
 	ErrorMessage string
 	ID           int64
-	OccurredAt   time.Time
+	OccurredAt   pgtype.Timestamptz
 	Outgoing     bool
 	PhoneNumber  string
 }
@@ -1283,9 +1282,9 @@ type UikConfig struct {
 	Config             UIKConfig
 	ID                 uuid.UUID
 	PrimaryToken       uuid.NullUUID
-	PrimaryTokenHint   sql.NullString
+	PrimaryTokenHint   pgtype.Text
 	SecondaryToken     uuid.NullUUID
-	SecondaryTokenHint sql.NullString
+	SecondaryTokenHint pgtype.Text
 }
 
 type User struct {
@@ -1299,12 +1298,12 @@ type User struct {
 }
 
 type UserCalendarSubscription struct {
-	Config     json.RawMessage
-	CreatedAt  time.Time
+	Config     []byte
+	CreatedAt  pgtype.Timestamptz
 	Disabled   bool
 	ID         uuid.UUID
-	LastAccess sql.NullTime
-	LastUpdate time.Time
+	LastAccess pgtype.Timestamptz
+	LastUpdate pgtype.Timestamptz
 	Name       string
 	ScheduleID uuid.UUID
 	UserID     uuid.UUID
@@ -1315,8 +1314,8 @@ type UserContactMethod struct {
 	Disabled            bool
 	EnableStatusUpdates bool
 	ID                  uuid.UUID
-	LastTestVerifyAt    sql.NullTime
-	Metadata            pqtype.NullRawMessage
+	LastTestVerifyAt    pgtype.Timestamptz
+	Metadata            []byte
 	Name                string
 	Pending             bool
 	Type                EnumUserContactMethodType
@@ -1336,7 +1335,7 @@ type UserFavorite struct {
 
 type UserNotificationRule struct {
 	ContactMethodID uuid.UUID
-	CreatedAt       sql.NullTime
+	CreatedAt       pgtype.Timestamptz
 	DelayMinutes    int32
 	ID              uuid.UUID
 	UserID          uuid.UUID
@@ -1344,10 +1343,10 @@ type UserNotificationRule struct {
 
 type UserOverride struct {
 	AddUserID     uuid.NullUUID
-	EndTime       time.Time
+	EndTime       pgtype.Timestamptz
 	ID            uuid.UUID
 	RemoveUserID  uuid.NullUUID
-	StartTime     time.Time
+	StartTime     pgtype.Timestamptz
 	TgtScheduleID uuid.UUID
 }
 
@@ -1359,7 +1358,7 @@ type UserSlackDatum struct {
 type UserVerificationCode struct {
 	Code            int32
 	ContactMethodID uuid.UUID
-	ExpiresAt       time.Time
+	ExpiresAt       pgtype.Timestamptz
 	ID              uuid.UUID
 	Sent            bool
 }

@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/sqlc-dev/pqtype"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/notification/nfydest"
@@ -156,7 +155,7 @@ func (s *Store) LogEPTx(ctx context.Context, tx *sql.Tx, epID string, _type Type
 		SubHbMonitorID:      e.subject.heartbeatMonitorID,
 		SubChannelID:        e.subject.channelID,
 		SubClassifier:       e.subject.classifier,
-		Meta:                pqtype.NullRawMessage{Valid: e.meta != nil, RawMessage: json.RawMessage(e.meta)},
+		Meta:                e.meta,
 		Message:             e.message,
 	}
 
@@ -194,7 +193,7 @@ func (s *Store) LogServiceTx(ctx context.Context, tx *sql.Tx, serviceID string, 
 		SubHbMonitorID:      e.subject.heartbeatMonitorID,
 		SubChannelID:        e.subject.channelID,
 		SubClassifier:       e.subject.classifier,
-		Meta:                pqtype.NullRawMessage{Valid: e.meta != nil, RawMessage: json.RawMessage(e.meta)},
+		Meta:                e.meta,
 		Message:             e.message,
 	}
 
@@ -226,7 +225,7 @@ func (s *Store) LogManyTx(ctx context.Context, tx *sql.Tx, alertIDs []int, _type
 		SubHbMonitorID:      e.subject.heartbeatMonitorID,
 		SubChannelID:        e.subject.channelID,
 		SubClassifier:       e.subject.classifier,
-		Meta:                pqtype.NullRawMessage{Valid: e.meta != nil, RawMessage: json.RawMessage(e.meta)},
+		Meta:                e.meta,
 		Message:             e.message,
 	}
 
@@ -235,9 +234,9 @@ func (s *Store) LogManyTx(ctx context.Context, tx *sql.Tx, alertIDs []int, _type
 
 func (s *Store) queries(tx *sql.Tx) *gadb.Queries {
 	if tx != nil {
-		return gadb.New(tx)
+		return gadb.NewCompat(tx)
 	}
-	return gadb.New(s.db)
+	return gadb.NewCompat(s.db)
 }
 
 func (s *Store) LogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{}) error {
@@ -273,10 +272,7 @@ func (s *Store) logEntry(ctx context.Context, tx *sql.Tx, _type Type, meta inter
 	}
 
 	src := permission.Source(ctx)
-	gdb := gadb.New(s.db)
-	if tx != nil {
-		gdb = gdb.WithTx(tx)
-	}
+	gdb := s.queries(tx)
 
 	if src != nil {
 		switch src.Type {

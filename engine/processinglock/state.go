@@ -28,7 +28,7 @@ func (l *Lock) BeginTxWithState(ctx context.Context, opts *sql.TxOptions) (*sql.
 
 // Load will load the JSON state from the database.
 func (s *State) Load(ctx context.Context, v interface{}) (err error) {
-	s.data, err = gadb.New(s.tx).ProcLoadState(ctx, gadb.EngineProcessingType(s.l.cfg.Type))
+	s.data, err = gadb.NewCompat(s.tx).ProcLoadState(ctx, gadb.EngineProcessingType(s.l.cfg.Type))
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func (s *State) Save(ctx context.Context, v interface{}) error {
 	}
 	s.data = data
 
-	err = gadb.New(s.tx).ProcSaveState(ctx, gadb.ProcSaveStateParams{
+	err = gadb.NewCompat(s.tx).ProcSaveState(ctx, gadb.ProcSaveStateParams{
 		TypeID: gadb.EngineProcessingType(s.l.cfg.Type),
 		State:  s.data,
 	})

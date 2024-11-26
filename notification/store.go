@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
@@ -124,8 +125,8 @@ func (s *Store) OriginalMessageStatus(ctx context.Context, alertID int, dstID De
 		return nil, err
 	}
 
-	row, err := gadb.New(s.db).NfyOriginalMessageStatus(ctx, gadb.NfyOriginalMessageStatusParams{
-		AlertID:         sql.NullInt64{Valid: true, Int64: int64(alertID)},
+	row, err := gadb.NewCompat(s.db).NfyOriginalMessageStatus(ctx, gadb.NfyOriginalMessageStatusParams{
+		AlertID:         pgtype.Int8{Valid: true, Int64: int64(alertID)},
 		ContactMethodID: dstID.CMID,
 		ChannelID:       dstID.NCID,
 	})
@@ -164,7 +165,7 @@ func outgoingMessageToSendResult(msg gadb.OutgoingMessage, cm, ch gadb.NullDestV
 		SrcValue: msg.SrcValue.String,
 	}
 	if msg.LastStatusAt.Valid {
-		res.Status.Age = msg.LastStatusAt.Time.Sub(msg.CreatedAt)
+		res.Status.Age = msg.LastStatusAt.Time.Sub(msg.CreatedAt.Time)
 	}
 
 	return &res, nil
@@ -372,7 +373,7 @@ func (s *Store) FindManyMessageStatuses(ctx context.Context, strIDs []string) ([
 		return nil, err
 	}
 
-	rows, err := gadb.New(s.db).NfyManyMessageStatus(ctx, ids)
+	rows, err := gadb.NewCompat(s.db).NfyManyMessageStatus(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -402,10 +403,10 @@ func (s *Store) LastMessageStatus(ctx context.Context, typ gadb.EnumOutgoingMess
 		return nil, time.Time{}, err
 	}
 
-	row, err := gadb.New(s.db).NfyLastMessageStatus(ctx, gadb.NfyLastMessageStatusParams{
+	row, err := gadb.NewCompat(s.db).NfyLastMessageStatus(ctx, gadb.NfyLastMessageStatusParams{
 		MessageType:     typ,
 		ContactMethodID: uuid.NullUUID{UUID: cmID, Valid: true},
-		CreatedAt:       from,
+		CreatedAt:       pgtype.Timestamptz{Time: from, Valid: true},
 	})
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, time.Time{}, nil
@@ -419,5 +420,5 @@ func (s *Store) LastMessageStatus(ctx context.Context, typ gadb.EnumOutgoingMess
 		return nil, time.Time{}, err
 	}
 
-	return sendRes, row.OutgoingMessage.CreatedAt, nil
+	return sendRes, row.OutgoingMessage.CreatedAt.Time, nil
 }

@@ -2,10 +2,10 @@ package contactmethod
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/validation"
@@ -23,7 +23,7 @@ type ContactMethod struct {
 
 	StatusUpdates bool
 
-	lastTestVerifyAt sql.NullTime
+	lastTestVerifyAt pgtype.Timestamptz
 }
 
 // LastTestVerifyAt will return the timestamp of the last test/verify request.

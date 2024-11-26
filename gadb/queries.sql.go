@@ -8,12 +8,11 @@ package gadb
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
+	"net/netip"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lib/pq"
-	"github.com/sqlc-dev/pqtype"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/target/goalert/util/timeutil"
 )
 
@@ -29,7 +28,7 @@ WHERE
 `
 
 func (q *Queries) APIKeyAuthCheck(ctx context.Context, id uuid.UUID) (bool, error) {
-	row := q.db.QueryRowContext(ctx, aPIKeyAuthCheck, id)
+	row := q.db.QueryRow(ctx, aPIKeyAuthCheck, id)
 	var column_1 bool
 	err := row.Scan(&column_1)
 	return column_1, err
@@ -47,9 +46,9 @@ WHERE
 `
 
 // APIKeyAuth returns the API key policy with the given id, if it exists and is not expired.
-func (q *Queries) APIKeyAuthPolicy(ctx context.Context, id uuid.UUID) (json.RawMessage, error) {
-	row := q.db.QueryRowContext(ctx, aPIKeyAuthPolicy, id)
-	var policy json.RawMessage
+func (q *Queries) APIKeyAuthPolicy(ctx context.Context, id uuid.UUID) ([]byte, error) {
+	row := q.db.QueryRow(ctx, aPIKeyAuthPolicy, id)
+	var policy []byte
 	err := row.Scan(&policy)
 	return policy, err
 }
@@ -70,7 +69,7 @@ type APIKeyDeleteParams struct {
 }
 
 func (q *Queries) APIKeyDelete(ctx context.Context, arg APIKeyDeleteParams) error {
-	_, err := q.db.ExecContext(ctx, aPIKeyDelete, arg.ID, arg.DeletedBy)
+	_, err := q.db.Exec(ctx, aPIKeyDelete, arg.ID, arg.DeletedBy)
 	return err
 }
 
@@ -92,7 +91,7 @@ type APIKeyForUpdateRow struct {
 }
 
 func (q *Queries) APIKeyForUpdate(ctx context.Context, id uuid.UUID) (APIKeyForUpdateRow, error) {
-	row := q.db.QueryRowContext(ctx, aPIKeyForUpdate, id)
+	row := q.db.QueryRow(ctx, aPIKeyForUpdate, id)
 	var i APIKeyForUpdateRow
 	err := row.Scan(&i.Name, &i.Description)
 	return i, err
@@ -107,14 +106,14 @@ type APIKeyInsertParams struct {
 	ID          uuid.UUID
 	Name        string
 	Description string
-	Policy      json.RawMessage
+	Policy      []byte
 	CreatedBy   uuid.NullUUID
 	UpdatedBy   uuid.NullUUID
-	ExpiresAt   time.Time
+	ExpiresAt   pgtype.Timestamptz
 }
 
 func (q *Queries) APIKeyInsert(ctx context.Context, arg APIKeyInsertParams) error {
-	_, err := q.db.ExecContext(ctx, aPIKeyInsert,
+	_, err := q.db.Exec(ctx, aPIKeyInsert,
 		arg.ID,
 		arg.Name,
 		arg.Description,
@@ -140,25 +139,25 @@ WHERE
 `
 
 type APIKeyListRow struct {
-	CreatedAt     time.Time
+	CreatedAt     pgtype.Timestamptz
 	CreatedBy     uuid.NullUUID
-	DeletedAt     sql.NullTime
+	DeletedAt     pgtype.Timestamptz
 	DeletedBy     uuid.NullUUID
 	Description   string
-	ExpiresAt     time.Time
+	ExpiresAt     pgtype.Timestamptz
 	ID            uuid.UUID
 	Name          string
-	Policy        json.RawMessage
-	UpdatedAt     time.Time
+	Policy        []byte
+	UpdatedAt     pgtype.Timestamptz
 	UpdatedBy     uuid.NullUUID
-	LastUsedAt    sql.NullTime
-	LastUserAgent sql.NullString
-	LastIpAddress pqtype.Inet
+	LastUsedAt    pgtype.Timestamptz
+	LastUserAgent pgtype.Text
+	LastIpAddress *netip.Addr
 }
 
 // APIKeyList returns all API keys, along with the last time they were used.
 func (q *Queries) APIKeyList(ctx context.Context) ([]APIKeyListRow, error) {
-	rows, err := q.db.QueryContext(ctx, aPIKeyList)
+	rows, err := q.db.Query(ctx, aPIKeyList)
 	if err != nil {
 		return nil, err
 	}
@@ -186,9 +185,6 @@ func (q *Queries) APIKeyList(ctx context.Context) ([]APIKeyListRow, error) {
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -206,12 +202,12 @@ ON CONFLICT (api_key_id)
 type APIKeyRecordUsageParams struct {
 	KeyID     uuid.UUID
 	UserAgent string
-	IpAddress pqtype.Inet
+	IpAddress netip.Addr
 }
 
 // APIKeyRecordUsage records the usage of an API key.
 func (q *Queries) APIKeyRecordUsage(ctx context.Context, arg APIKeyRecordUsageParams) error {
-	_, err := q.db.ExecContext(ctx, aPIKeyRecordUsage, arg.KeyID, arg.UserAgent, arg.IpAddress)
+	_, err := q.db.Exec(ctx, aPIKeyRecordUsage, arg.KeyID, arg.UserAgent, arg.IpAddress)
 	return err
 }
 
@@ -235,7 +231,7 @@ type APIKeyUpdateParams struct {
 }
 
 func (q *Queries) APIKeyUpdate(ctx context.Context, arg APIKeyUpdateParams) error {
-	_, err := q.db.ExecContext(ctx, aPIKeyUpdate,
+	_, err := q.db.Exec(ctx, aPIKeyUpdate,
 		arg.ID,
 		arg.Name,
 		arg.Description,
@@ -252,7 +248,7 @@ WHERE "state" <> 'idle'
 `
 
 func (q *Queries) ActiveTxCount(ctx context.Context, xactStart time.Time) (int64, error) {
-	row := q.db.QueryRowContext(ctx, activeTxCount, xactStart)
+	row := q.db.QueryRow(ctx, activeTxCount, xactStart)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -274,7 +270,7 @@ type AlertFeedbackRow struct {
 }
 
 func (q *Queries) AlertFeedback(ctx context.Context, dollar_1 []int32) ([]AlertFeedbackRow, error) {
-	rows, err := q.db.QueryContext(ctx, alertFeedback, pq.Array(dollar_1))
+	rows, err := q.db.Query(ctx, alertFeedback, dollar_1)
 	if err != nil {
 		return nil, err
 	}
@@ -286,9 +282,6 @@ func (q *Queries) AlertFeedback(ctx context.Context, dollar_1 []int32) ([]AlertF
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -308,7 +301,7 @@ SELECT
 `
 
 func (q *Queries) AlertHasEPState(ctx context.Context, alertID int64) (bool, error) {
-	row := q.db.QueryRowContext(ctx, alertHasEPState, alertID)
+	row := q.db.QueryRow(ctx, alertHasEPState, alertID)
 	var has_ep_state bool
 	err := row.Scan(&has_ep_state)
 	return has_ep_state, err
@@ -324,7 +317,7 @@ WHERE
 `
 
 func (q *Queries) AlertLogHBIntervalMinutes(ctx context.Context, id uuid.UUID) (int32, error) {
-	row := q.db.QueryRowContext(ctx, alertLogHBIntervalMinutes, id)
+	row := q.db.QueryRow(ctx, alertLogHBIntervalMinutes, id)
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
@@ -360,12 +353,12 @@ type AlertLogInsertEPParams struct {
 	SubHbMonitorID      uuid.NullUUID
 	SubChannelID        uuid.NullUUID
 	SubClassifier       string
-	Meta                pqtype.NullRawMessage
+	Meta                []byte
 	Message             string
 }
 
 func (q *Queries) AlertLogInsertEP(ctx context.Context, arg AlertLogInsertEPParams) error {
-	_, err := q.db.ExecContext(ctx, alertLogInsertEP,
+	_, err := q.db.Exec(ctx, alertLogInsertEP,
 		arg.EscalationPolicyID,
 		arg.Event,
 		arg.SubType,
@@ -406,13 +399,13 @@ type AlertLogInsertManyParams struct {
 	SubHbMonitorID      uuid.NullUUID
 	SubChannelID        uuid.NullUUID
 	SubClassifier       string
-	Meta                pqtype.NullRawMessage
+	Meta                []byte
 	Message             string
 }
 
 func (q *Queries) AlertLogInsertMany(ctx context.Context, arg AlertLogInsertManyParams) error {
-	_, err := q.db.ExecContext(ctx, alertLogInsertMany,
-		pq.Array(arg.Column1),
+	_, err := q.db.Exec(ctx, alertLogInsertMany,
+		arg.Column1,
 		arg.Event,
 		arg.SubType,
 		arg.SubUserID,
@@ -458,12 +451,12 @@ type AlertLogInsertSvcParams struct {
 	SubHbMonitorID      uuid.NullUUID
 	SubChannelID        uuid.NullUUID
 	SubClassifier       string
-	Meta                pqtype.NullRawMessage
+	Meta                []byte
 	Message             string
 }
 
 func (q *Queries) AlertLogInsertSvc(ctx context.Context, arg AlertLogInsertSvcParams) error {
-	_, err := q.db.ExecContext(ctx, alertLogInsertSvc,
+	_, err := q.db.Exec(ctx, alertLogInsertSvc,
 		arg.ServiceID,
 		arg.Event,
 		arg.SubType,
@@ -488,7 +481,7 @@ WHERE
 `
 
 func (q *Queries) AlertLogLookupCMDest(ctx context.Context, id uuid.UUID) (NullDestV1, error) {
-	row := q.db.QueryRowContext(ctx, alertLogLookupCMDest, id)
+	row := q.db.QueryRow(ctx, alertLogLookupCMDest, id)
 	var dest NullDestV1
 	err := row.Scan(&dest)
 	return dest, err
@@ -506,7 +499,7 @@ WHERE
 `
 
 func (q *Queries) AlertLogLookupCallbackDest(ctx context.Context, id uuid.UUID) (NullDestV1, error) {
-	row := q.db.QueryRowContext(ctx, alertLogLookupCallbackDest, id)
+	row := q.db.QueryRow(ctx, alertLogLookupCallbackDest, id)
 	var dest NullDestV1
 	err := row.Scan(&dest)
 	return dest, err
@@ -522,7 +515,7 @@ WHERE
 `
 
 func (q *Queries) AlertLogLookupNCDest(ctx context.Context, id uuid.UUID) (NullDestV1, error) {
-	row := q.db.QueryRowContext(ctx, alertLogLookupNCDest, id)
+	row := q.db.QueryRow(ctx, alertLogLookupNCDest, id)
 	var dest NullDestV1
 	err := row.Scan(&dest)
 	return dest, err
@@ -540,11 +533,11 @@ WHERE
 
 type AlertManyMetadataRow struct {
 	AlertID  int64
-	Metadata pqtype.NullRawMessage
+	Metadata []byte
 }
 
 func (q *Queries) AlertManyMetadata(ctx context.Context, alertIds []int64) ([]AlertManyMetadataRow, error) {
-	rows, err := q.db.QueryContext(ctx, alertManyMetadata, pq.Array(alertIds))
+	rows, err := q.db.Query(ctx, alertManyMetadata, alertIds)
 	if err != nil {
 		return nil, err
 	}
@@ -556,9 +549,6 @@ func (q *Queries) AlertManyMetadata(ctx context.Context, alertIds []int64) ([]Al
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -575,9 +565,9 @@ WHERE
     alert_id = $1
 `
 
-func (q *Queries) AlertMetadata(ctx context.Context, alertID int64) (pqtype.NullRawMessage, error) {
-	row := q.db.QueryRowContext(ctx, alertMetadata, alertID)
-	var metadata pqtype.NullRawMessage
+func (q *Queries) AlertMetadata(ctx context.Context, alertID int64) ([]byte, error) {
+	row := q.db.QueryRow(ctx, alertMetadata, alertID)
+	var metadata []byte
 	err := row.Scan(&metadata)
 	return metadata, err
 }
@@ -603,16 +593,16 @@ ON CONFLICT (alert_id)
 
 type AlertSetMetadataParams struct {
 	ID        int64
-	Metadata  pqtype.NullRawMessage
+	Metadata  []byte
 	ServiceID uuid.NullUUID
 }
 
 func (q *Queries) AlertSetMetadata(ctx context.Context, arg AlertSetMetadataParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, alertSetMetadata, arg.ID, arg.Metadata, arg.ServiceID)
+	result, err := q.db.Exec(ctx, alertSetMetadata, arg.ID, arg.Metadata, arg.ServiceID)
 	if err != nil {
 		return 0, err
 	}
-	return result.RowsAffected()
+	return result.RowsAffected(), nil
 }
 
 const allPendingMsgDests = `-- name: AllPendingMsgDests :many
@@ -640,14 +630,14 @@ type AllPendingMsgDestsParams struct {
 }
 
 type AllPendingMsgDestsRow struct {
-	UserName sql.NullString
+	UserName pgtype.Text
 	CmDest   NullDestV1
-	NcName   sql.NullString
+	NcName   pgtype.Text
 	NcDest   NullDestV1
 }
 
 func (q *Queries) AllPendingMsgDests(ctx context.Context, arg AllPendingMsgDestsParams) ([]AllPendingMsgDestsRow, error) {
-	rows, err := q.db.QueryContext(ctx, allPendingMsgDests, arg.AlertID, arg.ServiceID)
+	rows, err := q.db.Query(ctx, allPendingMsgDests, arg.AlertID, arg.ServiceID)
 	if err != nil {
 		return nil, err
 	}
@@ -664,9 +654,6 @@ func (q *Queries) AllPendingMsgDests(ctx context.Context, arg AllPendingMsgDests
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -686,7 +673,7 @@ type AuthLinkAddAuthSubjectParams struct {
 }
 
 func (q *Queries) AuthLinkAddAuthSubject(ctx context.Context, arg AuthLinkAddAuthSubjectParams) error {
-	_, err := q.db.ExecContext(ctx, authLinkAddAuthSubject, arg.ProviderID, arg.SubjectID, arg.UserID)
+	_, err := q.db.Exec(ctx, authLinkAddAuthSubject, arg.ProviderID, arg.SubjectID, arg.UserID)
 	return err
 }
 
@@ -699,12 +686,12 @@ type AuthLinkAddReqParams struct {
 	ID         uuid.UUID
 	ProviderID string
 	SubjectID  string
-	ExpiresAt  time.Time
-	Metadata   json.RawMessage
+	ExpiresAt  pgtype.Timestamptz
+	Metadata   []byte
 }
 
 func (q *Queries) AuthLinkAddReq(ctx context.Context, arg AuthLinkAddReqParams) error {
-	_, err := q.db.ExecContext(ctx, authLinkAddReq,
+	_, err := q.db.Exec(ctx, authLinkAddReq,
 		arg.ID,
 		arg.ProviderID,
 		arg.SubjectID,
@@ -724,9 +711,9 @@ WHERE
     AND expires_at > now()
 `
 
-func (q *Queries) AuthLinkMetadata(ctx context.Context, id uuid.UUID) (json.RawMessage, error) {
-	row := q.db.QueryRowContext(ctx, authLinkMetadata, id)
-	var metadata json.RawMessage
+func (q *Queries) AuthLinkMetadata(ctx context.Context, id uuid.UUID) ([]byte, error) {
+	row := q.db.QueryRow(ctx, authLinkMetadata, id)
+	var metadata []byte
 	err := row.Scan(&metadata)
 	return metadata, err
 }
@@ -746,7 +733,7 @@ type AuthLinkUseReqRow struct {
 }
 
 func (q *Queries) AuthLinkUseReq(ctx context.Context, id uuid.UUID) (AuthLinkUseReqRow, error) {
-	row := q.db.QueryRowContext(ctx, authLinkUseReq, id)
+	row := q.db.QueryRow(ctx, authLinkUseReq, id)
 	var i AuthLinkUseReqRow
 	err := row.Scan(&i.ProviderID, &i.SubjectID)
 	return i, err
@@ -767,11 +754,11 @@ RETURNING
 
 type CalSubAuthUserParams struct {
 	ID        uuid.UUID
-	CreatedAt time.Time
+	CreatedAt pgtype.Timestamptz
 }
 
 func (q *Queries) CalSubAuthUser(ctx context.Context, arg CalSubAuthUserParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, calSubAuthUser, arg.ID, arg.CreatedAt)
+	row := q.db.QueryRow(ctx, calSubAuthUser, arg.ID, arg.CreatedAt)
 	var user_id uuid.UUID
 	err := row.Scan(&user_id)
 	return user_id, err
@@ -795,12 +782,12 @@ type CalSubRenderInfoRow struct {
 	Now          time.Time
 	ScheduleID   uuid.UUID
 	ScheduleName string
-	Config       json.RawMessage
+	Config       []byte
 	UserID       uuid.UUID
 }
 
 func (q *Queries) CalSubRenderInfo(ctx context.Context, id uuid.UUID) (CalSubRenderInfoRow, error) {
-	row := q.db.QueryRowContext(ctx, calSubRenderInfo, id)
+	row := q.db.QueryRow(ctx, calSubRenderInfo, id)
 	var i CalSubRenderInfoRow
 	err := row.Scan(
 		&i.Now,
@@ -828,7 +815,7 @@ type CalSubUserNamesRow struct {
 }
 
 func (q *Queries) CalSubUserNames(ctx context.Context, dollar_1 []uuid.UUID) ([]CalSubUserNamesRow, error) {
-	rows, err := q.db.QueryContext(ctx, calSubUserNames, pq.Array(dollar_1))
+	rows, err := q.db.Query(ctx, calSubUserNames, dollar_1)
 	if err != nil {
 		return nil, err
 	}
@@ -840,9 +827,6 @@ func (q *Queries) CalSubUserNames(ctx context.Context, dollar_1 []uuid.UUID) ([]
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -859,12 +843,12 @@ GROUP BY NAME
 `
 
 type ConnectionInfoRow struct {
-	Name  sql.NullString
+	Name  pgtype.Text
 	Count int64
 }
 
 func (q *Queries) ConnectionInfo(ctx context.Context) ([]ConnectionInfoRow, error) {
-	rows, err := q.db.QueryContext(ctx, connectionInfo)
+	rows, err := q.db.Query(ctx, connectionInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -876,9 +860,6 @@ func (q *Queries) ConnectionInfo(ctx context.Context) ([]ConnectionInfoRow, erro
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -901,7 +882,7 @@ type ContactMethodAddParams struct {
 }
 
 func (q *Queries) ContactMethodAdd(ctx context.Context, arg ContactMethodAddParams) error {
-	_, err := q.db.ExecContext(ctx, contactMethodAdd,
+	_, err := q.db.Exec(ctx, contactMethodAdd,
 		arg.ID,
 		arg.Name,
 		arg.Dest,
@@ -929,7 +910,7 @@ type ContactMethodEnableDisableParams struct {
 }
 
 func (q *Queries) ContactMethodEnableDisable(ctx context.Context, arg ContactMethodEnableDisableParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, contactMethodEnableDisable, arg.Dest, arg.Disabled)
+	row := q.db.QueryRow(ctx, contactMethodEnableDisable, arg.Dest, arg.Disabled)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
@@ -945,7 +926,7 @@ WHERE
 `
 
 func (q *Queries) ContactMethodFindAll(ctx context.Context, userID uuid.UUID) ([]UserContactMethod, error) {
-	rows, err := q.db.QueryContext(ctx, contactMethodFindAll, userID)
+	rows, err := q.db.Query(ctx, contactMethodFindAll, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -969,9 +950,6 @@ func (q *Queries) ContactMethodFindAll(ctx context.Context, userID uuid.UUID) ([
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -989,7 +967,7 @@ WHERE
 `
 
 func (q *Queries) ContactMethodFindMany(ctx context.Context, dollar_1 []uuid.UUID) ([]UserContactMethod, error) {
-	rows, err := q.db.QueryContext(ctx, contactMethodFindMany, pq.Array(dollar_1))
+	rows, err := q.db.Query(ctx, contactMethodFindMany, dollar_1)
 	if err != nil {
 		return nil, err
 	}
@@ -1013,9 +991,6 @@ func (q *Queries) ContactMethodFindMany(ctx context.Context, dollar_1 []uuid.UUI
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -1034,7 +1009,7 @@ FOR UPDATE
 `
 
 func (q *Queries) ContactMethodFindOneUpdate(ctx context.Context, id uuid.UUID) (UserContactMethod, error) {
-	row := q.db.QueryRowContext(ctx, contactMethodFindOneUpdate, id)
+	row := q.db.QueryRow(ctx, contactMethodFindOneUpdate, id)
 	var i UserContactMethod
 	err := row.Scan(
 		&i.Dest,
@@ -1062,7 +1037,7 @@ WHERE
 `
 
 func (q *Queries) ContactMethodFineOne(ctx context.Context, id uuid.UUID) (UserContactMethod, error) {
-	row := q.db.QueryRowContext(ctx, contactMethodFineOne, id)
+	row := q.db.QueryRow(ctx, contactMethodFineOne, id)
 	var i UserContactMethod
 	err := row.Scan(
 		&i.Dest,
@@ -1090,7 +1065,7 @@ WHERE
 `
 
 func (q *Queries) ContactMethodLookupUserID(ctx context.Context, dollar_1 []uuid.UUID) ([]uuid.UUID, error) {
-	rows, err := q.db.QueryContext(ctx, contactMethodLookupUserID, pq.Array(dollar_1))
+	rows, err := q.db.Query(ctx, contactMethodLookupUserID, dollar_1)
 	if err != nil {
 		return nil, err
 	}
@@ -1102,9 +1077,6 @@ func (q *Queries) ContactMethodLookupUserID(ctx context.Context, dollar_1 []uuid
 			return nil, err
 		}
 		items = append(items, user_id)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -1123,12 +1095,12 @@ WHERE
 `
 
 type ContactMethodMetaDestRow struct {
-	Metadata json.RawMessage
+	Metadata []byte
 	Now      time.Time
 }
 
 func (q *Queries) ContactMethodMetaDest(ctx context.Context, dest NullDestV1) (ContactMethodMetaDestRow, error) {
-	row := q.db.QueryRowContext(ctx, contactMethodMetaDest, dest)
+	row := q.db.QueryRow(ctx, contactMethodMetaDest, dest)
 	var i ContactMethodMetaDestRow
 	err := row.Scan(&i.Metadata, &i.Now)
 	return i, err
@@ -1153,7 +1125,7 @@ type ContactMethodUpdateParams struct {
 }
 
 func (q *Queries) ContactMethodUpdate(ctx context.Context, arg ContactMethodUpdateParams) error {
-	_, err := q.db.ExecContext(ctx, contactMethodUpdate,
+	_, err := q.db.Exec(ctx, contactMethodUpdate,
 		arg.ID,
 		arg.Name,
 		arg.Disabled,
@@ -1173,11 +1145,11 @@ WHERE
 
 type ContactMethodUpdateMetaDestParams struct {
 	Dest      NullDestV1
-	CarrierV1 json.RawMessage
+	CarrierV1 []byte
 }
 
 func (q *Queries) ContactMethodUpdateMetaDest(ctx context.Context, arg ContactMethodUpdateMetaDestParams) error {
-	_, err := q.db.ExecContext(ctx, contactMethodUpdateMetaDest, arg.Dest, arg.CarrierV1)
+	_, err := q.db.Exec(ctx, contactMethodUpdateMetaDest, arg.Dest, arg.CarrierV1)
 	return err
 }
 
@@ -1194,11 +1166,11 @@ type CreateCalSubParams struct {
 	UserID     uuid.UUID
 	Disabled   bool
 	ScheduleID uuid.UUID
-	Config     json.RawMessage
+	Config     []byte
 }
 
-func (q *Queries) CreateCalSub(ctx context.Context, arg CreateCalSubParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, createCalSub,
+func (q *Queries) CreateCalSub(ctx context.Context, arg CreateCalSubParams) (pgtype.Timestamptz, error) {
+	row := q.db.QueryRow(ctx, createCalSub,
 		arg.ID,
 		arg.Name,
 		arg.UserID,
@@ -1206,7 +1178,7 @@ func (q *Queries) CreateCalSub(ctx context.Context, arg CreateCalSubParams) (tim
 		arg.ScheduleID,
 		arg.Config,
 	)
-	var created_at time.Time
+	var created_at pgtype.Timestamptz
 	err := row.Scan(&created_at)
 	return created_at, err
 }
@@ -1223,7 +1195,7 @@ type DatabaseInfoRow struct {
 }
 
 func (q *Queries) DatabaseInfo(ctx context.Context) (DatabaseInfoRow, error) {
-	row := q.db.QueryRowContext(ctx, databaseInfo)
+	row := q.db.QueryRow(ctx, databaseInfo)
 	var i DatabaseInfoRow
 	err := row.Scan(&i.ID, &i.Version)
 	return i, err
@@ -1235,7 +1207,7 @@ WHERE id = ANY ($1::uuid[])
 `
 
 func (q *Queries) DeleteContactMethod(ctx context.Context, dollar_1 []uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteContactMethod, pq.Array(dollar_1))
+	_, err := q.db.Exec(ctx, deleteContactMethod, dollar_1)
 	return err
 }
 
@@ -1251,7 +1223,7 @@ type DeleteManyCalSubParams struct {
 }
 
 func (q *Queries) DeleteManyCalSub(ctx context.Context, arg DeleteManyCalSubParams) error {
-	_, err := q.db.ExecContext(ctx, deleteManyCalSub, pq.Array(arg.Column1), arg.UserID)
+	_, err := q.db.Exec(ctx, deleteManyCalSub, arg.Column1, arg.UserID)
 	return err
 }
 
@@ -1262,7 +1234,7 @@ WHERE current_state = 'in_progress'
 `
 
 func (q *Queries) DisableChangeLogTriggers(ctx context.Context) error {
-	_, err := q.db.ExecContext(ctx, disableChangeLogTriggers)
+	_, err := q.db.Exec(ctx, disableChangeLogTriggers)
 	return err
 }
 
@@ -1280,7 +1252,7 @@ type EPStepActionsAddActionParams struct {
 }
 
 func (q *Queries) EPStepActionsAddAction(ctx context.Context, arg EPStepActionsAddActionParams) error {
-	_, err := q.db.ExecContext(ctx, ePStepActionsAddAction,
+	_, err := q.db.Exec(ctx, ePStepActionsAddAction,
 		arg.EscalationPolicyStepID,
 		arg.UserID,
 		arg.ScheduleID,
@@ -1311,7 +1283,7 @@ type EPStepActionsByStepIdRow struct {
 }
 
 func (q *Queries) EPStepActionsByStepId(ctx context.Context, escalationPolicyStepID uuid.UUID) ([]EPStepActionsByStepIdRow, error) {
-	rows, err := q.db.QueryContext(ctx, ePStepActionsByStepId, escalationPolicyStepID)
+	rows, err := q.db.Query(ctx, ePStepActionsByStepId, escalationPolicyStepID)
 	if err != nil {
 		return nil, err
 	}
@@ -1328,9 +1300,6 @@ func (q *Queries) EPStepActionsByStepId(ctx context.Context, escalationPolicySte
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -1356,7 +1325,7 @@ type EPStepActionsDeleteActionParams struct {
 }
 
 func (q *Queries) EPStepActionsDeleteAction(ctx context.Context, arg EPStepActionsDeleteActionParams) error {
-	_, err := q.db.ExecContext(ctx, ePStepActionsDeleteAction,
+	_, err := q.db.Exec(ctx, ePStepActionsDeleteAction,
 		arg.EscalationPolicyStepID,
 		arg.UserID,
 		arg.ScheduleID,
@@ -1373,7 +1342,7 @@ WHERE current_state = 'idle'
 `
 
 func (q *Queries) EnableChangeLogTriggers(ctx context.Context) error {
-	_, err := q.db.ExecContext(ctx, enableChangeLogTriggers)
+	_, err := q.db.Exec(ctx, enableChangeLogTriggers)
 	return err
 }
 
@@ -1387,9 +1356,9 @@ WHERE
 `
 
 // Get a pending signal's rendered params.
-func (q *Queries) EngineGetSignalParams(ctx context.Context, messageID uuid.NullUUID) (json.RawMessage, error) {
-	row := q.db.QueryRowContext(ctx, engineGetSignalParams, messageID)
-	var params json.RawMessage
+func (q *Queries) EngineGetSignalParams(ctx context.Context, messageID uuid.NullUUID) ([]byte, error) {
+	row := q.db.QueryRow(ctx, engineGetSignalParams, messageID)
+	var params []byte
 	err := row.Scan(&params)
 	return params, err
 }
@@ -1412,9 +1381,9 @@ SELECT
 `
 
 // Check if a destination is known in user_contact_methods or notification_channels table.
-func (q *Queries) EngineIsKnownDest(ctx context.Context, dest NullDestV1) (sql.NullBool, error) {
-	row := q.db.QueryRowContext(ctx, engineIsKnownDest, dest)
-	var column_1 sql.NullBool
+func (q *Queries) EngineIsKnownDest(ctx context.Context, dest NullDestV1) (pgtype.Bool, error) {
+	row := q.db.QueryRow(ctx, engineIsKnownDest, dest)
+	var column_1 pgtype.Bool
 	err := row.Scan(&column_1)
 	return column_1, err
 }
@@ -1440,12 +1409,12 @@ type FindManyCalSubByUserRow struct {
 	UserID     uuid.UUID
 	Disabled   bool
 	ScheduleID uuid.UUID
-	Config     json.RawMessage
-	LastAccess sql.NullTime
+	Config     []byte
+	LastAccess pgtype.Timestamptz
 }
 
 func (q *Queries) FindManyCalSubByUser(ctx context.Context, userID uuid.UUID) ([]FindManyCalSubByUserRow, error) {
-	rows, err := q.db.QueryContext(ctx, findManyCalSubByUser, userID)
+	rows, err := q.db.Query(ctx, findManyCalSubByUser, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -1465,9 +1434,6 @@ func (q *Queries) FindManyCalSubByUser(ctx context.Context, userID uuid.UUID) ([
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -1496,12 +1462,12 @@ type FindOneCalSubRow struct {
 	UserID     uuid.UUID
 	Disabled   bool
 	ScheduleID uuid.UUID
-	Config     json.RawMessage
-	LastAccess sql.NullTime
+	Config     []byte
+	LastAccess pgtype.Timestamptz
 }
 
 func (q *Queries) FindOneCalSub(ctx context.Context, id uuid.UUID) (FindOneCalSubRow, error) {
-	row := q.db.QueryRowContext(ctx, findOneCalSub, id)
+	row := q.db.QueryRow(ctx, findOneCalSub, id)
 	var i FindOneCalSubRow
 	err := row.Scan(
 		&i.ID,
@@ -1537,12 +1503,12 @@ type FindOneCalSubForUpdateRow struct {
 	UserID     uuid.UUID
 	Disabled   bool
 	ScheduleID uuid.UUID
-	Config     json.RawMessage
-	LastAccess sql.NullTime
+	Config     []byte
+	LastAccess pgtype.Timestamptz
 }
 
 func (q *Queries) FindOneCalSubForUpdate(ctx context.Context, id uuid.UUID) (FindOneCalSubForUpdateRow, error) {
-	row := q.db.QueryRowContext(ctx, findOneCalSubForUpdate, id)
+	row := q.db.QueryRow(ctx, findOneCalSubForUpdate, id)
 	var i FindOneCalSubForUpdateRow
 	err := row.Scan(
 		&i.ID,
@@ -1574,7 +1540,7 @@ type ForeignKeyRefsRow struct {
 }
 
 func (q *Queries) ForeignKeyRefs(ctx context.Context) ([]ForeignKeyRefsRow, error) {
-	rows, err := q.db.QueryContext(ctx, foreignKeyRefs)
+	rows, err := q.db.Query(ctx, foreignKeyRefs)
 	if err != nil {
 		return nil, err
 	}
@@ -1586,9 +1552,6 @@ func (q *Queries) ForeignKeyRefs(ctx context.Context) ([]ForeignKeyRefsRow, erro
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -1621,7 +1584,7 @@ type GQLUserOnCallOverviewRow struct {
 }
 
 func (q *Queries) GQLUserOnCallOverview(ctx context.Context, userID uuid.UUID) ([]GQLUserOnCallOverviewRow, error) {
-	rows, err := q.db.QueryContext(ctx, gQLUserOnCallOverview, userID)
+	rows, err := q.db.Query(ctx, gQLUserOnCallOverview, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -1640,9 +1603,6 @@ func (q *Queries) GQLUserOnCallOverview(ctx context.Context, userID uuid.UUID) (
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -1659,11 +1619,11 @@ type IntKeyCreateParams struct {
 	Name               string
 	Type               EnumIntegrationKeysType
 	ServiceID          uuid.UUID
-	ExternalSystemName sql.NullString
+	ExternalSystemName pgtype.Text
 }
 
 func (q *Queries) IntKeyCreate(ctx context.Context, arg IntKeyCreateParams) error {
-	_, err := q.db.ExecContext(ctx, intKeyCreate,
+	_, err := q.db.Exec(ctx, intKeyCreate,
 		arg.ID,
 		arg.Name,
 		arg.Type,
@@ -1679,7 +1639,7 @@ WHERE id = ANY ($1::uuid[])
 `
 
 func (q *Queries) IntKeyDelete(ctx context.Context, ids []uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, intKeyDelete, pq.Array(ids))
+	_, err := q.db.Exec(ctx, intKeyDelete, ids)
 	return err
 }
 
@@ -1689,7 +1649,7 @@ WHERE id = $1
 `
 
 func (q *Queries) IntKeyDeleteConfig(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, intKeyDeleteConfig, id)
+	_, err := q.db.Exec(ctx, intKeyDeleteConfig, id)
 	return err
 }
 
@@ -1704,7 +1664,7 @@ WHERE
 `
 
 func (q *Queries) IntKeyDeleteSecondaryToken(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, intKeyDeleteSecondaryToken, id)
+	_, err := q.db.Exec(ctx, intKeyDeleteSecondaryToken, id)
 	return err
 }
 
@@ -1726,11 +1686,11 @@ type IntKeyFindByServiceRow struct {
 	Name               string
 	Type               EnumIntegrationKeysType
 	ServiceID          uuid.UUID
-	ExternalSystemName sql.NullString
+	ExternalSystemName pgtype.Text
 }
 
 func (q *Queries) IntKeyFindByService(ctx context.Context, serviceID uuid.UUID) ([]IntKeyFindByServiceRow, error) {
-	rows, err := q.db.QueryContext(ctx, intKeyFindByService, serviceID)
+	rows, err := q.db.Query(ctx, intKeyFindByService, serviceID)
 	if err != nil {
 		return nil, err
 	}
@@ -1748,9 +1708,6 @@ func (q *Queries) IntKeyFindByService(ctx context.Context, serviceID uuid.UUID) 
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -1776,11 +1733,11 @@ type IntKeyFindOneRow struct {
 	Name               string
 	Type               EnumIntegrationKeysType
 	ServiceID          uuid.UUID
-	ExternalSystemName sql.NullString
+	ExternalSystemName pgtype.Text
 }
 
 func (q *Queries) IntKeyFindOne(ctx context.Context, id uuid.UUID) (IntKeyFindOneRow, error) {
-	row := q.db.QueryRowContext(ctx, intKeyFindOne, id)
+	row := q.db.QueryRow(ctx, intKeyFindOne, id)
 	var i IntKeyFindOneRow
 	err := row.Scan(
 		&i.ID,
@@ -1803,7 +1760,7 @@ FOR UPDATE
 `
 
 func (q *Queries) IntKeyGetConfig(ctx context.Context, id uuid.UUID) (UIKConfig, error) {
-	row := q.db.QueryRowContext(ctx, intKeyGetConfig, id)
+	row := q.db.QueryRow(ctx, intKeyGetConfig, id)
 	var config UIKConfig
 	err := row.Scan(&config)
 	return config, err
@@ -1825,7 +1782,7 @@ type IntKeyGetServiceIDParams struct {
 }
 
 func (q *Queries) IntKeyGetServiceID(ctx context.Context, arg IntKeyGetServiceIDParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, intKeyGetServiceID, arg.ID, arg.Type)
+	row := q.db.QueryRow(ctx, intKeyGetServiceID, arg.ID, arg.Type)
 	var service_id uuid.UUID
 	err := row.Scan(&service_id)
 	return service_id, err
@@ -1841,7 +1798,7 @@ WHERE
 `
 
 func (q *Queries) IntKeyGetType(ctx context.Context, id uuid.UUID) (EnumIntegrationKeysType, error) {
-	row := q.db.QueryRowContext(ctx, intKeyGetType, id)
+	row := q.db.QueryRow(ctx, intKeyGetType, id)
 	var type_ EnumIntegrationKeysType
 	err := row.Scan(&type_)
 	return type_, err
@@ -1855,11 +1812,11 @@ INSERT INTO pending_signals(dest_id, service_id, params)
 type IntKeyInsertSignalMessageParams struct {
 	DestID    uuid.UUID
 	ServiceID uuid.UUID
-	Params    json.RawMessage
+	Params    []byte
 }
 
 func (q *Queries) IntKeyInsertSignalMessage(ctx context.Context, arg IntKeyInsertSignalMessageParams) error {
-	_, err := q.db.ExecContext(ctx, intKeyInsertSignalMessage, arg.DestID, arg.ServiceID, arg.Params)
+	_, err := q.db.Exec(ctx, intKeyInsertSignalMessage, arg.DestID, arg.ServiceID, arg.Params)
 	return err
 }
 
@@ -1877,9 +1834,9 @@ RETURNING
     primary_token_hint
 `
 
-func (q *Queries) IntKeyPromoteSecondary(ctx context.Context, id uuid.UUID) (sql.NullString, error) {
-	row := q.db.QueryRowContext(ctx, intKeyPromoteSecondary, id)
-	var primary_token_hint sql.NullString
+func (q *Queries) IntKeyPromoteSecondary(ctx context.Context, id uuid.UUID) (pgtype.Text, error) {
+	row := q.db.QueryRow(ctx, intKeyPromoteSecondary, id)
+	var primary_token_hint pgtype.Text
 	err := row.Scan(&primary_token_hint)
 	return primary_token_hint, err
 }
@@ -1898,7 +1855,7 @@ type IntKeySetConfigParams struct {
 }
 
 func (q *Queries) IntKeySetConfig(ctx context.Context, arg IntKeySetConfigParams) error {
-	_, err := q.db.ExecContext(ctx, intKeySetConfig, arg.ID, arg.Config)
+	_, err := q.db.Exec(ctx, intKeySetConfig, arg.ID, arg.Config)
 	return err
 }
 
@@ -1918,11 +1875,11 @@ RETURNING
 type IntKeySetPrimaryTokenParams struct {
 	ID               uuid.UUID
 	PrimaryToken     uuid.NullUUID
-	PrimaryTokenHint sql.NullString
+	PrimaryTokenHint pgtype.Text
 }
 
 func (q *Queries) IntKeySetPrimaryToken(ctx context.Context, arg IntKeySetPrimaryTokenParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, intKeySetPrimaryToken, arg.ID, arg.PrimaryToken, arg.PrimaryTokenHint)
+	row := q.db.QueryRow(ctx, intKeySetPrimaryToken, arg.ID, arg.PrimaryToken, arg.PrimaryTokenHint)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
@@ -1945,11 +1902,11 @@ RETURNING
 type IntKeySetSecondaryTokenParams struct {
 	ID                 uuid.UUID
 	SecondaryToken     uuid.NullUUID
-	SecondaryTokenHint sql.NullString
+	SecondaryTokenHint pgtype.Text
 }
 
 func (q *Queries) IntKeySetSecondaryToken(ctx context.Context, arg IntKeySetSecondaryTokenParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, intKeySetSecondaryToken, arg.ID, arg.SecondaryToken, arg.SecondaryTokenHint)
+	row := q.db.QueryRow(ctx, intKeySetSecondaryToken, arg.ID, arg.SecondaryToken, arg.SecondaryTokenHint)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
@@ -1966,12 +1923,12 @@ WHERE
 `
 
 type IntKeyTokenHintsRow struct {
-	PrimaryTokenHint   sql.NullString
-	SecondaryTokenHint sql.NullString
+	PrimaryTokenHint   pgtype.Text
+	SecondaryTokenHint pgtype.Text
 }
 
 func (q *Queries) IntKeyTokenHints(ctx context.Context, id uuid.UUID) (IntKeyTokenHintsRow, error) {
-	row := q.db.QueryRowContext(ctx, intKeyTokenHints, id)
+	row := q.db.QueryRow(ctx, intKeyTokenHints, id)
 	var i IntKeyTokenHintsRow
 	err := row.Scan(&i.PrimaryTokenHint, &i.SecondaryTokenHint)
 	return i, err
@@ -1996,7 +1953,7 @@ type IntKeyUIKValidateServiceParams struct {
 }
 
 func (q *Queries) IntKeyUIKValidateService(ctx context.Context, arg IntKeyUIKValidateServiceParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, intKeyUIKValidateService, arg.KeyID, arg.TokenID)
+	row := q.db.QueryRow(ctx, intKeyUIKValidateService, arg.KeyID, arg.TokenID)
 	var service_id uuid.UUID
 	err := row.Scan(&service_id)
 	return service_id, err
@@ -2014,7 +1971,7 @@ type LabelDeleteKeyByTargetParams struct {
 }
 
 func (q *Queries) LabelDeleteKeyByTarget(ctx context.Context, arg LabelDeleteKeyByTargetParams) error {
-	_, err := q.db.ExecContext(ctx, labelDeleteKeyByTarget, arg.Key, arg.TgtServiceID)
+	_, err := q.db.Exec(ctx, labelDeleteKeyByTarget, arg.Key, arg.TgtServiceID)
 	return err
 }
 
@@ -2034,7 +1991,7 @@ type LabelFindAllByTargetRow struct {
 }
 
 func (q *Queries) LabelFindAllByTarget(ctx context.Context, tgtServiceID uuid.UUID) ([]LabelFindAllByTargetRow, error) {
-	rows, err := q.db.QueryContext(ctx, labelFindAllByTarget, tgtServiceID)
+	rows, err := q.db.Query(ctx, labelFindAllByTarget, tgtServiceID)
 	if err != nil {
 		return nil, err
 	}
@@ -2046,9 +2003,6 @@ func (q *Queries) LabelFindAllByTarget(ctx context.Context, tgtServiceID uuid.UU
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -2071,7 +2025,7 @@ type LabelSetByTargetParams struct {
 }
 
 func (q *Queries) LabelSetByTarget(ctx context.Context, arg LabelSetByTargetParams) error {
-	_, err := q.db.ExecContext(ctx, labelSetByTarget, arg.Key, arg.Value, arg.TgtServiceID)
+	_, err := q.db.Exec(ctx, labelSetByTarget, arg.Key, arg.Value, arg.TgtServiceID)
 	return err
 }
 
@@ -2083,7 +2037,7 @@ FROM
 `
 
 func (q *Queries) LabelUniqueKeys(ctx context.Context) ([]string, error) {
-	rows, err := q.db.QueryContext(ctx, labelUniqueKeys)
+	rows, err := q.db.Query(ctx, labelUniqueKeys)
 	if err != nil {
 		return nil, err
 	}
@@ -2095,9 +2049,6 @@ func (q *Queries) LabelUniqueKeys(ctx context.Context) ([]string, error) {
 			return nil, err
 		}
 		items = append(items, key)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -2111,7 +2062,7 @@ FROM switchover_log
 `
 
 func (q *Queries) LastLogID(ctx context.Context) (int64, error) {
-	row := q.db.QueryRowContext(ctx, lastLogID)
+	row := q.db.QueryRow(ctx, lastLogID)
 	var column_1 int64
 	err := row.Scan(&column_1)
 	return column_1, err
@@ -2143,7 +2094,7 @@ type ListCheckConstraintsRow struct {
 }
 
 func (q *Queries) ListCheckConstraints(ctx context.Context) ([]ListCheckConstraintsRow, error) {
-	rows, err := q.db.QueryContext(ctx, listCheckConstraints)
+	rows, err := q.db.Query(ctx, listCheckConstraints)
 	if err != nil {
 		return nil, err
 	}
@@ -2160,9 +2111,6 @@ func (q *Queries) ListCheckConstraints(ctx context.Context) ([]ListCheckConstrai
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -2207,7 +2155,7 @@ type ListColumnsRow struct {
 }
 
 func (q *Queries) ListColumns(ctx context.Context) ([]ListColumnsRow, error) {
-	rows, err := q.db.QueryContext(ctx, listColumns)
+	rows, err := q.db.Query(ctx, listColumns)
 	if err != nil {
 		return nil, err
 	}
@@ -2227,9 +2175,6 @@ func (q *Queries) ListColumns(ctx context.Context) ([]ListColumnsRow, error) {
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -2264,7 +2209,7 @@ type ListConstraintsRow struct {
 }
 
 func (q *Queries) ListConstraints(ctx context.Context) ([]ListConstraintsRow, error) {
-	rows, err := q.db.QueryContext(ctx, listConstraints)
+	rows, err := q.db.Query(ctx, listConstraints)
 	if err != nil {
 		return nil, err
 	}
@@ -2281,9 +2226,6 @@ func (q *Queries) ListConstraints(ctx context.Context) ([]ListConstraintsRow, er
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -2332,7 +2274,7 @@ type ListEnumsRow struct {
 }
 
 func (q *Queries) ListEnums(ctx context.Context) ([]ListEnumsRow, error) {
-	rows, err := q.db.QueryContext(ctx, listEnums)
+	rows, err := q.db.Query(ctx, listEnums)
 	if err != nil {
 		return nil, err
 	}
@@ -2344,9 +2286,6 @@ func (q *Queries) ListEnums(ctx context.Context) ([]ListEnumsRow, error) {
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -2373,7 +2312,7 @@ type ListExtensionsRow struct {
 }
 
 func (q *Queries) ListExtensions(ctx context.Context) ([]ListExtensionsRow, error) {
-	rows, err := q.db.QueryContext(ctx, listExtensions)
+	rows, err := q.db.Query(ctx, listExtensions)
 	if err != nil {
 		return nil, err
 	}
@@ -2385,9 +2324,6 @@ func (q *Queries) ListExtensions(ctx context.Context) ([]ListExtensionsRow, erro
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -2422,7 +2358,7 @@ type ListFunctionsRow struct {
 }
 
 func (q *Queries) ListFunctions(ctx context.Context) ([]ListFunctionsRow, error) {
-	rows, err := q.db.QueryContext(ctx, listFunctions)
+	rows, err := q.db.Query(ctx, listFunctions)
 	if err != nil {
 		return nil, err
 	}
@@ -2434,9 +2370,6 @@ func (q *Queries) ListFunctions(ctx context.Context) ([]ListFunctionsRow, error)
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -2470,7 +2403,7 @@ type ListIndexesRow struct {
 }
 
 func (q *Queries) ListIndexes(ctx context.Context) ([]ListIndexesRow, error) {
-	rows, err := q.db.QueryContext(ctx, listIndexes)
+	rows, err := q.db.Query(ctx, listIndexes)
 	if err != nil {
 		return nil, err
 	}
@@ -2487,9 +2420,6 @@ func (q *Queries) ListIndexes(ctx context.Context) ([]ListIndexesRow, error) {
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -2535,18 +2465,18 @@ ORDER BY
 type ListSequencesRow struct {
 	SchemaName   string
 	SequenceName string
-	StartValue   sql.NullInt64
-	Increment    sql.NullInt64
-	MinValue     sql.NullInt64
-	MaxValue     sql.NullInt64
-	Cache        sql.NullInt64
+	StartValue   pgtype.Int8
+	Increment    pgtype.Int8
+	MinValue     pgtype.Int8
+	MaxValue     pgtype.Int8
+	Cache        pgtype.Int8
 	TableSchema  string
 	TableName    string
 	ColumnName   string
 }
 
 func (q *Queries) ListSequences(ctx context.Context) ([]ListSequencesRow, error) {
-	rows, err := q.db.QueryContext(ctx, listSequences)
+	rows, err := q.db.Query(ctx, listSequences)
 	if err != nil {
 		return nil, err
 	}
@@ -2569,9 +2499,6 @@ func (q *Queries) ListSequences(ctx context.Context) ([]ListSequencesRow, error)
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -2606,7 +2533,7 @@ type ListTriggersRow struct {
 }
 
 func (q *Queries) ListTriggers(ctx context.Context) ([]ListTriggersRow, error) {
-	rows, err := q.db.QueryContext(ctx, listTriggers)
+	rows, err := q.db.Query(ctx, listTriggers)
 	if err != nil {
 		return nil, err
 	}
@@ -2623,9 +2550,6 @@ func (q *Queries) ListTriggers(ctx context.Context) ([]ListTriggersRow, error) {
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -2651,7 +2575,7 @@ type LockOneAlertServiceRow struct {
 }
 
 func (q *Queries) LockOneAlertService(ctx context.Context, id int64) (LockOneAlertServiceRow, error) {
-	row := q.db.QueryRowContext(ctx, lockOneAlertService, id)
+	row := q.db.QueryRow(ctx, lockOneAlertService, id)
 	var i LockOneAlertServiceRow
 	err := row.Scan(&i.IsMaintMode, &i.Status)
 	return i, err
@@ -2669,12 +2593,12 @@ LIMIT 100
 
 type LogEventsRow struct {
 	ID        int64
-	Timestamp time.Time
-	Data      json.RawMessage
+	Timestamp pgtype.Timestamptz
+	Data      []byte
 }
 
 func (q *Queries) LogEvents(ctx context.Context, id int64) ([]LogEventsRow, error) {
-	rows, err := q.db.QueryContext(ctx, logEvents, id)
+	rows, err := q.db.Query(ctx, logEvents, id)
 	if err != nil {
 		return nil, err
 	}
@@ -2686,9 +2610,6 @@ func (q *Queries) LogEvents(ctx context.Context, id int64) ([]LogEventsRow, erro
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -2730,19 +2651,19 @@ type MessageMgrGetPendingRow struct {
 	CmID                   uuid.NullUUID
 	ChanID                 uuid.NullUUID
 	Dest                   NullDestV1
-	AlertID                sql.NullInt64
-	AlertLogID             sql.NullInt64
+	AlertID                pgtype.Int8
+	AlertLogID             pgtype.Int8
 	UserVerificationCodeID uuid.NullUUID
 	UserID                 uuid.NullUUID
 	ServiceID              uuid.NullUUID
-	CreatedAt              time.Time
-	SentAt                 sql.NullTime
+	CreatedAt              pgtype.Timestamptz
+	SentAt                 pgtype.Timestamptz
 	StatusAlertIds         []int64
 	ScheduleID             uuid.NullUUID
 }
 
-func (q *Queries) MessageMgrGetPending(ctx context.Context, sentAt sql.NullTime) ([]MessageMgrGetPendingRow, error) {
-	rows, err := q.db.QueryContext(ctx, messageMgrGetPending, sentAt)
+func (q *Queries) MessageMgrGetPending(ctx context.Context, sentAt pgtype.Timestamptz) ([]MessageMgrGetPendingRow, error) {
+	rows, err := q.db.Query(ctx, messageMgrGetPending, sentAt)
 	if err != nil {
 		return nil, err
 	}
@@ -2763,15 +2684,12 @@ func (q *Queries) MessageMgrGetPending(ctx context.Context, sentAt sql.NullTime)
 			&i.ServiceID,
 			&i.CreatedAt,
 			&i.SentAt,
-			pq.Array(&i.StatusAlertIds),
+			&i.StatusAlertIds,
 			&i.ScheduleID,
 		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -2797,7 +2715,7 @@ WHERE
 type NfyLastMessageStatusParams struct {
 	MessageType     EnumOutgoingMessagesType
 	ContactMethodID uuid.NullUUID
-	CreatedAt       time.Time
+	CreatedAt       pgtype.Timestamptz
 }
 
 type NfyLastMessageStatusRow struct {
@@ -2807,7 +2725,7 @@ type NfyLastMessageStatusRow struct {
 }
 
 func (q *Queries) NfyLastMessageStatus(ctx context.Context, arg NfyLastMessageStatusParams) (NfyLastMessageStatusRow, error) {
-	row := q.db.QueryRowContext(ctx, nfyLastMessageStatus, arg.MessageType, arg.ContactMethodID, arg.CreatedAt)
+	row := q.db.QueryRow(ctx, nfyLastMessageStatus, arg.MessageType, arg.ContactMethodID, arg.CreatedAt)
 	var i NfyLastMessageStatusRow
 	err := row.Scan(
 		&i.OutgoingMessage.AlertID,
@@ -2831,7 +2749,7 @@ func (q *Queries) NfyLastMessageStatus(ctx context.Context, arg NfyLastMessageSt
 		&i.OutgoingMessage.SentAt,
 		&i.OutgoingMessage.ServiceID,
 		&i.OutgoingMessage.SrcValue,
-		pq.Array(&i.OutgoingMessage.StatusAlertIds),
+		&i.OutgoingMessage.StatusAlertIds,
 		&i.OutgoingMessage.StatusDetails,
 		&i.OutgoingMessage.UserID,
 		&i.OutgoingMessage.UserVerificationCodeID,
@@ -2861,7 +2779,7 @@ type NfyManyMessageStatusRow struct {
 }
 
 func (q *Queries) NfyManyMessageStatus(ctx context.Context, dollar_1 []uuid.UUID) ([]NfyManyMessageStatusRow, error) {
-	rows, err := q.db.QueryContext(ctx, nfyManyMessageStatus, pq.Array(dollar_1))
+	rows, err := q.db.Query(ctx, nfyManyMessageStatus, dollar_1)
 	if err != nil {
 		return nil, err
 	}
@@ -2891,7 +2809,7 @@ func (q *Queries) NfyManyMessageStatus(ctx context.Context, dollar_1 []uuid.UUID
 			&i.OutgoingMessage.SentAt,
 			&i.OutgoingMessage.ServiceID,
 			&i.OutgoingMessage.SrcValue,
-			pq.Array(&i.OutgoingMessage.StatusAlertIds),
+			&i.OutgoingMessage.StatusAlertIds,
 			&i.OutgoingMessage.StatusDetails,
 			&i.OutgoingMessage.UserID,
 			&i.OutgoingMessage.UserVerificationCodeID,
@@ -2901,9 +2819,6 @@ func (q *Queries) NfyManyMessageStatus(ctx context.Context, dollar_1 []uuid.UUID
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -2931,7 +2846,7 @@ LIMIT 1
 `
 
 type NfyOriginalMessageStatusParams struct {
-	AlertID         sql.NullInt64
+	AlertID         pgtype.Int8
 	ContactMethodID uuid.NullUUID
 	ChannelID       uuid.NullUUID
 }
@@ -2943,7 +2858,7 @@ type NfyOriginalMessageStatusRow struct {
 }
 
 func (q *Queries) NfyOriginalMessageStatus(ctx context.Context, arg NfyOriginalMessageStatusParams) (NfyOriginalMessageStatusRow, error) {
-	row := q.db.QueryRowContext(ctx, nfyOriginalMessageStatus, arg.AlertID, arg.ContactMethodID, arg.ChannelID)
+	row := q.db.QueryRow(ctx, nfyOriginalMessageStatus, arg.AlertID, arg.ContactMethodID, arg.ChannelID)
 	var i NfyOriginalMessageStatusRow
 	err := row.Scan(
 		&i.OutgoingMessage.AlertID,
@@ -2967,7 +2882,7 @@ func (q *Queries) NfyOriginalMessageStatus(ctx context.Context, arg NfyOriginalM
 		&i.OutgoingMessage.SentAt,
 		&i.OutgoingMessage.ServiceID,
 		&i.OutgoingMessage.SrcValue,
-		pq.Array(&i.OutgoingMessage.StatusAlertIds),
+		&i.OutgoingMessage.StatusAlertIds,
 		&i.OutgoingMessage.StatusDetails,
 		&i.OutgoingMessage.UserID,
 		&i.OutgoingMessage.UserVerificationCodeID,
@@ -3001,7 +2916,7 @@ type NoticeUnackedAlertsByServiceRow struct {
 }
 
 func (q *Queries) NoticeUnackedAlertsByService(ctx context.Context, dollar_1 uuid.UUID) (NoticeUnackedAlertsByServiceRow, error) {
-	row := q.db.QueryRowContext(ctx, noticeUnackedAlertsByService, dollar_1)
+	row := q.db.QueryRow(ctx, noticeUnackedAlertsByService, dollar_1)
 	var i NoticeUnackedAlertsByServiceRow
 	err := row.Scan(&i.Count, &i.Max)
 	return i, err
@@ -3013,7 +2928,7 @@ WHERE id = ANY ($1::uuid[])
 `
 
 func (q *Queries) NotifChanDeleteMany(ctx context.Context, dollar_1 []uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, notifChanDeleteMany, pq.Array(dollar_1))
+	_, err := q.db.Exec(ctx, notifChanDeleteMany, dollar_1)
 	return err
 }
 
@@ -3027,7 +2942,7 @@ WHERE
 `
 
 func (q *Queries) NotifChanFindDestID(ctx context.Context, dest NullDestV1) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, notifChanFindDestID, dest)
+	row := q.db.QueryRow(ctx, notifChanFindDestID, dest)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
@@ -3043,7 +2958,7 @@ WHERE
 `
 
 func (q *Queries) NotifChanFindMany(ctx context.Context, dollar_1 []uuid.UUID) ([]NotificationChannel, error) {
-	rows, err := q.db.QueryContext(ctx, notifChanFindMany, pq.Array(dollar_1))
+	rows, err := q.db.Query(ctx, notifChanFindMany, dollar_1)
 	if err != nil {
 		return nil, err
 	}
@@ -3064,9 +2979,6 @@ func (q *Queries) NotifChanFindMany(ctx context.Context, dollar_1 []uuid.UUID) (
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -3083,7 +2995,7 @@ WHERE
 `
 
 func (q *Queries) NotifChanFindOne(ctx context.Context, id uuid.UUID) (NotificationChannel, error) {
-	row := q.db.QueryRowContext(ctx, notifChanFindOne, id)
+	row := q.db.QueryRow(ctx, notifChanFindOne, id)
 	var i NotificationChannel
 	err := row.Scan(
 		&i.CreatedAt,
@@ -3102,7 +3014,7 @@ LOCK notification_channels IN SHARE ROW EXCLUSIVE MODE
 `
 
 func (q *Queries) NotifChanLock(ctx context.Context) error {
-	_, err := q.db.ExecContext(ctx, notifChanLock)
+	_, err := q.db.Exec(ctx, notifChanLock)
 	return err
 }
 
@@ -3124,7 +3036,7 @@ type NotifChanUpsertDestParams struct {
 
 // NotifChanUpsertDest will insert a new destination if it does not exist, or updating it's name if it does.
 func (q *Queries) NotifChanUpsertDest(ctx context.Context, arg NotifChanUpsertDestParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, notifChanUpsertDest, arg.ID, arg.Dest, arg.Name)
+	row := q.db.QueryRow(ctx, notifChanUpsertDest, arg.ID, arg.Dest, arg.Name)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
@@ -3135,7 +3047,7 @@ SELECT now()::timestamptz
 `
 
 func (q *Queries) Now(ctx context.Context) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, now)
+	row := q.db.QueryRow(ctx, now)
 	var column_1 time.Time
 	err := row.Scan(&column_1)
 	return column_1, err
@@ -3210,20 +3122,20 @@ type OverrideSearchParams struct {
 
 type OverrideSearchRow struct {
 	ID            uuid.UUID
-	StartTime     time.Time
-	EndTime       time.Time
+	StartTime     pgtype.Timestamptz
+	EndTime       pgtype.Timestamptz
 	AddUserID     uuid.NullUUID
 	RemoveUserID  uuid.NullUUID
 	TgtScheduleID uuid.UUID
 }
 
 func (q *Queries) OverrideSearch(ctx context.Context, arg OverrideSearchParams) ([]OverrideSearchRow, error) {
-	rows, err := q.db.QueryContext(ctx, overrideSearch,
-		pq.Array(arg.Omit),
+	rows, err := q.db.Query(ctx, overrideSearch,
+		arg.Omit,
 		arg.ScheduleID,
-		pq.Array(arg.AnyUserID),
-		pq.Array(arg.AddUserID),
-		pq.Array(arg.RemoveUserID),
+		arg.AnyUserID,
+		arg.AddUserID,
+		arg.RemoveUserID,
 		arg.SearchStart,
 		arg.SearchEnd,
 		arg.AfterID,
@@ -3246,9 +3158,6 @@ func (q *Queries) OverrideSearch(ctx context.Context, arg OverrideSearchParams) 
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -3274,7 +3183,7 @@ type ProcAcquireModuleLockNoWaitParams struct {
 }
 
 func (q *Queries) ProcAcquireModuleLockNoWait(ctx context.Context, arg ProcAcquireModuleLockNoWaitParams) (int32, error) {
-	row := q.db.QueryRowContext(ctx, procAcquireModuleLockNoWait, arg.TypeID, arg.Version)
+	row := q.db.QueryRow(ctx, procAcquireModuleLockNoWait, arg.TypeID, arg.Version)
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
@@ -3296,7 +3205,7 @@ type ProcAcquireModuleSharedLockParams struct {
 }
 
 func (q *Queries) ProcAcquireModuleSharedLock(ctx context.Context, arg ProcAcquireModuleSharedLockParams) (int32, error) {
-	row := q.db.QueryRowContext(ctx, procAcquireModuleSharedLock, arg.TypeID, arg.Version)
+	row := q.db.QueryRow(ctx, procAcquireModuleSharedLock, arg.TypeID, arg.Version)
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
@@ -3311,9 +3220,9 @@ WHERE
     type_id = $1
 `
 
-func (q *Queries) ProcLoadState(ctx context.Context, typeID EngineProcessingType) (json.RawMessage, error) {
-	row := q.db.QueryRowContext(ctx, procLoadState, typeID)
-	var state json.RawMessage
+func (q *Queries) ProcLoadState(ctx context.Context, typeID EngineProcessingType) ([]byte, error) {
+	row := q.db.QueryRow(ctx, procLoadState, typeID)
+	var state []byte
 	err := row.Scan(&state)
 	return state, err
 }
@@ -3328,7 +3237,7 @@ WHERE
 `
 
 func (q *Queries) ProcReadModuleVersion(ctx context.Context, typeID EngineProcessingType) (int32, error) {
-	row := q.db.QueryRowContext(ctx, procReadModuleVersion, typeID)
+	row := q.db.QueryRow(ctx, procReadModuleVersion, typeID)
 	var version int32
 	err := row.Scan(&version)
 	return version, err
@@ -3345,11 +3254,11 @@ WHERE
 
 type ProcSaveStateParams struct {
 	TypeID EngineProcessingType
-	State  json.RawMessage
+	State  []byte
 }
 
 func (q *Queries) ProcSaveState(ctx context.Context, arg ProcSaveStateParams) error {
-	_, err := q.db.ExecContext(ctx, procSaveState, arg.TypeID, arg.State)
+	_, err := q.db.Exec(ctx, procSaveState, arg.TypeID, arg.State)
 	return err
 }
 
@@ -3359,7 +3268,7 @@ SELECT
 `
 
 func (q *Queries) ProcSharedAdvisoryLock(ctx context.Context, pgTryAdvisoryXactLockShared int64) (bool, error) {
-	row := q.db.QueryRowContext(ctx, procSharedAdvisoryLock, pgTryAdvisoryXactLockShared)
+	row := q.db.QueryRow(ctx, procSharedAdvisoryLock, pgTryAdvisoryXactLockShared)
 	var lock_acquired bool
 	err := row.Scan(&lock_acquired)
 	return lock_acquired, err
@@ -3384,7 +3293,7 @@ type RequestAlertEscalationByTimeParams struct {
 }
 
 func (q *Queries) RequestAlertEscalationByTime(ctx context.Context, arg RequestAlertEscalationByTimeParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, requestAlertEscalationByTime, arg.AlertID, arg.Column2)
+	row := q.db.QueryRow(ctx, requestAlertEscalationByTime, arg.AlertID, arg.Column2)
 	var column_1 bool
 	err := row.Scan(&column_1)
 	return column_1, err
@@ -3402,7 +3311,7 @@ FROM
 `
 
 func (q *Queries) SWOConnLock(ctx context.Context) (bool, error) {
-	row := q.db.QueryRowContext(ctx, sWOConnLock)
+	row := q.db.QueryRow(ctx, sWOConnLock)
 	var column_1 bool
 	err := row.Scan(&column_1)
 	return column_1, err
@@ -3414,7 +3323,7 @@ SELECT
 `
 
 func (q *Queries) SWOConnUnlockAll(ctx context.Context) error {
-	_, err := q.db.ExecContext(ctx, sWOConnUnlockAll)
+	_, err := q.db.Exec(ctx, sWOConnUnlockAll)
 	return err
 }
 
@@ -3431,11 +3340,11 @@ FOR UPDATE
 
 type SchedMgrDataForUpdateRow struct {
 	ScheduleID uuid.UUID
-	Data       json.RawMessage
+	Data       []byte
 }
 
 func (q *Queries) SchedMgrDataForUpdate(ctx context.Context) ([]SchedMgrDataForUpdateRow, error) {
-	rows, err := q.db.QueryContext(ctx, schedMgrDataForUpdate)
+	rows, err := q.db.Query(ctx, schedMgrDataForUpdate)
 	if err != nil {
 		return nil, err
 	}
@@ -3447,9 +3356,6 @@ func (q *Queries) SchedMgrDataForUpdate(ctx context.Context) ([]SchedMgrDataForU
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -3466,7 +3372,7 @@ FROM
 
 // Returns all schedule IDs that have an entry in the schedule_data table.
 func (q *Queries) SchedMgrDataIDs(ctx context.Context) ([]uuid.UUID, error) {
-	rows, err := q.db.QueryContext(ctx, schedMgrDataIDs)
+	rows, err := q.db.Query(ctx, schedMgrDataIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -3478,9 +3384,6 @@ func (q *Queries) SchedMgrDataIDs(ctx context.Context) ([]uuid.UUID, error) {
 			return nil, err
 		}
 		items = append(items, schedule_id)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -3505,7 +3408,7 @@ type SchedMgrEndOnCallParams struct {
 }
 
 func (q *Queries) SchedMgrEndOnCall(ctx context.Context, arg SchedMgrEndOnCallParams) error {
-	_, err := q.db.ExecContext(ctx, schedMgrEndOnCall, arg.ScheduleID, arg.UserID)
+	_, err := q.db.Exec(ctx, schedMgrEndOnCall, arg.ScheduleID, arg.UserID)
 	return err
 }
 
@@ -3519,9 +3422,9 @@ WHERE
 `
 
 // Returns the data for a single schedule.
-func (q *Queries) SchedMgrGetData(ctx context.Context, scheduleID uuid.UUID) (json.RawMessage, error) {
-	row := q.db.QueryRowContext(ctx, schedMgrGetData, scheduleID)
-	var data json.RawMessage
+func (q *Queries) SchedMgrGetData(ctx context.Context, scheduleID uuid.UUID) ([]byte, error) {
+	row := q.db.QueryRow(ctx, schedMgrGetData, scheduleID)
+	var data []byte
 	err := row.Scan(&data)
 	return data, err
 }
@@ -3538,7 +3441,7 @@ type SchedMgrInsertMessageParams struct {
 }
 
 func (q *Queries) SchedMgrInsertMessage(ctx context.Context, arg SchedMgrInsertMessageParams) error {
-	_, err := q.db.ExecContext(ctx, schedMgrInsertMessage, arg.ID, arg.ChannelID, arg.ScheduleID)
+	_, err := q.db.Exec(ctx, schedMgrInsertMessage, arg.ID, arg.ChannelID, arg.ScheduleID)
 	return err
 }
 
@@ -3557,7 +3460,7 @@ type SchedMgrNCDedupMappingRow struct {
 
 // Returns the mapping of old notification channel IDs to new notification channel IDs.
 func (q *Queries) SchedMgrNCDedupMapping(ctx context.Context) ([]SchedMgrNCDedupMappingRow, error) {
-	rows, err := q.db.QueryContext(ctx, schedMgrNCDedupMapping)
+	rows, err := q.db.Query(ctx, schedMgrNCDedupMapping)
 	if err != nil {
 		return nil, err
 	}
@@ -3569,9 +3472,6 @@ func (q *Queries) SchedMgrNCDedupMapping(ctx context.Context) ([]SchedMgrNCDedup
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -3595,7 +3495,7 @@ type SchedMgrOnCallRow struct {
 }
 
 func (q *Queries) SchedMgrOnCall(ctx context.Context) ([]SchedMgrOnCallRow, error) {
-	rows, err := q.db.QueryContext(ctx, schedMgrOnCall)
+	rows, err := q.db.Query(ctx, schedMgrOnCall)
 	if err != nil {
 		return nil, err
 	}
@@ -3607,9 +3507,6 @@ func (q *Queries) SchedMgrOnCall(ctx context.Context) ([]SchedMgrOnCallRow, erro
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -3635,7 +3532,7 @@ type SchedMgrOverridesRow struct {
 }
 
 func (q *Queries) SchedMgrOverrides(ctx context.Context) ([]SchedMgrOverridesRow, error) {
-	rows, err := q.db.QueryContext(ctx, schedMgrOverrides)
+	rows, err := q.db.Query(ctx, schedMgrOverrides)
 	if err != nil {
 		return nil, err
 	}
@@ -3647,9 +3544,6 @@ func (q *Queries) SchedMgrOverrides(ctx context.Context) ([]SchedMgrOverridesRow
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -3671,7 +3565,7 @@ WHERE
 `
 
 type SchedMgrRulesRow struct {
-	CreatedAt      time.Time
+	CreatedAt      pgtype.Timestamptz
 	EndTime        timeutil.Clock
 	Friday         bool
 	ID             uuid.UUID
@@ -3690,7 +3584,7 @@ type SchedMgrRulesRow struct {
 }
 
 func (q *Queries) SchedMgrRules(ctx context.Context) ([]SchedMgrRulesRow, error) {
-	rows, err := q.db.QueryContext(ctx, schedMgrRules)
+	rows, err := q.db.Query(ctx, schedMgrRules)
 	if err != nil {
 		return nil, err
 	}
@@ -3720,9 +3614,6 @@ func (q *Queries) SchedMgrRules(ctx context.Context) ([]SchedMgrRulesRow, error)
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -3740,11 +3631,11 @@ WHERE
 
 type SchedMgrSetDataParams struct {
 	ScheduleID uuid.UUID
-	Data       json.RawMessage
+	Data       []byte
 }
 
 func (q *Queries) SchedMgrSetData(ctx context.Context, arg SchedMgrSetDataParams) error {
-	_, err := q.db.ExecContext(ctx, schedMgrSetData, arg.ScheduleID, arg.Data)
+	_, err := q.db.Exec(ctx, schedMgrSetData, arg.ScheduleID, arg.Data)
 	return err
 }
 
@@ -3759,12 +3650,12 @@ WHERE
 
 type SchedMgrSetDataV1RulesParams struct {
 	ScheduleID  uuid.UUID
-	Replacement json.RawMessage
+	Replacement []byte
 }
 
 // Sets the .V1.OnCallNotificationRules for a schedule.
 func (q *Queries) SchedMgrSetDataV1Rules(ctx context.Context, arg SchedMgrSetDataV1RulesParams) error {
-	_, err := q.db.ExecContext(ctx, schedMgrSetDataV1Rules, arg.ScheduleID, arg.Replacement)
+	_, err := q.db.Exec(ctx, schedMgrSetDataV1Rules, arg.ScheduleID, arg.Replacement)
 	return err
 }
 
@@ -3786,7 +3677,7 @@ type SchedMgrStartOnCallParams struct {
 }
 
 func (q *Queries) SchedMgrStartOnCall(ctx context.Context, arg SchedMgrStartOnCallParams) error {
-	_, err := q.db.ExecContext(ctx, schedMgrStartOnCall, arg.ScheduleID, arg.UserID)
+	_, err := q.db.Exec(ctx, schedMgrStartOnCall, arg.ScheduleID, arg.UserID)
 	return err
 }
 
@@ -3804,7 +3695,7 @@ type SchedMgrTimezonesRow struct {
 }
 
 func (q *Queries) SchedMgrTimezones(ctx context.Context) ([]SchedMgrTimezonesRow, error) {
-	rows, err := q.db.QueryContext(ctx, schedMgrTimezones)
+	rows, err := q.db.Query(ctx, schedMgrTimezones)
 	if err != nil {
 		return nil, err
 	}
@@ -3816,9 +3707,6 @@ func (q *Queries) SchedMgrTimezones(ctx context.Context) ([]SchedMgrTimezonesRow
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -3849,7 +3737,7 @@ WHERE
 `
 
 func (q *Queries) ScheduleFindManyByUser(ctx context.Context, tgtUserID uuid.NullUUID) ([]Schedule, error) {
-	rows, err := q.db.QueryContext(ctx, scheduleFindManyByUser, tgtUserID)
+	rows, err := q.db.Query(ctx, scheduleFindManyByUser, tgtUserID)
 	if err != nil {
 		return nil, err
 	}
@@ -3868,9 +3756,6 @@ func (q *Queries) ScheduleFindManyByUser(ctx context.Context, tgtUserID uuid.Nul
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -3886,7 +3771,7 @@ WHERE sequence_catalog = current_database()
 `
 
 func (q *Queries) SequenceNames(ctx context.Context) ([]string, error) {
-	rows, err := q.db.QueryContext(ctx, sequenceNames)
+	rows, err := q.db.Query(ctx, sequenceNames)
 	if err != nil {
 		return nil, err
 	}
@@ -3898,9 +3783,6 @@ func (q *Queries) SequenceNames(ctx context.Context) ([]string, error) {
 			return nil, err
 		}
 		items = append(items, sequence_name)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -3924,7 +3806,7 @@ type SetAlertFeedbackParams struct {
 }
 
 func (q *Queries) SetAlertFeedback(ctx context.Context, arg SetAlertFeedbackParams) error {
-	_, err := q.db.ExecContext(ctx, setAlertFeedback, arg.AlertID, arg.NoiseReason)
+	_, err := q.db.Exec(ctx, setAlertFeedback, arg.AlertID, arg.NoiseReason)
 	return err
 }
 
@@ -3946,7 +3828,7 @@ type SetManyAlertFeedbackParams struct {
 }
 
 func (q *Queries) SetManyAlertFeedback(ctx context.Context, arg SetManyAlertFeedbackParams) ([]int64, error) {
-	rows, err := q.db.QueryContext(ctx, setManyAlertFeedback, pq.Array(arg.AlertIds), arg.NoiseReason)
+	rows, err := q.db.Query(ctx, setManyAlertFeedback, arg.AlertIds, arg.NoiseReason)
 	if err != nil {
 		return nil, err
 	}
@@ -3958,9 +3840,6 @@ func (q *Queries) SetManyAlertFeedback(ctx context.Context, arg SetManyAlertFeed
 			return nil, err
 		}
 		items = append(items, alert_id)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -3976,7 +3855,7 @@ WHERE message_id IS NULL
 
 // Delete stale pending signals.
 func (q *Queries) SignalMgrDeleteStale(ctx context.Context) error {
-	_, err := q.db.ExecContext(ctx, signalMgrDeleteStale)
+	_, err := q.db.Exec(ctx, signalMgrDeleteStale)
 	return err
 }
 
@@ -4004,7 +3883,7 @@ type SignalMgrGetPendingRow struct {
 
 // Get a batch of pending signals to process.
 func (q *Queries) SignalMgrGetPending(ctx context.Context, serviceID uuid.NullUUID) ([]SignalMgrGetPendingRow, error) {
-	rows, err := q.db.QueryContext(ctx, signalMgrGetPending, serviceID)
+	rows, err := q.db.Query(ctx, signalMgrGetPending, serviceID)
 	if err != nil {
 		return nil, err
 	}
@@ -4016,9 +3895,6 @@ func (q *Queries) SignalMgrGetPending(ctx context.Context, serviceID uuid.NullUU
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -4050,7 +3926,7 @@ type SignalMgrGetScheduledRow struct {
 }
 
 func (q *Queries) SignalMgrGetScheduled(ctx context.Context, serviceID uuid.NullUUID) ([]SignalMgrGetScheduledRow, error) {
-	rows, err := q.db.QueryContext(ctx, signalMgrGetScheduled, serviceID)
+	rows, err := q.db.Query(ctx, signalMgrGetScheduled, serviceID)
 	if err != nil {
 		return nil, err
 	}
@@ -4062,9 +3938,6 @@ func (q *Queries) SignalMgrGetScheduled(ctx context.Context, serviceID uuid.Null
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -4085,7 +3958,7 @@ type SignalMgrInsertMessageParams struct {
 
 // Insert a new message into the outgoing_messages table.
 func (q *Queries) SignalMgrInsertMessage(ctx context.Context, arg SignalMgrInsertMessageParams) error {
-	_, err := q.db.ExecContext(ctx, signalMgrInsertMessage, arg.ID, arg.ServiceID, arg.ChannelID)
+	_, err := q.db.Exec(ctx, signalMgrInsertMessage, arg.ID, arg.ServiceID, arg.ChannelID)
 	return err
 }
 
@@ -4105,7 +3978,7 @@ type SignalMgrUpdateSignalParams struct {
 
 // Update a pending signal with the message_id.
 func (q *Queries) SignalMgrUpdateSignal(ctx context.Context, arg SignalMgrUpdateSignalParams) error {
-	_, err := q.db.ExecContext(ctx, signalMgrUpdateSignal, arg.ID, arg.MessageID)
+	_, err := q.db.Exec(ctx, signalMgrUpdateSignal, arg.ID, arg.MessageID)
 	return err
 }
 
@@ -4127,7 +4000,7 @@ type StatusMgrCMInfoRow struct {
 }
 
 func (q *Queries) StatusMgrCMInfo(ctx context.Context, id uuid.UUID) (StatusMgrCMInfoRow, error) {
-	row := q.db.QueryRowContext(ctx, statusMgrCMInfo, id)
+	row := q.db.QueryRow(ctx, statusMgrCMInfo, id)
 	var i StatusMgrCMInfoRow
 	err := row.Scan(&i.UserID, &i.Dest)
 	return i, err
@@ -4141,7 +4014,7 @@ WHERE sub.contact_method_id = cm.id
 `
 
 func (q *Queries) StatusMgrCleanupDisabledSubs(ctx context.Context) error {
-	_, err := q.db.ExecContext(ctx, statusMgrCleanupDisabledSubs)
+	_, err := q.db.Exec(ctx, statusMgrCleanupDisabledSubs)
 	return err
 }
 
@@ -4151,7 +4024,7 @@ WHERE sub.updated_at < now() - '7 days'::interval
 `
 
 func (q *Queries) StatusMgrCleanupStaleSubs(ctx context.Context) error {
-	_, err := q.db.ExecContext(ctx, statusMgrCleanupStaleSubs)
+	_, err := q.db.Exec(ctx, statusMgrCleanupStaleSubs)
 	return err
 }
 
@@ -4161,7 +4034,7 @@ WHERE id = $1
 `
 
 func (q *Queries) StatusMgrDeleteSub(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, statusMgrDeleteSub, id)
+	_, err := q.db.Exec(ctx, statusMgrDeleteSub, id)
 	return err
 }
 
@@ -4191,7 +4064,7 @@ type StatusMgrLogEntryRow struct {
 }
 
 func (q *Queries) StatusMgrLogEntry(ctx context.Context, arg StatusMgrLogEntryParams) (StatusMgrLogEntryRow, error) {
-	row := q.db.QueryRowContext(ctx, statusMgrLogEntry, arg.AlertID, arg.EventType)
+	row := q.db.QueryRow(ctx, statusMgrLogEntry, arg.AlertID, arg.EventType)
 	var i StatusMgrLogEntryRow
 	err := row.Scan(&i.ID, &i.UserID)
 	return i, err
@@ -4234,7 +4107,7 @@ type StatusMgrNextUpdateRow struct {
 }
 
 func (q *Queries) StatusMgrNextUpdate(ctx context.Context, dollar_1 []int64) (StatusMgrNextUpdateRow, error) {
-	row := q.db.QueryRowContext(ctx, statusMgrNextUpdate, pq.Array(dollar_1))
+	row := q.db.QueryRow(ctx, statusMgrNextUpdate, dollar_1)
 	var i StatusMgrNextUpdateRow
 	err := row.Scan(
 		&i.ID,
@@ -4255,11 +4128,11 @@ type StatusMgrSendChannelMsgParams struct {
 	ID        uuid.UUID
 	ChannelID uuid.UUID
 	AlertID   int64
-	LogID     sql.NullInt64
+	LogID     pgtype.Int8
 }
 
 func (q *Queries) StatusMgrSendChannelMsg(ctx context.Context, arg StatusMgrSendChannelMsgParams) error {
-	_, err := q.db.ExecContext(ctx, statusMgrSendChannelMsg,
+	_, err := q.db.Exec(ctx, statusMgrSendChannelMsg,
 		arg.ID,
 		arg.ChannelID,
 		arg.AlertID,
@@ -4278,11 +4151,11 @@ type StatusMgrSendUserMsgParams struct {
 	CmID    uuid.UUID
 	UserID  uuid.UUID
 	AlertID int64
-	LogID   sql.NullInt64
+	LogID   pgtype.Int8
 }
 
 func (q *Queries) StatusMgrSendUserMsg(ctx context.Context, arg StatusMgrSendUserMsgParams) error {
-	_, err := q.db.ExecContext(ctx, statusMgrSendUserMsg,
+	_, err := q.db.Exec(ctx, statusMgrSendUserMsg,
 		arg.ID,
 		arg.CmID,
 		arg.UserID,
@@ -4303,7 +4176,7 @@ WHERE
 `
 
 func (q *Queries) StatusMgrUpdateCMForced(ctx context.Context, forcedDestTypes []string) error {
-	_, err := q.db.ExecContext(ctx, statusMgrUpdateCMForced, pq.Array(forcedDestTypes))
+	_, err := q.db.Exec(ctx, statusMgrUpdateCMForced, forcedDestTypes)
 	return err
 }
 
@@ -4323,7 +4196,7 @@ type StatusMgrUpdateSubParams struct {
 }
 
 func (q *Queries) StatusMgrUpdateSub(ctx context.Context, arg StatusMgrUpdateSubParams) error {
-	_, err := q.db.ExecContext(ctx, statusMgrUpdateSub, arg.ID, arg.LastAlertStatus)
+	_, err := q.db.Exec(ctx, statusMgrUpdateSub, arg.ID, arg.LastAlertStatus)
 	return err
 }
 
@@ -4349,7 +4222,7 @@ type TableColumnsRow struct {
 }
 
 func (q *Queries) TableColumns(ctx context.Context) ([]TableColumnsRow, error) {
-	rows, err := q.db.QueryContext(ctx, tableColumns)
+	rows, err := q.db.Query(ctx, tableColumns)
 	if err != nil {
 		return nil, err
 	}
@@ -4366,9 +4239,6 @@ func (q *Queries) TableColumns(ctx context.Context) ([]TableColumnsRow, error) {
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -4392,13 +4262,13 @@ WHERE
 type UpdateCalSubParams struct {
 	Name     string
 	Disabled bool
-	Config   json.RawMessage
+	Config   []byte
 	ID       uuid.UUID
 	UserID   uuid.UUID
 }
 
 func (q *Queries) UpdateCalSub(ctx context.Context, arg UpdateCalSubParams) error {
-	_, err := q.db.ExecContext(ctx, updateCalSub,
+	_, err := q.db.Exec(ctx, updateCalSub,
 		arg.Name,
 		arg.Disabled,
 		arg.Config,
@@ -4449,7 +4319,7 @@ type UserFavFindAllRow struct {
 }
 
 func (q *Queries) UserFavFindAll(ctx context.Context, arg UserFavFindAllParams) ([]UserFavFindAllRow, error) {
-	rows, err := q.db.QueryContext(ctx, userFavFindAll,
+	rows, err := q.db.Query(ctx, userFavFindAll,
 		arg.UserID,
 		arg.AllowServices,
 		arg.AllowSchedules,
@@ -4475,9 +4345,6 @@ func (q *Queries) UserFavFindAll(ctx context.Context, arg UserFavFindAllParams) 
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -4501,7 +4368,7 @@ type UserFavSetParams struct {
 }
 
 func (q *Queries) UserFavSet(ctx context.Context, arg UserFavSetParams) error {
-	_, err := q.db.ExecContext(ctx, userFavSet,
+	_, err := q.db.Exec(ctx, userFavSet,
 		arg.UserID,
 		arg.TgtServiceID,
 		arg.TgtScheduleID,
@@ -4532,7 +4399,7 @@ type UserFavUnsetParams struct {
 }
 
 func (q *Queries) UserFavUnset(ctx context.Context, arg UserFavUnsetParams) error {
-	_, err := q.db.ExecContext(ctx, userFavUnset,
+	_, err := q.db.Exec(ctx, userFavUnset,
 		arg.UserID,
 		arg.TgtServiceID,
 		arg.TgtScheduleID,

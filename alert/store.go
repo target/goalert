@@ -278,7 +278,7 @@ func (s *Store) EscalateAsOf(ctx context.Context, id int, t time.Time) error {
 	}
 	defer sqlutil.Rollback(ctx, "escalate alert", tx)
 
-	lck, err := gadb.New(tx).LockOneAlertService(ctx, int64(id))
+	lck, err := gadb.NewCompat(tx).LockOneAlertService(ctx, int64(id))
 	if errors.Is(err, sql.ErrNoRows) {
 		return validation.NewGenericError("alert not found")
 	}
@@ -293,13 +293,13 @@ func (s *Store) EscalateAsOf(ctx context.Context, id int, t time.Time) error {
 	}
 
 	if t.IsZero() {
-		t, err = gadb.New(tx).Now(ctx)
+		t, err = gadb.NewCompat(tx).Now(ctx)
 		if err != nil {
 			return fmt.Errorf("get current time: %w", err)
 		}
 	}
 
-	ok, err := gadb.New(tx).RequestAlertEscalationByTime(ctx, gadb.RequestAlertEscalationByTimeParams{
+	ok, err := gadb.NewCompat(tx).RequestAlertEscalationByTime(ctx, gadb.RequestAlertEscalationByTimeParams{
 		AlertID: int64(id),
 		Column2: t,
 	})
@@ -308,7 +308,7 @@ func (s *Store) EscalateAsOf(ctx context.Context, id int, t time.Time) error {
 	}
 
 	if !ok {
-		hasEP, err := gadb.New(tx).AlertHasEPState(ctx, int64(id))
+		hasEP, err := gadb.NewCompat(tx).AlertHasEPState(ctx, int64(id))
 		if err != nil {
 			return fmt.Errorf("check ep state: %w", err)
 		}
@@ -642,7 +642,7 @@ func (s *Store) createOrUpdate(ctx context.Context, a *Alert, meta map[string]st
 
 	// Set metadata only if meta is not nil and isNew is true
 	if meta != nil && isNew {
-		err = s.SetMetadataTx(ctx, tx, n.ID, meta)
+		err = s.SetMetadataTx(ctx, gadb.Compat(tx), n.ID, meta)
 		if err != nil {
 			return nil, false, err
 		}
@@ -814,7 +814,7 @@ func (s *Store) Feedback(ctx context.Context, alertIDs []int) ([]Feedback, error
 		ids = append(ids, int32(id))
 	}
 
-	rows, err := gadb.New(s.db).AlertFeedback(ctx, ids)
+	rows, err := gadb.NewCompat(s.db).AlertFeedback(ctx, ids)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -850,7 +850,7 @@ func (s Store) UpdateManyAlertFeedback(ctx context.Context, noiseReason string, 
 		ids[i] = int64(v)
 	}
 
-	res, err := gadb.New(s.db).SetManyAlertFeedback(ctx, gadb.SetManyAlertFeedbackParams{
+	res, err := gadb.NewCompat(s.db).SetManyAlertFeedback(ctx, gadb.SetManyAlertFeedbackParams{
 		AlertIds:    ids,
 		NoiseReason: noiseReason,
 	})
@@ -878,7 +878,7 @@ func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
 		return err
 	}
 
-	err = gadb.New(s.db).SetAlertFeedback(ctx, gadb.SetAlertFeedbackParams{
+	err = gadb.NewCompat(s.db).SetAlertFeedback(ctx, gadb.SetAlertFeedbackParams{
 		AlertID:     int64(feedback.ID),
 		NoiseReason: feedback.NoiseReason,
 	})

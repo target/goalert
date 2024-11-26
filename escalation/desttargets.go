@@ -50,14 +50,14 @@ func (s *Store) AddStepActionTx(ctx context.Context, tx *sql.Tx, stepID uuid.UUI
 		}
 		rotationID = uuid.NullUUID{UUID: id, Valid: true}
 	default:
-		id, err := s.ncStore.MapDestToID(ctx, tx, dest)
+		id, err := s.ncStore.MapDestToID(ctx, gadb.Compat(tx), dest)
 		if err != nil {
 			return err
 		}
 		channelID = uuid.NullUUID{UUID: id, Valid: true}
 	}
 
-	return gadb.New(tx).EPStepActionsAddAction(ctx, gadb.EPStepActionsAddActionParams{
+	return gadb.NewCompat(tx).EPStepActionsAddAction(ctx, gadb.EPStepActionsAddActionParams{
 		EscalationPolicyStepID: stepID,
 		UserID:                 userID,
 		ScheduleID:             scheduleID,
@@ -100,7 +100,7 @@ func (s *Store) DeleteStepActionTx(ctx context.Context, tx *sql.Tx, stepID uuid.
 		channelID = uuid.NullUUID{UUID: id, Valid: true}
 	}
 
-	return gadb.New(tx).EPStepActionsDeleteAction(ctx, gadb.EPStepActionsDeleteActionParams{
+	return gadb.NewCompat(tx).EPStepActionsDeleteAction(ctx, gadb.EPStepActionsDeleteActionParams{
 		EscalationPolicyStepID: stepID,
 		UserID:                 userID,
 		ScheduleID:             scheduleID,
@@ -116,7 +116,7 @@ func (s *Store) FindAllStepActionsTx(ctx context.Context, tx gadb.DBTX, stepID u
 	}
 
 	if tx == nil {
-		tx = s.db
+		tx = gadb.Compat(s.db)
 	}
 
 	actions, err := gadb.New(tx).EPStepActionsByStepId(ctx, stepID)

@@ -108,8 +108,8 @@ func (s *Store) Search(ctx context.Context, db gadb.DBTX, opts *SearchOptions) (
 
 		result[i] = UserOverride{
 			ID:           r.ID.String(),
-			Start:        r.StartTime,
-			End:          r.EndTime,
+			Start:        r.StartTime.Time,
+			End:          r.EndTime.Time,
 			AddUserID:    add,
 			RemoveUserID: rem,
 			Target:       assignment.ScheduleTarget(r.TgtScheduleID.String()),

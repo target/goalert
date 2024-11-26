@@ -8,6 +8,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
@@ -57,7 +58,7 @@ func (s *Store) AuthorizeUIK(ctx context.Context, tokStr string) (context.Contex
 		return ctx, permission.Unauthorized()
 	}
 
-	serviceID, err := gadb.New(s.db).IntKeyUIKValidateService(ctx, gadb.IntKeyUIKValidateServiceParams{
+	serviceID, err := gadb.NewCompat(s.db).IntKeyUIKValidateService(ctx, gadb.IntKeyUIKValidateServiceParams{
 		KeyID:   keyID,
 		TokenID: uuid.NullUUID{UUID: tokID, Valid: true},
 	})
@@ -82,7 +83,7 @@ func (s *Store) TokenHints(ctx context.Context, db gadb.DBTX, id uuid.UUID) (pri
 		return "", "", err
 	}
 
-	row, err := gadb.New(s.db).IntKeyTokenHints(ctx, id)
+	row, err := gadb.NewCompat(s.db).IntKeyTokenHints(ctx, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return "", "", nil
 	}
@@ -139,14 +140,14 @@ func (s *Store) setToken(ctx context.Context, db gadb.DBTX, keyID, tokenID uuid.
 	_, err = gdb.IntKeySetSecondaryToken(ctx, gadb.IntKeySetSecondaryTokenParams{
 		ID:                 keyID,
 		SecondaryToken:     uuid.NullUUID{UUID: tokenID, Valid: true},
-		SecondaryTokenHint: sql.NullString{String: tokenHint, Valid: true},
+		SecondaryTokenHint: pgtype.Text{String: tokenHint, Valid: true},
 	})
 	if errors.Is(err, sql.ErrNoRows) {
 		// it's possible there was never a primary token set
 		_, err = gdb.IntKeySetPrimaryToken(ctx, gadb.IntKeySetPrimaryTokenParams{
 			ID:               keyID,
 			PrimaryToken:     uuid.NullUUID{UUID: tokenID, Valid: true},
-			PrimaryTokenHint: sql.NullString{String: tokenHint, Valid: true},
+			PrimaryTokenHint: pgtype.Text{String: tokenHint, Valid: true},
 		})
 		if errors.Is(err, sql.ErrNoRows) {
 			return validation.NewGenericError("key not found, or already has primary and secondary tokens")

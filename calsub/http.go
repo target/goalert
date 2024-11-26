@@ -22,7 +22,7 @@ func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	info, err := gadb.New(s.db).CalSubRenderInfo(ctx, uuid.MustParse(src.ID))
+	info, err := gadb.NewCompat(s.db).CalSubRenderInfo(ctx, uuid.MustParse(src.ID))
 	if errutil.HTTPError(ctx, w, err) {
 		return
 	}
@@ -76,7 +76,7 @@ func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 			uniqueIDs = append(uniqueIDs, uuid.MustParse(s.UserID))
 		}
 
-		users, err := gadb.New(s.db).CalSubUserNames(ctx, uniqueIDs)
+		users, err := gadb.NewCompat(s.db).CalSubUserNames(ctx, uniqueIDs)
 		if errutil.HTTPError(ctx, w, err) {
 			return
 		}

@@ -33,7 +33,7 @@ func (SchedMsgsArgs) Kind() string { return "signal-manager-schedule-outgoing-me
 func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 	river.AddWorker(args.Workers, river.WorkFunc(func(ctx context.Context, j *river.Job[MaintArgs]) error {
 		return db.lock.WithTxShared(ctx, func(ctx context.Context, tx *sql.Tx) error {
-			return gadb.New(tx).SignalMgrDeleteStale(ctx)
+			return gadb.NewCompat(tx).SignalMgrDeleteStale(ctx)
 		})
 	}))
 

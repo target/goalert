@@ -23,7 +23,7 @@ type txBeginner interface {
 
 // NewLock will return a new Lock for the given Config.
 func NewLock(ctx context.Context, db *sql.DB, cfg Config) (*Lock, error) {
-	vers, err := gadb.New(db).ProcReadModuleVersion(ctx, gadb.EngineProcessingType(cfg.Type))
+	vers, err := gadb.NewCompat(db).ProcReadModuleVersion(ctx, gadb.EngineProcessingType(cfg.Type))
 	if err != nil {
 		return nil, fmt.Errorf("read module version: %w", err)
 	}
@@ -66,7 +66,7 @@ func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions, 
 	if err != nil {
 		return nil, err
 	}
-	q := gadb.New(tx)
+	q := gadb.NewCompat(tx)
 
 	// Ensure the engine isn't running or that it waits for migrations to complete.
 	gotAdvLock, err := q.ProcSharedAdvisoryLock(ctx, int64(lock.GlobalMigrate))

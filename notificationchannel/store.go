@@ -39,7 +39,7 @@ func (s *Store) FindMany(ctx context.Context, ids []string) ([]Channel, error) {
 		return nil, err
 	}
 
-	rows, err := gadb.New(s.db).NotifChanFindMany(ctx, uuids)
+	rows, err := gadb.NewCompat(s.db).NotifChanFindMany(ctx, uuids)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -62,7 +62,7 @@ func (s *Store) FindDestByID(ctx context.Context, tx gadb.DBTX, id uuid.UUID) (g
 	}
 
 	if tx == nil {
-		tx = s.db
+		tx = gadb.Compat(s.db)
 	}
 
 	row, err := gadb.New(tx).NotifChanFindOne(ctx, id)
@@ -79,7 +79,7 @@ func (s *Store) LookupDestID(ctx context.Context, tx *sql.Tx, d gadb.DestV1) (uu
 		return uuid.UUID{}, err
 	}
 
-	return gadb.New(tx).NotifChanFindDestID(ctx, gadb.NullDestV1{Valid: true, DestV1: d})
+	return gadb.NewCompat(tx).NotifChanFindDestID(ctx, gadb.NullDestV1{Valid: true, DestV1: d})
 }
 
 func (s *Store) MapDestToID(ctx context.Context, tx gadb.DBTX, d gadb.DestV1) (uuid.UUID, error) {
@@ -114,9 +114,9 @@ func (s *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) erro
 		return err
 	}
 
-	db := gadb.New(s.db)
+	db := gadb.NewCompat(s.db)
 	if tx != nil {
-		db = db.WithTx(tx)
+		db = gadb.NewCompat(tx)
 	}
 
 	return db.NotifChanDeleteMany(ctx, uuids)
@@ -129,7 +129,7 @@ func (s *Store) FindOne(ctx context.Context, id uuid.UUID) (*Channel, error) {
 	}
 
 	var c Channel
-	row, err := gadb.New(s.db).NotifChanFindOne(ctx, id)
+	row, err := gadb.NewCompat(s.db).NotifChanFindOne(ctx, id)
 	if err != nil {
 		return nil, err
 	}

@@ -96,7 +96,7 @@ func (s *Store) FindAllServiceNotices(ctx context.Context, serviceID string) ([]
 		return nil, err
 	}
 
-	res, err := gadb.New(s.db).NoticeUnackedAlertsByService(ctx, uuid.MustParse(serviceID))
+	res, err := gadb.NewCompat(s.db).NoticeUnackedAlertsByService(ctx, uuid.MustParse(serviceID))
 	if err != nil {
 		return nil, err
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/target/goalert/auth/authtoken"
 	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/gadb"
@@ -63,7 +64,7 @@ func (s *Store) GetServiceID(ctx context.Context, id string, t Type) (string, er
 		return "", err
 	}
 
-	serviceID, err := gadb.New(s.db).IntKeyGetServiceID(ctx, gadb.IntKeyGetServiceIDParams{
+	serviceID, err := gadb.NewCompat(s.db).IntKeyGetServiceID(ctx, gadb.IntKeyGetServiceIDParams{
 		ID:   keyUUID,
 		Type: gadb.EnumIntegrationKeysType(t),
 	})
@@ -106,7 +107,7 @@ func (s *Store) Create(ctx context.Context, dbtx gadb.DBTX, i *IntegrationKey) (
 		Type:      gadb.EnumIntegrationKeysType(n.Type),
 		ServiceID: serviceUUID,
 
-		ExternalSystemName: sql.NullString{String: n.ExternalSystemName, Valid: n.ExternalSystemName != ""},
+		ExternalSystemName: pgtype.Text{String: n.ExternalSystemName, Valid: n.ExternalSystemName != ""},
 	})
 	if err != nil {
 		return nil, err
@@ -153,7 +154,7 @@ func (s *Store) FindOne(ctx context.Context, id string) (*IntegrationKey, error)
 		return nil, err
 	}
 
-	row, err := gadb.New(s.db).IntKeyFindOne(ctx, keyUUID)
+	row, err := gadb.NewCompat(s.db).IntKeyFindOne(ctx, keyUUID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -182,7 +183,7 @@ func (s *Store) FindAllByService(ctx context.Context, serviceID string) ([]Integ
 		return nil, err
 	}
 
-	rows, err := gadb.New(s.db).IntKeyFindByService(ctx, serviceUUID)
+	rows, err := gadb.NewCompat(s.db).IntKeyFindByService(ctx, serviceUUID)
 	if err != nil {
 		return nil, err
 	}

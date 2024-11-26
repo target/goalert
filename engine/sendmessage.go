@@ -72,7 +72,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			// set to nil if it's the current message
 			stat = nil
 		}
-		meta, err := p.a.Metadata(ctx, p.b.db, msg.AlertID)
+		meta, err := p.a.Metadata(ctx, gadb.Compat(p.b.db), msg.AlertID)
 		if err != nil {
 			return nil, errors.Wrap(err, "lookup alert metadata")
 		}
@@ -169,7 +169,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		if err != nil {
 			return nil, errors.Wrap(err, "parse signal message id")
 		}
-		rawParams, err := gadb.New(p.b.db).EngineGetSignalParams(ctx, uuid.NullUUID{Valid: true, UUID: id})
+		rawParams, err := gadb.NewCompat(p.b.db).EngineGetSignalParams(ctx, uuid.NullUUID{Valid: true, UUID: id})
 		if err != nil {
 			return nil, errors.Wrap(err, "get signal message params")
 		}

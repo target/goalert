@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/sqlc-dev/pqtype"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation"
@@ -28,7 +27,7 @@ func (s *Store) Metadata(ctx context.Context, db gadb.DBTX, alertID int) (meta m
 	}
 
 	md, err := gadb.New(db).AlertMetadata(ctx, int64(alertID))
-	if errors.Is(err, sql.ErrNoRows) || !md.Valid {
+	if errors.Is(err, sql.ErrNoRows) || len(md) == 0 {
 		return map[string]string{}, nil
 	}
 	if err != nil {
@@ -36,7 +35,7 @@ func (s *Store) Metadata(ctx context.Context, db gadb.DBTX, alertID int) (meta m
 	}
 
 	var doc metadataDBFormat
-	err = json.Unmarshal(md.RawMessage, &doc)
+	err = json.Unmarshal(md, &doc)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +79,7 @@ func (s Store) FindManyMetadata(ctx context.Context, db gadb.DBTX, alertIDs []in
 	res := make([]MetadataAlertID, len(rows))
 	for i, r := range rows {
 		var doc metadataDBFormat
-		err = json.Unmarshal(r.Metadata.RawMessage, &doc)
+		err = json.Unmarshal(r.Metadata, &doc)
 		if err != nil {
 			return nil, err
 		}
@@ -121,7 +120,7 @@ func (s Store) SetMetadataTx(ctx context.Context, db gadb.DBTX, alertID int, met
 	rowCount, err := gadb.New(db).AlertSetMetadata(ctx, gadb.AlertSetMetadataParams{
 		ID:        int64(alertID),
 		ServiceID: permission.ServiceNullUUID(ctx), // only provide service_id restriction if request is from a service
-		Metadata:  pqtype.NullRawMessage{Valid: true, RawMessage: json.RawMessage(md)},
+		Metadata:  md,
 	})
 	if err != nil {
 		return err

@@ -7,6 +7,7 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/target/goalert/auth/authtoken"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
@@ -41,9 +42,9 @@ func (s *Store) Authorize(ctx context.Context, tok authtoken.Token) (context.Con
 		return ctx, permission.Unauthorized()
 	}
 
-	userID, err := gadb.New(s.db).CalSubAuthUser(ctx, gadb.CalSubAuthUserParams{
+	userID, err := gadb.NewCompat(s.db).CalSubAuthUser(ctx, gadb.CalSubAuthUserParams{
 		ID:        tok.ID,
-		CreatedAt: tok.CreatedAt,
+		CreatedAt: pgtype.Timestamptz{Time: tok.CreatedAt, Valid: true},
 	})
 	if errors.Is(err, sql.ErrNoRows) {
 		return ctx, permission.Unauthorized()
@@ -60,7 +61,7 @@ func (s *Store) Authorize(ctx context.Context, tok authtoken.Token) (context.Con
 
 // FindOne will return a single calendar subscription for the given id.
 func (s *Store) FindOne(ctx context.Context, id string) (*Subscription, error) {
-	return s._FindOne(ctx, gadb.New(s.db), id, false)
+	return s._FindOne(ctx, gadb.NewCompat(s.db), id, false)
 }
 
 func (s *Store) _FindOne(ctx context.Context, q *gadb.Queries, id string, upd bool) (*Subscription, error) {
@@ -104,7 +105,7 @@ func (s *Store) _FindOne(ctx context.Context, q *gadb.Queries, id string, upd bo
 }
 
 func (s *Store) FindOneForUpdate(ctx context.Context, tx *sql.Tx, id string) (*Subscription, error) {
-	return s._FindOne(ctx, gadb.New(s.db).WithTx(tx), id, true)
+	return s._FindOne(ctx, gadb.NewCompat(tx), id, true)
 }
 
 // UpdateTx will update the given calendar subscription with the given input.
@@ -133,7 +134,7 @@ func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, cs *Subscription) erro
 		return err
 	}
 
-	err = gadb.New(s.db).WithTx(tx).UpdateCalSub(ctx, gadb.UpdateCalSubParams{
+	err = gadb.NewCompat(tx).UpdateCalSub(ctx, gadb.UpdateCalSubParams{
 		ID:       uuid.MustParse(n.ID),
 		Name:     n.Name,
 		Disabled: n.Disabled,
@@ -165,7 +166,7 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, cs *Subscription) (*Su
 		return nil, err
 	}
 
-	now, err := gadb.New(s.db).WithTx(tx).CreateCalSub(ctx, gadb.CreateCalSubParams{
+	now, err := gadb.NewCompat(tx).CreateCalSub(ctx, gadb.CreateCalSubParams{
 		ID:         uuid.MustParse(n.ID),
 		Name:       n.Name,
 		UserID:     uuid.MustParse(n.UserID),
@@ -185,7 +186,7 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, cs *Subscription) (*Su
 	n.token, err = authtoken.Token{
 		Type:      authtoken.TypeCalSub,
 		Version:   2,
-		CreatedAt: now,
+		CreatedAt: now.Time,
 		ID:        tokID,
 	}.Encode(s.keys.Sign)
 	return n, err
@@ -202,7 +203,7 @@ func (s *Store) FindAllByUser(ctx context.Context, userID string) ([]Subscriptio
 		return nil, err
 	}
 
-	subs, err := gadb.New(s.db).FindManyCalSubByUser(ctx, uuid.MustParse(userID))
+	subs, err := gadb.NewCompat(s.db).FindManyCalSubByUser(ctx, uuid.MustParse(userID))
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +251,7 @@ func (s *Store) DeleteTx(ctx context.Context, tx *sql.Tx, userID string, ids ...
 		uids[i] = uuid.MustParse(id)
 	}
 
-	return gadb.New(s.db).WithTx(tx).DeleteManyCalSub(ctx, gadb.DeleteManyCalSubParams{
+	return gadb.NewCompat(tx).DeleteManyCalSub(ctx, gadb.DeleteManyCalSubParams{
 		Column1: uids,
 		UserID:  uuid.MustParse(userID),
 	})

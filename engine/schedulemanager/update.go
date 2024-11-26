@@ -93,7 +93,7 @@ func (db *DB) update(ctx context.Context) error {
 
 	log.Debugf(ctx, "Updating schedule rules.")
 
-	q := gadb.New(tx)
+	q := gadb.NewCompat(tx)
 	now, err := q.Now(ctx)
 	if err != nil {
 		return errors.Wrap(err, "get DB time")

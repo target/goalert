@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
@@ -34,7 +35,7 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	}
 
 	err = db.lock.WithTx(ctx, func(ctx context.Context, tx *sql.Tx) error {
-		q := gadb.New(tx)
+		q := gadb.NewCompat(tx)
 
 		err := q.StatusMgrUpdateCMForced(ctx, forcedTypes)
 		if err != nil {
@@ -82,7 +83,7 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 var errDone = errors.New("done")
 
 func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
-	q := gadb.New(tx)
+	q := gadb.NewCompat(tx)
 
 	sub, err := q.StatusMgrNextUpdate(ctx, db.omit)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -146,7 +147,7 @@ func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
 			CmID:    sub.ContactMethodID.UUID,
 			AlertID: sub.AlertID,
 			UserID:  info.UserID,
-			LogID:   sql.NullInt64{Int64: int64(entry.ID), Valid: true},
+			LogID:   pgtype.Int8{Int64: int64(entry.ID), Valid: true},
 		})
 		if err != nil {
 			return fmt.Errorf("send user status update message: %w", err)
@@ -156,7 +157,7 @@ func (db *DB) update(ctx context.Context, tx *sql.Tx) error {
 			ID:        uuid.New(),
 			ChannelID: sub.ChannelID.UUID,
 			AlertID:   sub.AlertID,
-			LogID:     sql.NullInt64{Int64: int64(entry.ID), Valid: true},
+			LogID:     pgtype.Int8{Int64: int64(entry.ID), Valid: true},
 		})
 		if err != nil {
 			return fmt.Errorf("send channel status update message: %w", err)

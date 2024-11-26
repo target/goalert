@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/config"
@@ -310,7 +311,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		sentSince = cutoff
 	}
 
-	rows, err := gadb.New(tx).MessageMgrGetPending(ctx, sql.NullTime{Time: sentSince, Valid: true})
+	rows, err := gadb.NewCompat(tx).MessageMgrGetPending(ctx, pgtype.Timestamptz{Time: sentSince, Valid: true})
 	if err != nil {
 		return nil, errors.Wrap(err, "fetch outgoing messages")
 	}
@@ -332,7 +333,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		if row.ServiceID.Valid {
 			msg.ServiceID = row.ServiceID.UUID.String()
 		}
-		msg.CreatedAt = row.CreatedAt
+		msg.CreatedAt = row.CreatedAt.Time
 		msg.SentAt = row.SentAt.Time
 		msg.DestID.CMID = row.CmID
 		msg.DestID.NCID = row.ChanID

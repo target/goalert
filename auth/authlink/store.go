@@ -10,6 +10,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/keyring"
@@ -63,7 +64,7 @@ func (s *Store) FindLinkMetadata(ctx context.Context, token string) (*Metadata, 
 		return nil, nil
 	}
 
-	data, err := gadb.New(s.db).AuthLinkMetadata(ctx, uuid.MustParse(tokID))
+	data, err := gadb.NewCompat(s.db).AuthLinkMetadata(ctx, uuid.MustParse(tokID))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -112,7 +113,7 @@ func (s *Store) LinkAccount(ctx context.Context, token string) error {
 	}
 	defer sqlutil.Rollback(ctx, "authlink: link auth subject", tx)
 
-	row, err := gadb.New(tx).AuthLinkUseReq(ctx, uuid.MustParse(tokID))
+	row, err := gadb.NewCompat(tx).AuthLinkUseReq(ctx, uuid.MustParse(tokID))
 	if errors.Is(err, sql.ErrNoRows) {
 		return validation.NewGenericError("invalid link token")
 	}
@@ -120,7 +121,7 @@ func (s *Store) LinkAccount(ctx context.Context, token string) error {
 		return err
 	}
 
-	err = gadb.New(tx).AuthLinkAddAuthSubject(ctx, gadb.AuthLinkAddAuthSubjectParams{
+	err = gadb.NewCompat(tx).AuthLinkAddAuthSubject(ctx, gadb.AuthLinkAddAuthSubjectParams{
 		ProviderID: row.ProviderID,
 		SubjectID:  row.SubjectID,
 		UserID:     uuid.MustParse(permission.UserID(ctx)),
@@ -167,11 +168,11 @@ func (s *Store) AuthLinkURL(ctx context.Context, providerID, subjectID string, m
 	if err != nil {
 		return "", err
 	}
-	err = gadb.New(s.db).AuthLinkAddReq(ctx, gadb.AuthLinkAddReqParams{
+	err = gadb.NewCompat(s.db).AuthLinkAddReq(ctx, gadb.AuthLinkAddReqParams{
 		ID:         id,
 		ProviderID: providerID,
 		SubjectID:  subjectID,
-		ExpiresAt:  expires,
+		ExpiresAt:  pgtype.Timestamptz{Time: expires, Valid: true},
 		Metadata:   data,
 	})
 	if err != nil {

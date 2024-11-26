@@ -30,7 +30,7 @@ type Entry struct {
 		channelName          sql.NullString
 		classifier           string
 	}
-	meta rawJSON
+	meta json.RawMessage
 }
 
 func (e Entry) Meta(ctx context.Context) interface{} {
@@ -55,6 +55,7 @@ func (e Entry) Meta(ctx context.Context) interface{} {
 	}
 	return dest
 }
+
 func (e Entry) AlertID() int {
 	return e.alertID
 }
@@ -66,6 +67,7 @@ func (e Entry) ID() int {
 func (e Entry) Timestamp() time.Time {
 	return e.timestamp
 }
+
 func (e Entry) Type() Type {
 	switch e._type {
 	case _TypeResponseReceived:
