@@ -177,7 +177,7 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 			}
 
 		case log.ChannelID != uuid.Nil:
-			dest, err = q.NCStore.FindDestByID(ctx, q.DB, log.ChannelID)
+			dest, err = q.NCStore.FindDestByID(ctx, log.ChannelID)
 			if err != nil {
 				return nil, fmt.Errorf("lookup notification channel %s: %w", log.ChannelID, err)
 			}

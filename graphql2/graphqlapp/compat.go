@@ -51,7 +51,7 @@ func (a *App) CompatTargetToDest(ctx context.Context, tgt assignment.Target) (ga
 		if err != nil {
 			return gadb.DestV1{}, err
 		}
-		dest, err := a.NCStore.FindDestByID(ctx, nil, id)
+		dest, err := a.NCStore.FindDestByID(ctx, id)
 		if err != nil {
 			return gadb.DestV1{}, err
 		}

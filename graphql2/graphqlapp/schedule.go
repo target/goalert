@@ -52,7 +52,7 @@ func (a *OnCallNotificationRuleInput) Target(ctx context.Context, input *graphql
 }
 
 func (a *OnCallNotificationRule) Dest(ctx context.Context, raw *schedule.OnCallNotificationRule) (*gadb.DestV1, error) {
-	dest, err := a.NCStore.FindDestByID(ctx, nil, raw.ChannelID)
+	dest, err := a.NCStore.FindDestByID(ctx, raw.ChannelID)
 	if err != nil {
 		return nil, err
 	}

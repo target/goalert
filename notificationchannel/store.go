@@ -7,25 +7,23 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/gadb"
+	"github.com/target/goalert/gadb/pgxdb"
 	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
-	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation/validate"
 )
 
 type Store struct {
-	db  *sql.DB
+	db  *pgxdb.Queries
 	reg *nfydest.Registry
 }
 
-func NewStore(ctx context.Context, db *sql.DB, reg *nfydest.Registry) (*Store, error) {
-	p := &util.Prepare{DB: db, Ctx: ctx}
-
+func NewStore(ctx context.Context, db *pgxdb.Queries, reg *nfydest.Registry) (*Store, error) {
 	return &Store{
 		db:  db,
 		reg: reg,
-	}, p.Err
+	}, nil
 }
 
 func (s *Store) FindMany(ctx context.Context, ids []string) ([]Channel, error) {
@@ -39,7 +37,7 @@ func (s *Store) FindMany(ctx context.Context, ids []string) ([]Channel, error) {
 		return nil, err
 	}
 
-	rows, err := gadb.New(s.db).NotifChanFindMany(ctx, uuids)
+	rows, err := s.db.NotifChanFindMany(ctx, uuids)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -55,17 +53,13 @@ func (s *Store) FindMany(ctx context.Context, ids []string) ([]Channel, error) {
 	return channels, nil
 }
 
-func (s *Store) FindDestByID(ctx context.Context, tx gadb.DBTX, id uuid.UUID) (gadb.DestV1, error) {
+func (s *Store) FindDestByID(ctx context.Context, id uuid.UUID) (gadb.DestV1, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return gadb.DestV1{}, err
 	}
 
-	if tx == nil {
-		tx = s.db
-	}
-
-	row, err := gadb.New(tx).NotifChanFindOne(ctx, id)
+	row, err := s.db.NotifChanFindOne(ctx, id)
 	if err != nil {
 		return gadb.DestV1{}, err
 	}
@@ -103,25 +97,6 @@ func (s *Store) MapDestToID(ctx context.Context, tx gadb.DBTX, d gadb.DestV1) (u
 	})
 }
 
-func (s *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error {
-	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
-	if err != nil {
-		return err
-	}
-
-	uuids, err := validate.ParseManyUUID("ID", ids, 100)
-	if err != nil {
-		return err
-	}
-
-	db := gadb.New(s.db)
-	if tx != nil {
-		db = db.WithTx(tx)
-	}
-
-	return db.NotifChanDeleteMany(ctx, uuids)
-}
-
 func (s *Store) FindOne(ctx context.Context, id uuid.UUID) (*Channel, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
@@ -129,7 +104,7 @@ func (s *Store) FindOne(ctx context.Context, id uuid.UUID) (*Channel, error) {
 	}
 
 	var c Channel
-	row, err := gadb.New(s.db).NotifChanFindOne(ctx, id)
+	row, err := s.db.NotifChanFindOne(ctx, id)
 	if err != nil {
 		return nil, err
 	}
