@@ -11,8 +11,8 @@ import (
 // scheduleAllPeriodicJobs schedules all periodic jobs immediately.
 func (p *Engine) scheduleAllPeriodicJobs(ctx context.Context) error {
 	var jobs []river.InsertManyParams
-	for _, m := range p.periodicJobs {
-		args, opts := m()
+	for _, fn := range p.periodicJobs {
+		args, opts := fn()
 		jobs = append(jobs, river.InsertManyParams{
 			Args:       args,
 			InsertOpts: opts,
