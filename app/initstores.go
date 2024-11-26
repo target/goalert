@@ -14,6 +14,7 @@ import (
 	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
+	"github.com/target/goalert/gadb/pgxdb"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/integrationkey/uik"
@@ -201,7 +202,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.NCStore == nil {
-		app.NCStore, err = notificationchannel.NewStore(ctx, app.db, app.DestRegistry)
+		app.NCStore, err = notificationchannel.NewStore(ctx, pgxdb.New(app.pgx), app.DestRegistry)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init notification channel store")
