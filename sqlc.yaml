@@ -6,9 +6,8 @@ sql:
       - migrate/migrations/20180816094955-switchover-state.sql
       - migrate/migrations/20220808103727-switchover-mk2.sql
     queries:
-      - swo/swosync/queries.sql
-      - swo/swoinfo/queries.sql
-      - swo/swomsg/queries.sql
+      - swo/*/queries.sql
+      - swo/queries.sql
     engine: postgresql
     gen:
       go:
@@ -16,29 +15,11 @@ sql:
         sql_package: pgx/v5
   - schema:
       - migrate/schema.sql
+      - swo/swoinfo/pgtables.sql
+      - swo/swosync/changelog.sql
     queries:
-      - calsub/queries.sql
-      - alert/queries.sql
-      - notice/queries.sql
-      - graphql2/graphqlapp/queries.sql
-      - engine/statusmgr/queries.sql
-      - engine/message/queries.sql
-      - engine/schedulemanager/queries.sql
-      - engine/signalmgr/queries.sql
-      - engine/queries.sql
-      - auth/authlink/queries.sql
-      - alert/alertlog/queries.sql
-      - user/favorite/queries.sql
-      - user/contactmethod/queries.sql
-      - notificationchannel/queries.sql
-      - integrationkey/queries.sql
-      - apikey/queries.sql
-      - override/queries.sql
-      - schedule/queries.sql
-      - label/queries.sql
-      - escalation/queries.sql
-      - notification/queries.sql
-      - heartbeat/queries.sql
+      - '*/queries.sql'
+      - '*/*/queries.sql'
     engine: postgresql
     gen:
       go:
@@ -53,6 +34,14 @@ sql:
             go_type:
               import: github.com/target/goalert/util/sqlutil
               type: Interval
+          - column: public.schedule_rules.start_time
+            go_type:
+              import: github.com/target/goalert/util/timeutil
+              type: Clock
+          - column: public.schedule_rules.end_time
+            go_type:
+              import: github.com/target/goalert/util/timeutil
+              type: Clock
           - column: public.outgoing_messages.provider_msg_id
             go_type:
               type: ProviderMessageID

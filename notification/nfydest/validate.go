@@ -2,6 +2,7 @@ package nfydest
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"slices"
@@ -73,6 +74,9 @@ func (r *Registry) ValidateDest(ctx context.Context, dest gadb.DestV1) error {
 	// Make sure all required fields are valid, which may be allowed to be empty (thus we don't iterate over dest.Args).
 	for _, f := range info.RequiredFields {
 		err := p.ValidateField(ctx, f.FieldID, dest.Args[f.FieldID])
+		if errors.Is(err, sql.ErrNoRows) {
+			err = validation.NewGenericError("does not exist")
+		}
 		if validation.IsClientError(err) {
 			return &DestArgError{
 				FieldID: f.FieldID,

@@ -3,8 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { Provider as ReduxProvider } from 'react-redux'
 import { ApolloProvider } from '@apollo/client'
 import { StyledEngineProvider } from '@mui/material/styles'
-
-import { GOALERT_VERSION, pathPrefix } from './env'
+import { GOALERT_VERSION as version, nonce, pathPrefix } from './env'
 import { ThemeProvider } from './theme/themeConfig'
 import { GraphQLClient } from './apollo'
 import './styles'
@@ -20,6 +19,8 @@ import { Router } from 'wouter'
 import { Settings } from 'luxon'
 import RequireAuth from './main/RequireAuth'
 import Login from './main/components/Login'
+import createCache from '@emotion/cache'
+import { CacheProvider } from '@emotion/react'
 
 Settings.throwOnInvalid = true
 
@@ -33,7 +34,7 @@ declare module 'luxon' {
 if (
   document
     .querySelector('meta[http-equiv=x-goalert-version]')
-    ?.getAttribute('content') !== GOALERT_VERSION
+    ?.getAttribute('content') !== version
 ) {
   warn(
     'app.js version does not match HTML version',
@@ -41,31 +42,40 @@ if (
       document
         .querySelector('meta[http-equiv=x-goalert-version]')
         ?.getAttribute('content'),
-    'app.js=' + GOALERT_VERSION,
+    'app.js=' + version,
   )
 }
 
 const rootElement = document.getElementById('app')
 const root = createRoot(rootElement as HTMLElement)
 
+const cache = createCache({
+  key: 'mui',
+  prepend: true,
+  nonce,
+  speedy: true,
+})
+
 root.render(
   <StrictMode>
     <StyledEngineProvider injectFirst>
       <ThemeProvider>
-        <ApolloProvider client={GraphQLClient}>
-          <ReduxProvider store={store}>
-            <Router base={pathPrefix}>
-              <URQLProvider value={urqlClient}>
-                <NewVersionCheck />
-                <RequireAuth fallback={<Login />}>
-                  <ConfigProvider>
-                    <App />
-                  </ConfigProvider>
-                </RequireAuth>
-              </URQLProvider>
-            </Router>
-          </ReduxProvider>
-        </ApolloProvider>
+        <CacheProvider value={cache}>
+          <ApolloProvider client={GraphQLClient}>
+            <ReduxProvider store={store}>
+              <Router base={pathPrefix}>
+                <URQLProvider value={urqlClient}>
+                  <NewVersionCheck />
+                  <RequireAuth fallback={<Login />}>
+                    <ConfigProvider>
+                      <App />
+                    </ConfigProvider>
+                  </RequireAuth>
+                </URQLProvider>
+              </Router>
+            </ReduxProvider>
+          </ApolloProvider>
+        </CacheProvider>
       </ThemeProvider>
     </StyledEngineProvider>
   </StrictMode>,

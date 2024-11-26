@@ -18,16 +18,24 @@ type Mutation {
 
   testContactMethod(id: ID!): Boolean!
 
-  # Updates the status for multiple alerts given the list of alertIDs and the status they want to be updated to.
+  """
+  Updates the status for multiple alerts given the list of alertIDs and the status they want to be updated to.
+  """
   updateAlerts(input: UpdateAlertsInput!): [Alert!]
 
-  # Updates the fields for a rotation given the rotationID, also updates ordering of and number of users for the rotation.
+  """
+  Updates the fields for a rotation given the rotationID, also updates ordering of and number of users for the rotation.
+  """
   updateRotation(input: UpdateRotationInput!): Boolean!
 
-  # Escalates multiple alerts given the list of alertIDs.
+  """
+  Escalates multiple alerts given the list of alertIDs.
+  """
   escalateAlerts(input: [Int!]): [Alert!]
 
-  # Updates the favorite status of a target.
+  """
+  Updates the favorite status of a target.
+  """
   setFavorite(input: SetFavoriteInput!): Boolean!
 
   updateService(input: UpdateServiceInput!): Boolean!
@@ -38,10 +46,11 @@ type Mutation {
 
   createAlert(input: CreateAlertInput!): Alert
 
-  # closeMatchingAlert is used to close an alert without knowing it's ID.
-  #
-  # This allows stateless upstream systems to close alerts without needing to
-  # store the alert ID.
+  """
+  closeMatchingAlert is used to close an alert without knowing its ID.
+
+  This allows stateless upstream systems to close alerts without needing to store the alert ID.
+  """
   closeMatchingAlert(input: CloseMatchingAlertInput!): Boolean!
 
   setAlertNoiseReason(input: SetAlertNoiseReasonInput!): Boolean!

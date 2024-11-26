@@ -10,7 +10,7 @@ outputs:
   - name: bin
 image_resource:
   type: registry-image
-  source: { repository: goalert/build-env, tag: go1.23.1-postgres13 }
+  source: { repository: goalert/build-env, tag: go1.23.3-postgres13 }
 run:
   path: sh
   dir: goalert

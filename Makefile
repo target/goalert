@@ -26,7 +26,7 @@ YARN_VERSION=4.3.1
 PG_VERSION=13
 
 # add all files except those under web/src/build and web/src/cypress
-NODE_DEPS=.pnp.cjs .yarnrc.yml .gitrev $(shell find web/src -path web/src/build -prune -o -path web/src/cypress -prune -o -type f -print)
+NODE_DEPS=.pnp.cjs .yarnrc.yml .gitrev $(shell find web/src -path web/src/build -prune -o -path web/src/cypress -prune -o -type f -print) web/src/app/editor/expr-parser.ts
 
 # Use sha256sum on linux and shasum -a 256 on mac
 SHA_CMD := $(shell if [ -x "$(shell command -v sha256sum 2>/dev/null)" ]; then echo "sha256sum"; else echo "shasum -a 256"; fi)
@@ -64,6 +64,9 @@ release: container-demo container-goalert bin/goalert-linux-amd64.tgz bin/goaler
 
 Makefile.binaries.mk: devtools/genmake/*
 	go run ./devtools/genmake >$@
+
+$(BIN_DIR)/tools/k6: k6.version
+	go run ./devtools/gettool -t k6 -v $(shell cat k6.version) -o $@
 
 $(BIN_DIR)/tools/protoc: protoc.version
 	go run ./devtools/gettool -t protoc -v $(shell cat protoc.version) -o $@
@@ -153,12 +156,12 @@ start-prod: web/src/build/static/app.js bin/mockoidc $(BIN_DIR)/tools/prometheus
 	$(MAKE) $(MFLAGS) bin/goalert BUNDLE=1
 	go run ./devtools/runproc -f Procfile.prod -l Procfile.local
 
-
-start-swo: bin/psql-lite bin/goalert bin/waitfor bin/mockoidc bin/runproc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit ## Start the developer version of the application in switchover mode (SWO)
+reset-swo: bin/psql-lite bin/goalert bin/waitfor
 	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert
 	./bin/psql-lite -d postgres://goalert@localhost -c "update switchover_state set current_state = 'idle'; truncate table switchover_log; drop database if exists goalert2; create database goalert2;"
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert2
+start-swo: reset-swo bin/goalert bin/mockoidc bin/runproc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit ## Start the developer version of the application in switchover mode (SWO)
 	GOALERT_VERSION=$(GIT_VERSION) ./bin/runproc -f Procfile.swo -l Procfile.local
 
 reset-integration: bin/waitfor bin/goalert.cover bin/psql-lite bin/resetdb
@@ -297,6 +300,13 @@ tools:
 	$(MAKE) ensure-yarn
 	yarn install && touch "$@"
 
+
+web/src/app/editor/expr-parser.ts: web/src/app/editor/expr.grammar .pnp.cjs
+	# we need to use .tmp.ts as the extension because lezer-generator will append .ts to the output file
+	yarn run lezer-generator $< --noTerms --typeScript -o $@.tmp.ts
+	yarn run prettier -l --write $@.tmp.ts
+	cat $@.tmp.ts | sed "s/You probably shouldn't edit it./DO NOT EDIT/" >$@
+	rm $@.tmp.ts
 
 web/src/build/static/explore.js: web/src/build/static/app.js
 web/src/build/static/app.js: $(NODE_DEPS)

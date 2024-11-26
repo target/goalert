@@ -61,6 +61,7 @@ export default function DefaultActionEditDialog(
     <FormDialog
       title='Edit Default Actions'
       onClose={props.onClose}
+      maxWidth='md'
       onSubmit={() => {
         if (noActionsNoConf) {
           setHasSubmitted(true)

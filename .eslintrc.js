@@ -31,6 +31,8 @@ module.exports = {
     'react/jsx-fragments': ['error', 'element'],
     'react/prop-types': 'off',
 
+    'no-useless-constructor': 'off', // buggy
+
     // buggy, handled better by no unused imports and actual build
     'import/no-unresolved': 'off',
 

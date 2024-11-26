@@ -1,13 +1,19 @@
 type IntegrationKeyTypeInfo {
   id: ID!
 
-  # User-displayable name of the integration key type.
+  """
+  User-displayable name of the integration key type.
+  """
   name: String!
 
-  # User-displayable description of the integration key value (i.e., copy/paste instructions).
+  """
+  User-displayable description of the integration key value (i.e., copy/paste instructions).
+  """
   label: String!
 
-  # Indicates if the type is currently enabled.
+  """
+  Indicates if the type is currently enabled.
+  """
   enabled: Boolean!
 }
 
@@ -46,6 +52,7 @@ type SWONode {
   configError: String!
   connections: [SWOConnection!]
 }
+
 type SWOConnection {
   name: String!
   version: String!
@@ -181,16 +188,19 @@ type ConfigValue {
   password: Boolean!
   deprecated: String!
 }
+
 type ConfigHint {
   id: String!
   value: String!
 }
+
 enum ConfigType {
   string
   stringList
   integer
   boolean
 }
+
 enum SystemLimitID {
   CalendarSubscriptionsPerUser
   NotificationRulesPerUser
@@ -211,12 +221,35 @@ input UserOverrideSearchOptions {
   after: String = ""
   omit: [ID!]
 
-  scheduleID: ID # limit search to a single schedule
-  filterAddUserID: [ID!] # only return overrides where the provided users have been added to a schedule (add or replace types).
-  filterRemoveUserID: [ID!] # only return overrides where the provided users have been removed from a schedule (remove or replace types).
-  filterAnyUserID: [ID!] # only return overrides that add/remove/replace at least one of the provided user IDs.
-  start: ISOTimestamp # start of the window to search for.
-  end: ISOTimestamp # end of the window to search for.
+  """
+  Limit search to a single schedule
+  """
+  scheduleID: ID
+
+  """
+  Only return overrides where the provided users have been added to a schedule (add or replace types).
+  """
+  filterAddUserID: [ID!]
+
+  """
+  Only return overrides where the provided users have been removed from a schedule (remove or replace types).
+  """
+  filterRemoveUserID: [ID!]
+
+  """
+  Only return overrides that add/remove/replace at least one of the provided user IDs.
+  """
+  filterAnyUserID: [ID!]
+
+  """
+  Start of the window to search for.
+  """
+  start: ISOTimestamp
+
+  """
+  End of the window to search for.
+  """
+  end: ISOTimestamp
 }
 
 type UserOverrideConnection {
@@ -243,6 +276,7 @@ type UserOverride {
 
   target: Target!
 }
+
 input LabelSearchOptions {
   first: Int = 15
   after: String = ""
@@ -336,6 +370,7 @@ input ClearTemporarySchedulesInput {
   start: ISOTimestamp!
   end: ISOTimestamp!
 }
+
 input SetTemporaryScheduleInput {
   scheduleID: ID!
 
@@ -347,6 +382,7 @@ input SetTemporaryScheduleInput {
 
   shifts: [SetScheduleShiftInput!]!
 }
+
 input SetScheduleShiftInput {
   userID: ID!
   start: ISOTimestamp!
@@ -385,26 +421,36 @@ input CreateAlertInput {
   details: String
   serviceID: ID!
 
-  # If true, summary and details will be automatically sanitized and truncaded (if necessary).
+  """
+  If true, summary and details will be automatically sanitized and truncated (if necessary).
+  """
   sanitize: Boolean
 
-  # dedup allows setting a unique value to de-duplicate multiple alerts.
-  #
-  # It can also be used to close an alert using closeMatchingAlert mutation.
+  """
+  Dedup allows setting a unique value to de-duplicate multiple alerts.
+
+  It can also be used to close an alert using closeMatchingAlert mutation.
+  """
   dedup: String
 
   meta: [AlertMetadataInput!]
 }
 
 input CloseMatchingAlertInput {
-  serviceID: ID! # service ID for the close operation.
-  # summary (and details) will match an alert with the same values.
-  #
-  # They can be omitted if the dedup field is provided.
+  serviceID: ID!
+
+  """
+  Summary (and details) will match an alert with the same values.
+
+  They can be omitted if the dedup field is provided.
+  """
   summary: String
   details: String
 
-  dedup: String # prefered over providing the summary & details.
+  """
+  Preferred over providing the summary & details.
+  """
+  dedup: String
 }
 
 input SetAlertNoiseReasonInput {
@@ -428,6 +474,7 @@ input CreateUserCalendarSubscriptionInput {
   disabled: Boolean
   fullSchedule: Boolean
 }
+
 input UpdateUserCalendarSubscriptionInput {
   id: ID!
   name: String
@@ -435,6 +482,7 @@ input UpdateUserCalendarSubscriptionInput {
   disabled: Boolean
   fullSchedule: Boolean
 }
+
 type UserCalendarSubscription {
   id: ID!
   name: String!
@@ -445,7 +493,9 @@ type UserCalendarSubscription {
   lastAccess: ISOTimestamp!
   disabled: Boolean!
 
-  # Subscription url, only available upon creation.
+  """
+  Subscription url, only available upon creation.
+  """
   url: String
 }
 
@@ -496,8 +546,9 @@ input ScheduleRuleInput {
   start: ClockTime
   end: ClockTime
 
-  # weekdayFilter is a 7-item array that indicates if the rule
-  # is active on each weekday, starting with Sunday.
+  """
+  Weekday filter is a 7-item array that indicates if the rule is active on each weekday, starting with Sunday.
+  """
   weekdayFilter: WeekdayFilter
 }
 
@@ -505,7 +556,9 @@ input SetLabelInput {
   target: TargetInput
   key: String!
 
-  # If value is empty, the label is removed.
+  """
+  If value is empty, the label is removed.
+  """
   value: String!
 }
 
@@ -651,7 +704,7 @@ input OnCallNotificationRuleInput {
   id: ID
 
   """
-  target is required if dest is unset
+  Target is required if dest is unset
   """
   target: TargetInput
     @goField(forceResolver: true)
@@ -659,16 +712,18 @@ input OnCallNotificationRuleInput {
 
   dest: DestinationInput
 
-  # time indicates a time-of-day (in the schedule's time zone)
-  # to send a message of current on-call users.
-  #
-  # If time is null, a notification will be sent any time the set of on-call users
-  # changes for this schedule.
+  """
+  Time indicates a time-of-day (in the schedule's time zone) to send a message of current on-call users.
+
+  If time is null, a notification will be sent any time the set of on-call users changes for this schedule.
+  """
   time: ClockTime
 
-  # weekdayFilter indicates which days of the week this rule is evaluated.
-  #
-  # It is required for time-of-day notifications and must be null if time is null.
+  """
+  Weekday filter indicates which days of the week this rule is evaluated.
+
+  It is required for time-of-day notifications and must be null if time is null.
+  """
   weekdayFilter: WeekdayFilter
 }
 
@@ -703,8 +758,9 @@ type ScheduleRule {
   start: ClockTime!
   end: ClockTime!
 
-  # weekdayFilter is a 7-item array that indicates if the rule
-  # is active on each weekday, starting with Sunday.
+  """
+  Weekday filter is a 7-item array that indicates if the rule is active on each weekday, starting with Sunday.
+  """
   weekdayFilter: WeekdayFilter!
 
   target: Target!
@@ -757,7 +813,9 @@ enum RotationType {
 }
 
 input UpdateAlertsInput {
-  # List of alertIDs.
+  """
+  List of alert IDs.
+  """
   alertIDs: [Int!]!
 
   newStatus: AlertStatus
@@ -774,11 +832,12 @@ input UpdateRotationInput {
   type: RotationType
   shiftLength: Int
 
-  activeUserIndex: Int
-
-  # activeUserIndex will not be changed, as the index will remain the same.
-  # On call user may change since whatever index is put into activeUserIndex will be on call.
   userIDs: [ID!]
+
+  """
+  The index of the user in `userIDs` to set as the active user. If not provided, the existing active user index will be used.
+  """
+  activeUserIndex: Int
 }
 
 input RotationSearchOptions {
@@ -787,10 +846,14 @@ input RotationSearchOptions {
   search: String = ""
   omit: [ID!]
 
-  # Include only favorited rotations in the results.
+  """
+  Include only favorited rotations in the results.
+  """
   favoritesOnly: Boolean = false
 
-  # Sort favorite rotations first.
+  """
+  Sort favorite rotations first.
+  """
   favoritesFirst: Boolean = false
 }
 
@@ -798,10 +861,11 @@ input CalcRotationHandoffTimesInput {
   handoff: ISOTimestamp!
   from: ISOTimestamp
   timeZone: String!
-  shiftLengthHours: Int
-    @deprecated(
-      reason: "Only accurate for hourly-type rotations. Use shiftLength instead."
-    )
+
+  """
+  Only accurate for hourly-type rotations. Use shiftLength instead.
+  """
+  shiftLengthHours: Int @deprecated(reason: "Use shiftLength instead.")
 
   shiftLength: ISODuration
   count: Int!
@@ -813,10 +877,14 @@ input EscalationPolicySearchOptions {
   search: String = ""
   omit: [ID!]
 
-  # Include only favorited escalaton policies in the results.
+  """
+  Include only favorited escalation policies in the results.
+  """
   favoritesOnly: Boolean = false
 
-  # Sort favorite escalation policies first.
+  """
+  Sort favorite escalation policies first.
+  """
   favoritesFirst: Boolean = false
 }
 
@@ -826,10 +894,14 @@ input ScheduleSearchOptions {
   search: String = ""
   omit: [ID!]
 
-  # Include only favorited services in the results.
+  """
+  Include only favorited services in the results.
+  """
   favoritesOnly: Boolean = false
 
-  # Sort favorite services first.
+  """
+  Sort favorite services first.
+  """
   favoritesFirst: Boolean = false
 }
 
@@ -839,10 +911,14 @@ input ServiceSearchOptions {
   search: String = ""
   omit: [ID!]
 
-  # Include only favorited services in the results.
+  """
+  Include only favorited services in the results.
+  """
   favoritesOnly: Boolean = false
 
-  # Sort favorite services first.
+  """
+  Sort favorite services first.
+  """
   favoritesFirst: Boolean = false
 }
 
@@ -855,10 +931,14 @@ input UserSearchOptions {
   CMType: ContactMethodType
   dest: DestinationInput
 
-  # Include only favorited services in the results.
+  """
+  Include only favorited services in the results.
+  """
   favoritesOnly: Boolean = false
 
-  # Sort favorite services first.
+  """
+  Sort favorite services first.
+  """
   favoritesFirst: Boolean = false
 }
 
@@ -884,20 +964,30 @@ enum AlertSearchSort {
   dateIDReverse
 }
 
-# An ISODuration is an RFC3339-formatted duration string.
+"""
+An ISODuration is an RFC3339-formatted duration string.
+"""
 scalar ISODuration
 
-# An ISORInterval is an RFC3339-formatted repeating interval string.
+"""
+An ISORInterval is an RFC3339-formatted repeating interval string.
+"""
 scalar ISORInterval
 
-# An ISOTimestamp is an RFC3339-formatted timestamp string.
+"""
+An ISOTimestamp is an RFC3339-formatted timestamp string.
+"""
 scalar ISOTimestamp
 
-# ClockTime is a 24-hour time in the format 00:00.
+"""
+ClockTime is a 24-hour time in the format 00:00.
+"""
 scalar ClockTime
 
-# WeekdayFilter is an array of 7 true/false values representing days of the week.
-# The first index (0) represents Sunday.
+"""
+WeekdayFilter is an array of 7 true/false values representing days of the week.
+The first index (0) represents Sunday.
+"""
 scalar WeekdayFilter
 
 type Alert {
@@ -910,15 +1000,21 @@ type Alert {
   serviceID: ID!
   service: Service
 
-  # Escalation Policy State for the alert.
+  """
+  Escalation Policy State for the alert.
+  """
   state: AlertState
 
-  # Recent log entries for the alert.
+  """
+  Recent log entries for the alert.
+  """
   recentEvents(input: AlertRecentEventsOptions): AlertLogEntryConnection!
 
   pendingNotifications: [AlertPendingNotification!]!
 
-  # metrics are only available for closed alerts
+  """
+  Metrics are only available for closed alerts.
+  """
   metrics: AlertMetric
 
   noiseReason: String
@@ -968,7 +1064,6 @@ enum NotificationStatus {
   ERROR
 }
 
-# The escalation policy state details for the alert.
 type AlertState {
   lastEscalation: ISOTimestamp!
   stepNumber: Int!
@@ -1108,7 +1203,6 @@ type EscalationPolicy {
   notices: [Notice!]!
 }
 
-# Different Alert Status.
 enum AlertStatus {
   StatusAcknowledged
   StatusClosed
@@ -1195,10 +1289,14 @@ type User {
 
   role: UserRole!
 
-  # The user's configured name.
+  """
+  The user's configured name.
+  """
   name: String!
 
-  # Email of the user.
+  """
+  Email of the user.
+  """
   email: String!
 
   contactMethods: [UserContactMethod!]!
@@ -1244,7 +1342,7 @@ type OnCallOverview {
 
 type OnCallServiceAssignment {
   """
-  stepNumber is the escalation step this assignment is from (beginning with 0).
+  Step number is the escalation step this assignment is from (beginning with 0).
   """
   stepNumber: Int!
 
@@ -1263,7 +1361,6 @@ enum ContactMethodType {
   SLACK_DM
 }
 
-# A method of contacting a user.
 type UserContactMethod {
   id: ID!
   type: ContactMethodType
@@ -1272,7 +1369,9 @@ type UserContactMethod {
 
   dest: Destination!
 
-  # User-defined label for this contact method.
+  """
+  User-defined label for this contact method.
+  """
   name: String!
   value: String!
     @deprecated(reason: "Use dest instead.")
@@ -1304,15 +1403,18 @@ input CreateUserContactMethodInput {
 
   name: String!
 
-  # Only value or dest should be used at a time, never both.
+  """
+  Only value or dest should be used at a time, never both.
+  """
   value: String @deprecated(reason: "Use dest instead.")
 
   newUserNotificationRule: CreateUserNotificationRuleInput
 
-  # If true, this contact method will receive status updates.
-  #
-  # Note: Some contact method types, like Slack, will always receive status
-  # updates and this value is ignored.
+  """
+  If true, this contact method will receive status updates.
+
+  Note: Some contact method types, like Slack, will always receive status updates and this value is ignored.
+  """
   enableStatusUpdates: Boolean
 }
 
@@ -1324,17 +1426,17 @@ input CreateUserNotificationRuleInput {
 
 input UpdateUserContactMethodInput {
   id: ID!
-
   name: String
   value: String
     @deprecated(
       reason: "Updating value is not supported, delete and create a new contact method instead."
     )
 
-  # If true, this contact method will receive status updates.
-  #
-  # Note: Some contact method types, like Slack, will always receive status
-  # updates and this value is ignored.
+  """
+  If true, this contact method will receive status updates.
+
+  Note: Some contact method types, like Slack, will always receive status updates and this value is ignored.
+  """
   enableStatusUpdates: Boolean
 }
 

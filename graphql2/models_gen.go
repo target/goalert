@@ -93,9 +93,10 @@ type AuthSubjectConnection struct {
 }
 
 type CalcRotationHandoffTimesInput struct {
-	Handoff          time.Time             `json:"handoff"`
-	From             *time.Time            `json:"from,omitempty"`
-	TimeZone         string                `json:"timeZone"`
+	Handoff  time.Time  `json:"handoff"`
+	From     *time.Time `json:"from,omitempty"`
+	TimeZone string     `json:"timeZone"`
+	// Only accurate for hourly-type rotations. Use shiftLength instead.
 	ShiftLengthHours *int                  `json:"shiftLengthHours,omitempty"`
 	ShiftLength      *timeutil.ISODuration `json:"shiftLength,omitempty"`
 	Count            int                   `json:"count"`
@@ -126,10 +127,14 @@ type ClearTemporarySchedulesInput struct {
 }
 
 type CloseMatchingAlertInput struct {
-	ServiceID string  `json:"serviceID"`
-	Summary   *string `json:"summary,omitempty"`
-	Details   *string `json:"details,omitempty"`
-	Dedup     *string `json:"dedup,omitempty"`
+	ServiceID string `json:"serviceID"`
+	// Summary (and details) will match an alert with the same values.
+	//
+	// They can be omitted if the dedup field is provided.
+	Summary *string `json:"summary,omitempty"`
+	Details *string `json:"details,omitempty"`
+	// Preferred over providing the summary & details.
+	Dedup *string `json:"dedup,omitempty"`
 }
 
 type Condition struct {
@@ -164,12 +169,16 @@ type ConfigValueInput struct {
 }
 
 type CreateAlertInput struct {
-	Summary   string               `json:"summary"`
-	Details   *string              `json:"details,omitempty"`
-	ServiceID string               `json:"serviceID"`
-	Sanitize  *bool                `json:"sanitize,omitempty"`
-	Dedup     *string              `json:"dedup,omitempty"`
-	Meta      []AlertMetadataInput `json:"meta,omitempty"`
+	Summary   string  `json:"summary"`
+	Details   *string `json:"details,omitempty"`
+	ServiceID string  `json:"serviceID"`
+	// If true, summary and details will be automatically sanitized and truncated (if necessary).
+	Sanitize *bool `json:"sanitize,omitempty"`
+	// Dedup allows setting a unique value to de-duplicate multiple alerts.
+	//
+	// It can also be used to close an alert using closeMatchingAlert mutation.
+	Dedup *string              `json:"dedup,omitempty"`
+	Meta  []AlertMetadataInput `json:"meta,omitempty"`
 }
 
 type CreateBasicAuthInput struct {
@@ -263,13 +272,17 @@ type CreateUserCalendarSubscriptionInput struct {
 }
 
 type CreateUserContactMethodInput struct {
-	UserID                  string                           `json:"userID"`
-	Type                    *ContactMethodType               `json:"type,omitempty"`
-	Dest                    *gadb.DestV1                     `json:"dest,omitempty"`
-	Name                    string                           `json:"name"`
+	UserID string             `json:"userID"`
+	Type   *ContactMethodType `json:"type,omitempty"`
+	Dest   *gadb.DestV1       `json:"dest,omitempty"`
+	Name   string             `json:"name"`
+	// Only value or dest should be used at a time, never both.
 	Value                   *string                          `json:"value,omitempty"`
 	NewUserNotificationRule *CreateUserNotificationRuleInput `json:"newUserNotificationRule,omitempty"`
-	EnableStatusUpdates     *bool                            `json:"enableStatusUpdates,omitempty"`
+	// If true, this contact method will receive status updates.
+	//
+	// Note: Some contact method types, like Slack, will always receive status updates and this value is ignored.
+	EnableStatusUpdates *bool `json:"enableStatusUpdates,omitempty"`
 }
 
 type CreateUserInput struct {
@@ -385,12 +398,14 @@ type EscalationPolicyConnection struct {
 }
 
 type EscalationPolicySearchOptions struct {
-	First          *int     `json:"first,omitempty"`
-	After          *string  `json:"after,omitempty"`
-	Search         *string  `json:"search,omitempty"`
-	Omit           []string `json:"omit,omitempty"`
-	FavoritesOnly  *bool    `json:"favoritesOnly,omitempty"`
-	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
+	First  *int     `json:"first,omitempty"`
+	After  *string  `json:"after,omitempty"`
+	Search *string  `json:"search,omitempty"`
+	Omit   []string `json:"omit,omitempty"`
+	// Include only favorited escalation policies in the results.
+	FavoritesOnly *bool `json:"favoritesOnly,omitempty"`
+	// Sort favorite escalation policies first.
+	FavoritesFirst *bool `json:"favoritesFirst,omitempty"`
 }
 
 // Expr contains helpers for working with Expr expressions.
@@ -468,10 +483,13 @@ type IntegrationKeySearchOptions struct {
 }
 
 type IntegrationKeyTypeInfo struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Label   string `json:"label"`
-	Enabled bool   `json:"enabled"`
+	ID string `json:"id"`
+	// User-displayable name of the integration key type.
+	Name string `json:"name"`
+	// User-displayable description of the integration key value (i.e., copy/paste instructions).
+	Label string `json:"label"`
+	// Indicates if the type is currently enabled.
+	Enabled bool `json:"enabled"`
 }
 
 type LabelConnection struct {
@@ -538,7 +556,7 @@ type OnCallOverview struct {
 }
 
 type OnCallServiceAssignment struct {
-	// stepNumber is the escalation step this assignment is from (beginning with 0).
+	// Step number is the escalation step this assignment is from (beginning with 0).
 	StepNumber           int    `json:"stepNumber"`
 	EscalationPolicyID   string `json:"escalationPolicyID"`
 	EscalationPolicyName string `json:"escalationPolicyName"`
@@ -569,12 +587,14 @@ type RotationConnection struct {
 }
 
 type RotationSearchOptions struct {
-	First          *int     `json:"first,omitempty"`
-	After          *string  `json:"after,omitempty"`
-	Search         *string  `json:"search,omitempty"`
-	Omit           []string `json:"omit,omitempty"`
-	FavoritesOnly  *bool    `json:"favoritesOnly,omitempty"`
-	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
+	First  *int     `json:"first,omitempty"`
+	After  *string  `json:"after,omitempty"`
+	Search *string  `json:"search,omitempty"`
+	Omit   []string `json:"omit,omitempty"`
+	// Include only favorited rotations in the results.
+	FavoritesOnly *bool `json:"favoritesOnly,omitempty"`
+	// Sort favorite rotations first.
+	FavoritesFirst *bool `json:"favoritesFirst,omitempty"`
 }
 
 type SWOConnection struct {
@@ -610,19 +630,22 @@ type ScheduleConnection struct {
 }
 
 type ScheduleRuleInput struct {
-	ID            *string                 `json:"id,omitempty"`
-	Start         *timeutil.Clock         `json:"start,omitempty"`
-	End           *timeutil.Clock         `json:"end,omitempty"`
+	ID    *string         `json:"id,omitempty"`
+	Start *timeutil.Clock `json:"start,omitempty"`
+	End   *timeutil.Clock `json:"end,omitempty"`
+	// Weekday filter is a 7-item array that indicates if the rule is active on each weekday, starting with Sunday.
 	WeekdayFilter *timeutil.WeekdayFilter `json:"weekdayFilter,omitempty"`
 }
 
 type ScheduleSearchOptions struct {
-	First          *int     `json:"first,omitempty"`
-	After          *string  `json:"after,omitempty"`
-	Search         *string  `json:"search,omitempty"`
-	Omit           []string `json:"omit,omitempty"`
-	FavoritesOnly  *bool    `json:"favoritesOnly,omitempty"`
-	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
+	First  *int     `json:"first,omitempty"`
+	After  *string  `json:"after,omitempty"`
+	Search *string  `json:"search,omitempty"`
+	Omit   []string `json:"omit,omitempty"`
+	// Include only favorited services in the results.
+	FavoritesOnly *bool `json:"favoritesOnly,omitempty"`
+	// Sort favorite services first.
+	FavoritesFirst *bool `json:"favoritesFirst,omitempty"`
 }
 
 type ScheduleTarget struct {
@@ -648,12 +671,14 @@ type ServiceConnection struct {
 }
 
 type ServiceSearchOptions struct {
-	First          *int     `json:"first,omitempty"`
-	After          *string  `json:"after,omitempty"`
-	Search         *string  `json:"search,omitempty"`
-	Omit           []string `json:"omit,omitempty"`
-	FavoritesOnly  *bool    `json:"favoritesOnly,omitempty"`
-	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
+	First  *int     `json:"first,omitempty"`
+	After  *string  `json:"after,omitempty"`
+	Search *string  `json:"search,omitempty"`
+	Omit   []string `json:"omit,omitempty"`
+	// Include only favorited services in the results.
+	FavoritesOnly *bool `json:"favoritesOnly,omitempty"`
+	// Sort favorite services first.
+	FavoritesFirst *bool `json:"favoritesFirst,omitempty"`
 }
 
 type SetAlertNoiseReasonInput struct {
@@ -669,7 +694,8 @@ type SetFavoriteInput struct {
 type SetLabelInput struct {
 	Target *assignment.RawTarget `json:"target,omitempty"`
 	Key    string                `json:"key"`
-	Value  string                `json:"value"`
+	// If value is empty, the label is removed.
+	Value string `json:"value"`
 }
 
 type SetScheduleOnCallNotificationRulesInput struct {
@@ -766,6 +792,7 @@ type UpdateAlertsByServiceInput struct {
 }
 
 type UpdateAlertsInput struct {
+	// List of alert IDs.
 	AlertIDs    []int        `json:"alertIDs"`
 	NewStatus   *AlertStatus `json:"newStatus,omitempty"`
 	NoiseReason *string      `json:"noiseReason,omitempty"`
@@ -822,15 +849,16 @@ type UpdateKeyConfigInput struct {
 }
 
 type UpdateRotationInput struct {
-	ID              string         `json:"id"`
-	Name            *string        `json:"name,omitempty"`
-	Description     *string        `json:"description,omitempty"`
-	TimeZone        *string        `json:"timeZone,omitempty"`
-	Start           *time.Time     `json:"start,omitempty"`
-	Type            *rotation.Type `json:"type,omitempty"`
-	ShiftLength     *int           `json:"shiftLength,omitempty"`
-	ActiveUserIndex *int           `json:"activeUserIndex,omitempty"`
-	UserIDs         []string       `json:"userIDs,omitempty"`
+	ID          string         `json:"id"`
+	Name        *string        `json:"name,omitempty"`
+	Description *string        `json:"description,omitempty"`
+	TimeZone    *string        `json:"timeZone,omitempty"`
+	Start       *time.Time     `json:"start,omitempty"`
+	Type        *rotation.Type `json:"type,omitempty"`
+	ShiftLength *int           `json:"shiftLength,omitempty"`
+	UserIDs     []string       `json:"userIDs,omitempty"`
+	// The index of the user in `userIDs` to set as the active user. If not provided, the existing active user index will be used.
+	ActiveUserIndex *int `json:"activeUserIndex,omitempty"`
 }
 
 type UpdateScheduleInput struct {
@@ -857,10 +885,13 @@ type UpdateUserCalendarSubscriptionInput struct {
 }
 
 type UpdateUserContactMethodInput struct {
-	ID                  string  `json:"id"`
-	Name                *string `json:"name,omitempty"`
-	Value               *string `json:"value,omitempty"`
-	EnableStatusUpdates *bool   `json:"enableStatusUpdates,omitempty"`
+	ID    string  `json:"id"`
+	Name  *string `json:"name,omitempty"`
+	Value *string `json:"value,omitempty"`
+	// If true, this contact method will receive status updates.
+	//
+	// Note: Some contact method types, like Slack, will always receive status updates and this value is ignored.
+	EnableStatusUpdates *bool `json:"enableStatusUpdates,omitempty"`
 }
 
 type UpdateUserInput struct {
@@ -890,27 +921,35 @@ type UserOverrideConnection struct {
 }
 
 type UserOverrideSearchOptions struct {
-	First              *int       `json:"first,omitempty"`
-	After              *string    `json:"after,omitempty"`
-	Omit               []string   `json:"omit,omitempty"`
-	ScheduleID         *string    `json:"scheduleID,omitempty"`
-	FilterAddUserID    []string   `json:"filterAddUserID,omitempty"`
-	FilterRemoveUserID []string   `json:"filterRemoveUserID,omitempty"`
-	FilterAnyUserID    []string   `json:"filterAnyUserID,omitempty"`
-	Start              *time.Time `json:"start,omitempty"`
-	End                *time.Time `json:"end,omitempty"`
+	First *int     `json:"first,omitempty"`
+	After *string  `json:"after,omitempty"`
+	Omit  []string `json:"omit,omitempty"`
+	// Limit search to a single schedule
+	ScheduleID *string `json:"scheduleID,omitempty"`
+	// Only return overrides where the provided users have been added to a schedule (add or replace types).
+	FilterAddUserID []string `json:"filterAddUserID,omitempty"`
+	// Only return overrides where the provided users have been removed from a schedule (remove or replace types).
+	FilterRemoveUserID []string `json:"filterRemoveUserID,omitempty"`
+	// Only return overrides that add/remove/replace at least one of the provided user IDs.
+	FilterAnyUserID []string `json:"filterAnyUserID,omitempty"`
+	// Start of the window to search for.
+	Start *time.Time `json:"start,omitempty"`
+	// End of the window to search for.
+	End *time.Time `json:"end,omitempty"`
 }
 
 type UserSearchOptions struct {
-	First          *int               `json:"first,omitempty"`
-	After          *string            `json:"after,omitempty"`
-	Search         *string            `json:"search,omitempty"`
-	Omit           []string           `json:"omit,omitempty"`
-	CMValue        *string            `json:"CMValue,omitempty"`
-	CMType         *ContactMethodType `json:"CMType,omitempty"`
-	Dest           *gadb.DestV1       `json:"dest,omitempty"`
-	FavoritesOnly  *bool              `json:"favoritesOnly,omitempty"`
-	FavoritesFirst *bool              `json:"favoritesFirst,omitempty"`
+	First   *int               `json:"first,omitempty"`
+	After   *string            `json:"after,omitempty"`
+	Search  *string            `json:"search,omitempty"`
+	Omit    []string           `json:"omit,omitempty"`
+	CMValue *string            `json:"CMValue,omitempty"`
+	CMType  *ContactMethodType `json:"CMType,omitempty"`
+	Dest    *gadb.DestV1       `json:"dest,omitempty"`
+	// Include only favorited services in the results.
+	FavoritesOnly *bool `json:"favoritesOnly,omitempty"`
+	// Sort favorite services first.
+	FavoritesFirst *bool `json:"favoritesFirst,omitempty"`
 }
 
 type UserSession struct {

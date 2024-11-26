@@ -12,6 +12,7 @@
     "noImplicitThis": true,
     "noUnusedLocals": true,
     "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
     "strict": true,
     "lib": ["ES2017"]
   },
