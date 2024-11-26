@@ -498,7 +498,7 @@ func (p *Engine) processAll(ctx context.Context) bool {
 	return false
 }
 
-func monitorCycle(ctx context.Context, start time.Time) (cancel func()) {
+func monitorCycle(ctx context.Context, start time.Time, direct bool) (cancel func()) {
 	ctx, cancel = context.WithCancel(ctx)
 
 	go func() {
@@ -517,6 +517,11 @@ func monitorCycle(ctx context.Context, start time.Time) (cancel func()) {
 			case <-ctx.Done():
 				break loop
 			}
+		}
+
+		if direct {
+			// don't log slow cycles for direct triggers
+			return
 		}
 
 		dur := time.Since(start)
@@ -546,7 +551,7 @@ func (p *Engine) cycle(ctx context.Context, runJobs bool) {
 	}
 
 	startAll := time.Now()
-	defer monitorCycle(ctx, startAll)()
+	defer monitorCycle(ctx, startAll, runJobs)()
 
 	aborted := p.processAll(ctx)
 	if aborted || p.mgr.IsPausing() {
