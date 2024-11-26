@@ -3,6 +3,7 @@ package apikey
 import (
 	"context"
 	"net"
+	"net/netip"
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/gadb"
@@ -18,10 +19,7 @@ func (s *Store) _updateLastUsed(ctx context.Context, id uuid.UUID, ua, ip string
 		KeyID:     id,
 		UserAgent: ua,
 	}
-	params.IpAddress.IPNet.IP = net.ParseIP(ip)
-	params.IpAddress.IPNet.Mask = net.CIDRMask(32, 32)
-	if params.IpAddress.IPNet.IP != nil {
-		params.IpAddress.Valid = true
-	}
-	return gadb.New(s.db).APIKeyRecordUsage(ctx, params)
+
+	params.IpAddress, _ = netip.ParseAddr(ip) // best effort
+	return gadb.NewCompat(s.db).APIKeyRecordUsage(ctx, params)
 }

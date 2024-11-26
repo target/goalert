@@ -37,7 +37,7 @@ func parsePolicyInfo(data []byte) (*policyInfo, error) {
 
 // _fetchPolicyInfo will fetch the policyInfo for the given key.
 func (s *Store) _fetchPolicyInfo(ctx context.Context, id uuid.UUID) (*policyInfo, bool, error) {
-	polData, err := gadb.New(s.db).APIKeyAuthPolicy(ctx, id)
+	polData, err := gadb.NewCompat(s.db).APIKeyAuthPolicy(ctx, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, false, nil
 	}

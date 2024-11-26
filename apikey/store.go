@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/keyring"
@@ -67,7 +68,7 @@ func (s *Store) FindAllAdminGraphQLKeys(ctx context.Context) ([]APIKeyInfo, erro
 		return nil, err
 	}
 
-	keys, err := gadb.New(s.db).APIKeyList(ctx)
+	keys, err := gadb.NewCompat(s.db).APIKeyList(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -90,8 +91,8 @@ func (s *Store) FindAllAdminGraphQLKeys(ctx context.Context) ([]APIKeyInfo, erro
 		var lastUsed *APIKeyUsage
 		if k.LastUsedAt.Valid {
 			var ip string
-			if k.LastIpAddress.Valid {
-				ip = k.LastIpAddress.IPNet.IP.String()
+			if k.LastIpAddress != nil {
+				ip = k.LastIpAddress.String()
 			}
 			lastUsed = &APIKeyUsage{
 				UserAgent: k.LastUserAgent.String,
@@ -104,10 +105,10 @@ func (s *Store) FindAllAdminGraphQLKeys(ctx context.Context) ([]APIKeyInfo, erro
 			ID:          k.ID,
 			Name:        k.Name,
 			Description: k.Description,
-			ExpiresAt:   k.ExpiresAt,
+			ExpiresAt:   k.ExpiresAt.Time,
 			LastUsed:    lastUsed,
-			CreatedAt:   k.CreatedAt,
-			UpdatedAt:   k.UpdatedAt,
+			CreatedAt:   k.CreatedAt.Time,
+			UpdatedAt:   k.UpdatedAt.Time,
 			CreatedBy:   &k.CreatedBy.UUID,
 			UpdatedBy:   &k.UpdatedBy.UUID,
 			Query:       p.Query,
@@ -152,7 +153,7 @@ func (s *Store) UpdateAdminGraphQLKey(ctx context.Context, id uuid.UUID, name, d
 	}
 	defer sqlutil.Rollback(ctx, "UpdateAdminGraphQLKey", tx)
 
-	key, err := gadb.New(tx).APIKeyForUpdate(ctx, id)
+	key, err := gadb.NewCompat(tx).APIKeyForUpdate(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -163,7 +164,7 @@ func (s *Store) UpdateAdminGraphQLKey(ctx context.Context, id uuid.UUID, name, d
 		key.Description = *desc
 	}
 
-	err = gadb.New(tx).APIKeyUpdate(ctx, gadb.APIKeyUpdateParams{
+	err = gadb.NewCompat(tx).APIKeyUpdate(ctx, gadb.APIKeyUpdateParams{
 		ID:          id,
 		Name:        key.Name,
 		Description: key.Description,
@@ -182,7 +183,7 @@ func (s *Store) DeleteAdminGraphQLKey(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
-	return gadb.New(s.db).APIKeyDelete(ctx, gadb.APIKeyDeleteParams{
+	return gadb.NewCompat(s.db).APIKeyDelete(ctx, gadb.APIKeyDeleteParams{
 		DeletedBy: permission.UserNullUUID(ctx),
 		ID:        id,
 	})
@@ -273,11 +274,11 @@ func (s *Store) CreateAdminGraphQLKey(ctx context.Context, opt NewAdminGQLKeyOpt
 	}
 
 	id := uuid.New()
-	err = gadb.New(s.db).APIKeyInsert(ctx, gadb.APIKeyInsertParams{
+	err = gadb.NewCompat(s.db).APIKeyInsert(ctx, gadb.APIKeyInsertParams{
 		ID:          id,
 		Name:        opt.Name,
 		Description: opt.Desc,
-		ExpiresAt:   opt.Expires,
+		ExpiresAt:   pgtype.Timestamptz{Time: opt.Expires, Valid: true},
 		Policy:      policyData,
 		CreatedBy:   permission.UserNullUUID(ctx),
 		UpdatedBy:   permission.UserNullUUID(ctx),
