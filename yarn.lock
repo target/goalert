@@ -6556,7 +6556,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:4.17.9, @types/lodash@npm:^4.14.167":
+"@types/lodash@npm:4.17.13":
+  version: 4.17.13
+  resolution: "@types/lodash@npm:4.17.13"
+  checksum: 10/ddb34e20810c71be2d9445bcc4b64ec25b83976738454de709854b79c7f655b03704b76235445699956d65012987720e0e429a35489de65495cdb5420202d905
+  languageName: node
+  linkType: hard
+
+"@types/lodash@npm:^4.14.167":
   version: 4.17.9
   resolution: "@types/lodash@npm:4.17.9"
   checksum: 10/49e35caaf668686be0bad9e9bef88456903a21999d3fd8bf91c302e0d5328398fb59fee793d0afbaf6edeca1b46c3e8109899d85ff3a433075178f1ab693e597
@@ -18412,7 +18419,7 @@ __metadata:
     "@types/glob": "npm:8.1.0"
     "@types/jest": "npm:29.5.13"
     "@types/k6": "npm:0.54.2"
-    "@types/lodash": "npm:4.17.9"
+    "@types/lodash": "npm:4.17.13"
     "@types/luxon": "npm:3.4.2"
     "@types/node": "npm:20.16.6"
     "@types/prop-types": "npm:15.7.13"
