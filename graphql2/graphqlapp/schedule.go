@@ -275,7 +275,7 @@ func (m *Mutation) CreateSchedule(ctx context.Context, input graphql2.CreateSche
 			return err
 		}
 		if input.Favorite != nil && *input.Favorite {
-			err = m.FavoriteStore.Set(ctx, tx, permission.UserID(ctx), assignment.ScheduleTarget(sched.ID))
+			err = m.FavoriteStore.Set(ctx, gadb.Compat(tx), permission.UserID(ctx), assignment.ScheduleTarget(sched.ID))
 			if err != nil {
 				return err
 			}

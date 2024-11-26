@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule/rotation"
@@ -51,7 +52,7 @@ func (m *Mutation) CreateRotation(ctx context.Context, input graphql2.CreateRota
 		}
 
 		if input.Favorite != nil && *input.Favorite {
-			err = m.FavoriteStore.Set(ctx, tx, permission.UserID(ctx), assignment.RotationTarget(result.ID))
+			err = m.FavoriteStore.Set(ctx, gadb.Compat(tx), permission.UserID(ctx), assignment.RotationTarget(result.ID))
 			if err != nil {
 				return err
 			}
@@ -371,7 +372,6 @@ func (m *Mutation) UpdateRotation(ctx context.Context, input graphql2.UpdateRota
 
 		return err
 	})
-
 	if err != nil {
 		return false, err
 	}
@@ -379,7 +379,6 @@ func (m *Mutation) UpdateRotation(ctx context.Context, input graphql2.UpdateRota
 }
 
 func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.CalcRotationHandoffTimesInput) ([]time.Time, error) {
-
 	err := validate.Range("count", input.Count, 0, 20)
 	if err != nil {
 		return nil, err
@@ -430,7 +429,6 @@ func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.Ca
 
 // getRotationFromISO determines the rotation type based on the given ISODuration. An error is given if the unsupported year field or multiple non-zero fields are given.
 func setRotationShiftFromISO(rot *rotation.Rotation, dur *timeutil.ISODuration) error {
-
 	// validate only one time field (year, month, days, timepart) is non-zero
 	nonZeroFields := 0
 

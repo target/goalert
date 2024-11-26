@@ -181,7 +181,7 @@ func (m *Mutation) CreateEscalationPolicy(ctx context.Context, input graphql2.Cr
 			return err
 		}
 		if input.Favorite != nil && *input.Favorite {
-			err = m.FavoriteStore.Set(ctx, tx, permission.UserID(ctx), assignment.EscalationPolicyTarget(pol.ID))
+			err = m.FavoriteStore.Set(ctx, gadb.Compat(tx), permission.UserID(ctx), assignment.EscalationPolicyTarget(pol.ID))
 			if err != nil {
 				return err
 			}
@@ -291,7 +291,7 @@ func (m *Mutation) UpdateEscalationPolicyStep(ctx context.Context, input graphql
 		// update targets if provided
 		if input.Actions != nil {
 			// get current actions
-			existing, err := m.PolicyStore.FindAllStepActionsTx(ctx, tx, step.ID)
+			existing, err := m.PolicyStore.FindAllStepActionsTx(ctx, gadb.Compat(tx), step.ID)
 			if err != nil {
 				return err
 			}

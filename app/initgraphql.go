@@ -9,6 +9,7 @@ import (
 func (app *App) initGraphQL(ctx context.Context) error {
 	app.graphql2 = &graphqlapp.App{
 		DB:                  app.db,
+		DBTX:                app.pgx,
 		AuthBasicStore:      app.AuthBasicStore,
 		UserStore:           app.UserStore,
 		CMStore:             app.ContactMethodStore,

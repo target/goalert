@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/user/contactmethod"
@@ -126,7 +127,7 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
-		cm, err = m.CMStore.Create(ctx, tx, cm)
+		cm, err = m.CMStore.Create(ctx, gadb.Compat(tx), cm)
 		if err != nil {
 			return err
 		}
@@ -160,7 +161,7 @@ func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.U
 		if err != nil {
 			return err
 		}
-		cm, err := m.CMStore.FindOne(ctx, tx, id)
+		cm, err := m.CMStore.FindOne(ctx, gadb.Compat(tx), id)
 		if errors.Is(err, sql.ErrNoRows) {
 			return validation.NewFieldError("id", "contact method not found")
 		}
@@ -180,7 +181,7 @@ func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.U
 			cm.StatusUpdates = *input.EnableStatusUpdates
 		}
 
-		return m.CMStore.Update(ctx, tx, cm)
+		return m.CMStore.Update(ctx, gadb.Compat(tx), cm)
 	})
 	return err == nil, err
 }

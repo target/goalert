@@ -7,6 +7,7 @@ import (
 
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
@@ -92,7 +93,7 @@ func (s *Service) Notices(ctx context.Context, raw *service.Service) ([]notice.N
 }
 
 func (s *Service) Labels(ctx context.Context, raw *service.Service) ([]label.Label, error) {
-	return s.LabelStore.FindAllByService(ctx, s.DB, raw.ID)
+	return s.LabelStore.FindAllByService(ctx, s.DBTX, raw.ID)
 }
 
 func (s *Service) EscalationPolicy(ctx context.Context, raw *service.Service) (*escalation.Policy, error) {
@@ -157,7 +158,7 @@ func (m *Mutation) CreateService(ctx context.Context, input graphql2.CreateServi
 		}
 
 		if input.Favorite != nil && *input.Favorite {
-			err = m.FavoriteStore.Set(ctx, tx, permission.UserID(ctx), assignment.ServiceTarget(result.ID))
+			err = m.FavoriteStore.Set(ctx, gadb.Compat(tx), permission.UserID(ctx), assignment.ServiceTarget(result.ID))
 			if err != nil {
 				return err
 			}

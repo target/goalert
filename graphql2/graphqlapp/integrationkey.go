@@ -50,7 +50,7 @@ func (m *Mutation) GenerateKeyToken(ctx context.Context, keyID string) (string, 
 	if err != nil {
 		return "", err
 	}
-	return m.IntKeyStore.GenerateToken(ctx, m.DB, id)
+	return m.IntKeyStore.GenerateToken(ctx, m.DBTX, id)
 }
 
 func (m *Mutation) DeleteSecondaryToken(ctx context.Context, keyID string) (bool, error) {
@@ -59,7 +59,7 @@ func (m *Mutation) DeleteSecondaryToken(ctx context.Context, keyID string) (bool
 		return false, err
 	}
 
-	err = m.IntKeyStore.DeleteSecondaryToken(ctx, m.DB, id)
+	err = m.IntKeyStore.DeleteSecondaryToken(ctx, m.DBTX, id)
 	if err != nil {
 		return false, err
 	}
@@ -73,7 +73,7 @@ func (m *Mutation) PromoteSecondaryToken(ctx context.Context, keyID string) (boo
 		return false, err
 	}
 
-	err = m.IntKeyStore.PromoteSecondaryToken(ctx, m.DB, id)
+	err = m.IntKeyStore.PromoteSecondaryToken(ctx, m.DBTX, id)
 	if err != nil {
 		return false, err
 	}
@@ -87,7 +87,7 @@ func (key *IntegrationKey) TokenInfo(ctx context.Context, raw *integrationkey.In
 		return nil, err
 	}
 
-	prim, sec, err := key.IntKeyStore.TokenHints(ctx, key.DB, id)
+	prim, sec, err := key.IntKeyStore.TokenHints(ctx, key.DBTX, id)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +105,7 @@ func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKey
 			return err
 		}
 
-		cfg, err := m.IntKeyStore.Config(ctx, tx, id)
+		cfg, err := m.IntKeyStore.Config(ctx, gadb.Compat(tx), id)
 		if err != nil {
 			return err
 		}
@@ -146,7 +146,7 @@ func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKey
 			cfg.DefaultActions = input.DefaultActions
 		}
 
-		err = m.IntKeyStore.SetConfig(ctx, tx, id, cfg)
+		err = m.IntKeyStore.SetConfig(ctx, gadb.Compat(tx), id, cfg)
 		return err
 	})
 	if err != nil {
@@ -170,7 +170,7 @@ func (m *Mutation) CreateIntegrationKey(ctx context.Context, input graphql2.Crea
 		if input.ExternalSystemName != nil {
 			key.ExternalSystemName = *input.ExternalSystemName
 		}
-		key, err = m.IntKeyStore.Create(ctx, tx, key)
+		key, err = m.IntKeyStore.Create(ctx, gadb.Compat(tx), key)
 		return err
 	})
 	return key, err
@@ -182,7 +182,7 @@ func (key *IntegrationKey) Config(ctx context.Context, raw *integrationkey.Integ
 		return nil, err
 	}
 
-	return key.IntKeyStore.Config(ctx, key.DB, id)
+	return key.IntKeyStore.Config(ctx, key.DBTX, id)
 }
 
 func (key *IntegrationKey) Type(ctx context.Context, raw *integrationkey.IntegrationKey) (graphql2.IntegrationKeyType, error) {

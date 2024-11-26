@@ -171,13 +171,13 @@ func (q *Query) MessageLogs(ctx context.Context, opts *graphql2.MessageLogSearch
 		var dest gadb.DestV1
 		switch {
 		case log.ContactMethodID != uuid.Nil:
-			dest, err = q.CMStore.FindDestByID(ctx, q.DB, log.ContactMethodID)
+			dest, err = q.CMStore.FindDestByID(ctx, q.DBTX, log.ContactMethodID)
 			if err != nil {
 				return nil, fmt.Errorf("lookup contact method %s: %w", log.ContactMethodID, err)
 			}
 
 		case log.ChannelID != uuid.Nil:
-			dest, err = q.NCStore.FindDestByID(ctx, q.DB, log.ChannelID)
+			dest, err = q.NCStore.FindDestByID(ctx, q.DBTX, log.ChannelID)
 			if err != nil {
 				return nil, fmt.Errorf("lookup notification channel %s: %w", log.ChannelID, err)
 			}

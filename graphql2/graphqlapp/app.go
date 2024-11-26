@@ -24,6 +24,7 @@ import (
 	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
@@ -56,6 +57,7 @@ import (
 
 type App struct {
 	DB                *sql.DB
+	DBTX              gadb.DBTX
 	AuthBasicStore    *basic.Store
 	UserStore         *user.Store
 	CMStore           *contactmethod.Store

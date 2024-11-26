@@ -41,7 +41,7 @@ func (a *User) OnCallOverview(ctx context.Context, obj *user.User) (*graphql2.On
 		return nil, err
 	}
 
-	data, err := gadb.New(a.DB).GQLUserOnCallOverview(ctx, id)
+	data, err := gadb.New(a.DBTX).GQLUserOnCallOverview(ctx, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return &graphql2.OnCallOverview{ServiceAssignments: []graphql2.OnCallServiceAssignment{}}, nil
 	}
@@ -119,7 +119,7 @@ func (a *User) Role(ctx context.Context, usr *user.User) (graphql2.UserRole, err
 }
 
 func (a *User) ContactMethods(ctx context.Context, obj *user.User) ([]contactmethod.ContactMethod, error) {
-	return a.CMStore.FindAll(ctx, a.DB, obj.ID)
+	return a.CMStore.FindAll(ctx, a.DBTX, obj.ID)
 }
 
 func (a *User) NotificationRules(ctx context.Context, obj *user.User) ([]notificationrule.NotificationRule, error) {
@@ -150,7 +150,7 @@ func (a *User) AssignedSchedules(ctx context.Context, obj *user.User) (schedules
 		}
 
 		// get list of schedules user is on as a direct assignment, or indirectly from a rotation
-		schedules, err = (*App)(a).ScheduleStore.FindManyByUserID(ctx, tx, uid)
+		schedules, err = (*App)(a).ScheduleStore.FindManyByUserID(ctx, gadb.Compat(tx), uid)
 		if err != nil {
 			return err
 		}
@@ -244,7 +244,7 @@ func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInpu
 			return err
 		}
 		if input.Favorite != nil && *input.Favorite {
-			err = a.FavoriteStore.Set(ctx, tx, permission.UserID(ctx), assignment.UserTarget(newUser.ID))
+			err = a.FavoriteStore.Set(ctx, gadb.Compat(tx), permission.UserID(ctx), assignment.UserTarget(newUser.ID))
 			if err != nil {
 				return err
 			}

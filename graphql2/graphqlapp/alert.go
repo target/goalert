@@ -189,7 +189,7 @@ func (q *Query) Alert(ctx context.Context, alertID int) (*alert.Alert, error) {
  * Merges favorites and user-specified serviceIDs in opts.FilterByServiceID
  */
 func (q *Query) mergeFavorites(ctx context.Context, svcs []string) ([]string, error) {
-	targets, err := q.FavoriteStore.FindAll(ctx, q.DB, permission.UserID(ctx), []assignment.TargetType{assignment.TargetTypeService})
+	targets, err := q.FavoriteStore.FindAll(ctx, q.DBTX, permission.UserID(ctx), []assignment.TargetType{assignment.TargetTypeService})
 	if err != nil {
 		return nil, err
 	}
@@ -427,7 +427,7 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 		}
 
 		if meta != nil {
-			err = m.AlertStore.SetMetadataTx(ctx, tx, newAlert.ID, meta)
+			err = m.AlertStore.SetMetadataTx(ctx, gadb.Compat(tx), newAlert.ID, meta)
 			if err != nil {
 				return err
 			}
@@ -521,7 +521,7 @@ func (a *Alert) PendingNotifications(ctx context.Context, obj *alert.Alert) ([]g
 		return nil, err
 	}
 
-	rows, err := gadb.New(a.DB).AllPendingMsgDests(ctx, gadb.AllPendingMsgDestsParams{
+	rows, err := gadb.New(a.DBTX).AllPendingMsgDests(ctx, gadb.AllPendingMsgDestsParams{
 		AlertID:   int64(obj.ID),
 		ServiceID: uuid.MustParse(obj.ServiceID),
 	})
