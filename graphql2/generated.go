@@ -39429,7 +39429,7 @@ func (ec *executionContext) unmarshalInputUpdateRotationInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "description", "timeZone", "start", "type", "shiftLength", "activeUserIndex", "userIDs"}
+	fieldsInOrder := [...]string{"id", "name", "description", "timeZone", "start", "type", "shiftLength", "userIDs", "activeUserIndex"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -39485,13 +39485,6 @@ func (ec *executionContext) unmarshalInputUpdateRotationInput(ctx context.Contex
 				return it, err
 			}
 			it.ShiftLength = data
-		case "activeUserIndex":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("activeUserIndex"))
-			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ActiveUserIndex = data
 		case "userIDs":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDs"))
 			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
@@ -39499,6 +39492,13 @@ func (ec *executionContext) unmarshalInputUpdateRotationInput(ctx context.Contex
 				return it, err
 			}
 			it.UserIDs = data
+		case "activeUserIndex":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("activeUserIndex"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ActiveUserIndex = data
 		}
 	}
 
