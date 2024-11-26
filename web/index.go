@@ -53,6 +53,9 @@ type renderData struct {
 
 	// ExtraJS can be used to load additional javascript.
 	ExtraJS string
+
+	// Nonce is a CSP nonce value.
+	Nonce string
 }
 
 func (r renderData) PathPrefix() string   { return strings.TrimSuffix(r.Prefix, "/") }
