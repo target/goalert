@@ -8,6 +8,15 @@ import (
 
 func (h *Harness) watchBackendLogs(r io.Reader) {
 	dec := json.NewDecoder(r)
+	var entry struct {
+		Error        string
+		Message      string `json:"msg"`
+		Source       string
+		Level        string
+		SQL          string
+		ProviderType string
+		URL          string
+	}
 
 	ignore := func(msg string) bool {
 		h.mx.Lock()
@@ -30,15 +39,6 @@ func (h *Harness) watchBackendLogs(r io.Reader) {
 			break
 		}
 
-		var entry struct {
-			Error        string
-			Message      string `json:"msg"`
-			Source       string
-			Level        string
-			SQL          string
-			ProviderType string
-			URL          string
-		}
 		err = json.Unmarshal(raw, &entry)
 		if err != nil {
 			break
