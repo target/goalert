@@ -1660,6 +1660,7 @@ WHERE
 FOR UPDATE
 `
 
+// HBByIDForUpdate returns a single heartbeat record by ID for update.
 func (q *Queries) HBByIDForUpdate(ctx context.Context, id uuid.UUID) (HeartbeatMonitor, error) {
 	row := q.db.QueryRowContext(ctx, hBByIDForUpdate, id)
 	var i HeartbeatMonitor
@@ -1685,7 +1686,7 @@ WHERE
     service_id = $1
 `
 
-// Returns all heartbeat records for a service
+// HBByService returns all heartbeat records for a service.
 func (q *Queries) HBByService(ctx context.Context, serviceID uuid.UUID) ([]HeartbeatMonitor, error) {
 	rows, err := q.db.QueryContext(ctx, hBByService, serviceID)
 	if err != nil {
@@ -1723,6 +1724,7 @@ DELETE FROM heartbeat_monitors
 WHERE id = ANY ($1::uuid[])
 `
 
+// HBDelete will delete a heartbeat record.
 func (q *Queries) HBDelete(ctx context.Context, id []uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, hBDelete, pq.Array(id))
 	return err
@@ -1742,7 +1744,7 @@ type HBInsertParams struct {
 	Muted             sql.NullString
 }
 
-// Inserts a new heartbeat record
+// HBInsert will insert a new heartbeat record.
 func (q *Queries) HBInsert(ctx context.Context, arg HBInsertParams) error {
 	_, err := q.db.ExecContext(ctx, hBInsert,
 		arg.ID,
@@ -1764,6 +1766,7 @@ WHERE
     id = ANY ($1::uuid[])
 `
 
+// HBManyByID returns multiple heartbeat records by their IDs.
 func (q *Queries) HBManyByID(ctx context.Context, ids []uuid.UUID) ([]HeartbeatMonitor, error) {
 	rows, err := q.db.QueryContext(ctx, hBManyByID, pq.Array(ids))
 	if err != nil {
@@ -1805,6 +1808,7 @@ WHERE
     id = $1
 `
 
+// HBRecordHeartbeat updates the last heartbeat time for a monitor.
 func (q *Queries) HBRecordHeartbeat(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, hBRecordHeartbeat, id)
 	return err
@@ -1830,6 +1834,7 @@ type HBUpdateParams struct {
 	ID                uuid.UUID
 }
 
+// HBUpdate will update a heartbeat record.
 func (q *Queries) HBUpdate(ctx context.Context, arg HBUpdateParams) error {
 	_, err := q.db.ExecContext(ctx, hBUpdate,
 		arg.Name,
