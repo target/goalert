@@ -17,6 +17,7 @@ const (
 
 var _ processinglock.Setupable = &DB{}
 
+// Setup implements processinglock.Setupable.
 func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 	river.AddWorker(args.Workers, river.WorkFunc(db.cleanup))
 	river.AddWorker(args.Workers, river.WorkFunc(db.processSubscription))

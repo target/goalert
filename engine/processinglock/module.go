@@ -64,5 +64,7 @@ func (a SetupArgs) AddPeriodicJob(dur time.Duration, args river.JobArgs, opts *r
 // Setupable is an interface for types that can be set up using the job queue system.
 type Setupable interface {
 	Module
+
+	// Setup is called to configure the processing lock system. Any workers, queues, and periodic jobs should be added here.
 	Setup(context.Context, SetupArgs) error
 }

@@ -42,14 +42,17 @@ type noopWorker struct{}
 
 func (noopWorker) Kind() string { return "noop" }
 
+// ignoreCancel is a slog.Handler that ignores log records with an "error" attribute of "context canceled".
 type ignoreCancel struct {
 	h slog.Handler
 }
 
+// Enabled implements the slog.Handler interface.
 func (i *ignoreCancel) Enabled(ctx context.Context, level slog.Level) bool {
 	return i.h.Enabled(ctx, level)
 }
 
+// Handle implements the slog.Handler interface.
 func (i *ignoreCancel) Handle(ctx context.Context, rec slog.Record) error {
 	var shouldIgnore bool
 	rec.Attrs(func(a slog.Attr) bool {
@@ -68,10 +71,12 @@ func (i *ignoreCancel) Handle(ctx context.Context, rec slog.Record) error {
 	return i.h.Handle(ctx, rec)
 }
 
+// WithContext implements the slog.Handler interface.
 func (i *ignoreCancel) WithGroup(name string) slog.Handler {
 	return &ignoreCancel{h: i.h.WithGroup(name)}
 }
 
+// WithAttrs implements the slog.Handler interface.
 func (i *ignoreCancel) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return &ignoreCancel{h: i.h.WithAttrs(attrs)}
 }

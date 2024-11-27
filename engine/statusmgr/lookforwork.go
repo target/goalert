@@ -15,6 +15,7 @@ type LookForWorkArgs struct{}
 
 func (LookForWorkArgs) Kind() string { return "status-manager-look-for-work" }
 
+// lookForWork is a worker function that will find any subscriptions that are out of date and need to be updated, and add them to the processing queue.
 func (db *DB) lookForWork(ctx context.Context, j *river.Job[LookForWorkArgs]) error {
 	var outOfDate []int64
 	err := db.lock.WithTxShared(ctx, func(ctx context.Context, tx *sql.Tx) error {
