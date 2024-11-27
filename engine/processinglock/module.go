@@ -41,7 +41,11 @@ type SetupArgs struct {
 
 // AddQueue configures a queue with the given name and maxWorkers.
 func (a SetupArgs) AddQueue(name string, maxWorkers int) {
-	a.river.Queues().Add(name, river.QueueConfig{MaxWorkers: maxWorkers})
+	err := a.river.Queues().Add(name, river.QueueConfig{MaxWorkers: maxWorkers})
+	if err != nil {
+		// Indicates invalid worker config or queue name (which should be static).
+		panic(err)
+	}
 }
 
 // AddPeriodicJob adds a periodic job to river, while registering it with the engine for manual triggering during tests.
