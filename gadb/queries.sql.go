@@ -850,6 +850,369 @@ func (q *Queries) CalSubUserNames(ctx context.Context, dollar_1 []uuid.UUID) ([]
 	return items, nil
 }
 
+const cleanMgrAlertLogs = `-- name: CleanMgrAlertLogs :one
+WITH scope AS (
+    SELECT
+        id
+    FROM
+        alert_logs l
+    WHERE
+        l.id > $1
+    ORDER BY
+        id
+    LIMIT 100
+),
+id_range AS (
+    SELECT
+        min(id),
+        max(id)
+    FROM
+        scope
+),
+_delete AS (
+    DELETE FROM alert_logs
+    WHERE id = ANY (
+            SELECT
+                id
+            FROM
+                alert_logs
+            WHERE
+                id BETWEEN (
+                    SELECT
+                        min
+                    FROM
+                        id_range)
+                    AND (
+                        SELECT
+                            max
+                        FROM
+                            id_range)
+                        AND NOT EXISTS (
+                            SELECT
+                                1
+                            FROM
+                                alerts
+                            WHERE
+                                alert_id = id)
+                            FOR UPDATE
+                                SKIP LOCKED))
+                SELECT
+                    id
+                FROM
+                    scope offset 99
+`
+
+// CleanMgrAlertLogs deletes a range of alert logs that do not have a corresponding alert entry, returning the ID of the next entry in the range.
+func (q *Queries) CleanMgrAlertLogs(ctx context.Context, id int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, cleanMgrAlertLogs, id)
+	err := row.Scan(&id)
+	return id, err
+}
+
+const cleanMgrCalSubs = `-- name: CleanMgrCalSubs :execrows
+UPDATE
+    user_calendar_subscriptions
+SET
+    disabled = TRUE
+WHERE
+    id = ANY (
+        SELECT
+            id
+        FROM
+            user_calendar_subscriptions sub
+        WHERE
+            greatest(sub.last_access, sub.last_update) < $1::timestamptz
+        ORDER BY
+            id
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// CleanMgrCalSubs deletes calendar subscriptions not used or updated since the specified cutoff time.
+func (q *Queries) CleanMgrCalSubs(ctx context.Context, dollar_1 time.Time) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanMgrCalSubs, dollar_1)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const cleanMgrClosedAlerts = `-- name: CleanMgrClosedAlerts :execrows
+DELETE FROM alerts
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            alerts a
+        WHERE
+            status = 'closed'
+            AND a.created_at < $1
+        ORDER BY
+            id
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// CleanMgrClosedAlerts deletes closed alerts older than the specified cutoff time.
+func (q *Queries) CleanMgrClosedAlerts(ctx context.Context, createdAt time.Time) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanMgrClosedAlerts, createdAt)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const cleanMgrEPHistory = `-- name: CleanMgrEPHistory :execrows
+DELETE FROM ep_step_on_call_users
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            ep_step_on_call_users e
+        WHERE
+            e.end_time < $1::timestamptz
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// CleanMgrEPHistory deletes EP step on call history entries older than the specified cutoff time.
+func (q *Queries) CleanMgrEPHistory(ctx context.Context, dollar_1 time.Time) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanMgrEPHistory, dollar_1)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const cleanMgrSchedHistory = `-- name: CleanMgrSchedHistory :execrows
+DELETE FROM schedule_on_call_users
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            schedule_on_call_users s
+        WHERE
+            s.end_time < $1::timestamptz
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// CleanMgrSchedHistory deletes schedule history entries older than the specified cutoff time.
+func (q *Queries) CleanMgrSchedHistory(ctx context.Context, dollar_1 time.Time) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanMgrSchedHistory, dollar_1)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const cleanMgrScheduleData = `-- name: CleanMgrScheduleData :many
+SELECT
+    schedule_id,
+    data
+FROM
+    schedule_data
+WHERE
+    data NOTNULL
+    AND (last_cleanup_at ISNULL
+        OR last_cleanup_at < $1::timestamptz)
+ORDER BY
+    last_cleanup_at ASC nulls FIRST
+FOR UPDATE
+    SKIP LOCKED
+LIMIT 100
+`
+
+type CleanMgrScheduleDataRow struct {
+	ScheduleID uuid.UUID
+	Data       json.RawMessage
+}
+
+// CleanMgrScheduleData returns the IDs and data of all schedule data entries that have not been cleaned up since the specified cutoff time.
+func (q *Queries) CleanMgrScheduleData(ctx context.Context, cutoff time.Time) ([]CleanMgrScheduleDataRow, error) {
+	rows, err := q.db.QueryContext(ctx, cleanMgrScheduleData, cutoff)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CleanMgrScheduleDataRow
+	for rows.Next() {
+		var i CleanMgrScheduleDataRow
+		if err := rows.Scan(&i.ScheduleID, &i.Data); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const cleanMgrSetTimeout = `-- name: CleanMgrSetTimeout :exec
+SET LOCAL statement_timeout = 3000
+`
+
+// CleanMgrSetTimeout sets the statement timeout to 3000ms.
+func (q *Queries) CleanMgrSetTimeout(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, cleanMgrSetTimeout)
+	return err
+}
+
+const cleanMgrStaleAlertIDs = `-- name: CleanMgrStaleAlertIDs :many
+SELECT
+    id
+FROM
+    alerts a
+WHERE (a.status = 'triggered'
+    OR ($1
+        AND a.status = 'active'))
+AND created_at <= $2
+AND NOT EXISTS (
+    SELECT
+        1
+    FROM
+        alert_logs log
+    WHERE
+        timestamp > $2
+        AND log.alert_id = a.id)
+LIMIT 100
+`
+
+type CleanMgrStaleAlertIDsParams struct {
+	IncludeActive interface{}
+	Cutoff        time.Time
+}
+
+// CleanMgrStaleAlertIDs returns the IDs of all alerts that are either triggered or active and have not been updated since the specified cutoff time.
+func (q *Queries) CleanMgrStaleAlertIDs(ctx context.Context, arg CleanMgrStaleAlertIDsParams) ([]int64, error) {
+	rows, err := q.db.QueryContext(ctx, cleanMgrStaleAlertIDs, arg.IncludeActive, arg.Cutoff)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const cleanMgrUpdateScheduleData = `-- name: CleanMgrUpdateScheduleData :exec
+UPDATE
+    schedule_data
+SET
+    last_cleanup_at = now(),
+    data = $2
+WHERE
+    schedule_id = $1
+`
+
+type CleanMgrUpdateScheduleDataParams struct {
+	ScheduleID uuid.UUID
+	Data       json.RawMessage
+}
+
+// CleanMgrUpdateScheduleData updates the data of a schedule data entry.
+func (q *Queries) CleanMgrUpdateScheduleData(ctx context.Context, arg CleanMgrUpdateScheduleDataParams) error {
+	_, err := q.db.ExecContext(ctx, cleanMgrUpdateScheduleData, arg.ScheduleID, arg.Data)
+	return err
+}
+
+const cleanMgrUserIDs = `-- name: CleanMgrUserIDs :many
+SELECT
+    id
+FROM
+    users
+`
+
+// CleanMgrUserIDs returns the IDs of all users.
+func (q *Queries) CleanMgrUserIDs(ctx context.Context) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, cleanMgrUserIDs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const cleanMgrUserOverrides = `-- name: CleanMgrUserOverrides :execrows
+DELETE FROM user_overrides
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            user_overrides o
+        WHERE
+            o.end_time < $1
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// CleanMgrUserOverrides deletes user overrides that have ended before the specified cutoff time.
+func (q *Queries) CleanMgrUserOverrides(ctx context.Context, endTime time.Time) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanMgrUserOverrides, endTime)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const cleanMgrUserSessions = `-- name: CleanMgrUserSessions :execrows
+DELETE FROM auth_user_sessions
+WHERE ctid = ANY (
+        SELECT
+            ctid
+        FROM
+            auth_user_sessions s
+        WHERE
+            s.last_access_at < $1
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// CleanMgrUserSessions deletes user sessions not used since the specified cutoff time.
+func (q *Queries) CleanMgrUserSessions(ctx context.Context, lastAccessAt time.Time) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanMgrUserSessions, lastAccessAt)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const connectionInfo = `-- name: ConnectionInfo :many
 SELECT application_name AS NAME,
     COUNT(*)
