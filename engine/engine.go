@@ -311,10 +311,10 @@ func (p *Engine) Shutdown(ctx context.Context) error {
 
 func (p *Engine) _shutdown(ctx context.Context) (err error) {
 	close(p.shutdownCh)
+	<-p.runLoopExit
 	if !p.cfg.DisableCycle {
 		err = p.cfg.River.Stop(ctx)
 	}
-	<-p.runLoopExit
 	return err
 }
 
