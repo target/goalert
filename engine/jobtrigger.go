@@ -3,6 +3,7 @@ package engine
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/rivertype"
@@ -21,6 +22,7 @@ func (p *Engine) runAllPeriodicJobs(ctx context.Context) error {
 		return err
 	}
 
+	t := time.Tick(1 * time.Second)
 	for {
 		res, err := p.cfg.River.JobList(ctx, river.NewJobListParams().States(rivertype.JobStateAvailable, rivertype.JobStateRunning, rivertype.JobStateScheduled, rivertype.JobStatePending))
 		if err != nil {
@@ -28,6 +30,11 @@ func (p *Engine) runAllPeriodicJobs(ctx context.Context) error {
 		}
 		if len(res.Jobs) == 0 {
 			return nil
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-t:
 		}
 	}
 }
