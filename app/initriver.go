@@ -90,7 +90,9 @@ func (app *App) initRiver(ctx context.Context) error {
 		// River tends to log "context canceled" errors while shutting down
 		Logger:  slog.New(&ignoreCancel{h: app.Logger.With("module", "river").Handler()}),
 		Workers: app.RiverWorkers,
-		Queues:  map[string]river.QueueConfig{river.QueueDefault: {MaxWorkers: 100}},
+		Queues: map[string]river.QueueConfig{
+			river.QueueDefault: {MaxWorkers: 100},
+		},
 		ErrorHandler: &riverErrs{
 			// The error handler logger is used differently than the main logger, so it should be separate, and doesn't need the wrapper.
 			Logger: app.Logger.With("module", "river"),

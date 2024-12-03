@@ -3,6 +3,7 @@ package engine
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/riverqueue/river"
@@ -16,25 +17,27 @@ func (p *Engine) runAllPeriodicJobs(ctx context.Context) error {
 		args, opts := fn()
 		jobs = append(jobs, river.InsertManyParams{Args: args, InsertOpts: opts})
 	}
-
-	_, err := p.cfg.River.InsertManyFast(ctx, jobs)
+	res, err := p.cfg.River.InsertMany(ctx, jobs)
 	if err != nil {
 		return err
 	}
 
 	t := time.Tick(1 * time.Second)
-	for {
-		res, err := p.cfg.River.JobList(ctx, river.NewJobListParams().States(rivertype.JobStateAvailable, rivertype.JobStateRunning, rivertype.JobStateScheduled, rivertype.JobStatePending))
-		if err != nil {
-			return fmt.Errorf("job list: %w", err)
-		}
-		if len(res.Jobs) == 0 {
-			return nil
-		}
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-t:
+	for _, j := range res {
+		for {
+			job, err := p.cfg.River.JobGet(ctx, j.Job.ID)
+			if err != nil {
+				return fmt.Errorf("job get: %w", err)
+			}
+			if !slices.Contains([]rivertype.JobState{rivertype.JobStateAvailable, rivertype.JobStateRunning, rivertype.JobStateScheduled, rivertype.JobStatePending}, job.State) {
+				break // job is done
+			}
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-t:
+			}
 		}
 	}
+	return nil
 }
