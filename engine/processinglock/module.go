@@ -22,10 +22,7 @@ type Updatable interface {
 }
 
 func NewSetupArgs(river *river.Client[pgx.Tx], registerJobConstFn func(river.PeriodicJobConstructor)) SetupArgs {
-	return SetupArgs{
-		river:              river,
-		registerJobConstFn: registerJobConstFn,
-	}
+	return SetupArgs{river: river, regJobFn: registerJobConstFn}
 }
 
 // SetupArgs is a struct that contains the arguments for the setup function.
@@ -33,10 +30,8 @@ type SetupArgs struct {
 	DB           *sql.DB
 	Workers      *river.Workers
 	ConfigSource config.Source
-
-	river *river.Client[pgx.Tx]
-
-	registerJobConstFn func(river.PeriodicJobConstructor)
+	river        *river.Client[pgx.Tx]
+	regJobFn     func(river.PeriodicJobConstructor)
 }
 
 // AddQueue configures a queue with the given name and maxWorkers.
@@ -53,7 +48,7 @@ func (a SetupArgs) AddPeriodicJob(dur time.Duration, args river.JobArgs, opts *r
 	fn := func() (river.JobArgs, *river.InsertOpts) {
 		return args, opts
 	}
-	a.registerJobConstFn(fn)
+	a.regJobFn(fn)
 	a.river.PeriodicJobs().Add(river.NewPeriodicJob(
 		river.PeriodicInterval(dur),
 		fn,

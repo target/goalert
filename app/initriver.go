@@ -16,7 +16,6 @@ type riverErrs struct {
 
 func (r *riverErrs) HandleError(ctx context.Context, job *rivertype.JobRow, err error) *river.ErrorHandlerResult {
 	r.Logger.ErrorContext(ctx, "Job returned error.",
-
 		"job.queue", job.Queue,
 		"job.id", job.ID,
 		"job.kind", job.Kind,
@@ -43,9 +42,7 @@ type noopWorker struct{}
 func (noopWorker) Kind() string { return "noop" }
 
 // ignoreCancel is a slog.Handler that ignores log records with an "error" attribute of "context canceled".
-type ignoreCancel struct {
-	h slog.Handler
-}
+type ignoreCancel struct{ h slog.Handler }
 
 // Enabled implements the slog.Handler interface.
 func (i *ignoreCancel) Enabled(ctx context.Context, level slog.Level) bool {
@@ -56,18 +53,14 @@ func (i *ignoreCancel) Enabled(ctx context.Context, level slog.Level) bool {
 func (i *ignoreCancel) Handle(ctx context.Context, rec slog.Record) error {
 	var shouldIgnore bool
 	rec.Attrs(func(a slog.Attr) bool {
-		if a.Key != "error" {
-			return true
-		}
-		if a.Value.String() == "context canceled" {
+		if a.Key == "error" && a.Value.String() == "context canceled" {
 			shouldIgnore = true
 		}
-		return false
+		return true
 	})
 	if shouldIgnore {
 		return nil
 	}
-
 	return i.h.Handle(ctx, rec)
 }
 
@@ -97,9 +90,7 @@ func (app *App) initRiver(ctx context.Context) error {
 		// River tends to log "context canceled" errors while shutting down
 		Logger:  slog.New(&ignoreCancel{h: app.Logger.With("module", "river").Handler()}),
 		Workers: app.RiverWorkers,
-		Queues: map[string]river.QueueConfig{
-			river.QueueDefault: {MaxWorkers: 100},
-		},
+		Queues:  map[string]river.QueueConfig{river.QueueDefault: {MaxWorkers: 100}},
 		ErrorHandler: &riverErrs{
 			// The error handler logger is used differently than the main logger, so it should be separate, and doesn't need the wrapper.
 			Logger: app.Logger.With("module", "river"),
