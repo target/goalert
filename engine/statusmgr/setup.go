@@ -24,13 +24,17 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 	river.AddWorker(args.Workers, river.WorkFunc(db.lookForWork))
 
 	args.AddQueue(QueueName, 5)
-	args.AddPeriodicJob(time.Second*5, LookForWorkArgs{}, &river.InsertOpts{
-		Queue:    QueueName,
-		Priority: PriorityCleanup,
+	args.AddPeriodicJob(time.Second*5, func() (river.JobArgs, *river.InsertOpts) {
+		return LookForWorkArgs{}, &river.InsertOpts{
+			Queue:    QueueName,
+			Priority: PriorityCleanup,
+		}
 	})
-	args.AddPeriodicJob(time.Hour, CleanupArgs{}, &river.InsertOpts{
-		Queue:    QueueName,
-		Priority: PriorityCleanup,
+	args.AddPeriodicJob(time.Hour, func() (river.JobArgs, *river.InsertOpts) {
+		return CleanupArgs{}, &river.InsertOpts{
+			Queue:    QueueName,
+			Priority: PriorityCleanup,
+		}
 	})
 
 	return nil
