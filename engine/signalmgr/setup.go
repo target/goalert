@@ -41,32 +41,15 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 		return db.scheduleMessages(ctx, j.Args.ServiceID)
 	}))
 
-	err := args.River.Queues().Add(QueueName, river.QueueConfig{MaxWorkers: 3})
-	if err != nil {
-		return err
-	}
-
-	jobs := args.River.PeriodicJobs()
-	jobs.Add(river.NewPeriodicJob(
-		river.PeriodicInterval(time.Hour),
-		func() (river.JobArgs, *river.InsertOpts) {
-			return MaintArgs{}, &river.InsertOpts{
-				Queue:    QueueName,
-				Priority: PriorityMaintCleanup,
-			}
-		},
-		&river.PeriodicJobOpts{RunOnStart: true},
-	))
-	jobs.Add(river.NewPeriodicJob(
-		river.PeriodicInterval(time.Minute),
-		func() (river.JobArgs, *river.InsertOpts) {
-			return SchedMsgsArgs{}, &river.InsertOpts{
-				Queue:    QueueName,
-				Priority: PriorityScheduleAll,
-			}
-		},
-		&river.PeriodicJobOpts{RunOnStart: true},
-	))
+	args.AddQueue(QueueName, 3)
+	args.AddPeriodicJob(time.Hour, MaintArgs{}, &river.InsertOpts{
+		Queue:    QueueName,
+		Priority: PriorityMaintCleanup,
+	})
+	args.AddPeriodicJob(time.Minute, SchedMsgsArgs{}, &river.InsertOpts{
+		Queue:    QueueName,
+		Priority: PriorityScheduleAll,
+	})
 
 	return nil
 }
