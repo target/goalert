@@ -69,27 +69,25 @@ func handleStop(w http.ResponseWriter, req *http.Request) {
 
 func handleStart(w http.ResponseWriter, req *http.Request) {
 	_ = req.ParseForm()
-	extraArgs := req.Form["extra-arg"]
-	if len(extraArgs) == 0 {
-		start(nil)
-		return
+	var args []string
+	for _, f := range req.Form["extra-arg"] {
+		switch {
+		case strings.HasPrefix(f, "--experimental="):
+			flags := strings.Split(f, strings.TrimPrefix(f, "--experimental="))
+			if len(flags) == 0 || len(flags) > 10 {
+				http.Error(w, "invalid extra-arg", http.StatusBadRequest)
+				return
+			}
+		case f == "--api-only": // OK
+		default:
+			http.Error(w, "invalid extra-arg", http.StatusBadRequest)
+			return
+		}
+
+		args = append(args, f)
 	}
 
-	if len(extraArgs) != 2 {
-		http.Error(w, "invalid extra-arg", http.StatusBadRequest)
-		return
-	}
-	if extraArgs[0] != "--experimental" {
-		http.Error(w, "invalid extra-arg", http.StatusBadRequest)
-		return
-	}
-	flags := strings.Split(extraArgs[1], ",")
-	if extraArgs[1] == "" || len(flags) == 0 || len(flags) > 10 {
-		http.Error(w, "invalid extra-arg", http.StatusBadRequest)
-		return
-	}
-
-	start([]string{"--experimental", strings.Join(flags, ",")})
+	start(args)
 }
 
 func handleSignal(w http.ResponseWriter, req *http.Request) {

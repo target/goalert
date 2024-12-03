@@ -1,6 +1,6 @@
 FROM docker.io/library/alpine:3.14 AS build
-ARG ARCH
-COPY /bin/goalert-linux-$ARCH.tgz /work/goalert.tgz
+ARG TARGETARCH
+COPY /bin/goalert-linux-$TARGETARCH.tgz /work/goalert.tgz
 RUN mkdir -p /work/bin && tar xfv /work/goalert.tgz -C /work && cp /work/goalert/bin/* /work/bin/
 
 FROM docker.io/library/alpine

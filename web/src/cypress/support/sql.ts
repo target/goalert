@@ -7,14 +7,17 @@ declare global {
       /** Fast-forwards the test DB clock by the specified duration and triggers a data refetch after. */
       fastForward: typeof fastForward
 
-      /** Alters the passage of time. */
-      setTimeSpeed: typeof setTimeSpeed
-
       /** Triggers the engine to run and triggers a data refetch after. */
       engineTrigger: typeof engineTrigger
 
       /** Refetches all data from the backend. */
       refetchAll: typeof refetchAll
+
+      /** Stops the passage of time. */
+      stopTime: typeof stopTime
+
+      /** Resumes the passage of time. */
+      resumeTime: typeof startTime
     }
   }
 }
@@ -23,7 +26,9 @@ function refetchAll(): Cypress.Chainable {
   return cy.window().invoke('refetchAll')
 }
 
+let timeIsStopped = false
 function fastForward(duration: string): Cypress.Chainable {
+  if (!timeIsStopped) throw new Error('Time is not stopped, cannot time')
   return cy.task('db:fastforward', duration)
 }
 
@@ -40,17 +45,48 @@ function sql(query: string): Cypress.Chainable {
 }
 
 function engineTrigger(): Cypress.Chainable {
-  return cy.task('engine:trigger').refetchAll()
+  if (!timeIsStopped) return cy.task('engine:trigger').refetchAll()
+
+  // Since time is stopped, we resume it (which causes a trigger) and then stop it again. We want to avoid running the engine when we're doing anything with time, but sometimes we're trying to insert things at specific times in the DB and need the engine to record those actions at the "current" time.
+  return cy
+    .task('engine:stop')
+    .task('engine:setapionly', false)
+    .task('engine:start')
+    .task('engine:trigger')
+    .task('engine:stop')
+    .task('engine:setapionly', true)
+    .task('engine:start')
+    .reload()
 }
 
-function setTimeSpeed(speed: number): Cypress.Chainable {
-  return cy.task('db:setTimeSpeed', speed)
+function stopTime(): Cypress.Chainable {
+  return cy
+    .task('engine:stop')
+    .task('engine:setapionly', true)
+    .task('db:setTimeSpeed', 0)
+    .task('engine:start')
+    .then(() => {
+      timeIsStopped = true
+    })
+}
+
+function startTime(): Cypress.Chainable {
+  return cy
+    .task('engine:stop')
+    .task('engine:setapionly', false)
+    .task('db:setTimeSpeed', 1)
+    .task('engine:start')
+    .then(() => {
+      timeIsStopped = false
+    })
+    .task('engine:trigger')
 }
 
 Cypress.Commands.add('sql', sql)
 Cypress.Commands.add('fastForward', fastForward)
 Cypress.Commands.add('engineTrigger', engineTrigger)
 Cypress.Commands.add('refetchAll', refetchAll)
-Cypress.Commands.add('setTimeSpeed', setTimeSpeed)
+Cypress.Commands.add('stopTime', stopTime)
+Cypress.Commands.add('resumeTime', startTime)
 
 export {}
