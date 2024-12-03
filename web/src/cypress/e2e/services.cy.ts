@@ -111,17 +111,20 @@ function testServices(screen: ScreenFormat): void {
     let openAlert: Alert
     beforeEach(() =>
       cy
-        .setTimeSpeed(0)
+        .stopTime()
         .fastForward('-25h')
         .createAlert()
         .then((a: Alert) => {
           closedAlert = a
+          cy.engineTrigger() // ensure it's "started"
           cy.fastForward('1m')
           cy.ackAlert(a.id)
+          cy.engineTrigger() // process the ack
           cy.fastForward('1m')
           cy.closeAlert(a.id)
+          cy.engineTrigger() // process the close
           cy.fastForward('25h')
-          cy.setTimeSpeed(1) // resume the flow of time
+          cy.resumeTime() // resume the flow of time
           // non-closed alert
           return cy.createAlert({ serviceID: a.serviceID })
         })
