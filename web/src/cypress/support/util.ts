@@ -3,6 +3,7 @@ import { Chance } from 'chance'
 import users from '../fixtures/users.json'
 import profile from '../fixtures/profile.json'
 import profileAdmin from '../fixtures/profileAdmin.json'
+import type { ExpFlag } from '../../expflag'
 
 const allUsers = users.concat(profile, profileAdmin)
 const c = new Chance()
@@ -143,7 +144,7 @@ export function testScreen(
   fn: (screen: ScreenFormat) => void,
   skipLogin = false,
   adminLogin = false,
-  expFlags: string[] = [],
+  expFlags: ExpFlag[] = [],
 ): void {
   after(() => {
     loginFn = null
@@ -197,7 +198,7 @@ export function testScreen(
 export function testScreenWithFlags(
   label: string,
   fn: (screen: ScreenFormat) => void,
-  expFlags: string[],
+  expFlags: ExpFlag[],
 ): void {
   testScreen(label, fn, false, false, expFlags)
 }

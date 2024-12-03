@@ -44,10 +44,7 @@ func (a SetupArgs) AddQueue(name string, maxWorkers int) {
 }
 
 // AddPeriodicJob adds a periodic job to river, while registering it with the engine for manual triggering during tests.
-func (a SetupArgs) AddPeriodicJob(dur time.Duration, args river.JobArgs, opts *river.InsertOpts) {
-	fn := func() (river.JobArgs, *river.InsertOpts) {
-		return args, opts
-	}
+func (a SetupArgs) AddPeriodicJob(dur time.Duration, fn river.PeriodicJobConstructor) {
 	a.regJobFn(fn)
 	a.river.PeriodicJobs().Add(river.NewPeriodicJob(
 		river.PeriodicInterval(dur),

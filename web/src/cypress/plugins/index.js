@@ -59,12 +59,13 @@ function fastForwardDB(duration) {
   return pgmocktime('-a ' + duration)
 }
 let expFlags = []
+let apiOnly = false
 function flagsQ() {
   if (expFlags.length === 0) {
     return ''
   }
 
-  return `?extra-arg=--experimental&extra-arg=${expFlags.join(',')}`
+  return `?extra-arg=--experimental=${expFlags.join(',') + (apiOnly ? '&extra-arg=--api-only' : '')}`
 }
 
 let failed = false
@@ -80,7 +81,6 @@ module.exports = (on, config) => {
   const startBackend = makeDoCall(() => '/start' + flagsQ())
   async function fastForward(dur) {
     await fastForwardDB(dur)
-    await engineCycle()
     return null
   }
 
@@ -91,6 +91,10 @@ module.exports = (on, config) => {
     'db:resettime': () => fastForwardDB(),
     'engine:setexpflags': (flags) => {
       expFlags = flags
+      return null
+    },
+    'engine:setapionly': (val) => {
+      apiOnly = val
       return null
     },
     'engine:start': startBackend,

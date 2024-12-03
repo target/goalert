@@ -204,7 +204,7 @@ function testAdmin(): void {
     let svc2: Service
 
     beforeEach(() => {
-      cy.setTimeSpeed(0)
+      cy.stopTime()
       cy.fastForward('-21h')
 
       cy.createService().then((s1: Service) => {
@@ -218,7 +218,7 @@ function testAdmin(): void {
       })
 
       cy.fastForward('21h')
-      cy.setTimeSpeed(1) // resume the flow of time
+      cy.resumeTime() // resume the flow of time
 
       return cy.visit('/admin/alert-counts')
     })

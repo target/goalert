@@ -17,6 +17,9 @@ func (p *Engine) runAllPeriodicJobs(ctx context.Context) error {
 		args, opts := fn()
 		jobs = append(jobs, river.InsertManyParams{Args: args, InsertOpts: opts})
 	}
+	if len(jobs) == 0 {
+		return nil
+	}
 	res, err := p.cfg.River.InsertMany(ctx, jobs)
 	if err != nil {
 		return err

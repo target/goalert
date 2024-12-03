@@ -42,13 +42,17 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 	}))
 
 	args.AddQueue(QueueName, 3)
-	args.AddPeriodicJob(time.Hour, MaintArgs{}, &river.InsertOpts{
-		Queue:    QueueName,
-		Priority: PriorityMaintCleanup,
+	args.AddPeriodicJob(time.Hour, func() (river.JobArgs, *river.InsertOpts) {
+		return MaintArgs{}, &river.InsertOpts{
+			Queue:    QueueName,
+			Priority: PriorityMaintCleanup,
+		}
 	})
-	args.AddPeriodicJob(time.Minute, SchedMsgsArgs{}, &river.InsertOpts{
-		Queue:    QueueName,
-		Priority: PriorityScheduleAll,
+	args.AddPeriodicJob(time.Minute, func() (river.JobArgs, *river.InsertOpts) {
+		return SchedMsgsArgs{}, &river.InsertOpts{
+			Queue:    QueueName,
+			Priority: PriorityScheduleAll,
+		}
 	})
 
 	return nil
