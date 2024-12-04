@@ -1,29 +1,25 @@
 # Development Setup
 
-This guide assumes you have the commands `podman` (or `docker`), `go` (>= 1.21), `node` (>= 16.10), and `make` installed/available.
+This guide assumes you have the following commands installed/available:
 
-Targets like `make start` will automatically fallback to the `docker` command if `podman` is not available. The container tool command can be overridden by setting the `CONTAINER_TOOL` variable.
+- `docker`
+- `go` (>= 1.21)
+- `node` (>= 16.10)
+- `make`
 
-If you use Visual Studio Code, run `make vscode` to setup integrations for the project.
+If you are using vscode, you can run `make vscode` to fix the workspace settings for use with the UI code under `web/src`.
+
+## Quick Start
+
+To start the development environment, simply run:
 
 ```bash
-# force podman
-make start CONTAINER_TOOL=podman
-
-# force docker
-make start CONTAINER_TOOL=docker
+make start
 ```
 
-### Cross-Platform Images
+You can then access the GoAlert UI at [http://localhost:3030](http://localhost:3030) and login with the default credentials `admin/admin123`.
 
-To build cross-platform container images you will need `qemu-user-static` installed.
-
-If using MacOS with `podman` you can do this with the following one-time commands:
-
-```sh
-podman machine ssh sudo rpm-ostree install qemu-user-static
-podman machine ssh sudo systemctl reboot
-```
+In dev mode there is a `Dev` item in the navbar that allows you to configure and access some additional integrations like Prometheus and Email messages.
 
 ## External Traffic
 
@@ -47,7 +43,23 @@ The easiest way to setup Postgres for development is to run `make postgres`.
 You can connect to the local DB at `postgres://goalert@localhost:5432/goalert` (no password).
 This will start a container with the correct configuration for the dev environment.
 
-### Manual Configuration
+### Database Management
+
+To reset or regenerate the database (e.g., to resolve migration errors or test with a different dataset size), run:
+
+```bash
+make regendb
+```
+
+You can scale the amount of random data with the `SIZE` parameter. For example:
+
+```bash
+make regendb SIZE=10
+```
+
+This command also includes adding an admin user with the credentials `admin/admin123`.
+
+#### Manual Database Configuration
 
 If you already have Postgres running locally you can create the `goalert` role.
 
@@ -57,24 +69,16 @@ CREATE ROLE goalert WITH LOGIN SUPERUSER;
 
 Currently the dev user must be a superuser to enable `pgcrypto` with `CREATE EXTENSION`.
 
-#### Toolchain Requirements
-
-- For the first start, run `make regendb` to migrate and add test data into the DB (you can also scale the amount of random data with `SIZE` like `make regendb SIZE=10`). This includes adding an admin user `admin/admin123`.
-- To start GoAlert in development mode run `make start`.
-- To build the GoAlert binary run `make bin/goalert BUNDLE=1`.
-
-## Automated Browser Tests
-
 ### Cypress Tests
 
 To run automated browser tests, you can start Cypress in one of the following modes:
 
-- `make cy-wide` Widescreen format, in dev mode.
-- `make cy-mobile` Mobile format, in dev mode.
-- `make cy-wide-prod` Widescreen format, production build.
-- `make cy-mobile-prod` Mobile format, production build.
-- `make cy-wide-prod-run` Widescreen format, production build in headless mode.
-- `make cy-mobile-prod-run` Mobile format, production build in headless mode.
+- `make cy-wide` Start Cypress UI in widescreen format, dev mode.
+- `make cy-mobile` Start Cypress UI in mobile format, dev mode.
+- `make cy-wide-prod` Start Cypress UI in widescreen format, production build.
+- `make cy-mobile-prod` Start Cypress UI in mobile format, production build.
+- `make cy-wide-prod-run` Run tests in headless mode, widescreen format, production build.
+- `make cy-mobile-prod-run` Run tests in headless mode, mobile format, production build.
 
 The Cypress UI should start automatically.
 
@@ -84,7 +88,7 @@ More information about browser tests can be found [here](../web/src/cypress/READ
 
 To run automated browser tests, you can start Playwright in one of the following modes:
 
-- `make playwright-ui` Run all tests in UI mode.
+- `make playwright-ui` Start the Playwright UI.
 - `make playwright-run` Run all tests in headless mode.
 
 ### Running Smoke Tests
