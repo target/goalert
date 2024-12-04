@@ -1,49 +1,90 @@
 # Development Setup
 
-This guide assumes you have the following commands installed/available:
+This guide assumes you have the following commands installed and available in your environment:
 
 - `docker`
 - `go` (>= 1.21)
 - `node` (>= 18)
 - `make`
 
-If you are using vscode, you can run `make vscode` to fix the workspace settings for use with the UI code under `web/src`.
+**Note**: While GoAlert requires Go 1.23 for development, starting from Go 1.21, Go will automatically download and use the correct toolchain version specified in the project (`go 1.23` in `go.mod`). Therefore, Go 1.21 is the minimum version you need to have installed, but the latest version is recommended.
 
 ## Quick Start
 
-To start the development environment, simply run:
+To start the development environment, ensure that Docker is running and execute:
 
 ```bash
 make start
 ```
 
-You can then access the GoAlert UI at [http://localhost:3030](http://localhost:3030) and login with the default credentials `admin/admin123`.
+Once the server is up, you can access the GoAlert UI at [http://localhost:3030](http://localhost:3030). Log in using the default credentials:
 
-In dev mode there is a `Dev` item in the navbar that allows you to configure and access some additional integrations like Prometheus and Email messages.
+- **Username**: `admin`
+- **Password**: `admin123`
+
+> **Security Note**: The default credentials are intended for development purposes only. If your development environment is accessible over a network, it's recommended to change the password to prevent unauthorized access.
+
+In development mode, you'll see a `Dev` item in the navigation bar. This allows you to configure and access additional integrations such as Prometheus and email messages.
+
+## VSCode Configuration
+
+If you are using Visual Studio Code (VSCode), you can run:
+
+```bash
+make vscode
+```
+
+This command installs the Yarn SDK for VSCode, ensuring compatibility with the Yarn Plug'n'Play (PnP) setup used by GoAlert. By default, VSCode extensions expect dependencies to be in `node_modules`, but Yarn PnP uses a different mechanism for dependency resolution. Running `make vscode` resolves this by configuring VSCode to work with Yarn PnP.
 
 ## External Traffic
 
-To do local development with external traffic you will need a publicly-routable URL and can start localdev with `PUBLIC_URL` set. For example:
+To test features that require external callbacks (e.g., webhooks from third-party services), you'll need a publicly accessible URL that points to your local development server.
+
+Start the development environment with the `PUBLIC_URL` environment variable set:
 
 ```bash
-make start PUBLIC_URL=http://localdev.example.com
+make start PUBLIC_URL=https://localdev.example.com
 ```
 
-You may add additional startup commands to the `Procfile.local` file to have them automatically run with `make start` and similar commands.
+### Using `ngrok` to Expose Your Local Server
+
+To expose your local server to the internet, you can use a tool like `ngrok`. First, ensure `ngrok` is installed on your system. Then, add the following line to your `Procfile.local`:
 
 ```bash
-ngrok: ngrok http -subdomain=localdev 3030
+ngrok: ngrok http 3030
 ```
+
+This configuration starts `ngrok` automatically when you run `make start`, creating a public URL that tunnels to your local server. The public URL provided by `ngrok` will look something like `https://abcd1234.ngrok.io`.
 
 ## Database (PostgreSQL)
 
-GoAlert is built and tested against Postgres 13. Version 11+ should still work as of this writing.
+GoAlert is built and tested against PostgreSQL 13. While versions 11 and newer should work, using PostgreSQL 13 is recommended for compatibility.
 
-The easiest way to setup Postgres for development is to run `make postgres`.
-You can connect to the local DB at `postgres://goalert@localhost:5432/goalert` (no password).
-This will start a container with the correct configuration for the dev environment.
+### Starting PostgreSQL
 
-### Database Management
+When you run `make start`, GoAlert automatically starts a PostgreSQL instance using Docker. If you need to start it manually, you can run:
+
+```bash
+make postgres
+```
+
+### Connecting to the Database
+
+You can connect to the local database using `psql` or a GUI tool like pgAdmin or TablePlus. Use the following connection details:
+
+- **Host**: `localhost`
+- **Port**: `5432`
+- **Database**: `goalert`
+- **User**: `goalert`
+- **Password**: (leave blank)
+
+Alternatively, you can use the connection URL:
+
+```text
+postgres://goalert@localhost:5432/goalert
+```
+
+## Database Management
 
 To reset or regenerate the database (e.g., to resolve migration errors or test with a different dataset size), run:
 
@@ -51,57 +92,147 @@ To reset or regenerate the database (e.g., to resolve migration errors or test w
 make regendb
 ```
 
-You can scale the amount of random data with the `SIZE` parameter. For example:
+> **Warning**: This command will erase any existing data in the database and generate a fresh schema with sample data.
+
+### Scaling Sample Data with `SIZE`
+
+You can control the amount of sample data generated by specifying the `SIZE` parameter. For example:
 
 ```bash
 make regendb SIZE=10
 ```
 
-This command also includes adding an admin user with the credentials `admin/admin123`.
+The `SIZE` parameter scales the amount of random data inserted into the database. A higher number creates more data, which can be useful for testing scalability and performance.
 
-#### Manual Database Configuration
+This command also creates an admin user with the credentials `admin/admin123`.
 
-If you already have Postgres running locally you can create the `goalert` role.
+### Manual Database Configuration
+
+If you have PostgreSQL running locally and prefer not to use Docker, you can manually set up the `goalert` role:
 
 ```sql
 CREATE ROLE goalert WITH LOGIN SUPERUSER;
 ```
 
-Currently the dev user must be a superuser to enable `pgcrypto` with `CREATE EXTENSION`.
+> **Note**: The development user must have superuser privileges to enable the `pgcrypto` extension using `CREATE EXTENSION`.
 
-### Cypress Tests
+Alternatively, if you prefer not to grant superuser privileges, you can manually enable the `pgcrypto` extension in your database:
 
-To run automated browser tests, you can start Cypress in one of the following modes:
+```sql
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+```
 
-- `make cy-wide` Start Cypress UI in widescreen format, dev mode.
-- `make cy-mobile` Start Cypress UI in mobile format, dev mode.
-- `make cy-wide-prod` Start Cypress UI in widescreen format, production build.
-- `make cy-mobile-prod` Start Cypress UI in mobile format, production build.
-- `make cy-wide-prod-run` Run tests in headless mode, widescreen format, production build.
-- `make cy-mobile-prod-run` Run tests in headless mode, mobile format, production build.
+Ensure that the user `goalert` has the necessary permissions to interact with the database schema.
 
-The Cypress UI should start automatically.
-
-More information about browser tests can be found [here](../web/src/cypress/README.md).
+## Testing
 
 ### Playwright Tests
 
-To run automated browser tests, you can start Playwright in one of the following modes:
+GoAlert uses Playwright for automated browser testing. You can start Playwright in one of the following modes:
 
-- `make playwright-ui` Start the Playwright UI.
-- `make playwright-run` Run all tests in headless mode.
+- **Start the Playwright UI**:
+
+  ```bash
+  make playwright-ui
+  ```
+
+  This command opens the Playwright Test Runner UI, allowing you to run and debug tests interactively.
+
+- **Run All Tests in Headless Mode**:
+
+  ```bash
+  make playwright-run
+  ```
+
+  This command runs all Playwright tests in headless mode, suitable for continuous integration pipelines or automated testing scenarios.
 
 ### Running Smoke Tests
 
-A suite of functional/behavioral tests are maintained for the backend code. These test various APIs and behaviors
-of the GoAlert server component.
+A suite of functional and behavioral tests are maintained for the backend code. These tests cover various APIs and behaviors of the GoAlert server component.
 
-Run the full suite with `make test-smoke`.
+Run the full suite of smoke tests with:
 
-More information about smoke tests can be found [here](../test/smoke/README.md).
+```bash
+make test-smoke
+```
+
+> **Note**: These tests require that PostgreSQL is running.
 
 ### Running Unit Tests
 
-All unit tests can be run with `make test-unit`.
+#### Go Unit Tests
 
-UI Unit tests are found under the directory of the file being tested, with the same file name, appended with `.test.js`. They can be run independently of the Go unit tests with `make jest`. Watch mode can be enabled with `make jest JEST_ARGS=--watch`.
+All Go unit tests can be run with:
+
+```bash
+make test-unit
+```
+
+To run tests for a specific package or file, you can use the `go test` command directly:
+
+```bash
+go test ./path/to/package -v
+```
+
+#### UI Unit Tests
+
+UI unit tests are located alongside the components they test, with the same filename appended with `.test.js`.
+
+To run all UI unit tests independently of the Go unit tests, use:
+
+```bash
+make jest
+```
+
+To run tests in watch mode, which re-runs tests when files change, use:
+
+```bash
+make jest JEST_ARGS=--watch
+```
+
+To run a specific test file:
+
+```bash
+make jest JEST_ARGS=path/to/your.test.js
+```
+
+### Generating Test Coverage Reports
+
+To generate test coverage reports for UI tests, run:
+
+```bash
+make jest JEST_ARGS=--coverage
+```
+
+## Additional Information
+
+### Environment Variables
+
+Some environment variables can affect the behavior of the development environment:
+
+- **`PUBLIC_URL`**: Sets the publicly accessible URL for your local server. Useful for testing integrations that require callbacks from external services.
+- **`SIZE`**: Controls the amount of sample data generated during `make regendb`.
+
+### Prerequisites
+
+Ensure that your system meets the following requirements:
+
+- **Operating System**: macOS, Linux, or Windows (with WSL2)
+- **Docker**: Install from [Docker's official website](https://www.docker.com/get-started)
+- **Go**: Download from [Go's official website](https://golang.org/dl/)
+- **Node.js**: Install from [Node.js official website](https://nodejs.org/en/download/)
+- **Make**: Typically pre-installed on macOS and Linux. For Windows, consider using [GNU Make for Windows](http://gnuwin32.sourceforge.net/packages/make.htm) or WSL2.
+
+### Troubleshooting
+
+#### Common Issues
+
+- **Docker Not Running**: Ensure that Docker Desktop or the Docker daemon is running before executing `make start`.
+- **Port Conflicts**: If you receive errors about ports already in use, ensure that no other services are running on the required ports (e.g., 3030 for the GoAlert server).
+
+#### Getting Help
+
+If you encounter issues not covered in this guide, consider reaching out via:
+
+- **GitHub Issues**: [GoAlert GitHub Repository](https://github.com/target/goalert/issues)
+- **Community Slack**: Join the GoAlert community on Slack for real-time assistance, [more info here.](https://github.com/target/goalert?tab=readme-ov-file#contact-us)
