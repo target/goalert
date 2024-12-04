@@ -4,7 +4,7 @@ This guide assumes you have the following commands installed/available:
 
 - `docker`
 - `go` (>= 1.21)
-- `node` (>= 16.10)
+- `node` (>= 18)
 - `make`
 
 If you are using vscode, you can run `make vscode` to fix the workspace settings for use with the UI code under `web/src`.
