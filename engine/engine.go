@@ -569,6 +569,10 @@ func (p *Engine) cycle(ctx context.Context, runJobs bool) {
 	}
 
 	// Since this was a direct trigger (i.e., tests) we will also manually inject all periodic jobs to their respective queues, and wait for them to complete.
+	//
+	// But just in case, ensure we don't ever get stuck permanently waiting for jobs to complete.
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
 	err := p.runAllPeriodicJobs(ctx)
 	if err != nil {
 		log.Log(ctx, errors.Wrap(err, "run all periodic jobs"))
