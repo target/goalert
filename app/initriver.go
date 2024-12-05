@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/riverqueue/river"
+	"github.com/riverqueue/river/riverdriver/riverdatabasesql"
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 	"github.com/riverqueue/river/rivertype"
 	"riverqueue.com/riverui"
@@ -97,6 +98,13 @@ func (app *App) initRiver(ctx context.Context) error {
 			// The error handler logger is used differently than the main logger, so it should be separate, and doesn't need the wrapper.
 			Logger: app.Logger.With("module", "river"),
 		},
+	})
+	if err != nil {
+		return err
+	}
+
+	app.RiverDBSQL, err = river.NewClient(riverdatabasesql.New(app.db), &river.Config{
+		Logger: slog.New(app.Logger.With("module", "river_dbsql").Handler()),
 	})
 	if err != nil {
 		return err
