@@ -104,7 +104,8 @@ func (app *App) initRiver(ctx context.Context) error {
 	}
 
 	app.RiverDBSQL, err = river.NewClient(riverdatabasesql.New(app.db), &river.Config{
-		Logger: slog.New(app.Logger.With("module", "river_dbsql").Handler()),
+		Logger:   slog.New(app.Logger.With("module", "river_dbsql").Handler()),
+		PollOnly: true, // don't consume a connection trying to poll, since this client has no workers
 	})
 	if err != nil {
 		return err
