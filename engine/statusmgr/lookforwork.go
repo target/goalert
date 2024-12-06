@@ -11,7 +11,9 @@ import (
 	"github.com/target/goalert/gadb"
 )
 
-type LookForWorkArgs struct{}
+type LookForWorkArgs struct {
+	AlertID int64 `json:",omitempty"`
+}
 
 func (LookForWorkArgs) Kind() string { return "status-manager-look-for-work" }
 
@@ -20,7 +22,7 @@ func (db *DB) lookForWork(ctx context.Context, j *river.Job[LookForWorkArgs]) er
 	var outOfDate []int64
 	err := db.lock.WithTxShared(ctx, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
-		outOfDate, err = gadb.New(tx).StatusMgrOutdated(ctx)
+		outOfDate, err = gadb.New(tx).StatusMgrOutdated(ctx, sql.NullInt64{Int64: j.Args.AlertID, Valid: j.Args.AlertID != 0})
 		return err
 	})
 	if errors.Is(err, sql.ErrNoRows) {

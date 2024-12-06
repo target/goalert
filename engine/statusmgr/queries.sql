@@ -5,7 +5,10 @@ FROM
     alert_status_subscriptions sub
     JOIN alerts a ON a.id = sub.alert_id
 WHERE
-    sub.last_alert_status != a.status;
+    sub.last_alert_status != a.status
+    AND sub.updated_at > now() - '7 days'::interval
+    AND (sqlc.narg(alert_id)::bigint IS NULL
+        OR sub.alert_id = @alert_id::bigint);
 
 -- name: StatusMgrLogEntry :one
 SELECT

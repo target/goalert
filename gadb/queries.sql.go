@@ -4206,10 +4206,13 @@ FROM
     JOIN alerts a ON a.id = sub.alert_id
 WHERE
     sub.last_alert_status != a.status
+    AND sub.updated_at > now() - '7 days'::interval
+    AND ($1::bigint IS NULL
+        OR sub.alert_id = $1::bigint)
 `
 
-func (q *Queries) StatusMgrOutdated(ctx context.Context) ([]int64, error) {
-	rows, err := q.db.QueryContext(ctx, statusMgrOutdated)
+func (q *Queries) StatusMgrOutdated(ctx context.Context, alertID sql.NullInt64) ([]int64, error) {
+	rows, err := q.db.QueryContext(ctx, statusMgrOutdated, alertID)
 	if err != nil {
 		return nil, err
 	}

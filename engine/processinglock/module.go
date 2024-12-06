@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/riverqueue/river"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/event"
 )
 
 // Module is a processing lock module.
@@ -30,6 +31,7 @@ type SetupArgs struct {
 	DB           *sql.DB
 	Workers      *river.Workers
 	ConfigSource config.Source
+	EventBus     *event.Bus
 	river        *river.Client[pgx.Tx]
 	regJobFn     func(river.PeriodicJobConstructor)
 }
