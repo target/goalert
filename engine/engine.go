@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/riverqueue/river"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/auth/authlink"
@@ -59,8 +58,6 @@ type Engine struct {
 	runCtx context.Context
 
 	triggerPauseCh chan *pauseReq
-
-	periodicJobs []river.PeriodicJobConstructor
 }
 
 var _ notification.ResultReceiver = &Engine{}
@@ -169,15 +166,13 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 		return nil, errors.Wrap(err, "init backend")
 	}
 
-	addPeriodicJob := func(fn river.PeriodicJobConstructor) {
-		p.periodicJobs = append(p.periodicJobs, fn)
+	args := processinglock.SetupArgs{
+		DB:           db,
+		Workers:      c.RiverWorkers,
+		ConfigSource: c.ConfigSource,
+		EventBus:     c.EventBus,
+		River:        c.River,
 	}
-
-	args := processinglock.NewSetupArgs(c.River, addPeriodicJob)
-	args.DB = db
-	args.Workers = c.RiverWorkers
-	args.ConfigSource = c.ConfigSource
-	args.EventBus = c.EventBus
 	for _, m := range p.modules {
 		if s, ok := m.(processinglock.Setupable); ok {
 			err = s.Setup(ctx, args)

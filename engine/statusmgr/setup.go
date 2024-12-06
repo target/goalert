@@ -2,6 +2,7 @@ package statusmgr
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/riverqueue/river"
@@ -35,18 +36,32 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 		}
 	})
 
-	args.AddQueue(QueueName, 5)
-	args.AddPeriodicJob(time.Minute, func() (river.JobArgs, *river.InsertOpts) {
-		return LookForWorkArgs{}, &river.InsertOpts{
-			Queue:    QueueName,
-			Priority: PriorityCleanup,
-		}
-	})
-	args.AddPeriodicJob(time.Hour, func() (river.JobArgs, *river.InsertOpts) {
-		return CleanupArgs{}, &river.InsertOpts{
-			Queue:    QueueName,
-			Priority: PriorityCleanup,
-		}
+	err := args.River.Queues().Add(QueueName, river.QueueConfig{MaxWorkers: 5})
+	if err != nil {
+		return fmt.Errorf("add queue: %w", err)
+	}
+
+	args.River.PeriodicJobs().AddMany([]*river.PeriodicJob{
+		river.NewPeriodicJob(
+			river.PeriodicInterval(time.Minute),
+			func() (river.JobArgs, *river.InsertOpts) {
+				return LookForWorkArgs{}, &river.InsertOpts{
+					Queue:    QueueName,
+					Priority: PriorityLookForWork,
+				}
+			},
+			&river.PeriodicJobOpts{RunOnStart: true},
+		),
+		river.NewPeriodicJob(
+			river.PeriodicInterval(time.Hour),
+			func() (river.JobArgs, *river.InsertOpts) {
+				return CleanupArgs{}, &river.InsertOpts{
+					Queue:    QueueName,
+					Priority: PriorityCleanup,
+				}
+			},
+			&river.PeriodicJobOpts{RunOnStart: true},
+		),
 	})
 
 	return nil

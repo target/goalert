@@ -3,6 +3,7 @@ package signalmgr
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -56,18 +57,31 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 			}
 	})
 
-	args.AddQueue(QueueName, 3)
-	args.AddPeriodicJob(time.Hour, func() (river.JobArgs, *river.InsertOpts) {
-		return MaintArgs{}, &river.InsertOpts{
-			Queue:    QueueName,
-			Priority: PriorityMaintCleanup,
-		}
-	})
-	args.AddPeriodicJob(time.Minute, func() (river.JobArgs, *river.InsertOpts) {
-		return SchedMsgsArgs{}, &river.InsertOpts{
-			Queue:    QueueName,
-			Priority: PriorityScheduleAll,
-		}
+	err := args.River.Queues().Add(QueueName, river.QueueConfig{MaxWorkers: 3})
+	if err != nil {
+		return fmt.Errorf("add queue: %w", err)
+	}
+	args.River.PeriodicJobs().AddMany([]*river.PeriodicJob{
+		river.NewPeriodicJob(
+			river.PeriodicInterval(time.Hour),
+			func() (river.JobArgs, *river.InsertOpts) {
+				return MaintArgs{}, &river.InsertOpts{
+					Queue:    QueueName,
+					Priority: PriorityMaintCleanup,
+				}
+			},
+			&river.PeriodicJobOpts{RunOnStart: true},
+		),
+		river.NewPeriodicJob(
+			river.PeriodicInterval(time.Minute),
+			func() (river.JobArgs, *river.InsertOpts) {
+				return SchedMsgsArgs{}, &river.InsertOpts{
+					Queue:    QueueName,
+					Priority: PriorityScheduleAll,
+				}
+			},
+			&river.PeriodicJobOpts{RunOnStart: true},
+		),
 	})
 
 	return nil
