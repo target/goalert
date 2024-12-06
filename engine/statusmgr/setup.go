@@ -2,7 +2,6 @@ package statusmgr
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/riverqueue/river"
@@ -27,7 +26,6 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 	river.AddWorker(args.Workers, river.WorkFunc(db.lookForWork))
 
 	event.RegisterJobSource(args.EventBus, func(data alert.EventAlertStatusUpdate) (river.JobArgs, *river.InsertOpts) {
-		fmt.Println("data.AlertID", data.AlertID)
 		return LookForWorkArgs{AlertID: data.AlertID}, &river.InsertOpts{
 			Queue:    QueueName,
 			Priority: PriorityLookForWork,
