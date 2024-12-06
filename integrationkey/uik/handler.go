@@ -11,16 +11,13 @@ import (
 
 	"github.com/expr-lang/expr/vm"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"github.com/riverqueue/river"
 	"github.com/target/goalert/alert"
-	"github.com/target/goalert/engine/signalmgr"
+	"github.com/target/goalert/event"
 	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/errutil"
-	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 )
 
@@ -28,8 +25,7 @@ type Handler struct {
 	intStore   *integrationkey.Store
 	alertStore *alert.Store
 	db         TxAble
-
-	r *river.Client[pgx.Tx]
+	evt        *event.Bus
 }
 
 type TxAble interface {
@@ -37,8 +33,8 @@ type TxAble interface {
 	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
 }
 
-func NewHandler(db TxAble, intStore *integrationkey.Store, aStore *alert.Store, r *river.Client[pgx.Tx]) *Handler {
-	return &Handler{intStore: intStore, db: db, alertStore: aStore, r: r}
+func NewHandler(db TxAble, intStore *integrationkey.Store, aStore *alert.Store, evt *event.Bus) *Handler {
+	return &Handler{intStore: intStore, db: db, alertStore: aStore, evt: evt}
 }
 
 func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1) (inserted bool, err error) {
@@ -90,6 +86,11 @@ func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1) (inser
 	}
 
 	return didInsertSignals, nil
+}
+
+// EventNewSignals is an event that is triggered when new signals are generated for a service.
+type EventNewSignals struct {
+	ServiceID uuid.UUID
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -168,11 +169,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if insertedAny {
-		// schedule job
-		err := signalmgr.TriggerService(ctx, h.r, permission.ServiceNullUUID(ctx).UUID)
-		if err != nil {
-			log.Log(ctx, fmt.Errorf("schedule signal message: %w", err))
-		}
+		event.Send(ctx, h.evt, EventNewSignals{ServiceID: permission.ServiceNullUUID(ctx).UUID})
 	}
 
 	w.WriteHeader(http.StatusNoContent)

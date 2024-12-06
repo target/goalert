@@ -35,7 +35,7 @@ func (app *App) _Shutdown(ctx context.Context) error {
 			return
 		}
 		err := sh.Shutdown(ctx)
-		if err != nil {
+		if err != nil && !errors.Is(err, context.Canceled) {
 			errs = append(errs, errors.Wrap(err, msg))
 		}
 	}

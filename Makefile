@@ -58,6 +58,8 @@ ifeq ($(PUSH), 1)
 PUSH_FLAG=--push
 endif
 
+CONTAINER_TOOL ?= docker
+
 all: test
 
 release: container-demo container-goalert bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz bin/goalert-windows-amd64.zip ## Build all release artifacts
