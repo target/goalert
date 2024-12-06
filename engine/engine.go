@@ -177,6 +177,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	args.DB = db
 	args.Workers = c.RiverWorkers
 	args.ConfigSource = c.ConfigSource
+	args.EventBus = c.EventBus
 	for _, m := range p.modules {
 		if s, ok := m.(processinglock.Setupable); ok {
 			err = s.Setup(ctx, args)
