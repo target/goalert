@@ -1108,6 +1108,14 @@ input CreateHeartbeatMonitorInput {
   name: String!
   timeoutMinutes: Int!
   additionalDetails: String
+
+  """
+  If non-empty, the monitor will be muted with this reason.
+
+  Muting a monitor will prevent it from triggering new alerts, but existing
+  alerts will remain active until closed or the monitor is healthy again.
+  """
+  muted: String
 }
 
 input UpdateHeartbeatMonitorInput {
@@ -1115,6 +1123,14 @@ input UpdateHeartbeatMonitorInput {
   name: String
   timeoutMinutes: Int
   additionalDetails: String
+
+  """
+  If non-empty, the monitor will be muted with this reason.
+
+  Muting a monitor will prevent it from triggering new alerts, but existing
+  alerts will remain active until closed or the monitor is healthy again.
+  """
+  muted: String
 }
 
 enum HeartbeatMonitorState {
@@ -1132,6 +1148,13 @@ type HeartbeatMonitor {
   lastHeartbeat: ISOTimestamp
   href: String!
   additionalDetails: String!
+
+  """
+  If non-empty, the monitor is muted with this reason.
+
+  Muted monitors will not trigger new alerts, but will operate normally otherwise.
+  """
+  muted: String!
 }
 
 type Label {

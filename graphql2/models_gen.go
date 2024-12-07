@@ -217,6 +217,11 @@ type CreateHeartbeatMonitorInput struct {
 	Name              string  `json:"name"`
 	TimeoutMinutes    int     `json:"timeoutMinutes"`
 	AdditionalDetails *string `json:"additionalDetails,omitempty"`
+	// If non-empty, the monitor will be muted with this reason.
+	//
+	// Muting a monitor will prevent it from triggering new alerts, but existing
+	// alerts will remain active until closed or the monitor is healthy again.
+	Muted *string `json:"muted,omitempty"`
 }
 
 type CreateIntegrationKeyInput struct {
@@ -825,6 +830,11 @@ type UpdateHeartbeatMonitorInput struct {
 	Name              *string `json:"name,omitempty"`
 	TimeoutMinutes    *int    `json:"timeoutMinutes,omitempty"`
 	AdditionalDetails *string `json:"additionalDetails,omitempty"`
+	// If non-empty, the monitor will be muted with this reason.
+	//
+	// Muting a monitor will prevent it from triggering new alerts, but existing
+	// alerts will remain active until closed or the monitor is healthy again.
+	Muted *string `json:"muted,omitempty"`
 }
 
 type UpdateKeyConfigInput struct {

@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"github.com/sqlc-dev/pqtype"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/util/timeutil"
 )
 
@@ -1647,6 +1648,202 @@ func (q *Queries) GQLUserOnCallOverview(ctx context.Context, userID uuid.UUID) (
 		return nil, err
 	}
 	return items, nil
+}
+
+const hBByIDForUpdate = `-- name: HBByIDForUpdate :one
+SELECT
+    additional_details, heartbeat_interval, id, last_heartbeat, last_state, muted, name, service_id
+FROM
+    heartbeat_monitors
+WHERE
+    id = $1
+FOR UPDATE
+`
+
+// HBByIDForUpdate returns a single heartbeat record by ID for update.
+func (q *Queries) HBByIDForUpdate(ctx context.Context, id uuid.UUID) (HeartbeatMonitor, error) {
+	row := q.db.QueryRowContext(ctx, hBByIDForUpdate, id)
+	var i HeartbeatMonitor
+	err := row.Scan(
+		&i.AdditionalDetails,
+		&i.HeartbeatInterval,
+		&i.ID,
+		&i.LastHeartbeat,
+		&i.LastState,
+		&i.Muted,
+		&i.Name,
+		&i.ServiceID,
+	)
+	return i, err
+}
+
+const hBByService = `-- name: HBByService :many
+SELECT
+    additional_details, heartbeat_interval, id, last_heartbeat, last_state, muted, name, service_id
+FROM
+    heartbeat_monitors
+WHERE
+    service_id = $1
+`
+
+// HBByService returns all heartbeat records for a service.
+func (q *Queries) HBByService(ctx context.Context, serviceID uuid.UUID) ([]HeartbeatMonitor, error) {
+	rows, err := q.db.QueryContext(ctx, hBByService, serviceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []HeartbeatMonitor
+	for rows.Next() {
+		var i HeartbeatMonitor
+		if err := rows.Scan(
+			&i.AdditionalDetails,
+			&i.HeartbeatInterval,
+			&i.ID,
+			&i.LastHeartbeat,
+			&i.LastState,
+			&i.Muted,
+			&i.Name,
+			&i.ServiceID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const hBDelete = `-- name: HBDelete :exec
+DELETE FROM heartbeat_monitors
+WHERE id = ANY ($1::uuid[])
+`
+
+// HBDelete will delete a heartbeat record.
+func (q *Queries) HBDelete(ctx context.Context, id []uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, hBDelete, pq.Array(id))
+	return err
+}
+
+const hBInsert = `-- name: HBInsert :exec
+INSERT INTO heartbeat_monitors(id, name, service_id, heartbeat_interval, additional_details, muted)
+    VALUES ($1, $2, $3, $4, $5, $6)
+`
+
+type HBInsertParams struct {
+	ID                uuid.UUID
+	Name              string
+	ServiceID         uuid.UUID
+	HeartbeatInterval sqlutil.Interval
+	AdditionalDetails sql.NullString
+	Muted             sql.NullString
+}
+
+// HBInsert will insert a new heartbeat record.
+func (q *Queries) HBInsert(ctx context.Context, arg HBInsertParams) error {
+	_, err := q.db.ExecContext(ctx, hBInsert,
+		arg.ID,
+		arg.Name,
+		arg.ServiceID,
+		arg.HeartbeatInterval,
+		arg.AdditionalDetails,
+		arg.Muted,
+	)
+	return err
+}
+
+const hBManyByID = `-- name: HBManyByID :many
+SELECT
+    additional_details, heartbeat_interval, id, last_heartbeat, last_state, muted, name, service_id
+FROM
+    heartbeat_monitors
+WHERE
+    id = ANY ($1::uuid[])
+`
+
+// HBManyByID returns multiple heartbeat records by their IDs.
+func (q *Queries) HBManyByID(ctx context.Context, ids []uuid.UUID) ([]HeartbeatMonitor, error) {
+	rows, err := q.db.QueryContext(ctx, hBManyByID, pq.Array(ids))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []HeartbeatMonitor
+	for rows.Next() {
+		var i HeartbeatMonitor
+		if err := rows.Scan(
+			&i.AdditionalDetails,
+			&i.HeartbeatInterval,
+			&i.ID,
+			&i.LastHeartbeat,
+			&i.LastState,
+			&i.Muted,
+			&i.Name,
+			&i.ServiceID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const hBRecordHeartbeat = `-- name: HBRecordHeartbeat :exec
+UPDATE
+    heartbeat_monitors
+SET
+    last_heartbeat = now()
+WHERE
+    id = $1
+`
+
+// HBRecordHeartbeat updates the last heartbeat time for a monitor.
+func (q *Queries) HBRecordHeartbeat(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, hBRecordHeartbeat, id)
+	return err
+}
+
+const hBUpdate = `-- name: HBUpdate :exec
+UPDATE
+    heartbeat_monitors
+SET
+    name = $1,
+    heartbeat_interval = $2,
+    additional_details = $3,
+    muted = $4
+WHERE
+    id = $5
+`
+
+type HBUpdateParams struct {
+	Name              string
+	HeartbeatInterval sqlutil.Interval
+	AdditionalDetails sql.NullString
+	Muted             sql.NullString
+	ID                uuid.UUID
+}
+
+// HBUpdate will update a heartbeat record.
+func (q *Queries) HBUpdate(ctx context.Context, arg HBUpdateParams) error {
+	_, err := q.db.ExecContext(ctx, hBUpdate,
+		arg.Name,
+		arg.HeartbeatInterval,
+		arg.AdditionalDetails,
+		arg.Muted,
+		arg.ID,
+	)
+	return err
 }
 
 const intKeyCreate = `-- name: IntKeyCreate :exec
