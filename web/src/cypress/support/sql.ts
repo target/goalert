@@ -28,7 +28,8 @@ function refetchAll(): Cypress.Chainable {
 
 let timeIsStopped = false
 function fastForward(duration: string): Cypress.Chainable {
-  if (!timeIsStopped) throw new Error('Time is not stopped, cannot time')
+  if (!timeIsStopped)
+    throw new Error('Time is not stopped, cannot fast forward')
   return cy.task('db:fastforward', duration)
 }
 
