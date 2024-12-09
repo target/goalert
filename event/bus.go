@@ -121,16 +121,6 @@ func SendManyTx[T, TTx comparable](ctx context.Context, b *Bus, tx TTx, events [
 	}
 }
 
-type Event[T any] struct {
-	Value *T
-
-	// Tx is the transaction that the event is contingent on, if any.
-	Tx pgx.Tx
-
-	// SQLTx is the transaction that the event is contingent on, if any.
-	SQLTx *sql.Tx
-}
-
 func OnEachBatch[T comparable](b *Bus, fn func(ctx context.Context, data []T) error) {
 	sub := findBus[T, nilTx](b)
 	sub.onBatch = append(sub.onBatch, fn)
