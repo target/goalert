@@ -17,7 +17,6 @@ type DB struct {
 	now *sql.Stmt
 
 	userIDs        *sql.Stmt
-	cleanupAlerts  *sql.Stmt
 	cleanupAPIKeys *sql.Stmt
 	setTimeout     *sql.Stmt
 
@@ -31,7 +30,6 @@ type DB struct {
 	cleanupOverrides   *sql.Stmt
 	cleanupSchedOnCall *sql.Stmt
 	cleanupEPOnCall    *sql.Stmt
-	staleAlerts        *sql.Stmt
 	alertStore         *alert.Store
 
 	logIndex int
@@ -62,7 +60,6 @@ func NewDB(ctx context.Context, db *sql.DB, alertstore *alert.Store) (*DB, error
 		// Abort any cleanup operation that takes longer than 3 seconds
 		// error will be logged.
 		setTimeout:     p.P(`SET LOCAL statement_timeout = 3000`),
-		cleanupAlerts:  p.P(`delete from alerts where id = any(select id from alerts where status = 'closed' AND created_at < (now() - $1::interval) order by id limit 100 for update skip locked)`),
 		cleanupAPIKeys: p.P(`update user_calendar_subscriptions set disabled = true where id = any(select id from user_calendar_subscriptions where greatest(last_access, last_update) < (now() - $1::interval) order by id limit 100 for update skip locked)`),
 
 		schedData: p.P(`
@@ -94,17 +91,6 @@ func NewDB(ctx context.Context, db *sql.DB, alertstore *alert.Store) (*DB, error
 		cleanupOverrides:   p.P(`DELETE FROM user_overrides WHERE id = ANY(SELECT id FROM user_overrides WHERE end_time < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)`),
 		cleanupSchedOnCall: p.P(`DELETE FROM schedule_on_call_users WHERE id = ANY(SELECT id FROM schedule_on_call_users WHERE end_time < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)`),
 		cleanupEPOnCall:    p.P(`DELETE FROM ep_step_on_call_users WHERE id = ANY(SELECT id FROM ep_step_on_call_users WHERE end_time < (now() - $1::interval) LIMIT 100 FOR UPDATE SKIP LOCKED)`),
-		staleAlerts: p.P(`
-			select id from alerts a
-	     		where
-				(a.status='triggered' or ($2 and a.status = 'active')) and
-				created_at <= now() - '1 day'::interval * $1 and
-				not exists (
-					select 1 from alert_logs log
-					where timestamp > now() - '1 day'::interval * $1 and
-					log.alert_id = a.id
-				)
-			limit 100`),
-		alertStore: alertstore,
+		alertStore:         alertstore,
 	}, p.Err
 }
