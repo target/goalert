@@ -110,7 +110,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "notification cycle backend")
 	}
-	statMgr, err := statusmgr.NewDB(ctx, db, c.DestRegistry)
+	statMgr, err := statusmgr.NewDB(ctx, db, c.DestRegistry, c.ConfigSource)
 	if err != nil {
 		return nil, errors.Wrap(err, "status update backend")
 	}

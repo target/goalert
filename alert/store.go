@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/alert/alertlog"
+	"github.com/target/goalert/event"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
@@ -49,6 +50,8 @@ type Store struct {
 	escalate *sql.Stmt
 	epState  *sql.Stmt
 	svcInfo  *sql.Stmt
+
+	evt *event.Bus
 }
 
 // A Trigger signals that an alert needs to be processed
@@ -56,7 +59,7 @@ type Trigger interface {
 	TriggerAlert(int)
 }
 
-func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, error) {
+func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store, evt *event.Bus) (*Store, error) {
 	prep := &util.Prepare{DB: db, Ctx: ctx}
 
 	p := prep.P
@@ -64,6 +67,7 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 	return &Store{
 		db:    db,
 		logDB: logDB,
+		evt:   evt,
 
 		noStepsBySvc: p(`
 			SELECT coalesce(
@@ -165,7 +169,7 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 				service_id = $1
 			AND (
 				$2 > status
-			)
+			) returning id
 		`),
 		updateByIDAndStatus: p(`			
 			UPDATE alerts
@@ -203,6 +207,11 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 			WHERE id = $1
 		`),
 	}, prep.Err
+}
+
+// EventAlertEscalated is sent when an alert is escalated.
+type EventAlertEscalated struct {
+	AlertID int64
 }
 
 // ServiceInfo will return the name of the given service ID as well as the current number
@@ -330,6 +339,8 @@ func (s *Store) EscalateAsOf(ctx context.Context, id int, t time.Time) error {
 		return fmt.Errorf("commit tx: %w", err)
 	}
 
+	event.Send(ctx, s.evt, EventAlertEscalated{AlertID: int64(id)})
+
 	return nil
 }
 
@@ -357,6 +368,16 @@ func (s *Store) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error)
 	}
 
 	return alertIDs, nil
+}
+
+// EventAlertStatusUpdate is sent when an alert's status is updated.
+//
+// Note: It is not a guarantee that the status differs from the previous status in all cases.
+type EventAlertStatusUpdate struct {
+	AlertID int64
+	Status  Status
+
+	Created bool
 }
 
 func (s *Store) UpdateStatusByService(ctx context.Context, serviceID string, status Status) error {
@@ -396,12 +417,35 @@ func (s *Store) UpdateStatusByService(ctx context.Context, serviceID string, sta
 		return err
 	}
 
-	_, err = tx.StmtContext(ctx, s.updateByStatusAndService).ExecContext(ctx, serviceID, status)
+	rows, err := tx.StmtContext(ctx, s.updateByStatusAndService).QueryContext(ctx, serviceID, status)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+	}
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	var updatedIDs []int64
+	for rows.Next() {
+		var id int64
+		err = rows.Scan(&id)
+		if err != nil {
+			return err
+		}
+		updatedIDs = append(updatedIDs, id)
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}
 
-	return tx.Commit()
+	for _, id := range updatedIDs {
+		event.Send(ctx, s.evt, EventAlertStatusUpdate{AlertID: id, Status: status})
+	}
+
+	return nil
 }
 
 func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertIDs []int, logMeta interface{}) ([]int, error) {
@@ -467,6 +511,11 @@ func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertI
 	if err != nil {
 		return nil, err
 	}
+
+	for _, id := range updatedIDs {
+		event.Send(ctx, s.evt, EventAlertStatusUpdate{AlertID: int64(id), Status: status})
+	}
+
 	return updatedIDs, nil
 }
 
@@ -504,6 +553,8 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Alert, err
 	ctx = log.WithFields(ctx, log.Fields{"AlertID": n.ID, "ServiceID": n.ServiceID})
 	log.Logf(ctx, "Alert created.")
 	metricCreatedTotal.WithLabelValues(n.ServiceID).Inc()
+
+	event.SendTx(ctx, s.evt, tx, EventAlertStatusUpdate{AlertID: int64(n.ID), Status: n.Status, Created: true})
 
 	return n, nil
 }
@@ -601,6 +652,8 @@ func (s *Store) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Al
 		s.logDB.MustLogTx(ctx, tx, n.ID, logType, meta)
 	}
 
+	event.SendTx(ctx, s.evt, tx, EventAlertStatusUpdate{AlertID: int64(n.ID), Status: n.Status, Created: inserted})
+
 	return n, inserted, nil
 }
 
@@ -662,6 +715,8 @@ func (s *Store) createOrUpdate(ctx context.Context, a *Alert, meta map[string]st
 		metricCreatedTotal.WithLabelValues(n.ServiceID).Inc()
 	}
 
+	event.Send(ctx, s.evt, EventAlertStatusUpdate{AlertID: int64(n.ID), Status: n.Status, Created: isNew})
+
 	return n, isNew, nil
 }
 
@@ -690,6 +745,8 @@ func (s *Store) UpdateStatusTx(ctx context.Context, tx *sql.Tx, id int, stat Sta
 	} else if stat != StatusTriggered {
 		log.Log(ctx, errors.Errorf("unknown/unhandled alert status update: %s", stat))
 	}
+
+	event.SendTx(ctx, s.evt, tx, EventAlertStatusUpdate{AlertID: int64(id), Status: stat})
 
 	return nil
 }
