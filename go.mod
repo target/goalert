@@ -35,6 +35,7 @@ require (
 	github.com/prometheus/client_golang v1.20.5
 	github.com/riverqueue/river v0.14.2
 	github.com/riverqueue/river/cmd/river v0.14.2
+	github.com/riverqueue/river/riverdriver/riverdatabasesql v0.14.2
 	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.14.2
 	github.com/riverqueue/river/rivertype v0.14.2
 	github.com/samber/slog-logrus v1.0.0
