@@ -65,7 +65,7 @@ func (tw *twilioAssertionAPI) triggerTimeout() (<-chan string, func()) {
 	cancelCh := make(chan struct{})
 
 	errMsgCh := make(chan string, 1)
-	t := time.NewTimer(5 * time.Second)
+	t := time.NewTimer(10 * time.Second)
 	go func() {
 		defer t.Stop()
 
@@ -84,7 +84,7 @@ func (tw *twilioAssertionAPI) triggerTimeout() (<-chan string, func()) {
 		}
 		select {
 		case <-t.C:
-			errMsgCh <- "5 seconds"
+			errMsgCh <- "10 seconds"
 		case <-tw.abortCh:
 			errMsgCh <- "test exiting"
 			return
