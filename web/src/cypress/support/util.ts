@@ -143,7 +143,7 @@ export function testScreen(
   fn: (screen: ScreenFormat) => void,
   skipLogin = false,
   adminLogin = false,
-  expFlags: string[] = [],
+  expFlags: ExpFlag[] = [],
 ): void {
   after(() => {
     loginFn = null
@@ -197,7 +197,7 @@ export function testScreen(
 export function testScreenWithFlags(
   label: string,
   fn: (screen: ScreenFormat) => void,
-  expFlags: string[],
+  expFlags: ExpFlag[],
 ): void {
   testScreen(label, fn, false, false, expFlags)
 }

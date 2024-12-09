@@ -53,7 +53,7 @@ goalert --db-url postgres://goalert@localhost/goalert --data-encryption-key supe
 Container:
 
 ```bash
-podman run -p 8081:8081 -e GOALERT_DB_URL=postgres://goalert@localhost/goalert -e GOALERT_DATA_ENCRYPTION_KEY=super-awesome-secret-key -e GOALERT_PUBLIC_URL=https://goalert.example.com goalert/goalert
+docker run -p 8081:8081 -e GOALERT_DB_URL=postgres://goalert@localhost/goalert -e GOALERT_DATA_ENCRYPTION_KEY=super-awesome-secret-key -e GOALERT_PUBLIC_URL=https://goalert.example.com goalert/goalert
 ```
 
 You should see migrations applied followed by a `Listening.` message and an engine cycle start and end.

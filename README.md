@@ -14,10 +14,6 @@ See our [Getting Started Guide](./docs/getting-started.md) for running GoAlert i
 ### Quick Start
 
 ```bash
-# podman
-podman run -it --rm -p 8081:8081 goalert/demo
-
-# docker
 docker run -it --rm -p 8081:8081 goalert/demo
 ```
 
