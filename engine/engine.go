@@ -167,11 +167,10 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	}
 
 	args := processinglock.SetupArgs{
-		DB:           db,
-		Workers:      c.RiverWorkers,
-		ConfigSource: c.ConfigSource,
-		EventBus:     c.EventBus,
-		River:        c.River,
+		DB:       db,
+		Workers:  c.RiverWorkers,
+		EventBus: c.EventBus,
+		River:    c.River,
 	}
 	for _, m := range p.modules {
 		if s, ok := m.(processinglock.Setupable); ok {

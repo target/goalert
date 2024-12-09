@@ -6,7 +6,6 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/riverqueue/river"
-	"github.com/target/goalert/config"
 	"github.com/target/goalert/event"
 )
 
@@ -23,11 +22,10 @@ type Updatable interface {
 
 // SetupArgs is a struct that contains the arguments for the setup function.
 type SetupArgs struct {
-	DB           *sql.DB
-	Workers      *river.Workers
-	ConfigSource config.Source
-	EventBus     *event.Bus
-	River        *river.Client[pgx.Tx]
+	DB       *sql.DB
+	Workers  *river.Workers
+	EventBus *event.Bus
+	River    *river.Client[pgx.Tx]
 }
 
 // Setupable is an interface for types that can be set up using the job queue system.
