@@ -20,12 +20,15 @@ type Bus struct {
 	b []any
 }
 
+// NewBus creates a new event bus.
 func NewBus(l *slog.Logger) *Bus {
 	return &Bus{l: l.With("component", "EventBus")}
 }
 
+// SetRiver sets the river client for the bus.
 func (b *Bus) SetRiver(r *river.Client[pgx.Tx]) { b.river = r }
 
+// SetRiverDBSQL sets the river client for the bus.
 func (b *Bus) SetRiverDBSQL(r *river.Client[*sql.Tx]) { b.riverDBSQL = r }
 
 type (
@@ -121,21 +124,13 @@ func SendManyTx[T, TTx comparable](ctx context.Context, b *Bus, tx TTx, events [
 	}
 }
 
-type Event[T any] struct {
-	Value *T
-
-	// Tx is the transaction that the event is contingent on, if any.
-	Tx pgx.Tx
-
-	// SQLTx is the transaction that the event is contingent on, if any.
-	SQLTx *sql.Tx
-}
-
+// OnEachBatch registers a handler for a specific event type.
 func OnEachBatch[T comparable](b *Bus, fn func(ctx context.Context, data []T) error) {
 	sub := findBus[T, nilTx](b)
 	sub.onBatch = append(sub.onBatch, fn)
 }
 
+// OnEachBatchTx registers a handler for a specific event type that is contingent on a transaction.
 func OnEachBatchTx[T, TTx comparable](b *Bus, fn func(ctx context.Context, tx TTx, data []T) error) {
 	sub := findBus[T, TTx](b)
 	sub.onBatchTx = append(sub.onBatchTx, fn)
@@ -180,6 +175,7 @@ func insertJobsTx[T, TTx any](ctx context.Context, rv *river.Client[TTx], tx TTx
 	return nil
 }
 
+// RegisterJobSource registers a handler for a specific event type that creates jobs.
 func RegisterJobSource[T comparable](b *Bus, newJobFn func(data T) (river.JobArgs, *river.InsertOpts)) {
 	OnEachBatch(b, func(ctx context.Context, data []T) error {
 		return insertJobsTx(ctx, b.river, nil, data, newJobFn)

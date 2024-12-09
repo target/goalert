@@ -76,7 +76,7 @@ func (tw *twilioAssertionAPI) triggerTimeout() (<-chan string, func()) {
 				errMsgCh <- "test exiting"
 				return
 			case <-t.C:
-				errMsgCh <- "5 seconds"
+				errMsgCh <- "10 seconds"
 				return
 			default:
 				tw.triggerFn()
