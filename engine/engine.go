@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/riverqueue/river"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/auth/authlink"
@@ -59,8 +58,6 @@ type Engine struct {
 	runCtx context.Context
 
 	triggerPauseCh chan *pauseReq
-
-	periodicJobs []river.PeriodicJobConstructor
 }
 
 var _ notification.ResultReceiver = &Engine{}
@@ -169,14 +166,13 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 		return nil, errors.Wrap(err, "init backend")
 	}
 
-	addPeriodicJob := func(fn river.PeriodicJobConstructor) {
-		p.periodicJobs = append(p.periodicJobs, fn)
+	args := processinglock.SetupArgs{
+		DB:           db,
+		Workers:      c.RiverWorkers,
+		ConfigSource: c.ConfigSource,
+		EventBus:     c.EventBus,
+		River:        c.River,
 	}
-
-	args := processinglock.NewSetupArgs(c.River, addPeriodicJob)
-	args.DB = db
-	args.Workers = c.RiverWorkers
-	args.ConfigSource = c.ConfigSource
 	for _, m := range p.modules {
 		if s, ok := m.(processinglock.Setupable); ok {
 			err = s.Setup(ctx, args)
@@ -498,7 +494,7 @@ func (p *Engine) processAll(ctx context.Context) bool {
 	return false
 }
 
-func monitorCycle(ctx context.Context, start time.Time, direct bool) (cancel func()) {
+func monitorCycle(ctx context.Context, start time.Time) (cancel func()) {
 	ctx, cancel = context.WithCancel(ctx)
 
 	go func() {
@@ -519,11 +515,6 @@ func monitorCycle(ctx context.Context, start time.Time, direct bool) (cancel fun
 			}
 		}
 
-		if direct {
-			// don't log slow cycles for direct triggers
-			return
-		}
-
 		dur := time.Since(start)
 		if dur < 5*time.Second {
 			return
@@ -535,7 +526,7 @@ func monitorCycle(ctx context.Context, start time.Time, direct bool) (cancel fun
 	return cancel
 }
 
-func (p *Engine) cycle(ctx context.Context, runJobs bool) {
+func (p *Engine) cycle(ctx context.Context) {
 	// track start of next cycle, and defer the call to the returned sfinish function
 	defer p.startNextCycle()()
 	ctx = p.cfg.ConfigSource.Config().Context(ctx)
@@ -551,7 +542,7 @@ func (p *Engine) cycle(ctx context.Context, runJobs bool) {
 	}
 
 	startAll := time.Now()
-	defer monitorCycle(ctx, startAll, runJobs)()
+	defer monitorCycle(ctx, startAll)()
 
 	aborted := p.processAll(ctx)
 	if aborted || p.mgr.IsPausing() {
@@ -563,17 +554,6 @@ func (p *Engine) cycle(ctx context.Context, runJobs bool) {
 	metricModuleDuration.WithLabelValues("Engine.Message").Observe(time.Since(startMsg).Seconds())
 	metricModuleDuration.WithLabelValues("Engine").Observe(time.Since(startAll).Seconds())
 	metricCycleTotal.Inc()
-
-	if !runJobs {
-		return
-	}
-
-	// Since this was a direct trigger (i.e., tests) we will also manually inject all periodic jobs to their respective queues, and wait for them to complete.
-	err := p.runAllPeriodicJobs(ctx)
-	if err != nil {
-		log.Log(ctx, errors.Wrap(err, "run all periodic jobs"))
-		return
-	}
 }
 
 func (p *Engine) handlePause(ctx context.Context, respCh chan error) {
@@ -622,7 +602,7 @@ func (p *Engine) _run(ctx context.Context) error {
 
 	defer close(p.triggerCh)
 
-	p.cycle(ctx, false)
+	p.cycle(ctx)
 
 	for {
 		// give priority to pending shutdown signals
@@ -644,9 +624,9 @@ func (p *Engine) _run(ctx context.Context) error {
 		case req := <-p.triggerPauseCh:
 			p.handlePause(req.ctx, req.ch)
 		case p.triggerCh <- struct{}{}:
-			p.cycle(log.WithField(ctx, "Trigger", "DIRECT"), true)
+			p.cycle(log.WithField(ctx, "Trigger", "DIRECT"))
 		case <-alertTicker.C:
-			p.cycle(log.WithField(ctx, "Trigger", "INTERVAL"), false)
+			p.cycle(log.WithField(ctx, "Trigger", "INTERVAL"))
 		case <-ctx.Done():
 			// context canceled or something
 			return ctx.Err()

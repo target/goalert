@@ -27,6 +27,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/engine"
 	"github.com/target/goalert/escalation"
+	"github.com/target/goalert/event"
 	"github.com/target/goalert/graphql2/graphqlapp"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
@@ -78,6 +79,8 @@ type App struct {
 	sysAPIL   net.Listener
 	sysAPISrv *grpc.Server
 	hSrv      *health.Server
+
+	EventBus *event.Bus
 
 	srv        *http.Server
 	smtpsrv    *smtpsrv.Server
@@ -136,8 +139,13 @@ type App struct {
 	AuthLinkStore *authlink.Store
 	APIKeyStore   *apikey.Store
 	River         *river.Client[pgx.Tx]
-	RiverUI       *riverui.Server
-	RiverWorkers  *river.Workers
+
+	// RiverDBSQL is a river client that uses the old sql.DB driver for use while transitioning to pgx.
+	//
+	// This allows us to add jobs from transactions that are not using the pgx driver. This client is not used for any job or queue processing.
+	RiverDBSQL   *river.Client[*sql.Tx]
+	RiverUI      *riverui.Server
+	RiverWorkers *river.Workers
 }
 
 // NewApp constructs a new App and binds the listening socket.
@@ -199,6 +207,8 @@ func NewApp(c Config, pool *pgxpool.Pool) (*App, error) {
 		cfg:    c,
 		doneCh: make(chan struct{}),
 		Logger: c.Logger,
+
+		EventBus: event.NewBus(c.Logger),
 	}
 
 	if c.StatusAddr != "" {
