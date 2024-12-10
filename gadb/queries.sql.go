@@ -877,6 +877,75 @@ func (q *Queries) CleanupMgrDeleteOldAlerts(ctx context.Context, cleanupDays int
 	return result.RowsAffected()
 }
 
+const cleanupMgrDeleteOldOverrides = `-- name: CleanupMgrDeleteOldOverrides :execrows
+DELETE FROM user_overrides
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            user_overrides
+        WHERE
+            end_time <(now() - '1 day'::interval * $1)
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// CleanupMgrDeleteOldOverrides will delete old overrides from the user_overrides table that are older than the given number of days before now.
+func (q *Queries) CleanupMgrDeleteOldOverrides(ctx context.Context, cleanupDays interface{}) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldOverrides, cleanupDays)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const cleanupMgrDeleteOldScheduleShifts = `-- name: CleanupMgrDeleteOldScheduleShifts :execrows
+DELETE FROM schedule_on_call_users
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            schedule_on_call_users
+        WHERE
+            end_time <(now() - '1 day'::interval * $1)
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// CleanupMgrDeleteOldScheduleShifts will delete old schedule shifts from the schedule_on_call_users table that are older than the given number of days before now.
+func (q *Queries) CleanupMgrDeleteOldScheduleShifts(ctx context.Context, cleanupDays interface{}) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldScheduleShifts, cleanupDays)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const cleanupMgrDeleteOldStepShifts = `-- name: CleanupMgrDeleteOldStepShifts :execrows
+DELETE FROM ep_step_on_call_users
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            ep_step_on_call_users
+        WHERE
+            end_time <(now() - '1 day'::interval * $1)
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// CleanupMgrDeleteOldStepShifts will delete old EP step shifts from the ep_step_on_call_users table that are older than the given number of days before now.
+func (q *Queries) CleanupMgrDeleteOldStepShifts(ctx context.Context, cleanupDays interface{}) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldStepShifts, cleanupDays)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const cleanupMgrFindStaleAlerts = `-- name: CleanupMgrFindStaleAlerts :many
 SELECT
     id
