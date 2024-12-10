@@ -40,6 +40,7 @@ func (db *DB) whileWork(ctx context.Context, run func(ctx context.Context, tx *s
 	return nil
 }
 
+// Setup implements processinglock.Setupable.
 func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 	river.AddWorker(args.Workers, river.WorkFunc(db.CleanupAlerts))
 
