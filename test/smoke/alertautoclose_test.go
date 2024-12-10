@@ -3,6 +3,7 @@ package smoke
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/test/smoke/harness"
@@ -50,14 +51,18 @@ func TestAlertAutoClose(t *testing.T) {
 	assert.Equal(t, "2", data.B.ID)
 	assert.Equal(t, "StatusUnacknowledged", data.B.Status)
 
-	h.SetConfigValue("Maintenance.AlertAutoCloseDays", "1")
+	cfg := h.Config()
+	cfg.Maintenance.AlertAutoCloseDays = 1
+	h.RestartGoAlertWithConfig(cfg)
 
-	res = h.GraphQLQuery2("{a:alert(id: 1){id, status} b:alert(id: 2){id, status}}")
-	assert.Empty(t, res.Errors, "errors")
-	err = json.Unmarshal(res.Data, &data)
-	assert.NoError(t, err)
-	assert.Equal(t, "1", data.A.ID)
-	assert.Equal(t, "StatusClosed", data.A.Status)
-	assert.Equal(t, "2", data.B.ID)
-	assert.Equal(t, "StatusUnacknowledged", data.B.Status)
+	assert.EventuallyWithT(t, func(t *assert.CollectT) {
+		res = h.GraphQLQuery2("{a:alert(id: 1){id, status} b:alert(id: 2){id, status}}")
+		assert.Empty(t, res.Errors, "errors")
+		err = json.Unmarshal(res.Data, &data)
+		assert.NoError(t, err)
+		assert.Equal(t, "1", data.A.ID)
+		assert.Equal(t, "StatusClosed", data.A.Status)
+		assert.Equal(t, "2", data.B.ID)
+		assert.Equal(t, "StatusUnacknowledged", data.B.Status)
+	}, 15*time.Second, time.Second)
 }

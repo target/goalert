@@ -9,8 +9,6 @@ import (
 	"time"
 
 	"github.com/jackc/pgtype"
-	"github.com/target/goalert/alert"
-	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
@@ -55,38 +53,6 @@ func (db *DB) update(ctx context.Context) error {
 	}
 
 	cfg := config.FromContext(ctx)
-	if cfg.Maintenance.AlertCleanupDays > 0 {
-		var dur pgtype.Interval
-		dur.Days = int32(cfg.Maintenance.AlertCleanupDays)
-		dur.Status = pgtype.Present
-		_, err = tx.StmtContext(ctx, db.cleanupAlerts).ExecContext(ctx, &dur)
-		if err != nil {
-			return fmt.Errorf("cleanup alerts: %w", err)
-		}
-	}
-
-	if cfg.Maintenance.AlertAutoCloseDays > 0 {
-		rows, err := tx.StmtContext(ctx, db.staleAlerts).QueryContext(ctx, cfg.Maintenance.AlertAutoCloseDays, cfg.Maintenance.AutoCloseAckedAlerts)
-		if err != nil {
-			return fmt.Errorf("query auto-close alerts: %w", err)
-		}
-		defer rows.Close()
-		var ids []int
-		for rows.Next() {
-			var id int
-			err = rows.Scan(&id)
-			if err != nil {
-				return fmt.Errorf("cleanup auto-close alerts: scan : %w", err)
-			}
-			ids = append(ids, id)
-		}
-		var autoCloseDays alertlog.AutoClose
-		autoCloseDays.AlertAutoCloseDays = cfg.Maintenance.AlertAutoCloseDays
-		_, err = db.alertStore.UpdateManyAlertStatus(ctx, alert.StatusClosed, ids, autoCloseDays)
-		if err != nil {
-			return fmt.Errorf("cleanup auto-close alerts: %w", err)
-		}
-	}
 
 	if cfg.Maintenance.APIKeyExpireDays > 0 {
 		var dur pgtype.Interval
