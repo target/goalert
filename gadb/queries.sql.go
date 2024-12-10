@@ -4381,42 +4381,6 @@ func (q *Queries) SignalMgrUpdateSignal(ctx context.Context, arg SignalMgrUpdate
 	return err
 }
 
-const statusMgrCMInfo = `-- name: StatusMgrCMInfo :one
-SELECT
-    user_id,
-    dest
-FROM
-    user_contact_methods
-WHERE
-    id = $1
-    AND NOT disabled
-    AND enable_status_updates
-`
-
-type StatusMgrCMInfoRow struct {
-	UserID uuid.UUID
-	Dest   NullDestV1
-}
-
-func (q *Queries) StatusMgrCMInfo(ctx context.Context, id uuid.UUID) (StatusMgrCMInfoRow, error) {
-	row := q.db.QueryRowContext(ctx, statusMgrCMInfo, id)
-	var i StatusMgrCMInfoRow
-	err := row.Scan(&i.UserID, &i.Dest)
-	return i, err
-}
-
-const statusMgrCleanupDisabledSubs = `-- name: StatusMgrCleanupDisabledSubs :exec
-DELETE FROM alert_status_subscriptions sub USING user_contact_methods cm
-WHERE sub.contact_method_id = cm.id
-    AND (cm.disabled
-        OR NOT cm.enable_status_updates)
-`
-
-func (q *Queries) StatusMgrCleanupDisabledSubs(ctx context.Context) error {
-	_, err := q.db.ExecContext(ctx, statusMgrCleanupDisabledSubs)
-	return err
-}
-
 const statusMgrCleanupStaleSubs = `-- name: StatusMgrCleanupStaleSubs :exec
 DELETE FROM alert_status_subscriptions sub
 WHERE sub.updated_at < now() - '7 days'::interval
@@ -4437,6 +4401,44 @@ func (q *Queries) StatusMgrDeleteSub(ctx context.Context, id int64) error {
 	return err
 }
 
+const statusMgrFindOne = `-- name: StatusMgrFindOne :one
+SELECT
+    sub.alert_id, sub.channel_id, sub.contact_method_id, sub.id, sub.last_alert_status, sub.updated_at,
+    a.status
+FROM
+    alert_status_subscriptions sub
+    JOIN alerts a ON a.id = sub.alert_id
+WHERE
+    sub.id = $1
+FOR UPDATE
+    SKIP LOCKED
+`
+
+type StatusMgrFindOneRow struct {
+	AlertID         int64
+	ChannelID       uuid.NullUUID
+	ContactMethodID uuid.NullUUID
+	ID              int64
+	LastAlertStatus EnumAlertStatus
+	UpdatedAt       time.Time
+	Status          EnumAlertStatus
+}
+
+func (q *Queries) StatusMgrFindOne(ctx context.Context, id int64) (StatusMgrFindOneRow, error) {
+	row := q.db.QueryRowContext(ctx, statusMgrFindOne, id)
+	var i StatusMgrFindOneRow
+	err := row.Scan(
+		&i.AlertID,
+		&i.ChannelID,
+		&i.ContactMethodID,
+		&i.ID,
+		&i.LastAlertStatus,
+		&i.UpdatedAt,
+		&i.Status,
+	)
+	return i, err
+}
+
 const statusMgrLogEntry = `-- name: StatusMgrLogEntry :one
 SELECT
     id,
@@ -4446,7 +4448,6 @@ FROM
 WHERE
     alert_id = $1::bigint
     AND event = $2::enum_alert_log_event
-    AND timestamp > now() - '1 hour'::interval
 ORDER BY
     id DESC
 LIMIT 1
@@ -4469,53 +4470,40 @@ func (q *Queries) StatusMgrLogEntry(ctx context.Context, arg StatusMgrLogEntryPa
 	return i, err
 }
 
-const statusMgrNextUpdate = `-- name: StatusMgrNextUpdate :one
+const statusMgrOutdated = `-- name: StatusMgrOutdated :many
 SELECT
-    sub.id,
-    channel_id,
-    contact_method_id,
-    alert_id,
-(
-        SELECT
-            status
-        FROM
-            alerts a
-        WHERE
-            a.id = sub.alert_id)
+    sub.id
 FROM
     alert_status_subscriptions sub
-WHERE (NOT (sub.id = ANY ($1::bigint[])))
-    AND sub.last_alert_status !=(
-        SELECT
-            status
-        FROM
-            alerts a
-        WHERE
-            a.id = sub.alert_id)
-LIMIT 1
-FOR UPDATE
-    SKIP LOCKED
+    JOIN alerts a ON a.id = sub.alert_id
+WHERE
+    sub.last_alert_status != a.status
+    AND sub.updated_at > now() - '7 days'::interval
+    AND ($1::bigint IS NULL
+        OR sub.alert_id = $1::bigint)
 `
 
-type StatusMgrNextUpdateRow struct {
-	ID              int64
-	ChannelID       uuid.NullUUID
-	ContactMethodID uuid.NullUUID
-	AlertID         int64
-	Status          EnumAlertStatus
-}
-
-func (q *Queries) StatusMgrNextUpdate(ctx context.Context, dollar_1 []int64) (StatusMgrNextUpdateRow, error) {
-	row := q.db.QueryRowContext(ctx, statusMgrNextUpdate, pq.Array(dollar_1))
-	var i StatusMgrNextUpdateRow
-	err := row.Scan(
-		&i.ID,
-		&i.ChannelID,
-		&i.ContactMethodID,
-		&i.AlertID,
-		&i.Status,
-	)
-	return i, err
+func (q *Queries) StatusMgrOutdated(ctx context.Context, alertID sql.NullInt64) ([]int64, error) {
+	rows, err := q.db.QueryContext(ctx, statusMgrOutdated, alertID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const statusMgrSendChannelMsg = `-- name: StatusMgrSendChannelMsg :exec
@@ -4561,21 +4549,6 @@ func (q *Queries) StatusMgrSendUserMsg(ctx context.Context, arg StatusMgrSendUse
 		arg.AlertID,
 		arg.LogID,
 	)
-	return err
-}
-
-const statusMgrUpdateCMForced = `-- name: StatusMgrUpdateCMForced :exec
-UPDATE
-    user_contact_methods
-SET
-    enable_status_updates = TRUE
-WHERE
-    dest ->> 'Type' = ANY ($1::text[])
-    AND NOT enable_status_updates
-`
-
-func (q *Queries) StatusMgrUpdateCMForced(ctx context.Context, forcedDestTypes []string) error {
-	_, err := q.db.ExecContext(ctx, statusMgrUpdateCMForced, pq.Array(forcedDestTypes))
 	return err
 }
 
