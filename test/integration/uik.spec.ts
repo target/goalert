@@ -69,7 +69,10 @@ test('create universal key, add rule with action', async ({
   await expect(page.locator('body')).toContainText(ruleDesc)
 
   // start editing
-  await page.getByRole('button', { name: 'Other Actions' }).click()
+  await page
+    .locator('li', { hasText: ruleName })
+    .getByRole('button', { name: 'Other Actions' })
+    .click()
   await page.getByRole('menuitem', { name: 'Edit Rule' }).click()
 
   // update description, submit
@@ -82,15 +85,22 @@ test('create universal key, add rule with action', async ({
   await expect(page.locator('body')).toContainText(ruleNewDesc)
 
   // ensure `no-actions` message is displayed
-  await expect(page.getByTestId('no-actions')).toBeVisible()
+  await expect(
+    page.locator('li', { hasText: ruleName }).getByTestId('no-actions'),
+  ).toBeVisible()
 
   // add an action
-  await page.getByRole('button', { name: 'Other Actions' }).click()
+  await page
+    .locator('li', { hasText: ruleName })
+    .getByRole('button', { name: 'Other Actions' })
+    .click()
   await page.getByRole('menuitem', { name: 'Add Action' }).click()
-  await expect(page.getByTestId('no-actions')).toBeHidden()
 
   // should default to alert
   await page.getByRole('button', { name: 'Submit' }).click()
+  await expect(
+    page.locator('li', { hasText: ruleName }).getByTestId('no-actions'),
+  ).toBeHidden()
 
   // edit action
   await page.getByTestId('destination-chip').getByTestId('EditIcon').click()
@@ -101,10 +111,15 @@ test('create universal key, add rule with action', async ({
   await expect(page.locator('[role=dialog]')).toBeHidden()
 
   // ensure `no-actions` message is displayed again
-  await expect(page.getByTestId('no-actions')).toBeVisible()
+  await expect(
+    page.locator('li', { hasText: ruleName }).getByTestId('no-actions'),
+  ).toBeVisible()
 
   // delete the rule
-  await page.getByRole('button', { name: 'Other Actions' }).click()
+  await page
+    .locator('li', { hasText: ruleName })
+    .getByRole('button', { name: 'Other Actions' })
+    .click()
   await page.getByRole('menuitem', { name: 'Delete Rule' }).click()
   expect(
     page.locator('[data-cy=dialog-title]', { hasText: 'Are you sure?' }),
