@@ -5167,6 +5167,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputExprToConditionInput,
 		ec.unmarshalInputFieldValueInput,
 		ec.unmarshalInputIntegrationKeySearchOptions,
+		ec.unmarshalInputKeyRuleActionsInput,
 		ec.unmarshalInputKeyRuleInput,
 		ec.unmarshalInputLabelKeySearchOptions,
 		ec.unmarshalInputLabelSearchOptions,
@@ -37861,6 +37862,40 @@ func (ec *executionContext) unmarshalInputIntegrationKeySearchOptions(ctx contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputKeyRuleActionsInput(ctx context.Context, obj interface{}) (gadb.UIKRuleV1, error) {
+	var it gadb.UIKRuleV1
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "actions"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "actions":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("actions"))
+			data, err := ec.unmarshalNActionInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKActionV1ᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Actions = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputKeyRuleInput(ctx context.Context, obj interface{}) (gadb.UIKRuleV1, error) {
 	var it gadb.UIKRuleV1
 	asMap := map[string]interface{}{}
@@ -39446,7 +39481,7 @@ func (ec *executionContext) unmarshalInputUpdateKeyConfigInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"keyID", "rules", "setRule", "deleteRule", "defaultActions"}
+	fieldsInOrder := [...]string{"keyID", "rules", "setRule", "setRuleActions", "deleteRule", "defaultActions"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -39474,6 +39509,13 @@ func (ec *executionContext) unmarshalInputUpdateKeyConfigInput(ctx context.Conte
 				return it, err
 			}
 			it.SetRule = data
+		case "setRuleActions":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("setRuleActions"))
+			data, err := ec.unmarshalOKeyRuleActionsInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKRuleV1(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SetRuleActions = data
 		case "deleteRule":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deleteRule"))
 			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
@@ -54114,6 +54156,14 @@ func (ec *executionContext) marshalOKeyRule2ᚖgithubᚗcomᚋtargetᚋgoalert�
 		return graphql.Null
 	}
 	return ec._KeyRule(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOKeyRuleActionsInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKRuleV1(ctx context.Context, v interface{}) (*gadb.UIKRuleV1, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputKeyRuleActionsInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOKeyRuleInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKRuleV1ᚄ(ctx context.Context, v interface{}) ([]gadb.UIKRuleV1, error) {

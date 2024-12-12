@@ -10,6 +10,7 @@ import { IntegrationKey, Service } from '../../../schema'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
 import UniversalKeyActionsList from './UniversalKeyActionsList'
+import { UniversalKeyActionDialog } from './UniversalKeyActionDialog'
 
 interface UniversalKeyRuleListProps {
   serviceID: string
@@ -55,6 +56,11 @@ export default function UniversalKeyRuleList(
   const [create, setCreate] = useState(false)
   const [edit, setEdit] = useState('')
   const [remove, setRemove] = useState('')
+  const [editAction, setEditAction] = useState<null | {
+    ruleID: string
+    actionIndex: number
+  }>(null)
+  const [addAction, setAddAction] = useState<null | { ruleID: string }>(null)
 
   const [{ data, fetching, error }] = useQuery<{
     integrationKey: IntegrationKey
@@ -92,7 +98,12 @@ export default function UniversalKeyRuleList(
           <b>Then</b>
         </Grid>
         <Grid item xs={12} sx={{ paddingLeft: '1em' }}>
-          <UniversalKeyActionsList actions={rule.actions} onEdit={() => {}} />
+          <UniversalKeyActionsList
+            actions={rule.actions}
+            onEdit={(index) =>
+              setEditAction({ ruleID: rule.id, actionIndex: index })
+            }
+          />
         </Grid>
         <Grid item xs={12}>
           <b>Finally</b> {rule.continueAfterMatch ? 'continue' : 'stop'}
@@ -104,7 +115,7 @@ export default function UniversalKeyRuleList(
         actions={[
           {
             label: 'Add Action',
-            onClick: () => setEdit(rule.id),
+            onClick: () => setAddAction({ ruleID: rule.id }),
           },
           {
             label: 'Edit Rule',
@@ -155,6 +166,21 @@ export default function UniversalKeyRuleList(
             onClose={() => setRemove('')}
             keyID={props.keyID}
             ruleID={remove}
+          />
+        )}
+        {editAction && (
+          <UniversalKeyActionDialog
+            onClose={() => setEditAction(null)}
+            keyID={props.keyID}
+            ruleID={editAction.ruleID}
+            actionIndex={editAction.actionIndex}
+          />
+        )}
+        {addAction && (
+          <UniversalKeyActionDialog
+            onClose={() => setAddAction(null)}
+            keyID={props.keyID}
+            ruleID={addAction.ruleID}
           />
         )}
       </Suspense>

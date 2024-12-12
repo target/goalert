@@ -132,6 +132,21 @@ func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKey
 				}
 			}
 		}
+		if input.SetRuleActions != nil {
+			var found bool
+			for i, r := range cfg.Rules {
+				if r.ID != input.SetRuleActions.ID {
+					continue
+				}
+
+				cfg.Rules[i].Actions = input.SetRuleActions.Actions
+				found = true
+				break
+			}
+			if !found {
+				return validation.NewFieldError("SetRuleActions.RuleID", "not found")
+			}
+		}
 
 		if input.DeleteRule != nil {
 			for i, r := range cfg.Rules {

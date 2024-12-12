@@ -1,7 +1,6 @@
 import { Button, Card } from '@mui/material'
 import React, { Suspense, useState } from 'react'
 import FlatList from '../../lists/FlatList'
-import DefaultActionEditDialog from './DefaultActionEditDialog'
 import UniversalKeyActionsList from './UniversalKeyActionsList'
 import { gql, useQuery } from 'urql'
 import { IntegrationKey } from '../../../schema'
@@ -72,6 +71,7 @@ export default function UniversalKeyDefaultActions(
           <UniversalKeyActionDialog
             onClose={() => setEditActionIndex(-1)}
             keyID={props.keyID}
+            actionIndex={editActionIndex}
           />
         )}
         {addAction && (

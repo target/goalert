@@ -1,8 +1,14 @@
 import React, { useState } from 'react'
 import { gql, useMutation, useQuery } from 'urql'
-import { ActionInput, IntegrationKey } from '../../../schema'
+import {
+  Action,
+  ActionInput,
+  IntegrationKey,
+  UpdateKeyConfigInput,
+} from '../../../schema'
 import FormDialog from '../../dialogs/FormDialog'
 import DynamicActionForm, { Value } from '../../selection/DynamicActionForm'
+import { useDefaultAction } from '../../util/RequireConfig'
 
 type UniversalKeyActionDialogProps = {
   keyID: string
@@ -45,47 +51,78 @@ const query = gql`
   }
 `
 
-const updateRule = gql`
-  mutation UpdateRule($input: UpdateRuleInput!) {
-    updateRule(input: $input) {
-      id
-    }
+const updateKeyConfig = gql`
+  mutation UpdateKeyConfig($input: UpdateKeyConfigInput!) {
+    updateKeyConfig(input: $input)
   }
 `
-const updateDefaultActions = gql`
-  mutation UpdateDefaultActions($input: UpdateDefaultActionsInput!) {
-    updateDefaultActions(input: $input) {
-      id
-    }
+
+function actionToInput(action: Action): ActionInput {
+  return {
+    dest: action.dest,
+    params: action.params,
   }
-`
+}
 
 export function UniversalKeyActionDialog(
   props: UniversalKeyActionDialogProps,
 ): React.ReactNode {
+  const defaultAction = useDefaultAction()
   const [q] = useQuery<{ integrationKey: IntegrationKey }>({
     query,
     variables: { keyID: props.keyID },
   })
   if (q.error) throw q.error
-  const rule =
-    q.data?.integrationKey.config.rules.find((r) => r.id === props.ruleID) ||
-    null
-  const action = props.actionIndex
-    ? rule?.actions[props.actionIndex] ||
-      q.data?.integrationKey.config.defaultActions[props.actionIndex]
-    : null
-  const [value, setValue] = useState<Value>({
-    destType: action?.dest.type || '',
-    staticParams: action?.dest.args || {},
-    dynamicParams: action?.params || {},
-  })
-  const [m, commit] = useMutation(
-    props.ruleID ? updateRule : updateDefaultActions,
-  )
 
-  const verb = props.actionIndex ? 'Edit' : 'Add'
+  const config = q.data?.integrationKey.config
+  if (!config) throw new Error('missing config')
+
+  const rule = config.rules.find((r) => r.id === props.ruleID) || null
+  if (props.ruleID && !rule) throw new Error('missing rule')
+  const actions = rule ? rule.actions : config.defaultActions
+  const action =
+    props.actionIndex !== undefined ? actions[props.actionIndex] : null
+  const [value, setValue] = useState<Value>({
+    destType: action?.dest.type || defaultAction.dest.type,
+    staticParams: action?.dest.args || {},
+    dynamicParams: action?.params || defaultAction.params,
+  })
+  const [m, commit] = useMutation(updateKeyConfig)
+
+  const verb = action ? 'Edit' : 'Add'
   const title = `${verb} ${rule ? '' : 'Default '}Action${rule?.name ? ` for Rule "${rule.name}"` : ''}`
+
+  const input = { keyID: props.keyID } as UpdateKeyConfigInput
+  const newAction = {
+    dest: {
+      type: value.destType,
+      args: value.staticParams,
+    },
+    params: value.dynamicParams,
+  }
+  if (rule && props.actionIndex !== undefined) {
+    // Edit rule action
+    input.setRuleActions = {
+      id: rule.id,
+      actions: actions
+        .map(actionToInput)
+        .map((a, idx) => (idx === props.actionIndex ? newAction : a)),
+    }
+  } else if (rule) {
+    // Add rule action
+    input.setRuleActions = {
+      id: rule.id,
+      actions: actions.map(actionToInput).concat(newAction),
+    }
+  } else if (props.actionIndex !== undefined) {
+    // Edit default action
+    input.defaultActions = actions
+      .map(actionToInput)
+      .map((a, idx) => (idx === props.actionIndex ? newAction : a))
+  } else {
+    // Add default action
+    input.defaultActions = actions.map(actionToInput).concat(newAction)
+  }
 
   return (
     <FormDialog
@@ -95,19 +132,13 @@ export function UniversalKeyActionDialog(
       maxWidth='md'
       errors={null}
       onSubmit={() =>
-        commit(
-          {
-            input: {
-              keyID: props.keyID,
-              setRule: value,
-            },
-          },
-          { additionalTypenames: ['KeyConfig'] },
-        ).then((res) => {
-          if (res.error) return
+        commit({ input }, { additionalTypenames: ['KeyConfig'] }).then(
+          (res) => {
+            if (res.error) return
 
-          props.onClose()
-        })
+            props.onClose()
+          },
+        )
       }
       form={
         <DynamicActionForm
