@@ -6,6 +6,7 @@ import UniversalKeyActionsList from './UniversalKeyActionsList'
 import { gql, useQuery } from 'urql'
 import { IntegrationKey } from '../../../schema'
 import { Add } from '../../icons'
+import { UniversalKeyActionDialog } from './UniversalKeyActionDialog'
 
 interface UniversalKeyDefaultActionProps {
   serviceID: string
@@ -32,7 +33,8 @@ const query = gql`
 export default function UniversalKeyDefaultActions(
   props: UniversalKeyDefaultActionProps,
 ): React.ReactNode {
-  const [edit, setEdit] = useState(false)
+  const [editActionIndex, setEditActionIndex] = useState(-1)
+  const [addAction, setAddAction] = useState(false)
   const [q] = useQuery<{ integrationKey: IntegrationKey }>({
     query,
     variables: { keyID: props.keyID },
@@ -47,7 +49,7 @@ export default function UniversalKeyDefaultActions(
             <Button
               variant='contained'
               startIcon={<Add />}
-              onClick={() => setEdit(true)}
+              onClick={() => setAddAction(true)}
             >
               Add Action
             </Button>
@@ -58,6 +60,7 @@ export default function UniversalKeyDefaultActions(
               title: (
                 <UniversalKeyActionsList
                   actions={q.data?.integrationKey.config.defaultActions ?? []}
+                  onEdit={(index) => setEditActionIndex(index)}
                 />
               ),
             },
@@ -65,9 +68,15 @@ export default function UniversalKeyDefaultActions(
         />
       </Card>
       <Suspense>
-        {edit && (
-          <DefaultActionEditDialog
-            onClose={() => setEdit(false)}
+        {editActionIndex > -1 && (
+          <UniversalKeyActionDialog
+            onClose={() => setEditActionIndex(-1)}
+            keyID={props.keyID}
+          />
+        )}
+        {addAction && (
+          <UniversalKeyActionDialog
+            onClose={() => setAddAction(false)}
             keyID={props.keyID}
           />
         )}

@@ -8,7 +8,7 @@ export type UniversalKeyActionsListProps = {
   actions: ReadonlyArray<ActionInput>
 
   noEdit?: boolean // disables onDelete and onChipClick
-  onEdit?: (action: ActionInput) => void
+  onEdit?: (index: number) => void
 }
 
 export default function UniversalKeyActionsList(
@@ -24,13 +24,13 @@ export default function UniversalKeyActionsList(
         sx={{ p: 1 }}
         data-testid='actions-list'
       >
-        {props.actions.map((a) => (
+        {props.actions.map((a, idx) => (
           <Grid item key={JSON.stringify(a.dest)}>
             <DestinationInputChip
               value={a.dest}
               onEdit={
                 props.onEdit && !props.noEdit
-                  ? () => props.onEdit && props.onEdit(a)
+                  ? () => props.onEdit && props.onEdit(idx)
                   : undefined
               }
             />
