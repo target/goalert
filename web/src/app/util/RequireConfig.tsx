@@ -221,7 +221,8 @@ export function useDefaultAction(): ActionInput {
     },
     params: def.dynamicParams.reduce(
       (acc, p) => {
-        acc[p.paramID] = p.defaultValue as ExprStringExpression
+        acc[p.paramID] =
+          (p.defaultValue as ExprStringExpression) || `req.body['${p.paramID}']`
         return acc
       },
       {} as Record<string, ExprStringExpression>,
