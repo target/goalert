@@ -61,22 +61,6 @@ test('create universal key, add rule with action', async ({
     .locator('.cm-editor')
   await editor.click()
   await page.keyboard.insertText('true')
-  await page.getByRole('button', { name: 'Next' }).click()
-
-  // add an action to the rule and submit
-  await dropdownSelect(page, 'Destination Type', 'Alert')
-  await expect(
-    page.locator('#dialog-form').getByTestId('no-actions'),
-  ).toBeVisible()
-  await page.getByRole('button', { name: 'Add Action' }).click()
-  await expect(
-    page.getByLabel('Create Rule').getByTestId('no-actions'),
-  ).toBeHidden()
-  await expect(
-    page.locator('span', { hasText: 'Create new alert' }),
-  ).toBeVisible()
-
-  await page.getByRole('button', { name: 'Next' }).click()
   await page.getByRole('button', { name: 'Submit' }).click()
   await expect(page.locator('[role=dialog]')).toBeHidden()
 
@@ -86,37 +70,42 @@ test('create universal key, add rule with action', async ({
 
   // start editing
   await page.getByRole('button', { name: 'Other Actions' }).click()
-  await page.getByRole('menuitem', { name: 'Edit' }).click()
+  await page.getByRole('menuitem', { name: 'Edit Rule' }).click()
 
-  // update description, delete the action, submit
+  // update description, submit
   await page.fill('input[name=description]', ruleNewDesc)
-  await page.getByRole('button', { name: 'Next' }).click()
-  await page
-    .locator('div', { hasText: 'Create new alert' })
-    .locator('[data-testid=CancelIcon]')
-    .click()
-  await expect(
-    page.locator('#dialog-form').getByTestId('no-actions'),
-  ).toBeVisible()
-  await page.getByRole('button', { name: 'Next' }).click()
   await page.getByRole('button', { name: 'Submit' }).click()
-
-  // see warning for no actions- check and submit
-  await expect(page.getByText('WARNING: No actions')).toBeVisible()
-  await page
-    .locator('label', { hasText: 'I acknowledge the impact of this' })
-    .locator('input[type=checkbox]')
-    .click()
-  await page.getByRole('button', { name: 'Retry' }).click()
   await expect(page.locator('[role=dialog]')).toBeHidden()
 
   // verify name does not change, with new description
   await expect(page.locator('body')).toContainText(ruleName)
   await expect(page.locator('body')).toContainText(ruleNewDesc)
 
+  // ensure `no-actions` message is displayed
+  await expect(page.getByTestId('no-actions')).toBeVisible()
+
+  // add an action
+  await page.getByRole('button', { name: 'Other Actions' }).click()
+  await page.getByRole('menuitem', { name: 'Add Action' }).click()
+  await expect(page.getByTestId('no-actions')).toBeHidden()
+
+  // should default to alert
+  await page.getByRole('button', { name: 'Submit' }).click()
+
+  // edit action
+  await page.getByTestId('destination-chip').getByTestId('EditIcon').click()
+
+  // check delete
+  await page.getByLabel('Delete this action').click()
+  await page.getByRole('button', { name: 'Submit' }).click()
+  await expect(page.locator('[role=dialog]')).toBeHidden()
+
+  // ensure `no-actions` message is displayed again
+  await expect(page.getByTestId('no-actions')).toBeVisible()
+
   // delete the rule
   await page.getByRole('button', { name: 'Other Actions' }).click()
-  await page.getByRole('menuitem', { name: 'Delete' }).click()
+  await page.getByRole('menuitem', { name: 'Delete Rule' }).click()
   expect(
     page.locator('[data-cy=dialog-title]', { hasText: 'Are you sure?' }),
   ).toBeVisible()
