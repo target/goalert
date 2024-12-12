@@ -31,7 +31,6 @@ const query = gql`
       config {
         rules {
           id
-          name
           actions {
             dest {
               type
