@@ -2,10 +2,14 @@ import React from 'react'
 import { Chip } from '@mui/material'
 import { InlineDisplayInfo } from '../../schema'
 import { DestinationAvatar } from './DestinationAvatar'
+import { Edit } from '@mui/icons-material'
 
 export type DestinationChipProps = InlineDisplayInfo & {
   // If onDelete is provided, a delete icon will be shown.
   onDelete?: () => void
+
+  /* if onEdit is provided, an edit icon will be shown. Takes precedence over onDelete */
+  onEdit?: () => void
   onChipClick?: () => void
 }
 
@@ -19,20 +23,23 @@ export type DestinationChipProps = InlineDisplayInfo & {
 export default function DestinationChip(
   props: DestinationChipProps,
 ): React.ReactNode {
+  const deleteIcon = props.onEdit ? <Edit /> : undefined
+  const onDel = props.onEdit || props.onDelete
+  const handleOnDelete = onDel
+    ? (e: React.MouseEvent) => {
+        e.stopPropagation()
+        e.preventDefault()
+        onDel()
+      }
+    : undefined
+
   if ('error' in props) {
     return (
       <Chip
         avatar={<DestinationAvatar error />}
         label={'ERROR: ' + props.error}
-        onDelete={
-          props.onDelete
-            ? (e) => {
-                e.stopPropagation()
-                e.preventDefault()
-                props.onDelete?.()
-              }
-            : undefined
-        }
+        onDelete={handleOnDelete}
+        deleteIcon={deleteIcon}
       />
     )
   }
@@ -41,15 +48,8 @@ export default function DestinationChip(
       <Chip
         avatar={<DestinationAvatar loading />}
         label='Loading...'
-        onDelete={
-          props.onDelete
-            ? (e) => {
-                e.stopPropagation()
-                e.preventDefault()
-                props.onDelete?.()
-              }
-            : undefined
-        }
+        onDelete={handleOnDelete}
+        deleteIcon={deleteIcon}
       />
     )
   }
@@ -75,15 +75,8 @@ export default function DestinationChip(
         />
       }
       label={props.text}
-      onDelete={
-        props.onDelete
-          ? (e) => {
-              e.stopPropagation()
-              e.preventDefault()
-              props.onDelete?.()
-            }
-          : undefined
-      }
+      onDelete={handleOnDelete}
+      deleteIcon={deleteIcon}
     />
   )
 }

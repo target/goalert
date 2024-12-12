@@ -99,6 +99,7 @@ export default function FormDialog(props) {
     return (
       <DialogContent className={classes.dialogContent}>
         <Form
+          style={{ paddingTop: '1em' }}
           id='dialog-form'
           className={classes.formContainer}
           onSubmit={(e, valid) => {
