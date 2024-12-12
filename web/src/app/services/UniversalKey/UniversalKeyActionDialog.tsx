@@ -9,6 +9,7 @@ import {
 import FormDialog from '../../dialogs/FormDialog'
 import DynamicActionForm, { Value } from '../../selection/DynamicActionForm'
 import { useDefaultAction } from '../../util/RequireConfig'
+import { useErrorConsumer } from '../../util/ErrorConsumer'
 
 type UniversalKeyActionDialogProps = {
   keyID: string
@@ -95,7 +96,7 @@ export function UniversalKeyActionDialog(
   const input = { keyID: props.keyID } as UpdateKeyConfigInput
   const newAction = {
     dest: {
-      type: value.destType,
+      type: value.destType + 'brok',
       args: value.staticParams,
     },
     params: value.dynamicParams,
@@ -124,13 +125,15 @@ export function UniversalKeyActionDialog(
     input.defaultActions = actions.map(actionToInput).concat(newAction)
   }
 
+  const errs = useErrorConsumer(m.error)
+
   return (
     <FormDialog
       title={title}
       onClose={props.onClose}
       loading={m.fetching}
       maxWidth='md'
-      errors={null}
+      errors={errs.remainingLegacyCallback()}
       onSubmit={() =>
         commit({ input }, { additionalTypenames: ['KeyConfig'] }).then(
           (res) => {
@@ -145,9 +148,10 @@ export function UniversalKeyActionDialog(
           disablePortal={props.disablePortal}
           value={value}
           onChange={setValue}
-          destTypeError={undefined}
-          staticParamErrors={{}}
-          dynamicParamErrors={{}}
+          staticParamErrors={errs.getErrorMap('updateKeyConfig')}
+          dynamicParamErrors={errs.getErrorMap(
+            /updateKeyConfig.input.defaultActions.\d+.params/,
+          )}
         />
       }
       PaperProps={{
