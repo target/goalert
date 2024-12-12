@@ -134,7 +134,7 @@ export default function IntegrationKeyList(props: {
               <Grid item>
                 <AppLink to={key.id}>
                   <Button
-                    aria-label='Manage configuration and tokens for this key.'
+                    title='Manage configuration and tokens for this key.'
                     onClick={() => {}}
                     variant='contained'
                   >
@@ -145,6 +145,7 @@ export default function IntegrationKeyList(props: {
             )}
             <Grid item>
               <IconButton
+                title='Delete this key.'
                 onClick={(): void => setDeleteDialog(key.id)}
                 size='large'
               >
