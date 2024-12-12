@@ -102,18 +102,20 @@ export function UniversalKeyActionDialog(
   }
   if (rule && props.actionIndex !== undefined) {
     // Edit rule action
-    input.setRuleActions = {
-      id: rule.id,
-      actions: actions
-        .map(actionToInput)
-        .map((a, idx) => (idx === props.actionIndex ? newAction : a)),
-    }
+    // TODO: Commented out until next PR when this API change is introduced
+    // input.setRuleActions = {
+    //   id: rule.id,
+    //   actions: actions
+    //     .map(actionToInput)
+    //     .map((a, idx) => (idx === props.actionIndex ? newAction : a)),
+    // }
   } else if (rule) {
     // Add rule action
-    input.setRuleActions = {
-      id: rule.id,
-      actions: actions.map(actionToInput).concat(newAction),
-    }
+    // TODO: Commented out until next PR when this API change is introduced
+    // input.setRuleActions = {
+    //   id: rule.id,
+    //   actions: actions.map(actionToInput).concat(newAction),
+    // }
   } else if (props.actionIndex !== undefined) {
     // Edit default action
     input.defaultActions = actions
