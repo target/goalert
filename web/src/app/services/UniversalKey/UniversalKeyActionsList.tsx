@@ -1,14 +1,14 @@
 import React from 'react'
 import { ActionInput } from '../../../schema'
 import DestinationInputChip from '../../util/DestinationInputChip'
-import { Grid, Typography } from '@mui/material'
+import { Chip, Grid } from '@mui/material'
+import { Warning } from '../../icons'
 
 export type UniversalKeyActionsListProps = {
   actions: ReadonlyArray<ActionInput>
 
   noEdit?: boolean // disables onDelete and onChipClick
-  onDelete?: (action: ActionInput) => void
-  onChipClick?: (action: ActionInput) => void
+  onEdit?: (action: ActionInput) => void
 }
 
 export default function UniversalKeyActionsList(
@@ -28,14 +28,9 @@ export default function UniversalKeyActionsList(
           <Grid item key={JSON.stringify(a.dest)}>
             <DestinationInputChip
               value={a.dest}
-              onDelete={
-                props.onDelete && !props.noEdit
-                  ? () => props.onDelete && props.onDelete(a)
-                  : undefined
-              }
-              onChipClick={
-                props.onChipClick && !props.noEdit
-                  ? () => props.onChipClick && props.onChipClick(a)
+              onEdit={
+                props.onEdit && !props.noEdit
+                  ? () => props.onEdit && props.onEdit(a)
                   : undefined
               }
             />
@@ -44,13 +39,17 @@ export default function UniversalKeyActionsList(
       </Grid>
       {props.actions.length === 0 && (
         <Grid item xs={12} data-testid='actions-list'>
-          <Typography
-            variant='body2'
-            color='textSecondary'
-            data-testid='no-actions'
-          >
-            No actions
-          </Typography>
+          <Chip
+            label='No actions'
+            icon={
+              <div style={{ padding: '4px' }}>
+                <Warning
+                  placement='bottom'
+                  message='With no actions configured, nothing will happen when this rule matches'
+                />
+              </div>
+            }
+          />
         </Grid>
       )}
     </React.Fragment>

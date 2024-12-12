@@ -1,5 +1,5 @@
 import React, { Suspense, useState } from 'react'
-import { Button, Card } from '@mui/material'
+import { Button, Card, Grid, Typography } from '@mui/material'
 import { Add } from '@mui/icons-material'
 import FlatList, { FlatListListItem } from '../../lists/FlatList'
 import UniversalKeyRuleDialog from './UniversalKeyRuleDialog'
@@ -9,6 +9,7 @@ import { gql, useQuery } from 'urql'
 import { IntegrationKey, Service } from '../../../schema'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
+import UniversalKeyActionsList from './UniversalKeyActionsList'
 
 interface UniversalKeyRuleListProps {
   serviceID: string
@@ -24,11 +25,29 @@ const query = gql`
           id
           name
           description
+          conditionExpr
+          continueAfterMatch
+          actions {
+            dest {
+              type
+              args
+            }
+            params
+          }
         }
       }
     }
   }
 `
+
+/* truncateCond truncates the condition expression to 50 characters and a single line. */
+function truncateCond(cond: string): string {
+  const singleLineCond = cond.replace(/\s+/g, ' ')
+  if (singleLineCond.length > 50) {
+    return singleLineCond.slice(0, 50) + '...'
+  }
+  return singleLineCond
+}
 
 export default function UniversalKeyRuleList(
   props: UniversalKeyRuleListProps,
@@ -53,18 +72,46 @@ export default function UniversalKeyRuleList(
 
   const items: FlatListListItem[] = (
     data?.integrationKey.config.rules ?? []
-  ).map((rule) => ({
-    title: rule.name,
-    subText: rule.description,
+  ).map((rule, idx) => ({
+    title: (
+      <Typography component='h4' variant='subtitle1' sx={{ pb: 1 }}>
+        <b>{rule.name}:</b>
+        &nbsp;
+        {rule.description}
+      </Typography>
+    ),
+    subText: (
+      <Grid container>
+        <Grid item xs={12}>
+          <b>If</b>
+          <code style={{ paddingLeft: '1em' }}>
+            {truncateCond(rule.conditionExpr)}
+          </code>
+        </Grid>
+        <Grid item xs={12}>
+          <b>Then</b>
+        </Grid>
+        <Grid item xs={12} sx={{ paddingLeft: '1em' }}>
+          <UniversalKeyActionsList actions={rule.actions} onEdit={() => {}} />
+        </Grid>
+        <Grid item xs={12}>
+          <b>Finally</b> {rule.continueAfterMatch ? 'continue' : 'stop'}
+        </Grid>
+      </Grid>
+    ),
     secondaryAction: (
       <OtherActions
         actions={[
           {
-            label: 'Edit',
+            label: 'Add Action',
             onClick: () => setEdit(rule.id),
           },
           {
-            label: 'Delete',
+            label: 'Edit Rule',
+            onClick: () => setEdit(rule.id),
+          },
+          {
+            label: 'Delete Rule',
             onClick: () => setRemove(rule.id),
           },
         ]}
@@ -88,6 +135,7 @@ export default function UniversalKeyRuleList(
           }
           headerNote='Rules are a set of filters that allow notifications to be sent to a specific destination. '
           items={items}
+          onReorder={() => {}}
         />
       </Card>
 

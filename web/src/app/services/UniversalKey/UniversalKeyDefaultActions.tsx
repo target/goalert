@@ -1,11 +1,11 @@
 import { Button, Card } from '@mui/material'
 import React, { Suspense, useState } from 'react'
 import FlatList from '../../lists/FlatList'
-import { Edit } from '@mui/icons-material'
 import DefaultActionEditDialog from './DefaultActionEditDialog'
 import UniversalKeyActionsList from './UniversalKeyActionsList'
 import { gql, useQuery } from 'urql'
 import { IntegrationKey } from '../../../schema'
+import { Add } from '../../icons'
 
 interface UniversalKeyDefaultActionProps {
   serviceID: string
@@ -46,10 +46,10 @@ export default function UniversalKeyDefaultActions(
           headerAction={
             <Button
               variant='contained'
-              startIcon={<Edit />}
+              startIcon={<Add />}
               onClick={() => setEdit(true)}
             >
-              Edit Default Action
+              Add Action
             </Button>
           }
           headerNote='Default actions are performed when zero rules match.'
