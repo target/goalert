@@ -851,6 +851,81 @@ func (q *Queries) CalSubUserNames(ctx context.Context, dollar_1 []uuid.UUID) ([]
 	return items, nil
 }
 
+const cleanupMgrDeleteOldAlerts = `-- name: CleanupMgrDeleteOldAlerts :execrows
+DELETE FROM alerts
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            alerts a
+        WHERE
+            status = 'closed'
+            AND a.created_at < now() -($1::bigint * '1 day'::interval)
+        ORDER BY
+            id
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// CleanupMgrDeleteOldAlerts will delete old alerts from the alerts table that are closed and older than the given number of days before now.
+func (q *Queries) CleanupMgrDeleteOldAlerts(ctx context.Context, cleanupDays int64) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldAlerts, cleanupDays)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const cleanupMgrFindStaleAlerts = `-- name: CleanupMgrFindStaleAlerts :many
+SELECT
+    id
+FROM
+    alerts a
+WHERE (a.status = 'triggered'
+    OR ($1
+        AND a.status = 'active'))
+AND created_at <= now() - '1 day'::interval * $2
+AND NOT EXISTS (
+    SELECT
+        1
+    FROM
+        alert_logs log
+    WHERE
+        timestamp > now() - '1 day'::interval * $2
+        AND log.alert_id = a.id)
+LIMIT 100
+`
+
+type CleanupMgrFindStaleAlertsParams struct {
+	IncludeAcked  interface{}
+	AutoCloseDays interface{}
+}
+
+// CleanupMgrFindStaleAlerts will find alerts that are triggered or active and have no activity in specified number of days.
+func (q *Queries) CleanupMgrFindStaleAlerts(ctx context.Context, arg CleanupMgrFindStaleAlertsParams) ([]int64, error) {
+	rows, err := q.db.QueryContext(ctx, cleanupMgrFindStaleAlerts, arg.IncludeAcked, arg.AutoCloseDays)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const connectionInfo = `-- name: ConnectionInfo :many
 SELECT application_name AS NAME,
     COUNT(*)

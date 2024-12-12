@@ -75,6 +75,12 @@ func (i *ignoreCancel) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return &ignoreCancel{h: i.h.WithAttrs(attrs)}
 }
 
+type workerMiddlewareFunc func(context.Context, func(ctx context.Context) error) error
+
+func (w workerMiddlewareFunc) Work(ctx context.Context, job *rivertype.JobRow, doInner func(ctx context.Context) error) error {
+	return w(ctx, doInner)
+}
+
 func (app *App) initRiver(ctx context.Context) error {
 	app.RiverWorkers = river.NewWorkers()
 
@@ -93,6 +99,12 @@ func (app *App) initRiver(ctx context.Context) error {
 		Workers: app.RiverWorkers,
 		Queues: map[string]river.QueueConfig{
 			river.QueueDefault: {MaxWorkers: 100},
+		},
+		WorkerMiddleware: []rivertype.WorkerMiddleware{
+			workerMiddlewareFunc(func(ctx context.Context, doInner func(ctx context.Context) error) error {
+				// Ensure config is set in the context for all workers.
+				return doInner(app.ConfigStore.Config().Context(ctx))
+			}),
 		},
 		ErrorHandler: &riverErrs{
 			// The error handler logger is used differently than the main logger, so it should be separate, and doesn't need the wrapper.

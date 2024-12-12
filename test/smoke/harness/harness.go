@@ -88,6 +88,8 @@ type Harness struct {
 
 	cfg config.Config
 
+	appCfg app.Config
+
 	email     *emailServer
 	slack     *slackServer
 	slackS    *httptest.Server
@@ -309,6 +311,7 @@ func (h *Harness) Start() {
 	appCfg.SMTPListenAddr = "localhost:0"
 	appCfg.EmailIntegrationDomain = "smoketest.example.com"
 	appCfg.InitialConfig = &h.cfg
+	h.appCfg = appCfg
 
 	r, w := io.Pipe()
 	h.backendLogs = w
@@ -341,6 +344,38 @@ func (h *Harness) Start() {
 	if err != nil {
 		h.t.Fatalf("failed to start backend: %v", err)
 	}
+}
+
+// RestartGoAlertWithConfig will restart the backend with the provided config.
+func (h *Harness) RestartGoAlertWithConfig(cfg config.Config) {
+	h.t.Helper()
+
+	h.t.Logf("Stopping backend for restart")
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	err := h.backend.Shutdown(ctx)
+	if err != nil {
+		h.t.Error("failed to shutdown backend cleanly:", err)
+	}
+
+	h.t.Logf("Restarting backend")
+	h.appCfg.InitialConfig = &cfg
+	h.backend, err = app.NewApp(h.appCfg, h.appPool)
+	if err != nil {
+		h.t.Fatalf("failed to start backend: %v", err)
+	}
+	h.slack.SetActionURL(h.slackApp.ClientID, h.backend.URL()+"/api/v2/slack/message-action")
+
+	go func() {
+		assert.NoError(h.t, h.backend.Run(context.Background())) // can't use require.NoError because we're in the background
+	}()
+	err = h.backend.WaitForStartup(ctx)
+	if err != nil {
+		h.t.Fatalf("failed to start backend: %v", err)
+	}
+
+	h.t.Logf("Backend restarted")
 }
 
 // URL returns the backend server's URL
