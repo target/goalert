@@ -1,9 +1,9 @@
 import { FormControl, InputLabel, OutlinedInput } from '@mui/material'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
-import Link from '@mui/material/Link'
 import Tooltip from '@mui/material/Tooltip'
 import React from 'react'
 import ExprEditor from '../../editor/ExprEditor'
+import AppLink from '../../util/AppLink'
 
 export type ExprFieldProps = {
   error?: boolean
@@ -24,7 +24,7 @@ export function ExprField(props: ExprFieldProps): React.ReactNode {
       variant='outlined'
       data-testid={'code-' + props.name}
     >
-      <InputLabel htmlFor={props.name} sx={{ padding: '0 50px 0 0' }}>
+      <InputLabel htmlFor={props.name} sx={{ padding: '0 50px 0 0' }} shrink>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           {props.label}
           <AppLink
@@ -35,7 +35,7 @@ export function ExprField(props: ExprFieldProps): React.ReactNode {
             <Tooltip title='Expr syntax'>
               <InfoOutlinedIcon />
             </Tooltip>
-          </Link>
+          </AppLink>
         </div>
       </InputLabel>
       <OutlinedInput
