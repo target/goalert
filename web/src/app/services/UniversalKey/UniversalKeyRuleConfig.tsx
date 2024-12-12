@@ -78,7 +78,7 @@ export default function UniversalKeyRuleList(
 
   const items: FlatListListItem[] = (
     data?.integrationKey.config.rules ?? []
-  ).map((rule, idx) => ({
+  ).map((rule) => ({
     title: (
       <Typography component='h4' variant='subtitle1' sx={{ pb: 1 }}>
         <b>{rule.name}:</b>
