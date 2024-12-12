@@ -1,6 +1,9 @@
 import { FormControl, InputLabel, OutlinedInput } from '@mui/material'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
+import Tooltip from '@mui/material/Tooltip'
 import React from 'react'
 import ExprEditor from '../../editor/ExprEditor'
+import AppLink from '../../util/AppLink'
 
 export type ExprFieldProps = {
   error?: boolean
@@ -21,13 +24,24 @@ export function ExprField(props: ExprFieldProps): React.ReactNode {
       variant='outlined'
       data-testid={'code-' + props.name}
     >
-      <InputLabel htmlFor={props.name} shrink>
-        {props.label} (Expr syntax)
+      <InputLabel htmlFor={props.name} sx={{ padding: '0 50px 0 0' }} shrink>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          {props.label}
+          <AppLink
+            to='https://expr-lang.org/docs/language-definition'
+            newTab
+            style={{ marginTop: '5px', marginRight: '5px', marginLeft: '5px' }}
+          >
+            <Tooltip title='Expr syntax'>
+              <InfoOutlinedIcon />
+            </Tooltip>
+          </AppLink>
+        </div>
       </InputLabel>
       <OutlinedInput
         name={props.name}
         id={props.name}
-        label={props.label + ' (Expr syntax)'} // used for sizing, not display
+        label={props.label + ' ((i)) '} // used for sizing, not display
         notched
         sx={{ padding: '1em' }}
         disabled={props.disabled}

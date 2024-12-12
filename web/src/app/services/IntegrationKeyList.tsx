@@ -120,7 +120,6 @@ export default function IntegrationKeyList(props: {
     .map(
       (key: IntegrationKey): FlatListListItem => ({
         title: key.name,
-        url: key.type === 'universal' ? key.id : undefined,
         subText: (
           <IntegrationKeyDetails
             key={key.id}
@@ -130,12 +129,30 @@ export default function IntegrationKeyList(props: {
           />
         ),
         secondaryAction: (
-          <IconButton
-            onClick={(): void => setDeleteDialog(key.id)}
-            size='large'
-          >
-            <Trash />
-          </IconButton>
+          <Grid container spacing={2} alignItems='center' wrap='nowrap'>
+            {key.type === 'universal' && (
+              <Grid item>
+                <AppLink to={key.id}>
+                  <Button
+                    title='Manage configuration and tokens for this key.'
+                    onClick={() => {}}
+                    variant='contained'
+                  >
+                    Manage
+                  </Button>
+                </AppLink>
+              </Grid>
+            )}
+            <Grid item>
+              <IconButton
+                title='Delete this key.'
+                onClick={(): void => setDeleteDialog(key.id)}
+                size='large'
+              >
+                <Trash />
+              </IconButton>
+            </Grid>
+          </Grid>
         ),
       }),
     )
