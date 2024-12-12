@@ -50,11 +50,11 @@ export default function UniversalKeyActionsList(
         ))}
       </Grid>
       {props.actions.length === 0 && (
-        <Grid item xs={12} data-testid='actions-list'>
+        <Grid item xs={12}>
           <Chip
             label='No actions'
             icon={
-              <div style={{ padding: '4px' }}>
+              <div style={{ padding: '4px' }} data-testid='no-actions'>
                 <Warning
                   placement='bottom'
                   message='With no actions configured, nothing will happen when this rule matches'
