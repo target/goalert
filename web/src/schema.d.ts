@@ -1309,6 +1309,7 @@ export interface UpdateKeyConfigInput {
   rules?: null | KeyRuleInput[]
   setRule?: null | KeyRuleInput
   setRuleActions?: null | KeyRuleActionsInput
+  setRuleOrder?: null | string[]
 }
 
 export interface UpdateRotationInput {

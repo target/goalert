@@ -844,6 +844,8 @@ type UpdateKeyConfigInput struct {
 	SetRule *gadb.UIKRuleV1 `json:"setRule,omitempty"`
 	// setRuleActions allows you to set the actions for a single rule by ID.
 	SetRuleActions *gadb.UIKRuleV1 `json:"setRuleActions,omitempty"`
+	// setRuleOrder allows you to reorder rules by ID.
+	SetRuleOrder []string `json:"setRuleOrder,omitempty"`
 	// deleteRule allows you to delete a single rule by ID.
 	DeleteRule *string `json:"deleteRule,omitempty"`
 	// defaultAction is the action to take if no rules match the request.

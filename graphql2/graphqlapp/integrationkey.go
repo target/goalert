@@ -156,6 +156,18 @@ func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKey
 				}
 			}
 		}
+		if input.SetRuleOrder != nil {
+			rules := make(map[string]gadb.UIKRuleV1, len(cfg.Rules))
+			for _, r := range cfg.Rules {
+				rules[r.ID.String()] = r
+			}
+			cfg.Rules = cfg.Rules[:0]
+			for _, id := range input.SetRuleOrder {
+				if r, ok := rules[id]; ok {
+					cfg.Rules = append(cfg.Rules, r)
+				}
+			}
+		}
 
 		if input.DefaultActions != nil {
 			cfg.DefaultActions = input.DefaultActions

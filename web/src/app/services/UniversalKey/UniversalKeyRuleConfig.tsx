@@ -5,7 +5,7 @@ import FlatList, { FlatListListItem } from '../../lists/FlatList'
 import UniversalKeyRuleDialog from './UniversalKeyRuleDialog'
 import UniversalKeyRuleRemoveDialog from './UniversalKeyRuleRemoveDialog'
 import OtherActions from '../../util/OtherActions'
-import { gql, useQuery } from 'urql'
+import { gql, useMutation, useQuery } from 'urql'
 import { IntegrationKey, Service } from '../../../schema'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
@@ -41,6 +41,12 @@ const query = gql`
   }
 `
 
+const updateKeyConfig = gql`
+  mutation UpdateKeyConfig($input: UpdateKeyConfigInput!) {
+    updateKeyConfig(input: $input)
+  }
+`
+
 /* truncateCond truncates the condition expression to 50 characters and a single line. */
 function truncateCond(cond: string): string {
   const singleLineCond = cond.replace(/\s+/g, ' ')
@@ -72,6 +78,7 @@ export default function UniversalKeyRuleList(
       serviceID: props.serviceID,
     },
   })
+  const [, commit] = useMutation(updateKeyConfig)
 
   if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
@@ -146,7 +153,22 @@ export default function UniversalKeyRuleList(
           }
           headerNote='Rules are a set of filters that allow notifications to be sent to a specific destination. '
           items={items}
-          onReorder={() => {}}
+          onReorder={(oldIdx, newIdx) => {
+            const ruleIDs =
+              data?.integrationKey.config.rules.map((r) => r.id) || []
+            const tmp = ruleIDs[oldIdx]
+            ruleIDs[oldIdx] = ruleIDs[newIdx]
+            ruleIDs[newIdx] = tmp
+            commit(
+              {
+                input: {
+                  keyID: props.keyID,
+                  setRuleOrder: ruleIDs,
+                },
+              },
+              { additionalTypenames: ['IntegrationKey'] },
+            )
+          }}
         />
       </Card>
 

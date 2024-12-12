@@ -102,6 +102,11 @@ input UpdateKeyConfigInput {
   setRuleActions: KeyRuleActionsInput
 
   """
+  setRuleOrder allows you to reorder rules by ID.
+  """
+  setRuleOrder: [ID!]
+
+  """
   deleteRule allows you to delete a single rule by ID.
   """
   deleteRule: ID

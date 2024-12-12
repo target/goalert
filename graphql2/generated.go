@@ -39481,7 +39481,7 @@ func (ec *executionContext) unmarshalInputUpdateKeyConfigInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"keyID", "rules", "setRule", "setRuleActions", "deleteRule", "defaultActions"}
+	fieldsInOrder := [...]string{"keyID", "rules", "setRule", "setRuleActions", "setRuleOrder", "deleteRule", "defaultActions"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -39516,6 +39516,13 @@ func (ec *executionContext) unmarshalInputUpdateKeyConfigInput(ctx context.Conte
 				return it, err
 			}
 			it.SetRuleActions = data
+		case "setRuleOrder":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("setRuleOrder"))
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SetRuleOrder = data
 		case "deleteRule":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deleteRule"))
 			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
