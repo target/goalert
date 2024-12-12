@@ -27,10 +27,9 @@ export function ExprField(props: ExprFieldProps): React.ReactNode {
       <InputLabel htmlFor={props.name} sx={{ padding: '0 50px 0 0' }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           {props.label}
-          <Link
-            href='https://expr-lang.org/docs/language-definition'
-            target='_blank'
-            rel='noreferrer'
+          <AppLink
+            to='https://expr-lang.org/docs/language-definition'
+            newTab
             style={{ marginTop: '5px', marginRight: '5px', marginLeft: '5px' }}
           >
             <Tooltip title='Expr syntax'>
