@@ -10,7 +10,7 @@ import FormDialog from '../../dialogs/FormDialog'
 import DynamicActionForm, { Value } from '../../selection/DynamicActionForm'
 import { useDefaultAction } from '../../util/RequireConfig'
 import { useErrorConsumer } from '../../util/ErrorConsumer'
-import { Checkbox, FormControlLabel, Switch, Typography } from '@mui/material'
+import { Checkbox, FormControlLabel, Typography } from '@mui/material'
 
 type UniversalKeyActionDialogProps = {
   keyID: string
