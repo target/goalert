@@ -660,6 +660,11 @@ export interface KeyRule {
   name: string
 }
 
+export interface KeyRuleActionsInput {
+  actions: ActionInput[]
+  id: string
+}
+
 export interface KeyRuleInput {
   actions: ActionInput[]
   conditionExpr: ExprBooleanExpression
@@ -1303,6 +1308,8 @@ export interface UpdateKeyConfigInput {
   keyID: string
   rules?: null | KeyRuleInput[]
   setRule?: null | KeyRuleInput
+  setRuleActions?: null | KeyRuleActionsInput
+  setRuleOrder?: null | string[]
 }
 
 export interface UpdateRotationInput {

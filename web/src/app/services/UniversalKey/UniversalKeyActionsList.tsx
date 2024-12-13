@@ -8,8 +8,6 @@ export type UniversalKeyActionsListProps = {
   actions: ReadonlyArray<ActionInput>
 
   noEdit?: boolean // disables onDelete and onChipClick
-  onDelete?: (action: ActionInput) => void
-  onChipClick?: (action: ActionInput) => void
   onEdit?: (index: number) => void
 }
 
@@ -30,16 +28,6 @@ export default function UniversalKeyActionsList(
           <Grid item key={JSON.stringify(a.dest)}>
             <DestinationInputChip
               value={a.dest}
-              onDelete={
-                props.onDelete && !props.noEdit
-                  ? () => props.onDelete && props.onDelete(a)
-                  : undefined
-              }
-              onChipClick={
-                props.onChipClick && !props.noEdit
-                  ? () => props.onChipClick && props.onChipClick(a)
-                  : undefined
-              }
               onEdit={
                 props.onEdit && !props.noEdit
                   ? () => props.onEdit && props.onEdit(idx)

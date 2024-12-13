@@ -10,6 +10,7 @@ import FormDialog from '../../dialogs/FormDialog'
 import DynamicActionForm, { Value } from '../../selection/DynamicActionForm'
 import { useDefaultAction } from '../../util/RequireConfig'
 import { useErrorConsumer } from '../../util/ErrorConsumer'
+import { Checkbox, FormControlLabel, Typography } from '@mui/material'
 
 type UniversalKeyActionDialogProps = {
   keyID: string
@@ -87,6 +88,7 @@ export function UniversalKeyActionDialog(
     staticParams: action?.dest.args || {},
     dynamicParams: action?.params || defaultAction.params,
   })
+  const [deleteAction, setDeleteAction] = useState(false)
   const [m, commit] = useMutation(updateKeyConfig)
 
   const verb = action ? 'Edit' : 'Add'
@@ -95,32 +97,32 @@ export function UniversalKeyActionDialog(
   const input = { keyID: props.keyID } as UpdateKeyConfigInput
   const newAction = {
     dest: {
-      type: value.destType + 'brok',
+      type: value.destType,
       args: value.staticParams,
     },
     params: value.dynamicParams,
   }
   if (rule && props.actionIndex !== undefined) {
     // Edit rule action
-    // TODO: Commented out until next PR when this API change is introduced
-    // input.setRuleActions = {
-    //   id: rule.id,
-    //   actions: actions
-    //     .map(actionToInput)
-    //     .map((a, idx) => (idx === props.actionIndex ? newAction : a)),
-    // }
+    input.setRuleActions = {
+      id: rule.id,
+      actions: actions
+        .map(actionToInput)
+        .map((a, idx) => (idx === props.actionIndex ? newAction : a))
+        .filter((a, idx) => idx !== props.actionIndex || !deleteAction), // remove action if deleteAction
+    }
   } else if (rule) {
     // Add rule action
-    // TODO: Commented out until next PR when this API change is introduced
-    // input.setRuleActions = {
-    //   id: rule.id,
-    //   actions: actions.map(actionToInput).concat(newAction),
-    // }
+    input.setRuleActions = {
+      id: rule.id,
+      actions: actions.map(actionToInput).concat(newAction),
+    }
   } else if (props.actionIndex !== undefined) {
     // Edit default action
     input.defaultActions = actions
       .map(actionToInput)
       .map((a, idx) => (idx === props.actionIndex ? newAction : a))
+      .filter((a, idx) => idx !== props.actionIndex || !deleteAction) // remove action if deleteAction
   } else {
     // Add default action
     input.defaultActions = actions.map(actionToInput).concat(newAction)
@@ -145,21 +147,40 @@ export function UniversalKeyActionDialog(
         )
       }
       form={
-        <DynamicActionForm
-          disablePortal={props.disablePortal}
-          value={value}
-          onChange={setValue}
-          staticParamErrors={errs.getErrorMap('updateKeyConfig')}
-          dynamicParamErrors={errs.getErrorMap(
-            /updateKeyConfig.input.defaultActions.\d+.params/,
+        <React.Fragment>
+          {props.actionIndex !== undefined && (
+            <FormControlLabel
+              sx={{ paddingBottom: '1em' }}
+              control={
+                <Checkbox
+                  checked={deleteAction}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setDeleteAction(e.target.checked)
+                  }
+                />
+              }
+              label='Delete this action'
+            />
           )}
-        />
+          {!deleteAction && (
+            <DynamicActionForm
+              disablePortal={props.disablePortal}
+              value={value}
+              onChange={setValue}
+              staticParamErrors={errs.getErrorMap('updateKeyConfig')}
+              dynamicParamErrors={errs.getErrorMap(
+                /updateKeyConfig.input.defaultActions.\d+.params/,
+              )}
+            />
+          )}
+          {deleteAction && (
+            <Typography>
+              This will remove the action from{' '}
+              {rule ? 'the rule' : 'default actions'}.
+            </Typography>
+          )}
+        </React.Fragment>
       }
-      PaperProps={{
-        sx: {
-          minHeight: '500px',
-        },
-      }}
     />
   )
 }
