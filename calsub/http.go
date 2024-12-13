@@ -17,12 +17,15 @@ import (
 	"github.com/target/goalert/version"
 )
 
+// PayloadType is the embedded type & version for calendar subscription payloads.
 const PayloadType = "calendar-subscription/v1"
 
-type JSON struct {
+// JSONResponseV1 is the JSON response format for calendar subscription requests.
+type JSONResponseV1 struct {
 	AppName    string
 	AppVersion string
 
+	// Type is the embedded type & version for calendar subscription payloads and should be set to PayloadType.
 	Type string
 
 	ScheduleID   uuid.UUID
@@ -31,10 +34,11 @@ type JSON struct {
 
 	Start, End time.Time
 
-	Shifts []JSONShift
+	Shifts []JSONShiftV1
 }
 
-type JSONShift struct {
+// JSONShiftV1 is the JSON response format for a shift in a calendar subscription.
+type JSONShiftV1 struct {
 	Start, End time.Time
 
 	UserID   uuid.UUID
@@ -109,7 +113,7 @@ func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 
 	ct, _, _ := mime.ParseMediaType(req.Header.Get("Accept"))
 	if ct == "application/json" {
-		data := JSON{
+		data := JSONResponseV1{
 			AppName:      cfg.ApplicationName(),
 			AppVersion:   version.GitVersion(),
 			Type:         PayloadType,
@@ -124,7 +128,7 @@ func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		for _, s := range shifts {
-			data.Shifts = append(data.Shifts, JSONShift{
+			data.Shifts = append(data.Shifts, JSONShiftV1{
 				Start:     s.Start,
 				End:       s.End,
 				Truncated: s.Truncated,
