@@ -137,6 +137,9 @@ func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 				UserURL:   cfg.CallbackURL("/users/" + s.UserID),
 			})
 		}
+		if len(data.Shifts) == 0 {
+			data.Shifts = []JSONShiftV1{}
+		}
 		w.Header().Set("Content-Type", "application/json")
 		err = json.NewEncoder(w).Encode(data)
 		if errutil.HTTPError(ctx, w, err) {
