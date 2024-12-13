@@ -166,7 +166,6 @@ export function UniversalKeyActionDialog(
             <DynamicActionForm
               disablePortal={props.disablePortal}
               value={value}
-              disabled
               onChange={setValue}
               staticParamErrors={errs.getErrorMap('updateKeyConfig')}
               dynamicParamErrors={errs.getErrorMap(
