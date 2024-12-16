@@ -12,7 +12,7 @@ import (
 
 type ShiftArgs struct{}
 
-func (ShiftArgs) Kind() string { return "cleanup-manager-alerts" }
+func (ShiftArgs) Kind() string { return "cleanup-manager-shifts" }
 
 // CleanupShifts will automatically cleanup old shift and override records.
 func (db *DB) CleanupShifts(ctx context.Context, j *river.Job[ShiftArgs]) error {
