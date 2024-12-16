@@ -61,5 +61,29 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 		),
 	})
 
+	args.River.PeriodicJobs().AddMany([]*river.PeriodicJob{
+		river.NewPeriodicJob(
+			river.PeriodicInterval(24*time.Hour),
+			func() (river.JobArgs, *river.InsertOpts) {
+				return ShiftArgs{}, &river.InsertOpts{
+					Queue: QueueName,
+				}
+			},
+			&river.PeriodicJobOpts{RunOnStart: true},
+		),
+	})
+
+	args.River.PeriodicJobs().AddMany([]*river.PeriodicJob{
+		river.NewPeriodicJob(
+			river.PeriodicInterval(7*24*time.Hour),
+			func() (river.JobArgs, *river.InsertOpts) {
+				return SchedDataArgs{}, &river.InsertOpts{
+					Queue: QueueName,
+				}
+			},
+			&river.PeriodicJobOpts{RunOnStart: true},
+		),
+	})
+
 	return nil
 }

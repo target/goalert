@@ -77,3 +77,48 @@ WHERE id = ANY (
         FOR UPDATE
             SKIP LOCKED);
 
+-- name: CleanupMgrScheduleData :one
+-- CleanupMgrScheduleData will find the next schedule data that needs to be cleaned up.
+SELECT
+    schedule_id,
+    data
+FROM
+    schedule_data
+WHERE
+    data NOTNULL
+    AND (last_cleanup_at ISNULL
+        OR last_cleanup_at <= now() - '1 month'::interval)
+ORDER BY
+    last_cleanup_at ASC nulls FIRST
+FOR UPDATE
+    SKIP LOCKED
+LIMIT 1;
+
+-- name: CleanupMgrUpdateScheduleData :exec
+-- CleanupMgrUpdateScheduleData will update the last_cleanup_at and data fields in the schedule_data table.
+UPDATE
+    schedule_data
+SET
+    last_cleanup_at = now(),
+    data = $2
+WHERE
+    schedule_id = $1;
+
+-- name: CleanupMgrScheduleDataSkip :exec
+-- CleanupMgrScheduleDataSkip will update the last_cleanup_at field in the schedule_data table.
+UPDATE
+    schedule_data
+SET
+    last_cleanup_at = now()
+WHERE
+    schedule_id = $1;
+
+-- name: CleanupMgrVerifyUsers :many
+-- CleanupMgrVerifyUsers will verify that the given user ids exist in the users table.
+SELECT
+    id
+FROM
+    users
+WHERE
+    id = ANY (sqlc.arg(user_ids)::uuid[]);
+

@@ -995,6 +995,105 @@ func (q *Queries) CleanupMgrFindStaleAlerts(ctx context.Context, arg CleanupMgrF
 	return items, nil
 }
 
+const cleanupMgrScheduleData = `-- name: CleanupMgrScheduleData :one
+SELECT
+    schedule_id,
+    data
+FROM
+    schedule_data
+WHERE
+    data NOTNULL
+    AND (last_cleanup_at ISNULL
+        OR last_cleanup_at <= now() - '1 month'::interval)
+ORDER BY
+    last_cleanup_at ASC nulls FIRST
+FOR UPDATE
+    SKIP LOCKED
+LIMIT 1
+`
+
+type CleanupMgrScheduleDataRow struct {
+	ScheduleID uuid.UUID
+	Data       json.RawMessage
+}
+
+// CleanupMgrScheduleData will find the next schedule data that needs to be cleaned up.
+func (q *Queries) CleanupMgrScheduleData(ctx context.Context) (CleanupMgrScheduleDataRow, error) {
+	row := q.db.QueryRowContext(ctx, cleanupMgrScheduleData)
+	var i CleanupMgrScheduleDataRow
+	err := row.Scan(&i.ScheduleID, &i.Data)
+	return i, err
+}
+
+const cleanupMgrScheduleDataSkip = `-- name: CleanupMgrScheduleDataSkip :exec
+UPDATE
+    schedule_data
+SET
+    last_cleanup_at = now()
+WHERE
+    schedule_id = $1
+`
+
+// CleanupMgrScheduleDataSkip will update the last_cleanup_at field in the schedule_data table.
+func (q *Queries) CleanupMgrScheduleDataSkip(ctx context.Context, scheduleID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, cleanupMgrScheduleDataSkip, scheduleID)
+	return err
+}
+
+const cleanupMgrUpdateScheduleData = `-- name: CleanupMgrUpdateScheduleData :exec
+UPDATE
+    schedule_data
+SET
+    last_cleanup_at = now(),
+    data = $2
+WHERE
+    schedule_id = $1
+`
+
+type CleanupMgrUpdateScheduleDataParams struct {
+	ScheduleID uuid.UUID
+	Data       json.RawMessage
+}
+
+// CleanupMgrUpdateScheduleData will update the last_cleanup_at and data fields in the schedule_data table.
+func (q *Queries) CleanupMgrUpdateScheduleData(ctx context.Context, arg CleanupMgrUpdateScheduleDataParams) error {
+	_, err := q.db.ExecContext(ctx, cleanupMgrUpdateScheduleData, arg.ScheduleID, arg.Data)
+	return err
+}
+
+const cleanupMgrVerifyUsers = `-- name: CleanupMgrVerifyUsers :many
+SELECT
+    id
+FROM
+    users
+WHERE
+    id = ANY ($1::uuid[])
+`
+
+// CleanupMgrVerifyUsers will verify that the given user ids exist in the users table.
+func (q *Queries) CleanupMgrVerifyUsers(ctx context.Context, userIds []uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, cleanupMgrVerifyUsers, pq.Array(userIds))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const connectionInfo = `-- name: ConnectionInfo :many
 SELECT application_name AS NAME,
     COUNT(*)
