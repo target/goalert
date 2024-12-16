@@ -35,3 +35,45 @@ AND NOT EXISTS (
         AND log.alert_id = a.id)
 LIMIT 100;
 
+-- name: CleanupMgrDeleteOldOverrides :execrows
+-- CleanupMgrDeleteOldOverrides will delete old overrides from the user_overrides table that are older than the given number of days before now.
+DELETE FROM user_overrides
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            user_overrides
+        WHERE
+            end_time <(now() - '1 day'::interval * sqlc.arg(cleanup_days))
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED);
+
+-- name: CleanupMgrDeleteOldScheduleShifts :execrows
+-- CleanupMgrDeleteOldScheduleShifts will delete old schedule shifts from the schedule_on_call_users table that are older than the given number of days before now.
+DELETE FROM schedule_on_call_users
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            schedule_on_call_users
+        WHERE
+            end_time <(now() - '1 day'::interval * sqlc.arg(cleanup_days))
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED);
+
+-- name: CleanupMgrDeleteOldStepShifts :execrows
+-- CleanupMgrDeleteOldStepShifts will delete old EP step shifts from the ep_step_on_call_users table that are older than the given number of days before now.
+DELETE FROM ep_step_on_call_users
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            ep_step_on_call_users
+        WHERE
+            end_time <(now() - '1 day'::interval * sqlc.arg(cleanup_days))
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED);
+

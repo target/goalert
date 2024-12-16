@@ -63,25 +63,6 @@ func (db *DB) update(ctx context.Context) error {
 			return err
 		}
 	}
-	if cfg.Maintenance.ScheduleCleanupDays > 0 {
-		var dur pgtype.Interval
-		dur.Days = int32(cfg.Maintenance.ScheduleCleanupDays)
-		dur.Status = pgtype.Present
-		_, err = tx.StmtContext(ctx, db.cleanupOverrides).ExecContext(ctx, &dur)
-		if err != nil {
-			return fmt.Errorf("cleanup overrides: %w", err)
-		}
-
-		_, err = tx.StmtContext(ctx, db.cleanupSchedOnCall).ExecContext(ctx, &dur)
-		if err != nil {
-			return fmt.Errorf("cleanup schedule on-call: %w", err)
-		}
-
-		_, err = tx.StmtContext(ctx, db.cleanupEPOnCall).ExecContext(ctx, &dur)
-		if err != nil {
-			return fmt.Errorf("cleanup escalation policy on-call: %w", err)
-		}
-	}
 
 	rows, err := tx.StmtContext(ctx, db.schedData).QueryContext(ctx)
 	if err != nil {
