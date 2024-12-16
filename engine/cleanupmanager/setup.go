@@ -43,6 +43,8 @@ func (db *DB) whileWork(ctx context.Context, run func(ctx context.Context, tx *s
 // Setup implements processinglock.Setupable.
 func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 	river.AddWorker(args.Workers, river.WorkFunc(db.CleanupAlerts))
+	river.AddWorker(args.Workers, river.WorkFunc(db.CleanupShifts))
+	river.AddWorker(args.Workers, river.WorkFunc(db.CleanupScheduleData))
 
 	err := args.River.Queues().Add(QueueName, river.QueueConfig{MaxWorkers: 2})
 	if err != nil {
