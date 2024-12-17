@@ -934,8 +934,8 @@ WHERE id = ANY (
 `
 
 // CleanupMgrDeleteOldAlerts will delete old alerts from the alerts table that are closed and older than the given number of days before now.
-func (q *Queries) CleanupMgrDeleteOldAlerts(ctx context.Context, cleanupDays int64) (int64, error) {
-	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldAlerts, cleanupDays)
+func (q *Queries) CleanupMgrDeleteOldAlerts(ctx context.Context, staleThresholdDays int64) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldAlerts, staleThresholdDays)
 	if err != nil {
 		return 0, err
 	}
@@ -957,8 +957,8 @@ WHERE id = ANY (
 `
 
 // CleanupMgrDeleteOldOverrides will delete old overrides from the user_overrides table that are older than the given number of days before now.
-func (q *Queries) CleanupMgrDeleteOldOverrides(ctx context.Context, cleanupDays interface{}) (int64, error) {
-	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldOverrides, cleanupDays)
+func (q *Queries) CleanupMgrDeleteOldOverrides(ctx context.Context, historyThresholdDays interface{}) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldOverrides, historyThresholdDays)
 	if err != nil {
 		return 0, err
 	}
@@ -980,8 +980,8 @@ WHERE id = ANY (
 `
 
 // CleanupMgrDeleteOldScheduleShifts will delete old schedule shifts from the schedule_on_call_users table that are older than the given number of days before now.
-func (q *Queries) CleanupMgrDeleteOldScheduleShifts(ctx context.Context, cleanupDays interface{}) (int64, error) {
-	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldScheduleShifts, cleanupDays)
+func (q *Queries) CleanupMgrDeleteOldScheduleShifts(ctx context.Context, historyThresholdDays interface{}) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldScheduleShifts, historyThresholdDays)
 	if err != nil {
 		return 0, err
 	}
@@ -1003,8 +1003,8 @@ WHERE id = ANY (
 `
 
 // CleanupMgrDeleteOldStepShifts will delete old EP step shifts from the ep_step_on_call_users table that are older than the given number of days before now.
-func (q *Queries) CleanupMgrDeleteOldStepShifts(ctx context.Context, cleanupDays interface{}) (int64, error) {
-	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldStepShifts, cleanupDays)
+func (q *Queries) CleanupMgrDeleteOldStepShifts(ctx context.Context, historyThresholdDays interface{}) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldStepShifts, historyThresholdDays)
 	if err != nil {
 		return 0, err
 	}
@@ -1032,13 +1032,13 @@ LIMIT 100
 `
 
 type CleanupMgrFindStaleAlertsParams struct {
-	IncludeAcked  interface{}
-	AutoCloseDays interface{}
+	IncludeAcked           interface{}
+	AutoCloseThresholdDays interface{}
 }
 
 // CleanupMgrFindStaleAlerts will find alerts that are triggered or active and have no activity in specified number of days.
 func (q *Queries) CleanupMgrFindStaleAlerts(ctx context.Context, arg CleanupMgrFindStaleAlertsParams) ([]int64, error) {
-	rows, err := q.db.QueryContext(ctx, cleanupMgrFindStaleAlerts, arg.IncludeAcked, arg.AutoCloseDays)
+	rows, err := q.db.QueryContext(ctx, cleanupMgrFindStaleAlerts, arg.IncludeAcked, arg.AutoCloseThresholdDays)
 	if err != nil {
 		return nil, err
 	}
@@ -1069,7 +1069,7 @@ FROM
 WHERE
     data NOTNULL
     AND (last_cleanup_at ISNULL
-        OR last_cleanup_at <= now() - '1 month'::interval)
+        OR last_cleanup_at <= now() - '1 day'::interval * $1::int)
 ORDER BY
     last_cleanup_at ASC nulls FIRST
 FOR UPDATE
@@ -1082,9 +1082,9 @@ type CleanupMgrScheduleDataRow struct {
 	Data       json.RawMessage
 }
 
-// CleanupMgrScheduleData will find the next schedule data that needs to be cleaned up.
-func (q *Queries) CleanupMgrScheduleData(ctx context.Context) (CleanupMgrScheduleDataRow, error) {
-	row := q.db.QueryRowContext(ctx, cleanupMgrScheduleData)
+// CleanupMgrScheduleData will find the next schedule data that needs to be cleaned up. The last_cleanup_at field is used to ensure we clean up each schedule data at most once per interval.
+func (q *Queries) CleanupMgrScheduleData(ctx context.Context, cleanupIntervalDays int32) (CleanupMgrScheduleDataRow, error) {
+	row := q.db.QueryRowContext(ctx, cleanupMgrScheduleData, cleanupIntervalDays)
 	var i CleanupMgrScheduleDataRow
 	err := row.Scan(&i.ScheduleID, &i.Data)
 	return i, err

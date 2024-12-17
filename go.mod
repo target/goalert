@@ -28,7 +28,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/matcornic/hermes/v2 v2.1.0
 	github.com/mnako/letters v0.2.3
-	github.com/nyaruka/phonenumbers v1.4.2
+	github.com/nyaruka/phonenumbers v1.4.3
 	github.com/oauth2-proxy/mockoidc v0.0.0-20240214162133-caebfff84d25
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/pkg/errors v0.9.1

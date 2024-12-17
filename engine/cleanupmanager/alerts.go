@@ -22,8 +22,8 @@ func (db *DB) CleanupAlerts(ctx context.Context, j *river.Job[AlertArgs]) error 
 	if cfg.Maintenance.AlertAutoCloseDays > 0 {
 		err := db.whileWork(ctx, func(ctx context.Context, tx *sql.Tx) (done bool, err error) {
 			ids, err := gadb.New(tx).CleanupMgrFindStaleAlerts(ctx, gadb.CleanupMgrFindStaleAlertsParams{
-				AutoCloseDays: int64(cfg.Maintenance.AlertAutoCloseDays),
-				IncludeAcked:  cfg.Maintenance.AutoCloseAckedAlerts,
+				AutoCloseThresholdDays: int64(cfg.Maintenance.AlertAutoCloseDays),
+				IncludeAcked:           cfg.Maintenance.AutoCloseAckedAlerts,
 			})
 			if err != nil {
 				return false, fmt.Errorf("find stale alerts: %w", err)
