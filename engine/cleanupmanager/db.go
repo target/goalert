@@ -32,7 +32,7 @@ type DB struct {
 func (db *DB) Name() string { return "Engine.CleanupManager" }
 
 // NewDB creates a new DB.
-func NewDB(ctx context.Context, db *sql.DB, alertstore *alert.Store) (*DB, error) {
+func NewDB(ctx context.Context, db *sql.DB, alertstore *alert.Store, log *slog.Logger) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Version: 1,
 		Type:    processinglock.TypeCleanup,
@@ -44,8 +44,9 @@ func NewDB(ctx context.Context, db *sql.DB, alertstore *alert.Store) (*DB, error
 	p := &util.Prepare{Ctx: ctx, DB: db}
 
 	return &DB{
-		db:   db,
-		lock: lock,
+		db:     db,
+		lock:   lock,
+		logger: log,
 
 		// Abort any cleanup operation that takes longer than 3 seconds
 		// error will be logged.
