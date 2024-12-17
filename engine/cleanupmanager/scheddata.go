@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/riverqueue/river"
@@ -52,75 +53,13 @@ func (db *DB) CleanupScheduleData(ctx context.Context, j *river.Job[SchedDataArg
 			return false, fmt.Errorf("get current time: %w", err)
 		}
 
-		var users []uuid.UUID
-		var changed bool
-		newTempSched := data.V1.TemporarySchedules[:0]
-		for _, sched := range data.V1.TemporarySchedules {
-			if sched.End.Before(now) {
-				changed = true
-				continue
-			}
-			cleanShifts := sched.Shifts[:0]
-			for _, shift := range sched.Shifts {
-				if shift.End.Before(now) {
-					changed = true
-					continue
-				}
-				id, err := uuid.Parse(shift.UserID)
-				if err != nil {
-					changed = true
-					// invalid shift, delete it
-					continue
-				}
-
-				cleanShifts = append(cleanShifts, shift)
-				if slices.Contains(users, id) {
-					continue
-				}
-
-				users = append(users, id)
-			}
-			if len(cleanShifts) == 0 {
-				changed = true
-				continue
-			}
-			sched.Shifts = cleanShifts
-			newTempSched = append(newTempSched, sched)
-		}
-		data.V1.TemporarySchedules = newTempSched
-
+		changed, users := trimExpiredShifts(&data, now)
 		validUsers, err := gadb.New(tx).CleanupMgrVerifyUsers(ctx, users)
 		if err != nil {
 			return false, fmt.Errorf("verify users: %w", err)
 		}
 
-		// repeat loop, but this time validating users
-
-		newTempSched = data.V1.TemporarySchedules[:0]
-		for _, temp := range data.V1.TemporarySchedules {
-			cleanShifts := temp.Shifts[:0]
-			for _, shift := range temp.Shifts {
-				id, err := uuid.Parse(shift.UserID)
-				if err != nil {
-					changed = true
-					// invalid shift, delete it
-					continue
-				}
-				if !slices.Contains(validUsers, id) {
-					changed = true
-					continue
-				}
-				cleanShifts = append(cleanShifts, shift)
-			}
-			if len(cleanShifts) == 0 {
-				changed = true
-				continue
-			}
-			temp.Shifts = cleanShifts
-			newTempSched = append(newTempSched, temp)
-		}
-		data.V1.TemporarySchedules = newTempSched
-
+		changed = trimInvalidUsers(&data, validUsers) || changed
 		if !changed {
 			return false, gadb.New(tx).CleanupMgrScheduleDataSkip(ctx, dataRow.ScheduleID)
 		}
@@ -140,4 +79,71 @@ func (db *DB) CleanupScheduleData(ctx context.Context, j *river.Job[SchedDataArg
 	}
 
 	return nil
+}
+
+func trimInvalidUsers(data *schedule.Data, validUsers []uuid.UUID) (changed bool) {
+	newTempSched := data.V1.TemporarySchedules[:0]
+	for _, temp := range data.V1.TemporarySchedules {
+		cleanShifts := temp.Shifts[:0]
+		for _, shift := range temp.Shifts {
+			id, err := uuid.Parse(shift.UserID)
+			if err != nil {
+				changed = true
+				// invalid shift, delete it
+				continue
+			}
+			if !slices.Contains(validUsers, id) {
+				changed = true
+				continue
+			}
+			cleanShifts = append(cleanShifts, shift)
+		}
+		if len(cleanShifts) == 0 {
+			changed = true
+			continue
+		}
+		temp.Shifts = cleanShifts
+		newTempSched = append(newTempSched, temp)
+	}
+	data.V1.TemporarySchedules = newTempSched
+	return changed
+}
+
+// trimExpiredShifts will trim any past shifts and collect all remaining user IDs.
+func trimExpiredShifts(data *schedule.Data, cutoff time.Time) (changed bool, users []uuid.UUID) {
+	newTempSched := data.V1.TemporarySchedules[:0]
+	for _, sched := range data.V1.TemporarySchedules {
+		if sched.End.Before(cutoff) {
+			changed = true
+			continue
+		}
+		cleanShifts := sched.Shifts[:0]
+		for _, shift := range sched.Shifts {
+			if shift.End.Before(cutoff) {
+				changed = true
+				continue
+			}
+			id, err := uuid.Parse(shift.UserID)
+			if err != nil {
+				changed = true
+				// invalid shift, delete it
+				continue
+			}
+
+			cleanShifts = append(cleanShifts, shift)
+			if slices.Contains(users, id) {
+				continue
+			}
+
+			users = append(users, id)
+		}
+		if len(cleanShifts) == 0 {
+			changed = true
+			continue
+		}
+		sched.Shifts = cleanShifts
+		newTempSched = append(newTempSched, sched)
+	}
+	data.V1.TemporarySchedules = newTempSched
+	return changed, users
 }
