@@ -2,6 +2,7 @@ package engine
 
 import (
 	"database/sql"
+	"log/slog"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -49,6 +50,7 @@ type Config struct {
 
 	DisableCycle bool
 	LogCycles    bool
+	Logger       *slog.Logger
 
 	CycleTime time.Duration
 }

@@ -8,7 +8,7 @@ WHERE id = ANY (
             alerts a
         WHERE
             status = 'closed'
-            AND a.created_at < now() -(sqlc.arg(cleanup_days)::bigint * '1 day'::interval)
+            AND a.created_at < now() -(sqlc.arg(stale_threshold_days)::bigint * '1 day'::interval)
         ORDER BY
             id
         LIMIT 100
@@ -24,14 +24,14 @@ FROM
 WHERE (a.status = 'triggered'
     OR (sqlc.arg(include_acked)
         AND a.status = 'active'))
-AND created_at <= now() - '1 day'::interval * sqlc.arg(auto_close_days)
+AND created_at <= now() - '1 day'::interval * sqlc.arg(auto_close_threshold_days)
 AND NOT EXISTS (
     SELECT
         1
     FROM
         alert_logs log
     WHERE
-        timestamp > now() - '1 day'::interval * sqlc.arg(auto_close_days)
+        timestamp > now() - '1 day'::interval * sqlc.arg(auto_close_threshold_days)
         AND log.alert_id = a.id)
 LIMIT 100;
 
@@ -44,7 +44,7 @@ WHERE id = ANY (
         FROM
             user_overrides
         WHERE
-            end_time <(now() - '1 day'::interval * sqlc.arg(cleanup_days))
+            end_time <(now() - '1 day'::interval * sqlc.arg(history_threshold_days))
         LIMIT 100
         FOR UPDATE
             SKIP LOCKED);
@@ -58,7 +58,7 @@ WHERE id = ANY (
         FROM
             schedule_on_call_users
         WHERE
-            end_time <(now() - '1 day'::interval * sqlc.arg(cleanup_days))
+            end_time <(now() - '1 day'::interval * sqlc.arg(history_threshold_days))
         LIMIT 100
         FOR UPDATE
             SKIP LOCKED);
@@ -72,8 +72,53 @@ WHERE id = ANY (
         FROM
             ep_step_on_call_users
         WHERE
-            end_time <(now() - '1 day'::interval * sqlc.arg(cleanup_days))
+            end_time <(now() - '1 day'::interval * sqlc.arg(history_threshold_days))
         LIMIT 100
         FOR UPDATE
             SKIP LOCKED);
+
+-- name: CleanupMgrScheduleData :one
+-- CleanupMgrScheduleData will find the next schedule data that needs to be cleaned up. The last_cleanup_at field is used to ensure we clean up each schedule data at most once per interval.
+SELECT
+    schedule_id,
+    data
+FROM
+    schedule_data
+WHERE
+    data NOTNULL
+    AND (last_cleanup_at ISNULL
+        OR last_cleanup_at <= now() - '1 day'::interval * sqlc.arg(cleanup_interval_days)::int)
+ORDER BY
+    last_cleanup_at ASC nulls FIRST
+FOR UPDATE
+    SKIP LOCKED
+LIMIT 1;
+
+-- name: CleanupMgrUpdateScheduleData :exec
+-- CleanupMgrUpdateScheduleData will update the last_cleanup_at and data fields in the schedule_data table.
+UPDATE
+    schedule_data
+SET
+    last_cleanup_at = now(),
+    data = $2
+WHERE
+    schedule_id = $1;
+
+-- name: CleanupMgrScheduleDataSkip :exec
+-- CleanupMgrScheduleDataSkip will update the last_cleanup_at field in the schedule_data table.
+UPDATE
+    schedule_data
+SET
+    last_cleanup_at = now()
+WHERE
+    schedule_id = $1;
+
+-- name: CleanupMgrVerifyUsers :many
+-- CleanupMgrVerifyUsers will verify that the given user ids exist in the users table.
+SELECT
+    id
+FROM
+    users
+WHERE
+    id = ANY (sqlc.arg(user_ids)::uuid[]);
 

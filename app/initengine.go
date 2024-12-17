@@ -56,6 +56,7 @@ func (app *App) initEngine(ctx context.Context) error {
 		River:        app.River,
 		RiverDBSQL:   app.RiverDBSQL,
 		RiverWorkers: app.RiverWorkers,
+		Logger:       app.Logger,
 	})
 	if err != nil {
 		return errors.Wrap(err, "init engine")
