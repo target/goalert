@@ -69,6 +69,7 @@ func (db *DB) CleanupScheduleData(ctx context.Context, j *river.Job[SchedDataArg
 			return false, fmt.Errorf("marshal schedule data: %w", err)
 		}
 
+		db.logger.InfoContext(ctx, "Updated schedule data.", slog.String("schedule_id", dataRow.ScheduleID.String()))
 		return false, gadb.New(tx).CleanupMgrUpdateScheduleData(ctx, gadb.CleanupMgrUpdateScheduleDataParams{
 			ScheduleID: dataRow.ScheduleID,
 			Data:       rawData,
