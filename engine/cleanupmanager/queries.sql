@@ -78,7 +78,7 @@ WHERE id = ANY (
             SKIP LOCKED);
 
 -- name: CleanupMgrScheduleData :one
--- CleanupMgrScheduleData will find the next schedule data that needs to be cleaned up.
+-- CleanupMgrScheduleData will find the next schedule data that needs to be cleaned up. The last_cleanup_at field is used to ensure we clean up each schedule data at most once per interval.
 SELECT
     schedule_id,
     data

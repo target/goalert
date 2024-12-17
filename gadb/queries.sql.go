@@ -1017,7 +1017,7 @@ type CleanupMgrScheduleDataRow struct {
 	Data       json.RawMessage
 }
 
-// CleanupMgrScheduleData will find the next schedule data that needs to be cleaned up.
+// CleanupMgrScheduleData will find the next schedule data that needs to be cleaned up. The last_cleanup_at field is used to ensure we clean up each schedule data at most once per interval.
 func (q *Queries) CleanupMgrScheduleData(ctx context.Context, cleanupIntervalDays int32) (CleanupMgrScheduleDataRow, error) {
 	row := q.db.QueryRowContext(ctx, cleanupMgrScheduleData, cleanupIntervalDays)
 	var i CleanupMgrScheduleDataRow
