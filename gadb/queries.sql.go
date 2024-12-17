@@ -858,10 +858,10 @@ WITH scope AS (
     FROM
         alert_logs l
     WHERE
-        l.id > $2
+        l.id BETWEEN $2 AND $3- 1
     ORDER BY
         l.id
-    LIMIT $3
+    LIMIT $4
 ),
 id_range AS (
     SELECT
@@ -906,14 +906,41 @@ _delete AS (
 
 type CleanupAlertLogsParams struct {
 	BatchSize int32
-	AfterID   int64
+	StartID   int64
+	EndID     int64
 }
 
 func (q *Queries) CleanupAlertLogs(ctx context.Context, arg CleanupAlertLogsParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, cleanupAlertLogs, arg.BatchSize, arg.AfterID, arg.BatchSize)
+	row := q.db.QueryRowContext(ctx, cleanupAlertLogs,
+		arg.BatchSize,
+		arg.StartID,
+		arg.EndID,
+		arg.BatchSize,
+	)
 	var id int64
 	err := row.Scan(&id)
 	return id, err
+}
+
+const cleanupMgrAlertLogsMinMax = `-- name: CleanupMgrAlertLogsMinMax :one
+SELECT
+    min(id)::bigint AS min_id,
+    max(id)::bigint AS max_id
+FROM
+    alert_logs
+`
+
+type CleanupMgrAlertLogsMinMaxRow struct {
+	MinID int64
+	MaxID int64
+}
+
+// CleanupMgrAlertLogsMinMax will find the minimum and maximum id of the alert_logs table.
+func (q *Queries) CleanupMgrAlertLogsMinMax(ctx context.Context) (CleanupMgrAlertLogsMinMaxRow, error) {
+	row := q.db.QueryRowContext(ctx, cleanupMgrAlertLogsMinMax)
+	var i CleanupMgrAlertLogsMinMaxRow
+	err := row.Scan(&i.MinID, &i.MaxID)
+	return i, err
 }
 
 const cleanupMgrDeleteOldAlerts = `-- name: CleanupMgrDeleteOldAlerts :execrows

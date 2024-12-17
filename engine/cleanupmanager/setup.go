@@ -16,10 +16,12 @@ var _ processinglock.Setupable = &DB{}
 const QueueName = "cleanup-manager"
 
 const (
-	PriorityAlertCleanup = iota + 1
-	PrioritySchedHistory
-	PriorityTempSchedLFW
-	PriorityTempSched
+	PriorityAlertCleanup = 1
+	PrioritySchedHistory = 1
+	PriorityTempSchedLFW = 2
+	PriorityAlertLogsLFW = 2
+	PriorityTempSched    = 3
+	PriorityAlertLogs    = 4
 )
 
 // whileWork will run the provided function in a loop until it returns done=true.
@@ -52,10 +54,9 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 	river.AddWorker(args.Workers, river.WorkFunc(db.CleanupAlerts))
 	river.AddWorker(args.Workers, river.WorkFunc(db.CleanupShifts))
 	river.AddWorker(args.Workers, river.WorkFunc(db.CleanupScheduleData))
-
-	// the alert log cleanup job can last longer than a minute (the default timeout) so we set a longer timeout
-	river.AddWorker(args.Workers, &timeoutWorker[AlertLogArgs]{Worker: river.WorkFunc(db.CleanupAlertLogs), timeout: time.Hour})
 	river.AddWorker(args.Workers, river.WorkFunc(db.LookForWorkScheduleData))
+	river.AddWorker(args.Workers, river.WorkFunc(db.CleanupAlertLogs))
+	river.AddWorker(args.Workers, river.WorkFunc(db.LookForWorkAlertLogs))
 
 	err := args.River.Queues().Add(QueueName, river.QueueConfig{MaxWorkers: 5})
 	if err != nil {
@@ -103,57 +104,9 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 
 	args.River.PeriodicJobs().AddMany([]*river.PeriodicJob{
 		river.NewPeriodicJob(
-			river.PeriodicInterval(24*time.Hour),
-			func() (river.JobArgs, *river.InsertOpts) {
-				return ShiftArgs{}, &river.InsertOpts{
-					Queue: QueueName,
-				}
-			},
-			&river.PeriodicJobOpts{RunOnStart: true},
-		),
-	})
-
-	args.River.PeriodicJobs().AddMany([]*river.PeriodicJob{
-		river.NewPeriodicJob(
-			river.PeriodicInterval(24*time.Hour),
-			func() (river.JobArgs, *river.InsertOpts) {
-				return SchedDataArgs{}, &river.InsertOpts{
-					Queue: QueueName,
-				}
-			},
-			&river.PeriodicJobOpts{RunOnStart: true},
-		),
-	})
-
-	args.River.PeriodicJobs().AddMany([]*river.PeriodicJob{
-		river.NewPeriodicJob(
-			river.PeriodicInterval(24*time.Hour),
-			func() (river.JobArgs, *river.InsertOpts) {
-				return ShiftArgs{}, &river.InsertOpts{
-					Queue: QueueName,
-				}
-			},
-			&river.PeriodicJobOpts{RunOnStart: true},
-		),
-	})
-
-	args.River.PeriodicJobs().AddMany([]*river.PeriodicJob{
-		river.NewPeriodicJob(
-			river.PeriodicInterval(24*time.Hour),
-			func() (river.JobArgs, *river.InsertOpts) {
-				return SchedDataArgs{}, &river.InsertOpts{
-					Queue: QueueName,
-				}
-			},
-			&river.PeriodicJobOpts{RunOnStart: true},
-		),
-	})
-
-	args.River.PeriodicJobs().AddMany([]*river.PeriodicJob{
-		river.NewPeriodicJob(
 			river.PeriodicInterval(7*24*time.Hour),
 			func() (river.JobArgs, *river.InsertOpts) {
-				return AlertLogArgs{}, &river.InsertOpts{
+				return AlertLogLFWArgs{}, &river.InsertOpts{
 					Queue: QueueName,
 					UniqueOpts: river.UniqueOpts{
 						ByArgs: true,

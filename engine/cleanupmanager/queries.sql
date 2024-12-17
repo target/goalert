@@ -129,6 +129,14 @@ FROM
 WHERE
     id = ANY (sqlc.arg(user_ids)::uuid[]);
 
+-- name: CleanupMgrAlertLogsMinMax :one
+-- CleanupMgrAlertLogsMinMax will find the minimum and maximum id of the alert_logs table.
+SELECT
+    min(id)::bigint AS min_id,
+    max(id)::bigint AS max_id
+FROM
+    alert_logs;
+
 -- name: CleanupAlertLogs :one
 WITH scope AS (
     SELECT
@@ -136,7 +144,7 @@ WITH scope AS (
     FROM
         alert_logs l
     WHERE
-        l.id > @after_id
+        l.id BETWEEN @start_id AND @end_id - 1
     ORDER BY
         l.id
     LIMIT @batch_size
