@@ -76,10 +76,11 @@ func (db *DB) CleanupScheduleData(ctx context.Context, j *river.Job[SchedDataArg
 		}
 
 		log.InfoContext(ctx, "Updated schedule data.")
-		return false, gdb.CleanupMgrUpdateScheduleData(ctx, gadb.CleanupMgrUpdateScheduleDataParams{
-			ScheduleID: dataRow.ScheduleID,
-			Data:       rawData,
-		})
+		return false, gdb.CleanupMgrUpdateScheduleData(ctx,
+			gadb.CleanupMgrUpdateScheduleDataParams{
+				ScheduleID: dataRow.ScheduleID,
+				Data:       rawData,
+			})
 	})
 	if err != nil {
 		return err
