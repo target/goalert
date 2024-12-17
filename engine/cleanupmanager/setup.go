@@ -45,6 +45,7 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 	river.AddWorker(args.Workers, river.WorkFunc(db.CleanupAlerts))
 	river.AddWorker(args.Workers, river.WorkFunc(db.CleanupShifts))
 	river.AddWorker(args.Workers, river.WorkFunc(db.CleanupScheduleData))
+	river.AddWorker(args.Workers, river.WorkFunc(db.CleanupAlertLogs))
 
 	err := args.River.Queues().Add(QueueName, river.QueueConfig{MaxWorkers: 2})
 	if err != nil {
@@ -80,6 +81,18 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 			river.PeriodicInterval(24*time.Hour),
 			func() (river.JobArgs, *river.InsertOpts) {
 				return SchedDataArgs{}, &river.InsertOpts{
+					Queue: QueueName,
+				}
+			},
+			&river.PeriodicJobOpts{RunOnStart: true},
+		),
+	})
+
+	args.River.PeriodicJobs().AddMany([]*river.PeriodicJob{
+		river.NewPeriodicJob(
+			river.PeriodicInterval(7*24*time.Hour),
+			func() (river.JobArgs, *river.InsertOpts) {
+				return AlertLogArgs{}, &river.InsertOpts{
 					Queue: QueueName,
 				}
 			},

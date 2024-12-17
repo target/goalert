@@ -122,3 +122,55 @@ FROM
 WHERE
     id = ANY (sqlc.arg(user_ids)::uuid[]);
 
+-- name: CleanupAlertLogs :one
+WITH scope AS (
+    SELECT
+        id
+    FROM
+        alert_logs l
+    WHERE
+        l.id > @after_id
+    ORDER BY
+        l.id
+    LIMIT @batch_size
+),
+id_range AS (
+    SELECT
+        min(id),
+        max(id)
+    FROM
+        scope
+),
+_delete AS (
+    DELETE FROM alert_logs
+    WHERE id = ANY (
+            SELECT
+                id
+            FROM
+                alert_logs
+            WHERE
+                id BETWEEN (
+                    SELECT
+                        min
+                    FROM
+                        id_range)
+                    AND (
+                        SELECT
+                            max
+                        FROM
+                            id_range)
+                        AND NOT EXISTS (
+                            SELECT
+                                1
+                            FROM
+                                alerts
+                            WHERE
+                                alert_id = id)
+                            FOR UPDATE
+                                SKIP LOCKED))
+                SELECT
+                    id
+                FROM
+                    scope OFFSET @batch_size - 1
+                LIMIT 1;
+

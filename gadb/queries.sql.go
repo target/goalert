@@ -851,6 +851,71 @@ func (q *Queries) CalSubUserNames(ctx context.Context, dollar_1 []uuid.UUID) ([]
 	return items, nil
 }
 
+const cleanupAlertLogs = `-- name: CleanupAlertLogs :one
+WITH scope AS (
+    SELECT
+        id
+    FROM
+        alert_logs l
+    WHERE
+        l.id > $2
+    ORDER BY
+        l.id
+    LIMIT $3
+),
+id_range AS (
+    SELECT
+        min(id),
+        max(id)
+    FROM
+        scope
+),
+_delete AS (
+    DELETE FROM alert_logs
+    WHERE id = ANY (
+            SELECT
+                id
+            FROM
+                alert_logs
+            WHERE
+                id BETWEEN (
+                    SELECT
+                        min
+                    FROM
+                        id_range)
+                    AND (
+                        SELECT
+                            max
+                        FROM
+                            id_range)
+                        AND NOT EXISTS (
+                            SELECT
+                                1
+                            FROM
+                                alerts
+                            WHERE
+                                alert_id = id)
+                            FOR UPDATE
+                                SKIP LOCKED))
+                SELECT
+                    id
+                FROM
+                    scope OFFSET $1- 1
+                LIMIT 1
+`
+
+type CleanupAlertLogsParams struct {
+	BatchSize int32
+	AfterID   int64
+}
+
+func (q *Queries) CleanupAlertLogs(ctx context.Context, arg CleanupAlertLogsParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, cleanupAlertLogs, arg.BatchSize, arg.AfterID, arg.BatchSize)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
 const cleanupMgrDeleteOldAlerts = `-- name: CleanupMgrDeleteOldAlerts :execrows
 DELETE FROM alerts
 WHERE id = ANY (
