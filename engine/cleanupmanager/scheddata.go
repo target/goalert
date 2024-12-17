@@ -99,10 +99,6 @@ func trimInvalidUsers(data *schedule.Data, validUsers []uuid.UUID) (changed bool
 			}
 			cleanShifts = append(cleanShifts, shift)
 		}
-		if len(cleanShifts) == 0 {
-			changed = true
-			continue
-		}
 		temp.Shifts = cleanShifts
 		newTempSched = append(newTempSched, temp)
 	}
@@ -137,10 +133,6 @@ func trimExpiredShifts(data *schedule.Data, cutoff time.Time) (changed bool, use
 			}
 
 			users = append(users, id)
-		}
-		if len(cleanShifts) == 0 {
-			changed = true
-			continue
 		}
 		sched.Shifts = cleanShifts
 		newTempSched = append(newTempSched, sched)
