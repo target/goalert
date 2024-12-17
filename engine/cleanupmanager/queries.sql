@@ -77,11 +77,10 @@ WHERE id = ANY (
         FOR UPDATE
             SKIP LOCKED);
 
--- name: CleanupMgrScheduleData :one
--- CleanupMgrScheduleData will find the next schedule data that needs to be cleaned up. The last_cleanup_at field is used to ensure we clean up each schedule data at most once per interval.
+-- name: CleanupMgrScheduleNeedsCleanup :many
+-- CleanupMgrScheduleNeedsCleanup will find schedules that need to be cleaned up. The last_cleanup_at field is used to ensure we clean up each schedule data at most once per interval.
 SELECT
-    schedule_id,
-    data
+    schedule_id
 FROM
     schedule_data
 WHERE
@@ -89,9 +88,17 @@ WHERE
     AND (last_cleanup_at ISNULL
         OR last_cleanup_at <= now() - '1 day'::interval * sqlc.arg(cleanup_interval_days)::int)
 ORDER BY
-    last_cleanup_at ASC nulls FIRST
+    last_cleanup_at ASC nulls FIRST;
+
+-- name: CleanupMgrScheduleData :one
+-- CleanupMgrScheduleData will select the schedule data for the given schedule id.
+SELECT
+    data
+FROM
+    schedule_data
+WHERE
+    schedule_id = $1
 FOR UPDATE
-    SKIP LOCKED
 LIMIT 1;
 
 -- name: CleanupMgrUpdateScheduleData :exec
