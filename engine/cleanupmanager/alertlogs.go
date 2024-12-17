@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/riverqueue/river"
 	"github.com/target/goalert/gadb"
@@ -13,6 +14,16 @@ import (
 type AlertLogArgs struct{}
 
 func (AlertLogArgs) Kind() string { return "cleanup-manager-alert-logs" }
+
+type timeoutWorker[T river.JobArgs] struct {
+	river.Worker[T]
+	timeout time.Duration
+}
+
+// Timeout implements Worker interface.
+func (w *timeoutWorker[T]) Timeout(job *river.Job[T]) time.Duration {
+	return w.timeout
+}
 
 // CleanupAlertLogs will remove alert log entries for deleted alerts.
 func (db *DB) CleanupAlertLogs(ctx context.Context, j *river.Job[AlertLogArgs]) error {

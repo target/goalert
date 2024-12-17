@@ -45,7 +45,9 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 	river.AddWorker(args.Workers, river.WorkFunc(db.CleanupAlerts))
 	river.AddWorker(args.Workers, river.WorkFunc(db.CleanupShifts))
 	river.AddWorker(args.Workers, river.WorkFunc(db.CleanupScheduleData))
-	river.AddWorker(args.Workers, river.WorkFunc(db.CleanupAlertLogs))
+
+	// the alert log cleanup job can last longer than a minute (the default timeout) so we set a longer timeout
+	river.AddWorker(args.Workers, &timeoutWorker[AlertLogArgs]{Worker: river.WorkFunc(db.CleanupAlertLogs), timeout: time.Hour})
 
 	err := args.River.Queues().Add(QueueName, river.QueueConfig{MaxWorkers: 2})
 	if err != nil {
@@ -94,6 +96,9 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 			func() (river.JobArgs, *river.InsertOpts) {
 				return AlertLogArgs{}, &river.InsertOpts{
 					Queue: QueueName,
+					UniqueOpts: river.UniqueOpts{
+						ByArgs: true,
+					},
 				}
 			},
 			&river.PeriodicJobOpts{RunOnStart: true},
