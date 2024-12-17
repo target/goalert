@@ -8,7 +8,7 @@ WHERE id = ANY (
             alerts a
         WHERE
             status = 'closed'
-            AND a.created_at < now() -(sqlc.arg(cleanup_days)::bigint * '1 day'::interval)
+            AND a.created_at < now() -(sqlc.arg(stale_threshold_days)::bigint * '1 day'::interval)
         ORDER BY
             id
         LIMIT 100
@@ -24,14 +24,14 @@ FROM
 WHERE (a.status = 'triggered'
     OR (sqlc.arg(include_acked)
         AND a.status = 'active'))
-AND created_at <= now() - '1 day'::interval * sqlc.arg(auto_close_days)
+AND created_at <= now() - '1 day'::interval * sqlc.arg(auto_close_threshold_days)
 AND NOT EXISTS (
     SELECT
         1
     FROM
         alert_logs log
     WHERE
-        timestamp > now() - '1 day'::interval * sqlc.arg(auto_close_days)
+        timestamp > now() - '1 day'::interval * sqlc.arg(auto_close_threshold_days)
         AND log.alert_id = a.id)
 LIMIT 100;
 
@@ -44,7 +44,7 @@ WHERE id = ANY (
         FROM
             user_overrides
         WHERE
-            end_time <(now() - '1 day'::interval * sqlc.arg(cleanup_days))
+            end_time <(now() - '1 day'::interval * sqlc.arg(history_threshold_days))
         LIMIT 100
         FOR UPDATE
             SKIP LOCKED);
@@ -58,7 +58,7 @@ WHERE id = ANY (
         FROM
             schedule_on_call_users
         WHERE
-            end_time <(now() - '1 day'::interval * sqlc.arg(cleanup_days))
+            end_time <(now() - '1 day'::interval * sqlc.arg(history_threshold_days))
         LIMIT 100
         FOR UPDATE
             SKIP LOCKED);
@@ -72,7 +72,7 @@ WHERE id = ANY (
         FROM
             ep_step_on_call_users
         WHERE
-            end_time <(now() - '1 day'::interval * sqlc.arg(cleanup_days))
+            end_time <(now() - '1 day'::interval * sqlc.arg(history_threshold_days))
         LIMIT 100
         FOR UPDATE
             SKIP LOCKED);
@@ -87,7 +87,7 @@ FROM
 WHERE
     data NOTNULL
     AND (last_cleanup_at ISNULL
-        OR last_cleanup_at <= now() - '1 month'::interval)
+        OR last_cleanup_at <= now() - '1 day'::interval * sqlc.arg(cleanup_interval_days)::int)
 ORDER BY
     last_cleanup_at ASC nulls FIRST
 FOR UPDATE

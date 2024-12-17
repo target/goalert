@@ -31,7 +31,8 @@ func (db *DB) CleanupScheduleData(ctx context.Context, j *river.Job[SchedDataArg
 	}
 
 	err := db.whileWork(ctx, func(ctx context.Context, tx *sql.Tx) (done bool, err error) {
-		dataRow, err := gadb.New(tx).CleanupMgrScheduleData(ctx)
+		// Grab the next schedule that hasn't been cleaned up in the last 30 days.
+		dataRow, err := gadb.New(tx).CleanupMgrScheduleData(ctx, 30)
 		if errors.Is(err, sql.ErrNoRows) {
 			return true, nil
 		}
@@ -52,6 +53,7 @@ func (db *DB) CleanupScheduleData(ctx context.Context, j *river.Job[SchedDataArg
 			return false, gdb.CleanupMgrScheduleDataSkip(ctx, dataRow.ScheduleID)
 		}
 
+		// We want to remove shifts for users that no longer exist, so to do that we'll get the set of users from the schedule data and verify them.
 		users := collectUsers(data)
 		var validUsers []uuid.UUID
 		if len(users) > 0 {
