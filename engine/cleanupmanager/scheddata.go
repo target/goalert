@@ -89,6 +89,7 @@ func (db *DB) CleanupScheduleData(ctx context.Context, j *river.Job[SchedDataArg
 	return nil
 }
 
+// cleanupData will cleanup the schedule data, removing temporary-schedules that occur in the past; and removing shifts for users that no longer exist.
 func cleanupData(data *schedule.Data, validUsers []uuid.UUID, now time.Time) (changed bool) {
 	newTempSched := data.V1.TemporarySchedules[:0]
 	for _, temp := range data.V1.TemporarySchedules {
