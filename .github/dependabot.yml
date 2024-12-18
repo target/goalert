@@ -95,6 +95,9 @@ updates:
       timezone: 'Asia/Kolkata'
     allow:
       - dependency-type: 'direct'
+    groups:
+      go-deps:
+        patterns: ['*']
 
   - package-ecosystem: 'gradle'
     directory: '/'
