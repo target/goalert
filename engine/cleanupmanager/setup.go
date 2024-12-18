@@ -89,7 +89,7 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 		river.NewPeriodicJob(
 			river.PeriodicInterval(24*time.Hour),
 			func() (river.JobArgs, *river.InsertOpts) {
-				return SchedDataLookForWorkArgs{}, &river.InsertOpts{
+				return SchedDataLFW{}, &river.InsertOpts{
 					Queue:    QueueName,
 					Priority: PriorityTempSchedLFW,
 				}

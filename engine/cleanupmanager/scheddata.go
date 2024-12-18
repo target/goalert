@@ -24,12 +24,12 @@ type SchedDataArgs struct {
 
 func (SchedDataArgs) Kind() string { return "cleanup-manager-sched-data" }
 
-type SchedDataLookForWorkArgs struct{}
+type SchedDataLFW struct{}
 
-func (SchedDataLookForWorkArgs) Kind() string { return "cleanup-manager-sched-data-look-for-work" }
+func (SchedDataLFW) Kind() string { return "cleanup-manager-sched-data-lfw" }
 
 // LookForWorkScheduleData will automatically look for schedules that need their JSON data cleaned up and insert them into the queue.
-func (db *DB) LookForWorkScheduleData(ctx context.Context, j *river.Job[SchedDataLookForWorkArgs]) error {
+func (db *DB) LookForWorkScheduleData(ctx context.Context, j *river.Job[SchedDataLFW]) error {
 	cfg := config.FromContext(ctx)
 	if cfg.Maintenance.ScheduleCleanupDays <= 0 {
 		return nil
