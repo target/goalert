@@ -997,32 +997,21 @@ func (q *Queries) CleanupMgrFindStaleAlerts(ctx context.Context, arg CleanupMgrF
 
 const cleanupMgrScheduleData = `-- name: CleanupMgrScheduleData :one
 SELECT
-    schedule_id,
     data
 FROM
     schedule_data
 WHERE
-    data NOTNULL
-    AND (last_cleanup_at ISNULL
-        OR last_cleanup_at <= now() - '1 day'::interval * $1::int)
-ORDER BY
-    last_cleanup_at ASC nulls FIRST
+    schedule_id = $1
 FOR UPDATE
-    SKIP LOCKED
 LIMIT 1
 `
 
-type CleanupMgrScheduleDataRow struct {
-	ScheduleID uuid.UUID
-	Data       json.RawMessage
-}
-
-// CleanupMgrScheduleData will find the next schedule data that needs to be cleaned up. The last_cleanup_at field is used to ensure we clean up each schedule data at most once per interval.
-func (q *Queries) CleanupMgrScheduleData(ctx context.Context, cleanupIntervalDays int32) (CleanupMgrScheduleDataRow, error) {
-	row := q.db.QueryRowContext(ctx, cleanupMgrScheduleData, cleanupIntervalDays)
-	var i CleanupMgrScheduleDataRow
-	err := row.Scan(&i.ScheduleID, &i.Data)
-	return i, err
+// CleanupMgrScheduleData will select the schedule data for the given schedule id.
+func (q *Queries) CleanupMgrScheduleData(ctx context.Context, scheduleID uuid.UUID) (json.RawMessage, error) {
+	row := q.db.QueryRowContext(ctx, cleanupMgrScheduleData, scheduleID)
+	var data json.RawMessage
+	err := row.Scan(&data)
+	return data, err
 }
 
 const cleanupMgrScheduleDataSkip = `-- name: CleanupMgrScheduleDataSkip :exec
@@ -1038,6 +1027,43 @@ WHERE
 func (q *Queries) CleanupMgrScheduleDataSkip(ctx context.Context, scheduleID uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, cleanupMgrScheduleDataSkip, scheduleID)
 	return err
+}
+
+const cleanupMgrScheduleNeedsCleanup = `-- name: CleanupMgrScheduleNeedsCleanup :many
+SELECT
+    schedule_id
+FROM
+    schedule_data
+WHERE
+    data NOTNULL
+    AND (last_cleanup_at ISNULL
+        OR last_cleanup_at <= now() - '1 day'::interval * $1::int)
+ORDER BY
+    last_cleanup_at ASC nulls FIRST
+`
+
+// CleanupMgrScheduleNeedsCleanup will find schedules that need to be cleaned up. The last_cleanup_at field is used to ensure we clean up each schedule data at most once per interval.
+func (q *Queries) CleanupMgrScheduleNeedsCleanup(ctx context.Context, cleanupIntervalDays int32) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, cleanupMgrScheduleNeedsCleanup, cleanupIntervalDays)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var schedule_id uuid.UUID
+		if err := rows.Scan(&schedule_id); err != nil {
+			return nil, err
+		}
+		items = append(items, schedule_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const cleanupMgrUpdateScheduleData = `-- name: CleanupMgrUpdateScheduleData :exec
