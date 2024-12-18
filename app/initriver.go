@@ -39,10 +39,6 @@ func (r *riverErrs) HandlePanic(ctx context.Context, job *rivertype.JobRow, pani
 	return nil
 }
 
-type noopWorker struct{}
-
-func (noopWorker) Kind() string { return "noop" }
-
 // ignoreCancel is a slog.Handler that ignores log records with an "error" attribute of "context canceled".
 type ignoreCancel struct{ h slog.Handler }
 
