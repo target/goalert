@@ -129,3 +129,97 @@ FROM
 WHERE
     id = ANY (sqlc.arg(user_ids)::uuid[]);
 
+-- name: CleanupMgrAlertLogsMinMax :one
+-- CleanupMgrAlertLogsMinMax will find the minimum and maximum id of the alert_logs table.
+SELECT
+    min(id)::bigint AS min_id,
+    max(id)::bigint AS max_id
+FROM
+    alert_logs;
+
+-- name: CleanupAlertLogs :one
+WITH scope AS (
+    SELECT
+        id
+    FROM
+        alert_logs l
+    WHERE
+        l.id BETWEEN @start_id AND @end_id - 1
+    ORDER BY
+        l.id
+    LIMIT @batch_size
+),
+id_range AS (
+    SELECT
+        min(id),
+        max(id)
+    FROM
+        scope
+),
+_delete AS (
+    DELETE FROM alert_logs
+    WHERE id = ANY (
+            SELECT
+                id
+            FROM
+                alert_logs
+            WHERE
+                id BETWEEN (
+                    SELECT
+                        min
+                    FROM
+                        id_range)
+                    AND (
+                        SELECT
+                            max
+                        FROM
+                            id_range)
+                        AND NOT EXISTS (
+                            SELECT
+                                1
+                            FROM
+                                alerts
+                            WHERE
+                                alert_id = id)
+                            FOR UPDATE
+                                SKIP LOCKED))
+                SELECT
+                    id
+                FROM
+                    scope OFFSET @batch_size - 1
+                LIMIT 1;
+
+-- name: CleanupMgrDeleteOldSessions :execrows
+-- CleanupMgrDeleteOldSessions will delete old sessions from the auth_user_sessions table that are older than the given number of days before now.
+DELETE FROM auth_user_sessions
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            auth_user_sessions
+        WHERE
+            last_access_at <(now() - '1 day'::interval * sqlc.arg(max_session_age_days)::int)
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED);
+
+-- name: CleanupMgrDisableOldCalSub :execrows
+-- CleanupMgrDeleteOldCalSub will disable old calendar subscriptions from the user_calendar_subscriptions table that are unused for at least the given number of days.
+UPDATE
+    user_calendar_subscriptions
+SET
+    disabled = TRUE
+WHERE
+    id = ANY (
+        SELECT
+            id
+        FROM
+            user_calendar_subscriptions
+        WHERE
+            greatest(last_access, last_update) <(now() - '1 day'::interval * sqlc.arg(inactivity_threshold_days)::int)
+        ORDER BY
+            id
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED);
+
