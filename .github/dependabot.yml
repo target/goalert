@@ -128,6 +128,16 @@ updates:
       timezone: 'Asia/Kolkata'
     allow:
       - dependency-type: 'direct'
+    groups:
+      js-mui-deps:
+        patterns: ['@mui/*']
+      js-deps:
+        patterns: ['*']
+        exclude-patterns:
+          - '@mui/*'
+        update-types:
+          - 'patch'
+          - 'minor'
 
   - package-ecosystem: 'nuget'
     directory: '/'
