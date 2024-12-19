@@ -851,6 +851,98 @@ func (q *Queries) CalSubUserNames(ctx context.Context, dollar_1 []uuid.UUID) ([]
 	return items, nil
 }
 
+const cleanupAlertLogs = `-- name: CleanupAlertLogs :one
+WITH scope AS (
+    SELECT
+        id
+    FROM
+        alert_logs l
+    WHERE
+        l.id BETWEEN $2 AND $3- 1
+    ORDER BY
+        l.id
+    LIMIT $4
+),
+id_range AS (
+    SELECT
+        min(id),
+        max(id)
+    FROM
+        scope
+),
+_delete AS (
+    DELETE FROM alert_logs
+    WHERE id = ANY (
+            SELECT
+                id
+            FROM
+                alert_logs
+            WHERE
+                id BETWEEN (
+                    SELECT
+                        min
+                    FROM
+                        id_range)
+                    AND (
+                        SELECT
+                            max
+                        FROM
+                            id_range)
+                        AND NOT EXISTS (
+                            SELECT
+                                1
+                            FROM
+                                alerts
+                            WHERE
+                                alert_id = id)
+                            FOR UPDATE
+                                SKIP LOCKED))
+                SELECT
+                    id
+                FROM
+                    scope OFFSET $1- 1
+                LIMIT 1
+`
+
+type CleanupAlertLogsParams struct {
+	BatchSize int32
+	StartID   int64
+	EndID     int64
+}
+
+func (q *Queries) CleanupAlertLogs(ctx context.Context, arg CleanupAlertLogsParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, cleanupAlertLogs,
+		arg.BatchSize,
+		arg.StartID,
+		arg.EndID,
+		arg.BatchSize,
+	)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const cleanupMgrAlertLogsMinMax = `-- name: CleanupMgrAlertLogsMinMax :one
+SELECT
+    min(id)::bigint AS min_id,
+    max(id)::bigint AS max_id
+FROM
+    alert_logs
+`
+
+type CleanupMgrAlertLogsMinMaxRow struct {
+	MinID int64
+	MaxID int64
+}
+
+// CleanupMgrAlertLogsMinMax will find the minimum and maximum id of the alert_logs table.
+func (q *Queries) CleanupMgrAlertLogsMinMax(ctx context.Context) (CleanupMgrAlertLogsMinMaxRow, error) {
+	row := q.db.QueryRowContext(ctx, cleanupMgrAlertLogsMinMax)
+	var i CleanupMgrAlertLogsMinMaxRow
+	err := row.Scan(&i.MinID, &i.MaxID)
+	return i, err
+}
+
 const cleanupMgrDeleteOldAlerts = `-- name: CleanupMgrDeleteOldAlerts :execrows
 DELETE FROM alerts
 WHERE id = ANY (
@@ -923,6 +1015,29 @@ func (q *Queries) CleanupMgrDeleteOldScheduleShifts(ctx context.Context, history
 	return result.RowsAffected()
 }
 
+const cleanupMgrDeleteOldSessions = `-- name: CleanupMgrDeleteOldSessions :execrows
+DELETE FROM auth_user_sessions
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            auth_user_sessions
+        WHERE
+            last_access_at <(now() - '1 day'::interval * $1::int)
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// CleanupMgrDeleteOldSessions will delete old sessions from the auth_user_sessions table that are older than the given number of days before now.
+func (q *Queries) CleanupMgrDeleteOldSessions(ctx context.Context, maxSessionAgeDays int32) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldSessions, maxSessionAgeDays)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const cleanupMgrDeleteOldStepShifts = `-- name: CleanupMgrDeleteOldStepShifts :execrows
 DELETE FROM ep_step_on_call_users
 WHERE id = ANY (
@@ -940,6 +1055,35 @@ WHERE id = ANY (
 // CleanupMgrDeleteOldStepShifts will delete old EP step shifts from the ep_step_on_call_users table that are older than the given number of days before now.
 func (q *Queries) CleanupMgrDeleteOldStepShifts(ctx context.Context, historyThresholdDays interface{}) (int64, error) {
 	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldStepShifts, historyThresholdDays)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const cleanupMgrDisableOldCalSub = `-- name: CleanupMgrDisableOldCalSub :execrows
+UPDATE
+    user_calendar_subscriptions
+SET
+    disabled = TRUE
+WHERE
+    id = ANY (
+        SELECT
+            id
+        FROM
+            user_calendar_subscriptions
+        WHERE
+            greatest(last_access, last_update) <(now() - '1 day'::interval * $1::int)
+        ORDER BY
+            id
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// CleanupMgrDeleteOldCalSub will disable old calendar subscriptions from the user_calendar_subscriptions table that are unused for at least the given number of days.
+func (q *Queries) CleanupMgrDisableOldCalSub(ctx context.Context, inactivityThresholdDays int32) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanupMgrDisableOldCalSub, inactivityThresholdDays)
 	if err != nil {
 		return 0, err
 	}
