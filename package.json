@@ -141,7 +141,7 @@
     "recharts": "2.12.7",
     "redux": "4.2.1",
     "redux-devtools-extension": "2.13.9",
-    "redux-thunk": "2.4.2",
+    "redux-thunk": "3.1.0",
     "remark-breaks": "4.0.0",
     "remark-gfm": "4.0.0",
     "semver": "7.6.3",
