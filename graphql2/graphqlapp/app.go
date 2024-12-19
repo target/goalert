@@ -13,6 +13,9 @@ import (
 	"github.com/99designs/gqlgen/graphql/errcode"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/apollotracing"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/lru"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
@@ -51,6 +54,7 @@ import (
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
+	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
@@ -169,7 +173,7 @@ func isGQLValidation(gqlErr *gqlerror.Error) bool {
 }
 
 func (a *App) Handler() http.Handler {
-	h := handler.NewDefaultServer(
+	h := handler.New(
 		graphql2.NewExecutableSchema(graphql2.Config{
 			Resolvers: a,
 			Directives: graphql2.DirectiveRoot{
@@ -177,6 +181,19 @@ func (a *App) Handler() http.Handler {
 			},
 		}),
 	)
+
+	h.AddTransport(transport.Websocket{
+		KeepAlivePingInterval: 10 * time.Second,
+	})
+	h.AddTransport(transport.Options{})
+	h.AddTransport(transport.GET{})
+	h.AddTransport(transport.POST{})
+	h.AddTransport(transport.MultipartForm{})
+	h.SetQueryCache(lru.New[*ast.QueryDocument](1000))
+	h.Use(extension.Introspection{})
+	h.Use(extension.AutomaticPersistedQuery{
+		Cache: lru.New[string](100),
+	})
 
 	type hasTraceKey int
 	h.Use(apolloTracer{Tracer: apollotracing.Tracer{}, shouldTrace: func(ctx context.Context) bool {
