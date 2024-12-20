@@ -17825,12 +17825,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"redux-thunk@npm:2.4.2":
-  version: 2.4.2
-  resolution: "redux-thunk@npm:2.4.2"
+"redux-thunk@npm:3.1.0":
+  version: 3.1.0
+  resolution: "redux-thunk@npm:3.1.0"
   peerDependencies:
-    redux: ^4
-  checksum: 10/9bcb1193835128ecebf1e1a1b1a37bc15e8dfbdf6b6ee1b5566dd4c8e4ca05a81175f0c6dda34ab47f87053cd13b74d9f881d59446691d7b192831852b5d7a72
+    redux: ^5.0.0
+  checksum: 10/38c563db5f0bbec90d2e65cc27f3c870c1b6102e0c071258734fac41cb0e51d31d894125815c2f4133b20aff231f51f028ad99bccc05a7e3249f1a5d5a959ed3
   languageName: node
   linkType: hard
 
@@ -18488,7 +18488,7 @@ __metadata:
     recharts: "npm:2.12.7"
     redux: "npm:4.2.1"
     redux-devtools-extension: "npm:2.13.9"
-    redux-thunk: "npm:2.4.2"
+    redux-thunk: "npm:3.1.0"
     remark-breaks: "npm:4.0.0"
     remark-gfm: "npm:4.0.0"
     semver: "npm:7.6.3"
