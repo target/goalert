@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/target/goalert/keyring"
 	"net/http"
 	"time"
 
@@ -13,7 +14,9 @@ import (
 	"github.com/target/goalert/notification/nfydest"
 )
 
-type Sender struct{}
+type Sender struct {
+	signingKeyring keyring.Keyring
+}
 
 // POSTDataAlert represents fields in outgoing alert notification.
 type POSTDataAlert struct {
@@ -83,8 +86,10 @@ type POSTDataTest struct {
 	Type    string
 }
 
-func NewSender(ctx context.Context) *Sender {
-	return &Sender{}
+func NewSender(ctx context.Context, keyring keyring.Keyring) *Sender {
+	return &Sender{
+		signingKeyring: keyring,
+	}
 }
 
 var _ nfydest.MessageSender = &Sender{}

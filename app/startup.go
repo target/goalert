@@ -94,7 +94,7 @@ func (app *App) startup(ctx context.Context) error {
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan)
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan.DMSender())
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan.UserGroupSender())
-	app.DestRegistry.RegisterProvider(ctx, webhook.NewSender(ctx))
+	app.DestRegistry.RegisterProvider(ctx, webhook.NewSender(ctx, app.WebhookKeyring))
 	if app.cfg.StubNotifiers {
 		app.DestRegistry.StubNotifiers()
 	}
