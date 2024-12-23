@@ -13,7 +13,7 @@ import (
 
 func (db *DB) scheduleMessages(ctx context.Context, serviceID uuid.NullUUID) error {
 	var didWork bool
-	err := db.lock.WithTx(ctx, func(ctx context.Context, tx *sql.Tx) error {
+	err := db.lock.WithTxShared(ctx, func(ctx context.Context, tx *sql.Tx) error {
 		q := gadb.New(tx)
 
 		messages, err := q.SignalMgrGetPending(ctx, serviceID)

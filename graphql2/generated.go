@@ -376,6 +376,7 @@ type ComplexityRoot struct {
 		ID                func(childComplexity int) int
 		LastHeartbeat     func(childComplexity int) int
 		LastState         func(childComplexity int) int
+		Muted             func(childComplexity int) int
 		Name              func(childComplexity int) int
 		ServiceID         func(childComplexity int) int
 		TimeoutMinutes    func(childComplexity int) int
@@ -2310,6 +2311,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.HeartbeatMonitor.LastState(childComplexity), true
+
+	case "HeartbeatMonitor.muted":
+		if e.complexity.HeartbeatMonitor.Muted == nil {
+			break
+		}
+
+		return e.complexity.HeartbeatMonitor.Muted(childComplexity), true
 
 	case "HeartbeatMonitor.name":
 		if e.complexity.HeartbeatMonitor.Name == nil {
@@ -5159,6 +5167,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputExprToConditionInput,
 		ec.unmarshalInputFieldValueInput,
 		ec.unmarshalInputIntegrationKeySearchOptions,
+		ec.unmarshalInputKeyRuleActionsInput,
 		ec.unmarshalInputKeyRuleInput,
 		ec.unmarshalInputLabelKeySearchOptions,
 		ec.unmarshalInputLabelSearchOptions,
@@ -16638,6 +16647,50 @@ func (ec *executionContext) fieldContext_HeartbeatMonitor_additionalDetails(_ co
 	return fc, nil
 }
 
+func (ec *executionContext) _HeartbeatMonitor_muted(ctx context.Context, field graphql.CollectedField, obj *heartbeat.Monitor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_HeartbeatMonitor_muted(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Muted, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_HeartbeatMonitor_muted(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HeartbeatMonitor",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _IntegrationKey_id(ctx context.Context, field graphql.CollectedField, obj *integrationkey.IntegrationKey) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_IntegrationKey_id(ctx, field)
 	if err != nil {
@@ -20108,6 +20161,8 @@ func (ec *executionContext) fieldContext_Mutation_createHeartbeatMonitor(ctx con
 				return ec.fieldContext_HeartbeatMonitor_href(ctx, field)
 			case "additionalDetails":
 				return ec.fieldContext_HeartbeatMonitor_additionalDetails(ctx, field)
+			case "muted":
+				return ec.fieldContext_HeartbeatMonitor_muted(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HeartbeatMonitor", field.Name)
 		},
@@ -23995,6 +24050,8 @@ func (ec *executionContext) fieldContext_Query_heartbeatMonitor(ctx context.Cont
 				return ec.fieldContext_HeartbeatMonitor_href(ctx, field)
 			case "additionalDetails":
 				return ec.fieldContext_HeartbeatMonitor_additionalDetails(ctx, field)
+			case "muted":
+				return ec.fieldContext_HeartbeatMonitor_muted(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HeartbeatMonitor", field.Name)
 		},
@@ -29650,6 +29707,8 @@ func (ec *executionContext) fieldContext_Service_heartbeatMonitors(_ context.Con
 				return ec.fieldContext_HeartbeatMonitor_href(ctx, field)
 			case "additionalDetails":
 				return ec.fieldContext_HeartbeatMonitor_additionalDetails(ctx, field)
+			case "muted":
+				return ec.fieldContext_HeartbeatMonitor_muted(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type HeartbeatMonitor", field.Name)
 		},
@@ -36716,7 +36775,7 @@ func (ec *executionContext) unmarshalInputCreateHeartbeatMonitorInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"serviceID", "name", "timeoutMinutes", "additionalDetails"}
+	fieldsInOrder := [...]string{"serviceID", "name", "timeoutMinutes", "additionalDetails", "muted"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -36751,6 +36810,13 @@ func (ec *executionContext) unmarshalInputCreateHeartbeatMonitorInput(ctx contex
 				return it, err
 			}
 			it.AdditionalDetails = data
+		case "muted":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("muted"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Muted = data
 		}
 	}
 
@@ -37790,6 +37856,40 @@ func (ec *executionContext) unmarshalInputIntegrationKeySearchOptions(ctx contex
 				return it, err
 			}
 			it.Omit = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputKeyRuleActionsInput(ctx context.Context, obj interface{}) (gadb.UIKRuleV1, error) {
+	var it gadb.UIKRuleV1
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "actions"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "actions":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("actions"))
+			data, err := ec.unmarshalNActionInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKActionV1ᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Actions = data
 		}
 	}
 
@@ -39326,7 +39426,7 @@ func (ec *executionContext) unmarshalInputUpdateHeartbeatMonitorInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "timeoutMinutes", "additionalDetails"}
+	fieldsInOrder := [...]string{"id", "name", "timeoutMinutes", "additionalDetails", "muted"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -39361,6 +39461,13 @@ func (ec *executionContext) unmarshalInputUpdateHeartbeatMonitorInput(ctx contex
 				return it, err
 			}
 			it.AdditionalDetails = data
+		case "muted":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("muted"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Muted = data
 		}
 	}
 
@@ -39374,7 +39481,7 @@ func (ec *executionContext) unmarshalInputUpdateKeyConfigInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"keyID", "rules", "setRule", "deleteRule", "defaultActions"}
+	fieldsInOrder := [...]string{"keyID", "rules", "setRule", "setRuleActions", "setRuleOrder", "deleteRule", "defaultActions"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -39402,6 +39509,20 @@ func (ec *executionContext) unmarshalInputUpdateKeyConfigInput(ctx context.Conte
 				return it, err
 			}
 			it.SetRule = data
+		case "setRuleActions":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("setRuleActions"))
+			data, err := ec.unmarshalOKeyRuleActionsInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKRuleV1(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SetRuleActions = data
+		case "setRuleOrder":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("setRuleOrder"))
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SetRuleOrder = data
 		case "deleteRule":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deleteRule"))
 			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
@@ -39429,7 +39550,7 @@ func (ec *executionContext) unmarshalInputUpdateRotationInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "description", "timeZone", "start", "type", "shiftLength", "activeUserIndex", "userIDs"}
+	fieldsInOrder := [...]string{"id", "name", "description", "timeZone", "start", "type", "shiftLength", "userIDs", "activeUserIndex"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -39485,13 +39606,6 @@ func (ec *executionContext) unmarshalInputUpdateRotationInput(ctx context.Contex
 				return it, err
 			}
 			it.ShiftLength = data
-		case "activeUserIndex":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("activeUserIndex"))
-			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ActiveUserIndex = data
 		case "userIDs":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDs"))
 			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
@@ -39499,6 +39613,13 @@ func (ec *executionContext) unmarshalInputUpdateRotationInput(ctx context.Contex
 				return it, err
 			}
 			it.UserIDs = data
+		case "activeUserIndex":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("activeUserIndex"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ActiveUserIndex = data
 		}
 	}
 
@@ -43008,6 +43129,11 @@ func (ec *executionContext) _HeartbeatMonitor(ctx context.Context, sel ast.Selec
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "additionalDetails":
 			out.Values[i] = ec._HeartbeatMonitor_additionalDetails(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "muted":
+			out.Values[i] = ec._HeartbeatMonitor_muted(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
@@ -54037,6 +54163,14 @@ func (ec *executionContext) marshalOKeyRule2ᚖgithubᚗcomᚋtargetᚋgoalert�
 		return graphql.Null
 	}
 	return ec._KeyRule(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOKeyRuleActionsInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKRuleV1(ctx context.Context, v interface{}) (*gadb.UIKRuleV1, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputKeyRuleActionsInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOKeyRuleInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKRuleV1ᚄ(ctx context.Context, v interface{}) ([]gadb.UIKRuleV1, error) {

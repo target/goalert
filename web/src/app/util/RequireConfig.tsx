@@ -7,6 +7,8 @@ import {
   IntegrationKeyTypeInfo,
   DestinationTypeInfo,
   DestinationType,
+  ActionInput,
+  ExprStringExpression,
 } from '../../schema'
 
 type Value = boolean | number | string | string[] | null
@@ -207,6 +209,25 @@ export function useEPTargetTypes(): DestinationTypeInfo[] {
 export function useDynamicActionTypes(): DestinationTypeInfo[] {
   const cfg = React.useContext(ConfigContext)
   return cfg.destTypes.filter((t) => t.isDynamicAction)
+}
+
+/** useDefaultAction returns the default action for the current environment. */
+export function useDefaultAction(): ActionInput {
+  const def = useDynamicActionTypes()[0]
+  return {
+    dest: {
+      type: def.type,
+      args: {},
+    },
+    params: def.dynamicParams.reduce(
+      (acc, p) => {
+        acc[p.paramID] =
+          (p.defaultValue as ExprStringExpression) || `req.body['${p.paramID}']`
+        return acc
+      },
+      {} as Record<string, ExprStringExpression>,
+    ),
+  }
 }
 
 /** useSchedOnCallNotifyTypes returns a list of schedule on-call notification destination types. */

@@ -2,6 +2,8 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta property="csp-nonce" content="{{ .Nonce }}" />
+
     <meta
       name="viewport"
       content="user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, minimal-ui"
@@ -10,8 +12,8 @@
     <link rel="stylesheet" href="{{ .Prefix }}/static/explore.css" />
   </head>
   <body>
-    <div id="root" />
-    <script>
+    <div id="root"></div>
+    <script nonce="{{.Nonce}}">
       pathPrefix = {{.PathPrefix}};
       applicationName = {{.ApplicationName}};
     </script>

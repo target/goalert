@@ -249,6 +249,7 @@ export interface CreateGQLAPIKeyInput {
 
 export interface CreateHeartbeatMonitorInput {
   additionalDetails?: null | string
+  muted?: null | string
   name: string
   serviceID?: null | string
   timeoutMinutes: number
@@ -584,6 +585,7 @@ export interface HeartbeatMonitor {
   id: string
   lastHeartbeat?: null | ISOTimestamp
   lastState: HeartbeatMonitorState
+  muted: string
   name: string
   serviceID: string
   timeoutMinutes: number
@@ -656,6 +658,11 @@ export interface KeyRule {
   description: string
   id: string
   name: string
+}
+
+export interface KeyRuleActionsInput {
+  actions: ActionInput[]
+  id: string
 }
 
 export interface KeyRuleInput {
@@ -1290,6 +1297,7 @@ export interface UpdateGQLAPIKeyInput {
 export interface UpdateHeartbeatMonitorInput {
   additionalDetails?: null | string
   id: string
+  muted?: null | string
   name?: null | string
   timeoutMinutes?: null | number
 }
@@ -1300,6 +1308,8 @@ export interface UpdateKeyConfigInput {
   keyID: string
   rules?: null | KeyRuleInput[]
   setRule?: null | KeyRuleInput
+  setRuleActions?: null | KeyRuleActionsInput
+  setRuleOrder?: null | string[]
 }
 
 export interface UpdateRotationInput {

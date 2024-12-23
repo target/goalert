@@ -3,3 +3,4 @@
 /bin
 /storybook-static
 /playwright/.cache
+/web/src/app/editor/expr-parser.ts

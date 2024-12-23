@@ -1,7 +1,7 @@
 build: while true; do make -qs bin/goalert.cover || make bin/goalert.cover || (echo '\033[0;31mBuild Failure'; sleep 3); sleep 0.1; done
 
 @watch-file=./bin/goalert.cover
-goalert: go run ./devtools/waitfor postgres://postgres@127.0.0.1:5433 && go run ./devtools/procwrap -test=127.0.0.1:3042 bin/goalert.cover -l=127.0.0.1:3042 --ui-dir=web/src/build --db-url=postgres://postgres@127.0.0.1:5433 --slack-base-url=http://127.0.0.1:3040/slack --stub-notifiers --log-errors-only --public-url=http://127.0.0.1:3040$HTTP_PREFIX
+goalert: go run ./devtools/waitfor postgres://postgres@127.0.0.1:5433 && go run ./devtools/procwrap -test=127.0.0.1:3042 bin/goalert.cover -l=127.0.0.1:3042 --ui-dir=web/src/build --db-url=postgres://postgres@127.0.0.1:5433 --slack-base-url=http://127.0.0.1:3040/slack --stub-notifiers --log-errors-only --public-url=http://127.0.0.1:3040$HTTP_PREFIX --enable-secure-headers
 
 @watch-file=./web/src/esbuild.config.js
 ui: yarn run esbuild --watch

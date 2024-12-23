@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"database/sql"
+	"log/slog"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -9,6 +11,7 @@ import (
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/auth/authlink"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/event"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/nfydest"
@@ -22,6 +25,7 @@ import (
 
 // Config contains parameters for controlling how the Engine operates.
 type Config struct {
+	EventBus            *event.Bus
 	AlertLogStore       *alertlog.Store
 	AlertStore          *alert.Store
 	ContactMethodStore  *contactmethod.Store
@@ -35,6 +39,7 @@ type Config struct {
 	SlackStore          *slack.ChannelSender
 	DestRegistry        *nfydest.Registry
 	River               *river.Client[pgx.Tx]
+	RiverDBSQL          *river.Client[*sql.Tx]
 	RiverWorkers        *river.Workers
 
 	ConfigSource config.Source
@@ -45,6 +50,7 @@ type Config struct {
 
 	DisableCycle bool
 	LogCycles    bool
+	Logger       *slog.Logger
 
 	CycleTime time.Duration
 }

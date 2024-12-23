@@ -143,6 +143,13 @@ THE SOFTWARE
         '}',
       ].join('')
       style.setAttribute('type', 'text/css')
+
+      // Add nonce to style tag
+      const nonce = document.querySelector(
+        'meta[property="csp-nonce"]',
+      )?.content
+      style.setAttribute('nonce', nonce)
+
       head.appendChild(style)
       style.styleSheet
         ? (style.styleSheet.cssText = css)
@@ -162,6 +169,8 @@ THE SOFTWARE
             hasChanged = false
           resources[url] = newInfo
           for (var header in oldInfo) {
+            if (header === 'Content-Security-Policy') continue // changes with each new request, due to nonce
+            if (header === 'Content-Length') continue // can change because of gzip compression, we rely on etag anyway
             // do verification based on the header type
             var oldValue = oldInfo[header],
               newValue = newInfo[header],
@@ -172,6 +181,15 @@ THE SOFTWARE
               // fall through to default
               default:
                 hasChanged = oldValue != newValue
+                if (hasChanged)
+                  console.log(
+                    'Live.js: ' +
+                      header +
+                      ' changed: ' +
+                      oldValue +
+                      ' != ' +
+                      newValue,
+                  )
                 break
             }
             // if changed, act

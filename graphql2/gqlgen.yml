@@ -134,6 +134,8 @@ models:
     model: github.com/target/goalert/gadb.UIKRuleV1
   KeyRuleInput:
     model: github.com/target/goalert/gadb.UIKRuleV1
+  KeyRuleActionsInput:
+    model: github.com/target/goalert/gadb.UIKRuleV1
   KeyConfig:
     model: github.com/target/goalert/gadb.UIKConfigV1
   DestinationFieldConfig:

@@ -53,7 +53,7 @@ goalert --db-url postgres://goalert@localhost/goalert --data-encryption-key supe
 Container:
 
 ```bash
-podman run -p 8081:8081 -e GOALERT_DB_URL=postgres://goalert@localhost/goalert -e GOALERT_DATA_ENCRYPTION_KEY=super-awesome-secret-key -e GOALERT_PUBLIC_URL=https://goalert.example.com goalert/goalert
+docker run -p 8081:8081 -e GOALERT_DB_URL=postgres://goalert@localhost/goalert -e GOALERT_DATA_ENCRYPTION_KEY=super-awesome-secret-key -e GOALERT_PUBLIC_URL=https://goalert.example.com goalert/goalert
 ```
 
 You should see migrations applied followed by a `Listening.` message and an engine cycle start and end.
@@ -266,6 +266,7 @@ Additional options are available for running GoAlert in the form of CLI flags. T
 | `--db-max-idle`              | `GOALERT_DB_MAX_IDLE`              | Max idle DB connections. (default 5)                                                                                                                                          |
 | `--db-max-open`              | `GOALERT_DB_MAX_OPEN`              | Max open DB connections. (default 15)                                                                                                                                         |
 | `--disable-https-redirect`   | `GOALERT_DISABLE_HTTPS_REDIRECT`   | Disable automatic HTTPS redirects.                                                                                                                                            |
+| `--enable-secure-headers`    | `GOALERT_ENABLE_SECURE_HEADERS`    | Enable secure headers (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, Content-Security-Policy).                                                                   |
 | `--email-integration-domain` | `GOALERT_EMAIL_INTEGRATION_DOMAIN` | This flag is required to set the domain used for email integration keys when --smtp-listen or --smtp-listen-tls are set.                                                      |
 | `--engine-cycle-time`        | `GOALERT_ENGINE_CYCLE_TIME`        | Time between engine cycles. (default 5s)                                                                                                                                      |
 | `--experimental`             | `GOALERT_EXPERIMENTAL`             | Enable experimental features.                                                                                                                                                 |

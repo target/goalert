@@ -7,6 +7,7 @@
     <meta http-equiv="x-goalert-build-date" content="{{ .BuildStamp }}" />
     <meta http-equiv="x-goalert-git-commit" content="{{ .GitCommit }}" />
     <meta http-equiv="x-goalert-git-tree-state" content="{{ .GitTreeState }}" />
+    <meta property="csp-nonce" content="{{ .Nonce }}" />
     <link rel="stylesheet" html="{{ .Prefix }}/static/loading.css" />
 
     <title>{{ .ApplicationName }}</title>
@@ -43,16 +44,23 @@
       href="{{ .Prefix }}/static/favicon-192.png"
     />
   </head>
+  <style nonce="{{ .Nonce }}">
+    #app > .initial-load {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #app > .initial-load > div {
+      height: 30vh;
+      width: 30vw;
+    }
+  </style>
   <body>
     <div id="app">
-      <div
-        style="width: 100%;
-          height: 100%;
-          display: flex;
-          justify-content: center;
-          align-items: center;"
-      >
-        <div style="height: 30vh; width: 30vw;">
+      <div class="initial-load">
+        <div>
           <svg
             width="100%"
             height="100%"
@@ -137,7 +145,7 @@
       </div>
     </div>
     <div id="graceful-unmount"></div>
-    <script>
+    <script nonce="{{.Nonce}}">
       pathPrefix = "{{.PathPrefix}}";
       applicationName = "{{.ApplicationName}}";
     </script>

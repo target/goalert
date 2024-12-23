@@ -1,6 +1,6 @@
 {
   "extends": "../app/tsconfig",
-  "include": ["**/*"],
+  "include": ["**/*", "../expflag.d.ts"],
   "compilerOptions": {
     "resolveJsonModule": true
   }
