@@ -924,8 +924,8 @@ func (q *Queries) CleanupAlertLogs(ctx context.Context, arg CleanupAlertLogsPara
 
 const cleanupMgrAlertLogsMinMax = `-- name: CleanupMgrAlertLogsMinMax :one
 SELECT
-    min(id)::bigint AS min_id,
-    max(id)::bigint AS max_id
+    coalesce(min(id), 0)::bigint AS min_id,
+    coalesce(max(id), 0)::bigint AS max_id
 FROM
     alert_logs
 `
