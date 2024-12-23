@@ -5,7 +5,7 @@ go 1.23
 toolchain go1.23.3
 
 require (
-	github.com/99designs/gqlgen v0.17.60
+	github.com/99designs/gqlgen v0.17.61
 	github.com/brianvoe/gofakeit/v6 v6.28.0
 	github.com/coreos/go-oidc/v3 v3.11.0
 	github.com/creack/pty/v2 v2.0.1
@@ -21,14 +21,14 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/yamux v0.1.2
 	github.com/jackc/pgtype v1.14.4
-	github.com/jackc/pgx/v5 v5.7.1
+	github.com/jackc/pgx/v5 v5.7.2
 	github.com/jmespath/go-jmespath v0.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/kffl/speedbump v1.1.0
 	github.com/lib/pq v1.10.9
 	github.com/matcornic/hermes/v2 v2.1.0
 	github.com/mnako/letters v0.2.3
-	github.com/nyaruka/phonenumbers v1.4.3
+	github.com/nyaruka/phonenumbers v1.4.4
 	github.com/oauth2-proxy/mockoidc v0.0.0-20240214162133-caebfff84d25
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/pkg/errors v0.9.1
@@ -148,7 +148,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
 	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/net v0.32.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20241118233622-e639e219e697 // indirect
