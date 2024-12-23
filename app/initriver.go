@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverdatabasesql"
@@ -37,10 +38,6 @@ func (r *riverErrs) HandlePanic(ctx context.Context, job *rivertype.JobRow, pani
 
 	return nil
 }
-
-type noopWorker struct{}
-
-func (noopWorker) Kind() string { return "noop" }
 
 // ignoreCancel is a slog.Handler that ignores log records with an "error" attribute of "context canceled".
 type ignoreCancel struct{ h slog.Handler }
@@ -84,14 +81,6 @@ func (w workerMiddlewareFunc) Work(ctx context.Context, job *rivertype.JobRow, d
 func (app *App) initRiver(ctx context.Context) error {
 	app.RiverWorkers = river.NewWorkers()
 
-	// TODO: remove once a worker is added that's not behind a feature flag
-	//
-	// Without this, it will complain about no workers being registered.
-	river.AddWorker(app.RiverWorkers, river.WorkFunc(func(ctx context.Context, j *river.Job[noopWorker]) error {
-		// Do something with the job
-		return nil
-	}))
-
 	var err error
 	app.River, err = river.NewClient(riverpgxv5.New(app.pgx), &river.Config{
 		// River tends to log "context canceled" errors while shutting down
@@ -100,6 +89,7 @@ func (app *App) initRiver(ctx context.Context) error {
 		Queues: map[string]river.QueueConfig{
 			river.QueueDefault: {MaxWorkers: 100},
 		},
+		RescueStuckJobsAfter: 5 * time.Minute,
 		WorkerMiddleware: []rivertype.WorkerMiddleware{
 			workerMiddlewareFunc(func(ctx context.Context, doInner func(ctx context.Context) error) error {
 				// Ensure config is set in the context for all workers.

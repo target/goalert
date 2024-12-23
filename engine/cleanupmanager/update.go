@@ -2,8 +2,6 @@ package cleanupmanager
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"fmt"
 
 	"github.com/jackc/pgtype"
@@ -52,16 +50,6 @@ func (db *DB) update(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-	}
-
-	err = tx.StmtContext(ctx, db.cleanupAlertLogs).QueryRowContext(ctx, db.logIndex).Scan(&db.logIndex)
-	if errors.Is(err, sql.ErrNoRows) {
-		// repeat
-		db.logIndex = 0
-		err = nil
-	}
-	if err != nil {
-		return fmt.Errorf("cleanup alert_logs: %w", err)
 	}
 
 	return tx.Commit()
