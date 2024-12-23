@@ -15,7 +15,7 @@ type APIKeysArgs struct{}
 func (APIKeysArgs) Kind() string { return "cleanup-manager-api-keys" }
 
 // CleanupAPIKeys will revoke access to the API from unused tokens, including both user sessions and calendar subscriptions.
-func (db *DB) CleanupAPIKeys(ctx context.Context, j *river.Job[ShiftArgs]) error {
+func (db *DB) CleanupAPIKeys(ctx context.Context, j *river.Job[APIKeysArgs]) error {
 	err := db.whileWork(ctx, func(ctx context.Context, tx *sql.Tx) (done bool, err error) {
 		// After 30 days, the token is no longer valid, so delete it.
 		//
