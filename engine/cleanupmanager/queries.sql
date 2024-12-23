@@ -189,3 +189,37 @@ _delete AS (
                     scope OFFSET @batch_size - 1
                 LIMIT 1;
 
+-- name: CleanupMgrDeleteOldSessions :execrows
+-- CleanupMgrDeleteOldSessions will delete old sessions from the auth_user_sessions table that are older than the given number of days before now.
+DELETE FROM auth_user_sessions
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            auth_user_sessions
+        WHERE
+            last_access_at <(now() - '1 day'::interval * sqlc.arg(max_session_age_days)::int)
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED);
+
+-- name: CleanupMgrDisableOldCalSub :execrows
+-- CleanupMgrDeleteOldCalSub will disable old calendar subscriptions from the user_calendar_subscriptions table that are unused for at least the given number of days.
+UPDATE
+    user_calendar_subscriptions
+SET
+    disabled = TRUE
+WHERE
+    id = ANY (
+        SELECT
+            id
+        FROM
+            user_calendar_subscriptions
+        WHERE
+            greatest(last_access, last_update) <(now() - '1 day'::interval * sqlc.arg(inactivity_threshold_days)::int)
+        ORDER BY
+            id
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED);
+
