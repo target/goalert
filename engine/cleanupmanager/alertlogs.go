@@ -39,7 +39,7 @@ func (db *DB) LookForWorkAlertLogs(ctx context.Context, j *river.Job[AlertLogLFW
 		min, max = row.MinID, row.MaxID
 		return nil
 	})
-	if errors.Is(err, sql.ErrNoRows) {
+	if min == 0 && max == 0 {
 		return nil
 	}
 	if err != nil {
