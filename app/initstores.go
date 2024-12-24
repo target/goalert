@@ -126,6 +126,18 @@ func (app *App) initStores(ctx context.Context) error {
 		return errors.Wrap(err, "init API keyring")
 	}
 
+	if app.WebhookKeyring == nil {
+		app.WebhookKeyring, err = keyring.NewDB(ctx, app.cfg.LegacyLogger, app.db, &keyring.Config{
+			Name:       "webhook-keys",
+			MaxOldKeys: 100,
+			Keys:       app.cfg.EncryptionKeys,
+		})
+
+		if err != nil {
+			return errors.Wrap(err, "init webhook keyring")
+		}
+	}
+
 	if app.AuthLinkStore == nil {
 		app.AuthLinkStore, err = authlink.NewStore(ctx, app.db, app.AuthLinkKeyring)
 	}
