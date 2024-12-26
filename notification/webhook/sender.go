@@ -161,11 +161,11 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 		return nil, err
 	}
 
-	signature, err := s.signingKeyring.Sign(data)
-	signatureBase64 := base64.StdEncoding.EncodeToString(signature)
+	signature, err := s.signingKeyring.SignASN1(data)
 	if err != nil {
 		return nil, err
 	}
+	signatureBase64 := base64.StdEncoding.EncodeToString(signature)
 
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()

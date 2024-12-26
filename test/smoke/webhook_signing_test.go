@@ -1,12 +1,16 @@
 package smoke
 
 import (
+	"context"
+	"crypto/ecdsa"
+	"crypto/sha512"
 	"encoding/base64"
 	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/test/smoke/harness"
@@ -70,15 +74,28 @@ func TestWebhookSigning(t *testing.T) {
 	h := harness.NewHarness(t, sql, "webhook-user-contact-method-type")
 	defer h.Close()
 
-	alert := <-ch
+	timeout, cancellation := context.WithTimeout(context.Background(), 10*time.Second)
 
-	// convert alert.Signature from base64 to byte slice
-	signatureBytes, err := base64.StdEncoding.DecodeString(alert.Signature)
-	require.NoError(t, err)
+	select {
+	case alert := <-ch:
+		cancellation()
+		// convert alert.Signature from base64 to byte slice
+		signatureBytes, err := base64.StdEncoding.DecodeString(alert.Signature)
+		require.NoError(t, err)
 
-	valid, _ := h.App().WebhookKeyring.Verify(alert.Body, signatureBytes)
+		key, err := h.App().WebhookKeyring.CurrentPublicKey()
+		require.NoError(t, err)
 
-	if !assert.True(t, valid, "webhook signature invalid") {
-		return
+		// given a public key, this is how you'd validate the signature is valid
+		sum := sha512.Sum512_224(alert.Body)
+		valid := ecdsa.VerifyASN1(key, sum[:], signatureBytes)
+
+		if !assert.True(t, valid, "webhook signature invalid") {
+			return
+		}
+	case <-timeout.Done():
+		cancellation()
+		assert.Fail(t, "webhook timeout")
 	}
+
 }
