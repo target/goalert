@@ -55,7 +55,7 @@
     "@mui/material": "6.3.0",
     "@mui/styles": "6.3.0",
     "@mui/system": "6.3.0",
-    "@mui/x-data-grid": "7.23.3",
+    "@mui/x-data-grid": "6.20.4",
     "@playwright/test": "1.49.1",
     "@storybook/addon-essentials": "8.4.7",
     "@storybook/addon-interactions": "8.4.7",
