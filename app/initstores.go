@@ -128,7 +128,7 @@ func (app *App) initStores(ctx context.Context) error {
 
 	if app.WebhookKeyring == nil {
 		app.WebhookKeyring, err = keyring.NewDB(ctx, app.cfg.LegacyLogger, app.db, &keyring.Config{
-			Name:       "webhook-keys",
+			Name:       "webhook-signature-keys",
 			MaxOldKeys: 100,
 			Keys:       app.cfg.EncryptionKeys,
 		})

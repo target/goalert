@@ -2,6 +2,7 @@ package smoke
 
 import (
 	"encoding/base64"
+	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -16,7 +17,7 @@ type WebhookTestingSign struct {
 	Signature string
 }
 
-func TestWebhookCorrectlySigns(t *testing.T) {
+func TestWebhookSigning(t *testing.T) {
 	t.Parallel()
 
 	ch := make(chan WebhookTestingSign, 1)
@@ -73,9 +74,7 @@ func TestWebhookCorrectlySigns(t *testing.T) {
 
 	// convert alert.Signature from base64 to byte slice
 	signatureBytes, err := base64.StdEncoding.DecodeString(alert.Signature)
-	if !assert.NoError(t, err) {
-		return
-	}
+	require.NoError(t, err)
 
 	valid, _ := h.App().WebhookKeyring.Verify(alert.Body, signatureBytes)
 
