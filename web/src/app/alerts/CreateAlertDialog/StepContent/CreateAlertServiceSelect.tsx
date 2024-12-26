@@ -15,6 +15,7 @@ import {
   FormControl,
   Box,
   Theme,
+  ListItemButton,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import ServiceLabelFilterContainer from '../../../services/ServiceFilterContainer'
@@ -234,8 +235,7 @@ export function CreateAlertServiceSelect(
               </ListItem>
             )}
             {searchResults.map((service: Service) => (
-              <ListItem
-                button
+              <ListItemButton
                 data-cy='service-select-item'
                 key={service.id}
                 disabled={value.length >= CREATE_ALERT_LIMIT}
@@ -252,7 +252,7 @@ export function CreateAlertServiceSelect(
                     <FavoriteIcon />
                   </ListItemIcon>
                 )}
-              </ListItem>
+              </ListItemButton>
             ))}
 
             {Boolean(placeholderMsg) && (
