@@ -95,7 +95,7 @@ func TestWebhookSigning(t *testing.T) {
 		}
 	case <-timeout.Done():
 		cancellation()
-		assert.Fail(t, "webhook timeout")
+		t.Fatal("webhook timeout")
 	}
 
 }
