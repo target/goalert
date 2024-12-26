@@ -26,8 +26,10 @@ import {
 import Spinner from '../../loading/components/Spinner'
 import { Time } from '../../util/Time'
 
+type LineData = React.ComponentProps<typeof LineChart>['data']
+
 interface AlertCountLineGraphProps {
-  data: (typeof LineChart.defaultProps)['data']
+  data: LineData
   loading: boolean
   unit: DateTimeUnit
 }
@@ -116,7 +118,7 @@ export default function AlertCountLineGraph(
   }
 
   function flattenData(
-    data: (typeof LineChart.defaultProps)['data'],
+    data: LineData,
   ): Array<{ [key: string]: number | string }> {
     const dateMap: { [key: string]: { [key: string]: number | string } } = {}
 

@@ -16,7 +16,7 @@ import {
 } from 'recharts'
 
 interface AlertCountGraphProps {
-  data: (typeof ComposedChart.defaultProps)['data']
+  data: React.ComponentProps<typeof ComposedChart>['data']
   loading: boolean
 }
 
