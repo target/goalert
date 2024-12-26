@@ -38,10 +38,13 @@ func init() {
 
 // A Keyring allows signing and verifying messages.
 type Keyring interface {
+	CurrentPublicKey() (*ecdsa.PublicKey, error)
 	RotateKeys(ctx context.Context) error
 
 	Sign(p []byte) ([]byte, error)
 	Verify(p []byte, signature []byte) (valid, oldKey bool)
+
+	SignASN1(p []byte) ([]byte, error)
 
 	SignJWT(jwt.Claims) (string, error)
 	VerifyJWT(token string, c jwt.Claims, iss, aud string) (bool, error)
@@ -468,6 +471,20 @@ func (db *DB) refreshAndRotateKeys(ctx context.Context, forceRotation bool) erro
 	return nil
 }
 
+// CurrentPublicKey retrives the most recent public key in the DB
+func (db *DB) CurrentPublicKey() (*ecdsa.PublicKey, error) {
+	db.mx.Lock()
+	defer db.mx.Unlock()
+
+	pubKey, ok := db.verificationKeys[byte(db.rotationCount%256)]
+
+	if !ok {
+		return nil, errors.New("public key unavailable")
+	}
+
+	return &pubKey, nil
+}
+
 func (db *DB) SignJWT(c jwt.Claims) (string, error) {
 	db.mx.RLock()
 	defer db.mx.RUnlock()
@@ -603,4 +620,24 @@ func (db *DB) Verify(p []byte, signature []byte) (valid, oldKey bool) {
 	copy(output, buf.Bytes())
 	oldKey = hdr.KeyIndex != byte(db.rotationCount) && hdr.KeyIndex != byte(db.rotationCount+1)
 	return true, oldKey
+}
+
+// SignASN1 will sign the message `p` and produce a signature in ASN1 format
+// This function uses the SHA512/224 hashing algorithm to produce the digest for the signature
+func (db *DB) SignASN1(p []byte) ([]byte, error) {
+	db.mx.RLock()
+	defer db.mx.RUnlock()
+
+	if db.signingKey == nil {
+		return nil, errors.New("signing key unavailable")
+	}
+
+	sum := sha512.Sum512_224(p)
+	output, err := ecdsa.SignASN1(rand.Reader, db.signingKey, sum[:])
+
+	if err != nil {
+		return nil, err
+	}
+
+	return output, nil
 }
