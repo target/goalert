@@ -1015,6 +1015,29 @@ func (q *Queries) CleanupMgrDeleteOldScheduleShifts(ctx context.Context, history
 	return result.RowsAffected()
 }
 
+const cleanupMgrDeleteOldSessions = `-- name: CleanupMgrDeleteOldSessions :execrows
+DELETE FROM auth_user_sessions
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            auth_user_sessions
+        WHERE
+            last_access_at <(now() - '1 day'::interval * $1::int)
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// CleanupMgrDeleteOldSessions will delete old sessions from the auth_user_sessions table that are older than the given number of days before now.
+func (q *Queries) CleanupMgrDeleteOldSessions(ctx context.Context, maxSessionAgeDays int32) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldSessions, maxSessionAgeDays)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const cleanupMgrDeleteOldStepShifts = `-- name: CleanupMgrDeleteOldStepShifts :execrows
 DELETE FROM ep_step_on_call_users
 WHERE id = ANY (
@@ -1032,6 +1055,35 @@ WHERE id = ANY (
 // CleanupMgrDeleteOldStepShifts will delete old EP step shifts from the ep_step_on_call_users table that are older than the given number of days before now.
 func (q *Queries) CleanupMgrDeleteOldStepShifts(ctx context.Context, historyThresholdDays interface{}) (int64, error) {
 	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldStepShifts, historyThresholdDays)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const cleanupMgrDisableOldCalSub = `-- name: CleanupMgrDisableOldCalSub :execrows
+UPDATE
+    user_calendar_subscriptions
+SET
+    disabled = TRUE
+WHERE
+    id = ANY (
+        SELECT
+            id
+        FROM
+            user_calendar_subscriptions
+        WHERE
+            greatest(last_access, last_update) <(now() - '1 day'::interval * $1::int)
+        ORDER BY
+            id
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// CleanupMgrDeleteOldCalSub will disable old calendar subscriptions from the user_calendar_subscriptions table that are unused for at least the given number of days.
+func (q *Queries) CleanupMgrDisableOldCalSub(ctx context.Context, inactivityThresholdDays int32) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanupMgrDisableOldCalSub, inactivityThresholdDays)
 	if err != nil {
 		return 0, err
 	}
