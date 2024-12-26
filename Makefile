@@ -22,7 +22,7 @@ SWO_DB_URL_NEXT = $(shell go run ./devtools/scripts/db-url "$(DB_URL)" "$(SWO_DB
 
 LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
-YARN_VERSION=4.3.1
+YARN_VERSION=4.5.3
 PG_VERSION=13
 
 # add all files except those under web/src/build and web/src/cypress
