@@ -1264,6 +1264,181 @@ func (q *Queries) CleanupMgrVerifyUsers(ctx context.Context, userIds []uuid.UUID
 	return items, nil
 }
 
+const compatAuthSubSetCMID = `-- name: CompatAuthSubSetCMID :exec
+UPDATE
+    auth_subjects
+SET
+    cm_id =(
+        SELECT
+            id
+        FROM
+            user_contact_methods
+        WHERE
+            type = 'SLACK_DM'
+            AND value = $2)
+WHERE
+    auth_subjects.id = $1
+`
+
+type CompatAuthSubSetCMIDParams struct {
+	ID    int64
+	Value string
+}
+
+// Updates the contact method id for an auth_subject with the given destination.
+func (q *Queries) CompatAuthSubSetCMID(ctx context.Context, arg CompatAuthSubSetCMIDParams) error {
+	_, err := q.db.ExecContext(ctx, compatAuthSubSetCMID, arg.ID, arg.Value)
+	return err
+}
+
+const compatAuthSubSlackMissingCM = `-- name: CompatAuthSubSlackMissingCM :many
+SELECT
+    cm_id, id, provider_id, subject_id, user_id
+FROM
+    auth_subjects
+WHERE
+    provider_id LIKE 'slack:%'
+    AND cm_id IS NULL
+FOR UPDATE
+    SKIP LOCKED
+LIMIT 10
+`
+
+// Get up to 10 auth_subjects (slack only) missing a contact method.
+func (q *Queries) CompatAuthSubSlackMissingCM(ctx context.Context) ([]AuthSubject, error) {
+	rows, err := q.db.QueryContext(ctx, compatAuthSubSlackMissingCM)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AuthSubject
+	for rows.Next() {
+		var i AuthSubject
+		if err := rows.Scan(
+			&i.CmID,
+			&i.ID,
+			&i.ProviderID,
+			&i.SubjectID,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const compatCMMissingSub = `-- name: CompatCMMissingSub :many
+SELECT
+    id,
+    user_id,
+    value
+FROM
+    user_contact_methods
+WHERE
+    type = 'SLACK_DM'
+    AND NOT disabled
+    AND NOT EXISTS (
+        SELECT
+            1
+        FROM
+            auth_subjects
+        WHERE
+            cm_id = user_contact_methods.id)
+FOR UPDATE
+    SKIP LOCKED
+LIMIT 10
+`
+
+type CompatCMMissingSubRow struct {
+	ID     uuid.UUID
+	UserID uuid.UUID
+	Value  string
+}
+
+// Get up to 10 contact methods missing an auth_subjects link.
+func (q *Queries) CompatCMMissingSub(ctx context.Context) ([]CompatCMMissingSubRow, error) {
+	rows, err := q.db.QueryContext(ctx, compatCMMissingSub)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CompatCMMissingSubRow
+	for rows.Next() {
+		var i CompatCMMissingSubRow
+		if err := rows.Scan(&i.ID, &i.UserID, &i.Value); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const compatInsertUserCM = `-- name: CompatInsertUserCM :exec
+INSERT INTO user_contact_methods(id, name, type, value, user_id, pending)
+    VALUES ($1, $2, $3, $4, $5, FALSE)
+ON CONFLICT (type, value)
+    DO NOTHING
+`
+
+type CompatInsertUserCMParams struct {
+	ID     uuid.UUID
+	Name   string
+	Type   EnumUserContactMethodType
+	Value  string
+	UserID uuid.UUID
+}
+
+// Inserts a new contact method for a user.
+func (q *Queries) CompatInsertUserCM(ctx context.Context, arg CompatInsertUserCMParams) error {
+	_, err := q.db.ExecContext(ctx, compatInsertUserCM,
+		arg.ID,
+		arg.Name,
+		arg.Type,
+		arg.Value,
+		arg.UserID,
+	)
+	return err
+}
+
+const compatUpsertAuthSubject = `-- name: CompatUpsertAuthSubject :exec
+INSERT INTO auth_subjects(user_id, subject_id, provider_id, cm_id)
+    VALUES ($1, $2, $3, $4)
+ON CONFLICT (subject_id, provider_id)
+    DO UPDATE SET
+        user_id = $1, cm_id = $4
+`
+
+type CompatUpsertAuthSubjectParams struct {
+	UserID     uuid.UUID
+	SubjectID  string
+	ProviderID string
+	CmID       uuid.NullUUID
+}
+
+// Inserts a new auth_subject for a user.
+func (q *Queries) CompatUpsertAuthSubject(ctx context.Context, arg CompatUpsertAuthSubjectParams) error {
+	_, err := q.db.ExecContext(ctx, compatUpsertAuthSubject,
+		arg.UserID,
+		arg.SubjectID,
+		arg.ProviderID,
+		arg.CmID,
+	)
+	return err
+}
+
 const connectionInfo = `-- name: ConnectionInfo :many
 SELECT application_name AS NAME,
     COUNT(*)
