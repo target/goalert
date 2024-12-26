@@ -1495,21 +1495,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@codemirror/language@npm:6.10.7":
-  version: 6.10.7
-  resolution: "@codemirror/language@npm:6.10.7"
-  dependencies:
-    "@codemirror/state": "npm:^6.0.0"
-    "@codemirror/view": "npm:^6.23.0"
-    "@lezer/common": "npm:^1.1.0"
-    "@lezer/highlight": "npm:^1.0.0"
-    "@lezer/lr": "npm:^1.0.0"
-    style-mod: "npm:^4.0.0"
-  checksum: 10/9a58ceec7a9f5ac9b11a3bff841c751067e3fa0d9b39a1ab585a40ed5f6188d611d8ec8d1c60a4f1ea96485234b71d43176594da95d90e879e41a81340a120b0
-  languageName: node
-  linkType: hard
-
-"@codemirror/language@npm:^6.0.0":
+"@codemirror/language@npm:6.10.8, @codemirror/language@npm:^6.0.0":
   version: 6.10.8
   resolution: "@codemirror/language@npm:6.10.8"
   dependencies:
@@ -6381,12 +6367,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:18.3.0":
-  version: 18.3.0
-  resolution: "@types/react-dom@npm:18.3.0"
+"@types/react-dom@npm:18.3.1":
+  version: 18.3.1
+  resolution: "@types/react-dom@npm:18.3.1"
   dependencies:
     "@types/react": "npm:*"
-  checksum: 10/6ff53f5a7b7fba952a68e114d3b542ebdc1e87a794234785ebab0bcd9bde7fb4885f21ebaf93d26dc0a1b5b93287f42cad68b78ae04dddf6b20da7aceff0beaf
+  checksum: 10/33f9ba79b26641ddf00a8699c30066b7e3573ab254e97475bf08f82fab83a6d3ce8d4ebad86afeb49bb8df3374390a9ba93125cece33badc4b3e8f7eac3c84d8
   languageName: node
   linkType: hard
 
@@ -6408,16 +6394,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:>=16.9.11":
-  version: 19.0.2
-  resolution: "@types/react@npm:19.0.2"
-  dependencies:
-    csstype: "npm:^3.0.2"
-  checksum: 10/b355cfa22814e934b381c4f6de67c66652255377c3ddc6a757ea195ccbd0e7095aadfe1a28713d8ab1221222b8f2ec237903f4ec0e54eaf656ac832782d25dd2
-  languageName: node
-  linkType: hard
-
-"@types/react@npm:18.3.1":
+"@types/react@npm:*, @types/react@npm:18.3.1, @types/react@npm:>=16.9.11":
   version: 18.3.1
   resolution: "@types/react@npm:18.3.1"
   dependencies:
@@ -17882,7 +17859,7 @@ __metadata:
     "@babel/core": "npm:7.26.0"
     "@babel/plugin-transform-modules-commonjs": "npm:7.26.3"
     "@codemirror/commands": "npm:6.7.1"
-    "@codemirror/language": "npm:6.10.7"
+    "@codemirror/language": "npm:6.10.8"
     "@codemirror/lint": "npm:6.8.4"
     "@codemirror/state": "npm:6.5.0"
     "@codemirror/view": "npm:6.36.1"
@@ -17924,7 +17901,7 @@ __metadata:
     "@types/prop-types": "npm:15.7.14"
     "@types/react": "npm:18.3.1"
     "@types/react-big-calendar": "npm:1.16.0"
-    "@types/react-dom": "npm:18.3.0"
+    "@types/react-dom": "npm:18.3.1"
     "@types/react-transition-group": "npm:4.4.12"
     "@types/react-virtualized-auto-sizer": "npm:1.0.4"
     "@typescript-eslint/eslint-plugin": "npm:8.18.1"
