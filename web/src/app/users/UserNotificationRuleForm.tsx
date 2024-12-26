@@ -29,7 +29,7 @@ interface Error {
 
 export default function UserNotificationRuleForm(
   props: UserNotificationRuleFormProps,
-): JSX.Element {
+): React.JSX.Element {
   const { userID, ...other } = props
   return (
     <FormContainer {...other} optionalLabels>

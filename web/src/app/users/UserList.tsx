@@ -30,7 +30,7 @@ const query = gql`
 
 const context = { suspense: false }
 
-function UserList(): JSX.Element {
+function UserList(): React.JSX.Element {
   const { isAdmin } = useSessionInfo()
   const [create, setCreate] = useState(false)
   const [search] = useURLParam<string>('search', '')

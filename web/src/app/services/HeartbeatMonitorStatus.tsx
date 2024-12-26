@@ -40,7 +40,7 @@ const statusMap = {
 export default function HeartbeatMonitorStatus(props: {
   lastState: 'inactive' | 'healthy' | 'unhealthy'
   lastHeartbeat?: null | ISOTimestamp
-}): JSX.Element {
+}): React.JSX.Element {
   const classes = useStyles()
   const statusColors = useStatusColors()
 

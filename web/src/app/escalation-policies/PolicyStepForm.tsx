@@ -69,7 +69,7 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
     })
   }
 
-  function renderErrors(otherErrs: readonly string[]): React.JSX.Element[] {
+  function renderErrors(otherErrs: readonly string[]): React.React.JSX.Element[] {
     return otherErrs.map((err, idx) => (
       <DialogContentError
         error={err}

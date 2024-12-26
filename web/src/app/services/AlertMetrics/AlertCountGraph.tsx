@@ -34,7 +34,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 export default function AlertCountGraph(
   props: AlertCountGraphProps,
-): JSX.Element {
+): React.JSX.Element {
   const classes = useStyles()
   const theme = useTheme()
   return (

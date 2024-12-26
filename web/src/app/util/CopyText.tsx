@@ -32,7 +32,7 @@ interface CopyTextProps {
   noTypography?: boolean
 }
 
-export default function CopyText(props: CopyTextProps): JSX.Element {
+export default function CopyText(props: CopyTextProps): React.JSX.Element {
   const classes = useStyles()
   const [copied, setCopied] = useState(false)
 

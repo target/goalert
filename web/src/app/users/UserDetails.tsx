@@ -61,7 +61,7 @@ const profileQuery = gql`
 export default function UserDetails(props: {
   userID: string
   readOnly: boolean
-}): JSX.Element {
+}): React.JSX.Element {
   const userID = props.userID
   const { userID: currentUserID, isAdmin } = useSessionInfo()
 
@@ -117,10 +117,10 @@ export default function UserDetails(props: {
   }
 
   const options: (
-    | JSX.Element
+    | React.JSX.Element
     | {
         label: string
-        icon: JSX.Element
+        icon: React.JSX.Element
         handleOnClick: () => void
       }
   )[] = [

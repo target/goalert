@@ -23,7 +23,7 @@ interface UniversalKeyRuleFormProps {
 
 export default function UniversalKeyRuleForm(
   props: UniversalKeyRuleFormProps,
-): JSX.Element {
+): React.JSX.Element {
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>

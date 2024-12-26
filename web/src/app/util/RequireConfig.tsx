@@ -247,8 +247,8 @@ export function useDestinationType(type: DestinationType): DestinationTypeInfo {
 }
 
 export function Config(props: {
-  children: (x: ConfigData, s?: SessionInfo) => JSX.Element
-}): JSX.Element {
+  children: (x: ConfigData, s?: SessionInfo) => React.JSX.Element
+}): React.JSX.Element {
   return props.children(useConfig(), useSessionInfo()) || null
 }
 
@@ -258,14 +258,14 @@ export type RequireConfigProps = {
   test?: (x: Value) => boolean
 
   // react element to render if checks failed
-  else?: JSX.Element
+  else?: React.JSX.Element
   isAdmin?: boolean
   children?: ReactChild
 }
 
 export default function RequireConfig(
   props: RequireConfigProps,
-): JSX.Element | null {
+): React.JSX.Element | null {
   const {
     configID,
     test = isTrue,

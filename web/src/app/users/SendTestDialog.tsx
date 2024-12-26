@@ -102,7 +102,7 @@ export function SendTestContent(props: SendTestContentProps): React.ReactNode {
 
 export default function SendTestDialog(
   props: SendTestDialogProps,
-): JSX.Element {
+): React.JSX.Element {
   const { onClose, contactMethodID } = props
   const [sendTestStatus, sendTest] = useMutation(mutation)
 

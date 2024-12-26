@@ -22,7 +22,7 @@ interface CustomDotProps extends DotProps {
   }
 }
 
-const CustomDot = (props: CustomDotProps): JSX.Element => {
+const CustomDot = (props: CustomDotProps): React.JSX.Element => {
   const { cy, cx, fill, r, stroke, strokeWidth, dataKey, payload } = props
   return (
     <circle
@@ -45,7 +45,7 @@ interface AlertAveragesGraphProps {
 
 export default function AlertAveragesGraph(
   props: AlertAveragesGraphProps,
-): JSX.Element {
+): React.JSX.Element {
   const theme = useTheme()
 
   return (

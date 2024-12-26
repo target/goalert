@@ -38,7 +38,7 @@ interface CustomSpeedDialProps {
 
 export default function CustomSpeedDial(
   props: CustomSpeedDialProps,
-): JSX.Element {
+): React.JSX.Element {
   const [open, setOpen] = useState(false)
   const classes = useStyles()
 

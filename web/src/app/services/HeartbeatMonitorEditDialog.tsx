@@ -25,7 +25,7 @@ const query = gql`
 export default function HeartbeatMonitorEditDialog(props: {
   monitorID: string
   onClose: () => void
-}): JSX.Element {
+}): React.JSX.Element {
   const [value, setValue] = useState<Value | null>(null)
 
   const [{ data, error, fetching }] = useQuery({

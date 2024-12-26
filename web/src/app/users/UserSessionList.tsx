@@ -86,7 +86,7 @@ export type UserSessionListProps = {
 
 export default function UserSessionList({
   userID,
-}: UserSessionListProps): JSX.Element {
+}: UserSessionListProps): React.JSX.Element {
   // handles both logout all and logout individual sessions
   const [endSession, setEndSession] = useState<Session | 'all' | null>(null)
 

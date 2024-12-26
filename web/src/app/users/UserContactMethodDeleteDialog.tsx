@@ -11,7 +11,7 @@ const mutation = gql`
 function UserContactMethodDeleteDialog(props: {
   contactMethodID: string
   onClose: () => void
-}): JSX.Element {
+}): React.JSX.Element {
   const { contactMethodID, ...rest } = props
 
   const [deleteCMStatus, deleteCM] = useMutation(mutation)

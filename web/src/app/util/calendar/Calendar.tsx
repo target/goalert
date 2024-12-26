@@ -136,7 +136,7 @@ interface CalendarEventWrapperProps extends CalendarProps {
 
 function CalendarEventWrapperWithLink(
   props: CalendarEventWrapperProps,
-): JSX.Element {
+): React.JSX.Element {
   return (
     <CalendarEventWrapper {...props} event={props.event} showScheduleLink>
       {props.children}
@@ -144,7 +144,7 @@ function CalendarEventWrapperWithLink(
   )
 }
 
-export default function Calendar(props: CalendarProps): JSX.Element {
+export default function Calendar(props: CalendarProps): React.JSX.Element {
   const classes = useStyles()
   const theme = useTheme()
 
@@ -209,7 +209,7 @@ export default function Calendar(props: CalendarProps): JSX.Element {
     }
   }
 
-  const getOverrideTitle = (o: UserOverride): JSX.Element => {
+  const getOverrideTitle = (o: UserOverride): React.JSX.Element => {
     if (o.addUser && o.removeUser) {
       // replace override
       return (

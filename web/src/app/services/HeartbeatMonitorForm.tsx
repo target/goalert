@@ -31,7 +31,7 @@ interface HeartbeatMonitorFormProps {
 
 export default function HeartbeatMonitorForm(
   props: HeartbeatMonitorFormProps,
-): JSX.Element {
+): React.JSX.Element {
   const { ...formProps } = props
   return (
     <FormContainer {...formProps} optionalLabels>

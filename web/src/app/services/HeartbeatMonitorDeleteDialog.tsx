@@ -23,7 +23,7 @@ const mutation = gql`
 export default function HeartbeatMonitorDeleteDialog(props: {
   monitorID: string
   onClose: () => void
-}): JSX.Element {
+}): React.JSX.Element {
   const [{ data, fetching, error }] = useQuery({
     query,
     variables: { id: props.monitorID },

@@ -10,7 +10,7 @@ export default function FromValueField(
     defaultPhone?: string | null
     defaultSID?: string | null
   },
-): JSX.Element {
+): React.JSX.Element {
   const [phoneMode, setPhoneMode] = useState(
     props.value === '' || props.value.startsWith('+'),
   )

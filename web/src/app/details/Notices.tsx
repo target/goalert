@@ -61,10 +61,10 @@ export function toSeverity(notice: NoticeType): AlertColor {
 
 export interface Notice {
   type: NoticeType
-  message: string | JSX.Element
-  details?: string | JSX.Element
-  endNote?: string | JSX.Element
-  action?: JSX.Element
+  message: string | React.JSX.Element
+  details?: string | React.JSX.Element
+  endNote?: string | React.JSX.Element
+  action?: React.JSX.Element
 }
 interface NoticesProps {
   notices?: Notice[]
@@ -72,7 +72,7 @@ interface NoticesProps {
 
 export default function Notices({
   notices = [],
-}: NoticesProps): JSX.Element | null {
+}: NoticesProps): React.JSX.Element | null {
   const classes = useStyles()
   const [noticesExpanded, setNoticesExpanded] = useState(false)
 
@@ -80,7 +80,7 @@ export default function Notices({
     return null
   }
 
-  function renderShowAllToggle(action?: JSX.Element): ReactNode {
+  function renderShowAllToggle(action?: React.JSX.Element): ReactNode {
     if (notices.length <= 1) return null
     return (
       <React.Fragment>
@@ -119,7 +119,7 @@ export default function Notices({
     }
   }
 
-  function renderNotice(notice: Notice, index: number): JSX.Element {
+  function renderNotice(notice: Notice, index: number): React.JSX.Element {
     return (
       <Grid key={index} className={getGridClassName(index)} item xs={12}>
         <Alert

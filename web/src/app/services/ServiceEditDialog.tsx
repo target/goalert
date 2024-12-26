@@ -46,7 +46,7 @@ const setLabel = gql`
 export default function ServiceEditDialog(props: {
   serviceID: string
   onClose: () => void
-}): JSX.Element {
+}): React.JSX.Element {
   const [value, setValue] = useState<Value | null>(null)
   const [{ data, fetching: dataFetching, error: dataError }] = useQuery({
     query,

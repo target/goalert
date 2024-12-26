@@ -63,7 +63,7 @@ function cachify<T>(val: T): T {
  */
 export default function DestinationSearchSelect(
   props: DestinationSearchSelectProps,
-): JSX.Element {
+): React.JSX.Element {
   const [inputValue, setInputValue] = useState('')
 
   // check validation of the input phoneNumber through graphql

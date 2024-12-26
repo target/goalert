@@ -51,7 +51,7 @@ interface ScheduleOverrideFormProps {
 
 export default function ScheduleOverrideForm(
   props: ScheduleOverrideFormProps,
-): JSX.Element {
+): React.JSX.Element {
   const {
     add,
     remove,

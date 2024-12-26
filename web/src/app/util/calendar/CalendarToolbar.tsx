@@ -32,7 +32,7 @@ interface ScheduleCalendarToolbarProps {
 
 function ScheduleCalendarToolbar(
   props: ScheduleCalendarToolbarProps,
-): JSX.Element {
+): React.JSX.Element {
   const classes = useStyles()
   const { weekly, start, setParams: setNavParams } = useCalendarNavigation()
 

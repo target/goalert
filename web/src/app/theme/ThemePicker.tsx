@@ -19,7 +19,7 @@ import DefaultColorIcon from '@mui/icons-material/Circle'
 import PaletteIcon from '@mui/icons-material/Palette'
 import { ThemeContext } from './themeConfig'
 
-export default function ThemePicker(): JSX.Element {
+export default function ThemePicker(): React.JSX.Element {
   const { themeMode, setThemeMode, sourceColor, setSourceColor } =
     useContext(ThemeContext)
   const [showMore, setShowMore] = useState(false)

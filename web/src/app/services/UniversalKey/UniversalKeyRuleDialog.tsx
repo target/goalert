@@ -45,7 +45,7 @@ const mutation = gql`
 
 export default function UniversalKeyRuleDialog(
   props: UniversalKeyRuleDialogProps,
-): JSX.Element {
+): React.JSX.Element {
   const [q] = useQuery<{
     integrationKey: IntegrationKey
   }>({

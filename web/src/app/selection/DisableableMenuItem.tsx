@@ -20,13 +20,13 @@ export function sortDisableableMenuItems(
 
 // the parent Form element is looking for the value prop, which doesn't exist on
 // the base Tooltip.
-const MenuTooltip = (props: TooltipProps & { value: string }): JSX.Element => {
+const MenuTooltip = (props: TooltipProps & { value: string }): React.JSX.Element => {
   return <Tooltip {...props}>{props.children}</Tooltip>
 }
 
 export const renderMenuItem = (
   fields: DisableableMenuItemFields,
-): JSX.Element => {
+): React.JSX.Element => {
   const { value, label, disabled, disabledMessage } = fields
   return disabled ? (
     // tooltips don't work on disabled elements so the MenuItem must be wrapped in a <span/>

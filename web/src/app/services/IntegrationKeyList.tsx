@@ -76,7 +76,7 @@ export function IntegrationKeyDetails(props: {
   href: string
   label: string
   type: string
-}): JSX.Element {
+}): React.JSX.Element {
   const types = useFeatures().integrationKeyTypes
   const t = types.find((t) => t.id === props.type) || {
     enabled: false,
@@ -96,7 +96,7 @@ export function IntegrationKeyDetails(props: {
 
 export default function IntegrationKeyList(props: {
   serviceID: string
-}): JSX.Element {
+}): React.JSX.Element {
   const classes = useStyles()
   const isMobile = useIsWidthDown('md')
   const [create, setCreate] = useState<boolean>(false)

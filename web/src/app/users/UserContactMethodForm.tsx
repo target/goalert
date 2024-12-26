@@ -31,7 +31,7 @@ export type UserContactMethodFormProps = {
 
 export default function UserContactMethodForm(
   props: UserContactMethodFormProps,
-): JSX.Element {
+): React.JSX.Element {
   const { value, edit = false, ...other } = props
 
   const destinationTypes = useContactMethodTypes()

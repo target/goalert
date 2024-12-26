@@ -58,7 +58,7 @@ function truncateCond(cond: string): string {
 
 export default function UniversalKeyRuleList(
   props: UniversalKeyRuleListProps,
-): JSX.Element {
+): React.JSX.Element {
   const [create, setCreate] = useState(false)
   const [edit, setEdit] = useState('')
   const [remove, setRemove] = useState('')

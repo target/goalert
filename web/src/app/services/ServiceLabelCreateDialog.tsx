@@ -18,7 +18,7 @@ interface ServiceLabelCreateDialogProps {
 
 export default function ServiceLabelCreateDialog(
   props: ServiceLabelCreateDialogProps,
-): JSX.Element {
+): React.JSX.Element {
   const [value, setValue] = useState<Label>({ key: '', value: '' })
 
   const [{ error }, commit] = useMutation(mutation)

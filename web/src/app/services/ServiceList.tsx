@@ -27,7 +27,7 @@ const query = gql`
   }
 `
 const context = { suspense: false }
-export default function ServiceList(): JSX.Element {
+export default function ServiceList(): React.JSX.Element {
   const [search, setSearch] = useURLParam<string>('search', '')
   const { labelKey, labelValue, integrationKey } = getServiceFilters(search)
   const [create, setCreate] = useState(false)

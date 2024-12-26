@@ -17,7 +17,7 @@ function DeleteForm(props: {
   error: string | undefined
   value: boolean
   onChange: (deleteEP: boolean) => void
-}): JSX.Element {
+}): React.JSX.Element {
   return (
     <FormControl error={Boolean(props.error)} style={{ width: '100%' }}>
       <FormControlLabel
@@ -60,7 +60,7 @@ const mutation = gql`
 export default function ServiceDeleteDialog(props: {
   serviceID: string
   onClose: () => void
-}): JSX.Element {
+}): React.JSX.Element {
   const [, navigate] = useLocation()
   const [deleteEP, setDeleteEP] = useState<boolean>(true)
   const [{ data, ...dataStatus }] = useQuery({

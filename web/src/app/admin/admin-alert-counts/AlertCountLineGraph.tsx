@@ -56,7 +56,7 @@ interface CustomDotProps extends DotProps {
   }
 }
 
-function CustomDot(props: CustomDotProps): JSX.Element {
+function CustomDot(props: CustomDotProps): React.JSX.Element {
   const { cy, cx, fill, r, stroke, strokeWidth, name = '', payload } = props
 
   return (
@@ -75,7 +75,7 @@ function CustomDot(props: CustomDotProps): JSX.Element {
 
 export default function AlertCountLineGraph(
   props: AlertCountLineGraphProps,
-): JSX.Element {
+): React.JSX.Element {
   const [active, setActive] = useState('')
   const classes = useStyles()
   const theme = useTheme()

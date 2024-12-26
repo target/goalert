@@ -13,7 +13,7 @@ interface CreateAlertReviewProps {
   failedServices?: FailedService[]
 }
 
-export function CreateAlertReview(props: CreateAlertReviewProps): JSX.Element {
+export function CreateAlertReview(props: CreateAlertReviewProps): React.JSX.Element {
   const { createdAlertIDs = [], failedServices = [] } = props
 
   return (

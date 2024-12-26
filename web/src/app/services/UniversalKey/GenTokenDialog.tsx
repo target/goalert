@@ -16,7 +16,7 @@ const mutation = gql`
   }
 `
 
-function GenerateTokenText(): JSX.Element {
+function GenerateTokenText(): React.JSX.Element {
   return (
     <Typography>
       Generates an auth bearer token that can immediately be used for this
@@ -25,7 +25,7 @@ function GenerateTokenText(): JSX.Element {
   )
 }
 
-function CopyTokenText({ token }: { token: string }): JSX.Element {
+function CopyTokenText({ token }: { token: string }): React.JSX.Element {
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
@@ -42,7 +42,7 @@ function CopyTokenText({ token }: { token: string }): JSX.Element {
 export default function GenTokenDialog({
   keyID,
   onClose,
-}: TokenCopyDialogProps): JSX.Element {
+}: TokenCopyDialogProps): React.JSX.Element {
   const [status, commit] = useMutation(mutation)
   const token = status.data?.generateKeyToken
 

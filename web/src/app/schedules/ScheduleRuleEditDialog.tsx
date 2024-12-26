@@ -41,7 +41,7 @@ interface ScheduleRuleEditDialog {
 
 export default function ScheduleRuleEditDialog(
   props: ScheduleRuleEditDialog,
-): JSX.Element {
+): React.JSX.Element {
   const [state, setState] = useState<ScheduleRuleFormValue | null>(null)
 
   const [{ data, fetching, error: readError }] = useQuery({

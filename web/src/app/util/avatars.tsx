@@ -32,7 +32,7 @@ function useAvatar(
   otherProps: AvatarProps,
   loading = false,
   imgSrc?: string,
-): JSX.Element {
+): React.JSX.Element {
   const validImage = useValidImage(imgSrc)
 
   const av = (
@@ -53,7 +53,7 @@ function useAvatar(
   return av
 }
 
-export function UserAvatar(props: UserAvatarProps): JSX.Element {
+export function UserAvatar(props: UserAvatarProps): React.JSX.Element {
   const { userID, ...otherProps } = props
   return useAvatar(
     Person,
@@ -63,7 +63,7 @@ export function UserAvatar(props: UserAvatarProps): JSX.Element {
   )
 }
 
-export function CurrentUserAvatar(props: AvatarProps): JSX.Element {
+export function CurrentUserAvatar(props: AvatarProps): React.JSX.Element {
   const { ready, userID } = useSessionInfo()
   return useAvatar(
     Person,
@@ -73,18 +73,18 @@ export function CurrentUserAvatar(props: AvatarProps): JSX.Element {
   )
 }
 
-export function ServiceAvatar(props: AvatarProps): JSX.Element {
+export function ServiceAvatar(props: AvatarProps): React.JSX.Element {
   return useAvatar(VpnKey, props)
 }
 
-export function EPAvatar(props: AvatarProps): JSX.Element {
+export function EPAvatar(props: AvatarProps): React.JSX.Element {
   return useAvatar(Layers, props)
 }
 
-export function RotationAvatar(props: AvatarProps): JSX.Element {
+export function RotationAvatar(props: AvatarProps): React.JSX.Element {
   return useAvatar(RotateRight, props)
 }
 
-export function ScheduleAvatar(props: AvatarProps): JSX.Element {
+export function ScheduleAvatar(props: AvatarProps): React.JSX.Element {
   return useAvatar(Today, props)
 }

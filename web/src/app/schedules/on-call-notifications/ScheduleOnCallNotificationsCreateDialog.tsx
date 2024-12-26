@@ -46,7 +46,7 @@ interface ScheduleOnCallNotificationsCreateDialogProps {
 
 export default function ScheduleOnCallNotificationsCreateDialog(
   props: ScheduleOnCallNotificationsCreateDialogProps,
-): JSX.Element {
+): React.JSX.Element {
   const { onClose, scheduleID } = props
   const types = useSchedOnCallNotifyTypes()
   const [err, setErr] = useState<CombinedError | null>(null)

@@ -159,7 +159,7 @@ function loadThemeColor(): string {
   return validHexColor(savedColor) ? (savedColor as string) : blueGrey[500]
 }
 
-export function ThemeProvider(props: ThemeProviderProps): JSX.Element {
+export function ThemeProvider(props: ThemeProviderProps): React.JSX.Element {
   const [savedThemeMode, setSavedThemeMode] = useState(loadTheme())
   const [sourceColor, setSourceColor] = useState(loadThemeColor())
 

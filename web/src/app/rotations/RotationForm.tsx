@@ -27,7 +27,7 @@ const sameAsLocal = (t: string, z: string): boolean => {
   return inZone.toFormat('Z') === inLocal.toFormat('Z')
 }
 
-export default function RotationForm(props: RotationFormProps): JSX.Element {
+export default function RotationForm(props: RotationFormProps): React.JSX.Element {
   const { value } = props
 
   const handoffWarning =

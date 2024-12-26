@@ -13,7 +13,7 @@ type NumberFieldProps = TextFieldProps & {
   ) => void
 }
 
-export default function NumberField(props: NumberFieldProps): JSX.Element {
+export default function NumberField(props: NumberFieldProps): React.JSX.Element {
   const { float, min, max, step = 'any', onChange, value, ...rest } = props
 
   const [inputValue, setInputValue] = useState(value)

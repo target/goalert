@@ -78,7 +78,7 @@ export function StepContainer({
   children,
   width = '75%',
   ...rest
-}: StepContainerProps): JSX.Element {
+}: StepContainerProps): React.JSX.Element {
   const bodyStyle = {
     display: 'flex',
     justifyContent: 'center', // horizontal align

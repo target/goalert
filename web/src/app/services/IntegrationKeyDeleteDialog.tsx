@@ -31,7 +31,7 @@ const mutation = gql`
 export default function IntegrationKeyDeleteDialog(props: {
   integrationKeyID: string
   onClose: () => void
-}): JSX.Element {
+}): React.JSX.Element {
   const [{ error, data }] = useQuery({
     query,
     variables: { id: props.integrationKeyID },

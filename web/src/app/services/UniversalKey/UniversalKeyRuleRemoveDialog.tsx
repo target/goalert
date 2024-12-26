@@ -17,7 +17,7 @@ const mutation = gql`
 
 export default function UniversalKeyRuleCreateDialogProps(
   props: UniversalKeyRuleCreateDialogProps,
-): JSX.Element {
+): React.JSX.Element {
   const [deleteRuleResult, commit] = useMutation(mutation)
 
   return (

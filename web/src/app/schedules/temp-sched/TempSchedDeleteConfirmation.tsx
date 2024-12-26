@@ -20,7 +20,7 @@ export default function TempSchedDeleteConfirmation({
   scheduleID,
   onClose,
   value,
-}: TempSchedDeleteConfirmationProps): JSX.Element {
+}: TempSchedDeleteConfirmationProps): React.JSX.Element {
   const [{ fetching, error }, commit] = useMutation(mutation)
 
   const start = DateTime.max(

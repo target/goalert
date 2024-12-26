@@ -20,7 +20,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-const App = (): JSX.Element => {
+const App = (): React.JSX.Element => {
   const path = location.host + location.pathname.replace(/\/explore.*$/, '')
   const [needLogin, setNeedLogin] = useState(false)
   const classes = useStyles()

@@ -40,7 +40,7 @@ const mutation = gql`
 export default function ScheduleOverrideEditDialog(props: {
   overrideID: string
   onClose: () => void
-}): JSX.Element {
+}): React.JSX.Element {
   const [value, setValue] = useState<Value | null>(null)
 
   const [{ data, fetching, error }] = useQuery({

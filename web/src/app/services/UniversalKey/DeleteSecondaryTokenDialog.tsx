@@ -18,7 +18,7 @@ const mutation = gql`
 export default function DeleteSecondaryTokenDialog({
   keyID,
   onClose,
-}: DeleteSecondaryTokenDialogProps): JSX.Element {
+}: DeleteSecondaryTokenDialogProps): React.JSX.Element {
   const [status, commit] = useMutation(mutation)
   const [hasConfirmed, setHasConfirmed] = useState(false)
 

@@ -52,7 +52,7 @@ interface TargetValue {
 
 export default function ScheduleRuleList(
   props: ScheduleRuleListProps,
-): JSX.Element {
+): React.JSX.Element {
   const { scheduleID } = props
   const [editTarget, setEditTarget] = useState<TargetValue | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<TargetValue | null>(null)
@@ -70,7 +70,7 @@ export default function ScheduleRuleList(
     return <GenericError error={error.message} />
   }
 
-  function renderSubText(rules: ScheduleRule[], timeZone: string): JSX.Element {
+  function renderSubText(rules: ScheduleRule[], timeZone: string): React.JSX.Element {
     const tzSummary = ruleSummary(rules, timeZone, timeZone)
     const tzAbbr = DateTime.local({ zone: timeZone }).toFormat('ZZZZ')
     const localTzSummary = ruleSummary(rules, timeZone, 'local')
@@ -98,7 +98,7 @@ export default function ScheduleRuleList(
   function renderList(
     targets: ScheduleTarget[],
     timeZone: string,
-  ): JSX.Element {
+  ): React.JSX.Element {
     const items: FlatListListItem[] = []
 
     let lastType: TargetType

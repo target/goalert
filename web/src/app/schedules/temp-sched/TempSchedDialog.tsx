@@ -100,7 +100,7 @@ export default function TempSchedDialog({
   scheduleID,
   value: _value,
   edit = false,
-}: TempScheduleDialogProps): JSX.Element {
+}: TempScheduleDialogProps): React.JSX.Element {
   const classes = useStyles()
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())

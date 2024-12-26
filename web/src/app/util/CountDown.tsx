@@ -65,7 +65,7 @@ export function formatTimeRemaining(
   return timeString
 }
 
-function CountDown(props: CountDownProps): JSX.Element | string {
+function CountDown(props: CountDownProps): React.JSX.Element | string {
   const [timeRemaining, setTimeRemaining] = useState(
     DateTime.fromISO(props.end).toSeconds() - DateTime.local().toSeconds(),
   )

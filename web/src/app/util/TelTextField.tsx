@@ -30,7 +30,7 @@ const noSuspense = { suspense: false }
 
 export default function TelTextField(
   props: TextFieldProps & { value: string },
-): JSX.Element {
+): React.JSX.Element {
   const classes = useStyles()
   const [phoneNumber, setPhoneNumber] = useState('')
 

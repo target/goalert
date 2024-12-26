@@ -21,7 +21,7 @@ export default function ClickableText({
   size = 'small',
   type = 'button',
   ...props
-}: ButtonProps): JSX.Element {
+}: ButtonProps): React.JSX.Element {
   const classes = useStyles()
   return (
     <Button

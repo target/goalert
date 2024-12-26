@@ -16,7 +16,7 @@ const serviceQuery = gql`
 
 type WithID<T> = { id: string } & T
 
-export function ServiceChip(props: WithID<ChipProps>): JSX.Element {
+export function ServiceChip(props: WithID<ChipProps>): React.JSX.Element {
   const { id, label, ...rest } = props
   const [, navigate] = useLocation()
 

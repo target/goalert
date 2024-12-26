@@ -52,7 +52,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 export default function ScheduleOnCallNotificationsList({
   scheduleID,
-}: ScheduleOnCallNotificationsListProps): JSX.Element {
+}: ScheduleOnCallNotificationsListProps): React.JSX.Element {
   const [createRule, setCreateRule] = useState(false)
   const [editRuleID, setEditRuleID] = useState('')
   const [deleteRuleID, setDeleteRuleID] = useState('')

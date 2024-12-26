@@ -7,8 +7,8 @@ import Tooltip from '@mui/material/Tooltip'
 import { Theme } from '@mui/material'
 
 interface CardActionProps {
-  primaryActions?: Array<Action | JSX.Element>
-  secondaryActions?: Array<Action | JSX.Element>
+  primaryActions?: Array<Action | React.JSX.Element>
+  secondaryActions?: Array<Action | React.JSX.Element>
 }
 
 interface ActionProps {
@@ -19,7 +19,7 @@ interface ActionProps {
 export type Action = {
   label: string // primary button text, use for a tooltip if secondary action
   handleOnClick: MouseEventHandler<HTMLButtonElement>
-  icon?: JSX.Element // if true, adds a start icon to a button with text
+  icon?: React.JSX.Element // if true, adds a start icon to a button with text
   ButtonProps?: ButtonProps
 }
 
@@ -39,21 +39,21 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-export default function CardActions(p: CardActionProps): JSX.Element {
+export default function CardActions(p: CardActionProps): React.JSX.Element {
   const classes = useStyles()
 
   const action = (
-    action: Action | JSX.Element,
+    action: Action | React.JSX.Element,
     key: string,
     secondary?: boolean,
-  ): JSX.Element => {
+  ): React.JSX.Element => {
     if ('label' in action && 'handleOnClick' in action) {
       return <Action key={key} action={action} secondary={secondary} />
     }
     return action
   }
 
-  let actions: Array<JSX.Element> = []
+  let actions: Array<React.JSX.Element> = []
   if (p.primaryActions) {
     actions = [
       <div
@@ -79,7 +79,7 @@ export default function CardActions(p: CardActionProps): JSX.Element {
   )
 }
 
-function Action(p: ActionProps): JSX.Element {
+function Action(p: ActionProps): React.JSX.Element {
   const { action, secondary } = p
   if (secondary && action.icon) {
     // wrapping button in span so tooltip can still

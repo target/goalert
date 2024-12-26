@@ -34,7 +34,7 @@ interface ServiceMaintenanceNoticeProps {
 export default function ServiceNotices({
   serviceID,
   extraNotices = [],
-}: ServiceMaintenanceNoticeProps): JSX.Element | null {
+}: ServiceMaintenanceNoticeProps): React.JSX.Element | null {
   const [, updateService] = useMutation(mutation)
   const [{ fetching, data }] = useQuery({
     query,

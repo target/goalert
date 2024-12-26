@@ -76,7 +76,7 @@ export default function TempSchedAddNewShift({
   value,
   shift,
   setShift,
-}: AddShiftsStepProps): JSX.Element {
+}: AddShiftsStepProps): React.JSX.Element {
   const [submitted, setSubmitted] = useState(false)
 
   const [custom, setCustom] = useState(false)

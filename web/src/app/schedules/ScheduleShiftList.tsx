@@ -75,7 +75,7 @@ const context = { suspense: false }
 
 function ScheduleShiftList({
   scheduleID,
-}: ScheduleShiftListProps): JSX.Element {
+}: ScheduleShiftListProps): React.JSX.Element {
   const classes = useStyles()
   const isMobile = useIsWidthDown('md')
 
@@ -146,7 +146,7 @@ function ScheduleShiftList({
       truncated: boolean
     },
     day: Interval,
-  ): JSX.Element | string {
+  ): React.JSX.Element | string {
     const locale: DateTimeFormatOptions = {
       hour: 'numeric',
       minute: 'numeric',
@@ -270,7 +270,7 @@ function ScheduleShiftList({
     return result
   }
 
-  function renderDurationSelector(): JSX.Element {
+  function renderDurationSelector(): React.JSX.Element {
     // Dropdown options (in ISO_8601 format)
     // https://en.wikipedia.org/wiki/ISO_8601#Durations
     const quickOptions = ['P1D', 'P3D', 'P7D', 'P14D', 'P1M']

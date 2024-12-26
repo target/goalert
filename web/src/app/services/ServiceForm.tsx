@@ -29,7 +29,7 @@ interface ServiceFormProps {
   epRequired?: boolean
 }
 
-export default function ServiceForm(props: ServiceFormProps): JSX.Element {
+export default function ServiceForm(props: ServiceFormProps): React.JSX.Element {
   const { epRequired, errors, ...containerProps } = props
 
   const formErrs = errors.map((e) => {

@@ -47,7 +47,7 @@ const useStyles = makeStyles({
 
 export default function ScheduleOnCallNotificationsForm(
   props: ScheduleOnCallNotificationsFormProps,
-): JSX.Element {
+): React.JSX.Element {
   const { scheduleID, ...formProps } = props
   const classes = useStyles()
   const { zone } = useScheduleTZ(scheduleID)

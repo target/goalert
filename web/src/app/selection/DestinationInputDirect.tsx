@@ -45,7 +45,7 @@ export type DestinationInputDirectProps = Partial<DestinationFieldConfig> & {
  */
 export default function DestinationInputDirect(
   props: DestinationInputDirectProps,
-): JSX.Element {
+): React.JSX.Element {
   const [debouncedValue, setDebouncedValue] = useState(props.value)
 
   // debounce the input

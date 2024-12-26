@@ -30,7 +30,7 @@ interface ScheduleRuleCreateDialogProps {
 
 export default function ScheduleRuleCreateDialog(
   props: ScheduleRuleCreateDialogProps,
-): JSX.Element {
+): React.JSX.Element {
   const { scheduleID, targetType, onClose } = props
 
   const [{ data, fetching }] = useQuery({

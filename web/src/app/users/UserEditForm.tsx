@@ -22,7 +22,7 @@ export interface UserEditFormProps {
   onChange: (newValue: Value) => void
 }
 
-function UserEditForm(props: UserEditFormProps): JSX.Element {
+function UserEditForm(props: UserEditFormProps): React.JSX.Element {
   const {
     value,
     errors,

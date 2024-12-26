@@ -18,7 +18,7 @@ const mutation = gql`
 export default function PromoteTokenDialog({
   keyID,
   onClose,
-}: PromoteTokenDialogProps): JSX.Element {
+}: PromoteTokenDialogProps): React.JSX.Element {
   const [status, commit] = useMutation(mutation)
   const [hasConfirmed, setHasConfirmed] = useState(false)
 

@@ -34,7 +34,7 @@ type ISOTextFieldProps = Partial<Omit<TextFieldProps, 'value' | 'onChange'>> & {
   max?: string
 }
 
-function ISOPicker(props: ISOPickerProps): JSX.Element {
+function ISOPicker(props: ISOPickerProps): React.JSX.Element {
   const {
     format,
     timeZone,
@@ -183,17 +183,17 @@ function ISOPicker(props: ISOPickerProps): JSX.Element {
   )
 }
 
-export function ISOTimePicker(props: ISOTextFieldProps): JSX.Element {
+export function ISOTimePicker(props: ISOTextFieldProps): React.JSX.Element {
   return <ISOPicker {...props} format='HH:mm' truncateTo='minute' type='time' />
 }
 
-export function ISODatePicker(props: ISOTextFieldProps): JSX.Element {
+export function ISODatePicker(props: ISOTextFieldProps): React.JSX.Element {
   return (
     <ISOPicker {...props} format='yyyy-MM-dd' truncateTo='day' type='date' />
   )
 }
 
-export function ISODateTimePicker(props: ISOTextFieldProps): JSX.Element {
+export function ISODateTimePicker(props: ISOTextFieldProps): React.JSX.Element {
   return (
     <ISOPicker
       {...props}

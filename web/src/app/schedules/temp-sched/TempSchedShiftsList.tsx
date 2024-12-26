@@ -71,7 +71,7 @@ export default function TempSchedShiftsList({
   scheduleID,
   handleCoverageGapClick,
   confirmationStep,
-}: TempSchedShiftsListProps): JSX.Element {
+}: TempSchedShiftsListProps): React.JSX.Element {
   const classes = useStyles()
   const { zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now, setNow] = useState(DateTime.now().setZone(zone))

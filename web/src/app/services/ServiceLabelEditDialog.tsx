@@ -33,7 +33,7 @@ export default function ServiceLabelEditDialog(props: {
   serviceID: string
   labelKey: string
   onClose: () => void
-}): JSX.Element {
+}): React.JSX.Element {
   const { onClose, labelKey, serviceID } = props
   const [value, setValue] = useState<Value | null>(null)
 

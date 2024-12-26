@@ -92,7 +92,7 @@ export default function UserContactMethodList(
 
   const contactMethods = data.user.contactMethods
 
-  const getIcon = (cm: UserContactMethod): JSX.Element | null => {
+  const getIcon = (cm: UserContactMethod): React.JSX.Element | null => {
     if (!cm.disabled) return null
     if (props.readOnly) {
       return <Warning message='Contact method disabled' />
@@ -150,7 +150,7 @@ export default function UserContactMethodList(
     return actions
   }
 
-  function getSecondaryAction(cm: UserContactMethod): JSX.Element {
+  function getSecondaryAction(cm: UserContactMethod): React.JSX.Element {
     return (
       <Grid container spacing={2} alignItems='center' wrap='nowrap'>
         {cm.disabled && !props.readOnly && !mobile && isCurrentUser && (

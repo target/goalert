@@ -45,7 +45,7 @@ interface ScheduleOnCallNotificationsEditDialogProps {
 
 export default function ScheduleOnCallNotificationsEditDialog(
   props: ScheduleOnCallNotificationsEditDialogProps,
-): JSX.Element {
+): React.JSX.Element {
   const { onClose, scheduleID } = props
   const [err, setErr] = useState<CombinedError | null>(null)
   const [q] = useQuery<{ schedule: Schedule }>({

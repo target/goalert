@@ -29,7 +29,7 @@ interface UserShiftsCalendarProps {
 
 export default function UserShiftsCalendar({
   userID,
-}: UserShiftsCalendarProps): JSX.Element | null {
+}: UserShiftsCalendarProps): React.JSX.Element | null {
   const { weekly, start } = useCalendarNavigation()
 
   const queryStart = weekly

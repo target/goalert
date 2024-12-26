@@ -87,7 +87,7 @@ export interface _QueryListProps extends ControlledPaginatedListProps {
   // mapVariables transforms query variables just before submission
   mapVariables?: (vars: OperationVariables) => OperationVariables
 
-  renderCreateDialog?: (onClose: () => void) => JSX.Element | undefined
+  renderCreateDialog?: (onClose: () => void) => React.JSX.Element | undefined
 
   createLabel?: string
   hideCreate?: boolean
@@ -95,7 +95,7 @@ export interface _QueryListProps extends ControlledPaginatedListProps {
 
 export type QueryListProps = Omit<_QueryListProps, 'items'>
 
-export default function QueryList(props: QueryListProps): JSX.Element {
+export default function QueryList(props: QueryListProps): React.JSX.Element {
   const {
     mapDataNode = (n: ObjectMap) => ({
       id: n.id,
@@ -174,7 +174,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     )
   }
 
-  function renderList(): JSX.Element {
+  function renderList(): React.JSX.Element {
     if (
       props.checkboxActions?.length ||
       props.secondaryActions ||

@@ -17,11 +17,11 @@ interface InputProps {
   autoComplete?: string
 }
 
-export function StringInput(props: InputProps): JSX.Element {
+export function StringInput(props: InputProps): React.JSX.Element {
   const [showPassword, setShowPassword] = useState(false)
   const { onChange, password, type = 'text', ...rest } = props
 
-  const renderPasswordAdornment = (): JSX.Element | null => {
+  const renderPasswordAdornment = (): React.JSX.Element | null => {
     if (!props.password) return null
 
     return (
@@ -52,7 +52,7 @@ export function StringInput(props: InputProps): JSX.Element {
   )
 }
 
-export const StringListInput = (props: InputProps): JSX.Element => {
+export const StringListInput = (props: InputProps): React.JSX.Element => {
   const value = props.value ? props.value.split('\n').concat('') : ['']
   return (
     <Grid container spacing={1}>
@@ -80,7 +80,7 @@ export const StringListInput = (props: InputProps): JSX.Element => {
   )
 }
 
-export const IntegerInput = (props: InputProps): JSX.Element => (
+export const IntegerInput = (props: InputProps): React.JSX.Element => (
   <Input
     name={props.name}
     value={props.value}
@@ -95,7 +95,7 @@ export const IntegerInput = (props: InputProps): JSX.Element => (
   />
 )
 
-export const BoolInput = (props: InputProps): JSX.Element => (
+export const BoolInput = (props: InputProps): React.JSX.Element => (
   <Switch
     name={props.name}
     value={props.value}
