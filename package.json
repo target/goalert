@@ -74,7 +74,7 @@
     "@types/k6": "0.54.2",
     "@types/lodash": "4.17.13",
     "@types/luxon": "3.4.2",
-    "@types/node": "20.16.6",
+    "@types/node": "22.10.2",
     "@types/prop-types": "15.7.14",
     "@types/react": "18.3.1",
     "@types/react-big-calendar": "1.16.0",
