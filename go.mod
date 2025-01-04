@@ -5,9 +5,9 @@ go 1.23
 toolchain go1.23.3
 
 require (
-	github.com/99designs/gqlgen v0.17.61
+	github.com/99designs/gqlgen v0.17.62
 	github.com/brianvoe/gofakeit/v6 v6.28.0
-	github.com/coreos/go-oidc/v3 v3.11.0
+	github.com/coreos/go-oidc/v3 v3.12.0
 	github.com/creack/pty/v2 v2.0.1
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/emersion/go-smtp v0.21.3
@@ -33,11 +33,11 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.20.5
-	github.com/riverqueue/river v0.14.3
-	github.com/riverqueue/river/cmd/river v0.14.3
-	github.com/riverqueue/river/riverdriver/riverdatabasesql v0.14.3
-	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.14.3
-	github.com/riverqueue/river/rivertype v0.14.3
+	github.com/riverqueue/river v0.15.0
+	github.com/riverqueue/river/cmd/river v0.15.0
+	github.com/riverqueue/river/riverdriver/riverdatabasesql v0.15.0
+	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.15.0
+	github.com/riverqueue/river/rivertype v0.15.0
 	github.com/samber/slog-logrus v1.0.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/slack-go/slack v0.15.0
@@ -45,15 +45,15 @@ require (
 	github.com/spf13/viper v1.19.0
 	github.com/sqlc-dev/pqtype v0.3.0
 	github.com/stretchr/testify v1.10.0
-	github.com/vektah/gqlparser/v2 v2.5.20
+	github.com/vektah/gqlparser/v2 v2.5.21
 	golang.org/x/crypto v0.31.0
-	golang.org/x/oauth2 v0.24.0
-	golang.org/x/sys v0.28.0
+	golang.org/x/oauth2 v0.25.0
+	golang.org/x/sys v0.29.0
 	golang.org/x/term v0.27.0
 	golang.org/x/tools v0.28.0
 	google.golang.org/grpc v1.69.2
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.5.1
-	google.golang.org/protobuf v1.36.0
+	google.golang.org/protobuf v1.36.1
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	riverqueue.com/riverui v0.7.0
 )
@@ -122,8 +122,8 @@ require (
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.60.1 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
-	github.com/riverqueue/river/riverdriver v0.14.3 // indirect
-	github.com/riverqueue/river/rivershared v0.14.3 // indirect
+	github.com/riverqueue/river/riverdriver v0.15.0 // indirect
+	github.com/riverqueue/river/rivershared v0.15.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.6.0 // indirect
