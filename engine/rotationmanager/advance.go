@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/util/log"
 )
 
 type advance struct {
-	id          string
+	id          uuid.UUID
 	newPosition int
 
 	silent bool
@@ -22,7 +23,7 @@ type rotState struct {
 }
 
 // calcAdvance will calculate rotation advancement if it is required. If not, nil is returned
-func calcAdvance(ctx context.Context, t time.Time, rot *rotation.Rotation, state rotState, partCount int) *advance {
+func calcAdvance(ctx context.Context, t time.Time, id uuid.UUID, rot *rotation.Rotation, state rotState, partCount int) *advance {
 	var mustUpdate bool
 	origPos := state.Position
 
@@ -42,7 +43,7 @@ func calcAdvance(ctx context.Context, t time.Time, rot *rotation.Rotation, state
 	if newStart.After(t) || state.Version == 1 {
 		if mustUpdate {
 			return &advance{
-				id:          rot.ID,
+				id:          id,
 				newPosition: state.Position,
 
 				// If migrating from version 1 to 2 without changing
@@ -76,7 +77,7 @@ func calcAdvance(ctx context.Context, t time.Time, rot *rotation.Rotation, state
 	}
 
 	return &advance{
-		id:          rot.ID,
+		id:          id,
 		newPosition: state.Position,
 	}
 }

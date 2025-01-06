@@ -4175,6 +4175,110 @@ func (q *Queries) RequestAlertEscalationByTime(ctx context.Context, arg RequestA
 	return column_1, err
 }
 
+const rotationMgrGetConfig = `-- name: RotationMgrGetConfig :many
+SELECT
+    rot.id,
+    rot."type",
+    rot.start_time,
+    rot.shift_length,
+    rot.time_zone,
+    state.shift_start,
+    state."position",
+    rot.participant_count,
+    state.version
+FROM
+    rotations rot
+    JOIN rotation_state state ON state.rotation_id = rot.id
+FOR UPDATE
+    SKIP LOCKED
+`
+
+type RotationMgrGetConfigRow struct {
+	ID               uuid.UUID
+	Type             EnumRotationType
+	StartTime        time.Time
+	ShiftLength      int64
+	TimeZone         string
+	ShiftStart       time.Time
+	Position         int32
+	ParticipantCount int32
+	Version          int32
+}
+
+// Gets the configuration of all rotations.
+func (q *Queries) RotationMgrGetConfig(ctx context.Context) ([]RotationMgrGetConfigRow, error) {
+	rows, err := q.db.QueryContext(ctx, rotationMgrGetConfig)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []RotationMgrGetConfigRow
+	for rows.Next() {
+		var i RotationMgrGetConfigRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Type,
+			&i.StartTime,
+			&i.ShiftLength,
+			&i.TimeZone,
+			&i.ShiftStart,
+			&i.Position,
+			&i.ParticipantCount,
+			&i.Version,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const rotationMgrLock = `-- name: RotationMgrLock :exec
+LOCK rotation_participants,
+rotation_state IN exclusive mode
+`
+
+// Locks tables for exclusive access to the rotation manager.
+func (q *Queries) RotationMgrLock(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, rotationMgrLock)
+	return err
+}
+
+const rotationMgrUpdateState = `-- name: RotationMgrUpdateState :exec
+UPDATE
+    rotation_state
+SET
+    shift_start = now(),
+    rotation_participant_id =(
+        SELECT
+            id
+        FROM
+            rotation_participants p
+        WHERE
+            p.rotation_id = $1
+            AND p.position = $2),
+    version = 2
+WHERE
+    rotation_id = $1
+`
+
+type RotationMgrUpdateStateParams struct {
+	RotationID uuid.UUID
+	Position   int32
+}
+
+// Updates the state of the rotation.
+func (q *Queries) RotationMgrUpdateState(ctx context.Context, arg RotationMgrUpdateStateParams) error {
+	_, err := q.db.ExecContext(ctx, rotationMgrUpdateState, arg.RotationID, arg.Position)
+	return err
+}
+
 const sWOConnLock = `-- name: SWOConnLock :one
 WITH LOCK AS (
     SELECT

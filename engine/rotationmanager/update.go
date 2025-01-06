@@ -2,16 +2,15 @@ package rotationmanager
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
-	"github.com/target/goalert/validation/validate"
 )
 
 // UpdateAll will update and cleanup the rotation state for all rotations.
@@ -22,20 +21,6 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	}
 	err = db.update(ctx, true, nil)
 	return err
-}
-
-// UpdateOneRotation will update and cleanup the rotation state for the given rotation.
-func (db *DB) UpdateOneRotation(ctx context.Context, rotID string) error {
-	err := permission.LimitCheckAny(ctx, permission.System)
-	if err != nil {
-		return err
-	}
-	err = validate.UUID("Rotation", rotID)
-	if err != nil {
-		return err
-	}
-	ctx = log.WithField(ctx, "RotationID", rotID)
-	return db.update(ctx, false, &rotID)
 }
 
 func (db *DB) update(ctx context.Context, all bool, rotID *string) error {
@@ -52,17 +37,26 @@ func (db *DB) update(ctx context.Context, all bool, rotID *string) error {
 	}
 	defer sqlutil.Rollback(ctx, "rotation manager", tx)
 
-	_, err = tx.StmtContext(ctx, db.lockPart).ExecContext(ctx)
+	gdb := gadb.New(tx)
+
+	err = gdb.RotationMgrLock(ctx)
 	if err != nil {
 		return errors.Wrap(err, "lock rotation participants")
 	}
 
-	needsAdvance, err := db.calcAdvances(ctx, tx, all, rotID)
+	now, err := gdb.Now(ctx)
+	if err != nil {
+		return errors.Wrap(err, "fetch current timestamp")
+	}
+	rows, err := gdb.RotationMgrGetConfig(ctx)
+	if err != nil {
+		return errors.Wrap(err, "fetch rotation configs")
+	}
+	needsAdvance, err := db.calcAdvances(ctx, rows, now)
 	if err != nil {
 		return errors.Wrap(err, "calc stale rotations")
 	}
 
-	updateStmt := tx.Stmt(db.rotate)
 	for _, adv := range needsAdvance {
 		fctx := log.WithFields(ctx, log.Fields{
 			"RotationID": adv.id,
@@ -72,7 +66,10 @@ func (db *DB) update(ctx context.Context, all bool, rotID *string) error {
 		if !adv.silent {
 			log.Debugf(fctx, "Advancing rotation.")
 		}
-		_, err = updateStmt.ExecContext(fctx, adv.id, adv.newPosition)
+		err = gdb.RotationMgrUpdateState(ctx, gadb.RotationMgrUpdateStateParams{
+			RotationID: adv.id,
+			Position:   int32(adv.newPosition),
+		})
 		if err != nil {
 			return errors.Wrap(err, "advance rotation")
 		}
@@ -81,55 +78,37 @@ func (db *DB) update(ctx context.Context, all bool, rotID *string) error {
 	return errors.Wrap(tx.Commit(), "commit transaction")
 }
 
-func (db *DB) calcAdvances(ctx context.Context, tx *sql.Tx, all bool, rotID *string) ([]advance, error) {
-	var t time.Time
-	err := tx.Stmt(db.currentTime).QueryRowContext(ctx).Scan(&t)
-	if err != nil {
-		return nil, errors.Wrap(err, "fetch current timestamp")
-	}
-
-	rows, err := tx.Stmt(db.rotateData).QueryContext(ctx, all, rotID)
-	if err != nil {
-		return nil, errors.Wrap(err, "fetch current rotation state")
-	}
-	defer rows.Close()
-
-	var rot rotation.Rotation
-	var state rotState
-	var partCount int
-	var tzName string
-	var adv *advance
-	var loc *time.Location
+func (db *DB) calcAdvances(ctx context.Context, rows []gadb.RotationMgrGetConfigRow, t time.Time) ([]advance, error) {
 	var needsAdvance []advance
-
-	for rows.Next() {
-		err = rows.Scan(
-			&rot.ID,
-			&rot.Type,
-			&rot.Start,
-			&rot.ShiftLength,
-			&tzName,
-			&state.ShiftStart,
-			&state.Position,
-			&partCount,
-			&state.Version,
-		)
-		if err != nil {
-			return nil, errors.Wrap(err, "scan rotation data")
+	for _, row := range rows {
+		rot := rotation.Rotation{
+			ID:          row.ID.String(),
+			Type:        rotation.Type(row.Type),
+			ShiftLength: int(row.ShiftLength),
 		}
-		loc, err = util.LoadLocation(tzName)
+		loc, err := util.LoadLocation(row.TimeZone)
 		if err != nil {
 			return nil, errors.Wrap(err, "load timezone")
 		}
-		rot.Start = rot.Start.In(loc)
-		adv = calcAdvance(ctx, t, &rot, state, partCount)
-		if adv != nil {
-			needsAdvance = append(needsAdvance, *adv)
-			if len(needsAdvance) == 150 {
-				// only process up to 150 at a time (of those that need updates)
-				break
-			}
+		rot.Start = row.StartTime.In(loc)
+		state := rotState{
+			State: rotation.State{
+				ShiftStart: row.ShiftStart,
+				Position:   int(row.Position),
+			},
+			Version: int(row.Version),
+		}
+		adv := calcAdvance(ctx, t, row.ID, &rot, state, int(row.ParticipantCount))
+		if adv == nil {
+			continue
+		}
+
+		needsAdvance = append(needsAdvance, *adv)
+		if len(needsAdvance) == 150 {
+			// only process up to 150 at a time (of those that need updates)
+			break
 		}
 	}
+
 	return needsAdvance, nil
 }
