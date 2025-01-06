@@ -19,11 +19,11 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	err = db.update(ctx, true, nil)
+	err = db.update(ctx)
 	return err
 }
 
-func (db *DB) update(ctx context.Context, all bool, rotID *string) error {
+func (db *DB) update(ctx context.Context) error {
 	err := permission.LimitCheckAny(ctx, permission.System)
 	if err != nil {
 		return err
