@@ -5349,11 +5349,7 @@ func (ec *executionContext) dir_experimental_argsFlagName(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["flagName"]
-	if !ok {
+	if _, ok := rawArgs["flagName"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -5381,11 +5377,7 @@ func (ec *executionContext) field_Alert_metaValue_argsKey(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["key"]
-	if !ok {
+	if _, ok := rawArgs["key"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -5413,11 +5405,7 @@ func (ec *executionContext) field_Alert_recentEvents_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*AlertRecentEventsOptions, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal *AlertRecentEventsOptions
 		return zeroVal, nil
 	}
@@ -5445,11 +5433,7 @@ func (ec *executionContext) field_Expr_conditionToExpr_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (ConditionToExprInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal ConditionToExprInput
 		return zeroVal, nil
 	}
@@ -5477,11 +5461,7 @@ func (ec *executionContext) field_Expr_exprToCondition_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (ExprToConditionInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal ExprToConditionInput
 		return zeroVal, nil
 	}
@@ -5509,11 +5489,7 @@ func (ec *executionContext) field_KeyConfig_oneRule_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -5541,11 +5517,7 @@ func (ec *executionContext) field_MessageLogConnectionStats_timeSeries_argsInput
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (TimeSeriesOptions, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal TimeSeriesOptions
 		return zeroVal, nil
 	}
@@ -5573,11 +5545,7 @@ func (ec *executionContext) field_Mutation_addAuthSubject_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (user.AuthSubject, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal user.AuthSubject
 		return zeroVal, nil
 	}
@@ -5605,11 +5573,7 @@ func (ec *executionContext) field_Mutation_clearTemporarySchedules_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (ClearTemporarySchedulesInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal ClearTemporarySchedulesInput
 		return zeroVal, nil
 	}
@@ -5637,11 +5601,7 @@ func (ec *executionContext) field_Mutation_closeMatchingAlert_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (CloseMatchingAlertInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal CloseMatchingAlertInput
 		return zeroVal, nil
 	}
@@ -5669,11 +5629,7 @@ func (ec *executionContext) field_Mutation_createAlert_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (CreateAlertInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal CreateAlertInput
 		return zeroVal, nil
 	}
@@ -5701,11 +5657,7 @@ func (ec *executionContext) field_Mutation_createBasicAuth_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (CreateBasicAuthInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal CreateBasicAuthInput
 		return zeroVal, nil
 	}
@@ -5733,11 +5685,7 @@ func (ec *executionContext) field_Mutation_createEscalationPolicyStep_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (CreateEscalationPolicyStepInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal CreateEscalationPolicyStepInput
 		return zeroVal, nil
 	}
@@ -5765,11 +5713,7 @@ func (ec *executionContext) field_Mutation_createEscalationPolicy_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (CreateEscalationPolicyInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal CreateEscalationPolicyInput
 		return zeroVal, nil
 	}
@@ -5797,11 +5741,7 @@ func (ec *executionContext) field_Mutation_createGQLAPIKey_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (CreateGQLAPIKeyInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal CreateGQLAPIKeyInput
 		return zeroVal, nil
 	}
@@ -5829,11 +5769,7 @@ func (ec *executionContext) field_Mutation_createHeartbeatMonitor_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (CreateHeartbeatMonitorInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal CreateHeartbeatMonitorInput
 		return zeroVal, nil
 	}
@@ -5861,11 +5797,7 @@ func (ec *executionContext) field_Mutation_createIntegrationKey_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (CreateIntegrationKeyInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal CreateIntegrationKeyInput
 		return zeroVal, nil
 	}
@@ -5893,11 +5825,7 @@ func (ec *executionContext) field_Mutation_createRotation_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (CreateRotationInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal CreateRotationInput
 		return zeroVal, nil
 	}
@@ -5925,11 +5853,7 @@ func (ec *executionContext) field_Mutation_createSchedule_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (CreateScheduleInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal CreateScheduleInput
 		return zeroVal, nil
 	}
@@ -5957,11 +5881,7 @@ func (ec *executionContext) field_Mutation_createService_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (CreateServiceInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal CreateServiceInput
 		return zeroVal, nil
 	}
@@ -5989,11 +5909,7 @@ func (ec *executionContext) field_Mutation_createUserCalendarSubscription_argsIn
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (CreateUserCalendarSubscriptionInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal CreateUserCalendarSubscriptionInput
 		return zeroVal, nil
 	}
@@ -6021,11 +5937,7 @@ func (ec *executionContext) field_Mutation_createUserContactMethod_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (CreateUserContactMethodInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal CreateUserContactMethodInput
 		return zeroVal, nil
 	}
@@ -6053,11 +5965,7 @@ func (ec *executionContext) field_Mutation_createUserNotificationRule_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (CreateUserNotificationRuleInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal CreateUserNotificationRuleInput
 		return zeroVal, nil
 	}
@@ -6085,11 +5993,7 @@ func (ec *executionContext) field_Mutation_createUserOverride_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (CreateUserOverrideInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal CreateUserOverrideInput
 		return zeroVal, nil
 	}
@@ -6117,11 +6021,7 @@ func (ec *executionContext) field_Mutation_createUser_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (CreateUserInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal CreateUserInput
 		return zeroVal, nil
 	}
@@ -6149,11 +6049,7 @@ func (ec *executionContext) field_Mutation_debugCarrierInfo_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (DebugCarrierInfoInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal DebugCarrierInfoInput
 		return zeroVal, nil
 	}
@@ -6181,11 +6077,7 @@ func (ec *executionContext) field_Mutation_debugSendSMS_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (DebugSendSMSInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal DebugSendSMSInput
 		return zeroVal, nil
 	}
@@ -6213,11 +6105,7 @@ func (ec *executionContext) field_Mutation_deleteAll_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) ([]assignment.RawTarget, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal []assignment.RawTarget
 		return zeroVal, nil
 	}
@@ -6245,11 +6133,7 @@ func (ec *executionContext) field_Mutation_deleteAuthSubject_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (user.AuthSubject, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal user.AuthSubject
 		return zeroVal, nil
 	}
@@ -6277,11 +6161,7 @@ func (ec *executionContext) field_Mutation_deleteGQLAPIKey_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -6309,11 +6189,7 @@ func (ec *executionContext) field_Mutation_deleteSecondaryToken_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -6341,11 +6217,7 @@ func (ec *executionContext) field_Mutation_escalateAlerts_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) ([]int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal []int
 		return zeroVal, nil
 	}
@@ -6373,11 +6245,7 @@ func (ec *executionContext) field_Mutation_generateKeyToken_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -6405,11 +6273,7 @@ func (ec *executionContext) field_Mutation_linkAccount_argsToken(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["token"]
-	if !ok {
+	if _, ok := rawArgs["token"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -6437,11 +6301,7 @@ func (ec *executionContext) field_Mutation_promoteSecondaryToken_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -6469,11 +6329,7 @@ func (ec *executionContext) field_Mutation_sendContactMethodVerification_argsInp
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (SendContactMethodVerificationInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal SendContactMethodVerificationInput
 		return zeroVal, nil
 	}
@@ -6501,11 +6357,7 @@ func (ec *executionContext) field_Mutation_setAlertNoiseReason_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (SetAlertNoiseReasonInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal SetAlertNoiseReasonInput
 		return zeroVal, nil
 	}
@@ -6533,11 +6385,7 @@ func (ec *executionContext) field_Mutation_setConfig_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) ([]ConfigValueInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal []ConfigValueInput
 		return zeroVal, nil
 	}
@@ -6565,11 +6413,7 @@ func (ec *executionContext) field_Mutation_setFavorite_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (SetFavoriteInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal SetFavoriteInput
 		return zeroVal, nil
 	}
@@ -6597,11 +6441,7 @@ func (ec *executionContext) field_Mutation_setLabel_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (SetLabelInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal SetLabelInput
 		return zeroVal, nil
 	}
@@ -6629,11 +6469,7 @@ func (ec *executionContext) field_Mutation_setScheduleOnCallNotificationRules_ar
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (SetScheduleOnCallNotificationRulesInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal SetScheduleOnCallNotificationRulesInput
 		return zeroVal, nil
 	}
@@ -6661,11 +6497,7 @@ func (ec *executionContext) field_Mutation_setSystemLimits_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) ([]SystemLimitInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal []SystemLimitInput
 		return zeroVal, nil
 	}
@@ -6693,11 +6525,7 @@ func (ec *executionContext) field_Mutation_setTemporarySchedule_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (SetTemporaryScheduleInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal SetTemporaryScheduleInput
 		return zeroVal, nil
 	}
@@ -6725,11 +6553,7 @@ func (ec *executionContext) field_Mutation_swoAction_argsAction(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (SWOAction, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["action"]
-	if !ok {
+	if _, ok := rawArgs["action"]; !ok {
 		var zeroVal SWOAction
 		return zeroVal, nil
 	}
@@ -6757,11 +6581,7 @@ func (ec *executionContext) field_Mutation_testContactMethod_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -6789,11 +6609,7 @@ func (ec *executionContext) field_Mutation_updateAlertsByService_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (UpdateAlertsByServiceInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal UpdateAlertsByServiceInput
 		return zeroVal, nil
 	}
@@ -6821,11 +6637,7 @@ func (ec *executionContext) field_Mutation_updateAlerts_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (UpdateAlertsInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal UpdateAlertsInput
 		return zeroVal, nil
 	}
@@ -6853,11 +6665,7 @@ func (ec *executionContext) field_Mutation_updateBasicAuth_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (UpdateBasicAuthInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal UpdateBasicAuthInput
 		return zeroVal, nil
 	}
@@ -6885,11 +6693,7 @@ func (ec *executionContext) field_Mutation_updateEscalationPolicyStep_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (UpdateEscalationPolicyStepInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal UpdateEscalationPolicyStepInput
 		return zeroVal, nil
 	}
@@ -6917,11 +6721,7 @@ func (ec *executionContext) field_Mutation_updateEscalationPolicy_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (UpdateEscalationPolicyInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal UpdateEscalationPolicyInput
 		return zeroVal, nil
 	}
@@ -6949,11 +6749,7 @@ func (ec *executionContext) field_Mutation_updateGQLAPIKey_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (UpdateGQLAPIKeyInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal UpdateGQLAPIKeyInput
 		return zeroVal, nil
 	}
@@ -6981,11 +6777,7 @@ func (ec *executionContext) field_Mutation_updateHeartbeatMonitor_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (UpdateHeartbeatMonitorInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal UpdateHeartbeatMonitorInput
 		return zeroVal, nil
 	}
@@ -7013,11 +6805,7 @@ func (ec *executionContext) field_Mutation_updateKeyConfig_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (UpdateKeyConfigInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal UpdateKeyConfigInput
 		return zeroVal, nil
 	}
@@ -7045,11 +6833,7 @@ func (ec *executionContext) field_Mutation_updateRotation_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (UpdateRotationInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal UpdateRotationInput
 		return zeroVal, nil
 	}
@@ -7077,11 +6861,7 @@ func (ec *executionContext) field_Mutation_updateScheduleTarget_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (ScheduleTargetInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal ScheduleTargetInput
 		return zeroVal, nil
 	}
@@ -7109,11 +6889,7 @@ func (ec *executionContext) field_Mutation_updateSchedule_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (UpdateScheduleInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal UpdateScheduleInput
 		return zeroVal, nil
 	}
@@ -7141,11 +6917,7 @@ func (ec *executionContext) field_Mutation_updateService_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (UpdateServiceInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal UpdateServiceInput
 		return zeroVal, nil
 	}
@@ -7173,11 +6945,7 @@ func (ec *executionContext) field_Mutation_updateUserCalendarSubscription_argsIn
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (UpdateUserCalendarSubscriptionInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal UpdateUserCalendarSubscriptionInput
 		return zeroVal, nil
 	}
@@ -7205,11 +6973,7 @@ func (ec *executionContext) field_Mutation_updateUserContactMethod_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (UpdateUserContactMethodInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal UpdateUserContactMethodInput
 		return zeroVal, nil
 	}
@@ -7237,11 +7001,7 @@ func (ec *executionContext) field_Mutation_updateUserOverride_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (UpdateUserOverrideInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal UpdateUserOverrideInput
 		return zeroVal, nil
 	}
@@ -7269,11 +7029,7 @@ func (ec *executionContext) field_Mutation_updateUser_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (UpdateUserInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal UpdateUserInput
 		return zeroVal, nil
 	}
@@ -7301,11 +7057,7 @@ func (ec *executionContext) field_Mutation_verifyContactMethod_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (VerifyContactMethodInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal VerifyContactMethodInput
 		return zeroVal, nil
 	}
@@ -7333,11 +7085,7 @@ func (ec *executionContext) field_Query___type_argsName(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["name"]
-	if !ok {
+	if _, ok := rawArgs["name"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -7365,11 +7113,7 @@ func (ec *executionContext) field_Query_actionInputValidate_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (gadb.UIKActionV1, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal gadb.UIKActionV1
 		return zeroVal, nil
 	}
@@ -7397,11 +7141,7 @@ func (ec *executionContext) field_Query_alert_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal int
 		return zeroVal, nil
 	}
@@ -7429,11 +7169,7 @@ func (ec *executionContext) field_Query_alerts_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*AlertSearchOptions, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal *AlertSearchOptions
 		return zeroVal, nil
 	}
@@ -7471,11 +7207,7 @@ func (ec *executionContext) field_Query_authSubjectsForProvider_argsFirst(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["first"]
-	if !ok {
+	if _, ok := rawArgs["first"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -7493,11 +7225,7 @@ func (ec *executionContext) field_Query_authSubjectsForProvider_argsAfter(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["after"]
-	if !ok {
+	if _, ok := rawArgs["after"]; !ok {
 		var zeroVal *string
 		return zeroVal, nil
 	}
@@ -7515,11 +7243,7 @@ func (ec *executionContext) field_Query_authSubjectsForProvider_argsProviderID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["providerID"]
-	if !ok {
+	if _, ok := rawArgs["providerID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -7547,11 +7271,7 @@ func (ec *executionContext) field_Query_calcRotationHandoffTimes_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*CalcRotationHandoffTimesInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal *CalcRotationHandoffTimesInput
 		return zeroVal, nil
 	}
@@ -7579,11 +7299,7 @@ func (ec *executionContext) field_Query_config_argsAll(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*bool, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["all"]
-	if !ok {
+	if _, ok := rawArgs["all"]; !ok {
 		var zeroVal *bool
 		return zeroVal, nil
 	}
@@ -7611,11 +7327,7 @@ func (ec *executionContext) field_Query_debugMessageStatus_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (DebugMessageStatusInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal DebugMessageStatusInput
 		return zeroVal, nil
 	}
@@ -7643,11 +7355,7 @@ func (ec *executionContext) field_Query_debugMessages_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*DebugMessagesInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal *DebugMessagesInput
 		return zeroVal, nil
 	}
@@ -7675,11 +7383,7 @@ func (ec *executionContext) field_Query_destinationDisplayInfo_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (gadb.DestV1, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal gadb.DestV1
 		return zeroVal, nil
 	}
@@ -7707,11 +7411,7 @@ func (ec *executionContext) field_Query_destinationFieldSearch_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (DestinationFieldSearchInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal DestinationFieldSearchInput
 		return zeroVal, nil
 	}
@@ -7739,11 +7439,7 @@ func (ec *executionContext) field_Query_destinationFieldValidate_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (DestinationFieldValidateInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal DestinationFieldValidateInput
 		return zeroVal, nil
 	}
@@ -7771,11 +7467,7 @@ func (ec *executionContext) field_Query_destinationFieldValueName_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (DestinationFieldValidateInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal DestinationFieldValidateInput
 		return zeroVal, nil
 	}
@@ -7803,11 +7495,7 @@ func (ec *executionContext) field_Query_destinationTypes_argsIsDynamicAction(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*bool, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["isDynamicAction"]
-	if !ok {
+	if _, ok := rawArgs["isDynamicAction"]; !ok {
 		var zeroVal *bool
 		return zeroVal, nil
 	}
@@ -7835,11 +7523,7 @@ func (ec *executionContext) field_Query_escalationPolicies_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*EscalationPolicySearchOptions, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal *EscalationPolicySearchOptions
 		return zeroVal, nil
 	}
@@ -7867,11 +7551,7 @@ func (ec *executionContext) field_Query_escalationPolicy_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -7899,11 +7579,7 @@ func (ec *executionContext) field_Query_heartbeatMonitor_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -7931,11 +7607,7 @@ func (ec *executionContext) field_Query_integrationKey_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -7963,11 +7635,7 @@ func (ec *executionContext) field_Query_integrationKeys_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*IntegrationKeySearchOptions, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal *IntegrationKeySearchOptions
 		return zeroVal, nil
 	}
@@ -7995,11 +7663,7 @@ func (ec *executionContext) field_Query_labelKeys_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*LabelKeySearchOptions, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal *LabelKeySearchOptions
 		return zeroVal, nil
 	}
@@ -8027,11 +7691,7 @@ func (ec *executionContext) field_Query_labelValues_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*LabelValueSearchOptions, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal *LabelValueSearchOptions
 		return zeroVal, nil
 	}
@@ -8059,11 +7719,7 @@ func (ec *executionContext) field_Query_labels_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*LabelSearchOptions, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal *LabelSearchOptions
 		return zeroVal, nil
 	}
@@ -8091,11 +7747,7 @@ func (ec *executionContext) field_Query_linkAccountInfo_argsToken(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["token"]
-	if !ok {
+	if _, ok := rawArgs["token"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -8123,11 +7775,7 @@ func (ec *executionContext) field_Query_messageLogs_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*MessageLogSearchOptions, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal *MessageLogSearchOptions
 		return zeroVal, nil
 	}
@@ -8155,11 +7803,7 @@ func (ec *executionContext) field_Query_phoneNumberInfo_argsNumber(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["number"]
-	if !ok {
+	if _, ok := rawArgs["number"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -8187,11 +7831,7 @@ func (ec *executionContext) field_Query_rotation_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -8219,11 +7859,7 @@ func (ec *executionContext) field_Query_rotations_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*RotationSearchOptions, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal *RotationSearchOptions
 		return zeroVal, nil
 	}
@@ -8251,11 +7887,7 @@ func (ec *executionContext) field_Query_schedule_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -8283,11 +7915,7 @@ func (ec *executionContext) field_Query_schedules_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ScheduleSearchOptions, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal *ScheduleSearchOptions
 		return zeroVal, nil
 	}
@@ -8315,11 +7943,7 @@ func (ec *executionContext) field_Query_service_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -8347,11 +7971,7 @@ func (ec *executionContext) field_Query_services_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ServiceSearchOptions, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal *ServiceSearchOptions
 		return zeroVal, nil
 	}
@@ -8379,11 +7999,7 @@ func (ec *executionContext) field_Query_slackChannel_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -8411,11 +8027,7 @@ func (ec *executionContext) field_Query_slackChannels_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*SlackChannelSearchOptions, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal *SlackChannelSearchOptions
 		return zeroVal, nil
 	}
@@ -8443,11 +8055,7 @@ func (ec *executionContext) field_Query_slackUserGroup_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -8475,11 +8083,7 @@ func (ec *executionContext) field_Query_slackUserGroups_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*SlackUserGroupSearchOptions, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal *SlackUserGroupSearchOptions
 		return zeroVal, nil
 	}
@@ -8507,11 +8111,7 @@ func (ec *executionContext) field_Query_timeZones_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*TimeZoneSearchOptions, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal *TimeZoneSearchOptions
 		return zeroVal, nil
 	}
@@ -8539,11 +8139,7 @@ func (ec *executionContext) field_Query_userCalendarSubscription_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -8571,11 +8167,7 @@ func (ec *executionContext) field_Query_userContactMethod_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -8603,11 +8195,7 @@ func (ec *executionContext) field_Query_userOverride_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -8635,11 +8223,7 @@ func (ec *executionContext) field_Query_userOverrides_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*UserOverrideSearchOptions, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal *UserOverrideSearchOptions
 		return zeroVal, nil
 	}
@@ -8667,11 +8251,7 @@ func (ec *executionContext) field_Query_user_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal *string
 		return zeroVal, nil
 	}
@@ -8714,11 +8294,7 @@ func (ec *executionContext) field_Query_users_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*UserSearchOptions, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal *UserSearchOptions
 		return zeroVal, nil
 	}
@@ -8736,11 +8312,7 @@ func (ec *executionContext) field_Query_users_argsFirst(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["first"]
-	if !ok {
+	if _, ok := rawArgs["first"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -8758,11 +8330,7 @@ func (ec *executionContext) field_Query_users_argsAfter(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["after"]
-	if !ok {
+	if _, ok := rawArgs["after"]; !ok {
 		var zeroVal *string
 		return zeroVal, nil
 	}
@@ -8780,11 +8348,7 @@ func (ec *executionContext) field_Query_users_argsSearch(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["search"]
-	if !ok {
+	if _, ok := rawArgs["search"]; !ok {
 		var zeroVal *string
 		return zeroVal, nil
 	}
@@ -8812,11 +8376,7 @@ func (ec *executionContext) field_Rotation_nextHandoffTimes_argsNum(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["num"]
-	if !ok {
+	if _, ok := rawArgs["num"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -8854,11 +8414,7 @@ func (ec *executionContext) field_Schedule_shifts_argsStart(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (time.Time, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["start"]
-	if !ok {
+	if _, ok := rawArgs["start"]; !ok {
 		var zeroVal time.Time
 		return zeroVal, nil
 	}
@@ -8876,11 +8432,7 @@ func (ec *executionContext) field_Schedule_shifts_argsEnd(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (time.Time, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["end"]
-	if !ok {
+	if _, ok := rawArgs["end"]; !ok {
 		var zeroVal time.Time
 		return zeroVal, nil
 	}
@@ -8898,11 +8450,7 @@ func (ec *executionContext) field_Schedule_shifts_argsUserIDs(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) ([]string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["userIDs"]
-	if !ok {
+	if _, ok := rawArgs["userIDs"]; !ok {
 		var zeroVal []string
 		return zeroVal, nil
 	}
@@ -8930,11 +8478,7 @@ func (ec *executionContext) field_Schedule_target_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (assignment.RawTarget, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal assignment.RawTarget
 		return zeroVal, nil
 	}
@@ -8962,11 +8506,7 @@ func (ec *executionContext) field___Type_enumValues_argsIncludeDeprecated(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (bool, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["includeDeprecated"]
-	if !ok {
+	if _, ok := rawArgs["includeDeprecated"]; !ok {
 		var zeroVal bool
 		return zeroVal, nil
 	}
@@ -8994,11 +8534,7 @@ func (ec *executionContext) field___Type_fields_argsIncludeDeprecated(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (bool, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["includeDeprecated"]
-	if !ok {
+	if _, ok := rawArgs["includeDeprecated"]; !ok {
 		var zeroVal bool
 		return zeroVal, nil
 	}
