@@ -2,13 +2,12 @@ import React from 'react'
 import { useLocation } from 'wouter'
 import List from '@mui/material/List'
 import makeStyles from '@mui/styles/makeStyles'
-import ListItem from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import Typography from '@mui/material/Typography'
 import { styles } from '../styles/materialStyles'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { Collapse, Theme } from '@mui/material'
+import { Collapse, ListItemButton, Theme } from '@mui/material'
 import AppLink from '../util/AppLink'
 import { OpenInNew } from '@mui/icons-material'
 
@@ -58,14 +57,14 @@ export function NavBarSubLink({
       to={to}
       newTab={newTab}
     >
-      <ListItem button tabIndex={-1}>
+      <ListItemButton tabIndex={-1}>
         <ListItemText className={subMenuLinkText}>
           {title}
           {newTab && (
             <OpenInNew fontSize='small' style={{ paddingLeft: '1em' }} />
           )}
         </ListItemText>
-      </ListItem>
+      </ListItemButton>
     </AppLink>
   )
 }
@@ -93,7 +92,7 @@ export default function NavBarLink({
         to={to}
         className={!children && isRoute ? classes.navSelected : classes.nav}
       >
-        <ListItem button tabIndex={-1}>
+        <ListItemButton tabIndex={-1}>
           <ListItemIcon>{icon}</ListItemIcon>
           <ListItemText
             disableTypography
@@ -113,7 +112,7 @@ export default function NavBarLink({
               }
             />
           )}
-        </ListItem>
+        </ListItemButton>
       </AppLink>
       {children && (
         <Collapse in={isRoute} mountOnEnter>

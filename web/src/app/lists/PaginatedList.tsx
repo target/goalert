@@ -6,7 +6,7 @@ import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import ListItemAvatar from '@mui/material/ListItemAvatar'
 import makeStyles from '@mui/styles/makeStyles'
-import { Skeleton } from '@mui/material'
+import { ListItemButton, Skeleton } from '@mui/material'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { useIsWidthDown } from '../util/useWidth'
 import { FavoriteIcon } from '../util/SetFavoriteButton'
@@ -146,7 +146,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
     }
 
     return (
-      <ListItem
+      <ListItemButton
         sx={{
           borderLeft: `3px solid ${borderColor(item.status)}`,
         }}
@@ -167,7 +167,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
         />
         {favIcon}
         {item.action && <div className={classes.itemAction}>{item.action}</div>}
-      </ListItem>
+      </ListItemButton>
     )
   }
 
