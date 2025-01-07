@@ -16,4 +16,4 @@ proxy: go run ./devtools/simpleproxy -addr=127.0.0.1:3040 /slack/=http://127.0.0
 @oneshot
 cypress: go run ./devtools/waitfor http://127.0.0.1:3042 && CYPRESS_DB_URL=postgres://postgres@127.0.0.1:5433 yarn cypress open --config baseUrl=http://127.0.0.1:3040$HTTP_PREFIX
 
-db: $CONTAINER_TOOL rm -f smoketest-postgres || true; $CONTAINER_TOOL run -it --rm --name smoketest-postgres -p5433:5432 -e=POSTGRES_HOST_AUTH_METHOD=trust postgres:13-alpine
+db: $CONTAINER_TOOL rm -f smoketest-postgres || true; $CONTAINER_TOOL run -it --rm --name smoketest-postgres -p5433:5432 -e=POSTGRES_HOST_AUTH_METHOD=trust postgres:$PG_VERSION-alpine
