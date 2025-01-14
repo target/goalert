@@ -45,7 +45,7 @@ export default function ScheduleOverrideDialog(props) {
     ...(props?.defaultValue ?? {}),
   }
 
-  const [step, setStep] = useState(0)
+  const [step, setStep] = useState(variantOptions.length === 1 ? 1 : 0)
   const [value, setValue] = useState(initialValue)
   const [fieldErrors, setFieldErrors] = useState([])
   const [activeVariant, setActiveVariant] = useState(variantOptions[0])
