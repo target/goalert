@@ -213,7 +213,14 @@ func (app *App) initHTTP(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	// non-API/404s go to UI handler
+
+	// This is necessary so that we can return 404 for invalid/unknown API routes, otherwise it will get caught by the UI handler and incorrectly return the index.html or a 405 (Method Not Allowed) error.
+	mux.Handle("GET /api/", http.NotFoundHandler())
+	mux.Handle("POST /api/", http.NotFoundHandler())
+	mux.Handle("GET /v1/", http.NotFoundHandler())
+	mux.Handle("POST /v1/", http.NotFoundHandler())
+
+	// non-API/404s go to UI handler and return index.html
 	mux.Handle("GET /", webH)
 
 	mux.HandleFunc("GET /admin/riverui/", func(w http.ResponseWriter, r *http.Request) {
