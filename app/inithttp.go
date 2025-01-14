@@ -124,7 +124,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	mux.Handle("POST /api/graphql", app.graphql2.Handler())
 
 	mux.HandleFunc("GET /api/v2/config", app.ConfigStore.ServeConfig)
-	mux.HandleFunc("POST /api/v2/config", app.ConfigStore.ServeConfig)
+	mux.HandleFunc("PUT /api/v2/config", app.ConfigStore.ServeConfig)
 
 	mux.HandleFunc("GET /api/v2/identity/providers", app.AuthHandler.ServeProviders)
 	mux.HandleFunc("POST /api/v2/identity/logout", app.AuthHandler.ServeLogout)
@@ -134,11 +134,11 @@ func (app *App) initHTTP(ctx context.Context) error {
 
 	githubAuth := app.AuthHandler.IdentityProviderHandler("github")
 	mux.HandleFunc("POST /api/v2/identity/providers/github", githubAuth)
-	mux.HandleFunc("POST /api/v2/identity/providers/github/callback", githubAuth)
+	mux.HandleFunc("GET /api/v2/identity/providers/github/callback", githubAuth)
 
 	oidcAuth := app.AuthHandler.IdentityProviderHandler("oidc")
 	mux.HandleFunc("POST /api/v2/identity/providers/oidc", oidcAuth)
-	mux.HandleFunc("POST /api/v2/identity/providers/oidc/callback", oidcAuth)
+	mux.HandleFunc("GET /api/v2/identity/providers/oidc/callback", oidcAuth)
 
 	if expflag.ContextHas(ctx, expflag.UnivKeys) {
 		mux.HandleFunc("POST /api/v2/uik", app.UIKHandler.ServeHTTP)
