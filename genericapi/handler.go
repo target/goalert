@@ -30,11 +30,8 @@ func NewHandler(c Config) *Handler {
 
 // ServeUserAvatar will serve a redirect for a users avatar image.
 func (h *Handler) ServeUserAvatar(w http.ResponseWriter, req *http.Request) {
-	parts := strings.Split(req.URL.Path, "/")
-	userID := parts[len(parts)-1]
-
 	ctx := req.Context()
-	u, err := h.c.UserStore.FindOne(ctx, userID)
+	u, err := h.c.UserStore.FindOne(ctx, req.PathValue("userID"))
 	if errors.Is(err, sql.ErrNoRows) {
 		http.NotFound(w, req)
 		return
@@ -50,16 +47,8 @@ func (h *Handler) ServeUserAvatar(w http.ResponseWriter, req *http.Request) {
 // ServeHeartbeatCheck serves the heartbeat check-in endpoint.
 func (h *Handler) ServeHeartbeatCheck(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	if r.Method != "POST" {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
-	}
-
-	parts := strings.Split(r.URL.Path, "/")
-	monitorID := parts[len(parts)-1]
-
 	err := retry.DoTemporaryError(func(_ int) error {
-		return h.c.HeartbeatStore.RecordHeartbeat(ctx, monitorID)
+		return h.c.HeartbeatStore.RecordHeartbeat(ctx, r.PathValue("heartbeatID"))
 	},
 		retry.Log(ctx),
 		retry.Limit(12),
