@@ -150,7 +150,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	mux.HandleFunc("/api/v2/generic/incoming", generic.ServeCreateAlert)
 	mux.HandleFunc("/api/v2/heartbeat/", generic.ServeHeartbeatCheck)
 	mux.HandleFunc("/api/v2/user-avatar/", generic.ServeUserAvatar)
-	mux.HandleFunc("/api/v2/calendar", app.CalSubStore.ServeICalData)
+	mux.HandleFunc("GET /api/v2/calendar", app.CalSubStore.ServeICalData)
 
 	mux.HandleFunc("/api/v2/twilio/message", app.twilioSMS.ServeMessage)
 	mux.HandleFunc("/api/v2/twilio/message/status", app.twilioSMS.ServeStatusCallback)
