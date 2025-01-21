@@ -224,6 +224,9 @@ func (app *App) initHTTP(ctx context.Context) error {
 	// non-API/404s go to UI handler and return index.html
 	mux.Handle("GET /", webH)
 
+	mux.Handle("GET /api/graphql/explore", webH)
+	mux.Handle("GET /api/graphql/explore/", webH)
+
 	mux.HandleFunc("GET /admin/riverui/", func(w http.ResponseWriter, r *http.Request) {
 		err := permission.LimitCheckAny(r.Context(), permission.Admin)
 		if permission.IsUnauthorized(err) {
