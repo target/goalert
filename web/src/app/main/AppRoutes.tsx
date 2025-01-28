@@ -46,7 +46,7 @@ import UniversalKeyPage from '../services/UniversalKey/UniversalKeyPage'
 import { useExpFlag } from '../util/useExpFlag'
 
 // ParamRoute will pass route parameters as props to the route's child.
-function ParamRoute(props: RouteProps): JSX.Element {
+function ParamRoute(props: RouteProps): React.JSX.Element {
   if (!props.path) {
     throw new Error('ParamRoute requires a path prop')
   }
@@ -134,7 +134,7 @@ if (process.env.NODE_ENV !== 'production') {
   routes['/dev'] = LocalDev
 }
 
-export default function AppRoutes(): JSX.Element {
+export default function AppRoutes(): React.JSX.Element {
   const [path, setPath] = useLocation()
   const { userID } = useSessionInfo()
 

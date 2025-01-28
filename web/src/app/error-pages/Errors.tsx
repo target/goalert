@@ -11,7 +11,7 @@ interface ErrorsProps {
   type?: string
 }
 
-export function PageNotFound(): JSX.Element {
+export function PageNotFound(): React.JSX.Element {
   const theme = useTheme()
   return (
     <div style={{ textAlign: 'center', color: theme.palette.text.primary }}>
@@ -23,7 +23,7 @@ export function PageNotFound(): JSX.Element {
   )
 }
 
-export function ObjectNotFound(props: ErrorsProps): JSX.Element {
+export function ObjectNotFound(props: ErrorsProps): React.JSX.Element {
   const theme = useTheme()
   return (
     <div style={{ textAlign: 'center', color: theme.palette.text.primary }}>
@@ -39,7 +39,7 @@ export function ObjectNotFound(props: ErrorsProps): JSX.Element {
   )
 }
 
-export function GenericError(props: ErrorsProps): JSX.Element {
+export function GenericError(props: ErrorsProps): React.JSX.Element {
   const theme = useTheme()
   let errorText
   if (props.error) {
