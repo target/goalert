@@ -47,25 +47,20 @@ export default function ServiceEditDialog(props: {
   serviceID: string
   onClose: () => void
 }): JSX.Element {
-  const [value, setValue] = useState<Value | null>(null)
-  const [{ data, fetching: dataFetching, error: dataError }] = useQuery({
+  const [{ data, error: dataError }] = useQuery({
     query,
     variables: { id: props.serviceID },
   })
-
-  const [saveStatus, save] = useMutation(mutation)
-  const [saveLabelStatus, saveLabel] = useMutation(setLabel)
-
-  if (dataFetching && !data) {
-    return <Spinner />
-  }
-
   const defaultValue = {
     name: data?.service?.name,
     description: data?.service?.description,
     escalationPolicyID: data?.service?.ep?.id,
     labels: data?.service?.labels || [],
   }
+  const [value, setValue] = useState<Value>(defaultValue)
+
+  const [saveStatus, save] = useMutation(mutation)
+  const [saveLabelStatus, saveLabel] = useMutation(setLabel)
 
   const fieldErrs = fieldErrors(saveStatus.error).concat(
     fieldErrors(saveLabelStatus.error),
@@ -74,7 +69,7 @@ export default function ServiceEditDialog(props: {
   return (
     <FormDialog
       title='Edit Service'
-      loading={saveStatus.fetching || (!data && dataFetching)}
+      loading={saveStatus.fetching}
       errors={nonFieldErrors(saveStatus.error).concat(
         nonFieldErrors(dataError),
         nonFieldErrors(saveLabelStatus.error),
@@ -116,10 +111,8 @@ export default function ServiceEditDialog(props: {
         <ServiceForm
           epRequired
           errors={fieldErrs}
-          disabled={Boolean(
-            saveStatus.fetching || (!data && dataFetching) || dataError,
-          )}
-          value={value || defaultValue}
+          disabled={Boolean(saveStatus.fetching || !data || dataError)}
+          value={value}
           onChange={(value) => setValue(value)}
         />
       }
