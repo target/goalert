@@ -26,8 +26,8 @@ func init() {
 	perCM.
 		WithMsgTypes(notification.MessageTypeScheduleOnCallUsers).
 		AddRules([]ThrottleRule{
-			{Count: 2, Per: 15 * time.Minute},
-			{Count: 4, Per: 1 * time.Hour, Smooth: true},
+			{Count: 3, Per: 1 * time.Minute},
+			{Count: 20, Per: 1 * time.Hour, Smooth: true},
 		})
 
 	// status notifications
