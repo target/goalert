@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
 import { gql, useMutation, CombinedError } from 'urql'
-import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import ServiceForm, { Value } from './ServiceForm'
 import { Redirect } from 'wouter'
 import { Label } from '../../schema'
+import { useErrorConsumer } from '../util/ErrorConsumer'
+import { useConfigValue } from '../util/RequireConfig'
 
 interface InputVar {
   name: string
@@ -77,18 +78,24 @@ export default function ServiceCreateDialog(props: {
   const [createKeyStatus, commit] = useMutation(createMutation)
 
   const { data, error } = createKeyStatus
+  const errs = useErrorConsumer(error)
+  const [reqLabels] = useConfigValue('Services.RequiredLabels') as [string[]]
+
   if (data && data.createService) {
+    errs.done()
     return <Redirect to={`/services/${data.createService.id}`} />
   }
-
-  const fieldErrs = fieldErrors(error).filter(
-    (e) => !e.field.startsWith('newEscalationPolicy.'),
-  )
+  const labelErr = { key: '', msg: '' }
+  reqLabels.some((key, i) => {
+    labelErr.key = key
+    labelErr.msg = errs.getErrorByField('labels[' + i + '].Value') || ''
+    return !!labelErr.msg
+  })
 
   return (
     <FormDialog
       title='Create New Service'
-      errors={nonFieldErrors(error)}
+      errors={errs.remainingLegacyCallback()}
       onClose={props.onClose}
       onSubmit={() => {
         let n = 1
@@ -121,7 +128,11 @@ export default function ServiceCreateDialog(props: {
       }}
       form={
         <ServiceForm
-          errors={fieldErrs}
+          nameError={errs.getErrorByField('Name')}
+          descError={errs.getErrorByField('Description')}
+          epError={errs.getErrorByField('EscalationPolicyID')}
+          labelErrorKey={labelErr.key}
+          labelErrorMsg={labelErr.msg}
           value={value}
           onChange={(val: Value) => setValue(val)}
         />

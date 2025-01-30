@@ -13,7 +13,11 @@ type ErrorStore = {
 /** ErrorConsumer is a utility class for consuming and handling errors from a CombinedError. */
 export class ErrorConsumer {
   constructor(e?: CombinedError | null | undefined) {
-    if (!e) return
+    this.append(e)
+  }
+
+  append(e?: CombinedError | null | undefined): ErrorConsumer {
+    if (!e) return this
 
     if (e.networkError) {
       this.store.errors.add({
@@ -74,7 +78,7 @@ export class ErrorConsumer {
       })
     }
 
-    this.hadErrors = this.hasErrors()
+    this._hadErrors = this._hadErrors || this.hasErrors()
 
     // Use FinalizationRegistry if available, this will allow us to raise any errors that are forgotten.
     if (
@@ -89,13 +93,18 @@ export class ErrorConsumer {
 
       r.register(this, { e: this.store }, this)
     }
+
+    return this
   }
 
   private isDone: boolean = false
   private store: ErrorStore = { errors: new Set() }
 
   /** Whether there were any errors in the original error. */
-  public readonly hadErrors: boolean = false
+  private _hadErrors: boolean = false
+  public get hadErrors(): boolean {
+    return this._hadErrors
+  }
 
   private doneCheck(): void {
     if (!this.isDone) return
