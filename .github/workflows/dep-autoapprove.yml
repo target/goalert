@@ -1,0 +1,33 @@
+name: Dependabot auto-approve
+on: pull_request
+
+permissions:
+  pull-requests: write
+
+jobs:
+  dependabot-approve:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'target/goalert'
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the
+      # added or changed files to the repository.
+      contents: write
+    steps:
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'yarn'
+      - name: Run make generate
+        run: make generate
+      - uses: stefanzweifel/git-auto-commit-action@v5
+      - name: Approve a PR
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
