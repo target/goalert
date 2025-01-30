@@ -4,7 +4,7 @@ import { useSessionInfo } from '../../util/RequireConfig'
 import { useResetURLParams, useURLParam } from '../../actions'
 import UserContactMethodCreateDialog from '../../users/UserContactMethodCreateDialog'
 
-export default function NewUserSetup(): JSX.Element {
+export default function NewUserSetup(): React.JSX.Element {
   const [isFirstLogin] = useURLParam('isFirstLogin', '')
   const clearIsFirstLogin = useResetURLParams('isFirstLogin')
   const [contactMethodID, setContactMethodID] = useState('')

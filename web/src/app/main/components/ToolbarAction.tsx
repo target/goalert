@@ -18,12 +18,12 @@ function removeLastPartOfPath(path: string): string {
   return parts.join('/')
 }
 
-function ToolbarAction(props: ToolbarActionProps): JSX.Element {
+function ToolbarAction(props: ToolbarActionProps): React.JSX.Element {
   const fullScreen = useIsWidthDown('md')
 
   const [, navigate] = useLocation()
 
-  function renderToolbarAction(): JSX.Element {
+  function renderToolbarAction(): React.JSX.Element {
     const route = removeLastPartOfPath(window.location.pathname)
 
     // only show back button on mobile
@@ -44,7 +44,7 @@ function ToolbarAction(props: ToolbarActionProps): JSX.Element {
     )
   }
 
-  function renderToolbarMenu(): JSX.Element {
+  function renderToolbarMenu(): React.JSX.Element {
     return (
       <Hidden mdUp>
         <IconButton
@@ -63,7 +63,7 @@ function ToolbarAction(props: ToolbarActionProps): JSX.Element {
     )
   }
 
-  const getRoute = (route: string, idx: number): JSX.Element => (
+  const getRoute = (route: string, idx: number): React.JSX.Element => (
     <Route key={idx} path={route}>
       {renderToolbarAction()}
     </Route>

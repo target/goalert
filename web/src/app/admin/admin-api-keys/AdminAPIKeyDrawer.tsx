@@ -89,7 +89,7 @@ function ActionBy(props: {
   )
 }
 
-export default function AdminAPIKeyDrawer(props: Props): JSX.Element {
+export default function AdminAPIKeyDrawer(props: Props): React.JSX.Element {
   const { onClose, apiKeyID } = props
   const classes = useStyles()
   const isOpen = Boolean(apiKeyID)

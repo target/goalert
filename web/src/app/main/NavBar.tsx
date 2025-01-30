@@ -38,7 +38,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-export default function NavBar(): JSX.Element {
+export default function NavBar(): React.JSX.Element {
   const classes = useStyles()
   const theme = useTheme()
 

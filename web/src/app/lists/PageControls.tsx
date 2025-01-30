@@ -25,7 +25,7 @@ export function PageControls(props: {
   page: number
   setPage: (page: number) => void
   isLoading: boolean
-}): JSX.Element {
+}): React.JSX.Element {
   const classes = useStyles()
   const { loadMore, pageCount, page, setPage, isLoading } = props
 

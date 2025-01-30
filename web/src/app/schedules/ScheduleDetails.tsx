@@ -67,7 +67,7 @@ export type ScheduleDetailsProps = {
 
 export default function ScheduleDetails({
   scheduleID,
-}: ScheduleDetailsProps): JSX.Element {
+}: ScheduleDetailsProps): React.JSX.Element {
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
 

@@ -25,7 +25,7 @@ interface NotificationProviderProps {
 
 export const NotificationProvider = (
   props: NotificationProviderProps,
-): JSX.Element => {
+): React.JSX.Element => {
   const [notification, setNotification] = useState<Notification>()
   const [open, setOpen] = useState(false)
 

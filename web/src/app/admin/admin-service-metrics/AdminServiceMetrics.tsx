@@ -20,7 +20,7 @@ import AdminServiceTargetGraph from './AdminServiceTargetGraph'
 
 const STALE_ALERT_LIMIT = 2
 
-export default function AdminServiceMetrics(): JSX.Element {
+export default function AdminServiceMetrics(): React.JSX.Element {
   const now = useMemo(() => DateTime.now(), [])
   const [params] = useURLParams({
     epStepTgts: [] as string[],
@@ -95,7 +95,7 @@ export default function AdminServiceMetrics(): JSX.Element {
     ? 'Loading services... This may take a minute'
     : `Metrics pulled from ${metrics.filteredServices.length} services`
 
-  function renderOverviewMetrics(): JSX.Element {
+  function renderOverviewMetrics(): React.JSX.Element {
     return (
       <React.Fragment>
         <Grid item xs={4} sm={2.4}>
@@ -176,7 +176,7 @@ export default function AdminServiceMetrics(): JSX.Element {
     )
   }
 
-  function renderUsageGraphs(): JSX.Element {
+  function renderUsageGraphs(): React.JSX.Element {
     return (
       <React.Fragment>
         <Grid item xs>
@@ -221,7 +221,7 @@ export default function AdminServiceMetrics(): JSX.Element {
     )
   }
 
-  function renderServiceTable(): JSX.Element {
+  function renderServiceTable(): React.JSX.Element {
     return (
       <Card sx={{ marginTop: (theme) => theme.spacing(1) }}>
         <CardHeader title='Services' subheader={cardSubHeader} />

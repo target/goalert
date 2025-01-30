@@ -34,7 +34,7 @@ interface RotationFormHandoffTimesProps {
 
 export default function RotationFormHandoffTimes({
   value,
-}: RotationFormHandoffTimesProps): JSX.Element {
+}: RotationFormHandoffTimesProps): React.JSX.Element {
   const [{ data, fetching, error }] = useQuery({
     query,
     variables: {

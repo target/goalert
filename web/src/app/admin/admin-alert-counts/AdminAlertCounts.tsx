@@ -27,7 +27,7 @@ const units: Record<string, DateTimeUnit> = {
   P1M: 'month',
 }
 
-export default function AdminAlertCounts(): JSX.Element {
+export default function AdminAlertCounts(): React.JSX.Element {
   const styles = useStyles()
 
   const [graphData, setGraphData] = useState<AlertCountSeries[]>([])

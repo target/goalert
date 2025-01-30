@@ -19,7 +19,7 @@ type AdminAPIKeyFormProps = {
 
 export default function AdminAPIKeyForm(
   props: AdminAPIKeyFormProps,
-): JSX.Element {
+): React.JSX.Element {
   const queryError = props.errors.find((e) => e.field === 'query')?.message
   return (
     <FormContainer optionalLabels {...props}>

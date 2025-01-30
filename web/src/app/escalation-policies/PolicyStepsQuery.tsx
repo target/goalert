@@ -31,7 +31,9 @@ export const policyStepsQueryDest = gql`
   }
 `
 
-function PolicyStepsQuery(props: { escalationPolicyID: string }): JSX.Element {
+function PolicyStepsQuery(props: {
+  escalationPolicyID: string
+}): React.JSX.Element {
   const [{ data, error }] = useQuery({
     query: policyStepsQueryDest,
     variables: { id: props.escalationPolicyID },

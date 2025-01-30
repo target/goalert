@@ -80,7 +80,7 @@ export function useName(crumb: string, index: number, parts: string[]): string {
   return toTitleCase(crumb)
 }
 
-export default function BreadCrumb(props: BreadCrumbProps): JSX.Element {
+export default function BreadCrumb(props: BreadCrumbProps): React.JSX.Element {
   const { index, crumb, link, urlParts } = props
 
   const name = useName(crumb, index, urlParts)

@@ -39,7 +39,7 @@ type Stats = Array<{
 
 interface MessageLogGraphData {
   date: string
-  label: JSX.Element
+  label: React.JSX.Element
   count: number
 }
 
@@ -60,7 +60,7 @@ const statsQuery = gql`
   }
 `
 
-export default function AdminMessageLogsGraph(): JSX.Element {
+export default function AdminMessageLogsGraph(): React.JSX.Element {
   const theme = useTheme()
 
   const [{ search, start, end, graphInterval }, setParams] =

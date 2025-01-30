@@ -25,7 +25,9 @@ interface Error {
   helpLink?: string
 }
 
-export default function ScheduleForm(props: ScheduleFormProps): JSX.Element {
+export default function ScheduleForm(
+  props: ScheduleFormProps,
+): React.JSX.Element {
   return (
     <FormContainer optionalLabels {...props}>
       <Grid container spacing={2}>

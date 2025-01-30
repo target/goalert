@@ -19,7 +19,7 @@ export default function PolicyStepCreateDialog(props: {
   escalationPolicyID: string
   disablePortal?: boolean
   onClose: () => void
-}): JSX.Element {
+}): React.JSX.Element {
   const [value, setValue] = useState<FormValue>({
     actions: [],
     delayMinutes: 15,

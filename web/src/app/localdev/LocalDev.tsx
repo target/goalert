@@ -22,12 +22,12 @@ type DevToolProps = {
   url?: string
 }
 
-export default function LocalDev(): JSX.Element {
+export default function LocalDev(): React.JSX.Element {
   const [updateConfig, setUpdateConfig] = useState<Partial<
     Record<ConfigID, string>
   > | null>(null)
 
-  function DevTool(props: DevToolProps): JSX.Element {
+  function DevTool(props: DevToolProps): React.JSX.Element {
     return (
       <Grid item xs={6}>
         <Card>

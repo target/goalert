@@ -77,7 +77,7 @@ export interface CreateAlertServiceSelectProps {
 
 export function CreateAlertServiceSelect(
   props: CreateAlertServiceSelectProps,
-): JSX.Element {
+): React.JSX.Element {
   const { value, onChange } = props
 
   const [searchQueryInput, setSearchQueryInput] = useState('')

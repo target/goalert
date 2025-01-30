@@ -52,7 +52,7 @@ const query = gql`
   }
 `
 
-function AlertDetailPage({ alertID }: { alertID: string }): JSX.Element {
+function AlertDetailPage({ alertID }: { alertID: string }): React.JSX.Element {
   const { loading, error, data } = useQuery(query, {
     variables: { id: alertID },
   })
