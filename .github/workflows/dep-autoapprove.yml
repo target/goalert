@@ -3,16 +3,13 @@ name: Dependabot auto-approve
 on: pull_request
 
 permissions:
+  contents: write
   pull-requests: write
 
 jobs:
   dependabot-approve:
     runs-on: ubuntu-latest
     if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'target/goalert'
-    permissions:
-      # Give the default GITHUB_TOKEN write permission to commit and push the
-      # added or changed files to the repository.
-      contents: write
     steps:
       - uses: actions/setup-go@v5
         with:
