@@ -9,6 +9,7 @@ const query = gql`
     rotation(id: $id) {
       id
       userIDs
+      activeUserIndex
       users {
         id
         name
@@ -60,6 +61,10 @@ const RotationUserDeleteDialog = (props: {
               userIDs: userIDs.filter(
                 (_: string, index: number) => index !== userIndex,
               ),
+              activeUserIndex:
+                userIndex < data.rotation.activeUserIndex
+                  ? data.rotation.activeUserIndex - 1
+                  : data.rotation.activeUserIndex,
             },
           },
           { additionalTypenames: ['Rotation'] },
