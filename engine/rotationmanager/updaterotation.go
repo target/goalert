@@ -3,6 +3,7 @@ package rotationmanager
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -25,6 +26,10 @@ func (db *DB) updateRotation(ctx context.Context, j *river.Job[UpdateArgs]) erro
 		g := gadb.New(tx)
 
 		row, err := g.RotMgrRotationData(ctx, j.Args.RotationID)
+		if errors.Is(err, sql.ErrNoRows) {
+			// no longer exists, so nothing to do
+			return nil
+		}
 		if err != nil {
 			return err
 		}
