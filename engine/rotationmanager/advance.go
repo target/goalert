@@ -17,8 +17,9 @@ type advance struct {
 }
 
 type rotState struct {
-	rotation.State
-	Version int
+	ShiftStart time.Time
+	Position   int
+	Version    int
 }
 
 // calcAdvance will calculate rotation advancement if it is required. If not, nil is returned

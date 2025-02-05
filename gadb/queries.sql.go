@@ -4175,6 +4175,116 @@ func (q *Queries) RequestAlertEscalationByTime(ctx context.Context, arg RequestA
 	return column_1, err
 }
 
+const rotMgrEnd = `-- name: RotMgrEnd :exec
+DELETE FROM rotation_state
+WHERE rotation_id = $1
+`
+
+// End a rotation.
+func (q *Queries) RotMgrEnd(ctx context.Context, rotationID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, rotMgrEnd, rotationID)
+	return err
+}
+
+const rotMgrRotationData = `-- name: RotMgrRotationData :one
+SELECT
+    now()::timestamptz AS now,
+    rot.id,
+    rot.type,
+    rot.start_time,
+    rot.shift_length,
+    rot.time_zone,
+    state.position,
+    state.shift_start,
+    ARRAY (
+        SELECT
+            p.id
+        FROM
+            rotation_participants p
+        WHERE
+            p.rotation_id = rot.id
+        ORDER BY
+            position)::uuid[] AS participants
+    FROM
+        rotations rot
+    LEFT JOIN rotation_state state ON rot.id = state.rotation_id
+WHERE
+    rot.id = $1
+`
+
+type RotMgrRotationDataRow struct {
+	Now          time.Time
+	ID           uuid.UUID
+	Type         EnumRotationType
+	StartTime    time.Time
+	ShiftLength  int64
+	TimeZone     string
+	Position     sql.NullInt32
+	ShiftStart   sql.NullTime
+	Participants []uuid.UUID
+}
+
+// Get rotation data for a given rotation ID
+func (q *Queries) RotMgrRotationData(ctx context.Context, rotationID uuid.UUID) (RotMgrRotationDataRow, error) {
+	row := q.db.QueryRowContext(ctx, rotMgrRotationData, rotationID)
+	var i RotMgrRotationDataRow
+	err := row.Scan(
+		&i.Now,
+		&i.ID,
+		&i.Type,
+		&i.StartTime,
+		&i.ShiftLength,
+		&i.TimeZone,
+		&i.Position,
+		&i.ShiftStart,
+		pq.Array(&i.Participants),
+	)
+	return i, err
+}
+
+const rotMgrStart = `-- name: RotMgrStart :exec
+INSERT INTO rotation_state(rotation_id, position, shift_start, rotation_participant_id)
+SELECT
+    p.rotation_id,
+    0,
+    now(),
+    id
+FROM
+    rotation_participants p
+WHERE
+    p.rotation_id = $1
+    AND position = 0
+`
+
+// Start a rotation.
+func (q *Queries) RotMgrStart(ctx context.Context, rotationID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, rotMgrStart, rotationID)
+	return err
+}
+
+const rotMgrUpdate = `-- name: RotMgrUpdate :exec
+UPDATE
+    rotation_state
+SET
+    position = $1,
+    shift_start = now(),
+    rotation_participant_id = $2
+WHERE
+    rotation_id = $3
+`
+
+type RotMgrUpdateParams struct {
+	Position              int32
+	RotationParticipantID uuid.UUID
+	RotationID            uuid.UUID
+}
+
+// Update the rotation state.
+func (q *Queries) RotMgrUpdate(ctx context.Context, arg RotMgrUpdateParams) error {
+	_, err := q.db.ExecContext(ctx, rotMgrUpdate, arg.Position, arg.RotationParticipantID, arg.RotationID)
+	return err
+}
+
 const sWOConnLock = `-- name: SWOConnLock :one
 WITH LOCK AS (
     SELECT
