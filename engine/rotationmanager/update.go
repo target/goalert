@@ -14,16 +14,6 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
-// UpdateAll will update and cleanup the rotation state for all rotations.
-func (db *DB) UpdateAll(ctx context.Context) error {
-	err := permission.LimitCheckAny(ctx, permission.System)
-	if err != nil {
-		return err
-	}
-	err = db.update(ctx, true, nil)
-	return err
-}
-
 // UpdateOneRotation will update and cleanup the rotation state for the given rotation.
 func (db *DB) UpdateOneRotation(ctx context.Context, rotID string) error {
 	err := permission.LimitCheckAny(ctx, permission.System)
