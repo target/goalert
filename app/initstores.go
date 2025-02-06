@@ -194,7 +194,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.RotationStore == nil {
-		app.RotationStore, err = rotation.NewStore(ctx, app.db)
+		app.RotationStore, err = rotation.NewStore(ctx, app.db, app.EventBus)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init rotation store")

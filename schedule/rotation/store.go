@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/event"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
@@ -19,7 +20,8 @@ import (
 var ErrNoState = errors.New("no state available")
 
 type Store struct {
-	db *sql.DB
+	db  *sql.DB
+	bus *event.Bus
 
 	createRotation        *sql.Stmt
 	updateRotation        *sql.Stmt
@@ -43,11 +45,12 @@ type Store struct {
 	findPartCount *sql.Stmt
 }
 
-func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
+func NewStore(ctx context.Context, db *sql.DB, bus *event.Bus) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
 	return &Store{
-		db: db,
+		db:  db,
+		bus: bus,
 
 		lockPart: p.P(`lock rotation_participants, rotation_state in exclusive mode`),
 
@@ -187,12 +190,15 @@ func (s *Store) CreateRotationTx(ctx context.Context, tx *sql.Tx, r *Rotation) (
 		stmt = tx.Stmt(stmt)
 	}
 
-	n.ID = uuid.New().String()
+	id := uuid.New()
+	n.ID = id.String()
 
 	_, err = stmt.ExecContext(ctx, n.ID, n.Name, n.Description, n.Type, n.Start, n.ShiftLength, n.Start.Location().String())
 	if err != nil {
 		return nil, err
 	}
+
+	event.SendTx(ctx, s.bus, tx, Update{ID: id})
 	return n, nil
 }
 
@@ -217,6 +223,8 @@ func (s *Store) UpdateRotationTx(ctx context.Context, tx *sql.Tx, r *Rotation) e
 	}
 
 	_, err = stmt.ExecContext(ctx, n.ID, n.Name, n.Description, n.Type, n.Start, n.ShiftLength, n.Start.Location().String())
+
+	event.SendTx(ctx, s.bus, tx, Update{ID: uuid.MustParse(n.ID)})
 	return err
 }
 
@@ -451,6 +459,8 @@ func (s *Store) SetActiveIndexTx(ctx context.Context, tx *sql.Tx, rotID string, 
 		// We are checking to see if there is no participant for that position before returning a validation error
 		return validation.NewFieldError("ActiveUserIndex", "invalid index for rotation")
 	}
+
+	event.SendTx(ctx, s.bus, tx, Update{ID: uuid.MustParse(rotID)})
 	return err
 }
 
@@ -499,8 +509,12 @@ func (s *Store) AddRotationUsersTx(ctx context.Context, tx *sql.Tx, rotationID s
 
 		return nil
 	})
+	if err != nil {
+		return err
+	}
 
-	return err
+	event.SendTx(ctx, s.bus, tx, Update{ID: uuid.MustParse(rotationID)})
+	return nil
 }
 
 func (s *Store) DeleteRotationParticipantsTx(ctx context.Context, tx *sql.Tx, partIDs []string) error {
