@@ -3,6 +3,7 @@ package rotationmanager
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/riverqueue/river"
 	"github.com/target/goalert/engine/processinglock"
@@ -11,10 +12,10 @@ import (
 )
 
 const (
-	QueueName           = "rotation-manager"
-	PriorityLookForWork = 2
-	PriorityCleanup     = 3
-	PriorityProcess     = 4
+	QueueName         = "rotation-manager"
+	PriorityScheduled = 1
+	PriorityEvent     = 2
+	PriorityLFW       = 4
 )
 
 var _ processinglock.Setupable = &DB{}
@@ -22,11 +23,12 @@ var _ processinglock.Setupable = &DB{}
 // Setup implements processinglock.Setupable.
 func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 	river.AddWorker(args.Workers, river.WorkFunc(db.updateRotation))
+	river.AddWorker(args.Workers, river.WorkFunc(db.lookForWork))
 
 	event.RegisterJobSource(args.EventBus, func(data rotation.Update) (river.JobArgs, *river.InsertOpts) {
 		return UpdateArgs{RotationID: data.ID}, &river.InsertOpts{
 			Queue:    QueueName,
-			Priority: PriorityLookForWork,
+			Priority: PriorityEvent,
 		}
 	})
 
@@ -34,6 +36,19 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 	if err != nil {
 		return fmt.Errorf("add queue: %w", err)
 	}
+
+	args.River.PeriodicJobs().AddMany([]*river.PeriodicJob{
+		river.NewPeriodicJob(
+			river.PeriodicInterval(time.Minute),
+			func() (river.JobArgs, *river.InsertOpts) {
+				return LookForWorkArgs{}, &river.InsertOpts{
+					Queue:    QueueName,
+					Priority: PriorityLFW,
+				}
+			},
+			&river.PeriodicJobOpts{RunOnStart: true},
+		),
+	})
 
 	return nil
 }

@@ -60,6 +60,7 @@ func (db *DB) updateRotation(ctx context.Context, j *river.Job[UpdateArgs]) erro
 				ByArgs:   true,
 				ByPeriod: time.Minute,
 			},
+			Priority:    PriorityScheduled,
 			ScheduledAt: r.EndTime(row.Now),
 		})
 		if err != nil {

@@ -54,3 +54,28 @@ SET
 WHERE
     rotation_id = @rotation_id;
 
+-- name: RotMgrFindWork :many
+WITH items AS (
+    SELECT
+        id,
+        entity_id
+    FROM
+        entity_updates
+    WHERE
+        entity_type = 'rotation'
+    FOR UPDATE
+        SKIP LOCKED
+    LIMIT 1000
+),
+_delete AS (
+    DELETE FROM entity_updates
+    WHERE id IN (
+            SELECT
+                id
+            FROM
+                items))
+SELECT DISTINCT
+    entity_id
+FROM
+    items;
+

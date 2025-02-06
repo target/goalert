@@ -4186,6 +4186,55 @@ func (q *Queries) RotMgrEnd(ctx context.Context, rotationID uuid.UUID) error {
 	return err
 }
 
+const rotMgrFindWork = `-- name: RotMgrFindWork :many
+WITH items AS (
+    SELECT
+        id,
+        entity_id
+    FROM
+        entity_updates
+    WHERE
+        entity_type = 'rotation'
+    FOR UPDATE
+        SKIP LOCKED
+    LIMIT 1000
+),
+_delete AS (
+    DELETE FROM entity_updates
+    WHERE id IN (
+            SELECT
+                id
+            FROM
+                items))
+SELECT DISTINCT
+    entity_id
+FROM
+    items
+`
+
+func (q *Queries) RotMgrFindWork(ctx context.Context) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, rotMgrFindWork)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var entity_id uuid.UUID
+		if err := rows.Scan(&entity_id); err != nil {
+			return nil, err
+		}
+		items = append(items, entity_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const rotMgrRotationData = `-- name: RotMgrRotationData :one
 SELECT
     now()::timestamptz AS now,
