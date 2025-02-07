@@ -57,3 +57,5 @@ FROM
 -- +migrate Down
 DROP TABLE entity_updates;
 
+DROP FUNCTION fn_track_rotation_updates();
+
