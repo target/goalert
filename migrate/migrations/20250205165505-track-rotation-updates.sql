@@ -55,7 +55,13 @@ FROM
     rotations;
 
 -- +migrate Down
-DROP TABLE entity_updates;
+DROP TRIGGER IF EXISTS trg_track_rotation_updates ON rotations;
+
+DROP TRIGGER IF EXISTS track_rotation_state_updates ON rotation_state;
+
+DROP TRIGGER IF EXISTS track_rotation_state_updates ON rotation_participants;
 
 DROP FUNCTION fn_track_rotation_updates();
+
+DROP TABLE entity_updates;
 
