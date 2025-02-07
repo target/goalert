@@ -37,12 +37,12 @@ CREATE TRIGGER trg_track_rotation_updates
     FOR EACH ROW
     EXECUTE FUNCTION fn_track_rotation_updates();
 
-CREATE TRIGGER trg_track_rotation_updates
+CREATE TRIGGER trg_track_rotation_state_updates
     AFTER UPDATE ON rotation_state
     FOR EACH ROW
     EXECUTE FUNCTION fn_track_rotation_updates();
 
-CREATE TRIGGER track_rotation_state_updates
+CREATE TRIGGER trg_track_rotation_part_updates
     AFTER INSERT OR UPDATE OR DELETE ON rotation_participants
     FOR EACH ROW
     EXECUTE FUNCTION fn_track_rotation_updates();
@@ -55,11 +55,11 @@ FROM
     rotations;
 
 -- +migrate Down
-DROP TRIGGER IF EXISTS trg_track_rotation_updates ON rotations;
+DROP TRIGGER trg_track_rotation_updates ON rotations;
 
-DROP TRIGGER IF EXISTS track_rotation_state_updates ON rotation_state;
+DROP TRIGGER trg_track_rotation_state_updates ON rotation_state;
 
-DROP TRIGGER IF EXISTS track_rotation_state_updates ON rotation_participants;
+DROP TRIGGER trg_track_rotation_part_updates ON rotation_participants;
 
 DROP FUNCTION fn_track_rotation_updates();
 
