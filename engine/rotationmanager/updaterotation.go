@@ -78,7 +78,10 @@ func (db *DB) updateRotation(ctx context.Context, j *river.Job[UpdateArgs]) erro
 			Position:   int(row.Position.Int32),
 			Version:    int(row.Version.Int32),
 		}
-		adv := calcAdvance(ctx, row.Now, &r, s, len(row.Participants))
+		adv, err := calcAdvance(ctx, row.Now, &r, s, len(row.Participants))
+		if err != nil {
+			return fmt.Errorf("calc advance: %w", err)
+		}
 		if adv == nil {
 			// no advancement needed
 			return nil
