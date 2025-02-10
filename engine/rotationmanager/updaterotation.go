@@ -76,6 +76,7 @@ func (db *DB) updateRotation(ctx context.Context, j *river.Job[UpdateArgs]) erro
 		s := rotState{
 			ShiftStart: row.ShiftStart.Time.In(loc),
 			Position:   int(row.Position.Int32),
+			Version:    int(row.Version.Int32),
 		}
 		adv := calcAdvance(ctx, row.Now, &r, s, len(row.Participants))
 		if adv == nil {

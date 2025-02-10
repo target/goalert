@@ -4245,6 +4245,7 @@ SELECT
     rot.time_zone,
     state.position,
     state.shift_start,
+    state.version,
     ARRAY (
         SELECT
             p.id
@@ -4270,6 +4271,7 @@ type RotMgrRotationDataRow struct {
 	TimeZone     string
 	Position     sql.NullInt32
 	ShiftStart   sql.NullTime
+	Version      sql.NullInt32
 	Participants []uuid.UUID
 }
 
@@ -4286,6 +4288,7 @@ func (q *Queries) RotMgrRotationData(ctx context.Context, rotationID uuid.UUID) 
 		&i.TimeZone,
 		&i.Position,
 		&i.ShiftStart,
+		&i.Version,
 		pq.Array(&i.Participants),
 	)
 	return i, err

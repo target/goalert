@@ -9,6 +9,7 @@ SELECT
     rot.time_zone,
     state.position,
     state.shift_start,
+    state.version,
     ARRAY (
         SELECT
             p.id
