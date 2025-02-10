@@ -58,5 +58,6 @@ func (db *DB) lookForWork(ctx context.Context, j *river.Job[LookForWorkArgs]) er
 		return nil
 	}
 
+	// There was work to do, so wait a bit before looking again.
 	return river.JobSnooze(time.Second)
 }

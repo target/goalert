@@ -62,6 +62,7 @@ func (db *DB) updateRotation(ctx context.Context, j *river.Job[UpdateArgs]) erro
 			},
 			Priority:    PriorityScheduled,
 			ScheduledAt: r.EndTime(row.Now),
+			Queue:       QueueName,
 		})
 		if err != nil {
 			return fmt.Errorf("schedule next run: %w", err)
