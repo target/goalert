@@ -1,12 +1,11 @@
 import React, { useState } from 'react'
 import { gql, useQuery, useMutation } from 'urql'
 
-import { fieldErrors, nonFieldErrors } from '../util/errutil'
-
 import FormDialog from '../dialogs/FormDialog'
 import ServiceForm from './ServiceForm'
-import Spinner from '../loading/components/Spinner'
 import { Label } from '../../schema'
+import { useErrorConsumer } from '../util/ErrorConsumer'
+import { useConfigValue } from '../util/RequireConfig'
 
 interface Value {
   name: string
@@ -47,38 +46,32 @@ export default function ServiceEditDialog(props: {
   serviceID: string
   onClose: () => void
 }): JSX.Element {
-  const [value, setValue] = useState<Value | null>(null)
-  const [{ data, fetching: dataFetching, error: dataError }] = useQuery({
+  const [{ data, error: dataError }] = useQuery({
     query,
     variables: { id: props.serviceID },
   })
-
-  const [saveStatus, save] = useMutation(mutation)
-  const [saveLabelStatus, saveLabel] = useMutation(setLabel)
-
-  if (dataFetching && !data) {
-    return <Spinner />
-  }
-
+  const [req] = useConfigValue('Services.RequiredLabels') as [string[]]
   const defaultValue = {
     name: data?.service?.name,
     description: data?.service?.description,
     escalationPolicyID: data?.service?.ep?.id,
-    labels: data?.service?.labels || [],
+    labels: (data?.service?.labels || []).filter((l: Label) =>
+      req.includes(l.key),
+    ),
   }
+  const [value, setValue] = useState<Value>(defaultValue)
 
-  const fieldErrs = fieldErrors(saveStatus.error).concat(
-    fieldErrors(saveLabelStatus.error),
-  )
+  const [saveStatus, save] = useMutation(mutation)
+  const [saveLabelStatus, saveLabel] = useMutation(setLabel)
+
+  const errs = useErrorConsumer(saveStatus.error).append(saveLabelStatus.error)
+  console.log()
 
   return (
     <FormDialog
       title='Edit Service'
-      loading={saveStatus.fetching || (!data && dataFetching)}
-      errors={nonFieldErrors(saveStatus.error).concat(
-        nonFieldErrors(dataError),
-        nonFieldErrors(saveLabelStatus.error),
-      )}
+      loading={saveStatus.fetching}
+      errors={errs.remainingLegacyCallback()}
       onClose={props.onClose}
       onSubmit={async () => {
         const saveRes = await save(
@@ -115,11 +108,13 @@ export default function ServiceEditDialog(props: {
       form={
         <ServiceForm
           epRequired
-          errors={fieldErrs}
-          disabled={Boolean(
-            saveStatus.fetching || (!data && dataFetching) || dataError,
-          )}
-          value={value || defaultValue}
+          nameError={errs.getErrorByField('Name')}
+          descError={errs.getErrorByField('Description')}
+          epError={errs.getErrorByField('EscalationPolicyID')}
+          labelErrorKey={saveLabelStatus.operation?.variables?.input?.key}
+          labelErrorMsg={errs.getErrorByField('Value')}
+          disabled={Boolean(saveStatus.fetching || !data || dataError)}
+          value={value}
           onChange={(value) => setValue(value)}
         />
       }

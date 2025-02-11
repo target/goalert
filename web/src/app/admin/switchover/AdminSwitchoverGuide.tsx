@@ -6,7 +6,7 @@ import { Button, Card, CardContent, Typography } from '@mui/material'
 import AppLink from '../../util/AppLink'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 
-export function AdminSwitchoverGuideButton(): JSX.Element {
+export function AdminSwitchoverGuideButton(): React.JSX.Element {
   return (
     <Button
       variant='contained'
@@ -20,7 +20,7 @@ export function AdminSwitchoverGuideButton(): JSX.Element {
   )
 }
 
-export default function AdminSwitchoverGuide(): JSX.Element {
+export default function AdminSwitchoverGuide(): React.JSX.Element {
   return (
     <Card>
       <CardContent>

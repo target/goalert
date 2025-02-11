@@ -12,7 +12,7 @@ const query = gql`
   }
 `
 
-export const SlackChannelLink = (slackChannel: Target): JSX.Element => {
+export const SlackChannelLink = (slackChannel: Target): React.JSX.Element => {
   const { data, loading, error } = useQuery(query, {
     variables: { id: slackChannel.id },
     fetchPolicy: 'cache-first',

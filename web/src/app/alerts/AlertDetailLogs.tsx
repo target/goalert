@@ -50,7 +50,7 @@ interface AlertDetailLogsProps {
 
 export default function AlertDetailLogs(
   props: AlertDetailLogsProps,
-): JSX.Element {
+): React.JSX.Element {
   const classes = useStyles()
   const [poll, setPoll] = useState(POLL_INTERVAL)
   const { data, error, loading, fetchMore } = useQuery(query, {
@@ -93,9 +93,9 @@ export default function AlertDetailLogs(
   }
 
   const renderList = (
-    items: JSX.Element | JSX.Element[],
+    items: React.JSX.Element | JSX.Element[],
     loadMore?: boolean,
-  ): JSX.Element => {
+  ): React.JSX.Element => {
     return (
       <List data-cy='alert-logs'>
         {items}
@@ -132,7 +132,7 @@ export default function AlertDetailLogs(
     }
   }
 
-  const renderItem = (event: AlertLogEntry, idx: number): JSX.Element => {
+  const renderItem = (event: AlertLogEntry, idx: number): React.JSX.Element => {
     const details = _.upperFirst(event?.state?.details ?? '')
     const status = (event?.state?.status ?? '') as NotificationStatus
 

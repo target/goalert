@@ -90,13 +90,13 @@ const measuringConfig = {
 
 export interface FlatListSub {
   id?: string
-  subHeader: JSX.Element | string
+  subHeader: React.JSX.Element | string
   disableGutter?: boolean
 }
 
 export interface FlatListNotice extends Notice {
   id?: string
-  icon?: JSX.Element
+  icon?: React.JSX.Element
   transition?: boolean
   handleOnClick?: (event: MouseEvent) => void
   'data-cy'?: string
@@ -105,10 +105,10 @@ export interface FlatListItemOptions extends Omit<ListItemProps, 'title'> {
   title?: React.ReactNode
   primaryText?: React.ReactNode
   highlight?: boolean
-  subText?: JSX.Element | string
-  icon?: JSX.Element | null
+  subText?: React.JSX.Element | string
+  icon?: React.JSX.Element | null
   section?: string | number
-  secondaryAction?: JSX.Element | null
+  secondaryAction?: React.JSX.Element | null
   url?: string
   id?: string // required for drag and drop functionality
   scrollIntoView?: boolean
@@ -121,7 +121,7 @@ export interface FlatListItemOptions extends Omit<ListItemProps, 'title'> {
 export interface SectionTitle {
   title: React.ReactNode
   icon?: React.ReactNode | null
-  subText?: JSX.Element | string
+  subText?: React.JSX.Element | string
 }
 
 export type FlatListListItem =
@@ -136,8 +136,8 @@ export interface FlatListProps extends ListProps {
   sections?: SectionTitle[]
 
   // header elements will be displayed at the top of the list.
-  headerNote?: JSX.Element | string | ReactNode // left-aligned
-  headerAction?: JSX.Element // right-aligned
+  headerNote?: React.JSX.Element | string | ReactNode // left-aligned
+  headerAction?: React.JSX.Element // right-aligned
 
   // emptyMessage will be displayed if there are no items in the list.
   emptyMessage?: string
@@ -168,7 +168,7 @@ export default function FlatList({
   transition,
   collapsable,
   ...listProps
-}: FlatListProps): JSX.Element {
+}: FlatListProps): React.JSX.Element {
   const classes = useStyles()
 
   // collapsable sections state
@@ -223,7 +223,7 @@ export default function FlatList({
     }
   }
 
-  function renderEmptyMessage(): JSX.Element {
+  function renderEmptyMessage(): React.JSX.Element {
     return (
       <MUIListItem>
         <ListItemText
@@ -238,7 +238,10 @@ export default function FlatList({
     )
   }
 
-  function renderNoticeItem(item: FlatListNotice, idx: number): JSX.Element {
+  function renderNoticeItem(
+    item: FlatListNotice,
+    idx: number,
+  ): React.JSX.Element {
     if (item.handleOnClick) {
       return (
         <ButtonBase
@@ -273,7 +276,10 @@ export default function FlatList({
     )
   }
 
-  function renderSubheaderItem(item: FlatListSub, idx: number): JSX.Element {
+  function renderSubheaderItem(
+    item: FlatListSub,
+    idx: number,
+  ): React.JSX.Element {
     return (
       <ListSubheader
         key={idx}
@@ -292,7 +298,7 @@ export default function FlatList({
     )
   }
 
-  function renderTransitionItems(): JSX.Element[] {
+  function renderTransitionItems(): React.JSX.Element[] {
     return items.map((item, idx) => {
       if ('subHeader' in item) {
         return (
@@ -341,7 +347,7 @@ export default function FlatList({
     })
   }
 
-  function renderTransitions(): JSX.Element {
+  function renderTransitions(): React.JSX.Element {
     return <TransitionGroup>{renderTransitionItems()}</TransitionGroup>
   }
 
@@ -368,7 +374,7 @@ export default function FlatList({
     })
   }
 
-  function renderCollapsableItems(): JSX.Element[] | undefined {
+  function renderCollapsableItems(): React.JSX.Element[] | undefined {
     const toggleSection = (section: React.ReactNode): void => {
       if (openSections?.includes(section)) {
         setOpenSections(
@@ -403,7 +409,7 @@ export default function FlatList({
     })
   }
 
-  function renderList(): JSX.Element {
+  function renderList(): React.JSX.Element {
     const renderListItems = ():
       | (JSX.Element | undefined)[]
       | JSX.Element

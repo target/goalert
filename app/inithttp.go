@@ -121,43 +121,44 @@ func (app *App) initHTTP(ctx context.Context) error {
 		UserStore:           app.UserStore,
 	})
 
-	mux.Handle("/api/graphql", app.graphql2.Handler())
+	mux.Handle("POST /api/graphql", app.graphql2.Handler())
 
-	mux.HandleFunc("/api/v2/config", app.ConfigStore.ServeConfig)
+	mux.HandleFunc("GET /api/v2/config", app.ConfigStore.ServeConfig)
+	mux.HandleFunc("PUT /api/v2/config", app.ConfigStore.ServeConfig)
 
-	mux.HandleFunc("/api/v2/identity/providers", app.AuthHandler.ServeProviders)
-	mux.HandleFunc("/api/v2/identity/logout", app.AuthHandler.ServeLogout)
+	mux.HandleFunc("GET /api/v2/identity/providers", app.AuthHandler.ServeProviders)
+	mux.HandleFunc("POST /api/v2/identity/logout", app.AuthHandler.ServeLogout)
 
 	basicAuth := app.AuthHandler.IdentityProviderHandler("basic")
-	mux.HandleFunc("/api/v2/identity/providers/basic", basicAuth)
+	mux.HandleFunc("POST /api/v2/identity/providers/basic", basicAuth)
 
 	githubAuth := app.AuthHandler.IdentityProviderHandler("github")
-	mux.HandleFunc("/api/v2/identity/providers/github", githubAuth)
-	mux.HandleFunc("/api/v2/identity/providers/github/callback", githubAuth)
+	mux.HandleFunc("POST /api/v2/identity/providers/github", githubAuth)
+	mux.HandleFunc("GET /api/v2/identity/providers/github/callback", githubAuth)
 
 	oidcAuth := app.AuthHandler.IdentityProviderHandler("oidc")
-	mux.HandleFunc("/api/v2/identity/providers/oidc", oidcAuth)
-	mux.HandleFunc("/api/v2/identity/providers/oidc/callback", oidcAuth)
+	mux.HandleFunc("POST /api/v2/identity/providers/oidc", oidcAuth)
+	mux.HandleFunc("GET /api/v2/identity/providers/oidc/callback", oidcAuth)
 
 	if expflag.ContextHas(ctx, expflag.UnivKeys) {
 		mux.HandleFunc("POST /api/v2/uik", app.UIKHandler.ServeHTTP)
 	}
-	mux.HandleFunc("/api/v2/mailgun/incoming", mailgun.IngressWebhooks(app.AlertStore, app.IntegrationKeyStore))
-	mux.HandleFunc("/api/v2/grafana/incoming", grafana.GrafanaToEventsAPI(app.AlertStore, app.IntegrationKeyStore))
-	mux.HandleFunc("/api/v2/site24x7/incoming", site24x7.Site24x7ToEventsAPI(app.AlertStore, app.IntegrationKeyStore))
-	mux.HandleFunc("/api/v2/prometheusalertmanager/incoming", prometheus.PrometheusAlertmanagerEventsAPI(app.AlertStore, app.IntegrationKeyStore))
+	mux.HandleFunc("POST /api/v2/mailgun/incoming", mailgun.IngressWebhooks(app.AlertStore, app.IntegrationKeyStore))
+	mux.HandleFunc("POST /api/v2/grafana/incoming", grafana.GrafanaToEventsAPI(app.AlertStore, app.IntegrationKeyStore))
+	mux.HandleFunc("POST /api/v2/site24x7/incoming", site24x7.Site24x7ToEventsAPI(app.AlertStore, app.IntegrationKeyStore))
+	mux.HandleFunc("POST /api/v2/prometheusalertmanager/incoming", prometheus.PrometheusAlertmanagerEventsAPI(app.AlertStore, app.IntegrationKeyStore))
 
-	mux.HandleFunc("/api/v2/generic/incoming", generic.ServeCreateAlert)
-	mux.HandleFunc("/api/v2/heartbeat/", generic.ServeHeartbeatCheck)
-	mux.HandleFunc("/api/v2/user-avatar/", generic.ServeUserAvatar)
-	mux.HandleFunc("/api/v2/calendar", app.CalSubStore.ServeICalData)
+	mux.HandleFunc("POST /api/v2/generic/incoming", generic.ServeCreateAlert)
+	mux.HandleFunc("POST /api/v2/heartbeat/{heartbeatID}", generic.ServeHeartbeatCheck)
+	mux.HandleFunc("GET /api/v2/user-avatar/{userID}", generic.ServeUserAvatar)
+	mux.HandleFunc("GET /api/v2/calendar", app.CalSubStore.ServeICalData)
 
-	mux.HandleFunc("/api/v2/twilio/message", app.twilioSMS.ServeMessage)
-	mux.HandleFunc("/api/v2/twilio/message/status", app.twilioSMS.ServeStatusCallback)
-	mux.HandleFunc("/api/v2/twilio/call", app.twilioVoice.ServeCall)
-	mux.HandleFunc("/api/v2/twilio/call/status", app.twilioVoice.ServeStatusCallback)
+	mux.HandleFunc("POST /api/v2/twilio/message", app.twilioSMS.ServeMessage)
+	mux.HandleFunc("POST /api/v2/twilio/message/status", app.twilioSMS.ServeStatusCallback)
+	mux.HandleFunc("POST /api/v2/twilio/call", app.twilioVoice.ServeCall)
+	mux.HandleFunc("POST /api/v2/twilio/call/status", app.twilioVoice.ServeStatusCallback)
 
-	mux.HandleFunc("/api/v2/slack/message-action", app.slackChan.ServeMessageAction)
+	mux.HandleFunc("POST /api/v2/slack/message-action", app.slackChan.ServeMessageAction)
 
 	middleware = append(middleware,
 		httpRewrite(app.cfg.HTTPPrefix, "/v1/graphql2", "/api/graphql"),
@@ -204,24 +205,43 @@ func (app *App) initHTTP(ctx context.Context) error {
 		},
 	)
 
-	mux.HandleFunc("/health", app.healthCheck)
-	mux.HandleFunc("/health/engine", app.engineStatus)
-	mux.HandleFunc("/health/engine/cycle", app.engineCycle)
+	mux.HandleFunc("GET /health", app.healthCheck)
+	mux.HandleFunc("GET /health/engine", app.engineStatus)
+	mux.HandleFunc("GET /health/engine/cycle", app.engineCycle)
+	mux.Handle("GET /health/", http.NotFoundHandler())
 
 	webH, err := web.NewHandler(app.cfg.UIDir, app.cfg.HTTPPrefix)
 	if err != nil {
 		return err
 	}
-	// non-API/404s go to UI handler
-	mux.Handle("/", webH)
 
-	mux.HandleFunc("/admin/riverui/", func(w http.ResponseWriter, r *http.Request) {
+	// This is necessary so that we can return 404 for invalid/unknown API routes, otherwise it will get caught by the UI handler and incorrectly return the index.html or a 405 (Method Not Allowed) error.
+	mux.Handle("GET /api/", http.NotFoundHandler())
+	mux.Handle("POST /api/", http.NotFoundHandler())
+	mux.Handle("GET /v1/", http.NotFoundHandler())
+	mux.Handle("POST /v1/", http.NotFoundHandler())
+
+	// non-API/404s go to UI handler and return index.html
+	mux.Handle("GET /", webH)
+
+	mux.Handle("GET /api/graphql/explore", webH)
+	mux.Handle("GET /api/graphql/explore/", webH)
+
+	mux.HandleFunc("GET /admin/riverui/", func(w http.ResponseWriter, r *http.Request) {
 		err := permission.LimitCheckAny(r.Context(), permission.Admin)
-		if permission.IsUnauthorized(err) && !strings.HasPrefix(r.URL.Path, "/admin/riverui/api") {
+		if permission.IsUnauthorized(err) {
 			// render login since we're on a UI route
 			webH.ServeHTTP(w, r)
 			return
 		}
+		if errutil.HTTPError(r.Context(), w, err) {
+			return
+		}
+
+		app.RiverUI.ServeHTTP(w, r)
+	})
+	mux.HandleFunc("POST /admin/riverui/api/", func(w http.ResponseWriter, r *http.Request) {
+		err := permission.LimitCheckAny(r.Context(), permission.Admin)
 		if errutil.HTTPError(r.Context(), w, err) {
 			return
 		}
