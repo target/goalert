@@ -77,6 +77,10 @@ func (s *Store) userNameMap(ctx context.Context, shifts []oncall.Shift) (map[str
 func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	src := permission.Source(ctx)
+	if src == nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
 	cfg := config.FromContext(ctx)
 	if src.Type != permission.SourceTypeCalendarSubscription || cfg.General.DisableCalendarSubscriptions {
 		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)

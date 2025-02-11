@@ -13,10 +13,10 @@ export interface ListHeaderProps {
   cardHeader?: ReactNode
   // header elements will be displayed at the top of the list.
   headerNote?: string // left-aligned
-  headerAction?: JSX.Element // right-aligned
+  headerAction?: React.JSX.Element // right-aligned
 }
 
-export function ListHeader(props: ListHeaderProps): JSX.Element {
+export function ListHeader(props: ListHeaderProps): React.JSX.Element {
   const classes = useStyles()
   const { headerNote, headerAction, cardHeader } = props
   return (

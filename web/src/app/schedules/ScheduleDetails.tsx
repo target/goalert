@@ -68,7 +68,7 @@ export type ScheduleDetailsProps = {
 
 export default function ScheduleDetails({
   scheduleID,
-}: ScheduleDetailsProps): JSX.Element {
+}: ScheduleDetailsProps): React.JSX.Element {
   const [newOverride] = useURLParam('new-override', '')
   const newValidOverride = ['add', 'remove', 'replace'].includes(newOverride)
     ? newOverride
