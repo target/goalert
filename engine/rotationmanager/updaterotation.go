@@ -20,7 +20,7 @@ type UpdateArgs struct {
 
 func (UpdateArgs) Kind() string { return "rotation-manager-update" }
 
-// cleanup is a worker function that will remove any stale subscriptions.
+// updateRotation updates the state of a single rotation, and schedules a job for the next rotation time.
 func (db *DB) updateRotation(ctx context.Context, j *river.Job[UpdateArgs]) error {
 	return db.lock.WithTxShared(ctx, func(ctx context.Context, tx *sql.Tx) error {
 		g := gadb.New(tx)

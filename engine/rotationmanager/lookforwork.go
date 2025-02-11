@@ -15,7 +15,7 @@ type LookForWorkArgs struct{}
 
 func (LookForWorkArgs) Kind() string { return "rotation-manager-lfw" }
 
-// cleanup is a worker function that will remove any stale subscriptions.
+// lookForWork will schedule jobs for rotations in the entity_updates table.
 func (db *DB) lookForWork(ctx context.Context, j *river.Job[LookForWorkArgs]) error {
 	var hadWork bool
 	err := db.lock.WithTxShared(ctx, func(ctx context.Context, tx *sql.Tx) error {

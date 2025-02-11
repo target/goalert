@@ -18,7 +18,7 @@ const (
 	PriorityLFW       = 4
 )
 
-var _ processinglock.Setupable = &DB{}
+var _ processinglock.Setupable = (*DB)(nil) // assert that DB implements processinglock.Setupable
 
 // Setup implements processinglock.Setupable.
 func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
