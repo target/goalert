@@ -56,7 +56,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 const context = { suspense: false }
 
-export default function AdminMessageLogsLayout(): JSX.Element {
+export default function AdminMessageLogsLayout(): React.JSX.Element {
   const classes = useStyles()
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
 

@@ -26,7 +26,7 @@ const query = gql`
 export default function AdminAPIKeyDeleteDialog(props: {
   apiKeyID: string
   onClose: (yes: boolean) => void
-}): JSX.Element {
+}): React.JSX.Element {
   const [{ fetching, data, error }] = useQuery({
     query,
   })

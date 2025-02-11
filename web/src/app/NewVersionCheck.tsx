@@ -33,7 +33,7 @@ const fetchCurrentVersion = (): Promise<string> =>
     .then((res) => res.text())
     .then((docStr) => extractMetaTagValue(docStr, 'x-goalert-version'))
 
-export default function NewVersionCheck(): JSX.Element {
+export default function NewVersionCheck(): React.JSX.Element {
   const [currentVersion, setCurrentVersion] = useState(GOALERT_VERSION)
   const [firstSeen, setFirstSeen] = useState(DateTime.utc())
   const [lastCheck, setLastCheck] = useState(DateTime.utc())
