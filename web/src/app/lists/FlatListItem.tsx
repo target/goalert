@@ -1,8 +1,8 @@
 import React, { useLayoutEffect } from 'react'
 import classnames from 'classnames'
 import MUIListItem, {
-  ListItemProps as MUIListItemProps,
-} from '@mui/material/ListItem'
+  ListItemButtonProps as MUIListItemProps,
+} from '@mui/material/ListItemButton'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
 import ListItemText from '@mui/material/ListItemText'
@@ -16,6 +16,9 @@ const useStyles = makeStyles(() => ({
     marginTop: '8px',
     marginBottom: '8px',
     borderRadius: '4px',
+  },
+  noButton: {
+    cursor: 'default',
   },
   listItemDisabled: {
     opacity: 0.6,
@@ -89,7 +92,9 @@ export default function FlatListItem(
         [classes.listItem]: true,
         [classes.listItemDisabled]: disabled,
         [classes.listItemDraggable]: draggable,
+        [classes.noButton]: !url && !onClick,
       })}
+      disableRipple={!url && !onClick}
       selected={highlight}
     >
       {icon && <ListItemIcon tabIndex={-1}>{icon}</ListItemIcon>}
