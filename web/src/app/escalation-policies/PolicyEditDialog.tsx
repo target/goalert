@@ -25,7 +25,7 @@ const mutation = gql`
 function PolicyEditDialog(props: {
   escalationPolicyID: string
   onClose: () => void
-}): JSX.Element {
+}): React.JSX.Element {
   const [value, setValue] = useState<PolicyFormValue | null>(null)
   const [{ data, fetching }] = useQuery({
     query,

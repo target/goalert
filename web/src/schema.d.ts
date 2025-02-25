@@ -1538,7 +1538,9 @@ export interface __Field {
 
 export interface __InputValue {
   defaultValue?: null | string
+  deprecationReason?: null | string
   description?: null | string
+  isDeprecated: boolean
   name: string
   type: __Type
 }
@@ -1558,6 +1560,7 @@ export interface __Type {
   fields?: null | __Field[]
   inputFields?: null | __InputValue[]
   interfaces?: null | __Type[]
+  isOneOf?: null | boolean
   kind: __TypeKind
   name?: null | string
   ofType?: null | __Type

@@ -75,7 +75,9 @@ const updateStatusMutation = gql`
   }
 `
 
-export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
+export default function AlertDetails(
+  props: AlertDetailsProps,
+): React.JSX.Element {
   const [analyticsID] = useConfigValue('General.GoogleAnalyticsID') as [string]
   const classes = useStyles()
   const isMobile = useIsWidthDown('sm')
@@ -182,7 +184,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
     return true
   }
 
-  function getNextEscalation(): JSX.Element | string {
+  function getNextEscalation(): React.JSX.Element | string {
     const { currentLevel, lastEscalation, steps } = epsHelper()
     if (!canAutoEscalate()) return 'None'
 
@@ -201,7 +203,7 @@ export default function AlertDetails(props: AlertDetailsProps): JSX.Element {
     )
   }
 
-  function renderEscalationPolicySteps(): JSX.Element[] | JSX.Element {
+  function renderEscalationPolicySteps(): React.JSX.Element[] | JSX.Element {
     const { steps, status, currentLevel } = epsHelper()
 
     if (!steps?.length) {
