@@ -35,7 +35,7 @@ func (db *DB) updateRotation(ctx context.Context, j *river.Job[UpdateArgs]) erro
 		}
 
 		if len(row.Participants) == 0 {
-			if row.Position.Valid {
+			if row.RotationState.Version != 0 {
 				// no participants, but we have a position, so clear it
 				return g.RotMgrEnd(ctx, j.Args.RotationID)
 			}
@@ -43,15 +43,15 @@ func (db *DB) updateRotation(ctx context.Context, j *river.Job[UpdateArgs]) erro
 			return nil
 		}
 
-		loc, err := util.LoadLocation(row.TimeZone)
+		loc, err := util.LoadLocation(row.Rotation.TimeZone)
 		if err != nil {
 			return fmt.Errorf("load location: %w", err)
 		}
 
 		r := rotation.Rotation{
-			Type:        rotation.Type(row.Type),
-			Start:       row.StartTime.In(loc),
-			ShiftLength: int(row.ShiftLength),
+			Type:        rotation.Type(row.Rotation.Type),
+			Start:       row.Rotation.StartTime.In(loc),
+			ShiftLength: int(row.Rotation.ShiftLength),
 		}
 
 		// schedule next run
@@ -68,15 +68,15 @@ func (db *DB) updateRotation(ctx context.Context, j *river.Job[UpdateArgs]) erro
 			return fmt.Errorf("schedule next run: %w", err)
 		}
 
-		if !row.Position.Valid {
+		if row.RotationState.Version == 0 {
 			// no state, but we have participants, so start at the beginning
 			return g.RotMgrStart(ctx, j.Args.RotationID)
 		}
 
 		s := rotState{
-			ShiftStart: row.ShiftStart.Time.In(loc),
-			Position:   int(row.Position.Int32),
-			Version:    int(row.Version.Int32),
+			ShiftStart: row.RotationState.ShiftStart.In(loc),
+			Position:   int(row.RotationState.Position),
+			Version:    int(row.RotationState.Version),
 		}
 		adv, err := calcAdvance(ctx, row.Now, &r, s, len(row.Participants))
 		if err != nil {

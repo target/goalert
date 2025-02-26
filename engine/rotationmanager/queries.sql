@@ -2,14 +2,8 @@
 -- Get rotation data for a given rotation ID
 SELECT
     now()::timestamptz AS now,
-    rot.id,
-    rot.type,
-    rot.start_time,
-    rot.shift_length,
-    rot.time_zone,
-    state.position,
-    state.shift_start,
-    state.version,
+    sqlc.embed(rot),
+    sqlc.embed(state),
     ARRAY (
         SELECT
             p.id
@@ -51,7 +45,8 @@ UPDATE
 SET
     position = @position,
     shift_start = now(),
-    rotation_participant_id = @rotation_participant_id
+    rotation_participant_id = @rotation_participant_id,
+    version = 2
 WHERE
     rotation_id = @rotation_id;
 

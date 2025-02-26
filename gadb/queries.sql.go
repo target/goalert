@@ -4238,14 +4238,8 @@ func (q *Queries) RotMgrFindWork(ctx context.Context) ([]uuid.UUID, error) {
 const rotMgrRotationData = `-- name: RotMgrRotationData :one
 SELECT
     now()::timestamptz AS now,
-    rot.id,
-    rot.type,
-    rot.start_time,
-    rot.shift_length,
-    rot.time_zone,
-    state.position,
-    state.shift_start,
-    state.version,
+    rot.description, rot.id, rot.last_processed, rot.name, rot.participant_count, rot.shift_length, rot.start_time, rot.time_zone, rot.type,
+    state.id, state.position, state.rotation_id, state.rotation_participant_id, state.shift_start, state.version,
     ARRAY (
         SELECT
             p.id
@@ -4263,16 +4257,10 @@ WHERE
 `
 
 type RotMgrRotationDataRow struct {
-	Now          time.Time
-	ID           uuid.UUID
-	Type         EnumRotationType
-	StartTime    time.Time
-	ShiftLength  int64
-	TimeZone     string
-	Position     sql.NullInt32
-	ShiftStart   sql.NullTime
-	Version      sql.NullInt32
-	Participants []uuid.UUID
+	Now           time.Time
+	Rotation      Rotation
+	RotationState RotationState
+	Participants  []uuid.UUID
 }
 
 // Get rotation data for a given rotation ID
@@ -4281,14 +4269,21 @@ func (q *Queries) RotMgrRotationData(ctx context.Context, rotationID uuid.UUID) 
 	var i RotMgrRotationDataRow
 	err := row.Scan(
 		&i.Now,
-		&i.ID,
-		&i.Type,
-		&i.StartTime,
-		&i.ShiftLength,
-		&i.TimeZone,
-		&i.Position,
-		&i.ShiftStart,
-		&i.Version,
+		&i.Rotation.Description,
+		&i.Rotation.ID,
+		&i.Rotation.LastProcessed,
+		&i.Rotation.Name,
+		&i.Rotation.ParticipantCount,
+		&i.Rotation.ShiftLength,
+		&i.Rotation.StartTime,
+		&i.Rotation.TimeZone,
+		&i.Rotation.Type,
+		&i.RotationState.ID,
+		&i.RotationState.Position,
+		&i.RotationState.RotationID,
+		&i.RotationState.RotationParticipantID,
+		&i.RotationState.ShiftStart,
+		&i.RotationState.Version,
 		pq.Array(&i.Participants),
 	)
 	return i, err
@@ -4320,7 +4315,8 @@ UPDATE
 SET
     position = $1,
     shift_start = now(),
-    rotation_participant_id = $2
+    rotation_participant_id = $2,
+    version = 2
 WHERE
     rotation_id = $3
 `
