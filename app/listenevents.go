@@ -7,15 +7,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/util/sqlutil"
 )
 
 func (app *App) listenEvents(ctx context.Context) (<-chan struct{}, error) {
-	l, err := sqlutil.NewListener(ctx, app.cfg.LegacyLogger, app.db, "/goalert/config-refresh")
-	if err != nil {
-		return nil, err
-	}
-	app.events = l
+	l := app.events
 	go func() {
 		for {
 			select {
