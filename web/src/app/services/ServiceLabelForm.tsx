@@ -1,18 +1,28 @@
 import React from 'react'
-import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import { LabelKeySelect } from '../selection/LabelKeySelect'
 import { Config } from '../util/RequireConfig'
+import { Label } from '../../schema'
 
-function validateKey(value) {
+function validateKey(value: string): Error | undefined {
   const parts = value.split('/')
   if (parts.length !== 2)
     return new Error('Must be in the format: "example/KeyName".')
 }
 
-export default function LabelForm(props) {
+interface LabelFormProps {
+  value: Label
+  errors: Error[]
+
+  onChange: (value: Label) => void
+  editValueOnly?: boolean
+  disabled?: boolean
+  create?: boolean
+}
+
+export default function LabelForm(props: LabelFormProps): React.JSX.Element {
   const { editValueOnly = false, create, ...otherProps } = props
 
   return (
@@ -28,11 +38,11 @@ export default function LabelForm(props) {
                 label='Key'
                 name='key'
                 required
-                onCreate={
-                  // if create is enabled, allow new keys to be provided
-                  !cfg['General.DisableLabelCreation'] &&
-                  ((key) => otherProps.onChange({ ...otherProps.value, key }))
-                }
+                onCreate={(key) => {
+                  if (!cfg['General.DisableLabelCreation']) {
+                    otherProps.onChange({ ...otherProps.value, key })
+                  }
+                }}
                 validate={validateKey}
               />
             )}
@@ -50,23 +60,4 @@ export default function LabelForm(props) {
       </Grid>
     </FormContainer>
   )
-}
-LabelForm.propTypes = {
-  value: p.shape({
-    key: p.string.isRequired,
-    value: p.string.isRequired,
-  }).isRequired,
-
-  errors: p.arrayOf(
-    p.shape({
-      field: p.oneOf(['key', 'value']).isRequired,
-      message: p.string.isRequired,
-    }),
-  ),
-
-  onChange: p.func,
-
-  editValueOnly: p.bool,
-  create: p.bool,
-  disabled: p.bool,
 }
