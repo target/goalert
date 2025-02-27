@@ -26,7 +26,7 @@ export function Trash(): React.JSX.Element {
 }
 
 interface WarningProps {
-  message?: string
+  message: string
   placement?:
     | 'bottom'
     | 'left'
