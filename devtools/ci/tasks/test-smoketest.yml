@@ -8,7 +8,7 @@ outputs:
   - name: debug
 image_resource:
   type: registry-image
-  source: { repository: goalert/build-env, tag: go1.23.3-postgres13 }
+  source: { repository: goalert/build-env, tag: go1.24.0-postgres13 }
 run:
   path: sh
   dir: goalert
