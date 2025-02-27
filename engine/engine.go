@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -110,7 +111,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "notification cycle backend")
 	}
-	statMgr, err := statusmgr.NewDB(ctx, db, c.DestRegistry)
+	statMgr, err := statusmgr.NewDB(ctx, db, c.DestRegistry, c.ConfigSource)
 	if err != nil {
 		return nil, errors.Wrap(err, "status update backend")
 	}
@@ -122,7 +123,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "heartbeat processing backend")
 	}
-	cleanMgr, err := cleanupmanager.NewDB(ctx, db, c.AlertStore)
+	cleanMgr, err := cleanupmanager.NewDB(ctx, db, c.AlertStore, c.Logger.With(slog.String("module", "cleanup")))
 	if err != nil {
 		return nil, errors.Wrap(err, "cleanup backend")
 	}
@@ -167,10 +168,10 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	}
 
 	args := processinglock.SetupArgs{
-		DB:           db,
-		River:        c.River,
-		Workers:      c.RiverWorkers,
-		ConfigSource: c.ConfigSource,
+		DB:       db,
+		Workers:  c.RiverWorkers,
+		EventBus: c.EventBus,
+		River:    c.River,
 	}
 	for _, m := range p.modules {
 		if s, ok := m.(processinglock.Setupable); ok {
@@ -311,10 +312,10 @@ func (p *Engine) Shutdown(ctx context.Context) error {
 
 func (p *Engine) _shutdown(ctx context.Context) (err error) {
 	close(p.shutdownCh)
+	<-p.runLoopExit
 	if !p.cfg.DisableCycle {
 		err = p.cfg.River.Stop(ctx)
 	}
-	<-p.runLoopExit
 	return err
 }
 

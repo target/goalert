@@ -1,7 +1,7 @@
 build: while true; do make -qs bin/goalert.cover BUNDLE=1 >/dev/null || make bin/goalert.cover BUNDLE=1 || (echo '\033[0;31mBuild Failure'; sleep 3); sleep 0.1; done
 
 @watch-file=./bin/goalert.cover
-goalert: go run ./devtools/waitfor postgres://postgres@127.0.0.1:5433 && go run ./devtools/procwrap -test=127.0.0.1:3042 bin/goalert.cover -l=127.0.0.1:3042 --db-url=postgres://postgres@127.0.0.1:5433 --slack-base-url=http://127.0.0.1:3040/slack --stub-notifiers --log-errors-only --public-url=http://127.0.0.1:3040$HTTP_PREFIX
+goalert: go run ./devtools/waitfor postgres://postgres@127.0.0.1:5433 && go run ./devtools/procwrap -test=127.0.0.1:3042 bin/goalert.cover -l=127.0.0.1:3042 --db-url=postgres://postgres@127.0.0.1:5433 --slack-base-url=http://127.0.0.1:3040/slack --stub-notifiers --log-errors-only --public-url=http://127.0.0.1:3040$HTTP_PREFIX --enable-secure-headers
 
 slack: go run ./devtools/mockslack/cmd/mockslack -client-id=000000000000.000000000000 -client-secret=00000000000000000000000000000000 -access-token=xoxp-000000000000-000000000000-000000000000-00000000000000000000000000000000 -prefix=/slack -single-user=bob -addr=127.0.0.1:3046
 
@@ -10,7 +10,7 @@ proxy: go run ./devtools/simpleproxy -addr=127.0.0.1:3040 /slack/=http://127.0.0
 @oneshot
 cypress: go run ./devtools/waitfor http://127.0.0.1:3042 && CYPRESS_DB_URL=postgres://postgres@127.0.0.1:5433 ./bin/tools/bun run cypress $CY_ACTION --config baseUrl=http://127.0.0.1:3040$HTTP_PREFIX
 
-db: $CONTAINER_TOOL rm -f smoketest-postgres || true; $CONTAINER_TOOL run -it --rm --name smoketest-postgres -p5433:5432 -e=POSTGRES_HOST_AUTH_METHOD=trust postgres:13-alpine
+db: $CONTAINER_TOOL rm -f smoketest-postgres || true; $CONTAINER_TOOL run -it --rm --name smoketest-postgres -p5433:5432 -e=POSTGRES_HOST_AUTH_METHOD=trust postgres:$PG_VERSION-alpine
 
 
 @watch-file=./web/src/esbuild.config.js

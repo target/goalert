@@ -26,8 +26,10 @@ import {
 import Spinner from '../../loading/components/Spinner'
 import { Time } from '../../util/Time'
 
+type LineData = React.ComponentProps<typeof LineChart>['data']
+
 interface AlertCountLineGraphProps {
-  data: (typeof LineChart.defaultProps)['data']
+  data: LineData
   loading: boolean
   unit: DateTimeUnit
 }
@@ -56,7 +58,7 @@ interface CustomDotProps extends DotProps {
   }
 }
 
-function CustomDot(props: CustomDotProps): JSX.Element {
+function CustomDot(props: CustomDotProps): React.JSX.Element {
   const { cy, cx, fill, r, stroke, strokeWidth, name = '', payload } = props
 
   return (
@@ -75,7 +77,7 @@ function CustomDot(props: CustomDotProps): JSX.Element {
 
 export default function AlertCountLineGraph(
   props: AlertCountLineGraphProps,
-): JSX.Element {
+): React.JSX.Element {
   const [active, setActive] = useState('')
   const classes = useStyles()
   const theme = useTheme()
@@ -116,7 +118,7 @@ export default function AlertCountLineGraph(
   }
 
   function flattenData(
-    data: (typeof LineChart.defaultProps)['data'],
+    data: LineData,
   ): Array<{ [key: string]: number | string }> {
     const dateMap: { [key: string]: { [key: string]: number | string } } = {}
 

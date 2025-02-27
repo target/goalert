@@ -60,6 +60,9 @@ func (app *App) startup(ctx context.Context) error {
 
 	app.initStartup(ctx, "Startup.River", app.initRiver)
 	app.initStartup(ctx, "Startup.DBStores", app.initStores)
+	if app.startupErr != nil {
+		return app.startupErr // ConfigStore will panic if not initialized
+	}
 	ctx = app.ConfigStore.Config().Context(ctx)
 
 	// init twilio before engine

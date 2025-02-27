@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"github.com/sqlc-dev/pqtype"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/util/timeutil"
 )
 
@@ -850,6 +851,594 @@ func (q *Queries) CalSubUserNames(ctx context.Context, dollar_1 []uuid.UUID) ([]
 	return items, nil
 }
 
+const cleanupAlertLogs = `-- name: CleanupAlertLogs :one
+WITH scope AS (
+    SELECT
+        id
+    FROM
+        alert_logs l
+    WHERE
+        l.id BETWEEN $2 AND $3- 1
+    ORDER BY
+        l.id
+    LIMIT $4
+),
+id_range AS (
+    SELECT
+        min(id),
+        max(id)
+    FROM
+        scope
+),
+_delete AS (
+    DELETE FROM alert_logs
+    WHERE id = ANY (
+            SELECT
+                id
+            FROM
+                alert_logs
+            WHERE
+                id BETWEEN (
+                    SELECT
+                        min
+                    FROM
+                        id_range)
+                    AND (
+                        SELECT
+                            max
+                        FROM
+                            id_range)
+                        AND NOT EXISTS (
+                            SELECT
+                                1
+                            FROM
+                                alerts
+                            WHERE
+                                alert_id = id)
+                            FOR UPDATE
+                                SKIP LOCKED))
+                SELECT
+                    id
+                FROM
+                    scope OFFSET $1- 1
+                LIMIT 1
+`
+
+type CleanupAlertLogsParams struct {
+	BatchSize int32
+	StartID   int64
+	EndID     int64
+}
+
+func (q *Queries) CleanupAlertLogs(ctx context.Context, arg CleanupAlertLogsParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, cleanupAlertLogs,
+		arg.BatchSize,
+		arg.StartID,
+		arg.EndID,
+		arg.BatchSize,
+	)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const cleanupMgrAlertLogsMinMax = `-- name: CleanupMgrAlertLogsMinMax :one
+SELECT
+    coalesce(min(id), 0)::bigint AS min_id,
+    coalesce(max(id), 0)::bigint AS max_id
+FROM
+    alert_logs
+`
+
+type CleanupMgrAlertLogsMinMaxRow struct {
+	MinID int64
+	MaxID int64
+}
+
+// CleanupMgrAlertLogsMinMax will find the minimum and maximum id of the alert_logs table.
+func (q *Queries) CleanupMgrAlertLogsMinMax(ctx context.Context) (CleanupMgrAlertLogsMinMaxRow, error) {
+	row := q.db.QueryRowContext(ctx, cleanupMgrAlertLogsMinMax)
+	var i CleanupMgrAlertLogsMinMaxRow
+	err := row.Scan(&i.MinID, &i.MaxID)
+	return i, err
+}
+
+const cleanupMgrDeleteOldAlerts = `-- name: CleanupMgrDeleteOldAlerts :execrows
+DELETE FROM alerts
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            alerts a
+        WHERE
+            status = 'closed'
+            AND a.created_at < now() -($1::bigint * '1 day'::interval)
+        ORDER BY
+            id
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// CleanupMgrDeleteOldAlerts will delete old alerts from the alerts table that are closed and older than the given number of days before now.
+func (q *Queries) CleanupMgrDeleteOldAlerts(ctx context.Context, staleThresholdDays int64) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldAlerts, staleThresholdDays)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const cleanupMgrDeleteOldOverrides = `-- name: CleanupMgrDeleteOldOverrides :execrows
+DELETE FROM user_overrides
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            user_overrides
+        WHERE
+            end_time <(now() - '1 day'::interval * $1)
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// CleanupMgrDeleteOldOverrides will delete old overrides from the user_overrides table that are older than the given number of days before now.
+func (q *Queries) CleanupMgrDeleteOldOverrides(ctx context.Context, historyThresholdDays interface{}) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldOverrides, historyThresholdDays)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const cleanupMgrDeleteOldScheduleShifts = `-- name: CleanupMgrDeleteOldScheduleShifts :execrows
+DELETE FROM schedule_on_call_users
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            schedule_on_call_users
+        WHERE
+            end_time <(now() - '1 day'::interval * $1)
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// CleanupMgrDeleteOldScheduleShifts will delete old schedule shifts from the schedule_on_call_users table that are older than the given number of days before now.
+func (q *Queries) CleanupMgrDeleteOldScheduleShifts(ctx context.Context, historyThresholdDays interface{}) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldScheduleShifts, historyThresholdDays)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const cleanupMgrDeleteOldSessions = `-- name: CleanupMgrDeleteOldSessions :execrows
+DELETE FROM auth_user_sessions
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            auth_user_sessions
+        WHERE
+            last_access_at <(now() - '1 day'::interval * $1::int)
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// CleanupMgrDeleteOldSessions will delete old sessions from the auth_user_sessions table that are older than the given number of days before now.
+func (q *Queries) CleanupMgrDeleteOldSessions(ctx context.Context, maxSessionAgeDays int32) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldSessions, maxSessionAgeDays)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const cleanupMgrDeleteOldStepShifts = `-- name: CleanupMgrDeleteOldStepShifts :execrows
+DELETE FROM ep_step_on_call_users
+WHERE id = ANY (
+        SELECT
+            id
+        FROM
+            ep_step_on_call_users
+        WHERE
+            end_time <(now() - '1 day'::interval * $1)
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// CleanupMgrDeleteOldStepShifts will delete old EP step shifts from the ep_step_on_call_users table that are older than the given number of days before now.
+func (q *Queries) CleanupMgrDeleteOldStepShifts(ctx context.Context, historyThresholdDays interface{}) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanupMgrDeleteOldStepShifts, historyThresholdDays)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const cleanupMgrDisableOldCalSub = `-- name: CleanupMgrDisableOldCalSub :execrows
+UPDATE
+    user_calendar_subscriptions
+SET
+    disabled = TRUE
+WHERE
+    id = ANY (
+        SELECT
+            id
+        FROM
+            user_calendar_subscriptions
+        WHERE
+            greatest(last_access, last_update) <(now() - '1 day'::interval * $1::int)
+        ORDER BY
+            id
+        LIMIT 100
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// CleanupMgrDeleteOldCalSub will disable old calendar subscriptions from the user_calendar_subscriptions table that are unused for at least the given number of days.
+func (q *Queries) CleanupMgrDisableOldCalSub(ctx context.Context, inactivityThresholdDays int32) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanupMgrDisableOldCalSub, inactivityThresholdDays)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const cleanupMgrFindStaleAlerts = `-- name: CleanupMgrFindStaleAlerts :many
+SELECT
+    id
+FROM
+    alerts a
+WHERE (a.status = 'triggered'
+    OR ($1
+        AND a.status = 'active'))
+AND created_at <= now() - '1 day'::interval * $2
+AND NOT EXISTS (
+    SELECT
+        1
+    FROM
+        alert_logs log
+    WHERE
+        timestamp > now() - '1 day'::interval * $2
+        AND log.alert_id = a.id)
+LIMIT 100
+`
+
+type CleanupMgrFindStaleAlertsParams struct {
+	IncludeAcked           interface{}
+	AutoCloseThresholdDays interface{}
+}
+
+// CleanupMgrFindStaleAlerts will find alerts that are triggered or active and have no activity in specified number of days.
+func (q *Queries) CleanupMgrFindStaleAlerts(ctx context.Context, arg CleanupMgrFindStaleAlertsParams) ([]int64, error) {
+	rows, err := q.db.QueryContext(ctx, cleanupMgrFindStaleAlerts, arg.IncludeAcked, arg.AutoCloseThresholdDays)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const cleanupMgrScheduleData = `-- name: CleanupMgrScheduleData :one
+SELECT
+    data
+FROM
+    schedule_data
+WHERE
+    schedule_id = $1
+FOR UPDATE
+LIMIT 1
+`
+
+// CleanupMgrScheduleData will select the schedule data for the given schedule id.
+func (q *Queries) CleanupMgrScheduleData(ctx context.Context, scheduleID uuid.UUID) (json.RawMessage, error) {
+	row := q.db.QueryRowContext(ctx, cleanupMgrScheduleData, scheduleID)
+	var data json.RawMessage
+	err := row.Scan(&data)
+	return data, err
+}
+
+const cleanupMgrScheduleDataSkip = `-- name: CleanupMgrScheduleDataSkip :exec
+UPDATE
+    schedule_data
+SET
+    last_cleanup_at = now()
+WHERE
+    schedule_id = $1
+`
+
+// CleanupMgrScheduleDataSkip will update the last_cleanup_at field in the schedule_data table.
+func (q *Queries) CleanupMgrScheduleDataSkip(ctx context.Context, scheduleID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, cleanupMgrScheduleDataSkip, scheduleID)
+	return err
+}
+
+const cleanupMgrScheduleNeedsCleanup = `-- name: CleanupMgrScheduleNeedsCleanup :many
+SELECT
+    schedule_id
+FROM
+    schedule_data
+WHERE
+    data NOTNULL
+    AND (last_cleanup_at ISNULL
+        OR last_cleanup_at <= now() - '1 day'::interval * $1::int)
+ORDER BY
+    last_cleanup_at ASC nulls FIRST
+`
+
+// CleanupMgrScheduleNeedsCleanup will find schedules that need to be cleaned up. The last_cleanup_at field is used to ensure we clean up each schedule data at most once per interval.
+func (q *Queries) CleanupMgrScheduleNeedsCleanup(ctx context.Context, cleanupIntervalDays int32) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, cleanupMgrScheduleNeedsCleanup, cleanupIntervalDays)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var schedule_id uuid.UUID
+		if err := rows.Scan(&schedule_id); err != nil {
+			return nil, err
+		}
+		items = append(items, schedule_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const cleanupMgrUpdateScheduleData = `-- name: CleanupMgrUpdateScheduleData :exec
+UPDATE
+    schedule_data
+SET
+    last_cleanup_at = now(),
+    data = $2
+WHERE
+    schedule_id = $1
+`
+
+type CleanupMgrUpdateScheduleDataParams struct {
+	ScheduleID uuid.UUID
+	Data       json.RawMessage
+}
+
+// CleanupMgrUpdateScheduleData will update the last_cleanup_at and data fields in the schedule_data table.
+func (q *Queries) CleanupMgrUpdateScheduleData(ctx context.Context, arg CleanupMgrUpdateScheduleDataParams) error {
+	_, err := q.db.ExecContext(ctx, cleanupMgrUpdateScheduleData, arg.ScheduleID, arg.Data)
+	return err
+}
+
+const cleanupMgrVerifyUsers = `-- name: CleanupMgrVerifyUsers :many
+SELECT
+    id
+FROM
+    users
+WHERE
+    id = ANY ($1::uuid[])
+`
+
+// CleanupMgrVerifyUsers will verify that the given user ids exist in the users table.
+func (q *Queries) CleanupMgrVerifyUsers(ctx context.Context, userIds []uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, cleanupMgrVerifyUsers, pq.Array(userIds))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const compatAuthSubSetCMID = `-- name: CompatAuthSubSetCMID :exec
+UPDATE
+    auth_subjects
+SET
+    cm_id =(
+        SELECT
+            id
+        FROM
+            user_contact_methods
+        WHERE
+            type = 'SLACK_DM'
+            AND value = $2)
+WHERE
+    auth_subjects.id = $1
+`
+
+type CompatAuthSubSetCMIDParams struct {
+	ID    int64
+	Value string
+}
+
+// Updates the contact method id for an auth_subject with the given destination.
+func (q *Queries) CompatAuthSubSetCMID(ctx context.Context, arg CompatAuthSubSetCMIDParams) error {
+	_, err := q.db.ExecContext(ctx, compatAuthSubSetCMID, arg.ID, arg.Value)
+	return err
+}
+
+const compatAuthSubSlackMissingCM = `-- name: CompatAuthSubSlackMissingCM :many
+SELECT
+    cm_id, id, provider_id, subject_id, user_id
+FROM
+    auth_subjects
+WHERE
+    provider_id LIKE 'slack:%'
+    AND cm_id IS NULL
+FOR UPDATE
+    SKIP LOCKED
+LIMIT 10
+`
+
+// Get up to 10 auth_subjects (slack only) missing a contact method.
+func (q *Queries) CompatAuthSubSlackMissingCM(ctx context.Context) ([]AuthSubject, error) {
+	rows, err := q.db.QueryContext(ctx, compatAuthSubSlackMissingCM)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AuthSubject
+	for rows.Next() {
+		var i AuthSubject
+		if err := rows.Scan(
+			&i.CmID,
+			&i.ID,
+			&i.ProviderID,
+			&i.SubjectID,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const compatCMMissingSub = `-- name: CompatCMMissingSub :many
+SELECT
+    id,
+    user_id,
+    value
+FROM
+    user_contact_methods
+WHERE
+    type = 'SLACK_DM'
+    AND NOT disabled
+    AND NOT EXISTS (
+        SELECT
+            1
+        FROM
+            auth_subjects
+        WHERE
+            cm_id = user_contact_methods.id)
+FOR UPDATE
+    SKIP LOCKED
+LIMIT 10
+`
+
+type CompatCMMissingSubRow struct {
+	ID     uuid.UUID
+	UserID uuid.UUID
+	Value  string
+}
+
+// Get up to 10 contact methods missing an auth_subjects link.
+func (q *Queries) CompatCMMissingSub(ctx context.Context) ([]CompatCMMissingSubRow, error) {
+	rows, err := q.db.QueryContext(ctx, compatCMMissingSub)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CompatCMMissingSubRow
+	for rows.Next() {
+		var i CompatCMMissingSubRow
+		if err := rows.Scan(&i.ID, &i.UserID, &i.Value); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const compatInsertUserCM = `-- name: CompatInsertUserCM :exec
+INSERT INTO user_contact_methods(id, name, type, value, user_id, pending)
+    VALUES ($1, $2, $3, $4, $5, FALSE)
+ON CONFLICT (type, value)
+    DO NOTHING
+`
+
+type CompatInsertUserCMParams struct {
+	ID     uuid.UUID
+	Name   string
+	Type   EnumUserContactMethodType
+	Value  string
+	UserID uuid.UUID
+}
+
+// Inserts a new contact method for a user.
+func (q *Queries) CompatInsertUserCM(ctx context.Context, arg CompatInsertUserCMParams) error {
+	_, err := q.db.ExecContext(ctx, compatInsertUserCM,
+		arg.ID,
+		arg.Name,
+		arg.Type,
+		arg.Value,
+		arg.UserID,
+	)
+	return err
+}
+
+const compatUpsertAuthSubject = `-- name: CompatUpsertAuthSubject :exec
+INSERT INTO auth_subjects(user_id, subject_id, provider_id, cm_id)
+    VALUES ($1, $2, $3, $4)
+ON CONFLICT (subject_id, provider_id)
+    DO UPDATE SET
+        user_id = $1, cm_id = $4
+`
+
+type CompatUpsertAuthSubjectParams struct {
+	UserID     uuid.UUID
+	SubjectID  string
+	ProviderID string
+	CmID       uuid.NullUUID
+}
+
+// Inserts a new auth_subject for a user.
+func (q *Queries) CompatUpsertAuthSubject(ctx context.Context, arg CompatUpsertAuthSubjectParams) error {
+	_, err := q.db.ExecContext(ctx, compatUpsertAuthSubject,
+		arg.UserID,
+		arg.SubjectID,
+		arg.ProviderID,
+		arg.CmID,
+	)
+	return err
+}
+
 const connectionInfo = `-- name: ConnectionInfo :many
 SELECT application_name AS NAME,
     COUNT(*)
@@ -1647,6 +2236,202 @@ func (q *Queries) GQLUserOnCallOverview(ctx context.Context, userID uuid.UUID) (
 		return nil, err
 	}
 	return items, nil
+}
+
+const hBByIDForUpdate = `-- name: HBByIDForUpdate :one
+SELECT
+    additional_details, heartbeat_interval, id, last_heartbeat, last_state, muted, name, service_id
+FROM
+    heartbeat_monitors
+WHERE
+    id = $1
+FOR UPDATE
+`
+
+// HBByIDForUpdate returns a single heartbeat record by ID for update.
+func (q *Queries) HBByIDForUpdate(ctx context.Context, id uuid.UUID) (HeartbeatMonitor, error) {
+	row := q.db.QueryRowContext(ctx, hBByIDForUpdate, id)
+	var i HeartbeatMonitor
+	err := row.Scan(
+		&i.AdditionalDetails,
+		&i.HeartbeatInterval,
+		&i.ID,
+		&i.LastHeartbeat,
+		&i.LastState,
+		&i.Muted,
+		&i.Name,
+		&i.ServiceID,
+	)
+	return i, err
+}
+
+const hBByService = `-- name: HBByService :many
+SELECT
+    additional_details, heartbeat_interval, id, last_heartbeat, last_state, muted, name, service_id
+FROM
+    heartbeat_monitors
+WHERE
+    service_id = $1
+`
+
+// HBByService returns all heartbeat records for a service.
+func (q *Queries) HBByService(ctx context.Context, serviceID uuid.UUID) ([]HeartbeatMonitor, error) {
+	rows, err := q.db.QueryContext(ctx, hBByService, serviceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []HeartbeatMonitor
+	for rows.Next() {
+		var i HeartbeatMonitor
+		if err := rows.Scan(
+			&i.AdditionalDetails,
+			&i.HeartbeatInterval,
+			&i.ID,
+			&i.LastHeartbeat,
+			&i.LastState,
+			&i.Muted,
+			&i.Name,
+			&i.ServiceID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const hBDelete = `-- name: HBDelete :exec
+DELETE FROM heartbeat_monitors
+WHERE id = ANY ($1::uuid[])
+`
+
+// HBDelete will delete a heartbeat record.
+func (q *Queries) HBDelete(ctx context.Context, id []uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, hBDelete, pq.Array(id))
+	return err
+}
+
+const hBInsert = `-- name: HBInsert :exec
+INSERT INTO heartbeat_monitors(id, name, service_id, heartbeat_interval, additional_details, muted)
+    VALUES ($1, $2, $3, $4, $5, $6)
+`
+
+type HBInsertParams struct {
+	ID                uuid.UUID
+	Name              string
+	ServiceID         uuid.UUID
+	HeartbeatInterval sqlutil.Interval
+	AdditionalDetails sql.NullString
+	Muted             sql.NullString
+}
+
+// HBInsert will insert a new heartbeat record.
+func (q *Queries) HBInsert(ctx context.Context, arg HBInsertParams) error {
+	_, err := q.db.ExecContext(ctx, hBInsert,
+		arg.ID,
+		arg.Name,
+		arg.ServiceID,
+		arg.HeartbeatInterval,
+		arg.AdditionalDetails,
+		arg.Muted,
+	)
+	return err
+}
+
+const hBManyByID = `-- name: HBManyByID :many
+SELECT
+    additional_details, heartbeat_interval, id, last_heartbeat, last_state, muted, name, service_id
+FROM
+    heartbeat_monitors
+WHERE
+    id = ANY ($1::uuid[])
+`
+
+// HBManyByID returns multiple heartbeat records by their IDs.
+func (q *Queries) HBManyByID(ctx context.Context, ids []uuid.UUID) ([]HeartbeatMonitor, error) {
+	rows, err := q.db.QueryContext(ctx, hBManyByID, pq.Array(ids))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []HeartbeatMonitor
+	for rows.Next() {
+		var i HeartbeatMonitor
+		if err := rows.Scan(
+			&i.AdditionalDetails,
+			&i.HeartbeatInterval,
+			&i.ID,
+			&i.LastHeartbeat,
+			&i.LastState,
+			&i.Muted,
+			&i.Name,
+			&i.ServiceID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const hBRecordHeartbeat = `-- name: HBRecordHeartbeat :exec
+UPDATE
+    heartbeat_monitors
+SET
+    last_heartbeat = now()
+WHERE
+    id = $1
+`
+
+// HBRecordHeartbeat updates the last heartbeat time for a monitor.
+func (q *Queries) HBRecordHeartbeat(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, hBRecordHeartbeat, id)
+	return err
+}
+
+const hBUpdate = `-- name: HBUpdate :exec
+UPDATE
+    heartbeat_monitors
+SET
+    name = $1,
+    heartbeat_interval = $2,
+    additional_details = $3,
+    muted = $4
+WHERE
+    id = $5
+`
+
+type HBUpdateParams struct {
+	Name              string
+	HeartbeatInterval sqlutil.Interval
+	AdditionalDetails sql.NullString
+	Muted             sql.NullString
+	ID                uuid.UUID
+}
+
+// HBUpdate will update a heartbeat record.
+func (q *Queries) HBUpdate(ctx context.Context, arg HBUpdateParams) error {
+	_, err := q.db.ExecContext(ctx, hBUpdate,
+		arg.Name,
+		arg.HeartbeatInterval,
+		arg.AdditionalDetails,
+		arg.Muted,
+		arg.ID,
+	)
+	return err
 }
 
 const intKeyCreate = `-- name: IntKeyCreate :exec
@@ -4109,42 +4894,6 @@ func (q *Queries) SignalMgrUpdateSignal(ctx context.Context, arg SignalMgrUpdate
 	return err
 }
 
-const statusMgrCMInfo = `-- name: StatusMgrCMInfo :one
-SELECT
-    user_id,
-    dest
-FROM
-    user_contact_methods
-WHERE
-    id = $1
-    AND NOT disabled
-    AND enable_status_updates
-`
-
-type StatusMgrCMInfoRow struct {
-	UserID uuid.UUID
-	Dest   NullDestV1
-}
-
-func (q *Queries) StatusMgrCMInfo(ctx context.Context, id uuid.UUID) (StatusMgrCMInfoRow, error) {
-	row := q.db.QueryRowContext(ctx, statusMgrCMInfo, id)
-	var i StatusMgrCMInfoRow
-	err := row.Scan(&i.UserID, &i.Dest)
-	return i, err
-}
-
-const statusMgrCleanupDisabledSubs = `-- name: StatusMgrCleanupDisabledSubs :exec
-DELETE FROM alert_status_subscriptions sub USING user_contact_methods cm
-WHERE sub.contact_method_id = cm.id
-    AND (cm.disabled
-        OR NOT cm.enable_status_updates)
-`
-
-func (q *Queries) StatusMgrCleanupDisabledSubs(ctx context.Context) error {
-	_, err := q.db.ExecContext(ctx, statusMgrCleanupDisabledSubs)
-	return err
-}
-
 const statusMgrCleanupStaleSubs = `-- name: StatusMgrCleanupStaleSubs :exec
 DELETE FROM alert_status_subscriptions sub
 WHERE sub.updated_at < now() - '7 days'::interval
@@ -4165,6 +4914,44 @@ func (q *Queries) StatusMgrDeleteSub(ctx context.Context, id int64) error {
 	return err
 }
 
+const statusMgrFindOne = `-- name: StatusMgrFindOne :one
+SELECT
+    sub.alert_id, sub.channel_id, sub.contact_method_id, sub.id, sub.last_alert_status, sub.updated_at,
+    a.status
+FROM
+    alert_status_subscriptions sub
+    JOIN alerts a ON a.id = sub.alert_id
+WHERE
+    sub.id = $1
+FOR UPDATE
+    SKIP LOCKED
+`
+
+type StatusMgrFindOneRow struct {
+	AlertID         int64
+	ChannelID       uuid.NullUUID
+	ContactMethodID uuid.NullUUID
+	ID              int64
+	LastAlertStatus EnumAlertStatus
+	UpdatedAt       time.Time
+	Status          EnumAlertStatus
+}
+
+func (q *Queries) StatusMgrFindOne(ctx context.Context, id int64) (StatusMgrFindOneRow, error) {
+	row := q.db.QueryRowContext(ctx, statusMgrFindOne, id)
+	var i StatusMgrFindOneRow
+	err := row.Scan(
+		&i.AlertID,
+		&i.ChannelID,
+		&i.ContactMethodID,
+		&i.ID,
+		&i.LastAlertStatus,
+		&i.UpdatedAt,
+		&i.Status,
+	)
+	return i, err
+}
+
 const statusMgrLogEntry = `-- name: StatusMgrLogEntry :one
 SELECT
     id,
@@ -4174,7 +4961,6 @@ FROM
 WHERE
     alert_id = $1::bigint
     AND event = $2::enum_alert_log_event
-    AND timestamp > now() - '1 hour'::interval
 ORDER BY
     id DESC
 LIMIT 1
@@ -4197,53 +4983,40 @@ func (q *Queries) StatusMgrLogEntry(ctx context.Context, arg StatusMgrLogEntryPa
 	return i, err
 }
 
-const statusMgrNextUpdate = `-- name: StatusMgrNextUpdate :one
+const statusMgrOutdated = `-- name: StatusMgrOutdated :many
 SELECT
-    sub.id,
-    channel_id,
-    contact_method_id,
-    alert_id,
-(
-        SELECT
-            status
-        FROM
-            alerts a
-        WHERE
-            a.id = sub.alert_id)
+    sub.id
 FROM
     alert_status_subscriptions sub
-WHERE (NOT (sub.id = ANY ($1::bigint[])))
-    AND sub.last_alert_status !=(
-        SELECT
-            status
-        FROM
-            alerts a
-        WHERE
-            a.id = sub.alert_id)
-LIMIT 1
-FOR UPDATE
-    SKIP LOCKED
+    JOIN alerts a ON a.id = sub.alert_id
+WHERE
+    sub.last_alert_status != a.status
+    AND sub.updated_at > now() - '7 days'::interval
+    AND ($1::bigint IS NULL
+        OR sub.alert_id = $1::bigint)
 `
 
-type StatusMgrNextUpdateRow struct {
-	ID              int64
-	ChannelID       uuid.NullUUID
-	ContactMethodID uuid.NullUUID
-	AlertID         int64
-	Status          EnumAlertStatus
-}
-
-func (q *Queries) StatusMgrNextUpdate(ctx context.Context, dollar_1 []int64) (StatusMgrNextUpdateRow, error) {
-	row := q.db.QueryRowContext(ctx, statusMgrNextUpdate, pq.Array(dollar_1))
-	var i StatusMgrNextUpdateRow
-	err := row.Scan(
-		&i.ID,
-		&i.ChannelID,
-		&i.ContactMethodID,
-		&i.AlertID,
-		&i.Status,
-	)
-	return i, err
+func (q *Queries) StatusMgrOutdated(ctx context.Context, alertID sql.NullInt64) ([]int64, error) {
+	rows, err := q.db.QueryContext(ctx, statusMgrOutdated, alertID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const statusMgrSendChannelMsg = `-- name: StatusMgrSendChannelMsg :exec
@@ -4289,21 +5062,6 @@ func (q *Queries) StatusMgrSendUserMsg(ctx context.Context, arg StatusMgrSendUse
 		arg.AlertID,
 		arg.LogID,
 	)
-	return err
-}
-
-const statusMgrUpdateCMForced = `-- name: StatusMgrUpdateCMForced :exec
-UPDATE
-    user_contact_methods
-SET
-    enable_status_updates = TRUE
-WHERE
-    dest ->> 'Type' = ANY ($1::text[])
-    AND NOT enable_status_updates
-`
-
-func (q *Queries) StatusMgrUpdateCMForced(ctx context.Context, forcedDestTypes []string) error {
-	_, err := q.db.ExecContext(ctx, statusMgrUpdateCMForced, pq.Array(forcedDestTypes))
 	return err
 }
 

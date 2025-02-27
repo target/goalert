@@ -34,35 +34,22 @@ LD_FLAGS+=-X github.com/target/goalert/version.buildDate=$(BUILD_DATE)
 IMAGE_REPO=docker.io/goalert
 IMAGE_TAG=$(GIT_VERSION)
 
-CONTAINER_TOOL:=$(shell which podman || which docker || exit 1)
 PUSH:=0
 
-container-goalert-manifest:
-	podman manifest rm $(IMAGE_REPO)/goalert:$(IMAGE_TAG) &>/dev/null || true
-	podman manifest create $(IMAGE_REPO)/goalert:$(IMAGE_TAG)
-
-container-demo-manifest:
-	podman manifest rm $(IMAGE_REPO)/demo:$(IMAGE_TAG) &>/dev/null || true
-	podman manifest create $(IMAGE_REPO)/demo:$(IMAGE_TAG)
-
-{{range $.ContainerArch}}
-container-demo-{{.}}: container-demo-manifest bin/goalert-linux-{{.}}.tgz bin/linux-{{.}}/resetdb
-	podman pull --platform=linux/{{.}} docker.io/library/alpine:3.14
-	podman build --format docker --build-arg ARCH={{.}} --platform=linux/{{.}} --manifest $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
-container-goalert-{{.}}: container-goalert-manifest bin/goalert-linux-{{.}}.tgz
-	podman pull --platform=linux/{{.}} docker.io/library/alpine:3.14
-	podman build --format docker --build-arg ARCH={{.}} --platform=linux/{{.}} --manifest $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
-{{end}}
-container-demo: {{range $.ContainerArch}} container-demo-{{.}}{{end}}
+PUSH_ARG=
 ifeq ($(PUSH),1)
-	podman manifest push --all $(IMAGE_REPO)/demo:$(IMAGE_TAG) docker://$(IMAGE_REPO)/demo:$(IMAGE_TAG)
-endif
-container-goalert: {{range $.ContainerArch}} container-goalert-{{.}}{{end}}
-ifeq ($(PUSH),1)
-	podman manifest push --all $(IMAGE_REPO)/goalert:$(IMAGE_TAG) docker://$(IMAGE_REPO)/goalert:$(IMAGE_TAG)
+	PUSH_ARG=--push
 endif
 
-$(BIN_DIR)/build/integration/cypress/plugins/index.js: package.json bun.lockb web/src/esbuild.cypress.js $(shell find ./web/src/cypress)
+PREBUILT:=.prebuilt
+
+container-goalert:{{range $.ContainerArch}} bin/goalert-linux-{{.}}.tgz{{end}}
+	docker buildx build --platform linux/amd64,linux/arm64,linux/arm -t $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile$(PREBUILT) $(PUSH_ARG) .
+
+container-demo:{{range $.ContainerArch}} bin/goalert-linux-{{.}}.tgz bin/linux-{{.}}/resetdb{{end}}
+	docker buildx build --platform linux/amd64,linux/arm64,linux/arm -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile$(PREBUILT) $(PUSH_ARG) .
+
+$(BIN_DIR)/build/integration/cypress/plugins/index.js: package.json yarn.lock web/src/esbuild.cypress.js $(shell find ./web/src/cypress)
 	rm -rf $@
 	$(BIN_DIR)/tools/bun run esbuild-cy
 	mkdir -p $@/plugins

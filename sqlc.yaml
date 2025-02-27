@@ -26,6 +26,14 @@ sql:
         out: gadb
         sql_package: database/sql
         overrides:
+          - db_type: pg_catalog.interval
+            go_type:
+              import: github.com/target/goalert/util/sqlutil
+              type: Interval
+          - db_type: interval
+            go_type:
+              import: github.com/target/goalert/util/sqlutil
+              type: Interval
           - column: public.schedule_rules.start_time
             go_type:
               import: github.com/target/goalert/util/timeutil

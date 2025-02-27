@@ -197,7 +197,12 @@ func (m *Manager) Run(ctx context.Context) error {
 
 	err := m.runFunc(ctx)
 	close(m.runDone)
-	<-m.shutdownDone
+	s = <-m.status
+	m.status <- s
+	if s == StatusShutdown {
+		<-m.shutdownDone
+	}
+
 	return err
 }
 

@@ -236,7 +236,15 @@ func TestMigrations(t *testing.T) {
 		t.Fatal("failed to open db:", err)
 	}
 	defer db.Close()
-	dbName := strings.Replace("migrations_smoketest_"+time.Now().Format("2006_01_02_03_04_05")+uuid.New().String(), "-", "", -1)
+
+	// Postgres has a limit of 63 characters for database names,
+	// it will automatically truncate them, however, starting with
+	// Postgres 17, trying to connect will fail with database not found
+	// if the name is too long. In either case we want to avoid the
+	// truncation, so we generate a name that is guaranteed to be
+	// less than 63 characters.
+	dbName := strings.Replace("migrate_test_"+time.Now().Format("20060102030405")+uuid.New().String(), "-", "", -1)
+	require.LessOrEqual(t, len(dbName), 63, "database name too long")
 
 	testURL := harness.DBURL(dbName)
 

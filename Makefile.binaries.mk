@@ -36,49 +36,22 @@ LD_FLAGS+=-X github.com/target/goalert/version.buildDate=$(BUILD_DATE)
 IMAGE_REPO=docker.io/goalert
 IMAGE_TAG=$(GIT_VERSION)
 
-CONTAINER_TOOL:=$(shell which podman || which docker || exit 1)
 PUSH:=0
 
-container-goalert-manifest:
-	podman manifest rm $(IMAGE_REPO)/goalert:$(IMAGE_TAG) &>/dev/null || true
-	podman manifest create $(IMAGE_REPO)/goalert:$(IMAGE_TAG)
-
-container-demo-manifest:
-	podman manifest rm $(IMAGE_REPO)/demo:$(IMAGE_TAG) &>/dev/null || true
-	podman manifest create $(IMAGE_REPO)/demo:$(IMAGE_TAG)
-
-
-container-demo-amd64: container-demo-manifest bin/goalert-linux-amd64.tgz bin/linux-amd64/resetdb
-	podman pull --platform=linux/amd64 docker.io/library/alpine:3.14
-	podman build --format docker --build-arg ARCH=amd64 --platform=linux/amd64 --manifest $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
-container-goalert-amd64: container-goalert-manifest bin/goalert-linux-amd64.tgz
-	podman pull --platform=linux/amd64 docker.io/library/alpine:3.14
-	podman build --format docker --build-arg ARCH=amd64 --platform=linux/amd64 --manifest $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
-
-container-demo-arm: container-demo-manifest bin/goalert-linux-arm.tgz bin/linux-arm/resetdb
-	podman pull --platform=linux/arm docker.io/library/alpine:3.14
-	podman build --format docker --build-arg ARCH=arm --platform=linux/arm --manifest $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
-container-goalert-arm: container-goalert-manifest bin/goalert-linux-arm.tgz
-	podman pull --platform=linux/arm docker.io/library/alpine:3.14
-	podman build --format docker --build-arg ARCH=arm --platform=linux/arm --manifest $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
-
-container-demo-arm64: container-demo-manifest bin/goalert-linux-arm64.tgz bin/linux-arm64/resetdb
-	podman pull --platform=linux/arm64 docker.io/library/alpine:3.14
-	podman build --format docker --build-arg ARCH=arm64 --platform=linux/arm64 --manifest $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
-container-goalert-arm64: container-goalert-manifest bin/goalert-linux-arm64.tgz
-	podman pull --platform=linux/arm64 docker.io/library/alpine:3.14
-	podman build --format docker --build-arg ARCH=arm64 --platform=linux/arm64 --manifest $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
-
-container-demo:  container-demo-amd64 container-demo-arm container-demo-arm64
+PUSH_ARG=
 ifeq ($(PUSH),1)
-	podman manifest push --all $(IMAGE_REPO)/demo:$(IMAGE_TAG) docker://$(IMAGE_REPO)/demo:$(IMAGE_TAG)
-endif
-container-goalert:  container-goalert-amd64 container-goalert-arm container-goalert-arm64
-ifeq ($(PUSH),1)
-	podman manifest push --all $(IMAGE_REPO)/goalert:$(IMAGE_TAG) docker://$(IMAGE_REPO)/goalert:$(IMAGE_TAG)
+	PUSH_ARG=--push
 endif
 
-$(BIN_DIR)/build/integration/cypress/plugins/index.js: package.json bun.lockb web/src/esbuild.cypress.js $(shell find ./web/src/cypress)
+PREBUILT:=.prebuilt
+
+container-goalert: bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz
+	docker buildx build --platform linux/amd64,linux/arm64,linux/arm -t $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile$(PREBUILT) $(PUSH_ARG) .
+
+container-demo: bin/goalert-linux-amd64.tgz bin/linux-amd64/resetdb bin/goalert-linux-arm.tgz bin/linux-arm/resetdb bin/goalert-linux-arm64.tgz bin/linux-arm64/resetdb
+	docker buildx build --platform linux/amd64,linux/arm64,linux/arm -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile$(PREBUILT) $(PUSH_ARG) .
+
+$(BIN_DIR)/build/integration/cypress/plugins/index.js: package.json yarn.lock web/src/esbuild.cypress.js $(shell find ./web/src/cypress)
 	rm -rf $@
 	$(BIN_DIR)/tools/bun run esbuild-cy
 	mkdir -p $@/plugins

@@ -21,7 +21,7 @@ interface PolicyFormProps {
   onChange?: (value: PolicyFormValue) => void
 }
 
-function PolicyForm(props: PolicyFormProps): JSX.Element {
+function PolicyForm(props: PolicyFormProps): React.JSX.Element {
   return (
     <FormContainer optionalLabels {...props}>
       <Grid container spacing={2}>

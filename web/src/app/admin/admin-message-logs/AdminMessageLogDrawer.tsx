@@ -32,7 +32,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-export default function AdminMessageLogDrawer(props: Props): JSX.Element {
+export default function AdminMessageLogDrawer(props: Props): React.JSX.Element {
   const { onClose, log } = props
   const classes = useStyles()
 

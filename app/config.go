@@ -54,6 +54,8 @@ type Config struct {
 
 	DisableHTTPSRedirect bool
 
+	EnableSecureHeaders bool
+
 	TwilioBaseURL string
 	SlackBaseURL  string
 

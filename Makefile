@@ -57,6 +57,8 @@ ifeq ($(PUSH), 1)
 PUSH_FLAG=--push
 endif
 
+CONTAINER_TOOL ?= docker
+
 all: test
 
 release: container-demo container-goalert bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz bin/goalert-windows-amd64.zip ## Build all release artifacts
@@ -125,21 +127,21 @@ cypress: bin/goalert.cover bin/psql-lite bin/pgmocktime $(NODE_DEPS) web/src/sch
 	$(BIN_DIR)/tools/bun run cypress install
 
 cy-wide: cypress ## Start cypress tests in desktop mode with dev build in UI mode
-	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 go run ./devtools/runproc -f Procfile.cypress
+	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) PG_VERSION=$(PG_VERSION) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 go run ./devtools/runproc -f Procfile.cypress
 cy-mobile: cypress ## Start cypress tests in mobile mode with dev build in UI mode
-	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 go run ./devtools/runproc -f Procfile.cypress
+	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) PG_VERSION=$(PG_VERSION) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 go run ./devtools/runproc -f Procfile.cypress
 cy-wide-prod: web/src/build/static/app.js cypress ## Start cypress tests in desktop mode with production build in UI mode
-	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f $(PROD_CY_PROC)
+	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) PG_VERSION=$(PG_VERSION) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f $(PROD_CY_PROC)
 cy-mobile-prod: web/src/build/static/app.js cypress ## Start cypress tests in mobile mode with production build in UI mode
-	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f $(PROD_CY_PROC)
+	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) PG_VERSION=$(PG_VERSION) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f $(PROD_CY_PROC)
 cy-wide-prod-run: web/src/build/static/app.js cypress ## Start cypress tests in desktop mode with production build in headless mode
 	rm -rf test/coverage/integration/cypress-wide
 	mkdir -p test/coverage/integration/cypress-wide
-	GOCOVERDIR=test/coverage/integration/cypress-wide $(MAKE) $(MFLAGS) cy-wide-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1 GOALERT_VERSION=$(GIT_VERSION) 
+	GOCOVERDIR=test/coverage/integration/cypress-wide $(MAKE) $(MFLAGS) cy-wide-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) PG_VERSION=$(PG_VERSION) BUNDLE=1 GOALERT_VERSION=$(GIT_VERSION) 
 cy-mobile-prod-run: web/src/build/static/app.js cypress ## Start cypress tests in mobile mode with production build in headless mode
 	rm -rf test/coverage/integration/cypress-mobile
 	mkdir -p test/coverage/integration/cypress-mobile
-	GOCOVERDIR=test/coverage/integration/cypress-mobile $(MAKE) $(MFLAGS) cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) BUNDLE=1 GOALERT_VERSION=$(GIT_VERSION) 
+	GOCOVERDIR=test/coverage/integration/cypress-mobile $(MAKE) $(MFLAGS) cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) PG_VERSION=$(PG_VERSION) BUNDLE=1 GOALERT_VERSION=$(GIT_VERSION) 
 
 swo/swodb/queries.sql.go: $(BIN_DIR)/tools/sqlc sqlc.yaml swo/*/*.sql migrate/migrations/*.sql */queries.sql */*/queries.sql migrate/schema.sql
 	$(BIN_DIR)/tools/sqlc generate

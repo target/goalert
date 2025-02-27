@@ -249,6 +249,7 @@ export interface CreateGQLAPIKeyInput {
 
 export interface CreateHeartbeatMonitorInput {
   additionalDetails?: null | string
+  muted?: null | string
   name: string
   serviceID?: null | string
   timeoutMinutes: number
@@ -584,6 +585,7 @@ export interface HeartbeatMonitor {
   id: string
   lastHeartbeat?: null | ISOTimestamp
   lastState: HeartbeatMonitorState
+  muted: string
   name: string
   serviceID: string
   timeoutMinutes: number
@@ -656,6 +658,11 @@ export interface KeyRule {
   description: string
   id: string
   name: string
+}
+
+export interface KeyRuleActionsInput {
+  actions: ActionInput[]
+  id: string
 }
 
 export interface KeyRuleInput {
@@ -1290,6 +1297,7 @@ export interface UpdateGQLAPIKeyInput {
 export interface UpdateHeartbeatMonitorInput {
   additionalDetails?: null | string
   id: string
+  muted?: null | string
   name?: null | string
   timeoutMinutes?: null | number
 }
@@ -1300,6 +1308,8 @@ export interface UpdateKeyConfigInput {
   keyID: string
   rules?: null | KeyRuleInput[]
   setRule?: null | KeyRuleInput
+  setRuleActions?: null | KeyRuleActionsInput
+  setRuleOrder?: null | string[]
 }
 
 export interface UpdateRotationInput {
@@ -1528,7 +1538,9 @@ export interface __Field {
 
 export interface __InputValue {
   defaultValue?: null | string
+  deprecationReason?: null | string
   description?: null | string
+  isDeprecated: boolean
   name: string
   type: __Type
 }
@@ -1548,6 +1560,7 @@ export interface __Type {
   fields?: null | __Field[]
   inputFields?: null | __InputValue[]
   interfaces?: null | __Type[]
+  isOneOf?: null | boolean
   kind: __TypeKind
   name?: null | string
   ofType?: null | __Type
