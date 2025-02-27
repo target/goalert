@@ -14,7 +14,7 @@ import {
   BoolInput,
 } from './AdminFieldComponents'
 import { ConfigValue } from '../../schema'
-import { Alert } from '@mui/material'
+import { Alert, ListItemButton } from '@mui/material'
 
 const components = {
   string: StringInput,
@@ -40,6 +40,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     // 71px is the height of the checkbox field without w/o a desc
     minHeight: '71px',
     padding: '1em',
+    cursor: 'default',
   },
   listItemText: {
     maxWidth: '50%',
@@ -81,10 +82,11 @@ export default function AdminSection(
         {fields.map((f: FieldProps, idx: number) => {
           const Field = components[f.type]
           return (
-            <ListItem
+            <ListItemButton
               key={f.id}
               className={classes.listItem}
               divider={idx !== fields.length - 1}
+              disableRipple
               selected={_.has(value, f.id)}
             >
               <ListItemText
@@ -117,7 +119,7 @@ export default function AdminSection(
                   }
                 />
               </div>
-            </ListItem>
+            </ListItemButton>
           )
         })}
       </List>

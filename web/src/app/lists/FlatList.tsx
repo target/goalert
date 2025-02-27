@@ -7,7 +7,7 @@ import React, {
 } from 'react'
 import ButtonBase from '@mui/material/ButtonBase'
 import List, { ListProps } from '@mui/material/List'
-import MUIListItem, { ListItemProps } from '@mui/material/ListItem'
+import MUIListItem, { ListItemButtonProps } from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import ListSubheader from '@mui/material/ListSubheader'
@@ -101,7 +101,8 @@ export interface FlatListNotice extends Notice {
   handleOnClick?: (event: MouseEvent) => void
   'data-cy'?: string
 }
-export interface FlatListItemOptions extends Omit<ListItemProps, 'title'> {
+export interface FlatListItemOptions
+  extends Omit<ListItemButtonProps, 'title'> {
   title?: React.ReactNode
   primaryText?: React.ReactNode
   highlight?: boolean
@@ -397,10 +398,14 @@ export default function FlatList({
             <List>
               {items
                 .filter(
-                  (item: FlatListItemOptions) => item.section === section.title,
+                  (item: FlatListListItem) =>
+                    'section' in item && item.section === section.title,
                 )
                 .map((item, idx) => {
-                  return <FlatListItem index={idx} key={idx} item={item} />
+                  if ('title' in item) {
+                    return <FlatListItem index={idx} key={idx} item={item} />
+                  }
+                  return null
                 })}
             </List>
           </Collapse>
