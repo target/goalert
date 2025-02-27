@@ -31,7 +31,6 @@ type Store struct {
 	findMany     *sql.Stmt
 	getServiceID *sql.Stmt
 
-	lockSvc      *sql.Stmt
 	lockAlertSvc *sql.Stmt
 
 	getStatusAndLockSvc *sql.Stmt
@@ -42,8 +41,6 @@ type Store struct {
 
 	updateByStatusAndService *sql.Stmt
 	updateByIDAndStatus      *sql.Stmt
-
-	noStepsBySvc *sql.Stmt
 
 	epID *sql.Stmt
 
@@ -69,18 +66,6 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store, evt *event
 		logDB: logDB,
 		evt:   evt,
 
-		noStepsBySvc: p(`
-			SELECT coalesce(
-				(SELECT true
-				FROM escalation_policies pol
-				JOIN services svc ON svc.id = $1
-				WHERE
-					pol.id = svc.escalation_policy_id
-					AND pol.step_count = 0)
-			, false)
-		`),
-
-		lockSvc:      p(`select 1 from services where id = $1 for update`),
 		lockAlertSvc: p(`SELECT 1 FROM services s JOIN alerts a ON a.id = ANY ($1) AND s.id = a.service_id FOR UPDATE`),
 		getStatusAndLockSvc: p(`
 			SELECT a.status
@@ -559,7 +544,7 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Alert, err
 	return n, nil
 }
 
-func (s *Store) _create(ctx context.Context, tx *sql.Tx, a Alert) (*Alert, *alertlog.CreatedMetaData, error) {
+func (s *Store) _create(ctx context.Context, db gadb.DBTX, a Alert) (*Alert, *alertlog.CreatedMetaData, error) {
 	var meta alertlog.CreatedMetaData
 	row := tx.StmtContext(ctx, s.insert).QueryRowContext(ctx, a.Summary, a.Details, a.ServiceID, a.Source, a.Status, a.DedupKey())
 	err := row.Scan(&a.ID, &a.CreatedAt)
@@ -567,7 +552,7 @@ func (s *Store) _create(ctx context.Context, tx *sql.Tx, a Alert) (*Alert, *aler
 		return nil, nil, err
 	}
 
-	err = tx.StmtContext(ctx, s.noStepsBySvc).QueryRowContext(ctx, a.ServiceID).Scan(&meta.EPNoSteps)
+	_, err = gadb.New(db).NoStepsByService(ctx, a.ServiceID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -577,7 +562,7 @@ func (s *Store) _create(ctx context.Context, tx *sql.Tx, a Alert) (*Alert, *aler
 
 // CreateOrUpdateTx returns `isNew` to indicate if the returned alert was a new one.
 // It is the caller's responsibility to log alert creation if the transaction is committed (and isNew is true).
-func (s *Store) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Alert, bool, error) {
+func (s *Store) CreateOrUpdateTx(ctx context.Context, db gadb.DBTX, a *Alert) (*Alert, bool, error) {
 	err := permission.LimitCheckAny(ctx,
 		permission.System,
 		permission.Admin,
@@ -621,7 +606,7 @@ func (s *Store) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Al
 			logType = alertlog.TypeDuplicateSupressed
 		} else {
 			logType = alertlog.TypeCreated
-			stepErr := tx.StmtContext(ctx, s.noStepsBySvc).QueryRowContext(ctx, n.ServiceID).Scan(&m.EPNoSteps)
+			_, stepErr := gadb.New(db).NoStepsByService(ctx, n.ServiceID)
 			if stepErr != nil {
 				return nil, false, err
 			}
