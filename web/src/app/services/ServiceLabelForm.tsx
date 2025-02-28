@@ -38,11 +38,12 @@ export default function LabelForm(props: LabelFormProps): React.JSX.Element {
                 label='Key'
                 name='key'
                 required
-                onCreate={(key) => {
-                  if (!cfg['General.DisableLabelCreation']) {
-                    otherProps.onChange({ ...otherProps.value, key })
-                  }
-                }}
+                onCreate={
+                  !cfg['General.DisableLabelCreation']
+                    ? (key: string) =>
+                        otherProps.onChange({ ...otherProps.value, key })
+                    : undefined
+                }
                 validate={validateKey}
               />
             )}
