@@ -1,6 +1,6 @@
 import React from 'react'
 import AppLink from '../util/AppLink'
-import { useQuery, gql } from '@apollo/client'
+import { useQuery, gql } from 'urql'
 import { Target } from '../../schema'
 
 const query = gql`
@@ -13,16 +13,17 @@ const query = gql`
 `
 
 export const SlackChannelLink = (slackChannel: Target): React.JSX.Element => {
-  const { data, loading, error } = useQuery(query, {
+  const [{ data, fetching, error }] = useQuery({
+    query,
     variables: { id: slackChannel.id },
-    fetchPolicy: 'cache-first',
+    requestPolicy: 'cache-first',
   })
   const teamID = data?.slackChannel?.teamID
 
   if (error) {
     console.error(`Error querying slackChannel ${slackChannel.id}:`, error)
   }
-  if (data && !teamID && !loading) {
+  if (data && !teamID && !fetching) {
     console.error('Error generating Slack link: team ID not found')
   }
 
