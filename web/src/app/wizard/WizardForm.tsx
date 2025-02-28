@@ -15,7 +15,7 @@ import * as _ from 'lodash'
 import { useIsWidthDown } from '../util/useWidth'
 import MaterialSelect from '../selection/MaterialSelect'
 import { useFeatures } from '../util/RequireConfig'
-import { RotationType, User } from '../../schema'
+import { RotationType } from '../../schema'
 
 const useStyles = makeStyles({
   fieldItem: {
@@ -32,14 +32,14 @@ export interface WizardFormRotation {
   favorite?: boolean
   type?: RotationType | 'never'
   enable?: string
-  users?: User[]
+  users?: string[]
   timeZone?: string | null
 }
 
 export interface WizardFormSchedule {
   timeZone: string | null
   enable?: string
-  users: User[]
+  users: string[]
   rotation: WizardFormRotation
   followTheSunRotation: WizardFormRotation
 }
