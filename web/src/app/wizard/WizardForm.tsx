@@ -1,5 +1,4 @@
 import React from 'react'
-import p from 'prop-types'
 import StepIcon from '@mui/material/StepIcon'
 import FormControl from '@mui/material/FormControl'
 import FormControlLabel from '@mui/material/FormControlLabel'
@@ -11,12 +10,12 @@ import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { FormContainer, FormField } from '../forms'
 import WizardScheduleForm from './WizardScheduleForm'
-import { value as valuePropType } from './propTypes'
 import makeStyles from '@mui/styles/makeStyles'
 import * as _ from 'lodash'
 import { useIsWidthDown } from '../util/useWidth'
 import MaterialSelect from '../selection/MaterialSelect'
 import { useFeatures } from '../util/RequireConfig'
+import { RotationType, User } from '../../schema'
 
 const useStyles = makeStyles({
   fieldItem: {
@@ -28,20 +27,57 @@ const useStyles = makeStyles({
   },
 })
 
-export default function WizardForm(props) {
+export interface WizardFormRotation {
+  startDate?: string
+  favorite?: boolean
+  type?: RotationType | 'never'
+  enable?: string
+  users?: User[]
+  timeZone?: string | null
+}
+
+export interface WizardFormSchedule {
+  timeZone: string | null
+  enable?: string
+  users: User[]
+  rotation: WizardFormRotation
+  followTheSunRotation: WizardFormRotation
+}
+
+export interface WizardFormValue {
+  teamName: string
+  primarySchedule: WizardFormSchedule
+  secondarySchedule: WizardFormSchedule
+  delayMinutes: number
+  repeat: string
+  key: {
+    label: string
+    value: string
+  } | null
+}
+
+interface WizardFormProps {
+  onChange: (value: WizardFormValue) => void
+  value: WizardFormValue
+  errors: Error[]
+}
+
+export default function WizardForm(props: WizardFormProps): React.JSX.Element {
   const { onChange, value } = props
   const fullScreen = useIsWidthDown('md')
   const classes = useStyles()
 
   const keyTypes = useFeatures().integrationKeyTypes
 
-  const handleSecondaryScheduleToggle = (e) => {
+  const handleSecondaryScheduleToggle = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): void => {
     const newVal = _.cloneDeep(value)
     newVal.secondarySchedule.enable = e.target.value
     onChange(newVal)
   }
 
-  const sectionHeading = (text) => {
+  const sectionHeading = (text: string): React.JSX.Element => {
     return (
       <Typography component='h2' variant='h6'>
         {text}
@@ -49,7 +85,7 @@ export default function WizardForm(props) {
     )
   }
 
-  const getDelayLabel = () => {
+  const getDelayLabel = (): string => {
     if (value.secondarySchedule.enable === 'yes') {
       return 'How long would you like to wait until escalating to your secondary schedule (in minutes)?'
     }
@@ -179,14 +215,4 @@ export default function WizardForm(props) {
       </Grid>
     </FormContainer>
   )
-}
-
-WizardForm.propTypes = {
-  onChange: p.func.isRequired,
-  value: valuePropType,
-  errors: p.arrayOf(
-    p.shape({
-      message: p.string.isRequired,
-    }),
-  ),
 }

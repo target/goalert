@@ -10,9 +10,9 @@ import DialogActions from '@mui/material/DialogActions'
 import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
-import WizardForm from './WizardForm'
+import WizardForm, { WizardFormValue } from './WizardForm'
 import LoadingButton from '../loading/components/LoadingButton'
-import { gql, useMutation } from 'urql'
+import { gql, useMutation, UseMutationExecute } from 'urql'
 import { Form } from '../forms'
 import {
   getService,
@@ -24,6 +24,7 @@ import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { useIsWidthDown } from '../util/useWidth'
 import { Redirect } from 'wouter'
+import { CreateEscalationPolicyStepInput } from '../../schema'
 
 const mutation = gql`
   mutation ($input: CreateServiceInput!) {
@@ -42,19 +43,19 @@ const useStyles = makeStyles(() => ({
   },
 }))
 
-export default function WizardRouter() {
+export default function WizardRouter(): React.JSX.Element {
   const classes = useStyles()
   const fullScreen = useIsWidthDown('md')
-  const [errorMessage, setErrorMessage] = useState(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [complete, setComplete] = useState(false)
   const [redirect, setRedirect] = useState(false)
-  const [value, setValue] = useState({
+  const [value, setValue] = useState<WizardFormValue>({
     teamName: '',
-    delayMinutes: '',
+    delayMinutes: 0,
     repeat: '',
     key: null,
     primarySchedule: {
-      timeZone: null,
+      timeZone: '',
       users: [],
       rotation: {
         startDate: DateTime.local().startOf('day').toISO(),
@@ -91,11 +92,11 @@ export default function WizardRouter() {
    * Handles not returning a second step if the secondary
    * schedule is not enabled in the form.
    */
-  const getSteps = () => {
+  const getSteps = (): CreateEscalationPolicyStepInput[] => {
     const secondary = value.secondarySchedule.enable === 'yes'
     const steps = []
 
-    const step = (key) => ({
+    const step = (key: string): CreateEscalationPolicyStepInput => ({
       delayMinutes: value.delayMinutes,
       newSchedule: {
         ...getSchedule(key, value, secondary),
@@ -119,7 +120,11 @@ export default function WizardRouter() {
    *
    * e.g. createService: { newEscalationPolicy: {...} }
    */
-  const submit = (e, isValid, commit) => {
+  const submit = (
+    e: { preventDefault: () => void },
+    isValid: boolean,
+    commit: UseMutationExecute,
+  ): void => {
     e.preventDefault() // prevents reloading
     if (!isValid) return
 
@@ -135,7 +140,7 @@ export default function WizardRouter() {
         },
       }
     } catch (err) {
-      setErrorMessage(err.message)
+      setErrorMessage((err as Error).message)
     }
 
     if (variables) {
@@ -143,19 +148,29 @@ export default function WizardRouter() {
         if (result.error) {
           const generalErrors = nonFieldErrors(result.error)
           const graphqlErrors = fieldErrors(result.error).map((error) => {
-            const name = error.field
-              .split('.')
-              .pop() // get last occurrence
-              .replace(/([A-Z])/g, ' $1') // insert a space before all caps
-              .replace(/^./, (str) => str.toUpperCase()) // uppercase the first character
+            const fieldError = error.field.split('.').pop()
+            if (fieldError) {
+              const name = fieldError
+                .replace(/([A-Z])/g, ' $1') // insert a space before all caps
+                .replace(/^./, (str) => str.toUpperCase()) // uppercase the first character
 
-            return `${name}: ${error.message}`
+              return `${name}: ${error.message}`
+            }
           })
 
-          const errors = generalErrors.concat(graphqlErrors)
+          const errors = [...generalErrors, ...graphqlErrors]
 
           if (errors.length) {
-            setErrorMessage(errors.map((e) => e.message || e).join('\n'))
+            setErrorMessage(
+              errors
+                .map((e) => {
+                  if (e instanceof Error) {
+                    return e.message
+                  }
+                  return e
+                })
+                .join('\n'),
+            )
           }
         } else {
           setComplete(true)
@@ -164,7 +179,7 @@ export default function WizardRouter() {
     }
   }
 
-  const onDialogClose = (data) => {
+  const onDialogClose = (data: { createService: boolean }): void => {
     if (data && data.createService) {
       return setRedirect(true)
     }
@@ -174,7 +189,7 @@ export default function WizardRouter() {
     window.scrollTo(0, 0)
   }
 
-  function renderSubmittedContent() {
+  function renderSubmittedContent(): React.JSX.Element | undefined {
     if (complete) {
       return (
         <DialogContent>
@@ -204,7 +219,6 @@ export default function WizardRouter() {
         >
           <CardContent>
             <WizardForm
-              disabled={fetching}
               errors={fieldErrors(error)}
               value={value}
               onChange={(value) => setValue(value)}
