@@ -6538,14 +6538,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-big-calendar@npm:1.16.0":
-  version: 1.16.0
-  resolution: "@types/react-big-calendar@npm:1.16.0"
+"@types/react-big-calendar@npm:1.16.1":
+  version: 1.16.1
+  resolution: "@types/react-big-calendar@npm:1.16.1"
   dependencies:
     "@types/date-arithmetic": "npm:*"
     "@types/prop-types": "npm:*"
     "@types/react": "npm:*"
-  checksum: 10/b71d0f2b199292bd269e5656d50b926aa94337b2a36f77f835c929d93f95c9e749284d1b2826198531319e47f86960c0a80ac5a8890f99398b32dec92d948719
+  checksum: 10/eb881d68dfa7027f6f714bde730952713f07fae4de3edd77a38f9c863e30525f694d30b6140a829511c72948c01eacc23357dcdb54d09095d691373d0128b588
   languageName: node
   linkType: hard
 
@@ -18180,7 +18180,7 @@ __metadata:
     "@types/node": "npm:22.10.5"
     "@types/prop-types": "npm:15.7.14"
     "@types/react": "npm:18.3.1"
-    "@types/react-big-calendar": "npm:1.16.0"
+    "@types/react-big-calendar": "npm:1.16.1"
     "@types/react-dom": "npm:18.3.1"
     "@types/react-transition-group": "npm:4.4.12"
     "@types/react-virtualized-auto-sizer": "npm:1.0.4"

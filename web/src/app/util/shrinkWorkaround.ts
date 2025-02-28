@@ -8,7 +8,9 @@ import _ from 'lodash'
 //  ...otherInputProps,
 //  ...shrinkWorkaround(value)
 // }
-export default function shrinkWorkaround(value) {
+export default function shrinkWorkaround(value: string | number): {
+  shrink?: boolean
+} {
   if (_.isEmpty(value) && !_.isNumber(value)) return {}
   return { shrink: true }
 }

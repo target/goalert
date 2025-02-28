@@ -1,3 +1,14 @@
+import {
+  DocumentNode,
+  FieldNode,
+  DefinitionNode,
+  Kind,
+  NameNode,
+  OperationDefinitionNode,
+  SelectionNode,
+  VariableDefinitionNode,
+} from 'graphql'
+
 /**
  * queryByName returns a new GraphQL document with a single query from the provided doc.
  *
@@ -23,8 +34,10 @@
  * ```
  *
  */
-export function queryByName(doc, name) {
-  const def = doc.definitions.find((def) => def.name.value === name)
+export function queryByName(doc: DocumentNode, name: string): DocumentNode {
+  const def = doc.definitions.find(
+    (def) => 'name' in def && def.name?.value === name,
+  )
   if (!def) throw new Error('no definition found for ' + name)
   return {
     ...doc,
@@ -58,19 +71,19 @@ export function queryByName(doc, name) {
  *  }
  * `
  */
-export function fieldAlias(doc, aliasName) {
+export function fieldAlias(doc: DocumentNode, aliasName: string): DocumentNode {
   if (doc.definitions.length > 1) {
     throw new Error(
       `found ${doc.definitions.length} query definitions, but expected 1`,
     )
   }
-  const def = doc.definitions[0]
+  const def = doc.definitions[0] as OperationDefinitionNode
   if (def.selectionSet.selections.length > 1) {
     throw new Error(
       `found ${def.selectionSet.selections.length} fields, but expected 1`,
     )
   }
-  const sel = def.selectionSet.selections[0]
+  const sel = def.selectionSet.selections[0] as SelectionNode
 
   return {
     ...doc,
@@ -82,8 +95,11 @@ export function fieldAlias(doc, aliasName) {
           selections: [
             {
               ...sel,
-              alias: { kind: 'Name', value: aliasName },
-            },
+              alias: {
+                kind: 'Name' as Kind.NAME,
+                value: aliasName,
+              },
+            } as FieldNode,
           ],
         },
       },
@@ -112,13 +128,14 @@ export function fieldAlias(doc, aliasName) {
  *  }
  * `
  */
-export function prefixQuery(doc, prefix) {
-  const mapVarName = (name) => ({
+export function prefixQuery(doc: DocumentNode, prefix: string): DocumentNode {
+  const mapVarName = (name: { value: string }): NameNode => ({
     ...name,
     value: prefix + name.value,
+    kind: Kind.NAME,
   })
-  const mapSelName = (sel) => {
-    if (sel.alias) {
+  const mapSelName = (sel: FieldNode): FieldNode => {
+    if ('alias' in sel && sel.alias) {
       return {
         ...sel,
         alias: {
@@ -131,39 +148,41 @@ export function prefixQuery(doc, prefix) {
     return {
       ...sel,
       alias: {
-        kind: 'Name',
+        kind: 'Name' as Kind.NAME,
         value: prefix + sel.name.value,
       },
     }
   }
   return {
     ...doc,
-    definitions: doc.definitions.map((def) => ({
-      ...def,
-      variableDefinitions: def.variableDefinitions.map((vDef) => ({
-        ...vDef,
-        variable: {
-          ...vDef.variable,
-          name: mapVarName(vDef.variable.name),
-        },
-      })),
-      selectionSet: {
-        ...def.selectionSet,
-        selections: def.selectionSet.selections.map((sel) => ({
-          ...mapSelName(sel),
-          arguments: sel.arguments.map((arg) => ({
-            ...arg,
-            value:
-              arg.value.kind !== 'Variable'
-                ? arg.value
-                : {
-                    ...arg.value,
-                    name: mapVarName(arg.value.name),
-                  },
+    definitions: doc.definitions.map((def) => {
+      if (def.kind !== 'OperationDefinition') return def
+      return {
+        ...def,
+        variableDefinitions: def.variableDefinitions?.map(
+          (vDef: VariableDefinitionNode) => ({
+            ...vDef,
+            variable: {
+              ...vDef.variable,
+              name: mapVarName(vDef.variable.name),
+            },
+          }),
+        ),
+        selectionSet: {
+          ...def.selectionSet,
+          selections: def.selectionSet.selections.map((sel: SelectionNode) => ({
+            ...mapSelName(sel as FieldNode),
+            arguments: (sel as FieldNode).arguments?.map((arg) => ({
+              ...arg,
+              value:
+                arg.value.kind !== 'Variable'
+                  ? arg.value
+                  : { ...arg.value, name: mapVarName(arg.value.name) },
+            })),
           })),
-        })),
-      },
-    })),
+        },
+      } as DefinitionNode
+    }),
   }
 }
 
@@ -187,39 +206,46 @@ export function prefixQuery(doc, prefix) {
  *  }
  * `
  */
-export function mapInputVars(doc, mapVars = {}) {
-  const mapName = (name) => ({
+export function mapInputVars(
+  doc: DocumentNode,
+  mapVars: Record<string, string> = {},
+): DocumentNode {
+  const mapName = (name: { value: string }): NameNode => ({
     ...name,
     value: mapVars[name.value] || name.value,
+    kind: Kind.NAME,
   })
+
   return {
     ...doc,
-    definitions: doc.definitions.map((def) => ({
-      ...def,
-      variableDefinitions: def.variableDefinitions.map((vDef) => ({
-        ...vDef,
-        variable: {
-          ...vDef.variable,
-          name: mapName(vDef.variable.name),
-        },
-      })),
-      selectionSet: {
-        ...def.selectionSet,
-        selections: def.selectionSet.selections.map((sel) => ({
-          ...sel,
-          arguments: sel.arguments.map((arg) => ({
-            ...arg,
-            value:
-              arg.value.kind !== 'Variable'
-                ? arg.value
-                : {
-                    ...arg.value,
-                    name: mapName(arg.value.name),
-                  },
+    definitions: doc.definitions.map((def) => {
+      if (def.kind !== 'OperationDefinition') return def
+      return {
+        ...def,
+        variableDefinitions: def.variableDefinitions?.map(
+          (vDef: VariableDefinitionNode) => ({
+            ...vDef,
+            variable: {
+              ...vDef.variable,
+              name: mapName(vDef.variable.name),
+            },
+          }),
+        ),
+        selectionSet: {
+          ...def.selectionSet,
+          selections: def.selectionSet.selections.map((sel: SelectionNode) => ({
+            ...sel,
+            arguments: (sel as FieldNode).arguments?.map((arg) => ({
+              ...arg,
+              value:
+                arg.value.kind !== 'Variable'
+                  ? arg.value
+                  : { ...arg.value, name: mapName(arg.value.name) },
+            })),
           })),
-        })),
-      },
-    })),
+        },
+      } as DefinitionNode
+    }),
   }
 }
 
@@ -248,7 +274,10 @@ export function mapInputVars(doc, mapVars = {}) {
  *  }
  * `
  */
-export function mergeFields(doc, newQuery) {
+export function mergeFields(
+  doc: DocumentNode,
+  newQuery: DocumentNode,
+): DocumentNode {
   if (!doc) return newQuery
   if (doc.definitions.length > 1) {
     throw new Error(
@@ -261,8 +290,8 @@ export function mergeFields(doc, newQuery) {
     )
   }
 
-  const def = doc.definitions[0]
-  const newDef = newQuery.definitions[0]
+  const def = doc.definitions[0] as OperationDefinitionNode
+  const newDef = newQuery.definitions[0] as OperationDefinitionNode
   return {
     ...doc,
     definitions: [
