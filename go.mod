@@ -156,3 +156,10 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+tool (
+	github.com/99designs/gqlgen
+	github.com/target/goalert/devtools/configparams
+	github.com/target/goalert/devtools/limitapigen
+	golang.org/x/tools/cmd/goimports
+)
