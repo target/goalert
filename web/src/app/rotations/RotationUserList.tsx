@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect, useState } from 'react'
-import { gql, useMutation, useQuery } from '@apollo/client'
+import { gql, useQuery, useMutation } from 'urql'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import makeStyles from '@mui/styles/makeStyles'
@@ -15,7 +15,7 @@ import { UserAvatar } from '../util/avatars'
 import { styles as globalStyles } from '../styles/materialStyles'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
-import { User, Rotation } from '../../schema'
+import { User } from '../../schema'
 import { Time } from '../util/Time'
 import CreateFAB from '../lists/CreateFAB'
 import RotationAddUserDialog from './RotationAddUserDialog'
@@ -69,15 +69,13 @@ function RotationUserList(props: RotationUserListProps): React.JSX.Element {
   const [lastSwap, setLastSwap] = useState<SwapType[]>([])
   const isMobile = useIsWidthDown('md')
 
-  const {
-    data,
-    loading: qLoading,
-    error: qError,
-  } = useQuery(query, {
-    variables: { id: rotationID },
-  })
+  const [{ data, fetching: qLoading, error: qError }, reexecuteQuery] =
+    useQuery({
+      query,
+      variables: { id: rotationID },
+    })
 
-  const [updateRotation, { error: mError }] = useMutation(mutation)
+  const [, updateRotation] = useMutation(mutation)
 
   // reset swap history on add/remove participant
   useEffect(() => {
@@ -86,8 +84,7 @@ function RotationUserList(props: RotationUserListProps): React.JSX.Element {
 
   if (qLoading && !data) return <Spinner />
   if (data && !data.rotation) return <ObjectNotFound type='rotation' />
-  if (qError || mError)
-    return <GenericError error={qError?.message || mError?.message} />
+  if (qError) return <GenericError error={qError?.message} />
 
   const { users, userIDs, activeUserIndex, nextHandoffTimes } = data.rotation
 
@@ -206,7 +203,7 @@ function RotationUserList(props: RotationUserListProps): React.JSX.Element {
               />
             ),
           }))}
-          onReorder={(oldIndex: number, newIndex: number) => {
+          onReorder={async (oldIndex: number, newIndex: number) => {
             setLastSwap(lastSwap.concat({ oldIndex, newIndex }))
 
             const updatedUsers = reorderList(
@@ -229,44 +226,8 @@ function RotationUserList(props: RotationUserListProps): React.JSX.Element {
               params.activeUserIndex = newActiveIndex
             }
 
-            return updateRotation({
-              variables: { input: params },
-              update: (cache, response) => {
-                if (!response.data.updateRotation) {
-                  return
-                }
-                const data: { rotation: Rotation } | null = cache.readQuery({
-                  query,
-                  variables: { id: rotationID },
-                })
-
-                if (data?.rotation?.users) {
-                  const users = reorderList(
-                    data.rotation.users,
-                    oldIndex,
-                    newIndex,
-                  )
-                  cache.writeQuery({
-                    query,
-                    variables: { id: rotationID },
-                    data: {
-                      ...data,
-                      rotation: {
-                        ...data?.rotation,
-                        activeUserIndex:
-                          newActiveIndex === -1
-                            ? data?.rotation?.activeUserIndex
-                            : newActiveIndex,
-                        users,
-                      },
-                    },
-                  })
-                }
-              },
-              optimisticResponse: {
-                __typename: 'Mutation',
-                updateRotation: true,
-              },
+            updateRotation({ input: params }).then(() => {
+              reexecuteQuery({ requestPolicy: 'network-only' })
             })
           }}
         />
