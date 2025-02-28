@@ -1,5 +1,4 @@
 import React from 'react'
-import p from 'prop-types'
 import FormControl from '@mui/material/FormControl'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import FormHelperText from '@mui/material/FormHelperText'
@@ -11,11 +10,12 @@ import Tooltip from '@mui/material/Tooltip'
 import InfoIcon from '@mui/icons-material/Info'
 import { TimeZoneSelect, UserSelect } from '../selection'
 import { FormField } from '../forms'
-import { value as valuePropType } from './propTypes'
 import * as _ from 'lodash'
 import { ISODateTimePicker } from '../util/ISOPickers'
 import makeStyles from '@mui/styles/makeStyles'
 import { useIsWidthDown } from '../util/useWidth'
+import { WizardFormValue } from './WizardForm'
+import { RotationType } from '../../schema'
 
 const useStyles = makeStyles(() => ({
   fieldItem: {
@@ -30,16 +30,32 @@ const useStyles = makeStyles(() => ({
   },
 }))
 
+interface WizardScheduleFormProps {
+  value: WizardFormValue
+  onChange: (value: WizardFormValue) => void
+  secondary?: boolean
+}
+
 /**
  * Renders the form fields to be used in the wizard that
  * can be used for creating a primary and secondary schedule.
  */
-export default function WizardScheduleForm({ value, onChange, secondary }) {
+export default function WizardScheduleForm({
+  value,
+  onChange,
+  secondary,
+}: WizardScheduleFormProps): React.JSX.Element {
   const fullScreen = useIsWidthDown('md')
   const classes = useStyles()
 
-  function renderFollowTheSun(key, schedType) {
-    if (value[key].followTheSunRotation.enable === 'yes') {
+  function renderFollowTheSun(
+    key: string,
+    schedType: string,
+  ): React.JSX.Element | undefined {
+    const currentSchedule = secondary
+      ? value.secondarySchedule
+      : value.primarySchedule
+    if (currentSchedule.followTheSunRotation.enable === 'yes') {
       return (
         <React.Fragment>
           <Grid item xs={12} className={classes.fieldItem}>
@@ -56,7 +72,7 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
               formLabel
               fullWidth={fullScreen}
               required
-              value={value[key].followTheSunRotation.users}
+              value={currentSchedule.followTheSunRotation.users}
             />
           </Grid>
           <Grid item xs={12} className={classes.fieldItem}>
@@ -79,27 +95,41 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
     }
   }
 
-  const getKey = () => {
-    return secondary ? 'secondarySchedule' : 'primarySchedule'
-  }
-
-  const handleRotationTypeChange = (e) => {
+  const handleRotationTypeChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): void => {
     const newVal = _.cloneDeep(value)
-    newVal[getKey()].rotation.type = e.target.value
+    if (secondary) {
+      newVal.secondarySchedule.rotation.type = e.target.value as RotationType
+    } else {
+      newVal.primarySchedule.rotation.type = e.target.value as RotationType
+    }
     onChange(newVal)
   }
 
-  const handleFollowTheSunToggle = (e) => {
+  const handleFollowTheSunToggle = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): void => {
     const newVal = _.cloneDeep(value)
-    newVal[getKey()].followTheSunRotation.enable = e.target.value
+    if (secondary) {
+      newVal.secondarySchedule.followTheSunRotation.enable = e.target.value
+    } else {
+      newVal.primarySchedule.followTheSunRotation.enable = e.target.value
+    }
     onChange(newVal)
   }
 
-  function renderRotationFields(key, schedType) {
+  function renderRotationFields(
+    key: string,
+    schedType: string,
+  ): React.JSX.Element {
+    const currentSchedule = secondary
+      ? value.secondarySchedule
+      : value.primarySchedule
     const hideRotationFields =
-      value[key].users.length <= 1 ||
-      value[key].rotation.type === 'never' ||
-      !value[key].rotation.type
+      currentSchedule.users.length <= 1 ||
+      currentSchedule.rotation.type === 'never' ||
+      !currentSchedule.rotation.type
 
     return (
       <React.Fragment>
@@ -116,26 +146,26 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
             <RadioGroup
               aria-label='Rotation?'
               row
-              value={value[key].rotation.type}
+              value={currentSchedule.rotation.type}
               onChange={handleRotationTypeChange}
             >
               <FormControlLabel
                 data-cy={`${key}.rotationType.weekly`}
-                disabled={value[key].users.length <= 1}
+                disabled={currentSchedule.users.length <= 1}
                 value='weekly'
                 control={<Radio />}
                 label='Weekly'
               />
               <FormControlLabel
                 data-cy={`${key}.rotationType.daily`}
-                disabled={value[key].users.length <= 1}
+                disabled={currentSchedule.users.length <= 1}
                 value='daily'
                 control={<Radio />}
                 label='Daily'
               />
               <FormControlLabel
                 data-cy={`${key}.rotationType.never`}
-                disabled={value[key].users.length <= 1}
+                disabled={currentSchedule.users.length <= 1}
                 value='never'
                 control={<Radio />}
                 label='Never*'
@@ -189,7 +219,7 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
                   aria-label='secondary'
                   name={`${key}.fts`}
                   row
-                  value={value[key].followTheSunRotation.enable}
+                  value={currentSchedule.followTheSunRotation.enable}
                   onChange={handleFollowTheSunToggle}
                 >
                   <FormControlLabel
@@ -261,10 +291,4 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
       {renderRotationFields(key, schedType)}
     </React.Fragment>
   )
-}
-
-WizardScheduleForm.propTypes = {
-  onChange: p.func.isRequired,
-  value: valuePropType,
-  secondary: p.bool,
 }
