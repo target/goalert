@@ -49,7 +49,7 @@ container-goalert:{{range $.ContainerArch}} bin/goalert-linux-{{.}}.tgz{{end}}
 container-demo:{{range $.ContainerArch}} bin/goalert-linux-{{.}}.tgz bin/linux-{{.}}/resetdb{{end}}
 	docker buildx build --platform linux/amd64,linux/arm64,linux/arm -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile$(PREBUILT) $(PUSH_ARG) .
 
-$(BIN_DIR)/build/integration/cypress/plugins/index.js: package.json yarn.lock web/src/esbuild.cypress.js $(shell find ./web/src/cypress)
+$(BIN_DIR)/build/integration/cypress/plugins/index.js: package.json bun.lock web/src/esbuild.cypress.js $(shell find ./web/src/cypress)
 	rm -rf $@
 	$(BIN_DIR)/tools/bun run esbuild-cy
 	mkdir -p $@/plugins

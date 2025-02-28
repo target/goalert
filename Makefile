@@ -2,7 +2,7 @@
 .PHONY: smoketest generate check all test check-js check-go
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration cy-wide-prod-run cy-mobile-prod-run
-.PHONY: goalert-container demo-container release reset-integration yarn ensure-yarn vscode upgrade-js playwright-ui
+.PHONY: goalert-container demo-container release reset-integration vscode upgrade-js playwright-ui
 .PHONY: timezone/zones.txt timezone/aliases.txt
 .SUFFIXES:
 
