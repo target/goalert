@@ -17,20 +17,26 @@ type advance struct {
 }
 
 type rotState struct {
-	rotation.State
-	Version int
+	ShiftStart time.Time
+	Position   int
+	Version    int
 }
 
 // calcAdvance will calculate rotation advancement if it is required. If not, nil is returned
-func calcAdvance(ctx context.Context, t time.Time, rot *rotation.Rotation, state rotState, partCount int) *advance {
+func calcAdvance(ctx context.Context, t time.Time, rot *rotation.Rotation, state rotState, partCount int) (*advance, error) {
 	var mustUpdate bool
 	origPos := state.Position
 
 	// get next shift start time
 	newStart := rot.EndTime(state.ShiftStart)
-	if state.Version == 1 {
+	switch state.Version {
+	case 1:
 		newStart = calcVersion1EndTime(rot, state.ShiftStart)
 		mustUpdate = true
+	case 2:
+		// no-op
+	default:
+		return nil, fmt.Errorf("unknown rotation version (supported: 1,2): %d", state.Version)
 	}
 
 	if state.Position >= partCount {
@@ -48,10 +54,10 @@ func calcAdvance(ctx context.Context, t time.Time, rot *rotation.Rotation, state
 				// If migrating from version 1 to 2 without changing
 				// who's on-call do so silently.
 				silent: state.Version == 1 && state.Position == origPos,
-			}
+			}, nil
 		}
 		// in the future, so nothing to do yet
-		return nil
+		return nil, nil
 	}
 
 	if !newStart.After(t.Add(-15 * time.Minute)) {
@@ -78,5 +84,5 @@ func calcAdvance(ctx context.Context, t time.Time, rot *rotation.Rotation, state
 	return &advance{
 		id:          rot.ID,
 		newPosition: state.Position,
-	}
+	}, nil
 }
