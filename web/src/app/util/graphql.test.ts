@@ -1,5 +1,5 @@
 import { gql } from 'urql'
-import { print } from 'graphql'
+import { DocumentNode, print } from 'graphql'
 
 import {
   queryByName,
@@ -9,7 +9,7 @@ import {
   prefixQuery,
 } from './graphql'
 
-const expectEqual = (a, b) => expect(print(a)).toBe(print(b))
+const expectEqual = (a: DocumentNode, b: DocumentNode) => expect(print(a)).toBe(print(b))
 
 describe('queryByName', () => {
   it('should fetch a single query', () => {
@@ -32,7 +32,7 @@ describe('queryByName', () => {
 })
 
 describe('fieldAlias', () => {
-  const check = (name, arg, query, expected) =>
+  const check = (name: string, arg: string, query: DocumentNode, expected: DocumentNode) =>
     test(name, () =>
       expect(print(fieldAlias(query, arg))).toBe(print(expected)),
     )
@@ -77,14 +77,14 @@ describe('fieldAlias', () => {
 })
 
 describe('prefixQuery', () => {
-  const check = (name, arg, query, expected) =>
+  const check = (name: string, arg: string, query: DocumentNode, expected: DocumentNode) =>
     test(name, () =>
       expect(print(prefixQuery(query, 'q0_'))).toBe(print(expected)),
     )
 
   check(
     'should prefix query and variables',
-    {},
+    '',
     gql`
       query ($id: ID!, $id2: ID!) {
         user(id: $id) {
@@ -113,7 +113,7 @@ describe('prefixQuery', () => {
 })
 
 describe('mapInputVars', () => {
-  const check = (name, arg, query, expected) =>
+  const check = (name: string, arg: Record<string, string>, query: DocumentNode, expected: DocumentNode) =>
     test(name, () =>
       expect(print(mapInputVars(query, arg))).toBe(print(expected)),
     )
@@ -183,7 +183,7 @@ describe('mapInputVars', () => {
 })
 
 describe('mergeFields', () => {
-  const check = (name, query1, query2, expected) =>
+  const check = (name: string, query1: DocumentNode, query2: DocumentNode, expected: DocumentNode) =>
     test(name, () =>
       expect(print(mergeFields(query1, query2))).toBe(print(expected)),
     )
