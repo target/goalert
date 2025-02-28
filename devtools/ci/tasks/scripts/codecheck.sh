@@ -36,14 +36,6 @@ for file in $(find devtools -name '*.yml'); do
   fi
 done
 
-# single version of playwright
-NUM_VERSIONS=$(grep "^\"playwright@npm:" yarn.lock | wc -l)
-if [ "$NUM_VERSIONS" -ne 1 ]; then
-  echo "Expected single version of playwright in yarn.lock, found $NUM_VERSIONS"
-  echo "Ensure package.json version of '@playwright/test' matches .yarnrc version of 'playwright'"
-  exit 1
-fi
-
 # taskfile contains quotes
 if [ "'$PKG_JSON_VER'" != "$TASKFILE_VER" ]; then
   echo "Cypress versions do not match:"

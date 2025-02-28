@@ -12,25 +12,23 @@ jobs:
     steps:
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.24'
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/cache@v3
         with:
-          node-version: '22'
-          cache: 'yarn'
-      - run: make yarn
-      - run: 'echo "nodeLinker: node-modules" >>.yarnrc.yml'
-      - run: yarn install
+          key: key
+          path: ~/.bun/install/cache
+      - run: make node_modules
       - uses: reviewdog/action-eslint@v1
         with:
           reporter: github-pr-review
           level: warning
-          fail_on_error: true
+          fail_level: warning
       - uses: reviewdog/action-stylelint@v1
         with:
           github_token: ${{ secrets.github_token }}
           reporter: github-pr-review
           level: warning
-          fail_on_error: true
+          fail_level: warning
       - name: tsc
-        run: yarn run check
+        run: ./bin/tools/bun run check
