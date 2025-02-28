@@ -9,7 +9,8 @@ import {
   prefixQuery,
 } from './graphql'
 
-const expectEqual = (a: DocumentNode, b: DocumentNode) => expect(print(a)).toBe(print(b))
+const expectEqual = (a: DocumentNode, b: DocumentNode): void =>
+  expect(print(a)).toBe(print(b))
 
 describe('queryByName', () => {
   it('should fetch a single query', () => {
@@ -32,7 +33,12 @@ describe('queryByName', () => {
 })
 
 describe('fieldAlias', () => {
-  const check = (name: string, arg: string, query: DocumentNode, expected: DocumentNode) =>
+  const check = (
+    name: string,
+    arg: string,
+    query: DocumentNode,
+    expected: DocumentNode,
+  ): void =>
     test(name, () =>
       expect(print(fieldAlias(query, arg))).toBe(print(expected)),
     )
@@ -77,7 +83,12 @@ describe('fieldAlias', () => {
 })
 
 describe('prefixQuery', () => {
-  const check = (name: string, arg: string, query: DocumentNode, expected: DocumentNode) =>
+  const check = (
+    name: string,
+    arg: string,
+    query: DocumentNode,
+    expected: DocumentNode,
+  ): void =>
     test(name, () =>
       expect(print(prefixQuery(query, 'q0_'))).toBe(print(expected)),
     )
@@ -113,7 +124,12 @@ describe('prefixQuery', () => {
 })
 
 describe('mapInputVars', () => {
-  const check = (name: string, arg: Record<string, string>, query: DocumentNode, expected: DocumentNode) =>
+  const check = (
+    name: string,
+    arg: Record<string, string>,
+    query: DocumentNode,
+    expected: DocumentNode,
+  ): void =>
     test(name, () =>
       expect(print(mapInputVars(query, arg))).toBe(print(expected)),
     )
@@ -183,7 +199,12 @@ describe('mapInputVars', () => {
 })
 
 describe('mergeFields', () => {
-  const check = (name: string, query1: DocumentNode, query2: DocumentNode, expected: DocumentNode) =>
+  const check = (
+    name: string,
+    query1: DocumentNode,
+    query2: DocumentNode,
+    expected: DocumentNode,
+  ): void =>
     test(name, () =>
       expect(print(mergeFields(query1, query2))).toBe(print(expected)),
     )
