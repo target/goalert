@@ -7,6 +7,24 @@ import makeStyles from '@mui/styles/makeStyles'
 import AppLink from './AppLink'
 import timestampSupport from './Markdown.timestampSupport'
 
+function decodeUnicode(url) {
+  return url.replace(/\\u([0-9A-Fa-f]{4})/g, (_, p1) => {
+    return String.fromCharCode(parseInt(p1, 16))
+  });
+}
+
+function decodeHtmlEntities(url) {
+  const span = document.createElement('span');
+  span.innerHTML = url
+  return span.innerText
+}
+
+function decodeUrl(url) {
+  const decodedUrl = decodeURIComponent(url)
+  const unicodeDecodedUrl = decodeUnicode(decodedUrl)
+  return decodeHtmlEntities(unicodeDecodedUrl)
+}
+
 const useStyles = makeStyles({
   markdown: {
     overflowWrap: 'break-word',
@@ -69,7 +87,9 @@ export default function Markdown(props) {
       components={{
         td: TableCell,
         a: ({ node, inline, className, children, ...props }) => (
-          <AppLink to={props.href} newTab {...props}>
+          const decodedURL= decodeUrl(props.href)
+          props.href=decodedURL
+          <AppLink to={decodedURL} newTab {...props}>
             {children}
           </AppLink>
         ),
