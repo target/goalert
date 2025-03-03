@@ -3,8 +3,10 @@ package webhook
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/target/goalert/keyring"
 	"net/http"
 	"time"
 
@@ -13,7 +15,9 @@ import (
 	"github.com/target/goalert/notification/nfydest"
 )
 
-type Sender struct{}
+type Sender struct {
+	signingKeyring keyring.Keyring
+}
 
 // POSTDataAlert represents fields in outgoing alert notification.
 type POSTDataAlert struct {
@@ -83,8 +87,10 @@ type POSTDataTest struct {
 	Type    string
 }
 
-func NewSender(ctx context.Context) *Sender {
-	return &Sender{}
+func NewSender(ctx context.Context, keyring keyring.Keyring) *Sender {
+	return &Sender{
+		signingKeyring: keyring,
+	}
 }
 
 var _ nfydest.MessageSender = &Sender{}
@@ -155,6 +161,12 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 		return nil, err
 	}
 
+	signature, err := s.signingKeyring.SignASN1(data)
+	if err != nil {
+		return nil, err
+	}
+	signatureBase64 := base64.StdEncoding.EncodeToString(signature)
+
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
 
@@ -173,6 +185,7 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 	}
 
 	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("X-Webhook-Signature", signatureBase64)
 
 	_, err = http.DefaultClient.Do(req)
 	if err != nil {
