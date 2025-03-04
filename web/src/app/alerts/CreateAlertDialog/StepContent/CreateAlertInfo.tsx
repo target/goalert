@@ -2,7 +2,7 @@ import React from 'react'
 import { Grid, TextField } from '@mui/material'
 import { FormField } from '../../../forms'
 
-export function CreateAlertInfo(): JSX.Element {
+export function CreateAlertInfo(): React.JSX.Element {
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>

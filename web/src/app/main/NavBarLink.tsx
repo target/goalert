@@ -49,7 +49,7 @@ export function NavBarSubLink({
   to,
   title,
   newTab,
-}: NavBarSubLinkProps): JSX.Element {
+}: NavBarSubLinkProps): React.JSX.Element {
   const { navSelected, nav, subMenuLinkText } = useStyles()
   const [path] = useLocation()
   return (
@@ -71,7 +71,7 @@ export function NavBarSubLink({
 }
 
 export type NavBarLinkProps = {
-  icon: JSX.Element
+  icon: React.JSX.Element
   title: string
   to: string
   children?: React.ReactNode[] | React.ReactNode
@@ -82,7 +82,7 @@ export default function NavBarLink({
   title,
   to,
   children,
-}: NavBarLinkProps): JSX.Element {
+}: NavBarLinkProps): React.JSX.Element {
   const classes = useStyles()
   const [path] = useLocation()
   const isRoute = path.startsWith(to)

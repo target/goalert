@@ -5,6 +5,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
 import AdminNumberLookup from './AdminNumberLookup'
 import AdminSMSSend from './AdminSMSSend'
+import { useConfigValue } from '../util/RequireConfig'
 
 const useStyles = makeStyles((theme: Theme) => ({
   gridContainer: {
@@ -20,8 +21,19 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-export default function AdminToolbox(): JSX.Element {
+export default function AdminToolbox(): React.JSX.Element {
   const classes = useStyles()
+
+  const [hasTwilio] = useConfigValue('Twilio.Enable')
+
+  if (!hasTwilio) {
+    return (
+      <Typography variant='body1' color='textSecondary'>
+        Twilio is not enabled. Please enable Twilio in the configuration to use
+        this feature.
+      </Typography>
+    )
+  }
 
   return (
     <Grid container spacing={2} className={classes.gridContainer}>

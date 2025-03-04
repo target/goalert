@@ -12,7 +12,7 @@ if [ "$PKG_JSON_VER" != "$DOCKERFILE_VER" ]; then
 fi
 
 # assert build-env versions are identical
-BUILD_ENV_VER=go1.23.3-postgres13
+BUILD_ENV_VER=go1.24.0-postgres13
 for file in $(find devtools -name 'Dockerfile*'); do
   if ! grep -q "goalert/build-env" "$file"; then
     continue
@@ -35,14 +35,6 @@ for file in $(find devtools -name '*.yml'); do
     exit 1
   fi
 done
-
-# single version of playwright
-NUM_VERSIONS=$(grep "^\"playwright@npm:" yarn.lock | wc -l)
-if [ "$NUM_VERSIONS" -ne 1 ]; then
-  echo "Expected single version of playwright in yarn.lock, found $NUM_VERSIONS"
-  echo "Ensure package.json version of '@playwright/test' matches .yarnrc version of 'playwright'"
-  exit 1
-fi
 
 # taskfile contains quotes
 if [ "'$PKG_JSON_VER'" != "$TASKFILE_VER" ]; then

@@ -17,10 +17,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
-      - uses: actions/setup-node@v4
+      - uses: actions/cache@v4
         with:
-          node-version: '22'
-          cache: 'yarn'
+          key: key
+          path: ~/.bun/install/cache
       - name: Run make generate
         run: make generate
       - uses: stefanzweifel/git-auto-commit-action@v5

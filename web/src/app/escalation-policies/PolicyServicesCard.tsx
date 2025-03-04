@@ -14,7 +14,7 @@ interface PolicyServicesCardProps {
   services: { id: string; name: string }[]
 }
 
-function PolicyServicesCard(props: PolicyServicesCardProps): JSX.Element {
+function PolicyServicesCard(props: PolicyServicesCardProps): React.JSX.Element {
   const classes = useStyles()
 
   function getServicesItems(): FlatListListItem[] {
