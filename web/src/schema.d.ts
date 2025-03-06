@@ -105,6 +105,13 @@ export interface AlertState {
   stepNumber: number
 }
 
+export interface AlertStats {
+  alertCount: TimeSeriesBucket[]
+  avgTimeToAckSec: TimeSeriesBucket[]
+  avgTimeToCloseSec: TimeSeriesBucket[]
+  escalatedCount: TimeSeriesBucket[]
+}
+
 export type AlertStatus =
   | 'StatusAcknowledged'
   | 'StatusClosed'
@@ -1042,6 +1049,7 @@ export interface SendContactMethodVerificationInput {
 }
 
 export interface Service {
+  alertStats: AlertStats
   description: string
   escalationPolicy?: null | EscalationPolicy
   escalationPolicyID: string
@@ -1054,6 +1062,12 @@ export interface Service {
   name: string
   notices: Notice[]
   onCallUsers: ServiceOnCallUser[]
+}
+
+export interface ServiceAlertStatsOptions {
+  end?: null | ISOTimestamp
+  start?: null | ISOTimestamp
+  tsOptions?: null | TimeSeriesOptions
 }
 
 export interface ServiceConnection {

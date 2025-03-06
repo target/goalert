@@ -87,6 +87,14 @@ type AlertSearchOptions struct {
 	NotClosedBefore   *time.Time       `json:"notClosedBefore,omitempty"`
 }
 
+// AlertStats returns aggregated statistics about alerts.
+type AlertStats struct {
+	AvgTimeToAckSec   []TimeSeriesBucket `json:"avgTimeToAckSec"`
+	AvgTimeToCloseSec []TimeSeriesBucket `json:"avgTimeToCloseSec"`
+	AlertCount        []TimeSeriesBucket `json:"alertCount"`
+	EscalatedCount    []TimeSeriesBucket `json:"escalatedCount"`
+}
+
 type AuthSubjectConnection struct {
 	Nodes    []user.AuthSubject `json:"nodes"`
 	PageInfo *PageInfo          `json:"pageInfo"`
@@ -663,6 +671,12 @@ type ScheduleTargetInput struct {
 
 type SendContactMethodVerificationInput struct {
 	ContactMethodID string `json:"contactMethodID"`
+}
+
+type ServiceAlertStatsOptions struct {
+	Start     *time.Time         `json:"start,omitempty"`
+	End       *time.Time         `json:"end,omitempty"`
+	TsOptions *TimeSeriesOptions `json:"tsOptions,omitempty"`
 }
 
 type ServiceConnection struct {

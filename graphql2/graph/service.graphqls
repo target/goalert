@@ -1,0 +1,23 @@
+extend type Service {
+  """
+  alertStats returns aggregated statistics about alerts for this service.
+  """
+  alertStats(input: ServiceAlertStatsOptions): AlertStats!
+}
+
+input ServiceAlertStatsOptions {
+  start: ISOTimestamp
+  end: ISOTimestamp
+
+  tsOptions: TimeSeriesOptions
+}
+
+"""
+AlertStats returns aggregated statistics about alerts.
+"""
+type AlertStats {
+  avgTimeToAckSec: [TimeSeriesBucket!]!
+  avgTimeToCloseSec: [TimeSeriesBucket!]!
+  alertCount: [TimeSeriesBucket!]!
+  escalatedCount: [TimeSeriesBucket!]!
+}
