@@ -1,0 +1,246 @@
+syntax = "proto3";
+
+option go_package = "github.com/target/goalert/pkg/plugindest";
+
+package goalert.v1;
+
+service PluginDest {
+    rpc TypeInfo(TypeInfoRequest) returns (TypeInfoResponse) {}
+    
+    rpc ValidateField(ValidateFieldRequest) returns (ValidateFieldResponse) {}
+    rpc DisplayInfo(DisplayInfoRequest) returns (DisplayInfoResponse) {}
+
+    rpc SendAlert(SendAlertRequest) returns (SendResponse) {}
+    rpc SendAlertBundle(SendAlertBundleRequest) returns (SendResponse) {}
+    rpc SendAlertStatus(SendAlertStatusRequest) returns (SendResponse) {}
+    rpc SendSchedOnCall(SendSchedOnCallRequest) returns (SendResponse) {}
+    rpc SendSignal(SendSignalRequest) returns (SendResponse) {}
+    rpc SendTest(SendTestRequest) returns (SendResponse) {}
+    rpc SendVerification(SendVerificationRequest) returns (SendResponse) {}
+
+    rpc MessageStatus(MessageStatusRequest) returns (MessageStatusResponse) {}
+
+    rpc SearchField(SearchFieldRequest) returns (SearchFieldResponse) {}
+    rpc FieldLabel(FieldLabelRequest) returns (FieldLabelResponse) {}
+}
+
+message FieldLabelRequest {
+    KeyValue field = 1;
+};
+
+message FieldLabelResponse {
+    string label = 1;
+};
+
+message SearchFieldRequest {
+    string field_id = 1;
+    string search = 2;
+    repeated string omit_ids = 3;
+    string cursor = 4;
+    int32 limit = 5;
+};
+
+message SearchFieldResponse {
+    repeated KeyValue results = 1;
+    string cursor = 2;
+    bool has_next_page = 3;    
+};
+
+message MessageStatusRequest {
+    string external_id = 1;
+};
+message MessageStatusResponse {
+    SentMessageStatus status = 1;
+};
+
+message SendHeader {
+    string id = 1;
+    repeated KeyValue fields = 2;
+};
+
+message Entity {
+    string id = 1;
+    string name = 2;
+    string url = 3;
+};
+
+message SentMessageStatus {
+    SentMessageState state = 1;
+    string details = 2;
+    int64 sequence = 3;
+    string source_value = 4;
+    int64 age_nanoseconds = 5;
+};
+
+message SendResult {
+    string goalert_id = 1;
+    string provider_id = 2;
+    string external_id = 3;
+
+
+
+    SentMessageStatus status = 4;
+    string dest_type = 5;
+};
+
+message SendAlertRequest {
+    SendHeader header = 1;
+
+    int64 alert_id = 2;
+    string summary = 3;
+    string details = 4;
+    Entity service = 5;
+
+    repeated KeyValue meta = 6;
+
+    SendResult original = 7;
+};
+
+message SendAlertBundleRequest {
+    SendHeader header = 1;
+
+    Entity service = 2;
+
+    int64 current_alert_count = 3;
+};
+
+enum AlertState {
+    alert_state_unknown = 0;
+    alert_state_unacknowledged = 1;
+    alert_state_acknowledged = 2;
+    alert_state_closed = 3;
+}
+
+message SendAlertStatusRequest {
+    SendHeader header = 1;
+
+    int64 alert_id = 2;
+    string log_entry = 3;
+
+    Entity service = 4;
+
+    string alert_summary = 5;
+    string alert_details = 6;
+
+    SendResult original = 7;
+
+    AlertState new_alert_state = 8;
+};
+
+message SendSchedOnCallRequest {
+    SendHeader header = 1;
+
+    Entity schedule = 2;
+
+    repeated Entity users = 3;
+};
+
+message SendSignalRequest {
+    SendHeader header = 1;
+
+    repeated KeyValue params = 2;
+};
+
+message SendTestRequest {
+    SendHeader header = 1;
+};
+
+message SendVerificationRequest {
+    SendHeader header = 1;
+
+    string code = 2;
+};
+
+
+
+message SendResponse {
+    string external_id = 1;
+    SentMessageState state = 2;
+    string state_details = 3;
+    string source_value = 4;
+};
+
+enum SentMessageState {
+    msg_state_unknown = 0;
+    msg_state_sending = 1;
+    msg_state_pending = 2;
+    msg_state_sent = 3;
+    msg_state_delivered = 4;
+    msg_state_failed_temp = 5;
+    msg_state_failed_perm = 6;
+    msg_state_bundled = 7;
+};
+
+
+message ValidateFieldRequest {
+    KeyValue arg = 1;
+};
+message ValidateFieldResponse {
+    bool valid = 1;
+    string error = 2;
+};
+
+message DisplayInfoRequest {
+    repeated KeyValue args = 1;
+};
+message DisplayInfoResponse {
+    string text = 1;
+    string icon_url = 2;
+    string icon_alt_text = 3;
+    string link_url = 4;
+};
+
+message KeyValue {
+    string key = 1;
+    string value = 2;
+};
+
+message TypeInfoRequest {};
+
+message TypeInfoResponse {
+    TypeInfo type_info = 1;
+}
+
+message TypeInfo {
+    string type = 1;
+
+    string name = 2;
+    string icon_url = 3;
+    string icon_alt_text = 4;
+    bool enabled = 5;
+    
+    repeated FieldConfig required_fields = 6;
+    repeated DynamicParamConfig dynamic_params = 7;
+
+    string user_disclaimer = 8;
+
+    bool user_verification_required = 9;
+    bool status_updates_required = 10;
+
+    bool supports_status_updates = 11;
+    bool supports_alert_notifications = 12;
+    bool supports_user_verification = 13;
+    bool supports_on_call_notify = 14;
+    bool supports_signals = 15;
+};
+
+message FieldConfig {
+    string field_id = 1;
+    string label = 2;
+    string hint = 3;
+    string hint_url = 4;
+    string placeholder_text = 5;
+    string prefix = 6;
+    string input_type = 7;
+    
+    bool supports_search = 8;
+    bool supports_validation = 9;
+};
+
+message DynamicParamConfig {
+    string param_id = 1;
+    string label = 2;
+    string hint = 3;
+    string hint_url = 4;
+    string default_value = 5;
+};

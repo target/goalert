@@ -228,7 +228,12 @@ pkg/sysapi/sysapi_grpc.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-ge
 pkg/sysapi/sysapi.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go $(BIN_DIR)/tools/protoc
 	PATH="$(BIN_DIR)/tools" protoc --go_out=. --go_opt=paths=source_relative pkg/sysapi/sysapi.proto
 
-generate: $(NODE_DEPS) pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go $(BIN_DIR)/tools/sqlc
+pkg/plugindest/plugindest_grpc.pb.go: pkg/plugindest/plugindest.proto $(BIN_DIR)/tools/protoc-gen-go-grpc $(BIN_DIR)/tools/protoc
+	PATH="$(BIN_DIR)/tools" protoc --go-grpc_out=. --go-grpc_opt=paths=source_relative pkg/plugindest/plugindest.proto
+pkg/plugindest/plugindest.pb.go: pkg/plugindest/plugindest.proto $(BIN_DIR)/tools/protoc-gen-go $(BIN_DIR)/tools/protoc
+	PATH="$(BIN_DIR)/tools" protoc --go_out=. --go_opt=paths=source_relative pkg/plugindest/plugindest.proto
+
+generate: $(NODE_DEPS) pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go $(BIN_DIR)/tools/sqlc pkg/plugindest/plugindest.pb.go pkg/plugindest/plugindest_grpc.pb.go
 	$(BIN_DIR)/tools/sqlc generate
 	go generate ./...
 
