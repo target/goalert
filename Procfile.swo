@@ -8,7 +8,7 @@ smtp: ./bin/tools/mailpit -s localhost:1025 -l localhost:8025
 prom: bin/tools/prometheus --log.level=warn --config.file=devtools/prometheus/prometheus-swo.yml --storage.tsdb.path=bin/prom-data/ --web.listen-address=localhost:9090
 
 @watch-file=./web/src/esbuild.config.js
-ui: yarn run esbuild --watch
+ui: ./bin/tools/bun run esbuild --watch
 
 @watch-file=./bin/goalert
 ga2: ./bin/goalert -l=localhost:3050 --ui-dir=web/src/build --db-url=postgres://goalert@localhost:5435/goalert?sslmode=disable --listen-prometheus=localhost:2113 --db-url-next=postgres://goalert@localhost:5435/goalert2 --api-only --enable-secure-headers

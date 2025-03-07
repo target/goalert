@@ -13,5 +13,5 @@ const query = gql`
 
 export const TimeZoneSelect = makeQuerySelect('TimeZoneSelect', {
   query,
-  mapDataNode: ({ id }) => ({ label: id, value: id }),
+  mapDataNode: (n: { id: string }) => ({ label: n.id, value: n.id }),
 })

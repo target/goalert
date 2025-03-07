@@ -2,7 +2,7 @@
 .PHONY: smoketest generate check all test check-js check-go
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration cy-wide-prod-run cy-mobile-prod-run
-.PHONY: goalert-container demo-container release reset-integration yarn ensure-yarn vscode upgrade-js playwright-ui
+.PHONY: goalert-container demo-container release reset-integration vscode upgrade-js playwright-ui
 .PHONY: timezone/zones.txt timezone/aliases.txt
 .SUFFIXES:
 
@@ -22,11 +22,10 @@ SWO_DB_URL_NEXT = $(shell go run ./devtools/scripts/db-url "$(DB_URL)" "$(SWO_DB
 
 LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
-YARN_VERSION=4.5.3
 PG_VERSION=13
 
 # add all files except those under web/src/build and web/src/cypress
-NODE_DEPS=.pnp.cjs .yarnrc.yml .gitrev $(shell find web/src -path web/src/build -prune -o -path web/src/cypress -prune -o -type f -print) web/src/app/editor/expr-parser.ts
+NODE_DEPS=.gitrev $(shell find web/src -path web/src/build -prune -o -path web/src/cypress -prune -o -type f -print) web/src/app/editor/expr-parser.ts node_modules
 
 # Use sha256sum on linux and shasum -a 256 on mac
 SHA_CMD := $(shell if [ -x "$(shell command -v sha256sum 2>/dev/null)" ]; then echo "sha256sum"; else echo "shasum -a 256"; fi)
@@ -35,7 +34,7 @@ export CY_ACTION = open
 export CY_BROWSER = chrome
 
 export CGO_ENABLED = 0
-export PATH := $(PWD)/bin:$(PATH)
+export PATH := $(PWD)/bin:$(PWD)/bin/tools:$(PATH)
 export GOOS = $(shell go env GOOS)
 export GOALERT_DB_URL_NEXT = $(DB_URL_NEXT)
 
@@ -62,6 +61,10 @@ CONTAINER_TOOL ?= docker
 
 all: test
 
+.PHONY: check_arch
+check_arch:
+	./devtools/scripts/arch-check.sh
+
 release: container-demo container-goalert bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz bin/goalert-windows-amd64.zip ## Build all release artifacts
 
 Makefile.binaries.mk: devtools/genmake/*
@@ -79,6 +82,16 @@ $(BIN_DIR)/tools/mailpit: mailpit.version
 
 $(BIN_DIR)/tools/sqlc: sqlc.version
 	go run ./devtools/gettool -t sqlc -v $(shell cat sqlc.version) -o $@
+
+$(BIN_DIR)/tools/bun: bun.version
+	go run ./devtools/gettool -t bun -v $(shell cat bun.version) -o $@
+
+bun.lock: $(BIN_DIR)/tools/bun
+	$(BIN_DIR)/tools/bun install
+
+node_modules: $(BIN_DIR)/tools/bun package.json bun.lock
+	$(BIN_DIR)/tools/bun install
+	touch "$@"
 
 $(BIN_DIR)/tools/prometheus: prometheus.version
 	go run ./devtools/gettool -t prometheus -v $(shell cat prometheus.version) -o $@
@@ -114,9 +127,8 @@ goalert-client.key: system.ca.pem plugin.ca.key plugin.ca.pem
 goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
 	go run ./cmd/goalert gen-cert client
 
-cypress: bin/goalert.cover bin/psql-lite bin/pgmocktime $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/build/integration/cypress/plugins/index.js
-	$(MAKE) ensure-yarn
-	yarn cypress install
+cypress: bin/goalert.cover bin/psql-lite bin/pgmocktime $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/build/integration/cypress/plugins/index.js node_modules
+	$(BIN_DIR)/tools/bun run cypress install
 
 cy-wide: cypress ## Start cypress tests in desktop mode with dev build in UI mode
 	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) PG_VERSION=$(PG_VERSION) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 go run ./devtools/runproc -f Procfile.cypress
@@ -144,11 +156,7 @@ web/src/schema.d.ts: graphql2/schema.graphql graphql2/graph/*.graphqls web/src/g
 help: ## Show all valid options
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m\033[0m\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-start: bin/goalert bin/mockoidc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit ## Start the developer version of the application
-	@if [ -d ".vscode" ]; then \
-		echo "Detected .vscode directory, running 'vscode' target"; \
-		$(MAKE) vscode; \
-	fi
+start: check_arch bin/goalert bin/mockoidc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit ## Start the developer version of the application
 	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	GOALERT_VERSION=$(GIT_VERSION) GOALERT_STRICT_EXPERIMENTAL=1 go run ./devtools/runproc -f Procfile -l Procfile.local
 
@@ -186,8 +194,7 @@ start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/wai
 	GOALERT_DB_URL="$(INT_DB_URL)" ./bin/runproc -f Procfile.integration
 
 jest: $(NODE_DEPS)
-	$(MAKE) ensure-yarn
-	yarn run jest $(JEST_ARGS)
+	$(BIN_DIR)/tools/bun run jest $(JEST_ARGS)
 
 test: $(NODE_DEPS) jest $(BIN_DIR)/tools/mailpit ## Run all unit tests
 	rm -rf $(PWD)/test/coverage/unit
@@ -197,28 +204,10 @@ test: $(NODE_DEPS) jest $(BIN_DIR)/tools/mailpit ## Run all unit tests
 check: check-go check-js ## Run all lint checks
 	./devtools/ci/tasks/scripts/codecheck.sh
 
-.yarnrc.yml: package.json
-	$(MAKE) yarn
-	touch "$@"
-
-.yarn/releases/yarn-$(YARN_VERSION).cjs:
-	yarn set version $(YARN_VERSION) || $(MAKE) yarn
-
-ensure-yarn: # Yarn ensures the correct version of yarn is installed
-	@echo "Checking yarn version..."
-	@yarn --version | grep -q -F "$(YARN_VERSION)" || $(MAKE) yarn
-	$(MAKE) .yarn/releases/yarn-$(YARN_VERSION).cjs
-
-yarn:
-	corepack enable
-	corepack prepare yarn@$(YARN_VERSION) --activate
-
 check-js: generate $(NODE_DEPS)
-	$(MAKE) ensure-yarn
-	yarn install
-	yarn run fmt
-	yarn run lint
-	yarn run check
+	$(BIN_DIR)/tools/bun run fmt
+	$(BIN_DIR)/tools/bun run lint
+	$(BIN_DIR)/tools/bun run check
 
 check-go: generate $(BIN_DIR)/tools/golangci-lint
 	@go mod tidy
@@ -250,26 +239,24 @@ test-smoke: smoketest
 test-unit: test
 
 test-components:  $(NODE_DEPS) bin/waitfor
-	yarn build-storybook --test --quiet 2>/dev/null
-	yarn playwright install chromium
-	yarn concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
-		"yarn http-server storybook-static -a 127.0.0.1 --port 6008 --silent" \
-		"./bin/waitfor tcp://localhost:6008 && yarn test-storybook --ci --url http://127.0.0.1:6008 --maxWorkers 2"
+	$(BIN_DIR)/tools/bun run build-storybook --test --quiet 2>/dev/null
+	$(BIN_DIR)/tools/bun run playwright install chromium
+	$(BIN_DIR)/tools/bun run concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
+		"$(BIN_DIR)/tools/bun run http-server storybook-static -a 127.0.0.1 --port 6008 --silent" \
+		"./bin/waitfor tcp://localhost:6008 && $(BIN_DIR)/tools/bun run test-storybook --ci --url http://127.0.0.1:6008 --maxWorkers 2"
 
-storybook: ensure-yarn $(NODE_DEPS) # Start the Storybook UI
-	yarn storybook
+storybook: $(NODE_DEPS) # Start the Storybook UI
+	$(BIN_DIR)/tools/bun run storybook
 
 playwright-run: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goalert.cover web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit reset-integration ## Start playwright tests in headless mode
-	$(MAKE) ensure-yarn
 	rm -rf test/coverage/integration/playwright
 	mkdir -p test/coverage/integration/playwright
-	yarn playwright install chromium
-	GOCOVERDIR=test/coverage/integration/playwright yarn playwright test
+	$(BIN_DIR)/tools/bun run playwright install chromium
+	GOCOVERDIR=test/coverage/integration/playwright $(BIN_DIR)/tools/bun run playwright test
 
-playwright-ui: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit reset-integration ## Start the Playwright UI
-	$(MAKE) ensure-yarn
-	yarn playwright install chromium
-	yarn playwright test --ui
+playwright-ui: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration $(BIN_DIR)/tools/mailpit ## Start the Playwright UI
+	$(BIN_DIR)/tools/bun run playwright install chromium
+	$(BIN_DIR)/tools/bun run playwright test --ui
 
 smoketest: $(BIN_DIR)/tools/mailpit
 	rm -rf test/coverage/smoke
@@ -298,27 +285,24 @@ tools:
 	go get -u golang.org/x/tools/cmd/goimports
 	go get -u golang.org/x/tools/cmd/stringer
 
-.pnp.cjs: yarn.lock Makefile package.json .yarnrc.yml
-	$(MAKE) ensure-yarn
-	yarn install && touch "$@"
 
 
-web/src/app/editor/expr-parser.ts: web/src/app/editor/expr.grammar .pnp.cjs
+
+web/src/app/editor/expr-parser.ts: web/src/app/editor/expr.grammar node_modules
 	# we need to use .tmp.ts as the extension because lezer-generator will append .ts to the output file
-	yarn run lezer-generator $< --noTerms --typeScript -o $@.tmp.ts
-	yarn run prettier -l --write $@.tmp.ts
+	bin/tools/bun run lezer-generator $< --noTerms --typeScript -o $@.tmp.ts
+	bin/tools/bun run prettier -l --write $@.tmp.ts
 	cat $@.tmp.ts | sed "s/You probably shouldn't edit it./DO NOT EDIT/" >$@
 	rm $@.tmp.ts
 
 web/src/build/static/explore.js: web/src/build/static/app.js
 web/src/build/static/app.js: $(NODE_DEPS)
-	$(MAKE) ensure-yarn
 	rm -rf web/src/build/static
 	mkdir -p web/src/build/static
 	cp -f web/src/app/public/icons/favicon-* web/src/app/public/logos/lightmode_* web/src/app/public/logos/darkmode_* web/src/build/static/
 	# used for email templates
 	cp web/src/app/public/logos/goalert-alt-logo.png web/src/build/static/
-	GOALERT_VERSION=$(GIT_VERSION) yarn run esbuild --prod
+	GOALERT_VERSION=$(GIT_VERSION) $(BIN_DIR)/tools/bun run esbuild --prod
 	touch "$@"
 
 notification/desttype_string.go: notification/desttype.go
@@ -361,11 +345,8 @@ new-migration:
 	@echo "-- +migrate Up\n\n\n-- +migrate Down\n" >migrate/migrations/$(shell date +%Y%m%d%H%M%S)-$(NAME).sql
 	@echo "Created: migrate/migrations/$(shell date +%Y%m%d%H%M%S)-$(NAME).sql"
 
-vscode: $(NODE_DEPS) 
-	yarn dlx @yarnpkg/sdks vscode
-
-upgrade-js: ## Interactively upgrade javascript packages
-	yarn upgrade-interactive
+vscode:
+	echo "make vscode is no longer necessary since the migration to bun"
 
 test/coverage/total.out: test/coverage/integration/*/* test/coverage/*/* Makefile
 	rm -rf test/coverage/total
