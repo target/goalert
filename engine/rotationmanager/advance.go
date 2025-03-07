@@ -25,37 +25,39 @@ type rotState struct {
 // calcAdvance will calculate rotation advancement if it is required. If not, nil is returned
 func calcAdvance(ctx context.Context, t time.Time, rot *rotation.Rotation, state rotState, partCount int) (*advance, error) {
 	var mustUpdate bool
-	origPos := state.Position
 
-	// get next shift start time
-	newStart := rot.EndTime(state.ShiftStart)
+	if state.Position >= partCount {
+		mustUpdate = true
+		state.Position = 0
+	}
+
+	endTimeFunc := rot.EndTime
+
 	switch state.Version {
 	case 1:
-		newStart = calcVersion1EndTime(rot, state.ShiftStart)
+		// for a V1 state, use the old calculation method
 		mustUpdate = true
+		endTimeFunc = func(t time.Time) time.Time {
+			return calcVersion1EndTime(rot, t)
+		}
 	case 2:
 		// no-op
 	default:
-		return nil, fmt.Errorf("unknown rotation version (supported: 1,2): %d", state.Version)
+		return nil, fmt.Errorf("unknown rotation state version (supported: 1,2): %d", state.Version)
 	}
 
-	if state.Position >= partCount {
-		// deleted last participant
-		state.Position = 0
-		mustUpdate = true
-	}
-
-	if newStart.After(t) || state.Version == 1 {
+	// get next shift start time
+	newStart := endTimeFunc(state.ShiftStart)
+	if newStart.After(t) {
 		if mustUpdate {
+			// we need to update the rotation state to v2, which will reset the start time and make it compatible with v2, but we
+			// don't need to change the position (unless it was due to participant deletion).
 			return &advance{
 				id:          rot.ID,
 				newPosition: state.Position,
-
-				// If migrating from version 1 to 2 without changing
-				// who's on-call do so silently.
-				silent: state.Version == 1 && state.Position == origPos,
 			}, nil
 		}
+
 		// in the future, so nothing to do yet
 		return nil, nil
 	}
@@ -74,7 +76,7 @@ func calcAdvance(ctx context.Context, t time.Time, rot *rotation.Rotation, state
 		}
 
 		state.Position = (state.Position + 1) % partCount
-		end := rot.EndTime(state.ShiftStart)
+		end := endTimeFunc(state.ShiftStart)
 		if end.After(t) {
 			break
 		}
