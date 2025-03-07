@@ -31,3 +31,27 @@ FROM
 WHERE
     oc.user_id = $1;
 
+-- name: ServiceAlertStats :many
+-- ServiceAlertStats returns statistics about alerts for a service.
+SELECT
+    date_bin(sqlc.arg(stride)::interval, closed_at, sqlc.arg(origin)::timestamptz)::timestamptz AS bucket,
+    coalesce(EXTRACT(EPOCH FROM AVG(time_to_ack)), 0)::bigint AS avg_time_to_ack_seconds,
+    coalesce(EXTRACT(EPOCH FROM AVG(time_to_close)), 0)::bigint AS avg_time_to_close_seconds,
+    coalesce(COUNT(*), 0)::bigint AS alert_count,
+    coalesce(SUM(
+            CASE WHEN escalated THEN
+                1
+            ELSE
+                0
+            END), 0)::bigint AS escalated_count
+FROM
+    alert_metrics
+WHERE
+    service_id = $1
+    AND (closed_at BETWEEN sqlc.arg(start_time)
+        AND sqlc.arg(end_time))
+GROUP BY
+    bucket
+ORDER BY
+    bucket;
+
