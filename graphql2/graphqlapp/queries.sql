@@ -55,3 +55,14 @@ GROUP BY
 ORDER BY
     bucket;
 
+-- name: ServiceAlertCounts :many
+SELECT
+    COUNT(*),
+    status
+FROM
+    alerts
+WHERE
+    service_id = $1
+GROUP BY
+    status;
+

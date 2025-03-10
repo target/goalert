@@ -180,6 +180,12 @@ type ComplexityRoot struct {
 		EscalatedCount func(childComplexity int) int
 	}
 
+	AlertsByStatus struct {
+		Acked   func(childComplexity int) int
+		Closed  func(childComplexity int) int
+		Unacked func(childComplexity int) int
+	}
+
 	AuthSubject struct {
 		ProviderID func(childComplexity int) int
 		SubjectID  func(childComplexity int) int
@@ -702,6 +708,7 @@ type ComplexityRoot struct {
 
 	Service struct {
 		AlertStats           func(childComplexity int, input *ServiceAlertStatsOptions) int
+		AlertsByStatus       func(childComplexity int) int
 		Description          func(childComplexity int) int
 		EscalationPolicy     func(childComplexity int) int
 		EscalationPolicyID   func(childComplexity int) int
@@ -1089,6 +1096,7 @@ type ServiceResolver interface {
 	HeartbeatMonitors(ctx context.Context, obj *service.Service) ([]heartbeat.Monitor, error)
 	Notices(ctx context.Context, obj *service.Service) ([]notice.Notice, error)
 	AlertStats(ctx context.Context, obj *service.Service, input *ServiceAlertStatsOptions) (*AlertStats, error)
+	AlertsByStatus(ctx context.Context, obj *service.Service) (*AlertsByStatus, error)
 }
 type TargetResolver interface {
 	Name(ctx context.Context, obj *assignment.RawTarget) (string, error)
@@ -1468,6 +1476,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AlertStats.EscalatedCount(childComplexity), true
+
+	case "AlertsByStatus.acked":
+		if e.complexity.AlertsByStatus.Acked == nil {
+			break
+		}
+
+		return e.complexity.AlertsByStatus.Acked(childComplexity), true
+
+	case "AlertsByStatus.closed":
+		if e.complexity.AlertsByStatus.Closed == nil {
+			break
+		}
+
+		return e.complexity.AlertsByStatus.Closed(childComplexity), true
+
+	case "AlertsByStatus.unacked":
+		if e.complexity.AlertsByStatus.Unacked == nil {
+			break
+		}
+
+		return e.complexity.AlertsByStatus.Unacked(childComplexity), true
 
 	case "AuthSubject.providerID":
 		if e.complexity.AuthSubject.ProviderID == nil {
@@ -4459,6 +4488,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Service.AlertStats(childComplexity, args["input"].(*ServiceAlertStatsOptions)), true
+
+	case "Service.alertsByStatus":
+		if e.complexity.Service.AlertsByStatus == nil {
+			break
+		}
+
+		return e.complexity.Service.AlertsByStatus(childComplexity), true
 
 	case "Service.description":
 		if e.complexity.Service.Description == nil {
@@ -9171,6 +9207,8 @@ func (ec *executionContext) fieldContext_Alert_service(_ context.Context, field 
 				return ec.fieldContext_Service_notices(ctx, field)
 			case "alertStats":
 				return ec.fieldContext_Service_alertStats(ctx, field)
+			case "alertsByStatus":
+				return ec.fieldContext_Service_alertsByStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Service", field.Name)
 		},
@@ -10680,6 +10718,138 @@ func (ec *executionContext) fieldContext_AlertStats_escalatedCount(_ context.Con
 				return ec.fieldContext_TimeSeriesBucket_value(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesBucket", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertsByStatus_acked(ctx context.Context, field graphql.CollectedField, obj *AlertsByStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AlertsByStatus_acked(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Acked, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AlertsByStatus_acked(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertsByStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertsByStatus_unacked(ctx context.Context, field graphql.CollectedField, obj *AlertsByStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AlertsByStatus_unacked(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Unacked, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AlertsByStatus_unacked(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertsByStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertsByStatus_closed(ctx context.Context, field graphql.CollectedField, obj *AlertsByStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AlertsByStatus_closed(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Closed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AlertsByStatus_closed(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertsByStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -19712,6 +19882,8 @@ func (ec *executionContext) fieldContext_Mutation_createService(ctx context.Cont
 				return ec.fieldContext_Service_notices(ctx, field)
 			case "alertStats":
 				return ec.fieldContext_Service_alertStats(ctx, field)
+			case "alertsByStatus":
+				return ec.fieldContext_Service_alertsByStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Service", field.Name)
 		},
@@ -23817,6 +23989,8 @@ func (ec *executionContext) fieldContext_Query_service(ctx context.Context, fiel
 				return ec.fieldContext_Service_notices(ctx, field)
 			case "alertStats":
 				return ec.fieldContext_Service_alertStats(ctx, field)
+			case "alertsByStatus":
+				return ec.fieldContext_Service_alertsByStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Service", field.Name)
 		},
@@ -29742,6 +29916,58 @@ func (ec *executionContext) fieldContext_Service_alertStats(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Service_alertsByStatus(ctx context.Context, field graphql.CollectedField, obj *service.Service) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Service_alertsByStatus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Service().AlertsByStatus(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*AlertsByStatus)
+	fc.Result = res
+	return ec.marshalNAlertsByStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertsByStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Service_alertsByStatus(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Service",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "acked":
+				return ec.fieldContext_AlertsByStatus_acked(ctx, field)
+			case "unacked":
+				return ec.fieldContext_AlertsByStatus_unacked(ctx, field)
+			case "closed":
+				return ec.fieldContext_AlertsByStatus_closed(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AlertsByStatus", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ServiceConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *ServiceConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ServiceConnection_nodes(ctx, field)
 	if err != nil {
@@ -29807,6 +30033,8 @@ func (ec *executionContext) fieldContext_ServiceConnection_nodes(_ context.Conte
 				return ec.fieldContext_Service_notices(ctx, field)
 			case "alertStats":
 				return ec.fieldContext_Service_alertStats(ctx, field)
+			case "alertsByStatus":
+				return ec.fieldContext_Service_alertsByStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Service", field.Name)
 		},
@@ -41464,6 +41692,55 @@ func (ec *executionContext) _AlertStats(ctx context.Context, sel ast.SelectionSe
 	return out
 }
 
+var alertsByStatusImplementors = []string{"AlertsByStatus"}
+
+func (ec *executionContext) _AlertsByStatus(ctx context.Context, sel ast.SelectionSet, obj *AlertsByStatus) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, alertsByStatusImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AlertsByStatus")
+		case "acked":
+			out.Values[i] = ec._AlertsByStatus_acked(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "unacked":
+			out.Values[i] = ec._AlertsByStatus_unacked(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "closed":
+			out.Values[i] = ec._AlertsByStatus_closed(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var authSubjectImplementors = []string{"AuthSubject"}
 
 func (ec *executionContext) _AuthSubject(ctx context.Context, sel ast.SelectionSet, obj *user.AuthSubject) graphql.Marshaler {
@@ -47462,6 +47739,42 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "alertsByStatus":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Service_alertsByStatus(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -50106,6 +50419,20 @@ func (ec *executionContext) unmarshalNAlertStatus2githubᚗcomᚋtargetᚋgoaler
 
 func (ec *executionContext) marshalNAlertStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertStatus(ctx context.Context, sel ast.SelectionSet, v AlertStatus) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNAlertsByStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertsByStatus(ctx context.Context, sel ast.SelectionSet, v AlertsByStatus) graphql.Marshaler {
+	return ec._AlertsByStatus(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAlertsByStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertsByStatus(ctx context.Context, sel ast.SelectionSet, v *AlertsByStatus) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AlertsByStatus(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNAuthSubject2githubᚗcomᚋtargetᚋgoalertᚋuserᚐAuthSubject(ctx context.Context, sel ast.SelectionSet, v user.AuthSubject) graphql.Marshaler {

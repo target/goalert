@@ -117,6 +117,12 @@ export type AlertStatus =
   | 'StatusClosed'
   | 'StatusUnacknowledged'
 
+export interface AlertsByStatus {
+  acked: number
+  closed: number
+  unacked: number
+}
+
 export interface AuthSubject {
   providerID: string
   subjectID: string
@@ -1050,6 +1056,7 @@ export interface SendContactMethodVerificationInput {
 
 export interface Service {
   alertStats: AlertStats
+  alertsByStatus: AlertsByStatus
   description: string
   escalationPolicy?: null | EscalationPolicy
   escalationPolicyID: string

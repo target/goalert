@@ -95,6 +95,12 @@ type AlertStats struct {
 	EscalatedCount []TimeSeriesBucket `json:"escalatedCount"`
 }
 
+type AlertsByStatus struct {
+	Acked   int `json:"acked"`
+	Unacked int `json:"unacked"`
+	Closed  int `json:"closed"`
+}
+
 type AuthSubjectConnection struct {
 	Nodes    []user.AuthSubject `json:"nodes"`
 	PageInfo *PageInfo          `json:"pageInfo"`

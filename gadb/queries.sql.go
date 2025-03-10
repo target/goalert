@@ -4693,6 +4693,46 @@ func (q *Queries) SequenceNames(ctx context.Context) ([]string, error) {
 	return items, nil
 }
 
+const serviceAlertCounts = `-- name: ServiceAlertCounts :many
+SELECT
+    COUNT(*),
+    status
+FROM
+    alerts
+WHERE
+    service_id = $1
+GROUP BY
+    status
+`
+
+type ServiceAlertCountsRow struct {
+	Count  int64
+	Status EnumAlertStatus
+}
+
+func (q *Queries) ServiceAlertCounts(ctx context.Context, serviceID uuid.NullUUID) ([]ServiceAlertCountsRow, error) {
+	rows, err := q.db.QueryContext(ctx, serviceAlertCounts, serviceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ServiceAlertCountsRow
+	for rows.Next() {
+		var i ServiceAlertCountsRow
+		if err := rows.Scan(&i.Count, &i.Status); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const serviceAlertStats = `-- name: ServiceAlertStats :many
 SELECT
     date_bin($2::interval, closed_at, $3::timestamptz)::timestamptz AS bucket,

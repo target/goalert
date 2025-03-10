@@ -144,6 +144,30 @@ func (s *Service) AlertStats(ctx context.Context, svc *service.Service, input *g
 	return &stats, nil
 }
 
+func (s *Service) AlertsByStatus(ctx context.Context, svc *service.Service) (*graphql2.AlertsByStatus, error) {
+	rows, err := gadb.New(s.DB).ServiceAlertCounts(ctx, uuid.NullUUID{UUID: uuid.MustParse(svc.ID), Valid: true})
+	if errors.Is(err, sql.ErrNoRows) {
+		return &graphql2.AlertsByStatus{}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	var st graphql2.AlertsByStatus
+	for _, r := range rows {
+		switch r.Status {
+		case gadb.EnumAlertStatusActive:
+			st.Acked = int(r.Count)
+		case gadb.EnumAlertStatusClosed:
+			st.Closed = int(r.Count)
+		case gadb.EnumAlertStatusTriggered:
+			st.Unacked = int(r.Count)
+		}
+	}
+
+	return &st, err
+}
+
 func (s *Service) Notices(ctx context.Context, raw *service.Service) ([]notice.Notice, error) {
 	return s.NoticeStore.FindAllServiceNotices(ctx, raw.ID)
 }
