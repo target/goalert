@@ -1,0 +1,46 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "GoAlert (Debug)",
+      "presentation": {
+        "hidden": true
+      },
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/goalert/",
+      "args": [
+        "-l=localhost:3030",
+        "--ui-dir=web/src/build",
+        "--db-url=postgres://goalert@localhost",
+        "--listen-sysapi=localhost:1234",
+        "--listen-prometheus=localhost:2112",
+        "--smtp-listen=localhost:9025",
+        "--email-integration-domain=localhost",
+        "--listen-pprof=localhost:6060",
+        "--pprof-mutex-profile-fraction=1",
+        "--pprof-block-profile-rate=1000",
+        "--enable-secure-headers"
+      ],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Dev Tools",
+      "presentation": {
+        "hidden": true
+      },
+      "type": "go",
+      "request": "launch",
+      "program": "${workspaceFolder}/devtools/runproc",
+      "args": ["-f", "Procfile.tools", "-l", "Procfile.local"],
+      "cwd": "${workspaceFolder}"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Debug",
+      "configurations": ["Dev Tools", "GoAlert (Debug)"]
+    }
+  ]
+}
