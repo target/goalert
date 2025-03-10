@@ -2,7 +2,17 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "GoAlert (Debug)",
+      "presentation": {
+        "order": 2
+      },
+      "name": "GoAlert Frontend",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3030",
+      "webRoot": "${workspaceFolder}/web/src/app/"
+    },
+    {
+      "name": "GoAlert Backend",
       "presentation": {
         "hidden": true
       },
@@ -26,10 +36,10 @@
       "cwd": "${workspaceFolder}"
     },
     {
-      "name": "Dev Tools",
       "presentation": {
         "hidden": true
       },
+      "name": "Dev Tools",
       "type": "go",
       "request": "launch",
       "program": "${workspaceFolder}/devtools/runproc",
@@ -39,8 +49,11 @@
   ],
   "compounds": [
     {
-      "name": "Debug",
-      "configurations": ["Dev Tools", "GoAlert (Debug)"]
+      "name": "GoAlert Backend (incl. dev tools)",
+      "presentation": {
+        "order": 1
+      },
+      "configurations": ["Dev Tools", "GoAlert Backend"]
     }
   ]
 }
