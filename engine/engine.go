@@ -95,7 +95,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 		return nil, err
 	}
 
-	rotMgr, err := rotationmanager.NewDB(ctx, db)
+	rotMgr, err := rotationmanager.NewDB(ctx, db, c.RiverDBSQL)
 	if err != nil {
 		return nil, errors.Wrap(err, "rotation management backend")
 	}

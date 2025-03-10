@@ -926,6 +926,13 @@ type EngineProcessingVersion struct {
 	Version int32
 }
 
+type EntityUpdate struct {
+	CreatedAt  time.Time
+	EntityID   uuid.UUID
+	EntityType string
+	ID         int64
+}
+
 type EpStepOnCallUser struct {
 	EndTime   sql.NullTime
 	EpStepID  uuid.UUID
