@@ -89,6 +89,7 @@ type ResolverRoot interface {
 	Service() ServiceResolver
 	Target() TargetResolver
 	TemporarySchedule() TemporaryScheduleResolver
+	TimeSeriesBucket() TimeSeriesBucketResolver
 	User() UserResolver
 	UserCalendarSubscription() UserCalendarSubscriptionResolver
 	UserContactMethod() UserContactMethodResolver
@@ -173,10 +174,10 @@ type ComplexityRoot struct {
 	}
 
 	AlertStats struct {
-		AlertCount        func(childComplexity int) int
-		AvgTimeToAckSec   func(childComplexity int) int
-		AvgTimeToCloseSec func(childComplexity int) int
-		EscalatedCount    func(childComplexity int) int
+		AlertCount     func(childComplexity int) int
+		AvgAckSec      func(childComplexity int) int
+		AvgCloseSec    func(childComplexity int) int
+		EscalatedCount func(childComplexity int) int
 	}
 
 	AuthSubject struct {
@@ -775,6 +776,7 @@ type ComplexityRoot struct {
 		Count func(childComplexity int) int
 		End   func(childComplexity int) int
 		Start func(childComplexity int) int
+		Value func(childComplexity int) int
 	}
 
 	TimeZone struct {
@@ -1093,6 +1095,9 @@ type TargetResolver interface {
 }
 type TemporaryScheduleResolver interface {
 	Shifts(ctx context.Context, obj *schedule.TemporarySchedule) ([]oncall.Shift, error)
+}
+type TimeSeriesBucketResolver interface {
+	Count(ctx context.Context, obj *TimeSeriesBucket) (int, error)
 }
 type UserResolver interface {
 	Role(ctx context.Context, obj *user.User) (UserRole, error)
@@ -1443,19 +1448,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AlertStats.AlertCount(childComplexity), true
 
-	case "AlertStats.avgTimeToAckSec":
-		if e.complexity.AlertStats.AvgTimeToAckSec == nil {
+	case "AlertStats.avgAckSec":
+		if e.complexity.AlertStats.AvgAckSec == nil {
 			break
 		}
 
-		return e.complexity.AlertStats.AvgTimeToAckSec(childComplexity), true
+		return e.complexity.AlertStats.AvgAckSec(childComplexity), true
 
-	case "AlertStats.avgTimeToCloseSec":
-		if e.complexity.AlertStats.AvgTimeToCloseSec == nil {
+	case "AlertStats.avgCloseSec":
+		if e.complexity.AlertStats.AvgCloseSec == nil {
 			break
 		}
 
-		return e.complexity.AlertStats.AvgTimeToCloseSec(childComplexity), true
+		return e.complexity.AlertStats.AvgCloseSec(childComplexity), true
 
 	case "AlertStats.escalatedCount":
 		if e.complexity.AlertStats.EscalatedCount == nil {
@@ -4741,6 +4746,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.TimeSeriesBucket.Start(childComplexity), true
+
+	case "TimeSeriesBucket.value":
+		if e.complexity.TimeSeriesBucket.Value == nil {
+			break
+		}
+
+		return e.complexity.TimeSeriesBucket.Value(childComplexity), true
 
 	case "TimeZone.id":
 		if e.complexity.TimeZone.ID == nil {
@@ -10457,8 +10469,8 @@ func (ec *executionContext) fieldContext_AlertState_repeatCount(_ context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _AlertStats_avgTimeToAckSec(ctx context.Context, field graphql.CollectedField, obj *AlertStats) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AlertStats_avgTimeToAckSec(ctx, field)
+func (ec *executionContext) _AlertStats_avgAckSec(ctx context.Context, field graphql.CollectedField, obj *AlertStats) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AlertStats_avgAckSec(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -10471,7 +10483,7 @@ func (ec *executionContext) _AlertStats_avgTimeToAckSec(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.AvgTimeToAckSec, nil
+		return obj.AvgAckSec, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10488,7 +10500,7 @@ func (ec *executionContext) _AlertStats_avgTimeToAckSec(ctx context.Context, fie
 	return ec.marshalNTimeSeriesBucket2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeSeriesBucketᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AlertStats_avgTimeToAckSec(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AlertStats_avgAckSec(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AlertStats",
 		Field:      field,
@@ -10502,6 +10514,8 @@ func (ec *executionContext) fieldContext_AlertStats_avgTimeToAckSec(_ context.Co
 				return ec.fieldContext_TimeSeriesBucket_end(ctx, field)
 			case "count":
 				return ec.fieldContext_TimeSeriesBucket_count(ctx, field)
+			case "value":
+				return ec.fieldContext_TimeSeriesBucket_value(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesBucket", field.Name)
 		},
@@ -10509,8 +10523,8 @@ func (ec *executionContext) fieldContext_AlertStats_avgTimeToAckSec(_ context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _AlertStats_avgTimeToCloseSec(ctx context.Context, field graphql.CollectedField, obj *AlertStats) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AlertStats_avgTimeToCloseSec(ctx, field)
+func (ec *executionContext) _AlertStats_avgCloseSec(ctx context.Context, field graphql.CollectedField, obj *AlertStats) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AlertStats_avgCloseSec(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -10523,7 +10537,7 @@ func (ec *executionContext) _AlertStats_avgTimeToCloseSec(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.AvgTimeToCloseSec, nil
+		return obj.AvgCloseSec, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10540,7 +10554,7 @@ func (ec *executionContext) _AlertStats_avgTimeToCloseSec(ctx context.Context, f
 	return ec.marshalNTimeSeriesBucket2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeSeriesBucketᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AlertStats_avgTimeToCloseSec(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AlertStats_avgCloseSec(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AlertStats",
 		Field:      field,
@@ -10554,6 +10568,8 @@ func (ec *executionContext) fieldContext_AlertStats_avgTimeToCloseSec(_ context.
 				return ec.fieldContext_TimeSeriesBucket_end(ctx, field)
 			case "count":
 				return ec.fieldContext_TimeSeriesBucket_count(ctx, field)
+			case "value":
+				return ec.fieldContext_TimeSeriesBucket_value(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesBucket", field.Name)
 		},
@@ -10606,6 +10622,8 @@ func (ec *executionContext) fieldContext_AlertStats_alertCount(_ context.Context
 				return ec.fieldContext_TimeSeriesBucket_end(ctx, field)
 			case "count":
 				return ec.fieldContext_TimeSeriesBucket_count(ctx, field)
+			case "value":
+				return ec.fieldContext_TimeSeriesBucket_value(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesBucket", field.Name)
 		},
@@ -10658,6 +10676,8 @@ func (ec *executionContext) fieldContext_AlertStats_escalatedCount(_ context.Con
 				return ec.fieldContext_TimeSeriesBucket_end(ctx, field)
 			case "count":
 				return ec.fieldContext_TimeSeriesBucket_count(ctx, field)
+			case "value":
+				return ec.fieldContext_TimeSeriesBucket_value(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesBucket", field.Name)
 		},
@@ -18254,6 +18274,8 @@ func (ec *executionContext) fieldContext_MessageLogConnectionStats_timeSeries(ct
 				return ec.fieldContext_TimeSeriesBucket_end(ctx, field)
 			case "count":
 				return ec.fieldContext_TimeSeriesBucket_count(ctx, field)
+			case "value":
+				return ec.fieldContext_TimeSeriesBucket_value(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type TimeSeriesBucket", field.Name)
 		},
@@ -29694,10 +29716,10 @@ func (ec *executionContext) fieldContext_Service_alertStats(ctx context.Context,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "avgTimeToAckSec":
-				return ec.fieldContext_AlertStats_avgTimeToAckSec(ctx, field)
-			case "avgTimeToCloseSec":
-				return ec.fieldContext_AlertStats_avgTimeToCloseSec(ctx, field)
+			case "avgAckSec":
+				return ec.fieldContext_AlertStats_avgAckSec(ctx, field)
+			case "avgCloseSec":
+				return ec.fieldContext_AlertStats_avgCloseSec(ctx, field)
 			case "alertCount":
 				return ec.fieldContext_AlertStats_alertCount(ctx, field)
 			case "escalatedCount":
@@ -31046,7 +31068,7 @@ func (ec *executionContext) _TimeSeriesBucket_count(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Count, nil
+		return ec.resolvers.TimeSeriesBucket().Count(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -31067,10 +31089,54 @@ func (ec *executionContext) fieldContext_TimeSeriesBucket_count(_ context.Contex
 	fc = &graphql.FieldContext{
 		Object:     "TimeSeriesBucket",
 		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TimeSeriesBucket_value(ctx context.Context, field graphql.CollectedField, obj *TimeSeriesBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TimeSeriesBucket_value(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TimeSeriesBucket_value(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TimeSeriesBucket",
+		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Float does not have child fields")
 		},
 	}
 	return fc, nil
@@ -41355,13 +41421,13 @@ func (ec *executionContext) _AlertStats(ctx context.Context, sel ast.SelectionSe
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AlertStats")
-		case "avgTimeToAckSec":
-			out.Values[i] = ec._AlertStats_avgTimeToAckSec(ctx, field, obj)
+		case "avgAckSec":
+			out.Values[i] = ec._AlertStats_avgAckSec(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "avgTimeToCloseSec":
-			out.Values[i] = ec._AlertStats_avgTimeToCloseSec(ctx, field, obj)
+		case "avgCloseSec":
+			out.Values[i] = ec._AlertStats_avgCloseSec(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -47965,17 +48031,53 @@ func (ec *executionContext) _TimeSeriesBucket(ctx context.Context, sel ast.Selec
 		case "start":
 			out.Values[i] = ec._TimeSeriesBucket_start(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "end":
 			out.Values[i] = ec._TimeSeriesBucket_end(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "count":
-			out.Values[i] = ec._TimeSeriesBucket_count(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TimeSeriesBucket_count(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "value":
+			out.Values[i] = ec._TimeSeriesBucket_value(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -51089,6 +51191,21 @@ func (ec *executionContext) marshalNFieldValuePair2ᚕgithubᚗcomᚋtargetᚋgo
 	}
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v any) (float64, error) {
+	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	res := graphql.MarshalFloatContext(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return graphql.WrapContextMarshaler(ctx, res)
 }
 
 func (ec *executionContext) marshalNGQLAPIKey2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐGQLAPIKey(ctx context.Context, sel ast.SelectionSet, v GQLAPIKey) graphql.Marshaler {

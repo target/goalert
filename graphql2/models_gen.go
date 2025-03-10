@@ -89,10 +89,10 @@ type AlertSearchOptions struct {
 
 // AlertStats returns aggregated statistics about alerts.
 type AlertStats struct {
-	AvgTimeToAckSec   []TimeSeriesBucket `json:"avgTimeToAckSec"`
-	AvgTimeToCloseSec []TimeSeriesBucket `json:"avgTimeToCloseSec"`
-	AlertCount        []TimeSeriesBucket `json:"alertCount"`
-	EscalatedCount    []TimeSeriesBucket `json:"escalatedCount"`
+	AvgAckSec      []TimeSeriesBucket `json:"avgAckSec"`
+	AvgCloseSec    []TimeSeriesBucket `json:"avgCloseSec"`
+	AlertCount     []TimeSeriesBucket `json:"alertCount"`
+	EscalatedCount []TimeSeriesBucket `json:"escalatedCount"`
 }
 
 type AuthSubjectConnection struct {
@@ -770,6 +770,7 @@ type TimeSeriesBucket struct {
 	Start time.Time `json:"start"`
 	End   time.Time `json:"end"`
 	Count int       `json:"count"`
+	Value float64   `json:"value"`
 }
 
 type TimeSeriesOptions struct {

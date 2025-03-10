@@ -136,10 +136,10 @@ func (s *Service) AlertStats(ctx context.Context, svc *service.Service, input *g
 	}
 	for _, r := range rows {
 		end := res.AddTo(r.Bucket)
-		stats.AlertCount = append(stats.AlertCount, graphql2.TimeSeriesBucket{Start: r.Bucket, End: end, Count: int(r.AlertCount)})
-		stats.EscalatedCount = append(stats.EscalatedCount, graphql2.TimeSeriesBucket{Start: r.Bucket, End: end, Count: int(r.EscalatedCount)})
-		stats.AvgTimeToAckSec = append(stats.AvgTimeToAckSec, graphql2.TimeSeriesBucket{Start: r.Bucket, End: end, Count: int(r.AvgTimeToCloseSeconds)})
-		stats.AvgTimeToCloseSec = append(stats.AvgTimeToCloseSec, graphql2.TimeSeriesBucket{Start: r.Bucket, End: end, Count: int(r.AvgTimeToCloseSeconds)})
+		stats.AlertCount = append(stats.AlertCount, graphql2.TimeSeriesBucket{Start: r.Bucket, End: end, Value: float64(r.AlertCount)})
+		stats.EscalatedCount = append(stats.EscalatedCount, graphql2.TimeSeriesBucket{Start: r.Bucket, End: end, Value: float64(r.EscalatedCount)})
+		stats.AvgAckSec = append(stats.AvgAckSec, graphql2.TimeSeriesBucket{Start: r.Bucket, End: end, Value: r.AvgTimeToCloseSeconds})
+		stats.AvgCloseSec = append(stats.AvgCloseSec, graphql2.TimeSeriesBucket{Start: r.Bucket, End: end, Value: r.AvgTimeToCloseSeconds})
 	}
 	return &stats, nil
 }

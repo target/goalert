@@ -16,8 +16,8 @@ input ServiceAlertStatsOptions {
 AlertStats returns aggregated statistics about alerts.
 """
 type AlertStats {
-  avgTimeToAckSec: [TimeSeriesBucket!]!
-  avgTimeToCloseSec: [TimeSeriesBucket!]!
+  avgAckSec: [TimeSeriesBucket!]!
+  avgCloseSec: [TimeSeriesBucket!]!
   alertCount: [TimeSeriesBucket!]!
   escalatedCount: [TimeSeriesBucket!]!
 }

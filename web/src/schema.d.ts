@@ -107,8 +107,8 @@ export interface AlertState {
 
 export interface AlertStats {
   alertCount: TimeSeriesBucket[]
-  avgTimeToAckSec: TimeSeriesBucket[]
-  avgTimeToCloseSec: TimeSeriesBucket[]
+  avgAckSec: TimeSeriesBucket[]
+  avgCloseSec: TimeSeriesBucket[]
   escalatedCount: TimeSeriesBucket[]
 }
 
@@ -1242,6 +1242,7 @@ export interface TimeSeriesBucket {
   count: number
   end: ISOTimestamp
   start: ISOTimestamp
+  value: Float
 }
 
 export interface TimeSeriesOptions {

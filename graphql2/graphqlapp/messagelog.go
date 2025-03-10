@@ -43,10 +43,21 @@ func msgStatus(stat notification.Status) string {
 	return str.String()
 }
 
-type MessageLogConnectionStats App
+type (
+	MessageLogConnectionStats App
+	TimeSeriesBucket          App
+)
 
 func (a *App) MessageLogConnectionStats() graphql2.MessageLogConnectionStatsResolver {
 	return (*MessageLogConnectionStats)(a)
+}
+
+func (a *App) TimeSeriesBucket() graphql2.TimeSeriesBucketResolver {
+	return (*TimeSeriesBucket)(a)
+}
+
+func (a *TimeSeriesBucket) Count(ctx context.Context, obj *graphql2.TimeSeriesBucket) (int, error) {
+	return int(obj.Value), nil
 }
 
 func (q *MessageLogConnectionStats) TimeSeries(ctx context.Context, opts *notification.SearchOptions, input graphql2.TimeSeriesOptions) ([]graphql2.TimeSeriesBucket, error) {
@@ -75,7 +86,11 @@ func (q *MessageLogConnectionStats) TimeSeries(ctx context.Context, opts *notifi
 
 	out := make([]graphql2.TimeSeriesBucket, len(buckets))
 	for i, b := range buckets {
-		out[i] = graphql2.TimeSeriesBucket(b)
+		out[i] = graphql2.TimeSeriesBucket{
+			Start: b.Start,
+			End:   b.End,
+			Value: float64(b.Count),
+		}
 	}
 
 	return out, nil
