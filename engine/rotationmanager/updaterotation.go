@@ -31,13 +31,17 @@ func (db *DB) updateRotation(ctx context.Context, j *river.Job[UpdateArgs]) erro
 			return nil
 		}
 		if err != nil {
-			return err
+			return fmt.Errorf("load rotation data: %w", err)
 		}
 
 		if len(row.Participants) == 0 {
-			if row.RotationState.Version != 0 {
+			if row.StateVersion != 0 {
 				// no participants, but we have a position, so clear it
-				return g.RotMgrEnd(ctx, j.Args.RotationID)
+				err = g.RotMgrEnd(ctx, j.Args.RotationID)
+				if err != nil {
+					return fmt.Errorf("end rotation: %w", err)
+				}
+				return nil
 			}
 
 			return nil
@@ -68,15 +72,19 @@ func (db *DB) updateRotation(ctx context.Context, j *river.Job[UpdateArgs]) erro
 			return fmt.Errorf("schedule next run: %w", err)
 		}
 
-		if row.RotationState.Version == 0 {
+		if row.StateVersion == 0 {
 			// no state, but we have participants, so start at the beginning
-			return g.RotMgrStart(ctx, j.Args.RotationID)
+			err = g.RotMgrStart(ctx, j.Args.RotationID)
+			if err != nil {
+				return fmt.Errorf("start rotation: %w", err)
+			}
+			return nil
 		}
 
 		s := rotState{
-			ShiftStart: row.RotationState.ShiftStart.In(loc),
-			Position:   int(row.RotationState.Position),
-			Version:    int(row.RotationState.Version),
+			ShiftStart: row.StateShiftStart.Time.In(loc),
+			Position:   int(row.StatePosition),
+			Version:    int(row.StateVersion),
 		}
 		adv, err := calcAdvance(ctx, row.Now, &r, s, len(row.Participants))
 		if err != nil {

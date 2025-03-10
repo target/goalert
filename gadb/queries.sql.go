@@ -4239,7 +4239,9 @@ const rotMgrRotationData = `-- name: RotMgrRotationData :one
 SELECT
     now()::timestamptz AS now,
     rot.description, rot.id, rot.last_processed, rot.name, rot.participant_count, rot.shift_length, rot.start_time, rot.time_zone, rot.type,
-    state.id, state.position, state.rotation_id, state.rotation_participant_id, state.shift_start, state.version,
+    coalesce(state.version, 0) AS state_version,
+    coalesce(state.position, 0) AS state_position,
+    state.shift_start AS state_shift_start,
     ARRAY (
         SELECT
             p.id
@@ -4257,10 +4259,12 @@ WHERE
 `
 
 type RotMgrRotationDataRow struct {
-	Now           time.Time
-	Rotation      Rotation
-	RotationState RotationState
-	Participants  []uuid.UUID
+	Now             time.Time
+	Rotation        Rotation
+	StateVersion    int32
+	StatePosition   int32
+	StateShiftStart sql.NullTime
+	Participants    []uuid.UUID
 }
 
 // Get rotation data for a given rotation ID
@@ -4278,12 +4282,9 @@ func (q *Queries) RotMgrRotationData(ctx context.Context, rotationID uuid.UUID) 
 		&i.Rotation.StartTime,
 		&i.Rotation.TimeZone,
 		&i.Rotation.Type,
-		&i.RotationState.ID,
-		&i.RotationState.Position,
-		&i.RotationState.RotationID,
-		&i.RotationState.RotationParticipantID,
-		&i.RotationState.ShiftStart,
-		&i.RotationState.Version,
+		&i.StateVersion,
+		&i.StatePosition,
+		&i.StateShiftStart,
 		pq.Array(&i.Participants),
 	)
 	return i, err

@@ -3,7 +3,9 @@
 SELECT
     now()::timestamptz AS now,
     sqlc.embed(rot),
-    sqlc.embed(state),
+    coalesce(state.version, 0) AS state_version,
+    coalesce(state.position, 0) AS state_position,
+    state.shift_start AS state_shift_start,
     ARRAY (
         SELECT
             p.id
