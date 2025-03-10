@@ -17,6 +17,7 @@
         "@emotion/cache": "11.14.0",
         "@emotion/react": "11.14.0",
         "@emotion/styled": "11.14.0",
+        "@eslint/compat": "1.2.7",
         "@lezer/generator": "1.7.2",
         "@lezer/highlight": "1.2.1",
         "@lezer/lr": "1.4.2",
@@ -490,6 +491,8 @@
     "@eslint-community/eslint-utils": ["@eslint-community/eslint-utils@4.4.1", "", { "dependencies": { "eslint-visitor-keys": "^3.4.3" }, "peerDependencies": { "eslint": "^6.0.0 || ^7.0.0 || >=8.0.0" } }, "sha512-s3O3waFUrMV8P/XaF/+ZTp1X9XBZW1a4B97ZnjQF2KYWaFD2A8KyFBsrsfSjEmjn3RGWAIuvlneuZm3CUK3jbA=="],
 
     "@eslint-community/regexpp": ["@eslint-community/regexpp@4.12.1", "", {}, "sha512-CCZCDJuduB9OUkFkY2IgppNZMi2lBQgD2qzwXkEia16cge2pijY/aXi96CJMquDMn3nJdlPV1A5KrJEXwfLNzQ=="],
+
+    "@eslint/compat": ["@eslint/compat@1.2.7", "", { "peerDependencies": { "eslint": "^9.10.0" }, "optionalPeers": ["eslint"] }, "sha512-xvv7hJE32yhegJ8xNAnb62ggiAwTYHBpUCWhRxEj/ksvgDJuSXfoDkBcRYaYNFiJ+jH0IE3K16hd+xXzhBgNbg=="],
 
     "@eslint/config-array": ["@eslint/config-array@0.19.2", "", { "dependencies": { "@eslint/object-schema": "^2.1.6", "debug": "^4.3.1", "minimatch": "^3.1.2" } }, "sha512-GNKqxfHG2ySmJOBSHg7LxeUx4xpuCoFjacmlCoYWEbaPXLwvfIjixRI12xCQZeULksQb23uiA8F40w5TojpV7w=="],
 

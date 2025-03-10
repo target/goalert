@@ -46,6 +46,7 @@
     "@emotion/cache": "11.14.0",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.0",
+    "@eslint/compat": "1.2.7",
     "@lezer/generator": "1.7.2",
     "@lezer/highlight": "1.2.1",
     "@lezer/lr": "1.4.2",
