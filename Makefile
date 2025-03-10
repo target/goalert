@@ -194,7 +194,7 @@ start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/wai
 	GOALERT_DB_URL="$(INT_DB_URL)" ./bin/runproc -f Procfile.integration
 
 jest: $(NODE_DEPS)
-	$(BIN_DIR)/tools/bun run jest $(JEST_ARGS)
+	$(BIN_DIR)/tools/bun test web $(JEST_ARGS)
 
 test: $(NODE_DEPS) jest $(BIN_DIR)/tools/mailpit ## Run all unit tests
 	rm -rf $(PWD)/test/coverage/unit
