@@ -154,7 +154,7 @@
     "urql": "4.2.2",
     "vite": "5.4.12",
     "wonka": "6.3.5",
-    "wouter": "2.12.1"
+    "wouter": "3.6.0"
   },
   "msw": {
     "workerDirectory": ".storybook/static"
