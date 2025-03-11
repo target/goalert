@@ -30,11 +30,12 @@ func NewListener(p *pgxpool.Pool) *Listener {
 		l: &pgxlisten.Listener{
 			Connect: func(ctx context.Context) (*pgx.Conn, error) {
 				// We use the same connection config as the pool, but without the pool. This is because we can't reuse the same connection for both listening and querying.
-				return pgx.ConnectConfig(nil, p.Config().ConnConfig)
+				return pgx.ConnectConfig(ctx, p.Config().ConnConfig)
 			},
 			LogError: log.Log,
 		},
 	}
+	l.c = sync.NewCond(&l.mx)
 
 	return l
 }
