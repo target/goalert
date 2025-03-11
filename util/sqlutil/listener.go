@@ -34,6 +34,7 @@ func NewListener(p *pgxpool.Pool) *Listener {
 			},
 			LogError: log.Log,
 		},
+		resume: make(chan struct{}),
 	}
 	l.c = sync.NewCond(&l.mx)
 
