@@ -31,12 +31,7 @@ func (app *App) _Run(ctx context.Context) error {
 		}
 	}()
 
-	eventCtx, cancel := context.WithCancel(ctx)
-	defer cancel()
-	eventDoneCh, err := app.listenEvents(eventCtx)
-	if err != nil {
-		return err
-	}
+	go app.events.Run(ctx)
 
 	if app.sysAPISrv != nil {
 		app.Logger.InfoContext(ctx, "System API server started.",
@@ -63,7 +58,7 @@ func (app *App) _Run(ctx context.Context) error {
 		slog.String("address", app.l.Addr().String()),
 		slog.String("url", app.ConfigStore.Config().PublicURL()),
 	)
-	err = app.srv.Serve(app.l)
+	err := app.srv.Serve(app.l)
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return errors.Wrap(err, "serve HTTP")
 	}
@@ -71,9 +66,6 @@ func (app *App) _Run(ctx context.Context) error {
 		app.hSrv.Resume()
 	}
 
-	select {
-	case <-eventDoneCh:
-	case <-ctx.Done():
-	}
+	<-ctx.Done()
 	return nil
 }
