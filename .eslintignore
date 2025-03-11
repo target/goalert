@@ -1,6 +1,0 @@
-/web/src/build
-/web/src/profile.json
-/bin
-/storybook-static
-/playwright/.cache
-/web/src/app/editor/expr-parser.ts

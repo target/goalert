@@ -4852,6 +4852,122 @@ func (q *Queries) SequenceNames(ctx context.Context) ([]string, error) {
 	return items, nil
 }
 
+const serviceAlertCounts = `-- name: ServiceAlertCounts :many
+SELECT
+    COUNT(*),
+    status
+FROM
+    alerts
+WHERE
+    service_id = $1
+GROUP BY
+    status
+`
+
+type ServiceAlertCountsRow struct {
+	Count  int64
+	Status EnumAlertStatus
+}
+
+func (q *Queries) ServiceAlertCounts(ctx context.Context, serviceID uuid.NullUUID) ([]ServiceAlertCountsRow, error) {
+	rows, err := q.db.QueryContext(ctx, serviceAlertCounts, serviceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ServiceAlertCountsRow
+	for rows.Next() {
+		var i ServiceAlertCountsRow
+		if err := rows.Scan(&i.Count, &i.Status); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const serviceAlertStats = `-- name: ServiceAlertStats :many
+SELECT
+    date_bin($2::interval, closed_at, $3::timestamptz)::timestamptz AS bucket,
+    coalesce(EXTRACT(EPOCH FROM AVG(time_to_ack)), 0)::double precision AS avg_time_to_ack_seconds,
+    coalesce(EXTRACT(EPOCH FROM AVG(time_to_close)), 0)::double precision AS avg_time_to_close_seconds,
+    coalesce(COUNT(*), 0)::bigint AS alert_count,
+    coalesce(SUM(
+            CASE WHEN escalated THEN
+                1
+            ELSE
+                0
+            END), 0)::bigint AS escalated_count
+FROM
+    alert_metrics
+WHERE
+    service_id = $1
+    AND (closed_at BETWEEN $4
+        AND $5)
+GROUP BY
+    bucket
+ORDER BY
+    bucket
+`
+
+type ServiceAlertStatsParams struct {
+	ServiceID uuid.UUID
+	Stride    sqlutil.Interval
+	Origin    time.Time
+	StartTime time.Time
+	EndTime   time.Time
+}
+
+type ServiceAlertStatsRow struct {
+	Bucket                time.Time
+	AvgTimeToAckSeconds   float64
+	AvgTimeToCloseSeconds float64
+	AlertCount            int64
+	EscalatedCount        int64
+}
+
+// ServiceAlertStats returns statistics about alerts for a service.
+func (q *Queries) ServiceAlertStats(ctx context.Context, arg ServiceAlertStatsParams) ([]ServiceAlertStatsRow, error) {
+	rows, err := q.db.QueryContext(ctx, serviceAlertStats,
+		arg.ServiceID,
+		arg.Stride,
+		arg.Origin,
+		arg.StartTime,
+		arg.EndTime,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ServiceAlertStatsRow
+	for rows.Next() {
+		var i ServiceAlertStatsRow
+		if err := rows.Scan(
+			&i.Bucket,
+			&i.AvgTimeToAckSeconds,
+			&i.AvgTimeToCloseSeconds,
+			&i.AlertCount,
+			&i.EscalatedCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const setAlertFeedback = `-- name: SetAlertFeedback :exec
 INSERT INTO alert_feedback(alert_id, noise_reason)
     VALUES ($1, $2)
