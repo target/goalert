@@ -10,7 +10,6 @@ import (
 	"github.com/target/goalert/notification/email"
 	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/retry"
-	"github.com/target/goalert/util/sqlutil"
 
 	"github.com/pkg/errors"
 )
@@ -118,11 +117,7 @@ func (app *App) startup(ctx context.Context) error {
 		app.Logger.InfoContext(ctx, "SWO Enabled.")
 	}
 
-	l, err := sqlutil.NewListener(ctx, app.cfg.LegacyLogger, app.db, "/goalert/config-refresh")
-	if err != nil {
-		return err
-	}
-	app.events = l
+	app.setupListenEvents()
 
 	return nil
 }
