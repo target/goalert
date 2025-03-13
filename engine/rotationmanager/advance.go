@@ -12,8 +12,6 @@ import (
 type advance struct {
 	id          string
 	newPosition int
-
-	silent bool
 }
 
 type rotState struct {

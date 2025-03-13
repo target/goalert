@@ -803,26 +803,12 @@ func (h *Harness) WaitAndAssertOnCallUsers(serviceID string, userIDs ...string) 
 		return uniq
 	}
 	sort.Strings(userIDs)
-	match := func(final bool) bool {
+	check := func(t *assert.CollectT) {
 		ids := getUsers()
-		if len(ids) != len(userIDs) {
-			if final {
-				h.t.Fatalf("got %d on-call users; want %d", len(ids), len(userIDs))
-			}
-			return false
-		}
-		for i, id := range userIDs {
-			if ids[i] != id {
-				if final {
-					h.t.Fatalf("on-call[%d] = %s; want %s", i, ids[i], id)
-				}
-				return false
-			}
-		}
-		return true
+		require.Lenf(t, ids, len(userIDs), "number of on-call users")
+		require.EqualValuesf(t, userIDs, ids, "on-call users")
 	}
-
 	h.Trigger() // run engine cycle
 
-	match(true) // assert result
+	assert.EventuallyWithT(h.t, check, 5*time.Second, 100*time.Millisecond)
 }

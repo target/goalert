@@ -4175,6 +4175,165 @@ func (q *Queries) RequestAlertEscalationByTime(ctx context.Context, arg RequestA
 	return column_1, err
 }
 
+const rotMgrEnd = `-- name: RotMgrEnd :exec
+DELETE FROM rotation_state
+WHERE rotation_id = $1
+`
+
+// End a rotation.
+func (q *Queries) RotMgrEnd(ctx context.Context, rotationID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, rotMgrEnd, rotationID)
+	return err
+}
+
+const rotMgrFindWork = `-- name: RotMgrFindWork :many
+WITH items AS (
+    SELECT
+        id,
+        entity_id
+    FROM
+        entity_updates
+    WHERE
+        entity_type = 'rotation'
+    FOR UPDATE
+        SKIP LOCKED
+    LIMIT 1000
+),
+_delete AS (
+    DELETE FROM entity_updates
+    WHERE id IN (
+            SELECT
+                id
+            FROM
+                items))
+SELECT DISTINCT
+    entity_id
+FROM
+    items
+`
+
+func (q *Queries) RotMgrFindWork(ctx context.Context) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, rotMgrFindWork)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var entity_id uuid.UUID
+		if err := rows.Scan(&entity_id); err != nil {
+			return nil, err
+		}
+		items = append(items, entity_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const rotMgrRotationData = `-- name: RotMgrRotationData :one
+SELECT
+    now()::timestamptz AS now,
+    rot.description, rot.id, rot.last_processed, rot.name, rot.participant_count, rot.shift_length, rot.start_time, rot.time_zone, rot.type,
+    coalesce(state.version, 0) AS state_version,
+    coalesce(state.position, 0) AS state_position,
+    state.shift_start AS state_shift_start,
+    ARRAY (
+        SELECT
+            p.id
+        FROM
+            rotation_participants p
+        WHERE
+            p.rotation_id = rot.id
+        ORDER BY
+            position)::uuid[] AS participants
+    FROM
+        rotations rot
+    LEFT JOIN rotation_state state ON rot.id = state.rotation_id
+WHERE
+    rot.id = $1
+`
+
+type RotMgrRotationDataRow struct {
+	Now             time.Time
+	Rotation        Rotation
+	StateVersion    int32
+	StatePosition   int32
+	StateShiftStart sql.NullTime
+	Participants    []uuid.UUID
+}
+
+// Get rotation data for a given rotation ID
+func (q *Queries) RotMgrRotationData(ctx context.Context, rotationID uuid.UUID) (RotMgrRotationDataRow, error) {
+	row := q.db.QueryRowContext(ctx, rotMgrRotationData, rotationID)
+	var i RotMgrRotationDataRow
+	err := row.Scan(
+		&i.Now,
+		&i.Rotation.Description,
+		&i.Rotation.ID,
+		&i.Rotation.LastProcessed,
+		&i.Rotation.Name,
+		&i.Rotation.ParticipantCount,
+		&i.Rotation.ShiftLength,
+		&i.Rotation.StartTime,
+		&i.Rotation.TimeZone,
+		&i.Rotation.Type,
+		&i.StateVersion,
+		&i.StatePosition,
+		&i.StateShiftStart,
+		pq.Array(&i.Participants),
+	)
+	return i, err
+}
+
+const rotMgrStart = `-- name: RotMgrStart :exec
+INSERT INTO rotation_state(rotation_id, position, shift_start, rotation_participant_id)
+SELECT
+    p.rotation_id,
+    0,
+    now(),
+    id
+FROM
+    rotation_participants p
+WHERE
+    p.rotation_id = $1
+    AND position = 0
+`
+
+// Start a rotation.
+func (q *Queries) RotMgrStart(ctx context.Context, rotationID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, rotMgrStart, rotationID)
+	return err
+}
+
+const rotMgrUpdate = `-- name: RotMgrUpdate :exec
+UPDATE
+    rotation_state
+SET
+    position = $1,
+    shift_start = now(),
+    rotation_participant_id = $2,
+    version = 2
+WHERE
+    rotation_id = $3
+`
+
+type RotMgrUpdateParams struct {
+	Position              int32
+	RotationParticipantID uuid.UUID
+	RotationID            uuid.UUID
+}
+
+// Update the rotation state.
+func (q *Queries) RotMgrUpdate(ctx context.Context, arg RotMgrUpdateParams) error {
+	_, err := q.db.ExecContext(ctx, rotMgrUpdate, arg.Position, arg.RotationParticipantID, arg.RotationID)
+	return err
+}
+
 const sWOConnLock = `-- name: SWOConnLock :one
 WITH LOCK AS (
     SELECT
