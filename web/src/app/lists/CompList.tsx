@@ -6,13 +6,16 @@ export type CompListProps = {
   action?: React.ReactNode
   emptyMessage?: string
   children?: React.ReactNode
+
+  /* data-cy attribute for testing */
+  'data-cy'?: string
 }
 
 /* A composable list component. */
 export default function CompList(props: CompListProps): React.ReactNode {
   const emptyMessage = props.emptyMessage ?? 'No results.'
   return (
-    <List>
+    <List data-cy={props['data-cy']}>
       <ListItem>
         {props.note && (
           <ListItemText
