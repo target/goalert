@@ -48,8 +48,8 @@ export interface OverrideDialog {
 
 interface OverrideDialogContext {
   onNewTempSched: () => void
-  onEditTempSched: (v: TempSchedValue) => void
-  onDeleteTempSched: React.Dispatch<React.SetStateAction<TempSchedValue | null>>
+  onEditTempSched?: (v: TempSchedValue) => void
+  onDeleteTempSched?: React.Dispatch<React.SetStateAction<TempSchedValue | null>>
   setOverrideDialog: React.Dispatch<React.SetStateAction<OverrideDialog | null>>
 }
 

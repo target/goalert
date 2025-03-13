@@ -137,5 +137,5 @@ export function onCallRuleSummary(zone: string, r?: SummaryInput): string {
   if (!r) return ''
   if (!r.time) return 'when on-call changes.'
 
-  return `${weekdaySummary(r.weekdayFilter)} at ${formatZoneTime(zone, r.time)}`
+  return `${weekdaySummary(r.weekdayFilter!)} at ${formatZoneTime(zone, r.time)}`
 }

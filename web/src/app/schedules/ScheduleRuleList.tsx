@@ -77,7 +77,7 @@ export default function ScheduleRuleList(
     const localTzAbbr = DateTime.local({ zone: 'local' }).toFormat('ZZZZ')
 
     if (tzSummary === 'Always' || tzSummary === 'Never') {
-      return tzSummary
+      return <>tzSummary</>
     }
 
     return isLocalZone ? (

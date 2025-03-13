@@ -12,6 +12,7 @@ import { useScheduleTZ } from './useScheduleTZ'
 import { fmtLocal } from '../util/timeFormat'
 import { FieldError } from '../util/errutil'
 import { ensureInterval } from './timeUtil'
+import { UserOverride } from '../../schema'
 
 const query = gql`
   query ($id: ID!) {
@@ -31,21 +32,14 @@ const query = gql`
   }
 `
 
-interface ScheduleOverrideFormValue {
-  addUserID: string
-  removeUserID: string
-  start: string
-  end: string
-}
-
 interface ScheduleOverrideFormProps {
   scheduleID: string
-  value: ScheduleOverrideFormValue
+  value: UserOverride
   add?: boolean
   remove?: boolean
   disabled: boolean
   errors: Array<FieldError>
-  onChange: (value: ScheduleOverrideFormValue) => void
+  onChange: (value: UserOverride) => void
   removeUserReadOnly?: boolean
 }
 
@@ -92,7 +86,7 @@ export default function ScheduleOverrideForm(
       errors={errors.concat(userConflictErrors)}
       value={value}
       {...formProps}
-      onChange={(newValue: ScheduleOverrideFormValue) => {
+      onChange={(newValue: UserOverride) => {
         formProps.onChange(ensureInterval(value, newValue))
       }}
     >

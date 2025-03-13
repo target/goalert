@@ -1,4 +1,6 @@
 import { DateTime } from 'luxon'
+import { ScheduleRule, User, UserOverride, WeekdayFilter } from '../../schema'
+import { FieldError } from '../util/errutil'
 
 export const days = [
   'Sunday',
@@ -12,7 +14,7 @@ export const days = [
 
 // dstWeekOffset will return dt forward or backward a week
 // if `dt.offset` does not match the `expectedOffset`.
-function dstWeekOffset(expectedOffset, dt) {
+function dstWeekOffset(expectedOffset: number, dt: DateTime) {
   if (dt.offset === expectedOffset) return dt
 
   dt = dt.minus({ weeks: 1 })
@@ -21,7 +23,7 @@ function dstWeekOffset(expectedOffset, dt) {
   return dt.plus({ weeks: 2 })
 }
 
-export function parseClock(s, zone) {
+export function parseClock(s: string, zone: string) {
   const dt = DateTime.fromObject(
     {
       hour: parseInt(s.split(':')[0], 10),
@@ -34,7 +36,7 @@ export function parseClock(s, zone) {
   return dstWeekOffset(DateTime.utc().setZone(zone).offset, dt)
 }
 
-export function formatClock(dt) {
+export function formatClock(dt: DateTime) {
   return `${dt.hour.toString().padStart(2, '0')}:${dt.minute
     .toString()
     .padStart(2, '0')}`
@@ -43,37 +45,26 @@ export function formatClock(dt) {
 // Shifts a weekdayFilter so that it matches the luxon day n
 //
 // Default is 7 (Sunday)
-export function alignWeekdayFilter(n, filter) {
+export function alignWeekdayFilter(n: number, filter: WeekdayFilter) {
   if (n === 7) return filter
 
   return filter.slice(7 - n).concat(filter.slice(0, 7 - n))
 }
 
-export function mapRuleTZ(fromTZ, toTZ, rule) {
-  const start = parseClock(rule.start, fromTZ).setZone(toTZ)
-  const end = parseClock(rule.end, fromTZ).setZone(toTZ)
-  return {
-    ...rule,
-    start: formatClock(start),
-    end: formatClock(end),
-    weekdayFilter: alignWeekdayFilter(start.weekday, rule.weekdayFilter),
-  }
-}
-
 // gqlClockTimeToISO will return an ISO timestamp representing
 // the given GraphQL ClockTime value at the current date in the
 // provided time zone.
-export function gqlClockTimeToISO(time, zone) {
+export function gqlClockTimeToISO(time: string, zone: string) {
   return DateTime.fromFormat(time, 'HH:mm', { zone }).toUTC().toISO()
 }
 
 // isoToGQLClockTime will return a GraphQL ClockTime value for
 // the given ISO timestamp, with respect to the provided time zone.
-export function isoToGQLClockTime(timestamp, zone) {
+export function isoToGQLClockTime(timestamp: string, zone: string) {
   return DateTime.fromISO(timestamp, { zone }).toFormat('HH:mm')
 }
 
-export function weekdaySummary(filter) {
+export function weekdaySummary(filter: boolean[]) {
   const bin = filter.map((f) => (f ? '1' : '0')).join('')
   switch (bin) {
     case '1000001':
@@ -90,8 +81,8 @@ export function weekdaySummary(filter) {
       return 'every day'
   }
 
-  const d = []
-  let chain = []
+  const d: string[] = []
+  let chain: string[] = []
   const flush = () => {
     if (chain.length < 3) {
       chain.forEach((day) => d.push(day.slice(0, 3)))
@@ -113,17 +104,17 @@ export function weekdaySummary(filter) {
   return d.join(', ')
 }
 
-export function ruleSummary(rules, scheduleZone, displayZone) {
-  const everyDay = (r) => !r.weekdayFilter.some((w) => !w) && r.start === r.end
+export function ruleSummary(rules: ScheduleRule[], scheduleZone: string, displayZone: string) {
+  const everyDay = (r: ScheduleRule) => !r.weekdayFilter.some((w) => !w) && r.start === r.end
 
   rules = rules.filter((r) => r.weekdayFilter.some((w) => w)) // ignore disabled
   if (rules.length === 0) return 'Never'
   if (rules.some(everyDay)) return 'Always'
 
-  const getTime = (str) => parseClock(str, scheduleZone).setZone(displayZone)
+  const getTime = (str: string) => parseClock(str, scheduleZone).setZone(displayZone)
 
   return rules
-    .map((r) => {
+    .map((r: ScheduleRule) => {
       const start = getTime(r.start)
       const weekdayFilter = alignWeekdayFilter(start.weekday, r.weekdayFilter)
       let summary = weekdaySummary(weekdayFilter)
@@ -135,7 +126,7 @@ export function ruleSummary(rules, scheduleZone, displayZone) {
     .join('\n')
 }
 
-export function formatOverrideTime(_start, _end, zone) {
+export function formatOverrideTime(_start: DateTime | string, _end: DateTime | string, zone: string) {
   const start =
     _start instanceof DateTime
       ? _start.setZone(zone)
@@ -152,40 +143,46 @@ export function formatOverrideTime(_start, _end, zone) {
   )}`
 }
 
-export function mapOverrideUserError(conflictingOverride, value, zone) {
+export function mapOverrideUserError(
+  conflictingOverride: UserOverride,
+  value: UserOverride,
+  zone: string
+): FieldError[] {
   if (!conflictingOverride) return []
 
-  const errs = []
+  const errs: FieldError[] = []
   const isReplace =
     conflictingOverride.addUser && conflictingOverride.removeUser
 
-  const replaceMsg = (add) =>
+  const replaceMsg = (add: boolean) =>
     add
-      ? `replacing ${conflictingOverride.removeUser.name}`
-      : `replaced by ${conflictingOverride.addUser.name}`
+      ? `replacing ${conflictingOverride.removeUser?.name}`
+      : `replaced by ${conflictingOverride.addUser?.name}`
 
   const time = formatOverrideTime(
     conflictingOverride.start,
     conflictingOverride.end,
-    zone,
+    zone
   )
 
-  const check = (valueField, errField) => {
+  const check = (
+    valueField: keyof UserOverride,
+    errField: keyof UserOverride
+  ) => {
     if (!conflictingOverride[errField]) return
     const verb = errField === 'addUser' ? 'added' : 'removed'
-    if (value[valueField] === conflictingOverride[errField].id) {
+    if (value[valueField] === (conflictingOverride[errField] as User).id) {
       errs.push({
         field: valueField,
-        message: `Already ${
-          isReplace ? replaceMsg(errField === 'addUser') : verb
-        } from ${time}`,
-      })
+        message: `Already ${isReplace ? replaceMsg(errField === 'addUser') : verb} from ${time}`,
+      } as FieldError)
     }
-  }
-  check('addUserID', 'addUser')
-  check('addUserID', 'removeUser')
-  check('removeUserID', 'addUser')
-  check('removeUserID', 'removeUser')
+  };
+
+  check("addUserID", "addUser")
+  check("addUserID", "removeUser")
+  check("removeUserID", "addUser")
+  check("removeUserID", "removeUser")
 
   return errs
 }

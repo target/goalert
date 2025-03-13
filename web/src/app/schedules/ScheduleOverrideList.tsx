@@ -13,13 +13,14 @@ import { formatOverrideTime } from './util'
 import ScheduleOverrideEditDialog from './ScheduleOverrideEditDialog'
 import { useScheduleTZ } from './useScheduleTZ'
 import { useIsWidthDown } from '../util/useWidth'
-import { OverrideDialogContext } from './ScheduleDetails'
+import { OverrideDialog, OverrideDialogContext } from './ScheduleDetails'
 import TempSchedDialog from './temp-sched/TempSchedDialog'
-import { defaultTempSchedValue } from './temp-sched/sharedUtils'
+import { defaultTempSchedValue, TempSchedValue } from './temp-sched/sharedUtils'
 import ScheduleOverrideDialog from './ScheduleOverrideDialog'
 import CreateFAB from '../lists/CreateFAB'
 import ListPageControls from '../lists/ListPageControls'
 import FlatList from '../lists/FlatList'
+import { UserOverride } from '../../schema'
 
 const query = gql`
   query scheduleOverrides($input: UserOverrideSearchOptions) {
@@ -47,19 +48,19 @@ const query = gql`
 `
 const context = { suspense: false }
 
-export default function ScheduleOverrideList({ scheduleID }) {
+export default function ScheduleOverrideList({ scheduleID }: { scheduleID: string }) {
   const isMobile = useIsWidthDown('md')
 
-  const [editID, setEditID] = useState(null)
-  const [deleteID, setDeleteID] = useState(null)
+  const [editID, setEditID] = useState<string | null>(null)
+  const [deleteID, setDeleteID] = useState<string | null>(null)
 
   const [userFilter, setUserFilter] = useURLParam('userFilter', [])
-  const [showPast, setShowPast] = useURLParam('showPast', false)
+  const [showPast, setShowPast] = useURLParam<boolean>('showPast', false)
   const now = React.useMemo(() => new Date().toISOString(), [showPast])
   const resetFilter = useResetURLParams('userFilter', 'showPast', 'tz')
 
-  const [overrideDialog, setOverrideDialog] = useState(null)
-  const [configTempSchedule, setConfigTempSchedule] = useState(null)
+  const [overrideDialog, setOverrideDialog] = useState<OverrideDialog | null>(null)
+  const [configTempSchedule, setConfigTempSchedule] = useState<TempSchedValue | null>(null)
 
   const { zone, isLocalZone } = useScheduleTZ(scheduleID)
   const onNewTempSched = useCallback(
@@ -84,7 +85,7 @@ export default function ScheduleOverrideList({ scheduleID }) {
     ? q.data?.userOverrides.pageInfo.endCursor
     : ''
 
-  const subText = (n) => {
+  const subText = (n: UserOverride) => {
     const tzTimeStr = formatOverrideTime(n.start, n.end, zone)
     const tzAbbr = DateTime.local({ zone }).toFormat('ZZZZ')
     const localTimeStr = formatOverrideTime(n.start, n.end, 'local')
@@ -147,12 +148,12 @@ export default function ScheduleOverrideList({ scheduleID }) {
               emptyMessage='No results'
               headerNote={note}
               items={
-                q.data?.userOverrides.nodes.map((n) => ({
-                  title: n.addUser ? n.addUser.name : n.removeUser.name,
+                q.data?.userOverrides.nodes.map((n: UserOverride) => ({
+                  title: n.addUser ? n.addUser.name : n.removeUser?.name,
                   subText: subText(n),
                   icon: (
                     <UserAvatar
-                      userID={n.addUser ? n.addUser.id : n.removeUser.id}
+                      userID={n.addUser ? n.addUser.id : n.removeUser?.id!}
                     />
                   ),
                   secondaryAction: (
