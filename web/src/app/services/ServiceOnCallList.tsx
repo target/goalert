@@ -87,7 +87,9 @@ export default function ServiceOnCallList({
         return {
           title: stepText(Number(s)),
           subText: stepLengthText(usersAssigned),
-          icon: usersAssigned === 0 && <Warning />,
+          icon: usersAssigned === 0 && (
+            <Warning message='No user assigned for step.' />
+          ),
         }
       })
       .value()

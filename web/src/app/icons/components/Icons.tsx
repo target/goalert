@@ -1,5 +1,4 @@
 import React from 'react'
-import { PropTypes as p } from 'prop-types'
 import Tooltip from '@mui/material/Tooltip'
 import AddIcon from '@mui/icons-material/Add'
 import TrashIcon from '@mui/icons-material/Delete'
@@ -21,12 +20,29 @@ const useStyles = makeStyles({
   },
 })
 
-export function Trash() {
+export function Trash(): React.JSX.Element {
   const classes = useStyles()
   return <TrashIcon className={classes.trashIcon} />
 }
 
-export function Warning(props) {
+interface WarningProps {
+  message: string
+  placement?:
+    | 'bottom'
+    | 'left'
+    | 'right'
+    | 'top'
+    | 'bottom-end'
+    | 'bottom-start'
+    | 'left-end'
+    | 'left-start'
+    | 'right-end'
+    | 'right-start'
+    | 'top-end'
+    | 'top-start'
+}
+
+export function Warning(props: WarningProps): React.JSX.Element {
   const { message, placement } = props
   const classes = useStyles()
 
@@ -45,11 +61,11 @@ export function Warning(props) {
   )
 }
 
-export function Add() {
+export function Add(): React.JSX.Element {
   return <AddIcon />
 }
 
-export function Slack() {
+export function Slack(): React.JSX.Element {
   const theme = useTheme()
   return (
     <img
@@ -61,7 +77,7 @@ export function Slack() {
   )
 }
 
-export function SlackBW() {
+export function SlackBW(): React.JSX.Element {
   const theme = useTheme()
   return (
     <img
@@ -73,16 +89,11 @@ export function SlackBW() {
   )
 }
 
-export function WebhookBW() {
+export function WebhookBW(): React.JSX.Element {
   const theme = useTheme()
   return (
     <Webhook
       sx={{ color: theme.palette.mode === 'light' ? '#000000' : '#ffffff' }}
     />
   )
-}
-
-Warning.propTypes = {
-  message: p.string,
-  placement: p.string,
 }

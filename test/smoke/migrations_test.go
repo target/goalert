@@ -79,6 +79,8 @@ var rules = migratetest.RuleSet{
 
 	// Every DB must have a unique ID.
 	{MigrationName: "switchover-mk2", TableName: "switchover_state", ColumnName: "db_id"},
+
+	{MigrationName: "track-rotation-updates", TableName: "entity_updates", ColumnName: "created_at"},
 }
 
 const migrateInitData = `
