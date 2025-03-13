@@ -57,7 +57,7 @@ describe('mapOverrideUserError', () => {
     check(replace, { addUserID: 'foo' } as UserOverride, [
       {
         field: 'addUserID',
-        message: 'Already replacing ben from ' + timeStr,
+          message: 'Already replacing ben from ' + timeStr,
       },
     ] as FieldError[])
     check(remove, { addUserID: 'bar' } as UserOverride, [
