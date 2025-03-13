@@ -1,5 +1,6 @@
 import { gql } from 'urql'
 import { makeQuerySelect } from './QuerySelect'
+import { User } from '../../schema'
 
 const query = gql`
   query ($input: UserSearchOptions) {
@@ -30,7 +31,7 @@ export const UserSelect = makeQuerySelect('UserSelect', {
   defaultQueryVariables: { favoritesFirst: true },
   query,
   valueQuery,
-  mapDataNode: (u) => ({
+  mapDataNode: (u: User) => ({
     value: u.id,
     label: u.name,
     subText: u.email,

@@ -122,7 +122,10 @@ func (db *DB) calcAdvances(ctx context.Context, tx *sql.Tx, all bool, rotID *str
 			return nil, errors.Wrap(err, "load timezone")
 		}
 		rot.Start = rot.Start.In(loc)
-		adv = calcAdvance(ctx, t, &rot, state, partCount)
+		adv, err = calcAdvance(ctx, t, &rot, state, partCount)
+		if err != nil {
+			return nil, errors.Wrap(err, "calculate rotation advance")
+		}
 		if adv != nil {
 			needsAdvance = append(needsAdvance, *adv)
 			if len(needsAdvance) == 150 {

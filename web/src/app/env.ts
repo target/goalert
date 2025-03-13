@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable camelcase */
-
 export const pathPrefix = global.pathPrefix || ''
 export const applicationName = global.applicationName || 'GoAlert'
 
