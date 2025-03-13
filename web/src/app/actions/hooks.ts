@@ -22,7 +22,7 @@ export function sanitizeURLParam(value: Value): string | string[] {
     case 'string':
       return value.trim()
     case 'boolean':
-      if (value === true) return '1'
+      if (value) return '1'
       return ''
     case 'number':
       return value.toString()
@@ -49,10 +49,8 @@ export function getParamValues<T extends Record<string, Value>>(
       result[name] = q.get(name) === '1'
     } else if (typeof defaultVal === 'string') {
       result[name] = q.get(name) || ''
-    } else if (typeof defaultVal === 'number') {
-      result[name] = +(q.get(name) as string)
     } else {
-      result[name] = defaultVal
+      result[name] = +(q.get(name) as string)
     }
   }
   return result as T
