@@ -48,7 +48,7 @@ export interface WizardFormValue {
   teamName: string
   primarySchedule: WizardFormSchedule
   secondarySchedule: WizardFormSchedule
-  delayMinutes: number
+  delayMinutes: number | string
   repeat: string
   key: {
     label: string

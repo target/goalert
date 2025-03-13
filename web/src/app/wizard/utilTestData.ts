@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
 import { Chance } from 'chance'
+import { WizardFormValue } from './WizardForm'
 const c = new Chance()
 
 const keys = [
@@ -34,7 +35,7 @@ const users = [
 const timeZones = ['America/Chicago', 'Africa/Accra', 'Etc/UTC']
 
 // scheds w/ users
-export const usersSchedules = {
+export const usersSchedules: WizardFormValue = {
   teamName: 'Test',
   delayMinutes: c.integer({ min: 1, max: 9000 }).toString(),
   repeat: c.integer({ min: 1, max: 5 }).toString(),
@@ -69,7 +70,7 @@ export const usersSchedules = {
 }
 
 // scheds w/ rotations (no fts)
-export const rotationsNoFTS = {
+export const rotationsNoFTS: WizardFormValue = {
   teamName: 'Test',
   delayMinutes: c.integer({ min: 1, max: 9000 }).toString(),
   repeat: c.integer({ min: 1, max: 5 }).toString(),
@@ -104,7 +105,7 @@ export const rotationsNoFTS = {
 }
 
 // scheds w/ rotations + fts
-export const rotationsAndFTS = {
+export const rotationsAndFTS: WizardFormValue = {
   teamName: 'Test',
   delayMinutes: c.integer({ min: 1, max: 9000 }).toString(),
   repeat: c.integer({ min: 1, max: 5 }).toString(),
