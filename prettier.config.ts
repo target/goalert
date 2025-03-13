@@ -1,4 +1,3 @@
- 
 const pluginGoTemplate = require.resolve('prettier-plugin-go-template')
 module.exports = {
   trailingComma: 'all',
