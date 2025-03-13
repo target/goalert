@@ -48,7 +48,11 @@ const query = gql`
 `
 const context = { suspense: false }
 
-export default function ScheduleOverrideList({ scheduleID }: { scheduleID: string }) {
+export default function ScheduleOverrideList({
+  scheduleID,
+}: {
+  scheduleID: string
+}) {
   const isMobile = useIsWidthDown('md')
 
   const [editID, setEditID] = useState<string | null>(null)
@@ -59,8 +63,11 @@ export default function ScheduleOverrideList({ scheduleID }: { scheduleID: strin
   const now = React.useMemo(() => new Date().toISOString(), [showPast])
   const resetFilter = useResetURLParams('userFilter', 'showPast', 'tz')
 
-  const [overrideDialog, setOverrideDialog] = useState<OverrideDialog | null>(null)
-  const [configTempSchedule, setConfigTempSchedule] = useState<TempSchedValue | null>(null)
+  const [overrideDialog, setOverrideDialog] = useState<OverrideDialog | null>(
+    null,
+  )
+  const [configTempSchedule, setConfigTempSchedule] =
+    useState<TempSchedValue | null>(null)
 
   const { zone, isLocalZone } = useScheduleTZ(scheduleID)
   const onNewTempSched = useCallback(

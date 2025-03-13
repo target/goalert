@@ -104,14 +104,20 @@ export function weekdaySummary(filter: boolean[]) {
   return d.join(', ')
 }
 
-export function ruleSummary(rules: ScheduleRule[], scheduleZone: string, displayZone: string) {
-  const everyDay = (r: ScheduleRule) => !r.weekdayFilter.some((w) => !w) && r.start === r.end
+export function ruleSummary(
+  rules: ScheduleRule[],
+  scheduleZone: string,
+  displayZone: string,
+) {
+  const everyDay = (r: ScheduleRule) =>
+    !r.weekdayFilter.some((w) => !w) && r.start === r.end
 
   rules = rules.filter((r) => r.weekdayFilter.some((w) => w)) // ignore disabled
   if (rules.length === 0) return 'Never'
   if (rules.some(everyDay)) return 'Always'
 
-  const getTime = (str: string) => parseClock(str, scheduleZone).setZone(displayZone)
+  const getTime = (str: string) =>
+    parseClock(str, scheduleZone).setZone(displayZone)
 
   return rules
     .map((r: ScheduleRule) => {
@@ -126,7 +132,11 @@ export function ruleSummary(rules: ScheduleRule[], scheduleZone: string, display
     .join('\n')
 }
 
-export function formatOverrideTime(_start: DateTime | string, _end: DateTime | string, zone: string) {
+export function formatOverrideTime(
+  _start: DateTime | string,
+  _end: DateTime | string,
+  zone: string,
+) {
   const start =
     _start instanceof DateTime
       ? _start.setZone(zone)
@@ -146,7 +156,7 @@ export function formatOverrideTime(_start: DateTime | string, _end: DateTime | s
 export function mapOverrideUserError(
   conflictingOverride: UserOverride,
   value: UserOverride,
-  zone: string
+  zone: string,
 ): FieldError[] {
   if (!conflictingOverride) return []
 
@@ -162,12 +172,12 @@ export function mapOverrideUserError(
   const time = formatOverrideTime(
     conflictingOverride.start,
     conflictingOverride.end,
-    zone
+    zone,
   )
 
   const check = (
     valueField: keyof UserOverride,
-    errField: keyof UserOverride
+    errField: keyof UserOverride,
   ) => {
     if (!conflictingOverride[errField]) return
     const verb = errField === 'addUser' ? 'added' : 'removed'
@@ -177,12 +187,12 @@ export function mapOverrideUserError(
         message: `Already ${isReplace ? replaceMsg(errField === 'addUser') : verb} from ${time}`,
       } as FieldError)
     }
-  };
+  }
 
-  check("addUserID", "addUser")
-  check("addUserID", "removeUser")
-  check("removeUserID", "addUser")
-  check("removeUserID", "removeUser")
+  check('addUserID', 'addUser')
+  check('addUserID', 'removeUser')
+  check('removeUserID', 'addUser')
+  check('removeUserID', 'removeUser')
 
   return errs
 }

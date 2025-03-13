@@ -105,12 +105,16 @@ export default function ScheduleCalendarEventWrapper({
             {
               icon: <EditIcon data-cy='edit-temp-sched' fontSize='small' />,
               label: 'Edit',
-              handleOnClick: () => { if (onEditTempSched) onEditTempSched(calEvent.tempSched)},
+              handleOnClick: () => {
+                if (onEditTempSched) onEditTempSched(calEvent.tempSched)
+              },
             },
             {
               icon: <DeleteIcon data-cy='delete-temp-sched' fontSize='small' />,
               label: 'Delete',
-              handleOnClick: () => { if (onDeleteTempSched) onDeleteTempSched(calEvent.tempSched)},
+              handleOnClick: () => {
+                if (onDeleteTempSched) onDeleteTempSched(calEvent.tempSched)
+              },
             },
           ]}
         />

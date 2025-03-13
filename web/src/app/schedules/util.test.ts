@@ -7,7 +7,9 @@ const fromBin = (f: string): boolean[] => f.split('').map((f) => f === '1')
 
 describe('alignWeekdayFilter', () => {
   const check = (input: string, n: number, expected: string) =>
-    expect(alignWeekdayFilter(n, fromBin(input) as WeekdayFilter)).toEqual(fromBin(expected))
+    expect(alignWeekdayFilter(n, fromBin(input) as WeekdayFilter)).toEqual(
+      fromBin(expected),
+    )
 
   it('should leave aligned filters alone', () => {
     check('1010101', 7, '1010101')
@@ -34,44 +36,70 @@ describe('mapOverrideUserError', () => {
   const zone = 'America/Chicago'
 
   const add = { ...data, addUser: { id: 'foo', name: 'bob' } } as UserOverride
-  const remove = { ...data, removeUser: { id: 'bar', name: 'ben' } } as UserOverride
+  const remove = {
+    ...data,
+    removeUser: { id: 'bar', name: 'ben' },
+  } as UserOverride
   const replace = { ...add, ...remove } as UserOverride
 
-  const check = (override: UserOverride, value: UserOverride, errs: FieldError[]) =>
-    expect(mapOverrideUserError(override, value, zone)).toEqual(errs)
+  const check = (
+    override: UserOverride,
+    value: UserOverride,
+    errs: FieldError[],
+  ) => expect(mapOverrideUserError(override, value, zone)).toEqual(errs)
 
   it('should generate proper error messages', () => {
-    check(add, { addUserID: 'foo' } as UserOverride, [
-      {
-        field: 'addUserID',
-        message: 'Already added from ' + timeStr,
-      },
-    ] as FieldError[])
+    check(
+      add,
+      { addUserID: 'foo' } as UserOverride,
+      [
+        {
+          field: 'addUserID',
+          message: 'Already added from ' + timeStr,
+        },
+      ] as FieldError[],
+    )
 
-    check(replace, { addUserID: 'bar' } as UserOverride, [
-      {
-        field: 'addUserID',
-        message: 'Already replaced by bob from ' + timeStr,
-      },
-    ] as FieldError[])
-    check(replace, { addUserID: 'foo' } as UserOverride, [
-      {
-        field: 'addUserID',
-        message: 'Already replacing ben from ' + timeStr,
-      },
-    ] as FieldError[])
-    check(remove, { addUserID: 'bar' } as UserOverride, [
-      {
-        field: 'addUserID',
-        message: 'Already removed from ' + timeStr,
-      },
-    ] as FieldError[])
+    check(
+      replace,
+      { addUserID: 'bar' } as UserOverride,
+      [
+        {
+          field: 'addUserID',
+          message: 'Already replaced by bob from ' + timeStr,
+        },
+      ] as FieldError[],
+    )
+    check(
+      replace,
+      { addUserID: 'foo' } as UserOverride,
+      [
+        {
+          field: 'addUserID',
+          message: 'Already replacing ben from ' + timeStr,
+        },
+      ] as FieldError[],
+    )
+    check(
+      remove,
+      { addUserID: 'bar' } as UserOverride,
+      [
+        {
+          field: 'addUserID',
+          message: 'Already removed from ' + timeStr,
+        },
+      ] as FieldError[],
+    )
 
-    check(add, { removeUserID: 'foo' } as UserOverride, [
-      {
-        field: 'removeUserID',
-        message: 'Already added from ' + timeStr,
-      },
-    ] as FieldError[])
+    check(
+      add,
+      { removeUserID: 'foo' } as UserOverride,
+      [
+        {
+          field: 'removeUserID',
+          message: 'Already added from ' + timeStr,
+        },
+      ] as FieldError[],
+    )
   })
 })
