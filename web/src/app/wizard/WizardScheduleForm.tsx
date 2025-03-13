@@ -47,11 +47,13 @@ export default function WizardScheduleForm({
 }: WizardScheduleFormProps): React.JSX.Element {
   const fullScreen = useIsWidthDown('md')
   const classes = useStyles()
+  const schedType = secondary ? 'secondary' : 'primary'
 
-  function renderFollowTheSun(
-    key: string,
-    schedType: string,
-  ): React.JSX.Element | undefined {
+  const getScheduleField = (field: string): string => {
+    return `${secondary ? 'secondarySchedule' : 'primarySchedule'}.${field}`
+  }
+
+  function renderFollowTheSun(): React.JSX.Element | undefined {
     const currentSchedule = secondary
       ? value.secondarySchedule
       : value.primarySchedule
@@ -62,7 +64,7 @@ export default function WizardScheduleForm({
             <FormField
               component={UserSelect}
               multiple
-              name={`${key}.followTheSunRotation.users`}
+              name={getScheduleField('followTheSunRotation.users')}
               label={
                 <React.Fragment>
                   Who will be on call for your <b>{schedType}</b> follow the sun
@@ -78,7 +80,7 @@ export default function WizardScheduleForm({
           <Grid item xs={12} className={classes.fieldItem}>
             <FormField
               component={TimeZoneSelect}
-              name={`${key}.followTheSunRotation.timeZone`}
+              name={getScheduleField('followTheSunRotation.timeZone')}
               label={
                 <React.Fragment>
                   What time zone is your <b>{schedType}</b> follow the sun
@@ -119,10 +121,7 @@ export default function WizardScheduleForm({
     onChange(newVal)
   }
 
-  function renderRotationFields(
-    key: string,
-    schedType: string,
-  ): React.JSX.Element {
+  function renderRotationFields(): React.JSX.Element {
     const currentSchedule = secondary
       ? value.secondarySchedule
       : value.primarySchedule
@@ -150,21 +149,21 @@ export default function WizardScheduleForm({
               onChange={handleRotationTypeChange}
             >
               <FormControlLabel
-                data-cy={`${key}.rotationType.weekly`}
+                data-cy={getScheduleField('rotationType.weekly')}
                 disabled={currentSchedule.users.length <= 1}
                 value='weekly'
                 control={<Radio />}
                 label='Weekly'
               />
               <FormControlLabel
-                data-cy={`${key}.rotationType.daily`}
+                data-cy={getScheduleField('rotationType.daily')}
                 disabled={currentSchedule.users.length <= 1}
                 value='daily'
                 control={<Radio />}
                 label='Daily'
               />
               <FormControlLabel
-                data-cy={`${key}.rotationType.never`}
+                data-cy={getScheduleField('rotationType.never')}
                 disabled={currentSchedule.users.length <= 1}
                 value='never'
                 control={<Radio />}
@@ -184,7 +183,7 @@ export default function WizardScheduleForm({
             <Grid item className={classes.fieldItem}>
               <FormField
                 component={ISODateTimePicker}
-                name={`${key}.rotation.startDate`}
+                name={getScheduleField('rotation.startDate')}
                 required
                 label='When should the rotation first hand off to the next team
               member?'
@@ -219,19 +218,19 @@ export default function WizardScheduleForm({
                 </FormLabel>
                 <RadioGroup
                   aria-label='secondary'
-                  name={`${key}.fts`}
+                  name={getScheduleField('.fts')}
                   row
                   value={currentSchedule.followTheSunRotation.enable}
                   onChange={handleFollowTheSunToggle}
                 >
                   <FormControlLabel
-                    data-cy={`${key}.fts.yes`}
+                    data-cy={getScheduleField('fts.yes')}
                     value='yes'
                     control={<Radio />}
                     label='Yes'
                   />
                   <FormControlLabel
-                    data-cy={`${key}.fts.no`}
+                    data-cy={getScheduleField('fts.no')}
                     value='no'
                     control={<Radio />}
                     label='No'
@@ -239,7 +238,7 @@ export default function WizardScheduleForm({
                 </RadioGroup>
               </FormControl>
             </Grid>
-            {renderFollowTheSun(key, schedType)}
+            {renderFollowTheSun()}
           </React.Fragment>
         )}
       </React.Fragment>
@@ -254,15 +253,12 @@ export default function WizardScheduleForm({
    * Ask if second assignment is needed for evening shifts
    *   - repeat choosing users if yes
    */
-  const key = secondary ? 'secondarySchedule' : 'primarySchedule'
-  const schedType = secondary ? 'secondary' : 'primary'
-
   return (
     <React.Fragment>
       <Grid item xs={12} className={classes.fieldItem}>
         <FormField
           component={TimeZoneSelect}
-          name={`${key}.timeZone`}
+          name={getScheduleField('timeZone')}
           label={
             <React.Fragment>
               What time zone is your <b>{schedType}</b> schedule based in?
@@ -276,9 +272,9 @@ export default function WizardScheduleForm({
       <Grid item xs={12} className={classes.fieldItem}>
         <FormField
           component={UserSelect}
-          data-cy={`${key}.users`}
+          data-cy={getScheduleField('users')}
           multiple
-          name={`${key}.users`}
+          name={getScheduleField('users')}
           label={
             <React.Fragment>
               Who will be on call for your <b>{schedType}</b> schedule?
@@ -287,10 +283,12 @@ export default function WizardScheduleForm({
           formLabel
           fullWidth={fullScreen}
           required
-          value={value[key].users}
+          value={
+            value[secondary ? 'secondarySchedule' : 'primarySchedule'].users
+          }
         />
       </Grid>
-      {renderRotationFields(key, schedType)}
+      {renderRotationFields()}
     </React.Fragment>
   )
 }

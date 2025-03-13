@@ -146,31 +146,27 @@ export default function WizardRouter(): React.JSX.Element {
     if (variables) {
       commit(variables).then((result) => {
         if (result.error) {
-          const generalErrors = nonFieldErrors(result.error)
-          const graphqlErrors = fieldErrors(result.error).map((error) => {
-            const fieldError = error.field.split('.').pop()
-            if (fieldError) {
+          const nonFieldErrs = nonFieldErrors(result.error).map((e) => ({
+            message: e.message,
+          }))
+
+          const fieldErrs = fieldErrors(result.error)
+            .map((e) => {
+              const fieldError = e.field.split('.').pop()
+              if (!fieldError) return null
+
               const name = fieldError
                 .replace(/([A-Z])/g, ' $1') // insert a space before all caps
                 .replace(/^./, (str) => str.toUpperCase()) // uppercase the first character
 
-              return `${name}: ${error.message}`
-            }
-          })
+              return { message: `${name}: ${e.message}` }
+            })
+            .filter((error) => error !== null) as { message: string }[]
 
-          const errors = [...generalErrors, ...graphqlErrors]
+          const errors = nonFieldErrs.concat(fieldErrs)
 
           if (errors.length) {
-            setErrorMessage(
-              errors
-                .map((e) => {
-                  if (e instanceof Error) {
-                    return e.message
-                  }
-                  return e
-                })
-                .join('\n'),
-            )
+            setErrorMessage(errors.map((e) => e.message).join('\n'))
           }
         } else {
           setComplete(true)
