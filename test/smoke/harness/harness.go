@@ -306,7 +306,7 @@ func (h *Harness) Start() {
 	appCfg.JSON = true
 	appCfg.DBURL = h.dbURL
 	appCfg.TwilioBaseURL = h.twS.URL
-	appCfg.DBMaxOpen = 5
+	appCfg.DBMaxOpen = 3
 	appCfg.SlackBaseURL = h.slackS.URL
 	appCfg.SMTPListenAddr = "localhost:0"
 	appCfg.EmailIntegrationDomain = "smoketest.example.com"
@@ -325,7 +325,7 @@ func (h *Harness) Start() {
 	if err != nil {
 		h.t.Fatalf("failed to parse db url: %v", err)
 	}
-	poolCfg.MaxConns = 5
+	poolCfg.MaxConns = 3
 
 	h.appPool, err = pgxpool.NewWithConfig(ctx, poolCfg)
 	require.NoError(h.t, err, "create pgx pool")

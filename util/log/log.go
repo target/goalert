@@ -144,7 +144,13 @@ func (l *Logger) Error(ctx context.Context, err error) {
 	}
 
 	ctx = l.addSource(ctx, err)
-	l.entry(ctx).WithError(err).Errorln()
+	lg := l.entry(ctx).WithError(err)
+	if errors.Is(err, context.Canceled) {
+		lg.Debugln()
+		return
+	}
+
+	lg.Errorln()
 }
 
 // Logf will log application information.
