@@ -37,7 +37,7 @@ const timeZones = ['America/Chicago', 'Africa/Accra', 'Etc/UTC']
 // scheds w/ users
 export const usersSchedules: WizardFormValue = {
   teamName: 'Test',
-  delayMinutes: c.integer({ min: 1, max: 9000 }).toString(),
+  delayMinutes: c.integer({ min: 1, max: 9000 }),
   repeat: c.integer({ min: 1, max: 5 }).toString(),
   key: c.pickone(keys),
   primarySchedule: {
@@ -72,7 +72,7 @@ export const usersSchedules: WizardFormValue = {
 // scheds w/ rotations (no fts)
 export const rotationsNoFTS: WizardFormValue = {
   teamName: 'Test',
-  delayMinutes: c.integer({ min: 1, max: 9000 }).toString(),
+  delayMinutes: c.integer({ min: 1, max: 9000 }),
   repeat: c.integer({ min: 1, max: 5 }).toString(),
   key: c.pickone(keys),
   primarySchedule: {
@@ -107,7 +107,7 @@ export const rotationsNoFTS: WizardFormValue = {
 // scheds w/ rotations + fts
 export const rotationsAndFTS: WizardFormValue = {
   teamName: 'Test',
-  delayMinutes: c.integer({ min: 1, max: 9000 }).toString(),
+  delayMinutes: c.integer({ min: 1, max: 9000 }),
   repeat: c.integer({ min: 1, max: 5 }).toString(),
   key: c.pickone(keys),
   primarySchedule: {

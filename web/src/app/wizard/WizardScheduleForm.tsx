@@ -209,6 +209,8 @@ export default function WizardScheduleForm({
                     responsiveness and reduce delays.
                   `}
                     PopperProps={{
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                      // @ts-ignore
                       'data-cy': 'fts-tooltip-popper',
                     }}
                   >
