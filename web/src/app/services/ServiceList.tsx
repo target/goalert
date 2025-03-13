@@ -95,6 +95,7 @@ export default function ServiceList(): JSX.Element {
             <CompList>
               {q.data?.services.nodes.map((u) => (
                 <CompListItemNav
+                  key={u.id}
                   title={u.name}
                   subText={u.description}
                   url={u.id}

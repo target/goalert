@@ -116,6 +116,7 @@ export default function ServiceOnCallList({
         {sections.map((s, i) => {
           return (
             <CompListSection
+              key={s.title}
               defaultOpen={i === 0}
               title={s.title}
               subText={s.subText}
@@ -123,6 +124,7 @@ export default function ServiceOnCallList({
             >
               {s.users.map((u) => (
                 <CompListItemNav
+                  key={u.userID}
                   title={u.userName}
                   icon={<UserAvatar userID={u.userID} />}
                   url={`/users/${u.userID}`}

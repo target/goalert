@@ -82,6 +82,7 @@ export default function ServiceLabelList(props: {
           .sort(sortItems)
           .map((label) => (
             <CompListItemText
+              key={label.key}
               title={label.key}
               subText={label.value}
               action={
