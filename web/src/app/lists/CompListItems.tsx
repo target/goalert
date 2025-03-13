@@ -16,6 +16,7 @@ export type CompListItemTextProps = {
   icon?: React.ReactNode
   subText?: React.ReactNode
   action?: React.ReactNode
+  disableTypography?: boolean
 }
 
 /* A simple list item with a title, subtext, and optional action */
@@ -25,7 +26,11 @@ export function CompListItemText(
   return (
     <ListItem>
       {props.icon && <ListItemIcon tabIndex={-1}>{props.icon}</ListItemIcon>}
-      <ListItemText primary={props.title} secondary={props.subText} />
+      <ListItemText
+        disableTypography={props.disableTypography}
+        primary={props.title}
+        secondary={props.subText}
+      />
       {props.action && (
         <ListItemSecondaryAction>{props.action}</ListItemSecondaryAction>
       )}

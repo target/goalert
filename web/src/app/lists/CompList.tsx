@@ -15,7 +15,7 @@ export type CompListProps = {
 export default function CompList(props: CompListProps): React.ReactNode {
   const emptyMessage = props.emptyMessage ?? 'No results.'
   return (
-    <List data-cy={props['data-cy']}>
+    <List data-cy={props['data-cy']} sx={{ display: 'grid' }}>
       <ListItem>
         {props.note && (
           <ListItemText
