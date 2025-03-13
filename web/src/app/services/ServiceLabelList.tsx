@@ -6,7 +6,6 @@ import CardContent from '@mui/material/CardContent'
 import makeStyles from '@mui/styles/makeStyles'
 import { gql, useQuery } from 'urql'
 import CreateFAB from '../lists/CreateFAB'
-import FlatList from '../lists/FlatList'
 import OtherActions from '../util/OtherActions'
 
 import ServiceLabelSetDialog from './ServiceLabelCreateDialog'
@@ -16,6 +15,8 @@ import { Label } from '../../schema'
 import Spinner from '../loading/components/Spinner'
 import { useIsWidthDown } from '../util/useWidth'
 import { Add } from '@mui/icons-material'
+import CompList from '../lists/CompList'
+import { CompListItemText } from '../lists/CompListItems'
 
 const query = gql`
   query ($serviceID: ID!) {
@@ -58,35 +59,12 @@ export default function ServiceLabelList(props: {
   }
 
   function renderList(labels: Label[]): ReactElement {
-    const items = (labels || [])
-      .slice()
-      .sort(sortItems)
-      .map((label) => ({
-        title: label.key,
-        subText: label.value,
-        secondaryAction: (
-          <OtherActions
-            actions={[
-              {
-                label: 'Edit',
-                onClick: () => setEditKey(label.key),
-              },
-              {
-                label: 'Delete',
-                onClick: () => setDeleteKey(label.key),
-              },
-            ]}
-          />
-        ),
-      }))
-
     return (
-      <FlatList
+      <CompList
         data-cy='label-list'
         emptyMessage='No labels exist for this service.'
-        items={items}
-        headerNote='Labels are a way to associate services with each other throughout GoAlert. Search using the format key1/key2=value'
-        headerAction={
+        note='Labels are a way to associate services with each other throughout GoAlert. Search using the format key1/key2=value'
+        action={
           isMobile ? undefined : (
             <Button
               variant='contained'
@@ -98,7 +76,31 @@ export default function ServiceLabelList(props: {
             </Button>
           )
         }
-      />
+      >
+        {(labels || [])
+          .slice()
+          .sort(sortItems)
+          .map((label) => (
+            <CompListItemText
+              title={label.key}
+              subText={label.value}
+              action={
+                <OtherActions
+                  actions={[
+                    {
+                      label: 'Edit',
+                      onClick: () => setEditKey(label.key),
+                    },
+                    {
+                      label: 'Delete',
+                      onClick: () => setDeleteKey(label.key),
+                    },
+                  ]}
+                />
+              }
+            />
+          ))}
+      </CompList>
     )
   }
 
