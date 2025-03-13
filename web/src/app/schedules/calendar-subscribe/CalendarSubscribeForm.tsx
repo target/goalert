@@ -3,11 +3,18 @@ import { FormContainer, FormField } from '../../forms'
 import { Checkbox, FormControlLabel, Grid, TextField } from '@mui/material'
 import { ScheduleSelect } from '../../selection'
 
+export type CalSubFormValue = {
+  scheduleID: string | null
+  name: string
+  reminderMinutes: Array<number>
+  fullSchedule: boolean
+}
+
 interface CalendarSubscribeFormProps {
   loading?: boolean
-  errors?: Array<{ message: string; field: string; helpLink: string }>
-  value: { scheduleId: string; name: string; reminderMinutes: Array<string> }
-  onChange: (value: object) => void
+  errors?: Array<{ message: string; field: string; helpLink?: string }>
+  value: CalSubFormValue
+  onChange: (value: CalSubFormValue) => void
   scheduleReadOnly?: boolean
 }
 
