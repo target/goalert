@@ -88,6 +88,7 @@ $(BIN_DIR)/tools/bun: bun.version
 
 bun.lock: $(BIN_DIR)/tools/bun
 	$(BIN_DIR)/tools/bun install
+	touch "$@"
 
 node_modules: $(BIN_DIR)/tools/bun package.json bun.lock
 	$(BIN_DIR)/tools/bun install
