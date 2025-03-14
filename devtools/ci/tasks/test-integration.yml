@@ -7,7 +7,7 @@ outputs:
   - name: debug
 image_resource:
   type: registry-image
-  source: { repository: goalert/cypress-env, tag: '13.14.2' }
+  source: { repository: goalert/cypress-env, tag: '14.2.0' }
 run:
   path: sh
   dir: integration/goalert

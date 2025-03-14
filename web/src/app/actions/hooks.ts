@@ -1,5 +1,4 @@
-import { useLocation } from 'wouter'
-import { useSearch } from 'wouter/use-location'
+import { useLocation, useSearch } from 'wouter'
 
 export type Value = string | boolean | number | string[]
 
