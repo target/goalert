@@ -38,8 +38,6 @@ type Store struct {
 	updateByStatusAndService *sql.Stmt
 	updateByIDAndStatus      *sql.Stmt
 
-	epID *sql.Stmt
-
 	escalate *sql.Stmt
 	epState  *sql.Stmt
 	svcInfo  *sql.Stmt
@@ -61,14 +59,6 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store, evt *event
 		db:    db,
 		logDB: logDB,
 		evt:   evt,
-
-		epID: p(`
-			SELECT escalation_policy_id
-			FROM
-				services svc,
-				alerts a
-			WHERE svc.id = a.service_id
-		`),
 
 		insert: p(`
 			INSERT INTO alerts (summary, details, service_id, source, status, dedup_key) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created_at
@@ -216,13 +206,11 @@ func (s *Store) EPID(ctx context.Context, alertID int) (string, error) {
 		return "", err
 	}
 
-	row := s.epID.QueryRowContext(ctx, alertID)
-	var epID string
-	err = row.Scan(&epID)
+	epID, err := gadb.New(s.db).GetEscalationPolicyID(ctx, int64(alertID))
 	if err != nil {
 		return "", err
 	}
-	return epID, nil
+	return epID.String(), nil
 }
 
 func (s *Store) canTouchAlert(ctx context.Context, alertID int) error {

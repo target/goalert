@@ -2238,6 +2238,22 @@ func (q *Queries) GQLUserOnCallOverview(ctx context.Context, userID uuid.UUID) (
 	return items, nil
 }
 
+const getEscalationPolicyID = `-- name: GetEscalationPolicyID :one
+SELECT escalation_policy_id
+FROM
+    services svc,
+    alerts a
+WHERE
+    svc.id = $1::bigint
+`
+
+func (q *Queries) GetEscalationPolicyID(ctx context.Context, id int64) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, getEscalationPolicyID, id)
+	var escalation_policy_id uuid.UUID
+	err := row.Scan(&escalation_policy_id)
+	return escalation_policy_id, err
+}
+
 const getStatusAndLockService = `-- name: GetStatusAndLockService :one
 SELECT a.status
 FROM services s

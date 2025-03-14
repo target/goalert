@@ -129,3 +129,11 @@ JOIN alerts a ON a.id = @id::bigint
 AND a.service_id = s.id
 FOR
 UPDATE;
+
+-- name: GetEscalationPolicyID :one
+SELECT escalation_policy_id
+FROM
+    services svc,
+    alerts a
+WHERE
+    svc.id = @id::bigint;
