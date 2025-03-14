@@ -2238,6 +2238,38 @@ func (q *Queries) GQLUserOnCallOverview(ctx context.Context, userID uuid.UUID) (
 	return items, nil
 }
 
+const getEscalationPolicyID = `-- name: GetEscalationPolicyID :one
+SELECT escalation_policy_id
+FROM
+    services svc,
+    alerts a
+WHERE
+    svc.id = $1::bigint
+`
+
+func (q *Queries) GetEscalationPolicyID(ctx context.Context, id int64) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, getEscalationPolicyID, id)
+	var escalation_policy_id uuid.UUID
+	err := row.Scan(&escalation_policy_id)
+	return escalation_policy_id, err
+}
+
+const getStatusAndLockService = `-- name: GetStatusAndLockService :one
+SELECT a.status
+FROM services s
+JOIN alerts a ON a.id = $1::bigint
+AND a.service_id = s.id
+FOR
+UPDATE
+`
+
+func (q *Queries) GetStatusAndLockService(ctx context.Context, id int64) (EnumAlertStatus, error) {
+	row := q.db.QueryRowContext(ctx, getStatusAndLockService, id)
+	var status EnumAlertStatus
+	err := row.Scan(&status)
+	return status, err
+}
+
 const hBByIDForUpdate = `-- name: HBByIDForUpdate :one
 SELECT
     additional_details, heartbeat_interval, id, last_heartbeat, last_state, muted, name, service_id
@@ -3418,6 +3450,22 @@ func (q *Queries) ListTriggers(ctx context.Context) ([]ListTriggersRow, error) {
 	return items, nil
 }
 
+const lockAlertService = `-- name: LockAlertService :one
+SELECT 1
+FROM services s
+JOIN alerts a ON a.id = ANY ($1::bigint[])
+AND s.id = a.service_id
+FOR
+UPDATE
+`
+
+func (q *Queries) LockAlertService(ctx context.Context, alertIds []int64) (int32, error) {
+	row := q.db.QueryRowContext(ctx, lockAlertService, pq.Array(alertIds))
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const lockOneAlertService = `-- name: LockOneAlertService :one
 SELECT
     maintenance_expires_at NOTNULL::bool AS is_maint_mode,
@@ -3440,6 +3488,23 @@ func (q *Queries) LockOneAlertService(ctx context.Context, id int64) (LockOneAle
 	var i LockOneAlertServiceRow
 	err := row.Scan(&i.IsMaintMode, &i.Status)
 	return i, err
+}
+
+const lockService = `-- name: LockService :one
+SELECT 1
+FROM
+    services
+WHERE
+    id = $1::text
+FOR
+UPDATE
+`
+
+func (q *Queries) LockService(ctx context.Context, id string) (int32, error) {
+	row := q.db.QueryRowContext(ctx, lockService, id)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const logEvents = `-- name: LogEvents :many
@@ -3760,6 +3825,24 @@ func (q *Queries) NfyOriginalMessageStatus(ctx context.Context, arg NfyOriginalM
 		&i.ChDest,
 	)
 	return i, err
+}
+
+const noStepsByService = `-- name: NoStepsByService :one
+SELECT coalesce(
+    (SELECT true
+    FROM escalation_policies pol
+    JOIN services svc ON svc.id = $1::text
+    WHERE
+        pol.id = svc.escalation_policy_id
+        AND pol.step_count = 0)
+, false)
+`
+
+func (q *Queries) NoStepsByService(ctx context.Context, id string) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, noStepsByService, id)
+	var coalesce interface{}
+	err := row.Scan(&coalesce)
+	return coalesce, err
 }
 
 const noticeUnackedAlertsByService = `-- name: NoticeUnackedAlertsByService :one

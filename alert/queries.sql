@@ -95,3 +95,45 @@ ON CONFLICT (alert_id)
     WHERE
         alert_data.alert_id = $1;
 
+-- name: NoStepsByService :one
+SELECT coalesce(
+    (SELECT true
+    FROM escalation_policies pol
+    JOIN services svc ON svc.id = @id::text
+    WHERE
+        pol.id = svc.escalation_policy_id
+        AND pol.step_count = 0)
+, false);
+
+-- name: LockService :one
+SELECT 1
+FROM
+    services
+WHERE
+    id = @id::text
+FOR
+UPDATE;
+
+-- name: LockAlertService :one
+SELECT 1
+FROM services s
+JOIN alerts a ON a.id = ANY (@alert_ids::bigint[])
+AND s.id = a.service_id
+FOR
+UPDATE;
+
+-- name: GetStatusAndLockService :one
+SELECT a.status
+FROM services s
+JOIN alerts a ON a.id = @id::bigint
+AND a.service_id = s.id
+FOR
+UPDATE;
+
+-- name: GetEscalationPolicyID :one
+SELECT escalation_policy_id
+FROM
+    services svc,
+    alerts a
+WHERE
+    svc.id = @id::bigint;
