@@ -44,6 +44,7 @@ import (
 	"github.com/target/goalert/user/notificationrule"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/util/timeutil"
 )
 
 var (
@@ -406,6 +407,35 @@ func (h *Harness) IgnoreErrorsWith(substr string) {
 	h.mx.Lock()
 	defer h.mx.Unlock()
 	h.ignoreErrors = append(h.ignoreErrors, substr)
+}
+
+// Now returns the current time, as observed by the DB.
+func (h *Harness) Now() time.Time {
+	h.t.Helper()
+
+	var now time.Time
+	err := h.appPool.QueryRow(context.Background(), "SELECT NOW()").Scan(&now)
+	require.NoError(h.t, err, "get now()")
+
+	return now
+}
+
+// FastForwardToTime will fast-forward the database time to the next occurrence of the provided clock time.
+func (h *Harness) FastForwardToTime(t timeutil.Clock, zoneName string) {
+	h.t.Helper()
+
+	zone, err := time.LoadLocation(zoneName)
+	require.NoError(h.t, err, "load location")
+
+	now := h.Now()
+
+	y, m, d := now.In(zone).Date()
+	dst := time.Date(y, m, d, t.Hour(), t.Minute(), 0, 0, zone)
+	if !dst.After(now) {
+		dst = dst.AddDate(0, 0, 1)
+	}
+
+	h.FastForward(dst.Sub(now))
 }
 
 func (h *Harness) FastForward(d time.Duration) {
