@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { useQuery } from 'urql'
-import { PropTypes as p } from 'prop-types'
 import Button from '@mui/material/Button'
 import Tooltip from '@mui/material/Tooltip'
 
@@ -8,8 +7,15 @@ import CalendarSubscribeCreateDialog from './CalendarSubscribeCreateDialog'
 import { calendarSubscriptionsQuery } from '../../users/UserCalendarSubscriptionList'
 import { useConfigValue, useSessionInfo } from '../../util/RequireConfig'
 import _ from 'lodash'
+import { UserCalendarSubscription } from '../../../schema'
 
-export default function CalendarSubscribeButton(props) {
+interface CalendarSubscribeButtonProps {
+  scheduleID: string
+}
+
+export default function CalendarSubscribeButton({
+  scheduleID,
+}: CalendarSubscribeButtonProps): JSX.Element {
   const [creationDisabled] = useConfigValue(
     'General.DisableCalendarSubscriptions',
   )
@@ -26,7 +32,8 @@ export default function CalendarSubscribeButton(props) {
   })
 
   const numSubs = _.get(data, 'user.calendarSubscriptions', []).filter(
-    (cs) => cs.scheduleID === props.scheduleID && !cs.disabled,
+    (cs: UserCalendarSubscription) =>
+      cs.scheduleID === scheduleID && !cs.disabled,
   ).length
 
   let context =
@@ -46,13 +53,14 @@ export default function CalendarSubscribeButton(props) {
         title={context}
         placement='top-start'
         PopperProps={{
+          // @ts-expect-error data-cy is not a valid prop
           'data-cy': 'subscribe-btn-context',
         }}
       >
         <Button
           data-cy='subscribe-btn'
           aria-label='Subscribe to this schedule'
-          disabled={creationDisabled}
+          disabled={Boolean(creationDisabled)}
           onClick={() => setShowDialog(true)}
           variant='contained'
         >
@@ -63,13 +71,9 @@ export default function CalendarSubscribeButton(props) {
       {showDialog && (
         <CalendarSubscribeCreateDialog
           onClose={() => setShowDialog(false)}
-          scheduleID={props.scheduleID}
+          scheduleID={scheduleID}
         />
       )}
     </React.Fragment>
   )
-}
-
-CalendarSubscribeButton.propTypes = {
-  scheduleID: p.string,
 }

@@ -306,7 +306,7 @@ func (h *Harness) Start() {
 	appCfg.JSON = true
 	appCfg.DBURL = h.dbURL
 	appCfg.TwilioBaseURL = h.twS.URL
-	appCfg.DBMaxOpen = 5
+	appCfg.DBMaxOpen = 3
 	appCfg.SlackBaseURL = h.slackS.URL
 	appCfg.SMTPListenAddr = "localhost:0"
 	appCfg.EmailIntegrationDomain = "smoketest.example.com"
@@ -325,7 +325,7 @@ func (h *Harness) Start() {
 	if err != nil {
 		h.t.Fatalf("failed to parse db url: %v", err)
 	}
-	poolCfg.MaxConns = 5
+	poolCfg.MaxConns = 3
 
 	h.appPool, err = pgxpool.NewWithConfig(ctx, poolCfg)
 	require.NoError(h.t, err, "create pgx pool")
@@ -803,26 +803,12 @@ func (h *Harness) WaitAndAssertOnCallUsers(serviceID string, userIDs ...string) 
 		return uniq
 	}
 	sort.Strings(userIDs)
-	match := func(final bool) bool {
+	check := func(t *assert.CollectT) {
 		ids := getUsers()
-		if len(ids) != len(userIDs) {
-			if final {
-				h.t.Fatalf("got %d on-call users; want %d", len(ids), len(userIDs))
-			}
-			return false
-		}
-		for i, id := range userIDs {
-			if ids[i] != id {
-				if final {
-					h.t.Fatalf("on-call[%d] = %s; want %s", i, ids[i], id)
-				}
-				return false
-			}
-		}
-		return true
+		require.Lenf(t, ids, len(userIDs), "number of on-call users")
+		require.EqualValuesf(t, userIDs, ids, "on-call users")
 	}
-
 	h.Trigger() // run engine cycle
 
-	match(true) // assert result
+	assert.EventuallyWithT(h.t, check, 5*time.Second, 100*time.Millisecond)
 }

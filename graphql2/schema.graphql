@@ -130,7 +130,12 @@ input TimeSeriesOptions {
 type TimeSeriesBucket {
   start: ISOTimestamp!
   end: ISOTimestamp!
+
   count: Int!
+    @deprecated(reason: "Use value instead.")
+    @goField(forceResolver: true)
+
+  value: Float!
 }
 
 input SlackUserGroupSearchOptions {

@@ -1,10 +1,26 @@
 import React from 'react'
-import { PropTypes as p } from 'prop-types'
 import { FormContainer, FormField } from '../../forms'
 import { Checkbox, FormControlLabel, Grid, TextField } from '@mui/material'
 import { ScheduleSelect } from '../../selection'
 
-export default function CalendarSubscribeForm(props) {
+export type CalSubFormValue = {
+  scheduleID: string | null
+  name: string
+  reminderMinutes: Array<number>
+  fullSchedule: boolean
+}
+
+interface CalendarSubscribeFormProps {
+  loading?: boolean
+  errors?: Array<{ message: string; field: string; helpLink?: string }>
+  value: CalSubFormValue
+  onChange: (value: CalSubFormValue) => void
+  scheduleReadOnly?: boolean
+}
+
+export default function CalendarSubscribeForm(
+  props: CalendarSubscribeFormProps,
+): React.ReactNode {
   return (
     <FormContainer
       disabled={props.loading}
@@ -47,16 +63,4 @@ export default function CalendarSubscribeForm(props) {
       </Grid>
     </FormContainer>
   )
-}
-
-CalendarSubscribeForm.propTypes = {
-  errors: p.array,
-  loading: p.bool,
-  onChange: p.func.isRequired,
-  scheduleReadOnly: p.bool,
-  value: p.shape({
-    scheduleID: p.string,
-    name: p.string,
-    reminderMinutes: p.array,
-  }).isRequired,
 }

@@ -117,5 +117,7 @@ func (app *App) startup(ctx context.Context) error {
 		app.Logger.InfoContext(ctx, "SWO Enabled.")
 	}
 
+	app.setupListenEvents()
+
 	return nil
 }

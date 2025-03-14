@@ -1,11 +1,11 @@
 import React from 'react'
-import { PropTypes as p } from 'prop-types'
 import { Button, FormHelperText, Grid, Typography } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import CopyText from '../../util/CopyText'
+import { Theme } from '@mui/material/styles'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   caption: {
     width: '100%',
   },
@@ -18,15 +18,21 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-export default function CalenderSuccessForm(props) {
+interface CalendarSuccessFormProps {
+  url: string
+}
+
+export default function CalenderSuccessForm({
+  url,
+}: CalendarSuccessFormProps): React.ReactNode {
   const classes = useStyles()
-  const url = props.url.replace(/^https?:\/\//, 'webcal://')
+  const convertedUrl = url.replace(/^https?:\/\//, 'webcal://')
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} className={classes.subscribeButtonContainer}>
         <Button
           variant='contained'
-          href={url}
+          href={convertedUrl}
           target='_blank'
           rel='noopener noreferrer'
         >
@@ -36,12 +42,7 @@ export default function CalenderSuccessForm(props) {
       </Grid>
       <Grid item xs={12}>
         <Typography>
-          <CopyText
-            title={props.url}
-            value={props.url}
-            placement='bottom'
-            asURL
-          />
+          <CopyText title={url} value={url} placement='bottom' asURL />
         </Typography>
         <FormHelperText>
           Some applications require you copy and paste the URL directly
@@ -49,8 +50,4 @@ export default function CalenderSuccessForm(props) {
       </Grid>
     </Grid>
   )
-}
-
-CalenderSuccessForm.propTypes = {
-  url: p.string.isRequired,
 }
