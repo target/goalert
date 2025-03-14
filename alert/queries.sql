@@ -110,5 +110,14 @@ SELECT 1
 FROM
     services
 WHERE
-    id = @id
-FOR update;
+    id = @id::text
+FOR
+UPDATE;
+
+-- name: LockAlertService :one
+SELECT 1
+FROM services s
+JOIN alerts a ON a.id = ANY (@alert_ids::bigint[])
+AND s.id = a.service_id
+FOR
+UPDATE;

@@ -3418,6 +3418,22 @@ func (q *Queries) ListTriggers(ctx context.Context) ([]ListTriggersRow, error) {
 	return items, nil
 }
 
+const lockAlertService = `-- name: LockAlertService :one
+SELECT 1
+FROM services s
+JOIN alerts a ON a.id = ANY ($1::bigint[])
+AND s.id = a.service_id
+FOR
+UPDATE
+`
+
+func (q *Queries) LockAlertService(ctx context.Context, alertIds []int64) (int32, error) {
+	row := q.db.QueryRowContext(ctx, lockAlertService, pq.Array(alertIds))
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const lockOneAlertService = `-- name: LockOneAlertService :one
 SELECT
     maintenance_expires_at NOTNULL::bool AS is_maint_mode,
@@ -3447,11 +3463,12 @@ SELECT 1
 FROM
     services
 WHERE
-    id = $1
-FOR update
+    id = $1::text
+FOR
+UPDATE
 `
 
-func (q *Queries) LockService(ctx context.Context, id uuid.UUID) (int32, error) {
+func (q *Queries) LockService(ctx context.Context, id string) (int32, error) {
 	row := q.db.QueryRowContext(ctx, lockService, id)
 	var column_1 int32
 	err := row.Scan(&column_1)

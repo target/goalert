@@ -31,8 +31,6 @@ type Store struct {
 	findMany     *sql.Stmt
 	getServiceID *sql.Stmt
 
-	lockAlertSvc *sql.Stmt
-
 	getStatusAndLockSvc *sql.Stmt
 
 	createUpdNew   *sql.Stmt
@@ -66,7 +64,6 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store, evt *event
 		logDB: logDB,
 		evt:   evt,
 
-		lockAlertSvc: p(`SELECT 1 FROM services s JOIN alerts a ON a.id = ANY ($1) AND s.id = a.service_id FOR UPDATE`),
 		getStatusAndLockSvc: p(`
 			SELECT a.status
 			FROM services s
@@ -397,7 +394,7 @@ func (s *Store) UpdateStatusByService(ctx context.Context, serviceID string, sta
 		return err
 	}
 
-	_, err = tx.StmtContext(ctx, s.lockSvc).ExecContext(ctx, serviceID)
+	_, err = gadb.New(tx).LockService(ctx, serviceID)
 	if err != nil {
 		return err
 	}
@@ -451,7 +448,10 @@ func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertI
 		return nil, err
 	}
 
-	ids := sqlutil.IntArray(alertIDs)
+	ids := make([]int64, len(alertIDs))
+	for i, id := range alertIDs {
+		ids[i] = int64(id)
+	}
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -466,7 +466,7 @@ func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertI
 
 	var updatedIDs []int
 
-	_, err = tx.StmtContext(ctx, s.lockAlertSvc).ExecContext(ctx, ids)
+	_, err = gadb.New(tx).LockAlertService(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -523,7 +523,7 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Alert, err
 		return nil, err
 	}
 
-	_, err = tx.StmtContext(ctx, s.lockSvc).ExecContext(ctx, n.ServiceID)
+	_, err = gadb.New(tx).LockService(ctx, n.ServiceID)
 	if err != nil {
 		return nil, err
 	}
@@ -544,15 +544,16 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Alert, err
 	return n, nil
 }
 
-func (s *Store) _create(ctx context.Context, db gadb.DBTX, a Alert) (*Alert, *alertlog.CreatedMetaData, error) {
+func (s *Store) _create(ctx context.Context, tx *sql.Tx, a Alert) (*Alert, *alertlog.CreatedMetaData, error) {
 	var meta alertlog.CreatedMetaData
+
 	row := tx.StmtContext(ctx, s.insert).QueryRowContext(ctx, a.Summary, a.Details, a.ServiceID, a.Source, a.Status, a.DedupKey())
 	err := row.Scan(&a.ID, &a.CreatedAt)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	_, err = gadb.New(db).NoStepsByService(ctx, a.ServiceID)
+	_, err = gadb.New(tx).NoStepsByService(ctx, a.ServiceID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -562,7 +563,7 @@ func (s *Store) _create(ctx context.Context, db gadb.DBTX, a Alert) (*Alert, *al
 
 // CreateOrUpdateTx returns `isNew` to indicate if the returned alert was a new one.
 // It is the caller's responsibility to log alert creation if the transaction is committed (and isNew is true).
-func (s *Store) CreateOrUpdateTx(ctx context.Context, db gadb.DBTX, a *Alert) (*Alert, bool, error) {
+func (s *Store) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Alert, bool, error) {
 	err := permission.LimitCheckAny(ctx,
 		permission.System,
 		permission.Admin,
@@ -588,7 +589,7 @@ func (s *Store) CreateOrUpdateTx(ctx context.Context, db gadb.DBTX, a *Alert) (*
 		return nil, false, err
 	}
 
-	_, err = tx.StmtContext(ctx, s.lockSvc).ExecContext(ctx, n.ServiceID)
+	_, err = gadb.New(tx).LockService(ctx, n.ServiceID)
 	if err != nil {
 		return nil, false, err
 	}
@@ -606,7 +607,7 @@ func (s *Store) CreateOrUpdateTx(ctx context.Context, db gadb.DBTX, a *Alert) (*
 			logType = alertlog.TypeDuplicateSupressed
 		} else {
 			logType = alertlog.TypeCreated
-			_, stepErr := gadb.New(db).NoStepsByService(ctx, n.ServiceID)
+			_, stepErr := gadb.New(tx).NoStepsByService(ctx, n.ServiceID)
 			if stepErr != nil {
 				return nil, false, err
 			}
