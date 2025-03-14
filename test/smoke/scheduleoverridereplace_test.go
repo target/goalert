@@ -9,11 +9,11 @@ import (
 	"github.com/target/goalert/util/timeutil"
 )
 
-// TestScheduleOverrideAdd validates that an "add"  style override correctly adds an additional shift.
+// TestScheduleOverrideReplace validates that a "replace" style override correctly replaces a user.
 //
 // - User A is always on-call
 // - User B is on-call for a specific time (via rule)
-// - User C has an override that replaces user B on the schedule for a specific time
+// - User C has an override that replaces user B on the schedule for a specific time.
 func TestScheduleOverrideReplace(t *testing.T) {
 	t.Parallel()
 

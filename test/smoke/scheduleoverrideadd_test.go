@@ -9,7 +9,7 @@ import (
 	"github.com/target/goalert/util/timeutil"
 )
 
-// TestScheduleOverrideAdd validates that an "add"  style override correctly adds an additional shift.
+// TestScheduleOverrideAdd validates that an "add" style override correctly adds an additional shift.
 //
 // - User A is always on-call
 // - User B is on-call for a specific time (via rule)
