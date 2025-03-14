@@ -181,10 +181,17 @@ func (db *DB) update(ctx context.Context) error {
 			// temp schedule active for this ID, skip
 			continue
 		}
+		var wasOnCall bool
 		if o.RemoveUserID.Valid {
+			wasOnCall = newOnCall[gadb.SchedMgrOnCallRow{ScheduleID: o.TgtScheduleID, UserID: o.RemoveUserID.UUID}]
 			delete(newOnCall, gadb.SchedMgrOnCallRow{ScheduleID: o.TgtScheduleID, UserID: o.RemoveUserID.UUID})
 		}
 		if o.AddUserID.Valid {
+			if o.RemoveUserID.Valid && !wasOnCall {
+				// if they were not on call, don't add them
+				continue
+			}
+
 			newOnCall[gadb.SchedMgrOnCallRow{ScheduleID: o.TgtScheduleID, UserID: o.AddUserID.UUID}] = true
 		}
 	}
