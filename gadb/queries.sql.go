@@ -2238,6 +2238,22 @@ func (q *Queries) GQLUserOnCallOverview(ctx context.Context, userID uuid.UUID) (
 	return items, nil
 }
 
+const getStatusAndLockService = `-- name: GetStatusAndLockService :one
+SELECT a.status
+FROM services s
+JOIN alerts a ON a.id = $1::bigint
+AND a.service_id = s.id
+FOR
+UPDATE
+`
+
+func (q *Queries) GetStatusAndLockService(ctx context.Context, id int64) (EnumAlertStatus, error) {
+	row := q.db.QueryRowContext(ctx, getStatusAndLockService, id)
+	var status EnumAlertStatus
+	err := row.Scan(&status)
+	return status, err
+}
+
 const hBByIDForUpdate = `-- name: HBByIDForUpdate :one
 SELECT
     additional_details, heartbeat_interval, id, last_heartbeat, last_state, muted, name, service_id

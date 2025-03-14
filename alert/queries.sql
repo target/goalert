@@ -121,3 +121,11 @@ JOIN alerts a ON a.id = ANY (@alert_ids::bigint[])
 AND s.id = a.service_id
 FOR
 UPDATE;
+
+-- name: GetStatusAndLockService :one
+SELECT a.status
+FROM services s
+JOIN alerts a ON a.id = @id::bigint
+AND a.service_id = s.id
+FOR
+UPDATE;

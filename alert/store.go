@@ -31,8 +31,6 @@ type Store struct {
 	findMany     *sql.Stmt
 	getServiceID *sql.Stmt
 
-	getStatusAndLockSvc *sql.Stmt
-
 	createUpdNew   *sql.Stmt
 	createUpdAck   *sql.Stmt
 	createUpdClose *sql.Stmt
@@ -63,13 +61,6 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store, evt *event
 		db:    db,
 		logDB: logDB,
 		evt:   evt,
-
-		getStatusAndLockSvc: p(`
-			SELECT a.status
-			FROM services s
-			JOIN alerts a on a.id = $1 and a.service_id = s.id
-			FOR UPDATE
-		`),
 
 		epID: p(`
 			SELECT escalation_policy_id
@@ -707,15 +698,15 @@ func (s *Store) createOrUpdate(ctx context.Context, a *Alert, meta map[string]st
 }
 
 func (s *Store) UpdateStatusTx(ctx context.Context, tx *sql.Tx, id int, stat Status) error {
-	var _stat Status
-	err := tx.Stmt(s.getStatusAndLockSvc).QueryRowContext(ctx, id).Scan(&_stat)
+	var _stat gadb.EnumAlertStatus
+	_stat, err := gadb.New(tx).GetStatusAndLockService(ctx, int64(id))
 	if err != nil {
 		return err
 	}
-	if _stat == StatusClosed {
+	if _stat == gadb.EnumAlertStatusClosed {
 		return logError{isAlreadyClosed: true, alertID: id, _type: alertlog.TypeClosed, logDB: s.logDB}
 	}
-	if _stat == StatusActive && stat == StatusActive {
+	if _stat == gadb.EnumAlertStatusActive && stat == StatusActive {
 		return logError{isAlreadyAcknowledged: true, alertID: id, _type: alertlog.TypeAcknowledged, logDB: s.logDB}
 	}
 
