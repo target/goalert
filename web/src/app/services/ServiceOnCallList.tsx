@@ -68,19 +68,12 @@ export default function ServiceOnCallList({
     variables: { id: serviceID },
   })
 
-  let sections: {
-    title: string
-    subText: string
-    icon: React.ReactNode
-    users: ServiceOnCallUser[]
-  }[] = []
-
   const chainedSteps = _.chain(data?.service?.escalationPolicy?.steps)
   const sortedItems = _.chain(data?.service?.onCallUsers)
     .sortBy(['stepNumber', 'userName'])
     .value()
 
-  sections = chainedSteps
+  const sections = chainedSteps
     .groupBy('stepNumber')
     .keys()
     .map((s) => {
