@@ -188,7 +188,8 @@ func (db *DB) update(ctx context.Context) error {
 		}
 		if o.AddUserID.Valid {
 			if o.RemoveUserID.Valid && !wasOnCall {
-				// if they were not on call, don't add them
+				// Add+Remove is a Replace
+				// If the user being replaced is not on-call, we don't want to add an extra shift for thier replacement.
 				continue
 			}
 
