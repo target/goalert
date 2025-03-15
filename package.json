@@ -147,7 +147,7 @@
     "remark-gfm": "4.0.1",
     "semver": "7.7.1",
     "storybook": "8.6.4",
-    "storybook-addon-mock": "4.3.0",
+    "storybook-addon-mock": "5.0.0",
     "stylelint": "16.15.0",
     "stylelint-config-standard": "37.0.0",
     "typescript": "5.8.2",
