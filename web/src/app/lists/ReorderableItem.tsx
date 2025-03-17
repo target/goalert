@@ -59,6 +59,7 @@ const animateLayoutChanges: AnimateLayoutChanges = (args) =>
 
 export type ReorderableItemProps = {
   id: string
+  index?: number
   children: React.ReactNode
 }
 
@@ -101,7 +102,7 @@ export function ReorderableItem(
       >
         <Button
           variant='outlined'
-          id={'drag-' + props.id}
+          id={'drag-' + props.index}
           sx={{
             p: '2px',
             width: 'fit-content',

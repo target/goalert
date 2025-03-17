@@ -72,7 +72,7 @@ export function getAnnouncements(
 
 export type DraggableCompListProps = {
   onReorder: (from: number, to: number) => void
-  children: React.ReactElement<ReorderableItemProps>[]
+  children: React.ReactElement<Omit<ReorderableItemProps, 'index'>>[]
 }
 
 /* A list of draggable components. */
@@ -128,7 +128,15 @@ export default function ReorderGroup(
       measuring={measuringConfig}
     >
       <SortableContext items={dndItems} strategy={verticalListSortingStrategy}>
-        {props.children}
+        {React.Children.map(props.children, (child, index) => {
+          if (React.isValidElement(child)) {
+            return React.cloneElement(
+              child as React.ReactElement<ReorderableItemProps>,
+              { index },
+            )
+          }
+          return child
+        })}
       </SortableContext>
     </DndContext>
   )
