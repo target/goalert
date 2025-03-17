@@ -29,8 +29,11 @@ export default function CompList(props: CompListProps): React.ReactNode {
   // Special case: ReorderGroup with no contents/children as a child
   if (
     children.length > 0 &&
-    isReorderGroup(children[0]) &&
-    React.Children.count(children[0].props.children) === 0
+    children.every(
+      (child) =>
+        isReorderGroup(child) &&
+        React.Children.count(child.props.children) === 0,
+    )
   ) {
     hasNoChildren = true
   }
