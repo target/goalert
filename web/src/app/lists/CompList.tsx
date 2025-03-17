@@ -1,5 +1,7 @@
 import { List, ListItem, ListItemText, Typography } from '@mui/material'
 import React from 'react'
+import ReorderGroup from './ReorderGroup'
+import { has } from 'lodash'
 
 export type CompListProps = {
   note?: React.ReactNode
@@ -11,8 +13,28 @@ export type CompListProps = {
   'data-cy'?: string
 }
 
+function isReorderGroup(child: React.ReactNode): child is React.ReactElement {
+  return (
+    React.isValidElement(child) &&
+    has(child.props, 'children') &&
+    child.type === ReorderGroup
+  )
+}
+
 /* A composable list component. */
 export default function CompList(props: CompListProps): React.ReactNode {
+  const children = React.Children.toArray(props.children)
+  let hasNoChildren = children.length === 0
+
+  // Special case: ReorderGroup with no contents/children as a child
+  if (
+    children.length > 0 &&
+    isReorderGroup(children[0]) &&
+    React.Children.count(children[0].props.children) === 0
+  ) {
+    hasNoChildren = true
+  }
+
   const emptyMessage = props.emptyMessage ?? 'No results.'
   return (
     <List data-cy={props['data-cy']} sx={{ display: 'grid' }}>
@@ -30,7 +52,7 @@ export default function CompList(props: CompListProps): React.ReactNode {
           {props.action && <div>{props.action}</div>}
         </ListItem>
       )}
-      {React.Children.count(props.children)
+      {!hasNoChildren
         ? props.children
         : emptyMessage && (
             <ListItem>
