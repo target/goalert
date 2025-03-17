@@ -114,6 +114,10 @@ export default function ReorderGroup(
     }),
   )
 
+  if (React.Children.count(props.children) === 0) {
+    return null
+  }
+
   return (
     <DndContext
       accessibility={{ announcements }}
