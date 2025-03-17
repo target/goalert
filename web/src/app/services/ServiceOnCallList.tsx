@@ -15,7 +15,6 @@ import {
   CompListItemText,
   CompListSection,
 } from '../lists/CompListItems'
-import { ServiceOnCallUser } from '../../schema'
 
 const useStyles = makeStyles((theme: Theme) => {
   const { cardHeader } = globalStyles(theme)
