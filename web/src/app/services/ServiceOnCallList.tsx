@@ -5,11 +5,16 @@ import CardHeader from '@mui/material/CardHeader'
 import { UserAvatar } from '../util/avatars'
 import makeStyles from '@mui/styles/makeStyles'
 import { styles as globalStyles } from '../styles/materialStyles'
-import FlatList, { SectionTitle } from '../lists/FlatList'
 import { Error } from '@mui/icons-material'
 import _ from 'lodash'
 import { Warning } from '../icons'
 import { Theme } from '@mui/material'
+import CompList from '../lists/CompList'
+import {
+  CompListItemNav,
+  CompListItemText,
+  CompListSection,
+} from '../lists/CompListItems'
 
 const useStyles = makeStyles((theme: Theme) => {
   const { cardHeader } = globalStyles(theme)
@@ -62,45 +67,28 @@ export default function ServiceOnCallList({
     variables: { id: serviceID },
   })
 
-  let items = []
-  let sections: SectionTitle[] = []
-  if (error) {
-    items = [
-      {
-        title: 'Error: ' + error.message,
-        icon: <Error />,
-      },
-    ]
-  } else {
-    const chainedSteps = _.chain(data?.service?.escalationPolicy?.steps)
-    const sortedItems = _.chain(data?.service?.onCallUsers)
-      .sortBy(['stepNumber', 'userName'])
-      .value()
+  const chainedSteps = _.chain(data?.service?.escalationPolicy?.steps)
+  const sortedItems = _.chain(data?.service?.onCallUsers)
+    .sortBy(['stepNumber', 'userName'])
+    .value()
 
-    sections = chainedSteps
-      .groupBy('stepNumber')
-      .keys()
-      .map((s) => {
-        const usersAssigned = sortedItems.filter(
-          (item) => item.stepNumber === Number(s),
-        ).length
-        return {
-          title: stepText(Number(s)),
-          subText: stepLengthText(usersAssigned),
-          icon: usersAssigned === 0 && (
-            <Warning message='No user assigned for step.' />
-          ),
-        }
-      })
-      .value()
-
-    items = sortedItems.map((u) => ({
-      title: u.userName,
-      icon: <UserAvatar userID={u.userID} />,
-      section: stepText(u.stepNumber),
-      url: `/users/${u.userID}`,
-    }))
-  }
+  const sections = chainedSteps
+    .groupBy('stepNumber')
+    .keys()
+    .map((s) => {
+      const usersAssigned = sortedItems.filter(
+        (item) => item.stepNumber === Number(s),
+      ).length
+      return {
+        title: stepText(Number(s)),
+        subText: stepLengthText(usersAssigned),
+        icon: usersAssigned === 0 && (
+          <Warning message='No user assigned for step.' />
+        ),
+        users: sortedItems.filter((item) => item.stepNumber === Number(s)),
+      }
+    })
+    .value()
 
   return (
     <Card>
@@ -109,12 +97,35 @@ export default function ServiceOnCallList({
         component='h3'
         title='On Call Users'
       />
-      <FlatList
-        emptyMessage='No users on-call for this service'
-        items={items}
-        sections={sections}
-        collapsable
-      />
+      <CompList emptyMessage='No users on-call for this service'>
+        {error && (
+          <CompListItemText
+            title='Error'
+            icon={<Error />}
+            subText={error.message}
+          />
+        )}
+        {sections.map((s, i) => {
+          return (
+            <CompListSection
+              key={s.title}
+              defaultOpen={i === 0}
+              title={s.title}
+              subText={s.subText}
+              icon={s.icon}
+            >
+              {s.users.map((u) => (
+                <CompListItemNav
+                  key={u.userID}
+                  title={u.userName}
+                  icon={<UserAvatar userID={u.userID} />}
+                  url={`/users/${u.userID}`}
+                />
+              ))}
+            </CompListSection>
+          )
+        })}
+      </CompList>
     </Card>
   )
 }
