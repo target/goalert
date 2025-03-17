@@ -16,18 +16,20 @@ export default function CompList(props: CompListProps): React.ReactNode {
   const emptyMessage = props.emptyMessage ?? 'No results.'
   return (
     <List data-cy={props['data-cy']} sx={{ display: 'grid' }}>
-      <ListItem>
-        {props.note && (
-          <ListItemText
-            disableTypography
-            secondary={
-              <Typography color='textSecondary'>{props.note}</Typography>
-            }
-            sx={{ fontStyle: 'italic', pr: 2 }}
-          />
-        )}
-        {props.action && <div>{props.action}</div>}
-      </ListItem>
+      {(props.note || props.action) && (
+        <ListItem>
+          {props.note && (
+            <ListItemText
+              disableTypography
+              secondary={
+                <Typography color='textSecondary'>{props.note}</Typography>
+              }
+              sx={{ fontStyle: 'italic', pr: 2 }}
+            />
+          )}
+          {props.action && <div>{props.action}</div>}
+        </ListItem>
+      )}
       {React.Children.count(props.children)
         ? props.children
         : emptyMessage && (
