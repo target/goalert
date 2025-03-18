@@ -60,10 +60,14 @@ func (s *Server) sendSMS(fromValue, to, body, statusURL, destURL string) (*SMS, 
 		}
 	}
 
+	if strings.HasPrefix(fromNumber, "rcs:") {
+		to = "rcs:" + to
+	}
 	sms := &SMS{
 		s: s,
 		msg: twilio.Message{
 			To:     to,
+			From:   fromNumber,
 			Status: twilio.MessageStatusAccepted,
 			SID:    s.id("SM"),
 		},
@@ -157,6 +161,7 @@ func (sms *SMS) updateStatus(stat twilio.MessageStatus) {
 		sms.s.errs <- err
 	}
 }
+
 func (sms *SMS) cloneMessage() *twilio.Message {
 	sms.mx.Lock()
 	defer sms.mx.Unlock()
