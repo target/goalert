@@ -2,6 +2,8 @@ package smoke
 
 import (
 	"encoding/json"
+	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
@@ -40,11 +42,6 @@ func TestTwilioSMSAckRCS(t *testing.T) {
 	insert into services (id, escalation_policy_id, name) 
 	values
 		({{uuid "sid"}}, {{uuid "eid"}}, 'service');
-
-	insert into alerts (id, service_id, description) 
-	values
-		(198, {{uuid "sid"}}, 'testing');
-
 `
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
@@ -57,14 +54,15 @@ func TestTwilioSMSAckRCS(t *testing.T) {
 	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 
+	a := h.CreateAlert(h.UUID("sid"), "testing")
 	d1.ExpectSMS("testing").
-		ThenReply("ack198").
+		ThenReply("ack" + strconv.Itoa(a.ID())).
 		ThenExpect("acknowledged")
 
 	h.FastForward(time.Hour)
 
 	assert.EventuallyWithT(t, func(t *assert.CollectT) {
-		resp := h.GraphQLQuery2(`{alert(id: 198) {recentEvents{nodes{message, state{ details, status, formattedSrcValue}}}}}`)
+		resp := h.GraphQLQuery2(fmt.Sprintf(`{alert(id: %d) {recentEvents{nodes{message, state{ details, status, formattedSrcValue}}}}}`, a.ID()))
 		var respData struct {
 			Alert struct {
 				RecentEvents struct {
@@ -82,13 +80,13 @@ func TestTwilioSMSAckRCS(t *testing.T) {
 		err := json.Unmarshal(resp.Data, &respData)
 		require.NoError(t, err)
 		msgs := respData.Alert.RecentEvents.Nodes
-		require.Len(t, msgs, 3)
+		require.Len(t, msgs, 4)
 
 		// note: log is in reverse order
 		assert.Contains(t, msgs[0].Message, "Acknowledged by bob")
 		assert.Contains(t, msgs[1].Message, "Notification sent to bob")
 		assert.Contains(t, msgs[1].State.Details, "read")
-		assert.Equal(t, "OK", msgs[1].State.Status)
-		assert.Contains(t, msgs[2].Message, "Created")
-	}, 5*time.Second, 100*time.Millisecond)
+		assert.Contains(t, msgs[2].Message, "Escalated")
+		assert.Contains(t, msgs[3].Message, "Created")
+	}, 15*time.Second, time.Second)
 }

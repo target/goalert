@@ -264,7 +264,11 @@ func (sms *SMS) process() {
 		return
 	case accepted := <-sms.acceptCh:
 		if accepted {
-			sms.updateStatus(twilio.MessageStatusDelivered)
+			if strings.HasPrefix(sms.To(), "rcs:") {
+				sms.updateStatus(twilio.MessageStatusRead)
+			} else {
+				sms.updateStatus(twilio.MessageStatusDelivered)
+			}
 		} else {
 			sms.updateStatus(twilio.MessageStatusFailed)
 		}

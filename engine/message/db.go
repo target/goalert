@@ -465,6 +465,8 @@ func (db *DB) _UpdateMessageStatus(ctx context.Context, status *notification.Sen
 		s = StatusSent
 	case notification.StateDelivered:
 		s = StatusDelivered
+	case notification.StateRead:
+		s = StatusRead
 	}
 
 	var srcValue sql.NullString
