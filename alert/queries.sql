@@ -95,7 +95,8 @@ ON CONFLICT (alert_id)
     WHERE
         alert_data.alert_id = $1;
 
--- name: NoStepsByService :one
+-- name: Alert_ServiceEPHasSteps :one
+-- Returns true if the Escalation Policy for the provided service has at least one step.
 SELECT coalesce(
     (SELECT true
     FROM escalation_policies pol
