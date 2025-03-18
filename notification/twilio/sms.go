@@ -259,7 +259,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 			}
 			s.limit.RecordPassiveReply(from)
 		}
-		smsFrom := req.FormValue("to")
+		smsFrom := req.FormValue("To")
 		if cfg.Twilio.MessagingServiceSID != "" {
 			smsFrom = cfg.Twilio.MessagingServiceSID
 		}
