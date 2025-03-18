@@ -1,4 +1,5 @@
--- name: LockOneAlertService :one
+-- name: Alert_LockOneAlertService :one
+-- Locks the service associated with the alert.
 SELECT
     maintenance_expires_at NOTNULL::bool AS is_maint_mode,
     alerts.status
@@ -9,7 +10,8 @@ WHERE
     alerts.id = $1
 FOR UPDATE;
 
--- name: RequestAlertEscalationByTime :one
+-- name: Alert_RequestAlertEscalationByTime :one
+-- Returns the alert ID and the escalation policy ID for the alert that should be escalated based on the provided time.
 UPDATE
     escalation_policy_state
 SET
@@ -21,7 +23,8 @@ WHERE
 RETURNING
     TRUE;
 
--- name: AlertHasEPState :one
+-- name: Alert_AlertHasEPState :one
+-- Returns true if the alert has an escalation policy state.
 SELECT
     EXISTS (
         SELECT
@@ -31,7 +34,8 @@ SELECT
         WHERE
             alert_id = $1) AS has_ep_state;
 
--- name: AlertFeedback :many
+-- name: Alert_GetAlertFeedback :many
+-- Returns the noise reason for the alert.
 SELECT
     alert_id,
     noise_reason
@@ -40,7 +44,8 @@ FROM
 WHERE
     alert_id = ANY ($1::int[]);
 
--- name: SetAlertFeedback :exec
+-- name: Alert_SetAlertFeedback :exec
+-- Sets the noise reason for the alert.
 INSERT INTO alert_feedback(alert_id, noise_reason)
     VALUES ($1, $2)
 ON CONFLICT (alert_id)
@@ -49,7 +54,8 @@ ON CONFLICT (alert_id)
     WHERE
         alert_feedback.alert_id = $1;
 
--- name: SetManyAlertFeedback :many
+-- name: Alert_SetManyAlertFeedback :many
+-- Sets the noise reason for many alerts.
 INSERT INTO alert_feedback(alert_id, noise_reason)
     VALUES (unnest(@alert_ids::bigint[]), @noise_reason)
 ON CONFLICT (alert_id)
@@ -60,7 +66,8 @@ ON CONFLICT (alert_id)
     RETURNING
         alert_id;
 
--- name: AlertMetadata :one
+-- name: Alert_GetAlertMetadata :one
+-- Returns the metadata for the alert.
 SELECT
     metadata
 FROM
@@ -68,7 +75,8 @@ FROM
 WHERE
     alert_id = $1;
 
--- name: AlertManyMetadata :many
+-- name: Alert_GetAlertManyMetadata :many
+-- Returns the metadata for many alerts.
 SELECT
     alert_id,
     metadata
@@ -77,7 +85,8 @@ FROM
 WHERE
     alert_id = ANY (@alert_ids::bigint[]);
 
--- name: AlertSetMetadata :execrows
+-- name: Alert_SetAlertMetadata :execrows
+-- Sets the metadata for the alert.
 INSERT INTO alert_data(alert_id, metadata)
 SELECT
     a.id,
@@ -106,7 +115,8 @@ SELECT coalesce(
         AND pol.step_count = 0)
 , false);
 
--- name: LockService :one
+-- name: Alert_LockService :exec
+-- Locks the service associated with the alert.
 SELECT 1
 FROM
     services
@@ -115,7 +125,8 @@ WHERE
 FOR
 UPDATE;
 
--- name: LockAlertService :one
+-- name: Alert_LockAlertService :exec
+-- Locks the alert service associated with the alert.
 SELECT 1
 FROM services s
 JOIN alerts a ON a.id = ANY (@alert_ids::bigint[])
@@ -123,7 +134,8 @@ AND s.id = a.service_id
 FOR
 UPDATE;
 
--- name: GetStatusAndLockService :one
+-- name: Alert_GetStatusAndLockService :one
+-- Returns the status of the alert and locks the service associated with the alert.
 SELECT a.status
 FROM services s
 JOIN alerts a ON a.id = @id::bigint
@@ -131,7 +143,8 @@ AND a.service_id = s.id
 FOR
 UPDATE;
 
--- name: GetEscalationPolicyID :one
+-- name: Alert_GetEscalationPolicyID :one
+-- Returns the escalation policy ID associated with the alert.
 SELECT escalation_policy_id
 FROM
     services svc,

@@ -259,63 +259,7 @@ func (q *Queries) ActiveTxCount(ctx context.Context, xactStart time.Time) (int64
 	return count, err
 }
 
-const alertFeedback = `-- name: AlertFeedback :many
-SELECT
-    alert_id,
-    noise_reason
-FROM
-    alert_feedback
-WHERE
-    alert_id = ANY ($1::int[])
-`
-
-type AlertFeedbackRow struct {
-	AlertID     int64
-	NoiseReason string
-}
-
-func (q *Queries) AlertFeedback(ctx context.Context, dollar_1 []int32) ([]AlertFeedbackRow, error) {
-	rows, err := q.db.QueryContext(ctx, alertFeedback, pq.Array(dollar_1))
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []AlertFeedbackRow
-	for rows.Next() {
-		var i AlertFeedbackRow
-		if err := rows.Scan(&i.AlertID, &i.NoiseReason); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const alertHasEPState = `-- name: AlertHasEPState :one
-SELECT
-    EXISTS (
-        SELECT
-            1
-        FROM
-            escalation_policy_state
-        WHERE
-            alert_id = $1) AS has_ep_state
-`
-
-func (q *Queries) AlertHasEPState(ctx context.Context, alertID int64) (bool, error) {
-	row := q.db.QueryRowContext(ctx, alertHasEPState, alertID)
-	var has_ep_state bool
-	err := row.Scan(&has_ep_state)
-	return has_ep_state, err
-}
-
-const alertLogHBIntervalMinutes = `-- name: AlertLogHBIntervalMinutes :one
+const alertLog_HBIntervalMinutes = `-- name: AlertLog_HBIntervalMinutes :one
 SELECT
     (EXTRACT(EPOCH FROM heartbeat_interval) / 60)::int
 FROM
@@ -324,14 +268,15 @@ WHERE
     id = $1
 `
 
-func (q *Queries) AlertLogHBIntervalMinutes(ctx context.Context, id uuid.UUID) (int32, error) {
-	row := q.db.QueryRowContext(ctx, alertLogHBIntervalMinutes, id)
+// Looks up the heartbeat interval in minutes for a heartbeat monitor
+func (q *Queries) AlertLog_HBIntervalMinutes(ctx context.Context, id uuid.UUID) (int32, error) {
+	row := q.db.QueryRowContext(ctx, alertLog_HBIntervalMinutes, id)
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
 }
 
-const alertLogInsertEP = `-- name: AlertLogInsertEP :exec
+const alertLog_InsertEP = `-- name: AlertLog_InsertEP :exec
 INSERT INTO alert_logs(alert_id, event, sub_type, sub_user_id, sub_integration_key_id, sub_hb_monitor_id, sub_channel_id, sub_classifier, meta, message)
 SELECT
     a.id,
@@ -352,7 +297,7 @@ WHERE
     a.status != 'closed'
 `
 
-type AlertLogInsertEPParams struct {
+type AlertLog_InsertEPParams struct {
 	EscalationPolicyID  uuid.UUID
 	Event               EnumAlertLogEvent
 	SubType             NullEnumAlertLogSubjectType
@@ -365,8 +310,9 @@ type AlertLogInsertEPParams struct {
 	Message             string
 }
 
-func (q *Queries) AlertLogInsertEP(ctx context.Context, arg AlertLogInsertEPParams) error {
-	_, err := q.db.ExecContext(ctx, alertLogInsertEP,
+// Inserts a new alert log for all alerts in the escalation policy that are not closed.
+func (q *Queries) AlertLog_InsertEP(ctx context.Context, arg AlertLog_InsertEPParams) error {
+	_, err := q.db.ExecContext(ctx, alertLog_InsertEP,
 		arg.EscalationPolicyID,
 		arg.Event,
 		arg.SubType,
@@ -381,7 +327,7 @@ func (q *Queries) AlertLogInsertEP(ctx context.Context, arg AlertLogInsertEPPara
 	return err
 }
 
-const alertLogInsertMany = `-- name: AlertLogInsertMany :exec
+const alertLog_InsertMany = `-- name: AlertLog_InsertMany :exec
 INSERT INTO alert_logs(alert_id, event, sub_type, sub_user_id, sub_integration_key_id, sub_hb_monitor_id, sub_channel_id, sub_classifier, meta, message)
 SELECT
     unnest,
@@ -398,7 +344,7 @@ FROM
     unnest($1::bigint[])
 `
 
-type AlertLogInsertManyParams struct {
+type AlertLog_InsertManyParams struct {
 	Column1             []int64
 	Event               EnumAlertLogEvent
 	SubType             NullEnumAlertLogSubjectType
@@ -411,8 +357,9 @@ type AlertLogInsertManyParams struct {
 	Message             string
 }
 
-func (q *Queries) AlertLogInsertMany(ctx context.Context, arg AlertLogInsertManyParams) error {
-	_, err := q.db.ExecContext(ctx, alertLogInsertMany,
+// Inserts many alert logs
+func (q *Queries) AlertLog_InsertMany(ctx context.Context, arg AlertLog_InsertManyParams) error {
+	_, err := q.db.ExecContext(ctx, alertLog_InsertMany,
 		pq.Array(arg.Column1),
 		arg.Event,
 		arg.SubType,
@@ -427,7 +374,7 @@ func (q *Queries) AlertLogInsertMany(ctx context.Context, arg AlertLogInsertMany
 	return err
 }
 
-const alertLogInsertSvc = `-- name: AlertLogInsertSvc :exec
+const alertLog_InsertSvc = `-- name: AlertLog_InsertSvc :exec
 INSERT INTO alert_logs(alert_id, event, sub_type, sub_user_id, sub_integration_key_id, sub_hb_monitor_id, sub_channel_id, sub_classifier, meta, message)
 SELECT
     a.id,
@@ -450,7 +397,7 @@ WHERE
             AND a.status = 'triggered'))
 `
 
-type AlertLogInsertSvcParams struct {
+type AlertLog_InsertSvcParams struct {
 	ServiceID           uuid.NullUUID
 	Event               EnumAlertLogEvent
 	SubType             NullEnumAlertLogSubjectType
@@ -463,8 +410,9 @@ type AlertLogInsertSvcParams struct {
 	Message             string
 }
 
-func (q *Queries) AlertLogInsertSvc(ctx context.Context, arg AlertLogInsertSvcParams) error {
-	_, err := q.db.ExecContext(ctx, alertLogInsertSvc,
+// Inserts a new alert log for all alerts in the service that are not closed.
+func (q *Queries) AlertLog_InsertSvc(ctx context.Context, arg AlertLog_InsertSvcParams) error {
+	_, err := q.db.ExecContext(ctx, alertLog_InsertSvc,
 		arg.ServiceID,
 		arg.Event,
 		arg.SubType,
@@ -479,7 +427,7 @@ func (q *Queries) AlertLogInsertSvc(ctx context.Context, arg AlertLogInsertSvcPa
 	return err
 }
 
-const alertLogLookupCMDest = `-- name: AlertLogLookupCMDest :one
+const alertLog_LookupCMDest = `-- name: AlertLog_LookupCMDest :one
 SELECT
     dest
 FROM
@@ -488,14 +436,15 @@ WHERE
     id = $1
 `
 
-func (q *Queries) AlertLogLookupCMDest(ctx context.Context, id uuid.UUID) (NullDestV1, error) {
-	row := q.db.QueryRowContext(ctx, alertLogLookupCMDest, id)
+// Looks up the destination for a contact method
+func (q *Queries) AlertLog_LookupCMDest(ctx context.Context, id uuid.UUID) (NullDestV1, error) {
+	row := q.db.QueryRowContext(ctx, alertLog_LookupCMDest, id)
 	var dest NullDestV1
 	err := row.Scan(&dest)
 	return dest, err
 }
 
-const alertLogLookupCallbackDest = `-- name: AlertLogLookupCallbackDest :one
+const alertLog_LookupCallbackDest = `-- name: AlertLog_LookupCallbackDest :one
 SELECT
     coalesce(cm.dest, ch.dest) AS dest
 FROM
@@ -506,14 +455,15 @@ WHERE
     log.id = $1
 `
 
-func (q *Queries) AlertLogLookupCallbackDest(ctx context.Context, id uuid.UUID) (NullDestV1, error) {
-	row := q.db.QueryRowContext(ctx, alertLogLookupCallbackDest, id)
+// Looks up the destination for a callback
+func (q *Queries) AlertLog_LookupCallbackDest(ctx context.Context, id uuid.UUID) (NullDestV1, error) {
+	row := q.db.QueryRowContext(ctx, alertLog_LookupCallbackDest, id)
 	var dest NullDestV1
 	err := row.Scan(&dest)
 	return dest, err
 }
 
-const alertLogLookupNCDest = `-- name: AlertLogLookupNCDest :one
+const alertLog_LookupNCDest = `-- name: AlertLog_LookupNCDest :one
 SELECT
     dest
 FROM
@@ -522,14 +472,72 @@ WHERE
     id = $1
 `
 
-func (q *Queries) AlertLogLookupNCDest(ctx context.Context, id uuid.UUID) (NullDestV1, error) {
-	row := q.db.QueryRowContext(ctx, alertLogLookupNCDest, id)
+func (q *Queries) AlertLog_LookupNCDest(ctx context.Context, id uuid.UUID) (NullDestV1, error) {
+	row := q.db.QueryRowContext(ctx, alertLog_LookupNCDest, id)
 	var dest NullDestV1
 	err := row.Scan(&dest)
 	return dest, err
 }
 
-const alertManyMetadata = `-- name: AlertManyMetadata :many
+const alert_AlertHasEPState = `-- name: Alert_AlertHasEPState :one
+SELECT
+    EXISTS (
+        SELECT
+            1
+        FROM
+            escalation_policy_state
+        WHERE
+            alert_id = $1) AS has_ep_state
+`
+
+// Returns true if the alert has an escalation policy state.
+func (q *Queries) Alert_AlertHasEPState(ctx context.Context, alertID int64) (bool, error) {
+	row := q.db.QueryRowContext(ctx, alert_AlertHasEPState, alertID)
+	var has_ep_state bool
+	err := row.Scan(&has_ep_state)
+	return has_ep_state, err
+}
+
+const alert_GetAlertFeedback = `-- name: Alert_GetAlertFeedback :many
+SELECT
+    alert_id,
+    noise_reason
+FROM
+    alert_feedback
+WHERE
+    alert_id = ANY ($1::int[])
+`
+
+type Alert_GetAlertFeedbackRow struct {
+	AlertID     int64
+	NoiseReason string
+}
+
+// Returns the noise reason for the alert.
+func (q *Queries) Alert_GetAlertFeedback(ctx context.Context, dollar_1 []int32) ([]Alert_GetAlertFeedbackRow, error) {
+	rows, err := q.db.QueryContext(ctx, alert_GetAlertFeedback, pq.Array(dollar_1))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Alert_GetAlertFeedbackRow
+	for rows.Next() {
+		var i Alert_GetAlertFeedbackRow
+		if err := rows.Scan(&i.AlertID, &i.NoiseReason); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const alert_GetAlertManyMetadata = `-- name: Alert_GetAlertManyMetadata :many
 SELECT
     alert_id,
     metadata
@@ -539,20 +547,21 @@ WHERE
     alert_id = ANY ($1::bigint[])
 `
 
-type AlertManyMetadataRow struct {
+type Alert_GetAlertManyMetadataRow struct {
 	AlertID  int64
 	Metadata pqtype.NullRawMessage
 }
 
-func (q *Queries) AlertManyMetadata(ctx context.Context, alertIds []int64) ([]AlertManyMetadataRow, error) {
-	rows, err := q.db.QueryContext(ctx, alertManyMetadata, pq.Array(alertIds))
+// Returns the metadata for many alerts.
+func (q *Queries) Alert_GetAlertManyMetadata(ctx context.Context, alertIds []int64) ([]Alert_GetAlertManyMetadataRow, error) {
+	rows, err := q.db.QueryContext(ctx, alert_GetAlertManyMetadata, pq.Array(alertIds))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []AlertManyMetadataRow
+	var items []Alert_GetAlertManyMetadataRow
 	for rows.Next() {
-		var i AlertManyMetadataRow
+		var i Alert_GetAlertManyMetadataRow
 		if err := rows.Scan(&i.AlertID, &i.Metadata); err != nil {
 			return nil, err
 		}
@@ -567,7 +576,7 @@ func (q *Queries) AlertManyMetadata(ctx context.Context, alertIds []int64) ([]Al
 	return items, nil
 }
 
-const alertMetadata = `-- name: AlertMetadata :one
+const alert_GetAlertMetadata = `-- name: Alert_GetAlertMetadata :one
 SELECT
     metadata
 FROM
@@ -576,14 +585,171 @@ WHERE
     alert_id = $1
 `
 
-func (q *Queries) AlertMetadata(ctx context.Context, alertID int64) (pqtype.NullRawMessage, error) {
-	row := q.db.QueryRowContext(ctx, alertMetadata, alertID)
+// Returns the metadata for the alert.
+func (q *Queries) Alert_GetAlertMetadata(ctx context.Context, alertID int64) (pqtype.NullRawMessage, error) {
+	row := q.db.QueryRowContext(ctx, alert_GetAlertMetadata, alertID)
 	var metadata pqtype.NullRawMessage
 	err := row.Scan(&metadata)
 	return metadata, err
 }
 
-const alertSetMetadata = `-- name: AlertSetMetadata :execrows
+const alert_GetEscalationPolicyID = `-- name: Alert_GetEscalationPolicyID :one
+SELECT escalation_policy_id
+FROM
+    services svc,
+    alerts a
+WHERE
+    svc.id = $1::bigint
+`
+
+// Returns the escalation policy ID associated with the alert.
+func (q *Queries) Alert_GetEscalationPolicyID(ctx context.Context, id int64) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, alert_GetEscalationPolicyID, id)
+	var escalation_policy_id uuid.UUID
+	err := row.Scan(&escalation_policy_id)
+	return escalation_policy_id, err
+}
+
+const alert_GetStatusAndLockService = `-- name: Alert_GetStatusAndLockService :one
+SELECT a.status
+FROM services s
+JOIN alerts a ON a.id = $1::bigint
+AND a.service_id = s.id
+FOR
+UPDATE
+`
+
+// Returns the status of the alert and locks the service associated with the alert.
+func (q *Queries) Alert_GetStatusAndLockService(ctx context.Context, id int64) (EnumAlertStatus, error) {
+	row := q.db.QueryRowContext(ctx, alert_GetStatusAndLockService, id)
+	var status EnumAlertStatus
+	err := row.Scan(&status)
+	return status, err
+}
+
+const alert_LockAlertService = `-- name: Alert_LockAlertService :exec
+SELECT 1
+FROM services s
+JOIN alerts a ON a.id = ANY ($1::bigint[])
+AND s.id = a.service_id
+FOR
+UPDATE
+`
+
+// Locks the alert service associated with the alert.
+func (q *Queries) Alert_LockAlertService(ctx context.Context, alertIds []int64) error {
+	_, err := q.db.ExecContext(ctx, alert_LockAlertService, pq.Array(alertIds))
+	return err
+}
+
+const alert_LockOneAlertService = `-- name: Alert_LockOneAlertService :one
+SELECT
+    maintenance_expires_at NOTNULL::bool AS is_maint_mode,
+    alerts.status
+FROM
+    services svc
+    JOIN alerts ON alerts.service_id = svc.id
+WHERE
+    alerts.id = $1
+FOR UPDATE
+`
+
+type Alert_LockOneAlertServiceRow struct {
+	IsMaintMode bool
+	Status      EnumAlertStatus
+}
+
+// Locks the service associated with the alert.
+func (q *Queries) Alert_LockOneAlertService(ctx context.Context, id int64) (Alert_LockOneAlertServiceRow, error) {
+	row := q.db.QueryRowContext(ctx, alert_LockOneAlertService, id)
+	var i Alert_LockOneAlertServiceRow
+	err := row.Scan(&i.IsMaintMode, &i.Status)
+	return i, err
+}
+
+const alert_LockService = `-- name: Alert_LockService :exec
+SELECT 1
+FROM
+    services
+WHERE
+    id = $1::text
+FOR
+UPDATE
+`
+
+// Locks the service associated with the alert.
+func (q *Queries) Alert_LockService(ctx context.Context, id string) error {
+	_, err := q.db.ExecContext(ctx, alert_LockService, id)
+	return err
+}
+
+const alert_RequestAlertEscalationByTime = `-- name: Alert_RequestAlertEscalationByTime :one
+UPDATE
+    escalation_policy_state
+SET
+    force_escalation = TRUE
+WHERE
+    alert_id = $1
+    AND (last_escalation <= $2::timestamptz
+        OR last_escalation IS NULL)
+RETURNING
+    TRUE
+`
+
+type Alert_RequestAlertEscalationByTimeParams struct {
+	AlertID int64
+	Column2 time.Time
+}
+
+// Returns the alert ID and the escalation policy ID for the alert that should be escalated based on the provided time.
+func (q *Queries) Alert_RequestAlertEscalationByTime(ctx context.Context, arg Alert_RequestAlertEscalationByTimeParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, alert_RequestAlertEscalationByTime, arg.AlertID, arg.Column2)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const alert_ServiceEPHasSteps = `-- name: Alert_ServiceEPHasSteps :one
+SELECT coalesce(
+    (SELECT true
+    FROM escalation_policies pol
+    JOIN services svc ON svc.id = $1::text
+    WHERE
+        pol.id = svc.escalation_policy_id
+        AND pol.step_count = 0)
+, false)
+`
+
+// Returns true if the Escalation Policy for the provided service has at least one step.
+func (q *Queries) Alert_ServiceEPHasSteps(ctx context.Context, id string) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, alert_ServiceEPHasSteps, id)
+	var coalesce interface{}
+	err := row.Scan(&coalesce)
+	return coalesce, err
+}
+
+const alert_SetAlertFeedback = `-- name: Alert_SetAlertFeedback :exec
+INSERT INTO alert_feedback(alert_id, noise_reason)
+    VALUES ($1, $2)
+ON CONFLICT (alert_id)
+    DO UPDATE SET
+        noise_reason = $2
+    WHERE
+        alert_feedback.alert_id = $1
+`
+
+type Alert_SetAlertFeedbackParams struct {
+	AlertID     int64
+	NoiseReason string
+}
+
+// Sets the noise reason for the alert.
+func (q *Queries) Alert_SetAlertFeedback(ctx context.Context, arg Alert_SetAlertFeedbackParams) error {
+	_, err := q.db.ExecContext(ctx, alert_SetAlertFeedback, arg.AlertID, arg.NoiseReason)
+	return err
+}
+
+const alert_SetAlertMetadata = `-- name: Alert_SetAlertMetadata :execrows
 INSERT INTO alert_data(alert_id, metadata)
 SELECT
     a.id,
@@ -602,18 +768,60 @@ ON CONFLICT (alert_id)
         alert_data.alert_id = $1
 `
 
-type AlertSetMetadataParams struct {
+type Alert_SetAlertMetadataParams struct {
 	ID        int64
 	Metadata  pqtype.NullRawMessage
 	ServiceID uuid.NullUUID
 }
 
-func (q *Queries) AlertSetMetadata(ctx context.Context, arg AlertSetMetadataParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, alertSetMetadata, arg.ID, arg.Metadata, arg.ServiceID)
+// Sets the metadata for the alert.
+func (q *Queries) Alert_SetAlertMetadata(ctx context.Context, arg Alert_SetAlertMetadataParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, alert_SetAlertMetadata, arg.ID, arg.Metadata, arg.ServiceID)
 	if err != nil {
 		return 0, err
 	}
 	return result.RowsAffected()
+}
+
+const alert_SetManyAlertFeedback = `-- name: Alert_SetManyAlertFeedback :many
+INSERT INTO alert_feedback(alert_id, noise_reason)
+    VALUES (unnest($1::bigint[]), $2)
+ON CONFLICT (alert_id)
+    DO UPDATE SET
+        noise_reason = excluded.noise_reason
+    WHERE
+        alert_feedback.alert_id = excluded.alert_id
+    RETURNING
+        alert_id
+`
+
+type Alert_SetManyAlertFeedbackParams struct {
+	AlertIds    []int64
+	NoiseReason string
+}
+
+// Sets the noise reason for many alerts.
+func (q *Queries) Alert_SetManyAlertFeedback(ctx context.Context, arg Alert_SetManyAlertFeedbackParams) ([]int64, error) {
+	rows, err := q.db.QueryContext(ctx, alert_SetManyAlertFeedback, pq.Array(arg.AlertIds), arg.NoiseReason)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var alert_id int64
+		if err := rows.Scan(&alert_id); err != nil {
+			return nil, err
+		}
+		items = append(items, alert_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const allPendingMsgDests = `-- name: AllPendingMsgDests :many
@@ -2238,38 +2446,6 @@ func (q *Queries) GQLUserOnCallOverview(ctx context.Context, userID uuid.UUID) (
 	return items, nil
 }
 
-const getEscalationPolicyID = `-- name: GetEscalationPolicyID :one
-SELECT escalation_policy_id
-FROM
-    services svc,
-    alerts a
-WHERE
-    svc.id = $1::bigint
-`
-
-func (q *Queries) GetEscalationPolicyID(ctx context.Context, id int64) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, getEscalationPolicyID, id)
-	var escalation_policy_id uuid.UUID
-	err := row.Scan(&escalation_policy_id)
-	return escalation_policy_id, err
-}
-
-const getStatusAndLockService = `-- name: GetStatusAndLockService :one
-SELECT a.status
-FROM services s
-JOIN alerts a ON a.id = $1::bigint
-AND a.service_id = s.id
-FOR
-UPDATE
-`
-
-func (q *Queries) GetStatusAndLockService(ctx context.Context, id int64) (EnumAlertStatus, error) {
-	row := q.db.QueryRowContext(ctx, getStatusAndLockService, id)
-	var status EnumAlertStatus
-	err := row.Scan(&status)
-	return status, err
-}
-
 const hBByIDForUpdate = `-- name: HBByIDForUpdate :one
 SELECT
     additional_details, heartbeat_interval, id, last_heartbeat, last_state, muted, name, service_id
@@ -3450,63 +3626,6 @@ func (q *Queries) ListTriggers(ctx context.Context) ([]ListTriggersRow, error) {
 	return items, nil
 }
 
-const lockAlertService = `-- name: LockAlertService :one
-SELECT 1
-FROM services s
-JOIN alerts a ON a.id = ANY ($1::bigint[])
-AND s.id = a.service_id
-FOR
-UPDATE
-`
-
-func (q *Queries) LockAlertService(ctx context.Context, alertIds []int64) (int32, error) {
-	row := q.db.QueryRowContext(ctx, lockAlertService, pq.Array(alertIds))
-	var column_1 int32
-	err := row.Scan(&column_1)
-	return column_1, err
-}
-
-const lockOneAlertService = `-- name: LockOneAlertService :one
-SELECT
-    maintenance_expires_at NOTNULL::bool AS is_maint_mode,
-    alerts.status
-FROM
-    services svc
-    JOIN alerts ON alerts.service_id = svc.id
-WHERE
-    alerts.id = $1
-FOR UPDATE
-`
-
-type LockOneAlertServiceRow struct {
-	IsMaintMode bool
-	Status      EnumAlertStatus
-}
-
-func (q *Queries) LockOneAlertService(ctx context.Context, id int64) (LockOneAlertServiceRow, error) {
-	row := q.db.QueryRowContext(ctx, lockOneAlertService, id)
-	var i LockOneAlertServiceRow
-	err := row.Scan(&i.IsMaintMode, &i.Status)
-	return i, err
-}
-
-const lockService = `-- name: LockService :one
-SELECT 1
-FROM
-    services
-WHERE
-    id = $1::text
-FOR
-UPDATE
-`
-
-func (q *Queries) LockService(ctx context.Context, id string) (int32, error) {
-	row := q.db.QueryRowContext(ctx, lockService, id)
-	var column_1 int32
-	err := row.Scan(&column_1)
-	return column_1, err
-}
-
 const logEvents = `-- name: LogEvents :many
 SELECT id,
     TIMESTAMP,
@@ -3825,24 +3944,6 @@ func (q *Queries) NfyOriginalMessageStatus(ctx context.Context, arg NfyOriginalM
 		&i.ChDest,
 	)
 	return i, err
-}
-
-const noStepsByService = `-- name: NoStepsByService :one
-SELECT coalesce(
-    (SELECT true
-    FROM escalation_policies pol
-    JOIN services svc ON svc.id = $1::text
-    WHERE
-        pol.id = svc.escalation_policy_id
-        AND pol.step_count = 0)
-, false)
-`
-
-func (q *Queries) NoStepsByService(ctx context.Context, id string) (interface{}, error) {
-	row := q.db.QueryRowContext(ctx, noStepsByService, id)
-	var coalesce interface{}
-	err := row.Scan(&coalesce)
-	return coalesce, err
 }
 
 const noticeUnackedAlertsByService = `-- name: NoticeUnackedAlertsByService :one
@@ -4231,31 +4332,6 @@ func (q *Queries) ProcSharedAdvisoryLock(ctx context.Context, pgTryAdvisoryXactL
 	var lock_acquired bool
 	err := row.Scan(&lock_acquired)
 	return lock_acquired, err
-}
-
-const requestAlertEscalationByTime = `-- name: RequestAlertEscalationByTime :one
-UPDATE
-    escalation_policy_state
-SET
-    force_escalation = TRUE
-WHERE
-    alert_id = $1
-    AND (last_escalation <= $2::timestamptz
-        OR last_escalation IS NULL)
-RETURNING
-    TRUE
-`
-
-type RequestAlertEscalationByTimeParams struct {
-	AlertID int64
-	Column2 time.Time
-}
-
-func (q *Queries) RequestAlertEscalationByTime(ctx context.Context, arg RequestAlertEscalationByTimeParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, requestAlertEscalationByTime, arg.AlertID, arg.Column2)
-	var column_1 bool
-	err := row.Scan(&column_1)
-	return column_1, err
 }
 
 const rotMgrEnd = `-- name: RotMgrEnd :exec
@@ -5041,66 +5117,6 @@ func (q *Queries) ServiceAlertStats(ctx context.Context, arg ServiceAlertStatsPa
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const setAlertFeedback = `-- name: SetAlertFeedback :exec
-INSERT INTO alert_feedback(alert_id, noise_reason)
-    VALUES ($1, $2)
-ON CONFLICT (alert_id)
-    DO UPDATE SET
-        noise_reason = $2
-    WHERE
-        alert_feedback.alert_id = $1
-`
-
-type SetAlertFeedbackParams struct {
-	AlertID     int64
-	NoiseReason string
-}
-
-func (q *Queries) SetAlertFeedback(ctx context.Context, arg SetAlertFeedbackParams) error {
-	_, err := q.db.ExecContext(ctx, setAlertFeedback, arg.AlertID, arg.NoiseReason)
-	return err
-}
-
-const setManyAlertFeedback = `-- name: SetManyAlertFeedback :many
-INSERT INTO alert_feedback(alert_id, noise_reason)
-    VALUES (unnest($1::bigint[]), $2)
-ON CONFLICT (alert_id)
-    DO UPDATE SET
-        noise_reason = excluded.noise_reason
-    WHERE
-        alert_feedback.alert_id = excluded.alert_id
-    RETURNING
-        alert_id
-`
-
-type SetManyAlertFeedbackParams struct {
-	AlertIds    []int64
-	NoiseReason string
-}
-
-func (q *Queries) SetManyAlertFeedback(ctx context.Context, arg SetManyAlertFeedbackParams) ([]int64, error) {
-	rows, err := q.db.QueryContext(ctx, setManyAlertFeedback, pq.Array(arg.AlertIds), arg.NoiseReason)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []int64
-	for rows.Next() {
-		var alert_id int64
-		if err := rows.Scan(&alert_id); err != nil {
-			return nil, err
-		}
-		items = append(items, alert_id)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

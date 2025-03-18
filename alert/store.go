@@ -206,7 +206,7 @@ func (s *Store) EPID(ctx context.Context, alertID int) (string, error) {
 		return "", err
 	}
 
-	epID, err := gadb.New(s.db).GetEscalationPolicyID(ctx, int64(alertID))
+	epID, err := gadb.New(s.db).Alert_GetEscalationPolicyID(ctx, int64(alertID))
 	if err != nil {
 		return "", err
 	}
@@ -248,7 +248,7 @@ func (s *Store) EscalateAsOf(ctx context.Context, id int, t time.Time) error {
 	}
 	defer sqlutil.Rollback(ctx, "escalate alert", tx)
 
-	lck, err := gadb.New(tx).LockOneAlertService(ctx, int64(id))
+	lck, err := gadb.New(tx).Alert_LockOneAlertService(ctx, int64(id))
 	if errors.Is(err, sql.ErrNoRows) {
 		return validation.NewGenericError("alert not found")
 	}
@@ -269,7 +269,7 @@ func (s *Store) EscalateAsOf(ctx context.Context, id int, t time.Time) error {
 		}
 	}
 
-	ok, err := gadb.New(tx).RequestAlertEscalationByTime(ctx, gadb.RequestAlertEscalationByTimeParams{
+	ok, err := gadb.New(tx).Alert_RequestAlertEscalationByTime(ctx, gadb.Alert_RequestAlertEscalationByTimeParams{
 		AlertID: int64(id),
 		Column2: t,
 	})
@@ -278,7 +278,7 @@ func (s *Store) EscalateAsOf(ctx context.Context, id int, t time.Time) error {
 	}
 
 	if !ok {
-		hasEP, err := gadb.New(tx).AlertHasEPState(ctx, int64(id))
+		hasEP, err := gadb.New(tx).Alert_AlertHasEPState(ctx, int64(id))
 		if err != nil {
 			return fmt.Errorf("check ep state: %w", err)
 		}
@@ -373,7 +373,7 @@ func (s *Store) UpdateStatusByService(ctx context.Context, serviceID string, sta
 		return err
 	}
 
-	_, err = gadb.New(tx).LockService(ctx, serviceID)
+	err = gadb.New(tx).Alert_LockService(ctx, serviceID)
 	if err != nil {
 		return err
 	}
@@ -445,7 +445,7 @@ func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertI
 
 	var updatedIDs []int
 
-	_, err = gadb.New(tx).LockAlertService(ctx, ids)
+	err = gadb.New(tx).Alert_LockAlertService(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -502,7 +502,7 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Alert, err
 		return nil, err
 	}
 
-	_, err = gadb.New(tx).LockService(ctx, n.ServiceID)
+	err = gadb.New(tx).Alert_LockService(ctx, n.ServiceID)
 	if err != nil {
 		return nil, err
 	}
@@ -532,11 +532,11 @@ func (s *Store) _create(ctx context.Context, tx *sql.Tx, a Alert) (*Alert, *aler
 		return nil, nil, err
 	}
 
-	_, err = gadb.New(tx).NoStepsByService(ctx, a.ServiceID)
+	hasSteps, err := gadb.New(tx).Alert_ServiceEPHasSteps(ctx, a.ServiceID)
 	if err != nil {
 		return nil, nil, err
 	}
-
+	meta.EPNoSteps = hasSteps.(bool)
 	return &a, &meta, nil
 }
 
@@ -568,7 +568,7 @@ func (s *Store) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Al
 		return nil, false, err
 	}
 
-	_, err = gadb.New(tx).LockService(ctx, n.ServiceID)
+	err = gadb.New(tx).Alert_LockService(ctx, n.ServiceID)
 	if err != nil {
 		return nil, false, err
 	}
@@ -586,10 +586,11 @@ func (s *Store) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Al
 			logType = alertlog.TypeDuplicateSupressed
 		} else {
 			logType = alertlog.TypeCreated
-			_, stepErr := gadb.New(tx).NoStepsByService(ctx, n.ServiceID)
+			hasSteps, stepErr := gadb.New(tx).Alert_ServiceEPHasSteps(ctx, n.ServiceID)
 			if stepErr != nil {
 				return nil, false, err
 			}
+			m.EPNoSteps = hasSteps.(bool)
 		}
 		meta = &m
 	case StatusActive:
@@ -687,7 +688,7 @@ func (s *Store) createOrUpdate(ctx context.Context, a *Alert, meta map[string]st
 
 func (s *Store) UpdateStatusTx(ctx context.Context, tx *sql.Tx, id int, stat Status) error {
 	var _stat gadb.EnumAlertStatus
-	_stat, err := gadb.New(tx).GetStatusAndLockService(ctx, int64(id))
+	_stat, err := gadb.New(tx).Alert_GetStatusAndLockService(ctx, int64(id))
 	if err != nil {
 		return err
 	}
@@ -836,7 +837,7 @@ func (s *Store) Feedback(ctx context.Context, alertIDs []int) ([]Feedback, error
 		ids = append(ids, int32(id))
 	}
 
-	rows, err := gadb.New(s.db).AlertFeedback(ctx, ids)
+	rows, err := gadb.New(s.db).Alert_GetAlertFeedback(ctx, ids)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -872,7 +873,7 @@ func (s Store) UpdateManyAlertFeedback(ctx context.Context, noiseReason string, 
 		ids[i] = int64(v)
 	}
 
-	res, err := gadb.New(s.db).SetManyAlertFeedback(ctx, gadb.SetManyAlertFeedbackParams{
+	res, err := gadb.New(s.db).Alert_SetManyAlertFeedback(ctx, gadb.Alert_SetManyAlertFeedbackParams{
 		AlertIds:    ids,
 		NoiseReason: noiseReason,
 	})
@@ -900,7 +901,7 @@ func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
 		return err
 	}
 
-	err = gadb.New(s.db).SetAlertFeedback(ctx, gadb.SetAlertFeedbackParams{
+	err = gadb.New(s.db).Alert_SetAlertFeedback(ctx, gadb.Alert_SetAlertFeedbackParams{
 		AlertID:     int64(feedback.ID),
 		NoiseReason: feedback.NoiseReason,
 	})

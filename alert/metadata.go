@@ -27,7 +27,7 @@ func (s *Store) Metadata(ctx context.Context, db gadb.DBTX, alertID int) (meta m
 		return nil, err
 	}
 
-	md, err := gadb.New(db).AlertMetadata(ctx, int64(alertID))
+	md, err := gadb.New(db).Alert_GetAlertMetadata(ctx, int64(alertID))
 	if errors.Is(err, sql.ErrNoRows) || !md.Valid {
 		return map[string]string{}, nil
 	}
@@ -69,7 +69,7 @@ func (s Store) FindManyMetadata(ctx context.Context, db gadb.DBTX, alertIDs []in
 		ids[i] = int64(id)
 	}
 
-	rows, err := gadb.New(db).AlertManyMetadata(ctx, ids)
+	rows, err := gadb.New(db).Alert_GetAlertManyMetadata(ctx, ids)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -118,7 +118,7 @@ func (s Store) SetMetadataTx(ctx context.Context, db gadb.DBTX, alertID int, met
 		return err
 	}
 
-	rowCount, err := gadb.New(db).AlertSetMetadata(ctx, gadb.AlertSetMetadataParams{
+	rowCount, err := gadb.New(db).Alert_SetAlertMetadata(ctx, gadb.Alert_SetAlertMetadataParams{
 		ID:        int64(alertID),
 		ServiceID: permission.ServiceNullUUID(ctx), // only provide service_id restriction if request is from a service
 		Metadata:  pqtype.NullRawMessage{Valid: true, RawMessage: json.RawMessage(md)},
