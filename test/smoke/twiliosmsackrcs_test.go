@@ -51,8 +51,8 @@ func TestTwilioSMSAckRCS(t *testing.T) {
 
 	rcsSenderID, msgSvcID := h.TwilioMessagingServiceRCS()
 
-	h.SetConfigValue("Twilio.MessagingServiceSID", msgSvcID)
 	h.SetConfigValue("Twilio.RCSSenderID", rcsSenderID)
+	h.SetConfigValue("Twilio.MessagingServiceSID", msgSvcID)
 
 	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
@@ -63,32 +63,32 @@ func TestTwilioSMSAckRCS(t *testing.T) {
 
 	h.FastForward(time.Hour)
 
-	resp := h.GraphQLQuery2(`{alert(id: 198) {recentEvents{nodes{message, state{ details, status, formattedSrcValue}}}}}`)
-	var respData struct {
-		Alert struct {
-			RecentEvents struct {
-				Nodes []struct {
-					Message string
-					State   struct {
-						Details           string
-						Status            string
-						FormattedSrcValue string
+	assert.EventuallyWithT(t, func(t *assert.CollectT) {
+		resp := h.GraphQLQuery2(`{alert(id: 198) {recentEvents{nodes{message, state{ details, status, formattedSrcValue}}}}}`)
+		var respData struct {
+			Alert struct {
+				RecentEvents struct {
+					Nodes []struct {
+						Message string
+						State   struct {
+							Details           string
+							Status            string
+							FormattedSrcValue string
+						}
 					}
 				}
 			}
 		}
-	}
-	err := json.Unmarshal(resp.Data, &respData)
-	require.NoError(t, err)
-	msgs := respData.Alert.RecentEvents.Nodes
-	require.Len(t, msgs, 3)
+		err := json.Unmarshal(resp.Data, &respData)
+		require.NoError(t, err)
+		msgs := respData.Alert.RecentEvents.Nodes
+		require.Len(t, msgs, 3)
 
-	t.Logf("msgs: %+v", msgs)
-
-	// note: log is in reverse order
-	assert.Contains(t, msgs[0].Message, "Acknowledged by bob")
-	assert.Contains(t, msgs[1].Message, "Notification sent to bob")
-	assert.Contains(t, msgs[1].State.Details, "read")
-	assert.Equal(t, "OK", msgs[1].State.Status)
-	assert.Contains(t, msgs[2].Message, "Created")
+		// note: log is in reverse order
+		assert.Contains(t, msgs[0].Message, "Acknowledged by bob")
+		assert.Contains(t, msgs[1].Message, "Notification sent to bob")
+		assert.Contains(t, msgs[1].State.Details, "read")
+		assert.Equal(t, "OK", msgs[1].State.Status)
+		assert.Contains(t, msgs[2].Message, "Created")
+	}, 5*time.Second, 100*time.Millisecond)
 }

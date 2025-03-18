@@ -215,11 +215,6 @@ func (s *Server) getFromNumber(id string) string {
 		return ""
 	}
 
-	rcsID := s.rcs[id]
-	if rcsID != "" {
-		return "rcs:" + rcsID
-	}
-
 	return s.msgSvc[id][rand.Intn(len(s.msgSvc[id]))]
 }
 
@@ -255,6 +250,10 @@ func (s *Server) EnableRCS(msgSvcID string) (string, error) {
 	seq := atomic.AddUint64(&s.sidSeq, 1)
 	rcsID := fmt.Sprintf("test_%04d_agent", seq)
 	s.rcs[msgSvcID] = rcsID
+
+	url := s.msgSvc[msgSvcID][0]
+	s.callbacks["SMS:"+rcsID] = url
+
 	return rcsID, nil
 }
 

@@ -60,6 +60,14 @@ func (s *Server) sendSMS(fromValue, to, body, statusURL, destURL string) (*SMS, 
 		}
 	}
 
+	// Use the RCS ID for the rest of the processing
+	s.mx.RLock()
+	rcsID := s.rcs[fromValue]
+	if rcsID != "" {
+		fromNumber = "rcs:" + rcsID
+	}
+	s.mx.RUnlock()
+
 	if strings.HasPrefix(fromNumber, "rcs:") {
 		to = "rcs:" + to
 	}
