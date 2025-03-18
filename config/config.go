@@ -116,6 +116,8 @@ type Config struct {
 
 		MessagingServiceSID string `public:"true" info:"If set, replaces the use of From Number for SMS notifications."`
 
+		RCSSenderID string `info:"The sender ID for RCS messages. Required if RCS is enabled for the FromNumber or MessagingServiceSID."`
+
 		DisableTwoWaySMS      bool     `info:"Disables SMS reply codes for alert messages."`
 		SMSCarrierLookup      bool     `info:"Perform carrier lookup of SMS contact methods (required for SMSFromNumberOverride). Extra charges may apply."`
 		SMSFromNumberOverride []string `info:"List of 'carrier=number' pairs, SMS messages to numbers of the provided carrier string (exact match) will use the alternate From Number."`
