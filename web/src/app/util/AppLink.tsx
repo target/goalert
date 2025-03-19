@@ -48,11 +48,11 @@ const AppLink = forwardRef<HTMLAnchorElement, AppLinkProps>((props, ref) => {
 
   return (
     <MUILink
+      {...other}
       ref={ref}
       to={to}
       href={to}
       component={external || newTab ? 'a' : WrapLink}
-      {...other}
     />
   )
 })
