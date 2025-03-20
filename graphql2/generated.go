@@ -40643,13 +40643,6 @@ func (ec *executionContext) _InlineDisplayInfo(ctx context.Context, sel ast.Sele
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
-	case nfydest.DisplayInfo:
-		return ec._DestinationDisplayInfo(ctx, sel, &obj)
-	case *nfydest.DisplayInfo:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._DestinationDisplayInfo(ctx, sel, obj)
 	case DestinationDisplayInfoError:
 		return ec._DestinationDisplayInfoError(ctx, sel, &obj)
 	case *DestinationDisplayInfoError:
@@ -40657,6 +40650,13 @@ func (ec *executionContext) _InlineDisplayInfo(ctx context.Context, sel ast.Sele
 			return graphql.Null
 		}
 		return ec._DestinationDisplayInfoError(ctx, sel, obj)
+	case nfydest.DisplayInfo:
+		return ec._DestinationDisplayInfo(ctx, sel, &obj)
+	case *nfydest.DisplayInfo:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._DestinationDisplayInfo(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -50201,9 +50201,7 @@ func (ec *executionContext) unmarshalNActionInput2githubᚗcomᚋtargetᚋgoaler
 
 func (ec *executionContext) unmarshalNActionInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐUIKActionV1ᚄ(ctx context.Context, v any) ([]gadb.UIKActionV1, error) {
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]gadb.UIKActionV1, len(vSlice))
 	for i := range vSlice {
@@ -50572,9 +50570,7 @@ func (ec *executionContext) unmarshalNClauseInput2githubᚗcomᚋtargetᚋgoaler
 
 func (ec *executionContext) unmarshalNClauseInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐClauseInputᚄ(ctx context.Context, v any) ([]ClauseInput, error) {
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]ClauseInput, len(vSlice))
 	for i := range vSlice {
@@ -51689,9 +51685,7 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 
 func (ec *executionContext) unmarshalNID2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]string, len(vSlice))
 	for i := range vSlice {
@@ -51772,9 +51766,7 @@ func (ec *executionContext) marshalNISOTimestamp2timeᚐTime(ctx context.Context
 
 func (ec *executionContext) unmarshalNISOTimestamp2ᚕtimeᚐTimeᚄ(ctx context.Context, v any) ([]time.Time, error) {
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]time.Time, len(vSlice))
 	for i := range vSlice {
@@ -51829,9 +51821,7 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 
 func (ec *executionContext) unmarshalNInt2ᚕintᚄ(ctx context.Context, v any) ([]int, error) {
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]int, len(vSlice))
 	for i := range vSlice {
@@ -52255,9 +52245,7 @@ func (ec *executionContext) unmarshalNOnCallNotificationRuleInput2githubᚗcom�
 
 func (ec *executionContext) unmarshalNOnCallNotificationRuleInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐOnCallNotificationRuleInputᚄ(ctx context.Context, v any) ([]OnCallNotificationRuleInput, error) {
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]OnCallNotificationRuleInput, len(vSlice))
 	for i := range vSlice {
@@ -52665,9 +52653,7 @@ func (ec *executionContext) unmarshalNScheduleRuleInput2githubᚗcomᚋtargetᚋ
 
 func (ec *executionContext) unmarshalNScheduleRuleInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐScheduleRuleInputᚄ(ctx context.Context, v any) ([]ScheduleRuleInput, error) {
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]ScheduleRuleInput, len(vSlice))
 	for i := range vSlice {
@@ -52875,9 +52861,7 @@ func (ec *executionContext) unmarshalNSetScheduleShiftInput2githubᚗcomᚋtarge
 
 func (ec *executionContext) unmarshalNSetScheduleShiftInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚐFixedShiftᚄ(ctx context.Context, v any) ([]schedule.FixedShift, error) {
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]schedule.FixedShift, len(vSlice))
 	for i := range vSlice {
@@ -53046,9 +53030,7 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 
 func (ec *executionContext) unmarshalNString2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]string, len(vSlice))
 	for i := range vSlice {
@@ -53182,9 +53164,7 @@ func (ec *executionContext) unmarshalNSystemLimitInput2githubᚗcomᚋtargetᚋg
 
 func (ec *executionContext) unmarshalNSystemLimitInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimitInputᚄ(ctx context.Context, v any) ([]SystemLimitInput, error) {
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]SystemLimitInput, len(vSlice))
 	for i := range vSlice {
@@ -53943,9 +53923,7 @@ func (ec *executionContext) marshalN__DirectiveLocation2string(ctx context.Conte
 
 func (ec *executionContext) unmarshalN__DirectiveLocation2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]string, len(vSlice))
 	for i := range vSlice {
@@ -54136,9 +54114,7 @@ func (ec *executionContext) unmarshalOActionInput2ᚕgithubᚗcomᚋtargetᚋgoa
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]gadb.UIKActionV1, len(vSlice))
 	for i := range vSlice {
@@ -54257,9 +54233,7 @@ func (ec *executionContext) unmarshalOAlertMetadataInput2ᚕgithubᚗcomᚋtarge
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]AlertMetadataInput, len(vSlice))
 	for i := range vSlice {
@@ -54323,9 +54297,7 @@ func (ec *executionContext) unmarshalOAlertStatus2ᚕgithubᚗcomᚋtargetᚋgoa
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]AlertStatus, len(vSlice))
 	for i := range vSlice {
@@ -54456,9 +54428,7 @@ func (ec *executionContext) unmarshalOConfigValueInput2ᚕgithubᚗcomᚋtarget�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]ConfigValueInput, len(vSlice))
 	for i := range vSlice {
@@ -54500,9 +54470,7 @@ func (ec *executionContext) unmarshalOCreateEscalationPolicyStepInput2ᚕgithub�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]CreateEscalationPolicyStepInput, len(vSlice))
 	for i := range vSlice {
@@ -54520,9 +54488,7 @@ func (ec *executionContext) unmarshalOCreateHeartbeatMonitorInput2ᚕgithubᚗco
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]CreateHeartbeatMonitorInput, len(vSlice))
 	for i := range vSlice {
@@ -54540,9 +54506,7 @@ func (ec *executionContext) unmarshalOCreateIntegrationKeyInput2ᚕgithubᚗcom�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]CreateIntegrationKeyInput, len(vSlice))
 	for i := range vSlice {
@@ -54584,9 +54548,7 @@ func (ec *executionContext) unmarshalOCreateUserOverrideInput2ᚕgithubᚗcomᚋ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]CreateUserOverrideInput, len(vSlice))
 	for i := range vSlice {
@@ -54624,9 +54586,7 @@ func (ec *executionContext) unmarshalODestinationInput2ᚕgithubᚗcomᚋtarget�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]gadb.DestV1, len(vSlice))
 	for i := range vSlice {
@@ -54674,9 +54634,7 @@ func (ec *executionContext) unmarshalOFieldValueInput2ᚕgithubᚗcomᚋtarget�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]FieldValueInput, len(vSlice))
 	for i := range vSlice {
@@ -54728,9 +54686,7 @@ func (ec *executionContext) unmarshalOID2ᚕstringᚄ(ctx context.Context, v any
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]string, len(vSlice))
 	for i := range vSlice {
@@ -54824,9 +54780,7 @@ func (ec *executionContext) unmarshalOInt2ᚕintᚄ(ctx context.Context, v any) 
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]int, len(vSlice))
 	for i := range vSlice {
@@ -54908,9 +54862,7 @@ func (ec *executionContext) unmarshalOKeyRuleInput2ᚕgithubᚗcomᚋtargetᚋgo
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]gadb.UIKRuleV1, len(vSlice))
 	for i := range vSlice {
@@ -55105,9 +55057,7 @@ func (ec *executionContext) unmarshalOScheduleTargetInput2ᚕgithubᚗcomᚋtarg
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]ScheduleTargetInput, len(vSlice))
 	for i := range vSlice {
@@ -55148,9 +55098,7 @@ func (ec *executionContext) unmarshalOSetLabelInput2ᚕgithubᚗcomᚋtargetᚋg
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]SetLabelInput, len(vSlice))
 	for i := range vSlice {
@@ -55208,9 +55156,7 @@ func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]string, len(vSlice))
 	for i := range vSlice {
@@ -55278,9 +55224,7 @@ func (ec *executionContext) unmarshalOTargetInput2ᚕgithubᚗcomᚋtargetᚋgoa
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]assignment.RawTarget, len(vSlice))
 	for i := range vSlice {
