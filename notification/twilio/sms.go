@@ -172,7 +172,7 @@ func (s *SMS) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
 	status := MessageStatus(req.FormValue("MessageStatus"))
 	sid := validSID(req.FormValue("MessageSid"))
 	var number string
-	if cfg.Twilio.RCSSenderID != "" && req.FormValue("To") == "rcs:"+cfg.Twilio.RCSSenderID {
+	if cfg.Twilio.RCSSenderID != "" && req.FormValue("From") == "rcs:"+cfg.Twilio.RCSSenderID {
 		number = req.FormValue("To")
 	} else {
 		number = validPhone(req.FormValue("To"))
