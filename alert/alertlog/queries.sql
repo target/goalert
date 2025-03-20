@@ -1,4 +1,5 @@
--- name: AlertLogInsertEP :exec
+-- name: AlertLog_InsertEP :exec
+-- Inserts a new alert log for all alerts in the escalation policy that are not closed.
 INSERT INTO alert_logs(alert_id, event, sub_type, sub_user_id, sub_integration_key_id, sub_hb_monitor_id, sub_channel_id, sub_classifier, meta, message)
 SELECT
     a.id,
@@ -18,7 +19,8 @@ FROM
 WHERE
     a.status != 'closed';
 
--- name: AlertLogInsertSvc :exec
+-- name: AlertLog_InsertSvc :exec
+-- Inserts a new alert log for all alerts in the service that are not closed.
 INSERT INTO alert_logs(alert_id, event, sub_type, sub_user_id, sub_integration_key_id, sub_hb_monitor_id, sub_channel_id, sub_classifier, meta, message)
 SELECT
     a.id,
@@ -40,7 +42,8 @@ WHERE
         OR ($2::enum_alert_log_event IN ('acknowledged', 'notification_sent')
             AND a.status = 'triggered'));
 
--- name: AlertLogInsertMany :exec
+-- name: AlertLog_InsertMany :exec
+-- Inserts many alert logs
 INSERT INTO alert_logs(alert_id, event, sub_type, sub_user_id, sub_integration_key_id, sub_hb_monitor_id, sub_channel_id, sub_classifier, meta, message)
 SELECT
     unnest,
@@ -56,7 +59,8 @@ SELECT
 FROM
     unnest($1::bigint[]);
 
--- name: AlertLogLookupCMDest :one
+-- name: AlertLog_LookupCMDest :one
+-- Looks up the destination for a contact method
 SELECT
     dest
 FROM
@@ -64,7 +68,8 @@ FROM
 WHERE
     id = $1;
 
--- name: AlertLogHBIntervalMinutes :one
+-- name: AlertLog_HBIntervalMinutes :one
+-- Looks up the heartbeat interval in minutes for a heartbeat monitor
 SELECT
     (EXTRACT(EPOCH FROM heartbeat_interval) / 60)::int
 FROM
@@ -72,7 +77,8 @@ FROM
 WHERE
     id = $1;
 
--- name: AlertLogLookupCallbackDest :one
+-- name: AlertLog_LookupCallbackDest :one
+-- Looks up the destination for a callback
 SELECT
     coalesce(cm.dest, ch.dest) AS dest
 FROM
@@ -82,7 +88,7 @@ FROM
 WHERE
     log.id = $1;
 
--- name: AlertLogLookupNCDest :one
+-- name: AlertLog_LookupNCDest :one
 SELECT
     dest
 FROM
