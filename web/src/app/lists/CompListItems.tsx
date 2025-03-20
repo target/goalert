@@ -16,6 +16,7 @@ export type CompListItemTextProps = {
   icon?: React.ReactNode
   /* Set to true to always create space for the icon, even if it is not set */
   alwaysShowIcon?: boolean
+  highlight?: boolean
 
   subText?: React.ReactNode
   action?: React.ReactNode
@@ -27,7 +28,7 @@ export function CompListItemText(
   props: CompListItemTextProps,
 ): React.ReactNode {
   return (
-    <ListItem>
+    <ListItem className={props.highlight ? 'Mui-selected' : ''}>
       {(props.icon || props.alwaysShowIcon) && (
         <ListItemIcon tabIndex={-1}>{props.icon}</ListItemIcon>
       )}
