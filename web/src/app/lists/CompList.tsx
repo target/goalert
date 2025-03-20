@@ -2,10 +2,14 @@ import { List, ListItem, ListItemText, Typography } from '@mui/material'
 import React from 'react'
 import ReorderGroup from './ReorderGroup'
 import { has } from 'lodash'
+import { useIsWidthDown } from '../util/useWidth'
 
 export type CompListProps = {
   note?: React.ReactNode
   action?: React.ReactNode
+
+  /* If true, the list will only show the action on wide screens. */
+  hideActionOnMobile?: boolean
   emptyMessage?: string
   children?: React.ReactNode
 
@@ -25,6 +29,7 @@ function isReorderGroup(child: React.ReactNode): child is React.ReactElement {
 export default function CompList(props: CompListProps): React.ReactNode {
   const children = React.Children.toArray(props.children)
   let hasNoChildren = children.length === 0
+  const isMobile = useIsWidthDown('md')
 
   // Special case: ReorderGroup with no contents/children as a child
   if (
@@ -52,7 +57,9 @@ export default function CompList(props: CompListProps): React.ReactNode {
               sx={{ fontStyle: 'italic', pr: 2 }}
             />
           )}
-          {props.action && <div>{props.action}</div>}
+          {props.action && (props.hideActionOnMobile ? !isMobile : true) && (
+            <div>{props.action}</div>
+          )}
         </ListItem>
       )}
       {!hasNoChildren
