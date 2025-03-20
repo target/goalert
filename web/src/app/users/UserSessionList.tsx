@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import FlatList from '../lists/FlatList'
 import { useMutation, useQuery, CombinedError, gql } from 'urql'
 import { Button, Card, Grid, IconButton } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -9,6 +8,8 @@ import _ from 'lodash'
 import FormDialog from '../dialogs/FormDialog'
 import { nonFieldErrors } from '../util/errutil'
 import { Time } from '../util/Time'
+import CompList from '../lists/CompList'
+import { CompListItemText } from '../lists/CompListItems'
 
 const profileQuery = gql`
   query {
@@ -123,34 +124,38 @@ export default function UserSessionList({
         )}
         <Grid item xs={12}>
           <Card>
-            <FlatList
-              emptyMessage='No active sessions'
-              items={sessions.map((s) => ({
-                title: friendlyUAString(s.userAgent),
-                highlight: s.current,
-                secondaryAction: s.current ? null : (
-                  <IconButton
-                    onClick={() =>
-                      setEndSession({
-                        id: s.id,
-                        userAgent: s.userAgent,
-                      })
-                    }
-                    size='large'
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                ),
-                subText: (
-                  <Time
-                    format='relative'
-                    time={s.lastAccessAt}
-                    prefix='Last access: '
-                    min={{ minutes: 2 }}
-                  />
-                ),
-              }))}
-            />
+            <CompList emptyMessage='No active sessions'>
+              {sessions.map((s) => (
+                <CompListItemText
+                  key={s.id}
+                  title={friendlyUAString(s.userAgent)}
+                  highlight={s.current}
+                  action={
+                    s.current ? null : (
+                      <IconButton
+                        onClick={() =>
+                          setEndSession({
+                            id: s.id,
+                            userAgent: s.userAgent,
+                          })
+                        }
+                        size='large'
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    )
+                  }
+                  subText={
+                    <Time
+                      format='relative'
+                      time={s.lastAccessAt}
+                      prefix='Last access: '
+                      min={{ minutes: 2 }}
+                    />
+                  }
+                />
+              ))}
+            </CompList>
           </Card>
         </Grid>
       </Grid>
