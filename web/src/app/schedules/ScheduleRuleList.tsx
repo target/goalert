@@ -1,6 +1,5 @@
 import React, { Suspense, useState } from 'react'
 import { useQuery, gql } from 'urql'
-import FlatList, { FlatListListItem } from '../lists/FlatList'
 import { Button, ButtonGroup, Card } from '@mui/material'
 import { GroupAdd, PersonAdd } from '@mui/icons-material'
 import Tooltip from '@mui/material/Tooltip'
@@ -18,6 +17,8 @@ import { DateTime } from 'luxon'
 import { useScheduleTZ } from './useScheduleTZ'
 import { useIsWidthDown } from '../util/useWidth'
 import { ScheduleRule, ScheduleTarget, TargetType } from '../../schema'
+import CompList from '../lists/CompList'
+import { CompListItemNav, CompListItemText } from '../lists/CompListItems'
 
 const query = gql`
   query scheduleRules($id: ID!) {
@@ -99,64 +100,75 @@ export default function ScheduleRuleList(
     targets: ScheduleTarget[],
     timeZone: string,
   ): JSX.Element {
-    const items: FlatListListItem[] = []
+    const items: React.ReactNode[] = []
 
     let lastType: TargetType
     sortBy(targets, ['target.type', 'target.name']).forEach((tgt) => {
       const { name, id, type } = tgt.target
       if (type !== lastType) {
-        items.push({ subHeader: startCase(type + 's') })
+        items.push(
+          <CompListItemText key={type} subText={startCase(type + 's')} />,
+        )
         lastType = type
       }
 
-      items.push({
-        title: name,
-        url: (type === 'rotation' ? '/rotations/' : '/users/') + id,
-        subText: renderSubText(tgt.rules, timeZone),
-        icon:
-          type === 'rotation' ? <RotationAvatar /> : <UserAvatar userID={id} />,
-        secondaryAction: (
-          <OtherActions
-            actions={[
-              {
-                label: 'Edit',
-                onClick: () => setEditTarget({ type, id }),
-              },
-              {
-                label: 'Delete',
-                onClick: () => setDeleteTarget({ type, id }),
-              },
-            ]}
-          />
-        ),
-      })
+      items.push(
+        <CompListItemNav
+          key={id}
+          title={name}
+          newTab
+          url={(type === 'rotation' ? '/rotations/' : '/users/') + id}
+          subText={renderSubText(tgt.rules, timeZone)}
+          icon={
+            type === 'rotation' ? (
+              <RotationAvatar />
+            ) : (
+              <UserAvatar userID={id} />
+            )
+          }
+          action={
+            <OtherActions
+              actions={[
+                {
+                  label: 'Edit',
+                  onClick: () => setEditTarget({ type, id }),
+                },
+                {
+                  label: 'Delete',
+                  onClick: () => setDeleteTarget({ type, id }),
+                },
+              ]}
+            />
+          }
+        />,
+      )
     })
 
     return (
       <React.Fragment>
         <Card style={{ width: '100%', marginBottom: 64 }}>
-          <FlatList
-            headerNote={`Showing times in ${data.schedule.timeZone}.`}
-            items={items}
-            headerAction={
-              !isMobile ? (
-                <ButtonGroup variant='contained'>
-                  <Button
-                    startIcon={<GroupAdd />}
-                    onClick={() => setCreateType('rotation')}
-                  >
-                    Add Rotation
-                  </Button>
-                  <Button
-                    startIcon={<PersonAdd />}
-                    onClick={() => setCreateType('user')}
-                  >
-                    Add User
-                  </Button>
-                </ButtonGroup>
-              ) : undefined
+          <CompList
+            note={`Showing times in ${data.schedule.timeZone}.`}
+            hideActionOnMobile
+            action={
+              <ButtonGroup variant='contained'>
+                <Button
+                  startIcon={<GroupAdd />}
+                  onClick={() => setCreateType('rotation')}
+                >
+                  Add Rotation
+                </Button>
+                <Button
+                  startIcon={<PersonAdd />}
+                  onClick={() => setCreateType('user')}
+                >
+                  Add User
+                </Button>
+              </ButtonGroup>
             }
-          />
+          >
+            {items}
+          </CompList>
         </Card>
 
         {isMobile && (
