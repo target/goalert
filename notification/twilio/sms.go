@@ -168,9 +168,16 @@ func (s *SMS) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	ctx := req.Context()
+	cfg := config.FromContext(ctx)
 	status := MessageStatus(req.FormValue("MessageStatus"))
 	sid := validSID(req.FormValue("MessageSid"))
-	if status == "" || sid == "" {
+	var number string
+	if cfg.Twilio.RCSSenderID != "" && req.FormValue("From") == "rcs:"+cfg.Twilio.RCSSenderID {
+		number = req.FormValue("To")
+	} else {
+		number = validPhone(req.FormValue("To"))
+	}
+	if status == "" || sid == "" || number == "" {
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
@@ -178,7 +185,7 @@ func (s *SMS) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
 	ctx = log.WithFields(ctx, log.Fields{
 		"Status": status,
 		"SID":    sid,
-		"Phone":  req.FormValue("To"),
+		"Phone":  number,
 		"Type":   "TwilioSMS",
 	})
 	msg := Message{SID: sid, Status: status, From: strings.TrimPrefix(req.FormValue("From"), "rcs:")}
@@ -221,12 +228,8 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	cfg := config.FromContext(ctx)
 	from := validPhone(strings.TrimPrefix(req.FormValue("From"), "rcs:"))
-	if from == cfg.Twilio.FromNumber || req.FormValue("From") == req.FormValue("To") {
-		http.Error(w, "ignoring message loop", http.StatusBadRequest)
-		return
-	}
-	if from == "" {
-		http.Error(w, "invalid from number", http.StatusBadRequest)
+	if from == "" || from == cfg.Twilio.FromNumber || from == cfg.Twilio.RCSSenderID {
+		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
 

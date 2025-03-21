@@ -7,10 +7,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math/rand"
-	"strings"
 	"time"
 
-	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
@@ -138,12 +136,10 @@ func (s *Store) OriginalMessageStatus(ctx context.Context, alertID int, dstID De
 		return nil, err
 	}
 
-	return outgoingMessageToSendResult(ctx, row.OutgoingMessage, row.CmDest, row.ChDest)
+	return outgoingMessageToSendResult(row.OutgoingMessage, row.CmDest, row.ChDest)
 }
 
-func outgoingMessageToSendResult(ctx context.Context, msg gadb.OutgoingMessage, cm, ch gadb.NullDestV1) (*SendResult, error) {
-	cfg := config.FromContext(ctx)
-
+func outgoingMessageToSendResult(msg gadb.OutgoingMessage, cm, ch gadb.NullDestV1) (*SendResult, error) {
 	res := SendResult{
 		ID:                msg.ID.String(),
 		ProviderMessageID: msg.ProviderMsgID,
@@ -161,19 +157,11 @@ func outgoingMessageToSendResult(ctx context.Context, msg gadb.OutgoingMessage, 
 		return nil, err
 	}
 
-	srcValue := msg.SrcValue.String
-	if cm.DestV1.Type == "builtin-twilio-sms" && strings.HasPrefix(srcValue, "rcs:") {
-		// Hack: Twilio currently has no way to fetch the Display Name of the RCS sender, so we use the application name as a fallback.
-		//
-		// In the future, we can use the RCSSenderSID to fetch the actual display name.
-		srcValue = cfg.ApplicationName()
-	}
-
 	res.Status = Status{
 		State:    state,
 		Details:  msg.StatusDetails,
 		Sequence: int(msg.ProviderSeq),
-		SrcValue: srcValue,
+		SrcValue: msg.SrcValue.String,
 	}
 	if msg.LastStatusAt.Valid {
 		res.Status.Age = msg.LastStatusAt.Time.Sub(msg.CreatedAt)
@@ -393,7 +381,7 @@ func (s *Store) FindManyMessageStatuses(ctx context.Context, strIDs []string) ([
 
 	var result []SendResult
 	for _, r := range rows {
-		res, err := outgoingMessageToSendResult(ctx, r.OutgoingMessage, r.CmDest, r.ChDest)
+		res, err := outgoingMessageToSendResult(r.OutgoingMessage, r.CmDest, r.ChDest)
 		if err != nil {
 			return nil, err
 		}
@@ -428,7 +416,7 @@ func (s *Store) LastMessageStatus(ctx context.Context, typ gadb.EnumOutgoingMess
 		return nil, time.Time{}, err
 	}
 
-	sendRes, err := outgoingMessageToSendResult(ctx, row.OutgoingMessage, row.CmDest, row.ChDest)
+	sendRes, err := outgoingMessageToSendResult(row.OutgoingMessage, row.CmDest, row.ChDest)
 	if err != nil {
 		return nil, time.Time{}, err
 	}

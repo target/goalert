@@ -116,7 +116,7 @@ type Config struct {
 
 		MessagingServiceSID string `public:"true" info:"If set, replaces the use of From Number for SMS notifications."`
 
-		RCSSenderSID string `info:"The sender SID for RCS messages. Required if RCS is enabled for the MessagingServiceSID."`
+		RCSSenderID string `info:"The sender ID for RCS messages. Required if RCS is enabled for the FromNumber or MessagingServiceSID."`
 
 		DisableTwoWaySMS      bool     `info:"Disables SMS reply codes for alert messages."`
 		SMSCarrierLookup      bool     `info:"Perform carrier lookup of SMS contact methods (required for SMSFromNumberOverride). Extra charges may apply."`
@@ -509,12 +509,6 @@ func (cfg Config) Validate() error {
 	}
 	if cfg.Twilio.MessagingServiceSID != "" {
 		err = validate.Many(err, validate.TwilioSID("Twilio.MessagingServiceSID", "MG", cfg.Twilio.MessagingServiceSID))
-	}
-	if cfg.Twilio.RCSSenderSID != "" {
-		err = validate.Many(err, validate.TwilioSID("Twilio.RCSSenderSID", "XE", cfg.Twilio.RCSSenderSID))
-		if cfg.Twilio.MessagingServiceSID == "" {
-			err = validate.Many(err, validation.NewFieldError("Twilio.MessagingServiceSID", "required when Twilio.RCSSenderSID is set"))
-		}
 	}
 	if cfg.Mailgun.EmailDomain != "" {
 		err = validate.Many(err, validate.Email("Mailgun.EmailDomain", "example@"+cfg.Mailgun.EmailDomain))
