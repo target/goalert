@@ -12,8 +12,12 @@ import AppLink from '../util/AppLink'
 import { ExpandLess, ExpandMore } from '@mui/icons-material'
 
 export type CompListItemTextProps = {
-  title: React.ReactNode
+  title?: React.ReactNode
   icon?: React.ReactNode
+  /* Set to true to always create space for the icon, even if it is not set */
+  alwaysShowIcon?: boolean
+  highlight?: boolean
+
   subText?: React.ReactNode
   action?: React.ReactNode
   disableTypography?: boolean
@@ -24,8 +28,10 @@ export function CompListItemText(
   props: CompListItemTextProps,
 ): React.ReactNode {
   return (
-    <ListItem>
-      {props.icon && <ListItemIcon tabIndex={-1}>{props.icon}</ListItemIcon>}
+    <ListItem className={props.highlight ? 'Mui-selected' : ''}>
+      {(props.icon || props.alwaysShowIcon) && (
+        <ListItemIcon tabIndex={-1}>{props.icon}</ListItemIcon>
+      )}
       <ListItemText
         disableTypography={props.disableTypography}
         primary={props.title}
@@ -40,13 +46,14 @@ export function CompListItemText(
 
 export type CompListItemNavProps = CompListItemTextProps & {
   url: string
+  newTab?: boolean
 }
 
 /* A list item that links to a URL. */
 export function CompListItemNav(props: CompListItemNavProps): React.ReactNode {
   return (
     <li>
-      <ListItemButton component={AppLink} to={props.url}>
+      <ListItemButton component={AppLink} to={props.url} newTab={props.newTab}>
         {props.icon && <ListItemIcon tabIndex={-1}>{props.icon}</ListItemIcon>}
         <ListItemText primary={props.title} secondary={props.subText} />
         {props.action && (

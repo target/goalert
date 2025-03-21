@@ -1,10 +1,11 @@
 import React from 'react'
 import { gql, useQuery } from 'urql'
 import { Card } from '@mui/material'
-import FlatList from '../lists/FlatList'
 import { sortBy, values } from 'lodash'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import { OnCallServiceAssignment, User } from '../../schema'
+import CompList from '../lists/CompList'
+import { CompListItemNav } from '../lists/CompListItems'
 
 const query = gql`
   query userInfo($id: ID!) {
@@ -76,8 +77,8 @@ export default function UserOnCallAssignmentList(props: {
 
   return (
     <Card>
-      <FlatList
-        headerNote={
+      <CompList
+        note={
           props.currentUser
             ? 'Showing your current on-call assignments.'
             : `Showing current on-call assignments for ${user.name}`
@@ -87,14 +88,18 @@ export default function UserOnCallAssignmentList(props: {
             ? 'You are not currently on-call.'
             : `${user.name} is not currently on-call.`
         }
-        items={services(user.onCallOverview.serviceAssignments).map((svc) => ({
-          title: svc.name,
-          url: '/services/' + svc.id,
-          subText: `${svc.policyName}: ${svc.policySteps
-            .map((n) => `Step ${n + 1}`)
-            .join(', ')}`,
-        }))}
-      />
+      >
+        {services(user.onCallOverview.serviceAssignments).map((svc) => (
+          <CompListItemNav
+            key={svc.id}
+            title={svc.name}
+            url={'/services/' + svc.id}
+            subText={`${svc.policyName}: ${svc.policySteps
+              .map((n) => `Step ${n + 1}`)
+              .join(', ')}`}
+          />
+        ))}
+      </CompList>
     </Card>
   )
 }
