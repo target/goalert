@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/permission"
@@ -63,7 +63,7 @@ func (h *Harness) GraphQLQuery2(query string) *QLResponse {
 func (h *Harness) SetConfigValue(id, value string) {
 	h.t.Helper()
 	res := h.GraphQLQuery2(fmt.Sprintf(`mutation{setConfig(input:[{id: %s, value: %s}])}`, strconv.Quote(id), strconv.Quote(value)))
-	assert.Empty(h.t, res.Errors)
+	require.Empty(h.t, res.Errors)
 
 	// wait for engine cycle to complete to ensure next action
 	// uses new config only

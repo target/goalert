@@ -23,7 +23,7 @@ type devMessage interface {
 }
 
 func (m messageMatcher) match(msg devMessage) bool {
-	return msg.To() == m.number && containsAllIgnoreCase(msg.Body(), m.keywords)
+	return strings.TrimPrefix(msg.To(), "rcs:") == m.number && containsAllIgnoreCase(msg.Body(), m.keywords)
 }
 
 type anyMessage []messageMatcher

@@ -76,6 +76,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Twilio.AlternateAuthToken", Type: ConfigTypeString, Description: "An alternate Auth Token for validating incoming requests. During a key change, set this to the Primary, and Auth Token to the Secondary, then promote and clear this field.", Value: cfg.Twilio.AlternateAuthToken, Password: true},
 		{ID: "Twilio.FromNumber", Type: ConfigTypeString, Description: "The Twilio number to use for outgoing notifications.", Value: cfg.Twilio.FromNumber},
 		{ID: "Twilio.MessagingServiceSID", Type: ConfigTypeString, Description: "If set, replaces the use of From Number for SMS notifications.", Value: cfg.Twilio.MessagingServiceSID},
+		{ID: "Twilio.RCSSenderID", Type: ConfigTypeString, Description: "The sender ID for RCS messages. Required if RCS is enabled for the MessagingServiceSID.", Value: cfg.Twilio.RCSSenderID},
 		{ID: "Twilio.DisableTwoWaySMS", Type: ConfigTypeBoolean, Description: "Disables SMS reply codes for alert messages.", Value: fmt.Sprintf("%t", cfg.Twilio.DisableTwoWaySMS)},
 		{ID: "Twilio.SMSCarrierLookup", Type: ConfigTypeBoolean, Description: "Perform carrier lookup of SMS contact methods (required for SMSFromNumberOverride). Extra charges may apply.", Value: fmt.Sprintf("%t", cfg.Twilio.SMSCarrierLookup)},
 		{ID: "Twilio.SMSFromNumberOverride", Type: ConfigTypeStringList, Description: "List of 'carrier=number' pairs, SMS messages to numbers of the provided carrier string (exact match) will use the alternate From Number.", Value: strings.Join(cfg.Twilio.SMSFromNumberOverride, "\n")},
@@ -332,6 +333,8 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 			cfg.Twilio.FromNumber = v.Value
 		case "Twilio.MessagingServiceSID":
 			cfg.Twilio.MessagingServiceSID = v.Value
+		case "Twilio.RCSSenderID":
+			cfg.Twilio.RCSSenderID = v.Value
 		case "Twilio.DisableTwoWaySMS":
 			val, err := parseBool(v.ID, v.Value)
 			if err != nil {

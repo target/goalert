@@ -342,6 +342,8 @@ func messageStateFromStatus(lastStatus gadb.EnumOutgoingMessagesStatus, hasNextR
 		return StateSending, nil
 	case gadb.EnumOutgoingMessagesStatusPending:
 		return StatePending, nil
+	case gadb.EnumOutgoingMessagesStatusRead:
+		return StateRead, nil
 	case gadb.EnumOutgoingMessagesStatusSent:
 		return StateSent, nil
 	case gadb.EnumOutgoingMessagesStatusDelivered:

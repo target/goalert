@@ -21,6 +21,7 @@ const (
 	MessageStatusReceiving   = MessageStatus("receiving")
 	MessageStatusReceived    = MessageStatus("received")
 	MessageStatusDelivered   = MessageStatus("delivered")
+	MessageStatusRead        = MessageStatus("read")
 	MessageStatusUndelivered = MessageStatus("undelivered")
 	MessageStatusFailed      = MessageStatus("failed")
 )
@@ -81,6 +82,7 @@ func (msg *Message) sentMessage() *notification.SentMessage {
 		SrcValue:     msg.From,
 	}
 }
+
 func (msg *Message) messageStatus() *notification.Status {
 	if msg == nil {
 		return nil
@@ -102,6 +104,8 @@ func (msg *Message) messageStatus() *notification.Status {
 		status.State = notification.StateFailedPerm
 	case MessageStatusDelivered:
 		status.State = notification.StateDelivered
+	case MessageStatusRead:
+		status.State = notification.StateRead
 	case MessageStatusSent, MessageStatusUndelivered:
 		status.State = notification.StateSent
 	default:

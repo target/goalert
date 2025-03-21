@@ -60,10 +60,22 @@ func (s *Server) sendSMS(fromValue, to, body, statusURL, destURL string) (*SMS, 
 		}
 	}
 
+	// Use the RCS ID for the rest of the processing
+	s.mx.RLock()
+	rcsID := s.rcs[fromValue]
+	if rcsID != "" {
+		fromNumber = "rcs:" + rcsID
+	}
+	s.mx.RUnlock()
+
+	if strings.HasPrefix(fromNumber, "rcs:") {
+		to = "rcs:" + to
+	}
 	sms := &SMS{
 		s: s,
 		msg: twilio.Message{
 			To:     to,
+			From:   fromNumber,
 			Status: twilio.MessageStatusAccepted,
 			SID:    s.id("SM"),
 		},
@@ -157,6 +169,7 @@ func (sms *SMS) updateStatus(stat twilio.MessageStatus) {
 		sms.s.errs <- err
 	}
 }
+
 func (sms *SMS) cloneMessage() *twilio.Message {
 	sms.mx.Lock()
 	defer sms.mx.Unlock()
@@ -251,7 +264,11 @@ func (sms *SMS) process() {
 		return
 	case accepted := <-sms.acceptCh:
 		if accepted {
-			sms.updateStatus(twilio.MessageStatusDelivered)
+			if strings.HasPrefix(sms.To(), "rcs:") {
+				sms.updateStatus(twilio.MessageStatusRead)
+			} else {
+				sms.updateStatus(twilio.MessageStatusDelivered)
+			}
 		} else {
 			sms.updateStatus(twilio.MessageStatusFailed)
 		}

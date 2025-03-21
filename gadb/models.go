@@ -451,6 +451,7 @@ const (
 	EnumOutgoingMessagesStatusFailed         EnumOutgoingMessagesStatus = "failed"
 	EnumOutgoingMessagesStatusPending        EnumOutgoingMessagesStatus = "pending"
 	EnumOutgoingMessagesStatusQueuedRemotely EnumOutgoingMessagesStatus = "queued_remotely"
+	EnumOutgoingMessagesStatusRead           EnumOutgoingMessagesStatus = "read"
 	EnumOutgoingMessagesStatusSending        EnumOutgoingMessagesStatus = "sending"
 	EnumOutgoingMessagesStatusSent           EnumOutgoingMessagesStatus = "sent"
 )

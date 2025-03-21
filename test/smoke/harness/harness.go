@@ -81,8 +81,10 @@ type Harness struct {
 
 	appPool *pgxpool.Pool
 
-	msgSvcID string
-	expFlags expflag.FlagSet
+	rcsSenderID string
+	rcsMsgSvcID string
+	msgSvcID    string
+	expFlags    expflag.FlagSet
 
 	tw  *twilioAssertionAPI
 	twS *httptest.Server
@@ -751,6 +753,29 @@ func (h *Harness) TwilioMessagingService() string {
 
 	h.msgSvcID = newID
 	return newID
+}
+
+// TwilioMessagingServiceRCS will return the id and phone numbers for the mock messaging service with RCS enabled.
+func (h *Harness) TwilioMessagingServiceRCS() (rcs, msg string) {
+	h.mx.Lock()
+	defer h.mx.Unlock()
+	if h.rcsSenderID != "" {
+		return h.rcsSenderID, h.rcsMsgSvcID
+	}
+
+	nums := []string{h.phoneCCG.Get("twilio:rcs:sid1"), h.phoneCCG.Get("twilio:rcs:sid2"), h.phoneCCG.Get("twilio:rcs:sid3")}
+	newID, err := h.tw.NewMessagingService(h.URL()+"/v1/twilio/sms/messages", nums...)
+	if err != nil {
+		panic(err)
+	}
+
+	h.rcsMsgSvcID = newID
+
+	rcsID, err := h.tw.EnableRCS(newID)
+	require.NoError(h.t, err)
+	h.rcsSenderID = rcsID
+
+	return rcsID, newID
 }
 
 // CreateUser generates a random user.

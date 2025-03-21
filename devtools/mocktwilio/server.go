@@ -48,6 +48,7 @@ type Server struct {
 	messages map[string]*SMS
 	calls    map[string]*VoiceCall
 	msgSvc   map[string][]string
+	rcs      map[string]string
 
 	mux *http.ServeMux
 
@@ -80,6 +81,7 @@ func NewServer(cfg Config) *Server {
 		errs:        make(chan error, 10000),
 		shutdown:    make(chan struct{}),
 		carrierInfo: make(map[string]twilio.CarrierInfo),
+		rcs:         make(map[string]string),
 	}
 
 	base := "/2010-04-01/Accounts/" + cfg.AccountSID
@@ -235,6 +237,24 @@ func (s *Server) NewMessagingService(url string, numbers ...string) (string, err
 	s.msgSvc[svcID] = numbers
 
 	return svcID, nil
+}
+
+// EnableRCS enables RCS for the given messaging service ID, returning the RCS sender ID.
+func (s *Server) EnableRCS(msgSvcID string) (string, error) {
+	s.mx.Lock()
+	defer s.mx.Unlock()
+
+	if _, ok := s.msgSvc[msgSvcID]; !ok {
+		return "", errors.New("messaging service not found")
+	}
+	seq := atomic.AddUint64(&s.sidSeq, 1)
+	rcsID := fmt.Sprintf("test_%04d_agent", seq)
+	s.rcs[msgSvcID] = rcsID
+
+	url := s.msgSvc[msgSvcID][0]
+	s.callbacks["SMS:"+rcsID] = url
+
+	return rcsID, nil
 }
 
 // RegisterSMSCallback will set/update a callback URL for SMS calls made to the given number.
