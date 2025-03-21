@@ -14,7 +14,6 @@ import makeStyles from '@mui/styles/makeStyles'
 import { DateTime, DateTimeFormatOptions, Duration, Interval } from 'luxon'
 import React, { Suspense, useCallback, useMemo, useState } from 'react'
 import CreateFAB from '../lists/CreateFAB'
-import FlatList, { FlatListListItem } from '../lists/FlatList'
 import { UserSelect } from '../selection'
 import { UserAvatar } from '../util/avatars'
 import FilterContainer from '../util/FilterContainer'
@@ -31,6 +30,8 @@ import {
   defaultTempSchedValue,
 } from './temp-sched/sharedUtils'
 import TempSchedDialog from './temp-sched/TempSchedDialog'
+import CompList from '../lists/CompList'
+import { CompListItemText } from '../lists/CompListItems'
 
 // query name is important, as it's used for refetching data after mutations
 const query = gql`
@@ -221,7 +222,7 @@ function ScheduleShiftList({
     )
   }
 
-  function items(): FlatListListItem[] {
+  function items(): React.ReactNode[] {
     const _shifts: Shift[] =
       data?.schedule?.shifts?.map((s: Shift) => ({
         ...s,
@@ -251,19 +252,19 @@ function ScheduleShiftList({
       DateTime.fromISO(end).startOf('day'),
     )
 
-    const result: FlatListListItem[] = []
+    const result: React.ReactNode[] = []
     displaySpan.splitBy({ days: 1 }).forEach((day) => {
       const dayShifts = shifts.filter((s) => day.overlaps(s.interval))
       if (!dayShifts.length) return
-      result.push({
-        subHeader: relativeDate(day.start),
-      })
+      result.push(<CompListItemText subText={relativeDate(day.start)} />)
       dayShifts.forEach((s) => {
-        result.push({
-          title: s.user?.name || '',
-          subText: getShiftDetails(s, day),
-          icon: <UserAvatar userID={s.userID} />,
-        })
+        result.push(
+          <CompListItemText
+            title={s.user?.name || ''}
+            subText={getShiftDetails(s, day)}
+            icon={<UserAvatar userID={s.userID} />}
+          />,
+        )
       })
     })
 
@@ -333,10 +334,9 @@ function ScheduleShiftList({
       }}
     >
       <Card style={{ width: '100%' }}>
-        <FlatList
-          headerNote={note}
-          items={items()}
-          headerAction={
+        <CompList
+          note={note}
+          action={
             <React.Fragment>
               <FilterContainer
                 onReset={() => {
@@ -396,7 +396,9 @@ function ScheduleShiftList({
               )}
             </React.Fragment>
           }
-        />
+        >
+          {items()}
+        </CompList>
       </Card>
       {isMobile && (
         <CreateFAB
