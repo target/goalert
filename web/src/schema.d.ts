@@ -1652,7 +1652,7 @@ type ConfigID =
   | 'Twilio.AlternateAuthToken'
   | 'Twilio.FromNumber'
   | 'Twilio.MessagingServiceSID'
-  | 'Twilio.RCSSenderID'
+  | 'Twilio.RCSSenderSID'
   | 'Twilio.DisableTwoWaySMS'
   | 'Twilio.SMSCarrierLookup'
   | 'Twilio.SMSFromNumberOverride'
