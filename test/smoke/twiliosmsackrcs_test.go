@@ -48,8 +48,8 @@ func TestTwilioSMSAckRCS(t *testing.T) {
 
 	rcsSenderID, msgSvcID := h.TwilioMessagingServiceRCS()
 
-	h.SetConfigValue("Twilio.RCSSenderID", rcsSenderID)
 	h.SetConfigValue("Twilio.MessagingServiceSID", msgSvcID)
+	h.SetConfigValue("Twilio.RCSSenderID", rcsSenderID)
 
 	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
