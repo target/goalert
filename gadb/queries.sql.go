@@ -2788,6 +2788,140 @@ func (q *Queries) IntKeyUIKValidateService(ctx context.Context, arg IntKeyUIKVal
 	return service_id, err
 }
 
+const keyring_GetConfigPayloads = `-- name: Keyring_GetConfigPayloads :many
+SELECT
+    id,
+    data
+FROM
+    config
+`
+
+type Keyring_GetConfigPayloadsRow struct {
+	ID   int32
+	Data []byte
+}
+
+func (q *Queries) Keyring_GetConfigPayloads(ctx context.Context) ([]Keyring_GetConfigPayloadsRow, error) {
+	rows, err := q.db.QueryContext(ctx, keyring_GetConfigPayloads)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Keyring_GetConfigPayloadsRow
+	for rows.Next() {
+		var i Keyring_GetConfigPayloadsRow
+		if err := rows.Scan(&i.ID, &i.Data); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const keyring_GetKeyringSecrets = `-- name: Keyring_GetKeyringSecrets :many
+SELECT
+    id,
+    signing_key,
+    next_key
+FROM
+    keyring
+`
+
+type Keyring_GetKeyringSecretsRow struct {
+	ID         string
+	SigningKey []byte
+	NextKey    []byte
+}
+
+func (q *Queries) Keyring_GetKeyringSecrets(ctx context.Context) ([]Keyring_GetKeyringSecretsRow, error) {
+	rows, err := q.db.QueryContext(ctx, keyring_GetKeyringSecrets)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Keyring_GetKeyringSecretsRow
+	for rows.Next() {
+		var i Keyring_GetKeyringSecretsRow
+		if err := rows.Scan(&i.ID, &i.SigningKey, &i.NextKey); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const keyring_LockConfig = `-- name: Keyring_LockConfig :exec
+LOCK TABLE config IN ACCESS EXCLUSIVE MODE
+`
+
+// Locks the config table so no new config payloads can be created.
+func (q *Queries) Keyring_LockConfig(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, keyring_LockConfig)
+	return err
+}
+
+const keyring_LockKeyrings = `-- name: Keyring_LockKeyrings :exec
+LOCK TABLE keyring IN ACCESS EXCLUSIVE MODE
+`
+
+// Locks the keyring table so no new keyrings can be created.
+func (q *Queries) Keyring_LockKeyrings(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, keyring_LockKeyrings)
+	return err
+}
+
+const keyring_UpdateConfigPayload = `-- name: Keyring_UpdateConfigPayload :exec
+UPDATE
+    config
+SET
+    data = $1
+WHERE
+    id = $2
+`
+
+type Keyring_UpdateConfigPayloadParams struct {
+	Data []byte
+	ID   int32
+}
+
+func (q *Queries) Keyring_UpdateConfigPayload(ctx context.Context, arg Keyring_UpdateConfigPayloadParams) error {
+	_, err := q.db.ExecContext(ctx, keyring_UpdateConfigPayload, arg.Data, arg.ID)
+	return err
+}
+
+const keyring_UpdateKeyringSecrets = `-- name: Keyring_UpdateKeyringSecrets :exec
+UPDATE
+    keyring
+SET
+    signing_key = $1,
+    next_key = $2
+WHERE
+    id = $3
+`
+
+type Keyring_UpdateKeyringSecretsParams struct {
+	SigningKey []byte
+	NextKey    []byte
+	ID         string
+}
+
+func (q *Queries) Keyring_UpdateKeyringSecrets(ctx context.Context, arg Keyring_UpdateKeyringSecretsParams) error {
+	_, err := q.db.ExecContext(ctx, keyring_UpdateKeyringSecrets, arg.SigningKey, arg.NextKey, arg.ID)
+	return err
+}
+
 const labelDeleteKeyByTarget = `-- name: LabelDeleteKeyByTarget :exec
 DELETE FROM labels
 WHERE key = $1
