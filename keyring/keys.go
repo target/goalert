@@ -27,19 +27,19 @@ func (k Keys) Encrypt(label string, data []byte) ([]byte, error) {
 
 // Decrypt will decrypt PEM-encoded data using the first successful key. The index of
 // the used key is returned as n.
-func (k Keys) Decrypt(pemData []byte) (data []byte, n int, err error) {
+func (k Keys) Decrypt(pemData []byte) (data []byte, label string, err error) {
 	if len(k) == 0 {
 		k = Keys{[]byte{}}
 	}
 	block, _ := pem.Decode(pemData)
 
-	for i, key := range k {
+	for _, key := range k {
 		//nolint:all SA1019 TODO migrate off deprecated method; usage is secure for at-rest data
 		data, err = x509.DecryptPEMBlock(block, key)
 		if err == nil {
-			return data, i, nil
+			return data, block.Type, nil
 		}
 	}
 
-	return nil, -1, errors.New("invalid decryption key")
+	return nil, "", errors.New("invalid decryption key")
 }

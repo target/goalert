@@ -775,7 +775,7 @@ export interface Mutation {
   generateKeyToken: string
   linkAccount: boolean
   promoteSecondaryToken: boolean
-  reencryptKeyringsAndConfig: boolean
+  reEncryptKeyringsAndConfig: boolean
   sendContactMethodVerification: boolean
   setAlertNoiseReason: boolean
   setConfig: boolean

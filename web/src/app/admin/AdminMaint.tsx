@@ -80,7 +80,7 @@ export default function AdminMaint(): React.JSX.Element {
 
 const reEncryptMut = gql`
   mutation {
-    reencryptKeyringsAndConfig
+    reEncryptKeyringsAndConfig
   }
 `
 

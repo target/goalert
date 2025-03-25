@@ -22,7 +22,7 @@ type Mutation App
 
 func (a *App) Mutation() graphql2.MutationResolver { return (*Mutation)(a) }
 
-func (a *Mutation) ReencryptKeyringsAndConfig(ctx context.Context) (bool, error) {
+func (a *Mutation) ReEncryptKeyringsAndConfig(ctx context.Context) (bool, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
 		return false, err

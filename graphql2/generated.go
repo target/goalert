@@ -490,7 +490,7 @@ type ComplexityRoot struct {
 		GenerateKeyToken                   func(childComplexity int, id string) int
 		LinkAccount                        func(childComplexity int, token string) int
 		PromoteSecondaryToken              func(childComplexity int, id string) int
-		ReencryptKeyringsAndConfig         func(childComplexity int) int
+		ReEncryptKeyringsAndConfig         func(childComplexity int) int
 		SendContactMethodVerification      func(childComplexity int, input SendContactMethodVerificationInput) int
 		SetAlertNoiseReason                func(childComplexity int, input SetAlertNoiseReasonInput) int
 		SetConfig                          func(childComplexity int, input []ConfigValueInput) int
@@ -951,7 +951,7 @@ type MessageLogConnectionStatsResolver interface {
 type MutationResolver interface {
 	SwoAction(ctx context.Context, action SWOAction) (bool, error)
 	LinkAccount(ctx context.Context, token string) (bool, error)
-	ReencryptKeyringsAndConfig(ctx context.Context) (bool, error)
+	ReEncryptKeyringsAndConfig(ctx context.Context) (bool, error)
 	SetTemporarySchedule(ctx context.Context, input SetTemporaryScheduleInput) (bool, error)
 	ClearTemporarySchedules(ctx context.Context, input ClearTemporarySchedulesInput) (bool, error)
 	SetScheduleOnCallNotificationRules(ctx context.Context, input SetScheduleOnCallNotificationRulesInput) (bool, error)
@@ -3004,12 +3004,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.PromoteSecondaryToken(childComplexity, args["id"].(string)), true
 
-	case "Mutation.reencryptKeyringsAndConfig":
-		if e.complexity.Mutation.ReencryptKeyringsAndConfig == nil {
+	case "Mutation.reEncryptKeyringsAndConfig":
+		if e.complexity.Mutation.ReEncryptKeyringsAndConfig == nil {
 			break
 		}
 
-		return e.complexity.Mutation.ReencryptKeyringsAndConfig(childComplexity), true
+		return e.complexity.Mutation.ReEncryptKeyringsAndConfig(childComplexity), true
 
 	case "Mutation.sendContactMethodVerification":
 		if e.complexity.Mutation.SendContactMethodVerification == nil {
@@ -18583,8 +18583,8 @@ func (ec *executionContext) fieldContext_Mutation_linkAccount(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_reencryptKeyringsAndConfig(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_reencryptKeyringsAndConfig(ctx, field)
+func (ec *executionContext) _Mutation_reEncryptKeyringsAndConfig(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_reEncryptKeyringsAndConfig(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -18597,7 +18597,7 @@ func (ec *executionContext) _Mutation_reencryptKeyringsAndConfig(ctx context.Con
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ReencryptKeyringsAndConfig(rctx)
+		return ec.resolvers.Mutation().ReEncryptKeyringsAndConfig(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18614,7 +18614,7 @@ func (ec *executionContext) _Mutation_reencryptKeyringsAndConfig(ctx context.Con
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_reencryptKeyringsAndConfig(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_reEncryptKeyringsAndConfig(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -44500,9 +44500,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "reencryptKeyringsAndConfig":
+		case "reEncryptKeyringsAndConfig":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_reencryptKeyringsAndConfig(ctx, field)
+				return ec._Mutation_reEncryptKeyringsAndConfig(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++

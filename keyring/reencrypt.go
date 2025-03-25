@@ -40,19 +40,19 @@ func ReEncryptAll(ctx context.Context, db *sql.DB, keys Keys) error {
 	}
 
 	for _, ring := range rings {
-		sign, _, err := keys.Decrypt(ring.SigningKey)
+		sign, signLabel, err := keys.Decrypt(ring.SigningKey)
 		if err != nil {
 			return fmt.Errorf("decrypt signing key for '%s': %w", ring.ID, err)
 		}
-		next, _, err := keys.Decrypt(ring.NextKey)
+		next, nextLabel, err := keys.Decrypt(ring.NextKey)
 		if err != nil {
 			return fmt.Errorf("decrypt next key for '%s': %w", ring.ID, err)
 		}
-		encSign, err := keys.Encrypt("signing", sign)
+		encSign, err := keys.Encrypt(signLabel, sign)
 		if err != nil {
 			return fmt.Errorf("encrypt signing key for '%s': %w", ring.ID, err)
 		}
-		encNext, err := keys.Encrypt("next", next)
+		encNext, err := keys.Encrypt(nextLabel, next)
 		if err != nil {
 			return fmt.Errorf("encrypt next key for '%s': %w", ring.ID, err)
 		}
@@ -77,11 +77,11 @@ func ReEncryptAll(ctx context.Context, db *sql.DB, keys Keys) error {
 	}
 
 	for _, cfg := range cfgs {
-		dec, _, err := keys.Decrypt(cfg.Data)
+		dec, label, err := keys.Decrypt(cfg.Data)
 		if err != nil {
 			return fmt.Errorf("decrypt config payload for config #%d: %w", cfg.ID, err)
 		}
-		enc, err := keys.Encrypt("config", dec)
+		enc, err := keys.Encrypt(label, dec)
 		if err != nil {
 			return fmt.Errorf("encrypt config payload for #%d: %w", cfg.ID, err)
 		}
