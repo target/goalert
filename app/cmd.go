@@ -427,6 +427,47 @@ Migration: %s (#%d)
 		},
 	}
 
+	reencryptCmd = &cobra.Command{
+		Use:   "reencrypt",
+		Short: "Re-encrypt all keyring secrets and config with the current data-encryption-key.",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			l := log.FromContext(cmd.Context())
+			// update JSON output first
+			if viper.GetBool("json") {
+				l.EnableJSON()
+			}
+			if viper.GetBool("verbose") {
+				l.EnableDebug()
+			}
+
+			err := viper.ReadInConfig()
+			// ignore file not found error
+			if err != nil && !isCfgNotFound(err) {
+				return errors.Wrap(err, "read config")
+			}
+
+			if viper.GetString("data-encryption-key") == "" && !viper.GetBool("allow-empty-data-encryption-key") {
+				return validation.NewFieldError("data-encryption-key", "Must not be empty, or set --allow-empty-data-encryption-key")
+			}
+
+			ctx := cmd.Context()
+			c, err := getConfig(ctx)
+			if err != nil {
+				return err
+			}
+
+			db, err := sql.Open("pgx", c.DBURL)
+			if err != nil {
+				return errors.Wrap(err, "connect to postgres")
+			}
+			defer db.Close()
+
+			ctx = permission.SystemContext(ctx, "ReEncryptAll")
+
+			return keyring.ReEncryptAll(ctx, db, c.EncryptionKeys)
+		},
+	}
+
 	exportCmd = &cobra.Command{
 		Use:   "export-migrations",
 		Short: "Export all migrations as .sql files. Use --export-dir to control the destination.",
@@ -890,7 +931,7 @@ func init() {
 
 	monitorCmd.Flags().StringP("config-file", "f", "", "Configuration file for monitoring (required).")
 	initCertCommands()
-	RootCmd.AddCommand(versionCmd, testCmd, migrateCmd, exportCmd, monitorCmd, addUserCmd, getConfigCmd, setConfigCmd, genCerts)
+	RootCmd.AddCommand(versionCmd, testCmd, migrateCmd, exportCmd, monitorCmd, addUserCmd, getConfigCmd, setConfigCmd, genCerts, reencryptCmd)
 
 	err := viper.BindPFlags(RootCmd.Flags())
 	if err != nil {
