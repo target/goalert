@@ -27,7 +27,7 @@ type AdminMaintToolProps = {
 
 function AdminMaintTool(props: AdminMaintToolProps): React.ReactNode {
   return (
-    <Grid item xs={6}>
+    <Grid item xs={12} xl={6}>
       <Card>
         <CardHeader title={props.name} />
         <CardContent>
