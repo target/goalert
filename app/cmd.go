@@ -429,7 +429,7 @@ Migration: %s (#%d)
 
 	reEncryptCmd = &cobra.Command{
 		Use:   "re-encrypt",
-		Short: "Re-encrypt all keyring secrets and config with the current data-encryption-key.",
+		Short: "Re-encrypt all keyring secrets and config with the current data-encryption-key (experimental).",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			l := log.FromContext(cmd.Context())
 			// update JSON output first

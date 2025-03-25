@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/permission"
@@ -26,6 +27,10 @@ func (a *Mutation) ReEncryptKeyringsAndConfig(ctx context.Context) (bool, error)
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
 		return false, err
+	}
+
+	if !expflag.ContextHas(ctx, expflag.AdminMaint) {
+		return false, validation.NewGenericError("admin-maint experimental flag is not enabled")
 	}
 
 	err = keyring.ReEncryptAll(ctx, a.DB, a.EncryptionKeys)

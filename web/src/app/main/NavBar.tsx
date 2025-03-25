@@ -21,6 +21,7 @@ import NavBarLink, { NavBarSubLink } from './NavBarLink'
 
 import logoImgSrc from '../public/logos/lightmode_logo.svg'
 import darkModeLogoImgSrc from '../public/logos/darkmode_logo.svg'
+import { useExpFlag } from '../util/useExpFlag'
 
 const useStyles = makeStyles((theme: Theme) => ({
   ...globalStyles(theme),
@@ -41,6 +42,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 export default function NavBar(): React.JSX.Element {
   const classes = useStyles()
   const theme = useTheme()
+  const adminMaint = useExpFlag('admin-maint')
 
   let localDevFooter = null
   let localDevRiver = null
@@ -97,7 +99,10 @@ export default function NavBar(): React.JSX.Element {
           <RequireConfig isAdmin>
             <NavBarLink to='/admin' title='Admin' icon={<Build />}>
               <NavBarSubLink to='/admin/config' title='Config' />
-              <NavBarSubLink to='/admin/maintenance' title='Maintenance' />
+
+              {adminMaint && (
+                <NavBarSubLink to='/admin/maintenance' title='Maintenance' />
+              )}
               <NavBarSubLink to='/admin/limits' title='System Limits' />
               <NavBarSubLink to='/admin/toolbox' title='Toolbox' />
               <NavBarSubLink to='/admin/message-logs' title='Message Logs' />
