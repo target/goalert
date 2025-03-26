@@ -4,14 +4,13 @@ import (
 	"testing"
 
 	"github.com/target/goalert/app"
-	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/test/smoke/harness"
 )
 
 // TestDataEncKeyRotation tests that the data encryption key can be rotated.
 func TestDataEncKeyRotation(t *testing.T) {
-	h := harness.NewStoppedHarnessWithFlags(t, "", nil, "", expflag.FlagSet{expflag.AdminMaint})
+	h := harness.NewStoppedHarnessWithFlags(t, "", nil, "", nil)
 	defer h.Close()
 
 	// first startup will generate keys using the provided key
