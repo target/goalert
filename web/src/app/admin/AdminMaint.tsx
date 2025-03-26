@@ -18,6 +18,39 @@ import FormDialog from '../dialogs/FormDialog'
 import { gql, useMutation } from 'urql'
 import { useErrorConsumer } from '../util/ErrorConsumer'
 
+const reEncryptMut = gql`
+  mutation {
+    reEncryptKeyringsAndConfig
+  }
+`
+
+type ReEncryptDataProps = {
+  onClose: () => void
+}
+
+function ReEncryptData(props: ReEncryptDataProps): React.ReactNode {
+  const [status, commit] = useMutation(reEncryptMut)
+  const errs = useErrorConsumer(status.error)
+
+  return (
+    <FormDialog
+      title='Re-Encrypt all data?'
+      subTitle='This will re-encrypt all keyrings and configuration data with the latest encryption key and is not reversible.'
+      onClose={props.onClose}
+      onSubmit={() =>
+        commit().then((res) => {
+          if (res.error) return
+
+          props.onClose()
+        })
+      }
+      primaryActionLabel='Confirm'
+      loading={status.fetching}
+      errors={errs.remainingLegacy()}
+    />
+  )
+}
+
 type AdminMaintToolProps = {
   name: string
   desc: string
@@ -75,38 +108,5 @@ export default function AdminMaint(): React.JSX.Element {
         )}
       </AdminMaintTool>
     </Grid>
-  )
-}
-
-const reEncryptMut = gql`
-  mutation {
-    reEncryptKeyringsAndConfig
-  }
-`
-
-type ReEncryptDataProps = {
-  onClose: () => void
-}
-
-function ReEncryptData(props: ReEncryptDataProps): React.ReactNode {
-  const [status, commit] = useMutation(reEncryptMut)
-  const errs = useErrorConsumer(status.error)
-
-  return (
-    <FormDialog
-      title='Re-Encrypt all data?'
-      subTitle='This will re-encrypt all keyrings and configuration data with the latest encryption key and is not reversible.'
-      onClose={props.onClose}
-      onSubmit={() =>
-        commit().then((res) => {
-          if (res.error) return
-
-          props.onClose()
-        })
-      }
-      primaryActionLabel='Confirm'
-      loading={status.fetching}
-      errors={errs.remainingLegacy()}
-    />
   )
 }
