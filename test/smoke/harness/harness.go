@@ -256,6 +256,11 @@ func NewStoppedHarnessWithFlags(t *testing.T, initSQL string, sqlData interface{
 
 func (h *Harness) Start() {
 	h.t.Helper()
+	h.StartWithAppCfgHook(nil)
+}
+
+func (h *Harness) StartWithAppCfgHook(fn func(*app.Config)) {
+	h.t.Helper()
 
 	var cfg config.Config
 	cfg.General.DisableMessageBundles = true
@@ -333,6 +338,10 @@ func (h *Harness) Start() {
 	h.appPool, err = pgxpool.NewWithConfig(ctx, poolCfg)
 	require.NoError(h.t, err, "create pgx pool")
 
+	if fn != nil {
+		fn(&appCfg)
+	}
+
 	h.backend, err = app.NewApp(appCfg, h.appPool)
 	if err != nil {
 		h.t.Fatalf("failed to start backend: %v", err)
@@ -352,6 +361,14 @@ func (h *Harness) Start() {
 // RestartGoAlertWithConfig will restart the backend with the provided config.
 func (h *Harness) RestartGoAlertWithConfig(cfg config.Config) {
 	h.t.Helper()
+	h.RestartGoAlertWithAppCfgHook(func(c *app.Config) {
+		c.InitialConfig = &cfg
+	})
+}
+
+// RestartGoAlertWithAppCfgHook will restart the backend with the provided config hook.
+func (h *Harness) RestartGoAlertWithAppCfgHook(reconfig func(*app.Config)) {
+	h.t.Helper()
 
 	h.t.Logf("Stopping backend for restart")
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -363,7 +380,7 @@ func (h *Harness) RestartGoAlertWithConfig(cfg config.Config) {
 	}
 
 	h.t.Logf("Restarting backend")
-	h.appCfg.InitialConfig = &cfg
+	reconfig(&h.appCfg)
 	h.backend, err = app.NewApp(h.appCfg, h.appPool)
 	if err != nil {
 		h.t.Fatalf("failed to start backend: %v", err)
