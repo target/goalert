@@ -21,7 +21,6 @@ import NavBarLink, { NavBarSubLink } from './NavBarLink'
 
 import logoImgSrc from '../public/logos/lightmode_logo.svg'
 import darkModeLogoImgSrc from '../public/logos/darkmode_logo.svg'
-import { useExpFlag } from '../util/useExpFlag'
 
 const useStyles = makeStyles((theme: Theme) => ({
   ...globalStyles(theme),
