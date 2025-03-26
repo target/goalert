@@ -7,8 +7,9 @@ import ServiceFilterContainer from './ServiceFilterContainer'
 import { ServiceConnection } from '../../schema'
 import ListPageControls from '../lists/ListPageControls'
 import Search from '../util/Search'
-import FlatList from '../lists/FlatList'
 import { FavoriteIcon } from '../util/SetFavoriteButton'
+import CompList from '../lists/CompList'
+import { CompListItemNav } from '../lists/CompListItems'
 
 const query = gql`
   query servicesQuery($input: ServiceSearchOptions) {
@@ -91,17 +92,17 @@ export default function ServiceList(): JSX.Element {
             />
           ),
           list: (
-            <FlatList
-              emptyMessage='No results'
-              items={
-                q.data?.services.nodes.map((u) => ({
-                  title: u.name,
-                  subText: u.description,
-                  url: u.id,
-                  secondaryAction: u.isFavorite ? <FavoriteIcon /> : undefined,
-                })) || []
-              }
-            />
+            <CompList>
+              {q.data?.services.nodes.map((u) => (
+                <CompListItemNav
+                  key={u.id}
+                  title={u.name}
+                  subText={u.description}
+                  url={u.id}
+                  action={u.isFavorite ? <FavoriteIcon /> : undefined}
+                />
+              ))}
+            </CompList>
           ),
         }}
       />

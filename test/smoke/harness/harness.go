@@ -44,6 +44,7 @@ import (
 	"github.com/target/goalert/user/notificationrule"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/util/timeutil"
 )
 
 var (
@@ -80,8 +81,10 @@ type Harness struct {
 
 	appPool *pgxpool.Pool
 
-	msgSvcID string
-	expFlags expflag.FlagSet
+	rcsSenderID string
+	rcsMsgSvcID string
+	msgSvcID    string
+	expFlags    expflag.FlagSet
 
 	tw  *twilioAssertionAPI
 	twS *httptest.Server
@@ -408,6 +411,35 @@ func (h *Harness) IgnoreErrorsWith(substr string) {
 	h.ignoreErrors = append(h.ignoreErrors, substr)
 }
 
+// Now returns the current time, as observed by the DB.
+func (h *Harness) Now() time.Time {
+	h.t.Helper()
+
+	var now time.Time
+	err := h.appPool.QueryRow(context.Background(), "SELECT NOW()").Scan(&now)
+	require.NoError(h.t, err, "get now()")
+
+	return now
+}
+
+// FastForwardToTime will fast-forward the database time to the next occurrence of the provided clock time.
+func (h *Harness) FastForwardToTime(t timeutil.Clock, zoneName string) {
+	h.t.Helper()
+
+	zone, err := time.LoadLocation(zoneName)
+	require.NoError(h.t, err, "load location")
+
+	now := h.Now()
+
+	y, m, d := now.In(zone).Date()
+	dst := time.Date(y, m, d, t.Hour(), t.Minute(), 0, 0, zone)
+	if !dst.After(now) {
+		dst = dst.AddDate(0, 0, 1)
+	}
+
+	h.FastForward(dst.Sub(now))
+}
+
 func (h *Harness) FastForward(d time.Duration) {
 	h.t.Helper()
 	h.t.Logf("Fast-forward %s", d.String())
@@ -723,6 +755,29 @@ func (h *Harness) TwilioMessagingService() string {
 	return newID
 }
 
+// TwilioMessagingServiceRCS will return the id and phone numbers for the mock messaging service with RCS enabled.
+func (h *Harness) TwilioMessagingServiceRCS() (rcs, msg string) {
+	h.mx.Lock()
+	defer h.mx.Unlock()
+	if h.rcsSenderID != "" {
+		return h.rcsSenderID, h.rcsMsgSvcID
+	}
+
+	nums := []string{h.phoneCCG.Get("twilio:rcs:sid1"), h.phoneCCG.Get("twilio:rcs:sid2"), h.phoneCCG.Get("twilio:rcs:sid3")}
+	newID, err := h.tw.NewMessagingService(h.URL()+"/v1/twilio/sms/messages", nums...)
+	if err != nil {
+		panic(err)
+	}
+
+	h.rcsMsgSvcID = newID
+
+	rcsID, err := h.tw.EnableRCS(newID)
+	require.NoError(h.t, err)
+	h.rcsSenderID = rcsID
+
+	return rcsID, newID
+}
+
 // CreateUser generates a random user.
 func (h *Harness) CreateUser() (u *user.User) {
 	h.t.Helper()
@@ -803,26 +858,12 @@ func (h *Harness) WaitAndAssertOnCallUsers(serviceID string, userIDs ...string) 
 		return uniq
 	}
 	sort.Strings(userIDs)
-	match := func(final bool) bool {
+	check := func(t *assert.CollectT) {
 		ids := getUsers()
-		if len(ids) != len(userIDs) {
-			if final {
-				h.t.Fatalf("got %d on-call users; want %d", len(ids), len(userIDs))
-			}
-			return false
-		}
-		for i, id := range userIDs {
-			if ids[i] != id {
-				if final {
-					h.t.Fatalf("on-call[%d] = %s; want %s", i, ids[i], id)
-				}
-				return false
-			}
-		}
-		return true
+		require.Lenf(t, ids, len(userIDs), "number of on-call users")
+		require.EqualValuesf(t, userIDs, ids, "on-call users")
 	}
-
 	h.Trigger() // run engine cycle
 
-	match(true) // assert result
+	assert.EventuallyWithT(h.t, check, 5*time.Second, 100*time.Millisecond)
 }

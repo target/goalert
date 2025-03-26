@@ -55,7 +55,7 @@ func newMailpit(t *testing.T, retry int) (mp *mailpit) {
 			return false
 		}
 		return isListening(addrs[0]) && isListening(addrs[1])
-	}, 5*time.Second, 100*time.Millisecond, "expected to find mailpit listening on ports")
+	}, 15*time.Second, 100*time.Millisecond, "expected to find mailpit listening on ports")
 
 	t.Cleanup(func() { _ = cmd.Process.Kill() })
 	return &mailpit{

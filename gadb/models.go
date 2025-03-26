@@ -451,6 +451,7 @@ const (
 	EnumOutgoingMessagesStatusFailed         EnumOutgoingMessagesStatus = "failed"
 	EnumOutgoingMessagesStatusPending        EnumOutgoingMessagesStatus = "pending"
 	EnumOutgoingMessagesStatusQueuedRemotely EnumOutgoingMessagesStatus = "queued_remotely"
+	EnumOutgoingMessagesStatusRead           EnumOutgoingMessagesStatus = "read"
 	EnumOutgoingMessagesStatusSending        EnumOutgoingMessagesStatus = "sending"
 	EnumOutgoingMessagesStatusSent           EnumOutgoingMessagesStatus = "sent"
 )
@@ -924,6 +925,13 @@ type EngineProcessingVersion struct {
 	State   json.RawMessage
 	TypeID  EngineProcessingType
 	Version int32
+}
+
+type EntityUpdate struct {
+	CreatedAt  time.Time
+	EntityID   uuid.UUID
+	EntityType string
+	ID         int64
 }
 
 type EpStepOnCallUser struct {

@@ -77,6 +77,7 @@ type workerMiddlewareFunc func(context.Context, func(ctx context.Context) error)
 func (w workerMiddlewareFunc) Work(ctx context.Context, job *rivertype.JobRow, doInner func(ctx context.Context) error) error {
 	return w(ctx, doInner)
 }
+func (workerMiddlewareFunc) IsMiddleware() bool { return true }
 
 func (app *App) initRiver(ctx context.Context) error {
 	app.RiverWorkers = river.NewWorkers()
