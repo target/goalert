@@ -83,6 +83,8 @@ func notificationStateFromSendResult(s notification.Status, formattedSrc string)
 		prefix = "Sent"
 	case notification.StateDelivered:
 		prefix = "Delivered"
+	case notification.StateRead:
+		prefix = "Read"
 	case notification.StateFailedTemp, notification.StateFailedPerm:
 		prefix = "Failed"
 	default:
