@@ -5,7 +5,6 @@ import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import CreateFAB from '../lists/CreateFAB'
-import FlatList, { FlatListListItem } from '../lists/FlatList'
 import IconButton from '@mui/material/IconButton'
 import { Trash } from '../icons'
 import IntegrationKeyCreateDialog from './IntegrationKeyCreateDialog'
@@ -27,6 +26,8 @@ import {
   Typography,
 } from '@mui/material'
 import { ChevronDown } from 'mdi-material-ui'
+import CompList from '../lists/CompList'
+import { CompListItemText } from '../lists/CompListItems'
 
 const query = gql`
   query ($serviceID: ID!) {
@@ -117,18 +118,19 @@ export default function IntegrationKeyList(props: {
     .slice()
     .sort(sortItems)
     .filter((key: IntegrationKey) => !key.externalSystemName)
-    .map(
-      (key: IntegrationKey): FlatListListItem => ({
-        title: key.name,
-        subText: (
+    .map((key: IntegrationKey) => (
+      <CompListItemText
+        key={key.id}
+        title={key.name}
+        subText={
           <IntegrationKeyDetails
             key={key.id}
             href={key.href}
             label={typeLabel(key.type)}
             type={key.type}
           />
-        ),
-        secondaryAction: (
+        }
+        action={
           <Grid container spacing={2} alignItems='center' wrap='nowrap'>
             {key.type === 'universal' && (
               <Grid item>
@@ -153,19 +155,20 @@ export default function IntegrationKeyList(props: {
               </IconButton>
             </Grid>
           </Grid>
-        ),
-      }),
-    )
+        }
+      />
+    ))
 
   const extItems = (data.service.integrationKeys || [])
     .slice()
     .sort(sortItems)
     .filter((key: IntegrationKey) => !!key.externalSystemName)
-    .map(
-      (key: IntegrationKey): FlatListListItem => ({
-        title: key.name,
-        subText: <Chip label={key.externalSystemName} sx={{ mt: 1 }} />,
-        secondaryAction: (
+    .map((key: IntegrationKey) => (
+      <CompListItemText
+        key={key.id}
+        title={key.name}
+        subText={<Chip label={key.externalSystemName} sx={{ mt: 1 }} />}
+        action={
           <IconButton
             onClick={(): void => setDeleteDialog(key.id)}
             size='large'
@@ -173,38 +176,38 @@ export default function IntegrationKeyList(props: {
           >
             <Trash />
           </IconButton>
-        ),
-      }),
-    )
+        }
+      />
+    ))
 
   return (
     <React.Fragment>
       <Grid item xs={12} className={classes.spacing}>
         <Card>
           <CardContent>
-            <FlatList
+            <CompList
               data-cy='int-keys'
-              headerNote={
+              note={
                 <React.Fragment>
                   API Documentation is available{' '}
                   <AppLink to='/docs'>here</AppLink>.
                 </React.Fragment>
               }
               emptyMessage='No integration keys exist for this service.'
-              items={items}
-              headerAction={
-                isMobile ? undefined : (
-                  <Button
-                    variant='contained'
-                    onClick={(): void => setCreate(true)}
-                    startIcon={<Add />}
-                    data-testid='create-key'
-                  >
-                    Create Integration Key
-                  </Button>
-                )
+              hideActionOnMobile
+              action={
+                <Button
+                  variant='contained'
+                  onClick={(): void => setCreate(true)}
+                  startIcon={<Add />}
+                  data-testid='create-key'
+                >
+                  Create Integration Key
+                </Button>
               }
-            />
+            >
+              {items}
+            </CompList>
             {!!extItems.length && (
               <Accordion disableGutters elevation={0}>
                 <AccordionSummary
@@ -214,10 +217,9 @@ export default function IntegrationKeyList(props: {
                   <Typography>Externally Managed Keys</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <FlatList
-                    headerNote='These keys are managed by other applications.'
-                    items={extItems}
-                  />
+                  <CompList note='These keys are managed by other applications.'>
+                    {extItems}
+                  </CompList>
                 </AccordionDetails>
               </Accordion>
             )}

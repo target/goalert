@@ -1,7 +1,6 @@
 import React, { Suspense, useState } from 'react'
 import { Button, Card, Grid, Typography } from '@mui/material'
 import { Add } from '@mui/icons-material'
-import FlatList, { FlatListListItem } from '../../lists/FlatList'
 import UniversalKeyRuleDialog from './UniversalKeyRuleDialog'
 import UniversalKeyRuleRemoveDialog from './UniversalKeyRuleRemoveDialog'
 import OtherActions from '../../util/OtherActions'
@@ -11,6 +10,10 @@ import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
 import UniversalKeyActionsList from './UniversalKeyActionsList'
 import { UniversalKeyActionDialog } from './UniversalKeyActionDialog'
+import CompList from '../../lists/CompList'
+import ReorderGroup from '../../lists/ReorderGroup'
+import { ReorderableItem } from '../../lists/ReorderableItem'
+import { CompListItemText } from '../../lists/CompListItems'
 
 interface UniversalKeyRuleListProps {
   serviceID: string
@@ -83,66 +86,68 @@ export default function UniversalKeyRuleList(
   if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
-  const items: FlatListListItem[] = (
-    data?.integrationKey.config.rules ?? []
-  ).map((rule) => ({
-    title: (
-      <Typography component='h4' variant='subtitle1' sx={{ pb: 1 }}>
-        <b>{rule.name}:</b>
-        &nbsp;
-        {rule.description}
-      </Typography>
-    ),
-    subText: (
-      <Grid container>
-        <Grid item xs={12}>
-          <b>If</b>
-          <code style={{ paddingLeft: '1em' }}>
-            {truncateCond(rule.conditionExpr)}
-          </code>
-        </Grid>
-        <Grid item xs={12}>
-          <b>Then</b>
-        </Grid>
-        <Grid item xs={12} sx={{ paddingLeft: '1em' }}>
-          <UniversalKeyActionsList
-            actions={rule.actions}
-            onEdit={(index) =>
-              setEditAction({ ruleID: rule.id, actionIndex: index })
-            }
+  const items = (data?.integrationKey.config.rules ?? []).map((rule) => (
+    <ReorderableItem id={rule.id} key={rule.id}>
+      <CompListItemText
+        title={
+          <Typography component='h4' variant='subtitle1' sx={{ pb: 1 }}>
+            <b>{rule.name}:</b>
+            &nbsp;
+            {rule.description}
+          </Typography>
+        }
+        subText={
+          <Grid container>
+            <Grid item xs={12}>
+              <b>If</b>
+              <code style={{ paddingLeft: '1em' }}>
+                {truncateCond(rule.conditionExpr)}
+              </code>
+            </Grid>
+            <Grid item xs={12}>
+              <b>Then</b>
+            </Grid>
+            <Grid item xs={12} sx={{ paddingLeft: '1em' }}>
+              <UniversalKeyActionsList
+                actions={rule.actions}
+                onEdit={(index) =>
+                  setEditAction({ ruleID: rule.id, actionIndex: index })
+                }
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <b>Finally</b> {rule.continueAfterMatch ? 'continue' : 'stop'}
+            </Grid>
+          </Grid>
+        }
+        action={
+          <OtherActions
+            actions={[
+              {
+                label: 'Add Action',
+                onClick: () => setAddAction({ ruleID: rule.id }),
+              },
+              {
+                label: 'Edit Rule',
+                onClick: () => setEdit(rule.id),
+              },
+              {
+                label: 'Delete Rule',
+                onClick: () => setRemove(rule.id),
+              },
+            ]}
           />
-        </Grid>
-        <Grid item xs={12}>
-          <b>Finally</b> {rule.continueAfterMatch ? 'continue' : 'stop'}
-        </Grid>
-      </Grid>
-    ),
-    secondaryAction: (
-      <OtherActions
-        actions={[
-          {
-            label: 'Add Action',
-            onClick: () => setAddAction({ ruleID: rule.id }),
-          },
-          {
-            label: 'Edit Rule',
-            onClick: () => setEdit(rule.id),
-          },
-          {
-            label: 'Delete Rule',
-            onClick: () => setRemove(rule.id),
-          },
-        ]}
+        }
       />
-    ),
-  }))
+    </ReorderableItem>
+  ))
 
   return (
     <React.Fragment>
       <Card>
-        <FlatList
+        <CompList
           emptyMessage='No rules exist for this integration key.'
-          headerAction={
+          action={
             <Button
               variant='contained'
               startIcon={<Add />}
@@ -151,25 +156,29 @@ export default function UniversalKeyRuleList(
               Create Rule
             </Button>
           }
-          headerNote='Rules are a set of filters that allow notifications to be sent to a specific destination. '
-          items={items}
-          onReorder={(oldIdx, newIdx) => {
-            const ruleIDs =
-              data?.integrationKey.config.rules.map((r) => r.id) || []
-            const tmp = ruleIDs[oldIdx]
-            ruleIDs[oldIdx] = ruleIDs[newIdx]
-            ruleIDs[newIdx] = tmp
-            commit(
-              {
-                input: {
-                  keyID: props.keyID,
-                  setRuleOrder: ruleIDs,
+          note='Rules are a set of filters that allow notifications to be sent to a specific destination. '
+        >
+          <ReorderGroup
+            onReorder={(oldIdx, newIdx) => {
+              const ruleIDs =
+                data?.integrationKey.config.rules.map((r) => r.id) || []
+              const tmp = ruleIDs[oldIdx]
+              ruleIDs[oldIdx] = ruleIDs[newIdx]
+              ruleIDs[newIdx] = tmp
+              commit(
+                {
+                  input: {
+                    keyID: props.keyID,
+                    setRuleOrder: ruleIDs,
+                  },
                 },
-              },
-              { additionalTypenames: ['IntegrationKey'] },
-            )
-          }}
-        />
+                { additionalTypenames: ['IntegrationKey'] },
+              )
+            }}
+          >
+            {items}
+          </ReorderGroup>
+        </CompList>
       </Card>
 
       <Suspense>
