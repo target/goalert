@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/event"
 	"github.com/target/goalert/gadb"
@@ -373,7 +374,7 @@ func (s *Store) UpdateStatusByService(ctx context.Context, serviceID string, sta
 		return err
 	}
 
-	err = gadb.New(tx).Alert_LockService(ctx, serviceID)
+	err = gadb.New(tx).Alert_LockService(ctx, uuid.MustParse(serviceID))
 	if err != nil {
 		return err
 	}
@@ -445,7 +446,7 @@ func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertI
 
 	var updatedIDs []int
 
-	err = gadb.New(tx).Alert_LockAlertService(ctx, ids)
+	err = gadb.New(tx).Alert_LockManyAlertServices(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -502,7 +503,7 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Alert, err
 		return nil, err
 	}
 
-	err = gadb.New(tx).Alert_LockService(ctx, n.ServiceID)
+	err = gadb.New(tx).Alert_LockService(ctx, uuid.MustParse(a.ServiceID))
 	if err != nil {
 		return nil, err
 	}
@@ -532,11 +533,11 @@ func (s *Store) _create(ctx context.Context, tx *sql.Tx, a Alert) (*Alert, *aler
 		return nil, nil, err
 	}
 
-	hasSteps, err := gadb.New(tx).Alert_ServiceEPHasSteps(ctx, a.ServiceID)
+	hasSteps, err := gadb.New(tx).Alert_ServiceEPHasSteps(ctx, uuid.MustParse(a.ServiceID))
 	if err != nil {
 		return nil, nil, err
 	}
-	meta.EPNoSteps = hasSteps.(bool)
+	meta.EPNoSteps = !hasSteps
 	return &a, &meta, nil
 }
 
@@ -568,7 +569,7 @@ func (s *Store) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Al
 		return nil, false, err
 	}
 
-	err = gadb.New(tx).Alert_LockService(ctx, n.ServiceID)
+	err = gadb.New(tx).Alert_LockService(ctx, uuid.MustParse(n.ServiceID))
 	if err != nil {
 		return nil, false, err
 	}
@@ -586,11 +587,11 @@ func (s *Store) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Al
 			logType = alertlog.TypeDuplicateSupressed
 		} else {
 			logType = alertlog.TypeCreated
-			hasSteps, stepErr := gadb.New(tx).Alert_ServiceEPHasSteps(ctx, n.ServiceID)
-			if stepErr != nil {
+			hasSteps, err := gadb.New(tx).Alert_ServiceEPHasSteps(ctx, uuid.MustParse(n.ServiceID))
+			if err != nil {
 				return nil, false, err
 			}
-			m.EPNoSteps = hasSteps.(bool)
+			m.EPNoSteps = !hasSteps
 		}
 		meta = &m
 	case StatusActive:

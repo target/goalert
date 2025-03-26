@@ -106,48 +106,55 @@ ON CONFLICT (alert_id)
 
 -- name: Alert_ServiceEPHasSteps :one
 -- Returns true if the Escalation Policy for the provided service has at least one step.
-SELECT coalesce(
-    (SELECT true
-    FROM escalation_policies pol
-    JOIN services svc ON svc.id = @id::text
-    WHERE
-        pol.id = svc.escalation_policy_id
-        AND pol.step_count = 0)
-, false);
+SELECT
+    EXISTS (
+        SELECT
+            1
+        FROM
+            escalation_policy_steps step
+            JOIN services svc ON step.escalation_policy_id = svc.escalation_policy_id
+        WHERE
+            svc.id = @service_id);
 
 -- name: Alert_LockService :exec
 -- Locks the service associated with the alert.
-SELECT 1
+SELECT
+    1
 FROM
     services
 WHERE
-    id = @id::text
-FOR
-UPDATE;
+    id = @service_id
+FOR UPDATE;
 
--- name: Alert_LockAlertService :exec
--- Locks the alert service associated with the alert.
-SELECT 1
-FROM services s
-JOIN alerts a ON a.id = ANY (@alert_ids::bigint[])
-AND s.id = a.service_id
-FOR
-UPDATE;
+-- name: Alert_LockManyAlertServices :exec
+-- Locks the service(s) associated with the specified alerts.
+SELECT
+    1
+FROM
+    alerts a
+    JOIN services s ON a.service_id = s.id
+WHERE
+    a.id = ANY (@alert_ids::bigint[])
+FOR UPDATE;
 
 -- name: Alert_GetStatusAndLockService :one
 -- Returns the status of the alert and locks the service associated with the alert.
-SELECT a.status
-FROM services s
-JOIN alerts a ON a.id = @id::bigint
-AND a.service_id = s.id
-FOR
-UPDATE;
+SELECT
+    a.status
+FROM
+    alerts a
+    JOIN services svc ON svc.id = a.service_id
+WHERE
+    a.id = @id::bigint
+FOR UPDATE;
 
 -- name: Alert_GetEscalationPolicyID :one
 -- Returns the escalation policy ID associated with the alert.
-SELECT escalation_policy_id
+SELECT
+    escalation_policy_id
 FROM
-    services svc,
     alerts a
+    JOIN services svc ON svc.id = a.service_id
 WHERE
-    svc.id = @id::bigint;
+    a.id = @id::bigint;
+

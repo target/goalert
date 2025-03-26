@@ -594,12 +594,13 @@ func (q *Queries) Alert_GetAlertMetadata(ctx context.Context, alertID int64) (pq
 }
 
 const alert_GetEscalationPolicyID = `-- name: Alert_GetEscalationPolicyID :one
-SELECT escalation_policy_id
+SELECT
+    escalation_policy_id
 FROM
-    services svc,
     alerts a
+    JOIN services svc ON svc.id = a.service_id
 WHERE
-    svc.id = $1::bigint
+    a.id = $1::bigint
 `
 
 // Returns the escalation policy ID associated with the alert.
@@ -611,12 +612,14 @@ func (q *Queries) Alert_GetEscalationPolicyID(ctx context.Context, id int64) (uu
 }
 
 const alert_GetStatusAndLockService = `-- name: Alert_GetStatusAndLockService :one
-SELECT a.status
-FROM services s
-JOIN alerts a ON a.id = $1::bigint
-AND a.service_id = s.id
-FOR
-UPDATE
+SELECT
+    a.status
+FROM
+    alerts a
+    JOIN services svc ON svc.id = a.service_id
+WHERE
+    a.id = $1::bigint
+FOR UPDATE
 `
 
 // Returns the status of the alert and locks the service associated with the alert.
@@ -627,18 +630,20 @@ func (q *Queries) Alert_GetStatusAndLockService(ctx context.Context, id int64) (
 	return status, err
 }
 
-const alert_LockAlertService = `-- name: Alert_LockAlertService :exec
-SELECT 1
-FROM services s
-JOIN alerts a ON a.id = ANY ($1::bigint[])
-AND s.id = a.service_id
-FOR
-UPDATE
+const alert_LockManyAlertServices = `-- name: Alert_LockManyAlertServices :exec
+SELECT
+    1
+FROM
+    alerts a
+    JOIN services s ON a.service_id = s.id
+WHERE
+    a.id = ANY ($1::bigint[])
+FOR UPDATE
 `
 
-// Locks the alert service associated with the alert.
-func (q *Queries) Alert_LockAlertService(ctx context.Context, alertIds []int64) error {
-	_, err := q.db.ExecContext(ctx, alert_LockAlertService, pq.Array(alertIds))
+// Locks the service(s) associated with the specified alerts.
+func (q *Queries) Alert_LockManyAlertServices(ctx context.Context, alertIds []int64) error {
+	_, err := q.db.ExecContext(ctx, alert_LockManyAlertServices, pq.Array(alertIds))
 	return err
 }
 
@@ -668,18 +673,18 @@ func (q *Queries) Alert_LockOneAlertService(ctx context.Context, id int64) (Aler
 }
 
 const alert_LockService = `-- name: Alert_LockService :exec
-SELECT 1
+SELECT
+    1
 FROM
     services
 WHERE
-    id = $1::text
-FOR
-UPDATE
+    id = $1
+FOR UPDATE
 `
 
 // Locks the service associated with the alert.
-func (q *Queries) Alert_LockService(ctx context.Context, id string) error {
-	_, err := q.db.ExecContext(ctx, alert_LockService, id)
+func (q *Queries) Alert_LockService(ctx context.Context, serviceID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, alert_LockService, serviceID)
 	return err
 }
 
@@ -710,22 +715,23 @@ func (q *Queries) Alert_RequestAlertEscalationByTime(ctx context.Context, arg Al
 }
 
 const alert_ServiceEPHasSteps = `-- name: Alert_ServiceEPHasSteps :one
-SELECT coalesce(
-    (SELECT true
-    FROM escalation_policies pol
-    JOIN services svc ON svc.id = $1::text
-    WHERE
-        pol.id = svc.escalation_policy_id
-        AND pol.step_count = 0)
-, false)
+SELECT
+    EXISTS (
+        SELECT
+            1
+        FROM
+            escalation_policy_steps step
+            JOIN services svc ON step.escalation_policy_id = svc.escalation_policy_id
+        WHERE
+            svc.id = $1)
 `
 
 // Returns true if the Escalation Policy for the provided service has at least one step.
-func (q *Queries) Alert_ServiceEPHasSteps(ctx context.Context, id string) (interface{}, error) {
-	row := q.db.QueryRowContext(ctx, alert_ServiceEPHasSteps, id)
-	var coalesce interface{}
-	err := row.Scan(&coalesce)
-	return coalesce, err
+func (q *Queries) Alert_ServiceEPHasSteps(ctx context.Context, serviceID uuid.UUID) (bool, error) {
+	row := q.db.QueryRowContext(ctx, alert_ServiceEPHasSteps, serviceID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
 
 const alert_SetAlertFeedback = `-- name: Alert_SetAlertFeedback :exec
