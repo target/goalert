@@ -42,7 +42,6 @@ const useStyles = makeStyles((theme: Theme) => ({
 export default function NavBar(): React.JSX.Element {
   const classes = useStyles()
   const theme = useTheme()
-  const adminMaint = useExpFlag('admin-maint')
 
   let localDevFooter = null
   let localDevRiver = null
@@ -99,10 +98,7 @@ export default function NavBar(): React.JSX.Element {
           <RequireConfig isAdmin>
             <NavBarLink to='/admin' title='Admin' icon={<Build />}>
               <NavBarSubLink to='/admin/config' title='Config' />
-
-              {adminMaint && (
-                <NavBarSubLink to='/admin/maintenance' title='Maintenance' />
-              )}
+              <NavBarSubLink to='/admin/maintenance' title='Maintenance' />
               <NavBarSubLink to='/admin/limits' title='System Limits' />
               <NavBarSubLink to='/admin/toolbox' title='Toolbox' />
               <NavBarSubLink to='/admin/message-logs' title='Message Logs' />
