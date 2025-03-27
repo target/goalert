@@ -11,8 +11,8 @@ CREATE FUNCTION fn_insert_message_status_history()
     RETURNS TRIGGER
     AS $$
 BEGIN
-    INSERT INTO message_status_history(message_id, status, status_details)
-        VALUES(NEW.id, NEW.last_status, NEW.status_details);
+    INSERT INTO message_status_history(message_id, status, timestamp, status_details)
+        VALUES(NEW.id, NEW.last_status, NEW.last_status_at, NEW.status_details);
     RETURN new;
 END;
 $$
