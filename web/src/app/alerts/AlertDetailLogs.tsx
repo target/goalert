@@ -19,7 +19,9 @@ import {
   AccordionDetails,
   AccordionSummary,
   AlertColor,
+  ListItemIcon,
 } from '@mui/material'
+import { ChevronDown, ChevronRight } from 'mdi-material-ui'
 
 const FETCH_LIMIT = 149
 const QUERY_LIMIT = 35
@@ -109,6 +111,8 @@ function MessageHistory(props: MessageHistoryProps): React.ReactNode {
       {data &&
         data.map((entry, idx) => (
           <ListItem key={idx} sx={{ paddingRight: 0 }}>
+            {/* for spacing */}
+            <ListItemIcon />
             <ListItemText
               primary={
                 'Status: ' + entry.status + (idx === 0 ? ' (current)' : '')
@@ -161,6 +165,9 @@ function LogEvent(props: LogEventProps): React.ReactNode {
           id='panel1d-header'
           sx={{ padding: 0 }}
         >
+          <ListItemIcon sx={{ display: 'flex', alignItems: 'center' }}>
+            {expanded ? <ChevronDown /> : <ChevronRight />}
+          </ListItemIcon>
           <LogEventHeader
             event={props.event}
             showExactTimes={props.showExactTimes}
