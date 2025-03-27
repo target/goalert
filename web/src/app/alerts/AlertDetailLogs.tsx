@@ -140,6 +140,35 @@ interface LogEventProps {
   event: AlertLogEntry
   showExactTimes?: boolean
 }
+
+function LogEventHeader(props: LogEventProps): React.ReactNode {
+  const classes = useStyles()
+  const details = _.upperFirst(props.event?.state?.details ?? '')
+  const status = (props.event?.state?.status ?? '') as NotificationStatus
+  return (
+    <React.Fragment>
+      <ListItemText
+        primary={props.event.message}
+        secondary={details}
+        secondaryTypographyProps={{
+          color: status && getLogStatusClass(status),
+        }}
+      />
+      <div>
+        <ListItemText
+          className={classes.logTimeContainer}
+          secondary={
+            <Time
+              time={props.event.timestamp}
+              format={props.showExactTimes ? 'default' : 'relative'}
+            />
+          }
+        />
+      </div>
+    </React.Fragment>
+  )
+}
+
 function LogEvent(props: LogEventProps): React.ReactNode {
   const [expanded, setExpanded] = useState(false)
   if (!props.event.messageID)
@@ -183,34 +212,6 @@ function LogEvent(props: LogEventProps): React.ReactNode {
         </AccordionDetails>
       </Accordion>
     </ListItem>
-  )
-}
-
-function LogEventHeader(props: LogEventProps): React.ReactNode {
-  const classes = useStyles()
-  const details = _.upperFirst(props.event?.state?.details ?? '')
-  const status = (props.event?.state?.status ?? '') as NotificationStatus
-  return (
-    <React.Fragment>
-      <ListItemText
-        primary={props.event.message}
-        secondary={details}
-        secondaryTypographyProps={{
-          color: status && getLogStatusClass(status),
-        }}
-      />
-      <div>
-        <ListItemText
-          className={classes.logTimeContainer}
-          secondary={
-            <Time
-              time={props.event.timestamp}
-              format={props.showExactTimes ? 'default' : 'relative'}
-            />
-          }
-        />
-      </div>
-    </React.Fragment>
   )
 }
 
