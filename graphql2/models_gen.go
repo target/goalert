@@ -555,6 +555,12 @@ type MessageLogSearchOptions struct {
 	Omit          []string   `json:"omit,omitempty"`
 }
 
+type MessageStatusHistory struct {
+	Status    string    `json:"status"`
+	Details   string    `json:"details"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
 type Mutation struct {
 }
 

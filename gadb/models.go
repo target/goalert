@@ -1041,6 +1041,14 @@ type Label struct {
 	Value        string
 }
 
+type MessageStatusHistory struct {
+	ID            int64
+	MessageID     uuid.UUID
+	Status        EnumOutgoingMessagesStatus
+	StatusDetails string
+	Timestamp     time.Time
+}
+
 type NotificationChannel struct {
 	CreatedAt time.Time
 	Dest      NullDestV1

@@ -38,6 +38,15 @@ func (a *App) Alert() graphql2.AlertResolver                 { return (*Alert)(a
 func (a *App) AlertMetric() graphql2.AlertMetricResolver     { return (*AlertMetric)(a) }
 func (a *App) AlertLogEntry() graphql2.AlertLogEntryResolver { return (*AlertLogEntry)(a) }
 
+func (a *AlertLogEntry) MessageID(ctx context.Context, obj *alertlog.Entry) (*string, error) {
+	id := obj.MessageID(ctx)
+	if id == "" {
+		return nil, nil
+	}
+
+	return &id, nil
+}
+
 func (a *AlertLogEntry) ID(ctx context.Context, obj *alertlog.Entry) (int, error) {
 	e := *obj
 	return e.ID(), nil
