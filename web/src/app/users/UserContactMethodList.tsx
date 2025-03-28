@@ -1,6 +1,5 @@
 import React, { useState, ReactNode, Suspense } from 'react'
 import { gql, useQuery } from 'urql'
-import FlatList from '../lists/FlatList'
 import { Button, Card, CardHeader, Grid, IconButton } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
@@ -18,6 +17,8 @@ import { UserContactMethod } from '../../schema'
 import { useSessionInfo, useContactMethodTypes } from '../util/RequireConfig'
 import UserContactMethodEditDialog from './UserContactMethodEditDialog'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
+import CompList from '../lists/CompList'
+import { CompListItemText } from '../lists/CompListItems'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -208,25 +209,25 @@ export default function UserContactMethodList(
             ) : null
           }
         />
-        <FlatList
-          data-cy='contact-methods'
-          items={sortContactMethods(contactMethods).map((cm) => {
+        <CompList data-cy='contact-methods' emptyMessage='No contact methods'>
+          {sortContactMethods(contactMethods).map((cm) => {
             const destType = destinationTypes.find(
               (d) => d.type === cm.dest.type,
             )
 
             const label = destType?.name || 'Unknown Type'
 
-            return {
-              id: cm.id,
-              title: `${cm.name} (${label})${cm.disabled ? ' - Disabled' : ''}`,
-              subText: getSubText(cm),
-              secondaryAction: getSecondaryAction(cm),
-              icon: getIcon(cm),
-            }
+            return (
+              <CompListItemText
+                key={cm.id}
+                title={`${cm.name} (${label})${cm.disabled ? ' - Disabled' : ''}`}
+                subText={getSubText(cm)}
+                action={getSecondaryAction(cm)}
+                icon={getIcon(cm)}
+              />
+            )
           })}
-          emptyMessage='No contact methods'
-        />
+        </CompList>
         <Suspense>
           {showAddDialog && (
             <UserContactMethodCreateDialog

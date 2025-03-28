@@ -1,6 +1,5 @@
 import React, { Suspense, useState } from 'react'
 import { Button, Grid, Card, Typography, Tooltip, Theme } from '@mui/material'
-import FlatList from '../../lists/FlatList'
 import OtherActions from '../../util/OtherActions'
 import { onCallRuleSummary } from './util'
 import ScheduleOnCallNotificationsDeleteDialog from './ScheduleOnCallNotificationsDeleteDialog'
@@ -15,6 +14,8 @@ import { styles as globalStyles } from '../../styles/materialStyles'
 import makeStyles from '@mui/styles/makeStyles'
 import ScheduleOnCallNotificationsCreateDialog from './ScheduleOnCallNotificationsCreateDialog'
 import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotificationsEditDialog'
+import CompList from '../../lists/CompList'
+import { CompListItemText } from '../../lists/CompListItems'
 
 export type ScheduleOnCallNotificationsListProps = {
   scheduleID: string
@@ -70,8 +71,8 @@ export default function ScheduleOnCallNotificationsList({
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <Card>
-            <FlatList
-              headerNote={
+            <CompList
+              note={
                 <Typography
                   component='p'
                   variant='subtitle1'
@@ -86,7 +87,6 @@ export default function ScheduleOnCallNotificationsList({
                   </span>
                 </Typography>
               }
-              items={[]}
             />
           </Card>
         </Grid>
@@ -102,28 +102,57 @@ export default function ScheduleOnCallNotificationsList({
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <Card>
-            <FlatList
-              headerNote={`Showing times for schedule in ${timeZone}.`}
+            <CompList
+              note={`Showing times for schedule in ${timeZone}.`}
               emptyMessage='No notification rules.'
-              headerAction={
-                isMobile ? undefined : (
-                  <Button
-                    variant='contained'
-                    onClick={() => setCreateRule(true)}
-                    startIcon={<Add />}
-                  >
-                    Create Notification Rule
-                  </Button>
-                )
+              hideActionOnMobile
+              action={
+                <Button
+                  variant='contained'
+                  onClick={() => setCreateRule(true)}
+                  startIcon={<Add />}
+                >
+                  Create Notification Rule
+                </Button>
               }
-              items={q.data.schedule.onCallNotificationRules.map((rule) => {
+            >
+              {q.data.schedule.onCallNotificationRules.map((rule) => {
                 const display = rule.dest.displayInfo
                 if ('error' in display) {
-                  return {
-                    icon: <DestinationAvatar error />,
-                    title: `ERROR: ${display.error}`,
-                    subText: 'Notifies ' + onCallRuleSummary(timeZone, rule),
-                    secondaryAction: (
+                  return (
+                    <CompListItemText
+                      icon={<DestinationAvatar error />}
+                      title={`ERROR: ${display.error}`}
+                      subText={`Notifies ${onCallRuleSummary(timeZone, rule)}`}
+                      action={
+                        <OtherActions
+                          actions={[
+                            {
+                              label: 'Edit',
+                              onClick: () => setEditRuleID(rule.id),
+                            },
+                            {
+                              label: 'Delete',
+                              onClick: () => setDeleteRuleID(rule.id),
+                            },
+                          ]}
+                        />
+                      }
+                    />
+                  )
+                }
+
+                return (
+                  <CompListItemText
+                    icon={
+                      <DestinationAvatar
+                        iconURL={display.iconURL}
+                        iconAltText={display.iconAltText}
+                      />
+                    }
+                    title={display.text}
+                    subText={'Notifies ' + onCallRuleSummary(timeZone, rule)}
+                    action={
                       <OtherActions
                         actions={[
                           {
@@ -136,36 +165,11 @@ export default function ScheduleOnCallNotificationsList({
                           },
                         ]}
                       />
-                    ),
-                  }
-                }
-
-                return {
-                  icon: (
-                    <DestinationAvatar
-                      iconURL={display.iconURL}
-                      iconAltText={display.iconAltText}
-                    />
-                  ),
-                  title: display.text,
-                  subText: 'Notifies ' + onCallRuleSummary(timeZone, rule),
-                  secondaryAction: (
-                    <OtherActions
-                      actions={[
-                        {
-                          label: 'Edit',
-                          onClick: () => setEditRuleID(rule.id),
-                        },
-                        {
-                          label: 'Delete',
-                          onClick: () => setDeleteRuleID(rule.id),
-                        },
-                      ]}
-                    />
-                  ),
-                }
+                    }
+                  />
+                )
               })}
-            />
+            </CompList>
           </Card>
         </Grid>
       </Grid>
