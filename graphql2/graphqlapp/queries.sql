@@ -16,6 +16,16 @@ WHERE
         OR (om.message_type = 'alert_notification_bundle'
             AND om.service_id = @service_id::uuid));
 
+-- name: GraphQL_MessageStatusHistory :many
+SELECT
+    *
+FROM
+    message_status_history
+WHERE
+    message_id = $1
+ORDER BY
+    timestamp DESC;
+
 -- name: GQLUserOnCallOverview :many
 SELECT
     svc.id AS service_id,

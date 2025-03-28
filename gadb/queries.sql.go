@@ -2453,6 +2453,46 @@ func (q *Queries) GQLUserOnCallOverview(ctx context.Context, userID uuid.UUID) (
 	return items, nil
 }
 
+const graphQL_MessageStatusHistory = `-- name: GraphQL_MessageStatusHistory :many
+SELECT
+    id, message_id, status, status_details, timestamp
+FROM
+    message_status_history
+WHERE
+    message_id = $1
+ORDER BY
+    timestamp DESC
+`
+
+func (q *Queries) GraphQL_MessageStatusHistory(ctx context.Context, messageID uuid.UUID) ([]MessageStatusHistory, error) {
+	rows, err := q.db.QueryContext(ctx, graphQL_MessageStatusHistory, messageID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MessageStatusHistory
+	for rows.Next() {
+		var i MessageStatusHistory
+		if err := rows.Scan(
+			&i.ID,
+			&i.MessageID,
+			&i.Status,
+			&i.StatusDetails,
+			&i.Timestamp,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const hBByIDForUpdate = `-- name: HBByIDForUpdate :one
 SELECT
     additional_details, heartbeat_interval, id, last_heartbeat, last_state, muted, name, service_id
