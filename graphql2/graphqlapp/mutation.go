@@ -7,6 +7,7 @@ import (
 
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/schedule"
@@ -20,6 +21,20 @@ import (
 type Mutation App
 
 func (a *App) Mutation() graphql2.MutationResolver { return (*Mutation)(a) }
+
+func (a *Mutation) ReEncryptKeyringsAndConfig(ctx context.Context) (bool, error) {
+	err := permission.LimitCheckAny(ctx, permission.Admin)
+	if err != nil {
+		return false, err
+	}
+
+	err = keyring.ReEncryptAll(ctx, a.DB, a.EncryptionKeys)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
 
 func (a *Mutation) SetFavorite(ctx context.Context, input graphql2.SetFavoriteInput) (bool, error) {
 	var err error

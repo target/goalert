@@ -97,6 +97,7 @@ export default function NavBar(): React.JSX.Element {
           <RequireConfig isAdmin>
             <NavBarLink to='/admin' title='Admin' icon={<Build />}>
               <NavBarSubLink to='/admin/config' title='Config' />
+              <NavBarSubLink to='/admin/maintenance' title='Maintenance' />
               <NavBarSubLink to='/admin/limits' title='System Limits' />
               <NavBarSubLink to='/admin/toolbox' title='Toolbox' />
               <NavBarSubLink to='/admin/message-logs' title='Message Logs' />
