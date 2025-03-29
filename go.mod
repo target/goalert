@@ -1,6 +1,7 @@
 module github.com/target/goalert
 
 go 1.24.0
+
 require (
 	github.com/99designs/gqlgen v0.17.70
 	github.com/brianvoe/gofakeit/v6 v6.28.0
