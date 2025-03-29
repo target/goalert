@@ -1,15 +1,14 @@
 module github.com/target/goalert
 
 go 1.24.0
-
 require (
-	github.com/99designs/gqlgen v0.17.68
+	github.com/99designs/gqlgen v0.17.70
 	github.com/brianvoe/gofakeit/v6 v6.28.0
 	github.com/coreos/go-oidc/v3 v3.13.0
 	github.com/creack/pty/v2 v2.0.1
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/emersion/go-smtp v0.21.3
-	github.com/expr-lang/expr v1.17.1
+	github.com/expr-lang/expr v1.17.2
 	github.com/fatih/color v1.18.0
 	github.com/felixge/httpsnoop v1.0.4
 	github.com/fullstorydev/grpcui v1.5.0
@@ -19,7 +18,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/yamux v0.1.2
 	github.com/jackc/pgtype v1.14.4
-	github.com/jackc/pgx/v5 v5.7.2
+	github.com/jackc/pgx/v5 v5.7.4
 	github.com/jackc/pgxlisten v0.0.0-20241106001234-1d6f6656415c
 	github.com/jmespath/go-jmespath v0.4.0
 	github.com/joho/godotenv v1.5.1
@@ -27,7 +26,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/matcornic/hermes/v2 v2.1.0
 	github.com/mnako/letters v0.2.5
-	github.com/nyaruka/phonenumbers v1.5.0
+	github.com/nyaruka/phonenumbers v1.6.0
 	github.com/oauth2-proxy/mockoidc v0.0.0-20240214162133-caebfff84d25
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/pkg/errors v0.9.1
@@ -41,7 +40,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/slack-go/slack v0.16.0
 	github.com/spf13/cobra v1.9.1
-	github.com/spf13/viper v1.20.0
+	github.com/spf13/viper v1.20.1
 	github.com/sqlc-dev/pqtype v0.3.0
 	github.com/stretchr/testify v1.10.0
 	github.com/vektah/gqlparser/v2 v2.5.23
@@ -52,7 +51,7 @@ require (
 	golang.org/x/tools v0.31.0
 	google.golang.org/grpc v1.71.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.5.1
-	google.golang.org/protobuf v1.36.5
+	google.golang.org/protobuf v1.36.6
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	riverqueue.com/riverui v0.8.1
 )
