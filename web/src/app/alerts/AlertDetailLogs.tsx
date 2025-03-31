@@ -98,15 +98,13 @@ function getDur(a: string, b: string): Duration {
   return dur
 }
 
-interface MessageHistoryProps {
+export interface MessageHistoryProps {
   messageID: string
-  showExactTimes?: boolean
 }
 const noSuspense = {
   suspense: false,
 }
-function MessageHistory(props: MessageHistoryProps): React.ReactNode {
-  const classes = useStyles()
+export function MessageHistory(props: MessageHistoryProps): React.ReactNode {
   const [hist] = urqlUseQuery({
     query: histQuery,
     variables: { id: props.messageID },
@@ -213,12 +211,7 @@ function LogEvent(props: LogEventProps): React.ReactNode {
           />
         </AccordionSummary>
         <AccordionDetails sx={{ paddingRight: 0 }}>
-          {expanded && (
-            <MessageHistory
-              messageID={props.event.messageID}
-              showExactTimes={props.showExactTimes}
-            />
-          )}
+          {expanded && <MessageHistory messageID={props.event.messageID} />}
         </AccordionDetails>
       </Accordion>
     </ListItem>
