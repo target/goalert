@@ -100,6 +100,7 @@ function getDur(a: string, b: string): Duration {
 
 export interface MessageHistoryProps {
   messageID: string
+  noIndent?: boolean
 }
 const noSuspense = {
   suspense: false,
@@ -122,7 +123,7 @@ export function MessageHistory(props: MessageHistoryProps): React.ReactNode {
         data.map((entry, idx) => (
           <ListItem key={idx} sx={{ paddingRight: 0 }}>
             {/* for spacing */}
-            <ListItemIcon />
+            {!props.noIndent && <ListItemIcon />}
             <ListItemText
               primary={
                 idx === 0 ? (
