@@ -22,6 +22,7 @@ import {
   ListItemIcon,
 } from '@mui/material'
 import { ChevronDown, ChevronRight } from 'mdi-material-ui'
+import { DateTime, Duration } from 'luxon'
 
 const FETCH_LIMIT = 149
 const QUERY_LIMIT = 35
@@ -86,6 +87,17 @@ const histQuery = urqlGql`
   }
 `
 
+function getDur(a: string, b: string): Duration {
+  if (a === b) {
+    return Duration.fromMillis(1)
+  }
+  const thisEvent = DateTime.fromISO(a)
+  const prevEvent = DateTime.fromISO(b)
+  const dur = thisEvent.diff(prevEvent, 'milliseconds')
+
+  return dur
+}
+
 interface MessageHistoryProps {
   messageID: string
   showExactTimes?: boolean
@@ -115,21 +127,19 @@ function MessageHistory(props: MessageHistoryProps): React.ReactNode {
             <ListItemIcon />
             <ListItemText
               primary={
-                'Status: ' + entry.status + (idx === 0 ? ' (current)' : '')
+                idx === 0 ? (
+                  `Status: ${entry.status} (current)`
+                ) : (
+                  <Time
+                    prefix={'Status: ' + entry.status + ' ('}
+                    suffix=')'
+                    units={['hours', 'minutes', 'seconds', 'milliseconds']}
+                    duration={getDur(entry.timestamp, data[idx - 1].timestamp)}
+                  />
+                )
               }
               secondary={entry.details}
             />
-            <div>
-              <ListItemText
-                className={classes.logTimeContainer}
-                secondary={
-                  <Time
-                    time={entry.timestamp}
-                    format={props.showExactTimes ? 'default' : 'relative'}
-                  />
-                }
-              />
-            </div>
           </ListItem>
         ))}
     </List>
