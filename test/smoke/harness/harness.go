@@ -713,7 +713,7 @@ func (h *Harness) Close() error {
 
 // SetCarrierName will set the carrier name for the given phone number.
 func (h *Harness) SetCarrierName(number, name string) {
-	h.tw.Server.SetCarrierInfo(number, twilio.CarrierInfo{Name: name})
+	h.tw.SetCarrierInfo(number, twilio.CarrierInfo{Name: name})
 }
 
 // TwilioNumber will return a registered (or register if missing) Twilio number for the given ID.
