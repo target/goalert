@@ -1,15 +1,12 @@
 package web
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
 	"sync"
-
-	"github.com/target/goalert/util/log"
 )
 
 type etagHandler struct {
@@ -29,7 +26,7 @@ func NewEtagFileServer(files http.FileSystem, static bool) http.Handler {
 	}
 }
 
-func (e *etagHandler) etag(ctx context.Context, name string) string {
+func (e *etagHandler) etag(name string) string {
 	e.mx.Lock()
 	defer e.mx.Unlock()
 
@@ -42,7 +39,7 @@ func (e *etagHandler) etag(ctx context.Context, name string) string {
 		e.tags[name] = ""
 		return ""
 	}
-	defer log.Close(ctx, f.Close)
+	defer func() { _ = f.Close() }()
 
 	h := sha256.New()
 
@@ -58,7 +55,7 @@ func (e *etagHandler) etag(ctx context.Context, name string) string {
 }
 
 func (e *etagHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	if tag := e.etag(req.Context(), req.URL.Path); tag != "" {
+	if tag := e.etag(req.URL.Path); tag != "" {
 		if w.Header().Get("Cache-Control") == "" {
 			w.Header().Set("Cache-Control", "public, max-age=60, stale-while-revalidate=600, stale-if-error=259200")
 		}
