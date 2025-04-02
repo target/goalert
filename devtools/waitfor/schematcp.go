@@ -23,7 +23,8 @@ func init() {
 		if err != nil {
 			return err
 		}
+		_ = c.Close()
 
-		return c.Close()
+		return nil
 	}, "tcp")
 }
