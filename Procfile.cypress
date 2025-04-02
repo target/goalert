@@ -1,7 +1,7 @@
 build: while true; do make -qs bin/goalert.cover || make bin/goalert.cover || (echo '\033[0;31mBuild Failure'; sleep 3); sleep 0.1; done
 
 @watch-file=./bin/goalert.cover
-goalert: go tool waitfor postgres://postgres@127.0.0.1:5433 && go run ./devtools/procwrap -test=127.0.0.1:3042 bin/goalert.cover -l=127.0.0.1:3042 --ui-dir=web/src/build --db-url=postgres://postgres@127.0.0.1:5433 --slack-base-url=http://127.0.0.1:3040/slack --stub-notifiers --log-errors-only --public-url=http://127.0.0.1:3040$HTTP_PREFIX --enable-secure-headers
+goalert: go tool waitfor postgres://postgres@127.0.0.1:5433 && go tool procwrap -test=127.0.0.1:3042 bin/goalert.cover -l=127.0.0.1:3042 --ui-dir=web/src/build --db-url=postgres://postgres@127.0.0.1:5433 --slack-base-url=http://127.0.0.1:3040/slack --stub-notifiers --log-errors-only --public-url=http://127.0.0.1:3040$HTTP_PREFIX --enable-secure-headers
 
 @watch-file=./web/src/esbuild.config.js
 ui: ./bin/tools/bun run esbuild --watch
@@ -9,9 +9,9 @@ ui: ./bin/tools/bun run esbuild --watch
 @watch-file=./web/src/esbuild.cypress.js
 build-cy: ./bin/tools/bun run esbuild-cy --watch
 
-slack: go run ./devtools/mockslack/cmd/mockslack -client-id=000000000000.000000000000 -client-secret=00000000000000000000000000000000 -access-token=xoxp-000000000000-000000000000-000000000000-00000000000000000000000000000000 -prefix=/slack -single-user=bob -addr=127.0.0.1:3046
+slack: go tool mockslack -client-id=000000000000.000000000000 -client-secret=00000000000000000000000000000000 -access-token=xoxp-000000000000-000000000000-000000000000-00000000000000000000000000000000 -prefix=/slack -single-user=bob -addr=127.0.0.1:3046
 
-proxy: go run ./devtools/simpleproxy -addr=127.0.0.1:3040 /slack/=http://127.0.0.1:3046 http://127.0.0.1:3042
+proxy: go tool simpleproxy -addr=127.0.0.1:3040 /slack/=http://127.0.0.1:3046 http://127.0.0.1:3042
 
 @oneshot
 cypress: go tool waitfor http://127.0.0.1:3042 && CYPRESS_DB_URL=postgres://postgres@127.0.0.1:5433 ./bin/tools/bun run cypress open --config baseUrl=http://127.0.0.1:3040$HTTP_PREFIX

@@ -1,10 +1,10 @@
 @oneshot
 cypress: go tool waitfor http://127.0.0.1:3042 && CYPRESS_DB_URL=$DB_URL ./bin/tools/bun run cypress $CY_ACTION --config baseUrl=http://127.0.0.1:3040$HTTP_PREFIX
 
-goalert: go tool waitfor $DB_URL && go run ./devtools/procwrap -test=127.0.0.1:3042 bin/goalert.cover -l=127.0.0.1:3042 --db-url=$DB_URL --slack-base-url=http://127.0.0.1:3040/slack --stub-notifiers --log-errors-only --public-url=http://127.0.0.1:3040$HTTP_PREFIX --enable-secure-headers
+goalert: go tool waitfor $DB_URL && go tool procwrap -test=127.0.0.1:3042 bin/goalert.cover -l=127.0.0.1:3042 --db-url=$DB_URL --slack-base-url=http://127.0.0.1:3040/slack --stub-notifiers --log-errors-only --public-url=http://127.0.0.1:3040$HTTP_PREFIX --enable-secure-headers
 
-slack: go run ./devtools/mockslack/cmd/mockslack -client-id=000000000000.000000000000 -client-secret=00000000000000000000000000000000 -access-token=xoxp-000000000000-000000000000-000000000000-00000000000000000000000000000000 -prefix=/slack -single-user=bob -addr=127.0.0.1:3046
+slack: go tool mockslack -client-id=000000000000.000000000000 -client-secret=00000000000000000000000000000000 -access-token=xoxp-000000000000-000000000000-000000000000-00000000000000000000000000000000 -prefix=/slack -single-user=bob -addr=127.0.0.1:3046
 
-proxy: go run ./devtools/simpleproxy -addr=127.0.0.1:3040 /slack/=http://127.0.0.1:3046 http://127.0.0.1:3042
+proxy: go tool simpleproxy -addr=127.0.0.1:3040 /slack/=http://127.0.0.1:3046 http://127.0.0.1:3042
 
 db: tail -f /var/log/postgresql/server.log

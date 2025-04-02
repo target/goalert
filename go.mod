@@ -336,10 +336,24 @@ tool (
 	github.com/kffl/speedbump
 	github.com/riverqueue/river/cmd/river
 	github.com/sqlc-dev/sqlc/cmd/sqlc
+	github.com/target/goalert/devtools/configparams
+	github.com/target/goalert/devtools/configtsidgen
+	github.com/target/goalert/devtools/genmake
+	github.com/target/goalert/devtools/gettool
+	github.com/target/goalert/devtools/gqltsgen
+	github.com/target/goalert/devtools/limitapigen
 	github.com/target/goalert/devtools/mockoidc
+	github.com/target/goalert/devtools/mockslack/cmd/mockslack
+	github.com/target/goalert/devtools/ordermigrations
 	github.com/target/goalert/devtools/pgdump-lite/cmd/pgdump-lite
+	github.com/target/goalert/devtools/procwrap
 	github.com/target/goalert/devtools/psql-lite
+	github.com/target/goalert/devtools/resetdb
+	github.com/target/goalert/devtools/runproc
+	github.com/target/goalert/devtools/scripts/db-url-set-db
+	github.com/target/goalert/devtools/simpleproxy
 	github.com/target/goalert/devtools/waitfor
+	github.com/target/goalert/expflag/cmd/expflagtsgen
 	github.com/target/goalert/migrate/cmd/goalert-migrate
 	golang.org/x/tools/cmd/goimports
 	golang.org/x/tools/cmd/stringer

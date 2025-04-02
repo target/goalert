@@ -13,12 +13,12 @@ include Makefile.binaries.mk
 CFGPARAMS = devtools/configparams/*.go
 DB_URL = postgres://goalert@localhost:5432/goalert
 INT_DB = goalert_integration
-INT_DB_URL = $(shell go run ./devtools/scripts/db-url "$(DB_URL)" "$(INT_DB)")
+INT_DB_URL = $(shell go tool db-url-set-db "$(DB_URL)" "$(INT_DB)")
 
 SWO_DB_MAIN = goalert_swo_main
 SWO_DB_NEXT = goalert_swo_next
-SWO_DB_URL_MAIN = $(shell go run ./devtools/scripts/db-url "$(DB_URL)" "$(SWO_DB_MAIN)")
-SWO_DB_URL_NEXT = $(shell go run ./devtools/scripts/db-url "$(DB_URL)" "$(SWO_DB_NEXT)")
+SWO_DB_URL_MAIN = $(shell go tool db-url-set-db "$(DB_URL)" "$(SWO_DB_MAIN)")
+SWO_DB_URL_NEXT = $(shell go tool db-url-set-db "$(DB_URL)" "$(SWO_DB_NEXT)")
 
 LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
@@ -30,6 +30,7 @@ PSQL=go tool psql-lite
 PGDUMP=go tool pgdump-lite
 MIGRATE=go tool goalert-migrate
 WAITFOR=go tool waitfor
+GENCERT=$(GENCERT)
 
 # add all files except those under web/src/build and web/src/cypress
 NODE_DEPS=.gitrev $(shell find web/src -path web/src/build -prune -o -path web/src/cypress -prune -o -type f -print) web/src/app/editor/expr-parser.ts node_modules
@@ -75,20 +76,20 @@ check_arch:
 release: container-demo container-goalert bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz bin/goalert-windows-amd64.zip ## Build all release artifacts
 
 Makefile.binaries.mk: devtools/genmake/*
-	go run ./devtools/genmake >$@
+	go tool genmake >$@
 
 $(BIN_DIR)/tools/k6: k6.version
-	go run ./devtools/gettool -t k6 -v $(shell cat k6.version) -o $@
+	go tool gettool -t k6 -v $(shell cat k6.version) -o $@
 
 $(BIN_DIR)/tools/protoc: protoc.version
-	go run ./devtools/gettool -t protoc -v $(shell cat protoc.version) -o $@
+	go tool gettool -t protoc -v $(shell cat protoc.version) -o $@
 
 
 $(BIN_DIR)/tools/mailpit: mailpit.version
-	go run ./devtools/gettool -t mailpit -v $(shell cat mailpit.version) -o $@
+	go tool gettool -t mailpit -v $(shell cat mailpit.version) -o $@
 
 $(BIN_DIR)/tools/bun: bun.version
-	go run ./devtools/gettool -t bun -v $(shell cat bun.version) -o $@
+	go tool gettool -t bun -v $(shell cat bun.version) -o $@
 
 bun.lock: $(BIN_DIR)/tools/bun
 	$(BIN_DIR)/tools/bun install
@@ -99,7 +100,7 @@ node_modules: $(BIN_DIR)/tools/bun package.json bun.lock
 	touch "$@"
 
 $(BIN_DIR)/tools/prometheus: prometheus.version
-	go run ./devtools/gettool -t prometheus -v $(shell cat prometheus.version) -o $@
+	go tool gettool -t prometheus -v $(shell cat prometheus.version) -o $@
 
 $(BIN_DIR)/tools/protoc-gen-go: go.mod
 	GOBIN=$(abspath $(BIN_DIR))/tools go install google.golang.org/protobuf/cmd/protoc-gen-go
@@ -107,39 +108,39 @@ $(BIN_DIR)/tools/protoc-gen-go-grpc: go.mod
 	GOBIN=$(abspath $(BIN_DIR))/tools go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
 
 system.ca.pem:
-	go run ./cmd/goalert gen-cert ca
+	$(GENCERT) ca
 system.ca.key:
-	go run ./cmd/goalert gen-cert ca
+	$(GENCERT) ca
 plugin.ca.pem:
-	go run ./cmd/goalert gen-cert ca
+	$(GENCERT) ca
 plugin.ca.key:
-	go run ./cmd/goalert gen-cert ca
+	$(GENCERT) ca
 
 goalert-server.pem: system.ca.pem system.ca.key plugin.ca.pem
-	go run ./cmd/goalert gen-cert server
+	$(GENCERT) server
 goalert-server.key: system.ca.pem system.ca.key plugin.ca.pem
-	go run ./cmd/goalert gen-cert server
+	$(GENCERT) server
 goalert-server.ca.pem: system.ca.pem system.ca.key plugin.ca.pem
-	go run ./cmd/goalert gen-cert server
+	$(GENCERT) server
 
 goalert-client.pem: system.ca.pem plugin.ca.key plugin.ca.pem
-	go run ./cmd/goalert gen-cert client
+	$(GENCERT) client
 goalert-client.key: system.ca.pem plugin.ca.key plugin.ca.pem
-	go run ./cmd/goalert gen-cert client
+	$(GENCERT) client
 goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
-	go run ./cmd/goalert gen-cert client
+	$(GENCERT) client
 
 cypress: bin/goalert.cover bin/pgmocktime $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/build/integration/cypress/plugins/index.js node_modules
 	$(BIN_DIR)/tools/bun run cypress install
 
 cy-wide: cypress ## Start cypress tests in desktop mode with dev build in UI mode
-	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) PG_VERSION=$(PG_VERSION) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 go run ./devtools/runproc -f Procfile.cypress
+	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) PG_VERSION=$(PG_VERSION) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 go tool runproc -f Procfile.cypress
 cy-mobile: cypress ## Start cypress tests in mobile mode with dev build in UI mode
-	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) PG_VERSION=$(PG_VERSION) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 go run ./devtools/runproc -f Procfile.cypress
+	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) PG_VERSION=$(PG_VERSION) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 go tool runproc -f Procfile.cypress
 cy-wide-prod: web/src/build/static/app.js cypress ## Start cypress tests in desktop mode with production build in UI mode
-	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) PG_VERSION=$(PG_VERSION) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f $(PROD_CY_PROC)
+	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) PG_VERSION=$(PG_VERSION) CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) go tool runproc -f $(PROD_CY_PROC)
 cy-mobile-prod: web/src/build/static/app.js cypress ## Start cypress tests in mobile mode with production build in UI mode
-	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) PG_VERSION=$(PG_VERSION) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) go run ./devtools/runproc -f $(PROD_CY_PROC)
+	GOALERT_VERSION=$(GIT_VERSION) CONTAINER_TOOL=$(CONTAINER_TOOL) PG_VERSION=$(PG_VERSION) CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) go tool runproc -f $(PROD_CY_PROC)
 cy-wide-prod-run: web/src/build/static/app.js cypress ## Start cypress tests in desktop mode with production build in headless mode
 	rm -rf test/coverage/integration/cypress-wide
 	mkdir -p test/coverage/integration/cypress-wide
@@ -160,13 +161,13 @@ help: ## Show all valid options
 
 start: check_arch bin/goalert $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit ## Start the developer version of the application
 	$(WAITFOR) -timeout 1s  "$(DB_URL)" || make postgres
-	GOALERT_VERSION=$(GIT_VERSION) GOALERT_STRICT_EXPERIMENTAL=1 go run ./devtools/runproc -f Procfile -l Procfile.local
+	GOALERT_VERSION=$(GIT_VERSION) GOALERT_STRICT_EXPERIMENTAL=1 go tool runproc -f Procfile -l Procfile.local
 
 start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit ## Start the production version of the application
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	$(MAKE) $(MFLAGS) bin/goalert BUNDLE=1
-	go run ./devtools/runproc -f Procfile.prod -l Procfile.local
+	go tool runproc -f Procfile.prod -l Procfile.local
 
 reset-swo: bin/goalert
 	$(WAITFOR) -timeout 1s  "$(DB_URL)" || make postgres
@@ -213,14 +214,14 @@ check-js: generate $(NODE_DEPS)
 
 check-go: generate 
 	@go mod tidy
-	# go run ./devtools/ordermigrations -check
+	# go tool ordermigrations -check
 	go tool golangci-lint run
 
 graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/*
-	(cd ./graphql2 && go run ../devtools/configparams -out mapconfig.go && go tool goimports -w ./mapconfig.go) || go generate ./graphql2
+	(cd ./graphql2 && go tool configparams -out mapconfig.go && go tool goimports -w ./mapconfig.go) || go generate ./graphql2
 
 graphql2/maplimit.go: $(CFGPARAMS) limit/id.go graphql2/generated.go devtools/limitapigen/*
-	(cd ./graphql2 && go run ../devtools/limitapigen -out maplimit.go && go tool goimports -w ./maplimit.go) || go generate ./graphql2
+	(cd ./graphql2 && go tool limitapigen -out maplimit.go && go tool goimports -w ./maplimit.go) || go generate ./graphql2
 
 graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod graphql2/graph/*.graphqls
 	go generate ./graphql2
@@ -326,7 +327,7 @@ regendb: bin/resetdb bin/goalert config.json.bak ## Reset the database and fill 
 	bin/goalert add-user --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123 "--db-url=$(DB_URL)"
 
 resetdb: config.json.bak ## Recreate the database leaving it empty (no migrations)
-	go run ./devtools/resetdb --no-migrate
+	go tool resetdb --no-migrate
 
 clean: ## Clean up build artifacts
 	rm -rf bin node_modules web/src/node_modules .pnp.cjs .pnp.loader.mjs web/src/build/static .yarn storybook-static
