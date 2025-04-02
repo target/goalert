@@ -22,6 +22,7 @@ import {
   ListItemIcon,
 } from '@mui/material'
 import { ChevronDown, ChevronRight } from 'mdi-material-ui'
+import { DateTime, Duration } from 'luxon'
 
 const FETCH_LIMIT = 149
 const QUERY_LIMIT = 35
@@ -86,15 +87,25 @@ const histQuery = urqlGql`
   }
 `
 
-interface MessageHistoryProps {
+function getDur(a: string, b: string): Duration {
+  if (a === b) {
+    return Duration.fromMillis(1)
+  }
+  const thisEvent = DateTime.fromISO(a)
+  const prevEvent = DateTime.fromISO(b)
+  const dur = thisEvent.diff(prevEvent, 'milliseconds')
+
+  return dur
+}
+
+export interface MessageHistoryProps {
   messageID: string
-  showExactTimes?: boolean
+  noIndent?: boolean
 }
 const noSuspense = {
   suspense: false,
 }
-function MessageHistory(props: MessageHistoryProps): React.ReactNode {
-  const classes = useStyles()
+export function MessageHistory(props: MessageHistoryProps): React.ReactNode {
   const [hist] = urqlUseQuery({
     query: histQuery,
     variables: { id: props.messageID },
@@ -112,24 +123,22 @@ function MessageHistory(props: MessageHistoryProps): React.ReactNode {
         data.map((entry, idx) => (
           <ListItem key={idx} sx={{ paddingRight: 0 }}>
             {/* for spacing */}
-            <ListItemIcon />
+            {!props.noIndent && <ListItemIcon />}
             <ListItemText
               primary={
-                'Status: ' + entry.status + (idx === 0 ? ' (current)' : '')
+                idx === 0 ? (
+                  `Status: ${entry.status} (current)`
+                ) : (
+                  <Time
+                    prefix={'Status: ' + entry.status + ' ('}
+                    suffix=')'
+                    units={['hours', 'minutes', 'seconds', 'milliseconds']}
+                    duration={getDur(entry.timestamp, data[idx - 1].timestamp)}
+                  />
+                )
               }
               secondary={entry.details}
             />
-            <div>
-              <ListItemText
-                className={classes.logTimeContainer}
-                secondary={
-                  <Time
-                    time={entry.timestamp}
-                    format={props.showExactTimes ? 'default' : 'relative'}
-                  />
-                }
-              />
-            </div>
           </ListItem>
         ))}
     </List>
@@ -203,12 +212,7 @@ function LogEvent(props: LogEventProps): React.ReactNode {
           />
         </AccordionSummary>
         <AccordionDetails sx={{ paddingRight: 0 }}>
-          {expanded && (
-            <MessageHistory
-              messageID={props.event.messageID}
-              showExactTimes={props.showExactTimes}
-            />
-          )}
+          {expanded && <MessageHistory messageID={props.event.messageID} />}
         </AccordionDetails>
       </Accordion>
     </ListItem>
