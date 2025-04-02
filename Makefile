@@ -217,10 +217,10 @@ check-go: generate
 	go tool golangci-lint run
 
 graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/*
-	(cd ./graphql2 && go run ../devtools/configparams -out mapconfig.go && go run golang.org/x/tools/cmd/goimports -w ./mapconfig.go) || go generate ./graphql2
+	(cd ./graphql2 && go run ../devtools/configparams -out mapconfig.go && go tool goimports -w ./mapconfig.go) || go generate ./graphql2
 
 graphql2/maplimit.go: $(CFGPARAMS) limit/id.go graphql2/generated.go devtools/limitapigen/*
-	(cd ./graphql2 && go run ../devtools/limitapigen -out maplimit.go && go run golang.org/x/tools/cmd/goimports -w ./maplimit.go) || go generate ./graphql2
+	(cd ./graphql2 && go run ../devtools/limitapigen -out maplimit.go && go tool goimports -w ./maplimit.go) || go generate ./graphql2
 
 graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod graphql2/graph/*.graphqls
 	go generate ./graphql2
@@ -278,16 +278,6 @@ db-schema:
 	echo "-- PSQL=$$($(PSQL) -d '$(dir $(DB_URL))mk_dump_schema' -c 'select id from gorp_migrations order by id' | sort | $(SHA_CMD))" >> migrate/schema.sql
 	$(PGDUMP) -d "$(dir $(DB_URL))mk_dump_schema" -s >> migrate/schema.sql
 	$(PSQL) -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS mk_dump_schema;'
-
-tools:
-	go get -u golang.org/x/tools/cmd/gorename
-	go get -u golang.org/x/tools/cmd/present
-	go get -u golang.org/x/tools/cmd/bundle
-	go get -u golang.org/x/tools/cmd/gomvpkg
-	go get -u golang.org/x/tools/cmd/goimports
-	go get -u golang.org/x/tools/cmd/stringer
-
-
 
 
 web/src/app/editor/expr-parser.ts: web/src/app/editor/expr.grammar node_modules

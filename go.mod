@@ -12,7 +12,6 @@ require (
 	github.com/expr-lang/expr v1.17.2
 	github.com/fatih/color v1.18.0
 	github.com/felixge/httpsnoop v1.0.4
-	github.com/fullstorydev/grpcui v1.4.3
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8
 	github.com/google/go-github/v56 v56.0.0
@@ -23,7 +22,6 @@ require (
 	github.com/jackc/pgxlisten v0.0.0-20241106001234-1d6f6656415c
 	github.com/jmespath/go-jmespath v0.4.0
 	github.com/joho/godotenv v1.5.1
-	github.com/kffl/speedbump v1.1.0
 	github.com/lib/pq v1.10.9
 	github.com/matcornic/hermes/v2 v2.1.0
 	github.com/mnako/letters v0.2.5
@@ -33,7 +31,6 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.21.1
 	github.com/riverqueue/river v0.19.0
-	github.com/riverqueue/river/cmd/river v0.19.0
 	github.com/riverqueue/river/riverdriver/riverdatabasesql v0.19.0
 	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.19.0
 	github.com/riverqueue/river/rivertype v0.19.0
@@ -49,7 +46,6 @@ require (
 	golang.org/x/oauth2 v0.28.0
 	golang.org/x/sys v0.31.0
 	golang.org/x/term v0.30.0
-	golang.org/x/tools v0.31.0
 	google.golang.org/grpc v1.71.1
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.5.1
 	google.golang.org/protobuf v1.36.6
@@ -126,6 +122,7 @@ require (
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/firefart/nonamedreturns v1.0.5 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
+	github.com/fullstorydev/grpcui v1.4.3 // indirect
 	github.com/fullstorydev/grpcurl v1.9.3 // indirect
 	github.com/fzipp/gocyclo v0.6.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
@@ -189,6 +186,7 @@ require (
 	github.com/jjti/go-spancheck v0.6.4 // indirect
 	github.com/julz/importas v0.2.0 // indirect
 	github.com/karamaru-alpha/copyloopvar v1.2.1 // indirect
+	github.com/kffl/speedbump v1.1.0 // indirect
 	github.com/kisielk/errcheck v1.9.0 // indirect
 	github.com/kkHAIKE/contextcheck v1.1.6 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
@@ -243,6 +241,7 @@ require (
 	github.com/quasilyte/stdinfo v0.0.0-20220114132959-f7386bf02567 // indirect
 	github.com/raeperd/recvcheck v0.2.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
+	github.com/riverqueue/river/cmd/river v0.19.0 // indirect
 	github.com/riverqueue/river/riverdriver v0.19.0 // indirect
 	github.com/riverqueue/river/rivershared v0.19.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
@@ -313,6 +312,7 @@ require (
 	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/tools v0.31.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250324211829-b45e905df463 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
@@ -333,6 +333,7 @@ tool (
 	github.com/99designs/gqlgen
 	github.com/fullstorydev/grpcui/cmd/grpcui
 	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
+	github.com/kffl/speedbump
 	github.com/riverqueue/river/cmd/river
 	github.com/sqlc-dev/sqlc/cmd/sqlc
 	github.com/target/goalert/devtools/mockoidc
