@@ -31,6 +31,7 @@ PGDUMP=go tool pgdump-lite
 MIGRATE=go tool goalert-migrate
 WAITFOR=go tool waitfor
 GENCERT=$(GENCERT)
+PROTOC=PATH="$(BIN_DIR)/tools" protoc
 
 # add all files except those under web/src/build and web/src/cypress
 NODE_DEPS=.gitrev $(shell find web/src -path web/src/build -prune -o -path web/src/cypress -prune -o -type f -print) web/src/app/editor/expr-parser.ts node_modules
@@ -227,9 +228,9 @@ graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod graphq
 	go generate ./graphql2
 
 pkg/sysapi/sysapi_grpc.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go-grpc $(BIN_DIR)/tools/protoc
-	PATH="$(BIN_DIR)/tools" protoc --go-grpc_out=. --go-grpc_opt=paths=source_relative pkg/sysapi/sysapi.proto
+	$(PROTOC) --go-grpc_out=. --go-grpc_opt=paths=source_relative pkg/sysapi/sysapi.proto
 pkg/sysapi/sysapi.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go $(BIN_DIR)/tools/protoc
-	PATH="$(BIN_DIR)/tools" protoc --go_out=. --go_opt=paths=source_relative pkg/sysapi/sysapi.proto
+	$(PROTOC) --go_out=. --go_opt=paths=source_relative pkg/sysapi/sysapi.proto
 
 generate: $(NODE_DEPS) pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go
 	$(SQLC) generate
