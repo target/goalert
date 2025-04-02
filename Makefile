@@ -178,14 +178,14 @@ reset-swo: bin/goalert
 start-swo: reset-swo bin/goalert bin/runproc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit ## Start the developer version of the application in switchover mode (SWO)
 	GOALERT_VERSION=$(GIT_VERSION) ./bin/runproc -f Procfile.swo -l Procfile.local
 
-reset-integration: bin/goalert.cover bin/resetdb
+reset-integration: bin/goalert.cover
 	rm -rf test/coverage/integration/reset
 	mkdir -p test/coverage/integration/reset
 	$(WAITFOR) -timeout 1s  "$(DB_URL)" || make postgres
 	$(PSQL) -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(INT_DB); CREATE DATABASE $(INT_DB);'
 	$(PSQL) -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(SWO_DB_MAIN); CREATE DATABASE $(SWO_DB_MAIN);'
 	$(PSQL) -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(SWO_DB_NEXT); CREATE DATABASE $(SWO_DB_NEXT);'
-	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001 -db-url "$(SWO_DB_URL_MAIN)" -admin-db-url "$(DB_URL)" -mult 0.1
+	go tool resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001 -db-url "$(SWO_DB_URL_MAIN)" -admin-db-url "$(DB_URL)" -mult 0.1
 	./bin/goalert.cover add-user --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123 "--db-url=$(SWO_DB_URL_MAIN)"
 	GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover --db-url "$(INT_DB_URL)" migrate
 	$(PSQL) -d "$(INT_DB_URL)" -c "insert into users (id, role, name) values ('00000000-0000-0000-0000-000000000001', 'admin', 'Admin McIntegrationFace'),('00000000-0000-0000-0000-000000000002', 'user', 'User McIntegrationFace');"
@@ -322,8 +322,8 @@ postgres:
 		-p 5432:5432 \
 		docker.io/library/postgres:$(PG_VERSION)-alpine && $(WAITFOR) "$(DB_URL)" && make regendb) || ($(CONTAINER_TOOL) start goalert-postgres && $(WAITFOR) "$(DB_URL)")
 
-regendb: bin/resetdb bin/goalert config.json.bak ## Reset the database and fill it with random data
-	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001 -mult $(SIZE)
+regendb: bin/goalert config.json.bak ## Reset the database and fill it with random data
+	go tool resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001 -mult $(SIZE)
 	test -f config.json.bak && bin/goalert set-config --allow-empty-data-encryption-key "--db-url=$(DB_URL)" <config.json.bak || true
 	bin/goalert add-user --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123 "--db-url=$(DB_URL)"
 
