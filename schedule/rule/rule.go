@@ -112,7 +112,7 @@ func (r Rule) StartTime(t time.Time) time.Time {
 	isTodayEnabled := r.Day(w)
 
 	if isTodayEnabled && r.Start == r.End {
-		return r.Start.FirstOfDay(r.StartTime(t))
+		return r.Start.FirstOfDay(r.WeekdayFilter.StartTime(t))
 	}
 
 	if r.Start < r.End {
