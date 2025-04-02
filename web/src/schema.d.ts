@@ -41,6 +41,7 @@ export interface AlertDataPoint {
 export interface AlertLogEntry {
   id: number
   message: string
+  messageID?: null | string
   state?: null | NotificationState
   timestamp: ISOTimestamp
 }
@@ -745,6 +746,12 @@ export interface MessageLogSearchOptions {
   search?: null | string
 }
 
+export interface MessageStatusHistory {
+  details: string
+  status: string
+  timestamp: ISOTimestamp
+}
+
 export interface Mutation {
   addAuthSubject: boolean
   clearTemporarySchedules: boolean
@@ -904,6 +911,7 @@ export interface Query {
   labels: LabelConnection
   linkAccountInfo?: null | LinkAccountInfo
   messageLogs: MessageLogConnection
+  messageStatusHistory: MessageStatusHistory[]
   phoneNumberInfo?: null | PhoneNumberInfo
   rotation?: null | Rotation
   rotations: RotationConnection

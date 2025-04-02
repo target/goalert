@@ -1055,6 +1055,11 @@ type AlertLogEntry {
   timestamp: ISOTimestamp!
   message: String!
   state: NotificationState
+
+  """
+  If the log entry represents a notification, this will be the ID of the notification.
+  """
+  messageID: ID
 }
 
 type NotificationState {
