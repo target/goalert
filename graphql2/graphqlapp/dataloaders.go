@@ -70,7 +70,7 @@ func (a *App) closeLoaders(ctx context.Context) {
 		if !ok {
 			continue
 		}
-		loader.Close()
+		_ = loader.Close()
 	}
 }
 

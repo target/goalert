@@ -22,8 +22,8 @@ import (
 
 var detailsTmpl = template.Must(template.New("details").Funcs(template.FuncMap{
 	"escapeTableCell": func(s string) string {
-		s = strings.Replace(s, "\n", "<br />", -1)
-		s = strings.Replace(s, "|", "\\|", -1)
+		s = strings.ReplaceAll(s, "\n", "<br />")
+		s = strings.ReplaceAll(s, "|", "\\|")
 		return s
 	},
 	"codeBlock": func(s string) string {

@@ -2,9 +2,10 @@ package validate
 
 import (
 	"fmt"
-	"github.com/target/goalert/validation"
 	"strings"
 	"unicode"
+
+	"github.com/target/goalert/validation"
 )
 
 const upperLimit = 256
@@ -18,7 +19,6 @@ const upperLimit = 256
 //
 // If longer than upperLimit, the extra characters are dropped.
 func SanitizeName(name string) string {
-
 	// strip out anything that's not a letter or digit
 	// and normalize spaces
 	name = strings.Map(func(r rune) rune {
@@ -33,7 +33,7 @@ func SanitizeName(name string) string {
 
 	// trim leading/trailing spaces
 	name = strings.TrimSpace(name)
-	name = strings.Replace(name, "  ", " ", -1)
+	name = strings.ReplaceAll(name, "  ", " ")
 
 	r := []rune(name)
 	if len(r) < 1 {

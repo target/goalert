@@ -25,13 +25,13 @@ func (l *Lock) Conn(ctx context.Context) (*Conn, error) {
 	}
 	_, err = c.ExecContext(ctx, `SET idle_in_transaction_session_timeout = 3000`)
 	if err != nil {
-		c.Close()
+		_ = c.Close()
 		return nil, err
 	}
 
 	_, err = c.ExecContext(ctx, `SET lock_timeout = 8000`)
 	if err != nil {
-		c.Close()
+		_ = c.Close()
 		return nil, err
 	}
 
@@ -76,4 +76,4 @@ func (c *Conn) ExecWithoutLock(ctx context.Context, query string, args ...interf
 }
 
 // Close returns the connection to the pool.
-func (c *Conn) Close() error { return c.conn.Close() }
+func (c *Conn) Close() { _ = c.conn.Close() }
