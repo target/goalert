@@ -24,6 +24,12 @@ LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
 PG_VERSION=13
 
+# tools
+SQLC=CGO_ENABLED=1 go tool sqlc
+PSQL=go tool psql-lite
+PGDUMP=go tool pgdump-lite
+MIGRATE=go tool goalert-migrate
+
 # add all files except those under web/src/build and web/src/cypress
 NODE_DEPS=.gitrev $(shell find web/src -path web/src/build -prune -o -path web/src/cypress -prune -o -type f -print) web/src/app/editor/expr-parser.ts node_modules
 
@@ -80,9 +86,6 @@ $(BIN_DIR)/tools/protoc: protoc.version
 $(BIN_DIR)/tools/mailpit: mailpit.version
 	go run ./devtools/gettool -t mailpit -v $(shell cat mailpit.version) -o $@
 
-$(BIN_DIR)/tools/sqlc: sqlc.version
-	go run ./devtools/gettool -t sqlc -v $(shell cat sqlc.version) -o $@
-
 $(BIN_DIR)/tools/bun: bun.version
 	go run ./devtools/gettool -t bun -v $(shell cat bun.version) -o $@
 
@@ -125,7 +128,7 @@ goalert-client.key: system.ca.pem plugin.ca.key plugin.ca.pem
 goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
 	go run ./cmd/goalert gen-cert client
 
-cypress: bin/goalert.cover bin/psql-lite bin/pgmocktime $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/build/integration/cypress/plugins/index.js node_modules
+cypress: bin/goalert.cover bin/pgmocktime $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/build/integration/cypress/plugins/index.js node_modules
 	$(BIN_DIR)/tools/bun run cypress install
 
 cy-wide: cypress ## Start cypress tests in desktop mode with dev build in UI mode
@@ -145,8 +148,8 @@ cy-mobile-prod-run: web/src/build/static/app.js cypress ## Start cypress tests i
 	mkdir -p test/coverage/integration/cypress-mobile
 	GOCOVERDIR=test/coverage/integration/cypress-mobile $(MAKE) $(MFLAGS) cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) PG_VERSION=$(PG_VERSION) BUNDLE=1 GOALERT_VERSION=$(GIT_VERSION) 
 
-swo/swodb/queries.sql.go: $(BIN_DIR)/tools/sqlc sqlc.yaml swo/*/*.sql migrate/migrations/*.sql */queries.sql */*/queries.sql migrate/schema.sql
-	$(BIN_DIR)/tools/sqlc generate
+swo/swodb/queries.sql.go: sqlc.yaml swo/*/*.sql migrate/migrations/*.sql */queries.sql */*/queries.sql migrate/schema.sql
+	$(SQLC) generate
 
 web/src/schema.d.ts: graphql2/schema.graphql graphql2/graph/*.graphqls web/src/genschema.go
 	go generate ./web/src
@@ -164,31 +167,31 @@ start-prod: web/src/build/static/app.js bin/mockoidc $(BIN_DIR)/tools/prometheus
 	$(MAKE) $(MFLAGS) bin/goalert BUNDLE=1
 	go run ./devtools/runproc -f Procfile.prod -l Procfile.local
 
-reset-swo: bin/psql-lite bin/goalert bin/waitfor
+reset-swo: bin/goalert bin/waitfor
 	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert
-	./bin/psql-lite -d postgres://goalert@localhost -c "update switchover_state set current_state = 'idle'; truncate table switchover_log; drop database if exists goalert2; create database goalert2;"
+	$(PSQL) -d postgres://goalert@localhost -c "update switchover_state set current_state = 'idle'; truncate table switchover_log; drop database if exists goalert2; create database goalert2;"
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert2
 start-swo: reset-swo bin/goalert bin/mockoidc bin/runproc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit ## Start the developer version of the application in switchover mode (SWO)
 	GOALERT_VERSION=$(GIT_VERSION) ./bin/runproc -f Procfile.swo -l Procfile.local
 
-reset-integration: bin/waitfor bin/goalert.cover bin/psql-lite bin/resetdb
+reset-integration: bin/waitfor bin/goalert.cover bin/resetdb
 	rm -rf test/coverage/integration/reset
 	mkdir -p test/coverage/integration/reset
 	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
-	./bin/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(INT_DB); CREATE DATABASE $(INT_DB);'
-	./bin/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(SWO_DB_MAIN); CREATE DATABASE $(SWO_DB_MAIN);'
-	./bin/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(SWO_DB_NEXT); CREATE DATABASE $(SWO_DB_NEXT);'
+	$(PSQL) -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(INT_DB); CREATE DATABASE $(INT_DB);'
+	$(PSQL) -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(SWO_DB_MAIN); CREATE DATABASE $(SWO_DB_MAIN);'
+	$(PSQL) -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(SWO_DB_NEXT); CREATE DATABASE $(SWO_DB_NEXT);'
 	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001 -db-url "$(SWO_DB_URL_MAIN)" -admin-db-url "$(DB_URL)" -mult 0.1
 	./bin/goalert.cover add-user --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123 "--db-url=$(SWO_DB_URL_MAIN)"
 	GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover --db-url "$(INT_DB_URL)" migrate
-	./bin/psql-lite -d "$(INT_DB_URL)" -c "insert into users (id, role, name) values ('00000000-0000-0000-0000-000000000001', 'admin', 'Admin McIntegrationFace'),('00000000-0000-0000-0000-000000000002', 'user', 'User McIntegrationFace');"
+	$(PSQL) -d "$(INT_DB_URL)" -c "insert into users (id, role, name) values ('00000000-0000-0000-0000-000000000001', 'admin', 'Admin McIntegrationFace'),('00000000-0000-0000-0000-000000000002', 'user', 'User McIntegrationFace');"
 	GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123
 	GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000002 --user user --pass user1234
 	cat test/integration/setup/goalert-config.json | GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover set-config --allow-empty-data-encryption-key --db-url "$(INT_DB_URL)"
 	rm -f *.session.json
 
-start-integration: web/src/build/static/app.js bin/goalert bin/psql-lite bin/waitfor bin/runproc bin/procwrap $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit reset-integration
+start-integration: web/src/build/static/app.js bin/goalert bin/waitfor bin/runproc bin/procwrap $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit reset-integration
 	GOALERT_DB_URL="$(INT_DB_URL)" ./bin/runproc -f Procfile.integration
 
 jest: $(NODE_DEPS)
@@ -226,8 +229,8 @@ pkg/sysapi/sysapi_grpc.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-ge
 pkg/sysapi/sysapi.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go $(BIN_DIR)/tools/protoc
 	PATH="$(BIN_DIR)/tools" protoc --go_out=. --go_opt=paths=source_relative pkg/sysapi/sysapi.proto
 
-generate: $(NODE_DEPS) pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go $(BIN_DIR)/tools/sqlc
-	$(BIN_DIR)/tools/sqlc generate
+generate: $(NODE_DEPS) pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go
+	$(SQLC) generate
 	go generate ./...
 
 
@@ -264,16 +267,16 @@ smoketest: $(BIN_DIR)/tools/mailpit
 test-migrations: bin/goalert
 	(cd test/smoke && go test -run TestMigrations)
 
-db-schema: $(BIN_DIR)/tools/sqlc
-	$(BIN_DIR)/tools/sqlc generate -f devtools/pgdump-lite/sqlc.yaml # always run
-	go run ./devtools/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS mk_dump_schema; CREATE DATABASE mk_dump_schema;'
-	go run ./migrate/cmd/goalert-migrate --db-url "$(dir $(DB_URL))mk_dump_schema" up
+db-schema:
+	$(SQLC) generate -f devtools/pgdump-lite/sqlc.yaml # always run
+	$(PSQL) -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS mk_dump_schema; CREATE DATABASE mk_dump_schema;'
+	$(MIGRATE) --db-url "$(dir $(DB_URL))mk_dump_schema" up
 	echo '-- This file is auto-generated by "make db-schema"; DO NOT EDIT' > migrate/schema.sql
 	echo "-- DATA=$(shell $(SHA_CMD) migrate/migrations/* | sort | $(SHA_CMD))" >> migrate/schema.sql
 	echo "-- DISK=$(shell ls migrate/migrations | sort | $(SHA_CMD))" >> migrate/schema.sql
-	echo "-- PSQL=$$(go run ./devtools/psql-lite -d '$(dir $(DB_URL))mk_dump_schema' -c 'select id from gorp_migrations order by id' | sort | $(SHA_CMD))" >> migrate/schema.sql
-	go run ./devtools/pgdump-lite/cmd/pgdump-lite -d "$(dir $(DB_URL))mk_dump_schema" -s >> migrate/schema.sql
-	go run ./devtools/psql-lite -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS mk_dump_schema;'
+	echo "-- PSQL=$$($(PSQL) -d '$(dir $(DB_URL))mk_dump_schema' -c 'select id from gorp_migrations order by id' | sort | $(SHA_CMD))" >> migrate/schema.sql
+	$(PGDUMP) -d "$(dir $(DB_URL))mk_dump_schema" -s >> migrate/schema.sql
+	$(PSQL) -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS mk_dump_schema;'
 
 tools:
 	go get -u golang.org/x/tools/cmd/gorename

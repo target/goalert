@@ -79,7 +79,6 @@ func main() {
 				"goalert",
 				"mockslack",
 				"pgdump-lite",
-				"psql-lite",
 				"procwrap",
 				"simpleproxy",
 				"waitfor",
