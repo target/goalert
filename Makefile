@@ -79,6 +79,11 @@ release: container-demo container-goalert bin/goalert-linux-amd64.tgz bin/goaler
 Makefile.binaries.mk: devtools/genmake/*
 	go tool genmake >$@
 
+$(BIN_DIR)/tools/protoc-gen-go $(BIN_DIR)/tools/protoc-gen-go-grpc: go.mod
+	mkdir -p $(BIN_DIR)/tools
+	GOBIN=$(abspath $(BIN_DIR))/tools go install tool
+	touch "$@"
+
 $(BIN_DIR)/tools/k6: k6.version
 	go tool gettool -t k6 -v $(shell cat k6.version) -o $@
 
@@ -102,11 +107,6 @@ node_modules: $(BIN_DIR)/tools/bun package.json bun.lock
 
 $(BIN_DIR)/tools/prometheus: prometheus.version
 	go tool gettool -t prometheus -v $(shell cat prometheus.version) -o $@
-
-$(BIN_DIR)/tools/protoc-gen-go: go.mod
-	GOBIN=$(abspath $(BIN_DIR))/tools go install google.golang.org/protobuf/cmd/protoc-gen-go
-$(BIN_DIR)/tools/protoc-gen-go-grpc: go.mod
-	GOBIN=$(abspath $(BIN_DIR))/tools go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
 
 system.ca.pem:
 	$(GENCERT) ca
