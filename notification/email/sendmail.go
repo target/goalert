@@ -7,6 +7,8 @@ import (
 	"net"
 	"net/smtp"
 	"strings"
+
+	"github.com/target/goalert/util/log"
 )
 
 // validateLine checks to see if a line has CR or LF as per RFC 5321
@@ -75,7 +77,7 @@ func sendMail(ctx context.Context, conn net.Conn, host string, a NegotiateAuth, 
 	if err != nil {
 		return err
 	}
-	defer c.Close()
+	defer log.Close(ctx, c.Close)
 
 	_, isTLS := conn.(*tls.Conn)
 	if ok, _ := c.Extension("STARTTLS"); !isTLS && ok {

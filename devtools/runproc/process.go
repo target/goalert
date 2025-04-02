@@ -91,13 +91,13 @@ var logMx sync.Mutex
 func (p *Process) logError(err error) {
 	logMx.Lock()
 	defer logMx.Unlock()
-	color.New(color.Reset, color.FgRed).Fprintln(p.p, err.Error())
+	_, _ = color.New(color.Reset, color.FgRed).Fprintln(p.p, err.Error())
 }
 
 func (p *Process) logAction(s string) {
 	logMx.Lock()
 	defer logMx.Unlock()
-	color.New(color.Reset, color.Bold).Fprintln(p.p, s)
+	_, _ = color.New(color.Reset, color.Bold).Fprintln(p.p, s)
 }
 
 func (p *Process) Stop() {

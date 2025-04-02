@@ -18,6 +18,15 @@ const (
 	logContextKeyLogger
 )
 
+// Close is a convenience function for use with defer statements.
+//
+// Example: defer log.Close(ctx, fd.Close)
+func Close(ctx context.Context, closeFn func() error) {
+	if err := closeFn(); err != nil {
+		Log(ctx, errors.Wrap(err, "close"))
+	}
+}
+
 type Logger struct {
 	debug  bool
 	info   bool

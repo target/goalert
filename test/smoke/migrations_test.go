@@ -245,7 +245,7 @@ func TestMigrations(t *testing.T) {
 	// if the name is too long. In either case we want to avoid the
 	// truncation, so we generate a name that is guaranteed to be
 	// less than 63 characters.
-	dbName := strings.Replace("migrate_test_"+time.Now().Format("20060102030405")+uuid.New().String(), "-", "", -1)
+	dbName := strings.ReplaceAll("migrate_test_"+time.Now().Format("20060102030405")+uuid.New().String(), "-", "")
 	require.LessOrEqual(t, len(dbName), 63, "database name too long")
 
 	testURL := harness.DBURL(dbName)

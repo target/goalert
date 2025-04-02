@@ -37,7 +37,7 @@ func TestServer(t *testing.T) {
 
 	c, err := smtp.Dial(l.Addr().String())
 	require.NoError(t, err)
-	t.Cleanup(func() { c.Close() })
+	t.Cleanup(func() { _ = c.Close() })
 
 	err = smtp.SendMail(l.Addr().String(), nil, "test@localhost", []string{"test@localhost"}, []byte("test"))
 	assert.ErrorContains(t, err, "recipient address")

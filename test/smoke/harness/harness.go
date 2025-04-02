@@ -179,7 +179,7 @@ func NewStoppedHarnessWithFlags(t *testing.T, initSQL string, sqlData interface{
 	}
 
 	t.Logf("Using DB URL: %s", dbURL)
-	name := strings.Replace("smoketest_"+time.Now().Format("2006_01_02_15_04_05")+uuid.New().String(), "-", "", -1)
+	name := strings.ReplaceAll("smoketest_"+time.Now().Format("2006_01_02_15_04_05")+uuid.New().String(), "-", "")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -666,7 +666,7 @@ func (h *Harness) dumpDB() {
 
 // Close terminates any background processes, and drops the testing database.
 // It should be called at the end of all tests (usually with `defer h.Close()`).
-func (h *Harness) Close() error {
+func (h *Harness) Close() {
 	h.t.Helper()
 	if recErr := recover(); recErr != nil {
 		defer panic(recErr)
@@ -707,8 +707,6 @@ func (h *Harness) Close() error {
 	if err != nil {
 		h.t.Errorf("failed to drop database '%s': %v", h.dbName, err)
 	}
-
-	return nil
 }
 
 // SetCarrierName will set the carrier name for the given phone number.
