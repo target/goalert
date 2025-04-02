@@ -333,6 +333,7 @@ tool (
 	github.com/99designs/gqlgen
 	github.com/fullstorydev/grpcui/cmd/grpcui
 	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
+	github.com/riverqueue/river/cmd/river
 	github.com/sqlc-dev/sqlc/cmd/sqlc
 	github.com/target/goalert/devtools/mockoidc
 	github.com/target/goalert/devtools/pgdump-lite/cmd/pgdump-lite
