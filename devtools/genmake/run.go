@@ -68,33 +68,12 @@ func main() {
 		{Name: "windows-amd64", Env: "GOOS=windows GOARCH=amd64", Ext: ".exe"},
 	}
 	data.Bundles = []Bundle{
-		{Name: "goalert", Binaries: []string{"goalert", "goalert-slack-email-sync"}},
-		{
-			Name:   "integration",
-			SubDir: "goalert",
-			CopyDir: []string{
-				"$(BIN_DIR)/build/integration",
-			},
-			Binaries: []string{
-				"goalert",
-				"mockslack",
-				"procwrap",
-				"simpleproxy",
-				"pgmocktime",
-			},
-		},
+		{Name: "goalert", Binaries: []string{
+			"goalert",
+			"goalert-slack-email-sync",
+		}},
 	}
 
-	for _, pattern := range []string{"./devtools/*/main.go", "./devtools/*/cmd/*/main.go"} {
-		files, err := filepath.Glob(pattern)
-		if err != nil {
-			panic(err)
-		}
-		for _, t := range files {
-			tool := newTool(t)
-			data.Tools = append(data.Tools, tool)
-		}
-	}
 	files, err := filepath.Glob("./cmd/*/main.go")
 	if err != nil {
 		panic(err)
