@@ -346,6 +346,7 @@ tool (
 	github.com/target/goalert/devtools/mockslack/cmd/mockslack
 	github.com/target/goalert/devtools/ordermigrations
 	github.com/target/goalert/devtools/pgdump-lite/cmd/pgdump-lite
+	github.com/target/goalert/devtools/pgmocktime/cmd/pgmocktime
 	github.com/target/goalert/devtools/procwrap
 	github.com/target/goalert/devtools/psql-lite
 	github.com/target/goalert/devtools/resetdb
