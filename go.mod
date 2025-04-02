@@ -12,7 +12,7 @@ require (
 	github.com/expr-lang/expr v1.17.2
 	github.com/fatih/color v1.18.0
 	github.com/felixge/httpsnoop v1.0.4
-	github.com/fullstorydev/grpcui v1.5.0
+	github.com/fullstorydev/grpcui v1.4.3
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8
 	github.com/google/go-github/v56 v56.0.0
@@ -331,10 +331,13 @@ require (
 
 tool (
 	github.com/99designs/gqlgen
+	github.com/fullstorydev/grpcui/cmd/grpcui
 	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 	github.com/sqlc-dev/sqlc/cmd/sqlc
+	github.com/target/goalert/devtools/mockoidc
 	github.com/target/goalert/devtools/pgdump-lite/cmd/pgdump-lite
 	github.com/target/goalert/devtools/psql-lite
+	github.com/target/goalert/devtools/waitfor
 	github.com/target/goalert/migrate/cmd/goalert-migrate
 	golang.org/x/tools/cmd/goimports
 	golang.org/x/tools/cmd/stringer

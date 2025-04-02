@@ -29,6 +29,7 @@ SQLC=CGO_ENABLED=1 go tool sqlc
 PSQL=go tool psql-lite
 PGDUMP=go tool pgdump-lite
 MIGRATE=go tool goalert-migrate
+WAITFOR=go tool waitfor
 
 # add all files except those under web/src/build and web/src/cypress
 NODE_DEPS=.gitrev $(shell find web/src -path web/src/build -prune -o -path web/src/cypress -prune -o -type f -print) web/src/app/editor/expr-parser.ts node_modules
@@ -157,28 +158,28 @@ web/src/schema.d.ts: graphql2/schema.graphql graphql2/graph/*.graphqls web/src/g
 help: ## Show all valid options
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m\033[0m\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-start: check_arch bin/goalert bin/mockoidc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit ## Start the developer version of the application
-	go run ./devtools/waitfor -timeout 1s  "$(DB_URL)" || make postgres
+start: check_arch bin/goalert $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit ## Start the developer version of the application
+	$(WAITFOR) -timeout 1s  "$(DB_URL)" || make postgres
 	GOALERT_VERSION=$(GIT_VERSION) GOALERT_STRICT_EXPERIMENTAL=1 go run ./devtools/runproc -f Procfile -l Procfile.local
 
-start-prod: web/src/build/static/app.js bin/mockoidc $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit ## Start the production version of the application
+start-prod: web/src/build/static/app.js $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit ## Start the production version of the application
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	$(MAKE) $(MFLAGS) bin/goalert BUNDLE=1
 	go run ./devtools/runproc -f Procfile.prod -l Procfile.local
 
-reset-swo: bin/goalert bin/waitfor
-	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
+reset-swo: bin/goalert
+	$(WAITFOR) -timeout 1s  "$(DB_URL)" || make postgres
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert
 	$(PSQL) -d postgres://goalert@localhost -c "update switchover_state set current_state = 'idle'; truncate table switchover_log; drop database if exists goalert2; create database goalert2;"
 	./bin/goalert migrate --db-url=postgres://goalert@localhost/goalert2
-start-swo: reset-swo bin/goalert bin/mockoidc bin/runproc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit ## Start the developer version of the application in switchover mode (SWO)
+start-swo: reset-swo bin/goalert bin/runproc $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit ## Start the developer version of the application in switchover mode (SWO)
 	GOALERT_VERSION=$(GIT_VERSION) ./bin/runproc -f Procfile.swo -l Procfile.local
 
-reset-integration: bin/waitfor bin/goalert.cover bin/resetdb
+reset-integration: bin/goalert.cover bin/resetdb
 	rm -rf test/coverage/integration/reset
 	mkdir -p test/coverage/integration/reset
-	./bin/waitfor -timeout 1s  "$(DB_URL)" || make postgres
+	$(WAITFOR) -timeout 1s  "$(DB_URL)" || make postgres
 	$(PSQL) -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(INT_DB); CREATE DATABASE $(INT_DB);'
 	$(PSQL) -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(SWO_DB_MAIN); CREATE DATABASE $(SWO_DB_MAIN);'
 	$(PSQL) -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(SWO_DB_NEXT); CREATE DATABASE $(SWO_DB_NEXT);'
@@ -191,7 +192,7 @@ reset-integration: bin/waitfor bin/goalert.cover bin/resetdb
 	cat test/integration/setup/goalert-config.json | GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover set-config --allow-empty-data-encryption-key --db-url "$(INT_DB_URL)"
 	rm -f *.session.json
 
-start-integration: web/src/build/static/app.js bin/goalert bin/waitfor bin/runproc bin/procwrap $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit reset-integration
+start-integration: web/src/build/static/app.js bin/goalert bin/runproc bin/procwrap $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit reset-integration
 	GOALERT_DB_URL="$(INT_DB_URL)" ./bin/runproc -f Procfile.integration
 
 jest: $(NODE_DEPS)
@@ -239,23 +240,23 @@ test-integration: playwright-run cy-wide-prod-run cy-mobile-prod-run
 test-smoke: smoketest
 test-unit: test
 
-test-components:  $(NODE_DEPS) bin/waitfor
+test-components:  $(NODE_DEPS)
 	$(BIN_DIR)/tools/bun run build-storybook --test --quiet 2>/dev/null
 	$(BIN_DIR)/tools/bun run playwright install chromium
 	$(BIN_DIR)/tools/bun run concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
 		"$(BIN_DIR)/tools/bun run http-server storybook-static -a 127.0.0.1 --port 6008 --silent" \
-		"./bin/waitfor tcp://localhost:6008 && $(BIN_DIR)/tools/bun run test-storybook --ci --url http://127.0.0.1:6008 --maxWorkers 2"
+		"$(WAITFOR) tcp://localhost:6008 && $(BIN_DIR)/tools/bun run test-storybook --ci --url http://127.0.0.1:6008 --maxWorkers 2"
 
 storybook: $(NODE_DEPS) # Start the Storybook UI
 	$(BIN_DIR)/tools/bun run storybook
 
-playwright-run: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goalert.cover web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit reset-integration ## Start playwright tests in headless mode
+playwright-run: $(NODE_DEPS) web/src/build/static/app.js bin/goalert.cover web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit reset-integration ## Start playwright tests in headless mode
 	rm -rf test/coverage/integration/playwright
 	mkdir -p test/coverage/integration/playwright
 	$(BIN_DIR)/tools/bun run playwright install chromium
 	GOCOVERDIR=test/coverage/integration/playwright $(BIN_DIR)/tools/bun run playwright test
 
-playwright-ui: $(NODE_DEPS) bin/mockoidc web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration $(BIN_DIR)/tools/mailpit ## Start the Playwright UI
+playwright-ui: $(NODE_DEPS) web/src/build/static/app.js bin/goalert web/src/schema.d.ts $(BIN_DIR)/tools/prometheus reset-integration $(BIN_DIR)/tools/mailpit ## Start the Playwright UI
 	$(BIN_DIR)/tools/bun run playwright install chromium
 	$(BIN_DIR)/tools/bun run playwright test --ui
 
@@ -319,7 +320,7 @@ postgres-reset:
 	$(CONTAINER_TOOL) rm -f goalert-postgres || true
 	$(MAKE) postgres PG_VERSION=$(PG_VERSION)
 
-postgres: bin/waitfor
+postgres:
 	($(CONTAINER_TOOL) run -d \
 		--restart=always \
 		-e POSTGRES_USER=goalert \
@@ -327,7 +328,7 @@ postgres: bin/waitfor
 		--name goalert-postgres \
 		--shm-size 1g \
 		-p 5432:5432 \
-		docker.io/library/postgres:$(PG_VERSION)-alpine && ./bin/waitfor "$(DB_URL)" && make regendb) || ($(CONTAINER_TOOL) start goalert-postgres && ./bin/waitfor "$(DB_URL)")
+		docker.io/library/postgres:$(PG_VERSION)-alpine && $(WAITFOR) "$(DB_URL)" && make regendb) || ($(CONTAINER_TOOL) start goalert-postgres && $(WAITFOR) "$(DB_URL)")
 
 regendb: bin/resetdb bin/goalert config.json.bak ## Reset the database and fill it with random data
 	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001 -mult $(SIZE)

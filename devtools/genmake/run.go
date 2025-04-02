@@ -78,12 +78,9 @@ func main() {
 			Binaries: []string{
 				"goalert",
 				"mockslack",
-				"pgdump-lite",
 				"procwrap",
 				"simpleproxy",
-				"waitfor",
 				"pgmocktime",
-				"mockoidc",
 			},
 		},
 	}

@@ -38,4 +38,4 @@ proxy: go run ./devtools/simpleproxy -addr localhost:3030 /=http://localhost:304
 
 slow: go run github.com/kffl/speedbump --host localhost --port=5435 --latency=10ms --saw-amplitude=25ms --saw-period=1s localhost:5432
 
-oidc: ./bin/mockoidc
+oidc: go tool mockoidc

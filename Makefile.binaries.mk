@@ -511,10 +511,10 @@ $(BIN_DIR)/goalert-windows-amd64.zip: $(BIN_DIR)/build/goalert-windows-amd64
 
 
 
-$(BIN_DIR)/build/integration-darwin-amd64: $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/mockslack $(BIN_DIR)/darwin-amd64/pgdump-lite $(BIN_DIR)/darwin-amd64/procwrap $(BIN_DIR)/darwin-amd64/simpleproxy $(BIN_DIR)/darwin-amd64/waitfor $(BIN_DIR)/darwin-amd64/pgmocktime $(BIN_DIR)/darwin-amd64/mockoidc $(BIN_DIR)/build/integration
+$(BIN_DIR)/build/integration-darwin-amd64: $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/mockslack $(BIN_DIR)/darwin-amd64/procwrap $(BIN_DIR)/darwin-amd64/simpleproxy $(BIN_DIR)/darwin-amd64/pgmocktime $(BIN_DIR)/build/integration
 	rm -rf $@
 	mkdir -p $@/goalert/bin/
-	cp  $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/mockslack $(BIN_DIR)/darwin-amd64/pgdump-lite $(BIN_DIR)/darwin-amd64/procwrap $(BIN_DIR)/darwin-amd64/simpleproxy $(BIN_DIR)/darwin-amd64/waitfor $(BIN_DIR)/darwin-amd64/pgmocktime $(BIN_DIR)/darwin-amd64/mockoidc $@/goalert/bin/
+	cp  $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/mockslack $(BIN_DIR)/darwin-amd64/procwrap $(BIN_DIR)/darwin-amd64/simpleproxy $(BIN_DIR)/darwin-amd64/pgmocktime $@/goalert/bin/
 	cp -r  $(BIN_DIR)/build/integration/. $@/goalert/
 	touch $@
 
@@ -525,10 +525,10 @@ $(BIN_DIR)/integration-darwin-amd64.zip: $(BIN_DIR)/build/integration-darwin-amd
 	rm -f $@
 	cd $(BIN_DIR)/build/integration-darwin-amd64 && zip -r $(abspath $@) .
 
-$(BIN_DIR)/build/integration-linux-amd64: $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/mockslack $(BIN_DIR)/linux-amd64/pgdump-lite $(BIN_DIR)/linux-amd64/procwrap $(BIN_DIR)/linux-amd64/simpleproxy $(BIN_DIR)/linux-amd64/waitfor $(BIN_DIR)/linux-amd64/pgmocktime $(BIN_DIR)/linux-amd64/mockoidc $(BIN_DIR)/build/integration
+$(BIN_DIR)/build/integration-linux-amd64: $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/mockslack $(BIN_DIR)/linux-amd64/procwrap $(BIN_DIR)/linux-amd64/simpleproxy $(BIN_DIR)/linux-amd64/pgmocktime $(BIN_DIR)/build/integration
 	rm -rf $@
 	mkdir -p $@/goalert/bin/
-	cp  $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/mockslack $(BIN_DIR)/linux-amd64/pgdump-lite $(BIN_DIR)/linux-amd64/procwrap $(BIN_DIR)/linux-amd64/simpleproxy $(BIN_DIR)/linux-amd64/waitfor $(BIN_DIR)/linux-amd64/pgmocktime $(BIN_DIR)/linux-amd64/mockoidc $@/goalert/bin/
+	cp  $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/mockslack $(BIN_DIR)/linux-amd64/procwrap $(BIN_DIR)/linux-amd64/simpleproxy $(BIN_DIR)/linux-amd64/pgmocktime $@/goalert/bin/
 	cp -r  $(BIN_DIR)/build/integration/. $@/goalert/
 	touch $@
 
@@ -539,10 +539,10 @@ $(BIN_DIR)/integration-linux-amd64.zip: $(BIN_DIR)/build/integration-linux-amd64
 	rm -f $@
 	cd $(BIN_DIR)/build/integration-linux-amd64 && zip -r $(abspath $@) .
 
-$(BIN_DIR)/build/integration-linux-arm: $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/mockslack $(BIN_DIR)/linux-arm/pgdump-lite $(BIN_DIR)/linux-arm/procwrap $(BIN_DIR)/linux-arm/simpleproxy $(BIN_DIR)/linux-arm/waitfor $(BIN_DIR)/linux-arm/pgmocktime $(BIN_DIR)/linux-arm/mockoidc $(BIN_DIR)/build/integration
+$(BIN_DIR)/build/integration-linux-arm: $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/mockslack $(BIN_DIR)/linux-arm/procwrap $(BIN_DIR)/linux-arm/simpleproxy $(BIN_DIR)/linux-arm/pgmocktime $(BIN_DIR)/build/integration
 	rm -rf $@
 	mkdir -p $@/goalert/bin/
-	cp  $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/mockslack $(BIN_DIR)/linux-arm/pgdump-lite $(BIN_DIR)/linux-arm/procwrap $(BIN_DIR)/linux-arm/simpleproxy $(BIN_DIR)/linux-arm/waitfor $(BIN_DIR)/linux-arm/pgmocktime $(BIN_DIR)/linux-arm/mockoidc $@/goalert/bin/
+	cp  $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/mockslack $(BIN_DIR)/linux-arm/procwrap $(BIN_DIR)/linux-arm/simpleproxy $(BIN_DIR)/linux-arm/pgmocktime $@/goalert/bin/
 	cp -r  $(BIN_DIR)/build/integration/. $@/goalert/
 	touch $@
 
@@ -553,10 +553,10 @@ $(BIN_DIR)/integration-linux-arm.zip: $(BIN_DIR)/build/integration-linux-arm
 	rm -f $@
 	cd $(BIN_DIR)/build/integration-linux-arm && zip -r $(abspath $@) .
 
-$(BIN_DIR)/build/integration-linux-arm64: $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/mockslack $(BIN_DIR)/linux-arm64/pgdump-lite $(BIN_DIR)/linux-arm64/procwrap $(BIN_DIR)/linux-arm64/simpleproxy $(BIN_DIR)/linux-arm64/waitfor $(BIN_DIR)/linux-arm64/pgmocktime $(BIN_DIR)/linux-arm64/mockoidc $(BIN_DIR)/build/integration
+$(BIN_DIR)/build/integration-linux-arm64: $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/mockslack $(BIN_DIR)/linux-arm64/procwrap $(BIN_DIR)/linux-arm64/simpleproxy $(BIN_DIR)/linux-arm64/pgmocktime $(BIN_DIR)/build/integration
 	rm -rf $@
 	mkdir -p $@/goalert/bin/
-	cp  $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/mockslack $(BIN_DIR)/linux-arm64/pgdump-lite $(BIN_DIR)/linux-arm64/procwrap $(BIN_DIR)/linux-arm64/simpleproxy $(BIN_DIR)/linux-arm64/waitfor $(BIN_DIR)/linux-arm64/pgmocktime $(BIN_DIR)/linux-arm64/mockoidc $@/goalert/bin/
+	cp  $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/mockslack $(BIN_DIR)/linux-arm64/procwrap $(BIN_DIR)/linux-arm64/simpleproxy $(BIN_DIR)/linux-arm64/pgmocktime $@/goalert/bin/
 	cp -r  $(BIN_DIR)/build/integration/. $@/goalert/
 	touch $@
 
@@ -567,10 +567,10 @@ $(BIN_DIR)/integration-linux-arm64.zip: $(BIN_DIR)/build/integration-linux-arm64
 	rm -f $@
 	cd $(BIN_DIR)/build/integration-linux-arm64 && zip -r $(abspath $@) .
 
-$(BIN_DIR)/build/integration-windows-amd64: $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/mockslack.exe $(BIN_DIR)/windows-amd64/pgdump-lite.exe $(BIN_DIR)/windows-amd64/procwrap.exe $(BIN_DIR)/windows-amd64/simpleproxy.exe $(BIN_DIR)/windows-amd64/waitfor.exe $(BIN_DIR)/windows-amd64/pgmocktime.exe $(BIN_DIR)/windows-amd64/mockoidc.exe $(BIN_DIR)/build/integration
+$(BIN_DIR)/build/integration-windows-amd64: $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/mockslack.exe $(BIN_DIR)/windows-amd64/procwrap.exe $(BIN_DIR)/windows-amd64/simpleproxy.exe $(BIN_DIR)/windows-amd64/pgmocktime.exe $(BIN_DIR)/build/integration
 	rm -rf $@
 	mkdir -p $@/goalert/bin/
-	cp  $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/mockslack.exe $(BIN_DIR)/windows-amd64/pgdump-lite.exe $(BIN_DIR)/windows-amd64/procwrap.exe $(BIN_DIR)/windows-amd64/simpleproxy.exe $(BIN_DIR)/windows-amd64/waitfor.exe $(BIN_DIR)/windows-amd64/pgmocktime.exe $(BIN_DIR)/windows-amd64/mockoidc.exe $@/goalert/bin/
+	cp  $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/mockslack.exe $(BIN_DIR)/windows-amd64/procwrap.exe $(BIN_DIR)/windows-amd64/simpleproxy.exe $(BIN_DIR)/windows-amd64/pgmocktime.exe $@/goalert/bin/
 	cp -r  $(BIN_DIR)/build/integration/. $@/goalert/
 	touch $@
 
