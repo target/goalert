@@ -16,4 +16,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: mkdir /tmp/bin
-      - run: ./devtools/ci/tasks/scripts/build-all.sh /tmp/bin/
+      - run: bash devtools/ci/tasks/scripts/build-all.sh /tmp/bin/
