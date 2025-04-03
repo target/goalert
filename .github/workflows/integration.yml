@@ -25,6 +25,19 @@ jobs:
       - name: Set git safe directory
         run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
+      - run: go env GOCACHE GOMODCACHE
+      - run: echo $HOME
+
+      - run: exit 1
+      - name: Restore cache
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            /root/.cache/go-build
+            /go/pkg/mod
+          key: dep-cache
+
       # Run repo & linting checks
       - name: Repo & Linting Checks
         run: make check
