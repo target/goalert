@@ -15,5 +15,6 @@ jobs:
       image: goalert/build-env:go1.24.2-postgres13
     steps:
       - uses: actions/checkout@v4
+      - run: git config --global --add safe.directory $GITHUB_WORKSPACE
       - run: mkdir /tmp/bin
       - run: bash devtools/ci/tasks/scripts/build-all.sh /tmp/bin/
