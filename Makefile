@@ -97,9 +97,6 @@ node_modules: $(BIN_DIR)/tools/bun package.json bun.lock
 $(BIN_DIR)/tools/prometheus: prometheus.version
 	go run ./devtools/gettool -t prometheus -v $(shell cat prometheus.version) -o $@
 
-$(BIN_DIR)/tools/golangci-lint: golangci-lint.version
-	go run ./devtools/gettool -t golangci-lint -v $(shell cat golangci-lint.version) -o $@
-
 $(BIN_DIR)/tools/protoc-gen-go: go.mod
 	GOBIN=$(abspath $(BIN_DIR))/tools go install google.golang.org/protobuf/cmd/protoc-gen-go
 $(BIN_DIR)/tools/protoc-gen-go-grpc: go.mod
@@ -210,10 +207,10 @@ check-js: generate $(NODE_DEPS)
 	$(BIN_DIR)/tools/bun run lint
 	$(BIN_DIR)/tools/bun run check
 
-check-go: generate $(BIN_DIR)/tools/golangci-lint
+check-go: generate 
 	@go mod tidy
 	# go run ./devtools/ordermigrations -check
-	$(BIN_DIR)/tools/golangci-lint run
+	go tool golangci-lint run
 
 graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/*
 	(cd ./graphql2 && go run ../devtools/configparams -out mapconfig.go && go run golang.org/x/tools/cmd/goimports -w ./mapconfig.go) || go generate ./graphql2

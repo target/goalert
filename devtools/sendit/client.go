@@ -39,6 +39,7 @@ func postWriter(ctx context.Context, urlStr string) (io.WriteCloser, error) {
 
 	return pw, nil
 }
+
 func postReader(ctx context.Context, urlStr string) (io.ReadCloser, error) {
 	req, err := http.NewRequest("POST", urlStr, nil)
 	if err != nil {
@@ -110,7 +111,7 @@ func ConnectAndServe(urlStr, dstURLStr, token string, ttl time.Duration) error {
 		u.Path = path.Join(serverPrefix, pathClientWrite)
 		writer, err := postWriter(ctx, u.String())
 		if err != nil {
-			reader.Close()
+			_ = reader.Close()
 			return err
 		}
 
@@ -134,7 +135,7 @@ func ConnectAndServe(urlStr, dstURLStr, token string, ttl time.Duration) error {
 
 	go func() {
 		defer cancel()
-		defer stream.Close()
+		defer func() { _ = stream.Close() }()
 		t := time.NewTicker(ttl)
 		defer t.Stop()
 		defer srv.Close()

@@ -16,6 +16,7 @@ import { OpenInNew } from '@mui/icons-material'
 import { DateTime } from 'luxon'
 import AppLink from '../../util/AppLink'
 import { DebugMessage } from '../../../schema'
+import { MessageHistory } from '../../alerts/AlertDetailLogs'
 
 interface Props {
   onClose: () => void
@@ -188,6 +189,14 @@ export default function AdminMessageLogDrawer(props: Props): React.JSX.Element {
                 <ListItemText
                   primary='Provider ID'
                   secondary={log.providerID}
+                />
+              </ListItem>
+            )}
+            {!!log?.id && (
+              <ListItem divider>
+                <ListItemText
+                  primary='Status History'
+                  secondary={<MessageHistory noIndent messageID={log.id} />}
                 />
               </ListItem>
             )}

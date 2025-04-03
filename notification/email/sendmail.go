@@ -75,7 +75,7 @@ func sendMail(ctx context.Context, conn net.Conn, host string, a NegotiateAuth, 
 	if err != nil {
 		return err
 	}
-	defer c.Close()
+	defer func() { _ = c.Close() }() // we check for proper errors at the end, this is just best effort
 
 	_, isTLS := conn.(*tls.Conn)
 	if ok, _ := c.Extension("STARTTLS"); !isTLS && ok {

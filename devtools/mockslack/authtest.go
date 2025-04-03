@@ -19,6 +19,6 @@ func (s *Server) ServeAuthTest(w http.ResponseWriter, req *http.Request) {
 		IsEnterpriseInstall bool   `json:"is_enterprise_install"`
 	}
 	respData.OK = true
-	respData.TeamID = s.state.teamID
+	respData.TeamID = s.teamID
 	respondWith(w, respData)
 }
