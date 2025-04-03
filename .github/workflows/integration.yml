@@ -52,12 +52,9 @@ jobs:
       - name: UI Component Tests (Storybook)
         run: make test-components
 
+      # Postgres is used for the remaining tests
       - name: Start Postgres
         run: start_postgres
-        post:
-          always:
-            - name: Stop Postgres
-              run: stop_postgres
 
       - name: Behavioral Tests (smoke tests)
         run: make smoketest
