@@ -72,7 +72,7 @@ function AdminMaintTool(props: AdminMaintToolProps): React.ReactNode {
                 id='panel-header'
                 aria-controls='panel-content'
               >
-                Guide
+                <Typography>Guide</Typography>
               </AccordionSummary>
               <AccordionDetails>
                 <Typography component='div'>
