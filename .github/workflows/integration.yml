@@ -1,0 +1,18 @@
+name: Integration Tests
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - master
+      - main
+  pull_request:
+jobs:
+  Postgres-13:
+    # You need to use the INSTALLATION_NAME from the previous step
+    runs-on: arc-runner-set
+    container:
+      image: goalert/build-env:go1.24.2-postgres13
+    steps:
+      - run: mkdir /tmp/bin
+      - run: ./devtools/ci/tasks/scripts/build-all.sh /tmp/bin/
