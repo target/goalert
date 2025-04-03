@@ -75,7 +75,9 @@ function AdminMaintTool(props: AdminMaintToolProps): React.ReactNode {
                 Guide
               </AccordionSummary>
               <AccordionDetails>
-                <Markdown value={props.guide} />
+                <Typography component='div'>
+                  <Markdown value={props.guide} />
+                </Typography>
               </AccordionDetails>
             </Accordion>
           )}
