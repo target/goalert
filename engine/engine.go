@@ -564,7 +564,7 @@ func (p *Engine) handlePause(ctx context.Context, respCh chan error) {
 func (p *Engine) startRiver() {
 	ctx := p.runCtx
 	err := p.cfg.River.Start(ctx)
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "shutdown") { // ignore errors on early shutdown (e.g., tests)
 		log.Log(ctx, errors.Wrap(err, "start river"))
 	}
 }
