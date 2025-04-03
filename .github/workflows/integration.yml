@@ -42,14 +42,23 @@ jobs:
         run: make bin/goalert-linux-arm.tgz
       - name: Build Check (darwin-amd64)
         run: make bin/goalert-darwin-amd64.tgz
-      - name: Build Check (windows-amd64)
-        run: make bin/goalert-windows-amd64.zip
+      # build-env is missing zip
+      # - name: Build Check (windows-amd64)
+      #   run: make bin/goalert-windows-amd64.zip
 
       # Run all tests
       - name: Unit Tests
         run: make test-unit
       - name: UI Component Tests (Storybook)
         run: make test-components
+
+      - name: Start Postgres
+        run: start_postgres
+        post:
+          always:
+            - name: Stop Postgres
+              run: stop_postgres
+
       - name: Behavioral Tests (smoke tests)
         run: make smoketest
       - name: Playwright Tests
