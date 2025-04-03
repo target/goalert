@@ -230,6 +230,10 @@ generate: $(NODE_DEPS) pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go $(BI
 	$(BIN_DIR)/tools/sqlc generate
 	go generate ./...
 
+.PHONY: self-test
+self-test:
+	$(MAKE) bin/goalert BUNDLE=1
+	./bin/goalert self-test --offline
 
 test-all: test-unit test-components test-smoke test-integration
 test-integration: playwright-run cy-wide-prod-run cy-mobile-prod-run
