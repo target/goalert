@@ -39,7 +39,7 @@ func (e *etagHandler) etag(name string) string {
 		e.tags[name] = ""
 		return ""
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	h := sha256.New()
 

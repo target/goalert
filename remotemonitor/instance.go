@@ -93,7 +93,7 @@ func (i *Instance) doReq(path string, v url.Values) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer logClose(resp.Body.Close)
 	if resp.StatusCode/100 != 2 {
 		return errors.Errorf("non-200 response: %s", resp.Status)
 	}
@@ -121,7 +121,7 @@ func (i *Instance) heartbeat() []error {
 				errCh <- err
 				return
 			}
-			defer resp.Body.Close()
+			defer logClose(resp.Body.Close)
 			if resp.StatusCode/100 != 2 {
 				errCh <- errors.Errorf("non-200 response: %s", resp.Status)
 			}

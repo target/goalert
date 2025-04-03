@@ -78,7 +78,7 @@ func (a *Mutation) SetScheduleOnCallNotificationRules(ctx context.Context, input
 				return err
 			}
 
-			r.OnCallNotificationRule.ChannelID = chID
+			r.ChannelID = chID
 			rules = append(rules, r.OnCallNotificationRule)
 		}
 

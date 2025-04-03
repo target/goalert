@@ -164,7 +164,7 @@ func outgoingMessageToSendResult(msg gadb.OutgoingMessage, cm, ch gadb.NullDestV
 		SrcValue: msg.SrcValue.String,
 	}
 	if msg.LastStatusAt.Valid {
-		res.Status.Age = msg.LastStatusAt.Time.Sub(msg.CreatedAt)
+		res.Age = msg.LastStatusAt.Time.Sub(msg.CreatedAt)
 	}
 
 	return &res, nil
