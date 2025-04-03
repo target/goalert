@@ -1,6 +1,4 @@
 import React from 'react'
-import Grid from '@mui/material/Grid'
-import Typography from '@mui/material/Typography'
 import {
   Accordion,
   AccordionDetails,
@@ -10,12 +8,14 @@ import {
   CardActions,
   CardContent,
   CardHeader,
+  Grid,
+  Typography,
 } from '@mui/material'
+import { ExpandMore } from '@mui/icons-material'
+import { gql, useMutation } from 'urql'
 import Markdown from '../util/Markdown'
 import KeyRotation from './KeyRotation.md'
-import { ExpandMore } from '@mui/icons-material'
 import FormDialog from '../dialogs/FormDialog'
-import { gql, useMutation } from 'urql'
 import { useErrorConsumer } from '../util/ErrorConsumer'
 
 const reEncryptMut = gql`
@@ -72,7 +72,7 @@ function AdminMaintTool(props: AdminMaintToolProps): React.ReactNode {
                 id='panel-header'
                 aria-controls='panel-content'
               >
-                <Typography>Guide</Typography>
+                <Typography component='div'>Guide</Typography>
               </AccordionSummary>
               <AccordionDetails>
                 <Typography component='div'>
