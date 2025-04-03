@@ -564,7 +564,10 @@ func (p *Engine) handlePause(ctx context.Context, respCh chan error) {
 func (p *Engine) startRiver() {
 	ctx := p.runCtx
 	err := p.cfg.River.Start(ctx)
-	if err != nil {
+	// Ignore shutdown errors, they are expected.
+	// TODO: replace with errors.Is(err, river.ErrShutdown) when/if
+	// this gets merged: https://github.com/riverqueue/river/pull/830
+	if err != nil && !strings.Contains(err.Error(), "shutdown") {
 		log.Log(ctx, errors.Wrap(err, "start river"))
 	}
 }

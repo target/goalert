@@ -12,7 +12,6 @@ import (
 	"github.com/target/goalert/auth/authlink"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/event"
-	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/notification/slack"
@@ -43,8 +42,6 @@ type Config struct {
 	RiverWorkers        *river.Workers
 
 	ConfigSource config.Source
-
-	Keys keyring.Keys
 
 	MaxMessages int
 
