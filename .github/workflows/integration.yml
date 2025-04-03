@@ -25,17 +25,14 @@ jobs:
       - name: Set git safe directory
         run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
-      - run: go env GOCACHE GOMODCACHE
-      - run: echo $HOME
-
-      - run: exit 1
       - name: Restore cache
         id: cache-restore
         uses: actions/cache/restore@v4
-        with:
+        with: &CACHE_CONFIG
           path: |
-            /root/.cache/go-build
+            /github/home/.cache/go-build
             /go/pkg/mod
+            /github/home/.bun/install/cache
           key: dep-cache
 
       # Run repo & linting checks
@@ -58,6 +55,10 @@ jobs:
       # build-env is missing zip
       # - name: Build Check (windows-amd64)
       #   run: make bin/goalert-windows-amd64.zip
+
+      - name: Save cache
+        uses: actions/cache/restore@v4
+        with: *CACHE_CONFIG
 
       # Run all tests
       - name: Unit Tests
