@@ -79,7 +79,7 @@ release: container-demo container-goalert bin/goalert-linux-amd64.tgz bin/goaler
 Makefile.binaries.mk: devtools/genmake/*
 	go tool genmake >$@
 
-$(BIN_DIR)/tools/protoc-gen-go $(BIN_DIR)/tools/protoc-gen-go-grpc: go.mod
+$(BIN_DIR)/tools/protoc-gen-go $(BIN_DIR)/tools/protoc-gen-go-grpc $(BIN_DIR)/tools/pgmocktime: go.mod
 	mkdir -p $(BIN_DIR)/tools
 	GOBIN=$(abspath $(BIN_DIR))/tools go install tool
 	touch "$@"
@@ -131,7 +131,7 @@ goalert-client.key: system.ca.pem plugin.ca.key plugin.ca.pem
 goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
 	$(GENCERT) client
 
-cypress: bin/goalert.cover $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/build/integration/cypress/plugins/index.js node_modules
+cypress: bin/goalert.cover $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/pgmocktime $(BIN_DIR)/build/integration/cypress/plugins/index.js node_modules
 	$(BIN_DIR)/tools/bun run cypress install
 
 cy-wide: cypress ## Start cypress tests in desktop mode with dev build in UI mode

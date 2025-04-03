@@ -32,7 +32,7 @@ function makeDoCall(pathVal, base = 'http://127.0.0.1:3033') {
 function pgmocktime(flags) {
   return new Promise((resolve, reject) => {
     exec(
-      `go tool pgmocktime -d "$DB" ${flags}`,
+      `pgmocktime -d "$DB" ${flags}`,
       {
         env: {
           PATH: process.env.PATH,
