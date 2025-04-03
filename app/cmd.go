@@ -427,6 +427,48 @@ Migration: %s (#%d)
 		},
 	}
 
+	reEncryptCmd = &cobra.Command{
+		Use:   "re-encrypt",
+		Short: "Re-encrypt all keyring secrets and config with the current data-encryption-key (experimental).",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			l := log.FromContext(cmd.Context())
+			// update JSON output first
+			if viper.GetBool("json") {
+				l.EnableJSON()
+			}
+			if viper.GetBool("verbose") {
+				l.EnableDebug()
+			}
+
+			err := viper.ReadInConfig()
+			// ignore file not found error
+			if err != nil && !isCfgNotFound(err) {
+				return errors.Wrap(err, "read config")
+			}
+
+			ctx := cmd.Context()
+			c, err := getConfig(ctx)
+			if err != nil {
+				return err
+			}
+
+			if viper.GetString("data-encryption-key") == "" && !viper.GetBool("allow-empty-data-encryption-key") {
+				fmt.Println("what", c.EncryptionKeys)
+				return validation.NewFieldError("data-encryption-key", "Must not be empty, or set --allow-empty-data-encryption-key")
+			}
+
+			db, err := sql.Open("pgx", c.DBURL)
+			if err != nil {
+				return errors.Wrap(err, "connect to postgres")
+			}
+			defer db.Close()
+
+			ctx = permission.SystemContext(ctx, "ReEncryptAll")
+
+			return keyring.ReEncryptAll(ctx, db, c.EncryptionKeys)
+		},
+	}
+
 	exportCmd = &cobra.Command{
 		Use:   "export-migrations",
 		Short: "Export all migrations as .sql files. Use --export-dir to control the destination.",
@@ -884,15 +926,20 @@ func init() {
 	addUserCmd.Flags().Bool("admin", false, "If specified, the user will be created with the admin role (ignored if user-id is provided).")
 
 	setConfigCmd.Flags().String("data", "", "Use data instead of reading config from stdin.")
-	setConfigCmd.Flags().Bool("allow-empty-data-encryption-key", false, "Explicitly allow an empty data-encryption-key when setting config.")
+	setConfigCmd.Flags().Bool("allow-empty-data-encryption-key", false, "Explicitly allow an empty data-encryption-key when setting config or re-encrypting data.")
+	reEncryptCmd.Flags().AddFlag(setConfigCmd.Flag("allow-empty-data-encryption-key"))
 
 	testCmd.Flags().Bool("offline", false, "Only perform offline checks.")
 
 	monitorCmd.Flags().StringP("config-file", "f", "", "Configuration file for monitoring (required).")
 	initCertCommands()
-	RootCmd.AddCommand(versionCmd, testCmd, migrateCmd, exportCmd, monitorCmd, addUserCmd, getConfigCmd, setConfigCmd, genCerts)
+	RootCmd.AddCommand(versionCmd, testCmd, migrateCmd, exportCmd, monitorCmd, addUserCmd, getConfigCmd, setConfigCmd, genCerts, reEncryptCmd)
 
 	err := viper.BindPFlags(RootCmd.Flags())
+	if err != nil {
+		panic(err)
+	}
+	err = viper.BindPFlags(reEncryptCmd.Flags())
 	if err != nil {
 		panic(err)
 	}

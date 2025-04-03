@@ -6,10 +6,11 @@ import UserCreateDialog from './UserCreateDialog'
 import { useSessionInfo } from '../util/RequireConfig'
 import ListPageControls from '../lists/ListPageControls'
 import Search from '../util/Search'
-import FlatList from '../lists/FlatList'
 import { UserConnection } from '../../schema'
 import { useURLParam } from '../actions'
 import { FavoriteIcon } from '../util/SetFavoriteButton'
+import { CompListItemNav } from '../lists/CompListItems'
+import CompList from '../lists/CompList'
 
 const query = gql`
   query usersQuery($input: UserSearchOptions) {
@@ -77,18 +78,18 @@ function UserList(): JSX.Element {
         slots={{
           search: <Search endAdornment={<UserPhoneNumberFilterContainer />} />,
           list: (
-            <FlatList
-              emptyMessage='No results'
-              items={
-                q.data?.users.nodes.map((u) => ({
-                  title: u.name,
-                  subText: u.email,
-                  url: u.id,
-                  secondaryAction: u.isFavorite ? <FavoriteIcon /> : undefined,
-                  icon: <UserAvatar userID={u.id} />,
-                })) || []
-              }
-            />
+            <CompList emptyMessage='No results'>
+              {q.data?.users.nodes.map((u) => (
+                <CompListItemNav
+                  key={u.id}
+                  title={u.name}
+                  subText={u.email}
+                  url={u.id}
+                  action={u.isFavorite ? <FavoriteIcon /> : undefined}
+                  icon={<UserAvatar userID={u.id} />}
+                />
+              ))}
+            </CompList>
           ),
         }}
       />

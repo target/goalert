@@ -2,6 +2,13 @@ type Mutation {
   swoAction(action: SWOAction!): Boolean!
   linkAccount(token: ID!): Boolean!
 
+  """
+  reEncryptKeyringsAndConfig is used to reencrypt all keyrings and the config in the database.
+
+  This is useful when the encryption key is being rotated and ensures that all data is encrypted with the new key.
+  """
+  reEncryptKeyringsAndConfig: Boolean!
+
   setTemporarySchedule(input: SetTemporaryScheduleInput!): Boolean!
   clearTemporarySchedules(input: ClearTemporarySchedulesInput!): Boolean!
 

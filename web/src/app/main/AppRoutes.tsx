@@ -44,6 +44,7 @@ import LocalDev from '../localdev/LocalDev'
 import AdminSwitchoverGuide from '../admin/switchover/AdminSwitchoverGuide'
 import UniversalKeyPage from '../services/UniversalKey/UniversalKeyPage'
 import { useExpFlag } from '../util/useExpFlag'
+import AdminMaint from '../admin/AdminMaint'
 
 // ParamRoute will pass route parameters as props to the route's child.
 function ParamRoute(props: RouteProps): React.JSX.Element {
@@ -117,6 +118,7 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/profile/*': Spinner, // should redirect once user ID loads
 
   '/admin/config': AdminConfig,
+  '/admin/maintenance': AdminMaint,
   '/admin/limits': AdminLimits,
   '/admin/toolbox': AdminToolbox,
   '/admin/message-logs': AdminMessageLogsLayout,
