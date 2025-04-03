@@ -1,3 +1,4 @@
+---
 name: Integration Tests
 
 on:
@@ -28,7 +29,7 @@ jobs:
       - name: Restore cache
         id: cache-restore
         uses: actions/cache/restore@v4
-        with: &CACHE_CONFIG
+        with:
           path: |
             /github/home/.cache/go-build
             /go/pkg/mod
@@ -58,7 +59,12 @@ jobs:
 
       - name: Save cache
         uses: actions/cache/restore@v4
-        with: *CACHE_CONFIG
+        with:
+          path: |
+            /github/home/.cache/go-build
+            /go/pkg/mod
+            /github/home/.bun/install/cache
+          key: dep-cache
 
       # Run all tests
       - name: Unit Tests
