@@ -1,0 +1,80 @@
+name: Integration Tests
+
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - master
+      - main
+  pull_request:
+
+# Cancel in-progress jobs if a new commit is pushed to the same branch
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  Postgres-13:
+    # You need to use the INSTALLATION_NAME from the previous step
+    runs-on: arc-runner-set
+    container:
+      image: goalert/build-env:go1.24.2-postgres13
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set git safe directory
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+
+      - name: Restore cache
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with: &CACHE_CONFIG
+          path: |
+            /github/home/.cache/go-build
+            /go/pkg/mod
+            /github/home/.bun/install/cache
+          key: dep-cache
+
+      # Run repo & linting checks
+      - name: Repo & Linting Checks
+        run: make check
+
+      # Build the binary and run the self-test
+      - name: GoAlert Self-Test
+        run: make self-test
+
+      # Validate binaries build successfully
+      - name: Build Check (linux-amd64)
+        run: make bin/goalert-linux-amd64.tgz
+      - name: Build Check (linux-arm64)
+        run: make bin/goalert-linux-arm64.tgz
+      - name: Build Check (linux-arm)
+        run: make bin/goalert-linux-arm.tgz
+      - name: Build Check (darwin-amd64)
+        run: make bin/goalert-darwin-amd64.tgz
+      # build-env is missing zip
+      # - name: Build Check (windows-amd64)
+      #   run: make bin/goalert-windows-amd64.zip
+
+      - name: Save cache
+        uses: actions/cache/restore@v4
+        with: *CACHE_CONFIG
+
+      # Run all tests
+      - name: Unit Tests
+        run: make test-unit
+      - name: UI Component Tests (Storybook)
+        run: make test-components
+
+      # Postgres is used for the remaining tests
+      - name: Start Postgres
+        run: start_postgres
+
+      - name: Behavioral Tests (smoke tests)
+        run: make smoketest
+      - name: Playwright Tests
+        run: make playwright-run
+      - name: Cypress Tests (Widescreen)
+        run: make cy-wide-prod-run
+      - name: Cypress Tests (Mobile)
+        run: make cy-mobile-prod-run
