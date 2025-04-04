@@ -30,7 +30,7 @@ PSQL=go tool psql-lite
 PGDUMP=go tool pgdump-lite
 MIGRATE=go tool goalert-migrate
 WAITFOR=go tool waitfor
-GENCERT=$(GENCERT)
+GENCERT=go run ./cmd/goalert gen-cert
 PROTOC=PATH="$(BIN_DIR)/tools" protoc
 
 # add all files except those under web/src/build and web/src/cypress
@@ -108,27 +108,17 @@ node_modules: $(BIN_DIR)/tools/bun package.json bun.lock
 $(BIN_DIR)/tools/prometheus: prometheus.version
 	go tool gettool -t prometheus -v $(shell cat prometheus.version) -o $@
 
-system.ca.pem:
-	$(GENCERT) ca
-system.ca.key:
-	$(GENCERT) ca
-plugin.ca.pem:
-	$(GENCERT) ca
-plugin.ca.key:
+.PHONY: grpc-certs
+grpc-certs: system.ca.pem system.ca.key plugin.ca.pem plugin.ca.key goalert-server.pem goalert-server.ca.pem goalert-server.key goalert-client.pem goalert-client.key goalert-client.ca.pem ## Generate gRPC certificates
+	@echo "gRPC certificates generated"
+
+system.ca.pem system.ca.key plugin.ca.pem plugin.ca.key:
 	$(GENCERT) ca
 
-goalert-server.pem: system.ca.pem system.ca.key plugin.ca.pem
-	$(GENCERT) server
-goalert-server.key: system.ca.pem system.ca.key plugin.ca.pem
-	$(GENCERT) server
-goalert-server.ca.pem: system.ca.pem system.ca.key plugin.ca.pem
+goalert-server.pem goalert-server.ca.pem goalert-server.key: system.ca.pem system.ca.key plugin.ca.pem
 	$(GENCERT) server
 
-goalert-client.pem: system.ca.pem plugin.ca.key plugin.ca.pem
-	$(GENCERT) client
-goalert-client.key: system.ca.pem plugin.ca.key plugin.ca.pem
-	$(GENCERT) client
-goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
+goalert-client.pem goalert-client.key goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
 	$(GENCERT) client
 
 cypress: bin/goalert.cover $(NODE_DEPS) web/src/schema.d.ts $(BIN_DIR)/tools/pgmocktime $(BIN_DIR)/build/integration/cypress/plugins/index.js node_modules
