@@ -121,6 +121,7 @@ export default function ScheduleOnCallNotificationsList({
                 if ('error' in display) {
                   return (
                     <CompListItemText
+                      key={rule.id}
                       icon={<DestinationAvatar error />}
                       title={`ERROR: ${display.error}`}
                       subText={`Notifies ${onCallRuleSummary(timeZone, rule)}`}
@@ -144,6 +145,7 @@ export default function ScheduleOnCallNotificationsList({
 
                 return (
                   <CompListItemText
+                    key={rule.id}
                     icon={
                       <DestinationAvatar
                         iconURL={display.iconURL}
