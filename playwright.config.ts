@@ -62,7 +62,7 @@ const config = {
       port: 6125,
     },
     {
-      command: './bin/mockoidc -addr=127.0.0.1:9997',
+      command: 'go tool mockoidc -addr=127.0.0.1:9997',
       port: 9997,
     },
     {

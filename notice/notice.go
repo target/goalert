@@ -1,6 +1,6 @@
 package notice
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type Type
+//go:generate go tool stringer -type Type
 
 import (
 	"io"

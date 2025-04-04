@@ -1,6 +1,6 @@
 package assignment
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type TargetType
+//go:generate go tool stringer -type TargetType
 
 import (
 	"encoding"
