@@ -72,15 +72,11 @@ jobs:
       - name: UI Component Tests (Storybook)
         run: make test-components
 
-      # Postgres is used for the remaining tests
-      - name: Start Postgres
-        run: start_postgres
-
       - name: Behavioral Tests (smoke tests)
-        run: make smoketest
+        run: start_postgres && make smoketest
       - name: Playwright Tests
-        run: make playwright-run
+        run: start_postgres && make playwright-run
       - name: Cypress Tests (Widescreen)
-        run: make cy-wide-prod-run
+        run: start_postgres && make cy-wide-prod-run
       - name: Cypress Tests (Mobile)
-        run: make cy-mobile-prod-run
+        run: start_postgres && make cy-mobile-prod-run
