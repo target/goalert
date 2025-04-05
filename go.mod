@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/99designs/gqlgen v0.17.70
 	github.com/brianvoe/gofakeit/v6 v6.28.0
-	github.com/coreos/go-oidc/v3 v3.13.0
+	github.com/coreos/go-oidc/v3 v3.14.1
 	github.com/creack/pty/v2 v2.0.1
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/emersion/go-smtp v0.21.3
@@ -32,11 +32,11 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.21.1
-	github.com/riverqueue/river v0.19.0
-	github.com/riverqueue/river/cmd/river v0.19.0
-	github.com/riverqueue/river/riverdriver/riverdatabasesql v0.19.0
-	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.19.0
-	github.com/riverqueue/river/rivertype v0.19.0
+	github.com/riverqueue/river v0.20.0
+	github.com/riverqueue/river/cmd/river v0.20.0
+	github.com/riverqueue/river/riverdriver/riverdatabasesql v0.20.0
+	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.20.0
+	github.com/riverqueue/river/rivertype v0.20.0
 	github.com/samber/slog-logrus v1.0.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/slack-go/slack v0.16.0
@@ -46,8 +46,8 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/vektah/gqlparser/v2 v2.5.23
 	golang.org/x/crypto v0.36.0
-	golang.org/x/oauth2 v0.28.0
-	golang.org/x/sys v0.31.0
+	golang.org/x/oauth2 v0.29.0
+	golang.org/x/sys v0.32.0
 	golang.org/x/term v0.30.0
 	golang.org/x/tools v0.31.0
 	google.golang.org/grpc v1.71.1
@@ -229,8 +229,8 @@ require (
 	github.com/quasilyte/regex/syntax v0.0.0-20210819130434-b3f0c404a727 // indirect
 	github.com/quasilyte/stdinfo v0.0.0-20220114132959-f7386bf02567 // indirect
 	github.com/raeperd/recvcheck v0.2.0 // indirect
-	github.com/riverqueue/river/riverdriver v0.19.0 // indirect
-	github.com/riverqueue/river/rivershared v0.19.0 // indirect
+	github.com/riverqueue/river/riverdriver v0.20.0 // indirect
+	github.com/riverqueue/river/rivershared v0.20.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
