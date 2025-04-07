@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 
 if [ "$CI" != "1" ]; then
     echo "This script is only intended to be run in CI."
@@ -55,7 +55,11 @@ if [ "$ACTION" == "restore" ]; then
             echo "No cache found for $path"
         fi
     done
-    touch "$GLOBAL_CACHE_PATH/$KEY/.last_used"
+    if [ -d "$GLOBAL_CACHE_PATH/$KEY" ]; then
+        touch "$GLOBAL_CACHE_PATH/$KEY/.last_used"
+    else
+        echo "No cache found for $KEY"
+    fi
 else
     echo "Saving cache..."
     TMP_DIR=$(mktemp -d -p "$GLOBAL_CACHE_PATH/tmp")
