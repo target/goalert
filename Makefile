@@ -339,6 +339,7 @@ resetdb: config.json.bak ## Recreate the database leaving it empty (no migration
 	go run ./devtools/resetdb --no-migrate
 
 clean: ## Clean up build artifacts
+	chmod +w -f -R bin || true
 	rm -rf bin node_modules web/src/node_modules .pnp.cjs .pnp.loader.mjs web/src/build/static .yarn storybook-static
 
 new-migration:
