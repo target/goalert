@@ -82,12 +82,16 @@ else
 fi
 
 MONTH_AGO=$(date -d '1 month ago' +%s)
-for last_used in "$GLOBAL_CACHE_PATH"/*/.last_used; do
-    TIME=$(stat -c %Y "$last_used")
-    if [ "$TIME" -lt "$MONTH_AGO" ]; then
-        echo "Deleting old cache $(dirname "$last_used")"
-        rm -rf "$(dirname "$last_used")"
-    fi
-done
+if [ -z "$(ls -A "$GLOBAL_CACHE_PATH")" ]; then
+    echo "GLOBAL_CACHE_PATH is empty. Skipping old cache cleanup."
+else
+    for last_used in "$GLOBAL_CACHE_PATH"/*/.last_used; do
+        TIME=$(stat -c %Y "$last_used")
+        if [ "$TIME" -lt "$MONTH_AGO" ]; then
+            echo "Deleting old cache $(dirname "$last_used")"
+            rm -rf "$(dirname "$last_used")"
+        fi
+    done
+fi
 
 echo "Cache $ACTION complete."
