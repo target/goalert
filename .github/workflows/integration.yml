@@ -21,6 +21,8 @@ jobs:
     runs-on: arc-runner-set
     container:
       image: goalert/build-env:go1.24.2-postgres13
+      volumes:
+        - /var/cache/arc:/var/cache/arc
     steps:
       - uses: actions/checkout@v4
       - name: Set git safe directory
@@ -28,6 +30,7 @@ jobs:
 
       - name: Restore cache
         run: bash ./devtools/scripts/ci-cache.sh restore
+        env: { CI: '1' }
 
       # Run repo & linting checks
       - name: Repo & Linting Checks
@@ -52,6 +55,7 @@ jobs:
 
       - name: Save cache
         run: bash ./devtools/scripts/ci-cache.sh save
+        env: { CI: '1' }
 
       # Run all tests
       - name: Unit Tests
