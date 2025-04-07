@@ -51,7 +51,7 @@ if [ ${#BAD_MIGRATIONS[@]} -gt 0 ]; then
     echo "${BAD_MIGRATIONS[@]}"
     echo ""
     echo ""
-    echo "To fix this automatically, run 'go run ./devtools/ordermigrations/' locally."
+    echo "To fix this automatically, run 'go tool ordermigrations' locally."
     echo "This tool will automatically update the timestamps of all new migrations to comply with this requirement."
     exit 1
 fi

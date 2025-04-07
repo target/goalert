@@ -4,7 +4,6 @@ set -e
 # assert Cypress versions are identical
 PKG_JSON_VER=$(grep '"cypress":' package.json | awk -F '"' '{print $4}')
 DOCKERFILE_VER=$(grep 'FROM docker.io/cypress/included:' devtools/ci/dockerfiles/cypress-env/Dockerfile | awk -F ':' '{print $2}')
-TASKFILE_VER=$(grep 'goalert/cypress-env' devtools/ci/tasks/test-integration.yml | awk '{print $6}')
 if [ "$PKG_JSON_VER" != "$DOCKERFILE_VER" ]; then
   echo "Cypress versions do not match:"
   echo "package.json: ${PKG_JSON_VER} - Dockerfile: ${DOCKERFILE_VER}"
@@ -35,13 +34,6 @@ for file in $(find devtools -name '*.yml'); do
     exit 1
   fi
 done
-
-# taskfile contains quotes
-if [ "'$PKG_JSON_VER'" != "$TASKFILE_VER" ]; then
-  echo "Cypress versions do not match:"
-  echo "package.json: ${PKG_JSON_VER} - test-integration.yml: ${TASKFILE_VER}"
-  exit 1
-fi
 
 # disk and DB MUST agree in schema file
 DISK_HASH=$(grep "^-- DISK=" migrate/schema.sql | awk '{print $2}' | awk -F'=' '{print $2}')
