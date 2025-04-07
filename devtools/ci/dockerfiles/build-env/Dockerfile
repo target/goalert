@@ -4,6 +4,7 @@ RUN apt-get update && apt-get install -y \
     apt-transport-https \
     ca-certificates \
     curl \
+    unzip \
     gnupg-agent \
     software-properties-common \
     build-essential \

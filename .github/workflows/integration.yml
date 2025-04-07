@@ -27,14 +27,7 @@ jobs:
         run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
       - name: Restore cache
-        id: cache-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            /github/home/.cache/go-build
-            /go/pkg/mod
-            /github/home/.bun/install/cache
-          key: dep-cache
+        run: bash ./devtools/scripts/ci-cache.sh restore
 
       # Run repo & linting checks
       - name: Repo & Linting Checks
@@ -58,13 +51,7 @@ jobs:
       #   run: make bin/goalert-windows-amd64.zip
 
       - name: Save cache
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            /github/home/.cache/go-build
-            /go/pkg/mod
-            /github/home/.bun/install/cache
-          key: dep-cache
+        run: bash ./devtools/scripts/ci-cache.sh save
 
       # Run all tests
       - name: Unit Tests
