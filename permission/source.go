@@ -1,6 +1,6 @@
 package permission
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type SourceType
+//go:generate go tool stringer -type SourceType
 
 // SourceType describes a type of authentication used to authorize a context.
 type SourceType int
