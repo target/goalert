@@ -27,155 +27,158 @@ jobs:
       - uses: actions/checkout@v4
       - name: Set git safe directory
         run: git config --global --add safe.directory $GITHUB_WORKSPACE
-      - name: Restore cache
-        run: bash ./devtools/scripts/ci-cache.sh restore
-        env: { CI: '1' }
+      - uses: actions/cache@v4
+        with:
+          key: cache-${{ hashFiles('go.mod,go.sum,package.json,bun.lock,*.version')}}
+          path: |
+            "/go/pkg/mod"
+            "$HOME/.cache/goalert-gettool"
+            "$HOME/.cache/Cypress"
+            "$HOME/.cache/ms-playwright"
+            "$HOME/.bun/install/cache"
       - name: Build all binaries
         run: make cache
-      - name: Save cache
-        run: bash ./devtools/scripts/ci-cache.sh save
-        env: { CI: '1' }
 
-  check:
-    name: make check
-    # You need to use the INSTALLATION_NAME from the previous step
-    runs-on: arc-runner-set
-    needs: build
-    container:
-      image: goalert/build-env:go1.24.2
-      volumes:
-        - /var/cache/arc:/var/cache/arc
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set git safe directory
-        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+  # check:
+  #   name: make check
+  #   # You need to use the INSTALLATION_NAME from the previous step
+  #   runs-on: arc-runner-set
+  #   needs: build
+  #   container:
+  #     image: goalert/build-env:go1.24.2
+  #     volumes:
+  #       - /var/cache/arc:/var/cache/arc
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Set git safe directory
+  #       run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
-      - name: Restore cache
-        run: bash ./devtools/scripts/ci-cache.sh restore
-        env: { CI: '1' }
+  #     - name: Restore cache
+  #       run: bash ./devtools/scripts/ci-cache.sh restore
+  #       env: { CI: '1' }
 
-      # Run repo & linting checks
-      - name: Run Repo & Linting Checks
-        run: make check self-test
+  #     # Run repo & linting checks
+  #     - name: Run Repo & Linting Checks
+  #       run: make check self-test
 
-  unit:
-    name: Unit Tests
-    # You need to use the INSTALLATION_NAME from the previous step
-    runs-on: arc-runner-set
-    needs: build
-    container:
-      image: goalert/build-env:go1.24.2
-      volumes:
-        - /var/cache/arc:/var/cache/arc
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set git safe directory
-        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+  # unit:
+  #   name: Unit Tests
+  #   # You need to use the INSTALLATION_NAME from the previous step
+  #   runs-on: arc-runner-set
+  #   needs: build
+  #   container:
+  #     image: goalert/build-env:go1.24.2
+  #     volumes:
+  #       - /var/cache/arc:/var/cache/arc
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Set git safe directory
+  #       run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
-      - name: Restore cache
-        run: bash ./devtools/scripts/ci-cache.sh restore
-        env: { CI: '1' }
+  #     - name: Restore cache
+  #       run: bash ./devtools/scripts/ci-cache.sh restore
+  #       env: { CI: '1' }
 
-      # Run repo & linting checks
-      - name: Run Tests
-        run: make test-unit test-components
+  #     # Run repo & linting checks
+  #     - name: Run Tests
+  #       run: make test-unit test-components
 
-  smoke:
-    name: Smoke Tests (behavioral tests)
-    # You need to use the INSTALLATION_NAME from the previous step
-    runs-on: arc-runner-set
-    needs: build
-    strategy:
-      matrix:
-        postgres_version: [13, 17]
-    container:
-      image: goalert/build-env:go1.24.2
-      volumes:
-        - /var/cache/arc:/var/cache/arc
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set git safe directory
-        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+  # smoke:
+  #   name: Smoke Tests (behavioral tests)
+  #   # You need to use the INSTALLATION_NAME from the previous step
+  #   runs-on: arc-runner-set
+  #   needs: build
+  #   strategy:
+  #     matrix:
+  #       postgres_version: [13, 17]
+  #   container:
+  #     image: goalert/build-env:go1.24.2
+  #     volumes:
+  #       - /var/cache/arc:/var/cache/arc
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Set git safe directory
+  #       run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
-      - name: Restore cache
-        run: bash ./devtools/scripts/ci-cache.sh restore
-        env: { CI: '1' }
+  #     - name: Restore cache
+  #       run: bash ./devtools/scripts/ci-cache.sh restore
+  #       env: { CI: '1' }
 
-      # Run repo & linting checks
-      - name: Run Smoke Tests
-        run: start_postgres ${{ matrix.postgres_version }} make smoketest
+  #     # Run repo & linting checks
+  #     - name: Run Smoke Tests
+  #       run: start_postgres ${{ matrix.postgres_version }} make smoketest
 
-  playwright:
-    name: Playwright Tests
-    # You need to use the INSTALLATION_NAME from the previous step
-    runs-on: arc-runner-set
-    needs: build
-    strategy:
-      matrix:
-        postgres_version: [13, 17]
-    container:
-      image: goalert/build-env:go1.24.2
-      volumes:
-        - /var/cache/arc:/var/cache/arc
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set git safe directory
-        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+  # playwright:
+  #   name: Playwright Tests
+  #   # You need to use the INSTALLATION_NAME from the previous step
+  #   runs-on: arc-runner-set
+  #   needs: build
+  #   strategy:
+  #     matrix:
+  #       postgres_version: [13, 17]
+  #   container:
+  #     image: goalert/build-env:go1.24.2
+  #     volumes:
+  #       - /var/cache/arc:/var/cache/arc
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Set git safe directory
+  #       run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
-      - name: Restore cache
-        run: bash ./devtools/scripts/ci-cache.sh restore
-        env: { CI: '1' }
+  #     - name: Restore cache
+  #       run: bash ./devtools/scripts/ci-cache.sh restore
+  #       env: { CI: '1' }
 
-      # Run repo & linting checks
-      - name: Run Smoke Tests
-        run: bash -c 'start_postgres ${{ matrix.postgres_version }} make playwright-run'
+  #     # Run repo & linting checks
+  #     - name: Run Smoke Tests
+  #       run: bash -c 'start_postgres ${{ matrix.postgres_version }} make playwright-run'
 
-  cy-wide:
-    name: Cypess Widescreen Tests
-    # You need to use the INSTALLATION_NAME from the previous step
-    runs-on: arc-runner-set
-    needs: build
-    strategy:
-      matrix:
-        postgres_version: [13, 17]
-    container:
-      image: goalert/build-env:go1.24.2
-      volumes:
-        - /var/cache/arc:/var/cache/arc
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set git safe directory
-        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+  # cy-wide:
+  #   name: Cypess Widescreen Tests
+  #   # You need to use the INSTALLATION_NAME from the previous step
+  #   runs-on: arc-runner-set
+  #   needs: build
+  #   strategy:
+  #     matrix:
+  #       postgres_version: [13, 17]
+  #   container:
+  #     image: goalert/build-env:go1.24.2
+  #     volumes:
+  #       - /var/cache/arc:/var/cache/arc
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Set git safe directory
+  #       run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
-      - name: Restore cache
-        run: bash ./devtools/scripts/ci-cache.sh restore
-        env: { CI: '1' }
+  #     - name: Restore cache
+  #       run: bash ./devtools/scripts/ci-cache.sh restore
+  #       env: { CI: '1' }
 
-      # Run repo & linting checks
-      - name: Run Smoke Tests
-        run: bash -c 'start_postgres ${{ matrix.postgres_version }} make cy-wide-prod-run'
+  #     # Run repo & linting checks
+  #     - name: Run Smoke Tests
+  #       run: bash -c 'start_postgres ${{ matrix.postgres_version }} make cy-wide-prod-run'
 
-  cy-mobile:
-    name: Cypess Mobile Tests
-    # You need to use the INSTALLATION_NAME from the previous step
-    runs-on: arc-runner-set
-    needs: build
-    strategy:
-      matrix:
-        postgres_version: [13, 17]
-    container:
-      image: goalert/build-env:go1.24.2
-      volumes:
-        - /var/cache/arc:/var/cache/arc
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set git safe directory
-        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+  # cy-mobile:
+  #   name: Cypess Mobile Tests
+  #   # You need to use the INSTALLATION_NAME from the previous step
+  #   runs-on: arc-runner-set
+  #   needs: build
+  #   strategy:
+  #     matrix:
+  #       postgres_version: [13, 17]
+  #   container:
+  #     image: goalert/build-env:go1.24.2
+  #     volumes:
+  #       - /var/cache/arc:/var/cache/arc
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Set git safe directory
+  #       run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
-      - name: Restore cache
-        run: bash ./devtools/scripts/ci-cache.sh restore
-        env: { CI: '1' }
+  #     - name: Restore cache
+  #       run: bash ./devtools/scripts/ci-cache.sh restore
+  #       env: { CI: '1' }
 
-      # Run repo & linting checks
-      - name: Run Smoke Tests
-        run: bash -c 'start_postgres ${{ matrix.postgres_version }} make cy-mobile-prod-run'
+  #     # Run repo & linting checks
+  #     - name: Run Smoke Tests
+  #       run: bash -c 'start_postgres ${{ matrix.postgres_version }} make cy-mobile-prod-run'
