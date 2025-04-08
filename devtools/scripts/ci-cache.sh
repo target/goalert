@@ -14,7 +14,7 @@ if [ "$ACTION" != "restore" ] && [ "$ACTION" != "save" ]; then
     exit 1
 fi
 
-KEY="goalert-cache-$(uname -s)-$(uname -m)-$(cat go.mod go.sum package.json bun.lock *.version | sha256sum | awk '{print $1}')"
+KEY="goalert-cache-$(uname -s)-$(uname -m)-$(cat devtools/scripts/ci-cache.sh go.mod go.sum package.json bun.lock *.version | sha256sum | awk '{print $1}')"
 
 if [ -z "$GLOBAL_CACHE_PATH" ]; then
     echo "GLOBAL_CACHE_PATH is not set. Skipping cache management."
@@ -40,6 +40,7 @@ PATHS=(
     "$(go env GOCACHE)"
     "$HOME/.cache/goalert-gettool"
     "$HOME/.cache/Cypress"
+    "$HOME/.cache/ms-playwright"
     "$HOME/.bun/install/cache"
 )
 
