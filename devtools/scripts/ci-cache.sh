@@ -62,7 +62,7 @@ if [ "$ACTION" == "restore" ]; then
     fi
 else
     echo "Saving cache..."
-    TMP_DIR=$(mktemp -d -p "$GLOBAL_CACHE_PATH/tmp")
+    TMP_DIR=$(mktemp -d -p "$GLOBAL_CACHE_PATH")
     if [ ! -d "$TMP_DIR" ]; then
         echo "Failed to create temporary directory for cache."
         exit 1
