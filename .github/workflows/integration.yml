@@ -20,7 +20,7 @@ jobs:
     name: Build Validation
     runs-on: arc-runner-set
     container:
-      image: golang:1.24.2-bookworm
+      image: goalert/build-env:go1.24.2
       volumes:
         - /var/cache/arc:/var/cache/arc
     steps:
@@ -42,7 +42,7 @@ jobs:
     runs-on: arc-runner-set
     needs: build
     container:
-      image: golang:1.24.2-bookworm
+      image: goalert/build-env:go1.24.2
       volumes:
         - /var/cache/arc:/var/cache/arc
     steps:
@@ -64,7 +64,7 @@ jobs:
     runs-on: arc-runner-set
     needs: build
     container:
-      image: golang:1.24.2-bookworm
+      image: goalert/build-env:go1.24.2
       volumes:
         - /var/cache/arc:/var/cache/arc
     steps:
