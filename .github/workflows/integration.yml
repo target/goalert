@@ -18,7 +18,7 @@ concurrency:
 jobs:
   build:
     name: Build Validation
-    runs-on: arc-runner-set
+    runs-on: arc-runner-set-2
     container:
       image: goalert/build-env:go1.24.2
       volumes:
@@ -39,7 +39,7 @@ jobs:
   check:
     name: make check
     # You need to use the INSTALLATION_NAME from the previous step
-    runs-on: arc-runner-set
+    runs-on: arc-runner-set-2
     needs: build
     container:
       image: goalert/build-env:go1.24.2
@@ -61,7 +61,7 @@ jobs:
   unit:
     name: Unit Tests
     # You need to use the INSTALLATION_NAME from the previous step
-    runs-on: arc-runner-set
+    runs-on: arc-runner-set-2
     needs: build
     container:
       image: goalert/build-env:go1.24.2
@@ -83,7 +83,7 @@ jobs:
   smoke:
     name: Smoke Tests (behavioral tests)
     # You need to use the INSTALLATION_NAME from the previous step
-    runs-on: arc-runner-set
+    runs-on: arc-runner-set-2
     needs: build
     strategy:
       matrix:
@@ -108,7 +108,7 @@ jobs:
   playwright:
     name: Playwright Tests
     # You need to use the INSTALLATION_NAME from the previous step
-    runs-on: arc-runner-set
+    runs-on: arc-runner-set-2
     needs: build
     strategy:
       matrix:
@@ -133,7 +133,7 @@ jobs:
   cy-wide:
     name: Cypess Widescreen Tests
     # You need to use the INSTALLATION_NAME from the previous step
-    runs-on: arc-runner-set
+    runs-on: arc-runner-set-2
     needs: build
     strategy:
       matrix:
@@ -158,7 +158,7 @@ jobs:
   cy-mobile:
     name: Cypess Mobile Tests
     # You need to use the INSTALLATION_NAME from the previous step
-    runs-on: arc-runner-set
+    runs-on: arc-runner-set-2
     needs: build
     strategy:
       matrix:
