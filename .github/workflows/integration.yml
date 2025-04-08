@@ -54,22 +54,8 @@ jobs:
       #   run: make bin/goalert-windows-amd64.zip
 
       # Run all tests
-      - name: Unit Tests
-        run: make test-unit
-      - name: UI Component Tests (Storybook)
-        run: make test-components
-
-      - name: Start Postgres
-        run: start_postgres
-
-      - name: Behavioral Tests (smoke tests)
-        run: make smoketest CI=1 DB_URL=postgresql://postgres@?client_encoding=UTF8&sslmode=disable
-      - name: Playwright Tests
-        run: make playwright-run CI=1 DB_URL=postgresql://postgres@?client_encoding=UTF8&sslmode=disable
-      - name: Cypress Tests (Widescreen)
-        run: make cy-wide-prod-run CI=1 DB_URL=postgresql://postgres@?client_encoding=UTF8&sslmode=disable
-      - name: Cypress Tests (Mobile)
-        run: make cy-mobile-prod-run CI=1 DB_URL=postgresql://postgres@?client_encoding=UTF8&sslmode=disable
+      - name: Tests
+        run: start_postgres && make test-all
 
       - name: Save cache
         run: bash ./devtools/scripts/ci-cache.sh save
