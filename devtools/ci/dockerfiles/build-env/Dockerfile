@@ -14,14 +14,17 @@ RUN apt-get update && apt-get install -y \
     rm -rf /var/lib/apt/lists/*
 
 # Postgres
-RUN curl -fsSL https://www.postgresql.org/keys/pgdg.asc | sudo gpg --dearmor | sudo tee /usr/share/keyrings/postgresql.gpg > /dev/null
+RUN mkdir -p /usr/share/postgresql-common/pgdg && curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
 
-RUN echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt/debian bookworm-pgdg main" > /etc/apt/sources.list.d/postgresql.list
+RUN echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/postgresql.list
 
 RUN apt-get update && apt-get install -y \
-    postgresql-13 \
-    postgresql-client-13 \
-    rm -rf /var/lib/apt/lists/*
+    postgresql-13 postgresql-client-13 \
+    postgresql-14 postgresql-client-14 \
+    postgresql-15 postgresql-client-15 \
+    postgresql-16 postgresql-client-16 \
+    postgresql-17 postgresql-client-17 \
+    && rm -rf /var/lib/apt/lists/*
 
 # google chrome
 RUN \
@@ -32,14 +35,10 @@ RUN \
     rm -rf /var/lib/apt/lists/*
 
 # Postgres
-ENV PGDATA=/var/lib/postgresql/data PGUSER=postgres DB_URL=postgresql://postgres@?client_encoding=UTF8&sslmode=disable
-RUN mkdir -p ${PGDATA} /run/postgresql /var/log/postgresql &&\
-    chown postgres ${PGDATA} /run/postgresql /var/log/postgresql &&\
-    su postgres -c "/usr/lib/postgresql/13/bin/initdb $PGDATA" &&\
-    echo "host all  all    0.0.0.0/0  md5" >> $PGDATA/pg_hba.conf &&\
-    echo "listen_addresses='*'" >> $PGDATA/postgresql.conf &&\
-    echo "fsync = off" >> $PGDATA/postgresql.conf &&\
-    echo "full_page_writes = off" >> $PGDATA/postgresql.conf
+ENV PGUSER=postgres DB_URL=postgresql://postgres@?client_encoding=UTF8&sslmode=disable
+COPY setup_postgres.sh /usr/bin/setup_postgres
+RUN setup_postgres 13 14 15 16 17
+
 COPY start_postgres.sh /usr/bin/start_postgres
 COPY stop_postgres.sh /usr/bin/stop_postgres
 
