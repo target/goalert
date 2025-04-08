@@ -1,4 +1,4 @@
-FROM docker.io/library/golang:1.24.2-bullseye
+FROM docker.io/library/golang:1.24.2-bookworm
 
 RUN apt-get update && apt-get install -y \
     apt-transport-https \
@@ -7,10 +7,20 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     gnupg-agent \
+    gnupg2 lsb-release \
     software-properties-common \
     build-essential \
-    postgresql-13 postgresql-client-13 \
     dbus-x11 xvfb && \
+    rm -rf /var/lib/apt/lists/*
+
+# Postgres
+RUN curl -fsSL https://www.postgresql.org/keys/pgdg.asc | sudo gpg --dearmor | sudo tee /usr/share/keyrings/postgresql.gpg > /dev/null
+
+RUN echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt/debian bookworm-pgdg main" > /etc/apt/sources.list.d/postgresql.list
+
+RUN apt-get update && apt-get install -y \
+    postgresql-13 \
+    postgresql-client-13 \
     rm -rf /var/lib/apt/lists/*
 
 # google chrome
