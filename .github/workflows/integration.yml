@@ -59,14 +59,17 @@ jobs:
       - name: UI Component Tests (Storybook)
         run: make test-components
 
+      - name: Start Postgres
+        run: start_postgres
+
       - name: Behavioral Tests (smoke tests)
-        run: start_postgres && make smoketest CI=1 DB_URL=postgresql://postgres@?client_encoding=UTF8&sslmode=disable
+        run: make smoketest CI=1 DB_URL=postgresql://postgres@?client_encoding=UTF8&sslmode=disable
       - name: Playwright Tests
-        run: start_postgres && make playwright-run CI=1 DB_URL=postgresql://postgres@?client_encoding=UTF8&sslmode=disable
+        run: make playwright-run CI=1 DB_URL=postgresql://postgres@?client_encoding=UTF8&sslmode=disable
       - name: Cypress Tests (Widescreen)
-        run: start_postgres && make cy-wide-prod-run CI=1 DB_URL=postgresql://postgres@?client_encoding=UTF8&sslmode=disable
+        run: make cy-wide-prod-run CI=1 DB_URL=postgresql://postgres@?client_encoding=UTF8&sslmode=disable
       - name: Cypress Tests (Mobile)
-        run: start_postgres && make cy-mobile-prod-run CI=1 DB_URL=postgresql://postgres@?client_encoding=UTF8&sslmode=disable
+        run: make cy-mobile-prod-run CI=1 DB_URL=postgresql://postgres@?client_encoding=UTF8&sslmode=disable
 
       - name: Save cache
         run: bash ./devtools/scripts/ci-cache.sh save
