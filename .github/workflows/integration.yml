@@ -29,7 +29,7 @@ jobs:
         run: git config --global --add safe.directory $GITHUB_WORKSPACE
       - uses: actions/cache@v4
         with:
-          key: cache-${{ hashFiles('go.mod,go.sum,package.json,bun.lock,*.version')}}
+          key: cache-${{ hashFiles('go.mod','go.sum','package.json','bun.lock','*.version')}}
           path: |
             "/go/pkg/mod"
             "$HOME/.cache/goalert-gettool"
