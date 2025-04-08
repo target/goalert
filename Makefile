@@ -97,6 +97,16 @@ $(BIN_DIR)/tools/mailpit: mailpit.version
 $(BIN_DIR)/tools/bun: bun.version
 	go tool gettool -t bun -v $(shell cat bun.version) -o $@
 
+
+.PHONY: deps
+deps: node_modules $(BIN_DIR)/tools/bun $(BIN_DIR)/tools/mailpit $(BIN_DIR)/tools/k6 $(BIN_DIR)/tools/protoc $(BIN_DIR)/tools/k6 ## Install all dependencies
+	go get tool ./...
+	bun x cypress install
+	bun x playwright install
+
+.PHONY: build-bin
+build-bin: deps bin/goalert bin/goalert.cover bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz bin/goalert-windows-amd64.zip ## Prime the build cache by building all binaries
+
 bun.lock: $(BIN_DIR)/tools/bun
 	$(BIN_DIR)/tools/bun install
 	touch "$@"
