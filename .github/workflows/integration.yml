@@ -87,7 +87,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        postgres_version: [13, 14]
+        postgres_version: [13, 17]
     container:
       image: goalert/build-env:go1.24.2
       volumes:
@@ -112,7 +112,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        postgres_version: [13, 14]
+        postgres_version: [13, 17]
     container:
       image: goalert/build-env:go1.24.2
       volumes:
@@ -128,7 +128,7 @@ jobs:
 
       # Run repo & linting checks
       - name: Run Smoke Tests
-        run: start_postgres ${{ matrix.postgres_version }} make playwright-run
+        run: bash -c 'start_postgres ${{ matrix.postgres_version }} make playwright-run'
 
   cy-wide:
     name: Cypess Widescreen Tests
@@ -137,7 +137,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        postgres_version: [13, 14]
+        postgres_version: [13, 17]
     container:
       image: goalert/build-env:go1.24.2
       volumes:
@@ -153,7 +153,7 @@ jobs:
 
       # Run repo & linting checks
       - name: Run Smoke Tests
-        run: start_postgres ${{ matrix.postgres_version }} make cy-wide-prod-run
+        run: bash -c 'start_postgres ${{ matrix.postgres_version }} make cy-wide-prod-run'
 
   cy-mobile:
     name: Cypess Mobile Tests
@@ -162,7 +162,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        postgres_version: [13, 14]
+        postgres_version: [13, 17]
     container:
       image: goalert/build-env:go1.24.2
       volumes:
@@ -178,4 +178,4 @@ jobs:
 
       # Run repo & linting checks
       - name: Run Smoke Tests
-        run: start_postgres ${{ matrix.postgres_version }} make cy-mobile-prod-run
+        run: bash -c 'start_postgres ${{ matrix.postgres_version }} make cy-mobile-prod-run'
