@@ -53,10 +53,6 @@ jobs:
       # - name: Build Check (windows-amd64)
       #   run: make bin/goalert-windows-amd64.zip
 
-      - name: Save cache
-        run: bash ./devtools/scripts/ci-cache.sh save
-        env: { CI: '1' }
-
       # Run all tests
       - name: Unit Tests
         run: make test-unit
@@ -71,3 +67,7 @@ jobs:
         run: start_postgres && make cy-wide-prod-run CI=1 DB_URL=postgresql://postgres@?client_encoding=UTF8&sslmode=disable
       - name: Cypress Tests (Mobile)
         run: start_postgres && make cy-mobile-prod-run CI=1 DB_URL=postgresql://postgres@?client_encoding=UTF8&sslmode=disable
+
+      - name: Save cache
+        run: bash ./devtools/scripts/ci-cache.sh save
+        env: { CI: '1' }

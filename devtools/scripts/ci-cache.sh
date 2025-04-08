@@ -61,6 +61,11 @@ if [ "$ACTION" == "restore" ]; then
         echo "No cache found for $KEY"
     fi
 else
+    # Skip saving if the cache already exists
+    if [ -d "$GLOBAL_CACHE_PATH/$KEY" ]; then
+        echo "Cache already exists. Skipping save."
+        exit 0
+    fi
     echo "Saving cache..."
     TMP_DIR=$(mktemp -d -p "$GLOBAL_CACHE_PATH")
     if [ ! -d "$TMP_DIR" ]; then
