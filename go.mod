@@ -30,10 +30,10 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.21.1
-	github.com/riverqueue/river v0.19.0
-	github.com/riverqueue/river/riverdriver/riverdatabasesql v0.19.0
-	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.19.0
-	github.com/riverqueue/river/rivertype v0.19.0
+	github.com/riverqueue/river v0.20.1
+	github.com/riverqueue/river/riverdriver/riverdatabasesql v0.20.1
+	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.20.1
+	github.com/riverqueue/river/rivertype v0.20.1
 	github.com/samber/slog-logrus v1.0.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/slack-go/slack v0.16.0
@@ -240,9 +240,9 @@ require (
 	github.com/quasilyte/stdinfo v0.0.0-20220114132959-f7386bf02567 // indirect
 	github.com/raeperd/recvcheck v0.2.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/riverqueue/river/cmd/river v0.19.0 // indirect
-	github.com/riverqueue/river/riverdriver v0.19.0 // indirect
-	github.com/riverqueue/river/rivershared v0.19.0 // indirect
+	github.com/riverqueue/river/cmd/river v0.20.1 // indirect
+	github.com/riverqueue/river/riverdriver v0.20.1 // indirect
+	github.com/riverqueue/river/rivershared v0.20.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/riza-io/grpc-go v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
