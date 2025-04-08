@@ -28,7 +28,7 @@ jobs:
       - name: Set git safe directory
         run: git config --global --add safe.directory $GITHUB_WORKSPACE
       - uses: actions/cache@v4
-        with:
+        with: &SETUP_CACHE
           key: cache-${{ hashFiles('go.mod','go.sum','package.json','bun.lock','*.version')}}
           path: |
             "/go/pkg/mod"
@@ -39,49 +39,46 @@ jobs:
       - name: Build all binaries
         run: make cache
 
-  # check:
-  #   name: make check
-  #   # You need to use the INSTALLATION_NAME from the previous step
-  #   runs-on: arc-runner-set
-  #   needs: build
-  #   container:
-  #     image: goalert/build-env:go1.24.2
-  #     volumes:
-  #       - /var/cache/arc:/var/cache/arc
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Set git safe directory
-  #       run: git config --global --add safe.directory $GITHUB_WORKSPACE
+  check:
+    name: make check
+    # You need to use the INSTALLATION_NAME from the previous step
+    runs-on: arc-runner-set
+    needs: build
+    container:
+      image: goalert/build-env:go1.24.2
+      volumes:
+        - /var/cache/arc:/var/cache/arc
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set git safe directory
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+      - uses: actions/cache@v4
+        with: *SETUP_CACHE
 
-  #     - name: Restore cache
-  #       run: bash ./devtools/scripts/ci-cache.sh restore
-  #       env: { CI: '1' }
+      # Run repo & linting checks
+      - name: Run Repo & Linting Checks
+        run: make check self-test
 
-  #     # Run repo & linting checks
-  #     - name: Run Repo & Linting Checks
-  #       run: make check self-test
+  unit:
+    name: Unit Tests
+    # You need to use the INSTALLATION_NAME from the previous step
+    runs-on: arc-runner-set
+    needs: build
+    container:
+      image: goalert/build-env:go1.24.2
+      volumes:
+        - /var/cache/arc:/var/cache/arc
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set git safe directory
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
-  # unit:
-  #   name: Unit Tests
-  #   # You need to use the INSTALLATION_NAME from the previous step
-  #   runs-on: arc-runner-set
-  #   needs: build
-  #   container:
-  #     image: goalert/build-env:go1.24.2
-  #     volumes:
-  #       - /var/cache/arc:/var/cache/arc
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Set git safe directory
-  #       run: git config --global --add safe.directory $GITHUB_WORKSPACE
+      - uses: actions/cache@v4
+        with: *SETUP_CACHE
 
-  #     - name: Restore cache
-  #       run: bash ./devtools/scripts/ci-cache.sh restore
-  #       env: { CI: '1' }
-
-  #     # Run repo & linting checks
-  #     - name: Run Tests
-  #       run: make test-unit test-components
+      # Run repo & linting checks
+      - name: Run Tests
+        run: make test-unit test-components
 
   # smoke:
   #   name: Smoke Tests (behavioral tests)
