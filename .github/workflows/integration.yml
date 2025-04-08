@@ -20,7 +20,7 @@ jobs:
     name: Build Validation
     runs-on: arc-runner-set
     container:
-      image: goalert/build-env:go1.24.2
+      image: golang:1.24.2-bookworm
       volumes:
         - /var/cache/arc:/var/cache/arc
     steps:
@@ -31,7 +31,7 @@ jobs:
         run: bash ./devtools/scripts/ci-cache.sh restore
         env: { CI: '1' }
       - name: Build all binaries
-        run: make -j4 build-bin
+        run: make cache
       - name: Save cache
         run: bash ./devtools/scripts/ci-cache.sh save
         env: { CI: '1' }
@@ -42,7 +42,7 @@ jobs:
     runs-on: arc-runner-set
     needs: build
     container:
-      image: goalert/build-env:go1.24.2
+      image: golang:1.24.2-bookworm
       volumes:
         - /var/cache/arc:/var/cache/arc
     steps:
@@ -64,7 +64,7 @@ jobs:
     runs-on: arc-runner-set
     needs: build
     container:
-      image: goalert/build-env:go1.24.2
+      image: golang:1.24.2-bookworm
       volumes:
         - /var/cache/arc:/var/cache/arc
     steps:
