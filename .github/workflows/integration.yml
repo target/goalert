@@ -28,7 +28,7 @@ jobs:
       - name: Set git safe directory
         run: git config --global --add safe.directory $GITHUB_WORKSPACE
       - uses: actions/cache@v4
-        with: &SETUP_CACHE
+        with:
           key: cache-${{ hashFiles('go.mod','go.sum','package.json','bun.lock','*.version')}}
           path: |
             "/go/pkg/mod"
@@ -53,7 +53,14 @@ jobs:
       - name: Set git safe directory
         run: git config --global --add safe.directory $GITHUB_WORKSPACE
       - uses: actions/cache@v4
-        with: *SETUP_CACHE
+        with:
+          key: cache-${{ hashFiles('go.mod','go.sum','package.json','bun.lock','*.version')}}
+          path: |
+            "/go/pkg/mod"
+            "$HOME/.cache/goalert-gettool"
+            "$HOME/.cache/Cypress"
+            "$HOME/.cache/ms-playwright"
+            "$HOME/.bun/install/cache"
 
       # Run repo & linting checks
       - name: Run Repo & Linting Checks
@@ -74,7 +81,14 @@ jobs:
         run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
       - uses: actions/cache@v4
-        with: *SETUP_CACHE
+        with:
+          key: cache-${{ hashFiles('go.mod','go.sum','package.json','bun.lock','*.version')}}
+          path: |
+            "/go/pkg/mod"
+            "$HOME/.cache/goalert-gettool"
+            "$HOME/.cache/Cypress"
+            "$HOME/.cache/ms-playwright"
+            "$HOME/.bun/install/cache"
 
       # Run repo & linting checks
       - name: Run Tests
