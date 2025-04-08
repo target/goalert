@@ -13,12 +13,6 @@ RUN apt-get update && apt-get install -y \
     dbus-x11 xvfb && \
     rm -rf /var/lib/apt/lists/*
 
-ADD https://nodejs.org/dist/v20.11.0/node-v20.11.0-linux-x64.tar.xz /tmp/node.tar.xz
-RUN tar -xvf /tmp/node.tar.xz -C /usr/local --strip-components=1 && rm /tmp/node.tar.xz
-
-# yarn
-RUN npm install -g yarn
-
 # google chrome
 RUN \
     wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
