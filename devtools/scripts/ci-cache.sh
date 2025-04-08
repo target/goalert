@@ -49,7 +49,7 @@ if [ "$ACTION" == "restore" ]; then
         SRC=$(resolve_path "$path")
         if [ -d "$SRC" ]; then
             echo "Restoring $path"
-            mkdir -p "$(dirname "$path")"
+            mkdir -p "$path"
             cp -r "$SRC/"* "$path/"
         else
             echo "No cache found for $path"
