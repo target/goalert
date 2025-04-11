@@ -24,12 +24,10 @@ func (app *App) _Run(ctx context.Context) error {
 		}
 	}()
 
-	go func() {
-		err := app.RiverUI.Start(ctx)
-		if err != nil {
-			app.Logger.ErrorContext(ctx, "Failed to start River UI.", slog.Any("error", err))
-		}
-	}()
+	err := app.RiverUI.Start(ctx)
+	if err != nil {
+		app.Logger.ErrorContext(ctx, "Failed to start River UI.", slog.Any("error", err))
+	}
 
 	go app.events.Run(ctx)
 
@@ -58,7 +56,7 @@ func (app *App) _Run(ctx context.Context) error {
 		slog.String("address", app.l.Addr().String()),
 		slog.String("url", app.ConfigStore.Config().PublicURL()),
 	)
-	err := app.srv.Serve(app.l)
+	err = app.srv.Serve(app.l)
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return errors.Wrap(err, "serve HTTP")
 	}
