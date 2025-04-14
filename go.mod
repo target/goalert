@@ -29,11 +29,11 @@ require (
 	github.com/oauth2-proxy/mockoidc v0.0.0-20240214162133-caebfff84d25
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.21.1
-	github.com/riverqueue/river v0.20.1
-	github.com/riverqueue/river/riverdriver/riverdatabasesql v0.20.1
-	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.20.1
-	github.com/riverqueue/river/rivertype v0.20.1
+	github.com/prometheus/client_golang v1.22.0
+	github.com/riverqueue/river v0.20.2
+	github.com/riverqueue/river/riverdriver/riverdatabasesql v0.20.2
+	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.20.2
+	github.com/riverqueue/river/rivertype v0.20.2
 	github.com/samber/slog-logrus v1.0.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/slack-go/slack v0.16.0
@@ -41,7 +41,7 @@ require (
 	github.com/spf13/viper v1.20.1
 	github.com/sqlc-dev/pqtype v0.3.0
 	github.com/stretchr/testify v1.10.0
-	github.com/vektah/gqlparser/v2 v2.5.23
+	github.com/vektah/gqlparser/v2 v2.5.24
 	golang.org/x/crypto v0.37.0
 	golang.org/x/oauth2 v0.29.0
 	golang.org/x/sys v0.32.0
@@ -49,7 +49,7 @@ require (
 	google.golang.org/grpc v1.71.1
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
-	riverqueue.com/riverui v0.8.1
+	riverqueue.com/riverui v0.9.0
 )
 
 require (
@@ -188,7 +188,6 @@ require (
 	github.com/kffl/speedbump v1.1.0 // indirect
 	github.com/kisielk/errcheck v1.9.0 // indirect
 	github.com/kkHAIKE/contextcheck v1.1.6 // indirect
-	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/kulti/thelper v0.6.3 // indirect
 	github.com/kunwardeep/paralleltest v1.0.10 // indirect
 	github.com/lasiar/canonicalheader v1.1.2 // indirect
@@ -240,9 +239,10 @@ require (
 	github.com/quasilyte/stdinfo v0.0.0-20220114132959-f7386bf02567 // indirect
 	github.com/raeperd/recvcheck v0.2.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
+	github.com/riverqueue/apiframe v0.0.0-20250408034821-b206bbbd0fb4 // indirect
 	github.com/riverqueue/river/cmd/river v0.19.0 // indirect
-	github.com/riverqueue/river/riverdriver v0.20.1 // indirect
-	github.com/riverqueue/river/rivershared v0.20.1 // indirect
+	github.com/riverqueue/river/riverdriver v0.20.2 // indirect
+	github.com/riverqueue/river/rivershared v0.20.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/riza-io/grpc-go v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
