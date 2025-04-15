@@ -29,7 +29,7 @@ require (
 	github.com/oauth2-proxy/mockoidc v0.0.0-20240214162133-caebfff84d25
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.22.0
+	github.com/prometheus/client_golang v1.21.1
 	github.com/riverqueue/river v0.20.2
 	github.com/riverqueue/river/riverdriver/riverdatabasesql v0.20.2
 	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.20.2
@@ -188,6 +188,7 @@ require (
 	github.com/kffl/speedbump v1.1.0 // indirect
 	github.com/kisielk/errcheck v1.9.0 // indirect
 	github.com/kkHAIKE/contextcheck v1.1.6 // indirect
+	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/kulti/thelper v0.6.3 // indirect
 	github.com/kunwardeep/paralleltest v1.0.10 // indirect
 	github.com/lasiar/canonicalheader v1.1.2 // indirect
