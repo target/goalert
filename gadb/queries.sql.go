@@ -832,21 +832,21 @@ func (q *Queries) Alert_SetManyAlertFeedback(ctx context.Context, arg Alert_SetM
 
 const allPendingMsgDests = `-- name: AllPendingMsgDests :many
 SELECT DISTINCT
-    usr.name AS user_name,
-    cm.dest AS cm_dest,
-    nc.name AS nc_name,
-    nc.dest AS nc_dest
+  usr.name AS user_name,
+  cm.dest AS cm_dest,
+  nc.name AS nc_name,
+  nc.dest AS nc_dest
 FROM
-    outgoing_messages om
-    LEFT JOIN users usr ON usr.id = om.user_id
-    LEFT JOIN notification_channels nc ON nc.id = om.channel_id
-    LEFT JOIN user_contact_methods cm ON cm.id = om.contact_method_id
+  outgoing_messages om
+  LEFT JOIN users usr ON usr.id = om.user_id
+  LEFT JOIN notification_channels nc ON nc.id = om.channel_id
+  LEFT JOIN user_contact_methods cm ON cm.id = om.contact_method_id
 WHERE
-    om.last_status = 'pending'
-    AND (now() - om.created_at) > INTERVAL '15 seconds'
-    AND (om.alert_id = $1::bigint
-        OR (om.message_type = 'alert_notification_bundle'
-            AND om.service_id = $2::uuid))
+  om.last_status = 'pending'
+  AND (now() - om.created_at) > INTERVAL '15 seconds'
+  AND (om.alert_id = $1::bigint
+    OR (om.message_type = 'alert_notification_bundle'
+      AND om.service_id = $2::uuid))
 `
 
 type AllPendingMsgDestsParams struct {
@@ -2402,18 +2402,18 @@ func (q *Queries) ForeignKeyRefs(ctx context.Context) ([]ForeignKeyRefsRow, erro
 
 const gQLUserOnCallOverview = `-- name: GQLUserOnCallOverview :many
 SELECT
-    svc.id AS service_id,
-    svc.name AS service_name,
-    ep.id AS policy_id,
-    ep.name AS policy_name,
-    step.step_number
+  svc.id AS service_id,
+  svc.name AS service_name,
+  ep.id AS policy_id,
+  ep.name AS policy_name,
+  step.step_number
 FROM
-    ep_step_on_call_users oc
-    JOIN escalation_policy_steps step ON step.id = oc.ep_step_id
-    JOIN escalation_policies ep ON ep.id = step.escalation_policy_id
-    JOIN services svc ON svc.escalation_policy_id = ep.id
+  ep_step_on_call_users oc
+  JOIN escalation_policy_steps step ON step.id = oc.ep_step_id
+  JOIN escalation_policies ep ON ep.id = step.escalation_policy_id
+  JOIN services svc ON svc.escalation_policy_id = ep.id
 WHERE
-    oc.user_id = $1
+  oc.user_id = $1
 `
 
 type GQLUserOnCallOverviewRow struct {
@@ -2455,13 +2455,13 @@ func (q *Queries) GQLUserOnCallOverview(ctx context.Context, userID uuid.UUID) (
 
 const graphQL_MessageStatusHistory = `-- name: GraphQL_MessageStatusHistory :many
 SELECT
-    id, message_id, status, status_details, timestamp
+  id, message_id, status, status_details, timestamp
 FROM
-    message_status_history
+  message_status_history
 WHERE
-    message_id = $1
+  message_id = $1
 ORDER BY
-    timestamp DESC
+  timestamp DESC
 `
 
 func (q *Queries) GraphQL_MessageStatusHistory(ctx context.Context, messageID uuid.UUID) ([]MessageStatusHistory, error) {
@@ -5194,14 +5194,14 @@ func (q *Queries) SequenceNames(ctx context.Context) ([]string, error) {
 
 const serviceAlertCounts = `-- name: ServiceAlertCounts :many
 SELECT
-    COUNT(*),
-    status
+  COUNT(*),
+  status
 FROM
-    alerts
+  alerts
 WHERE
-    service_id = $1
+  service_id = $1
 GROUP BY
-    status
+  status
 `
 
 type ServiceAlertCountsRow struct {
@@ -5234,26 +5234,29 @@ func (q *Queries) ServiceAlertCounts(ctx context.Context, serviceID uuid.NullUUI
 
 const serviceAlertStats = `-- name: ServiceAlertStats :many
 SELECT
-    date_bin($2::interval, closed_at, $3::timestamptz)::timestamptz AS bucket,
-    coalesce(EXTRACT(EPOCH FROM AVG(time_to_ack)), 0)::double precision AS avg_time_to_ack_seconds,
-    coalesce(EXTRACT(EPOCH FROM AVG(time_to_close)), 0)::double precision AS avg_time_to_close_seconds,
-    coalesce(COUNT(*), 0)::bigint AS alert_count,
-    coalesce(SUM(
-            CASE WHEN escalated THEN
-                1
-            ELSE
-                0
-            END), 0)::bigint AS escalated_count
+  date_bin($2::interval, closed_at,
+    $3::timestamptz)::timestamptz AS bucket,
+  coalesce(EXTRACT(EPOCH FROM AVG(time_to_ack)), 0)::double precision AS
+    avg_time_to_ack_seconds,
+  coalesce(EXTRACT(EPOCH FROM AVG(time_to_close)), 0)::double precision AS
+    avg_time_to_close_seconds,
+  coalesce(COUNT(*), 0)::bigint AS alert_count,
+  coalesce(SUM(
+      CASE WHEN escalated THEN
+        1
+      ELSE
+        0
+      END), 0)::bigint AS escalated_count
 FROM
-    alert_metrics
+  alert_metrics
 WHERE
-    service_id = $1
-    AND (closed_at BETWEEN $4
-        AND $5)
+  service_id = $1
+  AND (closed_at BETWEEN $4
+    AND $5)
 GROUP BY
-    bucket
+  bucket
 ORDER BY
-    bucket
+  bucket
 `
 
 type ServiceAlertStatsParams struct {
