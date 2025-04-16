@@ -39,7 +39,8 @@ FROM
   JOIN escalation_policies ep ON ep.id = step.escalation_policy_id
   JOIN services svc ON svc.escalation_policy_id = ep.id
 WHERE
-  oc.user_id = $1;
+  oc.user_id = $1
+  AND oc.end_time IS NULL;
 
 -- name: ServiceAlertStats :many
 -- ServiceAlertStats returns statistics about alerts for a service.

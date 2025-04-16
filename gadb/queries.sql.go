@@ -2414,6 +2414,7 @@ FROM
   JOIN services svc ON svc.escalation_policy_id = ep.id
 WHERE
   oc.user_id = $1
+  AND oc.end_time IS NULL
 `
 
 type GQLUserOnCallOverviewRow struct {
