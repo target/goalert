@@ -97,6 +97,25 @@ $(BIN_DIR)/tools/mailpit: mailpit.version
 $(BIN_DIR)/tools/bun: bun.version
 	go tool gettool -t bun -v $(shell cat bun.version) -o $@
 
+.PHONY: setup-cypress
+setup-cypress: $(BIN_DIR)/tools/bun
+	bun x cypress install
+
+.PHONY: setup-playwright
+setup-playwright: $(BIN_DIR)/tools/bun
+	bun x playwright install
+
+.PHONY: deps
+deps: setup-cypress setup-playwright ## Install all dependencies
+	go get tool ./...
+
+.PHONY: cache
+cache: deps
+	$(MAKE) -j4 binaries
+
+.PHONY: binaries
+binaries: bin/goalert bin/goalert.cover bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz bin/goalert-windows-amd64.zip ## Prime the build cache by building all binaries
+
 bun.lock: $(BIN_DIR)/tools/bun
 	$(BIN_DIR)/tools/bun install
 	touch "$@"
@@ -226,6 +245,10 @@ generate: $(NODE_DEPS) pkg/sysapi/sysapi.pb.go pkg/sysapi/sysapi_grpc.pb.go
 	$(SQLC) generate
 	go generate ./...
 
+.PHONY: self-test
+self-test:
+	$(MAKE) bin/goalert BUNDLE=1
+	./bin/goalert self-test --offline
 
 test-all: test-unit test-components test-smoke test-integration
 test-integration: playwright-run cy-wide-prod-run cy-mobile-prod-run
@@ -321,6 +344,7 @@ resetdb: config.json.bak ## Recreate the database leaving it empty (no migration
 	go tool resetdb --no-migrate
 
 clean: ## Clean up build artifacts
+	chmod +w -f -R bin || true
 	rm -rf bin node_modules web/src/node_modules .pnp.cjs .pnp.loader.mjs web/src/build/static .yarn storybook-static
 
 new-migration:
