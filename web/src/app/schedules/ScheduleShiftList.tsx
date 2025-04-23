@@ -256,10 +256,16 @@ function ScheduleShiftList({
     displaySpan.splitBy({ days: 1 }).forEach((day) => {
       const dayShifts = shifts.filter((s) => day.overlaps(s.interval))
       if (!dayShifts.length) return
-      result.push(<CompListItemText subText={relativeDate(day.start)} />)
+      result.push(
+        <CompListItemText
+          key={day.toISO()}
+          subText={relativeDate(day.start)}
+        />,
+      )
       dayShifts.forEach((s) => {
         result.push(
           <CompListItemText
+            key={s.userID + s.start.toISO()}
             title={s.user?.name || ''}
             subText={getShiftDetails(s, day)}
             icon={<UserAvatar userID={s.userID} />}
