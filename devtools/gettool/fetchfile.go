@@ -70,7 +70,6 @@ func fetchFile(url string) (*os.File, int64, error) {
 	}
 
 	var fd *os.File
-	var cacheFailed bool
 	if cacheDir != "" {
 		fd, err = mkCacheFile(url)
 		if err != nil {
@@ -78,12 +77,13 @@ func fetchFile(url string) (*os.File, int64, error) {
 		}
 	}
 
+	var useTempFile bool
 	if fd == nil {
 		fd, err = os.CreateTemp("", "*.zip")
 		if err != nil {
 			return nil, 0, fmt.Errorf("create temp file: %w", err)
 		}
-		cacheFailed = true
+		useTempFile = true
 	}
 
 	n, err := io.Copy(fd, resp.Body)
@@ -92,7 +92,7 @@ func fetchFile(url string) (*os.File, int64, error) {
 		return nil, 0, fmt.Errorf("download file '%s': %w", url, err)
 	}
 
-	if !cacheFailed {
+	if !useTempFile {
 		targetPath := filepath.Join(cacheDir, hash256(url)+".data")
 		err = os.Rename(fd.Name(), targetPath)
 		if err != nil {
