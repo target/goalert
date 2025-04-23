@@ -98,6 +98,7 @@ func fetchFile(url string) (*os.File, int64, error) {
 		if err != nil {
 			fd.Close()
 			return nil, 0, fmt.Errorf("rename cache file from '%s' to '%s': %w", fd.Name(), targetPath, err)
+		}
 	}
 
 	_, err = fd.Seek(0, 0)
