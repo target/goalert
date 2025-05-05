@@ -404,6 +404,7 @@ github.com/jackc/pgxlisten v0.0.0-20241106001234-1d6f6656415c/go.mod h1:N4E1APLO
 github.com/jackc/puddle v0.0.0-20190413234325-e4ced69a3a2b/go.mod h1:m4B5Dj62Y0fbyuIc15OsIqK0+JU8nkqQjsgx7dvjSWk=
 github.com/jackc/puddle v0.0.0-20190608224051-11cab39313c9/go.mod h1:m4B5Dj62Y0fbyuIc15OsIqK0+JU8nkqQjsgx7dvjSWk=
 github.com/jackc/puddle v1.1.3/go.mod h1:m4B5Dj62Y0fbyuIc15OsIqK0+JU8nkqQjsgx7dvjSWk=
+github.com/jackc/puddle v1.3.0 h1:eHK/5clGOatcjX3oWGBO/MpxpbHzSwud5EWTSCI+MX0=
 github.com/jackc/puddle v1.3.0/go.mod h1:m4B5Dj62Y0fbyuIc15OsIqK0+JU8nkqQjsgx7dvjSWk=
 github.com/jackc/puddle/v2 v2.2.2 h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=
 github.com/jackc/puddle/v2 v2.2.2/go.mod h1:vriiEXHvEE654aYKXXjOvZM39qJ0q+azkZFrfEOc3H4=
@@ -608,6 +609,8 @@ github.com/riverqueue/river v0.21.0 h1:8bTEI664KIOFF18yFb2DX5ReyKb6YJ8MZIJArmbTo
 github.com/riverqueue/river v0.21.0/go.mod h1:I5Fk3PvBl9i+fSjGLwLbVOWx7oTkrho5X6de67zQonA=
 github.com/riverqueue/river/cmd/river v0.19.0 h1:K6Q+O51UqpHDrAZXeY6s9DWam7v8TgeFVyfAbDN8pAo=
 github.com/riverqueue/river/cmd/river v0.19.0/go.mod h1:e6bFit93ar6CXmh1Z9BdsYLlZZDj3QML/yx7kDJ9Bd0=
+github.com/riverqueue/river/cmd/river v0.21.0 h1:6rPpVTTNWZNjTC75KFj4JYhWPolR3shY6Qd36oBUHaE=
+github.com/riverqueue/river/cmd/river v0.21.0/go.mod h1:y7K2DpFOw0cNElaiCMzs7ALq1F/iqx5IpvRqaKkzng4=
 github.com/riverqueue/river/riverdriver v0.21.0 h1:DgluUSBiTcNOMNCJ3U7LHqAqYO5uQl1I5lupiXddYwY=
 github.com/riverqueue/river/riverdriver v0.21.0/go.mod h1:Sa4sKc8e0InTH4MNS0foltRpkiiAvY5ZocknmLbI9/Q=
 github.com/riverqueue/river/riverdriver/riverdatabasesql v0.21.0 h1:9hrg15avu0nPCD35OAFhOyEr6/MU+Xg66+Y5VY1PQtg=
@@ -926,6 +929,8 @@ golang.org/x/sync v0.7.0/go.mod h1:Czt+wKu1gCyEFDUtn0jG5QVvpJ6rzVqr5aXyt9drQfk=
 golang.org/x/sync v0.10.0/go.mod h1:Czt+wKu1gCyEFDUtn0jG5QVvpJ6rzVqr5aXyt9drQfk=
 golang.org/x/sync v0.13.0 h1:AauUjRAJ9OSnvULf/ARrrVywoJDy0YS2AwQ98I37610=
 golang.org/x/sync v0.13.0/go.mod h1:1dzgHSNfp02xaA81J2MS99Qcpr2w7fw1gpm99rleRqA=
+golang.org/x/sync v0.14.0 h1:woo0S4Yywslg6hp4eUFjTVOyKt0RookbpAHG4c1HmhQ=
+golang.org/x/sync v0.14.0/go.mod h1:1dzgHSNfp02xaA81J2MS99Qcpr2w7fw1gpm99rleRqA=
 golang.org/x/sys v0.0.0-20180905080454-ebe1bf3edb33/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20190222072716-a9d3bda3a223/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
