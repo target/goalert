@@ -48,7 +48,9 @@ SELECT
 FROM
     user_contact_methods
 WHERE
-    user_id = $1;
+    user_id = @owner
+    AND (user_id = @requester
+        OR NOT private);
 
 -- name: ContactMethodLookupUserID :many
 SELECT DISTINCT

@@ -300,7 +300,10 @@ func (s *Store) FindAll(ctx context.Context, dbtx gadb.DBTX, userID string) ([]C
 		return nil, err
 	}
 
-	rows, err := gadb.New(dbtx).ContactMethodFindAll(ctx, uid)
+	rows, err := gadb.New(dbtx).ContactMethodFindAll(ctx, gadb.ContactMethodFindAllParams{
+		Owner:     uid,
+		Requester: permission.UserNullUUID(ctx).UUID,
+	})
 	if err != nil {
 		return nil, err
 	}
