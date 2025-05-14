@@ -1748,17 +1748,10 @@ FROM
     user_contact_methods
 WHERE
     user_id = $1
-    AND (user_id = $2
-        OR NOT private)
 `
 
-type ContactMethodFindAllParams struct {
-	Owner     uuid.UUID
-	Requester uuid.UUID
-}
-
-func (q *Queries) ContactMethodFindAll(ctx context.Context, arg ContactMethodFindAllParams) ([]UserContactMethod, error) {
-	rows, err := q.db.QueryContext(ctx, contactMethodFindAll, arg.Owner, arg.Requester)
+func (q *Queries) ContactMethodFindAll(ctx context.Context, userID uuid.UUID) ([]UserContactMethod, error) {
+	rows, err := q.db.QueryContext(ctx, contactMethodFindAll, userID)
 	if err != nil {
 		return nil, err
 	}

@@ -288,29 +288,33 @@ func (s *Store) FindMany(ctx context.Context, dbtx gadb.DBTX, ids []string) ([]C
 	return cms, nil
 }
 
-// FindAll finds all contact methods from the database associated with the given user ID.
-func (s *Store) FindAll(ctx context.Context, dbtx gadb.DBTX, userID string) ([]ContactMethod, error) {
+// FindAll finds all contact methods from the database associated with the given user ID along with the number of omitted (private) entries.
+func (s *Store) FindAll(ctx context.Context, dbtx gadb.DBTX, userID string) ([]ContactMethod, int, error) {
 	uid, err := validate.ParseUUID("ContactMethodID", userID)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	err = permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	rows, err := gadb.New(dbtx).ContactMethodFindAll(ctx, gadb.ContactMethodFindAllParams{
-		Owner:     uid,
-		Requester: permission.UserNullUUID(ctx).UUID,
-	})
+	rows, err := gadb.New(dbtx).ContactMethodFindAll(ctx, uid)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
+	authID := permission.UserNullUUID(ctx).UUID
 
-	cms := make([]ContactMethod, len(rows))
-	for i, row := range rows {
-		cms[i] = ContactMethod{
+	result := make([]ContactMethod, 0, len(rows))
+	var omitted int
+	for _, row := range rows {
+		if row.Private && row.UserID != authID {
+			omitted++
+			continue
+		}
+
+		result = append(result, ContactMethod{
 			ID:               row.ID,
 			Name:             row.Name,
 			Dest:             row.Dest.DestV1,
@@ -319,8 +323,9 @@ func (s *Store) FindAll(ctx context.Context, dbtx gadb.DBTX, userID string) ([]C
 			Pending:          row.Pending,
 			StatusUpdates:    row.EnableStatusUpdates,
 			lastTestVerifyAt: row.LastTestVerifyAt,
-		}
+			Private:          row.Private,
+		})
 	}
 
-	return cms, nil
+	return result, omitted, nil
 }
