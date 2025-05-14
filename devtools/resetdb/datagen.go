@@ -158,6 +158,9 @@ func (d *datagen) NewCM(userID string) {
 	if d.Bool() {
 		cm.Dest.Type = twilio.DestTypeTwilioVoice
 	}
+	if d.Intn(4) == 0 {
+		cm.Private = true
+	}
 
 	cm.Dest.SetArg(twilio.FieldPhoneNumber, d.ids.Gen(d.genPhone, cm.Dest.Type))
 	d.ContactMethods = append(d.ContactMethods, cm)

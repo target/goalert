@@ -210,6 +210,7 @@ func (s *Store) FindOne(ctx context.Context, dbtx gadb.DBTX, id uuid.UUID) (*Con
 		UserID:           row.UserID.String(),
 		Pending:          row.Pending,
 		StatusUpdates:    row.EnableStatusUpdates,
+		Private:          row.Private,
 		lastTestVerifyAt: row.LastTestVerifyAt,
 	}
 
@@ -281,6 +282,7 @@ func (s *Store) FindMany(ctx context.Context, dbtx gadb.DBTX, ids []string) ([]C
 			UserID:           row.UserID.String(),
 			Pending:          row.Pending,
 			StatusUpdates:    row.EnableStatusUpdates,
+			Private:          row.Private,
 			lastTestVerifyAt: row.LastTestVerifyAt,
 		}
 	}
