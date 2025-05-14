@@ -141,6 +141,7 @@ func (s *Store) Create(ctx context.Context, dbtx gadb.DBTX, c *ContactMethod) (*
 		Disabled:            n.Disabled,
 		UserID:              uuid.MustParse(n.UserID),
 		EnableStatusUpdates: n.StatusUpdates,
+		Private:             n.Private,
 	})
 	if err != nil {
 		return nil, err
@@ -248,7 +249,7 @@ func (s *Store) Update(ctx context.Context, dbtx gadb.DBTX, c *ContactMethod) er
 		return err
 	}
 
-	err = gadb.New(dbtx).ContactMethodUpdate(ctx, gadb.ContactMethodUpdateParams{ID: n.ID, Name: n.Name, Disabled: n.Disabled, EnableStatusUpdates: n.StatusUpdates})
+	err = gadb.New(dbtx).ContactMethodUpdate(ctx, gadb.ContactMethodUpdateParams{ID: n.ID, Name: n.Name, Disabled: n.Disabled, EnableStatusUpdates: n.StatusUpdates, Private: n.Private})
 
 	return err
 }

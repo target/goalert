@@ -853,6 +853,7 @@ type ComplexityRoot struct {
 		LastVerifyMessageState func(childComplexity int) int
 		Name                   func(childComplexity int) int
 		Pending                func(childComplexity int) int
+		Private                func(childComplexity int) int
 		StatusUpdates          func(childComplexity int) int
 		Type                   func(childComplexity int) int
 		Value                  func(childComplexity int) int
@@ -5120,6 +5121,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.UserContactMethod.Pending(childComplexity), true
+
+	case "UserContactMethod.private":
+		if e.complexity.UserContactMethod.Private == nil {
+			break
+		}
+
+		return e.complexity.UserContactMethod.Private(childComplexity), true
 
 	case "UserContactMethod.statusUpdates":
 		if e.complexity.UserContactMethod.StatusUpdates == nil {
@@ -21092,6 +21100,8 @@ func (ec *executionContext) fieldContext_Mutation_createUserContactMethod(ctx co
 				return ec.fieldContext_UserContactMethod_lastVerifyMessageState(ctx, field)
 			case "statusUpdates":
 				return ec.fieldContext_UserContactMethod_statusUpdates(ctx, field)
+			case "private":
+				return ec.fieldContext_UserContactMethod_private(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserContactMethod", field.Name)
 		},
@@ -25893,6 +25903,8 @@ func (ec *executionContext) fieldContext_Query_userContactMethod(ctx context.Con
 				return ec.fieldContext_UserContactMethod_lastVerifyMessageState(ctx, field)
 			case "statusUpdates":
 				return ec.fieldContext_UserContactMethod_statusUpdates(ctx, field)
+			case "private":
+				return ec.fieldContext_UserContactMethod_private(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserContactMethod", field.Name)
 		},
@@ -32208,6 +32220,8 @@ func (ec *executionContext) fieldContext_User_contactMethods(_ context.Context, 
 				return ec.fieldContext_UserContactMethod_lastVerifyMessageState(ctx, field)
 			case "statusUpdates":
 				return ec.fieldContext_UserContactMethod_statusUpdates(ctx, field)
+			case "private":
+				return ec.fieldContext_UserContactMethod_private(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserContactMethod", field.Name)
 		},
@@ -33785,6 +33799,50 @@ func (ec *executionContext) fieldContext_UserContactMethod_statusUpdates(_ conte
 	return fc, nil
 }
 
+func (ec *executionContext) _UserContactMethod_private(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserContactMethod_private(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Private, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserContactMethod_private(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserContactMethod",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UserNotificationRule_id(ctx context.Context, field graphql.CollectedField, obj *notificationrule.NotificationRule) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserNotificationRule_id(ctx, field)
 	if err != nil {
@@ -33977,6 +34035,8 @@ func (ec *executionContext) fieldContext_UserNotificationRule_contactMethod(_ co
 				return ec.fieldContext_UserContactMethod_lastVerifyMessageState(ctx, field)
 			case "statusUpdates":
 				return ec.fieldContext_UserContactMethod_statusUpdates(ctx, field)
+			case "private":
+				return ec.fieldContext_UserContactMethod_private(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserContactMethod", field.Name)
 		},
@@ -37950,7 +38010,7 @@ func (ec *executionContext) unmarshalInputCreateUserContactMethodInput(ctx conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"userID", "type", "dest", "name", "value", "newUserNotificationRule", "enableStatusUpdates"}
+	fieldsInOrder := [...]string{"userID", "type", "dest", "name", "value", "newUserNotificationRule", "enableStatusUpdates", "private"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -38006,6 +38066,13 @@ func (ec *executionContext) unmarshalInputCreateUserContactMethodInput(ctx conte
 				return it, err
 			}
 			it.EnableStatusUpdates = data
+		case "private":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("private"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Private = data
 		}
 	}
 
@@ -40627,7 +40694,7 @@ func (ec *executionContext) unmarshalInputUpdateUserContactMethodInput(ctx conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "value", "enableStatusUpdates"}
+	fieldsInOrder := [...]string{"id", "name", "value", "enableStatusUpdates", "private"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -40662,6 +40729,13 @@ func (ec *executionContext) unmarshalInputUpdateUserContactMethodInput(ctx conte
 				return it, err
 			}
 			it.EnableStatusUpdates = data
+		case "private":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("private"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Private = data
 		}
 	}
 
@@ -49922,6 +49996,11 @@ func (ec *executionContext) _UserContactMethod(ctx context.Context, sel ast.Sele
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "private":
+			out.Values[i] = ec._UserContactMethod_private(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
