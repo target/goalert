@@ -175,12 +175,8 @@ export default function UserContactMethodForm(
             title='Private contact methods are not visible to other users.'
             control={
               <Checkbox
-                name='enableStatusUpdates'
-                disabled={
-                  !currentType.supportsStatusUpdates ||
-                  currentType.statusUpdatesRequired ||
-                  props.disabled
-                }
+                name='private'
+                disabled={props.disabled}
                 checked={value.private}
                 onChange={(v) =>
                   props.onChange &&
