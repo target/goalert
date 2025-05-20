@@ -1,21 +1,30 @@
-FROM docker.io/library/golang:1.24.2-bullseye
+FROM docker.io/library/golang:1.24.2-bookworm
 
 RUN apt-get update && apt-get install -y \
     apt-transport-https \
     ca-certificates \
     curl \
+    zip \
+    unzip \
     gnupg-agent \
+    gnupg2 lsb-release \
     software-properties-common \
     build-essential \
-    postgresql-13 postgresql-client-13 \
     dbus-x11 xvfb && \
     rm -rf /var/lib/apt/lists/*
 
-ADD https://nodejs.org/dist/v20.11.0/node-v20.11.0-linux-x64.tar.xz /tmp/node.tar.xz
-RUN tar -xvf /tmp/node.tar.xz -C /usr/local --strip-components=1 && rm /tmp/node.tar.xz
+# Postgres
+RUN mkdir -p /usr/share/postgresql-common/pgdg && curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
 
-# yarn
-RUN npm install -g yarn
+RUN echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/postgresql.list
+
+RUN apt-get update && apt-get install -y \
+    postgresql-13 postgresql-client-13 \
+    postgresql-14 postgresql-client-14 \
+    postgresql-15 postgresql-client-15 \
+    postgresql-16 postgresql-client-16 \
+    postgresql-17 postgresql-client-17 \
+    && rm -rf /var/lib/apt/lists/*
 
 # google chrome
 RUN \
@@ -26,14 +35,10 @@ RUN \
     rm -rf /var/lib/apt/lists/*
 
 # Postgres
-ENV PGDATA=/var/lib/postgresql/data PGUSER=postgres DB_URL=postgresql://postgres@?client_encoding=UTF8
-RUN mkdir -p ${PGDATA} /run/postgresql /var/log/postgresql &&\
-    chown postgres ${PGDATA} /run/postgresql /var/log/postgresql &&\
-    su postgres -c "/usr/lib/postgresql/13/bin/initdb $PGDATA" &&\
-    echo "host all  all    0.0.0.0/0  md5" >> $PGDATA/pg_hba.conf &&\
-    echo "listen_addresses='*'" >> $PGDATA/postgresql.conf &&\
-    echo "fsync = off" >> $PGDATA/postgresql.conf &&\
-    echo "full_page_writes = off" >> $PGDATA/postgresql.conf
+ENV PGUSER=postgres DB_URL=postgresql://postgres@?client_encoding=UTF8&sslmode=disable
+COPY setup_postgres.sh /usr/bin/setup_postgres
+RUN setup_postgres 13 14 15 16 17
+
 COPY start_postgres.sh /usr/bin/start_postgres
 COPY stop_postgres.sh /usr/bin/stop_postgres
 

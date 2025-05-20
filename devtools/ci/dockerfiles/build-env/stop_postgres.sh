@@ -1,4 +1,22 @@
 #!/bin/sh
 set -e
 
-su postgres -c "/usr/lib/postgresql/13/bin/pg_ctl stop -m immediate"
+VERSION=$1
+
+if [ -z "$VERSION" ]; then
+    # Try to read the version from the file
+    if [ -f /var/lib/postgresql/.version ]; then
+        VERSION=$(cat /var/lib/postgresql/.version)
+    else
+        echo "No version specified defaulting to 13"
+        VERSION=13 # Default to PostgreSQL 13 for compatibility
+    fi
+fi
+
+echo "Stopping PostgreSQL $VERSION"
+
+export PGDATA=/var/lib/postgresql/$VERSION/data
+if [ ! -f $PGDATA/postmaster.pid ]; then
+    exit 0
+fi
+su postgres -c "/usr/lib/postgresql/$VERSION/bin/pg_ctl stop -m immediate" || rm -f $PGDATA/postmaster.pid
