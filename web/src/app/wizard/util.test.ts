@@ -17,8 +17,8 @@ describe('wizard tests', () => {
       favorite: true,
       newIntegrationKeys: [
         {
-          type: usersSchedules.key.value,
-          name: `${usersSchedules.key.label} Integration Key`,
+          type: usersSchedules.key?.value,
+          name: `${usersSchedules.key?.label} Integration Key`,
         },
       ],
     })
@@ -28,12 +28,12 @@ describe('wizard tests', () => {
     expect(getEscalationPolicy(usersSchedules)).toEqual({
       name: 'Test',
       description,
-      repeat: usersSchedules.repeat,
+      repeat: Number(usersSchedules.repeat),
     })
   })
 
   it('get primary schedule', () => {
-    expect(getSchedule('primarySchedule', usersSchedules)).toEqual({
+    expect(getSchedule('primarySchedule', usersSchedules, false)).toEqual({
       name: 'Test',
       description,
       timeZone: usersSchedules.primarySchedule.timeZone,
@@ -42,8 +42,8 @@ describe('wizard tests', () => {
   })
 
   it('get secondary schedule', () => {
-    expect(getSchedule('secondarySchedule', usersSchedules)).toEqual({
-      name: 'Test',
+    expect(getSchedule('secondarySchedule', usersSchedules, true)).toEqual({
+      name: 'Test Secondary',
       description,
       timeZone: usersSchedules.secondarySchedule.timeZone,
       favorite: true,
@@ -51,7 +51,9 @@ describe('wizard tests', () => {
   })
 
   it('get primary schedule targets as users', () => {
-    expect(getScheduleTargets('primarySchedule', usersSchedules)).toEqual([
+    expect(
+      getScheduleTargets('primarySchedule', usersSchedules, false),
+    ).toEqual([
       {
         target: {
           id: '50322144-1e88-43dc-b638-b16a5be7bad6',
@@ -77,7 +79,9 @@ describe('wizard tests', () => {
   })
 
   it('get secondary schedule targets as users', () => {
-    expect(getScheduleTargets('secondarySchedule', usersSchedules)).toEqual([
+    expect(
+      getScheduleTargets('secondarySchedule', usersSchedules, true),
+    ).toEqual([
       {
         target: {
           id: '50322144-1e88-43dc-b638-b16a5be7bad6',
@@ -108,13 +112,15 @@ describe('wizard tests', () => {
     const type = rotationsNoFTS.primarySchedule.rotation.type
     const userIDs = rotationsNoFTS.primarySchedule.users
 
-    expect(getScheduleTargets('primarySchedule', rotationsNoFTS)).toEqual([
+    expect(
+      getScheduleTargets('primarySchedule', rotationsNoFTS, false),
+    ).toEqual([
       {
         newRotation: {
           name: 'Test',
           description,
           timeZone,
-          start: DateTime.fromISO(start).minus({ day: 1 }).toISO(),
+          start: DateTime.fromISO(start!).minus({ day: 1 }).toISO(),
           type,
           userIDs,
         },
@@ -129,13 +135,15 @@ describe('wizard tests', () => {
     const type = rotationsNoFTS.secondarySchedule.rotation.type
     const userIDs = rotationsNoFTS.secondarySchedule.users
 
-    expect(getScheduleTargets('secondarySchedule', rotationsNoFTS)).toEqual([
+    expect(
+      getScheduleTargets('secondarySchedule', rotationsNoFTS, true),
+    ).toEqual([
       {
         newRotation: {
-          name: 'Test',
+          name: 'Test Secondary',
           description,
           timeZone,
-          start: DateTime.fromISO(start).minus({ week: 1 }).toISO(),
+          start: DateTime.fromISO(start!).minus({ week: 1 }).toISO(),
           type,
           userIDs,
         },
@@ -154,13 +162,15 @@ describe('wizard tests', () => {
     const ftsUserIDs =
       rotationsAndFTS.primarySchedule.followTheSunRotation.users
 
-    expect(getScheduleTargets('primarySchedule', rotationsAndFTS)).toEqual([
+    expect(
+      getScheduleTargets('primarySchedule', rotationsAndFTS, false),
+    ).toEqual([
       {
         newRotation: {
           name: 'Test',
           description,
           timeZone,
-          start: DateTime.fromISO(start).minus({ week: 1 }).toISO(),
+          start: DateTime.fromISO(start!).minus({ week: 1 }).toISO(),
           type,
           userIDs,
         },
@@ -171,7 +181,7 @@ describe('wizard tests', () => {
           name: 'Test America-Chicago',
           description,
           timeZone: ftsTimeZone,
-          start: DateTime.fromISO(start).minus({ week: 1 }).toISO(),
+          start: DateTime.fromISO(start!).minus({ week: 1 }).toISO(),
           type,
           userIDs: ftsUserIDs,
         },
@@ -190,13 +200,15 @@ describe('wizard tests', () => {
     const ftsUserIDs =
       rotationsAndFTS.secondarySchedule.followTheSunRotation.users
 
-    expect(getScheduleTargets('secondarySchedule', rotationsAndFTS)).toEqual([
+    expect(
+      getScheduleTargets('secondarySchedule', rotationsAndFTS, true),
+    ).toEqual([
       {
         newRotation: {
-          name: 'Test',
+          name: 'Test Secondary',
           description,
           timeZone,
-          start: DateTime.fromISO(start).minus({ day: 1 }).toISO(),
+          start: DateTime.fromISO(start!).minus({ day: 1 }).toISO(),
           type,
           userIDs,
         },
@@ -206,10 +218,10 @@ describe('wizard tests', () => {
         // also tests if FTS time zone is the same as the original, prepend FTS
         // so names don't conflict
         newRotation: {
-          name: 'Test Africa-Accra FTS',
+          name: 'Test Secondary Africa-Accra FTS',
           description,
           timeZone: ftsTimeZone,
-          start: DateTime.fromISO(start).minus({ day: 1 }).toISO(),
+          start: DateTime.fromISO(start!).minus({ day: 1 }).toISO(),
           type,
           userIDs: ftsUserIDs,
         },
