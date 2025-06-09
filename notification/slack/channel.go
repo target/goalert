@@ -544,3 +544,25 @@ func (s *ChannelSender) lookupTeamIDForToken(ctx context.Context, token string) 
 
 	return teamID, nil
 }
+
+// BotName returns the bot name from Slack's auth.test API
+func (s *ChannelSender) BotName(ctx context.Context) (string, error) {
+	var botName string
+
+	err := s.withClient(ctx, func(c *slack.Client) error {
+		info, err := c.AuthTestContext(ctx)
+		if err != nil {
+			return err
+		}
+
+		// Use the User field from auth.test which contains the bot name
+		botName = info.User
+
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return botName, nil
+}
