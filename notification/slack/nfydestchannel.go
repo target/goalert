@@ -19,7 +19,7 @@ func (s *ChannelSender) TypeInfo(ctx context.Context) (*nfydest.TypeInfo, error)
 	cfg := config.FromContext(ctx)
 
 	// Get bot name dynamically, fallback to generic name if error
-	botName := "the bot"
+	botName := "GoAlert"
 	if name, err := s.BotName(ctx); err == nil && name != "" {
 		botName = name
 	}
@@ -38,7 +38,7 @@ func (s *ChannelSender) TypeInfo(ctx context.Context) (*nfydest.TypeInfo, error)
 			Label:          "Slack Channel",
 			InputType:      "text",
 			SupportsSearch: true,
-			Hint:           fmt.Sprintf("If your channel doesn't appear in search results, make sure to invite %s to the channel.", botName),
+			Hint:           fmt.Sprintf("If your channel doesn't appear in search results, invite %s (bot) to the channel and allow a minute for it to appear.", botName),
 		}},
 		DynamicParams: []nfydest.DynamicParamConfig{{
 			ParamID: "message",
