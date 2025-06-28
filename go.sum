@@ -770,8 +770,8 @@ github.com/vanng822/css v1.0.1/go.mod h1:tcnB1voG49QhCrwq1W0w5hhGasvOg+VQp9i9H1r
 github.com/vanng822/go-premailer v0.0.0-20191214114701-be27abe028fe/go.mod h1:JTFJA/t820uFDoyPpErFQ3rb3amdZoPtxcKervG0OE4=
 github.com/vanng822/go-premailer v1.24.0 h1:b4MpHLVdlA7QOwk5OJIEvWnIpCCdEhEDQpJ/AkEYcpo=
 github.com/vanng822/go-premailer v1.24.0/go.mod h1:gjLku4P5inmyu+MM7544lOjhaW8F3TdIqboFVcZGwZE=
-github.com/vektah/gqlparser/v2 v2.5.28 h1:bIulcl3LF69ba6EiZVGD88y4MkM+Jxrf3P2MX8xLRkY=
-github.com/vektah/gqlparser/v2 v2.5.28/go.mod h1:D1/VCZtV3LPnQrcPBeR/q5jkSQIPti0uYCP/RI0gIeo=
+github.com/vektah/gqlparser/v2 v2.5.29 h1:ARb8SP46rxa+VVKMbJ6s/JsAEdjq9eJ83tUOZZa9YHw=
+github.com/vektah/gqlparser/v2 v2.5.29/go.mod h1:D1/VCZtV3LPnQrcPBeR/q5jkSQIPti0uYCP/RI0gIeo=
 github.com/wasilibs/go-pgquery v0.0.0-20240606042535-c0843d6592cc h1:Hgim1Xgk1+viV7p0aZh9OOrMRfG+E4mGA+JsI2uB0+k=
 github.com/wasilibs/go-pgquery v0.0.0-20240606042535-c0843d6592cc/go.mod h1:ah6UfXIl/oA0K3SbourB/UHggVJOBXwPZ2XudDmmFac=
 github.com/wasilibs/wazero-helpers v0.0.0-20240604052452-61d7981e9a38 h1:RBu75fhabyxyGJ2zhkoNuRyObBMhVeMoXqmeaPTg2CQ=
