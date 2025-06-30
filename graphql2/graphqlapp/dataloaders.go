@@ -78,7 +78,7 @@ func (a *App) closeLoaders(ctx context.Context) {
 }
 
 func (app *App) FindOneAlertStatusCounts(ctx context.Context, id uuid.UUID) ([]gadb.ServiceAlertCountsRow, error) {
-	loader, ok := ctx.Value(dataLoaderAlertStatusCounts).(*dataloader.Loader[uuid.UUID, []gadb.ServiceAlertCountsRow])
+	loader, ok := ctx.Value(dataLoaderAlertStatusCounts).(*dataloader.Loader[uuid.UUID, serviceAlertStatusBatch])
 	if !ok {
 		rows, err := app._allAlertCounts(ctx, []uuid.UUID{id})
 		if err != nil {
@@ -98,7 +98,7 @@ func (app *App) FindOneAlertStatusCounts(ctx context.Context, id uuid.UUID) ([]g
 		return nil, nil
 	}
 
-	return *md, nil
+	return md.Counts, nil
 }
 
 func (app *App) FindOneAlertMetadata(ctx context.Context, id int) (map[string]string, error) {

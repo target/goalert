@@ -5213,8 +5213,8 @@ type ServiceAlertCountsRow struct {
 	ServiceID uuid.NullUUID
 }
 
-func (q *Queries) ServiceAlertCounts(ctx context.Context, dollar_1 []uuid.UUID) ([]ServiceAlertCountsRow, error) {
-	rows, err := q.db.QueryContext(ctx, serviceAlertCounts, pq.Array(dollar_1))
+func (q *Queries) ServiceAlertCounts(ctx context.Context, serviceIds []uuid.UUID) ([]ServiceAlertCountsRow, error) {
+	rows, err := q.db.QueryContext(ctx, serviceAlertCounts, pq.Array(serviceIds))
 	if err != nil {
 		return nil, err
 	}
@@ -5238,7 +5238,7 @@ func (q *Queries) ServiceAlertCounts(ctx context.Context, dollar_1 []uuid.UUID) 
 
 const serviceAlertStats = `-- name: ServiceAlertStats :many
 SELECT
-  date_bin($2::interval, closed_at, $3::timestamptz)::timestamptz AS bucket,
+  date_bin($1::interval, closed_at, $2::timestamptz)::timestamptz AS bucket,
   coalesce(EXTRACT(EPOCH FROM AVG(time_to_ack)), 0)::double precision AS avg_time_to_ack_seconds,
   coalesce(EXTRACT(EPOCH FROM AVG(time_to_close)), 0)::double precision AS avg_time_to_close_seconds,
   coalesce(COUNT(*), 0)::bigint AS alert_count,
@@ -5251,7 +5251,7 @@ SELECT
 FROM
   alert_metrics
 WHERE
-  service_id = $1
+  service_id = ANY ($3::uuid[])
   AND (closed_at BETWEEN $4
     AND $5)
 GROUP BY
@@ -5261,11 +5261,11 @@ ORDER BY
 `
 
 type ServiceAlertStatsParams struct {
-	ServiceID uuid.UUID
-	Stride    sqlutil.Interval
-	Origin    time.Time
-	StartTime time.Time
-	EndTime   time.Time
+	Stride     sqlutil.Interval
+	Origin     time.Time
+	ServiceIds []uuid.UUID
+	StartTime  time.Time
+	EndTime    time.Time
 }
 
 type ServiceAlertStatsRow struct {
@@ -5279,9 +5279,9 @@ type ServiceAlertStatsRow struct {
 // ServiceAlertStats returns statistics about alerts for a service.
 func (q *Queries) ServiceAlertStats(ctx context.Context, arg ServiceAlertStatsParams) ([]ServiceAlertStatsRow, error) {
 	rows, err := q.db.QueryContext(ctx, serviceAlertStats,
-		arg.ServiceID,
 		arg.Stride,
 		arg.Origin,
+		pq.Array(arg.ServiceIds),
 		arg.StartTime,
 		arg.EndTime,
 	)
