@@ -61,7 +61,7 @@ SELECT
 FROM
   alert_metrics
 WHERE
-  service_id = $1
+  service_id = ANY($1::uuid[])
   AND (closed_at BETWEEN sqlc.arg(start_time)
     AND sqlc.arg(end_time))
 GROUP BY
@@ -76,6 +76,6 @@ SELECT
 FROM
   alerts
 WHERE
-  service_id = $1
+  service_id = ANY($1::uuid[])
 GROUP BY
   status;
