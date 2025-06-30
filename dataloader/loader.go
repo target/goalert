@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/gadb"
 )
 
@@ -14,6 +15,15 @@ func NewStoreLoaderInt[V any](ctx context.Context, fetchMany func(context.Contex
 		Max:       100,
 		Delay:     time.Millisecond,
 		IDFunc:    func(v V) int { return int(reflect.ValueOf(v).FieldByName("ID").Int()) },
+		FetchFunc: fetchMany,
+	})
+}
+
+func NewStoreLoaderUUID[V any](ctx context.Context, fetchMany func(context.Context, []uuid.UUID) ([]V, error)) *Loader[uuid.UUID, V] {
+	return newLoader(ctx, loaderConfig[uuid.UUID, V]{
+		Max:       100,
+		Delay:     time.Millisecond,
+		IDFunc:    func(v V) uuid.UUID { return reflect.ValueOf(v).FieldByName("ID").Interface().(uuid.UUID) },
 		FetchFunc: fetchMany,
 	})
 }

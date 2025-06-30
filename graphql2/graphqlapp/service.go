@@ -144,8 +144,39 @@ func (s *Service) AlertStats(ctx context.Context, svc *service.Service, input *g
 	return &stats, nil
 }
 
+type serviceAlertStatusBatch struct {
+	ID     uuid.UUID
+	Counts []gadb.ServiceAlertCountsRow
+}
+
+func (a *App) _allAlertCounts(ctx context.Context, ids []uuid.UUID) ([]serviceAlertStatusBatch, error) {
+	m := make(map[uuid.UUID]*serviceAlertStatusBatch)
+	rows, err := gadb.New(a.DB).ServiceAlertCounts(ctx, ids)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	for _, r := range rows {
+		if _, ok := m[r.ServiceID.UUID]; !ok {
+			m[r.ServiceID.UUID] = &serviceAlertStatusBatch{
+				ID:     r.ServiceID.UUID,
+				Counts: []gadb.ServiceAlertCountsRow{},
+			}
+		}
+		m[r.ServiceID.UUID].Counts = append(m[r.ServiceID.UUID].Counts, r)
+	}
+
+	var batches []serviceAlertStatusBatch
+	for _, v := range m {
+		batches = append(batches, *v)
+	}
+	return batches, nil
+}
+
 func (s *Service) AlertsByStatus(ctx context.Context, svc *service.Service) (*graphql2.AlertsByStatus, error) {
-	rows, err := gadb.New(s.DB).ServiceAlertCounts(ctx, uuid.NullUUID{UUID: uuid.MustParse(svc.ID), Valid: true})
+	rows, err := (*App)(s).FindOneAlertStatusCounts(ctx, uuid.MustParse(svc.ID))
 	if errors.Is(err, sql.ErrNoRows) {
 		return &graphql2.AlertsByStatus{}, nil
 	}

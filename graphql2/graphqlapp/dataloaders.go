@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/dataloader"
 	"github.com/target/goalert/escalation"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notificationchannel"
@@ -40,6 +41,7 @@ const (
 	dataLoaderAlertMetrics
 	dataLoaderAlertFeedback
 	dataLoaderAlertMetadata
+	dataLoaderAlertStatusCounts
 
 	dataLoaderKeyLast // always keep as last
 )
@@ -61,6 +63,7 @@ func (a *App) registerLoaders(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, dataLoaderAlertMetadata, dataloader.NewStoreLoaderInt(ctx, func(ctx context.Context, i []int) ([]alert.MetadataAlertID, error) {
 		return a.AlertStore.FindManyMetadata(ctx, a.DB, i)
 	}))
+	ctx = context.WithValue(ctx, dataLoaderAlertStatusCounts, dataloader.NewStoreLoaderUUID(ctx, a._allAlertCounts))
 	return ctx
 }
 
@@ -72,6 +75,30 @@ func (a *App) closeLoaders(ctx context.Context) {
 		}
 		_ = loader.Close()
 	}
+}
+
+func (app *App) FindOneAlertStatusCounts(ctx context.Context, id uuid.UUID) ([]gadb.ServiceAlertCountsRow, error) {
+	loader, ok := ctx.Value(dataLoaderAlertStatusCounts).(*dataloader.Loader[uuid.UUID, []gadb.ServiceAlertCountsRow])
+	if !ok {
+		rows, err := app._allAlertCounts(ctx, []uuid.UUID{id})
+		if err != nil {
+			return nil, err
+		}
+		if len(rows) == 0 {
+			return nil, nil
+		}
+		return rows[0].Counts, nil
+	}
+
+	md, err := loader.FetchOne(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if md == nil {
+		return nil, nil
+	}
+
+	return *md, nil
 }
 
 func (app *App) FindOneAlertMetadata(ctx context.Context, id int) (map[string]string, error) {
