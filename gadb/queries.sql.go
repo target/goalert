@@ -5238,6 +5238,7 @@ func (q *Queries) ServiceAlertCounts(ctx context.Context, serviceIds []uuid.UUID
 
 const serviceAlertStats = `-- name: ServiceAlertStats :many
 SELECT
+  service_id,
   date_bin($1::interval, closed_at, $2::timestamptz)::timestamptz AS bucket,
   coalesce(EXTRACT(EPOCH FROM AVG(time_to_ack)), 0)::double precision AS avg_time_to_ack_seconds,
   coalesce(EXTRACT(EPOCH FROM AVG(time_to_close)), 0)::double precision AS avg_time_to_close_seconds,
@@ -5255,9 +5256,9 @@ WHERE
   AND (closed_at BETWEEN $4
     AND $5)
 GROUP BY
-  bucket
+  service_id, bucket
 ORDER BY
-  bucket
+  service_id, bucket
 `
 
 type ServiceAlertStatsParams struct {
@@ -5269,6 +5270,7 @@ type ServiceAlertStatsParams struct {
 }
 
 type ServiceAlertStatsRow struct {
+	ServiceID             uuid.UUID
 	Bucket                time.Time
 	AvgTimeToAckSeconds   float64
 	AvgTimeToCloseSeconds float64
@@ -5293,6 +5295,7 @@ func (q *Queries) ServiceAlertStats(ctx context.Context, arg ServiceAlertStatsPa
 	for rows.Next() {
 		var i ServiceAlertStatsRow
 		if err := rows.Scan(
+			&i.ServiceID,
 			&i.Bucket,
 			&i.AvgTimeToAckSeconds,
 			&i.AvgTimeToCloseSeconds,

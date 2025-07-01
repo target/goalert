@@ -45,6 +45,7 @@ WHERE
 -- name: ServiceAlertStats :many
 -- ServiceAlertStats returns statistics about alerts for a service.
 SELECT
+  service_id,
   date_bin(sqlc.arg(stride)::interval, closed_at, sqlc.arg(origin)::timestamptz)::timestamptz AS bucket,
   coalesce(EXTRACT(EPOCH FROM AVG(time_to_ack)), 0)::double precision AS avg_time_to_ack_seconds,
   coalesce(EXTRACT(EPOCH FROM AVG(time_to_close)), 0)::double precision AS avg_time_to_close_seconds,
@@ -62,9 +63,9 @@ WHERE
   AND (closed_at BETWEEN sqlc.arg(start_time)
     AND sqlc.arg(end_time))
 GROUP BY
-  bucket
+  service_id, bucket
 ORDER BY
-  bucket;
+  service_id, bucket;
 
 -- name: ServiceAlertCounts :many
 SELECT

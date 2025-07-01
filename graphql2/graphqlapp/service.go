@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/dataloader"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
@@ -121,20 +122,33 @@ func (s *Service) AlertStats(ctx context.Context, svc *service.Service, input *g
 	}
 
 	var stats graphql2.AlertStats
-	rows, err := gadb.New(s.DB).ServiceAlertStats(ctx, gadb.ServiceAlertStatsParams{
-		StartTime:  start,
-		EndTime:    end,
-		ServiceIds: []uuid.UUID{uuid.MustParse(svc.ID)},
-		Origin:     origin,
-		Stride:     res.PGXInterval(),
-	})
-	if errors.Is(err, sql.ErrNoRows) {
-		return &stats, nil
+	loader, ok := ctx.Value(dataLoaderServiceAlertStats).(*dataloader.Loader[uuid.UUID, serviceAlertStatsBatch])
+	var statsRows []gadb.ServiceAlertStatsRow
+	if ok {
+		batch, err := loader.FetchOne(ctx, uuid.MustParse(svc.ID))
+		if err != nil {
+			return nil, err
+		}
+		if batch != nil {
+			statsRows = batch.Stats
+		}
+	} else {
+		rows, err := gadb.New(s.DB).ServiceAlertStats(ctx, gadb.ServiceAlertStatsParams{
+			StartTime:  start,
+			EndTime:    end,
+			ServiceIds: []uuid.UUID{uuid.MustParse(svc.ID)},
+			Origin:     origin,
+			Stride:     res.PGXInterval(),
+		})
+		if errors.Is(err, sql.ErrNoRows) {
+			return &stats, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		statsRows = rows
 	}
-	if err != nil {
-		return nil, err
-	}
-	for _, r := range rows {
+	for _, r := range statsRows {
 		end := res.AddTo(r.Bucket)
 		stats.AlertCount = append(stats.AlertCount, graphql2.TimeSeriesBucket{Start: r.Bucket, End: end, Value: float64(r.AlertCount)})
 		stats.EscalatedCount = append(stats.EscalatedCount, graphql2.TimeSeriesBucket{Start: r.Bucket, End: end, Value: float64(r.EscalatedCount)})
@@ -169,6 +183,47 @@ func (a *App) _allAlertCounts(ctx context.Context, ids []uuid.UUID) ([]serviceAl
 	}
 
 	var batches []serviceAlertStatusBatch
+	for _, v := range m {
+		batches = append(batches, *v)
+	}
+	return batches, nil
+}
+
+type serviceAlertStatsBatch struct {
+	ID    uuid.UUID
+	Stats []gadb.ServiceAlertStatsRow
+}
+
+func (a *App) _allServiceAlertStats(
+	ctx context.Context,
+	ids []uuid.UUID,
+	start, end, origin time.Time,
+	stride sqlutil.Interval,
+) ([]serviceAlertStatsBatch, error) {
+	rows, err := gadb.New(a.DB).ServiceAlertStats(ctx, gadb.ServiceAlertStatsParams{
+		StartTime:  start,
+		EndTime:    end,
+		ServiceIds: ids,
+		Origin:     origin,
+		Stride:     stride,
+	})
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	m := make(map[uuid.UUID]*serviceAlertStatsBatch)
+	for _, r := range rows {
+		if _, ok := m[r.ServiceID]; !ok {
+			m[r.ServiceID] = &serviceAlertStatsBatch{
+				ID:    r.ServiceID,
+				Stats: []gadb.ServiceAlertStatsRow{},
+			}
+		}
+		m[r.ServiceID].Stats = append(m[r.ServiceID].Stats, r)
+	}
+	var batches []serviceAlertStatsBatch
 	for _, v := range m {
 		batches = append(batches, *v)
 	}

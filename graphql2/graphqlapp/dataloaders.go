@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"io"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/alert"
@@ -18,6 +19,7 @@ import (
 	"github.com/target/goalert/service"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
+	"github.com/target/goalert/util/timeutil"
 
 	"github.com/pkg/errors"
 )
@@ -42,6 +44,7 @@ const (
 	dataLoaderAlertFeedback
 	dataLoaderAlertMetadata
 	dataLoaderAlertStatusCounts
+	dataLoaderServiceAlertStats
 
 	dataLoaderKeyLast // always keep as last
 )
@@ -64,6 +67,15 @@ func (a *App) registerLoaders(ctx context.Context) context.Context {
 		return a.AlertStore.FindManyMetadata(ctx, a.DB, i)
 	}))
 	ctx = context.WithValue(ctx, dataLoaderAlertStatusCounts, dataloader.NewStoreLoaderUUID(ctx, a._allAlertCounts))
+	ctx = context.WithValue(ctx, dataLoaderServiceAlertStats, dataloader.NewStoreLoaderUUID(ctx, func(ctx context.Context, ids []uuid.UUID) ([]serviceAlertStatsBatch, error) {
+		start := time.Now().AddDate(0, 0, -7)
+		end := time.Now()
+		origin := start
+		stride := timeutil.ISODuration{DayPart: 1}.PGXInterval()
+		return a._allServiceAlertStats(ctx, ids, start, end, origin, stride)
+	}),
+	)
+
 	return ctx
 }
 
