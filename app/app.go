@@ -129,6 +129,7 @@ type App struct {
 	SessionKeyring  keyring.Keyring
 	APIKeyring      keyring.Keyring
 	AuthLinkKeyring keyring.Keyring
+	WebhookKeyring  keyring.Keyring
 
 	NonceStore    *nonce.Store
 	LabelStore    *label.Store
