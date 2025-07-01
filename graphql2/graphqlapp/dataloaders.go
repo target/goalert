@@ -3,12 +3,14 @@ package graphqlapp
 import (
 	context "context"
 	"io"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/dataloader"
 	"github.com/target/goalert/escalation"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notificationchannel"
@@ -17,6 +19,7 @@ import (
 	"github.com/target/goalert/service"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
+	"github.com/target/goalert/util/timeutil"
 
 	"github.com/pkg/errors"
 )
@@ -40,6 +43,8 @@ const (
 	dataLoaderAlertMetrics
 	dataLoaderAlertFeedback
 	dataLoaderAlertMetadata
+	dataLoaderAlertStatusCounts
+	dataLoaderServiceAlertStats
 
 	dataLoaderKeyLast // always keep as last
 )
@@ -61,6 +66,16 @@ func (a *App) registerLoaders(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, dataLoaderAlertMetadata, dataloader.NewStoreLoaderInt(ctx, func(ctx context.Context, i []int) ([]alert.MetadataAlertID, error) {
 		return a.AlertStore.FindManyMetadata(ctx, a.DB, i)
 	}))
+	ctx = context.WithValue(ctx, dataLoaderAlertStatusCounts, dataloader.NewStoreLoaderUUID(ctx, a._allAlertCounts))
+	ctx = context.WithValue(ctx, dataLoaderServiceAlertStats, dataloader.NewStoreLoaderUUID(ctx, func(ctx context.Context, ids []uuid.UUID) ([]serviceAlertStatsBatch, error) {
+		start := time.Now().AddDate(0, 0, -7)
+		end := time.Now()
+		origin := start
+		stride := timeutil.ISODuration{DayPart: 1}.PGXInterval()
+		return a._allServiceAlertStats(ctx, ids, start, end, origin, stride)
+	}),
+	)
+
 	return ctx
 }
 
@@ -72,6 +87,30 @@ func (a *App) closeLoaders(ctx context.Context) {
 		}
 		_ = loader.Close()
 	}
+}
+
+func (app *App) FindOneAlertStatusCounts(ctx context.Context, id uuid.UUID) ([]gadb.ServiceAlertCountsRow, error) {
+	loader, ok := ctx.Value(dataLoaderAlertStatusCounts).(*dataloader.Loader[uuid.UUID, serviceAlertStatusBatch])
+	if !ok {
+		rows, err := app._allAlertCounts(ctx, []uuid.UUID{id})
+		if err != nil {
+			return nil, err
+		}
+		if len(rows) == 0 {
+			return nil, nil
+		}
+		return rows[0].Counts, nil
+	}
+
+	md, err := loader.FetchOne(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if md == nil {
+		return nil, nil
+	}
+
+	return md.Counts, nil
 }
 
 func (app *App) FindOneAlertMetadata(ctx context.Context, id int) (map[string]string, error) {
