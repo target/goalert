@@ -1,3 +1,4 @@
+// Package dataloader provides tests for the batching and caching data loader.
 package dataloader
 
 import (
@@ -8,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestFetcher_FetchOne tests basic fetching functionality with string IDs.
 func TestFetcher_FetchOne(t *testing.T) {
 	type example struct{ ID string }
 	l := &Fetcher[string, struct{}, example]{
@@ -27,6 +29,8 @@ func TestFetcher_FetchOne(t *testing.T) {
 	}
 }
 
+// TestFetcher_FetchOne_Int tests fetching functionality with integer IDs to ensure
+// the generic type system works correctly with different comparable types.
 func TestFetcher_FetchOne_Int(t *testing.T) {
 	type example struct{ ID int }
 	l := &Fetcher[int, struct{}, example]{
@@ -46,7 +50,8 @@ func TestFetcher_FetchOne_Int(t *testing.T) {
 	}
 }
 
-// Ensure extra results don't cause a panic.
+// TestFetcher_FetchOne_Extra ensures that when the fetch function returns extra
+// results that weren't requested, the Fetcher handles them gracefully without panicking.
 func TestFetcher_FetchOne_Extra(t *testing.T) {
 	type example struct{ id string }
 	l := &Fetcher[string, struct{}, example]{
@@ -68,7 +73,8 @@ func TestFetcher_FetchOne_Extra(t *testing.T) {
 	}
 }
 
-// Ensure extra results don't cause a panic.
+// TestFetcher_FetchOne_Missing tests that when the fetch function doesn't return
+// a requested ID, the Fetcher correctly returns nil without error.
 func TestFetcher_FetchOne_Missing(t *testing.T) {
 	type example struct{ id string }
 	l := &Fetcher[string, struct{}, example]{
@@ -90,7 +96,9 @@ func TestFetcher_FetchOne_Missing(t *testing.T) {
 	}
 }
 
-// Test that FetchOneParam passes the correct parameters to the backend.
+// TestFetcher_FetchOneParam_ValidatesParams tests that FetchOneParam correctly
+// passes the specified parameters to the fetch function, enabling parameter-specific
+// batching and filtering.
 func TestFetcher_FetchOneParam_ValidatesParams(t *testing.T) {
 	type example struct{ id string }
 	type params struct{ filter string }
