@@ -77,15 +77,13 @@ func newLoader[K comparable, V any](ctx context.Context, cfg loaderConfig[K, V])
 	return l
 }
 
-func (l *Loader[K, V]) Close() error {
+func (l *Loader[K, V]) Close() {
 	// ensure we don't start in the future, ensure cancel is called
 	// before `start.Do` returns if it's the first call.
 	l.start.Do(l.cancel)
 
 	// always call l.cancel
 	l.cancel()
-
-	return nil
 }
 
 func (l *Loader[K, V]) init() {
