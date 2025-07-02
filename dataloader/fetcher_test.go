@@ -4,15 +4,17 @@ import (
 	"context"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestFetcher_FetchOne(t *testing.T) {
-	type example struct{ id string }
+	type example struct{ ID string }
 	l := &Fetcher[string, struct{}, example]{
 		MaxBatch:  10,
 		Delay:     time.Millisecond,
-		IDFunc:    func(v example) string { return v.id },
-		FetchFunc: func(context.Context, struct{}, []string) ([]example, error) { return []example{{id: "foo"}}, nil },
+		IDFunc:    func(v example) string { return v.ID },
+		FetchFunc: func(context.Context, struct{}, []string) ([]example, error) { return []example{{ID: "foo"}}, nil },
 	}
 
 	res, err := l.FetchOne(context.Background(), "foo")
@@ -20,8 +22,27 @@ func TestFetcher_FetchOne(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if res.id != "foo" {
-		t.Errorf("got id=%s; want foo", res.id)
+	if res.ID != "foo" {
+		t.Errorf("got id=%s; want foo", res.ID)
+	}
+}
+
+func TestFetcher_FetchOne_Int(t *testing.T) {
+	type example struct{ ID int }
+	l := &Fetcher[int, struct{}, example]{
+		MaxBatch:  10,
+		Delay:     time.Millisecond,
+		FetchFunc: func(context.Context, struct{}, []int) ([]example, error) { return []example{{ID: 2}}, nil },
+	}
+
+	res, err := l.FetchOne(context.Background(), 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	require.NotNil(t, res)
+
+	if res.ID != 2 {
+		t.Errorf("got id=%d; want 2", res.ID)
 	}
 }
 

@@ -58,6 +58,9 @@ func (a *App) registerLoaders(ctx context.Context) context.Context {
 		AlertFeedback:             dataloader.NewStoreLoader(ctx, a.AlertStore.Feedback),
 		AlertMetadata: dataloader.NewStoreLoader(ctx, func(ctx context.Context, i []int) ([]alert.MetadataAlertID, error) {
 			return a.AlertStore.FindManyMetadata(ctx, a.DB, i)
+		}).SetIDFunc(func(v alert.MetadataAlertID) int {
+			// Needed because of mismatch between int64 and int in the dataloader.
+			return int(v.ID)
 		}),
 	})
 	return ctx

@@ -45,6 +45,19 @@ type Fetcher[K, P comparable, V any] struct {
 	wg      sync.WaitGroup
 }
 
+// sets the id field, must be called before any FetchOne calls
+func (f *Fetcher[K, P, V]) SetIDField(field string) *Fetcher[K, P, V] {
+	f.IDField = field
+	return f
+}
+
+// SetIDFunc sets the function to extract the ID from a value.
+// If this is set, IDField is ignored. must be called before any FetchOne calls.
+func (f *Fetcher[K, P, V]) SetIDFunc(fn func(V) K) *Fetcher[K, P, V] {
+	f.IDFunc = fn
+	return f
+}
+
 type batch[K, P comparable, V any] struct {
 	IDs   []K
 	Param P
@@ -67,7 +80,14 @@ func (f *Fetcher[K, P, V]) init() {
 			f.IDField = "ID"
 		}
 		if f.IDFunc == nil {
-			f.IDFunc = func(v V) K { return reflect.ValueOf(v).FieldByName(f.IDField).Interface().(K) }
+			f.IDFunc = func(v V) (id K) {
+				val := reflect.ValueOf(v).FieldByName(f.IDField)
+				if !val.IsValid() {
+					return id // empty/zero value if field is not accessible
+				}
+
+				return val.Interface().(K)
+			}
 		}
 	})
 }
