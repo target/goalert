@@ -1103,7 +1103,6 @@ export interface ServiceSearchOptions {
   favoritesOnly?: null | boolean
   first?: null | number
   omit?: null | string[]
-  only?: null | string[]
   search?: null | string
 }
 
