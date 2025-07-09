@@ -20,9 +20,20 @@ func NewStoreLoaderInt[V any](ctx context.Context, fetchMany func(context.Contex
 
 func NewStoreLoader[V any](ctx context.Context, fetchMany func(context.Context, []string) ([]V, error)) *Loader[string, V] {
 	return newLoader(ctx, loaderConfig[string, V]{
-		Max:       100,
-		Delay:     time.Millisecond,
-		IDFunc:    func(v V) string { return reflect.ValueOf(v).FieldByName("ID").String() },
+		Max:   100,
+		Delay: time.Millisecond,
+		IDFunc: func(v V) string {
+			type stringer interface {
+				String() string
+			}
+			field := reflect.ValueOf(v).FieldByName("ID")
+			if field.IsValid() && field.CanInterface() {
+				if s, ok := field.Interface().(stringer); ok {
+					return s.String()
+				}
+			}
+			return field.String()
+		},
 		FetchFunc: fetchMany,
 	})
 }
