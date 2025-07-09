@@ -915,6 +915,7 @@ input ServiceSearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
+  only: [ID!]
 
   """
   Include only favorited services in the results.
