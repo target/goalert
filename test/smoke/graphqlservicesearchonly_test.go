@@ -154,5 +154,4 @@ func TestGraphQLServiceSearchOnly(t *testing.T) {
 		require.NotEqual(t, h.UUID("sid3"), service.ID, "service 3 should not be included when using Only filter for services 1 and 2")
 	}
 
-	t.Log("All Only filter tests passed successfully!")
 }
