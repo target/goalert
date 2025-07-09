@@ -37,6 +37,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/util"
 )
@@ -159,11 +160,35 @@ func (f *Fetcher[K, P, V]) init() {
 		if f.IDFunc == nil {
 			f.IDFunc = func(v V) (id K) {
 				val := reflect.ValueOf(v).FieldByName(f.IDField)
-				if !val.IsValid() {
+				if !val.IsValid() || !val.CanInterface() {
 					return id // empty/zero value if field is not accessible
 				}
 
-				return val.Interface().(K)
+				if v, ok := val.Interface().(K); ok {
+					return v // directly return if type matches, this is the common case
+				}
+
+				// special case when K is string and val is uuid.UUID
+				if val.Type() == reflect.TypeOf(uuid.UUID{}) && reflect.TypeOf(id) == reflect.TypeOf("") {
+					s := val.Interface().(uuid.UUID).String()
+					return any(s).(K)
+				}
+
+				// inverse case when K is uuid.UUID and val is string
+				if val.Type() == reflect.TypeOf("") && reflect.TypeOf(id) == reflect.TypeOf(uuid.UUID{}) {
+					uuidStr, ok := val.Interface().(string)
+					if !ok {
+						return id // empty/zero value if conversion fails
+					}
+					uuidVal, err := uuid.Parse(uuidStr)
+					if err != nil {
+						return id // empty/zero value if conversion fails
+					}
+					return any(uuidVal).(K)
+				}
+
+				// fallback to using the zero value of K if type conversion fails
+				return id
 			}
 		}
 	})
