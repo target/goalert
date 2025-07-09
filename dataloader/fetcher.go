@@ -51,7 +51,7 @@ func NewStoreLoader[V any, K comparable](ctx context.Context, fetchMany func(con
 	return &Fetcher[K, struct{}, V]{
 		MaxBatch:  100,
 		Delay:     time.Millisecond,
-		FetchFunc: func(ctx context.Context, s struct{}, k []K) ([]V, error) { return fetchMany(ctx, k) },
+		FetchFunc: func(ctx context.Context, s struct{}, ids []K) ([]V, error) { return fetchMany(ctx, ids) },
 	}
 }
 
@@ -83,7 +83,7 @@ type Fetcher[K, P comparable, V any] struct {
 	// FetchFunc is called to retrieve data for a batch of IDs with the given parameters.
 	// It should return values in any order - the Fetcher will map them back to requests
 	// using the ID extracted via IDFunc or IDField.
-	FetchFunc func(ctx context.Context, param P, id []K) ([]V, error)
+	FetchFunc func(ctx context.Context, param P, ids []K) ([]V, error)
 
 	// IDField specifies the name of the field to use as the unique identifier.
 	// Defaults to "ID" if not set and IDFunc is nil. This field is accessed via
