@@ -83,7 +83,7 @@ func TestGraphQLServiceSearchOnly(t *testing.T) {
 	require.NotEmpty(t, resp1.Services.PageInfo.EndCursor, "expected non-empty endCursor for pagination")
 
 	firstServiceID := resp1.Services.Nodes[0].ID
-	require.Contains(t, []string{h.UUID("sid1"), h.UUID("sid2")}, firstServiceID, 
+	require.Contains(t, []string{h.UUID("sid1"), h.UUID("sid2")}, firstServiceID,
 		"first service ID should be either sid1 or sid2")
 
 	// Query 2: Use pagination to fetch the second service
@@ -150,7 +150,6 @@ func TestGraphQLServiceSearchOnly(t *testing.T) {
 
 	require.Len(t, resp3.Services.Nodes, 2, "expected exactly 2 services when querying with Only filter")
 
-	// Verify service 3 is NOT included
 	for _, service := range resp3.Services.Nodes {
 		require.NotEqual(t, h.UUID("sid3"), service.ID, "service 3 should not be included when using Only filter for services 1 and 2")
 	}
