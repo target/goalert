@@ -27,6 +27,7 @@ func TestGraphQLServiceSearchOnly(t *testing.T) {
 	defer h.Close()
 
 	doQL := func(query string, res interface{}) {
+		t.Helper()
 		g := h.GraphQLQuery2(query)
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
