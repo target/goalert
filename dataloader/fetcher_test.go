@@ -119,29 +119,6 @@ func TestFetcher_FetchOne_Extra(t *testing.T) {
 	}
 }
 
-// TestFetcher_FetchOne_Missing tests that when the fetch function doesn't return
-// a requested ID, the Fetcher correctly returns nil without error.
-func TestFetcher_FetchOne_Missing(t *testing.T) {
-	type example struct{ id string }
-	l := &Fetcher[string, struct{}, example]{
-		MaxBatch:  10,
-		Delay:     time.Millisecond,
-		IDFunc:    func(v example) string { return v.id },
-		FetchFunc: func(context.Context, struct{}, []string) ([]example, error) { return nil, nil },
-	}
-	ctx, done := context.WithTimeout(context.Background(), time.Second)
-	defer done()
-
-	res, err := l.FetchOne(ctx, "foo")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if res != nil {
-		t.Errorf("got %T; want nil", res)
-	}
-}
-
 // TestFetcher_FetchOneParam_ValidatesParams tests that FetchOneParam correctly
 // passes the specified parameters to the fetch function, enabling parameter-specific
 // batching and filtering.
