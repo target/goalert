@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/test/smoke/harness"
 )
 
@@ -77,22 +78,13 @@ func TestGraphQLServiceSearchOnly(t *testing.T) {
 
 	doQL(query1, &resp1)
 
-	if len(resp1.Services.Nodes) != 1 {
-		t.Errorf("Expected 1 service in first query, got %d", len(resp1.Services.Nodes))
-	}
-
-	if !resp1.Services.PageInfo.HasNextPage {
-		t.Error("Expected hasNextPage=true for first query")
-	}
-
-	if resp1.Services.PageInfo.EndCursor == "" {
-		t.Error("Expected non-empty endCursor for pagination")
-	}
+	require.Len(t, resp1.Services.Nodes, 1, "number of returned services")
+	require.True(t, resp1.Services.PageInfo.HasNextPage, "expected hasNextPage=true for first query")
+	require.NotEmpty(t, resp1.Services.PageInfo.EndCursor, "expected non-empty endCursor for pagination")
 
 	firstServiceID := resp1.Services.Nodes[0].ID
-	if firstServiceID != h.UUID("sid1") && firstServiceID != h.UUID("sid2") {
-		t.Errorf("First service ID %s should be either %s or %s", firstServiceID, h.UUID("sid1"), h.UUID("sid2"))
-	}
+	require.Contains(t, []string{h.UUID("sid1"), h.UUID("sid2")}, firstServiceID, 
+		"first service ID should be either sid1 or sid2")
 
 	// Query 2: Use pagination to fetch the second service
 	query2 := fmt.Sprintf(`
@@ -125,22 +117,13 @@ func TestGraphQLServiceSearchOnly(t *testing.T) {
 
 	doQL(query2, &resp2)
 
-	if len(resp2.Services.Nodes) != 1 {
-		t.Errorf("Expected 1 service in second query, got %d", len(resp2.Services.Nodes))
-	}
-
-	if resp2.Services.PageInfo.HasNextPage {
-		t.Error("Expected hasNextPage=false for second query (no more results)")
-	}
+	require.Len(t, resp2.Services.Nodes, 1, "number of returned services in second query")
+	require.False(t, resp2.Services.PageInfo.HasNextPage, "expected hasNextPage=false for second query (no more results)")
 
 	secondServiceID := resp2.Services.Nodes[0].ID
-	if secondServiceID != h.UUID("sid1") && secondServiceID != h.UUID("sid2") {
-		t.Errorf("Second service ID %s should be either %s or %s", secondServiceID, h.UUID("sid1"), h.UUID("sid2"))
-	}
-
-	if firstServiceID == secondServiceID {
-		t.Error("First and second queries should return different services")
-	}
+	require.Contains(t, []string{h.UUID("sid1"), h.UUID("sid2")}, secondServiceID,
+		"second service ID should be either sid1 or sid2")
+	require.NotEqual(t, firstServiceID, secondServiceID, "first and second queries should return different services")
 
 	// Query 3: Verify that service 3 is NOT included when using Only filter
 	query3 := fmt.Sprintf(`
@@ -165,14 +148,11 @@ func TestGraphQLServiceSearchOnly(t *testing.T) {
 
 	doQL(query3, &resp3)
 
-	if len(resp3.Services.Nodes) != 2 {
-		t.Errorf("Expected exactly 2 services when querying with Only filter, got %d", len(resp3.Services.Nodes))
-	}
+	require.Len(t, resp3.Services.Nodes, 2, "expected exactly 2 services when querying with Only filter")
 
+	// Verify service 3 is NOT included
 	for _, service := range resp3.Services.Nodes {
-		if service.ID == h.UUID("sid3") {
-			t.Error("Service 3 should not be included when using Only filter for services 1 and 2")
-		}
+		require.NotEqual(t, h.UUID("sid3"), service.ID, "service 3 should not be included when using Only filter for services 1 and 2")
 	}
 
 	t.Log("All Only filter tests passed successfully!")
