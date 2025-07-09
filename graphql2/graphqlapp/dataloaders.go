@@ -8,6 +8,7 @@ import (
 	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/dataloader"
 	"github.com/target/goalert/escalation"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notificationchannel"
@@ -120,6 +121,30 @@ func (a *App) closeLoaders(ctx context.Context) {
 	if loader.AlertMetadata != nil {
 		loader.AlertMetadata.Close()
 	}
+}
+
+func (app *App) FindOneAlertStatusCounts(ctx context.Context, id uuid.UUID) ([]gadb.ServiceAlertCountsRow, error) {
+	loader, ok := ctx.Value(dataLoaderAlertStatusCounts).(*dataloader.Loader[uuid.UUID, serviceAlertStatusBatch])
+	if !ok {
+		rows, err := app._allAlertCounts(ctx, []uuid.UUID{id})
+		if err != nil {
+			return nil, err
+		}
+		if len(rows) == 0 {
+			return nil, nil
+		}
+		return rows[0].Counts, nil
+	}
+
+	md, err := loader.FetchOne(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if md == nil {
+		return nil, nil
+	}
+
+	return md.Counts, nil
 }
 
 func (app *App) FindOneAlertMetadata(ctx context.Context, id int) (map[string]string, error) {
