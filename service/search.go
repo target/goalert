@@ -70,6 +70,9 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 	{{if .Omit}}
 		AND not svc.id = any(:omit)
 	{{end}}
+	{{if .Only}}
+		AND svc.id = any(:only)
+	{{end}}
 	{{- if and .LabelKey .LabelNegate}}
 		AND svc.id NOT IN (
 			SELECT tgt_service_id
@@ -162,6 +165,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 		validate.Search("Search", opts.Search),
 		validate.Range("Limit", opts.Limit, 0, search.MaxResults),
 		validate.ManyUUID("Omit", opts.Omit, 50),
+		validate.ManyUUID("Only", opts.Only, 50),
 	)
 	if opts.After.Name != "" {
 		err = validate.Many(err, validate.IDName("After.Name", opts.After.Name))
@@ -200,6 +204,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("search", opts.Search),
 		sql.Named("afterName", opts.After.Name),
 		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
+		sql.Named("only", sqlutil.UUIDArray(opts.Only)),
 	}
 }
 
@@ -207,28 +212,6 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]Service, error) {
 	if opts == nil {
 		opts = &SearchOptions{}
-	}
-
-	if len(opts.Only) > 0 {
-		query := `SELECT id, name, description, escalation_policy_id, false, maintenance_expires_at
-		          FROM services WHERE id = ANY($1::uuid[])`
-		rows, err := s.db.QueryContext(ctx, query, sqlutil.UUIDArray(opts.Only))
-		if err != nil {
-			return nil, err
-		}
-		defer rows.Close()
-		var result []Service
-		for rows.Next() {
-			var s Service
-			var maintExpiresAt sql.NullTime
-			err = rows.Scan(&s.ID, &s.Name, &s.Description, &s.EscalationPolicyID, &s.isUserFavorite, &maintExpiresAt)
-			if err != nil {
-				return nil, err
-			}
-			s.MaintenanceExpiresAt = maintExpiresAt.Time
-			result = append(result, s)
-		}
-		return result, nil
 	}
 
 	userCheck := permission.User
