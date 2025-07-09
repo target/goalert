@@ -65,6 +65,7 @@ func (a *App) registerLoaders(ctx context.Context) context.Context {
 	})
 	return ctx
 }
+
 func loadersFrom(ctx context.Context) loaders {
 	loader, ok := ctx.Value(requestLoadersKey).(*loaders)
 	if !ok {
