@@ -175,5 +175,4 @@ func TestGraphQLServiceSearchOnly(t *testing.T) {
 		}
 	}
 
-	t.Log("All Only filter tests passed successfully!")
 }
