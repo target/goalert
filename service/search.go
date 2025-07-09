@@ -28,9 +28,6 @@ type SearchOptions struct {
 	// Omit specifies a list of service IDs to exclude from the results.
 	Omit []string `json:"m,omitempty"`
 
-	// Only lookup the service IDs present in the request.
-	Only []string `json:"only,omitempty"`
-
 	// FavoritesFirst indicates that services marked as favorite (by FavoritesUserID) should be returned first (before any non-favorites).
 	FavoritesFirst bool `json:"f,omitempty"`
 
@@ -207,28 +204,6 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 func (s *Store) Search(ctx context.Context, opts *SearchOptions) ([]Service, error) {
 	if opts == nil {
 		opts = &SearchOptions{}
-	}
-
-	if len(opts.Only) > 0 {
-		query := `SELECT id, name, description, escalation_policy_id, false, maintenance_expires_at
-		          FROM services WHERE id = ANY($1::uuid[])`
-		rows, err := s.db.QueryContext(ctx, query, sqlutil.UUIDArray(opts.Only))
-		if err != nil {
-			return nil, err
-		}
-		defer rows.Close()
-		var result []Service
-		for rows.Next() {
-			var s Service
-			var maintExpiresAt sql.NullTime
-			err = rows.Scan(&s.ID, &s.Name, &s.Description, &s.EscalationPolicyID, &s.isUserFavorite, &maintExpiresAt)
-			if err != nil {
-				return nil, err
-			}
-			s.MaintenanceExpiresAt = maintExpiresAt.Time
-			result = append(result, s)
-		}
-		return result, nil
 	}
 
 	userCheck := permission.User

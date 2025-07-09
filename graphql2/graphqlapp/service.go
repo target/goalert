@@ -54,9 +54,6 @@ func (q *Query) Services(ctx context.Context, opts *graphql2.ServiceSearchOption
 		searchOpts.FavoritesFirst = *opts.FavoritesFirst
 	}
 	searchOpts.Omit = opts.Omit
-	if len(opts.Only) > 0 {
-		searchOpts.Only = opts.Only
-	}
 	if opts.After != nil && *opts.After != "" {
 		err = search.ParseCursor(*opts.After, &searchOpts)
 		if err != nil {
