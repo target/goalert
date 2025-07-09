@@ -29,7 +29,7 @@ type SearchOptions struct {
 	Omit []string `json:"m,omitempty"`
 
 	// Only lookup the service IDs present in the request.
-	Only []string `json:"only,omitempty"`
+	Only []string `json:"n,omitempty"`
 
 	// FavoritesFirst indicates that services marked as favorite (by FavoritesUserID) should be returned first (before any non-favorites).
 	FavoritesFirst bool `json:"f,omitempty"`
