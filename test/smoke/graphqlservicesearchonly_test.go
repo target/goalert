@@ -24,7 +24,7 @@ func TestGraphQLServiceSearchOnly(t *testing.T) {
 		({{uuid "sid3"}}, {{uuid "eid"}}, 'service three');
 `
 
-	h := harness.NewHarness(t, sql, "service-search-only")
+	h := harness.NewHarness(t, sql, "")
 	defer h.Close()
 
 	doQL := func(query string, res interface{}) {
