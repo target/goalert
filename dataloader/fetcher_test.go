@@ -21,13 +21,8 @@ func TestFetcher_FetchOne(t *testing.T) {
 	}
 
 	res, err := l.FetchOne(context.Background(), "foo")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if res.ID != "foo" {
-		t.Errorf("got id=%s; want foo", res.ID)
-	}
+	require.NoError(t, err)
+	require.Equal(t, "foo", res.ID)
 }
 
 // TestFetcher_FetchOne_UUID_String tests that UUIDs and strings can be used together. This is important because as we transition from strings to UUIDs, it's commong for code to use a UUID while FetchOne is given a string, and vice versa.
@@ -86,14 +81,9 @@ func TestFetcher_FetchOne_Int(t *testing.T) {
 	}
 
 	res, err := l.FetchOne(context.Background(), 2)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	require.NotNil(t, res)
-
-	if res.ID != 2 {
-		t.Errorf("got id=%d; want 2", res.ID)
-	}
+	require.Equal(t, 2, res.ID)
 }
 
 // TestFetcher_FetchOne_Extra ensures that when the fetch function returns extra
@@ -110,13 +100,8 @@ func TestFetcher_FetchOne_Extra(t *testing.T) {
 	defer done()
 
 	res, err := l.FetchOne(ctx, "foo")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if res != nil {
-		t.Errorf("got %T; want nil", res)
-	}
+	require.NoError(t, err)
+	require.Nil(t, res)
 }
 
 // TestFetcher_FetchOneParam_ValidatesParams tests that FetchOneParam correctly
@@ -145,19 +130,10 @@ func TestFetcher_FetchOneParam_ValidatesParams(t *testing.T) {
 
 	expectedParam := params{filter: "active"}
 	res, err := l.FetchOneParam(ctx, "foo", expectedParam)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if res == nil || res.id != "foo" {
-		t.Errorf("got %v; want example with id 'foo'", res)
-	}
-
-	if capturedParam != expectedParam {
-		t.Errorf("got param %+v; want %+v", capturedParam, expectedParam)
-	}
-
-	if len(capturedIDs) != 1 || capturedIDs[0] != "foo" {
-		t.Errorf("got IDs %v; want ['foo']", capturedIDs)
-	}
+	require.NotNil(t, res)
+	require.Equal(t, "foo", res.id)
+	require.Equal(t, expectedParam, capturedParam)
+	require.EqualValues(t, []string{"foo"}, capturedIDs)
 }
