@@ -28,6 +28,9 @@ type SearchOptions struct {
 	// Omit specifies a list of service IDs to exclude from the results.
 	Omit []string `json:"m,omitempty"`
 
+	// Only lookup the service IDs present in the request.
+	Only []string `json:"n,omitempty"`
+
 	// FavoritesFirst indicates that services marked as favorite (by FavoritesUserID) should be returned first (before any non-favorites).
 	FavoritesFirst bool `json:"f,omitempty"`
 
@@ -66,6 +69,9 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 	WHERE true
 	{{if .Omit}}
 		AND not svc.id = any(:omit)
+	{{end}}
+	{{if .Only}}
+		AND svc.id = any(:only)
 	{{end}}
 	{{- if and .LabelKey .LabelNegate}}
 		AND svc.id NOT IN (
@@ -159,6 +165,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 		validate.Search("Search", opts.Search),
 		validate.Range("Limit", opts.Limit, 0, search.MaxResults),
 		validate.ManyUUID("Omit", opts.Omit, 50),
+		validate.ManyUUID("Only", opts.Only, 50),
 	)
 	if opts.After.Name != "" {
 		err = validate.Many(err, validate.IDName("After.Name", opts.After.Name))
@@ -197,6 +204,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("search", opts.Search),
 		sql.Named("afterName", opts.After.Name),
 		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
+		sql.Named("only", sqlutil.UUIDArray(opts.Only)),
 	}
 }
 

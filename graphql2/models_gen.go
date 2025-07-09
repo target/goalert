@@ -702,6 +702,7 @@ type ServiceSearchOptions struct {
 	After  *string  `json:"after,omitempty"`
 	Search *string  `json:"search,omitempty"`
 	Omit   []string `json:"omit,omitempty"`
+	Only   []string `json:"only,omitempty"`
 	// Include only favorited services in the results.
 	FavoritesOnly *bool `json:"favoritesOnly,omitempty"`
 	// Sort favorite services first.
