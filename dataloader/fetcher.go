@@ -9,25 +9,15 @@
 // Example usage:
 //
 //	// Create a loader for User entities
-//	userLoader := dataloader.NewStoreLoader(ctx, userStore.FindMany)
-//	userLoader.MaxBatch = 100
-//	userLoader.Delay = 5 * time.Millisecond
+//	userLoader := dataloader.NewStoreLoader(ctx, userStore.FindMany, func(u User) string { return u.ID })
 //
 //	// Use in resolvers - these calls will be batched together
 //	user1, err := userLoader.FetchOne(ctx, "user-id-1")
 //	user2, err := userLoader.FetchOne(ctx, "user-id-2")
 //	user3, err := userLoader.FetchOne(ctx, "user-id-3")
 //
-//	// With parameters for filtered loading
-//	type UserParams struct { Active bool }
-//	paramLoader := &Fetcher[string, UserParams, User]{
-//		FetchFunc: func(ctx context.Context, param UserParams, ids []string) ([]User, error) {
-//			return userStore.FindManyFiltered(ctx, ids, param.Active)
-//		},
-//		MaxBatch: 50,
-//		Delay: time.Millisecond,
-//	}
-//	activeUser, err := paramLoader.FetchOneParam(ctx, "user-id", UserParams{Active: true})
+//	// For database operations with a DB connection:
+//	dbLoader := dataloader.NewStoreLoaderWithDB(ctx, db, dbStore.FindMany, func(u User) string { return u.ID })
 package dataloader
 
 import (
@@ -84,20 +74,18 @@ func NewStoreLoaderWithDB[V any, K comparable](
 //
 // Type parameters:
 //   - K: The type of the unique identifier (key) for items being fetched
-//   - P: The type of additional parameters that can be passed to modify fetch behavior
 //   - V: The type of values being fetched
 //
 // The Fetcher is safe for concurrent use. All methods can be called from multiple
 // goroutines simultaneously.
 type Fetcher[K comparable, V any] struct {
-	// FetchFunc is called to retrieve data for a batch of IDs with the given parameters.
+	// FetchFunc is called to retrieve data for a batch of IDs.
 	// It should return values in any order - the Fetcher will map them back to requests
-	// using the ID extracted via IDFunc or IDField.
+	// using the ID extracted via IDFunc.
 	FetchFunc func(ctx context.Context, ids []K) ([]V, error)
 
-	// IDFunc extracts the unique identifier from a value. If set, this takes
-	// precedence over IDField. This is more efficient than using reflection
-	// and allows for more complex ID extraction logic.
+	// IDFunc extracts the unique identifier from a value. This function is required
+	// and is used to match returned values back to their corresponding requests.
 	IDFunc func(V) K
 
 	// MaxBatch sets the maximum number of IDs to include in a single batch.
@@ -124,6 +112,8 @@ type result[K comparable, V any] struct {
 	done  chan struct{}
 }
 
+// wait blocks until the result is available or the context is cancelled.
+// It returns the fetched value and any error that occurred during fetching.
 func (r *result[K, V]) wait(ctx context.Context) (*V, error) {
 	select {
 	case <-ctx.Done():
@@ -141,10 +131,13 @@ func (f *Fetcher[K, V]) Close() {
 	f.wg.Wait()
 }
 
+// fetchAll executes a batch request and distributes the results to waiting goroutines.
+// It calls FetchFunc with all the IDs in the batch, then matches returned values
+// back to their corresponding requests using IDFunc.
 func (f *Fetcher[K, V]) fetchAll(ctx context.Context, batch *batch[K, V]) {
 	defer f.wg.Done()
 
-	// Since we are exlusive to this batch, we fetch before locking the cache.
+	// Since we are exclusive to this batch, we fetch before locking the cache.
 	values, err := f.FetchFunc(ctx, batch.ids)
 	f.mx.Lock()
 	defer f.mx.Unlock()
@@ -157,6 +150,7 @@ func (f *Fetcher[K, V]) fetchAll(ctx context.Context, batch *batch[K, V]) {
 		return
 	}
 
+	// Match returned values to their corresponding requests
 	for _, val := range values {
 		id := f.IDFunc(val)
 		res, ok := f.cache[id]
@@ -168,14 +162,15 @@ func (f *Fetcher[K, V]) fetchAll(ctx context.Context, batch *batch[K, V]) {
 		res.value = &val
 	}
 
-	// We close all results in a separate loop for cases where a value is missing. Since the batch is done, all results must be closed.
+	// Close all result channels - missing values will have nil value
 	for _, res := range batch.results {
 		close(res.done)
 	}
 }
 
-// FetchOne retrieves a single value by its ID using default (empty) parameters.
-// This is a convenience method equivalent to calling FetchOneParam with an empty parameter.
+// FetchOne retrieves a single value by its ID. Multiple calls to FetchOne within
+// the same batch window (defined by Delay) will be batched together into a single
+// call to FetchFunc.
 //
 // The method returns a pointer to the value if found, or nil if not found.
 // An error is returned if the fetch operation fails or the context is cancelled.

@@ -24,6 +24,8 @@ type dataLoaderKey int
 
 const requestLoadersKey = dataLoaderKey(1)
 
+// loaders contains all the dataloader instances for a single request.
+// These are used to batch database queries and prevent N+1 problems in GraphQL resolvers.
 type loaders struct {
 	Alert                     *dataloader.Loader[int, alert.Alert]
 	AlertState                *dataloader.Loader[int, alert.State]
@@ -41,6 +43,8 @@ type loaders struct {
 	AlertMetadata             *dataloader.Loader[int, alert.MetadataAlertID]
 }
 
+// registerLoaders creates and registers all dataloaders for the request context.
+// Each loader is configured with appropriate batch settings and ID extraction functions.
 func (a *App) registerLoaders(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, requestLoadersKey, &loaders{
 		Alert:                     dataloader.NewStoreLoader(ctx, a.AlertStore.FindMany, func(a alert.Alert) int { return a.ID }),
@@ -63,6 +67,8 @@ func (a *App) registerLoaders(ctx context.Context) context.Context {
 	return ctx
 }
 
+// loadersFrom extracts the loaders struct from the request context.
+// Returns an empty loaders struct if none are found.
 func loadersFrom(ctx context.Context) loaders {
 	loader, ok := ctx.Value(requestLoadersKey).(*loaders)
 	if !ok {
@@ -75,6 +81,8 @@ func loadersFrom(ctx context.Context) loaders {
 	return *loader
 }
 
+// closeLoaders closes all dataloaders in the request context to prevent goroutine leaks.
+// This should be called when the request is complete.
 func (a *App) closeLoaders(ctx context.Context) {
 	loader := loadersFrom(ctx)
 
