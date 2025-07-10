@@ -6,7 +6,7 @@
 // Instead of making individual database calls for each item, the dataloader batches
 // requests together and executes them in a single operation.
 //
-// Example usage:
+// Basic usage example:
 //
 //	// Create a loader for User entities
 //	userLoader := dataloader.NewStoreLoader(ctx, userStore.FindMany, func(u User) string { return u.ID })
@@ -18,6 +18,18 @@
 //
 //	// For database operations with a DB connection:
 //	dbLoader := dataloader.NewStoreLoaderWithDB(ctx, db, dbStore.FindMany, func(u User) string { return u.ID })
+//
+// For parameterized queries, use FetcherParam:
+//
+//	// Create a parameterized loader
+//	type UserParams struct { Active bool }
+//	paramLoader := dataloader.NewStoreLoaderParam(ctx, 
+//		func(ctx context.Context, param UserParams, ids []string) ([]User, error) {
+//			return userStore.FindManyFiltered(ctx, ids, param.Active)
+//		},
+//		func(u User) string { return u.ID },
+//	)
+//	activeUser, err := paramLoader.FetchOneParam(ctx, "user-id", UserParams{Active: true})
 package dataloader
 
 import (
