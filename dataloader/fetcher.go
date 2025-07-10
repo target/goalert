@@ -115,26 +115,6 @@ type Fetcher[K, P comparable, V any] struct {
 	wg      sync.WaitGroup
 }
 
-// SetIDField sets the name of the field to use as the unique identifier for values.
-// This method must be called before any FetchOne calls. The field must be exported
-// and accessible via reflection.
-//
-// Returns the Fetcher instance for method chaining.
-func (f *Fetcher[K, P, V]) SetIDField(field string) *Fetcher[K, P, V] {
-	f.IDField = field
-	return f
-}
-
-// SetIDFunc sets the function to extract the unique identifier from a value.
-// When set, this takes precedence over IDField and is more efficient than reflection.
-// This method must be called before any FetchOne calls.
-//
-// Returns the Fetcher instance for method chaining.
-func (f *Fetcher[K, P, V]) SetIDFunc(fn func(V) K) *Fetcher[K, P, V] {
-	f.IDFunc = fn
-	return f
-}
-
 // batch represents a group of IDs that should be fetched together with the same parameters.
 type batch[K, P comparable, V any] struct {
 	IDs   []K
@@ -164,6 +144,13 @@ func DefaultIDFunc[K comparable, V any](v V, idField string) (id K) {
 
 	if v, ok := val.Interface().(K); ok {
 		return v // directly return if type matches, this is the common case
+	}
+
+	if reflect.TypeOf(id) == reflect.TypeOf(int(0)) {
+		// common case when K is int and val is int or int64
+		if val.Kind() == reflect.Int || val.Kind() == reflect.Int64 {
+			return any(val.Int()).(K)
+		}
 	}
 
 	// special case when K is string and val is uuid.UUID

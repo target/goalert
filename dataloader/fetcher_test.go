@@ -73,17 +73,17 @@ func TestFetcher_FetchOne_UUID_String(t *testing.T) {
 // TestFetcher_FetchOne_Int tests fetching functionality with integer IDs to ensure
 // the generic type system works correctly with different comparable types.
 func TestFetcher_FetchOne_Int(t *testing.T) {
-	type example struct{ ID int }
-	l := &Fetcher[int, struct{}, example]{
+	type example struct{ ID int64 }
+	l := &Fetcher[int64, struct{}, example]{
 		MaxBatch:  10,
 		Delay:     time.Millisecond,
-		FetchFunc: func(context.Context, struct{}, []int) ([]example, error) { return []example{{ID: 2}}, nil },
+		FetchFunc: func(context.Context, struct{}, []int64) ([]example, error) { return []example{{ID: 42}}, nil },
 	}
 
-	res, err := l.FetchOne(context.Background(), 2)
+	res, err := l.FetchOne(context.Background(), 42)
 	require.NoError(t, err)
 	require.NotNil(t, res)
-	require.Equal(t, 2, res.ID)
+	require.Equal(t, int64(42), res.ID)
 }
 
 // TestFetcher_FetchOne_Extra ensures that when the fetch function returns extra
