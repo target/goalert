@@ -25,40 +25,40 @@ type dataLoaderKey int
 const requestLoadersKey = dataLoaderKey(1)
 
 type loaders struct {
-	Alert                     *dataloader.Fetcher[int, struct{}, alert.Alert]
-	AlertState                *dataloader.Fetcher[int, struct{}, alert.State]
-	EP                        *dataloader.Fetcher[string, struct{}, escalation.Policy]
-	Rotation                  *dataloader.Fetcher[string, struct{}, rotation.Rotation]
-	Schedule                  *dataloader.Fetcher[string, struct{}, schedule.Schedule]
-	Service                   *dataloader.Fetcher[string, struct{}, service.Service]
-	User                      *dataloader.Fetcher[string, struct{}, user.User]
-	CM                        *dataloader.Fetcher[string, struct{}, contactmethod.ContactMethod]
-	Heartbeat                 *dataloader.Fetcher[string, struct{}, heartbeat.Monitor]
-	NotificationMessageStatus *dataloader.Fetcher[string, struct{}, notification.SendResult]
-	NC                        *dataloader.Fetcher[string, struct{}, notificationchannel.Channel]
-	AlertMetrics              *dataloader.Fetcher[int, struct{}, alertmetrics.Metric]
-	AlertFeedback             *dataloader.Fetcher[int, struct{}, alert.Feedback]
-	AlertMetadata             *dataloader.Fetcher[int, struct{}, alert.MetadataAlertID]
+	Alert                     *dataloader.Loader[int, alert.Alert]
+	AlertState                *dataloader.Loader[int, alert.State]
+	EP                        *dataloader.Loader[string, escalation.Policy]
+	Rotation                  *dataloader.Loader[string, rotation.Rotation]
+	Schedule                  *dataloader.Loader[string, schedule.Schedule]
+	Service                   *dataloader.Loader[string, service.Service]
+	User                      *dataloader.Loader[string, user.User]
+	CM                        *dataloader.Loader[string, contactmethod.ContactMethod]
+	Heartbeat                 *dataloader.Loader[string, heartbeat.Monitor]
+	NotificationMessageStatus *dataloader.Loader[string, notification.SendResult]
+	NC                        *dataloader.Loader[string, notificationchannel.Channel]
+	AlertMetrics              *dataloader.Loader[int, alertmetrics.Metric]
+	AlertFeedback             *dataloader.Loader[int, alert.Feedback]
+	AlertMetadata             *dataloader.Loader[int, alert.MetadataAlertID]
 }
 
 func (a *App) registerLoaders(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, requestLoadersKey, &loaders{
-		Alert:                     dataloader.NewStoreLoader(ctx, a.AlertStore.FindMany),
-		AlertState:                dataloader.NewStoreLoader(ctx, a.AlertStore.State),
-		EP:                        dataloader.NewStoreLoader(ctx, a.PolicyStore.FindManyPolicies),
-		Rotation:                  dataloader.NewStoreLoader(ctx, a.RotationStore.FindMany),
-		Schedule:                  dataloader.NewStoreLoader(ctx, a.ScheduleStore.FindMany),
-		Service:                   dataloader.NewStoreLoader(ctx, a.ServiceStore.FindMany),
-		User:                      dataloader.NewStoreLoader(ctx, a.UserStore.FindMany),
-		CM:                        dataloader.NewStoreLoaderWithDB(ctx, a.DB, a.CMStore.FindMany),
-		Heartbeat:                 dataloader.NewStoreLoader(ctx, a.HeartbeatStore.FindMany),
-		NotificationMessageStatus: dataloader.NewStoreLoader(ctx, a.NotificationStore.FindManyMessageStatuses),
-		NC:                        dataloader.NewStoreLoader(ctx, a.NCStore.FindMany),
-		AlertMetrics:              dataloader.NewStoreLoader(ctx, a.AlertMetricsStore.FindMetrics),
-		AlertFeedback:             dataloader.NewStoreLoader(ctx, a.AlertStore.Feedback),
+		Alert:                     dataloader.NewStoreLoader(ctx, a.AlertStore.FindMany, func(a alert.Alert) int { return a.ID }),
+		AlertState:                dataloader.NewStoreLoader(ctx, a.AlertStore.State, func(s alert.State) int { return s.ID }),
+		EP:                        dataloader.NewStoreLoader(ctx, a.PolicyStore.FindManyPolicies, func(p escalation.Policy) string { return p.ID }),
+		Rotation:                  dataloader.NewStoreLoader(ctx, a.RotationStore.FindMany, func(r rotation.Rotation) string { return r.ID }),
+		Schedule:                  dataloader.NewStoreLoader(ctx, a.ScheduleStore.FindMany, func(s schedule.Schedule) string { return s.ID }),
+		Service:                   dataloader.NewStoreLoader(ctx, a.ServiceStore.FindMany, func(s service.Service) string { return s.ID }),
+		User:                      dataloader.NewStoreLoader(ctx, a.UserStore.FindMany, func(u user.User) string { return u.ID }),
+		CM:                        dataloader.NewStoreLoaderWithDB(ctx, a.DB, a.CMStore.FindMany, func(cm contactmethod.ContactMethod) string { return cm.ID.String() }),
+		Heartbeat:                 dataloader.NewStoreLoader(ctx, a.HeartbeatStore.FindMany, func(hb heartbeat.Monitor) string { return hb.ID }),
+		NotificationMessageStatus: dataloader.NewStoreLoader(ctx, a.NotificationStore.FindManyMessageStatuses, func(n notification.SendResult) string { return n.ID }),
+		NC:                        dataloader.NewStoreLoader(ctx, a.NCStore.FindMany, func(nc notificationchannel.Channel) string { return nc.ID.String() }),
+		AlertMetrics:              dataloader.NewStoreLoader(ctx, a.AlertMetricsStore.FindMetrics, func(m alertmetrics.Metric) int { return m.ID }),
+		AlertFeedback:             dataloader.NewStoreLoader(ctx, a.AlertStore.Feedback, func(f alert.Feedback) int { return f.ID }),
 		AlertMetadata: dataloader.NewStoreLoader(ctx, func(ctx context.Context, i []int) ([]alert.MetadataAlertID, error) {
 			return a.AlertStore.FindManyMetadata(ctx, a.DB, i)
-		}),
+		}, func(md alert.MetadataAlertID) int { return int(md.ID) }),
 	})
 	return ctx
 }

@@ -32,14 +32,17 @@ package dataloader
 
 import (
 	"context"
-	"reflect"
-	"slices"
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/target/goalert/gadb"
-	"github.com/target/goalert/util"
+)
+
+type Loader[K comparable, V any] = Fetcher[K, V]
+
+type (
+	FetchFunc[K comparable, V any] func(context.Context, []K) ([]V, error)
+	IDFunc[K comparable, V any]    func(V) K
 )
 
 type IDer[K comparable] interface {
@@ -52,11 +55,12 @@ type IDer[K comparable] interface {
 //
 // The fetchMany function should return values in any order, and the Fetcher will
 // map them back to the correct requests using the ID field.
-func NewStoreLoader[V any, K comparable](ctx context.Context, fetchMany func(context.Context, []K) ([]V, error)) *Fetcher[K, struct{}, V] {
-	return &Fetcher[K, struct{}, V]{
+func NewStoreLoader[V any, K comparable](ctx context.Context, fetchMany FetchFunc[K, V], idFunc IDFunc[K, V]) *Fetcher[K, V] {
+	return &Fetcher[K, V]{
 		MaxBatch:  100,
-		Delay:     time.Millisecond,
-		FetchFunc: func(ctx context.Context, s struct{}, ids []K) ([]V, error) { return fetchMany(ctx, ids) },
+		Delay:     5 * time.Millisecond,
+		FetchFunc: func(ctx context.Context, ids []K) ([]V, error) { return fetchMany(ctx, ids) },
+		IDFunc:    idFunc,
 	}
 }
 
@@ -67,10 +71,11 @@ func NewStoreLoaderWithDB[V any, K comparable](
 	ctx context.Context,
 	db gadb.DBTX,
 	fetchMany func(context.Context, gadb.DBTX, []K) ([]V, error),
-) *Fetcher[K, struct{}, V] {
+	idFunc IDFunc[K, V],
+) *Fetcher[K, V] {
 	return NewStoreLoader(ctx, func(ctx context.Context, ids []K) ([]V, error) {
 		return fetchMany(ctx, db, ids)
-	})
+	}, idFunc)
 }
 
 // Fetcher provides batched loading of data with caching. It batches individual requests
@@ -84,16 +89,11 @@ func NewStoreLoaderWithDB[V any, K comparable](
 //
 // The Fetcher is safe for concurrent use. All methods can be called from multiple
 // goroutines simultaneously.
-type Fetcher[K, P comparable, V any] struct {
+type Fetcher[K comparable, V any] struct {
 	// FetchFunc is called to retrieve data for a batch of IDs with the given parameters.
 	// It should return values in any order - the Fetcher will map them back to requests
 	// using the ID extracted via IDFunc or IDField.
-	FetchFunc func(ctx context.Context, param P, ids []K) ([]V, error)
-
-	// IDField specifies the name of the field to use as the unique identifier.
-	// Defaults to "ID" if not set and IDFunc is nil. This field is accessed via
-	// reflection, so it must be exported.
-	IDField string
+	FetchFunc func(ctx context.Context, ids []K) ([]V, error)
 
 	// IDFunc extracts the unique identifier from a value. If set, this takes
 	// precedence over IDField. This is more efficient than using reflection
@@ -108,165 +108,70 @@ type Fetcher[K, P comparable, V any] struct {
 	// multiple requests to accumulate into a single batch, improving efficiency.
 	Delay time.Duration
 
-	cache   map[cacheKey[K, P]]*result[V]
-	batches map[P]*batch[K, P, V]
-	mx      sync.Mutex
-	doInit  sync.Once
-	wg      sync.WaitGroup
-}
+	cache map[K]*result[K, V]
 
-// batch represents a group of IDs that should be fetched together with the same parameters.
-type batch[K, P comparable, V any] struct {
-	IDs   []K
-	Param P
+	currentBatch *batch[K, V]
+	mx           sync.Mutex
+	wg           sync.WaitGroup
 }
 
 // result holds the outcome of fetching a single item, including the value, any error,
 // and a channel to signal completion.
-type result[V any] struct {
+type result[K comparable, V any] struct {
+	id    K
 	value *V
 	err   error
 	done  chan struct{}
 }
 
-// cacheKey uniquely identifies a cached item by its ID and parameters.
-type cacheKey[K, P comparable] struct {
-	ID    K
-	Param P
+func (r *result[K, V]) wait(ctx context.Context) (*V, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case <-r.done:
+		return r.value, r.err
+	}
 }
-
-// DefaultIDFunc provides a default implementation for extracting the ID from a struct.
-func DefaultIDFunc[K comparable, V any](v V, idField string) (id K) {
-	val := reflect.ValueOf(v).FieldByName(idField)
-	if !val.IsValid() || !val.CanInterface() {
-		return id // empty/zero value if field is not accessible
-	}
-
-	if v, ok := val.Interface().(K); ok {
-		return v // directly return if type matches, this is the common case
-	}
-
-	if reflect.TypeOf(id) == reflect.TypeOf(int(0)) {
-		// common case when K is int and val is int or int64
-		if val.Kind() == reflect.Int || val.Kind() == reflect.Int64 {
-			return any(val.Int()).(K)
-		}
-	}
-
-	// special case when K is string and val is uuid.UUID
-	if val.Type() == reflect.TypeOf(uuid.UUID{}) && reflect.TypeOf(id) == reflect.TypeOf("") {
-		s := val.Interface().(uuid.UUID).String()
-		return any(s).(K)
-	}
-
-	// inverse case when K is uuid.UUID and val is string
-	if val.Type() == reflect.TypeOf("") && reflect.TypeOf(id) == reflect.TypeOf(uuid.UUID{}) {
-		uuidStr, ok := val.Interface().(string)
-		if !ok {
-			return id // empty/zero value if conversion fails
-		}
-		uuidVal, err := uuid.Parse(uuidStr)
-		if err != nil {
-			return id // empty/zero value if conversion fails
-		}
-		return any(uuidVal).(K)
-	}
-
-	// fallback to using the zero value of K if type conversion fails
-	return id
-}
-
-func (f *Fetcher[K, P, V]) init() {
-	f.doInit.Do(func() {
-		f.cache = make(map[cacheKey[K, P]]*result[V])
-		f.batches = make(map[P]*batch[K, P, V])
-	})
-}
-
-func LookupID[K comparable, V any](v V, idField string, idFunc func(V) K) K {
-	if idFunc != nil {
-		return idFunc(v)
-	}
-	if idField == "" {
-		idField = "ID" // default field name if not set
-	}
-
-	if ider, ok := any(v).(IDer[K]); ok {
-		return ider.ID() // use IDer interface if available
-	}
-
-	return DefaultIDFunc[K](v, idField)
-}
-
-// LookupID extracts the unique identifier from a value using the configured IDFunc or IDField.
-func (f *Fetcher[K, P, V]) LookupID(v V) K { return LookupID(v, f.IDField, f.IDFunc) }
 
 // Close waits for all pending batches to complete. This should be called when
 // the Fetcher is no longer needed to ensure proper cleanup and prevent
 // goroutine leaks.
-func (f *Fetcher[K, P, V]) Close() {
+func (f *Fetcher[K, V]) Close() {
 	// Wait for all batches to complete
 	f.wg.Wait()
 }
 
-func (f *Fetcher[K, P, V]) _batch(ctx context.Context, param P, id K) {
-	b, ok := f.batches[param]
-	if !ok || len(b.IDs) >= f.MaxBatch {
-		b = &batch[K, P, V]{Param: param, IDs: []K{id}}
-		f.batches[param] = b
-		f.wg.Add(1)
-		go f.runBatch(ctx, param, b)
-	} else if !slices.Contains(b.IDs, id) {
-		b.IDs = append(b.IDs, id)
-	}
-}
-
-func (f *Fetcher[K, P, V]) runBatch(ctx context.Context, param P, b *batch[K, P, V]) {
+func (f *Fetcher[K, V]) fetchAll(ctx context.Context, batch *batch[K, V]) {
 	defer f.wg.Done()
-	_ = util.ContextSleep(ctx, f.Delay)
 
+	// Since we are exlusive to this batch, we fetch before locking the cache.
+	values, err := f.FetchFunc(ctx, batch.ids)
 	f.mx.Lock()
-	delete(f.batches, param)
-	f.mx.Unlock()
+	defer f.mx.Unlock()
+	if err != nil {
+		// In the error case, we close all results with the error since there is no value to return.
+		for _, res := range batch.results {
+			res.err = err
+			close(res.done)
+		}
+		return
+	}
 
-	var values []V
-	values, err := f.FetchFunc(ctx, param, b.IDs)
-
-	f.mx.Lock()
-	for _, v := range values {
-		res, ok := f.cache[cacheKey[K, P]{ID: f.LookupID(v), Param: param}]
+	for _, val := range values {
+		id := f.IDFunc(val)
+		res, ok := f.cache[id]
 		if !ok {
 			// we didn't ask for this ID, ignore it
 			continue
 		}
-		if res.done == nil {
-			// just in case there was a duplicate somehow
-			continue
-		}
 
-		if err != nil {
-			res.err = err
-		} else {
-			res.value = &v
-		}
-		close(res.done)
-		res.done = nil
+		res.value = &val
 	}
-	// remaining were not found, mark as done
-	for _, id := range b.IDs {
-		res := f.cache[cacheKey[K, P]{ID: id, Param: param}]
-		if res.done == nil {
-			// just in case there was a duplicate somehow
-			continue
-		}
 
-		if err != nil {
-			res.err = err
-		}
+	// We close all results in a separate loop for cases where a value is missing. Since the batch is done, all results must be closed.
+	for _, res := range batch.results {
 		close(res.done)
-		res.done = nil
 	}
-	f.mx.Unlock()
 }
 
 // FetchOne retrieves a single value by its ID using default (empty) parameters.
@@ -274,35 +179,34 @@ func (f *Fetcher[K, P, V]) runBatch(ctx context.Context, param P, b *batch[K, P,
 //
 // The method returns a pointer to the value if found, or nil if not found.
 // An error is returned if the fetch operation fails or the context is cancelled.
-func (f *Fetcher[K, P, V]) FetchOne(ctx context.Context, id K) (*V, error) {
-	var empty P
-	return f.FetchOneParam(ctx, id, empty)
-}
-
-// FetchOneParam retrieves a single value by its ID with additional parameters.
-// The request may be batched with other concurrent requests that have the same parameters.
-//
-// Parameters with different values will result in separate batches, allowing for
-// parameter-specific optimizations in the fetch function.
-//
-// The method returns a pointer to the value if found, or nil if not found.
-// An error is returned if the fetch operation fails or the context is cancelled.
-func (f *Fetcher[K, P, V]) FetchOneParam(ctx context.Context, id K, param P) (*V, error) {
-	f.init()
-
+func (f *Fetcher[K, V]) FetchOne(ctx context.Context, id K) (*V, error) {
 	f.mx.Lock()
-	r, ok := f.cache[cacheKey[K, P]{ID: id, Param: param}]
-	if !ok {
-		r = &result[V]{done: make(chan struct{})}
-		f.cache[cacheKey[K, P]{ID: id, Param: param}] = r
-		f._batch(ctx, param, id)
+
+	if f.cache == nil {
+		f.cache = make(map[K]*result[K, V])
+	}
+
+	if res, ok := f.cache[id]; ok {
+		// easy path, already cached
+		f.mx.Unlock()
+		return res.wait(ctx)
+	}
+
+	// create the entry for the new ID
+	if f.currentBatch == nil {
+		f.currentBatch = new(batch[K, V])
+		f.wg.Add(1)
+		time.AfterFunc(f.Delay, func() {
+			f.fetchAll(ctx, f.currentBatch)
+		})
+	}
+	res := f.currentBatch.Add(ctx, id)
+	f.cache[id] = res
+
+	if len(f.currentBatch.ids) >= f.MaxBatch {
+		f.currentBatch = nil // reset for next batch
 	}
 
 	f.mx.Unlock()
-	select {
-	case <-r.done:
-		return r.value, r.err
-	case <-ctx.Done():
-		return r.value, ctx.Err()
-	}
+	return res.wait(ctx)
 }
