@@ -42,6 +42,11 @@ import (
 	"github.com/target/goalert/util"
 )
 
+type IDer[K comparable] interface {
+	// ID returns the unique identifier for the value.
+	ID() K
+}
+
 // NewStoreLoader creates a new Fetcher for loading data from a store without parameters.
 // It's a convenience function for the common case where you only need to batch by ID.
 //
@@ -150,49 +155,64 @@ type cacheKey[K, P comparable] struct {
 	Param P
 }
 
+// DefaultIDFunc provides a default implementation for extracting the ID from a struct.
+func DefaultIDFunc[K comparable, V any](v V, idField string) (id K) {
+	val := reflect.ValueOf(v).FieldByName(idField)
+	if !val.IsValid() || !val.CanInterface() {
+		return id // empty/zero value if field is not accessible
+	}
+
+	if v, ok := val.Interface().(K); ok {
+		return v // directly return if type matches, this is the common case
+	}
+
+	// special case when K is string and val is uuid.UUID
+	if val.Type() == reflect.TypeOf(uuid.UUID{}) && reflect.TypeOf(id) == reflect.TypeOf("") {
+		s := val.Interface().(uuid.UUID).String()
+		return any(s).(K)
+	}
+
+	// inverse case when K is uuid.UUID and val is string
+	if val.Type() == reflect.TypeOf("") && reflect.TypeOf(id) == reflect.TypeOf(uuid.UUID{}) {
+		uuidStr, ok := val.Interface().(string)
+		if !ok {
+			return id // empty/zero value if conversion fails
+		}
+		uuidVal, err := uuid.Parse(uuidStr)
+		if err != nil {
+			return id // empty/zero value if conversion fails
+		}
+		return any(uuidVal).(K)
+	}
+
+	// fallback to using the zero value of K if type conversion fails
+	return id
+}
+
 func (f *Fetcher[K, P, V]) init() {
 	f.doInit.Do(func() {
 		f.cache = make(map[cacheKey[K, P]]*result[V])
 		f.batches = make(map[P]*batch[K, P, V])
-		if f.IDField == "" {
-			f.IDField = "ID"
-		}
-		if f.IDFunc == nil {
-			f.IDFunc = func(v V) (id K) {
-				val := reflect.ValueOf(v).FieldByName(f.IDField)
-				if !val.IsValid() || !val.CanInterface() {
-					return id // empty/zero value if field is not accessible
-				}
-
-				if v, ok := val.Interface().(K); ok {
-					return v // directly return if type matches, this is the common case
-				}
-
-				// special case when K is string and val is uuid.UUID
-				if val.Type() == reflect.TypeOf(uuid.UUID{}) && reflect.TypeOf(id) == reflect.TypeOf("") {
-					s := val.Interface().(uuid.UUID).String()
-					return any(s).(K)
-				}
-
-				// inverse case when K is uuid.UUID and val is string
-				if val.Type() == reflect.TypeOf("") && reflect.TypeOf(id) == reflect.TypeOf(uuid.UUID{}) {
-					uuidStr, ok := val.Interface().(string)
-					if !ok {
-						return id // empty/zero value if conversion fails
-					}
-					uuidVal, err := uuid.Parse(uuidStr)
-					if err != nil {
-						return id // empty/zero value if conversion fails
-					}
-					return any(uuidVal).(K)
-				}
-
-				// fallback to using the zero value of K if type conversion fails
-				return id
-			}
-		}
 	})
 }
+
+func LookupID[K comparable, V any](v V, idField string, idFunc func(V) K) K {
+	if idFunc != nil {
+		return idFunc(v)
+	}
+	if idField == "" {
+		idField = "ID" // default field name if not set
+	}
+
+	if ider, ok := any(v).(IDer[K]); ok {
+		return ider.ID() // use IDer interface if available
+	}
+
+	return DefaultIDFunc[K](v, idField)
+}
+
+// LookupID extracts the unique identifier from a value using the configured IDFunc or IDField.
+func (f *Fetcher[K, P, V]) LookupID(v V) K { return LookupID(v, f.IDField, f.IDFunc) }
 
 // Close waits for all pending batches to complete. This should be called when
 // the Fetcher is no longer needed to ensure proper cleanup and prevent
@@ -227,7 +247,7 @@ func (f *Fetcher[K, P, V]) runBatch(ctx context.Context, param P, b *batch[K, P,
 
 	f.mx.Lock()
 	for _, v := range values {
-		res, ok := f.cache[cacheKey[K, P]{ID: f.IDFunc(v), Param: param}]
+		res, ok := f.cache[cacheKey[K, P]{ID: f.LookupID(v), Param: param}]
 		if !ok {
 			// we didn't ask for this ID, ignore it
 			continue
