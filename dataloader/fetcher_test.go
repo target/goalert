@@ -58,3 +58,58 @@ func TestFetcher_FetchOne_Extra(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, res)
 }
+
+// TestFetcher_MaxBatch validates that the MaxBatch setting properly limits
+// the number of IDs passed to FetchFunc in a single call.
+func TestFetcher_MaxBatch(t *testing.T) {
+	type example struct{ ID string }
+
+	var batchSizes []int
+	l := &Fetcher[string, example]{
+		MaxBatch: 3,
+		Delay:    time.Millisecond,
+		IDFunc:   func(v example) string { return v.ID },
+		FetchFunc: func(ctx context.Context, ids []string) ([]example, error) {
+			batchSizes = append(batchSizes, len(ids))
+			var results []example
+			for _, id := range ids {
+				results = append(results, example{ID: id})
+			}
+			return results, nil
+		},
+	}
+
+	ctx := context.Background()
+
+	// Start 7 concurrent requests to trigger batching
+	type result struct {
+		res *example
+		err error
+	}
+	results := make(chan result, 7)
+
+	for i := 0; i < 7; i++ {
+		go func(id string) {
+			res, err := l.FetchOne(ctx, id)
+			results <- result{res, err}
+		}(string(rune('a' + i)))
+	}
+
+	// Collect all results
+	for i := 0; i < 7; i++ {
+		r := <-results
+		require.NoError(t, r.err)
+		require.NotNil(t, r.res)
+	}
+
+	// Wait a bit for batching to complete
+	time.Sleep(10 * time.Millisecond)
+
+	// Verify that no batch exceeded MaxBatch size
+	for _, size := range batchSizes {
+		require.LessOrEqual(t, size, 3, "Batch size should not exceed MaxBatch")
+	}
+
+	// Should have at least 3 batches (7 items with max batch size of 3)
+	require.GreaterOrEqual(t, len(batchSizes), 3, "Should have created multiple batches")
+}
