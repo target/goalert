@@ -23,7 +23,7 @@
 //
 //	// Create a parameterized loader
 //	type UserParams struct { Active bool }
-//	paramLoader := dataloader.NewStoreLoaderParam(ctx, 
+//	paramLoader := dataloader.NewStoreLoaderParam(ctx,
 //		func(ctx context.Context, param UserParams, ids []string) ([]User, error) {
 //			return userStore.FindManyFiltered(ctx, ids, param.Active)
 //		},
@@ -46,11 +46,6 @@ type (
 	FetchFunc[K comparable, V any] func(context.Context, []K) ([]V, error)
 	IDFunc[K comparable, V any]    func(V) K
 )
-
-type IDer[K comparable] interface {
-	// ID returns the unique identifier for the value.
-	ID() K
-}
 
 // NewStoreLoader creates a new Fetcher for loading data from a store without parameters.
 // It's a convenience function for the common case where you only need to batch by ID.
@@ -201,10 +196,11 @@ func (f *Fetcher[K, V]) FetchOne(ctx context.Context, id K) (*V, error) {
 
 	// create the entry for the new ID
 	if f.currentBatch == nil {
-		f.currentBatch = new(batch[K, V])
+		newBatch := new(batch[K, V])
+		f.currentBatch = newBatch
 		f.wg.Add(1)
 		time.AfterFunc(f.Delay, func() {
-			f.fetchAll(ctx, f.currentBatch)
+			f.fetchAll(ctx, newBatch)
 		})
 	}
 	res := f.currentBatch.Add(ctx, id)
