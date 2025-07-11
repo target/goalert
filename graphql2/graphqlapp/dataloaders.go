@@ -24,6 +24,8 @@ type dataLoaderKey int
 
 const requestLoadersKey = dataLoaderKey(1)
 
+// loaders contains all the dataloader instances for a single request.
+// These are used to batch database queries and prevent N+1 problems in GraphQL resolvers.
 type loaders struct {
 	Alert                     *dataloader.Loader[int, alert.Alert]
 	AlertState                *dataloader.Loader[int, alert.State]
@@ -41,28 +43,32 @@ type loaders struct {
 	AlertMetadata             *dataloader.Loader[int, alert.MetadataAlertID]
 }
 
+// registerLoaders creates and registers all dataloaders for the request context.
+// Each loader is configured with appropriate batch settings and ID extraction functions.
 func (a *App) registerLoaders(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, requestLoadersKey, &loaders{
-		Alert:                     dataloader.NewStoreLoaderInt(ctx, a.AlertStore.FindMany),
-		AlertState:                dataloader.NewStoreLoaderInt(ctx, a.AlertStore.State),
-		EP:                        dataloader.NewStoreLoader(ctx, a.PolicyStore.FindManyPolicies),
-		Rotation:                  dataloader.NewStoreLoader(ctx, a.RotationStore.FindMany),
-		Schedule:                  dataloader.NewStoreLoader(ctx, a.ScheduleStore.FindMany),
-		Service:                   dataloader.NewStoreLoader(ctx, a.ServiceStore.FindMany),
-		User:                      dataloader.NewStoreLoader(ctx, a.UserStore.FindMany),
-		CM:                        dataloader.NewStoreLoaderWithDB(ctx, a.DB, a.CMStore.FindMany),
-		Heartbeat:                 dataloader.NewStoreLoader(ctx, a.HeartbeatStore.FindMany),
-		NotificationMessageStatus: dataloader.NewStoreLoader(ctx, a.NotificationStore.FindManyMessageStatuses),
-		NC:                        dataloader.NewStoreLoader(ctx, a.NCStore.FindMany),
-		AlertMetrics:              dataloader.NewStoreLoaderInt(ctx, a.AlertMetricsStore.FindMetrics),
-		AlertFeedback:             dataloader.NewStoreLoaderInt(ctx, a.AlertStore.Feedback),
-		AlertMetadata: dataloader.NewStoreLoaderInt(ctx, func(ctx context.Context, i []int) ([]alert.MetadataAlertID, error) {
+		Alert:                     dataloader.NewStoreLoader(ctx, a.AlertStore.FindMany, func(a alert.Alert) int { return a.ID }),
+		AlertState:                dataloader.NewStoreLoader(ctx, a.AlertStore.State, func(s alert.State) int { return s.ID }),
+		EP:                        dataloader.NewStoreLoader(ctx, a.PolicyStore.FindManyPolicies, func(p escalation.Policy) string { return p.ID }),
+		Rotation:                  dataloader.NewStoreLoader(ctx, a.RotationStore.FindMany, func(r rotation.Rotation) string { return r.ID }),
+		Schedule:                  dataloader.NewStoreLoader(ctx, a.ScheduleStore.FindMany, func(s schedule.Schedule) string { return s.ID }),
+		Service:                   dataloader.NewStoreLoader(ctx, a.ServiceStore.FindMany, func(s service.Service) string { return s.ID }),
+		User:                      dataloader.NewStoreLoader(ctx, a.UserStore.FindMany, func(u user.User) string { return u.ID }),
+		CM:                        dataloader.NewStoreLoaderWithDB(ctx, a.DB, a.CMStore.FindMany, func(cm contactmethod.ContactMethod) string { return cm.ID.String() }),
+		Heartbeat:                 dataloader.NewStoreLoader(ctx, a.HeartbeatStore.FindMany, func(hb heartbeat.Monitor) string { return hb.ID }),
+		NotificationMessageStatus: dataloader.NewStoreLoader(ctx, a.NotificationStore.FindManyMessageStatuses, func(n notification.SendResult) string { return n.ID }),
+		NC:                        dataloader.NewStoreLoader(ctx, a.NCStore.FindMany, func(nc notificationchannel.Channel) string { return nc.ID.String() }),
+		AlertMetrics:              dataloader.NewStoreLoader(ctx, a.AlertMetricsStore.FindMetrics, func(m alertmetrics.Metric) int { return m.ID }),
+		AlertFeedback:             dataloader.NewStoreLoader(ctx, a.AlertStore.Feedback, func(f alert.Feedback) int { return f.ID }),
+		AlertMetadata: dataloader.NewStoreLoader(ctx, func(ctx context.Context, i []int) ([]alert.MetadataAlertID, error) {
 			return a.AlertStore.FindManyMetadata(ctx, a.DB, i)
-		}),
+		}, func(md alert.MetadataAlertID) int { return int(md.ID) }),
 	})
 	return ctx
 }
 
+// loadersFrom extracts the loaders struct from the request context.
+// Returns an empty loaders struct if none are found.
 func loadersFrom(ctx context.Context) loaders {
 	loader, ok := ctx.Value(requestLoadersKey).(*loaders)
 	if !ok {
@@ -75,6 +81,8 @@ func loadersFrom(ctx context.Context) loaders {
 	return *loader
 }
 
+// closeLoaders closes all dataloaders in the request context to prevent goroutine leaks.
+// This should be called when the request is complete.
 func (a *App) closeLoaders(ctx context.Context) {
 	loader := loadersFrom(ctx)
 
