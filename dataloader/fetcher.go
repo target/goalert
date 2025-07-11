@@ -144,8 +144,17 @@ func (f *Fetcher[K, V]) Close() {
 func (f *Fetcher[K, V]) fetchAll(ctx context.Context, batch *batch[K, V]) {
 	defer f.wg.Done()
 
-	// Since we are exclusive to this batch, we fetch before locking the cache.
+	f.mx.Lock()
+	// Before fetching, we check if this is the current batch, if so,
+	// we remove the pointer so that it isn't changed by another goroutine.
+	if f.currentBatch == batch {
+		f.currentBatch = nil // reset for next batch
+	}
+	f.mx.Unlock()
+
+	// Fetch ouside of the lock to avoid blocking other requests.
 	values, err := f.FetchFunc(ctx, batch.ids)
+
 	f.mx.Lock()
 	defer f.mx.Unlock()
 	if err != nil {
