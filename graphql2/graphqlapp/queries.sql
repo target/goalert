@@ -45,26 +45,25 @@ WHERE
 -- name: ServiceAlertStats :many
 -- ServiceAlertStats returns statistics about alerts for a service.
 SELECT
-  date_bin(sqlc.arg(stride)::interval, closed_at,
-    sqlc.arg(origin)::timestamptz)::timestamptz AS bucket,
-  coalesce(EXTRACT(EPOCH FROM AVG(time_to_ack)), 0)::double precision AS
-    avg_time_to_ack_seconds,
-  coalesce(EXTRACT(EPOCH FROM AVG(time_to_close)), 0)::double precision AS
-    avg_time_to_close_seconds,
+  date_bin(sqlc.arg(stride)::interval, closed_at, sqlc.arg(origin)::timestamptz)::timestamptz AS bucket,
+  coalesce(EXTRACT(EPOCH FROM AVG(time_to_ack)), 0)::double precision AS avg_time_to_ack_seconds,
+  coalesce(EXTRACT(EPOCH FROM AVG(time_to_close)), 0)::double precision AS avg_time_to_close_seconds,
   coalesce(COUNT(*), 0)::bigint AS alert_count,
   coalesce(SUM(
       CASE WHEN escalated THEN
         1
       ELSE
         0
-      END), 0)::bigint AS escalated_count
+      END), 0)::bigint AS escalated_count,
+  service_id
 FROM
   alert_metrics
 WHERE
-  service_id = $1
+  service_id = ANY (sqlc.arg(service_ids)::uuid[])
   AND (closed_at BETWEEN sqlc.arg(start_time)
     AND sqlc.arg(end_time))
 GROUP BY
+  service_id,
   bucket
 ORDER BY
   bucket;
@@ -72,10 +71,12 @@ ORDER BY
 -- name: ServiceAlertCounts :many
 SELECT
   COUNT(*),
-  status
+  status,
+  service_id
 FROM
   alerts
 WHERE
-  service_id = $1
+  service_id = ANY (@service_ids::uuid[])
 GROUP BY
   status;
+
