@@ -92,7 +92,7 @@ func NewStoreLoaderAggParam[V any, K, P comparable](ctx context.Context, fetchMa
 // or nil if no values are found. An error is returned if the fetch operation fails
 // or the context is cancelled.
 func (af *AggFetcherParam[K, P, V]) FetchAggregateParam(ctx context.Context, id K, param P) ([]V, error) {
-	res, err := af.FetcherParam.FetchOneParam(ctx, id, param)
+	res, err := af.FetchOneParam(ctx, id, param)
 	if err != nil {
 		return nil, err
 	}
