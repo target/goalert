@@ -16,22 +16,23 @@ import (
 //   - V: The type of values being fetched
 //
 // Example usage:
-//   type UserParams struct { Active bool }
-//   paramLoader := dataloader.NewStoreLoaderParam(
-//     ctx, 
-//     func(ctx context.Context, param UserParams, ids []string) ([]User, error) {
-//       return userStore.FindManyFiltered(ctx, ids, param.Active)
-//     },
-//     func(u User) string { return u.ID },
-//   )
-//   activeUser, err := paramLoader.FetchOneParam(ctx, "user-id", UserParams{Active: true})
+//
+//	type UserParams struct { Active bool }
+//	paramLoader := dataloader.NewStoreLoaderParam(
+//	  ctx,
+//	  func(ctx context.Context, param UserParams, ids []string) ([]User, error) {
+//	    return userStore.FindManyFiltered(ctx, ids, param.Active)
+//	  },
+//	  func(u User) string { return u.ID },
+//	)
+//	activeUser, err := paramLoader.FetchOneParam(ctx, "user-id", UserParams{Active: true})
 type FetcherParam[K, P comparable, V any] struct {
-	mx        sync.Mutex                // Protects the map of fetchers
-	m         map[P]*Fetcher[K, V]      // Map of parameters to their corresponding fetchers
-	FetchFunc FetchParamFunc[K, P, V]  // Function called to fetch data with parameters
-	IDFunc    IDFunc[K, V]             // Function to extract ID from values
-	MaxBatch  int                      // Maximum batch size for each parameter's fetcher
-	Delay     time.Duration            // Delay before executing batches
+	mx        sync.Mutex              // Protects the map of fetchers
+	m         map[P]*Fetcher[K, V]    // Map of parameters to their corresponding fetchers
+	FetchFunc FetchParamFunc[K, P, V] // Function called to fetch data with parameters
+	IDFunc    IDFunc[K, V]            // Function to extract ID from values
+	MaxBatch  int                     // Maximum batch size for each parameter's fetcher
+	Delay     time.Duration           // Delay before executing batches
 }
 
 // FetchParamFunc defines the signature for functions that fetch data with parameters.
@@ -76,4 +77,14 @@ func (fp *FetcherParam[K, P, V]) FetchOneParam(ctx context.Context, id K, param 
 	}
 
 	return loader.FetchOne(ctx, id)
+}
+
+func (fp *FetcherParam[K, P, V]) Close() {
+	fp.mx.Lock()
+	defer fp.mx.Unlock()
+
+	// Close all fetchers for each parameter
+	for _, f := range fp.m {
+		f.Close()
+	}
 }

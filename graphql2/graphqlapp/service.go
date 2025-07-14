@@ -122,13 +122,12 @@ func (s *Service) AlertStats(ctx context.Context, svc *service.Service, input *g
 	}
 
 	var stats graphql2.AlertStats
-	rows, err := gadb.New(s.DB).ServiceAlertStats(ctx, gadb.ServiceAlertStatsParams{
+	rows, err := (*App)(s).FindAlertStats(ctx, AlertStatsParam{
+		Stride:    res.PGXInterval(),
+		Origin:    origin,
 		StartTime: start,
 		EndTime:   end,
-		ServiceID: uuid.MustParse(svc.ID),
-		Origin:    origin,
-		Stride:    res.PGXInterval(),
-	})
+	}, uuid.MustParse(svc.ID))
 	if errors.Is(err, sql.ErrNoRows) {
 		return &stats, nil
 	}
