@@ -108,11 +108,7 @@ func (info updateInfo) calcUpdates(now time.Time) (*updateResult, error) {
 
 	if dataNeedsUpdate {
 		info.ScheduleData.V1.OnCallNotificationRules = newRules
-		data, err := json.Marshal(info.ScheduleData)
-		if err != nil {
-			return nil, fmt.Errorf("marshal schedule data: %w", err)
-		}
-		jsonData, err := jsonutil.Apply(info.RawScheduleData, data)
+		jsonData, err := jsonutil.Apply(info.RawScheduleData, info.ScheduleData)
 		if err != nil {
 			return nil, fmt.Errorf("apply schedule data: %w", err)
 		}
