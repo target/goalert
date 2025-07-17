@@ -45,17 +45,17 @@ func (info updateInfo) calcLatestOnCall(now time.Time) mapset.Set[uuid.UUID] {
 	}
 
 	for _, o := range info.Overrides {
-		switch {
-		case o.AddUserID.Valid && o.RemoveUserID.Valid: // replace
+		if o.RemoveUserID.Valid {
 			if !newOnCall.Contains(o.RemoveUserID.UUID) {
-				break // if the user to be removed is not currently on-call, skip
+				// if the user to be removed is not currently on-call, skip
+				// so we don't add a user for replace overrides that don't match
+				continue
 			}
 			newOnCall.Remove(o.RemoveUserID.UUID)
+		}
+
+		if o.AddUserID.Valid {
 			newOnCall.Add(o.AddUserID.UUID)
-		case o.AddUserID.Valid: // add
-			newOnCall.Add(o.AddUserID.UUID)
-		case o.RemoveUserID.Valid: // remove
-			newOnCall.Remove(o.RemoveUserID.UUID)
 		}
 	}
 
@@ -66,6 +66,7 @@ func (info updateInfo) calcUpdates(now time.Time) (*updateResult, error) {
 	if info.CurrentOnCall == nil {
 		info.CurrentOnCall = mapset.NewThreadUnsafeSet[uuid.UUID]()
 	}
+
 	result := updateResult{
 		ScheduleID: info.ScheduleID,
 		// since we do this in a single thread, we can use a thread-unsafe set and avoid the cost of locking
@@ -78,8 +79,8 @@ func (info updateInfo) calcUpdates(now time.Time) (*updateResult, error) {
 	newOnCall := info.calcLatestOnCall(now)
 	onCallChanged := !newOnCall.Equal(info.CurrentOnCall)
 	if onCallChanged {
-		result.UsersToStart = info.CurrentOnCall.Difference(newOnCall)
-		result.UsersToStop = newOnCall.Difference(info.CurrentOnCall)
+		result.UsersToStop = info.CurrentOnCall.Difference(newOnCall)  // currently on-call, but not anymore
+		result.UsersToStart = newOnCall.Difference(info.CurrentOnCall) // not currently on-call, but should be
 	}
 
 	var dataNeedsUpdate bool
