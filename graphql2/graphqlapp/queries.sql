@@ -78,5 +78,6 @@ FROM
 WHERE
   service_id = ANY (@service_ids::uuid[])
 GROUP BY
+  service_id,
   status;
 

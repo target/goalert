@@ -5203,6 +5203,7 @@ FROM
 WHERE
   service_id = ANY ($1::uuid[])
 GROUP BY
+  service_id,
   status
 `
 
