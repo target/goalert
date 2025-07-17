@@ -121,7 +121,7 @@ test('Alerts', async ({ page, isMobile }) => {
   await createService(page, name, description)
 
   // Ensure recent events are empty
-  await expect(page.getByTestId('service-recent-events')).toHaveText(
+  await expect(page.getByTestId('service-recent-events')).toContainText(
     'No recent events in the selected time range',
   )
 
@@ -176,11 +176,15 @@ test('Alerts', async ({ page, isMobile }) => {
     await page.getByRole('link', { name, exact: true }).click()
   }
 
-  await expect(page.getByTestId('service-recent-events')).toHaveText('Created')
-  await expect(page.getByTestId('service-recent-events')).toHaveText(
+  await expect(page.getByTestId('service-recent-events')).toContainText(
+    'Created',
+  )
+  await expect(page.getByTestId('service-recent-events')).toContainText(
     'Acknowledged',
   )
-  await expect(page.getByTestId('service-recent-events')).toHaveText('Closed')
+  await expect(page.getByTestId('service-recent-events')).toContainText(
+    'Closed',
+  )
 })
 
 test('Metric', async ({ page, isMobile }) => {
