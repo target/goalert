@@ -5196,22 +5196,25 @@ func (q *Queries) SequenceNames(ctx context.Context) ([]string, error) {
 const serviceAlertCounts = `-- name: ServiceAlertCounts :many
 SELECT
   COUNT(*),
-  status
+  status,
+  service_id
 FROM
   alerts
 WHERE
-  service_id = $1
+  service_id = ANY ($1::uuid[])
 GROUP BY
+  service_id,
   status
 `
 
 type ServiceAlertCountsRow struct {
-	Count  int64
-	Status EnumAlertStatus
+	Count     int64
+	Status    EnumAlertStatus
+	ServiceID uuid.NullUUID
 }
 
-func (q *Queries) ServiceAlertCounts(ctx context.Context, serviceID uuid.NullUUID) ([]ServiceAlertCountsRow, error) {
-	rows, err := q.db.QueryContext(ctx, serviceAlertCounts, serviceID)
+func (q *Queries) ServiceAlertCounts(ctx context.Context, serviceIds []uuid.UUID) ([]ServiceAlertCountsRow, error) {
+	rows, err := q.db.QueryContext(ctx, serviceAlertCounts, pq.Array(serviceIds))
 	if err != nil {
 		return nil, err
 	}
@@ -5219,7 +5222,7 @@ func (q *Queries) ServiceAlertCounts(ctx context.Context, serviceID uuid.NullUUI
 	var items []ServiceAlertCountsRow
 	for rows.Next() {
 		var i ServiceAlertCountsRow
-		if err := rows.Scan(&i.Count, &i.Status); err != nil {
+		if err := rows.Scan(&i.Count, &i.Status, &i.ServiceID); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -5235,37 +5238,36 @@ func (q *Queries) ServiceAlertCounts(ctx context.Context, serviceID uuid.NullUUI
 
 const serviceAlertStats = `-- name: ServiceAlertStats :many
 SELECT
-  date_bin($2::interval, closed_at,
-    $3::timestamptz)::timestamptz AS bucket,
-  coalesce(EXTRACT(EPOCH FROM AVG(time_to_ack)), 0)::double precision AS
-    avg_time_to_ack_seconds,
-  coalesce(EXTRACT(EPOCH FROM AVG(time_to_close)), 0)::double precision AS
-    avg_time_to_close_seconds,
+  date_bin($1::interval, closed_at, $2::timestamptz)::timestamptz AS bucket,
+  coalesce(EXTRACT(EPOCH FROM AVG(time_to_ack)), 0)::double precision AS avg_time_to_ack_seconds,
+  coalesce(EXTRACT(EPOCH FROM AVG(time_to_close)), 0)::double precision AS avg_time_to_close_seconds,
   coalesce(COUNT(*), 0)::bigint AS alert_count,
   coalesce(SUM(
       CASE WHEN escalated THEN
         1
       ELSE
         0
-      END), 0)::bigint AS escalated_count
+      END), 0)::bigint AS escalated_count,
+  service_id
 FROM
   alert_metrics
 WHERE
-  service_id = $1
+  service_id = ANY ($3::uuid[])
   AND (closed_at BETWEEN $4
     AND $5)
 GROUP BY
+  service_id,
   bucket
 ORDER BY
   bucket
 `
 
 type ServiceAlertStatsParams struct {
-	ServiceID uuid.UUID
-	Stride    sqlutil.Interval
-	Origin    time.Time
-	StartTime time.Time
-	EndTime   time.Time
+	Stride     sqlutil.Interval
+	Origin     time.Time
+	ServiceIds []uuid.UUID
+	StartTime  time.Time
+	EndTime    time.Time
 }
 
 type ServiceAlertStatsRow struct {
@@ -5274,14 +5276,15 @@ type ServiceAlertStatsRow struct {
 	AvgTimeToCloseSeconds float64
 	AlertCount            int64
 	EscalatedCount        int64
+	ServiceID             uuid.UUID
 }
 
 // ServiceAlertStats returns statistics about alerts for a service.
 func (q *Queries) ServiceAlertStats(ctx context.Context, arg ServiceAlertStatsParams) ([]ServiceAlertStatsRow, error) {
 	rows, err := q.db.QueryContext(ctx, serviceAlertStats,
-		arg.ServiceID,
 		arg.Stride,
 		arg.Origin,
+		pq.Array(arg.ServiceIds),
 		arg.StartTime,
 		arg.EndTime,
 	)
@@ -5298,6 +5301,7 @@ func (q *Queries) ServiceAlertStats(ctx context.Context, arg ServiceAlertStatsPa
 			&i.AvgTimeToCloseSeconds,
 			&i.AlertCount,
 			&i.EscalatedCount,
+			&i.ServiceID,
 		); err != nil {
 			return nil, err
 		}

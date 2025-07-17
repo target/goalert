@@ -2,12 +2,14 @@ package graphqlapp
 
 import (
 	context "context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/dataloader"
 	"github.com/target/goalert/escalation"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notificationchannel"
@@ -16,6 +18,7 @@ import (
 	"github.com/target/goalert/service"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
+	"github.com/target/goalert/util/sqlutil"
 
 	"github.com/pkg/errors"
 )
@@ -41,6 +44,15 @@ type loaders struct {
 	AlertMetrics              *dataloader.Loader[int, alertmetrics.Metric]
 	AlertFeedback             *dataloader.Loader[int, alert.Feedback]
 	AlertMetadata             *dataloader.Loader[int, alert.MetadataAlertID]
+	AlertsByStatus            *dataloader.AggFetcher[uuid.UUID, gadb.ServiceAlertCountsRow]
+	AlertStats                *dataloader.AggFetcherParam[uuid.UUID, AlertStatsParam, gadb.ServiceAlertStatsRow]
+}
+
+type AlertStatsParam struct {
+	Stride    sqlutil.Interval
+	Origin    time.Time
+	StartTime time.Time
+	EndTime   time.Time
 }
 
 // registerLoaders creates and registers all dataloaders for the request context.
@@ -63,6 +75,17 @@ func (a *App) registerLoaders(ctx context.Context) context.Context {
 		AlertMetadata: dataloader.NewStoreLoader(ctx, func(ctx context.Context, i []int) ([]alert.MetadataAlertID, error) {
 			return a.AlertStore.FindManyMetadata(ctx, a.DB, i)
 		}, func(md alert.MetadataAlertID) int { return int(md.ID) }),
+		AlertsByStatus: dataloader.NewStoreLoaderAgg(ctx, gadb.New(a.DB).ServiceAlertCounts, func(r gadb.ServiceAlertCountsRow) uuid.UUID { return r.ServiceID.UUID }),
+
+		AlertStats: dataloader.NewStoreLoaderAggParam(ctx, func(ctx context.Context, param AlertStatsParam, ids []uuid.UUID) ([]gadb.ServiceAlertStatsRow, error) {
+			return gadb.New(a.DB).ServiceAlertStats(ctx, gadb.ServiceAlertStatsParams{
+				Stride:     param.Stride,
+				Origin:     param.Origin,
+				StartTime:  param.StartTime,
+				EndTime:    param.EndTime,
+				ServiceIds: ids,
+			})
+		}, func(r gadb.ServiceAlertStatsRow) uuid.UUID { return r.ServiceID }),
 	})
 	return ctx
 }
@@ -128,6 +151,36 @@ func (a *App) closeLoaders(ctx context.Context) {
 	if loader.AlertMetadata != nil {
 		loader.AlertMetadata.Close()
 	}
+	if loader.AlertsByStatus != nil {
+		loader.AlertsByStatus.Close()
+	}
+	if loader.AlertStats != nil {
+		loader.AlertStats.Close()
+	}
+}
+
+func (a *App) FindAlertStats(ctx context.Context, params AlertStatsParam, serviceID uuid.UUID) ([]gadb.ServiceAlertStatsRow, error) {
+	loader := loadersFrom(ctx).AlertStats
+	if loader == nil {
+		return gadb.New(a.DB).ServiceAlertStats(ctx, gadb.ServiceAlertStatsParams{
+			Stride:     params.Stride,
+			Origin:     params.Origin,
+			StartTime:  params.StartTime,
+			EndTime:    params.EndTime,
+			ServiceIds: []uuid.UUID{serviceID},
+		})
+	}
+
+	return loader.FetchAggregateParam(ctx, serviceID, params)
+}
+
+func (app *App) FindAlertCountByStatus(ctx context.Context, serviceID uuid.UUID) ([]gadb.ServiceAlertCountsRow, error) {
+	loader := loadersFrom(ctx).AlertsByStatus
+	if loader == nil {
+		return gadb.New(app.DB).ServiceAlertCounts(ctx, []uuid.UUID{serviceID})
+	}
+
+	return loader.FetchAggregate(ctx, serviceID)
 }
 
 func (app *App) FindOneAlertMetadata(ctx context.Context, id int) (map[string]string, error) {
