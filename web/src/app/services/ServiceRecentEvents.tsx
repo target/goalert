@@ -91,7 +91,7 @@ export default function ServiceRecentEvents({
   const events = data?.service?.recentEvents?.nodes || []
 
   return (
-    <Card>
+    <Card data-testid='service-recent-events'>
       <CardHeader
         title='Most recent events'
         action={
