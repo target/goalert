@@ -51,15 +51,25 @@ export default function ServiceFilterContainer(
           label='Select Integration Key'
           value={integrationKey}
           formatInputOnChange={(input: string): string => {
+            // handle URLs with token query param
             if (input.indexOf('token=') > -1) {
               input = input.substring(input.indexOf('token=') + 6)
             }
+
+            // handle email destinations
+            if (/^.+@.+$/.test(input)) {
+              return input.substring(0, input.indexOf('@'))
+            }
+
             return input
           }}
           onChange={(integrationKey: string) =>
             props.onChange({ ...props.value, integrationKey })
           }
         />
+        <Typography color='textSecondary'>
+          <i>Paste the ID/Token (or full URL/email) to search.</i>
+        </Typography>
       </Grid>
       <Grid item xs={12}>
         <Typography color='textSecondary'>
