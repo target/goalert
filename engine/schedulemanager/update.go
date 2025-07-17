@@ -21,6 +21,45 @@ import (
 	"github.com/target/goalert/util/timeutil"
 )
 
+type set[T comparable] map[T]struct{}
+
+func (s set[T]) Add(v T) {
+	if s == nil {
+		s = make(set[T])
+	}
+	s[v] = struct{}{}
+}
+func (s set[T]) Has(v T) bool {
+	if s == nil {
+		return false
+	}
+	_, ok := s[v]
+	return ok
+}
+func (s set[T]) MissingFrom(other set[T]) set[T] {
+	if s == nil {
+		return other
+	}
+	if other == nil {
+		return nil
+	}
+
+	missing := make(set[T])
+	for v := range other {
+		if !s.Has(v) {
+			missing.Add(v)
+		}
+	}
+	return missing
+}
+
+type updateInfo struct {
+	ScheduleID    uuid.UUID
+	TimeZone      time.Location
+	ScheduleData  schedule.Data
+	OnCallUserIDs set[uuid.UUID]
+}
+
 // UpdateAll will update all schedule rules.
 func (db *DB) UpdateAll(ctx context.Context) error {
 	err := permission.LimitCheckAny(ctx, permission.System)
