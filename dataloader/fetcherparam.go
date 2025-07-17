@@ -64,6 +64,10 @@ func (fp *FetcherParam[K, P, V]) FetchOneParam(ctx context.Context, id K, param 
 	fp.mx.Lock()
 	defer fp.mx.Unlock()
 
+	if fp.m == nil {
+		fp.m = make(map[P]*Fetcher[K, V])
+	}
+
 	// Get or create a Fetcher for this parameter combination
 	loader, ok := fp.m[param]
 	if !ok {
