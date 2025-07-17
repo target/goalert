@@ -499,6 +499,7 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 	if s.Limit == 0 {
 		s.Limit = search.DefaultMaxResults
 	}
+	s.Since = opts.Since
 
 	s.Limit++
 

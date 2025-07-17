@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"text/template"
+	"time"
 
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
@@ -22,6 +23,8 @@ type SearchOptions struct {
 	Limit int `json:"-"`
 
 	After SearchCursor `json:"a,omitempty"`
+
+	Since *time.Time `json:"s,omitempty"`
 }
 
 type SearchCursor struct {
@@ -58,6 +61,9 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{- if .After.ID}}
 		AND (log.id < :afterID)
 	{{- end}}
+	{{- if .Since}}
+		AND log.timestamp >= :since
+	{{- end}}
 	ORDER BY log.id DESC
 	LIMIT {{.Limit}}
 `))
@@ -84,6 +90,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 	return []sql.NamedArg{
 		sql.Named("afterID", opts.After.ID),
 		sql.Named("alertIDs", sqlutil.IntArray(opts.FilterAlertIDs)),
+		sql.Named("since", opts.Since),
 	}
 }
 
