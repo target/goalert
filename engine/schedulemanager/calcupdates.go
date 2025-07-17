@@ -63,6 +63,9 @@ func (info updateInfo) calcLatestOnCall(now time.Time) mapset.Set[uuid.UUID] {
 }
 
 func (info updateInfo) calcUpdates(now time.Time) (*updateResult, error) {
+	if info.CurrentOnCall == nil {
+		info.CurrentOnCall = mapset.NewThreadUnsafeSet[uuid.UUID]()
+	}
 	result := updateResult{
 		ScheduleID: info.ScheduleID,
 		// since we do this in a single thread, we can use a thread-unsafe set and avoid the cost of locking

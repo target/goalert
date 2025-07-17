@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/gadb"
@@ -103,7 +104,8 @@ func (db *DB) update(ctx context.Context) error {
 			return info
 		}
 		info := &updateInfo{
-			ScheduleID: schedID,
+			ScheduleID:    schedID,
+			CurrentOnCall: mapset.NewThreadUnsafeSet[uuid.UUID](),
 		}
 		updateData[schedID] = info
 		return info
