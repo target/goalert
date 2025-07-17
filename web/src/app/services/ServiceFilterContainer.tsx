@@ -67,7 +67,7 @@ export default function ServiceFilterContainer(
             props.onChange({ ...props.value, integrationKey })
           }
         />
-        <Typography color='textSecondary'>
+        <Typography color='textSecondary' variant='caption'>
           <i>Paste the ID/Token (or full URL/email) to search.</i>
         </Typography>
       </Grid>
