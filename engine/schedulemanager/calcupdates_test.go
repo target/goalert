@@ -14,12 +14,11 @@ import (
 )
 
 func TestUpdateInfo_calcUpdates_NotifyOnChange(t *testing.T) {
-	channelID := uuid.MustParse("123e4567-e89b-12d3-a456-426614174000")
+	channelID1 := uuid.MustParse("123e4567-e89b-12d3-a456-426614174000")
+	channelID2 := uuid.MustParse("123e4567-e89b-12d3-a456-426614174001")
 	var sData schedule.Data
 	sData.V1.OnCallNotificationRules = []schedule.OnCallNotificationRule{
-		{
-			ChannelID: channelID,
-		},
+		{ChannelID: channelID1}, {ChannelID: channelID2},
 	}
 	data, err := json.Marshal(sData)
 	require.NoError(t, err)
@@ -35,7 +34,7 @@ func TestUpdateInfo_calcUpdates_NotifyOnChange(t *testing.T) {
 
 	result, err := info.calcUpdates(time.Now())
 	require.NoError(t, err)
-	require.EqualValues(t, []uuid.UUID{channelID}, result.NotificationChannels.ToSlice())
+	require.EqualValues(t, []uuid.UUID{channelID1, channelID2}, result.NotificationChannels.ToSlice())
 }
 
 func TestUpdateInfo_calcUpdates_NotifyAtTime(t *testing.T) {
