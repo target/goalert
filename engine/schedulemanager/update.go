@@ -135,7 +135,7 @@ func (db *DB) update(ctx context.Context) error {
 	}
 	for _, o := range overrides {
 		info := getInfo(o.TgtScheduleID)
-		info.Overrides = append(info.Overrides, o)
+		info.ActiveOverrides = append(info.ActiveOverrides, o)
 	}
 
 	rules, err := q.SchedMgrRules(ctx)
