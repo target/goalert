@@ -276,45 +276,40 @@ func (ch *slackChannel) ExpectEphemeralMessage(keywords ...string) SlackMessage 
 		return msg.ToUserID != ""
 	}, keywords...)
 }
+func containsAllKeywords(text string, keywords ...string) bool {
+	for _, w := range keywords {
+		if !strings.Contains(text, w) {
+			return false
+		}
+	}
+	return true
+}
 
-func (ch *slackChannel) expectMessageFunc(desc string, test func(mockslack.Message) bool, keywords ...string) *slackMessage {
+func (ch *slackChannel) expectMessageFunc(desc string, test func(mockslack.Message) bool, keywords ...string) (found *slackMessage) {
 	ch.h.t.Helper()
 
-	timeout := time.NewTimer(15 * time.Second)
-	defer timeout.Stop()
-
-	for {
-	msgLoop:
+	ch.h.Trigger()
+	require.Eventually(ch.h.t, func() bool {
 		for _, msg := range ch.h.slack.Messages(ch.id) {
-			for _, w := range keywords {
-				if !strings.Contains(msg.Text, w) {
-					continue msgLoop
-				}
-			}
 			if !test(msg) {
-				continue msgLoop
+				continue
 			}
-
+			if !containsAllKeywords(msg.Text, keywords...) {
+				continue
+			}
 			ch.h.t.Logf("received Slack message to %s: %s", ch.name, msg.Text)
 			ch.h.slack.DeleteMessage(ch.id, msg.TS)
 
-			return &slackMessage{
+			found = &slackMessage{
 				h:       ch.h,
 				channel: ch,
 				Message: msg,
 			}
+			return true
 		}
-
-		select {
-		case <-timeout.C:
-			ch.h.slack.hasFailure = true
-			ch.h.t.Fatalf("timeout waiting for Slack %s: Channel=%s; ID=%s; keywords=%v\nGot: %#v", desc, ch.name, ch.id, keywords, ch.h.slack.Messages(ch.id))
-			return nil
-		default:
-		}
-
-		ch.h.Trigger()
-	}
+		return false
+	}, 30*time.Second, time.Second, "expected to find Slack %s: Channel=%s; ID=%s; keywords=%v", desc, ch.name, ch.id, keywords)
+	return found
 }
 
 func (ch *slackChannel) hasUnexpectedMessages() bool {
