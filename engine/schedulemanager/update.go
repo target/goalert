@@ -167,6 +167,7 @@ func (db *DB) update(ctx context.Context) error {
 		getInfo(row.ScheduleID).CurrentOnCall.Add(row.UserID)
 	}
 
+updateLoop:
 	for scheduleID, info := range updateData {
 		result, err := info.calcUpdates(now)
 		if err != nil {
@@ -179,6 +180,11 @@ func (db *DB) update(ctx context.Context) error {
 				ScheduleID: info.ScheduleID,
 				UserID:     userID,
 			})
+			if isScheduleDeleted(err) {
+				// If the schedule was deleted, we skip this update and continue with the next one.
+				// This prevents errors from being returned when the schedule no longer exists.
+				continue updateLoop
+			}
 			if err != nil {
 				return errors.Wrapf(err, "record shift start for user %s on schedule %s", userID, info.ScheduleID)
 			}
@@ -188,6 +194,9 @@ func (db *DB) update(ctx context.Context) error {
 				ScheduleID: info.ScheduleID,
 				UserID:     userID,
 			})
+			if isScheduleDeleted(err) {
+				continue updateLoop
+			}
 			if err != nil {
 				return errors.Wrapf(err, "record shift end for user %s on schedule %s", userID, info.ScheduleID)
 			}
@@ -198,6 +207,9 @@ func (db *DB) update(ctx context.Context) error {
 				ScheduleID: info.ScheduleID,
 				Data:       result.NewRawScheduleData,
 			})
+			if isScheduleDeleted(err) {
+				continue
+			}
 			if err != nil {
 				return errors.Wrapf(err, "set schedule data for %s", info.ScheduleID)
 			}
@@ -209,6 +221,9 @@ func (db *DB) update(ctx context.Context) error {
 				ChannelID:  uuid.NullUUID{UUID: chanID, Valid: true},
 				ScheduleID: uuid.NullUUID{UUID: info.ScheduleID, Valid: true},
 			})
+			if isScheduleDeleted(err) {
+				continue
+			}
 			if err != nil {
 				return errors.Wrapf(err, "insert notification message for channel %s on schedule %s", chanID, info.ScheduleID)
 			}
@@ -263,9 +278,19 @@ func nextOnCallNotification(nowInZone time.Time, rule schedule.OnCallNotificatio
 }
 
 func isScheduleDeleted(err error) bool {
+	if err == nil {
+		return false
+	}
 	dbErr := sqlutil.MapError(err)
 	if dbErr == nil {
 		return false
 	}
-	return dbErr.ConstraintName == "schedule_on_call_users_schedule_id_fkey"
+	switch dbErr.ConstraintName {
+	case "schedule_on_call_users_schedule_id_fkey",
+		"schedule_data_schedule_id_fkey",
+		"outgoing_messages_schedule_id_fkey":
+		return true
+	default:
+		return false
+	}
 }
