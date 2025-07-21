@@ -175,7 +175,7 @@ updateLoop:
 			continue
 		}
 
-		for _, userID := range result.UsersToStart.ToSlice() {
+		for userID := range mapset.Elements(result.UsersToStart) {
 			err = q.SchedMgrStartOnCall(ctx, gadb.SchedMgrStartOnCallParams{
 				ScheduleID: info.ScheduleID,
 				UserID:     userID,
@@ -189,7 +189,7 @@ updateLoop:
 				return errors.Wrapf(err, "record shift start for user %s on schedule %s", userID, info.ScheduleID)
 			}
 		}
-		for _, userID := range result.UsersToStop.ToSlice() {
+		for userID := range mapset.Elements(result.UsersToStop) {
 			err = q.SchedMgrEndOnCall(ctx, gadb.SchedMgrEndOnCallParams{
 				ScheduleID: info.ScheduleID,
 				UserID:     userID,
@@ -215,7 +215,7 @@ updateLoop:
 			}
 		}
 
-		for _, chanID := range result.NotificationChannels.ToSlice() {
+		for chanID := range mapset.Elements(result.NotificationChannels) {
 			err = q.SchedMgrInsertMessage(ctx, gadb.SchedMgrInsertMessageParams{
 				ID:         uuid.New(),
 				ChannelID:  uuid.NullUUID{UUID: chanID, Valid: true},
