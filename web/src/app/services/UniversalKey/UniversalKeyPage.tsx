@@ -127,7 +127,7 @@ ${tokenInfo}
     <React.Fragment>
       {q.data.integrationKey.externalSystemName && (
         <Alert severity='warning'>
-          This Universal Integration Key was created by and External System. Any
+          This Universal Integration Key was created by an External System. Any
           updates to this key may break integrations with{' '}
           {q.data.integrationKey.externalSystemName}.
         </Alert>
