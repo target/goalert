@@ -10,7 +10,7 @@ import GenTokenDialog from './GenTokenDialog'
 import PromoteTokenDialog from './PromoteTokenDialog'
 import DeleteSecondaryTokenDialog from './DeleteSecondaryTokenDialog'
 import UniversalKeyDefaultActions from './UniversalKeyDefaultActions'
-import { Grid } from '@mui/material'
+import { Alert, Grid } from '@mui/material'
 
 interface UniversalKeyPageProps {
   serviceID: string
@@ -23,6 +23,7 @@ const query = gql`
       id
       name
       serviceID
+      externalSystemName
       href
       tokenInfo {
         primaryHint
@@ -124,6 +125,13 @@ ${tokenInfo}
 
   return (
     <React.Fragment>
+      {q.data.integrationKey.externalSystemName && (
+        <Alert severity='warning'>
+          This Universal Integration Key was created by and External System. Any
+          updates to this key may break integrations with{' '}
+          {q.data.integrationKey.externalSystemName}.
+        </Alert>
+      )}
       <DetailsPage
         title={q.data.integrationKey.name}
         subheader={`Service: ${q.data.service.name}`}
