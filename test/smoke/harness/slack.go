@@ -276,6 +276,7 @@ func (ch *slackChannel) ExpectEphemeralMessage(keywords ...string) SlackMessage 
 		return msg.ToUserID != ""
 	}, keywords...)
 }
+
 func containsAllKeywords(text string, keywords ...string) bool {
 	for _, w := range keywords {
 		if !strings.Contains(text, w) {
@@ -288,8 +289,8 @@ func containsAllKeywords(text string, keywords ...string) bool {
 func (ch *slackChannel) expectMessageFunc(desc string, test func(mockslack.Message) bool, keywords ...string) (found *slackMessage) {
 	ch.h.t.Helper()
 
-	ch.h.Trigger()
 	require.Eventually(ch.h.t, func() bool {
+		ch.h.Trigger()
 		for _, msg := range ch.h.slack.Messages(ch.id) {
 			if !test(msg) {
 				continue
