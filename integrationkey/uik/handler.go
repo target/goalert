@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/expr-lang/expr/vm"
 	"github.com/google/uuid"
@@ -168,6 +169,13 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		h.upsertUikLog(ctx, keyID, req, nil, LogStatusParseError, "read error: "+err.Error())
 		return
 	}
+
+	if !utf8.Valid(data) {
+		h.upsertUikLog(ctx, keyID, req, nil, LogStatusParseError, "invalid UTF-8")
+		errutil.HTTPError(ctx, w, validation.NewGenericError("invalid UTF-8 in request body"))
+		return
+	}
+
 	var body any
 	err = json.Unmarshal(data, &body)
 	if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
