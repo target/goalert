@@ -19,6 +19,7 @@ import (
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/search"
+	"github.com/target/goalert/user"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -170,6 +171,18 @@ func (s *Schedule) Targets(ctx context.Context, raw *schedule.Schedule) ([]graph
 	}
 
 	return result, nil
+}
+
+func (s *Schedule) AssociatedUsers(ctx context.Context, raw *schedule.Schedule) ([]user.User, error) {
+	userIDs, err := s.ScheduleStore.FindAssociatedUserIDs(ctx, raw.ID)
+	if err != nil {
+		return nil, err
+	}
+	users, err := s.UserStore.FindMany(ctx, userIDs)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }
 
 func (s *Schedule) AssignedTo(ctx context.Context, raw *schedule.Schedule) ([]assignment.RawTarget, error) {

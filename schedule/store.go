@@ -32,6 +32,8 @@ type Store struct {
 
 	findMany *sql.Stmt
 
+	findAssociatedUserIDs *sql.Stmt
+
 	usr *user.Store
 }
 
@@ -78,6 +80,13 @@ func NewStore(ctx context.Context, db *sql.DB, usr *user.Store) (*Store, error) 
 		`),
 
 		delete: p.P(`DELETE FROM schedules WHERE id = any($1)`),
+
+		findAssociatedUserIDs: p.P(`
+			SELECT DISTINCT COALESCE(s.tgt_user_id, r.user_id)
+			FROM schedule_rules s
+			LEFT JOIN rotation_participants r ON r.rotation_id = s.tgt_rotation_id
+			WHERE s.schedule_id = $1
+		`),
 	}, p.Err
 }
 
@@ -320,4 +329,35 @@ func (store *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) 
 	}
 	_, err = s.ExecContext(ctx, sqlutil.UUIDArray(ids))
 	return err
+}
+
+func (store *Store) FindAssociatedUserIDs(ctx context.Context, id string) ([]string, error) {
+	err := validate.UUID("ScheduleID", id)
+	if err != nil {
+		return nil, err
+	}
+	err = permission.LimitCheckAny(ctx, permission.All)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := store.findAssociatedUserIDs.QueryContext(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var userIDs []string
+	for rows.Next() {
+		var userID string
+		if err := rows.Scan(&userID); err != nil {
+			return nil, err
+		}
+		userIDs = append(userIDs, userID)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return userIDs, nil
 }
