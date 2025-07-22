@@ -683,6 +683,7 @@ type ComplexityRoot struct {
 
 	Schedule struct {
 		AssignedTo              func(childComplexity int) int
+		AssociatedUsers         func(childComplexity int) int
 		Description             func(childComplexity int) int
 		ID                      func(childComplexity int) int
 		IsFavorite              func(childComplexity int) int
@@ -1088,6 +1089,7 @@ type ScheduleResolver interface {
 	TimeZone(ctx context.Context, obj *schedule.Schedule) (string, error)
 	AssignedTo(ctx context.Context, obj *schedule.Schedule) ([]assignment.RawTarget, error)
 	Shifts(ctx context.Context, obj *schedule.Schedule, start time.Time, end time.Time, userIDs []string) ([]oncall.Shift, error)
+	AssociatedUsers(ctx context.Context, obj *schedule.Schedule) ([]user.User, error)
 	Targets(ctx context.Context, obj *schedule.Schedule) ([]ScheduleTarget, error)
 	Target(ctx context.Context, obj *schedule.Schedule, input assignment.RawTarget) (*ScheduleTarget, error)
 	IsFavorite(ctx context.Context, obj *schedule.Schedule) (bool, error)
@@ -4377,6 +4379,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Schedule.AssignedTo(childComplexity), true
+
+	case "Schedule.associatedUsers":
+		if e.complexity.Schedule.AssociatedUsers == nil {
+			break
+		}
+
+		return e.complexity.Schedule.AssociatedUsers(childComplexity), true
 
 	case "Schedule.description":
 		if e.complexity.Schedule.Description == nil {
@@ -20667,6 +20676,8 @@ func (ec *executionContext) fieldContext_Mutation_createSchedule(ctx context.Con
 				return ec.fieldContext_Schedule_assignedTo(ctx, field)
 			case "shifts":
 				return ec.fieldContext_Schedule_shifts(ctx, field)
+			case "associatedUsers":
+				return ec.fieldContext_Schedule_associatedUsers(ctx, field)
 			case "targets":
 				return ec.fieldContext_Schedule_targets(ctx, field)
 			case "target":
@@ -24760,6 +24771,8 @@ func (ec *executionContext) fieldContext_Query_schedule(ctx context.Context, fie
 				return ec.fieldContext_Schedule_assignedTo(ctx, field)
 			case "shifts":
 				return ec.fieldContext_Schedule_shifts(ctx, field)
+			case "associatedUsers":
+				return ec.fieldContext_Schedule_associatedUsers(ctx, field)
 			case "targets":
 				return ec.fieldContext_Schedule_targets(ctx, field)
 			case "target":
@@ -28812,6 +28825,80 @@ func (ec *executionContext) fieldContext_Schedule_shifts(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Schedule_associatedUsers(ctx context.Context, field graphql.CollectedField, obj *schedule.Schedule) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Schedule_associatedUsers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Schedule().AssociatedUsers(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]user.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚕgithubᚗcomᚋtargetᚋgoalertᚋuserᚐUserᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Schedule_associatedUsers(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Schedule",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "role":
+				return ec.fieldContext_User_role(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "contactMethods":
+				return ec.fieldContext_User_contactMethods(ctx, field)
+			case "notificationRules":
+				return ec.fieldContext_User_notificationRules(ctx, field)
+			case "calendarSubscriptions":
+				return ec.fieldContext_User_calendarSubscriptions(ctx, field)
+			case "statusUpdateContactMethodID":
+				return ec.fieldContext_User_statusUpdateContactMethodID(ctx, field)
+			case "authSubjects":
+				return ec.fieldContext_User_authSubjects(ctx, field)
+			case "sessions":
+				return ec.fieldContext_User_sessions(ctx, field)
+			case "onCallSteps":
+				return ec.fieldContext_User_onCallSteps(ctx, field)
+			case "onCallOverview":
+				return ec.fieldContext_User_onCallOverview(ctx, field)
+			case "isFavorite":
+				return ec.fieldContext_User_isFavorite(ctx, field)
+			case "assignedSchedules":
+				return ec.fieldContext_User_assignedSchedules(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Schedule_targets(ctx context.Context, field graphql.CollectedField, obj *schedule.Schedule) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Schedule_targets(ctx, field)
 	if err != nil {
@@ -29127,6 +29214,8 @@ func (ec *executionContext) fieldContext_ScheduleConnection_nodes(_ context.Cont
 				return ec.fieldContext_Schedule_assignedTo(ctx, field)
 			case "shifts":
 				return ec.fieldContext_Schedule_shifts(ctx, field)
+			case "associatedUsers":
+				return ec.fieldContext_Schedule_associatedUsers(ctx, field)
 			case "targets":
 				return ec.fieldContext_Schedule_targets(ctx, field)
 			case "target":
@@ -32688,6 +32777,8 @@ func (ec *executionContext) fieldContext_User_assignedSchedules(_ context.Contex
 				return ec.fieldContext_Schedule_assignedTo(ctx, field)
 			case "shifts":
 				return ec.fieldContext_Schedule_shifts(ctx, field)
+			case "associatedUsers":
+				return ec.fieldContext_Schedule_associatedUsers(ctx, field)
 			case "targets":
 				return ec.fieldContext_Schedule_targets(ctx, field)
 			case "target":
@@ -32973,6 +33064,8 @@ func (ec *executionContext) fieldContext_UserCalendarSubscription_schedule(_ con
 				return ec.fieldContext_Schedule_assignedTo(ctx, field)
 			case "shifts":
 				return ec.fieldContext_Schedule_shifts(ctx, field)
+			case "associatedUsers":
+				return ec.fieldContext_Schedule_associatedUsers(ctx, field)
 			case "targets":
 				return ec.fieldContext_Schedule_targets(ctx, field)
 			case "target":
@@ -47494,6 +47587,42 @@ func (ec *executionContext) _Schedule(ctx context.Context, sel ast.SelectionSet,
 					}
 				}()
 				res = ec._Schedule_shifts(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "associatedUsers":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Schedule_associatedUsers(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

@@ -1004,6 +1004,7 @@ export interface SWOStatus {
 
 export interface Schedule {
   assignedTo: Target[]
+  associatedUsers: User[]
   description: string
   id: string
   isFavorite: boolean

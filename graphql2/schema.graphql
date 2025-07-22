@@ -692,6 +692,8 @@ type Schedule {
     userIDs: [ID!]
   ): [OnCallShift!]!
 
+  associatedUsers: [User!]!
+
   targets: [ScheduleTarget!]!
   target(input: TargetInput!): ScheduleTarget
   isFavorite: Boolean!
