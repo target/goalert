@@ -144,6 +144,10 @@ cy-mobile-prod-run: web/src/build/static/app.js cypress ## Start cypress tests i
 swo/swodb/queries.sql.go: sqlc.yaml swo/*/*.sql migrate/migrations/*.sql */queries.sql */*/queries.sql migrate/schema.sql
 	$(SQLC) generate
 
+.PHONY: sqlc
+sqlc:
+	$(SQLC) generate
+
 web/src/schema.d.ts: graphql2/schema.graphql graphql2/graph/*.graphqls web/src/genschema.go
 	go generate ./web/src
 

@@ -4703,6 +4703,247 @@ func (q *Queries) SWOConnUnlockAll(ctx context.Context) error {
 	return err
 }
 
+const schedCreate = `-- name: SchedCreate :one
+INSERT INTO schedules (id, name, description, time_zone)
+VALUES (DEFAULT, $1, $2, $3)
+RETURNING id
+`
+
+type SchedCreateParams struct {
+	Name        string
+	Description string
+	TimeZone    string
+}
+
+// Creates a new schedule and returns its ID.
+func (q *Queries) SchedCreate(ctx context.Context, arg SchedCreateParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, schedCreate, arg.Name, arg.Description, arg.TimeZone)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const schedDeleteMany = `-- name: SchedDeleteMany :exec
+DELETE FROM schedules
+WHERE id = ANY($1::uuid[])
+`
+
+// Deletes multiple schedules by their IDs.
+func (q *Queries) SchedDeleteMany(ctx context.Context, dollar_1 []uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, schedDeleteMany, pq.Array(dollar_1))
+	return err
+}
+
+const schedFindAll = `-- name: SchedFindAll :many
+SELECT id, name, description, time_zone
+FROM schedules
+`
+
+type SchedFindAllRow struct {
+	ID          uuid.UUID
+	Name        string
+	Description string
+	TimeZone    string
+}
+
+// Returns all schedules.
+func (q *Queries) SchedFindAll(ctx context.Context) ([]SchedFindAllRow, error) {
+	rows, err := q.db.QueryContext(ctx, schedFindAll)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SchedFindAllRow
+	for rows.Next() {
+		var i SchedFindAllRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.TimeZone,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const schedFindData = `-- name: SchedFindData :one
+SELECT
+    data
+FROM
+    schedule_data
+WHERE
+    schedule_id = $1
+`
+
+// Returns the schedule data for a given schedule ID.
+func (q *Queries) SchedFindData(ctx context.Context, scheduleID uuid.UUID) (json.RawMessage, error) {
+	row := q.db.QueryRowContext(ctx, schedFindData, scheduleID)
+	var data json.RawMessage
+	err := row.Scan(&data)
+	return data, err
+}
+
+const schedFindDataForUpdate = `-- name: SchedFindDataForUpdate :one
+SELECT
+    data
+FROM
+    schedule_data
+WHERE
+    schedule_id = $1
+FOR UPDATE
+`
+
+// Returns the schedule data for a given schedule ID with FOR UPDATE lock.
+func (q *Queries) SchedFindDataForUpdate(ctx context.Context, scheduleID uuid.UUID) (json.RawMessage, error) {
+	row := q.db.QueryRowContext(ctx, schedFindDataForUpdate, scheduleID)
+	var data json.RawMessage
+	err := row.Scan(&data)
+	return data, err
+}
+
+const schedFindMany = `-- name: SchedFindMany :many
+SELECT
+    s.id,
+    s.name,
+    s.description,
+    s.time_zone,
+    fav IS DISTINCT FROM NULL as is_favorite
+FROM schedules s
+LEFT JOIN user_favorites fav ON
+    fav.tgt_schedule_id = s.id AND fav.user_id = $2
+WHERE s.id = ANY($1::uuid[])
+`
+
+type SchedFindManyParams struct {
+	Column1 []uuid.UUID
+	UserID  uuid.UUID
+}
+
+type SchedFindManyRow struct {
+	ID          uuid.UUID
+	Name        string
+	Description string
+	TimeZone    string
+	IsFavorite  bool
+}
+
+// Returns multiple schedules with user favorite status.
+func (q *Queries) SchedFindMany(ctx context.Context, arg SchedFindManyParams) ([]SchedFindManyRow, error) {
+	rows, err := q.db.QueryContext(ctx, schedFindMany, pq.Array(arg.Column1), arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SchedFindManyRow
+	for rows.Next() {
+		var i SchedFindManyRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.TimeZone,
+			&i.IsFavorite,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const schedFindOne = `-- name: SchedFindOne :one
+SELECT
+    s.id,
+    s.name,
+    s.description,
+    s.time_zone,
+    fav IS DISTINCT FROM NULL as is_favorite
+FROM schedules s
+LEFT JOIN user_favorites fav ON
+    fav.tgt_schedule_id = s.id AND fav.user_id = $2
+WHERE s.id = $1
+`
+
+type SchedFindOneParams struct {
+	ID     uuid.UUID
+	UserID uuid.UUID
+}
+
+type SchedFindOneRow struct {
+	ID          uuid.UUID
+	Name        string
+	Description string
+	TimeZone    string
+	IsFavorite  bool
+}
+
+// Returns a single schedule with user favorite status.
+func (q *Queries) SchedFindOne(ctx context.Context, arg SchedFindOneParams) (SchedFindOneRow, error) {
+	row := q.db.QueryRowContext(ctx, schedFindOne, arg.ID, arg.UserID)
+	var i SchedFindOneRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.TimeZone,
+		&i.IsFavorite,
+	)
+	return i, err
+}
+
+const schedFindOneForUpdate = `-- name: SchedFindOneForUpdate :one
+SELECT id, name, description, time_zone
+FROM schedules
+WHERE id = $1
+FOR UPDATE
+`
+
+type SchedFindOneForUpdateRow struct {
+	ID          uuid.UUID
+	Name        string
+	Description string
+	TimeZone    string
+}
+
+// Returns a single schedule with FOR UPDATE lock.
+func (q *Queries) SchedFindOneForUpdate(ctx context.Context, id uuid.UUID) (SchedFindOneForUpdateRow, error) {
+	row := q.db.QueryRowContext(ctx, schedFindOneForUpdate, id)
+	var i SchedFindOneForUpdateRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.TimeZone,
+	)
+	return i, err
+}
+
+const schedInsertData = `-- name: SchedInsertData :exec
+INSERT INTO schedule_data (schedule_id, data)
+VALUES ($1, '{}')
+`
+
+// Inserts empty schedule data for a given schedule ID.
+func (q *Queries) SchedInsertData(ctx context.Context, scheduleID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, schedInsertData, scheduleID)
+	return err
+}
+
 const schedMgrDataForUpdate = `-- name: SchedMgrDataForUpdate :many
 SELECT
     schedule_id,
@@ -5109,6 +5350,47 @@ func (q *Queries) SchedMgrTimezones(ctx context.Context) ([]SchedMgrTimezonesRow
 		return nil, err
 	}
 	return items, nil
+}
+
+const schedUpdate = `-- name: SchedUpdate :exec
+UPDATE schedules
+SET name = $2, description = $3, time_zone = $4
+WHERE id = $1
+`
+
+type SchedUpdateParams struct {
+	ID          uuid.UUID
+	Name        string
+	Description string
+	TimeZone    string
+}
+
+// Updates an existing schedule.
+func (q *Queries) SchedUpdate(ctx context.Context, arg SchedUpdateParams) error {
+	_, err := q.db.ExecContext(ctx, schedUpdate,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.TimeZone,
+	)
+	return err
+}
+
+const schedUpdateData = `-- name: SchedUpdateData :exec
+UPDATE schedule_data
+SET data = $2
+WHERE schedule_id = $1
+`
+
+type SchedUpdateDataParams struct {
+	ScheduleID uuid.UUID
+	Data       json.RawMessage
+}
+
+// Updates the schedule data for a given schedule ID.
+func (q *Queries) SchedUpdateData(ctx context.Context, arg SchedUpdateDataParams) error {
+	_, err := q.db.ExecContext(ctx, schedUpdateData, arg.ScheduleID, arg.Data)
+	return err
 }
 
 const scheduleFindManyByUser = `-- name: ScheduleFindManyByUser :many
