@@ -309,7 +309,7 @@ func (ch *slackChannel) expectMessageFunc(desc string, test func(mockslack.Messa
 			return true
 		}
 		return false
-	}, 30*time.Second, time.Second, "expected to find Slack %s: Channel=%s; ID=%s; keywords=%v", desc, ch.name, ch.id, keywords)
+	}, 30*time.Second, 100*time.Millisecond, "expected to find Slack %s: Channel=%s; ID=%s; keywords=%v", desc, ch.name, ch.id, keywords)
 	return found
 }
 
