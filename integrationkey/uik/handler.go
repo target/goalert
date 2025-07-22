@@ -33,6 +33,13 @@ type TxAble interface {
 	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
 }
 
+const (
+	LogStatusSuccess    = "success"
+	LogStatusParseError = "parse_error"
+	LogStatusExecError  = "exec_error"
+	LogStatusSendError  = "send_error"
+)
+
 func NewHandler(db TxAble, intStore *integrationkey.Store, aStore *alert.Store, evt *event.Bus) *Handler {
 	return &Handler{intStore: intStore, db: db, alertStore: aStore, evt: evt}
 }
@@ -88,6 +95,47 @@ func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1) (inser
 	return didInsertSignals, nil
 }
 
+// upsertUikLog will save a log of the most recent request to a universal integration key in the db
+func (h *Handler) upsertUikLog(
+	ctx context.Context,
+	keyID uuid.UUID,
+	req *http.Request,
+	rawBody []byte,
+	status string,
+	errMsg string,
+) error {
+	if !expflag.ContextHas(ctx, expflag.UikLogs) {
+		return nil
+	}
+	const maxSize = 2048
+	if len(rawBody) > maxSize {
+		rawBody = rawBody[:maxSize]
+	}
+
+	err := gadb.New(h.db).IntKeyLog(ctx, gadb.IntKeyLogParams{
+		IntegrationKeyID: keyID,
+		Status:           status,
+		RawBody:          rawBody,
+		ContentType: sql.NullString{
+			String: req.Header.Get("Content-Type"),
+			Valid:  req.Header.Get("Content-Type") != "",
+		},
+		UserAgent: sql.NullString{
+			String: req.UserAgent(),
+			Valid:  req.UserAgent() != "",
+		},
+		ErrorMessage: sql.NullString{
+			String: errMsg,
+			Valid:  errMsg != "",
+		},
+	})
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // EventNewSignals is an event that is triggered when new signals are generated for a service.
 type EventNewSignals struct {
 	ServiceID uuid.UUID
@@ -117,11 +165,13 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 	data, err := io.ReadAll(req.Body)
 	if errutil.HTTPError(ctx, w, err) {
+		h.upsertUikLog(ctx, keyID, req, nil, LogStatusParseError, "read error: "+err.Error())
 		return
 	}
 	var body any
 	err = json.Unmarshal(data, &body)
 	if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
+		h.upsertUikLog(ctx, keyID, req, data, LogStatusParseError, "invalid json: "+err.Error())
 		return
 	}
 
@@ -156,13 +206,16 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var vm vm.VM
 	actions, err := compiled.Run(&vm, env)
 	if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
+		h.upsertUikLog(ctx, keyID, req, data, LogStatusExecError, "expression execution failed: "+err.Error())
 		return
 	}
 
 	var insertedAny bool
 	for _, act := range actions {
 		inserted, err := h.handleAction(ctx, act)
-		if errutil.HTTPError(ctx, w, err) {
+		if err != nil {
+			h.upsertUikLog(ctx, keyID, req, data, LogStatusSendError, "action failed: "+err.Error())
+			errutil.HTTPError(ctx, w, err)
 			return
 		}
 		insertedAny = insertedAny || inserted
@@ -172,5 +225,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		event.Send(ctx, h.evt, EventNewSignals{ServiceID: permission.ServiceNullUUID(ctx).UUID})
 	}
 
+	h.upsertUikLog(ctx, keyID, req, data, LogStatusSuccess, "")
 	w.WriteHeader(http.StatusNoContent)
 }
