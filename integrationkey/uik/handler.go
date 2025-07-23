@@ -132,6 +132,7 @@ func (h *Handler) upsertUikLog(
 	})
 
 	if err != nil {
+		fmt.Println("failed to log UIK request: ", err)
 		return err
 	}
 	return nil
@@ -166,18 +167,12 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 	data, err := io.ReadAll(req.Body)
 	if errutil.HTTPError(ctx, w, err) {
-		logErr := h.upsertUikLog(ctx, keyID, req, nil, LogStatusParseError, "read error: "+err.Error())
-		if logErr != nil {
-			fmt.Println("failed to log UIK request:", logErr)
-		}
+		_ = h.upsertUikLog(ctx, keyID, req, nil, LogStatusParseError, "read error: "+err.Error())
 		return
 	}
 
 	if !utf8.Valid(data) {
-		logErr := h.upsertUikLog(ctx, keyID, req, nil, LogStatusParseError, "invalid UTF-8")
-		if logErr != nil {
-			fmt.Println("failed to log UIK request:", logErr)
-		}
+		_ = h.upsertUikLog(ctx, keyID, req, nil, LogStatusParseError, "invalid UTF-8")
 		errutil.HTTPError(ctx, w, validation.NewGenericError("invalid UTF-8 in request body"))
 		return
 	}
@@ -185,10 +180,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var body any
 	err = json.Unmarshal(data, &body)
 	if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
-		logErr := h.upsertUikLog(ctx, keyID, req, data, LogStatusParseError, "invalid json: "+err.Error())
-		if logErr != nil {
-			fmt.Println("failed to log UIK request:", logErr)
-		}
+		_ = h.upsertUikLog(ctx, keyID, req, data, LogStatusParseError, "invalid json: "+err.Error())
 		return
 	}
 
@@ -223,10 +215,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var vm vm.VM
 	actions, err := compiled.Run(&vm, env)
 	if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
-		logErr := h.upsertUikLog(ctx, keyID, req, data, LogStatusExecError, "expression execution failed: "+err.Error())
-		if logErr != nil {
-			fmt.Println("failed to log UIK request:", logErr)
-		}
+		_ = h.upsertUikLog(ctx, keyID, req, data, LogStatusExecError, "expression execution failed: "+err.Error())
 		return
 	}
 
@@ -234,10 +223,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for _, act := range actions {
 		inserted, err := h.handleAction(ctx, act)
 		if err != nil {
-			logErr := h.upsertUikLog(ctx, keyID, req, data, LogStatusSendError, "action failed: "+err.Error())
-			if logErr != nil {
-				fmt.Println("failed to log UIK request:", logErr)
-			}
+			_ = h.upsertUikLog(ctx, keyID, req, data, LogStatusSendError, "action failed: "+err.Error())
 			errutil.HTTPError(ctx, w, err)
 			return
 		}
@@ -248,9 +234,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		event.Send(ctx, h.evt, EventNewSignals{ServiceID: permission.ServiceNullUUID(ctx).UUID})
 	}
 
-	err = h.upsertUikLog(ctx, keyID, req, data, LogStatusSuccess, "")
-	if err != nil {
-		fmt.Println("failed to log UIK request:", err)
-	}
+	_ = h.upsertUikLog(ctx, keyID, req, data, LogStatusSuccess, "")
 	w.WriteHeader(http.StatusNoContent)
 }
