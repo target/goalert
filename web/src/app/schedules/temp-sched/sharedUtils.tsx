@@ -1,5 +1,6 @@
 import { DateTime, Duration, Interval } from 'luxon'
 import React, { ReactNode } from 'react'
+import { User } from 'web/src/schema'
 
 export type TempSchedValue = {
   start: string
@@ -107,4 +108,29 @@ export function StepContainer({
 export function dtToDuration(a: DateTime, b: DateTime): number {
   if (!a.isValid || !b.isValid) return -1
   return b.diff(a, 'hours').hours
+}
+
+export function sortUsersByLastPickOrder(
+  a: User,
+  b: User,
+  lastTempSchedPickOrder: string[],
+): number {
+  const aIndex = lastTempSchedPickOrder.indexOf(a.id)
+  const bIndex = lastTempSchedPickOrder.indexOf(b.id)
+
+  const aInLast = aIndex !== -1
+  const bInLast = bIndex !== -1
+
+  if (!aInLast && bInLast) return -1 // a is new
+  if (aInLast && !bInLast) return 1 // b is new
+  if (!aInLast && !bInLast) {
+    return a.name.localeCompare(b.name) // both new
+  }
+
+  if (aIndex !== bIndex) {
+    // Reverse order: higher index = more recently picked = comes earlier
+    return bIndex - aIndex
+  }
+
+  return a.name.localeCompare(b.name) // tie-breaker
 }

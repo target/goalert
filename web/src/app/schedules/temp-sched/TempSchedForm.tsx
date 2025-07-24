@@ -36,6 +36,8 @@ interface TempSchedFormProps {
   setShift: React.Dispatch<React.SetStateAction<Shift>>
   isCustomShiftTimeRange: boolean
   setIsCustomShiftTimeRange: (bool: boolean) => void
+  pickOrder: string[]
+  setPickOrder: (pickOrder: string[]) => void
 }
 
 export default function TempSchedForm(props: TempSchedFormProps): JSX.Element {
@@ -52,6 +54,8 @@ export default function TempSchedForm(props: TempSchedFormProps): JSX.Element {
     setShift,
     isCustomShiftTimeRange,
     setIsCustomShiftTimeRange,
+    pickOrder,
+    setPickOrder,
   } = props
 
   const classes = useStyles()
@@ -182,6 +186,8 @@ export default function TempSchedForm(props: TempSchedFormProps): JSX.Element {
           setShift={setShift}
           isCustomShiftTimeRange={isCustomShiftTimeRange}
           setIsCustomShiftTimeRange={setIsCustomShiftTimeRange}
+          pickOrder={pickOrder}
+          setPickOrder={setPickOrder}
         />
       </Grid>
     </Grid>

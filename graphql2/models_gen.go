@@ -731,6 +731,11 @@ type SetScheduleOnCallNotificationRulesInput struct {
 	Rules      []OnCallNotificationRuleInput `json:"rules"`
 }
 
+type SetTempSchedPickOrderInput struct {
+	ScheduleID string   `json:"scheduleID"`
+	UserIDs    []string `json:"userIDs"`
+}
+
 type SetTemporaryScheduleInput struct {
 	ScheduleID string                `json:"scheduleID"`
 	ClearStart *time.Time            `json:"clearStart,omitempty"`

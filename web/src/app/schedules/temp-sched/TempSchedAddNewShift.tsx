@@ -14,7 +14,12 @@ import {
 import Typography from '@mui/material/Typography'
 import ToggleIcon from '@mui/icons-material/CompareArrows'
 import _ from 'lodash'
-import { dtToDuration, Shift, TempSchedValue } from './sharedUtils'
+import {
+  dtToDuration,
+  Shift,
+  sortUsersByLastPickOrder,
+  TempSchedValue,
+} from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
 import { DateTime, Duration, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
@@ -29,11 +34,21 @@ import { User } from 'web/src/schema'
 import {
   ArrowRight,
   ShuffleVariant,
+  Sort,
   SortAlphabeticalAscending,
   SortAlphabeticalDescending,
 } from 'mdi-material-ui'
 import Chance from 'chance'
+import { gql, useQuery } from 'urql'
 const c = new Chance()
+
+const query = gql`
+  query ($id: ID!) {
+    schedule(id: $id) {
+      lastTempSchedPickOrder
+    }
+  }
+`
 
 type AddShiftsStepProps = {
   value: TempSchedValue
@@ -47,9 +62,11 @@ type AddShiftsStepProps = {
   setShift: (shift: Shift) => void
   isCustomShiftTimeRange: boolean
   setIsCustomShiftTimeRange: (bool: boolean) => void
+  pickOrder: string[]
+  setPickOrder: (pickOrder: string[]) => void
 }
 
-type SortType = 'A-Z' | 'Z-A' | 'RAND'
+type SortType = 'A-Z' | 'Z-A' | 'RAND' | 'LAST-PICKS'
 
 type DTShift = {
   userID: string
@@ -104,6 +121,8 @@ export default function TempSchedAddNewShift({
   setShift,
   isCustomShiftTimeRange,
   setIsCustomShiftTimeRange,
+  pickOrder,
+  setPickOrder,
 }: AddShiftsStepProps): JSX.Element {
   const theme = useTheme()
   const [submitted, setSubmitted] = useState(false)
@@ -116,6 +135,15 @@ export default function TempSchedAddNewShift({
     useState<HTMLButtonElement | null>(null)
   const sortPopoverOpen = Boolean(sortTypeAnchor)
   const sortTypeID = sortPopoverOpen ? 'sort-type-select' : undefined
+
+  const [{ fetching, error, data }] = useQuery({
+    query,
+    variables: {
+      id: scheduleID,
+    },
+  })
+  const lastTempSchedPickOrder: Array<string> =
+    data.schedule.lastTempSchedPickOrder
 
   const handleFilterTypeClick = (
     event: React.MouseEvent<HTMLButtonElement>,
@@ -174,6 +202,10 @@ export default function TempSchedAddNewShift({
     }
     if (!shift) return // ts sanity check
 
+    if (!pickOrder.includes(shift.userID)) {
+      setPickOrder([...pickOrder, shift.userID])
+    }
+
     onChange(mergeShifts(value.shifts.concat(shift)))
     const end = DateTime.fromISO(shift.end, { zone })
     setShift({
@@ -226,6 +258,10 @@ export default function TempSchedAddNewShift({
       return c.pickone([1, -1, 0])
     }
 
+    if (sortType === 'LAST-PICKS') {
+      return sortUsersByLastPickOrder(_a, _b, lastTempSchedPickOrder)
+    }
+
     return 0
   }
 
@@ -254,6 +290,9 @@ export default function TempSchedAddNewShift({
               <SortAlphabeticalDescending fontSize='small' />
             )}
             {sortType === 'RAND' && <ShuffleVariant fontSize='small' />}
+            {sortType === 'LAST-PICKS' && !fetching && !error && (
+              <Sort fontSize='small' />
+            )}
           </IconButton>
           <Popover
             id={sortTypeID}
@@ -288,7 +327,15 @@ export default function TempSchedAddNewShift({
                 startIcon={<ShuffleVariant fontSize='small' />}
                 sx={{ justifyContent: 'start', pl: 2, pr: 2 }}
               >
-                Sort Randomly
+                Shuffle
+              </Button>
+              <Button
+                key='last-picks'
+                onClick={() => handleSetSortType('LAST-PICKS')}
+                startIcon={<Sort fontSize='small' />}
+                sx={{ justifyContent: 'start', pl: 2, pr: 2 }}
+              >
+                Sort By Last Pick Order
               </Button>
             </ButtonGroup>
           </Popover>

@@ -30,6 +30,12 @@ const mutation = gql`
   }
 `
 
+const pickOrderMutation = gql`
+  mutation ($input: SetTempSchedPickOrderInput!) {
+    setTemporarySchedulePickOrder(input: $input)
+  }
+`
+
 const query = gql`
   query ($id: ID!) {
     schedule(id: $id) {
@@ -101,6 +107,7 @@ export default function TempSchedDialog({
   const now = useMemo(() => DateTime.utc().startOf('minute').toISO(), [])
   const [showForm, setShowForm] = useState(false)
   const [isCustomShiftTimeRange, setIsCustomShiftTimeRange] = useState(false)
+  const [pickOrder, setPickOrder] = useState<Array<string>>([])
 
   const [{ fetching: fetchingUsers, error: errorUsers, data: dataUsers }] =
     useQuery({
@@ -112,6 +119,7 @@ export default function TempSchedDialog({
   const associatedUsers: Array<User> = dataUsers.schedule.associatedUsers
 
   const [{ fetching, error }, commit] = useMutation(mutation)
+  const [, commitPickOrder] = useMutation(pickOrderMutation)
 
   let defaultShiftDur = {} as DurationValues
 
@@ -262,6 +270,13 @@ export default function TempSchedDialog({
         },
         { additionalTypenames: ['Schedule'] },
       ).then((result) => {
+        commitPickOrder({
+          input: {
+            scheduleID,
+            userIDs: pickOrder,
+          },
+        })
+
         if (!result.error) {
           onClose()
         }
@@ -336,6 +351,8 @@ export default function TempSchedDialog({
                   setShift={setShift}
                   isCustomShiftTimeRange={isCustomShiftTimeRange}
                   setIsCustomShiftTimeRange={setIsCustomShiftTimeRange}
+                  pickOrder={pickOrder}
+                  setPickOrder={setPickOrder}
                 />
 
                 {/* right pane */}
@@ -426,6 +443,13 @@ export default function TempSchedDialog({
                             (s) => !shiftEquals(shift, s),
                           ),
                         })
+
+                        let order = pickOrder.slice()
+                        const i = order.indexOf(shift.userID)
+                        if (i !== -1) {
+                          order.splice(i, 1)
+                          setPickOrder(order)
+                        }
                       }}
                       edit={edit}
                       handleCoverageGapClick={handleCoverageGapClick}

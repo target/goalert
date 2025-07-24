@@ -185,6 +185,22 @@ func (s *Schedule) AssociatedUsers(ctx context.Context, raw *schedule.Schedule) 
 	return users, nil
 }
 
+func (s *Schedule) LastTempSchedPickOrder(ctx context.Context, raw *schedule.Schedule) ([]string, error) {
+	userIDs, err := s.ScheduleStore.FindLastTempSchedPickOrder(ctx, raw.ID)
+	if err != nil {
+		return nil, err
+	}
+	return userIDs, nil
+}
+
+func (m *Mutation) SetTemporarySchedulePickOrder(ctx context.Context, input graphql2.SetTempSchedPickOrderInput) (ok bool, err error) {
+	ok, err = m.ScheduleStore.SetTempSchedPickOrder(ctx, input.ScheduleID, input.UserIDs)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func (s *Schedule) AssignedTo(ctx context.Context, raw *schedule.Schedule) ([]assignment.RawTarget, error) {
 	pols, err := s.PolicyStore.FindAllPoliciesBySchedule(ctx, raw.ID)
 	if err != nil {

@@ -791,6 +791,7 @@ export interface Mutation {
   setScheduleOnCallNotificationRules: boolean
   setSystemLimits: boolean
   setTemporarySchedule: boolean
+  setTemporarySchedulePickOrder: boolean
   swoAction: boolean
   testContactMethod: boolean
   updateAlerts?: null | Alert[]
@@ -1008,6 +1009,7 @@ export interface Schedule {
   description: string
   id: string
   isFavorite: boolean
+  lastTempSchedPickOrder: string[]
   name: string
   onCallNotificationRules: OnCallNotificationRule[]
   shifts: OnCallShift[]
@@ -1133,6 +1135,11 @@ export interface SetScheduleShiftInput {
   end: ISOTimestamp
   start: ISOTimestamp
   userID: string
+}
+
+export interface SetTempSchedPickOrderInput {
+  scheduleID: string
+  userIDs: string[]
 }
 
 export interface SetTemporaryScheduleInput {
