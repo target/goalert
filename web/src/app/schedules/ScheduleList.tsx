@@ -5,8 +5,9 @@ import { useURLParam } from '../actions'
 import { ScheduleConnection } from '../../schema'
 import ListPageControls from '../lists/ListPageControls'
 import Search from '../util/Search'
-import FlatList from '../lists/FlatList'
 import { FavoriteIcon } from '../util/SetFavoriteButton'
+import CompList from '../lists/CompList'
+import { CompListItemNav } from '../lists/CompListItems'
 
 const query = gql`
   query schedulesQuery($input: ScheduleSearchOptions) {
@@ -67,17 +68,17 @@ export default function ScheduleList(): JSX.Element {
         slots={{
           search: <Search />,
           list: (
-            <FlatList
-              emptyMessage='No results'
-              items={
-                q.data?.schedules.nodes.map((u) => ({
-                  title: u.name,
-                  subText: u.description,
-                  url: u.id,
-                  secondaryAction: u.isFavorite ? <FavoriteIcon /> : undefined,
-                })) || []
-              }
-            />
+            <CompList emptyMessage='No results'>
+              {q.data?.schedules.nodes.map((u) => (
+                <CompListItemNav
+                  key={u.id}
+                  title={u.name}
+                  subText={u.description}
+                  url={u.id}
+                  action={u.isFavorite ? <FavoriteIcon /> : undefined}
+                />
+              ))}
+            </CompList>
           ),
         }}
       />
