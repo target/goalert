@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   Avatar,
   Button,
@@ -32,6 +32,8 @@ import {
   SortAlphabeticalAscending,
   SortAlphabeticalDescending,
 } from 'mdi-material-ui'
+import Chance from 'chance'
+const c = new Chance()
 
 type AddShiftsStepProps = {
   value: TempSchedValue
@@ -203,6 +205,34 @@ export default function TempSchedAddNewShift({
     setSortTypeAnchor(null)
   }
 
+  function sortFn(_a: User, _b: User): number {
+    const a = _a.name
+    const b = _b.name
+
+    if (sortType === 'A-Z') {
+      if (a > b) return 1
+      if (a < b) return -1
+      return 0
+    }
+
+    if (sortType === 'Z-A') {
+      if (a < b) return 1
+      if (a > b) return -1
+      return 0
+    }
+
+    if (sortType === 'RAND') {
+      return c.pickone([1, -1, 0])
+    }
+
+    return 0
+  }
+
+  const users = useMemo(
+    () => associatedUsers.sort(sortFn),
+    [associatedUsers, sortType],
+  )
+
   return (
     <FormContainer
       errors={fieldErrors()}
@@ -273,7 +303,7 @@ export default function TempSchedAddNewShift({
         </Grid>
 
         <Grid item xs={12} container>
-          {associatedUsers.map((u) => {
+          {users.map((u) => {
             const count = getUserIDCountInValue(u.id)
 
             return (
