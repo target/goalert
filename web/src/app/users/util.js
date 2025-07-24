@@ -1,12 +1,14 @@
 import { sortBy } from 'lodash'
 
-export function formatNotificationRule(
-  delayMinutes,
-  { type, name, formattedValue },
-) {
+export function formatNotificationRule(delayMinutes, info) {
   const delayStr = delayMinutes
     ? `After ${delayMinutes} minute${delayMinutes === 1 ? '' : 's'}`
     : 'Immediately'
+
+  if (!info) {
+    return `${delayStr} notify me via PRIVATE`
+  }
+  const { type, name, formattedValue } = info
 
   return `${delayStr} notify me via ${type} at ${formattedValue} (${name})`
 }
