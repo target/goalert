@@ -18,6 +18,7 @@ const useStyles = makeStyles((theme) => {
     subtitle: {
       overflowY: 'unset',
       flexGrow: 0,
+      paddingBottom: 0,
     },
     topRightActions,
   }
