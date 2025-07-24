@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Checkbox, FormControlLabel, Grid } from '@mui/material'
+import { Button, Checkbox, Chip, FormControlLabel, Grid } from '@mui/material'
 import Typography from '@mui/material/Typography'
 import ToggleIcon from '@mui/icons-material/CompareArrows'
 import _ from 'lodash'
@@ -14,15 +14,17 @@ import { UserSelect } from '../../selection'
 import ClickableText from '../../util/ClickableText'
 import NumberField from '../../util/NumberField'
 import { fmtLocal } from '../../util/timeFormat'
+import { User } from 'web/src/schema'
 
 type AddShiftsStepProps = {
   value: TempSchedValue
   onChange: (newValue: Shift[]) => void
 
   scheduleID: string
+  associatedUsers: Array<User>
   showForm: boolean
   setShowForm: (showForm: boolean) => void
-  shift: Shift | null
+  shift: Shift
   setShift: (shift: Shift) => void
 }
 
@@ -72,6 +74,7 @@ function mergeShifts(_shifts: Shift[]): Shift[] {
 
 export default function TempSchedAddNewShift({
   scheduleID,
+  associatedUsers,
   onChange,
   value,
   shift,
@@ -152,6 +155,23 @@ export default function TempSchedAddNewShift({
         <Grid item xs={12}>
           <Typography color='textSecondary'>Add Shift</Typography>
         </Grid>
+
+        <Grid item xs={12}>
+          {associatedUsers.map((u) => (
+            <Chip
+              key={u.id}
+              label={u.name}
+              sx={{ m: 0.5 }}
+              onClick={() => {
+                setShift({
+                  ...shift,
+                  userID: u.id,
+                })
+              }}
+            />
+          ))}
+        </Grid>
+
         <Grid item xs={12}>
           <FormField
             fullWidth

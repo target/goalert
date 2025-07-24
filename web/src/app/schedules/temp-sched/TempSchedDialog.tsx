@@ -1,5 +1,5 @@
 import React, { useState, useRef, Suspense, useMemo } from 'react'
-import { useMutation, gql } from 'urql'
+import { useMutation, gql, useQuery } from 'urql'
 import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import FormHelperText from '@mui/material/FormHelperText'
@@ -21,11 +21,23 @@ import TempSchedShiftsList from './TempSchedShiftsList'
 import { getCoverageGapItems } from './shiftsListUtil'
 import { ensureInterval } from '../timeUtil'
 import TempSchedConfirmation from './TempSchedConfirmation'
+import { User } from 'web/src/schema'
 import TempSchedForm from './TempSchedForm'
 
 const mutation = gql`
   mutation ($input: SetTemporaryScheduleInput!) {
     setTemporarySchedule(input: $input)
+  }
+`
+
+const query = gql`
+  query ($id: ID!) {
+    schedule(id: $id) {
+      associatedUsers {
+        id
+        name
+      }
+    }
   }
 `
 
@@ -85,6 +97,15 @@ export default function TempSchedDialog({
   const { q, zone } = useScheduleTZ(scheduleID)
   const now = useMemo(() => DateTime.utc().startOf('minute').toISO(), [])
   const [showForm, setShowForm] = useState(false)
+
+  const [{ fetching: fetchingUsers, error: errorUsers, data: dataUsers }] =
+    useQuery({
+      query,
+      variables: {
+        id: scheduleID,
+      },
+    })
+  const associatedUsers: Array<User> = dataUsers.schedule.associatedUsers
 
   const [{ fetching, error }, commit] = useMutation(mutation)
 
@@ -258,6 +279,11 @@ export default function TempSchedDialog({
     .concat(shiftErrors)
     .concat(noCoverageErrs)
 
+  // if error from loading associated users
+  if (errorUsers?.message) {
+    errs.concat({ message: errorUsers.message })
+  }
+
   return (
     <FormDialog
       fullScreen
@@ -276,7 +302,7 @@ export default function TempSchedDialog({
         <Suspense>
           <FormContainer
             optionalLabels
-            disabled={fetching}
+            disabled={fetchingUsers || fetching}
             value={value}
             onChange={(newValue: TempSchedValue) => {
               setValue({ ...value, ...ensureInterval(value, newValue) })
@@ -294,6 +320,7 @@ export default function TempSchedDialog({
                 {/* left pane */}
                 <TempSchedForm
                   scheduleID={scheduleID}
+                  associatedUsers={associatedUsers}
                   duration={durValues}
                   setDuration={setDurValues}
                   value={value}

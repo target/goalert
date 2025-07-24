@@ -17,6 +17,7 @@ import TempSchedAddNewShift from './TempSchedAddNewShift'
 import { useScheduleTZ } from '../useScheduleTZ'
 import { DurationValues } from './TempSchedDialog'
 import { isISOAfter } from '../../util/shifts'
+import { User } from 'web/src/schema'
 
 const useStyles = makeStyles(() => ({
   contentText,
@@ -31,6 +32,7 @@ const useStyles = makeStyles(() => ({
 
 interface TempSchedFormProps {
   scheduleID: string
+  associatedUsers: Array<User>
   duration: DurationValues
   setDuration: React.Dispatch<React.SetStateAction<DurationValues>>
   value: TempSchedValue
@@ -44,6 +46,7 @@ interface TempSchedFormProps {
 export default function TempSchedForm(props: TempSchedFormProps): JSX.Element {
   const {
     scheduleID,
+    associatedUsers,
     duration,
     setDuration,
     value,
@@ -165,6 +168,7 @@ export default function TempSchedForm(props: TempSchedFormProps): JSX.Element {
 
       <Grid item xs={12} className={classes.sticky}>
         <TempSchedAddNewShift
+          associatedUsers={associatedUsers}
           value={value}
           onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
           scheduleID={scheduleID}
