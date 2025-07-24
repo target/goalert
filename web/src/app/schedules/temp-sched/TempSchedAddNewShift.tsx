@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Checkbox, Chip, FormControlLabel, Grid } from '@mui/material'
+import {
+  Avatar,
+  Button,
+  Checkbox,
+  Chip,
+  FormControlLabel,
+  Grid,
+} from '@mui/material'
 import Typography from '@mui/material/Typography'
 import ToggleIcon from '@mui/icons-material/CompareArrows'
 import _ from 'lodash'
@@ -15,6 +22,7 @@ import ClickableText from '../../util/ClickableText'
 import NumberField from '../../util/NumberField'
 import { fmtLocal } from '../../util/timeFormat'
 import { User } from 'web/src/schema'
+import { green } from '@mui/material/colors'
 
 type AddShiftsStepProps = {
   value: TempSchedValue
@@ -149,6 +157,21 @@ export default function TempSchedAddNewShift({
     setSubmitted(false)
   }
 
+  function getUserIDCountInValue(userID: string): number {
+    const uIDs = value.shifts.map((s) => s.userID)
+    const count = uIDs.filter((id) => id === userID).length
+    return count
+  }
+
+  function getChipColor(
+    userID: string,
+    count: number,
+  ): 'primary' | 'success' | 'default' {
+    if (shift.userID === userID) return 'primary'
+    if (count > 0) return 'success'
+    return 'default'
+  }
+
   return (
     <FormContainer
       errors={fieldErrors()}
@@ -164,20 +187,39 @@ export default function TempSchedAddNewShift({
           </Typography>
         </Grid>
 
-        <Grid item xs={12}>
-          {associatedUsers.map((u) => (
-            <Chip
-              key={u.id}
-              label={u.name}
-              sx={{ m: 0.5 }}
-              onClick={() => {
-                setShift({
-                  ...shift,
-                  userID: u.id,
-                })
-              }}
-            />
-          ))}
+        <Grid item xs={12} container>
+          {associatedUsers.map((u) => {
+            const count = getUserIDCountInValue(u.id)
+
+            return (
+              <Chip
+                key={u.id}
+                label={u.name}
+                sx={{ m: 0.5 }}
+                color={getChipColor(u.id, count)}
+                onClick={() => {
+                  setShift({
+                    ...shift,
+                    userID: u.id,
+                  })
+                }}
+                icon={
+                  count > 0 ? (
+                    <Avatar
+                      sx={{
+                        width: 22,
+                        height: 22,
+                        fontSize: 15,
+                        bgcolor: green[200],
+                      }}
+                    >
+                      {count}
+                    </Avatar>
+                  ) : undefined
+                }
+              />
+            )
+          })}
         </Grid>
 
         <Grid item xs={12}>
