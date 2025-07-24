@@ -8,6 +8,7 @@ require (
 	github.com/coreos/go-oidc/v3 v3.14.1
 	github.com/creack/pty/v2 v2.0.1
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
+	github.com/deckarep/golang-set/v2 v2.8.0
 	github.com/emersion/go-smtp v0.23.0
 	github.com/expr-lang/expr v1.17.5
 	github.com/fatih/color v1.18.0
