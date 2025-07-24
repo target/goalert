@@ -2904,6 +2904,51 @@ func (q *Queries) IntKeyInsertSignalMessage(ctx context.Context, arg IntKeyInser
 	return err
 }
 
+const intKeyLog = `-- name: IntKeyLog :exec
+INSERT INTO uik_logs (
+    integration_key_id,
+    content_type,
+    user_agent,
+    raw_body,
+    status,
+    error_message,
+    received_at
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7
+)
+ON CONFLICT (integration_key_id) DO UPDATE
+SET
+    content_type = EXCLUDED.content_type,
+    user_agent = EXCLUDED.user_agent,
+    raw_body = EXCLUDED.raw_body,
+    status = EXCLUDED.status,
+    error_message = EXCLUDED.error_message,
+    received_at = EXCLUDED.received_at
+`
+
+type IntKeyLogParams struct {
+	IntegrationKeyID uuid.UUID
+	ContentType      sql.NullString
+	UserAgent        sql.NullString
+	RawBody          []byte
+	Status           string
+	ErrorMessage     sql.NullString
+	ReceivedAt       time.Time
+}
+
+func (q *Queries) IntKeyLog(ctx context.Context, arg IntKeyLogParams) error {
+	_, err := q.db.ExecContext(ctx, intKeyLog,
+		arg.IntegrationKeyID,
+		arg.ContentType,
+		arg.UserAgent,
+		arg.RawBody,
+		arg.Status,
+		arg.ErrorMessage,
+		arg.ReceivedAt,
+	)
+	return err
+}
+
 const intKeyPromoteSecondary = `-- name: IntKeyPromoteSecondary :one
 UPDATE
     uik_config
