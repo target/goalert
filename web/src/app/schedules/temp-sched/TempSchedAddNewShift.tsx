@@ -9,6 +9,7 @@ import {
   Popover,
   IconButton,
   ButtonGroup,
+  useTheme,
 } from '@mui/material'
 import Typography from '@mui/material/Typography'
 import ToggleIcon from '@mui/icons-material/CompareArrows'
@@ -25,7 +26,6 @@ import ClickableText from '../../util/ClickableText'
 import NumberField from '../../util/NumberField'
 import { fmtLocal } from '../../util/timeFormat'
 import { User } from 'web/src/schema'
-import { green } from '@mui/material/colors'
 import {
   ArrowRight,
   ShuffleVariant,
@@ -105,6 +105,7 @@ export default function TempSchedAddNewShift({
   isCustomShiftTimeRange,
   setIsCustomShiftTimeRange,
 }: AddShiftsStepProps): JSX.Element {
+  const theme = useTheme()
   const [submitted, setSubmitted] = useState(false)
 
   const [manualEntry, setManualEntry] = useState(true)
@@ -228,10 +229,7 @@ export default function TempSchedAddNewShift({
     return 0
   }
 
-  const users = useMemo(
-    () => associatedUsers.sort(sortFn),
-    [associatedUsers, sortType],
-  )
+  const users = useMemo(() => associatedUsers.sort(sortFn), [sortType])
 
   return (
     <FormContainer
@@ -325,7 +323,10 @@ export default function TempSchedAddNewShift({
                         width: 22,
                         height: 22,
                         fontSize: 15,
-                        bgcolor: green[200],
+                        bgcolor:
+                          theme.palette.mode === 'dark'
+                            ? theme.palette.success.dark
+                            : theme.palette.success.light,
                       }}
                     >
                       {count}
