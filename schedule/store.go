@@ -107,7 +107,21 @@ func NewStore(ctx context.Context, db *sql.DB, usr *user.Store) (*Store, error) 
 			DO UPDATE SET data = jsonb_set(
 					COALESCE(schedule_data.data, '{}'),
 					'{user_ids}',
-					to_jsonb($2::text[]),
+					to_jsonb(
+							(
+									SELECT ARRAY(
+											SELECT unnest($2::text[])
+											UNION ALL
+											SELECT u
+											FROM unnest(
+													COALESCE((
+															SELECT jsonb_array_elements_text(schedule_data.data->'user_ids')
+													)::text[], '{}')
+											) AS u
+											WHERE u <> ALL($2::text[])
+									)
+							)
+					),
 					true
 			);
 		`),
