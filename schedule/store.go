@@ -107,21 +107,21 @@ func NewStore(ctx context.Context, db *sql.DB, usr *user.Store) (*Store, error) 
 			DO UPDATE SET data = jsonb_set(
 					COALESCE(schedule_data.data, '{}'),
 					'{user_ids}',
-					to_jsonb(
-							(
-									SELECT ARRAY(
-											SELECT unnest($2::text[])
+					to_jsonb((
+							SELECT ARRAY(
+									SELECT * FROM (
+											SELECT unnest($2::text[]) AS user_id
 											UNION ALL
-											SELECT u
-											FROM unnest(
-													COALESCE((
-															SELECT jsonb_array_elements_text(schedule_data.data->'user_ids')
-													)::text[], '{}')
-											) AS u
-											WHERE u <> ALL($2::text[])
-									)
+											SELECT user_id
+											FROM (
+													SELECT jsonb_array_elements_text(sd.data->'user_ids') AS user_id
+													FROM schedule_data sd
+													WHERE sd.schedule_id = $1
+											) existing
+											WHERE user_id <> ALL($2::text[])
+									) merged
 							)
-					),
+					)),
 					true
 			);
 		`),
