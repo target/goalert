@@ -41,6 +41,8 @@ interface TempSchedFormProps {
   setShowForm: React.Dispatch<React.SetStateAction<boolean>>
   shift: Shift
   setShift: React.Dispatch<React.SetStateAction<Shift>>
+  isCustomShiftTimeRange: boolean
+  setIsCustomShiftTimeRange: (bool: boolean) => void
 }
 
 export default function TempSchedForm(props: TempSchedFormProps): JSX.Element {
@@ -55,6 +57,8 @@ export default function TempSchedForm(props: TempSchedFormProps): JSX.Element {
     setShowForm,
     shift,
     setShift,
+    isCustomShiftTimeRange,
+    setIsCustomShiftTimeRange,
   } = props
 
   const classes = useStyles()
@@ -71,14 +75,22 @@ export default function TempSchedForm(props: TempSchedFormProps): JSX.Element {
   return (
     <Grid item xs={12} md={6} container alignContent='flex-start' spacing={2}>
       <Grid item xs={12}>
-        <DialogContentText className={classes.contentText}>
-          The schedule will be exactly as configured here for the entire
-          duration (ignoring all assignments and overrides).
+        <DialogContentText
+          className={classes.contentText}
+          sx={{ color: 'white' }}
+        >
+          Once submitted, the schedule will be exactly as configured here for
+          the entire duration. All overrides and current assignments will be
+          ignored.
         </DialogContentText>
       </Grid>
 
       <Grid item xs={12}>
-        <Typography color='textSecondary' className={classes.tzNote}>
+        <Typography
+          variant='caption'
+          color='textSecondary'
+          className={classes.tzNote}
+        >
           Times shown in schedule timezone ({zone})
         </Typography>
       </Grid>
@@ -166,6 +178,8 @@ export default function TempSchedForm(props: TempSchedFormProps): JSX.Element {
         <Divider />
       </Grid>
 
+      <Grid item xs={12} />
+
       <Grid item xs={12} className={classes.sticky}>
         <TempSchedAddNewShift
           associatedUsers={associatedUsers}
@@ -176,6 +190,8 @@ export default function TempSchedForm(props: TempSchedFormProps): JSX.Element {
           setShowForm={setShowForm}
           shift={shift}
           setShift={setShift}
+          isCustomShiftTimeRange={isCustomShiftTimeRange}
+          setIsCustomShiftTimeRange={setIsCustomShiftTimeRange}
         />
       </Grid>
     </Grid>

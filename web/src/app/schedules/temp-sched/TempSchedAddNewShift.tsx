@@ -26,6 +26,8 @@ type AddShiftsStepProps = {
   setShowForm: (showForm: boolean) => void
   shift: Shift
   setShift: (shift: Shift) => void
+  isCustomShiftTimeRange: boolean
+  setIsCustomShiftTimeRange: (bool: boolean) => void
 }
 
 type DTShift = {
@@ -79,10 +81,12 @@ export default function TempSchedAddNewShift({
   value,
   shift,
   setShift,
+  isCustomShiftTimeRange,
+  setIsCustomShiftTimeRange,
 }: AddShiftsStepProps): JSX.Element {
   const [submitted, setSubmitted] = useState(false)
 
-  const [custom, setCustom] = useState(false)
+  // const [custom, setCustom] = useState(false)
   const [manualEntry, setManualEntry] = useState(true)
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
 
@@ -141,7 +145,7 @@ export default function TempSchedAddNewShift({
       start: shift.end,
       end: end.plus(value.shiftDur as Duration).toISO(),
     })
-    setCustom(false)
+    setIsCustomShiftTimeRange(false)
     setSubmitted(false)
   }
 
@@ -153,7 +157,11 @@ export default function TempSchedAddNewShift({
     >
       <Grid container spacing={2}>
         <Grid item xs={12}>
-          <Typography color='textSecondary'>Add Shift</Typography>
+          <Typography>Add Shift</Typography>
+          <Typography variant='caption' color='textSecondary'>
+            Showing all users assigned to this schedule. Select a user to add to
+            the next shift.
+          </Typography>
         </Grid>
 
         <Grid item xs={12}>
@@ -176,19 +184,46 @@ export default function TempSchedAddNewShift({
           <FormField
             fullWidth
             component={UserSelect}
-            label='Select a User'
+            label='Search for a user...'
             name='userID'
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid item xs={6}>
           <FormControlLabel
-            control={<Checkbox checked={custom} data-cy='toggle-custom' />}
+            control={
+              <Checkbox
+                checked={!isCustomShiftTimeRange}
+                data-cy='toggle-custom-off'
+              />
+            }
             label={
-              <Typography color='textSecondary' sx={{ fontStyle: 'italic' }}>
-                Configure custom shift
+              <Typography
+                color={!isCustomShiftTimeRange ? 'default' : 'textSecondary'}
+                sx={{ fontStyle: 'italic' }}
+              >
+                Add user to next shift
               </Typography>
             }
-            onChange={() => setCustom(!custom)}
+            onChange={() => setIsCustomShiftTimeRange(false)}
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={isCustomShiftTimeRange}
+                data-cy='toggle-custom'
+              />
+            }
+            label={
+              <Typography
+                color={isCustomShiftTimeRange ? 'default' : 'textSecondary'}
+                sx={{ fontStyle: 'italic' }}
+              >
+                Add user to custom time range
+              </Typography>
+            }
+            onChange={() => setIsCustomShiftTimeRange(true)}
           />
         </Grid>
         <Grid item xs={6}>
@@ -214,7 +249,7 @@ export default function TempSchedAddNewShift({
               return value
             }}
             timeZone={zone}
-            disabled={q.loading || !custom}
+            disabled={q.loading || !isCustomShiftTimeRange}
             hint={isLocalZone ? '' : fmtLocal(value?.start)}
           />
         </Grid>
@@ -231,7 +266,7 @@ export default function TempSchedAddNewShift({
                 .plus({ year: 1 })
                 .toISO()}
               hint={
-                custom ? (
+                isCustomShiftTimeRange ? (
                   <React.Fragment>
                     {!isLocalZone && fmtLocal(value?.end)}
                     <div>
@@ -247,7 +282,7 @@ export default function TempSchedAddNewShift({
                 ) : null
               }
               timeZone={zone}
-              disabled={q.loading || !custom}
+              disabled={q.loading || !isCustomShiftTimeRange}
             />
           ) : (
             <FormField
@@ -278,9 +313,9 @@ export default function TempSchedAddNewShift({
               }}
               step='any'
               min={0}
-              disabled={q.loading || !custom}
+              disabled={q.loading || !isCustomShiftTimeRange}
               hint={
-                custom ? (
+                isCustomShiftTimeRange ? (
                   <ClickableText
                     data-cy='toggle-duration-off'
                     onClick={() => setManualEntry(true)}
@@ -295,12 +330,13 @@ export default function TempSchedAddNewShift({
         </Grid>
         <Grid item xs={12} container justifyContent='flex-end'>
           <Button
+            fullWidth
             data-cy='add-shift'
             color='secondary'
             variant='contained'
             onClick={handleAddShift}
           >
-            Add
+            Add Next Shift
           </Button>
         </Grid>
       </Grid>

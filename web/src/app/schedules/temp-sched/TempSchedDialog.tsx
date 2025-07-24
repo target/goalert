@@ -48,6 +48,9 @@ function shiftEquals(a: Shift, b: Shift): boolean {
 const useStyles = makeStyles((theme: Theme) => ({
   formContainer: {
     height: '100%',
+    marginTop: '-16px',
+    paddingLeft: '.5rem',
+    paddingRight: '.5rem',
   },
   noCoverageError: {
     marginTop: '.5rem',
@@ -58,7 +61,7 @@ const useStyles = makeStyles((theme: Theme) => ({
       marginTop: '1rem',
     },
     [theme.breakpoints.up('md')]: {
-      paddingLeft: '1rem',
+      paddingLeft: '4rem',
     },
     overflow: 'hidden',
   },
@@ -97,6 +100,7 @@ export default function TempSchedDialog({
   const { q, zone } = useScheduleTZ(scheduleID)
   const now = useMemo(() => DateTime.utc().startOf('minute').toISO(), [])
   const [showForm, setShowForm] = useState(false)
+  const [isCustomShiftTimeRange, setIsCustomShiftTimeRange] = useState(false)
 
   const [{ fetching: fetchingUsers, error: errorUsers, data: dataUsers }] =
     useQuery({
@@ -185,6 +189,7 @@ export default function TempSchedDialog({
     const nextStart = coverageGap?.start
     const nextEnd = nextStart.plus(value.shiftDur)
 
+    setIsCustomShiftTimeRange(true)
     setShift({
       userID: shift?.userID ?? '',
       truncated: !!shift?.truncated,
@@ -329,6 +334,8 @@ export default function TempSchedDialog({
                   setShowForm={setShowForm}
                   shift={shift}
                   setShift={setShift}
+                  isCustomShiftTimeRange={isCustomShiftTimeRange}
+                  setIsCustomShiftTimeRange={setIsCustomShiftTimeRange}
                 />
 
                 {/* right pane */}
