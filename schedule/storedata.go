@@ -6,17 +6,17 @@ import (
 	"encoding/json"
 
 	"github.com/google/uuid"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/util/jsonutil"
 	"github.com/target/goalert/util/sqlutil"
 )
 
 func (store *Store) scheduleData(ctx context.Context, tx *sql.Tx, scheduleID uuid.UUID) (*Data, error) {
-	stmt := store.findData
+	db := gadb.New(store.db)
 	if tx != nil {
-		stmt = tx.StmtContext(ctx, stmt)
+		db = db.WithTx(tx)
 	}
-	var rawData json.RawMessage
-	err := stmt.QueryRowContext(ctx, scheduleID).Scan(&rawData)
+	rawData, err := db.SchedFindData(ctx, scheduleID)
 	if err == sql.ErrNoRows {
 		err = nil
 	}
@@ -46,14 +46,16 @@ func (store *Store) updateScheduleData(ctx context.Context, tx *sql.Tx, schedule
 		defer sqlutil.Rollback(ctx, "schedule: update data", tx)
 	}
 
+	db := gadb.New(store.db).WithTx(tx)
+
 	var rawData json.RawMessage
 	// Select for update, if it does not exist try inserting, if that fails due to a race, re-try select for update
-	err = tx.StmtContext(ctx, store.findUpdData).QueryRowContext(ctx, scheduleID).Scan(&rawData)
+	rawData, err = db.SchedFindDataForUpdate(ctx, scheduleID)
 	if err == sql.ErrNoRows {
-		_, err = tx.StmtContext(ctx, store.insertData).ExecContext(ctx, scheduleID)
+		err = db.SchedInsertData(ctx, scheduleID)
 		if isDataPkeyConflict(err) {
 			// insert happened after orig. select for update and our subsequent insert, re-try select for update
-			err = tx.StmtContext(ctx, store.findUpdData).QueryRowContext(ctx, scheduleID).Scan(&rawData)
+			rawData, err = db.SchedFindDataForUpdate(ctx, scheduleID)
 		}
 	}
 	if err != nil {
@@ -79,7 +81,10 @@ func (store *Store) updateScheduleData(ctx context.Context, tx *sql.Tx, schedule
 		return err
 	}
 
-	_, err = tx.StmtContext(ctx, store.updateData).ExecContext(ctx, scheduleID, rawData)
+	err = db.SchedUpdateData(ctx, gadb.SchedUpdateDataParams{
+		ScheduleID: scheduleID,
+		Data:       rawData,
+	})
 	if err != nil {
 		return err
 	}

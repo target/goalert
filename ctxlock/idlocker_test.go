@@ -81,7 +81,7 @@ func TestIDLocker_Timeout(t *testing.T) {
 }
 
 func TestIDLocker_CancelQueue(t *testing.T) {
-	l := ctxlock.NewIDLocker[string](ctxlock.Config{MaxWait: 10, Timeout: time.Millisecond})
+	l := ctxlock.NewIDLocker[string](ctxlock.Config{MaxWait: 10, Timeout: time.Second})
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

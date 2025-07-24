@@ -54,6 +54,9 @@ func (i *ignoreCancel) Handle(ctx context.Context, rec slog.Record) error {
 		if a.Key == "error" && a.Value.String() == "context canceled" {
 			shouldIgnore = true
 		}
+		if a.Key == "err" && a.Value.String() == "context canceled" {
+			shouldIgnore = true
+		}
 		return true
 	})
 	if shouldIgnore {
@@ -120,7 +123,7 @@ func (app *App) initRiver(ctx context.Context) error {
 		Prefix: "/admin/riverui",
 		DB:     app.pgx,
 		Client: app.River,
-		Logger: app.Logger.With("module", "riverui"),
+		Logger: slog.New(&ignoreCancel{h: app.Logger.With("module", "riverui").Handler()}),
 	}
 	app.RiverUI, err = riverui.NewServer(opts)
 	if err != nil {

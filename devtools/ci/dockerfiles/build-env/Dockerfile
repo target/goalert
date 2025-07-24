@@ -1,4 +1,4 @@
-FROM docker.io/library/golang:1.24.2-bookworm
+FROM docker.io/library/golang:1.24.5-bookworm
 
 RUN apt-get update && apt-get install -y \
     apt-transport-https \
