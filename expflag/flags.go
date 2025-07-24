@@ -7,13 +7,13 @@ type Flag string
 const (
 	Example  Flag = "example"
 	UnivKeys Flag = "univ-keys"
-	UikLogs  Flag = "uik-logs"
+	UIKDebug Flag = "uik-debug"
 )
 
 var desc = map[Flag]string{
 	Example:  "An example experimental flag to demonstrate usage.",
 	UnivKeys: "Universal integration key support.",
-	UikLogs:  "Logs support for universal integration keys.",
+	UIKDebug: "Enables support for recording recent requests for universal integration keys.",
 }
 
 // AllFlags returns a slice of all experimental flags sorted by name.
