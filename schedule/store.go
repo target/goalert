@@ -417,6 +417,11 @@ func (store *Store) SetTempSchedPickOrder(ctx context.Context, scheduleID string
 		return false, err
 	}
 
+	err = validate.ManyUUID("UserID", userIDs, 200)
+	if err != nil {
+		return false, err
+	}
+
 	_, err = store.setTempSchedPickOrder.ExecContext(ctx, scheduleID, userIDs)
 	if err != nil {
 		return false, err
