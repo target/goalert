@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/gadb"
@@ -91,6 +92,10 @@ func (q *Query) Services(ctx context.Context, opts *graphql2.ServiceSearchOption
 	}
 	conn.Nodes = svcs
 	return conn, err
+}
+func (s *Service) RecentEvents(ctx context.Context, obj *service.Service, opts *graphql2.AlertRecentEventsOptions) (*graphql2.AlertLogEntryConnection, error) {
+	id := uuid.MustParse(obj.ID)
+	return (*App)(s).RecentAlertEvents(ctx, opts, alertlog.SearchOptions{FilterServiceID: &id})
 }
 
 func (s *Service) AlertStats(ctx context.Context, svc *service.Service, input *graphql2.ServiceAlertStatsOptions) (*graphql2.AlertStats, error) {
