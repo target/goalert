@@ -6,6 +6,9 @@ import {
   Chip,
   FormControlLabel,
   Grid,
+  Popover,
+  IconButton,
+  ButtonGroup,
 } from '@mui/material'
 import Typography from '@mui/material/Typography'
 import ToggleIcon from '@mui/icons-material/CompareArrows'
@@ -23,7 +26,12 @@ import NumberField from '../../util/NumberField'
 import { fmtLocal } from '../../util/timeFormat'
 import { User } from 'web/src/schema'
 import { green } from '@mui/material/colors'
-import { ArrowRight } from 'mdi-material-ui'
+import {
+  ArrowRight,
+  ShuffleVariant,
+  SortAlphabeticalAscending,
+  SortAlphabeticalDescending,
+} from 'mdi-material-ui'
 
 type AddShiftsStepProps = {
   value: TempSchedValue
@@ -38,6 +46,8 @@ type AddShiftsStepProps = {
   isCustomShiftTimeRange: boolean
   setIsCustomShiftTimeRange: (bool: boolean) => void
 }
+
+type SortType = 'A-Z' | 'Z-A' | 'RAND'
 
 type DTShift = {
   userID: string
@@ -95,9 +105,24 @@ export default function TempSchedAddNewShift({
 }: AddShiftsStepProps): JSX.Element {
   const [submitted, setSubmitted] = useState(false)
 
-  // const [custom, setCustom] = useState(false)
   const [manualEntry, setManualEntry] = useState(true)
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
+
+  const [sortType, setSortType] = useState<SortType>('A-Z')
+  const [sortTypeAnchor, setSortTypeAnchor] =
+    useState<HTMLButtonElement | null>(null)
+  const sortPopoverOpen = Boolean(sortTypeAnchor)
+  const sortTypeID = sortPopoverOpen ? 'sort-type-select' : undefined
+
+  const handleFilterTypeClick = (
+    event: React.MouseEvent<HTMLButtonElement>,
+  ): void => {
+    setSortTypeAnchor(event.currentTarget)
+  }
+
+  const handleFilterTypeClose = (): void => {
+    setSortTypeAnchor(null)
+  }
 
   // set start equal to the temporary schedule's start
   // can't this do on mount since the step renderer puts everyone on the DOM at once
@@ -173,6 +198,11 @@ export default function TempSchedAddNewShift({
     return 'default'
   }
 
+  function handleSetSortType(sortType: SortType): void {
+    setSortType(sortType)
+    setSortTypeAnchor(null)
+  }
+
   return (
     <FormContainer
       errors={fieldErrors()}
@@ -180,8 +210,62 @@ export default function TempSchedAddNewShift({
       onChange={(val: Shift) => setShift(val)}
     >
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid item xs={12} sx={{ display: 'flex', alignItems: 'center' }}>
           <Typography>Add Shift</Typography>
+          <IconButton
+            aria-describedby={sortTypeID}
+            onClick={handleFilterTypeClick}
+            color='primary'
+            size='small'
+            sx={{ ml: 0.5 }}
+          >
+            {sortType === 'A-Z' && (
+              <SortAlphabeticalAscending fontSize='small' />
+            )}
+            {sortType === 'Z-A' && (
+              <SortAlphabeticalDescending fontSize='small' />
+            )}
+            {sortType === 'RAND' && <ShuffleVariant fontSize='small' />}
+          </IconButton>
+          <Popover
+            id={sortTypeID}
+            open={sortPopoverOpen}
+            anchorEl={sortTypeAnchor}
+            onClose={handleFilterTypeClose}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'left',
+            }}
+          >
+            <ButtonGroup orientation='vertical' variant='text'>
+              <Button
+                key='a-z'
+                onClick={() => handleSetSortType('A-Z')}
+                startIcon={<SortAlphabeticalAscending fontSize='small' />}
+                sx={{ justifyContent: 'start', pl: 2, pr: 2 }}
+              >
+                Sort A-Z
+              </Button>
+              <Button
+                key='z-a'
+                onClick={() => handleSetSortType('Z-A')}
+                startIcon={<SortAlphabeticalDescending fontSize='small' />}
+                sx={{ justifyContent: 'start', pl: 2, pr: 2 }}
+              >
+                Sort Z-A
+              </Button>
+              <Button
+                key='rand'
+                onClick={() => handleSetSortType('RAND')}
+                startIcon={<ShuffleVariant fontSize='small' />}
+                sx={{ justifyContent: 'start', pl: 2, pr: 2 }}
+              >
+                Sort Randomly
+              </Button>
+            </ButtonGroup>
+          </Popover>
+        </Grid>
+        <Grid item xs={12} sx={{ mt: '-16px' }}>
           <Typography variant='caption' color='textSecondary'>
             Showing all users assigned to this schedule. Select a user to add to
             the next shift.
