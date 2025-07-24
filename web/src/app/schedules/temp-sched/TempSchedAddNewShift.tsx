@@ -23,6 +23,7 @@ import NumberField from '../../util/NumberField'
 import { fmtLocal } from '../../util/timeFormat'
 import { User } from 'web/src/schema'
 import { green } from '@mui/material/colors'
+import { ArrowRight } from 'mdi-material-ui'
 
 type AddShiftsStepProps = {
   value: TempSchedValue
@@ -377,6 +378,7 @@ export default function TempSchedAddNewShift({
             color='secondary'
             variant='contained'
             onClick={handleAddShift}
+            endIcon={<ArrowRight />}
           >
             Add Next Shift
           </Button>
