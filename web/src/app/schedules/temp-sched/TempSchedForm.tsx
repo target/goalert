@@ -1,12 +1,5 @@
 import React, { useMemo } from 'react'
-import {
-  Grid,
-  DialogContentText,
-  Typography,
-  TextField,
-  MenuItem,
-  Divider,
-} from '@mui/material'
+import { Grid, Typography, TextField, MenuItem, Divider } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { DateTime, Duration } from 'luxon'
 import { FormField, FormContainer } from '../../forms'
@@ -75,14 +68,11 @@ export default function TempSchedForm(props: TempSchedFormProps): JSX.Element {
   return (
     <Grid item xs={12} md={6} container alignContent='flex-start' spacing={2}>
       <Grid item xs={12}>
-        <DialogContentText
-          className={classes.contentText}
-          sx={{ color: 'white' }}
-        >
+        <Typography>
           Once submitted, the schedule will be exactly as configured here for
           the entire duration. All overrides and current assignments will be
           ignored.
-        </DialogContentText>
+        </Typography>
       </Grid>
 
       <Grid item xs={12}>
