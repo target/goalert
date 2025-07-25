@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 	"net/mail"
 	"net/url"
@@ -14,6 +13,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -27,8 +27,12 @@ type mailpit struct {
 	cleanup  func() error
 }
 
-func newMailpit(t *testing.T, retry int) (mp *mailpit) {
+var mailpitStartLock sync.Mutex
+
+func newMailpit(t *testing.T) (mp *mailpit) {
 	t.Helper()
+	mailpitStartLock.Lock()
+	defer mailpitStartLock.Unlock()
 
 	addrs, err := findOpenPorts(2)
 	require.NoError(t, err, "expected to find open ports for mailpit")
@@ -45,17 +49,11 @@ func newMailpit(t *testing.T, retry int) (mp *mailpit) {
 	require.Eventually(t, func() bool {
 		// check if the process is still running
 		if cmd.ProcessState != nil && cmd.ProcessState.Exited() {
-			if retry > 0 && strings.Contains(output.String(), "address already in use") {
-				// small random delay, in case of conflict
-				time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
-				mp = newMailpit(t, retry-1)
-				return true
-			}
 			t.Error(output.String())
 			return false
 		}
 		return isListening(addrs[0]) && isListening(addrs[1])
-	}, 15*time.Second, 100*time.Millisecond, "expected to find mailpit listening on ports")
+	}, 30*time.Second, 100*time.Millisecond, "expected to find mailpit listening on ports")
 
 	t.Cleanup(func() { _ = cmd.Process.Kill() })
 	return &mailpit{
