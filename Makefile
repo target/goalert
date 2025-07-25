@@ -145,7 +145,7 @@ swo/swodb/queries.sql.go: sqlc.yaml swo/*/*.sql migrate/migrations/*.sql */queri
 	$(SQLC) generate
 
 .PHONY: build-env-test-all
-build-env-test-all:
+build-env-test-all: ## Build the test environment and run all tests
 	docker build -t goalert-env-test devtools/ci/dockerfiles/build-env
 	mkdir -p bin/container/bin bin/container/ui-build bin/container/cypress bin/container/node_modules bin/container/storybook bin/container/coverage bin/container/cache bin/container/bun-cache bin/container/go-cache bin/container/smoke-db-dump
 	docker run -it --rm \
