@@ -14,4 +14,5 @@ image_resource:
 run:
   path: sh
   dir: goalert
+  user: root # needed for now due to how the input is mounted
   args: [-e, ./devtools/ci/tasks/scripts/build-all.sh, ../bin/]
