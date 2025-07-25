@@ -147,8 +147,7 @@ swo/swodb/queries.sql.go: sqlc.yaml swo/*/*.sql migrate/migrations/*.sql */queri
 .PHONY: build-env-test-all
 build-env-test-all:
 	docker build -t goalert-env-test devtools/ci/dockerfiles/build-env
-	rm -rf bin/container
-	mkdir -p bin/container/bin bin/container/ui-build bin/container/cypress bin/container/node_modules bin/container/storybook bin/container/coverage bin/container/cache bin/container/bun-cache
+	mkdir -p bin/container/bin bin/container/ui-build bin/container/cypress bin/container/node_modules bin/container/storybook bin/container/coverage bin/container/cache bin/container/bun-cache bin/container/go-cache bin/container/smoke-db-dump
 	docker run -it --rm \
 		-e PG_VERSION=$(PG_VERSION) \
 		-e IGNORE_CHANGES=$(IGNORE_CHANGES) \
@@ -161,6 +160,8 @@ build-env-test-all:
 		-v $(PWD)/bin/container/coverage:/goalert/test/coverage \
 		-v $(PWD)/bin/container/cache:/home/user/.cache \
 		-v $(PWD)/bin/container/bun-cache:/home/user/.bun \
+		-v $(PWD)/bin/container/go-cache:/go/pkg/mod \
+		-v $(PWD)/bin/container/smoke-db-dump:/goalert/test/smoke/smoketest_db_dump \
 		-w /goalert \
 		goalert-env-test \
 		/goalert/devtools/ci/tasks/scripts/build-all.sh
@@ -265,7 +266,7 @@ test-components:  $(NODE_DEPS)
 	$(BIN_DIR)/tools/bun run build-storybook --test --quiet 2>/dev/null
 	$(BIN_DIR)/tools/bun run playwright install chromium
 	$(BIN_DIR)/tools/bun run concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
-		"$(BIN_DIR)/tools/bun run http-server storybook-static -a 127.0.0.1 --port 6008 --silent" \
+		"$(BIN_DIR)/tools/bun run serve -l tcp://127.0.0.1:6008 -L storybook-static" \
 		"$(WAITFOR) tcp://localhost:6008 && $(BIN_DIR)/tools/bun run test-storybook --ci --url http://127.0.0.1:6008 --maxWorkers 2"
 
 storybook: $(NODE_DEPS) # Start the Storybook UI
