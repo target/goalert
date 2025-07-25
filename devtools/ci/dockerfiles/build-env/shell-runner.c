@@ -31,9 +31,17 @@ int main(int argc, char *argv[])
     }
     
     if (strcmp(program_name, "start_postgres") == 0) {
-        execl("/bin/sh", "sh", "/opt/start_postgres.sh", (char *)NULL);
+        if (argc > 1) {
+            execl("/bin/sh", "sh", "/opt/start_postgres.sh", argv[1], (char *)NULL);
+        } else {
+            execl("/bin/sh", "sh", "/opt/start_postgres.sh", (char *)NULL);
+        }
     } else if (strcmp(program_name, "stop_postgres") == 0) {
-        execl("/bin/sh", "sh", "/opt/stop_postgres.sh", (char *)NULL);
+        if (argc > 1) {
+            execl("/bin/sh", "sh", "/opt/stop_postgres.sh", argv[1], (char *)NULL);
+        } else {
+            execl("/bin/sh", "sh", "/opt/stop_postgres.sh", (char *)NULL);
+        }
     } else {
         fprintf(stderr, "Unknown program name: %s\n", program_name);
         return 1;
