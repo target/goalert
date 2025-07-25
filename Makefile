@@ -144,6 +144,24 @@ cy-mobile-prod-run: web/src/build/static/app.js cypress ## Start cypress tests i
 swo/swodb/queries.sql.go: sqlc.yaml swo/*/*.sql migrate/migrations/*.sql */queries.sql */*/queries.sql migrate/schema.sql
 	$(SQLC) generate
 
+.PHONY: build-env-test-all
+build-env-test-all:
+	docker build -t goalert-env-test devtools/ci/dockerfiles/build-env
+	rm -rf bin/container
+	mkdir -p bin/container/bin bin/container/ui-build bin/container/cypress bin/container/node_modules bin/container/storybook bin/container/coverage bin/container/cypress-cache
+	docker run -it --rm \
+		-v $(PWD):/goalert \
+		-v $(PWD)/bin/container/bin:/goalert/bin \
+		-v $(PWD)/bin/container/ui-build:/goalert/web/src/build/static \
+		-v $(PWD)/bin/container/cypress:/goalert/cypress \
+		-v $(PWD)/bin/container/node_modules:/goalert/node_modules \
+		-v $(PWD)/bin/container/storybook:/goalert/storybook-static \
+		-v $(PWD)/bin/container/coverage:/goalert/test/coverage \
+		-v $(PWD)/bin/container/cypress-cache:/home/user/.cache/Cypress \
+		-w /goalert \
+		goalert-env-test \
+		/goalert/devtools/ci/tasks/scripts/build-all.sh
+
 .PHONY: sqlc
 sqlc:
 	$(SQLC) generate

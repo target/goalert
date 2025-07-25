@@ -18,6 +18,6 @@ fi
 echo "Starting PostgreSQL $VERSION"
 
 export PGDATA=/var/lib/postgresql/$VERSION/data
-su postgres -c "/usr/lib/postgresql/$VERSION/bin/pg_ctl start -w -l /var/log/postgresql/$VERSION/server.log"
+/usr/lib/postgresql/$VERSION/bin/pg_ctl start -w -l /var/log/postgresql/$VERSION/server.log
 
 echo "$VERSION" >/var/lib/postgresql/.version

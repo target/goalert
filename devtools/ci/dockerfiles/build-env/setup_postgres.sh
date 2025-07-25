@@ -13,3 +13,4 @@ for VERSION in $*; do
     echo "fsync = off" >>$PGDATA/postgresql.conf
     echo "full_page_writes = off" >>$PGDATA/postgresql.conf
 done
+chown -R postgres:postgres /var/lib/postgresql
