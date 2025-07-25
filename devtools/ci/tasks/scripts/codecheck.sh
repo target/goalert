@@ -60,5 +60,9 @@ CHANGES=$(git status -s --porcelain)
 if test "$CHANGES" != ""; then
   echo "Found changes in git:"
   echo "$CHANGES"
-  exit 1
+  
+  # ignore if IGNORE_CHANGES is set
+  if [ -z "$IGNORE_CHANGES" ]; then
+    exit 1
+  fi
 fi
