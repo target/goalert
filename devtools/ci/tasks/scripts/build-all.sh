@@ -2,7 +2,7 @@
 set -ex
 PREFIX=$1
 
-start_postgres
+start_postgres $PG_VERSION
 trap "stop_postgres" EXIT
 
 make check test-all bin/goalert BUNDLE=1 CI=1 DB_URL=$DB_URL
