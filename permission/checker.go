@@ -3,29 +3,10 @@ package permission
 import (
 	"context"
 	"strings"
-	"sync/atomic"
 )
 
 // A Checker is used to give a pass-or-fail result for a given context.
 type Checker func(context.Context) bool
-
-func checkLimit(ctx context.Context) error {
-	n, ok := ctx.Value(contextKeyCheckCount).(*uint64)
-	if !ok {
-		return newGeneric(false, "invalid auth context for check limit")
-	}
-	max, ok := ctx.Value(contextKeyCheckCountMax).(uint64)
-	if !ok {
-		return newGeneric(false, "invalid auth context for max check limit")
-	}
-
-	v := atomic.AddUint64(n, 1) // always add
-	if max > 0 && v > max {
-		return newGeneric(false, "exceeded auth check limit")
-	}
-
-	return nil
-}
 
 // LimitCheckAny will return a permission error if none of the checks pass, or
 // if the auth check limit is reached. If no checks are provided, only
@@ -35,12 +16,6 @@ func checkLimit(ctx context.Context) error {
 func LimitCheckAny(ctx context.Context, checks ...Checker) error {
 	if !All(ctx) {
 		return newGeneric(true, "")
-	}
-
-	// ensure we don't get hammered with auth checks (or DB calls, for example)
-	err := checkLimit(ctx)
-	if err != nil {
-		return err
 	}
 
 	if len(checks) == 0 {

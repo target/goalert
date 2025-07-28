@@ -253,9 +253,10 @@ func (a *App) Handler() http.Handler {
 		}
 
 		if errors.Is(err, context.Canceled) {
-			if calllimiter.WasLimited(ctx) {
+
+			if limited, num := calllimiter.WasLimited(ctx); limited {
 				return &gqlerror.Error{
-					Message: "Request canceled: external call limit reached for this request.",
+					Message: fmt.Sprintf("Request canceled: external call limit reached for this request. Total calls: %d", num),
 				}
 			}
 

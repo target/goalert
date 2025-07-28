@@ -2,45 +2,70 @@ package calllimiter
 
 import (
 	"context"
-	"sync/atomic"
+	"sync"
 )
 
 type CallLimiter struct {
-	allowed int64
-	c       chan struct{}
+	c *sync.Cond
+
+	maxCalls int
+	numCalls int
+
+	maxActive int
+	numActive int
 }
 
 func (c *CallLimiter) Allow() bool {
 	if c == nil {
 		return true // no limit
 	}
-	c.c <- struct{}{}
-	return atomic.AddInt64(&c.allowed, -1) >= 0
+	c.c.L.Lock()
+	defer c.c.L.Unlock()
+	c.numCalls++
+	c.c.Broadcast()
+	for {
+		if c.numCalls > c.maxCalls {
+			return false
+		}
+		if c.numActive < c.maxActive {
+			c.numActive++
+			c.c.Broadcast()
+			return true
+		}
+		c.c.Wait()
+	}
 }
 
 func (c *CallLimiter) Release() {
 	if c == nil {
 		return // no limit
 	}
-	<-c.c // release the slot
+	c.c.L.Lock()
+	defer c.c.L.Unlock()
+	c.numActive--
+	c.c.Broadcast()
 }
 
 type callLimiterContextKey struct{}
 
 func NewCallLimiter(totalLimit, concurrent int) *CallLimiter {
 	return &CallLimiter{
-		allowed: int64(totalLimit),
-		c:       make(chan struct{}, concurrent),
+		c:         sync.NewCond(&sync.Mutex{}),
+		maxCalls:  totalLimit,
+		maxActive: concurrent,
 	}
 }
 
-func WasLimited(ctx context.Context) bool {
+func WasLimited(ctx context.Context) (bool, int) {
 	ql, ok := ctx.Value(callLimiterContextKey{}).(*CallLimiter)
 	if !ok {
-		return false
+		return false, -1
 	}
 
-	return atomic.LoadInt64(&ql.allowed) < 0
+	ql.c.L.Lock()
+	defer ql.c.L.Unlock()
+
+	return ql.numCalls > ql.maxCalls, ql.numCalls
 }
 
 func CallLimiterContext(ctx context.Context, totalLimit, concurrent int) context.Context {
