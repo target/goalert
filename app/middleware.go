@@ -9,6 +9,7 @@ import (
 	"github.com/felixge/httpsnoop"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/util/calllimiter"
 	"github.com/target/goalert/util/log"
 )
 
@@ -121,6 +122,20 @@ func authCheckLimit(max int) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			next.ServeHTTP(w, req.WithContext(
 				permission.AuthCheckCountContext(req.Context(), uint64(max)),
+			))
+		})
+	}
+}
+
+func queryLimit(maxTotalQueries, maxConcurrent int) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			if req.URL.Query().Get("trace") != "1" {
+				next.ServeHTTP(w, req)
+				return
+			}
+			next.ServeHTTP(w, req.WithContext(
+				calllimiter.CallLimiterContext(req.Context(), maxTotalQueries, maxConcurrent),
 			))
 		})
 	}

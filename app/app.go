@@ -54,6 +54,7 @@ import (
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/user/favorite"
 	"github.com/target/goalert/user/notificationrule"
+	"github.com/target/goalert/util/calllimiter"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 	"google.golang.org/grpc"
@@ -73,6 +74,8 @@ type App struct {
 	pgx    *pgxpool.Pool
 	l      net.Listener
 	events *sqlutil.Listener
+
+	httpClient *http.Client
 
 	doneCh chan struct{}
 
@@ -207,6 +210,9 @@ func NewApp(c Config, pool *pgxpool.Pool) (*App, error) {
 		cfg:    c,
 		doneCh: make(chan struct{}),
 		Logger: c.Logger,
+		httpClient: &http.Client{
+			Transport: calllimiter.RoundTripper(http.DefaultTransport),
+		},
 
 		EventBus: event.NewBus(c.Logger),
 	}

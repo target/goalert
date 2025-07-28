@@ -181,6 +181,7 @@ Available Flags:
 			poolCfg.MaxConns = int32(cfg.DBMaxOpen)
 			poolCfg.MinConns = int32(cfg.DBMaxIdle)
 			sqldrv.SetConfigRetries(poolCfg)
+			sqlutil.SetConfigQueryLimiterSupport(poolCfg)
 
 			pool, err = pgxpool.NewWithConfig(context.Background(), poolCfg)
 			if err != nil {

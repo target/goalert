@@ -73,6 +73,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 
 		// limit auth check counts (fail-safe for loops or DB access)
 		authCheckLimit(100),
+		queryLimit(4, 3),
 
 		// request logging
 		logRequest(app.cfg.LogRequests),
