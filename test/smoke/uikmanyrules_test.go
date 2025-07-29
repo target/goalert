@@ -62,7 +62,7 @@ func TestUIKManyRules(t *testing.T) {
 				Params: map[string]string{"message": "hello"},
 				Dest: dest{
 					Type: "builtin-slack-channel",
-					Args: map[string]string{"slack_channel_id": h.Slack().Channel(fmt.Sprintf("chan-%d", i)).ID()},
+					Args: map[string]string{"slack_channel_id": h.Slack().Channel("one channel").ID()},
 				},
 			}},
 		})
@@ -75,6 +75,4 @@ func TestUIKManyRules(t *testing.T) {
 		}
 	`, "test", vars)
 	require.Empty(t, resp.Errors)
-
-	t.Fail()
 }
