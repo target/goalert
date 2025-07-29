@@ -3,7 +3,6 @@ package calllimiter
 import (
 	"context"
 	"errors"
-	"sync/atomic"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -22,7 +21,7 @@ func (t *queryLimiterTracer) TraceQueryStart(ctx context.Context, conn *pgx.Conn
 	}
 
 	ctx, cancel := context.WithCancelCause(ctx)
-	cancel(&ErrCallLimitReached{NumCalls: int(atomic.LoadInt64(&l.numCalls))})
+	cancel(&ErrCallLimitReached{NumCalls: l.NumCalls()})
 	return ctx
 }
 

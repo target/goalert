@@ -8,7 +8,6 @@ import (
 
 	"github.com/felixge/httpsnoop"
 	"github.com/pkg/errors"
-	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/calllimiter"
 	"github.com/target/goalert/util/log"
 )
@@ -83,8 +82,6 @@ func logRequest(alwaysLog bool) func(http.Handler) http.Handler {
 				metrics.Code = 500
 			}
 
-			checks, _ := permission.AuthCheckCount(ctx)
-
 			extraFields := ctx.Value(reqInfoCtxKey).(*log.Fields)
 			ctx = log.WithFields(ctx, *extraFields)
 			status := metrics.Code
@@ -96,7 +93,7 @@ func logRequest(alwaysLog bool) func(http.Handler) http.Handler {
 				"req_bytes_length":  rLog.n,
 				"resp_elapsed_ms":   metrics.Duration.Seconds() * 1000,
 				"resp_status":       status,
-				"AuthCheckCount":    checks,
+				"external_calls":    calllimiter.FromContext(ctx).NumCalls(),
 			})
 
 			if serveError != nil {
@@ -117,21 +114,11 @@ func logRequest(alwaysLog bool) func(http.Handler) http.Handler {
 	}
 }
 
-func authCheckLimit(max int) func(http.Handler) http.Handler {
+func queryLimit(maxTotalQueries int) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			next.ServeHTTP(w, req.WithContext(
-				permission.AuthCheckCountContext(req.Context(), uint64(max)),
-			))
-		})
-	}
-}
-
-func queryLimit(maxTotalQueries, maxConcurrent int) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			next.ServeHTTP(w, req.WithContext(
-				calllimiter.CallLimiterContext(req.Context(), maxTotalQueries, maxConcurrent),
+				calllimiter.CallLimiterContext(req.Context(), maxTotalQueries),
 			))
 		})
 	}

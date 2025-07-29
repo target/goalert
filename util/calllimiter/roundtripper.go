@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"sync/atomic"
 )
 
 type roundTripper struct {
@@ -30,7 +29,7 @@ var ErrHTTPCallLimitReached = errors.New("HTTP call limit reached")
 func (r *roundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	l := FromContext(req.Context())
 	if !l.Allow() {
-		return nil, &ErrCallLimitReached{NumCalls: int(atomic.LoadInt64(&l.numCalls))}
+		return nil, &ErrCallLimitReached{NumCalls: l.NumCalls()}
 	}
 	return r.rt.RoundTrip(req)
 }

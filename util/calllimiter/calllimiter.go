@@ -10,6 +10,13 @@ type CallLimiter struct {
 	numCalls int64
 }
 
+func (c *CallLimiter) NumCalls() int {
+	if c == nil {
+		return 0 // no limit
+	}
+	return int(atomic.LoadInt64(&c.numCalls))
+}
+
 func (c *CallLimiter) Allow() bool {
 	if c == nil {
 		return true // no limit
@@ -23,7 +30,7 @@ func (c *CallLimiter) Allow() bool {
 
 type callLimiterContextKey struct{}
 
-func NewCallLimiter(totalLimit, concurrent int) *CallLimiter {
+func NewCallLimiter(totalLimit int) *CallLimiter {
 	return &CallLimiter{
 		maxCalls: int64(totalLimit),
 	}
@@ -38,8 +45,8 @@ func WasLimited(ctx context.Context) (bool, int) {
 	return num > ql.maxCalls, int(num)
 }
 
-func CallLimiterContext(ctx context.Context, totalLimit, concurrent int) context.Context {
-	return context.WithValue(ctx, callLimiterContextKey{}, NewCallLimiter(totalLimit, concurrent))
+func CallLimiterContext(ctx context.Context, totalLimit int) context.Context {
+	return context.WithValue(ctx, callLimiterContextKey{}, NewCallLimiter(totalLimit))
 }
 
 func FromContext(ctx context.Context) *CallLimiter {
