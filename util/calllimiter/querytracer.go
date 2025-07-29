@@ -1,12 +1,12 @@
-package sqlutil
+package calllimiter
 
 import (
 	"context"
 	"errors"
+	"sync/atomic"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/target/goalert/util/calllimiter"
 )
 
 type queryLimiterTracer struct{}
@@ -16,17 +16,17 @@ var _ pgx.QueryTracer = (*queryLimiterTracer)(nil)
 var ErrQueryLimitReached = errors.New("query limit reached")
 
 func (t *queryLimiterTracer) TraceQueryStart(ctx context.Context, conn *pgx.Conn, data pgx.TraceQueryStartData) context.Context {
-	if calllimiter.FromContext(ctx).Allow() {
+	l := FromContext(ctx)
+	if l.Allow() {
 		return ctx
 	}
 
 	ctx, cancel := context.WithCancelCause(ctx)
-	cancel(ErrQueryLimitReached)
+	cancel(&ErrCallLimitReached{NumCalls: int(atomic.LoadInt64(&l.numCalls))})
 	return ctx
 }
 
 func (t *queryLimiterTracer) TraceQueryEnd(ctx context.Context, conn *pgx.Conn, data pgx.TraceQueryEndData) {
-	calllimiter.FromContext(ctx).Release()
 }
 
 // SetConfigQueryLimiterSupport configures the pgxpool.Config to support query limiting.

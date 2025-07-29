@@ -8,8 +8,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/target/goalert/swo/swodb"
+	"github.com/target/goalert/util/calllimiter"
 	"github.com/target/goalert/util/sqldrv"
-	"github.com/target/goalert/util/sqlutil"
 )
 
 // NewAppPGXPool returns a pgxpool.Pool that will use the old database until the
@@ -23,7 +23,7 @@ func NewAppPGXPool(oldURL, nextURL string, maxOpen, maxIdle int) (*pgxpool.Pool,
 		return nil, fmt.Errorf("parse old URL: %w", err)
 	}
 	sqldrv.SetConfigRetries(cfg)
-	sqlutil.SetConfigQueryLimiterSupport(cfg)
+	calllimiter.SetConfigQueryLimiterSupport(cfg)
 	cfg.MaxConns = int32(maxOpen)
 	cfg.MinConns = int32(maxIdle)
 
@@ -32,7 +32,7 @@ func NewAppPGXPool(oldURL, nextURL string, maxOpen, maxIdle int) (*pgxpool.Pool,
 		return nil, fmt.Errorf("parse next URL: %w", err)
 	}
 	sqldrv.SetConfigRetries(nextCfg)
-	sqlutil.SetConfigQueryLimiterSupport(nextCfg)
+	calllimiter.SetConfigQueryLimiterSupport(nextCfg)
 	nextCfg.MaxConns = int32(maxOpen)
 	nextCfg.MinConns = int32(maxIdle)
 
