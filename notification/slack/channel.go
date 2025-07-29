@@ -52,6 +52,10 @@ var (
 )
 
 func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
+	if cfg.Client == nil {
+		return nil, errors.New("http client is required")
+	}
+
 	return &ChannelSender{
 		cfg: cfg,
 

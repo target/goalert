@@ -51,7 +51,7 @@ func TestChannelSender_LoadChannels(t *testing.T) {
 	cfg.Slack.AccessToken = "access_token"
 	ctx := cfg.Context(context.Background())
 
-	sender, err := NewChannelSender(ctx, Config{BaseURL: srv.URL})
+	sender, err := NewChannelSender(ctx, Config{BaseURL: srv.URL, Client: http.DefaultClient})
 	require.NoError(t, err)
 
 	ch, err := sender.loadChannels(ctx)
