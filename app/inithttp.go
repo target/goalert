@@ -72,7 +72,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 		},
 
 		// limit external calls (fail-safe for loops or DB access)
-		queryLimit(100),
+		extCallLimit(100),
 
 		// request logging
 		logRequest(app.cfg.LogRequests),

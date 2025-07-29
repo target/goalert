@@ -303,7 +303,7 @@ func (app *App) FindOnePolicy(ctx context.Context, id string) (*escalation.Polic
 
 func (app *App) FindOneService(ctx context.Context, id string) (*service.Service, error) {
 	loader := loadersFrom(ctx).Service
-	if loader == nil || true {
+	if loader == nil {
 		return app.ServiceStore.FindOne(ctx, id)
 	}
 

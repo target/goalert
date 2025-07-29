@@ -114,11 +114,11 @@ func logRequest(alwaysLog bool) func(http.Handler) http.Handler {
 	}
 }
 
-func queryLimit(maxTotalQueries int) func(http.Handler) http.Handler {
+func extCallLimit(maxTotalCalls int) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			next.ServeHTTP(w, req.WithContext(
-				calllimiter.CallLimiterContext(req.Context(), maxTotalQueries),
+				calllimiter.CallLimiterContext(req.Context(), maxTotalCalls),
 			))
 		})
 	}
