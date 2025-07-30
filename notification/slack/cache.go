@@ -71,6 +71,10 @@ func (c *ttlCache[K, V]) _Get(key K) (val V, ok bool) {
 	return val, false
 }
 
+// GetOrFill retrieves a value from the cache by key, or fills it by calling the provided function if not found or expired.
+// If another goroutine is already filling the same key, it waits for that operation to complete and returns the same result.
+// This prevents duplicate work and ensures only one goroutine executes the fill function for a given key at a time.
+// The value is cached with the configured TTL if the fill function succeeds (returns no error).
 func (c *ttlCache[K, V]) GetOrFill(key K, fn func() (V, error)) (val V, err error) {
 	c.mx.Lock()
 	item, ok := c._Get(key)
