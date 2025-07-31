@@ -31,6 +31,7 @@ import (
 	"github.com/target/goalert/swo"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/calllimiter"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqldrv"
 	"github.com/target/goalert/util/sqlutil"
@@ -181,6 +182,7 @@ Available Flags:
 			poolCfg.MaxConns = int32(cfg.DBMaxOpen)
 			poolCfg.MinConns = int32(cfg.DBMaxIdle)
 			sqldrv.SetConfigRetries(poolCfg)
+			calllimiter.SetConfigQueryLimiterSupport(poolCfg)
 
 			pool, err = pgxpool.NewWithConfig(context.Background(), poolCfg)
 			if err != nil {

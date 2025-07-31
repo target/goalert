@@ -52,6 +52,10 @@ var (
 )
 
 func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
+	if cfg.Client == nil {
+		return nil, errors.New("http client is required")
+	}
+
 	return &ChannelSender{
 		cfg: cfg,
 
@@ -250,27 +254,28 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 		return nil, fmt.Errorf("lookup team ID: %w", err)
 	}
 
-	ch := &Channel{TeamID: teamID}
-	err = s.withClient(ctx, func(c *slack.Client) error {
-		resp, err := c.GetConversationInfoContext(ctx,
-			&slack.GetConversationInfoInput{
-				ChannelID: channelID,
-			})
+	return s.chanCache.GetOrFill(channelID, func() (*Channel, error) {
+		ch := &Channel{TeamID: teamID}
+		err = s.withClient(ctx, func(c *slack.Client) error {
+			resp, err := c.GetConversationInfoContext(ctx,
+				&slack.GetConversationInfoInput{
+					ChannelID: channelID,
+				})
+			if err != nil {
+				return err
+			}
+
+			ch.ID = resp.ID
+			ch.Name = "#" + resp.Name
+			ch.IsArchived = resp.IsArchived
+
+			return nil
+		})
 		if err != nil {
-			return err
+			return nil, fmt.Errorf("lookup conversation info: %w", err)
 		}
-
-		ch.ID = resp.ID
-		ch.Name = "#" + resp.Name
-		ch.IsArchived = resp.IsArchived
-
-		return nil
+		return ch, nil
 	})
-	if err != nil {
-		return nil, fmt.Errorf("lookup conversation info: %w", err)
-	}
-
-	return ch, nil
 }
 
 // ListChannels will return a list of channels visible to the slack bot.

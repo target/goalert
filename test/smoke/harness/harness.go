@@ -876,7 +876,7 @@ func (h *Harness) WaitAndAssertOnCallUsers(serviceID string, userIDs ...string) 
 	check := func(t *assert.CollectT) {
 		ids := getUsers()
 		require.Lenf(t, ids, len(userIDs), "number of on-call users")
-		require.EqualValuesf(t, userIDs, ids, "on-call users")
+		require.ElementsMatch(t, userIDs, ids, "on-call users")
 	}
 	h.Trigger() // run engine cycle
 
