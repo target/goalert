@@ -34,7 +34,7 @@ func TestUpdateInfo_calcUpdates_NotifyOnChange(t *testing.T) {
 
 	result, err := info.calcUpdates(time.Now())
 	require.NoError(t, err)
-	require.EqualValues(t, []uuid.UUID{channelID1, channelID2}, result.NotificationChannels.ToSlice())
+	require.ElementsMatch(t, []uuid.UUID{channelID1, channelID2}, result.NotificationChannels.ToSlice())
 }
 
 func TestUpdateInfo_calcUpdates_NotifyAtTime(t *testing.T) {
