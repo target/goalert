@@ -22,7 +22,7 @@ SWO_DB_URL_NEXT = $(shell go tool db-url-set-db "$(DB_URL)" "$(SWO_DB_NEXT)")
 
 LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
-PG_VERSION=13
+PG_VERSION ?= 13
 
 # tools
 SQLC=CGO_ENABLED=1 go tool sqlc
@@ -144,6 +144,28 @@ cy-mobile-prod-run: web/src/build/static/app.js cypress ## Start cypress tests i
 swo/swodb/queries.sql.go: sqlc.yaml swo/*/*.sql migrate/migrations/*.sql */queries.sql */*/queries.sql migrate/schema.sql
 	$(SQLC) generate
 
+.PHONY: build-env-test-all
+build-env-test-all: ## Build the test environment and run all tests
+	docker build -t goalert-env-test devtools/ci/dockerfiles/build-env
+	mkdir -p bin/container/bin bin/container/ui-build bin/container/cypress bin/container/node_modules bin/container/storybook bin/container/coverage bin/container/cache bin/container/bun-cache bin/container/go-cache bin/container/smoke-db-dump
+	docker run -it --rm \
+		-e PG_VERSION=$(PG_VERSION) \
+		-e IGNORE_CHANGES=$(IGNORE_CHANGES) \
+		-v $(PWD):/goalert \
+		-v $(PWD)/bin/container/bin:/goalert/bin \
+		-v $(PWD)/bin/container/ui-build:/goalert/web/src/build/static \
+		-v $(PWD)/bin/container/cypress:/goalert/cypress \
+		-v $(PWD)/bin/container/node_modules:/goalert/node_modules \
+		-v $(PWD)/bin/container/storybook:/goalert/storybook-static \
+		-v $(PWD)/bin/container/coverage:/goalert/test/coverage \
+		-v $(PWD)/bin/container/cache:/home/user/.cache \
+		-v $(PWD)/bin/container/bun-cache:/home/user/.bun \
+		-v $(PWD)/bin/container/go-cache:/go/pkg/mod \
+		-v $(PWD)/bin/container/smoke-db-dump:/goalert/test/smoke/smoketest_db_dump \
+		-w /goalert \
+		goalert-env-test \
+		/goalert/devtools/ci/tasks/scripts/build-all.sh
+
 .PHONY: sqlc
 sqlc:
 	$(SQLC) generate
@@ -244,7 +266,7 @@ test-components:  $(NODE_DEPS)
 	$(BIN_DIR)/tools/bun run build-storybook --test --quiet 2>/dev/null
 	$(BIN_DIR)/tools/bun run playwright install chromium
 	$(BIN_DIR)/tools/bun run concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
-		"$(BIN_DIR)/tools/bun run http-server storybook-static -a 127.0.0.1 --port 6008 --silent" \
+		"$(BIN_DIR)/tools/bun run serve -l tcp://127.0.0.1:6008 -L storybook-static" \
 		"$(WAITFOR) tcp://localhost:6008 && $(BIN_DIR)/tools/bun run test-storybook --ci --url http://127.0.0.1:6008 --maxWorkers 2"
 
 storybook: $(NODE_DEPS) # Start the Storybook UI
@@ -289,7 +311,7 @@ web/src/app/editor/expr-parser.ts: web/src/app/editor/expr.grammar node_modules
 
 web/src/build/static/explore.js: web/src/build/static/app.js
 web/src/build/static/app.js: $(NODE_DEPS)
-	rm -rf web/src/build/static
+	rm -rf web/src/build/static/*
 	mkdir -p web/src/build/static
 	cp -f web/src/app/public/icons/favicon-* web/src/app/public/logos/lightmode_* web/src/app/public/logos/darkmode_* web/src/build/static/
 	# used for email templates

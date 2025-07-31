@@ -18,6 +18,14 @@ fi
 echo "Starting PostgreSQL $VERSION"
 
 export PGDATA=/var/lib/postgresql/$VERSION/data
-su postgres -c "/usr/lib/postgresql/$VERSION/bin/pg_ctl start -w -l /var/log/postgresql/$VERSION/server.log"
+/usr/lib/postgresql/$VERSION/bin/pg_ctl start -w -l /var/log/postgresql/$VERSION/server.log || {
+    cat /var/log/postgresql/$VERSION/server.log
+    echo "Failed to start PostgreSQL $VERSION"
+    exit 1
+}
 
 echo "$VERSION" >/var/lib/postgresql/.version
+
+# symlink current log file to a consistent name (replace if necessary)
+chmod a+r /var/log/postgresql/$VERSION/server.log
+ln -sf /var/log/postgresql/$VERSION/server.log /var/log/postgresql/server.log

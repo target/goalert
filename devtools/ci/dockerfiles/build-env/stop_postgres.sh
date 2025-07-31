@@ -19,4 +19,4 @@ export PGDATA=/var/lib/postgresql/$VERSION/data
 if [ ! -f $PGDATA/postmaster.pid ]; then
     exit 0
 fi
-su postgres -c "/usr/lib/postgresql/$VERSION/bin/pg_ctl stop -m immediate" || rm -f $PGDATA/postmaster.pid
+/usr/lib/postgresql/$VERSION/bin/pg_ctl stop -m immediate || rm -f $PGDATA/postmaster.pid
