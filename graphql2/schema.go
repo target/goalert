@@ -32,7 +32,7 @@ func SchemaFields() []string { return schemaFields }
 
 // QueryFields will return a list of all fields that the given query references.
 func QueryFields(query string) ([]string, error) {
-	qDoc, qErr := gqlparser.LoadQuery(astSchema, query)
+	qDoc, qErr := gqlparser.LoadQueryWithRules(astSchema, query, nil)
 	if len(qErr) > 0 {
 		return nil, validation.NewFieldError("Query", qErr.Error())
 	}

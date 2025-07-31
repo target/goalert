@@ -22,13 +22,11 @@ import (
 type ChannelSender struct {
 	cfg Config
 
-	teamID string
-	token  string
-
 	chanCache *ttlCache[string, *Channel]
 	listCache *ttlCache[string, []Channel]
 	ugCache   *ttlCache[string, []slack.UserGroup]
 
+	botInfoCache  *ttlCache[string, *slack.AuthTestResponse]
 	teamInfoCache *ttlCache[string, *slack.TeamInfo]
 	userInfoCache *ttlCache[string, *slack.User]
 	ugInfoCache   *ttlCache[string, UserGroup]
@@ -54,6 +52,10 @@ var (
 )
 
 func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
+	if cfg.Client == nil {
+		return nil, errors.New("http client is required")
+	}
+
 	return &ChannelSender{
 		cfg: cfg,
 
@@ -61,6 +63,7 @@ func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 		chanCache: newTTLCache[string, *Channel](1000, 15*time.Minute),
 		ugCache:   newTTLCache[string, []slack.UserGroup](1000, time.Minute),
 
+		botInfoCache:  newTTLCache[string, *slack.AuthTestResponse](1, 15*time.Minute),
 		teamInfoCache: newTTLCache[string, *slack.TeamInfo](1, 15*time.Minute),
 		userInfoCache: newTTLCache[string, *slack.User](1000, 15*time.Minute),
 		ugInfoCache:   newTTLCache[string, UserGroup](1000, 15*time.Minute),
@@ -237,23 +240,12 @@ func (s *ChannelSender) Team(ctx context.Context, id string) (t *Team, err error
 }
 
 func (s *ChannelSender) TeamID(ctx context.Context) (string, error) {
-	cfg := config.FromContext(ctx)
-
-	s.teamMx.Lock()
-	defer s.teamMx.Unlock()
-	if s.teamID == "" || s.token != cfg.Slack.AccessToken {
-		// teamID missing or token changed
-		id, err := s.lookupTeamIDForToken(ctx, cfg.Slack.AccessToken)
-		if err != nil {
-			return "", err
-		}
-
-		// update teamID and token after fetching succeeds
-		s.teamID = id
-		s.token = cfg.Slack.AccessToken
+	info, err := s.tokenInfo(ctx)
+	if err != nil {
+		return "", fmt.Errorf("lookup team ID for token: %w", err)
 	}
 
-	return s.teamID, nil
+	return info.TeamID, nil
 }
 
 func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Channel, error) {
@@ -262,27 +254,28 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 		return nil, fmt.Errorf("lookup team ID: %w", err)
 	}
 
-	ch := &Channel{TeamID: teamID}
-	err = s.withClient(ctx, func(c *slack.Client) error {
-		resp, err := c.GetConversationInfoContext(ctx,
-			&slack.GetConversationInfoInput{
-				ChannelID: channelID,
-			})
+	return s.chanCache.GetOrFill(channelID, func() (*Channel, error) {
+		ch := &Channel{TeamID: teamID}
+		err = s.withClient(ctx, func(c *slack.Client) error {
+			resp, err := c.GetConversationInfoContext(ctx,
+				&slack.GetConversationInfoInput{
+					ChannelID: channelID,
+				})
+			if err != nil {
+				return err
+			}
+
+			ch.ID = resp.ID
+			ch.Name = "#" + resp.Name
+			ch.IsArchived = resp.IsArchived
+
+			return nil
+		})
 		if err != nil {
-			return err
+			return nil, fmt.Errorf("lookup conversation info: %w", err)
 		}
-
-		ch.ID = resp.ID
-		ch.Name = "#" + resp.Name
-		ch.IsArchived = resp.IsArchived
-
-		return nil
+		return ch, nil
 	})
-	if err != nil {
-		return nil, fmt.Errorf("lookup conversation info: %w", err)
-	}
-
-	return ch, nil
 }
 
 // ListChannels will return a list of channels visible to the slack bot.
@@ -525,22 +518,40 @@ func (s *ChannelSender) SendMessage(ctx context.Context, msg notification.Messag
 	}, nil
 }
 
-func (s *ChannelSender) lookupTeamIDForToken(ctx context.Context, token string) (string, error) {
-	var teamID string
+func (s *ChannelSender) tokenInfo(ctx context.Context) (*slack.AuthTestResponse, error) {
+	cfg := config.FromContext(ctx)
 
-	err := s.withClient(ctx, func(c *slack.Client) error {
-		info, err := c.AuthTestContext(ctx)
+	s.teamMx.Lock()
+	defer s.teamMx.Unlock()
+
+	info, ok := s.botInfoCache.Get(cfg.Slack.AccessToken)
+	if ok {
+		return info, nil
+	}
+
+	var err error
+	err = s.withClient(ctx, func(c *slack.Client) error {
+		info, err = c.AuthTestContext(ctx)
 		if err != nil {
 			return err
 		}
 
-		teamID = info.TeamID
-
+		s.botInfoCache.Add(cfg.Slack.AccessToken, info)
 		return nil
 	})
 	if err != nil {
-		return "", err
+		return nil, fmt.Errorf("lookup bot info: %w", err)
 	}
 
-	return teamID, nil
+	return info, nil
+}
+
+// BotName returns the bot name from Slack's auth.test API
+func (s *ChannelSender) BotName(ctx context.Context) (string, error) {
+	info, err := s.tokenInfo(ctx)
+	if err != nil {
+		return "", fmt.Errorf("lookup team ID for token: %w", err)
+	}
+
+	return info.User, nil
 }

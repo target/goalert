@@ -53,6 +53,7 @@ import (
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/user/favorite"
 	"github.com/target/goalert/user/notificationrule"
+	"github.com/target/goalert/util/calllimiter"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
@@ -252,6 +253,13 @@ func (a *App) Handler() http.Handler {
 		}
 
 		if errors.Is(err, context.Canceled) {
+
+			if limited, num := calllimiter.WasLimited(ctx); limited {
+				return &gqlerror.Error{
+					Message: fmt.Sprintf("Request canceled: external call limit reached for this request. Total calls: %d", num),
+				}
+			}
+
 			return &gqlerror.Error{
 				Message: "Request canceled.",
 			}

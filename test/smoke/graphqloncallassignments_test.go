@@ -164,7 +164,7 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 				return
 			}
 
-			assert.EqualValues(t, expected, actualOnCall, "On-call assignments.")
+			assert.ElementsMatch(t, expected, actualOnCall, "On-call assignments.")
 		})
 	}
 

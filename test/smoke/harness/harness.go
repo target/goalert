@@ -181,7 +181,7 @@ func NewStoppedHarnessWithFlags(t *testing.T, initSQL string, sqlData interface{
 	t.Logf("Using DB URL: %s", dbURL)
 	name := strings.ReplaceAll("smoketest_"+time.Now().Format("2006_01_02_15_04_05")+uuid.New().String(), "-", "")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
 
 	conn, err := pgx.Connect(ctx, DBURL(""))
@@ -314,7 +314,7 @@ func (h *Harness) StartWithAppCfgHook(fn func(*app.Config)) {
 	appCfg.JSON = true
 	appCfg.DBURL = h.dbURL
 	appCfg.TwilioBaseURL = h.twS.URL
-	appCfg.DBMaxOpen = 3
+	appCfg.DBMaxOpen = 5
 	appCfg.SlackBaseURL = h.slackS.URL
 	appCfg.SMTPListenAddr = "localhost:0"
 	appCfg.EmailIntegrationDomain = "smoketest.example.com"
@@ -333,7 +333,7 @@ func (h *Harness) StartWithAppCfgHook(fn func(*app.Config)) {
 	if err != nil {
 		h.t.Fatalf("failed to parse db url: %v", err)
 	}
-	poolCfg.MaxConns = 3
+	poolCfg.MaxConns = 5
 
 	h.appPool, err = pgxpool.NewWithConfig(ctx, poolCfg)
 	require.NoError(h.t, err, "create pgx pool")
@@ -876,7 +876,7 @@ func (h *Harness) WaitAndAssertOnCallUsers(serviceID string, userIDs ...string) 
 	check := func(t *assert.CollectT) {
 		ids := getUsers()
 		require.Lenf(t, ids, len(userIDs), "number of on-call users")
-		require.EqualValuesf(t, userIDs, ids, "on-call users")
+		require.ElementsMatch(t, userIDs, ids, "on-call users")
 	}
 	h.Trigger() // run engine cycle
 

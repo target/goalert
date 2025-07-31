@@ -144,6 +144,10 @@ cy-mobile-prod-run: web/src/build/static/app.js cypress ## Start cypress tests i
 swo/swodb/queries.sql.go: sqlc.yaml swo/*/*.sql migrate/migrations/*.sql */queries.sql */*/queries.sql migrate/schema.sql
 	$(SQLC) generate
 
+.PHONY: sqlc
+sqlc:
+	$(SQLC) generate
+
 web/src/schema.d.ts: graphql2/schema.graphql graphql2/graph/*.graphqls web/src/genschema.go
 	go generate ./web/src
 
@@ -314,7 +318,7 @@ postgres:
 		--name goalert-postgres \
 		--shm-size 1g \
 		-p 5432:5432 \
-		docker.io/library/postgres:$(PG_VERSION)-alpine && $(WAITFOR) "$(DB_URL)" && make regendb) || ($(CONTAINER_TOOL) start goalert-postgres && $(WAITFOR) "$(DB_URL)")
+		docker.io/library/postgres:$(PG_VERSION)-alpine postgres -N 500 && $(WAITFOR) "$(DB_URL)" && make regendb) || ($(CONTAINER_TOOL) start goalert-postgres && $(WAITFOR) "$(DB_URL)")
 
 regendb: bin/goalert config.json.bak ## Reset the database and fill it with random data
 	go tool resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001 -mult $(SIZE)
