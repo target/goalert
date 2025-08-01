@@ -26,6 +26,7 @@ type Handler struct {
 	alertStore *alert.Store
 	db         TxAble
 	evt        *event.Bus
+	hc         *http.Client
 }
 
 type TxAble interface {
@@ -33,8 +34,8 @@ type TxAble interface {
 	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
 }
 
-func NewHandler(db TxAble, intStore *integrationkey.Store, aStore *alert.Store, evt *event.Bus) *Handler {
-	return &Handler{intStore: intStore, db: db, alertStore: aStore, evt: evt}
+func NewHandler(db TxAble, hc *http.Client, intStore *integrationkey.Store, aStore *alert.Store, evt *event.Bus) *Handler {
+	return &Handler{intStore: intStore, hc: hc, db: db, alertStore: aStore, evt: evt}
 }
 
 func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1) (inserted bool, err error) {
@@ -47,7 +48,7 @@ func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1) (inser
 		}
 		req.Header.Set("Content-Type", act.Param("content-type"))
 
-		_, err = http.DefaultClient.Do(req.WithContext(ctx))
+		_, err = h.hc.Do(req.WithContext(ctx))
 		if err != nil {
 			return false, err
 		}
