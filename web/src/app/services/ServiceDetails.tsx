@@ -2,7 +2,7 @@ import React, { Suspense, useState } from 'react'
 import { gql, useQuery } from 'urql'
 import { Redirect } from 'wouter'
 import _ from 'lodash'
-import { Button } from '@mui/material'
+import { Button, Grid } from '@mui/material'
 import { Edit, Delete } from '@mui/icons-material'
 
 import DetailsPage, { LinkStatus } from '../details/DetailsPage'
@@ -17,6 +17,7 @@ import { ServiceAvatar } from '../util/avatars'
 import ServiceMaintenanceModeDialog from './ServiceMaintenanceDialog'
 import ServiceNotices from './ServiceNotices'
 import type { HeartbeatMonitor, Label } from '../../schema'
+import ServiceRecentEvents from './ServiceRecentEvents'
 
 interface AlertNode {
   id: string
@@ -123,7 +124,16 @@ export default function ServiceDetails(props: {
           </React.Fragment>
         }
         details={data.service.description}
-        pageContent={<ServiceOnCallList serviceID={serviceID} />}
+        pageContent={
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <ServiceOnCallList serviceID={serviceID} />
+            </Grid>
+            <Grid item xs={12}>
+              <ServiceRecentEvents serviceID={serviceID} />
+            </Grid>
+          </Grid>
+        }
         primaryActions={[
           <Button
             color='primary'

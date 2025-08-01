@@ -68,8 +68,9 @@ type AlertPendingNotification struct {
 }
 
 type AlertRecentEventsOptions struct {
-	Limit *int    `json:"limit,omitempty"`
-	After *string `json:"after,omitempty"`
+	Limit *int       `json:"limit,omitempty"`
+	After *string    `json:"after,omitempty"`
+	Since *time.Time `json:"since,omitempty"`
 }
 
 type AlertSearchOptions struct {
