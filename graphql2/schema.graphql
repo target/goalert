@@ -1396,6 +1396,7 @@ type UserContactMethod {
   lastVerifyMessageState: NotificationState
 
   statusUpdates: StatusUpdateState!
+  private: Boolean!
 }
 
 enum StatusUpdateState {
@@ -1427,6 +1428,11 @@ input CreateUserContactMethodInput {
   Note: Some contact method types, like Slack, will always receive status updates and this value is ignored.
   """
   enableStatusUpdates: Boolean
+
+  """
+  If true, this contact method will be private and only visible to the user.
+  """
+  private: Boolean
 }
 
 input CreateUserNotificationRuleInput {
@@ -1449,6 +1455,11 @@ input UpdateUserContactMethodInput {
   Note: Some contact method types, like Slack, will always receive status updates and this value is ignored.
   """
   enableStatusUpdates: Boolean
+
+  """
+  If true, this contact method will be private and only visible to the user.
+  """
+  private: Boolean
 }
 
 input SendContactMethodVerificationInput {
