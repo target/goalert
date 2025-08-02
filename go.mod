@@ -3,9 +3,9 @@ module github.com/target/goalert
 go 1.24.0
 
 require (
-	github.com/99designs/gqlgen v0.17.76
+	github.com/99designs/gqlgen v0.17.78
 	github.com/brianvoe/gofakeit/v6 v6.28.0
-	github.com/coreos/go-oidc/v3 v3.14.1
+	github.com/coreos/go-oidc/v3 v3.15.0
 	github.com/creack/pty/v2 v2.0.1
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/deckarep/golang-set/v2 v2.8.0
@@ -13,7 +13,7 @@ require (
 	github.com/expr-lang/expr v1.17.5
 	github.com/fatih/color v1.18.0
 	github.com/felixge/httpsnoop v1.0.4
-	github.com/golang-jwt/jwt/v5 v5.2.3
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8
 	github.com/google/go-github/v56 v56.0.0
 	github.com/google/uuid v1.6.0
@@ -30,7 +30,7 @@ require (
 	github.com/oauth2-proxy/mockoidc v0.0.0-20240214162133-caebfff84d25
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.22.0
+	github.com/prometheus/client_golang v1.23.0
 	github.com/riverqueue/river v0.23.1
 	github.com/riverqueue/river/riverdriver/riverdatabasesql v0.23.1
 	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.23.1
