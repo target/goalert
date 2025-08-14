@@ -10,7 +10,7 @@ outputs:
   - name: bin
 image_resource:
   type: registry-image
-  source: { repository: goalert/build-env, tag: go1.24.5 }
+  source: { repository: goalert/build-env, tag: go1.25.0 }
 run:
   path: sh
   dir: goalert
