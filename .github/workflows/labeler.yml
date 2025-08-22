@@ -12,10 +12,10 @@ jobs:
     if: github.event.pull_request.draft == false
     name: Label the PR size
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with: # checkout the base branch, where we run the script from
           path: base
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with: # checkout the merge commit, where the PR changes are
           ref: refs/pull/${{ github.event.number }}/merge
           path: merge
