@@ -91,8 +91,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	ct, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if ct == "application/json" {
 		data, err := io.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if errutil.HTTPError(ctx, w, err) {
 			return
 		}
 
@@ -101,8 +100,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 			Meta                            map[string]string
 		}
 		err = json.Unmarshal(data, &b)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if errutil.HTTPError(ctx, w, err) {
 			return
 		}
 
