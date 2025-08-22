@@ -15,6 +15,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -100,7 +101,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 			Meta                            map[string]string
 		}
 		err = json.Unmarshal(data, &b)
-		if errutil.HTTPError(ctx, w, err) {
+		if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
 			return
 		}
 
