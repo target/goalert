@@ -71,7 +71,7 @@ func HTTPError(ctx context.Context, w http.ResponseWriter, err error) bool {
 		// Similar to above, but that we timed out waiting in the queue.
 		http.Error(w, http.StatusText(http.StatusRequestTimeout), http.StatusRequestTimeout)
 	case isCancel(err):
-		// Client disconnected, send 400 back so logs reflect that this
+		// Client disconnected, send 499 back so logs reflect that this
 		// was a client-side problem.
 		http.Error(w, "Client disconnected.", 499)
 	case permission.IsUnauthorized(err):
