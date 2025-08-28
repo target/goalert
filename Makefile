@@ -22,7 +22,7 @@ SWO_DB_URL_NEXT = $(shell go tool db-url-set-db "$(DB_URL)" "$(SWO_DB_NEXT)")
 
 LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
-PG_VERSION ?= 13
+PG_VERSION ?= 17
 
 # tools
 SQLC=CGO_ENABLED=1 go tool sqlc
