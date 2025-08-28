@@ -140,6 +140,7 @@ type ComplexityRoot struct {
 	}
 
 	AlertLogEntry struct {
+		AlertID   func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Message   func(childComplexity int) int
 		MessageID func(childComplexity int) int
@@ -730,6 +731,7 @@ type ComplexityRoot struct {
 		Name                 func(childComplexity int) int
 		Notices              func(childComplexity int) int
 		OnCallUsers          func(childComplexity int) int
+		RecentEvents         func(childComplexity int, input *AlertRecentEventsOptions) int
 	}
 
 	ServiceConnection struct {
@@ -1106,6 +1108,7 @@ type ServiceResolver interface {
 	Labels(ctx context.Context, obj *service.Service) ([]label.Label, error)
 	HeartbeatMonitors(ctx context.Context, obj *service.Service) ([]heartbeat.Monitor, error)
 	Notices(ctx context.Context, obj *service.Service) ([]notice.Notice, error)
+	RecentEvents(ctx context.Context, obj *service.Service, input *AlertRecentEventsOptions) (*AlertLogEntryConnection, error)
 	AlertStats(ctx context.Context, obj *service.Service, input *ServiceAlertStatsOptions) (*AlertStats, error)
 	AlertsByStatus(ctx context.Context, obj *service.Service) (*AlertsByStatus, error)
 }
@@ -1347,6 +1350,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.AlertDataPoint.Timestamp(childComplexity), true
+
+	case "AlertLogEntry.alertID":
+		if e.complexity.AlertLogEntry.AlertID == nil {
+			break
+		}
+
+		return e.complexity.AlertLogEntry.AlertID(childComplexity), true
 
 	case "AlertLogEntry.id":
 		if e.complexity.AlertLogEntry.ID == nil {
@@ -4638,6 +4648,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Service.OnCallUsers(childComplexity), true
 
+	case "Service.recentEvents":
+		if e.complexity.Service.RecentEvents == nil {
+			break
+		}
+
+		args, err := ec.field_Service_recentEvents_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Service.RecentEvents(childComplexity, args["input"].(*AlertRecentEventsOptions)), true
+
 	case "ServiceConnection.nodes":
 		if e.complexity.ServiceConnection.Nodes == nil {
 			break
@@ -6727,6 +6749,34 @@ func (ec *executionContext) field_Service_alertStats_args(ctx context.Context, r
 	return args, nil
 }
 
+func (ec *executionContext) field_Service_recentEvents_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Service_recentEvents_argsInput(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Service_recentEvents_argsInput(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (*AlertRecentEventsOptions, error) {
+	if _, ok := rawArgs["input"]; !ok {
+		var zeroVal *AlertRecentEventsOptions
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+	if tmp, ok := rawArgs["input"]; ok {
+		return ec.unmarshalOAlertRecentEventsOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertRecentEventsOptions(ctx, tmp)
+	}
+
+	var zeroVal *AlertRecentEventsOptions
+	return zeroVal, nil
+}
+
 func (ec *executionContext) field___Directive_args_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -7245,6 +7295,8 @@ func (ec *executionContext) fieldContext_Alert_service(_ context.Context, field 
 				return ec.fieldContext_Service_heartbeatMonitors(ctx, field)
 			case "notices":
 				return ec.fieldContext_Service_notices(ctx, field)
+			case "recentEvents":
+				return ec.fieldContext_Service_recentEvents(ctx, field)
 			case "alertStats":
 				return ec.fieldContext_Service_alertStats(ctx, field)
 			case "alertsByStatus":
@@ -7866,6 +7918,50 @@ func (ec *executionContext) fieldContext_AlertLogEntry_id(_ context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _AlertLogEntry_alertID(ctx context.Context, field graphql.CollectedField, obj *alertlog.Entry) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AlertLogEntry_alertID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AlertID(), nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AlertLogEntry_alertID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertLogEntry",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _AlertLogEntry_timestamp(ctx context.Context, field graphql.CollectedField, obj *alertlog.Entry) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_AlertLogEntry_timestamp(ctx, field)
 	if err != nil {
@@ -8085,6 +8181,8 @@ func (ec *executionContext) fieldContext_AlertLogEntryConnection_nodes(_ context
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_AlertLogEntry_id(ctx, field)
+			case "alertID":
+				return ec.fieldContext_AlertLogEntry_alertID(ctx, field)
 			case "timestamp":
 				return ec.fieldContext_AlertLogEntry_timestamp(ctx, field)
 			case "message":
@@ -18139,6 +18237,8 @@ func (ec *executionContext) fieldContext_Mutation_createService(ctx context.Cont
 				return ec.fieldContext_Service_heartbeatMonitors(ctx, field)
 			case "notices":
 				return ec.fieldContext_Service_notices(ctx, field)
+			case "recentEvents":
+				return ec.fieldContext_Service_recentEvents(ctx, field)
 			case "alertStats":
 				return ec.fieldContext_Service_alertStats(ctx, field)
 			case "alertsByStatus":
@@ -22246,6 +22346,8 @@ func (ec *executionContext) fieldContext_Query_service(ctx context.Context, fiel
 				return ec.fieldContext_Service_heartbeatMonitors(ctx, field)
 			case "notices":
 				return ec.fieldContext_Service_notices(ctx, field)
+			case "recentEvents":
+				return ec.fieldContext_Service_recentEvents(ctx, field)
 			case "alertStats":
 				return ec.fieldContext_Service_alertStats(ctx, field)
 			case "alertsByStatus":
@@ -28173,6 +28275,67 @@ func (ec *executionContext) fieldContext_Service_notices(_ context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _Service_recentEvents(ctx context.Context, field graphql.CollectedField, obj *service.Service) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Service_recentEvents(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Service().RecentEvents(rctx, obj, fc.Args["input"].(*AlertRecentEventsOptions))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*AlertLogEntryConnection)
+	fc.Result = res
+	return ec.marshalNAlertLogEntryConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogEntryConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Service_recentEvents(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Service",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "nodes":
+				return ec.fieldContext_AlertLogEntryConnection_nodes(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_AlertLogEntryConnection_pageInfo(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AlertLogEntryConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Service_recentEvents_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Service_alertStats(ctx context.Context, field graphql.CollectedField, obj *service.Service) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Service_alertStats(ctx, field)
 	if err != nil {
@@ -28353,6 +28516,8 @@ func (ec *executionContext) fieldContext_ServiceConnection_nodes(_ context.Conte
 				return ec.fieldContext_Service_heartbeatMonitors(ctx, field)
 			case "notices":
 				return ec.fieldContext_Service_notices(ctx, field)
+			case "recentEvents":
+				return ec.fieldContext_Service_recentEvents(ctx, field)
 			case "alertStats":
 				return ec.fieldContext_Service_alertStats(ctx, field)
 			case "alertsByStatus":
@@ -34747,7 +34912,7 @@ func (ec *executionContext) unmarshalInputAlertRecentEventsOptions(ctx context.C
 		asMap["after"] = ""
 	}
 
-	fieldsInOrder := [...]string{"limit", "after"}
+	fieldsInOrder := [...]string{"limit", "after", "since"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -34768,6 +34933,13 @@ func (ec *executionContext) unmarshalInputAlertRecentEventsOptions(ctx context.C
 				return it, err
 			}
 			it.After = data
+		case "since":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("since"))
+			data, err := ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Since = data
 		}
 	}
 
@@ -39575,6 +39747,11 @@ func (ec *executionContext) _AlertLogEntry(ctx context.Context, sel ast.Selectio
 			out.Values[i] = graphql.MarshalString("AlertLogEntry")
 		case "id":
 			out.Values[i] = ec._AlertLogEntry_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "alertID":
+			out.Values[i] = ec._AlertLogEntry_alertID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
@@ -46117,6 +46294,42 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Service_notices(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "recentEvents":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Service_recentEvents(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
