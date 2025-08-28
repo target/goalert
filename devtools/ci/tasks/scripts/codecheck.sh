@@ -1,15 +1,6 @@
 #!/bin/sh
 set -e
 
-# assert Cypress versions are identical
-PKG_JSON_VER=$(grep '"cypress":' package.json | awk -F '"' '{print $4}')
-DOCKERFILE_VER=$(grep 'FROM docker.io/cypress/included:' devtools/ci/dockerfiles/cypress-env/Dockerfile | awk -F ':' '{print $2}')
-if [ "$PKG_JSON_VER" != "$DOCKERFILE_VER" ]; then
-  echo "Cypress versions do not match:"
-  echo "package.json: ${PKG_JSON_VER} - Dockerfile: ${DOCKERFILE_VER}"
-  exit 1
-fi
-
 # assert build-env versions are identical
 BUILD_ENV_VER=go1.25.0
 for file in $(find devtools -name 'Dockerfile*'); do

@@ -12,7 +12,7 @@ fi
 VERSION=$1
 
 if [ -z "$VERSION" ]; then
-    VERSION=13 # Default to PostgreSQL 13 for compatibility
+    VERSION=17 # Default to PostgreSQL 17 for compatibility
 fi
 
 echo "Starting PostgreSQL $VERSION"
