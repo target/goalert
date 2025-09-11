@@ -43,6 +43,7 @@
       type="image/png"
       href="{{ .Prefix }}/static/favicon-192.png"
     />
+    <link rel="manifest" href="{{ .Prefix }}/manifest.webmanifest" />
   </head>
   <style nonce="{{ .Nonce }}">
     #app > .initial-load {
@@ -153,5 +154,40 @@
     {{- if .ExtraJS }}
       <script src="{{ .Prefix }}{{ .ExtraJS }}"></script>
     {{- end }}
+    <script nonce="{{ .Nonce }}">
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker
+            .register('{{ .Prefix }}/service-worker.js')
+            .then(function (reg) {
+              if ('PushManager' in window) {
+                function subscribe() {
+                  reg.pushManager
+                    .subscribe({
+                      userVisibleOnly: true,
+                      applicationServerKey: new Uint8Array([]), // TODO: VAPID key
+                    })
+                    .then(function (sub) {
+                      fetch('{{ .Prefix }}/api/push/subscribe', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(sub),
+                      });
+                    });
+                }
+                if (Notification.permission === 'granted') {
+                  subscribe();
+                } else if (Notification.permission === 'default') {
+                  Notification.requestPermission().then(function (permission) {
+                    if (permission === 'granted') {
+                      subscribe();
+                    }
+                  });
+                }
+              }
+            });
+        });
+      }
+    </script>
   </body>
 </html>

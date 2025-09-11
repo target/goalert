@@ -1,0 +1,21 @@
+{
+  "short_name": "GoAlert",
+  "name": "GoAlert",
+  "icons": [
+    {
+      "src": "static/favicon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "static/favicon-128.png",
+      "type": "image/png",
+      "sizes": "128x128"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#cc0000",
+  "background_color": "#ffffff"
+}
+

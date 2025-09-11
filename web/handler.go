@@ -26,6 +26,12 @@ var bundleFS embed.FS
 //go:embed live.js
 var liveJS []byte
 
+//go:embed manifest.webmanifest
+var pwaManifest []byte
+
+//go:embed service-worker.js
+var serviceWorker []byte
+
 // validateAppJS will return an error if the app.js file is not valid or missing.
 func validateAppJS(fs fs.FS) error {
 	if version.GitVersion() == "dev" {
@@ -95,6 +101,15 @@ func NewHandler(uiDir, prefix string) (http.Handler, error) {
 
 		mux.Handle("/static/", NewEtagFileServer(http.FS(sub), true))
 	}
+
+	mux.HandleFunc("/manifest.webmanifest", func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "application/manifest+json")
+		http.ServeContent(w, req, "/manifest.webmanifest", time.Time{}, bytes.NewReader(pwaManifest))
+	})
+	mux.HandleFunc("/service-worker.js", func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "application/javascript")
+		http.ServeContent(w, req, "/service-worker.js", time.Time{}, bytes.NewReader(serviceWorker))
+	})
 
 	mux.HandleFunc("/api/graphql/explore", func(w http.ResponseWriter, req *http.Request) {
 		cfg := config.FromContext(req.Context())
