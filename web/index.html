@@ -158,50 +158,27 @@
     <script nonce="{{ .Nonce }}">
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function () {
+          var ua = navigator.userAgent || ''
+          var isStandalone = (window.navigator.standalone === true) || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+          console.log('[push] page load; ua=%s standalone=%s permission=%s', ua, isStandalone, (window.Notification && Notification.permission))
           navigator.serviceWorker
             .register('{{ .Prefix }}/service-worker.js')
             .then(function (reg) {
+              console.log('[push] service worker registered', reg && reg.scope)
               if ('PushManager' in window) {
-                function subscribe() {
-                  reg.pushManager
-                    .subscribe({
-                      userVisibleOnly: true,
-                      applicationServerKey: (function () {
-                        var k =
-                          window.vapidPublicKey ||
-                          window.VAPID_PUBLIC_KEY ||
-                          (document.querySelector('meta[name="vapid-public-key"]') || {})
-                            .content;
-                        if (!k) return undefined;
-                        // Convert URL-safe base64 to Uint8Array
-                        k = k.replace(/-/g, '+').replace(/_/g, '/');
-                        var pad = '='.repeat((4 - (k.length % 4)) % 4);
-                        var raw = atob(k + pad);
-                        var out = new Uint8Array(raw.length);
-                        for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
-                        return out;
-                      })(),
-                    })
-                    .then(function (sub) {
-                      fetch('{{ .Prefix }}/api/push/subscribe', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(sub),
-                      });
-                    });
-                }
-                if (Notification.permission === 'granted') {
-                  subscribe();
-                } else if (Notification.permission === 'default') {
-                  Notification.requestPermission().then(function (permission) {
-                    if (permission === 'granted') {
-                      subscribe();
-                    }
-                  });
-                }
+                // React app handles permission and subscription UX.
+                // We just log availability here.
+                console.log('[push] PushManager available; React component will manage subscription')
+              } else {
+                console.warn('[push] PushManager not available in this environment')
               }
-            });
-        });
+            })
+            .catch(function (err) {
+              console.error('[push] service worker registration failed', err)
+            })
+        })
+      } else {
+        console.warn('[push] serviceWorker not supported in this browser')
       }
     </script>
   </body>

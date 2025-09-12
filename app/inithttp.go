@@ -174,15 +174,55 @@ func (app *App) initHTTP(ctx context.Context) error {
             if err := json.Unmarshal(raw, &s); err != nil || s.Endpoint == "" || s.Keys.P256dh == "" || s.Keys.Auth == "" { continue }
             subObj := &webpush.Subscription{ Endpoint: s.Endpoint, Keys: webpush.Keys{ Auth: s.Keys.Auth, P256dh: s.Keys.P256dh } }
             go func(subObj *webpush.Subscription) {
+                // Log destination provider based on endpoint host for diagnostics (iOS/APNs vs others)
+                host := ""
+                if u, perr := url.Parse(subObj.Endpoint); perr == nil { host = u.Host }
+                provider := "unknown"
+                if strings.Contains(host, "web.push.apple.com") { provider = "apple" }
+                if strings.Contains(host, "fcm.googleapis.com") || strings.Contains(host, "firebase") { provider = "fcm" }
+                if strings.Contains(host, "mozilla") || strings.Contains(host, "push.services.mozilla.com") { provider = "mozilla" }
+                if strings.Contains(host, "notify.windows.com") { provider = "wns" }
+
+                // Use a stable, valid URL as VAPID subject based on configured PublicURL.
+                subj := cfg.PublicURL()
+                if subj == "" {
+                    subj = "mailto:no-reply@localhost"
+                }
+
                 resp, err := webpush.SendNotification(payload, subObj, &webpush.Options{
-                    Subscriber:      "mailto:no-reply@localhost",
+                    Subscriber:      subj,
                     VAPIDPublicKey:  cfg.WebPush.VAPIDPublicKey,
                     VAPIDPrivateKey: cfg.WebPush.VAPIDPrivateKey,
                     TTL:             60,
+                    Urgency:         "high",
                 })
-                if resp != nil { _ = resp.Body.Close() }
+                var status int
+                var bodySnippet string
+                if resp != nil {
+                    status = resp.StatusCode
+                    // Read small body for diagnostics on error statuses
+                    if status >= 400 {
+                        b, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
+                        bodySnippet = string(b)
+                    }
+                    _ = resp.Body.Close()
+                }
                 if err != nil {
-                    log.Logf(ctx, "webpush: send failed: %v", err)
+                    log.Logf(ctx, "webpush: send failed; provider=%s host=%s status=%d err=%v", provider, host, status, err)
+                    return
+                }
+                if status >= 400 {
+                    log.Logf(ctx, "webpush: send non-2xx; provider=%s host=%s status=%d body=%q", provider, host, status, bodySnippet)
+                } else {
+                    log.Logf(ctx, "webpush: send complete; provider=%s host=%s status=%d", provider, host, status)
+                }
+                // Clean up expired/invalid subscriptions
+                if status == http.StatusGone || status == http.StatusNotFound {
+                    if _, derr := app.db.ExecContext(ctx, `delete from user_web_push_subscriptions where endpoint = $1`, subObj.Endpoint); derr != nil {
+                        log.Logf(ctx, "webpush: cleanup failed; endpoint=%s err=%v", subObj.Endpoint, derr)
+                    } else {
+                        log.Logf(ctx, "webpush: removed expired subscription; endpoint=%s", subObj.Endpoint)
+                    }
                 }
             }(subObj)
             total++
@@ -211,12 +251,73 @@ func (app *App) initHTTP(ctx context.Context) error {
         if tmp.Endpoint == "" { http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest); return }
         uid := permission.UserID(req.Context())
         if uid == "" { http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized); return }
+        // Log UA and endpoint host for iOS/Safari diagnostics
+        ua := req.Header.Get("User-Agent")
+        host := ""
+        if u, perr := url.Parse(tmp.Endpoint); perr == nil { host = u.Host }
+        provider := "unknown"
+        if strings.Contains(host, "web.push.apple.com") { provider = "apple" }
+        if strings.Contains(host, "fcm.googleapis.com") || strings.Contains(host, "firebase") { provider = "fcm" }
+        if strings.Contains(host, "mozilla") || strings.Contains(host, "push.services.mozilla.com") { provider = "mozilla" }
+        if strings.Contains(host, "notify.windows.com") { provider = "wns" }
+        log.Logf(req.Context(), "webpush: subscribe; user=%s provider=%s host=%s ua=%q", uid, provider, host, ua)
         _, err = app.db.ExecContext(req.Context(), `
             insert into user_web_push_subscriptions (endpoint, user_id, data)
             values ($1, $2::uuid, $3::jsonb)
             on conflict (endpoint) do update set user_id = excluded.user_id, data = excluded.data
         `, tmp.Endpoint, uid, data)
         if err != nil { http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError); return }
+        w.WriteHeader(http.StatusNoContent)
+    })
+
+    // List current user's push subscriptions.
+    mux.HandleFunc("GET /api/push/subscriptions", func(w http.ResponseWriter, req *http.Request) {
+        uid := permission.UserID(req.Context())
+        if uid == "" { http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized); return }
+        rows, err := app.db.QueryContext(req.Context(), `
+            select endpoint, created_at from user_web_push_subscriptions where user_id = $1::uuid order by created_at desc
+        `, uid)
+        if err != nil { http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError); return }
+        defer rows.Close()
+        type respT struct{ Endpoint, Host, Provider string; CreatedAt time.Time }
+        var out []respT
+        for rows.Next() {
+            var endpoint string
+            var created time.Time
+            if err := rows.Scan(&endpoint, &created); err != nil { continue }
+            h := ""; prov := "unknown"
+            if u, e := url.Parse(endpoint); e == nil { h = u.Host }
+            if strings.Contains(h, "web.push.apple.com") { prov = "apple" }
+            if strings.Contains(h, "fcm.googleapis.com") || strings.Contains(h, "firebase") { prov = "fcm" }
+            if strings.Contains(h, "mozilla") || strings.Contains(h, "push.services.mozilla.com") { prov = "mozilla" }
+            if strings.Contains(h, "notify.windows.com") { prov = "wns" }
+            out = append(out, respT{ Endpoint: endpoint, Host: h, Provider: prov, CreatedAt: created })
+        }
+        w.Header().Set("Content-Type", "application/json")
+        json.NewEncoder(w).Encode(out)
+    })
+
+    // Delete a specific subscription for current user by endpoint.
+    mux.HandleFunc("DELETE /api/push/subscriptions", func(w http.ResponseWriter, req *http.Request) {
+        uid := permission.UserID(req.Context())
+        if uid == "" { http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized); return }
+        var endpoint string
+        // Allow query param or JSON body
+        endpoint = req.URL.Query().Get("endpoint")
+        if endpoint == "" {
+            var p struct{ Endpoint string `json:"endpoint"` }
+            body, _ := io.ReadAll(io.LimitReader(req.Body, 1<<16))
+            _ = json.Unmarshal(body, &p)
+            endpoint = p.Endpoint
+        }
+        if endpoint == "" { http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest); return }
+        // Restrict delete to current user's rows
+        res, err := app.db.ExecContext(req.Context(), `
+            delete from user_web_push_subscriptions where endpoint = $1 and user_id = $2::uuid
+        `, endpoint, uid)
+        if err != nil { http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError); return }
+        n, _ := res.RowsAffected()
+        log.Logf(req.Context(), "webpush: delete subscription; user=%s endpoint=%s removed=%d", uid, endpoint, n)
         w.WriteHeader(http.StatusNoContent)
     })
 
