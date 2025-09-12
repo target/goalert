@@ -8,6 +8,7 @@
     <meta http-equiv="x-goalert-git-commit" content="{{ .GitCommit }}" />
     <meta http-equiv="x-goalert-git-tree-state" content="{{ .GitTreeState }}" />
     <meta property="csp-nonce" content="{{ .Nonce }}" />
+    <meta name="vapid-public-key" content="{{ .VAPIDPublicKey }}" />
     <link rel="stylesheet" html="{{ .Prefix }}/static/loading.css" />
 
     <title>{{ .ApplicationName }}</title>
@@ -43,6 +44,7 @@
       type="image/png"
       href="{{ .Prefix }}/static/favicon-192.png"
     />
+    <link rel="manifest" href="{{ .Prefix }}/manifest.webmanifest" />
   </head>
   <style nonce="{{ .Nonce }}">
     #app > .initial-load {
@@ -153,5 +155,31 @@
     {{- if .ExtraJS }}
       <script src="{{ .Prefix }}{{ .ExtraJS }}"></script>
     {{- end }}
+    <script nonce="{{ .Nonce }}">
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          var ua = navigator.userAgent || ''
+          var isStandalone = (window.navigator.standalone === true) || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+          console.log('[push] page load; ua=%s standalone=%s permission=%s', ua, isStandalone, (window.Notification && Notification.permission))
+          navigator.serviceWorker
+            .register('{{ .Prefix }}/service-worker.js')
+            .then(function (reg) {
+              console.log('[push] service worker registered', reg && reg.scope)
+              if ('PushManager' in window) {
+                // React app handles permission and subscription UX.
+                // We just log availability here.
+                console.log('[push] PushManager available; React component will manage subscription')
+              } else {
+                console.warn('[push] PushManager not available in this environment')
+              }
+            })
+            .catch(function (err) {
+              console.error('[push] service worker registration failed', err)
+            })
+        })
+      } else {
+        console.warn('[push] serviceWorker not supported in this browser')
+      }
+    </script>
   </body>
 </html>

@@ -23,6 +23,7 @@ import NavBar from './NavBar'
 import AuthLink from './components/AuthLink'
 import { useExpFlag } from '../util/useExpFlag'
 import { NotificationProvider } from './SnackbarNotification'
+import PushPermissionBanner from './PushPermissionBanner'
 import ReactGA from 'react-ga4'
 import { useConfigValue } from '../util/RequireConfig'
 import Spinner from '../loading/components/Spinner'
@@ -78,6 +79,7 @@ export default function App(): React.JSX.Element {
       <PageActionProvider>
         <SearchProvider>
           <NotificationProvider>
+            <PushPermissionBanner />
             <AppBar
               position='fixed'
               className={classes.appBar}

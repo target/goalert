@@ -24,7 +24,7 @@ func MapConfigHints(cfg config.Hints) []ConfigHint {
 
 // MapConfigValues will map a Config struct into a flat list of ConfigValue structs.
 func MapConfigValues(cfg config.Config) []ConfigValue {
-	return []ConfigValue{
+    return []ConfigValue{
 		{ID: "General.ApplicationName", Type: ConfigTypeString, Description: "The name used in messaging and page titles. Defaults to \"GoAlert\".", Value: cfg.General.ApplicationName},
 		{ID: "General.PublicURL", Type: ConfigTypeString, Description: "Publicly routable URL for UI links and API calls.", Value: cfg.General.PublicURL, Deprecated: "Use --public-url flag instead, which takes precedence."},
 		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "If set, will post user metrics to the corresponding data stream in Google Analytics 4.", Value: cfg.General.GoogleAnalyticsID},
@@ -90,13 +90,16 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Webhook.Enable", Type: ConfigTypeBoolean, Description: "Enables webhook as a contact method.", Value: fmt.Sprintf("%t", cfg.Webhook.Enable)},
 		{ID: "Webhook.AllowedURLs", Type: ConfigTypeStringList, Description: "If set, allows webhooks for these domains only.", Value: strings.Join(cfg.Webhook.AllowedURLs, "\n")},
 		{ID: "Feedback.Enable", Type: ConfigTypeBoolean, Description: "Enables Feedback link in nav bar.", Value: fmt.Sprintf("%t", cfg.Feedback.Enable)},
-		{ID: "Feedback.OverrideURL", Type: ConfigTypeString, Description: "Use a custom URL for Feedback link in nav bar.", Value: cfg.Feedback.OverrideURL},
-	}
+        {ID: "Feedback.OverrideURL", Type: ConfigTypeString, Description: "Use a custom URL for Feedback link in nav bar.", Value: cfg.Feedback.OverrideURL},
+        {ID: "WebPush.Enable", Type: ConfigTypeBoolean, Description: "Enable Web Push notifications (requires VAPID keys).", Value: fmt.Sprintf("%t", cfg.WebPush.Enable)},
+        {ID: "WebPush.VAPIDPublicKey", Type: ConfigTypeString, Description: "Public VAPID key (Base64 URL-safe, unpadded) exposed to clients.", Value: cfg.WebPush.VAPIDPublicKey},
+        {ID: "WebPush.VAPIDPrivateKey", Type: ConfigTypeString, Description: "Private VAPID key used for signing push messages (keep secret).", Value: cfg.WebPush.VAPIDPrivateKey, Password: true},
+    }
 }
 
 // MapPublicConfigValues will map a Config struct into a flat list of ConfigValue structs.
 func MapPublicConfigValues(cfg config.Config) []ConfigValue {
-	return []ConfigValue{
+    return []ConfigValue{
 		{ID: "General.ApplicationName", Type: ConfigTypeString, Description: "The name used in messaging and page titles. Defaults to \"GoAlert\".", Value: cfg.General.ApplicationName},
 		{ID: "General.PublicURL", Type: ConfigTypeString, Description: "Publicly routable URL for UI links and API calls.", Value: cfg.General.PublicURL, Deprecated: "Use --public-url flag instead, which takes precedence."},
 		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "If set, will post user metrics to the corresponding data stream in Google Analytics 4.", Value: cfg.General.GoogleAnalyticsID},
@@ -125,8 +128,10 @@ func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Webhook.Enable", Type: ConfigTypeBoolean, Description: "Enables webhook as a contact method.", Value: fmt.Sprintf("%t", cfg.Webhook.Enable)},
 		{ID: "Webhook.AllowedURLs", Type: ConfigTypeStringList, Description: "If set, allows webhooks for these domains only.", Value: strings.Join(cfg.Webhook.AllowedURLs, "\n")},
 		{ID: "Feedback.Enable", Type: ConfigTypeBoolean, Description: "Enables Feedback link in nav bar.", Value: fmt.Sprintf("%t", cfg.Feedback.Enable)},
-		{ID: "Feedback.OverrideURL", Type: ConfigTypeString, Description: "Use a custom URL for Feedback link in nav bar.", Value: cfg.Feedback.OverrideURL},
-	}
+        {ID: "Feedback.OverrideURL", Type: ConfigTypeString, Description: "Use a custom URL for Feedback link in nav bar.", Value: cfg.Feedback.OverrideURL},
+        {ID: "WebPush.Enable", Type: ConfigTypeBoolean, Description: "Enable Web Push notifications (requires VAPID keys).", Value: fmt.Sprintf("%t", cfg.WebPush.Enable)},
+        {ID: "WebPush.VAPIDPublicKey", Type: ConfigTypeString, Description: "Public VAPID key (Base64 URL-safe, unpadded) exposed to clients.", Value: cfg.WebPush.VAPIDPublicKey},
+    }
 }
 
 // ApplyConfigValues will apply a list of ConfigValues to a Config struct.
@@ -157,8 +162,8 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 			return false, validation.NewFieldError("\""+id+"\".Value", "boolean value invalid: expected 'true' or 'false'")
 		}
 	}
-	for _, v := range vals {
-		switch v.ID {
+    for _, v := range vals {
+        switch v.ID {
 		case "General.ApplicationName":
 			cfg.General.ApplicationName = v.Value
 		case "General.PublicURL":
@@ -389,11 +394,21 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 				return cfg, err
 			}
 			cfg.Feedback.Enable = val
-		case "Feedback.OverrideURL":
-			cfg.Feedback.OverrideURL = v.Value
-		default:
-			return cfg, validation.NewFieldError("ID", fmt.Sprintf("unknown config ID '%s'", v.ID))
-		}
-	}
+        case "Feedback.OverrideURL":
+            cfg.Feedback.OverrideURL = v.Value
+        case "WebPush.Enable":
+            val, err := parseBool(v.ID, v.Value)
+            if err != nil {
+                return cfg, err
+            }
+            cfg.WebPush.Enable = val
+        case "WebPush.VAPIDPublicKey":
+            cfg.WebPush.VAPIDPublicKey = v.Value
+        case "WebPush.VAPIDPrivateKey":
+            cfg.WebPush.VAPIDPrivateKey = v.Value
+        default:
+            return cfg, validation.NewFieldError("ID", fmt.Sprintf("unknown config ID '%s'", v.ID))
+        }
+    }
 	return cfg, nil
 }

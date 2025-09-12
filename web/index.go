@@ -56,6 +56,9 @@ type renderData struct {
 
 	// Nonce is a CSP nonce value.
 	Nonce string
+
+	// VAPIDPublicKey is the Web Push VAPID public key exposed to the client.
+	VAPIDPublicKey string
 }
 
 func (r renderData) PathPrefix() string   { return strings.TrimSuffix(r.Prefix, "/") }
