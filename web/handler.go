@@ -81,6 +81,9 @@ func validateAppJS(fs fs.FS) error {
 func NewHandler(uiDir, prefix string) (http.Handler, error) {
 	mux := http.NewServeMux()
 
+	// in-memory push subscription store
+	pushSubs := newPushStore()
+
 	var extraJS string
 	if uiDir != "" {
 		extraJS = "/static/live.js"
@@ -111,6 +114,27 @@ func NewHandler(uiDir, prefix string) (http.Handler, error) {
 		http.ServeContent(w, req, "/service-worker.js", time.Time{}, bytes.NewReader(serviceWorker))
 	})
 
+	// Minimal endpoint to accept and store push subscriptions.
+	mux.HandleFunc("POST /api/push/subscribe", func(w http.ResponseWriter, req *http.Request) {
+		var raw json.RawMessage
+		data, err := io.ReadAll(io.LimitReader(req.Body, 1<<20)) // 1MB cap
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+		raw = json.RawMessage(data)
+		var tmp struct{
+			Endpoint string `json:"endpoint"`
+		}
+		_ = json.Unmarshal(raw, &tmp)
+		if tmp.Endpoint == "" {
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+		pushSubs.add(pushSubscription{Endpoint: tmp.Endpoint, Raw: raw})
+		w.WriteHeader(http.StatusNoContent)
+	})
+
 	mux.HandleFunc("/api/graphql/explore", func(w http.ResponseWriter, req *http.Request) {
 		cfg := config.FromContext(req.Context())
 
@@ -119,6 +143,7 @@ func NewHandler(uiDir, prefix string) (http.Handler, error) {
 			Prefix:          prefix,
 			ExtraJS:         extraJS,
 			Nonce:           csp.NonceValue(req.Context()),
+			VAPIDPublicKey:  cfg.WebPush.VAPIDPublicKey,
 		})
 	})
 
@@ -130,6 +155,7 @@ func NewHandler(uiDir, prefix string) (http.Handler, error) {
 			Prefix:          prefix,
 			ExtraJS:         extraJS,
 			Nonce:           csp.NonceValue(req.Context()),
+			VAPIDPublicKey:  cfg.WebPush.VAPIDPublicKey,
 		})
 	})
 

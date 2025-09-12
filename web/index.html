@@ -8,6 +8,7 @@
     <meta http-equiv="x-goalert-git-commit" content="{{ .GitCommit }}" />
     <meta http-equiv="x-goalert-git-tree-state" content="{{ .GitTreeState }}" />
     <meta property="csp-nonce" content="{{ .Nonce }}" />
+    <meta name="vapid-public-key" content="{{ .VAPIDPublicKey }}" />
     <link rel="stylesheet" html="{{ .Prefix }}/static/loading.css" />
 
     <title>{{ .ApplicationName }}</title>
@@ -165,7 +166,21 @@
                   reg.pushManager
                     .subscribe({
                       userVisibleOnly: true,
-                      applicationServerKey: new Uint8Array([]), // TODO: VAPID key
+                      applicationServerKey: (function () {
+                        var k =
+                          window.vapidPublicKey ||
+                          window.VAPID_PUBLIC_KEY ||
+                          (document.querySelector('meta[name="vapid-public-key"]') || {})
+                            .content;
+                        if (!k) return undefined;
+                        // Convert URL-safe base64 to Uint8Array
+                        k = k.replace(/-/g, '+').replace(/_/g, '/');
+                        var pad = '='.repeat((4 - (k.length % 4)) % 4);
+                        var raw = atob(k + pad);
+                        var out = new Uint8Array(raw.length);
+                        for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+                        return out;
+                      })(),
                     })
                     .then(function (sub) {
                       fetch('{{ .Prefix }}/api/push/subscribe', {

@@ -9,10 +9,6 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('push', (event) => {
   const data = event.data ? event.data.json() : {};
 
-  if (!data.onCall) {
-    return;
-  }
-
   const title = data.title || 'GoAlert';
   const options = {
     body: data.body,

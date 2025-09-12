@@ -145,6 +145,13 @@ type Config struct {
 		Enable      bool   `public:"true" info:"Enables Feedback link in nav bar."`
 		OverrideURL string `public:"true" info:"Use a custom URL for Feedback link in nav bar."`
 	}
+
+	// WebPush contains configuration for browser push notifications (VAPID).
+	WebPush struct {
+		Enable          bool   `public:"true" info:"Enable Web Push notifications (requires VAPID keys)."`
+		VAPIDPublicKey  string `public:"true" info:"Public VAPID key (Base64 URL-safe, unpadded) exposed to clients."`
+		VAPIDPrivateKey string `password:"true" info:"Private VAPID key used for signing push messages (keep secret)."`
+	}
 }
 
 // EmailIngressEnabled returns true if a provider is configured for generating alerts from email, otherwise false
@@ -559,6 +566,12 @@ func (cfg Config) Validate() error {
 		validateEnable("SMTP", cfg.SMTP.Enable,
 			"From", cfg.SMTP.From,
 			"Address", cfg.SMTP.Address,
+		),
+
+		// If WebPush is enabled, require both VAPID keys.
+		validateEnable("WebPush", cfg.WebPush.Enable,
+			"VAPIDPublicKey", cfg.WebPush.VAPIDPublicKey,
+			"VAPIDPrivateKey", cfg.WebPush.VAPIDPrivateKey,
 		),
 	)
 
