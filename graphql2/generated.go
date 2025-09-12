@@ -219,6 +219,8 @@ type ComplexityRoot struct {
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Password    func(childComplexity int) int
+		Section     func(childComplexity int) int
+		Title       func(childComplexity int) int
 		Type        func(childComplexity int) int
 		Value       func(childComplexity int) int
 	}
@@ -1627,6 +1629,20 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ConfigValue.Password(childComplexity), true
+
+	case "ConfigValue.section":
+		if e.complexity.ConfigValue.Section == nil {
+			break
+		}
+
+		return e.complexity.ConfigValue.Section(childComplexity), true
+
+	case "ConfigValue.title":
+		if e.complexity.ConfigValue.Title == nil {
+			break
+		}
+
+		return e.complexity.ConfigValue.Title(childComplexity), true
 
 	case "ConfigValue.type":
 		if e.complexity.ConfigValue.Type == nil {
@@ -9522,6 +9538,94 @@ func (ec *executionContext) _ConfigValue_id(ctx context.Context, field graphql.C
 }
 
 func (ec *executionContext) fieldContext_ConfigValue_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigValue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigValue_title(ctx context.Context, field graphql.CollectedField, obj *ConfigValue) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigValue_title(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Title, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigValue_title(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigValue",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigValue_section(ctx context.Context, field graphql.CollectedField, obj *ConfigValue) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigValue_section(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Section, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigValue_section(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ConfigValue",
 		Field:      field,
@@ -23543,6 +23647,10 @@ func (ec *executionContext) fieldContext_Query_config(ctx context.Context, field
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_ConfigValue_id(ctx, field)
+			case "title":
+				return ec.fieldContext_ConfigValue_title(ctx, field)
+			case "section":
+				return ec.fieldContext_ConfigValue_section(ctx, field)
 			case "description":
 				return ec.fieldContext_ConfigValue_description(ctx, field)
 			case "value":
@@ -40346,6 +40454,16 @@ func (ec *executionContext) _ConfigValue(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = graphql.MarshalString("ConfigValue")
 		case "id":
 			out.Values[i] = ec._ConfigValue_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "title":
+			out.Values[i] = ec._ConfigValue_title(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "section":
+			out.Values[i] = ec._ConfigValue_section(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

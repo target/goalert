@@ -48,7 +48,7 @@ func MapConfigHints(cfg config.Hints) []ConfigHint {
 func MapConfigValues(cfg config.Config) []ConfigValue {
 	return []ConfigValue{
 		{{- range .ConfigFields }}
-		{ID: {{quote .ID}}, Type: {{.Type}}, Description: {{quote .Desc}}, Value: {{.Value}}{{if .Password}}, Password: true{{end}}{{if .Dep}}, Deprecated: {{quote .Dep}}{{end}}},
+		{ID: {{quote .ID}}, Type: {{.Type}}, Description: {{quote .Desc}}, Value: {{.Value}}{{if .Password}}, Password: true{{end}}{{if .Dep}}, Deprecated: {{quote .Dep}}, Title: {{quote .Title}}, Section: {{quote .Section}}{{end}}},
 		{{- end}}
 	}
 }
@@ -58,7 +58,7 @@ func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 	return []ConfigValue{
 		{{- range .ConfigFields }}
 		{{- if .Public}}
-		{ID: {{quote .ID}}, Type: {{.Type}}, Description: {{quote .Desc}}, Value: {{.Value}}{{if .Password}}, Password: true{{end}}{{if .Dep}}, Deprecated: {{quote .Dep}}{{end}}},
+		{ID: {{quote .ID}}, Type: {{.Type}}, Description: {{quote .Desc}}, Value: {{.Value}}{{if .Password}}, Password: true{{end}}{{if .Dep}}, Deprecated: {{quote .Dep}}, Title: {{quote .Title}}, Section: {{quote .Section}}{{end}}},
 		{{- end}}
 		{{- end}}
 	}
@@ -129,8 +129,8 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 `))
 
 type field struct {
-	ID, Type, Desc, Value, Dep string
-	Public, Password           bool
+	ID, Type, Desc, Value, Dep, Title, Section string
+	Public, Password                           bool
 }
 
 func main() {
@@ -158,8 +158,8 @@ package graphql2`)
 		ConfigFields []field
 		HintFields   []field
 	}
-	input.ConfigFields = printType("", reflect.TypeOf(config.Config{}), "", "", false, false)
-	input.HintFields = printType("", reflect.TypeOf(config.Hints{}), "", "", false, false)
+	input.ConfigFields = printType("", reflect.TypeOf(config.Config{}), "", "", "", "", false, false)
+	input.HintFields = printType("", reflect.TypeOf(config.Hints{}), "", "", "", "", false, false)
 
 	err = tmpl.Execute(w, input)
 	if err != nil {
@@ -167,15 +167,26 @@ package graphql2`)
 	}
 }
 
-func printField(prefix string, f reflect.StructField) []field {
+func titleCase(s string) string {
+	if s == "" {
+		return s
+	}
+	return strings.ToUpper(s[:1]) + s[1:]
+}
+
+func printField(prefix string, section string, f reflect.StructField) []field {
 	fPrefix := prefix + f.Name + "."
 	if f.Type.Kind() == reflect.Slice && f.Type.Elem().Kind() == reflect.Struct {
 		fPrefix = prefix + f.Name + "[]."
 	}
-	return printType(fPrefix, f.Type, f.Tag.Get("info"), f.Tag.Get("deprecated"), f.Tag.Get("public") == "true", f.Tag.Get("password") == "true")
+	title := f.Tag.Get("title")
+	if title == "" {
+		title = titleCase(f.Name)
+	}
+	return printType(fPrefix, f.Type, section, title, f.Tag.Get("info"), f.Tag.Get("deprecated"), f.Tag.Get("public") == "true", f.Tag.Get("password") == "true")
 }
 
-func printType(prefix string, v reflect.Type, details, dep string, public, pass bool) []field {
+func printType(prefix string, v reflect.Type, section, title, details, dep string, public, pass bool) []field {
 	var f []field
 	key := strings.TrimSuffix(prefix, ".")
 
@@ -187,7 +198,7 @@ func printType(prefix string, v reflect.Type, details, dep string, public, pass 
 				// skip unexported fields
 				continue
 			}
-			f = append(f, printField(prefix, v.Field(i))...)
+			f = append(f, printField(prefix, title, v.Field(i))...)
 		}
 		return f
 	case reflect.Bool:
@@ -211,6 +222,6 @@ func printType(prefix string, v reflect.Type, details, dep string, public, pass 
 		panic(fmt.Sprintf("not implemented for type %T", v.Kind()))
 	}
 
-	f = append(f, field{ID: key, Type: typ, Desc: details, Dep: dep, Value: value, Public: public, Password: pass})
+	f = append(f, field{ID: key, Type: typ, Desc: details, Dep: dep, Value: value, Public: public, Password: pass, Section: section, Title: title})
 	return f
 }

@@ -187,6 +187,17 @@ input SystemLimitInput {
 
 type ConfigValue {
   id: String!
+
+  """
+  User-displayable title for the config value.
+  """
+  title: String!
+
+  """
+  Section is a user-displayable grouping of config values.
+  """
+  section: String!
+
   description: String!
   value: String!
   type: ConfigType!

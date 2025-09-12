@@ -26,7 +26,7 @@ func MapConfigHints(cfg config.Hints) []ConfigHint {
 func MapConfigValues(cfg config.Config) []ConfigValue {
 	return []ConfigValue{
 		{ID: "General.ApplicationName", Type: ConfigTypeString, Description: "The name used in messaging and page titles. Defaults to \"GoAlert\".", Value: cfg.General.ApplicationName},
-		{ID: "General.PublicURL", Type: ConfigTypeString, Description: "Publicly routable URL for UI links and API calls.", Value: cfg.General.PublicURL, Deprecated: "Use --public-url flag instead, which takes precedence."},
+		{ID: "General.PublicURL", Type: ConfigTypeString, Description: "Publicly routable URL for UI links and API calls.", Value: cfg.General.PublicURL, Deprecated: "Use --public-url flag instead, which takes precedence.", Title: "PublicURL", Section: "General"},
 		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "If set, will post user metrics to the corresponding data stream in Google Analytics 4.", Value: cfg.General.GoogleAnalyticsID},
 		{ID: "General.NotificationDisclaimer", Type: ConfigTypeString, Description: "Disclaimer text for receiving pre-recorded notifications (appears on profile page).", Value: cfg.General.NotificationDisclaimer},
 		{ID: "General.DisableMessageBundles", Type: ConfigTypeBoolean, Description: "Disable bundling status updates and alert notifications.", Value: fmt.Sprintf("%t", cfg.General.DisableMessageBundles)},
@@ -40,7 +40,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Maintenance.AutoCloseAckedAlerts", Type: ConfigTypeBoolean, Description: "If set, alerts that are acknowledged will also be automatically closed after the configured number of days of inactivity.", Value: fmt.Sprintf("%t", cfg.Maintenance.AutoCloseAckedAlerts)},
 		{ID: "Maintenance.APIKeyExpireDays", Type: ConfigTypeInteger, Description: "Unused calendar API keys will be disabled after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.APIKeyExpireDays)},
 		{ID: "Maintenance.ScheduleCleanupDays", Type: ConfigTypeInteger, Description: "Schedule on-call history will be deleted after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.ScheduleCleanupDays)},
-		{ID: "Auth.RefererURLs", Type: ConfigTypeStringList, Description: "Allowed referer URLs for auth and redirects.", Value: strings.Join(cfg.Auth.RefererURLs, "\n"), Deprecated: "Use --public-url flag instead, which takes precedence."},
+		{ID: "Auth.RefererURLs", Type: ConfigTypeStringList, Description: "Allowed referer URLs for auth and redirects.", Value: strings.Join(cfg.Auth.RefererURLs, "\n"), Deprecated: "Use --public-url flag instead, which takes precedence.", Title: "RefererURLs", Section: "Auth"},
 		{ID: "Auth.DisableBasic", Type: ConfigTypeBoolean, Description: "Disallow username/password login.", Value: fmt.Sprintf("%t", cfg.Auth.DisableBasic)},
 		{ID: "GitHub.Enable", Type: ConfigTypeBoolean, Description: "Enable GitHub authentication.", Value: fmt.Sprintf("%t", cfg.GitHub.Enable)},
 		{ID: "GitHub.NewUsers", Type: ConfigTypeBoolean, Description: "Allow new user creation via GitHub authentication.", Value: fmt.Sprintf("%t", cfg.GitHub.NewUsers)},
@@ -60,7 +60,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "OIDC.UserInfoEmailVerifiedPath", Type: ConfigTypeString, Description: "JMESPath expression to find email verification state in UserInfo. If set, the email_verified claim will be ignored in favor of this. (suggestion: email_verified).", Value: cfg.OIDC.UserInfoEmailVerifiedPath},
 		{ID: "OIDC.UserInfoNamePath", Type: ConfigTypeString, Description: "JMESPath expression to find full name in UserInfo. If set, the name claim will be ignored in favor of this. (suggestion: name || cn || join(' ', [firstname, lastname]))", Value: cfg.OIDC.UserInfoNamePath},
 		{ID: "Mailgun.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Mailgun.Enable)},
-		{ID: "Mailgun.APIKey", Type: ConfigTypeString, Description: "", Value: cfg.Mailgun.APIKey, Password: true},
+		{ID: "Mailgun.APIKey", Type: ConfigTypeString, Description: "Set this to the HTTP webhook signing key.", Value: cfg.Mailgun.APIKey, Password: true},
 		{ID: "Mailgun.EmailDomain", Type: ConfigTypeString, Description: "The TO address for all incoming alerts.", Value: cfg.Mailgun.EmailDomain},
 		{ID: "Slack.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Slack.Enable)},
 		{ID: "Slack.ClientID", Type: ConfigTypeString, Description: "", Value: cfg.Slack.ClientID},
@@ -98,7 +98,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 	return []ConfigValue{
 		{ID: "General.ApplicationName", Type: ConfigTypeString, Description: "The name used in messaging and page titles. Defaults to \"GoAlert\".", Value: cfg.General.ApplicationName},
-		{ID: "General.PublicURL", Type: ConfigTypeString, Description: "Publicly routable URL for UI links and API calls.", Value: cfg.General.PublicURL, Deprecated: "Use --public-url flag instead, which takes precedence."},
+		{ID: "General.PublicURL", Type: ConfigTypeString, Description: "Publicly routable URL for UI links and API calls.", Value: cfg.General.PublicURL, Deprecated: "Use --public-url flag instead, which takes precedence.", Title: "PublicURL", Section: "General"},
 		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "If set, will post user metrics to the corresponding data stream in Google Analytics 4.", Value: cfg.General.GoogleAnalyticsID},
 		{ID: "General.NotificationDisclaimer", Type: ConfigTypeString, Description: "Disclaimer text for receiving pre-recorded notifications (appears on profile page).", Value: cfg.General.NotificationDisclaimer},
 		{ID: "General.DisableMessageBundles", Type: ConfigTypeBoolean, Description: "Disable bundling status updates and alert notifications.", Value: fmt.Sprintf("%t", cfg.General.DisableMessageBundles)},

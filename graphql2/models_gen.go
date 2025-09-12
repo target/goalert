@@ -170,7 +170,11 @@ type ConfigHint struct {
 }
 
 type ConfigValue struct {
-	ID          string     `json:"id"`
+	ID string `json:"id"`
+	// User-displayable title for the config value.
+	Title string `json:"title"`
+	// Section is a user-displayable grouping of config values.
+	Section     string     `json:"section"`
 	Description string     `json:"description"`
 	Value       string     `json:"value"`
 	Type        ConfigType `json:"type"`
