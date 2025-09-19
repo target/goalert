@@ -1,4 +1,4 @@
-FROM docker.io/goalert/build-env:go1.25.0 AS build
+FROM docker.io/goalert/build-env:go1.25.1 AS build
 COPY / /build/
 WORKDIR /build
 RUN make clean bin/build/goalert-linux-amd64
