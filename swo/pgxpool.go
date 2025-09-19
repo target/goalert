@@ -50,14 +50,14 @@ func NewAppPGXPool(oldURL, nextURL string, maxOpen, maxIdle int) (*pgxpool.Pool,
 		return nil
 	}
 
-	cfg.BeforeAcquire = func(ctx context.Context, conn *pgx.Conn) bool {
+	cfg.PrepareConn = func(ctx context.Context, conn *pgx.Conn) (bool, error) {
 		useNext, err := swodb.New(conn).SWOConnLock(ctx)
 		if err != nil {
 			// error, don't use
-			return false
+			return false, err
 		}
 		if !useNext {
-			return true
+			return true, nil
 		}
 
 		// switch to new config, don't use this connection
@@ -65,7 +65,7 @@ func NewAppPGXPool(oldURL, nextURL string, maxOpen, maxIdle int) (*pgxpool.Pool,
 		isDone = true
 		mx.Unlock()
 
-		return false
+		return false, nil
 	}
 
 	cfg.AfterRelease = func(conn *pgx.Conn) bool {
