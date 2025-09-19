@@ -119,13 +119,12 @@ func (app *App) initRiver(ctx context.Context) error {
 	}
 	app.EventBus.SetRiverDBSQL(app.RiverDBSQL)
 
-	opts := &riverui.ServerOpts{
-		Prefix: "/admin/riverui",
-		DB:     app.pgx,
-		Client: app.River,
-		Logger: slog.New(&ignoreCancel{h: app.Logger.With("module", "riverui").Handler()}),
+	opts := &riverui.HandlerOpts{
+		Prefix:    "/admin/riverui",
+		Endpoints: riverui.NewEndpoints(app.River, nil),
+		Logger:    slog.New(&ignoreCancel{h: app.Logger.With("module", "riverui").Handler()}),
 	}
-	app.RiverUI, err = riverui.NewServer(opts)
+	app.RiverUI, err = riverui.NewHandler(opts)
 	if err != nil {
 		return err
 	}

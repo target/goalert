@@ -2,6 +2,8 @@ module github.com/target/goalert
 
 go 1.25.0
 
+replace github.com/olekukonko/tablewriter => github.com/olekukonko/tablewriter v0.0.5
+
 require (
 	github.com/99designs/gqlgen v0.17.80
 	github.com/brianvoe/gofakeit/v6 v6.28.0
@@ -221,9 +223,6 @@ require (
 	github.com/nishanths/exhaustive v0.12.0 // indirect
 	github.com/nishanths/predeclared v0.2.2 // indirect
 	github.com/nunnatsa/ginkgolinter v0.19.1 // indirect
-	github.com/olekukonko/cat v0.0.0-20250911104152-50322a0618f6 // indirect
-	github.com/olekukonko/errors v1.1.0 // indirect
-	github.com/olekukonko/ll v0.1.1 // indirect
 	github.com/olekukonko/tablewriter v1.0.9 // indirect
 	github.com/pganalyze/pg_query_go/v6 v6.1.0 // indirect
 	github.com/pingcap/errors v0.11.5-0.20240311024730-e056997136bb // indirect
