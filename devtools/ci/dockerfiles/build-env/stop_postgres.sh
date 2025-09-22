@@ -8,8 +8,8 @@ if [ -z "$VERSION" ]; then
     if [ -f /var/lib/postgresql/.version ]; then
         VERSION=$(cat /var/lib/postgresql/.version)
     else
-        echo "No version specified defaulting to 13"
-        VERSION=13 # Default to PostgreSQL 13 for compatibility
+        echo "No version specified defaulting to 17"
+        VERSION=17 # Default to PostgreSQL 17 for compatibility
     fi
 fi
 
