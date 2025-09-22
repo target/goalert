@@ -13,6 +13,7 @@ type Value = {
   name: string
   dest: DestinationInput
   statusUpdates: boolean
+  private: boolean
 }
 
 const createMutation = gql`
@@ -41,6 +42,7 @@ export default function UserContactMethodCreateDialog(props: {
       args: {},
     },
     statusUpdates: false,
+    private: false,
   })
   const [createErr, setCreateErr] = useState<CombinedError | null>(null)
   const setCMValue = (newValue: Value): void => {
@@ -112,6 +114,7 @@ export default function UserContactMethodCreateDialog(props: {
               dest: CMValue.dest,
               enableStatusUpdates: CMValue.statusUpdates,
               userID: props.userID,
+              private: CMValue.private,
               newUserNotificationRule: {
                 delayMinutes: 0,
               },

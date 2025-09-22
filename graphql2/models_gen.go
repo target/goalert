@@ -299,6 +299,8 @@ type CreateUserContactMethodInput struct {
 	//
 	// Note: Some contact method types, like Slack, will always receive status updates and this value is ignored.
 	EnableStatusUpdates *bool `json:"enableStatusUpdates,omitempty"`
+	// If true, this contact method will be private and only visible to the user.
+	Private *bool `json:"private,omitempty"`
 }
 
 type CreateUserInput struct {
@@ -926,6 +928,8 @@ type UpdateUserContactMethodInput struct {
 	//
 	// Note: Some contact method types, like Slack, will always receive status updates and this value is ignored.
 	EnableStatusUpdates *bool `json:"enableStatusUpdates,omitempty"`
+	// If true, this contact method will be private and only visible to the user.
+	Private *bool `json:"private,omitempty"`
 }
 
 type UpdateUserInput struct {
