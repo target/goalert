@@ -169,7 +169,7 @@ Be sure to **Enable** OIDC authentication and **New Users** using the toggles.
 GoAlert supports creating alerts by email via Mailgun integration.
 
 From the Admin page in GoAlert, under the `Mailgun` section, set your **Email Domain** and **API Key**.
-The **API Key** may be found under the **Security** section in the Mailgun website (click your name in the top bar and select it from the drop down) it is labeled as **Private API Key**.
+The **API Key** is the HTTP webhook signing key which can be found in the Mailgun website under **Send** -> **Sending** -> **Webhooks** (at the top of the page).
 
 To configure Mailgun to forward to GoAlert:
 

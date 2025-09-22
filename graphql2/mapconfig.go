@@ -60,7 +60,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "OIDC.UserInfoEmailVerifiedPath", Type: ConfigTypeString, Description: "JMESPath expression to find email verification state in UserInfo. If set, the email_verified claim will be ignored in favor of this. (suggestion: email_verified).", Value: cfg.OIDC.UserInfoEmailVerifiedPath},
 		{ID: "OIDC.UserInfoNamePath", Type: ConfigTypeString, Description: "JMESPath expression to find full name in UserInfo. If set, the name claim will be ignored in favor of this. (suggestion: name || cn || join(' ', [firstname, lastname]))", Value: cfg.OIDC.UserInfoNamePath},
 		{ID: "Mailgun.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Mailgun.Enable)},
-		{ID: "Mailgun.APIKey", Type: ConfigTypeString, Description: "", Value: cfg.Mailgun.APIKey, Password: true},
+		{ID: "Mailgun.APIKey", Type: ConfigTypeString, Description: "Set this to the HTTP webhook signing key.", Value: cfg.Mailgun.APIKey, Password: true},
 		{ID: "Mailgun.EmailDomain", Type: ConfigTypeString, Description: "The TO address for all incoming alerts.", Value: cfg.Mailgun.EmailDomain},
 		{ID: "Slack.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Slack.Enable)},
 		{ID: "Slack.ClientID", Type: ConfigTypeString, Description: "", Value: cfg.Slack.ClientID},

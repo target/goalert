@@ -84,7 +84,7 @@ type Config struct {
 	Mailgun struct {
 		Enable bool `public:"true"`
 
-		APIKey      string `password:"true"`
+		APIKey      string `password:"true" info:"Set this to the HTTP webhook signing key."`
 		EmailDomain string `info:"The TO address for all incoming alerts."`
 	}
 
