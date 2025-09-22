@@ -1,11 +1,11 @@
-FROM docker.io/goalert/build-env:go1.24.5 AS build
+FROM docker.io/goalert/build-env:go1.25.1 AS build
 COPY / /build/
 WORKDIR /build
 RUN make clean bin/build/goalert-linux-amd64
 
 FROM docker.io/library/alpine
 RUN apk --no-cache add ca-certificates
-ENV GOALERT_LISTEN :8081
+ENV GOALERT_LISTEN=:8081
 EXPOSE 8081
 CMD ["/usr/bin/goalert"]
 

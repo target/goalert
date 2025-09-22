@@ -14,7 +14,7 @@ When running GoAlert behind a reverse proxy, make sure the `--public-url` includ
 
 ## Database
 
-We recommend using Postgres 13 (or newer) for new installations as newer features will be used in the future.
+We recommend using Postgres 17 (or newer) for new installations as newer features will be used in the future.
 
 GoAlert requires the `pgcrypto` extension enabled (you can enable it with `CREATE EXTENSION pgcrypto;`).
 Upon first startup, it will attempt to enable the extension if it's not already enabled, but this requires elevated privileges that may not be available
