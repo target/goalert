@@ -147,7 +147,7 @@ type App struct {
 	//
 	// This allows us to add jobs from transactions that are not using the pgx driver. This client is not used for any job or queue processing.
 	RiverDBSQL   *river.Client[*sql.Tx]
-	RiverUI      *riverui.Server
+	RiverUI      *riverui.Handler
 	RiverWorkers *river.Workers
 }
 

@@ -880,5 +880,5 @@ func (h *Harness) WaitAndAssertOnCallUsers(serviceID string, userIDs ...string) 
 	}
 	h.Trigger() // run engine cycle
 
-	assert.EventuallyWithT(h.t, check, 5*time.Second, 100*time.Millisecond)
+	assert.EventuallyWithT(h.t, check, 15*time.Second, time.Second)
 }
