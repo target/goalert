@@ -479,12 +479,13 @@ func (m *Mutation) SetAlertNoiseReason(ctx context.Context, input graphql2.SetAl
 }
 
 func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphql2.AlertRecentEventsOptions) (*graphql2.AlertLogEntryConnection, error) {
+	return (*App)(a).RecentAlertEvents(ctx, opts, alertlog.SearchOptions{FilterAlertIDs: []int{obj.ID}})
+}
+
+func (a *App) RecentAlertEvents(ctx context.Context, opts *graphql2.AlertRecentEventsOptions, s alertlog.SearchOptions) (*graphql2.AlertLogEntryConnection, error) {
 	if opts == nil {
 		opts = new(graphql2.AlertRecentEventsOptions)
 	}
-
-	var s alertlog.SearchOptions
-	s.FilterAlertIDs = append(s.FilterAlertIDs, obj.ID)
 
 	if opts.After != nil && *opts.After != "" {
 		err := search.ParseCursor(*opts.After, &s)
@@ -499,6 +500,7 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 	if s.Limit == 0 {
 		s.Limit = search.DefaultMaxResults
 	}
+	s.Since = opts.Since
 
 	s.Limit++
 
