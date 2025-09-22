@@ -1340,7 +1340,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.AlertLogEntry.AlertID(childComplexity), true
-
 	case "AlertLogEntry.id":
 		if e.complexity.AlertLogEntry.ID == nil {
 			break
@@ -4301,7 +4300,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Service.OnCallUsers(childComplexity), true
-
 	case "Service.recentEvents":
 		if e.complexity.Service.RecentEvents == nil {
 			break
@@ -6337,29 +6335,12 @@ func (ec *executionContext) field_Service_alertStats_args(ctx context.Context, r
 func (ec *executionContext) field_Service_recentEvents_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := ec.field_Service_recentEvents_argsInput(ctx, rawArgs)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalOAlertRecentEventsOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertRecentEventsOptions)
 	if err != nil {
 		return nil, err
 	}
 	args["input"] = arg0
 	return args, nil
-}
-func (ec *executionContext) field_Service_recentEvents_argsInput(
-	ctx context.Context,
-	rawArgs map[string]any,
-) (*AlertRecentEventsOptions, error) {
-	if _, ok := rawArgs["input"]; !ok {
-		var zeroVal *AlertRecentEventsOptions
-		return zeroVal, nil
-	}
-
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-	if tmp, ok := rawArgs["input"]; ok {
-		return ec.unmarshalOAlertRecentEventsOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertRecentEventsOptions(ctx, tmp)
-	}
-
-	var zeroVal *AlertRecentEventsOptions
-	return zeroVal, nil
 }
 
 func (ec *executionContext) field___Directive_args_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
@@ -7191,34 +7172,19 @@ func (ec *executionContext) fieldContext_AlertLogEntry_id(_ context.Context, fie
 }
 
 func (ec *executionContext) _AlertLogEntry_alertID(ctx context.Context, field graphql.CollectedField, obj *alertlog.Entry) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AlertLogEntry_alertID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AlertID(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AlertLogEntry_alertID,
+		func(ctx context.Context) (any, error) {
+			return obj.AlertID(), nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
 }
 
 func (ec *executionContext) fieldContext_AlertLogEntry_alertID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -21851,34 +21817,20 @@ func (ec *executionContext) fieldContext_Service_notices(_ context.Context, fiel
 }
 
 func (ec *executionContext) _Service_recentEvents(ctx context.Context, field graphql.CollectedField, obj *service.Service) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Service_recentEvents(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Service().RecentEvents(rctx, obj, fc.Args["input"].(*AlertRecentEventsOptions))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*AlertLogEntryConnection)
-	fc.Result = res
-	return ec.marshalNAlertLogEntryConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogEntryConnection(ctx, field.Selections, res)
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Service_recentEvents,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Service().RecentEvents(ctx, obj, fc.Args["input"].(*AlertRecentEventsOptions))
+		},
+		nil,
+		ec.marshalNAlertLogEntryConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogEntryConnection,
+		true,
+		true,
+	)
 }
 
 func (ec *executionContext) fieldContext_Service_recentEvents(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
