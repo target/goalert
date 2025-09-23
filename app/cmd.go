@@ -12,6 +12,7 @@ import (
 	"os/signal"
 	"runtime"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -118,9 +119,12 @@ Available Flags:
 			return err
 		}
 
-		doMigrations := func(url string) error {
+		// Config is loaded, so don't print usage anymore on future errors.
+		cmd.SilenceUsage = true
+
+		doMigrations := func(ctx context.Context, url string) error {
 			if cfg.APIOnly {
-				err = migrate.VerifyAll(log.WithDebug(ctx), url)
+				err = migrate.VerifyAll(ctx, url)
 				if err != nil {
 					return errors.Wrap(err, "verify migrations")
 				}
@@ -128,7 +132,7 @@ Available Flags:
 			}
 
 			s := time.Now()
-			n, err := migrate.ApplyAll(log.WithDebug(ctx), url)
+			n, err := migrate.ApplyAll(ctx, url)
 			if err != nil {
 				return errors.Wrap(err, "apply migrations")
 			}
@@ -139,20 +143,32 @@ Available Flags:
 			return nil
 		}
 
-		cfg.Logger.DebugContext(ctx, "validating database migrations")
-		err = doMigrations(cfg.DBURL)
+		var earlyShutdown sync.WaitGroup
+		earlyShutdownCtx, sdCancel := context.WithCancel(ctx)
+		earlyShutdown.Go(func() {
+			select {
+			case <-shutdownSignalCh:
+				cfg.Logger.Warn("Received shutdown signal during startup.")
+				sdCancel()
+			case <-earlyShutdownCtx.Done():
+			}
+		})
+
+		cfg.Logger.DebugContext(earlyShutdownCtx, "validating database migrations")
+		err = doMigrations(earlyShutdownCtx, cfg.DBURL)
 		if err != nil {
 			return err
 		}
 
+		cfg.Logger.DebugContext(earlyShutdownCtx, "connecting to database")
 		var pool *pgxpool.Pool
 		if cfg.DBURLNext != "" {
-			err = migrate.VerifyIsLatest(ctx, cfg.DBURL)
+			err = migrate.VerifyIsLatest(earlyShutdownCtx, cfg.DBURL)
 			if err != nil {
 				return errors.Wrap(err, "verify db")
 			}
 
-			err = doMigrations(cfg.DBURLNext)
+			err = doMigrations(earlyShutdownCtx, cfg.DBURLNext)
 			if err != nil {
 				return errors.Wrap(err, "nextdb")
 			}
@@ -190,6 +206,14 @@ Available Flags:
 				return errors.Wrap(err, "connect to postgres")
 			}
 		}
+
+		if err = pool.Ping(earlyShutdownCtx); err != nil {
+			return errors.Wrap(err, "ping db")
+		}
+
+		// unregister shutdown signal before creating app
+		sdCancel()
+		earlyShutdown.Wait()
 
 		app, err := NewApp(cfg, pool)
 		if err != nil {
