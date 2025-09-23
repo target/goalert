@@ -139,6 +139,7 @@ Available Flags:
 			return nil
 		}
 
+		cfg.Logger.DebugContext(ctx, "validating database migrations")
 		err = doMigrations(cfg.DBURL)
 		if err != nil {
 			return err
@@ -741,14 +742,17 @@ func getConfig(ctx context.Context) (Config, error) {
 		UIDir: viper.GetString("ui-dir"),
 	}
 
+	lg := cfg.LegacyLogger.Logrus()
 	opts := sloglogrus.Option{
 		Level:  slog.LevelInfo,
-		Logger: cfg.LegacyLogger.Logrus(),
+		Logger: lg,
 	}
 	if viper.GetBool("log-errors-only") {
 		opts.Level = slog.LevelError
+		lg.SetLevel(2)
 	} else if cfg.Verbose {
 		opts.Level = slog.LevelDebug
+		lg.SetLevel(5)
 	}
 	cfg.Logger = slog.New(opts.NewLogrusHandler())
 
