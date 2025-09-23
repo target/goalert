@@ -130,9 +130,9 @@ export const ErrorMultiField: Story = {
     await userEvent.type(await canvas.findByLabelText('First Item'), '123')
 
     // ensure errors are shown
-    await expect(
-      await canvas.findByText('must begin with a letter'),
-    ).toBeVisible()
+    await waitFor(() =>
+      expect(canvas.findByText('must begin with a letter')).toBeVisible(),
+    )
 
     await waitFor(async function ThreeCloseIcons() {
       await expect(await canvas.findAllByTestId('CloseIcon')).toHaveLength(3)
