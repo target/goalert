@@ -225,6 +225,7 @@ func NewApp(c Config, pool *pgxpool.Pool) (*App, error) {
 		}
 	}
 
+	c.Logger.Debug("starting app")
 	app.mgr = lifecycle.NewManager(app._Run, app._Shutdown)
 	err = app.mgr.SetStartupFunc(app.startup)
 	if err != nil {
