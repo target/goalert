@@ -1,6 +1,7 @@
 package retry
 
 import (
+	"context"
 	"database/sql"
 	"database/sql/driver"
 	"net"
@@ -35,6 +36,14 @@ func IsTemporaryError(err error) bool {
 	if err == nil {
 		return false
 	}
+
+	if errors.Is(err, context.Canceled) {
+		return false
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return false
+	}
+
 	var cliErr clientErr
 	if errors.As(err, &cliErr) && cliErr.ClientError() {
 		return false
