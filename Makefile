@@ -203,7 +203,7 @@ reset-integration: bin/goalert.cover
 	$(PSQL) -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(SWO_DB_NEXT); CREATE DATABASE $(SWO_DB_NEXT);'
 	go tool resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001 -db-url "$(SWO_DB_URL_MAIN)" -admin-db-url "$(DB_URL)" -mult 0.1
 	./bin/goalert.cover add-user --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123 "--db-url=$(SWO_DB_URL_MAIN)"
-	GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover --db-url "$(INT_DB_URL)" migrate
+	GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover --log-errors-only --db-url "$(INT_DB_URL)" migrate
 	$(PSQL) -d "$(INT_DB_URL)" -c "insert into users (id, role, name) values ('00000000-0000-0000-0000-000000000001', 'admin', 'Admin McIntegrationFace'),('00000000-0000-0000-0000-000000000002', 'user', 'User McIntegrationFace');"
 	GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123
 	GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000002 --user user --pass user1234
