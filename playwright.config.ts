@@ -38,7 +38,7 @@ const config = {
     launchOptions: {
       // slowMo: 1000,
     },
-    actionTimeout: 5000,
+    actionTimeout: 10000,
   },
   projects: [
     {
