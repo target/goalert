@@ -225,9 +225,9 @@ check: check-go check-js ## Run all lint checks
 	./devtools/ci/tasks/scripts/codecheck.sh
 
 check-js: generate $(NODE_DEPS)
-	$(BIN_DIR)/tools/bun run fmt
-	$(BIN_DIR)/tools/bun run lint
-	$(BIN_DIR)/tools/bun run check
+	$(BIN_DIR)/tools/bun -b run fmt
+	$(BIN_DIR)/tools/bun -b run lint
+	$(BIN_DIR)/tools/bun -b run check
 
 check-go: generate 
 	@go mod tidy
@@ -263,10 +263,10 @@ test-smoke: smoketest
 test-unit: test
 
 test-components:  $(NODE_DEPS)
-	$(BIN_DIR)/tools/bun run build-storybook --test --quiet 2>/dev/null
-	$(BIN_DIR)/tools/bun run playwright install chromium
+	$(BIN_DIR)/tools/bun run -b build-storybook --test --quiet 2>/dev/null
+	$(BIN_DIR)/tools/bun run -b playwright install chromium
 	$(BIN_DIR)/tools/bun run concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
-		"$(BIN_DIR)/tools/bun run serve -l tcp://127.0.0.1:6008 -L storybook-static" \
+		"$(BIN_DIR)/tools/bun run -b serve -l tcp://127.0.0.1:6008 -L storybook-static" \
 		"$(WAITFOR) tcp://localhost:6008 && $(BIN_DIR)/tools/bun run test-storybook --ci --url http://127.0.0.1:6008 --maxWorkers 2"
 
 storybook: $(NODE_DEPS) # Start the Storybook UI
