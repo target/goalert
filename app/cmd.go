@@ -155,7 +155,7 @@ Available Flags:
 		})
 
 		cfg.Logger.DebugContext(earlyShutdownCtx, "validating database migrations")
-		err = doMigrations(earlyShutdownCtx, cfg.DBURL)
+		err = doMigrations(log.WithLogger(earlyShutdownCtx, cfg.LegacyLogger), cfg.DBURL)
 		if err != nil {
 			return err
 		}
@@ -774,6 +774,7 @@ func getConfig(ctx context.Context) (Config, error) {
 	if viper.GetBool("log-errors-only") {
 		opts.Level = slog.LevelError
 		lg.SetLevel(2)
+		cfg.LegacyLogger.ErrorsOnly()
 	} else if cfg.Verbose {
 		opts.Level = slog.LevelDebug
 		lg.SetLevel(5)
