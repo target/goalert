@@ -7,7 +7,7 @@ import { ThemeProvider } from '../theme/themeConfig'
 import { ErrorBoundary } from 'react-error-boundary'
 
 import { Settings } from 'luxon'
-import { DecoratorFunction } from '@storybook/types'
+import { DecoratorFunction } from 'storybook/internal/csf'
 import { ReactRenderer } from '@storybook/react'
 Settings.throwOnInvalid = true
 

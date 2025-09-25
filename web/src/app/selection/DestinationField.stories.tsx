@@ -1,8 +1,8 @@
 import React from 'react'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import DestinationField from './DestinationField'
-import { expect, within } from '@storybook/test'
-import { useArgs } from '@storybook/preview-api'
+import { expect, within } from 'storybook/test'
+import { useArgs } from 'storybook/preview-api'
 import { StringMap } from '../../schema'
 
 const meta = {
