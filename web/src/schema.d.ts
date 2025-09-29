@@ -39,6 +39,7 @@ export interface AlertDataPoint {
 }
 
 export interface AlertLogEntry {
+  alertID: number
   id: number
   message: string
   messageID?: null | string
@@ -80,6 +81,7 @@ export interface AlertPendingNotification {
 export interface AlertRecentEventsOptions {
   after?: null | string
   limit?: null | number
+  since?: null | ISOTimestamp
 }
 
 export interface AlertSearchOptions {
@@ -1079,6 +1081,7 @@ export interface Service {
   name: string
   notices: Notice[]
   onCallUsers: ServiceOnCallUser[]
+  recentEvents: AlertLogEntryConnection
 }
 
 export interface ServiceAlertStatsOptions {

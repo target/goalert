@@ -25,7 +25,7 @@ export default function CalendarSubscribeForm(
     <FormContainer
       disabled={props.loading}
       errors={props.errors}
-      onChange={(value) => props.onChange(value)}
+      onChange={(value: CalSubFormValue) => props.onChange(value)}
       optionalLabels
       removeFalseyIdxs
       value={props.value}

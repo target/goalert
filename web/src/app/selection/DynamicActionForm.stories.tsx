@@ -1,10 +1,10 @@
 import React from 'react'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import DynamicActionForm, { Value } from './DynamicActionForm'
 import { DestinationTypeInfo } from '../../schema'
-import { fn } from '@storybook/test'
-import { useArgs } from '@storybook/preview-api'
+import { fn } from 'storybook/test'
+import { useArgs } from 'storybook/preview-api'
 
 const meta = {
   title: 'util/Destination/DynamicActionForm',

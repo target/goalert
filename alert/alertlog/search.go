@@ -4,7 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"text/template"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util/sqlutil"
@@ -18,10 +20,15 @@ type SearchOptions struct {
 	// FilterAlertIDs restricts the log entries belonging to specific alertIDs only.
 	FilterAlertIDs []int `json:"f"`
 
+	// FilterServiceID restricts the log entries to those alerts that belong to a specific service.
+	FilterServiceID *uuid.UUID `json:"i,omitempty"`
+
 	// Limit restricts the maximum number of rows returned. Default is 15.
 	Limit int `json:"-"`
 
 	After SearchCursor `json:"a,omitempty"`
+
+	Since *time.Time `json:"s,omitempty"`
 }
 
 type SearchCursor struct {
@@ -51,12 +58,18 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	LEFT JOIN integration_keys i ON i.id = log.sub_integration_key_id
 	LEFT JOIN heartbeat_monitors hb ON hb.id = log.sub_hb_monitor_id 
 	LEFT JOIN notification_channels nc ON nc.id = log.sub_channel_id
+	{{- if .FilterServiceID}}
+	JOIN alerts a ON a.id = log.alert_id and a.service_id = :serviceID
+	{{- end}}
 	WHERE TRUE
 	{{- if .FilterAlertIDs}}
 		AND log.alert_id = ANY(:alertIDs)
 	{{- end}}
 	{{- if .After.ID}}
 		AND (log.id < :afterID)
+	{{- end}}
+	{{- if .Since}}
+		AND log.timestamp >= :since
 	{{- end}}
 	ORDER BY log.id DESC
 	LIMIT {{.Limit}}
@@ -84,6 +97,8 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 	return []sql.NamedArg{
 		sql.Named("afterID", opts.After.ID),
 		sql.Named("alertIDs", sqlutil.IntArray(opts.FilterAlertIDs)),
+		sql.Named("since", opts.Since),
+		sql.Named("serviceID", opts.FilterServiceID),
 	}
 }
 

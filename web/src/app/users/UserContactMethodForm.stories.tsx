@@ -1,9 +1,9 @@
 import React from 'react'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import UserContactMethodForm, { Value } from './UserContactMethodForm'
-import { expect, within, userEvent, waitFor } from '@storybook/test'
+import { expect, within, userEvent, waitFor } from 'storybook/test'
 import { handleDefaultConfig } from '../storybook/graphql'
-import { useArgs } from '@storybook/preview-api'
+import { useArgs } from 'storybook/preview-api'
 import { HttpResponse, graphql } from 'msw'
 
 const meta = {
@@ -134,9 +134,9 @@ export const ErrorMultiField: Story = {
     await userEvent.type(await canvas.findByLabelText('First Item'), '123')
 
     // ensure errors are shown
-    await expect(
-      await canvas.findByText('Must begin with a letter'),
-    ).toBeVisible()
+    await waitFor(() =>
+      expect(canvas.findByText('must begin with a letter')).toBeVisible(),
+    )
 
     await waitFor(async function ThreeCloseIcons() {
       await expect(await canvas.findAllByTestId('CloseIcon')).toHaveLength(3)

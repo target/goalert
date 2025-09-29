@@ -1,7 +1,7 @@
 import React from 'react'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import DestinationInputChip from './DestinationInputChip'
-import { expect, userEvent, within, fn } from '@storybook/test'
+import { expect, userEvent, within, fn } from 'storybook/test'
 import { handleDefaultConfig } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 
