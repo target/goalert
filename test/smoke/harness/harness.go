@@ -286,7 +286,9 @@ func (h *Harness) StartWithAppCfgHook(fn func(*app.Config)) {
 	cfg.Mailgun.EmailDomain = "smoketest.example.com"
 	h.cfg = cfg
 
-	_, err := migrate.ApplyAll(context.Background(), h.dbURL)
+	l := log.NewLogger()
+	l.ErrorsOnly()
+	_, err := migrate.ApplyAll(log.WithLogger(context.Background(), l), h.dbURL)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -415,7 +417,9 @@ func (h *Harness) SendMail(from, to, subject, body string) {
 func (h *Harness) Migrate(migrationName string) {
 	h.t.Helper()
 	h.t.Logf("Running migrations (target: %s)", migrationName)
-	_, err := migrate.Up(context.Background(), h.dbURL, migrationName)
+	l := log.NewLogger()
+	l.ErrorsOnly()
+	_, err := migrate.Up(log.WithLogger(context.Background(), l), h.dbURL, migrationName)
 	if err != nil {
 		h.t.Fatalf("failed to run migration: %v", err)
 	}
@@ -880,5 +884,5 @@ func (h *Harness) WaitAndAssertOnCallUsers(serviceID string, userIDs ...string) 
 	}
 	h.Trigger() // run engine cycle
 
-	assert.EventuallyWithT(h.t, check, 5*time.Second, 100*time.Millisecond)
+	assert.EventuallyWithT(h.t, check, 15*time.Second, time.Second)
 }

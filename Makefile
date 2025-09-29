@@ -22,7 +22,7 @@ SWO_DB_URL_NEXT = $(shell go tool db-url-set-db "$(DB_URL)" "$(SWO_DB_NEXT)")
 
 LOG_DIR=
 GOPATH:=$(shell go env GOPATH)
-PG_VERSION ?= 13
+PG_VERSION ?= 17
 
 # tools
 SQLC=CGO_ENABLED=1 go tool sqlc
@@ -203,7 +203,7 @@ reset-integration: bin/goalert.cover
 	$(PSQL) -d "$(DB_URL)" -c 'DROP DATABASE IF EXISTS $(SWO_DB_NEXT); CREATE DATABASE $(SWO_DB_NEXT);'
 	go tool resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000001 -db-url "$(SWO_DB_URL_MAIN)" -admin-db-url "$(DB_URL)" -mult 0.1
 	./bin/goalert.cover add-user --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123 "--db-url=$(SWO_DB_URL_MAIN)"
-	GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover --db-url "$(INT_DB_URL)" migrate
+	GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover --log-errors-only --db-url "$(INT_DB_URL)" migrate
 	$(PSQL) -d "$(INT_DB_URL)" -c "insert into users (id, role, name) values ('00000000-0000-0000-0000-000000000001', 'admin', 'Admin McIntegrationFace'),('00000000-0000-0000-0000-000000000002', 'user', 'User McIntegrationFace');"
 	GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000001 --user admin --pass admin123
 	GOCOVERDIR=test/coverage/integration/reset ./bin/goalert.cover add-user --db-url "$(INT_DB_URL)" --user-id=00000000-0000-0000-0000-000000000002 --user user --pass user1234
@@ -225,9 +225,9 @@ check: check-go check-js ## Run all lint checks
 	./devtools/ci/tasks/scripts/codecheck.sh
 
 check-js: generate $(NODE_DEPS)
-	$(BIN_DIR)/tools/bun run fmt
-	$(BIN_DIR)/tools/bun run lint
-	$(BIN_DIR)/tools/bun run check
+	$(BIN_DIR)/tools/bun -b run fmt
+	$(BIN_DIR)/tools/bun -b run lint
+	$(BIN_DIR)/tools/bun -b run check
 
 check-go: generate 
 	@go mod tidy
@@ -263,10 +263,10 @@ test-smoke: smoketest
 test-unit: test
 
 test-components:  $(NODE_DEPS)
-	$(BIN_DIR)/tools/bun run build-storybook --test --quiet 2>/dev/null
-	$(BIN_DIR)/tools/bun run playwright install chromium
+	$(BIN_DIR)/tools/bun run -b build-storybook --test --quiet 2>/dev/null
+	$(BIN_DIR)/tools/bun run -b playwright install chromium
 	$(BIN_DIR)/tools/bun run concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
-		"$(BIN_DIR)/tools/bun run serve -l tcp://127.0.0.1:6008 -L storybook-static" \
+		"$(BIN_DIR)/tools/bun run -b serve -l tcp://127.0.0.1:6008 -L storybook-static" \
 		"$(WAITFOR) tcp://localhost:6008 && $(BIN_DIR)/tools/bun run test-storybook --ci --url http://127.0.0.1:6008 --maxWorkers 2"
 
 storybook: $(NODE_DEPS) # Start the Storybook UI

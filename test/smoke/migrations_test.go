@@ -18,6 +18,7 @@ import (
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/test/smoke/harness"
 	"github.com/target/goalert/test/smoke/migratetest"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 )
 
@@ -225,6 +226,12 @@ func renderQuery(t *testing.T, sql string) string {
 	return b.String()
 }
 
+func migrateLogCtx() context.Context {
+	l := log.NewLogger()
+	l.ErrorsOnly()
+	return log.WithLogger(context.Background(), l)
+}
+
 func TestMigrations(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping migrations tests for short mode")
@@ -256,7 +263,7 @@ func TestMigrations(t *testing.T) {
 	}
 	defer func() { _, _ = db.Exec("drop database " + sqlutil.QuoteID(dbName)) }()
 
-	n, err := migrate.Up(context.Background(), testURL, start)
+	n, err := migrate.Up(migrateLogCtx(), testURL, start)
 	if err != nil {
 		t.Fatal("failed to apply initial migrations:", err)
 	}
@@ -295,7 +302,7 @@ func TestMigrations(t *testing.T) {
 
 	var idx int
 	for idx = range names {
-		_, err := migrate.Up(context.Background(), testURL, names[idx])
+		_, err := migrate.Up(migrateLogCtx(), testURL, names[idx])
 		if err != nil {
 			t.Fatal("failed to skip migration:", err)
 		}
@@ -307,7 +314,7 @@ func TestMigrations(t *testing.T) {
 
 	names = names[idx:]
 	if skipTo {
-		n, err := migrate.Up(context.Background(), testURL, start)
+		n, err := migrate.Up(migrateLogCtx(), testURL, start)
 		if err != nil {
 			t.Fatal("failed to apply skip migrations:", err)
 		}
@@ -332,7 +339,7 @@ func TestMigrations(t *testing.T) {
 
 		var beforeUpSnap *migratetest.Snapshot
 		pass := t.Run(migrationName, func(t *testing.T) {
-			ctx := context.Background()
+			ctx := migrateLogCtx()
 
 			if beforeUpSnap == nil {
 				beforeUpSnap = snapshot(t, migrationName)
