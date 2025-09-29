@@ -1,10 +1,10 @@
 import React from 'react'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import DestinationSearchSelect from './DestinationSearchSelect'
-import { expect, userEvent, within } from '@storybook/test'
+import { expect, userEvent, within } from 'storybook/test'
 import { handleDefaultConfig } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
-import { useArgs } from '@storybook/preview-api'
+import { useArgs } from 'storybook/preview-api'
 import { FieldSearchConnection } from '../../schema'
 
 const meta = {

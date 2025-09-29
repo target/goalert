@@ -160,6 +160,7 @@ func NewApp(c Config, pool *pgxpool.Pool) (*App, error) {
 	var err error
 	db := stdlib.OpenDBFromPool(pool)
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
+		c.Logger.DebugContext(ctx, "checking switchover_state table")
 		// Should not be possible for the app to ever see `use_next_db` unless misconfigured.
 		//
 		// In switchover mode, the connector wrapper will check this and provide the app with
@@ -224,6 +225,7 @@ func NewApp(c Config, pool *pgxpool.Pool) (*App, error) {
 		}
 	}
 
+	c.Logger.Debug("starting app")
 	app.mgr = lifecycle.NewManager(app._Run, app._Shutdown)
 	err = app.mgr.SetStartupFunc(app.startup)
 	if err != nil {
