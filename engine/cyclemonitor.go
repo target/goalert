@@ -30,7 +30,7 @@ func (c *cycleMonitor) _newID() {
 	delete(c.cycles, c.history[cycleHist-1])
 
 	// shift history
-	copy(c.history[:], c.history[1:])
+	copy(c.history[1:], c.history[:])
 
 	// add new cycle
 	c.history[0] = uuid.New()
