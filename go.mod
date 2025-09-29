@@ -5,7 +5,7 @@ go 1.25.0
 replace github.com/olekukonko/tablewriter => github.com/olekukonko/tablewriter v0.0.5
 
 require (
-	github.com/99designs/gqlgen v0.17.80
+	github.com/99designs/gqlgen v0.17.81
 	github.com/brianvoe/gofakeit/v6 v6.28.0
 	github.com/coreos/go-oidc/v3 v3.15.0
 	github.com/creack/pty/v2 v2.0.1
