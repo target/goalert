@@ -207,6 +207,8 @@ export interface ConfigValue {
   description: string
   id: string
   password: boolean
+  section: string
+  title: string
   type: ConfigType
   value: string
 }
