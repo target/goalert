@@ -1,6 +1,6 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import { Time } from './Time'
-import { expect, within } from '@storybook/test'
+import { expect, within } from 'storybook/test'
 
 const meta = {
   title: 'util/Time',

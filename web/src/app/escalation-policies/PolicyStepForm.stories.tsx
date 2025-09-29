@@ -1,10 +1,10 @@
 import React from 'react'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import PolicyStepForm, { FormValue } from './PolicyStepForm'
-import { expect, userEvent, waitFor, within, fn } from '@storybook/test'
+import { expect, userEvent, waitFor, within, fn } from 'storybook/test'
 import { handleDefaultConfig } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
-import { useArgs } from '@storybook/preview-api'
+import { useArgs } from 'storybook/preview-api'
 import { DestFieldValueError } from '../util/errtypes'
 
 const VALID_PHONE = '+12225558989'

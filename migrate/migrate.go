@@ -493,7 +493,7 @@ func performMigrations(ctx context.Context, c *pgx.Conn, applyUp bool, migration
 		if err != nil {
 			return i, errors.Wrapf(err, "apply '%s'", m.Name)
 		}
-		log.Debugf(ctx, "Applied %s migration '%s' in %s", typ, m.Name, time.Since(s).Truncate(time.Millisecond))
+		log.Logf(ctx, "Applied %s migration '%s' in %s", typ, m.Name, time.Since(s).Truncate(time.Millisecond))
 	}
 
 	return len(migrations), nil
