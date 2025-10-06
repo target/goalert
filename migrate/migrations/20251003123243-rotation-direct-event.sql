@@ -40,6 +40,28 @@ END;
 $$
 LANGUAGE plpgsql;
 
+LOCK entity_updates;
+
+-- convert existing updates to jobs
+WITH distinct_rotations AS (
+    SELECT DISTINCT
+        entity_id
+    FROM
+        entity_updates
+    WHERE
+        entity_type = 'rotation')
+INSERT INTO river_job(args, kind, max_attempts, priority)
+SELECT
+    json_build_object('RotationID', entity_id),
+    'rotation-manager-update',
+    25,
+    2
+FROM
+    distinct_rotations;
+
+DELETE FROM entity_updates
+WHERE entity_type = 'rotation';
+
 -- +migrate Down
 CREATE OR REPLACE FUNCTION fn_track_rotation_updates()
     RETURNS TRIGGER
