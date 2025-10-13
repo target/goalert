@@ -41,6 +41,7 @@ export const SupportStatusUpdates: Story = {
   args: {
     value: {
       name: 'supports status',
+      private: false,
       dest: {
         type: 'supports-status',
         args: { phone_number: '+15555555555' },
@@ -63,6 +64,7 @@ export const RequiredStatusUpdates: Story = {
   args: {
     value: {
       name: 'required status',
+      private: false,
       dest: {
         type: 'required-status',
         args: { phone_number: '+15555555555' },
@@ -87,6 +89,7 @@ export const ErrorSingleField: Story = {
   args: {
     value: {
       name: '-notvalid',
+      private: false,
       dest: {
         type: 'single-field',
         args: { phone_number: '+15555555555' },
@@ -112,6 +115,7 @@ export const ErrorMultiField: Story = {
   args: {
     value: {
       name: '-notvalid',
+      private: false,
       dest: {
         type: 'triple-field',
         args: {
@@ -144,6 +148,7 @@ export const Disabled: Story = {
   args: {
     value: {
       name: 'disabled dest',
+      private: false,
       dest: {
         type: 'triple-field',
         args: {},

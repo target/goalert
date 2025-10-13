@@ -270,7 +270,7 @@ test-components:  $(NODE_DEPS)
 		"$(WAITFOR) tcp://localhost:6008 && $(BIN_DIR)/tools/bun run test-storybook --ci --url http://127.0.0.1:6008 --maxWorkers 2"
 
 storybook: $(NODE_DEPS) # Start the Storybook UI
-	$(BIN_DIR)/tools/bun run storybook
+	$(BIN_DIR)/tools/bun -b run storybook
 
 playwright-run: $(NODE_DEPS) web/src/build/static/app.js bin/goalert.cover web/src/schema.d.ts $(BIN_DIR)/tools/prometheus $(BIN_DIR)/tools/mailpit reset-integration ## Start playwright tests in headless mode
 	rm -rf test/coverage/integration/playwright

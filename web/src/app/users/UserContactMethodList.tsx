@@ -44,6 +44,7 @@ const query = gql`
         }
         disabled
         pending
+        private
       }
     }
   }
@@ -220,7 +221,7 @@ export default function UserContactMethodList(
             return (
               <CompListItemText
                 key={cm.id}
-                title={`${cm.name} (${label})${cm.disabled ? ' - Disabled' : ''}`}
+                title={`${cm.name} (${label})${cm.disabled ? ' - Disabled' : ''}${cm.private ? ' (PRIVATE)' : ''}`}
                 subText={getSubText(cm)}
                 action={getSecondaryAction(cm)}
                 icon={getIcon(cm)}

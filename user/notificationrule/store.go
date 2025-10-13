@@ -124,7 +124,7 @@ func (s *Store) FindAll(ctx context.Context, userID string) ([]NotificationRule,
 		return nil, err
 	}
 
-	err = permission.LimitCheckAny(ctx, permission.System, permission.User, permission.Admin)
+	err = permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
 	}

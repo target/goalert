@@ -10,6 +10,7 @@ type Value = {
   name: string
   dest: DestinationInput
   statusUpdates: boolean
+  private: boolean
 }
 
 const query = gql`
@@ -22,6 +23,7 @@ const query = gql`
         args
       }
       statusUpdates
+      private
     }
   }
 `
@@ -89,6 +91,7 @@ export default function UserContactMethodEditDialog(props: {
               id: props.contactMethodID,
               name: CMValue.name,
               enableStatusUpdates: Boolean(CMValue.statusUpdates),
+              private: CMValue.private,
             },
           },
           { additionalTypenames: ['UserContactMethod'] },
