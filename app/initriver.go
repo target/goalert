@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverdatabasesql"
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
@@ -82,8 +83,31 @@ func (w workerMiddlewareFunc) Work(ctx context.Context, job *rivertype.JobRow, d
 }
 func (workerMiddlewareFunc) IsMiddleware() bool { return true }
 
+type timeGen struct {
+	pgx *pgxpool.Pool
+}
+
+func (t *timeGen) NowUTC() time.Time {
+	var now time.Time
+	err := t.pgx.QueryRow(context.Background(), "SELECT NOW() AT TIME ZONE 'UTC'").Scan(&now)
+	if err != nil {
+		panic("failed to get current time from database: " + err.Error())
+	}
+	return now
+}
+
+func (t *timeGen) NowUTCOrNil() *time.Time {
+	now := t.NowUTC()
+	return &now
+}
+
 func (app *App) initRiver(ctx context.Context) error {
 	app.RiverWorkers = river.NewWorkers()
+	var testCfg river.TestConfig
+	if app.cfg.ForceRiverDBTime {
+		// used during smoke tests to pickup mock DB time changes
+		testCfg.Time = &timeGen{pgx: app.pgx}
+	}
 
 	var err error
 	app.River, err = river.NewClient(riverpgxv5.New(app.pgx), &river.Config{
@@ -100,6 +124,7 @@ func (app *App) initRiver(ctx context.Context) error {
 				return doInner(app.ConfigStore.Config().Context(ctx))
 			}),
 		},
+		Test: testCfg,
 		ErrorHandler: &riverErrs{
 			// The error handler logger is used differently than the main logger, so it should be separate, and doesn't need the wrapper.
 			Logger: app.Logger.With("module", "river"),
