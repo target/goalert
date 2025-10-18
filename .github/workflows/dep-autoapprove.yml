@@ -23,7 +23,7 @@ jobs:
           path: ~/.bun/install/cache
       - name: Run make generate
         run: make generate
-      - uses: stefanzweifel/git-auto-commit-action@v6
+      - uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: Apply make generate changes
       - name: Approve a PR
