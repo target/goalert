@@ -68,15 +68,15 @@ CREATE OR REPLACE FUNCTION fn_track_rotation_updates ()
     AS $$
 BEGIN
     IF TG_TABLE_NAME = 'rotations' THEN
-        INSERT INTO entity_updates (entity_type, entity_id)
-            VALUES ('rotation', NEW.id);
+        INSERT INTO entity_updates(entity_type, entity_id)
+            VALUES('rotation', NEW.id);
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO entity_updates (entity_type, entity_id)
-            VALUES ('rotation', OLD.rotation_id);
+        INSERT INTO entity_updates(entity_type, entity_id)
+            VALUES('rotation', OLD.rotation_id);
         RETURN OLD;
     ELSE
-        INSERT INTO entity_updates (entity_type, entity_id)
-            VALUES ('rotation', NEW.rotation_id);
+        INSERT INTO entity_updates(entity_type, entity_id)
+            VALUES('rotation', NEW.rotation_id);
     END IF;
     RETURN NEW;
 END;
