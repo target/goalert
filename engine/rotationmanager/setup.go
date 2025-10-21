@@ -3,7 +3,6 @@ package rotationmanager
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/riverqueue/river"
 	"github.com/target/goalert/engine/processinglock"
@@ -27,19 +26,6 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 	if err != nil {
 		return fmt.Errorf("add queue: %w", err)
 	}
-
-	args.River.PeriodicJobs().AddMany([]*river.PeriodicJob{
-		river.NewPeriodicJob(
-			river.PeriodicInterval(time.Minute),
-			func() (river.JobArgs, *river.InsertOpts) {
-				return LookForWorkArgs{}, &river.InsertOpts{
-					Queue:    QueueName,
-					Priority: PriorityLFW,
-				}
-			},
-			&river.PeriodicJobOpts{RunOnStart: true},
-		),
-	})
 
 	return nil
 }
