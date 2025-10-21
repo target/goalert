@@ -7,8 +7,6 @@ import (
 
 	"github.com/riverqueue/river"
 	"github.com/target/goalert/engine/processinglock"
-	"github.com/target/goalert/event"
-	"github.com/target/goalert/schedule/rotation"
 )
 
 const (
@@ -24,13 +22,6 @@ var _ processinglock.Setupable = (*DB)(nil) // assert that DB implements process
 func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 	river.AddWorker(args.Workers, river.WorkFunc(db.updateRotation))
 	river.AddWorker(args.Workers, river.WorkFunc(db.lookForWork))
-
-	event.RegisterJobSource(args.EventBus, func(data rotation.Update) (river.JobArgs, *river.InsertOpts) {
-		return UpdateArgs{RotationID: data.ID}, &river.InsertOpts{
-			Queue:    QueueName,
-			Priority: PriorityEvent,
-		}
-	})
 
 	err := args.River.Queues().Add(QueueName, river.QueueConfig{MaxWorkers: 5})
 	if err != nil {

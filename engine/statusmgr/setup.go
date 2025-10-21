@@ -6,9 +6,7 @@ import (
 	"time"
 
 	"github.com/riverqueue/river"
-	"github.com/target/goalert/alert"
 	"github.com/target/goalert/engine/processinglock"
-	"github.com/target/goalert/event"
 )
 
 const (
@@ -25,16 +23,6 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 	river.AddWorker(args.Workers, river.WorkFunc(db.cleanup))
 	river.AddWorker(args.Workers, river.WorkFunc(db.processSubscription))
 	river.AddWorker(args.Workers, river.WorkFunc(db.lookForWork))
-
-	event.RegisterJobSource(args.EventBus, func(data alert.EventAlertStatusUpdate) (river.JobArgs, *river.InsertOpts) {
-		return LookForWorkArgs{AlertID: data.AlertID}, &river.InsertOpts{
-			Queue:    QueueName,
-			Priority: PriorityLookForWork,
-			UniqueOpts: river.UniqueOpts{
-				ByArgs: true,
-			},
-		}
-	})
 
 	err := args.River.Queues().Add(QueueName, river.QueueConfig{MaxWorkers: 5})
 	if err != nil {

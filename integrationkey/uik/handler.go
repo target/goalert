@@ -12,7 +12,6 @@ import (
 	"github.com/expr-lang/expr/vm"
 	"github.com/google/uuid"
 	"github.com/target/goalert/alert"
-	"github.com/target/goalert/event"
 	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/integrationkey"
@@ -25,7 +24,6 @@ type Handler struct {
 	intStore   *integrationkey.Store
 	alertStore *alert.Store
 	db         TxAble
-	evt        *event.Bus
 	hc         *http.Client
 }
 
@@ -34,8 +32,8 @@ type TxAble interface {
 	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
 }
 
-func NewHandler(db TxAble, hc *http.Client, intStore *integrationkey.Store, aStore *alert.Store, evt *event.Bus) *Handler {
-	return &Handler{intStore: intStore, hc: hc, db: db, alertStore: aStore, evt: evt}
+func NewHandler(db TxAble, hc *http.Client, intStore *integrationkey.Store, aStore *alert.Store) *Handler {
+	return &Handler{intStore: intStore, hc: hc, db: db, alertStore: aStore}
 }
 
 func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1) (inserted bool, err error) {
@@ -167,10 +165,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		insertedAny = insertedAny || inserted
-	}
-
-	if insertedAny {
-		event.Send(ctx, h.evt, EventNewSignals{ServiceID: permission.ServiceNullUUID(ctx).UUID})
 	}
 
 	w.WriteHeader(http.StatusNoContent)
