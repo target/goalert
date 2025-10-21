@@ -99,7 +99,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "rotation management backend")
 	}
-	schedMgr, err := schedulemanager.NewDB(ctx, db)
+	schedMgr, err := schedulemanager.NewDB(ctx, db, c.RiverDBSQL)
 	if err != nil {
 		return nil, errors.Wrap(err, "schedule management backend")
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	mapset "github.com/deckarep/golang-set/v2"
@@ -29,14 +30,22 @@ func getUpdateInfo(ctx context.Context, tx *sql.Tx, scheduleID uuid.UUID) (*upda
 		return nil, fmt.Errorf("load location: %w", err)
 	}
 	info.RawScheduleData, err = db.SchedFindDataForUpdate(ctx, scheduleID)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+	}
 	if err != nil {
 		return nil, fmt.Errorf("lookup schedule data: %w", err)
 	}
-	err = json.Unmarshal(info.RawScheduleData, &info.ScheduleData)
+	if info.RawScheduleData != nil {
+		err = json.Unmarshal(info.RawScheduleData, &info.ScheduleData)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("unmarshal schedule data: %w", err)
 	}
 	onCallIDs, err := db.SchedMgrOnCall(ctx, scheduleID)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+	}
 	if err != nil {
 		return nil, fmt.Errorf("lookup on-call users: %w", err)
 	}
@@ -44,10 +53,16 @@ func getUpdateInfo(ctx context.Context, tx *sql.Tx, scheduleID uuid.UUID) (*upda
 		info.CurrentOnCall.Add(id)
 	}
 	info.Rules, err = db.SchedMgrRules(ctx, scheduleID)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+	}
 	if err != nil {
 		return nil, fmt.Errorf("lookup schedule rules: %w", err)
 	}
 	info.Overrides, err = db.SchedMgrOverrides(ctx, scheduleID)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+	}
 	if err != nil {
 		return nil, fmt.Errorf("lookup active overrides: %w", err)
 	}
