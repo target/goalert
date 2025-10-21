@@ -33,7 +33,7 @@ WHERE
 
 -- name: SchedMgrRules :many
 SELECT
-    rule.*,
+    sqlc.embed(rule),
     coalesce(rule.tgt_user_id, part.user_id) AS resolved_user_id
 FROM
     schedule_rules rule
@@ -41,26 +41,26 @@ FROM
     LEFT JOIN rotation_participants part ON part.id = rState.rotation_participant_id
 WHERE
     coalesce(rule.tgt_user_id, part.user_id)
-    NOTNULL;
+    NOTNULL
+    AND rule.schedule_id = $1;
 
 -- name: SchedMgrOverrides :many
 SELECT
-    add_user_id,
-    remove_user_id,
-    tgt_schedule_id
+    *
 FROM
     user_overrides
 WHERE
-    now() BETWEEN start_time AND end_time;
+    now() < end_time
+    AND tgt_schedule_id = $1;
 
--- name: SchedMgrDataForUpdate :many
+-- name: SchedMgrDataForUpdate :one
 SELECT
-    schedule_id,
     data
 FROM
     schedule_data
 WHERE
     data NOTNULL
+    AND schedule_id = $1
 FOR UPDATE;
 
 -- name: SchedMgrSetData :exec
@@ -71,32 +71,32 @@ SET
 WHERE
     schedule_id = $1;
 
--- name: SchedMgrTimezones :many
+-- name: SchedMgrTimezone :one
 SELECT
-    id,
     time_zone
 FROM
-    schedules;
+    schedules
+WHERE
+    id = $1;
 
 -- name: SchedMgrOnCall :many
 SELECT
-    schedule_id,
     user_id
 FROM
     schedule_on_call_users
 WHERE
-    end_time ISNULL;
+    end_time ISNULL
+    AND schedule_id = $1;
 
 -- name: SchedMgrStartOnCall :exec
-INSERT INTO schedule_on_call_users(schedule_id, start_time, user_id)
+INSERT INTO schedule_on_call_users(
+    schedule_id,
+    start_time,
+    user_id)
 SELECT
-    $1,
+    @schedule_id,
     now(),
-    $2
-FROM
-    users
-WHERE
-    id = $2;
+    unnest(@user_ids::uuid[]);
 
 -- name: SchedMgrEndOnCall :exec
 UPDATE
@@ -104,11 +104,18 @@ UPDATE
 SET
     end_time = now()
 WHERE
-    schedule_id = $1
-    AND user_id = $2
+    schedule_id = @schedule_id
+    AND user_id = ANY (@user_ids::uuid[])
     AND end_time ISNULL;
 
 -- name: SchedMgrInsertMessage :exec
-INSERT INTO outgoing_messages(id, message_type, channel_id, schedule_id)
-    VALUES ($1, 'schedule_on_call_notification', $2, $3);
-
+INSERT INTO outgoing_messages(
+    id,
+    message_type,
+    channel_id,
+    schedule_id)
+VALUES (
+    $1,
+    'schedule_on_call_notification',
+    $2,
+    $3);

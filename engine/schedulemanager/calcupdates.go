@@ -19,7 +19,7 @@ type updateInfo struct {
 	ScheduleData    schedule.Data
 	CurrentOnCall   mapset.Set[uuid.UUID]
 	Rules           []gadb.SchedMgrRulesRow
-	ActiveOverrides []gadb.SchedMgrOverridesRow
+	Overrides       []gadb.UserOverride
 }
 
 type updateResult struct {
@@ -44,7 +44,11 @@ func (info updateInfo) calcLatestOnCall(now time.Time) mapset.Set[uuid.UUID] {
 		}
 	}
 
-	for _, o := range info.ActiveOverrides {
+	for _, o := range info.Overrides {
+		if now.Before(o.StartTime) || !now.Before(o.EndTime) {
+			// not active
+			continue
+		}
 		if o.RemoveUserID.Valid {
 			if !newOnCall.Contains(o.RemoveUserID.UUID) {
 				// if the user to be removed is not currently on-call, skip

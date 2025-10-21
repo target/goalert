@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/util/timeutil"
 	"github.com/target/goalert/validation/validate"
 )
@@ -210,4 +211,29 @@ func (r Rule) String() string {
 	}
 
 	return fmt.Sprintf("%s-%s %s", startStr, endStr, r.WeekdayFilter.String())
+}
+
+// RuleFromGADB converts a gadb.ScheduleRule to a Rule.
+func RuleFromGADB(r gadb.ScheduleRule) Rule {
+	rr := Rule{
+		ID:         r.ID.String(),
+		ScheduleID: r.ScheduleID.String(),
+		Start:      r.StartTime,
+		End:        r.EndTime,
+		CreatedAt:  r.CreatedAt,
+	}
+	rr.SetDay(time.Sunday, r.Sunday)
+	rr.SetDay(time.Monday, r.Monday)
+	rr.SetDay(time.Tuesday, r.Tuesday)
+	rr.SetDay(time.Wednesday, r.Wednesday)
+	rr.SetDay(time.Thursday, r.Thursday)
+	rr.SetDay(time.Friday, r.Friday)
+	rr.SetDay(time.Saturday, r.Saturday)
+	if r.TgtUserID.Valid {
+		rr.Target = assignment.UserTarget(r.TgtUserID.UUID.String())
+	} else if r.TgtRotationID.Valid {
+		rr.Target = assignment.RotationTarget(r.TgtRotationID.UUID.String())
+	}
+
+	return rr
 }

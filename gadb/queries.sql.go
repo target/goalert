@@ -15,7 +15,6 @@ import (
 	"github.com/lib/pq"
 	"github.com/sqlc-dev/pqtype"
 	"github.com/target/goalert/util/sqlutil"
-	"github.com/target/goalert/util/timeutil"
 )
 
 const aPIKeyAuthCheck = `-- name: APIKeyAuthCheck :one
@@ -4944,43 +4943,22 @@ func (q *Queries) SchedInsertData(ctx context.Context, scheduleID uuid.UUID) err
 	return err
 }
 
-const schedMgrDataForUpdate = `-- name: SchedMgrDataForUpdate :many
+const schedMgrDataForUpdate = `-- name: SchedMgrDataForUpdate :one
 SELECT
-    schedule_id,
     data
 FROM
     schedule_data
 WHERE
     data NOTNULL
+    AND schedule_id = $1
 FOR UPDATE
 `
 
-type SchedMgrDataForUpdateRow struct {
-	ScheduleID uuid.UUID
-	Data       json.RawMessage
-}
-
-func (q *Queries) SchedMgrDataForUpdate(ctx context.Context) ([]SchedMgrDataForUpdateRow, error) {
-	rows, err := q.db.QueryContext(ctx, schedMgrDataForUpdate)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []SchedMgrDataForUpdateRow
-	for rows.Next() {
-		var i SchedMgrDataForUpdateRow
-		if err := rows.Scan(&i.ScheduleID, &i.Data); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) SchedMgrDataForUpdate(ctx context.Context, scheduleID uuid.UUID) (json.RawMessage, error) {
+	row := q.db.QueryRowContext(ctx, schedMgrDataForUpdate, scheduleID)
+	var data json.RawMessage
+	err := row.Scan(&data)
+	return data, err
 }
 
 const schedMgrDataIDs = `-- name: SchedMgrDataIDs :many
@@ -5021,17 +4999,17 @@ SET
     end_time = now()
 WHERE
     schedule_id = $1
-    AND user_id = $2
+    AND user_id = ANY ($2::uuid[])
     AND end_time ISNULL
 `
 
 type SchedMgrEndOnCallParams struct {
 	ScheduleID uuid.UUID
-	UserID     uuid.UUID
+	UserIds    []uuid.UUID
 }
 
 func (q *Queries) SchedMgrEndOnCall(ctx context.Context, arg SchedMgrEndOnCallParams) error {
-	_, err := q.db.ExecContext(ctx, schedMgrEndOnCall, arg.ScheduleID, arg.UserID)
+	_, err := q.db.ExecContext(ctx, schedMgrEndOnCall, arg.ScheduleID, pq.Array(arg.UserIds))
 	return err
 }
 
@@ -5053,8 +5031,16 @@ func (q *Queries) SchedMgrGetData(ctx context.Context, scheduleID uuid.UUID) (js
 }
 
 const schedMgrInsertMessage = `-- name: SchedMgrInsertMessage :exec
-INSERT INTO outgoing_messages(id, message_type, channel_id, schedule_id)
-    VALUES ($1, 'schedule_on_call_notification', $2, $3)
+INSERT INTO outgoing_messages(
+    id,
+    message_type,
+    channel_id,
+    schedule_id)
+VALUES (
+    $1,
+    'schedule_on_call_notification',
+    $2,
+    $3)
 `
 
 type SchedMgrInsertMessageParams struct {
@@ -5107,32 +5093,27 @@ func (q *Queries) SchedMgrNCDedupMapping(ctx context.Context) ([]SchedMgrNCDedup
 
 const schedMgrOnCall = `-- name: SchedMgrOnCall :many
 SELECT
-    schedule_id,
     user_id
 FROM
     schedule_on_call_users
 WHERE
     end_time ISNULL
+    AND schedule_id = $1
 `
 
-type SchedMgrOnCallRow struct {
-	ScheduleID uuid.UUID
-	UserID     uuid.UUID
-}
-
-func (q *Queries) SchedMgrOnCall(ctx context.Context) ([]SchedMgrOnCallRow, error) {
-	rows, err := q.db.QueryContext(ctx, schedMgrOnCall)
+func (q *Queries) SchedMgrOnCall(ctx context.Context, scheduleID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, schedMgrOnCall, scheduleID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []SchedMgrOnCallRow
+	var items []uuid.UUID
 	for rows.Next() {
-		var i SchedMgrOnCallRow
-		if err := rows.Scan(&i.ScheduleID, &i.UserID); err != nil {
+		var user_id uuid.UUID
+		if err := rows.Scan(&user_id); err != nil {
 			return nil, err
 		}
-		items = append(items, i)
+		items = append(items, user_id)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
@@ -5145,31 +5126,31 @@ func (q *Queries) SchedMgrOnCall(ctx context.Context) ([]SchedMgrOnCallRow, erro
 
 const schedMgrOverrides = `-- name: SchedMgrOverrides :many
 SELECT
-    add_user_id,
-    remove_user_id,
-    tgt_schedule_id
+    add_user_id, end_time, id, remove_user_id, start_time, tgt_schedule_id
 FROM
     user_overrides
 WHERE
-    now() BETWEEN start_time AND end_time
+    now() < end_time
+    AND tgt_schedule_id = $1
 `
 
-type SchedMgrOverridesRow struct {
-	AddUserID     uuid.NullUUID
-	RemoveUserID  uuid.NullUUID
-	TgtScheduleID uuid.UUID
-}
-
-func (q *Queries) SchedMgrOverrides(ctx context.Context) ([]SchedMgrOverridesRow, error) {
-	rows, err := q.db.QueryContext(ctx, schedMgrOverrides)
+func (q *Queries) SchedMgrOverrides(ctx context.Context, tgtScheduleID uuid.UUID) ([]UserOverride, error) {
+	rows, err := q.db.QueryContext(ctx, schedMgrOverrides, tgtScheduleID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []SchedMgrOverridesRow
+	var items []UserOverride
 	for rows.Next() {
-		var i SchedMgrOverridesRow
-		if err := rows.Scan(&i.AddUserID, &i.RemoveUserID, &i.TgtScheduleID); err != nil {
+		var i UserOverride
+		if err := rows.Scan(
+			&i.AddUserID,
+			&i.EndTime,
+			&i.ID,
+			&i.RemoveUserID,
+			&i.StartTime,
+			&i.TgtScheduleID,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -5194,29 +5175,16 @@ FROM
 WHERE
     coalesce(rule.tgt_user_id, part.user_id)
     NOTNULL
+    AND rule.schedule_id = $1
 `
 
 type SchedMgrRulesRow struct {
-	CreatedAt      time.Time
-	EndTime        timeutil.Clock
-	Friday         bool
-	ID             uuid.UUID
-	IsActive       bool
-	Monday         bool
-	Saturday       bool
-	ScheduleID     uuid.UUID
-	StartTime      timeutil.Clock
-	Sunday         bool
-	TgtRotationID  uuid.NullUUID
-	TgtUserID      uuid.NullUUID
-	Thursday       bool
-	Tuesday        bool
-	Wednesday      bool
+	ScheduleRule   ScheduleRule
 	ResolvedUserID uuid.UUID
 }
 
-func (q *Queries) SchedMgrRules(ctx context.Context) ([]SchedMgrRulesRow, error) {
-	rows, err := q.db.QueryContext(ctx, schedMgrRules)
+func (q *Queries) SchedMgrRules(ctx context.Context, scheduleID uuid.UUID) ([]SchedMgrRulesRow, error) {
+	rows, err := q.db.QueryContext(ctx, schedMgrRules, scheduleID)
 	if err != nil {
 		return nil, err
 	}
@@ -5225,21 +5193,21 @@ func (q *Queries) SchedMgrRules(ctx context.Context) ([]SchedMgrRulesRow, error)
 	for rows.Next() {
 		var i SchedMgrRulesRow
 		if err := rows.Scan(
-			&i.CreatedAt,
-			&i.EndTime,
-			&i.Friday,
-			&i.ID,
-			&i.IsActive,
-			&i.Monday,
-			&i.Saturday,
-			&i.ScheduleID,
-			&i.StartTime,
-			&i.Sunday,
-			&i.TgtRotationID,
-			&i.TgtUserID,
-			&i.Thursday,
-			&i.Tuesday,
-			&i.Wednesday,
+			&i.ScheduleRule.CreatedAt,
+			&i.ScheduleRule.EndTime,
+			&i.ScheduleRule.Friday,
+			&i.ScheduleRule.ID,
+			&i.ScheduleRule.IsActive,
+			&i.ScheduleRule.Monday,
+			&i.ScheduleRule.Saturday,
+			&i.ScheduleRule.ScheduleID,
+			&i.ScheduleRule.StartTime,
+			&i.ScheduleRule.Sunday,
+			&i.ScheduleRule.TgtRotationID,
+			&i.ScheduleRule.TgtUserID,
+			&i.ScheduleRule.Thursday,
+			&i.ScheduleRule.Tuesday,
+			&i.ScheduleRule.Wednesday,
 			&i.ResolvedUserID,
 		); err != nil {
 			return nil, err
@@ -5295,61 +5263,40 @@ func (q *Queries) SchedMgrSetDataV1Rules(ctx context.Context, arg SchedMgrSetDat
 }
 
 const schedMgrStartOnCall = `-- name: SchedMgrStartOnCall :exec
-INSERT INTO schedule_on_call_users(schedule_id, start_time, user_id)
+INSERT INTO schedule_on_call_users(
+    schedule_id,
+    start_time,
+    user_id)
 SELECT
     $1,
     now(),
-    $2
-FROM
-    users
-WHERE
-    id = $2
+    unnest($2::uuid[])
 `
 
 type SchedMgrStartOnCallParams struct {
 	ScheduleID uuid.UUID
-	UserID     uuid.UUID
+	UserIds    []uuid.UUID
 }
 
 func (q *Queries) SchedMgrStartOnCall(ctx context.Context, arg SchedMgrStartOnCallParams) error {
-	_, err := q.db.ExecContext(ctx, schedMgrStartOnCall, arg.ScheduleID, arg.UserID)
+	_, err := q.db.ExecContext(ctx, schedMgrStartOnCall, arg.ScheduleID, pq.Array(arg.UserIds))
 	return err
 }
 
-const schedMgrTimezones = `-- name: SchedMgrTimezones :many
+const schedMgrTimezone = `-- name: SchedMgrTimezone :one
 SELECT
-    id,
     time_zone
 FROM
     schedules
+WHERE
+    id = $1
 `
 
-type SchedMgrTimezonesRow struct {
-	ID       uuid.UUID
-	TimeZone string
-}
-
-func (q *Queries) SchedMgrTimezones(ctx context.Context) ([]SchedMgrTimezonesRow, error) {
-	rows, err := q.db.QueryContext(ctx, schedMgrTimezones)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []SchedMgrTimezonesRow
-	for rows.Next() {
-		var i SchedMgrTimezonesRow
-		if err := rows.Scan(&i.ID, &i.TimeZone); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) SchedMgrTimezone(ctx context.Context, id uuid.UUID) (string, error) {
+	row := q.db.QueryRowContext(ctx, schedMgrTimezone, id)
+	var time_zone string
+	err := row.Scan(&time_zone)
+	return time_zone, err
 }
 
 const schedUpdate = `-- name: SchedUpdate :exec

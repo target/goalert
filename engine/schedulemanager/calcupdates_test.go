@@ -29,7 +29,7 @@ func TestUpdateInfo_calcUpdates_NotifyOnChange(t *testing.T) {
 		ScheduleData:    sData,
 		CurrentOnCall:   mapset.NewThreadUnsafeSet(uuid.New()), // no rules, so no longer on-call
 		Rules:           []gadb.SchedMgrRulesRow{},
-		ActiveOverrides: []gadb.SchedMgrOverridesRow{},
+		Overrides:       []gadb.UserOverride{},
 	}
 
 	result, err := info.calcUpdates(time.Now())
@@ -60,7 +60,7 @@ func TestUpdateInfo_calcUpdates_NotifyAtTime(t *testing.T) {
 		ScheduleData:    sData,
 		CurrentOnCall:   mapset.NewThreadUnsafeSet[uuid.UUID](),
 		Rules:           []gadb.SchedMgrRulesRow{},
-		ActiveOverrides: []gadb.SchedMgrOverridesRow{},
+		Overrides:       []gadb.UserOverride{},
 	}
 
 	result, err := info.calcUpdates(nextRun.Add(-1 * time.Hour))
