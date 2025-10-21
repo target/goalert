@@ -373,23 +373,12 @@ func (s *Store) UpdateStatusByService(ctx context.Context, serviceID string, sta
 		return err
 	}
 
-	rows, err := tx.StmtContext(ctx, s.updateByStatusAndService).QueryContext(ctx, serviceID, status)
+	_, err = tx.StmtContext(ctx, s.updateByStatusAndService).ExecContext(ctx, serviceID, status)
 	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
 	}
 	if err != nil {
 		return err
-	}
-	defer rows.Close()
-
-	var updatedIDs []int64
-	for rows.Next() {
-		var id int64
-		err = rows.Scan(&id)
-		if err != nil {
-			return err
-		}
-		updatedIDs = append(updatedIDs, id)
 	}
 
 	err = tx.Commit()
