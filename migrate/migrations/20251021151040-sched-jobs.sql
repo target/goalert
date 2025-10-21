@@ -13,11 +13,13 @@ BEGIN
     PERFORM
         set_config('local.' || key_name, 'true', TRUE);
     INSERT INTO river_job(
+        queue,
         args,
         kind,
         max_attempts,
         priority)
     VALUES (
+        'schedule-manager',
         json_build_object(
             'ScheduleID', id),
         'schedule-manager-update',
