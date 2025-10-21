@@ -306,6 +306,7 @@ func (h *Harness) StartWithAppCfgHook(fn func(*app.Config)) {
 	}
 
 	appCfg := app.Defaults()
+	appCfg.ForceRiverDBTime = true
 	appCfg.ExpFlags = h.expFlags
 	appCfg.LegacyLogger = log.NewLogger()
 	appCfg.Logger = slog.New(sloglogrus.Option{
