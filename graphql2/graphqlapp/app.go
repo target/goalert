@@ -27,7 +27,6 @@ import (
 	"github.com/target/goalert/calsub"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
-	"github.com/target/goalert/event"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
@@ -104,8 +103,7 @@ type App struct {
 
 	SWO *swo.Manager
 
-	DestReg  *nfydest.Registry
-	EventBus *event.Bus
+	DestReg *nfydest.Registry
 }
 
 type fieldErr struct {

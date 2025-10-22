@@ -27,7 +27,6 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/engine"
 	"github.com/target/goalert/escalation"
-	"github.com/target/goalert/event"
 	"github.com/target/goalert/graphql2/graphqlapp"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
@@ -82,8 +81,6 @@ type App struct {
 	sysAPIL   net.Listener
 	sysAPISrv *grpc.Server
 	hSrv      *health.Server
-
-	EventBus *event.Bus
 
 	srv        *http.Server
 	smtpsrv    *smtpsrv.Server
@@ -214,8 +211,6 @@ func NewApp(c Config, pool *pgxpool.Pool) (*App, error) {
 		httpClient: &http.Client{
 			Transport: calllimiter.RoundTripper(http.DefaultTransport),
 		},
-
-		EventBus: event.NewBus(c.Logger),
 	}
 
 	if c.StatusAddr != "" {
