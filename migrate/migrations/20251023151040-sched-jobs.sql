@@ -2,31 +2,9 @@
 CREATE OR REPLACE FUNCTION fn_job_schedule_update(id uuid)
     RETURNS VOID
     AS $$
-DECLARE
-    key_name text := 'schedule_job_' || replace(id::text, '-', '_');
 BEGIN
-    -- Only run once per transaction per ID
-    IF current_setting('local.' || key_name, TRUE) IS NOT NULL THEN
-        RETURN;
-    END IF;
-    -- Mark this ID as processed in this transaction
     PERFORM
-        set_config('local.' || key_name, 'true', TRUE);
-    INSERT INTO river_job(
-        queue,
-        args,
-        kind,
-        max_attempts,
-        priority)
-    VALUES (
-        'schedule-manager',
-        json_build_object(
-            'ScheduleID', id),
-        'schedule-manager-update',
-        25,
-        2);
-    PERFORM
-        pg_notify(current_schema() || '.river_insert', '{"queue":"schedule-manager"}');
+        fn_util_river_job('schedule-manager'::text, 'schedule-manager-update'::text, id::text, jsonb_build_object('ScheduleID', id::text));
 END;
 $$
 LANGUAGE plpgsql;
@@ -116,3 +94,4 @@ DROP TRIGGER trg_track_schedule_updates ON schedules;
 DROP FUNCTION fn_job_schedule_update(id uuid);
 
 DROP FUNCTION fn_track_schedule_updates();
+
