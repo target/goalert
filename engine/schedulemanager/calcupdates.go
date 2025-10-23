@@ -23,7 +23,7 @@ type updateInfo struct {
 }
 
 type updateResult struct {
-	ScheduleID           uuid.UUID
+	ScheduleID           uuid.UUID `json:"-"`
 	UsersToStart         mapset.Set[uuid.UUID]
 	UsersToStop          mapset.Set[uuid.UUID]
 	NewRawScheduleData   json.RawMessage       // no update necessary if nil

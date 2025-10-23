@@ -13,6 +13,8 @@ import (
 	"github.com/target/goalert/util"
 )
 
+var errScheduleDeleted = errors.New("schedule deleted")
+
 // getUpdateInfo retrieves all necessary information about a schedule to calculate updates.
 func getUpdateInfo(ctx context.Context, tx *sql.Tx, scheduleID uuid.UUID) (*updateInfo, error) {
 	info := updateInfo{
@@ -22,6 +24,9 @@ func getUpdateInfo(ctx context.Context, tx *sql.Tx, scheduleID uuid.UUID) (*upda
 	info.ScheduleID = scheduleID
 	db := gadb.New(tx)
 	tz, err := db.SchedMgrTimezone(ctx, scheduleID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, errScheduleDeleted
+	}
 	if err != nil {
 		return nil, fmt.Errorf("lookup timezone: %w", err)
 	}

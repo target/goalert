@@ -23,6 +23,12 @@ type UpdateArgs struct {
 
 func (UpdateArgs) Kind() string { return "schedule-manager-update" }
 
+type UpdateOutput struct {
+	ScheduleWasDeleted bool `json:",omitempty"`
+	*updateResult      `json:",omitempty"`
+	NextUpdateTime     *time.Time `json:",omitempty"`
+}
+
 // updateSchedule updates the state of a single schedule, and creates a job for the next change time.
 func (db *DB) updateSchedule(ctx context.Context, j *river.Job[UpdateArgs]) error {
 	return db.lock.WithTxShared(ctx, func(ctx context.Context, tx *sql.Tx) error {
@@ -36,7 +42,7 @@ func (db *DB) updateSchedule(ctx context.Context, j *river.Job[UpdateArgs]) erro
 		info, err := getUpdateInfo(ctx, tx, j.Args.ScheduleID)
 		if isScheduleDeleted(err) {
 			// schedule was deleted, nothing to do
-			return nil
+			return river.RecordOutput(ctx, UpdateOutput{ScheduleWasDeleted: true})
 		}
 		if err != nil {
 			return fmt.Errorf("get update info: %w", err)
@@ -53,7 +59,7 @@ func (db *DB) updateSchedule(ctx context.Context, j *river.Job[UpdateArgs]) erro
 				Data:       updates.NewRawScheduleData,
 			})
 			if isScheduleDeleted(err) {
-				return nil
+				return river.RecordOutput(ctx, UpdateOutput{ScheduleWasDeleted: true})
 			}
 			if err != nil {
 				return fmt.Errorf("update schedule data: %w", err)
@@ -67,7 +73,7 @@ func (db *DB) updateSchedule(ctx context.Context, j *river.Job[UpdateArgs]) erro
 				UserIds:    startUsers,
 			})
 			if isScheduleDeleted(err) {
-				return nil
+				return river.RecordOutput(ctx, UpdateOutput{ScheduleWasDeleted: true})
 			}
 			if err != nil {
 				return fmt.Errorf("start on-call: %w", err)
@@ -116,7 +122,10 @@ func (db *DB) updateSchedule(ctx context.Context, j *river.Job[UpdateArgs]) erro
 			return fmt.Errorf("schedule next run: %w", err)
 		}
 
-		return nil
+		return river.RecordOutput(ctx, UpdateOutput{
+			updateResult:   updates,
+			NextUpdateTime: &nextTime,
+		})
 	})
 }
 
@@ -167,6 +176,9 @@ func nextOnCallNotification(nowInZone time.Time, rule schedule.OnCallNotificatio
 func isScheduleDeleted(err error) bool {
 	if err == nil {
 		return false
+	}
+	if errors.Is(err, errScheduleDeleted) {
+		return true
 	}
 	dbErr := sqlutil.MapError(err)
 	if dbErr == nil {
