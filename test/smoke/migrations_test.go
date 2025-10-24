@@ -86,6 +86,11 @@ var rules = migratetest.RuleSet{
 	// entity_updates are converted to jobs (1-way). Previously a separate job would do this.
 	{MigrationName: "rotation-direct-event", TableName: "entity_updates", MissingRows: true},
 	{MigrationName: "rotation-direct-event", TableName: "river_job", ExtraRows: true},
+
+	// init jobs created for each schedule, recreated after second migration, ignore change in id and timestamps
+	{MigrationName: "sched-jobs", TableName: "river_job", ColumnName: "id"},
+	{MigrationName: "sched-jobs", TableName: "river_job", ColumnName: "created_at"},
+	{MigrationName: "sched-jobs", TableName: "river_job", ColumnName: "scheduled_at"},
 }
 
 const migrateInitData = `

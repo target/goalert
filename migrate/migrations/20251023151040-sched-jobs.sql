@@ -91,7 +91,14 @@ DROP TRIGGER trg_track_schedule_rule_updates ON schedule_rules;
 
 DROP TRIGGER trg_track_schedule_updates ON schedules;
 
-DROP FUNCTION fn_job_schedule_update(id uuid);
+DROP TRIGGER trg_track_rot_schedule_updates ON rotation_state;
 
 DROP FUNCTION fn_track_schedule_updates();
+
+DROP FUNCTION fn_track_rot_schedule_updates();
+
+DROP FUNCTION fn_job_schedule_update(id uuid);
+
+DELETE FROM river_job
+WHERE kind = 'schedule-manager-update';
 
