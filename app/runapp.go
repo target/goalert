@@ -24,19 +24,12 @@ func (app *App) _Run(ctx context.Context) error {
 		}
 	}()
 
-	go func() {
-		err := app.RiverUI.Start(ctx)
-		if err != nil {
-			app.Logger.ErrorContext(ctx, "Failed to start River UI.", slog.Any("error", err))
-		}
-	}()
-
-	eventCtx, cancel := context.WithCancel(ctx)
-	defer cancel()
-	eventDoneCh, err := app.listenEvents(eventCtx)
+	err := app.RiverUI.Start(ctx)
 	if err != nil {
-		return err
+		app.Logger.ErrorContext(ctx, "Failed to start River UI.", slog.Any("error", err))
 	}
+
+	go app.events.Run(ctx)
 
 	if app.sysAPISrv != nil {
 		app.Logger.InfoContext(ctx, "System API server started.",
@@ -71,9 +64,6 @@ func (app *App) _Run(ctx context.Context) error {
 		app.hSrv.Resume()
 	}
 
-	select {
-	case <-eventDoneCh:
-	case <-ctx.Done():
-	}
+	<-ctx.Done()
 	return nil
 }

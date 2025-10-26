@@ -1,0 +1,34 @@
+extend type Service {
+  """
+  alertStats returns aggregated statistics about alerts for this service.
+  """
+  alertStats(input: ServiceAlertStatsOptions): AlertStats!
+
+  """
+  alertsByStatus returns the number of alerts in each status for this service.
+  """
+  alertsByStatus: AlertsByStatus!
+}
+
+type AlertsByStatus {
+  acked: Int!
+  unacked: Int!
+  closed: Int!
+}
+
+input ServiceAlertStatsOptions {
+  start: ISOTimestamp
+  end: ISOTimestamp
+
+  tsOptions: TimeSeriesOptions
+}
+
+"""
+AlertStats returns aggregated statistics about alerts.
+"""
+type AlertStats {
+  avgAckSec: [TimeSeriesBucket!]!
+  avgCloseSec: [TimeSeriesBucket!]!
+  alertCount: [TimeSeriesBucket!]!
+  escalatedCount: [TimeSeriesBucket!]!
+}

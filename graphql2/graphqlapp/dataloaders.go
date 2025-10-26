@@ -2,13 +2,14 @@ package graphqlapp
 
 import (
 	context "context"
-	"io"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertmetrics"
 	"github.com/target/goalert/dataloader"
 	"github.com/target/goalert/escalation"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notificationchannel"
@@ -17,66 +18,174 @@ import (
 	"github.com/target/goalert/service"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
+	"github.com/target/goalert/util/sqlutil"
 
 	"github.com/pkg/errors"
 )
 
 type dataLoaderKey int
 
-const (
-	dataLoaderKeyUnknown = dataLoaderKey(iota)
+const requestLoadersKey = dataLoaderKey(1)
 
-	dataLoaderKeyAlert
-	dataLoaderKeyAlertState
-	dataLoaderKeyEP
-	dataLoaderKeyRotation
-	dataLoaderKeySchedule
-	dataLoaderKeyService
-	dataLoaderKeyUser
-	dataLoaderKeyCM
-	dataLoaderKeyHeartbeatMonitor
-	dataLoaderKeyNotificationMessageStatus
-	dataLoaderKeyNC
-	dataLoaderAlertMetrics
-	dataLoaderAlertFeedback
-	dataLoaderAlertMetadata
+// loaders contains all the dataloader instances for a single request.
+// These are used to batch database queries and prevent N+1 problems in GraphQL resolvers.
+type loaders struct {
+	Alert                     *dataloader.Loader[int, alert.Alert]
+	AlertState                *dataloader.Loader[int, alert.State]
+	EP                        *dataloader.Loader[string, escalation.Policy]
+	Rotation                  *dataloader.Loader[string, rotation.Rotation]
+	Schedule                  *dataloader.Loader[string, schedule.Schedule]
+	Service                   *dataloader.Loader[string, service.Service]
+	User                      *dataloader.Loader[string, user.User]
+	CM                        *dataloader.Loader[string, contactmethod.ContactMethod]
+	Heartbeat                 *dataloader.Loader[string, heartbeat.Monitor]
+	NotificationMessageStatus *dataloader.Loader[string, notification.SendResult]
+	NC                        *dataloader.Loader[string, notificationchannel.Channel]
+	AlertMetrics              *dataloader.Loader[int, alertmetrics.Metric]
+	AlertFeedback             *dataloader.Loader[int, alert.Feedback]
+	AlertMetadata             *dataloader.Loader[int, alert.MetadataAlertID]
+	AlertsByStatus            *dataloader.AggFetcher[uuid.UUID, gadb.ServiceAlertCountsRow]
+	AlertStats                *dataloader.AggFetcherParam[uuid.UUID, AlertStatsParam, gadb.ServiceAlertStatsRow]
+}
 
-	dataLoaderKeyLast // always keep as last
-)
+type AlertStatsParam struct {
+	Stride    sqlutil.Interval
+	Origin    time.Time
+	StartTime time.Time
+	EndTime   time.Time
+}
 
+// registerLoaders creates and registers all dataloaders for the request context.
+// Each loader is configured with appropriate batch settings and ID extraction functions.
 func (a *App) registerLoaders(ctx context.Context) context.Context {
-	ctx = context.WithValue(ctx, dataLoaderKeyAlert, dataloader.NewStoreLoaderInt(ctx, a.AlertStore.FindMany))
-	ctx = context.WithValue(ctx, dataLoaderKeyAlertState, dataloader.NewStoreLoaderInt(ctx, a.AlertStore.State))
-	ctx = context.WithValue(ctx, dataLoaderKeyEP, dataloader.NewStoreLoader(ctx, a.PolicyStore.FindManyPolicies))
-	ctx = context.WithValue(ctx, dataLoaderKeyRotation, dataloader.NewStoreLoader(ctx, a.RotationStore.FindMany))
-	ctx = context.WithValue(ctx, dataLoaderKeySchedule, dataloader.NewStoreLoader(ctx, a.ScheduleStore.FindMany))
-	ctx = context.WithValue(ctx, dataLoaderKeyService, dataloader.NewStoreLoader(ctx, a.ServiceStore.FindMany))
-	ctx = context.WithValue(ctx, dataLoaderKeyUser, dataloader.NewStoreLoader(ctx, a.UserStore.FindMany))
-	ctx = context.WithValue(ctx, dataLoaderKeyCM, dataloader.NewStoreLoaderWithDB(ctx, a.DB, a.CMStore.FindMany))
-	ctx = context.WithValue(ctx, dataLoaderKeyNotificationMessageStatus, dataloader.NewStoreLoader(ctx, a.NotificationStore.FindManyMessageStatuses))
-	ctx = context.WithValue(ctx, dataLoaderKeyHeartbeatMonitor, dataloader.NewStoreLoader(ctx, a.HeartbeatStore.FindMany))
-	ctx = context.WithValue(ctx, dataLoaderKeyNC, dataloader.NewStoreLoader(ctx, a.NCStore.FindMany))
-	ctx = context.WithValue(ctx, dataLoaderAlertMetrics, dataloader.NewStoreLoaderInt(ctx, a.AlertMetricsStore.FindMetrics))
-	ctx = context.WithValue(ctx, dataLoaderAlertFeedback, dataloader.NewStoreLoaderInt(ctx, a.AlertStore.Feedback))
-	ctx = context.WithValue(ctx, dataLoaderAlertMetadata, dataloader.NewStoreLoaderInt(ctx, func(ctx context.Context, i []int) ([]alert.MetadataAlertID, error) {
-		return a.AlertStore.FindManyMetadata(ctx, a.DB, i)
-	}))
+	ctx = context.WithValue(ctx, requestLoadersKey, &loaders{
+		Alert:                     dataloader.NewStoreLoader(ctx, a.AlertStore.FindMany, func(a alert.Alert) int { return a.ID }),
+		AlertState:                dataloader.NewStoreLoader(ctx, a.AlertStore.State, func(s alert.State) int { return s.ID }),
+		EP:                        dataloader.NewStoreLoader(ctx, a.PolicyStore.FindManyPolicies, func(p escalation.Policy) string { return p.ID }),
+		Rotation:                  dataloader.NewStoreLoader(ctx, a.RotationStore.FindMany, func(r rotation.Rotation) string { return r.ID }),
+		Schedule:                  dataloader.NewStoreLoader(ctx, a.ScheduleStore.FindMany, func(s schedule.Schedule) string { return s.ID }),
+		Service:                   dataloader.NewStoreLoader(ctx, a.ServiceStore.FindMany, func(s service.Service) string { return s.ID }),
+		User:                      dataloader.NewStoreLoader(ctx, a.UserStore.FindMany, func(u user.User) string { return u.ID }),
+		CM:                        dataloader.NewStoreLoaderWithDB(ctx, a.DB, a.CMStore.FindMany, func(cm contactmethod.ContactMethod) string { return cm.ID.String() }),
+		Heartbeat:                 dataloader.NewStoreLoader(ctx, a.HeartbeatStore.FindMany, func(hb heartbeat.Monitor) string { return hb.ID }),
+		NotificationMessageStatus: dataloader.NewStoreLoader(ctx, a.NotificationStore.FindManyMessageStatuses, func(n notification.SendResult) string { return n.ID }),
+		NC:                        dataloader.NewStoreLoader(ctx, a.NCStore.FindMany, func(nc notificationchannel.Channel) string { return nc.ID.String() }),
+		AlertMetrics:              dataloader.NewStoreLoader(ctx, a.AlertMetricsStore.FindMetrics, func(m alertmetrics.Metric) int { return m.ID }),
+		AlertFeedback:             dataloader.NewStoreLoader(ctx, a.AlertStore.Feedback, func(f alert.Feedback) int { return f.ID }),
+		AlertMetadata: dataloader.NewStoreLoader(ctx, func(ctx context.Context, i []int) ([]alert.MetadataAlertID, error) {
+			return a.AlertStore.FindManyMetadata(ctx, a.DB, i)
+		}, func(md alert.MetadataAlertID) int { return int(md.ID) }),
+		AlertsByStatus: dataloader.NewStoreLoaderAgg(ctx, gadb.New(a.DB).ServiceAlertCounts, func(r gadb.ServiceAlertCountsRow) uuid.UUID { return r.ServiceID.UUID }),
+
+		AlertStats: dataloader.NewStoreLoaderAggParam(ctx, func(ctx context.Context, param AlertStatsParam, ids []uuid.UUID) ([]gadb.ServiceAlertStatsRow, error) {
+			return gadb.New(a.DB).ServiceAlertStats(ctx, gadb.ServiceAlertStatsParams{
+				Stride:     param.Stride,
+				Origin:     param.Origin,
+				StartTime:  param.StartTime,
+				EndTime:    param.EndTime,
+				ServiceIds: ids,
+			})
+		}, func(r gadb.ServiceAlertStatsRow) uuid.UUID { return r.ServiceID }),
+	})
 	return ctx
 }
 
+// loadersFrom extracts the loaders struct from the request context.
+// Returns an empty loaders struct if none are found.
+func loadersFrom(ctx context.Context) loaders {
+	loader, ok := ctx.Value(requestLoadersKey).(*loaders)
+	if !ok {
+		return loaders{}
+	}
+	if loader == nil {
+		return loaders{}
+	}
+
+	return *loader
+}
+
+// closeLoaders closes all dataloaders in the request context to prevent goroutine leaks.
+// This should be called when the request is complete.
 func (a *App) closeLoaders(ctx context.Context) {
-	for key := dataLoaderKeyUnknown; key < dataLoaderKeyLast; key++ {
-		loader, ok := ctx.Value(key).(io.Closer)
-		if !ok {
-			continue
-		}
-		loader.Close()
+	loader := loadersFrom(ctx)
+
+	if loader.Alert != nil {
+		loader.Alert.Close()
+	}
+	if loader.AlertState != nil {
+		loader.AlertState.Close()
+	}
+	if loader.EP != nil {
+		loader.EP.Close()
+	}
+	if loader.Rotation != nil {
+		loader.Rotation.Close()
+	}
+	if loader.Schedule != nil {
+		loader.Schedule.Close()
+	}
+	if loader.Service != nil {
+		loader.Service.Close()
+	}
+	if loader.User != nil {
+		loader.User.Close()
+	}
+	if loader.CM != nil {
+		loader.CM.Close()
+	}
+	if loader.Heartbeat != nil {
+		loader.Heartbeat.Close()
+	}
+	if loader.NotificationMessageStatus != nil {
+		loader.NotificationMessageStatus.Close()
+	}
+	if loader.NC != nil {
+		loader.NC.Close()
+	}
+	if loader.AlertMetrics != nil {
+		loader.AlertMetrics.Close()
+	}
+	if loader.AlertFeedback != nil {
+		loader.AlertFeedback.Close()
+	}
+	if loader.AlertMetadata != nil {
+		loader.AlertMetadata.Close()
+	}
+	if loader.AlertsByStatus != nil {
+		loader.AlertsByStatus.Close()
+	}
+	if loader.AlertStats != nil {
+		loader.AlertStats.Close()
 	}
 }
 
+func (a *App) FindAlertStats(ctx context.Context, params AlertStatsParam, serviceID uuid.UUID) ([]gadb.ServiceAlertStatsRow, error) {
+	loader := loadersFrom(ctx).AlertStats
+	if loader == nil {
+		return gadb.New(a.DB).ServiceAlertStats(ctx, gadb.ServiceAlertStatsParams{
+			Stride:     params.Stride,
+			Origin:     params.Origin,
+			StartTime:  params.StartTime,
+			EndTime:    params.EndTime,
+			ServiceIds: []uuid.UUID{serviceID},
+		})
+	}
+
+	return loader.FetchAggregateParam(ctx, serviceID, params)
+}
+
+func (app *App) FindAlertCountByStatus(ctx context.Context, serviceID uuid.UUID) ([]gadb.ServiceAlertCountsRow, error) {
+	loader := loadersFrom(ctx).AlertsByStatus
+	if loader == nil {
+		return gadb.New(app.DB).ServiceAlertCounts(ctx, []uuid.UUID{serviceID})
+	}
+
+	return loader.FetchAggregate(ctx, serviceID)
+}
+
 func (app *App) FindOneAlertMetadata(ctx context.Context, id int) (map[string]string, error) {
-	loader, ok := ctx.Value(dataLoaderAlertMetadata).(*dataloader.Loader[int, alert.MetadataAlertID])
-	if !ok {
+	loader := loadersFrom(ctx).AlertMetadata
+	if loader == nil {
 		return app.AlertStore.Metadata(ctx, app.DB, id)
 	}
 
@@ -92,8 +201,8 @@ func (app *App) FindOneAlertMetadata(ctx context.Context, id int) (map[string]st
 }
 
 func (app *App) FindOneNotificationMessageStatus(ctx context.Context, id string) (*notification.SendResult, error) {
-	loader, ok := ctx.Value(dataLoaderKeyNotificationMessageStatus).(*dataloader.Loader[string, notification.SendResult])
-	if !ok {
+	loader := loadersFrom(ctx).NotificationMessageStatus
+	if loader == nil {
 		ms, err := app.NotificationStore.FindManyMessageStatuses(ctx, []string{id})
 		if err != nil {
 			return nil, err
@@ -105,8 +214,8 @@ func (app *App) FindOneNotificationMessageStatus(ctx context.Context, id string)
 }
 
 func (app *App) FindOneAlertFeedback(ctx context.Context, id int) (*alert.Feedback, error) {
-	loader, ok := ctx.Value(dataLoaderAlertFeedback).(*dataloader.Loader[int, alert.Feedback])
-	if !ok {
+	loader := loadersFrom(ctx).AlertFeedback
+	if loader == nil {
 		feedback, err := app.AlertStore.Feedback(ctx, []int{id})
 		if err != nil {
 			return nil, err
@@ -121,8 +230,8 @@ func (app *App) FindOneAlertFeedback(ctx context.Context, id int) (*alert.Feedba
 }
 
 func (app *App) FindOneRotation(ctx context.Context, id string) (*rotation.Rotation, error) {
-	loader, ok := ctx.Value(dataLoaderKeyRotation).(*dataloader.Loader[string, rotation.Rotation])
-	if !ok {
+	loader := loadersFrom(ctx).Rotation
+	if loader == nil {
 		return app.RotationStore.FindRotation(ctx, id)
 	}
 
@@ -130,8 +239,8 @@ func (app *App) FindOneRotation(ctx context.Context, id string) (*rotation.Rotat
 }
 
 func (app *App) FindOneSchedule(ctx context.Context, id string) (*schedule.Schedule, error) {
-	loader, ok := ctx.Value(dataLoaderKeySchedule).(*dataloader.Loader[string, schedule.Schedule])
-	if !ok {
+	loader := loadersFrom(ctx).Schedule
+	if loader == nil {
 		return app.ScheduleStore.FindOne(ctx, id)
 	}
 
@@ -139,8 +248,8 @@ func (app *App) FindOneSchedule(ctx context.Context, id string) (*schedule.Sched
 }
 
 func (app *App) FindOneUser(ctx context.Context, id string) (*user.User, error) {
-	loader, ok := ctx.Value(dataLoaderKeyUser).(*dataloader.Loader[string, user.User])
-	if !ok {
+	loader := loadersFrom(ctx).User
+	if loader == nil {
 		return app.UserStore.FindOne(ctx, id)
 	}
 
@@ -148,8 +257,8 @@ func (app *App) FindOneUser(ctx context.Context, id string) (*user.User, error) 
 }
 
 func (app *App) FindOneAlertMetric(ctx context.Context, id int) (*alertmetrics.Metric, error) {
-	loader, ok := ctx.Value(dataLoaderAlertMetrics).(*dataloader.Loader[int, alertmetrics.Metric])
-	if !ok {
+	loader := loadersFrom(ctx).AlertMetrics
+	if loader == nil {
 		m, err := app.AlertMetricsStore.FindMetrics(ctx, []int{id})
 		if err != nil {
 			return nil, err
@@ -165,27 +274,27 @@ func (app *App) FindOneAlertMetric(ctx context.Context, id int) (*alertmetrics.M
 
 // FindOneCM will return a single contact method for the given id, using the contexts dataloader if enabled.
 func (app *App) FindOneCM(ctx context.Context, id uuid.UUID) (*contactmethod.ContactMethod, error) {
-	loader, ok := ctx.Value(dataLoaderKeyCM).(*dataloader.Loader[uuid.UUID, contactmethod.ContactMethod])
-	if !ok {
+	loader := loadersFrom(ctx).CM
+	if loader == nil {
 		return app.CMStore.FindOne(ctx, app.DB, id)
 	}
 
-	return loader.FetchOne(ctx, id)
+	return loader.FetchOne(ctx, id.String())
 }
 
 // FindOneNC will return a single notification channel for the given id, using the contexts dataloader if enabled.
 func (app *App) FindOneNC(ctx context.Context, id uuid.UUID) (*notificationchannel.Channel, error) {
-	loader, ok := ctx.Value(dataLoaderKeyNC).(*dataloader.Loader[uuid.UUID, notificationchannel.Channel])
-	if !ok {
+	loader := loadersFrom(ctx).NC
+	if loader == nil {
 		return app.NCStore.FindOne(ctx, id)
 	}
 
-	return loader.FetchOne(ctx, id)
+	return loader.FetchOne(ctx, id.String())
 }
 
 func (app *App) FindOnePolicy(ctx context.Context, id string) (*escalation.Policy, error) {
-	loader, ok := ctx.Value(dataLoaderKeyEP).(*dataloader.Loader[string, escalation.Policy])
-	if !ok {
+	loader := loadersFrom(ctx).EP
+	if loader == nil {
 		return app.PolicyStore.FindOnePolicyTx(ctx, nil, id)
 	}
 
@@ -193,8 +302,8 @@ func (app *App) FindOnePolicy(ctx context.Context, id string) (*escalation.Polic
 }
 
 func (app *App) FindOneService(ctx context.Context, id string) (*service.Service, error) {
-	loader, ok := ctx.Value(dataLoaderKeyService).(*dataloader.Loader[string, service.Service])
-	if !ok {
+	loader := loadersFrom(ctx).Service
+	if loader == nil {
 		return app.ServiceStore.FindOne(ctx, id)
 	}
 
@@ -202,8 +311,8 @@ func (app *App) FindOneService(ctx context.Context, id string) (*service.Service
 }
 
 func (app *App) FindOneAlertState(ctx context.Context, alertID int) (*alert.State, error) {
-	loader, ok := ctx.Value(dataLoaderKeyAlertState).(*dataloader.Loader[int, alert.State])
-	if !ok {
+	loader := loadersFrom(ctx).AlertState
+	if loader == nil {
 		epState, err := app.AlertStore.State(ctx, []int{alertID})
 		if err != nil {
 			return nil, err
@@ -218,8 +327,8 @@ func (app *App) FindOneAlertState(ctx context.Context, alertID int) (*alert.Stat
 }
 
 func (app *App) FindOneAlert(ctx context.Context, id int) (*alert.Alert, error) {
-	loader, ok := ctx.Value(dataLoaderKeyAlert).(*dataloader.Loader[int, alert.Alert])
-	if !ok {
+	loader := loadersFrom(ctx).Alert
+	if loader == nil {
 		return app.AlertStore.FindOne(ctx, id)
 	}
 
@@ -227,8 +336,8 @@ func (app *App) FindOneAlert(ctx context.Context, id int) (*alert.Alert, error) 
 }
 
 func (app *App) FindOneHeartbeatMonitor(ctx context.Context, id string) (*heartbeat.Monitor, error) {
-	loader, ok := ctx.Value(dataLoaderKeyHeartbeatMonitor).(*dataloader.Loader[string, heartbeat.Monitor])
-	if !ok {
+	loader := loadersFrom(ctx).Heartbeat
+	if loader == nil {
 		hb, err := app.HeartbeatStore.FindMany(ctx, []string{id})
 		if err != nil {
 			return nil, err

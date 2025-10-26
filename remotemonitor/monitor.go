@@ -110,6 +110,12 @@ func NewMonitor(cfg Config) (*Monitor, error) {
 	return m, nil
 }
 
+func logClose(close func() error) {
+	if err := close(); err != nil {
+		log.Println("ERROR: close: ", err)
+	}
+}
+
 func (m *Monitor) serve(l net.Listener) {
 	err := m.srv.Serve(l)
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {

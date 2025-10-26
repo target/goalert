@@ -11,7 +11,7 @@ import (
 	"net/smtp"
 	"strings"
 
-	"github.com/matcornic/hermes/v2"
+	"github.com/matcornic/hermes"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/nfydest"

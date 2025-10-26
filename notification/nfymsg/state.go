@@ -3,8 +3,10 @@ package nfymsg
 // State represents the current state of an outgoing message.
 type State int
 
-// IsOK returns true if the message has passed successfully to a remote system (StateSending, StateSent, or StateDelivered).
-func (s State) IsOK() bool { return s == StateSending || s == StateSent || s == StateDelivered }
+// IsOK returns true if the message has passed successfully to a remote system (StateSending, StateSent, StateDelivered, or StateRead).
+func (s State) IsOK() bool {
+	return s == StateSending || s == StateSent || s == StateDelivered || s == StateRead
+}
 
 const (
 	// StateUnknown is returned when the message has not yet been sent.
@@ -27,6 +29,9 @@ const (
 	// by the end device. SMS delivery confirmation, or a voice call was
 	// completed (including if it was voice mail).
 	StateDelivered
+
+	// StateRead means the message was read by the recipient.
+	StateRead
 
 	// StateFailedTemp should be set when a message was not sent (no SMS or ringing phone)
 	// but a subsequent try later may succeed. (e.g. voice call with busy signal).

@@ -1,7 +1,7 @@
 import React, { ReactNode, useState } from 'react'
 import { useMutation, gql } from 'urql'
 import FormDialog from '../../dialogs/FormDialog'
-import CalendarSubscribeForm from './CalendarSubscribeForm'
+import CalendarSubscribeForm, { CalSubFormValue } from './CalendarSubscribeForm'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import { Typography } from '@mui/material'
 import { CheckCircleOutline as SuccessIcon } from '@mui/icons-material'
@@ -37,7 +37,7 @@ export function getForm(
   data: { createUserCalendarSubscription: UserCalendarSubscription },
 ): ReactNode {
   return isComplete ? (
-    <CalenderSuccessForm url={data.createUserCalendarSubscription.url} />
+    <CalenderSuccessForm url={data.createUserCalendarSubscription.url!} />
   ) : (
     defaultForm
   )
@@ -51,7 +51,7 @@ interface CalendarSubscribeCreateDialogProps {
 export default function CalendarSubscribeCreateDialog(
   props: CalendarSubscribeCreateDialogProps,
 ): ReactNode {
-  const [value, setValue] = useState({
+  const [value, setValue] = useState<CalSubFormValue>({
     name: '',
     scheduleID: props.scheduleID || null,
     reminderMinutes: [],

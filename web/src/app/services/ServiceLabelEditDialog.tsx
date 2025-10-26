@@ -7,11 +7,6 @@ import ServiceLabelForm from './ServiceLabelForm'
 import Spinner from '../loading/components/Spinner'
 import { Label } from '../../schema'
 
-interface Value {
-  key: string
-  value: string
-}
-
 const mutation = gql`
   mutation ($input: SetLabelInput!) {
     setLabel(input: $input)
@@ -35,7 +30,7 @@ export default function ServiceLabelEditDialog(props: {
   onClose: () => void
 }): JSX.Element {
   const { onClose, labelKey, serviceID } = props
-  const [value, setValue] = useState<Value | null>(null)
+  const [value, setValue] = useState<Label | null>(null)
 
   const [{ data, fetching }] = useQuery({
     query,
@@ -85,7 +80,7 @@ export default function ServiceLabelEditDialog(props: {
           editValueOnly
           disabled={updateLabelStatus.fetching}
           value={value || defaultValue}
-          onChange={(value: Value) => setValue(value)}
+          onChange={(value: Label) => setValue(value)}
         />
       }
     />

@@ -85,10 +85,7 @@ type TimeDurationProps = TimeBaseProps & {
 }
 
 const TimeDuration: React.FC<TimeDurationProps> = (props) => {
-  const dur =
-    typeof props.duration === 'string'
-      ? Duration.fromISO(props.duration)
-      : Duration.fromObject(props.duration)
+  const dur = getDur(props.duration)
   const min = props.min ? getDur(props.min) : undefined
 
   return (

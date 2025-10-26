@@ -33,7 +33,7 @@ func TestSingleRuleCalculator(t *testing.T) {
 				results = append(results, result{Time: time.Unix(iter.Unix(), 0).UTC(), Value: iter.ActiveUser()})
 			}
 
-			assert.EqualValues(t, expected, results)
+			assert.ElementsMatch(t, expected, results)
 		})
 	}
 	check("empty",

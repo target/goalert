@@ -20,6 +20,9 @@ const (
 	// StatusDelivered will be set on delivery if the upstream supports delivery confirmation.
 	StatusDelivered = Status("delivered")
 
+	// StatusRead will be set on read if the upstream supports read confirmation.
+	StatusRead = Status("read")
+
 	// StatusFailed means the message failed to send.
 	StatusFailed = Status("failed")
 
@@ -30,7 +33,7 @@ const (
 // IsSent returns true if the message has been successfully sent to the downstream server.
 func (s Status) IsSent() bool {
 	switch s {
-	case StatusQueuedRemotely, StatusDelivered, StatusSent:
+	case StatusQueuedRemotely, StatusDelivered, StatusSent, StatusRead:
 		return true
 	}
 	return false

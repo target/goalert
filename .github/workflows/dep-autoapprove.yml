@@ -14,16 +14,16 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ github.head_ref }}
-      - uses: actions/setup-node@v4
+      - uses: actions/cache@v4
         with:
-          node-version: '22'
-          cache: 'yarn'
+          key: key
+          path: ~/.bun/install/cache
       - name: Run make generate
         run: make generate
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      - uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: Apply make generate changes
       - name: Approve a PR

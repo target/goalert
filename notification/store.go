@@ -164,7 +164,7 @@ func outgoingMessageToSendResult(msg gadb.OutgoingMessage, cm, ch gadb.NullDestV
 		SrcValue: msg.SrcValue.String,
 	}
 	if msg.LastStatusAt.Valid {
-		res.Status.Age = msg.LastStatusAt.Time.Sub(msg.CreatedAt)
+		res.Age = msg.LastStatusAt.Time.Sub(msg.CreatedAt)
 	}
 
 	return &res, nil
@@ -342,6 +342,8 @@ func messageStateFromStatus(lastStatus gadb.EnumOutgoingMessagesStatus, hasNextR
 		return StateSending, nil
 	case gadb.EnumOutgoingMessagesStatusPending:
 		return StatePending, nil
+	case gadb.EnumOutgoingMessagesStatusRead:
+		return StateRead, nil
 	case gadb.EnumOutgoingMessagesStatusSent:
 		return StateSent, nil
 	case gadb.EnumOutgoingMessagesStatusDelivered:

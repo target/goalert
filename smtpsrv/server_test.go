@@ -16,7 +16,7 @@ import (
 func TestServer(t *testing.T) {
 	l, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
-	t.Cleanup(func() { l.Close() })
+	t.Cleanup(func() { _ = l.Close() })
 
 	var lastAlert *alert.Alert
 	srv := smtpsrv.NewServer(smtpsrv.Config{
@@ -37,7 +37,7 @@ func TestServer(t *testing.T) {
 
 	c, err := smtp.Dial(l.Addr().String())
 	require.NoError(t, err)
-	t.Cleanup(func() { c.Close() })
+	t.Cleanup(func() { _ = c.Close() })
 
 	err = smtp.SendMail(l.Addr().String(), nil, "test@localhost", []string{"test@localhost"}, []byte("test"))
 	assert.ErrorContains(t, err, "recipient address")
@@ -52,5 +52,4 @@ func TestServer(t *testing.T) {
 	assert.Equal(t, alert.SourceEmail, lastAlert.Source)
 	assert.Equal(t, alert.StatusTriggered, lastAlert.Status)
 	assert.Equal(t, "svc", lastAlert.ServiceID)
-
 }

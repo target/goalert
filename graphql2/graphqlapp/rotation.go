@@ -369,9 +369,8 @@ func (m *Mutation) UpdateRotation(ctx context.Context, input graphql2.UpdateRota
 			}
 		}
 
-		return err
+		return nil
 	})
-
 	if err != nil {
 		return false, err
 	}
@@ -379,7 +378,6 @@ func (m *Mutation) UpdateRotation(ctx context.Context, input graphql2.UpdateRota
 }
 
 func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.CalcRotationHandoffTimesInput) ([]time.Time, error) {
-
 	err := validate.Range("count", input.Count, 0, 20)
 	if err != nil {
 		return nil, err
@@ -430,7 +428,6 @@ func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.Ca
 
 // getRotationFromISO determines the rotation type based on the given ISODuration. An error is given if the unsupported year field or multiple non-zero fields are given.
 func setRotationShiftFromISO(rot *rotation.Rotation, dur *timeutil.ISODuration) error {
-
 	// validate only one time field (year, month, days, timepart) is non-zero
 	nonZeroFields := 0
 

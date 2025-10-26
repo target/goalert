@@ -94,7 +94,7 @@ func (app *App) startup(ctx context.Context) error {
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan)
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan.DMSender())
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan.UserGroupSender())
-	app.DestRegistry.RegisterProvider(ctx, webhook.NewSender(ctx))
+	app.DestRegistry.RegisterProvider(ctx, webhook.NewSender(ctx, app.httpClient))
 	if app.cfg.StubNotifiers {
 		app.DestRegistry.StubNotifiers()
 	}
@@ -116,6 +116,8 @@ func (app *App) startup(ctx context.Context) error {
 		app.cfg.SWO.SetPauseResumer(app)
 		app.Logger.InfoContext(ctx, "SWO Enabled.")
 	}
+
+	app.setupListenEvents()
 
 	return nil
 }

@@ -47,8 +47,8 @@ func NewServer() *Server {
 	// TODO: history, leave, join
 
 	srv.mux.HandleFunc("/stats", func(w http.ResponseWriter, req *http.Request) {
-		srv.state.mx.Lock()
-		defer srv.state.mx.Unlock()
+		srv.mx.Lock()
+		defer srv.mx.Unlock()
 		spew.Fdump(w)
 	})
 
@@ -61,8 +61,8 @@ func NewServer() *Server {
 	})
 
 	srv.mux.HandleFunc("/state", func(w http.ResponseWriter, req *http.Request) {
-		srv.state.mx.Lock()
-		defer srv.state.mx.Unlock()
+		srv.mx.Lock()
+		defer srv.mx.Unlock()
 		spew.Fdump(w, srv.state)
 	})
 
@@ -98,7 +98,7 @@ type AppInfo struct {
 func (s *Server) SetActionURL(appID string, actionURL string) {
 	s.mx.Lock()
 	defer s.mx.Unlock()
-	s.apps[appID].App.ActionURL = actionURL
+	s.apps[appID].ActionURL = actionURL
 }
 
 // InstallApp will "install" a new app to this Slack server using pre-configured AppInfo.

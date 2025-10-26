@@ -27,6 +27,7 @@ const (
 	StateFailedPerm = nfymsg.StateFailedPerm
 	StateFailedTemp = nfymsg.StateFailedTemp
 	StateDelivered  = nfymsg.StateDelivered
+	StateRead       = nfymsg.StateRead
 	StateSent       = nfymsg.StateSent
 	StateBundled    = nfymsg.StateBundled
 	StateUnknown    = nfymsg.StateUnknown

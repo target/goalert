@@ -13,8 +13,8 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.24'
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v3
+      - uses: actions/checkout@v5
+      - uses: actions/cache@v4
         with:
           key: key
           path: ~/.bun/install/cache

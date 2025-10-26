@@ -10,8 +10,9 @@ outputs:
   - name: bin
 image_resource:
   type: registry-image
-  source: { repository: goalert/build-env, tag: go1.24.0-postgres13 }
+  source: { repository: goalert/build-env, tag: go1.25.1 }
 run:
   path: sh
   dir: goalert
+  user: root # needed for now due to how the input is mounted
   args: [-e, ./devtools/ci/tasks/scripts/build-all.sh, ../bin/]

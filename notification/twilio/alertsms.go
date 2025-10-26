@@ -134,7 +134,7 @@ func hasTwoWaySMSSupport(ctx context.Context, number string) bool {
 
 func normalizeGSM(str string) (s string) {
 	s = strings.Map(mapGSM, str)
-	s = strings.Replace(s, "  ", " ", -1)
+	s = strings.ReplaceAll(s, "  ", " ")
 	s = strings.TrimSpace(s)
 	return s
 }
@@ -246,7 +246,7 @@ func renderAlertBundleMessage(appName string, a notification.AlertBundle, link s
 	data.Link = link
 	data.Code = code
 
-	result, err := renderMinGSMSegments([]string{data.AlertBundle.ServiceName}, func(inputs []string) (string, error) {
+	result, err := renderMinGSMSegments([]string{data.ServiceName}, func(inputs []string) (string, error) {
 		buf.Reset()
 		data.ServiceName = inputs[0]
 		err := bundleTempl.Execute(&buf, data)

@@ -47,7 +47,7 @@ func newTwilioAssertionAPI(triggerFn func(), formatNumber func(string) string, s
 		abortCh:      make(chan struct{}),
 	}
 }
-func (tw *twilioAssertionAPI) Close() error { close(tw.abortCh); return tw.Server.Close() }
+func (tw *twilioAssertionAPI) Close() { close(tw.abortCh); tw.Server.Close() }
 
 func (tw *twilioAssertionAPI) WithT(t *testing.T) PhoneAssertions {
 	return &twilioAssertionAPIContext{t: t, twilioAssertionAPI: tw}

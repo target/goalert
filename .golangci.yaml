@@ -1,0 +1,22 @@
+version: '2'
+linters:
+  settings:
+    errcheck:
+      exclude-functions:
+        - '(*database/sql.Rows).Close'
+        - '(*database/sql.DB).Close'
+        - '(*database/sql.Conn).Close'
+        - '(*os.File).Close'
+        - '(io/fs.File).Close'
+        - '(io.Closer).Close'
+        - '(net.Listener).Close'
+        - '(net.Conn).Close'
+        - '(*crypto/tls.Conn).Close'
+        - '(*compress/gzip.Reader).Close'
+        - '(*github.com/jackc/pgx/v5.Conn).Close'
+        - '(*google.golang.org/grpc.ClientConn).Close'
+        - (*github.com/hashicorp/yamux.Session).Close
+        - (*net/http.Server).Close
+        - (*io.PipeReader).Close
+        - (*io.PipeWriter).Close
+        - fmt.Fprintf

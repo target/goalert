@@ -3,10 +3,15 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"errors"
 	"strconv"
+	"time"
 
+	"github.com/google/uuid"
+	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
@@ -17,6 +22,7 @@ import (
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/service"
 	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/util/timeutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
@@ -48,6 +54,7 @@ func (q *Query) Services(ctx context.Context, opts *graphql2.ServiceSearchOption
 		searchOpts.FavoritesFirst = *opts.FavoritesFirst
 	}
 	searchOpts.Omit = opts.Omit
+	searchOpts.Only = opts.Only
 	if opts.After != nil && *opts.After != "" {
 		err = search.ParseCursor(*opts.After, &searchOpts)
 		if err != nil {
@@ -85,6 +92,85 @@ func (q *Query) Services(ctx context.Context, opts *graphql2.ServiceSearchOption
 	}
 	conn.Nodes = svcs
 	return conn, err
+}
+func (s *Service) RecentEvents(ctx context.Context, obj *service.Service, opts *graphql2.AlertRecentEventsOptions) (*graphql2.AlertLogEntryConnection, error) {
+	id := uuid.MustParse(obj.ID)
+	return (*App)(s).RecentAlertEvents(ctx, opts, alertlog.SearchOptions{FilterServiceID: &id})
+}
+
+func (s *Service) AlertStats(ctx context.Context, svc *service.Service, input *graphql2.ServiceAlertStatsOptions) (*graphql2.AlertStats, error) {
+	if input == nil {
+		input = &graphql2.ServiceAlertStatsOptions{}
+	}
+	if input.TsOptions == nil {
+		input.TsOptions = &graphql2.TimeSeriesOptions{
+			BucketDuration: timeutil.ISODuration{DayPart: 1},
+		}
+	}
+
+	var start time.Time
+	end := time.Now()
+	if input.Start != nil {
+		start = *input.Start
+	}
+	if input.End != nil {
+		end = *input.End
+	}
+
+	res := timeutil.ISODuration{DayPart: 1}
+	origin := start
+	if input.TsOptions != nil {
+		res = input.TsOptions.BucketDuration
+		if input.TsOptions.BucketOrigin != nil {
+			origin = *input.TsOptions.BucketOrigin
+		}
+	}
+
+	var stats graphql2.AlertStats
+	rows, err := (*App)(s).FindAlertStats(ctx, AlertStatsParam{
+		Stride:    res.PGXInterval(),
+		Origin:    origin,
+		StartTime: start,
+		EndTime:   end,
+	}, uuid.MustParse(svc.ID))
+	if errors.Is(err, sql.ErrNoRows) {
+		return &stats, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	for _, r := range rows {
+		end := res.AddTo(r.Bucket)
+		stats.AlertCount = append(stats.AlertCount, graphql2.TimeSeriesBucket{Start: r.Bucket, End: end, Value: float64(r.AlertCount)})
+		stats.EscalatedCount = append(stats.EscalatedCount, graphql2.TimeSeriesBucket{Start: r.Bucket, End: end, Value: float64(r.EscalatedCount)})
+		stats.AvgAckSec = append(stats.AvgAckSec, graphql2.TimeSeriesBucket{Start: r.Bucket, End: end, Value: r.AvgTimeToAckSeconds})
+		stats.AvgCloseSec = append(stats.AvgCloseSec, graphql2.TimeSeriesBucket{Start: r.Bucket, End: end, Value: r.AvgTimeToCloseSeconds})
+	}
+	return &stats, nil
+}
+
+func (s *Service) AlertsByStatus(ctx context.Context, svc *service.Service) (*graphql2.AlertsByStatus, error) {
+	rows, err := (*App)(s).FindAlertCountByStatus(ctx, uuid.MustParse(svc.ID))
+	if errors.Is(err, sql.ErrNoRows) {
+		return &graphql2.AlertsByStatus{}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	var st graphql2.AlertsByStatus
+	for _, r := range rows {
+		switch r.Status {
+		case gadb.EnumAlertStatusActive:
+			st.Acked = int(r.Count)
+		case gadb.EnumAlertStatusClosed:
+			st.Closed = int(r.Count)
+		case gadb.EnumAlertStatusTriggered:
+			st.Unacked = int(r.Count)
+		}
+	}
+
+	return &st, err
 }
 
 func (s *Service) Notices(ctx context.Context, raw *service.Service) ([]notice.Notice, error) {

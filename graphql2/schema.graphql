@@ -130,7 +130,12 @@ input TimeSeriesOptions {
 type TimeSeriesBucket {
   start: ISOTimestamp!
   end: ISOTimestamp!
+
   count: Int!
+    @deprecated(reason: "Use value instead.")
+    @goField(forceResolver: true)
+
+  value: Float!
 }
 
 input SlackUserGroupSearchOptions {
@@ -910,6 +915,7 @@ input ServiceSearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
+  only: [ID!]
 
   """
   Include only favorited services in the results.
@@ -1038,6 +1044,7 @@ type AlertPendingNotification {
 input AlertRecentEventsOptions {
   limit: Int
   after: String = ""
+  since: ISOTimestamp
 }
 
 type AlertLogEntryConnection {
@@ -1046,10 +1053,23 @@ type AlertLogEntryConnection {
 }
 
 type AlertLogEntry {
+  """
+  The unique ID of the log entry.
+  """
   id: Int!
+
+  """
+  The ID of the alert this log entry is associated with.
+  """
+  alertID: Int!
   timestamp: ISOTimestamp!
   message: String!
   state: NotificationState
+
+  """
+  If the log entry represents a notification, this will be the ID of the notification.
+  """
+  messageID: ID
 }
 
 type NotificationState {
@@ -1090,6 +1110,11 @@ type Service {
   heartbeatMonitors: [HeartbeatMonitor!]!
 
   notices: [Notice!]!
+
+  """
+  Recent log entries for all alerts belonging to the service.
+  """
+  recentEvents(input: AlertRecentEventsOptions): AlertLogEntryConnection!
 }
 
 input CreateIntegrationKeyInput {

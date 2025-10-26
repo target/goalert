@@ -60,7 +60,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "OIDC.UserInfoEmailVerifiedPath", Type: ConfigTypeString, Description: "JMESPath expression to find email verification state in UserInfo. If set, the email_verified claim will be ignored in favor of this. (suggestion: email_verified).", Value: cfg.OIDC.UserInfoEmailVerifiedPath},
 		{ID: "OIDC.UserInfoNamePath", Type: ConfigTypeString, Description: "JMESPath expression to find full name in UserInfo. If set, the name claim will be ignored in favor of this. (suggestion: name || cn || join(' ', [firstname, lastname]))", Value: cfg.OIDC.UserInfoNamePath},
 		{ID: "Mailgun.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Mailgun.Enable)},
-		{ID: "Mailgun.APIKey", Type: ConfigTypeString, Description: "", Value: cfg.Mailgun.APIKey, Password: true},
+		{ID: "Mailgun.APIKey", Type: ConfigTypeString, Description: "Set this to the HTTP webhook signing key.", Value: cfg.Mailgun.APIKey, Password: true},
 		{ID: "Mailgun.EmailDomain", Type: ConfigTypeString, Description: "The TO address for all incoming alerts.", Value: cfg.Mailgun.EmailDomain},
 		{ID: "Slack.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Slack.Enable)},
 		{ID: "Slack.ClientID", Type: ConfigTypeString, Description: "", Value: cfg.Slack.ClientID},
@@ -76,6 +76,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Twilio.AlternateAuthToken", Type: ConfigTypeString, Description: "An alternate Auth Token for validating incoming requests. During a key change, set this to the Primary, and Auth Token to the Secondary, then promote and clear this field.", Value: cfg.Twilio.AlternateAuthToken, Password: true},
 		{ID: "Twilio.FromNumber", Type: ConfigTypeString, Description: "The Twilio number to use for outgoing notifications.", Value: cfg.Twilio.FromNumber},
 		{ID: "Twilio.MessagingServiceSID", Type: ConfigTypeString, Description: "If set, replaces the use of From Number for SMS notifications.", Value: cfg.Twilio.MessagingServiceSID},
+		{ID: "Twilio.RCSSenderID", Type: ConfigTypeString, Description: "The sender ID for RCS messages. Required if RCS is enabled for the MessagingServiceSID.", Value: cfg.Twilio.RCSSenderID},
 		{ID: "Twilio.DisableTwoWaySMS", Type: ConfigTypeBoolean, Description: "Disables SMS reply codes for alert messages.", Value: fmt.Sprintf("%t", cfg.Twilio.DisableTwoWaySMS)},
 		{ID: "Twilio.SMSCarrierLookup", Type: ConfigTypeBoolean, Description: "Perform carrier lookup of SMS contact methods (required for SMSFromNumberOverride). Extra charges may apply.", Value: fmt.Sprintf("%t", cfg.Twilio.SMSCarrierLookup)},
 		{ID: "Twilio.SMSFromNumberOverride", Type: ConfigTypeStringList, Description: "List of 'carrier=number' pairs, SMS messages to numbers of the provided carrier string (exact match) will use the alternate From Number.", Value: strings.Join(cfg.Twilio.SMSFromNumberOverride, "\n")},
@@ -332,6 +333,8 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 			cfg.Twilio.FromNumber = v.Value
 		case "Twilio.MessagingServiceSID":
 			cfg.Twilio.MessagingServiceSID = v.Value
+		case "Twilio.RCSSenderID":
+			cfg.Twilio.RCSSenderID = v.Value
 		case "Twilio.DisableTwoWaySMS":
 			val, err := parseBool(v.ID, v.Value)
 			if err != nil {

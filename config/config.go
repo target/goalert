@@ -84,7 +84,7 @@ type Config struct {
 	Mailgun struct {
 		Enable bool `public:"true"`
 
-		APIKey      string `password:"true"`
+		APIKey      string `password:"true" info:"Set this to the HTTP webhook signing key."`
 		EmailDomain string `info:"The TO address for all incoming alerts."`
 	}
 
@@ -115,6 +115,8 @@ type Config struct {
 		FromNumber string `public:"true" info:"The Twilio number to use for outgoing notifications."`
 
 		MessagingServiceSID string `public:"true" info:"If set, replaces the use of From Number for SMS notifications."`
+
+		RCSSenderID string `info:"The sender ID for RCS messages. Required if RCS is enabled for the MessagingServiceSID."`
 
 		DisableTwoWaySMS      bool     `info:"Disables SMS reply codes for alert messages."`
 		SMSCarrierLookup      bool     `info:"Perform carrier lookup of SMS contact methods (required for SMSFromNumberOverride). Extra charges may apply."`
@@ -508,6 +510,13 @@ func (cfg Config) Validate() error {
 	if cfg.Twilio.MessagingServiceSID != "" {
 		err = validate.Many(err, validate.TwilioSID("Twilio.MessagingServiceSID", "MG", cfg.Twilio.MessagingServiceSID))
 	}
+	if cfg.Twilio.RCSSenderID != "" {
+		err = validate.Many(err, validate.ASCII("Twilio.RCSSenderSID", cfg.Twilio.RCSSenderID, 1, 255))
+		if cfg.Twilio.MessagingServiceSID == "" {
+			err = validate.Many(err, validation.NewFieldError("Twilio.MessagingServiceSID", "required when Twilio.RCSSenderID is set"))
+		}
+	}
+
 	if cfg.Mailgun.EmailDomain != "" {
 		err = validate.Many(err, validate.Email("Mailgun.EmailDomain", "example@"+cfg.Mailgun.EmailDomain))
 	}

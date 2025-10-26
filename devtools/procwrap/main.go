@@ -169,7 +169,7 @@ func start(extraArgs []string) {
 			if err != nil {
 				continue
 			}
-			c.Close()
+			_ = c.Close()
 			log.Println("started", flag.Arg(0))
 			return
 		}

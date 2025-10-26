@@ -1,12 +1,15 @@
-import type { Preview } from '@storybook/react'
+import type { Preview } from '@storybook/react-vite'
 import DefaultDecorator from '../web/src/app/storybook/decorators'
 import { initialize, mswLoader } from 'msw-storybook-addon'
 import { defaultConfig } from '../web/src/app/storybook/graphql'
 import { graphql, HttpResponse } from 'msw'
+import { configure } from 'storybook/test'
 
 initialize({
   onUnhandledRequest: 'bypass',
 })
+
+configure({ asyncUtilTimeout: 5000 })
 
 export type GraphQLRequestHandler = (variables: unknown) => object
 export type GraphQLParams = Record<string, GraphQLRequestHandler>

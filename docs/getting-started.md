@@ -14,7 +14,7 @@ When running GoAlert behind a reverse proxy, make sure the `--public-url` includ
 
 ## Database
 
-We recommend using Postgres 13 (or newer) for new installations as newer features will be used in the future.
+We recommend using Postgres 17 (or newer) for new installations as newer features will be used in the future.
 
 GoAlert requires the `pgcrypto` extension enabled (you can enable it with `CREATE EXTENSION pgcrypto;`).
 Upon first startup, it will attempt to enable the extension if it's not already enabled, but this requires elevated privileges that may not be available
@@ -169,7 +169,7 @@ Be sure to **Enable** OIDC authentication and **New Users** using the toggles.
 GoAlert supports creating alerts by email via Mailgun integration.
 
 From the Admin page in GoAlert, under the `Mailgun` section, set your **Email Domain** and **API Key**.
-The **API Key** may be found under the **Security** section in the Mailgun website (click your name in the top bar and select it from the drop down) it is labeled as **Private API Key**.
+The **API Key** is the HTTP webhook signing key which can be found in the Mailgun website under **Send** -> **Sending** -> **Webhooks** (at the top of the page).
 
 To configure Mailgun to forward to GoAlert:
 

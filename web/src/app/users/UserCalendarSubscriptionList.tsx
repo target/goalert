@@ -1,7 +1,6 @@
 import React, { Suspense, useState } from 'react'
 import { useQuery, gql } from 'urql'
 import { Card, Alert } from '@mui/material'
-import FlatList, { FlatListListItem } from '../lists/FlatList'
 import OtherActions from '../util/OtherActions'
 import CreateFAB from '../lists/CreateFAB'
 import CalendarSubscribeCreateDialog from '../schedules/calendar-subscribe/CalendarSubscribeCreateDialog'
@@ -11,9 +10,10 @@ import CalendarSubscribeEditDialog from '../schedules/calendar-subscribe/Calenda
 import { GenericError, ObjectNotFound } from '../error-pages'
 import _ from 'lodash'
 import { useConfigValue } from '../util/RequireConfig'
-import AppLink from '../util/AppLink'
 import { UserCalendarSubscription } from '../../schema'
 import { Time } from '../util/Time'
+import CompList from '../lists/CompList'
+import { CompListItemNav, CompListItemText } from '../lists/CompListItems'
 
 export const calendarSubscriptionsQuery = gql`
   query calendarSubscriptions($id: ID!) {
@@ -71,7 +71,7 @@ export default function UserCalendarSubscriptionList(props: {
     })
 
   const subheaderDict: { [key: string]: boolean } = {}
-  const items: FlatListListItem[] = []
+  const items: React.ReactNode[] = []
 
   function renderOtherActions(id: string): JSX.Element {
     return (
@@ -94,29 +94,32 @@ export default function UserCalendarSubscriptionList(props: {
   subs.forEach((sub: UserCalendarSubscription) => {
     if (!subheaderDict[sub?.schedule?.name ?? '']) {
       subheaderDict[sub?.schedule?.name ?? ''] = true
-      items.push({
-        subHeader: (
-          <AppLink to={`/schedules/${sub.scheduleID}`}>
-            {sub.schedule?.name}
-          </AppLink>
-        ),
-      })
+      items.push(
+        <CompListItemNav
+          subText={sub.schedule?.name}
+          url={`/schedules/${sub.scheduleID}`}
+        />,
+      )
     }
 
     // push subscriptions under relevant schedule subheaders
-    items.push({
-      title: sub.name,
-      subText: (
-        <Time
-          prefix='Last sync: '
-          time={sub.lastAccess}
-          format='relative'
-          zero='Never'
-        />
-      ),
-      secondaryAction: renderOtherActions(sub.id),
-      icon: sub.disabled ? <Warning message='Disabled' /> : null,
-    })
+    items.push(
+      <CompListItemText
+        title={sub.name}
+        subText={
+          <Time
+            prefix='Last sync: '
+            time={sub.lastAccess}
+            format='relative'
+            zero='Never'
+          />
+        }
+        action={renderOtherActions(sub.id)}
+        alwaysShowIcon
+        icon={sub.disabled ? <Warning message='Disabled' /> : null}
+        key={sub.id}
+      />,
+    )
   })
 
   return (
@@ -131,13 +134,13 @@ export default function UserCalendarSubscriptionList(props: {
         </Alert>
       )}
       <Card>
-        <FlatList
+        <CompList
           data-cy='calendar-subscriptions'
-          headerNote='Showing your current on-call subscriptions for all schedules'
+          note='Showing your current on-call subscriptions for all schedules'
           emptyMessage='You are not subscribed to any schedules.'
-          items={items}
-          inset
-        />
+        >
+          {items}
+        </CompList>
       </Card>
       {!creationDisabled && (
         <CreateFAB

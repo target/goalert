@@ -1,10 +1,11 @@
 package validate
 
 import (
-	"github.com/target/goalert/validation"
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/target/goalert/validation"
 )
 
 // SanitizeText will sanitize a text body so that it passes the Text validation.
@@ -27,7 +28,7 @@ func SanitizeText(body string, maxLen int) string {
 	body = strings.Join(lines, "\n")
 
 	// strip multiple newlines (more than 2)
-	body = strings.Replace(body, "\n\n\n", "\n\n", -1)
+	body = strings.ReplaceAll(body, "\n\n\n", "\n\n")
 	body = strings.TrimSpace(body)
 
 	r := []rune(body)

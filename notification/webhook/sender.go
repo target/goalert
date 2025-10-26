@@ -13,7 +13,9 @@ import (
 	"github.com/target/goalert/notification/nfydest"
 )
 
-type Sender struct{}
+type Sender struct {
+	Client *http.Client
+}
 
 // POSTDataAlert represents fields in outgoing alert notification.
 type POSTDataAlert struct {
@@ -83,8 +85,10 @@ type POSTDataTest struct {
 	Type    string
 }
 
-func NewSender(ctx context.Context) *Sender {
-	return &Sender{}
+func NewSender(ctx context.Context, client *http.Client) *Sender {
+	return &Sender{
+		Client: client,
+	}
 }
 
 var _ nfydest.MessageSender = &Sender{}

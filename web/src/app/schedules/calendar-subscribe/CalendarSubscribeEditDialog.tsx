@@ -1,7 +1,7 @@
 import React, { ReactNode, useState } from 'react'
 import { useQuery, useMutation, gql } from 'urql'
 import FormDialog from '../../dialogs/FormDialog'
-import CalendarSubscribeForm from './CalendarSubscribeForm'
+import CalendarSubscribeForm, { CalSubFormValue } from './CalendarSubscribeForm'
 import { GenericError, ObjectNotFound } from '../../error-pages'
 import _ from 'lodash'
 import Spinner from '../../loading/components/Spinner'
@@ -36,10 +36,11 @@ export function CalendarSubscribeEditDialogContent(
   const { data, onClose } = props
 
   // set default values from retrieved data
-  const [value, setValue] = useState({
+  const [value, setValue] = useState<CalSubFormValue>({
     name: _.get(data, 'name', ''),
     scheduleID: _.get(data, 'scheduleID', null),
     fullSchedule: _.get(data, 'fullSchedule', false),
+    reminderMinutes: _.get(data, 'reminderMinutes', []),
   })
 
   // setup the mutation

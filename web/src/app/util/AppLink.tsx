@@ -24,10 +24,8 @@ const WrapLink = forwardRef(function WrapLink(
 ) {
   const { to, children, ...rest } = props
   return (
-    <Link to={to}>
-      <a ref={ref} {...rest}>
-        {children}
-      </a>
+    <Link to={to} ref={ref} {...rest}>
+      {children}
     </Link>
   )
 })
@@ -50,11 +48,11 @@ const AppLink = forwardRef<HTMLAnchorElement, AppLinkProps>((props, ref) => {
 
   return (
     <MUILink
+      {...other}
       ref={ref}
       to={to}
       href={to}
       component={external || newTab ? 'a' : WrapLink}
-      {...other}
     />
   )
 })

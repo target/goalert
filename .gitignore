@@ -79,3 +79,4 @@ smoketest_db_dump
 /playwright/.cache/
 
 /.gitrev
+__debug*

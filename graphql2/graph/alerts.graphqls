@@ -1,0 +1,12 @@
+extend type Query {
+  """
+  messageStatusHistory returns the full status history of a sent message.
+  """
+  messageStatusHistory(id: ID!): [MessageStatusHistory!]!
+}
+
+type MessageStatusHistory {
+  status: String!
+  details: String!
+  timestamp: ISOTimestamp!
+}

@@ -133,7 +133,7 @@ func (s *Stream) SetPipe(r io.ReadCloser, wc io.WriteCloser) error {
 	if err != nil {
 		return err
 	}
-	str, err = bufClose.Reader.ReadString('\n')
+	str, err = bufClose.ReadString('\n')
 	if err != nil {
 		return err
 	}
