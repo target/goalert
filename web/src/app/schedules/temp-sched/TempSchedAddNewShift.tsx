@@ -111,7 +111,8 @@ export default function TempSchedAddNewShift({
     if (!shift) return result
     if (s) {
       // Check if at least one user is selected
-      if (selectedUsers.length === 0) add('userIDs', 'at least one user must be selected')
+      if (selectedUsers.length === 0)
+        add('userIDs', 'at least one user must be selected')
       if (!shift.start) add('start', requiredMsg)
       if (!shift.end) add('end', requiredMsg)
     }
@@ -133,13 +134,13 @@ export default function TempSchedAddNewShift({
     if (selectedUsers.length === 0) return // ensure we have users selected
 
     // Create a shift for each selected user
-    const newShifts = selectedUsers.map(userId => ({
+    const newShifts = selectedUsers.map((userId) => ({
       ...shift,
       userID: userId,
     }))
 
     onChange(mergeShifts(value.shifts.concat(newShifts)))
-    
+
     const end = DateTime.fromISO(shift.end, { zone })
     setShift({
       userID: '',
@@ -168,7 +169,7 @@ export default function TempSchedAddNewShift({
             <UserSelect
               fullWidth
               label='Select Users'
-              multiple={true}
+              multiple
               value={selectedUsers}
               onChange={(newValue: string[]) => setSelectedUsers(newValue)}
             />
@@ -294,7 +295,10 @@ export default function TempSchedAddNewShift({
               onClick={handleAddShift}
               disabled={selectedUsers.length === 0}
             >
-              Add {selectedUsers.length > 0 ? `(${selectedUsers.length} users)` : ''}
+              Add{' '}
+              {selectedUsers.length > 0
+                ? `(${selectedUsers.length} users)`
+                : ''}
             </Button>
           </Grid>
         </Grid>
