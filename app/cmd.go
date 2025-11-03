@@ -12,6 +12,7 @@ import (
 	"os/signal"
 	"runtime"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -31,6 +32,7 @@ import (
 	"github.com/target/goalert/swo"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/calllimiter"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqldrv"
 	"github.com/target/goalert/util/sqlutil"
@@ -117,9 +119,12 @@ Available Flags:
 			return err
 		}
 
-		doMigrations := func(url string) error {
+		// Config is loaded, so don't print usage anymore on future errors.
+		cmd.SilenceUsage = true
+
+		doMigrations := func(ctx context.Context, url string) error {
 			if cfg.APIOnly {
-				err = migrate.VerifyAll(log.WithDebug(ctx), url)
+				err = migrate.VerifyAll(ctx, url)
 				if err != nil {
 					return errors.Wrap(err, "verify migrations")
 				}
@@ -127,7 +132,7 @@ Available Flags:
 			}
 
 			s := time.Now()
-			n, err := migrate.ApplyAll(log.WithDebug(ctx), url)
+			n, err := migrate.ApplyAll(ctx, url)
 			if err != nil {
 				return errors.Wrap(err, "apply migrations")
 			}
@@ -138,19 +143,32 @@ Available Flags:
 			return nil
 		}
 
-		err = doMigrations(cfg.DBURL)
+		var earlyShutdown sync.WaitGroup
+		earlyShutdownCtx, sdCancel := context.WithCancel(ctx)
+		earlyShutdown.Go(func() {
+			select {
+			case <-shutdownSignalCh:
+				cfg.Logger.Warn("Received shutdown signal during startup.")
+				sdCancel()
+			case <-earlyShutdownCtx.Done():
+			}
+		})
+
+		cfg.Logger.DebugContext(earlyShutdownCtx, "validating database migrations")
+		err = doMigrations(log.WithLogger(earlyShutdownCtx, cfg.LegacyLogger), cfg.DBURL)
 		if err != nil {
 			return err
 		}
 
+		cfg.Logger.DebugContext(earlyShutdownCtx, "connecting to database")
 		var pool *pgxpool.Pool
 		if cfg.DBURLNext != "" {
-			err = migrate.VerifyIsLatest(ctx, cfg.DBURL)
+			err = migrate.VerifyIsLatest(earlyShutdownCtx, cfg.DBURL)
 			if err != nil {
 				return errors.Wrap(err, "verify db")
 			}
 
-			err = doMigrations(cfg.DBURLNext)
+			err = doMigrations(earlyShutdownCtx, cfg.DBURLNext)
 			if err != nil {
 				return errors.Wrap(err, "nextdb")
 			}
@@ -181,12 +199,21 @@ Available Flags:
 			poolCfg.MaxConns = int32(cfg.DBMaxOpen)
 			poolCfg.MinConns = int32(cfg.DBMaxIdle)
 			sqldrv.SetConfigRetries(poolCfg)
+			calllimiter.SetConfigQueryLimiterSupport(poolCfg)
 
 			pool, err = pgxpool.NewWithConfig(context.Background(), poolCfg)
 			if err != nil {
 				return errors.Wrap(err, "connect to postgres")
 			}
 		}
+
+		if err = pool.Ping(earlyShutdownCtx); err != nil {
+			return errors.Wrap(err, "ping db")
+		}
+
+		// unregister shutdown signal before creating app
+		sdCancel()
+		earlyShutdown.Wait()
 
 		app, err := NewApp(cfg, pool)
 		if err != nil {
@@ -739,14 +766,18 @@ func getConfig(ctx context.Context) (Config, error) {
 		UIDir: viper.GetString("ui-dir"),
 	}
 
+	lg := cfg.LegacyLogger.Logrus()
 	opts := sloglogrus.Option{
 		Level:  slog.LevelInfo,
-		Logger: cfg.LegacyLogger.Logrus(),
+		Logger: lg,
 	}
 	if viper.GetBool("log-errors-only") {
 		opts.Level = slog.LevelError
+		lg.SetLevel(2)
+		cfg.LegacyLogger.ErrorsOnly()
 	} else if cfg.Verbose {
 		opts.Level = slog.LevelDebug
+		lg.SetLevel(5)
 	}
 	cfg.Logger = slog.New(opts.NewLogrusHandler())
 

@@ -5,9 +5,7 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/target/goalert/assignment"
-	"github.com/target/goalert/event"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule/rotation"
@@ -370,8 +368,6 @@ func (m *Mutation) UpdateRotation(ctx context.Context, input graphql2.UpdateRota
 				return err
 			}
 		}
-
-		event.SendTx(ctx, m.EventBus, tx, rotation.Update{ID: uuid.MustParse(input.ID)})
 
 		return nil
 	})

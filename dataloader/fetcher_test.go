@@ -3,6 +3,7 @@ package dataloader
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -64,13 +65,16 @@ func TestFetcher_FetchOne_Extra(t *testing.T) {
 func TestFetcher_MaxBatch(t *testing.T) {
 	type example struct{ ID string }
 
+	var mx sync.Mutex
 	var batchSizes []int
 	l := &Fetcher[string, example]{
 		MaxBatch: 3,
 		Delay:    time.Millisecond,
 		IDFunc:   func(v example) string { return v.ID },
 		FetchFunc: func(ctx context.Context, ids []string) ([]example, error) {
+			mx.Lock()
 			batchSizes = append(batchSizes, len(ids))
+			mx.Unlock()
 			var results []example
 			for _, id := range ids {
 				results = append(results, example{ID: id})

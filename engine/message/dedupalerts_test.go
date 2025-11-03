@@ -33,7 +33,7 @@ func TestDedupAlerts(t *testing.T) {
 	res, err := dedupAlerts(messages, func(parentID string, duplicates []string) error {
 		assert.Equal(t, "4", parentID)
 		sort.Strings(duplicates)
-		assert.EqualValues(t, []string{"3", "5"}, duplicates)
+		assert.ElementsMatch(t, []string{"3", "5"}, duplicates)
 		return nil
 	})
 	assert.NoError(t, err)

@@ -26,6 +26,8 @@ type Config struct {
 	APIOnly     bool
 	LogEngine   bool
 
+	ForceRiverDBTime bool
+
 	PublicURL string
 
 	TLSListenAddr string

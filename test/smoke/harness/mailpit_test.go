@@ -10,7 +10,7 @@ import (
 )
 
 func TestNewMailpit(t *testing.T) {
-	mp := newMailpit(t, 5)
+	mp := newMailpit(t)
 
 	err := smtp.SendMail(mp.smtpAddr, nil, "example@example.com", []string{"foo@bar.com"}, []byte("Subject: Hello\nTo: foo@bar.com\n\nWorld!"))
 	require.NoError(t, err, "expected to be able to send email")

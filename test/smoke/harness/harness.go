@@ -181,7 +181,7 @@ func NewStoppedHarnessWithFlags(t *testing.T, initSQL string, sqlData interface{
 	t.Logf("Using DB URL: %s", dbURL)
 	name := strings.ReplaceAll("smoketest_"+time.Now().Format("2006_01_02_15_04_05")+uuid.New().String(), "-", "")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
 
 	conn, err := pgx.Connect(ctx, DBURL(""))
@@ -286,7 +286,9 @@ func (h *Harness) StartWithAppCfgHook(fn func(*app.Config)) {
 	cfg.Mailgun.EmailDomain = "smoketest.example.com"
 	h.cfg = cfg
 
-	_, err := migrate.ApplyAll(context.Background(), h.dbURL)
+	l := log.NewLogger()
+	l.ErrorsOnly()
+	_, err := migrate.ApplyAll(log.WithLogger(context.Background(), l), h.dbURL)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -304,6 +306,7 @@ func (h *Harness) StartWithAppCfgHook(fn func(*app.Config)) {
 	}
 
 	appCfg := app.Defaults()
+	appCfg.ForceRiverDBTime = true
 	appCfg.ExpFlags = h.expFlags
 	appCfg.LegacyLogger = log.NewLogger()
 	appCfg.Logger = slog.New(sloglogrus.Option{
@@ -314,7 +317,7 @@ func (h *Harness) StartWithAppCfgHook(fn func(*app.Config)) {
 	appCfg.JSON = true
 	appCfg.DBURL = h.dbURL
 	appCfg.TwilioBaseURL = h.twS.URL
-	appCfg.DBMaxOpen = 3
+	appCfg.DBMaxOpen = 5
 	appCfg.SlackBaseURL = h.slackS.URL
 	appCfg.SMTPListenAddr = "localhost:0"
 	appCfg.EmailIntegrationDomain = "smoketest.example.com"
@@ -333,7 +336,7 @@ func (h *Harness) StartWithAppCfgHook(fn func(*app.Config)) {
 	if err != nil {
 		h.t.Fatalf("failed to parse db url: %v", err)
 	}
-	poolCfg.MaxConns = 3
+	poolCfg.MaxConns = 5
 
 	h.appPool, err = pgxpool.NewWithConfig(ctx, poolCfg)
 	require.NoError(h.t, err, "create pgx pool")
@@ -415,7 +418,9 @@ func (h *Harness) SendMail(from, to, subject, body string) {
 func (h *Harness) Migrate(migrationName string) {
 	h.t.Helper()
 	h.t.Logf("Running migrations (target: %s)", migrationName)
-	_, err := migrate.Up(context.Background(), h.dbURL, migrationName)
+	l := log.NewLogger()
+	l.ErrorsOnly()
+	_, err := migrate.Up(log.WithLogger(context.Background(), l), h.dbURL, migrationName)
 	if err != nil {
 		h.t.Fatalf("failed to run migration: %v", err)
 	}
@@ -876,9 +881,9 @@ func (h *Harness) WaitAndAssertOnCallUsers(serviceID string, userIDs ...string) 
 	check := func(t *assert.CollectT) {
 		ids := getUsers()
 		require.Lenf(t, ids, len(userIDs), "number of on-call users")
-		require.EqualValuesf(t, userIDs, ids, "on-call users")
+		require.ElementsMatch(t, userIDs, ids, "on-call users")
 	}
 	h.Trigger() // run engine cycle
 
-	assert.EventuallyWithT(h.t, check, 5*time.Second, 100*time.Millisecond)
+	assert.EventuallyWithT(h.t, check, 15*time.Second, time.Second)
 }

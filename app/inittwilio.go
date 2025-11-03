@@ -13,6 +13,7 @@ func (app *App) initTwilio(ctx context.Context) error {
 		BaseURL: app.cfg.TwilioBaseURL,
 		CMStore: app.ContactMethodStore,
 		DB:      app.db,
+		Client:  app.httpClient,
 	}
 
 	var err error
