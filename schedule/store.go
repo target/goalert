@@ -17,12 +17,61 @@ import (
 type Store struct {
 	db  *sql.DB
 	usr *user.Store
+
+	findAssociatedUserIDs      *sql.Stmt
+	findLastTempSchedPickOrder *sql.Stmt
+	setTempSchedPickOrder      *sql.Stmt
 }
 
 func NewStore(ctx context.Context, db *sql.DB, usr *user.Store) (*Store, error) {
+	p := &util.Prepare{
+		DB:  db,
+		Ctx: ctx,
+	}
+
 	return &Store{
 		db:  db,
 		usr: usr,
+
+		findAssociatedUserIDs: p.P(`
+			SELECT DISTINCT COALESCE(s.tgt_user_id, r.user_id)
+			FROM schedule_rules s
+			LEFT JOIN rotation_participants r ON r.rotation_id = s.tgt_rotation_id
+			WHERE s.schedule_id = $1
+		`),
+		findLastTempSchedPickOrder: p.P(`
+			SELECT data -> 'user_ids' AS user_ids
+			FROM schedule_data
+			WHERE schedule_id = $1;
+		`),
+		setTempSchedPickOrder: p.P(`
+			INSERT INTO schedule_data (schedule_id, data)
+			VALUES (
+					$1,
+					jsonb_build_object('user_ids', to_jsonb($2::text[]))
+			)
+			ON CONFLICT (schedule_id)
+			DO UPDATE SET data = jsonb_set(
+					COALESCE(schedule_data.data, '{}'),
+					'{user_ids}',
+					to_jsonb((
+							SELECT ARRAY(
+									SELECT * FROM (
+											SELECT unnest($2::text[]) AS user_id
+											UNION ALL
+											SELECT user_id
+											FROM (
+													SELECT jsonb_array_elements_text(sd.data->'user_ids') AS user_id
+													FROM schedule_data sd
+													WHERE sd.schedule_id = $1
+											) existing
+											WHERE user_id <> ALL($2::text[])
+									) merged
+							)
+					)),
+					true
+			);
+		`),
 	}, nil
 }
 
