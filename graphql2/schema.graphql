@@ -692,12 +692,20 @@ type Schedule {
     userIDs: [ID!]
   ): [OnCallShift!]!
 
+  associatedUsers: [User!]!
+  lastTempSchedPickOrder: [ID!]!
+
   targets: [ScheduleTarget!]!
   target(input: TargetInput!): ScheduleTarget
   isFavorite: Boolean!
 
   temporarySchedules: [TemporarySchedule!]!
   onCallNotificationRules: [OnCallNotificationRule!]!
+}
+
+input SetTempSchedPickOrderInput {
+  scheduleID: ID!
+  userIDs: [ID!]!
 }
 
 input SetScheduleOnCallNotificationRulesInput {
