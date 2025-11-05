@@ -444,7 +444,7 @@ export default function TempSchedDialog({
                           ),
                         })
 
-                        let order = pickOrder.slice()
+                        const order = pickOrder.slice()
                         const i = order.indexOf(shift.userID)
                         if (i !== -1) {
                           order.splice(i, 1)
