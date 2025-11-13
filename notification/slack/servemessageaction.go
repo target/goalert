@@ -2,6 +2,7 @@ package slack
 
 import (
 	"bytes"
+	"context"
 	"crypto/hmac"
 	"encoding/json"
 	"errors"
@@ -64,6 +65,8 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 	ctx := req.Context()
 	cfg := config.FromContext(ctx)
 
+	// Temporarily allow interactive messages for testing
+	fmt.Printf("DEBUG: Interactive messages check - enabled: %v\n", cfg.Slack.InteractiveMessages)
 	if !cfg.Slack.InteractiveMessages {
 		http.Error(w, "not enabled", http.StatusNotFound)
 		return
@@ -74,27 +77,7 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	var payload struct {
-		Type        string
-		ResponseURL string `json:"response_url"`
-		Team        struct {
-			ID     string
-			Domain string
-		}
-		Channel struct {
-			ID string
-		}
-		User struct {
-			ID       string `json:"id"`
-			Username string `json:"username"`
-			Name     string
-		}
-		Actions []struct {
-			ActionID string `json:"action_id"`
-			BlockID  string `json:"block_id"`
-			Value    string `json:"value"`
-		}
-	}
+	var payload SlackPayload
 	err = json.Unmarshal([]byte(req.FormValue("payload")), &payload)
 	if errutil.HTTPError(ctx, w, err) {
 		return
@@ -106,6 +89,10 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 	}
 
 	act := payload.Actions[0]
+
+	// Debug logging
+	fmt.Printf("DEBUG: Received action - ActionID: %s, BlockID: %s, Value: %s\n", act.ActionID, act.BlockID, act.Value)
+
 	if act.BlockID != alertResponseBlockID {
 		errutil.HTTPError(ctx, w, validation.NewFieldErrorf("block_id", "unknown block ID '%s'", act.BlockID))
 		return
@@ -117,6 +104,16 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 		res = notification.ResultAcknowledge
 	case alertCloseActionID:
 		res = notification.ResultResolve
+	case showDetailsActionID:
+		fmt.Printf("DEBUG: Matched showDetailsActionID case! Calling handleShowDetailsAction\n")
+		// Handle show details - we need to expand the details in the message
+		err = s.handleShowDetailsAction(ctx, payload, w)
+		if err != nil {
+			fmt.Printf("DEBUG: Error in handleShowDetailsAction: %v\n", err)
+			errutil.HTTPError(ctx, w, err)
+		}
+		fmt.Printf("DEBUG: handleShowDetailsAction completed successfully\n")
+		return
 	case linkActActionID:
 		err = s.withClient(ctx, func(c *slack.Client) error {
 			// remove ephemeral 'Link Account' button
@@ -197,4 +194,51 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 	if errutil.HTTPError(ctx, w, err) {
 		return
 	}
+}
+
+type SlackPayload struct {
+	Type        string
+	ResponseURL string `json:"response_url"`
+	Team        struct {
+		ID     string
+		Domain string
+	}
+	Channel struct {
+		ID string
+	}
+	User struct {
+		ID       string `json:"id"`
+		Username string `json:"username"`
+		Name     string
+	}
+	Actions []struct {
+		ActionID string `json:"action_id"`
+		BlockID  string `json:"block_id"`
+		Value    string `json:"value"`
+	}
+}
+
+func (s *ChannelSender) handleShowDetailsAction(ctx context.Context, payload SlackPayload, w http.ResponseWriter) error {
+	fmt.Printf("DEBUG: handleShowDetailsAction called - Channel: %s, User: %s, ResponseURL: %s\n",
+		payload.Channel.ID, payload.User.ID, payload.ResponseURL)
+
+	// For now, just show a simple ephemeral message
+	// In a full implementation, there would be:
+	// 1. Parse the callback ID to get the alert ID
+	// 2. Fetch the alert details from the database
+	// 3. Update the original message with expanded details
+
+	return s.withClient(ctx, func(c *slack.Client) error {
+		fmt.Printf("DEBUG: Attempting to send ephemeral message...\n")
+		_, err := c.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID,
+			slack.MsgOptionResponseURL(payload.ResponseURL, "ephemeral"),
+			slack.MsgOptionText("Details expansion feature is being implemented. For now, please check the full alert details in the GoAlert web interface by clicking the alert title link.", false),
+		)
+		if err != nil {
+			fmt.Printf("DEBUG: Error sending ephemeral message: %v\n", err)
+		} else {
+			fmt.Printf("DEBUG: Ephemeral message sent successfully\n")
+		}
+		return err
+	})
 }
