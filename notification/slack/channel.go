@@ -419,8 +419,11 @@ func alertMsgOption(ctx context.Context, callbackID string, id int, summary, det
 		}
 		// Add "Show Details" button if details exist and are long
 		if details != "" && (len(strings.Split(details, "\n")) > 1 || len(details) > 150) {
+			// Create a details payload with alert info
+			detailsPayload := fmt.Sprintf(`{"type":"show_details","alert_id":%d,"summary":%q,"details":%q,"callback_id":%q}`,
+				id, summary, details, callbackID)
 			actionButtons = append(actionButtons,
-				slack.NewButtonBlockElement(showDetailsActionID, callbackID, slack.NewTextBlockObject("plain_text", "Show Details", false, false)))
+				slack.NewButtonBlockElement(showDetailsActionID, detailsPayload, slack.NewTextBlockObject("plain_text", "Show Details", false, false)))
 		}
 		actions = []slack.Block{
 			slack.NewDividerBlock(),
@@ -434,8 +437,11 @@ func alertMsgOption(ctx context.Context, callbackID string, id int, summary, det
 		}
 		// Add "Show Details" button if details exist and are long
 		if details != "" && (len(strings.Split(details, "\n")) > 1 || len(details) > 150) {
+			// Create a details payload with alert info
+			detailsPayload := fmt.Sprintf(`{"type":"show_details","alert_id":%d,"summary":%q,"details":%q,"callback_id":%q}`,
+				id, summary, details, callbackID)
 			actionButtons = append(actionButtons,
-				slack.NewButtonBlockElement(showDetailsActionID, callbackID, slack.NewTextBlockObject("plain_text", "Show Details", false, false)))
+				slack.NewButtonBlockElement(showDetailsActionID, detailsPayload, slack.NewTextBlockObject("plain_text", "Show Details", false, false)))
 		}
 		actions = []slack.Block{
 			slack.NewDividerBlock(),
@@ -483,6 +489,7 @@ func (s *ChannelSender) SendMessage(ctx context.Context, msg notification.Messag
 
 	var opts []slack.MsgOption
 	var isUpdate bool
+	var externalID string
 	channelID := msg.DestArg(FieldSlackChannelID)
 	if msg.DestType() == DestTypeSlackDirectMessage {
 		// DMs are sent to the user ID, not the channel ID.
@@ -529,20 +536,6 @@ func (s *ChannelSender) SendMessage(ctx context.Context, msg notification.Messag
 		return nil, errors.Errorf("unsupported message type: %T", t)
 	}
 
-	// Debug: Print message content details
-	fmt.Printf("Message opts count: %d\n", len(opts))
-	switch t := msg.(type) {
-	case notification.Alert:
-		fmt.Printf("Alert Details: ID=%d, Summary='%s', Details='%s'\n", t.AlertID, t.Summary, t.Details)
-	case notification.Test:
-		fmt.Printf("Test message content: 'This is a test message.'\n")
-	case notification.Verification:
-		fmt.Printf("Verification message: Code=%s\n", t.Code)
-	case notification.AlertBundle:
-		fmt.Printf("AlertBundle: Service='%s', Count=%d\n", t.ServiceName, t.Count)
-	}
-
-	var externalID string
 	err := s.withClient(ctx, func(c *slack.Client) error {
 		msgChan, msgTS, err := c.PostMessageContext(ctx, channelID, opts...)
 		if err != nil {
