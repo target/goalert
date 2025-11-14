@@ -379,8 +379,10 @@ func alertMsgOption(ctx context.Context, callbackID string, id int, summary, det
 			slack.NewTextBlockObject("mrkdwn", alertLink(ctx, id, summary), false, false), nil, nil),
 	}
 
-	// Add details as a collapsible context if present
-	if details != "" {
+	cfg := config.FromContext(ctx)
+
+	// Add details as a collapsible context if present and enabled in config
+	if details != "" && cfg.Slack.IncludeDetails {
 		// Truncate details for preview - show first line or first 150 characters
 		detailsLines := strings.Split(details, "\n")
 		detailsPreview := detailsLines[0]
@@ -417,8 +419,8 @@ func alertMsgOption(ctx context.Context, callbackID string, id int, summary, det
 		actionButtons := []slack.BlockElement{
 			slack.NewButtonBlockElement(alertCloseActionID, callbackID, slack.NewTextBlockObject("plain_text", "Close", false, false)),
 		}
-		// Add "Show Details" button if details exist and are long
-		if details != "" && (len(strings.Split(details, "\n")) > 1 || len(details) > 150) {
+		// Add "Show Details" button if details exist and are long and config allows details
+		if details != "" && cfg.Slack.IncludeDetails && (len(strings.Split(details, "\n")) > 1 || len(details) > 150) {
 			// Create a details payload with alert info
 			detailsPayload := fmt.Sprintf(`{"type":"show_details","alert_id":%d,"summary":%q,"details":%q,"callback_id":%q}`,
 				id, summary, details, callbackID)
@@ -435,8 +437,8 @@ func alertMsgOption(ctx context.Context, callbackID string, id int, summary, det
 			slack.NewButtonBlockElement(alertAckActionID, callbackID, slack.NewTextBlockObject("plain_text", "Acknowledge", false, false)),
 			slack.NewButtonBlockElement(alertCloseActionID, callbackID, slack.NewTextBlockObject("plain_text", "Close", false, false)),
 		}
-		// Add "Show Details" button if details exist and are long
-		if details != "" && (len(strings.Split(details, "\n")) > 1 || len(details) > 150) {
+		// Add "Show Details" button if details exist and are long and config allows details
+		if details != "" && cfg.Slack.IncludeDetails && (len(strings.Split(details, "\n")) > 1 || len(details) > 150) {
 			// Create a details payload with alert info
 			detailsPayload := fmt.Sprintf(`{"type":"show_details","alert_id":%d,"summary":%q,"details":%q,"callback_id":%q}`,
 				id, summary, details, callbackID)
@@ -454,7 +456,6 @@ func alertMsgOption(ctx context.Context, callbackID string, id int, summary, det
 	blocks = append(blocks,
 		slack.NewContextBlock("", slack.NewTextBlockObject("plain_text", logEntry, false, false)),
 	)
-	cfg := config.FromContext(ctx)
 	if len(actions) > 0 && cfg.Slack.InteractiveMessages {
 		blocks = append(blocks, actions...)
 	}
