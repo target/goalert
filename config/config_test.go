@@ -120,3 +120,24 @@ func TestConfig_Validate(t *testing.T) {
 		assert.Error(t, cfg.Validate(), "language must be a valid string")
 	})
 }
+
+func TestSlackIncludeDetails(t *testing.T) {
+	t.Run("Default value", func(t *testing.T) {
+		var cfg Config
+		assert.False(t, cfg.Slack.IncludeDetails, "IncludeDetails should default to false")
+	})
+
+	t.Run("Enabled configuration", func(t *testing.T) {
+		var cfg Config
+		cfg.Slack.IncludeDetails = true
+		assert.True(t, cfg.Slack.IncludeDetails, "IncludeDetails should be configurable to true")
+		assert.NoError(t, cfg.Validate(), "config with IncludeDetails enabled should validate")
+	})
+
+	t.Run("Disabled configuration", func(t *testing.T) {
+		var cfg Config
+		cfg.Slack.IncludeDetails = false
+		assert.False(t, cfg.Slack.IncludeDetails, "IncludeDetails should be configurable to false")
+		assert.NoError(t, cfg.Validate(), "config with IncludeDetails disabled should validate")
+	})
+}
