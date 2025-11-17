@@ -1,9 +1,25 @@
-import React, { useEffect, useState } from 'react'
-import { Button, Checkbox, FormControlLabel, Grid } from '@mui/material'
+import React, { useEffect, useMemo, useState } from 'react'
+import {
+  Avatar,
+  Button,
+  Checkbox,
+  Chip,
+  FormControlLabel,
+  Grid,
+  Popover,
+  IconButton,
+  ButtonGroup,
+  useTheme,
+} from '@mui/material'
 import Typography from '@mui/material/Typography'
 import ToggleIcon from '@mui/icons-material/CompareArrows'
 import _ from 'lodash'
-import { dtToDuration, Shift, TempSchedValue } from './sharedUtils'
+import {
+  dtToDuration,
+  Shift,
+  sortUsersByLastPickOrder,
+  TempSchedValue,
+} from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
 import { DateTime, Duration, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
@@ -14,17 +30,43 @@ import { UserSelect } from '../../selection'
 import ClickableText from '../../util/ClickableText'
 import NumberField from '../../util/NumberField'
 import { fmtLocal } from '../../util/timeFormat'
+import { User } from 'web/src/schema'
+import {
+  ArrowRight,
+  ShuffleVariant,
+  Sort,
+  SortAlphabeticalAscending,
+  SortAlphabeticalDescending,
+} from 'mdi-material-ui'
+import Chance from 'chance'
+import { gql, useQuery } from 'urql'
+const c = new Chance()
+
+const query = gql`
+  query ($id: ID!) {
+    schedule(id: $id) {
+      lastTempSchedPickOrder
+    }
+  }
+`
 
 type AddShiftsStepProps = {
   value: TempSchedValue
   onChange: (newValue: Shift[]) => void
 
   scheduleID: string
+  associatedUsers: Array<User>
   showForm: boolean
   setShowForm: (showForm: boolean) => void
-  shift: Shift | null
+  shift: Shift
   setShift: (shift: Shift) => void
+  isCustomShiftTimeRange: boolean
+  setIsCustomShiftTimeRange: (bool: boolean) => void
+  pickOrder: string[]
+  setPickOrder: (pickOrder: string[]) => void
 }
+
+type SortType = 'A-Z' | 'Z-A' | 'RAND' | 'LAST-PICKS'
 
 type DTShift = {
   userID: string
@@ -72,16 +114,46 @@ function mergeShifts(_shifts: Shift[]): Shift[] {
 
 export default function TempSchedAddNewShift({
   scheduleID,
+  associatedUsers,
   onChange,
   value,
   shift,
   setShift,
+  isCustomShiftTimeRange,
+  setIsCustomShiftTimeRange,
+  pickOrder,
+  setPickOrder,
 }: AddShiftsStepProps): JSX.Element {
+  const theme = useTheme()
   const [submitted, setSubmitted] = useState(false)
 
-  const [custom, setCustom] = useState(false)
   const [manualEntry, setManualEntry] = useState(true)
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
+
+  const [sortType, setSortType] = useState<SortType>('A-Z')
+  const [sortTypeAnchor, setSortTypeAnchor] =
+    useState<HTMLButtonElement | null>(null)
+  const sortPopoverOpen = Boolean(sortTypeAnchor)
+  const sortTypeID = sortPopoverOpen ? 'sort-type-select' : undefined
+
+  const [{ fetching, error, data }] = useQuery({
+    query,
+    variables: {
+      id: scheduleID,
+    },
+  })
+  const lastTempSchedPickOrder: Array<string> =
+    data.schedule.lastTempSchedPickOrder
+
+  const handleFilterTypeClick = (
+    event: React.MouseEvent<HTMLButtonElement>,
+  ): void => {
+    setSortTypeAnchor(event.currentTarget)
+  }
+
+  const handleFilterTypeClose = (): void => {
+    setSortTypeAnchor(null)
+  }
 
   // set start equal to the temporary schedule's start
   // can't this do on mount since the step renderer puts everyone on the DOM at once
@@ -130,6 +202,10 @@ export default function TempSchedAddNewShift({
     }
     if (!shift) return // ts sanity check
 
+    if (!pickOrder.includes(shift.userID)) {
+      setPickOrder([...pickOrder, shift.userID])
+    }
+
     onChange(mergeShifts(value.shifts.concat(shift)))
     const end = DateTime.fromISO(shift.end, { zone })
     setShift({
@@ -138,9 +214,58 @@ export default function TempSchedAddNewShift({
       start: shift.end,
       end: end.plus(value.shiftDur as Duration).toISO(),
     })
-    setCustom(false)
+    setIsCustomShiftTimeRange(false)
     setSubmitted(false)
   }
+
+  function getUserIDCountInValue(userID: string): number {
+    const uIDs = value.shifts.map((s) => s.userID)
+    const count = uIDs.filter((id) => id === userID).length
+    return count
+  }
+
+  function getChipColor(
+    userID: string,
+    count: number,
+  ): 'primary' | 'success' | 'default' {
+    if (shift.userID === userID) return 'primary'
+    if (count > 0) return 'success'
+    return 'default'
+  }
+
+  function handleSetSortType(sortType: SortType): void {
+    setSortType(sortType)
+    setSortTypeAnchor(null)
+  }
+
+  function sortFn(_a: User, _b: User): number {
+    const a = _a.name
+    const b = _b.name
+
+    if (sortType === 'A-Z') {
+      if (a > b) return 1
+      if (a < b) return -1
+      return 0
+    }
+
+    if (sortType === 'Z-A') {
+      if (a < b) return 1
+      if (a > b) return -1
+      return 0
+    }
+
+    if (sortType === 'RAND') {
+      return c.pickone([1, -1, 0])
+    }
+
+    if (sortType === 'LAST-PICKS') {
+      return sortUsersByLastPickOrder(_a, _b, lastTempSchedPickOrder)
+    }
+
+    return 0
+  }
+
+  const users = useMemo(() => associatedUsers.sort(sortFn), [sortType])
 
   return (
     <FormContainer
@@ -149,26 +274,161 @@ export default function TempSchedAddNewShift({
       onChange={(val: Shift) => setShift(val)}
     >
       <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <Typography color='textSecondary'>Add Shift</Typography>
+        <Grid item xs={12} sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography>Add Shift</Typography>
+          <IconButton
+            aria-describedby={sortTypeID}
+            onClick={handleFilterTypeClick}
+            color='primary'
+            size='small'
+            sx={{ ml: 0.5 }}
+          >
+            {sortType === 'A-Z' && (
+              <SortAlphabeticalAscending fontSize='small' />
+            )}
+            {sortType === 'Z-A' && (
+              <SortAlphabeticalDescending fontSize='small' />
+            )}
+            {sortType === 'RAND' && <ShuffleVariant fontSize='small' />}
+            {sortType === 'LAST-PICKS' && !fetching && !error && (
+              <Sort fontSize='small' />
+            )}
+          </IconButton>
+          <Popover
+            id={sortTypeID}
+            open={sortPopoverOpen}
+            anchorEl={sortTypeAnchor}
+            onClose={handleFilterTypeClose}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'left',
+            }}
+          >
+            <ButtonGroup orientation='vertical' variant='text'>
+              <Button
+                key='a-z'
+                onClick={() => handleSetSortType('A-Z')}
+                startIcon={<SortAlphabeticalAscending fontSize='small' />}
+                sx={{ justifyContent: 'start', pl: 2, pr: 2 }}
+              >
+                Sort A-Z
+              </Button>
+              <Button
+                key='z-a'
+                onClick={() => handleSetSortType('Z-A')}
+                startIcon={<SortAlphabeticalDescending fontSize='small' />}
+                sx={{ justifyContent: 'start', pl: 2, pr: 2 }}
+              >
+                Sort Z-A
+              </Button>
+              <Button
+                key='rand'
+                onClick={() => handleSetSortType('RAND')}
+                startIcon={<ShuffleVariant fontSize='small' />}
+                sx={{ justifyContent: 'start', pl: 2, pr: 2 }}
+              >
+                Shuffle
+              </Button>
+              <Button
+                key='last-picks'
+                onClick={() => handleSetSortType('LAST-PICKS')}
+                startIcon={<Sort fontSize='small' />}
+                sx={{ justifyContent: 'start', pl: 2, pr: 2 }}
+              >
+                Sort By Last Pick Order
+              </Button>
+            </ButtonGroup>
+          </Popover>
         </Grid>
+        <Grid item xs={12} sx={{ mt: '-16px' }}>
+          <Typography variant='caption' color='textSecondary'>
+            Showing all users assigned to this schedule. Select a user to add to
+            the next shift.
+          </Typography>
+        </Grid>
+
+        <Grid item xs={12} container>
+          {users.map((u) => {
+            const count = getUserIDCountInValue(u.id)
+
+            return (
+              <Chip
+                key={u.id}
+                label={u.name}
+                sx={{ m: 0.5 }}
+                color={getChipColor(u.id, count)}
+                onClick={() => {
+                  setShift({
+                    ...shift,
+                    userID: u.id,
+                  })
+                }}
+                icon={
+                  count > 0 ? (
+                    <Avatar
+                      sx={{
+                        width: 22,
+                        height: 22,
+                        fontSize: 15,
+                        bgcolor:
+                          theme.palette.mode === 'dark'
+                            ? theme.palette.success.dark
+                            : theme.palette.success.light,
+                      }}
+                    >
+                      {count}
+                    </Avatar>
+                  ) : undefined
+                }
+              />
+            )
+          })}
+        </Grid>
+
         <Grid item xs={12}>
           <FormField
             fullWidth
             component={UserSelect}
-            label='Select a User'
+            label='Search for a user...'
             name='userID'
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid item xs={6}>
           <FormControlLabel
-            control={<Checkbox checked={custom} data-cy='toggle-custom' />}
+            control={
+              <Checkbox
+                checked={!isCustomShiftTimeRange}
+                data-cy='toggle-custom-off'
+              />
+            }
             label={
-              <Typography color='textSecondary' sx={{ fontStyle: 'italic' }}>
-                Configure custom shift
+              <Typography
+                color={!isCustomShiftTimeRange ? 'default' : 'textSecondary'}
+                sx={{ fontStyle: 'italic' }}
+              >
+                Add user to next shift
               </Typography>
             }
-            onChange={() => setCustom(!custom)}
+            onChange={() => setIsCustomShiftTimeRange(false)}
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={isCustomShiftTimeRange}
+                data-cy='toggle-custom'
+              />
+            }
+            label={
+              <Typography
+                color={isCustomShiftTimeRange ? 'default' : 'textSecondary'}
+                sx={{ fontStyle: 'italic' }}
+              >
+                Add user to custom time range
+              </Typography>
+            }
+            onChange={() => setIsCustomShiftTimeRange(true)}
           />
         </Grid>
         <Grid item xs={6}>
@@ -194,7 +454,7 @@ export default function TempSchedAddNewShift({
               return value
             }}
             timeZone={zone}
-            disabled={q.loading || !custom}
+            disabled={q.loading || !isCustomShiftTimeRange}
             hint={isLocalZone ? '' : fmtLocal(value?.start)}
           />
         </Grid>
@@ -211,7 +471,7 @@ export default function TempSchedAddNewShift({
                 .plus({ year: 1 })
                 .toISO()}
               hint={
-                custom ? (
+                isCustomShiftTimeRange ? (
                   <React.Fragment>
                     {!isLocalZone && fmtLocal(value?.end)}
                     <div>
@@ -227,7 +487,7 @@ export default function TempSchedAddNewShift({
                 ) : null
               }
               timeZone={zone}
-              disabled={q.loading || !custom}
+              disabled={q.loading || !isCustomShiftTimeRange}
             />
           ) : (
             <FormField
@@ -258,9 +518,9 @@ export default function TempSchedAddNewShift({
               }}
               step='any'
               min={0}
-              disabled={q.loading || !custom}
+              disabled={q.loading || !isCustomShiftTimeRange}
               hint={
-                custom ? (
+                isCustomShiftTimeRange ? (
                   <ClickableText
                     data-cy='toggle-duration-off'
                     onClick={() => setManualEntry(true)}
@@ -275,12 +535,14 @@ export default function TempSchedAddNewShift({
         </Grid>
         <Grid item xs={12} container justifyContent='flex-end'>
           <Button
+            fullWidth
             data-cy='add-shift'
             color='secondary'
             variant='contained'
             onClick={handleAddShift}
+            endIcon={<ArrowRight />}
           >
-            Add
+            Add Next Shift
           </Button>
         </Grid>
       </Grid>

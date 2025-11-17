@@ -3,6 +3,7 @@ package schedule
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -16,12 +17,61 @@ import (
 type Store struct {
 	db  *sql.DB
 	usr *user.Store
+
+	findAssociatedUserIDs      *sql.Stmt
+	findLastTempSchedPickOrder *sql.Stmt
+	setTempSchedPickOrder      *sql.Stmt
 }
 
 func NewStore(ctx context.Context, db *sql.DB, usr *user.Store) (*Store, error) {
+	p := &util.Prepare{
+		DB:  db,
+		Ctx: ctx,
+	}
+
 	return &Store{
 		db:  db,
 		usr: usr,
+
+		findAssociatedUserIDs: p.P(`
+			SELECT DISTINCT COALESCE(s.tgt_user_id, r.user_id)
+			FROM schedule_rules s
+			LEFT JOIN rotation_participants r ON r.rotation_id = s.tgt_rotation_id
+			WHERE s.schedule_id = $1
+		`),
+		findLastTempSchedPickOrder: p.P(`
+			SELECT data -> 'user_ids' AS user_ids
+			FROM schedule_data
+			WHERE schedule_id = $1;
+		`),
+		setTempSchedPickOrder: p.P(`
+			INSERT INTO schedule_data (schedule_id, data)
+			VALUES (
+					$1,
+					jsonb_build_object('user_ids', to_jsonb($2::text[]))
+			)
+			ON CONFLICT (schedule_id)
+			DO UPDATE SET data = jsonb_set(
+					COALESCE(schedule_data.data, '{}'),
+					'{user_ids}',
+					to_jsonb((
+							SELECT ARRAY(
+									SELECT * FROM (
+											SELECT unnest($2::text[]) AS user_id
+											UNION ALL
+											SELECT user_id
+											FROM (
+													SELECT jsonb_array_elements_text(sd.data->'user_ids') AS user_id
+													FROM schedule_data sd
+													WHERE sd.schedule_id = $1
+											) existing
+											WHERE user_id <> ALL($2::text[])
+									) merged
+							)
+					)),
+					true
+			);
+		`),
 	}, nil
 }
 
@@ -344,4 +394,79 @@ func (store *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) 
 
 	err = db.SchedDeleteMany(ctx, uuids)
 	return err
+}
+
+func (store *Store) FindAssociatedUserIDs(ctx context.Context, id string) ([]string, error) {
+	err := validate.UUID("ScheduleID", id)
+	if err != nil {
+		return nil, err
+	}
+	err = permission.LimitCheckAny(ctx, permission.All)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := store.findAssociatedUserIDs.QueryContext(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var userIDs []string
+	for rows.Next() {
+		var userID string
+		if err := rows.Scan(&userID); err != nil {
+			return nil, err
+		}
+		userIDs = append(userIDs, userID)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return userIDs, nil
+}
+
+func (store *Store) FindLastTempSchedPickOrder(ctx context.Context, scheduleID string) ([]string, error) {
+	err := validate.UUID("ScheduleID", scheduleID)
+	if err != nil {
+		return nil, err
+	}
+
+	var userIDs []string
+	var rawUserIDs []byte
+	row := store.findLastTempSchedPickOrder.QueryRowContext(ctx, scheduleID)
+	err = row.Scan(&rawUserIDs)
+	if errors.Is(err, sql.ErrNoRows) {
+		return userIDs, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(rawUserIDs, &userIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	return userIDs, nil
+}
+
+func (store *Store) SetTempSchedPickOrder(ctx context.Context, scheduleID string, userIDs []string) (bool, error) {
+	err := validate.UUID("ScheduleID", scheduleID)
+	if err != nil {
+		return false, err
+	}
+
+	err = validate.ManyUUID("UserID", userIDs, 200)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = store.setTempSchedPickOrder.ExecContext(ctx, scheduleID, userIDs)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }

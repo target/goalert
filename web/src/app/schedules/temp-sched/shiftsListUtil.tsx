@@ -10,9 +10,8 @@ import {
 import { ExplicitZone, splitShift } from '../../util/luxon-helpers'
 import { parseInterval } from '../../util/shifts'
 import { Shift } from './sharedUtils'
-import { Tooltip } from '@mui/material'
+import { Tooltip, Typography } from '@mui/material'
 import { fmtLocal, fmtTime } from '../../util/timeFormat'
-import { InfoOutlined } from '@mui/icons-material'
 
 export type Sortable<T> = T & {
   // at is the earliest point in time for a list item
@@ -167,12 +166,12 @@ export function getCoverageGapItems(
       message: '',
       details: (
         <Tooltip title={!isLocalZone ? title : ''} placement='right'>
-          <span>{details}</span>
-        </Tooltip>
-      ),
-      action: (
-        <Tooltip title='Click me to use this time range for a new shift'>
-          <InfoOutlined />
+          <div style={{ textAlign: 'left' }}>
+            <Typography>{details}</Typography>
+            <Typography variant='caption'>
+              Click to use this custom time range for the next shift
+            </Typography>
+          </div>
         </Tooltip>
       ),
       at: gap.start,
