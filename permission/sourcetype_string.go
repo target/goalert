@@ -24,8 +24,9 @@ const _SourceType_name = "SourceTypeNotificationCallbackSourceTypeIntegrationKey
 var _SourceType_index = [...]uint8{0, 30, 54, 76, 99, 118, 147, 177, 196, 209}
 
 func (i SourceType) String() string {
-	if i < 0 || i >= SourceType(len(_SourceType_index)-1) {
+	idx := int(i) - 0
+	if i < 0 || idx >= len(_SourceType_index)-1 {
 		return "SourceType(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _SourceType_name[_SourceType_index[i]:_SourceType_index[i+1]]
+	return _SourceType_name[_SourceType_index[idx]:_SourceType_index[idx+1]]
 }
