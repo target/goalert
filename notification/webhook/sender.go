@@ -40,10 +40,15 @@ type POSTDataAlertBundle struct {
 
 // POSTDataAlertStatus represents fields in outgoing alert status notification.
 type POSTDataAlertStatus struct {
-	AppName  string
-	Type     string
-	AlertID  int
-	LogEntry string
+	AppName     string
+	Type        string
+	AlertID     int
+	Summary     string
+	Details     string
+	ServiceID   string
+	ServiceName string
+	Meta        map[string]string
+	LogEntry    string
 }
 
 // POSTDataAlertStatusBundle represents fields in outgoing alert status bundle notification.
@@ -130,10 +135,15 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 		}
 	case notification.AlertStatus:
 		payload = POSTDataAlertStatus{
-			AppName:  cfg.ApplicationName(),
-			Type:     "AlertStatus",
-			AlertID:  m.AlertID,
-			LogEntry: m.LogEntry,
+			AppName:     cfg.ApplicationName(),
+			Type:        "AlertStatus",
+			Details:     m.Details,
+			AlertID:     m.AlertID,
+			Summary:     m.Summary,
+			ServiceID:   m.ServiceID,
+			ServiceName: m.ServiceName,
+			Meta:        m.Meta,
+			LogEntry:    m.LogEntry,
 		}
 	case notification.ScheduleOnCallUsers:
 		// We use types defined in this package to insulate against unintended API
