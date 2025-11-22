@@ -14,18 +14,27 @@ const (
 type AlertStatus struct {
 	Base
 
-	AlertID   int
-	LogEntry  string
-	ServiceID string
+	AlertID int
 
 	// Summary of the alert that this status is in regards to.
 	Summary string
+
 	// Details of the alert that this status is in regards to.
 	Details string
+
+	ServiceID string
+
+	// ServiceName of the alert that this status is in regards to.
+	ServiceName string
+
+	// Meta contains key/value pairs associated with the alert.
+	Meta map[string]string
 
 	// OriginalStatus is the status of the first Alert notification to this Dest for this AlertID.
 	OriginalStatus SendResult
 
 	// NewAlertState contains the most recent state of the alert.
 	NewAlertState AlertState
+
+	LogEntry string
 }
