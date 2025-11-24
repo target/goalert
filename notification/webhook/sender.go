@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/target/goalert/config"
@@ -27,6 +28,7 @@ type POSTDataAlert struct {
 	ServiceID   string
 	ServiceName string
 	Meta        map[string]string
+	PublicURL   string
 }
 
 // POSTDataAlertBundle represents fields in outgoing alert bundle notification.
@@ -49,6 +51,7 @@ type POSTDataAlertStatus struct {
 	ServiceName string
 	Meta        map[string]string
 	LogEntry    string
+	PublicURL   string
 }
 
 // POSTDataAlertStatusBundle represents fields in outgoing alert status bundle notification.
@@ -102,6 +105,7 @@ var _ nfydest.MessageSender = &Sender{}
 func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 	var payload interface{}
+	pubURL := strings.TrimRight(cfg.General.PublicURL, "/")
 	switch m := msg.(type) {
 	case notification.Test:
 		payload = POSTDataTest{
@@ -124,6 +128,7 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 			ServiceID:   m.ServiceID,
 			ServiceName: m.ServiceName,
 			Meta:        m.Meta,
+			PublicURL:   pubURL,
 		}
 	case notification.AlertBundle:
 		payload = POSTDataAlertBundle{
@@ -144,6 +149,7 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 			ServiceName: m.ServiceName,
 			Meta:        m.Meta,
 			LogEntry:    m.LogEntry,
+			PublicURL:   pubURL,
 		}
 	case notification.ScheduleOnCallUsers:
 		// We use types defined in this package to insulate against unintended API
