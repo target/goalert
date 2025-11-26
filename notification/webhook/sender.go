@@ -38,6 +38,7 @@ type POSTDataAlertBundle struct {
 	ServiceID   string
 	ServiceName string
 	Count       int
+	PublicURL   string
 }
 
 // POSTDataAlertStatus represents fields in outgoing alert status notification.
@@ -56,11 +57,12 @@ type POSTDataAlertStatus struct {
 
 // POSTDataAlertStatusBundle represents fields in outgoing alert status bundle notification.
 type POSTDataAlertStatusBundle struct {
-	AppName  string
-	Type     string
-	AlertID  int
-	LogEntry string
-	Count    int
+	AppName   string
+	Type      string
+	AlertID   int
+	LogEntry  string
+	Count     int
+	PublicURL string
 }
 
 // POSTDataVerification represents fields in outgoing verification notification.
@@ -137,6 +139,7 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 			ServiceID:   m.ServiceID,
 			ServiceName: m.ServiceName,
 			Count:       m.Count,
+			PublicURL:   pubURL,
 		}
 	case notification.AlertStatus:
 		payload = POSTDataAlertStatus{
