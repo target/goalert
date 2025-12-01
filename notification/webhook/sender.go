@@ -107,7 +107,7 @@ var _ nfydest.MessageSender = &Sender{}
 func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 	var payload interface{}
-	pubURL := strings.TrimRight(cfg.General.PublicURL, "/")
+	pubURL := cfg.PublicURL()
 	switch m := msg.(type) {
 	case notification.Test:
 		payload = POSTDataTest{
