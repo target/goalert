@@ -171,7 +171,7 @@ export default function TempSchedAddNewShift({
               label='Select Users'
               multiple
               value={selectedUsers}
-              name="userID"
+              name='userID'
               onChange={(newValue: string[]) => setSelectedUsers(newValue)}
             />
           </Grid>
