@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/schedule/rotation"
 )
 
 // SingleRuleCalculator will calculate the currently active user.
@@ -59,12 +60,43 @@ func (t *TimeIterator) NewSingleRuleCalculator(loc *time.Location, rule Resolved
 			// always same user
 			calc.rot.SetSpan(t.Start(), t.End().Add(t.Step()), rule.Rotation.UserID(t.Start()))
 		default:
-			cur := t.Start().In(loc)
-			// loop through rotations
-			for cur.Before(t.End()) && limit() {
-				userID := rule.Rotation.UserID(cur)
-				calc.rot.SetSpan(rule.Rotation.CurrentStart, rule.Rotation.CurrentEnd, userID)
-				cur = rule.Rotation.CurrentEnd
+			rotCopy := *rule.Rotation
+			rotCopy.Users = append([]string{}, rule.Rotation.Users...)
+
+			// For daily rotations with day restrictions, we need to pause the rotation
+			// on inactive days to ensure fair distribution (otherwise some participants
+			// would never appear if their turn always falls on inactive days).
+			if !rule.IsAlways() && rotCopy.Type == rotation.TypeDaily {
+				// For daily rotation with day restrictions, advance position per active day
+				activeStart := rule.StartTime(t.Start().In(loc))
+				currentIndex := rotCopy.CurrentIndex
+
+				for activeStart.Before(t.End()) && limit() {
+					activeEnd := rule.EndTime(activeStart)
+					if activeEnd.After(t.End()) {
+						activeEnd = t.End()
+					}
+
+					userID := rotCopy.Users[currentIndex%len(rotCopy.Users)]
+					calc.rot.SetSpan(activeStart, activeEnd, userID)
+
+					currentIndex++
+
+					nextActiveStart := rule.StartTime(activeEnd)
+					if nextActiveStart.Equal(activeEnd) || nextActiveStart.Before(activeEnd) {
+						break
+					}
+
+					activeStart = nextActiveStart
+				}
+			} else {
+				cur := t.Start().In(loc)
+				// loop through rotations
+				for cur.Before(t.End()) && limit() {
+					userID := rotCopy.UserID(cur)
+					calc.rot.SetSpan(rotCopy.CurrentStart, rotCopy.CurrentEnd, userID)
+					cur = rotCopy.CurrentEnd
+				}
 			}
 		}
 		calc.rot.Init()
