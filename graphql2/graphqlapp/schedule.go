@@ -19,6 +19,7 @@ import (
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/search"
+	"github.com/target/goalert/user"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -170,6 +171,34 @@ func (s *Schedule) Targets(ctx context.Context, raw *schedule.Schedule) ([]graph
 	}
 
 	return result, nil
+}
+
+func (s *Schedule) AssociatedUsers(ctx context.Context, raw *schedule.Schedule) ([]user.User, error) {
+	userIDs, err := s.ScheduleStore.FindAssociatedUserIDs(ctx, raw.ID)
+	if err != nil {
+		return nil, err
+	}
+	users, err := s.UserStore.FindMany(ctx, userIDs)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+func (s *Schedule) LastTempSchedPickOrder(ctx context.Context, raw *schedule.Schedule) ([]string, error) {
+	userIDs, err := s.ScheduleStore.FindLastTempSchedPickOrder(ctx, raw.ID)
+	if err != nil {
+		return nil, err
+	}
+	return userIDs, nil
+}
+
+func (m *Mutation) SetTemporarySchedulePickOrder(ctx context.Context, input graphql2.SetTempSchedPickOrderInput) (ok bool, err error) {
+	ok, err = m.ScheduleStore.SetTempSchedPickOrder(ctx, input.ScheduleID, input.UserIDs)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (s *Schedule) AssignedTo(ctx context.Context, raw *schedule.Schedule) ([]assignment.RawTarget, error) {

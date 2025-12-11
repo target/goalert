@@ -10,6 +10,7 @@ type Mutation {
   reEncryptKeyringsAndConfig: Boolean!
 
   setTemporarySchedule(input: SetTemporaryScheduleInput!): Boolean!
+  setTemporarySchedulePickOrder(input: SetTempSchedPickOrderInput!): Boolean!
   clearTemporarySchedules(input: ClearTemporarySchedulesInput!): Boolean!
 
   setScheduleOnCallNotificationRules(

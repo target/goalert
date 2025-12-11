@@ -35,7 +35,7 @@ const App = (): JSX.Element => {
 
   return (
     <GraphiQL
-      headerEditorEnabled
+      isHeadersEditorEnabled
       fetcher={async (graphQLParams) => {
         const resp = await fetch(location.protocol + '//' + path, {
           method: 'POST',

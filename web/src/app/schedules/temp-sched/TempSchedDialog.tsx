@@ -1,7 +1,6 @@
-import React, { useState, useRef, Suspense } from 'react'
-import { useMutation, gql } from 'urql'
+import React, { useState, useRef, Suspense, useMemo } from 'react'
+import { useMutation, gql, useQuery } from 'urql'
 import Checkbox from '@mui/material/Checkbox'
-import DialogContentText from '@mui/material/DialogContentText'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import FormHelperText from '@mui/material/FormHelperText'
 import Grid from '@mui/material/Grid'
@@ -14,27 +13,37 @@ import _ from 'lodash'
 import { DateTime, Duration, Interval } from 'luxon'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
-import {
-  contentText,
-  inferDuration,
-  Shift,
-  TempSchedValue,
-} from './sharedUtils'
-import { FormContainer, FormField } from '../../forms'
-import TempSchedAddNewShift from './TempSchedAddNewShift'
-import { isISOAfter, parseInterval } from '../../util/shifts'
+import { inferDuration, Shift, TempSchedValue } from './sharedUtils'
+import { FormContainer } from '../../forms'
+import { parseInterval } from '../../util/shifts'
 import { useScheduleTZ } from '../useScheduleTZ'
 import TempSchedShiftsList from './TempSchedShiftsList'
-import { ISODateTimePicker } from '../../util/ISOPickers'
 import { getCoverageGapItems } from './shiftsListUtil'
-import { fmtLocal } from '../../util/timeFormat'
 import { ensureInterval } from '../timeUtil'
 import TempSchedConfirmation from './TempSchedConfirmation'
-import { TextField, MenuItem, Divider } from '@mui/material'
+import { User } from 'web/src/schema'
+import TempSchedForm from './TempSchedForm'
 
 const mutation = gql`
   mutation ($input: SetTemporaryScheduleInput!) {
     setTemporarySchedule(input: $input)
+  }
+`
+
+const pickOrderMutation = gql`
+  mutation ($input: SetTempSchedPickOrderInput!) {
+    setTemporarySchedulePickOrder(input: $input)
+  }
+`
+
+const query = gql`
+  query ($id: ID!) {
+    schedule(id: $id) {
+      associatedUsers {
+        id
+        name
+      }
+    }
   }
 `
 
@@ -43,12 +52,11 @@ function shiftEquals(a: Shift, b: Shift): boolean {
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
-  contentText,
-  avatar: {
-    backgroundColor: theme.palette.primary.main,
-  },
   formContainer: {
     height: '100%',
+    marginTop: '-16px',
+    paddingLeft: '.5rem',
+    paddingRight: '.5rem',
   },
   noCoverageError: {
     marginTop: '.5rem',
@@ -59,16 +67,9 @@ const useStyles = makeStyles((theme: Theme) => ({
       marginTop: '1rem',
     },
     [theme.breakpoints.up('md')]: {
-      paddingLeft: '1rem',
+      paddingLeft: '4rem',
     },
     overflow: 'hidden',
-  },
-  sticky: {
-    position: 'sticky',
-    top: 0,
-  },
-  tzNote: {
-    fontStyle: 'italic',
   },
 }))
 
@@ -90,7 +91,7 @@ const clampForward = (nowISO: string, iso: string): string => {
   return iso
 }
 
-interface DurationValues {
+export interface DurationValues {
   dur: number
   ivl: string
 }
@@ -102,9 +103,23 @@ export default function TempSchedDialog({
   edit = false,
 }: TempScheduleDialogProps): JSX.Element {
   const classes = useStyles()
-  const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
-  const [now] = useState(DateTime.utc().startOf('minute').toISO())
+  const { q, zone } = useScheduleTZ(scheduleID)
+  const now = useMemo(() => DateTime.utc().startOf('minute').toISO(), [])
   const [showForm, setShowForm] = useState(false)
+  const [isCustomShiftTimeRange, setIsCustomShiftTimeRange] = useState(false)
+  const [pickOrder, setPickOrder] = useState<Array<string>>([])
+
+  const [{ fetching: fetchingUsers, error: errorUsers, data: dataUsers }] =
+    useQuery({
+      query,
+      variables: {
+        id: scheduleID,
+      },
+    })
+  const associatedUsers: Array<User> = dataUsers.schedule.associatedUsers
+
+  const [{ fetching, error }, commit] = useMutation(mutation)
+  const [, commitPickOrder] = useMutation(pickOrderMutation)
 
   let defaultShiftDur = {} as DurationValues
 
@@ -126,7 +141,7 @@ export default function TempSchedDialog({
 
   const [durValues, setDurValues] = useState<DurationValues>(defaultShiftDur)
 
-  const [value, setValue] = useState({
+  const [value, setValue] = useState<TempSchedValue>({
     start: clampForward(now, _value.start),
     end: _value.end,
     clearStart: edit ? _value.start : null,
@@ -157,15 +172,6 @@ export default function TempSchedDialog({
   const [submitAttempt, setSubmitAttempt] = useState(false) // helps with error messaging on step 1
   const [submitSuccess, setSubmitSuccess] = useState(false)
 
-  const [{ fetching, error }, commit] = useMutation(mutation)
-
-  function validate(): Error | null {
-    if (isISOAfter(value.start, value.end)) {
-      return new Error('Start date/time cannot be after end date/time.')
-    }
-    return null
-  }
-
   const hasInvalidShift = (() => {
     if (q.loading) return false
     const schedInterval = parseInterval(value, zone)
@@ -191,6 +197,7 @@ export default function TempSchedDialog({
     const nextStart = coverageGap?.start
     const nextEnd = nextStart.plus(value.shiftDur)
 
+    setIsCustomShiftTimeRange(true)
     setShift({
       userID: shift?.userID ?? '',
       truncated: !!shift?.truncated,
@@ -263,6 +270,13 @@ export default function TempSchedDialog({
         },
         { additionalTypenames: ['Schedule'] },
       ).then((result) => {
+        commitPickOrder({
+          input: {
+            scheduleID,
+            userIDs: pickOrder,
+          },
+        })
+
         if (!result.error) {
           onClose()
         }
@@ -285,9 +299,14 @@ export default function TempSchedDialog({
     .concat(shiftErrors)
     .concat(noCoverageErrs)
 
+  // if error from loading associated users
+  if (errorUsers?.message) {
+    errs.concat({ message: errorUsers.message })
+  }
+
   return (
     <FormDialog
-      fullHeight
+      fullScreen
       maxWidth='lg'
       title={edit ? 'Edit a Temporary Schedule' : 'Define a Temporary Schedule'}
       onClose={onClose}
@@ -303,7 +322,7 @@ export default function TempSchedDialog({
         <Suspense>
           <FormContainer
             optionalLabels
-            disabled={fetching}
+            disabled={fetchingUsers || fetching}
             value={value}
             onChange={(newValue: TempSchedValue) => {
               setValue({ ...value, ...ensureInterval(value, newValue) })
@@ -319,133 +338,22 @@ export default function TempSchedDialog({
                 justifyContent='space-between'
               >
                 {/* left pane */}
-                <Grid
-                  item
-                  xs={12}
-                  md={6}
-                  container
-                  alignContent='flex-start'
-                  spacing={2}
-                >
-                  <Grid item xs={12}>
-                    <DialogContentText className={classes.contentText}>
-                      The schedule will be exactly as configured here for the
-                      entire duration (ignoring all assignments and overrides).
-                    </DialogContentText>
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <Typography
-                      color='textSecondary'
-                      className={classes.tzNote}
-                    >
-                      Times shown in schedule timezone ({zone})
-                    </Typography>
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <FormField
-                      fullWidth
-                      component={ISODateTimePicker}
-                      required
-                      name='start'
-                      label='Schedule Start'
-                      min={now}
-                      max={DateTime.fromISO(now, { zone })
-                        .plus({ year: 1 })
-                        .toISO()}
-                      softMax={value.end}
-                      softMaxLabel='Must be before end time.'
-                      softMin={DateTime.fromISO(value.end)
-                        .plus({ month: -3 })
-                        .toISO()}
-                      softMinLabel='Must be within 3 months of end time.'
-                      validate={() => validate()}
-                      timeZone={zone}
-                      disabled={q.loading}
-                      hint={isLocalZone ? '' : fmtLocal(value.start)}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <FormField
-                      fullWidth
-                      component={ISODateTimePicker}
-                      required
-                      name='end'
-                      label='Schedule End'
-                      min={now}
-                      softMin={value.start}
-                      softMinLabel='Must be after start time.'
-                      softMax={DateTime.fromISO(value.start)
-                        .plus({ month: 3 })
-                        .toISO()}
-                      softMaxLabel='Must be within 3 months of start time.'
-                      validate={() => validate()}
-                      timeZone={zone}
-                      disabled={q.loading}
-                      hint={isLocalZone ? '' : fmtLocal(value.end)}
-                    />
-                  </Grid>
-
-                  <FormContainer
-                    value={durValues}
-                    onChange={(newValue: DurationValues) => {
-                      setDurValues({ ...durValues, ...newValue })
-                      setValue({
-                        ...value,
-                        shiftDur: Duration.fromObject({
-                          [newValue.ivl]: newValue.dur,
-                        }),
-                      })
-                    }}
-                  >
-                    <Grid item xs={12} md={6}>
-                      <FormField
-                        fullWidth
-                        component={TextField}
-                        type='number'
-                        name='dur'
-                        min={1}
-                        label='Shift Duration'
-                        validate={() => validate()}
-                        disabled={q.loading}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <FormField
-                        fullWidth
-                        component={TextField}
-                        name='ivl'
-                        select
-                        label='Shift Interval'
-                        validate={() => validate()}
-                        disabled={q.loading}
-                      >
-                        <MenuItem value='hours'>Hour</MenuItem>
-                        <MenuItem value='days'>Day</MenuItem>
-                        <MenuItem value='weeks'>Week</MenuItem>
-                      </FormField>
-                    </Grid>
-                  </FormContainer>
-
-                  <Grid item xs={12}>
-                    <Divider />
-                  </Grid>
-
-                  <Grid item xs={12} className={classes.sticky}>
-                    <TempSchedAddNewShift
-                      value={value}
-                      onChange={(shifts: Shift[]) =>
-                        setValue({ ...value, shifts })
-                      }
-                      scheduleID={scheduleID}
-                      showForm={showForm}
-                      setShowForm={setShowForm}
-                      shift={shift}
-                      setShift={setShift}
-                    />
-                  </Grid>
-                </Grid>
+                <TempSchedForm
+                  scheduleID={scheduleID}
+                  associatedUsers={associatedUsers}
+                  duration={durValues}
+                  setDuration={setDurValues}
+                  value={value}
+                  setValue={setValue}
+                  showForm={showForm}
+                  setShowForm={setShowForm}
+                  shift={shift}
+                  setShift={setShift}
+                  isCustomShiftTimeRange={isCustomShiftTimeRange}
+                  setIsCustomShiftTimeRange={setIsCustomShiftTimeRange}
+                  pickOrder={pickOrder}
+                  setPickOrder={setPickOrder}
+                />
 
                 {/* right pane */}
                 <Grid
@@ -535,6 +443,13 @@ export default function TempSchedDialog({
                             (s) => !shiftEquals(shift, s),
                           ),
                         })
+
+                        const order = pickOrder.slice()
+                        const i = order.indexOf(shift.userID)
+                        if (i !== -1) {
+                          order.splice(i, 1)
+                          setPickOrder(order)
+                        }
                       }}
                       edit={edit}
                       handleCoverageGapClick={handleCoverageGapClick}

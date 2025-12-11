@@ -507,6 +507,7 @@ type ComplexityRoot struct {
 		SetScheduleOnCallNotificationRules func(childComplexity int, input SetScheduleOnCallNotificationRulesInput) int
 		SetSystemLimits                    func(childComplexity int, input []SystemLimitInput) int
 		SetTemporarySchedule               func(childComplexity int, input SetTemporaryScheduleInput) int
+		SetTemporarySchedulePickOrder      func(childComplexity int, input SetTempSchedPickOrderInput) int
 		SwoAction                          func(childComplexity int, action SWOAction) int
 		TestContactMethod                  func(childComplexity int, id string) int
 		UpdateAlerts                       func(childComplexity int, input UpdateAlertsInput) int
@@ -684,9 +685,11 @@ type ComplexityRoot struct {
 
 	Schedule struct {
 		AssignedTo              func(childComplexity int) int
+		AssociatedUsers         func(childComplexity int) int
 		Description             func(childComplexity int) int
 		ID                      func(childComplexity int) int
 		IsFavorite              func(childComplexity int) int
+		LastTempSchedPickOrder  func(childComplexity int) int
 		Name                    func(childComplexity int) int
 		OnCallNotificationRules func(childComplexity int) int
 		Shifts                  func(childComplexity int, start time.Time, end time.Time, userIDs []string) int
@@ -963,6 +966,7 @@ type MutationResolver interface {
 	LinkAccount(ctx context.Context, token string) (bool, error)
 	ReEncryptKeyringsAndConfig(ctx context.Context) (bool, error)
 	SetTemporarySchedule(ctx context.Context, input SetTemporaryScheduleInput) (bool, error)
+	SetTemporarySchedulePickOrder(ctx context.Context, input SetTempSchedPickOrderInput) (bool, error)
 	ClearTemporarySchedules(ctx context.Context, input ClearTemporarySchedulesInput) (bool, error)
 	SetScheduleOnCallNotificationRules(ctx context.Context, input SetScheduleOnCallNotificationRulesInput) (bool, error)
 	DebugCarrierInfo(ctx context.Context, input DebugCarrierInfoInput) (*twilio.CarrierInfo, error)
@@ -1090,6 +1094,8 @@ type ScheduleResolver interface {
 	TimeZone(ctx context.Context, obj *schedule.Schedule) (string, error)
 	AssignedTo(ctx context.Context, obj *schedule.Schedule) ([]assignment.RawTarget, error)
 	Shifts(ctx context.Context, obj *schedule.Schedule, start time.Time, end time.Time, userIDs []string) ([]oncall.Shift, error)
+	AssociatedUsers(ctx context.Context, obj *schedule.Schedule) ([]user.User, error)
+	LastTempSchedPickOrder(ctx context.Context, obj *schedule.Schedule) ([]string, error)
 	Targets(ctx context.Context, obj *schedule.Schedule) ([]ScheduleTarget, error)
 	Target(ctx context.Context, obj *schedule.Schedule, input assignment.RawTarget) (*ScheduleTarget, error)
 	IsFavorite(ctx context.Context, obj *schedule.Schedule) (bool, error)
@@ -2954,6 +2960,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.SetTemporarySchedule(childComplexity, args["input"].(SetTemporaryScheduleInput)), true
+	case "Mutation.setTemporarySchedulePickOrder":
+		if e.complexity.Mutation.SetTemporarySchedulePickOrder == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setTemporarySchedulePickOrder_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetTemporarySchedulePickOrder(childComplexity, args["input"].(SetTempSchedPickOrderInput)), true
 	case "Mutation.swoAction":
 		if e.complexity.Mutation.SwoAction == nil {
 			break
@@ -4071,6 +4088,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Schedule.AssignedTo(childComplexity), true
+	case "Schedule.associatedUsers":
+		if e.complexity.Schedule.AssociatedUsers == nil {
+			break
+		}
+
+		return e.complexity.Schedule.AssociatedUsers(childComplexity), true
 	case "Schedule.description":
 		if e.complexity.Schedule.Description == nil {
 			break
@@ -4089,6 +4112,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Schedule.IsFavorite(childComplexity), true
+	case "Schedule.lastTempSchedPickOrder":
+		if e.complexity.Schedule.LastTempSchedPickOrder == nil {
+			break
+		}
+
+		return e.complexity.Schedule.LastTempSchedPickOrder(childComplexity), true
 	case "Schedule.name":
 		if e.complexity.Schedule.Name == nil {
 			break
@@ -4946,6 +4975,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSetLabelInput,
 		ec.unmarshalInputSetScheduleOnCallNotificationRulesInput,
 		ec.unmarshalInputSetScheduleShiftInput,
+		ec.unmarshalInputSetTempSchedPickOrderInput,
 		ec.unmarshalInputSetTemporaryScheduleInput,
 		ec.unmarshalInputSlackChannelSearchOptions,
 		ec.unmarshalInputSlackUserGroupSearchOptions,
@@ -5553,6 +5583,17 @@ func (ec *executionContext) field_Mutation_setSystemLimits_args(ctx context.Cont
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNSystemLimitInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimitInputᚄ)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_setTemporarySchedulePickOrder_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNSetTempSchedPickOrderInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetTempSchedPickOrderInput)
 	if err != nil {
 		return nil, err
 	}
@@ -13375,6 +13416,47 @@ func (ec *executionContext) fieldContext_Mutation_setTemporarySchedule(ctx conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_setTemporarySchedulePickOrder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_setTemporarySchedulePickOrder,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().SetTemporarySchedulePickOrder(ctx, fc.Args["input"].(SetTempSchedPickOrderInput))
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_setTemporarySchedulePickOrder(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_setTemporarySchedulePickOrder_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_clearTemporarySchedules(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -14749,6 +14831,10 @@ func (ec *executionContext) fieldContext_Mutation_createSchedule(ctx context.Con
 				return ec.fieldContext_Schedule_assignedTo(ctx, field)
 			case "shifts":
 				return ec.fieldContext_Schedule_shifts(ctx, field)
+			case "associatedUsers":
+				return ec.fieldContext_Schedule_associatedUsers(ctx, field)
+			case "lastTempSchedPickOrder":
+				return ec.fieldContext_Schedule_lastTempSchedPickOrder(ctx, field)
 			case "targets":
 				return ec.fieldContext_Schedule_targets(ctx, field)
 			case "target":
@@ -17819,6 +17905,10 @@ func (ec *executionContext) fieldContext_Query_schedule(ctx context.Context, fie
 				return ec.fieldContext_Schedule_assignedTo(ctx, field)
 			case "shifts":
 				return ec.fieldContext_Schedule_shifts(ctx, field)
+			case "associatedUsers":
+				return ec.fieldContext_Schedule_associatedUsers(ctx, field)
+			case "lastTempSchedPickOrder":
+				return ec.fieldContext_Schedule_lastTempSchedPickOrder(ctx, field)
 			case "targets":
 				return ec.fieldContext_Schedule_targets(ctx, field)
 			case "target":
@@ -20818,6 +20908,94 @@ func (ec *executionContext) fieldContext_Schedule_shifts(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Schedule_associatedUsers(ctx context.Context, field graphql.CollectedField, obj *schedule.Schedule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Schedule_associatedUsers,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Schedule().AssociatedUsers(ctx, obj)
+		},
+		nil,
+		ec.marshalNUser2ᚕgithubᚗcomᚋtargetᚋgoalertᚋuserᚐUserᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Schedule_associatedUsers(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Schedule",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "role":
+				return ec.fieldContext_User_role(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "contactMethods":
+				return ec.fieldContext_User_contactMethods(ctx, field)
+			case "notificationRules":
+				return ec.fieldContext_User_notificationRules(ctx, field)
+			case "calendarSubscriptions":
+				return ec.fieldContext_User_calendarSubscriptions(ctx, field)
+			case "statusUpdateContactMethodID":
+				return ec.fieldContext_User_statusUpdateContactMethodID(ctx, field)
+			case "authSubjects":
+				return ec.fieldContext_User_authSubjects(ctx, field)
+			case "sessions":
+				return ec.fieldContext_User_sessions(ctx, field)
+			case "onCallSteps":
+				return ec.fieldContext_User_onCallSteps(ctx, field)
+			case "onCallOverview":
+				return ec.fieldContext_User_onCallOverview(ctx, field)
+			case "isFavorite":
+				return ec.fieldContext_User_isFavorite(ctx, field)
+			case "assignedSchedules":
+				return ec.fieldContext_User_assignedSchedules(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Schedule_lastTempSchedPickOrder(ctx context.Context, field graphql.CollectedField, obj *schedule.Schedule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Schedule_lastTempSchedPickOrder,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Schedule().LastTempSchedPickOrder(ctx, obj)
+		},
+		nil,
+		ec.marshalNID2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Schedule_lastTempSchedPickOrder(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Schedule",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Schedule_targets(ctx context.Context, field graphql.CollectedField, obj *schedule.Schedule) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -21047,6 +21225,10 @@ func (ec *executionContext) fieldContext_ScheduleConnection_nodes(_ context.Cont
 				return ec.fieldContext_Schedule_assignedTo(ctx, field)
 			case "shifts":
 				return ec.fieldContext_Schedule_shifts(ctx, field)
+			case "associatedUsers":
+				return ec.fieldContext_Schedule_associatedUsers(ctx, field)
+			case "lastTempSchedPickOrder":
+				return ec.fieldContext_Schedule_lastTempSchedPickOrder(ctx, field)
 			case "targets":
 				return ec.fieldContext_Schedule_targets(ctx, field)
 			case "target":
@@ -23569,6 +23751,10 @@ func (ec *executionContext) fieldContext_User_assignedSchedules(_ context.Contex
 				return ec.fieldContext_Schedule_assignedTo(ctx, field)
 			case "shifts":
 				return ec.fieldContext_Schedule_shifts(ctx, field)
+			case "associatedUsers":
+				return ec.fieldContext_Schedule_associatedUsers(ctx, field)
+			case "lastTempSchedPickOrder":
+				return ec.fieldContext_Schedule_lastTempSchedPickOrder(ctx, field)
 			case "targets":
 				return ec.fieldContext_Schedule_targets(ctx, field)
 			case "target":
@@ -23767,6 +23953,10 @@ func (ec *executionContext) fieldContext_UserCalendarSubscription_schedule(_ con
 				return ec.fieldContext_Schedule_assignedTo(ctx, field)
 			case "shifts":
 				return ec.fieldContext_Schedule_shifts(ctx, field)
+			case "associatedUsers":
+				return ec.fieldContext_Schedule_associatedUsers(ctx, field)
+			case "lastTempSchedPickOrder":
+				return ec.fieldContext_Schedule_lastTempSchedPickOrder(ctx, field)
 			case "targets":
 				return ec.fieldContext_Schedule_targets(ctx, field)
 			case "target":
@@ -29442,6 +29632,40 @@ func (ec *executionContext) unmarshalInputSetScheduleShiftInput(ctx context.Cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputSetTempSchedPickOrderInput(ctx context.Context, obj any) (SetTempSchedPickOrderInput, error) {
+	var it SetTempSchedPickOrderInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"scheduleID", "userIDs"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "scheduleID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scheduleID"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ScheduleID = data
+		case "userIDs":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDs"))
+			data, err := ec.unmarshalNID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UserIDs = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputSetTemporaryScheduleInput(ctx context.Context, obj any) (SetTemporaryScheduleInput, error) {
 	var it SetTemporaryScheduleInput
 	asMap := map[string]any{}
@@ -34704,6 +34928,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "setTemporarySchedulePickOrder":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_setTemporarySchedulePickOrder(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "clearTemporarySchedules":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_clearTemporarySchedules(ctx, field)
@@ -37279,6 +37510,78 @@ func (ec *executionContext) _Schedule(ctx context.Context, sel ast.SelectionSet,
 					}
 				}()
 				res = ec._Schedule_shifts(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "associatedUsers":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Schedule_associatedUsers(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "lastTempSchedPickOrder":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Schedule_lastTempSchedPickOrder(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -43242,6 +43545,11 @@ func (ec *executionContext) unmarshalNSetScheduleShiftInput2ᚕgithubᚗcomᚋta
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) unmarshalNSetTempSchedPickOrderInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetTempSchedPickOrderInput(ctx context.Context, v any) (SetTempSchedPickOrderInput, error) {
+	res, err := ec.unmarshalInputSetTempSchedPickOrderInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNSetTemporaryScheduleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetTemporaryScheduleInput(ctx context.Context, v any) (SetTemporaryScheduleInput, error) {
