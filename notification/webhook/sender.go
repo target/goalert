@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/target/goalert/config"
@@ -27,6 +28,7 @@ type POSTDataAlert struct {
 	ServiceID   string
 	ServiceName string
 	Meta        map[string]string
+	AlertURL    string
 }
 
 // POSTDataAlertBundle represents fields in outgoing alert bundle notification.
@@ -36,14 +38,21 @@ type POSTDataAlertBundle struct {
 	ServiceID   string
 	ServiceName string
 	Count       int
+	AlertURL    string
 }
 
 // POSTDataAlertStatus represents fields in outgoing alert status notification.
 type POSTDataAlertStatus struct {
-	AppName  string
-	Type     string
-	AlertID  int
-	LogEntry string
+	AppName     string
+	Type        string
+	AlertID     int
+	Summary     string
+	Details     string
+	ServiceID   string
+	ServiceName string
+	Meta        map[string]string
+	LogEntry    string
+	AlertURL    string
 }
 
 // POSTDataAlertStatusBundle represents fields in outgoing alert status bundle notification.
@@ -53,6 +62,7 @@ type POSTDataAlertStatusBundle struct {
 	AlertID  int
 	LogEntry string
 	Count    int
+	AlertURL string
 }
 
 // POSTDataVerification represents fields in outgoing verification notification.
@@ -97,6 +107,7 @@ var _ nfydest.MessageSender = &Sender{}
 func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 	var payload interface{}
+	pubURL := strings.TrimSuffix(cfg.PublicURL(), "/")
 	switch m := msg.(type) {
 	case notification.Test:
 		payload = POSTDataTest{
@@ -119,6 +130,7 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 			ServiceID:   m.ServiceID,
 			ServiceName: m.ServiceName,
 			Meta:        m.Meta,
+			AlertURL:    fmt.Sprintf("%s/alerts/%d", pubURL, m.AlertID),
 		}
 	case notification.AlertBundle:
 		payload = POSTDataAlertBundle{
@@ -127,13 +139,20 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 			ServiceID:   m.ServiceID,
 			ServiceName: m.ServiceName,
 			Count:       m.Count,
+			AlertURL:    fmt.Sprintf("%s/services/%s/alerts", pubURL, m.ServiceID),
 		}
 	case notification.AlertStatus:
 		payload = POSTDataAlertStatus{
-			AppName:  cfg.ApplicationName(),
-			Type:     "AlertStatus",
-			AlertID:  m.AlertID,
-			LogEntry: m.LogEntry,
+			AppName:     cfg.ApplicationName(),
+			Type:        "AlertStatus",
+			Details:     m.Details,
+			AlertID:     m.AlertID,
+			Summary:     m.Summary,
+			ServiceID:   m.ServiceID,
+			ServiceName: m.ServiceName,
+			Meta:        m.Meta,
+			LogEntry:    m.LogEntry,
+			AlertURL:    fmt.Sprintf("%s/alerts/%d", pubURL, m.AlertID),
 		}
 	case notification.ScheduleOnCallUsers:
 		// We use types defined in this package to insulate against unintended API
