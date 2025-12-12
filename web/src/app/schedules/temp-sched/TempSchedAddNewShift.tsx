@@ -78,7 +78,7 @@ export default function TempSchedAddNewShift({
   setShift,
 }: AddShiftsStepProps): JSX.Element {
   const [submitted, setSubmitted] = useState(false)
-
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [custom, setCustom] = useState(false)
   const [manualEntry, setManualEntry] = useState(true)
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
@@ -110,7 +110,9 @@ export default function TempSchedAddNewShift({
 
     if (!shift) return result
     if (s) {
-      if (!shift.userID) add('userID', requiredMsg)
+      // Check if at least one user is selected
+      if (selectedUsers.length === 0)
+        add('userIDs', 'at least one user must be selected')
       if (!shift.start) add('start', requiredMsg)
       if (!shift.end) add('end', requiredMsg)
     }
@@ -129,8 +131,16 @@ export default function TempSchedAddNewShift({
       return
     }
     if (!shift) return // ts sanity check
+    if (selectedUsers.length === 0) return // ensure we have users selected
 
-    onChange(mergeShifts(value.shifts.concat(shift)))
+    // Create a shift for each selected user
+    const newShifts = selectedUsers.map((userId) => ({
+      ...shift,
+      userID: userId,
+    }))
+
+    onChange(mergeShifts(value.shifts.concat(newShifts)))
+
     const end = DateTime.fromISO(shift.end, { zone })
     setShift({
       userID: '',
@@ -138,152 +148,162 @@ export default function TempSchedAddNewShift({
       start: shift.end,
       end: end.plus(value.shiftDur as Duration).toISO(),
     })
+    setSelectedUsers([]) // Clear selected users after adding
     setCustom(false)
     setSubmitted(false)
   }
 
   return (
-    <FormContainer
-      errors={fieldErrors()}
-      value={shift}
-      onChange={(val: Shift) => setShift(val)}
-    >
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <Typography color='textSecondary'>Add Shift</Typography>
-        </Grid>
-        <Grid item xs={12}>
-          <FormField
-            fullWidth
-            component={UserSelect}
-            label='Select a User'
-            name='userID'
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <FormControlLabel
-            control={<Checkbox checked={custom} data-cy='toggle-custom' />}
-            label={
-              <Typography color='textSecondary' sx={{ fontStyle: 'italic' }}>
-                Configure custom shift
-              </Typography>
-            }
-            onChange={() => setCustom(!custom)}
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <FormField
-            fullWidth
-            component={ISODateTimePicker}
-            label='Shift Start'
-            name='shift-start'
-            fieldName='start'
-            min={value.start}
-            max={DateTime.fromISO(value.end, { zone })
-              .plus({ year: 1 })
-              .toISO()}
-            mapOnChangeValue={(value: string, formValue: TempSchedValue) => {
-              if (!manualEntry) {
-                const diff = DateTime.fromISO(value, { zone }).diff(
-                  DateTime.fromISO(formValue.start, { zone }),
-                )
-                formValue.end = DateTime.fromISO(formValue.end, { zone })
-                  .plus(diff)
-                  .toISO()
+    <div>
+      <FormContainer
+        errors={fieldErrors()}
+        value={shift}
+        onChange={(val: Shift) => setShift(val)}
+      >
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <Typography color='textSecondary'>Add Shift</Typography>
+          </Grid>
+          <Grid item xs={12}>
+            {/* Use a direct component instead of FormField for UserSelect */}
+            <UserSelect
+              fullWidth
+              label='Select Users'
+              multiple
+              value={selectedUsers}
+              name='userID'
+              onChange={(newValue: string[]) => setSelectedUsers(newValue)}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <FormControlLabel
+              control={<Checkbox checked={custom} data-cy='toggle-custom' />}
+              label={
+                <Typography color='textSecondary' sx={{ fontStyle: 'italic' }}>
+                  Configure custom shift
+                </Typography>
               }
-              return value
-            }}
-            timeZone={zone}
-            disabled={q.loading || !custom}
-            hint={isLocalZone ? '' : fmtLocal(value?.start)}
-          />
-        </Grid>
-        <Grid item xs={6}>
-          {manualEntry ? (
+              onChange={() => setCustom(!custom)}
+            />
+          </Grid>
+          <Grid item xs={6}>
             <FormField
               fullWidth
               component={ISODateTimePicker}
-              label='Shift End'
-              name='shift-end'
-              fieldName='end'
+              label='Shift Start'
+              name='shift-start'
+              fieldName='start'
               min={value.start}
               max={DateTime.fromISO(value.end, { zone })
                 .plus({ year: 1 })
                 .toISO()}
-              hint={
-                custom ? (
-                  <React.Fragment>
-                    {!isLocalZone && fmtLocal(value?.end)}
-                    <div>
-                      <ClickableText
-                        data-cy='toggle-duration-on'
-                        onClick={() => setManualEntry(false)}
-                        endIcon={<ToggleIcon />}
-                      >
-                        Configure as duration
-                      </ClickableText>
-                    </div>
-                  </React.Fragment>
-                ) : null
-              }
+              mapOnChangeValue={(value: string, formValue: TempSchedValue) => {
+                if (!manualEntry) {
+                  const diff = DateTime.fromISO(value, { zone }).diff(
+                    DateTime.fromISO(formValue.start, { zone }),
+                  )
+                  formValue.end = DateTime.fromISO(formValue.end, { zone })
+                    .plus(diff)
+                    .toISO()
+                }
+                return value
+              }}
               timeZone={zone}
               disabled={q.loading || !custom}
+              hint={isLocalZone ? '' : fmtLocal(value?.start)}
             />
-          ) : (
-            <FormField
-              fullWidth
-              component={NumberField}
-              label='Shift Duration (hours)'
-              name='shift-end'
-              fieldName='end'
-              float
-              // value held in form input
-              mapValue={(nextVal: string, formValue: TempSchedValue) => {
-                const nextValDT = DateTime.fromISO(nextVal, { zone })
-                const formValDT = DateTime.fromISO(formValue?.start ?? '', {
-                  zone,
-                })
-                const duration = dtToDuration(formValDT, nextValDT)
-                return duration === -1 ? '' : duration.toString()
-              }}
-              // value held in state
-              mapOnChangeValue={(
-                nextVal: string,
-                formValue: TempSchedValue,
-              ) => {
-                if (!nextVal) return ''
-                return DateTime.fromISO(formValue.start, { zone })
-                  .plus({ hours: parseFloat(nextVal) })
-                  .toISO()
-              }}
-              step='any'
-              min={0}
-              disabled={q.loading || !custom}
-              hint={
-                custom ? (
-                  <ClickableText
-                    data-cy='toggle-duration-off'
-                    onClick={() => setManualEntry(true)}
-                    endIcon={<ToggleIcon />}
-                  >
-                    Configure as date/time
-                  </ClickableText>
-                ) : null
-              }
-            />
-          )}
+          </Grid>
+          <Grid item xs={6}>
+            {manualEntry ? (
+              <FormField
+                fullWidth
+                component={ISODateTimePicker}
+                label='Shift End'
+                name='shift-end'
+                fieldName='end'
+                min={value.start}
+                max={DateTime.fromISO(value.end, { zone })
+                  .plus({ year: 1 })
+                  .toISO()}
+                hint={
+                  custom ? (
+                    <React.Fragment>
+                      {!isLocalZone && fmtLocal(value?.end)}
+                      <div>
+                        <ClickableText
+                          data-cy='toggle-duration-on'
+                          onClick={() => setManualEntry(false)}
+                          endIcon={<ToggleIcon />}
+                        >
+                          Configure as duration
+                        </ClickableText>
+                      </div>
+                    </React.Fragment>
+                  ) : null
+                }
+                timeZone={zone}
+                disabled={q.loading || !custom}
+              />
+            ) : (
+              <FormField
+                fullWidth
+                component={NumberField}
+                label='Shift Duration (hours)'
+                name='shift-end'
+                fieldName='end'
+                float
+                // value held in form input
+                mapValue={(nextVal: string, formValue: TempSchedValue) => {
+                  const nextValDT = DateTime.fromISO(nextVal, { zone })
+                  const formValDT = DateTime.fromISO(formValue?.start ?? '', {
+                    zone,
+                  })
+                  const duration = dtToDuration(formValDT, nextValDT)
+                  return duration === -1 ? '' : duration.toString()
+                }}
+                // value held in state
+                mapOnChangeValue={(
+                  nextVal: string,
+                  formValue: TempSchedValue,
+                ) => {
+                  if (!nextVal) return ''
+                  return DateTime.fromISO(formValue.start, { zone })
+                    .plus({ hours: parseFloat(nextVal) })
+                    .toISO()
+                }}
+                step='any'
+                min={0}
+                disabled={q.loading || !custom}
+                hint={
+                  custom ? (
+                    <ClickableText
+                      data-cy='toggle-duration-off'
+                      onClick={() => setManualEntry(true)}
+                      endIcon={<ToggleIcon />}
+                    >
+                      Configure as date/time
+                    </ClickableText>
+                  ) : null
+                }
+              />
+            )}
+          </Grid>
+          <Grid item xs={12} container justifyContent='flex-end'>
+            <Button
+              data-cy='add-shift'
+              color='secondary'
+              variant='contained'
+              onClick={handleAddShift}
+              disabled={selectedUsers.length === 0}
+            >
+              Add{' '}
+              {selectedUsers.length > 0
+                ? `(${selectedUsers.length} users)`
+                : ''}
+            </Button>
+          </Grid>
         </Grid>
-        <Grid item xs={12} container justifyContent='flex-end'>
-          <Button
-            data-cy='add-shift'
-            color='secondary'
-            variant='contained'
-            onClick={handleAddShift}
-          >
-            Add
-          </Button>
-        </Grid>
-      </Grid>
-    </FormContainer>
+      </FormContainer>
+    </div>
   )
 }
