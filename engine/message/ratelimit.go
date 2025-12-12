@@ -9,7 +9,9 @@ import (
 )
 
 // GlobalCMThrottle represents the rate limits for each notification type.
-var GlobalCMThrottle ThrottleConfig = ThrottleRules{{Count: 5, Per: 5 * time.Second}}
+func GlobalCMThrottle(maxMsgPerSecPerType int, cycleTime time.Duration) ThrottleConfig {
+	return ThrottleRules{{Count: maxMsgPerSecPerType * int(cycleTime/time.Second), Per: cycleTime}}
+}
 
 // PerCMThrottle configures rate limits for individual contact methods.
 var PerCMThrottle ThrottleConfig

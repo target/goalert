@@ -747,6 +747,8 @@ func getConfig(ctx context.Context) (Config, error) {
 
 		EngineCycleTime: viper.GetDuration("engine-cycle-time"),
 
+		MaxMsgPerSecPerType: viper.GetInt("max-msg-per-sec-per-type"),
+
 		HTTPPrefix: viper.GetString("http-prefix"),
 
 		SlackBaseURL:  viper.GetString("slack-base-url"),
@@ -883,6 +885,7 @@ func init() {
 	RootCmd.Flags().String("smtp-additional-domains", "", "Specifies additional destination domains that are allowed for the SMTP server.  For multiple domains, separate them with a comma, e.g., \"domain1.com,domain2.org,domain3.net\".")
 
 	RootCmd.Flags().Duration("engine-cycle-time", def.EngineCycleTime, "Time between engine cycles.")
+	RootCmd.Flags().Int("max-msg-per-sec-per-type", def.MaxMsgPerSecPerType, "Maximum messages per second, per notification type.")
 
 	RootCmd.Flags().String("http-prefix", def.HTTPPrefix, "Specify the HTTP prefix of the application.")
 	_ = RootCmd.Flags().MarkDeprecated("http-prefix", "use --public-url instead")
