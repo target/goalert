@@ -28,11 +28,7 @@ describe('getSubheaderItems', () => {
       const schedInterval = Interval.fromISO(tc.schedIntervalISO, {
         zone: tc.zone,
       })
-      const result = getSubheaderItems(
-        schedInterval,
-        tc.shifts,
-        tc.zone,
-      )
+      const result = getSubheaderItems(schedInterval, tc.shifts, tc.zone)
 
       expect(result).toHaveLength(tc.expected.length)
       expect(_.uniq(result.map((r) => r.id))).toHaveLength(tc.expected.length)
