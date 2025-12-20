@@ -30814,7 +30814,11 @@ func (ec *executionContext) _InlineDisplayInfo(ctx context.Context, sel ast.Sele
 		}
 		return ec._DestinationDisplayInfo(ctx, sel, obj)
 	default:
-		panic(fmt.Errorf("unexpected type %T", obj))
+		if obj, ok := obj.(graphql.Marshaler); ok {
+			return obj
+		} else {
+			panic(fmt.Errorf("unexpected type %T; non-generated variants of InlineDisplayInfo must implement graphql.Marshaler", obj))
+		}
 	}
 }
 
