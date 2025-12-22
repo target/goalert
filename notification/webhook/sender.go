@@ -130,7 +130,7 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 			ServiceID:   m.ServiceID,
 			ServiceName: m.ServiceName,
 			Meta:        m.Meta,
-			AlertURL:    fmt.Sprintf("%s/alerts/%d", pubURL, m.AlertID),
+			AlertURL:    cfg.CallbackURL(fmt.Sprintf("/alerts/%d", m.AlertID)),
 		}
 	case notification.AlertBundle:
 		payload = POSTDataAlertBundle{
@@ -139,7 +139,7 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 			ServiceID:   m.ServiceID,
 			ServiceName: m.ServiceName,
 			Count:       m.Count,
-			AlertURL:    fmt.Sprintf("%s/services/%s/alerts", pubURL, m.ServiceID),
+			AlertURL:    cfg.CallbackURL(fmt.Sprintf("/services/%s/alerts", m.ServiceID)),
 		}
 	case notification.AlertStatus:
 		payload = POSTDataAlertStatus{
@@ -152,7 +152,7 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 			ServiceName: m.ServiceName,
 			Meta:        m.Meta,
 			LogEntry:    m.LogEntry,
-			AlertURL:    fmt.Sprintf("%s/alerts/%d", pubURL, m.AlertID),
+			AlertURL:    cfg.CallbackURL(fmt.Sprintf("/alerts/%d", m.AlertID)),
 		}
 	case notification.ScheduleOnCallUsers:
 		// We use types defined in this package to insulate against unintended API
