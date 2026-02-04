@@ -5,12 +5,13 @@ import { Edit, Delete } from '@mui/icons-material'
 import PolicyStepsQuery from './PolicyStepsQuery'
 import PolicyDeleteDialog from './PolicyDeleteDialog'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
-import DetailsPage from '../details/DetailsPage'
+import DetailsPage, { LinkStatus } from '../details/DetailsPage'
 import PolicyEditDialog from './PolicyEditDialog'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import Spinner from '../loading/components/Spinner'
 import { EPAvatar } from '../util/avatars'
 import { Redirect } from 'wouter'
+import { Target } from 'web/src/schema'
 
 const query = gql`
   query ($id: ID!) {
@@ -24,9 +25,37 @@ const query = gql`
         message
         details
       }
+
+      assignedTo {
+        id
+        type
+      }
     }
   }
 `
+const alertStatusQuery = gql`
+  query policyAlertStatusQuery($serviceIDs: [ID!]!) {
+    alerts(
+      input: {
+        filterByStatus: [StatusAcknowledged, StatusUnacknowledged]
+        filterByServiceID: $serviceIDs
+        first: 1
+      }
+    ) {
+      nodes {
+        id
+        status
+      }
+    }
+  }
+`
+
+const alertStatus = (a: { status: string }[]): LinkStatus | null => {
+  if (!a) return null
+  if (!a.length) return 'ok'
+  if (a[0].status === 'StatusUnacknowledged') return 'err'
+  return 'warn'
+}
 
 export default function PolicyDetails(props: {
   policyID: string
@@ -38,6 +67,14 @@ export default function PolicyDetails(props: {
     query,
     variables: {
       id: props.policyID,
+    },
+  })
+  const [alertStatusResult] = useQuery({
+    query: alertStatusQuery,
+    variables: {
+      serviceIDs: _data?.escalationPolicy?.assignedTo
+        .filter((a: Target) => a.type === 'service')
+        .map((a: Target) => a.id),
     },
   })
 
@@ -82,6 +119,7 @@ export default function PolicyDetails(props: {
         links={[
           {
             label: 'Alerts',
+            status: alertStatus(alertStatusResult.data?.alerts?.nodes),
             url: 'alerts',
             subText: 'Manage alerts specific to services using this policy',
           },
