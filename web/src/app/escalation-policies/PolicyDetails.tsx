@@ -81,6 +81,11 @@ export default function PolicyDetails(props: {
         ]}
         links={[
           {
+            label: 'Alerts',
+            url: 'alerts',
+            subText: 'Manage alerts specific to services using this policy',
+          },
+          {
             label: 'Services',
             url: 'services',
             subText: 'Find services that link to this policy',

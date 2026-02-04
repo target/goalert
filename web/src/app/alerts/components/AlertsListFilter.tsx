@@ -39,7 +39,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 }))
 
 interface AlertsListFilterProps {
-  serviceID: string
+  allowShowAll?: boolean
 }
 
 function AlertsListFilter(props: AlertsListFilterProps): React.JSX.Element {
@@ -74,7 +74,7 @@ function AlertsListFilter(props: AlertsListFilterProps): React.JSX.Element {
 
   function renderFilters(): React.JSX.Element {
     let favoritesFilter = null
-    if (!props.serviceID) {
+    if (props.allowShowAll) {
       favoritesFilter = (
         <FormControlLabel
           control={
