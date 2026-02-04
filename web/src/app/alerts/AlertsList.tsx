@@ -366,7 +366,11 @@ export default function AlertsList(props: AlertsListProps): React.JSX.Element {
               )
             }
             renderCreateDialog={(onClose) => (
-              <CreateAlertDialog serviceID={serviceID} onClose={onClose} />
+              <CreateAlertDialog
+                serviceID={serviceID}
+                onClose={onClose}
+                onlyIDs={policyID ? policyServiceIDs : undefined}
+              />
             )}
             createLabel='Alert'
             cardHeader={

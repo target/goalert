@@ -73,6 +73,7 @@ export interface CreateAlertServiceSelectProps {
   value: string[]
   onChange: (val: string[]) => void
   error?: Error
+  only?: string[]
 }
 
 export function CreateAlertServiceSelect(
@@ -94,6 +95,7 @@ export function CreateAlertServiceSelect(
         favoritesFirst: true,
         omit: value,
         first: 15,
+        only: props.only,
       },
     },
   })
