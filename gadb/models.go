@@ -24,6 +24,7 @@ const (
 	EngineProcessingTypeCompat       EngineProcessingType = "compat"
 	EngineProcessingTypeEscalation   EngineProcessingType = "escalation"
 	EngineProcessingTypeHeartbeat    EngineProcessingType = "heartbeat"
+	EngineProcessingTypeImap         EngineProcessingType = "imap"
 	EngineProcessingTypeMessage      EngineProcessingType = "message"
 	EngineProcessingTypeMetrics      EngineProcessingType = "metrics"
 	EngineProcessingTypeNpCycle      EngineProcessingType = "np_cycle"
@@ -305,6 +306,7 @@ const (
 	EnumIntegrationKeysTypeEmail                  EnumIntegrationKeysType = "email"
 	EnumIntegrationKeysTypeGeneric                EnumIntegrationKeysType = "generic"
 	EnumIntegrationKeysTypeGrafana                EnumIntegrationKeysType = "grafana"
+	EnumIntegrationKeysTypeImap                   EnumIntegrationKeysType = "imap"
 	EnumIntegrationKeysTypePrometheusAlertmanager EnumIntegrationKeysType = "prometheusAlertmanager"
 	EnumIntegrationKeysTypeSite24x7               EnumIntegrationKeysType = "site24x7"
 	EnumIntegrationKeysTypeUniversal              EnumIntegrationKeysType = "universal"
@@ -1017,6 +1019,25 @@ type HeartbeatMonitor struct {
 	ServiceID         uuid.UUID
 }
 
+type ImapFilterRule struct {
+	CreatedAt      time.Time
+	Enabled        bool
+	ExcludeReplies bool
+	FromPattern    sql.NullString
+	ID             uuid.UUID
+	MatchMode      string
+	Name           string
+	ServiceID      uuid.UUID
+	SubjectPattern sql.NullString
+	ToPattern      sql.NullString
+	UpdatedAt      time.Time
+}
+
+type ImapProcessedMessage struct {
+	MessageID   string
+	ProcessedAt time.Time
+}
+
 type IntegrationKey struct {
 	ExternalSystemName sql.NullString
 	ID                 uuid.UUID
@@ -1257,6 +1278,30 @@ type Service struct {
 	ID                   uuid.UUID
 	MaintenanceExpiresAt sql.NullTime
 	Name                 string
+}
+
+type ServiceImapConfig struct {
+	CreatedAt           time.Time
+	DeleteAfter         bool
+	Enabled             bool
+	Host                string
+	IncludeBody         bool
+	IncludeFrom         bool
+	IncludeHeaders      bool
+	IncludeSubject      bool
+	IncludeTo           bool
+	LastPolledAt        sql.NullTime
+	Mailbox             string
+	MarkAsRead          bool
+	OauthClientID       sql.NullString
+	OauthClientSecret   sql.NullString
+	OauthRefreshToken   sql.NullString
+	PollIntervalMinutes int32
+	Port                int32
+	ServiceID           uuid.UUID
+	UpdatedAt           time.Time
+	UseTls              bool
+	Username            string
 }
 
 type SwitchoverLog struct {

@@ -271,6 +271,16 @@ export interface CreateHeartbeatMonitorInput {
   timeoutMinutes: number
 }
 
+export interface CreateIMAPFilterRuleInput {
+  excludeReplies: boolean
+  fromPattern?: null | string
+  matchMode: IMAPFilterMatchMode
+  name: string
+  serviceID: string
+  subjectPattern?: null | string
+  toPattern?: null | string
+}
+
 export interface CreateIntegrationKeyInput {
   externalSystemName?: null | string
   name: string
@@ -296,6 +306,27 @@ export interface CreateScheduleInput {
   newUserOverrides?: null | CreateUserOverrideInput[]
   targets?: null | ScheduleTargetInput[]
   timeZone: string
+}
+
+export interface CreateServiceIMAPConfigInput {
+  deleteAfter: boolean
+  enabled: boolean
+  host: string
+  includeBody: boolean
+  includeFrom: boolean
+  includeHeaders: boolean
+  includeSubject: boolean
+  includeTo: boolean
+  mailbox: string
+  markAsRead: boolean
+  oauthClientID?: null | string
+  oauthClientSecret?: null | string
+  oauthRefreshToken?: null | string
+  pollIntervalMinutes: number
+  port: number
+  serviceID: string
+  useTLS: boolean
+  username: string
 }
 
 export interface CreateServiceInput {
@@ -528,6 +559,12 @@ export interface EscalationPolicyStep {
   targets: Target[]
 }
 
+export interface ExchangeIMAPOAuthCodeInput {
+  code: string
+  redirectURL: string
+  state: string
+}
+
 export interface Expr {
   conditionToExpr: string
   exprToCondition: Condition
@@ -595,6 +632,12 @@ export interface GQLAPIKeyUsage {
   ua: string
 }
 
+export interface GenerateIMAPOAuthURLInput {
+  clientID: string
+  clientSecret: string
+  redirectURL: string
+}
+
 export interface HeartbeatMonitor {
   additionalDetails: string
   href: string
@@ -610,6 +653,33 @@ export interface HeartbeatMonitor {
 export type HeartbeatMonitorState = 'healthy' | 'inactive' | 'unhealthy'
 
 export type ID = string
+
+export type IMAPFilterMatchMode = 'contains' | 'exact' | 'regex'
+
+export interface IMAPFilterRule {
+  createdAt: ISOTimestamp
+  enabled: boolean
+  excludeReplies: boolean
+  fromPattern?: null | string
+  id: string
+  matchMode: IMAPFilterMatchMode
+  name: string
+  serviceID: string
+  subjectPattern?: null | string
+  toPattern?: null | string
+  updatedAt: ISOTimestamp
+}
+
+export interface IMAPOAuthToken {
+  accessToken: string
+  expiresAt: ISOTimestamp
+  refreshToken: string
+}
+
+export interface IMAPOAuthURL {
+  authURL: string
+  state: string
+}
 
 export type ISODuration = string
 
@@ -764,10 +834,12 @@ export interface Mutation {
   createEscalationPolicyStep?: null | EscalationPolicyStep
   createGQLAPIKey: CreatedGQLAPIKey
   createHeartbeatMonitor?: null | HeartbeatMonitor
+  createIMAPFilterRule?: null | IMAPFilterRule
   createIntegrationKey?: null | IntegrationKey
   createRotation?: null | Rotation
   createSchedule?: null | Schedule
   createService?: null | Service
+  createServiceIMAPConfig?: null | ServiceIMAPConfig
   createUser?: null | User
   createUserCalendarSubscription: UserCalendarSubscription
   createUserContactMethod?: null | UserContactMethod
@@ -778,9 +850,13 @@ export interface Mutation {
   deleteAll: boolean
   deleteAuthSubject: boolean
   deleteGQLAPIKey: boolean
+  deleteIMAPFilterRule: boolean
   deleteSecondaryToken: boolean
+  deleteServiceIMAPConfig: boolean
   endAllAuthSessionsByCurrentUser: boolean
   escalateAlerts?: null | Alert[]
+  exchangeIMAPOAuthCode: IMAPOAuthToken
+  generateIMAPOAuthURL: IMAPOAuthURL
   generateKeyToken: string
   linkAccount: boolean
   promoteSecondaryToken: boolean
@@ -795,6 +871,7 @@ export interface Mutation {
   setTemporarySchedule: boolean
   swoAction: boolean
   testContactMethod: boolean
+  testIMAPConnection: boolean
   updateAlerts?: null | Alert[]
   updateAlertsByService: boolean
   updateBasicAuth: boolean
@@ -802,11 +879,13 @@ export interface Mutation {
   updateEscalationPolicyStep: boolean
   updateGQLAPIKey: boolean
   updateHeartbeatMonitor: boolean
+  updateIMAPFilterRule: boolean
   updateKeyConfig: boolean
   updateRotation: boolean
   updateSchedule: boolean
   updateScheduleTarget: boolean
   updateService: boolean
+  updateServiceIMAPConfig: boolean
   updateUser: boolean
   updateUserCalendarSubscription: boolean
   updateUserContactMethod: boolean
@@ -905,6 +984,7 @@ export interface Query {
   generateSlackAppManifest: string
   gqlAPIKeys: GQLAPIKey[]
   heartbeatMonitor?: null | HeartbeatMonitor
+  imapFilterRules: IMAPFilterRule[]
   integrationKey?: null | IntegrationKey
   integrationKeyTypes: IntegrationKeyTypeInfo[]
   integrationKeys: IntegrationKeyConnection
@@ -1073,6 +1153,8 @@ export interface Service {
   escalationPolicyID: string
   heartbeatMonitors: HeartbeatMonitor[]
   id: string
+  imapConfig?: null | ServiceIMAPConfig
+  imapFilterRules: IMAPFilterRule[]
   integrationKeys: IntegrationKey[]
   isFavorite: boolean
   labels: Label[]
@@ -1092,6 +1174,26 @@ export interface ServiceAlertStatsOptions {
 export interface ServiceConnection {
   nodes: Service[]
   pageInfo: PageInfo
+}
+
+export interface ServiceIMAPConfig {
+  createdAt: ISOTimestamp
+  deleteAfter: boolean
+  enabled: boolean
+  host: string
+  includeBody: boolean
+  includeFrom: boolean
+  includeHeaders: boolean
+  includeSubject: boolean
+  includeTo: boolean
+  mailbox: string
+  markAsRead: boolean
+  pollIntervalMinutes: number
+  port: number
+  serviceID: string
+  updatedAt: ISOTimestamp
+  useTLS: boolean
+  username: string
 }
 
 export interface ServiceOnCallUser {
@@ -1337,6 +1439,17 @@ export interface UpdateHeartbeatMonitorInput {
   timeoutMinutes?: null | number
 }
 
+export interface UpdateIMAPFilterRuleInput {
+  enabled?: null | boolean
+  excludeReplies?: null | boolean
+  fromPattern?: null | string
+  id: string
+  matchMode?: null | IMAPFilterMatchMode
+  name?: null | string
+  subjectPattern?: null | string
+  toPattern?: null | string
+}
+
 export interface UpdateKeyConfigInput {
   defaultActions?: null | ActionInput[]
   deleteRule?: null | string
@@ -1364,6 +1477,27 @@ export interface UpdateScheduleInput {
   id: string
   name?: null | string
   timeZone?: null | string
+}
+
+export interface UpdateServiceIMAPConfigInput {
+  deleteAfter?: null | boolean
+  enabled?: null | boolean
+  host?: null | string
+  includeBody?: null | boolean
+  includeFrom?: null | boolean
+  includeHeaders?: null | boolean
+  includeSubject?: null | boolean
+  includeTo?: null | boolean
+  mailbox?: null | string
+  markAsRead?: null | boolean
+  oauthClientID?: null | string
+  oauthClientSecret?: null | string
+  oauthRefreshToken?: null | string
+  pollIntervalMinutes?: null | number
+  port?: null | number
+  serviceID: string
+  useTLS?: null | boolean
+  username?: null | string
 }
 
 export interface UpdateServiceInput {

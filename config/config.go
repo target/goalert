@@ -136,6 +136,7 @@ type Config struct {
 		Password string `password:"true" info:"Password for authentication."`
 	}
 
+
 	Webhook struct {
 		Enable      bool     `public:"true" info:"Enables webhook as a contact method."`
 		AllowedURLs []string `public:"true" info:"If set, allows webhooks for these domains only."`

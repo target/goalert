@@ -16,6 +16,7 @@ import (
 	"github.com/target/goalert/engine/compatmanager"
 	"github.com/target/goalert/engine/escalationmanager"
 	"github.com/target/goalert/engine/heartbeatmanager"
+	"github.com/target/goalert/engine/imapmanager"
 	"github.com/target/goalert/engine/message"
 	"github.com/target/goalert/engine/metricsmanager"
 	"github.com/target/goalert/engine/npcyclemanager"
@@ -135,6 +136,10 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "compatibility backend")
 	}
+	imapMgr, err := imapmanager.NewDB(ctx, db, c.AlertStore, c.ConfigSource, c.Logger.With(slog.String("module", "imap")))
+	if err != nil {
+		return nil, errors.Wrap(err, "imap manager backend")
+	}
 
 	p.modules = []processinglock.Module{
 		compatMgr,
@@ -147,6 +152,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 		hbMgr,
 		cleanMgr,
 		metricsMgr,
+		imapMgr,
 	}
 
 	if expflag.ContextHas(ctx, expflag.UnivKeys) {

@@ -176,6 +176,11 @@ export default function ServiceDetails(props: {
             subText: 'Manage endpoints monitored for you',
           },
           {
+            label: 'IMAP Email Monitoring',
+            url: 'imap-email-monitoring',
+            subText: 'Monitor and filter incoming emails',
+          },
+          {
             label: 'Integration Keys',
             url: 'integration-keys',
             subText: 'Manage keys used to create alerts',

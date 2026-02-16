@@ -1108,6 +1108,8 @@ type Service {
   integrationKeys: [IntegrationKey!]!
   labels: [Label!]!
   heartbeatMonitors: [HeartbeatMonitor!]!
+  imapConfig: ServiceIMAPConfig
+  imapFilterRules: [IMAPFilterRule!]!
 
   notices: [Notice!]!
 
@@ -1490,4 +1492,153 @@ enum NoticeType {
   WARNING
   ERROR
   INFO
+}
+
+# IMAP Email Monitoring Types
+type ServiceIMAPConfig {
+  serviceID: ID!
+  enabled: Boolean!
+  host: String!
+  port: Int!
+  username: String!
+  useTLS: Boolean!
+  mailbox: String!
+  pollIntervalMinutes: Int!
+  markAsRead: Boolean!
+  deleteAfter: Boolean!
+  includeHeaders: Boolean!
+  includeFrom: Boolean!
+  includeTo: Boolean!
+  includeSubject: Boolean!
+  includeBody: Boolean!
+  createdAt: ISOTimestamp!
+  updatedAt: ISOTimestamp!
+}
+
+type IMAPFilterRule {
+  id: ID!
+  serviceID: ID!
+  name: String!
+  enabled: Boolean!
+  fromPattern: String
+  subjectPattern: String
+  toPattern: String
+  matchMode: IMAPFilterMatchMode!
+  excludeReplies: Boolean!
+  createdAt: ISOTimestamp!
+  updatedAt: ISOTimestamp!
+}
+
+enum IMAPFilterMatchMode {
+  exact
+  contains
+  regex
+}
+
+input CreateServiceIMAPConfigInput {
+  serviceID: ID!
+  enabled: Boolean! = true
+  host: String! = "imap.gmail.com"
+  port: Int! = 993
+  username: String!
+  useTLS: Boolean! = true
+  mailbox: String! = "INBOX"
+  pollIntervalMinutes: Int! = 5
+  markAsRead: Boolean! = false
+  deleteAfter: Boolean! = false
+  includeHeaders: Boolean! = false
+  includeFrom: Boolean! = true
+  includeTo: Boolean! = true
+  includeSubject: Boolean! = true
+  includeBody: Boolean! = true
+  oauthClientID: String
+  oauthClientSecret: String
+  oauthRefreshToken: String
+}
+
+input UpdateServiceIMAPConfigInput {
+  serviceID: ID!
+  enabled: Boolean
+  host: String
+  port: Int
+  username: String
+  useTLS: Boolean
+  mailbox: String
+  pollIntervalMinutes: Int
+  markAsRead: Boolean
+  deleteAfter: Boolean
+  includeHeaders: Boolean
+  includeFrom: Boolean
+  includeTo: Boolean
+  includeSubject: Boolean
+  includeBody: Boolean
+  oauthClientID: String
+  oauthClientSecret: String
+  oauthRefreshToken: String
+}
+
+input CreateIMAPFilterRuleInput {
+  serviceID: ID!
+  name: String!
+  fromPattern: String
+  subjectPattern: String
+  toPattern: String
+  matchMode: IMAPFilterMatchMode! = contains
+  excludeReplies: Boolean! = true
+}
+
+input UpdateIMAPFilterRuleInput {
+  id: ID!
+  name: String
+  enabled: Boolean
+  fromPattern: String
+  subjectPattern: String
+  toPattern: String
+  matchMode: IMAPFilterMatchMode
+  excludeReplies: Boolean
+}
+
+extend type Query {
+  imapFilterRules(serviceID: ID!): [IMAPFilterRule!]!
+}
+
+extend type Mutation {
+  createServiceIMAPConfig(
+    input: CreateServiceIMAPConfigInput!
+  ): ServiceIMAPConfig
+  updateServiceIMAPConfig(input: UpdateServiceIMAPConfigInput!): Boolean!
+  deleteServiceIMAPConfig(serviceID: ID!): Boolean!
+  testIMAPConnection(input: CreateServiceIMAPConfigInput!): Boolean!
+  createIMAPFilterRule(input: CreateIMAPFilterRuleInput!): IMAPFilterRule
+  updateIMAPFilterRule(input: UpdateIMAPFilterRuleInput!): Boolean!
+  deleteIMAPFilterRule(id: ID!): Boolean!
+
+  # OAuth 2.0 flow for obtaining refresh tokens
+  generateIMAPOAuthURL(input: GenerateIMAPOAuthURLInput!): IMAPOAuthURL!
+  exchangeIMAPOAuthCode(input: ExchangeIMAPOAuthCodeInput!): IMAPOAuthToken!
+}
+
+# OAuth 2.0 Types and Inputs
+
+type IMAPOAuthURL {
+  authURL: String!
+  state: String!
+}
+
+type IMAPOAuthToken {
+  refreshToken: String!
+  accessToken: String!
+  expiresAt: ISOTimestamp!
+}
+
+input GenerateIMAPOAuthURLInput {
+  clientID: String!
+  clientSecret: String!
+  redirectURL: String!
+}
+
+input ExchangeIMAPOAuthCodeInput {
+  code: String!
+  state: String!
+  redirectURL: String!
 }

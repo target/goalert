@@ -240,6 +240,16 @@ type CreateHeartbeatMonitorInput struct {
 	Muted *string `json:"muted,omitempty"`
 }
 
+type CreateIMAPFilterRuleInput struct {
+	ServiceID      string              `json:"serviceID"`
+	Name           string              `json:"name"`
+	FromPattern    *string             `json:"fromPattern,omitempty"`
+	SubjectPattern *string             `json:"subjectPattern,omitempty"`
+	ToPattern      *string             `json:"toPattern,omitempty"`
+	MatchMode      IMAPFilterMatchMode `json:"matchMode"`
+	ExcludeReplies bool                `json:"excludeReplies"`
+}
+
 type CreateIntegrationKeyInput struct {
 	ServiceID *string            `json:"serviceID,omitempty"`
 	Type      IntegrationKeyType `json:"type"`
@@ -266,6 +276,27 @@ type CreateScheduleInput struct {
 	Favorite         *bool                     `json:"favorite,omitempty"`
 	Targets          []ScheduleTargetInput     `json:"targets,omitempty"`
 	NewUserOverrides []CreateUserOverrideInput `json:"newUserOverrides,omitempty"`
+}
+
+type CreateServiceIMAPConfigInput struct {
+	ServiceID           string  `json:"serviceID"`
+	Enabled             bool    `json:"enabled"`
+	Host                string  `json:"host"`
+	Port                int     `json:"port"`
+	Username            string  `json:"username"`
+	UseTLS              bool    `json:"useTLS"`
+	Mailbox             string  `json:"mailbox"`
+	PollIntervalMinutes int     `json:"pollIntervalMinutes"`
+	MarkAsRead          bool    `json:"markAsRead"`
+	DeleteAfter         bool    `json:"deleteAfter"`
+	IncludeHeaders      bool    `json:"includeHeaders"`
+	IncludeFrom         bool    `json:"includeFrom"`
+	IncludeTo           bool    `json:"includeTo"`
+	IncludeSubject      bool    `json:"includeSubject"`
+	IncludeBody         bool    `json:"includeBody"`
+	OauthClientID       *string `json:"oauthClientID,omitempty"`
+	OauthClientSecret   *string `json:"oauthClientSecret,omitempty"`
+	OauthRefreshToken   *string `json:"oauthRefreshToken,omitempty"`
 }
 
 type CreateServiceInput struct {
@@ -424,6 +455,12 @@ type EscalationPolicySearchOptions struct {
 	FavoritesFirst *bool `json:"favoritesFirst,omitempty"`
 }
 
+type ExchangeIMAPOAuthCodeInput struct {
+	Code        string `json:"code"`
+	State       string `json:"state"`
+	RedirectURL string `json:"redirectURL"`
+}
+
 // Expr contains helpers for working with Expr expressions.
 type Expr struct {
 	// exprToCondition converts an Expr expression to a Condition.
@@ -484,6 +521,37 @@ type GQLAPIKeyUsage struct {
 	Time time.Time `json:"time"`
 	Ua   string    `json:"ua"`
 	IP   string    `json:"ip"`
+}
+
+type GenerateIMAPOAuthURLInput struct {
+	ClientID     string `json:"clientID"`
+	ClientSecret string `json:"clientSecret"`
+	RedirectURL  string `json:"redirectURL"`
+}
+
+type IMAPFilterRule struct {
+	ID             string              `json:"id"`
+	ServiceID      string              `json:"serviceID"`
+	Name           string              `json:"name"`
+	Enabled        bool                `json:"enabled"`
+	FromPattern    *string             `json:"fromPattern,omitempty"`
+	SubjectPattern *string             `json:"subjectPattern,omitempty"`
+	ToPattern      *string             `json:"toPattern,omitempty"`
+	MatchMode      IMAPFilterMatchMode `json:"matchMode"`
+	ExcludeReplies bool                `json:"excludeReplies"`
+	CreatedAt      time.Time           `json:"createdAt"`
+	UpdatedAt      time.Time           `json:"updatedAt"`
+}
+
+type IMAPOAuthToken struct {
+	RefreshToken string    `json:"refreshToken"`
+	AccessToken  string    `json:"accessToken"`
+	ExpiresAt    time.Time `json:"expiresAt"`
+}
+
+type IMAPOAuthURL struct {
+	AuthURL string `json:"authURL"`
+	State   string `json:"state"`
 }
 
 type IntegrationKeyConnection struct {
@@ -698,6 +766,26 @@ type ServiceConnection struct {
 	PageInfo *PageInfo         `json:"pageInfo"`
 }
 
+type ServiceIMAPConfig struct {
+	ServiceID           string    `json:"serviceID"`
+	Enabled             bool      `json:"enabled"`
+	Host                string    `json:"host"`
+	Port                int       `json:"port"`
+	Username            string    `json:"username"`
+	UseTLS              bool      `json:"useTLS"`
+	Mailbox             string    `json:"mailbox"`
+	PollIntervalMinutes int       `json:"pollIntervalMinutes"`
+	MarkAsRead          bool      `json:"markAsRead"`
+	DeleteAfter         bool      `json:"deleteAfter"`
+	IncludeHeaders      bool      `json:"includeHeaders"`
+	IncludeFrom         bool      `json:"includeFrom"`
+	IncludeTo           bool      `json:"includeTo"`
+	IncludeSubject      bool      `json:"includeSubject"`
+	IncludeBody         bool      `json:"includeBody"`
+	CreatedAt           time.Time `json:"createdAt"`
+	UpdatedAt           time.Time `json:"updatedAt"`
+}
+
 type ServiceSearchOptions struct {
 	First  *int     `json:"first,omitempty"`
 	After  *string  `json:"after,omitempty"`
@@ -867,6 +955,17 @@ type UpdateHeartbeatMonitorInput struct {
 	Muted *string `json:"muted,omitempty"`
 }
 
+type UpdateIMAPFilterRuleInput struct {
+	ID             string               `json:"id"`
+	Name           *string              `json:"name,omitempty"`
+	Enabled        *bool                `json:"enabled,omitempty"`
+	FromPattern    *string              `json:"fromPattern,omitempty"`
+	SubjectPattern *string              `json:"subjectPattern,omitempty"`
+	ToPattern      *string              `json:"toPattern,omitempty"`
+	MatchMode      *IMAPFilterMatchMode `json:"matchMode,omitempty"`
+	ExcludeReplies *bool                `json:"excludeReplies,omitempty"`
+}
+
 type UpdateKeyConfigInput struct {
 	KeyID string           `json:"keyID"`
 	Rules []gadb.UIKRuleV1 `json:"rules,omitempty"`
@@ -900,6 +999,27 @@ type UpdateScheduleInput struct {
 	Name        *string `json:"name,omitempty"`
 	Description *string `json:"description,omitempty"`
 	TimeZone    *string `json:"timeZone,omitempty"`
+}
+
+type UpdateServiceIMAPConfigInput struct {
+	ServiceID           string  `json:"serviceID"`
+	Enabled             *bool   `json:"enabled,omitempty"`
+	Host                *string `json:"host,omitempty"`
+	Port                *int    `json:"port,omitempty"`
+	Username            *string `json:"username,omitempty"`
+	UseTLS              *bool   `json:"useTLS,omitempty"`
+	Mailbox             *string `json:"mailbox,omitempty"`
+	PollIntervalMinutes *int    `json:"pollIntervalMinutes,omitempty"`
+	MarkAsRead          *bool   `json:"markAsRead,omitempty"`
+	DeleteAfter         *bool   `json:"deleteAfter,omitempty"`
+	IncludeHeaders      *bool   `json:"includeHeaders,omitempty"`
+	IncludeFrom         *bool   `json:"includeFrom,omitempty"`
+	IncludeTo           *bool   `json:"includeTo,omitempty"`
+	IncludeSubject      *bool   `json:"includeSubject,omitempty"`
+	IncludeBody         *bool   `json:"includeBody,omitempty"`
+	OauthClientID       *string `json:"oauthClientID,omitempty"`
+	OauthClientSecret   *string `json:"oauthClientSecret,omitempty"`
+	OauthRefreshToken   *string `json:"oauthRefreshToken,omitempty"`
 }
 
 type UpdateServiceInput struct {
@@ -1304,6 +1424,63 @@ func (e *ErrorCode) UnmarshalJSON(b []byte) error {
 }
 
 func (e ErrorCode) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type IMAPFilterMatchMode string
+
+const (
+	IMAPFilterMatchModeExact    IMAPFilterMatchMode = "exact"
+	IMAPFilterMatchModeContains IMAPFilterMatchMode = "contains"
+	IMAPFilterMatchModeRegex    IMAPFilterMatchMode = "regex"
+)
+
+var AllIMAPFilterMatchMode = []IMAPFilterMatchMode{
+	IMAPFilterMatchModeExact,
+	IMAPFilterMatchModeContains,
+	IMAPFilterMatchModeRegex,
+}
+
+func (e IMAPFilterMatchMode) IsValid() bool {
+	switch e {
+	case IMAPFilterMatchModeExact, IMAPFilterMatchModeContains, IMAPFilterMatchModeRegex:
+		return true
+	}
+	return false
+}
+
+func (e IMAPFilterMatchMode) String() string {
+	return string(e)
+}
+
+func (e *IMAPFilterMatchMode) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = IMAPFilterMatchMode(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid IMAPFilterMatchMode", str)
+	}
+	return nil
+}
+
+func (e IMAPFilterMatchMode) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *IMAPFilterMatchMode) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e IMAPFilterMatchMode) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil
