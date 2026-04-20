@@ -1,8 +1,6 @@
 import React, { useLayoutEffect } from 'react'
 import classnames from 'classnames'
-import MUIListItem, {
-  ListItemProps as MUIListItemProps,
-} from '@mui/material/ListItem'
+import ListItemButton from '@mui/material/ListItemButton'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
 import ListItemText from '@mui/material/ListItemText'
@@ -29,7 +27,7 @@ const useStyles = makeStyles(() => ({
   },
 }))
 
-export interface FlatListItemProps extends MUIListItemProps {
+export interface FlatListItemProps {
   item: FlatListItemOptions
   index: number
 }
@@ -41,6 +39,7 @@ export default function FlatListItem(
 
   const {
     highlight,
+    selected,
     icon,
     secondaryAction,
     scrollIntoView,
@@ -52,6 +51,7 @@ export default function FlatListItem(
     disableTypography,
     onClick,
     primaryText,
+    section,
     ...muiListItemProps
   } = props.item
 
@@ -68,20 +68,15 @@ export default function FlatListItem(
       // if you render a link with a secondary action, MUI will render the <a> tag without an <li> around it
       component: secondaryAction ? AppLink : AppLinkListItem,
       to: url,
-      button: true,
     }
   }
 
   const onClickProps = onClick && {
     onClick,
-
-    // NOTE: needed for error: button: false? not assignable to type 'true'
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    button: true as any,
   }
 
   return (
-    <MUIListItem
+    <ListItemButton
       {...linkProps}
       {...onClickProps}
       {...muiListItemProps}
@@ -109,6 +104,6 @@ export default function FlatListItem(
       {secondaryAction && (
         <ListItemSecondaryAction>{secondaryAction}</ListItemSecondaryAction>
       )}
-    </MUIListItem>
+    </ListItemButton>
   )
 }

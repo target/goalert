@@ -52,11 +52,10 @@
     "@lezer/highlight": "1.2.1",
     "@lezer/lr": "1.4.2",
     "@material/material-color-utilities": "0.3.0",
-    "@mui/icons-material": "5.16.7",
-    "@mui/lab": "5.0.0-alpha.170",
-    "@mui/material": "5.16.7",
-    "@mui/styles": "5.16.7",
-    "@mui/system": "5.16.7",
+    "@mui/icons-material": "6.5.0",
+    "@mui/material": "6.5.0",
+    "@mui/styles": "6.5.0",
+    "@mui/system": "6.5.0",
     "@mui/x-data-grid": "6.20.4",
     "@playwright/test": "1.55.1",
     "@storybook/addon-links": "9.1.8",
@@ -152,6 +151,9 @@
     "vite": "6.4.1",
     "wonka": "6.3.5",
     "wouter": "3.7.1"
+  },
+  "overrides": {
+    "react-is": "^18.3.1"
   },
   "msw": {
     "workerDirectory": ".storybook/static"
