@@ -1,5 +1,6 @@
 import React, { useLayoutEffect } from 'react'
 import classnames from 'classnames'
+import ListItem from '@mui/material/ListItem'
 import ListItemButton from '@mui/material/ListItemButton'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
@@ -62,26 +63,30 @@ export default function FlatListItem(
     }
   }, [scrollIntoView])
 
+  const onClickProps = onClick && {
+    onClick,
+  }
+
+  // When a URL is provided without a secondaryAction, AppLinkListItem renders
+  // an <li> wrapper. In all other cases we need an explicit <ListItem> wrapper
+  // so that children of a <ul>/<List> are valid <li> elements.
+  const needsLiWrapper = !url || !!secondaryAction
+
   let linkProps = {}
   if (url) {
     linkProps = {
-      // if you render a link with a secondary action, MUI will render the <a> tag without an <li> around it
       component: secondaryAction ? AppLink : AppLinkListItem,
       to: url,
     }
   }
 
-  const onClickProps = onClick && {
-    onClick,
-  }
-
-  return (
+  const button = (
     <ListItemButton
       {...linkProps}
       {...onClickProps}
       {...muiListItemProps}
       className={classnames({
-        [classes.listItem]: true,
+        [classes.listItem]: !needsLiWrapper,
         [classes.listItemDisabled]: disabled,
         [classes.listItemDraggable]: draggable,
       })}
@@ -105,5 +110,19 @@ export default function FlatListItem(
         <ListItemSecondaryAction>{secondaryAction}</ListItemSecondaryAction>
       )}
     </ListItemButton>
+  )
+
+  if (!needsLiWrapper) return button
+
+  return (
+    <ListItem
+      ref={ref}
+      disablePadding
+      className={classnames({
+        [classes.listItem]: true,
+      })}
+    >
+      {button}
+    </ListItem>
   )
 }
