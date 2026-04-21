@@ -3,7 +3,6 @@ import classnames from 'classnames'
 import ListItem from '@mui/material/ListItem'
 import ListItemButton from '@mui/material/ListItemButton'
 import ListItemIcon from '@mui/material/ListItemIcon'
-import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
 import ListItemText from '@mui/material/ListItemText'
 import makeStyles from '@mui/styles/makeStyles'
 import AppLink, { AppLinkListItem } from '../util/AppLink'
@@ -106,9 +105,6 @@ export default function FlatListItem(
           component: typeof subText === 'string' ? 'p' : 'div',
         }}
       />
-      {secondaryAction && (
-        <ListItemSecondaryAction>{secondaryAction}</ListItemSecondaryAction>
-      )}
     </ListItemButton>
   )
 
@@ -118,6 +114,7 @@ export default function FlatListItem(
     <ListItem
       ref={ref}
       disablePadding
+      secondaryAction={secondaryAction}
       className={classnames({
         [classes.listItem]: true,
       })}
