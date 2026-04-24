@@ -3,33 +3,31 @@ import { createRoot } from 'react-dom/client'
 import { GraphiQL } from 'graphiql'
 import { Provider as ReduxProvider } from 'react-redux'
 import { StyledEngineProvider } from '@mui/material/styles'
+import Box from '@mui/material/Box'
 import { ThemeProvider } from '../app/theme/themeConfig'
-import makeStyles from '@mui/styles/makeStyles'
 import Login from '../app/main/components/Login'
 import store from '../app/reduxStore'
 
 import 'graphiql/graphiql.css'
-const useStyles = makeStyles((theme) => ({
-  root: {
-    flexGrow: 1,
-    zIndex: 1,
-    position: 'relative',
-    display: 'flex',
-    backgroundColor: theme.palette.background.default,
-    height: '100%',
-  },
-}))
 
 const App = (): JSX.Element => {
   const path = location.host + location.pathname.replace(/\/explore.*$/, '')
   const [needLogin, setNeedLogin] = useState(false)
-  const classes = useStyles()
 
   if (needLogin) {
     return (
-      <div className={classes.root}>
+      <Box
+        sx={(theme) => ({
+          flexGrow: 1,
+          zIndex: 1,
+          position: 'relative',
+          display: 'flex',
+          backgroundColor: theme.palette.background.default,
+          height: '100%',
+        })}
+      >
         <Login />
-      </div>
+      </Box>
     )
   }
 

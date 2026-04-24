@@ -5,24 +5,13 @@ import {
   Grid,
   IconButton,
   Typography,
+  Box,
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
-import { Theme } from '@mui/material/styles'
 import { DateTime } from 'luxon'
 import { getEndOfWeek, getStartOfWeek } from '../luxon-helpers'
 import { useCalendarNavigation } from './hooks'
 import LeftIcon from '@mui/icons-material/ChevronLeft'
 import RightIcon from '@mui/icons-material/ChevronRight'
-
-const useStyles = makeStyles((theme: Theme) => ({
-  arrowBtns: {
-    marginLeft: theme.spacing(1.75),
-    marginRight: theme.spacing(1.75),
-  },
-  container: {
-    paddingBottom: theme.spacing(2),
-  },
-}))
 
 type ViewType = 'month' | 'week'
 interface ScheduleCalendarToolbarProps {
@@ -33,7 +22,6 @@ interface ScheduleCalendarToolbarProps {
 function ScheduleCalendarToolbar(
   props: ScheduleCalendarToolbarProps,
 ): JSX.Element {
-  const classes = useStyles()
   const { weekly, start, setParams: setNavParams } = useCalendarNavigation()
 
   const getHeader = (): string => {
@@ -123,7 +111,7 @@ function ScheduleCalendarToolbar(
     <Grid
       container
       spacing={2}
-      className={classes.container}
+      sx={(theme) => ({ paddingBottom: theme.spacing(2) })}
       justifyContent='space-between'
       alignItems='center'
     >
@@ -138,7 +126,7 @@ function ScheduleCalendarToolbar(
             Today
           </Button>
 
-          <div className={classes.arrowBtns}>
+          <Box sx={(theme) => ({ marginLeft: theme.spacing(1.75), marginRight: theme.spacing(1.75) })}>
             <IconButton
               title={`Previous ${weekly ? 'week' : 'month'}`}
               data-cy='back'
@@ -155,7 +143,7 @@ function ScheduleCalendarToolbar(
             >
               <RightIcon />
             </IconButton>
-          </div>
+          </Box>
 
           <Typography component='h2' data-cy='calendar-header' variant='h5'>
             {getHeader()}
