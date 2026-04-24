@@ -7,7 +7,6 @@ import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogActions from '@mui/material/DialogActions'
-import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import WizardForm from './WizardForm'
@@ -36,14 +35,7 @@ const mutation = gql`
   }
 `
 
-const useStyles = makeStyles(() => ({
-  cardActions: {
-    justifyContent: 'flex-end',
-  },
-}))
-
 export default function WizardRouter() {
-  const classes = useStyles()
   const fullScreen = useIsWidthDown('md')
   const [errorMessage, setErrorMessage] = useState(null)
   const [complete, setComplete] = useState(false)
@@ -210,7 +202,7 @@ export default function WizardRouter() {
               onChange={(value) => setValue(value)}
             />
           </CardContent>
-          <CardActions className={classes.cardActions}>
+          <CardActions sx={{ justifyContent: 'flex-end' }}>
             <LoadingButton
               attemptCount={fieldErrors(error).length ? 1 : 0}
               buttonText='Submit'

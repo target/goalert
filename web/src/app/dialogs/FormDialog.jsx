@@ -6,44 +6,15 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles'
 
 import { FadeTransition, SlideTransition } from '../util/Transitions'
 import LoadingButton from '../loading/components/LoadingButton'
 import DialogTitleWrapper from './components/DialogTitleWrapper'
 import DialogContentError from './components/DialogContentError'
-import { styles as globalStyles } from '../styles/materialStyles'
 import { Form } from '../forms'
 import ErrorBoundary from '../main/ErrorBoundary'
 import Notices from '../details/Notices'
 import { useIsWidthUp } from '../util/useWidth'
-
-const useStyles = makeStyles((theme) => {
-  const { dialogWidth } = globalStyles(theme)
-  return {
-    dialogWidth,
-    form: {
-      height: '100%', // pushes caption to bottom if room is available
-    },
-    dialogContent: {
-      height: '100%', // parents of form need height set to properly function in Safari
-      paddingTop: '8px',
-    },
-    formContainer: {
-      width: '100%',
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-    },
-    errorContainer: {
-      flexGrow: 0,
-      overflowY: 'visible',
-    },
-    fullHeight: {
-      height: '100%',
-    },
-  }
-})
 
 export default function FormDialog(props) {
   const {
@@ -69,16 +40,9 @@ export default function FormDialog(props) {
     ...dialogProps
   } = props
 
-  const classes = useStyles()
   const isWideScreen = useIsWidthUp('md')
   const [open, setOpen] = useState(true)
   const [attemptCount, setAttemptCount] = useState(0)
-
-  const classesProp = fullHeight
-    ? {
-        paper: classes.fullHeight,
-      }
-    : {}
 
   const handleOnClose = () => {
     setOpen(false)
@@ -97,11 +61,10 @@ export default function FormDialog(props) {
     }
 
     return (
-      <DialogContent className={classes.dialogContent}>
+      <DialogContent sx={{ height: '100%', paddingTop: '8px' }}>
         <Form
-          style={{ paddingTop: '1em' }}
+          style={{ paddingTop: '1em', width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}
           id='dialog-form'
-          className={classes.formContainer}
           onSubmit={(e, valid) => {
             e.preventDefault()
             if (valid) {
@@ -110,7 +73,7 @@ export default function FormDialog(props) {
           }}
         >
           <ErrorBoundary>
-            <div className={classes.form}>{form}</div>
+            <div style={{ height: '100%' }}>{form}</div>
           </ErrorBoundary>
         </Form>
       </DialogContent>
@@ -134,7 +97,7 @@ export default function FormDialog(props) {
         : (props?.errors ?? [])
     return errors.map((err, idx) => (
       <DialogContentError
-        className={classes.errorContainer}
+        style={{ flexGrow: 0, overflowY: 'visible' }}
         error={err.message || err}
         key={idx}
         noPadding
@@ -208,7 +171,7 @@ export default function FormDialog(props) {
   return (
     <Dialog
       disablePortal={disablePortal}
-      classes={classesProp}
+      slotProps={fullHeight ? { paper: { sx: { height: '100%' } } } : {}}
       fullScreen={fs}
       maxWidth={maxWidth}
       fullWidth

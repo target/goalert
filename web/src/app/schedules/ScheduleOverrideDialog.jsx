@@ -16,8 +16,6 @@ import {
   RadioGroup,
 } from '@mui/material'
 
-import makeStyles from '@mui/styles/makeStyles'
-
 const mutation = gql`
   mutation ($input: CreateUserOverrideInput!) {
     createUserOverride(input: $input) {
@@ -26,16 +24,8 @@ const mutation = gql`
   }
 `
 
-const useStyles = makeStyles({
-  variantItem: {
-    marginBottom: '.3rem',
-    marginTop: '.3rem',
-  },
-})
-
 export default function ScheduleOverrideDialog(props) {
   const { variantOptions = ['replace', 'remove', 'add', 'temp'] } = props
-  const classes = useStyles()
 
   const initialValue = {
     addUserID: '',
@@ -106,7 +96,7 @@ export default function ScheduleOverrideDialog(props) {
                     value={variant}
                     control={<Radio />}
                     label={
-                      <div className={classes.variantItem}>
+                      <div style={{ marginBottom: '.3rem', marginTop: '.3rem' }}>
                         <div>{variantDetails[variant].name}</div>
                         <FormHelperText>
                           {variantDetails[variant].helperText}
