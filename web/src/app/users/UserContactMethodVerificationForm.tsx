@@ -30,7 +30,6 @@ interface UserContactMethodVerificationFormProps {
 export default function UserContactMethodVerificationForm(
   props: UserContactMethodVerificationFormProps,
 ): React.ReactNode {
-
   const [sendCodeStatus, sendCode] = useMutation(sendVerificationCodeMutation)
 
   function sendAndCatch(): void {

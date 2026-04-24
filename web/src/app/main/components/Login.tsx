@@ -180,9 +180,7 @@ export default function Login(): React.JSX.Element {
       form = (
         <Grid container spacing={2}>
           {fields.map((field: Field) => renderField(field))}
-          <Grid size={12}>
-            {loginButton}
-          </Grid>
+          <Grid size={12}>{loginButton}</Grid>
         </Grid>
       )
     } else {
@@ -221,13 +219,18 @@ export default function Login(): React.JSX.Element {
     )
 
   return (
-    <Box sx={(theme) => ({ ...loginStyles.root, backgroundColor: theme.palette.background.default })}>
+    <Box
+      sx={(theme) => ({
+        ...loginStyles.root,
+        backgroundColor: theme.palette.background.default,
+      })}
+    >
       <div style={loginStyles.center}>
         <Card sx={loginStyles.card}>
           <CardContent>
             <Grid container spacing={2} style={loginStyles.gridContainer}>
               <Grid container sx={{ justifyContent: 'center' }}>
-                <Grid >{logo}</Grid>
+                <Grid>{logo}</Grid>
                 <Grid sx={{ display: 'flex', alignItems: 'center' }}>
                   <Typography variant='h5' sx={{ pl: 1 }}>
                     <b>GoAlert</b>

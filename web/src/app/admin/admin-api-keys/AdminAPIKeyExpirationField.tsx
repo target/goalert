@@ -22,7 +22,6 @@ const presets = [7, 15, 30, 60, 90]
 export default function AdminAPIKeyExpirationField(
   props: FieldProps,
 ): React.JSX.Element {
-
   const [selected, setSelected] = useState<number>(
     selectedDaysUntilTimestamp(props.value, presets),
   )

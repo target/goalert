@@ -88,11 +88,11 @@ export default function CreateAlertDialog(props: {
 
     reviewTitle = (
       <Grid container>
-        <Grid >
+        <Grid>
           <Typography>{titleMessage}</Typography>
         </Grid>
         <Grid sx={{ flexGrow: 1 }} />
-        <Grid >
+        <Grid>
           <Button
             variant='contained'
             size='small'

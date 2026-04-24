@@ -1,17 +1,10 @@
 import React, { useEffect } from 'react'
-import {
-  Button,
-  Card,
-  CircularProgress,
-  Grid,
-  IconButton,
-} from '@mui/material'
+import { Button, Card, CircularProgress, Grid, IconButton } from '@mui/material'
 import { Add, ChevronLeft, ChevronRight } from '@mui/icons-material'
 import CreateFAB from './CreateFAB'
 import { useIsWidthDown } from '../util/useWidth'
 import { usePages } from '../util/pagination'
 import { useURLKey } from '../actions'
-
 
 type ListPageControlsBaseProps = {
   nextCursor: string | null | undefined
@@ -58,13 +51,14 @@ export default function ListPageControls(
 
   return (
     <Grid container spacing={2}>
-      <Grid size={12}
+      <Grid
+        size={12}
         container
         spacing={2}
         justifyContent='flex-start'
         alignItems='center'
       >
-        {props.slots.search && <Grid >{props.slots.search}</Grid>}
+        {props.slots.search && <Grid>{props.slots.search}</Grid>}
 
         {showCreate && !isMobile && (
           <Grid sx={{ ml: 'auto' }}>
@@ -83,7 +77,8 @@ export default function ListPageControls(
         <Card data-cy='paginated-list'>{props.slots.list}</Card>
       </Grid>
 
-      <Grid size={12} // within main render grid
+      <Grid
+        size={12} // within main render grid
         container // container for control items
         spacing={1}
         justifyContent='flex-end'
@@ -97,7 +92,7 @@ export default function ListPageControls(
           },
         })}
       >
-        <Grid >
+        <Grid>
           <IconButton
             title='back page'
             data-cy='back-button'
@@ -110,7 +105,7 @@ export default function ListPageControls(
             <ChevronLeft />
           </IconButton>
         </Grid>
-        <Grid >
+        <Grid>
           <IconButton
             title='next page'
             data-cy='next-button'

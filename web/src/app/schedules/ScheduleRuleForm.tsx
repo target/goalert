@@ -163,7 +163,10 @@ export default function ScheduleRuleForm(
           <TableCell
             key={dayIdx}
             padding='checkbox'
-            sx={[classes.noBorder, { display: { xs: 'none', md: 'table-cell' } }]}
+            sx={[
+              classes.noBorder,
+              { display: { xs: 'none', md: 'table-cell' } },
+            ]}
           >
             <FormField
               noError
@@ -178,7 +181,11 @@ export default function ScheduleRuleForm(
           </TableCell>
         ))}
         <TableCell
-          sx={[classes.dayFilter, classes.noBorder, { display: { xs: 'table-cell', md: 'none' } }]}
+          sx={[
+            classes.dayFilter,
+            classes.noBorder,
+            { display: { xs: 'table-cell', md: 'none' } },
+          ]}
         >
           <FormField
             fullWidth
@@ -257,14 +264,10 @@ export default function ScheduleRuleForm(
           <Table data-cy='target-rules' sx={classes.table}>
             <TableHead>
               <TableRow>
-                <TableCell
-                  sx={[classes.startEnd, classes.noBorder]}
-                >
+                <TableCell sx={[classes.startEnd, classes.noBorder]}>
                   Start
                 </TableCell>
-                <TableCell
-                  sx={[classes.startEnd, classes.noBorder]}
-                >
+                <TableCell sx={[classes.startEnd, classes.noBorder]}>
                   End
                 </TableCell>
                 {days.map((d) => (
@@ -277,7 +280,11 @@ export default function ScheduleRuleForm(
                   </TableCell>
                 ))}
                 <TableCell
-                  sx={[classes.dayFilter, classes.noBorder, { display: { xs: 'table-cell', md: 'none' } }]}
+                  sx={[
+                    classes.dayFilter,
+                    classes.noBorder,
+                    { display: { xs: 'table-cell', md: 'none' } },
+                  ]}
                 >
                   Days
                 </TableCell>

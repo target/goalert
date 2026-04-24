@@ -31,7 +31,7 @@ export default function AlertCountControls(): React.JSX.Element {
   return (
     <Card>
       <Grid container spacing={1} sx={{ padding: 2 }}>
-        <Grid >
+        <Grid>
           <ISODateTimePicker
             sx={{ minWidth: '325px' }}
             placeholder='Start'
@@ -45,7 +45,7 @@ export default function AlertCountControls(): React.JSX.Element {
             variant='outlined'
           />
         </Grid>
-        <Grid >
+        <Grid>
           <ISODateTimePicker
             sx={{ minWidth: '325px' }}
             placeholder='End'
@@ -80,7 +80,7 @@ export default function AlertCountControls(): React.JSX.Element {
             </Select>
           </FormControl>
         </Grid>
-        <Grid >
+        <Grid>
           <Button
             aria-label='Reset Filters'
             variant='outlined'

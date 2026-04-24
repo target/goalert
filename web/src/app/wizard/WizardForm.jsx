@@ -50,9 +50,7 @@ export default function WizardForm(props) {
         <Grid sx={{ display: 'flex', alignItems: 'center' }}>
           <StepIcon icon='1' />
         </Grid>
-        <Grid size={10}>
-          {sectionHeading('Team Details')}
-        </Grid>
+        <Grid size={10}>{sectionHeading('Team Details')}</Grid>
         <Grid size={12} sx={{ ml: '2.5em' }}>
           <FormField
             component={TextField}
@@ -67,16 +65,12 @@ export default function WizardForm(props) {
         <Grid sx={{ display: 'flex', alignItems: 'center' }}>
           <StepIcon icon='2' />
         </Grid>
-        <Grid size={10}>
-          {sectionHeading('Primary Schedule')}
-        </Grid>
+        <Grid size={10}>{sectionHeading('Primary Schedule')}</Grid>
         <WizardScheduleForm onChange={onChange} value={value} />
         <Grid sx={{ display: 'flex', alignItems: 'center' }}>
           <StepIcon icon='3' />
         </Grid>
-        <Grid size={10}>
-          {sectionHeading('Secondary Schedule')}
-        </Grid>
+        <Grid size={10}>{sectionHeading('Secondary Schedule')}</Grid>
         <Grid size={12} sx={{ ml: '2.5em' }}>
           <FormControl>
             <FormLabel>
@@ -110,9 +104,7 @@ export default function WizardForm(props) {
         <Grid sx={{ display: 'flex', alignItems: 'center' }}>
           <StepIcon icon='4' />
         </Grid>
-        <Grid size={10}>
-          {sectionHeading('Escalation Policy')}
-        </Grid>
+        <Grid size={10}>{sectionHeading('Escalation Policy')}</Grid>
         <Grid size={12} sx={{ ml: '2.5em' }}>
           <FormField
             component={TextField}
@@ -147,9 +139,7 @@ export default function WizardForm(props) {
         <Grid sx={{ display: 'flex', alignItems: 'center' }}>
           <StepIcon icon='5' />
         </Grid>
-        <Grid size={10}>
-          {sectionHeading('Service')}
-        </Grid>
+        <Grid size={10}>{sectionHeading('Service')}</Grid>
         <Grid size={12} sx={{ ml: '2.5em' }}>
           <FormField
             component={MaterialSelect}

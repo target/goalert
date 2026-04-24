@@ -114,9 +114,7 @@ export default function AdminAPIKeys(): React.JSX.Element {
       ),
       secondaryAction: (
         <Grid container>
-          <Grid size={12}
-            sx={{ display: 'flex', justifyContent: 'flex-end' }}
-          >
+          <Grid size={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Typography
               gutterBottom
               variant='subtitle2'
@@ -131,9 +129,7 @@ export default function AdminAPIKeys(): React.JSX.Element {
               )}
             </Typography>
           </Grid>
-          <Grid size={12}
-            sx={{ display: 'flex', justifyContent: 'flex-end' }}
-          >
+          <Grid size={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <OtherActions
               actions={[
                 {

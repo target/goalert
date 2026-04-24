@@ -115,12 +115,12 @@ export default function AlertCountTable(
     return (
       <GridToolbarContainer className={gridClasses.toolbarContainer}>
         <Grid container justifyContent='space-between'>
-          <Grid >
+          <Grid>
             <GridToolbarColumnsButton />
             <GridToolbarFilterButton />
             <GridToolbarDensitySelector />
           </Grid>
-          <Grid >
+          <Grid>
             <AppLink
               to={link}
               download={`all-services-alert-counts-${props.startTime}-to-${props.endTime}.csv`}

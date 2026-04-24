@@ -12,11 +12,7 @@ type FieldProps = {
 function Field(props: FieldProps): React.JSX.Element {
   return (
     <Grid size={12}>
-      <Typography
-        variant='subtitle1'
-        component='h3'
-        sx={{ pb: 0 }}
-      >
+      <Typography variant='subtitle1' component='h3' sx={{ pb: 0 }}>
         {props.label}
       </Typography>
 

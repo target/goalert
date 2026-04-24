@@ -204,13 +204,11 @@ export default function AdminServiceTable(
       valueGetter: (_value: unknown, row: Service) => {
         const targets: DestinationType[] = []
         if (row.escalationPolicy?.steps?.length) {
-          row.escalationPolicy.steps?.map(
-            (step: EscalationPolicyStep) => {
-              step.actions.map((dest: Destination) => {
-                if (!targets.includes(dest.type)) targets.push(dest.type)
-              })
-            },
-          )
+          row.escalationPolicy.steps?.map((step: EscalationPolicyStep) => {
+            step.actions.map((dest: Destination) => {
+              if (!targets.includes(dest.type)) targets.push(dest.type)
+            })
+          })
         }
         return targets.sort().join(', ')
       },

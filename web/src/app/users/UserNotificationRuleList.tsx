@@ -1,12 +1,6 @@
 import React, { useState, ReactNode, Suspense } from 'react'
 import { gql, useQuery } from 'urql'
-import {
-  Button,
-  Card,
-  CardHeader,
-  Grid,
-  IconButton,
-} from '@mui/material'
+import { Button, Card, CardHeader, Grid, IconButton } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { Add, Delete } from '@mui/icons-material'
 import { formatNotificationRule, sortNotificationRules } from './util'

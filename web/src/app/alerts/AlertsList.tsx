@@ -290,7 +290,7 @@ export default function AlertsList(props: AlertsListProps): React.JSX.Element {
     <React.Fragment>
       <Grid container direction='column' spacing={2}>
         <ServiceNotices serviceID={props.serviceID} />
-        <Grid >
+        <Grid>
           <QueryList
             query={alertsListQuery}
             infiniteScroll

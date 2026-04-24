@@ -92,12 +92,13 @@ export default function DetailsPage(p: DetailsPageProps): React.JSX.Element {
       {/* Header card */}
       <Grid size={{ xs: 12, lg: !isMobile && p.links?.length ? 8 : 12 }}>
         <Card sx={classes.fullHeight}>
-          <Grid size="grow"
+          <Grid
+            size='grow'
             sx={classes.fullHeight}
             container
             direction='column'
           >
-            <Grid >
+            <Grid>
               <CardHeader
                 title={p.title}
                 subheader={p.subheader}
@@ -117,7 +118,7 @@ export default function DetailsPage(p: DetailsPageProps): React.JSX.Element {
             {p.labels && (
               <Grid container spacing={1} sx={{ pl: '16px', pr: '16px' }}>
                 {p.labels.map((l) => (
-                  <Grid key={l.key} >
+                  <Grid key={l.key}>
                     <Chip label={l.key + ' = ' + l.value} />
                   </Grid>
                 ))}
@@ -137,9 +138,9 @@ export default function DetailsPage(p: DetailsPageProps): React.JSX.Element {
               </Grid>
             )}
 
-            <Grid sx={classes.flexHeight}  />
+            <Grid sx={classes.flexHeight} />
             {(p.primaryActions?.length || p.secondaryActions?.length) && (
-              <Grid >
+              <Grid>
                 <CardActions
                   primaryActions={p.primaryActions}
                   secondaryActions={p.secondaryActions}
@@ -190,9 +191,7 @@ export default function DetailsPage(p: DetailsPageProps): React.JSX.Element {
 
       {/* Primary Page Content */}
       {p.pageContent && (
-        <Grid size={12}
-          sx={isMobile ? classes.smPageBottom : undefined}
-        >
+        <Grid size={12} sx={isMobile ? classes.smPageBottom : undefined}>
           {p.pageContent}
         </Grid>
       )}

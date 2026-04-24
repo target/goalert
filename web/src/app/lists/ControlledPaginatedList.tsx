@@ -19,8 +19,6 @@ import Search from '../util/Search'
 import { useURLKey } from '../actions'
 import { useIsWidthDown } from '../util/useWidth'
 
-
-
 export interface ControlledPaginatedListProps
   extends PaginatedListProps,
     ListHeaderProps {
@@ -150,7 +148,7 @@ export default function ControlledPaginatedList(
           width: 'fit-content',
         }}
       >
-        <Grid >
+        <Grid>
           <Checkbox
             sx={{ mt: '4px', mb: '4px', ml: '1em' }}
             checked={
@@ -250,7 +248,8 @@ export default function ControlledPaginatedList(
 
   return (
     <React.Fragment>
-      <Grid size={12}
+      <Grid
+        size={12}
         container
         spacing={2}
         justifyContent='flex-start'
@@ -258,11 +257,11 @@ export default function ControlledPaginatedList(
       >
         {renderActions()}
         {!noSearch && (
-          <Grid >
+          <Grid>
             <Search endAdornment={searchAdornment} />
           </Grid>
         )}
-        {secondaryActions && <Grid >{secondaryActions}</Grid>}
+        {secondaryActions && <Grid>{secondaryActions}</Grid>}
 
         {!hideCreate && renderCreateDialog && !isMobile && (
           <Grid sx={{ ml: 'auto' }}>

@@ -25,8 +25,6 @@ import {
 } from './Calendar'
 import AppLink from '../AppLink'
 
-
-
 interface ScheduleCalendarEventWrapperProps {
   children: JSX.Element
   event: ScheduleCalendarEvent
@@ -136,7 +134,7 @@ export default function ScheduleCalendarEventWrapper({
     return (
       <React.Fragment>
         <Grid sx={{ flexGrow: 1 }} />
-        <Grid >
+        <Grid>
           <Button
             data-cy='override'
             size='small'
@@ -157,7 +155,7 @@ export default function ScheduleCalendarEventWrapper({
       return (
         <React.Fragment>
           <Grid sx={{ flexGrow: 1 }} />
-          <Grid >
+          <Grid>
             <Button
               variant='contained'
               component={AppLink}

@@ -30,6 +30,8 @@ import {
 } from './temp-sched/sharedUtils'
 import { DateTime, DateTimeFormatOptions, Duration, Interval } from 'luxon'
 
+import TempSchedDialog from './temp-sched/TempSchedDialog'
+
 // query name is important, as it's used for refetching data after mutations
 const query = gql`
   query scheduleShifts($id: ID!, $start: ISOTimestamp!, $end: ISOTimestamp!) {
@@ -58,8 +60,6 @@ const durString = (dur: Duration): string => {
   }
   return `${dur.days} day${dur.days > 1 ? 's' : ''}`
 }
-
-import TempSchedDialog from './temp-sched/TempSchedDialog'
 
 interface ScheduleShiftListProps {
   scheduleID: string
@@ -360,9 +360,7 @@ function ScheduleShiftList({
                     fullWidth
                   />
                 </Grid>
-                <Grid size={12}>
-                  {renderDurationSelector()}
-                </Grid>
+                <Grid size={12}>{renderDurationSelector()}</Grid>
                 <Grid size={12}>
                   <UserSelect
                     label='Filter users...'

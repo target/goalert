@@ -7,7 +7,7 @@ export function AdminSWOWrongMode(): React.JSX.Element {
   return (
     <Grid container alignItems='center' justifyContent='center'>
       <DatabaseOff color='secondary' style={{ width: '100%', height: 256 }} />
-      <Grid >
+      <Grid>
         <div style={{ textAlign: 'center' }}>
           <Typography color='secondary' variant='h6' style={{ marginTop: 16 }}>
             Unavailable: Application is not in switchover mode.

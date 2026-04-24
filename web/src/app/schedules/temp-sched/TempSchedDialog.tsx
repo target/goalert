@@ -315,7 +315,8 @@ export default function TempSchedDialog({
                 justifyContent='space-between'
               >
                 {/* left pane */}
-                <Grid size={{ xs: 12, md: 6 }}
+                <Grid
+                  size={{ xs: 12, md: 6 }}
                   container
                   alignContent='flex-start'
                   spacing={2}
@@ -328,10 +329,7 @@ export default function TempSchedDialog({
                   </Grid>
 
                   <Grid size={12}>
-                    <Typography
-                      color='textSecondary'
-                      sx={classes.tzNote}
-                    >
+                    <Typography color='textSecondary' sx={classes.tzNote}>
                       Times shown in schedule timezone ({zone})
                     </Typography>
                   </Grid>
@@ -441,7 +439,8 @@ export default function TempSchedDialog({
                 </Grid>
 
                 {/* right pane */}
-                <Grid size={{ xs: 12, md: 6 }}
+                <Grid
+                  size={{ xs: 12, md: 6 }}
                   container
                   spacing={2}
                   sx={classes.rightPane}
@@ -456,10 +455,7 @@ export default function TempSchedDialog({
                     </Typography>
 
                     {submitAttempt && hasCoverageGaps && (
-                      <Alert
-                        severity='error'
-                        sx={classes.noCoverageError}
-                      >
+                      <Alert severity='error' sx={classes.noCoverageError}>
                         <AlertTitle>Gaps in coverage</AlertTitle>
                         <FormHelperText>
                           There are gaps in coverage. During these gaps, nobody
@@ -486,10 +482,7 @@ export default function TempSchedDialog({
 
                     {DateTime.fromISO(value.start) >
                       DateTime.utc().minus({ hour: 1 }) || edit ? null : (
-                      <Alert
-                        severity='warning'
-                        sx={classes.noCoverageError}
-                      >
+                      <Alert severity='warning' sx={classes.noCoverageError}>
                         <AlertTitle>Start time occurs in the past</AlertTitle>
                         <FormHelperText>
                           Any shifts or changes made to shifts in the past will

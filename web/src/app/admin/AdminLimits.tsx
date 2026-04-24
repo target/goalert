@@ -67,9 +67,7 @@ export default function AdminLimits(): React.JSX.Element {
           [theme.breakpoints.up('md')]: { maxWidth: '65%' },
         })}
       >
-        <Grid size={12}
-          sx={{ display: 'flex', justifyContent: 'flex-end' }}
-        >
+        <Grid size={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <ButtonGroup variant='outlined'>
             <Button
               data-cy='reset'

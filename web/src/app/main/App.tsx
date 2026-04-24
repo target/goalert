@@ -134,7 +134,7 @@ export default function App(): React.JSX.Element {
                     justifyContent='center'
                     sx={classes.mainContainer}
                   >
-                    <Grid sx={classes.containerClass} >
+                    <Grid sx={classes.containerClass}>
                       <AppRoutes />
                     </Grid>
                   </Grid>

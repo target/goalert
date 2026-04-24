@@ -16,7 +16,8 @@ export default function UniversalKeyActionsList(
 ): React.ReactNode {
   return (
     <React.Fragment>
-      <Grid size={12}
+      <Grid
+        size={12}
         container
         spacing={1}
         sx={{ p: 1 }}

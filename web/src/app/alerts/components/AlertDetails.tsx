@@ -256,10 +256,7 @@ export default function AlertDetails(
     }
 
     return (
-      <Grid size={12}
-        data-cy='alert-details'
-        sx={gs.cardContainer}
-      >
+      <Grid size={12} data-cy='alert-details' sx={gs.cardContainer}>
         <Card sx={{ width: '100%' }}>
           <CardContent>
             <Typography component='h3' variant='h5'>
@@ -354,7 +351,8 @@ export default function AlertDetails(
       />
 
       {/* Main Alert Info */}
-      <Grid size={{ lg: isMobile || noiseReason !== '' ? 12 : 8 }}
+      <Grid
+        size={{ lg: isMobile || noiseReason !== '' ? 12 : 8 }}
         sx={gs.cardContainer}
       >
         <Card
@@ -401,11 +399,7 @@ export default function AlertDetails(
       <Grid size={12} sx={gs.cardContainer}>
         <Card style={{ width: '100%', overflowX: 'auto' }}>
           <CardContent>
-            <Typography
-              sx={{ pb: 1 }}
-              component='h3'
-              variant='h5'
-            >
+            <Typography sx={{ pb: 1 }} component='h3' variant='h5'>
               <AppLink
                 to={`/escalation-policies/${alert.service?.escalationPolicy?.id}`}
               >
@@ -463,10 +457,7 @@ export default function AlertDetails(
               style={{ padding: '0.5em 0.5em 0 0' }}
             />
           </div>
-          <CardContent
-            sx={gs.tableCardContent}
-            style={{ paddingBottom: 0 }}
-          >
+          <CardContent sx={gs.tableCardContent} style={{ paddingBottom: 0 }}>
             <AlertDetailLogs
               alertID={props.data.alertID}
               showExactTimes={showExactTimes}

@@ -6,7 +6,6 @@ import AdminSMSSend from './AdminSMSSend'
 import { useConfigValue } from '../util/RequireConfig'
 
 export default function AdminToolbox(): React.JSX.Element {
-
   const [hasTwilio] = useConfigValue('Twilio.Enable')
 
   if (!hasTwilio) {

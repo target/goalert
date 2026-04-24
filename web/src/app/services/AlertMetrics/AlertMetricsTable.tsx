@@ -141,12 +141,12 @@ export default function AlertMetricsTable(
     return (
       <GridToolbarContainer className={gridClasses.toolbarContainer}>
         <Grid container justifyContent='space-between'>
-          <Grid >
+          <Grid>
             <GridToolbarColumnsButton />
             <GridToolbarFilterButton />
             <GridToolbarDensitySelector />
           </Grid>
-          <Grid >
+          <Grid>
             <AppLink
               to={link}
               download={`${props.serviceName.replace(

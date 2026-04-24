@@ -14,7 +14,7 @@ export function AdminSWODone(): React.JSX.Element {
             color='primary'
             style={{ width: '100%', height: 256 }}
           />
-          <Grid >
+          <Grid>
             <Typography color='primary' variant='h6' style={{ marginTop: 16 }}>
               DB switchover is complete.
             </Typography>

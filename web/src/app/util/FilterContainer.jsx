@@ -21,16 +21,16 @@ export default function FilterContainer(props) {
 
   function renderContent() {
     return (
-      <Grid container spacing={2} sx={(theme) => ({
-        padding: 1,
-        [theme.breakpoints.up('md')]: { width: '22em' },
-        [theme.breakpoints.down('md')]: { width: '100%' },
-      })}>
-        <Grid size={12}
-          container
-          spacing={2}
-          sx={{ margin: 0 }}
-        >
+      <Grid
+        container
+        spacing={2}
+        sx={(theme) => ({
+          padding: 1,
+          [theme.breakpoints.up('md')]: { width: '22em' },
+          [theme.breakpoints.down('md')]: { width: '100%' },
+        })}
+      >
+        <Grid size={12} container spacing={2} sx={{ margin: 0 }}>
           {props.children}
         </Grid>
         <Grid size={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>

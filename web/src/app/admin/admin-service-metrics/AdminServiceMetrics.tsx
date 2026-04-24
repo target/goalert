@@ -179,7 +179,7 @@ export default function AdminServiceMetrics(): React.JSX.Element {
   function renderUsageGraphs(): React.JSX.Element {
     return (
       <React.Fragment>
-        <Grid size="grow">
+        <Grid size='grow'>
           <Card sx={{ marginTop: (theme) => theme.spacing(1) }}>
             <CardHeader
               title='Integration Key Usage'
@@ -198,7 +198,7 @@ export default function AdminServiceMetrics(): React.JSX.Element {
             </CardContent>
           </Card>
         </Grid>
-        <Grid size="grow">
+        <Grid size='grow'>
           <Card sx={{ marginTop: (theme) => theme.spacing(1) }}>
             <CardHeader
               title='Escalation Policy Usage'
@@ -244,9 +244,7 @@ export default function AdminServiceMetrics(): React.JSX.Element {
         <AdminServiceFilter />
       </Grid>
       {renderUsageGraphs()}
-      <Grid size={12}>
-        {renderServiceTable()}
-      </Grid>
+      <Grid size={12}>{renderServiceTable()}</Grid>
     </Grid>
   )
 }

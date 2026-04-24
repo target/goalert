@@ -17,7 +17,6 @@ const mutation = gql`
 export default function ServiceAlerts(props: {
   serviceID: string
 }): JSX.Element {
-
   const [alertStatus, setAlertStatus] = useState('')
   const [showDialog, setShowDialog] = useState(false)
   const [mutationStatus, mutate] = useMutation(mutation)
@@ -41,11 +40,16 @@ export default function ServiceAlerts(props: {
   }
 
   const secondaryActions = (
-    <Grid style={{ width: 'fit-content' }} container spacing={2} alignItems='center'>
-      <Grid >
+    <Grid
+      style={{ width: 'fit-content' }}
+      container
+      spacing={2}
+      alignItems='center'
+    >
+      <Grid>
         <AlertsListFilter serviceID={props.serviceID} />
       </Grid>
-      <Grid >
+      <Grid>
         <ButtonGroup variant='outlined'>
           <Button onClick={handleClickAckAll}>Acknowledge All</Button>
           <Button onClick={handleClickCloseAll}>Close All</Button>

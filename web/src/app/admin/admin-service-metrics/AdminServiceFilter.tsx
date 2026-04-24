@@ -196,10 +196,8 @@ function AdminServiceFilter(): React.JSX.Element {
   return (
     <React.Fragment>
       <Grid container>
-        <Grid size="grow">
-          {renderFilterChips()}
-        </Grid>
-        <Grid size="grow">
+        <Grid size='grow'>{renderFilterChips()}</Grid>
+        <Grid size='grow'>
           <IconButton
             aria-label='Filter Alerts'
             onClick={() => setOpen(true)}

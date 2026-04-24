@@ -86,7 +86,7 @@ export default function ScheduleOnCallNotificationsForm(
   return (
     <FormContainer {...formProps} optionalLabels>
       <Grid container spacing={2} direction='column'>
-        <Grid >
+        <Grid>
           <RadioGroup
             name='ruleType'
             value={ruleType}

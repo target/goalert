@@ -14,7 +14,7 @@ export default function AdminMessageLogsControls(): React.JSX.Element {
         <Grid sx={{ flex: 1 }}>
           <Search transition={false} fullWidth />
         </Grid>
-        <Grid >
+        <Grid>
           <ISODateTimePicker
             placeholder='Start'
             name='startDate'
@@ -27,7 +27,7 @@ export default function AdminMessageLogsControls(): React.JSX.Element {
             variant='outlined'
           />
         </Grid>
-        <Grid >
+        <Grid>
           <ISODateTimePicker
             placeholder='End'
             name='endDate'
@@ -40,7 +40,7 @@ export default function AdminMessageLogsControls(): React.JSX.Element {
             variant='outlined'
           />
         </Grid>
-        <Grid >
+        <Grid>
           <Button
             aria-label='Reset Filters'
             variant='outlined'

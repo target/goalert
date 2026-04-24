@@ -46,7 +46,7 @@ export default function GraphQLEditor(
         />
       </Grid>
       {!props.readOnly && (
-        <Grid >
+        <Grid>
           <IconButton
             onClick={() => {
               props.onChange(print(parse(props.value)) + '\n')

@@ -115,7 +115,7 @@ function ScheduleCalendarToolbar(
       justifyContent='space-between'
       alignItems='center'
     >
-      <Grid >
+      <Grid>
         <Grid container alignItems='center'>
           <Button
             data-cy='show-today'
@@ -156,7 +156,7 @@ function ScheduleCalendarToolbar(
         </Grid>
       </Grid>
 
-      <Grid >
+      <Grid>
         <Grid container alignItems='center' justifyContent='flex-end'>
           {props.filter}
           <ButtonGroup aria-label='Toggle between Monthly and Weekly views'>

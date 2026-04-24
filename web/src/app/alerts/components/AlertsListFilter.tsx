@@ -71,14 +71,10 @@ function AlertsListFilter(props: AlertsListFilterProps): React.JSX.Element {
         spacing={2}
         sx={[
           { margin: '0.5em' },
-          isMobile
-            ? { width: 'fit-content' }
-            : { width: '17em' },
+          isMobile ? { width: 'fit-content' } : { width: '17em' },
         ]}
       >
-        <Grid size={12}
-          sx={{ display: 'flex', alignItems: 'center' }}
-        >
+        <Grid size={12} sx={{ display: 'flex', alignItems: 'center' }}>
           <FormControl>
             {favoritesFilter}
             <FormControlLabel

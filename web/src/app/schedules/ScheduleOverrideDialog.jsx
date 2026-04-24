@@ -96,7 +96,9 @@ export default function ScheduleOverrideDialog(props) {
                     value={variant}
                     control={<Radio />}
                     label={
-                      <div style={{ marginBottom: '.3rem', marginTop: '.3rem' }}>
+                      <div
+                        style={{ marginBottom: '.3rem', marginTop: '.3rem' }}
+                      >
                         <div>{variantDetails[variant].name}</div>
                         <FormHelperText>
                           {variantDetails[variant].helperText}

@@ -97,10 +97,10 @@ export default function AdminMessageLogsLayout(): React.JSX.Element {
       title: `${log.type} Notification`,
       subText: (
         <Grid container spacing={2} direction='column'>
-          <Grid >Destination: {log.destination}</Grid>
-          {log.serviceName && <Grid >Service: {log.serviceName}</Grid>}
-          {log.userName && <Grid >User: {log.userName}</Grid>}
-          <Grid >
+          <Grid>Destination: {log.destination}</Grid>
+          {log.serviceName && <Grid>Service: {log.serviceName}</Grid>}
+          {log.userName && <Grid>User: {log.userName}</Grid>}
+          <Grid>
             <Chip label={status} style={statusStyles} />
           </Grid>
         </Grid>

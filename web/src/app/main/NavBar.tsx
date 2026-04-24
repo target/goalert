@@ -50,7 +50,14 @@ export default function NavBar(): React.JSX.Element {
           justifyContent: 'left',
         }}
       >
-        <a href='/' aria-hidden style={{ ...(theme.mixins.toolbar as React.CSSProperties), paddingLeft: 8 }}>
+        <a
+          href='/'
+          aria-hidden
+          style={{
+            ...(theme.mixins.toolbar as React.CSSProperties),
+            paddingLeft: 8,
+          }}
+        >
           {logo}
         </a>
         <Typography variant='h5' sx={{ pl: 1 }}>
