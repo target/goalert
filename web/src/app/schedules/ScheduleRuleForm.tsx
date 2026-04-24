@@ -170,7 +170,7 @@ export default function ScheduleRuleForm(
           >
             <FormField
               noError
-              sx={[classes.noPadding, { padding: 0 }]}
+              style={{ padding: 0 }}
               component={Checkbox}
               checkbox
               disabled={disabled}

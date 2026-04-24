@@ -226,6 +226,7 @@ FormField.propTypes = {
   float: p.bool,
 
   className: p.string,
+  style: p.object,
 
   // fieldName specifies the field used for
   // checking errors, change handlers, and value.
