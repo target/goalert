@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import makeStyles from '@mui/styles/makeStyles'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
@@ -22,18 +21,7 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles({
-  copyButton: {
-    float: 'right',
-    padding: '12px',
-  },
-  dialog: {
-    minHeight: '650px',
-  },
-})
-
 export default function SlackActions(): React.JSX.Element {
-  const classes = useStyles()
   const [showManifest, setShowManifest] = useState(false)
 
   const [{ fetching, error, data }] = useQuery({ query })
@@ -45,7 +33,7 @@ export default function SlackActions(): React.JSX.Element {
 
     return (
       <div>
-        <div className={classes.copyButton}>
+        <div style={{ float: 'right', padding: '12px' }}>
           <CopyText value={manifest} placement='left' />
         </div>
         <Markdown value={'```\n' + manifest + '\n```'} />
@@ -67,8 +55,8 @@ export default function SlackActions(): React.JSX.Element {
         ]}
       />
       <Dialog
-        classes={{
-          paper: classes.dialog,
+        slotProps={{
+          paper: { sx: { minHeight: '650px' } },
         }}
         open={showManifest}
         onClose={() => setShowManifest(false)}

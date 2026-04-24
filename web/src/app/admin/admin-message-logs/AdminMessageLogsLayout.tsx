@@ -1,7 +1,5 @@
 import React, { useState } from 'react'
-import { Chip, Grid, Typography } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
-import { Theme } from '@mui/material/styles'
+import { Box, Chip, Grid, Typography } from '@mui/material'
 import { DateTime } from 'luxon'
 import { gql, useQuery } from 'urql'
 import AdminMessageLogsControls from './AdminMessageLogsControls'
@@ -39,25 +37,9 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles((theme: Theme) => ({
-  containerDefault: {
-    [theme.breakpoints.up('md')]: {
-      maxWidth: '100%',
-      transition: `max-width ${theme.transitions.duration.leavingScreen}ms ease`,
-    },
-  },
-  containerSelected: {
-    [theme.breakpoints.up('md')]: {
-      maxWidth: '70%',
-      transition: `max-width ${theme.transitions.duration.enteringScreen}ms ease`,
-    },
-  },
-}))
-
 const context = { suspense: false }
 
 export default function AdminMessageLogsLayout(): React.JSX.Element {
-  const classes = useStyles()
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
 
   const [{ search, start, end }] = useMessageLogsParams()
@@ -140,8 +122,20 @@ export default function AdminMessageLogsLayout(): React.JSX.Element {
       <Grid
         container
         spacing={2}
-        className={
-          selectedLog ? classes.containerSelected : classes.containerDefault
+        sx={(theme) =>
+          selectedLog
+            ? {
+                [theme.breakpoints.up('md')]: {
+                  maxWidth: '70%',
+                  transition: `max-width ${theme.transitions.duration.enteringScreen}ms ease`,
+                },
+              }
+            : {
+                [theme.breakpoints.up('md')]: {
+                  maxWidth: '100%',
+                  transition: `max-width ${theme.transitions.duration.leavingScreen}ms ease`,
+                },
+              }
         }
       >
         <Grid item xs={12}>

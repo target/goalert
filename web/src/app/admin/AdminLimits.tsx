@@ -4,8 +4,7 @@ import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
-import makeStyles from '@mui/styles/makeStyles'
-import { Theme } from '@mui/material/styles'
+import Box from '@mui/material/Box'
 import { startCase, isEmpty } from 'lodash'
 import AdminDialog from './AdminDialog'
 import { Form } from '../forms'
@@ -29,31 +28,11 @@ const mutation = gql`
   }
 `
 
-const useStyles = makeStyles((theme: Theme) => ({
-  actionsContainer: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-  },
-  gridContainer: {
-    [theme.breakpoints.up('md')]: {
-      maxWidth: '65%',
-    },
-  },
-  groupTitle: {
-    fontSize: '1.1rem',
-  },
-  pageContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-  },
-}))
-
 interface LimitsValues {
   [id: string]: string
 }
 
 export default function AdminLimits(): React.JSX.Element {
-  const classes = useStyles()
   const [confirm, setConfirm] = useState(false)
   const [values, setValues] = useState({})
 
@@ -80,9 +59,19 @@ export default function AdminLimits(): React.JSX.Element {
   }
 
   return (
-    <div className={classes.pageContainer}>
-      <Grid container spacing={2} className={classes.gridContainer}>
-        <Grid item xs={12} className={classes.actionsContainer}>
+    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+      <Grid
+        container
+        spacing={2}
+        sx={(theme) => ({
+          [theme.breakpoints.up('md')]: { maxWidth: '65%' },
+        })}
+      >
+        <Grid
+          item
+          xs={12}
+          sx={{ display: 'flex', justifyContent: 'flex-end' }}
+        >
           <ButtonGroup variant='outlined'>
             <Button
               data-cy='reset'
@@ -138,6 +127,6 @@ export default function AdminLimits(): React.JSX.Element {
           </Form>
         </Grid>
       </Grid>
-    </div>
+    </Box>
   )
 }

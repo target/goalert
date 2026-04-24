@@ -13,7 +13,6 @@ import {
   GridValidRowModel,
 } from '@mui/x-data-grid'
 import { Button, Grid } from '@mui/material'
-import { makeStyles } from '@mui/styles'
 import DownloadIcon from '@mui/icons-material/Download'
 import AppLink from '../../util/AppLink'
 import { AlertCountSeries } from './useAdminAlertCounts'
@@ -28,12 +27,6 @@ interface AlertCountTableProps {
   graphData: AlertCountSeries[]
   setGraphData: (data: AlertCountSeries[]) => void
 }
-
-const useStyles = makeStyles(() => ({
-  tableContent: {
-    height: '400px',
-  },
-}))
 
 const columns = [
   {
@@ -87,8 +80,6 @@ const columns = [
 export default function AlertCountTable(
   props: AlertCountTableProps,
 ): React.JSX.Element {
-  const classes = useStyles()
-
   const csvOpts = useMemo(
     () => ({
       urlPrefix: location.origin + pathPrefix,
@@ -149,7 +140,7 @@ export default function AlertCountTable(
   }
 
   return (
-    <Grid container className={classes.tableContent}>
+    <Grid container sx={{ height: '400px' }}>
       <Grid item xs={12} data-cy='alert-count-table'>
         <DataGrid
           rows={props.alertCounts ?? []}

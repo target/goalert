@@ -13,7 +13,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 
 import { useConfigValue } from '../util/RequireConfig'
@@ -44,15 +43,7 @@ const sendSMSMutation = gql`
   }
 `
 
-const useStyles = makeStyles({
-  twilioLink: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-})
-
 export default function AdminSMSSend(): React.JSX.Element {
-  const classes = useStyles()
   const [cfgFromNumber, cfgSID] = useConfigValue(
     'Twilio.FromNumber',
     'Twilio.MessagingServiceSID',
@@ -138,7 +129,7 @@ export default function AdminSMSSend(): React.JSX.Element {
             <LoadingButton buttonText='Send' loading={smsLoading} />
             {smsData?.debugSendSMS && (
               <AppLink to={smsData.debugSendSMS.providerURL} newTab>
-                <div className={classes.twilioLink}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
                   <Typography>{details} Open in Twilio&nbsp;</Typography>
                   <OpenInNewIcon fontSize='small' />
                 </div>
