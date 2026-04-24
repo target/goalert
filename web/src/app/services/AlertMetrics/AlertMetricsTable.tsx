@@ -14,7 +14,6 @@ import {
 } from '@mui/x-data-grid'
 import { Button, Grid } from '@mui/material'
 import DownloadIcon from '@mui/icons-material/Download'
-import { makeStyles } from '@mui/styles'
 import { Alert, Service } from '../../../schema'
 import { DateTime, Duration } from 'luxon'
 import AppLink from '../../util/AppLink'
@@ -28,12 +27,6 @@ interface AlertMetricsTableProps {
   startTime: string
   endTime: string
 }
-
-const useStyles = makeStyles(() => ({
-  tableContent: {
-    height: '400px',
-  },
-}))
 
 const columns: GridColDef[] = [
   {
@@ -128,7 +121,6 @@ const columns: GridColDef[] = [
 export default function AlertMetricsTable(
   props: AlertMetricsTableProps,
 ): JSX.Element {
-  const classes = useStyles()
   const alerts = useMemo(
     () => props.alerts.map((a) => ({ ...a, ...a.metrics })),
     [props.alerts],
@@ -178,7 +170,7 @@ export default function AlertMetricsTable(
   }
 
   return (
-    <Grid container className={classes.tableContent}>
+    <Grid container style={{ height: '400px' }}>
       <Grid item xs={12} data-cy='metrics-table'>
         <DataGrid
           rows={alerts}

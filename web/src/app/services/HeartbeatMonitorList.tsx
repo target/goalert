@@ -6,7 +6,6 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import CreateFAB from '../lists/CreateFAB'
 import HeartbeatMonitorCreateDialog from './HeartbeatMonitorCreateDialog'
-import makeStyles from '@mui/styles/makeStyles'
 import HeartbeatMonitorEditDialog from './HeartbeatMonitorEditDialog'
 import HeartbeatMonitorDeleteDialog from './HeartbeatMonitorDeleteDialog'
 import OtherActions from '../util/OtherActions'
@@ -41,17 +40,6 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles(() => ({
-  text: {
-    display: 'flex',
-    alignItems: 'center',
-    width: 'fit-content',
-  },
-  spacing: {
-    marginBottom: 96,
-  },
-}))
-
 const sortItems = (a: HeartbeatMonitor, b: HeartbeatMonitor): number => {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
   if (a.name.toLowerCase() > b.name.toLowerCase()) return 1
@@ -63,7 +51,6 @@ const sortItems = (a: HeartbeatMonitor, b: HeartbeatMonitor): number => {
 export default function HeartbeatMonitorList(props: {
   serviceID: string
 }): JSX.Element {
-  const classes = useStyles()
   const isMobile = useIsWidthDown('md')
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialogByID, setShowEditDialogByID] = useState<string | null>(
@@ -148,7 +135,7 @@ export default function HeartbeatMonitorList(props: {
 
   return (
     <React.Fragment>
-      <Grid item xs={12} className={classes.spacing}>
+      <Grid item xs={12} sx={{ mb: '96px' }}>
         <Card>
           <CardContent>
             {renderList(data.service.heartbeatMonitors)}

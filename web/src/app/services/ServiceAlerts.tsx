@@ -3,7 +3,6 @@ import { gql, useMutation } from 'urql'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import Grid from '@mui/material/Grid'
-import makeStyles from '@mui/styles/makeStyles'
 
 import AlertsList from '../alerts/AlertsList'
 import FormDialog from '../dialogs/FormDialog'
@@ -15,16 +14,9 @@ const mutation = gql`
   }
 `
 
-const useStyles = makeStyles({
-  filter: {
-    width: 'fit-content',
-  },
-})
-
 export default function ServiceAlerts(props: {
   serviceID: string
 }): JSX.Element {
-  const classes = useStyles()
 
   const [alertStatus, setAlertStatus] = useState('')
   const [showDialog, setShowDialog] = useState(false)
@@ -49,7 +41,7 @@ export default function ServiceAlerts(props: {
   }
 
   const secondaryActions = (
-    <Grid className={classes.filter} container spacing={2} alignItems='center'>
+    <Grid style={{ width: 'fit-content' }} container spacing={2} alignItems='center'>
       <Grid item>
         <AlertsListFilter serviceID={props.serviceID} />
       </Grid>

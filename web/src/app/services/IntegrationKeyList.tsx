@@ -13,7 +13,6 @@ import CopyText from '../util/CopyText'
 import AppLink from '../util/AppLink'
 import { useIsWidthDown } from '../util/useWidth'
 import { Add } from '@mui/icons-material'
-import makeStyles from '@mui/styles/makeStyles'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 import { IntegrationKey } from '../../schema'
@@ -43,21 +42,6 @@ const query = gql`
     }
   }
 `
-
-const useStyles = makeStyles({
-  copyIcon: {
-    paddingRight: '0.25em',
-    color: 'black',
-  },
-  keyLink: {
-    display: 'flex',
-    alignItems: 'center',
-    width: 'fit-content',
-  },
-  spacing: {
-    marginBottom: 96,
-  },
-})
 
 const sortItems = (a: IntegrationKey, b: IntegrationKey): number => {
   const extA = a.externalSystemName || ''
@@ -98,7 +82,6 @@ export function IntegrationKeyDetails(props: {
 export default function IntegrationKeyList(props: {
   serviceID: string
 }): JSX.Element {
-  const classes = useStyles()
   const isMobile = useIsWidthDown('md')
   const [create, setCreate] = useState<boolean>(false)
   const [deleteDialog, setDeleteDialog] = useState<string | null>(null)
@@ -178,7 +161,7 @@ export default function IntegrationKeyList(props: {
 
   return (
     <React.Fragment>
-      <Grid item xs={12} className={classes.spacing}>
+      <Grid item xs={12} sx={{ mb: '96px' }}>
         <Card>
           <CardContent>
             <CompList

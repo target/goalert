@@ -3,26 +3,17 @@ import { gql, useQuery } from 'urql'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import { UserAvatar } from '../util/avatars'
-import makeStyles from '@mui/styles/makeStyles'
 import { styles as globalStyles } from '../styles/materialStyles'
 import { Error } from '@mui/icons-material'
 import _ from 'lodash'
 import { Warning } from '../icons'
-import { Theme } from '@mui/material'
+import { useTheme } from '@mui/material'
 import CompList from '../lists/CompList'
 import {
   CompListItemNav,
   CompListItemText,
   CompListSection,
 } from '../lists/CompListItems'
-
-const useStyles = makeStyles((theme: Theme) => {
-  const { cardHeader } = globalStyles(theme)
-
-  return {
-    cardHeader,
-  }
-})
 
 const query = gql`
   query onCallQuery($id: ID!) {
@@ -56,12 +47,14 @@ const stepLengthText = (s: number): string => {
   }
   return 'No users assigned'
 }
+
 export default function ServiceOnCallList({
   serviceID,
 }: {
   serviceID: string
 }): React.ReactNode {
-  const classes = useStyles()
+  const theme = useTheme()
+  const gs = globalStyles(theme)
   const [{ data, error }] = useQuery({
     query,
     variables: { id: serviceID },
@@ -93,7 +86,7 @@ export default function ServiceOnCallList({
   return (
     <Card>
       <CardHeader
-        className={classes.cardHeader}
+        sx={gs.cardHeader}
         component='h3'
         title='On Call Users'
       />
