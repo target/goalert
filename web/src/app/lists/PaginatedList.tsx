@@ -6,8 +6,8 @@ import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import ListItemAvatar from '@mui/material/ListItemAvatar'
-import makeStyles from '@mui/styles/makeStyles'
 import { Skeleton } from '@mui/material'
+import type { SxProps, Theme } from '@mui/material'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { useIsWidthDown } from '../util/useWidth'
 import { FavoriteIcon } from '../util/SetFavoriteButton'
@@ -18,14 +18,14 @@ import { AppLinkListItem } from '../util/AppLink'
 import { debug } from '../util/debug'
 import useStatusColors from '../theme/useStatusColors'
 
-const useStyles = makeStyles(() => ({
+const classes = {
   infiniteScrollFooter: {
     display: 'flex',
     justifyContent: 'center',
     padding: '0.25em 0 0.25em 0',
   },
   itemAction: {
-    paddingLeft: 14,
+    paddingLeft: '14px',
   },
   itemText: {
     wordBreak: 'break-word',
@@ -33,7 +33,7 @@ const useStyles = makeStyles(() => ({
   favoriteIcon: {
     backgroundColor: 'transparent',
   },
-}))
+} satisfies Record<string, SxProps<Theme>>
 
 function LoadingItem(props: { dense?: boolean }): React.JSX.Element {
   return (
@@ -90,7 +90,6 @@ export function PaginatedList(props: PaginatedListProps): React.JSX.Element {
     noPlaceholder,
   } = props
 
-  const classes = useStyles()
   const statusColors = useStatusColors()
   const fullScreen = useIsWidthDown('md')
 
@@ -109,8 +108,8 @@ export function PaginatedList(props: PaginatedListProps): React.JSX.Element {
     let favIcon = null
     if (item.isFavorite) {
       favIcon = (
-        <div className={classes.itemAction}>
-          <Avatar className={classes.favoriteIcon}>
+        <div style={{ paddingLeft: '14px' }}>
+          <Avatar sx={classes.favoriteIcon}>
             <FavoriteIcon />
           </Avatar>
         </div>
@@ -148,7 +147,7 @@ export function PaginatedList(props: PaginatedListProps): React.JSX.Element {
       <React.Fragment>
         {item.icon && <ListItemAvatar>{item.icon}</ListItemAvatar>}
         <ListItemText
-          className={classes.itemText}
+          sx={classes.itemText}
           primary={item.title}
           secondary={item.subText}
           secondaryTypographyProps={{
@@ -156,7 +155,7 @@ export function PaginatedList(props: PaginatedListProps): React.JSX.Element {
           }}
         />
         {favIcon}
-        {item.action && <div className={classes.itemAction}>{item.action}</div>}
+        {item.action && <div style={{ paddingLeft: '14px' }}>{item.action}</div>}
       </React.Fragment>
     )
 
@@ -235,7 +234,7 @@ export function PaginatedList(props: PaginatedListProps): React.JSX.Element {
         endMessage={
           len === 0 ? null : (
             <Typography
-              className={classes.infiniteScrollFooter}
+              sx={classes.infiniteScrollFooter}
               color='textSecondary'
               variant='body2'
             >
@@ -244,7 +243,7 @@ export function PaginatedList(props: PaginatedListProps): React.JSX.Element {
           )
         }
         loader={
-          <div className={classes.infiniteScrollFooter}>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '0.25em 0 0.25em 0' }}>
             <Spinner text='Loading...' />
           </div>
         }

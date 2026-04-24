@@ -8,37 +8,18 @@ import {
   Tooltip,
 } from '@mui/material'
 import { Add, ArrowDropDown } from '@mui/icons-material'
-import makeStyles from '@mui/styles/makeStyles'
 import {
   PaginatedList,
   PaginatedListItemProps,
   PaginatedListProps,
 } from './PaginatedList'
 import { ListHeaderProps } from './ListHeader'
-import classnames from 'classnames'
 import OtherActions from '../util/OtherActions'
 import Search from '../util/Search'
 import { useURLKey } from '../actions'
 import { useIsWidthDown } from '../util/useWidth'
 
-const useStyles = makeStyles({
-  checkbox: {
-    marginTop: 4,
-    marginBottom: 4,
-  },
-  controlsContainer: {
-    alignItems: 'center',
-    display: 'flex',
-  },
-  hover: {
-    '&:hover': {
-      cursor: 'pointer',
-    },
-  },
-  popper: {
-    opacity: 1,
-  },
-})
+
 
 export interface ControlledPaginatedListProps
   extends PaginatedListProps,
@@ -91,7 +72,6 @@ export interface CheckboxItemsProps extends PaginatedListItemProps {
 export default function ControlledPaginatedList(
   props: ControlledPaginatedListProps,
 ): React.JSX.Element {
-  const classes = useStyles()
   const {
     checkboxActions,
     createLabel,
@@ -173,7 +153,7 @@ export default function ControlledPaginatedList(
       >
         <Grid item>
           <Checkbox
-            className={classes.checkbox}
+            sx={{ mt: '4px', mb: '4px' }}
             checked={
               itemIDs.length === checkedItems.length && itemIDs.length > 0
             }
@@ -191,7 +171,11 @@ export default function ControlledPaginatedList(
 
         <Grid
           item
-          className={classnames(classes.hover, classes.controlsContainer)}
+          sx={{
+            alignItems: 'center',
+            display: 'flex',
+            '&:hover': { cursor: 'pointer' },
+          }}
           data-cy='checkboxes-menu'
         >
           <OtherActions
@@ -217,7 +201,7 @@ export default function ControlledPaginatedList(
               <Tooltip
                 title={a.label}
                 placement='bottom'
-                classes={{ popper: classes.popper }}
+                slotProps={{ popper: { sx: { opacity: 1 } } }}
               >
                 <IconButton
                   onClick={() => {

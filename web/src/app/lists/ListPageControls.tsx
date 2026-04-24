@@ -5,29 +5,14 @@ import {
   CircularProgress,
   Grid,
   IconButton,
-  Theme,
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { Add, ChevronLeft, ChevronRight } from '@mui/icons-material'
 import CreateFAB from './CreateFAB'
 import { useIsWidthDown } from '../util/useWidth'
 import { usePages } from '../util/pagination'
 import { useURLKey } from '../actions'
 
-const useStyles = makeStyles((theme: Theme) => ({
-  progress: {
-    color: theme.palette.secondary.main,
-    position: 'absolute',
-  },
-  controls: {
-    [theme.breakpoints.down('sm')]: {
-      '&:not(:first-child)': {
-        marginBottom: '4.5em',
-        paddingBottom: '1em',
-      },
-    },
-  },
-}))
+
 type ListPageControlsBaseProps = {
   nextCursor: string | null | undefined
   onCursorChange: (cursor: string) => void
@@ -61,7 +46,6 @@ function canCreate(
 export default function ListPageControls(
   props: ListPageControlsProps,
 ): React.ReactNode {
-  const classes = useStyles()
   const showCreate = canCreate(props)
   const isMobile = useIsWidthDown('md')
 
@@ -108,7 +92,14 @@ export default function ListPageControls(
         spacing={1}
         justifyContent='flex-end'
         alignItems='center'
-        className={classes.controls}
+        sx={(theme) => ({
+          [theme.breakpoints.down('sm')]: {
+            '&:not(:first-child)': {
+              marginBottom: '4.5em',
+              paddingBottom: '1em',
+            },
+          },
+        })}
       >
         <Grid item>
           <IconButton
@@ -137,7 +128,7 @@ export default function ListPageControls(
               <CircularProgress
                 color='secondary'
                 size={24}
-                className={classes.progress}
+                sx={{ color: 'secondary.main', position: 'absolute' }}
               />
             )}
             <ChevronRight />
