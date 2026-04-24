@@ -13,7 +13,12 @@ import AppLink from '../util/AppLink'
 import { OpenInNew } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
 
-function useNavClasses(theme: Theme) {
+function useNavClasses(theme: Theme): {
+  nav: SxProps<Theme>
+  navSelected: SxProps<Theme>
+  subMenuLinkText: SxProps<Theme>
+  dropdown: (open: boolean) => SxProps<Theme>
+} {
   const { nav, navSelected } = styles(theme)
   return {
     nav: nav as SxProps<Theme>,
@@ -99,10 +104,7 @@ export default function NavBarLink({
             }
           />
           {children && (
-            <ExpandMoreIcon
-              color='action'
-              sx={classes.dropdown(isRoute)}
-            />
+            <ExpandMoreIcon color='action' sx={classes.dropdown(isRoute)} />
           )}
         </ListItemButton>
       </AppLink>

@@ -105,10 +105,7 @@ export default function AdminMessageLogDrawer(props: Props): React.JSX.Element {
                       newTab
                     >
                       {log.userName}
-                      <OpenInNew
-                        sx={{ pl: 0.5 }}
-                        fontSize='small'
-                      />
+                      <OpenInNew sx={{ pl: 0.5 }} fontSize='small' />
                     </AppLink>
                   }
                   secondaryTypographyProps={{ component: 'div' }}
@@ -126,10 +123,7 @@ export default function AdminMessageLogDrawer(props: Props): React.JSX.Element {
                       newTab
                     >
                       {log.serviceName}
-                      <OpenInNew
-                        sx={{ pl: 0.5 }}
-                        fontSize='small'
-                      />
+                      <OpenInNew sx={{ pl: 0.5 }} fontSize='small' />
                     </AppLink>
                   }
                   secondaryTypographyProps={{ component: 'div' }}
@@ -147,10 +141,7 @@ export default function AdminMessageLogDrawer(props: Props): React.JSX.Element {
                       newTab
                     >
                       {log.alertID}
-                      <OpenInNew
-                        sx={{ pl: 0.5 }}
-                        fontSize='small'
-                      />
+                      <OpenInNew sx={{ pl: 0.5 }} fontSize='small' />
                     </AppLink>
                   }
                   secondaryTypographyProps={{ component: 'div' }}

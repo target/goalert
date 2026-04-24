@@ -1,9 +1,7 @@
 import { Theme } from '@mui/material/styles'
 import { SxProps } from '@mui/material'
 
-export const styles = (
-  theme: Theme,
-): Record<string, SxProps<Theme>> => ({
+export const styles = (theme: Theme): Record<string, SxProps<Theme>> => ({
   // used on details pages on desktop
   card: {
     width: '75%',

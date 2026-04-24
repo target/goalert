@@ -85,11 +85,7 @@ export default function ServiceOnCallList({
 
   return (
     <Card>
-      <CardHeader
-        sx={gs.cardHeader}
-        component='h3'
-        title='On Call Users'
-      />
+      <CardHeader sx={gs.cardHeader} component='h3' title='On Call Users' />
       <CompList emptyMessage='No users on-call for this service'>
         {error && (
           <CompListItemText

@@ -23,7 +23,6 @@ export type Action = {
 }
 
 export default function CardActions(p: CardActionProps): React.JSX.Element {
-
   const action = (
     action: Action | JSX.Element,
     key: string,

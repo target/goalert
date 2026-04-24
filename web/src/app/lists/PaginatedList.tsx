@@ -155,7 +155,9 @@ export function PaginatedList(props: PaginatedListProps): React.JSX.Element {
           }}
         />
         {favIcon}
-        {item.action && <div style={{ paddingLeft: '14px' }}>{item.action}</div>}
+        {item.action && (
+          <div style={{ paddingLeft: '14px' }}>{item.action}</div>
+        )}
       </React.Fragment>
     )
 
@@ -243,7 +245,13 @@ export function PaginatedList(props: PaginatedListProps): React.JSX.Element {
           )
         }
         loader={
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '0.25em 0 0.25em 0' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              padding: '0.25em 0 0.25em 0',
+            }}
+          >
             <Spinner text='Loading...' />
           </div>
         }

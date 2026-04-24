@@ -75,25 +75,28 @@ export default function Search(props) {
           minWidth: 250,
           backgroundColor: theme.palette.mode === 'dark' ? 'inherit' : 'white',
           borderRadius: '4px',
-          ...((props.transition ?? true) ? {
-            [theme.breakpoints.down('md')]: {
-              flex: 1,
-            },
-            [theme.breakpoints.up('md')]: {
-              '& input:focus': {
-                minWidth: 275,
-              },
-              '& input:not(:placeholder-shown)': {
-                minWidth: 275,
-              },
-              '& input': {
-                minWidth: 180,
-                transitionProperty: 'min-width',
-                transitionDuration: theme.transitions.duration.standard,
-                transitionTimingFunction: theme.transitions.easing.easeInOut,
-              },
-            },
-          } : {}),
+          ...((props.transition ?? true)
+            ? {
+                [theme.breakpoints.down('md')]: {
+                  flex: 1,
+                },
+                [theme.breakpoints.up('md')]: {
+                  '& input:focus': {
+                    minWidth: 275,
+                  },
+                  '& input:not(:placeholder-shown)': {
+                    minWidth: 275,
+                  },
+                  '& input': {
+                    minWidth: 180,
+                    transitionProperty: 'min-width',
+                    transitionDuration: theme.transitions.duration.standard,
+                    transitionTimingFunction:
+                      theme.transitions.easing.easeInOut,
+                  },
+                },
+              }
+            : {}),
         })}
       />
     )

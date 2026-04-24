@@ -63,7 +63,13 @@ export default function FormDialog(props) {
     return (
       <DialogContent sx={{ height: '100%', paddingTop: '8px' }}>
         <Form
-          style={{ paddingTop: '1em', width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}
+          style={{
+            paddingTop: '1em',
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
           id='dialog-form'
           onSubmit={(e, valid) => {
             e.preventDefault()

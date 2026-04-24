@@ -58,12 +58,10 @@ export default function AdminSection(
           return (
             <ListItem
               key={f.id}
-              sx={(theme) => ({
+              sx={() => ({
                 minHeight: '71px',
                 padding: '1em',
-                ...(_.has(value, f.id)
-                  ? { bgcolor: 'action.selected' }
-                  : {}),
+                ...(_.has(value, f.id) ? { bgcolor: 'action.selected' } : {}),
               })}
               divider={idx !== fields.length - 1}
             >

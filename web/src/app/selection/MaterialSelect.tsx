@@ -125,7 +125,9 @@ export default function MaterialSelect(
   const autocompleteSx = {
     [`& .${autocompleteClasses.option}`]: { padding: 0 },
     [`& .${autocompleteClasses.clearIndicator}`]: { display: 'none' },
-    ...(noOptionsError ? { [`& .${autocompleteClasses.noOptions}`]: { padding: 0 } } : {}),
+    ...(noOptionsError
+      ? { [`& .${autocompleteClasses.noOptions}`]: { padding: 0 } }
+      : {}),
   }
 
   function isSelected(val: string): boolean {
@@ -241,15 +243,19 @@ export default function MaterialSelect(
           selected={isSelected(value)}
           data-cy='search-select-item'
         >
-          <List sx={{ width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center', p: 0 }}>
+          <List
+            sx={{
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              p: 0,
+            }}
+          >
             <ListItem>
               <ListItemText primary={label} secondary={subText || null} />
             </ListItem>
-            {icon && (
-              <ListItemIcon sx={{ minWidth: 0 }}>
-                {icon}
-              </ListItemIcon>
-            )}
+            {icon && <ListItemIcon sx={{ minWidth: 0 }}>{icon}</ListItemIcon>}
             {disableCloseOnSelect && isSelected(value) && (
               <ListItemIcon sx={{ minWidth: 0 }}>
                 <Check color='info' />

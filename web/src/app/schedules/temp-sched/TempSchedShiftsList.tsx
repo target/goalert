@@ -79,7 +79,14 @@ export default function TempSchedShiftsList({
   // wait for zone
   if (zone === '') {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', marginTop: '15rem' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          flexDirection: 'column',
+          marginTop: '15rem',
+        }}
+      >
         <CircularProgress />
       </div>
     )
