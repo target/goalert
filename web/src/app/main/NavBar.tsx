@@ -2,8 +2,6 @@ import React from 'react'
 import Divider from '@mui/material/Divider'
 import List from '@mui/material/List'
 import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles'
-import { styles as globalStyles } from '../styles/materialStyles'
 import {
   Group,
   Layers,
@@ -15,31 +13,14 @@ import {
   DeveloperBoard,
 } from '@mui/icons-material'
 import { WizardHat as WizardIcon } from 'mdi-material-ui'
-import { Theme, useTheme } from '@mui/material/styles'
+import { useTheme } from '@mui/material/styles'
 import RequireConfig from '../util/RequireConfig'
-import NavBarLink, { NavBarSubLink } from './NavBarLink'
 
+import NavBarLink, { NavBarSubLink } from './NavBarLink'
 import logoImgSrc from '../public/logos/lightmode_logo.svg'
 import darkModeLogoImgSrc from '../public/logos/darkmode_logo.svg'
 
-const useStyles = makeStyles((theme: Theme) => ({
-  ...globalStyles(theme),
-  logoDiv: {
-    ...theme.mixins.toolbar,
-    paddingLeft: 8,
-  },
-  navIcon: {
-    width: '1em',
-    height: '1em',
-    fontSize: '24px',
-  },
-  list: {
-    padding: 0,
-  },
-}))
-
 export default function NavBar(): React.JSX.Element {
-  const classes = useStyles()
   const theme = useTheme()
 
   let localDevFooter = null
@@ -69,7 +50,7 @@ export default function NavBar(): React.JSX.Element {
           justifyContent: 'left',
         }}
       >
-        <a href='/' aria-hidden className={classes.logoDiv}>
+        <a href='/' aria-hidden style={{ ...theme.mixins.toolbar, paddingLeft: 8 }}>
           {logo}
         </a>
         <Typography variant='h5' sx={{ pl: 1 }}>
@@ -78,7 +59,7 @@ export default function NavBar(): React.JSX.Element {
       </div>
       <Divider />
       <nav>
-        <List role='navigation' className={classes.list} data-cy='nav-list'>
+        <List role='navigation' sx={{ p: 0 }} data-cy='nav-list'>
           <NavBarLink to='/alerts' title='Alerts' icon={<Notifications />} />
           <NavBarLink
             to='/rotations'

@@ -6,8 +6,8 @@ import Typography from '@mui/material/Typography'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Divider from '@mui/material/Divider'
-import makeStyles from '@mui/styles/makeStyles'
-import { Theme, useTheme } from '@mui/material'
+import Box from '@mui/material/Box'
+import { useTheme } from '@mui/material'
 import { getParameterByName } from '../../util/query_param'
 import { pathPrefix } from '../../env'
 
@@ -16,13 +16,12 @@ import darkModeLogoImgSrc from '../../public/logos/darkmode_logo.svg'
 
 const PROVIDERS_URL = pathPrefix + '/api/v2/identity/providers'
 
-const useStyles = makeStyles((theme: Theme) => ({
+const loginStyles = {
   root: {
     flexGrow: 1,
     zIndex: 1,
-    position: 'relative',
+    position: 'relative' as const,
     display: 'flex',
-    backgroundColor: theme.palette.background.default,
     height: '100%',
   },
   card: {
@@ -30,12 +29,12 @@ const useStyles = makeStyles((theme: Theme) => ({
     maxWidth: '30em',
   },
   center: {
-    position: 'fixed',
+    position: 'fixed' as const,
     top: '40%',
     left: '50%',
     WebkitTransform: 'translate(-50%, -40%)',
     transform: 'translateY(-50%, -40%)',
-    textAlign: 'center',
+    textAlign: 'center' as const,
   },
   divider: {
     width: '9em',
@@ -63,7 +62,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     paddingLeft: '1em',
     paddingRight: '1em',
   },
-}))
+}
 
 type Field = {
   ID: string
@@ -82,7 +81,6 @@ type Provider = {
 }
 
 export default function Login(): React.JSX.Element {
-  const classes = useStyles()
   const theme = useTheme()
   const [error, setError] = useState(getParameterByName('login_error') || '')
   const [providers, setProviders] = useState([])
@@ -129,10 +127,10 @@ export default function Login(): React.JSX.Element {
   ): React.JSX.Element | undefined {
     if (idx + 1 < len) {
       return (
-        <Grid item xs={12} className={classes.hasNext}>
-          <Divider className={classes.divider} />
-          <Typography className={classes.or}>or</Typography>
-          <Divider className={classes.divider} />
+        <Grid item xs={12} style={loginStyles.hasNext}>
+          <Divider sx={loginStyles.divider} />
+          <Typography sx={loginStyles.or}>or</Typography>
+          <Divider sx={loginStyles.divider} />
         </Grid>
       )
     }
@@ -160,7 +158,7 @@ export default function Login(): React.JSX.Element {
     // create login button
     let loginButton = null
     const loginIcon = logoUrl ? (
-      <img alt='GoAlert' src={logoUrl} className={classes.loginIcon} />
+      <img alt='GoAlert' src={logoUrl} style={loginStyles.loginIcon} />
     ) : null
     if (fields) {
       loginButton = (
@@ -208,7 +206,7 @@ export default function Login(): React.JSX.Element {
   if (error) {
     errorJSX = (
       <Grid item xs={12}>
-        <Typography variant='subtitle1' className={classes.error}>
+        <Typography variant='subtitle1' sx={loginStyles.error}>
           {error.toString()}
         </Typography>
       </Grid>
@@ -223,11 +221,11 @@ export default function Login(): React.JSX.Element {
     )
 
   return (
-    <div className={classes.root}>
-      <div className={classes.center}>
-        <Card className={classes.card}>
+    <Box sx={(theme) => ({ ...loginStyles.root, backgroundColor: theme.palette.background.default })}>
+      <div style={loginStyles.center}>
+        <Card sx={loginStyles.card}>
           <CardContent>
-            <Grid container spacing={2} className={classes.gridContainer}>
+            <Grid container spacing={2} style={loginStyles.gridContainer}>
               <Grid container sx={{ justifyContent: 'center' }}>
                 <Grid item>{logo}</Grid>
                 <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
@@ -244,6 +242,6 @@ export default function Login(): React.JSX.Element {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </Box>
   )
 }
