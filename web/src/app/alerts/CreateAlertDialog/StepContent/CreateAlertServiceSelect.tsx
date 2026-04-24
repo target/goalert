@@ -15,9 +15,7 @@ import {
   FormLabel,
   FormControl,
   Box,
-  Theme,
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import ServiceLabelFilterContainer from '../../../services/ServiceFilterContainer'
 import { Search as SearchIcon } from '@mui/icons-material'
 import { FavoriteIcon } from '../../../util/SetFavoriteButton'
@@ -41,34 +39,6 @@ const query = gql`
     }
   }
 `
-
-const useStyles = makeStyles((theme: Theme) => ({
-  addAll: {
-    marginRight: '0.25em',
-  },
-  chipContainer: {
-    padding: theme.spacing(0.5),
-    height: '9em',
-    overflow: 'auto',
-    border: '1px solid #bdbdbd',
-  },
-  endAdornment: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-  noticeText: {
-    width: '100%',
-    textAlign: 'center',
-    alignSelf: 'center',
-    lineHeight: '9em',
-  },
-  searchInput: {
-    marginTop: theme.spacing(2),
-  },
-  serviceChip: {
-    margin: 3,
-  },
-}))
 
 export interface CreateAlertServiceSelectProps {
   value: string[]
@@ -100,7 +70,6 @@ export function CreateAlertServiceSelect(
   })
 
   const fieldRef = useRef<HTMLElement>(null)
-  const classes = useStyles()
   const searchResults = _.get(data, 'services.nodes', []).filter(
     ({ id }: { id: string }) => !value.includes(id),
   )
@@ -145,7 +114,7 @@ export function CreateAlertServiceSelect(
         key={id}
         clickable={false}
         id={id}
-        className={classes.serviceChip}
+        style={{ margin: 3 }}
         onClick={(e) => e.preventDefault()}
         onDelete={() => props.onChange(value.filter((v) => v !== id))}
       />
@@ -153,7 +122,16 @@ export function CreateAlertServiceSelect(
   })
 
   const notice = (
-    <Typography variant='body1' component='p' className={classes.noticeText}>
+    <Typography
+      variant='body1'
+      component='p'
+      sx={{
+        width: '100%',
+        textAlign: 'center',
+        alignSelf: 'center',
+        lineHeight: '9em',
+      }}
+    >
       Select services using the search box below
     </Typography>
   )
@@ -171,7 +149,12 @@ export function CreateAlertServiceSelect(
       </FormLabel>
       <FormControl fullWidth error={Boolean(props.error)}>
         <Paper
-          className={classes.chipContainer}
+          sx={(theme) => ({
+            padding: theme.spacing(0.5),
+            height: '9em',
+            overflow: 'auto',
+            border: '1px solid #bdbdbd',
+          })}
           elevation={0}
           data-cy='service-chip-container'
         >
@@ -189,7 +172,7 @@ export function CreateAlertServiceSelect(
         label='Search'
         name='serviceSearch'
         value={searchUserInput}
-        className={classes.searchInput}
+        sx={(theme) => ({ mt: theme.spacing(2) })}
         onChange={(e) => setSearchUserInput(e.target.value)}
         InputProps={{
           ref: fieldRef,
@@ -199,11 +182,11 @@ export function CreateAlertServiceSelect(
             </InputAdornment>
           ),
           endAdornment: (
-            <span className={classes.endAdornment}>
+            <span style={{ display: 'flex', alignItems: 'center' }}>
               {searchResults.length > 0 &&
                 value.length < CREATE_ALERT_LIMIT && (
                   <Chip
-                    className={classes.addAll}
+                    sx={{ mr: '0.25em' }}
                     color='primary' // for white text
                     component='button'
                     label='Add All'

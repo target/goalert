@@ -1,10 +1,9 @@
 import React, { MouseEventHandler } from 'react'
-import makeStyles from '@mui/styles/makeStyles'
+import Box from '@mui/material/Box'
 import Button, { ButtonProps } from '@mui/material/Button'
 import MUICardActions from '@mui/material/CardActions'
 import IconButton from '@mui/material/IconButton'
 import Tooltip from '@mui/material/Tooltip'
-import { Theme } from '@mui/material'
 
 interface CardActionProps {
   primaryActions?: Array<Action | JSX.Element>
@@ -23,24 +22,7 @@ export type Action = {
   ButtonProps?: ButtonProps
 }
 
-const useStyles = makeStyles((theme: Theme) => ({
-  cardActions: {
-    alignItems: 'flex-end', // aligns icon buttons to bottom of container
-  },
-  primaryActionsContainer: {
-    padding: 8,
-    width: '100%',
-    '& > button:not(:last-child)': {
-      marginRight: theme.spacing(2),
-    },
-  },
-  autoExpandWidth: {
-    margin: '0 auto',
-  },
-}))
-
 export default function CardActions(p: CardActionProps): React.JSX.Element {
-  const classes = useStyles()
 
   const action = (
     action: Action | JSX.Element,
@@ -56,24 +38,30 @@ export default function CardActions(p: CardActionProps): React.JSX.Element {
   let actions: Array<JSX.Element> = []
   if (p.primaryActions) {
     actions = [
-      <div
+      <Box
         key='primary-actions-container'
-        className={classes.primaryActionsContainer}
+        sx={(theme) => ({
+          padding: 1,
+          width: '100%',
+          '& > button:not(:last-child)': {
+            marginRight: theme.spacing(2),
+          },
+        })}
       >
         {p.primaryActions.map((a, i) => action(a, 'primary' + i))}
-      </div>,
+      </Box>,
     ]
   }
   if (p.secondaryActions) {
     actions = [
       ...actions,
-      <div key='actions-margin' className={classes.autoExpandWidth} />,
+      <div key='actions-margin' style={{ margin: '0 auto' }} />,
       ...p.secondaryActions.map((a, i) => action(a, 'secondary' + i, true)),
     ]
   }
 
   return (
-    <MUICardActions data-cy='card-actions' className={classes.cardActions}>
+    <MUICardActions data-cy='card-actions' sx={{ alignItems: 'flex-end' }}>
       {actions}
     </MUICardActions>
   )

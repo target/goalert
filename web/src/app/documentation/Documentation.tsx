@@ -7,20 +7,12 @@ import webhooks from './sections/Webhooks.md'
 import Markdown from '../util/Markdown'
 import { useConfigValue } from '../util/RequireConfig'
 import { pathPrefix } from '../env'
-import makeStyles from '@mui/styles/makeStyles'
-
-const useStyles = makeStyles({
-  mBottom: {
-    marginBottom: '3rem',
-  },
-})
 
 export default function Documentation(): React.JSX.Element {
   const [publicURL, webhookEnabled] = useConfigValue(
     'General.PublicURL',
     'Webhook.Enable',
   )
-  const classes = useStyles()
 
   // NOTE list markdown documents here
   let markdownDocs = [{ doc: integrationKeys, id: 'integration-keys' }]
@@ -49,7 +41,7 @@ export default function Documentation(): React.JSX.Element {
   return (
     <React.Fragment>
       {markdownDocs.map((md, i) => (
-        <Card key={i} className={classes.mBottom} id={md.id}>
+        <Card key={i} sx={{ mb: '3rem' }} id={md.id}>
           <CardContent>
             <Typography variant='body1' component='div'>
               <Markdown value={md.doc} />

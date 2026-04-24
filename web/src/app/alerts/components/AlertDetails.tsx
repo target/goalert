@@ -13,8 +13,7 @@ import TableCell from '@mui/material/TableCell'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles'
-import { Theme } from '@mui/material/styles'
+import { useTheme } from '@mui/material/styles'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
@@ -54,16 +53,6 @@ interface EscalationPolicyInfo {
   lastEscalation?: string
 }
 
-const useStyles = makeStyles((theme: Theme) => ({
-  card: globalStyles(theme).card,
-  cardContainer: globalStyles(theme).cardContainer,
-  cardFull: globalStyles(theme).cardFull,
-  tableCardContent: globalStyles(theme).tableCardContent,
-  epHeader: {
-    paddingBottom: 8,
-  },
-}))
-
 const localStorage = window.localStorage
 const exactTimesKey = 'show_exact_times'
 
@@ -79,7 +68,8 @@ export default function AlertDetails(
   props: AlertDetailsProps,
 ): React.JSX.Element {
   const [analyticsID] = useConfigValue('General.GoogleAnalyticsID') as [string]
-  const classes = useStyles()
+  const theme = useTheme()
+  const gs = globalStyles(theme)
   const isMobile = useIsWidthDown('sm')
 
   const alertAction = (action: string, mutation: () => void): void => {
@@ -270,7 +260,7 @@ export default function AlertDetails(
         item
         xs={12}
         data-cy='alert-details'
-        className={classes.cardContainer}
+        sx={gs.cardContainer}
       >
         <Card sx={{ width: '100%' }}>
           <CardContent>
@@ -369,7 +359,7 @@ export default function AlertDetails(
       <Grid
         item
         lg={isMobile || noiseReason !== '' ? 12 : 8}
-        className={classes.cardContainer}
+        sx={gs.cardContainer}
       >
         <Card
           sx={{
@@ -412,11 +402,11 @@ export default function AlertDetails(
       {renderAlertDetails()}
 
       {/* Escalation Policy Info */}
-      <Grid item xs={12} className={classes.cardContainer}>
+      <Grid item xs={12} sx={gs.cardContainer}>
         <Card style={{ width: '100%', overflowX: 'auto' }}>
           <CardContent>
             <Typography
-              className={classes.epHeader}
+              sx={{ pb: 1 }}
               component='h3'
               variant='h5'
             >
@@ -438,7 +428,7 @@ export default function AlertDetails(
               </React.Fragment>
             )}
           </CardContent>
-          <CardContent className={classes.tableCardContent}>
+          <CardContent sx={gs.tableCardContent}>
             <Table>
               <TableHead>
                 <TableRow>
@@ -458,7 +448,7 @@ export default function AlertDetails(
       </Grid>
 
       {/* Alert Logs */}
-      <Grid item xs={12} className={classes.cardContainer}>
+      <Grid item xs={12} sx={gs.cardContainer}>
         <Card sx={{ width: '100%' }}>
           <div style={{ display: 'flex' }}>
             <CardContent style={{ flex: 1, paddingBottom: 0 }}>
@@ -478,7 +468,7 @@ export default function AlertDetails(
             />
           </div>
           <CardContent
-            className={classes.tableCardContent}
+            sx={gs.tableCardContent}
             style={{ paddingBottom: 0 }}
           >
             <AlertDetailLogs

@@ -11,19 +11,9 @@ import DestinationField from '../selection/DestinationField'
 import { useEPTargetTypes } from '../util/RequireConfig'
 import { gql, useClient, CombinedError } from 'urql'
 import DialogContentError from '../dialogs/components/DialogContentError'
-import makeStyles from '@mui/styles/makeStyles'
 import { useErrorConsumer } from '../util/ErrorConsumer'
 import { Add } from '../icons'
 import LoadingButton from '../loading/components/LoadingButton'
-
-const useStyles = makeStyles(() => {
-  return {
-    errorContainer: {
-      flexGrow: 0,
-      overflowY: 'visible',
-    },
-  }
-})
 
 export type FormValue = {
   delayMinutes: number
@@ -49,7 +39,6 @@ const query = gql`
 
 export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
   const types = useEPTargetTypes()
-  const classes = useStyles()
   const [destType, setDestType] = useState(types[0].type)
   const [args, setArgs] = useState<StringMap>({})
   const validationClient = useClient()
@@ -75,7 +64,7 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
         error={err}
         key={idx}
         noPadding
-        className={classes.errorContainer}
+        style={{ flexGrow: 0, overflowY: 'visible' }}
       />
     ))
   }

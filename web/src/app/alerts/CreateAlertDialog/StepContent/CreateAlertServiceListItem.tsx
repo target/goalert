@@ -3,8 +3,6 @@ import { gql, useQuery } from '@apollo/client'
 
 import { ListItem, ListItemText, Typography } from '@mui/material'
 
-import makeStyles from '@mui/styles/makeStyles'
-
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import AppLink from '../../../util/AppLink'
 
@@ -17,14 +15,6 @@ const serviceQuery = gql`
   }
 `
 
-const useStyles = makeStyles({
-  listItemText: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-})
-
 interface CreateAlertServiceListItemProps {
   id: string
   err?: string
@@ -34,8 +24,6 @@ export default function CreateAlertServiceListItem(
   props: CreateAlertServiceListItemProps,
 ): React.JSX.Element {
   const { id, err } = props
-
-  const classes = useStyles()
 
   const {
     data,
@@ -56,7 +44,14 @@ export default function CreateAlertServiceListItem(
 
   return (
     <ListItem key={id} divider>
-      <ListItemText disableTypography className={classes.listItemText}>
+      <ListItemText
+        disableTypography
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
         <span>
           <Typography>
             <AppLink to={serviceURL} newTab>

@@ -1,18 +1,8 @@
 import React, { ReactNode } from 'react'
 import { Typography, Grid, Divider } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { ServiceChip } from '../../../util/ServiceChip'
 import { FormField } from '../../../forms'
 import Markdown from '../../../util/Markdown'
-
-const useStyles = makeStyles({
-  itemContent: {
-    marginTop: '0.5em',
-  },
-  itemTitle: {
-    paddingBottom: 0,
-  },
-})
 
 type FieldProps = {
   children: ReactNode
@@ -20,20 +10,19 @@ type FieldProps = {
 }
 
 function Field(props: FieldProps): React.JSX.Element {
-  const classes = useStyles()
   return (
     <Grid item xs={12}>
       <Typography
         variant='subtitle1'
         component='h3'
-        className={classes.itemTitle}
+        sx={{ pb: 0 }}
       >
         {props.label}
       </Typography>
 
       <Divider />
 
-      <div className={classes.itemContent}>{props.children}</div>
+      <div style={{ marginTop: '0.5em' }}>{props.children}</div>
     </Grid>
   )
 }

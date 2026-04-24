@@ -1,5 +1,4 @@
 import React, { cloneElement, forwardRef, ReactNode } from 'react'
-import makeStyles from '@mui/styles/makeStyles'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import Grid from '@mui/material/Grid'
@@ -16,7 +15,14 @@ import AppLink, { AppLinkProps } from '../util/AppLink'
 import { useIsWidthDown } from '../util/useWidth'
 import useStatusColors from '../theme/useStatusColors'
 import { Label } from '../../schema'
-import { Chip } from '@mui/material'
+import { Chip, SxProps, Theme } from '@mui/material'
+
+const classes = {
+  flexHeight: { flexGrow: 1 },
+  fullHeight: { height: '100%' },
+  quickLinks: { pb: 1 },
+  smPageBottom: { mb: 8 },
+} satisfies Record<string, SxProps<Theme>>
 
 interface DetailsPageProps {
   title: string
@@ -41,24 +47,6 @@ type Link = {
   status?: LinkStatus | null
 }
 
-const useStyles = makeStyles({
-  flexHeight: {
-    flexGrow: 1,
-  },
-  fullHeight: {
-    height: '100%', // align height of the first row of cards together
-  },
-  headerContent: {
-    paddingTop: 0,
-  },
-  quickLinks: {
-    paddingBottom: 8,
-  },
-  smPageBottom: {
-    marginBottom: 64,
-  },
-})
-
 const LIApplink = forwardRef<HTMLAnchorElement, AppLinkProps>(
   function LIApplink(props, ref): React.JSX.Element {
     return (
@@ -70,7 +58,6 @@ const LIApplink = forwardRef<HTMLAnchorElement, AppLinkProps>(
 )
 
 export default function DetailsPage(p: DetailsPageProps): React.JSX.Element {
-  const classes = useStyles()
   const isMobile = useIsWidthDown('sm')
   const statusColors = useStatusColors()
 
@@ -104,9 +91,9 @@ export default function DetailsPage(p: DetailsPageProps): React.JSX.Element {
 
       {/* Header card */}
       <Grid item xs={12} lg={!isMobile && p.links?.length ? 8 : 12}>
-        <Card className={classes.fullHeight}>
+        <Card sx={classes.fullHeight}>
           <Grid
-            className={classes.fullHeight}
+            sx={classes.fullHeight}
             item
             xs
             container
@@ -152,7 +139,7 @@ export default function DetailsPage(p: DetailsPageProps): React.JSX.Element {
               </Grid>
             )}
 
-            <Grid className={classes.flexHeight} item />
+            <Grid sx={classes.flexHeight} item />
             {(p.primaryActions?.length || p.secondaryActions?.length) && (
               <Grid item>
                 <CardActions
@@ -168,7 +155,7 @@ export default function DetailsPage(p: DetailsPageProps): React.JSX.Element {
       {/* Quick Links */}
       {links.length > 0 && (
         <Grid item xs={12} lg={!isMobile && links.length ? 4 : 12}>
-          <Card className={classes.fullHeight}>
+          <Card sx={classes.fullHeight}>
             <CardHeader
               title='Quick Links'
               titleTypographyProps={{
@@ -176,7 +163,7 @@ export default function DetailsPage(p: DetailsPageProps): React.JSX.Element {
                 component: 'h2',
               }}
             />
-            <List data-cy='route-links' className={classes.quickLinks} dense>
+            <List data-cy='route-links' sx={classes.quickLinks} dense>
               {links.map((li, idx) => (
                 <ListItemButton
                   key={idx}
@@ -206,7 +193,7 @@ export default function DetailsPage(p: DetailsPageProps): React.JSX.Element {
       {/* Primary Page Content */}
       {p.pageContent && (
         <Grid
-          className={isMobile ? classes.smPageBottom : undefined}
+          sx={isMobile ? classes.smPageBottom : undefined}
           item
           xs={12}
         >
