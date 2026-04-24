@@ -100,7 +100,7 @@ export default function AdminNumberLookup(): React.JSX.Element {
         <Card>
           <CardContent>
             <Grid container spacing={2}>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TelTextField
                   onChange={(e) => {
                     setNumber(e.target.value)

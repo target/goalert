@@ -32,7 +32,7 @@ export default function IntegrationKeyForm(
   return (
     <FormContainer {...formProps} optionalLabels>
       <Grid container spacing={2}>
-        <Grid item style={{ flexGrow: 1 }} xs={12}>
+        <Grid size={12} style={{ flexGrow: 1 }}>
           <FormField
             fullWidth
             component={TextField}
@@ -41,7 +41,7 @@ export default function IntegrationKeyForm(
             required
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             component={TextField}

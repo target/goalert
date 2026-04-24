@@ -5,7 +5,6 @@ import { InputProps } from '@mui/material/Input'
 import { Check, Close } from '@mui/icons-material'
 import _ from 'lodash'
 import InputAdornment from '@mui/material/InputAdornment'
-import makeStyles from '@mui/styles/makeStyles'
 import { DEBOUNCE_DELAY } from '../config'
 
 const isValidNumber = gql`
@@ -17,21 +16,11 @@ const isValidNumber = gql`
   }
 `
 
-const useStyles = makeStyles({
-  valid: {
-    fill: 'green',
-  },
-  invalid: {
-    fill: 'red',
-  },
-})
-
 const noSuspense = { suspense: false }
 
 export default function TelTextField(
   props: TextFieldProps & { value: string },
 ): JSX.Element {
-  const classes = useStyles()
   const [phoneNumber, setPhoneNumber] = useState('')
 
   // debounce to set the phone number
@@ -58,9 +47,9 @@ export default function TelTextField(
   if (!props.value) {
     // no adornment if empty
   } else if (valid) {
-    adorn = <Check className={classes.valid} />
+    adorn = <Check sx={{ fill: 'green' }} />
   } else if (valid === false) {
-    adorn = <Close className={classes.invalid} />
+    adorn = <Close sx={{ fill: 'red' }} />
   }
 
   let iprops: Partial<InputProps>

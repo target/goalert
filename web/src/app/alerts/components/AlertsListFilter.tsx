@@ -3,47 +3,26 @@ import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
 import Popover from '@mui/material/Popover'
 import FilterList from '@mui/icons-material/FilterList'
-import Hidden from '@mui/material/Hidden'
+import Box from '@mui/material/Box'
 import SwipeableDrawer from '@mui/material/SwipeableDrawer'
 import Switch from '@mui/material/Switch'
 import Grid from '@mui/material/Grid'
-import makeStyles from '@mui/styles/makeStyles'
-import { Theme } from '@mui/material/styles'
+import { useTheme } from '@mui/material/styles'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import FormControl from '@mui/material/FormControl'
-import classnames from 'classnames'
 import { useURLParam, useResetURLParams } from '../../actions'
 import { useIsWidthDown } from '../../util/useWidth'
-
-const useStyles = makeStyles((theme: Theme) => ({
-  filterActions: globalStyles(theme).filterActions,
-  drawer: {
-    width: 'fit-content', // width placed on mobile drawer
-  },
-  grid: {
-    margin: '0.5em', // margin in grid container
-  },
-  gridItem: {
-    display: 'flex',
-    alignItems: 'center', // aligns text with toggles
-  },
-  formControl: {
-    width: '100%', // date pickers full width
-  },
-  popover: {
-    width: '17em', // width placed on desktop popover
-  },
-}))
 
 interface AlertsListFilterProps {
   serviceID: string
 }
 
 function AlertsListFilter(props: AlertsListFilterProps): React.JSX.Element {
-  const classes = useStyles()
+  const theme = useTheme()
+  const gs = globalStyles(theme)
   const [show, setShow] = useState(false)
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
 
@@ -58,10 +37,6 @@ function AlertsListFilter(props: AlertsListFilterProps): React.JSX.Element {
   )
   const resetAll = useResetURLParams('filter', 'allServices', 'fullTime') // don't reset search param
   const isMobile = useIsWidthDown('md')
-  const gridClasses = classnames(
-    classes.grid,
-    isMobile ? classes.drawer : classes.popover,
-  )
 
   function handleOpenFilters(event: MouseEvent<HTMLButtonElement>): void {
     setAnchorEl(event.currentTarget)
@@ -91,8 +66,15 @@ function AlertsListFilter(props: AlertsListFilterProps): React.JSX.Element {
     }
 
     const content = (
-      <Grid container spacing={2} className={gridClasses}>
-        <Grid item xs={12} className={classes.gridItem}>
+      <Grid
+        container
+        spacing={2}
+        sx={[
+          { margin: '0.5em' },
+          isMobile ? { width: 'fit-content' } : { width: '17em' },
+        ]}
+      >
+        <Grid size={12} sx={{ display: 'flex', alignItems: 'center' }}>
           <FormControl>
             {favoritesFilter}
             <FormControlLabel
@@ -138,7 +120,7 @@ function AlertsListFilter(props: AlertsListFilterProps): React.JSX.Element {
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} className={classes.filterActions}>
+        <Grid size={12} sx={gs.filterActions}>
           <Button onClick={resetAll}>Reset</Button>
           <Button onClick={handleCloseFilters}>Done</Button>
         </Grid>
@@ -148,7 +130,7 @@ function AlertsListFilter(props: AlertsListFilterProps): React.JSX.Element {
     // renders a popover on desktop, and a swipeable drawer on mobile devices
     return (
       <React.Fragment>
-        <Hidden mdDown>
+        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
           <Popover
             anchorEl={anchorEl}
             open={!!anchorEl && show}
@@ -164,8 +146,8 @@ function AlertsListFilter(props: AlertsListFilterProps): React.JSX.Element {
           >
             {content}
           </Popover>
-        </Hidden>
-        <Hidden mdUp>
+        </Box>
+        <Box sx={{ display: { xs: 'block', md: 'none' } }}>
           <SwipeableDrawer
             anchor='top'
             disableDiscovery
@@ -179,7 +161,7 @@ function AlertsListFilter(props: AlertsListFilterProps): React.JSX.Element {
           >
             {content}
           </SwipeableDrawer>
-        </Hidden>
+        </Box>
       </React.Fragment>
     )
   }

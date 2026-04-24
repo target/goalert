@@ -10,8 +10,6 @@ import {
   MenuItem,
   Tooltip,
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
-import { DateTime, DateTimeFormatOptions, Duration, Interval } from 'luxon'
 import React, { Suspense, useCallback, useMemo, useState } from 'react'
 import CreateFAB from '../lists/CreateFAB'
 import FlatList, { FlatListListItem } from '../lists/FlatList'
@@ -30,6 +28,8 @@ import {
   TempSchedValue,
   defaultTempSchedValue,
 } from './temp-sched/sharedUtils'
+import { DateTime, DateTimeFormatOptions, Duration, Interval } from 'luxon'
+
 import TempSchedDialog from './temp-sched/TempSchedDialog'
 
 // query name is important, as it's used for refetching data after mutations
@@ -61,12 +61,6 @@ const durString = (dur: Duration): string => {
   return `${dur.days} day${dur.days > 1 ? 's' : ''}`
 }
 
-const useStyles = makeStyles({
-  datePicker: {
-    width: '100%',
-  },
-})
-
 interface ScheduleShiftListProps {
   scheduleID: string
 }
@@ -76,7 +70,6 @@ const context = { suspense: false }
 function ScheduleShiftList({
   scheduleID,
 }: ScheduleShiftListProps): JSX.Element {
-  const classes = useStyles()
   const isMobile = useIsWidthDown('md')
 
   const [specifyDuration, setSpecifyDuration] = useState(false)
@@ -344,7 +337,7 @@ function ScheduleShiftList({
                   setSpecifyDuration(false)
                 }}
               >
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <FormControlLabel
                     control={
                       <Switch
@@ -356,9 +349,9 @@ function ScheduleShiftList({
                     label='Active shifts only'
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <ISODatePicker
-                    className={classes.datePicker}
+                    style={{ width: '100%' }}
                     disabled={activeOnly}
                     label='Start Date'
                     name='filterStart'
@@ -367,10 +360,8 @@ function ScheduleShiftList({
                     fullWidth
                   />
                 </Grid>
-                <Grid item xs={12}>
-                  {renderDurationSelector()}
-                </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>{renderDurationSelector()}</Grid>
+                <Grid size={12}>
                   <UserSelect
                     label='Filter users...'
                     multiple

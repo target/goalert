@@ -1,7 +1,6 @@
 import React from 'react'
 import { useLocation } from 'wouter'
 import List from '@mui/material/List'
-import makeStyles from '@mui/styles/makeStyles'
 import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
 import ListItemIcon from '@mui/material/ListItemIcon'
@@ -9,36 +8,35 @@ import Typography from '@mui/material/Typography'
 import { styles } from '../styles/materialStyles'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Collapse, Theme } from '@mui/material'
+import type { SxProps } from '@mui/material'
 import AppLink from '../util/AppLink'
 import { OpenInNew } from '@mui/icons-material'
+import { useTheme } from '@mui/material/styles'
 
-const useStyles = makeStyles((theme: Theme) => {
+function useNavClasses(theme: Theme): {
+  nav: SxProps<Theme>
+  navSelected: SxProps<Theme>
+  subMenuLinkText: SxProps<Theme>
+  dropdown: (open: boolean) => SxProps<Theme>
+} {
   const { nav, navSelected } = styles(theme)
   return {
-    nav,
-    navSelected,
-    subMenu: {
-      padding: '0',
-    },
+    nav: nav as SxProps<Theme>,
+    navSelected: navSelected as SxProps<Theme>,
     subMenuLinkText: {
       paddingLeft: '3.5rem',
       '& span': {
         fontSize: '.9rem',
       },
-    },
-    dropdown: {
+    } as SxProps<Theme>,
+    dropdown: (open: boolean): SxProps<Theme> => ({
       transition: theme.transitions.create(['transform'], {
         duration: theme.transitions.duration.short,
       }),
-    },
-    dropdownOpen: {
-      transform: 'rotate(0)',
-    },
-    dropdownClosed: {
-      transform: 'rotate(-90deg)',
-    },
+      transform: open ? 'rotate(0)' : 'rotate(-90deg)',
+    }),
   }
-})
+}
 
 export type NavBarSubLinkProps = {
   to: string
@@ -50,16 +48,17 @@ export function NavBarSubLink({
   title,
   newTab,
 }: NavBarSubLinkProps): React.JSX.Element {
-  const { navSelected, nav, subMenuLinkText } = useStyles()
+  const theme = useTheme()
+  const { navSelected, nav, subMenuLinkText } = useNavClasses(theme)
   const [path] = useLocation()
   return (
     <AppLink
-      className={path.startsWith(to) ? navSelected : nav}
+      sx={path.startsWith(to) ? navSelected : nav}
       to={to}
       newTab={newTab}
     >
       <ListItemButton tabIndex={-1}>
-        <ListItemText className={subMenuLinkText}>
+        <ListItemText sx={subMenuLinkText}>
           {title}
           {newTab && (
             <OpenInNew fontSize='small' style={{ paddingLeft: '1em' }} />
@@ -83,7 +82,8 @@ export default function NavBarLink({
   to,
   children,
 }: NavBarLinkProps): React.JSX.Element {
-  const classes = useStyles()
+  const theme = useTheme()
+  const classes = useNavClasses(theme)
   const [path] = useLocation()
   const isRoute = path.startsWith(to)
 
@@ -91,7 +91,7 @@ export default function NavBarLink({
     <React.Fragment>
       <AppLink
         to={to}
-        className={!children && isRoute ? classes.navSelected : classes.nav}
+        sx={!children && isRoute ? classes.navSelected : classes.nav}
       >
         <ListItemButton tabIndex={-1}>
           <ListItemIcon>{icon}</ListItemIcon>
@@ -104,20 +104,13 @@ export default function NavBarLink({
             }
           />
           {children && (
-            <ExpandMoreIcon
-              color='action'
-              className={
-                classes.dropdown +
-                ' ' +
-                (isRoute ? classes.dropdownOpen : classes.dropdownClosed)
-              }
-            />
+            <ExpandMoreIcon color='action' sx={classes.dropdown(isRoute)} />
           )}
         </ListItemButton>
       </AppLink>
       {children && (
         <Collapse in={isRoute} mountOnEnter>
-          <List className={classes.subMenu}>{children}</List>
+          <List sx={{ p: 0 }}>{children}</List>
         </Collapse>
       )}
     </React.Fragment>

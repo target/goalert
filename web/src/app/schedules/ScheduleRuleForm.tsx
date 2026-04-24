@@ -1,5 +1,4 @@
 import React, { ReactNode } from 'react'
-import classNames from 'classnames'
 import { FormContainer, FormField } from '../forms'
 import {
   Grid,
@@ -8,7 +7,6 @@ import {
   TableHead,
   TableRow,
   TableCell,
-  Hidden,
   IconButton,
   TableBody,
   MenuItem,
@@ -16,7 +14,7 @@ import {
   Typography,
   FormHelperText,
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import type { SxProps, Theme } from '@mui/material'
 import { UserSelect, RotationSelect } from '../selection'
 import { startCase } from 'lodash'
 import { Add, Trash } from '../icons'
@@ -72,7 +70,7 @@ const renderDaysValue = (value: string): string => {
   return parts.join(',')
 }
 
-const useStyles = makeStyles({
+const classes = {
   noPadding: {
     padding: 0,
   },
@@ -92,7 +90,7 @@ const useStyles = makeStyles({
     borderCollapse: 'separate',
     borderSpacing: '0px 5px',
   },
-})
+} satisfies Record<string, SxProps<Theme>>
 
 export type ScheduleRuleFormValue = {
   targetID: string
@@ -126,7 +124,6 @@ export default function ScheduleRuleForm(
     targetType,
     ...formProps
   } = props
-  const classes = useStyles()
   const { zone, isLocalZone } = useScheduleTZ(scheduleID)
   const isMobile = useIsWidthDown('md')
 
@@ -136,7 +133,7 @@ export default function ScheduleRuleForm(
   function renderRuleField(idx: number): ReactNode {
     return (
       <TableRow key={idx}>
-        <TableCell className={classNames(classes.startEnd, classes.noBorder)}>
+        <TableCell sx={[classes.startEnd, classes.noBorder]}>
           <FormField
             fullWidth
             noError
@@ -149,7 +146,7 @@ export default function ScheduleRuleForm(
             hint={isLocalZone ? '' : fmtLocal(value.rules[idx].start)}
           />
         </TableCell>
-        <TableCell className={classNames(classes.startEnd, classes.noBorder)}>
+        <TableCell sx={[classes.startEnd, classes.noBorder]}>
           <FormField
             fullWidth
             noError
@@ -162,62 +159,63 @@ export default function ScheduleRuleForm(
             hint={isLocalZone ? '' : fmtLocal(value.rules[idx].end)}
           />
         </TableCell>
-        <Hidden mdDown>
-          {days.map((day, dayIdx) => (
-            <TableCell
-              key={dayIdx}
-              padding='checkbox'
-              className={classes.noBorder}
-            >
-              <FormField
-                noError
-                className={classes.noPadding}
-                component={Checkbox}
-                checkbox
-                disabled={disabled}
-                fieldName={`rules[${idx}].weekdayFilter[${dayIdx}]`}
-                name={day}
-              />
-              <Spacer />
-            </TableCell>
-          ))}
-        </Hidden>
-        <Hidden mdUp>
+        {days.map((day, dayIdx) => (
           <TableCell
-            className={classNames(classes.dayFilter, classes.noBorder)}
+            key={dayIdx}
+            padding='checkbox'
+            sx={[
+              classes.noBorder,
+              { display: { xs: 'none', md: 'table-cell' } },
+            ]}
           >
             <FormField
-              fullWidth
-              component={TextField}
-              select
               noError
-              required
+              style={{ padding: 0 }}
+              component={Checkbox}
+              checkbox
               disabled={disabled}
-              SelectProps={{
-                renderValue: renderDaysValue,
-                multiple: true,
-              }}
-              label=''
-              name={`rules[${idx}].weekdayFilter`}
-              aria-label='Weekday Filter'
-              multiple
-              mapValue={(value: string[]) =>
-                days.filter((d, idx) => value[idx])
-              }
-              mapOnChangeValue={(value: string[]) =>
-                days.map((day) => value.includes(day))
-              }
-            >
-              {days.map((day) => (
-                <MenuItem value={day} key={day}>
-                  {day}
-                </MenuItem>
-              ))}
-            </FormField>
+              fieldName={`rules[${idx}].weekdayFilter[${dayIdx}]`}
+              name={day}
+            />
             <Spacer />
           </TableCell>
-        </Hidden>
-        <TableCell padding='none' className={classes.noBorder}>
+        ))}
+        <TableCell
+          sx={[
+            classes.dayFilter,
+            classes.noBorder,
+            { display: { xs: 'table-cell', md: 'none' } },
+          ]}
+        >
+          <FormField
+            fullWidth
+            component={TextField}
+            select
+            noError
+            required
+            disabled={disabled}
+            SelectProps={{
+              renderValue: renderDaysValue,
+              multiple: true,
+            }}
+            label=''
+            name={`rules[${idx}].weekdayFilter`}
+            aria-label='Weekday Filter'
+            multiple
+            mapValue={(value: string[]) => days.filter((d, idx) => value[idx])}
+            mapOnChangeValue={(value: string[]) =>
+              days.map((day) => value.includes(day))
+            }
+          >
+            {days.map((day) => (
+              <MenuItem value={day} key={day}>
+                {day}
+              </MenuItem>
+            ))}
+          </FormField>
+          <Spacer />
+        </TableCell>
+        <TableCell padding='none' sx={classes.noBorder}>
           {props.value.rules.length > 1 && (
             <IconButton
               aria-label='Delete rule'
@@ -247,7 +245,7 @@ export default function ScheduleRuleForm(
       optionalLabels
     >
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             required
@@ -257,42 +255,42 @@ export default function ScheduleRuleForm(
             name='targetID'
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Typography color='textSecondary' sx={{ fontStyle: 'italic' }}>
             Times shown in schedule timezone ({zone || '...'})
           </Typography>
         </Grid>
-        <Grid item xs={12} style={{ paddingTop: 0 }}>
-          <Table data-cy='target-rules' className={classes.table}>
+        <Grid size={12} style={{ paddingTop: 0 }}>
+          <Table data-cy='target-rules' sx={classes.table}>
             <TableHead>
               <TableRow>
-                <TableCell
-                  className={classNames(classes.startEnd, classes.noBorder)}
-                >
+                <TableCell sx={[classes.startEnd, classes.noBorder]}>
                   Start
                 </TableCell>
-                <TableCell
-                  className={classNames(classes.startEnd, classes.noBorder)}
-                >
+                <TableCell sx={[classes.startEnd, classes.noBorder]}>
                   End
                 </TableCell>
-                <Hidden mdDown>
-                  {days.map((d) => (
-                    <TableCell key={d} padding='checkbox'>
-                      {d.slice(0, 3)}
-                    </TableCell>
-                  ))}
-                </Hidden>
-                <Hidden mdUp>
+                {days.map((d) => (
                   <TableCell
-                    className={classNames(classes.dayFilter, classes.noBorder)}
+                    key={d}
+                    padding='checkbox'
+                    sx={{ display: { xs: 'none', md: 'table-cell' } }}
                   >
-                    Days
+                    {d.slice(0, 3)}
                   </TableCell>
-                </Hidden>
+                ))}
+                <TableCell
+                  sx={[
+                    classes.dayFilter,
+                    classes.noBorder,
+                    { display: { xs: 'table-cell', md: 'none' } },
+                  ]}
+                >
+                  Days
+                </TableCell>
                 <TableCell
                   padding='none'
-                  className={classNames({ [classes.noBorder]: isMobile })}
+                  sx={isMobile ? classes.noBorder : undefined}
                 >
                   <IconButton
                     aria-label='Add rule'

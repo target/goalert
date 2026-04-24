@@ -57,7 +57,7 @@ export const StringListInput = (props: InputProps): React.JSX.Element => {
   return (
     <Grid container spacing={1}>
       {value.map((val, idx) => (
-        <Grid key={idx} item xs={12}>
+        <Grid size={12} key={idx}>
           <StringInput
             type={props.type}
             value={val}

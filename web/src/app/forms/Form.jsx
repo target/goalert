@@ -47,4 +47,5 @@ Form.propTypes = {
   disabled: p.bool,
   children: p.node,
   className: p.string,
+  style: p.object,
 }

@@ -98,16 +98,16 @@ export default function UniversalKeyRuleList(
         }
         subText={
           <Grid container>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <b>If</b>
               <code style={{ paddingLeft: '1em' }}>
                 {truncateCond(rule.conditionExpr)}
               </code>
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <b>Then</b>
             </Grid>
-            <Grid item xs={12} sx={{ paddingLeft: '1em' }}>
+            <Grid size={12} sx={{ paddingLeft: '1em' }}>
               <UniversalKeyActionsList
                 actions={rule.actions}
                 onEdit={(index) =>
@@ -115,7 +115,7 @@ export default function UniversalKeyRuleList(
                 }
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <b>Finally</b> {rule.continueAfterMatch ? 'continue' : 'stop'}
             </Grid>
           </Grid>

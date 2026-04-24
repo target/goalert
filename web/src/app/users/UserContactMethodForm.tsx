@@ -70,7 +70,7 @@ export default function UserContactMethodForm(
       optionalLabels
     >
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={12} md={6}>
+        <Grid size={{ xs: 12, sm: 12, md: 6 }}>
           <TextField
             fullWidth
             name='name'
@@ -85,7 +85,7 @@ export default function UserContactMethodForm(
             }
           />
         </Grid>
-        <Grid item xs={12} sm={12} md={6}>
+        <Grid size={{ xs: 12, sm: 12, md: 6 }}>
           <TextField
             fullWidth
             name='dest.type'
@@ -117,7 +117,7 @@ export default function UserContactMethodForm(
             )}
           </TextField>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <DestinationField
             destType={value.dest.type}
             disabled={props.disabled || edit}
@@ -137,14 +137,14 @@ export default function UserContactMethodForm(
         </Grid>
 
         {currentType?.userDisclaimer !== '' && (
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Typography variant='caption'>
               {currentType?.userDisclaimer}
             </Typography>
           </Grid>
         )}
 
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormControlLabel
             label={statusLabel}
             title='Alert status updates are sent when an alert is acknowledged, closed, or escalated.'

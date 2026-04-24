@@ -9,7 +9,6 @@ import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import Popover from '@mui/material/Popover'
 import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
 import { OverrideDialogContext } from '../../schedules/ScheduleDetails'
 import CardActions from '../../details/CardActions'
@@ -26,19 +25,6 @@ import {
 } from './Calendar'
 import AppLink from '../AppLink'
 
-const useStyles = makeStyles({
-  cardActionContainer: {
-    width: '100%',
-  },
-  flexGrow: {
-    flexGrow: 1,
-  },
-  paper: {
-    padding: 8,
-    maxWidth: 275,
-  },
-})
-
 interface ScheduleCalendarEventWrapperProps {
   children: JSX.Element
   event: ScheduleCalendarEvent
@@ -50,7 +36,6 @@ export default function ScheduleCalendarEventWrapper({
   event,
   showScheduleLink,
 }: ScheduleCalendarEventWrapperProps): JSX.Element {
-  const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
 
   const [showEditDialog, setShowEditDialog] = useState('')
@@ -99,7 +84,7 @@ export default function ScheduleCalendarEventWrapper({
     }
 
     return (
-      <div className={classes.cardActionContainer}>
+      <div style={{ width: '100%' }}>
         <CardActions
           secondaryActions={[
             {
@@ -120,7 +105,7 @@ export default function ScheduleCalendarEventWrapper({
 
   function renderOverrideButtons(calEvent: OverrideEvent): JSX.Element {
     return (
-      <div className={classes.cardActionContainer}>
+      <div style={{ width: '100%' }}>
         <CardActions
           secondaryActions={[
             {
@@ -148,8 +133,8 @@ export default function ScheduleCalendarEventWrapper({
   function renderShiftButtons(calEvent: OnCallShiftEvent): JSX.Element {
     return (
       <React.Fragment>
-        <Grid item className={classes.flexGrow} />
-        <Grid item>
+        <Grid sx={{ flexGrow: 1 }} />
+        <Grid>
           <Button
             data-cy='override'
             size='small'
@@ -169,8 +154,8 @@ export default function ScheduleCalendarEventWrapper({
       const id = event?.targetID ?? ''
       return (
         <React.Fragment>
-          <Grid item className={classes.flexGrow} />
-          <Grid item>
+          <Grid sx={{ flexGrow: 1 }} />
+          <Grid>
             <Button
               variant='contained'
               component={AppLink}
@@ -219,7 +204,7 @@ export default function ScheduleCalendarEventWrapper({
     }
 
     return (
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Typography variant='body2'>
           {getDesc(
             calEvent.override.addUser ?? undefined,
@@ -242,14 +227,14 @@ export default function ScheduleCalendarEventWrapper({
 
     return (
       <Grid container spacing={1}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Typography variant='body2'>
             <b>{showScheduleLink ? event?.user?.name : event?.targetName}</b>
           </Typography>
         </Grid>
         {event.type === 'override' &&
           renderOverrideDescription(event as OverrideEvent)}
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Typography variant='body2'>
             {`${fmt(event.start)}  –  ${fmt(event.end)}`}
           </Typography>
@@ -278,10 +263,8 @@ export default function ScheduleCalendarEventWrapper({
           paper: {
             // @ts-expect-error - DOM attr for tests
             'data-cy': 'shift-tooltip',
+            sx: { padding: 1, maxWidth: 275 },
           },
-        }}
-        classes={{
-          paper: classes.paper,
         }}
       >
         {renderShiftInfo()}

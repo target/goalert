@@ -79,7 +79,7 @@ function UserCreateDialog(props: UserCreateDialogProps): React.ReactNode {
           optionalLabels
         >
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <FormField
                 fullWidth
                 component={TextField}
@@ -87,7 +87,7 @@ function UserCreateDialog(props: UserCreateDialogProps): React.ReactNode {
                 required
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <FormField
                 fullWidth
                 component={TextField}
@@ -97,7 +97,7 @@ function UserCreateDialog(props: UserCreateDialogProps): React.ReactNode {
                 required
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <FormField
                 fullWidth
                 component={TextField}
@@ -113,7 +113,7 @@ function UserCreateDialog(props: UserCreateDialogProps): React.ReactNode {
                 }}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <FormField
                 fullWidth
                 component={TextField}
@@ -121,7 +121,7 @@ function UserCreateDialog(props: UserCreateDialogProps): React.ReactNode {
                 label='Display Name'
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <FormField
                 fullWidth
                 component={TextField}
@@ -129,7 +129,7 @@ function UserCreateDialog(props: UserCreateDialogProps): React.ReactNode {
                 type='email'
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <FormControlLabel
                 control={
                   <FormField component={Checkbox} checkbox name='isAdmin' />

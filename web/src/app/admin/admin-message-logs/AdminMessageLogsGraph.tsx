@@ -116,7 +116,7 @@ export default function AdminMessageLogsGraph(): React.JSX.Element {
   }
 
   return (
-    <Grid item xs={12}>
+    <Grid size={12}>
       <Accordion defaultExpanded>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <CardHeader
@@ -136,7 +136,7 @@ export default function AdminMessageLogsGraph(): React.JSX.Element {
               fontFamily: theme.typography.body2.fontFamily,
             }}
           >
-            <Grid item>
+            <Grid>
               <CardContent
                 sx={{ display: 'flex', alignItems: 'center', pt: 0 }}
               >
@@ -157,12 +157,7 @@ export default function AdminMessageLogsGraph(): React.JSX.Element {
                 </Select>
               </CardContent>
             </Grid>
-            <Grid
-              item
-              xs={12}
-              data-cy='message-logs-graph'
-              sx={{ height: 500 }}
-            >
+            <Grid size={12} data-cy='message-logs-graph' sx={{ height: 500 }}>
               <AutoSizer>
                 {({ width, height }: { width: number; height: number }) => (
                   <LineChart

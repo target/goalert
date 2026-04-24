@@ -1,7 +1,6 @@
 import React from 'react'
 import { Grid, Paper, Typography } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles/makeStyles'
-import { Theme, useTheme } from '@mui/material/styles'
+import { useTheme } from '@mui/material/styles'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import Spinner from '../../loading/components/Spinner'
 import {
@@ -14,32 +13,26 @@ import {
   Bar,
   Legend,
 } from 'recharts'
+import './AlertCountGraph.css'
 
 interface AlertCountGraphProps {
   data: React.ComponentProps<typeof ComposedChart>['data']
   loading: boolean
 }
 
-const useStyles = makeStyles((theme: Theme) => ({
-  graphContent: {
-    height: '500px',
-    fontFamily: theme.typography.body2.fontFamily,
-  },
-  bar: {
-    '&:hover': {
-      cursor: 'pointer',
-    },
-  },
-}))
-
 export default function AlertCountGraph(
   props: AlertCountGraphProps,
 ): JSX.Element {
-  const classes = useStyles()
   const theme = useTheme()
   return (
-    <Grid container className={classes.graphContent}>
-      <Grid item xs={12} data-cy='metrics-count-graph'>
+    <Grid
+      container
+      sx={{
+        height: '500px',
+        fontFamily: theme.typography.body2.fontFamily,
+      }}
+    >
+      <Grid size={12} data-cy='metrics-count-graph'>
         <Typography color='textSecondary' sx={{ ml: '3rem', pt: 1 }}>
           Showing data for closed alerts
         </Typography>
@@ -104,7 +97,7 @@ export default function AlertCountGraph(
                     ? theme.palette.secondary.dark
                     : theme.palette.secondary.light
                 }
-                className={classes.bar}
+                className='recharts-bar-hover'
                 name='Total Alerts'
               />
               <Area

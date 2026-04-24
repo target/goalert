@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { Grid, Paper, Typography } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles/makeStyles'
-import { Theme, useTheme } from '@mui/material/styles'
+import { useTheme } from '@mui/material/styles'
 import { DateTime, DateTimeUnit } from 'luxon'
 import {
   blueGrey,
@@ -33,18 +32,6 @@ interface AlertCountLineGraphProps {
   loading: boolean
   unit: DateTimeUnit
 }
-
-const useStyles = makeStyles((theme: Theme) => ({
-  graphContent: {
-    height: '500px',
-    fontFamily: theme.typography.body2.fontFamily,
-  },
-  bar: {
-    '&:hover': {
-      cursor: 'pointer',
-    },
-  },
-}))
 
 // Symbol used to store the timestamp in the payload without
 // interfering with the data keys.
@@ -79,7 +66,6 @@ export default function AlertCountLineGraph(
   props: AlertCountLineGraphProps,
 ): React.JSX.Element {
   const [active, setActive] = useState('')
-  const classes = useStyles()
   const theme = useTheme()
 
   function chooseColor(idx: number): string {
@@ -143,8 +129,14 @@ export default function AlertCountLineGraph(
   const data = React.useMemo(() => flattenData(props.data), [props.data])
 
   return (
-    <Grid container className={classes.graphContent}>
-      <Grid item xs={12} data-cy='alert-count-graph'>
+    <Grid
+      container
+      sx={{
+        height: '500px',
+        fontFamily: (theme) => theme.typography.body2.fontFamily,
+      }}
+    >
+      <Grid size={12} data-cy='alert-count-graph'>
         {props.loading && <Spinner />}
         <AutoSizer>
           {({ width, height }: { width: number; height: number }) => (

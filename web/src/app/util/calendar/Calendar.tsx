@@ -1,7 +1,7 @@
 import React, { ReactElement, useContext } from 'react'
-import { Card, Button } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { Box, Card, Button } from '@mui/material'
 import { darken, lighten, useTheme, Theme } from '@mui/material/styles'
+import type { SxProps } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Switch from '@mui/material/Switch'
@@ -38,8 +38,8 @@ function getBorder(theme: Theme): string {
   return '0.5px solid ' + darken(theme.palette.background.paper, 0.2)
 }
 
-const useStyles = makeStyles((theme: Theme) => ({
-  calendar: {
+const calendarClasses = {
+  calendar: (theme: Theme): SxProps<Theme> => ({
     height: '45rem',
     fontFamily: theme.typography.body2.fontFamily,
     fontSize: theme.typography.body2.fontSize,
@@ -50,21 +50,20 @@ const useStyles = makeStyles((theme: Theme) => ({
       {
         border: 'none',
       },
-    // weekly current time divider line
     '& .rbc-time-content .rbc-current-time-indicator': {
       backgroundColor: theme.palette.primary.main,
     },
-  },
-  card: {
+  }),
+  card: (theme: Theme) => ({
     padding: theme.spacing(2),
-  },
-  filterBtn: {
+  }),
+  filterBtn: (theme: Theme) => ({
     marginRight: theme.spacing(1.75),
-  },
-  tempSchedBtn: {
+  }),
+  tempSchedBtn: (theme: Theme) => ({
     marginLeft: theme.spacing(1.75),
-  },
-  overrideTitleIcon: {
+  }),
+  overrideTitleIcon: (theme: Theme) => ({
     verticalAlign: 'middle',
     borderRadius: '50%',
     background: theme.palette.secondary.main,
@@ -72,8 +71,8 @@ const useStyles = makeStyles((theme: Theme) => ({
     height: '100%',
     width: '18px',
     marginRight: '0.25rem',
-  },
-}))
+  }),
+} satisfies Record<string, (theme: Theme) => SxProps<Theme>>
 
 interface CalendarEvent {
   title: React.ReactNode
@@ -145,7 +144,6 @@ function CalendarEventWrapperWithLink(
 }
 
 export default function Calendar(props: CalendarProps): JSX.Element {
-  const classes = useStyles()
   const theme = useTheme()
 
   const { scheduleID, shifts, temporarySchedules, showScheduleLink } = props
@@ -216,7 +214,7 @@ export default function Calendar(props: CalendarProps): JSX.Element {
         <div>
           <AccountSwitch
             fontSize='small'
-            className={classes.overrideTitleIcon}
+            sx={calendarClasses.overrideTitleIcon(theme)}
             aria-label='Replace Override'
           />
           Override
@@ -229,7 +227,7 @@ export default function Calendar(props: CalendarProps): JSX.Element {
         <div>
           <AccountPlus
             fontSize='small'
-            className={classes.overrideTitleIcon}
+            sx={calendarClasses.overrideTitleIcon(theme)}
             aria-label='Add Override'
           />
           Override
@@ -241,7 +239,7 @@ export default function Calendar(props: CalendarProps): JSX.Element {
       <div>
         <AccountMinus
           fontSize='small'
-          className={classes.overrideTitleIcon}
+          sx={calendarClasses.overrideTitleIcon(theme)}
           aria-label='Remove Override'
         />
         Override
@@ -340,17 +338,17 @@ export default function Calendar(props: CalendarProps): JSX.Element {
           Times shown are in {Intl.DateTimeFormat().resolvedOptions().timeZone}
         </i>
       </Typography>
-      <Card className={classes.card} data-cy='calendar'>
+      <Card sx={calendarClasses.card(theme)} data-cy='calendar'>
         <ScheduleCalendarToolbar
           filter={
             <FilterContainer
               onReset={resetFilter}
               iconButtonProps={{
                 size: 'small',
-                className: classes.filterBtn,
+                sx: calendarClasses.filterBtn(theme),
               }}
             >
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -363,7 +361,7 @@ export default function Calendar(props: CalendarProps): JSX.Element {
                 />
               </Grid>
               {scheduleID && (
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <UserSelect
                     label='Filter users...'
                     multiple
@@ -385,7 +383,7 @@ export default function Calendar(props: CalendarProps): JSX.Element {
                     removeUserReadOnly: false,
                   })
                 }
-                className={classes.tempSchedBtn}
+                sx={calendarClasses.tempSchedBtn(theme)}
                 startIcon={<GroupAdd />}
                 title='Make temporary change to schedule'
               >
@@ -394,27 +392,28 @@ export default function Calendar(props: CalendarProps): JSX.Element {
             )
           }
         />
-        <RBCalendar
-          date={DateTime.fromISO(start).toJSDate()}
-          localizer={localizer}
-          events={getCalEvents(shifts, temporarySchedules, props.overrides)}
-          className={classes.calendar}
-          tooltipAccessor={() => ''}
-          views={['month', 'week']}
-          view={weekly ? 'week' : 'month'}
-          showAllEvents
-          eventPropGetter={eventStyleGetter}
-          dayPropGetter={dayStyleGetter}
-          onNavigate={() => {}} // stub to hide false console err
-          onView={() => {}} // stub to hide false console err
-          components={{
-            // @ts-expect-error Property 'children' does not exist on type - yes it does
-            eventWrapper: showScheduleLink
-              ? CalendarEventWrapperWithLink
-              : CalendarEventWrapper,
-            toolbar: () => null,
-          }}
-        />
+        <Box sx={calendarClasses.calendar(theme)}>
+          <RBCalendar
+            date={DateTime.fromISO(start).toJSDate()}
+            localizer={localizer}
+            events={getCalEvents(shifts, temporarySchedules, props.overrides)}
+            tooltipAccessor={() => ''}
+            views={['month', 'week']}
+            view={weekly ? 'week' : 'month'}
+            showAllEvents
+            eventPropGetter={eventStyleGetter}
+            dayPropGetter={dayStyleGetter}
+            onNavigate={() => {}} // stub to hide false console err
+            onView={() => {}} // stub to hide false console err
+            components={{
+              // @ts-expect-error Property 'children' does not exist on type - yes it does
+              eventWrapper: showScheduleLink
+                ? CalendarEventWrapperWithLink
+                : CalendarEventWrapper,
+              toolbar: () => null,
+            }}
+          />
+        </Box>
       </Card>
     </React.Fragment>
   )

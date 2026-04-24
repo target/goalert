@@ -5,10 +5,9 @@ import {
   Stepper,
   Step,
   StepLabel,
-  Typography,
   Theme,
+  Typography,
 } from '@mui/material'
-import { makeStyles } from '@mui/styles'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import _ from 'lodash'
 import { useCreateAlerts } from './useCreateAlerts'
@@ -26,22 +25,10 @@ export interface Value {
 
 const pluralize = (num: number): string => (num !== 1 ? 's' : '')
 
-const useStyles = makeStyles((theme: Theme) => ({
-  dialog: {
-    [theme.breakpoints.up('md')]: {
-      height: '65vh',
-    },
-  },
-  flexGrow: {
-    flexGrow: 1,
-  },
-}))
-
 export default function CreateAlertDialog(props: {
   onClose: () => void
   serviceID?: string
 }): React.JSX.Element {
-  const classes = useStyles()
   const [step, setStep] = useState(0)
   const serviceID = props.serviceID
 
@@ -101,11 +88,11 @@ export default function CreateAlertDialog(props: {
 
     reviewTitle = (
       <Grid container>
-        <Grid item>
+        <Grid>
           <Typography>{titleMessage}</Typography>
         </Grid>
-        <Grid item className={classes.flexGrow} />
-        <Grid item>
+        <Grid sx={{ flexGrow: 1 }} />
+        <Grid>
           <Button
             variant='contained'
             size='small'
@@ -159,7 +146,11 @@ export default function CreateAlertDialog(props: {
           />
         )
       }
-      PaperProps={{ className: classes.dialog }}
+      PaperProps={{
+        sx: (theme: Theme) => ({
+          [theme.breakpoints.up('md')]: { height: '65vh' },
+        }),
+      }}
       onSubmit={() => (hasCompleted ? props.onClose() : mutate())}
       disableNext={currentStep === 2}
       onNext={onNext}

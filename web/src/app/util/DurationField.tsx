@@ -47,7 +47,7 @@ export const DurationField: React.FC<DurationFieldProps> = (props) => {
 
   return (
     <Grid container sx={{ width: '100%' }}>
-      <Grid item xs={8}>
+      <Grid size={8}>
         <NumberField
           fullWidth
           value={val.toString()}
@@ -62,7 +62,7 @@ export const DurationField: React.FC<DurationFieldProps> = (props) => {
           }}
         />
       </Grid>
-      <Grid item xs={4}>
+      <Grid size={4}>
         <Select
           value={unit}
           onChange={(e) => {

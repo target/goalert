@@ -3,10 +3,9 @@ import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
+import Box from '@mui/material/Box'
 import { FormContainer } from '../forms'
 import _, { defaultTo } from 'lodash'
-import { Theme } from '@mui/material/styles'
-import makeStyles from '@mui/styles/makeStyles'
 import {
   StringInput,
   StringListInput,
@@ -34,34 +33,10 @@ interface AdminSectionProps {
   onChange: (id: string, value: null | string) => void
 }
 
-const useStyles = makeStyles((theme: Theme) => ({
-  listItem: {
-    // leaves some room around fields without descriptions
-    // 71px is the height of the checkbox field without w/o a desc
-    minHeight: '71px',
-    padding: '1em',
-  },
-  listItemText: {
-    maxWidth: '50%',
-    [theme.breakpoints.up('md')]: {
-      maxWidth: '65%',
-    },
-  },
-  listItemAction: {
-    width: '50%',
-    [theme.breakpoints.up('md')]: {
-      width: '35%',
-    },
-    display: 'flex',
-    justifyContent: 'flex-end',
-  },
-}))
-
 export default function AdminSection(
   props: AdminSectionProps,
 ): React.JSX.Element {
   // TODO: add 'reset to default' buttons
-  const classes = useStyles()
   const { fields, value, headerNote } = props
 
   return (
@@ -83,12 +58,20 @@ export default function AdminSection(
           return (
             <ListItem
               key={f.id}
-              className={classes.listItem}
+              sx={() => ({
+                minHeight: '71px',
+                padding: '1em',
+                ...(_.has(value, f.id) ? { bgcolor: 'action.selected' } : {}),
+              })}
               divider={idx !== fields.length - 1}
-              sx={_.has(value, f.id) ? { bgcolor: 'action.selected' } : {}}
             >
               <ListItemText
-                className={classes.listItemText}
+                sx={(theme) => ({
+                  maxWidth: '50%',
+                  [theme.breakpoints.up('md')]: {
+                    maxWidth: '65%',
+                  },
+                })}
                 primary={(f.deprecated ? '* ' : '') + f.label}
                 secondary={
                   f.deprecated ? (
@@ -107,7 +90,16 @@ export default function AdminSection(
                   )
                 }
               />
-              <div className={classes.listItemAction}>
+              <Box
+                sx={(theme) => ({
+                  width: '50%',
+                  [theme.breakpoints.up('md')]: {
+                    width: '35%',
+                  },
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                })}
+              >
                 <Field
                   name={f.id}
                   value={defaultTo(value[f.id], f.value)}
@@ -116,7 +108,7 @@ export default function AdminSection(
                     props.onChange(f.id, val === f.value ? null : val)
                   }
                 />
-              </div>
+              </Box>
             </ListItem>
           )
         })}

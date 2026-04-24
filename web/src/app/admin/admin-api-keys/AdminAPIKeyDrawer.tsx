@@ -12,7 +12,6 @@ import {
   Button,
   ButtonGroup,
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { GQLAPIKey } from '../../../schema'
 import AdminAPIKeyDeleteDialog from './AdminAPIKeyDeleteDialog'
 import AdminAPIKeyEditDialog from './AdminAPIKeyEditDialog'
@@ -58,14 +57,6 @@ interface Props {
   onDuplicateClick: () => void
 }
 
-const useStyles = makeStyles(() => ({
-  buttons: {
-    textAlign: 'right',
-    width: '30vw',
-    padding: '15px 10px',
-  },
-}))
-
 function ActionBy(props: {
   label: string
   time?: string
@@ -91,7 +82,6 @@ function ActionBy(props: {
 
 export default function AdminAPIKeyDrawer(props: Props): React.JSX.Element {
   const { onClose, apiKeyID } = props
-  const classes = useStyles()
   const isOpen = Boolean(apiKeyID)
   const [deleteDialog, setDialogDialog] = useState(false)
   const [editDialog, setEditDialog] = useState(false)
@@ -208,7 +198,13 @@ export default function AdminAPIKeyDrawer(props: Props): React.JSX.Element {
               name={lastUsed ? lastUsed.ua + ' from ' + lastUsed.ip : ''}
             />
           </List>
-          <Grid className={classes.buttons}>
+          <Grid
+            sx={{
+              textAlign: 'right',
+              width: '30vw',
+              padding: '15px 10px',
+            }}
+          >
             <ButtonGroup variant='contained'>
               <Button onClick={() => setDialogDialog(true)}>Delete</Button>
               <Button onClick={() => setEditDialog(true)}>Edit</Button>

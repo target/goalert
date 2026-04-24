@@ -3,7 +3,6 @@ import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
-import makeStyles from '@mui/styles/makeStyles'
 import { gql, useQuery } from 'urql'
 import CreateFAB from '../lists/CreateFAB'
 import OtherActions from '../util/OtherActions'
@@ -38,8 +37,6 @@ const sortItems = (a: Label, b: Label): number => {
   return 0
 }
 
-const useStyles = makeStyles({ spacing: { marginBottom: 96 } })
-
 export default function ServiceLabelList(props: {
   serviceID: string
 }): JSX.Element {
@@ -47,7 +44,6 @@ export default function ServiceLabelList(props: {
   const [editKey, setEditKey] = useState<string | null>(null)
   const [deleteKey, setDeleteKey] = useState<string | null>(null)
   const isMobile = useIsWidthDown('md')
-  const classes = useStyles()
 
   const [{ data, fetching }] = useQuery({
     query,
@@ -107,7 +103,7 @@ export default function ServiceLabelList(props: {
 
   return (
     <React.Fragment>
-      <Grid item xs={12} className={classes.spacing}>
+      <Grid size={12} sx={{ mb: '96px' }}>
         <Card>
           <CardContent>{renderList(data.service.labels)}</CardContent>
         </Card>

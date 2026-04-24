@@ -1,8 +1,7 @@
 import React, { ReactElement, useState, useContext, useEffect } from 'react'
 import { useMutation } from '@apollo/client'
 import { useQuery, gql } from 'urql'
-import { Grid, Hidden, ListItemText } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { Box, Grid, ListItemText } from '@mui/material'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
@@ -84,12 +83,6 @@ const escalateMutation = gql`
   }
 `
 
-const useStyles = makeStyles({
-  alertTimeContainer: {
-    width: 'max-content',
-  },
-})
-
 function getStatusFilter(s: string): string[] {
   switch (s) {
     case 'acknowledged':
@@ -107,8 +100,6 @@ function getStatusFilter(s: string): string[] {
 }
 
 export default function AlertsList(props: AlertsListProps): React.JSX.Element {
-  const classes = useStyles()
-
   // event sent to Google Analytics
   const [event, setEvent] = useState('')
   const [analyticsID] = useConfigValue('General.GoogleAnalyticsID') as [string]
@@ -299,7 +290,7 @@ export default function AlertsList(props: AlertsListProps): React.JSX.Element {
     <React.Fragment>
       <Grid container direction='column' spacing={2}>
         <ServiceNotices serviceID={props.serviceID} />
-        <Grid item>
+        <Grid>
           <QueryList
             query={alertsListQuery}
             infiniteScroll
@@ -315,7 +306,7 @@ export default function AlertsList(props: AlertsListProps): React.JSX.Element {
                 (props.serviceID ? '' : a.service.name + ': ') + a.summary,
               action: (
                 <ListItemText
-                  className={classes.alertTimeContainer}
+                  sx={{ width: 'max-content' }}
                   secondary={
                     <Time
                       time={a.createdAt}
@@ -341,9 +332,9 @@ export default function AlertsList(props: AlertsListProps): React.JSX.Element {
             )}
             createLabel='Alert'
             cardHeader={
-              <Hidden lgDown>
+              <Box sx={{ display: { xs: 'none', lg: 'block' } }}>
                 <AlertsListControls />
-              </Hidden>
+              </Box>
             }
             checkboxActions={getActions()}
           />

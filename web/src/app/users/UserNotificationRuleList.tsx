@@ -1,14 +1,7 @@
 import React, { useState, ReactNode, Suspense } from 'react'
 import { gql, useQuery } from 'urql'
-import {
-  Button,
-  Card,
-  CardHeader,
-  Grid,
-  IconButton,
-  Theme,
-} from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { Button, Card, CardHeader, Grid, IconButton } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { Add, Delete } from '@mui/icons-material'
 import { formatNotificationRule, sortNotificationRules } from './util'
 import UserNotificationRuleDeleteDialog from './UserNotificationRuleDeleteDialog'
@@ -51,18 +44,12 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles((theme: Theme) => {
-  const { cardHeader } = globalStyles(theme)
-  return {
-    cardHeader,
-  }
-})
-
 export default function UserNotificationRuleList(props: {
   userID: string
   readOnly: boolean
 }): ReactNode {
-  const classes = useStyles()
+  const theme = useTheme()
+  const gs = globalStyles(theme)
   const mobile = useIsWidthDown('md')
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [deleteID, setDeleteID] = useState(null)
@@ -79,10 +66,10 @@ export default function UserNotificationRuleList(props: {
   const { user }: { user: User } = data
 
   return (
-    <Grid item xs={12}>
+    <Grid size={12}>
       <Card>
         <CardHeader
-          className={classes.cardHeader}
+          sx={gs.cardHeader}
           titleTypographyProps={{ component: 'h2', variant: 'h5' }}
           title='Notification Rules'
           action={

@@ -114,10 +114,8 @@ export function FormField(props) {
   function charCountWrapper(component, count, fieldName) {
     return (
       <Grid container spacing={2}>
-        <Grid item xs={10}>
-          {component}
-        </Grid>
-        <Grid item xs={2}>
+        <Grid size={10}>{component}</Grid>
+        <Grid size={2}>
           <FormHelperText style={{ textAlign: 'right' }}>
             {value[fieldName].length}/{count}
           </FormHelperText>
@@ -228,6 +226,7 @@ FormField.propTypes = {
   float: p.bool,
 
   className: p.string,
+  style: p.object,
 
   // fieldName specifies the field used for
   // checking errors, change handlers, and value.

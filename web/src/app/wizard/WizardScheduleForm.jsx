@@ -14,35 +14,16 @@ import { FormField } from '../forms'
 import { value as valuePropType } from './propTypes'
 import * as _ from 'lodash'
 import { ISODateTimePicker } from '../util/ISOPickers'
-import makeStyles from '@mui/styles/makeStyles'
 import { useIsWidthDown } from '../util/useWidth'
 
-const useStyles = makeStyles(() => ({
-  fieldItem: {
-    marginLeft: '2.5em',
-  },
-  sunLabel: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-  tooltip: {
-    fontSize: 12,
-  },
-}))
-
-/**
- * Renders the form fields to be used in the wizard that
- * can be used for creating a primary and secondary schedule.
- */
 export default function WizardScheduleForm({ value, onChange, secondary }) {
   const fullScreen = useIsWidthDown('md')
-  const classes = useStyles()
 
   function renderFollowTheSun(key, schedType) {
     if (value[key].followTheSunRotation.enable === 'yes') {
       return (
         <React.Fragment>
-          <Grid item xs={12} className={classes.fieldItem}>
+          <Grid size={12} sx={{ ml: '2.5em' }}>
             <FormField
               component={UserSelect}
               multiple
@@ -59,7 +40,7 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
               value={value[key].followTheSunRotation.users}
             />
           </Grid>
-          <Grid item xs={12} className={classes.fieldItem}>
+          <Grid size={12} sx={{ ml: '2.5em' }}>
             <FormField
               component={TimeZoneSelect}
               name={`${key}.followTheSunRotation.timeZone`}
@@ -103,7 +84,7 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
 
     return (
       <React.Fragment>
-        <Grid item xs={12} className={classes.fieldItem}>
+        <Grid size={12} sx={{ ml: '2.5em' }}>
           <FormControl>
             <FormLabel>
               How often will your <b>{schedType}</b> schedule need to rotate?
@@ -151,7 +132,7 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
         </Grid>
         {!hideRotationFields && (
           <React.Fragment>
-            <Grid item className={classes.fieldItem}>
+            <Grid sx={{ ml: '2.5em' }}>
               <FormField
                 component={ISODateTimePicker}
                 name={`${key}.rotation.startDate`}
@@ -162,13 +143,13 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
                 fullWidth={fullScreen}
               />
             </Grid>
-            <Grid item xs={12} className={classes.fieldItem}>
+            <Grid size={12} sx={{ ml: '2.5em' }}>
               <FormControl>
-                <FormLabel className={classes.sunLabel}>
+                <FormLabel sx={{ display: 'flex', alignItems: 'center' }}>
                   Does your&nbsp;<b>{schedType}</b>&nbsp;schedule need to have
                   follow the sun support?
                   <Tooltip
-                    classes={{ tooltip: classes.tooltip }}
+                    slotProps={{ tooltip: { sx: { fontSize: 12 } } }}
                     data-cy='fts-tooltip'
                     disableFocusListener
                     placement='right'
@@ -227,7 +208,7 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
 
   return (
     <React.Fragment>
-      <Grid item xs={12} className={classes.fieldItem}>
+      <Grid size={12} sx={{ ml: '2.5em' }}>
         <FormField
           component={TimeZoneSelect}
           name={`${key}.timeZone`}
@@ -241,7 +222,7 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
           required
         />
       </Grid>
-      <Grid item xs={12} className={classes.fieldItem}>
+      <Grid size={12} sx={{ ml: '2.5em' }}>
         <FormField
           component={UserSelect}
           data-cy={`${key}.users`}

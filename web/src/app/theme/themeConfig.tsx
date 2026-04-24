@@ -5,10 +5,10 @@ import React, {
   useMemo,
   useState,
 } from 'react'
-import { PaletteOptions } from '@mui/material/styles/createPalette'
 import { isCypress } from '../env'
 import {
   createTheme,
+  PaletteOptions,
   Theme,
   ThemeProvider as MUIThemeProvider,
 } from '@mui/material/styles'

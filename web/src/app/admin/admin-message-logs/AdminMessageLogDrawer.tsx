@@ -10,8 +10,6 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
-import { Theme } from '@mui/material/styles'
 import { OpenInNew } from '@mui/icons-material'
 import { DateTime } from 'luxon'
 import AppLink from '../../util/AppLink'
@@ -23,19 +21,8 @@ interface Props {
   log: DebugMessage | null
 }
 
-const useStyles = makeStyles((theme: Theme) => ({
-  appLink: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-  appLinkIcon: {
-    paddingLeft: theme.spacing(0.5),
-  },
-}))
-
 export default function AdminMessageLogDrawer(props: Props): React.JSX.Element {
   const { onClose, log } = props
-  const classes = useStyles()
 
   const isOpen = Boolean(log)
 
@@ -113,15 +100,12 @@ export default function AdminMessageLogDrawer(props: Props): React.JSX.Element {
                   primary='User'
                   secondary={
                     <AppLink
-                      className={classes.appLink}
+                      style={{ display: 'flex', alignItems: 'center' }}
                       to={`/users/${log?.userID}`}
                       newTab
                     >
                       {log.userName}
-                      <OpenInNew
-                        className={classes.appLinkIcon}
-                        fontSize='small'
-                      />
+                      <OpenInNew sx={{ pl: 0.5 }} fontSize='small' />
                     </AppLink>
                   }
                   secondaryTypographyProps={{ component: 'div' }}
@@ -134,15 +118,12 @@ export default function AdminMessageLogDrawer(props: Props): React.JSX.Element {
                   primary='Service'
                   secondary={
                     <AppLink
-                      className={classes.appLink}
+                      style={{ display: 'flex', alignItems: 'center' }}
                       to={`/services/${log.serviceID}`}
                       newTab
                     >
                       {log.serviceName}
-                      <OpenInNew
-                        className={classes.appLinkIcon}
-                        fontSize='small'
-                      />
+                      <OpenInNew sx={{ pl: 0.5 }} fontSize='small' />
                     </AppLink>
                   }
                   secondaryTypographyProps={{ component: 'div' }}
@@ -155,15 +136,12 @@ export default function AdminMessageLogDrawer(props: Props): React.JSX.Element {
                   primary='Alert'
                   secondary={
                     <AppLink
-                      className={classes.appLink}
+                      style={{ display: 'flex', alignItems: 'center' }}
                       to={`/alerts/${log.alertID}`}
                       newTab
                     >
                       {log.alertID}
-                      <OpenInNew
-                        className={classes.appLinkIcon}
-                        fontSize='small'
-                      />
+                      <OpenInNew sx={{ pl: 0.5 }} fontSize='small' />
                     </AppLink>
                   }
                   secondaryTypographyProps={{ component: 'div' }}

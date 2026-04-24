@@ -1,11 +1,10 @@
 import React, { useState } from 'react'
 import {
   DataGrid,
-  GridValueGetterParams,
   GridRenderCellParams,
   GridValidRowModel,
   GridToolbar,
-  GridSortItem,
+  GridSortModel,
 } from '@mui/x-data-grid'
 import AppLink from '../../util/AppLink'
 import {
@@ -38,7 +37,7 @@ export default function AdminServiceTable(
 ): React.JSX.Element {
   const { services = [], loading, staleAlertServices } = props
   // Community version of MUI DataGrid only supports sortModels with a single SortItem
-  const [sortModel, setSortModel] = useState<GridSortItem[]>([
+  const [sortModel, setSortModel] = useState<GridSortModel>([
     {
       field: 'status',
       sort: 'desc',
@@ -79,8 +78,8 @@ export default function AdminServiceTable(
       field: 'name',
       headerName: 'Service Name',
       width: 300,
-      valueGetter: (params: GridValueGetterParams) => {
-        return params.row.name || ''
+      valueGetter: (_value: unknown, row: Service) => {
+        return row.name || ''
       },
       renderCell: (params: GridRenderCellParams<GridValidRowModel>) => {
         if (params.row.id && params.value) {
@@ -95,14 +94,14 @@ export default function AdminServiceTable(
       field: 'status',
       headerName: 'Status',
       width: 150,
-      valueGetter: (params: GridValueGetterParams) => {
+      valueGetter: (_value: unknown, row: Service) => {
         const {
           hasEPSteps,
           hasIntegrations,
           hasNotices,
           inMaintenance,
           hasStaleAlerts,
-        } = getServiceStatus(params.row as Service)
+        } = getServiceStatus(row)
         const warnings = []
 
         if (
@@ -120,7 +119,7 @@ export default function AdminServiceTable(
         if (hasNotices) warnings.push('Service Reaching Alert Limit')
         if (hasStaleAlerts)
           warnings.push(
-            `Service Has ${staleAlertServices[params.row.name]} Stale Alerts`,
+            `Service Has ${staleAlertServices[row.name]} Stale Alerts`,
           )
 
         return warnings.join(',')
@@ -179,8 +178,8 @@ export default function AdminServiceTable(
       field: 'epPolicyName',
       headerName: 'Escalation Policy Name',
       width: 300,
-      valueGetter: (params: GridValueGetterParams) => {
-        return params.row.escalationPolicy?.name || ''
+      valueGetter: (_value: unknown, row: Service) => {
+        return row.escalationPolicy?.name || ''
       },
       renderCell: (params: GridRenderCellParams<GridValidRowModel>) => {
         if (
@@ -202,16 +201,14 @@ export default function AdminServiceTable(
       field: 'epStepTargets',
       headerName: 'EP Step Target Type(s)',
       width: 215,
-      valueGetter: (params: GridValueGetterParams) => {
+      valueGetter: (_value: unknown, row: Service) => {
         const targets: DestinationType[] = []
-        if (params.row.escalationPolicy.steps?.length) {
-          params.row.escalationPolicy.steps?.map(
-            (step: EscalationPolicyStep) => {
-              step.actions.map((dest: Destination) => {
-                if (!targets.includes(dest.type)) targets.push(dest.type)
-              })
-            },
-          )
+        if (row.escalationPolicy?.steps?.length) {
+          row.escalationPolicy.steps?.map((step: EscalationPolicyStep) => {
+            step.actions.map((dest: Destination) => {
+              if (!targets.includes(dest.type)) targets.push(dest.type)
+            })
+          })
         }
         return targets.sort().join(', ')
       },
@@ -220,10 +217,10 @@ export default function AdminServiceTable(
       field: 'intKeyTargets',
       headerName: 'Integration Key Target Type(s)',
       width: 250,
-      valueGetter: (params: GridValueGetterParams) => {
+      valueGetter: (_value: unknown, row: Service) => {
         const targets: IntegrationKeyType[] = []
-        if (params.row.integrationKeys?.length) {
-          params.row.integrationKeys?.map((key: IntegrationKey) => {
+        if (row.integrationKeys?.length) {
+          row.integrationKeys?.map((key: IntegrationKey) => {
             if (!targets.includes(key.type)) targets.push(key.type)
           })
         }
@@ -234,8 +231,8 @@ export default function AdminServiceTable(
       field: 'heartbeatMonitors',
       headerName: 'Heartbeat Monitor Total',
       width: 250,
-      valueGetter: (params: GridValueGetterParams) => {
-        return params.row.heartbeatMonitors?.length
+      valueGetter: (_value: unknown, row: Service) => {
+        return row.heartbeatMonitors?.length
       },
     },
   ]
@@ -250,7 +247,7 @@ export default function AdminServiceTable(
         pageSizeOptions={[10, 25, 50, 100]}
         sortingOrder={['desc', 'asc']}
         sortModel={sortModel}
-        onSortModelChange={(model) => setSortModel(model)}
+        onSortModelChange={(model: GridSortModel) => setSortModel(model)}
       />
     </Grid>
   )

@@ -13,7 +13,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 
 import { useConfigValue } from '../util/RequireConfig'
@@ -44,15 +43,7 @@ const sendSMSMutation = gql`
   }
 `
 
-const useStyles = makeStyles({
-  twilioLink: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-})
-
 export default function AdminSMSSend(): React.JSX.Element {
-  const classes = useStyles()
   const [cfgFromNumber, cfgSID] = useConfigValue(
     'Twilio.FromNumber',
     'Twilio.MessagingServiceSID',
@@ -105,7 +96,7 @@ export default function AdminSMSSend(): React.JSX.Element {
         <Card>
           <CardContent>
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={12} md={12} lg={6}>
+              <Grid size={{ xs: 12, sm: 12, md: 12, lg: 6 }}>
                 <FromValueField
                   onChange={(e) => setFromNumber(e.target.value)}
                   value={fromNumber}
@@ -114,7 +105,7 @@ export default function AdminSMSSend(): React.JSX.Element {
                   fullWidth
                 />
               </Grid>
-              <Grid item xs={12} sm={12} md={12} lg={6}>
+              <Grid size={{ xs: 12, sm: 12, md: 12, lg: 6 }}>
                 <TelTextField
                   onChange={(e) => setToNumber(e.target.value)}
                   value={toNumber}
@@ -122,7 +113,7 @@ export default function AdminSMSSend(): React.JSX.Element {
                   label='To Number'
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   onChange={(e) => setBody(e.target.value)}
                   value={body}
@@ -138,7 +129,7 @@ export default function AdminSMSSend(): React.JSX.Element {
             <LoadingButton buttonText='Send' loading={smsLoading} />
             {smsData?.debugSendSMS && (
               <AppLink to={smsData.debugSendSMS.providerURL} newTab>
-                <div className={classes.twilioLink}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
                   <Typography>{details} Open in Twilio&nbsp;</Typography>
                   <OpenInNewIcon fontSize='small' />
                 </div>

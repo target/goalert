@@ -6,23 +6,11 @@ import WarningIcon from '@mui/icons-material/Warning'
 import slackIcon from '../../public/icons/slack.svg'
 import slackIconBlack from '../../public/icons/slack_monochrome_black.svg'
 import slackIconWhite from '../../public/icons/slack_monochrome_white.svg'
-import makeStyles from '@mui/styles/makeStyles'
 import { useTheme } from '@mui/material'
 import { Webhook } from '@mui/icons-material'
 
-const useStyles = makeStyles({
-  trashIcon: {
-    cursor: 'pointer',
-    float: 'right',
-  },
-  warningColor: {
-    color: '#FFD602',
-  },
-})
-
 export function Trash(): React.JSX.Element {
-  const classes = useStyles()
-  return <TrashIcon className={classes.trashIcon} />
+  return <TrashIcon sx={{ cursor: 'pointer', float: 'right' }} />
 }
 
 interface WarningProps {
@@ -44,10 +32,9 @@ interface WarningProps {
 
 export function Warning(props: WarningProps): React.JSX.Element {
   const { message, placement } = props
-  const classes = useStyles()
 
   const warningIcon = (
-    <WarningIcon data-cy='warning-icon' className={classes.warningColor} />
+    <WarningIcon data-cy='warning-icon' sx={{ color: '#FFD602' }} />
   )
 
   if (!message) {

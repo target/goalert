@@ -98,7 +98,7 @@ export default function ScheduleOverrideForm(
     >
       <Grid container spacing={2}>
         {remove && (
-          <Grid item xs={12}>
+          <Grid size={12}>
             <FormField
               fullWidth
               component={UserSelect}
@@ -112,7 +112,7 @@ export default function ScheduleOverrideForm(
           </Grid>
         )}
         {add && (
-          <Grid item xs={12}>
+          <Grid size={12}>
             <FormField
               fullWidth
               component={UserSelect}
@@ -122,12 +122,12 @@ export default function ScheduleOverrideForm(
             />
           </Grid>
         )}
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Typography color='textSecondary' sx={{ fontStyle: 'italic' }}>
             Times shown in schedule timezone ({zone || '...'})
           </Typography>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             component={ISODateTimePicker}
@@ -140,7 +140,7 @@ export default function ScheduleOverrideForm(
             hint={isLocalZone ? '' : fmtLocal(value.start)}
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             component={ISODateTimePicker}

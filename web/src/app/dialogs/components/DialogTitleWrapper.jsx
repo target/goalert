@@ -8,27 +8,16 @@ import Typography from '@mui/material/Typography'
 import CloseIcon from '@mui/icons-material/Close'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import { DialogContent } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { useTheme } from '@mui/material/styles'
 import OtherActions from '../../util/OtherActions'
-
-const useStyles = makeStyles((theme) => {
-  const { topRightActions } = globalStyles(theme)
-
-  return {
-    subtitle: {
-      overflowY: 'unset',
-      flexGrow: 0,
-    },
-    topRightActions,
-  }
-})
 
 /**
  * Renders a fullscreen dialog with an app bar if on a small
  * or mobile screen, and a standard dialog title otherwise.
  */
 function DialogTitleWrapper(props) {
-  const classes = useStyles()
+  const theme = useTheme()
+  const { topRightActions } = globalStyles(theme)
 
   const {
     closeIcon = <CloseIcon />,
@@ -47,7 +36,7 @@ function DialogTitleWrapper(props) {
     menu = <OtherActions actions={actions} />
   } else {
     menu = (
-      <div className={classes.topRightActions}>
+      <div style={topRightActions}>
         <OtherActions actions={actions} />
       </div>
     )
@@ -56,7 +45,7 @@ function DialogTitleWrapper(props) {
   let subtitle
   if (subTitle) {
     subtitle = (
-      <DialogContent className={classes.subtitle}>
+      <DialogContent sx={{ overflowY: 'unset', flexGrow: 0 }}>
         {typeof subTitle !== 'string' ? (
           subTitle
         ) : (

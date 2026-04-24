@@ -1,7 +1,5 @@
 import React, { useState } from 'react'
 import { Chip, Grid, Typography } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
-import { Theme } from '@mui/material/styles'
 import { DateTime } from 'luxon'
 import { gql, useQuery } from 'urql'
 import AdminMessageLogsControls from './AdminMessageLogsControls'
@@ -39,25 +37,9 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles((theme: Theme) => ({
-  containerDefault: {
-    [theme.breakpoints.up('md')]: {
-      maxWidth: '100%',
-      transition: `max-width ${theme.transitions.duration.leavingScreen}ms ease`,
-    },
-  },
-  containerSelected: {
-    [theme.breakpoints.up('md')]: {
-      maxWidth: '70%',
-      transition: `max-width ${theme.transitions.duration.enteringScreen}ms ease`,
-    },
-  },
-}))
-
 const context = { suspense: false }
 
 export default function AdminMessageLogsLayout(): React.JSX.Element {
-  const classes = useStyles()
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
 
   const [{ search, start, end }] = useMessageLogsParams()
@@ -115,10 +97,10 @@ export default function AdminMessageLogsLayout(): React.JSX.Element {
       title: `${log.type} Notification`,
       subText: (
         <Grid container spacing={2} direction='column'>
-          <Grid item>Destination: {log.destination}</Grid>
-          {log.serviceName && <Grid item>Service: {log.serviceName}</Grid>}
-          {log.userName && <Grid item>User: {log.userName}</Grid>}
-          <Grid item>
+          <Grid>Destination: {log.destination}</Grid>
+          {log.serviceName && <Grid>Service: {log.serviceName}</Grid>}
+          {log.userName && <Grid>User: {log.userName}</Grid>}
+          <Grid>
             <Chip label={status} style={statusStyles} />
           </Grid>
         </Grid>
@@ -140,17 +122,29 @@ export default function AdminMessageLogsLayout(): React.JSX.Element {
       <Grid
         container
         spacing={2}
-        className={
-          selectedLog ? classes.containerSelected : classes.containerDefault
+        sx={(theme) =>
+          selectedLog
+            ? {
+                [theme.breakpoints.up('md')]: {
+                  maxWidth: '70%',
+                  transition: `max-width ${theme.transitions.duration.enteringScreen}ms ease`,
+                },
+              }
+            : {
+                [theme.breakpoints.up('md')]: {
+                  maxWidth: '100%',
+                  transition: `max-width ${theme.transitions.duration.leavingScreen}ms ease`,
+                },
+              }
         }
       >
-        <Grid item xs={12}>
+        <Grid size={12}>
           <AdminMessageLogsControls />
         </Grid>
 
         <AdminMessageLogsGraph />
 
-        <Grid item xs={12}>
+        <Grid size={12}>
           <ListPageControls
             nextCursor={nextCursor}
             onCursorChange={setCursor}

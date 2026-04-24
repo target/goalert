@@ -1,38 +1,16 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
 import {
-  Hidden,
+  Box,
   Popover,
   SwipeableDrawer,
   IconButton,
   Grid,
   Button,
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { FilterList as FilterIcon } from '@mui/icons-material'
 
-const useStyles = makeStyles((theme) => {
-  return {
-    actions: {
-      display: 'flex',
-      justifyContent: 'flex-end',
-    },
-    overflow: {
-      overflow: 'visible',
-    },
-    container: {
-      padding: 8,
-      [theme.breakpoints.up('md')]: { width: '22em' },
-      [theme.breakpoints.down('md')]: { width: '100%' },
-    },
-    formContainer: {
-      margin: 0,
-    },
-  }
-})
-
 export default function FilterContainer(props) {
-  const classes = useStyles()
   const [anchorEl, setAnchorEl] = useState(null)
   const {
     icon = <FilterIcon />,
@@ -43,17 +21,19 @@ export default function FilterContainer(props) {
 
   function renderContent() {
     return (
-      <Grid container spacing={2} className={classes.container}>
-        <Grid
-          item
-          container
-          xs={12}
-          spacing={2}
-          className={classes.formContainer}
-        >
+      <Grid
+        container
+        spacing={2}
+        sx={(theme) => ({
+          padding: 1,
+          [theme.breakpoints.up('md')]: { width: '22em' },
+          [theme.breakpoints.down('md')]: { width: '100%' },
+        })}
+      >
+        <Grid size={12} container spacing={2} sx={{ margin: 0 }}>
           {props.children}
         </Grid>
-        <Grid item xs={12} className={classes.actions}>
+        <Grid size={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           {props.onReset && (
             <Button data-cy='filter-reset' onClick={props.onReset}>
               Reset
@@ -78,11 +58,11 @@ export default function FilterContainer(props) {
       >
         {icon}
       </IconButton>
-      <Hidden mdDown>
+      <Box sx={{ display: { xs: 'none', md: 'block' } }}>
         <Popover
           anchorEl={anchorEl}
-          classes={{
-            paper: classes.overflow,
+          slotProps={{
+            paper: { sx: { overflow: 'visible' } },
           }}
           open={!!anchorEl}
           onClose={() => setAnchorEl(null)}
@@ -92,12 +72,12 @@ export default function FilterContainer(props) {
         >
           {renderContent()}
         </Popover>
-      </Hidden>
-      <Hidden mdUp>
+      </Box>
+      <Box sx={{ display: { xs: 'block', md: 'none' } }}>
         <SwipeableDrawer
           anchor='top'
-          classes={{
-            paper: classes.overflow,
+          slotProps={{
+            paper: { sx: { overflow: 'visible' } },
           }}
           disableDiscovery
           disableSwipeToOpen
@@ -110,7 +90,7 @@ export default function FilterContainer(props) {
         >
           {renderContent()}
         </SwipeableDrawer>
-      </Hidden>
+      </Box>
     </React.Fragment>
   )
 }

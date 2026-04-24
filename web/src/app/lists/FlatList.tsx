@@ -11,7 +11,6 @@ import MUIListItem from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import ListSubheader from '@mui/material/ListSubheader'
-import makeStyles from '@mui/styles/makeStyles'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import {
   Alert,
@@ -40,47 +39,16 @@ import { Notice, toSeverity } from '../details/Notices'
 import FlatListItem from './FlatListItem'
 import { DraggableListItem, getAnnouncements } from './DraggableListItem'
 import { ExpandLess, ExpandMore } from '@mui/icons-material'
+import './flatListTransitions.css'
 
-const useStyles = makeStyles({
-  alertAsButton: {
-    width: '100%',
-    marginTop: '6px',
-    marginBottom: '6px',
-    '&:hover, &.Mui-focusVisible': {
-      filter: 'brightness(90%)',
-    },
-  },
-  buttonBase: {
-    width: '100%',
-    borderRadius: 4,
-  },
-  slideEnter: {
-    maxHeight: '0px',
-    opacity: 0,
-    transform: 'translateX(-100%)',
-  },
-  slideEnterActive: {
-    maxHeight: '60px',
-    opacity: 1,
-    transform: 'translateX(0%)',
-    transition: 'all 500ms',
-  },
-  slideExit: {
-    maxHeight: '60px',
-    opacity: 1,
-    transform: 'translateX(0%)',
-  },
-  slideExitActive: {
-    maxHeight: '0px',
-    opacity: 0,
-    transform: 'translateX(-100%)',
-    transition: 'all 500ms',
-  },
-  subheader: {
-    backgroundColor: 'transparent',
-    paddingBottom: '4px',
-  },
-})
+// CSSTransition needs real CSS class names (not sx objects), so these
+// live in flatListTransitions.css alongside the component.
+const slideClassNames = {
+  enter: 'flat-list-slide-enter',
+  enterActive: 'flat-list-slide-enter-active',
+  exit: 'flat-list-slide-exit',
+  exitActive: 'flat-list-slide-exit-active',
+}
 
 const measuringConfig = {
   droppable: {
@@ -171,8 +139,6 @@ export default function FlatList({
   collapsable,
   ...listProps
 }: FlatListProps): React.JSX.Element {
-  const classes = useStyles()
-
   // collapsable sections state
   const [openSections, setOpenSections] = useState<React.ReactNode[]>(
     sections && sections.length ? [sections[0].title] : [],
@@ -247,12 +213,19 @@ export default function FlatList({
     if (item.handleOnClick) {
       return (
         <ButtonBase
-          className={classes.buttonBase}
+          sx={{ width: '100%', borderRadius: 1 }}
           onClick={item.handleOnClick}
           data-cy={item['data-cy']}
         >
           <Alert
-            className={classes.alertAsButton}
+            sx={{
+              width: '100%',
+              marginTop: '6px',
+              marginBottom: '6px',
+              '&:hover, &.Mui-focusVisible': {
+                filter: 'brightness(90%)',
+              },
+            }}
             key={idx}
             severity={toSeverity(item.type)}
             icon={item.icon}
@@ -285,8 +258,11 @@ export default function FlatList({
     return (
       <ListSubheader
         key={idx}
-        className={classes.subheader}
-        sx={item.disableGutter ? { pl: 0 } : null}
+        sx={{
+          backgroundColor: 'transparent',
+          paddingBottom: '4px',
+          ...(item.disableGutter ? { pl: 0 } : null),
+        }}
       >
         <Typography
           component='h2'
@@ -321,12 +297,7 @@ export default function FlatList({
             timeout={500}
             exit={Boolean(item.transition)}
             enter={Boolean(item.transition)}
-            classNames={{
-              enter: classes.slideEnter,
-              enterActive: classes.slideEnterActive,
-              exit: classes.slideExit,
-              exitActive: classes.slideExitActive,
-            }}
+            classNames={slideClassNames}
           >
             {renderNoticeItem(item, idx)}
           </CSSTransition>
@@ -336,12 +307,7 @@ export default function FlatList({
         <CSSTransition
           key={'item_' + item.id}
           timeout={500}
-          classNames={{
-            enter: classes.slideEnter,
-            enterActive: classes.slideEnterActive,
-            exit: classes.slideExit,
-            exitActive: classes.slideExitActive,
-          }}
+          classNames={slideClassNames}
         >
           <FlatListItem index={idx} item={item} />
         </CSSTransition>

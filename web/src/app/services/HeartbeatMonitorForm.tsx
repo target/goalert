@@ -36,7 +36,7 @@ export default function HeartbeatMonitorForm(
   return (
     <FormContainer {...formProps} optionalLabels>
       <Grid container spacing={2}>
-        <Grid item style={{ flexGrow: 1 }} xs={12}>
+        <Grid size={12} style={{ flexGrow: 1 }}>
           <FormField
             fullWidth
             component={TextField}
@@ -45,7 +45,7 @@ export default function HeartbeatMonitorForm(
             required
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             component={DurationField}
@@ -62,7 +62,7 @@ export default function HeartbeatMonitorForm(
             mapOnChangeValue={clampTimeout}
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             name='additionalDetails'

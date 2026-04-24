@@ -24,10 +24,10 @@ export default function AdminAPIKeyForm(
   return (
     <FormContainer optionalLabels {...props}>
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField fullWidth name='name' required component={TextField} />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             name='description'
@@ -39,7 +39,7 @@ export default function AdminAPIKeyForm(
             hint='Markdown Supported'
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             component={TextField}
@@ -56,7 +56,7 @@ export default function AdminAPIKeyForm(
             </MenuItem>
           </FormField>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             component={AdminAPIKeyExpirationField}
@@ -66,7 +66,7 @@ export default function AdminAPIKeyForm(
             disabled={!props.create}
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormControl error={!!queryError} fullWidth>
             <GraphQLEditor
               value={props.value.query}

@@ -1,5 +1,6 @@
 import React, { Suspense, useState } from 'react'
-import { Button, Grid, Card, Typography, Tooltip, Theme } from '@mui/material'
+import { Button, Grid, Card, Typography, Tooltip } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import FlatList from '../../lists/FlatList'
 import OtherActions from '../../util/OtherActions'
 import { onCallRuleSummary } from './util'
@@ -11,8 +12,6 @@ import Error from '@mui/icons-material/Error'
 import { gql, useQuery } from 'urql'
 import { Schedule } from '../../../schema'
 import { DestinationAvatar } from '../../util/DestinationAvatar'
-import { styles as globalStyles } from '../../styles/materialStyles'
-import makeStyles from '@mui/styles/makeStyles'
 import ScheduleOnCallNotificationsCreateDialog from './ScheduleOnCallNotificationsCreateDialog'
 import ScheduleOnCallNotificationsEditDialog from './ScheduleOnCallNotificationsEditDialog'
 
@@ -46,10 +45,6 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles((theme: Theme) => ({
-  ...globalStyles(theme),
-}))
-
 export default function ScheduleOnCallNotificationsList({
   scheduleID,
 }: ScheduleOnCallNotificationsListProps): JSX.Element {
@@ -57,8 +52,7 @@ export default function ScheduleOnCallNotificationsList({
   const [editRuleID, setEditRuleID] = useState('')
   const [deleteRuleID, setDeleteRuleID] = useState('')
   const isMobile = useIsWidthDown('md')
-
-  const classes = useStyles()
+  const theme = useTheme()
 
   const [q] = useQuery<{ schedule: Schedule }>({
     query,
@@ -68,7 +62,7 @@ export default function ScheduleOnCallNotificationsList({
   if (q.error || !q.data) {
     return (
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Card>
             <FlatList
               headerNote={
@@ -78,10 +72,10 @@ export default function ScheduleOnCallNotificationsList({
                   style={{ display: 'flex' }}
                 >
                   <Tooltip title={q.error?.message}>
-                    <Error className={classes.error} />
+                    <Error sx={{ color: 'error.main' }} />
                   </Tooltip>
                   &nbsp;
-                  <span className={classes.error}>
+                  <span style={{ color: theme.palette.error.main }}>
                     Error loading notification rules.
                   </span>
                 </Typography>
@@ -100,7 +94,7 @@ export default function ScheduleOnCallNotificationsList({
   return (
     <React.Fragment>
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Card>
             <FlatList
               headerNote={`Showing times for schedule in ${timeZone}.`}

@@ -1,8 +1,6 @@
 import React, { useState, ReactNode, Suspense } from 'react'
 import { gql, useQuery } from 'urql'
 import { Button, Card, CardHeader, Grid, IconButton } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
-import { Theme } from '@mui/material/styles'
 import { Add } from '@mui/icons-material'
 import { sortContactMethods } from './util'
 import OtherActions from '../util/OtherActions'
@@ -13,6 +11,7 @@ import { useIsWidthDown } from '../util/useWidth'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import SendTestDialog from './SendTestDialog'
 import { styles as globalStyles } from '../styles/materialStyles'
+import { useTheme } from '@mui/material/styles'
 import { UserContactMethod } from '../../schema'
 import { useSessionInfo, useContactMethodTypes } from '../util/RequireConfig'
 import UserContactMethodEditDialog from './UserContactMethodEditDialog'
@@ -61,14 +60,11 @@ interface UserContactMethodListProps {
   readOnly?: boolean
 }
 
-const useStyles = makeStyles((theme: Theme) => ({
-  cardHeader: globalStyles(theme).cardHeader,
-}))
-
 export default function UserContactMethodList(
   props: UserContactMethodListProps,
 ): ReactNode {
-  const classes = useStyles()
+  const theme = useTheme()
+  const gs = globalStyles(theme)
   const mobile = useIsWidthDown('md')
 
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -155,7 +151,7 @@ export default function UserContactMethodList(
     return (
       <Grid container spacing={2} alignItems='center' wrap='nowrap'>
         {cm.disabled && !props.readOnly && !mobile && isCurrentUser && (
-          <Grid item>
+          <Grid>
             <Button
               aria-label='Reactivate contact method'
               onClick={() => setShowVerifyDialogByID(cm.id)}
@@ -166,7 +162,7 @@ export default function UserContactMethodList(
           </Grid>
         )}
         {!props.readOnly && (
-          <Grid item>
+          <Grid>
             <OtherActions actions={getActionMenuItems(cm)} />
           </Grid>
         )}
@@ -190,10 +186,10 @@ export default function UserContactMethodList(
   }
 
   return (
-    <Grid item xs={12}>
+    <Grid size={12}>
       <Card>
         <CardHeader
-          className={classes.cardHeader}
+          sx={gs.cardHeader}
           titleTypographyProps={{ component: 'h2', variant: 'h5' }}
           title='Contact Methods'
           action={

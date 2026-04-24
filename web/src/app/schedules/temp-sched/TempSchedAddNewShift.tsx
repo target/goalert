@@ -161,10 +161,10 @@ export default function TempSchedAddNewShift({
         onChange={(val: Shift) => setShift(val)}
       >
         <Grid container spacing={2}>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Typography color='textSecondary'>Add Shift</Typography>
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={12}>
             {/* Use a direct component instead of FormField for UserSelect */}
             <UserSelect
               fullWidth
@@ -175,7 +175,7 @@ export default function TempSchedAddNewShift({
               onChange={(newValue: string[]) => setSelectedUsers(newValue)}
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <FormControlLabel
               control={<Checkbox checked={custom} data-cy='toggle-custom' />}
               label={
@@ -186,7 +186,7 @@ export default function TempSchedAddNewShift({
               onChange={() => setCustom(!custom)}
             />
           </Grid>
-          <Grid item xs={6}>
+          <Grid size={6}>
             <FormField
               fullWidth
               component={ISODateTimePicker}
@@ -213,7 +213,7 @@ export default function TempSchedAddNewShift({
               hint={isLocalZone ? '' : fmtLocal(value?.start)}
             />
           </Grid>
-          <Grid item xs={6}>
+          <Grid size={6}>
             {manualEntry ? (
               <FormField
                 fullWidth
@@ -288,7 +288,7 @@ export default function TempSchedAddNewShift({
               />
             )}
           </Grid>
-          <Grid item xs={12} container justifyContent='flex-end'>
+          <Grid size={12} container justifyContent='flex-end'>
             <Button
               data-cy='add-shift'
               color='secondary'

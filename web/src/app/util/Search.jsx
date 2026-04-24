@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import p from 'prop-types'
-import makeStyles from '@mui/styles/makeStyles'
 import AppBar from '@mui/material/AppBar'
-import Hidden from '@mui/material/Hidden'
+import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
 import Slide from '@mui/material/Slide'
@@ -12,30 +11,6 @@ import { Close as CloseIcon, Search as SearchIcon } from '@mui/icons-material'
 import { DEBOUNCE_DELAY } from '../config'
 import AppBarSearchContainer from './AppBarSearchContainer'
 import { useURLParam } from '../actions'
-
-const useStyles = makeStyles((theme) => {
-  return {
-    transition: {
-      [theme.breakpoints.down('md')]: {
-        flex: 1,
-      },
-      [theme.breakpoints.up('md')]: {
-        '& input:focus': {
-          minWidth: 275,
-        },
-        '& input:not(:placeholder-shown)': {
-          minWidth: 275,
-        },
-        '& input': {
-          minWidth: 180,
-          transitionProperty: 'min-width',
-          transitionDuration: theme.transitions.duration.standard,
-          transitionTimingFunction: theme.transitions.easing.easeInOut,
-        },
-      },
-    },
-  }
-})
 
 /*
  * Renders a search text field that utilizes the URL params to regulate
@@ -52,7 +27,6 @@ export default function Search(props) {
   // or from a local event so we don't lose typed characters.
   const [prevParamValue, setPrevParamValue] = useState(searchParam)
 
-  const classes = useStyles()
   const [search, setSearch] = useState(searchParam)
   const [showMobile, setShowMobile] = useState(Boolean(search))
   const fieldRef = useRef()
@@ -97,11 +71,32 @@ export default function Search(props) {
         value={search}
         size='small'
         fullWidth={props.fullWidth}
-        className={(props.transition ?? true) ? classes.transition : null}
         sx={(theme) => ({
           minWidth: 250,
           backgroundColor: theme.palette.mode === 'dark' ? 'inherit' : 'white',
           borderRadius: '4px',
+          ...((props.transition ?? true)
+            ? {
+                [theme.breakpoints.down('md')]: {
+                  flex: 1,
+                },
+                [theme.breakpoints.up('md')]: {
+                  '& input:focus': {
+                    minWidth: 275,
+                  },
+                  '& input:not(:placeholder-shown)': {
+                    minWidth: 275,
+                  },
+                  '& input': {
+                    minWidth: 180,
+                    transitionProperty: 'min-width',
+                    transitionDuration: theme.transitions.duration.standard,
+                    transitionTimingFunction:
+                      theme.transitions.easing.easeInOut,
+                  },
+                },
+              }
+            : {}),
         })}
       />
     )
@@ -159,8 +154,10 @@ export default function Search(props) {
 
   return (
     <React.Fragment>
-      <Hidden mdDown>{renderTextField()}</Hidden>
-      <Hidden mdUp>{renderMobile()}</Hidden>
+      <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+        {renderTextField()}
+      </Box>
+      <Box sx={{ display: { xs: 'block', md: 'none' } }}>{renderMobile()}</Box>
     </React.Fragment>
   )
 }

@@ -1,8 +1,8 @@
 import React, { useMemo, useEffect } from 'react'
 import {
   DataGrid,
+  GridColDef,
   GridRenderCellParams,
-  GridValueGetterParams,
   gridPaginatedVisibleSortedGridRowEntriesSelector,
   GridToolbarContainer,
   GridToolbarDensitySelector,
@@ -13,7 +13,6 @@ import {
   GridValidRowModel,
 } from '@mui/x-data-grid'
 import { Button, Grid } from '@mui/material'
-import { makeStyles } from '@mui/styles'
 import DownloadIcon from '@mui/icons-material/Download'
 import AppLink from '../../util/AppLink'
 import { AlertCountSeries } from './useAdminAlertCounts'
@@ -29,19 +28,13 @@ interface AlertCountTableProps {
   setGraphData: (data: AlertCountSeries[]) => void
 }
 
-const useStyles = makeStyles(() => ({
-  tableContent: {
-    height: '400px',
-  },
-}))
-
-const columns = [
+const columns: GridColDef<AlertCountSeries>[] = [
   {
     field: 'serviceName',
     headerName: 'Service Name',
     width: 300,
-    valueGetter: (params: GridValueGetterParams) => {
-      return params.row.serviceName || ''
+    valueGetter: (_value: unknown, row: AlertCountSeries) => {
+      return row.serviceName || ''
     },
     renderCell: (params: GridRenderCellParams<GridValidRowModel>) => {
       if (params.row.id && params.value) {
@@ -57,29 +50,28 @@ const columns = [
     headerName: 'Total',
     type: 'number',
     width: 150,
-    valueGetter: (params: GridValueGetterParams) => params.row.total,
+    valueGetter: (_value: unknown, row: AlertCountSeries) => row.total,
   },
   {
     field: 'max',
     headerName: 'Max',
     type: 'number',
     width: 150,
-    valueGetter: (params: GridValueGetterParams) => params.row.max,
+    valueGetter: (_value: unknown, row: AlertCountSeries) => row.max,
   },
   {
     field: 'avg',
     headerName: 'Average',
     type: 'number',
     width: 150,
-    valueGetter: (params: GridValueGetterParams) => params.row.avg,
+    valueGetter: (_value: unknown, row: AlertCountSeries) => row.avg,
   },
   {
     field: 'serviceID',
     headerName: 'Service ID',
-    valueGetter: (params: GridValueGetterParams) => {
-      return params.row.id || ''
+    valueGetter: (_value: unknown, row: AlertCountSeries) => {
+      return row.id || ''
     },
-    hide: true,
     width: 300,
   },
 ]
@@ -87,8 +79,6 @@ const columns = [
 export default function AlertCountTable(
   props: AlertCountTableProps,
 ): React.JSX.Element {
-  const classes = useStyles()
-
   const csvOpts = useMemo(
     () => ({
       urlPrefix: location.origin + pathPrefix,
@@ -125,12 +115,12 @@ export default function AlertCountTable(
     return (
       <GridToolbarContainer className={gridClasses.toolbarContainer}>
         <Grid container justifyContent='space-between'>
-          <Grid item>
+          <Grid>
             <GridToolbarColumnsButton />
             <GridToolbarFilterButton />
             <GridToolbarDensitySelector />
           </Grid>
-          <Grid item>
+          <Grid>
             <AppLink
               to={link}
               download={`all-services-alert-counts-${props.startTime}-to-${props.endTime}.csv`}
@@ -149,17 +139,17 @@ export default function AlertCountTable(
   }
 
   return (
-    <Grid container className={classes.tableContent}>
-      <Grid item xs={12} data-cy='alert-count-table'>
+    <Grid container sx={{ height: '400px' }}>
+      <Grid size={12} data-cy='alert-count-table'>
         <DataGrid
           rows={props.alertCounts ?? []}
           loading={props.loading}
           autoPageSize
           columns={columns}
           rowSelection={false}
-          components={{
-            ExportIcon: DownloadIcon,
-            Toolbar: CustomToolbar,
+          slots={{
+            exportIcon: DownloadIcon,
+            toolbar: CustomToolbar,
           }}
         />
       </Grid>

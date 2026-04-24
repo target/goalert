@@ -26,7 +26,7 @@ export default function UniversalKeyRuleForm(
 ): JSX.Element {
   return (
     <Grid container spacing={2}>
-      <Grid item xs={12}>
+      <Grid size={12}>
         <TextField
           fullWidth
           label='Name'
@@ -39,7 +39,7 @@ export default function UniversalKeyRuleForm(
           helperText={props.nameError}
         />
       </Grid>
-      <Grid item xs={12}>
+      <Grid size={12}>
         <TextField
           fullWidth
           label='Description'
@@ -55,7 +55,7 @@ export default function UniversalKeyRuleForm(
           helperText={props.descriptionError}
         />
       </Grid>
-      <Grid item xs={12}>
+      <Grid size={12}>
         <ExprField
           name='conditionExpr'
           label='Condition'
@@ -66,7 +66,7 @@ export default function UniversalKeyRuleForm(
         <HelperText error={props.conditionError} />
       </Grid>
 
-      <Grid item xs={12}>
+      <Grid size={12}>
         <FormControl>
           <FormLabel id='demo-row-radio-buttons-group-label'>
             After actions complete:

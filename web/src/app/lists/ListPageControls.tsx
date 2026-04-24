@@ -1,33 +1,11 @@
 import React, { useEffect } from 'react'
-import {
-  Button,
-  Card,
-  CircularProgress,
-  Grid,
-  IconButton,
-  Theme,
-} from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { Button, Card, CircularProgress, Grid, IconButton } from '@mui/material'
 import { Add, ChevronLeft, ChevronRight } from '@mui/icons-material'
 import CreateFAB from './CreateFAB'
 import { useIsWidthDown } from '../util/useWidth'
 import { usePages } from '../util/pagination'
 import { useURLKey } from '../actions'
 
-const useStyles = makeStyles((theme: Theme) => ({
-  progress: {
-    color: theme.palette.secondary.main,
-    position: 'absolute',
-  },
-  controls: {
-    [theme.breakpoints.down('sm')]: {
-      '&:not(:first-child)': {
-        marginBottom: '4.5em',
-        paddingBottom: '1em',
-      },
-    },
-  },
-}))
 type ListPageControlsBaseProps = {
   nextCursor: string | null | undefined
   onCursorChange: (cursor: string) => void
@@ -61,7 +39,6 @@ function canCreate(
 export default function ListPageControls(
   props: ListPageControlsProps,
 ): React.ReactNode {
-  const classes = useStyles()
   const showCreate = canCreate(props)
   const isMobile = useIsWidthDown('md')
 
@@ -75,17 +52,16 @@ export default function ListPageControls(
   return (
     <Grid container spacing={2}>
       <Grid
+        size={12}
         container
-        item
-        xs={12}
         spacing={2}
         justifyContent='flex-start'
         alignItems='center'
       >
-        {props.slots.search && <Grid item>{props.slots.search}</Grid>}
+        {props.slots.search && <Grid>{props.slots.search}</Grid>}
 
         {showCreate && !isMobile && (
-          <Grid item sx={{ ml: 'auto' }}>
+          <Grid sx={{ ml: 'auto' }}>
             <Button
               variant='contained'
               startIcon={<Add />}
@@ -97,20 +73,26 @@ export default function ListPageControls(
         )}
       </Grid>
 
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Card data-cy='paginated-list'>{props.slots.list}</Card>
       </Grid>
 
       <Grid
-        item // item within main render grid
-        xs={12}
+        size={12} // within main render grid
         container // container for control items
         spacing={1}
         justifyContent='flex-end'
         alignItems='center'
-        className={classes.controls}
+        sx={(theme) => ({
+          [theme.breakpoints.down('sm')]: {
+            '&:not(:first-child)': {
+              marginBottom: '4.5em',
+              paddingBottom: '1em',
+            },
+          },
+        })}
       >
-        <Grid item>
+        <Grid>
           <IconButton
             title='back page'
             data-cy='back-button'
@@ -123,7 +105,7 @@ export default function ListPageControls(
             <ChevronLeft />
           </IconButton>
         </Grid>
-        <Grid item>
+        <Grid>
           <IconButton
             title='next page'
             data-cy='next-button'
@@ -137,7 +119,7 @@ export default function ListPageControls(
               <CircularProgress
                 color='secondary'
                 size={24}
-                className={classes.progress}
+                sx={{ color: 'secondary.main', position: 'absolute' }}
               />
             )}
             <ChevronRight />

@@ -204,7 +204,7 @@ export default function QueryList(props: QueryListProps): React.JSX.Element {
     }
 
     return (
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Card>
           <ListHeader
             cardHeader={props.cardHeader}

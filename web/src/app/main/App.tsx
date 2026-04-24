@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect, useLayoutEffect, useState } from 'react'
 import AppBar from '@mui/material/AppBar'
-import Hidden from '@mui/material/Hidden'
+import Box from '@mui/material/Box'
 import Toolbar from '@mui/material/Toolbar'
 import ToolbarPageTitle from './components/ToolbarPageTitle'
 import ToolbarAction from './components/ToolbarAction'
@@ -12,11 +12,11 @@ import LazyWideSideBar, { drawerWidth } from './WideSideBar'
 import LazyNewUserSetup from './components/NewUserSetup'
 import { SkipToContentLink } from '../util/SkipToContentLink'
 import { SearchContainer, SearchProvider } from '../util/AppBarSearchContainer'
-import makeStyles from '@mui/styles/makeStyles'
 import { useIsWidthDown } from '../util/useWidth'
 import { isIOS } from '../util/browsers'
 import UserSettingsPopover from './components/UserSettingsPopover'
 import { Theme } from '@mui/material/styles'
+import type { SxProps } from '@mui/material'
 import AppRoutes from './AppRoutes'
 import { useURLKey } from '../actions'
 import NavBar from './NavBar'
@@ -27,31 +27,31 @@ import ReactGA from 'react-ga4'
 import { useConfigValue } from '../util/RequireConfig'
 import Spinner from '../loading/components/Spinner'
 
-const useStyles = makeStyles((theme: Theme) => ({
-  root: {
+const classes = {
+  root: (theme: Theme) => ({
     flexGrow: 1,
     zIndex: 1,
-    position: 'relative',
+    position: 'relative' as const,
     display: 'flex',
     backgroundColor: theme.palette.background.default,
     height: '100%',
-  },
+  }),
   main: {
     width: '100%',
     overflowY: 'auto',
     marginTop: '64px',
   },
   mainContainer: { position: 'relative', height: '100%' },
-  appBar: {
+  appBar: (theme: Theme) => ({
     [theme.breakpoints.up('md')]: { width: `calc(100% - ${drawerWidth})` },
     zIndex: theme.zIndex.drawer + 1,
-  },
-  containerClass: {
+  }),
+  containerClass: (theme: Theme) => ({
     padding: '1em',
     [theme.breakpoints.up('md')]: { width: '75%' },
     [theme.breakpoints.down('md')]: { width: '100%' },
-  },
-}))
+  }),
+} satisfies Record<string, SxProps<Theme>>
 
 export default function App(): React.JSX.Element {
   const [analyticsID] = useConfigValue('General.GoogleAnalyticsID') as [string]
@@ -60,7 +60,6 @@ export default function App(): React.JSX.Element {
     if (analyticsID) ReactGA.initialize(analyticsID)
   }, [analyticsID])
 
-  const classes = useStyles()
   const [showMobile, setShowMobile] = useState(false)
   const fullScreen = useIsWidthDown('md')
   const marginLeft = fullScreen ? 0 : drawerWidth
@@ -74,13 +73,13 @@ export default function App(): React.JSX.Element {
   let cyFormat = 'wide'
   if (fullScreen) cyFormat = 'mobile'
   return (
-    <div className={classes.root} id='app-root'>
+    <Box sx={classes.root} id='app-root'>
       <PageActionProvider>
         <SearchProvider>
           <NotificationProvider>
             <AppBar
               position='fixed'
-              className={classes.appBar}
+              sx={classes.appBar}
               data-cy='app-bar'
               data-cy-format={cyFormat}
             >
@@ -100,12 +99,12 @@ export default function App(): React.JSX.Element {
               </Toolbar>
             </AppBar>
 
-            <Hidden mdDown>
+            <Box sx={{ display: { xs: 'none', md: 'block' } }}>
               <LazyWideSideBar>
                 <NavBar />
               </LazyWideSideBar>
-            </Hidden>
-            <Hidden mdUp>
+            </Box>
+            <Box sx={{ display: { xs: 'block', md: 'none' } }}>
               <SwipeableDrawer
                 disableDiscovery={isIOS}
                 open={showMobile}
@@ -117,11 +116,12 @@ export default function App(): React.JSX.Element {
               >
                 <NavBar />
               </SwipeableDrawer>
-            </Hidden>
+            </Box>
 
-            <main
+            <Box
+              component='main'
               id='content'
-              className={classes.main}
+              sx={classes.main}
               style={{ marginLeft }}
               data-exp-flag-example={String(hasExampleFlag)}
             >
@@ -132,18 +132,18 @@ export default function App(): React.JSX.Element {
                   <Grid
                     container
                     justifyContent='center'
-                    className={classes.mainContainer}
+                    sx={classes.mainContainer}
                   >
-                    <Grid className={classes.containerClass} item>
+                    <Grid sx={classes.containerClass}>
                       <AppRoutes />
                     </Grid>
                   </Grid>
                 </Suspense>
               </ErrorBoundary>
-            </main>
+            </Box>
           </NotificationProvider>
         </SearchProvider>
       </PageActionProvider>
-    </div>
+    </Box>
   )
 }

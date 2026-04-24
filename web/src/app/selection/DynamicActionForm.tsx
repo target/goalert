@@ -87,8 +87,8 @@ export default function DynamicActionForm(
   const selectedDest = types.find((t) => t.type === props.value?.destType)
 
   return (
-    <Grid item xs={12} container spacing={2}>
-      <Grid item xs={12}>
+    <Grid size={12} container spacing={2}>
+      <Grid size={12}>
         <TextField
           select
           fullWidth
@@ -115,7 +115,7 @@ export default function DynamicActionForm(
         </TextField>
       </Grid>
       {props.value && (
-        <Grid item xs={12}>
+        <Grid size={12}>
           <DestinationField
             value={props.value?.staticParams}
             onChange={(vals) => {
@@ -147,7 +147,7 @@ export default function DynamicActionForm(
           }
 
           return (
-            <Grid key={p.paramID} item xs={12}>
+            <Grid size={12} key={p.paramID}>
               <ExprField
                 name={p.paramID}
                 disabled={props.disabled || !selectedDest?.enabled}

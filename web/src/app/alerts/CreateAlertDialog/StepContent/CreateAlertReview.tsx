@@ -21,7 +21,7 @@ export function CreateAlertReview(
   return (
     <Grid container spacing={2}>
       {createdAlertIDs.length > 0 && (
-        <Grid item xs={12}>
+        <Grid size={12}>
           <List aria-label='Successfully created alerts'>
             {createdAlertIDs.map((id: string) => (
               <CreateAlertListItem key={id} id={id} />
@@ -31,7 +31,7 @@ export function CreateAlertReview(
       )}
 
       {failedServices.length > 0 && (
-        <Grid item xs={12}>
+        <Grid size={12}>
           <List aria-label='Failed alerts'>
             {failedServices.map((svc) => {
               return (

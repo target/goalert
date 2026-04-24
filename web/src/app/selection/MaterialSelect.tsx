@@ -19,35 +19,9 @@ import {
   ListItemText,
   createFilterOptions,
   FilterOptionsState,
+  autocompleteClasses,
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { Check } from '@mui/icons-material'
-
-const useStyles = makeStyles({
-  listItemIcon: {
-    minWidth: 0,
-  },
-  menuItem: {
-    display: 'flex',
-    flex: 1,
-    justifyContent: 'space-between',
-    wordBreak: 'break-word',
-    whiteSpace: 'pre-wrap',
-  },
-  clearIndicator: {
-    display: 'none',
-  },
-  padding0: {
-    padding: 0,
-  },
-  list: {
-    width: '100%',
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 0,
-  },
-})
 
 interface AutocompleteInputProps extends InputProps {
   'data-cy': string
@@ -96,7 +70,6 @@ interface MultiSelectProps {
 export default function MaterialSelect(
   props: CommonSelectProps & (MultiSelectProps | SingleSelectProps),
 ): JSX.Element {
-  const classes = useStyles()
   const {
     fullWidth,
     disabled,
@@ -149,13 +122,12 @@ export default function MaterialSelect(
     if (!value) setInputValue('')
   }, [value, multiple, focus])
 
-  const customCSS: Record<string, string> = {
-    option: classes.padding0,
-    clearIndicator: classes.clearIndicator,
-  }
-
-  if (noOptionsError) {
-    customCSS.noOptions = classes.padding0
+  const autocompleteSx = {
+    [`& .${autocompleteClasses.option}`]: { padding: 0 },
+    [`& .${autocompleteClasses.clearIndicator}`]: { display: 'none' },
+    ...(noOptionsError
+      ? { [`& .${autocompleteClasses.noOptions}`]: { padding: 0 } }
+      : {}),
   }
 
   function isSelected(val: string): boolean {
@@ -184,7 +156,7 @@ export default function MaterialSelect(
     <Autocomplete
       data-cy='material-select'
       data-cy-ready={!isLoading}
-      classes={customCSS}
+      sx={autocompleteSx}
       fullWidth={fullWidth}
       multiple={multiple}
       filterSelectedOptions={multiple && !disableCloseOnSelect}
@@ -261,21 +233,31 @@ export default function MaterialSelect(
         <MenuItem
           {...props}
           component='span'
-          className={classes.menuItem}
+          sx={{
+            display: 'flex',
+            flex: 1,
+            justifyContent: 'space-between',
+            wordBreak: 'break-word',
+            whiteSpace: 'pre-wrap',
+          }}
           selected={isSelected(value)}
           data-cy='search-select-item'
         >
-          <List className={classes.list}>
+          <List
+            sx={{
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              p: 0,
+            }}
+          >
             <ListItem>
               <ListItemText primary={label} secondary={subText || null} />
             </ListItem>
-            {icon && (
-              <ListItemIcon className={classes.listItemIcon}>
-                {icon}
-              </ListItemIcon>
-            )}
+            {icon && <ListItemIcon sx={{ minWidth: 0 }}>{icon}</ListItemIcon>}
             {disableCloseOnSelect && isSelected(value) && (
-              <ListItemIcon className={classes.listItemIcon}>
+              <ListItemIcon sx={{ minWidth: 0 }}>
                 <Check color='info' />
               </ListItemIcon>
             )}

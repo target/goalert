@@ -36,7 +36,7 @@ const fromExistingQuery = gql`
 
 function AdminAPIKeyToken(props: { token: string }): React.ReactNode {
   return (
-    <Grid item xs={12}>
+    <Grid size={12}>
       <Typography sx={{ mb: 3 }}>
         <CopyText title={props.token} value={props.token} placement='bottom' />
       </Typography>

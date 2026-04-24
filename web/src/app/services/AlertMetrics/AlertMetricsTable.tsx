@@ -2,8 +2,6 @@ import React, { useMemo } from 'react'
 import {
   DataGrid,
   GridRenderCellParams,
-  GridValueGetterParams,
-  GridValueFormatterParams,
   GridToolbarContainer,
   GridToolbarColumnsButton,
   GridToolbarDensitySelector,
@@ -14,7 +12,6 @@ import {
 } from '@mui/x-data-grid'
 import { Button, Grid } from '@mui/material'
 import DownloadIcon from '@mui/icons-material/Download'
-import { makeStyles } from '@mui/styles'
 import { Alert, Service } from '../../../schema'
 import { DateTime, Duration } from 'luxon'
 import AppLink from '../../util/AppLink'
@@ -29,40 +26,34 @@ interface AlertMetricsTableProps {
   endTime: string
 }
 
-const useStyles = makeStyles(() => ({
-  tableContent: {
-    height: '400px',
-  },
-}))
-
 const columns: GridColDef[] = [
   {
     field: 'createdAt',
     headerName: 'Created At',
     width: 250,
-    valueFormatter: (params: GridValueFormatterParams) =>
-      DateTime.fromISO(params.value as string).toFormat('ccc, DD, t ZZZZ'),
+    valueFormatter: (value: string) =>
+      DateTime.fromISO(value).toFormat('ccc, DD, t ZZZZ'),
   },
   {
     field: 'closedAt',
     headerName: 'Closed At',
     width: 250,
-    valueFormatter: (params: GridValueFormatterParams) =>
-      DateTime.fromISO(params.value as string).toFormat('ccc, DD, t ZZZZ'),
+    valueFormatter: (value: string) =>
+      DateTime.fromISO(value).toFormat('ccc, DD, t ZZZZ'),
   },
   {
     field: 'timeToAck',
     headerName: 'Ack Time',
     width: 100,
-    valueFormatter: (params: GridValueFormatterParams) =>
-      Duration.fromISO(params.value as string).toFormat('hh:mm:ss'),
+    valueFormatter: (value: string) =>
+      Duration.fromISO(value).toFormat('hh:mm:ss'),
   },
   {
     field: 'timeToClose',
     headerName: 'Close Time',
     width: 100,
-    valueFormatter: (params: GridValueFormatterParams) =>
-      Duration.fromISO(params.value as string).toFormat('hh:mm:ss'),
+    valueFormatter: (value: string) =>
+      Duration.fromISO(value).toFormat('hh:mm:ss'),
   },
   {
     field: 'alertID',
@@ -82,8 +73,8 @@ const columns: GridColDef[] = [
     field: 'status',
     headerName: 'Status',
     width: 160,
-    valueFormatter: (params: GridValueFormatterParams) => {
-      return (params.value as string).replace('Status', '')
+    valueFormatter: (value: string) => {
+      return value.replace('Status', '')
     },
   },
   {
@@ -99,8 +90,8 @@ const columns: GridColDef[] = [
   {
     field: 'serviceID',
     headerName: 'Service ID',
-    valueGetter: (params: GridValueGetterParams) => {
-      return params.row.service?.id || ''
+    valueGetter: (_value: unknown, row: Alert) => {
+      return row.service?.id || ''
     },
     width: 300,
   },
@@ -108,8 +99,8 @@ const columns: GridColDef[] = [
     field: 'serviceName',
     headerName: 'Service Name',
     width: 200,
-    valueGetter: (params: GridValueGetterParams) => {
-      return params.row.service?.name || ''
+    valueGetter: (_value: unknown, row: Alert) => {
+      return row.service?.name || ''
     },
 
     renderCell: (params: GridRenderCellParams<{ service: Service }>) => {
@@ -128,7 +119,6 @@ const columns: GridColDef[] = [
 export default function AlertMetricsTable(
   props: AlertMetricsTableProps,
 ): JSX.Element {
-  const classes = useStyles()
   const alerts = useMemo(
     () => props.alerts.map((a) => ({ ...a, ...a.metrics })),
     [props.alerts],
@@ -151,12 +141,12 @@ export default function AlertMetricsTable(
     return (
       <GridToolbarContainer className={gridClasses.toolbarContainer}>
         <Grid container justifyContent='space-between'>
-          <Grid item>
+          <Grid>
             <GridToolbarColumnsButton />
             <GridToolbarFilterButton />
             <GridToolbarDensitySelector />
           </Grid>
-          <Grid item>
+          <Grid>
             <AppLink
               to={link}
               download={`${props.serviceName.replace(
@@ -178,16 +168,16 @@ export default function AlertMetricsTable(
   }
 
   return (
-    <Grid container className={classes.tableContent}>
-      <Grid item xs={12} data-cy='metrics-table'>
+    <Grid container style={{ height: '400px' }}>
+      <Grid size={12} data-cy='metrics-table'>
         <DataGrid
           rows={alerts}
           loading={props.loading}
           columns={columns}
           rowSelection={false}
-          components={{
-            ExportIcon: DownloadIcon,
-            Toolbar: CustomToolbar,
+          slots={{
+            exportIcon: DownloadIcon,
+            toolbar: CustomToolbar,
           }}
         />
       </Grid>

@@ -5,8 +5,7 @@ import ButtonGroup from '@mui/material/ButtonGroup'
 import Divider from '@mui/material/Divider'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles'
-import { Theme } from '@mui/material/styles'
+import { SxProps, Theme } from '@mui/material/styles'
 import _, { startCase, isEmpty, uniq, chain } from 'lodash'
 import AdminSection from './AdminSection'
 import AdminDialog from './AdminDialog'
@@ -43,31 +42,25 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles((theme: Theme) => ({
+const classes = {
   accordionDetails: {
     padding: 0,
     display: 'block',
-  },
-  form: {
-    width: '100%',
-  },
-  saveDisabled: {
-    color: 'rgba(255, 255, 255, 0.5)',
   },
   heading: {
     fontSize: '1.1rem',
     flexBasis: '33.33%',
     flexShrink: 0,
   },
-  secondaryHeading: {
+  secondaryHeading: (theme: Theme) => ({
     fontSize: theme.typography.pxToRem(15),
     color: theme.palette.text.secondary,
     flexGrow: 1,
-  },
+  }),
   changeChip: {
     justifyContent: 'flex-end',
   },
-}))
+} satisfies Record<string, SxProps<Theme>>
 
 interface ConfigValues {
   [id: string]: string
@@ -82,7 +75,6 @@ function formatHeading(s = ''): string {
 }
 
 export default function AdminConfig(): React.JSX.Element {
-  const classes = useStyles()
   const [confirm, setConfirm] = useState(false)
   const [values, setValues] = useState({})
   const [section, setSection] = useState(false as false | string)
@@ -135,7 +127,7 @@ export default function AdminConfig(): React.JSX.Element {
 
   return (
     <Grid container spacing={2}>
-      <Grid item xs={12} container justifyContent='flex-end'>
+      <Grid size={12} container justifyContent='flex-end'>
         <ButtonGroup variant='outlined'>
           <Button
             data-cy='reset'
@@ -165,7 +157,7 @@ export default function AdminConfig(): React.JSX.Element {
         />
       )}
 
-      <Grid item xs={12}>
+      <Grid size={12}>
         {groups.map((groupID: string, index: number) => (
           <Accordion
             key={groupID}
@@ -181,17 +173,17 @@ export default function AdminConfig(): React.JSX.Element {
               <Typography
                 component='h2'
                 variant='subtitle1'
-                className={classes.heading}
+                sx={classes.heading}
               >
                 {formatHeading(groupID)}
               </Typography>
-              <Typography className={classes.secondaryHeading}>
+              <Typography sx={classes.secondaryHeading}>
                 {hasEnable(groupID) &&
                   (isEnabled(groupID) ? 'Enabled' : 'Disabled')}
               </Typography>
               {(changeCount(groupID) && (
                 <Chip
-                  className={classes.changeChip}
+                  sx={classes.changeChip}
                   size='small'
                   label={`${changeCount(groupID)} unsaved change${
                     changeCount(groupID) === 1 ? '' : 's'
@@ -204,10 +196,10 @@ export default function AdminConfig(): React.JSX.Element {
             <AccordionDetails
               id={`accordion-sect-${groupID}`}
               aria-labelledby={`accordion-${groupID}`}
-              className={classes.accordionDetails}
+              sx={classes.accordionDetails}
               role='region'
             >
-              <Form className={classes.form}>
+              <Form style={{ width: '100%' }}>
                 <AdminSection
                   value={values}
                   onChange={(id: string, value: null | string) =>

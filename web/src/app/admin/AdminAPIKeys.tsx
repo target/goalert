@@ -1,8 +1,6 @@
 import React, { Suspense, useMemo, useState } from 'react'
-import { Button, Card, Grid, Typography } from '@mui/material'
+import { Box, Button, Card, Grid, Typography } from '@mui/material'
 import { Add } from '@mui/icons-material'
-import makeStyles from '@mui/styles/makeStyles'
-import { Theme } from '@mui/material/styles'
 import { gql, useQuery } from 'urql'
 import { DateTime } from 'luxon'
 import AdminAPIKeysDrawer from './admin-api-keys/AdminAPIKeyDrawer'
@@ -33,26 +31,7 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles((theme: Theme) => ({
-  buttons: {
-    'margin-bottom': '15px',
-  },
-  containerDefault: {
-    [theme.breakpoints.up('md')]: {
-      maxWidth: '100%',
-      transition: `max-width ${theme.transitions.duration.leavingScreen}ms ease`,
-    },
-  },
-  containerSelected: {
-    [theme.breakpoints.up('md')]: {
-      maxWidth: '70%',
-      transition: `max-width ${theme.transitions.duration.enteringScreen}ms ease`,
-    },
-  },
-}))
-
 export default function AdminAPIKeys(): React.JSX.Element {
-  const classes = useStyles()
   const [selectedAPIKey, setSelectedAPIKey] = useState<GQLAPIKey | null>(null)
   const [createDialog, setCreateDialog] = useState<boolean>(false)
   const [createFromID, setCreateFromID] = useState('')
@@ -135,11 +114,7 @@ export default function AdminAPIKeys(): React.JSX.Element {
       ),
       secondaryAction: (
         <Grid container>
-          <Grid
-            item
-            xs={12}
-            sx={{ display: 'flex', justifyContent: 'flex-end' }}
-          >
+          <Grid size={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Typography
               gutterBottom
               variant='subtitle2'
@@ -154,11 +129,7 @@ export default function AdminAPIKeys(): React.JSX.Element {
               )}
             </Typography>
           </Grid>
-          <Grid
-            item
-            xs={12}
-            sx={{ display: 'flex', justifyContent: 'flex-end' }}
-          >
+          <Grid size={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <OtherActions
               actions={[
                 {
@@ -225,16 +196,28 @@ export default function AdminAPIKeys(): React.JSX.Element {
           />
         )}
       </Suspense>
-      <div
-        className={
-          selectedAPIKey ? classes.containerSelected : classes.containerDefault
+      <Box
+        sx={(theme) =>
+          selectedAPIKey
+            ? {
+                [theme.breakpoints.up('md')]: {
+                  maxWidth: '70%',
+                  transition: `max-width ${theme.transitions.duration.enteringScreen}ms ease`,
+                },
+              }
+            : {
+                [theme.breakpoints.up('md')]: {
+                  maxWidth: '100%',
+                  transition: `max-width ${theme.transitions.duration.leavingScreen}ms ease`,
+                },
+              }
         }
       >
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Button
             data-cy='new'
             variant='contained'
-            className={classes.buttons}
+            sx={{ mb: '15px' }}
             onClick={() => setCreateDialog(true)}
             startIcon={<Add />}
           >
@@ -244,7 +227,7 @@ export default function AdminAPIKeys(): React.JSX.Element {
         <Card sx={{ width: '100%', padding: '0px' }}>
           <FlatList emptyMessage='No Results' items={items} />
         </Card>
-      </div>
+      </Box>
     </React.Fragment>
   )
 }

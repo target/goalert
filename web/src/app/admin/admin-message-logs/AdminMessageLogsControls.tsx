@@ -11,10 +11,10 @@ export default function AdminMessageLogsControls(): React.JSX.Element {
   return (
     <Card>
       <Grid container spacing={1} sx={{ padding: 2 }}>
-        <Grid item sx={{ flex: 1 }}>
+        <Grid sx={{ flex: 1 }}>
           <Search transition={false} fullWidth />
         </Grid>
-        <Grid item>
+        <Grid>
           <ISODateTimePicker
             placeholder='Start'
             name='startDate'
@@ -27,7 +27,7 @@ export default function AdminMessageLogsControls(): React.JSX.Element {
             variant='outlined'
           />
         </Grid>
-        <Grid item>
+        <Grid>
           <ISODateTimePicker
             placeholder='End'
             name='endDate'
@@ -40,7 +40,7 @@ export default function AdminMessageLogsControls(): React.JSX.Element {
             variant='outlined'
           />
         </Grid>
-        <Grid item>
+        <Grid>
           <Button
             aria-label='Reset Filters'
             variant='outlined'

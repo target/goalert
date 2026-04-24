@@ -98,7 +98,7 @@ export default function AdminServiceMetrics(): React.JSX.Element {
   function renderOverviewMetrics(): React.JSX.Element {
     return (
       <React.Fragment>
-        <Grid item xs={4} sm={2.4}>
+        <Grid size={{ xs: 4, sm: 2.4 }}>
           <Card sx={{ height: '100%' }}>
             <CardHeader
               title={serviceData.services.length}
@@ -106,7 +106,7 @@ export default function AdminServiceMetrics(): React.JSX.Element {
             />
           </Card>
         </Grid>
-        <Grid item xs={4} sm={2.4}>
+        <Grid size={{ xs: 4, sm: 2.4 }}>
           <Card sx={{ height: '100%' }}>
             <CardHeader
               title={totalNoIntegration}
@@ -121,7 +121,7 @@ export default function AdminServiceMetrics(): React.JSX.Element {
             />
           </Card>
         </Grid>
-        <Grid item xs={4} sm={2.4}>
+        <Grid size={{ xs: 4, sm: 2.4 }}>
           <Card sx={{ height: '100%' }}>
             <CardHeader
               title={totalNoEP}
@@ -136,7 +136,7 @@ export default function AdminServiceMetrics(): React.JSX.Element {
             />
           </Card>
         </Grid>
-        <Grid item xs={4} sm={2.4}>
+        <Grid size={{ xs: 4, sm: 2.4 }}>
           <Card sx={{ height: '100%' }}>
             <CardHeader
               title={
@@ -157,7 +157,7 @@ export default function AdminServiceMetrics(): React.JSX.Element {
             />
           </Card>
         </Grid>
-        <Grid item xs={3} sm={2.4}>
+        <Grid size={{ xs: 3, sm: 2.4 }}>
           <Card sx={{ height: '100%' }}>
             <CardHeader
               title={totalAlertLimit}
@@ -179,7 +179,7 @@ export default function AdminServiceMetrics(): React.JSX.Element {
   function renderUsageGraphs(): React.JSX.Element {
     return (
       <React.Fragment>
-        <Grid item xs>
+        <Grid size='grow'>
           <Card sx={{ marginTop: (theme) => theme.spacing(1) }}>
             <CardHeader
               title='Integration Key Usage'
@@ -198,7 +198,7 @@ export default function AdminServiceMetrics(): React.JSX.Element {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs>
+        <Grid size='grow'>
           <Card sx={{ marginTop: (theme) => theme.spacing(1) }}>
             <CardHeader
               title='Escalation Policy Usage'
@@ -240,13 +240,11 @@ export default function AdminServiceMetrics(): React.JSX.Element {
     <Grid container spacing={2}>
       {serviceData.loading && <Spinner />}
       {renderOverviewMetrics()}
-      <Grid item xs={12}>
+      <Grid size={12}>
         <AdminServiceFilter />
       </Grid>
       {renderUsageGraphs()}
-      <Grid item xs={12}>
-        {renderServiceTable()}
-      </Grid>
+      <Grid size={12}>{renderServiceTable()}</Grid>
     </Grid>
   )
 }

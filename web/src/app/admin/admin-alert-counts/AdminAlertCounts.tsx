@@ -1,7 +1,5 @@
 import React, { useMemo, useState } from 'react'
 import { Grid, Card, CardContent, CardHeader } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
-import { Theme } from '@mui/material/styles'
 import AlertCountControls from './AlertCountControls'
 import { useURLParams } from '../../actions'
 import { DateTime, Duration, Interval, DateTimeUnit } from 'luxon'
@@ -13,12 +11,6 @@ import AlertCountLineGraph from './AlertCountLineGraph'
 import AlertCountTable from './AlertCountTable'
 import { AlertCountOpts, AlertCountSeries } from './useAdminAlertCounts'
 
-const useStyles = makeStyles((theme: Theme) => ({
-  card: {
-    marginTop: theme.spacing(1),
-  },
-}))
-
 const units: Record<string, DateTimeUnit> = {
   PT1M: 'minute',
   PT1H: 'hour',
@@ -28,8 +20,6 @@ const units: Record<string, DateTimeUnit> = {
 }
 
 export default function AdminAlertCounts(): React.JSX.Element {
-  const styles = useStyles()
-
   const [graphData, setGraphData] = useState<AlertCountSeries[]>([])
   const now = useMemo(() => DateTime.now(), [])
 
@@ -79,9 +69,9 @@ export default function AdminAlertCounts(): React.JSX.Element {
 
   return (
     <Grid container spacing={2}>
-      <Grid item xs={12}>
+      <Grid size={12}>
         <AlertCountControls />
-        <Card className={styles.card}>
+        <Card sx={{ mt: 1 }}>
           <CardHeader
             title='Alert Counts'
             subheader={`Number of alerts created by services over the past ${dayCount} ${unit}s`}

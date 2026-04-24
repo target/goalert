@@ -5,14 +5,10 @@ import Typography from '@mui/material/Typography'
 import Error from '@mui/icons-material/Error'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import { Zoom } from '@mui/material'
-
-import makeStyles from '@mui/styles/makeStyles'
-
-const useStyles = makeStyles((theme) => ({
-  ...globalStyles(theme),
-}))
+import { useTheme } from '@mui/material/styles'
 function DialogContentError(props) {
-  const classes = useStyles()
+  const theme = useTheme()
+  const { error: errorSx } = globalStyles(theme)
   const { error, noPadding, ...other } = props
   const style = noPadding ? { paddingBottom: 0 } : null
 
@@ -39,9 +35,9 @@ function DialogContentError(props) {
           variant='subtitle1'
           style={{ display: 'flex' }}
         >
-          <Error className={classes.error} />
+          <Error sx={errorSx} />
           &nbsp;
-          <span className={classes.error}>{error}</span>
+          <span style={errorSx}>{error}</span>
         </Typography>
       </Zoom>
     </DialogContent>

@@ -8,7 +8,7 @@ import {
   AlertTitle,
   AlertColor,
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { SxProps, Theme } from '@mui/material/styles'
 import ExpandIcon from '@mui/icons-material/KeyboardArrowDown'
 import CollapseIcon from '@mui/icons-material/KeyboardArrowUp'
 import toTitleCase from '../util/toTitleCase'
@@ -17,13 +17,7 @@ import {
   NotificationStatus,
 } from '../../schema'
 
-const useStyles = makeStyles({
-  alertAction: {
-    marginRight: 0,
-  },
-  alertMessage: {
-    width: '100%',
-  },
+const classes = {
   gridItem: {
     padding: '4px 0 4px 0',
   },
@@ -33,7 +27,7 @@ const useStyles = makeStyles({
   secondGridItem: {
     padding: '8px 0 4px 0',
   },
-})
+} satisfies Record<string, SxProps<Theme>>
 
 export type NoticeType = SchemaNoticeType | AlertColor | NotificationStatus
 function assertNever(x: never): never {
@@ -73,7 +67,6 @@ interface NoticesProps {
 export default function Notices({
   notices = [],
 }: NoticesProps): React.JSX.Element | null {
-  const classes = useStyles()
   const [noticesExpanded, setNoticesExpanded] = useState(false)
 
   if (!notices.length) {
@@ -106,10 +99,10 @@ export default function Notices({
    * Spacing set manually on grid items to accommodate manual
    * accordion transitions for multiple notices
    */
-  function getGridClassName(index: number): string {
+  function getGridSx(index: number): SxProps<Theme> | undefined {
     switch (index) {
       case 0:
-        return ''
+        return undefined
       case 1:
         return classes.secondGridItem
       case notices.length - 1:
@@ -121,12 +114,12 @@ export default function Notices({
 
   function renderNotice(notice: Notice, index: number): React.JSX.Element {
     return (
-      <Grid key={index} className={getGridClassName(index)} item xs={12}>
+      <Grid size={12} key={index} sx={getGridSx(index)}>
         <Alert
           severity={toSeverity(notice.type)}
-          classes={{
-            message: classes.alertMessage,
-            action: classes.alertAction,
+          sx={{
+            '& .MuiAlert-message': { width: '100%' },
+            '& .MuiAlert-action': { mr: 0 },
           }}
           elevation={1}
           action={
@@ -154,7 +147,7 @@ export default function Notices({
   return (
     <Grid container>
       {renderNotice(notices[0], 0)}
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Collapse in={noticesExpanded}>
           <Grid container>
             {notices.slice(1).map((n, i) => renderNotice(n, i + 1))}

@@ -8,37 +8,16 @@ import {
   Tooltip,
 } from '@mui/material'
 import { Add, ArrowDropDown } from '@mui/icons-material'
-import makeStyles from '@mui/styles/makeStyles'
 import {
   PaginatedList,
   PaginatedListItemProps,
   PaginatedListProps,
 } from './PaginatedList'
 import { ListHeaderProps } from './ListHeader'
-import classnames from 'classnames'
 import OtherActions from '../util/OtherActions'
 import Search from '../util/Search'
 import { useURLKey } from '../actions'
 import { useIsWidthDown } from '../util/useWidth'
-
-const useStyles = makeStyles({
-  checkbox: {
-    marginTop: 4,
-    marginBottom: 4,
-  },
-  controlsContainer: {
-    alignItems: 'center',
-    display: 'flex',
-  },
-  hover: {
-    '&:hover': {
-      cursor: 'pointer',
-    },
-  },
-  popper: {
-    opacity: 1,
-  },
-})
 
 export interface ControlledPaginatedListProps
   extends PaginatedListProps,
@@ -91,7 +70,6 @@ export interface CheckboxItemsProps extends PaginatedListItemProps {
 export default function ControlledPaginatedList(
   props: ControlledPaginatedListProps,
 ): React.JSX.Element {
-  const classes = useStyles()
   const {
     checkboxActions,
     createLabel,
@@ -163,7 +141,6 @@ export default function ControlledPaginatedList(
     return (
       <Grid
         aria-label='List Checkbox Controls'
-        item
         container
         sx={{
           alignItems: 'center',
@@ -171,9 +148,9 @@ export default function ControlledPaginatedList(
           width: 'fit-content',
         }}
       >
-        <Grid item>
+        <Grid>
           <Checkbox
-            className={classes.checkbox}
+            sx={{ mt: '4px', mb: '4px', ml: '1em' }}
             checked={
               itemIDs.length === checkedItems.length && itemIDs.length > 0
             }
@@ -183,15 +160,15 @@ export default function ControlledPaginatedList(
             }
             onChange={handleToggleSelectAll}
             disabled={items.length === 0}
-            sx={{
-              ml: '1em', // align with listItem icons
-            }}
           />
         </Grid>
 
         <Grid
-          item
-          className={classnames(classes.hover, classes.controlsContainer)}
+          sx={{
+            alignItems: 'center',
+            display: 'flex',
+            '&:hover': { cursor: 'pointer' },
+          }}
           data-cy='checkboxes-menu'
         >
           <OtherActions
@@ -213,11 +190,11 @@ export default function ControlledPaginatedList(
 
         {checkedItems.length > 0 &&
           checkboxActions.map((a, idx) => (
-            <Grid item key={idx}>
+            <Grid key={idx}>
               <Tooltip
                 title={a.label}
                 placement='bottom'
-                classes={{ popper: classes.popper }}
+                slotProps={{ popper: { sx: { opacity: 1 } } }}
               >
                 <IconButton
                   onClick={() => {
@@ -272,23 +249,22 @@ export default function ControlledPaginatedList(
   return (
     <React.Fragment>
       <Grid
+        size={12}
         container
-        item
-        xs={12}
         spacing={2}
         justifyContent='flex-start'
         alignItems='center'
       >
         {renderActions()}
         {!noSearch && (
-          <Grid item>
+          <Grid>
             <Search endAdornment={searchAdornment} />
           </Grid>
         )}
-        {secondaryActions && <Grid item>{secondaryActions}</Grid>}
+        {secondaryActions && <Grid>{secondaryActions}</Grid>}
 
         {!hideCreate && renderCreateDialog && !isMobile && (
-          <Grid item sx={{ ml: 'auto' }}>
+          <Grid sx={{ ml: 'auto' }}>
             <Button
               variant='contained'
               startIcon={<Add />}
@@ -301,7 +277,7 @@ export default function ControlledPaginatedList(
         )}
       </Grid>
 
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Card>
           {listHeader}
           <PaginatedList key={urlKey} {...listProps} items={getItems()} />

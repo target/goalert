@@ -1,14 +1,12 @@
 import React, { useLayoutEffect } from 'react'
-import classnames from 'classnames'
 import ListItem from '@mui/material/ListItem'
 import ListItemButton from '@mui/material/ListItemButton'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
-import makeStyles from '@mui/styles/makeStyles'
 import AppLink, { AppLinkListItem } from '../util/AppLink'
 import { FlatListItemOptions } from './FlatList'
 
-const useStyles = makeStyles(() => ({
+const classes = {
   listItem: {
     width: '100%',
     marginTop: '8px',
@@ -25,7 +23,7 @@ const useStyles = makeStyles(() => ({
   secondaryText: {
     whiteSpace: 'pre-line',
   },
-}))
+}
 
 export interface FlatListItemProps {
   item: FlatListItemOptions
@@ -35,8 +33,6 @@ export interface FlatListItemProps {
 export default function FlatListItem(
   props: FlatListItemProps,
 ): React.JSX.Element {
-  const classes = useStyles()
-
   const {
     highlight,
     selected,
@@ -84,11 +80,11 @@ export default function FlatListItem(
       {...linkProps}
       {...onClickProps}
       {...muiListItemProps}
-      className={classnames({
-        [classes.listItem]: !needsLiWrapper,
-        [classes.listItemDisabled]: disabled,
-        [classes.listItemDraggable]: draggable,
-      })}
+      sx={[
+        !needsLiWrapper && classes.listItem,
+        !!disabled && classes.listItemDisabled,
+        !!draggable && classes.listItemDraggable,
+      ]}
       selected={highlight}
     >
       {icon && <ListItemIcon tabIndex={-1}>{icon}</ListItemIcon>}
@@ -97,10 +93,7 @@ export default function FlatListItem(
         secondary={subText}
         disableTypography={disableTypography}
         secondaryTypographyProps={{
-          className: classnames({
-            [classes.secondaryText]: true,
-            [classes.listItemDisabled]: disabled,
-          }),
+          sx: [classes.secondaryText, !!disabled && classes.listItemDisabled],
           tabIndex: 0,
           component: typeof subText === 'string' ? 'p' : 'div',
         }}
@@ -115,9 +108,7 @@ export default function FlatListItem(
       ref={ref}
       disablePadding
       secondaryAction={secondaryAction}
-      className={classnames({
-        [classes.listItem]: true,
-      })}
+      sx={classes.listItem}
     >
       {button}
     </ListItem>

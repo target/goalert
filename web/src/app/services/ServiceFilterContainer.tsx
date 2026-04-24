@@ -40,12 +40,12 @@ export default function ServiceFilterContainer(
       onReset={props.onReset}
       anchorRef={props.anchorRef}
     >
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Typography color='textSecondary'>
           <i>Search by Integration Key</i>
         </Typography>
       </Grid>
-      <Grid data-cy='integration-key-container' item xs={12}>
+      <Grid size={12} data-cy='integration-key-container'>
         <IntegrationKeySelect
           name='integration-key'
           label='Select Integration Key'
@@ -71,12 +71,12 @@ export default function ServiceFilterContainer(
           <i>Paste the ID/Token (or full URL/email) to search.</i>
         </Typography>
       </Grid>
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Typography color='textSecondary'>
           <i>Search by Label</i>
         </Typography>
       </Grid>
-      <Grid data-cy='label-key-container' item xs={12}>
+      <Grid size={12} data-cy='label-key-container'>
         <LabelKeySelect
           name='label-key'
           label='Select Label Key'
@@ -86,7 +86,7 @@ export default function ServiceFilterContainer(
           }
         />
       </Grid>
-      <Grid data-cy='label-value-container' item xs={12}>
+      <Grid size={12} data-cy='label-value-container'>
         <LabelValueSelect
           name='label-value'
           label='Select Label Value'

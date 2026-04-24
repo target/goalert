@@ -11,19 +11,9 @@ import DestinationField from '../selection/DestinationField'
 import { useEPTargetTypes } from '../util/RequireConfig'
 import { gql, useClient, CombinedError } from 'urql'
 import DialogContentError from '../dialogs/components/DialogContentError'
-import makeStyles from '@mui/styles/makeStyles'
 import { useErrorConsumer } from '../util/ErrorConsumer'
 import { Add } from '../icons'
 import LoadingButton from '../loading/components/LoadingButton'
-
-const useStyles = makeStyles(() => {
-  return {
-    errorContainer: {
-      flexGrow: 0,
-      overflowY: 'visible',
-    },
-  }
-})
 
 export type FormValue = {
   delayMinutes: number
@@ -49,7 +39,6 @@ const query = gql`
 
 export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
   const types = useEPTargetTypes()
-  const classes = useStyles()
   const [destType, setDestType] = useState(types[0].type)
   const [args, setArgs] = useState<StringMap>({})
   const validationClient = useClient()
@@ -75,7 +64,7 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
         error={err}
         key={idx}
         noPadding
-        className={classes.errorContainer}
+        style={{ flexGrow: 0, overflowY: 'visible' }}
       />
     ))
   }
@@ -90,9 +79,9 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
       optionalLabels
     >
       <Grid container spacing={2}>
-        <Grid container spacing={1} item xs={12} sx={{ p: 1 }}>
+        <Grid size={12} container spacing={1} sx={{ p: 1 }}>
           {props.value.actions.map((a) => (
-            <Grid item key={JSON.stringify(a.values)}>
+            <Grid key={JSON.stringify(a.values)}>
               <DestinationInputChip
                 value={a}
                 onDelete={props.disabled ? undefined : () => handleDelete(a)}
@@ -100,14 +89,14 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
             </Grid>
           ))}
           {props.value.actions.length === 0 && (
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Typography variant='body2' color='textSecondary'>
                 No destinations
               </Typography>
             </Grid>
           )}
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <TextField
             select
             fullWidth
@@ -127,7 +116,7 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
             )}
           </TextField>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <DestinationField
             destType={destType}
             value={args}
@@ -141,7 +130,7 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
             )}
           />
         </Grid>
-        <Grid container item xs={12} justifyContent='flex-end'>
+        <Grid size={12} container justifyContent='flex-end'>
           {errs.hasErrors() && renderErrors(errs.remaining())}
           <LoadingButton
             variant='contained'
@@ -184,7 +173,7 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
           </LoadingButton>
         </Grid>
 
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             component={NumberField}
             disabled={props.disabled}

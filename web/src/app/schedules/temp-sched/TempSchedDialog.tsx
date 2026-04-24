@@ -6,8 +6,8 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import FormHelperText from '@mui/material/FormHelperText'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
+import type { SxProps } from '@mui/material'
 import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
 import _ from 'lodash'
@@ -42,11 +42,8 @@ function shiftEquals(a: Shift, b: Shift): boolean {
   return a.start === b.start && a.end === b.end && a.userID === b.userID
 }
 
-const useStyles = makeStyles((theme: Theme) => ({
+const classes = {
   contentText,
-  avatar: {
-    backgroundColor: theme.palette.primary.main,
-  },
   formContainer: {
     height: '100%',
   },
@@ -54,7 +51,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     marginTop: '.5rem',
     marginBottom: '.5rem',
   },
-  rightPane: {
+  rightPane: (theme: Theme) => ({
     [theme.breakpoints.down('md')]: {
       marginTop: '1rem',
     },
@@ -62,7 +59,7 @@ const useStyles = makeStyles((theme: Theme) => ({
       paddingLeft: '1rem',
     },
     overflow: 'hidden',
-  },
+  }),
   sticky: {
     position: 'sticky',
     top: 0,
@@ -70,7 +67,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   tzNote: {
     fontStyle: 'italic',
   },
-}))
+} satisfies Record<string, SxProps<Theme>>
 
 type TempScheduleDialogProps = {
   onClose: () => void
@@ -101,7 +98,6 @@ export default function TempSchedDialog({
   value: _value,
   edit = false,
 }: TempScheduleDialogProps): JSX.Element {
-  const classes = useStyles()
   const { q, zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
   const [showForm, setShowForm] = useState(false)
@@ -315,35 +311,30 @@ export default function TempSchedDialog({
             ) : (
               <Grid
                 container
-                className={classes.formContainer}
+                sx={classes.formContainer}
                 justifyContent='space-between'
               >
                 {/* left pane */}
                 <Grid
-                  item
-                  xs={12}
-                  md={6}
+                  size={{ xs: 12, md: 6 }}
                   container
                   alignContent='flex-start'
                   spacing={2}
                 >
-                  <Grid item xs={12}>
-                    <DialogContentText className={classes.contentText}>
+                  <Grid size={12}>
+                    <DialogContentText sx={classes.contentText}>
                       The schedule will be exactly as configured here for the
                       entire duration (ignoring all assignments and overrides).
                     </DialogContentText>
                   </Grid>
 
-                  <Grid item xs={12}>
-                    <Typography
-                      color='textSecondary'
-                      className={classes.tzNote}
-                    >
+                  <Grid size={12}>
+                    <Typography color='textSecondary' sx={classes.tzNote}>
                       Times shown in schedule timezone ({zone})
                     </Typography>
                   </Grid>
 
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <FormField
                       fullWidth
                       component={ISODateTimePicker}
@@ -366,7 +357,7 @@ export default function TempSchedDialog({
                       hint={isLocalZone ? '' : fmtLocal(value.start)}
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <FormField
                       fullWidth
                       component={ISODateTimePicker}
@@ -399,7 +390,7 @@ export default function TempSchedDialog({
                       })
                     }}
                   >
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <FormField
                         fullWidth
                         component={TextField}
@@ -411,7 +402,7 @@ export default function TempSchedDialog({
                         disabled={q.loading}
                       />
                     </Grid>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <FormField
                         fullWidth
                         component={TextField}
@@ -428,11 +419,11 @@ export default function TempSchedDialog({
                     </Grid>
                   </FormContainer>
 
-                  <Grid item xs={12}>
+                  <Grid size={12}>
                     <Divider />
                   </Grid>
 
-                  <Grid item xs={12} className={classes.sticky}>
+                  <Grid size={12} sx={classes.sticky}>
                     <TempSchedAddNewShift
                       value={value}
                       onChange={(shifts: Shift[]) =>
@@ -449,14 +440,12 @@ export default function TempSchedDialog({
 
                 {/* right pane */}
                 <Grid
-                  item
-                  xs={12}
-                  md={6}
+                  size={{ xs: 12, md: 6 }}
                   container
                   spacing={2}
-                  className={classes.rightPane}
+                  sx={classes.rightPane}
                 >
-                  <Grid item xs={12} ref={shiftListRef}>
+                  <Grid size={12} ref={shiftListRef}>
                     <Typography
                       variant='subtitle1'
                       component='h3'
@@ -466,10 +455,7 @@ export default function TempSchedDialog({
                     </Typography>
 
                     {submitAttempt && hasCoverageGaps && (
-                      <Alert
-                        severity='error'
-                        className={classes.noCoverageError}
-                      >
+                      <Alert severity='error' sx={classes.noCoverageError}>
                         <AlertTitle>Gaps in coverage</AlertTitle>
                         <FormHelperText>
                           There are gaps in coverage. During these gaps, nobody
@@ -496,10 +482,7 @@ export default function TempSchedDialog({
 
                     {DateTime.fromISO(value.start) >
                       DateTime.utc().minus({ hour: 1 }) || edit ? null : (
-                      <Alert
-                        severity='warning'
-                        className={classes.noCoverageError}
-                      >
+                      <Alert severity='warning' sx={classes.noCoverageError}>
                         <AlertTitle>Start time occurs in the past</AlertTitle>
                         <FormHelperText>
                           Any shifts or changes made to shifts in the past will

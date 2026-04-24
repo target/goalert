@@ -1,29 +1,11 @@
 import React from 'react'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import makeStyles from '@mui/styles/makeStyles'
-import { Theme } from '@mui/material/styles'
 import AdminNumberLookup from './AdminNumberLookup'
 import AdminSMSSend from './AdminSMSSend'
 import { useConfigValue } from '../util/RequireConfig'
 
-const useStyles = makeStyles((theme: Theme) => ({
-  gridContainer: {
-    [theme.breakpoints.up('md')]: {
-      justifyContent: 'center',
-    },
-  },
-  groupTitle: {
-    fontSize: '1.1rem',
-  },
-  saveDisabled: {
-    color: 'rgba(255, 255, 255, 0.5)',
-  },
-}))
-
 export default function AdminToolbox(): React.JSX.Element {
-  const classes = useStyles()
-
   const [hasTwilio] = useConfigValue('Twilio.Enable')
 
   if (!hasTwilio) {
@@ -36,34 +18,40 @@ export default function AdminToolbox(): React.JSX.Element {
   }
 
   return (
-    <Grid container spacing={2} className={classes.gridContainer}>
-      <Grid container item xs={12}>
-        <Grid item xs={12}>
+    <Grid
+      container
+      spacing={2}
+      sx={(theme) => ({
+        [theme.breakpoints.up('md')]: { justifyContent: 'center' },
+      })}
+    >
+      <Grid size={12} container>
+        <Grid size={12}>
           <Typography
             component='h2'
             variant='subtitle1'
             color='textSecondary'
-            classes={{ subtitle1: classes.groupTitle }}
+            sx={{ fontSize: '1.1rem' }}
           >
             Twilio Number Lookup
           </Typography>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <AdminNumberLookup />
         </Grid>
       </Grid>
-      <Grid container item xs={12}>
-        <Grid item xs={12}>
+      <Grid size={12} container>
+        <Grid size={12}>
           <Typography
             component='h2'
             variant='subtitle1'
             color='textSecondary'
-            classes={{ subtitle1: classes.groupTitle }}
+            sx={{ fontSize: '1.1rem' }}
           >
             Send SMS
           </Typography>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <AdminSMSSend />
         </Grid>
       </Grid>

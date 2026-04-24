@@ -4,18 +4,12 @@ import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
 import Grid from '@mui/material/Grid'
 import { Typography } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { DateTime } from 'luxon'
 import { Time } from '../../util/Time'
 import { selectedDaysUntilTimestamp } from './util'
 
-const useStyles = makeStyles(() => ({
-  expiresCon: {
-    'padding-top': '15px',
-  },
-}))
-// props object for this compoenent
+// props object for this component
 interface FieldProps {
   onChange: (val: string) => void
   value: string
@@ -28,8 +22,6 @@ const presets = [7, 15, 30, 60, 90]
 export default function AdminAPIKeyExpirationField(
   props: FieldProps,
 ): React.JSX.Element {
-  const classes = useStyles()
-
   const [selected, setSelected] = useState<number>(
     selectedDaysUntilTimestamp(props.value, presets),
   )
@@ -54,7 +46,7 @@ export default function AdminAPIKeyExpirationField(
 
   return (
     <Grid container spacing={2}>
-      <Grid item justifyContent='flex-start' width='25%'>
+      <Grid justifyContent='flex-start' width='25%'>
         <InputLabel id='expires-at-select-label'>{props.label}</InputLabel>
         <Select
           label={props.label}
@@ -78,19 +70,19 @@ export default function AdminAPIKeyExpirationField(
       </Grid>
 
       {selected ? ( // if a preset is selected, show the expiration time
-        <Grid item justifyContent='flex-start'>
+        <Grid justifyContent='flex-start'>
           <Typography
             gutterBottom
             variant='subtitle2'
             component='div'
-            className={classes.expiresCon}
+            sx={{ pt: '15px' }}
           >
             The token will expire <Time time={props.value} />
           </Typography>
         </Grid>
       ) : (
         // if custom is selected, show date picker
-        <Grid item justifyContent='flex-end' width='75%'>
+        <Grid justifyContent='flex-end' width='75%'>
           <ISODateTimePicker
             value={props.value}
             onChange={props.onChange}

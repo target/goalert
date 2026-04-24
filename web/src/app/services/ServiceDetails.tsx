@@ -126,10 +126,10 @@ export default function ServiceDetails(props: {
         details={data.service.description}
         pageContent={
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <ServiceOnCallList serviceID={serviceID} />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <ServiceRecentEvents serviceID={serviceID} />
             </Grid>
           </Grid>

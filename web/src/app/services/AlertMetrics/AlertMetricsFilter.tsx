@@ -15,7 +15,7 @@ export default function AlertMetricsFilter(): JSX.Element {
 
   return (
     <Grid container sx={{ marginLeft: '3rem', pt: 3 }}>
-      <Grid item xs={5}>
+      <Grid size={5}>
         <FormControl sx={{ width: '100%' }}>
           <InputLabel id='demo-simple-select-helper-label'>
             Date Range
@@ -38,7 +38,7 @@ export default function AlertMetricsFilter(): JSX.Element {
           </Select>
         </FormControl>
       </Grid>
-      <Grid item xs={5} paddingLeft={1}>
+      <Grid size={5} paddingLeft={1}>
         <FormControl sx={{ width: '100%' }}>
           <InputLabel id='demo-simple-select-helper-label'>Interval</InputLabel>
           <Select

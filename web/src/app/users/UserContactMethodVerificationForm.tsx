@@ -3,7 +3,6 @@ import { useMutation, gql } from 'urql'
 import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import LoadingButton from '../loading/components/LoadingButton'
-import makeStyles from '@mui/styles/makeStyles'
 import { FormContainer, FormField } from '../forms'
 
 /*
@@ -18,16 +17,6 @@ const sendVerificationCodeMutation = gql`
   }
 `
 
-const useStyles = makeStyles({
-  fieldGridItem: {
-    flexGrow: 1,
-  },
-  sendGridItem: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-})
-
 interface UserContactMethodVerificationFormProps {
   contactMethodID: string
   disabled: boolean
@@ -41,8 +30,6 @@ interface UserContactMethodVerificationFormProps {
 export default function UserContactMethodVerificationForm(
   props: UserContactMethodVerificationFormProps,
 ): React.ReactNode {
-  const classes = useStyles()
-
   const [sendCodeStatus, sendCode] = useMutation(sendVerificationCodeMutation)
 
   function sendAndCatch(): void {
@@ -69,7 +56,7 @@ export default function UserContactMethodVerificationForm(
   return (
     <FormContainer optionalLabels {...props}>
       <Grid container spacing={2}>
-        <Grid item className={classes.sendGridItem}>
+        <Grid sx={{ display: 'flex', alignItems: 'center' }}>
           <LoadingButton
             loading={sendCodeStatus.fetching}
             disabled={props.disabled}
@@ -78,7 +65,7 @@ export default function UserContactMethodVerificationForm(
             onClick={() => sendAndCatch()}
           />
         </Grid>
-        <Grid item className={classes.fieldGridItem}>
+        <Grid sx={{ flexGrow: 1 }}>
           <FormField
             fullWidth
             name='code'
