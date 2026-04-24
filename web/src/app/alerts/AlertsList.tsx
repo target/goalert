@@ -2,7 +2,6 @@ import React, { ReactElement, useState, useContext, useEffect } from 'react'
 import { useMutation } from '@apollo/client'
 import { useQuery, gql } from 'urql'
 import { Box, Grid, ListItemText } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
@@ -84,12 +83,6 @@ const escalateMutation = gql`
   }
 `
 
-const useStyles = makeStyles({
-  alertTimeContainer: {
-    width: 'max-content',
-  },
-})
-
 function getStatusFilter(s: string): string[] {
   switch (s) {
     case 'acknowledged':
@@ -107,8 +100,6 @@ function getStatusFilter(s: string): string[] {
 }
 
 export default function AlertsList(props: AlertsListProps): React.JSX.Element {
-  const classes = useStyles()
-
   // event sent to Google Analytics
   const [event, setEvent] = useState('')
   const [analyticsID] = useConfigValue('General.GoogleAnalyticsID') as [string]
@@ -315,7 +306,7 @@ export default function AlertsList(props: AlertsListProps): React.JSX.Element {
                 (props.serviceID ? '' : a.service.name + ': ') + a.summary,
               action: (
                 <ListItemText
-                  className={classes.alertTimeContainer}
+                  sx={{ width: 'max-content' }}
                   secondary={
                     <Time
                       time={a.createdAt}

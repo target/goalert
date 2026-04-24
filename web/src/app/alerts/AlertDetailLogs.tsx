@@ -5,7 +5,6 @@ import Button from '@mui/material/Button'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
-import makeStyles from '@mui/styles/makeStyles'
 import _ from 'lodash'
 import { POLL_INTERVAL } from '../config'
 import { Time } from '../util/Time'
@@ -50,13 +49,6 @@ const query = gql`
     }
   }
 `
-
-const useStyles = makeStyles({
-  logTimeContainer: {
-    width: 'max-content',
-  },
-  sentAccordian: {},
-})
 
 const assertNever = (s: never): never => {
   throw new Error('Unknown notification status: ' + s)
@@ -151,7 +143,6 @@ interface LogEventProps {
 }
 
 function LogEventHeader(props: LogEventProps): React.ReactNode {
-  const classes = useStyles()
   const details = _.upperFirst(props.event?.state?.details ?? '')
   const status = (props.event?.state?.status ?? '') as NotificationStatus
   return (
@@ -165,7 +156,7 @@ function LogEventHeader(props: LogEventProps): React.ReactNode {
       />
       <div>
         <ListItemText
-          className={classes.logTimeContainer}
+          sx={{ width: 'max-content' }}
           secondary={
             <Time
               time={props.event.timestamp}
