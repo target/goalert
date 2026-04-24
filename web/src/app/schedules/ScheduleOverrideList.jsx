@@ -174,7 +174,7 @@ export default function ScheduleOverrideList({ scheduleID }) {
               headerAction={
                 <React.Fragment>
                   <FilterContainer onReset={() => resetFilter()}>
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                       <FormControlLabel
                         control={
                           <Switch
@@ -186,7 +186,7 @@ export default function ScheduleOverrideList({ scheduleID }) {
                         label='Show past overrides'
                       />
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                       <UserSelect
                         label='Filter users...'
                         multiple

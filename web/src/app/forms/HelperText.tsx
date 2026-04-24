@@ -50,10 +50,10 @@ export function HelperText(props: HelperTextProps): React.ReactNode {
   if (props.maxLength) {
     return (
       <Grid container spacing={2} sx={{ ml: 0 }}>
-        <Grid item xs={10}>
+        <Grid size={10}>
           <FormHelperText component='span'>{content}</FormHelperText>
         </Grid>
-        <Grid item xs={2}>
+        <Grid size={2}>
           <FormHelperText style={{ textAlign: 'right' }}>
             {props.value?.length || 0}/{props.maxLength}
           </FormHelperText>

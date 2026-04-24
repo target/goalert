@@ -31,7 +31,7 @@ export default function CalendarSubscribeForm(
       value={props.value}
     >
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             component={TextField}
@@ -41,7 +41,7 @@ export default function CalendarSubscribeForm(
             required
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             component={ScheduleSelect}
             disabled={props.scheduleReadOnly}
@@ -51,7 +51,7 @@ export default function CalendarSubscribeForm(
             name='scheduleID'
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormControlLabel
             control={
               <FormField component={Checkbox} checkbox name='fullSchedule' />

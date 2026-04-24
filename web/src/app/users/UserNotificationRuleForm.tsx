@@ -34,7 +34,7 @@ export default function UserNotificationRuleForm(
   return (
     <FormContainer {...other} optionalLabels>
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={12} md={6}>
+        <Grid size={{ xs: 12, sm: 12, md: 6 }}>
           <FormField
             fullWidth
             name='contactMethodID'
@@ -44,7 +44,7 @@ export default function UserNotificationRuleForm(
             component={UserContactMethodSelect}
           />
         </Grid>
-        <Grid item xs={12} sm={12} md={6}>
+        <Grid size={{ xs: 12, sm: 12, md: 6 }}>
           <FormField
             fullWidth
             name='delayMinutes'

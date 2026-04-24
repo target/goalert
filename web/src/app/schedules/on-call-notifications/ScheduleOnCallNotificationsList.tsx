@@ -1,5 +1,5 @@
 import React, { Suspense, useState } from 'react'
-import { Button, Grid, Card, Typography, Tooltip, Theme } from '@mui/material'
+import { Button, Grid, Card, Typography, Tooltip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import FlatList from '../../lists/FlatList'
 import OtherActions from '../../util/OtherActions'
@@ -62,7 +62,7 @@ export default function ScheduleOnCallNotificationsList({
   if (q.error || !q.data) {
     return (
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Card>
             <FlatList
               headerNote={
@@ -94,7 +94,7 @@ export default function ScheduleOnCallNotificationsList({
   return (
     <React.Fragment>
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Card>
             <FlatList
               headerNote={`Showing times for schedule in ${timeZone}.`}

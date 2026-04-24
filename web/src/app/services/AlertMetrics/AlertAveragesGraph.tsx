@@ -56,7 +56,7 @@ export default function AlertAveragesGraph(
         fontFamily: theme.typography.body2.fontFamily,
       }}
     >
-      <Grid item xs={12} data-cy='metrics-averages-graph'>
+      <Grid size={12} data-cy='metrics-averages-graph'>
         {props.loading && <Spinner />}
         <AutoSizer>
           {({ width, height }: { width: number; height: number }) => (

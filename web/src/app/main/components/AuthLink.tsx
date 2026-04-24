@@ -137,17 +137,17 @@ export default function AuthLink(): React.JSX.Element | null {
       }
       form={
         <Grid container spacing={2}>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Typography>
               Clicking confirm will link the current GoAlert user{' '}
               <b>{userName}</b> with:
             </Typography>
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Typography>{data.linkAccountInfo.userDetails}.</Typography>
           </Grid>
           {alertAction && (
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Typography>After linking, {alertAction}</Typography>
             </Grid>
           )}

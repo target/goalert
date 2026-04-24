@@ -42,10 +42,10 @@ export default function ServiceAlerts(props: {
 
   const secondaryActions = (
     <Grid style={{ width: 'fit-content' }} container spacing={2} alignItems='center'>
-      <Grid item>
+      <Grid >
         <AlertsListFilter serviceID={props.serviceID} />
       </Grid>
-      <Grid item>
+      <Grid >
         <ButtonGroup variant='outlined'>
           <Button onClick={handleClickAckAll}>Acknowledge All</Button>
           <Button onClick={handleClickCloseAll}>Close All</Button>

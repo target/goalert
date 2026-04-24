@@ -58,18 +58,16 @@ export default function ListPageControls(
 
   return (
     <Grid container spacing={2}>
-      <Grid
+      <Grid size={12}
         container
-        item
-        xs={12}
         spacing={2}
         justifyContent='flex-start'
         alignItems='center'
       >
-        {props.slots.search && <Grid item>{props.slots.search}</Grid>}
+        {props.slots.search && <Grid >{props.slots.search}</Grid>}
 
         {showCreate && !isMobile && (
-          <Grid item sx={{ ml: 'auto' }}>
+          <Grid sx={{ ml: 'auto' }}>
             <Button
               variant='contained'
               startIcon={<Add />}
@@ -81,13 +79,11 @@ export default function ListPageControls(
         )}
       </Grid>
 
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Card data-cy='paginated-list'>{props.slots.list}</Card>
       </Grid>
 
-      <Grid
-        item // item within main render grid
-        xs={12}
+      <Grid size={12} // within main render grid
         container // container for control items
         spacing={1}
         justifyContent='flex-end'
@@ -101,7 +97,7 @@ export default function ListPageControls(
           },
         })}
       >
-        <Grid item>
+        <Grid >
           <IconButton
             title='back page'
             data-cy='back-button'
@@ -114,7 +110,7 @@ export default function ListPageControls(
             <ChevronLeft />
           </IconButton>
         </Grid>
-        <Grid item>
+        <Grid >
           <IconButton
             title='next page'
             data-cy='next-button'

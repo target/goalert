@@ -44,7 +44,7 @@ export default function HeartbeatMonitorStatus(props: {
 
   return (
     <Grid container style={{ width: 'min-content', marginRight: '1em' }}>
-      <Grid item xs={12}>
+      <Grid size={12}>
         <ListItemAvatar sx={{ display: 'flex', justifyContent: 'center' }}>
           <Avatar
             aria-label={props.lastState}
@@ -54,7 +54,7 @@ export default function HeartbeatMonitorStatus(props: {
           </Avatar>
         </ListItemAvatar>
       </Grid>
-      <Grid item xs={12} sx={{ textAlign: 'center' }}>
+      <Grid size={12} sx={{ textAlign: 'center' }}>
         <Typography variant='caption'>
           <Time time={props.lastHeartbeat} format='relative' zero='Inactive' />
         </Typography>

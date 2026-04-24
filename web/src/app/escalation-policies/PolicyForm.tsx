@@ -25,7 +25,7 @@ function PolicyForm(props: PolicyFormProps): React.JSX.Element {
   return (
     <FormContainer optionalLabels {...props}>
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             component={TextField}
             disabled={props.disabled}
@@ -37,7 +37,7 @@ function PolicyForm(props: PolicyFormProps): React.JSX.Element {
             value={props.value.name}
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             component={TextField}
             disabled={props.disabled}
@@ -49,7 +49,7 @@ function PolicyForm(props: PolicyFormProps): React.JSX.Element {
             value={props.value.description}
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             component={MaterialSelect}
             disabled={props.disabled}

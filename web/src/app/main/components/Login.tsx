@@ -107,7 +107,7 @@ export default function Login(): React.JSX.Element {
     } = field
 
     return (
-      <Grid key={id} item xs={12}>
+      <Grid size={12} key={id}>
         <TextField
           label={label}
           required={required}
@@ -127,7 +127,7 @@ export default function Login(): React.JSX.Element {
   ): React.JSX.Element | undefined {
     if (idx + 1 < len) {
       return (
-        <Grid item xs={12} style={loginStyles.hasNext}>
+        <Grid size={12} style={loginStyles.hasNext}>
           <Divider sx={loginStyles.divider} />
           <Typography sx={loginStyles.or}>or</Typography>
           <Divider sx={loginStyles.divider} />
@@ -180,7 +180,7 @@ export default function Login(): React.JSX.Element {
       form = (
         <Grid container spacing={2}>
           {fields.map((field: Field) => renderField(field))}
-          <Grid item xs={12}>
+          <Grid size={12}>
             {loginButton}
           </Grid>
         </Grid>
@@ -191,7 +191,7 @@ export default function Login(): React.JSX.Element {
 
     return (
       <React.Fragment key={idx}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <form action={url} method='post' id={'auth-' + id}>
             {form}
           </form>
@@ -205,7 +205,7 @@ export default function Login(): React.JSX.Element {
   let errorJSX = null
   if (error) {
     errorJSX = (
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Typography variant='subtitle1' sx={loginStyles.error}>
           {error.toString()}
         </Typography>
@@ -227,8 +227,8 @@ export default function Login(): React.JSX.Element {
           <CardContent>
             <Grid container spacing={2} style={loginStyles.gridContainer}>
               <Grid container sx={{ justifyContent: 'center' }}>
-                <Grid item>{logo}</Grid>
-                <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
+                <Grid >{logo}</Grid>
+                <Grid sx={{ display: 'flex', alignItems: 'center' }}>
                   <Typography variant='h5' sx={{ pl: 1 }}>
                     <b>GoAlert</b>
                   </Typography>

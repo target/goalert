@@ -9,12 +9,12 @@ export function AdminSWODone(): React.JSX.Element {
   return (
     <TransitionGroup appear={false}>
       <Zoom in timeout={500}>
-        <Grid item container alignItems='center' justifyContent='center'>
+        <Grid container alignItems='center' justifyContent='center'>
           <DatabaseCheck
             color='primary'
             style={{ width: '100%', height: 256 }}
           />
-          <Grid item>
+          <Grid >
             <Typography color='primary' variant='h6' style={{ marginTop: 16 }}>
               DB switchover is complete.
             </Typography>

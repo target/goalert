@@ -76,9 +76,7 @@ function AlertsListFilter(props: AlertsListFilterProps): React.JSX.Element {
             : { width: '17em' },
         ]}
       >
-        <Grid
-          item
-          xs={12}
+        <Grid size={12}
           sx={{ display: 'flex', alignItems: 'center' }}
         >
           <FormControl>
@@ -126,7 +124,7 @@ function AlertsListFilter(props: AlertsListFilterProps): React.JSX.Element {
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sx={gs.filterActions}>
+        <Grid size={12} sx={gs.filterActions}>
           <Button onClick={resetAll}>Reset</Button>
           <Button onClick={handleCloseFilters}>Done</Button>
         </Grid>

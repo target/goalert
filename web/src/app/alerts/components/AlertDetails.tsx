@@ -256,9 +256,7 @@ export default function AlertDetails(
     }
 
     return (
-      <Grid
-        item
-        xs={12}
+      <Grid size={12}
         data-cy='alert-details'
         sx={gs.cardContainer}
       >
@@ -356,9 +354,7 @@ export default function AlertDetails(
       />
 
       {/* Main Alert Info */}
-      <Grid
-        item
-        lg={isMobile || noiseReason !== '' ? 12 : 8}
+      <Grid size={{ lg: isMobile || noiseReason !== '' ? 12 : 8 }}
         sx={gs.cardContainer}
       >
         <Card
@@ -373,18 +369,18 @@ export default function AlertDetails(
           <CardContent data-cy='alert-summary'>
             <Grid container spacing={1}>
               {alert.service && (
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Typography variant='body1'>
                     {ServiceLink(alert.service)}
                   </Typography>
                 </Grid>
               )}
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Typography component='h2' variant='h5'>
                   {alert.alertID}: {alert.summary}
                 </Typography>
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Typography variant='body1' data-cy='alert-status'>
                   {alert.status.toUpperCase().replace('STATUS', '')}
                 </Typography>
@@ -395,14 +391,14 @@ export default function AlertDetails(
         </Card>
       </Grid>
       {!noiseReason && (
-        <Grid item xs={12} lg={isMobile ? 12 : 4}>
+        <Grid size={{ xs: 12, lg: isMobile ? 12 : 4 }}>
           <AlertFeedback alertID={alert.alertID} />
         </Grid>
       )}
       {renderAlertDetails()}
 
       {/* Escalation Policy Info */}
-      <Grid item xs={12} sx={gs.cardContainer}>
+      <Grid size={12} sx={gs.cardContainer}>
         <Card style={{ width: '100%', overflowX: 'auto' }}>
           <CardContent>
             <Typography
@@ -448,7 +444,7 @@ export default function AlertDetails(
       </Grid>
 
       {/* Alert Logs */}
-      <Grid item xs={12} sx={gs.cardContainer}>
+      <Grid size={12} sx={gs.cardContainer}>
         <Card sx={{ width: '100%' }}>
           <div style={{ display: 'flex' }}>
             <CardContent style={{ flex: 1, paddingBottom: 0 }}>

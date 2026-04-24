@@ -143,7 +143,6 @@ export default function ControlledPaginatedList(
     return (
       <Grid
         aria-label='List Checkbox Controls'
-        item
         container
         sx={{
           alignItems: 'center',
@@ -151,9 +150,9 @@ export default function ControlledPaginatedList(
           width: 'fit-content',
         }}
       >
-        <Grid item>
+        <Grid >
           <Checkbox
-            sx={{ mt: '4px', mb: '4px' }}
+            sx={{ mt: '4px', mb: '4px', ml: '1em' }}
             checked={
               itemIDs.length === checkedItems.length && itemIDs.length > 0
             }
@@ -163,14 +162,10 @@ export default function ControlledPaginatedList(
             }
             onChange={handleToggleSelectAll}
             disabled={items.length === 0}
-            sx={{
-              ml: '1em', // align with listItem icons
-            }}
           />
         </Grid>
 
         <Grid
-          item
           sx={{
             alignItems: 'center',
             display: 'flex',
@@ -197,7 +192,7 @@ export default function ControlledPaginatedList(
 
         {checkedItems.length > 0 &&
           checkboxActions.map((a, idx) => (
-            <Grid item key={idx}>
+            <Grid key={idx}>
               <Tooltip
                 title={a.label}
                 placement='bottom'
@@ -255,24 +250,22 @@ export default function ControlledPaginatedList(
 
   return (
     <React.Fragment>
-      <Grid
+      <Grid size={12}
         container
-        item
-        xs={12}
         spacing={2}
         justifyContent='flex-start'
         alignItems='center'
       >
         {renderActions()}
         {!noSearch && (
-          <Grid item>
+          <Grid >
             <Search endAdornment={searchAdornment} />
           </Grid>
         )}
-        {secondaryActions && <Grid item>{secondaryActions}</Grid>}
+        {secondaryActions && <Grid >{secondaryActions}</Grid>}
 
         {!hideCreate && renderCreateDialog && !isMobile && (
-          <Grid item sx={{ ml: 'auto' }}>
+          <Grid sx={{ ml: 'auto' }}>
             <Button
               variant='contained'
               startIcon={<Add />}
@@ -285,7 +278,7 @@ export default function ControlledPaginatedList(
         )}
       </Grid>
 
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Card>
           {listHeader}
           <PaginatedList key={urlKey} {...listProps} items={getItems()} />

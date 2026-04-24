@@ -81,7 +81,7 @@ export default function ScheduleOverrideDialog(props) {
         <React.Fragment>
           {/* Step 0: Choose override variant page */}
           {step === 0 && (
-            <Grid item xs={12}>
+            <Grid size={12}>
               <RadioGroup
                 required
                 aria-label='Choose an override action'

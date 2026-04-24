@@ -46,7 +46,7 @@ export default function AdminAPIKeyShowQueryDialog(props: {
       loading={fetching}
       form={
         <Grid container spacing={2}>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <code
               style={{
                 fontSize: 'large',
@@ -66,10 +66,10 @@ export default function AdminAPIKeyShowQueryDialog(props: {
               </pre>
             </code>
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <CopyText title='Copy Query' value={key.query} placement='bottom' />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <CopyText
               title='Copy Query (as JSON)'
               value={JSON.stringify(key.query)}

@@ -44,7 +44,7 @@ export default function TempSchedConfirmation({
 
   return (
     <Grid container spacing={4}>
-      <Grid item xs={6}>
+      <Grid size={6}>
         <Typography component='h3' sx={{ fontSize: '1.15rem' }}>
           Current Temporary Schedule
         </Typography>
@@ -58,7 +58,7 @@ export default function TempSchedConfirmation({
           compareRemovals={value.shifts}
         />
       </Grid>
-      <Grid item xs={6}>
+      <Grid size={6}>
         <Typography component='h3' sx={{ fontSize: '1.15rem' }}>
           Proposed Changes
         </Typography>

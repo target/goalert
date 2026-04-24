@@ -48,22 +48,22 @@ export default function UserSettingsPopover(): React.JSX.Element {
         data-cy='manage-profile'
       >
         <Grid container direction='column' spacing={2}>
-          <Grid item>
+          <Grid >
             <Typography variant='h5' component='span'>
               Hello, {firstName}!
             </Typography>
           </Grid>
-          <Grid item>
+          <Grid >
             <AppLink to='/profile' style={{ textDecoration: 'none' }}>
               <Button variant='outlined' onClick={() => setAnchorEl(null)}>
                 Manage Profile
               </Button>
             </AppLink>
           </Grid>
-          <Grid item>
+          <Grid >
             <ThemePicker />
           </Grid>
-          <Grid item>
+          <Grid >
             {feedbackEnabled && (
               <AppLink
                 newTab
@@ -80,7 +80,7 @@ export default function UserSettingsPopover(): React.JSX.Element {
               </AppLink>
             )}
           </Grid>
-          <Grid item>
+          <Grid >
             <Button
               variant='text'
               startIcon={<Logout />}

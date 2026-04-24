@@ -28,7 +28,7 @@ function GenerateTokenText(): JSX.Element {
 function CopyTokenText({ token }: { token: string }): JSX.Element {
   return (
     <Grid container spacing={2}>
-      <Grid item xs={12}>
+      <Grid size={12}>
         <CopyText title={token} value={token} placement='bottom' />
         <FormHelperText>
           Please copy and save the token as this is the only time you'll be able

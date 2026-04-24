@@ -114,7 +114,7 @@ export default function Notices({
 
   function renderNotice(notice: Notice, index: number): React.JSX.Element {
     return (
-      <Grid key={index} sx={getGridSx(index)} item xs={12}>
+      <Grid size={12} key={index} sx={getGridSx(index)}>
         <Alert
           severity={toSeverity(notice.type)}
           sx={{
@@ -147,7 +147,7 @@ export default function Notices({
   return (
     <Grid container>
       {renderNotice(notices[0], 0)}
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Collapse in={noticesExpanded}>
           <Grid container>
             {notices.slice(1).map((n, i) => renderNotice(n, i + 1))}

@@ -52,7 +52,7 @@ export default function RotationFormHandoffTimes({
   const nextHandoffs = isCalculating ? [] : data.calcRotationHandoffTimes
 
   return (
-    <Grid item xs={12} sx={{ height: '7rem' }}>
+    <Grid size={12} sx={{ height: '7rem' }}>
       <Typography variant='body2' sx={{ fontWeight: 'bolder' }}>
         Upcoming Handoff times:
       </Typography>

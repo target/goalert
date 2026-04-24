@@ -29,7 +29,7 @@ export default function LocalDev(): React.JSX.Element {
 
   function DevTool(props: DevToolProps): React.JSX.Element {
     return (
-      <Grid item xs={6}>
+      <Grid size={6}>
         <Card>
           <CardHeader title={props.name} />
           <CardContent>

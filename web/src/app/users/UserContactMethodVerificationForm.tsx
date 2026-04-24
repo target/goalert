@@ -57,7 +57,7 @@ export default function UserContactMethodVerificationForm(
   return (
     <FormContainer optionalLabels {...props}>
       <Grid container spacing={2}>
-        <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
+        <Grid sx={{ display: 'flex', alignItems: 'center' }}>
           <LoadingButton
             loading={sendCodeStatus.fetching}
             disabled={props.disabled}
@@ -66,7 +66,7 @@ export default function UserContactMethodVerificationForm(
             onClick={() => sendAndCatch()}
           />
         </Grid>
-        <Grid item sx={{ flexGrow: 1 }}>
+        <Grid sx={{ flexGrow: 1 }}>
           <FormField
             fullWidth
             name='code'

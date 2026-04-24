@@ -20,7 +20,7 @@ export default function ExprEditor(props: ExprEditorProps): React.ReactNode {
 
   return (
     <Grid container>
-      <Grid item flexGrow={1}>
+      <Grid flexGrow={1}>
         <CodeMirror
           value={props.value}
           theme={theme}

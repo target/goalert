@@ -163,12 +163,11 @@ export default function ScheduleRuleForm(
           <TableCell
             key={dayIdx}
             padding='checkbox'
-            sx={classes.noBorder}
-            sx={{ display: { xs: 'none', md: 'table-cell' } }}
+            sx={[classes.noBorder, { display: { xs: 'none', md: 'table-cell' } }]}
           >
             <FormField
               noError
-              sx={classes.noPadding}
+              sx={[classes.noPadding, { padding: 0 }]}
               component={Checkbox}
               checkbox
               disabled={disabled}
@@ -179,8 +178,7 @@ export default function ScheduleRuleForm(
           </TableCell>
         ))}
         <TableCell
-          sx={[classes.dayFilter, classes.noBorder]}
-          sx={{ display: { xs: 'table-cell', md: 'none' } }}
+          sx={[classes.dayFilter, classes.noBorder, { display: { xs: 'table-cell', md: 'none' } }]}
         >
           <FormField
             fullWidth
@@ -240,7 +238,7 @@ export default function ScheduleRuleForm(
       optionalLabels
     >
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             required
@@ -250,12 +248,12 @@ export default function ScheduleRuleForm(
             name='targetID'
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Typography color='textSecondary' sx={{ fontStyle: 'italic' }}>
             Times shown in schedule timezone ({zone || '...'})
           </Typography>
         </Grid>
-        <Grid item xs={12} style={{ paddingTop: 0 }}>
+        <Grid size={12} style={{ paddingTop: 0 }}>
           <Table data-cy='target-rules' sx={classes.table}>
             <TableHead>
               <TableRow>
@@ -279,8 +277,7 @@ export default function ScheduleRuleForm(
                   </TableCell>
                 ))}
                 <TableCell
-                  sx={[classes.dayFilter, classes.noBorder]}
-                  sx={{ display: { xs: 'table-cell', md: 'none' } }}
+                  sx={[classes.dayFilter, classes.noBorder, { display: { xs: 'table-cell', md: 'none' } }]}
                 >
                   Days
                 </TableCell>

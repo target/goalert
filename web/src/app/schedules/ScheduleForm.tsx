@@ -31,7 +31,7 @@ export default function ScheduleForm(
   return (
     <FormContainer optionalLabels {...props}>
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             component={TextField}
@@ -40,7 +40,7 @@ export default function ScheduleForm(
             required
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             component={TextField}
@@ -49,7 +49,7 @@ export default function ScheduleForm(
             label='Description'
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             component={TimeZoneSelect}

@@ -139,13 +139,13 @@ ${tokenInfo}
         primaryActions={makeGenerateButtons()}
         pageContent={
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <UniversalKeyRuleList
                 serviceID={props.serviceID}
                 keyID={props.keyID}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <UniversalKeyDefaultActions
                 serviceID={props.serviceID}
                 keyID={props.keyID}

@@ -6,7 +6,6 @@ import {
   CardHeader,
   Grid,
   IconButton,
-  Theme,
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { Add, Delete } from '@mui/icons-material'
@@ -73,7 +72,7 @@ export default function UserNotificationRuleList(props: {
   const { user }: { user: User } = data
 
   return (
-    <Grid item xs={12}>
+    <Grid size={12}>
       <Card>
         <CardHeader
           sx={gs.cardHeader}

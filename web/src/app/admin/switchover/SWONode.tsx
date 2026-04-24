@@ -25,7 +25,7 @@ export default function SWONode({
 
   if (node.id.startsWith('unknown-')) {
     return (
-      <Grid item xs={12} sm={6} lg={4} xl={3} sx={{ width: '100%' }}>
+      <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 3 }} sx={{ width: '100%' }}>
         <Card>
           <Typography color={theme.palette.primary.main} sx={{ p: 2 }}>
             {name}
@@ -60,7 +60,7 @@ export default function SWONode({
   }
 
   return (
-    <Grid item xs={12} sm={6} lg={4} xl={3} sx={{ width: '100%' }}>
+    <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 3 }} sx={{ width: '100%' }}>
       <Card raised={node.isLeader}>
         <Typography color={theme.palette.primary.main} sx={{ p: 2 }}>
           {name}

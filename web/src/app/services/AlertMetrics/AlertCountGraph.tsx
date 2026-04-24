@@ -32,7 +32,7 @@ export default function AlertCountGraph(
         fontFamily: theme.typography.body2.fontFamily,
       }}
     >
-      <Grid item xs={12} data-cy='metrics-count-graph'>
+      <Grid size={12} data-cy='metrics-count-graph'>
         <Typography color='textSecondary' sx={{ ml: '3rem', pt: 1 }}>
           Showing data for closed alerts
         </Typography>

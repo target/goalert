@@ -127,7 +127,7 @@ export default function AdminConfig(): React.JSX.Element {
 
   return (
     <Grid container spacing={2}>
-      <Grid item xs={12} container justifyContent='flex-end'>
+      <Grid size={12} container justifyContent='flex-end'>
         <ButtonGroup variant='outlined'>
           <Button
             data-cy='reset'
@@ -157,7 +157,7 @@ export default function AdminConfig(): React.JSX.Element {
         />
       )}
 
-      <Grid item xs={12}>
+      <Grid size={12}>
         {groups.map((groupID: string, index: number) => (
           <Accordion
             key={groupID}

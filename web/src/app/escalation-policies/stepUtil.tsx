@@ -27,7 +27,7 @@ export function renderChipsDest(_a: Destination[]): ReactElement {
 
   const items = actions.map((a, idx) => {
     return (
-      <Grid item key={idx}>
+      <Grid key={idx}>
         <DestinationChip {...a.displayInfo} />
       </Grid>
     )

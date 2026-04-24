@@ -101,7 +101,7 @@ export default function IntegrationKeyList(props: {
     return (
       <Grid container spacing={2} alignItems='center' wrap='nowrap'>
         {key.type === 'universal' && (
-          <Grid item>
+          <Grid >
             <AppLink to={key.id}>
               <Button
                 title='Manage configuration and tokens for this key.'
@@ -113,7 +113,7 @@ export default function IntegrationKeyList(props: {
             </AppLink>
           </Grid>
         )}
-        <Grid item>
+        <Grid >
           <IconButton
             title='Delete this key.'
             onClick={(): void => setDeleteDialog(key.id)}
@@ -161,7 +161,7 @@ export default function IntegrationKeyList(props: {
 
   return (
     <React.Fragment>
-      <Grid item xs={12} sx={{ mb: '96px' }}>
+      <Grid size={12} sx={{ mb: '96px' }}>
         <Card>
           <CardContent>
             <CompList

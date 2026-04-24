@@ -5,6 +5,7 @@ import {
   Stepper,
   Step,
   StepLabel,
+  Theme,
   Typography,
 } from '@mui/material'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
@@ -87,11 +88,11 @@ export default function CreateAlertDialog(props: {
 
     reviewTitle = (
       <Grid container>
-        <Grid item>
+        <Grid >
           <Typography>{titleMessage}</Typography>
         </Grid>
-        <Grid item sx={{ flexGrow: 1 }} />
-        <Grid item>
+        <Grid sx={{ flexGrow: 1 }} />
+        <Grid >
           <Button
             variant='contained'
             size='small'
@@ -146,7 +147,7 @@ export default function CreateAlertDialog(props: {
         )
       }
       PaperProps={{
-        sx: (theme) => ({
+        sx: (theme: Theme) => ({
           [theme.breakpoints.up('md')]: { height: '65vh' },
         }),
       }}

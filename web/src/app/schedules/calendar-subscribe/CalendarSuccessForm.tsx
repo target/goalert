@@ -13,7 +13,7 @@ export default function CalenderSuccessForm({
   const convertedUrl = url.replace(/^https?:\/\//, 'webcal://')
   return (
     <Grid container spacing={2}>
-      <Grid item xs={12} style={{ display: 'flex', justifyContent: 'center' }}>
+      <Grid size={12} style={{ display: 'flex', justifyContent: 'center' }}>
         <Button
           variant='contained'
           href={convertedUrl}
@@ -24,7 +24,7 @@ export default function CalenderSuccessForm({
           <OpenInNewIcon fontSize='small' sx={{ ml: 1 }} />
         </Button>
       </Grid>
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Typography>
           <CopyText title={url} value={url} placement='bottom' asURL />
         </Typography>

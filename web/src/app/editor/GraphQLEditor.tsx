@@ -30,7 +30,7 @@ export default function GraphQLEditor(
 
   return (
     <Grid container>
-      <Grid item flexGrow={1}>
+      <Grid flexGrow={1}>
         <CodeMirror
           value={props.value}
           theme={theme}
@@ -46,7 +46,7 @@ export default function GraphQLEditor(
         />
       </Grid>
       {!props.readOnly && (
-        <Grid item>
+        <Grid >
           <IconButton
             onClick={() => {
               props.onChange(print(parse(props.value)) + '\n')

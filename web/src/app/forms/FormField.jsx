@@ -114,10 +114,10 @@ export function FormField(props) {
   function charCountWrapper(component, count, fieldName) {
     return (
       <Grid container spacing={2}>
-        <Grid item xs={10}>
+        <Grid size={10}>
           {component}
         </Grid>
-        <Grid item xs={2}>
+        <Grid size={2}>
           <FormHelperText style={{ textAlign: 'right' }}>
             {value[fieldName].length}/{count}
           </FormHelperText>

@@ -16,16 +16,14 @@ export default function UniversalKeyActionsList(
 ): React.ReactNode {
   return (
     <React.Fragment>
-      <Grid
-        item
-        xs={12}
+      <Grid size={12}
         container
         spacing={1}
         sx={{ p: 1 }}
         data-testid='actions-list'
       >
         {props.actions.map((a, idx) => (
-          <Grid item key={JSON.stringify(a.dest)}>
+          <Grid key={JSON.stringify(a.dest)}>
             <DestinationInputChip
               value={a.dest}
               onEdit={
@@ -38,7 +36,7 @@ export default function UniversalKeyActionsList(
         ))}
       </Grid>
       {props.actions.length === 0 && (
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Chip
             label='No actions'
             icon={

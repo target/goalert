@@ -136,7 +136,7 @@ export default function AlertCountLineGraph(
         fontFamily: (theme) => theme.typography.body2.fontFamily,
       }}
     >
-      <Grid item xs={12} data-cy='alert-count-graph'>
+      <Grid size={12} data-cy='alert-count-graph'>
         {props.loading && <Spinner />}
         <AutoSizer>
           {({ width, height }: { width: number; height: number }) => (

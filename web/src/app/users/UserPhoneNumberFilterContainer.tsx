@@ -43,7 +43,7 @@ export default function UserPhoneNumberFilterContainer(
       onReset={() => setSearch('')}
       anchorRef={props.anchorRef}
     >
-      <Grid data-cy='phone-number-container' item xs={12}>
+      <Grid size={12} data-cy='phone-number-container'>
         <TelTextField
           onChange={(e) =>
             setSearch(e.target.value ? 'phone=' + e.target.value : '')

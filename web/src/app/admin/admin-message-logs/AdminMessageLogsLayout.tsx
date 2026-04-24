@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Box, Chip, Grid, Typography } from '@mui/material'
+import { Chip, Grid, Typography } from '@mui/material'
 import { DateTime } from 'luxon'
 import { gql, useQuery } from 'urql'
 import AdminMessageLogsControls from './AdminMessageLogsControls'
@@ -97,10 +97,10 @@ export default function AdminMessageLogsLayout(): React.JSX.Element {
       title: `${log.type} Notification`,
       subText: (
         <Grid container spacing={2} direction='column'>
-          <Grid item>Destination: {log.destination}</Grid>
-          {log.serviceName && <Grid item>Service: {log.serviceName}</Grid>}
-          {log.userName && <Grid item>User: {log.userName}</Grid>}
-          <Grid item>
+          <Grid >Destination: {log.destination}</Grid>
+          {log.serviceName && <Grid >Service: {log.serviceName}</Grid>}
+          {log.userName && <Grid >User: {log.userName}</Grid>}
+          <Grid >
             <Chip label={status} style={statusStyles} />
           </Grid>
         </Grid>
@@ -138,13 +138,13 @@ export default function AdminMessageLogsLayout(): React.JSX.Element {
               }
         }
       >
-        <Grid item xs={12}>
+        <Grid size={12}>
           <AdminMessageLogsControls />
         </Grid>
 
         <AdminMessageLogsGraph />
 
-        <Grid item xs={12}>
+        <Grid size={12}>
           <ListPageControls
             nextCursor={nextCursor}
             onCursorChange={setCursor}

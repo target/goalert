@@ -85,21 +85,19 @@ export default function DetailsPage(p: DetailsPageProps): React.JSX.Element {
   return (
     <Grid container spacing={2}>
       {/* Notices */}
-      <Grid item xs={12}>
+      <Grid size={12}>
         {Array.isArray(p.notices) ? <Notices notices={p.notices} /> : p.notices}
       </Grid>
 
       {/* Header card */}
-      <Grid item xs={12} lg={!isMobile && p.links?.length ? 8 : 12}>
+      <Grid size={{ xs: 12, lg: !isMobile && p.links?.length ? 8 : 12 }}>
         <Card sx={classes.fullHeight}>
-          <Grid
+          <Grid size="grow"
             sx={classes.fullHeight}
-            item
-            xs
             container
             direction='column'
           >
-            <Grid item>
+            <Grid >
               <CardHeader
                 title={p.title}
                 subheader={p.subheader}
@@ -117,9 +115,9 @@ export default function DetailsPage(p: DetailsPageProps): React.JSX.Element {
             </Grid>
 
             {p.labels && (
-              <Grid item container spacing={1} sx={{ pl: '16px', pr: '16px' }}>
+              <Grid container spacing={1} sx={{ pl: '16px', pr: '16px' }}>
                 {p.labels.map((l) => (
-                  <Grid key={l.key} item>
+                  <Grid key={l.key} >
                     <Chip label={l.key + ' = ' + l.value} />
                   </Grid>
                 ))}
@@ -127,7 +125,7 @@ export default function DetailsPage(p: DetailsPageProps): React.JSX.Element {
             )}
 
             {p.details && (
-              <Grid item sx={{ pl: '16px', pr: '16px' }}>
+              <Grid sx={{ pl: '16px', pr: '16px' }}>
                 <Typography
                   component='div'
                   variant='subtitle1'
@@ -139,9 +137,9 @@ export default function DetailsPage(p: DetailsPageProps): React.JSX.Element {
               </Grid>
             )}
 
-            <Grid sx={classes.flexHeight} item />
+            <Grid sx={classes.flexHeight}  />
             {(p.primaryActions?.length || p.secondaryActions?.length) && (
-              <Grid item>
+              <Grid >
                 <CardActions
                   primaryActions={p.primaryActions}
                   secondaryActions={p.secondaryActions}
@@ -154,7 +152,7 @@ export default function DetailsPage(p: DetailsPageProps): React.JSX.Element {
 
       {/* Quick Links */}
       {links.length > 0 && (
-        <Grid item xs={12} lg={!isMobile && links.length ? 4 : 12}>
+        <Grid size={{ xs: 12, lg: !isMobile && links.length ? 4 : 12 }}>
           <Card sx={classes.fullHeight}>
             <CardHeader
               title='Quick Links'
@@ -192,10 +190,8 @@ export default function DetailsPage(p: DetailsPageProps): React.JSX.Element {
 
       {/* Primary Page Content */}
       {p.pageContent && (
-        <Grid
+        <Grid size={12}
           sx={isMobile ? classes.smPageBottom : undefined}
-          item
-          xs={12}
         >
           {p.pageContent}
         </Grid>

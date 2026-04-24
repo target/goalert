@@ -29,10 +29,10 @@ export default function ThemePicker(): JSX.Element {
 
   return (
     <Grid container direction='column' spacing={2}>
-      <Grid item>
+      <Grid >
         <FormLabel>Appearance</FormLabel>
       </Grid>
-      <Grid item>
+      <Grid >
         <ToggleButtonGroup color='primary' value={themeMode}>
           <ToggleButton
             value='light'

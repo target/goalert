@@ -28,7 +28,7 @@ export default function LabelForm(props: LabelFormProps): React.JSX.Element {
   return (
     <FormContainer {...otherProps} optionalLabels>
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Config>
             {(cfg) => (
               <FormField
@@ -49,7 +49,7 @@ export default function LabelForm(props: LabelFormProps): React.JSX.Element {
             )}
           </Config>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             component={TextField}

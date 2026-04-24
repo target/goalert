@@ -23,7 +23,7 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
     if (value[key].followTheSunRotation.enable === 'yes') {
       return (
         <React.Fragment>
-          <Grid item xs={12} sx={{ ml: '2.5em' }}>
+          <Grid size={12} sx={{ ml: '2.5em' }}>
             <FormField
               component={UserSelect}
               multiple
@@ -40,7 +40,7 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
               value={value[key].followTheSunRotation.users}
             />
           </Grid>
-          <Grid item xs={12} sx={{ ml: '2.5em' }}>
+          <Grid size={12} sx={{ ml: '2.5em' }}>
             <FormField
               component={TimeZoneSelect}
               name={`${key}.followTheSunRotation.timeZone`}
@@ -84,7 +84,7 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
 
     return (
       <React.Fragment>
-        <Grid item xs={12} sx={{ ml: '2.5em' }}>
+        <Grid size={12} sx={{ ml: '2.5em' }}>
           <FormControl>
             <FormLabel>
               How often will your <b>{schedType}</b> schedule need to rotate?
@@ -132,7 +132,7 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
         </Grid>
         {!hideRotationFields && (
           <React.Fragment>
-            <Grid item sx={{ ml: '2.5em' }}>
+            <Grid sx={{ ml: '2.5em' }}>
               <FormField
                 component={ISODateTimePicker}
                 name={`${key}.rotation.startDate`}
@@ -143,7 +143,7 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
                 fullWidth={fullScreen}
               />
             </Grid>
-            <Grid item xs={12} sx={{ ml: '2.5em' }}>
+            <Grid size={12} sx={{ ml: '2.5em' }}>
               <FormControl>
                 <FormLabel sx={{ display: 'flex', alignItems: 'center' }}>
                   Does your&nbsp;<b>{schedType}</b>&nbsp;schedule need to have
@@ -208,7 +208,7 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
 
   return (
     <React.Fragment>
-      <Grid item xs={12} sx={{ ml: '2.5em' }}>
+      <Grid size={12} sx={{ ml: '2.5em' }}>
         <FormField
           component={TimeZoneSelect}
           name={`${key}.timeZone`}
@@ -222,7 +222,7 @@ export default function WizardScheduleForm({ value, onChange, secondary }) {
           required
         />
       </Grid>
-      <Grid item xs={12} sx={{ ml: '2.5em' }}>
+      <Grid size={12} sx={{ ml: '2.5em' }}>
         <FormField
           component={UserSelect}
           data-cy={`${key}.users`}

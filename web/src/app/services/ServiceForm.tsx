@@ -66,7 +66,7 @@ export default function ServiceForm(props: ServiceFormProps): JSX.Element {
       optionalLabels={epRequired}
     >
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             label='Name'
@@ -75,7 +75,7 @@ export default function ServiceForm(props: ServiceFormProps): JSX.Element {
             component={TextField}
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             label='Description'
@@ -87,7 +87,7 @@ export default function ServiceForm(props: ServiceFormProps): JSX.Element {
             hint='Markdown Supported'
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             label='Escalation Policy'
@@ -99,7 +99,7 @@ export default function ServiceForm(props: ServiceFormProps): JSX.Element {
         </Grid>
         {reqLabels &&
           reqLabels.map((labelName: string, idx: number) => (
-            <Grid item xs={12} key={labelName}>
+            <Grid size={12} key={labelName}>
               <FormField
                 fullWidth
                 name={labelName}

@@ -59,7 +59,7 @@ export default function DestinationField(
 
         if (field.supportsSearch)
           return (
-            <Grid key={field.fieldID} item xs={12} sm={12} md={12}>
+            <Grid size={{ xs: 12, sm: 12, md: 12 }} key={field.fieldID}>
               <DestinationSearchSelect
                 {...field}
                 value={fieldValue}
@@ -72,7 +72,7 @@ export default function DestinationField(
           )
 
         return (
-          <Grid key={field.fieldID} item xs={12} sm={12} md={12}>
+          <Grid size={{ xs: 12, sm: 12, md: 12 }} key={field.fieldID}>
             <DestinationInputDirect
               {...field}
               value={fieldValue}

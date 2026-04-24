@@ -5,7 +5,7 @@ import { FormField } from '../../../forms'
 export function CreateAlertInfo(): React.JSX.Element {
   return (
     <Grid container spacing={2}>
-      <Grid item xs={12}>
+      <Grid size={12}>
         <FormField
           fullWidth
           label='Alert Summary'
@@ -14,7 +14,7 @@ export function CreateAlertInfo(): React.JSX.Element {
           component={TextField}
         />
       </Grid>
-      <Grid item xs={12}>
+      <Grid size={12}>
         <FormField
           fullWidth
           multiline

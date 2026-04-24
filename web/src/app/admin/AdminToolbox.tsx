@@ -26,8 +26,8 @@ export default function AdminToolbox(): React.JSX.Element {
         [theme.breakpoints.up('md')]: { justifyContent: 'center' },
       })}
     >
-      <Grid container item xs={12}>
-        <Grid item xs={12}>
+      <Grid size={12} container>
+        <Grid size={12}>
           <Typography
             component='h2'
             variant='subtitle1'
@@ -37,12 +37,12 @@ export default function AdminToolbox(): React.JSX.Element {
             Twilio Number Lookup
           </Typography>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <AdminNumberLookup />
         </Grid>
       </Grid>
-      <Grid container item xs={12}>
-        <Grid item xs={12}>
+      <Grid size={12} container>
+        <Grid size={12}>
           <Typography
             component='h2'
             variant='subtitle1'
@@ -52,7 +52,7 @@ export default function AdminToolbox(): React.JSX.Element {
             Send SMS
           </Typography>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <AdminSMSSend />
         </Grid>
       </Grid>

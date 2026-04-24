@@ -60,15 +60,16 @@ const durString = (dur: Duration): string => {
 }
 
 import TempSchedDialog from './temp-sched/TempSchedDialog'
+
+interface ScheduleShiftListProps {
   scheduleID: string
 }
 
 const context = { suspense: false }
 
-interface ScheduleShiftListProps {
+function ScheduleShiftList({
   scheduleID,
 }: ScheduleShiftListProps): JSX.Element {
-function ScheduleShiftList({
   const isMobile = useIsWidthDown('md')
 
   const [specifyDuration, setSpecifyDuration] = useState(false)
@@ -336,7 +337,7 @@ function ScheduleShiftList({
                   setSpecifyDuration(false)
                 }}
               >
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <FormControlLabel
                     control={
                       <Switch
@@ -348,7 +349,7 @@ function ScheduleShiftList({
                     label='Active shifts only'
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <ISODatePicker
                     style={{ width: '100%' }}
                     disabled={activeOnly}
@@ -359,10 +360,10 @@ function ScheduleShiftList({
                     fullWidth
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   {renderDurationSelector()}
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <UserSelect
                     label='Filter users...'
                     multiple

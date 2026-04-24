@@ -47,7 +47,7 @@ export default function AdminAPIKeyExpirationField(
 
   return (
     <Grid container spacing={2}>
-      <Grid item justifyContent='flex-start' width='25%'>
+      <Grid justifyContent='flex-start' width='25%'>
         <InputLabel id='expires-at-select-label'>{props.label}</InputLabel>
         <Select
           label={props.label}
@@ -71,7 +71,7 @@ export default function AdminAPIKeyExpirationField(
       </Grid>
 
       {selected ? ( // if a preset is selected, show the expiration time
-        <Grid item justifyContent='flex-start'>
+        <Grid justifyContent='flex-start'>
           <Typography
             gutterBottom
             variant='subtitle2'
@@ -83,7 +83,7 @@ export default function AdminAPIKeyExpirationField(
         </Grid>
       ) : (
         // if custom is selected, show date picker
-        <Grid item justifyContent='flex-end' width='75%'>
+        <Grid justifyContent='flex-end' width='75%'>
           <ISODateTimePicker
             value={props.value}
             onChange={props.onChange}

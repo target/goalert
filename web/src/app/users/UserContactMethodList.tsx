@@ -151,7 +151,7 @@ export default function UserContactMethodList(
     return (
       <Grid container spacing={2} alignItems='center' wrap='nowrap'>
         {cm.disabled && !props.readOnly && !mobile && isCurrentUser && (
-          <Grid item>
+          <Grid >
             <Button
               aria-label='Reactivate contact method'
               onClick={() => setShowVerifyDialogByID(cm.id)}
@@ -162,7 +162,7 @@ export default function UserContactMethodList(
           </Grid>
         )}
         {!props.readOnly && (
-          <Grid item>
+          <Grid >
             <OtherActions actions={getActionMenuItems(cm)} />
           </Grid>
         )}
@@ -186,7 +186,7 @@ export default function UserContactMethodList(
   }
 
   return (
-    <Grid item xs={12}>
+    <Grid size={12}>
       <Card>
         <CardHeader
           sx={gs.cardHeader}

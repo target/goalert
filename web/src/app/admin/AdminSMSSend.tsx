@@ -96,7 +96,7 @@ export default function AdminSMSSend(): React.JSX.Element {
         <Card>
           <CardContent>
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={12} md={12} lg={6}>
+              <Grid size={{ xs: 12, sm: 12, md: 12, lg: 6 }}>
                 <FromValueField
                   onChange={(e) => setFromNumber(e.target.value)}
                   value={fromNumber}
@@ -105,7 +105,7 @@ export default function AdminSMSSend(): React.JSX.Element {
                   fullWidth
                 />
               </Grid>
-              <Grid item xs={12} sm={12} md={12} lg={6}>
+              <Grid size={{ xs: 12, sm: 12, md: 12, lg: 6 }}>
                 <TelTextField
                   onChange={(e) => setToNumber(e.target.value)}
                   value={toNumber}
@@ -113,7 +113,7 @@ export default function AdminSMSSend(): React.JSX.Element {
                   label='To Number'
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   onChange={(e) => setBody(e.target.value)}
                   value={body}

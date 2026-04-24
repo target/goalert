@@ -135,8 +135,8 @@ export default function ScheduleCalendarEventWrapper({
   function renderShiftButtons(calEvent: OnCallShiftEvent): JSX.Element {
     return (
       <React.Fragment>
-        <Grid item sx={{ flexGrow: 1 }} />
-        <Grid item>
+        <Grid sx={{ flexGrow: 1 }} />
+        <Grid >
           <Button
             data-cy='override'
             size='small'
@@ -156,8 +156,8 @@ export default function ScheduleCalendarEventWrapper({
       const id = event?.targetID ?? ''
       return (
         <React.Fragment>
-          <Grid item sx={{ flexGrow: 1 }} />
-          <Grid item>
+          <Grid sx={{ flexGrow: 1 }} />
+          <Grid >
             <Button
               variant='contained'
               component={AppLink}
@@ -206,7 +206,7 @@ export default function ScheduleCalendarEventWrapper({
     }
 
     return (
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Typography variant='body2'>
           {getDesc(
             calEvent.override.addUser ?? undefined,
@@ -229,14 +229,14 @@ export default function ScheduleCalendarEventWrapper({
 
     return (
       <Grid container spacing={1}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Typography variant='body2'>
             <b>{showScheduleLink ? event?.user?.name : event?.targetName}</b>
           </Typography>
         </Grid>
         {event.type === 'override' &&
           renderOverrideDescription(event as OverrideEvent)}
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Typography variant='body2'>
             {`${fmt(event.start)}  –  ${fmt(event.end)}`}
           </Typography>

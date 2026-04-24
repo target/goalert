@@ -85,7 +85,7 @@ export default function ServiceNotices({
   }
 
   return (
-    <Grid item sx={{ width: '100%' }}>
+    <Grid sx={{ width: '100%' }}>
       <Notices notices={notices} />
     </Grid>
   )

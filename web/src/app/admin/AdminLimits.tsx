@@ -67,9 +67,7 @@ export default function AdminLimits(): React.JSX.Element {
           [theme.breakpoints.up('md')]: { maxWidth: '65%' },
         })}
       >
-        <Grid
-          item
-          xs={12}
+        <Grid size={12}
           sx={{ display: 'flex', justifyContent: 'flex-end' }}
         >
           <ButtonGroup variant='outlined'>
@@ -103,7 +101,7 @@ export default function AdminLimits(): React.JSX.Element {
           />
         )}
 
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Form>
             <Card>
               <AdminSection

@@ -44,7 +44,7 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
       }}
     >
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             component={TextField}
@@ -55,7 +55,7 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
           />
         </Grid>
         {requireOldPassword && (
-          <Grid item xs={12}>
+          <Grid size={12}>
             <FormField
               fullWidth
               component={TextField}
@@ -67,7 +67,7 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
             />
           </Grid>
         )}
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             component={TextField}
@@ -78,7 +78,7 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
             disabled={disabled}
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             component={TextField}
@@ -90,7 +90,7 @@ function UserEditForm(props: UserEditFormProps): JSX.Element {
           />
         </Grid>
         {isAdmin && (
-          <Grid item xs={12}>
+          <Grid size={12}>
             <FormControlLabel
               control={
                 <FormField

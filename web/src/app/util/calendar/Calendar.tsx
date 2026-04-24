@@ -348,7 +348,7 @@ export default function Calendar(props: CalendarProps): JSX.Element {
                 sx: calendarClasses.filterBtn(theme),
               }}
             >
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -361,7 +361,7 @@ export default function Calendar(props: CalendarProps): JSX.Element {
                 />
               </Grid>
               {scheduleID && (
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <UserSelect
                     label='Filter users...'
                     multiple

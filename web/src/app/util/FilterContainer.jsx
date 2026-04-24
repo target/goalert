@@ -26,16 +26,14 @@ export default function FilterContainer(props) {
         [theme.breakpoints.up('md')]: { width: '22em' },
         [theme.breakpoints.down('md')]: { width: '100%' },
       })}>
-        <Grid
-          item
+        <Grid size={12}
           container
-          xs={12}
           spacing={2}
           sx={{ margin: 0 }}
         >
           {props.children}
         </Grid>
-        <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Grid size={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           {props.onReset && (
             <Button data-cy='filter-reset' onClick={props.onReset}>
               Reset

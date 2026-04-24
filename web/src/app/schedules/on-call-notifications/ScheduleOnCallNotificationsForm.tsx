@@ -86,7 +86,7 @@ export default function ScheduleOnCallNotificationsForm(
   return (
     <FormContainer {...formProps} optionalLabels>
       <Grid container spacing={2} direction='column'>
-        <Grid item>
+        <Grid >
           <RadioGroup
             name='ruleType'
             value={ruleType}
@@ -116,14 +116,14 @@ export default function ScheduleOnCallNotificationsForm(
           </RadioGroup>
         </Grid>
         {props.value.time && (
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Typography color='textSecondary' sx={{ fontStyle: 'italic' }}>
               Times shown in schedule timezone ({zone})
             </Typography>
           </Grid>
         )}
-        <Grid item container spacing={2} alignItems='center'>
-          <Grid item xs={12} sm={5} md={4}>
+        <Grid container spacing={2} alignItems='center'>
+          <Grid size={{ xs: 12, sm: 5, md: 4 }}>
             <FormField
               component={ISOTimePicker}
               timeZone={zone}
@@ -140,14 +140,14 @@ export default function ScheduleOnCallNotificationsForm(
               }
             />
           </Grid>
-          <Grid item xs={12} sm={7} md={8}>
+          <Grid size={{ xs: 12, sm: 7, md: 8 }}>
             <Grid container justifyContent='space-between'>
               {days.map((day, i) => (
                 <FormControlLabel
                   key={i}
                   label={day}
                   labelPlacement='top'
-                  slotProps={{ label: { sx: { margin: 0 } } }}
+                  slotProps={{ typography: { sx: { margin: 0 } } }}
                   control={
                     <FormField
                       noError
@@ -162,7 +162,7 @@ export default function ScheduleOnCallNotificationsForm(
             </Grid>
           </Grid>
         </Grid>
-        <Grid item xs={12} sm={12} md={6}>
+        <Grid size={{ xs: 12, sm: 12, md: 6 }}>
           <TextField
             fullWidth
             name='dest.type'
@@ -190,7 +190,7 @@ export default function ScheduleOnCallNotificationsForm(
             )}
           </TextField>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <DestinationField
             disabled={props.disabled}
             destType={props.value.dest.type}
@@ -204,7 +204,7 @@ export default function ScheduleOnCallNotificationsForm(
             }
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Typography variant='caption'>
             {currentType?.userDisclaimer}
           </Typography>

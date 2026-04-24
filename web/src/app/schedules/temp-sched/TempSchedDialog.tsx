@@ -315,22 +315,19 @@ export default function TempSchedDialog({
                 justifyContent='space-between'
               >
                 {/* left pane */}
-                <Grid
-                  item
-                  xs={12}
-                  md={6}
+                <Grid size={{ xs: 12, md: 6 }}
                   container
                   alignContent='flex-start'
                   spacing={2}
                 >
-                  <Grid item xs={12}>
+                  <Grid size={12}>
                     <DialogContentText sx={classes.contentText}>
                       The schedule will be exactly as configured here for the
                       entire duration (ignoring all assignments and overrides).
                     </DialogContentText>
                   </Grid>
 
-                  <Grid item xs={12}>
+                  <Grid size={12}>
                     <Typography
                       color='textSecondary'
                       sx={classes.tzNote}
@@ -339,7 +336,7 @@ export default function TempSchedDialog({
                     </Typography>
                   </Grid>
 
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <FormField
                       fullWidth
                       component={ISODateTimePicker}
@@ -362,7 +359,7 @@ export default function TempSchedDialog({
                       hint={isLocalZone ? '' : fmtLocal(value.start)}
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <FormField
                       fullWidth
                       component={ISODateTimePicker}
@@ -395,7 +392,7 @@ export default function TempSchedDialog({
                       })
                     }}
                   >
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <FormField
                         fullWidth
                         component={TextField}
@@ -407,7 +404,7 @@ export default function TempSchedDialog({
                         disabled={q.loading}
                       />
                     </Grid>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <FormField
                         fullWidth
                         component={TextField}
@@ -424,11 +421,11 @@ export default function TempSchedDialog({
                     </Grid>
                   </FormContainer>
 
-                  <Grid item xs={12}>
+                  <Grid size={12}>
                     <Divider />
                   </Grid>
 
-                  <Grid item xs={12} sx={classes.sticky}>
+                  <Grid size={12} sx={classes.sticky}>
                     <TempSchedAddNewShift
                       value={value}
                       onChange={(shifts: Shift[]) =>
@@ -444,15 +441,12 @@ export default function TempSchedDialog({
                 </Grid>
 
                 {/* right pane */}
-                <Grid
-                  item
-                  xs={12}
-                  md={6}
+                <Grid size={{ xs: 12, md: 6 }}
                   container
                   spacing={2}
                   sx={classes.rightPane}
                 >
-                  <Grid item xs={12} ref={shiftListRef}>
+                  <Grid size={12} ref={shiftListRef}>
                     <Typography
                       variant='subtitle1'
                       component='h3'

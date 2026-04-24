@@ -42,9 +42,7 @@ export function PageControls(props: {
   const onNext = hasNextPage ? handleNextPage : undefined
 
   return (
-    <Grid
-      item // item within main render grid
-      xs={12}
+    <Grid size={12} // within main render grid
       container // container for control items
       spacing={1}
       justifyContent='flex-end'
@@ -58,7 +56,7 @@ export function PageControls(props: {
         },
       })}
     >
-      <Grid item>
+      <Grid >
         <IconButton
           title='back page'
           data-cy='back-button'
@@ -71,7 +69,7 @@ export function PageControls(props: {
           <ChevronLeft />
         </IconButton>
       </Grid>
-      <Grid item>
+      <Grid >
         <IconButton
           title='next page'
           data-cy='next-button'

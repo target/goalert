@@ -122,11 +122,11 @@ export default function AdminSwitchover(): React.JSX.Element {
         />
       )}
       {statusNotices.length > 0 && (
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Notices notices={statusNotices.reverse()} />
         </Grid>
       )}
-      <Grid item xs={12} sm={12} md={12} lg={4} xl={4}>
+      <Grid size={{ xs: 12, sm: 12, md: 12, lg: 4, xl: 4 }}>
         <AdminSWOStatusCard
           data={data}
           onExecClick={() => {
@@ -142,11 +142,11 @@ export default function AdminSwitchover(): React.JSX.Element {
         />
       </Grid>
 
-      <Grid item xs={12} sm={12} md={12} lg={8} xl={8}>
+      <Grid size={{ xs: 12, sm: 12, md: 12, lg: 8, xl: 8 }}>
         <AdminSWODBVersionCard data={data} />
       </Grid>
 
-      <Grid item xs={12} container spacing={2}>
+      <Grid size={12} container spacing={2}>
         {data?.nodes.length > 0 &&
           data.nodes
             .slice()

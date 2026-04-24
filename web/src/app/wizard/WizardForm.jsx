@@ -47,13 +47,13 @@ export default function WizardForm(props) {
   return (
     <FormContainer optionalLabels {...props}>
       <Grid container spacing={2}>
-        <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
+        <Grid sx={{ display: 'flex', alignItems: 'center' }}>
           <StepIcon icon='1' />
         </Grid>
-        <Grid item xs={10}>
+        <Grid size={10}>
           {sectionHeading('Team Details')}
         </Grid>
-        <Grid item xs={12} sx={{ ml: '2.5em' }}>
+        <Grid size={12} sx={{ ml: '2.5em' }}>
           <FormField
             component={TextField}
             name='teamName'
@@ -64,20 +64,20 @@ export default function WizardForm(props) {
             required
           />
         </Grid>
-        <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
+        <Grid sx={{ display: 'flex', alignItems: 'center' }}>
           <StepIcon icon='2' />
         </Grid>
-        <Grid item xs={10}>
+        <Grid size={10}>
           {sectionHeading('Primary Schedule')}
         </Grid>
         <WizardScheduleForm onChange={onChange} value={value} />
-        <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
+        <Grid sx={{ display: 'flex', alignItems: 'center' }}>
           <StepIcon icon='3' />
         </Grid>
-        <Grid item xs={10}>
+        <Grid size={10}>
           {sectionHeading('Secondary Schedule')}
         </Grid>
-        <Grid item xs={12} sx={{ ml: '2.5em' }}>
+        <Grid size={12} sx={{ ml: '2.5em' }}>
           <FormControl>
             <FormLabel>
               Will your team need a <b>secondary</b> schedule to escalate to?
@@ -107,13 +107,13 @@ export default function WizardForm(props) {
         {value.secondarySchedule.enable === 'yes' && (
           <WizardScheduleForm onChange={onChange} value={value} secondary />
         )}
-        <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
+        <Grid sx={{ display: 'flex', alignItems: 'center' }}>
           <StepIcon icon='4' />
         </Grid>
-        <Grid item xs={10}>
+        <Grid size={10}>
           {sectionHeading('Escalation Policy')}
         </Grid>
-        <Grid item xs={12} sx={{ ml: '2.5em' }}>
+        <Grid size={12} sx={{ ml: '2.5em' }}>
           <FormField
             component={TextField}
             name='delayMinutes'
@@ -128,7 +128,7 @@ export default function WizardForm(props) {
             max={9000}
           />
         </Grid>
-        <Grid item xs={12} sx={{ ml: '2.5em' }}>
+        <Grid size={12} sx={{ ml: '2.5em' }}>
           <FormField
             component={TextField}
             name='repeat'
@@ -144,13 +144,13 @@ export default function WizardForm(props) {
             max={5}
           />
         </Grid>
-        <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
+        <Grid sx={{ display: 'flex', alignItems: 'center' }}>
           <StepIcon icon='5' />
         </Grid>
-        <Grid item xs={10}>
+        <Grid size={10}>
           {sectionHeading('Service')}
         </Grid>
-        <Grid item xs={12} sx={{ ml: '2.5em' }}>
+        <Grid size={12} sx={{ ml: '2.5em' }}>
           <FormField
             component={MaterialSelect}
             name='key'

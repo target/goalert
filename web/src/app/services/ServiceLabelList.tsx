@@ -103,7 +103,7 @@ export default function ServiceLabelList(props: {
 
   return (
     <React.Fragment>
-      <Grid item xs={12} sx={{ mb: '96px' }}>
+      <Grid size={12} sx={{ mb: '96px' }}>
         <Card>
           <CardContent>{renderList(data.service.labels)}</CardContent>
         </Card>

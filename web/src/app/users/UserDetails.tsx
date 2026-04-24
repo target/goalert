@@ -217,7 +217,7 @@ export default function UserDetails(props: {
             />
             {!mobile && (
               <Suspense>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <UserShiftsCalendar userID={userID} />
                 </Grid>
               </Suspense>

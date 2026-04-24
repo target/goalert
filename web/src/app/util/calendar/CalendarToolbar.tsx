@@ -115,7 +115,7 @@ function ScheduleCalendarToolbar(
       justifyContent='space-between'
       alignItems='center'
     >
-      <Grid item>
+      <Grid >
         <Grid container alignItems='center'>
           <Button
             data-cy='show-today'
@@ -126,7 +126,12 @@ function ScheduleCalendarToolbar(
             Today
           </Button>
 
-          <Box sx={(theme) => ({ marginLeft: theme.spacing(1.75), marginRight: theme.spacing(1.75) })}>
+          <Box
+            sx={(theme) => ({
+              marginLeft: theme.spacing(1.75),
+              marginRight: theme.spacing(1.75),
+            })}
+          >
             <IconButton
               title={`Previous ${weekly ? 'week' : 'month'}`}
               data-cy='back'
@@ -151,7 +156,7 @@ function ScheduleCalendarToolbar(
         </Grid>
       </Grid>
 
-      <Grid item>
+      <Grid >
         <Grid container alignItems='center' justifyContent='flex-end'>
           {props.filter}
           <ButtonGroup aria-label='Toggle between Monthly and Weekly views'>

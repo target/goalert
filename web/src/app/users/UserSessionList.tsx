@@ -113,7 +113,7 @@ export default function UserSessionList({
     <React.Fragment>
       <Grid container spacing={2}>
         {!userID && (
-          <Grid item xs={12} container justifyContent='flex-end'>
+          <Grid size={12} container justifyContent='flex-end'>
             <Button
               variant='outlined'
               data-cy='reset'
@@ -123,7 +123,7 @@ export default function UserSessionList({
             </Button>
           </Grid>
         )}
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Card>
             <CompList emptyMessage='No active sessions'>
               {sessions.map((s) => (

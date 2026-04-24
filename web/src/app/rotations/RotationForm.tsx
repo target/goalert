@@ -38,7 +38,7 @@ export default function RotationForm(
   return (
     <FormContainer optionalLabels {...props}>
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             component={TextField}
@@ -47,7 +47,7 @@ export default function RotationForm(
             required
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             component={TextField}
@@ -57,7 +57,7 @@ export default function RotationForm(
             required
           />
         </Grid>
-        <Grid item xs={6}>
+        <Grid size={6}>
           <FormField
             fullWidth
             component={TextField}
@@ -73,7 +73,7 @@ export default function RotationForm(
             ))}
           </FormField>
         </Grid>
-        <Grid item xs={6}>
+        <Grid size={6}>
           <FormField
             fullWidth
             component={NumberField}
@@ -85,7 +85,7 @@ export default function RotationForm(
             max={9000}
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             component={TimeZoneSelect}
@@ -97,7 +97,7 @@ export default function RotationForm(
           />
         </Grid>
 
-        <Grid item xs={12}>
+        <Grid size={12}>
           <FormField
             fullWidth
             component={ISODateTimePicker}
@@ -129,7 +129,7 @@ export default function RotationForm(
         </Grid>
         <Suspense
           fallback={
-            <Grid item xs={12} sx={{ height: '7rem' }}>
+            <Grid size={12} sx={{ height: '7rem' }}>
               <Spinner text='Calculating...' />
             </Grid>
           }
