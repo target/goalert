@@ -10,8 +10,6 @@ import {
   MenuItem,
   Tooltip,
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
-import { DateTime, DateTimeFormatOptions, Duration, Interval } from 'luxon'
 import React, { Suspense, useCallback, useMemo, useState } from 'react'
 import CreateFAB from '../lists/CreateFAB'
 import FlatList, { FlatListListItem } from '../lists/FlatList'
@@ -30,7 +28,7 @@ import {
   TempSchedValue,
   defaultTempSchedValue,
 } from './temp-sched/sharedUtils'
-import TempSchedDialog from './temp-sched/TempSchedDialog'
+import { DateTime, DateTimeFormatOptions, Duration, Interval } from 'luxon'
 
 // query name is important, as it's used for refetching data after mutations
 const query = gql`
@@ -61,22 +59,16 @@ const durString = (dur: Duration): string => {
   return `${dur.days} day${dur.days > 1 ? 's' : ''}`
 }
 
-const useStyles = makeStyles({
-  datePicker: {
-    width: '100%',
-  },
-})
-
-interface ScheduleShiftListProps {
+import TempSchedDialog from './temp-sched/TempSchedDialog'
   scheduleID: string
 }
 
 const context = { suspense: false }
 
-function ScheduleShiftList({
+interface ScheduleShiftListProps {
   scheduleID,
 }: ScheduleShiftListProps): JSX.Element {
-  const classes = useStyles()
+function ScheduleShiftList({
   const isMobile = useIsWidthDown('md')
 
   const [specifyDuration, setSpecifyDuration] = useState(false)
@@ -358,7 +350,7 @@ function ScheduleShiftList({
                 </Grid>
                 <Grid item xs={12}>
                   <ISODatePicker
-                    className={classes.datePicker}
+                    style={{ width: '100%' }}
                     disabled={activeOnly}
                     label='Start Date'
                     name='filterStart'

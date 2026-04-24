@@ -2,9 +2,7 @@ import React, { Suspense, useEffect, useState } from 'react'
 import { gql, useMutation, useQuery } from '@apollo/client'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
-import makeStyles from '@mui/styles/makeStyles'
 import CardHeader from '@mui/material/CardHeader'
-import { Theme } from '@mui/material/styles'
 import { Add } from '@mui/icons-material'
 import FlatList from '../lists/FlatList'
 import { reorderList, calcNewActiveIndex } from './util'
@@ -13,6 +11,7 @@ import RotationSetActiveDialog from './RotationSetActiveDialog'
 import RotationUserDeleteDialog from './RotationUserDeleteDialog'
 import { UserAvatar } from '../util/avatars'
 import { styles as globalStyles } from '../styles/materialStyles'
+import { useTheme } from '@mui/material/styles'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import { User, Rotation } from '../../schema'
@@ -43,14 +42,6 @@ const mutation = gql`
   }
 `
 
-const useStyles = makeStyles((theme: Theme) => {
-  const { cardHeader } = globalStyles(theme)
-
-  return {
-    cardHeader,
-  }
-})
-
 interface RotationUserListProps {
   rotationID: string
 }
@@ -61,7 +52,8 @@ type SwapType = {
 }
 
 function RotationUserList(props: RotationUserListProps): React.JSX.Element {
-  const classes = useStyles()
+  const theme = useTheme()
+  const gs = globalStyles(theme)
   const { rotationID } = props
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null)
   const [setActiveIndex, setSetActiveIndex] = useState<number | null>(null)
@@ -166,7 +158,7 @@ function RotationUserList(props: RotationUserListProps): React.JSX.Element {
       </Suspense>
       <Card>
         <CardHeader
-          className={classes.cardHeader}
+          sx={gs.cardHeader}
           component='h3'
           title='Users'
           action={

@@ -8,7 +8,6 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
 import { DateTime } from 'luxon'
 import React, { useEffect } from 'react'
 
@@ -42,16 +41,10 @@ interface ScheduleOnCallNotificationsFormProps {
   destFieldErrors?: Readonly<Record<string, string>>
 }
 
-const useStyles = makeStyles({
-  margin0: { margin: 0 },
-  tzNote: { fontStyle: 'italic' },
-})
-
 export default function ScheduleOnCallNotificationsForm(
   props: ScheduleOnCallNotificationsFormProps,
 ): JSX.Element {
   const { scheduleID, ...formProps } = props
-  const classes = useStyles()
   const { zone } = useScheduleTZ(scheduleID)
   const destinationTypes = useSchedOnCallNotifyTypes()
   const currentType = destinationTypes.find(
@@ -124,7 +117,7 @@ export default function ScheduleOnCallNotificationsForm(
         </Grid>
         {props.value.time && (
           <Grid item xs={12}>
-            <Typography color='textSecondary' className={classes.tzNote}>
+            <Typography color='textSecondary' sx={{ fontStyle: 'italic' }}>
               Times shown in schedule timezone ({zone})
             </Typography>
           </Grid>
@@ -154,7 +147,7 @@ export default function ScheduleOnCallNotificationsForm(
                   key={i}
                   label={day}
                   labelPlacement='top'
-                  classes={{ labelPlacementTop: classes.margin0 }}
+                  slotProps={{ label: { sx: { margin: 0 } } }}
                   control={
                     <FormField
                       noError

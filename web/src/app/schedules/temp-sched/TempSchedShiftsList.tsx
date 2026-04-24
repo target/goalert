@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import IconButton from '@mui/material/IconButton'
-import makeStyles from '@mui/styles/makeStyles'
 import Tooltip from '@mui/material/Tooltip'
 import { Shift } from './sharedUtils'
 import ScheduleIcon from '@mui/icons-material/Schedule'
@@ -29,19 +28,6 @@ import {
   sortItems,
 } from './shiftsListUtil'
 import { fmtLocal, fmtTime } from '../../util/timeFormat'
-
-const useStyles = makeStyles({
-  secondaryActionWrapper: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-  spinContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    flexDirection: 'column',
-    marginTop: '15rem',
-  },
-})
 
 type TempSchedShiftsListProps = {
   value: Shift[]
@@ -72,7 +58,6 @@ export default function TempSchedShiftsList({
   handleCoverageGapClick,
   confirmationStep,
 }: TempSchedShiftsListProps): JSX.Element {
-  const classes = useStyles()
   const { zone, isLocalZone } = useScheduleTZ(scheduleID)
   const [now, setNow] = useState(DateTime.now().setZone(zone))
   const shifts = useUserInfo(value)
@@ -94,7 +79,7 @@ export default function TempSchedShiftsList({
   // wait for zone
   if (zone === '') {
     return (
-      <div className={classes.spinContainer}>
+      <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', marginTop: '15rem' }}>
         <CircularProgress />
       </div>
     )
@@ -235,7 +220,7 @@ export default function TempSchedShiftsList({
             icon: <UserAvatar userID={s.userID} />,
             disabled: isHistoricShift,
             secondaryAction: index === 0 && (
-              <div className={classes.secondaryActionWrapper}>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
                 {!isValid && !isHistoricShift && (
                   <Tooltip
                     title='This shift extends beyond the start and/or end of this temporary schedule'

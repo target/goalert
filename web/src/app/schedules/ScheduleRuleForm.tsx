@@ -1,5 +1,4 @@
 import React, { ReactNode } from 'react'
-import classNames from 'classnames'
 import { FormContainer, FormField } from '../forms'
 import {
   Grid,
@@ -15,7 +14,7 @@ import {
   Typography,
   FormHelperText,
 } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import type { SxProps, Theme } from '@mui/material'
 import { UserSelect, RotationSelect } from '../selection'
 import { startCase } from 'lodash'
 import { Add, Trash } from '../icons'
@@ -71,7 +70,7 @@ const renderDaysValue = (value: string): string => {
   return parts.join(',')
 }
 
-const useStyles = makeStyles({
+const classes = {
   noPadding: {
     padding: 0,
   },
@@ -91,7 +90,7 @@ const useStyles = makeStyles({
     borderCollapse: 'separate',
     borderSpacing: '0px 5px',
   },
-})
+} satisfies Record<string, SxProps<Theme>>
 
 export type ScheduleRuleFormValue = {
   targetID: string
@@ -125,7 +124,6 @@ export default function ScheduleRuleForm(
     targetType,
     ...formProps
   } = props
-  const classes = useStyles()
   const { zone, isLocalZone } = useScheduleTZ(scheduleID)
   const isMobile = useIsWidthDown('md')
 
@@ -135,7 +133,7 @@ export default function ScheduleRuleForm(
   function renderRuleField(idx: number): ReactNode {
     return (
       <TableRow key={idx}>
-        <TableCell className={classNames(classes.startEnd, classes.noBorder)}>
+        <TableCell sx={[classes.startEnd, classes.noBorder]}>
           <FormField
             fullWidth
             noError
@@ -148,7 +146,7 @@ export default function ScheduleRuleForm(
             hint={isLocalZone ? '' : fmtLocal(value.rules[idx].start)}
           />
         </TableCell>
-        <TableCell className={classNames(classes.startEnd, classes.noBorder)}>
+        <TableCell sx={[classes.startEnd, classes.noBorder]}>
           <FormField
             fullWidth
             noError
@@ -165,12 +163,12 @@ export default function ScheduleRuleForm(
           <TableCell
             key={dayIdx}
             padding='checkbox'
-            className={classes.noBorder}
+            sx={classes.noBorder}
             sx={{ display: { xs: 'none', md: 'table-cell' } }}
           >
             <FormField
               noError
-              className={classes.noPadding}
+              sx={classes.noPadding}
               component={Checkbox}
               checkbox
               disabled={disabled}
@@ -181,7 +179,7 @@ export default function ScheduleRuleForm(
           </TableCell>
         ))}
         <TableCell
-          className={classNames(classes.dayFilter, classes.noBorder)}
+          sx={[classes.dayFilter, classes.noBorder]}
           sx={{ display: { xs: 'table-cell', md: 'none' } }}
         >
           <FormField
@@ -212,7 +210,7 @@ export default function ScheduleRuleForm(
           </FormField>
           <Spacer />
         </TableCell>
-        <TableCell padding='none' className={classes.noBorder}>
+        <TableCell padding='none' sx={classes.noBorder}>
           {props.value.rules.length > 1 && (
             <IconButton
               aria-label='Delete rule'
@@ -258,16 +256,16 @@ export default function ScheduleRuleForm(
           </Typography>
         </Grid>
         <Grid item xs={12} style={{ paddingTop: 0 }}>
-          <Table data-cy='target-rules' className={classes.table}>
+          <Table data-cy='target-rules' sx={classes.table}>
             <TableHead>
               <TableRow>
                 <TableCell
-                  className={classNames(classes.startEnd, classes.noBorder)}
+                  sx={[classes.startEnd, classes.noBorder]}
                 >
                   Start
                 </TableCell>
                 <TableCell
-                  className={classNames(classes.startEnd, classes.noBorder)}
+                  sx={[classes.startEnd, classes.noBorder]}
                 >
                   End
                 </TableCell>
@@ -281,14 +279,14 @@ export default function ScheduleRuleForm(
                   </TableCell>
                 ))}
                 <TableCell
-                  className={classNames(classes.dayFilter, classes.noBorder)}
+                  sx={[classes.dayFilter, classes.noBorder]}
                   sx={{ display: { xs: 'table-cell', md: 'none' } }}
                 >
                   Days
                 </TableCell>
                 <TableCell
                   padding='none'
-                  className={classNames({ [classes.noBorder]: isMobile })}
+                  sx={isMobile ? classes.noBorder : undefined}
                 >
                   <IconButton
                     aria-label='Add rule'
