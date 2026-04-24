@@ -3,9 +3,7 @@ import IconButton from '@mui/material/IconButton'
 import MUIFavoriteIcon from '@mui/icons-material/Favorite'
 import NotFavoriteIcon from '@mui/icons-material/FavoriteBorder'
 import Tooltip from '@mui/material/Tooltip'
-import makeStyles from '@mui/styles/makeStyles'
 import _ from 'lodash'
-import { Theme } from '@mui/material'
 
 interface SetFavoriteButtonProps {
   typeName: 'rotation' | 'service' | 'schedule' | 'escalationPolicy' | 'user'
@@ -14,21 +12,18 @@ interface SetFavoriteButtonProps {
   loading?: boolean
 }
 
-const useStyles = makeStyles((theme: Theme) => ({
-  favorited: {
-    color:
-      theme.palette.mode === 'dark'
-        ? theme.palette.primary.main
-        : 'rgb(205, 24, 49)',
-  },
-  notFavorited: {
-    color: 'inherit',
-  },
-}))
-
 export function FavoriteIcon(): JSX.Element {
-  const classes = useStyles()
-  return <MUIFavoriteIcon data-cy='fav-icon' className={classes.favorited} />
+  return (
+    <MUIFavoriteIcon
+      data-cy='fav-icon'
+      sx={(theme) => ({
+        color:
+          theme.palette.mode === 'dark'
+            ? theme.palette.primary.main
+            : 'rgb(205, 24, 49)',
+      })}
+    />
+  )
 }
 
 export function SetFavoriteButton({
@@ -37,8 +32,6 @@ export function SetFavoriteButton({
   isFavorite,
   loading,
 }: SetFavoriteButtonProps): JSX.Element | null {
-  const classes = useStyles()
-
   if (loading) {
     return null
   }
@@ -46,7 +39,7 @@ export function SetFavoriteButton({
   const icon = isFavorite ? (
     <FavoriteIcon />
   ) : (
-    <NotFavoriteIcon className={classes.notFavorited} />
+    <NotFavoriteIcon sx={{ color: 'inherit' }} />
   )
 
   const content = (
