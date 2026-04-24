@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
-import makeStyles from '@mui/styles/makeStyles'
 import copyToClipboard from './copyToClipboard'
 import ContentCopy from 'mdi-material-ui/ContentCopy'
 import AppLink from './AppLink'
-import { Typography, Tooltip, TooltipProps } from '@mui/material'
+import { Box, Typography, Tooltip, TooltipProps } from '@mui/material'
+import { SxProps, Theme } from '@mui/material/styles'
 
-const useStyles = makeStyles({
+const classes = {
   copyContainer: {
     alignItems: 'center',
     display: 'flex',
@@ -22,7 +22,7 @@ const useStyles = makeStyles({
     textUnderlineOffset: '0.25rem',
     textDecorationLine: 'underline',
   },
-})
+} satisfies Record<string, SxProps<Theme>>
 
 interface CopyTextProps {
   placement?: TooltipProps['placement']
@@ -33,14 +33,13 @@ interface CopyTextProps {
 }
 
 export default function CopyText(props: CopyTextProps): JSX.Element {
-  const classes = useStyles()
   const [copied, setCopied] = useState(false)
 
   let content
   if (props.asURL) {
     content = (
       <AppLink
-        className={classes.copyContainer}
+        sx={classes.copyContainer}
         to={props.value}
         onClick={(e) => {
           const tgt = e.currentTarget.href
@@ -51,7 +50,7 @@ export default function CopyText(props: CopyTextProps): JSX.Element {
         }}
       >
         <ContentCopy
-          className={props.title ? classes.icon : undefined}
+          sx={props.title ? classes.icon : undefined}
           fontSize='small'
         />
         {props.title}
@@ -59,8 +58,9 @@ export default function CopyText(props: CopyTextProps): JSX.Element {
     )
   } else if (props.noTypography) {
     content = (
-      <span
-        className={classes.copyContainer + ' ' + classes.noTypography}
+      <Box
+        component='span'
+        sx={[classes.copyContainer, classes.noTypography]}
         role='button'
         tabIndex={0}
         onClick={() => {
@@ -78,16 +78,16 @@ export default function CopyText(props: CopyTextProps): JSX.Element {
       >
         <ContentCopy
           color='primary'
-          className={props.title ? classes.icon : undefined}
+          sx={props.title ? classes.icon : undefined}
           fontSize='small'
         />
         {props.title}
-      </span>
+      </Box>
     )
   } else {
     content = (
       <Typography
-        className={classes.copyContainer}
+        sx={classes.copyContainer}
         role='button'
         tabIndex={0}
         onClick={() => {
@@ -105,7 +105,7 @@ export default function CopyText(props: CopyTextProps): JSX.Element {
       >
         <ContentCopy
           color='primary'
-          className={props.title ? classes.icon : undefined}
+          sx={props.title ? classes.icon : undefined}
           fontSize='small'
         />
         {props.title}

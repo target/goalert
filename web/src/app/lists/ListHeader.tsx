@@ -1,12 +1,5 @@
 import React, { ReactNode } from 'react'
 import { CardHeader, Typography } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
-
-const useStyles = makeStyles(() => ({
-  headerNote: {
-    fontStyle: 'italic',
-  },
-}))
 
 export interface ListHeaderProps {
   // cardHeader will be displayed at the top of the card
@@ -17,7 +10,6 @@ export interface ListHeaderProps {
 }
 
 export function ListHeader(props: ListHeaderProps): React.JSX.Element {
-  const classes = useStyles()
   const { headerNote, headerAction, cardHeader } = props
   return (
     <React.Fragment>
@@ -25,7 +17,7 @@ export function ListHeader(props: ListHeaderProps): React.JSX.Element {
       {(headerNote || headerAction) && (
         <CardHeader
           subheader={
-            <Typography color='textSecondary' className={classes.headerNote}>
+            <Typography color='textSecondary' sx={{ fontStyle: 'italic' }}>
               {headerNote}
             </Typography>
           }

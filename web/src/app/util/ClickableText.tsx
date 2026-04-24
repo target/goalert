@@ -1,14 +1,5 @@
 import React from 'react'
-import makeStyles from '@mui/styles/makeStyles'
 import Button, { ButtonProps } from '@mui/material/Button'
-
-const useStyles = makeStyles({
-  button: {
-    fontWeight: 'normal', // disable MUI bold
-    padding: '1px',
-    textTransform: 'none', // disable MUI uppercase
-  },
-})
 
 // ClickableText utilizes MUI's outlined button while adding some default  stylistic changes
 // since anchor elements have become entrenched with navigation by convention
@@ -22,10 +13,13 @@ export default function ClickableText({
   type = 'button',
   ...props
 }: ButtonProps): JSX.Element {
-  const classes = useStyles()
   return (
     <Button
-      className={classes.button}
+      sx={{
+        fontWeight: 'normal', // disable MUI bold
+        padding: '1px',
+        textTransform: 'none', // disable MUI uppercase
+      }}
       color={color}
       size={size}
       type={type}

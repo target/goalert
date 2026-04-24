@@ -1,0 +1,25 @@
+.flat-list-slide-enter {
+  max-height: 0;
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
+.flat-list-slide-enter-active {
+  max-height: 60px;
+  opacity: 1;
+  transform: translateX(0%);
+  transition: all 500ms;
+}
+
+.flat-list-slide-exit {
+  max-height: 60px;
+  opacity: 1;
+  transform: translateX(0%);
+}
+
+.flat-list-slide-exit-active {
+  max-height: 0;
+  opacity: 0;
+  transform: translateX(-100%);
+  transition: all 500ms;
+}

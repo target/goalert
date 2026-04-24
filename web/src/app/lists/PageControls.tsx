@@ -1,23 +1,7 @@
 import React from 'react'
-import { CircularProgress, Grid, IconButton, Theme } from '@mui/material'
-import makeStyles from '@mui/styles/makeStyles'
+import { CircularProgress, Grid, IconButton } from '@mui/material'
 import { ChevronLeft, ChevronRight } from '@mui/icons-material'
 import { ITEMS_PER_PAGE } from '../config'
-
-const useStyles = makeStyles((theme: Theme) => ({
-  progress: {
-    color: theme.palette.secondary.main,
-    position: 'absolute',
-  },
-  controls: {
-    [theme.breakpoints.down('sm')]: {
-      '&:not(:first-child)': {
-        marginBottom: '4.5em',
-        paddingBottom: '1em',
-      },
-    },
-  },
-}))
 
 export function PageControls(props: {
   loadMore?: (numberToLoad?: number) => void
@@ -26,7 +10,6 @@ export function PageControls(props: {
   setPage: (page: number) => void
   isLoading: boolean
 }): React.JSX.Element {
-  const classes = useStyles()
   const { loadMore, pageCount, page, setPage, isLoading } = props
 
   const hasNextPage = (() => {
@@ -66,7 +49,14 @@ export function PageControls(props: {
       spacing={1}
       justifyContent='flex-end'
       alignItems='center'
-      className={classes.controls}
+      sx={(theme) => ({
+        [theme.breakpoints.down('sm')]: {
+          '&:not(:first-child)': {
+            marginBottom: '4.5em',
+            paddingBottom: '1em',
+          },
+        },
+      })}
     >
       <Grid item>
         <IconButton
@@ -95,7 +85,10 @@ export function PageControls(props: {
             <CircularProgress
               color='secondary'
               size={24}
-              className={classes.progress}
+              sx={(theme) => ({
+                color: theme.palette.secondary.main,
+                position: 'absolute',
+              })}
             />
           )}
           <ChevronRight />

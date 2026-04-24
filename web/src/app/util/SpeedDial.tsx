@@ -6,24 +6,6 @@ import {
   SpeedDialActionProps,
   SpeedDialProps,
 } from '@mui/material'
-import { makeStyles } from '@mui/styles'
-
-const useStyles = makeStyles({
-  speedDial: {
-    position: 'fixed',
-    bottom: '16px',
-    right: '16px',
-    zIndex: 9001,
-  },
-  staticTooltipLabel: {
-    whiteSpace: 'nowrap',
-  },
-  disabledStaticTooltipLabel: {
-    whiteSpace: 'nowrap',
-    color: 'rgb(138,138,138)',
-    backgroundColor: 'rgb(185,185,185)',
-  },
-})
 
 interface CustomSpeedDialProps {
   label: SpeedDialProps['ariaLabel']
@@ -40,7 +22,6 @@ export default function CustomSpeedDial(
   props: CustomSpeedDialProps,
 ): JSX.Element {
   const [open, setOpen] = useState(false)
-  const classes = useStyles()
 
   return (
     <SpeedDial
@@ -56,7 +37,12 @@ export default function CustomSpeedDial(
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
       open={open}
-      className={classes.speedDial}
+      sx={{
+        position: 'fixed',
+        bottom: '16px',
+        right: '16px',
+        zIndex: 9001,
+      }}
       TransitionProps={{
         unmountOnExit: true,
       }}
@@ -70,10 +56,14 @@ export default function CustomSpeedDial(
             icon={action.icon}
             tooltipTitle={action.label}
             tooltipOpen
-            classes={{
-              staticTooltipLabel: action.disabled
-                ? classes.disabledStaticTooltipLabel
-                : classes.staticTooltipLabel,
+            sx={{
+              '& .MuiSpeedDialAction-staticTooltipLabel': action.disabled
+                ? {
+                    whiteSpace: 'nowrap',
+                    color: 'rgb(138,138,138)',
+                    backgroundColor: 'rgb(185,185,185)',
+                  }
+                : { whiteSpace: 'nowrap' },
             }}
             aria-label={action.label}
             FabProps={{ disabled: action.disabled }}
