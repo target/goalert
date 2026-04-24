@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import p from 'prop-types'
 import makeStyles from '@mui/styles/makeStyles'
 import AppBar from '@mui/material/AppBar'
-import Hidden from '@mui/material/Hidden'
+import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
 import Slide from '@mui/material/Slide'
@@ -159,8 +159,10 @@ export default function Search(props) {
 
   return (
     <React.Fragment>
-      <Hidden mdDown>{renderTextField()}</Hidden>
-      <Hidden mdUp>{renderMobile()}</Hidden>
+      <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+        {renderTextField()}
+      </Box>
+      <Box sx={{ display: { xs: 'block', md: 'none' } }}>{renderMobile()}</Box>
     </React.Fragment>
   )
 }

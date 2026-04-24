@@ -1,5 +1,5 @@
 import React from 'react'
-import Hidden from '@mui/material/Hidden'
+import Box from '@mui/material/Box'
 import { Theme } from '@mui/material/styles'
 import IconButton from '@mui/material/IconButton'
 import { Menu as MenuIcon, ChevronLeft } from '@mui/icons-material'
@@ -46,7 +46,7 @@ function ToolbarAction(props: ToolbarActionProps): React.JSX.Element {
 
   function renderToolbarMenu(): React.JSX.Element {
     return (
-      <Hidden mdUp>
+      <Box sx={{ display: { xs: 'block', md: 'none' } }}>
         <IconButton
           aria-label='Open Navigation Menu'
           aria-expanded={props.showMobileSidebar}
@@ -59,7 +59,7 @@ function ToolbarAction(props: ToolbarActionProps): React.JSX.Element {
         >
           <MenuIcon />
         </IconButton>
-      </Hidden>
+      </Box>
     )
   }
 

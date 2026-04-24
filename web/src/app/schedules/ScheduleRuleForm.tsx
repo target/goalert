@@ -8,7 +8,6 @@ import {
   TableHead,
   TableRow,
   TableCell,
-  Hidden,
   IconButton,
   TableBody,
   MenuItem,
@@ -162,61 +161,57 @@ export default function ScheduleRuleForm(
             hint={isLocalZone ? '' : fmtLocal(value.rules[idx].end)}
           />
         </TableCell>
-        <Hidden mdDown>
-          {days.map((day, dayIdx) => (
-            <TableCell
-              key={dayIdx}
-              padding='checkbox'
-              className={classes.noBorder}
-            >
-              <FormField
-                noError
-                className={classes.noPadding}
-                component={Checkbox}
-                checkbox
-                disabled={disabled}
-                fieldName={`rules[${idx}].weekdayFilter[${dayIdx}]`}
-                name={day}
-              />
-              <Spacer />
-            </TableCell>
-          ))}
-        </Hidden>
-        <Hidden mdUp>
+        {days.map((day, dayIdx) => (
           <TableCell
-            className={classNames(classes.dayFilter, classes.noBorder)}
+            key={dayIdx}
+            padding='checkbox'
+            className={classes.noBorder}
+            sx={{ display: { xs: 'none', md: 'table-cell' } }}
           >
             <FormField
-              fullWidth
-              component={TextField}
-              select
               noError
-              required
+              className={classes.noPadding}
+              component={Checkbox}
+              checkbox
               disabled={disabled}
-              SelectProps={{
-                renderValue: renderDaysValue,
-                multiple: true,
-              }}
-              label=''
-              name={`rules[${idx}].weekdayFilter`}
-              aria-label='Weekday Filter'
-              multiple
-              mapValue={(value: string[]) =>
-                days.filter((d, idx) => value[idx])
-              }
-              mapOnChangeValue={(value: string[]) =>
-                days.map((day) => value.includes(day))
-              }
-            >
-              {days.map((day) => (
-                <MenuItem value={day} key={day}>
-                  {day}
-                </MenuItem>
-              ))}
-            </FormField>
+              fieldName={`rules[${idx}].weekdayFilter[${dayIdx}]`}
+              name={day}
+            />
             <Spacer />
           </TableCell>
-        </Hidden>
+        ))}
+        <TableCell
+          className={classNames(classes.dayFilter, classes.noBorder)}
+          sx={{ display: { xs: 'table-cell', md: 'none' } }}
+        >
+          <FormField
+            fullWidth
+            component={TextField}
+            select
+            noError
+            required
+            disabled={disabled}
+            SelectProps={{
+              renderValue: renderDaysValue,
+              multiple: true,
+            }}
+            label=''
+            name={`rules[${idx}].weekdayFilter`}
+            aria-label='Weekday Filter'
+            multiple
+            mapValue={(value: string[]) => days.filter((d, idx) => value[idx])}
+            mapOnChangeValue={(value: string[]) =>
+              days.map((day) => value.includes(day))
+            }
+          >
+            {days.map((day) => (
+              <MenuItem value={day} key={day}>
+                {day}
+              </MenuItem>
+            ))}
+          </FormField>
+          <Spacer />
+        </TableCell>
         <TableCell padding='none' className={classes.noBorder}>
           {props.value.rules.length > 1 && (
             <IconButton
@@ -276,20 +271,21 @@ export default function ScheduleRuleForm(
                 >
                   End
                 </TableCell>
-                <Hidden mdDown>
-                  {days.map((d) => (
-                    <TableCell key={d} padding='checkbox'>
-                      {d.slice(0, 3)}
-                    </TableCell>
-                  ))}
-                </Hidden>
-                <Hidden mdUp>
+                {days.map((d) => (
                   <TableCell
-                    className={classNames(classes.dayFilter, classes.noBorder)}
+                    key={d}
+                    padding='checkbox'
+                    sx={{ display: { xs: 'none', md: 'table-cell' } }}
                   >
-                    Days
+                    {d.slice(0, 3)}
                   </TableCell>
-                </Hidden>
+                ))}
+                <TableCell
+                  className={classNames(classes.dayFilter, classes.noBorder)}
+                  sx={{ display: { xs: 'table-cell', md: 'none' } }}
+                >
+                  Days
+                </TableCell>
                 <TableCell
                   padding='none'
                   className={classNames({ [classes.noBorder]: isMobile })}

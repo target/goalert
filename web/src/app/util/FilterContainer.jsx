@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
 import {
-  Hidden,
+  Box,
   Popover,
   SwipeableDrawer,
   IconButton,
@@ -78,7 +78,7 @@ export default function FilterContainer(props) {
       >
         {icon}
       </IconButton>
-      <Hidden mdDown>
+      <Box sx={{ display: { xs: 'none', md: 'block' } }}>
         <Popover
           anchorEl={anchorEl}
           classes={{
@@ -92,8 +92,8 @@ export default function FilterContainer(props) {
         >
           {renderContent()}
         </Popover>
-      </Hidden>
-      <Hidden mdUp>
+      </Box>
+      <Box sx={{ display: { xs: 'block', md: 'none' } }}>
         <SwipeableDrawer
           anchor='top'
           classes={{
@@ -110,7 +110,7 @@ export default function FilterContainer(props) {
         >
           {renderContent()}
         </SwipeableDrawer>
-      </Hidden>
+      </Box>
     </React.Fragment>
   )
 }

@@ -1,7 +1,7 @@
 import React, { ReactElement, useState, useContext, useEffect } from 'react'
 import { useMutation } from '@apollo/client'
 import { useQuery, gql } from 'urql'
-import { Grid, Hidden, ListItemText } from '@mui/material'
+import { Box, Grid, ListItemText } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import {
   ArrowUpward as EscalateIcon,
@@ -341,9 +341,9 @@ export default function AlertsList(props: AlertsListProps): React.JSX.Element {
             )}
             createLabel='Alert'
             cardHeader={
-              <Hidden lgDown>
+              <Box sx={{ display: { xs: 'none', lg: 'block' } }}>
                 <AlertsListControls />
-              </Hidden>
+              </Box>
             }
             checkboxActions={getActions()}
           />

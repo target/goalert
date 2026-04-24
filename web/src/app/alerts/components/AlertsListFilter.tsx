@@ -3,7 +3,7 @@ import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
 import Popover from '@mui/material/Popover'
 import FilterList from '@mui/icons-material/FilterList'
-import Hidden from '@mui/material/Hidden'
+import Box from '@mui/material/Box'
 import SwipeableDrawer from '@mui/material/SwipeableDrawer'
 import Switch from '@mui/material/Switch'
 import Grid from '@mui/material/Grid'
@@ -148,7 +148,7 @@ function AlertsListFilter(props: AlertsListFilterProps): React.JSX.Element {
     // renders a popover on desktop, and a swipeable drawer on mobile devices
     return (
       <React.Fragment>
-        <Hidden mdDown>
+        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
           <Popover
             anchorEl={anchorEl}
             open={!!anchorEl && show}
@@ -164,8 +164,8 @@ function AlertsListFilter(props: AlertsListFilterProps): React.JSX.Element {
           >
             {content}
           </Popover>
-        </Hidden>
-        <Hidden mdUp>
+        </Box>
+        <Box sx={{ display: { xs: 'block', md: 'none' } }}>
           <SwipeableDrawer
             anchor='top'
             disableDiscovery
@@ -179,7 +179,7 @@ function AlertsListFilter(props: AlertsListFilterProps): React.JSX.Element {
           >
             {content}
           </SwipeableDrawer>
-        </Hidden>
+        </Box>
       </React.Fragment>
     )
   }

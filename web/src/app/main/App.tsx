@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect, useLayoutEffect, useState } from 'react'
 import AppBar from '@mui/material/AppBar'
-import Hidden from '@mui/material/Hidden'
+import Box from '@mui/material/Box'
 import Toolbar from '@mui/material/Toolbar'
 import ToolbarPageTitle from './components/ToolbarPageTitle'
 import ToolbarAction from './components/ToolbarAction'
@@ -100,12 +100,12 @@ export default function App(): React.JSX.Element {
               </Toolbar>
             </AppBar>
 
-            <Hidden mdDown>
+            <Box sx={{ display: { xs: 'none', md: 'block' } }}>
               <LazyWideSideBar>
                 <NavBar />
               </LazyWideSideBar>
-            </Hidden>
-            <Hidden mdUp>
+            </Box>
+            <Box sx={{ display: { xs: 'block', md: 'none' } }}>
               <SwipeableDrawer
                 disableDiscovery={isIOS}
                 open={showMobile}
@@ -117,7 +117,7 @@ export default function App(): React.JSX.Element {
               >
                 <NavBar />
               </SwipeableDrawer>
-            </Hidden>
+            </Box>
 
             <main
               id='content'
