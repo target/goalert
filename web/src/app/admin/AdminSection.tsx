@@ -85,7 +85,7 @@ export default function AdminSection(
               key={f.id}
               className={classes.listItem}
               divider={idx !== fields.length - 1}
-              selected={_.has(value, f.id)}
+              sx={_.has(value, f.id) ? { bgcolor: 'action.selected' } : {}}
             >
               <ListItemText
                 className={classes.listItemText}
