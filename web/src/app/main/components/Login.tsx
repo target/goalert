@@ -9,7 +9,7 @@ import Divider from '@mui/material/Divider'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme, useTheme } from '@mui/material'
 import { getParameterByName } from '../../util/query_param'
-import { pathPrefix } from '../../env'
+import { pathPrefix, applicationName } from '../../env'
 
 import logoImgSrc from '../../public/logos/lightmode_logo.svg'
 import darkModeLogoImgSrc from '../../public/logos/darkmode_logo.svg'
@@ -232,7 +232,7 @@ export default function Login(): React.JSX.Element {
                 <Grid item>{logo}</Grid>
                 <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
                   <Typography variant='h5' sx={{ pl: 1 }}>
-                    <b>GoAlert</b>
+                    <b>{applicationName}</b>
                   </Typography>
                 </Grid>
               </Grid>
