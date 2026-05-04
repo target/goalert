@@ -17,4 +17,5 @@ const (
 	TypeMetrics      Type = "metrics"
 	TypeCompat       Type = "compat"
 	TypeSignals      Type = "signals"
+	TypeIMAP         Type = "imap"
 )

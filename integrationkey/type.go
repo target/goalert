@@ -16,6 +16,7 @@ const (
 	TypeGeneric                Type = "generic"
 	TypeEmail                  Type = "email"
 	TypeUniversal              Type = "universal"
+	TypeIMAP                   Type = "imap"
 )
 
 func (s Type) Value() (driver.Value, error) {

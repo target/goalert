@@ -398,6 +398,31 @@ type ComplexityRoot struct {
 		TimeoutMinutes    func(childComplexity int) int
 	}
 
+	IMAPFilterRule struct {
+		CreatedAt      func(childComplexity int) int
+		Enabled        func(childComplexity int) int
+		ExcludeReplies func(childComplexity int) int
+		FromPattern    func(childComplexity int) int
+		ID             func(childComplexity int) int
+		MatchMode      func(childComplexity int) int
+		Name           func(childComplexity int) int
+		ServiceID      func(childComplexity int) int
+		SubjectPattern func(childComplexity int) int
+		ToPattern      func(childComplexity int) int
+		UpdatedAt      func(childComplexity int) int
+	}
+
+	IMAPOAuthToken struct {
+		AccessToken  func(childComplexity int) int
+		ExpiresAt    func(childComplexity int) int
+		RefreshToken func(childComplexity int) int
+	}
+
+	IMAPOAuthURL struct {
+		AuthURL func(childComplexity int) int
+		State   func(childComplexity int) int
+	}
+
 	IntegrationKey struct {
 		Config             func(childComplexity int) int
 		ExternalSystemName func(childComplexity int) int
@@ -478,10 +503,12 @@ type ComplexityRoot struct {
 		CreateEscalationPolicyStep         func(childComplexity int, input CreateEscalationPolicyStepInput) int
 		CreateGQLAPIKey                    func(childComplexity int, input CreateGQLAPIKeyInput) int
 		CreateHeartbeatMonitor             func(childComplexity int, input CreateHeartbeatMonitorInput) int
+		CreateIMAPFilterRule               func(childComplexity int, input CreateIMAPFilterRuleInput) int
 		CreateIntegrationKey               func(childComplexity int, input CreateIntegrationKeyInput) int
 		CreateRotation                     func(childComplexity int, input CreateRotationInput) int
 		CreateSchedule                     func(childComplexity int, input CreateScheduleInput) int
 		CreateService                      func(childComplexity int, input CreateServiceInput) int
+		CreateServiceIMAPConfig            func(childComplexity int, input CreateServiceIMAPConfigInput) int
 		CreateUser                         func(childComplexity int, input CreateUserInput) int
 		CreateUserCalendarSubscription     func(childComplexity int, input CreateUserCalendarSubscriptionInput) int
 		CreateUserContactMethod            func(childComplexity int, input CreateUserContactMethodInput) int
@@ -492,9 +519,13 @@ type ComplexityRoot struct {
 		DeleteAll                          func(childComplexity int, input []assignment.RawTarget) int
 		DeleteAuthSubject                  func(childComplexity int, input user.AuthSubject) int
 		DeleteGQLAPIKey                    func(childComplexity int, id string) int
+		DeleteIMAPFilterRule               func(childComplexity int, id string) int
 		DeleteSecondaryToken               func(childComplexity int, id string) int
+		DeleteServiceIMAPConfig            func(childComplexity int, serviceID string) int
 		EndAllAuthSessionsByCurrentUser    func(childComplexity int) int
 		EscalateAlerts                     func(childComplexity int, input []int) int
+		ExchangeIMAPOAuthCode              func(childComplexity int, input ExchangeIMAPOAuthCodeInput) int
+		GenerateIMAPOAuthURL               func(childComplexity int, input GenerateIMAPOAuthURLInput) int
 		GenerateKeyToken                   func(childComplexity int, id string) int
 		LinkAccount                        func(childComplexity int, token string) int
 		PromoteSecondaryToken              func(childComplexity int, id string) int
@@ -509,6 +540,7 @@ type ComplexityRoot struct {
 		SetTemporarySchedule               func(childComplexity int, input SetTemporaryScheduleInput) int
 		SwoAction                          func(childComplexity int, action SWOAction) int
 		TestContactMethod                  func(childComplexity int, id string) int
+		TestIMAPConnection                 func(childComplexity int, input CreateServiceIMAPConfigInput) int
 		UpdateAlerts                       func(childComplexity int, input UpdateAlertsInput) int
 		UpdateAlertsByService              func(childComplexity int, input UpdateAlertsByServiceInput) int
 		UpdateBasicAuth                    func(childComplexity int, input UpdateBasicAuthInput) int
@@ -516,11 +548,13 @@ type ComplexityRoot struct {
 		UpdateEscalationPolicyStep         func(childComplexity int, input UpdateEscalationPolicyStepInput) int
 		UpdateGQLAPIKey                    func(childComplexity int, input UpdateGQLAPIKeyInput) int
 		UpdateHeartbeatMonitor             func(childComplexity int, input UpdateHeartbeatMonitorInput) int
+		UpdateIMAPFilterRule               func(childComplexity int, input UpdateIMAPFilterRuleInput) int
 		UpdateKeyConfig                    func(childComplexity int, input UpdateKeyConfigInput) int
 		UpdateRotation                     func(childComplexity int, input UpdateRotationInput) int
 		UpdateSchedule                     func(childComplexity int, input UpdateScheduleInput) int
 		UpdateScheduleTarget               func(childComplexity int, input ScheduleTargetInput) int
 		UpdateService                      func(childComplexity int, input UpdateServiceInput) int
+		UpdateServiceIMAPConfig            func(childComplexity int, input UpdateServiceIMAPConfigInput) int
 		UpdateUser                         func(childComplexity int, input UpdateUserInput) int
 		UpdateUserCalendarSubscription     func(childComplexity int, input UpdateUserCalendarSubscriptionInput) int
 		UpdateUserContactMethod            func(childComplexity int, input UpdateUserContactMethodInput) int
@@ -605,6 +639,7 @@ type ComplexityRoot struct {
 		GenerateSlackAppManifest  func(childComplexity int) int
 		GqlAPIKeys                func(childComplexity int) int
 		HeartbeatMonitor          func(childComplexity int, id string) int
+		ImapFilterRules           func(childComplexity int, serviceID string) int
 		IntegrationKey            func(childComplexity int, id string) int
 		IntegrationKeyTypes       func(childComplexity int) int
 		IntegrationKeys           func(childComplexity int, input *IntegrationKeySearchOptions) int
@@ -724,6 +759,8 @@ type ComplexityRoot struct {
 		EscalationPolicyID   func(childComplexity int) int
 		HeartbeatMonitors    func(childComplexity int) int
 		ID                   func(childComplexity int) int
+		ImapConfig           func(childComplexity int) int
+		ImapFilterRules      func(childComplexity int) int
 		IntegrationKeys      func(childComplexity int) int
 		IsFavorite           func(childComplexity int) int
 		Labels               func(childComplexity int) int
@@ -737,6 +774,26 @@ type ComplexityRoot struct {
 	ServiceConnection struct {
 		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
+	}
+
+	ServiceIMAPConfig struct {
+		CreatedAt           func(childComplexity int) int
+		DeleteAfter         func(childComplexity int) int
+		Enabled             func(childComplexity int) int
+		Host                func(childComplexity int) int
+		IncludeBody         func(childComplexity int) int
+		IncludeFrom         func(childComplexity int) int
+		IncludeHeaders      func(childComplexity int) int
+		IncludeSubject      func(childComplexity int) int
+		IncludeTo           func(childComplexity int) int
+		Mailbox             func(childComplexity int) int
+		MarkAsRead          func(childComplexity int) int
+		PollIntervalMinutes func(childComplexity int) int
+		Port                func(childComplexity int) int
+		ServiceID           func(childComplexity int) int
+		UpdatedAt           func(childComplexity int) int
+		UseTLS              func(childComplexity int) int
+		Username            func(childComplexity int) int
 	}
 
 	ServiceOnCallUser struct {
@@ -1009,6 +1066,15 @@ type MutationResolver interface {
 	SetSystemLimits(ctx context.Context, input []SystemLimitInput) (bool, error)
 	CreateBasicAuth(ctx context.Context, input CreateBasicAuthInput) (bool, error)
 	UpdateBasicAuth(ctx context.Context, input UpdateBasicAuthInput) (bool, error)
+	CreateServiceIMAPConfig(ctx context.Context, input CreateServiceIMAPConfigInput) (*ServiceIMAPConfig, error)
+	UpdateServiceIMAPConfig(ctx context.Context, input UpdateServiceIMAPConfigInput) (bool, error)
+	DeleteServiceIMAPConfig(ctx context.Context, serviceID string) (bool, error)
+	TestIMAPConnection(ctx context.Context, input CreateServiceIMAPConfigInput) (bool, error)
+	CreateIMAPFilterRule(ctx context.Context, input CreateIMAPFilterRuleInput) (*IMAPFilterRule, error)
+	UpdateIMAPFilterRule(ctx context.Context, input UpdateIMAPFilterRuleInput) (bool, error)
+	DeleteIMAPFilterRule(ctx context.Context, id string) (bool, error)
+	GenerateIMAPOAuthURL(ctx context.Context, input GenerateIMAPOAuthURLInput) (*IMAPOAuthURL, error)
+	ExchangeIMAPOAuthCode(ctx context.Context, input ExchangeIMAPOAuthCodeInput) (*IMAPOAuthToken, error)
 	CreateGQLAPIKey(ctx context.Context, input CreateGQLAPIKeyInput) (*CreatedGQLAPIKey, error)
 	UpdateGQLAPIKey(ctx context.Context, input UpdateGQLAPIKeyInput) (bool, error)
 	DeleteGQLAPIKey(ctx context.Context, id string) (bool, error)
@@ -1066,6 +1132,7 @@ type QueryResolver interface {
 	GenerateSlackAppManifest(ctx context.Context) (string, error)
 	LinkAccountInfo(ctx context.Context, token string) (*LinkAccountInfo, error)
 	SwoStatus(ctx context.Context) (*SWOStatus, error)
+	ImapFilterRules(ctx context.Context, serviceID string) ([]IMAPFilterRule, error)
 	MessageStatusHistory(ctx context.Context, id string) ([]MessageStatusHistory, error)
 	DestinationTypes(ctx context.Context, isDynamicAction *bool) ([]nfydest.TypeInfo, error)
 	DestinationFieldValidate(ctx context.Context, input DestinationFieldValidateInput) (bool, error)
@@ -1107,6 +1174,8 @@ type ServiceResolver interface {
 	IntegrationKeys(ctx context.Context, obj *service.Service) ([]integrationkey.IntegrationKey, error)
 	Labels(ctx context.Context, obj *service.Service) ([]label.Label, error)
 	HeartbeatMonitors(ctx context.Context, obj *service.Service) ([]heartbeat.Monitor, error)
+	ImapConfig(ctx context.Context, obj *service.Service) (*ServiceIMAPConfig, error)
+	ImapFilterRules(ctx context.Context, obj *service.Service) ([]IMAPFilterRule, error)
 	Notices(ctx context.Context, obj *service.Service) ([]notice.Notice, error)
 	RecentEvents(ctx context.Context, obj *service.Service, input *AlertRecentEventsOptions) (*AlertLogEntryConnection, error)
 	AlertStats(ctx context.Context, obj *service.Service, input *ServiceAlertStatsOptions) (*AlertStats, error)
@@ -2303,6 +2372,105 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.HeartbeatMonitor.TimeoutMinutes(childComplexity), true
 
+	case "IMAPFilterRule.createdAt":
+		if e.complexity.IMAPFilterRule.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.IMAPFilterRule.CreatedAt(childComplexity), true
+	case "IMAPFilterRule.enabled":
+		if e.complexity.IMAPFilterRule.Enabled == nil {
+			break
+		}
+
+		return e.complexity.IMAPFilterRule.Enabled(childComplexity), true
+	case "IMAPFilterRule.excludeReplies":
+		if e.complexity.IMAPFilterRule.ExcludeReplies == nil {
+			break
+		}
+
+		return e.complexity.IMAPFilterRule.ExcludeReplies(childComplexity), true
+	case "IMAPFilterRule.fromPattern":
+		if e.complexity.IMAPFilterRule.FromPattern == nil {
+			break
+		}
+
+		return e.complexity.IMAPFilterRule.FromPattern(childComplexity), true
+	case "IMAPFilterRule.id":
+		if e.complexity.IMAPFilterRule.ID == nil {
+			break
+		}
+
+		return e.complexity.IMAPFilterRule.ID(childComplexity), true
+	case "IMAPFilterRule.matchMode":
+		if e.complexity.IMAPFilterRule.MatchMode == nil {
+			break
+		}
+
+		return e.complexity.IMAPFilterRule.MatchMode(childComplexity), true
+	case "IMAPFilterRule.name":
+		if e.complexity.IMAPFilterRule.Name == nil {
+			break
+		}
+
+		return e.complexity.IMAPFilterRule.Name(childComplexity), true
+	case "IMAPFilterRule.serviceID":
+		if e.complexity.IMAPFilterRule.ServiceID == nil {
+			break
+		}
+
+		return e.complexity.IMAPFilterRule.ServiceID(childComplexity), true
+	case "IMAPFilterRule.subjectPattern":
+		if e.complexity.IMAPFilterRule.SubjectPattern == nil {
+			break
+		}
+
+		return e.complexity.IMAPFilterRule.SubjectPattern(childComplexity), true
+	case "IMAPFilterRule.toPattern":
+		if e.complexity.IMAPFilterRule.ToPattern == nil {
+			break
+		}
+
+		return e.complexity.IMAPFilterRule.ToPattern(childComplexity), true
+	case "IMAPFilterRule.updatedAt":
+		if e.complexity.IMAPFilterRule.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.IMAPFilterRule.UpdatedAt(childComplexity), true
+
+	case "IMAPOAuthToken.accessToken":
+		if e.complexity.IMAPOAuthToken.AccessToken == nil {
+			break
+		}
+
+		return e.complexity.IMAPOAuthToken.AccessToken(childComplexity), true
+	case "IMAPOAuthToken.expiresAt":
+		if e.complexity.IMAPOAuthToken.ExpiresAt == nil {
+			break
+		}
+
+		return e.complexity.IMAPOAuthToken.ExpiresAt(childComplexity), true
+	case "IMAPOAuthToken.refreshToken":
+		if e.complexity.IMAPOAuthToken.RefreshToken == nil {
+			break
+		}
+
+		return e.complexity.IMAPOAuthToken.RefreshToken(childComplexity), true
+
+	case "IMAPOAuthURL.authURL":
+		if e.complexity.IMAPOAuthURL.AuthURL == nil {
+			break
+		}
+
+		return e.complexity.IMAPOAuthURL.AuthURL(childComplexity), true
+	case "IMAPOAuthURL.state":
+		if e.complexity.IMAPOAuthURL.State == nil {
+			break
+		}
+
+		return e.complexity.IMAPOAuthURL.State(childComplexity), true
+
 	case "IntegrationKey.config":
 		if e.complexity.IntegrationKey.Config == nil {
 			break
@@ -2645,6 +2813,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.CreateHeartbeatMonitor(childComplexity, args["input"].(CreateHeartbeatMonitorInput)), true
+	case "Mutation.createIMAPFilterRule":
+		if e.complexity.Mutation.CreateIMAPFilterRule == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createIMAPFilterRule_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateIMAPFilterRule(childComplexity, args["input"].(CreateIMAPFilterRuleInput)), true
 	case "Mutation.createIntegrationKey":
 		if e.complexity.Mutation.CreateIntegrationKey == nil {
 			break
@@ -2689,6 +2868,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.CreateService(childComplexity, args["input"].(CreateServiceInput)), true
+	case "Mutation.createServiceIMAPConfig":
+		if e.complexity.Mutation.CreateServiceIMAPConfig == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createServiceIMAPConfig_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateServiceIMAPConfig(childComplexity, args["input"].(CreateServiceIMAPConfigInput)), true
 	case "Mutation.createUser":
 		if e.complexity.Mutation.CreateUser == nil {
 			break
@@ -2799,6 +2989,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.DeleteGQLAPIKey(childComplexity, args["id"].(string)), true
+	case "Mutation.deleteIMAPFilterRule":
+		if e.complexity.Mutation.DeleteIMAPFilterRule == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteIMAPFilterRule_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteIMAPFilterRule(childComplexity, args["id"].(string)), true
 	case "Mutation.deleteSecondaryToken":
 		if e.complexity.Mutation.DeleteSecondaryToken == nil {
 			break
@@ -2810,6 +3011,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.DeleteSecondaryToken(childComplexity, args["id"].(string)), true
+	case "Mutation.deleteServiceIMAPConfig":
+		if e.complexity.Mutation.DeleteServiceIMAPConfig == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteServiceIMAPConfig_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteServiceIMAPConfig(childComplexity, args["serviceID"].(string)), true
 	case "Mutation.endAllAuthSessionsByCurrentUser":
 		if e.complexity.Mutation.EndAllAuthSessionsByCurrentUser == nil {
 			break
@@ -2827,6 +3039,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.EscalateAlerts(childComplexity, args["input"].([]int)), true
+	case "Mutation.exchangeIMAPOAuthCode":
+		if e.complexity.Mutation.ExchangeIMAPOAuthCode == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_exchangeIMAPOAuthCode_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ExchangeIMAPOAuthCode(childComplexity, args["input"].(ExchangeIMAPOAuthCodeInput)), true
+	case "Mutation.generateIMAPOAuthURL":
+		if e.complexity.Mutation.GenerateIMAPOAuthURL == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_generateIMAPOAuthURL_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.GenerateIMAPOAuthURL(childComplexity, args["input"].(GenerateIMAPOAuthURLInput)), true
 	case "Mutation.generateKeyToken":
 		if e.complexity.Mutation.GenerateKeyToken == nil {
 			break
@@ -2976,6 +3210,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.TestContactMethod(childComplexity, args["id"].(string)), true
+	case "Mutation.testIMAPConnection":
+		if e.complexity.Mutation.TestIMAPConnection == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_testIMAPConnection_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.TestIMAPConnection(childComplexity, args["input"].(CreateServiceIMAPConfigInput)), true
 	case "Mutation.updateAlerts":
 		if e.complexity.Mutation.UpdateAlerts == nil {
 			break
@@ -3053,6 +3298,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UpdateHeartbeatMonitor(childComplexity, args["input"].(UpdateHeartbeatMonitorInput)), true
+	case "Mutation.updateIMAPFilterRule":
+		if e.complexity.Mutation.UpdateIMAPFilterRule == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateIMAPFilterRule_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateIMAPFilterRule(childComplexity, args["input"].(UpdateIMAPFilterRuleInput)), true
 	case "Mutation.updateKeyConfig":
 		if e.complexity.Mutation.UpdateKeyConfig == nil {
 			break
@@ -3108,6 +3364,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UpdateService(childComplexity, args["input"].(UpdateServiceInput)), true
+	case "Mutation.updateServiceIMAPConfig":
+		if e.complexity.Mutation.UpdateServiceIMAPConfig == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateServiceIMAPConfig_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateServiceIMAPConfig(childComplexity, args["input"].(UpdateServiceIMAPConfigInput)), true
 	case "Mutation.updateUser":
 		if e.complexity.Mutation.UpdateUser == nil {
 			break
@@ -3564,6 +3831,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.HeartbeatMonitor(childComplexity, args["id"].(string)), true
+	case "Query.imapFilterRules":
+		if e.complexity.Query.ImapFilterRules == nil {
+			break
+		}
+
+		args, err := ec.field_Query_imapFilterRules_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ImapFilterRules(childComplexity, args["serviceID"].(string)), true
 	case "Query.integrationKey":
 		if e.complexity.Query.IntegrationKey == nil {
 			break
@@ -4258,6 +4536,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Service.ID(childComplexity), true
+	case "Service.imapConfig":
+		if e.complexity.Service.ImapConfig == nil {
+			break
+		}
+
+		return e.complexity.Service.ImapConfig(childComplexity), true
+	case "Service.imapFilterRules":
+		if e.complexity.Service.ImapFilterRules == nil {
+			break
+		}
+
+		return e.complexity.Service.ImapFilterRules(childComplexity), true
 	case "Service.integrationKeys":
 		if e.complexity.Service.IntegrationKeys == nil {
 			break
@@ -4324,6 +4614,109 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ServiceConnection.PageInfo(childComplexity), true
+
+	case "ServiceIMAPConfig.createdAt":
+		if e.complexity.ServiceIMAPConfig.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.ServiceIMAPConfig.CreatedAt(childComplexity), true
+	case "ServiceIMAPConfig.deleteAfter":
+		if e.complexity.ServiceIMAPConfig.DeleteAfter == nil {
+			break
+		}
+
+		return e.complexity.ServiceIMAPConfig.DeleteAfter(childComplexity), true
+	case "ServiceIMAPConfig.enabled":
+		if e.complexity.ServiceIMAPConfig.Enabled == nil {
+			break
+		}
+
+		return e.complexity.ServiceIMAPConfig.Enabled(childComplexity), true
+	case "ServiceIMAPConfig.host":
+		if e.complexity.ServiceIMAPConfig.Host == nil {
+			break
+		}
+
+		return e.complexity.ServiceIMAPConfig.Host(childComplexity), true
+	case "ServiceIMAPConfig.includeBody":
+		if e.complexity.ServiceIMAPConfig.IncludeBody == nil {
+			break
+		}
+
+		return e.complexity.ServiceIMAPConfig.IncludeBody(childComplexity), true
+	case "ServiceIMAPConfig.includeFrom":
+		if e.complexity.ServiceIMAPConfig.IncludeFrom == nil {
+			break
+		}
+
+		return e.complexity.ServiceIMAPConfig.IncludeFrom(childComplexity), true
+	case "ServiceIMAPConfig.includeHeaders":
+		if e.complexity.ServiceIMAPConfig.IncludeHeaders == nil {
+			break
+		}
+
+		return e.complexity.ServiceIMAPConfig.IncludeHeaders(childComplexity), true
+	case "ServiceIMAPConfig.includeSubject":
+		if e.complexity.ServiceIMAPConfig.IncludeSubject == nil {
+			break
+		}
+
+		return e.complexity.ServiceIMAPConfig.IncludeSubject(childComplexity), true
+	case "ServiceIMAPConfig.includeTo":
+		if e.complexity.ServiceIMAPConfig.IncludeTo == nil {
+			break
+		}
+
+		return e.complexity.ServiceIMAPConfig.IncludeTo(childComplexity), true
+	case "ServiceIMAPConfig.mailbox":
+		if e.complexity.ServiceIMAPConfig.Mailbox == nil {
+			break
+		}
+
+		return e.complexity.ServiceIMAPConfig.Mailbox(childComplexity), true
+	case "ServiceIMAPConfig.markAsRead":
+		if e.complexity.ServiceIMAPConfig.MarkAsRead == nil {
+			break
+		}
+
+		return e.complexity.ServiceIMAPConfig.MarkAsRead(childComplexity), true
+	case "ServiceIMAPConfig.pollIntervalMinutes":
+		if e.complexity.ServiceIMAPConfig.PollIntervalMinutes == nil {
+			break
+		}
+
+		return e.complexity.ServiceIMAPConfig.PollIntervalMinutes(childComplexity), true
+	case "ServiceIMAPConfig.port":
+		if e.complexity.ServiceIMAPConfig.Port == nil {
+			break
+		}
+
+		return e.complexity.ServiceIMAPConfig.Port(childComplexity), true
+	case "ServiceIMAPConfig.serviceID":
+		if e.complexity.ServiceIMAPConfig.ServiceID == nil {
+			break
+		}
+
+		return e.complexity.ServiceIMAPConfig.ServiceID(childComplexity), true
+	case "ServiceIMAPConfig.updatedAt":
+		if e.complexity.ServiceIMAPConfig.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.ServiceIMAPConfig.UpdatedAt(childComplexity), true
+	case "ServiceIMAPConfig.useTLS":
+		if e.complexity.ServiceIMAPConfig.UseTLS == nil {
+			break
+		}
+
+		return e.complexity.ServiceIMAPConfig.UseTLS(childComplexity), true
+	case "ServiceIMAPConfig.username":
+		if e.complexity.ServiceIMAPConfig.Username == nil {
+			break
+		}
+
+		return e.complexity.ServiceIMAPConfig.Username(childComplexity), true
 
 	case "ServiceOnCallUser.stepNumber":
 		if e.complexity.ServiceOnCallUser.StepNumber == nil {
@@ -4907,9 +5300,11 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCreateEscalationPolicyStepInput,
 		ec.unmarshalInputCreateGQLAPIKeyInput,
 		ec.unmarshalInputCreateHeartbeatMonitorInput,
+		ec.unmarshalInputCreateIMAPFilterRuleInput,
 		ec.unmarshalInputCreateIntegrationKeyInput,
 		ec.unmarshalInputCreateRotationInput,
 		ec.unmarshalInputCreateScheduleInput,
+		ec.unmarshalInputCreateServiceIMAPConfigInput,
 		ec.unmarshalInputCreateServiceInput,
 		ec.unmarshalInputCreateUserCalendarSubscriptionInput,
 		ec.unmarshalInputCreateUserContactMethodInput,
@@ -4924,8 +5319,10 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputDestinationFieldValidateInput,
 		ec.unmarshalInputDestinationInput,
 		ec.unmarshalInputEscalationPolicySearchOptions,
+		ec.unmarshalInputExchangeIMAPOAuthCodeInput,
 		ec.unmarshalInputExprToConditionInput,
 		ec.unmarshalInputFieldValueInput,
+		ec.unmarshalInputGenerateIMAPOAuthURLInput,
 		ec.unmarshalInputIntegrationKeySearchOptions,
 		ec.unmarshalInputKeyRuleActionsInput,
 		ec.unmarshalInputKeyRuleInput,
@@ -4960,9 +5357,11 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUpdateEscalationPolicyStepInput,
 		ec.unmarshalInputUpdateGQLAPIKeyInput,
 		ec.unmarshalInputUpdateHeartbeatMonitorInput,
+		ec.unmarshalInputUpdateIMAPFilterRuleInput,
 		ec.unmarshalInputUpdateKeyConfigInput,
 		ec.unmarshalInputUpdateRotationInput,
 		ec.unmarshalInputUpdateScheduleInput,
+		ec.unmarshalInputUpdateServiceIMAPConfigInput,
 		ec.unmarshalInputUpdateServiceInput,
 		ec.unmarshalInputUpdateUserCalendarSubscriptionInput,
 		ec.unmarshalInputUpdateUserContactMethodInput,
@@ -5274,6 +5673,17 @@ func (ec *executionContext) field_Mutation_createHeartbeatMonitor_args(ctx conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createIMAPFilterRule_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateIMAPFilterRuleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateIMAPFilterRuleInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createIntegrationKey_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -5300,6 +5710,17 @@ func (ec *executionContext) field_Mutation_createSchedule_args(ctx context.Conte
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateScheduleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateScheduleInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createServiceIMAPConfig_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateServiceIMAPConfigInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateServiceIMAPConfigInput)
 	if err != nil {
 		return nil, err
 	}
@@ -5428,6 +5849,17 @@ func (ec *executionContext) field_Mutation_deleteGQLAPIKey_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteIMAPFilterRule_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deleteSecondaryToken_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -5439,10 +5871,43 @@ func (ec *executionContext) field_Mutation_deleteSecondaryToken_args(ctx context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteServiceIMAPConfig_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "serviceID", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["serviceID"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_escalateAlerts_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalOInt2ᚕintᚄ)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_exchangeIMAPOAuthCode_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNExchangeIMAPOAuthCodeInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐExchangeIMAPOAuthCodeInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_generateIMAPOAuthURL_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNGenerateIMAPOAuthURLInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐGenerateIMAPOAuthURLInput)
 	if err != nil {
 		return nil, err
 	}
@@ -5593,6 +6058,17 @@ func (ec *executionContext) field_Mutation_testContactMethod_args(ctx context.Co
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_testIMAPConnection_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateServiceIMAPConfigInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateServiceIMAPConfigInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateAlertsByService_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -5670,6 +6146,17 @@ func (ec *executionContext) field_Mutation_updateHeartbeatMonitor_args(ctx conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateIMAPFilterRule_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateIMAPFilterRuleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateIMAPFilterRuleInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateKeyConfig_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -5707,6 +6194,17 @@ func (ec *executionContext) field_Mutation_updateSchedule_args(ctx context.Conte
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateScheduleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateScheduleInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateServiceIMAPConfig_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateServiceIMAPConfigInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateServiceIMAPConfigInput)
 	if err != nil {
 		return nil, err
 	}
@@ -5974,6 +6472,17 @@ func (ec *executionContext) field_Query_heartbeatMonitor_args(ctx context.Contex
 		return nil, err
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_imapFilterRules_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "serviceID", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["serviceID"] = arg0
 	return args, nil
 }
 
@@ -6712,6 +7221,10 @@ func (ec *executionContext) fieldContext_Alert_service(_ context.Context, field 
 				return ec.fieldContext_Service_labels(ctx, field)
 			case "heartbeatMonitors":
 				return ec.fieldContext_Service_heartbeatMonitors(ctx, field)
+			case "imapConfig":
+				return ec.fieldContext_Service_imapConfig(ctx, field)
+			case "imapFilterRules":
+				return ec.fieldContext_Service_imapFilterRules(ctx, field)
 			case "notices":
 				return ec.fieldContext_Service_notices(ctx, field)
 			case "recentEvents":
@@ -11948,6 +12461,470 @@ func (ec *executionContext) fieldContext_HeartbeatMonitor_muted(_ context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _IMAPFilterRule_id(ctx context.Context, field graphql.CollectedField, obj *IMAPFilterRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_IMAPFilterRule_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_IMAPFilterRule_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IMAPFilterRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IMAPFilterRule_serviceID(ctx context.Context, field graphql.CollectedField, obj *IMAPFilterRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_IMAPFilterRule_serviceID,
+		func(ctx context.Context) (any, error) {
+			return obj.ServiceID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_IMAPFilterRule_serviceID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IMAPFilterRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IMAPFilterRule_name(ctx context.Context, field graphql.CollectedField, obj *IMAPFilterRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_IMAPFilterRule_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_IMAPFilterRule_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IMAPFilterRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IMAPFilterRule_enabled(ctx context.Context, field graphql.CollectedField, obj *IMAPFilterRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_IMAPFilterRule_enabled,
+		func(ctx context.Context) (any, error) {
+			return obj.Enabled, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_IMAPFilterRule_enabled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IMAPFilterRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IMAPFilterRule_fromPattern(ctx context.Context, field graphql.CollectedField, obj *IMAPFilterRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_IMAPFilterRule_fromPattern,
+		func(ctx context.Context) (any, error) {
+			return obj.FromPattern, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_IMAPFilterRule_fromPattern(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IMAPFilterRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IMAPFilterRule_subjectPattern(ctx context.Context, field graphql.CollectedField, obj *IMAPFilterRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_IMAPFilterRule_subjectPattern,
+		func(ctx context.Context) (any, error) {
+			return obj.SubjectPattern, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_IMAPFilterRule_subjectPattern(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IMAPFilterRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IMAPFilterRule_toPattern(ctx context.Context, field graphql.CollectedField, obj *IMAPFilterRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_IMAPFilterRule_toPattern,
+		func(ctx context.Context) (any, error) {
+			return obj.ToPattern, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_IMAPFilterRule_toPattern(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IMAPFilterRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IMAPFilterRule_matchMode(ctx context.Context, field graphql.CollectedField, obj *IMAPFilterRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_IMAPFilterRule_matchMode,
+		func(ctx context.Context) (any, error) {
+			return obj.MatchMode, nil
+		},
+		nil,
+		ec.marshalNIMAPFilterMatchMode2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIMAPFilterMatchMode,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_IMAPFilterRule_matchMode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IMAPFilterRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type IMAPFilterMatchMode does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IMAPFilterRule_excludeReplies(ctx context.Context, field graphql.CollectedField, obj *IMAPFilterRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_IMAPFilterRule_excludeReplies,
+		func(ctx context.Context) (any, error) {
+			return obj.ExcludeReplies, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_IMAPFilterRule_excludeReplies(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IMAPFilterRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IMAPFilterRule_createdAt(ctx context.Context, field graphql.CollectedField, obj *IMAPFilterRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_IMAPFilterRule_createdAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		ec.marshalNISOTimestamp2timeᚐTime,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_IMAPFilterRule_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IMAPFilterRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IMAPFilterRule_updatedAt(ctx context.Context, field graphql.CollectedField, obj *IMAPFilterRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_IMAPFilterRule_updatedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedAt, nil
+		},
+		nil,
+		ec.marshalNISOTimestamp2timeᚐTime,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_IMAPFilterRule_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IMAPFilterRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IMAPOAuthToken_refreshToken(ctx context.Context, field graphql.CollectedField, obj *IMAPOAuthToken) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_IMAPOAuthToken_refreshToken,
+		func(ctx context.Context) (any, error) {
+			return obj.RefreshToken, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_IMAPOAuthToken_refreshToken(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IMAPOAuthToken",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IMAPOAuthToken_accessToken(ctx context.Context, field graphql.CollectedField, obj *IMAPOAuthToken) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_IMAPOAuthToken_accessToken,
+		func(ctx context.Context) (any, error) {
+			return obj.AccessToken, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_IMAPOAuthToken_accessToken(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IMAPOAuthToken",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IMAPOAuthToken_expiresAt(ctx context.Context, field graphql.CollectedField, obj *IMAPOAuthToken) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_IMAPOAuthToken_expiresAt,
+		func(ctx context.Context) (any, error) {
+			return obj.ExpiresAt, nil
+		},
+		nil,
+		ec.marshalNISOTimestamp2timeᚐTime,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_IMAPOAuthToken_expiresAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IMAPOAuthToken",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IMAPOAuthURL_authURL(ctx context.Context, field graphql.CollectedField, obj *IMAPOAuthURL) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_IMAPOAuthURL_authURL,
+		func(ctx context.Context) (any, error) {
+			return obj.AuthURL, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_IMAPOAuthURL_authURL(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IMAPOAuthURL",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IMAPOAuthURL_state(ctx context.Context, field graphql.CollectedField, obj *IMAPOAuthURL) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_IMAPOAuthURL_state,
+		func(ctx context.Context) (any, error) {
+			return obj.State, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_IMAPOAuthURL_state(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IMAPOAuthURL",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _IntegrationKey_id(ctx context.Context, field graphql.CollectedField, obj *integrationkey.IntegrationKey) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -14344,6 +15321,10 @@ func (ec *executionContext) fieldContext_Mutation_createService(ctx context.Cont
 				return ec.fieldContext_Service_labels(ctx, field)
 			case "heartbeatMonitors":
 				return ec.fieldContext_Service_heartbeatMonitors(ctx, field)
+			case "imapConfig":
+				return ec.fieldContext_Service_imapConfig(ctx, field)
+			case "imapFilterRules":
+				return ec.fieldContext_Service_imapFilterRules(ctx, field)
 			case "notices":
 				return ec.fieldContext_Service_notices(ctx, field)
 			case "recentEvents":
@@ -15613,6 +16594,449 @@ func (ec *executionContext) fieldContext_Mutation_updateBasicAuth(ctx context.Co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateBasicAuth_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createServiceIMAPConfig(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_createServiceIMAPConfig,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().CreateServiceIMAPConfig(ctx, fc.Args["input"].(CreateServiceIMAPConfigInput))
+		},
+		nil,
+		ec.marshalOServiceIMAPConfig2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐServiceIMAPConfig,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createServiceIMAPConfig(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "serviceID":
+				return ec.fieldContext_ServiceIMAPConfig_serviceID(ctx, field)
+			case "enabled":
+				return ec.fieldContext_ServiceIMAPConfig_enabled(ctx, field)
+			case "host":
+				return ec.fieldContext_ServiceIMAPConfig_host(ctx, field)
+			case "port":
+				return ec.fieldContext_ServiceIMAPConfig_port(ctx, field)
+			case "username":
+				return ec.fieldContext_ServiceIMAPConfig_username(ctx, field)
+			case "useTLS":
+				return ec.fieldContext_ServiceIMAPConfig_useTLS(ctx, field)
+			case "mailbox":
+				return ec.fieldContext_ServiceIMAPConfig_mailbox(ctx, field)
+			case "pollIntervalMinutes":
+				return ec.fieldContext_ServiceIMAPConfig_pollIntervalMinutes(ctx, field)
+			case "markAsRead":
+				return ec.fieldContext_ServiceIMAPConfig_markAsRead(ctx, field)
+			case "deleteAfter":
+				return ec.fieldContext_ServiceIMAPConfig_deleteAfter(ctx, field)
+			case "includeHeaders":
+				return ec.fieldContext_ServiceIMAPConfig_includeHeaders(ctx, field)
+			case "includeFrom":
+				return ec.fieldContext_ServiceIMAPConfig_includeFrom(ctx, field)
+			case "includeTo":
+				return ec.fieldContext_ServiceIMAPConfig_includeTo(ctx, field)
+			case "includeSubject":
+				return ec.fieldContext_ServiceIMAPConfig_includeSubject(ctx, field)
+			case "includeBody":
+				return ec.fieldContext_ServiceIMAPConfig_includeBody(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ServiceIMAPConfig_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ServiceIMAPConfig_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceIMAPConfig", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createServiceIMAPConfig_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateServiceIMAPConfig(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_updateServiceIMAPConfig,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().UpdateServiceIMAPConfig(ctx, fc.Args["input"].(UpdateServiceIMAPConfigInput))
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateServiceIMAPConfig(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateServiceIMAPConfig_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteServiceIMAPConfig(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_deleteServiceIMAPConfig,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().DeleteServiceIMAPConfig(ctx, fc.Args["serviceID"].(string))
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteServiceIMAPConfig(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteServiceIMAPConfig_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_testIMAPConnection(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_testIMAPConnection,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().TestIMAPConnection(ctx, fc.Args["input"].(CreateServiceIMAPConfigInput))
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_testIMAPConnection(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_testIMAPConnection_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createIMAPFilterRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_createIMAPFilterRule,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().CreateIMAPFilterRule(ctx, fc.Args["input"].(CreateIMAPFilterRuleInput))
+		},
+		nil,
+		ec.marshalOIMAPFilterRule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIMAPFilterRule,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createIMAPFilterRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_IMAPFilterRule_id(ctx, field)
+			case "serviceID":
+				return ec.fieldContext_IMAPFilterRule_serviceID(ctx, field)
+			case "name":
+				return ec.fieldContext_IMAPFilterRule_name(ctx, field)
+			case "enabled":
+				return ec.fieldContext_IMAPFilterRule_enabled(ctx, field)
+			case "fromPattern":
+				return ec.fieldContext_IMAPFilterRule_fromPattern(ctx, field)
+			case "subjectPattern":
+				return ec.fieldContext_IMAPFilterRule_subjectPattern(ctx, field)
+			case "toPattern":
+				return ec.fieldContext_IMAPFilterRule_toPattern(ctx, field)
+			case "matchMode":
+				return ec.fieldContext_IMAPFilterRule_matchMode(ctx, field)
+			case "excludeReplies":
+				return ec.fieldContext_IMAPFilterRule_excludeReplies(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_IMAPFilterRule_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_IMAPFilterRule_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type IMAPFilterRule", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createIMAPFilterRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateIMAPFilterRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_updateIMAPFilterRule,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().UpdateIMAPFilterRule(ctx, fc.Args["input"].(UpdateIMAPFilterRuleInput))
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateIMAPFilterRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateIMAPFilterRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteIMAPFilterRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_deleteIMAPFilterRule,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().DeleteIMAPFilterRule(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteIMAPFilterRule(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteIMAPFilterRule_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_generateIMAPOAuthURL(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_generateIMAPOAuthURL,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().GenerateIMAPOAuthURL(ctx, fc.Args["input"].(GenerateIMAPOAuthURLInput))
+		},
+		nil,
+		ec.marshalNIMAPOAuthURL2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIMAPOAuthURL,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_generateIMAPOAuthURL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "authURL":
+				return ec.fieldContext_IMAPOAuthURL_authURL(ctx, field)
+			case "state":
+				return ec.fieldContext_IMAPOAuthURL_state(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type IMAPOAuthURL", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_generateIMAPOAuthURL_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_exchangeIMAPOAuthCode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_exchangeIMAPOAuthCode,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().ExchangeIMAPOAuthCode(ctx, fc.Args["input"].(ExchangeIMAPOAuthCodeInput))
+		},
+		nil,
+		ec.marshalNIMAPOAuthToken2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIMAPOAuthToken,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_exchangeIMAPOAuthCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "refreshToken":
+				return ec.fieldContext_IMAPOAuthToken_refreshToken(ctx, field)
+			case "accessToken":
+				return ec.fieldContext_IMAPOAuthToken_accessToken(ctx, field)
+			case "expiresAt":
+				return ec.fieldContext_IMAPOAuthToken_expiresAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type IMAPOAuthToken", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_exchangeIMAPOAuthCode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -17434,6 +18858,10 @@ func (ec *executionContext) fieldContext_Query_service(ctx context.Context, fiel
 				return ec.fieldContext_Service_labels(ctx, field)
 			case "heartbeatMonitors":
 				return ec.fieldContext_Service_heartbeatMonitors(ctx, field)
+			case "imapConfig":
+				return ec.fieldContext_Service_imapConfig(ctx, field)
+			case "imapFilterRules":
+				return ec.fieldContext_Service_imapFilterRules(ctx, field)
 			case "notices":
 				return ec.fieldContext_Service_notices(ctx, field)
 			case "recentEvents":
@@ -19036,6 +20464,71 @@ func (ec *executionContext) fieldContext_Query_swoStatus(_ context.Context, fiel
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SWOStatus", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_imapFilterRules(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_imapFilterRules,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().ImapFilterRules(ctx, fc.Args["serviceID"].(string))
+		},
+		nil,
+		ec.marshalNIMAPFilterRule2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIMAPFilterRuleᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_imapFilterRules(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_IMAPFilterRule_id(ctx, field)
+			case "serviceID":
+				return ec.fieldContext_IMAPFilterRule_serviceID(ctx, field)
+			case "name":
+				return ec.fieldContext_IMAPFilterRule_name(ctx, field)
+			case "enabled":
+				return ec.fieldContext_IMAPFilterRule_enabled(ctx, field)
+			case "fromPattern":
+				return ec.fieldContext_IMAPFilterRule_fromPattern(ctx, field)
+			case "subjectPattern":
+				return ec.fieldContext_IMAPFilterRule_subjectPattern(ctx, field)
+			case "toPattern":
+				return ec.fieldContext_IMAPFilterRule_toPattern(ctx, field)
+			case "matchMode":
+				return ec.fieldContext_IMAPFilterRule_matchMode(ctx, field)
+			case "excludeReplies":
+				return ec.fieldContext_IMAPFilterRule_excludeReplies(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_IMAPFilterRule_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_IMAPFilterRule_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type IMAPFilterRule", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_imapFilterRules_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -21779,6 +23272,124 @@ func (ec *executionContext) fieldContext_Service_heartbeatMonitors(_ context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Service_imapConfig(ctx context.Context, field graphql.CollectedField, obj *service.Service) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Service_imapConfig,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Service().ImapConfig(ctx, obj)
+		},
+		nil,
+		ec.marshalOServiceIMAPConfig2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐServiceIMAPConfig,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Service_imapConfig(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Service",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "serviceID":
+				return ec.fieldContext_ServiceIMAPConfig_serviceID(ctx, field)
+			case "enabled":
+				return ec.fieldContext_ServiceIMAPConfig_enabled(ctx, field)
+			case "host":
+				return ec.fieldContext_ServiceIMAPConfig_host(ctx, field)
+			case "port":
+				return ec.fieldContext_ServiceIMAPConfig_port(ctx, field)
+			case "username":
+				return ec.fieldContext_ServiceIMAPConfig_username(ctx, field)
+			case "useTLS":
+				return ec.fieldContext_ServiceIMAPConfig_useTLS(ctx, field)
+			case "mailbox":
+				return ec.fieldContext_ServiceIMAPConfig_mailbox(ctx, field)
+			case "pollIntervalMinutes":
+				return ec.fieldContext_ServiceIMAPConfig_pollIntervalMinutes(ctx, field)
+			case "markAsRead":
+				return ec.fieldContext_ServiceIMAPConfig_markAsRead(ctx, field)
+			case "deleteAfter":
+				return ec.fieldContext_ServiceIMAPConfig_deleteAfter(ctx, field)
+			case "includeHeaders":
+				return ec.fieldContext_ServiceIMAPConfig_includeHeaders(ctx, field)
+			case "includeFrom":
+				return ec.fieldContext_ServiceIMAPConfig_includeFrom(ctx, field)
+			case "includeTo":
+				return ec.fieldContext_ServiceIMAPConfig_includeTo(ctx, field)
+			case "includeSubject":
+				return ec.fieldContext_ServiceIMAPConfig_includeSubject(ctx, field)
+			case "includeBody":
+				return ec.fieldContext_ServiceIMAPConfig_includeBody(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ServiceIMAPConfig_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ServiceIMAPConfig_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceIMAPConfig", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Service_imapFilterRules(ctx context.Context, field graphql.CollectedField, obj *service.Service) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Service_imapFilterRules,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Service().ImapFilterRules(ctx, obj)
+		},
+		nil,
+		ec.marshalNIMAPFilterRule2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIMAPFilterRuleᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Service_imapFilterRules(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Service",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_IMAPFilterRule_id(ctx, field)
+			case "serviceID":
+				return ec.fieldContext_IMAPFilterRule_serviceID(ctx, field)
+			case "name":
+				return ec.fieldContext_IMAPFilterRule_name(ctx, field)
+			case "enabled":
+				return ec.fieldContext_IMAPFilterRule_enabled(ctx, field)
+			case "fromPattern":
+				return ec.fieldContext_IMAPFilterRule_fromPattern(ctx, field)
+			case "subjectPattern":
+				return ec.fieldContext_IMAPFilterRule_subjectPattern(ctx, field)
+			case "toPattern":
+				return ec.fieldContext_IMAPFilterRule_toPattern(ctx, field)
+			case "matchMode":
+				return ec.fieldContext_IMAPFilterRule_matchMode(ctx, field)
+			case "excludeReplies":
+				return ec.fieldContext_IMAPFilterRule_excludeReplies(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_IMAPFilterRule_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_IMAPFilterRule_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type IMAPFilterRule", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Service_notices(ctx context.Context, field graphql.CollectedField, obj *service.Service) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -21997,6 +23608,10 @@ func (ec *executionContext) fieldContext_ServiceConnection_nodes(_ context.Conte
 				return ec.fieldContext_Service_labels(ctx, field)
 			case "heartbeatMonitors":
 				return ec.fieldContext_Service_heartbeatMonitors(ctx, field)
+			case "imapConfig":
+				return ec.fieldContext_Service_imapConfig(ctx, field)
+			case "imapFilterRules":
+				return ec.fieldContext_Service_imapFilterRules(ctx, field)
 			case "notices":
 				return ec.fieldContext_Service_notices(ctx, field)
 			case "recentEvents":
@@ -22042,6 +23657,499 @@ func (ec *executionContext) fieldContext_ServiceConnection_pageInfo(_ context.Co
 				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceIMAPConfig_serviceID(ctx context.Context, field graphql.CollectedField, obj *ServiceIMAPConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceIMAPConfig_serviceID,
+		func(ctx context.Context) (any, error) {
+			return obj.ServiceID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceIMAPConfig_serviceID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIMAPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceIMAPConfig_enabled(ctx context.Context, field graphql.CollectedField, obj *ServiceIMAPConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceIMAPConfig_enabled,
+		func(ctx context.Context) (any, error) {
+			return obj.Enabled, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceIMAPConfig_enabled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIMAPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceIMAPConfig_host(ctx context.Context, field graphql.CollectedField, obj *ServiceIMAPConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceIMAPConfig_host,
+		func(ctx context.Context) (any, error) {
+			return obj.Host, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceIMAPConfig_host(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIMAPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceIMAPConfig_port(ctx context.Context, field graphql.CollectedField, obj *ServiceIMAPConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceIMAPConfig_port,
+		func(ctx context.Context) (any, error) {
+			return obj.Port, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceIMAPConfig_port(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIMAPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceIMAPConfig_username(ctx context.Context, field graphql.CollectedField, obj *ServiceIMAPConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceIMAPConfig_username,
+		func(ctx context.Context) (any, error) {
+			return obj.Username, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceIMAPConfig_username(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIMAPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceIMAPConfig_useTLS(ctx context.Context, field graphql.CollectedField, obj *ServiceIMAPConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceIMAPConfig_useTLS,
+		func(ctx context.Context) (any, error) {
+			return obj.UseTLS, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceIMAPConfig_useTLS(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIMAPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceIMAPConfig_mailbox(ctx context.Context, field graphql.CollectedField, obj *ServiceIMAPConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceIMAPConfig_mailbox,
+		func(ctx context.Context) (any, error) {
+			return obj.Mailbox, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceIMAPConfig_mailbox(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIMAPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceIMAPConfig_pollIntervalMinutes(ctx context.Context, field graphql.CollectedField, obj *ServiceIMAPConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceIMAPConfig_pollIntervalMinutes,
+		func(ctx context.Context) (any, error) {
+			return obj.PollIntervalMinutes, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceIMAPConfig_pollIntervalMinutes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIMAPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceIMAPConfig_markAsRead(ctx context.Context, field graphql.CollectedField, obj *ServiceIMAPConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceIMAPConfig_markAsRead,
+		func(ctx context.Context) (any, error) {
+			return obj.MarkAsRead, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceIMAPConfig_markAsRead(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIMAPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceIMAPConfig_deleteAfter(ctx context.Context, field graphql.CollectedField, obj *ServiceIMAPConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceIMAPConfig_deleteAfter,
+		func(ctx context.Context) (any, error) {
+			return obj.DeleteAfter, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceIMAPConfig_deleteAfter(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIMAPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceIMAPConfig_includeHeaders(ctx context.Context, field graphql.CollectedField, obj *ServiceIMAPConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceIMAPConfig_includeHeaders,
+		func(ctx context.Context) (any, error) {
+			return obj.IncludeHeaders, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceIMAPConfig_includeHeaders(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIMAPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceIMAPConfig_includeFrom(ctx context.Context, field graphql.CollectedField, obj *ServiceIMAPConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceIMAPConfig_includeFrom,
+		func(ctx context.Context) (any, error) {
+			return obj.IncludeFrom, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceIMAPConfig_includeFrom(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIMAPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceIMAPConfig_includeTo(ctx context.Context, field graphql.CollectedField, obj *ServiceIMAPConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceIMAPConfig_includeTo,
+		func(ctx context.Context) (any, error) {
+			return obj.IncludeTo, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceIMAPConfig_includeTo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIMAPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceIMAPConfig_includeSubject(ctx context.Context, field graphql.CollectedField, obj *ServiceIMAPConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceIMAPConfig_includeSubject,
+		func(ctx context.Context) (any, error) {
+			return obj.IncludeSubject, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceIMAPConfig_includeSubject(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIMAPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceIMAPConfig_includeBody(ctx context.Context, field graphql.CollectedField, obj *ServiceIMAPConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceIMAPConfig_includeBody,
+		func(ctx context.Context) (any, error) {
+			return obj.IncludeBody, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceIMAPConfig_includeBody(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIMAPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceIMAPConfig_createdAt(ctx context.Context, field graphql.CollectedField, obj *ServiceIMAPConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceIMAPConfig_createdAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		ec.marshalNISOTimestamp2timeᚐTime,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceIMAPConfig_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIMAPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceIMAPConfig_updatedAt(ctx context.Context, field graphql.CollectedField, obj *ServiceIMAPConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ServiceIMAPConfig_updatedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedAt, nil
+		},
+		nil,
+		ec.marshalNISOTimestamp2timeᚐTime,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ServiceIMAPConfig_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceIMAPConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ISOTimestamp does not have child fields")
 		},
 	}
 	return fc, nil
@@ -27398,6 +29506,82 @@ func (ec *executionContext) unmarshalInputCreateHeartbeatMonitorInput(ctx contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCreateIMAPFilterRuleInput(ctx context.Context, obj any) (CreateIMAPFilterRuleInput, error) {
+	var it CreateIMAPFilterRuleInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["matchMode"]; !present {
+		asMap["matchMode"] = "contains"
+	}
+	if _, present := asMap["excludeReplies"]; !present {
+		asMap["excludeReplies"] = true
+	}
+
+	fieldsInOrder := [...]string{"serviceID", "name", "fromPattern", "subjectPattern", "toPattern", "matchMode", "excludeReplies"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "serviceID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ServiceID = data
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "fromPattern":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fromPattern"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FromPattern = data
+		case "subjectPattern":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subjectPattern"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SubjectPattern = data
+		case "toPattern":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("toPattern"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ToPattern = data
+		case "matchMode":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("matchMode"))
+			data, err := ec.unmarshalNIMAPFilterMatchMode2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIMAPFilterMatchMode(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MatchMode = data
+		case "excludeReplies":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excludeReplies"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ExcludeReplies = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateIntegrationKeyInput(ctx context.Context, obj any) (CreateIntegrationKeyInput, error) {
 	var it CreateIntegrationKeyInput
 	asMap := map[string]any{}
@@ -27582,6 +29766,192 @@ func (ec *executionContext) unmarshalInputCreateScheduleInput(ctx context.Contex
 				return it, err
 			}
 			it.NewUserOverrides = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCreateServiceIMAPConfigInput(ctx context.Context, obj any) (CreateServiceIMAPConfigInput, error) {
+	var it CreateServiceIMAPConfigInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["enabled"]; !present {
+		asMap["enabled"] = true
+	}
+	if _, present := asMap["host"]; !present {
+		asMap["host"] = "imap.gmail.com"
+	}
+	if _, present := asMap["port"]; !present {
+		asMap["port"] = 993
+	}
+	if _, present := asMap["useTLS"]; !present {
+		asMap["useTLS"] = true
+	}
+	if _, present := asMap["mailbox"]; !present {
+		asMap["mailbox"] = "INBOX"
+	}
+	if _, present := asMap["pollIntervalMinutes"]; !present {
+		asMap["pollIntervalMinutes"] = 5
+	}
+	if _, present := asMap["markAsRead"]; !present {
+		asMap["markAsRead"] = false
+	}
+	if _, present := asMap["deleteAfter"]; !present {
+		asMap["deleteAfter"] = false
+	}
+	if _, present := asMap["includeHeaders"]; !present {
+		asMap["includeHeaders"] = false
+	}
+	if _, present := asMap["includeFrom"]; !present {
+		asMap["includeFrom"] = true
+	}
+	if _, present := asMap["includeTo"]; !present {
+		asMap["includeTo"] = true
+	}
+	if _, present := asMap["includeSubject"]; !present {
+		asMap["includeSubject"] = true
+	}
+	if _, present := asMap["includeBody"]; !present {
+		asMap["includeBody"] = true
+	}
+
+	fieldsInOrder := [...]string{"serviceID", "enabled", "host", "port", "username", "useTLS", "mailbox", "pollIntervalMinutes", "markAsRead", "deleteAfter", "includeHeaders", "includeFrom", "includeTo", "includeSubject", "includeBody", "oauthClientID", "oauthClientSecret", "oauthRefreshToken"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "serviceID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ServiceID = data
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
+		case "host":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("host"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Host = data
+		case "port":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("port"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Port = data
+		case "username":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Username = data
+		case "useTLS":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("useTLS"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UseTLS = data
+		case "mailbox":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mailbox"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Mailbox = data
+		case "pollIntervalMinutes":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pollIntervalMinutes"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PollIntervalMinutes = data
+		case "markAsRead":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("markAsRead"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MarkAsRead = data
+		case "deleteAfter":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deleteAfter"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DeleteAfter = data
+		case "includeHeaders":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includeHeaders"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IncludeHeaders = data
+		case "includeFrom":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includeFrom"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IncludeFrom = data
+		case "includeTo":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includeTo"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IncludeTo = data
+		case "includeSubject":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includeSubject"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IncludeSubject = data
+		case "includeBody":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includeBody"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IncludeBody = data
+		case "oauthClientID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("oauthClientID"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OauthClientID = data
+		case "oauthClientSecret":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("oauthClientSecret"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OauthClientSecret = data
+		case "oauthRefreshToken":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("oauthRefreshToken"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OauthRefreshToken = data
 		}
 	}
 
@@ -28318,6 +30688,47 @@ func (ec *executionContext) unmarshalInputEscalationPolicySearchOptions(ctx cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputExchangeIMAPOAuthCodeInput(ctx context.Context, obj any) (ExchangeIMAPOAuthCodeInput, error) {
+	var it ExchangeIMAPOAuthCodeInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"code", "state", "redirectURL"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "code":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("code"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Code = data
+		case "state":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("state"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.State = data
+		case "redirectURL":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("redirectURL"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RedirectURL = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputExprToConditionInput(ctx context.Context, obj any) (ExprToConditionInput, error) {
 	var it ExprToConditionInput
 	asMap := map[string]any{}
@@ -28373,6 +30784,47 @@ func (ec *executionContext) unmarshalInputFieldValueInput(ctx context.Context, o
 				return it, err
 			}
 			it.Value = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputGenerateIMAPOAuthURLInput(ctx context.Context, obj any) (GenerateIMAPOAuthURLInput, error) {
+	var it GenerateIMAPOAuthURLInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"clientID", "clientSecret", "redirectURL"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "clientID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientID"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClientID = data
+		case "clientSecret":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientSecret"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClientSecret = data
+		case "redirectURL":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("redirectURL"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RedirectURL = data
 		}
 	}
 
@@ -30097,6 +32549,82 @@ func (ec *executionContext) unmarshalInputUpdateHeartbeatMonitorInput(ctx contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateIMAPFilterRuleInput(ctx context.Context, obj any) (UpdateIMAPFilterRuleInput, error) {
+	var it UpdateIMAPFilterRuleInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "name", "enabled", "fromPattern", "subjectPattern", "toPattern", "matchMode", "excludeReplies"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
+		case "fromPattern":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fromPattern"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FromPattern = data
+		case "subjectPattern":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subjectPattern"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SubjectPattern = data
+		case "toPattern":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("toPattern"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ToPattern = data
+		case "matchMode":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("matchMode"))
+			data, err := ec.unmarshalOIMAPFilterMatchMode2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIMAPFilterMatchMode(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MatchMode = data
+		case "excludeReplies":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excludeReplies"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ExcludeReplies = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateKeyConfigInput(ctx context.Context, obj any) (UpdateKeyConfigInput, error) {
 	var it UpdateKeyConfigInput
 	asMap := map[string]any{}
@@ -30291,6 +32819,152 @@ func (ec *executionContext) unmarshalInputUpdateScheduleInput(ctx context.Contex
 				return it, err
 			}
 			it.TimeZone = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateServiceIMAPConfigInput(ctx context.Context, obj any) (UpdateServiceIMAPConfigInput, error) {
+	var it UpdateServiceIMAPConfigInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"serviceID", "enabled", "host", "port", "username", "useTLS", "mailbox", "pollIntervalMinutes", "markAsRead", "deleteAfter", "includeHeaders", "includeFrom", "includeTo", "includeSubject", "includeBody", "oauthClientID", "oauthClientSecret", "oauthRefreshToken"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "serviceID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ServiceID = data
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
+		case "host":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("host"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Host = data
+		case "port":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("port"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Port = data
+		case "username":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Username = data
+		case "useTLS":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("useTLS"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UseTLS = data
+		case "mailbox":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mailbox"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Mailbox = data
+		case "pollIntervalMinutes":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pollIntervalMinutes"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PollIntervalMinutes = data
+		case "markAsRead":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("markAsRead"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MarkAsRead = data
+		case "deleteAfter":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deleteAfter"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DeleteAfter = data
+		case "includeHeaders":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includeHeaders"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IncludeHeaders = data
+		case "includeFrom":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includeFrom"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IncludeFrom = data
+		case "includeTo":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includeTo"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IncludeTo = data
+		case "includeSubject":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includeSubject"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IncludeSubject = data
+		case "includeBody":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includeBody"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IncludeBody = data
+		case "oauthClientID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("oauthClientID"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OauthClientID = data
+		case "oauthClientSecret":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("oauthClientSecret"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OauthClientSecret = data
+		case "oauthRefreshToken":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("oauthRefreshToken"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OauthRefreshToken = data
 		}
 	}
 
@@ -33924,6 +36598,179 @@ func (ec *executionContext) _HeartbeatMonitor(ctx context.Context, sel ast.Selec
 	return out
 }
 
+var iMAPFilterRuleImplementors = []string{"IMAPFilterRule"}
+
+func (ec *executionContext) _IMAPFilterRule(ctx context.Context, sel ast.SelectionSet, obj *IMAPFilterRule) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, iMAPFilterRuleImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("IMAPFilterRule")
+		case "id":
+			out.Values[i] = ec._IMAPFilterRule_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "serviceID":
+			out.Values[i] = ec._IMAPFilterRule_serviceID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._IMAPFilterRule_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "enabled":
+			out.Values[i] = ec._IMAPFilterRule_enabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "fromPattern":
+			out.Values[i] = ec._IMAPFilterRule_fromPattern(ctx, field, obj)
+		case "subjectPattern":
+			out.Values[i] = ec._IMAPFilterRule_subjectPattern(ctx, field, obj)
+		case "toPattern":
+			out.Values[i] = ec._IMAPFilterRule_toPattern(ctx, field, obj)
+		case "matchMode":
+			out.Values[i] = ec._IMAPFilterRule_matchMode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "excludeReplies":
+			out.Values[i] = ec._IMAPFilterRule_excludeReplies(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._IMAPFilterRule_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._IMAPFilterRule_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var iMAPOAuthTokenImplementors = []string{"IMAPOAuthToken"}
+
+func (ec *executionContext) _IMAPOAuthToken(ctx context.Context, sel ast.SelectionSet, obj *IMAPOAuthToken) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, iMAPOAuthTokenImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("IMAPOAuthToken")
+		case "refreshToken":
+			out.Values[i] = ec._IMAPOAuthToken_refreshToken(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "accessToken":
+			out.Values[i] = ec._IMAPOAuthToken_accessToken(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "expiresAt":
+			out.Values[i] = ec._IMAPOAuthToken_expiresAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var iMAPOAuthURLImplementors = []string{"IMAPOAuthURL"}
+
+func (ec *executionContext) _IMAPOAuthURL(ctx context.Context, sel ast.SelectionSet, obj *IMAPOAuthURL) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, iMAPOAuthURLImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("IMAPOAuthURL")
+		case "authURL":
+			out.Values[i] = ec._IMAPOAuthURL_authURL(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "state":
+			out.Values[i] = ec._IMAPOAuthURL_state(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var integrationKeyImplementors = []string{"IntegrationKey"}
 
 func (ec *executionContext) _IntegrationKey(ctx context.Context, sel ast.SelectionSet, obj *integrationkey.IntegrationKey) graphql.Marshaler {
@@ -34977,6 +37824,63 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "updateBasicAuth":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateBasicAuth(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createServiceIMAPConfig":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createServiceIMAPConfig(ctx, field)
+			})
+		case "updateServiceIMAPConfig":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateServiceIMAPConfig(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteServiceIMAPConfig":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteServiceIMAPConfig(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "testIMAPConnection":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_testIMAPConnection(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createIMAPFilterRule":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createIMAPFilterRule(ctx, field)
+			})
+		case "updateIMAPFilterRule":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateIMAPFilterRule(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteIMAPFilterRule":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteIMAPFilterRule(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "generateIMAPOAuthURL":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_generateIMAPOAuthURL(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "exchangeIMAPOAuthCode":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_exchangeIMAPOAuthCode(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -36422,6 +39326,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_swoStatus(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "imapFilterRules":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_imapFilterRules(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -37939,6 +40865,75 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "imapConfig":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Service_imapConfig(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "imapFilterRules":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Service_imapFilterRules(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "notices":
 			field := field
 
@@ -38124,6 +41119,125 @@ func (ec *executionContext) _ServiceConnection(ctx context.Context, sel ast.Sele
 			}
 		case "pageInfo":
 			out.Values[i] = ec._ServiceConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var serviceIMAPConfigImplementors = []string{"ServiceIMAPConfig"}
+
+func (ec *executionContext) _ServiceIMAPConfig(ctx context.Context, sel ast.SelectionSet, obj *ServiceIMAPConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, serviceIMAPConfigImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ServiceIMAPConfig")
+		case "serviceID":
+			out.Values[i] = ec._ServiceIMAPConfig_serviceID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "enabled":
+			out.Values[i] = ec._ServiceIMAPConfig_enabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "host":
+			out.Values[i] = ec._ServiceIMAPConfig_host(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "port":
+			out.Values[i] = ec._ServiceIMAPConfig_port(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "username":
+			out.Values[i] = ec._ServiceIMAPConfig_username(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "useTLS":
+			out.Values[i] = ec._ServiceIMAPConfig_useTLS(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "mailbox":
+			out.Values[i] = ec._ServiceIMAPConfig_mailbox(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pollIntervalMinutes":
+			out.Values[i] = ec._ServiceIMAPConfig_pollIntervalMinutes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "markAsRead":
+			out.Values[i] = ec._ServiceIMAPConfig_markAsRead(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteAfter":
+			out.Values[i] = ec._ServiceIMAPConfig_deleteAfter(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "includeHeaders":
+			out.Values[i] = ec._ServiceIMAPConfig_includeHeaders(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "includeFrom":
+			out.Values[i] = ec._ServiceIMAPConfig_includeFrom(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "includeTo":
+			out.Values[i] = ec._ServiceIMAPConfig_includeTo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "includeSubject":
+			out.Values[i] = ec._ServiceIMAPConfig_includeSubject(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "includeBody":
+			out.Values[i] = ec._ServiceIMAPConfig_includeBody(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._ServiceIMAPConfig_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._ServiceIMAPConfig_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -41077,6 +44191,11 @@ func (ec *executionContext) unmarshalNCreateHeartbeatMonitorInput2githubᚗcom�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNCreateIMAPFilterRuleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateIMAPFilterRuleInput(ctx context.Context, v any) (CreateIMAPFilterRuleInput, error) {
+	res, err := ec.unmarshalInputCreateIMAPFilterRuleInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreateIntegrationKeyInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateIntegrationKeyInput(ctx context.Context, v any) (CreateIntegrationKeyInput, error) {
 	res, err := ec.unmarshalInputCreateIntegrationKeyInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -41089,6 +44208,11 @@ func (ec *executionContext) unmarshalNCreateRotationInput2githubᚗcomᚋtarget�
 
 func (ec *executionContext) unmarshalNCreateScheduleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateScheduleInput(ctx context.Context, v any) (CreateScheduleInput, error) {
 	res, err := ec.unmarshalInputCreateScheduleInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCreateServiceIMAPConfigInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateServiceIMAPConfigInput(ctx context.Context, v any) (CreateServiceIMAPConfigInput, error) {
+	res, err := ec.unmarshalInputCreateServiceIMAPConfigInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -41584,6 +44708,11 @@ func (ec *executionContext) marshalNEscalationPolicyStep2ᚕgithubᚗcomᚋtarge
 	return ret
 }
 
+func (ec *executionContext) unmarshalNExchangeIMAPOAuthCodeInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐExchangeIMAPOAuthCodeInput(ctx context.Context, v any) (ExchangeIMAPOAuthCodeInput, error) {
+	res, err := ec.unmarshalInputExchangeIMAPOAuthCodeInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNExpr2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐExpr(ctx context.Context, sel ast.SelectionSet, v Expr) graphql.Marshaler {
 	return ec._Expr(ctx, sel, &v)
 }
@@ -41896,6 +45025,11 @@ func (ec *executionContext) marshalNGQLAPIKey2ᚕgithubᚗcomᚋtargetᚋgoalert
 	return ret
 }
 
+func (ec *executionContext) unmarshalNGenerateIMAPOAuthURLInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐGenerateIMAPOAuthURLInput(ctx context.Context, v any) (GenerateIMAPOAuthURLInput, error) {
+	res, err := ec.unmarshalInputGenerateIMAPOAuthURLInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNHeartbeatMonitor2githubᚗcomᚋtargetᚋgoalertᚋheartbeatᚐMonitor(ctx context.Context, sel ast.SelectionSet, v heartbeat.Monitor) graphql.Marshaler {
 	return ec._HeartbeatMonitor(ctx, sel, &v)
 }
@@ -42031,6 +45165,92 @@ func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast
 	}
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalNIMAPFilterMatchMode2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIMAPFilterMatchMode(ctx context.Context, v any) (IMAPFilterMatchMode, error) {
+	var res IMAPFilterMatchMode
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNIMAPFilterMatchMode2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIMAPFilterMatchMode(ctx context.Context, sel ast.SelectionSet, v IMAPFilterMatchMode) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) marshalNIMAPFilterRule2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIMAPFilterRule(ctx context.Context, sel ast.SelectionSet, v IMAPFilterRule) graphql.Marshaler {
+	return ec._IMAPFilterRule(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNIMAPFilterRule2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIMAPFilterRuleᚄ(ctx context.Context, sel ast.SelectionSet, v []IMAPFilterRule) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNIMAPFilterRule2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIMAPFilterRule(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNIMAPOAuthToken2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIMAPOAuthToken(ctx context.Context, sel ast.SelectionSet, v IMAPOAuthToken) graphql.Marshaler {
+	return ec._IMAPOAuthToken(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNIMAPOAuthToken2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIMAPOAuthToken(ctx context.Context, sel ast.SelectionSet, v *IMAPOAuthToken) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._IMAPOAuthToken(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNIMAPOAuthURL2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIMAPOAuthURL(ctx context.Context, sel ast.SelectionSet, v IMAPOAuthURL) graphql.Marshaler {
+	return ec._IMAPOAuthURL(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNIMAPOAuthURL2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIMAPOAuthURL(ctx context.Context, sel ast.SelectionSet, v *IMAPOAuthURL) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._IMAPOAuthURL(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNISODuration2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx context.Context, v any) (timeutil.ISODuration, error) {
@@ -43840,6 +47060,11 @@ func (ec *executionContext) unmarshalNUpdateHeartbeatMonitorInput2githubᚗcom�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNUpdateIMAPFilterRuleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateIMAPFilterRuleInput(ctx context.Context, v any) (UpdateIMAPFilterRuleInput, error) {
+	res, err := ec.unmarshalInputUpdateIMAPFilterRuleInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNUpdateKeyConfigInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateKeyConfigInput(ctx context.Context, v any) (UpdateKeyConfigInput, error) {
 	res, err := ec.unmarshalInputUpdateKeyConfigInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -43852,6 +47077,11 @@ func (ec *executionContext) unmarshalNUpdateRotationInput2githubᚗcomᚋtarget�
 
 func (ec *executionContext) unmarshalNUpdateScheduleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateScheduleInput(ctx context.Context, v any) (UpdateScheduleInput, error) {
 	res, err := ec.unmarshalInputUpdateScheduleInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateServiceIMAPConfigInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateServiceIMAPConfigInput(ctx context.Context, v any) (UpdateServiceIMAPConfigInput, error) {
+	res, err := ec.unmarshalInputUpdateServiceIMAPConfigInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -45128,6 +48358,29 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalOIMAPFilterMatchMode2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIMAPFilterMatchMode(ctx context.Context, v any) (*IMAPFilterMatchMode, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(IMAPFilterMatchMode)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOIMAPFilterMatchMode2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIMAPFilterMatchMode(ctx context.Context, sel ast.SelectionSet, v *IMAPFilterMatchMode) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) marshalOIMAPFilterRule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐIMAPFilterRule(ctx context.Context, sel ast.SelectionSet, v *IMAPFilterRule) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._IMAPFilterRule(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOISODuration2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐISODuration(ctx context.Context, v any) (*timeutil.ISODuration, error) {
 	if v == nil {
 		return nil, nil
@@ -45484,6 +48737,13 @@ func (ec *executionContext) unmarshalOServiceAlertStatsOptions2ᚖgithubᚗcom�
 	}
 	res, err := ec.unmarshalInputServiceAlertStatsOptions(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOServiceIMAPConfig2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐServiceIMAPConfig(ctx context.Context, sel ast.SelectionSet, v *ServiceIMAPConfig) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ServiceIMAPConfig(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOServiceSearchOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐServiceSearchOptions(ctx context.Context, v any) (*ServiceSearchOptions, error) {

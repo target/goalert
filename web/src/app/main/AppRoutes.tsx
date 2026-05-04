@@ -31,6 +31,8 @@ import HeartbeatMonitorList from '../services/HeartbeatMonitorList'
 import IntegrationKeyList from '../services/IntegrationKeyList'
 import ServiceAlerts from '../services/ServiceAlerts'
 import ServiceDetails from '../services/ServiceDetails'
+import ServiceIMAPPage from '../services/ServiceIMAPPage'
+import IMAPOAuthCallback from '../services/IMAP/IMAPOAuthCallback'
 import ServiceLabelList from '../services/ServiceLabelList'
 import ServiceList from '../services/ServiceList'
 import UserCalendarSubscriptionList from '../users/UserCalendarSubscriptionList'
@@ -81,6 +83,8 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/alerts': AlertsList,
   '/alerts/:alertID': AlertDetailPage,
 
+  '/imap-oauth-callback': IMAPOAuthCallback,
+
   '/rotations': RotationList,
   '/rotations/:rotationID': RotationDetails,
 
@@ -102,6 +106,7 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/services/:serviceID/alerts': ServiceAlerts,
   '/services/:serviceID/alerts/:alertID': AlertDetailPage,
   '/services/:serviceID/heartbeat-monitors': HeartbeatMonitorList,
+  '/services/:serviceID/imap-email-monitoring': ServiceIMAPPage,
   '/services/:serviceID/integration-keys': IntegrationKeyList,
   [EXP_ROUTE_UNIV_KEY]: UniversalKeyPage,
   '/services/:serviceID/labels': ServiceLabelList,

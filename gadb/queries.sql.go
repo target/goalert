@@ -2690,6 +2690,768 @@ func (q *Queries) HBUpdate(ctx context.Context, arg HBUpdateParams) error {
 	return err
 }
 
+const iMAPCleanupProcessedMessages = `-- name: IMAPCleanupProcessedMessages :execrows
+DELETE FROM imap_processed_messages
+WHERE message_id = ANY (
+        SELECT
+            message_id
+        FROM
+            imap_processed_messages
+        WHERE
+            processed_at < now() - '30 days'::interval
+        ORDER BY
+            processed_at
+        LIMIT 1000
+        FOR UPDATE
+            SKIP LOCKED)
+`
+
+// IMAPCleanupProcessedMessages removes processed message records older than 30 days.
+func (q *Queries) IMAPCleanupProcessedMessages(ctx context.Context) (int64, error) {
+	result, err := q.db.ExecContext(ctx, iMAPCleanupProcessedMessages)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const iMAPConfigCreate = `-- name: IMAPConfigCreate :one
+INSERT INTO service_imap_config (
+    service_id,
+    enabled,
+    oauth_client_id,
+    oauth_client_secret,
+    oauth_refresh_token,
+    host,
+    port,
+    username,
+    use_tls,
+    mailbox,
+    poll_interval_minutes,
+    mark_as_read,
+    delete_after,
+    include_headers,
+    include_from,
+    include_to,
+    include_subject,
+    include_body
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
+) RETURNING service_id, enabled, oauth_client_id, oauth_client_secret, oauth_refresh_token, host, port, username, use_tls, mailbox, poll_interval_minutes, mark_as_read, delete_after, include_headers, include_from, include_to, include_subject, include_body, created_at, updated_at, last_polled_at
+`
+
+type IMAPConfigCreateParams struct {
+	ServiceID           uuid.UUID
+	Enabled             bool
+	OauthClientID       sql.NullString
+	OauthClientSecret   sql.NullString
+	OauthRefreshToken   sql.NullString
+	Host                string
+	Port                int32
+	Username            string
+	UseTls              bool
+	Mailbox             string
+	PollIntervalMinutes int32
+	MarkAsRead          bool
+	DeleteAfter         bool
+	IncludeHeaders      bool
+	IncludeFrom         bool
+	IncludeTo           bool
+	IncludeSubject      bool
+	IncludeBody         bool
+}
+
+type IMAPConfigCreateRow struct {
+	ServiceID           uuid.UUID
+	Enabled             bool
+	OauthClientID       sql.NullString
+	OauthClientSecret   sql.NullString
+	OauthRefreshToken   sql.NullString
+	Host                string
+	Port                int32
+	Username            string
+	UseTls              bool
+	Mailbox             string
+	PollIntervalMinutes int32
+	MarkAsRead          bool
+	DeleteAfter         bool
+	IncludeHeaders      bool
+	IncludeFrom         bool
+	IncludeTo           bool
+	IncludeSubject      bool
+	IncludeBody         bool
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+	LastPolledAt        sql.NullTime
+}
+
+// IMAPConfigCreate creates a new IMAP configuration for a service.
+func (q *Queries) IMAPConfigCreate(ctx context.Context, arg IMAPConfigCreateParams) (IMAPConfigCreateRow, error) {
+	row := q.db.QueryRowContext(ctx, iMAPConfigCreate,
+		arg.ServiceID,
+		arg.Enabled,
+		arg.OauthClientID,
+		arg.OauthClientSecret,
+		arg.OauthRefreshToken,
+		arg.Host,
+		arg.Port,
+		arg.Username,
+		arg.UseTls,
+		arg.Mailbox,
+		arg.PollIntervalMinutes,
+		arg.MarkAsRead,
+		arg.DeleteAfter,
+		arg.IncludeHeaders,
+		arg.IncludeFrom,
+		arg.IncludeTo,
+		arg.IncludeSubject,
+		arg.IncludeBody,
+	)
+	var i IMAPConfigCreateRow
+	err := row.Scan(
+		&i.ServiceID,
+		&i.Enabled,
+		&i.OauthClientID,
+		&i.OauthClientSecret,
+		&i.OauthRefreshToken,
+		&i.Host,
+		&i.Port,
+		&i.Username,
+		&i.UseTls,
+		&i.Mailbox,
+		&i.PollIntervalMinutes,
+		&i.MarkAsRead,
+		&i.DeleteAfter,
+		&i.IncludeHeaders,
+		&i.IncludeFrom,
+		&i.IncludeTo,
+		&i.IncludeSubject,
+		&i.IncludeBody,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.LastPolledAt,
+	)
+	return i, err
+}
+
+const iMAPConfigDelete = `-- name: IMAPConfigDelete :exec
+DELETE FROM service_imap_config
+WHERE
+    service_id = $1
+`
+
+// IMAPConfigDelete deletes an IMAP configuration for a service.
+func (q *Queries) IMAPConfigDelete(ctx context.Context, serviceID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, iMAPConfigDelete, serviceID)
+	return err
+}
+
+const iMAPConfigGet = `-- name: IMAPConfigGet :one
+SELECT
+    service_id,
+    enabled,
+    oauth_client_id,
+    oauth_client_secret,
+    oauth_refresh_token,
+    host,
+    port,
+    username,
+    use_tls,
+    mailbox,
+    poll_interval_minutes,
+    mark_as_read,
+    delete_after,
+    include_headers,
+    include_from,
+    include_to,
+    include_subject,
+    include_body,
+    created_at,
+    updated_at,
+    last_polled_at
+FROM
+    service_imap_config
+WHERE
+    service_id = $1
+`
+
+type IMAPConfigGetRow struct {
+	ServiceID           uuid.UUID
+	Enabled             bool
+	OauthClientID       sql.NullString
+	OauthClientSecret   sql.NullString
+	OauthRefreshToken   sql.NullString
+	Host                string
+	Port                int32
+	Username            string
+	UseTls              bool
+	Mailbox             string
+	PollIntervalMinutes int32
+	MarkAsRead          bool
+	DeleteAfter         bool
+	IncludeHeaders      bool
+	IncludeFrom         bool
+	IncludeTo           bool
+	IncludeSubject      bool
+	IncludeBody         bool
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+	LastPolledAt        sql.NullTime
+}
+
+// IMAPConfigGet returns the IMAP configuration for a given service.
+func (q *Queries) IMAPConfigGet(ctx context.Context, serviceID uuid.UUID) (IMAPConfigGetRow, error) {
+	row := q.db.QueryRowContext(ctx, iMAPConfigGet, serviceID)
+	var i IMAPConfigGetRow
+	err := row.Scan(
+		&i.ServiceID,
+		&i.Enabled,
+		&i.OauthClientID,
+		&i.OauthClientSecret,
+		&i.OauthRefreshToken,
+		&i.Host,
+		&i.Port,
+		&i.Username,
+		&i.UseTls,
+		&i.Mailbox,
+		&i.PollIntervalMinutes,
+		&i.MarkAsRead,
+		&i.DeleteAfter,
+		&i.IncludeHeaders,
+		&i.IncludeFrom,
+		&i.IncludeTo,
+		&i.IncludeSubject,
+		&i.IncludeBody,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.LastPolledAt,
+	)
+	return i, err
+}
+
+const iMAPConfigUpdate = `-- name: IMAPConfigUpdate :exec
+UPDATE service_imap_config
+SET
+    enabled = COALESCE($1, enabled),
+    oauth_client_id = COALESCE($2, oauth_client_id),
+    oauth_client_secret = COALESCE($3, oauth_client_secret),
+    oauth_refresh_token = COALESCE($4, oauth_refresh_token),
+    host = COALESCE($5, host),
+    port = COALESCE($6, port),
+    username = COALESCE($7, username),
+    use_tls = COALESCE($8, use_tls),
+    mailbox = COALESCE($9, mailbox),
+    poll_interval_minutes = COALESCE($10, poll_interval_minutes),
+    mark_as_read = COALESCE($11, mark_as_read),
+    delete_after = COALESCE($12, delete_after),
+    include_headers = COALESCE($13, include_headers),
+    include_from = COALESCE($14, include_from),
+    include_to = COALESCE($15, include_to),
+    include_subject = COALESCE($16, include_subject),
+    include_body = COALESCE($17, include_body),
+    updated_at = now()
+WHERE
+    service_id = $18
+`
+
+type IMAPConfigUpdateParams struct {
+	Enabled             sql.NullBool
+	OauthClientID       sql.NullString
+	OauthClientSecret   sql.NullString
+	OauthRefreshToken   sql.NullString
+	Host                sql.NullString
+	Port                sql.NullInt32
+	Username            sql.NullString
+	UseTls              sql.NullBool
+	Mailbox             sql.NullString
+	PollIntervalMinutes sql.NullInt32
+	MarkAsRead          sql.NullBool
+	DeleteAfter         sql.NullBool
+	IncludeHeaders      sql.NullBool
+	IncludeFrom         sql.NullBool
+	IncludeTo           sql.NullBool
+	IncludeSubject      sql.NullBool
+	IncludeBody         sql.NullBool
+	ServiceID           uuid.UUID
+}
+
+// IMAPConfigUpdate updates an existing IMAP configuration.
+func (q *Queries) IMAPConfigUpdate(ctx context.Context, arg IMAPConfigUpdateParams) error {
+	_, err := q.db.ExecContext(ctx, iMAPConfigUpdate,
+		arg.Enabled,
+		arg.OauthClientID,
+		arg.OauthClientSecret,
+		arg.OauthRefreshToken,
+		arg.Host,
+		arg.Port,
+		arg.Username,
+		arg.UseTls,
+		arg.Mailbox,
+		arg.PollIntervalMinutes,
+		arg.MarkAsRead,
+		arg.DeleteAfter,
+		arg.IncludeHeaders,
+		arg.IncludeFrom,
+		arg.IncludeTo,
+		arg.IncludeSubject,
+		arg.IncludeBody,
+		arg.ServiceID,
+	)
+	return err
+}
+
+const iMAPFilterRuleCreate = `-- name: IMAPFilterRuleCreate :one
+INSERT INTO imap_filter_rules (
+    service_id,
+    name,
+    enabled,
+    from_pattern,
+    subject_pattern,
+    to_pattern,
+    match_mode,
+    exclude_replies
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8
+) RETURNING id, service_id, name, enabled, from_pattern, subject_pattern, to_pattern, match_mode, exclude_replies, created_at, updated_at
+`
+
+type IMAPFilterRuleCreateParams struct {
+	ServiceID      uuid.UUID
+	Name           string
+	Enabled        bool
+	FromPattern    sql.NullString
+	SubjectPattern sql.NullString
+	ToPattern      sql.NullString
+	MatchMode      string
+	ExcludeReplies bool
+}
+
+type IMAPFilterRuleCreateRow struct {
+	ID             uuid.UUID
+	ServiceID      uuid.UUID
+	Name           string
+	Enabled        bool
+	FromPattern    sql.NullString
+	SubjectPattern sql.NullString
+	ToPattern      sql.NullString
+	MatchMode      string
+	ExcludeReplies bool
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
+// IMAPFilterRuleCreate creates a new filter rule.
+func (q *Queries) IMAPFilterRuleCreate(ctx context.Context, arg IMAPFilterRuleCreateParams) (IMAPFilterRuleCreateRow, error) {
+	row := q.db.QueryRowContext(ctx, iMAPFilterRuleCreate,
+		arg.ServiceID,
+		arg.Name,
+		arg.Enabled,
+		arg.FromPattern,
+		arg.SubjectPattern,
+		arg.ToPattern,
+		arg.MatchMode,
+		arg.ExcludeReplies,
+	)
+	var i IMAPFilterRuleCreateRow
+	err := row.Scan(
+		&i.ID,
+		&i.ServiceID,
+		&i.Name,
+		&i.Enabled,
+		&i.FromPattern,
+		&i.SubjectPattern,
+		&i.ToPattern,
+		&i.MatchMode,
+		&i.ExcludeReplies,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const iMAPFilterRuleDelete = `-- name: IMAPFilterRuleDelete :exec
+DELETE FROM imap_filter_rules
+WHERE
+    id = $1
+`
+
+// IMAPFilterRuleDelete deletes a filter rule by ID.
+func (q *Queries) IMAPFilterRuleDelete(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, iMAPFilterRuleDelete, id)
+	return err
+}
+
+const iMAPFilterRuleGet = `-- name: IMAPFilterRuleGet :one
+SELECT
+    id,
+    service_id,
+    name,
+    enabled,
+    from_pattern,
+    subject_pattern,
+    to_pattern,
+    match_mode,
+    exclude_replies,
+    created_at,
+    updated_at
+FROM
+    imap_filter_rules
+WHERE
+    id = $1
+`
+
+type IMAPFilterRuleGetRow struct {
+	ID             uuid.UUID
+	ServiceID      uuid.UUID
+	Name           string
+	Enabled        bool
+	FromPattern    sql.NullString
+	SubjectPattern sql.NullString
+	ToPattern      sql.NullString
+	MatchMode      string
+	ExcludeReplies bool
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
+// IMAPFilterRuleGet returns a single filter rule by ID.
+func (q *Queries) IMAPFilterRuleGet(ctx context.Context, id uuid.UUID) (IMAPFilterRuleGetRow, error) {
+	row := q.db.QueryRowContext(ctx, iMAPFilterRuleGet, id)
+	var i IMAPFilterRuleGetRow
+	err := row.Scan(
+		&i.ID,
+		&i.ServiceID,
+		&i.Name,
+		&i.Enabled,
+		&i.FromPattern,
+		&i.SubjectPattern,
+		&i.ToPattern,
+		&i.MatchMode,
+		&i.ExcludeReplies,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const iMAPFilterRuleUpdate = `-- name: IMAPFilterRuleUpdate :exec
+UPDATE imap_filter_rules
+SET
+    name = COALESCE($1, name),
+    enabled = COALESCE($2, enabled),
+    from_pattern = COALESCE($3, from_pattern),
+    subject_pattern = COALESCE($4, subject_pattern),
+    to_pattern = COALESCE($5, to_pattern),
+    match_mode = COALESCE($6, match_mode),
+    exclude_replies = COALESCE($7, exclude_replies),
+    updated_at = now()
+WHERE
+    id = $8
+`
+
+type IMAPFilterRuleUpdateParams struct {
+	Name           sql.NullString
+	Enabled        sql.NullBool
+	FromPattern    sql.NullString
+	SubjectPattern sql.NullString
+	ToPattern      sql.NullString
+	MatchMode      sql.NullString
+	ExcludeReplies sql.NullBool
+	ID             uuid.UUID
+}
+
+// IMAPFilterRuleUpdate updates an existing filter rule.
+func (q *Queries) IMAPFilterRuleUpdate(ctx context.Context, arg IMAPFilterRuleUpdateParams) error {
+	_, err := q.db.ExecContext(ctx, iMAPFilterRuleUpdate,
+		arg.Name,
+		arg.Enabled,
+		arg.FromPattern,
+		arg.SubjectPattern,
+		arg.ToPattern,
+		arg.MatchMode,
+		arg.ExcludeReplies,
+		arg.ID,
+	)
+	return err
+}
+
+const iMAPFilterRulesAll = `-- name: IMAPFilterRulesAll :many
+SELECT
+    id,
+    service_id,
+    name,
+    enabled,
+    from_pattern,
+    subject_pattern,
+    to_pattern,
+    match_mode,
+    exclude_replies,
+    created_at,
+    updated_at
+FROM
+    imap_filter_rules
+WHERE
+    service_id = $1
+ORDER BY
+    created_at DESC
+`
+
+type IMAPFilterRulesAllRow struct {
+	ID             uuid.UUID
+	ServiceID      uuid.UUID
+	Name           string
+	Enabled        bool
+	FromPattern    sql.NullString
+	SubjectPattern sql.NullString
+	ToPattern      sql.NullString
+	MatchMode      string
+	ExcludeReplies bool
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
+// IMAPFilterRulesAll returns all filter rules for a given service (enabled and disabled).
+func (q *Queries) IMAPFilterRulesAll(ctx context.Context, serviceID uuid.UUID) ([]IMAPFilterRulesAllRow, error) {
+	rows, err := q.db.QueryContext(ctx, iMAPFilterRulesAll, serviceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []IMAPFilterRulesAllRow
+	for rows.Next() {
+		var i IMAPFilterRulesAllRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ServiceID,
+			&i.Name,
+			&i.Enabled,
+			&i.FromPattern,
+			&i.SubjectPattern,
+			&i.ToPattern,
+			&i.MatchMode,
+			&i.ExcludeReplies,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const iMAPFilterRulesForService = `-- name: IMAPFilterRulesForService :many
+SELECT
+    id,
+    service_id,
+    name,
+    from_pattern,
+    subject_pattern,
+    to_pattern,
+    match_mode,
+    exclude_replies
+FROM
+    imap_filter_rules
+WHERE
+    service_id = $1
+    AND enabled = TRUE
+`
+
+type IMAPFilterRulesForServiceRow struct {
+	ID             uuid.UUID
+	ServiceID      uuid.UUID
+	Name           string
+	FromPattern    sql.NullString
+	SubjectPattern sql.NullString
+	ToPattern      sql.NullString
+	MatchMode      string
+	ExcludeReplies bool
+}
+
+// IMAPFilterRulesForService returns all enabled filter rules for a given service.
+func (q *Queries) IMAPFilterRulesForService(ctx context.Context, serviceID uuid.UUID) ([]IMAPFilterRulesForServiceRow, error) {
+	rows, err := q.db.QueryContext(ctx, iMAPFilterRulesForService, serviceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []IMAPFilterRulesForServiceRow
+	for rows.Next() {
+		var i IMAPFilterRulesForServiceRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ServiceID,
+			&i.Name,
+			&i.FromPattern,
+			&i.SubjectPattern,
+			&i.ToPattern,
+			&i.MatchMode,
+			&i.ExcludeReplies,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const iMAPGetActiveServices = `-- name: IMAPGetActiveServices :many
+SELECT DISTINCT
+    s.id,
+    s.name,
+    sic.enabled,
+    sic.oauth_client_id,
+    sic.oauth_client_secret,
+    sic.oauth_refresh_token,
+    sic.host,
+    sic.port,
+    sic.username,
+    sic.use_tls,
+    sic.mailbox,
+    sic.poll_interval_minutes,
+    sic.mark_as_read,
+    sic.delete_after,
+    sic.include_headers,
+    sic.include_from,
+    sic.include_to,
+    sic.include_subject,
+    sic.include_body,
+    sic.last_polled_at
+FROM
+    services s
+    JOIN service_imap_config sic ON sic.service_id = s.id
+    JOIN imap_filter_rules ifr ON ifr.service_id = s.id
+WHERE
+    sic.enabled = TRUE
+    AND ifr.enabled = TRUE
+`
+
+type IMAPGetActiveServicesRow struct {
+	ID                  uuid.UUID
+	Name                string
+	Enabled             bool
+	OauthClientID       sql.NullString
+	OauthClientSecret   sql.NullString
+	OauthRefreshToken   sql.NullString
+	Host                string
+	Port                int32
+	Username            string
+	UseTls              bool
+	Mailbox             string
+	PollIntervalMinutes int32
+	MarkAsRead          bool
+	DeleteAfter         bool
+	IncludeHeaders      bool
+	IncludeFrom         bool
+	IncludeTo           bool
+	IncludeSubject      bool
+	IncludeBody         bool
+	LastPolledAt        sql.NullTime
+}
+
+// IMAPGetActiveServices returns all services with IMAP enabled and at least one enabled filter rule.
+func (q *Queries) IMAPGetActiveServices(ctx context.Context) ([]IMAPGetActiveServicesRow, error) {
+	rows, err := q.db.QueryContext(ctx, iMAPGetActiveServices)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []IMAPGetActiveServicesRow
+	for rows.Next() {
+		var i IMAPGetActiveServicesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Enabled,
+			&i.OauthClientID,
+			&i.OauthClientSecret,
+			&i.OauthRefreshToken,
+			&i.Host,
+			&i.Port,
+			&i.Username,
+			&i.UseTls,
+			&i.Mailbox,
+			&i.PollIntervalMinutes,
+			&i.MarkAsRead,
+			&i.DeleteAfter,
+			&i.IncludeHeaders,
+			&i.IncludeFrom,
+			&i.IncludeTo,
+			&i.IncludeSubject,
+			&i.IncludeBody,
+			&i.LastPolledAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const iMAPMarkMessageProcessed = `-- name: IMAPMarkMessageProcessed :exec
+INSERT INTO imap_processed_messages (message_id, processed_at)
+    VALUES ($1, now())
+ON CONFLICT (message_id)
+    DO NOTHING
+`
+
+// IMAPMarkMessageProcessed records that a message has been processed (prevents duplicate alerts).
+func (q *Queries) IMAPMarkMessageProcessed(ctx context.Context, messageID string) error {
+	_, err := q.db.ExecContext(ctx, iMAPMarkMessageProcessed, messageID)
+	return err
+}
+
+const iMAPMessageProcessed = `-- name: IMAPMessageProcessed :one
+SELECT
+    EXISTS (
+        SELECT
+            1
+        FROM
+            imap_processed_messages
+        WHERE
+            message_id = $1) AS processed
+`
+
+// IMAPMessageProcessed checks if a message with the given Message-ID has already been processed.
+func (q *Queries) IMAPMessageProcessed(ctx context.Context, messageID string) (bool, error) {
+	row := q.db.QueryRowContext(ctx, iMAPMessageProcessed, messageID)
+	var processed bool
+	err := row.Scan(&processed)
+	return processed, err
+}
+
+const iMAPUpdateLastPolled = `-- name: IMAPUpdateLastPolled :exec
+UPDATE service_imap_config
+SET
+    last_polled_at = now()
+WHERE
+    service_id = $1
+`
+
+// IMAPUpdateLastPolled updates the last_polled_at timestamp for a service.
+func (q *Queries) IMAPUpdateLastPolled(ctx context.Context, serviceID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, iMAPUpdateLastPolled, serviceID)
+	return err
+}
+
 const intKeyCreate = `-- name: IntKeyCreate :exec
 INSERT INTO integration_keys(id, name, type, service_id, external_system_name)
     VALUES ($1, $2, $3, $4, $5)
