@@ -2,7 +2,7 @@
 set -e
 
 # assert build-env versions are identical
-BUILD_ENV_VER=go1.25.1
+BUILD_ENV_VER=go1.26.2
 for file in $(find devtools -name 'Dockerfile*'); do
   if ! grep -q "goalert/build-env" "$file"; then
     continue
