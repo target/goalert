@@ -16,15 +16,17 @@ const useStyles = makeStyles({
 })
 
 export default function Documentation(): React.JSX.Element {
-  const [publicURL, webhookEnabled] = useConfigValue(
+  const [publicURL, webhookEnabled, googleChatEnabled, customWebhookEnabled] = useConfigValue(
     'General.PublicURL',
     'Webhook.Enable',
+    'GoogleChat.Enable',
+    'CustomWebhook.Enable',
   )
   const classes = useStyles()
 
   // NOTE list markdown documents here
   let markdownDocs = [{ doc: integrationKeys, id: 'integration-keys' }]
-  if (webhookEnabled) {
+  if (webhookEnabled || googleChatEnabled || customWebhookEnabled) {
     markdownDocs.push({ doc: webhooks, id: 'webhooks' })
   }
 
@@ -44,7 +46,7 @@ export default function Documentation(): React.JSX.Element {
     if (!el) return
 
     el.scrollIntoView()
-  }, [webhookEnabled, publicURL])
+  }, [webhookEnabled, googleChatEnabled, customWebhookEnabled, publicURL])
 
   return (
     <React.Fragment>

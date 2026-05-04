@@ -141,6 +141,14 @@ type Config struct {
 		AllowedURLs []string `public:"true" info:"If set, allows webhooks for these domains only."`
 	}
 
+	GoogleChat struct {
+		Enable bool `public:"true" info:"Enables Google Chat as a notification destination."`
+	}
+
+	CustomWebhook struct {
+		Enable bool `public:"true" info:"Enables Custom Webhook as a notification destination."`
+	}
+
 	Feedback struct {
 		Enable      bool   `public:"true" info:"Enables Feedback link in nav bar."`
 		OverrideURL string `public:"true" info:"Use a custom URL for Feedback link in nav bar."`
