@@ -1,6 +1,6 @@
 module github.com/target/goalert
 
-go 1.25.0
+go 1.26
 
 replace github.com/olekukonko/tablewriter => github.com/olekukonko/tablewriter v0.0.5
 
