@@ -232,7 +232,7 @@ check-js: generate $(NODE_DEPS)
 	$(BIN_DIR)/tools/bun -b run lint
 	$(BIN_DIR)/tools/bun -b run check
 
-check-go: generate 
+check-go: generate $(BIN_DIR)/tools/golangci-lint
 	@go mod tidy
 	# go tool ordermigrations -check
 	$(BIN_DIR)/tools/golangci-lint run
