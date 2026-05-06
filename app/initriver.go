@@ -87,7 +87,7 @@ type timeGen struct {
 	pgx *pgxpool.Pool
 }
 
-func (t *timeGen) NowUTC() time.Time {
+func (t *timeGen) Now() time.Time {
 	var now time.Time
 	err := t.pgx.QueryRow(context.Background(), "SELECT NOW() AT TIME ZONE 'UTC'").Scan(&now)
 	if err != nil {
@@ -96,8 +96,8 @@ func (t *timeGen) NowUTC() time.Time {
 	return now
 }
 
-func (t *timeGen) NowUTCOrNil() *time.Time {
-	now := t.NowUTC()
+func (t *timeGen) NowOrNil() *time.Time {
+	now := t.Now()
 	return &now
 }
 
