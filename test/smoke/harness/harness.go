@@ -26,7 +26,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
-	sloglogrus "github.com/samber/slog-logrus"
+	sloglogrus "github.com/samber/slog-logrus/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/alert"

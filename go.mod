@@ -37,7 +37,7 @@ require (
 	github.com/riverqueue/river/riverdriver/riverdatabasesql v0.35.1
 	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.35.1
 	github.com/riverqueue/river/rivertype v0.35.1
-	github.com/samber/slog-logrus v1.0.0
+	github.com/samber/slog-logrus/v2 v2.5.4
 	github.com/sirupsen/logrus v1.9.4
 	github.com/slack-go/slack v0.23.0
 	github.com/spf13/cobra v1.10.2
@@ -154,6 +154,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
 	github.com/samber/lo v1.53.0 // indirect
+	github.com/samber/slog-common v0.22.0 // indirect
 	github.com/sosodev/duration v1.4.0 // indirect
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
@@ -185,7 +186,7 @@ require (
 	golang.org/x/net v0.53.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/telemetry v0.0.0-20260428171046-76f71b9afea0 // indirect
-	golang.org/x/text v0.36.0 // indirect
+	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/tools v0.44.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260504160031-60b97b32f348 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260504160031-60b97b32f348 // indirect

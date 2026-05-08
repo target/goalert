@@ -19,7 +19,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/pkg/errors"
-	sloglogrus "github.com/samber/slog-logrus"
+	sloglogrus "github.com/samber/slog-logrus/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/target/goalert/auth/basic"
