@@ -4,7 +4,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/brianvoe/gofakeit/v6"
+	"github.com/brianvoe/gofakeit/v7"
 )
 
 // uniqGen allows generating unique string values.

@@ -6,7 +6,7 @@ replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
 
 require (
 	github.com/99designs/gqlgen v0.17.90
-	github.com/brianvoe/gofakeit/v6 v6.28.0
+	github.com/brianvoe/gofakeit/v7 v7.14.1
 	github.com/coreos/go-oidc/v3 v3.18.0
 	github.com/creack/pty/v2 v2.0.1
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
@@ -17,7 +17,7 @@ require (
 	github.com/felixge/httpsnoop v1.0.4
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8
-	github.com/google/go-github/v56 v56.0.0
+	github.com/google/go-github/v86 v86.0.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/yamux v0.1.2
 	github.com/jackc/pgtype v1.14.4
@@ -47,8 +47,8 @@ require (
 	github.com/vektah/gqlparser/v2 v2.5.33
 	golang.org/x/crypto v0.50.0
 	golang.org/x/oauth2 v0.36.0
-	golang.org/x/sys v0.43.0
-	golang.org/x/term v0.42.0
+	golang.org/x/sys v0.44.0
+	golang.org/x/term v0.43.0
 	google.golang.org/grpc v1.81.0
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
