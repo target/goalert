@@ -2,6 +2,7 @@ import React, { ReactNode, ReactElement } from 'react'
 import Avatar from '@mui/material/Avatar'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
+import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import ListItemAvatar from '@mui/material/ListItemAvatar'
@@ -129,33 +130,22 @@ export function PaginatedList(props: PaginatedListProps): React.JSX.Element {
     }
 
     // must be explicitly set when using, in accordance with TS definitions
-    const urlProps = item.url && {
-      component: AppLinkListItem,
+    const urlProps = item.url
+      ? {
+          component: AppLinkListItem,
+          to: item.url,
+        }
+      : {}
+    const onClickProps = item.onClick
+      ? {
+          onClick: item.onClick,
+        }
+      : {}
 
-      // NOTE: needed for error: button: false? not assignable to type 'true'
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      button: true as any,
-      to: item.url,
-    }
-    const onClickProps = item.onClick && {
-      onClick: item.onClick,
+    const isInteractive = !!(item.url || item.onClick)
 
-      // NOTE: needed for error: button: false? not assignable to type 'true'
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      button: true as any,
-    }
-
-    return (
-      <ListItem
-        sx={{
-          borderLeft: `3px solid ${borderColor(item.status)}`,
-        }}
-        dense={!fullScreen}
-        key={'list_' + idx}
-        selected={item.selected}
-        {...urlProps}
-        {...onClickProps}
-      >
+    const content = (
+      <React.Fragment>
         {item.icon && <ListItemAvatar>{item.icon}</ListItemAvatar>}
         <ListItemText
           className={classes.itemText}
@@ -167,6 +157,35 @@ export function PaginatedList(props: PaginatedListProps): React.JSX.Element {
         />
         {favIcon}
         {item.action && <div className={classes.itemAction}>{item.action}</div>}
+      </React.Fragment>
+    )
+
+    if (isInteractive) {
+      return (
+        <ListItemButton
+          sx={{
+            borderLeft: `3px solid ${borderColor(item.status)}`,
+          }}
+          dense={!fullScreen}
+          key={'list_' + idx}
+          selected={item.selected}
+          {...urlProps}
+          {...onClickProps}
+        >
+          {content}
+        </ListItemButton>
+      )
+    }
+
+    return (
+      <ListItem
+        sx={{
+          borderLeft: `3px solid ${borderColor(item.status)}`,
+        }}
+        dense={!fullScreen}
+        key={'list_' + idx}
+      >
+        {content}
       </ListItem>
     )
   }

@@ -41,7 +41,7 @@ func Helpers() template.FuncMap {
 				if i > 0 {
 					buf.WriteString(" OR ")
 				}
-				buf.WriteString(fmt.Sprintf("to_tsvector('english', replace(lower(%s), '.', ' ')) @@ plainto_tsquery('english', replace(lower(:%s),'.',' '))", columnName, argName))
+				fmt.Fprintf(&buf, "to_tsvector('english', replace(lower(%s), '.', ' ')) @@ plainto_tsquery('english', replace(lower(:%s),'.',' '))", columnName, argName)
 			}
 
 			buf.WriteRune(')')

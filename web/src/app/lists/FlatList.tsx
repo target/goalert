@@ -7,7 +7,7 @@ import React, {
 } from 'react'
 import ButtonBase from '@mui/material/ButtonBase'
 import List, { ListProps } from '@mui/material/List'
-import MUIListItem, { ListItemProps } from '@mui/material/ListItem'
+import MUIListItem from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import ListSubheader from '@mui/material/ListSubheader'
@@ -101,10 +101,11 @@ export interface FlatListNotice extends Notice {
   handleOnClick?: (event: MouseEvent) => void
   'data-cy'?: string
 }
-export interface FlatListItemOptions extends Omit<ListItemProps, 'title'> {
+export interface FlatListItemOptions {
   title?: React.ReactNode
   primaryText?: React.ReactNode
   highlight?: boolean
+  selected?: boolean
   subText?: React.JSX.Element | string
   icon?: React.JSX.Element | null
   section?: string | number
@@ -116,6 +117,7 @@ export interface FlatListItemOptions extends Omit<ListItemProps, 'title'> {
   draggable?: boolean // set by DraggableListItem
   disabled?: boolean
   disableTypography?: boolean
+  onClick?: () => void
 }
 
 export interface SectionTitle {
