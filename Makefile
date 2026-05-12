@@ -87,6 +87,9 @@ $(BIN_DIR)/tools/protoc-gen-go $(BIN_DIR)/tools/protoc-gen-go-grpc $(BIN_DIR)/to
 $(BIN_DIR)/tools/k6: k6.version
 	go tool gettool -t k6 -v $(shell cat k6.version) -o $@
 
+$(BIN_DIR)/tools/golangci-lint: golangci-lint.version
+	go tool gettool -t golangci-lint -v $(shell cat golangci-lint.version) -o $@
+
 $(BIN_DIR)/tools/protoc: protoc.version
 	go tool gettool -t protoc -v $(shell cat protoc.version) -o $@
 
@@ -229,10 +232,10 @@ check-js: generate $(NODE_DEPS)
 	$(BIN_DIR)/tools/bun -b run lint
 	$(BIN_DIR)/tools/bun -b run check
 
-check-go: generate 
+check-go: generate $(BIN_DIR)/tools/golangci-lint
 	@go mod tidy
 	# go tool ordermigrations -check
-	go tool golangci-lint run
+	$(BIN_DIR)/tools/golangci-lint run
 
 graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/*
 	(cd ./graphql2 && go tool configparams -out mapconfig.go && go tool goimports -w ./mapconfig.go) || go generate ./graphql2

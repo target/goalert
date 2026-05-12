@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/brianvoe/gofakeit/v6"
+	"github.com/brianvoe/gofakeit/v7"
 	"github.com/target/goalert/validation/validate"
 )
 

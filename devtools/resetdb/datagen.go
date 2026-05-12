@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/brianvoe/gofakeit/v6"
+	"github.com/brianvoe/gofakeit/v7"
 	"github.com/google/uuid"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/assignment"
@@ -564,7 +564,7 @@ func (cfg *datagenConfig) Multiply(n float64) {
 
 // Generate will produce a full random dataset based on the configuration.
 func (cfg datagenConfig) Generate() datagen {
-	f := gofakeit.New(cfg.Seed)
+	f := gofakeit.New(uint64(cfg.Seed))
 	d := datagen{
 		Faker: f,
 
