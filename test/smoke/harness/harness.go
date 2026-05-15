@@ -105,6 +105,7 @@ type Harness struct {
 
 	backend     *app.App
 	backendLogs io.Closer
+	logsDone    chan struct{}
 
 	dbURL  string
 	dbName string
@@ -326,6 +327,7 @@ func (h *Harness) StartWithAppCfgHook(fn func(*app.Config)) {
 
 	r, w := io.Pipe()
 	h.backendLogs = w
+	h.logsDone = make(chan struct{})
 
 	appCfg.LegacyLogger.EnableJSON()
 	appCfg.LegacyLogger.SetOutput(w)
@@ -693,6 +695,23 @@ func (h *Harness) Close() {
 	if recErr := recover(); recErr != nil {
 		defer panic(recErr)
 	}
+
+	// Deferred so it still runs if a later WaitAndAssert or Shutdown call
+	// triggers Goexit (e.g. via t.Fatalf). Closes the log pipe writer and
+	// blocks until watchBackendLogs has drained, preventing it from calling
+	// t.Logf after the test has been marked complete.
+	defer func() {
+		h.mx.Lock()
+		h.closing = true
+		h.mx.Unlock()
+		if h.backendLogs != nil {
+			h.backendLogs.Close()
+		}
+		if h.logsDone != nil {
+			<-h.logsDone
+		}
+	}()
+
 	h.dumpDB() // early as possible
 
 	// If backend startup never completed, Engine is nil and Trigger would panic;
@@ -703,17 +722,12 @@ func (h *Harness) Close() {
 		h.email.WaitAndAssert()
 	}
 
-	h.mx.Lock()
-	h.closing = true
-	h.mx.Unlock()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	err := h.backend.Shutdown(ctx)
 	if err != nil {
 		h.t.Error("failed to shutdown backend cleanly:", err)
 	}
-	h.backendLogs.Close()
 
 	h.slackS.Close()
 	h.twS.Close()

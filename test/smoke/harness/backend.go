@@ -7,6 +7,7 @@ import (
 )
 
 func (h *Harness) watchBackendLogs(r io.Reader) {
+	defer close(h.logsDone)
 	dec := json.NewDecoder(r)
 
 	ignore := func(msg string) bool {
