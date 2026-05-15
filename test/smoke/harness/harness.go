@@ -695,9 +695,13 @@ func (h *Harness) Close() {
 	}
 	h.dumpDB() // early as possible
 
-	h.tw.WaitAndAssert(h.t)
-	h.slack.WaitAndAssert()
-	h.email.WaitAndAssert()
+	// If backend startup never completed, Engine is nil and Trigger would panic;
+	// skip assertions that depend on driving engine cycles.
+	if h.backend != nil && h.backend.Engine != nil {
+		h.tw.WaitAndAssert(h.t)
+		h.slack.WaitAndAssert()
+		h.email.WaitAndAssert()
+	}
 
 	h.mx.Lock()
 	h.closing = true
