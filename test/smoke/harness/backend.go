@@ -7,16 +7,8 @@ import (
 )
 
 func (h *Harness) watchBackendLogs(r io.Reader) {
+	defer close(h.logsDone)
 	dec := json.NewDecoder(r)
-	var entry struct {
-		Error        string
-		Message      string `json:"msg"`
-		Source       string
-		Level        string
-		SQL          string
-		ProviderType string
-		URL          string
-	}
 
 	ignore := func(msg string) bool {
 		h.mx.Lock()
@@ -31,20 +23,37 @@ func (h *Harness) watchBackendLogs(r io.Reader) {
 
 	h.IgnoreErrorsWith("rotation advanced late")
 
-	var err error
 	for {
 		var raw json.RawMessage
-		err = dec.Decode(&raw)
+		err := dec.Decode(&raw)
 		if err != nil {
-			break
+			// Decoder is unrecoverable; must keep draining the pipe so backend
+			// writers don't block forever. Without this, a parse failure here
+			// can deadlock app startup/shutdown.
+			if !h.isClosing() {
+				h.t.Errorf("failed to read JSON logs: %v", err)
+			}
+			_, _ = io.Copy(io.Discard, r)
+			return
 		}
 
-		err = json.Unmarshal(raw, &entry)
-		if err != nil {
-			break
+		// Error is json.RawMessage because some log entries emit it as an object
+		// (e.g. structured errors) rather than a string.
+		var entry struct {
+			Error        json.RawMessage
+			Message      string `json:"msg"`
+			Source       string
+			Level        string
+			SQL          string
+			ProviderType string
+			URL          string
+		}
+		if err := json.Unmarshal(raw, &entry); err != nil {
+			h.t.Logf("Backend: failed to parse log entry: %v\n%s", err, string(raw))
+			continue
 		}
 
-		if ignore(entry.Error) {
+		if ignore(string(entry.Error)) {
 			entry.Level = "ignore[" + entry.Level + "]"
 		}
 		if entry.Level == "error" || entry.Level == "fatal" {
@@ -52,21 +61,10 @@ func (h *Harness) watchBackendLogs(r io.Reader) {
 				// ignore printed SQL errors
 				continue
 			}
-			h.t.Errorf("Backend: %s(%s) %s: %s\n%s", strings.ToUpper(entry.Level), entry.Source, entry.Error, entry.Message, string(raw))
+			h.t.Errorf("Backend: %s(%s) %s: %s\n%s", strings.ToUpper(entry.Level), entry.Source, string(entry.Error), entry.Message, string(raw))
 			continue
 		} else {
 			h.t.Logf("Backend: %s %s", strings.ToUpper(entry.Level), entry.Message)
 		}
 	}
-	if h.isClosing() {
-		return
-	}
-	data := make([]byte, 32768)
-	n, _ := dec.Buffered().Read(data)
-	nx, _ := r.Read(data[n:])
-	if n+nx > 0 {
-		h.t.Logf("Buffered: %s", string(data[:n+nx]))
-	}
-
-	h.t.Errorf("failed to read/parse JSON logs: %v", err)
 }
