@@ -124,12 +124,7 @@ export default function TempSchedShiftsList({
       zone,
       handleCoverageGapClick,
     )
-    const subheaderItems = getSubheaderItems(
-      schedInterval,
-      shifts,
-      shiftDur as Duration,
-      zone,
-    )
+    const subheaderItems = getSubheaderItems(schedInterval, shifts, zone)
 
     const outOfBoundsItems = getOutOfBoundsItems(schedInterval, shifts, zone)
 

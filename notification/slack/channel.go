@@ -457,11 +457,17 @@ func (s *ChannelSender) SendMessage(ctx context.Context, msg notification.Messag
 			channelID, ts = chanTS(channelID, t.OriginalStatus.ProviderMessageID.ExternalID)
 
 			// Reply in thread if we already sent a message for this alert.
-			opts = append(opts,
+			threadOpts := []slack.MsgOption{
 				slack.MsgOptionTS(ts),
-				slack.MsgOptionBroadcast(),
 				slack.MsgOptionText(alertLink(ctx, t.AlertID, t.Summary), false),
-			)
+			}
+
+			// Conditionally add broadcast based on config (default: enabled)
+			if !cfg.Slack.DisableBroadcastThreadReplies {
+				threadOpts = append(threadOpts, slack.MsgOptionBroadcast())
+			}
+
+			opts = append(opts, threadOpts...)
 			break
 		}
 

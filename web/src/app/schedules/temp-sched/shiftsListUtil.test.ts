@@ -28,12 +28,7 @@ describe('getSubheaderItems', () => {
       const schedInterval = Interval.fromISO(tc.schedIntervalISO, {
         zone: tc.zone,
       })
-      const result = getSubheaderItems(
-        schedInterval,
-        tc.shifts,
-        tc.shiftDuration as Duration,
-        tc.zone,
-      )
+      const result = getSubheaderItems(schedInterval, tc.shifts, tc.zone)
 
       expect(result).toHaveLength(tc.expected.length)
       expect(_.uniq(result.map((r) => r.id))).toHaveLength(tc.expected.length)
@@ -87,7 +82,7 @@ describe('getSubheaderItems', () => {
     schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-14T01:00:00.000-05:00'}`,
     shifts: [],
     shiftDuration: Duration.fromObject({ hours: 25 }),
-    expected: ['Friday, August 13'],
+    expected: ['Friday, August 13', 'Saturday, August 14'],
     zone: chicago,
   })
 
@@ -96,7 +91,7 @@ describe('getSubheaderItems', () => {
     schedIntervalISO: `${'2021-08-13T00:00:00.000-05:00'}/${'2021-08-15T02:00:00.000-05:00'}`,
     shifts: [],
     shiftDuration: Duration.fromObject({ hours: 50 }),
-    expected: ['Friday, August 13'],
+    expected: ['Friday, August 13', 'Saturday, August 14', 'Sunday, August 15'],
     zone: chicago,
   })
 
@@ -177,7 +172,7 @@ describe('getSubheaderItems', () => {
       },
     ],
     shiftDuration: Duration.fromObject({ hours: 30 }),
-    expected: ['Friday, August 13', 'Saturday, August 14'],
+    expected: ['Friday, August 13', 'Saturday, August 14', 'Sunday, August 15'],
     zone: chicago,
   })
 })
