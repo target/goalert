@@ -182,20 +182,22 @@ func TestSearchTemplate_Only_SQLGeneration(t *testing.T) {
 	// Verify that our QueryArgs include the only parameter
 	args := data.QueryArgs()
 
-	var onlyArg *interface{}
+	var onlyArg interface{}
+	found := false
 	for _, arg := range args {
 		if arg.Name == "only" {
-			onlyArg = &arg.Value
+			onlyArg = arg.Value
+			found = true
 			break
 		}
 	}
 
-	if onlyArg == nil {
+	if !found {
 		t.Fatal("QueryArgs() should include 'only' parameter")
 	}
 
 	// Verify the argument is not nil (UUIDArray should convert the slice)
-	if *onlyArg == nil {
+	if onlyArg == nil {
 		t.Error("'only' parameter should not be nil when Only slice is provided")
 	}
 }
