@@ -276,6 +276,27 @@ func (q *Queries) AlertLog_HBIntervalMinutes(ctx context.Context, id uuid.UUID) 
 	return column_1, err
 }
 
+const alertLog_HasRecentDuplicate = `-- name: AlertLog_HasRecentDuplicate :one
+SELECT
+    EXISTS (
+        SELECT
+            1
+        FROM
+            alert_logs
+        WHERE
+            alert_id = $1::bigint
+            AND event = 'duplicate_suppressed'
+            AND timestamp >(now() - INTERVAL '5 seconds'))
+`
+
+// Checks if there is a recent duplicate-suppressed log for the alert.
+func (q *Queries) AlertLog_HasRecentDuplicate(ctx context.Context, alertID int64) (bool, error) {
+	row := q.db.QueryRowContext(ctx, alertLog_HasRecentDuplicate, alertID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const alertLog_InsertEP = `-- name: AlertLog_InsertEP :exec
 INSERT INTO alert_logs(alert_id, event, sub_type, sub_user_id, sub_integration_key_id, sub_hb_monitor_id, sub_channel_id, sub_classifier, meta, message)
 SELECT

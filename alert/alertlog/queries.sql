@@ -19,6 +19,19 @@ FROM
 WHERE
     a.status != 'closed';
 
+-- name: AlertLog_HasRecentDuplicate :one
+-- Checks if there is a recent duplicate-suppressed log for the alert.
+SELECT
+    EXISTS (
+        SELECT
+            1
+        FROM
+            alert_logs
+        WHERE
+            alert_id = @alert_id::bigint
+            AND event = 'duplicate_suppressed'
+            AND timestamp >(now() - INTERVAL '5 seconds'));
+
 -- name: AlertLog_InsertSvc :exec
 -- Inserts a new alert log for all alerts in the service that are not closed.
 INSERT INTO alert_logs(alert_id, event, sub_type, sub_user_id, sub_integration_key_id, sub_hb_monitor_id, sub_channel_id, sub_classifier, meta, message)

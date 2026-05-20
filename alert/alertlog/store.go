@@ -126,6 +126,20 @@ func (s *Store) MustLog(ctx context.Context, alertID int, _type Type, meta inter
 }
 
 func (s *Store) MustLogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{}) {
+	// suppress duplicate duplicate-suppression logs since they aren't actionable and just add noise
+	if _type == TypeDuplicateSupressed {
+		hasRecent, err := gadb.New(tx).AlertLog_HasRecentDuplicate(ctx, int64(alertID))
+		if err != nil {
+			log.Log(ctx, errors.Wrap(err, "check for recent duplicate alert log"))
+			return
+		}
+
+		if hasRecent {
+			// skip it if there's been one in the last 5 seconds
+			return
+		}
+	}
+
 	err := s.LogTx(ctx, tx, alertID, _type, meta)
 	if err != nil {
 		log.Log(ctx, errors.Wrap(err, "append alert log"))
