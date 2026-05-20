@@ -1,5 +1,5 @@
 extend type Mutation {
-    sendSignal(input: SendSignalInput!): Boolean!
+  sendSignal(input: SendSignalInput!): Boolean!
 }
 
 input SendSignalInput {
