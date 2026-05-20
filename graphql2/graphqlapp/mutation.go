@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/keyring"
@@ -43,6 +44,10 @@ func (a *Mutation) SendSignal(ctx context.Context, input graphql2.SendSignalInpu
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return false, err
+	}
+
+	if !expflag.ContextHas(ctx, expflag.UnivKeys) {
+		return false, errors.New("feature not enabled")
 	}
 
 	svcID, err := validate.ParseUUID("ServiceID", input.ServiceID)
