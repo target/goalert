@@ -31,7 +31,6 @@ export type Sortable<T> = T & {
 export function getSubheaderItems(
   schedInterval: Interval,
   shifts: Shift[],
-  shiftDur: Duration,
   zone: ExplicitZone,
 ): Sortable<FlatListSub>[] {
   if (!schedInterval.isValid) {
@@ -49,10 +48,14 @@ export function getSubheaderItems(
     ...shifts.map((s) => DateTime.fromISO(s.end, { zone })),
   )
 
-  const dayInvs = splitShift(
-    Interval.fromDateTimes(lowerBound, upperBound),
-    shiftDur,
-  )
+  const dayInvs: Interval[] = []
+  let currentDay = lowerBound.startOf('day')
+
+  while (currentDay < upperBound) {
+    const nextDay = currentDay.plus({ days: 1 })
+    dayInvs.push(Interval.fromDateTimes(currentDay, nextDay))
+    currentDay = nextDay
+  }
 
   return dayInvs.map((day) => {
     const at = day.start.startOf('day')

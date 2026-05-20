@@ -100,6 +100,7 @@ type Config struct {
 
 		SigningSecret       string `password:"true" info:"Signing secret to verify requests from slack."`
 		InteractiveMessages bool   `info:"Enable interactive messages (e.g. buttons)."`
+		DisableBroadcastThreadReplies bool `info:"Disable broadcasting alert status updates in threads to the main channel." public:"true"`
 	}
 
 	Twilio struct {

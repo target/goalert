@@ -42,3 +42,41 @@ func TestSlackNotification(t *testing.T) {
 	// should broadcast reply to channel
 	msg.ExpectBroadcastReply("Alert #1")
 }
+
+// TestSlackNotification_NoBroadcast tests that thread replies don't broadcast when disabled.
+func TestSlackNotification_NoBroadcast(t *testing.T) {
+	t.Parallel()
+
+	sql := `
+	insert into escalation_policies (id, name, repeat)
+	values
+		({{uuid "eid"}}, 'esc policy', 1);
+	insert into escalation_policy_steps (id, escalation_policy_id, delay)
+	values
+		({{uuid "esid"}}, {{uuid "eid"}}, 30);
+
+	insert into notification_channels (id, type, name, value)
+	values
+		({{uuid "chan"}}, 'SLACK', '#test', {{slackChannelID "test"}});
+
+	insert into escalation_policy_actions (escalation_policy_step_id, channel_id)
+	values
+		({{uuid "esid"}}, {{uuid "chan"}});
+
+	insert into services (id, escalation_policy_id, name)
+	values
+		({{uuid "sid"}}, {{uuid "eid"}}, 'service');
+	`
+	h := harness.NewHarness(t, sql, "slack-user-link")
+	defer h.Close()
+
+	// Disable broadcast
+	h.SetConfigValue("Slack.DisableBroadcastThreadReplies", "true")
+
+	h.CreateAlert(h.UUID("sid"), "testing")
+	msg := h.Slack().Channel("test").ExpectMessage("testing")
+
+	h.FastForward(time.Hour)
+	// Should reply in thread WITHOUT broadcast
+	msg.ExpectThreadReply("Alert #1")
+}
