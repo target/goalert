@@ -687,6 +687,12 @@ type SendContactMethodVerificationInput struct {
 	ContactMethodID string `json:"contactMethodID"`
 }
 
+type SendSignalInput struct {
+	Dest      *gadb.DestV1      `json:"dest"`
+	ServiceID string            `json:"serviceID"`
+	Params    map[string]string `json:"params,omitempty"`
+}
+
 type ServiceAlertStatsOptions struct {
 	Start     *time.Time         `json:"start,omitempty"`
 	End       *time.Time         `json:"end,omitempty"`

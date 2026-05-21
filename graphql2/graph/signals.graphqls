@@ -1,0 +1,9 @@
+extend type Mutation {
+  sendSignal(input: SendSignalInput!): Boolean!
+}
+
+input SendSignalInput {
+  dest: DestinationInput!
+  serviceID: ID!
+  params: StringMap
+}

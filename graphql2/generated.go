@@ -490,6 +490,7 @@ type ComplexityRoot struct {
 		PromoteSecondaryToken              func(childComplexity int, id string) int
 		ReEncryptKeyringsAndConfig         func(childComplexity int) int
 		SendContactMethodVerification      func(childComplexity int, input SendContactMethodVerificationInput) int
+		SendSignal                         func(childComplexity int, input SendSignalInput) int
 		SetAlertNoiseReason                func(childComplexity int, input SetAlertNoiseReasonInput) int
 		SetConfig                          func(childComplexity int, input []ConfigValueInput) int
 		SetFavorite                        func(childComplexity int, input SetFavoriteInput) int
@@ -1002,6 +1003,7 @@ type MutationResolver interface {
 	CreateGQLAPIKey(ctx context.Context, input CreateGQLAPIKeyInput) (*CreatedGQLAPIKey, error)
 	UpdateGQLAPIKey(ctx context.Context, input UpdateGQLAPIKeyInput) (bool, error)
 	DeleteGQLAPIKey(ctx context.Context, id string) (bool, error)
+	SendSignal(ctx context.Context, input SendSignalInput) (bool, error)
 	UpdateKeyConfig(ctx context.Context, input UpdateKeyConfigInput) (bool, error)
 	PromoteSecondaryToken(ctx context.Context, id string) (bool, error)
 	DeleteSecondaryToken(ctx context.Context, id string) (bool, error)
@@ -2862,6 +2864,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.SendContactMethodVerification(childComplexity, args["input"].(SendContactMethodVerificationInput)), true
+	case "Mutation.sendSignal":
+		if e.ComplexityRoot.Mutation.SendSignal == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_sendSignal_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.SendSignal(childComplexity, args["input"].(SendSignalInput)), true
 	case "Mutation.setAlertNoiseReason":
 		if e.ComplexityRoot.Mutation.SetAlertNoiseReason == nil {
 			break
@@ -4925,6 +4938,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputScheduleSearchOptions,
 		ec.unmarshalInputScheduleTargetInput,
 		ec.unmarshalInputSendContactMethodVerificationInput,
+		ec.unmarshalInputSendSignalInput,
 		ec.unmarshalInputServiceAlertStatsOptions,
 		ec.unmarshalInputServiceSearchOptions,
 		ec.unmarshalInputSetAlertNoiseReasonInput,
@@ -5031,7 +5045,7 @@ func newExecutionContext(
 	}
 }
 
-//go:embed "schema.graphql" "graph/_Mutation.graphqls" "graph/_Query.graphqls" "graph/_directives.graphqls" "graph/alerts.graphqls" "graph/destinations.graphqls" "graph/errorcodes.graphqls" "graph/escalationpolicy.graphqls" "graph/expr.graphqls" "graph/gqlapikeys.graphqls" "graph/service.graphqls" "graph/univkeys.graphqls"
+//go:embed "schema.graphql" "graph/_Mutation.graphqls" "graph/_Query.graphqls" "graph/_directives.graphqls" "graph/alerts.graphqls" "graph/destinations.graphqls" "graph/errorcodes.graphqls" "graph/escalationpolicy.graphqls" "graph/expr.graphqls" "graph/gqlapikeys.graphqls" "graph/service.graphqls" "graph/signals.graphqls" "graph/univkeys.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -5054,6 +5068,7 @@ var sources = []*ast.Source{
 	{Name: "graph/expr.graphqls", Input: sourceData("graph/expr.graphqls"), BuiltIn: false},
 	{Name: "graph/gqlapikeys.graphqls", Input: sourceData("graph/gqlapikeys.graphqls"), BuiltIn: false},
 	{Name: "graph/service.graphqls", Input: sourceData("graph/service.graphqls"), BuiltIn: false},
+	{Name: "graph/signals.graphqls", Input: sourceData("graph/signals.graphqls"), BuiltIn: false},
 	{Name: "graph/univkeys.graphqls", Input: sourceData("graph/univkeys.graphqls"), BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -7000,6 +7015,20 @@ func (ec *executionContext) field_Mutation_sendContactMethodVerification_args(ct
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (SendContactMethodVerificationInput, error) {
 			return ec.unmarshalNSendContactMethodVerificationInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSendContactMethodVerificationInput(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_sendSignal_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
+		func(ctx context.Context, v any) (SendSignalInput, error) {
+			return ec.unmarshalNSendSignalInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSendSignalInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -15909,6 +15938,50 @@ func (ec *executionContext) fieldContext_Mutation_deleteGQLAPIKey(ctx context.Co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteGQLAPIKey_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_sendSignal(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_sendSignal(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().SendSignal(ctx, fc.Args["input"].(SendSignalInput))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_sendSignal(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_sendSignal_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -27221,6 +27294,50 @@ func (ec *executionContext) unmarshalInputSendContactMethodVerificationInput(ctx
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputSendSignalInput(ctx context.Context, obj any) (SendSignalInput, error) {
+	var it SendSignalInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"dest", "serviceID", "params"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "dest":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dest"))
+			data, err := ec.unmarshalNDestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Dest = data
+		case "serviceID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ServiceID = data
+		case "params":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
+			data, err := ec.unmarshalOStringMap2map(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Params = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputServiceAlertStatsOptions(ctx context.Context, obj any) (ServiceAlertStatsOptions, error) {
 	var it ServiceAlertStatsOptions
 	if obj == nil {
@@ -33187,6 +33304,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "deleteGQLAPIKey":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteGQLAPIKey(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "sendSignal":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_sendSignal(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -39243,6 +39367,11 @@ func (ec *executionContext) unmarshalNDestinationInput2githubᚗcomᚋtargetᚋg
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNDestinationInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1(ctx context.Context, v any) (*gadb.DestV1, error) {
+	res, err := ec.unmarshalInputDestinationInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNDestinationType2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -40356,6 +40485,11 @@ func (ec *executionContext) unmarshalNScheduleTargetInput2githubᚗcomᚋtarget�
 
 func (ec *executionContext) unmarshalNSendContactMethodVerificationInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSendContactMethodVerificationInput(ctx context.Context, v any) (SendContactMethodVerificationInput, error) {
 	res, err := ec.unmarshalInputSendContactMethodVerificationInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNSendSignalInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSendSignalInput(ctx context.Context, v any) (SendSignalInput, error) {
+	res, err := ec.unmarshalInputSendSignalInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
