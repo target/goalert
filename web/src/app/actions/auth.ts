@@ -8,7 +8,9 @@ export const AUTH_LOGOUT = 'AUTH_LOGOUT'
 // the current session will be first made to the backend.
 //
 // AUTH_LOGOUT will be dispatched if, and after, the request completes.
-export function authLogout(performFetch = false) {
+export function authLogout(
+  performFetch = false,
+): { type: string } | (() => Promise<void>) {
   const payload = { type: AUTH_LOGOUT }
   if (!performFetch) return payload
   return () =>
