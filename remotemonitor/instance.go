@@ -60,7 +60,8 @@ func (i Instance) Validate() error {
 		return errors.New("phone is required")
 	}
 	if i.ErrorAPIKey == "" {
-		return errors.New("error API key is required")
+		// log warning, but allow it to be empty since it's possible the user only wants to use the monitor for testing and not error reporting
+		fmt.Printf("warning: instance %s does not have an error API key, so errors will not be reported for this instance\n", i.Location)
 	}
 
 	if i.GenericAPIKey == "" && i.EmailAPIKey == "" {
