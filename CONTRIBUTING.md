@@ -26,7 +26,7 @@ Patches are welcome, but we ask that any significant change start as an [issue](
 
 More information is available for [complex features](./docs/complex-features.md).
 
-Be sure to run `make check` and tests before opening a PR to catch common errors.
+Be sure to run `make check` and `make test` before opening a PR to catch common errors.
 
 ### UI Change Guidelines
 

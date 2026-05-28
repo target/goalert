@@ -104,6 +104,14 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		if stat == nil {
 			return nil, fmt.Errorf("could not find original notification for alert %d to %s", msg.AlertID, msg.Dest.String())
 		}
+		name, _, err := p.a.ServiceInfo(ctx, a.ServiceID)
+		if err != nil {
+			return nil, errors.Wrap(err, "lookup service info")
+		}
+		meta, err := p.a.Metadata(ctx, p.b.db, msg.AlertID)
+		if err != nil {
+			return nil, errors.Wrap(err, "lookup alert metadata")
+		}
 
 		var status notification.AlertState
 		switch e.Type() {
@@ -124,6 +132,8 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			Details:        a.Details,
 			NewAlertState:  status,
 			OriginalStatus: *stat,
+			ServiceName:    name,
+			Meta:           meta,
 		}
 	case notification.MessageTypeTest:
 		notifMsg = notification.Test{
