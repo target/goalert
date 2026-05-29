@@ -86,6 +86,7 @@ export default function DestinationInputDirect(
   }
 
   let iprops: Partial<InputProps> = {}
+  const multiline = props.fieldID === 'body_template'
 
   if (props.prefix) {
     iprops.startAdornment = (
@@ -132,6 +133,8 @@ export default function DestinationInputDirect(
           hintURL={props.hintURL}
         />
       }
+      multiline={multiline}
+      rows={multiline ? 8 : undefined}
       onChange={handleChange}
       value={trimPrefix(props.value, props.prefix || '')}
       error={!!props.error}
