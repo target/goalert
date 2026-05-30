@@ -28,7 +28,7 @@ require (
 	github.com/lib/pq v1.12.3
 	github.com/matcornic/hermes v1.3.0
 	github.com/mnako/letters v0.2.8
-	github.com/nyaruka/phonenumbers v1.7.4
+	github.com/nyaruka/phonenumbers v1.7.5
 	github.com/oauth2-proxy/mockoidc v0.0.0-20240214162133-caebfff84d25
 	github.com/pelletier/go-toml/v2 v2.3.1
 	github.com/pkg/errors v0.9.1
@@ -39,7 +39,7 @@ require (
 	github.com/riverqueue/river/rivertype v0.38.0
 	github.com/samber/slog-logrus/v2 v2.5.4
 	github.com/sirupsen/logrus v1.9.4
-	github.com/slack-go/slack v0.23.1
+	github.com/slack-go/slack v0.24.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	github.com/sqlc-dev/pqtype v0.3.0
