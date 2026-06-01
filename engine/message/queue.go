@@ -47,7 +47,7 @@ type destID struct {
 	DestType string
 }
 
-func newQueue(msgs []Message, now time.Time) *queue {
+func newQueue(global ThrottleConfig, msgs []Message, now time.Time) *queue {
 	q := &queue{
 		sent:    make([]Message, 0, len(msgs)),
 		pending: make(map[string][]Message),
@@ -59,7 +59,7 @@ func newQueue(msgs []Message, now time.Time) *queue {
 		destSent:    make(map[notification.DestID]time.Time),
 
 		cmThrottle:     NewThrottle(PerCMThrottle, now, false),
-		globalThrottle: NewThrottle(GlobalCMThrottle, now, true),
+		globalThrottle: NewThrottle(global, now, true),
 	}
 
 	for _, m := range msgs {

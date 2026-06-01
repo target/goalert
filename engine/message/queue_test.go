@@ -157,7 +157,7 @@ func TestQueue_Sort(t *testing.T) {
 	// shuffle order for testing
 	rand.Shuffle(len(messages), func(i, j int) { messages[i], messages[j] = messages[j], messages[i] })
 
-	q := newQueue(messages, n)
+	q := newQueue(GlobalCMThrottle(5, 5*time.Second), messages, n)
 
 	// limit the number expected messages to the number allowed to be sent in 15 min
 	rules := q.cmThrottle.cfg.Rules(Message{Type: notification.MessageTypeAlert, Dest: sms("")})
