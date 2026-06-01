@@ -78,7 +78,6 @@ export function QuerySetFavoriteButton({
         isFavorite={isFavorite}
         loading={!data && fetching}
         onClick={() => {
-          console.log(toTitleCase(type))
           commit(
             {
               input: { target: { id, type }, favorite: !isFavorite },

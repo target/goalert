@@ -185,6 +185,28 @@ test('Alerts', async ({ page, isMobile }) => {
   await expect(page.getByTestId('service-recent-events')).toContainText(
     'Closed',
   )
+
+  // Validate availability from EP page
+  await page.locator('a[href^="/escalation-policies/"]').click()
+  await page
+    .getByRole('link', {
+      name: 'Manage alerts specific to services using this policy',
+    })
+    .click()
+
+  // Wait for data-ql=true and data-ql-ready=true
+  await page.waitForSelector('[data-ql="true"][data-ql-ready="true"]')
+  await expect(page.getByText('No results')).toBeVisible()
+
+  await page.getByRole('tab', { name: 'CLOSED' }).click()
+  // ensure the tab has aria-selected=true
+  await expect(
+    page.getByRole('tab', { name: 'CLOSED', selected: true }),
+  ).toBeVisible()
+
+  await expect(
+    page.getByRole('link', { name: ' CLOSED ' + summary }),
+  ).toBeVisible()
 })
 
 test('Metric', async ({ page, isMobile }) => {

@@ -226,7 +226,7 @@ export default function QueryList(props: QueryListProps): React.JSX.Element {
   }
 
   return (
-    <Grid container spacing={2}>
+    <Grid container spacing={2} data-ql='true' data-ql-ready={!isLoading}>
       {renderList()}
       {!props.infiniteScroll && (
         <PageControls
