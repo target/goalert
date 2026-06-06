@@ -21,25 +21,25 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/yamux v0.1.2
 	github.com/jackc/pgtype v1.14.4
-	github.com/jackc/pgx/v5 v5.9.2
+	github.com/jackc/pgx/v5 v5.10.0
 	github.com/jackc/pgxlisten v0.0.0-20250802141604-12b92425684c
 	github.com/jmespath/go-jmespath v0.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.12.3
 	github.com/matcornic/hermes v1.3.0
 	github.com/mnako/letters v0.2.8
-	github.com/nyaruka/phonenumbers v1.7.5
+	github.com/nyaruka/phonenumbers v1.8.0
 	github.com/oauth2-proxy/mockoidc v0.0.0-20240214162133-caebfff84d25
 	github.com/pelletier/go-toml/v2 v2.3.1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.23.2
-	github.com/riverqueue/river v0.38.0
-	github.com/riverqueue/river/riverdriver/riverdatabasesql v0.38.0
-	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.38.0
-	github.com/riverqueue/river/rivertype v0.38.0
+	github.com/riverqueue/river v0.39.0
+	github.com/riverqueue/river/riverdriver/riverdatabasesql v0.39.0
+	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.39.0
+	github.com/riverqueue/river/rivertype v0.39.0
 	github.com/samber/slog-logrus/v2 v2.5.4
 	github.com/sirupsen/logrus v1.9.4
-	github.com/slack-go/slack v0.24.0
+	github.com/slack-go/slack v0.25.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	github.com/sqlc-dev/pqtype v0.3.0
@@ -147,9 +147,9 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riverqueue/apiframe v0.0.0-20260428012848-22cd8d31a740 // indirect
 	github.com/riverqueue/river/cmd/river v0.35.1 // indirect
-	github.com/riverqueue/river/riverdriver v0.38.0 // indirect
+	github.com/riverqueue/river/riverdriver v0.39.0 // indirect
 	github.com/riverqueue/river/riverdriver/riversqlite v0.35.1 // indirect
-	github.com/riverqueue/river/rivershared v0.38.0 // indirect
+	github.com/riverqueue/river/rivershared v0.39.0 // indirect
 	github.com/riza-io/grpc-go v0.2.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
