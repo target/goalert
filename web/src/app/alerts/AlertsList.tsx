@@ -26,6 +26,7 @@ import { Target } from 'web/src/schema'
 
 type AlertsListProps = {
   secondaryActions?: ReactElement
+  cardHeader?: ReactElement
 } & ({ serviceID: string } | { policyID: string })
 
 interface MutationVariables {
@@ -374,10 +375,13 @@ export default function AlertsList(props: AlertsListProps): React.JSX.Element {
             )}
             createLabel='Alert'
             cardHeader={
-              <Hidden lgDown>
-                <AlertsListControls />
-              </Hidden>
+              props.cardHeader ?? (
+                <Hidden lgDown>
+                  <AlertsListControls />
+                </Hidden>
+              )
             }
+            pause={policyID ? !policyInfoQuery.data && policyInfoQuery.fetching : false}
             checkboxActions={getActions()}
           />
         </Grid>
