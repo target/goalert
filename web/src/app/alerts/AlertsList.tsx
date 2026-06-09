@@ -381,7 +381,11 @@ export default function AlertsList(props: AlertsListProps): React.JSX.Element {
                 </Hidden>
               )
             }
-            pause={policyID ? !policyInfoQuery.data && policyInfoQuery.fetching : false}
+            pause={
+              policyID
+                ? !policyInfoQuery.data && policyInfoQuery.fetching
+                : false
+            }
             checkboxActions={getActions()}
           />
         </Grid>
