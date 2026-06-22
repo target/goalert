@@ -661,8 +661,7 @@ func (s *Store) createOrUpdate(ctx context.Context, a *Alert, meta map[string]st
 		return nil, false, err
 	}
 
-	// Set metadata only if meta is not nil and isNew is true
-	if meta != nil && n != nil {
+	if len(meta) > 0 && n != nil {
 		err = s.SetMetadataTx(ctx, tx, n.ID, meta)
 		if err != nil {
 			return nil, false, err
