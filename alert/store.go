@@ -34,6 +34,7 @@ type Store struct {
 	createUpdNew   *sql.Stmt
 	createUpdAck   *sql.Stmt
 	createUpdClose *sql.Stmt
+	updateExistingByDedup *sql.Stmt
 
 	updateByStatusAndService *sql.Stmt
 	updateByIDAndStatus      *sql.Stmt
@@ -117,6 +118,12 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 				dedup_key = $2 and
 				status != 'closed'
 			RETURNING id, summary, details, created_at
+		`),
+
+		updateExistingByDedup: p(`
+		UPDATE alerts
+		SET summary = $1, details = $2
+		WHERE service_id = $3 AND dedup_key = $4 AND status != 'closed'
 		`),
 
 		getServiceID: p("SELECT service_id FROM alerts WHERE id = $1"),
@@ -234,7 +241,7 @@ func (s *Store) canTouchAlert(ctx context.Context, alertID int) error {
 // in maintenance mode, there are no steps on the escalation policy, or if the
 // alert has already been escalated since the given time.
 func (s *Store) EscalateAsOf(ctx context.Context, id int, t time.Time) error {
-	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
+	err := permission.LimitCheckAny(ctx, permission.System, permission.User, permission.Service)
 	if err != nil {
 		return err
 	}
@@ -251,6 +258,16 @@ func (s *Store) EscalateAsOf(ctx context.Context, id int, t time.Time) error {
 	}
 	if err != nil {
 		return fmt.Errorf("lock alert: %w", err)
+	}
+	if permission.Service(ctx) {
+		var svcID string
+		err = tx.StmtContext(ctx, s.getServiceID).QueryRowContext(ctx, id).Scan(&svcID)
+		if err != nil {
+			return fmt.Errorf("get service for alert: %w", err)
+		}
+		if err = permission.LimitCheckAny(ctx, permission.MatchService(svcID)); err != nil {
+			return err
+		}
 	}
 	if lck.Status == gadb.EnumAlertStatusClosed {
 		return logError{isAlreadyClosed: true, alertID: id, _type: alertlog.TypeClosed, logDB: s.logDB}
@@ -553,11 +570,24 @@ func (s *Store) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Al
 	switch n.Status {
 	case StatusTriggered:
 		var m alertlog.CreatedMetaData
+		newSummary, newDetails := n.Summary, n.Details
 		err = tx.Stmt(s.createUpdNew).
 			QueryRowContext(ctx, n.Summary, n.Details, n.ServiceID, n.Source, n.DedupKey()).
 			Scan(&n.ID, &n.Summary, &n.Details, &n.Status, &n.Source, &n.CreatedAt, &inserted)
 		if !inserted {
 			logType = alertlog.TypeDuplicateSupressed
+			if newSummary != "" || newDetails != "" {
+				_, err =  tx.Stmt(s.updateExistingByDedup).ExecContext(ctx, newSummary, newDetails, n.ServiceID, n.DedupKey())
+				if err != nil {
+					return nil, false, err
+				}
+				if newSummary != "" {
+					n.Summary = newSummary
+				}
+				if newDetails != "" {
+					n.Details = newDetails
+				}
+			}
 		} else {
 			logType = alertlog.TypeCreated
 			hasSteps, err := gadb.New(tx).Alert_ServiceEPHasSteps(ctx, uuid.MustParse(n.ServiceID))
@@ -632,7 +662,7 @@ func (s *Store) createOrUpdate(ctx context.Context, a *Alert, meta map[string]st
 	}
 
 	// Set metadata only if meta is not nil and isNew is true
-	if meta != nil && isNew {
+	if meta != nil && n != nil {
 		err = s.SetMetadataTx(ctx, tx, n.ID, meta)
 		if err != nil {
 			return nil, false, err
