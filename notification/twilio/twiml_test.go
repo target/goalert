@@ -122,6 +122,41 @@ func TestTwiMLResponse(t *testing.T) {
 </Response>`, string(data))
 	})
 
+	t.Run("translated (fr-CA falls back to fr catalog)", func(t *testing.T) {
+		var mockConfig config.Config
+		mockConfig.Twilio.VoiceLanguage = "fr-CA"
+		ctx := mockConfig.Context(context.Background())
+		rec := httptest.NewRecorder()
+
+		r := newTwiMLResponse(ctx, rec)
+		r.sayT("Goodbye.")
+		r.Sayf("To acknowledge, press %s.", digitAck)
+		r.Redirect("http://example.com")
+
+		data, err := io.ReadAll(rec.Result().Body)
+		assert.NoError(t, err)
+		// fr-CA keeps its regional language attribute, text is the fr catalog.
+		assert.Contains(t, string(data), `<Say language="fr-CA">`)
+		assert.Contains(t, string(data), "Au revoir.")
+		assert.Contains(t, string(data), "Pour acquitter, tapez 4.")
+	})
+
+	t.Run("untranslated language falls back to English text and en-US", func(t *testing.T) {
+		var mockConfig config.Config
+		mockConfig.Twilio.VoiceLanguage = "xx-YY" // no such catalog
+		ctx := mockConfig.Context(context.Background())
+		rec := httptest.NewRecorder()
+
+		r := newTwiMLResponse(ctx, rec)
+		r.sayT("Goodbye.")
+		r.Redirect("http://example.com")
+
+		data, err := io.ReadAll(rec.Result().Body)
+		assert.NoError(t, err)
+		assert.Contains(t, string(data), `<Say language="en-US">`)
+		assert.Contains(t, string(data), "Goodbye.")
+	})
+
 	t.Run("ack test", func(t *testing.T) {
 		var mockConfig config.Config
 		ctx := mockConfig.Context(context.Background())

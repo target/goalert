@@ -4,15 +4,17 @@ import (
 	"bytes"
 	"context"
 	"encoding/xml"
-	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/target/goalert/config"
+	"golang.org/x/text/message"
 )
 
 type twiMLResponse struct {
 	say []string
+
+	p *message.Printer
 
 	voiceName     string
 	voiceLanguage string
@@ -32,9 +34,11 @@ type twiMLResponse struct {
 
 func newTwiMLResponse(ctx context.Context, w http.ResponseWriter) *twiMLResponse {
 	cfg := config.FromContext(ctx)
+	p, voiceLanguage := voicePrinter(cfg.Twilio.VoiceLanguage)
 	return &twiMLResponse{
+		p:             p,
 		voiceName:     cfg.Twilio.VoiceName,
-		voiceLanguage: cfg.Twilio.VoiceLanguage,
+		voiceLanguage: voiceLanguage,
 		w:             w,
 	}
 }
@@ -78,7 +82,9 @@ func (t *twiMLResponse) AddOptions(options ...menuOption) {
 		case optionStop:
 			t.Sayf("To disable voice notifications to this number, press %s.", digitStop)
 		case optionRepeat:
-			t.Sayf("To repeat this message, press %s.", sayRepeat)
+			// Spoken as a full sentence (rather than interpolating the symbol
+			// word) so that "star" can be translated per language.
+			t.sayT("To repeat this message, press star.")
 		case optionAck:
 			t.expectResponse = true
 			t.Sayf("To acknowledge, press %s.", digitAck)
@@ -103,30 +109,43 @@ func (t *twiMLResponse) AddOptions(options ...menuOption) {
 func (t *twiMLResponse) Gather(url string) {
 	t.gatherURL = url
 	if !t.expectResponse {
-		t.Say("If you are done, you may simply hang up.")
+		t.sayT("If you are done, you may simply hang up.")
 	}
 	t.AddOptions(optionRepeat)
 	t.sendResponse()
 }
 
 func (t *twiMLResponse) SayUnknownDigit() *twiMLResponse {
-	t.Say("Sorry, I didn't understand that.")
+	t.sayT("Sorry, I didn't understand that.")
 	return t
 }
 
+// Say appends a raw, already-built message to be spoken. It must NOT be used
+// for dynamic content that may contain '%' (e.g. alert summaries) — use it for
+// pre-built bodies only. Translatable literals go through sayT or Sayf.
 func (t *twiMLResponse) Say(text string) *twiMLResponse {
 	t.say = append(t.say, text)
 
 	return t
 }
 
+// sayT speaks a translatable literal message. The provided key is the English
+// source string; it is translated to the configured voice language via the
+// voice catalog (falling back to the key itself when untranslated).
+func (t *twiMLResponse) sayT(key string) *twiMLResponse {
+	return t.Say(t.p.Sprintf(key))
+}
+
+// Sayf speaks a translatable, formatted message. The format string is the
+// English source string (a catalog key); args are substituted after
+// translation.
 func (t *twiMLResponse) Sayf(format string, args ...interface{}) *twiMLResponse {
-	return t.Say(fmt.Sprintf(format, args...))
+	return t.Say(t.p.Sprintf(format, args...))
 }
 
 func (t *twiMLResponse) Hangup() {
 	t.hangup = true
-	t.Say("Goodbye.")
+	t.sayT("Goodbye.")
 	t.sendResponse()
 }
 
