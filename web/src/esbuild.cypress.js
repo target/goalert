@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* eslint @typescript-eslint/no-var-requires: 0 */
 /* eslint @typescript-eslint/no-require-imports: 0 */
+const path = require('path')
 const glob = require('glob')
 
 const intEntry = {}
@@ -9,7 +10,7 @@ glob.globSync(path.join(__dirname, 'cypress/e2e/*')).forEach((file) => {
   intEntry['integration/' + name] = file
 })
 
-async function run(): Promise<void> {
+async function run() {
   const method = process.argv.includes('--watch') ? 'context' : 'build'
 
   const ctx = await require('esbuild')[method]({

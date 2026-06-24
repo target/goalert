@@ -32,7 +32,7 @@ const dynamicPublicPathPlugin = {
   },
 }
 
-async function run(): Promise<void> {
+async function run() {
   const method = process.argv.includes('--watch') ? 'context' : 'build'
 
   if (!process.env.GOALERT_VERSION)
