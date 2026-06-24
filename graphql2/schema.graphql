@@ -1044,6 +1044,7 @@ type AlertPendingNotification {
 input AlertRecentEventsOptions {
   limit: Int
   after: String = ""
+  since: ISOTimestamp
 }
 
 type AlertLogEntryConnection {
@@ -1052,7 +1053,15 @@ type AlertLogEntryConnection {
 }
 
 type AlertLogEntry {
+  """
+  The unique ID of the log entry.
+  """
   id: Int!
+
+  """
+  The ID of the alert this log entry is associated with.
+  """
+  alertID: Int!
   timestamp: ISOTimestamp!
   message: String!
   state: NotificationState
@@ -1101,6 +1110,11 @@ type Service {
   heartbeatMonitors: [HeartbeatMonitor!]!
 
   notices: [Notice!]!
+
+  """
+  Recent log entries for all alerts belonging to the service.
+  """
+  recentEvents(input: AlertRecentEventsOptions): AlertLogEntryConnection!
 }
 
 input CreateIntegrationKeyInput {

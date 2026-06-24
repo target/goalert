@@ -3,9 +3,12 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/expflag"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/permission"
@@ -14,6 +17,7 @@ import (
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
+	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
 )
@@ -29,6 +33,43 @@ func (a *Mutation) ReEncryptKeyringsAndConfig(ctx context.Context) (bool, error)
 	}
 
 	err = keyring.ReEncryptAll(ctx, a.DB, a.EncryptionKeys)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (a *Mutation) SendSignal(ctx context.Context, input graphql2.SendSignalInput) (bool, error) {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return false, err
+	}
+
+	if !expflag.ContextHas(ctx, expflag.UnivKeys) {
+		return false, errors.New("feature not enabled")
+	}
+
+	svcID, err := validate.ParseUUID("ServiceID", input.ServiceID)
+	if err != nil {
+		return false, err
+	}
+
+	destID, err := a.NCStore.MapDestToID(ctx, a.DB, *input.Dest)
+	if err != nil {
+		return false, err
+	}
+
+	data, err := json.Marshal(input.Params)
+	if err != nil {
+		return false, err
+	}
+
+	err = gadb.New(a.DB).IntKeyInsertSignalMessage(ctx, gadb.IntKeyInsertSignalMessageParams{
+		DestID:    destID,
+		ServiceID: svcID,
+		Params:    data,
+	})
 	if err != nil {
 		return false, err
 	}

@@ -42,7 +42,6 @@ func (app *App) initGraphQL(ctx context.Context) error {
 		SWO:                 app.cfg.SWO,
 		APIKeyStore:         app.APIKeyStore,
 		DestReg:             app.DestRegistry,
-		EventBus:            app.EventBus,
 		EncryptionKeys:      app.cfg.EncryptionKeys,
 	}
 

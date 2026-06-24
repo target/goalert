@@ -68,8 +68,9 @@ type AlertPendingNotification struct {
 }
 
 type AlertRecentEventsOptions struct {
-	Limit *int    `json:"limit,omitempty"`
-	After *string `json:"after,omitempty"`
+	Limit *int       `json:"limit,omitempty"`
+	After *string    `json:"after,omitempty"`
+	Since *time.Time `json:"since,omitempty"`
 }
 
 type AlertSearchOptions struct {
@@ -684,6 +685,12 @@ type ScheduleTargetInput struct {
 
 type SendContactMethodVerificationInput struct {
 	ContactMethodID string `json:"contactMethodID"`
+}
+
+type SendSignalInput struct {
+	Dest      *gadb.DestV1      `json:"dest"`
+	ServiceID string            `json:"serviceID"`
+	Params    map[string]string `json:"params,omitempty"`
 }
 
 type ServiceAlertStatsOptions struct {

@@ -4,6 +4,7 @@ import List from '@mui/material/List'
 import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
 import { styles as globalStyles } from '../styles/materialStyles'
+import { applicationName } from '../env'
 import {
   Group,
   Layers,
@@ -73,7 +74,7 @@ export default function NavBar(): React.JSX.Element {
           {logo}
         </a>
         <Typography variant='h5' sx={{ pl: 1 }}>
-          <b>GoAlert</b>
+          <b>{applicationName}</b>
         </Typography>
       </div>
       <Divider />

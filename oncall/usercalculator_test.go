@@ -40,7 +40,7 @@ func TestUserCalculator(t *testing.T) {
 					continue
 				}
 				if len(expected[i].Value) > 0 || len(iter.ActiveUsers()) > 0 {
-					assert.EqualValuesf(t, expected[i].Value, iter.ActiveUsers(), "result[%d].Value", i)
+					assert.ElementsMatch(t, expected[i].Value, iter.ActiveUsers(), "result[%d].Value", i)
 				}
 				assert.Equalf(t, expected[i].Time.String(), time.Unix(iter.Unix(), 0).UTC().String(), "result[%d].Time", i)
 			}

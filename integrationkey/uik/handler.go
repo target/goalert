@@ -13,7 +13,6 @@ import (
 	"github.com/expr-lang/expr/vm"
 	"github.com/google/uuid"
 	"github.com/target/goalert/alert"
-	"github.com/target/goalert/event"
 	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/integrationkey"
@@ -26,7 +25,6 @@ type Handler struct {
 	intStore   *integrationkey.Store
 	alertStore *alert.Store
 	db         TxAble
-	evt        *event.Bus
 }
 
 type TxAble interface {
@@ -41,8 +39,8 @@ const (
 	LogStatusSendError  = "send_error"
 )
 
-func NewHandler(db TxAble, intStore *integrationkey.Store, aStore *alert.Store, evt *event.Bus) *Handler {
-	return &Handler{intStore: intStore, db: db, alertStore: aStore, evt: evt}
+func NewHandler(db TxAble, intStore *integrationkey.Store, aStore *alert.Store) *Handler {
+	return &Handler{intStore: intStore, db: db, alertStore: aStore}
 }
 
 func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1) (inserted bool, err error) {
@@ -105,7 +103,7 @@ func (h *Handler) upsertUikLog(
 	status string,
 	errMsg string,
 ) error {
-	if !expflag.ContextHas(ctx, expflag.UikLogs) {
+	if !expflag.ContextHas(ctx, expflag.UIKDebug) {
 		return nil
 	}
 	const maxSize = 2048
@@ -228,10 +226,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		insertedAny = insertedAny || inserted
-	}
-
-	if insertedAny {
-		event.Send(ctx, h.evt, EventNewSignals{ServiceID: permission.ServiceNullUUID(ctx).UUID})
 	}
 
 	_ = h.upsertUikLog(ctx, keyID, req, data, LogStatusSuccess, "")
