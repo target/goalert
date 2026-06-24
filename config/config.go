@@ -107,7 +107,7 @@ type Config struct {
 		Enable bool `public:"true" info:"Enables sending and processing of Voice and SMS messages through the Twilio notification provider."`
 
 		VoiceName     string `info:"The Twilio voice to use for Text To Speech for phone calls. See https://www.twilio.com/docs/voice/twiml/say/text-speech#polly-standard-and-neural-voices"`
-		VoiceLanguage string `info:"The Twilio voice language to use for Text To Speech for phone calls. See https://www.twilio.com/docs/voice/twiml/say/text-speech#polly-standard-and-neural-voices"`
+		VoiceLanguage string `info:"The Twilio voice language to use for Text To Speech for phone calls. It also selects the spoken language of GoAlert's call prompts when a translation is available (otherwise English is used). See https://www.twilio.com/docs/voice/twiml/say/text-speech#polly-standard-and-neural-voices"`
 
 		AccountSID         string
 		AuthToken          string `password:"true" info:"The primary Auth Token for Twilio. Must be primary unless Alternate Auth Token is set. This token is used for outgoing requests."`

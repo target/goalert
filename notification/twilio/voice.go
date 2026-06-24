@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/base64"
 	stderrors "errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -23,6 +22,7 @@ import (
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
+	"golang.org/x/text/message"
 )
 
 // CallType indicates a supported Twilio voice call type.
@@ -55,7 +55,6 @@ const (
 	digitOldAck   = "8"
 	digitOldClose = "9"
 	digitEscalate = "5"
-	sayRepeat     = "star"
 )
 
 var (
@@ -75,7 +74,7 @@ func NewVoiceDest(number string) gadb.DestV1 {
 	return gadb.NewDestV1(DestTypeTwilioVoice, FieldPhoneNumber, number)
 }
 
-func voiceErrorMessage(ctx context.Context, err error) (string, error) {
+func voiceErrorMessage(ctx context.Context, p *message.Printer, err error) (string, error) {
 	var e alert.LogEntryFetcher
 	if errors.As(err, &e) {
 		// we pass a 'sudo' context to give permission
@@ -86,7 +85,7 @@ func voiceErrorMessage(ctx context.Context, err error) (string, error) {
 				log.Log(sCtx, errors.Wrap(err, "fetch log entry"))
 			} else {
 				// Stripping off anything in between parenthesis
-				msg = "Already " + pRx.ReplaceAllString(entry.String(ctx), "")
+				msg = p.Sprintf("Already %s", pRx.ReplaceAllString(entry.String(ctx), ""))
 			}
 		})
 		if msg != "" {
@@ -95,17 +94,17 @@ func voiceErrorMessage(ctx context.Context, err error) (string, error) {
 	}
 	// In case we don't get a log entry, respond with generic messages.
 	if alert.IsAlreadyClosed(err) {
-		return "Alert is already closed.", nil
+		return p.Sprintf("Alert is already closed."), nil
 	}
 	if alert.IsAlreadyAcknowledged(err) {
-		return "Alert is already acknowledged.", nil
+		return p.Sprintf("Alert is already acknowledged."), nil
 	}
 	if validation.IsClientError(err) {
-		return "Error: " + stderrors.Unwrap(err).Error(), nil
+		return p.Sprintf("Error: %s", stderrors.Unwrap(err).Error()), nil
 	}
 
 	// Error is something else.
-	return "System error. Please visit the dashboard.", err
+	return p.Sprintf("System error. Please visit the dashboard."), err
 }
 
 // NewVoice will send out the initial Call to Twilio, specifying all details needed for Twilio to make the first call to the end user
@@ -193,7 +192,9 @@ func (v *Voice) SendMessage(ctx context.Context, msg notification.Message) (*not
 		return nil, err
 	}
 
-	msgBody, err := buildMessage(fmt.Sprintf("Hello! This is %s", cfg.ApplicationName()), msg)
+	p, _ := voicePrinter(cfg.Twilio.VoiceLanguage)
+	prefix := p.Sprintf("Hello! This is %s", cfg.ApplicationName())
+	msgBody, err := buildMessage(p, prefix, msg)
 	if err != nil {
 		return nil, err
 	}
@@ -333,7 +334,7 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		resp.Say("Unenrolled.")
+		resp.sayT("Unenrolled.")
 		resp.Hangup()
 		return
 	case digitGoBack: // Go back to main menu
@@ -408,13 +409,13 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 			q.Set("retry_digits", digits)
 
 			newTwiMLResponse(ctx, w).
-				Say("One moment please.").
+				sayT("One moment please.").
 				RedirectPauseSec(v.callbackURL(ctx, q, CallType(q.Get("type"))), 5)
 
 			return true
 		}
 
-		newTwiMLResponse(ctx, w).Say("An error has occurred. Please use the dashboard to manage alerts.").Hangup()
+		newTwiMLResponse(ctx, w).sayT("An error has occurred. Please use the dashboard to manage alerts.").Hangup()
 		return true
 	}
 
@@ -523,7 +524,7 @@ func (v *Voice) ServeInbound(w http.ResponseWriter, req *http.Request) {
 		fallthrough
 	case "", digitRepeat:
 		resp.Sayf("Hello! This is %s. ", cfg.ApplicationName())
-		resp.Say("Please use the application dashboard to manage alerts.")
+		resp.sayT("Please use the application dashboard to manage alerts.")
 		resp.AddOptions(optionStop)
 		resp.Gather(v.callbackURL(ctx, call.Q, ""))
 		return
@@ -576,26 +577,37 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 
 	case digitAck, digitClose, digitEscalate: // Acknowledge , Escalate and Close cases
 		var result notification.Result
-		var msg string
+		var msgKey string
+		bundle := call.Q.Get(msgParamBundle) == "1"
 		switch call.Digits {
 		case digitClose:
 			result = notification.ResultResolve
-			msg = "Closed"
+			if bundle {
+				msgKey = "Closed all alerts."
+			} else {
+				msgKey = "Closed"
+			}
 		case digitEscalate:
 			result = notification.ResultEscalate
-			msg = "Escalation requested"
+			if bundle {
+				msgKey = "Escalation requested all alerts."
+			} else {
+				msgKey = "Escalation requested"
+			}
 		default:
 			result = notification.ResultAcknowledge
-			msg = "Acknowledged"
+			if bundle {
+				msgKey = "Acknowledged all alerts."
+			} else {
+				msgKey = "Acknowledged"
+			}
 		}
-		if call.Q.Get(msgParamBundle) == "1" {
-			msg += " all alerts."
-		}
+		msg := resp.p.Sprintf(msgKey)
 		err := doDeadline(ctx, func() error {
 			return v.r.Receive(ctx, call.msgID, result)
 		})
 		if err != nil {
-			msg, err = voiceErrorMessage(ctx, err)
+			msg, err = voiceErrorMessage(ctx, resp.p, err)
 		}
 		if errResp(false, errors.Wrap(err, "process response"), "Failed to process notification response.") {
 			return
@@ -606,27 +618,29 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// buildMessage is a function that will build the VoiceOptions object with the proper message contents
-func buildMessage(prefix string, msg notification.Message) (message string, err error) {
+// buildMessage builds the spoken body of a voice call for the given message,
+// translated via the supplied printer. The prefix is prepended (and is itself
+// already translated by the caller).
+func buildMessage(p *message.Printer, prefix string, msg notification.Message) (body string, err error) {
 	if prefix == "" {
 		return "", errors.New("buildMessage error: no prefix provided")
 	}
 
 	switch t := msg.(type) {
 	case notification.AlertBundle:
-		message = fmt.Sprintf("%s with alert notifications. Service '%s' has %d unacknowledged alerts.", prefix, t.ServiceName, t.Count)
+		body = p.Sprintf("%s with alert notifications. Service '%s' has %d unacknowledged alerts.", prefix, t.ServiceName, t.Count)
 	case notification.Alert:
 		if t.Summary == "" {
-			t.Summary = "No summary provided"
+			t.Summary = p.Sprintf("No summary provided")
 		}
-		message = fmt.Sprintf("%s with an alert notification. %s.", prefix, t.Summary)
+		body = p.Sprintf("%s with an alert notification. %s.", prefix, t.Summary)
 	case notification.AlertStatus:
-		message = rmParen.ReplaceAllString(t.LogEntry, "")
-		message = fmt.Sprintf("%s with a status update for alert '%s'. %s", prefix, t.Summary, message)
+		logEntry := rmParen.ReplaceAllString(t.LogEntry, "")
+		body = p.Sprintf("%s with a status update for alert '%s'. %s", prefix, t.Summary, logEntry)
 	case notification.Test:
-		message = fmt.Sprintf("%s with a test message.", prefix)
+		body = p.Sprintf("%s with a test message.", prefix)
 	case notification.Verification:
-		message = fmt.Sprintf(
+		body = p.Sprintf(
 			"%s with your %d-digit verification code. The code is: %s. Again, your %d-digit verification code is: %s.",
 			prefix, len(t.Code), spellCode(t.Code), len(t.Code), spellCode(t.Code),
 		)

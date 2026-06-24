@@ -16,9 +16,11 @@ func TestSpellNumber(t *testing.T) {
 
 func TestBuildMessage(t *testing.T) {
 	prefix := "This is GoAlert"
+	p, _ := voicePrinter("")
 
 	// Test Notification
 	result, err := buildMessage(
+		p,
 		prefix,
 		notification.Test{},
 	)
@@ -27,6 +29,7 @@ func TestBuildMessage(t *testing.T) {
 
 	// AlertBundle Notification
 	result, err = buildMessage(
+		p,
 		prefix,
 		notification.AlertBundle{
 			Base:        nfymsg.Base{ID: "2"},
@@ -40,6 +43,7 @@ func TestBuildMessage(t *testing.T) {
 
 	// Alert Notification
 	result, err = buildMessage(
+		p,
 		prefix,
 		notification.Alert{
 			Base:    nfymsg.Base{ID: "2"},
@@ -53,6 +57,7 @@ func TestBuildMessage(t *testing.T) {
 
 	// AlertStatus Notification
 	result, err = buildMessage(
+		p,
 		prefix,
 		notification.AlertStatus{
 			Base:     nfymsg.Base{ID: "2"},
@@ -67,6 +72,7 @@ func TestBuildMessage(t *testing.T) {
 
 	// Verification Notification
 	result, err = buildMessage(
+		p,
 		prefix,
 		notification.Verification{
 			Base: nfymsg.Base{ID: "2"},
@@ -78,6 +84,7 @@ func TestBuildMessage(t *testing.T) {
 
 	// Bad Type
 	result, err = buildMessage(
+		p,
 		prefix,
 		notification.ScheduleOnCallUsers{
 			Base:         nfymsg.Base{ID: "2"},
@@ -91,6 +98,7 @@ func TestBuildMessage(t *testing.T) {
 
 	// Missing prefix
 	result, err = buildMessage(
+		p,
 		"",
 		notification.Test{},
 	)
@@ -99,6 +107,7 @@ func TestBuildMessage(t *testing.T) {
 
 	// no input
 	result, err = buildMessage(
+		p,
 		prefix,
 		nil,
 	)
@@ -107,8 +116,10 @@ func TestBuildMessage(t *testing.T) {
 }
 
 func BenchmarkBuildMessage(b *testing.B) {
+	p, _ := voicePrinter("")
 	for i := 0; i < b.N; i++ {
 		_, _ = buildMessage(
+			p,
 			fmt.Sprintf("%d", i),
 			notification.Test{
 				Base: nfymsg.Base{
