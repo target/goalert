@@ -91,7 +91,7 @@ func TestMultiListener_Accept(t *testing.T) {
 
 		go func() {
 			time.Sleep(10 * time.Millisecond) // wait until Accept is called
-			m.Close()
+			_ = m.Close()
 		}()
 
 		err = withTimeout(t, "accept", func() error { _, err := m.Accept(); return err })

@@ -70,6 +70,7 @@ func (r *Rule) scanFrom(s scanner) error {
 	}
 	return nil
 }
+
 func (r Rule) readFields() []interface{} {
 	f := []interface{}{
 		&r.ID,
@@ -108,7 +109,7 @@ func (r Rule) StartTime(t time.Time) time.Time {
 	t = t.Truncate(time.Minute)
 
 	w := t.Weekday()
-	isTodayEnabled := r.WeekdayFilter.Day(w)
+	isTodayEnabled := r.Day(w)
 
 	if isTodayEnabled && r.Start == r.End {
 		return r.Start.FirstOfDay(r.WeekdayFilter.StartTime(t))
@@ -116,7 +117,7 @@ func (r Rule) StartTime(t time.Time) time.Time {
 
 	if r.Start < r.End {
 		if !isTodayEnabled {
-			return r.Start.FirstOfDay(r.WeekdayFilter.NextActive(t))
+			return r.Start.FirstOfDay(r.NextActive(t))
 		}
 
 		// same-day shift, was active today
@@ -127,11 +128,11 @@ func (r Rule) StartTime(t time.Time) time.Time {
 		}
 
 		// shift has ended for the day, find the next start
-		return r.Start.FirstOfDay(r.WeekdayFilter.NextActive(t))
+		return r.Start.FirstOfDay(r.NextActive(t))
 	}
 
 	end := r.End.LastOfDay(t)
-	if r.WeekdayFilter.Day(w-1) && t.Before(end) {
+	if r.Day(w-1) && t.Before(end) {
 		// yesterday's shift is still active
 		return r.Start.FirstOfDay(t.AddDate(0, 0, -1))
 	}
@@ -142,7 +143,7 @@ func (r Rule) StartTime(t time.Time) time.Time {
 	}
 
 	// find the next start time
-	return r.Start.FirstOfDay(r.WeekdayFilter.NextActive(t))
+	return r.Start.FirstOfDay(r.NextActive(t))
 }
 
 // EndTime will return the next time the rule would be inactive.
@@ -165,14 +166,14 @@ func (r Rule) EndTime(t time.Time) time.Time {
 	}
 
 	// 24-hour rule, end time of the next inactive day
-	return r.End.LastOfDay(r.WeekdayFilter.NextInactive(start))
+	return r.End.LastOfDay(r.NextInactive(start))
 }
 
 // NeverActive returns true if the rule will never be active.
-func (r Rule) NeverActive() bool { return r.WeekdayFilter.IsNever() }
+func (r Rule) NeverActive() bool { return r.IsNever() }
 
 // AlwaysActive will return true if the rule will always be active.
-func (r Rule) AlwaysActive() bool { return r.WeekdayFilter.IsAlways() && r.Start == r.End }
+func (r Rule) AlwaysActive() bool { return r.IsAlways() && r.Start == r.End }
 
 // IsActive determines if the rule is active in the given moment in time, in the location of t.
 func (r Rule) IsActive(t time.Time) bool {

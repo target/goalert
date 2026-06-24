@@ -29,7 +29,6 @@ func (app *App) initEngine(ctx context.Context) error {
 	}
 	app.notificationManager = notification.NewManager(app.DestRegistry)
 	app.Engine, err = engine.NewEngine(ctx, app.db, &engine.Config{
-		EventBus:            app.EventBus,
 		AlertStore:          app.AlertStore,
 		AlertLogStore:       app.AlertLogStore,
 		ContactMethodStore:  app.ContactMethodStore,
@@ -44,8 +43,6 @@ func (app *App) initEngine(ctx context.Context) error {
 		DestRegistry:        app.DestRegistry,
 
 		ConfigSource: app.ConfigStore,
-
-		Keys: app.cfg.EncryptionKeys,
 
 		CycleTime: app.cfg.EngineCycleTime,
 

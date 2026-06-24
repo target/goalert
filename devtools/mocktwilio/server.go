@@ -137,10 +137,9 @@ func (s *Server) id(prefix string) string {
 }
 
 // Close will shutdown the server loop.
-func (s *Server) Close() error {
+func (s *Server) Close() {
 	close(s.shutdown)
 	s.workers.Wait()
-	return nil
 }
 
 // wait will wait the specified amount of time, but return

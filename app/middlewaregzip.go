@@ -45,7 +45,7 @@ func wrapGzip(next http.Handler) http.Handler {
 			w.Header().Set("Vary", "Accept-Encoding")
 			w.Header().Del("Content-Length")
 			cleanup = func() {
-				gz.Close()
+				_ = gz.Close()
 				gzPool.Put(gz)
 			}
 			output = gz

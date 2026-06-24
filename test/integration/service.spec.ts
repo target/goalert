@@ -120,6 +120,11 @@ test('Alerts', async ({ page, isMobile }) => {
   name = 'pw-service ' + c.name()
   await createService(page, name, description)
 
+  // Ensure recent events are empty
+  await expect(page.getByTestId('service-recent-events')).toContainText(
+    'No recent events in the selected time range',
+  )
+
   // Go to the alerts page
   await page
     .getByRole('link', {
@@ -170,6 +175,16 @@ test('Alerts', async ({ page, isMobile }) => {
   } else {
     await page.getByRole('link', { name, exact: true }).click()
   }
+
+  await expect(page.getByTestId('service-recent-events')).toContainText(
+    'Created',
+  )
+  await expect(page.getByTestId('service-recent-events')).toContainText(
+    'Acknowledged',
+  )
+  await expect(page.getByTestId('service-recent-events')).toContainText(
+    'Closed',
+  )
 })
 
 test('Metric', async ({ page, isMobile }) => {

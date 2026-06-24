@@ -114,6 +114,35 @@ export default function IntegrationKeyList(props: {
   if (fetching && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
+  const uikActions = (key: IntegrationKey): React.ReactNode => {
+    return (
+      <Grid container spacing={2} alignItems='center' wrap='nowrap'>
+        {key.type === 'universal' && (
+          <Grid item>
+            <AppLink to={key.id}>
+              <Button
+                title='Manage configuration and tokens for this key.'
+                onClick={() => {}}
+                variant='contained'
+              >
+                Manage
+              </Button>
+            </AppLink>
+          </Grid>
+        )}
+        <Grid item>
+          <IconButton
+            title='Delete this key.'
+            onClick={(): void => setDeleteDialog(key.id)}
+            size='large'
+          >
+            <Trash />
+          </IconButton>
+        </Grid>
+      </Grid>
+    )
+  }
+
   const items = (data.service.integrationKeys || [])
     .slice()
     .sort(sortItems)
@@ -130,32 +159,7 @@ export default function IntegrationKeyList(props: {
             type={key.type}
           />
         }
-        action={
-          <Grid container spacing={2} alignItems='center' wrap='nowrap'>
-            {key.type === 'universal' && (
-              <Grid item>
-                <AppLink to={key.id}>
-                  <Button
-                    title='Manage configuration and tokens for this key.'
-                    onClick={() => {}}
-                    variant='contained'
-                  >
-                    Manage
-                  </Button>
-                </AppLink>
-              </Grid>
-            )}
-            <Grid item>
-              <IconButton
-                title='Delete this key.'
-                onClick={(): void => setDeleteDialog(key.id)}
-                size='large'
-              >
-                <Trash />
-              </IconButton>
-            </Grid>
-          </Grid>
-        }
+        action={uikActions(key)}
       />
     ))
 
@@ -168,15 +172,7 @@ export default function IntegrationKeyList(props: {
         key={key.id}
         title={key.name}
         subText={<Chip label={key.externalSystemName} sx={{ mt: 1 }} />}
-        action={
-          <IconButton
-            onClick={(): void => setDeleteDialog(key.id)}
-            size='large'
-            sx={{ right: '-16px' }}
-          >
-            <Trash />
-          </IconButton>
-        }
+        action={uikActions(key)}
       />
     ))
 

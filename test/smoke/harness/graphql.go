@@ -119,7 +119,7 @@ func (h *Harness) GraphQLQueryUserVarsT(t *testing.T, userID, query, opName stri
 	tok := h.GraphQLToken(userID)
 
 	for {
-		query = strings.Replace(query, "\t", "", -1)
+		query = strings.ReplaceAll(query, "\t", "")
 		q := struct {
 			Query         string
 			Variables     any    `json:"variables,omitempty"`

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/gadb"
@@ -53,6 +54,7 @@ func (q *Query) Services(ctx context.Context, opts *graphql2.ServiceSearchOption
 		searchOpts.FavoritesFirst = *opts.FavoritesFirst
 	}
 	searchOpts.Omit = opts.Omit
+	searchOpts.Only = opts.Only
 	if opts.After != nil && *opts.After != "" {
 		err = search.ParseCursor(*opts.After, &searchOpts)
 		if err != nil {
@@ -91,6 +93,10 @@ func (q *Query) Services(ctx context.Context, opts *graphql2.ServiceSearchOption
 	conn.Nodes = svcs
 	return conn, err
 }
+func (s *Service) RecentEvents(ctx context.Context, obj *service.Service, opts *graphql2.AlertRecentEventsOptions) (*graphql2.AlertLogEntryConnection, error) {
+	id := uuid.MustParse(obj.ID)
+	return (*App)(s).RecentAlertEvents(ctx, opts, alertlog.SearchOptions{FilterServiceID: &id})
+}
 
 func (s *Service) AlertStats(ctx context.Context, svc *service.Service, input *graphql2.ServiceAlertStatsOptions) (*graphql2.AlertStats, error) {
 	if input == nil {
@@ -121,13 +127,12 @@ func (s *Service) AlertStats(ctx context.Context, svc *service.Service, input *g
 	}
 
 	var stats graphql2.AlertStats
-	rows, err := gadb.New(s.DB).ServiceAlertStats(ctx, gadb.ServiceAlertStatsParams{
+	rows, err := (*App)(s).FindAlertStats(ctx, AlertStatsParam{
+		Stride:    res.PGXInterval(),
+		Origin:    origin,
 		StartTime: start,
 		EndTime:   end,
-		ServiceID: uuid.MustParse(svc.ID),
-		Origin:    origin,
-		Stride:    res.PGXInterval(),
-	})
+	}, uuid.MustParse(svc.ID))
 	if errors.Is(err, sql.ErrNoRows) {
 		return &stats, nil
 	}
@@ -138,14 +143,14 @@ func (s *Service) AlertStats(ctx context.Context, svc *service.Service, input *g
 		end := res.AddTo(r.Bucket)
 		stats.AlertCount = append(stats.AlertCount, graphql2.TimeSeriesBucket{Start: r.Bucket, End: end, Value: float64(r.AlertCount)})
 		stats.EscalatedCount = append(stats.EscalatedCount, graphql2.TimeSeriesBucket{Start: r.Bucket, End: end, Value: float64(r.EscalatedCount)})
-		stats.AvgAckSec = append(stats.AvgAckSec, graphql2.TimeSeriesBucket{Start: r.Bucket, End: end, Value: r.AvgTimeToCloseSeconds})
+		stats.AvgAckSec = append(stats.AvgAckSec, graphql2.TimeSeriesBucket{Start: r.Bucket, End: end, Value: r.AvgTimeToAckSeconds})
 		stats.AvgCloseSec = append(stats.AvgCloseSec, graphql2.TimeSeriesBucket{Start: r.Bucket, End: end, Value: r.AvgTimeToCloseSeconds})
 	}
 	return &stats, nil
 }
 
 func (s *Service) AlertsByStatus(ctx context.Context, svc *service.Service) (*graphql2.AlertsByStatus, error) {
-	rows, err := gadb.New(s.DB).ServiceAlertCounts(ctx, uuid.NullUUID{UUID: uuid.MustParse(svc.ID), Valid: true})
+	rows, err := (*App)(s).FindAlertCountByStatus(ctx, uuid.MustParse(svc.ID))
 	if errors.Is(err, sql.ErrNoRows) {
 		return &graphql2.AlertsByStatus{}, nil
 	}

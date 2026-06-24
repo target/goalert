@@ -15,6 +15,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -91,8 +92,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	ct, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if ct == "application/json" {
 		data, err := io.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if errutil.HTTPError(ctx, w, err) {
 			return
 		}
 
@@ -101,8 +101,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 			Meta                            map[string]string
 		}
 		err = json.Unmarshal(data, &b)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
 			return
 		}
 

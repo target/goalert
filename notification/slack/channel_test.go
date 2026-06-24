@@ -51,13 +51,13 @@ func TestChannelSender_LoadChannels(t *testing.T) {
 	cfg.Slack.AccessToken = "access_token"
 	ctx := cfg.Context(context.Background())
 
-	sender, err := NewChannelSender(ctx, Config{BaseURL: srv.URL})
+	sender, err := NewChannelSender(ctx, Config{BaseURL: srv.URL, Client: http.DefaultClient})
 	require.NoError(t, err)
 
 	ch, err := sender.loadChannels(ctx)
 	require.NoError(t, err)
 
-	assert.EqualValues(t, []Channel{
+	assert.ElementsMatch(t, []Channel{
 		{ID: "C1", Name: "#channel1", TeamID: "team_1"},
 		{ID: "C2", Name: "#channel2", TeamID: "team_1"},
 		{ID: "C3", Name: "#channel3", TeamID: "team_1"},

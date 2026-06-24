@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/target/goalert/app/csp"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/genericapi"
@@ -71,8 +72,8 @@ func (app *App) initHTTP(ctx context.Context) error {
 			})
 		},
 
-		// limit auth check counts (fail-safe for loops or DB access)
-		authCheckLimit(100),
+		// limit external calls (fail-safe for loops or DB access)
+		extCallLimit(100),
 
 		// request logging
 		logRequest(app.cfg.LogRequests),
@@ -238,7 +239,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 			return
 		}
 
-		app.RiverUI.ServeHTTP(w, r)
+		app.RiverUI.ServeHTTP(csp.NonceResponseWriter(csp.NonceValue(r.Context()), w), r)
 	})
 	mux.HandleFunc("POST /admin/riverui/api/", func(w http.ResponseWriter, r *http.Request) {
 		err := permission.LimitCheckAny(r.Context(), permission.Admin)

@@ -60,7 +60,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "OIDC.UserInfoEmailVerifiedPath", Type: ConfigTypeString, Description: "JMESPath expression to find email verification state in UserInfo. If set, the email_verified claim will be ignored in favor of this. (suggestion: email_verified).", Value: cfg.OIDC.UserInfoEmailVerifiedPath},
 		{ID: "OIDC.UserInfoNamePath", Type: ConfigTypeString, Description: "JMESPath expression to find full name in UserInfo. If set, the name claim will be ignored in favor of this. (suggestion: name || cn || join(' ', [firstname, lastname]))", Value: cfg.OIDC.UserInfoNamePath},
 		{ID: "Mailgun.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Mailgun.Enable)},
-		{ID: "Mailgun.APIKey", Type: ConfigTypeString, Description: "", Value: cfg.Mailgun.APIKey, Password: true},
+		{ID: "Mailgun.APIKey", Type: ConfigTypeString, Description: "Set this to the HTTP webhook signing key.", Value: cfg.Mailgun.APIKey, Password: true},
 		{ID: "Mailgun.EmailDomain", Type: ConfigTypeString, Description: "The TO address for all incoming alerts.", Value: cfg.Mailgun.EmailDomain},
 		{ID: "Slack.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Slack.Enable)},
 		{ID: "Slack.ClientID", Type: ConfigTypeString, Description: "", Value: cfg.Slack.ClientID},
@@ -68,6 +68,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Slack.AccessToken", Type: ConfigTypeString, Description: "Slack app bot user OAuth access token (should start with xoxb-).", Value: cfg.Slack.AccessToken, Password: true},
 		{ID: "Slack.SigningSecret", Type: ConfigTypeString, Description: "Signing secret to verify requests from slack.", Value: cfg.Slack.SigningSecret, Password: true},
 		{ID: "Slack.InteractiveMessages", Type: ConfigTypeBoolean, Description: "Enable interactive messages (e.g. buttons).", Value: fmt.Sprintf("%t", cfg.Slack.InteractiveMessages)},
+		{ID: "Slack.DisableBroadcastThreadReplies", Type: ConfigTypeBoolean, Description: "Disable broadcasting alert status updates in threads to the main channel.", Value: fmt.Sprintf("%t", cfg.Slack.DisableBroadcastThreadReplies)},
 		{ID: "Twilio.Enable", Type: ConfigTypeBoolean, Description: "Enables sending and processing of Voice and SMS messages through the Twilio notification provider.", Value: fmt.Sprintf("%t", cfg.Twilio.Enable)},
 		{ID: "Twilio.VoiceName", Type: ConfigTypeString, Description: "The Twilio voice to use for Text To Speech for phone calls. See https://www.twilio.com/docs/voice/twiml/say/text-speech#polly-standard-and-neural-voices", Value: cfg.Twilio.VoiceName},
 		{ID: "Twilio.VoiceLanguage", Type: ConfigTypeString, Description: "The Twilio voice language to use for Text To Speech for phone calls. See https://www.twilio.com/docs/voice/twiml/say/text-speech#polly-standard-and-neural-voices", Value: cfg.Twilio.VoiceLanguage},
@@ -117,6 +118,7 @@ func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "OIDC.Enable", Type: ConfigTypeBoolean, Description: "Enable OpenID Connect authentication.", Value: fmt.Sprintf("%t", cfg.OIDC.Enable)},
 		{ID: "Mailgun.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Mailgun.Enable)},
 		{ID: "Slack.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Slack.Enable)},
+		{ID: "Slack.DisableBroadcastThreadReplies", Type: ConfigTypeBoolean, Description: "Disable broadcasting alert status updates in threads to the main channel.", Value: fmt.Sprintf("%t", cfg.Slack.DisableBroadcastThreadReplies)},
 		{ID: "Twilio.Enable", Type: ConfigTypeBoolean, Description: "Enables sending and processing of Voice and SMS messages through the Twilio notification provider.", Value: fmt.Sprintf("%t", cfg.Twilio.Enable)},
 		{ID: "Twilio.FromNumber", Type: ConfigTypeString, Description: "The Twilio number to use for outgoing notifications.", Value: cfg.Twilio.FromNumber},
 		{ID: "Twilio.MessagingServiceSID", Type: ConfigTypeString, Description: "If set, replaces the use of From Number for SMS notifications.", Value: cfg.Twilio.MessagingServiceSID},
@@ -313,6 +315,12 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 				return cfg, err
 			}
 			cfg.Slack.InteractiveMessages = val
+		case "Slack.DisableBroadcastThreadReplies":
+			val, err := parseBool(v.ID, v.Value)
+			if err != nil {
+				return cfg, err
+			}
+			cfg.Slack.DisableBroadcastThreadReplies = val
 		case "Twilio.Enable":
 			val, err := parseBool(v.ID, v.Value)
 			if err != nil {

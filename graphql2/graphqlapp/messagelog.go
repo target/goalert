@@ -31,6 +31,8 @@ func msgStatus(stat notification.Status) string {
 		str.WriteString("Sent")
 	case notification.StateDelivered:
 		str.WriteString("Delivered")
+	case notification.StateRead:
+		str.WriteString("Read")
 	case notification.StateFailedTemp:
 		str.WriteString("Failed (temporary)")
 	case notification.StateFailedPerm:
