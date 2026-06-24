@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/validation"
 )
@@ -32,6 +33,16 @@ func ISODurationFromTime(t time.Duration) ISODuration {
 	var dur ISODuration
 	dur.SetTimePart(t)
 	return dur
+}
+
+// PGXInterval returns a pgtype.Interval representation of the duration.
+func (dur ISODuration) PGXInterval() pgtype.Interval {
+	return pgtype.Interval{
+		Microseconds: int64(dur.TimePart() / time.Microsecond),
+		Days:         int32(dur.Days()),
+		Months:       int32(dur.MonthPart + dur.YearPart*12),
+		Valid:        true,
+	}
 }
 
 // Days returns the total number of days in the duration (adds DayPart and WeekPart appropriately).
@@ -112,7 +123,7 @@ func (dur ISODuration) String() string {
 		sec := dur.SecondPart
 		// round to microseconds
 		sec = math.Round(sec*1e6) / 1e6
-		fmt.Fprintf(&b, "%gS", sec)
+		fmt.Fprintf(&b, "%sS", strconv.FormatFloat(sec, 'f', -1, 64))
 	}
 
 	return b.String()

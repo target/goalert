@@ -8,8 +8,23 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/slack"
+	"github.com/target/goalert/notification/twilio"
 )
+
+func voice(value string) gadb.DestV1 {
+	return gadb.NewDestV1(twilio.DestTypeTwilioVoice, twilio.FieldPhoneNumber, value)
+}
+
+func sms(value string) gadb.DestV1 {
+	return gadb.NewDestV1(twilio.DestTypeTwilioSMS, twilio.FieldPhoneNumber, value)
+}
+
+func slackCh(value string) gadb.DestV1 {
+	return gadb.NewDestV1(slack.DestTypeSlackChannel, slack.FieldSlackChannelID, value)
+}
 
 func TestQueue_Sort(t *testing.T) {
 	n := time.Now()
@@ -44,19 +59,19 @@ func TestQueue_Sort(t *testing.T) {
 			// as the user has been notified *somehow*. That way if we need
 			// to make a choice, a user who has gotten no message of any kind
 			// would take priority (all other criteria being equal).
-			Dest:   notification.Dest{Type: notification.DestTypeVoice, ID: "Voice C"},
+			Dest:   voice("Voice C"),
 			SentAt: n.Add(-2 * time.Minute),
 		},
 		{
 			Type:   notification.MessageTypeTest,
 			UserID: "User H",
-			Dest:   notification.Dest{Type: notification.DestTypeSMS, ID: "SMS H"},
+			Dest:   sms("SMS H"),
 			SentAt: n.Add(-30 * time.Second),
 		},
 		{
 			Type:      notification.MessageTypeAlert,
 			ServiceID: "Service B",
-			Dest:      notification.Dest{Type: notification.DestTypeSlackChannel, ID: "Slack B"},
+			Dest:      slackCh("Slack B"),
 			SentAt:    n.Add(-30 * time.Second),
 		},
 
@@ -66,43 +81,49 @@ func TestQueue_Sort(t *testing.T) {
 			Type:      notification.MessageTypeAlert,
 			UserID:    "User A",
 			ServiceID: "Service A",
-			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS A"},
+			Dest:      sms("SMS A"),
 			CreatedAt: n,
-		}, {
+		},
+		{
 			ID:        "1",
 			Type:      notification.MessageTypeAlert,
 			UserID:    "User E",
 			ServiceID: "Service B",
-			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS E"},
+			Dest:      sms("SMS E"),
 			CreatedAt: n.Add(1),
-		}, {
+		},
+		{
 			// no ID, this message should not be sent this cycle
 			Type:      notification.MessageTypeAlert,
 			UserID:    "User H",
 			ServiceID: "Service C",
-			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS H"},
+			Dest:      sms("SMS H"),
 			CreatedAt: n.Add(2),
-		}, {
+		},
+		{
 			ID:     "2",
 			Type:   notification.MessageTypeVerification,
 			UserID: "User F",
-			Dest:   notification.Dest{Type: notification.DestTypeSMS, ID: "SMS F"},
-		}, {
+			Dest:   sms("SMS F"),
+		},
+		{
 			// no ID, this message should not be sent this cycle
 			Type:   notification.MessageTypeVerification,
 			UserID: "User A",
-			Dest:   notification.Dest{Type: notification.DestTypeSMS, ID: "SMS A"},
-		}, {
+			Dest:   sms("SMS A"),
+		},
+		{
 			ID:     "3",
 			Type:   notification.MessageTypeTest,
 			UserID: "User B",
-			Dest:   notification.Dest{Type: notification.DestTypeSMS, ID: "SMS B"},
-		}, {
+			Dest:   sms("SMS B"),
+		},
+		{
 			ID:        "4",
 			Type:      notification.MessageTypeAlert,
 			UserID:    "User C",
 			ServiceID: "Service A",
-			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS C"},
+			Dest:      sms("SMS C"),
 		},
 
 		// ThrottleConfig limits 5 messages to be sent in 15 min for DestTypeSMS
@@ -110,15 +131,17 @@ func TestQueue_Sort(t *testing.T) {
 			ID:        "5",
 			Type:      notification.MessageTypeAlertStatus,
 			UserID:    "User D",
-			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS D"},
+			Dest:      sms("SMS D"),
 			CreatedAt: n,
-		}, {
+		},
+		{
 			ID:        "6",
 			Type:      notification.MessageTypeAlertStatus,
 			UserID:    "User G",
-			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS G"},
+			Dest:      sms("SMS G"),
 			CreatedAt: n.Add(1),
-		}}
+		},
+	}
 
 	var expected []Message
 	for _, m := range messages {
@@ -137,17 +160,16 @@ func TestQueue_Sort(t *testing.T) {
 	q := newQueue(messages, n)
 
 	// limit the number expected messages to the number allowed to be sent in 15 min
-	rules := q.cmThrottle.cfg.Rules(Message{Type: notification.MessageTypeAlert, Dest: notification.Dest{Type: notification.DestTypeSMS}})
+	rules := q.cmThrottle.cfg.Rules(Message{Type: notification.MessageTypeAlert, Dest: sms("")})
 	expected = expected[:rules[1].Count]
 
 	for i, exp := range expected {
-		msg := q.NextByType(notification.DestTypeSMS)
+		msg := q.NextByType(twilio.DestTypeTwilioSMS)
 		require.NotNilf(t, msg, "message #%d", i)
 		assert.Equalf(t, exp, *msg, "message #%d", i)
 	}
 
 	// no more expected messages
-	msg := q.NextByType(notification.DestTypeSMS)
+	msg := q.NextByType(twilio.DestTypeTwilioSMS)
 	assert.Nil(t, msg)
-
 }

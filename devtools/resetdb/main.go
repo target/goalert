@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/migrate"
+	galog "github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/util/timeutil"
 
@@ -22,6 +23,8 @@ import (
 
 var adminID string
 
+var logger = galog.NewLogger()
+
 func main() {
 	log.SetFlags(log.Lshortfile)
 	flag.StringVar(&adminID, "admin-id", "", "Generate an admin user with the given ID.")
@@ -32,7 +35,12 @@ func main() {
 	skipDrop := flag.Bool("skip-drop", false, "Skip database drop/create step.")
 	adminURL := flag.String("admin-db-url", "postgres://goalert@localhost/postgres", "Admin DB URL to use (used to recreate DB).")
 	dbURL := flag.String("db-url", "postgres://goalert@localhost", "DB URL to use.")
+	verbose := flag.Bool("v", false, "Enable verbose logging.")
 	flag.Parse()
+
+	if !*verbose {
+		logger.ErrorsOnly()
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -140,13 +148,13 @@ func fillDB(ctx context.Context, dataCfg *datagenConfig, url string) error {
 		u := data.Users[n]
 		return []interface{}{asUUID(u.ID), u.Name, u.Role, u.Email}
 	})
-	copyFrom("user_contact_methods", []string{"id", "user_id", "name", "type", "value", "disabled", "pending"}, len(data.ContactMethods), func(n int) []interface{} {
+	copyFrom("user_contact_methods", []string{"id", "user_id", "name", "dest", "disabled", "pending"}, len(data.ContactMethods), func(n int) []interface{} {
 		cm := data.ContactMethods[n]
-		return []interface{}{asUUID(cm.ID), asUUID(cm.UserID), cm.Name, cm.Type, cm.Value, cm.Disabled, cm.Pending}
+		return []interface{}{cm.ID, asUUID(cm.UserID), cm.Name, cm.Dest, cm.Disabled, cm.Pending}
 	}, "users")
 	copyFrom("user_notification_rules", []string{"id", "user_id", "contact_method_id", "delay_minutes"}, len(data.NotificationRules), func(n int) []interface{} {
 		nr := data.NotificationRules[n]
-		return []interface{}{asUUID(nr.ID), asUUID(nr.UserID), asUUID(nr.ContactMethodID), nr.DelayMinutes}
+		return []interface{}{asUUID(nr.ID), asUUID(nr.UserID), nr.ContactMethodID, nr.DelayMinutes}
 	}, "user_contact_methods")
 	copyFrom("rotations", []string{"id", "name", "description", "type", "shift_length", "start_time", "time_zone"}, len(data.Rotations), func(n int) []interface{} {
 		r := data.Rotations[n]
@@ -204,7 +212,7 @@ func fillDB(ctx context.Context, dataCfg *datagenConfig, url string) error {
 	})
 	copyFrom("escalation_policy_steps", []string{"id", "escalation_policy_id", "step_number", "delay"}, len(data.EscalationSteps), func(n int) []interface{} {
 		step := data.EscalationSteps[n]
-		return []interface{}{asUUID(step.ID), asUUID(step.PolicyID), step.StepNumber, step.DelayMinutes}
+		return []interface{}{step.ID, asUUID(step.PolicyID), step.StepNumber, step.DelayMinutes}
 	}, "escalation_policies")
 
 	copyFrom("escalation_policy_actions", []string{"id", "escalation_policy_step_id", "user_id", "rotation_id", "schedule_id", "channel_id"}, len(data.EscalationActions), func(n int) []interface{} {
@@ -320,6 +328,7 @@ func recreateDB(ctx context.Context, url, dbName string) error {
 }
 
 func resetDB(ctx context.Context, url string) (n int, err error) {
+	ctx = galog.WithLogger(ctx, logger)
 	if flag.Arg(0) != "" {
 		n, err = migrate.Up(ctx, url, flag.Arg(0))
 	} else {

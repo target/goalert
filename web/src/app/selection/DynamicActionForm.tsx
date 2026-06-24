@@ -10,6 +10,7 @@ import { Grid, TextField } from '@mui/material'
 import DestinationField from './DestinationField'
 import { renderMenuItem } from './DisableableMenuItem'
 import { HelperText } from '../forms'
+import { ExprField } from '../services/UniversalKey/ExprField'
 
 export type StaticParams = Readonly<Record<string, string>>
 export type DynamicParams = Readonly<Record<string, ExprStringExpression>>
@@ -68,7 +69,7 @@ export function defaults(destTypeInfo: DestinationTypeInfo): Value {
   const dynamicParams = Object.fromEntries(
     destTypeInfo.dynamicParams.map((p) => [
       p.paramID,
-      `req.body['${p.paramID}']`,
+      p.defaultValue || `req.body['${p.paramID}']`,
     ]),
   )
 
@@ -147,22 +148,19 @@ export default function DynamicActionForm(
 
           return (
             <Grid key={p.paramID} item xs={12}>
-              <TextField
-                fullWidth
+              <ExprField
                 name={p.paramID}
                 disabled={props.disabled || !selectedDest?.enabled}
-                type='text'
-                label={p.label + ' (Expr syntax)'}
                 error={!!props.dynamicParamErrors?.[p.paramID]}
-                helperText={
-                  <HelperText
-                    hint={p.hint}
-                    hintURL={p.hintURL}
-                    error={props.dynamicParamErrors?.[p.paramID]}
-                  />
-                }
-                onChange={(e) => handleChange(e.target.value)}
+                label={p.label}
                 value={fieldValue}
+                dense
+                onChange={(v) => handleChange(v)}
+              />
+              <HelperText
+                hint={p.hint}
+                hintURL={p.hintURL}
+                error={props.dynamicParamErrors?.[p.paramID]}
               />
             </Grid>
           )

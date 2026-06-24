@@ -38,6 +38,15 @@ func (a *App) Alert() graphql2.AlertResolver                 { return (*Alert)(a
 func (a *App) AlertMetric() graphql2.AlertMetricResolver     { return (*AlertMetric)(a) }
 func (a *App) AlertLogEntry() graphql2.AlertLogEntryResolver { return (*AlertLogEntry)(a) }
 
+func (a *AlertLogEntry) MessageID(ctx context.Context, obj *alertlog.Entry) (*string, error) {
+	id := obj.MessageID(ctx)
+	if id == "" {
+		return nil, nil
+	}
+
+	return &id, nil
+}
+
 func (a *AlertLogEntry) ID(ctx context.Context, obj *alertlog.Entry) (int, error) {
 	e := *obj
 	return e.ID(), nil
@@ -83,6 +92,8 @@ func notificationStateFromSendResult(s notification.Status, formattedSrc string)
 		prefix = "Sent"
 	case notification.StateDelivered:
 		prefix = "Delivered"
+	case notification.StateRead:
+		prefix = "Read"
 	case notification.StateFailedTemp, notification.StateFailedPerm:
 		prefix = "Failed"
 	default:
@@ -96,8 +107,8 @@ func notificationStateFromSendResult(s notification.Status, formattedSrc string)
 		details = prefix + ": " + details
 	}
 
-	if s.Age() >= 2*time.Minute {
-		details += fmt.Sprintf(" (after %s)", friendlyDuration(s.Age().Truncate(time.Minute)))
+	if s.Age >= 2*time.Minute {
+		details += fmt.Sprintf(" (after %s)", friendlyDuration(s.Age.Truncate(time.Minute)))
 	}
 
 	return &graphql2.NotificationState{
@@ -152,7 +163,7 @@ func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog
 		return nil, nil
 	}
 
-	return notificationStateFromSendResult(s.Status, a.FormatDestFunc(ctx, s.DestType, s.SrcValue)), nil
+	return notificationStateFromSendResult(s.Status, s.SrcValue), nil
 }
 
 func (a *AlertLogEntry) createdState(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {
@@ -435,7 +446,6 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -469,12 +479,13 @@ func (m *Mutation) SetAlertNoiseReason(ctx context.Context, input graphql2.SetAl
 }
 
 func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphql2.AlertRecentEventsOptions) (*graphql2.AlertLogEntryConnection, error) {
+	return (*App)(a).RecentAlertEvents(ctx, opts, alertlog.SearchOptions{FilterAlertIDs: []int{obj.ID}})
+}
+
+func (a *App) RecentAlertEvents(ctx context.Context, opts *graphql2.AlertRecentEventsOptions, s alertlog.SearchOptions) (*graphql2.AlertLogEntryConnection, error) {
 	if opts == nil {
 		opts = new(graphql2.AlertRecentEventsOptions)
 	}
-
-	var s alertlog.SearchOptions
-	s.FilterAlertIDs = append(s.FilterAlertIDs, obj.ID)
 
 	if opts.After != nil && *opts.After != "" {
 		err := search.ParseCursor(*opts.After, &s)
@@ -489,6 +500,7 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 	if s.Limit == 0 {
 		s.Limit = search.DefaultMaxResults
 	}
+	s.Since = opts.Since
 
 	s.Limit++
 
@@ -536,13 +548,39 @@ func (a *Alert) PendingNotifications(ctx context.Context, obj *alert.Alert) ([]g
 	var result []graphql2.AlertPendingNotification
 	for _, r := range rows {
 		switch {
-		case r.CmType.Valid && r.UserName.Valid:
+		case r.CmDest.Valid && r.UserName.Valid:
+			typeInfo, err := a.DestReg.TypeInfo(ctx, r.CmDest.DestV1.Type)
+			if err != nil {
+				log.Log(ctx, errors.Wrap(err, "lookup type info"))
+				result = append(result, graphql2.AlertPendingNotification{
+					Destination: fmt.Sprintf("%s (unknown)", r.UserName.String),
+				})
+				break
+			}
+
 			result = append(result, graphql2.AlertPendingNotification{
-				Destination: fmt.Sprintf("%s (%s)", r.UserName.String, r.CmType.EnumUserContactMethodType),
+				Destination: fmt.Sprintf("%s (%s)", r.UserName.String, typeInfo.Name),
 			})
-		case r.NcName.Valid && r.NcType.Valid:
+		case r.NcName.Valid && r.NcDest.Valid:
+			typeInfo, err := a.DestReg.TypeInfo(ctx, r.NcDest.DestV1.Type)
+			if err != nil {
+				log.Log(ctx, errors.Wrap(err, "lookup type info"))
+				result = append(result, graphql2.AlertPendingNotification{
+					Destination: fmt.Sprintf("%s (unknown)", r.NcName.String),
+				})
+				break
+			}
+			dispInfo, err := a.DestReg.DisplayInfo(ctx, r.NcDest.DestV1)
+			if err != nil {
+				log.Log(ctx, errors.Wrap(err, "lookup display info"))
+				result = append(result, graphql2.AlertPendingNotification{
+					Destination: fmt.Sprintf("unknown (%s)", typeInfo.Name),
+				})
+				break
+			}
+
 			result = append(result, graphql2.AlertPendingNotification{
-				Destination: fmt.Sprintf("%s (%s)", r.NcName.String, r.NcType.EnumNotifChannelType),
+				Destination: fmt.Sprintf("%s (%s)", dispInfo.Text, typeInfo.Name),
 			})
 		default:
 			log.Debugf(ctx, "unknown destination type for pending notification for alert %d", obj.ID)

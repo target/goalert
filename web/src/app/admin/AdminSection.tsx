@@ -57,7 +57,9 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-export default function AdminSection(props: AdminSectionProps): JSX.Element {
+export default function AdminSection(
+  props: AdminSectionProps,
+): React.JSX.Element {
   // TODO: add 'reset to default' buttons
   const classes = useStyles()
   const { fields, value, headerNote } = props
@@ -83,7 +85,7 @@ export default function AdminSection(props: AdminSectionProps): JSX.Element {
               key={f.id}
               className={classes.listItem}
               divider={idx !== fields.length - 1}
-              selected={_.has(value, f.id)}
+              sx={_.has(value, f.id) ? { bgcolor: 'action.selected' } : {}}
             >
               <ListItemText
                 className={classes.listItemText}

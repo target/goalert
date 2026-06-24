@@ -1,25 +1,26 @@
 package message
 
 import (
+	"crypto/sha256"
 	"time"
 
-	"github.com/target/goalert/notification"
+	"github.com/target/goalert/gadb"
 )
 
 // Throttle represents the throttled messages for a queue.
 type Throttle struct {
 	cfg      ThrottleConfig
-	ignoreID bool
+	typeOnly bool
 	now      time.Time
 
 	first    map[ThrottleItem]time.Time
 	count    map[ThrottleItem]int
-	cooldown map[notification.Dest]bool
+	cooldown map[gadb.DestHashV1]bool
 }
 
 // ThrottleItem represents the messages being throttled.
 type ThrottleItem struct {
-	Dest      notification.Dest
+	DestHash  gadb.DestHashV1
 	BucketDur time.Duration
 }
 
@@ -41,24 +42,29 @@ func maxThrottleDuration(cfgs ...ThrottleConfig) time.Duration {
 }
 
 // NewThrottle creates a new Throttle used to manage outgoing messages in a queue.
-func NewThrottle(cfg ThrottleConfig, now time.Time, ignoreID bool) *Throttle {
+func NewThrottle(cfg ThrottleConfig, now time.Time, byTypeOnly bool) *Throttle {
 	return &Throttle{
 		cfg:      cfg,
 		now:      now,
-		ignoreID: ignoreID,
+		typeOnly: byTypeOnly,
 
 		first:    make(map[ThrottleItem]time.Time),
 		count:    make(map[ThrottleItem]int),
-		cooldown: make(map[notification.Dest]bool),
+		cooldown: make(map[gadb.DestHashV1]bool),
 	}
+}
+
+func (tr *Throttle) destKey(d gadb.DestV1) gadb.DestHashV1 {
+	if tr.typeOnly {
+		return sha256.Sum256([]byte(d.Type))
+	}
+
+	return d.DestHash()
 }
 
 // Record keeps track of the outgoing messages being throttled in a queue.
 func (tr *Throttle) Record(msg Message) {
-	if tr.ignoreID {
-		msg.Dest.ID = ""
-	}
-	msg.Dest.Value = ""
+	keyHash := tr.destKey(msg.Dest)
 
 	since := tr.now.Sub(msg.SentAt)
 	rules := tr.cfg.Rules(msg)
@@ -66,7 +72,7 @@ func (tr *Throttle) Record(msg Message) {
 		if since >= rule.Per {
 			continue
 		}
-		key := ThrottleItem{Dest: msg.Dest, BucketDur: rule.Per}
+		key := ThrottleItem{DestHash: keyHash, BucketDur: rule.Per}
 		tr.count[key]++
 		count := tr.count[key]
 		if tr.first[key].IsZero() || msg.SentAt.Before(tr.first[key]) {
@@ -74,7 +80,7 @@ func (tr *Throttle) Record(msg Message) {
 		}
 
 		if count >= rule.Count {
-			tr.cooldown[msg.Dest] = true
+			tr.cooldown[keyHash] = true
 			continue
 		}
 
@@ -99,17 +105,12 @@ func (tr *Throttle) Record(msg Message) {
 		per := rule.Per - prevRule.Per
 
 		if count > int(elapsed*time.Duration(rule.Count-prevRule.Count)/per) {
-			tr.cooldown[msg.Dest] = true
+			tr.cooldown[keyHash] = true
 		}
 	}
 }
 
 // InCooldown returns true or false depending on the cooldown state of a throttled message.
 func (tr *Throttle) InCooldown(msg Message) bool {
-	if tr.ignoreID {
-		msg.Dest.ID = ""
-	}
-	msg.Dest.Value = ""
-
-	return tr.cooldown[msg.Dest]
+	return tr.cooldown[tr.destKey(msg.Dest)]
 }

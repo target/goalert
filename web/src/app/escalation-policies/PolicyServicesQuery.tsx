@@ -16,7 +16,7 @@ const query = gql`
   }
 `
 
-function PolicyServicesQuery(props: { policyID: string }): JSX.Element {
+function PolicyServicesQuery(props: { policyID: string }): React.JSX.Element {
   const [{ data, fetching, error }] = useQuery({
     query,
     variables: { id: props.policyID },

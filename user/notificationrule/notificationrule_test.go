@@ -2,6 +2,8 @@ package notificationrule
 
 import (
 	"testing"
+
+	"github.com/google/uuid"
 )
 
 func TestNotificationRule_Normalize(t *testing.T) {
@@ -22,7 +24,7 @@ func TestNotificationRule_Normalize(t *testing.T) {
 	}
 
 	valid := []NotificationRule{
-		{DelayMinutes: 5, ContactMethodID: "ececacc0-4764-012d-7bfb-002500d5dece", UserID: "bcefacc0-4764-012d-7bfb-002500d5decb"},
+		{DelayMinutes: 5, ContactMethodID: uuid.MustParse("ececacc0-4764-012d-7bfb-002500d5dece"), UserID: "bcefacc0-4764-012d-7bfb-002500d5decb"},
 	}
 	invalid := []NotificationRule{
 		{},

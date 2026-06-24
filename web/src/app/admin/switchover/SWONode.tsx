@@ -17,7 +17,10 @@ interface SWONodeProps {
   name: string
 }
 
-export default function SWONode({ node, name }: SWONodeProps): JSX.Element {
+export default function SWONode({
+  node,
+  name,
+}: SWONodeProps): React.JSX.Element {
   const theme = useTheme()
 
   if (node.id.startsWith('unknown-')) {

@@ -17,9 +17,9 @@ const cancelable = (_fn) => {
 
 export default function OtherActions({
   color,
-  IconComponent,
+  IconComponent = OptionsIcon,
   actions,
-  placement,
+  placement = 'left',
   disabled,
 }) {
   const [anchorEl, setAnchorEl] = useState(null)
@@ -75,9 +75,4 @@ OtherActions.propTypes = {
   color: p.string,
   IconComponent: p.elementType,
   placement: p.oneOf(['left', 'right']),
-}
-
-OtherActions.defaultProps = {
-  IconComponent: OptionsIcon,
-  placement: 'left',
 }

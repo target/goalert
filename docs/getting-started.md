@@ -14,7 +14,7 @@ When running GoAlert behind a reverse proxy, make sure the `--public-url` includ
 
 ## Database
 
-We recommend using Postgres 13 (or newer) for new installations as newer features will be used in the future.
+We recommend using Postgres 17 (or newer) for new installations as newer features will be used in the future.
 
 GoAlert requires the `pgcrypto` extension enabled (you can enable it with `CREATE EXTENSION pgcrypto;`).
 Upon first startup, it will attempt to enable the extension if it's not already enabled, but this requires elevated privileges that may not be available
@@ -53,7 +53,7 @@ goalert --db-url postgres://goalert@localhost/goalert --data-encryption-key supe
 Container:
 
 ```bash
-podman run -p 8081:8081 -e GOALERT_DB_URL=postgres://goalert@localhost/goalert -e GOALERT_DATA_ENCRYPTION_KEY=super-awesome-secret-key -e GOALERT_PUBLIC_URL=https://goalert.example.com goalert/goalert
+docker run -p 8081:8081 -e GOALERT_DB_URL=postgres://goalert@localhost/goalert -e GOALERT_DATA_ENCRYPTION_KEY=super-awesome-secret-key -e GOALERT_PUBLIC_URL=https://goalert.example.com goalert/goalert
 ```
 
 You should see migrations applied followed by a `Listening.` message and an engine cycle start and end.
@@ -169,7 +169,7 @@ Be sure to **Enable** OIDC authentication and **New Users** using the toggles.
 GoAlert supports creating alerts by email via Mailgun integration.
 
 From the Admin page in GoAlert, under the `Mailgun` section, set your **Email Domain** and **API Key**.
-The **API Key** may be found under the **Security** section in the Mailgun website (click your name in the top bar and select it from the drop down) it is labeled as **Private API Key**.
+The **API Key** is the HTTP webhook signing key which can be found in the Mailgun website under **Send** -> **Sending** -> **Webhooks** (at the top of the page).
 
 To configure Mailgun to forward to GoAlert:
 
@@ -266,6 +266,7 @@ Additional options are available for running GoAlert in the form of CLI flags. T
 | `--db-max-idle`              | `GOALERT_DB_MAX_IDLE`              | Max idle DB connections. (default 5)                                                                                                                                          |
 | `--db-max-open`              | `GOALERT_DB_MAX_OPEN`              | Max open DB connections. (default 15)                                                                                                                                         |
 | `--disable-https-redirect`   | `GOALERT_DISABLE_HTTPS_REDIRECT`   | Disable automatic HTTPS redirects.                                                                                                                                            |
+| `--enable-secure-headers`    | `GOALERT_ENABLE_SECURE_HEADERS`    | Enable secure headers (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, Content-Security-Policy).                                                                   |
 | `--email-integration-domain` | `GOALERT_EMAIL_INTEGRATION_DOMAIN` | This flag is required to set the domain used for email integration keys when --smtp-listen or --smtp-listen-tls are set.                                                      |
 | `--engine-cycle-time`        | `GOALERT_ENGINE_CYCLE_TIME`        | Time between engine cycles. (default 5s)                                                                                                                                      |
 | `--experimental`             | `GOALERT_EXPERIMENTAL`             | Enable experimental features.                                                                                                                                                 |

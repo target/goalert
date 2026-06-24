@@ -26,7 +26,7 @@ const query = gql`
 `
 
 const context = { suspense: false }
-export default function PolicyList(): JSX.Element {
+export default function PolicyList(): React.JSX.Element {
   const [search] = useURLParam<string>('search', '')
   const [create, setCreate] = useState(false)
   const [cursor, setCursor] = useState('')

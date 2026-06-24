@@ -36,51 +36,24 @@ LD_FLAGS+=-X github.com/target/goalert/version.buildDate=$(BUILD_DATE)
 IMAGE_REPO=docker.io/goalert
 IMAGE_TAG=$(GIT_VERSION)
 
-CONTAINER_TOOL:=$(shell which podman || which docker || exit 1)
 PUSH:=0
 
-container-goalert-manifest:
-	podman manifest rm $(IMAGE_REPO)/goalert:$(IMAGE_TAG) &>/dev/null || true
-	podman manifest create $(IMAGE_REPO)/goalert:$(IMAGE_TAG)
-
-container-demo-manifest:
-	podman manifest rm $(IMAGE_REPO)/demo:$(IMAGE_TAG) &>/dev/null || true
-	podman manifest create $(IMAGE_REPO)/demo:$(IMAGE_TAG)
-
-
-container-demo-amd64: container-demo-manifest bin/goalert-linux-amd64.tgz bin/linux-amd64/resetdb
-	podman pull --platform=linux/amd64 docker.io/library/alpine:3.14
-	podman build --format docker --build-arg ARCH=amd64 --platform=linux/amd64 --manifest $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
-container-goalert-amd64: container-goalert-manifest bin/goalert-linux-amd64.tgz
-	podman pull --platform=linux/amd64 docker.io/library/alpine:3.14
-	podman build --format docker --build-arg ARCH=amd64 --platform=linux/amd64 --manifest $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
-
-container-demo-arm: container-demo-manifest bin/goalert-linux-arm.tgz bin/linux-arm/resetdb
-	podman pull --platform=linux/arm docker.io/library/alpine:3.14
-	podman build --format docker --build-arg ARCH=arm --platform=linux/arm --manifest $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
-container-goalert-arm: container-goalert-manifest bin/goalert-linux-arm.tgz
-	podman pull --platform=linux/arm docker.io/library/alpine:3.14
-	podman build --format docker --build-arg ARCH=arm --platform=linux/arm --manifest $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
-
-container-demo-arm64: container-demo-manifest bin/goalert-linux-arm64.tgz bin/linux-arm64/resetdb
-	podman pull --platform=linux/arm64 docker.io/library/alpine:3.14
-	podman build --format docker --build-arg ARCH=arm64 --platform=linux/arm64 --manifest $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile.prebuilt .
-container-goalert-arm64: container-goalert-manifest bin/goalert-linux-arm64.tgz
-	podman pull --platform=linux/arm64 docker.io/library/alpine:3.14
-	podman build --format docker --build-arg ARCH=arm64 --platform=linux/arm64 --manifest $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.prebuilt .
-
-container-demo:  container-demo-amd64 container-demo-arm container-demo-arm64
+PUSH_ARG=
 ifeq ($(PUSH),1)
-	podman manifest push --all $(IMAGE_REPO)/demo:$(IMAGE_TAG) docker://$(IMAGE_REPO)/demo:$(IMAGE_TAG)
-endif
-container-goalert:  container-goalert-amd64 container-goalert-arm container-goalert-arm64
-ifeq ($(PUSH),1)
-	podman manifest push --all $(IMAGE_REPO)/goalert:$(IMAGE_TAG) docker://$(IMAGE_REPO)/goalert:$(IMAGE_TAG)
+	PUSH_ARG=--push
 endif
 
-$(BIN_DIR)/build/integration/cypress/plugins/index.js: package.json yarn.lock web/src/esbuild.cypress.js $(shell find ./web/src/cypress)
+PREBUILT:=.prebuilt
+
+container-goalert: bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz
+	docker buildx build --platform linux/amd64,linux/arm64,linux/arm -t $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile$(PREBUILT) $(PUSH_ARG) .
+
+container-demo: bin/goalert-linux-amd64.tgz bin/linux-amd64/resetdb bin/goalert-linux-arm.tgz bin/linux-arm/resetdb bin/goalert-linux-arm64.tgz bin/linux-arm64/resetdb
+	docker buildx build --platform linux/amd64,linux/arm64,linux/arm -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile$(PREBUILT) $(PUSH_ARG) .
+
+$(BIN_DIR)/build/integration/cypress/plugins/index.js: package.json bun.lock web/src/esbuild.cypress.js $(shell find ./web/src/cypress)
 	rm -rf $@
-	yarn run esbuild-cy
+	$(BIN_DIR)/tools/bun run esbuild-cy
 	mkdir -p $@/plugins
 	cp web/src/cypress/plugins/index.js $@/plugins/index.js
 	touch $@
@@ -180,288 +153,28 @@ $(BIN_DIR)/windows-amd64/goalert-slack-email-sync.exe: $(GO_DEPS)
 
 
 
-$(BIN_DIR)/mockoidc: $(GO_DEPS) 
-	go build  -o $@ ./devtools/mockoidc
 
-$(BIN_DIR)/darwin-amd64/mockoidc: $(GO_DEPS)  
-	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/mockoidc
-
-$(BIN_DIR)/linux-amd64/mockoidc: $(GO_DEPS)  
-	GOOS=linux GOARCH=amd64 go build -trimpath  -o $@ ./devtools/mockoidc
-
-$(BIN_DIR)/linux-arm/mockoidc: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath  -o $@ ./devtools/mockoidc
-
-$(BIN_DIR)/linux-arm64/mockoidc: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm64 go build -trimpath  -o $@ ./devtools/mockoidc
-
-$(BIN_DIR)/windows-amd64/mockoidc.exe: $(GO_DEPS)  
-	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/mockoidc
-
-
-
-$(BIN_DIR)/mockslack: $(GO_DEPS) 
-	go build  -o $@ ./devtools/mockslack/cmd/mockslack
-
-$(BIN_DIR)/darwin-amd64/mockslack: $(GO_DEPS)  
-	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/mockslack/cmd/mockslack
-
-$(BIN_DIR)/linux-amd64/mockslack: $(GO_DEPS)  
-	GOOS=linux GOARCH=amd64 go build -trimpath  -o $@ ./devtools/mockslack/cmd/mockslack
-
-$(BIN_DIR)/linux-arm/mockslack: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath  -o $@ ./devtools/mockslack/cmd/mockslack
-
-$(BIN_DIR)/linux-arm64/mockslack: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm64 go build -trimpath  -o $@ ./devtools/mockslack/cmd/mockslack
-
-$(BIN_DIR)/windows-amd64/mockslack.exe: $(GO_DEPS)  
-	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/mockslack/cmd/mockslack
-
-
-
-$(BIN_DIR)/pgdump-lite: $(GO_DEPS) 
-	go build  -o $@ ./devtools/pgdump-lite/cmd/pgdump-lite
-
-$(BIN_DIR)/darwin-amd64/pgdump-lite: $(GO_DEPS)  
-	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/pgdump-lite/cmd/pgdump-lite
-
-$(BIN_DIR)/linux-amd64/pgdump-lite: $(GO_DEPS)  
-	GOOS=linux GOARCH=amd64 go build -trimpath  -o $@ ./devtools/pgdump-lite/cmd/pgdump-lite
-
-$(BIN_DIR)/linux-arm/pgdump-lite: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath  -o $@ ./devtools/pgdump-lite/cmd/pgdump-lite
-
-$(BIN_DIR)/linux-arm64/pgdump-lite: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm64 go build -trimpath  -o $@ ./devtools/pgdump-lite/cmd/pgdump-lite
-
-$(BIN_DIR)/windows-amd64/pgdump-lite.exe: $(GO_DEPS)  
-	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/pgdump-lite/cmd/pgdump-lite
-
-
-
-$(BIN_DIR)/pgmocktime: $(GO_DEPS) 
-	go build  -o $@ ./devtools/pgmocktime/cmd/pgmocktime
-
-$(BIN_DIR)/darwin-amd64/pgmocktime: $(GO_DEPS)  
-	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/pgmocktime/cmd/pgmocktime
-
-$(BIN_DIR)/linux-amd64/pgmocktime: $(GO_DEPS)  
-	GOOS=linux GOARCH=amd64 go build -trimpath  -o $@ ./devtools/pgmocktime/cmd/pgmocktime
-
-$(BIN_DIR)/linux-arm/pgmocktime: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath  -o $@ ./devtools/pgmocktime/cmd/pgmocktime
-
-$(BIN_DIR)/linux-arm64/pgmocktime: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm64 go build -trimpath  -o $@ ./devtools/pgmocktime/cmd/pgmocktime
-
-$(BIN_DIR)/windows-amd64/pgmocktime.exe: $(GO_DEPS)  
-	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/pgmocktime/cmd/pgmocktime
-
-
-
-$(BIN_DIR)/procwrap: $(GO_DEPS) 
-	go build  -o $@ ./devtools/procwrap
-
-$(BIN_DIR)/darwin-amd64/procwrap: $(GO_DEPS)  
-	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/procwrap
-
-$(BIN_DIR)/linux-amd64/procwrap: $(GO_DEPS)  
-	GOOS=linux GOARCH=amd64 go build -trimpath  -o $@ ./devtools/procwrap
-
-$(BIN_DIR)/linux-arm/procwrap: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath  -o $@ ./devtools/procwrap
-
-$(BIN_DIR)/linux-arm64/procwrap: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm64 go build -trimpath  -o $@ ./devtools/procwrap
-
-$(BIN_DIR)/windows-amd64/procwrap.exe: $(GO_DEPS)  
-	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/procwrap
-
-
-
-$(BIN_DIR)/psql-lite: $(GO_DEPS) 
-	go build  -o $@ ./devtools/psql-lite
-
-$(BIN_DIR)/darwin-amd64/psql-lite: $(GO_DEPS)  
-	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/psql-lite
-
-$(BIN_DIR)/linux-amd64/psql-lite: $(GO_DEPS)  
-	GOOS=linux GOARCH=amd64 go build -trimpath  -o $@ ./devtools/psql-lite
-
-$(BIN_DIR)/linux-arm/psql-lite: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath  -o $@ ./devtools/psql-lite
-
-$(BIN_DIR)/linux-arm64/psql-lite: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm64 go build -trimpath  -o $@ ./devtools/psql-lite
-
-$(BIN_DIR)/windows-amd64/psql-lite.exe: $(GO_DEPS)  
-	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/psql-lite
-
-
-
-$(BIN_DIR)/resetdb: $(GO_DEPS) 
-	go build  -o $@ ./devtools/resetdb
-
-$(BIN_DIR)/darwin-amd64/resetdb: $(GO_DEPS)  
-	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/resetdb
-
-$(BIN_DIR)/linux-amd64/resetdb: $(GO_DEPS)  
-	GOOS=linux GOARCH=amd64 go build -trimpath  -o $@ ./devtools/resetdb
-
-$(BIN_DIR)/linux-arm/resetdb: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath  -o $@ ./devtools/resetdb
-
-$(BIN_DIR)/linux-arm64/resetdb: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm64 go build -trimpath  -o $@ ./devtools/resetdb
-
-$(BIN_DIR)/windows-amd64/resetdb.exe: $(GO_DEPS)  
-	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/resetdb
-
-
-
-$(BIN_DIR)/runproc: $(GO_DEPS) 
-	go build  -o $@ ./devtools/runproc
-
-$(BIN_DIR)/darwin-amd64/runproc: $(GO_DEPS)  
-	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/runproc
-
-$(BIN_DIR)/linux-amd64/runproc: $(GO_DEPS)  
-	GOOS=linux GOARCH=amd64 go build -trimpath  -o $@ ./devtools/runproc
-
-$(BIN_DIR)/linux-arm/runproc: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath  -o $@ ./devtools/runproc
-
-$(BIN_DIR)/linux-arm64/runproc: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm64 go build -trimpath  -o $@ ./devtools/runproc
-
-$(BIN_DIR)/windows-amd64/runproc.exe: $(GO_DEPS)  
-	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/runproc
-
-
-
-$(BIN_DIR)/sendit: $(GO_DEPS) 
-	go build  -o $@ ./devtools/sendit/cmd/sendit
-
-$(BIN_DIR)/darwin-amd64/sendit: $(GO_DEPS)  
-	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit
-
-$(BIN_DIR)/linux-amd64/sendit: $(GO_DEPS)  
-	GOOS=linux GOARCH=amd64 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit
-
-$(BIN_DIR)/linux-arm/sendit: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit
-
-$(BIN_DIR)/linux-arm64/sendit: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm64 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit
-
-$(BIN_DIR)/windows-amd64/sendit.exe: $(GO_DEPS)  
-	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit
-
-
-
-$(BIN_DIR)/sendit-server: $(GO_DEPS) 
-	go build  -o $@ ./devtools/sendit/cmd/sendit-server
-
-$(BIN_DIR)/darwin-amd64/sendit-server: $(GO_DEPS)  
-	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit-server
-
-$(BIN_DIR)/linux-amd64/sendit-server: $(GO_DEPS)  
-	GOOS=linux GOARCH=amd64 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit-server
-
-$(BIN_DIR)/linux-arm/sendit-server: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit-server
-
-$(BIN_DIR)/linux-arm64/sendit-server: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm64 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit-server
-
-$(BIN_DIR)/windows-amd64/sendit-server.exe: $(GO_DEPS)  
-	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit-server
-
-
-
-$(BIN_DIR)/sendit-token: $(GO_DEPS) 
-	go build  -o $@ ./devtools/sendit/cmd/sendit-token
-
-$(BIN_DIR)/darwin-amd64/sendit-token: $(GO_DEPS)  
-	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit-token
-
-$(BIN_DIR)/linux-amd64/sendit-token: $(GO_DEPS)  
-	GOOS=linux GOARCH=amd64 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit-token
-
-$(BIN_DIR)/linux-arm/sendit-token: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit-token
-
-$(BIN_DIR)/linux-arm64/sendit-token: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm64 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit-token
-
-$(BIN_DIR)/windows-amd64/sendit-token.exe: $(GO_DEPS)  
-	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/sendit/cmd/sendit-token
-
-
-
-$(BIN_DIR)/simpleproxy: $(GO_DEPS) 
-	go build  -o $@ ./devtools/simpleproxy
-
-$(BIN_DIR)/darwin-amd64/simpleproxy: $(GO_DEPS)  
-	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/simpleproxy
-
-$(BIN_DIR)/linux-amd64/simpleproxy: $(GO_DEPS)  
-	GOOS=linux GOARCH=amd64 go build -trimpath  -o $@ ./devtools/simpleproxy
-
-$(BIN_DIR)/linux-arm/simpleproxy: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath  -o $@ ./devtools/simpleproxy
-
-$(BIN_DIR)/linux-arm64/simpleproxy: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm64 go build -trimpath  -o $@ ./devtools/simpleproxy
-
-$(BIN_DIR)/windows-amd64/simpleproxy.exe: $(GO_DEPS)  
-	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/simpleproxy
-
-
-
-$(BIN_DIR)/waitfor: $(GO_DEPS) 
-	go build  -o $@ ./devtools/waitfor
-
-$(BIN_DIR)/darwin-amd64/waitfor: $(GO_DEPS)  
-	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./devtools/waitfor
-
-$(BIN_DIR)/linux-amd64/waitfor: $(GO_DEPS)  
-	GOOS=linux GOARCH=amd64 go build -trimpath  -o $@ ./devtools/waitfor
-
-$(BIN_DIR)/linux-arm/waitfor: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath  -o $@ ./devtools/waitfor
-
-$(BIN_DIR)/linux-arm64/waitfor: $(GO_DEPS)  
-	GOOS=linux GOARCH=arm64 go build -trimpath  -o $@ ./devtools/waitfor
-
-$(BIN_DIR)/windows-amd64/waitfor.exe: $(GO_DEPS)  
-	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./devtools/waitfor
-
-
-
-
-$(BIN_DIR)/darwin-amd64/_all: $(BIN_DIR)/darwin-amd64/goalert-smoketest $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/goalert-slack-email-sync $(BIN_DIR)/darwin-amd64/mockoidc $(BIN_DIR)/darwin-amd64/mockslack $(BIN_DIR)/darwin-amd64/pgdump-lite $(BIN_DIR)/darwin-amd64/pgmocktime $(BIN_DIR)/darwin-amd64/procwrap $(BIN_DIR)/darwin-amd64/psql-lite $(BIN_DIR)/darwin-amd64/resetdb $(BIN_DIR)/darwin-amd64/runproc $(BIN_DIR)/darwin-amd64/sendit $(BIN_DIR)/darwin-amd64/sendit-server $(BIN_DIR)/darwin-amd64/sendit-token $(BIN_DIR)/darwin-amd64/simpleproxy $(BIN_DIR)/darwin-amd64/waitfor
+$(BIN_DIR)/darwin-amd64/_all: $(BIN_DIR)/darwin-amd64/goalert-smoketest $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/goalert-slack-email-sync
 
 $(BIN_DIR)/darwin-amd64/goalert-smoketest: $(GO_DEPS)
 	GOOS=darwin GOARCH=amd64 go test ./smoketest -c -o $@
 
-$(BIN_DIR)/linux-amd64/_all: $(BIN_DIR)/linux-amd64/goalert-smoketest $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/goalert-slack-email-sync $(BIN_DIR)/linux-amd64/mockoidc $(BIN_DIR)/linux-amd64/mockslack $(BIN_DIR)/linux-amd64/pgdump-lite $(BIN_DIR)/linux-amd64/pgmocktime $(BIN_DIR)/linux-amd64/procwrap $(BIN_DIR)/linux-amd64/psql-lite $(BIN_DIR)/linux-amd64/resetdb $(BIN_DIR)/linux-amd64/runproc $(BIN_DIR)/linux-amd64/sendit $(BIN_DIR)/linux-amd64/sendit-server $(BIN_DIR)/linux-amd64/sendit-token $(BIN_DIR)/linux-amd64/simpleproxy $(BIN_DIR)/linux-amd64/waitfor
+$(BIN_DIR)/linux-amd64/_all: $(BIN_DIR)/linux-amd64/goalert-smoketest $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/goalert-slack-email-sync
 
 $(BIN_DIR)/linux-amd64/goalert-smoketest: $(GO_DEPS)
 	GOOS=linux GOARCH=amd64 go test ./smoketest -c -o $@
 
-$(BIN_DIR)/linux-arm/_all: $(BIN_DIR)/linux-arm/goalert-smoketest $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/goalert-slack-email-sync $(BIN_DIR)/linux-arm/mockoidc $(BIN_DIR)/linux-arm/mockslack $(BIN_DIR)/linux-arm/pgdump-lite $(BIN_DIR)/linux-arm/pgmocktime $(BIN_DIR)/linux-arm/procwrap $(BIN_DIR)/linux-arm/psql-lite $(BIN_DIR)/linux-arm/resetdb $(BIN_DIR)/linux-arm/runproc $(BIN_DIR)/linux-arm/sendit $(BIN_DIR)/linux-arm/sendit-server $(BIN_DIR)/linux-arm/sendit-token $(BIN_DIR)/linux-arm/simpleproxy $(BIN_DIR)/linux-arm/waitfor
+$(BIN_DIR)/linux-arm/_all: $(BIN_DIR)/linux-arm/goalert-smoketest $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/goalert-slack-email-sync
 
 $(BIN_DIR)/linux-arm/goalert-smoketest: $(GO_DEPS)
 	GOOS=linux GOARCH=arm GOARM=7 go test ./smoketest -c -o $@
 
-$(BIN_DIR)/linux-arm64/_all: $(BIN_DIR)/linux-arm64/goalert-smoketest $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/goalert-slack-email-sync $(BIN_DIR)/linux-arm64/mockoidc $(BIN_DIR)/linux-arm64/mockslack $(BIN_DIR)/linux-arm64/pgdump-lite $(BIN_DIR)/linux-arm64/pgmocktime $(BIN_DIR)/linux-arm64/procwrap $(BIN_DIR)/linux-arm64/psql-lite $(BIN_DIR)/linux-arm64/resetdb $(BIN_DIR)/linux-arm64/runproc $(BIN_DIR)/linux-arm64/sendit $(BIN_DIR)/linux-arm64/sendit-server $(BIN_DIR)/linux-arm64/sendit-token $(BIN_DIR)/linux-arm64/simpleproxy $(BIN_DIR)/linux-arm64/waitfor
+$(BIN_DIR)/linux-arm64/_all: $(BIN_DIR)/linux-arm64/goalert-smoketest $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/goalert-slack-email-sync
 
 $(BIN_DIR)/linux-arm64/goalert-smoketest: $(GO_DEPS)
 	GOOS=linux GOARCH=arm64 go test ./smoketest -c -o $@
 
-$(BIN_DIR)/windows-amd64/_all: $(BIN_DIR)/windows-amd64/goalert-smoketest $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/goalert-slack-email-sync.exe $(BIN_DIR)/windows-amd64/mockoidc.exe $(BIN_DIR)/windows-amd64/mockslack.exe $(BIN_DIR)/windows-amd64/pgdump-lite.exe $(BIN_DIR)/windows-amd64/pgmocktime.exe $(BIN_DIR)/windows-amd64/procwrap.exe $(BIN_DIR)/windows-amd64/psql-lite.exe $(BIN_DIR)/windows-amd64/resetdb.exe $(BIN_DIR)/windows-amd64/runproc.exe $(BIN_DIR)/windows-amd64/sendit.exe $(BIN_DIR)/windows-amd64/sendit-server.exe $(BIN_DIR)/windows-amd64/sendit-token.exe $(BIN_DIR)/windows-amd64/simpleproxy.exe $(BIN_DIR)/windows-amd64/waitfor.exe
+$(BIN_DIR)/windows-amd64/_all: $(BIN_DIR)/windows-amd64/goalert-smoketest $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/goalert-slack-email-sync.exe
 
 $(BIN_DIR)/windows-amd64/goalert-smoketest: $(GO_DEPS)
 	GOOS=windows GOARCH=amd64 go test ./smoketest -c -o $@
@@ -535,77 +248,5 @@ $(BIN_DIR)/goalert-windows-amd64.tgz: $(BIN_DIR)/build/goalert-windows-amd64
 $(BIN_DIR)/goalert-windows-amd64.zip: $(BIN_DIR)/build/goalert-windows-amd64
 	rm -f $@
 	cd $(BIN_DIR)/build/goalert-windows-amd64 && zip -r $(abspath $@) .
-
-
-
-$(BIN_DIR)/build/integration-darwin-amd64: $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/mockslack $(BIN_DIR)/darwin-amd64/pgdump-lite $(BIN_DIR)/darwin-amd64/psql-lite $(BIN_DIR)/darwin-amd64/procwrap $(BIN_DIR)/darwin-amd64/simpleproxy $(BIN_DIR)/darwin-amd64/waitfor $(BIN_DIR)/darwin-amd64/pgmocktime $(BIN_DIR)/darwin-amd64/mockoidc $(BIN_DIR)/build/integration
-	rm -rf $@
-	mkdir -p $@/goalert/bin/
-	cp  $(BIN_DIR)/darwin-amd64/goalert $(BIN_DIR)/darwin-amd64/mockslack $(BIN_DIR)/darwin-amd64/pgdump-lite $(BIN_DIR)/darwin-amd64/psql-lite $(BIN_DIR)/darwin-amd64/procwrap $(BIN_DIR)/darwin-amd64/simpleproxy $(BIN_DIR)/darwin-amd64/waitfor $(BIN_DIR)/darwin-amd64/pgmocktime $(BIN_DIR)/darwin-amd64/mockoidc $@/goalert/bin/
-	cp -r  $(BIN_DIR)/build/integration/. $@/goalert/
-	touch $@
-
-$(BIN_DIR)/integration-darwin-amd64.tgz: $(BIN_DIR)/build/integration-darwin-amd64
-	tar -czvf $(BIN_DIR)/integration-darwin-amd64.tgz -C $(BIN_DIR)/build/integration-darwin-amd64/ .
-
-$(BIN_DIR)/integration-darwin-amd64.zip: $(BIN_DIR)/build/integration-darwin-amd64
-	rm -f $@
-	cd $(BIN_DIR)/build/integration-darwin-amd64 && zip -r $(abspath $@) .
-
-$(BIN_DIR)/build/integration-linux-amd64: $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/mockslack $(BIN_DIR)/linux-amd64/pgdump-lite $(BIN_DIR)/linux-amd64/psql-lite $(BIN_DIR)/linux-amd64/procwrap $(BIN_DIR)/linux-amd64/simpleproxy $(BIN_DIR)/linux-amd64/waitfor $(BIN_DIR)/linux-amd64/pgmocktime $(BIN_DIR)/linux-amd64/mockoidc $(BIN_DIR)/build/integration
-	rm -rf $@
-	mkdir -p $@/goalert/bin/
-	cp  $(BIN_DIR)/linux-amd64/goalert $(BIN_DIR)/linux-amd64/mockslack $(BIN_DIR)/linux-amd64/pgdump-lite $(BIN_DIR)/linux-amd64/psql-lite $(BIN_DIR)/linux-amd64/procwrap $(BIN_DIR)/linux-amd64/simpleproxy $(BIN_DIR)/linux-amd64/waitfor $(BIN_DIR)/linux-amd64/pgmocktime $(BIN_DIR)/linux-amd64/mockoidc $@/goalert/bin/
-	cp -r  $(BIN_DIR)/build/integration/. $@/goalert/
-	touch $@
-
-$(BIN_DIR)/integration-linux-amd64.tgz: $(BIN_DIR)/build/integration-linux-amd64
-	tar -czvf $(BIN_DIR)/integration-linux-amd64.tgz -C $(BIN_DIR)/build/integration-linux-amd64/ .
-
-$(BIN_DIR)/integration-linux-amd64.zip: $(BIN_DIR)/build/integration-linux-amd64
-	rm -f $@
-	cd $(BIN_DIR)/build/integration-linux-amd64 && zip -r $(abspath $@) .
-
-$(BIN_DIR)/build/integration-linux-arm: $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/mockslack $(BIN_DIR)/linux-arm/pgdump-lite $(BIN_DIR)/linux-arm/psql-lite $(BIN_DIR)/linux-arm/procwrap $(BIN_DIR)/linux-arm/simpleproxy $(BIN_DIR)/linux-arm/waitfor $(BIN_DIR)/linux-arm/pgmocktime $(BIN_DIR)/linux-arm/mockoidc $(BIN_DIR)/build/integration
-	rm -rf $@
-	mkdir -p $@/goalert/bin/
-	cp  $(BIN_DIR)/linux-arm/goalert $(BIN_DIR)/linux-arm/mockslack $(BIN_DIR)/linux-arm/pgdump-lite $(BIN_DIR)/linux-arm/psql-lite $(BIN_DIR)/linux-arm/procwrap $(BIN_DIR)/linux-arm/simpleproxy $(BIN_DIR)/linux-arm/waitfor $(BIN_DIR)/linux-arm/pgmocktime $(BIN_DIR)/linux-arm/mockoidc $@/goalert/bin/
-	cp -r  $(BIN_DIR)/build/integration/. $@/goalert/
-	touch $@
-
-$(BIN_DIR)/integration-linux-arm.tgz: $(BIN_DIR)/build/integration-linux-arm
-	tar -czvf $(BIN_DIR)/integration-linux-arm.tgz -C $(BIN_DIR)/build/integration-linux-arm/ .
-
-$(BIN_DIR)/integration-linux-arm.zip: $(BIN_DIR)/build/integration-linux-arm
-	rm -f $@
-	cd $(BIN_DIR)/build/integration-linux-arm && zip -r $(abspath $@) .
-
-$(BIN_DIR)/build/integration-linux-arm64: $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/mockslack $(BIN_DIR)/linux-arm64/pgdump-lite $(BIN_DIR)/linux-arm64/psql-lite $(BIN_DIR)/linux-arm64/procwrap $(BIN_DIR)/linux-arm64/simpleproxy $(BIN_DIR)/linux-arm64/waitfor $(BIN_DIR)/linux-arm64/pgmocktime $(BIN_DIR)/linux-arm64/mockoidc $(BIN_DIR)/build/integration
-	rm -rf $@
-	mkdir -p $@/goalert/bin/
-	cp  $(BIN_DIR)/linux-arm64/goalert $(BIN_DIR)/linux-arm64/mockslack $(BIN_DIR)/linux-arm64/pgdump-lite $(BIN_DIR)/linux-arm64/psql-lite $(BIN_DIR)/linux-arm64/procwrap $(BIN_DIR)/linux-arm64/simpleproxy $(BIN_DIR)/linux-arm64/waitfor $(BIN_DIR)/linux-arm64/pgmocktime $(BIN_DIR)/linux-arm64/mockoidc $@/goalert/bin/
-	cp -r  $(BIN_DIR)/build/integration/. $@/goalert/
-	touch $@
-
-$(BIN_DIR)/integration-linux-arm64.tgz: $(BIN_DIR)/build/integration-linux-arm64
-	tar -czvf $(BIN_DIR)/integration-linux-arm64.tgz -C $(BIN_DIR)/build/integration-linux-arm64/ .
-
-$(BIN_DIR)/integration-linux-arm64.zip: $(BIN_DIR)/build/integration-linux-arm64
-	rm -f $@
-	cd $(BIN_DIR)/build/integration-linux-arm64 && zip -r $(abspath $@) .
-
-$(BIN_DIR)/build/integration-windows-amd64: $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/mockslack.exe $(BIN_DIR)/windows-amd64/pgdump-lite.exe $(BIN_DIR)/windows-amd64/psql-lite.exe $(BIN_DIR)/windows-amd64/procwrap.exe $(BIN_DIR)/windows-amd64/simpleproxy.exe $(BIN_DIR)/windows-amd64/waitfor.exe $(BIN_DIR)/windows-amd64/pgmocktime.exe $(BIN_DIR)/windows-amd64/mockoidc.exe $(BIN_DIR)/build/integration
-	rm -rf $@
-	mkdir -p $@/goalert/bin/
-	cp  $(BIN_DIR)/windows-amd64/goalert.exe $(BIN_DIR)/windows-amd64/mockslack.exe $(BIN_DIR)/windows-amd64/pgdump-lite.exe $(BIN_DIR)/windows-amd64/psql-lite.exe $(BIN_DIR)/windows-amd64/procwrap.exe $(BIN_DIR)/windows-amd64/simpleproxy.exe $(BIN_DIR)/windows-amd64/waitfor.exe $(BIN_DIR)/windows-amd64/pgmocktime.exe $(BIN_DIR)/windows-amd64/mockoidc.exe $@/goalert/bin/
-	cp -r  $(BIN_DIR)/build/integration/. $@/goalert/
-	touch $@
-
-$(BIN_DIR)/integration-windows-amd64.tgz: $(BIN_DIR)/build/integration-windows-amd64
-	tar -czvf $(BIN_DIR)/integration-windows-amd64.tgz -C $(BIN_DIR)/build/integration-windows-amd64/ .
-
-$(BIN_DIR)/integration-windows-amd64.zip: $(BIN_DIR)/build/integration-windows-amd64
-	rm -f $@
-	cd $(BIN_DIR)/build/integration-windows-amd64 && zip -r $(abspath $@) .
 
 

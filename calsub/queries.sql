@@ -74,10 +74,6 @@ INSERT INTO user_calendar_subscriptions(id, NAME, user_id, disabled, schedule_id
 RETURNING
     created_at;
 
--- name: Now :one
-SELECT
-    now()::timestamptz;
-
 -- name: CalSubAuthUser :one
 UPDATE
     user_calendar_subscriptions

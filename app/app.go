@@ -5,10 +5,15 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pkg/errors"
+	"github.com/riverqueue/river"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/alert/alertmetrics"
@@ -31,6 +36,7 @@ import (
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/notificationchannel"
@@ -47,21 +53,28 @@ import (
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/user/favorite"
 	"github.com/target/goalert/user/notificationrule"
+	"github.com/target/goalert/util/calllimiter"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
+	"riverqueue.com/riverui"
 )
 
 // App represents an instance of the GoAlert application.
 type App struct {
 	cfg Config
 
+	Logger *slog.Logger
+
 	mgr *lifecycle.Manager
 
 	db     *sql.DB
+	pgx    *pgxpool.Pool
 	l      net.Listener
 	events *sqlutil.Listener
+
+	httpClient *http.Client
 
 	doneCh chan struct{}
 
@@ -105,6 +118,7 @@ type App struct {
 	NotificationStore   *notification.Store
 	ScheduleStore       *schedule.Store
 	RotationStore       *rotation.Store
+	DestRegistry        *nfydest.Registry
 
 	CalSubStore    *calsub.Store
 	OverrideStore  *override.Store
@@ -124,12 +138,26 @@ type App struct {
 	NoticeStore   *notice.Store
 	AuthLinkStore *authlink.Store
 	APIKeyStore   *apikey.Store
+	River         *river.Client[pgx.Tx]
+
+	// RiverDBSQL is a river client that uses the old sql.DB driver for use while transitioning to pgx.
+	//
+	// This allows us to add jobs from transactions that are not using the pgx driver. This client is not used for any job or queue processing.
+	RiverDBSQL   *river.Client[*sql.Tx]
+	RiverUI      *riverui.Handler
+	RiverWorkers *river.Workers
 }
 
 // NewApp constructs a new App and binds the listening socket.
-func NewApp(c Config, db *sql.DB) (*App, error) {
+func NewApp(c Config, pool *pgxpool.Pool) (*App, error) {
+	if c.Logger == nil {
+		return nil, errors.New("Logger is required")
+	}
+
 	var err error
+	db := stdlib.OpenDBFromPool(pool)
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
+		c.Logger.DebugContext(ctx, "checking switchover_state table")
 		// Should not be possible for the app to ever see `use_next_db` unless misconfigured.
 		//
 		// In switchover mode, the connector wrapper will check this and provide the app with
@@ -162,10 +190,10 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 		if err != nil {
 			return nil, errors.Wrapf(err, "listen %s", c.TLSListenAddr)
 		}
-		l = newMultiListener(c.Logger, l, l2)
+		l = newMultiListener(l, l2)
 	}
 
-	c.Logger.AddErrorMapper(func(ctx context.Context, err error) context.Context {
+	c.LegacyLogger.AddErrorMapper(func(ctx context.Context, err error) context.Context {
 		if e := sqlutil.MapError(err); e != nil && e.Detail != "" {
 			ctx = log.WithField(ctx, "SQLErrDetails", e.Detail)
 		}
@@ -176,8 +204,13 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 	app := &App{
 		l:      l,
 		db:     db,
+		pgx:    pool,
 		cfg:    c,
 		doneCh: make(chan struct{}),
+		Logger: c.Logger,
+		httpClient: &http.Client{
+			Transport: calllimiter.RoundTripper(http.DefaultTransport),
+		},
 	}
 
 	if c.StatusAddr != "" {
@@ -187,9 +220,7 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 		}
 	}
 
-	app.db.SetMaxIdleConns(c.DBMaxIdle)
-	app.db.SetMaxOpenConns(c.DBMaxOpen)
-
+	c.Logger.Debug("starting app")
 	app.mgr = lifecycle.NewManager(app._Run, app._Shutdown)
 	err = app.mgr.SetStartupFunc(app.startup)
 	if err != nil {

@@ -3,10 +3,9 @@ package escalation
 import (
 	"context"
 	"database/sql"
-	"net/url"
 
 	"github.com/target/goalert/alert/alertlog"
-	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
@@ -21,6 +20,7 @@ import (
 
 type Config struct {
 	NCStore         *notificationchannel.Store
+	Registry        *nfydest.Registry
 	LogStore        *alertlog.Store
 	SlackLookupFunc func(ctx context.Context, channelID string) (*slack.Channel, error)
 }
@@ -30,9 +30,8 @@ type Store struct {
 
 	log     *alertlog.Store
 	ncStore *notificationchannel.Store
+	reg     *nfydest.Registry
 	slackFn func(ctx context.Context, channelID string) (*slack.Channel, error)
-
-	findNotifChan *sql.Stmt
 
 	findOnePolicy          *sql.Stmt
 	findOnePolicyForUpdate *sql.Stmt
@@ -50,10 +49,6 @@ type Store struct {
 	updateStepDelay      *sql.Stmt
 	updateStepNumber     *sql.Stmt
 	deleteStep           *sql.Stmt
-
-	addStepTarget      *sql.Stmt
-	deleteStepTarget   *sql.Stmt
-	findAllStepTargets *sql.Stmt
 }
 
 func NewStore(ctx context.Context, db *sql.DB, cfg Config) (*Store, error) {
@@ -64,15 +59,7 @@ func NewStore(ctx context.Context, db *sql.DB, cfg Config) (*Store, error) {
 		log:     cfg.LogStore,
 		slackFn: cfg.SlackLookupFunc,
 		ncStore: cfg.NCStore,
-
-		findNotifChan: p.P(`
-			SELECT chan.id
-			FROM notification_channels chan
-			JOIN escalation_policy_actions act ON
-				act.escalation_policy_step_id = $1 AND
-				act.channel_id = chan.id
-			WHERE chan.value = $2 and chan.type = $3
-		`),
+		reg:     cfg.Registry,
 
 		findOnePolicy: p.P(`
 			SELECT
@@ -120,44 +107,6 @@ func NewStore(ctx context.Context, db *sql.DB, cfg Config) (*Store, error) {
 		updatePolicy: p.P(`UPDATE escalation_policies SET name = $2, description = $3, repeat = $4 WHERE id = $1`),
 		deletePolicy: p.P(`DELETE FROM escalation_policies WHERE id = any($1)`),
 
-		addStepTarget: p.P(`
-			INSERT INTO escalation_policy_actions (id, escalation_policy_step_id, user_id, schedule_id, rotation_id, channel_id)
-			VALUES ($1, $2, $3, $4, $5, $6)
-		`),
-		deleteStepTarget: p.P(`
-			DELETE FROM escalation_policy_actions
-			WHERE
-				escalation_policy_step_id = $1 AND
-				(
-					user_id = $2 OR
-					schedule_id = $3 OR
-					rotation_id = $4 OR
-					channel_id = $5
-				)
-		`),
-		findAllStepTargets: p.P(`
-			SELECT
-				user_id,
-				schedule_id,
-				rotation_id,
-				channel_id,
-				chan.type,
-				chan.value,
-				COALESCE(users.name, rot.name, sched.name, chan.name)
-			FROM
-				escalation_policy_actions act
-			LEFT JOIN users
-				on act.user_id = users.id
-			LEFT JOIN rotations rot
-				on act.rotation_id = rot.id
-			LEFT JOIN schedules sched
-				on act.schedule_id = sched.id
-			LEFT JOIN notification_channels chan
-				on act.channel_id = chan.id
-			WHERE
-				escalation_policy_step_id = $1
-		`),
-
 		findOneStepForUpdate: p.P(`SELECT id, escalation_policy_id, delay, step_number FROM escalation_policy_steps WHERE id = $1 FOR UPDATE`),
 		findAllSteps:         p.P(`SELECT id, escalation_policy_id, delay, step_number FROM escalation_policy_steps WHERE escalation_policy_id = $1 ORDER BY step_number`),
 		findAllOnCallSteps: p.P(`
@@ -184,53 +133,6 @@ func (s *Store) logChange(ctx context.Context, tx *sql.Tx, policyID string) {
 	err := s.log.LogEPTx(ctx, tx, policyID, alertlog.TypePolicyUpdated, nil)
 	if err != nil {
 		log.Log(ctx, errors.Wrap(err, "append alertlog (escalation policy update)"))
-	}
-}
-
-func validStepTarget(tgt assignment.Target) error {
-	return validate.Many(
-		validate.UUID("TargetID", tgt.TargetID()),
-		validate.OneOf("TargetType", tgt.TargetType(),
-			assignment.TargetTypeUser,
-			assignment.TargetTypeSchedule,
-			assignment.TargetTypeRotation,
-			assignment.TargetTypeNotificationChannel,
-		),
-	)
-}
-
-func tgtFields(id string, tgt assignment.Target, insert bool) []interface{} {
-	var usr, sched, rot, ch sql.NullString
-	switch tgt.TargetType() {
-	case assignment.TargetTypeUser:
-		usr.Valid = true
-		usr.String = tgt.TargetID()
-	case assignment.TargetTypeSchedule:
-		sched.Valid = true
-		sched.String = tgt.TargetID()
-	case assignment.TargetTypeRotation:
-		rot.Valid = true
-		rot.String = tgt.TargetID()
-	case assignment.TargetTypeNotificationChannel:
-		ch.Valid = true
-		ch.String = tgt.TargetID()
-	}
-	if insert {
-		return []interface{}{
-			uuid.New().String(),
-			id,
-			usr,
-			sched,
-			rot,
-			ch,
-		}
-	}
-	return []interface{}{
-		id,
-		usr,
-		sched,
-		rot,
-		ch,
 	}
 }
 
@@ -266,174 +168,6 @@ func (s *Store) FindManyPolicies(ctx context.Context, ids []string) ([]Policy, e
 	}
 
 	return result, nil
-}
-
-func (s *Store) _updateStepTarget(ctx context.Context, stepID string, tgt assignment.Target, stmt *sql.Stmt, insert bool) error {
-	err := validate.Many(
-		validate.UUID("StepID", stepID),
-		validStepTarget(tgt),
-	)
-	if err != nil {
-		return err
-	}
-	err = permission.LimitCheckAny(ctx, permission.All)
-	if err != nil {
-		return err
-	}
-	_, err = stmt.ExecContext(ctx, tgtFields(stepID, tgt, insert)...)
-	if errors.Is(err, sql.ErrNoRows) {
-		err = nil
-	}
-	return err
-}
-
-func (s *Store) chanWebhook(ctx context.Context, tx *sql.Tx, webhookTarget assignment.Target) (assignment.Target, error) {
-	webhookUrl, err := url.Parse(webhookTarget.TargetID())
-	if err != nil {
-		return nil, err
-	}
-	notifID, err := s.ncStore.MapToID(ctx, tx, &notificationchannel.Channel{
-		Type:  notificationchannel.TypeWebhook,
-		Name:  webhookUrl.Hostname(),
-		Value: webhookTarget.TargetID(),
-	})
-	if err != nil {
-		return nil, err
-	}
-	return assignment.NotificationChannelTarget(notifID.String()), nil
-}
-
-func (s *Store) newSlackChannel(ctx context.Context, tx *sql.Tx, slackChanID string) (assignment.Target, error) {
-	ch, err := s.slackFn(ctx, slackChanID)
-	if err != nil {
-		return nil, err
-	}
-
-	notifID, err := s.ncStore.MapToID(ctx, tx, &notificationchannel.Channel{
-		Type:  notificationchannel.TypeSlackChan,
-		Name:  ch.Name,
-		Value: ch.ID,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return assignment.NotificationChannelTarget(notifID.String()), nil
-}
-
-func (s *Store) lookupNotifChannel(ctx context.Context, tx *sql.Tx, stepID, chanID, chanType string) (assignment.Target, error) {
-	var notifChanID string
-	err := tx.StmtContext(ctx, s.findNotifChan).QueryRowContext(ctx, stepID, chanID, chanType).Scan(&notifChanID)
-	if err != nil {
-		return nil, err
-	}
-
-	return assignment.NotificationChannelTarget(notifChanID), nil
-}
-
-// AddStepTargetTx adds a target to an escalation policy step.
-func (s *Store) AddStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string, tgt assignment.Target) error {
-	if tgt.TargetType() == assignment.TargetTypeSlackChannel {
-		var err error
-		tgt, err = s.newSlackChannel(ctx, tx, tgt.TargetID())
-		if err != nil {
-			return err
-		}
-	}
-	if tgt.TargetType() == assignment.TargetTypeChanWebhook {
-		var err error
-		tgt, err = s.chanWebhook(ctx, tx, tgt)
-		if err != nil {
-			return err
-		}
-	}
-	return s._updateStepTarget(ctx, stepID, tgt, tx.StmtContext(ctx, s.addStepTarget), true)
-}
-
-// DeleteStepTargetTx removes the target from the step.
-func (s *Store) DeleteStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string, tgt assignment.Target) error {
-	if tgt.TargetType() == assignment.TargetTypeSlackChannel {
-		var err error
-		tgt, err = s.lookupNotifChannel(ctx, tx, stepID, tgt.TargetID(), "SLACK")
-		if err != nil {
-			return err
-		}
-	}
-	if tgt.TargetType() == assignment.TargetTypeChanWebhook {
-		var err error
-		tgt, err = s.lookupNotifChannel(ctx, tx, stepID, tgt.TargetID(), "WEBHOOK")
-		if err != nil {
-			return err
-		}
-	}
-	return s._updateStepTarget(ctx, stepID, tgt, tx.StmtContext(ctx, s.deleteStepTarget), false)
-}
-
-// FindAllStepTargetsTx returns the targets for a step.
-func (s *Store) FindAllStepTargetsTx(ctx context.Context, tx *sql.Tx, stepID string) ([]assignment.Target, error) {
-	err := permission.LimitCheckAny(ctx, permission.User)
-	if err != nil {
-		return nil, err
-	}
-
-	err = validate.UUID("StepID", stepID)
-	if err != nil {
-		return nil, err
-	}
-
-	stmt := s.findAllStepTargets
-	if tx != nil {
-		stmt = tx.StmtContext(ctx, stmt)
-	}
-
-	rows, err := stmt.QueryContext(ctx, stepID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var tgts []assignment.Target
-	for rows.Next() {
-		var usr, sched, rot, ch, chValue sql.NullString
-		var chType *notificationchannel.Type
-		var tgt assignment.RawTarget
-		err = rows.Scan(&usr, &sched, &rot, &ch, &chType, &chValue, &tgt.Name)
-		if err != nil {
-			return nil, err
-		}
-
-		switch {
-		case usr.Valid:
-			tgt.ID = usr.String
-			tgt.Type = assignment.TargetTypeUser
-		case sched.Valid:
-			tgt.ID = sched.String
-			tgt.Type = assignment.TargetTypeSchedule
-		case rot.Valid:
-			tgt.ID = rot.String
-			tgt.Type = assignment.TargetTypeRotation
-		case ch.Valid:
-			switch *chType {
-			case notificationchannel.TypeSlackChan:
-				tgt.ID = chValue.String
-				tgt.Type = assignment.TargetTypeSlackChannel
-			case notificationchannel.TypeWebhook:
-				tgt.ID = chValue.String
-				tgt.Type = assignment.TargetTypeChanWebhook
-			default:
-				tgt.ID = ch.String
-				tgt.Type = assignment.TargetTypeNotificationChannel
-			}
-		default:
-			continue
-		}
-		tgts = append(tgts, tgt)
-	}
-
-	return tgts, nil
 }
 
 // CreatePolicyTx creates a new escalation policy in the database.
@@ -704,7 +438,7 @@ func (s *Store) CreateStepTx(ctx context.Context, tx *sql.Tx, st *Step) (*Step, 
 		stmt = tx.StmtContext(ctx, stmt)
 	}
 
-	n.ID = uuid.New().String()
+	n.ID = uuid.New()
 
 	err = stmt.QueryRowContext(ctx, n.ID, n.PolicyID, n.DelayMinutes).Scan(&n.StepNumber)
 	if err != nil {
@@ -716,13 +450,8 @@ func (s *Store) CreateStepTx(ctx context.Context, tx *sql.Tx, st *Step) (*Step, 
 }
 
 // UpdateStepNumberTx updates the step number for a step.
-func (s *Store) UpdateStepNumberTx(ctx context.Context, tx *sql.Tx, stepID string, stepNumber int) error {
+func (s *Store) UpdateStepNumberTx(ctx context.Context, tx *sql.Tx, stepID uuid.UUID, stepNumber int) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
-	if err != nil {
-		return err
-	}
-
-	err = validate.UUID("EscalationPolicyStepID", stepID)
 	if err != nil {
 		return err
 	}
@@ -741,13 +470,8 @@ func (s *Store) UpdateStepNumberTx(ctx context.Context, tx *sql.Tx, stepID strin
 }
 
 // UpdateStepDelayTx updates the delay for a step.
-func (s *Store) UpdateStepDelayTx(ctx context.Context, tx *sql.Tx, stepID string, stepDelay int) error {
+func (s *Store) UpdateStepDelayTx(ctx context.Context, tx *sql.Tx, stepID uuid.UUID, stepDelay int) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
-	if err != nil {
-		return err
-	}
-
-	err = validate.UUID("EscalationPolicyStepID", stepID)
 	if err != nil {
 		return err
 	}
@@ -771,13 +495,8 @@ func (s *Store) UpdateStepDelayTx(ctx context.Context, tx *sql.Tx, stepID string
 }
 
 // DeleteStepTx deletes a step from an escalation policy.
-func (s *Store) DeleteStepTx(ctx context.Context, tx *sql.Tx, id string) (string, error) {
-	err := validate.UUID("EscalationPolicyStepID", id)
-	if err != nil {
-		return "", err
-	}
-
-	err = permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+func (s *Store) DeleteStepTx(ctx context.Context, tx *sql.Tx, id uuid.UUID) (string, error) {
+	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return "", err
 	}

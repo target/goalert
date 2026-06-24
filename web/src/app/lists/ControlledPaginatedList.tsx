@@ -90,7 +90,7 @@ export interface CheckboxItemsProps extends PaginatedListItemProps {
 
 export default function ControlledPaginatedList(
   props: ControlledPaginatedListProps,
-): JSX.Element {
+): React.JSX.Element {
   const classes = useStyles()
   const {
     checkboxActions,
@@ -235,7 +235,9 @@ export default function ControlledPaginatedList(
     )
   }
 
-  function getItemIcon(item: CheckboxItemsProps): JSX.Element | undefined {
+  function getItemIcon(
+    item: CheckboxItemsProps,
+  ): React.JSX.Element | undefined {
     if (!checkboxActions) return item.icon
 
     const checked = checkedItems.includes(item.id)

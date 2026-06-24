@@ -54,7 +54,7 @@ function fallback(str: string): void {
 export default function copyToClipboard(text: string): void {
   try {
     navigator.clipboard.writeText(text)
-  } catch (error) {
+  } catch {
     fallback(text)
   }
 }

@@ -39,7 +39,7 @@ const CustomDot = (props: CustomDotProps): JSX.Element => {
 }
 
 interface AlertAveragesGraphProps {
-  data: (typeof LineChart.defaultProps)['data']
+  data: React.ComponentProps<typeof LineChart>['data']
   loading: boolean
 }
 

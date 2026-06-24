@@ -1,14 +1,14 @@
 import React from 'react'
 import { ActionInput } from '../../../schema'
 import DestinationInputChip from '../../util/DestinationInputChip'
-import { Grid, Typography } from '@mui/material'
+import { Chip, Grid } from '@mui/material'
+import { Warning } from '../../icons'
 
 export type UniversalKeyActionsListProps = {
   actions: ReadonlyArray<ActionInput>
 
-  noHeader?: boolean
-  onDelete?: (action: ActionInput) => void
-  onChipClick?: (action: ActionInput) => void
+  noEdit?: boolean // disables onDelete and onChipClick
+  onEdit?: (index: number) => void
 }
 
 export default function UniversalKeyActionsList(
@@ -16,13 +16,6 @@ export default function UniversalKeyActionsList(
 ): React.ReactNode {
   return (
     <React.Fragment>
-      {!props.noHeader && (
-        <Grid item xs={12}>
-          <Typography variant='h6' color='textPrimary'>
-            Actions
-          </Typography>
-        </Grid>
-      )}
       <Grid
         item
         xs={12}
@@ -31,35 +24,34 @@ export default function UniversalKeyActionsList(
         sx={{ p: 1 }}
         data-testid='actions-list'
       >
-        {props.actions.map((a) => (
+        {props.actions.map((a, idx) => (
           <Grid item key={JSON.stringify(a.dest)}>
             <DestinationInputChip
               value={a.dest}
-              onDelete={
-                props.onDelete
-                  ? () => props.onDelete && props.onDelete(a)
-                  : undefined
-              }
-              onChipClick={
-                props.onChipClick
-                  ? () => props.onChipClick && props.onChipClick(a)
+              onEdit={
+                props.onEdit && !props.noEdit
+                  ? () => props.onEdit && props.onEdit(idx)
                   : undefined
               }
             />
           </Grid>
         ))}
-        {props.actions.length === 0 && (
-          <Grid item xs={12}>
-            <Typography
-              variant='body2'
-              color='textSecondary'
-              data-testid='no-actions'
-            >
-              No actions
-            </Typography>
-          </Grid>
-        )}
       </Grid>
+      {props.actions.length === 0 && (
+        <Grid item xs={12}>
+          <Chip
+            label='No actions'
+            icon={
+              <div style={{ padding: '4px' }} data-testid='no-actions'>
+                <Warning
+                  placement='bottom'
+                  message='With no actions configured, nothing will happen when this rule matches'
+                />
+              </div>
+            }
+          />
+        </Grid>
+      )}
     </React.Fragment>
   )
 }

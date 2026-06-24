@@ -9,6 +9,7 @@ const query = gql`
     rotation(id: $id) {
       id
       userIDs
+      activeUserIndex
       users {
         id
         name
@@ -26,7 +27,7 @@ const RotationUserDeleteDialog = (props: {
   rotationID: string
   userIndex: number
   onClose: () => void
-}): JSX.Element => {
+}): React.JSX.Element => {
   const { rotationID, userIndex, onClose } = props
   const [deleteUserMutationStatus, deleteUserMutation] = useMutation(mutation)
   const [{ fetching, data, error }] = useQuery({
@@ -60,6 +61,10 @@ const RotationUserDeleteDialog = (props: {
               userIDs: userIDs.filter(
                 (_: string, index: number) => index !== userIndex,
               ),
+              activeUserIndex:
+                userIndex < data.rotation.activeUserIndex
+                  ? data.rotation.activeUserIndex - 1
+                  : data.rotation.activeUserIndex,
             },
           },
           { additionalTypenames: ['Rotation'] },

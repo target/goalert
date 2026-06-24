@@ -21,7 +21,7 @@ const query = gql`
 export default function AdminAPIKeyShowQueryDialog(props: {
   apiKeyID: string
   onClose: (yes: boolean) => void
-}): JSX.Element {
+}): React.JSX.Element {
   const theme = useTheme()
   const [{ fetching, data, error }] = useQuery({
     query,

@@ -12,11 +12,11 @@ import ErrorIcon from 'mdi-material-ui/DatabaseAlert'
 import IdleIcon from 'mdi-material-ui/DatabaseSettings'
 import InProgressIcon from 'mdi-material-ui/DatabaseEdit'
 import { SWOStatus } from '../../../schema'
-import LoadingButton from '@mui/lab/LoadingButton'
+import Button from '@mui/material/Button'
 import { toTitle } from './util'
 import { AdminSwitchoverGuideButton } from './AdminSwitchoverGuide'
 
-function getIcon(data: SWOStatus): JSX.Element {
+function getIcon(data: SWOStatus): React.JSX.Element {
   const i: SvgIconProps = { color: 'primary', sx: { fontSize: '3.5rem' } }
 
   if (data.lastError) {
@@ -61,7 +61,7 @@ type AdminSWOStatusCardProps = {
 
 export function AdminSWOStatusCard(
   props: AdminSWOStatusCardProps,
-): JSX.Element {
+): React.JSX.Element {
   const theme = useTheme()
 
   // We track this separately so we can wait for a NEW status without
@@ -90,7 +90,7 @@ export function AdminSWOStatusCard(
           orientation={theme.breakpoints.up('md') ? 'vertical' : 'horizontal'}
           sx={{ width: '100%', pb: '16px', pt: '16px' }}
         >
-          <LoadingButton
+          <Button
             startIcon={<ResetIcon />}
             // disabled={mutationStatus.fetching}
             variant='outlined'
@@ -103,8 +103,8 @@ export function AdminSWOStatusCard(
             }}
           >
             {state === 'resetting' ? 'Resetting...' : 'Reset'}
-          </LoadingButton>
-          <LoadingButton
+          </Button>
+          <Button
             startIcon={state !== 'idle' ? <NoExecuteIcon /> : <ExecuteIcon />}
             disabled={state !== 'idle'}
             variant='outlined'
@@ -116,7 +116,7 @@ export function AdminSWOStatusCard(
             }}
           >
             {isExec ? 'Executing...' : 'Execute'}
-          </LoadingButton>
+          </Button>
         </ButtonGroup>
         <AdminSwitchoverGuideButton />
       </CardContent>

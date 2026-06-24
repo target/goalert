@@ -3,6 +3,7 @@
 package graphql2
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"strconv"
@@ -13,6 +14,7 @@ import (
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
@@ -24,22 +26,11 @@ import (
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/service"
 	"github.com/target/goalert/user"
-	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util/timeutil"
 )
 
 type InlineDisplayInfo interface {
 	IsInlineDisplayInfo()
-}
-
-type Action struct {
-	Dest   *Destination      `json:"dest"`
-	Params map[string]string `json:"params"`
-}
-
-type ActionInput struct {
-	Dest   *DestinationInput `json:"dest"`
-	Params map[string]string `json:"params"`
 }
 
 type AlertConnection struct {
@@ -77,8 +68,9 @@ type AlertPendingNotification struct {
 }
 
 type AlertRecentEventsOptions struct {
-	Limit *int    `json:"limit,omitempty"`
-	After *string `json:"after,omitempty"`
+	Limit *int       `json:"limit,omitempty"`
+	After *string    `json:"after,omitempty"`
+	Since *time.Time `json:"since,omitempty"`
 }
 
 type AlertSearchOptions struct {
@@ -97,15 +89,30 @@ type AlertSearchOptions struct {
 	NotClosedBefore   *time.Time       `json:"notClosedBefore,omitempty"`
 }
 
+// AlertStats returns aggregated statistics about alerts.
+type AlertStats struct {
+	AvgAckSec      []TimeSeriesBucket `json:"avgAckSec"`
+	AvgCloseSec    []TimeSeriesBucket `json:"avgCloseSec"`
+	AlertCount     []TimeSeriesBucket `json:"alertCount"`
+	EscalatedCount []TimeSeriesBucket `json:"escalatedCount"`
+}
+
+type AlertsByStatus struct {
+	Acked   int `json:"acked"`
+	Unacked int `json:"unacked"`
+	Closed  int `json:"closed"`
+}
+
 type AuthSubjectConnection struct {
 	Nodes    []user.AuthSubject `json:"nodes"`
 	PageInfo *PageInfo          `json:"pageInfo"`
 }
 
 type CalcRotationHandoffTimesInput struct {
-	Handoff          time.Time             `json:"handoff"`
-	From             *time.Time            `json:"from,omitempty"`
-	TimeZone         string                `json:"timeZone"`
+	Handoff  time.Time  `json:"handoff"`
+	From     *time.Time `json:"from,omitempty"`
+	TimeZone string     `json:"timeZone"`
+	// Only accurate for hourly-type rotations. Use shiftLength instead.
 	ShiftLengthHours *int                  `json:"shiftLengthHours,omitempty"`
 	ShiftLength      *timeutil.ISODuration `json:"shiftLength,omitempty"`
 	Count            int                   `json:"count"`
@@ -136,10 +143,14 @@ type ClearTemporarySchedulesInput struct {
 }
 
 type CloseMatchingAlertInput struct {
-	ServiceID string  `json:"serviceID"`
-	Summary   *string `json:"summary,omitempty"`
-	Details   *string `json:"details,omitempty"`
-	Dedup     *string `json:"dedup,omitempty"`
+	ServiceID string `json:"serviceID"`
+	// Summary (and details) will match an alert with the same values.
+	//
+	// They can be omitted if the dedup field is provided.
+	Summary *string `json:"summary,omitempty"`
+	Details *string `json:"details,omitempty"`
+	// Preferred over providing the summary & details.
+	Dedup *string `json:"dedup,omitempty"`
 }
 
 type Condition struct {
@@ -174,12 +185,16 @@ type ConfigValueInput struct {
 }
 
 type CreateAlertInput struct {
-	Summary   string               `json:"summary"`
-	Details   *string              `json:"details,omitempty"`
-	ServiceID string               `json:"serviceID"`
-	Sanitize  *bool                `json:"sanitize,omitempty"`
-	Dedup     *string              `json:"dedup,omitempty"`
-	Meta      []AlertMetadataInput `json:"meta,omitempty"`
+	Summary   string  `json:"summary"`
+	Details   *string `json:"details,omitempty"`
+	ServiceID string  `json:"serviceID"`
+	// If true, summary and details will be automatically sanitized and truncated (if necessary).
+	Sanitize *bool `json:"sanitize,omitempty"`
+	// Dedup allows setting a unique value to de-duplicate multiple alerts.
+	//
+	// It can also be used to close an alert using closeMatchingAlert mutation.
+	Dedup *string              `json:"dedup,omitempty"`
+	Meta  []AlertMetadataInput `json:"meta,omitempty"`
 }
 
 type CreateBasicAuthInput struct {
@@ -203,7 +218,7 @@ type CreateEscalationPolicyStepInput struct {
 	Targets            []assignment.RawTarget `json:"targets,omitempty"`
 	NewRotation        *CreateRotationInput   `json:"newRotation,omitempty"`
 	NewSchedule        *CreateScheduleInput   `json:"newSchedule,omitempty"`
-	Actions            []DestinationInput     `json:"actions,omitempty"`
+	Actions            []gadb.DestV1          `json:"actions,omitempty"`
 }
 
 type CreateGQLAPIKeyInput struct {
@@ -219,6 +234,11 @@ type CreateHeartbeatMonitorInput struct {
 	Name              string  `json:"name"`
 	TimeoutMinutes    int     `json:"timeoutMinutes"`
 	AdditionalDetails *string `json:"additionalDetails,omitempty"`
+	// If non-empty, the monitor will be muted with this reason.
+	//
+	// Muting a monitor will prevent it from triggering new alerts, but existing
+	// alerts will remain active until closed or the monitor is healthy again.
+	Muted *string `json:"muted,omitempty"`
 }
 
 type CreateIntegrationKeyInput struct {
@@ -271,13 +291,17 @@ type CreateUserCalendarSubscriptionInput struct {
 }
 
 type CreateUserContactMethodInput struct {
-	UserID                  string                           `json:"userID"`
-	Type                    *contactmethod.Type              `json:"type,omitempty"`
-	Dest                    *DestinationInput                `json:"dest,omitempty"`
-	Name                    string                           `json:"name"`
+	UserID string             `json:"userID"`
+	Type   *ContactMethodType `json:"type,omitempty"`
+	Dest   *gadb.DestV1       `json:"dest,omitempty"`
+	Name   string             `json:"name"`
+	// Only value or dest should be used at a time, never both.
 	Value                   *string                          `json:"value,omitempty"`
 	NewUserNotificationRule *CreateUserNotificationRuleInput `json:"newUserNotificationRule,omitempty"`
-	EnableStatusUpdates     *bool                            `json:"enableStatusUpdates,omitempty"`
+	// If true, this contact method will receive status updates.
+	//
+	// Note: Some contact method types, like Slack, will always receive status updates and this value is ignored.
+	EnableStatusUpdates *bool `json:"enableStatusUpdates,omitempty"`
 }
 
 type CreateUserInput struct {
@@ -356,55 +380,12 @@ type DebugSendSMSInput struct {
 	Body string `json:"body"`
 }
 
-// Destination represents a destination that can be used for notifications.
-type Destination struct {
-	Type        string            `json:"type"`
-	Values      []FieldValuePair  `json:"values"`
-	Args        map[string]string `json:"args"`
-	DisplayInfo InlineDisplayInfo `json:"displayInfo"`
-}
-
-// DestinationDisplayInfo provides information for displaying a destination.
-type DestinationDisplayInfo struct {
-	// user-friendly text to display for this destination
-	Text string `json:"text"`
-	// URL to an icon to display for this destination
-	IconURL string `json:"iconURL"`
-	// alt text for the icon, should be human-readable and usable in place of the icon
-	IconAltText string `json:"iconAltText"`
-	// URL to link to for more information about this destination
-	LinkURL string `json:"linkURL"`
-}
-
-func (DestinationDisplayInfo) IsInlineDisplayInfo() {}
-
 type DestinationDisplayInfoError struct {
 	// error message to display when the display info cannot be retrieved
 	Error string `json:"error"`
 }
 
 func (DestinationDisplayInfoError) IsInlineDisplayInfo() {}
-
-type DestinationFieldConfig struct {
-	// unique ID for the input field
-	FieldID string `json:"fieldID"`
-	// user-friendly label (should be singular)
-	Label string `json:"label"`
-	// user-friendly helper text for input fields (i.e., "Enter a phone number")
-	Hint string `json:"hint"`
-	// URL to link to for more information about the destination type
-	HintURL string `json:"hintURL"`
-	// placeholder text to display in input fields (e.g., "Phone Number")
-	PlaceholderText string `json:"placeholderText"`
-	// the prefix to use when displaying the destination (e.g., "+" for phone numbers)
-	Prefix string `json:"prefix"`
-	// the type of input field (type attribute) to use (e.g., "text" or "tel")
-	InputType string `json:"inputType"`
-	// if true, the destination can be selected via search
-	SupportsSearch bool `json:"supportsSearch"`
-	// if true, the destination type supports validation
-	SupportsValidation bool `json:"supportsValidation"`
-}
 
 type DestinationFieldSearchInput struct {
 	// the type of destination to search for
@@ -430,63 +411,20 @@ type DestinationFieldValidateInput struct {
 	Value string `json:"value"`
 }
 
-type DestinationInput struct {
-	Type   string            `json:"type"`
-	Values []FieldValueInput `json:"values,omitempty"`
-	Args   map[string]string `json:"args,omitempty"`
-}
-
-type DestinationTypeInfo struct {
-	Type string `json:"type"`
-	Name string `json:"name"`
-	// URL to an icon to display for the destination type
-	IconURL string `json:"iconURL"`
-	// alt text for the icon, should be usable in place of the icon
-	IconAltText string `json:"iconAltText"`
-	// if false, the destination type is disabled and cannot be used
-	Enabled        bool                     `json:"enabled"`
-	RequiredFields []DestinationFieldConfig `json:"requiredFields"`
-	// expr parameters that can be used for this destination type
-	DynamicParams []DynamicParamConfig `json:"dynamicParams"`
-	// disclaimer text to display when a user is selecting this destination type for a contact method
-	UserDisclaimer string `json:"userDisclaimer"`
-	// this destination type can be used as a user contact method
-	IsContactMethod bool `json:"isContactMethod"`
-	// this destination type can be used as an escalation policy step action
-	IsEPTarget bool `json:"isEPTarget"`
-	// this destination type can be used for schedule on-call notifications
-	IsSchedOnCallNotify bool `json:"isSchedOnCallNotify"`
-	// this destination type can be used for dynamic actions
-	IsDynamicAction bool `json:"isDynamicAction"`
-	// if true, the destination type supports status updates
-	SupportsStatusUpdates bool `json:"supportsStatusUpdates"`
-	// if true, the destination type requires status updates to be enabled
-	StatusUpdatesRequired bool `json:"statusUpdatesRequired"`
-}
-
-type DynamicParamConfig struct {
-	// unique ID for the input field
-	ParamID string `json:"paramID"`
-	// user-friendly label (should be singular)
-	Label string `json:"label"`
-	// user-friendly helper text for input fields (i.e., "Enter a phone number")
-	Hint string `json:"hint"`
-	// URL to link to for more information about the destination type
-	HintURL string `json:"hintURL"`
-}
-
 type EscalationPolicyConnection struct {
 	Nodes    []escalation.Policy `json:"nodes"`
 	PageInfo *PageInfo           `json:"pageInfo"`
 }
 
 type EscalationPolicySearchOptions struct {
-	First          *int     `json:"first,omitempty"`
-	After          *string  `json:"after,omitempty"`
-	Search         *string  `json:"search,omitempty"`
-	Omit           []string `json:"omit,omitempty"`
-	FavoritesOnly  *bool    `json:"favoritesOnly,omitempty"`
-	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
+	First  *int     `json:"first,omitempty"`
+	After  *string  `json:"after,omitempty"`
+	Search *string  `json:"search,omitempty"`
+	Omit   []string `json:"omit,omitempty"`
+	// Include only favorited escalation policies in the results.
+	FavoritesOnly *bool `json:"favoritesOnly,omitempty"`
+	// Sort favorite escalation policies first.
+	FavoritesFirst *bool `json:"favoritesFirst,omitempty"`
 }
 
 // Expr contains helpers for working with Expr expressions.
@@ -564,43 +502,13 @@ type IntegrationKeySearchOptions struct {
 }
 
 type IntegrationKeyTypeInfo struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Label   string `json:"label"`
-	Enabled bool   `json:"enabled"`
-}
-
-type KeyConfig struct {
-	Rules []KeyRule `json:"rules"`
-	// Get a single rule by ID.
-	OneRule *KeyRule `json:"oneRule,omitempty"`
-	// defaultAction is the action to take if no rules match the request.
-	DefaultActions []Action `json:"defaultActions"`
-}
-
-type KeyRule struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	// An expression that must evaluate to true for the rule to match.
-	ConditionExpr string   `json:"conditionExpr"`
-	Actions       []Action `json:"actions"`
-	// Continue evaluating rules after this rule matches.
-	ContinueAfterMatch bool `json:"continueAfterMatch"`
-}
-
-type KeyRuleInput struct {
-	// The ID of an existing rule being updated.
-	ID          *string `json:"id,omitempty"`
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	// An expression that must evaluate to true for the rule to match.
-	ConditionExpr string        `json:"conditionExpr"`
-	Actions       []ActionInput `json:"actions"`
-	// Continue evaluating rules after this rule matches.
-	//
-	// If this is set to false (default), no further rules will be evaluated after this rule matches.
-	ContinueAfterMatch bool `json:"continueAfterMatch"`
+	ID string `json:"id"`
+	// User-displayable name of the integration key type.
+	Name string `json:"name"`
+	// User-displayable description of the integration key value (i.e., copy/paste instructions).
+	Label string `json:"label"`
+	// Indicates if the type is currently enabled.
+	Enabled bool `json:"enabled"`
 }
 
 type LabelConnection struct {
@@ -652,6 +560,12 @@ type MessageLogSearchOptions struct {
 	Omit          []string   `json:"omit,omitempty"`
 }
 
+type MessageStatusHistory struct {
+	Status    string    `json:"status"`
+	Details   string    `json:"details"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
 type Mutation struct {
 }
 
@@ -667,7 +581,7 @@ type OnCallOverview struct {
 }
 
 type OnCallServiceAssignment struct {
-	// stepNumber is the escalation step this assignment is from (beginning with 0).
+	// Step number is the escalation step this assignment is from (beginning with 0).
 	StepNumber           int    `json:"stepNumber"`
 	EscalationPolicyID   string `json:"escalationPolicyID"`
 	EscalationPolicyName string `json:"escalationPolicyName"`
@@ -698,12 +612,14 @@ type RotationConnection struct {
 }
 
 type RotationSearchOptions struct {
-	First          *int     `json:"first,omitempty"`
-	After          *string  `json:"after,omitempty"`
-	Search         *string  `json:"search,omitempty"`
-	Omit           []string `json:"omit,omitempty"`
-	FavoritesOnly  *bool    `json:"favoritesOnly,omitempty"`
-	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
+	First  *int     `json:"first,omitempty"`
+	After  *string  `json:"after,omitempty"`
+	Search *string  `json:"search,omitempty"`
+	Omit   []string `json:"omit,omitempty"`
+	// Include only favorited rotations in the results.
+	FavoritesOnly *bool `json:"favoritesOnly,omitempty"`
+	// Sort favorite rotations first.
+	FavoritesFirst *bool `json:"favoritesFirst,omitempty"`
 }
 
 type SWOConnection struct {
@@ -739,19 +655,22 @@ type ScheduleConnection struct {
 }
 
 type ScheduleRuleInput struct {
-	ID            *string                 `json:"id,omitempty"`
-	Start         *timeutil.Clock         `json:"start,omitempty"`
-	End           *timeutil.Clock         `json:"end,omitempty"`
+	ID    *string         `json:"id,omitempty"`
+	Start *timeutil.Clock `json:"start,omitempty"`
+	End   *timeutil.Clock `json:"end,omitempty"`
+	// Weekday filter is a 7-item array that indicates if the rule is active on each weekday, starting with Sunday.
 	WeekdayFilter *timeutil.WeekdayFilter `json:"weekdayFilter,omitempty"`
 }
 
 type ScheduleSearchOptions struct {
-	First          *int     `json:"first,omitempty"`
-	After          *string  `json:"after,omitempty"`
-	Search         *string  `json:"search,omitempty"`
-	Omit           []string `json:"omit,omitempty"`
-	FavoritesOnly  *bool    `json:"favoritesOnly,omitempty"`
-	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
+	First  *int     `json:"first,omitempty"`
+	After  *string  `json:"after,omitempty"`
+	Search *string  `json:"search,omitempty"`
+	Omit   []string `json:"omit,omitempty"`
+	// Include only favorited services in the results.
+	FavoritesOnly *bool `json:"favoritesOnly,omitempty"`
+	// Sort favorite services first.
+	FavoritesFirst *bool `json:"favoritesFirst,omitempty"`
 }
 
 type ScheduleTarget struct {
@@ -771,18 +690,33 @@ type SendContactMethodVerificationInput struct {
 	ContactMethodID string `json:"contactMethodID"`
 }
 
+type SendSignalInput struct {
+	Dest      *gadb.DestV1      `json:"dest"`
+	ServiceID string            `json:"serviceID"`
+	Params    map[string]string `json:"params,omitempty"`
+}
+
+type ServiceAlertStatsOptions struct {
+	Start     *time.Time         `json:"start,omitempty"`
+	End       *time.Time         `json:"end,omitempty"`
+	TsOptions *TimeSeriesOptions `json:"tsOptions,omitempty"`
+}
+
 type ServiceConnection struct {
 	Nodes    []service.Service `json:"nodes"`
 	PageInfo *PageInfo         `json:"pageInfo"`
 }
 
 type ServiceSearchOptions struct {
-	First          *int     `json:"first,omitempty"`
-	After          *string  `json:"after,omitempty"`
-	Search         *string  `json:"search,omitempty"`
-	Omit           []string `json:"omit,omitempty"`
-	FavoritesOnly  *bool    `json:"favoritesOnly,omitempty"`
-	FavoritesFirst *bool    `json:"favoritesFirst,omitempty"`
+	First  *int     `json:"first,omitempty"`
+	After  *string  `json:"after,omitempty"`
+	Search *string  `json:"search,omitempty"`
+	Omit   []string `json:"omit,omitempty"`
+	Only   []string `json:"only,omitempty"`
+	// Include only favorited services in the results.
+	FavoritesOnly *bool `json:"favoritesOnly,omitempty"`
+	// Sort favorite services first.
+	FavoritesFirst *bool `json:"favoritesFirst,omitempty"`
 }
 
 type SetAlertNoiseReasonInput struct {
@@ -798,7 +732,8 @@ type SetFavoriteInput struct {
 type SetLabelInput struct {
 	Target *assignment.RawTarget `json:"target,omitempty"`
 	Key    string                `json:"key"`
-	Value  string                `json:"value"`
+	// If value is empty, the label is removed.
+	Value string `json:"value"`
 }
 
 type SetScheduleOnCallNotificationRulesInput struct {
@@ -859,6 +794,7 @@ type TimeSeriesBucket struct {
 	Start time.Time `json:"start"`
 	End   time.Time `json:"end"`
 	Count int       `json:"count"`
+	Value float64   `json:"value"`
 }
 
 type TimeSeriesOptions struct {
@@ -895,6 +831,7 @@ type UpdateAlertsByServiceInput struct {
 }
 
 type UpdateAlertsInput struct {
+	// List of alert IDs.
 	AlertIDs    []int        `json:"alertIDs"`
 	NewStatus   *AlertStatus `json:"newStatus,omitempty"`
 	NoiseReason *string      `json:"noiseReason,omitempty"`
@@ -918,7 +855,7 @@ type UpdateEscalationPolicyStepInput struct {
 	ID           string                 `json:"id"`
 	DelayMinutes *int                   `json:"delayMinutes,omitempty"`
 	Targets      []assignment.RawTarget `json:"targets,omitempty"`
-	Actions      []DestinationInput     `json:"actions,omitempty"`
+	Actions      []gadb.DestV1          `json:"actions,omitempty"`
 }
 
 type UpdateGQLAPIKeyInput struct {
@@ -932,29 +869,39 @@ type UpdateHeartbeatMonitorInput struct {
 	Name              *string `json:"name,omitempty"`
 	TimeoutMinutes    *int    `json:"timeoutMinutes,omitempty"`
 	AdditionalDetails *string `json:"additionalDetails,omitempty"`
+	// If non-empty, the monitor will be muted with this reason.
+	//
+	// Muting a monitor will prevent it from triggering new alerts, but existing
+	// alerts will remain active until closed or the monitor is healthy again.
+	Muted *string `json:"muted,omitempty"`
 }
 
 type UpdateKeyConfigInput struct {
-	KeyID string         `json:"keyID"`
-	Rules []KeyRuleInput `json:"rules,omitempty"`
+	KeyID string           `json:"keyID"`
+	Rules []gadb.UIKRuleV1 `json:"rules,omitempty"`
 	// setRule allows you to set a single rule. If ID is provided, the rule with that ID will be updated. If ID is not provided, a new rule will be created and appended to the list of rules.
-	SetRule *KeyRuleInput `json:"setRule,omitempty"`
+	SetRule *gadb.UIKRuleV1 `json:"setRule,omitempty"`
+	// setRuleActions allows you to set the actions for a single rule by ID.
+	SetRuleActions *gadb.UIKRuleV1 `json:"setRuleActions,omitempty"`
+	// setRuleOrder allows you to reorder rules by ID.
+	SetRuleOrder []string `json:"setRuleOrder,omitempty"`
 	// deleteRule allows you to delete a single rule by ID.
 	DeleteRule *string `json:"deleteRule,omitempty"`
 	// defaultAction is the action to take if no rules match the request.
-	DefaultActions []ActionInput `json:"defaultActions,omitempty"`
+	DefaultActions []gadb.UIKActionV1 `json:"defaultActions,omitempty"`
 }
 
 type UpdateRotationInput struct {
-	ID              string         `json:"id"`
-	Name            *string        `json:"name,omitempty"`
-	Description     *string        `json:"description,omitempty"`
-	TimeZone        *string        `json:"timeZone,omitempty"`
-	Start           *time.Time     `json:"start,omitempty"`
-	Type            *rotation.Type `json:"type,omitempty"`
-	ShiftLength     *int           `json:"shiftLength,omitempty"`
-	ActiveUserIndex *int           `json:"activeUserIndex,omitempty"`
-	UserIDs         []string       `json:"userIDs,omitempty"`
+	ID          string         `json:"id"`
+	Name        *string        `json:"name,omitempty"`
+	Description *string        `json:"description,omitempty"`
+	TimeZone    *string        `json:"timeZone,omitempty"`
+	Start       *time.Time     `json:"start,omitempty"`
+	Type        *rotation.Type `json:"type,omitempty"`
+	ShiftLength *int           `json:"shiftLength,omitempty"`
+	UserIDs     []string       `json:"userIDs,omitempty"`
+	// The index of the user in `userIDs` to set as the active user. If not provided, the existing active user index will be used.
+	ActiveUserIndex *int `json:"activeUserIndex,omitempty"`
 }
 
 type UpdateScheduleInput struct {
@@ -981,10 +928,13 @@ type UpdateUserCalendarSubscriptionInput struct {
 }
 
 type UpdateUserContactMethodInput struct {
-	ID                  string  `json:"id"`
-	Name                *string `json:"name,omitempty"`
-	Value               *string `json:"value,omitempty"`
-	EnableStatusUpdates *bool   `json:"enableStatusUpdates,omitempty"`
+	ID    string  `json:"id"`
+	Name  *string `json:"name,omitempty"`
+	Value *string `json:"value,omitempty"`
+	// If true, this contact method will receive status updates.
+	//
+	// Note: Some contact method types, like Slack, will always receive status updates and this value is ignored.
+	EnableStatusUpdates *bool `json:"enableStatusUpdates,omitempty"`
 }
 
 type UpdateUserInput struct {
@@ -1014,27 +964,35 @@ type UserOverrideConnection struct {
 }
 
 type UserOverrideSearchOptions struct {
-	First              *int       `json:"first,omitempty"`
-	After              *string    `json:"after,omitempty"`
-	Omit               []string   `json:"omit,omitempty"`
-	ScheduleID         *string    `json:"scheduleID,omitempty"`
-	FilterAddUserID    []string   `json:"filterAddUserID,omitempty"`
-	FilterRemoveUserID []string   `json:"filterRemoveUserID,omitempty"`
-	FilterAnyUserID    []string   `json:"filterAnyUserID,omitempty"`
-	Start              *time.Time `json:"start,omitempty"`
-	End                *time.Time `json:"end,omitempty"`
+	First *int     `json:"first,omitempty"`
+	After *string  `json:"after,omitempty"`
+	Omit  []string `json:"omit,omitempty"`
+	// Limit search to a single schedule
+	ScheduleID *string `json:"scheduleID,omitempty"`
+	// Only return overrides where the provided users have been added to a schedule (add or replace types).
+	FilterAddUserID []string `json:"filterAddUserID,omitempty"`
+	// Only return overrides where the provided users have been removed from a schedule (remove or replace types).
+	FilterRemoveUserID []string `json:"filterRemoveUserID,omitempty"`
+	// Only return overrides that add/remove/replace at least one of the provided user IDs.
+	FilterAnyUserID []string `json:"filterAnyUserID,omitempty"`
+	// Start of the window to search for.
+	Start *time.Time `json:"start,omitempty"`
+	// End of the window to search for.
+	End *time.Time `json:"end,omitempty"`
 }
 
 type UserSearchOptions struct {
-	First          *int                `json:"first,omitempty"`
-	After          *string             `json:"after,omitempty"`
-	Search         *string             `json:"search,omitempty"`
-	Omit           []string            `json:"omit,omitempty"`
-	CMValue        *string             `json:"CMValue,omitempty"`
-	CMType         *contactmethod.Type `json:"CMType,omitempty"`
-	Dest           *DestinationInput   `json:"dest,omitempty"`
-	FavoritesOnly  *bool               `json:"favoritesOnly,omitempty"`
-	FavoritesFirst *bool               `json:"favoritesFirst,omitempty"`
+	First   *int               `json:"first,omitempty"`
+	After   *string            `json:"after,omitempty"`
+	Search  *string            `json:"search,omitempty"`
+	Omit    []string           `json:"omit,omitempty"`
+	CMValue *string            `json:"CMValue,omitempty"`
+	CMType  *ContactMethodType `json:"CMType,omitempty"`
+	Dest    *gadb.DestV1       `json:"dest,omitempty"`
+	// Include only favorited services in the results.
+	FavoritesOnly *bool `json:"favoritesOnly,omitempty"`
+	// Sort favorite services first.
+	FavoritesFirst *bool `json:"favoritesFirst,omitempty"`
 }
 
 type UserSession struct {
@@ -1076,7 +1034,7 @@ func (e AlertSearchSort) String() string {
 	return string(e)
 }
 
-func (e *AlertSearchSort) UnmarshalGQL(v interface{}) error {
+func (e *AlertSearchSort) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1091,6 +1049,20 @@ func (e *AlertSearchSort) UnmarshalGQL(v interface{}) error {
 
 func (e AlertSearchSort) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AlertSearchSort) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AlertSearchSort) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 type AlertStatus string
@@ -1119,7 +1091,7 @@ func (e AlertStatus) String() string {
 	return string(e)
 }
 
-func (e *AlertStatus) UnmarshalGQL(v interface{}) error {
+func (e *AlertStatus) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1134,6 +1106,20 @@ func (e *AlertStatus) UnmarshalGQL(v interface{}) error {
 
 func (e AlertStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AlertStatus) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AlertStatus) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 type ConfigType string
@@ -1164,7 +1150,7 @@ func (e ConfigType) String() string {
 	return string(e)
 }
 
-func (e *ConfigType) UnmarshalGQL(v interface{}) error {
+func (e *ConfigType) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1179,6 +1165,81 @@ func (e *ConfigType) UnmarshalGQL(v interface{}) error {
 
 func (e ConfigType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *ConfigType) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e ConfigType) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type ContactMethodType string
+
+const (
+	ContactMethodTypeSms     ContactMethodType = "SMS"
+	ContactMethodTypeVoice   ContactMethodType = "VOICE"
+	ContactMethodTypeEmail   ContactMethodType = "EMAIL"
+	ContactMethodTypeWebhook ContactMethodType = "WEBHOOK"
+	ContactMethodTypeSLACkDm ContactMethodType = "SLACK_DM"
+)
+
+var AllContactMethodType = []ContactMethodType{
+	ContactMethodTypeSms,
+	ContactMethodTypeVoice,
+	ContactMethodTypeEmail,
+	ContactMethodTypeWebhook,
+	ContactMethodTypeSLACkDm,
+}
+
+func (e ContactMethodType) IsValid() bool {
+	switch e {
+	case ContactMethodTypeSms, ContactMethodTypeVoice, ContactMethodTypeEmail, ContactMethodTypeWebhook, ContactMethodTypeSLACkDm:
+		return true
+	}
+	return false
+}
+
+func (e ContactMethodType) String() string {
+	return string(e)
+}
+
+func (e *ContactMethodType) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ContactMethodType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ContactMethodType", str)
+	}
+	return nil
+}
+
+func (e ContactMethodType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *ContactMethodType) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e ContactMethodType) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 // Known error codes that the server can return.
@@ -1226,7 +1287,7 @@ func (e ErrorCode) String() string {
 	return string(e)
 }
 
-func (e *ErrorCode) UnmarshalGQL(v interface{}) error {
+func (e *ErrorCode) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1241,6 +1302,20 @@ func (e *ErrorCode) UnmarshalGQL(v interface{}) error {
 
 func (e ErrorCode) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *ErrorCode) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e ErrorCode) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 type IntegrationKeyType string
@@ -1275,7 +1350,7 @@ func (e IntegrationKeyType) String() string {
 	return string(e)
 }
 
-func (e *IntegrationKeyType) UnmarshalGQL(v interface{}) error {
+func (e *IntegrationKeyType) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1290,6 +1365,20 @@ func (e *IntegrationKeyType) UnmarshalGQL(v interface{}) error {
 
 func (e IntegrationKeyType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *IntegrationKeyType) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e IntegrationKeyType) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 type NotificationStatus string
@@ -1318,7 +1407,7 @@ func (e NotificationStatus) String() string {
 	return string(e)
 }
 
-func (e *NotificationStatus) UnmarshalGQL(v interface{}) error {
+func (e *NotificationStatus) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1333,6 +1422,20 @@ func (e *NotificationStatus) UnmarshalGQL(v interface{}) error {
 
 func (e NotificationStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *NotificationStatus) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e NotificationStatus) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 type SWOAction string
@@ -1359,7 +1462,7 @@ func (e SWOAction) String() string {
 	return string(e)
 }
 
-func (e *SWOAction) UnmarshalGQL(v interface{}) error {
+func (e *SWOAction) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1374,6 +1477,20 @@ func (e *SWOAction) UnmarshalGQL(v interface{}) error {
 
 func (e SWOAction) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *SWOAction) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e SWOAction) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 type SWOState string
@@ -1410,7 +1527,7 @@ func (e SWOState) String() string {
 	return string(e)
 }
 
-func (e *SWOState) UnmarshalGQL(v interface{}) error {
+func (e *SWOState) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1425,6 +1542,20 @@ func (e *SWOState) UnmarshalGQL(v interface{}) error {
 
 func (e SWOState) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *SWOState) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e SWOState) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 type StatusUpdateState string
@@ -1455,7 +1586,7 @@ func (e StatusUpdateState) String() string {
 	return string(e)
 }
 
-func (e *StatusUpdateState) UnmarshalGQL(v interface{}) error {
+func (e *StatusUpdateState) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1470,6 +1601,20 @@ func (e *StatusUpdateState) UnmarshalGQL(v interface{}) error {
 
 func (e StatusUpdateState) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *StatusUpdateState) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e StatusUpdateState) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 type UserRole string
@@ -1498,7 +1643,7 @@ func (e UserRole) String() string {
 	return string(e)
 }
 
-func (e *UserRole) UnmarshalGQL(v interface{}) error {
+func (e *UserRole) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1513,4 +1658,18 @@ func (e *UserRole) UnmarshalGQL(v interface{}) error {
 
 func (e UserRole) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *UserRole) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e UserRole) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }

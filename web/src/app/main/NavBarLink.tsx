@@ -2,7 +2,7 @@ import React from 'react'
 import { useLocation } from 'wouter'
 import List from '@mui/material/List'
 import makeStyles from '@mui/styles/makeStyles'
-import ListItem from '@mui/material/ListItem'
+import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import Typography from '@mui/material/Typography'
@@ -10,6 +10,7 @@ import { styles } from '../styles/materialStyles'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Collapse, Theme } from '@mui/material'
 import AppLink from '../util/AppLink'
+import { OpenInNew } from '@mui/icons-material'
 
 const useStyles = makeStyles((theme: Theme) => {
   const { nav, navSelected } = styles(theme)
@@ -42,24 +43,38 @@ const useStyles = makeStyles((theme: Theme) => {
 export type NavBarSubLinkProps = {
   to: string
   title: string
+  newTab?: boolean
 }
-export function NavBarSubLink({ to, title }: NavBarSubLinkProps): JSX.Element {
+export function NavBarSubLink({
+  to,
+  title,
+  newTab,
+}: NavBarSubLinkProps): React.JSX.Element {
   const { navSelected, nav, subMenuLinkText } = useStyles()
   const [path] = useLocation()
   return (
-    <AppLink className={path.startsWith(to) ? navSelected : nav} to={to}>
-      <ListItem button tabIndex={-1}>
-        <ListItemText className={subMenuLinkText}>{title}</ListItemText>
-      </ListItem>
+    <AppLink
+      className={path.startsWith(to) ? navSelected : nav}
+      to={to}
+      newTab={newTab}
+    >
+      <ListItemButton tabIndex={-1}>
+        <ListItemText className={subMenuLinkText}>
+          {title}
+          {newTab && (
+            <OpenInNew fontSize='small' style={{ paddingLeft: '1em' }} />
+          )}
+        </ListItemText>
+      </ListItemButton>
     </AppLink>
   )
 }
 
 export type NavBarLinkProps = {
-  icon: JSX.Element
+  icon: React.JSX.Element
   title: string
   to: string
-  children?: JSX.Element[] | JSX.Element
+  children?: React.ReactNode[] | React.ReactNode
 }
 
 export default function NavBarLink({
@@ -67,7 +82,7 @@ export default function NavBarLink({
   title,
   to,
   children,
-}: NavBarLinkProps): JSX.Element {
+}: NavBarLinkProps): React.JSX.Element {
   const classes = useStyles()
   const [path] = useLocation()
   const isRoute = path.startsWith(to)
@@ -78,7 +93,7 @@ export default function NavBarLink({
         to={to}
         className={!children && isRoute ? classes.navSelected : classes.nav}
       >
-        <ListItem button tabIndex={-1}>
+        <ListItemButton tabIndex={-1}>
           <ListItemIcon>{icon}</ListItemIcon>
           <ListItemText
             disableTypography
@@ -98,7 +113,7 @@ export default function NavBarLink({
               }
             />
           )}
-        </ListItem>
+        </ListItemButton>
       </AppLink>
       {children && (
         <Collapse in={isRoute} mountOnEnter>

@@ -1,7 +1,7 @@
 import React from 'react'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import UserContactMethodList from './UserContactMethodList'
-import { expect, within, userEvent, screen } from '@storybook/test'
+import { expect, within, userEvent, screen } from 'storybook/test'
 import { handleDefaultConfig } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 import { Destination } from '../../schema'
@@ -29,11 +29,11 @@ const meta = {
                             type: 'single-field',
                             values: [
                               {
-                                fieldID: 'phone-number',
+                                fieldID: 'phone_number',
                                 value: '+15555555555',
                               },
                             ],
-                            args: { 'phone-number': '+15555555555' },
+                            args: { phone_number: '+15555555555' },
                             displayInfo: {
                               text: '+1 555-555-5555',
                               iconAltText: 'Voice Call',
@@ -92,11 +92,11 @@ const meta = {
                             type: 'single-field',
                             values: [
                               {
-                                fieldID: 'phone-number',
+                                fieldID: 'phone_number',
                                 value: '+15555555556',
                               },
                             ],
-                            args: { 'phone-number': '+15555555556' },
+                            args: { phone_number: '+15555555556' },
                             displayInfo: {
                               text: '+1 555-555-5556',
                               iconAltText: 'Voice Call',

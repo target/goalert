@@ -13,7 +13,7 @@ async function canRead(file: string): Promise<boolean> {
   try {
     await fs.promises.access(file, fs.constants.R_OK)
     return true
-  } catch (err) {
+  } catch {
     return false
   }
 }

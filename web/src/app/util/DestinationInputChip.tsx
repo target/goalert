@@ -6,6 +6,7 @@ import DestinationChip from './DestinationChip'
 export type DestinationInputChipProps = {
   value: DestinationInput
   onDelete?: () => void
+  onEdit?: () => void
   onChipClick?: () => void
 }
 
@@ -52,6 +53,7 @@ export default function DestinationInputChip(
       linkURL={data?.destinationDisplayInfo.linkURL || ''}
       text={data?.destinationDisplayInfo.text || ''}
       onDelete={props.onDelete}
+      onEdit={props.onEdit}
       onChipClick={props.onChipClick}
     />
   )

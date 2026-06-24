@@ -5,17 +5,21 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
 	"runtime"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/pkg/errors"
+	sloglogrus "github.com/samber/slog-logrus/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/target/goalert/auth/basic"
@@ -28,6 +32,7 @@ import (
 	"github.com/target/goalert/swo"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/calllimiter"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqldrv"
 	"github.com/target/goalert/util/sqlutil"
@@ -114,9 +119,12 @@ Available Flags:
 			return err
 		}
 
-		doMigrations := func(url string) error {
+		// Config is loaded, so don't print usage anymore on future errors.
+		cmd.SilenceUsage = true
+
+		doMigrations := func(ctx context.Context, url string) error {
 			if cfg.APIOnly {
-				err = migrate.VerifyAll(log.WithDebug(ctx), url)
+				err = migrate.VerifyAll(ctx, url)
 				if err != nil {
 					return errors.Wrap(err, "verify migrations")
 				}
@@ -124,7 +132,7 @@ Available Flags:
 			}
 
 			s := time.Now()
-			n, err := migrate.ApplyAll(log.WithDebug(ctx), url)
+			n, err := migrate.ApplyAll(ctx, url)
 			if err != nil {
 				return errors.Wrap(err, "apply migrations")
 			}
@@ -135,32 +143,79 @@ Available Flags:
 			return nil
 		}
 
-		err = doMigrations(cfg.DBURL)
+		var earlyShutdown sync.WaitGroup
+		earlyShutdownCtx, sdCancel := context.WithCancel(ctx)
+		earlyShutdown.Go(func() {
+			select {
+			case <-shutdownSignalCh:
+				cfg.Logger.Warn("Received shutdown signal during startup.")
+				sdCancel()
+			case <-earlyShutdownCtx.Done():
+			}
+		})
+
+		cfg.Logger.DebugContext(earlyShutdownCtx, "validating database migrations")
+		err = doMigrations(log.WithLogger(earlyShutdownCtx, cfg.LegacyLogger), cfg.DBURL)
 		if err != nil {
 			return err
 		}
 
-		var db *sql.DB
+		cfg.Logger.DebugContext(earlyShutdownCtx, "connecting to database")
+		var pool *pgxpool.Pool
 		if cfg.DBURLNext != "" {
-			err = doMigrations(cfg.DBURLNext)
+			err = migrate.VerifyIsLatest(earlyShutdownCtx, cfg.DBURL)
+			if err != nil {
+				return errors.Wrap(err, "verify db")
+			}
+
+			err = doMigrations(earlyShutdownCtx, cfg.DBURLNext)
 			if err != nil {
 				return errors.Wrap(err, "nextdb")
 			}
 
-			mgr, err := swo.NewManager(swo.Config{OldDBURL: cfg.DBURL, NewDBURL: cfg.DBURLNext, CanExec: !cfg.APIOnly, Logger: cfg.Logger})
+			mgr, err := swo.NewManager(swo.Config{
+				OldDBURL: cfg.DBURL,
+				NewDBURL: cfg.DBURLNext,
+				CanExec:  !cfg.APIOnly,
+				Logger:   cfg.LegacyLogger,
+				MaxOpen:  cfg.DBMaxOpen,
+				MaxIdle:  cfg.DBMaxIdle,
+			})
 			if err != nil {
 				return errors.Wrap(err, "init switchover handler")
 			}
-			db = mgr.DB()
+			pool = mgr.Pool()
 			cfg.SWO = mgr
 		} else {
-			db, err = sqldrv.NewDB(cfg.DBURL, fmt.Sprintf("GoAlert %s", version.GitVersion()))
+			appURL, err := sqldrv.AppURL(cfg.DBURL, fmt.Sprintf("GoAlert %s", version.GitVersion()))
+			if err != nil {
+				return errors.Wrap(err, "connect to postgres")
+			}
+
+			poolCfg, err := pgxpool.ParseConfig(appURL)
+			if err != nil {
+				return errors.Wrap(err, "parse db URL")
+			}
+			poolCfg.MaxConns = int32(cfg.DBMaxOpen)
+			poolCfg.MinConns = int32(cfg.DBMaxIdle)
+			sqldrv.SetConfigRetries(poolCfg)
+			calllimiter.SetConfigQueryLimiterSupport(poolCfg)
+
+			pool, err = pgxpool.NewWithConfig(context.Background(), poolCfg)
 			if err != nil {
 				return errors.Wrap(err, "connect to postgres")
 			}
 		}
 
-		app, err := NewApp(cfg, db)
+		if err = pool.Ping(earlyShutdownCtx); err != nil {
+			return errors.Wrap(err, "ping db")
+		}
+
+		// unregister shutdown signal before creating app
+		sdCancel()
+		earlyShutdown.Wait()
+
+		app, err := NewApp(cfg, pool)
 		if err != nil {
 			return errors.Wrap(err, "init app")
 		}
@@ -399,6 +454,48 @@ Migration: %s (#%d)
 		},
 	}
 
+	reEncryptCmd = &cobra.Command{
+		Use:   "re-encrypt",
+		Short: "Re-encrypt all keyring secrets and config with the current data-encryption-key (experimental).",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			l := log.FromContext(cmd.Context())
+			// update JSON output first
+			if viper.GetBool("json") {
+				l.EnableJSON()
+			}
+			if viper.GetBool("verbose") {
+				l.EnableDebug()
+			}
+
+			err := viper.ReadInConfig()
+			// ignore file not found error
+			if err != nil && !isCfgNotFound(err) {
+				return errors.Wrap(err, "read config")
+			}
+
+			ctx := cmd.Context()
+			c, err := getConfig(ctx)
+			if err != nil {
+				return err
+			}
+
+			if viper.GetString("data-encryption-key") == "" && !viper.GetBool("allow-empty-data-encryption-key") {
+				fmt.Println("what", c.EncryptionKeys)
+				return validation.NewFieldError("data-encryption-key", "Must not be empty, or set --allow-empty-data-encryption-key")
+			}
+
+			db, err := sql.Open("pgx", c.DBURL)
+			if err != nil {
+				return errors.Wrap(err, "connect to postgres")
+			}
+			defer db.Close()
+
+			ctx = permission.SystemContext(ctx, "ReEncryptAll")
+
+			return keyring.ReEncryptAll(ctx, db, c.EncryptionKeys)
+		},
+	}
+
 	exportCmd = &cobra.Command{
 		Use:   "export-migrations",
 		Short: "Export all migrations as .sql files. Use --export-dir to control the destination.",
@@ -613,7 +710,7 @@ Migration: %s (#%d)
 // getConfig will load the current configuration from viper
 func getConfig(ctx context.Context) (Config, error) {
 	cfg := Config{
-		Logger: log.FromContext(ctx),
+		LegacyLogger: log.FromContext(ctx),
 
 		JSON:        viper.GetBool("json"),
 		LogRequests: viper.GetBool("log-requests"),
@@ -630,6 +727,7 @@ func getConfig(ctx context.Context) (Config, error) {
 		MaxReqHeaderBytes: viper.GetInt("max-request-header-bytes"),
 
 		DisableHTTPSRedirect: viper.GetBool("disable-https-redirect"),
+		EnableSecureHeaders:  viper.GetBool("enable-secure-headers"),
 
 		ListenAddr: viper.GetString("listen"),
 
@@ -667,6 +765,21 @@ func getConfig(ctx context.Context) (Config, error) {
 
 		UIDir: viper.GetString("ui-dir"),
 	}
+
+	lg := cfg.LegacyLogger.Logrus()
+	opts := sloglogrus.Option{
+		Level:  slog.LevelInfo,
+		Logger: lg,
+	}
+	if viper.GetBool("log-errors-only") {
+		opts.Level = slog.LevelError
+		lg.SetLevel(2)
+		cfg.LegacyLogger.ErrorsOnly()
+	} else if cfg.Verbose {
+		opts.Level = slog.LevelDebug
+		lg.SetLevel(5)
+	}
+	cfg.Logger = slog.New(opts.NewLogrusHandler())
 
 	var fs expflag.FlagSet
 	strict := viper.GetBool("strict-experimental")
@@ -831,6 +944,7 @@ func init() {
 	RootCmd.Flags().String("ui-dir", "", "Serve UI assets from a local directory instead of from memory.")
 
 	RootCmd.Flags().Bool("disable-https-redirect", def.DisableHTTPSRedirect, "Disable automatic HTTPS redirects.")
+	RootCmd.Flags().Bool("enable-secure-headers", false, "Enable secure headers (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, Content-Security-Policy).")
 
 	migrateCmd.Flags().String("up", "", "Target UP migration to apply.")
 	migrateCmd.Flags().String("down", "", "Target DOWN migration to roll back to.")
@@ -843,15 +957,20 @@ func init() {
 	addUserCmd.Flags().Bool("admin", false, "If specified, the user will be created with the admin role (ignored if user-id is provided).")
 
 	setConfigCmd.Flags().String("data", "", "Use data instead of reading config from stdin.")
-	setConfigCmd.Flags().Bool("allow-empty-data-encryption-key", false, "Explicitly allow an empty data-encryption-key when setting config.")
+	setConfigCmd.Flags().Bool("allow-empty-data-encryption-key", false, "Explicitly allow an empty data-encryption-key when setting config or re-encrypting data.")
+	reEncryptCmd.Flags().AddFlag(setConfigCmd.Flag("allow-empty-data-encryption-key"))
 
 	testCmd.Flags().Bool("offline", false, "Only perform offline checks.")
 
 	monitorCmd.Flags().StringP("config-file", "f", "", "Configuration file for monitoring (required).")
 	initCertCommands()
-	RootCmd.AddCommand(versionCmd, testCmd, migrateCmd, exportCmd, monitorCmd, addUserCmd, getConfigCmd, setConfigCmd, genCerts)
+	RootCmd.AddCommand(versionCmd, testCmd, migrateCmd, exportCmd, monitorCmd, addUserCmd, getConfigCmd, setConfigCmd, genCerts, reEncryptCmd)
 
 	err := viper.BindPFlags(RootCmd.Flags())
+	if err != nil {
+		panic(err)
+	}
+	err = viper.BindPFlags(reEncryptCmd.Flags())
 	if err != nil {
 		panic(err)
 	}

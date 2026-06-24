@@ -36,14 +36,17 @@ type RuleID struct {
 	valid      bool
 }
 
-var _ encoding.TextMarshaler = RuleID{}
-var _ encoding.TextUnmarshaler = &RuleID{}
-var _ graphql.Marshaler = RuleID{}
-var _ graphql.Unmarshaler = &RuleID{}
+var (
+	_ encoding.TextMarshaler   = RuleID{}
+	_ encoding.TextUnmarshaler = &RuleID{}
+	_ graphql.Marshaler        = RuleID{}
+	_ graphql.Unmarshaler      = &RuleID{}
+)
 
 func (r RuleID) MarshalGQL(w io.Writer) {
 	graphql.MarshalString(r.String()).MarshalGQL(w)
 }
+
 func (r *RuleID) UnmarshalGQL(v interface{}) error {
 	s, err := graphql.UnmarshalString(v)
 	if err != nil {
@@ -56,6 +59,7 @@ func (r *RuleID) UnmarshalGQL(v interface{}) error {
 
 	return nil
 }
+
 func (r RuleID) String() string {
 	if !r.valid {
 		return ""
@@ -63,6 +67,7 @@ func (r RuleID) String() string {
 
 	return fmt.Sprintf("%s:%d", r.scheduleID.String(), r.id)
 }
+
 func (r RuleID) MarshalText() ([]byte, error) {
 	if !r.valid {
 		return nil, nil

@@ -38,7 +38,7 @@ const config = {
     launchOptions: {
       // slowMo: 1000,
     },
-    actionTimeout: 5000,
+    actionTimeout: 10000,
   },
   projects: [
     {
@@ -59,16 +59,16 @@ const config = {
   webServer: [
     {
       command:
-        './bin/MailHog -ui-bind-addr=localhost:6125 -api-bind-addr=localhost:6125 -smtp-bind-addr=localhost:6105 >/dev/null 2>&1',
+        './bin/tools/mailpit -l=localhost:6125 -s=localhost:6105 --allow-internal-http-requests',
       port: 6125,
     },
     {
-      command: './bin/mockoidc -addr=127.0.0.1:9997',
+      command: 'go tool mockoidc -addr=127.0.0.1:9997',
       port: 9997,
     },
     {
       command:
-        './bin/goalert.cover -l=localhost:6110 --public-url=http://localhost:6110', // switchover instance
+        './bin/goalert.cover --log-errors-only -l=localhost:6110 --public-url=http://localhost:6110', // switchover instance
       env: {
         ...wsEnv,
         GOALERT_DB_URL: swoMainURL,
@@ -77,13 +77,13 @@ const config = {
       url: 'http://localhost:6110/health',
     },
     {
-      command: './bin/goalert.cover -l=localhost:6120', // no public url (fallback code)
+      command: './bin/goalert.cover --log-errors-only -l=localhost:6120', // no public url (fallback code)
       env: { ...wsEnv, GOALERT_PUBLIC_URL: '' },
       url: 'http://localhost:6120/health',
     },
     {
       command:
-        './bin/goalert.cover -l=localhost:6130 --public-url=http://localhost:6130',
+        './bin/goalert.cover -l=localhost:6130 --log-errors-only --public-url=http://localhost:6130',
       env: wsEnv,
       url: 'http://localhost:6130/health',
     },
@@ -92,7 +92,7 @@ const config = {
     ...scanUniqueFlagCombos().map((flagStr, i) => ({
       command: `./bin/goalert.cover -l=localhost:${
         i + 6131
-      } --public-url=http://localhost:${i + 6131} --experimental=${flagStr}`,
+      } --public-url=http://localhost:${i + 6131} --log-errors-only --experimental=${flagStr}`,
       env: wsEnv,
       url: `http://localhost:${i + 6131}/health`,
     })),

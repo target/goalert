@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -21,19 +22,17 @@ import (
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/engine/rotationmanager"
 	"github.com/target/goalert/engine/schedulemanager"
+	"github.com/target/goalert/engine/signalmgr"
 	"github.com/target/goalert/engine/statusmgr"
 	"github.com/target/goalert/engine/verifymanager"
+	"github.com/target/goalert/expflag"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 )
-
-type updater interface {
-	Name() string
-	UpdateAll(context.Context) error
-}
 
 // Engine handles automatic escalation of unacknowledged(triggered) alerts, as well as
 // passing to-be-sent notifications to the notification.Sender.
@@ -50,11 +49,14 @@ type Engine struct {
 	triggerCh   chan struct{}
 	runLoopExit chan struct{}
 
-	modules []updater
+	modules []processinglock.Module
 	msg     *message.DB
 
 	a   *alert.Store
 	cfg *Config
+
+	// needed to re-start river during switchover
+	runCtx context.Context
 
 	triggerPauseCh chan *pauseReq
 }
@@ -93,7 +95,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 		return nil, err
 	}
 
-	rotMgr, err := rotationmanager.NewDB(ctx, db)
+	rotMgr, err := rotationmanager.NewDB(ctx, db, c.RiverDBSQL)
 	if err != nil {
 		return nil, errors.Wrap(err, "rotation management backend")
 	}
@@ -109,7 +111,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "notification cycle backend")
 	}
-	statMgr, err := statusmgr.NewDB(ctx, db)
+	statMgr, err := statusmgr.NewDB(ctx, db, c.DestRegistry, c.ConfigSource)
 	if err != nil {
 		return nil, errors.Wrap(err, "status update backend")
 	}
@@ -121,7 +123,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "heartbeat processing backend")
 	}
-	cleanMgr, err := cleanupmanager.NewDB(ctx, db, c.AlertStore)
+	cleanMgr, err := cleanupmanager.NewDB(ctx, db, c.AlertStore, c.Logger.With(slog.String("module", "cleanup")))
 	if err != nil {
 		return nil, errors.Wrap(err, "cleanup backend")
 	}
@@ -134,7 +136,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 		return nil, errors.Wrap(err, "compatibility backend")
 	}
 
-	p.modules = []updater{
+	p.modules = []processinglock.Module{
 		compatMgr,
 		rotMgr,
 		schedMgr,
@@ -147,6 +149,14 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 		metricsMgr,
 	}
 
+	if expflag.ContextHas(ctx, expflag.UnivKeys) {
+		signalMgr, err := signalmgr.NewDB(ctx, db)
+		if err != nil {
+			return nil, errors.Wrap(err, "signal manager backend")
+		}
+		p.modules = append(p.modules, signalMgr)
+	}
+
 	p.msg, err = message.NewDB(ctx, db, c.AlertLogStore, p.mgr)
 	if err != nil {
 		return nil, errors.Wrap(err, "messaging backend")
@@ -155,6 +165,20 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	p.b, err = newBackend(db)
 	if err != nil {
 		return nil, errors.Wrap(err, "init backend")
+	}
+
+	args := processinglock.SetupArgs{
+		DB:      db,
+		Workers: c.RiverWorkers,
+		River:   c.River,
+	}
+	for _, m := range p.modules {
+		if s, ok := m.(processinglock.Setupable); ok {
+			err = s.Setup(ctx, args)
+			if err != nil {
+				return nil, errors.Wrap(err, "setup module")
+			}
+		}
 	}
 
 	return p, nil
@@ -167,7 +191,7 @@ func (p *Engine) AuthLinkURL(ctx context.Context, providerID, subjectID string, 
 	return url, err
 }
 
-func (p *Engine) processModule(ctx context.Context, m updater) {
+func (p *Engine) processModule(ctx context.Context, m processinglock.Updatable) {
 	defer recoverPanic(ctx, m.Name())
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
@@ -230,6 +254,11 @@ func (p *Engine) Pause(ctx context.Context) error {
 func (p *Engine) _pause(ctx context.Context) error {
 	ch := make(chan error, 1)
 
+	err := p.cfg.River.Stop(ctx)
+	if err != nil {
+		return errors.Wrap(err, "pause river")
+	}
+
 	select {
 	case <-p.shutdownCh:
 		return errors.New("shutting down")
@@ -252,8 +281,17 @@ func (p *Engine) Resume(ctx context.Context) error {
 }
 
 func (p *Engine) _resume(ctx context.Context) error {
-	// nothing to be done `p.mgr.IsPaused` will already
-	// return false
+	if p.cfg.DisableCycle {
+		return nil
+	}
+
+	err := p.cfg.River.QueueResume(ctx, "*", nil)
+	if err != nil {
+		return errors.Wrap(err, "resume river")
+	}
+
+	p.startRiver()
+
 	return nil
 }
 
@@ -271,10 +309,13 @@ func (p *Engine) Shutdown(ctx context.Context) error {
 	return p.mgr.Shutdown(ctx)
 }
 
-func (p *Engine) _shutdown(ctx context.Context) error {
+func (p *Engine) _shutdown(ctx context.Context) (err error) {
 	close(p.shutdownCh)
 	<-p.runLoopExit
-	return nil
+	if !p.cfg.DisableCycle {
+		err = p.cfg.River.Stop(ctx)
+	}
+	return err
 }
 
 // SetSendResult will update the status of a message.
@@ -404,30 +445,32 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 
 // Start will enable all associated contact methods of `value` with type `t`. This should
 // be invoked if a user, for example, responds with `START` via sms.
-func (p *Engine) Start(ctx context.Context, d notification.Dest) error {
-	if !d.Type.IsUserCM() {
-		return errors.New("START only supported on user contact methods")
-	}
-
+func (p *Engine) Start(ctx context.Context, d gadb.DestV1) error {
 	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		err = p.cfg.ContactMethodStore.EnableByValue(ctx, p.b.db, d.Type.CMType(), d.Value)
+		err = p.cfg.ContactMethodStore.EnableByDest(ctx, p.b.db, d)
 	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		// no contact methods found, nothing to do
+		return nil
+	}
 
 	return err
 }
 
 // Stop will disable all associated contact methods of `value` with type `t`. This should
 // be invoked if a user, for example, responds with `STOP` via SMS.
-func (p *Engine) Stop(ctx context.Context, d notification.Dest) error {
-	if !d.Type.IsUserCM() {
-		return errors.New("STOP only supported on user contact methods")
-	}
-
+func (p *Engine) Stop(ctx context.Context, d gadb.DestV1) error {
 	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		err = p.cfg.ContactMethodStore.DisableByValue(ctx, p.b.db, d.Type.CMType(), d.Value)
+		err = p.cfg.ContactMethodStore.DisableByDest(ctx, p.b.db, d)
 	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		// no contact methods found, nothing to do
+		return nil
+	}
 
 	return err
 }
@@ -438,8 +481,13 @@ func (p *Engine) processAll(ctx context.Context) bool {
 			return true
 		}
 
+		up, ok := m.(processinglock.Updatable)
+		if !ok {
+			continue
+		}
+
 		start := time.Now()
-		p.processModule(ctx, m)
+		p.processModule(ctx, up)
 		metricModuleDuration.WithLabelValues(m.Name()).Observe(time.Since(start).Seconds())
 	}
 	return false
@@ -512,6 +560,14 @@ func (p *Engine) handlePause(ctx context.Context, respCh chan error) {
 	respCh <- nil
 }
 
+func (p *Engine) startRiver() {
+	ctx := p.runCtx
+	err := p.cfg.River.Start(ctx)
+	if err != nil {
+		log.Log(ctx, errors.Wrap(err, "start river"))
+	}
+}
+
 func (p *Engine) _run(ctx context.Context) error {
 	defer close(p.runLoopExit)
 	ctx = permission.SystemContext(ctx, "Engine")
@@ -532,6 +588,9 @@ func (p *Engine) _run(ctx context.Context) error {
 			}
 		}
 	}
+
+	p.runCtx = ctx
+	p.startRiver()
 
 	dur := p.cfg.CycleTime
 	if dur == 0 {

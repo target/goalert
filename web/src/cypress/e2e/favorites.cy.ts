@@ -116,7 +116,7 @@ function testFavorites(screen: ScreenFormat): void {
 
       cy.dialogForm({ 'dest.type': 'Rotation' })
 
-      return cy.get('input[name=rotation-id]')
+      return cy.get('input[name=rotation_id]')
     },
   )
 
@@ -138,7 +138,7 @@ function testFavorites(screen: ScreenFormat): void {
       }
 
       cy.dialogForm({ 'dest.type': 'Schedule' })
-      return cy.get('input[name=schedule-id]')
+      return cy.get('input[name=schedule_id]')
     },
   )
 
@@ -171,7 +171,7 @@ function testFavorites(screen: ScreenFormat): void {
       }
 
       cy.dialogForm({ 'dest.type': 'User' })
-      return cy.get('input[name=user-id]')
+      return cy.get('input[name=user_id]')
     },
   )
 }

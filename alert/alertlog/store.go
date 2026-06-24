@@ -11,8 +11,7 @@ import (
 	"github.com/sqlc-dev/pqtype"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/integrationkey"
-	"github.com/target/goalert/notification"
-	"github.com/target/goalert/notificationchannel"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
@@ -28,28 +27,17 @@ type Store struct {
 	findAllByType *sql.Stmt
 	findOne       *sql.Stmt
 
-	lookupCallbackType *sql.Stmt
-	lookupIKeyType     *sql.Stmt
+	lookupIKeyType *sql.Stmt
 
-	lookupNCTypeName *sql.Stmt
+	reg *nfydest.Registry
 }
 
-func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
+func NewStore(ctx context.Context, db *sql.DB, reg *nfydest.Registry) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
 	return &Store{
-		db: db,
-		lookupCallbackType: p.P(`
-			select cm."type", ch."type"
-			from outgoing_messages log
-			left join user_contact_methods cm on cm.id = log.contact_method_id
-			left join notification_channels ch on ch.id = log.channel_id
-			where log.id = $1
-		`),
-
-		lookupNCTypeName: p.P(`
-			select "type", name from notification_channels where id = $1
-		`),
+		db:  db,
+		reg: reg,
 
 		lookupIKeyType: p.P(`select "type" from integration_keys where id = $1`),
 		findOne: p.P(`
@@ -138,6 +126,20 @@ func (s *Store) MustLog(ctx context.Context, alertID int, _type Type, meta inter
 }
 
 func (s *Store) MustLogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{}) {
+	// suppress duplicate duplicate-suppression logs since they aren't actionable and just add noise
+	if _type == TypeDuplicateSupressed {
+		hasRecent, err := gadb.New(tx).AlertLog_HasRecentDuplicate(ctx, int64(alertID))
+		if err != nil {
+			log.Log(ctx, errors.Wrap(err, "check for recent duplicate alert log"))
+			return
+		}
+
+		if hasRecent {
+			// skip it if there's been one in the last 5 seconds
+			return
+		}
+	}
+
 	err := s.LogTx(ctx, tx, alertID, _type, meta)
 	if err != nil {
 		log.Log(ctx, errors.Wrap(err, "append alert log"))
@@ -159,7 +161,7 @@ func (s *Store) LogEPTx(ctx context.Context, tx *sql.Tx, epID string, _type Type
 	if err != nil {
 		return err
 	}
-	params := gadb.AlertLogInsertEPParams{
+	params := gadb.AlertLog_InsertEPParams{
 		EscalationPolicyID:  uuid.MustParse(epID),
 		Event:               gadb.EnumAlertLogEvent(e._type),
 		SubType:             gadb.NullEnumAlertLogSubjectType{Valid: e.subject._type != SubjectTypeNone, EnumAlertLogSubjectType: gadb.EnumAlertLogSubjectType(e.subject._type)},
@@ -172,7 +174,7 @@ func (s *Store) LogEPTx(ctx context.Context, tx *sql.Tx, epID string, _type Type
 		Message:             e.message,
 	}
 
-	return s.queries(tx).AlertLogInsertEP(ctx, params)
+	return s.queries(tx).AlertLog_InsertEP(ctx, params)
 }
 
 func (s *Store) LogServiceTx(ctx context.Context, tx *sql.Tx, serviceID string, _type Type, meta interface{}) error {
@@ -197,7 +199,7 @@ func (s *Store) LogServiceTx(ctx context.Context, tx *sql.Tx, serviceID string, 
 		return err
 	}
 
-	params := gadb.AlertLogInsertSvcParams{
+	params := gadb.AlertLog_InsertSvcParams{
 		ServiceID:           uuid.NullUUID{Valid: true, UUID: uuid.MustParse(serviceID)},
 		Event:               gadb.EnumAlertLogEvent(e._type),
 		SubType:             gadb.NullEnumAlertLogSubjectType{Valid: e.subject._type != SubjectTypeNone, EnumAlertLogSubjectType: gadb.EnumAlertLogSubjectType(e.subject._type)},
@@ -210,7 +212,7 @@ func (s *Store) LogServiceTx(ctx context.Context, tx *sql.Tx, serviceID string, 
 		Message:             e.message,
 	}
 
-	return s.queries(tx).AlertLogInsertSvc(ctx, params)
+	return s.queries(tx).AlertLog_InsertSvc(ctx, params)
 }
 
 func (s *Store) LogManyTx(ctx context.Context, tx *sql.Tx, alertIDs []int, _type Type, meta interface{}) error {
@@ -229,7 +231,7 @@ func (s *Store) LogManyTx(ctx context.Context, tx *sql.Tx, alertIDs []int, _type
 		ids = append(ids, int64(id))
 	}
 
-	params := gadb.AlertLogInsertManyParams{
+	params := gadb.AlertLog_InsertManyParams{
 		Column1:             ids,
 		Event:               gadb.EnumAlertLogEvent(e._type),
 		SubType:             gadb.NullEnumAlertLogSubjectType{Valid: e.subject._type != SubjectTypeNone, EnumAlertLogSubjectType: gadb.EnumAlertLogSubjectType(e.subject._type)},
@@ -242,7 +244,7 @@ func (s *Store) LogManyTx(ctx context.Context, tx *sql.Tx, alertIDs []int, _type
 		Message:             e.message,
 	}
 
-	return s.queries(tx).AlertLogInsertMany(ctx, params)
+	return s.queries(tx).AlertLog_InsertMany(ctx, params)
 }
 
 func (s *Store) queries(tx *sql.Tx) *gadb.Queries {
@@ -285,24 +287,30 @@ func (s *Store) logEntry(ctx context.Context, tx *sql.Tx, _type Type, meta inter
 	}
 
 	src := permission.Source(ctx)
+	gdb := gadb.New(s.db)
+	if tx != nil {
+		gdb = gdb.WithTx(tx)
+	}
+
 	if src != nil {
 		switch src.Type {
 		case permission.SourceTypeNotificationChannel:
 			r.subject._type = SubjectTypeChannel
-			var ncType notificationchannel.Type
-			var name string
-			err = txWrap(ctx, tx, s.lookupNCTypeName).QueryRowContext(ctx, src.ID).Scan(&ncType, &name)
+			id, err := uuid.Parse(src.ID)
 			if err != nil {
-				return nil, errors.Wrap(err, "lookup contact method type for callback ID")
+				return nil, errors.Wrap(err, "parse channel ID")
 			}
+			dest, err := gdb.AlertLog_LookupNCDest(ctx, id)
+			if err != nil {
+				return nil, errors.Wrap(err, "lookup notification channel destination")
+			}
+			info, err := s.reg.TypeInfo(ctx, dest.DestV1.Type)
+			if err != nil {
+				return nil, errors.Wrap(err, "lookup notification channel destination type")
+			}
+			r.subject.classifier = info.Name
 
-			switch ncType {
-			case notificationchannel.TypeSlackChan:
-				r.subject.classifier = "Slack"
-			case notificationchannel.TypeWebhook:
-				r.subject.classifier = "Webhook"
-			}
-			r.subject.channelID.UUID = uuid.MustParse(src.ID)
+			r.subject.channelID.UUID = id
 			r.subject.channelID.Valid = true
 		case permission.SourceTypeAuthProvider:
 			r.subject.classifier = "Web"
@@ -316,49 +324,37 @@ func (s *Store) logEntry(ctx context.Context, tx *sql.Tx, _type Type, meta inter
 				r.subject.classifier = "no immediate rule"
 				break
 			}
-			cmType, err := s.queries(tx).AlertLogLookupCMType(ctx, uuid.MustParse(src.ID))
+			dest, err := s.queries(tx).AlertLog_LookupCMDest(ctx, uuid.MustParse(src.ID))
 			if err != nil {
 				return nil, errors.Wrap(err, "lookup contact method type for callback ID")
 			}
-			switch cmType {
-			case gadb.EnumUserContactMethodTypeVOICE:
-				r.subject.classifier = "Voice"
-			case gadb.EnumUserContactMethodTypeSMS:
-				r.subject.classifier = "SMS"
-			case gadb.EnumUserContactMethodTypeEMAIL:
-				r.subject.classifier = "Email"
-			case gadb.EnumUserContactMethodTypeWEBHOOK:
-				r.subject.classifier = "Webhook"
-			case gadb.EnumUserContactMethodTypeSLACKDM:
-				r.subject.classifier = "Slack"
+			info, err := s.reg.TypeInfo(ctx, dest.DestV1.Type)
+			if err != nil {
+				return nil, errors.Wrap(err, "lookup contact method type")
 			}
+			r.subject.classifier = info.Name
 
 		case permission.SourceTypeNotificationCallback:
 			r.subject._type = SubjectTypeUser
-			var dt notification.ScannableDestType
-			err = txWrap(ctx, tx, s.lookupCallbackType).QueryRowContext(ctx, src.ID).Scan(&dt.CM, &dt.NC)
-			if err != nil {
-				return nil, errors.Wrap(err, "lookup notification type for callback ID")
-			}
-			switch dt.DestType() {
-			case notification.DestTypeVoice:
-				r.subject.classifier = "Voice"
-			case notification.DestTypeSMS:
-				r.subject.classifier = "SMS"
-			case notification.DestTypeUserEmail:
-				r.subject.classifier = "Email"
-			case notification.DestTypeChanWebhook:
-				fallthrough
-			case notification.DestTypeUserWebhook:
-				r.subject.classifier = "Webhook"
-			case notification.DestTypeSlackChannel:
-				r.subject.classifier = "Slack"
-			}
 			r.subject.userID = permission.UserNullUUID(ctx)
 
+			id, err := uuid.Parse(src.ID)
+			if err != nil {
+				return nil, errors.Wrap(err, "parse channel ID")
+			}
+			dest, err := gdb.AlertLog_LookupCallbackDest(ctx, id)
+			if err != nil {
+				return nil, errors.Wrap(err, "lookup notification callback type")
+			}
+
+			info, err := s.reg.TypeInfo(ctx, dest.DestV1.Type)
+			if err != nil {
+				return nil, errors.Wrap(err, "lookup notification channel destination type")
+			}
+			r.subject.classifier = info.Name
 		case permission.SourceTypeHeartbeat:
 			r.subject._type = SubjectTypeHeartbeatMonitor
-			minutes, err := s.queries(tx).AlertLogHBIntervalMinutes(ctx, uuid.MustParse(src.ID))
+			minutes, err := s.queries(tx).AlertLog_HBIntervalMinutes(ctx, uuid.MustParse(src.ID))
 			if err != nil {
 				return nil, errors.Wrap(err, "lookup heartbeat monitor interval by ID")
 			}

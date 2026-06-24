@@ -98,7 +98,7 @@ export default function ListPageControls(
       </Grid>
 
       <Grid item xs={12}>
-        <Card>{props.slots.list}</Card>
+        <Card data-cy='paginated-list'>{props.slots.list}</Card>
       </Grid>
 
       <Grid

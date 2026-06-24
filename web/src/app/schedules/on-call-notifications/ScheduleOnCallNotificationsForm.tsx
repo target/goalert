@@ -5,6 +5,7 @@ import {
   Radio,
   RadioGroup,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
@@ -20,6 +21,7 @@ import { EVERY_DAY, NO_DAY } from './util'
 import { useSchedOnCallNotifyTypes } from '../../util/RequireConfig'
 import { DestinationInput, WeekdayFilter } from '../../../schema'
 import DestinationField from '../../selection/DestinationField'
+import { Info } from '@mui/icons-material'
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -100,7 +102,14 @@ export default function ScheduleOnCallNotificationsForm(
             <FormControlLabel
               data-cy='notify-on-change'
               disabled={props.disabled}
-              label='Notify when on-call changes'
+              label={
+                <React.Fragment>
+                  Notify when on-call changes{' '}
+                  <Tooltip title='When multiple rules are configured, including timed notifications, only a single message will be sent to each destination when a change occurs.'>
+                    <Info />
+                  </Tooltip>
+                </React.Fragment>
+              }
               value='on-change'
               control={<Radio />}
             />

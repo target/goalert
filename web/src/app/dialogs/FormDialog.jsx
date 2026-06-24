@@ -4,6 +4,7 @@ import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
+import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
 
@@ -44,26 +45,27 @@ const useStyles = makeStyles((theme) => {
   }
 })
 
-function FormDialog(props) {
+export default function FormDialog(props) {
   const {
     alert,
-    confirm,
-    errors,
+    confirm = false,
     fullScreen,
-    loading,
+    loading = false,
     primaryActionLabel, // remove from dialogProps spread
-    maxWidth,
+    maxWidth = 'sm',
     notices,
-    onClose,
-    onSubmit,
+    onClose = () => {},
+    onSubmit = () => {},
     subTitle, // can't be used in dialogProps spread
     title,
     onNext,
     onBack,
     fullHeight,
+    nextTooltip,
     disableBackdropClose,
     disablePortal,
     disableSubmit,
+    disableNext,
     ...dialogProps
   } = props
 
@@ -97,12 +99,13 @@ function FormDialog(props) {
     return (
       <DialogContent className={classes.dialogContent}>
         <Form
+          style={{ paddingTop: '1em' }}
           id='dialog-form'
           className={classes.formContainer}
           onSubmit={(e, valid) => {
             e.preventDefault()
             if (valid) {
-              onNext ? onNext() : onSubmit()
+              onSubmit()
             }
           }}
         >
@@ -125,7 +128,11 @@ function FormDialog(props) {
   }
 
   function renderErrors() {
-    return props.errors.map((err, idx) => (
+    const errors =
+      typeof props.errors === 'function'
+        ? props.errors()
+        : (props?.errors ?? [])
+    return errors.map((err, idx) => (
       <DialogContentError
         className={classes.errorContainer}
         error={err.message || err}
@@ -146,31 +153,50 @@ function FormDialog(props) {
       )
     }
 
-    const submitText = onNext ? 'Next' : 'Submit'
+    const nextButton = (
+      <Button
+        variant='contained'
+        color='secondary'
+        disabled={loading || disableNext}
+        onClick={onNext}
+        sx={{ mr: 1 }}
+      >
+        Next
+      </Button>
+    )
 
     return (
       <DialogActions>
         <Button
           disabled={loading}
+          color='secondary'
           onClick={onBack || handleOnClose}
           sx={{ mr: 1 }}
         >
           {onBack ? 'Back' : 'Cancel'}
         </Button>
+
+        {onNext && nextTooltip ? (
+          <Tooltip title={nextTooltip}>
+            {/* wrapping in span as button may be disabled */}
+            <span>{nextButton}</span>
+          </Tooltip>
+        ) : onNext ? (
+          nextButton
+        ) : null}
+
         <LoadingButton
           form='dialog-form'
           onClick={() => {
-            if (!onNext) {
-              setAttemptCount(attemptCount + 1)
-            }
+            setAttemptCount(attemptCount + 1)
 
             if (!props.form) {
               onSubmit()
             }
           }}
           attemptCount={attemptCount}
-          buttonText={primaryActionLabel || (confirm ? 'Confirm' : submitText)}
-          disabled={disableSubmit}
+          buttonText={primaryActionLabel || (confirm ? 'Confirm' : 'Submit')}
+          disabled={loading || disableSubmit}
           loading={loading}
           type='submit'
         />
@@ -224,12 +250,15 @@ FormDialog.propTypes = {
   subTitle: p.node,
   caption: p.node,
 
-  errors: p.arrayOf(
-    // this is an Error interface
-    p.shape({
-      message: p.string.isRequired,
-    }),
-  ),
+  errors: p.oneOfType([
+    p.arrayOf(
+      // this is an Error interface
+      p.shape({
+        message: p.string.isRequired,
+      }),
+    ),
+    p.func,
+  ]),
 
   form: p.node,
   loading: p.bool,
@@ -239,6 +268,7 @@ FormDialog.propTypes = {
 
   disablePortal: p.bool, // disable the portal behavior of the dialog
 
+  disableNext: p.bool, // disables the next button while true
   disableSubmit: p.bool, // disables the submit button while true
 
   // overrides any of the main action button titles with this specific text
@@ -251,6 +281,8 @@ FormDialog.propTypes = {
 
   // if onNext is specified the submit button will be replaced with a 'Next' button
   onNext: p.func,
+  nextTooltip: p.string,
+
   // if onBack is specified the cancel button will be replaced with a 'Back' button
   onBack: p.func,
 
@@ -271,15 +303,3 @@ FormDialog.propTypes = {
   // gets spread to material-ui
   PaperProps: p.object,
 }
-
-FormDialog.defaultProps = {
-  errors: [],
-  onClose: () => {},
-  onSubmit: () => {},
-  loading: false,
-  confirm: false,
-  caption: '',
-  maxWidth: 'sm',
-}
-
-export default FormDialog

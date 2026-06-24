@@ -24,6 +24,7 @@ type Handler struct {
 	intStore   *integrationkey.Store
 	alertStore *alert.Store
 	db         TxAble
+	hc         *http.Client
 }
 
 type TxAble interface {
@@ -31,46 +32,45 @@ type TxAble interface {
 	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
 }
 
-func NewHandler(db TxAble, intStore *integrationkey.Store, aStore *alert.Store) *Handler {
-	return &Handler{intStore: intStore, db: db, alertStore: aStore}
+func NewHandler(db TxAble, hc *http.Client, intStore *integrationkey.Store, aStore *alert.Store) *Handler {
+	return &Handler{intStore: intStore, hc: hc, db: db, alertStore: aStore}
 }
 
-func (h *Handler) handleAction(ctx context.Context, act integrationkey.Action, _params any) error {
-	params := _params.(map[string]any)
-
-	switch act.Type {
+func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1) (inserted bool, err error) {
+	var didInsertSignals bool
+	switch act.Dest.Type {
 	case "builtin-webhook":
-		req, err := http.NewRequest("POST", act.StaticParams["webhook-url"], strings.NewReader(params["body"].(string)))
+		req, err := http.NewRequest("POST", act.Dest.Arg("webhook_url"), strings.NewReader(act.Param("body")))
 		if err != nil {
-			return err
+			return false, err
 		}
-		req.Header.Set("Content-Type", params["content-type"].(string))
+		req.Header.Set("Content-Type", act.Param("content-type"))
 
-		_, err = http.DefaultClient.Do(req.WithContext(ctx))
+		_, err = h.hc.Do(req.WithContext(ctx))
 		if err != nil {
-			return err
+			return false, err
 		}
 
 	case "builtin-alert":
 		status := alert.StatusTriggered
-		if params["close"] == "true" {
+		if act.Param("close") == "true" {
 			status = alert.StatusClosed
 		}
 
 		_, _, err := h.alertStore.CreateOrUpdate(ctx, &alert.Alert{
 			ServiceID: permission.ServiceID(ctx),
-			Summary:   params["summary"].(string),
-			Details:   params["details"].(string),
+			Summary:   act.Param("summary"),
+			Details:   act.Param("details"),
 			Source:    alert.SourceUniversal,
 			Status:    status,
 		})
 		if err != nil {
-			return err
+			return false, err
 		}
 	default:
-		data, err := json.Marshal(params)
+		data, err := json.Marshal(act.Params)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		err = gadb.New(h.db).IntKeyInsertSignalMessage(ctx, gadb.IntKeyInsertSignalMessageParams{
@@ -79,11 +79,17 @@ func (h *Handler) handleAction(ctx context.Context, act integrationkey.Action, _
 			Params:    data,
 		})
 		if err != nil {
-			return err
+			return false, err
 		}
+		didInsertSignals = true
 	}
 
-	return nil
+	return didInsertSignals, nil
+}
+
+// EventNewSignals is an event that is triggered when new signals are generated for a service.
+type EventNewSignals struct {
+	ServiceID uuid.UUID
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -123,68 +129,42 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// TODO: cache
+	compiled, err := NewCompiledConfig(*cfg)
+	if errutil.HTTPError(ctx, w, err) {
+		return
+	}
+
+	q := req.URL.Query()
+	query := make(map[string]string)
+	for key := range q {
+		query[key] = q.Get(key)
+	}
+	querya := map[string][]string(q)
 	env := map[string]any{
 		"sprintf": fmt.Sprintf,
 		"req": map[string]any{
-			"body": body,
+			"body":   body,
+			"query":  query,
+			"querya": querya,
+			"ua":     req.UserAgent(),
+			"ip":     req.RemoteAddr,
 		},
 	}
 
 	var vm vm.VM
-	var matched bool
-	for _, rule := range cfg.Rules {
-		p, err := CompileRule(rule.ConditionExpr, rule.Actions)
-		if errutil.HTTPError(ctx, w, err) {
-			return
-		}
-
-		res, err := vm.Run(p, env)
-		if errutil.HTTPError(ctx, w, err) {
-			return
-		}
-
-		actions, ok := res.([]any)
-		if !ok {
-			// didn't match
-			continue
-		}
-		matched = true
-		if len(actions) != len(rule.Actions) {
-			// This should never happen, but better than a panic.
-			errutil.HTTPError(ctx, w, fmt.Errorf("rule %s: expected %d actions, got %d", rule.ID, len(rule.Actions), len(actions)))
-			return
-		}
-
-		for i, act := range actions {
-			err = h.handleAction(ctx, rule.Actions[i], act)
-			if errutil.HTTPError(ctx, w, err) {
-				return
-			}
-		}
-
-		if rule.ContinueAfterMatch {
-			continue
-		}
-
-		break
+	actions, err := compiled.Run(&vm, env)
+	if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
+		return
 	}
 
-	if !matched {
-		p, err := CompileRule("", cfg.DefaultActions)
+	var insertedAny bool
+	for _, act := range actions {
+		inserted, err := h.handleAction(ctx, act)
 		if errutil.HTTPError(ctx, w, err) {
 			return
 		}
-
-		res, err := vm.Run(p, env)
-		if errutil.HTTPError(ctx, w, err) {
-			return
-		}
-		for i, act := range res.([]any) {
-			err = h.handleAction(ctx, cfg.DefaultActions[i], act)
-			if errutil.HTTPError(ctx, w, err) {
-				return
-			}
-		}
+		insertedAny = insertedAny || inserted
 	}
 
 	w.WriteHeader(http.StatusNoContent)

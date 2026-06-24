@@ -16,4 +16,5 @@ const (
 	TypeCleanup      Type = "cleanup"
 	TypeMetrics      Type = "metrics"
 	TypeCompat       Type = "compat"
+	TypeSignals      Type = "signals"
 )

@@ -3,6 +3,7 @@ package smoke
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/test/smoke/harness"
@@ -42,20 +43,22 @@ func TestAlertCleanup(t *testing.T) {
 	assert.Equal(t, "1", data.A.ID)
 	assert.Equal(t, "2", data.B.ID)
 
-	h.SetConfigValue("Maintenance.AlertCleanupDays", "1")
+	cfg := h.Config()
+	cfg.Maintenance.AlertCleanupDays = 1
+	h.RestartGoAlertWithConfig(cfg)
 
-	h.Trigger()
+	assert.EventuallyWithT(t, func(t *assert.CollectT) {
+		res = h.GraphQLQuery2("{a:alert(id: 1){id}}")
+		assert.Empty(t, res.Errors, "errors")
+		err = json.Unmarshal(res.Data, &data)
+		assert.NoError(t, err)
+		assert.Equal(t, "1", data.A.ID)
 
-	res = h.GraphQLQuery2("{a:alert(id: 1){id}}")
-	assert.Empty(t, res.Errors, "errors")
-	err = json.Unmarshal(res.Data, &data)
-	assert.NoError(t, err)
-	assert.Equal(t, "1", data.A.ID)
-
-	res = h.GraphQLQuery2("{a:alert(id: 2){id}}")
-	assert.Empty(t, res.Errors, "errors")
-	err = json.Unmarshal(res.Data, &data)
-	assert.NoError(t, err)
-	// #2 should have been cleaned up
-	assert.Nil(t, data.A)
+		res = h.GraphQLQuery2("{a:alert(id: 2){id}}")
+		assert.Empty(t, res.Errors, "errors")
+		err = json.Unmarshal(res.Data, &data)
+		assert.NoError(t, err)
+		// #2 should have been cleaned up
+		assert.Nil(t, data.A)
+	}, 15*time.Second, time.Second)
 }

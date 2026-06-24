@@ -32,7 +32,7 @@ const mutation = gql`
 export default function RotationEditDialog(props: {
   rotationID: string
   onClose: () => void
-}): JSX.Element {
+}): React.JSX.Element {
   const [value, setValue] = useState<CreateRotationInput | null>(null)
 
   const [{ fetching, error, data }] = useQuery({

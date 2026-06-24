@@ -18,13 +18,14 @@ import (
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/test/smoke/harness"
 	"github.com/target/goalert/test/smoke/migratetest"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 )
 
 // DefaultSkipToMigration is the default migration to skip to when running the migration tests.
 //
 // It can be overriden by setting the SKIP_TO environment variable.
-const DefaultSkipToMigration = "switchover-mk2"
+const DefaultSkipToMigration = "om-history"
 
 var rules = migratetest.RuleSet{
 	// All migration timestamps will differ as they applied/re-applied
@@ -79,6 +80,12 @@ var rules = migratetest.RuleSet{
 
 	// Every DB must have a unique ID.
 	{MigrationName: "switchover-mk2", TableName: "switchover_state", ColumnName: "db_id"},
+
+	{MigrationName: "track-rotation-updates", TableName: "entity_updates", ColumnName: "created_at"},
+
+	// entity_updates are converted to jobs (1-way). Previously a separate job would do this.
+	{MigrationName: "rotation-direct-event", TableName: "entity_updates", MissingRows: true},
+	{MigrationName: "rotation-direct-event", TableName: "river_job", ExtraRows: true},
 }
 
 const migrateInitData = `
@@ -157,6 +164,30 @@ values
 	({{uuid "cb2"}}, {{uuid "ncy1"}}, 1, {{uuid "c2"}}, {{uuid "n2"}}, now());
 `
 
+type initData struct {
+	Before, After string
+	SQL           string
+}
+
+var initDatas = []initData{
+	{Before: "dedup-notif-channels", SQL: `
+		insert into notification_channels (id, type, name, value) values
+			({{uuid "nc1"}}, 'SLACK', 'chan 1', {{uuid "chan1"}}),
+			({{uuid "nc2"}}, 'SLACK', 'chan 1', {{uuid "chan1"}}), -- intentionally duplicate
+			({{uuid "nc3"}}, 'SLACK', 'chan 3', {{uuid "chan3"}});
+		
+		insert into schedules (id, name, time_zone) values
+			({{uuid "sched1"}}, 'schedule 1', 'UTC'),
+			({{uuid "sched2"}}, 'schedule 2', 'UTC'),
+			({{uuid "sched3"}}, 'schedule 3', 'UTC');
+		
+		insert into schedule_data (schedule_id, data) values
+			({{uuid "sched1"}}, '{"V1": {"Foo": "Bar", "OnCallNotificationRules": [{ "Extra": "Field", "ChannelID": {{uuidJSON "nc1"}} }] } }'),
+			({{uuid "sched2"}}, '{"V1": {"OnCallNotificationRules": [{ "Extra2": "Field2", "ChannelID": {{uuidJSON "nc2"}} }] } }'),
+			({{uuid "sched3"}}, '{"V1": {"OnCallNotificationRules": [{  "Extra3": "Field3", "ChannelID": {{uuidJSON "nc-invalid"}} }] } }');
+	`},
+}
+
 // https://stackoverflow.com/questions/22892120/how-to-generate-a-random-string-of-a-fixed-length-in-golang
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
@@ -174,9 +205,10 @@ func renderQuery(t *testing.T, sql string) string {
 	phoneCCG := harness.NewDataGen(t, "Phone", harness.DataGenArgFunc(harness.GenPhoneCC))
 	strs := make(map[string]bool)
 	tmpl.Funcs(template.FuncMap{
-		"uuid":    func(id string) string { return fmt.Sprintf("'%s'", uuidG.Get(id)) },
-		"phone":   func(id string) string { return fmt.Sprintf("'%s'", phoneCCG.Get(id)) },
-		"phoneCC": func(cc, id string) string { return fmt.Sprintf("'%s'", phoneCCG.GetWithArg(cc, id)) },
+		"uuid":     func(id string) string { return fmt.Sprintf("'%s'", uuidG.Get(id)) },
+		"uuidJSON": func(id string) string { return fmt.Sprintf(`"%s"`, uuidG.Get(id)) },
+		"phone":    func(id string) string { return fmt.Sprintf("'%s'", phoneCCG.Get(id)) },
+		"phoneCC":  func(cc, id string) string { return fmt.Sprintf("'%s'", phoneCCG.GetWithArg(cc, id)) },
 		"text": func(n int) string {
 			val := randStringRunes(n)
 			for strs[val] {
@@ -198,6 +230,12 @@ func renderQuery(t *testing.T, sql string) string {
 	return b.String()
 }
 
+func migrateLogCtx() context.Context {
+	l := log.NewLogger()
+	l.ErrorsOnly()
+	return log.WithLogger(context.Background(), l)
+}
+
 func TestMigrations(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping migrations tests for short mode")
@@ -211,7 +249,15 @@ func TestMigrations(t *testing.T) {
 		t.Fatal("failed to open db:", err)
 	}
 	defer db.Close()
-	dbName := strings.Replace("migrations_smoketest_"+time.Now().Format("2006_01_02_03_04_05")+uuid.New().String(), "-", "", -1)
+
+	// Postgres has a limit of 63 characters for database names,
+	// it will automatically truncate them, however, starting with
+	// Postgres 17, trying to connect will fail with database not found
+	// if the name is too long. In either case we want to avoid the
+	// truncation, so we generate a name that is guaranteed to be
+	// less than 63 characters.
+	dbName := strings.ReplaceAll("migrate_test_"+time.Now().Format("20060102030405")+uuid.New().String(), "-", "")
+	require.LessOrEqual(t, len(dbName), 63, "database name too long")
 
 	testURL := harness.DBURL(dbName)
 
@@ -221,7 +267,7 @@ func TestMigrations(t *testing.T) {
 	}
 	defer func() { _, _ = db.Exec("drop database " + sqlutil.QuoteID(dbName)) }()
 
-	n, err := migrate.Up(context.Background(), testURL, start)
+	n, err := migrate.Up(migrateLogCtx(), testURL, start)
 	if err != nil {
 		t.Fatal("failed to apply initial migrations:", err)
 	}
@@ -243,8 +289,28 @@ func TestMigrations(t *testing.T) {
 		start = DefaultSkipToMigration
 		skipTo = true
 	}
+
+	applyInit := func(t *testing.T, lastMigrationName, nextMigrationName string) {
+		t.Helper()
+
+		for _, data := range initDatas {
+			if data.After != lastMigrationName && data.Before != nextMigrationName {
+				continue
+			}
+
+			initSQL := renderQuery(t, data.SQL)
+			err = harness.ExecSQLBatch(context.Background(), testURL, initSQL)
+			require.NoError(t, err, "failed to init db %v", err)
+		}
+	}
+
 	var idx int
 	for idx = range names {
+		_, err := migrate.Up(migrateLogCtx(), testURL, names[idx])
+		if err != nil {
+			t.Fatal("failed to skip migration:", err)
+		}
+		applyInit(t, names[idx], names[idx+1])
 		if names[idx+1] == start {
 			break
 		}
@@ -252,7 +318,7 @@ func TestMigrations(t *testing.T) {
 
 	names = names[idx:]
 	if skipTo {
-		n, err := migrate.Up(context.Background(), testURL, start)
+		n, err := migrate.Up(migrateLogCtx(), testURL, start)
 		if err != nil {
 			t.Fatal("failed to apply skip migrations:", err)
 		}
@@ -273,9 +339,11 @@ func TestMigrations(t *testing.T) {
 	names = names[1:]
 	for i, migrationName := range names[1:] {
 		lastMigrationName := names[i]
+		applyInit(t, lastMigrationName, migrationName)
+
 		var beforeUpSnap *migratetest.Snapshot
 		pass := t.Run(migrationName, func(t *testing.T) {
-			ctx := context.Background()
+			ctx := migrateLogCtx()
 
 			if beforeUpSnap == nil {
 				beforeUpSnap = snapshot(t, migrationName)

@@ -35,7 +35,7 @@ func (app *App) _Shutdown(ctx context.Context) error {
 			return
 		}
 		err := sh.Shutdown(ctx)
-		if err != nil {
+		if err != nil && !errors.Is(err, context.Canceled) {
 			errs = append(errs, errors.Wrap(err, msg))
 		}
 	}
@@ -67,6 +67,11 @@ func (app *App) _Shutdown(ctx context.Context) error {
 	shut(app.AuthLinkKeyring, "auth link keyring")
 	shut(app.NonceStore, "nonce store")
 	shut(app.ConfigStore, "config store")
+
+	err := app.db.Close()
+	if err != nil {
+		errs = append(errs, errors.Wrap(err, "close database"))
+	}
 
 	if len(errs) == 1 {
 		return errs[0]

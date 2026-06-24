@@ -1,16 +1,12 @@
 package app
 
 import (
-	"context"
+	"errors"
 	"net"
 	"sync"
-
-	"github.com/pkg/errors"
-	"github.com/target/goalert/util/log"
 )
 
 type multiListener struct {
-	l         *log.Logger
 	listeners []net.Listener
 
 	ch      chan net.Conn
@@ -20,7 +16,7 @@ type multiListener struct {
 	wg      sync.WaitGroup
 }
 
-func newMultiListener(logger *log.Logger, ln ...net.Listener) *multiListener {
+func newMultiListener(ln ...net.Listener) *multiListener {
 	nonEmpty := make([]net.Listener, 0, len(ln))
 	for _, l := range ln {
 		if l != nil {
@@ -30,7 +26,6 @@ func newMultiListener(logger *log.Logger, ln ...net.Listener) *multiListener {
 	ln = nonEmpty
 
 	ml := multiListener{
-		l:         logger,
 		listeners: ln,
 		ch:        make(chan net.Conn),
 		errCh:     make(chan error),
@@ -79,26 +74,22 @@ func (ml *multiListener) Accept() (net.Conn, error) {
 }
 
 // Close ranges through listeners closing all of them and and returns an error if any listener encountered an error while closing.
-// It will log all individual listener errors and return an error in the end in the case of error(s).
 func (ml *multiListener) Close() error {
 	defer ml.wg.Wait()
 	if !ml.closed {
 		close(ml.closeCh)
 		ml.closed = true
 	}
-	hasErr := false
+
+	var errs []error
 	for _, l := range ml.listeners {
 		err := l.Close()
 		if err != nil {
-			hasErr = true
-			ml.l.Error(context.Background(), errors.Wrap(err, "close listener"))
+			errs = append(errs, err)
 		}
 	}
 
-	if hasErr {
-		return errors.New("close listeners: one or more errors")
-	}
-	return nil
+	return errors.Join(errs...)
 }
 
 // Addr returns the address of the first listener in the multilistener.

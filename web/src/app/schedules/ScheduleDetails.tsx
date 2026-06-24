@@ -18,6 +18,7 @@ import { useIsWidthDown } from '../util/useWidth'
 import { TempSchedValue, defaultTempSchedValue } from './temp-sched/sharedUtils'
 import { Redirect } from 'wouter'
 import { useScheduleTZ } from './useScheduleTZ'
+import { useURLParam } from '../actions'
 
 const query = gql`
   fragment ScheduleTitleQuery on Schedule {
@@ -67,7 +68,11 @@ export type ScheduleDetailsProps = {
 
 export default function ScheduleDetails({
   scheduleID,
-}: ScheduleDetailsProps): JSX.Element {
+}: ScheduleDetailsProps): React.JSX.Element {
+  const [newOverride] = useURLParam('new-override', '')
+  const newValidOverride = ['add', 'remove', 'replace'].includes(newOverride)
+    ? newOverride
+    : ''
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
 
@@ -91,7 +96,9 @@ export default function ScheduleDetails({
     useState<TempSchedValue | null>(null)
   const onDeleteTempSched = useCallback(setDeleteTempSchedule, [])
   const [overrideDialog, setOverrideDialog] = useState<OverrideDialog | null>(
-    null,
+    newValidOverride
+      ? { variantOptions: [newValidOverride], removeUserReadOnly: false }
+      : null,
   )
 
   const [{ data: _data, error }] = useQuery({

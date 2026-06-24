@@ -1,9 +1,9 @@
 import React from 'react'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
-import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import { handleDefaultConfig, defaultConfig } from '../storybook/graphql'
-import { useArgs } from '@storybook/preview-api'
+import { useArgs } from 'storybook/preview-api'
 import { HttpResponse, graphql } from 'msw'
 import { DestFieldValueError, InputFieldError } from '../util/errtypes'
 
@@ -36,7 +36,7 @@ const meta = {
                     path: ['createUserContactMethod', 'input', 'dest'],
                     extensions: {
                       code: 'INVALID_DEST_FIELD_VALUE',
-                      fieldID: 'phone-number',
+                      fieldID: 'phone_number',
                     },
                   } satisfies DestFieldValueError,
                   {

@@ -4,6 +4,7 @@ import List from '@mui/material/List'
 import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
 import { styles as globalStyles } from '../styles/materialStyles'
+import { applicationName } from '../env'
 import {
   Group,
   Layers,
@@ -38,13 +39,19 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-export default function NavBar(): JSX.Element {
+export default function NavBar(): React.JSX.Element {
   const classes = useStyles()
   const theme = useTheme()
 
-  let localDev = null
+  let localDevFooter = null
+  let localDevRiver = null
   if (process.env.NODE_ENV !== 'production') {
-    localDev = <NavBarLink to='/dev' title='Dev' icon={<DeveloperBoard />} />
+    localDevFooter = (
+      <NavBarLink to='/dev' title='Dev' icon={<DeveloperBoard />} />
+    )
+    localDevRiver = (
+      <NavBarSubLink newTab to='/admin/riverui' title='Job Queues' />
+    )
   }
 
   const logo =
@@ -67,7 +74,7 @@ export default function NavBar(): JSX.Element {
           {logo}
         </a>
         <Typography variant='h5' sx={{ pl: 1 }}>
-          <b>GoAlert</b>
+          <b>{applicationName}</b>
         </Typography>
       </div>
       <Divider />
@@ -91,6 +98,7 @@ export default function NavBar(): JSX.Element {
           <RequireConfig isAdmin>
             <NavBarLink to='/admin' title='Admin' icon={<Build />}>
               <NavBarSubLink to='/admin/config' title='Config' />
+              <NavBarSubLink to='/admin/maintenance' title='Maintenance' />
               <NavBarSubLink to='/admin/limits' title='System Limits' />
               <NavBarSubLink to='/admin/toolbox' title='Toolbox' />
               <NavBarSubLink to='/admin/message-logs' title='Message Logs' />
@@ -101,12 +109,13 @@ export default function NavBar(): JSX.Element {
               />
               <NavBarSubLink to='/admin/switchover' title='Switchover' />
               <NavBarSubLink to='/admin/api-keys' title='API Keys' />
+              {localDevRiver}
             </NavBarLink>
           </RequireConfig>
 
           <NavBarLink to='/wizard' title='Wizard' icon={<WizardIcon />} />
 
-          {localDev}
+          {localDevFooter}
         </List>
       </nav>
     </React.Fragment>

@@ -2,7 +2,6 @@ package swo
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -21,10 +20,11 @@ import (
 
 // A Manager is responsible for managing the switchover process.
 type Manager struct {
-	// sql.DB instance safe for the application to use (instrumented for safe SWO operation)
-	dbApp  *sql.DB
 	dbMain *pgxpool.Pool
 	dbNext *pgxpool.Pool
+
+	// sql.DB instance safe for the application to use (instrumented for safe SWO operation)
+	dbPgxApp *pgxpool.Pool
 
 	pauseResume lifecycle.PauseResumer
 
@@ -57,6 +57,9 @@ type Config struct {
 	OldDBURL, NewDBURL string
 	CanExec            bool
 	Logger             *log.Logger
+
+	MaxOpen int
+	MaxIdle int
 }
 
 // NewManager will create a new Manager with the given configuration.
@@ -71,15 +74,20 @@ func NewManager(cfg Config) (*Manager, error) {
 		}.String()
 	}
 
+	appMainURL, err := sqldrv.AppURL(cfg.OldDBURL, appStr(ConnTypeMainApp))
+	if err != nil {
+		return nil, fmt.Errorf("connect to old db: %w", err)
+	}
+	appNextURL, err := sqldrv.AppURL(cfg.NewDBURL, appStr(ConnTypeNextApp))
+	if err != nil {
+		return nil, fmt.Errorf("connect to new db: %w", err)
+	}
+
 	mainURL, err := sqldrv.AppURL(cfg.OldDBURL, appStr(ConnTypeMainMgr))
 	if err != nil {
 		return nil, fmt.Errorf("connect to old db: %w", err)
 	}
 	mainPool, err := pgxpool.New(context.Background(), mainURL)
-	if err != nil {
-		return nil, fmt.Errorf("connect to old db: %w", err)
-	}
-	mainAppDBC, err := sqldrv.NewConnector(cfg.OldDBURL, appStr(ConnTypeMainApp))
 	if err != nil {
 		return nil, fmt.Errorf("connect to old db: %w", err)
 	}
@@ -91,16 +99,17 @@ func NewManager(cfg Config) (*Manager, error) {
 	if err != nil {
 		return nil, fmt.Errorf("connect to new db: %w", err)
 	}
-	nextAppDBC, err := sqldrv.NewConnector(cfg.NewDBURL, appStr(ConnTypeNextApp))
+
+	appPgx, err := NewAppPGXPool(appMainURL, appNextURL, cfg.MaxOpen, cfg.MaxIdle)
 	if err != nil {
-		return nil, fmt.Errorf("connect to new db: %w", err)
+		return nil, fmt.Errorf("create pool: %w", err)
 	}
 
 	m := &Manager{
-		Config: cfg,
-		dbApp:  sql.OpenDB(NewConnector(mainAppDBC, nextAppDBC)),
-		dbMain: mainPool,
-		dbNext: nextPool,
+		Config:   cfg,
+		dbMain:   mainPool,
+		dbNext:   nextPool,
+		dbPgxApp: appPgx,
 	}
 
 	ctx := cfg.Logger.BackgroundContext()
@@ -240,7 +249,7 @@ func (m *Manager) Reset(ctx context.Context) error {
 // StartExecute will trigger the switchover to begin.
 func (m *Manager) StartExecute(ctx context.Context) error { return m.taskMgr.Execute(ctx) }
 
-// DB returns a sql.DB that will always return safe connections to be used during the switchover.
+// Pool returns a pgxpool.Pool that will always return safe connections to be used during the switchover.
 //
-// All application code/queries should use this DB.
-func (m *Manager) DB() *sql.DB { return m.dbApp }
+// All application code/queries should use this.
+func (m *Manager) Pool() *pgxpool.Pool { return m.dbPgxApp }

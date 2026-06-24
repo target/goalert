@@ -117,6 +117,7 @@ export default function AdminAPIKeyCreateDialog(props: {
 
   return (
     <FormDialog
+      maxWidth='md'
       title={
         token ? (
           <div

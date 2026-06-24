@@ -1,10 +1,8 @@
 import React, { useLayoutEffect } from 'react'
 import classnames from 'classnames'
-import MUIListItem, {
-  ListItemProps as MUIListItemProps,
-} from '@mui/material/ListItem'
+import ListItem from '@mui/material/ListItem'
+import ListItemButton from '@mui/material/ListItemButton'
 import ListItemIcon from '@mui/material/ListItemIcon'
-import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction'
 import ListItemText from '@mui/material/ListItemText'
 import makeStyles from '@mui/styles/makeStyles'
 import AppLink, { AppLinkListItem } from '../util/AppLink'
@@ -29,16 +27,19 @@ const useStyles = makeStyles(() => ({
   },
 }))
 
-export interface FlatListItemProps extends MUIListItemProps {
+export interface FlatListItemProps {
   item: FlatListItemOptions
   index: number
 }
 
-export default function FlatListItem(props: FlatListItemProps): JSX.Element {
+export default function FlatListItem(
+  props: FlatListItemProps,
+): React.JSX.Element {
   const classes = useStyles()
 
   const {
     highlight,
+    selected,
     icon,
     secondaryAction,
     scrollIntoView,
@@ -50,6 +51,7 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
     disableTypography,
     onClick,
     primaryText,
+    section,
     ...muiListItemProps
   } = props.item
 
@@ -60,31 +62,30 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
     }
   }, [scrollIntoView])
 
+  const onClickProps = onClick && {
+    onClick,
+  }
+
+  // When a URL is provided without a secondaryAction, AppLinkListItem renders
+  // an <li> wrapper. In all other cases we need an explicit <ListItem> wrapper
+  // so that children of a <ul>/<List> are valid <li> elements.
+  const needsLiWrapper = !url || !!secondaryAction
+
   let linkProps = {}
   if (url) {
     linkProps = {
-      // if you render a link with a secondary action, MUI will render the <a> tag without an <li> around it
       component: secondaryAction ? AppLink : AppLinkListItem,
       to: url,
-      button: true,
     }
   }
 
-  const onClickProps = onClick && {
-    onClick,
-
-    // NOTE: needed for error: button: false? not assignable to type 'true'
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    button: true as any,
-  }
-
-  return (
-    <MUIListItem
+  const button = (
+    <ListItemButton
       {...linkProps}
       {...onClickProps}
       {...muiListItemProps}
       className={classnames({
-        [classes.listItem]: true,
+        [classes.listItem]: !needsLiWrapper,
         [classes.listItemDisabled]: disabled,
         [classes.listItemDraggable]: draggable,
       })}
@@ -104,9 +105,21 @@ export default function FlatListItem(props: FlatListItemProps): JSX.Element {
           component: typeof subText === 'string' ? 'p' : 'div',
         }}
       />
-      {secondaryAction && (
-        <ListItemSecondaryAction>{secondaryAction}</ListItemSecondaryAction>
-      )}
-    </MUIListItem>
+    </ListItemButton>
+  )
+
+  if (!needsLiWrapper) return button
+
+  return (
+    <ListItem
+      ref={ref}
+      disablePadding
+      secondaryAction={secondaryAction}
+      className={classnames({
+        [classes.listItem]: true,
+      })}
+    >
+      {button}
+    </ListItem>
   )
 }

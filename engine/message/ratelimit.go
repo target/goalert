@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/email"
+	"github.com/target/goalert/notification/twilio"
 )
 
 // GlobalCMThrottle represents the rate limits for each notification type.
@@ -17,21 +19,21 @@ func init() {
 
 	// Rate limit sms, voice and email types
 	perCM.
-		WithDestTypes(notification.DestTypeVoice, notification.DestTypeSMS, notification.DestTypeUserEmail).
+		WithDestTypes(twilio.DestTypeTwilioVoice, twilio.DestTypeTwilioSMS, email.DestTypeEmail).
 		AddRules([]ThrottleRule{{Count: 1, Per: time.Minute}})
 
 	// On-Call Status Notifications
 	perCM.
 		WithMsgTypes(notification.MessageTypeScheduleOnCallUsers).
 		AddRules([]ThrottleRule{
-			{Count: 2, Per: 15 * time.Minute},
-			{Count: 4, Per: 1 * time.Hour, Smooth: true},
+			{Count: 3, Per: 1 * time.Minute},
+			{Count: 20, Per: 1 * time.Hour, Smooth: true},
 		})
 
 	// status notifications
 	perCM.
 		WithMsgTypes(notification.MessageTypeAlertStatus).
-		WithDestTypes(notification.DestTypeVoice, notification.DestTypeSMS, notification.DestTypeUserEmail).
+		WithDestTypes(twilio.DestTypeTwilioVoice, twilio.DestTypeTwilioSMS, email.DestTypeEmail).
 		AddRules([]ThrottleRule{
 			{Count: 1, Per: 3 * time.Minute},
 			{Count: 3, Per: 20 * time.Minute},
@@ -42,7 +44,7 @@ func init() {
 	alertMessages := perCM.WithMsgTypes(notification.MessageTypeAlert, notification.MessageTypeAlertBundle)
 
 	alertMessages.
-		WithDestTypes(notification.DestTypeVoice).
+		WithDestTypes(twilio.DestTypeTwilioVoice).
 		AddRules([]ThrottleRule{
 			{Count: 3, Per: 15 * time.Minute},
 			{Count: 7, Per: time.Hour, Smooth: true},
@@ -50,7 +52,7 @@ func init() {
 		})
 
 	alertMessages.
-		WithDestTypes(notification.DestTypeSMS).
+		WithDestTypes(twilio.DestTypeTwilioSMS).
 		AddRules([]ThrottleRule{
 			{Count: 5, Per: 15 * time.Minute},
 			{Count: 11, Per: time.Hour, Smooth: true},

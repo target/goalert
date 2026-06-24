@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/target/goalert/alert/alertlog"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
@@ -30,21 +31,12 @@ type Store struct {
 	findMany     *sql.Stmt
 	getServiceID *sql.Stmt
 
-	lockSvc      *sql.Stmt
-	lockAlertSvc *sql.Stmt
-
-	getStatusAndLockSvc *sql.Stmt
-
 	createUpdNew   *sql.Stmt
 	createUpdAck   *sql.Stmt
 	createUpdClose *sql.Stmt
 
 	updateByStatusAndService *sql.Stmt
 	updateByIDAndStatus      *sql.Stmt
-
-	noStepsBySvc *sql.Stmt
-
-	epID *sql.Stmt
 
 	escalate *sql.Stmt
 	epState  *sql.Stmt
@@ -64,34 +56,6 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 	return &Store{
 		db:    db,
 		logDB: logDB,
-
-		noStepsBySvc: p(`
-			SELECT coalesce(
-				(SELECT true
-				FROM escalation_policies pol
-				JOIN services svc ON svc.id = $1
-				WHERE
-					pol.id = svc.escalation_policy_id
-					AND pol.step_count = 0)
-			, false)
-		`),
-
-		lockSvc:      p(`select 1 from services where id = $1 for update`),
-		lockAlertSvc: p(`SELECT 1 FROM services s JOIN alerts a ON a.id = ANY ($1) AND s.id = a.service_id FOR UPDATE`),
-		getStatusAndLockSvc: p(`
-			SELECT a.status
-			FROM services s
-			JOIN alerts a on a.id = $1 and a.service_id = s.id
-			FOR UPDATE
-		`),
-
-		epID: p(`
-			SELECT escalation_policy_id
-			FROM
-				services svc,
-				alerts a
-			WHERE svc.id = a.service_id
-		`),
 
 		insert: p(`
 			INSERT INTO alerts (summary, details, service_id, source, status, dedup_key) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created_at
@@ -165,7 +129,7 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 				service_id = $1
 			AND (
 				$2 > status
-			)
+			) returning id
 		`),
 		updateByIDAndStatus: p(`			
 			UPDATE alerts
@@ -205,6 +169,11 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 	}, prep.Err
 }
 
+// EventAlertEscalated is sent when an alert is escalated.
+type EventAlertEscalated struct {
+	AlertID int64
+}
+
 // ServiceInfo will return the name of the given service ID as well as the current number
 // of unacknowledged alerts.
 func (s *Store) ServiceInfo(ctx context.Context, serviceID string) (string, int, error) {
@@ -234,13 +203,11 @@ func (s *Store) EPID(ctx context.Context, alertID int) (string, error) {
 		return "", err
 	}
 
-	row := s.epID.QueryRowContext(ctx, alertID)
-	var epID string
-	err = row.Scan(&epID)
+	epID, err := gadb.New(s.db).Alert_GetEscalationPolicyID(ctx, int64(alertID))
 	if err != nil {
 		return "", err
 	}
-	return epID, nil
+	return epID.String(), nil
 }
 
 func (s *Store) canTouchAlert(ctx context.Context, alertID int) error {
@@ -278,7 +245,7 @@ func (s *Store) EscalateAsOf(ctx context.Context, id int, t time.Time) error {
 	}
 	defer sqlutil.Rollback(ctx, "escalate alert", tx)
 
-	lck, err := gadb.New(tx).LockOneAlertService(ctx, int64(id))
+	lck, err := gadb.New(tx).Alert_LockOneAlertService(ctx, int64(id))
 	if errors.Is(err, sql.ErrNoRows) {
 		return validation.NewGenericError("alert not found")
 	}
@@ -299,7 +266,7 @@ func (s *Store) EscalateAsOf(ctx context.Context, id int, t time.Time) error {
 		}
 	}
 
-	ok, err := gadb.New(tx).RequestAlertEscalationByTime(ctx, gadb.RequestAlertEscalationByTimeParams{
+	ok, err := gadb.New(tx).Alert_RequestAlertEscalationByTime(ctx, gadb.Alert_RequestAlertEscalationByTimeParams{
 		AlertID: int64(id),
 		Column2: t,
 	})
@@ -308,7 +275,7 @@ func (s *Store) EscalateAsOf(ctx context.Context, id int, t time.Time) error {
 	}
 
 	if !ok {
-		hasEP, err := gadb.New(tx).AlertHasEPState(ctx, int64(id))
+		hasEP, err := gadb.New(tx).Alert_AlertHasEPState(ctx, int64(id))
 		if err != nil {
 			return fmt.Errorf("check ep state: %w", err)
 		}
@@ -359,6 +326,16 @@ func (s *Store) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error)
 	return alertIDs, nil
 }
 
+// EventAlertStatusUpdate is sent when an alert's status is updated.
+//
+// Note: It is not a guarantee that the status differs from the previous status in all cases.
+type EventAlertStatusUpdate struct {
+	AlertID int64
+	Status  Status
+
+	Created bool
+}
+
 func (s *Store) UpdateStatusByService(ctx context.Context, serviceID string, status Status) error {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin, permission.User)
 	if err != nil {
@@ -391,17 +368,25 @@ func (s *Store) UpdateStatusByService(ctx context.Context, serviceID string, sta
 		return err
 	}
 
-	_, err = tx.StmtContext(ctx, s.lockSvc).ExecContext(ctx, serviceID)
+	err = gadb.New(tx).Alert_LockService(ctx, uuid.MustParse(serviceID))
 	if err != nil {
 		return err
 	}
 
 	_, err = tx.StmtContext(ctx, s.updateByStatusAndService).ExecContext(ctx, serviceID, status)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+	}
 	if err != nil {
 		return err
 	}
 
-	return tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertIDs []int, logMeta interface{}) ([]int, error) {
@@ -422,7 +407,10 @@ func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertI
 		return nil, err
 	}
 
-	ids := sqlutil.IntArray(alertIDs)
+	ids := make([]int64, len(alertIDs))
+	for i, id := range alertIDs {
+		ids[i] = int64(id)
+	}
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -437,7 +425,7 @@ func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertI
 
 	var updatedIDs []int
 
-	_, err = tx.StmtContext(ctx, s.lockAlertSvc).ExecContext(ctx, ids)
+	err = gadb.New(tx).Alert_LockManyAlertServices(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -467,6 +455,7 @@ func (s *Store) UpdateManyAlertStatus(ctx context.Context, status Status, alertI
 	if err != nil {
 		return nil, err
 	}
+
 	return updatedIDs, nil
 }
 
@@ -489,7 +478,7 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Alert, err
 		return nil, err
 	}
 
-	_, err = tx.StmtContext(ctx, s.lockSvc).ExecContext(ctx, n.ServiceID)
+	err = gadb.New(tx).Alert_LockService(ctx, uuid.MustParse(a.ServiceID))
 	if err != nil {
 		return nil, err
 	}
@@ -510,17 +499,18 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Alert, err
 
 func (s *Store) _create(ctx context.Context, tx *sql.Tx, a Alert) (*Alert, *alertlog.CreatedMetaData, error) {
 	var meta alertlog.CreatedMetaData
+
 	row := tx.StmtContext(ctx, s.insert).QueryRowContext(ctx, a.Summary, a.Details, a.ServiceID, a.Source, a.Status, a.DedupKey())
 	err := row.Scan(&a.ID, &a.CreatedAt)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	err = tx.StmtContext(ctx, s.noStepsBySvc).QueryRowContext(ctx, a.ServiceID).Scan(&meta.EPNoSteps)
+	hasSteps, err := gadb.New(tx).Alert_ServiceEPHasSteps(ctx, uuid.MustParse(a.ServiceID))
 	if err != nil {
 		return nil, nil, err
 	}
-
+	meta.EPNoSteps = !hasSteps
 	return &a, &meta, nil
 }
 
@@ -552,7 +542,7 @@ func (s *Store) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Al
 		return nil, false, err
 	}
 
-	_, err = tx.StmtContext(ctx, s.lockSvc).ExecContext(ctx, n.ServiceID)
+	err = gadb.New(tx).Alert_LockService(ctx, uuid.MustParse(n.ServiceID))
 	if err != nil {
 		return nil, false, err
 	}
@@ -570,10 +560,11 @@ func (s *Store) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Al
 			logType = alertlog.TypeDuplicateSupressed
 		} else {
 			logType = alertlog.TypeCreated
-			stepErr := tx.StmtContext(ctx, s.noStepsBySvc).QueryRowContext(ctx, n.ServiceID).Scan(&m.EPNoSteps)
-			if stepErr != nil {
+			hasSteps, err := gadb.New(tx).Alert_ServiceEPHasSteps(ctx, uuid.MustParse(n.ServiceID))
+			if err != nil {
 				return nil, false, err
 			}
+			m.EPNoSteps = !hasSteps
 		}
 		meta = &m
 	case StatusActive:
@@ -666,15 +657,15 @@ func (s *Store) createOrUpdate(ctx context.Context, a *Alert, meta map[string]st
 }
 
 func (s *Store) UpdateStatusTx(ctx context.Context, tx *sql.Tx, id int, stat Status) error {
-	var _stat Status
-	err := tx.Stmt(s.getStatusAndLockSvc).QueryRowContext(ctx, id).Scan(&_stat)
+	var _stat gadb.EnumAlertStatus
+	_stat, err := gadb.New(tx).Alert_GetStatusAndLockService(ctx, int64(id))
 	if err != nil {
 		return err
 	}
-	if _stat == StatusClosed {
+	if _stat == gadb.EnumAlertStatusClosed {
 		return logError{isAlreadyClosed: true, alertID: id, _type: alertlog.TypeClosed, logDB: s.logDB}
 	}
-	if _stat == StatusActive && stat == StatusActive {
+	if _stat == gadb.EnumAlertStatusActive && stat == StatusActive {
 		return logError{isAlreadyAcknowledged: true, alertID: id, _type: alertlog.TypeAcknowledged, logDB: s.logDB}
 	}
 
@@ -809,12 +800,12 @@ func (s *Store) Feedback(ctx context.Context, alertIDs []int) ([]Feedback, error
 		return nil, err
 	}
 
-	ids := make([]int32, len(alertIDs))
+	ids := make([]int32, 0, len(alertIDs))
 	for _, id := range alertIDs {
 		ids = append(ids, int32(id))
 	}
 
-	rows, err := gadb.New(s.db).AlertFeedback(ctx, ids)
+	rows, err := gadb.New(s.db).Alert_GetAlertFeedback(ctx, ids)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -850,7 +841,7 @@ func (s Store) UpdateManyAlertFeedback(ctx context.Context, noiseReason string, 
 		ids[i] = int64(v)
 	}
 
-	res, err := gadb.New(s.db).SetManyAlertFeedback(ctx, gadb.SetManyAlertFeedbackParams{
+	res, err := gadb.New(s.db).Alert_SetManyAlertFeedback(ctx, gadb.Alert_SetManyAlertFeedbackParams{
 		AlertIds:    ids,
 		NoiseReason: noiseReason,
 	})
@@ -878,7 +869,7 @@ func (s Store) UpdateFeedback(ctx context.Context, feedback *Feedback) error {
 		return err
 	}
 
-	err = gadb.New(s.db).SetAlertFeedback(ctx, gadb.SetAlertFeedbackParams{
+	err = gadb.New(s.db).Alert_SetAlertFeedback(ctx, gadb.Alert_SetAlertFeedbackParams{
 		AlertID:     int64(feedback.ID),
 		NoiseReason: feedback.NoiseReason,
 	})

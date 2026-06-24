@@ -67,6 +67,18 @@ func MapDBError(err error) error {
 		if dbErr.ConstraintName == "auth_basic_users_pkey" {
 			return validation.NewFieldError("UserID", "already has a basic auth username configured")
 		}
+		if dbErr.ConstraintName == "epa_no_duplicate_schedules" {
+			return validation.NewGenericError("same schedule cannot be assigned twice to the same step")
+		}
+		if dbErr.ConstraintName == "epa_no_duplicate_rotations" {
+			return validation.NewGenericError("same rotation cannot be assigned twice to the same step")
+		}
+		if dbErr.ConstraintName == "epa_no_duplicate_users" {
+			return validation.NewGenericError("same user cannot be assigned twice to the same step")
+		}
+		if dbErr.ConstraintName == "epa_no_duplicate_channels" {
+			return validation.NewGenericError("same destination cannot be assigned twice to the same step")
+		}
 	case "23514": // check constraint
 		newErr := mapLimitError(dbErr)
 		if newErr != nil {

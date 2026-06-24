@@ -7,6 +7,7 @@ import {
   RotateRight as RotationIcon,
   Today as ScheduleIcon,
   Webhook as WebhookIcon,
+  Email,
 } from '@mui/icons-material'
 
 const builtInIcons: { [key: string]: React.ReactNode } = {
@@ -14,6 +15,7 @@ const builtInIcons: { [key: string]: React.ReactNode } = {
   'builtin://rotation': <RotationIcon />,
   'builtin://schedule': <ScheduleIcon />,
   'builtin://webhook': <WebhookIcon />,
+  'builtin://email': <Email />,
 }
 
 export type DestinationAvatarProps = {

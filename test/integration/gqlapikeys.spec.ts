@@ -15,8 +15,7 @@ test.use({ storageState: adminSessionFile })
 // 7. Verify deleting the duplicate using the original fails (key deleted)
 // 8. Delete the duplicate via the UI
 
-const query = `
-query ListAPIKeys {
+const query = `query ListAPIKeys {
     gqlAPIKeys {
         id
         name
@@ -70,7 +69,9 @@ test('GQL API keys', async ({ page, request, isMobile, baseURL }) => {
   // click the li with the text "Admin"
   await page.click('li:text("Admin")')
 
-  await page.fill('[name="query"]', query)
+  const editor = page.locator('.cm-editor')
+  await editor.click()
+  await page.keyboard.insertText(query)
 
   await page.click('text=Submit')
 

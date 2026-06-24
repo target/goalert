@@ -95,7 +95,7 @@ export default function ScheduleOnCallNotificationsEditDialog(
   return (
     <FormDialog
       title='Edit Notification Rule'
-      errors={errs.remainingLegacy()}
+      errors={errs.remainingLegacyCallback()}
       disablePortal={props.disablePortal}
       loading={m.fetching}
       onClose={onClose}
@@ -119,11 +119,14 @@ export default function ScheduleOnCallNotificationsEditDialog(
             } satisfies SetScheduleOnCallNotificationRulesInput,
           },
           { additionalTypenames: ['Schedule'] },
-        )
-          .then(onClose)
-          .catch((err) => {
-            setErr(err)
-          })
+        ).then((res) => {
+          if (res.error) {
+            setErr(res.error)
+            return
+          }
+
+          onClose()
+        })
       }
       form={form}
     />

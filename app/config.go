@@ -2,6 +2,7 @@ package app
 
 import (
 	"crypto/tls"
+	"log/slog"
 	"time"
 
 	"github.com/target/goalert/config"
@@ -12,7 +13,9 @@ import (
 )
 
 type Config struct {
-	Logger *log.Logger
+	LegacyLogger *log.Logger
+
+	Logger *slog.Logger
 
 	ExpFlags expflag.FlagSet
 
@@ -22,6 +25,8 @@ type Config struct {
 	LogRequests bool
 	APIOnly     bool
 	LogEngine   bool
+
+	ForceRiverDBTime bool
 
 	PublicURL string
 
@@ -50,6 +55,8 @@ type Config struct {
 	MaxReqHeaderBytes int
 
 	DisableHTTPSRedirect bool
+
+	EnableSecureHeaders bool
 
 	TwilioBaseURL string
 	SlackBaseURL  string

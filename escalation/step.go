@@ -1,9 +1,10 @@
 package escalation
 
 import (
-	"github.com/target/goalert/assignment"
-	"github.com/target/goalert/validation/validate"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/target/goalert/validation/validate"
 )
 
 type ActiveStep struct {
@@ -17,17 +18,16 @@ type ActiveStep struct {
 }
 
 type Step struct {
-	ID           string `json:"id"`
-	PolicyID     string `json:"escalation_policy_id"`
-	DelayMinutes int    `json:"delay_minutes"`
-	StepNumber   int    `json:"step_number"`
-
-	Targets []assignment.Target
+	ID           uuid.UUID `json:"id"`
+	PolicyID     string    `json:"escalation_policy_id"`
+	DelayMinutes int       `json:"delay_minutes"`
+	StepNumber   int       `json:"step_number"`
 }
 
 func (s Step) Delay() time.Duration {
 	return time.Duration(s.DelayMinutes) * time.Minute
 }
+
 func (s Step) Normalize() (*Step, error) {
 	err := validate.Many(
 		validate.UUID("PolicyID", s.PolicyID),

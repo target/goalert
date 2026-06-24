@@ -6,14 +6,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfydest"
 )
 
-type Sender struct{}
+type Sender struct {
+	Client *http.Client
+}
 
 // POSTDataAlert represents fields in outgoing alert notification.
 type POSTDataAlert struct {
@@ -83,12 +85,16 @@ type POSTDataTest struct {
 	Type    string
 }
 
-func NewSender(ctx context.Context) *Sender {
-	return &Sender{}
+func NewSender(ctx context.Context, client *http.Client) *Sender {
+	return &Sender{
+		Client: client,
+	}
 }
 
+var _ nfydest.MessageSender = &Sender{}
+
 // Send will send an alert for the provided message type
-func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
+func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
 	var payload interface{}
 	switch m := msg.(type) {
@@ -101,7 +107,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		payload = POSTDataVerification{
 			AppName: cfg.ApplicationName(),
 			Type:    "Verification",
-			Code:    strconv.Itoa(m.Code),
+			Code:    m.Code,
 		}
 	case notification.Alert:
 		payload = POSTDataAlert{
@@ -145,7 +151,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 			ScheduleURL:  m.ScheduleURL,
 		}
 	default:
-		return nil, fmt.Errorf("message type '%s' not supported", m.Type().String())
+		return nil, fmt.Errorf("message type '%T' not supported", m)
 	}
 
 	data, err := json.Marshal(payload)
@@ -156,7 +162,8 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
 
-	if !cfg.ValidWebhookURL(msg.Destination().Value) {
+	webURL := msg.DestArg(FieldWebhookURL)
+	if !cfg.ValidWebhookURL(webURL) {
 		// fail permanently if the URL is not currently valid/allowed
 		return &notification.SentMessage{
 			State:        notification.StateFailedPerm,
@@ -164,7 +171,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		}, nil
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", msg.Destination().Value, bytes.NewReader(data))
+	req, err := http.NewRequestWithContext(ctx, "POST", webURL, bytes.NewReader(data))
 	if err != nil {
 		return nil, err
 	}

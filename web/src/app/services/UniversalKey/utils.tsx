@@ -3,11 +3,11 @@ import { Notice } from '../../details/Notices'
 import { FormControlLabel, Checkbox } from '@mui/material'
 
 export function getNotice(
-  hasSubmitted: boolean,
+  showNotice: boolean,
   hasConfirmed: boolean,
   setHasConfirmed: (b: boolean) => void,
 ): Notice[] {
-  if (!hasSubmitted) return []
+  if (!showNotice) return []
 
   return [
     {

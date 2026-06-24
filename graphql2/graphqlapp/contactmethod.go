@@ -4,75 +4,46 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"net/url"
-	"strings"
 
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
-	"github.com/target/goalert/notification/webhook"
+	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
-type ContactMethod App
+type (
+	ContactMethod App
+)
 
 func (a *App) UserContactMethod() graphql2.UserContactMethodResolver {
 	return (*ContactMethod)(a)
 }
 
-func (a *ContactMethod) Dest(ctx context.Context, obj *contactmethod.ContactMethod) (*graphql2.Destination, error) {
-	switch obj.Type {
-	case contactmethod.TypeSMS:
-		return &graphql2.Destination{
-			Type: destTwilioSMS,
-			Args: map[string]string{fieldPhoneNumber: obj.Value},
-		}, nil
-	case contactmethod.TypeVoice:
-		return &graphql2.Destination{
-			Type: destTwilioVoice,
-			Args: map[string]string{fieldPhoneNumber: obj.Value},
-		}, nil
-	case contactmethod.TypeEmail:
-		return &graphql2.Destination{
-			Type: destSMTP,
-			Args: map[string]string{fieldEmailAddress: obj.Value},
-		}, nil
-	case contactmethod.TypeWebhook:
-		return &graphql2.Destination{
-			Type: destWebhook,
-			Args: map[string]string{fieldWebhookURL: obj.Value},
-		}, nil
-	case contactmethod.TypeSlackDM:
-		return &graphql2.Destination{
-			Type: destSlackDM,
-			Args: map[string]string{fieldSlackUserID: obj.Value},
-		}, nil
-	}
-
-	return nil, validation.NewGenericError("unsupported data type")
+func (a *ContactMethod) Type(ctx context.Context, obj *contactmethod.ContactMethod) (*graphql2.ContactMethodType, error) {
+	cmType, _ := CompatDestToCMTypeVal(obj.Dest)
+	return &cmType, nil
 }
 
 func (a *ContactMethod) Value(ctx context.Context, obj *contactmethod.ContactMethod) (string, error) {
-	if obj.Type != contactmethod.TypeWebhook {
-		return obj.Value, nil
-	}
-
-	u, err := url.Parse(obj.Value)
-	if err != nil {
-		return "", err
-	}
-	return webhook.MaskURLPass(u), nil
+	_, cmVal := CompatDestToCMTypeVal(obj.Dest)
+	return cmVal, nil
 }
 
 func (a *ContactMethod) StatusUpdates(ctx context.Context, obj *contactmethod.ContactMethod) (graphql2.StatusUpdateState, error) {
-	if obj.Type.StatusUpdatesAlways() {
-		return graphql2.StatusUpdateStateEnabledForced, nil
+	info, err := a.DestReg.TypeInfo(ctx, obj.Dest.Type)
+	if err != nil {
+		return "", err
 	}
 
-	if obj.Type.StatusUpdatesNever() {
+	if !info.SupportsStatusUpdates {
 		return graphql2.StatusUpdateStateDisabledForced, nil
+	}
+
+	if info.StatusUpdatesRequired {
+		return graphql2.StatusUpdateStateEnabledForced, nil
 	}
 
 	if obj.StatusUpdates {
@@ -83,7 +54,11 @@ func (a *ContactMethod) StatusUpdates(ctx context.Context, obj *contactmethod.Co
 }
 
 func (a *ContactMethod) FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error) {
-	return a.FormatDestFunc(ctx, notification.ScannableDestType{CM: obj.Type}.DestType(), obj.Value), nil
+	info, err := a.DestReg.DisplayInfo(ctx, obj.Dest)
+	if err != nil {
+		return "", err
+	}
+	return info.Text, nil
 }
 
 func (a *ContactMethod) LastTestMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*graphql2.NotificationState, error) {
@@ -92,7 +67,7 @@ func (a *ContactMethod) LastTestMessageState(ctx context.Context, obj *contactme
 		return nil, nil
 	}
 
-	status, _, err := a.NotificationStore.LastMessageStatus(ctx, notification.MessageTypeTest, obj.ID, t)
+	status, _, err := a.NotificationStore.LastMessageStatus(ctx, notification.MessageTypeTest, obj.ID.String(), t)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +75,13 @@ func (a *ContactMethod) LastTestMessageState(ctx context.Context, obj *contactme
 		return nil, nil
 	}
 
-	return notificationStateFromSendResult(status.Status, a.FormatDestFunc(ctx, status.DestType, status.SrcValue)), nil
+	cfg := config.FromContext(ctx)
+	if obj.Dest.Type == twilio.DestTypeTwilioSMS && cfg.Twilio.RCSSenderID != "" && status.SrcValue == cfg.Twilio.RCSSenderID {
+		// TODO: remove this when we have a better way to get the sender name
+		status.SrcValue = cfg.ApplicationName()
+	}
+
+	return notificationStateFromSendResult(status.Status, status.SrcValue), nil
 }
 
 func (a *ContactMethod) LastVerifyMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*graphql2.NotificationState, error) {
@@ -109,7 +90,7 @@ func (a *ContactMethod) LastVerifyMessageState(ctx context.Context, obj *contact
 		return nil, nil
 	}
 
-	status, _, err := a.NotificationStore.LastMessageStatus(ctx, notification.MessageTypeVerification, obj.ID, t)
+	status, _, err := a.NotificationStore.LastMessageStatus(ctx, notification.MessageTypeVerification, obj.ID.String(), t)
 	if err != nil {
 		return nil, err
 	}
@@ -117,67 +98,57 @@ func (a *ContactMethod) LastVerifyMessageState(ctx context.Context, obj *contact
 		return nil, nil
 	}
 
-	return notificationStateFromSendResult(status.Status, a.FormatDestFunc(ctx, status.DestType, status.SrcValue)), nil
+	cfg := config.FromContext(ctx)
+	if obj.Dest.Type == twilio.DestTypeTwilioSMS && cfg.Twilio.RCSSenderID != "" && status.SrcValue == cfg.Twilio.RCSSenderID {
+		// TODO: remove this when we have a better way to get the sender name
+		status.SrcValue = cfg.ApplicationName()
+	}
+
+	return notificationStateFromSendResult(status.Status, status.SrcValue), nil
 }
 
-func (q *Query) UserContactMethod(ctx context.Context, id string) (*contactmethod.ContactMethod, error) {
+func (q *Query) UserContactMethod(ctx context.Context, idStr string) (*contactmethod.ContactMethod, error) {
+	id, err := validate.ParseUUID("ID", idStr)
+	if err != nil {
+		return nil, err
+	}
 	return (*App)(q).FindOneCM(ctx, id)
 }
 
 func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.CreateUserContactMethodInput) (*contactmethod.ContactMethod, error) {
-	var cm *contactmethod.ContactMethod
-	cfg := config.FromContext(ctx)
+	cm := &contactmethod.ContactMethod{
+		Name:          input.Name,
+		UserID:        input.UserID,
+		Disabled:      true,
+		StatusUpdates: input.EnableStatusUpdates != nil && *input.EnableStatusUpdates,
+	}
 
 	if input.Dest != nil {
-		err := validate.IDName("input.name", input.Name)
-		if err != nil {
-			addInputError(ctx, err)
-			return nil, errAlreadySet
-		}
 		if err := (*App)(m).ValidateDestination(ctx, "input.dest", input.Dest); err != nil {
 			return nil, err
 		}
-		t, v := CompatDestToCMTypeVal(*input.Dest)
-		input.Type = &t
-		input.Value = &v
-	}
-
-	if input.Type == nil || input.Value == nil {
-		return nil, validation.NewFieldError("dest", "must be provided (or type and value)")
-	}
-
-	if *input.Type == contactmethod.TypeWebhook && !cfg.ValidWebhookURL(*input.Value) {
-		return nil, validation.NewFieldError("value", "URL not allowed by administrator")
-	}
-
-	if *input.Type == contactmethod.TypeSlackDM {
-		if strings.HasPrefix(*input.Value, "@") {
-			return nil, validation.NewFieldError("value", "Use 'Copy member ID' from your Slack profile to get your user ID.")
+		cm.Dest = *input.Dest
+	} else if input.Type != nil && input.Value != nil {
+		var err error
+		cm.Dest, err = CompatCMTypeValToDest(*input.Type, *input.Value)
+		if err != nil {
+			return nil, err
 		}
-		formatted := m.FormatDestFunc(ctx, notification.DestTypeSlackDM, *input.Value)
-		if !strings.HasPrefix(formatted, "@") {
-			return nil, validation.NewFieldError("value", "Not a valid Slack user ID")
-		}
+	} else {
+		return nil, validation.NewFieldError("input", "must provide either dest or type/value")
 	}
 
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
-		cm, err = m.CMStore.Create(ctx, tx, &contactmethod.ContactMethod{
-			Name:     input.Name,
-			Type:     *input.Type,
-			UserID:   input.UserID,
-			Value:    *input.Value,
-			Disabled: true,
-
-			StatusUpdates: input.EnableStatusUpdates != nil && *input.EnableStatusUpdates,
-		})
+		cm, err = m.CMStore.Create(ctx, tx, cm)
 		if err != nil {
 			return err
 		}
 
 		if input.NewUserNotificationRule != nil {
 			input.NewUserNotificationRule.UserID = &input.UserID
-			input.NewUserNotificationRule.ContactMethodID = &cm.ID
+			str := cm.ID.String()
+			input.NewUserNotificationRule.ContactMethodID = &str
 
 			_, err = m.CreateUserNotificationRule(ctx, *input.NewUserNotificationRule)
 			if err != nil {
@@ -194,8 +165,16 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 }
 
 func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.UpdateUserContactMethodInput) (bool, error) {
+	if input.Value != nil {
+		return false, validation.NewFieldError("input.value", "cannot update value")
+	}
+
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
-		cm, err := m.CMStore.FindOne(ctx, tx, input.ID)
+		id, err := validate.ParseUUID("ID", input.ID)
+		if err != nil {
+			return err
+		}
+		cm, err := m.CMStore.FindOne(ctx, tx, id)
 		if errors.Is(err, sql.ErrNoRows) {
 			return validation.NewFieldError("id", "contact method not found")
 		}
@@ -210,9 +189,7 @@ func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.U
 			}
 			cm.Name = *input.Name
 		}
-		if input.Value != nil {
-			cm.Value = *input.Value
-		}
+
 		if input.EnableStatusUpdates != nil {
 			cm.StatusUpdates = *input.EnableStatusUpdates
 		}

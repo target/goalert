@@ -13,6 +13,9 @@ import (
 	"github.com/99designs/gqlgen/graphql/errcode"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/apollotracing"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/lru"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/alertlog"
@@ -27,10 +30,12 @@ import (
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
+	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/notificationchannel"
@@ -47,9 +52,11 @@ import (
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/user/favorite"
 	"github.com/target/goalert/user/notificationrule"
+	"github.com/target/goalert/util/calllimiter"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
+	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
@@ -92,9 +99,11 @@ type App struct {
 
 	TimeZoneStore *timezone.Store
 
+	EncryptionKeys keyring.Keys
+
 	SWO *swo.Manager
 
-	FormatDestFunc func(context.Context, notification.DestType, string) string
+	DestReg *nfydest.Registry
 }
 
 type fieldErr struct {
@@ -133,7 +142,7 @@ func isGQLValidation(gqlErr *gqlerror.Error) bool {
 		return true
 	}
 
-	if strings.HasPrefix(gqlErr.Message, "json request body") {
+	if strings.HasPrefix(gqlErr.Message, "json request body") || strings.HasPrefix(gqlErr.Message, "could not get json request body:") || strings.HasPrefix(gqlErr.Message, "could not read request body:") {
 		var body string
 		gqlErr.Message, body, _ = strings.Cut(gqlErr.Message, " body:") // remove body
 		if !strings.HasPrefix(strings.TrimSpace(body), "{") {
@@ -168,7 +177,7 @@ func isGQLValidation(gqlErr *gqlerror.Error) bool {
 }
 
 func (a *App) Handler() http.Handler {
-	h := handler.NewDefaultServer(
+	h := handler.New(
 		graphql2.NewExecutableSchema(graphql2.Config{
 			Resolvers: a,
 			Directives: graphql2.DirectiveRoot{
@@ -176,6 +185,19 @@ func (a *App) Handler() http.Handler {
 			},
 		}),
 	)
+
+	h.AddTransport(transport.Websocket{
+		KeepAlivePingInterval: 10 * time.Second,
+	})
+	h.AddTransport(transport.Options{})
+	h.AddTransport(transport.GET{})
+	h.AddTransport(transport.POST{})
+	h.AddTransport(transport.MultipartForm{})
+	h.SetQueryCache(lru.New[*ast.QueryDocument](1000))
+	h.Use(extension.Introspection{})
+	h.Use(extension.AutomaticPersistedQuery{
+		Cache: lru.New[string](100),
+	})
 
 	type hasTraceKey int
 	h.Use(apolloTracer{Tracer: apollotracing.Tracer{}, shouldTrace: func(ctx context.Context) bool {
@@ -227,6 +249,44 @@ func (a *App) Handler() http.Handler {
 				},
 			}
 		}
+
+		if errors.Is(err, context.Canceled) {
+
+			if limited, num := calllimiter.WasLimited(ctx); limited {
+				return &gqlerror.Error{
+					Message: fmt.Sprintf("Request canceled: external call limit reached for this request. Total calls: %d", num),
+				}
+			}
+
+			return &gqlerror.Error{
+				Message: "Request canceled.",
+			}
+		}
+
+		var argErr *nfydest.DestArgError
+		if errors.As(err, &argErr) {
+			return &gqlerror.Error{
+				Message: argErr.Err.Error(),
+				Path:    graphql.GetPath(ctx),
+				Extensions: map[string]interface{}{
+					"code":    graphql2.ErrorCodeInvalidDestFieldValue,
+					"fieldID": argErr.FieldID,
+				},
+			}
+		}
+
+		var paramErr *nfydest.ActionParamError
+		if errors.As(err, &paramErr) {
+			return &gqlerror.Error{
+				Message: paramErr.Err.Error(),
+				Path:    graphql.GetPath(ctx),
+				Extensions: map[string]interface{}{
+					"code": graphql2.ErrorCodeInvalidMapFieldValue,
+					"key":  paramErr.ParamID,
+				},
+			}
+		}
+
 		err = errutil.MapDBError(err)
 		var gqlErr *gqlerror.Error
 

@@ -1,6 +1,6 @@
 -- name: ContactMethodAdd :exec
-INSERT INTO user_contact_methods(id, name, type, value, disabled, user_id, enable_status_updates)
-    VALUES ($1, $2, $3, $4, $5, $6, $7);
+INSERT INTO user_contact_methods(id, name, dest, disabled, user_id, enable_status_updates)
+    VALUES ($1, $2, $3, $4, $5, $6);
 
 -- name: ContactMethodUpdate :exec
 UPDATE
@@ -18,15 +18,7 @@ WHERE id = ANY ($1::uuid[]);
 
 -- name: ContactMethodFineOne :one
 SELECT
-    id,
-    name,
-    type,
-    value,
-    disabled,
-    user_id,
-    last_test_verify_at,
-    enable_status_updates,
-    pending
+    *
 FROM
     user_contact_methods
 WHERE
@@ -34,15 +26,7 @@ WHERE
 
 -- name: ContactMethodFindOneUpdate :one
 SELECT
-    id,
-    name,
-    type,
-    value,
-    disabled,
-    user_id,
-    last_test_verify_at,
-    enable_status_updates,
-    pending
+    *
 FROM
     user_contact_methods
 WHERE
@@ -51,15 +35,7 @@ FOR UPDATE;
 
 -- name: ContactMethodFindMany :many
 SELECT
-    id,
-    name,
-    type,
-    value,
-    disabled,
-    user_id,
-    last_test_verify_at,
-    enable_status_updates,
-    pending
+    *
 FROM
     user_contact_methods
 WHERE
@@ -67,15 +43,7 @@ WHERE
 
 -- name: ContactMethodFindAll :many
 SELECT
-    id,
-    name,
-    type,
-    value,
-    disabled,
-    user_id,
-    last_test_verify_at,
-    enable_status_updates,
-    pending
+    *
 FROM
     user_contact_methods
 WHERE
@@ -89,44 +57,30 @@ FROM
 WHERE
     id = ANY ($1::uuid[]);
 
--- name: ContactMethodEnable :one
+-- name: ContactMethodEnableDisable :one
 UPDATE
     user_contact_methods
 SET
-    disabled = FALSE
+    disabled = $2
 WHERE
-    type = $1
-    AND value = $2
+    dest = $1
 RETURNING
     id;
 
--- name: ContactMethodMetaTV :one
+-- name: ContactMethodMetaDest :one
 SELECT
     coalesce(metadata, '{}'),
     now()::timestamptz AS now
 FROM
     user_contact_methods
 WHERE
-    type = $1
-    AND value = $2;
+    dest = $1;
 
--- name: ContactMethodUpdateMetaTV :exec
+-- name: ContactMethodUpdateMetaDest :exec
 UPDATE
     user_contact_methods
 SET
-    metadata = jsonb_set(jsonb_set(metadata, '{CarrierV1}', @carrier_v1::jsonb), '{CarrierV1,UpdatedAt}',('"' || NOW()::timestamptz AT TIME ZONE 'UTC' || '"')::jsonb) 
+    metadata = jsonb_set(jsonb_set(metadata, '{CarrierV1}', @carrier_v1::jsonb), '{CarrierV1,UpdatedAt}',('"' || NOW()::timestamptz AT TIME ZONE 'UTC' || '"')::jsonb)
 WHERE
-    type = $1
-    AND value = $2;
-
--- name: ContactMethodDisable :one
-UPDATE
-    user_contact_methods
-SET
-    disabled = TRUE
-WHERE
-    type = $1
-    AND value = $2
-RETURNING
-    id;
+    dest = $1;
 

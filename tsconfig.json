@@ -12,8 +12,10 @@
     "noImplicitThis": true,
     "noUnusedLocals": true,
     "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
     "strict": true,
-    "lib": ["ES2017"]
+    "lib": ["ES2017"],
+    "baseUrl": "."
   },
-  "exclude": ["*/node_modules/*"]
+  "exclude": ["node_modules", "web/src/build", "bin"]
 }

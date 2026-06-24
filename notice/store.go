@@ -103,6 +103,9 @@ func (s *Store) FindAllServiceNotices(ctx context.Context, serviceID string) ([]
 
 	count := float32(res.Count)
 	limit := float32(res.Max)
+	if limit < 0 { // limit is disabled
+		return nil, nil
+	}
 	details := fmt.Sprintf("New alerts will be rejected while at or above the limit (%v), acknowledge or close alerts to resolve.", count)
 
 	// hit system limit notice

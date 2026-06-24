@@ -33,7 +33,6 @@ export default function HeartbeatMonitorForm(
   props: HeartbeatMonitorFormProps,
 ): JSX.Element {
   const { ...formProps } = props
-  console.log(props.value)
   return (
     <FormContainer {...formProps} optionalLabels>
       <Grid container spacing={2}>

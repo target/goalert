@@ -39,8 +39,10 @@ export interface AlertDataPoint {
 }
 
 export interface AlertLogEntry {
+  alertID: number
   id: number
   message: string
+  messageID?: null | string
   state?: null | NotificationState
   timestamp: ISOTimestamp
 }
@@ -79,6 +81,7 @@ export interface AlertPendingNotification {
 export interface AlertRecentEventsOptions {
   after?: null | string
   limit?: null | number
+  since?: null | ISOTimestamp
 }
 
 export interface AlertSearchOptions {
@@ -105,10 +108,23 @@ export interface AlertState {
   stepNumber: number
 }
 
+export interface AlertStats {
+  alertCount: TimeSeriesBucket[]
+  avgAckSec: TimeSeriesBucket[]
+  avgCloseSec: TimeSeriesBucket[]
+  escalatedCount: TimeSeriesBucket[]
+}
+
 export type AlertStatus =
   | 'StatusAcknowledged'
   | 'StatusClosed'
   | 'StatusUnacknowledged'
+
+export interface AlertsByStatus {
+  acked: number
+  closed: number
+  unacked: number
+}
 
 export interface AuthSubject {
   providerID: string
@@ -250,6 +266,7 @@ export interface CreateGQLAPIKeyInput {
 
 export interface CreateHeartbeatMonitorInput {
   additionalDetails?: null | string
+  muted?: null | string
   name: string
   serviceID?: null | string
   timeoutMinutes: number
@@ -467,6 +484,7 @@ export interface DestinationTypeInfo {
 }
 
 export interface DynamicParamConfig {
+  defaultValue: ExprStringExpression
   hint: string
   hintURL: string
   label: string
@@ -587,6 +605,7 @@ export interface HeartbeatMonitor {
   id: string
   lastHeartbeat?: null | ISOTimestamp
   lastState: HeartbeatMonitorState
+  muted: string
   name: string
   serviceID: string
   timeoutMinutes: number
@@ -661,6 +680,11 @@ export interface KeyRule {
   name: string
 }
 
+export interface KeyRuleActionsInput {
+  actions: ActionInput[]
+  id: string
+}
+
 export interface KeyRuleInput {
   actions: ActionInput[]
   conditionExpr: ExprBooleanExpression
@@ -728,6 +752,12 @@ export interface MessageLogSearchOptions {
   search?: null | string
 }
 
+export interface MessageStatusHistory {
+  details: string
+  status: string
+  timestamp: ISOTimestamp
+}
+
 export interface Mutation {
   addAuthSubject: boolean
   clearTemporarySchedules: boolean
@@ -758,7 +788,9 @@ export interface Mutation {
   generateKeyToken: string
   linkAccount: boolean
   promoteSecondaryToken: boolean
+  reEncryptKeyringsAndConfig: boolean
   sendContactMethodVerification: boolean
+  sendSignal: boolean
   setAlertNoiseReason: boolean
   setConfig: boolean
   setFavorite: boolean
@@ -886,6 +918,7 @@ export interface Query {
   labels: LabelConnection
   linkAccountInfo?: null | LinkAccountInfo
   messageLogs: MessageLogConnection
+  messageStatusHistory: MessageStatusHistory[]
   phoneNumberInfo?: null | PhoneNumberInfo
   rotation?: null | Rotation
   rotations: RotationConnection
@@ -1039,7 +1072,15 @@ export interface SendContactMethodVerificationInput {
   contactMethodID: string
 }
 
+export interface SendSignalInput {
+  dest: DestinationInput
+  params?: null | StringMap
+  serviceID: string
+}
+
 export interface Service {
+  alertStats: AlertStats
+  alertsByStatus: AlertsByStatus
   description: string
   escalationPolicy?: null | EscalationPolicy
   escalationPolicyID: string
@@ -1052,6 +1093,13 @@ export interface Service {
   name: string
   notices: Notice[]
   onCallUsers: ServiceOnCallUser[]
+  recentEvents: AlertLogEntryConnection
+}
+
+export interface ServiceAlertStatsOptions {
+  end?: null | ISOTimestamp
+  start?: null | ISOTimestamp
+  tsOptions?: null | TimeSeriesOptions
 }
 
 export interface ServiceConnection {
@@ -1071,6 +1119,7 @@ export interface ServiceSearchOptions {
   favoritesOnly?: null | boolean
   first?: null | number
   omit?: null | string[]
+  only?: null | string[]
   search?: null | string
 }
 
@@ -1226,6 +1275,7 @@ export interface TimeSeriesBucket {
   count: number
   end: ISOTimestamp
   start: ISOTimestamp
+  value: Float
 }
 
 export interface TimeSeriesOptions {
@@ -1295,6 +1345,7 @@ export interface UpdateGQLAPIKeyInput {
 export interface UpdateHeartbeatMonitorInput {
   additionalDetails?: null | string
   id: string
+  muted?: null | string
   name?: null | string
   timeoutMinutes?: null | number
 }
@@ -1305,6 +1356,8 @@ export interface UpdateKeyConfigInput {
   keyID: string
   rules?: null | KeyRuleInput[]
   setRule?: null | KeyRuleInput
+  setRuleActions?: null | KeyRuleActionsInput
+  setRuleOrder?: null | string[]
 }
 
 export interface UpdateRotationInput {
@@ -1533,7 +1586,9 @@ export interface __Field {
 
 export interface __InputValue {
   defaultValue?: null | string
+  deprecationReason?: null | string
   description?: null | string
+  isDeprecated: boolean
   name: string
   type: __Type
 }
@@ -1553,6 +1608,7 @@ export interface __Type {
   fields?: null | __Field[]
   inputFields?: null | __InputValue[]
   interfaces?: null | __Type[]
+  isOneOf?: null | boolean
   kind: __TypeKind
   name?: null | string
   ofType?: null | __Type
@@ -1614,6 +1670,7 @@ type ConfigID =
   | 'Slack.AccessToken'
   | 'Slack.SigningSecret'
   | 'Slack.InteractiveMessages'
+  | 'Slack.DisableBroadcastThreadReplies'
   | 'Twilio.Enable'
   | 'Twilio.VoiceName'
   | 'Twilio.VoiceLanguage'
@@ -1622,6 +1679,7 @@ type ConfigID =
   | 'Twilio.AlternateAuthToken'
   | 'Twilio.FromNumber'
   | 'Twilio.MessagingServiceSID'
+  | 'Twilio.RCSSenderID'
   | 'Twilio.DisableTwoWaySMS'
   | 'Twilio.SMSCarrierLookup'
   | 'Twilio.SMSFromNumberOverride'

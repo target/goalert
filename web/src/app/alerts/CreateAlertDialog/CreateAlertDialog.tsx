@@ -40,7 +40,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 export default function CreateAlertDialog(props: {
   onClose: () => void
   serviceID?: string
-}): JSX.Element {
+}): React.JSX.Element {
   const classes = useStyles()
   const [step, setStep] = useState(0)
   const serviceID = props.serviceID
@@ -161,7 +161,8 @@ export default function CreateAlertDialog(props: {
       }
       PaperProps={{ className: classes.dialog }}
       onSubmit={() => (hasCompleted ? props.onClose() : mutate())}
-      onNext={currentStep < 2 ? onNext : null}
+      disableNext={currentStep === 2}
+      onNext={onNext}
       onBack={currentStep > 0 ? () => setStep(currentStep - 1) : null}
     />
   )

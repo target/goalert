@@ -1,10 +1,10 @@
 import React from 'react'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import ScheduleOnCallNotificationsForm, {
   Value,
 } from './ScheduleOnCallNotificationsForm'
-import { useArgs } from '@storybook/preview-api'
-import { expect, fn, userEvent, within } from '@storybook/test'
+import { useArgs } from 'storybook/preview-api'
+import { expect, fn, userEvent, within } from 'storybook/test'
 
 const meta = {
   title: 'schedules/on-call-notifications/FormDest',
@@ -44,7 +44,7 @@ export const ValidationErrors: Story = {
   args: {
     destTypeError: 'error with dest type',
     destFieldErrors: {
-      'phone-number': 'error with dest field',
+      phone_number: 'error with dest field',
     },
   },
   play: async ({ canvasElement }) => {

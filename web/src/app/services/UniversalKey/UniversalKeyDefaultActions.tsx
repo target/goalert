@@ -1,11 +1,12 @@
 import { Button, Card } from '@mui/material'
 import React, { Suspense, useState } from 'react'
-import FlatList from '../../lists/FlatList'
-import { Edit } from '@mui/icons-material'
-import DefaultActionEditDialog from './DefaultActionEditDialog'
 import UniversalKeyActionsList from './UniversalKeyActionsList'
 import { gql, useQuery } from 'urql'
 import { IntegrationKey } from '../../../schema'
+import { Add } from '../../icons'
+import { UniversalKeyActionDialog } from './UniversalKeyActionDialog'
+import CompList from '../../lists/CompList'
+import { CompListItemText } from '../../lists/CompListItems'
 
 interface UniversalKeyDefaultActionProps {
   serviceID: string
@@ -32,7 +33,8 @@ const query = gql`
 export default function UniversalKeyDefaultActions(
   props: UniversalKeyDefaultActionProps,
 ): React.ReactNode {
-  const [edit, setEdit] = useState(false)
+  const [editActionIndex, setEditActionIndex] = useState(-1)
+  const [addAction, setAddAction] = useState(false)
   const [q] = useQuery<{ integrationKey: IntegrationKey }>({
     query,
     variables: { keyID: props.keyID },
@@ -41,34 +43,40 @@ export default function UniversalKeyDefaultActions(
   return (
     <React.Fragment>
       <Card>
-        <FlatList
+        <CompList
           emptyMessage='No default action'
-          headerAction={
+          action={
             <Button
               variant='contained'
-              startIcon={<Edit />}
-              onClick={() => setEdit(true)}
+              startIcon={<Add />}
+              onClick={() => setAddAction(true)}
             >
-              Edit Default Action
+              Add Action
             </Button>
           }
-          headerNote='Default actions are performed when zero rules match.'
-          items={[
-            {
-              title: (
-                <UniversalKeyActionsList
-                  noHeader
-                  actions={q.data?.integrationKey.config.defaultActions ?? []}
-                />
-              ),
-            },
-          ]}
-        />
+          note='Default actions are performed when zero rules match.'
+        >
+          <CompListItemText
+            title={
+              <UniversalKeyActionsList
+                actions={q.data?.integrationKey.config.defaultActions ?? []}
+                onEdit={(index) => setEditActionIndex(index)}
+              />
+            }
+          />
+        </CompList>
       </Card>
       <Suspense>
-        {edit && (
-          <DefaultActionEditDialog
-            onClose={() => setEdit(false)}
+        {editActionIndex > -1 && (
+          <UniversalKeyActionDialog
+            onClose={() => setEditActionIndex(-1)}
+            keyID={props.keyID}
+            actionIndex={editActionIndex}
+          />
+        )}
+        {addAction && (
+          <UniversalKeyActionDialog
+            onClose={() => setAddAction(false)}
             keyID={props.keyID}
           />
         )}

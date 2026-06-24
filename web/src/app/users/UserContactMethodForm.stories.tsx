@@ -1,9 +1,9 @@
 import React from 'react'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import UserContactMethodForm, { Value } from './UserContactMethodForm'
-import { expect, within, userEvent, waitFor } from '@storybook/test'
+import { expect, within, userEvent, waitFor } from 'storybook/test'
 import { handleDefaultConfig } from '../storybook/graphql'
-import { useArgs } from '@storybook/preview-api'
+import { useArgs } from 'storybook/preview-api'
 import { HttpResponse, graphql } from 'msw'
 
 const meta = {
@@ -43,7 +43,7 @@ export const SupportStatusUpdates: Story = {
       name: 'supports status',
       dest: {
         type: 'supports-status',
-        args: { 'phone-number': '+15555555555' },
+        args: { phone_number: '+15555555555' },
       },
       statusUpdates: false,
     },
@@ -65,7 +65,7 @@ export const RequiredStatusUpdates: Story = {
       name: 'required status',
       dest: {
         type: 'required-status',
-        args: { 'phone-number': '+15555555555' },
+        args: { phone_number: '+15555555555' },
       },
       statusUpdates: false,
     },
@@ -89,12 +89,12 @@ export const ErrorSingleField: Story = {
       name: '-notvalid',
       dest: {
         type: 'single-field',
-        args: { 'phone-number': '+15555555555' },
+        args: { phone_number: '+15555555555' },
       },
       statusUpdates: false,
     },
     disabled: false,
-    destFieldErrors: { 'phone-number': 'number is too short' },
+    destFieldErrors: { phone_number: 'number is too short' },
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
@@ -130,9 +130,9 @@ export const ErrorMultiField: Story = {
     await userEvent.type(await canvas.findByLabelText('First Item'), '123')
 
     // ensure errors are shown
-    await expect(
-      await canvas.findByText('Must begin with a letter'),
-    ).toBeVisible()
+    await waitFor(() =>
+      expect(canvas.findByText('must begin with a letter')).toBeVisible(),
+    )
 
     await waitFor(async function ThreeCloseIcons() {
       await expect(await canvas.findAllByTestId('CloseIcon')).toHaveLength(3)

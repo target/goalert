@@ -7,6 +7,7 @@ import (
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/user/notificationrule"
+	"github.com/target/goalert/validation/validate"
 )
 
 type UserNotificationRule App
@@ -14,6 +15,7 @@ type UserNotificationRule App
 func (a *App) UserNotificationRule() graphql2.UserNotificationRuleResolver {
 	return (*UserNotificationRule)(a)
 }
+
 func (m *Mutation) CreateUserNotificationRule(ctx context.Context, input graphql2.CreateUserNotificationRuleInput) (*notificationrule.NotificationRule, error) {
 	nr := &notificationrule.NotificationRule{
 		DelayMinutes: input.DelayMinutes,
@@ -24,7 +26,11 @@ func (m *Mutation) CreateUserNotificationRule(ctx context.Context, input graphql
 	}
 
 	if input.ContactMethodID != nil {
-		nr.ContactMethodID = *input.ContactMethodID
+		id, err := validate.ParseUUID("ContactMethodID", *input.ContactMethodID)
+		if err != nil {
+			return nil, err
+		}
+		nr.ContactMethodID = id
 	}
 
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
@@ -32,7 +38,6 @@ func (m *Mutation) CreateUserNotificationRule(ctx context.Context, input graphql
 		nr, err = m.NRStore.CreateTx(ctx, tx, nr)
 		return err
 	})
-
 	if err != nil {
 		return nil, err
 	}

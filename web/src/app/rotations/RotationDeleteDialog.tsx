@@ -27,7 +27,7 @@ const mutation = gql`
 export default function RotationDeleteDialog(props: {
   rotationID: string
   onClose: () => void
-}): JSX.Element {
+}): React.JSX.Element {
   const [, navigate] = useLocation()
   const [{ data, fetching: dataLoading }] = useQuery({
     query,

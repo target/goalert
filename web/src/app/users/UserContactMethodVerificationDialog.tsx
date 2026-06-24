@@ -3,6 +3,8 @@ import { useMutation, useQuery, gql } from 'urql'
 import FormDialog from '../dialogs/FormDialog'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import UserContactMethodVerificationForm from './UserContactMethodVerificationForm'
+import DestinationInputChip from '../util/DestinationInputChip'
+import { UserContactMethod } from '../../schema'
 
 /*
  * Reactivates a cm if disabled and the verification code matches
@@ -20,8 +22,10 @@ const contactMethodQuery = gql`
   query ($id: ID!) {
     userContactMethod(id: $id) {
       id
-      type
-      formattedValue
+      dest {
+        type
+        args
+      }
       lastVerifyMessageState {
         status
         details
@@ -36,7 +40,6 @@ interface UserContactMethodVerificationDialogProps {
   contactMethodID: string
 }
 
-const noSuspense = { suspense: false }
 export default function UserContactMethodVerificationDialog(
   props: UserContactMethodVerificationDialogProps,
 ): React.ReactNode {
@@ -47,15 +50,14 @@ export default function UserContactMethodVerificationDialog(
 
   const [status, submitVerify] = useMutation(verifyContactMethodMutation)
 
-  const [{ data }] = useQuery({
+  const [{ data }] = useQuery<{ userContactMethod: UserContactMethod }>({
     query: contactMethodQuery,
     variables: { id: props.contactMethodID },
-    context: noSuspense,
   })
 
   const fromNumber =
     data?.userContactMethod?.lastVerifyMessageState?.formattedSrcValue ?? ''
-  const cm = data?.userContactMethod ?? {}
+  const cm = data?.userContactMethod ?? ({} as UserContactMethod)
 
   const { fetching, error } = status
   const fieldErrs = fieldErrors(error)
@@ -67,9 +69,14 @@ export default function UserContactMethodVerificationDialog(
   return (
     <FormDialog
       title='Verify Contact Method'
-      subTitle={`A verification code has been sent to ${cm.formattedValue} (${cm.type})`}
+      subTitle={
+        <React.Fragment>
+          A verification code has been sent to{' '}
+          <DestinationInputChip value={cm.dest} />
+        </React.Fragment>
+      }
       caption={caption}
-      loading={fetching || !cm.type}
+      loading={fetching}
       errors={
         sendError
           ? [new Error(sendError)].concat(nonFieldErrors(error))

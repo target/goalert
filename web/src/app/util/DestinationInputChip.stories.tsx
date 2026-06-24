@@ -1,7 +1,7 @@
 import React from 'react'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import DestinationInputChip from './DestinationInputChip'
-import { expect, userEvent, within } from '@storybook/test'
+import { expect, userEvent, within, fn } from 'storybook/test'
 import { handleDefaultConfig } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 
@@ -41,10 +41,11 @@ export const Render: Story = {
     onDelete: { action: 'delete' },
   },
   args: {
+    onDelete: fn(),
     value: {
       type: 'builtin-rotation',
       args: {
-        'rotation-id': 'bf227047-18b8-4de3-881c-24b9dd345670',
+        rotation_id: 'bf227047-18b8-4de3-881c-24b9dd345670',
       },
     },
   },

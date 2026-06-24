@@ -10,7 +10,7 @@ import GenTokenDialog from './GenTokenDialog'
 import PromoteTokenDialog from './PromoteTokenDialog'
 import DeleteSecondaryTokenDialog from './DeleteSecondaryTokenDialog'
 import UniversalKeyDefaultActions from './UniversalKeyDefaultActions'
-import { Grid } from '@mui/material'
+import { Alert, Grid } from '@mui/material'
 
 interface UniversalKeyPageProps {
   serviceID: string
@@ -23,6 +23,8 @@ const query = gql`
       id
       name
       serviceID
+      externalSystemName
+      href
       tokenInfo {
         primaryHint
         secondaryHint
@@ -70,9 +72,25 @@ export default function UniversalKeyPage(
   const primaryHint = q.data.integrationKey.tokenInfo.primaryHint
   const secondaryHint = q.data.integrationKey.tokenInfo.secondaryHint
 
-  const desc = secondaryHint
+  const tokenInfo = secondaryHint
     ? `Primary Auth Token: ${primaryHint}\nSecondary Auth Token: ${secondaryHint}`
     : `Auth Token: ${primaryHint || 'N/A'}`
+
+  const desc = `
+Example Request:
+
+\`\`\`
+POST ${q.data.integrationKey.href}
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{"foo":"bar"}
+\`\`\`
+
+_**Note:** Replace <token> with a valid auth token (no brackets)._
+
+${tokenInfo}
+`
 
   function makeGenerateButtons(): Array<Action> {
     if (primaryHint && !secondaryHint) {
@@ -107,6 +125,13 @@ export default function UniversalKeyPage(
 
   return (
     <React.Fragment>
+      {q.data.integrationKey.externalSystemName && (
+        <Alert severity='warning'>
+          This Universal Integration Key was created by an External System. Any
+          updates to this key may break integrations with{' '}
+          {q.data.integrationKey.externalSystemName}.
+        </Alert>
+      )}
       <DetailsPage
         title={q.data.integrationKey.name}
         subheader={`Service: ${q.data.service.name}`}

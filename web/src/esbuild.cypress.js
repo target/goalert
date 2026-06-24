@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 /* eslint @typescript-eslint/no-var-requires: 0 */
+/* eslint @typescript-eslint/no-require-imports: 0 */
 const path = require('path')
 const glob = require('glob')
 

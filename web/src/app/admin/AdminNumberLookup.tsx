@@ -49,7 +49,7 @@ const numInfoQuery = gql`
 
 const noSuspense = { suspense: false }
 
-export default function AdminNumberLookup(): JSX.Element {
+export default function AdminNumberLookup(): React.JSX.Element {
   const [number, setNumber] = useState('')
   const [staleCarrier, setStaleCarrier] = useState(true)
 
@@ -74,7 +74,7 @@ export default function AdminNumberLookup(): JSX.Element {
     if (mutationError) setLastError(mutationError)
   }, [mutationError])
 
-  function renderListItem(label: string, text = ''): JSX.Element {
+  function renderListItem(label: string, text = ''): React.JSX.Element {
     return (
       <React.Fragment>
         <Divider />

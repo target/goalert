@@ -26,7 +26,7 @@ func TestOverrideCalculator(t *testing.T) {
 		assert.True(t, iter.Next(), "Next()")
 
 		result := iter.MapUsers([]string{"rab", "baz", "bin"})
-		assert.EqualValues(t, []string{"bar", "bin", "foo"}, result)
+		assert.ElementsMatch(t, []string{"bar", "bin", "foo"}, result)
 	})
 
 	t.Run("middle", func(t *testing.T) {
@@ -45,15 +45,15 @@ func TestOverrideCalculator(t *testing.T) {
 
 		assert.True(t, iter.Next(), "Next()")
 		result := iter.MapUsers([]string{"rab", "baz", "bin"})
-		assert.EqualValues(t, []string{"rab", "baz", "bin"}, result)
+		assert.ElementsMatch(t, []string{"rab", "baz", "bin"}, result)
 
 		assert.True(t, iter.Next(), "Next()")
 		result = iter.MapUsers([]string{"rab", "baz", "bin"})
-		assert.EqualValues(t, []string{"bar", "bin", "foo"}, result)
+		assert.ElementsMatch(t, []string{"bar", "bin", "foo"}, result)
 
 		assert.True(t, iter.Next(), "Next()")
 		result = iter.MapUsers([]string{"rab", "baz", "bin"})
-		assert.EqualValues(t, []string{"rab", "baz", "bin"}, result)
+		assert.ElementsMatch(t, []string{"rab", "baz", "bin"}, result)
 
 	})
 

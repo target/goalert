@@ -1,11 +1,11 @@
 package graphql2
 
 import (
-	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/schedule"
 )
 
 type OnCallNotificationRuleInput struct {
 	schedule.OnCallNotificationRule
-	Target assignment.RawTarget
+	Dest gadb.DestV1
 }

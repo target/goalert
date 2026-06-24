@@ -36,7 +36,7 @@ var ErrCarrierStale = errors.New("carrier data is stale")
 var ErrCarrierUnavailable = errors.New("carrier data is unavailable")
 
 func (c *Config) dbCarrierInfo(ctx context.Context, number string) (*CarrierInfo, error) {
-	m, err := c.CMStore.MetadataByTypeValue(ctx, c.DB, contactmethod.TypeSMS, number)
+	m, err := c.CMStore.MetadataByDest(ctx, c.DB, NewSMSDest(number))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrCarrierUnavailable
 	}
@@ -129,11 +129,11 @@ func (c Config) FetchCarrierInfo(ctx context.Context, number string) (*CarrierIn
 	m.CarrierV1.MobileCountryCode = result.Carrier.MobileCountryCode
 	m.CarrierV1.MobileNetworkCode = result.Carrier.MobileNetworkCode
 
-	err = c.CMStore.SetCarrierV1MetadataByTypeValue(ctx, c.DB, contactmethod.TypeSMS, number, &m)
+	err = c.CMStore.SetCarrierV1MetadataByDest(ctx, c.DB, NewSMSDest(number), &m)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Log(ctx, err)
 	}
-	err = c.CMStore.SetCarrierV1MetadataByTypeValue(ctx, c.DB, contactmethod.TypeVoice, number, &m)
+	err = c.CMStore.SetCarrierV1MetadataByDest(ctx, c.DB, NewVoiceDest(number), &m)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Log(ctx, err)
 	}

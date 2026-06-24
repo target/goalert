@@ -232,7 +232,7 @@ func (voice *VoiceOptions) setMsgParams(msg notification.Message) (err error) {
 	}
 
 	voice.Params.Set(msgParamSubID, strconv.Itoa(subID))
-	voice.CallbackParams.Set(msgParamID, msg.ID())
+	voice.CallbackParams.Set(msgParamID, msg.MsgID())
 
 	return nil
 }

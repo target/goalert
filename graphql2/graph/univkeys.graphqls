@@ -97,6 +97,16 @@ input UpdateKeyConfigInput {
   setRule: KeyRuleInput
 
   """
+  setRuleActions allows you to set the actions for a single rule by ID.
+  """
+  setRuleActions: KeyRuleActionsInput
+
+  """
+  setRuleOrder allows you to reorder rules by ID.
+  """
+  setRuleOrder: [ID!]
+
+  """
   deleteRule allows you to delete a single rule by ID.
   """
   deleteRule: ID
@@ -105,6 +115,14 @@ input UpdateKeyConfigInput {
   defaultAction is the action to take if no rules match the request.
   """
   defaultActions: [ActionInput!]
+}
+
+input KeyRuleActionsInput {
+  """
+  The ID of an existing rule being updated.
+  """
+  id: ID!
+  actions: [ActionInput!]!
 }
 
 input KeyRuleInput {

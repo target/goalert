@@ -111,17 +111,20 @@ function testServices(screen: ScreenFormat): void {
     let openAlert: Alert
     beforeEach(() =>
       cy
-        .setTimeSpeed(0)
+        .stopTime()
         .fastForward('-25h')
         .createAlert()
         .then((a: Alert) => {
           closedAlert = a
+          cy.engineTrigger() // ensure it's "started"
           cy.fastForward('1m')
           cy.ackAlert(a.id)
+          cy.engineTrigger() // process the ack
           cy.fastForward('1m')
           cy.closeAlert(a.id)
+          cy.engineTrigger() // process the close
           cy.fastForward('25h')
-          cy.setTimeSpeed(1) // resume the flow of time
+          cy.resumeTime() // resume the flow of time
           // non-closed alert
           return cy.createAlert({ serviceID: a.serviceID })
         })
@@ -138,26 +141,30 @@ function testServices(screen: ScreenFormat): void {
       })
 
       cy.setAlertNoise(closedAlert.id, 'test').reload()
+      cy.get('[data-cy=loading-spinner]').should('not.exist')
 
       // summary doesn't load by default on mobile (until scrolled to)
       cy.get('[data-cy=metrics-table]')
         .should('contain', closedAlert.id)
         .should('not.contain', openAlert.id)
 
-      cy.get('path[name="Total Alerts"]')
-        .should('have.length', 1)
-        .trigger('mouseover')
+      cy.get('path[name="Total Alerts"]').should('have.length', 1).realHover()
       cy.get('[data-cy=metrics-count-graph]')
         .should('contain', now)
         .should('contain', 'Total Alerts: 1')
         .should('contain', 'Escalated: 0') // no ep steps
         .should('contain', 'Noisy: 1')
 
-      cy.get(`.recharts-line-dots circle[r=3]`).last().trigger('mouseover')
+      cy.get(`.recharts-line-dots circle[r=3]`).last().realHover()
       cy.get('[data-cy=metrics-averages-graph]')
         .should('contain', now)
         .should('contain', 'Avg. Ack: 1 min')
         .should('contain', 'Avg. Close: 2 min')
+
+      // summary doesn't load by default on mobile (until scrolled to)
+      cy.get('[data-cy=metrics-table]')
+        .should('contain', closedAlert.id)
+        .should('not.contain', openAlert.id)
     })
   })
 }

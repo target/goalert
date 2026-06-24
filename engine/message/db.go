@@ -70,7 +70,7 @@ type DB struct {
 func NewDB(ctx context.Context, db *sql.DB, a *alertlog.Store, pausable lifecycle.Pausable) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeMessage,
-		Version: 9,
+		Version: 11,
 	})
 	if err != nil {
 		return nil, err
@@ -131,7 +131,7 @@ func NewDB(ctx context.Context, db *sql.DB, a *alertlog.Store, pausable lifecycl
 
 		sentMessages: make(map[string]Message),
 
-		advLock: p.P(`select pg_advisory_lock($1)`),
+		advLock: p.P(`select pg_try_advisory_lock($1)`),
 		advLockCleanup: p.P(`
 			select pg_terminate_backend(lock.pid)
 			from pg_locks lock
@@ -319,10 +319,8 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 	for _, row := range rows {
 		var msg Message
 		msg.ID = row.ID.String()
-		err = msg.Type.FromDB(row.MessageType)
-		if err != nil {
-			return nil, fmt.Errorf("message type: %w", err)
-		}
+		msg.Type = row.MessageType
+
 		msg.AlertID = int(row.AlertID.Int64)
 		msg.AlertLogID = int(row.AlertLogID.Int64)
 		if row.UserVerificationCodeID.Valid {
@@ -336,19 +334,14 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		}
 		msg.CreatedAt = row.CreatedAt
 		msg.SentAt = row.SentAt.Time
-		msg.Dest = notification.SQLDest{
-			CMID:    row.CmID,
-			CMType:  row.CmType,
-			CMValue: row.CmValue,
-			NCID:    row.ChanID,
-			NCType:  row.ChanType,
-			NCValue: row.ChanValue,
-		}.Dest()
+		msg.DestID.CMID = row.CmID
+		msg.DestID.NCID = row.ChanID
+		msg.Dest = row.Dest.DestV1
 		msg.StatusAlertIDs = row.StatusAlertIds
 		if row.ScheduleID.Valid {
 			msg.ScheduleID = row.ScheduleID.UUID.String()
 		}
-		if msg.Dest.Type == notification.DestTypeUnknown {
+		if msg.Dest.Type == "" {
 			log.Debugf(ctx, "unknown message type for message %s", msg.ID)
 			continue
 		}
@@ -405,21 +398,14 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 	}
 
 	result, err = bundleAlertMessages(result, func(msg Message) (string, error) {
-		var cmID, chanID, userID sql.NullString
+		var userID sql.NullString
 		if msg.UserID != "" {
 			userID.Valid = true
 			userID.String = msg.UserID
 		}
-		if msg.Dest.Type.IsUserCM() {
-			cmID.Valid = true
-			cmID.String = msg.Dest.ID
-		} else {
-			chanID.Valid = true
-			chanID.String = msg.Dest.ID
-		}
 
 		newID := uuid.NewString()
-		_, err := tx.StmtContext(ctx, db.createAlertBundle).ExecContext(ctx, newID, msg.CreatedAt, cmID, chanID, userID, msg.ServiceID)
+		_, err := tx.StmtContext(ctx, db.createAlertBundle).ExecContext(ctx, newID, msg.CreatedAt, msg.DestID.CMID, msg.DestID.NCID, userID, msg.ServiceID)
 		if err != nil {
 			return "", err
 		}
@@ -479,6 +465,8 @@ func (db *DB) _UpdateMessageStatus(ctx context.Context, status *notification.Sen
 		s = StatusSent
 	case notification.StateDelivered:
 		s = StatusDelivered
+	case notification.StateRead:
+		s = StatusRead
 	}
 
 	var srcValue sql.NullString
@@ -498,7 +486,7 @@ type SendFunc func(context.Context, *Message) (*notification.SendResult, error)
 var ErrAbort = errors.New("aborted due to pause")
 
 // StatusFunc is used to fetch the latest status of a message.
-type StatusFunc func(ctx context.Context, providerID notification.ProviderMessageID) (*notification.Status, notification.DestType, error)
+type StatusFunc func(ctx context.Context, providerID notification.ProviderMessageID) (*notification.Status, error)
 
 // SendMessages will send notifications using SendFunc.
 func (db *DB) SendMessages(ctx context.Context, send SendFunc, status StatusFunc) error {
@@ -542,9 +530,15 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 	}
 	defer cLock.Close()
 
-	_, err = cLock.Exec(execCtx, db.advLock, lock.GlobalMessageSending)
+	var gotLock bool
+	err = cLock.WithTx(execCtx, func(tx *sql.Tx) error {
+		return tx.StmtContext(execCtx, db.advLock).QueryRowContext(execCtx, lock.GlobalMessageSending).Scan(&gotLock)
+	})
 	if err != nil {
 		return errors.Wrap(err, "acquire global sending advisory lock")
+	}
+	if !gotLock {
+		return processinglock.ErrNoLock
 	}
 	defer func() {
 		_, _ = cLock.ExecWithoutLock(log.FromContext(execCtx).BackgroundContext(), `select pg_advisory_unlock(4912)`)
@@ -661,7 +655,7 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 	var wg sync.WaitGroup
 	for _, t := range q.Types() {
 		wg.Add(1)
-		go func(typ notification.DestType) {
+		go func(typ string) {
 			defer wg.Done()
 			err := db.sendMessagesByType(ctx, cLock, send, q, typ)
 			if err != nil && !errors.Is(err, processinglock.ErrNoLock) {
@@ -678,7 +672,7 @@ func (db *DB) refreshMessageState(ctx context.Context, statusFn StatusFunc, id s
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	status, _, err := statusFn(ctx, providerID)
+	status, err := statusFn(ctx, providerID)
 	if errors.Is(err, notification.ErrStatusUnsupported) {
 		// not available
 		res <- nil
@@ -746,7 +740,7 @@ func (db *DB) updateStuckMessages(ctx context.Context, statusFn StatusFunc) erro
 	return nil
 }
 
-func (db *DB) sendMessagesByType(ctx context.Context, cLock *processinglock.Conn, send SendFunc, q *queue, typ notification.DestType) error {
+func (db *DB) sendMessagesByType(ctx context.Context, cLock *processinglock.Conn, send SendFunc, q *queue, typ string) error {
 	ch := make(chan error)
 	var count int
 	for {
@@ -784,8 +778,8 @@ func (db *DB) sendMessagesByType(ctx context.Context, cLock *processinglock.Conn
 
 func (db *DB) sendMessage(ctx context.Context, cLock *processinglock.Conn, send SendFunc, m *Message) (bool, error) {
 	ctx = log.WithFields(ctx, log.Fields{
-		"DestTypeID": m.Dest.ID,
-		"DestType":   m.Dest.Type.String(),
+		"DestID":     m.DestID,
+		"DestType":   m.Dest.Type,
 		"CallbackID": m.ID,
 	})
 

@@ -1,10 +1,10 @@
 import React from 'react'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import DynamicActionForm, { Value } from './DynamicActionForm'
 import { DestinationTypeInfo } from '../../schema'
-import { fn } from '@storybook/test'
-import { useArgs } from '@storybook/preview-api'
+import { fn } from 'storybook/test'
+import { useArgs } from 'storybook/preview-api'
 
 const meta = {
   title: 'util/Destination/DynamicActionForm',
@@ -36,6 +36,7 @@ const meta = {
                   label: 'Dynamic Param',
                   hint: 'Param Hint',
                   hintURL: 'http://example.com/hint',
+                  defaultValue: '',
                 },
               ],
               requiredFields: [
@@ -71,6 +72,7 @@ const meta = {
                   label: 'Dynamic Param 2',
                   hint: 'Param Hint 2',
                   hintURL: 'http://example.com/hint2',
+                  defaultValue: '',
                 },
               ],
               requiredFields: [

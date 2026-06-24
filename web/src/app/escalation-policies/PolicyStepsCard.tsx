@@ -6,7 +6,6 @@ import Dialog from '@mui/material/Dialog'
 import Typography from '@mui/material/Typography'
 import { Add } from '@mui/icons-material'
 import { gql, useMutation } from 'urql'
-import FlatList from '../lists/FlatList'
 import CreateFAB from '../lists/CreateFAB'
 import PolicyStepCreateDialog from './PolicyStepCreateDialog'
 import { useResetURLParams, useURLParam } from '../actions'
@@ -19,6 +18,10 @@ import PolicyStepEditDialog from './PolicyStepEditDialog'
 import OtherActions from '../util/OtherActions'
 import { renderChipsDest, renderDelayMessage } from './stepUtil'
 import { Destination } from '../../schema'
+import CompList from '../lists/CompList'
+import ReorderGroup from '../lists/ReorderGroup'
+import { ReorderableItem } from '../lists/ReorderableItem'
+import { CompListItemText } from '../lists/CompListItems'
 
 const mutation = gql`
   mutation UpdateEscalationPolicyMutation(
@@ -137,46 +140,54 @@ export default function PolicyStepsCard(
             )
           }
         />
-        <FlatList
+        <CompList
           data-cy='steps-list'
           emptyMessage='No steps currently on this Escalation Policy'
-          headerNote='Notify the following:'
-          items={orderedSteps.map((step, idx) => ({
-            id: step.id,
-            disableTypography: true,
-            title: (
-              <Typography component='h4' variant='subtitle1' sx={{ pb: 1 }}>
-                <b>Step #{idx + 1}:</b>
-              </Typography>
-            ) as unknown as string, // needed to work around MUI incorrect types
-            subText: (
-              <React.Fragment>
-                {renderChipsDest(step.actions)}
-                {renderDelayMessage(
-                  step,
-                  idx,
-                  props.repeat,
-                  idx === orderedSteps.length - 1,
-                )}
-              </React.Fragment>
-            ),
-            secondaryAction: (
-              <OtherActions
-                actions={[
-                  {
-                    label: 'Edit',
-                    onClick: () => setEditStepID(step.id),
-                  },
-                  {
-                    label: 'Delete',
-                    onClick: () => setDeleteStep(step.id),
-                  },
-                ]}
-              />
-            ),
-          }))}
-          onReorder={onReorder}
-        />
+          note='Notify the following:'
+        >
+          <ReorderGroup onReorder={onReorder}>
+            {orderedSteps.map((step, idx) => (
+              <ReorderableItem id={step.id} key={step.id}>
+                <CompListItemText
+                  title={
+                    <Typography
+                      component='h4'
+                      variant='subtitle1'
+                      sx={{ pb: 1 }}
+                    >
+                      <b>Step #{idx + 1}:</b>
+                    </Typography>
+                  }
+                  subText={
+                    <React.Fragment>
+                      {renderChipsDest(step.actions)}
+                      {renderDelayMessage(
+                        step,
+                        idx,
+                        props.repeat,
+                        idx === orderedSteps.length - 1,
+                      )}
+                    </React.Fragment>
+                  }
+                  action={
+                    <OtherActions
+                      actions={[
+                        {
+                          label: 'Edit',
+                          onClick: () => setEditStepID(step.id),
+                        },
+                        {
+                          label: 'Delete',
+                          onClick: () => setDeleteStep(step.id),
+                        },
+                      ]}
+                    />
+                  }
+                />
+              </ReorderableItem>
+            ))}
+          </ReorderGroup>
+        </CompList>
         {renderRepeatText()}
       </Card>
       <Dialog open={Boolean(updateError)} onClose={() => setUpdateError(null)}>

@@ -23,10 +23,19 @@ const query = gql`
           repeat
           steps {
             delayMinutes
-            targets {
-              id
+            actions {
               type
-              name
+              displayInfo {
+                ... on DestinationDisplayInfo {
+                  text
+                  iconURL
+                  iconAltText
+                  linkURL
+                }
+                ... on DestinationDisplayInfoError {
+                  error
+                }
+              }
             }
           }
         }
@@ -43,7 +52,7 @@ const query = gql`
   }
 `
 
-function AlertDetailPage({ alertID }: { alertID: string }): JSX.Element {
+function AlertDetailPage({ alertID }: { alertID: string }): React.JSX.Element {
   const { loading, error, data } = useQuery(query, {
     variables: { id: alertID },
   })

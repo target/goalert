@@ -6,10 +6,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/notification"
 )
 
-var typePriority = map[notification.MessageType]int{
+var typePriority = map[gadb.EnumOutgoingMessagesType]int{
 	notification.MessageTypeVerification: 1,
 	notification.MessageTypeTest:         2,
 
@@ -21,17 +22,19 @@ var typePriority = map[notification.MessageType]int{
 	notification.MessageTypeAlertBundle: 4,
 
 	notification.MessageTypeAlertStatus: 5,
+
+	notification.MessageTypeSignalMessage: 99, // lowest priority
 }
 
 type queue struct {
 	sent    []Message
-	pending map[notification.DestType][]Message
+	pending map[string][]Message
 	now     time.Time
 
 	firstAlert  map[destID]struct{}
 	serviceSent map[string]time.Time
 	userSent    map[string]time.Time
-	destSent    map[notification.Dest]time.Time
+	destSent    map[notification.DestID]time.Time
 
 	cmThrottle     *Throttle
 	globalThrottle *Throttle
@@ -41,19 +44,19 @@ type queue struct {
 
 type destID struct {
 	ID       string
-	DestType notification.DestType
+	DestType string
 }
 
 func newQueue(msgs []Message, now time.Time) *queue {
 	q := &queue{
 		sent:    make([]Message, 0, len(msgs)),
-		pending: make(map[notification.DestType][]Message),
+		pending: make(map[string][]Message),
 		now:     now,
 
 		firstAlert:  make(map[destID]struct{}),
 		serviceSent: make(map[string]time.Time),
 		userSent:    make(map[string]time.Time),
-		destSent:    make(map[notification.Dest]time.Time),
+		destSent:    make(map[notification.DestID]time.Time),
 
 		cmThrottle:     NewThrottle(PerCMThrottle, now, false),
 		globalThrottle: NewThrottle(GlobalCMThrottle, now, true),
@@ -69,6 +72,7 @@ func newQueue(msgs []Message, now time.Time) *queue {
 
 	return q
 }
+
 func (q *queue) addSent(m Message) {
 	if m.SentAt.IsZero() {
 		m.SentAt = q.now
@@ -83,8 +87,8 @@ func (q *queue) addSent(m Message) {
 	if t := q.userSent[m.UserID]; m.SentAt.After(t) {
 		q.userSent[m.UserID] = m.SentAt
 	}
-	if t := q.destSent[m.Dest]; m.SentAt.After(t) {
-		q.destSent[m.Dest] = m.SentAt
+	if t := q.destSent[m.DestID]; m.SentAt.After(t) {
+		q.destSent[m.DestID] = m.SentAt
 	}
 
 	q.sent = append(q.sent, m)
@@ -114,7 +118,7 @@ func (q *queue) servicePriority(serviceA, serviceB string) (isLess, ok bool) {
 }
 
 // filterPending will delete messages from pending that are not eligible to be sent.
-func (q *queue) filterPending(destType notification.DestType) {
+func (q *queue) filterPending(destType string) {
 	pending := q.pending[destType]
 	if len(pending) == 0 {
 		return
@@ -135,7 +139,7 @@ func (q *queue) filterPending(destType notification.DestType) {
 }
 
 // sortPending will re-sort the list of pending messages.
-func (q *queue) sortPending(destType notification.DestType) {
+func (q *queue) sortPending(destType string) {
 	pending := q.pending[destType]
 	if len(pending) == 0 {
 		return
@@ -191,7 +195,7 @@ func (q *queue) sortPending(destType notification.DestType) {
 // for the given type.
 //
 // It returns nil if there are no more messages.
-func (q *queue) NextByType(destType notification.DestType) *Message {
+func (q *queue) NextByType(destType string) *Message {
 	q.mx.Lock()
 	defer q.mx.Unlock()
 
@@ -211,7 +215,7 @@ func (q *queue) NextByType(destType notification.DestType) *Message {
 
 // SentByType returns the number of messages sent for the given type
 // over the past Duration.
-func (q *queue) SentByType(destType notification.DestType, dur time.Duration) int {
+func (q *queue) SentByType(destType string, dur time.Duration) int {
 	q.mx.Lock()
 	defer q.mx.Unlock()
 
@@ -227,11 +231,11 @@ func (q *queue) SentByType(destType notification.DestType, dur time.Duration) in
 }
 
 // Types returns a slice of all DestTypes currently waiting to be sent.
-func (q *queue) Types() []notification.DestType {
+func (q *queue) Types() []string {
 	q.mx.Lock()
 	defer q.mx.Unlock()
 
-	result := make([]notification.DestType, 0, len(q.pending))
+	result := make([]string, 0, len(q.pending))
 	for typ, msgs := range q.pending {
 		if len(msgs) == 0 {
 			continue

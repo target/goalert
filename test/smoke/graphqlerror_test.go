@@ -2,7 +2,10 @@ package smoke
 
 import (
 	"encoding/json"
+	"fmt"
+	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -11,6 +14,7 @@ import (
 )
 
 func TestGraphQLError(t *testing.T) {
+	t.Parallel()
 	h := harness.NewHarness(t, "", "ids-to-uuids")
 	defer h.Close()
 
@@ -34,4 +38,24 @@ func TestGraphQLError(t *testing.T) {
 	require.Len(t, r.Errors, 1)
 
 	require.Equal(t, "json request body could not be decoded: body must be an object, missing '{'", r.Errors[0].Message)
+}
+
+func TestGraphQLError_TruncatedRequest(t *testing.T) {
+	t.Parallel()
+	h := harness.NewHarness(t, "", "ids-to-uuids")
+	defer h.Close()
+
+	u, err := url.Parse(h.URL() + "/api/graphql")
+	require.NoError(t, err)
+	c, err := net.Dial("tcp", u.Host)
+	require.NoError(t, err)
+	defer c.Close()
+
+	_, err = fmt.Fprintf(c, "POST /api/graphql HTTP/1.1\r\nHost: %s\r\nContent-Type: application/json\r\nAuthorization: Bearer %s\r\nContent-Length: 400\r\n\r\n{\"test\"", u.Host, h.GraphQLToken(harness.DefaultGraphQLAdminUserID))
+	require.NoError(t, err)
+
+	err = c.Close()
+	require.NoError(t, err)
+
+	// Test will fail if there is a backend error.
 }
