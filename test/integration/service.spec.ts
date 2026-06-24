@@ -177,10 +177,10 @@ test('Alerts', async ({ page, isMobile }) => {
   }
 
   await expect(page.getByTestId('service-recent-events')).toContainText(
-    'Created',
+    'Acknowledged',
   )
   await expect(page.getByTestId('service-recent-events')).toContainText(
-    'Acknowledged',
+    'Escalated',
   )
   await expect(page.getByTestId('service-recent-events')).toContainText(
     'Closed',
@@ -196,16 +196,25 @@ test('Alerts', async ({ page, isMobile }) => {
 
   // Wait for data-ql=true and data-ql-ready=true
   await page.waitForSelector('[data-ql="true"][data-ql-ready="true"]')
+  await page.waitForLoadState('networkidle')
   await expect(page.getByText('No results')).toBeVisible()
 
   await page.getByRole('tab', { name: 'CLOSED' }).click()
+
+  // ensure the url filter is updated
+  await expect(page).toHaveURL(/filter=closed/)
+
   // ensure the tab has aria-selected=true
   await expect(
     page.getByRole('tab', { name: 'CLOSED', selected: true }),
   ).toBeVisible()
 
+  const firstName = name.split(' ')[1]
+
   await expect(
-    page.getByRole('link', { name: ' CLOSED ' + summary }),
+    await page.getByRole('link', {
+      name: new RegExp(`^\\d+: CLOSED pw-service ${firstName}`),
+    }),
   ).toBeVisible()
 })
 
