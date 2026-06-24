@@ -223,8 +223,8 @@ test('Label', async ({ page, isMobile }) => {
   await expect(page.getByText(key)).toBeVisible()
   await expect(page.getByText(value)).toBeVisible()
 
-  // Delete the label, confirm it's no longer visible
-  await page.getByRole('button', { name: 'Other Actions' }).click()
+  // Delete the first label, confirm it's no longer visible
+  await page.getByRole('button', { name: 'Other Actions' }).first().click()
   await page.getByRole('menuitem', { name: 'Delete' }).click()
   await page.getByRole('button', { name: 'Confirm' }).click()
 
