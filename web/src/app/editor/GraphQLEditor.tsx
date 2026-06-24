@@ -7,6 +7,8 @@ import { useTheme } from '../theme/useTheme'
 import { bracketMatching } from '@codemirror/language'
 import { Grid, IconButton } from '@mui/material'
 import { AutoFixHigh } from '@mui/icons-material'
+import { EditorView } from '@codemirror/view'
+import { nonce } from '../env'
 
 const query = gql(getIntrospectionQuery())
 
@@ -34,7 +36,11 @@ export default function GraphQLEditor(
           theme={theme}
           readOnly={props.readOnly}
           onChange={props.onChange}
-          extensions={[bracketMatching(), graphqlLang(schema)]}
+          extensions={[
+            EditorView.cspNonce.of(nonce),
+            bracketMatching(),
+            graphqlLang(schema),
+          ]}
           minHeight={props.minHeight}
           maxHeight={props.maxHeight}
         />

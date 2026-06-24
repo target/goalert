@@ -69,7 +69,7 @@ export function DraggableListItem({
   id,
   index,
   item,
-}: DraggableListItemProps): JSX.Element {
+}: DraggableListItemProps): React.JSX.Element {
   const theme = useTheme()
   const {
     attributes,

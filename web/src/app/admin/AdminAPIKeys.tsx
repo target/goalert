@@ -51,7 +51,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-export default function AdminAPIKeys(): JSX.Element {
+export default function AdminAPIKeys(): React.JSX.Element {
   const classes = useStyles()
   const [selectedAPIKey, setSelectedAPIKey] = useState<GQLAPIKey | null>(null)
   const [createDialog, setCreateDialog] = useState<boolean>(false)

@@ -15,6 +15,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -30,11 +31,8 @@ func NewHandler(c Config) *Handler {
 
 // ServeUserAvatar will serve a redirect for a users avatar image.
 func (h *Handler) ServeUserAvatar(w http.ResponseWriter, req *http.Request) {
-	parts := strings.Split(req.URL.Path, "/")
-	userID := parts[len(parts)-1]
-
 	ctx := req.Context()
-	u, err := h.c.UserStore.FindOne(ctx, userID)
+	u, err := h.c.UserStore.FindOne(ctx, req.PathValue("userID"))
 	if errors.Is(err, sql.ErrNoRows) {
 		http.NotFound(w, req)
 		return
@@ -50,16 +48,8 @@ func (h *Handler) ServeUserAvatar(w http.ResponseWriter, req *http.Request) {
 // ServeHeartbeatCheck serves the heartbeat check-in endpoint.
 func (h *Handler) ServeHeartbeatCheck(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	if r.Method != "POST" {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
-	}
-
-	parts := strings.Split(r.URL.Path, "/")
-	monitorID := parts[len(parts)-1]
-
 	err := retry.DoTemporaryError(func(_ int) error {
-		return h.c.HeartbeatStore.RecordHeartbeat(ctx, monitorID)
+		return h.c.HeartbeatStore.RecordHeartbeat(ctx, r.PathValue("heartbeatID"))
 	},
 		retry.Log(ctx),
 		retry.Limit(12),
@@ -102,8 +92,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	ct, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if ct == "application/json" {
 		data, err := io.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if errutil.HTTPError(ctx, w, err) {
 			return
 		}
 
@@ -112,8 +101,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 			Meta                            map[string]string
 		}
 		err = json.Unmarshal(data, &b)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
 			return
 		}
 

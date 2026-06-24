@@ -148,7 +148,7 @@ func (m *Mocker) Remove(ctx context.Context) error {
 }
 
 // Close closes the database connection.
-func (m *Mocker) Close() error { m.db.Close(); return nil }
+func (m *Mocker) Close() { m.db.Close() }
 
 // AdvanceTime advances the time by the given duration.
 func (m *Mocker) AdvanceTime(ctx context.Context, d time.Duration) error {

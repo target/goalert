@@ -4,6 +4,7 @@ import List from '@mui/material/List'
 import Typography from '@mui/material/Typography'
 import makeStyles from '@mui/styles/makeStyles'
 import { styles as globalStyles } from '../styles/materialStyles'
+import { applicationName } from '../env'
 import {
   Group,
   Layers,
@@ -38,7 +39,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }))
 
-export default function NavBar(): JSX.Element {
+export default function NavBar(): React.JSX.Element {
   const classes = useStyles()
   const theme = useTheme()
 
@@ -73,7 +74,7 @@ export default function NavBar(): JSX.Element {
           {logo}
         </a>
         <Typography variant='h5' sx={{ pl: 1 }}>
-          <b>GoAlert</b>
+          <b>{applicationName}</b>
         </Typography>
       </div>
       <Divider />
@@ -97,6 +98,7 @@ export default function NavBar(): JSX.Element {
           <RequireConfig isAdmin>
             <NavBarLink to='/admin' title='Admin' icon={<Build />}>
               <NavBarSubLink to='/admin/config' title='Config' />
+              <NavBarSubLink to='/admin/maintenance' title='Maintenance' />
               <NavBarSubLink to='/admin/limits' title='System Limits' />
               <NavBarSubLink to='/admin/toolbox' title='Toolbox' />
               <NavBarSubLink to='/admin/message-logs' title='Message Logs' />

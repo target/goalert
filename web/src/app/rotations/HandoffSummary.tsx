@@ -9,7 +9,7 @@ export interface HandoffSummaryProps {
   timeZone: string
 }
 
-function dur(p: HandoffSummaryProps): JSX.Element | string {
+function dur(p: HandoffSummaryProps): React.JSX.Element | string {
   if (p.type === 'hourly') return <Time duration={{ hours: p.shiftLength }} />
   if (p.type === 'daily') return <Time duration={{ days: p.shiftLength }} />
   if (p.type === 'weekly') return <Time duration={{ weeks: p.shiftLength }} />
@@ -17,7 +17,7 @@ function dur(p: HandoffSummaryProps): JSX.Element | string {
   throw new Error('unknown rotation type: ' + p.type)
 }
 
-function ts(p: HandoffSummaryProps): JSX.Element | string {
+function ts(p: HandoffSummaryProps): React.JSX.Element | string {
   if (p.type === 'hourly')
     return <Time prefix='from ' time={p.start} zone={p.timeZone} />
   if (p.type === 'daily')
@@ -38,7 +38,7 @@ function ts(p: HandoffSummaryProps): JSX.Element | string {
 
 // handoffSummary returns the summary description for the rotation
 export const HandoffSummary: React.FC<HandoffSummaryProps> =
-  function HandoffSummary(props: HandoffSummaryProps): JSX.Element {
+  function HandoffSummary(props: HandoffSummaryProps): React.JSX.Element {
     if (!props.timeZone) return <span>Loading handoff information...</span>
     return (
       <span>

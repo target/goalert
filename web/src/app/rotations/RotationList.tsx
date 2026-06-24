@@ -26,7 +26,7 @@ const query = gql`
 `
 
 const context = { suspense: false }
-export default function RotationList(): JSX.Element {
+export default function RotationList(): React.JSX.Element {
   const [search] = useURLParam<string>('search', '')
   const [create, setCreate] = useState(false)
   const [cursor, setCursor] = useState('')

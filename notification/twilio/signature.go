@@ -32,7 +32,7 @@ func Signature(authToken, url string, fields url.Values) []byte {
 	buf.Reset()
 	enc := base64.NewEncoder(base64.StdEncoding, buf)
 	_, _ = enc.Write(hash.Sum(nil))
-	enc.Close()
+	_ = enc.Close()
 
 	return buf.Bytes()
 }

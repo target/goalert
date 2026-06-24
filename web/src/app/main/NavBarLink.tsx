@@ -2,7 +2,7 @@ import React from 'react'
 import { useLocation } from 'wouter'
 import List from '@mui/material/List'
 import makeStyles from '@mui/styles/makeStyles'
-import ListItem from '@mui/material/ListItem'
+import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import Typography from '@mui/material/Typography'
@@ -49,7 +49,7 @@ export function NavBarSubLink({
   to,
   title,
   newTab,
-}: NavBarSubLinkProps): JSX.Element {
+}: NavBarSubLinkProps): React.JSX.Element {
   const { navSelected, nav, subMenuLinkText } = useStyles()
   const [path] = useLocation()
   return (
@@ -58,20 +58,20 @@ export function NavBarSubLink({
       to={to}
       newTab={newTab}
     >
-      <ListItem button tabIndex={-1}>
+      <ListItemButton tabIndex={-1}>
         <ListItemText className={subMenuLinkText}>
           {title}
           {newTab && (
             <OpenInNew fontSize='small' style={{ paddingLeft: '1em' }} />
           )}
         </ListItemText>
-      </ListItem>
+      </ListItemButton>
     </AppLink>
   )
 }
 
 export type NavBarLinkProps = {
-  icon: JSX.Element
+  icon: React.JSX.Element
   title: string
   to: string
   children?: React.ReactNode[] | React.ReactNode
@@ -82,7 +82,7 @@ export default function NavBarLink({
   title,
   to,
   children,
-}: NavBarLinkProps): JSX.Element {
+}: NavBarLinkProps): React.JSX.Element {
   const classes = useStyles()
   const [path] = useLocation()
   const isRoute = path.startsWith(to)
@@ -93,7 +93,7 @@ export default function NavBarLink({
         to={to}
         className={!children && isRoute ? classes.navSelected : classes.nav}
       >
-        <ListItem button tabIndex={-1}>
+        <ListItemButton tabIndex={-1}>
           <ListItemIcon>{icon}</ListItemIcon>
           <ListItemText
             disableTypography
@@ -113,7 +113,7 @@ export default function NavBarLink({
               }
             />
           )}
-        </ListItem>
+        </ListItemButton>
       </AppLink>
       {children && (
         <Collapse in={isRoute} mountOnEnter>

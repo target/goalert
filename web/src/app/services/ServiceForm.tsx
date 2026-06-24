@@ -3,7 +3,6 @@ import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import { EscalationPolicySelect } from '../selection/EscalationPolicySelect'
 import { FormContainer, FormField } from '../forms'
-import { FieldError } from '../util/errutil'
 import { useConfigValue } from '../util/RequireConfig'
 import { Label } from '../../schema'
 import { InputAdornment } from '@mui/material'
@@ -20,7 +19,12 @@ export interface Value {
 interface ServiceFormProps {
   value: Value
 
-  errors: FieldError[]
+  nameError?: string
+  descError?: string
+  epError?: string
+
+  labelErrorKey?: string
+  labelErrorMsg?: string
 
   onChange: (val: Value) => void
 
@@ -30,18 +34,28 @@ interface ServiceFormProps {
 }
 
 export default function ServiceForm(props: ServiceFormProps): JSX.Element {
-  const { epRequired, errors, ...containerProps } = props
+  const {
+    epRequired,
+    nameError,
+    descError,
+    epError,
+    labelErrorKey,
+    labelErrorMsg,
+    ...containerProps
+  } = props
 
-  const formErrs = errors.map((e) => {
-    if (e.field !== 'value') {
-      // label value
-      return e
-    }
-    return {
-      ...e,
-      field: 'labels',
-    }
-  })
+  const formErrs = [
+    { field: 'name', message: nameError },
+    { field: 'description', message: descError },
+    {
+      field: 'escalationPolicyID',
+      message: epError,
+    },
+    {
+      field: 'label_' + labelErrorKey,
+      message: labelErrorMsg,
+    },
+  ].filter((e) => e.message)
 
   const [reqLabels] = useConfigValue('Services.RequiredLabels') as [string[]]
 
@@ -92,6 +106,7 @@ export default function ServiceForm(props: ServiceFormProps): JSX.Element {
                 required={!epRequired} // optional when editing
                 component={TextField}
                 fieldName='labels'
+                errorName={'label_' + labelName}
                 label={
                   reqLabels.length === 1
                     ? 'Service Label'

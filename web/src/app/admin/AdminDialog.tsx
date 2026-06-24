@@ -34,7 +34,7 @@ interface AdminDialogProps {
   onComplete?: () => void
 }
 
-function AdminDialog(props: AdminDialogProps): JSX.Element {
+function AdminDialog(props: AdminDialogProps): React.JSX.Element {
   const [{ data, fetching, error: readError }] = useQuery({
     query: props.query || query,
   })

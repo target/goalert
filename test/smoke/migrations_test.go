@@ -18,13 +18,14 @@ import (
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/test/smoke/harness"
 	"github.com/target/goalert/test/smoke/migratetest"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 )
 
 // DefaultSkipToMigration is the default migration to skip to when running the migration tests.
 //
 // It can be overriden by setting the SKIP_TO environment variable.
-const DefaultSkipToMigration = "switchover-mk2"
+const DefaultSkipToMigration = "om-history"
 
 var rules = migratetest.RuleSet{
 	// All migration timestamps will differ as they applied/re-applied
@@ -79,6 +80,12 @@ var rules = migratetest.RuleSet{
 
 	// Every DB must have a unique ID.
 	{MigrationName: "switchover-mk2", TableName: "switchover_state", ColumnName: "db_id"},
+
+	{MigrationName: "track-rotation-updates", TableName: "entity_updates", ColumnName: "created_at"},
+
+	// entity_updates are converted to jobs (1-way). Previously a separate job would do this.
+	{MigrationName: "rotation-direct-event", TableName: "entity_updates", MissingRows: true},
+	{MigrationName: "rotation-direct-event", TableName: "river_job", ExtraRows: true},
 }
 
 const migrateInitData = `
@@ -223,6 +230,12 @@ func renderQuery(t *testing.T, sql string) string {
 	return b.String()
 }
 
+func migrateLogCtx() context.Context {
+	l := log.NewLogger()
+	l.ErrorsOnly()
+	return log.WithLogger(context.Background(), l)
+}
+
 func TestMigrations(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping migrations tests for short mode")
@@ -236,7 +249,15 @@ func TestMigrations(t *testing.T) {
 		t.Fatal("failed to open db:", err)
 	}
 	defer db.Close()
-	dbName := strings.Replace("migrations_smoketest_"+time.Now().Format("2006_01_02_03_04_05")+uuid.New().String(), "-", "", -1)
+
+	// Postgres has a limit of 63 characters for database names,
+	// it will automatically truncate them, however, starting with
+	// Postgres 17, trying to connect will fail with database not found
+	// if the name is too long. In either case we want to avoid the
+	// truncation, so we generate a name that is guaranteed to be
+	// less than 63 characters.
+	dbName := strings.ReplaceAll("migrate_test_"+time.Now().Format("20060102030405")+uuid.New().String(), "-", "")
+	require.LessOrEqual(t, len(dbName), 63, "database name too long")
 
 	testURL := harness.DBURL(dbName)
 
@@ -246,7 +267,7 @@ func TestMigrations(t *testing.T) {
 	}
 	defer func() { _, _ = db.Exec("drop database " + sqlutil.QuoteID(dbName)) }()
 
-	n, err := migrate.Up(context.Background(), testURL, start)
+	n, err := migrate.Up(migrateLogCtx(), testURL, start)
 	if err != nil {
 		t.Fatal("failed to apply initial migrations:", err)
 	}
@@ -285,7 +306,7 @@ func TestMigrations(t *testing.T) {
 
 	var idx int
 	for idx = range names {
-		_, err := migrate.Up(context.Background(), testURL, names[idx])
+		_, err := migrate.Up(migrateLogCtx(), testURL, names[idx])
 		if err != nil {
 			t.Fatal("failed to skip migration:", err)
 		}
@@ -297,7 +318,7 @@ func TestMigrations(t *testing.T) {
 
 	names = names[idx:]
 	if skipTo {
-		n, err := migrate.Up(context.Background(), testURL, start)
+		n, err := migrate.Up(migrateLogCtx(), testURL, start)
 		if err != nil {
 			t.Fatal("failed to apply skip migrations:", err)
 		}
@@ -322,7 +343,7 @@ func TestMigrations(t *testing.T) {
 
 		var beforeUpSnap *migratetest.Snapshot
 		pass := t.Run(migrationName, func(t *testing.T) {
-			ctx := context.Background()
+			ctx := migrateLogCtx()
 
 			if beforeUpSnap == nil {
 				beforeUpSnap = snapshot(t, migrationName)

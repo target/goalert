@@ -52,7 +52,7 @@ interface LimitsValues {
   [id: string]: string
 }
 
-export default function AdminLimits(): JSX.Element {
+export default function AdminLimits(): React.JSX.Element {
   const classes = useStyles()
   const [confirm, setConfirm] = useState(false)
   const [values, setValues] = useState({})

@@ -86,6 +86,7 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 		}
 		User struct {
 			ID       string `json:"id"`
+			TeamID   string `json:"team_id"`
 			Username string `json:"username"`
 			Name     string
 		}
@@ -95,6 +96,7 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 			Value    string `json:"value"`
 		}
 	}
+
 	err = json.Unmarshal([]byte(req.FormValue("payload")), &payload)
 	if errutil.HTTPError(ctx, w, err) {
 		return
@@ -143,13 +145,21 @@ func (s *ChannelSender) ServeMessageAction(w http.ResponseWriter, req *http.Requ
 
 	if errors.As(err, &e) {
 		var linkURL string
+		teamID := payload.User.TeamID
+		if teamID == "" {
+			teamID = payload.Team.ID
+		}
 		switch {
-		case payload.User.Name == "", payload.User.Username == "", payload.Team.ID == "", payload.Team.Domain == "":
+		case payload.User.ID == "", teamID == "":
 			// missing data, don't allow linking
 			log.Log(ctx, errors.New("slack payload missing required data"))
 		default:
-			linkURL, err = s.recv.AuthLinkURL(ctx, "slack:"+payload.Team.ID, payload.User.ID, authlink.Metadata{
-				UserDetails: fmt.Sprintf("Slack user %s (@%s) from %s.slack.com", payload.User.Name, payload.User.Username, payload.Team.Domain),
+			name := payload.User.Username
+			if name == "" {
+				name = payload.User.Name
+			}
+			linkURL, err = s.recv.AuthLinkURL(ctx, "slack:"+teamID, payload.User.ID, authlink.Metadata{
+				UserDetails: fmt.Sprintf("Slack user %s from %s.slack.com", name, payload.Team.Domain),
 				AlertID:     e.AlertID,
 				AlertAction: res.String(),
 			})

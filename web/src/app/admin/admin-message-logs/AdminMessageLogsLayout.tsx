@@ -56,7 +56,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 const context = { suspense: false }
 
-export default function AdminMessageLogsLayout(): JSX.Element {
+export default function AdminMessageLogsLayout(): React.JSX.Element {
   const classes = useStyles()
   const [selectedLog, setSelectedLog] = useState<DebugMessage | null>(null)
 
@@ -104,6 +104,7 @@ export default function AdminMessageLogsLayout(): JSX.Element {
     const s = status.toLowerCase()
     if (s.includes('deliver')) statusStyles = statusDict.success
     if (s.includes('sent')) statusStyles = statusDict.success
+    if (s.includes('read')) statusStyles = statusDict.success
     if (s.includes('fail')) statusStyles = statusDict.error
     if (s.includes('temp')) statusStyles = statusDict.warning
     if (s.includes('pend')) statusStyles = statusDict.info

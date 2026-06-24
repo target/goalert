@@ -18,7 +18,7 @@ export const getContrastColor = (theme: Theme): string => {
   )
 }
 
-export default function ToolbarPageTitle(): JSX.Element {
+export default function ToolbarPageTitle(): React.JSX.Element {
   const isMobile = useIsWidthDown('md')
 
   const [path] = useLocation()

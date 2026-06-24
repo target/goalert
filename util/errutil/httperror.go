@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/target/goalert/ctxlock"
@@ -49,26 +50,30 @@ func HTTPError(ctx context.Context, w http.ResponseWriter, err error) bool {
 	}
 
 	err = MapDBError(err)
+	var bodyLimit *http.MaxBytesError
 	switch {
-	case errors.Is(err, ctxlock.ErrQueueFull), errors.Is(err, ctxlock.ErrTimeout), IsLimitError(err):
-		// Either the queue is full or the lock timed out. Either way
-		// we are waiting on concurrent requests for this source, so
-		// send them back with a 429 because we are rate limiting them
-		// due to being at/beyond capacity.
+	case errors.As(err, &bodyLimit):
+		http.Error(w, fmt.Sprintf("%s (max body: %v bytes)", http.StatusText(http.StatusRequestEntityTooLarge), bodyLimit.Limit), http.StatusRequestEntityTooLarge)
+	case errors.Is(err, ctxlock.ErrQueueFull):
+		// The queue is full meaning we have over 100 requests from the
+		// same source.
 		//
 		// Because of the way the lock works, we can guarantee that
 		// we will process one request at a time (per source), but we
 		// may have to wait for a previous request to finish before we
 		// can start processing the next one.
 		//
-		// This means only concurrent requests (per process) have the
-		// possibility to be rate limited, and not sequential requests,
+		// This means only concurrent requests (per process/per key) have
+		// the possibility to be rate limited, and not sequential requests,
 		// even in the worst case scenario.
-		http.Error(w, http.StatusText(http.StatusTooManyRequests), http.StatusTooManyRequests)
+		http.Error(w, "Too many concurrent requests for this key or session", http.StatusTooManyRequests)
+	case errors.Is(err, ctxlock.ErrTimeout):
+		// Similar to above, but that we timed out waiting in the queue.
+		http.Error(w, http.StatusText(http.StatusRequestTimeout), http.StatusRequestTimeout)
 	case isCancel(err):
-		// Client disconnected, send 400 back so logs reflect that this
+		// Client disconnected, send 499 back so logs reflect that this
 		// was a client-side problem.
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		http.Error(w, "Client disconnected.", 499)
 	case permission.IsUnauthorized(err):
 		http.Error(w, unwrapAll(err).Error(), http.StatusUnauthorized)
 	case permission.IsPermissionError(err):

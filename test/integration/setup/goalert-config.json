@@ -3,7 +3,10 @@
     "NotificationDisclaimer": "test-disclaimer-text"
   },
   "Twilio": {
-    "Enable": true
+    "Enable": true,
+    "FromNumber": "+15005550006",
+    "AccountSID": "test-sid",
+    "AuthToken": "test-token"
   },
   "SMTP": {
     "Enable": true,

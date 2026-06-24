@@ -27,7 +27,7 @@ const presets = [7, 15, 30, 60, 90]
 
 export default function AdminAPIKeyExpirationField(
   props: FieldProps,
-): JSX.Element {
+): React.JSX.Element {
   const classes = useStyles()
 
   const [selected, setSelected] = useState<number>(

@@ -29,7 +29,7 @@ interface AlertFeedbackDialogProps {
 
 export default function AlertFeedbackDialog(
   props: AlertFeedbackDialogProps,
-): JSX.Element {
+): React.JSX.Element {
   const { alertIDs, open, onClose } = props
 
   const [noiseReasons, setNoiseReasons] = useState<Array<string>>([])

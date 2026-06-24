@@ -22,7 +22,7 @@ import { LabelKeySelect } from '../../selection'
 import { LabelValueSelect } from '../../selection/LabelValueSelect'
 import { useFeatures } from '../../util/RequireConfig'
 
-function AdminServiceFilter(): JSX.Element {
+function AdminServiceFilter(): React.JSX.Element {
   const [open, setOpen] = useState<boolean>(false)
 
   const [params, setParams] = useURLParams({
@@ -52,7 +52,7 @@ function AdminServiceFilter(): JSX.Element {
     setParams({ ...params, [filterName]: [] })
   }
 
-  function renderFilterChips(): JSX.Element {
+  function renderFilterChips(): React.JSX.Element {
     return (
       <Stack direction='row' spacing={1} sx={{ marginTop: '10px' }}>
         {!!params.epStepTgts.length && (
@@ -89,7 +89,7 @@ function AdminServiceFilter(): JSX.Element {
     )
   }
 
-  function renderFilterDrawer(): JSX.Element {
+  function renderFilterDrawer(): React.JSX.Element {
     return (
       <ClickAwayListener
         onClickAway={() => setOpen(false)}

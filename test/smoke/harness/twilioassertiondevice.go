@@ -35,7 +35,7 @@ func (dev *twilioAssertionDevice) _expectVoice(keywords ...string) *twilioAssert
 	for {
 		var call *mocktwilio.VoiceCall
 		select {
-		case call = <-dev.Server.VoiceCalls():
+		case call = <-dev.VoiceCalls():
 		case msg := <-timeout:
 			dev.t.Fatalf("Twilio: timeout after %s waiting for voice call to %s with keywords: %v", msg, dev.formatNumber(dev.number), keywords)
 		}
@@ -72,7 +72,7 @@ func (dev *twilioAssertionDevice) _expectSMS(includePrev bool, keywords ...strin
 	for {
 		var sms *mocktwilio.SMS
 		select {
-		case sms = <-dev.Server.SMS():
+		case sms = <-dev.SMS():
 		case msg := <-timeout:
 			dev.t.Fatalf("Twilio: timeout after %s waiting for an SMS to %s with keywords: %v", msg, dev.formatNumber(dev.number), keywords)
 		}
@@ -92,11 +92,13 @@ func (dev *twilioAssertionDevice) ExpectSMS(keywords ...string) ExpectedSMS {
 	sms.Accept()
 	return sms
 }
+
 func (dev *twilioAssertionDevice) RejectSMS(keywords ...string) {
 	dev.t.Helper()
 	sms := dev._expectSMS(true, keywords...)
 	sms.Reject()
 }
+
 func (sms *twilioAssertionSMS) ThenExpect(keywords ...string) ExpectedSMS {
 	sms.t.Helper()
 	sms = sms._expectSMS(false, keywords...)
@@ -113,11 +115,13 @@ func (dev *twilioAssertionDevice) ExpectVoice(keywords ...string) ExpectedCall {
 	dev.mx.Unlock()
 	return call
 }
+
 func (dev *twilioAssertionDevice) RejectVoice(keywords ...string) {
 	dev.t.Helper()
 	call := dev._expectVoice(keywords...)
 	call.Reject()
 }
+
 func (dev *twilioAssertionDevice) SendSMS(body string) {
 	dev.t.Helper()
 	err := dev.Server.SendSMS(dev.number, dev.sendSMSDest, body)
@@ -131,6 +135,7 @@ func (dev *twilioAssertionDevice) IgnoreUnexpectedSMS(keywords ...string) {
 	defer dev.mx.Unlock()
 	dev.ignoredSMS = append(dev.ignoredSMS, messageMatcher{number: dev.number, keywords: keywords})
 }
+
 func (dev *twilioAssertionDevice) IgnoreUnexpectedVoice(keywords ...string) {
 	dev.mx.Lock()
 	defer dev.mx.Unlock()

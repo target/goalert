@@ -5,7 +5,7 @@ import { ISODateTimePicker } from '../../util/ISOPickers'
 import Search from '../../util/Search'
 import { useMessageLogsParams } from './util'
 
-export default function AdminMessageLogsControls(): JSX.Element {
+export default function AdminMessageLogsControls(): React.JSX.Element {
   const [params, setParams] = useMessageLogsParams()
 
   return (

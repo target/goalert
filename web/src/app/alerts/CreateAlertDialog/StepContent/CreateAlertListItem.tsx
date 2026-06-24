@@ -22,7 +22,7 @@ const useStyles = makeStyles({
 
 export default function CreateAlertListItem(props: {
   id: string
-}): JSX.Element {
+}): React.JSX.Element {
   const { id } = props
 
   const classes = useStyles()

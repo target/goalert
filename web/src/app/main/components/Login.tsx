@@ -9,7 +9,7 @@ import Divider from '@mui/material/Divider'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme, useTheme } from '@mui/material'
 import { getParameterByName } from '../../util/query_param'
-import { pathPrefix } from '../../env'
+import { pathPrefix, applicationName } from '../../env'
 
 import logoImgSrc from '../../public/logos/lightmode_logo.svg'
 import darkModeLogoImgSrc from '../../public/logos/darkmode_logo.svg'
@@ -81,7 +81,7 @@ type Provider = {
   URL: string
 }
 
-export default function Login(): JSX.Element {
+export default function Login(): React.JSX.Element {
   const classes = useStyles()
   const theme = useTheme()
   const [error, setError] = useState(getParameterByName('login_error') || '')
@@ -99,7 +99,7 @@ export default function Login(): JSX.Element {
    * Renders a field from a provider
    */
 
-  function renderField(field: Field): JSX.Element {
+  function renderField(field: Field): React.JSX.Element {
     const {
       ID: id, // unique name/identifier of the field
       Label: label, // placeholder text that is displayed to the use in the field
@@ -126,7 +126,7 @@ export default function Login(): JSX.Element {
   function renderHasNextDivider(
     idx: number,
     len: number,
-  ): JSX.Element | undefined {
+  ): React.JSX.Element | undefined {
     if (idx + 1 < len) {
       return (
         <Grid item xs={12} className={classes.hasNext}>
@@ -146,7 +146,7 @@ export default function Login(): JSX.Element {
     provider: Provider,
     idx: number,
     len: number,
-  ): JSX.Element | null {
+  ): React.JSX.Element | null {
     const {
       ID: id, // unique identifier of the provider
       Fields: fields, // holds a list of fields to include with the request
@@ -232,7 +232,7 @@ export default function Login(): JSX.Element {
                 <Grid item>{logo}</Grid>
                 <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
                   <Typography variant='h5' sx={{ pl: 1 }}>
-                    <b>GoAlert</b>
+                    <b>{applicationName}</b>
                   </Typography>
                 </Grid>
               </Grid>

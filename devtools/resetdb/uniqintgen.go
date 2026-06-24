@@ -4,7 +4,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/brianvoe/gofakeit/v6"
+	"github.com/brianvoe/gofakeit/v7"
 )
 
 // uniqIntGen works like uniqGen but returns integers.

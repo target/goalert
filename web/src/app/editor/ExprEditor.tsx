@@ -4,6 +4,7 @@ import { Expr } from './expr-lang'
 import { useTheme } from '../theme/useTheme'
 import { bracketMatching } from '@codemirror/language'
 import { Grid } from '@mui/material'
+import { nonce } from '../env'
 
 export type ExprEditorProps = {
   value: string
@@ -26,7 +27,12 @@ export default function ExprEditor(props: ExprEditorProps): React.ReactNode {
           onFocus={props.onFocus}
           onBlur={props.onBlur}
           onChange={props.onChange}
-          extensions={[bracketMatching(), Expr(), EditorView.lineWrapping]}
+          extensions={[
+            EditorView.cspNonce.of(nonce),
+            bracketMatching(),
+            Expr(),
+            EditorView.lineWrapping,
+          ]}
           minHeight={props.minHeight}
           maxHeight={props.maxHeight}
         />
