@@ -787,6 +787,7 @@ export interface Mutation {
   promoteSecondaryToken: boolean
   reEncryptKeyringsAndConfig: boolean
   sendContactMethodVerification: boolean
+  sendSignal: boolean
   setAlertNoiseReason: boolean
   setConfig: boolean
   setFavorite: boolean
@@ -1064,6 +1065,12 @@ export interface ScheduleTargetInput {
 
 export interface SendContactMethodVerificationInput {
   contactMethodID: string
+}
+
+export interface SendSignalInput {
+  dest: DestinationInput
+  params?: null | StringMap
+  serviceID: string
 }
 
 export interface Service {
@@ -1660,6 +1667,7 @@ type ConfigID =
   | 'Slack.AccessToken'
   | 'Slack.SigningSecret'
   | 'Slack.InteractiveMessages'
+  | 'Slack.DisableBroadcastThreadReplies'
   | 'Twilio.Enable'
   | 'Twilio.VoiceName'
   | 'Twilio.VoiceLanguage'

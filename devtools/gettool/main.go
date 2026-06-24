@@ -51,6 +51,8 @@ func main() {
 		err = getMailpit(*version, *output)
 	case "k6":
 		err = getK6(*version, *output)
+	case "golangci-lint":
+		err = getLint(*version, *output)
 	default:
 		log.Fatalf("unknown tool '%s'", *tool)
 	}

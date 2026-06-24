@@ -32,6 +32,10 @@ var tmpl = template.Must(
 		}).
 		Parse(`
 import (
+	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/validation"
 )

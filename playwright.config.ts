@@ -58,7 +58,8 @@ const config = {
   ],
   webServer: [
     {
-      command: './bin/tools/mailpit -l=localhost:6125 -s=localhost:6105',
+      command:
+        './bin/tools/mailpit -l=localhost:6125 -s=localhost:6105 --allow-internal-http-requests',
       port: 6125,
     },
     {
